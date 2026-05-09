@@ -1,0 +1,426 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e3] [cursor=pointer]:
+    - /url: "#main"
+  - generic [ref=e7]:
+    - generic [ref=e9]:
+      - generic:
+        - generic:
+          - generic:
+            - button "Open sidebar":
+              - img
+        - generic:
+          - generic:
+            - link "New chat":
+              - /url: /
+              - generic:
+                - img
+              - generic: New chat
+          - generic:
+            - button "Search chats":
+              - generic:
+                - img
+              - generic: Search chats
+          - generic:
+            - button "Recents":
+              - generic:
+                - img
+              - generic: Recents
+        - generic:
+          - generic:
+            - button "Open profile menu":
+              - generic:
+                - generic:
+                  - img "Profile image"
+      - generic [ref=e10]:
+        - heading "Chat history" [level=2] [ref=e11]
+        - navigation "Chat history" [ref=e12]:
+          - generic [ref=e15]:
+            - link "Home" [ref=e16] [cursor=pointer]:
+              - /url: /
+              - img [ref=e17]
+            - button "Close sidebar" [expanded] [ref=e20]:
+              - img [ref=e21]
+          - complementary [ref=e23]:
+            - list [ref=e24]:
+              - listitem [ref=e25]:
+                - link "New chat Control Shift O" [ref=e136] [cursor=pointer]:
+                  - /url: /
+                  - generic [ref=e27]:
+                    - img [ref=e138]
+                    - generic [ref=e141]: New chat
+                  - generic [ref=e142]:
+                    - generic "Control" [ref=e143]:
+                      - generic [ref=e144]: Ctrl
+                      - text: +
+                    - generic "Shift" [ref=e145]:
+                      - generic [ref=e146]: Shift
+                      - text: +
+                    - generic [ref=e148]: O
+              - listitem [ref=e32]:
+                - button "Search chats Control K" [ref=e149] [cursor=pointer]:
+                  - generic [ref=e34]:
+                    - img [ref=e151]
+                    - generic [ref=e154]: Search chats
+                  - generic [ref=e155]:
+                    - generic "Control" [ref=e156]:
+                      - generic [ref=e157]: Ctrl
+                      - text: +
+                    - generic [ref=e159]: K
+          - link "Codex" [ref=e39] [cursor=pointer]:
+            - /url: /codex/cloud
+            - generic [ref=e40]:
+              - img [ref=e42]
+              - generic [ref=e45]: Codex
+            - img [ref=e47]
+          - generic [ref=e50] [cursor=pointer]:
+            - img [ref=e52]
+            - generic [ref=e55]: More
+          - generic [ref=e160]:
+            - button "GPTs" [expanded] [ref=e161] [cursor=pointer]:
+              - heading "GPTs" [level=2] [ref=e162]
+            - list [ref=e163]:
+              - listitem [ref=e164]:
+                - link "Note Summarizer Pro" [ref=e165] [cursor=pointer]:
+                  - /url: /g/g-R1h6jDbj0-note-summarizer-pro
+                  - generic [ref=e170]: Note Summarizer Pro
+                  - button [ref=e172]:
+                    - img [ref=e174]
+              - listitem [ref=e176]:
+                - link "Code Survivor" [ref=e177] [cursor=pointer]:
+                  - /url: /g/g-zoaxLsf5M-code-survivor
+                  - generic [ref=e182]: Code Survivor
+                  - button [ref=e184]:
+                    - img [ref=e186]
+              - listitem [ref=e188]:
+                - link "ML Research Scout" [ref=e189] [cursor=pointer]:
+                  - /url: /g/g-4LlUMUHiR-ml-research-scout
+                  - generic [ref=e194]: ML Research Scout
+                  - button [ref=e196]:
+                    - img [ref=e198]
+              - listitem [ref=e200]:
+                - link "Justin Welsh's Content Matrix" [ref=e201] [cursor=pointer]:
+                  - /url: /g/g-erUOvZbnL-justin-welsh-s-content-matrix
+                  - generic "Justin Welsh's Content Matrix" [ref=e206]
+                  - button [ref=e208]:
+                    - img [ref=e210]
+              - listitem [ref=e212]:
+                - link "Prompt Professor" [ref=e213] [cursor=pointer]:
+                  - /url: /g/g-qfoOICq1l-prompt-professor
+                  - generic [ref=e218]: Prompt Professor
+                  - button [ref=e220]:
+                    - img [ref=e222]
+              - listitem [ref=e224]:
+                - link "The Tree Centaur" [ref=e225] [cursor=pointer]:
+                  - /url: /g/g-oZ0MKXRXp-the-tree-centaur
+                  - generic [ref=e230]: The Tree Centaur
+                  - button [ref=e232]:
+                    - img [ref=e234]
+              - listitem [ref=e236]:
+                - link "PHP Helper" [ref=e237] [cursor=pointer]:
+                  - /url: /g/g-9HuWMBDZw-php-helper
+                  - generic [ref=e242]: PHP Helper
+                  - button [ref=e244]:
+                    - img [ref=e246]
+              - listitem [ref=e248]:
+                - link "AI Character Card Generator - SillyTavern" [ref=e249] [cursor=pointer]:
+                  - /url: /g/g-k2XkHmLPL-ai-character-card-generator-sillytavern
+                  - generic "AI Character Card Generator - SillyTavern" [ref=e254]
+                  - button [ref=e256]:
+                    - img [ref=e258]
+            - link "Explore GPTs" [ref=e260] [cursor=pointer]:
+              - /url: /gpts
+              - img [ref=e262]
+              - generic [ref=e265]: Explore GPTs
+          - generic [ref=e266]:
+            - button "Projects" [expanded] [ref=e267] [cursor=pointer]:
+              - heading "Projects" [level=2] [ref=e268]
+            - list [ref=e269]:
+              - listitem [ref=e270]:
+                - button "New project" [ref=e271] [cursor=pointer]:
+                  - img [ref=e273]
+                  - generic [ref=e276]: New project
+              - listitem [ref=e277]:
+                - link "Show chats PATREON Open project options for PATREON" [ref=e278] [cursor=pointer]:
+                  - /url: /g/g-p-69dab9118fd08191b0ae4441bb155f98-patreon/project
+                  - generic [ref=e279]:
+                    - button "Show chats" [ref=e281]:
+                      - generic [ref=e282]:
+                        - img [ref=e286]
+                        - img [ref=e296]
+                    - generic [ref=e299]: PATREON
+                  - button "Open project options for PATREON" [ref=e301]:
+                    - img [ref=e303]
+              - listitem [ref=e305]:
+                - link "Show chats GO-GO-PARC Open project options for GO-GO-PARC" [ref=e306] [cursor=pointer]:
+                  - /url: /g/g-p-69d8f2c2baa08191acbe04c7c9aa9e03-go-go-parc/project
+                  - generic [ref=e307]:
+                    - button "Show chats" [ref=e309]:
+                      - generic [ref=e310]:
+                        - img [ref=e314]
+                        - img [ref=e324]
+                    - generic [ref=e327]: GO-GO-PARC
+                  - button "Open project options for GO-GO-PARC" [ref=e329]:
+                    - img [ref=e331]
+              - listitem [ref=e333]:
+                - link "Show chats PRO-TO-TEST Open project options for PRO-TO-TEST" [ref=e334] [cursor=pointer]:
+                  - /url: /g/g-p-69d1a2c58b8c8191a525edf3f2160b3f-pro-to-test/project
+                  - generic [ref=e335]:
+                    - button "Show chats" [ref=e337]:
+                      - generic [ref=e338]:
+                        - img [ref=e342]
+                        - img [ref=e352]
+                    - generic [ref=e355]: PRO-TO-TEST
+                  - button "Open project options for PRO-TO-TEST" [ref=e357]:
+                    - img [ref=e359]
+              - listitem [ref=e361]:
+                - link "Show chats EINK Open project options for EINK" [ref=e362] [cursor=pointer]:
+                  - /url: /g/g-p-69c6c88769f881919a159e3a905c9b0a-eink/project
+                  - generic [ref=e363]:
+                    - button "Show chats" [ref=e365]:
+                      - generic [ref=e366]:
+                        - img [ref=e370]
+                        - img [ref=e380]
+                    - generic [ref=e383]: EINK
+                  - button "Open project options for EINK" [ref=e385]:
+                    - img [ref=e387]
+              - listitem [ref=e389]:
+                - link "Show chats HAIR-BOOKING-APP Open project options for HAIR-BOOKING-APP" [ref=e390] [cursor=pointer]:
+                  - /url: /g/g-p-69c48d4da11881919b302d2c4bfa807c-hair-booking-app/project
+                  - generic [ref=e391]:
+                    - button "Show chats" [ref=e393]:
+                      - generic [ref=e394]:
+                        - img [ref=e398]
+                        - img [ref=e408]
+                    - generic [ref=e411]: HAIR-BOOKING-APP
+                  - button "Open project options for HAIR-BOOKING-APP" [ref=e413]:
+                    - img [ref=e415]
+              - listitem [ref=e417]:
+                - generic [ref=e418] [cursor=pointer]:
+                  - img [ref=e420]
+                  - generic [ref=e423]: More
+          - generic [ref=e424]:
+            - button "Recents" [expanded] [ref=e425] [cursor=pointer]:
+              - heading "Recents" [level=2] [ref=e426]
+            - list [ref=e428]:
+              - listitem [ref=e429]:
+                - link "OMeta vs Racket vs MPS" [ref=e430] [cursor=pointer]:
+                  - /url: /c/69e00097-c1d0-83ea-9e6e-79999076e370
+                  - generic [ref=e432]: OMeta vs Racket vs MPS
+                  - button "Open conversation options for OMeta vs Racket vs MPS" [ref=e435]:
+                    - img [ref=e437]
+              - listitem [ref=e439]:
+                - link "Meta-Compilation and Language Systems" [ref=e440] [cursor=pointer]:
+                  - /url: /c/69dfffe2-475c-83ea-81bc-50980408f955
+                  - generic "Meta-Compilation and Language Systems" [ref=e442]
+                  - button "Open conversation options for Meta-Compilation and Language Systems" [ref=e445]:
+                    - img [ref=e447]
+              - listitem [ref=e449]:
+                - link "Go x264enc Page Faults" [ref=e450] [cursor=pointer]:
+                  - /url: /c/69dfe2f4-4a2c-83ea-a545-940320d8a4b6
+                  - generic [ref=e452]: Go x264enc Page Faults
+                  - button "Open conversation options for Go x264enc Page Faults" [ref=e455]:
+                    - img [ref=e457]
+              - listitem [ref=e459]:
+                - link "Math Problem Naming" [ref=e460] [cursor=pointer]:
+                  - /url: /c/69dfbdcf-eb74-83ea-89ee-6154a8ad8abc
+                  - generic [ref=e462]: Math Problem Naming
+                  - button "Open conversation options for Math Problem Naming" [ref=e465]:
+                    - img [ref=e467]
+              - listitem [ref=e469]:
+                - link "OAuth Token Storage" [ref=e470] [cursor=pointer]:
+                  - /url: /c/69df9e1e-7024-83ea-b504-916540151e23
+                  - generic [ref=e472]: OAuth Token Storage
+                  - button "Open conversation options for OAuth Token Storage" [ref=e475]:
+                    - img [ref=e477]
+              - listitem [ref=e479]:
+                - link "Atproto Social Features Integration" [ref=e480] [cursor=pointer]:
+                  - /url: /c/69df8f63-4110-83ea-b85e-cf0f0e695aa5
+                  - generic "Atproto Social Features Integration" [ref=e482]
+                  - button "Open conversation options for Atproto Social Features Integration" [ref=e485]:
+                    - img [ref=e487]
+              - listitem [ref=e489]:
+                - link "Go CPU Usage Issue" [ref=e490] [cursor=pointer]:
+                  - /url: /c/69df2bf5-6a40-83ea-9ecb-0435ea81b10f
+                  - generic [ref=e492]: Go CPU Usage Issue
+                  - button "Open conversation options for Go CPU Usage Issue" [ref=e495]:
+                    - img [ref=e497]
+              - listitem [ref=e499]:
+                - link "Branch · Go CPU Usage Issue" [ref=e500] [cursor=pointer]:
+                  - /url: /c/69df4615-cfe4-83ea-a19e-5e3dacfd4829
+                  - generic [ref=e502]: Branch · Go CPU Usage Issue
+                  - button "Open conversation options for Branch · Go CPU Usage Issue" [ref=e505]:
+                    - img [ref=e507]
+              - listitem [ref=e509]:
+                - link "gst-launch performance comparison" [ref=e510] [cursor=pointer]:
+                  - /url: /c/69df3a2f-bdcc-83ea-88e9-dad41e29237b
+                  - generic "gst-launch performance comparison" [ref=e512]
+                  - button "Open conversation options for gst-launch performance comparison" [ref=e515]:
+                    - img [ref=e517]
+              - listitem [ref=e519]:
+                - link "Go-gst Pipeline Issue" [ref=e520] [cursor=pointer]:
+                  - /url: /c/69df23a6-7f80-83ea-ad43-810968280d1e
+                  - generic [ref=e522]: Go-gst Pipeline Issue
+                  - button "Open conversation options for Go-gst Pipeline Issue" [ref=e525]:
+                    - img [ref=e527]
+              - listitem [ref=e529]:
+                - link "Backend for Chat Service" [ref=e530] [cursor=pointer]:
+                  - /url: /c/69ded9aa-30a0-83ea-ae1a-d0afc56bbc6b
+                  - generic [ref=e532]: Backend for Chat Service
+                  - button "Open conversation options for Backend for Chat Service" [ref=e535]:
+                    - img [ref=e537]
+              - listitem [ref=e539]:
+                - link "LLM Transcript Privacy" [ref=e540] [cursor=pointer]:
+                  - /url: /c/69dee760-ac20-83ea-981a-00a47ce2d8b0
+                  - generic [ref=e542]: LLM Transcript Privacy
+                  - button "Open conversation options for LLM Transcript Privacy" [ref=e545]:
+                    - img [ref=e547]
+              - listitem [ref=e549]:
+                - link "GStreamer Go API" [ref=e550] [cursor=pointer]:
+                  - /url: /c/69dda9d3-49b8-83ea-b1ac-87bdb5a3ad0d
+                  - generic [ref=e552]: GStreamer Go API
+                  - button "Open conversation options for GStreamer Go API" [ref=e555]:
+                    - img [ref=e557]
+              - listitem [ref=e559]:
+                - link "Gmail API Search" [ref=e560] [cursor=pointer]:
+                  - /url: /c/69de5e97-244c-83ea-a6fa-66163666a26e
+                  - generic [ref=e562]: Gmail API Search
+                  - button "Open conversation options for Gmail API Search" [ref=e565]:
+                    - img [ref=e567]
+              - listitem [ref=e569]:
+                - link "Streaming Performance Analysis" [ref=e570] [cursor=pointer]:
+                  - /url: /c/69de2c75-0dfc-83ea-bef5-cca1f9b7be24
+                  - generic "Streaming Performance Analysis" [ref=e572]
+                  - button "Open conversation options for Streaming Performance Analysis" [ref=e575]:
+                    - img [ref=e577]
+              - listitem [ref=e579]:
+                - link "Insufferable Lightness of Being" [ref=e580] [cursor=pointer]:
+                  - /url: /c/69de24e6-69c4-83ea-bcbd-1ae58f7885b8
+                  - generic [ref=e582]: Insufferable Lightness of Being
+                  - button "Open conversation options for Insufferable Lightness of Being" [ref=e585]:
+                    - img [ref=e587]
+              - listitem [ref=e589]:
+                - link "GStreamer Pipeline Overview" [ref=e590] [cursor=pointer]:
+                  - /url: /c/69ddb435-6bdc-83ea-90ca-7d657214e37d
+                  - generic [ref=e592]: GStreamer Pipeline Overview
+                  - button "Open conversation options for GStreamer Pipeline Overview" [ref=e595]:
+                    - img [ref=e597]
+              - listitem [ref=e599]:
+                - link "Jingle Generation Techniques" [ref=e600] [cursor=pointer]:
+                  - /url: /c/69dd52d5-4b8c-83ea-8ec4-9ef9d1b4af35
+                  - generic [ref=e602]: Jingle Generation Techniques
+                  - button "Open conversation options for Jingle Generation Techniques" [ref=e605]:
+                    - img [ref=e607]
+              - listitem [ref=e609]:
+                - link "Natural Video Flow Tips" [ref=e610] [cursor=pointer]:
+                  - /url: /c/69dd45d4-9004-83ea-a568-6e1e72ea8d31
+                  - generic [ref=e612]: Natural Video Flow Tips
+                  - button "Open conversation options for Natural Video Flow Tips" [ref=e615]:
+                    - img [ref=e617]
+              - listitem [ref=e619]:
+                - link "Speaking on Camera Tips" [ref=e620] [cursor=pointer]:
+                  - /url: /c/69dcd749-48a0-83ea-9ff5-d205152f47f6
+                  - generic [ref=e622]: Speaking on Camera Tips
+                  - button "Open conversation options for Speaking on Camera Tips" [ref=e625]:
+                    - img [ref=e627]
+              - listitem [ref=e629]:
+                - link "New chat" [ref=e630] [cursor=pointer]:
+                  - /url: /c/69dcd649-0084-83ea-b89f-43535390dcd7
+                  - generic [ref=e632]: New chat
+                  - button "Open conversation options for New chat" [ref=e635]:
+                    - img [ref=e637]
+              - listitem [ref=e639]:
+                - link "Branching VM on GPU" [ref=e640] [cursor=pointer]:
+                  - /url: /c/69dbebe3-adc4-83ea-bb46-f8f0202a76bc
+                  - generic [ref=e642]: Branching VM on GPU
+                  - button "Open conversation options for Branching VM on GPU" [ref=e645]:
+                    - img [ref=e647]
+              - listitem [ref=e649]:
+                - link "KV Cache Concatenation" [ref=e650] [cursor=pointer]:
+                  - /url: /c/69dbaf47-dc58-83ea-bf8b-a905cba4899f
+                  - generic [ref=e652]: KV Cache Concatenation
+                  - button "Open conversation options for KV Cache Concatenation" [ref=e655]:
+                    - img [ref=e657]
+              - listitem [ref=e659]:
+                - link "Maschine on Linux" [ref=e660] [cursor=pointer]:
+                  - /url: /c/69dbc8eb-dae4-83ea-9451-a0628a3f4335
+                  - generic [ref=e662]: Maschine on Linux
+                  - button "Open conversation options for Maschine on Linux" [ref=e665]:
+                    - img [ref=e667]
+              - listitem [ref=e669]:
+                - link "Proxmox CLI Management" [ref=e670] [cursor=pointer]:
+                  - /url: /c/69dbc367-29e0-83ea-a9e2-c20f5db4abc0
+                  - generic [ref=e672]: Proxmox CLI Management
+                  - button "Open conversation options for Proxmox CLI Management" [ref=e675]:
+                    - img [ref=e677]
+              - listitem [ref=e679]:
+                - link "Sidecar Proxy and DNS" [ref=e680] [cursor=pointer]:
+                  - /url: /c/69dbc48b-cbe8-83ea-a8c1-85d1f2254e54
+                  - generic [ref=e682]: Sidecar Proxy and DNS
+                  - button "Open conversation options for Sidecar Proxy and DNS" [ref=e685]:
+                    - img [ref=e687]
+              - listitem [ref=e689]:
+                - link "Proxmox VE User Login" [ref=e690] [cursor=pointer]:
+                  - /url: /c/69dbc23e-dd04-83ea-a6fe-7f106d094959
+                  - generic [ref=e692]: Proxmox VE User Login
+                  - button "Open conversation options for Proxmox VE User Login" [ref=e695]:
+                    - img [ref=e697]
+              - listitem [ref=e699]:
+                - link "Tweening AI Animation Tools" [ref=e700] [cursor=pointer]:
+                  - /url: /c/69dbbe0c-8938-83ea-8253-3703ce36d7ca
+                  - generic [ref=e702]: Tweening AI Animation Tools
+                  - button "Open conversation options for Tweening AI Animation Tools" [ref=e705]:
+                    - img [ref=e707]
+          - button "Manuel Odendahl, open profile menu" [ref=e59] [cursor=pointer]:
+            - img "Profile image" [ref=e709]
+            - generic [ref=e62]:
+              - generic [ref=e64]: Manuel Odendahl
+              - generic [ref=e67]: Pro
+    - generic [ref=e69]:
+      - banner:
+        - button "Model selector" [ref=e71] [cursor=pointer]:
+          - generic [ref=e72]: ChatGPT
+          - img [ref=e73]
+        - generic [ref=e78]:
+          - button "Start a group chat" [ref=e79] [cursor=pointer]:
+            - img [ref=e80]
+          - button "Turn on temporary chat" [ref=e83] [cursor=pointer]:
+            - img [ref=e84]
+      - main [ref=e86]:
+        - generic [ref=e87]:
+          - generic [ref=e710]:
+            - heading "Developer mode" [level=1] [ref=e711]
+            - paragraph [ref=e712]: Memory is not used for this chat. Settings
+          - generic [ref=e101]:
+            - generic [ref=e104]:
+              - generic [ref=e105]:
+                - button "Add files and more" [ref=e108] [cursor=pointer]:
+                  - img
+                - textbox "Chat with ChatGPT" [ref=e713]:
+                  - paragraph [ref=e714]: Ask anything
+                - generic [ref=e115]:
+                  - button "Extended thinking, click to remove" [ref=e715] [cursor=pointer]:
+                    - img
+                  - button "Extended thinking" [ref=e716] [cursor=pointer]:
+                    - generic:
+                      - img
+                    - generic [ref=e118]: Extended thinking
+                    - img
+                - generic [ref=e120]:
+                  - button "Start dictation" [ref=e122] [cursor=pointer]:
+                    - img
+                  - button "Send prompt" [disabled] [ref=e124]:
+                    - img [ref=e125]
+              - generic [ref=e717]:
+                - group [ref=e718]:
+                  - button "Select" [ref=e719] [cursor=pointer]
+                  - button [ref=e720] [cursor=pointer]:
+                    - img [ref=e721]
+                - group [ref=e723]:
+                  - button "Export" [disabled]
+                  - button [disabled]:
+                    - img
+            - button [ref=e127]
+            - button [ref=e128]
+  - alert [ref=e133]
+  - status [ref=e134]
+  - status [ref=e135]: 1Password menu is available. Press down arrow to select.

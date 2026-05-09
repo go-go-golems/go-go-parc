@@ -1,0 +1,4926 @@
+- table [ref=e3]:
+  - rowgroup [ref=e4]:
+    - row "Hacker Newsnew | past | comments | ask | show | jobs | submit login" [ref=e5]:
+      - cell "Hacker Newsnew | past | comments | ask | show | jobs | submit login" [ref=e6]:
+        - table [ref=e7]:
+          - rowgroup [ref=e8]:
+            - row "Hacker Newsnew | past | comments | ask | show | jobs | submit login" [ref=e9]:
+              - cell [ref=e10]:
+                - link [ref=e11] [cursor=pointer]:
+                  - /url: https://news.ycombinator.com
+                  - img [ref=e12]
+              - cell "Hacker Newsnew | past | comments | ask | show | jobs | submit" [ref=e13]:
+                - generic [ref=e14]:
+                  - link "Hacker News" [ref=e16] [cursor=pointer]:
+                    - /url: news
+                  - link "new" [ref=e17] [cursor=pointer]:
+                    - /url: newest
+                  - text: "|"
+                  - link "past" [ref=e18] [cursor=pointer]:
+                    - /url: front
+                  - text: "|"
+                  - link "comments" [ref=e19] [cursor=pointer]:
+                    - /url: newcomments
+                  - text: "|"
+                  - link "ask" [ref=e20] [cursor=pointer]:
+                    - /url: ask
+                  - text: "|"
+                  - link "show" [ref=e21] [cursor=pointer]:
+                    - /url: show
+                  - text: "|"
+                  - link "jobs" [ref=e22] [cursor=pointer]:
+                    - /url: jobs
+                  - text: "|"
+                  - link "submit" [ref=e23] [cursor=pointer]:
+                    - /url: submit
+              - cell "login" [ref=e24]:
+                - link "login" [ref=e26] [cursor=pointer]:
+                  - /url: login?goto=item%3Fid%3D47776796
+    - row [ref=e27]
+    - row [ref=e28]:
+      - cell [ref=e29]:
+        - table [ref=e30]:
+          - rowgroup [ref=e31]:
+            - row "upvote Want to write a compiler? Just read these two papers (2008) (dadgum.com)" [ref=e32]:
+              - cell [ref=e33]
+              - cell "upvote" [ref=e34]:
+                - link "upvote" [ref=e36] [cursor=pointer]:
+                  - /url: vote?id=47776796&how=up&goto=item%3Fid%3D47776796
+                  - generic "upvote" [ref=e37]
+              - cell "Want to write a compiler? Just read these two papers (2008) (dadgum.com)" [ref=e38]:
+                - generic [ref=e39]:
+                  - link "Want to write a compiler? Just read these two papers (2008)" [ref=e40] [cursor=pointer]:
+                    - /url: https://prog21.dadgum.com/30.html
+                  - generic [ref=e41]:
+                    - text: (
+                    - link "dadgum.com" [ref=e42] [cursor=pointer]:
+                      - /url: from?site=dadgum.com
+                    - text: )
+            - row "414 points by downbad_ 11 hours ago | hide | past | favorite | 127 comments" [ref=e43]:
+              - cell [ref=e44]
+              - cell "414 points by downbad_ 11 hours ago | hide | past | favorite | 127 comments" [ref=e45]:
+                - generic [ref=e46]:
+                  - text: 414 points by
+                  - link "downbad_" [ref=e47] [cursor=pointer]:
+                    - /url: user?id=downbad_
+                  - generic "2026-04-15T09:41:19 1776246079" [ref=e48]:
+                    - link "11 hours ago" [ref=e49] [cursor=pointer]:
+                      - /url: item?id=47776796
+                  - text: "|"
+                  - link "hide" [ref=e50] [cursor=pointer]:
+                    - /url: hide?id=47776796&goto=item%3Fid%3D47776796
+                  - text: "|"
+                  - link "past" [ref=e51] [cursor=pointer]:
+                    - /url: https://hn.algolia.com/?query=Want%20to%20write%20a%20compiler%3F%20Just%20read%20these%20two%20papers&type=story&dateRange=all&sort=byDate&storyText=false&prefix&page=0
+                  - text: "|"
+                  - link "favorite" [ref=e52] [cursor=pointer]:
+                    - /url: fave?id=47776796&auth=25caeabac47d4be175a6063b5806f0207603570d
+                  - text: "|"
+                  - link "127 comments" [ref=e53] [cursor=pointer]:
+                    - /url: item?id=47776796
+            - row [ref=e54]:
+              - cell [ref=e55]
+              - cell [ref=e56]
+            - row [ref=e57]
+            - row "help add comment" [ref=e58]:
+              - cell [ref=e59]
+              - cell "help add comment" [ref=e60]:
+                - generic [ref=e61]:
+                  - textbox [ref=e62]
+                  - link "help" [ref=e63] [cursor=pointer]:
+                    - /url: formatdoc
+                  - button "add comment" [ref=e64]
+        - table [ref=e65]:
+          - rowgroup [ref=e66]:
+            - row [ref=e67]:
+              - cell [ref=e68]:
+                - table [ref=e69]:
+                  - rowgroup [ref=e70]:
+                    - row [ref=e71]:
+                      - cell [ref=e72]:
+                        - img
+                      - cell "upvote" [ref=e73]:
+                        - link "upvote" [ref=e75] [cursor=pointer]:
+                          - /url: vote?id=47777269&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e76]
+                      - cell [ref=e77]:
+                        - generic [ref=e79]:
+                          - link "jll29" [ref=e80] [cursor=pointer]:
+                            - /url: user?id=jll29
+                          - generic "2026-04-15T10:49:12 1776250152" [ref=e81]:
+                            - link "10 hours ago" [ref=e82] [cursor=pointer]:
+                              - /url: item?id=47777269
+                          - generic [ref=e83]:
+                            - text: "|"
+                            - link [ref=e84] [cursor=pointer]:
+                              - /url: "#47777439"
+                              - text: next
+                            - link "[–]" [ref=e85] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e86]:
+                          - generic [ref=e87]:
+                            - text: "*Donald Knute -> Donald Ervin Knuth is the author of the book \"The Art of Computer Programming\" (in progress for a couple of decades, currently volume 4c is being written). It is quite advanced, and it will likely not cover compilers anymore (Addison-Wesley had commissioned a compiler book from Knuth when he was a doctoral candidate, now he is retired and has stated his goal for the series has changed)."
+                            - paragraph [ref=e88]: "I disagree with the author's point: the \"Dragon book\"'s (\"Compilers: Principles, Techniques, and Tools\" by Aho et al.) Chapter 2 is a self-sufficient introduction into compilers from end to end, and it can be read on its own, ignoring the rest of the excellent book."
+                            - paragraph [ref=e89]: Another fantastic intro to compiler writing is the short little book "Compilers" by Niklaus Wirth, which explains and contains the surprisingly short source code of a complete compiler (the whole book is highly understandable - pristine clarity, really) and all in <100 pages total (99).
+                            - paragraph [ref=e90]: (I learned enough from these two sources to write a compiler in high school.)
+                          - paragraph [ref=e92]:
+                            - link "reply" [ref=e95] [cursor=pointer]:
+                              - /url: reply?id=47777269&goto=item%3Fid%3D47776796%2347777269
+            - row "upvote projektfu 7 hours ago | | [–] The dragon book almost convinced me never to try to write a compiler. I don't know why people recommend it. I guess you're a lot smarter than I am. There are some excellent books out there. In its own way, the dragon book is excellent, but it is a terrible starting place. Here are a bunch of references from the same vintage as OP. I recommend starting with a book that actually walks through the process of building a compiler and doesn't spend its time exclusively with theory. https://news.ycombinator.com/item?id=136875 reply" [ref=e96]:
+              - cell "upvote projektfu 7 hours ago | | [–] The dragon book almost convinced me never to try to write a compiler. I don't know why people recommend it. I guess you're a lot smarter than I am. There are some excellent books out there. In its own way, the dragon book is excellent, but it is a terrible starting place. Here are a bunch of references from the same vintage as OP. I recommend starting with a book that actually walks through the process of building a compiler and doesn't spend its time exclusively with theory. https://news.ycombinator.com/item?id=136875 reply" [ref=e97]:
+                - table [ref=e98]:
+                  - rowgroup [ref=e99]:
+                    - row "upvote projektfu 7 hours ago | | [–] The dragon book almost convinced me never to try to write a compiler. I don't know why people recommend it. I guess you're a lot smarter than I am. There are some excellent books out there. In its own way, the dragon book is excellent, but it is a terrible starting place. Here are a bunch of references from the same vintage as OP. I recommend starting with a book that actually walks through the process of building a compiler and doesn't spend its time exclusively with theory. https://news.ycombinator.com/item?id=136875 reply" [ref=e100]:
+                      - cell [ref=e101]:
+                        - img [ref=e102]
+                      - cell "upvote" [ref=e103]:
+                        - link "upvote" [ref=e105] [cursor=pointer]:
+                          - /url: vote?id=47778611&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e106]
+                      - cell "projektfu 7 hours ago | | [–] The dragon book almost convinced me never to try to write a compiler. I don't know why people recommend it. I guess you're a lot smarter than I am. There are some excellent books out there. In its own way, the dragon book is excellent, but it is a terrible starting place. Here are a bunch of references from the same vintage as OP. I recommend starting with a book that actually walks through the process of building a compiler and doesn't spend its time exclusively with theory. https://news.ycombinator.com/item?id=136875 reply" [ref=e107]:
+                        - generic [ref=e109]:
+                          - link "projektfu" [ref=e110] [cursor=pointer]:
+                            - /url: user?id=projektfu
+                          - generic "2026-04-15T13:21:43 1776259303" [ref=e111]:
+                            - link "7 hours ago" [ref=e112] [cursor=pointer]:
+                              - /url: item?id=47778611
+                          - generic [ref=e113]:
+                            - text: "|"
+                            - link [ref=e114] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e115] [cursor=pointer]:
+                              - /url: "#47778717"
+                              - text: next
+                            - link "[–]" [ref=e116] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e117]:
+                          - generic [ref=e118]:
+                            - text: The dragon book almost convinced me never to try to write a compiler. I don't know why people recommend it. I guess you're a lot smarter than I am.
+                            - paragraph [ref=e119]: There are some excellent books out there. In its own way, the dragon book is excellent, but it is a terrible starting place.
+                            - paragraph [ref=e120]: Here are a bunch of references from the same vintage as OP. I recommend starting with a book that actually walks through the process of building a compiler and doesn't spend its time exclusively with theory.
+                            - paragraph [ref=e121]:
+                              - link "https://news.ycombinator.com/item?id=136875" [ref=e122] [cursor=pointer]:
+                                - /url: https://news.ycombinator.com/item?id=136875
+                          - paragraph [ref=e124]:
+                            - link "reply" [ref=e127] [cursor=pointer]:
+                              - /url: reply?id=47778611&goto=item%3Fid%3D47776796%2347778611
+            - row "upvote rangerelf 4 hours ago | | | [–] You're not the only one. In college I took a compilers course and we used the dragon book, to me it sucked the joy out of the magical concept of making a compiler. Some years later I (re-) discovered Forth, and I thought \"why not?\" and built my own forth in 32-bit Intel assembly, _that_ brought back the wonder and \"magical\" feeling of compilers again. All in less than 4KB. I guess I wasn't the right audience for the dragon book. reply" [ref=e128]:
+              - cell "upvote rangerelf 4 hours ago | | | [–] You're not the only one. In college I took a compilers course and we used the dragon book, to me it sucked the joy out of the magical concept of making a compiler. Some years later I (re-) discovered Forth, and I thought \"why not?\" and built my own forth in 32-bit Intel assembly, _that_ brought back the wonder and \"magical\" feeling of compilers again. All in less than 4KB. I guess I wasn't the right audience for the dragon book. reply" [ref=e129]:
+                - table [ref=e130]:
+                  - rowgroup [ref=e131]:
+                    - row "upvote rangerelf 4 hours ago | | | [–] You're not the only one. In college I took a compilers course and we used the dragon book, to me it sucked the joy out of the magical concept of making a compiler. Some years later I (re-) discovered Forth, and I thought \"why not?\" and built my own forth in 32-bit Intel assembly, _that_ brought back the wonder and \"magical\" feeling of compilers again. All in less than 4KB. I guess I wasn't the right audience for the dragon book. reply" [ref=e132]:
+                      - cell [ref=e133]:
+                        - img [ref=e134]
+                      - cell "upvote" [ref=e135]:
+                        - link "upvote" [ref=e137] [cursor=pointer]:
+                          - /url: vote?id=47781118&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e138]
+                      - cell "rangerelf 4 hours ago | | | [–] You're not the only one. In college I took a compilers course and we used the dragon book, to me it sucked the joy out of the magical concept of making a compiler. Some years later I (re-) discovered Forth, and I thought \"why not?\" and built my own forth in 32-bit Intel assembly, _that_ brought back the wonder and \"magical\" feeling of compilers again. All in less than 4KB. I guess I wasn't the right audience for the dragon book. reply" [ref=e139]:
+                        - generic [ref=e141]:
+                          - link "rangerelf" [ref=e142] [cursor=pointer]:
+                            - /url: user?id=rangerelf
+                          - generic "2026-04-15T16:08:29 1776269309" [ref=e143]:
+                            - link "4 hours ago" [ref=e144] [cursor=pointer]:
+                              - /url: item?id=47781118
+                          - generic [ref=e145]:
+                            - text: "|"
+                            - link [ref=e146] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e147] [cursor=pointer]:
+                              - /url: "#47778611"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e148] [cursor=pointer]:
+                              - /url: "#47781278"
+                              - text: next
+                            - link "[–]" [ref=e149] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e150]:
+                          - generic [ref=e151]:
+                            - text: You're not the only one. In college I took a compilers course and we used the dragon book, to me it sucked the joy out of the magical concept of making a compiler.
+                            - paragraph [ref=e152]: Some years later I (re-) discovered Forth, and I thought "why not?" and built my own forth in 32-bit Intel assembly, _that_ brought back the wonder and "magical" feeling of compilers again. All in less than 4KB.
+                            - paragraph [ref=e153]: I guess I wasn't the right audience for the dragon book.
+                          - paragraph [ref=e155]:
+                            - link "reply" [ref=e158] [cursor=pointer]:
+                              - /url: reply?id=47781118&goto=item%3Fid%3D47776796%2347781118
+            - row "upvote randomNumber7 4 hours ago | | | | [–] Imho the problem is the fixation on parser generators and BNF. It's just a lot easier to write a recursive descent parser than to figure out the correct BNF for anything other than a toy language with horrible syntax. reply" [ref=e159]:
+              - cell "upvote randomNumber7 4 hours ago | | | | [–] Imho the problem is the fixation on parser generators and BNF. It's just a lot easier to write a recursive descent parser than to figure out the correct BNF for anything other than a toy language with horrible syntax. reply" [ref=e160]:
+                - table [ref=e161]:
+                  - rowgroup [ref=e162]:
+                    - row "upvote randomNumber7 4 hours ago | | | | [–] Imho the problem is the fixation on parser generators and BNF. It's just a lot easier to write a recursive descent parser than to figure out the correct BNF for anything other than a toy language with horrible syntax. reply" [ref=e163]:
+                      - cell [ref=e164]:
+                        - img [ref=e165]
+                      - cell "upvote" [ref=e166]:
+                        - link "upvote" [ref=e168] [cursor=pointer]:
+                          - /url: vote?id=47781278&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e169]
+                      - cell "randomNumber7 4 hours ago | | | | [–] Imho the problem is the fixation on parser generators and BNF. It's just a lot easier to write a recursive descent parser than to figure out the correct BNF for anything other than a toy language with horrible syntax. reply" [ref=e170]:
+                        - generic [ref=e172]:
+                          - link "randomNumber7" [ref=e173] [cursor=pointer]:
+                            - /url: user?id=randomNumber7
+                          - generic "2026-04-15T16:19:15 1776269955" [ref=e174]:
+                            - link "4 hours ago" [ref=e175] [cursor=pointer]:
+                              - /url: item?id=47781278
+                          - generic [ref=e176]:
+                            - text: "|"
+                            - link [ref=e177] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e178] [cursor=pointer]:
+                              - /url: "#47778611"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e179] [cursor=pointer]:
+                              - /url: "#47781118"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e180] [cursor=pointer]:
+                              - /url: "#47783986"
+                              - text: next
+                            - link "[–]" [ref=e181] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e182]:
+                          - generic [ref=e183]: Imho the problem is the fixation on parser generators and BNF. It's just a lot easier to write a recursive descent parser than to figure out the correct BNF for anything other than a toy language with horrible syntax.
+                          - paragraph [ref=e185]:
+                            - link "reply" [ref=e188] [cursor=pointer]:
+                              - /url: reply?id=47781278&goto=item%3Fid%3D47776796%2347781278
+            - row "upvote marcosdumay 3 hours ago | | | [–] The problem with recursive descent parsers is that they don't restrict you into using simple grammars. But then, pushing regular languages theory into the curriculum, just to rush over it so you can use them for parsing is way worse. reply" [ref=e189]:
+              - cell "upvote marcosdumay 3 hours ago | | | [–] The problem with recursive descent parsers is that they don't restrict you into using simple grammars. But then, pushing regular languages theory into the curriculum, just to rush over it so you can use them for parsing is way worse. reply" [ref=e190]:
+                - table [ref=e191]:
+                  - rowgroup [ref=e192]:
+                    - row "upvote marcosdumay 3 hours ago | | | [–] The problem with recursive descent parsers is that they don't restrict you into using simple grammars. But then, pushing regular languages theory into the curriculum, just to rush over it so you can use them for parsing is way worse. reply" [ref=e193]:
+                      - cell [ref=e194]:
+                        - img [ref=e195]
+                      - cell "upvote" [ref=e196]:
+                        - link "upvote" [ref=e198] [cursor=pointer]:
+                          - /url: vote?id=47782140&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e199]
+                      - cell "marcosdumay 3 hours ago | | | [–] The problem with recursive descent parsers is that they don't restrict you into using simple grammars. But then, pushing regular languages theory into the curriculum, just to rush over it so you can use them for parsing is way worse. reply" [ref=e200]:
+                        - generic [ref=e202]:
+                          - link "marcosdumay" [ref=e203] [cursor=pointer]:
+                            - /url: user?id=marcosdumay
+                          - generic "2026-04-15T17:18:10 1776273490" [ref=e204]:
+                            - link "3 hours ago" [ref=e205] [cursor=pointer]:
+                              - /url: item?id=47782140
+                          - generic [ref=e206]:
+                            - text: "|"
+                            - link [ref=e207] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e208] [cursor=pointer]:
+                              - /url: "#47781278"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e209] [cursor=pointer]:
+                              - /url: "#47783986"
+                              - text: next
+                            - link "[–]" [ref=e210] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e211]:
+                          - generic [ref=e212]:
+                            - text: The problem with recursive descent parsers is that they don't restrict you into using simple grammars.
+                            - paragraph [ref=e213]: But then, pushing regular languages theory into the curriculum, just to rush over it so you can use them for parsing is way worse.
+                          - paragraph [ref=e215]:
+                            - link "reply" [ref=e218] [cursor=pointer]:
+                              - /url: reply?id=47782140&goto=item%3Fid%3D47776796%2347782140
+            - row "upvote pjmlp 1 hour ago | | | | [–] It was a product of its time I guess, much better ones from similar vintage, The Tiger book (with C, Standard ML, and Java variants) https://www.cs.princeton.edu/~appel/modern/ Compiler Design in C (freely available nowadays, beware this is between K&R C and C89) https://holub.com/compiler/ lcc, A Retargetable Compiler for ANSI C https://drh.github.io/lcc/ Or if one wants to go with more clever stuff, Compiling with Continuations Lisp in Small Pieces reply" [ref=e219]:
+              - cell "upvote pjmlp 1 hour ago | | | | [–] It was a product of its time I guess, much better ones from similar vintage, The Tiger book (with C, Standard ML, and Java variants) https://www.cs.princeton.edu/~appel/modern/ Compiler Design in C (freely available nowadays, beware this is between K&R C and C89) https://holub.com/compiler/ lcc, A Retargetable Compiler for ANSI C https://drh.github.io/lcc/ Or if one wants to go with more clever stuff, Compiling with Continuations Lisp in Small Pieces reply" [ref=e220]:
+                - table [ref=e221]:
+                  - rowgroup [ref=e222]:
+                    - row "upvote pjmlp 1 hour ago | | | | [–] It was a product of its time I guess, much better ones from similar vintage, The Tiger book (with C, Standard ML, and Java variants) https://www.cs.princeton.edu/~appel/modern/ Compiler Design in C (freely available nowadays, beware this is between K&R C and C89) https://holub.com/compiler/ lcc, A Retargetable Compiler for ANSI C https://drh.github.io/lcc/ Or if one wants to go with more clever stuff, Compiling with Continuations Lisp in Small Pieces reply" [ref=e223]:
+                      - cell [ref=e224]:
+                        - img [ref=e225]
+                      - cell "upvote" [ref=e226]:
+                        - link "upvote" [ref=e228] [cursor=pointer]:
+                          - /url: vote?id=47783986&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e229]
+                      - cell "pjmlp 1 hour ago | | | | [–] It was a product of its time I guess, much better ones from similar vintage, The Tiger book (with C, Standard ML, and Java variants) https://www.cs.princeton.edu/~appel/modern/ Compiler Design in C (freely available nowadays, beware this is between K&R C and C89) https://holub.com/compiler/ lcc, A Retargetable Compiler for ANSI C https://drh.github.io/lcc/ Or if one wants to go with more clever stuff, Compiling with Continuations Lisp in Small Pieces reply" [ref=e230]:
+                        - generic [ref=e232]:
+                          - link "pjmlp" [ref=e233] [cursor=pointer]:
+                            - /url: user?id=pjmlp
+                          - generic "2026-04-15T19:26:21 1776281181" [ref=e234]:
+                            - link "1 hour ago" [ref=e235] [cursor=pointer]:
+                              - /url: item?id=47783986
+                          - generic [ref=e236]:
+                            - text: "|"
+                            - link [ref=e237] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e238] [cursor=pointer]:
+                              - /url: "#47778611"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e239] [cursor=pointer]:
+                              - /url: "#47781278"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e240] [cursor=pointer]:
+                              - /url: "#47782887"
+                              - text: next
+                            - link "[–]" [ref=e241] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e242]:
+                          - generic [ref=e243]:
+                            - text: It was a product of its time I guess, much better ones from similar vintage,
+                            - paragraph [ref=e244]: The Tiger book (with C, Standard ML, and Java variants)
+                            - paragraph [ref=e245]:
+                              - link "https://www.cs.princeton.edu/~appel/modern/" [ref=e246] [cursor=pointer]:
+                                - /url: https://www.cs.princeton.edu/~appel/modern/
+                            - paragraph [ref=e247]: Compiler Design in C (freely available nowadays, beware this is between K&R C and C89)
+                            - paragraph [ref=e248]:
+                              - link "https://holub.com/compiler/" [ref=e249] [cursor=pointer]:
+                                - /url: https://holub.com/compiler/
+                            - paragraph [ref=e250]: lcc, A Retargetable Compiler for ANSI C
+                            - paragraph [ref=e251]:
+                              - link "https://drh.github.io/lcc/" [ref=e252] [cursor=pointer]:
+                                - /url: https://drh.github.io/lcc/
+                            - paragraph [ref=e253]: Or if one wants to go with more clever stuff,
+                            - paragraph [ref=e254]: Compiling with Continuations
+                            - paragraph [ref=e255]: Lisp in Small Pieces
+                          - paragraph [ref=e257]:
+                            - link "reply" [ref=e260] [cursor=pointer]:
+                              - /url: reply?id=47783986&goto=item%3Fid%3D47776796%2347783986
+            - row "upvote drob518 1 hour ago | | | [–] Another vote for Lisp in Small Pieces. Great high level compiler book that teaches you how to build a Lisp and doesn’t get bogged down in lexing and parsing. reply" [ref=e261]:
+              - cell "upvote drob518 1 hour ago | | | [–] Another vote for Lisp in Small Pieces. Great high level compiler book that teaches you how to build a Lisp and doesn’t get bogged down in lexing and parsing. reply" [ref=e262]:
+                - table [ref=e263]:
+                  - rowgroup [ref=e264]:
+                    - row "upvote drob518 1 hour ago | | | [–] Another vote for Lisp in Small Pieces. Great high level compiler book that teaches you how to build a Lisp and doesn’t get bogged down in lexing and parsing. reply" [ref=e265]:
+                      - cell [ref=e266]:
+                        - img [ref=e267]
+                      - cell "upvote" [ref=e268]:
+                        - link "upvote" [ref=e270] [cursor=pointer]:
+                          - /url: vote?id=47784383&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e271]
+                      - cell "drob518 1 hour ago | | | [–] Another vote for Lisp in Small Pieces. Great high level compiler book that teaches you how to build a Lisp and doesn’t get bogged down in lexing and parsing. reply" [ref=e272]:
+                        - generic [ref=e274]:
+                          - link "drob518" [ref=e275] [cursor=pointer]:
+                            - /url: user?id=drob518
+                          - generic "2026-04-15T19:55:54 1776282954" [ref=e276]:
+                            - link "1 hour ago" [ref=e277] [cursor=pointer]:
+                              - /url: item?id=47784383
+                          - generic [ref=e278]:
+                            - text: "|"
+                            - link [ref=e279] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e280] [cursor=pointer]:
+                              - /url: "#47783986"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e281] [cursor=pointer]:
+                              - /url: "#47782887"
+                              - text: next
+                            - link "[–]" [ref=e282] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e283]:
+                          - generic [ref=e284]: Another vote for Lisp in Small Pieces. Great high level compiler book that teaches you how to build a Lisp and doesn’t get bogged down in lexing and parsing.
+                          - paragraph [ref=e286]:
+                            - link "reply" [ref=e289] [cursor=pointer]:
+                              - /url: reply?id=47784383&goto=item%3Fid%3D47776796%2347784383
+            - row "upvote _false 3 hours ago | | | | [–] Great thread. If you have 1 hour to get started, I recommend opening Engineering a Compiler and studying Static Single-Assignment (SSA) from ch 9.3. The book is famous for its SSA treatment. Chapters 1-8 are not required to understand SSA. This allows you to walk away with a clear win. Refer to 9.2 if you're struggling with dominance + liveness. http://www.r-5.org/files/books/computers/compilers/writing/K... reply" [ref=e290]:
+              - cell "upvote _false 3 hours ago | | | | [–] Great thread. If you have 1 hour to get started, I recommend opening Engineering a Compiler and studying Static Single-Assignment (SSA) from ch 9.3. The book is famous for its SSA treatment. Chapters 1-8 are not required to understand SSA. This allows you to walk away with a clear win. Refer to 9.2 if you're struggling with dominance + liveness. http://www.r-5.org/files/books/computers/compilers/writing/K... reply" [ref=e291]:
+                - table [ref=e292]:
+                  - rowgroup [ref=e293]:
+                    - row "upvote _false 3 hours ago | | | | [–] Great thread. If you have 1 hour to get started, I recommend opening Engineering a Compiler and studying Static Single-Assignment (SSA) from ch 9.3. The book is famous for its SSA treatment. Chapters 1-8 are not required to understand SSA. This allows you to walk away with a clear win. Refer to 9.2 if you're struggling with dominance + liveness. http://www.r-5.org/files/books/computers/compilers/writing/K... reply" [ref=e294]:
+                      - cell [ref=e295]:
+                        - img [ref=e296]
+                      - cell "upvote" [ref=e297]:
+                        - link "upvote" [ref=e299] [cursor=pointer]:
+                          - /url: vote?id=47782887&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e300]
+                      - cell "_false 3 hours ago | | | | [–] Great thread. If you have 1 hour to get started, I recommend opening Engineering a Compiler and studying Static Single-Assignment (SSA) from ch 9.3. The book is famous for its SSA treatment. Chapters 1-8 are not required to understand SSA. This allows you to walk away with a clear win. Refer to 9.2 if you're struggling with dominance + liveness. http://www.r-5.org/files/books/computers/compilers/writing/K... reply" [ref=e301]:
+                        - generic [ref=e303]:
+                          - link "_false" [ref=e304] [cursor=pointer]:
+                            - /url: user?id=_false
+                          - generic "2026-04-15T18:05:15 1776276315" [ref=e305]:
+                            - link "3 hours ago" [ref=e306] [cursor=pointer]:
+                              - /url: item?id=47782887
+                          - generic [ref=e307]:
+                            - text: "|"
+                            - link [ref=e308] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e309] [cursor=pointer]:
+                              - /url: "#47778611"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e310] [cursor=pointer]:
+                              - /url: "#47783986"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e311] [cursor=pointer]:
+                              - /url: "#47779290"
+                              - text: next
+                            - link "[–]" [ref=e312] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e313]:
+                          - generic [ref=e314]:
+                            - text: Great thread. If you have 1 hour to get started, I recommend opening Engineering a Compiler and studying Static Single-Assignment (SSA) from ch 9.3.
+                            - paragraph [ref=e315]: The book is famous for its SSA treatment. Chapters 1-8 are not required to understand SSA. This allows you to walk away with a clear win. Refer to 9.2 if you're struggling with dominance + liveness.
+                            - paragraph [ref=e316]:
+                              - link "http://www.r-5.org/files/books/computers/compilers/writing/K..." [ref=e317] [cursor=pointer]:
+                                - /url: http://www.r-5.org/files/books/computers/compilers/writing/Keith_Cooper_Linda_Torczon-Engineering_a_Compiler-EN.pdf
+                          - paragraph [ref=e319]:
+                            - link "reply" [ref=e322] [cursor=pointer]:
+                              - /url: reply?id=47782887&goto=item%3Fid%3D47776796%2347782887
+            - row "upvote wglb 6 hours ago | | | | [–] When I was professionally writing a compiler professionally (see https://ciex-software.com/intro-to-compilers.html) the Dragon book was the second book that I read. I found it very helpful. That was the first Dragon book. I got the second one later. I would have been ok to start with the Dragon book--the Compiler Generator book was a harder study. reply" [ref=e323]:
+              - cell "upvote wglb 6 hours ago | | | | [–] When I was professionally writing a compiler professionally (see https://ciex-software.com/intro-to-compilers.html) the Dragon book was the second book that I read. I found it very helpful. That was the first Dragon book. I got the second one later. I would have been ok to start with the Dragon book--the Compiler Generator book was a harder study. reply" [ref=e324]:
+                - table [ref=e325]:
+                  - rowgroup [ref=e326]:
+                    - row "upvote wglb 6 hours ago | | | | [–] When I was professionally writing a compiler professionally (see https://ciex-software.com/intro-to-compilers.html) the Dragon book was the second book that I read. I found it very helpful. That was the first Dragon book. I got the second one later. I would have been ok to start with the Dragon book--the Compiler Generator book was a harder study. reply" [ref=e327]:
+                      - cell [ref=e328]:
+                        - img [ref=e329]
+                      - cell "upvote" [ref=e330]:
+                        - link "upvote" [ref=e332] [cursor=pointer]:
+                          - /url: vote?id=47779290&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e333]
+                      - cell "wglb 6 hours ago | | | | [–] When I was professionally writing a compiler professionally (see https://ciex-software.com/intro-to-compilers.html) the Dragon book was the second book that I read. I found it very helpful. That was the first Dragon book. I got the second one later. I would have been ok to start with the Dragon book--the Compiler Generator book was a harder study. reply" [ref=e334]:
+                        - generic [ref=e336]:
+                          - link "wglb" [ref=e337] [cursor=pointer]:
+                            - /url: user?id=wglb
+                          - generic "2026-04-15T14:15:47 1776262547" [ref=e338]:
+                            - link "6 hours ago" [ref=e339] [cursor=pointer]:
+                              - /url: item?id=47779290
+                          - generic [ref=e340]:
+                            - text: "|"
+                            - link [ref=e341] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e342] [cursor=pointer]:
+                              - /url: "#47778611"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e343] [cursor=pointer]:
+                              - /url: "#47782887"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e344] [cursor=pointer]:
+                              - /url: "#47779157"
+                              - text: next
+                            - link "[–]" [ref=e345] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e346]:
+                          - generic [ref=e347]:
+                            - text: When I was professionally writing a compiler professionally (see
+                            - link "https://ciex-software.com/intro-to-compilers.html" [ref=e348] [cursor=pointer]:
+                              - /url: https://ciex-software.com/intro-to-compilers.html
+                            - text: ) the Dragon book was the second book that I read. I found it very helpful. That was the first Dragon book. I got the second one later. I would have been ok to start with the Dragon book--the Compiler Generator book was a harder study.
+                          - paragraph [ref=e350]:
+                            - link "reply" [ref=e353] [cursor=pointer]:
+                              - /url: reply?id=47779290&goto=item%3Fid%3D47776796%2347779290
+            - row "upvote saidnooneever 7 hours ago | | | | [–] the dragon book is how to write a production grade thing i guess. it has all the interesting concepts very elaborated on which is great but it dives quickly into things that can clutter a project if its just for fun.. reply" [ref=e354]:
+              - cell "upvote saidnooneever 7 hours ago | | | | [–] the dragon book is how to write a production grade thing i guess. it has all the interesting concepts very elaborated on which is great but it dives quickly into things that can clutter a project if its just for fun.. reply" [ref=e355]:
+                - table [ref=e356]:
+                  - rowgroup [ref=e357]:
+                    - row "upvote saidnooneever 7 hours ago | | | | [–] the dragon book is how to write a production grade thing i guess. it has all the interesting concepts very elaborated on which is great but it dives quickly into things that can clutter a project if its just for fun.. reply" [ref=e358]:
+                      - cell [ref=e359]:
+                        - img [ref=e360]
+                      - cell "upvote" [ref=e361]:
+                        - link "upvote" [ref=e363] [cursor=pointer]:
+                          - /url: vote?id=47779157&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e364]
+                      - cell "saidnooneever 7 hours ago | | | | [–] the dragon book is how to write a production grade thing i guess. it has all the interesting concepts very elaborated on which is great but it dives quickly into things that can clutter a project if its just for fun.. reply" [ref=e365]:
+                        - generic [ref=e367]:
+                          - link "saidnooneever" [ref=e368] [cursor=pointer]:
+                            - /url: user?id=saidnooneever
+                          - generic "2026-04-15T14:07:03 1776262023" [ref=e369]:
+                            - link "7 hours ago" [ref=e370] [cursor=pointer]:
+                              - /url: item?id=47779157
+                          - generic [ref=e371]:
+                            - text: "|"
+                            - link [ref=e372] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e373] [cursor=pointer]:
+                              - /url: "#47778611"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e374] [cursor=pointer]:
+                              - /url: "#47779290"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e375] [cursor=pointer]:
+                              - /url: "#47778727"
+                              - text: next
+                            - link "[–]" [ref=e376] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e377]:
+                          - generic [ref=e378]: the dragon book is how to write a production grade thing i guess. it has all the interesting concepts very elaborated on which is great but it dives quickly into things that can clutter a project if its just for fun..
+                          - paragraph [ref=e380]:
+                            - link "reply" [ref=e383] [cursor=pointer]:
+                              - /url: reply?id=47779157&goto=item%3Fid%3D47776796%2347779157
+            - row "upvote emigre 3 hours ago | | | [–] It’s academic and comprehensive, that’s the issue. It’s not about writing a production grade compiler, though, in my humble opinion. There are more things to learn for that, unfortunately… is just a pretty big topic with lots of stuff to learn. reply" [ref=e384]:
+              - cell "upvote emigre 3 hours ago | | | [–] It’s academic and comprehensive, that’s the issue. It’s not about writing a production grade compiler, though, in my humble opinion. There are more things to learn for that, unfortunately… is just a pretty big topic with lots of stuff to learn. reply" [ref=e385]:
+                - table [ref=e386]:
+                  - rowgroup [ref=e387]:
+                    - row "upvote emigre 3 hours ago | | | [–] It’s academic and comprehensive, that’s the issue. It’s not about writing a production grade compiler, though, in my humble opinion. There are more things to learn for that, unfortunately… is just a pretty big topic with lots of stuff to learn. reply" [ref=e388]:
+                      - cell [ref=e389]:
+                        - img [ref=e390]
+                      - cell "upvote" [ref=e391]:
+                        - link "upvote" [ref=e393] [cursor=pointer]:
+                          - /url: vote?id=47782440&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e394]
+                      - cell "emigre 3 hours ago | | | [–] It’s academic and comprehensive, that’s the issue. It’s not about writing a production grade compiler, though, in my humble opinion. There are more things to learn for that, unfortunately… is just a pretty big topic with lots of stuff to learn. reply" [ref=e395]:
+                        - generic [ref=e397]:
+                          - link "emigre" [ref=e398] [cursor=pointer]:
+                            - /url: user?id=emigre
+                          - generic "2026-04-15T17:36:24 1776274584" [ref=e399]:
+                            - link "3 hours ago" [ref=e400] [cursor=pointer]:
+                              - /url: item?id=47782440
+                          - generic [ref=e401]:
+                            - text: "|"
+                            - link [ref=e402] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e403] [cursor=pointer]:
+                              - /url: "#47779157"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e404] [cursor=pointer]:
+                              - /url: "#47778727"
+                              - text: next
+                            - link "[–]" [ref=e405] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e406]:
+                          - generic [ref=e407]: It’s academic and comprehensive, that’s the issue. It’s not about writing a production grade compiler, though, in my humble opinion. There are more things to learn for that, unfortunately… is just a pretty big topic with lots of stuff to learn.
+                          - paragraph [ref=e409]:
+                            - link "reply" [ref=e412] [cursor=pointer]:
+                              - /url: reply?id=47782440&goto=item%3Fid%3D47776796%2347782440
+            - row "upvote tovej 7 hours ago | | | | [–] I started with the dragon book, and I found it to be a good introductory text. A lot of people say the dragon book is difficult, so I suppose there must be something there. But I don't see what it is, I thought it was quite accessible. I'm curious, what parts/aspects of the dragon book make it difficult to start with? reply" [ref=e413]:
+              - cell "upvote tovej 7 hours ago | | | | [–] I started with the dragon book, and I found it to be a good introductory text. A lot of people say the dragon book is difficult, so I suppose there must be something there. But I don't see what it is, I thought it was quite accessible. I'm curious, what parts/aspects of the dragon book make it difficult to start with? reply" [ref=e414]:
+                - table [ref=e415]:
+                  - rowgroup [ref=e416]:
+                    - row "upvote tovej 7 hours ago | | | | [–] I started with the dragon book, and I found it to be a good introductory text. A lot of people say the dragon book is difficult, so I suppose there must be something there. But I don't see what it is, I thought it was quite accessible. I'm curious, what parts/aspects of the dragon book make it difficult to start with? reply" [ref=e417]:
+                      - cell [ref=e418]:
+                        - img [ref=e419]
+                      - cell "upvote" [ref=e420]:
+                        - link "upvote" [ref=e422] [cursor=pointer]:
+                          - /url: vote?id=47778727&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e423]
+                      - cell "tovej 7 hours ago | | | | [–] I started with the dragon book, and I found it to be a good introductory text. A lot of people say the dragon book is difficult, so I suppose there must be something there. But I don't see what it is, I thought it was quite accessible. I'm curious, what parts/aspects of the dragon book make it difficult to start with? reply" [ref=e424]:
+                        - generic [ref=e426]:
+                          - link "tovej" [ref=e427] [cursor=pointer]:
+                            - /url: user?id=tovej
+                          - generic "2026-04-15T13:31:36 1776259896" [ref=e428]:
+                            - link "7 hours ago" [ref=e429] [cursor=pointer]:
+                              - /url: item?id=47778727
+                          - generic [ref=e430]:
+                            - text: "|"
+                            - link [ref=e431] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e432] [cursor=pointer]:
+                              - /url: "#47778611"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e433] [cursor=pointer]:
+                              - /url: "#47779157"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e434] [cursor=pointer]:
+                              - /url: "#47778717"
+                              - text: next
+                            - link "[–]" [ref=e435] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e436]:
+                          - generic [ref=e437]:
+                            - text: I started with the dragon book, and I found it to be a good introductory text.
+                            - paragraph [ref=e438]: A lot of people say the dragon book is difficult, so I suppose there must be something there. But I don't see what it is, I thought it was quite accessible.
+                            - paragraph [ref=e439]: I'm curious, what parts/aspects of the dragon book make it difficult to start with?
+                          - paragraph [ref=e441]:
+                            - link "reply" [ref=e444] [cursor=pointer]:
+                              - /url: reply?id=47778727&goto=item%3Fid%3D47776796%2347778727
+            - 'row "upvote hmry 7 hours ago | | | [–] It''s been a few years since I worked with the dragon book, but I think the most common complaint was that it starts with like 350 pages on parser theory: generating bottom-up and top-down parsers from context free grammars, optimizing lexers for systems that don''t have enough RAM to store an entire source file, etc... before ever getting to what most people who want to write a compiler care about (implementing type inference, optimizing intermediate representations, generating assembly code). Of course parsing is important, and very interesting to some. But there''s a reason most modern resources skip over all of that and just make the reader write a recursive descent parser. reply" [ref=e445]':
+              - 'cell "upvote hmry 7 hours ago | | | [–] It''s been a few years since I worked with the dragon book, but I think the most common complaint was that it starts with like 350 pages on parser theory: generating bottom-up and top-down parsers from context free grammars, optimizing lexers for systems that don''t have enough RAM to store an entire source file, etc... before ever getting to what most people who want to write a compiler care about (implementing type inference, optimizing intermediate representations, generating assembly code). Of course parsing is important, and very interesting to some. But there''s a reason most modern resources skip over all of that and just make the reader write a recursive descent parser. reply" [ref=e446]':
+                - table [ref=e447]:
+                  - rowgroup [ref=e448]:
+                    - 'row "upvote hmry 7 hours ago | | | [–] It''s been a few years since I worked with the dragon book, but I think the most common complaint was that it starts with like 350 pages on parser theory: generating bottom-up and top-down parsers from context free grammars, optimizing lexers for systems that don''t have enough RAM to store an entire source file, etc... before ever getting to what most people who want to write a compiler care about (implementing type inference, optimizing intermediate representations, generating assembly code). Of course parsing is important, and very interesting to some. But there''s a reason most modern resources skip over all of that and just make the reader write a recursive descent parser. reply" [ref=e449]':
+                      - cell [ref=e450]:
+                        - img [ref=e451]
+                      - cell "upvote" [ref=e452]:
+                        - link "upvote" [ref=e454] [cursor=pointer]:
+                          - /url: vote?id=47779097&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e455]
+                      - 'cell "hmry 7 hours ago | | | [–] It''s been a few years since I worked with the dragon book, but I think the most common complaint was that it starts with like 350 pages on parser theory: generating bottom-up and top-down parsers from context free grammars, optimizing lexers for systems that don''t have enough RAM to store an entire source file, etc... before ever getting to what most people who want to write a compiler care about (implementing type inference, optimizing intermediate representations, generating assembly code). Of course parsing is important, and very interesting to some. But there''s a reason most modern resources skip over all of that and just make the reader write a recursive descent parser. reply" [ref=e456]':
+                        - generic [ref=e458]:
+                          - link "hmry" [ref=e459] [cursor=pointer]:
+                            - /url: user?id=hmry
+                          - generic "2026-04-15T14:02:42 1776261762" [ref=e460]:
+                            - link "7 hours ago" [ref=e461] [cursor=pointer]:
+                              - /url: item?id=47779097
+                          - generic [ref=e462]:
+                            - text: "|"
+                            - link [ref=e463] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e464] [cursor=pointer]:
+                              - /url: "#47778727"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e465] [cursor=pointer]:
+                              - /url: "#47778717"
+                              - text: next
+                            - link "[–]" [ref=e466] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e467]:
+                          - generic [ref=e468]: "It's been a few years since I worked with the dragon book, but I think the most common complaint was that it starts with like 350 pages on parser theory: generating bottom-up and top-down parsers from context free grammars, optimizing lexers for systems that don't have enough RAM to store an entire source file, etc... before ever getting to what most people who want to write a compiler care about (implementing type inference, optimizing intermediate representations, generating assembly code). Of course parsing is important, and very interesting to some. But there's a reason most modern resources skip over all of that and just make the reader write a recursive descent parser."
+                          - paragraph [ref=e470]:
+                            - link "reply" [ref=e473] [cursor=pointer]:
+                              - /url: reply?id=47779097&goto=item%3Fid%3D47776796%2347779097
+            - row [ref=e474]:
+              - cell [ref=e475]:
+                - table [ref=e476]:
+                  - rowgroup [ref=e477]:
+                    - row [ref=e478]:
+                      - cell [ref=e479]:
+                        - img [ref=e480]
+                      - cell "upvote" [ref=e481]:
+                        - link "upvote" [ref=e483] [cursor=pointer]:
+                          - /url: vote?id=47781653&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e484]
+                      - cell [ref=e485]:
+                        - generic [ref=e487]:
+                          - link "ablob" [ref=e488] [cursor=pointer]:
+                            - /url: user?id=ablob
+                          - generic "2026-04-15T16:43:06 1776271386" [ref=e489]:
+                            - link "4 hours ago" [ref=e490] [cursor=pointer]:
+                              - /url: item?id=47781653
+                          - generic [ref=e491]:
+                            - text: "|"
+                            - link [ref=e492] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e493] [cursor=pointer]:
+                              - /url: "#47779097"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e494] [cursor=pointer]:
+                              - /url: "#47782606"
+                              - text: next
+                            - link "[–]" [ref=e495] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e496]:
+                          - generic [ref=e497]:
+                            - text: I guess "back in the day" you had to be able to write an efficient parser, as no parser generators existed. If you couldn't implement whatever you wanted due to memory shortage at the parser level, then obviously it's gonna be a huge topic. Even now I believe it is good to know about this - if only to avoid pitfalls in your own grammar.
+                            - paragraph [ref=e498]: I repeatedly skip parts that are not important to me when reading books like this. I grabbed a book about embedded design and skipped about half of it, which was bus protocols, as I knew I wouldn't need it. There is no need to read the dragon book from front to back.
+                            - paragraph
+                            - code [ref=e500]: "> But there's a reason most modern resources skip over all of that and just make the reader write a recursive descent parser."
+                            - text: Unless the reason is explicitly stated there is no way to verify it's any good. There's a reason people use AI to write do their homework - it just doesn't mean it's a good one. I can think of plenty arguments for why you wouldn't look into the pros and cons of different parsing strategies in an introduction to compilers, "everyone is(or isn't) doing it" does not belong to them. In the end, it has to be written down somewhere, and if no other book is doing it for whatever reason, then the dragon book it shall be. You can always recommend skipping that part if someone asks about what book to use.
+                          - paragraph [ref=e502]:
+                            - link "reply" [ref=e505] [cursor=pointer]:
+                              - /url: reply?id=47781653&goto=item%3Fid%3D47776796%2347781653
+            - row "upvote markus_zhang 3 hours ago | | | | [–] I actually think the parsing part is more important for laymen. Like, there may be a total of 10K programmers who are interested in learning compiler theories, but maybe 100 of them are ever going to write the backend -- the rest of them are stuck with either toy languages, or use parsing to help with their job. Parsing is definitely more useful for most of us who are not smart enough :D reply" [ref=e506]:
+              - cell "upvote markus_zhang 3 hours ago | | | | [–] I actually think the parsing part is more important for laymen. Like, there may be a total of 10K programmers who are interested in learning compiler theories, but maybe 100 of them are ever going to write the backend -- the rest of them are stuck with either toy languages, or use parsing to help with their job. Parsing is definitely more useful for most of us who are not smart enough :D reply" [ref=e507]:
+                - table [ref=e508]:
+                  - rowgroup [ref=e509]:
+                    - row "upvote markus_zhang 3 hours ago | | | | [–] I actually think the parsing part is more important for laymen. Like, there may be a total of 10K programmers who are interested in learning compiler theories, but maybe 100 of them are ever going to write the backend -- the rest of them are stuck with either toy languages, or use parsing to help with their job. Parsing is definitely more useful for most of us who are not smart enough :D reply" [ref=e510]:
+                      - cell [ref=e511]:
+                        - img [ref=e512]
+                      - cell "upvote" [ref=e513]:
+                        - link "upvote" [ref=e515] [cursor=pointer]:
+                          - /url: vote?id=47782606&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e516]
+                      - cell "markus_zhang 3 hours ago | | | | [–] I actually think the parsing part is more important for laymen. Like, there may be a total of 10K programmers who are interested in learning compiler theories, but maybe 100 of them are ever going to write the backend -- the rest of them are stuck with either toy languages, or use parsing to help with their job. Parsing is definitely more useful for most of us who are not smart enough :D reply" [ref=e517]:
+                        - generic [ref=e519]:
+                          - link "markus_zhang" [ref=e520] [cursor=pointer]:
+                            - /url: user?id=markus_zhang
+                          - generic "2026-04-15T17:46:47 1776275207" [ref=e521]:
+                            - link "3 hours ago" [ref=e522] [cursor=pointer]:
+                              - /url: item?id=47782606
+                          - generic [ref=e523]:
+                            - text: "|"
+                            - link [ref=e524] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e525] [cursor=pointer]:
+                              - /url: "#47779097"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e526] [cursor=pointer]:
+                              - /url: "#47781653"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e527] [cursor=pointer]:
+                              - /url: "#47778717"
+                              - text: next
+                            - link "[–]" [ref=e528] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e529]:
+                          - generic [ref=e530]: I actually think the parsing part is more important for laymen. Like, there may be a total of 10K programmers who are interested in learning compiler theories, but maybe 100 of them are ever going to write the backend -- the rest of them are stuck with either toy languages, or use parsing to help with their job. Parsing is definitely more useful for most of us who are not smart enough :D
+                          - paragraph [ref=e532]:
+                            - link "reply" [ref=e535] [cursor=pointer]:
+                              - /url: reply?id=47782606&goto=item%3Fid%3D47776796%2347782606
+            - row "upvote hmry 1 hour ago | | | [–] Yeah I agree, that seems vey true. Although the average person probably also benefits more from learning about recursive descent and pratt parsing than LL(k) parser generators, automata, and finding first and follow sets :) reply" [ref=e536]:
+              - cell "upvote hmry 1 hour ago | | | [–] Yeah I agree, that seems vey true. Although the average person probably also benefits more from learning about recursive descent and pratt parsing than LL(k) parser generators, automata, and finding first and follow sets :) reply" [ref=e537]:
+                - table [ref=e538]:
+                  - rowgroup [ref=e539]:
+                    - row "upvote hmry 1 hour ago | | | [–] Yeah I agree, that seems vey true. Although the average person probably also benefits more from learning about recursive descent and pratt parsing than LL(k) parser generators, automata, and finding first and follow sets :) reply" [ref=e540]:
+                      - cell [ref=e541]:
+                        - img [ref=e542]
+                      - cell "upvote" [ref=e543]:
+                        - link "upvote" [ref=e545] [cursor=pointer]:
+                          - /url: vote?id=47784039&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e546]
+                      - cell "hmry 1 hour ago | | | [–] Yeah I agree, that seems vey true. Although the average person probably also benefits more from learning about recursive descent and pratt parsing than LL(k) parser generators, automata, and finding first and follow sets :) reply" [ref=e547]:
+                        - generic [ref=e549]:
+                          - link "hmry" [ref=e550] [cursor=pointer]:
+                            - /url: user?id=hmry
+                          - generic "2026-04-15T19:30:28 1776281428" [ref=e551]:
+                            - link "1 hour ago" [ref=e552] [cursor=pointer]:
+                              - /url: item?id=47784039
+                          - generic [ref=e553]:
+                            - text: "|"
+                            - link [ref=e554] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e555] [cursor=pointer]:
+                              - /url: "#47782606"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e556] [cursor=pointer]:
+                              - /url: "#47778717"
+                              - text: next
+                            - link "[–]" [ref=e557] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e558]:
+                          - generic [ref=e559]: Yeah I agree, that seems vey true. Although the average person probably also benefits more from learning about recursive descent and pratt parsing than LL(k) parser generators, automata, and finding first and follow sets :)
+                          - paragraph [ref=e561]:
+                            - link "reply" [ref=e564] [cursor=pointer]:
+                              - /url: reply?id=47784039&goto=item%3Fid%3D47776796%2347784039
+            - row "upvote Findecanor 7 hours ago | | | [–] The \"Dragon Book\" is big on parsing but I wouldn't recommend it if you want to make many optimisation passes or a back-end. The first edition was my first CS textbook, back in the '90s and as a young programmer I learned a lot from it. A couple years ago, I started on a modern compiler back-end however, and found that I needed to update my knowledge with quite a lot. The 2nd ed covers data-flow analysis, which is very important. However, modern compilers (GCC, LLVM, Cranelift, ...) are built around an intermediate representation in Static Single Assignment-form. The 2nd ed. has only a single page about SSA and you'd need to also learn a lot of theory about its properties to actually use it properly. reply" [ref=e565]:
+              - cell "upvote Findecanor 7 hours ago | | | [–] The \"Dragon Book\" is big on parsing but I wouldn't recommend it if you want to make many optimisation passes or a back-end. The first edition was my first CS textbook, back in the '90s and as a young programmer I learned a lot from it. A couple years ago, I started on a modern compiler back-end however, and found that I needed to update my knowledge with quite a lot. The 2nd ed covers data-flow analysis, which is very important. However, modern compilers (GCC, LLVM, Cranelift, ...) are built around an intermediate representation in Static Single Assignment-form. The 2nd ed. has only a single page about SSA and you'd need to also learn a lot of theory about its properties to actually use it properly. reply" [ref=e566]:
+                - table [ref=e567]:
+                  - rowgroup [ref=e568]:
+                    - row "upvote Findecanor 7 hours ago | | | [–] The \"Dragon Book\" is big on parsing but I wouldn't recommend it if you want to make many optimisation passes or a back-end. The first edition was my first CS textbook, back in the '90s and as a young programmer I learned a lot from it. A couple years ago, I started on a modern compiler back-end however, and found that I needed to update my knowledge with quite a lot. The 2nd ed covers data-flow analysis, which is very important. However, modern compilers (GCC, LLVM, Cranelift, ...) are built around an intermediate representation in Static Single Assignment-form. The 2nd ed. has only a single page about SSA and you'd need to also learn a lot of theory about its properties to actually use it properly. reply" [ref=e569]:
+                      - cell [ref=e570]:
+                        - img [ref=e571]
+                      - cell "upvote" [ref=e572]:
+                        - link "upvote" [ref=e574] [cursor=pointer]:
+                          - /url: vote?id=47778717&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e575]
+                      - cell "Findecanor 7 hours ago | | | [–] The \"Dragon Book\" is big on parsing but I wouldn't recommend it if you want to make many optimisation passes or a back-end. The first edition was my first CS textbook, back in the '90s and as a young programmer I learned a lot from it. A couple years ago, I started on a modern compiler back-end however, and found that I needed to update my knowledge with quite a lot. The 2nd ed covers data-flow analysis, which is very important. However, modern compilers (GCC, LLVM, Cranelift, ...) are built around an intermediate representation in Static Single Assignment-form. The 2nd ed. has only a single page about SSA and you'd need to also learn a lot of theory about its properties to actually use it properly. reply" [ref=e576]:
+                        - generic [ref=e578]:
+                          - link "Findecanor" [ref=e579] [cursor=pointer]:
+                            - /url: user?id=Findecanor
+                          - generic "2026-04-15T13:30:59 1776259859" [ref=e580]:
+                            - link "7 hours ago" [ref=e581] [cursor=pointer]:
+                              - /url: item?id=47778717
+                          - generic [ref=e582]:
+                            - text: "|"
+                            - link [ref=e583] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e584] [cursor=pointer]:
+                              - /url: "#47778611"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e585] [cursor=pointer]:
+                              - /url: "#47777643"
+                              - text: next
+                            - link "[–]" [ref=e586] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e587]:
+                          - generic [ref=e588]:
+                            - text: The "Dragon Book" is big on parsing but I wouldn't recommend it if you want to make many optimisation passes or a back-end.
+                            - paragraph [ref=e589]: The first edition was my first CS textbook, back in the '90s and as a young programmer I learned a lot from it. A couple years ago, I started on a modern compiler back-end however, and found that I needed to update my knowledge with quite a lot.
+                            - paragraph [ref=e590]: The 2nd ed covers data-flow analysis, which is very important. However, modern compilers (GCC, LLVM, Cranelift, ...) are built around an intermediate representation in Static Single Assignment-form. The 2nd ed. has only a single page about SSA and you'd need to also learn a lot of theory about its properties to actually use it properly.
+                          - paragraph [ref=e592]:
+                            - link "reply" [ref=e595] [cursor=pointer]:
+                              - /url: reply?id=47778717&goto=item%3Fid%3D47776796%2347778717
+            - row "upvote aldousd666 6 hours ago | | | [–] Parsing is the front end to a compiler. Can't get semantics without first recognizing syntax. I have a hard time thinking about programming languages without seeing them as a parsing exercise first, every time. reply" [ref=e596]:
+              - cell "upvote aldousd666 6 hours ago | | | [–] Parsing is the front end to a compiler. Can't get semantics without first recognizing syntax. I have a hard time thinking about programming languages without seeing them as a parsing exercise first, every time. reply" [ref=e597]:
+                - table [ref=e598]:
+                  - rowgroup [ref=e599]:
+                    - row "upvote aldousd666 6 hours ago | | | [–] Parsing is the front end to a compiler. Can't get semantics without first recognizing syntax. I have a hard time thinking about programming languages without seeing them as a parsing exercise first, every time. reply" [ref=e600]:
+                      - cell [ref=e601]:
+                        - img [ref=e602]
+                      - cell "upvote" [ref=e603]:
+                        - link "upvote" [ref=e605] [cursor=pointer]:
+                          - /url: vote?id=47779168&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e606]
+                      - cell "aldousd666 6 hours ago | | | [–] Parsing is the front end to a compiler. Can't get semantics without first recognizing syntax. I have a hard time thinking about programming languages without seeing them as a parsing exercise first, every time. reply" [ref=e607]:
+                        - generic [ref=e609]:
+                          - link "aldousd666" [ref=e610] [cursor=pointer]:
+                            - /url: user?id=aldousd666
+                          - generic "2026-04-15T14:07:55 1776262075" [ref=e611]:
+                            - link "6 hours ago" [ref=e612] [cursor=pointer]:
+                              - /url: item?id=47779168
+                          - generic [ref=e613]:
+                            - text: "|"
+                            - link [ref=e614] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e615] [cursor=pointer]:
+                              - /url: "#47778717"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e616] [cursor=pointer]:
+                              - /url: "#47777643"
+                              - text: next
+                            - link "[–]" [ref=e617] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e618]:
+                          - generic [ref=e619]: Parsing is the front end to a compiler. Can't get semantics without first recognizing syntax. I have a hard time thinking about programming languages without seeing them as a parsing exercise first, every time.
+                          - paragraph [ref=e621]:
+                            - link "reply" [ref=e624] [cursor=pointer]:
+                              - /url: reply?id=47779168&goto=item%3Fid%3D47776796%2347779168
+            - row "upvote gf000 6 hours ago | | | [–] The recommended advice is to start with semantics first. Syntax will change, there is not much point fixing it down too early. Most of the work is actually the backend, and people sort of illusion themselves into \"creating a language\" just because they have an AST. reply" [ref=e625]:
+              - cell "upvote gf000 6 hours ago | | | [–] The recommended advice is to start with semantics first. Syntax will change, there is not much point fixing it down too early. Most of the work is actually the backend, and people sort of illusion themselves into \"creating a language\" just because they have an AST. reply" [ref=e626]:
+                - table [ref=e627]:
+                  - rowgroup [ref=e628]:
+                    - row "upvote gf000 6 hours ago | | | [–] The recommended advice is to start with semantics first. Syntax will change, there is not much point fixing it down too early. Most of the work is actually the backend, and people sort of illusion themselves into \"creating a language\" just because they have an AST. reply" [ref=e629]:
+                      - cell [ref=e630]:
+                        - img [ref=e631]
+                      - cell "upvote" [ref=e632]:
+                        - link "upvote" [ref=e634] [cursor=pointer]:
+                          - /url: vote?id=47779728&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e635]
+                      - cell "gf000 6 hours ago | | | [–] The recommended advice is to start with semantics first. Syntax will change, there is not much point fixing it down too early. Most of the work is actually the backend, and people sort of illusion themselves into \"creating a language\" just because they have an AST. reply" [ref=e636]:
+                        - generic [ref=e638]:
+                          - link "gf000" [ref=e639] [cursor=pointer]:
+                            - /url: user?id=gf000
+                          - generic "2026-04-15T14:43:54 1776264234" [ref=e640]:
+                            - link "6 hours ago" [ref=e641] [cursor=pointer]:
+                              - /url: item?id=47779728
+                          - generic [ref=e642]:
+                            - text: "|"
+                            - link [ref=e643] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e644] [cursor=pointer]:
+                              - /url: "#47779168"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e645] [cursor=pointer]:
+                              - /url: "#47780477"
+                              - text: next
+                            - link "[–]" [ref=e646] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e647]:
+                          - generic [ref=e648]:
+                            - text: The recommended advice is to start with semantics first. Syntax will change, there is not much point fixing it down too early.
+                            - paragraph [ref=e649]: Most of the work is actually the backend, and people sort of illusion themselves into "creating a language" just because they have an AST.
+                          - paragraph [ref=e651]:
+                            - link "reply" [ref=e654] [cursor=pointer]:
+                              - /url: reply?id=47779728&goto=item%3Fid%3D47776796%2347779728
+            - row "upvote thefaux 4 hours ago | | | [–] Syntax and semantics are never orthogonal and you always need syntax so it must be considered from the start. Any reasonable syntax will quickly become much more pleasant to generate an ast or ir than, say, manually building these objects in the host language of the compiler which is what the semantics first crowd seem to propose. It also is only the case that most of the work is the backend for some compilers, though of course all of this depends on how backend is defined. Is backend just codegen or is it all of the analysis between parsing and codegen? If you target a high level language, which is very appropriate for one's first few compilers, the backend can be quite simple. At the simplest, no ast is even necessary and the compiler can just mechanically translate one syntax into another in a single pass. reply" [ref=e655]:
+              - cell "upvote thefaux 4 hours ago | | | [–] Syntax and semantics are never orthogonal and you always need syntax so it must be considered from the start. Any reasonable syntax will quickly become much more pleasant to generate an ast or ir than, say, manually building these objects in the host language of the compiler which is what the semantics first crowd seem to propose. It also is only the case that most of the work is the backend for some compilers, though of course all of this depends on how backend is defined. Is backend just codegen or is it all of the analysis between parsing and codegen? If you target a high level language, which is very appropriate for one's first few compilers, the backend can be quite simple. At the simplest, no ast is even necessary and the compiler can just mechanically translate one syntax into another in a single pass. reply" [ref=e656]:
+                - table [ref=e657]:
+                  - rowgroup [ref=e658]:
+                    - row "upvote thefaux 4 hours ago | | | [–] Syntax and semantics are never orthogonal and you always need syntax so it must be considered from the start. Any reasonable syntax will quickly become much more pleasant to generate an ast or ir than, say, manually building these objects in the host language of the compiler which is what the semantics first crowd seem to propose. It also is only the case that most of the work is the backend for some compilers, though of course all of this depends on how backend is defined. Is backend just codegen or is it all of the analysis between parsing and codegen? If you target a high level language, which is very appropriate for one's first few compilers, the backend can be quite simple. At the simplest, no ast is even necessary and the compiler can just mechanically translate one syntax into another in a single pass. reply" [ref=e659]:
+                      - cell [ref=e660]:
+                        - img [ref=e661]
+                      - cell "upvote" [ref=e662]:
+                        - link "upvote" [ref=e664] [cursor=pointer]:
+                          - /url: vote?id=47781451&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e665]
+                      - cell "thefaux 4 hours ago | | | [–] Syntax and semantics are never orthogonal and you always need syntax so it must be considered from the start. Any reasonable syntax will quickly become much more pleasant to generate an ast or ir than, say, manually building these objects in the host language of the compiler which is what the semantics first crowd seem to propose. It also is only the case that most of the work is the backend for some compilers, though of course all of this depends on how backend is defined. Is backend just codegen or is it all of the analysis between parsing and codegen? If you target a high level language, which is very appropriate for one's first few compilers, the backend can be quite simple. At the simplest, no ast is even necessary and the compiler can just mechanically translate one syntax into another in a single pass. reply" [ref=e666]:
+                        - generic [ref=e668]:
+                          - link "thefaux" [ref=e669] [cursor=pointer]:
+                            - /url: user?id=thefaux
+                          - generic "2026-04-15T16:30:13 1776270613" [ref=e670]:
+                            - link "4 hours ago" [ref=e671] [cursor=pointer]:
+                              - /url: item?id=47781451
+                          - generic [ref=e672]:
+                            - text: "|"
+                            - link [ref=e673] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e674] [cursor=pointer]:
+                              - /url: "#47779728"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e675] [cursor=pointer]:
+                              - /url: "#47780477"
+                              - text: next
+                            - link "[–]" [ref=e676] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e677]:
+                          - generic [ref=e678]:
+                            - text: Syntax and semantics are never orthogonal and you always need syntax so it must be considered from the start. Any reasonable syntax will quickly become much more pleasant to generate an ast or ir than, say, manually building these objects in the host language of the compiler which is what the semantics first crowd seem to propose.
+                            - paragraph [ref=e679]: It also is only the case that most of the work is the backend for some compilers, though of course all of this depends on how backend is defined. Is backend just codegen or is it all of the analysis between parsing and codegen? If you target a high level language, which is very appropriate for one's first few compilers, the backend can be quite simple. At the simplest, no ast is even necessary and the compiler can just mechanically translate one syntax into another in a single pass.
+                          - paragraph [ref=e681]:
+                            - link "reply" [ref=e684] [cursor=pointer]:
+                              - /url: reply?id=47781451&goto=item%3Fid%3D47776796%2347781451
+            - row "upvote ablob 4 hours ago | | | [–] I think his point is that \"form follows function\". If you know what kind of semantics you're going to have, you can use that to construct a syntax that lends itself to using it properly. reply" [ref=e685]:
+              - cell "upvote ablob 4 hours ago | | | [–] I think his point is that \"form follows function\". If you know what kind of semantics you're going to have, you can use that to construct a syntax that lends itself to using it properly. reply" [ref=e686]:
+                - table [ref=e687]:
+                  - rowgroup [ref=e688]:
+                    - row "upvote ablob 4 hours ago | | | [–] I think his point is that \"form follows function\". If you know what kind of semantics you're going to have, you can use that to construct a syntax that lends itself to using it properly. reply" [ref=e689]:
+                      - cell [ref=e690]:
+                        - img [ref=e691]
+                      - cell "upvote" [ref=e692]:
+                        - link "upvote" [ref=e694] [cursor=pointer]:
+                          - /url: vote?id=47781710&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e695]
+                      - cell "ablob 4 hours ago | | | [–] I think his point is that \"form follows function\". If you know what kind of semantics you're going to have, you can use that to construct a syntax that lends itself to using it properly. reply" [ref=e696]:
+                        - generic [ref=e698]:
+                          - link "ablob" [ref=e699] [cursor=pointer]:
+                            - /url: user?id=ablob
+                          - generic "2026-04-15T16:47:44 1776271664" [ref=e700]:
+                            - link "4 hours ago" [ref=e701] [cursor=pointer]:
+                              - /url: item?id=47781710
+                          - generic [ref=e702]:
+                            - text: "|"
+                            - link [ref=e703] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e704] [cursor=pointer]:
+                              - /url: "#47781451"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e705] [cursor=pointer]:
+                              - /url: "#47780477"
+                              - text: next
+                            - link "[–]" [ref=e706] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e707]:
+                          - generic [ref=e708]: I think his point is that "form follows function". If you know what kind of semantics you're going to have, you can use that to construct a syntax that lends itself to using it properly.
+                          - paragraph [ref=e710]:
+                            - link "reply" [ref=e713] [cursor=pointer]:
+                              - /url: reply?id=47781710&goto=item%3Fid%3D47776796%2347781710
+            - row "upvote samus 5 hours ago | | | | [–] Getting an overview of parsing theory is mainly useful to avoid making ambiguous or otherwise hard to parse grammars. Usually one can't go too wrong with a hand-written recursive descent parser, and most general-purpose language are so complicated that parser generator can't really handle them. Anyway the really interesting parts of compiling happen in the backend. Another alternative is basing the language on S-expressions, for which a parser is extremely simple to write. reply" [ref=e714]:
+              - cell "upvote samus 5 hours ago | | | | [–] Getting an overview of parsing theory is mainly useful to avoid making ambiguous or otherwise hard to parse grammars. Usually one can't go too wrong with a hand-written recursive descent parser, and most general-purpose language are so complicated that parser generator can't really handle them. Anyway the really interesting parts of compiling happen in the backend. Another alternative is basing the language on S-expressions, for which a parser is extremely simple to write. reply" [ref=e715]:
+                - table [ref=e716]:
+                  - rowgroup [ref=e717]:
+                    - row "upvote samus 5 hours ago | | | | [–] Getting an overview of parsing theory is mainly useful to avoid making ambiguous or otherwise hard to parse grammars. Usually one can't go too wrong with a hand-written recursive descent parser, and most general-purpose language are so complicated that parser generator can't really handle them. Anyway the really interesting parts of compiling happen in the backend. Another alternative is basing the language on S-expressions, for which a parser is extremely simple to write. reply" [ref=e718]:
+                      - cell [ref=e719]:
+                        - img [ref=e720]
+                      - cell "upvote" [ref=e721]:
+                        - link "upvote" [ref=e723] [cursor=pointer]:
+                          - /url: vote?id=47780477&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e724]
+                      - cell "samus 5 hours ago | | | | [–] Getting an overview of parsing theory is mainly useful to avoid making ambiguous or otherwise hard to parse grammars. Usually one can't go too wrong with a hand-written recursive descent parser, and most general-purpose language are so complicated that parser generator can't really handle them. Anyway the really interesting parts of compiling happen in the backend. Another alternative is basing the language on S-expressions, for which a parser is extremely simple to write. reply" [ref=e725]:
+                        - generic [ref=e727]:
+                          - link "samus" [ref=e728] [cursor=pointer]:
+                            - /url: user?id=samus
+                          - generic "2026-04-15T15:28:04 1776266884" [ref=e729]:
+                            - link "5 hours ago" [ref=e730] [cursor=pointer]:
+                              - /url: item?id=47780477
+                          - generic [ref=e731]:
+                            - text: "|"
+                            - link [ref=e732] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e733] [cursor=pointer]:
+                              - /url: "#47779168"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e734] [cursor=pointer]:
+                              - /url: "#47779728"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e735] [cursor=pointer]:
+                              - /url: "#47777643"
+                              - text: next
+                            - link "[–]" [ref=e736] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e737]:
+                          - generic [ref=e738]:
+                            - text: Getting an overview of parsing theory is mainly useful to avoid making ambiguous or otherwise hard to parse grammars. Usually one can't go too wrong with a hand-written recursive descent parser, and most general-purpose language are so complicated that parser generator can't really handle them. Anyway the really interesting parts of compiling happen in the backend.
+                            - paragraph [ref=e739]: Another alternative is basing the language on S-expressions, for which a parser is extremely simple to write.
+                          - paragraph [ref=e741]:
+                            - link "reply" [ref=e744] [cursor=pointer]:
+                              - /url: reply?id=47780477&goto=item%3Fid%3D47776796%2347780477
+            - row "upvote Hendrikto 9 hours ago | | | [–] > \"Compilers\" by Niklaus Wirth This one? https://people.inf.ethz.ch/wirth/CompilerConstruction/Compil... reply" [ref=e745]:
+              - cell "upvote Hendrikto 9 hours ago | | | [–] > \"Compilers\" by Niklaus Wirth This one? https://people.inf.ethz.ch/wirth/CompilerConstruction/Compil... reply" [ref=e746]:
+                - table [ref=e747]:
+                  - rowgroup [ref=e748]:
+                    - row "upvote Hendrikto 9 hours ago | | | [–] > \"Compilers\" by Niklaus Wirth This one? https://people.inf.ethz.ch/wirth/CompilerConstruction/Compil... reply" [ref=e749]:
+                      - cell [ref=e750]:
+                        - img [ref=e751]
+                      - cell "upvote" [ref=e752]:
+                        - link "upvote" [ref=e754] [cursor=pointer]:
+                          - /url: vote?id=47777643&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e755]
+                      - cell "Hendrikto 9 hours ago | | | [–] > \"Compilers\" by Niklaus Wirth This one? https://people.inf.ethz.ch/wirth/CompilerConstruction/Compil... reply" [ref=e756]:
+                        - generic [ref=e758]:
+                          - link "Hendrikto" [ref=e759] [cursor=pointer]:
+                            - /url: user?id=Hendrikto
+                          - generic "2026-04-15T11:30:14 1776252614" [ref=e760]:
+                            - link "9 hours ago" [ref=e761] [cursor=pointer]:
+                              - /url: item?id=47777643
+                          - generic [ref=e762]:
+                            - text: "|"
+                            - link [ref=e763] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e764] [cursor=pointer]:
+                              - /url: "#47778717"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e765] [cursor=pointer]:
+                              - /url: "#47777787"
+                              - text: next
+                            - link "[–]" [ref=e766] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e767]:
+                          - generic [ref=e768]:
+                            - text: "> \"Compilers\" by Niklaus Wirth"
+                            - paragraph [ref=e769]:
+                              - text: This one?
+                              - link "https://people.inf.ethz.ch/wirth/CompilerConstruction/Compil..." [ref=e770] [cursor=pointer]:
+                                - /url: https://people.inf.ethz.ch/wirth/CompilerConstruction/CompilerConstruction1.pdf
+                          - paragraph [ref=e772]:
+                            - link "reply" [ref=e775] [cursor=pointer]:
+                              - /url: reply?id=47777643&goto=item%3Fid%3D47776796%2347777643
+            - row "upvote znpy 6 hours ago | | | [–] i found the same file but that's only 44 pages long ? This ( https://github.com/tpn/pdfs/blob/master/Compiler%20Construct... ) seems to be a previous version (2005) and it's 131 pages long reply" [ref=e776]:
+              - cell "upvote znpy 6 hours ago | | | [–] i found the same file but that's only 44 pages long ? This ( https://github.com/tpn/pdfs/blob/master/Compiler%20Construct... ) seems to be a previous version (2005) and it's 131 pages long reply" [ref=e777]:
+                - table [ref=e778]:
+                  - rowgroup [ref=e779]:
+                    - row "upvote znpy 6 hours ago | | | [–] i found the same file but that's only 44 pages long ? This ( https://github.com/tpn/pdfs/blob/master/Compiler%20Construct... ) seems to be a previous version (2005) and it's 131 pages long reply" [ref=e780]:
+                      - cell [ref=e781]:
+                        - img [ref=e782]
+                      - cell "upvote" [ref=e783]:
+                        - link "upvote" [ref=e785] [cursor=pointer]:
+                          - /url: vote?id=47779341&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e786]
+                      - cell "znpy 6 hours ago | | | [–] i found the same file but that's only 44 pages long ? This ( https://github.com/tpn/pdfs/blob/master/Compiler%20Construct... ) seems to be a previous version (2005) and it's 131 pages long reply" [ref=e787]:
+                        - generic [ref=e789]:
+                          - link "znpy" [ref=e790] [cursor=pointer]:
+                            - /url: user?id=znpy
+                          - generic "2026-04-15T14:18:52 1776262732" [ref=e791]:
+                            - link "6 hours ago" [ref=e792] [cursor=pointer]:
+                              - /url: item?id=47779341
+                          - generic [ref=e793]:
+                            - text: "|"
+                            - link [ref=e794] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e795] [cursor=pointer]:
+                              - /url: "#47777643"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e796] [cursor=pointer]:
+                              - /url: "#47777787"
+                              - text: next
+                            - link "[–]" [ref=e797] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e798]:
+                          - generic [ref=e799]:
+                            - text: i found the same file but that's only 44 pages long ?
+                            - paragraph [ref=e800]:
+                              - text: This (
+                              - link "https://github.com/tpn/pdfs/blob/master/Compiler%20Construct..." [ref=e801] [cursor=pointer]:
+                                - /url: https://github.com/tpn/pdfs/blob/master/Compiler%20Construction%20-%20Niklaus%20Wirth%20-%201996%20(CBEAll).pdf
+                              - text: ) seems to be a previous version (2005) and it's 131 pages long
+                          - paragraph [ref=e803]:
+                            - link "reply" [ref=e806] [cursor=pointer]:
+                              - /url: reply?id=47779341&goto=item%3Fid%3D47776796%2347779341
+            - row "upvote guenthert 5 hours ago | | | [–] You'll want part 2 as well for a total of 107 pages. reply" [ref=e807]:
+              - cell "upvote guenthert 5 hours ago | | | [–] You'll want part 2 as well for a total of 107 pages. reply" [ref=e808]:
+                - table [ref=e809]:
+                  - rowgroup [ref=e810]:
+                    - row "upvote guenthert 5 hours ago | | | [–] You'll want part 2 as well for a total of 107 pages. reply" [ref=e811]:
+                      - cell [ref=e812]:
+                        - img [ref=e813]
+                      - cell "upvote" [ref=e814]:
+                        - link "upvote" [ref=e816] [cursor=pointer]:
+                          - /url: vote?id=47780682&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e817]
+                      - cell "guenthert 5 hours ago | | | [–] You'll want part 2 as well for a total of 107 pages. reply" [ref=e818]:
+                        - generic [ref=e820]:
+                          - link "guenthert" [ref=e821] [cursor=pointer]:
+                            - /url: user?id=guenthert
+                          - generic "2026-04-15T15:41:42 1776267702" [ref=e822]:
+                            - link "5 hours ago" [ref=e823] [cursor=pointer]:
+                              - /url: item?id=47780682
+                          - generic [ref=e824]:
+                            - text: "|"
+                            - link [ref=e825] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e826] [cursor=pointer]:
+                              - /url: "#47779341"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e827] [cursor=pointer]:
+                              - /url: "#47777787"
+                              - text: next
+                            - link "[–]" [ref=e828] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e829]:
+                          - generic [ref=e830]: You'll want part 2 as well for a total of 107 pages.
+                          - paragraph [ref=e832]:
+                            - link "reply" [ref=e835] [cursor=pointer]:
+                              - /url: reply?id=47780682&goto=item%3Fid%3D47776796%2347780682
+            - 'row "upvote antiquark 9 hours ago | | | [–] There is still hope for a compiler book. From Knuth''s website: > And after Volumes 1--5 are done, God willing, I plan to publish Volume 6 (the theory of context-free languages) and Volume 7 (Compiler techniques), but only if the things I want to say about those topics are still relevant and still haven''t been said. https://www-cs-faculty.stanford.edu/~knuth/taocp.html reply" [ref=e836]':
+              - 'cell "upvote antiquark 9 hours ago | | | [–] There is still hope for a compiler book. From Knuth''s website: > And after Volumes 1--5 are done, God willing, I plan to publish Volume 6 (the theory of context-free languages) and Volume 7 (Compiler techniques), but only if the things I want to say about those topics are still relevant and still haven''t been said. https://www-cs-faculty.stanford.edu/~knuth/taocp.html reply" [ref=e837]':
+                - table [ref=e838]:
+                  - rowgroup [ref=e839]:
+                    - 'row "upvote antiquark 9 hours ago | | | [–] There is still hope for a compiler book. From Knuth''s website: > And after Volumes 1--5 are done, God willing, I plan to publish Volume 6 (the theory of context-free languages) and Volume 7 (Compiler techniques), but only if the things I want to say about those topics are still relevant and still haven''t been said. https://www-cs-faculty.stanford.edu/~knuth/taocp.html reply" [ref=e840]':
+                      - cell [ref=e841]:
+                        - img [ref=e842]
+                      - cell "upvote" [ref=e843]:
+                        - link "upvote" [ref=e845] [cursor=pointer]:
+                          - /url: vote?id=47777787&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e846]
+                      - 'cell "antiquark 9 hours ago | | | [–] There is still hope for a compiler book. From Knuth''s website: > And after Volumes 1--5 are done, God willing, I plan to publish Volume 6 (the theory of context-free languages) and Volume 7 (Compiler techniques), but only if the things I want to say about those topics are still relevant and still haven''t been said. https://www-cs-faculty.stanford.edu/~knuth/taocp.html reply" [ref=e847]':
+                        - generic [ref=e849]:
+                          - link "antiquark" [ref=e850] [cursor=pointer]:
+                            - /url: user?id=antiquark
+                          - generic "2026-04-15T11:47:21 1776253641" [ref=e851]:
+                            - link "9 hours ago" [ref=e852] [cursor=pointer]:
+                              - /url: item?id=47777787
+                          - generic [ref=e853]:
+                            - text: "|"
+                            - link [ref=e854] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e855] [cursor=pointer]:
+                              - /url: "#47777643"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e856] [cursor=pointer]:
+                              - /url: "#47780605"
+                              - text: next
+                            - link "[–]" [ref=e857] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e858]:
+                          - generic [ref=e859]:
+                            - text: "There is still hope for a compiler book. From Knuth's website:"
+                            - paragraph [ref=e860]: "> And after Volumes 1--5 are done, God willing, I plan to publish Volume 6 (the theory of context-free languages) and Volume 7 (Compiler techniques), but only if the things I want to say about those topics are still relevant and still haven't been said."
+                            - paragraph [ref=e861]:
+                              - link "https://www-cs-faculty.stanford.edu/~knuth/taocp.html" [ref=e862] [cursor=pointer]:
+                                - /url: https://www-cs-faculty.stanford.edu/~knuth/taocp.html
+                          - paragraph [ref=e864]:
+                            - link "reply" [ref=e867] [cursor=pointer]:
+                              - /url: reply?id=47777787&goto=item%3Fid%3D47776796%2347777787
+            - row "upvote jcranmer 7 hours ago | | | [–] I don't think there is hope if you look at actuarial tables and Knuth's age. It's not clear to me if he'll be able to finish volume 4. The outline he has seems to have enough material to fill volumes 4C-4G to my eyes, and he isn't exactly cranking out the volumes. Admittedly, volumes 5-7 wouldn't be as massive as volume 4 (it sort of turns out that almost all interesting algorithms ends up being categorized as being in volume 4), so you probably wouldn't have a half-dozen subvolumes per topic but, it's still too many books down the line, especially if he plans to revise volumes 1-3 before working on anything else. reply" [ref=e868]:
+              - cell "upvote jcranmer 7 hours ago | | | [–] I don't think there is hope if you look at actuarial tables and Knuth's age. It's not clear to me if he'll be able to finish volume 4. The outline he has seems to have enough material to fill volumes 4C-4G to my eyes, and he isn't exactly cranking out the volumes. Admittedly, volumes 5-7 wouldn't be as massive as volume 4 (it sort of turns out that almost all interesting algorithms ends up being categorized as being in volume 4), so you probably wouldn't have a half-dozen subvolumes per topic but, it's still too many books down the line, especially if he plans to revise volumes 1-3 before working on anything else. reply" [ref=e869]:
+                - table [ref=e870]:
+                  - rowgroup [ref=e871]:
+                    - row "upvote jcranmer 7 hours ago | | | [–] I don't think there is hope if you look at actuarial tables and Knuth's age. It's not clear to me if he'll be able to finish volume 4. The outline he has seems to have enough material to fill volumes 4C-4G to my eyes, and he isn't exactly cranking out the volumes. Admittedly, volumes 5-7 wouldn't be as massive as volume 4 (it sort of turns out that almost all interesting algorithms ends up being categorized as being in volume 4), so you probably wouldn't have a half-dozen subvolumes per topic but, it's still too many books down the line, especially if he plans to revise volumes 1-3 before working on anything else. reply" [ref=e872]:
+                      - cell [ref=e873]:
+                        - img [ref=e874]
+                      - cell "upvote" [ref=e875]:
+                        - link "upvote" [ref=e877] [cursor=pointer]:
+                          - /url: vote?id=47778631&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e878]
+                      - cell "jcranmer 7 hours ago | | | [–] I don't think there is hope if you look at actuarial tables and Knuth's age. It's not clear to me if he'll be able to finish volume 4. The outline he has seems to have enough material to fill volumes 4C-4G to my eyes, and he isn't exactly cranking out the volumes. Admittedly, volumes 5-7 wouldn't be as massive as volume 4 (it sort of turns out that almost all interesting algorithms ends up being categorized as being in volume 4), so you probably wouldn't have a half-dozen subvolumes per topic but, it's still too many books down the line, especially if he plans to revise volumes 1-3 before working on anything else. reply" [ref=e879]:
+                        - generic [ref=e881]:
+                          - link "jcranmer" [ref=e882] [cursor=pointer]:
+                            - /url: user?id=jcranmer
+                          - generic "2026-04-15T13:23:01 1776259381" [ref=e883]:
+                            - link "7 hours ago" [ref=e884] [cursor=pointer]:
+                              - /url: item?id=47778631
+                          - generic [ref=e885]:
+                            - text: "|"
+                            - link [ref=e886] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e887] [cursor=pointer]:
+                              - /url: "#47777787"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e888] [cursor=pointer]:
+                              - /url: "#47778530"
+                              - text: next
+                            - link "[–]" [ref=e889] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e890]:
+                          - generic [ref=e891]:
+                            - text: I don't think there is hope if you look at actuarial tables and Knuth's age. It's not clear to me if he'll be able to finish volume 4. The outline he has seems to have enough material to fill volumes 4C-4G to my eyes, and he isn't exactly cranking out the volumes.
+                            - paragraph [ref=e892]: Admittedly, volumes 5-7 wouldn't be as massive as volume 4 (it sort of turns out that almost all interesting algorithms ends up being categorized as being in volume 4), so you probably wouldn't have a half-dozen subvolumes per topic but, it's still too many books down the line, especially if he plans to revise volumes 1-3 before working on anything else.
+                          - paragraph [ref=e894]:
+                            - link "reply" [ref=e897] [cursor=pointer]:
+                              - /url: reply?id=47778631&goto=item%3Fid%3D47776796%2347778631
+            - row "upvote gdwatson 7 hours ago | | | | [–] I hope that God is indeed willing, but the man is 88 years old and he’s not done with the third tome of volume four. It would require a minor miracle for him to finish volume 7 within this lifetime. reply" [ref=e898]:
+              - cell "upvote gdwatson 7 hours ago | | | | [–] I hope that God is indeed willing, but the man is 88 years old and he’s not done with the third tome of volume four. It would require a minor miracle for him to finish volume 7 within this lifetime. reply" [ref=e899]:
+                - table [ref=e900]:
+                  - rowgroup [ref=e901]:
+                    - row "upvote gdwatson 7 hours ago | | | | [–] I hope that God is indeed willing, but the man is 88 years old and he’s not done with the third tome of volume four. It would require a minor miracle for him to finish volume 7 within this lifetime. reply" [ref=e902]:
+                      - cell [ref=e903]:
+                        - img [ref=e904]
+                      - cell "upvote" [ref=e905]:
+                        - link "upvote" [ref=e907] [cursor=pointer]:
+                          - /url: vote?id=47778530&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e908]
+                      - cell "gdwatson 7 hours ago | | | | [–] I hope that God is indeed willing, but the man is 88 years old and he’s not done with the third tome of volume four. It would require a minor miracle for him to finish volume 7 within this lifetime. reply" [ref=e909]:
+                        - generic [ref=e911]:
+                          - link "gdwatson" [ref=e912] [cursor=pointer]:
+                            - /url: user?id=gdwatson
+                          - generic "2026-04-15T13:14:07 1776258847" [ref=e913]:
+                            - link "7 hours ago" [ref=e914] [cursor=pointer]:
+                              - /url: item?id=47778530
+                          - generic [ref=e915]:
+                            - text: "|"
+                            - link [ref=e916] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e917] [cursor=pointer]:
+                              - /url: "#47777787"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e918] [cursor=pointer]:
+                              - /url: "#47778631"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e919] [cursor=pointer]:
+                              - /url: "#47778776"
+                              - text: next
+                            - link "[–]" [ref=e920] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e921]:
+                          - generic [ref=e922]: I hope that God is indeed willing, but the man is 88 years old and he’s not done with the third tome of volume four. It would require a minor miracle for him to finish volume 7 within this lifetime.
+                          - paragraph [ref=e924]:
+                            - link "reply" [ref=e927] [cursor=pointer]:
+                              - /url: reply?id=47778530&goto=item%3Fid%3D47776796%2347778530
+            - row "upvote mghackerlady 7 hours ago | | | | [–] I really hope he ends up completing the whole series. I started volume one recently and it is excellent reply" [ref=e928]:
+              - cell "upvote mghackerlady 7 hours ago | | | | [–] I really hope he ends up completing the whole series. I started volume one recently and it is excellent reply" [ref=e929]:
+                - table [ref=e930]:
+                  - rowgroup [ref=e931]:
+                    - row "upvote mghackerlady 7 hours ago | | | | [–] I really hope he ends up completing the whole series. I started volume one recently and it is excellent reply" [ref=e932]:
+                      - cell [ref=e933]:
+                        - img [ref=e934]
+                      - cell "upvote" [ref=e935]:
+                        - link "upvote" [ref=e937] [cursor=pointer]:
+                          - /url: vote?id=47778776&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e938]
+                      - cell "mghackerlady 7 hours ago | | | | [–] I really hope he ends up completing the whole series. I started volume one recently and it is excellent reply" [ref=e939]:
+                        - generic [ref=e941]:
+                          - link "mghackerlady" [ref=e942] [cursor=pointer]:
+                            - /url: user?id=mghackerlady
+                          - generic "2026-04-15T13:36:05 1776260165" [ref=e943]:
+                            - link "7 hours ago" [ref=e944] [cursor=pointer]:
+                              - /url: item?id=47778776
+                          - generic [ref=e945]:
+                            - text: "|"
+                            - link [ref=e946] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e947] [cursor=pointer]:
+                              - /url: "#47777787"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e948] [cursor=pointer]:
+                              - /url: "#47778530"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e949] [cursor=pointer]:
+                              - /url: "#47780605"
+                              - text: next
+                            - link "[–]" [ref=e950] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e951]:
+                          - generic [ref=e952]: I really hope he ends up completing the whole series. I started volume one recently and it is excellent
+                          - paragraph [ref=e954]:
+                            - link "reply" [ref=e957] [cursor=pointer]:
+                              - /url: reply?id=47778776&goto=item%3Fid%3D47776796%2347778776
+            - row "upvote LoganDark 5 hours ago | | | [–] I'd never seen Knuth's middle name until your comment. I think it safely could be left out of an article. reply" [ref=e958]:
+              - cell "upvote LoganDark 5 hours ago | | | [–] I'd never seen Knuth's middle name until your comment. I think it safely could be left out of an article. reply" [ref=e959]:
+                - table [ref=e960]:
+                  - rowgroup [ref=e961]:
+                    - row "upvote LoganDark 5 hours ago | | | [–] I'd never seen Knuth's middle name until your comment. I think it safely could be left out of an article. reply" [ref=e962]:
+                      - cell [ref=e963]:
+                        - img [ref=e964]
+                      - cell "upvote" [ref=e965]:
+                        - link "upvote" [ref=e967] [cursor=pointer]:
+                          - /url: vote?id=47780605&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e968]
+                      - cell "LoganDark 5 hours ago | | | [–] I'd never seen Knuth's middle name until your comment. I think it safely could be left out of an article. reply" [ref=e969]:
+                        - generic [ref=e971]:
+                          - link "LoganDark" [ref=e972] [cursor=pointer]:
+                            - /url: user?id=LoganDark
+                          - generic "2026-04-15T15:37:08 1776267428" [ref=e973]:
+                            - link "5 hours ago" [ref=e974] [cursor=pointer]:
+                              - /url: item?id=47780605
+                          - generic [ref=e975]:
+                            - text: "|"
+                            - link [ref=e976] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e977] [cursor=pointer]:
+                              - /url: "#47777787"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e978] [cursor=pointer]:
+                              - /url: "#47777439"
+                              - text: next
+                            - link "[–]" [ref=e979] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e980]:
+                          - generic [ref=e981]: I'd never seen Knuth's middle name until your comment. I think it safely could be left out of an article.
+                          - paragraph [ref=e983]:
+                            - link "reply" [ref=e986] [cursor=pointer]:
+                              - /url: reply?id=47780605&goto=item%3Fid%3D47776796%2347780605
+            - row [ref=e987]:
+              - cell [ref=e988]:
+                - table [ref=e989]:
+                  - rowgroup [ref=e990]:
+                    - row [ref=e991]:
+                      - cell [ref=e992]:
+                        - img
+                      - cell "upvote" [ref=e993]:
+                        - link "upvote" [ref=e995] [cursor=pointer]:
+                          - /url: vote?id=47777439&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e996]
+                      - cell [ref=e997]:
+                        - generic [ref=e999]:
+                          - link "soegaard" [ref=e1000] [cursor=pointer]:
+                            - /url: user?id=soegaard
+                          - generic "2026-04-15T11:07:44 1776251264" [ref=e1001]:
+                            - link "9 hours ago" [ref=e1002] [cursor=pointer]:
+                              - /url: item?id=47777439
+                          - generic [ref=e1003]:
+                            - text: "|"
+                            - link [ref=e1004] [cursor=pointer]:
+                              - /url: "#47777269"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1005] [cursor=pointer]:
+                              - /url: "#47777440"
+                              - text: next
+                            - link "[–]" [ref=e1006] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1007]:
+                          - generic [ref=e1008]:
+                            - text: An Incremental Approach to Compiler Construction
+                            - paragraph [ref=e1009]: Abdulaziz Ghuloum
+                            - paragraph [ref=e1010]:
+                              - link "http://scheme2006.cs.uchicago.edu/11-ghuloum.pdf" [ref=e1011] [cursor=pointer]:
+                                - /url: http://scheme2006.cs.uchicago.edu/11-ghuloum.pdf
+                            - paragraph [ref=e1012]: Abstract
+                            - paragraph [ref=e1013]: "Compilers are perceived to be magical artifacts, carefully crafted by the wizards, and unfathomable by the mere mortals. Books on compilers are better described as wizard-talk: written by and for a clique of all-knowing practitioners. Real-life compilers are too complex to serve as an educational tool. And the gap between real-life compilers and the educational toy compilers is too wide. The novice compiler writer stands puzzled facing an impenetrable barrier, “better write an interpreter instead.”"
+                            - paragraph [ref=e1014]: "The goal of this paper is to break that barrier. We show that building a compiler can be as easy as building an interpreter. The compiler we construct accepts a large subset of the Scheme programming language and produces assembly code for the Intel-x86 architecture, the dominant architecture of personal computing. The development of the compiler is broken into many small incremental steps. Every step yields a fully working compiler for a progressively expanding subset of Scheme. Every compiler step produces real assembly code that can be assembled then executed directly by the hardware. We assume that the reader is familiar with the basic computer architecture: its components and execution model. Detailed knowledge of the Intel-x86 architecture is not required."
+                            - paragraph [ref=e1015]: The development of the compiler is described in detail in an extended tutorial. Supporting material for the tutorial such as an automated testing facility coupled with a comprehensive test suite are provided with the tutorial. It is our hope that current and future implementors of Scheme ﬁnd in this paper the motivation for developing high-performance compilers and the means for achieving that goal.
+                          - paragraph [ref=e1017]:
+                            - link "reply" [ref=e1020] [cursor=pointer]:
+                              - /url: reply?id=47777439&goto=item%3Fid%3D47776796%2347777439
+            - 'row "upvote will_byrd 2 hours ago | | [–] Nada Amin has a nice implementation of Aziz''s approach, with tests: https://github.com/namin/inc reply" [ref=e1021]':
+              - 'cell "upvote will_byrd 2 hours ago | | [–] Nada Amin has a nice implementation of Aziz''s approach, with tests: https://github.com/namin/inc reply" [ref=e1022]':
+                - table [ref=e1023]:
+                  - rowgroup [ref=e1024]:
+                    - 'row "upvote will_byrd 2 hours ago | | [–] Nada Amin has a nice implementation of Aziz''s approach, with tests: https://github.com/namin/inc reply" [ref=e1025]':
+                      - cell [ref=e1026]:
+                        - img [ref=e1027]
+                      - cell "upvote" [ref=e1028]:
+                        - link "upvote" [ref=e1030] [cursor=pointer]:
+                          - /url: vote?id=47783666&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1031]
+                      - 'cell "will_byrd 2 hours ago | | [–] Nada Amin has a nice implementation of Aziz''s approach, with tests: https://github.com/namin/inc reply" [ref=e1032]':
+                        - generic [ref=e1034]:
+                          - link "will_byrd" [ref=e1035] [cursor=pointer]:
+                            - /url: user?id=will_byrd
+                          - generic "2026-04-15T19:03:11 1776279791" [ref=e1036]:
+                            - link "2 hours ago" [ref=e1037] [cursor=pointer]:
+                              - /url: item?id=47783666
+                          - generic [ref=e1038]:
+                            - text: "|"
+                            - link [ref=e1039] [cursor=pointer]:
+                              - /url: "#47777439"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1040] [cursor=pointer]:
+                              - /url: "#47777675"
+                              - text: next
+                            - link "[–]" [ref=e1041] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1042]:
+                          - generic [ref=e1043]:
+                            - text: "Nada Amin has a nice implementation of Aziz's approach, with tests:"
+                            - paragraph [ref=e1044]:
+                              - link "https://github.com/namin/inc" [ref=e1045] [cursor=pointer]:
+                                - /url: https://github.com/namin/inc
+                          - paragraph [ref=e1047]:
+                            - link "reply" [ref=e1050] [cursor=pointer]:
+                              - /url: reply?id=47783666&goto=item%3Fid%3D47776796%2347783666
+            - 'row "upvote asibahi 9 hours ago | | | [–] Inspired by Ghuloum''s book is this really nice book by Nora Sandler: Writing a C Compiler https://norasandler.com/book/ reply" [ref=e1051]':
+              - 'cell "upvote asibahi 9 hours ago | | | [–] Inspired by Ghuloum''s book is this really nice book by Nora Sandler: Writing a C Compiler https://norasandler.com/book/ reply" [ref=e1052]':
+                - table [ref=e1053]:
+                  - rowgroup [ref=e1054]:
+                    - 'row "upvote asibahi 9 hours ago | | | [–] Inspired by Ghuloum''s book is this really nice book by Nora Sandler: Writing a C Compiler https://norasandler.com/book/ reply" [ref=e1055]':
+                      - cell [ref=e1056]:
+                        - img [ref=e1057]
+                      - cell "upvote" [ref=e1058]:
+                        - link "upvote" [ref=e1060] [cursor=pointer]:
+                          - /url: vote?id=47777675&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1061]
+                      - 'cell "asibahi 9 hours ago | | | [–] Inspired by Ghuloum''s book is this really nice book by Nora Sandler: Writing a C Compiler https://norasandler.com/book/ reply" [ref=e1062]':
+                        - generic [ref=e1064]:
+                          - link "asibahi" [ref=e1065] [cursor=pointer]:
+                            - /url: user?id=asibahi
+                          - generic "2026-04-15T11:34:11 1776252851" [ref=e1066]:
+                            - link "9 hours ago" [ref=e1067] [cursor=pointer]:
+                              - /url: item?id=47777675
+                          - generic [ref=e1068]:
+                            - text: "|"
+                            - link [ref=e1069] [cursor=pointer]:
+                              - /url: "#47777439"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1070] [cursor=pointer]:
+                              - /url: "#47783666"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1071] [cursor=pointer]:
+                              - /url: "#47777440"
+                              - text: next
+                            - link "[–]" [ref=e1072] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1073]:
+                          - generic [ref=e1074]:
+                            - text: "Inspired by Ghuloum's book is this really nice book by Nora Sandler: Writing a C Compiler"
+                            - link "https://norasandler.com/book/" [ref=e1075] [cursor=pointer]:
+                              - /url: https://norasandler.com/book/
+                          - paragraph [ref=e1077]:
+                            - link "reply" [ref=e1080] [cursor=pointer]:
+                              - /url: reply?id=47777675&goto=item%3Fid%3D47776796%2347777675
+            - 'row "upvote agency 5 hours ago | | | [–] Another recent book inspired by Ghuloum is Essentials of Compilation: An Incremental Approach (which publishes Python and Racket versions) https://github.com/IUCompilerCourse/Essentials-of-Compilatio... reply" [ref=e1081]':
+              - 'cell "upvote agency 5 hours ago | | | [–] Another recent book inspired by Ghuloum is Essentials of Compilation: An Incremental Approach (which publishes Python and Racket versions) https://github.com/IUCompilerCourse/Essentials-of-Compilatio... reply" [ref=e1082]':
+                - table [ref=e1083]:
+                  - rowgroup [ref=e1084]:
+                    - 'row "upvote agency 5 hours ago | | | [–] Another recent book inspired by Ghuloum is Essentials of Compilation: An Incremental Approach (which publishes Python and Racket versions) https://github.com/IUCompilerCourse/Essentials-of-Compilatio... reply" [ref=e1085]':
+                      - cell [ref=e1086]:
+                        - img [ref=e1087]
+                      - cell "upvote" [ref=e1088]:
+                        - link "upvote" [ref=e1090] [cursor=pointer]:
+                          - /url: vote?id=47781032&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1091]
+                      - 'cell "agency 5 hours ago | | | [–] Another recent book inspired by Ghuloum is Essentials of Compilation: An Incremental Approach (which publishes Python and Racket versions) https://github.com/IUCompilerCourse/Essentials-of-Compilatio... reply" [ref=e1092]':
+                        - generic [ref=e1094]:
+                          - link "agency" [ref=e1095] [cursor=pointer]:
+                            - /url: user?id=agency
+                          - generic "2026-04-15T16:02:15 1776268935" [ref=e1096]:
+                            - link "5 hours ago" [ref=e1097] [cursor=pointer]:
+                              - /url: item?id=47781032
+                          - generic [ref=e1098]:
+                            - text: "|"
+                            - link [ref=e1099] [cursor=pointer]:
+                              - /url: "#47777439"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e1100] [cursor=pointer]:
+                              - /url: "#47777675"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1101] [cursor=pointer]:
+                              - /url: "#47777440"
+                              - text: next
+                            - link "[–]" [ref=e1102] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1103]:
+                          - generic [ref=e1104]:
+                            - text: "Another recent book inspired by Ghuloum is Essentials of Compilation: An Incremental Approach (which publishes Python and Racket versions)"
+                            - link "https://github.com/IUCompilerCourse/Essentials-of-Compilatio..." [ref=e1105] [cursor=pointer]:
+                              - /url: https://github.com/IUCompilerCourse/Essentials-of-Compilation
+                          - paragraph [ref=e1107]:
+                            - link "reply" [ref=e1110] [cursor=pointer]:
+                              - /url: reply?id=47781032&goto=item%3Fid%3D47776796%2347781032
+            - row "upvote morphle 9 hours ago | | [–] Compiler writing has progressed a lot. Notably in meta compilers [1] written in a few hundred lines of code and adaptive compilation [3] and just in time compilers. Alan Kay's research group VPRi tackled the problems of complexity (in writing compilers) [4]. [1] Ometa https://tinlizzie.org/VPRIPapers/tr2007003_ometa.pdf [2] Other ometa papers https://tinlizzie.org/IA/index.php/Papers_from_Viewpoints_Re... [3] Adaptive compilation https://youtu.be/CfYnzVxdwZE?t=4575 the PhD thesis https://www.researchgate.net/publication/309254446_Adaptive_... [4] Is it really \"Complex\"? Or did we just make it \"Complicated\"? Alan Kay https://youtu.be/ubaX1Smg6pY?t=3605 reply" [ref=e1111]:
+              - cell "upvote morphle 9 hours ago | | [–] Compiler writing has progressed a lot. Notably in meta compilers [1] written in a few hundred lines of code and adaptive compilation [3] and just in time compilers. Alan Kay's research group VPRi tackled the problems of complexity (in writing compilers) [4]. [1] Ometa https://tinlizzie.org/VPRIPapers/tr2007003_ometa.pdf [2] Other ometa papers https://tinlizzie.org/IA/index.php/Papers_from_Viewpoints_Re... [3] Adaptive compilation https://youtu.be/CfYnzVxdwZE?t=4575 the PhD thesis https://www.researchgate.net/publication/309254446_Adaptive_... [4] Is it really \"Complex\"? Or did we just make it \"Complicated\"? Alan Kay https://youtu.be/ubaX1Smg6pY?t=3605 reply" [ref=e1112]:
+                - table [ref=e1113]:
+                  - rowgroup [ref=e1114]:
+                    - row "upvote morphle 9 hours ago | | [–] Compiler writing has progressed a lot. Notably in meta compilers [1] written in a few hundred lines of code and adaptive compilation [3] and just in time compilers. Alan Kay's research group VPRi tackled the problems of complexity (in writing compilers) [4]. [1] Ometa https://tinlizzie.org/VPRIPapers/tr2007003_ometa.pdf [2] Other ometa papers https://tinlizzie.org/IA/index.php/Papers_from_Viewpoints_Re... [3] Adaptive compilation https://youtu.be/CfYnzVxdwZE?t=4575 the PhD thesis https://www.researchgate.net/publication/309254446_Adaptive_... [4] Is it really \"Complex\"? Or did we just make it \"Complicated\"? Alan Kay https://youtu.be/ubaX1Smg6pY?t=3605 reply" [ref=e1115]:
+                      - cell [ref=e1116]:
+                        - img
+                      - cell "upvote" [ref=e1117]:
+                        - link "upvote" [ref=e1119] [cursor=pointer]:
+                          - /url: vote?id=47777440&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1120]
+                      - cell "morphle 9 hours ago | | [–] Compiler writing has progressed a lot. Notably in meta compilers [1] written in a few hundred lines of code and adaptive compilation [3] and just in time compilers. Alan Kay's research group VPRi tackled the problems of complexity (in writing compilers) [4]. [1] Ometa https://tinlizzie.org/VPRIPapers/tr2007003_ometa.pdf [2] Other ometa papers https://tinlizzie.org/IA/index.php/Papers_from_Viewpoints_Re... [3] Adaptive compilation https://youtu.be/CfYnzVxdwZE?t=4575 the PhD thesis https://www.researchgate.net/publication/309254446_Adaptive_... [4] Is it really \"Complex\"? Or did we just make it \"Complicated\"? Alan Kay https://youtu.be/ubaX1Smg6pY?t=3605 reply" [ref=e1121]:
+                        - generic [ref=e1123]:
+                          - link "morphle" [ref=e1124] [cursor=pointer]:
+                            - /url: user?id=morphle
+                          - generic "2026-04-15T11:07:44 1776251264" [ref=e1125]:
+                            - link "9 hours ago" [ref=e1126] [cursor=pointer]:
+                              - /url: item?id=47777440
+                          - generic [ref=e1127]:
+                            - text: "|"
+                            - link [ref=e1128] [cursor=pointer]:
+                              - /url: "#47777439"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1129] [cursor=pointer]:
+                              - /url: "#47778068"
+                              - text: next
+                            - link "[–]" [ref=e1130] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1131]:
+                          - generic [ref=e1132]:
+                            - text: Compiler writing has progressed a lot. Notably in meta compilers [1] written in a few hundred lines of code and adaptive compilation [3] and just in time compilers. Alan Kay's research group VPRi tackled the problems of complexity (in writing compilers) [4].
+                            - paragraph [ref=e1133]:
+                              - text: "[1] Ometa"
+                              - link "https://tinlizzie.org/VPRIPapers/tr2007003_ometa.pdf" [ref=e1134] [cursor=pointer]:
+                                - /url: https://tinlizzie.org/VPRIPapers/tr2007003_ometa.pdf
+                            - paragraph [ref=e1135]:
+                              - text: "[2] Other ometa papers"
+                              - link "https://tinlizzie.org/IA/index.php/Papers_from_Viewpoints_Re..." [ref=e1136] [cursor=pointer]:
+                                - /url: https://tinlizzie.org/IA/index.php/Papers_from_Viewpoints_Research_Institute
+                            - paragraph [ref=e1137]:
+                              - text: "[3] Adaptive compilation"
+                              - link "https://youtu.be/CfYnzVxdwZE?t=4575" [ref=e1138] [cursor=pointer]:
+                                - /url: https://youtu.be/CfYnzVxdwZE?t=4575
+                            - paragraph [ref=e1139]:
+                              - text: the PhD thesis
+                              - link "https://www.researchgate.net/publication/309254446_Adaptive_..." [ref=e1140] [cursor=pointer]:
+                                - /url: https://www.researchgate.net/publication/309254446_Adaptive_compilation_for_an_object-oriented_and_reconfigurable_architecture
+                            - paragraph [ref=e1141]:
+                              - text: "[4] Is it really \"Complex\"? Or did we just make it \"Complicated\"? Alan Kay"
+                              - link "https://youtu.be/ubaX1Smg6pY?t=3605" [ref=e1142] [cursor=pointer]:
+                                - /url: https://youtu.be/ubaX1Smg6pY?t=3605
+                          - paragraph [ref=e1144]:
+                            - link "reply" [ref=e1147] [cursor=pointer]:
+                              - /url: reply?id=47777440&goto=item%3Fid%3D47776796%2347777440
+            - row "upvote stupefy 8 hours ago | | [–] One nice piece of advice that I received is that books are like RAMs, you do not have to go through them sequentially, but can do random access to the parts of it you need. With this in mind I find it doable to get one the thick books and only read the part that I need for my task. But, to also be fair, the above random access method does not work when you don't know what you don't know. So I understand why having a light, but good introduction to the topic is important, and I believe that's what the author is pointing out. reply" [ref=e1148]:
+              - cell "upvote stupefy 8 hours ago | | [–] One nice piece of advice that I received is that books are like RAMs, you do not have to go through them sequentially, but can do random access to the parts of it you need. With this in mind I find it doable to get one the thick books and only read the part that I need for my task. But, to also be fair, the above random access method does not work when you don't know what you don't know. So I understand why having a light, but good introduction to the topic is important, and I believe that's what the author is pointing out. reply" [ref=e1149]:
+                - table [ref=e1150]:
+                  - rowgroup [ref=e1151]:
+                    - row "upvote stupefy 8 hours ago | | [–] One nice piece of advice that I received is that books are like RAMs, you do not have to go through them sequentially, but can do random access to the parts of it you need. With this in mind I find it doable to get one the thick books and only read the part that I need for my task. But, to also be fair, the above random access method does not work when you don't know what you don't know. So I understand why having a light, but good introduction to the topic is important, and I believe that's what the author is pointing out. reply" [ref=e1152]:
+                      - cell [ref=e1153]:
+                        - img
+                      - cell "upvote" [ref=e1154]:
+                        - link "upvote" [ref=e1156] [cursor=pointer]:
+                          - /url: vote?id=47778068&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1157]
+                      - cell "stupefy 8 hours ago | | [–] One nice piece of advice that I received is that books are like RAMs, you do not have to go through them sequentially, but can do random access to the parts of it you need. With this in mind I find it doable to get one the thick books and only read the part that I need for my task. But, to also be fair, the above random access method does not work when you don't know what you don't know. So I understand why having a light, but good introduction to the topic is important, and I believe that's what the author is pointing out. reply" [ref=e1158]:
+                        - generic [ref=e1160]:
+                          - link "stupefy" [ref=e1161] [cursor=pointer]:
+                            - /url: user?id=stupefy
+                          - generic "2026-04-15T12:23:29 1776255809" [ref=e1162]:
+                            - link "8 hours ago" [ref=e1163] [cursor=pointer]:
+                              - /url: item?id=47778068
+                          - generic [ref=e1164]:
+                            - text: "|"
+                            - link [ref=e1165] [cursor=pointer]:
+                              - /url: "#47777440"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1166] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: next
+                            - link "[–]" [ref=e1167] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1168]:
+                          - generic [ref=e1169]:
+                            - text: One nice piece of advice that I received is that books are like RAMs, you do not have to go through them sequentially, but can do random access to the parts of it you need. With this in mind I find it doable to get one the thick books and only read the part that I need for my task.
+                            - paragraph [ref=e1170]: But, to also be fair, the above random access method does not work when you don't know what you don't know. So I understand why having a light, but good introduction to the topic is important, and I believe that's what the author is pointing out.
+                          - paragraph [ref=e1172]:
+                            - link "reply" [ref=e1175] [cursor=pointer]:
+                              - /url: reply?id=47778068&goto=item%3Fid%3D47776796%2347778068
+            - row "upvote andoando 20 minutes ago | | [–] Most books have so much nonsense details that I cant help but skip most of it. On the other hand technical books can be so overwhelmingly difficult that you need to go outside and do hours of learning to understand one tidbit of it reply" [ref=e1176]:
+              - cell "upvote andoando 20 minutes ago | | [–] Most books have so much nonsense details that I cant help but skip most of it. On the other hand technical books can be so overwhelmingly difficult that you need to go outside and do hours of learning to understand one tidbit of it reply" [ref=e1177]:
+                - table [ref=e1178]:
+                  - rowgroup [ref=e1179]:
+                    - row "upvote andoando 20 minutes ago | | [–] Most books have so much nonsense details that I cant help but skip most of it. On the other hand technical books can be so overwhelmingly difficult that you need to go outside and do hours of learning to understand one tidbit of it reply" [ref=e1180]:
+                      - cell [ref=e1181]:
+                        - img [ref=e1182]
+                      - cell "upvote" [ref=e1183]:
+                        - link "upvote" [ref=e1185] [cursor=pointer]:
+                          - /url: vote?id=47785011&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1186]
+                      - cell "andoando 20 minutes ago | | [–] Most books have so much nonsense details that I cant help but skip most of it. On the other hand technical books can be so overwhelmingly difficult that you need to go outside and do hours of learning to understand one tidbit of it reply" [ref=e1187]:
+                        - generic [ref=e1189]:
+                          - link "andoando" [ref=e1190] [cursor=pointer]:
+                            - /url: user?id=andoando
+                          - generic "2026-04-15T20:46:36 1776285996" [ref=e1191]:
+                            - link "20 minutes ago" [ref=e1192] [cursor=pointer]:
+                              - /url: item?id=47785011
+                          - generic [ref=e1193]:
+                            - text: "|"
+                            - link [ref=e1194] [cursor=pointer]:
+                              - /url: "#47778068"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1195] [cursor=pointer]:
+                              - /url: "#47778902"
+                              - text: next
+                            - link "[–]" [ref=e1196] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1197]:
+                          - generic [ref=e1198]:
+                            - text: Most books have so much nonsense details that I cant help but skip most of it.
+                            - paragraph [ref=e1199]: On the other hand technical books can be so overwhelmingly difficult that you need to go outside and do hours of learning to understand one tidbit of it
+                          - paragraph [ref=e1201]:
+                            - link "reply" [ref=e1204] [cursor=pointer]:
+                              - /url: reply?id=47785011&goto=item%3Fid%3D47776796%2347785011
+            - row "upvote commandlinefan 7 hours ago | | | [–] I've seen people suggest that throughout the years, but it's never worked out for me. To get anything meaningful out of a printed book, I've had to read them cover to cover. There used to be worthwhile reference books, but those have moved on to the internet. reply" [ref=e1205]:
+              - cell "upvote commandlinefan 7 hours ago | | | [–] I've seen people suggest that throughout the years, but it's never worked out for me. To get anything meaningful out of a printed book, I've had to read them cover to cover. There used to be worthwhile reference books, but those have moved on to the internet. reply" [ref=e1206]:
+                - table [ref=e1207]:
+                  - rowgroup [ref=e1208]:
+                    - row "upvote commandlinefan 7 hours ago | | | [–] I've seen people suggest that throughout the years, but it's never worked out for me. To get anything meaningful out of a printed book, I've had to read them cover to cover. There used to be worthwhile reference books, but those have moved on to the internet. reply" [ref=e1209]:
+                      - cell [ref=e1210]:
+                        - img [ref=e1211]
+                      - cell "upvote" [ref=e1212]:
+                        - link "upvote" [ref=e1214] [cursor=pointer]:
+                          - /url: vote?id=47778902&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1215]
+                      - cell "commandlinefan 7 hours ago | | | [–] I've seen people suggest that throughout the years, but it's never worked out for me. To get anything meaningful out of a printed book, I've had to read them cover to cover. There used to be worthwhile reference books, but those have moved on to the internet. reply" [ref=e1216]:
+                        - generic [ref=e1218]:
+                          - link "commandlinefan" [ref=e1219] [cursor=pointer]:
+                            - /url: user?id=commandlinefan
+                          - generic "2026-04-15T13:46:01 1776260761" [ref=e1220]:
+                            - link "7 hours ago" [ref=e1221] [cursor=pointer]:
+                              - /url: item?id=47778902
+                          - generic [ref=e1222]:
+                            - text: "|"
+                            - link [ref=e1223] [cursor=pointer]:
+                              - /url: "#47778068"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1224] [cursor=pointer]:
+                              - /url: "#47785011"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1225] [cursor=pointer]:
+                              - /url: "#47779370"
+                              - text: next
+                            - link "[–]" [ref=e1226] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1227]:
+                          - generic [ref=e1228]: I've seen people suggest that throughout the years, but it's never worked out for me. To get anything meaningful out of a printed book, I've had to read them cover to cover. There used to be worthwhile reference books, but those have moved on to the internet.
+                          - paragraph [ref=e1230]:
+                            - link "reply" [ref=e1233] [cursor=pointer]:
+                              - /url: reply?id=47778902&goto=item%3Fid%3D47776796%2347778902
+            - row "upvote elzbardico 2 hours ago | | | [–] I like doing both. Skimming through the interesting parts first, them re-reading from start sequentially. reply" [ref=e1234]:
+              - cell "upvote elzbardico 2 hours ago | | | [–] I like doing both. Skimming through the interesting parts first, them re-reading from start sequentially. reply" [ref=e1235]:
+                - table [ref=e1236]:
+                  - rowgroup [ref=e1237]:
+                    - row "upvote elzbardico 2 hours ago | | | [–] I like doing both. Skimming through the interesting parts first, them re-reading from start sequentially. reply" [ref=e1238]:
+                      - cell [ref=e1239]:
+                        - img [ref=e1240]
+                      - cell "upvote" [ref=e1241]:
+                        - link "upvote" [ref=e1243] [cursor=pointer]:
+                          - /url: vote?id=47783710&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1244]
+                      - cell "elzbardico 2 hours ago | | | [–] I like doing both. Skimming through the interesting parts first, them re-reading from start sequentially. reply" [ref=e1245]:
+                        - generic [ref=e1247]:
+                          - link "elzbardico" [ref=e1248] [cursor=pointer]:
+                            - /url: user?id=elzbardico
+                          - generic "2026-04-15T19:06:25 1776279985" [ref=e1249]:
+                            - link "2 hours ago" [ref=e1250] [cursor=pointer]:
+                              - /url: item?id=47783710
+                          - generic [ref=e1251]:
+                            - text: "|"
+                            - link [ref=e1252] [cursor=pointer]:
+                              - /url: "#47778068"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e1253] [cursor=pointer]:
+                              - /url: "#47778902"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1254] [cursor=pointer]:
+                              - /url: "#47779370"
+                              - text: next
+                            - link "[–]" [ref=e1255] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1256]:
+                          - generic [ref=e1257]: I like doing both. Skimming through the interesting parts first, them re-reading from start sequentially.
+                          - paragraph [ref=e1259]:
+                            - link "reply" [ref=e1262] [cursor=pointer]:
+                              - /url: reply?id=47783710&goto=item%3Fid%3D47776796%2347783710
+            - row "upvote wglb 6 hours ago | | | [–] A significant fraction of my technical library is used just this way--as a reference, checking out the parts to answer a specific question. reply" [ref=e1263]:
+              - cell "upvote wglb 6 hours ago | | | [–] A significant fraction of my technical library is used just this way--as a reference, checking out the parts to answer a specific question. reply" [ref=e1264]:
+                - table [ref=e1265]:
+                  - rowgroup [ref=e1266]:
+                    - row "upvote wglb 6 hours ago | | | [–] A significant fraction of my technical library is used just this way--as a reference, checking out the parts to answer a specific question. reply" [ref=e1267]:
+                      - cell [ref=e1268]:
+                        - img [ref=e1269]
+                      - cell "upvote" [ref=e1270]:
+                        - link "upvote" [ref=e1272] [cursor=pointer]:
+                          - /url: vote?id=47779370&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1273]
+                      - cell "wglb 6 hours ago | | | [–] A significant fraction of my technical library is used just this way--as a reference, checking out the parts to answer a specific question. reply" [ref=e1274]:
+                        - generic [ref=e1276]:
+                          - link "wglb" [ref=e1277] [cursor=pointer]:
+                            - /url: user?id=wglb
+                          - generic "2026-04-15T14:20:39 1776262839" [ref=e1278]:
+                            - link "6 hours ago" [ref=e1279] [cursor=pointer]:
+                              - /url: item?id=47779370
+                          - generic [ref=e1280]:
+                            - text: "|"
+                            - link [ref=e1281] [cursor=pointer]:
+                              - /url: "#47778068"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1282] [cursor=pointer]:
+                              - /url: "#47778902"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1283] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: next
+                            - link "[–]" [ref=e1284] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1285]:
+                          - generic [ref=e1286]: A significant fraction of my technical library is used just this way--as a reference, checking out the parts to answer a specific question.
+                          - paragraph [ref=e1288]:
+                            - link "reply" [ref=e1291] [cursor=pointer]:
+                              - /url: reply?id=47779370&goto=item%3Fid%3D47776796%2347779370
+            - row "upvote armchairhacker 10 hours ago | | [–] Nowadays I’ve heard recommended Crafting Interpreters. (https://craftinginterpreters.com) The Nanopass paper link doesn’t work. reply" [ref=e1292]:
+              - cell "upvote armchairhacker 10 hours ago | | [–] Nowadays I’ve heard recommended Crafting Interpreters. (https://craftinginterpreters.com) The Nanopass paper link doesn’t work. reply" [ref=e1293]:
+                - table [ref=e1294]:
+                  - rowgroup [ref=e1295]:
+                    - row "upvote armchairhacker 10 hours ago | | [–] Nowadays I’ve heard recommended Crafting Interpreters. (https://craftinginterpreters.com) The Nanopass paper link doesn’t work. reply" [ref=e1296]:
+                      - cell [ref=e1297]:
+                        - img
+                      - cell "upvote" [ref=e1298]:
+                        - link "upvote" [ref=e1300] [cursor=pointer]:
+                          - /url: vote?id=47777040&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1301]
+                      - cell "armchairhacker 10 hours ago | | [–] Nowadays I’ve heard recommended Crafting Interpreters. (https://craftinginterpreters.com) The Nanopass paper link doesn’t work. reply" [ref=e1302]:
+                        - generic [ref=e1304]:
+                          - link "armchairhacker" [ref=e1305] [cursor=pointer]:
+                            - /url: user?id=armchairhacker
+                          - generic "2026-04-15T10:20:18 1776248418" [ref=e1306]:
+                            - link "10 hours ago" [ref=e1307] [cursor=pointer]:
+                              - /url: item?id=47777040
+                          - generic [ref=e1308]:
+                            - text: "|"
+                            - link [ref=e1309] [cursor=pointer]:
+                              - /url: "#47778068"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1310] [cursor=pointer]:
+                              - /url: "#47777417"
+                              - text: next
+                            - link "[–]" [ref=e1311] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1312]:
+                          - generic [ref=e1313]:
+                            - text: Nowadays I’ve heard recommended Crafting Interpreters. (
+                            - link "https://craftinginterpreters.com" [ref=e1314] [cursor=pointer]:
+                              - /url: https://craftinginterpreters.com
+                            - text: )
+                            - paragraph [ref=e1315]: The Nanopass paper link doesn’t work.
+                          - paragraph [ref=e1317]:
+                            - link "reply" [ref=e1320] [cursor=pointer]:
+                              - /url: reply?id=47777040&goto=item%3Fid%3D47776796%2347777040
+            - 'row "upvote gobdovan 9 hours ago | | [–] Compilers are broad enough that when someone recommends a \"compiler book\", it''s rarely exactly the slice you wanted. So this made me do a runnable cheat sheet for Crafting Interpreters. I keep parsing demonstrative, and the AST is a little more Lisp-y than the book''s. Disclaimer: it''s meant to convey the essence of what you''ll learn, it is NOT by any means a replacement for the book. I''d also describe the book as more of an experience (including some things Nystrom clearly enjoyed, like the visitor pattern) than a compilers manual. If anyone''s interested, I can do a separate visitor-pattern cheat sheet too, also in Python. I turned it into a ''public-facing artifact'' from private scripts with an AI agent. [0] https://ouatu.ro/blog/crafting-interpreters-cheat-sheet/ reply" [ref=e1321]':
+              - 'cell "upvote gobdovan 9 hours ago | | [–] Compilers are broad enough that when someone recommends a \"compiler book\", it''s rarely exactly the slice you wanted. So this made me do a runnable cheat sheet for Crafting Interpreters. I keep parsing demonstrative, and the AST is a little more Lisp-y than the book''s. Disclaimer: it''s meant to convey the essence of what you''ll learn, it is NOT by any means a replacement for the book. I''d also describe the book as more of an experience (including some things Nystrom clearly enjoyed, like the visitor pattern) than a compilers manual. If anyone''s interested, I can do a separate visitor-pattern cheat sheet too, also in Python. I turned it into a ''public-facing artifact'' from private scripts with an AI agent. [0] https://ouatu.ro/blog/crafting-interpreters-cheat-sheet/ reply" [ref=e1322]':
+                - table [ref=e1323]:
+                  - rowgroup [ref=e1324]:
+                    - 'row "upvote gobdovan 9 hours ago | | [–] Compilers are broad enough that when someone recommends a \"compiler book\", it''s rarely exactly the slice you wanted. So this made me do a runnable cheat sheet for Crafting Interpreters. I keep parsing demonstrative, and the AST is a little more Lisp-y than the book''s. Disclaimer: it''s meant to convey the essence of what you''ll learn, it is NOT by any means a replacement for the book. I''d also describe the book as more of an experience (including some things Nystrom clearly enjoyed, like the visitor pattern) than a compilers manual. If anyone''s interested, I can do a separate visitor-pattern cheat sheet too, also in Python. I turned it into a ''public-facing artifact'' from private scripts with an AI agent. [0] https://ouatu.ro/blog/crafting-interpreters-cheat-sheet/ reply" [ref=e1325]':
+                      - cell [ref=e1326]:
+                        - img [ref=e1327]
+                      - cell "upvote" [ref=e1328]:
+                        - link "upvote" [ref=e1330] [cursor=pointer]:
+                          - /url: vote?id=47777732&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1331]
+                      - 'cell "gobdovan 9 hours ago | | [–] Compilers are broad enough that when someone recommends a \"compiler book\", it''s rarely exactly the slice you wanted. So this made me do a runnable cheat sheet for Crafting Interpreters. I keep parsing demonstrative, and the AST is a little more Lisp-y than the book''s. Disclaimer: it''s meant to convey the essence of what you''ll learn, it is NOT by any means a replacement for the book. I''d also describe the book as more of an experience (including some things Nystrom clearly enjoyed, like the visitor pattern) than a compilers manual. If anyone''s interested, I can do a separate visitor-pattern cheat sheet too, also in Python. I turned it into a ''public-facing artifact'' from private scripts with an AI agent. [0] https://ouatu.ro/blog/crafting-interpreters-cheat-sheet/ reply" [ref=e1332]':
+                        - generic [ref=e1334]:
+                          - link "gobdovan" [ref=e1335] [cursor=pointer]:
+                            - /url: user?id=gobdovan
+                          - generic "2026-04-15T11:40:32 1776253232" [ref=e1336]:
+                            - link "9 hours ago" [ref=e1337] [cursor=pointer]:
+                              - /url: item?id=47777732
+                          - generic [ref=e1338]:
+                            - text: "|"
+                            - link [ref=e1339] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1340] [cursor=pointer]:
+                              - /url: "#47778202"
+                              - text: next
+                            - link "[–]" [ref=e1341] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1342]:
+                          - generic [ref=e1343]:
+                            - text: Compilers are broad enough that when someone recommends a "compiler book", it's rarely exactly the slice you wanted.
+                            - paragraph [ref=e1344]: So this made me do a runnable cheat sheet for Crafting Interpreters. I keep parsing demonstrative, and the AST is a little more Lisp-y than the book's.
+                            - paragraph [ref=e1345]: "Disclaimer: it's meant to convey the essence of what you'll learn, it is NOT by any means a replacement for the book. I'd also describe the book as more of an experience (including some things Nystrom clearly enjoyed, like the visitor pattern) than a compilers manual. If anyone's interested, I can do a separate visitor-pattern cheat sheet too, also in Python."
+                            - paragraph [ref=e1346]: I turned it into a 'public-facing artifact' from private scripts with an AI agent.
+                            - paragraph [ref=e1347]:
+                              - text: "[0]"
+                              - link "https://ouatu.ro/blog/crafting-interpreters-cheat-sheet/" [ref=e1348] [cursor=pointer]:
+                                - /url: https://ouatu.ro/blog/crafting-interpreters-cheat-sheet/
+                          - paragraph [ref=e1350]:
+                            - link "reply" [ref=e1353] [cursor=pointer]:
+                              - /url: reply?id=47777732&goto=item%3Fid%3D47776796%2347777732
+            - 'row "upvote orthoxerox 8 hours ago | | | [–] Crafting Interpreters is great, I wish it had a companion book that covered: - types and typing - optimization passes - object files, executables, libraries and linking Then two of them would be sufficient for writing a compiler. reply" [ref=e1354]':
+              - 'cell "upvote orthoxerox 8 hours ago | | | [–] Crafting Interpreters is great, I wish it had a companion book that covered: - types and typing - optimization passes - object files, executables, libraries and linking Then two of them would be sufficient for writing a compiler. reply" [ref=e1355]':
+                - table [ref=e1356]:
+                  - rowgroup [ref=e1357]:
+                    - 'row "upvote orthoxerox 8 hours ago | | | [–] Crafting Interpreters is great, I wish it had a companion book that covered: - types and typing - optimization passes - object files, executables, libraries and linking Then two of them would be sufficient for writing a compiler. reply" [ref=e1358]':
+                      - cell [ref=e1359]:
+                        - img [ref=e1360]
+                      - cell "upvote" [ref=e1361]:
+                        - link "upvote" [ref=e1363] [cursor=pointer]:
+                          - /url: vote?id=47778202&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1364]
+                      - 'cell "orthoxerox 8 hours ago | | | [–] Crafting Interpreters is great, I wish it had a companion book that covered: - types and typing - optimization passes - object files, executables, libraries and linking Then two of them would be sufficient for writing a compiler. reply" [ref=e1365]':
+                        - generic [ref=e1367]:
+                          - link "orthoxerox" [ref=e1368] [cursor=pointer]:
+                            - /url: user?id=orthoxerox
+                          - generic "2026-04-15T12:39:09 1776256749" [ref=e1369]:
+                            - link "8 hours ago" [ref=e1370] [cursor=pointer]:
+                              - /url: item?id=47778202
+                          - generic [ref=e1371]:
+                            - text: "|"
+                            - link [ref=e1372] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1373] [cursor=pointer]:
+                              - /url: "#47777732"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1374] [cursor=pointer]:
+                              - /url: "#47777379"
+                              - text: next
+                            - link "[–]" [ref=e1375] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1376]:
+                          - generic [ref=e1377]:
+                            - text: "Crafting Interpreters is great, I wish it had a companion book that covered:"
+                            - paragraph
+                            - code [ref=e1379]: "- types and typing - optimization passes - object files, executables, libraries and linking"
+                            - text: Then two of them would be sufficient for writing a compiler.
+                          - paragraph [ref=e1381]:
+                            - link "reply" [ref=e1384] [cursor=pointer]:
+                              - /url: reply?id=47778202&goto=item%3Fid%3D47776796%2347778202
+            - row "upvote gavinray 7 hours ago | | | [–] To your last point, \"Linkers and Loaders\" has no equal despite being a bit dated reply" [ref=e1385]:
+              - cell "upvote gavinray 7 hours ago | | | [–] To your last point, \"Linkers and Loaders\" has no equal despite being a bit dated reply" [ref=e1386]:
+                - table [ref=e1387]:
+                  - rowgroup [ref=e1388]:
+                    - row "upvote gavinray 7 hours ago | | | [–] To your last point, \"Linkers and Loaders\" has no equal despite being a bit dated reply" [ref=e1389]:
+                      - cell [ref=e1390]:
+                        - img [ref=e1391]
+                      - cell "upvote" [ref=e1392]:
+                        - link "upvote" [ref=e1394] [cursor=pointer]:
+                          - /url: vote?id=47778878&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1395]
+                      - cell "gavinray 7 hours ago | | | [–] To your last point, \"Linkers and Loaders\" has no equal despite being a bit dated reply" [ref=e1396]:
+                        - generic [ref=e1398]:
+                          - link "gavinray" [ref=e1399] [cursor=pointer]:
+                            - /url: user?id=gavinray
+                          - generic "2026-04-15T13:43:56 1776260636" [ref=e1400]:
+                            - link "7 hours ago" [ref=e1401] [cursor=pointer]:
+                              - /url: item?id=47778878
+                          - generic [ref=e1402]:
+                            - text: "|"
+                            - link [ref=e1403] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e1404] [cursor=pointer]:
+                              - /url: "#47778202"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1405] [cursor=pointer]:
+                              - /url: "#47778977"
+                              - text: next
+                            - link "[–]" [ref=e1406] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1407]:
+                          - generic [ref=e1408]: To your last point, "Linkers and Loaders" has no equal despite being a bit dated
+                          - paragraph [ref=e1410]:
+                            - link "reply" [ref=e1413] [cursor=pointer]:
+                              - /url: reply?id=47778878&goto=item%3Fid%3D47776796%2347778878
+            - row "upvote ux266478 7 hours ago | | | | [–] > types and typing This would be like asking for a book on designing grammar. It's just too disjoint of a field to have any kind of reasonable baseline, and it's drop dead easy to grok a basic one together. With those two things being equal, just like with grammar, the answer to this is any resource about implementing the language you're trying to ape. reply" [ref=e1414]:
+              - cell "upvote ux266478 7 hours ago | | | | [–] > types and typing This would be like asking for a book on designing grammar. It's just too disjoint of a field to have any kind of reasonable baseline, and it's drop dead easy to grok a basic one together. With those two things being equal, just like with grammar, the answer to this is any resource about implementing the language you're trying to ape. reply" [ref=e1415]:
+                - table [ref=e1416]:
+                  - rowgroup [ref=e1417]:
+                    - row "upvote ux266478 7 hours ago | | | | [–] > types and typing This would be like asking for a book on designing grammar. It's just too disjoint of a field to have any kind of reasonable baseline, and it's drop dead easy to grok a basic one together. With those two things being equal, just like with grammar, the answer to this is any resource about implementing the language you're trying to ape. reply" [ref=e1418]:
+                      - cell [ref=e1419]:
+                        - img [ref=e1420]
+                      - cell "upvote" [ref=e1421]:
+                        - link "upvote" [ref=e1423] [cursor=pointer]:
+                          - /url: vote?id=47778977&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1424]
+                      - cell "ux266478 7 hours ago | | | | [–] > types and typing This would be like asking for a book on designing grammar. It's just too disjoint of a field to have any kind of reasonable baseline, and it's drop dead easy to grok a basic one together. With those two things being equal, just like with grammar, the answer to this is any resource about implementing the language you're trying to ape. reply" [ref=e1425]:
+                        - generic [ref=e1427]:
+                          - link "ux266478" [ref=e1428] [cursor=pointer]:
+                            - /url: user?id=ux266478
+                          - generic "2026-04-15T13:52:55 1776261175" [ref=e1429]:
+                            - link "7 hours ago" [ref=e1430] [cursor=pointer]:
+                              - /url: item?id=47778977
+                          - generic [ref=e1431]:
+                            - text: "|"
+                            - link [ref=e1432] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e1433] [cursor=pointer]:
+                              - /url: "#47778202"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1434] [cursor=pointer]:
+                              - /url: "#47778878"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1435] [cursor=pointer]:
+                              - /url: "#47779031"
+                              - text: next
+                            - link "[–]" [ref=e1436] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1437]:
+                          - generic [ref=e1438]:
+                            - text: "> types and typing"
+                            - paragraph [ref=e1439]: This would be like asking for a book on designing grammar. It's just too disjoint of a field to have any kind of reasonable baseline, and it's drop dead easy to grok a basic one together. With those two things being equal, just like with grammar, the answer to this is any resource about implementing the language you're trying to ape.
+                          - paragraph [ref=e1441]:
+                            - link "reply" [ref=e1444] [cursor=pointer]:
+                              - /url: reply?id=47778977&goto=item%3Fid%3D47776796%2347778977
+            - row "upvote orthoxerox 7 hours ago | | | [–] It's drop dead easy to grok a basic one together until you get to hairy stuff like overloading, lambdas and generics. The reasonable baseline would be something like Java 1. Scalars, arrays and classes. If I remember correctly, Lox even skips arrays as an exercise for the user. reply" [ref=e1445]:
+              - cell "upvote orthoxerox 7 hours ago | | | [–] It's drop dead easy to grok a basic one together until you get to hairy stuff like overloading, lambdas and generics. The reasonable baseline would be something like Java 1. Scalars, arrays and classes. If I remember correctly, Lox even skips arrays as an exercise for the user. reply" [ref=e1446]:
+                - table [ref=e1447]:
+                  - rowgroup [ref=e1448]:
+                    - row "upvote orthoxerox 7 hours ago | | | [–] It's drop dead easy to grok a basic one together until you get to hairy stuff like overloading, lambdas and generics. The reasonable baseline would be something like Java 1. Scalars, arrays and classes. If I remember correctly, Lox even skips arrays as an exercise for the user. reply" [ref=e1449]:
+                      - cell [ref=e1450]:
+                        - img [ref=e1451]
+                      - cell "upvote" [ref=e1452]:
+                        - link "upvote" [ref=e1454] [cursor=pointer]:
+                          - /url: vote?id=47779124&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1455]
+                      - cell "orthoxerox 7 hours ago | | | [–] It's drop dead easy to grok a basic one together until you get to hairy stuff like overloading, lambdas and generics. The reasonable baseline would be something like Java 1. Scalars, arrays and classes. If I remember correctly, Lox even skips arrays as an exercise for the user. reply" [ref=e1456]:
+                        - generic [ref=e1458]:
+                          - link "orthoxerox" [ref=e1459] [cursor=pointer]:
+                            - /url: user?id=orthoxerox
+                          - generic "2026-04-15T14:04:51 1776261891" [ref=e1460]:
+                            - link "7 hours ago" [ref=e1461] [cursor=pointer]:
+                              - /url: item?id=47779124
+                          - generic [ref=e1462]:
+                            - text: "|"
+                            - link [ref=e1463] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e1464] [cursor=pointer]:
+                              - /url: "#47778977"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1465] [cursor=pointer]:
+                              - /url: "#47779031"
+                              - text: next
+                            - link "[–]" [ref=e1466] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1467]:
+                          - generic [ref=e1468]:
+                            - text: It's drop dead easy to grok a basic one together until you get to hairy stuff like overloading, lambdas and generics.
+                            - paragraph [ref=e1469]: The reasonable baseline would be something like Java 1. Scalars, arrays and classes. If I remember correctly, Lox even skips arrays as an exercise for the user.
+                          - paragraph [ref=e1471]:
+                            - link "reply" [ref=e1474] [cursor=pointer]:
+                              - /url: reply?id=47779124&goto=item%3Fid%3D47776796%2347779124
+            - row "upvote ux266478 1 minute ago | | | [–] The problem is in the case of overloading or lambdas being \"hairy\", it follows you're well outside the scope of a beginner. Generics are explicitly outside the scope of a beginner learning to implement a basic type system. In the case you're not a beginner, it's not true that no literature exists on type systems and their implementation. The mountain of literature is essentially inexhaustible, but it's the deep end of the pool. A stronger foundation than none at all is needed to utilize theoretical resources, so you keep it basic. Kind of like how you don't even think about implementing a tracing JIT before you've ever written the world's shittiest tree-walking interpreter." [ref=e1475]:
+              - cell "upvote ux266478 1 minute ago | | | [–] The problem is in the case of overloading or lambdas being \"hairy\", it follows you're well outside the scope of a beginner. Generics are explicitly outside the scope of a beginner learning to implement a basic type system. In the case you're not a beginner, it's not true that no literature exists on type systems and their implementation. The mountain of literature is essentially inexhaustible, but it's the deep end of the pool. A stronger foundation than none at all is needed to utilize theoretical resources, so you keep it basic. Kind of like how you don't even think about implementing a tracing JIT before you've ever written the world's shittiest tree-walking interpreter." [ref=e1476]:
+                - table [ref=e1477]:
+                  - rowgroup [ref=e1478]:
+                    - row "upvote ux266478 1 minute ago | | | [–] The problem is in the case of overloading or lambdas being \"hairy\", it follows you're well outside the scope of a beginner. Generics are explicitly outside the scope of a beginner learning to implement a basic type system. In the case you're not a beginner, it's not true that no literature exists on type systems and their implementation. The mountain of literature is essentially inexhaustible, but it's the deep end of the pool. A stronger foundation than none at all is needed to utilize theoretical resources, so you keep it basic. Kind of like how you don't even think about implementing a tracing JIT before you've ever written the world's shittiest tree-walking interpreter." [ref=e1479]:
+                      - cell [ref=e1480]:
+                        - img [ref=e1481]
+                      - cell "upvote" [ref=e1482]:
+                        - link "upvote" [ref=e1484] [cursor=pointer]:
+                          - /url: vote?id=47785215&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1485]
+                      - cell "ux266478 1 minute ago | | | [–] The problem is in the case of overloading or lambdas being \"hairy\", it follows you're well outside the scope of a beginner. Generics are explicitly outside the scope of a beginner learning to implement a basic type system. In the case you're not a beginner, it's not true that no literature exists on type systems and their implementation. The mountain of literature is essentially inexhaustible, but it's the deep end of the pool. A stronger foundation than none at all is needed to utilize theoretical resources, so you keep it basic. Kind of like how you don't even think about implementing a tracing JIT before you've ever written the world's shittiest tree-walking interpreter." [ref=e1486]:
+                        - generic [ref=e1488]:
+                          - link "ux266478" [ref=e1489] [cursor=pointer]:
+                            - /url: user?id=ux266478
+                          - generic "2026-04-15T21:05:27 1776287127" [ref=e1490]:
+                            - link "1 minute ago" [ref=e1491] [cursor=pointer]:
+                              - /url: item?id=47785215
+                          - generic [ref=e1492]:
+                            - text: "|"
+                            - link [ref=e1493] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e1494] [cursor=pointer]:
+                              - /url: "#47779124"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1495] [cursor=pointer]:
+                              - /url: "#47779031"
+                              - text: next
+                            - link "[–]" [ref=e1496] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1497]:
+                          - generic [ref=e1498]:
+                            - text: The problem is in the case of overloading or lambdas being "hairy", it follows you're well outside the scope of a beginner. Generics are explicitly outside the scope of a beginner learning to implement a basic type system.
+                            - paragraph [ref=e1499]: In the case you're not a beginner, it's not true that no literature exists on type systems and their implementation. The mountain of literature is essentially inexhaustible, but it's the deep end of the pool. A stronger foundation than none at all is needed to utilize theoretical resources, so you keep it basic. Kind of like how you don't even think about implementing a tracing JIT before you've ever written the world's shittiest tree-walking interpreter.
+                          - generic:
+                            - paragraph
+            - row "upvote duped 7 hours ago | | | | [–] > types and typing Types and Programming Languages, Benjamin C Pierce > object files, executables, libraries and linking Linkers and Loaders, John R Levine reply" [ref=e1500]:
+              - cell "upvote duped 7 hours ago | | | | [–] > types and typing Types and Programming Languages, Benjamin C Pierce > object files, executables, libraries and linking Linkers and Loaders, John R Levine reply" [ref=e1501]:
+                - table [ref=e1502]:
+                  - rowgroup [ref=e1503]:
+                    - row "upvote duped 7 hours ago | | | | [–] > types and typing Types and Programming Languages, Benjamin C Pierce > object files, executables, libraries and linking Linkers and Loaders, John R Levine reply" [ref=e1504]:
+                      - cell [ref=e1505]:
+                        - img [ref=e1506]
+                      - cell "upvote" [ref=e1507]:
+                        - link "upvote" [ref=e1509] [cursor=pointer]:
+                          - /url: vote?id=47779031&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1510]
+                      - cell "duped 7 hours ago | | | | [–] > types and typing Types and Programming Languages, Benjamin C Pierce > object files, executables, libraries and linking Linkers and Loaders, John R Levine reply" [ref=e1511]:
+                        - generic [ref=e1513]:
+                          - link "duped" [ref=e1514] [cursor=pointer]:
+                            - /url: user?id=duped
+                          - generic "2026-04-15T13:57:38 1776261458" [ref=e1515]:
+                            - link "7 hours ago" [ref=e1516] [cursor=pointer]:
+                              - /url: item?id=47779031
+                          - generic [ref=e1517]:
+                            - text: "|"
+                            - link [ref=e1518] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e1519] [cursor=pointer]:
+                              - /url: "#47778202"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1520] [cursor=pointer]:
+                              - /url: "#47778977"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1521] [cursor=pointer]:
+                              - /url: "#47777379"
+                              - text: next
+                            - link "[–]" [ref=e1522] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1523]:
+                          - generic [ref=e1524]:
+                            - text: "> types and typing"
+                            - paragraph [ref=e1525]: Types and Programming Languages, Benjamin C Pierce
+                            - paragraph [ref=e1526]: "> object files, executables, libraries and linking"
+                            - paragraph [ref=e1527]: Linkers and Loaders, John R Levine
+                          - paragraph [ref=e1529]:
+                            - link "reply" [ref=e1532] [cursor=pointer]:
+                              - /url: reply?id=47779031&goto=item%3Fid%3D47776796%2347779031
+            - row "upvote orthoxerox 7 hours ago | | | [–] I've read Pierce. It's not a bad book, but less grounded than CI, which has an explicit \"workmanlike\" approach. reply" [ref=e1533]:
+              - cell "upvote orthoxerox 7 hours ago | | | [–] I've read Pierce. It's not a bad book, but less grounded than CI, which has an explicit \"workmanlike\" approach. reply" [ref=e1534]:
+                - table [ref=e1535]:
+                  - rowgroup [ref=e1536]:
+                    - row "upvote orthoxerox 7 hours ago | | | [–] I've read Pierce. It's not a bad book, but less grounded than CI, which has an explicit \"workmanlike\" approach. reply" [ref=e1537]:
+                      - cell [ref=e1538]:
+                        - img [ref=e1539]
+                      - cell "upvote" [ref=e1540]:
+                        - link "upvote" [ref=e1542] [cursor=pointer]:
+                          - /url: vote?id=47779072&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1543]
+                      - cell "orthoxerox 7 hours ago | | | [–] I've read Pierce. It's not a bad book, but less grounded than CI, which has an explicit \"workmanlike\" approach. reply" [ref=e1544]:
+                        - generic [ref=e1546]:
+                          - link "orthoxerox" [ref=e1547] [cursor=pointer]:
+                            - /url: user?id=orthoxerox
+                          - generic "2026-04-15T14:00:51 1776261651" [ref=e1548]:
+                            - link "7 hours ago" [ref=e1549] [cursor=pointer]:
+                              - /url: item?id=47779072
+                          - generic [ref=e1550]:
+                            - text: "|"
+                            - link [ref=e1551] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e1552] [cursor=pointer]:
+                              - /url: "#47779031"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1553] [cursor=pointer]:
+                              - /url: "#47777379"
+                              - text: next
+                            - link "[–]" [ref=e1554] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1555]:
+                          - generic [ref=e1556]: I've read Pierce. It's not a bad book, but less grounded than CI, which has an explicit "workmanlike" approach.
+                          - paragraph [ref=e1558]:
+                            - link "reply" [ref=e1561] [cursor=pointer]:
+                              - /url: reply?id=47779072&goto=item%3Fid%3D47776796%2347779072
+            - row "upvote tmountain 10 hours ago | | | [–] Incredible book for self guided learning! reply" [ref=e1562]:
+              - cell "upvote tmountain 10 hours ago | | | [–] Incredible book for self guided learning! reply" [ref=e1563]:
+                - table [ref=e1564]:
+                  - rowgroup [ref=e1565]:
+                    - row "upvote tmountain 10 hours ago | | | [–] Incredible book for self guided learning! reply" [ref=e1566]:
+                      - cell [ref=e1567]:
+                        - img [ref=e1568]
+                      - cell "upvote" [ref=e1569]:
+                        - link "upvote" [ref=e1571] [cursor=pointer]:
+                          - /url: vote?id=47777379&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1572]
+                      - cell "tmountain 10 hours ago | | | [–] Incredible book for self guided learning! reply" [ref=e1573]:
+                        - generic [ref=e1575]:
+                          - link "tmountain" [ref=e1576] [cursor=pointer]:
+                            - /url: user?id=tmountain
+                          - generic "2026-04-15T11:01:56 1776250916" [ref=e1577]:
+                            - link "10 hours ago" [ref=e1578] [cursor=pointer]:
+                              - /url: item?id=47777379
+                          - generic [ref=e1579]:
+                            - text: "|"
+                            - link [ref=e1580] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1581] [cursor=pointer]:
+                              - /url: "#47778202"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1582] [cursor=pointer]:
+                              - /url: "#47777324"
+                              - text: next
+                            - link "[–]" [ref=e1583] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1584]:
+                          - generic [ref=e1585]: Incredible book for self guided learning!
+                          - paragraph [ref=e1587]:
+                            - link "reply" [ref=e1590] [cursor=pointer]:
+                              - /url: reply?id=47777379&goto=item%3Fid%3D47776796%2347777379
+            - row "upvote ramon156 10 hours ago | | | [–] Awesome course! finished it while i was doing my final CS year because I had to wait on a bunch of classes (and frankly had no one to talk to before classes). I haven't tried nanopass, but there's other links that work, so I'll give it a go. reply" [ref=e1591]:
+              - cell "upvote ramon156 10 hours ago | | | [–] Awesome course! finished it while i was doing my final CS year because I had to wait on a bunch of classes (and frankly had no one to talk to before classes). I haven't tried nanopass, but there's other links that work, so I'll give it a go. reply" [ref=e1592]:
+                - table [ref=e1593]:
+                  - rowgroup [ref=e1594]:
+                    - row "upvote ramon156 10 hours ago | | | [–] Awesome course! finished it while i was doing my final CS year because I had to wait on a bunch of classes (and frankly had no one to talk to before classes). I haven't tried nanopass, but there's other links that work, so I'll give it a go. reply" [ref=e1595]:
+                      - cell [ref=e1596]:
+                        - img [ref=e1597]
+                      - cell "upvote" [ref=e1598]:
+                        - link "upvote" [ref=e1600] [cursor=pointer]:
+                          - /url: vote?id=47777324&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1601]
+                      - cell "ramon156 10 hours ago | | | [–] Awesome course! finished it while i was doing my final CS year because I had to wait on a bunch of classes (and frankly had no one to talk to before classes). I haven't tried nanopass, but there's other links that work, so I'll give it a go. reply" [ref=e1602]:
+                        - generic [ref=e1604]:
+                          - link "ramon156" [ref=e1605] [cursor=pointer]:
+                            - /url: user?id=ramon156
+                          - generic "2026-04-15T10:54:16 1776250456" [ref=e1606]:
+                            - link "10 hours ago" [ref=e1607] [cursor=pointer]:
+                              - /url: item?id=47777324
+                          - generic [ref=e1608]:
+                            - text: "|"
+                            - link [ref=e1609] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1610] [cursor=pointer]:
+                              - /url: "#47777379"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1611] [cursor=pointer]:
+                              - /url: "#47779188"
+                              - text: next
+                            - link "[–]" [ref=e1612] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1613]:
+                          - generic [ref=e1614]: Awesome course! finished it while i was doing my final CS year because I had to wait on a bunch of classes (and frankly had no one to talk to before classes). I haven't tried nanopass, but there's other links that work, so I'll give it a go.
+                          - paragraph [ref=e1616]:
+                            - link "reply" [ref=e1619] [cursor=pointer]:
+                              - /url: reply?id=47777324&goto=item%3Fid%3D47776796%2347777324
+            - 'row "upvote menato 6 hours ago | | | [–] It was saved: https://github.com/asalber/books/blob/master/A%20Nanopass%20... reply" [ref=e1620]':
+              - 'cell "upvote menato 6 hours ago | | | [–] It was saved: https://github.com/asalber/books/blob/master/A%20Nanopass%20... reply" [ref=e1621]':
+                - table [ref=e1622]:
+                  - rowgroup [ref=e1623]:
+                    - 'row "upvote menato 6 hours ago | | | [–] It was saved: https://github.com/asalber/books/blob/master/A%20Nanopass%20... reply" [ref=e1624]':
+                      - cell [ref=e1625]:
+                        - img [ref=e1626]
+                      - cell "upvote" [ref=e1627]:
+                        - link "upvote" [ref=e1629] [cursor=pointer]:
+                          - /url: vote?id=47779188&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1630]
+                      - 'cell "menato 6 hours ago | | | [–] It was saved: https://github.com/asalber/books/blob/master/A%20Nanopass%20... reply" [ref=e1631]':
+                        - generic [ref=e1633]:
+                          - link "menato" [ref=e1634] [cursor=pointer]:
+                            - /url: user?id=menato
+                          - generic "2026-04-15T14:09:19 1776262159" [ref=e1635]:
+                            - link "6 hours ago" [ref=e1636] [cursor=pointer]:
+                              - /url: item?id=47779188
+                          - generic [ref=e1637]:
+                            - text: "|"
+                            - link [ref=e1638] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1639] [cursor=pointer]:
+                              - /url: "#47777324"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1640] [cursor=pointer]:
+                              - /url: "#47777417"
+                              - text: next
+                            - link "[–]" [ref=e1641] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1642]:
+                          - generic [ref=e1643]:
+                            - text: "It was saved:"
+                            - link "https://github.com/asalber/books/blob/master/A%20Nanopass%20..." [ref=e1644] [cursor=pointer]:
+                              - /url: https://github.com/asalber/books/blob/master/A%20Nanopass%20Framework%20for%20Compiler%20Education.pdf
+                          - paragraph [ref=e1646]:
+                            - link "reply" [ref=e1649] [cursor=pointer]:
+                              - /url: reply?id=47779188&goto=item%3Fid%3D47776796%2347779188
+            - row "upvote omcnoe 10 hours ago | | [–] Been working on a toy compiler for fun recently. I have ignored all the stuff about parsing theory, parser generators, custom DSL's, formal grammers etc. and instead have just been using the wonderful Megaparsec parser combinator library. I can easily follow the parsing logic, it's unambiguous (only one successful parse is possible, even if it might not be what you intended), it's easy to compose and re-use parser functions (was particularly helpful for whitespace sensitive parsing/line-fold handling), and it removes the tedious lexer/parser split you get with traditional parsing approaches. reply" [ref=e1650]:
+              - cell "upvote omcnoe 10 hours ago | | [–] Been working on a toy compiler for fun recently. I have ignored all the stuff about parsing theory, parser generators, custom DSL's, formal grammers etc. and instead have just been using the wonderful Megaparsec parser combinator library. I can easily follow the parsing logic, it's unambiguous (only one successful parse is possible, even if it might not be what you intended), it's easy to compose and re-use parser functions (was particularly helpful for whitespace sensitive parsing/line-fold handling), and it removes the tedious lexer/parser split you get with traditional parsing approaches. reply" [ref=e1651]:
+                - table [ref=e1652]:
+                  - rowgroup [ref=e1653]:
+                    - row "upvote omcnoe 10 hours ago | | [–] Been working on a toy compiler for fun recently. I have ignored all the stuff about parsing theory, parser generators, custom DSL's, formal grammers etc. and instead have just been using the wonderful Megaparsec parser combinator library. I can easily follow the parsing logic, it's unambiguous (only one successful parse is possible, even if it might not be what you intended), it's easy to compose and re-use parser functions (was particularly helpful for whitespace sensitive parsing/line-fold handling), and it removes the tedious lexer/parser split you get with traditional parsing approaches. reply" [ref=e1654]:
+                      - cell [ref=e1655]:
+                        - img
+                      - cell "upvote" [ref=e1656]:
+                        - link "upvote" [ref=e1658] [cursor=pointer]:
+                          - /url: vote?id=47777417&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1659]
+                      - cell "omcnoe 10 hours ago | | [–] Been working on a toy compiler for fun recently. I have ignored all the stuff about parsing theory, parser generators, custom DSL's, formal grammers etc. and instead have just been using the wonderful Megaparsec parser combinator library. I can easily follow the parsing logic, it's unambiguous (only one successful parse is possible, even if it might not be what you intended), it's easy to compose and re-use parser functions (was particularly helpful for whitespace sensitive parsing/line-fold handling), and it removes the tedious lexer/parser split you get with traditional parsing approaches. reply" [ref=e1660]:
+                        - generic [ref=e1662]:
+                          - link "omcnoe" [ref=e1663] [cursor=pointer]:
+                            - /url: user?id=omcnoe
+                          - generic "2026-04-15T11:05:37 1776251137" [ref=e1664]:
+                            - link "10 hours ago" [ref=e1665] [cursor=pointer]:
+                              - /url: item?id=47777417
+                          - generic [ref=e1666]:
+                            - text: "|"
+                            - link [ref=e1667] [cursor=pointer]:
+                              - /url: "#47777040"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1668] [cursor=pointer]:
+                              - /url: "#47781031"
+                              - text: next
+                            - link "[–]" [ref=e1669] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1670]:
+                          - generic [ref=e1671]:
+                            - text: Been working on a toy compiler for fun recently.
+                            - paragraph [ref=e1672]: I have ignored all the stuff about parsing theory, parser generators, custom DSL's, formal grammers etc. and instead have just been using the wonderful Megaparsec parser combinator library. I can easily follow the parsing logic, it's unambiguous (only one successful parse is possible, even if it might not be what you intended), it's easy to compose and re-use parser functions (was particularly helpful for whitespace sensitive parsing/line-fold handling), and it removes the tedious lexer/parser split you get with traditional parsing approaches.
+                          - paragraph [ref=e1674]:
+                            - link "reply" [ref=e1677] [cursor=pointer]:
+                              - /url: reply?id=47777417&goto=item%3Fid%3D47776796%2347777417
+            - row [ref=e1678]:
+              - cell [ref=e1679]:
+                - table [ref=e1680]:
+                  - rowgroup [ref=e1681]:
+                    - row [ref=e1682]:
+                      - cell [ref=e1683]:
+                        - img [ref=e1684]
+                      - cell "upvote" [ref=e1685]:
+                        - link "upvote" [ref=e1687] [cursor=pointer]:
+                          - /url: vote?id=47778131&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1688]
+                      - cell [ref=e1689]:
+                        - generic [ref=e1691]:
+                          - link "armchairhacker" [ref=e1692] [cursor=pointer]:
+                            - /url: user?id=armchairhacker
+                          - generic "2026-04-15T12:31:03 1776256263" [ref=e1693]:
+                            - link "8 hours ago" [ref=e1694] [cursor=pointer]:
+                              - /url: item?id=47778131
+                          - generic [ref=e1695]:
+                            - text: "|"
+                            - link [ref=e1696] [cursor=pointer]:
+                              - /url: "#47777417"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1697] [cursor=pointer]:
+                              - /url: "#47777811"
+                              - text: next
+                            - link "[–]" [ref=e1698] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1699]:
+                          - generic [ref=e1700]:
+                            - text: It seems to me LL and LR parser generators are overrated, and hand-written recursive descent is best in practice. I understand why academics teach them, but not why some spend so long on different parsing techniques, nor why hobbyists who just want to compile their toy language are directed to them.
+                            - paragraph [ref=e1701]: "I work in PL, and from my first compiler to today, have always found recursive descent easiest, most effective (less bugs, better error diagnostics, fast enough), and intuitive. Many popular language compilers use recursive descent: I know at least C# (Roslyn) and Rust, but I believe most except Haskell (GHC) and ocaml."
+                            - paragraph [ref=e1702]: The LR algorithm was simple once I learned it, and yacc-like LR (and antlr-like LL) parser generators were straightforward once I learned how to resolve conflicts. But recursive descent (at least to me) is simpler and more straightforward.
+                            - paragraph [ref=e1703]: "LR being more expressive than LL has never mattered. A hand-written recursive descent parser is most expressive: it has unlimited lookahead, and can modify parsed AST nodes (e.g. reordering for precedence, converting if into if-else)."
+                            - paragraph [ref=e1704]: The only solution that comes close is tree-sitter, because it implements GLR, provides helpful conflict messages, and provides basic IDE support (e.g. syntax highlighting) almost for free. But it’s a build dependency, while recursive descent parsers can be written in most languages with zero dependencies and minimal boilerplate.
+                          - paragraph [ref=e1706]:
+                            - link "reply" [ref=e1709] [cursor=pointer]:
+                              - /url: reply?id=47778131&goto=item%3Fid%3D47776796%2347778131
+            - row "upvote _old_dude_ 8 hours ago | | | [–] Parser generators are great in Python (Lark for me) so you can iterate fast and get a runtime spec of your grammar. A hand-written recursive descent parser is something you do later when you start to industrialize your code, to get better error messages, make the parser incremental, etc. Bison/ANTLR are code generators, they do not fit well in that model. reply" [ref=e1710]:
+              - cell "upvote _old_dude_ 8 hours ago | | | [–] Parser generators are great in Python (Lark for me) so you can iterate fast and get a runtime spec of your grammar. A hand-written recursive descent parser is something you do later when you start to industrialize your code, to get better error messages, make the parser incremental, etc. Bison/ANTLR are code generators, they do not fit well in that model. reply" [ref=e1711]:
+                - table [ref=e1712]:
+                  - rowgroup [ref=e1713]:
+                    - row "upvote _old_dude_ 8 hours ago | | | [–] Parser generators are great in Python (Lark for me) so you can iterate fast and get a runtime spec of your grammar. A hand-written recursive descent parser is something you do later when you start to industrialize your code, to get better error messages, make the parser incremental, etc. Bison/ANTLR are code generators, they do not fit well in that model. reply" [ref=e1714]:
+                      - cell [ref=e1715]:
+                        - img [ref=e1716]
+                      - cell "upvote" [ref=e1717]:
+                        - link "upvote" [ref=e1719] [cursor=pointer]:
+                          - /url: vote?id=47778414&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1720]
+                      - cell "_old_dude_ 8 hours ago | | | [–] Parser generators are great in Python (Lark for me) so you can iterate fast and get a runtime spec of your grammar. A hand-written recursive descent parser is something you do later when you start to industrialize your code, to get better error messages, make the parser incremental, etc. Bison/ANTLR are code generators, they do not fit well in that model. reply" [ref=e1721]:
+                        - generic [ref=e1723]:
+                          - link "_old_dude_" [ref=e1724] [cursor=pointer]:
+                            - /url: user?id=_old_dude_
+                          - generic "2026-04-15T13:02:58 1776258178" [ref=e1725]:
+                            - link "8 hours ago" [ref=e1726] [cursor=pointer]:
+                              - /url: item?id=47778414
+                          - generic [ref=e1727]:
+                            - text: "|"
+                            - link [ref=e1728] [cursor=pointer]:
+                              - /url: "#47777417"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e1729] [cursor=pointer]:
+                              - /url: "#47778131"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1730] [cursor=pointer]:
+                              - /url: "#47779476"
+                              - text: next
+                            - link "[–]" [ref=e1731] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1732]:
+                          - generic [ref=e1733]:
+                            - text: Parser generators are great in Python (Lark for me) so you can iterate fast and get a runtime spec of your grammar.
+                            - paragraph [ref=e1734]: A hand-written recursive descent parser is something you do later when you start to industrialize your code, to get better error messages, make the parser incremental, etc.
+                            - paragraph [ref=e1735]: Bison/ANTLR are code generators, they do not fit well in that model.
+                          - paragraph [ref=e1737]:
+                            - link "reply" [ref=e1740] [cursor=pointer]:
+                              - /url: reply?id=47778414&goto=item%3Fid%3D47776796%2347778414
+            - row "upvote wglb 6 hours ago | | | | [–] > It seems to me LL and LR parser generators are overrated, and hand-written recursive descent is best in practice I would now agree with that. My compiler experience was on a team that happened to have a LALR expert, Jeanne Musinski PhD, a student of Jeffrey Ullman. She invented a better error recovery for the language. Recursive descent would have been perfectly suited to the task. > LR being more expressive than LL has never mattered. Quite agree. One might guess that a language that needs that might be hard to program in. reply" [ref=e1741]:
+              - cell "upvote wglb 6 hours ago | | | | [–] > It seems to me LL and LR parser generators are overrated, and hand-written recursive descent is best in practice I would now agree with that. My compiler experience was on a team that happened to have a LALR expert, Jeanne Musinski PhD, a student of Jeffrey Ullman. She invented a better error recovery for the language. Recursive descent would have been perfectly suited to the task. > LR being more expressive than LL has never mattered. Quite agree. One might guess that a language that needs that might be hard to program in. reply" [ref=e1742]:
+                - table [ref=e1743]:
+                  - rowgroup [ref=e1744]:
+                    - row "upvote wglb 6 hours ago | | | | [–] > It seems to me LL and LR parser generators are overrated, and hand-written recursive descent is best in practice I would now agree with that. My compiler experience was on a team that happened to have a LALR expert, Jeanne Musinski PhD, a student of Jeffrey Ullman. She invented a better error recovery for the language. Recursive descent would have been perfectly suited to the task. > LR being more expressive than LL has never mattered. Quite agree. One might guess that a language that needs that might be hard to program in. reply" [ref=e1745]:
+                      - cell [ref=e1746]:
+                        - img [ref=e1747]
+                      - cell "upvote" [ref=e1748]:
+                        - link "upvote" [ref=e1750] [cursor=pointer]:
+                          - /url: vote?id=47779476&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1751]
+                      - cell "wglb 6 hours ago | | | | [–] > It seems to me LL and LR parser generators are overrated, and hand-written recursive descent is best in practice I would now agree with that. My compiler experience was on a team that happened to have a LALR expert, Jeanne Musinski PhD, a student of Jeffrey Ullman. She invented a better error recovery for the language. Recursive descent would have been perfectly suited to the task. > LR being more expressive than LL has never mattered. Quite agree. One might guess that a language that needs that might be hard to program in. reply" [ref=e1752]:
+                        - generic [ref=e1754]:
+                          - link "wglb" [ref=e1755] [cursor=pointer]:
+                            - /url: user?id=wglb
+                          - generic "2026-04-15T14:27:33 1776263253" [ref=e1756]:
+                            - link "6 hours ago" [ref=e1757] [cursor=pointer]:
+                              - /url: item?id=47779476
+                          - generic [ref=e1758]:
+                            - text: "|"
+                            - link [ref=e1759] [cursor=pointer]:
+                              - /url: "#47777417"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e1760] [cursor=pointer]:
+                              - /url: "#47778131"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1761] [cursor=pointer]:
+                              - /url: "#47778414"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1762] [cursor=pointer]:
+                              - /url: "#47777811"
+                              - text: next
+                            - link "[–]" [ref=e1763] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1764]:
+                          - generic [ref=e1765]:
+                            - text: "> It seems to me LL and LR parser generators are overrated, and hand-written recursive descent is best in practice"
+                            - paragraph [ref=e1766]: I would now agree with that. My compiler experience was on a team that happened to have a LALR expert, Jeanne Musinski PhD, a student of Jeffrey Ullman. She invented a better error recovery for the language. Recursive descent would have been perfectly suited to the task.
+                            - paragraph [ref=e1767]: "> LR being more expressive than LL has never mattered."
+                            - paragraph [ref=e1768]: Quite agree. One might guess that a language that needs that might be hard to program in.
+                          - paragraph [ref=e1770]:
+                            - link "reply" [ref=e1773] [cursor=pointer]:
+                              - /url: reply?id=47779476&goto=item%3Fid%3D47776796%2347779476
+            - row "upvote mrkeen 9 hours ago | | | [–] I'll push back and say that the lexer/parser split is well worth it. And the best thing about the parser combinator approach is that each is just a kind of parser, something like type Lexer = ParsecT e ByteString m [Token] type Parser = ParsecT e [Token] Expr All the usual helper functions like many or sepBy work equally well in the lexing and parsing phases. It really beats getting to the parentheses-interacting-with-ordering-of-division-operations stage and still having to think \"have I already trimmed off the whitespace here or not?\" reply" [ref=e1774]:
+              - cell "upvote mrkeen 9 hours ago | | | [–] I'll push back and say that the lexer/parser split is well worth it. And the best thing about the parser combinator approach is that each is just a kind of parser, something like type Lexer = ParsecT e ByteString m [Token] type Parser = ParsecT e [Token] Expr All the usual helper functions like many or sepBy work equally well in the lexing and parsing phases. It really beats getting to the parentheses-interacting-with-ordering-of-division-operations stage and still having to think \"have I already trimmed off the whitespace here or not?\" reply" [ref=e1775]:
+                - table [ref=e1776]:
+                  - rowgroup [ref=e1777]:
+                    - row "upvote mrkeen 9 hours ago | | | [–] I'll push back and say that the lexer/parser split is well worth it. And the best thing about the parser combinator approach is that each is just a kind of parser, something like type Lexer = ParsecT e ByteString m [Token] type Parser = ParsecT e [Token] Expr All the usual helper functions like many or sepBy work equally well in the lexing and parsing phases. It really beats getting to the parentheses-interacting-with-ordering-of-division-operations stage and still having to think \"have I already trimmed off the whitespace here or not?\" reply" [ref=e1778]:
+                      - cell [ref=e1779]:
+                        - img [ref=e1780]
+                      - cell "upvote" [ref=e1781]:
+                        - link "upvote" [ref=e1783] [cursor=pointer]:
+                          - /url: vote?id=47777811&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1784]
+                      - cell "mrkeen 9 hours ago | | | [–] I'll push back and say that the lexer/parser split is well worth it. And the best thing about the parser combinator approach is that each is just a kind of parser, something like type Lexer = ParsecT e ByteString m [Token] type Parser = ParsecT e [Token] Expr All the usual helper functions like many or sepBy work equally well in the lexing and parsing phases. It really beats getting to the parentheses-interacting-with-ordering-of-division-operations stage and still having to think \"have I already trimmed off the whitespace here or not?\" reply" [ref=e1785]:
+                        - generic [ref=e1787]:
+                          - link "mrkeen" [ref=e1788] [cursor=pointer]:
+                            - /url: user?id=mrkeen
+                          - generic "2026-04-15T11:50:23 1776253823" [ref=e1789]:
+                            - link "9 hours ago" [ref=e1790] [cursor=pointer]:
+                              - /url: item?id=47777811
+                          - generic [ref=e1791]:
+                            - text: "|"
+                            - link [ref=e1792] [cursor=pointer]:
+                              - /url: "#47777417"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1793] [cursor=pointer]:
+                              - /url: "#47778131"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1794] [cursor=pointer]:
+                              - /url: "#47781031"
+                              - text: next
+                            - link "[–]" [ref=e1795] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1796]:
+                          - generic [ref=e1797]:
+                            - text: I'll push back and say that the lexer/parser split is well worth it.
+                            - paragraph [ref=e1798]: And the best thing about the parser combinator approach is that each is just a kind of parser, something like
+                            - paragraph
+                            - code [ref=e1800]: type Lexer = ParsecT e ByteString m [Token] type Parser = ParsecT e [Token] Expr
+                            - text: All the usual helper functions like many or sepBy work equally well in the lexing and parsing phases.
+                            - paragraph [ref=e1801]: It really beats getting to the parentheses-interacting-with-ordering-of-division-operations stage and still having to think "have I already trimmed off the whitespace here or not?"
+                          - paragraph [ref=e1803]:
+                            - link "reply" [ref=e1806] [cursor=pointer]:
+                              - /url: reply?id=47777811&goto=item%3Fid%3D47776796%2347777811
+            - row "upvote WalterBright 5 hours ago | | [–] What taught me how to write a compiler was the BYTE magazine 1978-08 .. 09 issues which had a listing for a Tiny Pascal compiler. Reading the listing was magical. What taught me how to write an optimizer was a Stanford summer course taught by Ullman and Hennessy. The code generator was my own concoction, and is apparently quite unlike any other one out there! I have the Dragon Book, but have never actually read it. So sue me. reply" [ref=e1807]:
+              - cell "upvote WalterBright 5 hours ago | | [–] What taught me how to write a compiler was the BYTE magazine 1978-08 .. 09 issues which had a listing for a Tiny Pascal compiler. Reading the listing was magical. What taught me how to write an optimizer was a Stanford summer course taught by Ullman and Hennessy. The code generator was my own concoction, and is apparently quite unlike any other one out there! I have the Dragon Book, but have never actually read it. So sue me. reply" [ref=e1808]:
+                - table [ref=e1809]:
+                  - rowgroup [ref=e1810]:
+                    - row "upvote WalterBright 5 hours ago | | [–] What taught me how to write a compiler was the BYTE magazine 1978-08 .. 09 issues which had a listing for a Tiny Pascal compiler. Reading the listing was magical. What taught me how to write an optimizer was a Stanford summer course taught by Ullman and Hennessy. The code generator was my own concoction, and is apparently quite unlike any other one out there! I have the Dragon Book, but have never actually read it. So sue me. reply" [ref=e1811]:
+                      - cell [ref=e1812]:
+                        - img
+                      - cell "upvote" [ref=e1813]:
+                        - link "upvote" [ref=e1815] [cursor=pointer]:
+                          - /url: vote?id=47781031&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1816]
+                      - cell "WalterBright 5 hours ago | | [–] What taught me how to write a compiler was the BYTE magazine 1978-08 .. 09 issues which had a listing for a Tiny Pascal compiler. Reading the listing was magical. What taught me how to write an optimizer was a Stanford summer course taught by Ullman and Hennessy. The code generator was my own concoction, and is apparently quite unlike any other one out there! I have the Dragon Book, but have never actually read it. So sue me. reply" [ref=e1817]:
+                        - generic [ref=e1819]:
+                          - link "WalterBright" [ref=e1820] [cursor=pointer]:
+                            - /url: user?id=WalterBright
+                          - generic "2026-04-15T16:02:13 1776268933" [ref=e1821]:
+                            - link "5 hours ago" [ref=e1822] [cursor=pointer]:
+                              - /url: item?id=47781031
+                          - generic [ref=e1823]:
+                            - text: "|"
+                            - link [ref=e1824] [cursor=pointer]:
+                              - /url: "#47777417"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1825] [cursor=pointer]:
+                              - /url: "#47777044"
+                              - text: next
+                            - link "[–]" [ref=e1826] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1827]:
+                          - generic [ref=e1828]:
+                            - text: What taught me how to write a compiler was the BYTE magazine 1978-08 .. 09 issues which had a listing for a Tiny Pascal compiler. Reading the listing was magical.
+                            - paragraph [ref=e1829]: What taught me how to write an optimizer was a Stanford summer course taught by Ullman and Hennessy.
+                            - paragraph [ref=e1830]: The code generator was my own concoction, and is apparently quite unlike any other one out there!
+                            - paragraph [ref=e1831]: I have the Dragon Book, but have never actually read it. So sue me.
+                          - paragraph [ref=e1833]:
+                            - link "reply" [ref=e1836] [cursor=pointer]:
+                              - /url: reply?id=47781031&goto=item%3Fid%3D47776796%2347781031
+            - 'row "upvote SilentM68 4 hours ago | | [–] You can find some of those magazines linked below: https://archive.org/details/BYTE-MAGAZINE-COMPLETE reply" [ref=e1837]':
+              - 'cell "upvote SilentM68 4 hours ago | | [–] You can find some of those magazines linked below: https://archive.org/details/BYTE-MAGAZINE-COMPLETE reply" [ref=e1838]':
+                - table [ref=e1839]:
+                  - rowgroup [ref=e1840]:
+                    - 'row "upvote SilentM68 4 hours ago | | [–] You can find some of those magazines linked below: https://archive.org/details/BYTE-MAGAZINE-COMPLETE reply" [ref=e1841]':
+                      - cell [ref=e1842]:
+                        - img [ref=e1843]
+                      - cell "upvote" [ref=e1844]:
+                        - link "upvote" [ref=e1846] [cursor=pointer]:
+                          - /url: vote?id=47781582&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1847]
+                      - 'cell "SilentM68 4 hours ago | | [–] You can find some of those magazines linked below: https://archive.org/details/BYTE-MAGAZINE-COMPLETE reply" [ref=e1848]':
+                        - generic [ref=e1850]:
+                          - link "SilentM68" [ref=e1851] [cursor=pointer]:
+                            - /url: user?id=SilentM68
+                          - generic "2026-04-15T16:38:07 1776271087" [ref=e1852]:
+                            - link "4 hours ago" [ref=e1853] [cursor=pointer]:
+                              - /url: item?id=47781582
+                          - generic [ref=e1854]:
+                            - text: "|"
+                            - link [ref=e1855] [cursor=pointer]:
+                              - /url: "#47781031"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1856] [cursor=pointer]:
+                              - /url: "#47777044"
+                              - text: next
+                            - link "[–]" [ref=e1857] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1858]:
+                          - generic [ref=e1859]:
+                            - text: "You can find some of those magazines linked below:"
+                            - paragraph [ref=e1860]:
+                              - link "https://archive.org/details/BYTE-MAGAZINE-COMPLETE" [ref=e1861] [cursor=pointer]:
+                                - /url: https://archive.org/details/BYTE-MAGAZINE-COMPLETE
+                          - paragraph [ref=e1863]:
+                            - link "reply" [ref=e1866] [cursor=pointer]:
+                              - /url: reply?id=47781582&goto=item%3Fid%3D47776796%2347781582
+            - row "upvote GCUMstlyHarmls 10 hours ago | | [–] Nanopass paper seems to be dead but can be found here at least https://stanleymiracle.github.io/blogs/compiler/docs/extra/n... reply" [ref=e1867]:
+              - cell "upvote GCUMstlyHarmls 10 hours ago | | [–] Nanopass paper seems to be dead but can be found here at least https://stanleymiracle.github.io/blogs/compiler/docs/extra/n... reply" [ref=e1868]:
+                - table [ref=e1869]:
+                  - rowgroup [ref=e1870]:
+                    - row "upvote GCUMstlyHarmls 10 hours ago | | [–] Nanopass paper seems to be dead but can be found here at least https://stanleymiracle.github.io/blogs/compiler/docs/extra/n... reply" [ref=e1871]:
+                      - cell [ref=e1872]:
+                        - img
+                      - cell "upvote" [ref=e1873]:
+                        - link "upvote" [ref=e1875] [cursor=pointer]:
+                          - /url: vote?id=47777044&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1876]
+                      - cell "GCUMstlyHarmls 10 hours ago | | [–] Nanopass paper seems to be dead but can be found here at least https://stanleymiracle.github.io/blogs/compiler/docs/extra/n... reply" [ref=e1877]:
+                        - generic [ref=e1879]:
+                          - link "GCUMstlyHarmls" [ref=e1880] [cursor=pointer]:
+                            - /url: user?id=GCUMstlyHarmls
+                          - generic "2026-04-15T10:21:02 1776248462" [ref=e1881]:
+                            - link "10 hours ago" [ref=e1882] [cursor=pointer]:
+                              - /url: item?id=47777044
+                          - generic [ref=e1883]:
+                            - text: "|"
+                            - link [ref=e1884] [cursor=pointer]:
+                              - /url: "#47781031"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1885] [cursor=pointer]:
+                              - /url: "#47781428"
+                              - text: next
+                            - link "[–]" [ref=e1886] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1887]:
+                          - generic [ref=e1888]:
+                            - text: Nanopass paper seems to be dead but can be found here at least
+                            - link "https://stanleymiracle.github.io/blogs/compiler/docs/extra/n..." [ref=e1889] [cursor=pointer]:
+                              - /url: https://stanleymiracle.github.io/blogs/compiler/docs/extra/nanopass-framework.pdf
+                          - paragraph [ref=e1891]:
+                            - link "reply" [ref=e1894] [cursor=pointer]:
+                              - /url: reply?id=47777044&goto=item%3Fid%3D47776796%2347777044
+            - 'row "upvote kunley 10 hours ago | | [–] Also: https://www.cambridge.org/core/journals/journal-of-functiona... reply" [ref=e1895]':
+              - 'cell "upvote kunley 10 hours ago | | [–] Also: https://www.cambridge.org/core/journals/journal-of-functiona... reply" [ref=e1896]':
+                - table [ref=e1897]:
+                  - rowgroup [ref=e1898]:
+                    - 'row "upvote kunley 10 hours ago | | [–] Also: https://www.cambridge.org/core/journals/journal-of-functiona... reply" [ref=e1899]':
+                      - cell [ref=e1900]:
+                        - img [ref=e1901]
+                      - cell "upvote" [ref=e1902]:
+                        - link "upvote" [ref=e1904] [cursor=pointer]:
+                          - /url: vote?id=47777092&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1905]
+                      - 'cell "kunley 10 hours ago | | [–] Also: https://www.cambridge.org/core/journals/journal-of-functiona... reply" [ref=e1906]':
+                        - generic [ref=e1908]:
+                          - link "kunley" [ref=e1909] [cursor=pointer]:
+                            - /url: user?id=kunley
+                          - generic "2026-04-15T10:27:23 1776248843" [ref=e1910]:
+                            - link "10 hours ago" [ref=e1911] [cursor=pointer]:
+                              - /url: item?id=47777092
+                          - generic [ref=e1912]:
+                            - text: "|"
+                            - link [ref=e1913] [cursor=pointer]:
+                              - /url: "#47777044"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1914] [cursor=pointer]:
+                              - /url: "#47777711"
+                              - text: next
+                            - link "[–]" [ref=e1915] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1916]:
+                          - generic [ref=e1917]:
+                            - text: "Also:"
+                            - paragraph [ref=e1918]:
+                              - link "https://www.cambridge.org/core/journals/journal-of-functiona..." [ref=e1919] [cursor=pointer]:
+                                - /url: https://www.cambridge.org/core/journals/journal-of-functional-programming/article/educational-pearl-a-nanopass-framework-for-compiler-education/1E378B9B451270AF6A155FA0C21C04A3
+                          - paragraph [ref=e1921]:
+                            - link "reply" [ref=e1924] [cursor=pointer]:
+                              - /url: reply?id=47777092&goto=item%3Fid%3D47776796%2347777092
+            - 'row "upvote NordStreamYacht 9 hours ago | | | [–] Also you could go to Andy Keep''s site: https://nanopass.org/ reply" [ref=e1925]':
+              - 'cell "upvote NordStreamYacht 9 hours ago | | | [–] Also you could go to Andy Keep''s site: https://nanopass.org/ reply" [ref=e1926]':
+                - table [ref=e1927]:
+                  - rowgroup [ref=e1928]:
+                    - 'row "upvote NordStreamYacht 9 hours ago | | | [–] Also you could go to Andy Keep''s site: https://nanopass.org/ reply" [ref=e1929]':
+                      - cell [ref=e1930]:
+                        - img [ref=e1931]
+                      - cell "upvote" [ref=e1932]:
+                        - link "upvote" [ref=e1934] [cursor=pointer]:
+                          - /url: vote?id=47777711&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1935]
+                      - 'cell "NordStreamYacht 9 hours ago | | | [–] Also you could go to Andy Keep''s site: https://nanopass.org/ reply" [ref=e1936]':
+                        - generic [ref=e1938]:
+                          - link "NordStreamYacht" [ref=e1939] [cursor=pointer]:
+                            - /url: user?id=NordStreamYacht
+                          - generic "2026-04-15T11:37:32 1776253052" [ref=e1940]:
+                            - link "9 hours ago" [ref=e1941] [cursor=pointer]:
+                              - /url: item?id=47777711
+                          - generic [ref=e1942]:
+                            - text: "|"
+                            - link [ref=e1943] [cursor=pointer]:
+                              - /url: "#47777044"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e1944] [cursor=pointer]:
+                              - /url: "#47777092"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1945] [cursor=pointer]:
+                              - /url: "#47781428"
+                              - text: next
+                            - link "[–]" [ref=e1946] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1947]:
+                          - generic [ref=e1948]:
+                            - text: "Also you could go to Andy Keep's site:"
+                            - link "https://nanopass.org/" [ref=e1949] [cursor=pointer]:
+                              - /url: https://nanopass.org/
+                          - paragraph [ref=e1951]:
+                            - link "reply" [ref=e1954] [cursor=pointer]:
+                              - /url: reply?id=47777711&goto=item%3Fid%3D47776796%2347777711
+            - row "upvote georgehm 4 hours ago | | [–] I have fond memories of implementing an optimizing compiler for the CS241 compiler course offered back then by Prof Michael Franz who was a student of Niklaus Wirth, probably the most exhilarating course during my time at UC Irvine. This was in 2009 so my memory is vague but I recall he provided a virtual machine for a simple architecture called DLX and the compiler was to generate byte code for it. Google search points me to https://github.com/cesarghali/PL241-Compiler/blob/master/DLX... for a description of the architecture and possibly https://bernsteinbear.com/assets/img/linear-scan-ra-context-... for the register allocation algorithm reply" [ref=e1955]:
+              - cell "upvote georgehm 4 hours ago | | [–] I have fond memories of implementing an optimizing compiler for the CS241 compiler course offered back then by Prof Michael Franz who was a student of Niklaus Wirth, probably the most exhilarating course during my time at UC Irvine. This was in 2009 so my memory is vague but I recall he provided a virtual machine for a simple architecture called DLX and the compiler was to generate byte code for it. Google search points me to https://github.com/cesarghali/PL241-Compiler/blob/master/DLX... for a description of the architecture and possibly https://bernsteinbear.com/assets/img/linear-scan-ra-context-... for the register allocation algorithm reply" [ref=e1956]:
+                - table [ref=e1957]:
+                  - rowgroup [ref=e1958]:
+                    - row "upvote georgehm 4 hours ago | | [–] I have fond memories of implementing an optimizing compiler for the CS241 compiler course offered back then by Prof Michael Franz who was a student of Niklaus Wirth, probably the most exhilarating course during my time at UC Irvine. This was in 2009 so my memory is vague but I recall he provided a virtual machine for a simple architecture called DLX and the compiler was to generate byte code for it. Google search points me to https://github.com/cesarghali/PL241-Compiler/blob/master/DLX... for a description of the architecture and possibly https://bernsteinbear.com/assets/img/linear-scan-ra-context-... for the register allocation algorithm reply" [ref=e1959]:
+                      - cell [ref=e1960]:
+                        - img
+                      - cell "upvote" [ref=e1961]:
+                        - link "upvote" [ref=e1963] [cursor=pointer]:
+                          - /url: vote?id=47781428&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1964]
+                      - cell "georgehm 4 hours ago | | [–] I have fond memories of implementing an optimizing compiler for the CS241 compiler course offered back then by Prof Michael Franz who was a student of Niklaus Wirth, probably the most exhilarating course during my time at UC Irvine. This was in 2009 so my memory is vague but I recall he provided a virtual machine for a simple architecture called DLX and the compiler was to generate byte code for it. Google search points me to https://github.com/cesarghali/PL241-Compiler/blob/master/DLX... for a description of the architecture and possibly https://bernsteinbear.com/assets/img/linear-scan-ra-context-... for the register allocation algorithm reply" [ref=e1965]:
+                        - generic [ref=e1967]:
+                          - link "georgehm" [ref=e1968] [cursor=pointer]:
+                            - /url: user?id=georgehm
+                          - generic "2026-04-15T16:28:52 1776270532" [ref=e1969]:
+                            - link "4 hours ago" [ref=e1970] [cursor=pointer]:
+                              - /url: item?id=47781428
+                          - generic [ref=e1971]:
+                            - text: "|"
+                            - link [ref=e1972] [cursor=pointer]:
+                              - /url: "#47777044"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e1973] [cursor=pointer]:
+                              - /url: "#47778453"
+                              - text: next
+                            - link "[–]" [ref=e1974] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e1975]:
+                          - generic [ref=e1976]:
+                            - text: I have fond memories of implementing an optimizing compiler for the CS241 compiler course offered back then by Prof Michael Franz who was a student of Niklaus Wirth, probably the most exhilarating course during my time at UC Irvine. This was in 2009 so my memory is vague but I recall he provided a virtual machine for a simple architecture called DLX and the compiler was to generate byte code for it.
+                            - paragraph [ref=e1977]:
+                              - text: Google search points me to
+                              - link "https://github.com/cesarghali/PL241-Compiler/blob/master/DLX..." [ref=e1978] [cursor=pointer]:
+                                - /url: https://github.com/cesarghali/PL241-Compiler/blob/master/DLX.pdf
+                              - text: for a description of the architecture and possibly
+                              - link "https://bernsteinbear.com/assets/img/linear-scan-ra-context-..." [ref=e1979] [cursor=pointer]:
+                                - /url: https://bernsteinbear.com/assets/img/linear-scan-ra-context-ssa.pdf
+                              - text: for the register allocation algorithm
+                          - paragraph [ref=e1981]:
+                            - link "reply" [ref=e1984] [cursor=pointer]:
+                              - /url: reply?id=47781428&goto=item%3Fid%3D47776796%2347781428
+            - 'row "upvote blueybingo 8 hours ago | | [–] the article''s framing around nanopass is undersold: the real insight isn''t the number of passes but that each pass has an explicit input and output language, which forces you to think about what invariants hold at each stage. that discipline alone catches a suprising number of bugs before you even run the compiler. crenshaw is fantastic but this structural thinking is what separates toy compilers from ones you can actaully extend later. reply" [ref=e1985]':
+              - 'cell "upvote blueybingo 8 hours ago | | [–] the article''s framing around nanopass is undersold: the real insight isn''t the number of passes but that each pass has an explicit input and output language, which forces you to think about what invariants hold at each stage. that discipline alone catches a suprising number of bugs before you even run the compiler. crenshaw is fantastic but this structural thinking is what separates toy compilers from ones you can actaully extend later. reply" [ref=e1986]':
+                - table [ref=e1987]:
+                  - rowgroup [ref=e1988]:
+                    - 'row "upvote blueybingo 8 hours ago | | [–] the article''s framing around nanopass is undersold: the real insight isn''t the number of passes but that each pass has an explicit input and output language, which forces you to think about what invariants hold at each stage. that discipline alone catches a suprising number of bugs before you even run the compiler. crenshaw is fantastic but this structural thinking is what separates toy compilers from ones you can actaully extend later. reply" [ref=e1989]':
+                      - cell [ref=e1990]:
+                        - img
+                      - cell "upvote" [ref=e1991]:
+                        - link "upvote" [ref=e1993] [cursor=pointer]:
+                          - /url: vote?id=47778453&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e1994]
+                      - 'cell "blueybingo 8 hours ago | | [–] the article''s framing around nanopass is undersold: the real insight isn''t the number of passes but that each pass has an explicit input and output language, which forces you to think about what invariants hold at each stage. that discipline alone catches a suprising number of bugs before you even run the compiler. crenshaw is fantastic but this structural thinking is what separates toy compilers from ones you can actaully extend later. reply" [ref=e1995]':
+                        - generic [ref=e1997]:
+                          - link "blueybingo" [ref=e1998] [cursor=pointer]:
+                            - /url: user?id=blueybingo
+                          - generic "2026-04-15T13:06:17 1776258377" [ref=e1999]:
+                            - link "8 hours ago" [ref=e2000] [cursor=pointer]:
+                              - /url: item?id=47778453
+                          - generic [ref=e2001]:
+                            - text: "|"
+                            - link [ref=e2002] [cursor=pointer]:
+                              - /url: "#47781428"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2003] [cursor=pointer]:
+                              - /url: "#47776862"
+                              - text: next
+                            - link "[–]" [ref=e2004] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2005]:
+                          - generic [ref=e2006]: "the article's framing around nanopass is undersold: the real insight isn't the number of passes but that each pass has an explicit input and output language, which forces you to think about what invariants hold at each stage. that discipline alone catches a suprising number of bugs before you even run the compiler. crenshaw is fantastic but this structural thinking is what separates toy compilers from ones you can actaully extend later."
+                          - paragraph [ref=e2008]:
+                            - link "reply" [ref=e2011] [cursor=pointer]:
+                              - /url: reply?id=47778453&goto=item%3Fid%3D47776796%2347778453
+            - row "upvote itsmemattchung 11 hours ago | | [–] It's been about 4 years since I took a compilers course (from OMSCS, graduate program) and still shutter ... it was, hands down, the most difficult (yet rewarding) classes I've taken. reply" [ref=e2012]:
+              - cell "upvote itsmemattchung 11 hours ago | | [–] It's been about 4 years since I took a compilers course (from OMSCS, graduate program) and still shutter ... it was, hands down, the most difficult (yet rewarding) classes I've taken. reply" [ref=e2013]:
+                - table [ref=e2014]:
+                  - rowgroup [ref=e2015]:
+                    - row "upvote itsmemattchung 11 hours ago | | [–] It's been about 4 years since I took a compilers course (from OMSCS, graduate program) and still shutter ... it was, hands down, the most difficult (yet rewarding) classes I've taken. reply" [ref=e2016]:
+                      - cell [ref=e2017]:
+                        - img
+                      - cell "upvote" [ref=e2018]:
+                        - link "upvote" [ref=e2020] [cursor=pointer]:
+                          - /url: vote?id=47776862&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2021]
+                      - cell "itsmemattchung 11 hours ago | | [–] It's been about 4 years since I took a compilers course (from OMSCS, graduate program) and still shutter ... it was, hands down, the most difficult (yet rewarding) classes I've taken. reply" [ref=e2022]:
+                        - generic [ref=e2024]:
+                          - link "itsmemattchung" [ref=e2025] [cursor=pointer]:
+                            - /url: user?id=itsmemattchung
+                          - generic "2026-04-15T09:51:44 1776246704" [ref=e2026]:
+                            - link "11 hours ago" [ref=e2027] [cursor=pointer]:
+                              - /url: item?id=47776862
+                          - generic [ref=e2028]:
+                            - text: "|"
+                            - link [ref=e2029] [cursor=pointer]:
+                              - /url: "#47778453"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2030] [cursor=pointer]:
+                              - /url: "#47782681"
+                              - text: next
+                            - link "[–]" [ref=e2031] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2032]:
+                          - generic [ref=e2033]: It's been about 4 years since I took a compilers course (from OMSCS, graduate program) and still shutter ... it was, hands down, the most difficult (yet rewarding) classes I've taken.
+                          - paragraph [ref=e2035]:
+                            - link "reply" [ref=e2038] [cursor=pointer]:
+                              - /url: reply?id=47776862&goto=item%3Fid%3D47776796%2347776862
+            - row "upvote nirvdrum 10 hours ago | | [–] Based on another reply I can’t tell if there’s a clever window-based pun that I’m missing. If not, I think you want “shudder” and not “shutter” here. I’m sorry if I just ruined the joke. reply" [ref=e2039]:
+              - cell "upvote nirvdrum 10 hours ago | | [–] Based on another reply I can’t tell if there’s a clever window-based pun that I’m missing. If not, I think you want “shudder” and not “shutter” here. I’m sorry if I just ruined the joke. reply" [ref=e2040]:
+                - table [ref=e2041]:
+                  - rowgroup [ref=e2042]:
+                    - row "upvote nirvdrum 10 hours ago | | [–] Based on another reply I can’t tell if there’s a clever window-based pun that I’m missing. If not, I think you want “shudder” and not “shutter” here. I’m sorry if I just ruined the joke. reply" [ref=e2043]:
+                      - cell [ref=e2044]:
+                        - img [ref=e2045]
+                      - cell "upvote" [ref=e2046]:
+                        - link "upvote" [ref=e2048] [cursor=pointer]:
+                          - /url: vote?id=47777030&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2049]
+                      - cell "nirvdrum 10 hours ago | | [–] Based on another reply I can’t tell if there’s a clever window-based pun that I’m missing. If not, I think you want “shudder” and not “shutter” here. I’m sorry if I just ruined the joke. reply" [ref=e2050]:
+                        - generic [ref=e2052]:
+                          - link "nirvdrum" [ref=e2053] [cursor=pointer]:
+                            - /url: user?id=nirvdrum
+                          - generic "2026-04-15T10:19:14 1776248354" [ref=e2054]:
+                            - link "10 hours ago" [ref=e2055] [cursor=pointer]:
+                              - /url: item?id=47777030
+                          - generic [ref=e2056]:
+                            - text: "|"
+                            - link [ref=e2057] [cursor=pointer]:
+                              - /url: "#47776862"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2058] [cursor=pointer]:
+                              - /url: "#47779514"
+                              - text: next
+                            - link "[–]" [ref=e2059] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2060]:
+                          - generic [ref=e2061]: Based on another reply I can’t tell if there’s a clever window-based pun that I’m missing. If not, I think you want “shudder” and not “shutter” here. I’m sorry if I just ruined the joke.
+                          - paragraph [ref=e2063]:
+                            - link "reply" [ref=e2066] [cursor=pointer]:
+                              - /url: reply?id=47777030&goto=item%3Fid%3D47776796%2347777030
+            - row "upvote bluedino 6 hours ago | | | [–] I used to judge CS programs based on if they had compiler classes or not. reply" [ref=e2067]:
+              - cell "upvote bluedino 6 hours ago | | | [–] I used to judge CS programs based on if they had compiler classes or not. reply" [ref=e2068]:
+                - table [ref=e2069]:
+                  - rowgroup [ref=e2070]:
+                    - row "upvote bluedino 6 hours ago | | | [–] I used to judge CS programs based on if they had compiler classes or not. reply" [ref=e2071]:
+                      - cell [ref=e2072]:
+                        - img [ref=e2073]
+                      - cell "upvote" [ref=e2074]:
+                        - link "upvote" [ref=e2076] [cursor=pointer]:
+                          - /url: vote?id=47779514&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2077]
+                      - cell "bluedino 6 hours ago | | | [–] I used to judge CS programs based on if they had compiler classes or not. reply" [ref=e2078]:
+                        - generic [ref=e2080]:
+                          - link "bluedino" [ref=e2081] [cursor=pointer]:
+                            - /url: user?id=bluedino
+                          - generic "2026-04-15T14:29:52 1776263392" [ref=e2082]:
+                            - link "6 hours ago" [ref=e2083] [cursor=pointer]:
+                              - /url: item?id=47779514
+                          - generic [ref=e2084]:
+                            - text: "|"
+                            - link [ref=e2085] [cursor=pointer]:
+                              - /url: "#47776862"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2086] [cursor=pointer]:
+                              - /url: "#47777030"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2087] [cursor=pointer]:
+                              - /url: "#47781024"
+                              - text: next
+                            - link "[–]" [ref=e2088] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2089]:
+                          - generic [ref=e2090]: I used to judge CS programs based on if they had compiler classes or not.
+                          - paragraph [ref=e2092]:
+                            - link "reply" [ref=e2095] [cursor=pointer]:
+                              - /url: reply?id=47779514&goto=item%3Fid%3D47776796%2347779514
+            - row "upvote shepherdjerred 5 hours ago | | | [–] I loved that course so much but it was incredibly difficult to do while also working reply" [ref=e2096]:
+              - cell "upvote shepherdjerred 5 hours ago | | | [–] I loved that course so much but it was incredibly difficult to do while also working reply" [ref=e2097]:
+                - table [ref=e2098]:
+                  - rowgroup [ref=e2099]:
+                    - row "upvote shepherdjerred 5 hours ago | | | [–] I loved that course so much but it was incredibly difficult to do while also working reply" [ref=e2100]:
+                      - cell [ref=e2101]:
+                        - img [ref=e2102]
+                      - cell "upvote" [ref=e2103]:
+                        - link "upvote" [ref=e2105] [cursor=pointer]:
+                          - /url: vote?id=47781024&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2106]
+                      - cell "shepherdjerred 5 hours ago | | | [–] I loved that course so much but it was incredibly difficult to do while also working reply" [ref=e2107]:
+                        - generic [ref=e2109]:
+                          - link "shepherdjerred" [ref=e2110] [cursor=pointer]:
+                            - /url: user?id=shepherdjerred
+                          - generic "2026-04-15T16:01:20 1776268880" [ref=e2111]:
+                            - link "5 hours ago" [ref=e2112] [cursor=pointer]:
+                              - /url: item?id=47781024
+                          - generic [ref=e2113]:
+                            - text: "|"
+                            - link [ref=e2114] [cursor=pointer]:
+                              - /url: "#47776862"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2115] [cursor=pointer]:
+                              - /url: "#47779514"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2116] [cursor=pointer]:
+                              - /url: "#47777483"
+                              - text: next
+                            - link "[–]" [ref=e2117] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2118]:
+                          - generic [ref=e2119]: I loved that course so much but it was incredibly difficult to do while also working
+                          - paragraph [ref=e2121]:
+                            - link "reply" [ref=e2124] [cursor=pointer]:
+                              - /url: reply?id=47781024&goto=item%3Fid%3D47776796%2347781024
+            - row "upvote tjarjoura 9 hours ago | | | [–] What did you find more painful about compilers than other forms of programming? reply" [ref=e2125]:
+              - cell "upvote tjarjoura 9 hours ago | | | [–] What did you find more painful about compilers than other forms of programming? reply" [ref=e2126]:
+                - table [ref=e2127]:
+                  - rowgroup [ref=e2128]:
+                    - row "upvote tjarjoura 9 hours ago | | | [–] What did you find more painful about compilers than other forms of programming? reply" [ref=e2129]:
+                      - cell [ref=e2130]:
+                        - img [ref=e2131]
+                      - cell "upvote" [ref=e2132]:
+                        - link "upvote" [ref=e2134] [cursor=pointer]:
+                          - /url: vote?id=47777483&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2135]
+                      - cell "tjarjoura 9 hours ago | | | [–] What did you find more painful about compilers than other forms of programming? reply" [ref=e2136]:
+                        - generic [ref=e2138]:
+                          - link "tjarjoura" [ref=e2139] [cursor=pointer]:
+                            - /url: user?id=tjarjoura
+                          - generic "2026-04-15T11:11:55 1776251515" [ref=e2140]:
+                            - link "9 hours ago" [ref=e2141] [cursor=pointer]:
+                              - /url: item?id=47777483
+                          - generic [ref=e2142]:
+                            - text: "|"
+                            - link [ref=e2143] [cursor=pointer]:
+                              - /url: "#47776862"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2144] [cursor=pointer]:
+                              - /url: "#47781024"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2145] [cursor=pointer]:
+                              - /url: "#47776892"
+                              - text: next
+                            - link "[–]" [ref=e2146] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2147]:
+                          - generic [ref=e2148]: What did you find more painful about compilers than other forms of programming?
+                          - paragraph [ref=e2150]:
+                            - link "reply" [ref=e2153] [cursor=pointer]:
+                              - /url: reply?id=47777483&goto=item%3Fid%3D47776796%2347777483
+            - row "upvote kuboble 9 hours ago | | | [–] I think there is a million ways to make a compilers course. The course I did was organized perfectly with big parts of compiler boiler plate already written, and I only had to implement parser/lexer rules and the translation of language structures into assembly instructions. Also it was a compiler for a language designed just for this course with the intention of it being specifically easy to write a compiler for it and not programming. Without this I can imagine it being a painful experience reply" [ref=e2154]:
+              - cell "upvote kuboble 9 hours ago | | | [–] I think there is a million ways to make a compilers course. The course I did was organized perfectly with big parts of compiler boiler plate already written, and I only had to implement parser/lexer rules and the translation of language structures into assembly instructions. Also it was a compiler for a language designed just for this course with the intention of it being specifically easy to write a compiler for it and not programming. Without this I can imagine it being a painful experience reply" [ref=e2155]:
+                - table [ref=e2156]:
+                  - rowgroup [ref=e2157]:
+                    - row "upvote kuboble 9 hours ago | | | [–] I think there is a million ways to make a compilers course. The course I did was organized perfectly with big parts of compiler boiler plate already written, and I only had to implement parser/lexer rules and the translation of language structures into assembly instructions. Also it was a compiler for a language designed just for this course with the intention of it being specifically easy to write a compiler for it and not programming. Without this I can imagine it being a painful experience reply" [ref=e2158]:
+                      - cell [ref=e2159]:
+                        - img [ref=e2160]
+                      - cell "upvote" [ref=e2161]:
+                        - link "upvote" [ref=e2163] [cursor=pointer]:
+                          - /url: vote?id=47777728&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2164]
+                      - cell "kuboble 9 hours ago | | | [–] I think there is a million ways to make a compilers course. The course I did was organized perfectly with big parts of compiler boiler plate already written, and I only had to implement parser/lexer rules and the translation of language structures into assembly instructions. Also it was a compiler for a language designed just for this course with the intention of it being specifically easy to write a compiler for it and not programming. Without this I can imagine it being a painful experience reply" [ref=e2165]:
+                        - generic [ref=e2167]:
+                          - link "kuboble" [ref=e2168] [cursor=pointer]:
+                            - /url: user?id=kuboble
+                          - generic "2026-04-15T11:40:14 1776253214" [ref=e2169]:
+                            - link "9 hours ago" [ref=e2170] [cursor=pointer]:
+                              - /url: item?id=47777728
+                          - generic [ref=e2171]:
+                            - text: "|"
+                            - link [ref=e2172] [cursor=pointer]:
+                              - /url: "#47776862"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e2173] [cursor=pointer]:
+                              - /url: "#47777483"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2174] [cursor=pointer]:
+                              - /url: "#47776892"
+                              - text: next
+                            - link "[–]" [ref=e2175] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2176]:
+                          - generic [ref=e2177]:
+                            - text: I think there is a million ways to make a compilers course.
+                            - paragraph [ref=e2178]: The course I did was organized perfectly with big parts of compiler boiler plate already written, and I only had to implement parser/lexer rules and the translation of language structures into assembly instructions. Also it was a compiler for a language designed just for this course with the intention of it being specifically easy to write a compiler for it and not programming.
+                            - paragraph [ref=e2179]: Without this I can imagine it being a painful experience
+                          - paragraph [ref=e2181]:
+                            - link "reply" [ref=e2184] [cursor=pointer]:
+                              - /url: reply?id=47777728&goto=item%3Fid%3D47776796%2347777728
+            - row "upvote msla 11 hours ago | | | [–] It made me drink myself Venetian blind. reply" [ref=e2185]:
+              - cell "upvote msla 11 hours ago | | | [–] It made me drink myself Venetian blind. reply" [ref=e2186]:
+                - table [ref=e2187]:
+                  - rowgroup [ref=e2188]:
+                    - row "upvote msla 11 hours ago | | | [–] It made me drink myself Venetian blind. reply" [ref=e2189]:
+                      - cell [ref=e2190]:
+                        - img [ref=e2191]
+                      - cell "upvote" [ref=e2192]:
+                        - link "upvote" [ref=e2194] [cursor=pointer]:
+                          - /url: vote?id=47776892&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2195]
+                      - cell "msla 11 hours ago | | | [–] It made me drink myself Venetian blind. reply" [ref=e2196]:
+                        - generic [ref=e2198]:
+                          - link "msla" [ref=e2199] [cursor=pointer]:
+                            - /url: user?id=msla
+                          - generic "2026-04-15T09:55:37 1776246937" [ref=e2200]:
+                            - link "11 hours ago" [ref=e2201] [cursor=pointer]:
+                              - /url: item?id=47776892
+                          - generic [ref=e2202]:
+                            - text: "|"
+                            - link [ref=e2203] [cursor=pointer]:
+                              - /url: "#47776862"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2204] [cursor=pointer]:
+                              - /url: "#47777483"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2205] [cursor=pointer]:
+                              - /url: "#47777026"
+                              - text: next
+                            - link "[–]" [ref=e2206] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2207]:
+                          - generic [ref=e2208]: It made me drink myself Venetian blind.
+                          - paragraph [ref=e2210]:
+                            - link "reply" [ref=e2213] [cursor=pointer]:
+                              - /url: reply?id=47776892&goto=item%3Fid%3D47776796%2347776892
+            - row "upvote Pay08 10 hours ago | | | [–] I would like to agree with this comment, but I certainly didn't find it rewarding. It was pure pain. reply" [ref=e2214]:
+              - cell "upvote Pay08 10 hours ago | | | [–] I would like to agree with this comment, but I certainly didn't find it rewarding. It was pure pain. reply" [ref=e2215]:
+                - table [ref=e2216]:
+                  - rowgroup [ref=e2217]:
+                    - row "upvote Pay08 10 hours ago | | | [–] I would like to agree with this comment, but I certainly didn't find it rewarding. It was pure pain. reply" [ref=e2218]:
+                      - cell [ref=e2219]:
+                        - img [ref=e2220]
+                      - cell "upvote" [ref=e2221]:
+                        - link "upvote" [ref=e2223] [cursor=pointer]:
+                          - /url: vote?id=47777026&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2224]
+                      - cell "Pay08 10 hours ago | | | [–] I would like to agree with this comment, but I certainly didn't find it rewarding. It was pure pain. reply" [ref=e2225]:
+                        - generic [ref=e2227]:
+                          - link "Pay08" [ref=e2228] [cursor=pointer]:
+                            - /url: user?id=Pay08
+                          - generic "2026-04-15T10:18:58 1776248338" [ref=e2229]:
+                            - link "10 hours ago" [ref=e2230] [cursor=pointer]:
+                              - /url: item?id=47777026
+                          - generic [ref=e2231]:
+                            - text: "|"
+                            - link [ref=e2232] [cursor=pointer]:
+                              - /url: "#47776862"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2233] [cursor=pointer]:
+                              - /url: "#47776892"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2234] [cursor=pointer]:
+                              - /url: "#47782681"
+                              - text: next
+                            - link "[–]" [ref=e2235] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2236]:
+                          - generic [ref=e2237]: I would like to agree with this comment, but I certainly didn't find it rewarding. It was pure pain.
+                          - paragraph [ref=e2239]:
+                            - link "reply" [ref=e2242] [cursor=pointer]:
+                              - /url: reply?id=47777026&goto=item%3Fid%3D47776796%2347777026
+            - row "upvote kuboble 10 hours ago | | | [–] 10 years ago I took few coursera courses to fill the gaps in my computer science education. One of them was a compilers course done by karpathy. It was pure joy and a great learning experience. Also in my experience the joy of doing a course was much stronger correlated with the teacher's qualities rather than the subject itself. reply" [ref=e2243]:
+              - cell "upvote kuboble 10 hours ago | | | [–] 10 years ago I took few coursera courses to fill the gaps in my computer science education. One of them was a compilers course done by karpathy. It was pure joy and a great learning experience. Also in my experience the joy of doing a course was much stronger correlated with the teacher's qualities rather than the subject itself. reply" [ref=e2244]:
+                - table [ref=e2245]:
+                  - rowgroup [ref=e2246]:
+                    - row "upvote kuboble 10 hours ago | | | [–] 10 years ago I took few coursera courses to fill the gaps in my computer science education. One of them was a compilers course done by karpathy. It was pure joy and a great learning experience. Also in my experience the joy of doing a course was much stronger correlated with the teacher's qualities rather than the subject itself. reply" [ref=e2247]:
+                      - cell [ref=e2248]:
+                        - img [ref=e2249]
+                      - cell "upvote" [ref=e2250]:
+                        - link "upvote" [ref=e2252] [cursor=pointer]:
+                          - /url: vote?id=47777201&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2253]
+                      - cell "kuboble 10 hours ago | | | [–] 10 years ago I took few coursera courses to fill the gaps in my computer science education. One of them was a compilers course done by karpathy. It was pure joy and a great learning experience. Also in my experience the joy of doing a course was much stronger correlated with the teacher's qualities rather than the subject itself. reply" [ref=e2254]:
+                        - generic [ref=e2256]:
+                          - link "kuboble" [ref=e2257] [cursor=pointer]:
+                            - /url: user?id=kuboble
+                          - generic "2026-04-15T10:41:27 1776249687" [ref=e2258]:
+                            - link "10 hours ago" [ref=e2259] [cursor=pointer]:
+                              - /url: item?id=47777201
+                          - generic [ref=e2260]:
+                            - text: "|"
+                            - link [ref=e2261] [cursor=pointer]:
+                              - /url: "#47776862"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e2262] [cursor=pointer]:
+                              - /url: "#47777026"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2263] [cursor=pointer]:
+                              - /url: "#47782681"
+                              - text: next
+                            - link "[–]" [ref=e2264] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2265]:
+                          - generic [ref=e2266]:
+                            - text: 10 years ago I took few coursera courses to fill the gaps in my computer science education.
+                            - paragraph [ref=e2267]: One of them was a compilers course done by karpathy. It was pure joy and a great learning experience.
+                            - paragraph [ref=e2268]: Also in my experience the joy of doing a course was much stronger correlated with the teacher's qualities rather than the subject itself.
+                          - paragraph [ref=e2270]:
+                            - link "reply" [ref=e2273] [cursor=pointer]:
+                              - /url: reply?id=47777201&goto=item%3Fid%3D47776796%2347777201
+            - row "upvote jgwil2 7 hours ago | | | [–] Do you have a link by by chance? A quick search didn't turn anything up. reply" [ref=e2274]:
+              - cell "upvote jgwil2 7 hours ago | | | [–] Do you have a link by by chance? A quick search didn't turn anything up. reply" [ref=e2275]:
+                - table [ref=e2276]:
+                  - rowgroup [ref=e2277]:
+                    - row "upvote jgwil2 7 hours ago | | | [–] Do you have a link by by chance? A quick search didn't turn anything up. reply" [ref=e2278]:
+                      - cell [ref=e2279]:
+                        - img [ref=e2280]
+                      - cell "upvote" [ref=e2281]:
+                        - link "upvote" [ref=e2283] [cursor=pointer]:
+                          - /url: vote?id=47778821&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2284]
+                      - cell "jgwil2 7 hours ago | | | [–] Do you have a link by by chance? A quick search didn't turn anything up. reply" [ref=e2285]:
+                        - generic [ref=e2287]:
+                          - link "jgwil2" [ref=e2288] [cursor=pointer]:
+                            - /url: user?id=jgwil2
+                          - generic "2026-04-15T13:39:23 1776260363" [ref=e2289]:
+                            - link "7 hours ago" [ref=e2290] [cursor=pointer]:
+                              - /url: item?id=47778821
+                          - generic [ref=e2291]:
+                            - text: "|"
+                            - link [ref=e2292] [cursor=pointer]:
+                              - /url: "#47776862"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e2293] [cursor=pointer]:
+                              - /url: "#47777201"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2294] [cursor=pointer]:
+                              - /url: "#47782681"
+                              - text: next
+                            - link "[–]" [ref=e2295] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2296]:
+                          - generic [ref=e2297]: Do you have a link by by chance? A quick search didn't turn anything up.
+                          - paragraph [ref=e2299]:
+                            - link "reply" [ref=e2302] [cursor=pointer]:
+                              - /url: reply?id=47778821&goto=item%3Fid%3D47776796%2347778821
+            - 'row "upvote kuboble 6 hours ago | | | [–] No, I am checking my emails (it was in 2012), and all the links are broken. however I could dig out the references to it. Apparently it was a course by Prof. Alex Aiken and karpathy was a TA. This repository seems to be a future version of the same course. https://github.com/gboduljak/stanford-compilers-coursework Edit: found the videos from the course on the archive https://archive.org/details/academictorrents_e31e54905c7b266... reply" [ref=e2303]':
+              - 'cell "upvote kuboble 6 hours ago | | | [–] No, I am checking my emails (it was in 2012), and all the links are broken. however I could dig out the references to it. Apparently it was a course by Prof. Alex Aiken and karpathy was a TA. This repository seems to be a future version of the same course. https://github.com/gboduljak/stanford-compilers-coursework Edit: found the videos from the course on the archive https://archive.org/details/academictorrents_e31e54905c7b266... reply" [ref=e2304]':
+                - table [ref=e2305]:
+                  - rowgroup [ref=e2306]:
+                    - 'row "upvote kuboble 6 hours ago | | | [–] No, I am checking my emails (it was in 2012), and all the links are broken. however I could dig out the references to it. Apparently it was a course by Prof. Alex Aiken and karpathy was a TA. This repository seems to be a future version of the same course. https://github.com/gboduljak/stanford-compilers-coursework Edit: found the videos from the course on the archive https://archive.org/details/academictorrents_e31e54905c7b266... reply" [ref=e2307]':
+                      - cell [ref=e2308]:
+                        - img [ref=e2309]
+                      - cell "upvote" [ref=e2310]:
+                        - link "upvote" [ref=e2312] [cursor=pointer]:
+                          - /url: vote?id=47779526&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2313]
+                      - 'cell "kuboble 6 hours ago | | | [–] No, I am checking my emails (it was in 2012), and all the links are broken. however I could dig out the references to it. Apparently it was a course by Prof. Alex Aiken and karpathy was a TA. This repository seems to be a future version of the same course. https://github.com/gboduljak/stanford-compilers-coursework Edit: found the videos from the course on the archive https://archive.org/details/academictorrents_e31e54905c7b266... reply" [ref=e2314]':
+                        - generic [ref=e2316]:
+                          - link "kuboble" [ref=e2317] [cursor=pointer]:
+                            - /url: user?id=kuboble
+                          - generic "2026-04-15T14:30:31 1776263431" [ref=e2318]:
+                            - link "6 hours ago" [ref=e2319] [cursor=pointer]:
+                              - /url: item?id=47779526
+                          - generic [ref=e2320]:
+                            - text: "|"
+                            - link [ref=e2321] [cursor=pointer]:
+                              - /url: "#47776862"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e2322] [cursor=pointer]:
+                              - /url: "#47778821"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2323] [cursor=pointer]:
+                              - /url: "#47782681"
+                              - text: next
+                            - link "[–]" [ref=e2324] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2325]:
+                          - generic [ref=e2326]:
+                            - text: No, I am checking my emails (it was in 2012), and all the links are broken.
+                            - paragraph [ref=e2327]: however I could dig out the references to it. Apparently it was a course by Prof. Alex Aiken and karpathy was a TA.
+                            - paragraph [ref=e2328]:
+                              - text: This repository seems to be a future version of the same course.
+                              - link "https://github.com/gboduljak/stanford-compilers-coursework" [ref=e2329] [cursor=pointer]:
+                                - /url: https://github.com/gboduljak/stanford-compilers-coursework
+                            - paragraph [ref=e2330]:
+                              - text: "Edit: found the videos from the course on the archive"
+                              - link "https://archive.org/details/academictorrents_e31e54905c7b266..." [ref=e2331] [cursor=pointer]:
+                                - /url: https://archive.org/details/academictorrents_e31e54905c7b2669c81fe164de2859be4697013a
+                          - paragraph [ref=e2333]:
+                            - link "reply" [ref=e2336] [cursor=pointer]:
+                              - /url: reply?id=47779526&goto=item%3Fid%3D47776796%2347779526
+            - row "upvote jgwil2 5 hours ago | | | [–] Ah yes, I remember this one. Very challenging indeed. Thanks! reply" [ref=e2337]:
+              - cell "upvote jgwil2 5 hours ago | | | [–] Ah yes, I remember this one. Very challenging indeed. Thanks! reply" [ref=e2338]:
+                - table [ref=e2339]:
+                  - rowgroup [ref=e2340]:
+                    - row "upvote jgwil2 5 hours ago | | | [–] Ah yes, I remember this one. Very challenging indeed. Thanks! reply" [ref=e2341]:
+                      - cell [ref=e2342]:
+                        - img [ref=e2343]
+                      - cell "upvote" [ref=e2344]:
+                        - link "upvote" [ref=e2346] [cursor=pointer]:
+                          - /url: vote?id=47780886&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2347]
+                      - cell "jgwil2 5 hours ago | | | [–] Ah yes, I remember this one. Very challenging indeed. Thanks! reply" [ref=e2348]:
+                        - generic [ref=e2350]:
+                          - link "jgwil2" [ref=e2351] [cursor=pointer]:
+                            - /url: user?id=jgwil2
+                          - generic "2026-04-15T15:53:22 1776268402" [ref=e2352]:
+                            - link "5 hours ago" [ref=e2353] [cursor=pointer]:
+                              - /url: item?id=47780886
+                          - generic [ref=e2354]:
+                            - text: "|"
+                            - link [ref=e2355] [cursor=pointer]:
+                              - /url: "#47776862"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e2356] [cursor=pointer]:
+                              - /url: "#47779526"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2357] [cursor=pointer]:
+                              - /url: "#47782681"
+                              - text: next
+                            - link "[–]" [ref=e2358] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2359]:
+                          - generic [ref=e2360]: Ah yes, I remember this one. Very challenging indeed. Thanks!
+                          - paragraph [ref=e2362]:
+                            - link "reply" [ref=e2365] [cursor=pointer]:
+                              - /url: reply?id=47780886&goto=item%3Fid%3D47776796%2347780886
+            - row "upvote khat 3 hours ago | | [–] The biggest issue with technical books is they spend the first 1-2 chapters vaguely describing some area and then follow up with but that's for a later more advanced discussion or we'll cover that in that last 1-2 chapters. Don't vaguely tell me about something you're not gonna go into detail about, because now all I'm thinking about reading the subsequent chapters is all the questions I have about that topic. reply" [ref=e2366]:
+              - cell "upvote khat 3 hours ago | | [–] The biggest issue with technical books is they spend the first 1-2 chapters vaguely describing some area and then follow up with but that's for a later more advanced discussion or we'll cover that in that last 1-2 chapters. Don't vaguely tell me about something you're not gonna go into detail about, because now all I'm thinking about reading the subsequent chapters is all the questions I have about that topic. reply" [ref=e2367]:
+                - table [ref=e2368]:
+                  - rowgroup [ref=e2369]:
+                    - row "upvote khat 3 hours ago | | [–] The biggest issue with technical books is they spend the first 1-2 chapters vaguely describing some area and then follow up with but that's for a later more advanced discussion or we'll cover that in that last 1-2 chapters. Don't vaguely tell me about something you're not gonna go into detail about, because now all I'm thinking about reading the subsequent chapters is all the questions I have about that topic. reply" [ref=e2370]:
+                      - cell [ref=e2371]:
+                        - img
+                      - cell "upvote" [ref=e2372]:
+                        - link "upvote" [ref=e2374] [cursor=pointer]:
+                          - /url: vote?id=47782681&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2375]
+                      - cell "khat 3 hours ago | | [–] The biggest issue with technical books is they spend the first 1-2 chapters vaguely describing some area and then follow up with but that's for a later more advanced discussion or we'll cover that in that last 1-2 chapters. Don't vaguely tell me about something you're not gonna go into detail about, because now all I'm thinking about reading the subsequent chapters is all the questions I have about that topic. reply" [ref=e2376]:
+                        - generic [ref=e2378]:
+                          - link "khat" [ref=e2379] [cursor=pointer]:
+                            - /url: user?id=khat
+                          - generic "2026-04-15T17:52:05 1776275525" [ref=e2380]:
+                            - link "3 hours ago" [ref=e2381] [cursor=pointer]:
+                              - /url: item?id=47782681
+                          - generic [ref=e2382]:
+                            - text: "|"
+                            - link [ref=e2383] [cursor=pointer]:
+                              - /url: "#47776862"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2384] [cursor=pointer]:
+                              - /url: "#47783226"
+                              - text: next
+                            - link "[–]" [ref=e2385] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2386]:
+                          - generic [ref=e2387]: The biggest issue with technical books is they spend the first 1-2 chapters vaguely describing some area and then follow up with but that's for a later more advanced discussion or we'll cover that in that last 1-2 chapters. Don't vaguely tell me about something you're not gonna go into detail about, because now all I'm thinking about reading the subsequent chapters is all the questions I have about that topic.
+                          - paragraph [ref=e2389]:
+                            - link "reply" [ref=e2392] [cursor=pointer]:
+                              - /url: reply?id=47782681&goto=item%3Fid%3D47776796%2347782681
+            - 'row "upvote rahen 2 hours ago | | [–] I''m also writing a compiler and CS6120 from Cornell has helped me a lot: https://www.cs.cornell.edu/courses/cs6120/2025fa/self-guided... reply" [ref=e2393]':
+              - 'cell "upvote rahen 2 hours ago | | [–] I''m also writing a compiler and CS6120 from Cornell has helped me a lot: https://www.cs.cornell.edu/courses/cs6120/2025fa/self-guided... reply" [ref=e2394]':
+                - table [ref=e2395]:
+                  - rowgroup [ref=e2396]:
+                    - 'row "upvote rahen 2 hours ago | | [–] I''m also writing a compiler and CS6120 from Cornell has helped me a lot: https://www.cs.cornell.edu/courses/cs6120/2025fa/self-guided... reply" [ref=e2397]':
+                      - cell [ref=e2398]:
+                        - img
+                      - cell "upvote" [ref=e2399]:
+                        - link "upvote" [ref=e2401] [cursor=pointer]:
+                          - /url: vote?id=47783226&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2402]
+                      - 'cell "rahen 2 hours ago | | [–] I''m also writing a compiler and CS6120 from Cornell has helped me a lot: https://www.cs.cornell.edu/courses/cs6120/2025fa/self-guided... reply" [ref=e2403]':
+                        - generic [ref=e2405]:
+                          - link "rahen" [ref=e2406] [cursor=pointer]:
+                            - /url: user?id=rahen
+                          - generic "2026-04-15T18:32:36 1776277956" [ref=e2407]:
+                            - link "2 hours ago" [ref=e2408] [cursor=pointer]:
+                              - /url: item?id=47783226
+                          - generic [ref=e2409]:
+                            - text: "|"
+                            - link [ref=e2410] [cursor=pointer]:
+                              - /url: "#47782681"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2411] [cursor=pointer]:
+                              - /url: "#47780711"
+                              - text: next
+                            - link "[–]" [ref=e2412] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2413]:
+                          - generic [ref=e2414]:
+                            - text: "I'm also writing a compiler and CS6120 from Cornell has helped me a lot:"
+                            - link "https://www.cs.cornell.edu/courses/cs6120/2025fa/self-guided..." [ref=e2415] [cursor=pointer]:
+                              - /url: https://www.cs.cornell.edu/courses/cs6120/2025fa/self-guided/
+                          - paragraph [ref=e2417]:
+                            - link "reply" [ref=e2420] [cursor=pointer]:
+                              - /url: reply?id=47783226&goto=item%3Fid%3D47776796%2347783226
+            - 'row "upvote kuharich 5 hours ago | | [–] Past comments: http://news.ycombinator.com/item?id=2927784, https://news.ycombinator.com/item?id=10786842 reply" [ref=e2421]':
+              - 'cell "upvote kuharich 5 hours ago | | [–] Past comments: http://news.ycombinator.com/item?id=2927784, https://news.ycombinator.com/item?id=10786842 reply" [ref=e2422]':
+                - table [ref=e2423]:
+                  - rowgroup [ref=e2424]:
+                    - 'row "upvote kuharich 5 hours ago | | [–] Past comments: http://news.ycombinator.com/item?id=2927784, https://news.ycombinator.com/item?id=10786842 reply" [ref=e2425]':
+                      - cell [ref=e2426]:
+                        - img
+                      - cell "upvote" [ref=e2427]:
+                        - link "upvote" [ref=e2429] [cursor=pointer]:
+                          - /url: vote?id=47780711&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2430]
+                      - 'cell "kuharich 5 hours ago | | [–] Past comments: http://news.ycombinator.com/item?id=2927784, https://news.ycombinator.com/item?id=10786842 reply" [ref=e2431]':
+                        - generic [ref=e2433]:
+                          - link "kuharich" [ref=e2434] [cursor=pointer]:
+                            - /url: user?id=kuharich
+                          - generic "2026-04-15T15:43:35 1776267815" [ref=e2435]:
+                            - link "5 hours ago" [ref=e2436] [cursor=pointer]:
+                              - /url: item?id=47780711
+                          - generic [ref=e2437]:
+                            - text: "|"
+                            - link [ref=e2438] [cursor=pointer]:
+                              - /url: "#47783226"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2439] [cursor=pointer]:
+                              - /url: "#47779146"
+                              - text: next
+                            - link "[–]" [ref=e2440] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2441]:
+                          - generic [ref=e2442]:
+                            - text: "Past comments:"
+                            - link "http://news.ycombinator.com/item?id=2927784" [ref=e2443] [cursor=pointer]:
+                              - /url: http://news.ycombinator.com/item?id=2927784
+                            - text: ","
+                            - link "https://news.ycombinator.com/item?id=10786842" [ref=e2444] [cursor=pointer]:
+                              - /url: https://news.ycombinator.com/item?id=10786842
+                          - paragraph [ref=e2446]:
+                            - link "reply" [ref=e2449] [cursor=pointer]:
+                              - /url: reply?id=47780711&goto=item%3Fid%3D47776796%2347780711
+            - 'row "upvote dang 25 minutes ago | | [–] Thanks! Macroexpanded: Want to Write a Compiler? Read These Two Papers (2008) - https://news.ycombinator.com/item?id=10786842 - Dec 2015 (70 comments) Want to Write a Compiler? Just Read These Two Papers. - https://news.ycombinator.com/item?id=2927784 - Aug 2011 (77 comments) Want to Write a Compiler? Just Read These Two Papers - https://news.ycombinator.com/item?id=231758 - June 2008 (39 comments) reply" [ref=e2450]':
+              - 'cell "upvote dang 25 minutes ago | | [–] Thanks! Macroexpanded: Want to Write a Compiler? Read These Two Papers (2008) - https://news.ycombinator.com/item?id=10786842 - Dec 2015 (70 comments) Want to Write a Compiler? Just Read These Two Papers. - https://news.ycombinator.com/item?id=2927784 - Aug 2011 (77 comments) Want to Write a Compiler? Just Read These Two Papers - https://news.ycombinator.com/item?id=231758 - June 2008 (39 comments) reply" [ref=e2451]':
+                - table [ref=e2452]:
+                  - rowgroup [ref=e2453]:
+                    - 'row "upvote dang 25 minutes ago | | [–] Thanks! Macroexpanded: Want to Write a Compiler? Read These Two Papers (2008) - https://news.ycombinator.com/item?id=10786842 - Dec 2015 (70 comments) Want to Write a Compiler? Just Read These Two Papers. - https://news.ycombinator.com/item?id=2927784 - Aug 2011 (77 comments) Want to Write a Compiler? Just Read These Two Papers - https://news.ycombinator.com/item?id=231758 - June 2008 (39 comments) reply" [ref=e2454]':
+                      - cell [ref=e2455]:
+                        - img [ref=e2456]
+                      - cell "upvote" [ref=e2457]:
+                        - link "upvote" [ref=e2459] [cursor=pointer]:
+                          - /url: vote?id=47784945&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2460]
+                      - 'cell "dang 25 minutes ago | | [–] Thanks! Macroexpanded: Want to Write a Compiler? Read These Two Papers (2008) - https://news.ycombinator.com/item?id=10786842 - Dec 2015 (70 comments) Want to Write a Compiler? Just Read These Two Papers. - https://news.ycombinator.com/item?id=2927784 - Aug 2011 (77 comments) Want to Write a Compiler? Just Read These Two Papers - https://news.ycombinator.com/item?id=231758 - June 2008 (39 comments) reply" [ref=e2461]':
+                        - generic [ref=e2463]:
+                          - link "dang" [ref=e2464] [cursor=pointer]:
+                            - /url: user?id=dang
+                          - generic "2026-04-15T20:41:31 1776285691" [ref=e2465]:
+                            - link "25 minutes ago" [ref=e2466] [cursor=pointer]:
+                              - /url: item?id=47784945
+                          - generic [ref=e2467]:
+                            - text: "|"
+                            - link [ref=e2468] [cursor=pointer]:
+                              - /url: "#47780711"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2469] [cursor=pointer]:
+                              - /url: "#47779146"
+                              - text: next
+                            - link "[–]" [ref=e2470] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2471]:
+                          - generic [ref=e2472]:
+                            - text: "Thanks! Macroexpanded:"
+                            - paragraph [ref=e2473]:
+                              - text: Want to Write a Compiler? Read These Two Papers (2008) -
+                              - link "https://news.ycombinator.com/item?id=10786842" [ref=e2474] [cursor=pointer]:
+                                - /url: https://news.ycombinator.com/item?id=10786842
+                              - text: "- Dec 2015 (70 comments)"
+                            - paragraph [ref=e2475]:
+                              - text: Want to Write a Compiler? Just Read These Two Papers. -
+                              - link "https://news.ycombinator.com/item?id=2927784" [ref=e2476] [cursor=pointer]:
+                                - /url: https://news.ycombinator.com/item?id=2927784
+                              - text: "- Aug 2011 (77 comments)"
+                            - paragraph [ref=e2477]:
+                              - text: Want to Write a Compiler? Just Read These Two Papers -
+                              - link "https://news.ycombinator.com/item?id=231758" [ref=e2478] [cursor=pointer]:
+                                - /url: https://news.ycombinator.com/item?id=231758
+                              - text: "- June 2008 (39 comments)"
+                          - paragraph [ref=e2480]:
+                            - link "reply" [ref=e2483] [cursor=pointer]:
+                              - /url: reply?id=47784945&goto=item%3Fid%3D47776796%2347784945
+            - row "upvote aldousd666 7 hours ago | | [–] I learned from the Dragon Book, decades ago. I already knew a lot of programming at that point, but I think most people writing compilers do. I'm curious if there really is an audience of people whose first introduction to programming is writing a compiler... I would think not, actually. reply" [ref=e2484]:
+              - cell "upvote aldousd666 7 hours ago | | [–] I learned from the Dragon Book, decades ago. I already knew a lot of programming at that point, but I think most people writing compilers do. I'm curious if there really is an audience of people whose first introduction to programming is writing a compiler... I would think not, actually. reply" [ref=e2485]:
+                - table [ref=e2486]:
+                  - rowgroup [ref=e2487]:
+                    - row "upvote aldousd666 7 hours ago | | [–] I learned from the Dragon Book, decades ago. I already knew a lot of programming at that point, but I think most people writing compilers do. I'm curious if there really is an audience of people whose first introduction to programming is writing a compiler... I would think not, actually. reply" [ref=e2488]:
+                      - cell [ref=e2489]:
+                        - img
+                      - cell "upvote" [ref=e2490]:
+                        - link "upvote" [ref=e2492] [cursor=pointer]:
+                          - /url: vote?id=47779146&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2493]
+                      - cell "aldousd666 7 hours ago | | [–] I learned from the Dragon Book, decades ago. I already knew a lot of programming at that point, but I think most people writing compilers do. I'm curious if there really is an audience of people whose first introduction to programming is writing a compiler... I would think not, actually. reply" [ref=e2494]:
+                        - generic [ref=e2496]:
+                          - link "aldousd666" [ref=e2497] [cursor=pointer]:
+                            - /url: user?id=aldousd666
+                          - generic "2026-04-15T14:06:21 1776261981" [ref=e2498]:
+                            - link "7 hours ago" [ref=e2499] [cursor=pointer]:
+                              - /url: item?id=47779146
+                          - generic [ref=e2500]:
+                            - text: "|"
+                            - link [ref=e2501] [cursor=pointer]:
+                              - /url: "#47780711"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2502] [cursor=pointer]:
+                              - /url: "#47776926"
+                              - text: next
+                            - link "[–]" [ref=e2503] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2504]:
+                          - generic [ref=e2505]: I learned from the Dragon Book, decades ago. I already knew a lot of programming at that point, but I think most people writing compilers do. I'm curious if there really is an audience of people whose first introduction to programming is writing a compiler... I would think not, actually.
+                          - paragraph [ref=e2507]:
+                            - link "reply" [ref=e2510] [cursor=pointer]:
+                              - /url: reply?id=47779146&goto=item%3Fid%3D47776796%2347779146
+            - row "upvote krtkush 11 hours ago | | [–] I wonder if it makes sense to do the nand2tetris course for an absolute beginner since it too has compiler creation in it. reply" [ref=e2511]:
+              - cell "upvote krtkush 11 hours ago | | [–] I wonder if it makes sense to do the nand2tetris course for an absolute beginner since it too has compiler creation in it. reply" [ref=e2512]:
+                - table [ref=e2513]:
+                  - rowgroup [ref=e2514]:
+                    - row "upvote krtkush 11 hours ago | | [–] I wonder if it makes sense to do the nand2tetris course for an absolute beginner since it too has compiler creation in it. reply" [ref=e2515]:
+                      - cell [ref=e2516]:
+                        - img
+                      - cell "upvote" [ref=e2517]:
+                        - link "upvote" [ref=e2519] [cursor=pointer]:
+                          - /url: vote?id=47776926&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2520]
+                      - cell "krtkush 11 hours ago | | [–] I wonder if it makes sense to do the nand2tetris course for an absolute beginner since it too has compiler creation in it. reply" [ref=e2521]:
+                        - generic [ref=e2523]:
+                          - link "krtkush" [ref=e2524] [cursor=pointer]:
+                            - /url: user?id=krtkush
+                          - generic "2026-04-15T10:01:09 1776247269" [ref=e2525]:
+                            - link "11 hours ago" [ref=e2526] [cursor=pointer]:
+                              - /url: item?id=47776926
+                          - generic [ref=e2527]:
+                            - text: "|"
+                            - link [ref=e2528] [cursor=pointer]:
+                              - /url: "#47779146"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2529] [cursor=pointer]:
+                              - /url: "#47777003"
+                              - text: next
+                            - link "[–]" [ref=e2530] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2531]:
+                          - generic [ref=e2532]: I wonder if it makes sense to do the nand2tetris course for an absolute beginner since it too has compiler creation in it.
+                          - paragraph [ref=e2534]:
+                            - link "reply" [ref=e2537] [cursor=pointer]:
+                              - /url: reply?id=47776926&goto=item%3Fid%3D47776796%2347776926
+            - row "upvote wartywhoa23 10 hours ago | | [–] I highly recommend nand2tetris to everyone. For me, nothing ever explained the whole domain from logic gates and inner workings of a CPU to compilers better than this course. reply" [ref=e2538]:
+              - cell "upvote wartywhoa23 10 hours ago | | [–] I highly recommend nand2tetris to everyone. For me, nothing ever explained the whole domain from logic gates and inner workings of a CPU to compilers better than this course. reply" [ref=e2539]:
+                - table [ref=e2540]:
+                  - rowgroup [ref=e2541]:
+                    - row "upvote wartywhoa23 10 hours ago | | [–] I highly recommend nand2tetris to everyone. For me, nothing ever explained the whole domain from logic gates and inner workings of a CPU to compilers better than this course. reply" [ref=e2542]:
+                      - cell [ref=e2543]:
+                        - img [ref=e2544]
+                      - cell "upvote" [ref=e2545]:
+                        - link "upvote" [ref=e2547] [cursor=pointer]:
+                          - /url: vote?id=47777405&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2548]
+                      - cell "wartywhoa23 10 hours ago | | [–] I highly recommend nand2tetris to everyone. For me, nothing ever explained the whole domain from logic gates and inner workings of a CPU to compilers better than this course. reply" [ref=e2549]:
+                        - generic [ref=e2551]:
+                          - link "wartywhoa23" [ref=e2552] [cursor=pointer]:
+                            - /url: user?id=wartywhoa23
+                          - generic "2026-04-15T11:04:11 1776251051" [ref=e2553]:
+                            - link "10 hours ago" [ref=e2554] [cursor=pointer]:
+                              - /url: item?id=47777405
+                          - generic [ref=e2555]:
+                            - text: "|"
+                            - link [ref=e2556] [cursor=pointer]:
+                              - /url: "#47776926"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2557] [cursor=pointer]:
+                              - /url: "#47777003"
+                              - text: next
+                            - link "[–]" [ref=e2558] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2559]:
+                          - generic [ref=e2560]: I highly recommend nand2tetris to everyone. For me, nothing ever explained the whole domain from logic gates and inner workings of a CPU to compilers better than this course.
+                          - paragraph [ref=e2562]:
+                            - link "reply" [ref=e2565] [cursor=pointer]:
+                              - /url: reply?id=47777405&goto=item%3Fid%3D47776796%2347777405
+            - row "upvote atan2 7 hours ago | | | [–] I think it's worth mentioning Gustavo Pezzi's lectures at pikuma.com. The one on \"Digital Electronics\" and the one on \"Interpreters & Compilers\" really helped me. reply" [ref=e2566]:
+              - cell "upvote atan2 7 hours ago | | | [–] I think it's worth mentioning Gustavo Pezzi's lectures at pikuma.com. The one on \"Digital Electronics\" and the one on \"Interpreters & Compilers\" really helped me. reply" [ref=e2567]:
+                - table [ref=e2568]:
+                  - rowgroup [ref=e2569]:
+                    - row "upvote atan2 7 hours ago | | | [–] I think it's worth mentioning Gustavo Pezzi's lectures at pikuma.com. The one on \"Digital Electronics\" and the one on \"Interpreters & Compilers\" really helped me. reply" [ref=e2570]:
+                      - cell [ref=e2571]:
+                        - img [ref=e2572]
+                      - cell "upvote" [ref=e2573]:
+                        - link "upvote" [ref=e2575] [cursor=pointer]:
+                          - /url: vote?id=47778535&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2576]
+                      - cell "atan2 7 hours ago | | | [–] I think it's worth mentioning Gustavo Pezzi's lectures at pikuma.com. The one on \"Digital Electronics\" and the one on \"Interpreters & Compilers\" really helped me. reply" [ref=e2577]:
+                        - generic [ref=e2579]:
+                          - link "atan2" [ref=e2580] [cursor=pointer]:
+                            - /url: user?id=atan2
+                          - generic "2026-04-15T13:14:39 1776258879" [ref=e2581]:
+                            - link "7 hours ago" [ref=e2582] [cursor=pointer]:
+                              - /url: item?id=47778535
+                          - generic [ref=e2583]:
+                            - text: "|"
+                            - link [ref=e2584] [cursor=pointer]:
+                              - /url: "#47776926"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e2585] [cursor=pointer]:
+                              - /url: "#47777405"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2586] [cursor=pointer]:
+                              - /url: "#47777431"
+                              - text: next
+                            - link "[–]" [ref=e2587] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2588]:
+                          - generic [ref=e2589]: I think it's worth mentioning Gustavo Pezzi's lectures at pikuma.com. The one on "Digital Electronics" and the one on "Interpreters & Compilers" really helped me.
+                          - paragraph [ref=e2591]:
+                            - link "reply" [ref=e2594] [cursor=pointer]:
+                              - /url: reply?id=47778535&goto=item%3Fid%3D47776796%2347778535
+            - row "upvote wartywhoa23 10 hours ago | | | | [–] On a side note, why is imrozim's comment dead? What in the world is wrong with it? It's perfectly fine IMO. reply" [ref=e2595]:
+              - cell "upvote wartywhoa23 10 hours ago | | | | [–] On a side note, why is imrozim's comment dead? What in the world is wrong with it? It's perfectly fine IMO. reply" [ref=e2596]:
+                - table [ref=e2597]:
+                  - rowgroup [ref=e2598]:
+                    - row "upvote wartywhoa23 10 hours ago | | | | [–] On a side note, why is imrozim's comment dead? What in the world is wrong with it? It's perfectly fine IMO. reply" [ref=e2599]:
+                      - cell [ref=e2600]:
+                        - img [ref=e2601]
+                      - cell "upvote" [ref=e2602]:
+                        - link "upvote" [ref=e2604] [cursor=pointer]:
+                          - /url: vote?id=47777431&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2605]
+                      - cell "wartywhoa23 10 hours ago | | | | [–] On a side note, why is imrozim's comment dead? What in the world is wrong with it? It's perfectly fine IMO. reply" [ref=e2606]:
+                        - generic [ref=e2608]:
+                          - link "wartywhoa23" [ref=e2609] [cursor=pointer]:
+                            - /url: user?id=wartywhoa23
+                          - generic "2026-04-15T11:06:50 1776251210" [ref=e2610]:
+                            - link "10 hours ago" [ref=e2611] [cursor=pointer]:
+                              - /url: item?id=47777431
+                          - generic [ref=e2612]:
+                            - text: "|"
+                            - link [ref=e2613] [cursor=pointer]:
+                              - /url: "#47776926"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e2614] [cursor=pointer]:
+                              - /url: "#47777405"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2615] [cursor=pointer]:
+                              - /url: "#47778535"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2616] [cursor=pointer]:
+                              - /url: "#47777003"
+                              - text: next
+                            - link "[–]" [ref=e2617] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2618]:
+                          - generic [ref=e2619]: On a side note, why is imrozim's comment dead? What in the world is wrong with it? It's perfectly fine IMO.
+                          - paragraph [ref=e2621]:
+                            - link "reply" [ref=e2624] [cursor=pointer]:
+                              - /url: reply?id=47777431&goto=item%3Fid%3D47776796%2347777431
+            - row "upvote bmn__ 8 hours ago | | | [–] check comment history https://news.ycombinator.com/item?id=47582720 reply" [ref=e2625]:
+              - cell "upvote bmn__ 8 hours ago | | | [–] check comment history https://news.ycombinator.com/item?id=47582720 reply" [ref=e2626]:
+                - table [ref=e2627]:
+                  - rowgroup [ref=e2628]:
+                    - row "upvote bmn__ 8 hours ago | | | [–] check comment history https://news.ycombinator.com/item?id=47582720 reply" [ref=e2629]:
+                      - cell [ref=e2630]:
+                        - img [ref=e2631]
+                      - cell "upvote" [ref=e2632]:
+                        - link "upvote" [ref=e2634] [cursor=pointer]:
+                          - /url: vote?id=47778082&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2635]
+                      - cell "bmn__ 8 hours ago | | | [–] check comment history https://news.ycombinator.com/item?id=47582720 reply" [ref=e2636]:
+                        - generic [ref=e2638]:
+                          - link "bmn__" [ref=e2639] [cursor=pointer]:
+                            - /url: user?id=bmn__
+                          - generic "2026-04-15T12:25:27 1776255927" [ref=e2640]:
+                            - link "8 hours ago" [ref=e2641] [cursor=pointer]:
+                              - /url: item?id=47778082
+                          - generic [ref=e2642]:
+                            - text: "|"
+                            - link [ref=e2643] [cursor=pointer]:
+                              - /url: "#47776926"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e2644] [cursor=pointer]:
+                              - /url: "#47777431"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2645] [cursor=pointer]:
+                              - /url: "#47777003"
+                              - text: next
+                            - link "[–]" [ref=e2646] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2647]:
+                          - generic [ref=e2648]:
+                            - text: check comment history
+                            - paragraph [ref=e2649]:
+                              - link "https://news.ycombinator.com/item?id=47582720" [ref=e2650] [cursor=pointer]:
+                                - /url: https://news.ycombinator.com/item?id=47582720
+                          - paragraph [ref=e2652]:
+                            - link "reply" [ref=e2655] [cursor=pointer]:
+                              - /url: reply?id=47778082&goto=item%3Fid%3D47776796%2347778082
+            - row "upvote petcat 10 hours ago | | [–] And Nystrom's book reply" [ref=e2656]:
+              - cell "upvote petcat 10 hours ago | | [–] And Nystrom's book reply" [ref=e2657]:
+                - table [ref=e2658]:
+                  - rowgroup [ref=e2659]:
+                    - row "upvote petcat 10 hours ago | | [–] And Nystrom's book reply" [ref=e2660]:
+                      - cell [ref=e2661]:
+                        - img
+                      - cell "upvote" [ref=e2662]:
+                        - link "upvote" [ref=e2664] [cursor=pointer]:
+                          - /url: vote?id=47777003&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2665]
+                      - cell "petcat 10 hours ago | | [–] And Nystrom's book reply" [ref=e2666]:
+                        - generic [ref=e2668]:
+                          - link "petcat" [ref=e2669] [cursor=pointer]:
+                            - /url: user?id=petcat
+                          - generic "2026-04-15T10:14:59 1776248099" [ref=e2670]:
+                            - link "10 hours ago" [ref=e2671] [cursor=pointer]:
+                              - /url: item?id=47777003
+                          - generic [ref=e2672]:
+                            - text: "|"
+                            - link [ref=e2673] [cursor=pointer]:
+                              - /url: "#47776926"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2674] [cursor=pointer]:
+                              - /url: "#47777316"
+                              - text: next
+                            - link "[–]" [ref=e2675] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2676]:
+                          - generic [ref=e2677]: And Nystrom's book
+                          - paragraph [ref=e2679]:
+                            - link "reply" [ref=e2682] [cursor=pointer]:
+                              - /url: reply?id=47777003&goto=item%3Fid%3D47776796%2347777003
+            - row "upvote vlaaad 9 hours ago | | [–] Yeah, I really enjoyed Crafting Interpreters, wholeheartedly recommend! reply" [ref=e2683]:
+              - cell "upvote vlaaad 9 hours ago | | [–] Yeah, I really enjoyed Crafting Interpreters, wholeheartedly recommend! reply" [ref=e2684]:
+                - table [ref=e2685]:
+                  - rowgroup [ref=e2686]:
+                    - row "upvote vlaaad 9 hours ago | | [–] Yeah, I really enjoyed Crafting Interpreters, wholeheartedly recommend! reply" [ref=e2687]:
+                      - cell [ref=e2688]:
+                        - img [ref=e2689]
+                      - cell "upvote" [ref=e2690]:
+                        - link "upvote" [ref=e2692] [cursor=pointer]:
+                          - /url: vote?id=47777559&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2693]
+                      - cell "vlaaad 9 hours ago | | [–] Yeah, I really enjoyed Crafting Interpreters, wholeheartedly recommend! reply" [ref=e2694]:
+                        - generic [ref=e2696]:
+                          - link "vlaaad" [ref=e2697] [cursor=pointer]:
+                            - /url: user?id=vlaaad
+                          - generic "2026-04-15T11:19:14 1776251954" [ref=e2698]:
+                            - link "9 hours ago" [ref=e2699] [cursor=pointer]:
+                              - /url: item?id=47777559
+                          - generic [ref=e2700]:
+                            - text: "|"
+                            - link [ref=e2701] [cursor=pointer]:
+                              - /url: "#47777003"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2702] [cursor=pointer]:
+                              - /url: "#47777316"
+                              - text: next
+                            - link "[–]" [ref=e2703] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2704]:
+                          - generic [ref=e2705]: Yeah, I really enjoyed Crafting Interpreters, wholeheartedly recommend!
+                          - paragraph [ref=e2707]:
+                            - link "reply" [ref=e2710] [cursor=pointer]:
+                              - /url: reply?id=47777559&goto=item%3Fid%3D47776796%2347777559
+            - row "upvote bradley13 10 hours ago | | [–] Maybe I'm missing the point of this article? Writing a simple compiler is not difficult. It's not something for beginners, but towards the end of a serious CS degree program it is absolutely do-able. Parsing, transforming into some lower-level representation, even optimizations - it's all fun really not that difficult. I still have my copy of the \"Dragon Book\", which is where I originally learned about this stuff. In fact, inventing new programming languages and writing compilers for them used to be so much of a trend that people created YACC (Yet Another Compiler Compiler) to make it easier. reply" [ref=e2711]:
+              - cell "upvote bradley13 10 hours ago | | [–] Maybe I'm missing the point of this article? Writing a simple compiler is not difficult. It's not something for beginners, but towards the end of a serious CS degree program it is absolutely do-able. Parsing, transforming into some lower-level representation, even optimizations - it's all fun really not that difficult. I still have my copy of the \"Dragon Book\", which is where I originally learned about this stuff. In fact, inventing new programming languages and writing compilers for them used to be so much of a trend that people created YACC (Yet Another Compiler Compiler) to make it easier. reply" [ref=e2712]:
+                - table [ref=e2713]:
+                  - rowgroup [ref=e2714]:
+                    - row "upvote bradley13 10 hours ago | | [–] Maybe I'm missing the point of this article? Writing a simple compiler is not difficult. It's not something for beginners, but towards the end of a serious CS degree program it is absolutely do-able. Parsing, transforming into some lower-level representation, even optimizations - it's all fun really not that difficult. I still have my copy of the \"Dragon Book\", which is where I originally learned about this stuff. In fact, inventing new programming languages and writing compilers for them used to be so much of a trend that people created YACC (Yet Another Compiler Compiler) to make it easier. reply" [ref=e2715]:
+                      - cell [ref=e2716]:
+                        - img
+                      - cell "upvote" [ref=e2717]:
+                        - link "upvote" [ref=e2719] [cursor=pointer]:
+                          - /url: vote?id=47777316&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2720]
+                      - cell "bradley13 10 hours ago | | [–] Maybe I'm missing the point of this article? Writing a simple compiler is not difficult. It's not something for beginners, but towards the end of a serious CS degree program it is absolutely do-able. Parsing, transforming into some lower-level representation, even optimizations - it's all fun really not that difficult. I still have my copy of the \"Dragon Book\", which is where I originally learned about this stuff. In fact, inventing new programming languages and writing compilers for them used to be so much of a trend that people created YACC (Yet Another Compiler Compiler) to make it easier. reply" [ref=e2721]:
+                        - generic [ref=e2723]:
+                          - link "bradley13" [ref=e2724] [cursor=pointer]:
+                            - /url: user?id=bradley13
+                          - generic "2026-04-15T10:53:24 1776250404" [ref=e2725]:
+                            - link "10 hours ago" [ref=e2726] [cursor=pointer]:
+                              - /url: item?id=47777316
+                          - generic [ref=e2727]:
+                            - text: "|"
+                            - link [ref=e2728] [cursor=pointer]:
+                              - /url: "#47777003"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2729] [cursor=pointer]:
+                              - /url: "#47779478"
+                              - text: next
+                            - link "[–]" [ref=e2730] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2731]:
+                          - generic [ref=e2732]:
+                            - text: Maybe I'm missing the point of this article? Writing a simple compiler is not difficult. It's not something for beginners, but towards the end of a serious CS degree program it is absolutely do-able. Parsing, transforming into some lower-level representation, even optimizations - it's all fun really not that difficult. I still have my copy of the "Dragon Book", which is where I originally learned about this stuff.
+                            - paragraph [ref=e2733]: In fact, inventing new programming languages and writing compilers for them used to be so much of a trend that people created YACC (Yet Another Compiler Compiler) to make it easier.
+                          - paragraph [ref=e2735]:
+                            - link "reply" [ref=e2738] [cursor=pointer]:
+                              - /url: reply?id=47777316&goto=item%3Fid%3D47776796%2347777316
+            - row "upvote dlopes7 3 hours ago | | [–] Maybe you are a genius among mere mortals, but for the majority of people even after a CS degree writing a compiler is a bit difficult reply" [ref=e2739]:
+              - cell "upvote dlopes7 3 hours ago | | [–] Maybe you are a genius among mere mortals, but for the majority of people even after a CS degree writing a compiler is a bit difficult reply" [ref=e2740]:
+                - table [ref=e2741]:
+                  - rowgroup [ref=e2742]:
+                    - row "upvote dlopes7 3 hours ago | | [–] Maybe you are a genius among mere mortals, but for the majority of people even after a CS degree writing a compiler is a bit difficult reply" [ref=e2743]:
+                      - cell [ref=e2744]:
+                        - img [ref=e2745]
+                      - cell "upvote" [ref=e2746]:
+                        - link "upvote" [ref=e2748] [cursor=pointer]:
+                          - /url: vote?id=47782179&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2749]
+                      - cell "dlopes7 3 hours ago | | [–] Maybe you are a genius among mere mortals, but for the majority of people even after a CS degree writing a compiler is a bit difficult reply" [ref=e2750]:
+                        - generic [ref=e2752]:
+                          - link "dlopes7" [ref=e2753] [cursor=pointer]:
+                            - /url: user?id=dlopes7
+                          - generic "2026-04-15T17:21:10 1776273670" [ref=e2754]:
+                            - link "3 hours ago" [ref=e2755] [cursor=pointer]:
+                              - /url: item?id=47782179
+                          - generic [ref=e2756]:
+                            - text: "|"
+                            - link [ref=e2757] [cursor=pointer]:
+                              - /url: "#47777316"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2758] [cursor=pointer]:
+                              - /url: "#47779478"
+                              - text: next
+                            - link "[–]" [ref=e2759] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2760]:
+                          - generic [ref=e2761]: Maybe you are a genius among mere mortals, but for the majority of people even after a CS degree writing a compiler is a bit difficult
+                          - paragraph [ref=e2763]:
+                            - link "reply" [ref=e2766] [cursor=pointer]:
+                              - /url: reply?id=47782179&goto=item%3Fid%3D47776796%2347782179
+            - row "upvote mzs 6 hours ago | | [–] archive of forth translation of Crenshaw’s howto https://web.archive.org/web/20190712115536/http://home.iae.n... reply" [ref=e2767]:
+              - cell "upvote mzs 6 hours ago | | [–] archive of forth translation of Crenshaw’s howto https://web.archive.org/web/20190712115536/http://home.iae.n... reply" [ref=e2768]:
+                - table [ref=e2769]:
+                  - rowgroup [ref=e2770]:
+                    - row "upvote mzs 6 hours ago | | [–] archive of forth translation of Crenshaw’s howto https://web.archive.org/web/20190712115536/http://home.iae.n... reply" [ref=e2771]:
+                      - cell [ref=e2772]:
+                        - img
+                      - cell "upvote" [ref=e2773]:
+                        - link "upvote" [ref=e2775] [cursor=pointer]:
+                          - /url: vote?id=47779478&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2776]
+                      - cell "mzs 6 hours ago | | [–] archive of forth translation of Crenshaw’s howto https://web.archive.org/web/20190712115536/http://home.iae.n... reply" [ref=e2777]:
+                        - generic [ref=e2779]:
+                          - link "mzs" [ref=e2780] [cursor=pointer]:
+                            - /url: user?id=mzs
+                          - generic "2026-04-15T14:27:34 1776263254" [ref=e2781]:
+                            - link "6 hours ago" [ref=e2782] [cursor=pointer]:
+                              - /url: item?id=47779478
+                          - generic [ref=e2783]:
+                            - text: "|"
+                            - link [ref=e2784] [cursor=pointer]:
+                              - /url: "#47777316"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2785] [cursor=pointer]:
+                              - /url: "#47777194"
+                              - text: next
+                            - link "[–]" [ref=e2786] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2787]:
+                          - generic [ref=e2788]:
+                            - text: archive of forth translation of Crenshaw’s howto
+                            - paragraph [ref=e2789]:
+                              - link "https://web.archive.org/web/20190712115536/http://home.iae.n..." [ref=e2790] [cursor=pointer]:
+                                - /url: https://web.archive.org/web/20190712115536/http://home.iae.nl/users/mhx/crenshaw/tiny.html
+                          - paragraph [ref=e2792]:
+                            - link "reply" [ref=e2795] [cursor=pointer]:
+                              - /url: reply?id=47779478&goto=item%3Fid%3D47776796%2347779478
+            - row "upvote fzeindl 10 hours ago | | [–] A similarly scoped book series is „AI game programming wisdom“, which contains a multitude of chapters that focus on diverse, individual algorithms that can be practically used in games for a variety of usecases. reply" [ref=e2796]:
+              - cell "upvote fzeindl 10 hours ago | | [–] A similarly scoped book series is „AI game programming wisdom“, which contains a multitude of chapters that focus on diverse, individual algorithms that can be practically used in games for a variety of usecases. reply" [ref=e2797]:
+                - table [ref=e2798]:
+                  - rowgroup [ref=e2799]:
+                    - row "upvote fzeindl 10 hours ago | | [–] A similarly scoped book series is „AI game programming wisdom“, which contains a multitude of chapters that focus on diverse, individual algorithms that can be practically used in games for a variety of usecases. reply" [ref=e2800]:
+                      - cell [ref=e2801]:
+                        - img
+                      - cell "upvote" [ref=e2802]:
+                        - link "upvote" [ref=e2804] [cursor=pointer]:
+                          - /url: vote?id=47777194&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2805]
+                      - cell "fzeindl 10 hours ago | | [–] A similarly scoped book series is „AI game programming wisdom“, which contains a multitude of chapters that focus on diverse, individual algorithms that can be practically used in games for a variety of usecases. reply" [ref=e2806]:
+                        - generic [ref=e2808]:
+                          - link "fzeindl" [ref=e2809] [cursor=pointer]:
+                            - /url: user?id=fzeindl
+                          - generic "2026-04-15T10:40:18 1776249618" [ref=e2810]:
+                            - link "10 hours ago" [ref=e2811] [cursor=pointer]:
+                              - /url: item?id=47777194
+                          - generic [ref=e2812]:
+                            - text: "|"
+                            - link [ref=e2813] [cursor=pointer]:
+                              - /url: "#47779478"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2814] [cursor=pointer]:
+                              - /url: "#47777286"
+                              - text: next
+                            - link "[–]" [ref=e2815] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2816]:
+                          - generic [ref=e2817]: A similarly scoped book series is „AI game programming wisdom“, which contains a multitude of chapters that focus on diverse, individual algorithms that can be practically used in games for a variety of usecases.
+                          - paragraph [ref=e2819]:
+                            - link "reply" [ref=e2822] [cursor=pointer]:
+                              - /url: reply?id=47777194&goto=item%3Fid%3D47776796%2347777194
+            - 'row "upvote LiamPowell 10 hours ago | | [–] See also, Andy Keep''s dissertation [1] and his talk at Clojure/Conj 2013 [2]. I think that the nanopass architecture is especially well suited for compilers implemented by LLMs as they''re excellent at performing small and well defined pieces of work. I''d love to see Anthropic try their C compiler experiment again but with a Nanopass framework to build on. I''ve recently been looking in to adding Nanopass support to Langkit, which would allow for writing a Nanopass compiler in Ada, Java, Python, or a few other languages [3]. [1]: https://andykeep.com/pubs/dissertation.pdf [2]: https://www.youtube.com/watch?v=Os7FE3J-U5Q [3]: https://github.com/AdaCore/langkit/issues/668 reply" [ref=e2823]':
+              - 'cell "upvote LiamPowell 10 hours ago | | [–] See also, Andy Keep''s dissertation [1] and his talk at Clojure/Conj 2013 [2]. I think that the nanopass architecture is especially well suited for compilers implemented by LLMs as they''re excellent at performing small and well defined pieces of work. I''d love to see Anthropic try their C compiler experiment again but with a Nanopass framework to build on. I''ve recently been looking in to adding Nanopass support to Langkit, which would allow for writing a Nanopass compiler in Ada, Java, Python, or a few other languages [3]. [1]: https://andykeep.com/pubs/dissertation.pdf [2]: https://www.youtube.com/watch?v=Os7FE3J-U5Q [3]: https://github.com/AdaCore/langkit/issues/668 reply" [ref=e2824]':
+                - table [ref=e2825]:
+                  - rowgroup [ref=e2826]:
+                    - 'row "upvote LiamPowell 10 hours ago | | [–] See also, Andy Keep''s dissertation [1] and his talk at Clojure/Conj 2013 [2]. I think that the nanopass architecture is especially well suited for compilers implemented by LLMs as they''re excellent at performing small and well defined pieces of work. I''d love to see Anthropic try their C compiler experiment again but with a Nanopass framework to build on. I''ve recently been looking in to adding Nanopass support to Langkit, which would allow for writing a Nanopass compiler in Ada, Java, Python, or a few other languages [3]. [1]: https://andykeep.com/pubs/dissertation.pdf [2]: https://www.youtube.com/watch?v=Os7FE3J-U5Q [3]: https://github.com/AdaCore/langkit/issues/668 reply" [ref=e2827]':
+                      - cell [ref=e2828]:
+                        - img
+                      - cell "upvote" [ref=e2829]:
+                        - link "upvote" [ref=e2831] [cursor=pointer]:
+                          - /url: vote?id=47777286&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2832]
+                      - 'cell "LiamPowell 10 hours ago | | [–] See also, Andy Keep''s dissertation [1] and his talk at Clojure/Conj 2013 [2]. I think that the nanopass architecture is especially well suited for compilers implemented by LLMs as they''re excellent at performing small and well defined pieces of work. I''d love to see Anthropic try their C compiler experiment again but with a Nanopass framework to build on. I''ve recently been looking in to adding Nanopass support to Langkit, which would allow for writing a Nanopass compiler in Ada, Java, Python, or a few other languages [3]. [1]: https://andykeep.com/pubs/dissertation.pdf [2]: https://www.youtube.com/watch?v=Os7FE3J-U5Q [3]: https://github.com/AdaCore/langkit/issues/668 reply" [ref=e2833]':
+                        - generic [ref=e2835]:
+                          - link "LiamPowell" [ref=e2836] [cursor=pointer]:
+                            - /url: user?id=LiamPowell
+                          - generic "2026-04-15T10:50:49 1776250249" [ref=e2837]:
+                            - link "10 hours ago" [ref=e2838] [cursor=pointer]:
+                              - /url: item?id=47777286
+                          - generic [ref=e2839]:
+                            - text: "|"
+                            - link [ref=e2840] [cursor=pointer]:
+                              - /url: "#47777194"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2841] [cursor=pointer]:
+                              - /url: "#47779579"
+                              - text: next
+                            - link "[–]" [ref=e2842] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2843]:
+                          - generic [ref=e2844]:
+                            - text: See also, Andy Keep's dissertation [1] and his talk at Clojure/Conj 2013 [2].
+                            - paragraph [ref=e2845]: I think that the nanopass architecture is especially well suited for compilers implemented by LLMs as they're excellent at performing small and well defined pieces of work. I'd love to see Anthropic try their C compiler experiment again but with a Nanopass framework to build on.
+                            - paragraph [ref=e2846]: I've recently been looking in to adding Nanopass support to Langkit, which would allow for writing a Nanopass compiler in Ada, Java, Python, or a few other languages [3].
+                            - paragraph [ref=e2847]:
+                              - text: "[1]:"
+                              - link "https://andykeep.com/pubs/dissertation.pdf" [ref=e2848] [cursor=pointer]:
+                                - /url: https://andykeep.com/pubs/dissertation.pdf
+                            - paragraph [ref=e2849]:
+                              - text: "[2]:"
+                              - link "https://www.youtube.com/watch?v=Os7FE3J-U5Q" [ref=e2850] [cursor=pointer]:
+                                - /url: https://www.youtube.com/watch?v=Os7FE3J-U5Q
+                            - paragraph [ref=e2851]:
+                              - text: "[3]:"
+                              - link "https://github.com/AdaCore/langkit/issues/668" [ref=e2852] [cursor=pointer]:
+                                - /url: https://github.com/AdaCore/langkit/issues/668
+                          - paragraph [ref=e2854]:
+                            - link "reply" [ref=e2857] [cursor=pointer]:
+                              - /url: reply?id=47777286&goto=item%3Fid%3D47776796%2347777286
+            - row "upvote notnullorvoid 6 hours ago | | [–] I might be in the minority, but I think the best way to learn how to write a compiler is to try writing one without books or tutorials. Keep it very small in scope at first, small enough that you can scrap the entire implementation and rewrite in an afternoon or less. reply" [ref=e2858]:
+              - cell "upvote notnullorvoid 6 hours ago | | [–] I might be in the minority, but I think the best way to learn how to write a compiler is to try writing one without books or tutorials. Keep it very small in scope at first, small enough that you can scrap the entire implementation and rewrite in an afternoon or less. reply" [ref=e2859]:
+                - table [ref=e2860]:
+                  - rowgroup [ref=e2861]:
+                    - row "upvote notnullorvoid 6 hours ago | | [–] I might be in the minority, but I think the best way to learn how to write a compiler is to try writing one without books or tutorials. Keep it very small in scope at first, small enough that you can scrap the entire implementation and rewrite in an afternoon or less. reply" [ref=e2862]:
+                      - cell [ref=e2863]:
+                        - img
+                      - cell "upvote" [ref=e2864]:
+                        - link "upvote" [ref=e2866] [cursor=pointer]:
+                          - /url: vote?id=47779579&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2867]
+                      - cell "notnullorvoid 6 hours ago | | [–] I might be in the minority, but I think the best way to learn how to write a compiler is to try writing one without books or tutorials. Keep it very small in scope at first, small enough that you can scrap the entire implementation and rewrite in an afternoon or less. reply" [ref=e2868]:
+                        - generic [ref=e2870]:
+                          - link "notnullorvoid" [ref=e2871] [cursor=pointer]:
+                            - /url: user?id=notnullorvoid
+                          - generic "2026-04-15T14:33:42 1776263622" [ref=e2872]:
+                            - link "6 hours ago" [ref=e2873] [cursor=pointer]:
+                              - /url: item?id=47779579
+                          - generic [ref=e2874]:
+                            - text: "|"
+                            - link [ref=e2875] [cursor=pointer]:
+                              - /url: "#47777286"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2876] [cursor=pointer]:
+                              - /url: "#47781252"
+                              - text: next
+                            - link "[–]" [ref=e2877] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2878]:
+                          - generic [ref=e2879]: I might be in the minority, but I think the best way to learn how to write a compiler is to try writing one without books or tutorials. Keep it very small in scope at first, small enough that you can scrap the entire implementation and rewrite in an afternoon or less.
+                          - paragraph [ref=e2881]:
+                            - link "reply" [ref=e2884] [cursor=pointer]:
+                              - /url: reply?id=47779579&goto=item%3Fid%3D47776796%2347779579
+            - 'row "upvote cdcarter 4 hours ago | | [–] All you really need is a copy of \"The Unix Programming Environment\", where you can implement `hoc` in a couple hours. reply" [ref=e2885]':
+              - 'cell "upvote cdcarter 4 hours ago | | [–] All you really need is a copy of \"The Unix Programming Environment\", where you can implement `hoc` in a couple hours. reply" [ref=e2886]':
+                - table [ref=e2887]:
+                  - rowgroup [ref=e2888]:
+                    - 'row "upvote cdcarter 4 hours ago | | [–] All you really need is a copy of \"The Unix Programming Environment\", where you can implement `hoc` in a couple hours. reply" [ref=e2889]':
+                      - cell [ref=e2890]:
+                        - img
+                      - cell "upvote" [ref=e2891]:
+                        - link "upvote" [ref=e2893] [cursor=pointer]:
+                          - /url: vote?id=47781252&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2894]
+                      - 'cell "cdcarter 4 hours ago | | [–] All you really need is a copy of \"The Unix Programming Environment\", where you can implement `hoc` in a couple hours. reply" [ref=e2895]':
+                        - generic [ref=e2897]:
+                          - link "cdcarter" [ref=e2898] [cursor=pointer]:
+                            - /url: user?id=cdcarter
+                          - generic "2026-04-15T16:17:34 1776269854" [ref=e2899]:
+                            - link "4 hours ago" [ref=e2900] [cursor=pointer]:
+                              - /url: item?id=47781252
+                          - generic [ref=e2901]:
+                            - text: "|"
+                            - link [ref=e2902] [cursor=pointer]:
+                              - /url: "#47779579"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2903] [cursor=pointer]:
+                              - /url: "#47781170"
+                              - text: next
+                            - link "[–]" [ref=e2904] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2905]:
+                          - generic [ref=e2906]: "All you really need is a copy of \"The Unix Programming Environment\", where you can implement `hoc` in a couple hours."
+                          - paragraph [ref=e2908]:
+                            - link "reply" [ref=e2911] [cursor=pointer]:
+                              - /url: reply?id=47781252&goto=item%3Fid%3D47776796%2347781252
+            - row "upvote aurohacker 4 hours ago | | [–] Any tips on reading material for code generation and scheduling for parallel engines? reply" [ref=e2912]:
+              - cell "upvote aurohacker 4 hours ago | | [–] Any tips on reading material for code generation and scheduling for parallel engines? reply" [ref=e2913]:
+                - table [ref=e2914]:
+                  - rowgroup [ref=e2915]:
+                    - row "upvote aurohacker 4 hours ago | | [–] Any tips on reading material for code generation and scheduling for parallel engines? reply" [ref=e2916]:
+                      - cell [ref=e2917]:
+                        - img
+                      - cell "upvote" [ref=e2918]:
+                        - link "upvote" [ref=e2920] [cursor=pointer]:
+                          - /url: vote?id=47781170&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2921]
+                      - cell "aurohacker 4 hours ago | | [–] Any tips on reading material for code generation and scheduling for parallel engines? reply" [ref=e2922]:
+                        - generic [ref=e2924]:
+                          - link "aurohacker" [ref=e2925] [cursor=pointer]:
+                            - /url: user?id=aurohacker
+                          - generic "2026-04-15T16:11:48 1776269508" [ref=e2926]:
+                            - link "4 hours ago" [ref=e2927] [cursor=pointer]:
+                              - /url: item?id=47781170
+                          - generic [ref=e2928]:
+                            - text: "|"
+                            - link [ref=e2929] [cursor=pointer]:
+                              - /url: "#47781252"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2930] [cursor=pointer]:
+                              - /url: "#47777771"
+                              - text: next
+                            - link "[–]" [ref=e2931] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2932]:
+                          - generic [ref=e2933]: Any tips on reading material for code generation and scheduling for parallel engines?
+                          - paragraph [ref=e2935]:
+                            - link "reply" [ref=e2938] [cursor=pointer]:
+                              - /url: reply?id=47781170&goto=item%3Fid%3D47776796%2347781170
+            - row "upvote ape4 9 hours ago | | [–] Would a practical approach be parsing the source into clang's AST format. Then let it make the actual executable. reply" [ref=e2939]:
+              - cell "upvote ape4 9 hours ago | | [–] Would a practical approach be parsing the source into clang's AST format. Then let it make the actual executable. reply" [ref=e2940]:
+                - table [ref=e2941]:
+                  - rowgroup [ref=e2942]:
+                    - row "upvote ape4 9 hours ago | | [–] Would a practical approach be parsing the source into clang's AST format. Then let it make the actual executable. reply" [ref=e2943]:
+                      - cell [ref=e2944]:
+                        - img
+                      - cell "upvote" [ref=e2945]:
+                        - link "upvote" [ref=e2947] [cursor=pointer]:
+                          - /url: vote?id=47777771&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2948]
+                      - cell "ape4 9 hours ago | | [–] Would a practical approach be parsing the source into clang's AST format. Then let it make the actual executable. reply" [ref=e2949]:
+                        - generic [ref=e2951]:
+                          - link "ape4" [ref=e2952] [cursor=pointer]:
+                            - /url: user?id=ape4
+                          - generic "2026-04-15T11:45:35 1776253535" [ref=e2953]:
+                            - link "9 hours ago" [ref=e2954] [cursor=pointer]:
+                              - /url: item?id=47777771
+                          - generic [ref=e2955]:
+                            - text: "|"
+                            - link [ref=e2956] [cursor=pointer]:
+                              - /url: "#47781170"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e2957] [cursor=pointer]:
+                              - /url: "#47783686"
+                              - text: next
+                            - link "[–]" [ref=e2958] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2959]:
+                          - generic [ref=e2960]: Would a practical approach be parsing the source into clang's AST format. Then let it make the actual executable.
+                          - paragraph [ref=e2962]:
+                            - link "reply" [ref=e2965] [cursor=pointer]:
+                              - /url: reply?id=47777771&goto=item%3Fid%3D47776796%2347777771
+            - row "upvote ethan_smith 3 hours ago | | [–] You'd more likely want to emit LLVM IR rather than try to match clang's internal AST. That's essentially what most new language projects do now (Rust, Swift, Zig all use LLVM as their backend). You get optimization passes and codegen for multiple architectures for free, and the IR is well-documented. The tradeoff is you skip learning about the backend, which is arguably the most interesting part. reply" [ref=e2966]:
+              - cell "upvote ethan_smith 3 hours ago | | [–] You'd more likely want to emit LLVM IR rather than try to match clang's internal AST. That's essentially what most new language projects do now (Rust, Swift, Zig all use LLVM as their backend). You get optimization passes and codegen for multiple architectures for free, and the IR is well-documented. The tradeoff is you skip learning about the backend, which is arguably the most interesting part. reply" [ref=e2967]:
+                - table [ref=e2968]:
+                  - rowgroup [ref=e2969]:
+                    - row "upvote ethan_smith 3 hours ago | | [–] You'd more likely want to emit LLVM IR rather than try to match clang's internal AST. That's essentially what most new language projects do now (Rust, Swift, Zig all use LLVM as their backend). You get optimization passes and codegen for multiple architectures for free, and the IR is well-documented. The tradeoff is you skip learning about the backend, which is arguably the most interesting part. reply" [ref=e2970]:
+                      - cell [ref=e2971]:
+                        - img [ref=e2972]
+                      - cell "upvote" [ref=e2973]:
+                        - link "upvote" [ref=e2975] [cursor=pointer]:
+                          - /url: vote?id=47782791&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e2976]
+                      - cell "ethan_smith 3 hours ago | | [–] You'd more likely want to emit LLVM IR rather than try to match clang's internal AST. That's essentially what most new language projects do now (Rust, Swift, Zig all use LLVM as their backend). You get optimization passes and codegen for multiple architectures for free, and the IR is well-documented. The tradeoff is you skip learning about the backend, which is arguably the most interesting part. reply" [ref=e2977]:
+                        - generic [ref=e2979]:
+                          - link "ethan_smith" [ref=e2980] [cursor=pointer]:
+                            - /url: user?id=ethan_smith
+                          - generic "2026-04-15T17:58:57 1776275937" [ref=e2981]:
+                            - link "3 hours ago" [ref=e2982] [cursor=pointer]:
+                              - /url: item?id=47782791
+                          - generic [ref=e2983]:
+                            - text: "|"
+                            - link [ref=e2984] [cursor=pointer]:
+                              - /url: "#47777771"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e2985] [cursor=pointer]:
+                              - /url: "#47783686"
+                              - text: next
+                            - link "[–]" [ref=e2986] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e2987]:
+                          - generic [ref=e2988]: You'd more likely want to emit LLVM IR rather than try to match clang's internal AST. That's essentially what most new language projects do now (Rust, Swift, Zig all use LLVM as their backend). You get optimization passes and codegen for multiple architectures for free, and the IR is well-documented. The tradeoff is you skip learning about the backend, which is arguably the most interesting part.
+                          - paragraph [ref=e2990]:
+                            - link "reply" [ref=e2993] [cursor=pointer]:
+                              - /url: reply?id=47782791&goto=item%3Fid%3D47776796%2347782791
+            - row "upvote zahlman 2 hours ago | | [–] > The best source for breaking this myth is Jack Crenshaw's series, Let's Build a Compiler! Right, I've heard of that... > , which started in 1988. ... Oh. Huh. (Staring at the red dragon book on my bookshelf, which was my course textbook in the early 00s.) reply" [ref=e2994]:
+              - cell "upvote zahlman 2 hours ago | | [–] > The best source for breaking this myth is Jack Crenshaw's series, Let's Build a Compiler! Right, I've heard of that... > , which started in 1988. ... Oh. Huh. (Staring at the red dragon book on my bookshelf, which was my course textbook in the early 00s.) reply" [ref=e2995]:
+                - table [ref=e2996]:
+                  - rowgroup [ref=e2997]:
+                    - row "upvote zahlman 2 hours ago | | [–] > The best source for breaking this myth is Jack Crenshaw's series, Let's Build a Compiler! Right, I've heard of that... > , which started in 1988. ... Oh. Huh. (Staring at the red dragon book on my bookshelf, which was my course textbook in the early 00s.) reply" [ref=e2998]:
+                      - cell [ref=e2999]:
+                        - img
+                      - cell "upvote" [ref=e3000]:
+                        - link "upvote" [ref=e3002] [cursor=pointer]:
+                          - /url: vote?id=47783686&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3003]
+                      - cell "zahlman 2 hours ago | | [–] > The best source for breaking this myth is Jack Crenshaw's series, Let's Build a Compiler! Right, I've heard of that... > , which started in 1988. ... Oh. Huh. (Staring at the red dragon book on my bookshelf, which was my course textbook in the early 00s.) reply" [ref=e3004]:
+                        - generic [ref=e3006]:
+                          - link "zahlman" [ref=e3007] [cursor=pointer]:
+                            - /url: user?id=zahlman
+                          - generic "2026-04-15T19:04:45 1776279885" [ref=e3008]:
+                            - link "2 hours ago" [ref=e3009] [cursor=pointer]:
+                              - /url: item?id=47783686
+                          - generic [ref=e3010]:
+                            - text: "|"
+                            - link [ref=e3011] [cursor=pointer]:
+                              - /url: "#47777771"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e3012] [cursor=pointer]:
+                              - /url: "#47776799"
+                              - text: next
+                            - link "[–]" [ref=e3013] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3014]:
+                          - generic [ref=e3015]:
+                            - text: "> The best source for breaking this myth is Jack Crenshaw's series, Let's Build a Compiler!"
+                            - paragraph [ref=e3016]: Right, I've heard of that...
+                            - paragraph [ref=e3017]: "> , which started in 1988."
+                            - paragraph [ref=e3018]: ... Oh. Huh.
+                            - paragraph [ref=e3019]: (Staring at the red dragon book on my bookshelf, which was my course textbook in the early 00s.)
+                          - paragraph [ref=e3021]:
+                            - link "reply" [ref=e3024] [cursor=pointer]:
+                              - /url: reply?id=47783686&goto=item%3Fid%3D47776796%2347783686
+            - row "upvote downbad_ 11 hours ago | | [–] https://news.ycombinator.com/item?id=10786842 reply" [ref=e3025]:
+              - cell "upvote downbad_ 11 hours ago | | [–] https://news.ycombinator.com/item?id=10786842 reply" [ref=e3026]:
+                - table [ref=e3027]:
+                  - rowgroup [ref=e3028]:
+                    - row "upvote downbad_ 11 hours ago | | [–] https://news.ycombinator.com/item?id=10786842 reply" [ref=e3029]:
+                      - cell [ref=e3030]:
+                        - img
+                      - cell "upvote" [ref=e3031]:
+                        - link "upvote" [ref=e3033] [cursor=pointer]:
+                          - /url: vote?id=47776799&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3034]
+                      - cell "downbad_ 11 hours ago | | [–] https://news.ycombinator.com/item?id=10786842 reply" [ref=e3035]:
+                        - generic [ref=e3037]:
+                          - link "downbad_" [ref=e3038] [cursor=pointer]:
+                            - /url: user?id=downbad_
+                          - generic "2026-04-15T09:41:36 1776246096" [ref=e3039]:
+                            - link "11 hours ago" [ref=e3040] [cursor=pointer]:
+                              - /url: item?id=47776799
+                          - generic [ref=e3041]:
+                            - text: "|"
+                            - link [ref=e3042] [cursor=pointer]:
+                              - /url: "#47783686"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e3043] [cursor=pointer]:
+                              - /url: "#47776845"
+                              - text: next
+                            - link "[–]" [ref=e3044] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3045]:
+                          - link "https://news.ycombinator.com/item?id=10786842" [ref=e3047] [cursor=pointer]:
+                            - /url: https://news.ycombinator.com/item?id=10786842
+                          - paragraph [ref=e3049]:
+                            - link "reply" [ref=e3052] [cursor=pointer]:
+                              - /url: reply?id=47776799&goto=item%3Fid%3D47776796%2347776799
+            - row "upvote msla 11 hours ago | | [–] fanf2 on Dec 25, 2015 [dead] | parent | prev | next [–] I quite like \"understanding and writing compilers\" by Richard Bornat - written in the 1970s using BCPL as the implementation language, so rather old-fashioned, but it gives a friendly gentle overview of how to do it, without excessive quantities of parsing theory. reply" [ref=e3053]:
+              - cell "upvote msla 11 hours ago | | [–] fanf2 on Dec 25, 2015 [dead] | parent | prev | next [–] I quite like \"understanding and writing compilers\" by Richard Bornat - written in the 1970s using BCPL as the implementation language, so rather old-fashioned, but it gives a friendly gentle overview of how to do it, without excessive quantities of parsing theory. reply" [ref=e3054]:
+                - table [ref=e3055]:
+                  - rowgroup [ref=e3056]:
+                    - row "upvote msla 11 hours ago | | [–] fanf2 on Dec 25, 2015 [dead] | parent | prev | next [–] I quite like \"understanding and writing compilers\" by Richard Bornat - written in the 1970s using BCPL as the implementation language, so rather old-fashioned, but it gives a friendly gentle overview of how to do it, without excessive quantities of parsing theory. reply" [ref=e3057]:
+                      - cell [ref=e3058]:
+                        - img
+                      - cell "upvote" [ref=e3059]:
+                        - link "upvote" [ref=e3061] [cursor=pointer]:
+                          - /url: vote?id=47776845&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3062]
+                      - cell "msla 11 hours ago | | [–] fanf2 on Dec 25, 2015 [dead] | parent | prev | next [–] I quite like \"understanding and writing compilers\" by Richard Bornat - written in the 1970s using BCPL as the implementation language, so rather old-fashioned, but it gives a friendly gentle overview of how to do it, without excessive quantities of parsing theory. reply" [ref=e3063]:
+                        - generic [ref=e3065]:
+                          - link "msla" [ref=e3066] [cursor=pointer]:
+                            - /url: user?id=msla
+                          - generic "2026-04-15T09:48:14 1776246494" [ref=e3067]:
+                            - link "11 hours ago" [ref=e3068] [cursor=pointer]:
+                              - /url: item?id=47776845
+                          - generic [ref=e3069]:
+                            - text: "|"
+                            - link [ref=e3070] [cursor=pointer]:
+                              - /url: "#47776799"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e3071] [cursor=pointer]:
+                              - /url: "#47780638"
+                              - text: next
+                            - link "[–]" [ref=e3072] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3073]:
+                          - generic [ref=e3074]:
+                            - text: fanf2 on Dec 25, 2015 [dead] | parent | prev | next [–]
+                            - paragraph [ref=e3075]: I quite like "understanding and writing compilers" by Richard Bornat - written in the 1970s using BCPL as the implementation language, so rather old-fashioned, but it gives a friendly gentle overview of how to do it, without excessive quantities of parsing theory.
+                          - paragraph [ref=e3077]:
+                            - link "reply" [ref=e3080] [cursor=pointer]:
+                              - /url: reply?id=47776845&goto=item%3Fid%3D47776796%2347776845
+            - 'row "upvote ac50hz 8 hours ago | | [–] Sadly, Richard died in January this year. This book is available to download from one of his academic pages: https://www.eis.mdx.ac.uk/staffpages/r_bornat/#compilerbook https://www.eis.mdx.ac.uk/staffpages/r_bornat/books/compilin... https://en.wikipedia.org/wiki/Richard_Bornat reply" [ref=e3081]':
+              - 'cell "upvote ac50hz 8 hours ago | | [–] Sadly, Richard died in January this year. This book is available to download from one of his academic pages: https://www.eis.mdx.ac.uk/staffpages/r_bornat/#compilerbook https://www.eis.mdx.ac.uk/staffpages/r_bornat/books/compilin... https://en.wikipedia.org/wiki/Richard_Bornat reply" [ref=e3082]':
+                - table [ref=e3083]:
+                  - rowgroup [ref=e3084]:
+                    - 'row "upvote ac50hz 8 hours ago | | [–] Sadly, Richard died in January this year. This book is available to download from one of his academic pages: https://www.eis.mdx.ac.uk/staffpages/r_bornat/#compilerbook https://www.eis.mdx.ac.uk/staffpages/r_bornat/books/compilin... https://en.wikipedia.org/wiki/Richard_Bornat reply" [ref=e3085]':
+                      - cell [ref=e3086]:
+                        - img [ref=e3087]
+                      - cell "upvote" [ref=e3088]:
+                        - link "upvote" [ref=e3090] [cursor=pointer]:
+                          - /url: vote?id=47778059&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3091]
+                      - 'cell "ac50hz 8 hours ago | | [–] Sadly, Richard died in January this year. This book is available to download from one of his academic pages: https://www.eis.mdx.ac.uk/staffpages/r_bornat/#compilerbook https://www.eis.mdx.ac.uk/staffpages/r_bornat/books/compilin... https://en.wikipedia.org/wiki/Richard_Bornat reply" [ref=e3092]':
+                        - generic [ref=e3094]:
+                          - link "ac50hz" [ref=e3095] [cursor=pointer]:
+                            - /url: user?id=ac50hz
+                          - generic "2026-04-15T12:22:35 1776255755" [ref=e3096]:
+                            - link "8 hours ago" [ref=e3097] [cursor=pointer]:
+                              - /url: item?id=47778059
+                          - generic [ref=e3098]:
+                            - text: "|"
+                            - link [ref=e3099] [cursor=pointer]:
+                              - /url: "#47776845"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3100] [cursor=pointer]:
+                              - /url: "#47777448"
+                              - text: next
+                            - link "[–]" [ref=e3101] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3102]:
+                          - generic [ref=e3103]:
+                            - text: "Sadly, Richard died in January this year. This book is available to download from one of his academic pages:"
+                            - paragraph [ref=e3104]:
+                              - link "https://www.eis.mdx.ac.uk/staffpages/r_bornat/#compilerbook" [ref=e3105] [cursor=pointer]:
+                                - /url: https://www.eis.mdx.ac.uk/staffpages/r_bornat/#compilerbook
+                            - paragraph [ref=e3106]:
+                              - link "https://www.eis.mdx.ac.uk/staffpages/r_bornat/books/compilin..." [ref=e3107] [cursor=pointer]:
+                                - /url: https://www.eis.mdx.ac.uk/staffpages/r_bornat/books/compiling.pdf
+                            - paragraph [ref=e3108]:
+                              - link "https://en.wikipedia.org/wiki/Richard_Bornat" [ref=e3109] [cursor=pointer]:
+                                - /url: https://en.wikipedia.org/wiki/Richard_Bornat
+                          - paragraph [ref=e3111]:
+                            - link "reply" [ref=e3114] [cursor=pointer]:
+                              - /url: reply?id=47778059&goto=item%3Fid%3D47776796%2347778059
+            - row "upvote Tor3 9 hours ago | | | [–] I like that book too, I bought it many decades ago and learned enough to write a transpiler for converting Fortran source code to Turbo Pascal. reply" [ref=e3115]:
+              - cell "upvote Tor3 9 hours ago | | | [–] I like that book too, I bought it many decades ago and learned enough to write a transpiler for converting Fortran source code to Turbo Pascal. reply" [ref=e3116]:
+                - table [ref=e3117]:
+                  - rowgroup [ref=e3118]:
+                    - row "upvote Tor3 9 hours ago | | | [–] I like that book too, I bought it many decades ago and learned enough to write a transpiler for converting Fortran source code to Turbo Pascal. reply" [ref=e3119]:
+                      - cell [ref=e3120]:
+                        - img [ref=e3121]
+                      - cell "upvote" [ref=e3122]:
+                        - link "upvote" [ref=e3124] [cursor=pointer]:
+                          - /url: vote?id=47777448&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3125]
+                      - cell "Tor3 9 hours ago | | | [–] I like that book too, I bought it many decades ago and learned enough to write a transpiler for converting Fortran source code to Turbo Pascal. reply" [ref=e3126]:
+                        - generic [ref=e3128]:
+                          - link "Tor3" [ref=e3129] [cursor=pointer]:
+                            - /url: user?id=Tor3
+                          - generic "2026-04-15T11:08:24 1776251304" [ref=e3130]:
+                            - link "9 hours ago" [ref=e3131] [cursor=pointer]:
+                              - /url: item?id=47777448
+                          - generic [ref=e3132]:
+                            - text: "|"
+                            - link [ref=e3133] [cursor=pointer]:
+                              - /url: "#47776845"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3134] [cursor=pointer]:
+                              - /url: "#47778059"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e3135] [cursor=pointer]:
+                              - /url: "#47776850"
+                              - text: next
+                            - link "[–]" [ref=e3136] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3137]:
+                          - generic [ref=e3138]: I like that book too, I bought it many decades ago and learned enough to write a transpiler for converting Fortran source code to Turbo Pascal.
+                          - paragraph [ref=e3140]:
+                            - link "reply" [ref=e3143] [cursor=pointer]:
+                              - /url: reply?id=47777448&goto=item%3Fid%3D47776796%2347777448
+            - row "upvote msla 11 hours ago | | | [–] https://news.ycombinator.com/item?id=10791521 reply" [ref=e3144]:
+              - cell "upvote msla 11 hours ago | | | [–] https://news.ycombinator.com/item?id=10791521 reply" [ref=e3145]:
+                - table [ref=e3146]:
+                  - rowgroup [ref=e3147]:
+                    - row "upvote msla 11 hours ago | | | [–] https://news.ycombinator.com/item?id=10791521 reply" [ref=e3148]:
+                      - cell [ref=e3149]:
+                        - img [ref=e3150]
+                      - cell "upvote" [ref=e3151]:
+                        - link "upvote" [ref=e3153] [cursor=pointer]:
+                          - /url: vote?id=47776850&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3154]
+                      - cell "msla 11 hours ago | | | [–] https://news.ycombinator.com/item?id=10791521 reply" [ref=e3155]:
+                        - generic [ref=e3157]:
+                          - link "msla" [ref=e3158] [cursor=pointer]:
+                            - /url: user?id=msla
+                          - generic "2026-04-15T09:49:31 1776246571" [ref=e3159]:
+                            - link "11 hours ago" [ref=e3160] [cursor=pointer]:
+                              - /url: item?id=47776850
+                          - generic [ref=e3161]:
+                            - text: "|"
+                            - link [ref=e3162] [cursor=pointer]:
+                              - /url: "#47776845"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3163] [cursor=pointer]:
+                              - /url: "#47777448"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e3164] [cursor=pointer]:
+                              - /url: "#47780638"
+                              - text: next
+                            - link "[–]" [ref=e3165] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3166]:
+                          - link "https://news.ycombinator.com/item?id=10791521" [ref=e3168] [cursor=pointer]:
+                            - /url: https://news.ycombinator.com/item?id=10791521
+                          - paragraph [ref=e3170]:
+                            - link "reply" [ref=e3173] [cursor=pointer]:
+                              - /url: reply?id=47776850&goto=item%3Fid%3D47776796%2347776850
+            - row [ref=e3174]:
+              - cell [ref=e3175]:
+                - table [ref=e3176]:
+                  - rowgroup [ref=e3177]:
+                    - row [ref=e3178]:
+                      - cell [ref=e3179]:
+                        - img
+                      - cell "upvote" [ref=e3180]:
+                        - link "upvote" [ref=e3182] [cursor=pointer]:
+                          - /url: vote?id=47780638&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3183]
+                      - cell [ref=e3184]:
+                        - generic [ref=e3186]:
+                          - link "anthk" [ref=e3187] [cursor=pointer]:
+                            - /url: user?id=anthk
+                          - generic "2026-04-15T15:39:24 1776267564" [ref=e3188]:
+                            - link "5 hours ago" [ref=e3189] [cursor=pointer]:
+                              - /url: item?id=47780638
+                          - generic [ref=e3190]:
+                            - text: "|"
+                            - link [ref=e3191] [cursor=pointer]:
+                              - /url: "#47776845"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e3192] [cursor=pointer]:
+                              - /url: "#47777741"
+                              - text: next
+                            - link "[–]" [ref=e3193] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3194]:
+                          - generic [ref=e3195]:
+                            - link "https://t3x.org" [ref=e3196] [cursor=pointer]:
+                              - /url: https://t3x.org
+                            - text: has literal books on that, from a simple C compiler to Scheme (you might heard of s9) and T3X0 itself which can run under Unix, Windows, DOS, CP/M and whatnot.
+                            - paragraph [ref=e3197]: "PD: Klong's intro to statisticks, even if the compiler looks like a joke, it isn't. It can be damn useful. Far easier than Excel. And it comes with a command to output a PS file with your chart being embedded."
+                            - paragraph [ref=e3198]:
+                              - link "https://t3x.org/klong/" [ref=e3199] [cursor=pointer]:
+                                - /url: https://t3x.org/klong/
+                            - paragraph [ref=e3200]: Intro to statistics with Klong
+                            - paragraph [ref=e3201]:
+                              - link "https://t3x.org/klong/klong-intro.txt.html" [ref=e3202] [cursor=pointer]:
+                                - /url: https://t3x.org/klong/klong-intro.txt.html
+                            - paragraph [ref=e3203]:
+                              - link "https://t3x.org/klong/klong-ref.txt.html" [ref=e3204] [cursor=pointer]:
+                                - /url: https://t3x.org/klong/klong-ref.txt.html
+                            - paragraph [ref=e3205]: On S9, well, it has Unix, Curses, sockets and so on support with an easy API. So it's damn easy to write something if you know Scheme/Ncurses and try stuff in seconds. You can complete the "Concrete Abstractions" book with it, and just adapt the graphic functions to create the (frame) one for SICP (and a few more).
+                            - paragraph [ref=e3206]: And as we are doing compilers... with SICP you create from some simulator to some Scheme interpreter in itself.
+                          - paragraph [ref=e3208]:
+                            - link "reply" [ref=e3211] [cursor=pointer]:
+                              - /url: reply?id=47780638&goto=item%3Fid%3D47776796%2347780638
+            - row "upvote voidUpdate 9 hours ago | | [–] I've been having a look at the Crenshaw series, and it seems pretty good, but one thing that kinda annoys me is the baked-in line wrapping. Is there a way to unwrap the text so its not all in a small area on the left of my screen? reply" [ref=e3212]:
+              - cell "upvote voidUpdate 9 hours ago | | [–] I've been having a look at the Crenshaw series, and it seems pretty good, but one thing that kinda annoys me is the baked-in line wrapping. Is there a way to unwrap the text so its not all in a small area on the left of my screen? reply" [ref=e3213]:
+                - table [ref=e3214]:
+                  - rowgroup [ref=e3215]:
+                    - row "upvote voidUpdate 9 hours ago | | [–] I've been having a look at the Crenshaw series, and it seems pretty good, but one thing that kinda annoys me is the baked-in line wrapping. Is there a way to unwrap the text so its not all in a small area on the left of my screen? reply" [ref=e3216]:
+                      - cell [ref=e3217]:
+                        - img
+                      - cell "upvote" [ref=e3218]:
+                        - link "upvote" [ref=e3220] [cursor=pointer]:
+                          - /url: vote?id=47777741&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3221]
+                      - cell "voidUpdate 9 hours ago | | [–] I've been having a look at the Crenshaw series, and it seems pretty good, but one thing that kinda annoys me is the baked-in line wrapping. Is there a way to unwrap the text so its not all in a small area on the left of my screen? reply" [ref=e3222]:
+                        - generic [ref=e3224]:
+                          - link "voidUpdate" [ref=e3225] [cursor=pointer]:
+                            - /url: user?id=voidUpdate
+                          - generic "2026-04-15T11:42:02 1776253322" [ref=e3226]:
+                            - link "9 hours ago" [ref=e3227] [cursor=pointer]:
+                              - /url: item?id=47777741
+                          - generic [ref=e3228]:
+                            - text: "|"
+                            - link [ref=e3229] [cursor=pointer]:
+                              - /url: "#47780638"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e3230] [cursor=pointer]:
+                              - /url: "#47783791"
+                              - text: next
+                            - link "[–]" [ref=e3231] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3232]:
+                          - generic [ref=e3233]: I've been having a look at the Crenshaw series, and it seems pretty good, but one thing that kinda annoys me is the baked-in line wrapping. Is there a way to unwrap the text so its not all in a small area on the left of my screen?
+                          - paragraph [ref=e3235]:
+                            - link "reply" [ref=e3238] [cursor=pointer]:
+                              - /url: reply?id=47777741&goto=item%3Fid%3D47776796%2347777741
+            - row "upvote 77 9 hours ago | | [–] https://xmonader.github.io/letsbuildacompiler-pretty/ reply" [ref=e3239]:
+              - cell "upvote 77 9 hours ago | | [–] https://xmonader.github.io/letsbuildacompiler-pretty/ reply" [ref=e3240]:
+                - table [ref=e3241]:
+                  - rowgroup [ref=e3242]:
+                    - row "upvote 77 9 hours ago | | [–] https://xmonader.github.io/letsbuildacompiler-pretty/ reply" [ref=e3243]:
+                      - cell [ref=e3244]:
+                        - img [ref=e3245]
+                      - cell "upvote" [ref=e3246]:
+                        - link "upvote" [ref=e3248] [cursor=pointer]:
+                          - /url: vote?id=47777776&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3249]
+                      - cell "77 9 hours ago | | [–] https://xmonader.github.io/letsbuildacompiler-pretty/ reply" [ref=e3250]:
+                        - generic [ref=e3252]:
+                          - link "77" [ref=e3253] [cursor=pointer]:
+                            - /url: user?id=77
+                          - generic "2026-04-15T11:46:04 1776253564" [ref=e3254]:
+                            - link "9 hours ago" [ref=e3255] [cursor=pointer]:
+                              - /url: item?id=47777776
+                          - generic [ref=e3256]:
+                            - text: "|"
+                            - link [ref=e3257] [cursor=pointer]:
+                              - /url: "#47777741"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3258] [cursor=pointer]:
+                              - /url: "#47783791"
+                              - text: next
+                            - link "[–]" [ref=e3259] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3260]:
+                          - link "https://xmonader.github.io/letsbuildacompiler-pretty/" [ref=e3262] [cursor=pointer]:
+                            - /url: https://xmonader.github.io/letsbuildacompiler-pretty/
+                          - paragraph [ref=e3264]:
+                            - link "reply" [ref=e3267] [cursor=pointer]:
+                              - /url: reply?id=47777776&goto=item%3Fid%3D47776796%2347777776
+            - row "upvote voidUpdate 9 hours ago | | | [–] Perfect! reply" [ref=e3268]:
+              - cell "upvote voidUpdate 9 hours ago | | | [–] Perfect! reply" [ref=e3269]:
+                - table [ref=e3270]:
+                  - rowgroup [ref=e3271]:
+                    - row "upvote voidUpdate 9 hours ago | | | [–] Perfect! reply" [ref=e3272]:
+                      - cell [ref=e3273]:
+                        - img [ref=e3274]
+                      - cell "upvote" [ref=e3275]:
+                        - link "upvote" [ref=e3277] [cursor=pointer]:
+                          - /url: vote?id=47777814&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3278]
+                      - cell "voidUpdate 9 hours ago | | | [–] Perfect! reply" [ref=e3279]:
+                        - generic [ref=e3281]:
+                          - link "voidUpdate" [ref=e3282] [cursor=pointer]:
+                            - /url: user?id=voidUpdate
+                          - generic "2026-04-15T11:50:38 1776253838" [ref=e3283]:
+                            - link "9 hours ago" [ref=e3284] [cursor=pointer]:
+                              - /url: item?id=47777814
+                          - generic [ref=e3285]:
+                            - text: "|"
+                            - link [ref=e3286] [cursor=pointer]:
+                              - /url: "#47777741"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e3287] [cursor=pointer]:
+                              - /url: "#47777776"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3288] [cursor=pointer]:
+                              - /url: "#47783791"
+                              - text: next
+                            - link "[–]" [ref=e3289] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3290]:
+                          - generic [ref=e3291]: Perfect!
+                          - paragraph [ref=e3293]:
+                            - link "reply" [ref=e3296] [cursor=pointer]:
+                              - /url: reply?id=47777814&goto=item%3Fid%3D47776796%2347777814
+            - row "rdevilla 10 hours ago | | [7 more]" [ref=e3297]:
+              - cell "rdevilla 10 hours ago | | [7 more]" [ref=e3298]:
+                - table [ref=e3299]:
+                  - rowgroup [ref=e3300]:
+                    - row "rdevilla 10 hours ago | | [7 more]" [ref=e3301]:
+                      - cell [ref=e3302]:
+                        - img
+                      - cell "rdevilla 10 hours ago | | [7 more]" [ref=e3303]:
+                        - generic [ref=e3305]:
+                          - link "rdevilla" [ref=e3306] [cursor=pointer]:
+                            - /url: user?id=rdevilla
+                          - generic "2026-04-15T10:30:59 1776249059" [ref=e3307]:
+                            - link "10 hours ago" [ref=e3308] [cursor=pointer]:
+                              - /url: item?id=47777118
+                          - generic [ref=e3309]:
+                            - text: "|"
+                            - link [ref=e3310] [cursor=pointer]:
+                              - /url: "#47777113"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e3311] [cursor=pointer]:
+                              - /url: "#47778558"
+                              - text: next
+                            - link "[7 more]" [ref=e3312] [cursor=pointer]:
+                              - /url: javascript:void(0)
+            - 'row "upvote lateforwork 7 hours ago | [–] These days there''s an even easier way to learn to write a compiler. Just ask Claude to write a simple compiler. Here''s a simple C compiler (under 1500 lines) written by Claude: https://github.com/Rajeev-K/c-compiler It can compile and run C programs for sorting and searching. The code is very readable and very easy to understand. reply" [ref=e3313]':
+              - 'cell "upvote lateforwork 7 hours ago | [–] These days there''s an even easier way to learn to write a compiler. Just ask Claude to write a simple compiler. Here''s a simple C compiler (under 1500 lines) written by Claude: https://github.com/Rajeev-K/c-compiler It can compile and run C programs for sorting and searching. The code is very readable and very easy to understand. reply" [ref=e3314]':
+                - table [ref=e3315]:
+                  - rowgroup [ref=e3316]:
+                    - 'row "upvote lateforwork 7 hours ago | [–] These days there''s an even easier way to learn to write a compiler. Just ask Claude to write a simple compiler. Here''s a simple C compiler (under 1500 lines) written by Claude: https://github.com/Rajeev-K/c-compiler It can compile and run C programs for sorting and searching. The code is very readable and very easy to understand. reply" [ref=e3317]':
+                      - cell [ref=e3318]:
+                        - img
+                      - cell "upvote" [ref=e3319]:
+                        - link "upvote" [ref=e3321] [cursor=pointer]:
+                          - /url: vote?id=47778558&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3322]
+                      - 'cell "lateforwork 7 hours ago | [–] These days there''s an even easier way to learn to write a compiler. Just ask Claude to write a simple compiler. Here''s a simple C compiler (under 1500 lines) written by Claude: https://github.com/Rajeev-K/c-compiler It can compile and run C programs for sorting and searching. The code is very readable and very easy to understand. reply" [ref=e3323]':
+                        - generic [ref=e3325]:
+                          - link "lateforwork" [ref=e3326] [cursor=pointer]:
+                            - /url: user?id=lateforwork
+                          - generic "2026-04-15T13:16:58 1776259018" [ref=e3327]:
+                            - link "7 hours ago" [ref=e3328] [cursor=pointer]:
+                              - /url: item?id=47778558
+                          - generic [ref=e3329]:
+                            - text: "|"
+                            - link [ref=e3330] [cursor=pointer]:
+                              - /url: "#47777118"
+                              - text: prev
+                            - link "[–]" [ref=e3331] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3332]:
+                          - generic [ref=e3333]:
+                            - text: "These days there's an even easier way to learn to write a compiler. Just ask Claude to write a simple compiler. Here's a simple C compiler (under 1500 lines) written by Claude:"
+                            - link "https://github.com/Rajeev-K/c-compiler" [ref=e3334] [cursor=pointer]:
+                              - /url: https://github.com/Rajeev-K/c-compiler
+                            - text: It can compile and run C programs for sorting and searching. The code is very readable and very easy to understand.
+                          - paragraph [ref=e3336]:
+                            - link "reply" [ref=e3339] [cursor=pointer]:
+                              - /url: reply?id=47778558&goto=item%3Fid%3D47776796%2347778558
+            - row "upvote voidfunc 7 hours ago | | [–] For those of us that learn better by taking something and tinkering with it this is definitely the better approach. Ive never been a good book learner but I love taking apart and tinkering with something to learn. A small toy compiler is way better than any book and its not like the LLM didnt absorb the book anyways during training. reply" [ref=e3340]:
+              - cell "upvote voidfunc 7 hours ago | | [–] For those of us that learn better by taking something and tinkering with it this is definitely the better approach. Ive never been a good book learner but I love taking apart and tinkering with something to learn. A small toy compiler is way better than any book and its not like the LLM didnt absorb the book anyways during training. reply" [ref=e3341]:
+                - table [ref=e3342]:
+                  - rowgroup [ref=e3343]:
+                    - row "upvote voidfunc 7 hours ago | | [–] For those of us that learn better by taking something and tinkering with it this is definitely the better approach. Ive never been a good book learner but I love taking apart and tinkering with something to learn. A small toy compiler is way better than any book and its not like the LLM didnt absorb the book anyways during training. reply" [ref=e3344]:
+                      - cell [ref=e3345]:
+                        - img [ref=e3346]
+                      - cell "upvote" [ref=e3347]:
+                        - link "upvote" [ref=e3349] [cursor=pointer]:
+                          - /url: vote?id=47779002&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3350]
+                      - cell "voidfunc 7 hours ago | | [–] For those of us that learn better by taking something and tinkering with it this is definitely the better approach. Ive never been a good book learner but I love taking apart and tinkering with something to learn. A small toy compiler is way better than any book and its not like the LLM didnt absorb the book anyways during training. reply" [ref=e3351]:
+                        - generic [ref=e3353]:
+                          - link "voidfunc" [ref=e3354] [cursor=pointer]:
+                            - /url: user?id=voidfunc
+                          - generic "2026-04-15T13:54:51 1776261291" [ref=e3355]:
+                            - link "7 hours ago" [ref=e3356] [cursor=pointer]:
+                              - /url: item?id=47779002
+                          - generic [ref=e3357]:
+                            - text: "|"
+                            - link [ref=e3358] [cursor=pointer]:
+                              - /url: "#47778558"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3359] [cursor=pointer]:
+                              - /url: "#47780667"
+                              - text: next
+                            - link "[–]" [ref=e3360] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3361]:
+                          - generic [ref=e3362]:
+                            - text: For those of us that learn better by taking something and tinkering with it this is definitely the better approach.
+                            - paragraph [ref=e3363]: Ive never been a good book learner but I love taking apart and tinkering with something to learn. A small toy compiler is way better than any book and its not like the LLM didnt absorb the book anyways during training.
+                          - paragraph [ref=e3365]:
+                            - link "reply" [ref=e3368] [cursor=pointer]:
+                              - /url: reply?id=47779002&goto=item%3Fid%3D47776796%2347779002
+            - row "upvote lateforwork 7 hours ago | | | [–] Exactly! Writing a compiler is not rocket science if you know assembly language. You can pick up the gist in an hour or two by looking at a simple toy compiler. reply" [ref=e3369]:
+              - cell "upvote lateforwork 7 hours ago | | | [–] Exactly! Writing a compiler is not rocket science if you know assembly language. You can pick up the gist in an hour or two by looking at a simple toy compiler. reply" [ref=e3370]:
+                - table [ref=e3371]:
+                  - rowgroup [ref=e3372]:
+                    - row "upvote lateforwork 7 hours ago | | | [–] Exactly! Writing a compiler is not rocket science if you know assembly language. You can pick up the gist in an hour or two by looking at a simple toy compiler. reply" [ref=e3373]:
+                      - cell [ref=e3374]:
+                        - img [ref=e3375]
+                      - cell "upvote" [ref=e3376]:
+                        - link "upvote" [ref=e3378] [cursor=pointer]:
+                          - /url: vote?id=47779110&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3379]
+                      - cell "lateforwork 7 hours ago | | | [–] Exactly! Writing a compiler is not rocket science if you know assembly language. You can pick up the gist in an hour or two by looking at a simple toy compiler. reply" [ref=e3380]:
+                        - generic [ref=e3382]:
+                          - link "lateforwork" [ref=e3383] [cursor=pointer]:
+                            - /url: user?id=lateforwork
+                          - generic "2026-04-15T14:03:37 1776261817" [ref=e3384]:
+                            - link "7 hours ago" [ref=e3385] [cursor=pointer]:
+                              - /url: item?id=47779110
+                          - generic [ref=e3386]:
+                            - text: "|"
+                            - link [ref=e3387] [cursor=pointer]:
+                              - /url: "#47778558"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e3388] [cursor=pointer]:
+                              - /url: "#47779002"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3389] [cursor=pointer]:
+                              - /url: "#47780667"
+                              - text: next
+                            - link "[–]" [ref=e3390] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3391]:
+                          - generic [ref=e3392]: Exactly! Writing a compiler is not rocket science if you know assembly language. You can pick up the gist in an hour or two by looking at a simple toy compiler.
+                          - paragraph [ref=e3394]:
+                            - link "reply" [ref=e3397] [cursor=pointer]:
+                              - /url: reply?id=47779110&goto=item%3Fid%3D47776796%2347779110
+            - row "upvote LLMCodeAuditor 5 hours ago | | | [–] I did not and will not run this on my computer but it looks like while loops are totally broken; note how poor the test coverage is. This is just my quick skimming of the code. Maybe it works perfectly and I am dumber than a computer. Regardless, it is incredibly reckless to ask Claude to generate assembly if you don't understand assembly, and it's irresponsible to recommend this as advice for newbies. They will not be able to scan the source code for red flags like us pros. Nor will they think \"this C compiler is totally untrustworthy, I should test it on a VM.\" reply" [ref=e3398]:
+              - cell "upvote LLMCodeAuditor 5 hours ago | | | [–] I did not and will not run this on my computer but it looks like while loops are totally broken; note how poor the test coverage is. This is just my quick skimming of the code. Maybe it works perfectly and I am dumber than a computer. Regardless, it is incredibly reckless to ask Claude to generate assembly if you don't understand assembly, and it's irresponsible to recommend this as advice for newbies. They will not be able to scan the source code for red flags like us pros. Nor will they think \"this C compiler is totally untrustworthy, I should test it on a VM.\" reply" [ref=e3399]:
+                - table [ref=e3400]:
+                  - rowgroup [ref=e3401]:
+                    - row "upvote LLMCodeAuditor 5 hours ago | | | [–] I did not and will not run this on my computer but it looks like while loops are totally broken; note how poor the test coverage is. This is just my quick skimming of the code. Maybe it works perfectly and I am dumber than a computer. Regardless, it is incredibly reckless to ask Claude to generate assembly if you don't understand assembly, and it's irresponsible to recommend this as advice for newbies. They will not be able to scan the source code for red flags like us pros. Nor will they think \"this C compiler is totally untrustworthy, I should test it on a VM.\" reply" [ref=e3402]:
+                      - cell [ref=e3403]:
+                        - img [ref=e3404]
+                      - cell "upvote" [ref=e3405]:
+                        - link "upvote" [ref=e3407] [cursor=pointer]:
+                          - /url: vote?id=47780667&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3408]
+                      - cell "LLMCodeAuditor 5 hours ago | | | [–] I did not and will not run this on my computer but it looks like while loops are totally broken; note how poor the test coverage is. This is just my quick skimming of the code. Maybe it works perfectly and I am dumber than a computer. Regardless, it is incredibly reckless to ask Claude to generate assembly if you don't understand assembly, and it's irresponsible to recommend this as advice for newbies. They will not be able to scan the source code for red flags like us pros. Nor will they think \"this C compiler is totally untrustworthy, I should test it on a VM.\" reply" [ref=e3409]:
+                        - generic [ref=e3411]:
+                          - link "LLMCodeAuditor" [ref=e3412] [cursor=pointer]:
+                            - /url: user?id=LLMCodeAuditor
+                          - generic "2026-04-15T15:40:53 1776267653" [ref=e3413]:
+                            - link "5 hours ago" [ref=e3414] [cursor=pointer]:
+                              - /url: item?id=47780667
+                          - generic [ref=e3415]:
+                            - text: "|"
+                            - link [ref=e3416] [cursor=pointer]:
+                              - /url: "#47778558"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3417] [cursor=pointer]:
+                              - /url: "#47779002"
+                              - text: prev
+                            - text: "|"
+                            - link [ref=e3418] [cursor=pointer]:
+                              - /url: "#47778650"
+                              - text: next
+                            - link "[–]" [ref=e3419] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3420]:
+                          - generic [ref=e3421]:
+                            - text: I did not and will not run this on my computer but it looks like while loops are totally broken; note how poor the test coverage is. This is just my quick skimming of the code. Maybe it works perfectly and I am dumber than a computer.
+                            - paragraph [ref=e3422]: Regardless, it is incredibly reckless to ask Claude to generate assembly if you don't understand assembly, and it's irresponsible to recommend this as advice for newbies. They will not be able to scan the source code for red flags like us pros. Nor will they think "this C compiler is totally untrustworthy, I should test it on a VM."
+                          - paragraph [ref=e3424]:
+                            - link "reply" [ref=e3427] [cursor=pointer]:
+                              - /url: reply?id=47780667&goto=item%3Fid%3D47776796%2347780667
+            - row "upvote lateforwork 4 hours ago | | | [–] Are you concerned that the compiler might generate code that takes over your computer? If so the provided Dockerfile runs the generated code in a container. Regarding test coverage, this is a toy compiler. Don't use it to compile production code! Regarding while loops and such, again, this is a simple compiler intended only to compile sort and search functions written in C. reply" [ref=e3428]:
+              - cell "upvote lateforwork 4 hours ago | | | [–] Are you concerned that the compiler might generate code that takes over your computer? If so the provided Dockerfile runs the generated code in a container. Regarding test coverage, this is a toy compiler. Don't use it to compile production code! Regarding while loops and such, again, this is a simple compiler intended only to compile sort and search functions written in C. reply" [ref=e3429]:
+                - table [ref=e3430]:
+                  - rowgroup [ref=e3431]:
+                    - row "upvote lateforwork 4 hours ago | | | [–] Are you concerned that the compiler might generate code that takes over your computer? If so the provided Dockerfile runs the generated code in a container. Regarding test coverage, this is a toy compiler. Don't use it to compile production code! Regarding while loops and such, again, this is a simple compiler intended only to compile sort and search functions written in C. reply" [ref=e3432]:
+                      - cell [ref=e3433]:
+                        - img [ref=e3434]
+                      - cell "upvote" [ref=e3435]:
+                        - link "upvote" [ref=e3437] [cursor=pointer]:
+                          - /url: vote?id=47781590&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3438]
+                      - cell "lateforwork 4 hours ago | | | [–] Are you concerned that the compiler might generate code that takes over your computer? If so the provided Dockerfile runs the generated code in a container. Regarding test coverage, this is a toy compiler. Don't use it to compile production code! Regarding while loops and such, again, this is a simple compiler intended only to compile sort and search functions written in C. reply" [ref=e3439]:
+                        - generic [ref=e3441]:
+                          - link "lateforwork" [ref=e3442] [cursor=pointer]:
+                            - /url: user?id=lateforwork
+                          - generic "2026-04-15T16:38:45 1776271125" [ref=e3443]:
+                            - link "4 hours ago" [ref=e3444] [cursor=pointer]:
+                              - /url: item?id=47781590
+                          - generic [ref=e3445]:
+                            - text: "|"
+                            - link [ref=e3446] [cursor=pointer]:
+                              - /url: "#47778558"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e3447] [cursor=pointer]:
+                              - /url: "#47780667"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3448] [cursor=pointer]:
+                              - /url: "#47778650"
+                              - text: next
+                            - link "[–]" [ref=e3449] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3450]:
+                          - generic [ref=e3451]:
+                            - text: Are you concerned that the compiler might generate code that takes over your computer? If so the provided Dockerfile runs the generated code in a container.
+                            - paragraph [ref=e3452]: Regarding test coverage, this is a toy compiler. Don't use it to compile production code! Regarding while loops and such, again, this is a simple compiler intended only to compile sort and search functions written in C.
+                          - paragraph [ref=e3454]:
+                            - link "reply" [ref=e3457] [cursor=pointer]:
+                              - /url: reply?id=47781590&goto=item%3Fid%3D47776796%2347781590
+            - row "upvote LLMCodeAuditor 3 hours ago | | | [–] No, the problem is much more basic than \"taking over your computer,\" it looks like the compiler generates incorrect assembly. Upon visual inspection I found a huge class of infinite loops, but I am sure there are subtle bugs that can corrupt running user/OS processes... including Docker, potentially. Containerization does not protect you from sloppy native code. > Don't use it to compile production code! This is an understatement. A more useful warning would be \"don't use it to compile any code with a while loop.\" Seriously, this compiler looks terrible. Worse than useless. If you really want AI to make a toy compiler just to help you learn, use Python or Javascript as a compilation target, so that the LLM's dumb bugs are mostly contained, and much easier to understand. Learn assembly programming separately. reply" [ref=e3458]:
+              - cell "upvote LLMCodeAuditor 3 hours ago | | | [–] No, the problem is much more basic than \"taking over your computer,\" it looks like the compiler generates incorrect assembly. Upon visual inspection I found a huge class of infinite loops, but I am sure there are subtle bugs that can corrupt running user/OS processes... including Docker, potentially. Containerization does not protect you from sloppy native code. > Don't use it to compile production code! This is an understatement. A more useful warning would be \"don't use it to compile any code with a while loop.\" Seriously, this compiler looks terrible. Worse than useless. If you really want AI to make a toy compiler just to help you learn, use Python or Javascript as a compilation target, so that the LLM's dumb bugs are mostly contained, and much easier to understand. Learn assembly programming separately. reply" [ref=e3459]:
+                - table [ref=e3460]:
+                  - rowgroup [ref=e3461]:
+                    - row "upvote LLMCodeAuditor 3 hours ago | | | [–] No, the problem is much more basic than \"taking over your computer,\" it looks like the compiler generates incorrect assembly. Upon visual inspection I found a huge class of infinite loops, but I am sure there are subtle bugs that can corrupt running user/OS processes... including Docker, potentially. Containerization does not protect you from sloppy native code. > Don't use it to compile production code! This is an understatement. A more useful warning would be \"don't use it to compile any code with a while loop.\" Seriously, this compiler looks terrible. Worse than useless. If you really want AI to make a toy compiler just to help you learn, use Python or Javascript as a compilation target, so that the LLM's dumb bugs are mostly contained, and much easier to understand. Learn assembly programming separately. reply" [ref=e3462]:
+                      - cell [ref=e3463]:
+                        - img [ref=e3464]
+                      - cell "upvote" [ref=e3465]:
+                        - link "upvote" [ref=e3467] [cursor=pointer]:
+                          - /url: vote?id=47782114&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3468]
+                      - cell "LLMCodeAuditor 3 hours ago | | | [–] No, the problem is much more basic than \"taking over your computer,\" it looks like the compiler generates incorrect assembly. Upon visual inspection I found a huge class of infinite loops, but I am sure there are subtle bugs that can corrupt running user/OS processes... including Docker, potentially. Containerization does not protect you from sloppy native code. > Don't use it to compile production code! This is an understatement. A more useful warning would be \"don't use it to compile any code with a while loop.\" Seriously, this compiler looks terrible. Worse than useless. If you really want AI to make a toy compiler just to help you learn, use Python or Javascript as a compilation target, so that the LLM's dumb bugs are mostly contained, and much easier to understand. Learn assembly programming separately. reply" [ref=e3469]:
+                        - generic [ref=e3471]:
+                          - link "LLMCodeAuditor" [ref=e3472] [cursor=pointer]:
+                            - /url: user?id=LLMCodeAuditor
+                          - generic "2026-04-15T17:15:34 1776273334" [ref=e3473]:
+                            - link "3 hours ago" [ref=e3474] [cursor=pointer]:
+                              - /url: item?id=47782114
+                          - generic [ref=e3475]:
+                            - text: "|"
+                            - link [ref=e3476] [cursor=pointer]:
+                              - /url: "#47778558"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e3477] [cursor=pointer]:
+                              - /url: "#47781590"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3478] [cursor=pointer]:
+                              - /url: "#47778650"
+                              - text: next
+                            - link "[–]" [ref=e3479] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3480]:
+                          - generic [ref=e3481]:
+                            - text: No, the problem is much more basic than "taking over your computer," it looks like the compiler generates incorrect assembly. Upon visual inspection I found a huge class of infinite loops, but I am sure there are subtle bugs that can corrupt running user/OS processes... including Docker, potentially. Containerization does not protect you from sloppy native code.
+                            - paragraph [ref=e3482]: "> Don't use it to compile production code!"
+                            - paragraph [ref=e3483]: This is an understatement. A more useful warning would be "don't use it to compile any code with a while loop." Seriously, this compiler looks terrible. Worse than useless.
+                            - paragraph [ref=e3484]: If you really want AI to make a toy compiler just to help you learn, use Python or Javascript as a compilation target, so that the LLM's dumb bugs are mostly contained, and much easier to understand. Learn assembly programming separately.
+                          - paragraph [ref=e3486]:
+                            - link "reply" [ref=e3489] [cursor=pointer]:
+                              - /url: reply?id=47782114&goto=item%3Fid%3D47776796%2347782114
+            - row "upvote lateforwork 3 hours ago | | | [–] You have not provided any evidence that can be refuted, only vague assertions. The compiler is indeed useless for any purpose other than learning how compilers work. It has all the key pieces such as a lexer, abstract syntax tree, parser, code generator, and it is easy to understand. If the general approach taken by the compiler is wrong then I would agree it is useless even for learning. But you are not making that claim, only claiming to have found some bugs. reply" [ref=e3490]:
+              - cell "upvote lateforwork 3 hours ago | | | [–] You have not provided any evidence that can be refuted, only vague assertions. The compiler is indeed useless for any purpose other than learning how compilers work. It has all the key pieces such as a lexer, abstract syntax tree, parser, code generator, and it is easy to understand. If the general approach taken by the compiler is wrong then I would agree it is useless even for learning. But you are not making that claim, only claiming to have found some bugs. reply" [ref=e3491]:
+                - table [ref=e3492]:
+                  - rowgroup [ref=e3493]:
+                    - row "upvote lateforwork 3 hours ago | | | [–] You have not provided any evidence that can be refuted, only vague assertions. The compiler is indeed useless for any purpose other than learning how compilers work. It has all the key pieces such as a lexer, abstract syntax tree, parser, code generator, and it is easy to understand. If the general approach taken by the compiler is wrong then I would agree it is useless even for learning. But you are not making that claim, only claiming to have found some bugs. reply" [ref=e3494]:
+                      - cell [ref=e3495]:
+                        - img [ref=e3496]
+                      - cell "upvote" [ref=e3497]:
+                        - link "upvote" [ref=e3499] [cursor=pointer]:
+                          - /url: vote?id=47782302&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3500]
+                      - cell "lateforwork 3 hours ago | | | [–] You have not provided any evidence that can be refuted, only vague assertions. The compiler is indeed useless for any purpose other than learning how compilers work. It has all the key pieces such as a lexer, abstract syntax tree, parser, code generator, and it is easy to understand. If the general approach taken by the compiler is wrong then I would agree it is useless even for learning. But you are not making that claim, only claiming to have found some bugs. reply" [ref=e3501]:
+                        - generic [ref=e3503]:
+                          - link "lateforwork" [ref=e3504] [cursor=pointer]:
+                            - /url: user?id=lateforwork
+                          - generic "2026-04-15T17:28:12 1776274092" [ref=e3505]:
+                            - link "3 hours ago" [ref=e3506] [cursor=pointer]:
+                              - /url: item?id=47782302
+                          - generic [ref=e3507]:
+                            - text: "|"
+                            - link [ref=e3508] [cursor=pointer]:
+                              - /url: "#47778558"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e3509] [cursor=pointer]:
+                              - /url: "#47782114"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3510] [cursor=pointer]:
+                              - /url: "#47778650"
+                              - text: next
+                            - link "[–]" [ref=e3511] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3512]:
+                          - generic [ref=e3513]:
+                            - text: You have not provided any evidence that can be refuted, only vague assertions.
+                            - paragraph [ref=e3514]: The compiler is indeed useless for any purpose other than learning how compilers work. It has all the key pieces such as a lexer, abstract syntax tree, parser, code generator, and it is easy to understand.
+                            - paragraph [ref=e3515]: If the general approach taken by the compiler is wrong then I would agree it is useless even for learning. But you are not making that claim, only claiming to have found some bugs.
+                          - paragraph [ref=e3517]:
+                            - link "reply" [ref=e3520] [cursor=pointer]:
+                              - /url: reply?id=47782302&goto=item%3Fid%3D47776796%2347782302
+            - row [ref=e3521]:
+              - cell [ref=e3522]:
+                - table [ref=e3523]:
+                  - rowgroup [ref=e3524]:
+                    - row [ref=e3525]:
+                      - cell [ref=e3526]:
+                        - img [ref=e3527]
+                      - cell "upvote" [ref=e3528]:
+                        - link "upvote" [ref=e3530] [cursor=pointer]:
+                          - /url: vote?id=47782799&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3531]
+                      - cell [ref=e3532]:
+                        - generic [ref=e3534]:
+                          - link "LLMCodeAuditor" [ref=e3535] [cursor=pointer]:
+                            - /url: user?id=LLMCodeAuditor
+                          - generic "2026-04-15T17:59:19 1776275959" [ref=e3536]:
+                            - link "3 hours ago" [ref=e3537] [cursor=pointer]:
+                              - /url: item?id=47782799
+                          - generic [ref=e3538]:
+                            - text: "|"
+                            - link [ref=e3539] [cursor=pointer]:
+                              - /url: "#47778558"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e3540] [cursor=pointer]:
+                              - /url: "#47782302"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3541] [cursor=pointer]:
+                              - /url: "#47778650"
+                              - text: next
+                            - link "[–]" [ref=e3542] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3543]:
+                          - generic [ref=e3544]:
+                            - text: The thing that is obviously and indisputably wrong, terrible for learners, is the test cases. They are woefully insufficient, and will not find those infinite loops I discovered upon reading the code. The poor test coverage means you should assume I am correct about the LLM being wrong! It is rude and insulting to demand I provide evidence that some lazy vibe-coded junk is in fact bad software. You should be demanding evidence that the project's README is accurate. The repo provides none.
+                            - paragraph [ref=e3545]: "The code quality is of course unacceptably terrible but there is no point in reviewing 1500 lines of LLM output. A starting point: learners will get nothing out of this without better comments. I understand what's going on since this is all Compilers 101. But considering it's a) stingily commented and b) incorrect, this project is 100% useless for learners. It's indefensible AI slop."
+                          - paragraph [ref=e3547]:
+                            - link "reply" [ref=e3550] [cursor=pointer]:
+                              - /url: reply?id=47782799&goto=item%3Fid%3D47776796%2347782799
+            - row "upvote lateforwork 2 hours ago | | | [–] Sorry I disagree. I have written compilers by hand and this compiler generated by Claude is pretty good for learning. I am only asking you to backup your own assertions. If you can't then I would have to assume that you are denigrating AI because you are threatened by it. reply" [ref=e3551]:
+              - cell "upvote lateforwork 2 hours ago | | | [–] Sorry I disagree. I have written compilers by hand and this compiler generated by Claude is pretty good for learning. I am only asking you to backup your own assertions. If you can't then I would have to assume that you are denigrating AI because you are threatened by it. reply" [ref=e3552]:
+                - table [ref=e3553]:
+                  - rowgroup [ref=e3554]:
+                    - row "upvote lateforwork 2 hours ago | | | [–] Sorry I disagree. I have written compilers by hand and this compiler generated by Claude is pretty good for learning. I am only asking you to backup your own assertions. If you can't then I would have to assume that you are denigrating AI because you are threatened by it. reply" [ref=e3555]:
+                      - cell [ref=e3556]:
+                        - img [ref=e3557]
+                      - cell "upvote" [ref=e3558]:
+                        - link "upvote" [ref=e3560] [cursor=pointer]:
+                          - /url: vote?id=47783026&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3561]
+                      - cell "lateforwork 2 hours ago | | | [–] Sorry I disagree. I have written compilers by hand and this compiler generated by Claude is pretty good for learning. I am only asking you to backup your own assertions. If you can't then I would have to assume that you are denigrating AI because you are threatened by it. reply" [ref=e3562]:
+                        - generic [ref=e3564]:
+                          - link "lateforwork" [ref=e3565] [cursor=pointer]:
+                            - /url: user?id=lateforwork
+                          - generic "2026-04-15T18:17:03 1776277023" [ref=e3566]:
+                            - link "2 hours ago" [ref=e3567] [cursor=pointer]:
+                              - /url: item?id=47783026
+                          - generic [ref=e3568]:
+                            - text: "|"
+                            - link [ref=e3569] [cursor=pointer]:
+                              - /url: "#47778558"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e3570] [cursor=pointer]:
+                              - /url: "#47782799"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3571] [cursor=pointer]:
+                              - /url: "#47778650"
+                              - text: next
+                            - link "[–]" [ref=e3572] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3573]:
+                          - generic [ref=e3574]:
+                            - text: Sorry I disagree. I have written compilers by hand and this compiler generated by Claude is pretty good for learning.
+                            - paragraph [ref=e3575]: I am only asking you to backup your own assertions. If you can't then I would have to assume that you are denigrating AI because you are threatened by it.
+                          - paragraph [ref=e3577]:
+                            - link "reply" [ref=e3580] [cursor=pointer]:
+                              - /url: reply?id=47783026&goto=item%3Fid%3D47776796%2347783026
+            - 'row "upvote LLMCodeAuditor 2 hours ago | | | [–] This comment is not worth responding to: https://news.ycombinator.com/newsguidelines.html#comments I pointed to two very specific problems with this project, and also directly mentioned that assembly generation for while loops was broken. It''s not a technical report but it''s a lot of substance for an HN comment. Instead of addressing any of that substance, you resorted to an insulting ad hominem. You are thoughtlessly rejecting contrary evidence, then pretending I''m not providing any. It''s straight out of the Flat Earther playbook. reply" [ref=e3581]':
+              - 'cell "upvote LLMCodeAuditor 2 hours ago | | | [–] This comment is not worth responding to: https://news.ycombinator.com/newsguidelines.html#comments I pointed to two very specific problems with this project, and also directly mentioned that assembly generation for while loops was broken. It''s not a technical report but it''s a lot of substance for an HN comment. Instead of addressing any of that substance, you resorted to an insulting ad hominem. You are thoughtlessly rejecting contrary evidence, then pretending I''m not providing any. It''s straight out of the Flat Earther playbook. reply" [ref=e3582]':
+                - table [ref=e3583]:
+                  - rowgroup [ref=e3584]:
+                    - 'row "upvote LLMCodeAuditor 2 hours ago | | | [–] This comment is not worth responding to: https://news.ycombinator.com/newsguidelines.html#comments I pointed to two very specific problems with this project, and also directly mentioned that assembly generation for while loops was broken. It''s not a technical report but it''s a lot of substance for an HN comment. Instead of addressing any of that substance, you resorted to an insulting ad hominem. You are thoughtlessly rejecting contrary evidence, then pretending I''m not providing any. It''s straight out of the Flat Earther playbook. reply" [ref=e3585]':
+                      - cell [ref=e3586]:
+                        - img [ref=e3587]
+                      - cell "upvote" [ref=e3588]:
+                        - link "upvote" [ref=e3590] [cursor=pointer]:
+                          - /url: vote?id=47783386&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3591]
+                      - 'cell "LLMCodeAuditor 2 hours ago | | | [–] This comment is not worth responding to: https://news.ycombinator.com/newsguidelines.html#comments I pointed to two very specific problems with this project, and also directly mentioned that assembly generation for while loops was broken. It''s not a technical report but it''s a lot of substance for an HN comment. Instead of addressing any of that substance, you resorted to an insulting ad hominem. You are thoughtlessly rejecting contrary evidence, then pretending I''m not providing any. It''s straight out of the Flat Earther playbook. reply" [ref=e3592]':
+                        - generic [ref=e3594]:
+                          - link "LLMCodeAuditor" [ref=e3595] [cursor=pointer]:
+                            - /url: user?id=LLMCodeAuditor
+                          - generic "2026-04-15T18:42:43 1776278563" [ref=e3596]:
+                            - link "2 hours ago" [ref=e3597] [cursor=pointer]:
+                              - /url: item?id=47783386
+                          - generic [ref=e3598]:
+                            - text: "|"
+                            - link [ref=e3599] [cursor=pointer]:
+                              - /url: "#47778558"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e3600] [cursor=pointer]:
+                              - /url: "#47783026"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3601] [cursor=pointer]:
+                              - /url: "#47778650"
+                              - text: next
+                            - link "[–]" [ref=e3602] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3603]:
+                          - generic [ref=e3604]:
+                            - text: "This comment is not worth responding to:"
+                            - link "https://news.ycombinator.com/newsguidelines.html#comments" [ref=e3605] [cursor=pointer]:
+                              - /url: https://news.ycombinator.com/newsguidelines.html#comments
+                            - paragraph [ref=e3606]: I pointed to two very specific problems with this project, and also directly mentioned that assembly generation for while loops was broken. It's not a technical report but it's a lot of substance for an HN comment. Instead of addressing any of that substance, you resorted to an insulting ad hominem. You are thoughtlessly rejecting contrary evidence, then pretending I'm not providing any. It's straight out of the Flat Earther playbook.
+                          - paragraph [ref=e3608]:
+                            - link "reply" [ref=e3611] [cursor=pointer]:
+                              - /url: reply?id=47783386&goto=item%3Fid%3D47776796%2347783386
+            - row "upvote lateforwork 2 hours ago | | | [–] You claimed bugs, and when asked for evidence of said bugs, you said it is rude to ask for evidence, and I should simply \"assume\" you are right. Okay. I think people can make up their own minds as to what that means. reply" [ref=e3612]:
+              - cell "upvote lateforwork 2 hours ago | | | [–] You claimed bugs, and when asked for evidence of said bugs, you said it is rude to ask for evidence, and I should simply \"assume\" you are right. Okay. I think people can make up their own minds as to what that means. reply" [ref=e3613]:
+                - table [ref=e3614]:
+                  - rowgroup [ref=e3615]:
+                    - row "upvote lateforwork 2 hours ago | | | [–] You claimed bugs, and when asked for evidence of said bugs, you said it is rude to ask for evidence, and I should simply \"assume\" you are right. Okay. I think people can make up their own minds as to what that means. reply" [ref=e3616]:
+                      - cell [ref=e3617]:
+                        - img [ref=e3618]
+                      - cell "upvote" [ref=e3619]:
+                        - link "upvote" [ref=e3621] [cursor=pointer]:
+                          - /url: vote?id=47783626&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3622]
+                      - cell "lateforwork 2 hours ago | | | [–] You claimed bugs, and when asked for evidence of said bugs, you said it is rude to ask for evidence, and I should simply \"assume\" you are right. Okay. I think people can make up their own minds as to what that means. reply" [ref=e3623]:
+                        - generic [ref=e3625]:
+                          - link "lateforwork" [ref=e3626] [cursor=pointer]:
+                            - /url: user?id=lateforwork
+                          - generic "2026-04-15T19:00:05 1776279605" [ref=e3627]:
+                            - link "2 hours ago" [ref=e3628] [cursor=pointer]:
+                              - /url: item?id=47783626
+                          - generic [ref=e3629]:
+                            - text: "|"
+                            - link [ref=e3630] [cursor=pointer]:
+                              - /url: "#47778558"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e3631] [cursor=pointer]:
+                              - /url: "#47783386"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3632] [cursor=pointer]:
+                              - /url: "#47778650"
+                              - text: next
+                            - link "[–]" [ref=e3633] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3634]:
+                          - generic [ref=e3635]: You claimed bugs, and when asked for evidence of said bugs, you said it is rude to ask for evidence, and I should simply "assume" you are right. Okay. I think people can make up their own minds as to what that means.
+                          - paragraph [ref=e3637]:
+                            - link "reply" [ref=e3640] [cursor=pointer]:
+                              - /url: reply?id=47783626&goto=item%3Fid%3D47776796%2347783626
+            - row "upvote angusturner 7 hours ago | | [–] why read that, vs an actually well-written compiler though? reply" [ref=e3641]:
+              - cell "upvote angusturner 7 hours ago | | [–] why read that, vs an actually well-written compiler though? reply" [ref=e3642]:
+                - table [ref=e3643]:
+                  - rowgroup [ref=e3644]:
+                    - row "upvote angusturner 7 hours ago | | [–] why read that, vs an actually well-written compiler though? reply" [ref=e3645]:
+                      - cell [ref=e3646]:
+                        - img [ref=e3647]
+                      - cell "upvote" [ref=e3648]:
+                        - link "upvote" [ref=e3650] [cursor=pointer]:
+                          - /url: vote?id=47778650&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3651]
+                      - cell "angusturner 7 hours ago | | [–] why read that, vs an actually well-written compiler though? reply" [ref=e3652]:
+                        - generic [ref=e3654]:
+                          - link "angusturner" [ref=e3655] [cursor=pointer]:
+                            - /url: user?id=angusturner
+                          - generic "2026-04-15T13:24:51 1776259491" [ref=e3656]:
+                            - link "7 hours ago" [ref=e3657] [cursor=pointer]:
+                              - /url: item?id=47778650
+                          - generic [ref=e3658]:
+                            - text: "|"
+                            - link [ref=e3659] [cursor=pointer]:
+                              - /url: "#47778558"
+                              - text: parent
+                            - text: "|"
+                            - link [ref=e3660] [cursor=pointer]:
+                              - /url: "#47780667"
+                              - text: prev
+                            - link "[–]" [ref=e3661] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3662]:
+                          - generic [ref=e3663]: why read that, vs an actually well-written compiler though?
+                          - paragraph [ref=e3665]:
+                            - link "reply" [ref=e3668] [cursor=pointer]:
+                              - /url: reply?id=47778650&goto=item%3Fid%3D47776796%2347778650
+            - row "upvote lateforwork 7 hours ago | | [–] Because an actual compiler would be tens of thousands of lines and most of it is going to be perf optimization. If you want to get the big picture first, read a simple working compiler that has all the key parts, such as a lexer, abstract syntax tree, parser, code generator and so on. reply" [ref=e3669]:
+              - cell "upvote lateforwork 7 hours ago | | [–] Because an actual compiler would be tens of thousands of lines and most of it is going to be perf optimization. If you want to get the big picture first, read a simple working compiler that has all the key parts, such as a lexer, abstract syntax tree, parser, code generator and so on. reply" [ref=e3670]:
+                - table [ref=e3671]:
+                  - rowgroup [ref=e3672]:
+                    - row "upvote lateforwork 7 hours ago | | [–] Because an actual compiler would be tens of thousands of lines and most of it is going to be perf optimization. If you want to get the big picture first, read a simple working compiler that has all the key parts, such as a lexer, abstract syntax tree, parser, code generator and so on. reply" [ref=e3673]:
+                      - cell [ref=e3674]:
+                        - img [ref=e3675]
+                      - cell "upvote" [ref=e3676]:
+                        - link "upvote" [ref=e3678] [cursor=pointer]:
+                          - /url: vote?id=47778870&how=up&goto=item%3Fid%3D47776796
+                          - generic "upvote" [ref=e3679]
+                      - cell "lateforwork 7 hours ago | | [–] Because an actual compiler would be tens of thousands of lines and most of it is going to be perf optimization. If you want to get the big picture first, read a simple working compiler that has all the key parts, such as a lexer, abstract syntax tree, parser, code generator and so on. reply" [ref=e3680]:
+                        - generic [ref=e3682]:
+                          - link "lateforwork" [ref=e3683] [cursor=pointer]:
+                            - /url: user?id=lateforwork
+                          - generic "2026-04-15T13:43:24 1776260604" [ref=e3684]:
+                            - link "7 hours ago" [ref=e3685] [cursor=pointer]:
+                              - /url: item?id=47778870
+                          - generic [ref=e3686]:
+                            - text: "|"
+                            - link [ref=e3687] [cursor=pointer]:
+                              - /url: "#47778558"
+                              - text: root
+                            - text: "|"
+                            - link [ref=e3688] [cursor=pointer]:
+                              - /url: "#47778650"
+                              - text: parent
+                            - link "[–]" [ref=e3689] [cursor=pointer]:
+                              - /url: javascript:void(0)
+                        - generic [ref=e3690]:
+                          - generic [ref=e3691]: Because an actual compiler would be tens of thousands of lines and most of it is going to be perf optimization. If you want to get the big picture first, read a simple working compiler that has all the key parts, such as a lexer, abstract syntax tree, parser, code generator and so on.
+                          - paragraph [ref=e3693]:
+                            - link "reply" [ref=e3696] [cursor=pointer]:
+                              - /url: reply?id=47778870&goto=item%3Fid%3D47776796%2347778870
+    - row "Guidelines | FAQ | Lists | API | Security | Legal | Apply to YC | Contact Search:" [ref=e3697]:
+      - cell "Guidelines | FAQ | Lists | API | Security | Legal | Apply to YC | Contact Search:" [ref=e3698]:
+        - img
+        - table [ref=e3699]:
+          - rowgroup [ref=e3700]:
+            - row [ref=e3701]:
+              - cell [ref=e3702]
+        - generic [ref=e3703]:
+          - generic [ref=e3704]:
+            - link "Guidelines" [ref=e3705] [cursor=pointer]:
+              - /url: newsguidelines.html
+            - text: "|"
+            - link "FAQ" [ref=e3706] [cursor=pointer]:
+              - /url: newsfaq.html
+            - text: "|"
+            - link "Lists" [ref=e3707] [cursor=pointer]:
+              - /url: lists
+            - text: "|"
+            - link "API" [ref=e3708] [cursor=pointer]:
+              - /url: https://github.com/HackerNews/API
+            - text: "|"
+            - link "Security" [ref=e3709] [cursor=pointer]:
+              - /url: security.html
+            - text: "|"
+            - link "Legal" [ref=e3710] [cursor=pointer]:
+              - /url: https://www.ycombinator.com/legal/
+            - text: "|"
+            - link "Apply to YC" [ref=e3711] [cursor=pointer]:
+              - /url: https://www.ycombinator.com/apply/
+            - text: "|"
+            - link "Contact" [ref=e3712] [cursor=pointer]:
+              - /url: mailto:hn@ycombinator.com
+          - generic [ref=e3713]:
+            - text: "Search:"
+            - textbox [ref=e3714]

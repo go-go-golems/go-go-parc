@@ -1,0 +1,1139 @@
+{
+  "metadata": {
+    "institute": "Research Institute",
+    "collection": "Programming and Computer Science Library",
+    "exported_at": "2026-04-10",
+    "source": "reMarkable Tablet",
+    "total_books": 90,
+    "categories": [
+      "Machine Learning",
+      "Operating Systems",
+      "Security",
+      "AI/Neural Networks",
+      "AI/Logic Programming",
+      "Programming Languages",
+      "Concurrency",
+      "Type Theory",
+      "Educational Programming",
+      "Mathematics",
+      "Logic Programming",
+      "Functional Programming",
+      "Computer Architecture",
+      "Software Engineering",
+      "Hardware/FPGA",
+      "Agent-Based Modeling",
+      "Computing History",
+      "Lisp/Functional Programming",
+      "JavaScript",
+      "Distributed Systems",
+      "Scientific Programming",
+      "Software Design",
+      "Software Architecture",
+      "Compilers",
+      "Machine Learning/History",
+      "Systems Programming",
+      "AI/Planning",
+      "Problem Solving",
+      "Visual Programming",
+      "Algorithms",
+      "Theory of Computation",
+      "AI/Cognitive Science",
+      "Embedded Systems",
+      "AI/Agents"
+    ],
+    "ids_added": "2026-04-10",
+    "ids_source": "reMarkable cloud via remarquee cloud ls",
+    "match_method": "programmatic (77 automatic + 13 manual mappings)",
+    "total_with_ids": 90,
+    "match_tool": "jq with title normalization"
+  },
+  "books": [
+    {
+      "title": "Multiagent Systems (2nd Edition)",
+      "author": "Gerhard Weiss",
+      "path": "/Books/AI",
+      "category": "AI/Agents",
+      "tags": [
+        "multiagent systems",
+        "distributed AI"
+      ],
+      "id": "8ac30671-099a-4b93-960b-e80b3ab131d9"
+    },
+    {
+      "title": "Multiagent Systems: Algorithmic, Game-Theoretic, and Logical Foundations",
+      "author": "Yoav Shoham, Kevin Leyton-Brown",
+      "path": "/Books/AI",
+      "category": "AI/Agents",
+      "tags": [
+        "multiagent systems",
+        "game theory",
+        "distributed AI"
+      ],
+      "id": "f1aa0d8d-979b-4cb8-81aa-8f4dfca07445"
+    },
+    {
+      "title": "Society of Mind",
+      "author": "Marvin Minsky",
+      "path": "/Books/AI",
+      "category": "AI/Cognitive Science",
+      "tags": [
+        "cognitive science",
+        "AI architecture",
+        "mind"
+      ],
+      "id": "2e4f493d-5c6b-4746-bf8f-ea97efa6b4e0"
+    },
+    {
+      "title": "Artificial Intelligence Techniques in Prolog",
+      "author": "Yoav Shoham",
+      "path": "/Books/AI",
+      "category": "AI/Logic Programming",
+      "tags": [
+        "AI",
+        "Prolog",
+        "logic programming"
+      ],
+      "id": "b3ed855a-0ead-45d4-8b32-c60ef4b5baf3"
+    },
+    {
+      "title": "Agile Artificial Intelligence in Pharo: Implementing Neural Networks",
+      "author": "Alexandre Bergel",
+      "path": "/Books/AI",
+      "category": "AI/Neural Networks",
+      "tags": [
+        "AI",
+        "neural networks",
+        "Pharo",
+        "Smalltalk"
+      ],
+      "id": "ec3153c3-f100-4ef2-91d3-b88ad84ab0fb"
+    },
+    {
+      "title": "Automated Planning: Theory and Practice",
+      "author": "Ghallab, Nau, Traverso",
+      "path": "/Books/AI",
+      "category": "AI/Planning",
+      "tags": [
+        "planning",
+        "automated planning",
+        "AI"
+      ],
+      "id": "a14438bc-4ebb-4a49-808f-4b32ab3f4849"
+    },
+    {
+      "title": "Growing Artificial Societies: Social Science from the Bottom Up",
+      "author": "Joshua M. Epstein, Robert L. Axtell",
+      "path": "/Books/AI",
+      "category": "Agent-Based Modeling",
+      "tags": [
+        "agent-based modeling",
+        "social simulation",
+        "complex systems"
+      ],
+      "id": "baf6594e-991a-445f-8d38-ccdca35495f3"
+    },
+    {
+      "title": "Turtles, Termites and Traffic Jams: Explorations in Massively Parallel Microworlds",
+      "author": "Mitchel Resnick",
+      "path": "/Books/AI",
+      "category": "Agent-Based Modeling",
+      "tags": [
+        "parallel computing",
+        "agent-based modeling",
+        "StarLogo"
+      ],
+      "id": "ffbd436d-b4de-4732-a9c4-c11241afc2eb"
+    },
+    {
+      "title": "How to Solve It by Computer",
+      "author": "R. G. Dromey",
+      "path": "/Books/Software",
+      "category": "Algorithms",
+      "tags": [
+        "algorithms",
+        "problem solving",
+        "computer science"
+      ],
+      "id": "d9be317b-ffbd-4cdc-ba36-97b6d323edd9"
+    },
+    {
+      "title": "A Retargetable C Compiler: Design and Implementation",
+      "author": "Christopher W. Fraser, David R. Hanson",
+      "path": "/",
+      "category": "Compilers",
+      "tags": [
+        "C",
+        "compilers",
+        "language implementation"
+      ],
+      "id": "9014f0c3-e0f5-4a76-b30d-068a3d48b8c6"
+    },
+    {
+      "title": "Compiler Design: Virtual Machines",
+      "author": "Reinhard Wilhelm, Helmut Seidl",
+      "path": "/",
+      "category": "Compilers",
+      "tags": [
+        "compilers",
+        "virtual machines",
+        "language implementation"
+      ],
+      "id": "cbfa2209-833f-4de5-8853-5a7e1f092481"
+    },
+    {
+      "title": "Compiling with Continuations",
+      "author": "Andrew W. Appel",
+      "path": "/Books/Software",
+      "category": "Compilers",
+      "tags": [
+        "compilers",
+        "continuations",
+        "functional programming"
+      ],
+      "id": "7d170ac3-4841-421f-a582-39ae90b4b9cb"
+    },
+    {
+      "title": "Engineering a Compiler: VAX-11 Code Generation and Optimization",
+      "author": "Patricia Anklam",
+      "path": "/Books/Software",
+      "category": "Compilers",
+      "tags": [
+        "compilers",
+        "VAX",
+        "code generation",
+        "optimization"
+      ],
+      "id": "497fc10b-bc17-4b91-b4c9-fa697d7da005"
+    },
+    {
+      "title": "Language Implementation Patterns",
+      "author": "Terence Parr",
+      "path": "/",
+      "category": "Compilers",
+      "tags": [
+        "language implementation",
+        "parsing",
+        "interpreters"
+      ],
+      "id": "898ade27-7b47-426a-9ce4-1950f159daf6"
+    },
+    {
+      "title": "Language Implementation Patterns: Create Your Own Domain-Specific and General Programming Languages",
+      "author": "Terence Parr",
+      "path": "/",
+      "category": "Compilers",
+      "tags": [
+        "DSL",
+        "language implementation",
+        "parsers"
+      ],
+      "id": "898ade27-7b47-426a-9ce4-1950f159daf6"
+    },
+    {
+      "title": "Modern Compiler Design",
+      "author": "Dick Grune, Kees van Reeuwijk, Henry E. Bal",
+      "path": "/Books/Software",
+      "category": "Compilers",
+      "tags": [
+        "compilers",
+        "language implementation",
+        "parsing"
+      ],
+      "id": "fe301e5d-ab55-4f14-8c71-2e4ac0b5d290"
+    },
+    {
+      "title": "Principles of Compilers: A New Approach to Compilers Including the Algebraic Method",
+      "author": "Yunlin Su, Song Y. Yan",
+      "path": "/",
+      "category": "Compilers",
+      "tags": [
+        "compilers",
+        "formal methods",
+        "algebraic"
+      ],
+      "id": "71756d78-3ac5-4e7c-b42b-43d8d7926483"
+    },
+    {
+      "title": "Digital Design and Computer Architecture (RISC-V Edition)",
+      "author": "Sarah L. Harris, David Harris",
+      "path": "/",
+      "category": "Computer Architecture",
+      "tags": [
+        "RISC-V",
+        "digital design",
+        "computer architecture"
+      ],
+      "id": "e228b13e-d0fc-470e-8952-d0878d06eb66"
+    },
+    {
+      "title": "Stack Computers: The New Wave",
+      "author": "Philip Koopman",
+      "path": "/",
+      "category": "Computer Architecture",
+      "tags": [
+        "stack machines",
+        "computer architecture"
+      ],
+      "id": "ba37b492-a30b-4a8a-af86-da206210660a"
+    },
+    {
+      "title": "Structured Computer Organization",
+      "author": "Andrew S. Tanenbaum, Todd Austin",
+      "path": "/",
+      "category": "Computer Architecture",
+      "tags": [
+        "computer organization",
+        "architecture",
+        "systems"
+      ],
+      "id": "e03d7a0b-5a62-44de-b8bb-461c21c7b2a2"
+    },
+    {
+      "title": "The Architecture of Symbolic Computers",
+      "author": "Peter M. Kogge",
+      "path": "/Books/Software",
+      "category": "Computer Architecture",
+      "tags": [
+        "symbolic computing",
+        "Lisp",
+        "architecture"
+      ],
+      "id": "501097fb-58f0-4fc7-90a5-1c385df0989c"
+    },
+    {
+      "title": "An Autobiography of Ted Nelson: Possiplex",
+      "author": "Ted Nelson",
+      "path": "/Books/Technology",
+      "category": "Computing History",
+      "tags": [
+        "Ted Nelson",
+        "Xanadu",
+        "hypertext",
+        "computing history"
+      ],
+      "id": "dfd7b39b-baa6-4c43-9a0d-7ddfacae7caa"
+    },
+    {
+      "title": "The Engelbart Hypothesis: Dialogs with Douglas Engelbart",
+      "author": "Valerie Landau, Eileen Clegg",
+      "path": "/Books/Technology",
+      "category": "Computing History",
+      "tags": [
+        "Engelbart",
+        "NLS",
+        "history of computing",
+        "augmentation"
+      ],
+      "id": "3a6d671e-3b6e-4435-98df-0ab1df113f0a"
+    },
+    {
+      "title": "Communicating Sequential Processes",
+      "author": "C. A. R. Hoare",
+      "path": "/Books/Software",
+      "category": "Concurrency",
+      "tags": [
+        "CSP",
+        "concurrency",
+        "formal methods",
+        "parallel programming"
+      ],
+      "id": "d2c9cbdb-878d-42e7-a9d8-6dde8a582bba"
+    },
+    {
+      "title": "ACTORS: A Model of Concurrent Computation in Distributed Systems",
+      "author": "Gul Agha",
+      "path": "/",
+      "category": "Distributed Systems",
+      "tags": [
+        "actors",
+        "concurrency",
+        "distributed computing"
+      ],
+      "id": "70d0f1e8-c0b3-499f-86b5-3d3686a45ef0"
+    },
+    {
+      "title": "Design of Distributed Operating Systems",
+      "author": "Paul J. Fortier",
+      "path": "/Books/Software",
+      "category": "Distributed Systems",
+      "tags": [
+        "distributed systems",
+        "operating systems design"
+      ],
+      "id": "43c7483d-6aab-4f3c-91b3-d69a52f3f8cf"
+    },
+    {
+      "title": "Distributed Operating Systems",
+      "author": "Andrew S. Tanenbaum",
+      "path": "/Books/Software",
+      "category": "Distributed Systems",
+      "tags": [
+        "distributed systems",
+        "operating systems"
+      ],
+      "id": "b0b6c636-1202-4424-a571-f43d343871f9"
+    },
+    {
+      "title": "Distributed Operating Systems: Concepts and Practice",
+      "author": "Doreen L. Galli",
+      "path": "/Books/Software",
+      "category": "Distributed Systems",
+      "tags": [
+        "distributed systems",
+        "operating systems"
+      ],
+      "id": "cdd432b2-17ce-4120-9abc-2d3228125a37"
+    },
+    {
+      "title": "Distributed Systems (4th Edition)",
+      "author": "Maarten van Steen, Andrew S. Tanenbaum",
+      "path": "/Books/Software",
+      "category": "Distributed Systems",
+      "tags": [
+        "distributed systems",
+        "networking"
+      ],
+      "id": "9771f66a-b850-4cbf-865e-36151fb021ae"
+    },
+    {
+      "title": "Changing Minds: Computers, Learning, and Literacy",
+      "author": "Andrea A. diSessa",
+      "path": "/Books/Technology",
+      "category": "Educational Programming",
+      "tags": [
+        "education",
+        "computational literacy",
+        "Boxer"
+      ],
+      "id": "14571942-7b88-469b-920b-a1e3bdcf0f56"
+    },
+    {
+      "title": "Computer Science Logo Style 2e: Symbolic Computing",
+      "author": "Brian Harvey",
+      "path": "/Books/Software",
+      "category": "Educational Programming",
+      "tags": [
+        "Logo",
+        "symbolic computing",
+        "education"
+      ],
+      "id": "2b47e531-08af-426f-9d11-7902ad4b9af5"
+    },
+    {
+      "title": "Mindstorms: Children, Computers, and Powerful Ideas",
+      "author": "Seymour Papert",
+      "path": "/Books/Technology",
+      "category": "Educational Programming",
+      "tags": [
+        "Logo",
+        "education",
+        "constructionism",
+        "learning"
+      ],
+      "id": "abb7aa48-5ca7-44c6-8180-8a84864f4225"
+    },
+    {
+      "title": "Turtle Geometry: The Computer as a Medium for Exploring Mathematics",
+      "author": "Harold Abelson, Andrea diSessa",
+      "path": "/Books/Mathematics",
+      "category": "Educational Programming",
+      "tags": [
+        "Logo",
+        "turtle graphics",
+        "mathematics",
+        "education"
+      ],
+      "id": "cf972675-e778-47fa-8dee-4a61c5b9d738"
+    },
+    {
+      "title": "Embedded Microprocessor System Design using FPGAs",
+      "author": "Uwe Meyer-Baese",
+      "path": "/",
+      "category": "Embedded Systems",
+      "tags": [
+        "FPGA",
+        "embedded systems",
+        "microprocessors"
+      ],
+      "id": "4a4639d1-1513-45da-8afd-c3f701d9a47f"
+    },
+    {
+      "title": "An Architecture for Combinator Graph Reduction",
+      "author": "Philip John Koopman Jr.",
+      "path": "/",
+      "category": "Functional Programming",
+      "tags": [
+        "combinators",
+        "graph reduction",
+        "functional programming"
+      ],
+      "id": "8482518e-545d-4378-8721-402fcefa10cd"
+    },
+    {
+      "title": "FPGA Prototyping By Verilog Examples (Xilinx Spartan-3 Version)",
+      "author": "Pong P. Chu",
+      "path": "/",
+      "category": "Hardware/FPGA",
+      "tags": [
+        "FPGA",
+        "Verilog",
+        "hardware design"
+      ],
+      "id": "583ba2ea-7cd5-484c-b478-755bbb882636"
+    },
+    {
+      "title": "Deep JavaScript: Theory and Techniques",
+      "author": "Axel Rauschmayer",
+      "path": "/Books/Software/Javascript",
+      "category": "JavaScript",
+      "tags": [
+        "JavaScript",
+        "advanced concepts",
+        "language internals"
+      ],
+      "id": "33ba295f-f896-40d5-bf0c-892747a50129"
+    },
+    {
+      "title": "Anatomy of LISP",
+      "author": "John Allen",
+      "path": "/Books/Software",
+      "category": "Lisp/Functional Programming",
+      "tags": [
+        "Lisp",
+        "language internals",
+        "functional programming"
+      ],
+      "id": "d96895eb-b1f2-4f1f-a59f-0d0e5fa58c5b"
+    },
+    {
+      "title": "LISP Lore: A Guide to Programming the LISP Machine (2nd Edition)",
+      "author": "Hank Bromley, Richard Lamson",
+      "path": "/Books/Software/Lisp",
+      "category": "Lisp/Functional Programming",
+      "tags": [
+        "Lisp",
+        "Lisp Machine",
+        "functional programming",
+        "AI"
+      ],
+      "id": "0f3ed00e-31cf-4b31-9159-5cccd32672ed"
+    },
+    {
+      "title": "On LISP: Advanced Techniques for Common LISP",
+      "author": "Paul Graham",
+      "path": "/Books",
+      "category": "Lisp/Functional Programming",
+      "tags": [
+        "Lisp",
+        "advanced",
+        "macros",
+        "functional programming"
+      ],
+      "id": "eee2af6f-ca57-4cfe-9ff0-1f63cc0f6d57"
+    },
+    {
+      "title": "Adventure in Prolog",
+      "author": "Dennis Merritt",
+      "path": "/Books/Software",
+      "category": "Logic Programming",
+      "tags": [
+        "Prolog",
+        "logic programming",
+        "AI"
+      ],
+      "id": "f984f3c9-a42d-433c-a80f-64396e9e0da6"
+    },
+    {
+      "title": "Agent-Oriented Programming: From Prolog to Guarded Definite Clauses",
+      "author": "Matthew M. Huntbach, Graem A. Ringwood",
+      "path": "/Books/Software",
+      "category": "Logic Programming",
+      "tags": [
+        "Prolog",
+        "agents",
+        "logic programming"
+      ],
+      "id": "b52bbb87-e659-4b77-adad-5ca6b1a5ba07"
+    },
+    {
+      "title": "Warren's Abstract Machine: A Tutorial Reconstruction",
+      "author": "Hassan Ait-Kaci",
+      "path": "/Books/Software",
+      "category": "Logic Programming",
+      "tags": [
+        "Prolog",
+        "WAM",
+        "abstract machines"
+      ],
+      "id": "946437e6-79de-42d8-8917-845b210dd091"
+    },
+    {
+      "title": "Deep Reinforcement Learning with Python: RLHF for Chatbots and LLMs (2nd Edition)",
+      "author": "Nimish Sanghi",
+      "path": "/Books/AI",
+      "category": "Machine Learning",
+      "tags": [
+        "deep RL",
+        "Python",
+        "RLHF",
+        "LLMs"
+      ],
+      "id": "d6095aa3-05a2-443d-92be-4cdf68e00941"
+    },
+    {
+      "title": "Reinforcement Learning: An Introduction",
+      "author": "Richard S. Sutton, Andrew G. Barto",
+      "path": "/Books/AI",
+      "category": "Machine Learning",
+      "tags": [
+        "reinforcement learning",
+        "machine learning",
+        "AI"
+      ],
+      "id": "62523562-77d2-4510-b2c0-08ec25c5b51e"
+    },
+    {
+      "title": "Perceptrons: An Introduction to Computational Geometry",
+      "author": "Marvin Minsky, Seymour A. Papert",
+      "path": "/Books/AI",
+      "category": "Machine Learning/History",
+      "tags": [
+        "perceptrons",
+        "neural networks",
+        "computational geometry",
+        "AI history"
+      ],
+      "id": "cd5e5a11-903d-496f-be51-8004a79f2575"
+    },
+    {
+      "title": "Analysis I (Third Edition)",
+      "author": "Terence Tao",
+      "path": "/Books/Mathematics",
+      "category": "Mathematics",
+      "tags": [
+        "analysis",
+        "mathematics",
+        "foundations"
+      ],
+      "id": "17fdcbcb-4e7b-4683-8302-954927157757"
+    },
+    {
+      "title": "Advanced Concepts In Operating Systems",
+      "author": "Mukesh Singhal, Niranjan Shivaratri",
+      "path": "/Books/Software",
+      "category": "Operating Systems",
+      "tags": [
+        "operating systems",
+        "advanced concepts",
+        "distributed OS"
+      ],
+      "id": "6b505816-7f8b-45de-ae63-26f4a4b39d41"
+    },
+    {
+      "title": "Capability-Based Computer Systems",
+      "author": "Henry M. Levy",
+      "path": "/Books/Software",
+      "category": "Operating Systems",
+      "tags": [
+        "capabilities",
+        "security",
+        "computer architecture"
+      ],
+      "id": "3e9a0722-e8ad-44e0-8c51-00ad097c46c6"
+    },
+    {
+      "title": "Classic Operating Systems: From Batch Processing to Distributed Systems",
+      "author": "Per Brinch Hansen",
+      "path": "/Books/Software",
+      "category": "Operating Systems",
+      "tags": [
+        "operating systems history",
+        "batch processing",
+        "distributed systems"
+      ],
+      "id": "81263f8b-5e2d-45e7-be48-38ad5672d893"
+    },
+    {
+      "title": "Operating System Elements: A User Perspective",
+      "author": "Peter Calingaert",
+      "path": "/Books/Software",
+      "category": "Operating Systems",
+      "tags": [
+        "operating systems",
+        "user perspective"
+      ],
+      "id": "83f933d3-d4ac-427a-9145-de5391bb3289"
+    },
+    {
+      "title": "Operating Systems: Communicating with and Controlling the Computer",
+      "author": "Laurie S. Keller",
+      "path": "/Books/Software",
+      "category": "Operating Systems",
+      "tags": [
+        "operating systems",
+        "systems programming"
+      ],
+      "id": "3e388126-24d0-4e58-a0cd-e2d83cecd186"
+    },
+    {
+      "title": "Operating Systems: Internals and Design Principles",
+      "author": "William Stallings",
+      "path": "/Books/Software",
+      "category": "Operating Systems",
+      "tags": [
+        "operating systems",
+        "systems programming"
+      ],
+      "id": "fac89c46-cf06-46f7-8730-bcbbff82a669"
+    },
+    {
+      "title": "How to Solve It: A New Aspect of Mathematical Method",
+      "author": "George Polya",
+      "path": "/Books/Mathematics",
+      "category": "Problem Solving",
+      "tags": [
+        "problem solving",
+        "mathematics",
+        "heuristics"
+      ],
+      "id": "52601deb-09c6-4350-96bc-eb6cb6057f8e"
+    },
+    {
+      "title": "Concepts and Semantics of Programming Languages 2",
+      "author": "Thérèse Hardin",
+      "path": "/",
+      "category": "Programming Languages",
+      "tags": [
+        "type theory",
+        "semantics",
+        "OCaml",
+        "Python",
+        "C++"
+      ],
+      "id": "b2c86ba3-868c-4dcc-83ee-cd06310419e2"
+    },
+    {
+      "title": "Concepts and Semantics of Programming Languages 2: Modular and Object-oriented Constructs",
+      "author": "Thérèse Hardin",
+      "path": "/",
+      "category": "Programming Languages",
+      "tags": [
+        "OCaml",
+        "Python",
+        "C++",
+        "Ada",
+        "Java",
+        "type theory"
+      ],
+      "id": "b2c86ba3-868c-4dcc-83ee-cd06310419e2"
+    },
+    {
+      "title": "Concepts in Programming Languages",
+      "author": "John C. Mitchell",
+      "path": "/Books/Software",
+      "category": "Programming Languages",
+      "tags": [
+        "programming languages",
+        "language design",
+        "semantics"
+      ],
+      "id": "d7fe3c99-1671-4361-a4c5-84205e13bd0c"
+    },
+    {
+      "title": "Constraint Programming Languages: Their Specification and Generation",
+      "author": "Wm Leler",
+      "path": "/Books/Software",
+      "category": "Programming Languages",
+      "tags": [
+        "constraint programming",
+        "language design"
+      ],
+      "id": "ddab3fc3-e213-461f-adbc-0a3fb17d7de0"
+    },
+    {
+      "title": "Denotational Semantics: A Methodology for Language Development",
+      "author": "David A. Schmidt",
+      "path": "/Books",
+      "category": "Programming Languages",
+      "tags": [
+        "denotational semantics",
+        "formal methods",
+        "language design"
+      ],
+      "id": "402d5a64-f718-465c-8c92-8e51705a4b36"
+    },
+    {
+      "title": "Programming Language Pragmatics",
+      "author": "Michael L. Scott",
+      "path": "/Books/Software",
+      "category": "Programming Languages",
+      "tags": [
+        "programming languages",
+        "language design",
+        "implementation"
+      ],
+      "id": "72bde40c-8206-422f-b0a0-7ac20eca883e"
+    },
+    {
+      "title": "Programming Languages: An Interpreter-Based Approach",
+      "author": "Samuel N. Kamin",
+      "path": "/Books/Software",
+      "category": "Programming Languages",
+      "tags": [
+        "interpreters",
+        "programming languages"
+      ],
+      "id": "d48ad6d7-6ac2-4b6c-a3d8-476495db9732"
+    },
+    {
+      "title": "Semantics of Programming Languages: Structures and Techniques",
+      "author": "Carl A. Gunter",
+      "path": "/Books/Software",
+      "category": "Programming Languages",
+      "tags": [
+        "semantics",
+        "formal methods",
+        "language theory"
+      ],
+      "id": "1208a26e-456e-421a-810c-7e55529439eb"
+    },
+    {
+      "title": "Software Languages: Syntax, Semantics, and Metaprogramming",
+      "author": "Ralf Lämmel",
+      "path": "/",
+      "category": "Programming Languages",
+      "tags": [
+        "language design",
+        "metaprogramming",
+        "semantics"
+      ],
+      "id": "d308286b-31b4-4995-8d19-a3ce8648371f"
+    },
+    {
+      "title": "Brain Browser: HyperCard Application for the Macintosh",
+      "author": "Floyd E. Bloom",
+      "path": "/Books/Software/Hypercard",
+      "category": "Scientific Programming",
+      "tags": [
+        "HyperCard",
+        "scientific",
+        "neuroscience"
+      ],
+      "id": "bbf294c0-7d9e-4203-85c1-94fa92c1bd29"
+    },
+    {
+      "title": "Functional Differential Geometry",
+      "author": "Gerald Jay Sussman, Jack Wisdom, Will Farr",
+      "path": "/Books",
+      "category": "Scientific Programming",
+      "tags": [
+        "differential geometry",
+        "physics",
+        "functional programming",
+        "Scheme"
+      ],
+      "id": "b1a1b4c7-5146-4de4-bfa9-39fca112cdfb"
+    },
+    {
+      "title": "Structure and Interpretation of Classical Mechanics",
+      "author": "Gerald Jay Sussman, Jack Wisdom",
+      "path": "/Books/Mathematics",
+      "category": "Scientific Programming",
+      "tags": [
+        "physics",
+        "classical mechanics",
+        "computational",
+        "Scheme"
+      ],
+      "id": "7d465d8b-eff6-48a1-b685-c30adfc3d2db"
+    },
+    {
+      "title": "API Security in Action",
+      "author": "Neil Madden",
+      "path": "/",
+      "category": "Security",
+      "tags": [
+        "API",
+        "security",
+        "web development"
+      ],
+      "id": "02e320c5-b73d-4ea6-95b3-bc35301dec80"
+    },
+    {
+      "title": "Designing Secure Software",
+      "author": "Loren Kohnfelder",
+      "path": "/",
+      "category": "Security",
+      "tags": [
+        "secure development",
+        "software security"
+      ],
+      "id": "aec6300c-d007-4548-968f-6a15fee6e97e"
+    },
+    {
+      "title": "Designing Secure Software: A Guide for Developers",
+      "author": "Loren Kohnfelder",
+      "path": "/",
+      "category": "Security",
+      "tags": [
+        "secure software",
+        "development practices",
+        "security engineering"
+      ],
+      "id": "efe5a4c1-7cf6-478c-b9e4-9b58bf8d5880"
+    },
+    {
+      "title": "OAuth 2 in Action",
+      "author": "Justin Richer, Antonio Sanso",
+      "path": "/",
+      "category": "Security",
+      "tags": [
+        "OAuth",
+        "authentication",
+        "web security"
+      ],
+      "id": "045315b4-e772-4db7-87e1-8899988dda7b"
+    },
+    {
+      "title": "Security Engineering",
+      "author": "Ross J. Anderson",
+      "path": "/",
+      "category": "Security",
+      "tags": [
+        "security",
+        "engineering",
+        "systems"
+      ],
+      "id": "5002d9c1-03e6-4646-8d8e-51e15b6e99ec"
+    },
+    {
+      "title": "Solving Identity Management in Modern Applications",
+      "author": "Yvonne Wilson, Abhishek Hingnikar",
+      "path": "/",
+      "category": "Security",
+      "tags": [
+        "identity management",
+        "authentication",
+        "security"
+      ],
+      "id": "d9b0d866-54e9-46e3-ab61-89607efbaef8"
+    },
+    {
+      "title": "Web Security for Developers: Real Threats, Practical Defense",
+      "author": "Malcolm McDonald",
+      "path": "/",
+      "category": "Security",
+      "tags": [
+        "web security",
+        "development",
+        "cybersecurity"
+      ],
+      "id": "86f22435-52dc-4117-9c05-bfb6861e2aed"
+    },
+    {
+      "title": "Patterns of Enterprise Application Architecture",
+      "author": "Martin Fowler",
+      "path": "/",
+      "category": "Software Architecture",
+      "tags": [
+        "design patterns",
+        "enterprise",
+        "architecture"
+      ],
+      "id": "364baf48-238a-459b-b174-caa9040acd3a"
+    },
+    {
+      "title": "Filing and Finding",
+      "author": "Unknown",
+      "path": "/",
+      "category": "Software Design",
+      "tags": [
+        "information management",
+        "organization"
+      ],
+      "id": "126c7d4e-3ee3-4e05-bb23-6907dbaecc4b"
+    },
+    {
+      "title": "A Discipline of Programming",
+      "author": "Edsger W. Dijkstra",
+      "path": "/Books/Software",
+      "category": "Software Engineering",
+      "tags": [
+        "formal methods",
+        "correctness",
+        "algorithms"
+      ],
+      "id": "fe3f613f-e993-4d1d-89e2-8282728f15f7"
+    },
+    {
+      "title": "The Mythical Man-Month",
+      "author": "Frederick Brooks",
+      "path": "/Books",
+      "category": "Software Engineering",
+      "tags": [
+        "software engineering",
+        "project management",
+        "classic"
+      ],
+      "id": "50c8dee8-d99c-41aa-9c72-58e8e8d78eac"
+    },
+    {
+      "title": "Advanced Design and Implementation of Virtual Machines",
+      "author": "Xiao-Feng Li",
+      "path": "/",
+      "category": "Systems Programming",
+      "tags": [
+        "virtual machines",
+        "language runtime",
+        "systems"
+      ],
+      "id": "d29702b9-9a00-484e-8620-ad2b9d02e5ff"
+    },
+    {
+      "title": "Practical File System Design with the Be File System",
+      "author": "Dominic Giampaolo",
+      "path": "/",
+      "category": "Systems Programming",
+      "tags": [
+        "file systems",
+        "BeOS",
+        "operating systems"
+      ],
+      "id": "04c142cb-56df-4cdc-a46a-284048111625"
+    },
+    {
+      "title": "Virtual Machine Design and Implementation in C/C++",
+      "author": "Bill Blunden",
+      "path": "/",
+      "category": "Systems Programming",
+      "tags": [
+        "virtual machines",
+        "C",
+        "C++",
+        "systems programming"
+      ],
+      "id": "35b51e36-4058-489a-bac2-a8c4bfc8531a"
+    },
+    {
+      "title": "Computation: Finite and Infinite Machines",
+      "author": "Marvin Lee Minsky",
+      "path": "/Books/Software",
+      "category": "Theory of Computation",
+      "tags": [
+        "computation theory",
+        "automata",
+        "Turing machines"
+      ],
+      "id": "055ecaff-cb48-46af-8981-119047f0fb55"
+    },
+    {
+      "title": "Advanced Topics in Types and Programming Languages",
+      "author": "Benjamin C. Pierce",
+      "path": "/Books/Software",
+      "category": "Type Theory",
+      "tags": [
+        "type theory",
+        "advanced types",
+        "programming languages"
+      ],
+      "id": "219cbfb5-7447-4968-8c50-606e8be384e0"
+    },
+    {
+      "title": "Practical Foundations for Programming Languages",
+      "author": "Robert Harper",
+      "path": "/Books/Software",
+      "category": "Type Theory",
+      "tags": [
+        "type theory",
+        "programming languages",
+        "formal semantics"
+      ],
+      "id": "2907ad38-77fd-49f1-93b6-3d2b2873febb"
+    },
+    {
+      "title": "Types and Programming Languages",
+      "author": "Benjamin C. Pierce",
+      "path": "/Books/Software",
+      "category": "Type Theory",
+      "tags": [
+        "type theory",
+        "programming languages",
+        "formal methods"
+      ],
+      "id": "ce067992-19da-4916-9ae8-bedec7eed768"
+    },
+    {
+      "title": "HyperCard 2 in a Hurry",
+      "author": "George Beekman",
+      "path": "/Books/Software/Hypercard",
+      "category": "Visual Programming",
+      "tags": [
+        "HyperCard",
+        "quick start",
+        "tutorial"
+      ],
+      "id": "97cc2f0c-2309-41ff-9f5b-b8c45c33dfe8"
+    },
+    {
+      "title": "HyperCard Developer's Guide",
+      "author": "Danny Goodman",
+      "path": "/Books/Software/Hypercard",
+      "category": "Visual Programming",
+      "tags": [
+        "HyperCard",
+        "development",
+        "HyperTalk"
+      ],
+      "id": "492c7ad2-adcf-4f86-aa50-9770f092fc3c"
+    },
+    {
+      "title": "HyperCard Power: Techniques and Scripts",
+      "author": "Carol Kaehler",
+      "path": "/Books/Software/Hypercard",
+      "category": "Visual Programming",
+      "tags": [
+        "HyperCard",
+        "HyperTalk",
+        "visual programming",
+        "end-user programming"
+      ],
+      "id": "884cca92-13b3-4fd3-92ba-e36c424cd8e7"
+    },
+    {
+      "title": "The Complete Book of Hypertalk 2",
+      "author": "Dan Shafer",
+      "path": "/Books/Software/Hypercard",
+      "category": "Visual Programming",
+      "tags": [
+        "HyperCard",
+        "HyperTalk",
+        "language reference"
+      ],
+      "id": "41b45da4-e265-4532-bc8a-19bfcfc3040d"
+    },
+    {
+      "title": "Understanding HyperCard",
+      "author": "Greg Harvey",
+      "path": "/Books/Software/Hypercard",
+      "category": "Visual Programming",
+      "tags": [
+        "HyperCard",
+        "beginner",
+        "tutorial"
+      ],
+      "id": "5d616d4b-714c-48ca-84d6-2adfa6d5ee89"
+    },
+    {
+      "title": "Using HyperCard: From Home to HyperTalk",
+      "author": "Tay Vaughan",
+      "path": "/Books/Software/Hypercard",
+      "category": "Visual Programming",
+      "tags": [
+        "HyperCard",
+        "HyperTalk",
+        "end-user programming"
+      ],
+      "id": "b37b66d3-5ed9-4946-b002-47bf67e06c3a"
+    }
+  ]
+}

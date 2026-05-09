@@ -1,0 +1,3218 @@
+[
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:50:51.051Z",
+    "model": "glm-5.1",
+    "input": 40233,
+    "output": 64,
+    "cache_read": 704
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:50:58.184Z",
+    "model": "glm-5.1",
+    "input": 920,
+    "output": 44,
+    "cache_read": 40896
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:51:07.684Z",
+    "model": "glm-5.1",
+    "input": 237,
+    "output": 40,
+    "cache_read": 41792
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:51:18.792Z",
+    "model": "glm-5.1",
+    "input": 1286,
+    "output": 282,
+    "cache_read": 40896
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:51:30.236Z",
+    "model": "glm-5.1",
+    "input": 393,
+    "output": 198,
+    "cache_read": 42176
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:51:37.758Z",
+    "model": "glm-5.1",
+    "input": 149,
+    "output": 27,
+    "cache_read": 42560
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:51:47.069Z",
+    "model": "glm-5.1",
+    "input": 170,
+    "output": 86,
+    "cache_read": 42688
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:51:56.046Z",
+    "model": "glm-5.1",
+    "input": 400,
+    "output": 74,
+    "cache_read": 42816
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:52:03.108Z",
+    "model": "glm-5.1",
+    "input": 249,
+    "output": 38,
+    "cache_read": 43200
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:52:13.636Z",
+    "model": "glm-5.1",
+    "input": 138,
+    "output": 115,
+    "cache_read": 43392
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:52:20.833Z",
+    "model": "glm-5.1",
+    "input": 380,
+    "output": 42,
+    "cache_read": 43520
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:52:27.373Z",
+    "model": "glm-5.1",
+    "input": 405,
+    "output": 66,
+    "cache_read": 43840
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:52:34.546Z",
+    "model": "glm-5.1",
+    "input": 719,
+    "output": 62,
+    "cache_read": 44224
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:52:46.558Z",
+    "model": "glm-5.1",
+    "input": 388,
+    "output": 87,
+    "cache_read": 44928
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:52:56.142Z",
+    "model": "glm-5.1",
+    "input": 161,
+    "output": 138,
+    "cache_read": 45312
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:53:02.435Z",
+    "model": "glm-5.1",
+    "input": 230,
+    "output": 45,
+    "cache_read": 45440
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:53:10.387Z",
+    "model": "glm-5.1",
+    "input": 312,
+    "output": 62,
+    "cache_read": 45632
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:54:22.035Z",
+    "model": "glm-5.1",
+    "input": 162,
+    "output": 2408,
+    "cache_read": 45888
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:54:34.424Z",
+    "model": "glm-5.1",
+    "input": 2464,
+    "output": 237,
+    "cache_read": 46016
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:54:45.461Z",
+    "model": "glm-5.1",
+    "input": 276,
+    "output": 170,
+    "cache_read": 48448
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:54:55.609Z",
+    "model": "glm-5.1",
+    "input": 557,
+    "output": 128,
+    "cache_read": 48704
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:55:05.341Z",
+    "model": "glm-5.1",
+    "input": 513,
+    "output": 72,
+    "cache_read": 49216
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:55:12.924Z",
+    "model": "glm-5.1",
+    "input": 353,
+    "output": 84,
+    "cache_read": 49728
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:55:22.323Z",
+    "model": "glm-5.1",
+    "input": 228,
+    "output": 32,
+    "cache_read": 50048
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:55:29.218Z",
+    "model": "glm-5.1",
+    "input": 111,
+    "output": 57,
+    "cache_read": 50240
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:55:37.397Z",
+    "model": "glm-5.1",
+    "input": 316,
+    "output": 70,
+    "cache_read": 50304
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:55:43.821Z",
+    "model": "glm-5.1",
+    "input": 177,
+    "output": 36,
+    "cache_read": 50560
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:55:51.737Z",
+    "model": "glm-5.1",
+    "input": 106,
+    "output": 99,
+    "cache_read": 50688
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:56:00.071Z",
+    "model": "glm-5.1",
+    "input": 445,
+    "output": 102,
+    "cache_read": 50752
+  },
+  {
+    "session_id": "d5862158-d05b-49ac-b6be-15e9795c1a67",
+    "timestamp": "2026-04-15T15:56:13.305Z",
+    "model": "glm-5.1",
+    "input": 214,
+    "output": 319,
+    "cache_read": 51136
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:06:19.136Z",
+    "model": "glm-5.1",
+    "input": 55470,
+    "output": 134,
+    "cache_read": 9216
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:06:24.776Z",
+    "model": "glm-5.1",
+    "input": 1217,
+    "output": 69,
+    "cache_read": 64640
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:06:29.738Z",
+    "model": "glm-5.1",
+    "input": 113,
+    "output": 31,
+    "cache_read": 65856
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:06:33.526Z",
+    "model": "glm-5.1",
+    "input": 692,
+    "output": 54,
+    "cache_read": 65920
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:06:40.708Z",
+    "model": "glm-5.1",
+    "input": 113,
+    "output": 112,
+    "cache_read": 66560
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:06:54.501Z",
+    "model": "glm-5.1",
+    "input": 529,
+    "output": 391,
+    "cache_read": 66624
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:07:02.042Z",
+    "model": "glm-5.1",
+    "input": 441,
+    "output": 202,
+    "cache_read": 67136
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:07:10.118Z",
+    "model": "glm-5.1",
+    "input": 291,
+    "output": 246,
+    "cache_read": 67520
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:07:19.104Z",
+    "model": "glm-5.1",
+    "input": 312,
+    "output": 276,
+    "cache_read": 67776
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:07:28.511Z",
+    "model": "glm-5.1",
+    "input": 362,
+    "output": 79,
+    "cache_read": 68032
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:07:33.131Z",
+    "model": "glm-5.1",
+    "input": 177,
+    "output": 67,
+    "cache_read": 68352
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:07:37.887Z",
+    "model": "glm-5.1",
+    "input": 143,
+    "output": 67,
+    "cache_read": 68480
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:07:42.163Z",
+    "model": "glm-5.1",
+    "input": 469,
+    "output": 93,
+    "cache_read": 68608
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:07:45.824Z",
+    "model": "glm-5.1",
+    "input": 144,
+    "output": 70,
+    "cache_read": 69056
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:07:53.397Z",
+    "model": "glm-5.1",
+    "input": 245,
+    "output": 237,
+    "cache_read": 69184
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:08:00.007Z",
+    "model": "glm-5.1",
+    "input": 323,
+    "output": 191,
+    "cache_read": 69376
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:08:06.357Z",
+    "model": "glm-5.1",
+    "input": 225,
+    "output": 126,
+    "cache_read": 69696
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:08:11.169Z",
+    "model": "glm-5.1",
+    "input": 5387,
+    "output": 117,
+    "cache_read": 64640
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:08:15.453Z",
+    "model": "glm-5.1",
+    "input": 170,
+    "output": 77,
+    "cache_read": 70016
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:08:19.891Z",
+    "model": "glm-5.1",
+    "input": 177,
+    "output": 96,
+    "cache_read": 70144
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:08:25.879Z",
+    "model": "glm-5.1",
+    "input": 174,
+    "output": 69,
+    "cache_read": 70272
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:08:33.232Z",
+    "model": "glm-5.1",
+    "input": 177,
+    "output": 216,
+    "cache_read": 70400
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:08:39.780Z",
+    "model": "glm-5.1",
+    "input": 298,
+    "output": 181,
+    "cache_read": 70528
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:08:44.177Z",
+    "model": "glm-5.1",
+    "input": 254,
+    "output": 132,
+    "cache_read": 70784
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:08:49.371Z",
+    "model": "glm-5.1",
+    "input": 225,
+    "output": 81,
+    "cache_read": 70976
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:08:57.325Z",
+    "model": "glm-5.1",
+    "input": 121,
+    "output": 197,
+    "cache_read": 71168
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:09:00.895Z",
+    "model": "glm-5.1",
+    "input": 289,
+    "output": 79,
+    "cache_read": 71232
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:09:06.685Z",
+    "model": "glm-5.1",
+    "input": 119,
+    "output": 121,
+    "cache_read": 71488
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:09:10.920Z",
+    "model": "glm-5.1",
+    "input": 1729,
+    "output": 23,
+    "cache_read": 70016
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:09:17.535Z",
+    "model": "glm-5.1",
+    "input": 4456,
+    "output": 335,
+    "cache_read": 71680
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:09:27.812Z",
+    "model": "glm-5.1",
+    "input": 2844,
+    "output": 397,
+    "cache_read": 76096
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:09:34.731Z",
+    "model": "glm-5.1",
+    "input": 458,
+    "output": 306,
+    "cache_read": 78912
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:09:40.647Z",
+    "model": "glm-5.1",
+    "input": 347,
+    "output": 203,
+    "cache_read": 79360
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:09:45.172Z",
+    "model": "glm-5.1",
+    "input": 261,
+    "output": 81,
+    "cache_read": 79680
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:09:50.341Z",
+    "model": "glm-5.1",
+    "input": 1099,
+    "output": 94,
+    "cache_read": 79936
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:09:55.657Z",
+    "model": "glm-5.1",
+    "input": 1210,
+    "output": 91,
+    "cache_read": 81024
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:10:07.082Z",
+    "model": "glm-5.1",
+    "input": 177,
+    "output": 522,
+    "cache_read": 82176
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:10:11.067Z",
+    "model": "glm-5.1",
+    "input": 603,
+    "output": 76,
+    "cache_read": 82304
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:10:19.215Z",
+    "model": "glm-5.1",
+    "input": 2438,
+    "output": 242,
+    "cache_read": 82880
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:10:23.001Z",
+    "model": "glm-5.1",
+    "input": 278,
+    "output": 74,
+    "cache_read": 85312
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:10:30.272Z",
+    "model": "glm-5.1",
+    "input": 2090,
+    "output": 74,
+    "cache_read": 85568
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:10:37.554Z",
+    "model": "glm-5.1",
+    "input": 139,
+    "output": 275,
+    "cache_read": 87616
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:10:42.408Z",
+    "model": "glm-5.1",
+    "input": 318,
+    "output": 80,
+    "cache_read": 87744
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:10:50.157Z",
+    "model": "glm-5.1",
+    "input": 2176,
+    "output": 238,
+    "cache_read": 88000
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:10:54.136Z",
+    "model": "glm-5.1",
+    "input": 335,
+    "output": 82,
+    "cache_read": 90112
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:11:06.865Z",
+    "model": "glm-5.1",
+    "input": 1167,
+    "output": 459,
+    "cache_read": 90432
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:11:10.679Z",
+    "model": "glm-5.1",
+    "input": 505,
+    "output": 75,
+    "cache_read": 91584
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:11:18.692Z",
+    "model": "glm-5.1",
+    "input": 1084,
+    "output": 261,
+    "cache_read": 92032
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:11:22.710Z",
+    "model": "glm-5.1",
+    "input": 352,
+    "output": 79,
+    "cache_read": 93056
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:11:28.390Z",
+    "model": "glm-5.1",
+    "input": 1740,
+    "output": 97,
+    "cache_read": 93376
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:11:36.941Z",
+    "model": "glm-5.1",
+    "input": 175,
+    "output": 339,
+    "cache_read": 95104
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:11:40.750Z",
+    "model": "glm-5.1",
+    "input": 418,
+    "output": 76,
+    "cache_read": 95232
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:11:49.837Z",
+    "model": "glm-5.1",
+    "input": 343,
+    "output": 213,
+    "cache_read": 95616
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:11:54.388Z",
+    "model": "glm-5.1",
+    "input": 242,
+    "output": 97,
+    "cache_read": 95936
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:11:59.134Z",
+    "model": "glm-5.1",
+    "input": 153,
+    "output": 98,
+    "cache_read": 96128
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:12:04.078Z",
+    "model": "glm-5.1",
+    "input": 129,
+    "output": 100,
+    "cache_read": 96256
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:12:07.551Z",
+    "model": "glm-5.1",
+    "input": 152,
+    "output": 50,
+    "cache_read": 96384
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:12:13.314Z",
+    "model": "glm-5.1",
+    "input": 87,
+    "output": 108,
+    "cache_read": 96512
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:12:17.341Z",
+    "model": "glm-5.1",
+    "input": 610,
+    "output": 35,
+    "cache_read": 96576
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:12:23.188Z",
+    "model": "glm-5.1",
+    "input": 154,
+    "output": 105,
+    "cache_read": 97152
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:12:26.363Z",
+    "model": "glm-5.1",
+    "input": 500,
+    "output": 45,
+    "cache_read": 97280
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:12:30.835Z",
+    "model": "glm-5.1",
+    "input": 130,
+    "output": 103,
+    "cache_read": 97728
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:13:06.504Z",
+    "model": "glm-5.1",
+    "input": 112,
+    "output": 1689,
+    "cache_read": 97856
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:13:40.551Z",
+    "model": "glm-5.1",
+    "input": 1775,
+    "output": 1560,
+    "cache_read": 97920
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:13:51.441Z",
+    "model": "glm-5.1",
+    "input": 1641,
+    "output": 396,
+    "cache_read": 99648
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:22:37.678Z",
+    "model": "glm-5.1",
+    "input": 25493,
+    "output": 182,
+    "cache_read": 76096
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:22:41.609Z",
+    "model": "glm-5.1",
+    "input": 622,
+    "output": 69,
+    "cache_read": 101568
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:22:47.615Z",
+    "model": "glm-5.1",
+    "input": 122,
+    "output": 169,
+    "cache_read": 102144
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:22:55.582Z",
+    "model": "glm-5.1",
+    "input": 371,
+    "output": 191,
+    "cache_read": 102208
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:23:01.403Z",
+    "model": "glm-5.1",
+    "input": 497,
+    "output": 134,
+    "cache_read": 102528
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:23:08.472Z",
+    "model": "glm-5.1",
+    "input": 199,
+    "output": 160,
+    "cache_read": 102976
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:23:16.819Z",
+    "model": "glm-5.1",
+    "input": 1325,
+    "output": 187,
+    "cache_read": 103168
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:24:05.566Z",
+    "model": "glm-5.1",
+    "input": 882,
+    "output": 2514,
+    "cache_read": 104448
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:24:11.471Z",
+    "model": "glm-5.1",
+    "input": null,
+    "output": null,
+    "cache_read": null
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:28:35.456Z",
+    "model": "glm-5.1",
+    "input": 6284,
+    "output": 150,
+    "cache_read": 101568
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:28:46.238Z",
+    "model": "glm-5.1",
+    "input": 792,
+    "output": 305,
+    "cache_read": 107840
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:28:51.984Z",
+    "model": "glm-5.1",
+    "input": 575,
+    "output": 117,
+    "cache_read": 108608
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:29:10.350Z",
+    "model": "glm-5.1",
+    "input": 429,
+    "output": 772,
+    "cache_read": 109120
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:29:18.789Z",
+    "model": "glm-5.1",
+    "input": 878,
+    "output": 218,
+    "cache_read": 109504
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:29:25.125Z",
+    "model": "glm-5.1",
+    "input": 325,
+    "output": 149,
+    "cache_read": 110336
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:29:30.397Z",
+    "model": "glm-5.1",
+    "input": 797,
+    "output": 83,
+    "cache_read": 110656
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:29:35.224Z",
+    "model": "glm-5.1",
+    "input": 1585,
+    "output": 35,
+    "cache_read": 111424
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:29:44.605Z",
+    "model": "glm-5.1",
+    "input": 711,
+    "output": 169,
+    "cache_read": 112960
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:29:49.981Z",
+    "model": "glm-5.1",
+    "input": 1854,
+    "output": 109,
+    "cache_read": 113664
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:29:56.627Z",
+    "model": "glm-5.1",
+    "input": 178,
+    "output": 171,
+    "cache_read": 115456
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:30:03.258Z",
+    "model": "glm-5.1",
+    "input": 304,
+    "output": 176,
+    "cache_read": 115584
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:30:07.291Z",
+    "model": "glm-5.1",
+    "input": 548,
+    "output": 51,
+    "cache_read": 115840
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:30:16.661Z",
+    "model": "glm-5.1",
+    "input": 191,
+    "output": 341,
+    "cache_read": 116352
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:33:39.171Z",
+    "model": "glm-5.1",
+    "input": 9055,
+    "output": 344,
+    "cache_read": 107840
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:33:49.279Z",
+    "model": "glm-5.1",
+    "input": 2099,
+    "output": 160,
+    "cache_read": 116864
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:34:01.461Z",
+    "model": "glm-5.1",
+    "input": 3463,
+    "output": 447,
+    "cache_read": 118912
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:34:09.957Z",
+    "model": "glm-5.1",
+    "input": 775,
+    "output": 237,
+    "cache_read": 122368
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:34:17.580Z",
+    "model": "glm-5.1",
+    "input": 345,
+    "output": 200,
+    "cache_read": 123136
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:34:21.552Z",
+    "model": "glm-5.1",
+    "input": 325,
+    "output": 34,
+    "cache_read": 123456
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:34:28.282Z",
+    "model": "glm-5.1",
+    "input": 537,
+    "output": 108,
+    "cache_read": 123776
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:34:32.469Z",
+    "model": "glm-5.1",
+    "input": 592,
+    "output": 51,
+    "cache_read": 124288
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:34:37.830Z",
+    "model": "glm-5.1",
+    "input": 100,
+    "output": 92,
+    "cache_read": 124864
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:34:45.741Z",
+    "model": "glm-5.1",
+    "input": 439,
+    "output": 283,
+    "cache_read": 124928
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:34:51.019Z",
+    "model": "glm-5.1",
+    "input": 768,
+    "output": 68,
+    "cache_read": 125312
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:35:05.051Z",
+    "model": "glm-5.1",
+    "input": 439,
+    "output": 461,
+    "cache_read": 126016
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:35:19.609Z",
+    "model": "glm-5.1",
+    "input": 570,
+    "output": 467,
+    "cache_read": 126400
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:35:30.110Z",
+    "model": "glm-5.1",
+    "input": 577,
+    "output": 374,
+    "cache_read": 126912
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:35:33.782Z",
+    "model": "glm-5.1",
+    "input": 428,
+    "output": 43,
+    "cache_read": 127488
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:35:37.363Z",
+    "model": "glm-5.1",
+    "input": 172,
+    "output": 33,
+    "cache_read": 127872
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:35:45.708Z",
+    "model": "glm-5.1",
+    "input": 415,
+    "output": 335,
+    "cache_read": 128000
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:35:51.117Z",
+    "model": "glm-5.1",
+    "input": 1185,
+    "output": 119,
+    "cache_read": 128384
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:36:02.007Z",
+    "model": "glm-5.1",
+    "input": 770,
+    "output": 380,
+    "cache_read": 129536
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:36:11.908Z",
+    "model": "glm-5.1",
+    "input": 553,
+    "output": 358,
+    "cache_read": 130304
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T18:36:22.288Z",
+    "model": "glm-5.1",
+    "input": 550,
+    "output": 263,
+    "cache_read": 130816
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:16:42.572Z",
+    "model": "glm-5.1",
+    "input": 14638,
+    "output": 587,
+    "cache_read": 116864
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:16:52.758Z",
+    "model": "glm-5.1",
+    "input": 4207,
+    "output": 352,
+    "cache_read": 131456
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:16:58.852Z",
+    "model": "glm-5.1",
+    "input": 1679,
+    "output": 156,
+    "cache_read": 135616
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:17:03.158Z",
+    "model": "glm-5.1",
+    "input": 177,
+    "output": 86,
+    "cache_read": 137280
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:17:09.165Z",
+    "model": "glm-5.1",
+    "input": 207,
+    "output": 175,
+    "cache_read": 137408
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:17:15.439Z",
+    "model": "glm-5.1",
+    "input": 686,
+    "output": 132,
+    "cache_read": 137600
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:17:21.511Z",
+    "model": "glm-5.1",
+    "input": 351,
+    "output": 169,
+    "cache_read": 138240
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:17:26.767Z",
+    "model": "glm-5.1",
+    "input": 206,
+    "output": 152,
+    "cache_read": 138560
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:17:32.064Z",
+    "model": "glm-5.1",
+    "input": 508,
+    "output": 126,
+    "cache_read": 138752
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:17:36.142Z",
+    "model": "glm-5.1",
+    "input": 918,
+    "output": 67,
+    "cache_read": 139200
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:17:40.855Z",
+    "model": "glm-5.1",
+    "input": 117,
+    "output": 74,
+    "cache_read": 140096
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:17:45.049Z",
+    "model": "glm-5.1",
+    "input": 188,
+    "output": 70,
+    "cache_read": 140160
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:17:49.951Z",
+    "model": "glm-5.1",
+    "input": 152,
+    "output": 46,
+    "cache_read": 140288
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:17:55.503Z",
+    "model": "glm-5.1",
+    "input": 314,
+    "output": 98,
+    "cache_read": 140416
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:18:04.820Z",
+    "model": "glm-5.1",
+    "input": 250,
+    "output": 276,
+    "cache_read": 140672
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:18:12.913Z",
+    "model": "glm-5.1",
+    "input": 355,
+    "output": 195,
+    "cache_read": 140864
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:18:16.630Z",
+    "model": "glm-5.1",
+    "input": 331,
+    "output": 54,
+    "cache_read": 141184
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:18:22.478Z",
+    "model": "glm-5.1",
+    "input": 508,
+    "output": 152,
+    "cache_read": 141504
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:18:28.355Z",
+    "model": "glm-5.1",
+    "input": 436,
+    "output": 121,
+    "cache_read": 141952
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:18:33.324Z",
+    "model": "glm-5.1",
+    "input": 230,
+    "output": 87,
+    "cache_read": 142336
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:18:41.878Z",
+    "model": "glm-5.1",
+    "input": 11051,
+    "output": 414,
+    "cache_read": 131456
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:18:52.761Z",
+    "model": "glm-5.1",
+    "input": 488,
+    "output": 447,
+    "cache_read": 142464
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:19:07.978Z",
+    "model": "glm-5.1",
+    "input": 875,
+    "output": 664,
+    "cache_read": 142912
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:19:18.971Z",
+    "model": "glm-5.1",
+    "input": 1973,
+    "output": 484,
+    "cache_read": 143744
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:19:27.829Z",
+    "model": "glm-5.1",
+    "input": 794,
+    "output": 387,
+    "cache_read": 145664
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:19:35.097Z",
+    "model": "glm-5.1",
+    "input": 2343,
+    "output": 266,
+    "cache_read": 146432
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:19:49.240Z",
+    "model": "glm-5.1",
+    "input": 518,
+    "output": 694,
+    "cache_read": 148736
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:19:59.341Z",
+    "model": "glm-5.1",
+    "input": 1093,
+    "output": 357,
+    "cache_read": 149248
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:20:36.199Z",
+    "model": "glm-5.1",
+    "input": 1582,
+    "output": 1686,
+    "cache_read": 150336
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:20:41.157Z",
+    "model": "glm-5.1",
+    "input": 1799,
+    "output": 91,
+    "cache_read": 151872
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:20:52.195Z",
+    "model": "glm-5.1",
+    "input": 105,
+    "output": 322,
+    "cache_read": 153664
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:23:01.003Z",
+    "model": "glm-5.1",
+    "input": 11599,
+    "output": 134,
+    "cache_read": 142464
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:23:08.179Z",
+    "model": "glm-5.1",
+    "input": 591,
+    "output": 68,
+    "cache_read": 154048
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:23:12.873Z",
+    "model": "glm-5.1",
+    "input": 600,
+    "output": 62,
+    "cache_read": 154624
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:23:18.017Z",
+    "model": "glm-5.1",
+    "input": 244,
+    "output": 71,
+    "cache_read": 155200
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:23:22.353Z",
+    "model": "glm-5.1",
+    "input": 1142,
+    "output": 44,
+    "cache_read": 155392
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:23:38.375Z",
+    "model": "glm-5.1",
+    "input": 525,
+    "output": 517,
+    "cache_read": 156480
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:24:21.618Z",
+    "model": "glm-5.1",
+    "input": 634,
+    "output": 2023,
+    "cache_read": 156992
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:24:33.627Z",
+    "model": "glm-5.1",
+    "input": 2148,
+    "output": 395,
+    "cache_read": 157568
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:24:41.361Z",
+    "model": "glm-5.1",
+    "input": 523,
+    "output": 43,
+    "cache_read": 159680
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:24:47.079Z",
+    "model": "glm-5.1",
+    "input": 135,
+    "output": 60,
+    "cache_read": 160192
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:24:55.535Z",
+    "model": "glm-5.1",
+    "input": 363,
+    "output": 255,
+    "cache_read": 160320
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:25:23.578Z",
+    "model": "glm-5.1",
+    "input": 6875,
+    "output": 28,
+    "cache_read": 154048
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:25:27.289Z",
+    "model": "glm-5.1",
+    "input": 68,
+    "output": 33,
+    "cache_read": 160896
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:25:33.048Z",
+    "model": "glm-5.1",
+    "input": 3723,
+    "output": 133,
+    "cache_read": 160960
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:25:43.862Z",
+    "model": "glm-5.1",
+    "input": 325,
+    "output": 366,
+    "cache_read": 164672
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:25:50.413Z",
+    "model": "glm-5.1",
+    "input": 407,
+    "output": 134,
+    "cache_read": 164992
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:26:00.460Z",
+    "model": "glm-5.1",
+    "input": 262,
+    "output": 392,
+    "cache_read": 165376
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:26:07.519Z",
+    "model": "glm-5.1",
+    "input": 418,
+    "output": 236,
+    "cache_read": 165632
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:26:50.566Z",
+    "model": "glm-5.1",
+    "input": 298,
+    "output": 2318,
+    "cache_read": 166016
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:26:55.606Z",
+    "model": "glm-5.1",
+    "input": 2426,
+    "output": 92,
+    "cache_read": 166272
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:27:04.271Z",
+    "model": "glm-5.1",
+    "input": 282,
+    "output": 236,
+    "cache_read": 168640
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:28:32.598Z",
+    "model": "glm-5.1",
+    "input": 8295,
+    "output": 114,
+    "cache_read": 160896
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:28:54.742Z",
+    "model": "glm-5.1",
+    "input": 26,
+    "output": 543,
+    "cache_read": 169408
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:29:01.692Z",
+    "model": "glm-5.1",
+    "input": 730,
+    "output": 188,
+    "cache_read": 169408
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:29:08.790Z",
+    "model": "glm-5.1",
+    "input": 235,
+    "output": 74,
+    "cache_read": 170112
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:32:31.319Z",
+    "model": "glm-5.1",
+    "input": 1258,
+    "output": 2118,
+    "cache_read": 169152
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:32:37.802Z",
+    "model": "glm-5.1",
+    "input": 2190,
+    "output": 124,
+    "cache_read": 170368
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:49:34.112Z",
+    "model": "glm-5.1",
+    "input": 2318,
+    "output": 57,
+    "cache_read": 170368
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:49:38.513Z",
+    "model": "glm-5.1",
+    "input": 882,
+    "output": 46,
+    "cache_read": 172672
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:49:43.665Z",
+    "model": "glm-5.1",
+    "input": 510,
+    "output": 33,
+    "cache_read": 173504
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:49:51.034Z",
+    "model": "glm-5.1",
+    "input": 127,
+    "output": 61,
+    "cache_read": 173952
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:49:55.584Z",
+    "model": "glm-5.1",
+    "input": 471,
+    "output": 56,
+    "cache_read": 174016
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:50:01.364Z",
+    "model": "glm-5.1",
+    "input": 753,
+    "output": 52,
+    "cache_read": 174464
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:50:06.637Z",
+    "model": "glm-5.1",
+    "input": 747,
+    "output": 34,
+    "cache_read": 175168
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:50:12.535Z",
+    "model": "glm-5.1",
+    "input": 364,
+    "output": 133,
+    "cache_read": 175872
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:51:02.257Z",
+    "model": "glm-5.1",
+    "input": 3256,
+    "output": 2417,
+    "cache_read": 176192
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:51:11.530Z",
+    "model": "glm-5.1",
+    "input": 2536,
+    "output": 269,
+    "cache_read": 179392
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:52:07.841Z",
+    "model": "glm-5.1",
+    "input": 9551,
+    "output": 171,
+    "cache_read": 172672
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:52:13.137Z",
+    "model": "glm-5.1",
+    "input": 413,
+    "output": 86,
+    "cache_read": 182208
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:52:20.499Z",
+    "model": "glm-5.1",
+    "input": 228,
+    "output": 29,
+    "cache_read": 182592
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:52:26.181Z",
+    "model": "glm-5.1",
+    "input": 1709,
+    "output": 90,
+    "cache_read": 182784
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:52:34.021Z",
+    "model": "glm-5.1",
+    "input": 344,
+    "output": 30,
+    "cache_read": 184448
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:52:39.147Z",
+    "model": "glm-5.1",
+    "input": 474,
+    "output": 62,
+    "cache_read": 184768
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:52:45.981Z",
+    "model": "glm-5.1",
+    "input": 1027,
+    "output": 104,
+    "cache_read": 185216
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:52:53.457Z",
+    "model": "glm-5.1",
+    "input": 625,
+    "output": 133,
+    "cache_read": 186240
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:53:02.621Z",
+    "model": "glm-5.1",
+    "input": 591,
+    "output": 207,
+    "cache_read": 186816
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:53:14.043Z",
+    "model": "glm-5.1",
+    "input": 573,
+    "output": 292,
+    "cache_read": 187392
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:53:27.218Z",
+    "model": "glm-5.1",
+    "input": 430,
+    "output": 285,
+    "cache_read": 187904
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:53:37.103Z",
+    "model": "glm-5.1",
+    "input": 368,
+    "output": 439,
+    "cache_read": 188288
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:53:58.873Z",
+    "model": "glm-5.1",
+    "input": null,
+    "output": null,
+    "cache_read": null
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:54:09.454Z",
+    "model": "glm-5.1",
+    "input": 12,
+    "output": 244,
+    "cache_read": 189120
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:54:21.120Z",
+    "model": "glm-5.1",
+    "input": 294,
+    "output": 433,
+    "cache_read": 189120
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:54:39.405Z",
+    "model": "glm-5.1",
+    "input": 7604,
+    "output": 482,
+    "cache_read": 182208
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:58:18.831Z",
+    "model": "glm-5.1",
+    "input": 23589,
+    "output": 131,
+    "cache_read": 9280
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:58:23.012Z",
+    "model": "glm-5.1",
+    "input": 145,
+    "output": 63,
+    "cache_read": 32832
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:58:27.158Z",
+    "model": "glm-5.1",
+    "input": 123,
+    "output": 40,
+    "cache_read": 32960
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:58:31.529Z",
+    "model": "glm-5.1",
+    "input": 399,
+    "output": 55,
+    "cache_read": 33024
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:58:35.321Z",
+    "model": "glm-5.1",
+    "input": 120,
+    "output": 67,
+    "cache_read": 33408
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:58:41.933Z",
+    "model": "glm-5.1",
+    "input": 495,
+    "output": 155,
+    "cache_read": 33472
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:58:50.487Z",
+    "model": "glm-5.1",
+    "input": 208,
+    "output": 324,
+    "cache_read": 33920
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:59:01.610Z",
+    "model": "glm-5.1",
+    "input": 374,
+    "output": 487,
+    "cache_read": 34112
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:59:08.920Z",
+    "model": "glm-5.1",
+    "input": 575,
+    "output": 266,
+    "cache_read": 34432
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:59:27.566Z",
+    "model": "glm-5.1",
+    "input": 364,
+    "output": 725,
+    "cache_read": 34944
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:59:31.193Z",
+    "model": "glm-5.1",
+    "input": 802,
+    "output": 86,
+    "cache_read": 35264
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:59:35.265Z",
+    "model": "glm-5.1",
+    "input": 216,
+    "output": 43,
+    "cache_read": 36032
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:59:38.704Z",
+    "model": "glm-5.1",
+    "input": 101,
+    "output": 63,
+    "cache_read": 36224
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:59:41.813Z",
+    "model": "glm-5.1",
+    "input": 397,
+    "output": 61,
+    "cache_read": 36288
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:59:46.142Z",
+    "model": "glm-5.1",
+    "input": 279,
+    "output": 102,
+    "cache_read": 36672
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:59:52.059Z",
+    "model": "glm-5.1",
+    "input": 4251,
+    "output": 104,
+    "cache_read": 32832
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:59:54.448Z",
+    "model": "glm-5.1",
+    "input": 114,
+    "output": 36,
+    "cache_read": 37056
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:59:56.893Z",
+    "model": "glm-5.1",
+    "input": 374,
+    "output": 36,
+    "cache_read": 37120
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T19:59:59.446Z",
+    "model": "glm-5.1",
+    "input": 324,
+    "output": 37,
+    "cache_read": 37440
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:03.357Z",
+    "model": "glm-5.1",
+    "input": 307,
+    "output": 63,
+    "cache_read": 37760
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:06.251Z",
+    "model": "glm-5.1",
+    "input": 155,
+    "output": 62,
+    "cache_read": 38016
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:08.969Z",
+    "model": "glm-5.1",
+    "input": 133,
+    "output": 52,
+    "cache_read": 38144
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:12.365Z",
+    "model": "glm-5.1",
+    "input": 64,
+    "output": 69,
+    "cache_read": 38272
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:15.226Z",
+    "model": "glm-5.1",
+    "input": 878,
+    "output": 32,
+    "cache_read": 38272
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:17.634Z",
+    "model": "glm-5.1",
+    "input": 881,
+    "output": 32,
+    "cache_read": 39104
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:26.746Z",
+    "model": "glm-5.1",
+    "input": 178,
+    "output": 54,
+    "cache_read": 39936
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:36.899Z",
+    "model": "glm-5.1",
+    "input": 525,
+    "output": 34,
+    "cache_read": 40064
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:40.331Z",
+    "model": "glm-5.1",
+    "input": 588,
+    "output": 75,
+    "cache_read": 40576
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:43.504Z",
+    "model": "glm-5.1",
+    "input": 315,
+    "output": 33,
+    "cache_read": 41152
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:47.056Z",
+    "model": "glm-5.1",
+    "input": 1110,
+    "output": 49,
+    "cache_read": 41408
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:50.613Z",
+    "model": "glm-5.1",
+    "input": 690,
+    "output": 61,
+    "cache_read": 42496
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:55.135Z",
+    "model": "glm-5.1",
+    "input": 1623,
+    "output": 121,
+    "cache_read": 43136
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:00:58.175Z",
+    "model": "glm-5.1",
+    "input": 1689,
+    "output": 36,
+    "cache_read": 44736
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:01:02.939Z",
+    "model": "glm-5.1",
+    "input": 476,
+    "output": 110,
+    "cache_read": 46400
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:01:11.228Z",
+    "model": "glm-5.1",
+    "input": 249,
+    "output": 210,
+    "cache_read": 46848
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:01:17.993Z",
+    "model": "glm-5.1",
+    "input": 303,
+    "output": 198,
+    "cache_read": 47040
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:01:28.176Z",
+    "model": "glm-5.1",
+    "input": 450,
+    "output": 363,
+    "cache_read": 47296
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:01:41.755Z",
+    "model": "glm-5.1",
+    "input": 403,
+    "output": 538,
+    "cache_read": 47744
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:01:50.500Z",
+    "model": "glm-5.1",
+    "input": 595,
+    "output": 202,
+    "cache_read": 48128
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:02:02.770Z",
+    "model": "glm-5.1",
+    "input": 310,
+    "output": 423,
+    "cache_read": 48704
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:02:16.820Z",
+    "model": "glm-5.1",
+    "input": 532,
+    "output": 446,
+    "cache_read": 48960
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:02:21.489Z",
+    "model": "glm-5.1",
+    "input": 505,
+    "output": 75,
+    "cache_read": 49472
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:02:30.435Z",
+    "model": "glm-5.1",
+    "input": 144,
+    "output": 271,
+    "cache_read": 49920
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:02:37.340Z",
+    "model": "glm-5.1",
+    "input": 326,
+    "output": 243,
+    "cache_read": 50048
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:02:45.269Z",
+    "model": "glm-5.1",
+    "input": 289,
+    "output": 264,
+    "cache_read": 50368
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:02:49.277Z",
+    "model": "glm-5.1",
+    "input": 335,
+    "output": 94,
+    "cache_read": 50624
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:02:53.597Z",
+    "model": "glm-5.1",
+    "input": 124,
+    "output": 51,
+    "cache_read": 50944
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:02:56.936Z",
+    "model": "glm-5.1",
+    "input": 1430,
+    "output": 49,
+    "cache_read": 51008
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:03:02.554Z",
+    "model": "glm-5.1",
+    "input": 243,
+    "output": 160,
+    "cache_read": 52416
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:03:06.165Z",
+    "model": "glm-5.1",
+    "input": 248,
+    "output": 39,
+    "cache_read": 52608
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:03:14.532Z",
+    "model": "glm-5.1",
+    "input": 1374,
+    "output": 341,
+    "cache_read": 52800
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:03:14.784Z",
+    "model": "glm-5.1",
+    "input": null,
+    "output": null,
+    "cache_read": null
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:14:13.134Z",
+    "model": "glm-5.1",
+    "input": 17435,
+    "output": 115,
+    "cache_read": 37056
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:14:16.961Z",
+    "model": "glm-5.1",
+    "input": 1347,
+    "output": 50,
+    "cache_read": 54464
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:14:23.536Z",
+    "model": "glm-5.1",
+    "input": 60,
+    "output": 53,
+    "cache_read": 55808
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:14:28.098Z",
+    "model": "glm-5.1",
+    "input": 908,
+    "output": 102,
+    "cache_read": 55808
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:14:33.510Z",
+    "model": "glm-5.1",
+    "input": 1121,
+    "output": 134,
+    "cache_read": 56704
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:14:37.582Z",
+    "model": "glm-5.1",
+    "input": 838,
+    "output": 129,
+    "cache_read": 57792
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:14:43.055Z",
+    "model": "glm-5.1",
+    "input": 1041,
+    "output": 185,
+    "cache_read": 58624
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:14:46.823Z",
+    "model": "glm-5.1",
+    "input": 297,
+    "output": 89,
+    "cache_read": 59648
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:14:49.682Z",
+    "model": "glm-5.1",
+    "input": 450,
+    "output": 40,
+    "cache_read": 59904
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:14:54.751Z",
+    "model": "glm-5.1",
+    "input": 511,
+    "output": 72,
+    "cache_read": 60352
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:14:57.561Z",
+    "model": "glm-5.1",
+    "input": 219,
+    "output": 49,
+    "cache_read": 60800
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:15:00.247Z",
+    "model": "glm-5.1",
+    "input": 513,
+    "output": 50,
+    "cache_read": 60992
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:15:05.298Z",
+    "model": "glm-5.1",
+    "input": 274,
+    "output": 225,
+    "cache_read": 61504
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:15:09.436Z",
+    "model": "glm-5.1",
+    "input": 284,
+    "output": 62,
+    "cache_read": 61760
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:15:15.839Z",
+    "model": "glm-5.1",
+    "input": 370,
+    "output": 90,
+    "cache_read": 62016
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:15:24.747Z",
+    "model": "glm-5.1",
+    "input": 356,
+    "output": 443,
+    "cache_read": 62336
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:15:28.319Z",
+    "model": "glm-5.1",
+    "input": 538,
+    "output": 48,
+    "cache_read": 62656
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:15:31.730Z",
+    "model": "glm-5.1",
+    "input": 186,
+    "output": 68,
+    "cache_read": 63168
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:15:35.947Z",
+    "model": "glm-5.1",
+    "input": 415,
+    "output": 49,
+    "cache_read": 63296
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:15:46.490Z",
+    "model": "glm-5.1",
+    "input": 396,
+    "output": 566,
+    "cache_read": 63680
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:15:52.256Z",
+    "model": "glm-5.1",
+    "input": 619,
+    "output": 184,
+    "cache_read": 64064
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:15:54.854Z",
+    "model": "glm-5.1",
+    "input": 268,
+    "output": 40,
+    "cache_read": 64640
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:16:00.913Z",
+    "model": "glm-5.1",
+    "input": 650,
+    "output": 67,
+    "cache_read": 64896
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:16:10.465Z",
+    "model": "glm-5.1",
+    "input": 32,
+    "output": 147,
+    "cache_read": 65728
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:16:13.362Z",
+    "model": "glm-5.1",
+    "input": 220,
+    "output": 51,
+    "cache_read": 65728
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:16:21.217Z",
+    "model": "glm-5.1",
+    "input": 390,
+    "output": 206,
+    "cache_read": 65920
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:16:28.818Z",
+    "model": "glm-5.1",
+    "input": 446,
+    "output": 267,
+    "cache_read": 66304
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:17:05.731Z",
+    "model": "glm-5.1",
+    "input": 12503,
+    "output": 466,
+    "cache_read": 54464
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:17:11.597Z",
+    "model": "glm-5.1",
+    "input": 1560,
+    "output": 212,
+    "cache_read": 66944
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:17:21.357Z",
+    "model": "glm-5.1",
+    "input": 3239,
+    "output": 369,
+    "cache_read": 68480
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:17:29.458Z",
+    "model": "glm-5.1",
+    "input": 786,
+    "output": 347,
+    "cache_read": 71680
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:17:41.239Z",
+    "model": "glm-5.1",
+    "input": 1149,
+    "output": 518,
+    "cache_read": 72448
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:17:50.322Z",
+    "model": "glm-5.1",
+    "input": 953,
+    "output": 436,
+    "cache_read": 73536
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:17:55.453Z",
+    "model": "glm-5.1",
+    "input": 745,
+    "output": 134,
+    "cache_read": 74432
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:17:58.981Z",
+    "model": "glm-5.1",
+    "input": 188,
+    "output": 32,
+    "cache_read": 75136
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:18:04.606Z",
+    "model": "glm-5.1",
+    "input": 115,
+    "output": 235,
+    "cache_read": 75264
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:18:12.415Z",
+    "model": "glm-5.1",
+    "input": 918,
+    "output": 290,
+    "cache_read": 75328
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:18:16.274Z",
+    "model": "glm-5.1",
+    "input": 345,
+    "output": 85,
+    "cache_read": 76224
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:18:19.729Z",
+    "model": "glm-5.1",
+    "input": 218,
+    "output": 86,
+    "cache_read": 76544
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:18:27.459Z",
+    "model": "glm-5.1",
+    "input": 360,
+    "output": 277,
+    "cache_read": 76736
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:18:30.941Z",
+    "model": "glm-5.1",
+    "input": 413,
+    "output": 60,
+    "cache_read": 77056
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:18:36.366Z",
+    "model": "glm-5.1",
+    "input": null,
+    "output": null,
+    "cache_read": null
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:18:58.274Z",
+    "model": "glm-5.1",
+    "input": 10572,
+    "output": 90,
+    "cache_read": 66944
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:19:02.143Z",
+    "model": "glm-5.1",
+    "input": 137,
+    "output": 39,
+    "cache_read": 77504
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:19:05.278Z",
+    "model": "glm-5.1",
+    "input": 70,
+    "output": 55,
+    "cache_read": 77632
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:19:11.440Z",
+    "model": "glm-5.1",
+    "input": 155,
+    "output": 174,
+    "cache_read": 77696
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:19:16.414Z",
+    "model": "glm-5.1",
+    "input": 333,
+    "output": 96,
+    "cache_read": 77824
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:19:21.881Z",
+    "model": "glm-5.1",
+    "input": 218,
+    "output": 142,
+    "cache_read": 78144
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:19:27.958Z",
+    "model": "glm-5.1",
+    "input": 458,
+    "output": 205,
+    "cache_read": 78336
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:19:32.551Z",
+    "model": "glm-5.1",
+    "input": 222,
+    "output": 138,
+    "cache_read": 78784
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:19:37.509Z",
+    "model": "glm-5.1",
+    "input": 209,
+    "output": 133,
+    "cache_read": 78976
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:19:47.288Z",
+    "model": "glm-5.1",
+    "input": 157,
+    "output": 54,
+    "cache_read": 79168
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:19:51.319Z",
+    "model": "glm-5.1",
+    "input": 2095,
+    "output": 130,
+    "cache_read": 77504
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:19:58.062Z",
+    "model": "glm-5.1",
+    "input": 1209,
+    "output": 274,
+    "cache_read": 79552
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:20:04.215Z",
+    "model": "glm-5.1",
+    "input": 362,
+    "output": 159,
+    "cache_read": 80704
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:20:11.853Z",
+    "model": "glm-5.1",
+    "input": 295,
+    "output": 347,
+    "cache_read": 81024
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:20:19.905Z",
+    "model": "glm-5.1",
+    "input": 2910,
+    "output": 352,
+    "cache_read": 81280
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:20:28.415Z",
+    "model": "glm-5.1",
+    "input": 1285,
+    "output": 318,
+    "cache_read": 84160
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:20:37.993Z",
+    "model": "glm-5.1",
+    "input": 3,
+    "output": 118,
+    "cache_read": 85952
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:20:47.342Z",
+    "model": "glm-5.1",
+    "input": 133,
+    "output": 387,
+    "cache_read": 85952
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:20:57.979Z",
+    "model": "glm-5.1",
+    "input": 784,
+    "output": 423,
+    "cache_read": 86080
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:21:06.508Z",
+    "model": "glm-5.1",
+    "input": 451,
+    "output": 400,
+    "cache_read": 86848
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:21:17.221Z",
+    "model": "glm-5.1",
+    "input": 2168,
+    "output": 469,
+    "cache_read": 87296
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:21:28.221Z",
+    "model": "glm-5.1",
+    "input": 1308,
+    "output": 439,
+    "cache_read": 89408
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:21:32.556Z",
+    "model": "glm-5.1",
+    "input": 507,
+    "output": 58,
+    "cache_read": 90688
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:21:38.884Z",
+    "model": "glm-5.1",
+    "input": 142,
+    "output": 266,
+    "cache_read": 91136
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:21:55.666Z",
+    "model": "glm-5.1",
+    "input": null,
+    "output": null,
+    "cache_read": null
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:22:12.843Z",
+    "model": "glm-5.1",
+    "input": null,
+    "output": null,
+    "cache_read": null
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:22:29.506Z",
+    "model": "glm-5.1",
+    "input": 50,
+    "output": 269,
+    "cache_read": 91584
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:22:35.514Z",
+    "model": "glm-5.1",
+    "input": 397,
+    "output": 254,
+    "cache_read": 91584
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:22:45.532Z",
+    "model": "glm-5.1",
+    "input": 1867,
+    "output": 387,
+    "cache_read": 91968
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:22:54.433Z",
+    "model": "glm-5.1",
+    "input": 437,
+    "output": 364,
+    "cache_read": 93824
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:23:02.327Z",
+    "model": "glm-5.1",
+    "input": 1356,
+    "output": 195,
+    "cache_read": 94208
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:23:06.926Z",
+    "model": "glm-5.1",
+    "input": 214,
+    "output": 105,
+    "cache_read": 95552
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:23:11.340Z",
+    "model": "glm-5.1",
+    "input": 134,
+    "output": 93,
+    "cache_read": 95744
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:23:16.215Z",
+    "model": "glm-5.1",
+    "input": 318,
+    "output": 68,
+    "cache_read": 95872
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:23:21.095Z",
+    "model": "glm-5.1",
+    "input": 236,
+    "output": 78,
+    "cache_read": 96128
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:23:26.694Z",
+    "model": "glm-5.1",
+    "input": 173,
+    "output": 83,
+    "cache_read": 96320
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:23:30.352Z",
+    "model": "glm-5.1",
+    "input": 726,
+    "output": 56,
+    "cache_read": 96448
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:23:33.701Z",
+    "model": "glm-5.1",
+    "input": 999,
+    "output": 51,
+    "cache_read": 97152
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:23:45.937Z",
+    "model": "glm-5.1",
+    "input": 790,
+    "output": 515,
+    "cache_read": 98112
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:23:55.756Z",
+    "model": "glm-5.1",
+    "input": 778,
+    "output": 442,
+    "cache_read": 98880
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:24:07.921Z",
+    "model": "glm-5.1",
+    "input": 5696,
+    "output": 482,
+    "cache_read": 99648
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:24:17.561Z",
+    "model": "glm-5.1",
+    "input": 3897,
+    "output": 372,
+    "cache_read": 105280
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:24:25.787Z",
+    "model": "glm-5.1",
+    "input": 605,
+    "output": 228,
+    "cache_read": 109120
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:24:35.650Z",
+    "model": "glm-5.1",
+    "input": 884,
+    "output": 85,
+    "cache_read": 109696
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:24:40.942Z",
+    "model": "glm-5.1",
+    "input": 279,
+    "output": 129,
+    "cache_read": 110528
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:24:45.058Z",
+    "model": "glm-5.1",
+    "input": 172,
+    "output": 45,
+    "cache_read": 110784
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:24:50.943Z",
+    "model": "glm-5.1",
+    "input": 417,
+    "output": 161,
+    "cache_read": 110912
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:25:02.084Z",
+    "model": "glm-5.1",
+    "input": 475,
+    "output": 471,
+    "cache_read": 111296
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:25:15.428Z",
+    "model": "glm-5.1",
+    "input": 1521,
+    "output": 586,
+    "cache_read": 111744
+  },
+  {
+    "session_id": "2035dd97-cfb1-47ba-a90d-41096ae624d5",
+    "timestamp": "2026-04-16T20:25:28.954Z",
+    "model": "glm-5.1",
+    "input": 4213,
+    "output": 486,
+    "cache_read": 113216
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:20:18.788Z",
+    "model": "glm-5.1",
+    "input": 33298,
+    "output": 312,
+    "cache_read": 9216
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:20:23.837Z",
+    "model": "glm-5.1",
+    "input": 2928,
+    "output": 159,
+    "cache_read": 42496
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:20:28.312Z",
+    "model": "glm-5.1",
+    "input": 1242,
+    "output": 63,
+    "cache_read": 45376
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:20:32.033Z",
+    "model": "glm-5.1",
+    "input": 2976,
+    "output": 64,
+    "cache_read": 46592
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:20:37.840Z",
+    "model": "glm-5.1",
+    "input": 4263,
+    "output": 100,
+    "cache_read": 49536
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:20:42.750Z",
+    "model": "glm-5.1",
+    "input": 152,
+    "output": 115,
+    "cache_read": 53760
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:20:47.203Z",
+    "model": "glm-5.1",
+    "input": 151,
+    "output": 64,
+    "cache_read": 53888
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:20:51.370Z",
+    "model": "glm-5.1",
+    "input": 461,
+    "output": 59,
+    "cache_read": 54016
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:21:05.258Z",
+    "model": "glm-5.1",
+    "input": 79,
+    "output": 61,
+    "cache_read": 54464
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:21:14.174Z",
+    "model": "glm-5.1",
+    "input": 83,
+    "output": 63,
+    "cache_read": 54528
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:21:17.814Z",
+    "model": "glm-5.1",
+    "input": 624,
+    "output": 69,
+    "cache_read": 54592
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:21:21.359Z",
+    "model": "glm-5.1",
+    "input": 342,
+    "output": 72,
+    "cache_read": 55168
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:21:24.679Z",
+    "model": "glm-5.1",
+    "input": 114,
+    "output": 61,
+    "cache_read": 55488
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:21:27.661Z",
+    "model": "glm-5.1",
+    "input": 150,
+    "output": 51,
+    "cache_read": 55552
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:21:31.542Z",
+    "model": "glm-5.1",
+    "input": 413,
+    "output": 78,
+    "cache_read": 55680
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:21:34.347Z",
+    "model": "glm-5.1",
+    "input": 127,
+    "output": 46,
+    "cache_read": 56064
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:21:39.184Z",
+    "model": "glm-5.1",
+    "input": 165,
+    "output": 66,
+    "cache_read": 56128
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:21:43.961Z",
+    "model": "glm-5.1",
+    "input": 147,
+    "output": 105,
+    "cache_read": 56256
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:22:10.804Z",
+    "model": "glm-5.1",
+    "input": 272,
+    "output": 1039,
+    "cache_read": 56384
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:32:04.436Z",
+    "model": "glm-5.1",
+    "input": 15131,
+    "output": 259,
+    "cache_read": 42496
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:32:09.562Z",
+    "model": "glm-5.1",
+    "input": 507,
+    "output": 108,
+    "cache_read": 57600
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:32:18.983Z",
+    "model": "glm-5.1",
+    "input": 174,
+    "output": 369,
+    "cache_read": 58048
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:32:30.230Z",
+    "model": "glm-5.1",
+    "input": 456,
+    "output": 579,
+    "cache_read": 58176
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:32:38.075Z",
+    "model": "glm-5.1",
+    "input": 630,
+    "output": 327,
+    "cache_read": 58624
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:32:44.787Z",
+    "model": "glm-5.1",
+    "input": 422,
+    "output": 224,
+    "cache_read": 59200
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:32:48.163Z",
+    "model": "glm-5.1",
+    "input": 303,
+    "output": 53,
+    "cache_read": 59584
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:33:06.434Z",
+    "model": "glm-5.1",
+    "input": 107,
+    "output": 55,
+    "cache_read": 59840
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:33:10.371Z",
+    "model": "glm-5.1",
+    "input": 472,
+    "output": 52,
+    "cache_read": 59904
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:33:12.988Z",
+    "model": "glm-5.1",
+    "input": 150,
+    "output": 36,
+    "cache_read": 60352
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:33:16.518Z",
+    "model": "glm-5.1",
+    "input": 1305,
+    "output": 76,
+    "cache_read": 60480
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:33:19.404Z",
+    "model": "glm-5.1",
+    "input": 108,
+    "output": 40,
+    "cache_read": 61760
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:33:23.894Z",
+    "model": "glm-5.1",
+    "input": 158,
+    "output": 99,
+    "cache_read": 61824
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:33:51.002Z",
+    "model": "glm-5.1",
+    "input": 3867,
+    "output": 60,
+    "cache_read": 61952
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:33:57.619Z",
+    "model": "glm-5.1",
+    "input": 94,
+    "output": 110,
+    "cache_read": 65792
+  },
+  {
+    "session_id": "07fe66a4-97ee-4b3a-a802-da3b615bc9f2",
+    "timestamp": "2026-04-16T18:34:06.441Z",
+    "model": "glm-5.1",
+    "input": 4135,
+    "output": 17,
+    "cache_read": 65856
+  }
+]

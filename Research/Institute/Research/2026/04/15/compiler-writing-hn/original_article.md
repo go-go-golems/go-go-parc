@@ -1,0 +1,84 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - link "programming in the twenty-first century" [ref=e4] [cursor=pointer]:
+      - /url: /
+      - text: programming in the
+      - text: twenty-first century
+    - paragraph [ref=e5]: It's not about technology for its own sake. It's about being able to implement your ideas.
+  - generic:
+    - generic [ref=e6]:
+      - heading "Want to Write a Compiler? Just Read These Two Papers." [level=1] [ref=e7]
+      - paragraph [ref=e8]: Imagine you don't know anything about programming, and you want learn how to do it. You take a look at Amazon.com, and there's a highly recommended set of books by Knute or something with a promising title, The Art of Computer Programming, so you buy them. Now imagine that it's more than just a poor choice, but that all the books on programming are at written at that level.
+      - paragraph [ref=e9]: That's the situation with books about writing compilers.
+      - paragraph [ref=e10]: It's not that they're bad books, they're just too broadly scoped, and the authors present so much information that it's hard to know where to begin. Some books are better than others, but there are still the thick chapters about converting regular expressions into executable state machines and different types of grammars and so on. After slogging through it all you will have undoubtedly expanded your knowledge, but you're no closer to actually writing a working compiler.
+      - paragraph [ref=e11]: Not surprisingly, the opaqueness of these books has led to the myth that compilers are hard to write.
+      - paragraph [ref=e12]:
+        - text: The best source for breaking this myth is Jack Crenshaw's series,
+        - link "Let's Build a Compiler!" [ref=e13] [cursor=pointer]:
+          - /url: http://compilers.iecc.com/crenshaw/
+        - text: ", which started in 1988. This is one of those gems of technical writing where what's assumed to be a complex topic ends up being suitable for a first year programming class. He focuses on compilers of the Turbo Pascal class: single pass, parsing and code generation are intermingled, and only the most basic of optimizations are applied to the resulting code. The original tutorials used Pascal as the implementation language, but there's a C version out there, too. If you're truly adventurous, Marcel Hendrix has done a"
+        - link "Forth translation" [ref=e14] [cursor=pointer]:
+          - /url: http://home.iae.nl/users/mhx/crenshaw/tiny.html
+        - text: (and as Forth is an interactive language, it's easier to experiment with and understand than the C or Pascal sources).
+      - paragraph [ref=e15]: "As good as it is, Crenshaw's series has one major omission: there's no internal representation of the program at all. That is, no abstract syntax tree. It is indeed possible to bypass this step if you're willing to give up flexibility, but the main reason it's not in the tutorials is because manipulating trees in Pascal is out of sync with the simplicity of the rest of the code he presents. If you're working in a higher level language--Python, Ruby, Erlang, Haskell, Lisp--then this worry goes away. It's trivially easy to create and manipulate tree-like representations of data. Indeed, this is what Lisp, Erlang, and Haskell were designed for."
+      - paragraph [ref=e16]:
+        - text: That brings me to
+        - link "A Nanopass Framework for Compiler Education" [ref=e17] [cursor=pointer]:
+          - /url: http://www.cs.indiana.edu/~dyb/pubs/nano-jfp.pdf
+        - text: "[PDF] by Sarkar, Waddell, and Dybvig. The details of this paper aren't quite as important as the general concept: a compiler is nothing more than a series of transformations of the internal representation of a program. The authors promote using dozens or hundreds of compiler passes, each being as simple as possible. Don't combine transformations; keep them separate. The framework mentioned in the title is a way of specifying the inputs and outputs for each pass. The code is in Scheme, which is dynamically typed, so data is validated at runtime."
+      - paragraph [ref=e18]:
+        - text: After writing a compiler or two, then go ahead and plunk down the cash for the infamous
+        - link "Dragon Book" [ref=e19] [cursor=pointer]:
+          - /url: http://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools
+        - text: or one of the alternatives. Maybe. Or you might not need them at all.
+      - paragraph [ref=e20]:
+        - link "permalink" [ref=e21] [cursor=pointer]:
+          - /url: 30.html
+        - text: June 29, 2008
+      - heading "previously" [level=1] [ref=e22]
+      - list [ref=e23]:
+        - listitem [ref=e24]:
+          - link "A Spellchecker Used to Be a Major Feat of Software Engineering" [ref=e25] [cursor=pointer]:
+            - /url: 29.html
+        - listitem [ref=e26]:
+          - link "Coding as Performance" [ref=e27] [cursor=pointer]:
+            - /url: 28.html
+        - listitem [ref=e28]:
+          - link "Don't Be Afraid of Special Cases" [ref=e29] [cursor=pointer]:
+            - /url: 27.html
+        - listitem [ref=e30]:
+          - link "Purely Functional Retrogames, Part 4" [ref=e31] [cursor=pointer]:
+            - /url: 26.html
+        - listitem [ref=e32]:
+          - link "Purely Functional Retrogames, Part 3" [ref=e33] [cursor=pointer]:
+            - /url: 25.html
+    - generic [ref=e34]:
+      - heading "archives" [level=1] [ref=e35]:
+        - link "archives" [ref=e36] [cursor=pointer]:
+          - /url: archives.html
+      - paragraph [ref=e37]:
+        - link "twitter" [ref=e39] [cursor=pointer]:
+          - /url: https://twitter.com/dadgumjames
+        - text: /
+        - link "mail" [ref=e41] [cursor=pointer]:
+          - /url: mailto:james.hague@gmail.com
+      - generic [ref=e42]:
+        - paragraph [ref=e43]:
+          - text: I'm James Hague, a
+          - link "recovering programmer" [ref=e44] [cursor=pointer]:
+            - /url: 56.html
+          - text: who has been designing video games since the 1980s.
+          - link "Programming Without Being Obsessed With Programming" [ref=e45] [cursor=pointer]:
+            - /url: 195.html
+          - text: and
+          - link "Organizational Skills Beat Algorithmic Wizardry" [ref=e46] [cursor=pointer]:
+            - /url: 177.html
+          - text: are good starting points. For the older stuff, try the
+          - link "2012 Retrospective" [ref=e47] [cursor=pointer]:
+            - /url: 162.html
+          - text: .
+        - paragraph [ref=e48]:
+          - text: Where are
+          - link "the comments" [ref=e49] [cursor=pointer]:
+            - /url: 57.html
+          - text: "?"

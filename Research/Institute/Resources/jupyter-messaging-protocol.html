@@ -1,0 +1,2515 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Messaging in Jupyter &#8212; jupyter_client 8.8.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/documentation_options.js?v=ce2bb500"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'messaging';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Making kernels for Jupyter" href="kernels.html" />
+    <link rel="prev" title="Jupyter Client 8.8" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="8.8" />
+  <script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="jupyter-client" /><meta name="readthedocs-version-slug" content="stable" /><meta name="readthedocs-resolver-filename" content="/messaging.html" /><meta name="readthedocs-http-status" content="200" /></head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">jupyter_client 8.8.0 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Messaging in Jupyter
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="kernels.html">
+    Making kernels for Jupyter
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="wrapperkernels.html">
+    Making simple Python wrapper kernels
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="provisioning.html">
+    Customizing the kernel’s runtime environment
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="pending-kernels.html">
+    Pending Kernels
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="api/modules.html">
+    API Docs
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="changelog.html">
+    Changes in Jupyter Client
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="migration.html">
+    Migration Guide
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Messaging in Jupyter
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="kernels.html">
+    Making kernels for Jupyter
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="wrapperkernels.html">
+    Making simple Python wrapper kernels
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="provisioning.html">
+    Customizing the kernel’s runtime environment
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="pending-kernels.html">
+    Pending Kernels
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api/modules.html">
+    API Docs
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="changelog.html">
+    Changes in Jupyter Client
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="migration.html">
+    Migration Guide
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Messaging in Jupyter</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="messaging-in-jupyter">
+<span id="messaging"></span><h1>Messaging in Jupyter<a class="headerlink" href="#messaging-in-jupyter" title="Link to this heading">#</a></h1>
+<p>This document explains the basic communications design and messaging
+specification for how Jupyter frontends and kernels communicate.
+The <a class="reference external" href="http://zeromq.org">ZeroMQ</a> library provides the low-level transport layer over which these
+messages are sent.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>This document contains the authoritative description of the
+IPython messaging protocol. All developers are strongly encouraged to
+keep it updated as the implementation evolves, so that we have a single
+common reference for all protocol details.</p>
+</div>
+<section id="versioning">
+<h2>Versioning<a class="headerlink" href="#versioning" title="Link to this heading">#</a></h2>
+<p>The Jupyter message specification is versioned independently of the packages
+that use it.
+The current version of the specification is 5.5.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><em>New in</em> and <em>Changed in</em> messages in this document refer to versions of the
+<strong>Jupyter message specification</strong>, not versions of <a class="reference internal" href="api/jupyter_client.html#module-jupyter_client" title="jupyter_client"><code class="xref py py-mod docutils literal notranslate"><span class="pre">jupyter_client</span></code></a>.</p>
+</div>
+</section>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">#</a></h2>
+<p>The basic design is explained in the following diagram:</p>
+<a class="reference external image-reference" href="./figs/frontend-kernel.png"><img alt="IPython kernel/frontend messaging architecture." class="align-center" src="_images/frontend-kernel.png" style="width: 450px;" />
+</a>
+<p>A single kernel can be simultaneously connected to one or more frontends.  The
+kernel has dedicated sockets for the following functions:</p>
+<ol class="arabic">
+<li><p><strong>Shell</strong>: this single ROUTER socket allows multiple incoming connections from
+frontends, and this is the socket where requests for code execution, object
+information, prompts, etc. are made to the kernel by any frontend.  The
+communication on this socket is a sequence of request/reply actions from
+each frontend and the kernel.</p></li>
+<li><p><strong>IOPub</strong>: this socket is the ‘broadcast channel’ where the kernel publishes all
+side effects (stdout, stderr, debugging events etc.) as well as the requests
+coming from any client over the shell socket and its own requests on the
+stdin socket.  There are a number of actions in Python which generate side
+effects: <code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code> writes to <code class="docutils literal notranslate"><span class="pre">sys.stdout</span></code>, errors generate tracebacks,
+etc.  Additionally, in a multi-client scenario, we want all frontends to be
+able to know what each other has sent to the kernel (this can be useful in
+collaborative scenarios, for example).  This socket allows both side effects
+and the information about communications taking place with one client over
+the shell channel to be made available to all clients in a uniform manner.</p></li>
+<li><p><strong>stdin</strong>: this ROUTER socket is connected to all frontends, and it allows
+the kernel to request input from the active frontend when <code class="xref py py-func docutils literal notranslate"><span class="pre">raw_input()</span></code> is called.
+The frontend that executed the code has a DEALER socket that acts as a ‘virtual keyboard’
+for the kernel while this communication is happening (illustrated in the
+figure by the black outline around the central keyboard).  In practice,
+frontends may display such kernel requests using a special input widget or
+otherwise indicating that the user is to type input for the kernel instead
+of normal commands in the frontend.</p>
+<p>All messages are tagged with enough information (details below) for clients
+to know which messages come from their own interaction with the kernel and
+which ones are from other clients, so they can display each type
+appropriately.</p>
+</li>
+<li><p><strong>Control</strong>: This channel is identical to Shell, but operates on a separate
+socket to avoid queueing behind execution requests. The control channel is
+used for shutdown and restart messages, as well as for debugging messages.</p>
+<p>For a smoother user experience, we recommend running the control channel in
+a separate thread from the shell channel, so that e.g. shutdown or debug
+messages can be processed immediately without waiting for a long-running
+shell message to be finished processing (such as an expensive execute request).</p>
+</li>
+<li><p><strong>Heartbeat</strong>: This socket allows for simple bytestring messages to be sent
+between the frontend and the kernel to ensure that they are still connected.</p></li>
+</ol>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.5: </span>The <strong>IOPub</strong> PUB socket is replaced with an XPUB socket,
+to enable the <code class="docutils literal notranslate"><span class="pre">iopub_welcome</span></code> message.
+There is no other difference between kernel PUB and XPUB sockets from the client perspective.</p>
+</div>
+<p>The actual format of the messages allowed on each of these channels is
+specified below.  Messages are dicts of dicts with string keys and values that
+are reasonably representable in JSON.</p>
+</section>
+<section id="general-message-format">
+<h2>General Message Format<a class="headerlink" href="#general-message-format" title="Link to this heading">#</a></h2>
+<p>A message is composed of five dictionaries.</p>
+<section id="message-header">
+<h3>Message Header<a class="headerlink" href="#message-header" title="Link to this heading">#</a></h3>
+<p>The message <code class="docutils literal notranslate"><span class="pre">header</span></code> contains information about the message,
+such as unique identifiers for the originating session and the actual message ID,
+the type of message, the version of the Jupyter protocol,
+and the date the message was created.
+In addition, there is a username field, e.g. for the process that generated the
+message, if applicable.
+This can be useful in collaborative settings where multiple users may be
+interacting with the same kernel simultaneously,
+so that frontends can label the various messages in a meaningful way.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;msg_id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># typically UUID, must be unique per message</span>
+    <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># typically UUID, should be unique per session</span>
+    <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="c1"># ISO 8601 timestamp for when the message is created</span>
+    <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="c1"># All recognized message type strings are listed below.</span>
+    <span class="s2">&quot;msg_type&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="c1"># the message protocol version</span>
+    <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;5.0&quot;</span><span class="p">,</span>
+    <span class="c1"># Optional subshell_id</span>
+    <span class="s2">&quot;subshell_id&quot;</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">session</span></code> ID in a message header identifies a unique entity with state,
+such as a kernel process or client process.</p>
+<p>A client session ID, in message headers from a client, should be unique among
+all clients connected to a kernel. When a client reconnects to a kernel, it
+should use the same client session ID in its message headers. When a client
+restarts, it should generate a new client session ID.</p>
+<p>A kernel session ID, in message headers from a kernel, should identify a
+particular kernel process. If a kernel is restarted, the kernel session ID
+should be regenerated.</p>
+<p>The session ID in a message header can be used to identify the sending entity.
+For example, if a client disconnects and reconnects to a kernel, and messages
+from the kernel have a different kernel session ID than prior to the disconnect,
+the client should assume that the kernel was restarted.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">subshell_id</span></code> is only used in shell messages of kernels that support
+subshells (<a class="reference internal" href="#kernel-subshells"><span class="std std-ref">Kernel subshells</span></a>). If it is not included or is <code class="docutils literal notranslate"><span class="pre">None</span></code> then the
+shell message is handled by the parent subshell (main shell), if it is a string
+subshell ID then it is handled by the subshell with that ID.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">version</span></code> key added to the header.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span><code class="docutils literal notranslate"><span class="pre">date</span></code> in the header was accidentally omitted from the spec prior to 5.1,
+but it has always been in the canonical implementation,
+so implementers are strongly encouraged to include it.
+It will be mandatory in 5.1.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.5: </span><code class="docutils literal notranslate"><span class="pre">subshell_id</span></code> added to the header.</p>
+</div>
+</section>
+<section id="parent-header">
+<h3>Parent header<a class="headerlink" href="#parent-header" title="Link to this heading">#</a></h3>
+<p>When a message is the “result” of another message,
+such as a side-effect (output or status) or direct reply,
+the <code class="docutils literal notranslate"><span class="pre">parent_header</span></code> is a copy of the <code class="docutils literal notranslate"><span class="pre">header</span></code> of the message
+that “caused” the current message.
+<code class="docutils literal notranslate"><span class="pre">_reply</span></code> messages MUST have a <code class="docutils literal notranslate"><span class="pre">parent_header</span></code>,
+and side-effects <em>typically</em> have a parent.
+If there is no parent, an empty dict should be used.
+This parent is used by clients to route message handling to the right place,
+such as outputs to a cell.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="c1"># parent_header is a copy of the request&#39;s header</span>
+    <span class="s1">&#39;msg_id&#39;</span><span class="p">:</span> <span class="s1">&#39;...&#39;</span><span class="p">,</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="metadata">
+<h3>Metadata<a class="headerlink" href="#metadata" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">metadata</span></code> dict contains information about the message that is not part of the content.
+This is not often used, but can be an extra location to store information about
+requests and replies,
+such as extensions adding information about request or execution context.</p>
+</section>
+<section id="content">
+<h3>Content<a class="headerlink" href="#content" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">content</span></code> dict is the body of the message.
+Its structure is dictated by the <code class="docutils literal notranslate"><span class="pre">msg_type</span></code> field in the header,
+described in detail for each message below.</p>
+</section>
+<section id="buffers">
+<h3>Buffers<a class="headerlink" href="#buffers" title="Link to this heading">#</a></h3>
+<p>Finally, a list of additional binary buffers can be associated with a message.
+While this is part of the protocol,
+no official messages make use of these buffers.
+They are used by extension messages, such as IPython Parallel’s <code class="docutils literal notranslate"><span class="pre">apply</span></code>
+and some of ipywidgets’ <code class="docutils literal notranslate"><span class="pre">comm</span></code> messages.</p>
+</section>
+<section id="a-full-message">
+<h3>A full message<a class="headerlink" href="#a-full-message" title="Link to this heading">#</a></h3>
+<p>Combining all of these together,
+a complete message can be represented as the following dictionary of dictionaries (and one list):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;header&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;msg_id&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;msg_type&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
+        <span class="o">...</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;parent_header&quot;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="s2">&quot;buffers&quot;</span><span class="p">:</span> <span class="p">[],</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This dictionary structure is <em>not</em> part of the Jupyter protocol
+that must be implemented by kernels and frontends;
+that would be <a class="reference internal" href="#wire-protocol"><span class="std std-ref">The Wire Protocol</span></a>,
+which dictates how this information is serialized over the wire.
+Deserialization is up to the Kernel or frontend implementation,
+but a dict like this would be a logical choice in most contexts.</p>
+</div>
+</section>
+</section>
+<section id="compatibility">
+<span id="msging-compatibility"></span><h2>Compatibility<a class="headerlink" href="#compatibility" title="Link to this heading">#</a></h2>
+<p>Kernels must implement the <a class="reference internal" href="#execute"><span class="std std-ref">execute</span></a> and <a class="reference internal" href="#msging-kernel-info"><span class="std std-ref">kernel info</span></a> messages, along with the associated busy and idle
+<a class="reference internal" href="#status"><span class="std std-ref">Kernel status</span></a> messages. All other message types are
+optional, although we recommend implementing <a class="reference internal" href="#msging-completion"><span class="std std-ref">completion</span></a> if possible. Kernels do not need to send any reply for
+messages they don’t handle, and frontends should provide sensible behaviour if
+no reply arrives (except for the required execution and kernel info messages).</p>
+<p><a class="reference internal" href="#stdin-messages"><span class="std std-ref">stdin messages</span></a> are unique in that the request comes from
+the kernel, and the reply from the frontend. The frontend is not required to
+support this, but if it does not, it must set <code class="docutils literal notranslate"><span class="pre">'allow_stdin'</span> <span class="pre">:</span> <span class="pre">False</span></code> in
+its <a class="reference internal" href="#execute"><span class="std std-ref">execute requests</span></a>. In this case, the kernel may not send
+stdin requests. If that field is true, the kernel may send stdin requests and
+block waiting for a reply, so the frontend must answer.</p>
+<p>Both sides should allow unexpected message types, and extra fields in known
+message types, so that additions to the protocol do not break existing code.</p>
+</section>
+<section id="the-wire-protocol">
+<span id="wire-protocol"></span><h2>The Wire Protocol<a class="headerlink" href="#the-wire-protocol" title="Link to this heading">#</a></h2>
+<p>The above message format is only a logical representation of the contents of Jupyter messages,
+but does not describe the actual <em>implementation</em> at the wire level in zeromq.
+This section describes the protocol that must be implemented by Jupyter kernels and clients
+talking to each other over zeromq.</p>
+<p>The reference implementation of the message spec is our
+<a class="reference internal" href="api/jupyter_client.html#jupyter_client.session.Session" title="jupyter_client.session.Session"><code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code></a> class.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This section should only be relevant to non-Python consumers of the protocol.
+Python consumers should import and the use implementation of the wire
+protocol in <a class="reference internal" href="api/jupyter_client.html#jupyter_client.session.Session" title="jupyter_client.session.Session"><code class="xref py py-class docutils literal notranslate"><span class="pre">jupyter_client.session.Session</span></code></a>.</p>
+</div>
+<p>Every message is serialized to a sequence of at least six blobs of bytes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+    <span class="sa">b</span><span class="s2">&quot;u-u-i-d&quot;</span><span class="p">,</span>  <span class="c1"># zmq identity(ies)</span>
+    <span class="sa">b</span><span class="s2">&quot;&lt;IDS|MSG&gt;&quot;</span><span class="p">,</span>  <span class="c1"># delimiter</span>
+    <span class="sa">b</span><span class="s2">&quot;baddad42&quot;</span><span class="p">,</span>  <span class="c1"># HMAC signature</span>
+    <span class="sa">b</span><span class="s2">&quot;</span><span class="si">{header}</span><span class="s2">&quot;</span><span class="p">,</span>  <span class="c1"># serialized header dict</span>
+    <span class="sa">b</span><span class="s2">&quot;</span><span class="si">{parent_header}</span><span class="s2">&quot;</span><span class="p">,</span>  <span class="c1"># serialized parent header dict</span>
+    <span class="sa">b</span><span class="s2">&quot;</span><span class="si">{metadata}</span><span class="s2">&quot;</span><span class="p">,</span>  <span class="c1"># serialized metadata dict</span>
+    <span class="sa">b</span><span class="s2">&quot;</span><span class="si">{content}</span><span class="s2">&quot;</span><span class="p">,</span>  <span class="c1"># serialized content dict</span>
+    <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xf0\x9f\x90\xb1</span><span class="s2">&quot;</span>  <span class="c1"># extra raw data buffer(s)</span>
+    <span class="c1"># ...</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>The front of the message is the ZeroMQ routing prefix,
+which can be zero or more socket identities.
+This is every piece of the message prior to the delimiter key <code class="docutils literal notranslate"><span class="pre">&lt;IDS|MSG&gt;</span></code>.
+In the case of IOPub, there should be just one prefix component,
+which is the topic for IOPub subscribers, e.g. <code class="docutils literal notranslate"><span class="pre">execute_result</span></code>, <code class="docutils literal notranslate"><span class="pre">display_data</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In most cases, the IOPub topics are irrelevant and completely ignored,
+because frontends just subscribe to all topics.
+The convention used in the IPython kernel is to use the msg_type as the topic,
+and possibly extra information about the message, e.g. <code class="docutils literal notranslate"><span class="pre">kernel.{u-u-i-d}.execute_result</span></code> or <code class="docutils literal notranslate"><span class="pre">stream.stdout</span></code></p>
+</div>
+<p>After the delimiter is the <a class="reference external" href="https://en.wikipedia.org/wiki/HMAC">HMAC</a> signature of the message, used for authentication.
+If authentication is disabled, this should be an empty string.
+By default, the hashing function used for computing these signatures is sha256.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To disable authentication and signature checking,
+set the <code class="docutils literal notranslate"><span class="pre">key</span></code> field of a connection file to an empty string.</p>
+</div>
+<p>The signature is the HMAC hex digest of the concatenation of:</p>
+<ul class="simple">
+<li><p>A shared key (typically the <code class="docutils literal notranslate"><span class="pre">key</span></code> field of a connection file)</p></li>
+<li><p>The serialized header dict</p></li>
+<li><p>The serialized parent header dict</p></li>
+<li><p>The serialized metadata dict</p></li>
+<li><p>The serialized content dict</p></li>
+</ul>
+<p>In Python, this is implemented via:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># once:</span>
+<span class="n">digester</span> <span class="o">=</span> <span class="n">HMAC</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">digestmod</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">)</span>
+
+<span class="c1"># for each message</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">digester</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">serialized_dict</span> <span class="ow">in</span> <span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">serialized_dict</span><span class="p">)</span>
+<span class="n">signature</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>After the signature is the actual message, always in four frames of bytes.
+The four dictionaries that compose a message are serialized separately,
+in the order of header, parent header, metadata, and content.
+These can be serialized by any function that turns a dict into bytes.
+The default and most common serialization is JSON, but msgpack and pickle
+are common alternatives.</p>
+<p>After the serialized dicts are zero to many raw data buffers,
+which can be used by message types that support binary data,
+which can be used in custom messages, such as comms and extensions to the protocol.</p>
+</section>
+<section id="python-api">
+<h2>Python API<a class="headerlink" href="#python-api" title="Link to this heading">#</a></h2>
+<p>As messages can be represented as dicts, they map naturally to a <code class="docutils literal notranslate"><span class="pre">func(**kw)</span></code> call form.  We
+should develop, at a few key points, functional forms of all the requests that
+take arguments in this manner and automatically construct the necessary dict
+for sending.</p>
+<p>In addition, the Python implementation of the message specification extends
+messages upon deserialization to the following form for convenience:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s1">&#39;header&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+  <span class="c1"># The msg&#39;s unique identifier and type are always stored in the header,</span>
+  <span class="c1"># but the Python implementation copies them to the top level.</span>
+  <span class="s1">&#39;msg_id&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+  <span class="s1">&#39;msg_type&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+  <span class="s1">&#39;parent_header&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+  <span class="s1">&#39;content&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+  <span class="s1">&#39;metadata&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+  <span class="s1">&#39;buffers&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>All messages sent to or received by any IPython message handler should have this
+extended structure.</p>
+</section>
+<section id="messages-on-the-shell-router-dealer-channel">
+<h2>Messages on the shell (ROUTER/DEALER) channel<a class="headerlink" href="#messages-on-the-shell-router-dealer-channel" title="Link to this heading">#</a></h2>
+<section id="request-reply">
+<span id="id1"></span><h3>Request-Reply<a class="headerlink" href="#request-reply" title="Link to this heading">#</a></h3>
+<p>In general, the ROUTER/DEALER sockets follow a request-reply pattern:</p>
+<p>The client sends an <code class="docutils literal notranslate"><span class="pre">&lt;action&gt;_request</span></code> message (such as <code class="docutils literal notranslate"><span class="pre">execute_request</span></code>)
+on its shell (DEALER) socket.
+The kernel receives that request and immediately publishes a <code class="docutils literal notranslate"><span class="pre">status:</span> <span class="pre">busy</span></code> message on IOPub.
+The kernel then processes the request and sends the appropriate
+<code class="docutils literal notranslate"><span class="pre">&lt;action&gt;_reply</span></code> message, such as <code class="docutils literal notranslate"><span class="pre">execute_reply</span></code>.
+After processing the request and publishing associated IOPub messages, if any,
+the kernel publishes a <code class="docutils literal notranslate"><span class="pre">status:</span> <span class="pre">idle</span></code> message.
+This idle status message indicates that IOPub messages associated with a given
+request have all been received.</p>
+<p>All reply messages have a <code class="docutils literal notranslate"><span class="pre">'status'</span></code> field, which will have one of the following values:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">status='ok'</span></code>: The request was processed successfully, and the remaining
+content of the reply is specified in the appropriate section below.</p></li>
+<li><dl>
+<dt><code class="docutils literal notranslate"><span class="pre">status='error'</span></code>: The request failed due to an error.</dt><dd><p>When status is ‘error’, the usual content of a successful reply should be omitted,
+instead the following fields should be present:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;ename&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>   <span class="c1"># Exception name, as a string</span>
+   <span class="s1">&#39;evalue&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># Exception value, as a string</span>
+   <span class="s1">&#39;traceback&#39;</span> <span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">str</span><span class="p">),</span> <span class="c1"># traceback frames as strings</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">status='abort'</span></code>: This is the same as <code class="docutils literal notranslate"><span class="pre">status='error'</span></code>
+but with no information about the error.
+No fields should be present other that <code class="docutils literal notranslate"><span class="pre">status</span></code>.</p></li>
+</ul>
+<p>As a special case, <code class="docutils literal notranslate"><span class="pre">execute_reply</span></code> messages (see <a class="reference internal" href="#execution-results"><span class="std std-ref">Execution results</span></a>)
+have an <code class="docutils literal notranslate"><span class="pre">execution_count</span></code> field regardless of their status.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span><code class="docutils literal notranslate"><span class="pre">status='abort'</span></code> has not proved useful, and is considered deprecated.
+Kernels should send <code class="docutils literal notranslate"><span class="pre">status='error'</span></code> instead.</p>
+</div>
+</section>
+<section id="execute">
+<span id="id2"></span><h3>Execute<a class="headerlink" href="#execute" title="Link to this heading">#</a></h3>
+<p>This message type is used by frontends to ask the kernel to execute code on
+behalf of the user, in a namespace reserved to the user’s variables (and thus
+separate from the kernel’s own internal code and variables).</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">execute_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># Source code to be executed by the kernel, one or more lines.</span>
+<span class="s1">&#39;code&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+<span class="c1"># A boolean flag which, if True, signals the kernel to execute</span>
+<span class="c1"># this code as quietly as possible.</span>
+<span class="c1"># silent=True forces store_history to be False,</span>
+<span class="c1"># and will *not*:</span>
+<span class="c1">#   - broadcast output on the IOPUB channel</span>
+<span class="c1">#   - have an execute_result</span>
+<span class="c1"># The default is False.</span>
+<span class="s1">&#39;silent&#39;</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+
+<span class="c1"># A boolean flag which, if True, signals the kernel to populate history</span>
+<span class="c1"># The default is True if silent is False.  If silent is True, store_history</span>
+<span class="c1"># is forced to be False.</span>
+<span class="s1">&#39;store_history&#39;</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+
+<span class="c1"># A dict mapping names to expressions to be evaluated in the</span>
+<span class="c1"># user&#39;s dict. The rich display-data representation of each will be evaluated after execution.</span>
+<span class="c1"># See the display_data content for the structure of the representation data.</span>
+<span class="s1">&#39;user_expressions&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+
+<span class="c1"># Some frontends do not support stdin requests.</span>
+<span class="c1"># If this is true, code running in the kernel can prompt the user for input</span>
+<span class="c1"># with an input_request message (see below). If it is false, the kernel</span>
+<span class="c1"># should not send these messages.</span>
+<span class="s1">&#39;allow_stdin&#39;</span> <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+
+<span class="c1"># A boolean flag, which, if True, aborts the execution queue if an exception is encountered.</span>
+<span class="c1"># If False, queued execute_requests will execute even if this request generates an exception.</span>
+<span class="s1">&#39;stop_on_error&#39;</span> <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">user_variables</span></code> removed, because it is redundant with user_expressions.</p>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">code</span></code> field contains a single string (possibly multiline) to be executed.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">user_expressions</span></code> field deserves a detailed explanation.  In the past, IPython had
+the notion of a prompt string that allowed arbitrary code to be evaluated, and
+this was put to good use by many in creating prompts that displayed system
+status, path information, and even more esoteric uses like remote instrument
+status acquired over the network.  But now that IPython has a clean separation
+between the kernel and the clients, the kernel has no prompt knowledge; prompts
+are a frontend feature, and it should be even possible for different
+frontends to display different prompts while interacting with the same kernel.
+<code class="docutils literal notranslate"><span class="pre">user_expressions</span></code> can be used to retrieve this information.</p>
+<p>Any error in evaluating any expression in <code class="docutils literal notranslate"><span class="pre">user_expressions</span></code> will result in
+only that key containing a standard error message, of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ename&#39;</span> <span class="p">:</span> <span class="s1">&#39;NameError&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;evalue&#39;</span> <span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;traceback&#39;</span> <span class="p">:</span> <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In order to obtain the current execution counter for the purposes of
+displaying input prompts, frontends may make an execution request with an
+empty code string and <code class="docutils literal notranslate"><span class="pre">silent=True</span></code>.</p>
+</div>
+<p>Upon completion of the execution request, the kernel <em>always</em> sends a reply,
+with a status code indicating what happened and additional data depending on
+the outcome.  See <a class="reference internal" href="#execution-results"><span class="std std-ref">below</span></a> for the possible return
+codes and associated data.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference external" href="https://ipython.readthedocs.io/en/stable/development/execution.html#execution-semantics" title="(in IPython v9.9.0)"><span>Execution of cells in the IPython kernel</span></a></p>
+</div>
+<section id="execution-counter-prompt-number">
+<span id="execution-counter"></span><h4>Execution counter (prompt number)<a class="headerlink" href="#execution-counter-prompt-number" title="Link to this heading">#</a></h4>
+<p>The kernel should have a single, monotonically increasing counter of all execution
+requests that are made with <code class="docutils literal notranslate"><span class="pre">store_history=True</span></code>. This counter is used to populate
+the <code class="docutils literal notranslate"><span class="pre">In[n]</span></code> and <code class="docutils literal notranslate"><span class="pre">Out[n]</span></code> prompts.  The value of this counter will be returned as the
+<code class="docutils literal notranslate"><span class="pre">execution_count</span></code> field of all <code class="docutils literal notranslate"><span class="pre">execute_reply</span></code> and <code class="docutils literal notranslate"><span class="pre">execute_input</span></code> messages.</p>
+</section>
+<section id="execution-results">
+<span id="id3"></span><h4>Execution results<a class="headerlink" href="#execution-results" title="Link to this heading">#</a></h4>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">execute_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="c1"># One of: &#39;ok&#39; OR &#39;error&#39; OR &#39;aborted&#39;</span>
+  <span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+  <span class="c1"># The global kernel counter that increases by one with each request that</span>
+  <span class="c1"># stores history.  This will typically be used by clients to display</span>
+  <span class="c1"># prompt numbers to the user.  If the request did not store history, this will</span>
+  <span class="c1"># be the current value of the counter in the kernel.</span>
+  <span class="s1">&#39;execution_count&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When status is ‘ok’, the following extra fields are present:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="c1"># &#39;payload&#39; will be a list of payload dicts, and is optional.</span>
+  <span class="c1"># payloads are considered deprecated.</span>
+  <span class="c1"># The only requirement of each payload dict is that it have a &#39;source&#39; key,</span>
+  <span class="c1"># which is a string classifying the payload (e.g. &#39;page&#39;).</span>
+
+  <span class="s1">&#39;payload&#39;</span> <span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">dict</span><span class="p">),</span>
+
+  <span class="c1"># Results for the user_expressions.</span>
+  <span class="s1">&#39;user_expressions&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">user_variables</span></code> is removed, use user_expressions instead.</p>
+</div>
+</section>
+<section id="payloads-deprecated">
+<h4>Payloads (DEPRECATED)<a class="headerlink" href="#payloads-deprecated" title="Link to this heading">#</a></h4>
+<div class="admonition-execution-payloads admonition">
+<p class="admonition-title">Execution payloads</p>
+<p>Payloads are considered <strong>deprecated</strong>, though their replacement is not yet implemented.</p>
+</div>
+<p>Payloads are a way to trigger frontend actions from the kernel. Current payloads:</p>
+<p><strong>page</strong>: display data in a pager.</p>
+<p>Pager output is used for introspection, or other displayed information that’s not considered output.
+Pager payloads are generally displayed in a separate pane, that can be viewed alongside code,
+and are not included in notebook documents.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;page&quot;</span><span class="p">,</span>
+    <span class="c1"># mime-bundle of data to display in the pager.</span>
+    <span class="c1"># Must include text/plain.</span>
+    <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">mimebundle</span><span class="p">,</span>
+    <span class="c1"># line offset to start from</span>
+    <span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>set_next_input</strong>: create a new output</p>
+<p>used to create new cells in the notebook,
+or set the next input in a console interface.
+The main example being <code class="docutils literal notranslate"><span class="pre">%load</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;set_next_input&quot;</span><span class="p">,</span>
+    <span class="c1"># the text contents of the cell to create</span>
+    <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;some cell content&quot;</span><span class="p">,</span>
+    <span class="c1"># If true, replace the current cell in document UIs instead of inserting</span>
+    <span class="c1"># a cell. Ignored in console UIs.</span>
+    <span class="s2">&quot;replace&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>edit_magic</strong>: open a file for editing.</p>
+<p>Triggered by <code class="docutils literal notranslate"><span class="pre">%edit</span></code>. Only the QtConsole currently supports edit payloads.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;edit_magic&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="s2">&quot;/path/to/file.py&quot;</span><span class="p">,</span>  <span class="c1"># the file to edit</span>
+    <span class="s2">&quot;line_number&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>  <span class="c1"># the line number to start with</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>ask_exit</strong>: instruct the frontend to prompt the user for exit</p>
+<p>Allows the kernel to request exit, e.g. via <code class="docutils literal notranslate"><span class="pre">%exit</span></code> in IPython.
+Only for console frontends.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;ask_exit&quot;</span><span class="p">,</span>
+    <span class="c1"># whether the kernel should be left running, only closing the client</span>
+    <span class="s2">&quot;keepkernel&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="introspection">
+<span id="msging-inspection"></span><h3>Introspection<a class="headerlink" href="#introspection" title="Link to this heading">#</a></h3>
+<p>Code can be inspected to show useful information to the user.
+It is up to the Kernel to decide what information should be displayed, and its formatting.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">inspect_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># The code context in which introspection is requested</span>
+    <span class="c1"># this may be up to an entire multiline cell.</span>
+    <span class="s1">&#39;code&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+    <span class="c1"># The cursor position within &#39;code&#39; (in unicode characters) where inspection is requested</span>
+    <span class="s1">&#39;cursor_pos&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+
+    <span class="c1"># The level of detail desired.  In IPython, the default (0) is equivalent to typing</span>
+    <span class="c1"># &#39;x?&#39; at the prompt, 1 is equivalent to &#39;x??&#39;.</span>
+    <span class="c1"># The difference is up to kernels, but in IPython level 1 includes the source code</span>
+    <span class="c1"># if available.</span>
+    <span class="s1">&#39;detail_level&#39;</span> <span class="p">:</span> <span class="mi">0</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">object_info_request</span></code> renamed to <code class="docutils literal notranslate"><span class="pre">inspect_request</span></code>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">name</span></code> key replaced with <code class="docutils literal notranslate"><span class="pre">code</span></code> and <code class="docutils literal notranslate"><span class="pre">cursor_pos</span></code>,
+moving the lexing responsibility to the kernel.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.2: </span>Due to a widespread bug in many frontends, <code class="docutils literal notranslate"><span class="pre">cursor_pos</span></code>
+in versions prior to 5.2 is ambiguous in the presence of “astral-plane” characters.
+In 5.2, cursor_pos <strong>must be</strong> the actual encoding-independent offset in unicode codepoints.
+See <a class="reference internal" href="#cursor-pos-unicode-note"><span class="std std-ref">cursor_pos and unicode offsets</span></a> for more.</p>
+</div>
+<p>The reply is a mime-bundle, like a <a class="reference internal" href="#id6">display_data</a> message,
+which should be a formatted representation of information about the context.
+In the notebook, this is used to show tooltips over function calls, etc.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">inspect_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># &#39;ok&#39; if the request succeeded or &#39;error&#39;, with error information as in all other replies.</span>
+    <span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="s1">&#39;ok&#39;</span><span class="p">,</span>
+
+    <span class="c1"># found should be true if an object was found, false otherwise</span>
+    <span class="s1">&#39;found&#39;</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+
+    <span class="c1"># data can be empty if nothing is found</span>
+    <span class="s1">&#39;data&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="s1">&#39;metadata&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">object_info_reply</span></code> renamed to <code class="docutils literal notranslate"><span class="pre">inspect_reply</span></code>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Reply is changed from structured data to a mime bundle,  allowing formatting decisions to be made by the kernel.</p>
+</div>
+</section>
+<section id="completion">
+<span id="msging-completion"></span><h3>Completion<a class="headerlink" href="#completion" title="Link to this heading">#</a></h3>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">complete_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># The code context in which completion is requested</span>
+    <span class="c1"># this may be up to an entire multiline cell, such as</span>
+    <span class="c1"># &#39;foo = a.isal&#39;</span>
+    <span class="s1">&#39;code&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+    <span class="c1"># The cursor position within &#39;code&#39; (in unicode characters) where completion is requested</span>
+    <span class="s1">&#39;cursor_pos&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">block</span></code>, and <code class="docutils literal notranslate"><span class="pre">text</span></code> keys are removed in favor of a single <code class="docutils literal notranslate"><span class="pre">code</span></code> for context.
+Lexing is up to the kernel.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.2: </span>Due to a widespread bug in many frontends, <code class="docutils literal notranslate"><span class="pre">cursor_pos</span></code>
+in versions prior to 5.2 is ambiguous in the presence of “astral-plane” characters.
+In 5.2, cursor_pos <strong>must be</strong> the actual encoding-independent offset in unicode codepoints.
+See <a class="reference internal" href="#cursor-pos-unicode-note"><span class="std std-ref">cursor_pos and unicode offsets</span></a> for more.</p>
+</div>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">complete_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+<span class="c1"># status should be &#39;ok&#39; unless an exception was raised during the request,</span>
+<span class="c1"># in which case it should be &#39;error&#39;, along with the usual error message content</span>
+<span class="c1"># in other messages.</span>
+<span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="s1">&#39;ok&#39;</span>
+
+<span class="c1"># The list of all matches to the completion request, such as</span>
+<span class="c1"># [&#39;a.isalnum&#39;, &#39;a.isalpha&#39;] for the above example.</span>
+<span class="s1">&#39;matches&#39;</span> <span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+
+<span class="c1"># The range of text that should be replaced by the above matches when a completion is accepted.</span>
+<span class="c1"># typically cursor_end is the same as cursor_pos in the request.</span>
+<span class="s1">&#39;cursor_start&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="s1">&#39;cursor_end&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+
+<span class="c1"># Information that frontend plugins might use for extra display information about completions.</span>
+<span class="s1">&#39;metadata&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">matched_text</span></code> is removed in favor of <code class="docutils literal notranslate"><span class="pre">cursor_start</span></code> and <code class="docutils literal notranslate"><span class="pre">cursor_end</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metadata</span></code> is added for extended information.</p></li>
+</ul>
+</div>
+</section>
+<section id="history">
+<span id="msging-history"></span><h3>History<a class="headerlink" href="#history" title="Link to this heading">#</a></h3>
+<p>For clients to explicitly request history from a kernel.  The kernel has all
+the actual execution history stored in a single location, so clients can
+request it from the kernel when needed.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">history_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+
+  <span class="c1"># If True, also return output history in the resulting dict.</span>
+  <span class="s1">&#39;output&#39;</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+
+  <span class="c1"># If True, return the raw input history, else the transformed input.</span>
+  <span class="s1">&#39;raw&#39;</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+
+  <span class="c1"># So far, this can be &#39;range&#39;, &#39;tail&#39; or &#39;search&#39;.</span>
+  <span class="s1">&#39;hist_access_type&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+  <span class="c1"># If hist_access_type is &#39;range&#39;, get a range of input cells. session</span>
+  <span class="c1"># is a number counting up each time the kernel starts; you can give</span>
+  <span class="c1"># a positive session number, or a negative number to count back from</span>
+  <span class="c1"># the current session.</span>
+  <span class="s1">&#39;session&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="c1"># start and stop are line (cell) numbers within that session.</span>
+  <span class="s1">&#39;start&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="s1">&#39;stop&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+
+  <span class="c1"># If hist_access_type is &#39;tail&#39; or &#39;search&#39;, get the last n cells.</span>
+  <span class="s1">&#39;n&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+
+  <span class="c1"># If hist_access_type is &#39;search&#39;, get cells matching the specified glob</span>
+  <span class="c1"># pattern (with * and ? as wildcards).</span>
+  <span class="s1">&#39;pattern&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+  <span class="c1"># If hist_access_type is &#39;search&#39; and unique is true, do not</span>
+  <span class="c1"># include duplicated history.  Default is false.</span>
+  <span class="s1">&#39;unique&#39;</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 4.0: </span>The key <code class="docutils literal notranslate"><span class="pre">unique</span></code> for <code class="docutils literal notranslate"><span class="pre">history_request</span></code>.</p>
+</div>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">history_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="c1"># &#39;ok&#39; if the request succeeded or &#39;error&#39;, with error information as in all other replies.</span>
+  <span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="s1">&#39;ok&#39;</span><span class="p">,</span>
+
+  <span class="c1"># A list of 3 tuples, either:</span>
+  <span class="c1"># (session, line_number, input) or</span>
+  <span class="c1"># (session, line_number, (input, output)),</span>
+  <span class="c1"># depending on whether output was False or True, respectively.</span>
+  <span class="s1">&#39;history&#39;</span> <span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Most of the history messaging options are not used by Jupyter frontends, and
+many kernels do not implement them. If you’re implementing these messages in
+a kernel, the ‘tail’ request is the most useful; this is used by the Qt
+console, for example. The notebook interface does not use history messages
+at all.</p>
+<p>This interface was designed by exposing all the main options of IPython’s
+history interface. We may remove some options in a future version of the
+message spec.</p>
+</div>
+</section>
+<section id="code-completeness">
+<span id="msging-is-complete"></span><h3>Code completeness<a class="headerlink" href="#code-completeness" title="Link to this heading">#</a></h3>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.0.</span></p>
+</div>
+<p>When the user enters a line in a console style interface, the console must
+decide whether to immediately execute the current code, or whether to show a
+continuation prompt for further input. For instance, in Python <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">=</span> <span class="pre">5</span></code> would
+be executed immediately, while <code class="docutils literal notranslate"><span class="pre">for</span> <span class="pre">i</span> <span class="pre">in</span> <span class="pre">range(5):</span></code> would expect further input.</p>
+<p>There are four possible replies:</p>
+<ul class="simple">
+<li><p><em>complete</em> code is ready to be executed</p></li>
+<li><p><em>incomplete</em> code should prompt for another line</p></li>
+<li><p><em>invalid</em> code will typically be sent for execution, so that the user sees the
+error soonest.</p></li>
+<li><p><em>unknown</em> - if the kernel is not able to determine this. The frontend should
+also handle the kernel not replying promptly. It may default to sending the
+code for execution, or it may implement simple fallback heuristics for whether
+to execute the code (e.g. execute after a blank line).</p></li>
+</ul>
+<p>Frontends may have ways to override this, forcing the code to be sent for
+execution or forcing a continuation prompt.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">is_complete_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># The code entered so far as a multiline string</span>
+    <span class="s1">&#39;code&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">is_complete_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># One of &#39;complete&#39;, &#39;incomplete&#39;, &#39;invalid&#39;, &#39;unknown&#39;</span>
+    <span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+    <span class="c1"># If status is &#39;incomplete&#39;, indent should contain the characters to use</span>
+    <span class="c1"># to indent the next line. This is only a hint: frontends may ignore it</span>
+    <span class="c1"># and use their own autoindentation rules. For other statuses, this</span>
+    <span class="c1"># field does not exist.</span>
+    <span class="s1">&#39;indent&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="connect">
+<h3>Connect<a class="headerlink" href="#connect" title="Link to this heading">#</a></h3>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.1: </span>connect_request/reply have not proved useful, and are considered deprecated.
+Kernels are not expected to implement handlers for this message.</p>
+</div>
+<p>When a client connects to the request/reply socket of the kernel, it can issue
+a connect request to get basic information about the kernel, such as the ports
+the other ZeroMQ sockets are listening on. This allows clients to only have
+to know about a single port (the shell channel) to connect to a kernel.
+The ports for any additional channels the kernel is listening on should be included in the reply.
+If any ports are omitted from the reply, this indicates that the channels are not running.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">connect_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{}</span>
+</pre></div>
+</div>
+<p>For example, a kernel with all channels running:</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">connect_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;shell_port&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>   <span class="c1"># The port the shell ROUTER socket is listening on.</span>
+    <span class="s1">&#39;iopub_port&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>   <span class="c1"># The port the PUB socket is listening on.</span>
+    <span class="s1">&#39;stdin_port&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>   <span class="c1"># The port the stdin ROUTER socket is listening on.</span>
+    <span class="s1">&#39;hb_port&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>      <span class="c1"># The port the heartbeat socket is listening on.</span>
+    <span class="s1">&#39;control_port&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>      <span class="c1"># The port the control ROUTER socket is listening on.</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="comm-info">
+<span id="msging-comm-info"></span><h3>Comm info<a class="headerlink" href="#comm-info" title="Link to this heading">#</a></h3>
+<p>When a client needs the currently open comms in the kernel, it can issue a
+request for the currently open comms. When the optional <code class="docutils literal notranslate"><span class="pre">target_name</span></code> is
+specified, the reply only contains the currently open comms for the target.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">comm_info_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># Optional, the target name</span>
+    <span class="s1">&#39;target_name&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">comm_info_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># &#39;ok&#39; if the request succeeded or &#39;error&#39;, with error information as in all other replies.</span>
+    <span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="s1">&#39;ok&#39;</span><span class="p">,</span>
+
+    <span class="c1"># A dictionary of the comms, indexed by UUIDs.</span>
+    <span class="s1">&#39;comms&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="n">comm_id</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;target_name&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.1.</span></p>
+</div>
+</section>
+<section id="kernel-info">
+<span id="msging-kernel-info"></span><h3>Kernel info<a class="headerlink" href="#kernel-info" title="Link to this heading">#</a></h3>
+<p>If a client needs to know information about the kernel, it can
+make a request of the kernel’s information.
+This message can be used to fetch core information of the
+kernel, including language (e.g., Python), language version number and
+IPython version number, and the IPython message spec version number.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">kernel_info_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">kernel_info_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># &#39;ok&#39; if the request succeeded or &#39;error&#39;, with error information as in all other replies.</span>
+    <span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="s1">&#39;ok&#39;</span><span class="p">,</span>
+
+    <span class="c1"># Version of messaging protocol.</span>
+    <span class="c1"># The first integer indicates major version.  It is incremented when</span>
+    <span class="c1"># there is any backward incompatible change.</span>
+    <span class="c1"># The second integer indicates minor version.  It is incremented when</span>
+    <span class="c1"># there is any backward compatible change.</span>
+    <span class="s1">&#39;protocol_version&#39;</span><span class="p">:</span> <span class="s1">&#39;X.Y.Z&#39;</span><span class="p">,</span>
+
+    <span class="c1"># The kernel implementation name</span>
+    <span class="c1"># (e.g. &#39;ipython&#39; for the IPython kernel)</span>
+    <span class="s1">&#39;implementation&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+    <span class="c1"># Implementation version number.</span>
+    <span class="c1"># The version number of the kernel&#39;s implementation</span>
+    <span class="c1"># (e.g. IPython.__version__ for the IPython kernel)</span>
+    <span class="s1">&#39;implementation_version&#39;</span><span class="p">:</span> <span class="s1">&#39;X.Y.Z&#39;</span><span class="p">,</span>
+
+    <span class="c1"># Information about the language of code for the kernel</span>
+    <span class="s1">&#39;language_info&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="c1"># Name of the programming language that the kernel implements.</span>
+        <span class="c1"># Kernel included in IPython returns &#39;python&#39;.</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+        <span class="c1"># Language version number.</span>
+        <span class="c1"># It is Python version number (e.g., &#39;2.7.3&#39;) for the kernel</span>
+        <span class="c1"># included in IPython.</span>
+        <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;X.Y.Z&#39;</span><span class="p">,</span>
+
+        <span class="c1"># mimetype for script files in this language</span>
+        <span class="s1">&#39;mimetype&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+        <span class="c1"># Extension including the dot, e.g. &#39;.py&#39;</span>
+        <span class="s1">&#39;file_extension&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+        <span class="c1"># Pygments lexer, for highlighting</span>
+        <span class="c1"># Only needed if it differs from the &#39;name&#39; field.</span>
+        <span class="s1">&#39;pygments_lexer&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+        <span class="c1"># Codemirror mode, for highlighting in the notebook.</span>
+        <span class="c1"># Only needed if it differs from the &#39;name&#39; field.</span>
+        <span class="s1">&#39;codemirror_mode&#39;</span><span class="p">:</span> <span class="nb">str</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">,</span>
+
+        <span class="c1"># Nbconvert exporter, if notebooks written with this kernel should</span>
+        <span class="c1"># be exported with something other than the general &#39;script&#39;</span>
+        <span class="c1"># exporter.</span>
+        <span class="s1">&#39;nbconvert_exporter&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">},</span>
+
+    <span class="c1"># A banner of information about the kernel,</span>
+    <span class="c1"># which may be displayed in console environments.</span>
+    <span class="s1">&#39;banner&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+    <span class="c1"># A boolean flag which tells if the kernel supports debugging in the notebook.</span>
+    <span class="c1"># Default is False.</span>
+    <span class="c1"># Deprecated as replaced by &#39;supported_features&#39;=[&#39;debugger&#39;] (see below).</span>
+    <span class="s1">&#39;debugger&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+
+    <span class="c1"># Optional: A list of dictionaries, each with keys &#39;text&#39; and &#39;url&#39;.</span>
+    <span class="c1"># These will be displayed in the help menu in the notebook UI.</span>
+    <span class="s1">&#39;help_links&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">}</span>
+    <span class="p">],</span>
+
+    <span class="c1"># Optional: A list of optional features such as &#39;debugger&#39; and</span>
+    <span class="c1"># &#39;kernel subshells&#39;. Introduced by Jupyter Enhancement Proposal 92</span>
+    <span class="c1"># https://github.com/jupyter/enhancement-proposals/pull/92</span>
+    <span class="s1">&#39;supported_features&#39;</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Refer to the lists of available <a class="reference external" href="http://pygments.org/docs/lexers/">Pygments lexers</a>
+and <a class="reference external" href="http://codemirror.net/mode/index.html">codemirror modes</a> for those fields.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Versions changed from lists of integers to strings.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">ipython_version</span></code> is removed.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">language_info</span></code>, <code class="docutils literal notranslate"><span class="pre">implementation</span></code>, <code class="docutils literal notranslate"><span class="pre">implementation_version</span></code>, <code class="docutils literal notranslate"><span class="pre">banner</span></code>
+and <code class="docutils literal notranslate"><span class="pre">help_links</span></code> keys are added.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">language_version</span></code> moved to <code class="docutils literal notranslate"><span class="pre">language_info.version</span></code></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">language</span></code> moved to <code class="docutils literal notranslate"><span class="pre">language_info.name</span></code></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.5: </span><code class="docutils literal notranslate"><span class="pre">supported_features</span></code> added and <code class="docutils literal notranslate"><span class="pre">debugger</span></code> deprecated.</p>
+</div>
+</section>
+</section>
+<section id="messages-on-the-control-router-dealer-channel">
+<h2>Messages on the Control (ROUTER/DEALER) channel<a class="headerlink" href="#messages-on-the-control-router-dealer-channel" title="Link to this heading">#</a></h2>
+<section id="kernel-shutdown">
+<span id="msging-shutdown"></span><h3>Kernel shutdown<a class="headerlink" href="#kernel-shutdown" title="Link to this heading">#</a></h3>
+<p>The clients can request the kernel to shut itself down; this is used in
+multiple cases:</p>
+<ul class="simple">
+<li><p>when the user chooses to close the client application via a menu or window
+control.</p></li>
+<li><p>when the user types ‘exit’ or ‘quit’ (or their uppercase magic equivalents).</p></li>
+<li><p>when the user chooses a GUI method (like the ‘Ctrl-C’ shortcut in the
+IPythonQt client) to force a kernel restart to get a clean kernel without
+losing client-side state like history or inlined figures.</p></li>
+</ul>
+<p>Implementation recommendation for starting kernels: A restart should optimally
+preserve as many resources outside the kernel as possible (e.g. only restart the
+kernel and its subprocesses and not any parent processes). That is, ideally a
+restart should be “in-place”. For local kernels, there is typically no parent
+process so a “hard” restart and an in-place restart are identical whereas for
+remote kernels this is not generally the same. As an example, if a remote kernel
+is run in a container, during an in-place restart the container may be kept
+running and a new kernel process within it would be started.</p>
+<p>The client sends a shutdown request to the kernel, and once it receives the
+reply message (which is otherwise empty), it can assume that the kernel has
+completed shutdown safely.  The request is sent on the <code class="docutils literal notranslate"><span class="pre">control</span></code> channel.</p>
+<p>Upon their own shutdown, client applications will typically execute a last
+minute sanity check and forcefully terminate any kernel that is still alive, to
+avoid leaving stray processes in the user’s machine.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">shutdown_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;restart&#39;</span> <span class="p">:</span> <span class="nb">bool</span> <span class="c1"># False if final shutdown, or True if shutdown precedes a restart</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">shutdown_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># &#39;ok&#39; if the request succeeded or &#39;error&#39;, with error information as in all other replies.</span>
+    <span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="s1">&#39;ok&#39;</span><span class="p">,</span>
+
+    <span class="s1">&#39;restart&#39;</span> <span class="p">:</span> <span class="nb">bool</span> <span class="c1"># False if final shutdown, or True if shutdown precedes a restart</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When the clients detect a dead kernel thanks to inactivity on the heartbeat
+socket, they simply send a forceful process termination signal, since a dead
+process is unlikely to respond in any useful way to messages.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.4: </span>Sending a <code class="docutils literal notranslate"><span class="pre">shutdown_request</span></code> message on the <code class="docutils literal notranslate"><span class="pre">shell</span></code> channel is deprecated.</p>
+</div>
+</section>
+<section id="kernel-interrupt">
+<span id="msging-interrupt"></span><h3>Kernel interrupt<a class="headerlink" href="#kernel-interrupt" title="Link to this heading">#</a></h3>
+<p>In case a kernel can not catch operating system interrupt signals (e.g. the used
+runtime handles signals and does not allow a user program to define a callback),
+a kernel can choose to be notified using a message instead. For this to work,
+the kernels kernelspec must set <code class="docutils literal notranslate"><span class="pre">interrupt_mode</span></code> to <code class="docutils literal notranslate"><span class="pre">message</span></code>. An interruption
+will then result in the following message on the <code class="docutils literal notranslate"><span class="pre">control</span></code> channel:</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">interrupt_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{}</span>
+</pre></div>
+</div>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">interrupt_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># &#39;ok&#39; if the request succeeded or &#39;error&#39;, with error information as in all other replies.</span>
+    <span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="s1">&#39;ok&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.3.</span></p>
+</div>
+</section>
+<section id="id4">
+<h3>Kernel info<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>This is the same <a class="reference internal" href="#msging-kernel-info"><span class="std std-ref">kernel info</span></a> message as that received on the Shell channel.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.5.</span></p>
+</div>
+</section>
+<section id="debug-request">
+<h3>Debug request<a class="headerlink" href="#debug-request" title="Link to this heading">#</a></h3>
+<p>This message type is used with debugging kernels to request specific actions
+to be performed by the debugger such as adding a breakpoint or stepping into
+a code.
+Kernels supporting subshells must include <code class="docutils literal notranslate"><span class="pre">'debugger'</span></code> in <code class="docutils literal notranslate"><span class="pre">'supported_features'</span></code>
+in <a class="reference internal" href="#msging-kernel-info"><span class="std std-ref">kernel info</span></a> reply messages.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">debug_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{}</span>
+</pre></div>
+</div>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">debug_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">content</span></code> dicts of the <code class="docutils literal notranslate"><span class="pre">debug_request</span></code> and <code class="docutils literal notranslate"><span class="pre">debug_reply</span></code> messages respectively follow the
+specification of the <code class="docutils literal notranslate"><span class="pre">Request</span></code> and <code class="docutils literal notranslate"><span class="pre">Response</span></code> messages from the
+<a class="reference external" href="https://microsoft.github.io/debug-adapter-protocol/">Debug Adapter Protocol (DAP)</a> as of version 1.39 or later.</p>
+<p>Debug requests and replies are sent over the <code class="docutils literal notranslate"><span class="pre">control</span></code> channel to prevent
+queuing behind execution requests.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.5.</span></p>
+</div>
+<section id="additions-to-the-dap">
+<h4>Additions to the DAP<a class="headerlink" href="#additions-to-the-dap" title="Link to this heading">#</a></h4>
+<p>The Jupyter debugger protocol makes several additions to the DAP:</p>
+<ul class="simple">
+<li><p>the <a class="reference internal" href="#dumpcell">dumpCell</a> request and response messages</p></li>
+<li><p>the <a class="reference internal" href="#debuginfo">debugInfo</a> request and response messages</p></li>
+<li><p>the <a class="reference internal" href="#inspectvariables">inspectVariables</a> request and response messages</p></li>
+<li><p>the <a class="reference internal" href="#richinspectvariables">richInspectVariables</a> request and response messages</p></li>
+<li><p>the <a class="reference internal" href="#copytoglobals">copyToGlobals</a> request and response messages</p></li>
+</ul>
+<section id="dumpcell">
+<h5>dumpCell<a class="headerlink" href="#dumpcell" title="Link to this heading">#</a></h5>
+<p>In order to support the debugging of notebook cells and of Jupyter consoles,
+which are not based on source files, we need a message to submit code to the
+debugger to which breakpoints can be added.</p>
+<blockquote>
+<div><p>Content of the <code class="docutils literal notranslate"><span class="pre">dumpCell</span></code> request:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;type&#39;</span> <span class="p">:</span> <span class="s1">&#39;request&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;command&#39;</span> <span class="p">:</span> <span class="s1">&#39;dumpCell&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;arguments&#39;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;code&#39;</span> <span class="p">:</span> <span class="nb">str</span>  <span class="c1"># the content of the cell being submitted.</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Content of the <code class="docutils literal notranslate"><span class="pre">dumpCell</span></code> response:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+     <span class="s1">&#39;type&#39;</span> <span class="p">:</span> <span class="s1">&#39;response&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+     <span class="s1">&#39;body&#39;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="s1">&#39;sourcePath&#39;</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># filename for the dumped source</span>
+     <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.5.</span></p>
+</div>
+</section>
+<section id="debuginfo">
+<h5>debugInfo<a class="headerlink" href="#debuginfo" title="Link to this heading">#</a></h5>
+<p>In order to support page reloading, or a client connecting at a later stage,
+Jupyter kernels must store the state of the debugger (such as breakpoints,
+whether the debugger is currently stopped). The <code class="docutils literal notranslate"><span class="pre">debugInfo</span></code> request is a DAP
+<code class="docutils literal notranslate"><span class="pre">Request</span></code> with no extra argument.</p>
+<blockquote>
+<div><p>Content of the <code class="docutils literal notranslate"><span class="pre">debugInfo</span></code> request:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;type&#39;</span> <span class="p">:</span> <span class="s1">&#39;request&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;command&#39;</span> <span class="p">:</span> <span class="s1">&#39;debugInfo&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Content of the <code class="docutils literal notranslate"><span class="pre">debugInfo</span></code> response:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;type&#39;</span> <span class="p">:</span> <span class="s1">&#39;response&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;success&#39;</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="s1">&#39;body&#39;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;isStarted&#39;</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>  <span class="c1"># whether the debugger is started,</span>
+        <span class="s1">&#39;hashMethod&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># the hash method for code cell. Default is &#39;Murmur2&#39;,</span>
+        <span class="s1">&#39;hashSeed&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># the seed for the hashing of code cells,</span>
+        <span class="s1">&#39;tmpFilePrefix&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># prefix for temporary file names</span>
+        <span class="s1">&#39;tmpFileSuffix&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># suffix for temporary file names</span>
+        <span class="s1">&#39;breakpoints&#39;</span> <span class="p">:</span> <span class="p">[</span>  <span class="c1"># breakpoints currently registered in the debugger.</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;source&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># source file</span>
+                <span class="s1">&#39;breakpoints&#39;</span> <span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">source_breakpoints</span><span class="p">)</span>  <span class="c1"># list of breakpoints for that source file</span>
+            <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="s1">&#39;stoppedThreads&#39;</span> <span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span>  <span class="c1"># threads in which the debugger is currently in a stopped state</span>
+        <span class="s1">&#39;richRendering&#39;</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>  <span class="c1"># whether the debugger supports rich rendering of variables</span>
+        <span class="s1">&#39;exceptionPaths&#39;</span> <span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">str</span><span class="p">),</span>  <span class="c1"># exception names used to match leaves or nodes in a tree of exception</span>
+        <span class="s1">&#39;copyToGlobals&#39;</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="c1"># whether the debugger supports supports the copyToGlobals request</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">source_breakpoint</span></code> schema is specified by the Debug Adapter Protocol.</p>
+</div></blockquote>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.5.</span></p>
+</div>
+</section>
+<section id="inspectvariables">
+<h5>inspectVariables<a class="headerlink" href="#inspectvariables" title="Link to this heading">#</a></h5>
+<p>The <code class="docutils literal notranslate"><span class="pre">inspectVariables</span></code> is meant to retrieve the values of all the variables
+that have been defined in the kernel. It is a DAP <code class="docutils literal notranslate"><span class="pre">Request</span></code> with no extra
+argument.</p>
+<blockquote>
+<div><p>Content of the <code class="docutils literal notranslate"><span class="pre">inspectVariables</span></code> request:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;type&#39;</span> <span class="p">:</span> <span class="s1">&#39;request&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;command&#39;</span> <span class="p">:</span> <span class="s1">&#39;inspectVariables&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Content of the <code class="docutils literal notranslate"><span class="pre">inspectVariables</span></code> response:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;type&#39;</span> <span class="p">:</span> <span class="s1">&#39;response&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;success&#39;</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="s1">&#39;body&#39;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;variables&#39;</span> <span class="p">:</span> <span class="p">[</span> <span class="c1"># variables defined in the notebook.</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s1">&#39;variablesReference&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                <span class="s1">&#39;value&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s1">&#39;type&#39;</span> <span class="p">:</span> <span class="nb">str</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.5.</span></p>
+</div>
+</section>
+<section id="richinspectvariables">
+<h5>richInspectVariables<a class="headerlink" href="#richinspectvariables" title="Link to this heading">#</a></h5>
+<p>The <code class="docutils literal notranslate"><span class="pre">richInspectVariables</span></code> request allows to get the rich representation of a
+variable that has been defined in the kernel.</p>
+<blockquote>
+<div><p>Content of the <code class="docutils literal notranslate"><span class="pre">richInspectVariables</span></code> request:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;type&#39;</span> <span class="p">:</span> <span class="s1">&#39;request&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;command&#39;</span> <span class="p">:</span> <span class="s1">&#39;richInspectVariables&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;arguments&#39;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;variableName&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="c1"># The frameId is used when the debugger hit a breakpoint only.</span>
+        <span class="s1">&#39;frameId&#39;</span> <span class="p">:</span> <span class="nb">int</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Content of the <code class="docutils literal notranslate"><span class="pre">richInspectVariables</span></code> response:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;type&#39;</span> <span class="p">:</span> <span class="s1">&#39;response&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;success&#39;</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="s1">&#39;body&#39;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="c1"># Dictionary of rich representations of the variable</span>
+        <span class="s1">&#39;data&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="s1">&#39;metadata&#39;</span> <span class="p">:</span> <span class="nb">dict</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.5.</span></p>
+</div>
+</section>
+<section id="copytoglobals">
+<h5>copyToGlobals<a class="headerlink" href="#copytoglobals" title="Link to this heading">#</a></h5>
+<p>The <code class="docutils literal notranslate"><span class="pre">copyToGlobals</span></code> request allows to copy a variable from the local variable panel
+of the debugger to the <code class="docutils literal notranslate"><span class="pre">global</span></code> scope to inspect it after debug session.
+The support for this request is optional and should be indicated to the client via
+the <code class="docutils literal notranslate"><span class="pre">copyToGlobals</span></code> boolean field in the debugInfo reply.</p>
+<blockquote>
+<div><p>Content of the <code class="docutils literal notranslate"><span class="pre">copyToGlobals</span></code> request:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;request&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;copyToGlobals&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;arguments&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="c1"># the variable to copy from the frame corresponding to `srcFrameId`</span>
+        <span class="s1">&#39;srcVariableName&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;srcFrameId&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="c1"># the copied variable name in the global scope</span>
+        <span class="s1">&#39;dstVariableName&#39;</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Content of the <code class="docutils literal notranslate"><span class="pre">copyToGlobals</span></code> response:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;response&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;setExpression&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;body&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="c1"># string representation of the copied variable</span>
+        <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="c1"># type of the copied variable</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;variablesReference&#39;</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.5.</span></p>
+</div>
+</section>
+</section>
+</section>
+<section id="kernel-subshells">
+<span id="id5"></span><h3>Kernel subshells<a class="headerlink" href="#kernel-subshells" title="Link to this heading">#</a></h3>
+<p>Kernel subshells are separate threads of execution within the same kernel process that
+were introduced by
+<a class="reference external" href="https://github.com/jupyter/enhancement-proposals/pull/91">Jupyter Enhancement Proposal 91</a>.
+Kernels supporting subshells must include <code class="docutils literal notranslate"><span class="pre">'kernel</span> <span class="pre">subshells'</span></code> in <code class="docutils literal notranslate"><span class="pre">'supported_features'</span></code>
+in <a class="reference internal" href="#msging-kernel-info"><span class="std std-ref">kernel info</span></a> reply messages.</p>
+<section id="create-subshell">
+<h4>Create subshell<a class="headerlink" href="#create-subshell" title="Link to this heading">#</a></h4>
+<p>In a kernel that supports subshells, this creates a new subshell (running in a separate thread)
+and returns its unique ID. In a kernel that does not support subshells an error is logged and
+no reply is sent.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">create_subshell_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">create_subshell_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># &#39;ok&#39; if the request succeeded or &#39;error&#39;, with error information as in all other replies.</span>
+    <span class="s1">&#39;status&#39;</span> <span class="p">:</span> <span class="s1">&#39;ok&#39;</span><span class="p">,</span>
+
+    <span class="c1"># The ID of the subshell, unique within the kernel.</span>
+    <span class="s1">&#39;subshell_id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.5.</span></p>
+</div>
+</section>
+<section id="delete-subshell">
+<h4>Delete subshell<a class="headerlink" href="#delete-subshell" title="Link to this heading">#</a></h4>
+<p>In a kernel that supports subshells, this deletes a subshell identified by its unique ID.
+In a kernel that does not support subshells an error is logged and no reply is sent.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">delete_subshell_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># The ID of the subshell.</span>
+    <span class="s1">&#39;subshell_id&#39;</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">delete_subshell_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># &#39;ok&#39; if the request succeeded or &#39;error&#39;, with error information as in all other replies.</span>
+    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;ok&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.5.</span></p>
+</div>
+</section>
+<section id="list-subshell">
+<h4>List subshell<a class="headerlink" href="#list-subshell" title="Link to this heading">#</a></h4>
+<p>In a kernel that supports subshells, this returns a list of the IDs of all subshells that exist
+in that kernel. In a kernel that does not support subshells an error is logged and no reply is sent.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">list_subshell_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">list_subshell_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># &#39;ok&#39; if the request succeeded or &#39;error&#39;, with error information as in all other replies.</span>
+    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;ok&#39;</span><span class="p">,</span>
+
+    <span class="c1"># A list of subshell IDs.</span>
+    <span class="s1">&#39;subshell_id&#39;</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.5.</span></p>
+</div>
+</section>
+</section>
+</section>
+<section id="messages-on-the-iopub-xpub-sub-channel">
+<h2>Messages on the IOPub (XPUB/SUB) channel<a class="headerlink" href="#messages-on-the-iopub-xpub-sub-channel" title="Link to this heading">#</a></h2>
+<section id="welcome-message">
+<h3>Welcome message<a class="headerlink" href="#welcome-message" title="Link to this heading">#</a></h3>
+<p>This message is sent to a client SUB socket the first time it connects to the
+XPUB kernel socket, to notify the client that the connection is established.</p>
+<p>message type: <code class="docutils literal notranslate"><span class="pre">iopub_welcome</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># The topic the SUB has subscribed to. Can be empty string if</span>
+    <span class="c1"># the client has subscribed to all topics.</span>
+    <span class="s1">&#39;subscription&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This message has no parent header.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Welcome messages do not and cannot identify the client whose subscription is being received.
+Receiving an iopub_welcome message with your subscription does not mean it is in response to
+your own subscription. However, receiving a message does mean that a matching subscription has
+been registered for your client, otherwise no message will be received. So if only one
+subscription is registered, as is normally the case, receiving any welcome message is sufficient
+to indicate that your client’s subscription is fully established. The gist is that receiving a
+welcome message is a sufficient condition to establish the subscription-propagation event, and
+additional welcome messages should be expected and ignored.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.5.</span></p>
+</div>
+</section>
+<section id="streams-stdout-stderr-etc">
+<h3>Streams (stdout,  stderr, etc)<a class="headerlink" href="#streams-stdout-stderr-etc" title="Link to this heading">#</a></h3>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">stream</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># The name of the stream is one of &#39;stdout&#39;, &#39;stderr&#39;</span>
+    <span class="s1">&#39;name&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
+    <span class="c1"># The text is an arbitrary string to be written to that stream</span>
+    <span class="s1">&#39;text&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>‘data’ key renamed to ‘text’ for consistency with the notebook format.</p>
+</div>
+</section>
+<section id="display-data">
+<h3>Display Data<a class="headerlink" href="#display-data" title="Link to this heading">#</a></h3>
+<p>This type of message is used to bring back data that should be displayed (text,
+html, svg, etc.) in the frontends. This data is published to all frontends.
+Each message can have multiple representations of the data; it is up to the
+frontend to decide which to use and how. A single message should contain all
+possible representations of the same information. Each representation should
+be a JSON’able data structure, and should be a valid MIME type.</p>
+<p>Some questions remain about this design:</p>
+<ul class="simple">
+<li><p>Do we use this message type for execute_result/displayhook? Probably not, because
+the displayhook also has to handle the Out prompt display. On the other hand
+we could put that information into the metadata section.</p></li>
+</ul>
+<p id="id6">Message type: <code class="docutils literal notranslate"><span class="pre">display_data</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+
+    <span class="c1"># Who create the data</span>
+    <span class="c1"># Used in V4. Removed in V5.</span>
+    <span class="c1"># &#39;source&#39; : str,</span>
+
+    <span class="c1"># The data dict contains key/value pairs, where the keys are MIME</span>
+    <span class="c1"># types and the values are the raw data of the representation in that</span>
+    <span class="c1"># format.</span>
+    <span class="s1">&#39;data&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+
+    <span class="c1"># Any metadata that describes the data</span>
+    <span class="s1">&#39;metadata&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+
+    <span class="c1"># Optional transient data introduced in 5.1. Information not to be</span>
+    <span class="c1"># persisted to a notebook or other documents. Intended to live only</span>
+    <span class="c1"># during a live kernel session.</span>
+    <span class="s1">&#39;transient&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">metadata</span></code> contains any metadata that describes the output.
+Global keys are assumed to apply to the output as a whole.
+The <code class="docutils literal notranslate"><span class="pre">metadata</span></code> dict can also contain mime-type keys, which will be sub-dictionaries,
+which are interpreted as applying only to output of that type.
+Third parties should put any data they write into a single dict
+with a reasonably unique name to avoid conflicts.</p>
+<p>The only metadata keys currently defined in IPython are the width and height
+of images:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s1">&#39;image/png&#39;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">640</span><span class="p">,</span>
+    <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="mi">480</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>and expanded for JSON data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s1">&#39;application/json&#39;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s1">&#39;expanded&#39;</span><span class="p">:</span> <span class="kc">True</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">transient</span></code> dict contains runtime metadata that should not be persisted to
+document formats and is fully optional. The only transient key currently defined in Jupyter is
+<code class="docutils literal notranslate"><span class="pre">display_id</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">transient</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;display_id&#39;</span><span class="p">:</span> <span class="s1">&#39;abcd&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><cite>application/json</cite> data should be unpacked JSON data,
+not double-serialized as a JSON string.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span><cite>transient</cite> is a new field.</p>
+</div>
+</section>
+<section id="update-display-data">
+<h3>Update Display Data<a class="headerlink" href="#update-display-data" title="Link to this heading">#</a></h3>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.1.</span></p>
+</div>
+<p>Displays can now be named with a <code class="docutils literal notranslate"><span class="pre">display_id</span></code> within the <code class="docutils literal notranslate"><span class="pre">transient</span></code> field of
+<code class="docutils literal notranslate"><span class="pre">display_data</span></code> or <code class="docutils literal notranslate"><span class="pre">execute_result</span></code>.</p>
+<p>When a <code class="docutils literal notranslate"><span class="pre">display_id</span></code> is specified for a display, it can be updated later
+with an <code class="docutils literal notranslate"><span class="pre">update_display_data</span></code> message. This message has the same format as <a class="reference internal" href="#id6">display_data</a>
+messages and must contain a <code class="docutils literal notranslate"><span class="pre">transient</span></code> field with a <code class="docutils literal notranslate"><span class="pre">display_id</span></code>.</p>
+<p id="id7">Message type: <code class="docutils literal notranslate"><span class="pre">update_display_data</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+
+    <span class="c1"># The data dict contains key/value pairs, where the keys are MIME</span>
+    <span class="c1"># types and the values are the raw data of the representation in that</span>
+    <span class="c1"># format.</span>
+    <span class="s1">&#39;data&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+
+    <span class="c1"># Any metadata that describes the data</span>
+    <span class="s1">&#39;metadata&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+
+    <span class="c1"># Any information not to be persisted to a notebook or other environment</span>
+    <span class="c1"># Intended to live only during a kernel session</span>
+    <span class="s1">&#39;transient&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Frontends can choose how they update prior outputs (or if they regard this as a
+regular <code class="docutils literal notranslate"><span class="pre">display_data</span></code> message). Within the jupyter and <a class="reference external" href="https://nteract.io">nteract</a> notebooks,
+all displays that match the <code class="docutils literal notranslate"><span class="pre">display_id</span></code> are updated (even if there are multiple).</p>
+</section>
+<section id="code-inputs">
+<h3>Code inputs<a class="headerlink" href="#code-inputs" title="Link to this heading">#</a></h3>
+<p>To let all frontends know what code is being executed at any given time, these
+messages contain a re-broadcast of the <code class="docutils literal notranslate"><span class="pre">code</span></code> portion of an
+<a class="reference internal" href="#execute"><span class="std std-ref">execute_request</span></a>, along with the <a class="reference internal" href="#execution-counter"><span class="std std-ref">execution_count</span></a>.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">execute_input</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;code&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># Source code to be executed, one or more lines</span>
+
+    <span class="c1"># The counter for this execution is also provided so that clients can</span>
+    <span class="c1"># display it, since IPython automatically creates variables called _iN</span>
+    <span class="c1"># (for input prompt In[N]).</span>
+    <span class="s1">&#39;execution_count&#39;</span> <span class="p">:</span> <span class="nb">int</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">pyin</span></code> is renamed to <code class="docutils literal notranslate"><span class="pre">execute_input</span></code>.</p>
+</div>
+</section>
+<section id="id8">
+<h3>Execution results<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p>Results of an execution are published as an <code class="docutils literal notranslate"><span class="pre">execute_result</span></code>.
+These are identical to <a class="reference internal" href="#id6">display_data</a> messages, with the addition of an <code class="docutils literal notranslate"><span class="pre">execution_count</span></code> key.</p>
+<p>Results can have multiple simultaneous formats depending on its
+configuration. A plain text representation should always be provided
+in the <code class="docutils literal notranslate"><span class="pre">text/plain</span></code> mime-type. Frontends are free to display any or all of these
+according to its capabilities.
+Frontends should ignore mime-types they do not understand. The data itself is
+any JSON object and depends on the format. It is often, but not always a string.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">execute_result</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+
+    <span class="c1"># The counter for this execution is also provided so that clients can</span>
+    <span class="c1"># display it, since IPython automatically creates variables called _N</span>
+    <span class="c1"># (for prompt N).</span>
+    <span class="s1">&#39;execution_count&#39;</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+
+    <span class="c1"># data and metadata are identical to a display_data message.</span>
+    <span class="c1"># the object being displayed is that passed to the display hook,</span>
+    <span class="c1"># i.e. the *result* of the execution.</span>
+    <span class="s1">&#39;data&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="s1">&#39;metadata&#39;</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="execution-errors">
+<h3>Execution errors<a class="headerlink" href="#execution-errors" title="Link to this heading">#</a></h3>
+<p>When an error occurs during code execution</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">error</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="c1"># Similar content to the execute_reply messages for the &#39;error&#39; case,</span>
+   <span class="c1"># except the &#39;status&#39; and &#39;execution_count&#39; fields are omitted.</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">pyerr</span></code> renamed to <code class="docutils literal notranslate"><span class="pre">error</span></code></p>
+</div>
+</section>
+<section id="kernel-status">
+<span id="status"></span><h3>Kernel status<a class="headerlink" href="#kernel-status" title="Link to this heading">#</a></h3>
+<p>This message type is used by frontends to monitor the status of the kernel.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">status</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># When the kernel starts to handle a message, it will enter the &#39;busy&#39;</span>
+    <span class="c1"># state and when it finishes, it will enter the &#39;idle&#39; state.</span>
+    <span class="c1"># The kernel will publish state &#39;starting&#39; exactly once at process startup.</span>
+    <span class="n">execution_state</span> <span class="p">:</span> <span class="p">(</span><span class="s1">&#39;busy&#39;</span><span class="p">,</span> <span class="s1">&#39;idle&#39;</span><span class="p">,</span> <span class="s1">&#39;starting&#39;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When a kernel receives a request and begins processing it,
+the kernel shall immediately publish a status message with <code class="docutils literal notranslate"><span class="pre">execution_state:</span> <span class="pre">'busy'</span></code>.
+When that kernel has completed processing the request
+and has finished publishing associated IOPub messages, if any,
+it shall publish a status message with <code class="docutils literal notranslate"><span class="pre">execution_state:</span> <span class="pre">'idle'</span></code>.
+Thus, the outputs associated with a given execution shall generally arrive
+between the busy and idle status messages associated with a given request.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>A caveat for asynchronous output</strong></p>
+<p>Asynchronous output (e.g. from background threads) may be produced after the kernel
+has sent the idle status message that signals the completion of the request.
+The handling of these out-of-order output messages is currently undefined in this specification,
+but the Jupyter Notebook continues to handle IOPub messages associated with a given request
+after the idle message has arrived,
+as long as the output area corresponding to that request is still active.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Busy and idle messages should be sent before/after handling every request,
+not just execution.</p>
+</div>
+</section>
+<section id="clear-output">
+<h3>Clear output<a class="headerlink" href="#clear-output" title="Link to this heading">#</a></h3>
+<p>This message type is used to clear the output that is visible on the frontend.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">clear_output</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+
+    <span class="c1"># Wait to clear the output until new output is available.  Clears the</span>
+    <span class="c1"># existing output immediately before the new output is displayed.</span>
+    <span class="c1"># Useful for creating simple animations with minimal flickering.</span>
+    <span class="s1">&#39;wait&#39;</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.1: </span><code class="docutils literal notranslate"><span class="pre">stdout</span></code>, <code class="docutils literal notranslate"><span class="pre">stderr</span></code>, and <code class="docutils literal notranslate"><span class="pre">display</span></code> boolean keys for selective clearing are removed,
+and <code class="docutils literal notranslate"><span class="pre">wait</span></code> is added.
+The selective clearing keys are ignored in v4 and the default behavior remains the same,
+so v4 clear_output messages will be safely handled by a v4.1 frontend.</p>
+</div>
+</section>
+<section id="debug-event">
+<span id="id9"></span><h3>Debug event<a class="headerlink" href="#debug-event" title="Link to this heading">#</a></h3>
+<p>This message type is used by debugging kernels to send debugging events to the
+frontend.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">debug_event</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">content</span></code> dict follows the specification of the <code class="docutils literal notranslate"><span class="pre">Event</span></code> message from the <a class="reference external" href="https://microsoft.github.io/debug-adapter-protocol/">Debug Adapter Protocol (DAP)</a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 5.5.</span></p>
+</div>
+</section>
+</section>
+<section id="messages-on-the-stdin-router-dealer-channel">
+<span id="stdin-messages"></span><h2>Messages on the stdin (ROUTER/DEALER) channel<a class="headerlink" href="#messages-on-the-stdin-router-dealer-channel" title="Link to this heading">#</a></h2>
+<p>With the stdin ROUTER/DEALER socket, the request/reply pattern goes in the
+opposite direction of most kernel communication.
+With the stdin socket, the kernel makes the request, and the single frontend
+provides the response.
+This pattern allows code to prompt the user for a line of input,
+which would normally be read from stdin in a terminal.</p>
+<p>Many programming languages provide a function which displays a prompt, blocks
+until the user presses return, and returns the text they typed before pressing
+return. In Python 3, this is the <code class="docutils literal notranslate"><span class="pre">input()</span></code> function; in R it is called
+<code class="docutils literal notranslate"><span class="pre">readline()</span></code>. If the <a class="reference internal" href="#execute"><span class="std std-ref">execute_request</span></a> message has
+<code class="docutils literal notranslate"><span class="pre">allow_stdin==True</span></code>, kernels may implement these functions so that they send
+an <code class="docutils literal notranslate"><span class="pre">input_request</span></code> message and wait for a corresponding <code class="docutils literal notranslate"><span class="pre">input_reply</span></code>. The
+frontend is responsible for displaying the prompt and getting the user’s input.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">allow_stdin</span></code> is False, the kernel must not send <code class="docutils literal notranslate"><span class="pre">stdin_request</span></code>. The
+kernel may decide what to do instead, but it’s most likely that calls to the
+‘prompt for input’ function should fail immediately in this case.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">input_request</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># the text to show at the prompt</span>
+    <span class="s1">&#39;prompt&#39;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="c1"># Is the request for a password?</span>
+    <span class="c1"># If so, the frontend shouldn&#39;t echo input.</span>
+    <span class="s1">&#39;password&#39;</span> <span class="p">:</span> <span class="nb">bool</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">input_reply</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">content</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;value&#39;</span> <span class="p">:</span> <span class="nb">str</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">password</span></code> is True, the frontend should not show the input as it is entered.
+Different frontends may obscure it in different ways; e.g. showing each
+character entered as the same neutral symbol, or not showing anything at all as
+the user types.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span><code class="docutils literal notranslate"><span class="pre">password</span></code> key added.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The stdin socket of the client is required to have the same zmq IDENTITY
+as the client’s shell socket.
+Because of this, the <code class="docutils literal notranslate"><span class="pre">input_request</span></code> must be sent with the same IDENTITY
+routing prefix as the <code class="docutils literal notranslate"><span class="pre">execute_reply</span></code> in order for the frontend to receive
+the message.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This pattern of requesting user input is quite different from how stdin works
+at a lower level. The Jupyter protocol does not support everything code
+running in a terminal can do with stdin, but we believe that this enables the
+most common use cases.</p>
+</div>
+</section>
+<section id="heartbeat-for-kernels">
+<span id="kernel-heartbeat"></span><h2>Heartbeat for kernels<a class="headerlink" href="#heartbeat-for-kernels" title="Link to this heading">#</a></h2>
+<p>Clients send ping messages on a REQ socket, which are echoed right back
+from the Kernel’s REP socket. These are simple bytestrings, not full JSON messages described above.</p>
+</section>
+<section id="custom-messages">
+<h2>Custom Messages<a class="headerlink" href="#custom-messages" title="Link to this heading">#</a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 4.1.</span></p>
+</div>
+<p>Message spec 4.1 (IPython 2.0) added a messaging system for developers to add
+their own objects with Frontend
+and Kernel-side components, and allow them to communicate with each other.
+To do this, IPython adds a notion of a <code class="docutils literal notranslate"><span class="pre">Comm</span></code>, which exists on both sides,
+and can communicate in either direction.</p>
+<p>These messages are fully symmetrical - both the Kernel and the Frontend can send each message,
+and no messages expect a reply. The Kernel listens for these messages on the Shell channel,
+and the Frontend listens for them on the IOPub channel.</p>
+<section id="opening-a-comm">
+<h3>Opening a Comm<a class="headerlink" href="#opening-a-comm" title="Link to this heading">#</a></h3>
+<p>Opening a Comm produces a <code class="docutils literal notranslate"><span class="pre">comm_open</span></code> message, to be sent to the other side:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s1">&#39;comm_id&#39;</span> <span class="p">:</span> <span class="s1">&#39;u-u-i-d&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;target_name&#39;</span> <span class="p">:</span> <span class="s1">&#39;my_comm&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;data&#39;</span> <span class="p">:</span> <span class="p">{}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Every Comm has an ID and a target name.
+The code handling the message on the receiving side is responsible for maintaining a mapping
+of target_name keys to constructors.
+After a <code class="docutils literal notranslate"><span class="pre">comm_open</span></code> message has been sent,
+there should be a corresponding Comm instance on both sides.
+The <code class="docutils literal notranslate"><span class="pre">data</span></code> key is always a dict and can be any extra JSON information used in
+initialization of the comm.</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">target_name</span></code> key is not found on the receiving side,
+then it should immediately reply with a <code class="docutils literal notranslate"><span class="pre">comm_close</span></code> message to avoid an inconsistent state.</p>
+</section>
+<section id="comm-messages">
+<h3>Comm Messages<a class="headerlink" href="#comm-messages" title="Link to this heading">#</a></h3>
+<p>Comm messages are one-way communications to update comm state,
+used for synchronizing widget state, or simply requesting actions of a comm’s counterpart.</p>
+<p>Essentially, each comm pair defines their own message specification implemented
+inside the <code class="docutils literal notranslate"><span class="pre">data</span></code> dict.</p>
+<p>There are no expected replies (of course, one side can send another <code class="docutils literal notranslate"><span class="pre">comm_msg</span></code> in reply).</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">comm_msg</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s1">&#39;comm_id&#39;</span> <span class="p">:</span> <span class="s1">&#39;u-u-i-d&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;data&#39;</span> <span class="p">:</span> <span class="p">{}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="tearing-down-comms">
+<h3>Tearing Down Comms<a class="headerlink" href="#tearing-down-comms" title="Link to this heading">#</a></h3>
+<p>Since comms live on both sides, when a comm is destroyed the other side must be notified.
+This is done with a <code class="docutils literal notranslate"><span class="pre">comm_close</span></code> message.</p>
+<p>Message type: <code class="docutils literal notranslate"><span class="pre">comm_close</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s1">&#39;comm_id&#39;</span> <span class="p">:</span> <span class="s1">&#39;u-u-i-d&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;data&#39;</span> <span class="p">:</span> <span class="p">{}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="output-side-effects">
+<h3>Output Side Effects<a class="headerlink" href="#output-side-effects" title="Link to this heading">#</a></h3>
+<p>Since comm messages can execute arbitrary user code,
+handlers should set the parent header and publish status busy / idle,
+just like an execute request.</p>
+</section>
+</section>
+<section id="changelog">
+<h2>Changelog<a class="headerlink" href="#changelog" title="Link to this heading">#</a></h2>
+<section id="id11">
+<h3>5.5<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">debug_request/reply</span></code> and <code class="docutils literal notranslate"><span class="pre">debug_event</span></code> messages.</p></li>
+<li><p>Replaced <strong>IOPUB</strong> PUB socket with an XPUB socket.</p></li>
+<li><p>Added support for <a class="reference internal" href="#msging-kernel-info"><span class="std std-ref">kernel info</span></a> request on the Control channel.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">supported_features</span></code> in <a class="reference internal" href="#msging-kernel-info"><span class="std std-ref">kernel info</span></a> reply messages.</p></li>
+<li><p>Deprecated <code class="docutils literal notranslate"><span class="pre">debugger</span></code> in <a class="reference internal" href="#msging-kernel-info"><span class="std std-ref">kernel info</span></a> reply messages as
+replaced with <code class="docutils literal notranslate"><span class="pre">supported_features</span></code>.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">create_subshell</span></code>, <code class="docutils literal notranslate"><span class="pre">delete_subshell</span></code> and <code class="docutils literal notranslate"><span class="pre">list_subshell</span></code> messages.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">copyToGlobals</span></code> debug request</p></li>
+</ul>
+</section>
+<section id="id12">
+<h3>5.4<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Sending a <code class="docutils literal notranslate"><span class="pre">shutdown_request</span></code> message on the <code class="docutils literal notranslate"><span class="pre">shell</span></code> channel is deprecated.
+It should be sent on the control channel.</p></li>
+</ul>
+</section>
+<section id="id13">
+<h3>5.3<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Kernels can now opt to be interrupted by a message sent on the control channel
+instead of a system signal. See <a class="reference internal" href="kernels.html#kernelspecs"><span class="std std-ref">Kernel specs</span></a> and <a class="reference internal" href="#msging-interrupt"><span class="std std-ref">Kernel interrupt</span></a>.</p></li>
+</ul>
+</section>
+<section id="id14">
+<h3>5.2<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
+<ul>
+<li><p>Resolve ambiguity of <code class="docutils literal notranslate"><span class="pre">cursor_pos</span></code> field in the presence
+of unicode surrogate pairs.
+In 5.2, cursor_pos <strong>must be</strong> the actual encoding-independent offset in unicode codepoints.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#cursor-pos-unicode-note"><span class="std std-ref">cursor_pos and unicode offsets</span></a></p>
+</div>
+</li>
+</ul>
+</section>
+<section id="id15">
+<h3>5.1<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">date</span></code> in the header was accidentally omitted from the spec prior to 5.1,
+but it has always been in the canonical implementation,
+so implementers are strongly encouraged to include it.
+It is mandatory in 5.1.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">status='abort'</span></code> in replies has not proved useful, and is considered deprecated.
+Kernels should send <code class="docutils literal notranslate"><span class="pre">status='error'</span></code> instead.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">comm_info_request/reply</span></code> added</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">connect_request/reply</span></code> have not proved useful, and are considered deprecated.
+Kernels are not expected to implement handlers for this message.</p></li>
+<li><p>new <code class="docutils literal notranslate"><span class="pre">transient</span></code> field in <code class="docutils literal notranslate"><span class="pre">display_data</span></code></p></li>
+<li><p>new <code class="docutils literal notranslate"><span class="pre">update_display_data</span></code> message</p></li>
+</ul>
+</section>
+<section id="id16">
+<h3>5.0<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
+<p>General changes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">version</span></code> key added to message headers</p></li>
+<li><p>busy and idle status messages should be sent before/after handling every request,
+not just execution</p></li>
+</ul>
+<p>Message renames to remove Python-specific-ness:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pyin</span></code> message renamed to <code class="docutils literal notranslate"><span class="pre">execute_input</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pyerr</span></code> renamed to <code class="docutils literal notranslate"><span class="pre">error</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">object_info_request/reply</span></code> messages renamed to <code class="docutils literal notranslate"><span class="pre">inspect_request/reply</span></code></p></li>
+</ul>
+<p>Kernel info:</p>
+<ul class="simple">
+<li><p>versions changed from lists of integers to strings</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ipython_version</span></code> is removed</p></li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">language_info</span></code>, <code class="docutils literal notranslate"><span class="pre">implementation</span></code>, <code class="docutils literal notranslate"><span class="pre">implementation_version</span></code>, <code class="docutils literal notranslate"><span class="pre">banner</span></code></dt><dd><p>and <code class="docutils literal notranslate"><span class="pre">help_links</span></code> keys are added.</p>
+</dd>
+</dl>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">language_version</span></code> is moved to <code class="docutils literal notranslate"><span class="pre">language_info.version</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">language</span></code> is moved to <code class="docutils literal notranslate"><span class="pre">language_info.name</span></code></p></li>
+</ul>
+<p>Execution:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">user_variables</span></code> is removed from <code class="docutils literal notranslate"><span class="pre">execute_request/reply</span></code> because it is
+redundant with <code class="docutils literal notranslate"><span class="pre">user_expressions</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">password</span></code> key added to <code class="docutils literal notranslate"><span class="pre">input_request</span></code></p></li>
+</ul>
+<p>Output:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">data</span></code> key in stream messages renamed to <code class="docutils literal notranslate"><span class="pre">text</span></code> for consistency with the
+notebook format.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">application/json</span></code> in mimebundles should be unpacked JSON data,
+not a double-serialized JSON string.</p></li>
+</ul>
+<p>Inspection:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> key in <code class="docutils literal notranslate"><span class="pre">inspect_request</span></code> replaced with <code class="docutils literal notranslate"><span class="pre">code</span></code> and <code class="docutils literal notranslate"><span class="pre">cursor_pos</span></code>,
+moving the lexing responsibility to the kernel.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">object_info_reply</span></code> is now a mimebundle,
+allowing formatting decisions to be made by the kernel.</p></li>
+</ul>
+<p>Completion:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">complete_request</span></code>: <code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">block</span></code>, and <code class="docutils literal notranslate"><span class="pre">text</span></code> keys are removed in</dt><dd><p>favor of a single <code class="docutils literal notranslate"><span class="pre">code</span></code> for context.
+Lexing is up to the kernel.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">complete_reply</span></code>:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">matched_text</span></code> is removed in favor of <code class="docutils literal notranslate"><span class="pre">cursor_start</span></code> and <code class="docutils literal notranslate"><span class="pre">cursor_end</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metadata</span></code> is added for extended information.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>new <code class="docutils literal notranslate"><span class="pre">is_complete_request</span></code> and <code class="docutils literal notranslate"><span class="pre">is_complete_reply</span></code> messages</p></li>
+</ul>
+</section>
+<section id="id17">
+<h3>4.1<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">comm_open/close/msg</span></code> messages added</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">clear_output</span></code>: <code class="docutils literal notranslate"><span class="pre">stdout</span></code>, <code class="docutils literal notranslate"><span class="pre">stderr</span></code>, and <code class="docutils literal notranslate"><span class="pre">display</span></code> boolean keys for
+selective clearing are removed,
+and <code class="docutils literal notranslate"><span class="pre">wait</span></code> is added.
+The selective clearing keys are ignored in v4 and the default behavior remains the same,
+so v4 <code class="docutils literal notranslate"><span class="pre">clear_output</span></code> messages will be safely handled by a v4.1 frontend.</p></li>
+</ul>
+</section>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">#</a></h2>
+<section id="cursor-pos-and-unicode-offsets">
+<span id="cursor-pos-unicode-note"></span><h3><code class="docutils literal notranslate"><span class="pre">cursor_pos</span></code> and unicode offsets<a class="headerlink" href="#cursor-pos-and-unicode-offsets" title="Link to this heading">#</a></h3>
+<p>Many frontends, especially those implemented in javascript,
+reported cursor_pos as the interpreter’s string index,
+which is not the same as the unicode character offset if the interpreter uses
+UTF-16 (e.g. javascript or Python 2 on macOS),
+which stores “astral-plane” characters such as <code class="docutils literal notranslate"><span class="pre">𝐚</span> <span class="pre">(U+1D41A)</span></code> as surrogate pairs,
+taking up two indices instead of one, causing a unicode offset
+drift of one per astral-plane character.
+Not all frontends have this behavior, however,
+and after JSON serialization information about which encoding was used
+when calculating the offset is lost,
+so assuming <code class="docutils literal notranslate"><span class="pre">cursor_pos</span></code> is calculated in UTF-16 could result in a similarly incorrect offset
+for frontends that did the right thing.</p>
+<p>For this reason, in protocol versions prior to 5.2, <code class="docutils literal notranslate"><span class="pre">cursor_pos</span></code>
+is officially ambiguous in the presence of astral plane unicode characters.
+Frontends claiming to implement protocol 5.2 <strong>MUST</strong> identify cursor_pos as
+the encoding-independent unicode character offset.
+Kernels may choose to expect the UTF-16 offset from requests implementing
+protocol 5.1 and earlier, in order to behave correctly with the most popular
+frontends.
+But they should know that doing so <em>introduces</em> the inverse bug for the
+frontends that do not have this bug.</p>
+<p>As an example, use a python3 kernel and evaluate <code class="docutils literal notranslate"><span class="pre">𨭎𨭎𨭎𨭎𨭎</span> <span class="pre">=</span> <span class="pre">10</span></code>.  Then type
+<code class="docutils literal notranslate"><span class="pre">𨭎𨭎</span></code> followed by the tab key and see if it properly completes.</p>
+<p>Known affected frontends (as of 2017-06):</p>
+<ul class="simple">
+<li><p>Jupyter Notebook &lt; 5.1</p></li>
+<li><p>JupyterLab &lt; 0.24</p></li>
+<li><p>nteract &lt; 0.2.0</p></li>
+<li><p>Jupyter Console and QtConsole with Python 2 on macOS and Windows</p></li>
+</ul>
+<p>Known <em>not</em> affected frontends:</p>
+<ul class="simple">
+<li><p>QtConsole, Jupyter Console with Python 3 or Python 2 on Linux, CoCalc</p></li>
+</ul>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference external" href="https://github.com/jupyter/jupyter_client/issues/259">Discussion on GitHub</a></p>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Jupyter Client 8.8</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="kernels.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Making kernels for Jupyter</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#versioning">Versioning</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#general-message-format">General Message Format</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#message-header">Message Header</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parent-header">Parent header</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#metadata">Metadata</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#content">Content</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#buffers">Buffers</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-full-message">A full message</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compatibility">Compatibility</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-wire-protocol">The Wire Protocol</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#python-api">Python API</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#messages-on-the-shell-router-dealer-channel">Messages on the shell (ROUTER/DEALER) channel</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#request-reply">Request-Reply</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#execute">Execute</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#execution-counter-prompt-number">Execution counter (prompt number)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#execution-results">Execution results</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#payloads-deprecated">Payloads (DEPRECATED)</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#introspection">Introspection</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#completion">Completion</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#history">History</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#code-completeness">Code completeness</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#connect">Connect</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#comm-info">Comm info</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel-info">Kernel info</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#messages-on-the-control-router-dealer-channel">Messages on the Control (ROUTER/DEALER) channel</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel-shutdown">Kernel shutdown</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel-interrupt">Kernel interrupt</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">Kernel info</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#debug-request">Debug request</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#additions-to-the-dap">Additions to the DAP</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dumpcell">dumpCell</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#debuginfo">debugInfo</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#inspectvariables">inspectVariables</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#richinspectvariables">richInspectVariables</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#copytoglobals">copyToGlobals</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel-subshells">Kernel subshells</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#create-subshell">Create subshell</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#delete-subshell">Delete subshell</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#list-subshell">List subshell</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#messages-on-the-iopub-xpub-sub-channel">Messages on the IOPub (XPUB/SUB) channel</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#welcome-message">Welcome message</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#streams-stdout-stderr-etc">Streams (stdout,  stderr, etc)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#display-data">Display Data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#update-display-data">Update Display Data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#code-inputs">Code inputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">Execution results</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#execution-errors">Execution errors</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel-status">Kernel status</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#clear-output">Clear output</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#debug-event">Debug event</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#messages-on-the-stdin-router-dealer-channel">Messages on the stdin (ROUTER/DEALER) channel</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#heartbeat-for-kernels">Heartbeat for kernels</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-messages">Custom Messages</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#opening-a-comm">Opening a Comm</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#comm-messages">Comm Messages</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tearing-down-comms">Tearing Down Comms</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output-side-effects">Output Side Effects</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#changelog">Changelog</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">5.5</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">5.4</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">5.3</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">5.2</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">5.1</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">5.0</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">4.1</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notes">Notes</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cursor-pos-and-unicode-offsets"><code class="docutils literal notranslate"><span class="pre">cursor_pos</span></code> and unicode offsets</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/messaging.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2015, Jupyter Development Team.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

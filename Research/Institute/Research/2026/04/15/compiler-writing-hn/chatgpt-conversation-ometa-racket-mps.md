@@ -1,0 +1,648 @@
+- generic [ref=e1]:
+  - link "Skip to content" [ref=e3] [cursor=pointer]:
+    - /url: "#main"
+  - generic [ref=e7]:
+    - generic [ref=e9]:
+      - generic:
+        - generic:
+          - generic:
+            - button "Open sidebar":
+              - img
+        - generic:
+          - generic:
+            - link "New chat":
+              - /url: /
+              - generic:
+                - img
+              - generic: New chat
+          - generic:
+            - button "Search chats":
+              - generic:
+                - img
+              - generic: Search chats
+          - generic:
+            - button "Recents":
+              - generic:
+                - img
+              - generic: Recents
+        - generic:
+          - generic:
+            - button "Open profile menu":
+              - generic:
+                - generic:
+                  - img "Profile image"
+      - generic [ref=e10]:
+        - heading "Chat history" [level=2] [ref=e11]
+        - navigation "Chat history" [ref=e12]:
+          - generic [ref=e15]:
+            - link "Home" [ref=e16] [cursor=pointer]:
+              - /url: /
+              - img [ref=e17]
+            - button "Close sidebar" [expanded] [ref=e20]:
+              - img [ref=e21]
+          - complementary [ref=e23]:
+            - list [ref=e24]:
+              - listitem [ref=e25]:
+                - link "New chat Control Shift O" [ref=e136] [cursor=pointer]:
+                  - /url: /
+                  - generic [ref=e27]:
+                    - img [ref=e138]
+                    - generic [ref=e141]: New chat
+                  - generic [ref=e142]:
+                    - generic "Control" [ref=e143]:
+                      - generic [ref=e144]: Ctrl
+                      - text: +
+                    - generic "Shift" [ref=e145]:
+                      - generic [ref=e146]: Shift
+                      - text: +
+                    - generic [ref=e148]: O
+              - listitem [ref=e32]:
+                - button "Search chats Control K" [ref=e149] [cursor=pointer]:
+                  - generic [ref=e34]:
+                    - img [ref=e151]
+                    - generic [ref=e154]: Search chats
+                  - generic [ref=e155]:
+                    - generic "Control" [ref=e156]:
+                      - generic [ref=e157]: Ctrl
+                      - text: +
+                    - generic [ref=e159]: K
+          - link "Codex" [ref=e39] [cursor=pointer]:
+            - /url: /codex/cloud
+            - generic [ref=e40]:
+              - img [ref=e42]
+              - generic [ref=e45]: Codex
+            - img [ref=e47]
+          - generic [ref=e50] [cursor=pointer]:
+            - img [ref=e52]
+            - generic [ref=e55]: More
+          - generic [ref=e160]:
+            - button "GPTs" [expanded] [ref=e161] [cursor=pointer]:
+              - heading "GPTs" [level=2] [ref=e162]
+            - list [ref=e163]:
+              - listitem [ref=e164]:
+                - link "Note Summarizer Pro" [ref=e165] [cursor=pointer]:
+                  - /url: /g/g-R1h6jDbj0-note-summarizer-pro
+                  - generic [ref=e170]: Note Summarizer Pro
+                  - button [ref=e172]:
+                    - img [ref=e174]
+              - listitem [ref=e176]:
+                - link "Code Survivor" [ref=e177] [cursor=pointer]:
+                  - /url: /g/g-zoaxLsf5M-code-survivor
+                  - generic [ref=e182]: Code Survivor
+                  - button [ref=e184]:
+                    - img [ref=e186]
+              - listitem [ref=e188]:
+                - link "ML Research Scout" [ref=e189] [cursor=pointer]:
+                  - /url: /g/g-4LlUMUHiR-ml-research-scout
+                  - generic [ref=e194]: ML Research Scout
+                  - button [ref=e196]:
+                    - img [ref=e198]
+              - listitem [ref=e200]:
+                - link "Justin Welsh's Content Matrix" [ref=e201] [cursor=pointer]:
+                  - /url: /g/g-erUOvZbnL-justin-welsh-s-content-matrix
+                  - generic "Justin Welsh's Content Matrix" [ref=e206]
+                  - button [ref=e208]:
+                    - img [ref=e210]
+              - listitem [ref=e212]:
+                - link "Prompt Professor" [ref=e213] [cursor=pointer]:
+                  - /url: /g/g-qfoOICq1l-prompt-professor
+                  - generic [ref=e218]: Prompt Professor
+                  - button [ref=e220]:
+                    - img [ref=e222]
+              - listitem [ref=e224]:
+                - link "The Tree Centaur" [ref=e225] [cursor=pointer]:
+                  - /url: /g/g-oZ0MKXRXp-the-tree-centaur
+                  - generic [ref=e230]: The Tree Centaur
+                  - button [ref=e232]:
+                    - img [ref=e234]
+              - listitem [ref=e236]:
+                - link "PHP Helper" [ref=e237] [cursor=pointer]:
+                  - /url: /g/g-9HuWMBDZw-php-helper
+                  - generic [ref=e242]: PHP Helper
+                  - button [ref=e244]:
+                    - img [ref=e246]
+              - listitem [ref=e248]:
+                - link "AI Character Card Generator - SillyTavern" [ref=e249] [cursor=pointer]:
+                  - /url: /g/g-k2XkHmLPL-ai-character-card-generator-sillytavern
+                  - generic "AI Character Card Generator - SillyTavern" [ref=e254]
+                  - button [ref=e256]:
+                    - img [ref=e258]
+            - link "Explore GPTs" [ref=e260] [cursor=pointer]:
+              - /url: /gpts
+              - img [ref=e262]
+              - generic [ref=e265]: Explore GPTs
+          - generic [ref=e266]:
+            - button "Projects" [expanded] [ref=e267] [cursor=pointer]:
+              - heading "Projects" [level=2] [ref=e268]
+            - list [ref=e269]:
+              - listitem [ref=e270]:
+                - button "New project" [ref=e271] [cursor=pointer]:
+                  - img [ref=e273]
+                  - generic [ref=e276]: New project
+              - listitem [ref=e277]:
+                - link "Show chats PATREON Open project options for PATREON" [ref=e278] [cursor=pointer]:
+                  - /url: /g/g-p-69dab9118fd08191b0ae4441bb155f98-patreon/project
+                  - generic [ref=e279]:
+                    - button "Show chats" [ref=e281]:
+                      - generic [ref=e282]:
+                        - img [ref=e286]
+                        - img [ref=e296]
+                    - generic [ref=e299]: PATREON
+                  - button "Open project options for PATREON" [ref=e301]:
+                    - img [ref=e303]
+              - listitem [ref=e305]:
+                - link "Show chats GO-GO-PARC Open project options for GO-GO-PARC" [ref=e306] [cursor=pointer]:
+                  - /url: /g/g-p-69d8f2c2baa08191acbe04c7c9aa9e03-go-go-parc/project
+                  - generic [ref=e307]:
+                    - button "Show chats" [ref=e309]:
+                      - generic [ref=e310]:
+                        - img [ref=e314]
+                        - img [ref=e324]
+                    - generic [ref=e327]: GO-GO-PARC
+                  - button "Open project options for GO-GO-PARC" [ref=e329]:
+                    - img [ref=e331]
+              - listitem [ref=e333]:
+                - link "Show chats PRO-TO-TEST Open project options for PRO-TO-TEST" [ref=e334] [cursor=pointer]:
+                  - /url: /g/g-p-69d1a2c58b8c8191a525edf3f2160b3f-pro-to-test/project
+                  - generic [ref=e335]:
+                    - button "Show chats" [ref=e337]:
+                      - generic [ref=e338]:
+                        - img [ref=e342]
+                        - img [ref=e352]
+                    - generic [ref=e355]: PRO-TO-TEST
+                  - button "Open project options for PRO-TO-TEST" [ref=e357]:
+                    - img [ref=e359]
+              - listitem [ref=e361]:
+                - link "Show chats EINK Open project options for EINK" [ref=e362] [cursor=pointer]:
+                  - /url: /g/g-p-69c6c88769f881919a159e3a905c9b0a-eink/project
+                  - generic [ref=e363]:
+                    - button "Show chats" [ref=e365]:
+                      - generic [ref=e366]:
+                        - img [ref=e370]
+                        - img [ref=e380]
+                    - generic [ref=e383]: EINK
+                  - button "Open project options for EINK" [ref=e385]:
+                    - img [ref=e387]
+              - listitem [ref=e389]:
+                - link "Show chats HAIR-BOOKING-APP Open project options for HAIR-BOOKING-APP" [ref=e390] [cursor=pointer]:
+                  - /url: /g/g-p-69c48d4da11881919b302d2c4bfa807c-hair-booking-app/project
+                  - generic [ref=e391]:
+                    - button "Show chats" [ref=e393]:
+                      - generic [ref=e394]:
+                        - img [ref=e398]
+                        - img [ref=e408]
+                    - generic [ref=e411]: HAIR-BOOKING-APP
+                  - button "Open project options for HAIR-BOOKING-APP" [ref=e413]:
+                    - img [ref=e415]
+              - listitem [ref=e417]:
+                - generic [ref=e418] [cursor=pointer]:
+                  - img [ref=e420]
+                  - generic [ref=e423]: More
+          - generic [ref=e424]:
+            - button "Recents" [expanded] [ref=e425] [cursor=pointer]:
+              - heading "Recents" [level=2] [ref=e426]
+            - list [ref=e428]:
+              - listitem [ref=e429]:
+                - link "OMeta vs Racket vs MPS" [ref=e430] [cursor=pointer]:
+                  - /url: /c/69e00097-c1d0-83ea-9e6e-79999076e370
+                  - generic [ref=e432]: OMeta vs Racket vs MPS
+                  - button "Open conversation options for OMeta vs Racket vs MPS" [ref=e435]:
+                    - img [ref=e437]
+              - listitem [ref=e439]:
+                - link "Meta-Compilation and Language Systems" [ref=e440] [cursor=pointer]:
+                  - /url: /c/69dfffe2-475c-83ea-81bc-50980408f955
+                  - generic "Meta-Compilation and Language Systems" [ref=e442]
+                  - button "Open conversation options for Meta-Compilation and Language Systems" [ref=e445]:
+                    - img [ref=e447]
+              - listitem [ref=e449]:
+                - link "Go x264enc Page Faults" [ref=e450] [cursor=pointer]:
+                  - /url: /c/69dfe2f4-4a2c-83ea-a545-940320d8a4b6
+                  - generic [ref=e452]: Go x264enc Page Faults
+                  - button "Open conversation options for Go x264enc Page Faults" [ref=e455]:
+                    - img [ref=e457]
+              - listitem [ref=e459]:
+                - link "Math Problem Naming" [ref=e460] [cursor=pointer]:
+                  - /url: /c/69dfbdcf-eb74-83ea-89ee-6154a8ad8abc
+                  - generic [ref=e462]: Math Problem Naming
+                  - button "Open conversation options for Math Problem Naming" [ref=e465]:
+                    - img [ref=e467]
+              - listitem [ref=e469]:
+                - link "OAuth Token Storage" [ref=e470] [cursor=pointer]:
+                  - /url: /c/69df9e1e-7024-83ea-b504-916540151e23
+                  - generic [ref=e472]: OAuth Token Storage
+                  - button "Open conversation options for OAuth Token Storage" [ref=e475]:
+                    - img [ref=e477]
+              - listitem [ref=e479]:
+                - link "Atproto Social Features Integration" [ref=e480] [cursor=pointer]:
+                  - /url: /c/69df8f63-4110-83ea-b85e-cf0f0e695aa5
+                  - generic "Atproto Social Features Integration" [ref=e482]
+                  - button "Open conversation options for Atproto Social Features Integration" [ref=e485]:
+                    - img [ref=e487]
+              - listitem [ref=e489]:
+                - link "Go CPU Usage Issue" [ref=e490] [cursor=pointer]:
+                  - /url: /c/69df2bf5-6a40-83ea-9ecb-0435ea81b10f
+                  - generic [ref=e492]: Go CPU Usage Issue
+                  - button "Open conversation options for Go CPU Usage Issue" [ref=e495]:
+                    - img [ref=e497]
+              - listitem [ref=e499]:
+                - link "Branch · Go CPU Usage Issue" [ref=e500] [cursor=pointer]:
+                  - /url: /c/69df4615-cfe4-83ea-a19e-5e3dacfd4829
+                  - generic [ref=e502]: Branch · Go CPU Usage Issue
+                  - button "Open conversation options for Branch · Go CPU Usage Issue" [ref=e505]:
+                    - img [ref=e507]
+              - listitem [ref=e509]:
+                - link "gst-launch performance comparison" [ref=e510] [cursor=pointer]:
+                  - /url: /c/69df3a2f-bdcc-83ea-88e9-dad41e29237b
+                  - generic "gst-launch performance comparison" [ref=e512]
+                  - button "Open conversation options for gst-launch performance comparison" [ref=e515]:
+                    - img [ref=e517]
+              - listitem [ref=e519]:
+                - link "Go-gst Pipeline Issue" [ref=e520] [cursor=pointer]:
+                  - /url: /c/69df23a6-7f80-83ea-ad43-810968280d1e
+                  - generic [ref=e522]: Go-gst Pipeline Issue
+                  - button "Open conversation options for Go-gst Pipeline Issue" [ref=e525]:
+                    - img [ref=e527]
+              - listitem [ref=e529]:
+                - link "Backend for Chat Service" [ref=e530] [cursor=pointer]:
+                  - /url: /c/69ded9aa-30a0-83ea-ae1a-d0afc56bbc6b
+                  - generic [ref=e532]: Backend for Chat Service
+                  - button "Open conversation options for Backend for Chat Service" [ref=e535]:
+                    - img [ref=e537]
+              - listitem [ref=e539]:
+                - link "LLM Transcript Privacy" [ref=e540] [cursor=pointer]:
+                  - /url: /c/69dee760-ac20-83ea-981a-00a47ce2d8b0
+                  - generic [ref=e542]: LLM Transcript Privacy
+                  - button "Open conversation options for LLM Transcript Privacy" [ref=e545]:
+                    - img [ref=e547]
+              - listitem [ref=e549]:
+                - link "GStreamer Go API" [ref=e550] [cursor=pointer]:
+                  - /url: /c/69dda9d3-49b8-83ea-b1ac-87bdb5a3ad0d
+                  - generic [ref=e552]: GStreamer Go API
+                  - button "Open conversation options for GStreamer Go API" [ref=e555]:
+                    - img [ref=e557]
+              - listitem [ref=e559]:
+                - link "Gmail API Search" [ref=e560] [cursor=pointer]:
+                  - /url: /c/69de5e97-244c-83ea-a6fa-66163666a26e
+                  - generic [ref=e562]: Gmail API Search
+                  - button "Open conversation options for Gmail API Search" [ref=e565]:
+                    - img [ref=e567]
+              - listitem [ref=e569]:
+                - link "Streaming Performance Analysis" [ref=e570] [cursor=pointer]:
+                  - /url: /c/69de2c75-0dfc-83ea-bef5-cca1f9b7be24
+                  - generic "Streaming Performance Analysis" [ref=e572]
+                  - button "Open conversation options for Streaming Performance Analysis" [ref=e575]:
+                    - img [ref=e577]
+              - listitem [ref=e579]:
+                - link "Insufferable Lightness of Being" [ref=e580] [cursor=pointer]:
+                  - /url: /c/69de24e6-69c4-83ea-bcbd-1ae58f7885b8
+                  - generic [ref=e582]: Insufferable Lightness of Being
+                  - button "Open conversation options for Insufferable Lightness of Being" [ref=e585]:
+                    - img [ref=e587]
+              - listitem [ref=e589]:
+                - link "GStreamer Pipeline Overview" [ref=e590] [cursor=pointer]:
+                  - /url: /c/69ddb435-6bdc-83ea-90ca-7d657214e37d
+                  - generic [ref=e592]: GStreamer Pipeline Overview
+                  - button "Open conversation options for GStreamer Pipeline Overview" [ref=e595]:
+                    - img [ref=e597]
+              - listitem [ref=e599]:
+                - link "Jingle Generation Techniques" [ref=e600] [cursor=pointer]:
+                  - /url: /c/69dd52d5-4b8c-83ea-8ec4-9ef9d1b4af35
+                  - generic [ref=e602]: Jingle Generation Techniques
+                  - button "Open conversation options for Jingle Generation Techniques" [ref=e605]:
+                    - img [ref=e607]
+              - listitem [ref=e609]:
+                - link "Natural Video Flow Tips" [ref=e610] [cursor=pointer]:
+                  - /url: /c/69dd45d4-9004-83ea-a568-6e1e72ea8d31
+                  - generic [ref=e612]: Natural Video Flow Tips
+                  - button "Open conversation options for Natural Video Flow Tips" [ref=e615]:
+                    - img [ref=e617]
+              - listitem [ref=e619]:
+                - link "Speaking on Camera Tips" [ref=e620] [cursor=pointer]:
+                  - /url: /c/69dcd749-48a0-83ea-9ff5-d205152f47f6
+                  - generic [ref=e622]: Speaking on Camera Tips
+                  - button "Open conversation options for Speaking on Camera Tips" [ref=e625]:
+                    - img [ref=e627]
+              - listitem [ref=e629]:
+                - link "New chat" [ref=e630] [cursor=pointer]:
+                  - /url: /c/69dcd649-0084-83ea-b89f-43535390dcd7
+                  - generic [ref=e632]: New chat
+                  - button "Open conversation options for New chat" [ref=e635]:
+                    - img [ref=e637]
+              - listitem [ref=e639]:
+                - link "Branching VM on GPU" [ref=e640] [cursor=pointer]:
+                  - /url: /c/69dbebe3-adc4-83ea-bb46-f8f0202a76bc
+                  - generic [ref=e642]: Branching VM on GPU
+                  - button "Open conversation options for Branching VM on GPU" [ref=e645]:
+                    - img [ref=e647]
+              - listitem [ref=e649]:
+                - link "KV Cache Concatenation" [ref=e650] [cursor=pointer]:
+                  - /url: /c/69dbaf47-dc58-83ea-bf8b-a905cba4899f
+                  - generic [ref=e652]: KV Cache Concatenation
+                  - button "Open conversation options for KV Cache Concatenation" [ref=e655]:
+                    - img [ref=e657]
+              - listitem [ref=e659]:
+                - link "Maschine on Linux" [ref=e660] [cursor=pointer]:
+                  - /url: /c/69dbc8eb-dae4-83ea-9451-a0628a3f4335
+                  - generic [ref=e662]: Maschine on Linux
+                  - button "Open conversation options for Maschine on Linux" [ref=e665]:
+                    - img [ref=e667]
+              - listitem [ref=e669]:
+                - link "Proxmox CLI Management" [ref=e670] [cursor=pointer]:
+                  - /url: /c/69dbc367-29e0-83ea-a9e2-c20f5db4abc0
+                  - generic [ref=e672]: Proxmox CLI Management
+                  - button "Open conversation options for Proxmox CLI Management" [ref=e675]:
+                    - img [ref=e677]
+              - listitem [ref=e679]:
+                - link "Sidecar Proxy and DNS" [ref=e680] [cursor=pointer]:
+                  - /url: /c/69dbc48b-cbe8-83ea-a8c1-85d1f2254e54
+                  - generic [ref=e682]: Sidecar Proxy and DNS
+                  - button "Open conversation options for Sidecar Proxy and DNS" [ref=e685]:
+                    - img [ref=e687]
+              - listitem [ref=e689]:
+                - link "Proxmox VE User Login" [ref=e690] [cursor=pointer]:
+                  - /url: /c/69dbc23e-dd04-83ea-a6fe-7f106d094959
+                  - generic [ref=e692]: Proxmox VE User Login
+                  - button "Open conversation options for Proxmox VE User Login" [ref=e695]:
+                    - img [ref=e697]
+              - listitem [ref=e699]:
+                - link "Tweening AI Animation Tools" [ref=e700] [cursor=pointer]:
+                  - /url: /c/69dbbe0c-8938-83ea-8253-3703ce36d7ca
+                  - generic [ref=e702]: Tweening AI Animation Tools
+                  - button "Open conversation options for Tweening AI Animation Tools" [ref=e705]:
+                    - img [ref=e707]
+          - button "Manuel Odendahl, open profile menu" [ref=e59] [cursor=pointer]:
+            - img "Profile image" [ref=e709]
+            - generic [ref=e62]:
+              - generic [ref=e64]: Manuel Odendahl
+              - generic [ref=e67]: Pro
+    - generic [ref=e69]:
+      - banner:
+        - button "Model selector" [ref=e727] [cursor=pointer]:
+          - generic [ref=e728]: ChatGPT
+          - img [ref=e729]
+        - generic [ref=e731]:
+          - generic [ref=e734]:
+            - img [ref=e735]
+            - generic [ref=e737]: Memory Off
+          - generic [ref=e739]:
+            - button "Share" [ref=e740] [cursor=pointer]:
+              - generic [ref=e741]:
+                - img [ref=e742]
+                - text: Share
+            - button "Open conversation options" [ref=e746] [cursor=pointer]:
+              - img [ref=e747]
+      - main [ref=e86]:
+        - generic [ref=e749]:
+          - generic [ref=e751]:
+            - generic [ref=e752]:
+              - heading "You said:" [level=4] [ref=e753]
+              - generic [ref=e755]:
+                - generic [ref=e764]: "Explain the key differences between OMeta, Racket's #lang system, and language workbenches like MPS. What are the trade-offs between these extensible language approaches?"
+                - generic [ref=e765]:
+                  - group "Your message actions":
+                    - button "Copy message":
+                      - generic:
+                        - img
+                    - button "Edit message":
+                      - generic:
+                        - img
+            - generic [ref=e767]:
+              - heading "ChatGPT said:" [level=4] [ref=e768]
+              - generic [ref=e770]:
+                - generic [ref=e771]:
+                  - paragraph [ref=e775]: I’m checking primary sources for each system, then I’ll contrast their extension model, tooling model, and failure modes.
+                  - paragraph [ref=e779]: "The boundary that matters most is where extension happens: parser/pattern engine, module language, or full AST/editor/tooling stack. I’m pulling one primary source for the semantics of each and one source for the tooling implications."
+                  - button "Thought for 3m 5s" [ref=e781] [cursor=pointer]:
+                    - text: Thought for 3m 5s
+                    - img [ref=e782]
+                  - generic [ref=e786]:
+                    - paragraph [ref=e787]:
+                      - text: "The cleanest way to see the difference is this:"
+                      - strong [ref=e788]:
+                        - text: OMeta is parser-centered, Racket
+                        - code [ref=e789]: "#lang"
+                        - text: is expander/module-centered, and MPS is model/editor-centered
+                      - text: . OMeta is an object-oriented pattern-matching language built on PEG-style recognition, extended to work on arbitrary data, and aimed at things like tokenizers, parsers, visitors, and tree transformers. Racket’s language system packages a reader plus an expander into a module language selected by
+                      - code [ref=e790]: "#lang"
+                      - text: ", with macros operating on syntax objects that carry lexical and source information. MPS, by contrast, has users edit the AST directly through a projectional editor, and language definition includes structure, editor, type-system, and generator aspects. Also, “language workbench” is broader than MPS specifically; Fowler’s broader category includes tools with different editing models, while MPS is the projectional end of that spectrum."
+                      - link "martinfowler.com +10 Tin Lizzie +10 Tin Lizzie +10" [ref=e793] [cursor=pointer]:
+                        - /url: https://tinlizzie.org/~awarth/papers/dls07.pdf
+                        - generic [ref=e794]:
+                          - generic [ref=e795]:
+                            - generic [ref=e796]: martinfowler.com
+                            - generic [ref=e797]: "+10"
+                          - generic [ref=e798]:
+                            - generic [ref=e799]: Tin Lizzie
+                            - generic [ref=e800]: "+10"
+                          - generic [ref=e801]:
+                            - generic [ref=e802]: Tin Lizzie
+                            - generic [ref=e803]: "+10"
+                    - paragraph [ref=e804]:
+                      - text: With
+                      - strong [ref=e805]: OMeta
+                      - text: ", extension happens by changing or composing grammars and semantic actions. Grammars behave like classes and productions like methods; you can inherit and override productions, use"
+                      - code [ref=e806]: super
+                      - text: ", invoke “foreign productions” from another grammar to compose languages, and even create lexically scoped syntax extensions inside a program. Semantic actions are written in the host language, which makes OMeta very flexible and good for rapid prototyping, but it also means control-flow and side effects are close to the metal: OMeta explicitly warns that effects of semantic actions are not undone during backtracking."
+                      - link "Tin Lizzie +5 Tin Lizzie +5 Tin Lizzie +5" [ref=e809] [cursor=pointer]:
+                        - /url: https://tinlizzie.org/~awarth/papers/dls07.pdf
+                        - generic [ref=e810]:
+                          - generic [ref=e811]:
+                            - generic [ref=e812]: Tin Lizzie
+                            - generic [ref=e813]: "+5"
+                          - generic [ref=e814]:
+                            - generic [ref=e815]: Tin Lizzie
+                            - generic [ref=e816]: "+5"
+                          - generic [ref=e817]:
+                            - generic [ref=e818]: Tin Lizzie
+                            - generic [ref=e819]: "+5"
+                    - paragraph [ref=e820]:
+                      - text: With
+                      - strong [ref=e821]:
+                        - text: Racket
+                        - code [ref=e822]: "#lang"
+                      - text: ", extension happens at the boundary of a module and at macro expansion time. Plain macros only extend syntax at the expander layer and stay within the language’s lexical conventions; if you want different concrete syntax, you move down to the reader layer, and a"
+                      - code [ref=e823]: "#lang"
+                      - text: language controls both reader-level and expander-level parsing of a module.
+                      - code [ref=e824]: "#lang reader"
+                      - text: requires
+                      - code [ref=e825]: read
+                      - text: and
+                      - code [ref=e826]: read-syntax
+                      - text: that produce a
+                      - code [ref=e827]: module
+                      - text: form, while
+                      - code [ref=e828]: syntax/module-reader
+                      - text: is the standard way to package common reader/expander patterns. The key advantage is that the core representation is a syntax object with lexical-binding and source-location information, so language extensions compose with the host’s binding discipline much better than ad hoc AST rewrites. Racket’s tools are also explicitly designed to support multiple languages, not just one surface dialect.
+                      - link "Racket Documentation +6 Racket Documentation +6 Racket Documentation +6" [ref=e831] [cursor=pointer]:
+                        - /url: https://docs.racket-lang.org/guide/languages.html?utm_source=chatgpt.com
+                        - generic [ref=e832]:
+                          - generic [ref=e833]:
+                            - generic [ref=e834]: Racket Documentation
+                            - generic [ref=e835]: "+6"
+                          - generic [ref=e836]:
+                            - generic [ref=e837]: Racket Documentation
+                            - generic [ref=e838]: "+6"
+                          - generic [ref=e839]:
+                            - generic [ref=e840]: Racket Documentation
+                            - generic [ref=e841]: "+6"
+                    - paragraph [ref=e842]:
+                      - text: With
+                      - strong [ref=e843]: MPS
+                      - text: ", extension is not mainly about parsing text at all. You define concepts in the language structure, editors for those concepts, optional type-system and constraints, and generators that translate models to other models and eventually text. Because users edit the AST directly, MPS can support non-parseable notations, tables, diagrams, mixed notations, and combinations of multiple languages without parser ambiguity. That is the major conceptual jump from both OMeta and Racket: the language definition includes the editing environment as a first-class part of the language, not just grammar or expansion rules."
+                      - link "JetBrains +4 JetBrains +4 JetBrains +4" [ref=e846] [cursor=pointer]:
+                        - /url: https://www.jetbrains.com/help/mps/structure.html
+                        - generic [ref=e847]:
+                          - generic [ref=e848]:
+                            - generic [ref=e849]: JetBrains
+                            - generic [ref=e850]: "+4"
+                          - generic [ref=e851]:
+                            - generic [ref=e852]: JetBrains
+                            - generic [ref=e853]: "+4"
+                          - generic [ref=e854]:
+                            - generic [ref=e855]: JetBrains
+                            - generic [ref=e856]: "+4"
+                    - paragraph [ref=e857]:
+                      - text: The first big trade-off is
+                      - strong [ref=e858]: syntax freedom versus text simplicity
+                      - text: ". MPS wins on freedom: no parser means you can have tables, forms, diagrams, context-sensitive notations, and multiple views over the same AST. OMeta and Racket are still fundamentally textual, even when they are highly extensible. OMeta can compose grammars and add local syntax, and Racket can replace or extend the reader, but both are still working through textual input and parsing/reading. So if your goal is “invent any notation the domain needs,” MPS is strongest; if your goal is “keep a normal text workflow,” OMeta and especially Racket are more natural."
+                      - link "JetBrains +4 Tin Lizzie +4 Tin Lizzie +4" [ref=e861] [cursor=pointer]:
+                        - /url: https://tinlizzie.org/~awarth/papers/dls07.pdf
+                        - generic [ref=e862]:
+                          - generic [ref=e863]:
+                            - generic [ref=e864]: JetBrains
+                            - generic [ref=e865]: "+4"
+                          - generic [ref=e866]:
+                            - generic [ref=e867]: Tin Lizzie
+                            - generic [ref=e868]: "+4"
+                          - generic [ref=e869]:
+                            - generic [ref=e870]: Tin Lizzie
+                            - generic [ref=e871]: "+4"
+                    - paragraph [ref=e872]:
+                      - text: The second trade-off is
+                      - strong [ref=e873]: tooling burden versus host-language leverage
+                      - text: ". OMeta is comparatively lightweight: it gives you a very expressive way to define syntax, matching, and transformation, and the paper positions it as “rapid prototyping,” but it is not presented as a complete language packaging and IDE system. Racket goes further: a language can hook reader and expander layers while staying inside a shared module/tool ecosystem. MPS goes furthest: editor, type-system, generator, and other aspects are part of the language definition itself. The price is more up-front work; JetBrains’ own materials emphasize that MPS language definitions can be time-consuming and that each concept needs editor support."
+                      - link "JetBrains +5 Tin Lizzie +5 Racket Documentation +5" [ref=e876] [cursor=pointer]:
+                        - /url: https://tinlizzie.org/~awarth/papers/dls07.pdf
+                        - generic [ref=e877]:
+                          - generic [ref=e878]:
+                            - generic [ref=e879]: JetBrains
+                            - generic [ref=e880]: "+5"
+                          - generic [ref=e881]:
+                            - generic [ref=e882]: Tin Lizzie
+                            - generic [ref=e883]: "+5"
+                          - generic [ref=e884]:
+                            - generic [ref=e885]: Racket Documentation
+                            - generic [ref=e886]: "+5"
+                    - paragraph [ref=e887]:
+                      - text: The third trade-off is
+                      - strong [ref=e888]: compositional safety
+                      - text: ". Racket is strongest here because syntax objects preserve lexical information and macro expansion explicitly tracks scopes and phases, which is what makes hygienic macro composition practical. OMeta is powerful but more operational: semantic actions are host-language code embedded in the grammar, and backtracking does not rewind their effects, so authors must manage those interactions carefully. MPS sidesteps a different class of problems by eliminating parse ambiguity altogether, but that does not mean semantics are “free”; you still have to define constraints, typing rules, and generators coherently. In other words: Racket gives the strongest built-in story for binding-safe syntactic abstraction, OMeta gives rawer control, and MPS gives structural composition more than lexical/macro composition."
+                      - link "JetBrains +6 Racket Documentation +6 Racket Documentation +6" [ref=e891] [cursor=pointer]:
+                        - /url: https://docs.racket-lang.org/guide/stx-obj.html
+                        - generic [ref=e892]:
+                          - generic [ref=e893]:
+                            - generic [ref=e894]: JetBrains
+                            - generic [ref=e895]: "+6"
+                          - generic [ref=e896]:
+                            - generic [ref=e897]: Racket Documentation
+                            - generic [ref=e898]: "+6"
+                          - generic [ref=e899]:
+                            - generic [ref=e900]: Racket Documentation
+                            - generic [ref=e901]: "+6"
+                    - paragraph [ref=e902]:
+                      - text: The fourth trade-off is
+                      - strong [ref=e903]: user experience
+                      - text: ". OMeta is pleasant for language implementers who are comfortable living close to grammars and transformations. Racket is usually the best fit when the target users are programmers who want a real text language, normal files, and interop with a larger runtime and tool suite. MPS becomes attractive when the target users include domain experts or when the notation really should not look like plain text code. But projectional editing is a genuine culture shift: JetBrains notes that users often need a few days to get used to it, and because persistence is not pure text, diff/merge requires special tooling."
+                      - link "Tin Lizzie +2 Racket Documentation +2" [ref=e906] [cursor=pointer]:
+                        - /url: https://tinlizzie.org/~awarth/papers/dls07.pdf
+                        - generic [ref=e907]:
+                          - generic [ref=e908]:
+                            - generic [ref=e909]: Tin Lizzie
+                            - generic [ref=e910]: "+2"
+                          - generic [ref=e911]:
+                            - generic [ref=e912]: Racket Documentation
+                            - generic [ref=e913]: "+2"
+                    - paragraph [ref=e914]:
+                      - text: "So the practical summary is:"
+                      - strong [ref=e915]:
+                        - text: choose OMeta when you want a very malleable grammar-and-transformation substrate; choose Racket
+                        - code [ref=e916]: "#lang"
+                        - text: when you want serious language extension inside a textual programming ecosystem; choose MPS when the language definition must include the editor and when syntax should be structurally composed rather than parsed
+                      - text: . The main trade-off is not “which is more extensible,” but
+                      - strong [ref=e917]: which layer you want to make extensible
+                      - text: ": parser, compiler front end, or the whole language-plus-IDE stack."
+                      - link "JetBrains +3 Tin Lizzie +3 Racket Documentation +3" [ref=e920] [cursor=pointer]:
+                        - /url: https://tinlizzie.org/~awarth/papers/dls07.pdf
+                        - generic [ref=e921]:
+                          - generic [ref=e922]:
+                            - generic [ref=e923]: JetBrains
+                            - generic [ref=e924]: "+3"
+                          - generic [ref=e925]:
+                            - generic [ref=e926]: Tin Lizzie
+                            - generic [ref=e927]: "+3"
+                          - generic [ref=e928]:
+                            - generic [ref=e929]: Racket Documentation
+                            - generic [ref=e930]: "+3"
+                    - paragraph [ref=e931]: "If you want, I can turn this into a tighter comparison matrix across five axes: syntax, composition, tooling, safety, and ideal use cases."
+                - generic [ref=e932]:
+                  - group "Response actions":
+                    - button "Copy response":
+                      - generic:
+                        - img
+                    - button "Good response":
+                      - generic:
+                        - img
+                    - button "Bad response":
+                      - generic:
+                        - img
+                    - button "Share":
+                      - generic:
+                        - img
+                    - generic:
+                      - button "Switch model":
+                        - generic:
+                          - img
+                    - button "More actions":
+                      - img
+                    - button "Sources":
+                      - img
+                      - generic: Sources
+          - generic [ref=e933]:
+            - generic [ref=e937]:
+              - generic [ref=e939]:
+                - link "DEVELOPER MODE" [ref=e940] [cursor=pointer]:
+                  - /url: "#settings/Connectors/Advanced"
+                - generic [ref=e941]:
+                  - generic [ref=e942]:
+                    - button "Add files and more" [ref=e945] [cursor=pointer]:
+                      - img
+                    - textbox "Chat with ChatGPT" [active] [ref=e948]:
+                      - paragraph [ref=e949]: Ask anything
+                    - generic [ref=e953]:
+                      - button "Extended thinking, click to remove" [ref=e954] [cursor=pointer]:
+                        - img
+                      - button "Extended thinking" [ref=e955] [cursor=pointer]:
+                        - generic:
+                          - img
+                        - generic [ref=e956]: Extended thinking
+                        - img
+                    - generic [ref=e958]:
+                      - button "Start dictation" [ref=e960] [cursor=pointer]:
+                        - img
+                      - button "Send prompt" [disabled] [ref=e962]:
+                        - img [ref=e963]
+                  - generic [ref=e965]:
+                    - group [ref=e966]:
+                      - button "Select" [ref=e967] [cursor=pointer]
+                      - button [ref=e968] [cursor=pointer]:
+                        - img [ref=e969]
+                    - group [ref=e971]:
+                      - button "Export" [disabled]
+                      - button [disabled]:
+                        - img
+              - button [ref=e972]
+              - button [ref=e973]
+            - generic [ref=e977]: ChatGPT can make mistakes. Check important info.
+  - alert [ref=e133]
+  - status [ref=e134]
+  - status [ref=e978]: 1Password menu is available. Press down arrow to select.
