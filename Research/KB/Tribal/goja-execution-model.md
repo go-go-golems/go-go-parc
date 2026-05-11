@@ -134,6 +134,7 @@ This gives JavaScript-native scoping semantics (block scope per cell, but accumu
 - [[PROJ - go-go-goja REPL API - Profiles, IIFE Rewriting, and AST-Driven Session Semantics]] — canonical instance: profiles, IIFE rewrite, replay-based restore, SQLite persistence, owner thread, console capture
 - [[PROJ - go-go-goja Node-like Primitives - Technical Deep Dive]] — async native module pattern: goroutine does blocking fs I/O, Promise settlement on owner thread
 - [[PROJ - JS Discord Bot Framework]] — Discord interaction dispatch: goroutines handle HTTP, post closures back to VM owner
+- [[PROJ - Scenario Runtime Workbench - Scenario-Driven Reconciliation Demo]] — related variation: Go owns lifecycle, snapshots, and transport while JavaScript owns scenario semantics
 
 **Also related** (session-like patterns without the full session model):
 - [[PROJ - Capsule Lab - A Sandboxed JS Capsule Runtime in the Browser]] — goja-in-WASM; no session persistence, no async (synchronous op-stream)
@@ -164,3 +165,5 @@ This gives JavaScript-native scoping semantics (block scope per cell, but accumu
 - **Discord interaction dispatch** (JS Discord Bot). Discord's HTTP callback arrives on any goroutine. The handler posts a closure to the owner thread, which evaluates the JS handler function. The owner thread sends the Discord response back. This is the owner thread pattern applied at the application dispatch level.
 
 - **Op-stream** (Capsule Lab). No owner thread needed — the host calls `dispatch()` synchronously and processes the op stream. No async, no goroutines. The simplest variation because it runs in a WASM sandbox with no I/O access.
+
+- **Scenario stages** (Scenario Runtime Workbench). The Go runtime owns lifecycle, session state, HTTP/WebSocket transport, and snapshots. JavaScript owns domain semantics through stage files (`observe`, `compare`, `plan`, `execute`). This is not a REPL/session persistence pattern, but it shares the same boundary discipline: Go owns runtime control; JavaScript owns behavior inside a narrow contract.

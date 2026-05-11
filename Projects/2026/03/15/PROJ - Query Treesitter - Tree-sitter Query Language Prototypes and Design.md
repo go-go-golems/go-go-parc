@@ -278,3 +278,17 @@ So the repo is now both:
 
 - a prototype playground,
 - and a design reference for what the real system could become.
+
+## KB reviews
+
+- [[KB-BATCH9-tree-sitter-structured-text]] (2026-05-11) — Batch C analysis; contributed to [[On-Ramp/tree-sitter-for-go-tools]] and the structural-prefilter-plus-semantic-layer tribal candidate.
+
+## Related KB entries
+
+- [[On-Ramp/tree-sitter-for-go-tools]] — Tree-sitter as the structural substrate for Go tooling, query layers, and span-aware analysis.
+
+**Tribal candidates** (not yet written / needs review):
+- Tree-sitter as structural prefilter plus semantic layer (3/3, review before creating) — native queries for fast structure, higher-level relations/unification/predicates above them.
+- Repeated-variable subtree equality (1/3) — TUQL repeated variables mean structural equality, not object identity.
+- User-defined named AST queries (1/3) — reusable query vocabulary over raw one-off patterns.
+- Host-language custom predicates and binders (1/3) — declarative query surface with JS escape hatches.

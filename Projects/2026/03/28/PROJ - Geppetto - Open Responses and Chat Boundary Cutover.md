@@ -452,3 +452,7 @@ The most important experiment artifacts are:
 > [!important]
 > Treat “OpenAI-compatible” as a transport hint, not a semantic guarantee.
 > Own the reasoning-aware normalization boundary in Geppetto whenever streamed meaning matters.
+
+## KB reviews
+
+- [[KB-BATCH6-mixed-domain]] (2026-05-11) — concept extraction + classification

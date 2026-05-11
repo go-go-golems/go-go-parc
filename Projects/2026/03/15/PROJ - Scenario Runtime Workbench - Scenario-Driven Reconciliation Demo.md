@@ -172,3 +172,17 @@ There are also active ticket workspaces that show the current development direct
 > [!important]
 > Treat the backend session snapshot as the source of truth.
 > If the UI looks wrong, compare it to `/api/session/snapshot` before debugging presentation code.
+
+## KB reviews
+
+- [[KB-BATCH9-tree-sitter-structured-text]] (2026-05-11) — Batch C analysis; treated this as an adjacent structured runtime and Goja variation rather than a Tree-sitter project.
+
+## Related KB entries
+
+- [[Tribal/goja-execution-model]] — related variation: Go owns lifecycle and runtime boundaries while JavaScript owns scenario semantics.
+
+**Tribal candidates** (not yet at 3-project threshold):
+- Scenario package contract (1/3) — metadata, desired state, UI schema, and stage scripts as a reusable authoring shape.
+- Observe/compare/plan/execute visible reconciliation loop (1/3) — controller reasoning split into inspectable phases.
+- Backend snapshot as source of truth (1/3) — UI renders backend-authored snapshots instead of inventing local truth.
+- Go-owned lifecycle with JS-owned scenario semantics (1/3) — scenario-specific behavior in JS on top of a stable Go runtime.

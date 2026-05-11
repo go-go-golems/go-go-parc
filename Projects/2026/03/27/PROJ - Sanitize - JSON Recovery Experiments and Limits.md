@@ -345,3 +345,17 @@ It shipped a small set of trustworthy fixes.
 And it showed, with unusually good evidence, that broad automatic JSON sanitizing is much less tractable than it first sounds.
 
 That is why the JSON side of `sanitize` reads less like "we built a sanitizer" and more like "we learned exactly where a conservative sanitizer has to stop."
+
+## KB reviews
+
+- [[KB-BATCH9-tree-sitter-structured-text]] (2026-05-11) — Batch C analysis; contributed to [[On-Ramp/tree-sitter-for-go-tools]] and clarified repair-boundary candidates.
+
+## Related KB entries
+
+- [[On-Ramp/tree-sitter-for-go-tools]] — Tree-sitter recovery as a diagnostic signal that still needs strict validation before trusting output.
+
+**Tribal candidates** (not yet written / needs review):
+- Conservative repair boundary (3/3, review before creating) — JSON proves why lint-only is sometimes the correct product behavior.
+- Strict-parser plus Tree-sitter dual validation (1/3) — tree shape and strict `encoding/json` acceptance answer different questions.
+- Detection vs repair separation (1/3) — detectable malformed patterns are not necessarily safe to rewrite.
+- Repair matrix as engineering artifact (1/3) — generated evidence prevents overclaiming.

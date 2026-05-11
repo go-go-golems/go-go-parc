@@ -43,6 +43,12 @@ From a CLI, this requires starting a localhost HTTP server on a random port to r
 
 This is the flow for a backend service that needs to call another backend service. No human user is involved. The service authenticates with its own `client_id` and `client_secret`, and receives a token scoped to its own permissions.
 
+This distinction is important enough to state directly:
+- **humans** should usually come through browser/interactive flows (Authorization Code + PKCE)
+- **machines** should usually come through service or workload identity flows (Client Credentials, AppRole, Kubernetes auth)
+
+Using one auth shape for both is a recurring source of confusion and overly broad trust.
+
 ```
 1. Service A → Keycloak:  POST /token with client_id=X & client_secret=Y & grant_type=client_credentials
 2. Keycloak → Service A:  { access_token }
@@ -61,6 +67,8 @@ No browser redirect. No user. No PKCE. The token represents the service itself, 
 - **Device Authorization flow**: For devices with no browser (IoT, CLI on headless servers). The user visits a URL on their phone and enters a code. We haven't needed this yet, but it's the right choice for ESP32 devices that need to authenticate.
 
 ## The gotchas we've hit
+
+**Dynamic client registration is not just a protocol detail.** In hosted integrations, the real production auth blocker may be IdP registration policy rather than your application server.
 
 **Token expiry vs refresh token rotation.** Access tokens expire (typically 5–15 minutes). Refresh tokens are long-lived but should be rotated — each use of a refresh token produces a new one, and the old one is invalidated. If a refresh token is used twice, it's been leaked, and the entire token family should be revoked. Keycloak supports this; configure it.
 

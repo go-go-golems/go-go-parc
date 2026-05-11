@@ -118,3 +118,7 @@ The rmapi auth layer was hardened to avoid `log.Fatal` on transient cloud failur
 - fix the `cmd/remarquee-ui` frontend build so `go:embed` works and CI passes cleanly
 - clean up remaining hardcoded fixture paths in `cmd/remarquee-ui/testdata/gen_fakes/main.go`
 - consider adding `--recursive` vs `--no-recursive` flags for finer directory walk control
+
+## KB reviews
+
+- [[KB-BATCH6-mixed-domain]] (2026-05-11) — concept extraction + classification

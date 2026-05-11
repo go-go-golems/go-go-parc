@@ -455,3 +455,7 @@ These knowledge base entries provide orientation for the concepts this project d
 - Host-mediated op-stream API (1/3) — dispatch() returns ops, host decides whether to execute them
 - goja NaN sanitization in JSON export (1/3) — recursive NaN→null before json.Marshal
 - Permission-locked API surface (1/3) — sandbox installs only the API functions declared in manifest
+
+## KB reviews
+
+- [[KB-BATCH6-mixed-domain]] (2026-05-11) — concept extraction + classification

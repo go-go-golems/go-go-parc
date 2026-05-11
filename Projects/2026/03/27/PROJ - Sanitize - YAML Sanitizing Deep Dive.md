@@ -254,3 +254,17 @@ The YAML half of `sanitize` is the part of the repository where the original ide
 5. stop when the document converges.
 
 That is why the YAML work reads less like experimentation now and more like a small, credible text-repair engine.
+
+## KB reviews
+
+- [[KB-BATCH9-tree-sitter-structured-text]] (2026-05-11) — Batch C analysis; contributed to [[On-Ramp/tree-sitter-for-go-tools]] and the shared parse-aware analysis candidate.
+
+## Related KB entries
+
+- [[On-Ramp/tree-sitter-for-go-tools]] — Tree-sitter spans, parser evidence, and conservative fix orchestration in Go tools.
+
+**Tribal candidates** (not yet written / needs review):
+- Shared parse-aware analysis object (3/3, review before creating) — `documentAnalysis` feeds parse, lint, duplicate-key traversal, and fixes.
+- Conservative iterative repair loop (1/3) — analyze, lint, fix, reanalyze until convergence.
+- Parser plus heuristic classification (1/3) — parse-only, heuristic-only, and hybrid failures get different treatment.
+- Span-rich diagnostics as UI/API contract (1/3) — byte and row/column spans make fixes inspectable.

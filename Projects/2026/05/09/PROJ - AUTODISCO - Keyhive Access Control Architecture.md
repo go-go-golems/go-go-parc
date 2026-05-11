@@ -696,3 +696,7 @@ Fifth, design authenticated sync. Do not try to force real security into the cur
 ## Working rule
 
 Keep real access control behind `AccessControlAdapter`. Keep Automerge document fields as application state and public references, not as cryptographic authority. Keep mock mode honest by naming it mock. Keep experimental Keyhive mode opt-in until identity persistence, access-level mapping, encryption, and relay authorization are resolved. When a feature crosses from product-shaped mock flow to real security flow, add a test that proves the relevant Keyhive operation, not only a UI assertion.
+
+## KB reviews
+
+- [[KB-BATCH6-mixed-domain]] (2026-05-11) — concept extraction + classification

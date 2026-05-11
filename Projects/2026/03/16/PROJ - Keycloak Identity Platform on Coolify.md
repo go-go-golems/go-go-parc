@@ -453,3 +453,7 @@ Local development:
 > Keycloak realm and client changes should be tested locally first using `docker-compose.local.yml` before applying to production.
 > Admin credentials for the production instance live on the server in the Coolify service `.env` — never commit them to a repository.
 > The OIDC architecture design in MCP-003 is the authoritative reference for how token validation works — consult it before changing auth behavior.
+
+## KB reviews
+
+- [[KB-BATCH8-hosted-auth]] (2026-05-11) — concept extraction + classification

@@ -452,3 +452,7 @@ These docs are part of the repo’s value now. They explain the practical hosted
 > 2. operational explanation
 >
 > On this branch, the highest-value work was rarely one without the other.
+
+## KB reviews
+
+- [[KB-BATCH8-hosted-auth]] (2026-05-11) — concept extraction + classification

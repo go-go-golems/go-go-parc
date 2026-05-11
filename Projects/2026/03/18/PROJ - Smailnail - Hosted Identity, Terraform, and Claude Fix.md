@@ -494,3 +494,7 @@ The branch’s most important operational improvement is not just that “it wor
 > - Terraform drift state
 >
 > Most auth bugs here came from fixing the wrong layer first.
+
+## KB reviews
+
+- [[KB-BATCH8-hosted-auth]] (2026-05-11) — concept extraction + classification

@@ -507,7 +507,8 @@ These 6 projects were analyzed as part of the embedded/hardware batch. See [[KB-
 - ESP-IDF driver_ng conflict with legacy I2C driver (1/3)
 - Board-specific GPIO pin remapping (1/3)
 
-**On-Ramp candidates**: None new
+**On-Ramp candidates**:
+- Web Serial from the browser (1/5) — MDN has the API spec; the working pattern for browser-to-embedded communication is missing
 
 ### 24. SToMS3R — AtomS3R Lite Thermal Printer Firmware
 
@@ -526,6 +527,7 @@ These 6 projects were analyzed as part of the embedded/hardware batch. See [[KB-
 - Buffer-full-body-before-UART (2/3) — read entire HTTP body before single uart_write_bytes()
 - Browser-side image processing for embedded (2/3) — heavy computation in browser, only final bitmap to ESP32
 - GPIO pin swap at runtime (1/3) — uart_set_pin() for straight-through K118 cable
+- ESP-IDF console REPL bring-up (2/5) — ESP-IDF docs describe esp_console API but not USB Serial/JTAG bring-up for ESP32-S3
 
 **On-Ramp candidates**: Directly exercises [[On-Ramp/esc-pos-thermal-printer]], [[On-Ramp/dithering-and-rasterization]], [[Fundamentals/encoding-and-framing]]
 
@@ -549,7 +551,9 @@ These 6 projects were analyzed as part of the embedded/hardware batch. See [[KB-
 - Phase accumulator tone generation (1/3)
 - Pending-only queue deduplication (1/3)
 
-**On-Ramp candidates**: None new
+**On-Ramp candidates**:
+- ESP-IDF console REPL bring-up (2/5) — ESP-IDF docs describe esp_console API but not USB Serial/JTAG bring-up for ESP32-S3
+- ES8311 codec bring-up on AtomS3R (1/5) — no public doc for this board+codec combination
 
 ### 26. uLisp PicoCalc Firmware Split — CMake Modularization Report
 
@@ -621,18 +625,21 @@ Strategic batch targeting 2/3 candidates near threshold. See [[KB-BATCH5-infra-s
 - Separate human auth (OIDC) from machine auth (AppRole/K8s) (2/3)
 - Keycloak group-gated Vault access (2/3)
 
+**On-Ramp candidates**:
+- Vault on K3s with VSO (2/5) — HashiCorp docs are cloud-centric; our single-node GitOps pattern is missing
+
 ### 28. Glazed Secret Redaction and Vault Bootstrap
 
 **Date**: 2026-04-02
 
-**Summary**: Two-phase Glazed framework work: central secret redaction, then Vault source middleware with bootstrap parsing. Key insight: only TypeSecret fields eligible for Vault hydration.
+**Summary**: Two-phase Glazed framework work: central secret redaction, then Vault source middleware with bootstrap parsing. Key insight: only `TypeSecret` fields are eligible for Vault hydration.
 
 **Repos**:
 | Path | Notes |
 |------|-------|
-| `add-vault-middleware-to-glazed/glazed` | pkg/cmds/fields/sensitive.go, pkg/cmds/sources/vault.go |
+| `add-vault-middleware-to-glazed/glazed` | `pkg/cmds/fields/sensitive.go`, `pkg/cmds/sources/vault.go` |
 
-**Tribal entries**: Contributes to **host-mediated secret delivery** (3/3 → READY), **app config vs command config** (3/3 → READY)
+**Tribal entries**: Contributes to [[Tribal/host-mediated-secret-delivery]] and [[Tribal/app-config-vs-command-config-separation]]
 
 ### 29. Minitrace Query Commands — Sqleton-Inspired SQL Verb System
 
@@ -688,52 +695,376 @@ Strategic batch targeting 2/3 candidates near threshold. See [[KB-BATCH5-infra-s
 
 ---
 
+## Batch 6: Mixed Domain (6 projects)
+
+Strategic batch targeting remaining 2/3 candidates. See [[KB-BATCH6-mixed-domain]] for the full analysis.
+
+### 33. Capsule Lab — A Sandboxed JS Capsule Runtime in the Browser
+
+**Date**: 2026-04-02
+
+**Summary**: Browser-based JS playground running goja in WASM with host-mediated API. Capsules declare permissions; kernel enforces; host mediates all side effects. Key insight: compile a Go JS interpreter to WASM and use it as the sandbox boundary.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `2026-04-02--capsule-lab` | kernel/, host.js, inspector |
+
+**Tribal entries**: [[Tribal/goja-embedding-in-go]] (textbook instance: op-stream, permission-locked API), [[Tribal/goja-execution-model]] (op-stream variation), [[Tribal/microvm-as-execution-boundary]] (WASM sandbox variation)
+
+**Tribal candidates**: Contributes to **data-only vs host-access module split** (3/3 → READY)
+
+### 34. Geppetto — Open Responses and Chat Boundary Cutover
+
+**Date**: 2026-03-28
+
+**Summary**: Open Responses support + Together/Qwen thinking-stream fix + chat boundary cutover from go-openai to Geppetto-owned structs. Key insight: own the normalization boundary for provider-specific deltas.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `use-open-responses/geppetto` | pkg/steps/ai/openai/ |
+
+**Tribal candidates**: Contributes to **reduction-ladder debugging** (3/3 → READY)
+
+### 35. Goja REPL Hardening
+
+**Date**: 2026-04-08
+
+**Summary**: Persistence correctness (soft-delete, UUID IDs, SQLite integrity), evaluation timeouts (deadline-based for async+sync), and structural cleanup of replsession package. Key insight: infrastructure code needs invariants that are simple enough to explain and strong enough to test.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `go-go-goja` (workspace) | pkg/replsession/ |
+
+**Tribal entries**: Contributes to [[Tribal/goja-execution-model]] (IIFE rewrite hardening, timeout recovery)
+
+**Tribal candidates**: Contributes to **IIFE cell rewrite** (now 3/3 → READY)
+
+### 36. Remarquee — reMarkable Toolkit
+
+**Date**: 2026-03-19
+
+**Summary**: Unified Go CLI for reMarkable workflows: cloud auth with OAuth refresh, markdown-to-PDF upload, rmdoc rendering (V6 scene tree parser), OCR, and document DSL. Key insight: bounded retry on transient failures prevents auth escalation.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `remarquee` | pkg/rmcloud/, pkg/rmdoc/, pkg/mdpdf/ |
+
+**Tribal candidates**: OAuth refresh with bounded retry (2/3)
+
+### 37. E2E Encrypted Storage Prototype
+
+**Date**: 2026-04-14
+
+**Summary**: Browser-based E2E encryption with envelope pattern: per-document AES-GCM keys wrapped per-user with RSA-OAEP. Server stores only ciphertext. Key insight: Web Crypto API handles real encryption without external libraries.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `2026-04-14--browser-e2e-encryption` | main.go (550 lines), static/index.html (800+ lines) |
+
+**Tribal candidates**: Envelope encryption for selective sharing (2/3)
+
+**On-Ramp candidates**:
+- Browser E2E encryption with Web Crypto (1/5) — Web Crypto API docs exist; envelope-encryption-for-sharing pattern is missing
+
+### 38. AUTODISCO — Keyhive Access Control Architecture
+
+**Date**: 2026-05-09
+
+**Summary**: Access-control layer for Automerge CRDT chat using Keyhive WASM. Mock ACL for product flow, real Keyhive for experiments. Durable snapshots, invitation as membership events, and a `tryEncrypt` WASM binding fix. Key insight: CRDTs solve collaboration; they don't solve authorization.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `2026-05-09--automerge-discord` | `packages/chat-acl/`, `packages/chat-server/` |
+
+**Tribal candidates**: CRDT-local authorization layer (2/3), Envelope encryption for selective sharing (2/3)
+
+**On-Ramp candidates**:
+- Automerge + Keyhive for local-first auth (1/5) 🌐 — cutting-edge; almost no public docs for CRDT access control
+- Browser E2E encryption with Web Crypto (1/5) — envelope-encryption-for-sharing pattern is missing
+
+## Batch 7: Glazed/JS Command Surfaces (6 projects)
+
+Strategic batch targeting Glazed/JS command-definition and help-surface patterns. See [[KB-BATCH7-glazed-js]] for the full analysis.
+
+### 39. JS Discord Bot — Building a Discord Bot with a JavaScript API
+
+**Date**: 2026-04-20
+
+**Summary**: Go Discord bot with a planned Goja behavior layer. Key insight: Go should keep Discord session lifecycle and secrets; JS should own behavior only after the host contract is stable.
+
+### 40. JS Discord Bot — Adding jsverbs Support
+
+**Date**: 2026-04-20
+
+**Summary**: Planned jsverbs integration for operational CLI verbs. Key insight: runtime bot behavior and CLI jsverbs are separate JavaScript surfaces.
+
+**Tribal entries**: Contributes to [[Tribal/js-defined-glazed-commands]]
+
+### 41. go-minitrace PR #6 — JS Commands and Structured Query Catalog
+
+**Date**: 2026-04-21
+
+**Summary**: JS-backed analysis commands added alongside SQL commands in one catalog. Key insight: two command-definition languages can coexist when both compile into the same command model.
+
+**Tribal entries**: Contributes to [[Tribal/js-defined-glazed-commands]] and reinforces [[Tribal/sql-as-first-class-command-source]]
+
+### 42. go-minitrace Local Query Repository Config
+
+**Date**: 2026-04-27
+
+**Summary**: Project-local query repository discovery via `.go-minitrace.yml`. Key insight: command catalogs are part of project context, not just global tooling.
+
+**Tribal entries**: Reinforces [[Tribal/app-config-vs-command-config-separation]]
+
+### 43. Glazed Serve — Help Browser, Embedded Docs, and SPA
+
+**Date**: 2026-04-08
+
+**Summary**: Embedded React SPA and API inside the `glaze` binary. Key insight: one canonical section model, parser, and query system.
+
+**On-Ramp candidates**:
+- Go CLI with embedded SPA (2/5) — single-binary Go+web pattern needs orientation
+
+### 44. Glazed Static Help Export — render-site and Static Snapshot Publishing
+
+**Date**: 2026-04-09
+
+**Summary**: Static-site export as a second delivery mode for the same help system. Key insight: static export is not a second help stack.
+
+**On-Ramp candidates**:
+- Go CLI with embedded SPA (2/5) — same domain as Glazed Serve
+
+## Batch 8: Hosted Auth / Keycloak Identity (5 projects)
+
+Focused batch on hosted identity, Keycloak, browser-vs-machine auth, and local identity normalization. See [[KB-BATCH8-hosted-auth]] for the full analysis.
+
+### 45. Smailnail OIDC Identity and Hosted Auth
+
+**Date**: 2026-03-16
+
+**Summary**: One hosted server now serves SPA, browser login/logout, session-backed API auth, MCP at `/mcp`, and protected-resource metadata. Key insight: local app identity is keyed by `(issuer, subject)` across both browser and bearer-token surfaces.
+
+### 46. go-go-mcp Hosted OIDC and Smailnail Delivery
+
+**Date**: 2026-03-18
+
+**Summary**: `go-go-mcp` became the hosted-auth substrate for Smailnail. Key insight: an embeddable MCP server must carry verified identity through request context into tool execution.
+
+### 47. Hair Booking — MVP Buildout, Hosted Auth, Vault, and Production Fixes
+
+**Date**: 2026-03-25
+
+**Summary**: Hosted product with dedicated Keycloak realm, SES, Vault-backed SMTP sync, and embedded React frontend. Key insight: hosted auth is part of the product runtime, not an afterthought.
+
+### 48. Smailnail Hosted Identity, Terraform, and Claude Fix
+
+**Date**: 2026-03-18
+
+**Summary**: Branch-level report for hosted Smailnail identity, Terraform migration, and Claude DCR fix. Key insight: production auth blockers can live in Keycloak registration policy, not the app server.
+
+### 49. Keycloak Identity Platform on Coolify
+
+**Date**: 2026-03-16
+
+**Summary**: Central identity provider on `auth.scapegoat.dev` for multiple hosted services. Key insight: Keycloak is the issuer; consuming apps should still normalize local identity in app-owned terms.
+
+---
+
+## Batch 9: Tree-sitter and Structured Text Systems (6 projects)
+
+Focused batch from the campaign handoff's Batch C. See [[KB-BATCH9-tree-sitter-structured-text]] for the full analysis.
+
+### 50. Query Treesitter — Tree-sitter Query Language Prototypes and Design
+
+**Date**: 2026-03-15
+
+**Summary**: Research repo exploring a better query language for Tree-sitter-style syntax trees. It compares Norvig-style unification, TUQL relational syntax, and Hybrid TUQL with lightweight semantic relations. Key insight: Tree-sitter is the structural substrate; richer AST tooling needs a semantic/query layer above it.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-03-14--query-treesitter` | `norvig/`, `tuql/`, `hybrid-tuql/` prototypes |
+
+**On-Ramp entries**: [[On-Ramp/tree-sitter-for-go-tools]]
+
+**Tribal candidates**:
+- Tree-sitter as structural prefilter plus semantic layer (1/3 here; 3/3 across batch, review needed)
+- Repeated-variable subtree equality (1/3)
+- User-defined named AST queries (1/3)
+- Host-language custom predicates and binders (1/3)
+
+**On-Ramp candidates**: Tree-sitter query language (covered by [[On-Ramp/tree-sitter-for-go-tools]]), first-order unification for AST matching (1/5), lexical scope / declaration-use resolution (1/5)
+
+### 51. Sanitize — Tree-sitter Structured Text Sanitizer
+
+**Date**: 2026-03-15
+
+**Summary**: Go CLI/library/server for structured-text sanitizing across YAML and JSON. Tree-sitter provides parse evidence, the packages add linting and conservative fix rules, and the browser UI acts as a recovery lab. Key insight: almost-valid text should be repaired only when the fix is explainable.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-03-05--yaml-sanitizing` | `pkg/yaml`, `pkg/json`, CLI, server, browser playground |
+
+**On-Ramp entries**: [[On-Ramp/tree-sitter-for-go-tools]]
+
+**Tribal candidates**:
+- Conservative repair boundary (1/3 here; 3/3 across Sanitize reports, review needed)
+- Format-specific engines under one CLI/server surface (1/3)
+- Example corpus as repair evidence loop (1/3)
+- Parse/lint/fix as inspectable local workflow (1/3)
+
+**On-Ramp candidates**: Structured text recovery for LLM outputs (1/5 🌐 domain seed)
+
+### 52. Tree-sitter Templating — Syntax-Aware Code Expansion System
+
+**Date**: 2026-03-15
+
+**Summary**: Go backend + React/Monaco prototype for deterministic syntax-aware code expansion. The backend parses incrementally with Tree-sitter, evaluates data-driven rules, and sends proposals or patches over WebSocket. Key insight: syntax-aware behavior should come from backend parse state and rules, not frontend heuristics.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-03-14--treesitter-templating` | `pkg/parser`, `pkg/rules`, `pkg/session`, `pkg/protocol`, React frontend |
+
+**On-Ramp entries**: [[On-Ramp/tree-sitter-for-go-tools]]
+
+**Tribal candidates**:
+- Backend-authoritative syntax tooling (1/3; related to backend snapshot patterns)
+- Rule = query + trigger + guard + expansion (1/3)
+- Fired-key idempotence for editor proposals (1/3)
+- Changed-range filtered rule evaluation (1/3)
+
+**On-Ramp candidates**: Monaco editor integration with Go backend (1/5), WebSocket editor protocol (1/5)
+
+### 53. Sanitize — JSON Recovery Experiments and Limits
+
+**Date**: 2026-03-27
+
+**Summary**: Focused report on the JSON side of `sanitize`, especially malformed LLM JSON recovery. The work shipped narrow fixes for wrappers, comments, Python literals, duplicate commas, and trailing commas, while proving broad structural JSON repair is unsafe. Key insight: detection and repair are different products.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-03-05--yaml-sanitizing` | `pkg/json`, JSON corpus, parse matrices, repair matrix |
+
+**On-Ramp entries**: [[On-Ramp/tree-sitter-for-go-tools]]
+
+**Tribal candidates**:
+- Conservative repair boundary (2/3 here, 3/3 across Sanitize reports, review needed)
+- Strict-parser plus Tree-sitter dual validation (1/3)
+- Detection vs repair separation (1/3)
+- Repair matrix as engineering artifact (1/3)
+
+**On-Ramp candidates**: Malformed LLM JSON recovery (1/5 🌐 domain seed)
+
+### 54. Sanitize — YAML Sanitizing Deep Dive
+
+**Date**: 2026-03-27
+
+**Summary**: Deep dive on the mature YAML side of `sanitize`. The central architecture is a shared parse-aware analysis pass that feeds parse, lint, duplicate-key traversal, and fix orchestration. Key insight: successful sanitizing is iterative and conservative, not one heroic parser trick.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-03-05--yaml-sanitizing` | `pkg/yaml/analysis.go`, `lint.go`, `fix.go`, `sanitize.go` |
+
+**On-Ramp entries**: [[On-Ramp/tree-sitter-for-go-tools]]
+
+**Tribal candidates**:
+- Shared parse-aware analysis object (1/3 here; 3/3 across Sanitize reports, review needed)
+- Conservative iterative repair loop (1/3)
+- Parser plus heuristic classification (1/3)
+- Span-rich diagnostics as UI/API contract (1/3)
+
+**On-Ramp candidates**: YAML parser recovery and duplicate-key behavior (1/5)
+
+### 55. Scenario Runtime Workbench — Scenario-Driven Reconciliation Demo
+
+**Date**: 2026-03-15
+
+**Summary**: Interactive workbench for inspectable controller-style loops. Go owns lifecycle, sessions, transport, snapshots, and WebSocket events; JavaScript owns scenario semantics; React renders backend-authored snapshots. Key insight: reconciliation becomes teachable when observe, compare, plan, and execute are visible stages.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-03-13--pod-deployment-demo` | Go runtime, Goja scenario scripts, React workbench, embedded docs |
+
+**Tribal entries**: Reinforces [[Tribal/goja-execution-model]] as a runtime variation, but not a direct REPL/session instance.
+
+**Tribal candidates**:
+- Scenario package contract (1/3)
+- Observe/compare/plan/execute visible reconciliation loop (1/3)
+- Backend snapshot as source of truth (1/3)
+- Go-owned lifecycle with JS-owned scenario semantics (1/3)
+
+**On-Ramp candidates**: Reconciliation loops / controller pattern (1/5), Goja sandbox for scenario scripts (covered partly by goja KB entries)
+
+---
+
+## Campaign Status
+
+- **Total project reports**: 167
+- **Analyzed so far**: 55
+- **Remaining**: 112
+- **Current KB totals**:
+  - Tribal: 18 entries
+  - On-Ramp: 17 entries
+  - Fundamentals: 4 entries
+
+### Unwritten entries that are actually READY
+
+At the moment there are **no threshold-triggered unwritten entries**.
+
+What remains is:
+- sub-threshold candidates (1/3, 2/3, 1/5, 2/5, etc.)
+- concepts intentionally folded into existing entries instead of split into new ones
+- user-requested entries written below normal thresholds
+
+---
+
 ## KB Candidate Tracking
 
-### Tribal candidates (trigger at 3 projects)
+### Tribal candidates (unwritten)
 
-| Concept | Seen in | Count |
-|---------|---------|-------|
-| **Application-native authorization** | BYOK Host, Wish Git, Agent Enroll | 3/3 → **CREATED** as [[Tribal/application-native-authorization]] |
-| **goja-in-WASM as sandbox boundary** | Capsule Lab, (go-go-goja ecosystem) | 1/3 — need 2 more goja+WASM projects |
-| **Host-mediated op-stream API** | Capsule Lab, (future sandboxed runtimes) | 1/3 |
-| **goja NaN sanitization in JSON export** | Capsule Lab, (any goja-to-JSON pipeline) | 1/3 |
-| **Buffer-full-body-before-UART** | SToMS3R, Almanach | 2/3 — needs 1 more UART streaming project |
-| **MSB-first bit packing for ESC/POS** | SToMS3R, Almanach | 2/3 |
-| **Browser-side image processing for embedded** | SToMS3R, Capsule Lab (partial) | 2/3 |
-| **Four-stage e-ink render pipeline** | Gnosis, (reMarkable projects) | 1/3 |
-| **Draw batching at hardware-limited fps** | Loupedeck, (Gnosis uses different approach) | 1/3 |
-| **"Mutant WebSocket over serial" handling** | Loupedeck | 1/3 |
-| **Broker-not-proxy architecture** | BYOK Host, (future auth projects) | 1/3 |
-| **Authorization Code + PKCE from Go CLI** | BYOK Host, Wish Git | 2/3 — needs 1 more |
+| Concept | Seen in | Status |
+|---------|---------|--------|
+| **Tree-sitter as structural prefilter plus semantic layer** | Query Treesitter, Tree-sitter Templating, Sanitize YAML/JSON | 3/3 — review before creating; partly covered by [[On-Ramp/tree-sitter-for-go-tools]] |
+| **Conservative repair boundary** | Sanitize overview, Sanitize YAML, Sanitize JSON | 3/3 — review before creating |
+| **Shared parse-aware analysis object** | Sanitize overview, Sanitize YAML, Sanitize JSON | 3/3 — review before creating; may be Sanitize-specific |
+| **Three-layer credential separation** | Wish Git, Agent Enroll | 2/3 |
+| **TFT_eSPI patching for RP2040** | uLisp PicoCalc, related display projects | 2/3 |
+| **Bring-up sequence discipline** | Wi-Fi Audio Cues Lab, SToMS3R | 2/3 |
+| **Spec-first VM implementation** | Smalltalk-80 VM, uLisp PicoCalc | 2/3 |
+| **Buffer-full-body-before-UART** | SToMS3R, PaperS3 WAMR | 2/3 |
+| **NDJSON as wire protocol for embedded** | Cardputer Web Serial, SToMS3R | 2/3 |
+| **Keycloak group-gated Vault access** | Vault on K3s, Terraform Vault | 2/3 |
+| **OIDC logout must clear provider session** | Smailnail OIDC, Hair Booking | 2/3 |
+| **Runtime-scoped module registrars** | Plugins, Node-like Primitives | 2/3 |
+| **Two-stage Glazed parsing for runtime config** | JS Discord Bot, related Glazed apps | 2/3 |
+| **Envelope encryption for selective sharing** | E2E Storage, AUTODISCO Keyhive | 2/3 |
+| **CRDT-local authorization layer** | AUTODISCO Keyhive, future CRDT projects | 2/3 |
+| **OAuth refresh with bounded retry** | Remarquee, Smailnail OIDC | 2/3 |
+| **goja-in-WASM as sandbox boundary** | Capsule Lab, future goja+WASM projects | 1/3 |
+| **Host-mediated op-stream API** | Capsule Lab | 1/3 |
+| **goja NaN sanitization in JSON export** | Capsule Lab | 1/3 |
+| **Four-stage e-ink render pipeline** | Gnosis | 1/3 |
+| **Draw batching at hardware-limited fps** | Loupedeck | 1/3 |
+| **Mutant WebSocket over serial handling** | Loupedeck | 1/3 |
+| **Broker-not-proxy architecture** | BYOK Host | 1/3 |
+| **Authorization Code + PKCE from Go CLI** | BYOK Host, Wish Git | 2/3 |
 | **SSH certificate as scoped delegation** | Wish Git | 1/3 |
 | **pre-receive hook as policy enforcement** | Wish Git | 1/3 |
 | **Server-as-relay-not-authority** | AUTODISCO | 1/3 |
 | **Domain mutation helpers inside CRDT changes** | AUTODISCO | 1/3 |
-| **Spec-first implementation discipline** | Smalltalk-80 VM | 1/3 |
 | **Pin-swapping for K118 cable at runtime** | SToMS3R | 1/3 |
 | **AtomS3R Lite over ATOM Lite for printer** | SToMS3R | 1/3 |
-| **goja native module registration** | goja-embedding (generic), ZK Tool (Obsidian), Loupedeck (hardware) | 2/3 |
-| **SQL as first-class command source** | Sqleton, Minitrace Query Commands | 3/3 → **READY** |
-| **App config vs command config separation** | Sqleton, BYOK Host, Glazed Vault (bootstrap parsing) | 3/3 → **READY** |
-| **MicroVM as execution boundary** | Firecracker VM, pi-sandbox, PaperS3 WAMR | 3/3 → CREATED |
-| **Host-mediated secret delivery** | Firecracker VM, BYOK Host, Vault/Glazed/Terraform Vault | 3/3 → **READY** |
-| **Three-layer credential separation** | Wish Git, Agent Enroll | 2/3 |
-| **C99 native port for host testing** | uLisp PicoCalc | 1/3 |
-| **TFT_eSPI patching for RP2040** | uLisp PicoCalc, (other display projects) | 2/3 |
-| **Bring-up sequence discipline** | Wi-Fi Audio Cues Lab, SToMS3R | 2/3 |
-| **Reduction-ladder debugging** | PaperS3 WAMR, Cardputer Web Serial (smoke.html) | 2/3 |
-| **Bring-up sequence discipline** | Wi-Fi Audio Cues Lab, SToMS3R | 2/3 |
-| **Spec-first VM implementation** | Smalltalk-80 VM (Blue Book), uLisp PicoCalc (from spec) | 2/3 |
-| **Reduction-ladder debugging** | PaperS3 WAMR, Cardputer Web Serial (smoke.html) | 2/3 |
-| **Buffer-full-body-before-UART** | SToMS3R, PaperS3 WAMR (buffer before load) | 2/3 |
-| **NDJSON as wire protocol for embedded** | Cardputer Web Serial, SToMS3R | 2/3 |
-| **Separate human auth (OIDC) from machine auth** | Vault on K3s, Terraform Vault | 2/3 |
-| **Keycloak group-gated Vault access** | Vault on K3s, Terraform Vault | 2/3 |
-| **Data-only vs host-access module split** | Node-like Primitives, Capsule Lab | 2/3 |
-| **Runtime-scoped module registrars** | Plugins, Node-like Primitives | 2/3 |
-| **Two-stage Glazed parsing for runtime config** | JS Discord Bot, (other Glazed apps?) | 2/3 |
-| **JS-defined Glazed commands** | jsverbs, (Glazed help?) | 2/3 |
 | **GStreamer pipeline construction from Go** | Screencast Studio | 1/3 |
 | **Runtime seam for engine migration** | Screencast Studio | 1/3 |
 | **GLib main loop coexistence with Go** | Screencast Studio | 1/3 |
@@ -765,7 +1096,6 @@ Strategic batch targeting 2/3 candidates near threshold. See [[KB-BATCH5-infra-s
 | **Ext4 workspace as boundary artifact** | Firecracker VM | 1/3 |
 | **HashiCorp go-plugin for JS modules** | Plugins | 1/3 |
 | **process global opt-in** | Node-like Primitives | 1/3 |
-| **HashiCorp go-plugin for JS modules** | Plugins | 1/3 |
 | **Plugin authoring SDK** | Plugins | 1/3 |
 | **Plugin discovery + manifest validation** | Plugins | 1/3 |
 | **Runtime-scoped docs hub** | Plugins | 1/3 |
@@ -780,99 +1110,94 @@ Strategic batch targeting 2/3 candidates near threshold. See [[KB-BATCH5-infra-s
 | **Source overlay runtime** | jsverbs | 1/3 |
 | **Shared binding plan** | jsverbs | 1/3 |
 | **Multi-source scanning** | jsverbs | 1/3 |
+| **Go CLI with embedded SPA** | Glazed Serve, Glazed Static Help Export | 2/3 |
+| **Dual-mode frontend over live API or static snapshot** | Glazed Serve, Glazed Static Help Export | 2/3 |
+| **Shared canonical model across delivery modes** | Glazed Serve, Glazed Static Help Export | 2/3 |
+| **Scanner-first JS command extraction** | jsverbs, go-minitrace PR #6 | 2/3 |
+| **Repository-local command catalogs** | go-minitrace local config, related local overlays | 2/3 |
 
-### On-Ramp candidates (trigger at 5 projects)
+### Tribal concepts intentionally covered by existing entries
 
-| Concept | Seen in | Count |
-|---------|---------|-------|
-| **ESC/POS thermal printer commands** | SToMS3R, Almanach, ATOM-PRINTER | 3/5 |
-| **E-ink display driving** | Gnosis, Paper Pro, reMarkable projects | 3/5 |
-| **Git hooks for policy enforcement** | Wish Git, (future forge projects) | 2/5 |
-| **Retained-mode rendering / dirty rects** | Gnosis, Loupedeck | 2/5 |
-| **Go→WASM compilation** | Capsule Lab, SQLide, JSON Flattener, VT100, Codebase Browser | 5/5 → **READY** |
-| **goja ECMAScript interpreter** | Capsule Lab, Loupedeck, go-go-goja ecosystem | 2/5 (from 8-project sample; 52/5 in full library) |
-| **CRDTs and local-first architecture** | AUTODISCO | 1/5 (from 8-project sample) |
-| **GStreamer for Go programmers** | Screencast Studio, (future media projects) | 2/5 🌐 Domain seed |
-| **Arduino-cli cross-compilation** | uLisp PicoCalc, (other Arduino projects) | 2/5 🌐 Domain seed |
-| **Obsidian CLI from Go** | ZK Tool | 1/5 |
-| **ESM support in Go JS engines** | Goja vs Sobek | 1/5 🌐 Domain seed |
+| Concept | Covered by |
+|---------|------------|
+| **Separate human auth from machine auth** | [[On-Ramp/oauth-2-oidc-flows]] + [[Tribal/keycloak-oauth-in-go-services]] |
+| **(issuer, subject) as stable local user key** | [[Tribal/keycloak-oauth-in-go-services]] |
+| **Dynamic client registration policy as auth boundary** | [[Tribal/keycloak-oauth-in-go-services]] + [[On-Ramp/oauth-2-oidc-flows]] |
+| **Dedicated Keycloak realm per app** | [[Tribal/keycloak-oauth-in-go-services]] |
 
-### Fundamental candidates (trigger when supporting 2+ KB entries)
+### On-Ramp candidates (unwritten)
+
+| Concept | Seen in | Status | What's missing from public docs |
+|---------|---------|--------|-------------------------------|
+| **goja ECMAScript interpreter** | Capsule Lab, Loupedeck, go-go-goja ecosystem | 2/5 | README-level docs are too sparse; embedding/module/session patterns are missing |
+| **GStreamer for Go programmers** | Screencast Studio, future media projects | 2/5 🌐 | GStreamer docs are C-centric; Go bindings and CGo/coexistence patterns are underexplained |
+| **Arduino-cli cross-compilation** | uLisp PicoCalc, future Arduino projects | 2/5 🌐 | Arduino docs assume IDE-first workflows |
+| **Obsidian CLI from Go** | ZK Tool | 1/5 | Obsidian docs exist, but not the Go-centric integration patterns |
+| **ESM support in Go JS engines** | Goja vs Sobek | 1/5 🌐 | Spec exists; engine migration/orientation material does not |
+| **Go CLI with embedded SPA** | Glazed Serve, Glazed Static Help Export | 2/5 | Single-binary Go+SPA delivery pattern needs orientation |
+
+### On-Ramp entries created during the campaign
+
+These are in the library already and should not be treated as unwritten candidates:
+- [[On-Ramp/tree-sitter-for-go-tools]] — threshold-triggered by Batch 9 / handoff Batch C
+
+### On-Ramp entries created below threshold by request
+
+These are in the library already and should not be treated as unwritten candidates:
+- [[On-Ramp/esp-idf-console-repl-bring-up]]
+- [[On-Ramp/web-serial-browser-to-embedded]]
+- [[On-Ramp/es8311-codec-bring-up-atoms3r]]
+- [[On-Ramp/v6-rmdoc-scene-tree-rendering]]
+- [[On-Ramp/vault-on-k3s-with-vso]]
+- [[On-Ramp/browser-e2e-encryption-with-web-crypto]]
+- [[On-Ramp/automerge-keyhive-local-first-auth]]
+- [[On-Ramp/what-is-a-stack-based-vm]]
+
+### Fundamental candidates (unwritten)
 
 | Concept | Supports | Status |
 |---------|----------|--------|
-| **Signal quantization and sampling** | Dithering On-Ramp, ESC/POS On-Ramp, E-ink On-Ramp | 3 → **READY** |
-| **Access control models** | OAuth On-Ramp, SSH Certs On-Ramp, Keycloak Tribal | 3 → **READY** |
-| **Encoding and framing** | ESC/POS On-Ramp, Serial Protocols Tribal, UART Tribal | 3 → **READY** |
-| **Rendering pipeline fundamentals** | E-ink On-Ramp, Dirty-rect Tribal | 2 → **READY** |
-| **Distributed consistency** | CRDT On-Ramp | 1 — needs 1 more KB entry |
-| **Host-mediated sandbox principles** | goja-embedding Tribal, Firecracker microVM Tribal (candidate) | 1/2 — needs either goja-embedding or microVM tribal to exist |
+| **Distributed consistency** | [[On-Ramp/crdts-and-local-first]] | 1 supporting KB entry — needs 1 more |
+| **Host-mediated sandbox principles** | goja embedding + microVM cluster | 1 supporting KB entry — consolidation question |
 
 ---
 
-## KB Entries Ready to Create
+## KB Entries in the Library
 
-Based on the candidate counts across the full 304-project library (not just the 8-project sample), these entries have passed their threshold:
+### Tribal
 
-### Tribal (3+ projects, our pattern)
+The current tribal library contains the 18 entries in `Research/KB/Tribal/`, including the campaign-created entries:
+- [[Tribal/application-native-authorization]]
+- [[Tribal/goja-execution-model]]
+- [[Tribal/microvm-as-execution-boundary]]
+- [[Tribal/dsl-normalized-config-compiled-plan]]
+- [[Tribal/browser-side-processing-for-embedded]]
+- [[Tribal/sql-as-first-class-command-source]]
+- [[Tribal/host-mediated-secret-delivery]]
+- [[Tribal/reduction-ladder-debugging]]
+- [[Tribal/app-config-vs-command-config-separation]]
+- [[Tribal/data-only-vs-host-access-module-split]]
+- [[Tribal/iife-cell-rewrite]]
+- [[Tribal/js-defined-glazed-commands]]
 
-1. **goja: Embedding a JavaScript Interpreter in Go** — 52 projects
-2. **ESP-IDF Firmware Patterns** — 28 projects
-3. **Keycloak OAuth in Go Services** — 29 projects
-4. **Go → WASM Compilation** — 33 projects
-5. **Serial Protocols: Talking to Hardware from Go** — 17 projects
-6. **SQLite as Application Database in Go** — 84 projects
-7. **Application-Native Authorization** — 3 projects (BYOK Host, Wish Git, Agent Enroll) ← **NEW**
-8. **goja Execution Model** — 5 projects (REPL API, Geppetto/Pinocchio, Loupedeck, Node-like Primitives, JS Discord Bot) ← **NEW**
-9. **MicroVM as Execution Boundary** — 3 projects (Firecracker VM, pi-sandbox, PaperS3 WAMR) ← **NEW**
-10. **DSL → Normalized Config → Compiled Plan** — 2 projects + implementer confirmation (Screencast Studio, Almanach Studio) ← **NEW**
-11. **Browser-Side Processing for Embedded Devices** — 2 projects + implementer confirmation (SToMS3R, Cardputer Web Serial) ← **NEW**
-12. **SQL as First-Class Command Source** — 2 projects + implementer confirmation (Sqleton, Minitrace Query Commands) ← **NEW**
-13. **Host-Mediated Secret Delivery** — 3+ projects (Firecracker VM, BYOK Host, Vault K3s, Glazed Vault, Terraform Vault) ← **NEW**
-14. **App Config vs Command Config Separation** — 3 projects (Sqleton, BYOK Host, Glazed Vault) ← **NEW**
+### On-Ramp
 
-### On-Ramp (5+ projects, lookupable but our angle missing)
+The current on-ramp library contains the 17 entries in `Research/KB/On-Ramp/`, including the 8 user-requested below-threshold entries written during this campaign and [[On-Ramp/tree-sitter-for-go-tools]] from Batch 9.
 
-1. **CRDTs and Local-First Architecture** — justified by concept density even if project count is low
-2. **OAuth 2.0 and OIDC — The Flows That Matter** — 29 projects
-3. **OpenSSH Certificates** — 11+ projects
-4. **1-Bit Image Dithering and Rasterization** — 9 projects
-5. **ESC/POS Thermal Printer Commands** — 13 projects
-6. **E-Ink Display Driving** — 14 projects
-7. **Git Hooks for Policy Enforcement** — 41 projects
-8. **WebAssembly from Go** — 33 projects
+### Fundamentals
 
-### Fundamentals (underpins 2+ KB entries)
-
-1. **Signal Quantization and Sampling Theory** — underlies 3 On-Ramp entries
-2. **Access Control Models: Authentication, Authorization, Delegation** — underlies 3 entries
-3. **Encoding and Framing: Turning Bytes into Messages** — underlies 3 entries
-4. **Rendering Pipeline Fundamentals: Retained Mode, Dirty Rects, Compositing** — underlies 2 entries
+The current fundamentals library contains:
+- [[Fundamentals/signal-quantization-and-sampling]]
+- [[Fundamentals/access-control-models]]
+- [[Fundamentals/encoding-and-framing]]
+- [[Fundamentals/rendering-pipeline-fundamentals]]
 
 ---
 
 ## Cross-Reference: Which Projects Feed Which KB Entries
 
-| KB Entry | Projects that feed it (from Batch 1) |
-|----------|--------------------------------------|
-| Tribal/goja-embedding | Capsule Lab, Loupedeck |
-| Tribal/ESP-IDF-firmware | Gnosis, SToMS3R |
-| Tribal/Keycloak-OAuth | BYOK Host, Wish Git |
-| Tribal/Go-to-WASM | Capsule Lab |
-| Tribal/serial-protocols | Loupedeck, SToMS3R |
-| Tribal/SQLite-as-app-DB | BYOK Host |
-| On-Ramp/CRDT-and-local-first | AUTODISCO |
-| On-Ramp/OAuth-2-OIDC | BYOK Host, Wish Git |
-| On-Ramp/OpenSSH-certificates | Wish Git |
-| On-Ramp/dithering-and-rasterization | SToMS3R |
-| On-Ramp/ESC-POS-thermal-printer | SToMS3R |
-| On-Ramp/e-ink-display-driving | Gnosis |
-| On-Ramp/git-hooks-for-policy | Wish Git |
-| On-Ramp/WASM-from-Go | Capsule Lab |
-| Fundamentals/signal-quantization | SToMS3R |
-| Fundamentals/access-control-models | BYOK Host, Wish Git |
-| Fundamentals/encoding-and-framing | Loupedeck, SToMS3R |
-| Fundamentals/rendering-pipeline-fundamentals | Gnosis, Loupedeck |
+| KB Entry | Projects that feed it |
+|----------|------------------------|
 | Tribal/application-native-authorization | BYOK Host, Wish Git, Agent Enroll |
 | Tribal/goja-execution-model | REPL API, Node-like Primitives, JS Discord Bot, Geppetto/Pinocchio, Loupedeck |
 | Tribal/microvm-as-execution-boundary | Firecracker VM, pi-sandbox, PaperS3 WAMR |
@@ -880,4 +1205,29 @@ Based on the candidate counts across the full 304-project library (not just the 
 | Tribal/browser-side-processing-for-embedded | SToMS3R, Cardputer Web Serial |
 | Tribal/sql-as-first-class-command-source | Sqleton, Minitrace Query Commands |
 | Tribal/host-mediated-secret-delivery | Firecracker VM, BYOK Host, Vault K3s, Glazed Vault, Terraform Vault |
+| Tribal/reduction-ladder-debugging | PaperS3 WAMR, Cardputer smoke.html, Geppetto thinking bug |
 | Tribal/app-config-vs-command-config-separation | Sqleton, BYOK Host, Glazed Vault |
+| Tribal/data-only-vs-host-access-module-split | Node-like Primitives, Capsule Lab, goja-embedding |
+| Tribal/iife-cell-rewrite | REPL API, Goja REPL Hardening, goja-execution-model |
+| Tribal/js-defined-glazed-commands | jsverbs, JS Discord Bot jsverbs, go-minitrace PR #6 |
+| On-Ramp/crdts-and-local-first | AUTODISCO |
+| On-Ramp/oauth-2-oidc-flows | BYOK Host, Wish Git, hosted Keycloak apps |
+| On-Ramp/openssh-certificates | Wish Git |
+| On-Ramp/dithering-and-rasterization | SToMS3R |
+| On-Ramp/esc-pos-thermal-printer | SToMS3R |
+| On-Ramp/e-ink-display-driving | Gnosis, Paper Pro, reMarkable cluster |
+| On-Ramp/git-hooks-for-policy-enforcement | Wish Git |
+| On-Ramp/wasm-from-go | Capsule Lab, SQLide, JSON Flattener, VT100, Codebase Browser |
+| On-Ramp/esp-idf-console-repl-bring-up | SToMS3R, Wi-Fi Audio Cues Lab |
+| On-Ramp/web-serial-browser-to-embedded | Cardputer Web Serial |
+| On-Ramp/es8311-codec-bring-up-atoms3r | Wi-Fi Audio Cues Lab |
+| On-Ramp/v6-rmdoc-scene-tree-rendering | Remarquee |
+| On-Ramp/vault-on-k3s-with-vso | Vault on K3s, CoinVault |
+| On-Ramp/browser-e2e-encryption-with-web-crypto | E2E Encrypted Storage |
+| On-Ramp/automerge-keyhive-local-first-auth | AUTODISCO Keyhive |
+| On-Ramp/what-is-a-stack-based-vm | Smalltalk-80 VM, uLisp PicoCalc, Gnosis VM |
+| On-Ramp/tree-sitter-for-go-tools | Query Treesitter, Tree-sitter Templating, Sanitize structured text/YAML/JSON |
+| Fundamentals/signal-quantization-and-sampling | Dithering / ESC-POS / E-ink clusters |
+| Fundamentals/access-control-models | OAuth / OpenSSH / application authorization cluster |
+| Fundamentals/encoding-and-framing | ESC-POS / serial / line-protocol clusters |
+| Fundamentals/rendering-pipeline-fundamentals | E-ink / retained-mode rendering clusters |

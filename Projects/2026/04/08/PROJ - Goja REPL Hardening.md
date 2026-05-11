@@ -315,3 +315,7 @@ Those ticket directories include the analysis docs, implementation diaries, scri
 > [!important]
 > Prefer strengthening invariants before adding new behavior.
 > In the REPL/session stack, subtle correctness bugs are usually more important than adding one more convenience feature.
+
+## KB reviews
+
+- [[KB-BATCH6-mixed-domain]] (2026-05-11) — concept extraction + classification

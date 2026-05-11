@@ -415,3 +415,7 @@ If you find yourself implementing server-side crypto, stop. If the server can de
 ---
 
 *Created: 2026-04-14 | Repo: /home/manuel/code/wesen/2026-04-14--browser-e2e-encryption | Ticket: E2EE-001*
+
+## KB reviews
+
+- [[KB-BATCH6-mixed-domain]] (2026-05-11) — concept extraction + classification

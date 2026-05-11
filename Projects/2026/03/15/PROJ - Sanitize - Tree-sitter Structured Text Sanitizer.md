@@ -159,3 +159,17 @@ Those ticket docs make the current direction unusually legible. They show the re
 > [!important]
 > Prefer conservative, explainable repair over aggressive “magic.”
 > If a malformed case is ambiguous, the project should surface it clearly before it tries to guess.
+
+## KB reviews
+
+- [[KB-BATCH9-tree-sitter-structured-text]] (2026-05-11) — Batch C analysis; contributed to [[On-Ramp/tree-sitter-for-go-tools]] plus conservative repair and shared parse-analysis candidates.
+
+## Related KB entries
+
+- [[On-Ramp/tree-sitter-for-go-tools]] — parse trees, error spans, and conservative transform boundaries in Go tooling.
+
+**Tribal candidates** (not yet written / needs review):
+- Conservative repair boundary (3/3, review before creating) — fix only what can be explained; lint when intent is ambiguous.
+- Shared parse-aware analysis object (3/3, review before creating) — parse, lint, duplicate-key traversal, and fix orchestration reuse one structural analysis.
+- Example corpus as repair evidence loop (1/3) — fixtures and playground as part of the engineering method.
+- Parse/lint/fix as inspectable local workflow (1/3) — CLI and UI expose reasoning instead of black-box rewriting.

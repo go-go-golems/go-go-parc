@@ -199,3 +199,17 @@ The most useful repo-local references are:
 > [!important]
 > Keep the backend authoritative and data-driven.
 > If a behavior matters, make it emerge from parse state, rules, and presets rather than from ad hoc frontend heuristics.
+
+## KB reviews
+
+- [[KB-BATCH9-tree-sitter-structured-text]] (2026-05-11) — Batch C analysis; contributed to [[On-Ramp/tree-sitter-for-go-tools]] and backend-authoritative syntax tooling candidates.
+
+## Related KB entries
+
+- [[On-Ramp/tree-sitter-for-go-tools]] — incremental parsing, query-driven matching, and backend-owned syntax behavior.
+
+**Tribal candidates** (not yet written / needs review):
+- Backend-authoritative syntax tooling (1/3) — backend owns parse state, rule evaluation, and proposals; frontend renders and applies.
+- Rule = query + trigger + guard + expansion (1/3) — data-driven decomposition of syntax-aware expansion behavior.
+- Fired-key idempotence for editor proposals (1/3) — session-local memory prevents repeated suggestions.
+- Changed-range filtered rule evaluation (1/3) — incremental parse changes limit which rules fire.

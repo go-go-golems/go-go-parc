@@ -131,6 +131,19 @@ For each concept, record:
 2. **Category**: Is this a technology we use, a pattern we follow, or a theory we depend on?
 3. **Role in the project**: Why does this project need this concept? What breaks if you don't understand it?
 4. **Tribal or lookupable**: Could you learn this from public docs, or is it our-specific knowledge?
+5. **On-ramp angle**: If lookupable, what's missing from public docs that our projects reveal? (e.g., "ESP-IDF docs describe esp_console API, but don't show the working USB Serial/JTAG bring-up sequence")
+
+### On-ramp extraction is not optional
+
+A common failure mode is to extract tribal candidates eagerly and on-ramp candidates reluctantly (or not at all). This produces a KB that knows how we do things but can't help someone read our project reports.
+
+**The test**: after analyzing each project, ask yourself:
+
+> "If a newcomer read this project report, what would they need to Google first?"
+
+Every answer to that question is an on-ramp candidate. The public docs for that concept probably exist, but they're either scattered (ESC/POS across 300 pages of Epson docs), wrong for our context (ESP-IDF UART docs that don't cover USB Serial/JTAG), or missing our specific angle (Keycloak docs are Java-centric, our patterns are Go-centric).
+
+**You should produce roughly as many on-ramp candidates as tribal candidates per batch.** If you're not, you're under-extracting on-ramp material. Go back through the project and ask the newcomer question again.
 
 ### Example: Reading the SToMS3R project report
 
@@ -477,7 +490,7 @@ Follow the format of existing entries in the index. Each project section contain
 2. **Summary** — 2–3 sentences from the project report
 3. **Repos** — table of repo paths with notes
 4. **Tribal candidates** — bulleted list of our-specific patterns, even if only this project uses them. Include a brief description of each candidate.
-5. **On-Ramp concepts this project depends on** — bulleted list of lookupable concepts
+5. **On-Ramp candidates** — bulleted list of lookupable concepts where our angle is missing from public docs. For each one, state what's missing (e.g., "ESP-IDF docs describe esp_console API, but not the USB Serial/JTAG bring-up sequence for ESP32-S3"). **This is not optional.** Every project that depends on a technology with sparse or misleading public docs should produce at least one on-ramp candidate.
 6. **Fundamental concepts this project rests on** — bulleted list of theory concepts
 
 ### What to update in the candidate tracking tables
@@ -558,6 +571,7 @@ Before submitting a KB entry, verify:
 - [ ] **Length in range**: Tribal 4–7 KB, On-Ramp 5–6 KB, Fundamental 5–7 KB
 - [ ] **Writing style**: No AI slop (see anti-pattern table above). Prose develops ideas. Concrete over abstract.
 - [ ] **Gotchas section present**: Every entry has real project failures, not theoretical concerns
+- [ ] **On-ramp candidates balanced with tribal candidates**: roughly equal counts per batch; if not, re-read the project with the newcomer question
 - [ ] **No textbook rewriting**: On-Ramp entries link to external sources; they do not reproduce them
 - [ ] **Our angle present**: Every entry explains why WE care, not just what the concept is
 - [ ] **Cross-references bidirectional**: `## Where we use it` lists real KB entries; those entries link back

@@ -530,3 +530,7 @@ The most sensible next sequence is:
 
 > [!important]
 > Treat `hair-booking` as a real hosted product now. Changes to auth, booking creation, SMTP, deployment, and logging need playbooks and validation steps, not just code changes.
+
+## KB reviews
+
+- [[KB-BATCH8-hosted-auth]] (2026-05-11) — concept extraction + classification

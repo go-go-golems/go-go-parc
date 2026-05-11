@@ -397,3 +397,7 @@ The next work is mostly operational and UX:
 - persist the app DB
 - enable GitHub as a Keycloak broker cleanly
 - decide whether login defaults to chooser or GitHub-first
+
+## KB reviews
+
+- [[KB-BATCH8-hosted-auth]] (2026-05-11) — concept extraction + classification
