@@ -388,3 +388,17 @@ The most important repo-local docs now are:
 > [!important]
 > Preserve the separation between environment declaration, runtime construction, and runtime ownership.
 > When a runtime is reused, make that reuse explicit in the API and protected in the implementation.
+
+## KB reviews
+
+- [[KB-BATCH11-geppetto-runtime-evolution]] (2026-05-11) — Batch B analysis; contributed to [[Tribal/geppetto-engine-config-vs-runtime-behavior]] and goja runtime lifecycle candidates.
+
+## Related KB entries
+
+- [[Tribal/geppetto-engine-config-vs-runtime-behavior]] — honest split between reusable engine/runtime primitives and app-owned runtime behavior.
+- [[Tribal/goja-execution-model]] — shared-runtime execution must be serialized across the whole eval lifecycle.
+
+**Tribal candidates** (not yet written / covered by broader entries):
+- Serialized shared runtime executor (2/3 or 3/3 depending scope) — reused runtime eval protected by an explicit executor.
+- Honest lifecycle descriptions (1/3) — prebuilt, lazy, and future per-session must be distinct claims.
+- Static manifest for lazy runtime descriptions (1/3).

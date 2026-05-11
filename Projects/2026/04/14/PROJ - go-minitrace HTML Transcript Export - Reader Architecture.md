@@ -352,3 +352,16 @@ The next sensible steps are:
 The most important working rule for this project is:
 
 > Keep the export literal, deterministic, and portable. If a feature requires server state, mutation APIs, or heuristic interpretation that cannot be explained clearly, it probably does not belong in the first-generation self-contained reader.
+
+## KB reviews
+
+- [[KB-BATCH10-minitrace-transcript-analysis]] (2026-05-11) — Batch F analysis; contributed to [[Tribal/transcript-analysis-with-go-minitrace]] and self-contained review artifact candidates.
+
+## Related KB entries
+
+- [[Tribal/transcript-analysis-with-go-minitrace]] — portable transcript review artifacts as part of the analysis workflow.
+
+**Tribal candidates** (not yet at 3-project threshold):
+- Self-contained review artifact (2/3) — one HTML file with payload, JS, and CSS for offline review.
+- JSON-driven export reader (1/3) — Go computes reader payload; browser renders read-only.
+- Script-tag-safe payload embedding (1/3) — escape transcript content safely inside HTML.

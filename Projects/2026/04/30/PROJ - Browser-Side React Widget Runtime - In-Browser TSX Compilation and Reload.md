@@ -1147,3 +1147,18 @@ When widget B imports widget A, and widget A later recompiles, the runtime shoul
 5. browser tests that cover composed widgets across dependency updates.
 
 The working rule remains unchanged: imports are capabilities, and capability resolution belongs in the runtime registry. A widget should be able to import useful building blocks, but only after the host explicitly registers and exposes them.
+
+## KB reviews
+
+- [[KB-BATCH12-wasm-browser-runtime]] (2026-05-11) — Batch J analysis; added a browser-runtime loader/compiler case alongside the WASM-heavy reports.
+
+## Related KB entries
+
+**Tribal candidates** (not yet written / needs review):
+- Source string → browser transform → blob import runtime (1/3).
+- Shared React instance injected into dynamic modules (1/3).
+- Strict import allowlist before compilation/import (1/3).
+
+**On-Ramp candidates** (not yet written):
+- Browser-side TSX compilation and blob-module import (1/5 🌐).
+

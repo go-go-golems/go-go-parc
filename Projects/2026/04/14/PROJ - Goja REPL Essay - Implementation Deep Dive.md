@@ -490,3 +490,17 @@ If design and article-quality iteration happen only in the full live page, the s
 ## Working rule
 
 The essay should always remain a **thin lens over the real REPL**. If a future implementation choice makes the article easier to build but less faithful to the backend contract, that is the wrong tradeoff for this project.
+
+## KB reviews
+
+- [[KB-BATCH11-geppetto-runtime-evolution]] (2026-05-11) — Batch B analysis; contributed to [[Tribal/geppetto-engine-config-vs-runtime-behavior]] and thin-teaching-surface candidates.
+
+## Related KB entries
+
+- [[Tribal/geppetto-engine-config-vs-runtime-behavior]] — teaching routes remain app-owned thin wrappers over real backend semantics.
+- [[Tribal/goja-execution-model]] — essay demonstrates real REPL sessions, policies, evaluation, and persistence.
+
+**Tribal candidates** (not yet written / review needed):
+- Thin teaching surface over real backend (3/3, review before creating) — prose and widgets visualize real API responses, not frontend reenactments.
+- Live technical essay with backend instruments (1/3).
+- Storybook/MSW as article component development loop (1/3).

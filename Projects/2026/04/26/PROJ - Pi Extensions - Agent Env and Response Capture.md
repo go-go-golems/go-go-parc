@@ -859,6 +859,15 @@ Maybe. The current v1 is intentionally quiet: it displays a number but does not 
 
 All three tickets have zero open tasks. They remain `active`. Closing them is a project-management decision rather than an implementation requirement.
 
+## KB reviews
+
+- [[KB-BATCH14-pi-extensions-tooling]] (2026-05-11) — Batch K Pi extension/tooling review; created [[Tribal/pi-extension-event-seams]] and advanced Pi TUI/model-config candidates.
+
+## Related KB entries
+
+- [[Tribal/pi-extension-event-seams]] — Pi lifecycle/event seams, prompt shaping, tool-call mutation, TUI surfaces, and model/config integration discipline.
+- [[Fundamentals/host-mediated-sandbox-principles]] — the host/runtime boundary principle behind narrow extension capabilities and mediated side effects.
+
 ## Near-term next steps
 
 1. Close `PI-EXT-AGENT-ENV`, `PI-EXT-RESPONSE-CAPTURE`, and `PI-EXT-COMPACTION-METER` if no further polish is desired.

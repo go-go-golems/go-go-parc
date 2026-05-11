@@ -285,3 +285,16 @@ The `IoPorts` struct tracks these states and is read/written by CPU instructions
 > Preserve historical accuracy where possible, but prioritize making the emulator runnable and understandable. When accuracy and clarity conflict, add documentation explaining the simplification.
 
 The firmware should eventually run unmodified—that's the proof that the hardware emulation is correct. But the web UI can be modern and approachable, not a literal recreation of the physical terminal's styling unless that serves educational purposes.
+
+## KB reviews
+
+- [[KB-BATCH12-wasm-browser-runtime]] (2026-05-11) — Batch J analysis; used mainly as a contrast case for browser WASM outside the Go toolchain cluster.
+
+## Related KB entries
+
+- [[On-Ramp/wasm-from-go]] — adjacent browser-WASM context, though this project is Rust-based rather than Go-based.
+
+**On-Ramp candidates** (not yet written):
+- VT100 hardware emulation mental model (1/5 🌐).
+- Rust/WASM browser emulator architecture (1/5 🌐).
+

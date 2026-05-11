@@ -218,6 +218,15 @@ The most useful design notes are:
 
 If you are trying to understand the project from scratch, read those in that order.
 
+## KB reviews
+
+- [[KB-BATCH15-codebase-browser-docs-product]] (2026-05-11) — Batch L docs-as-product review; created [[Tribal/canonical-doc-model-across-delivery-modes]] and advanced embedded-SPA/SQLite docs candidates.
+
+## Related KB entries
+
+- [[On-Ramp/go-cli-with-embedded-spa]] — 10-minute orientation for single-binary Go CLIs that serve or export embedded React/Vite SPAs.
+- [[Tribal/canonical-doc-model-across-delivery-modes]] — one structured documentation/index/help model projected into live server, static export, SQLite, embedded SPA, and external-source serving modes.
+
 ## Open questions
 
 The architecture is clear enough to proceed, but a few questions remain open:

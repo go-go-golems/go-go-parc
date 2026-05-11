@@ -245,6 +245,15 @@ Repo-local (in `ttmp/`):
 
 The meta doc page (embedded in the binary) at `/docs/03-meta` when the server runs, or at `internal/docs/embed/pages/03-meta.md` on disk.
 
+## KB reviews
+
+- [[KB-BATCH15-codebase-browser-docs-product]] (2026-05-11) — Batch L docs-as-product review; created [[Tribal/canonical-doc-model-across-delivery-modes]] and advanced embedded-SPA/SQLite docs candidates.
+
+## Related KB entries
+
+- [[On-Ramp/go-cli-with-embedded-spa]] — 10-minute orientation for single-binary Go CLIs that serve or export embedded React/Vite SPAs.
+- [[Tribal/canonical-doc-model-across-delivery-modes]] — one structured documentation/index/help model projected into live server, static export, SQLite, embedded SPA, and external-source serving modes.
+
 ## Related notes
 
 Companion drill-down:

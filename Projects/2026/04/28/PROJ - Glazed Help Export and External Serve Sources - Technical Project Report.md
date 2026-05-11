@@ -756,6 +756,15 @@ The implementation is spread across a small set of files:
 | `/home/manuel/code/wesen/corporate-headquarters/glazed/pkg/doc/topics/28-export-help-entries.md` | User documentation for the export command. |
 | `/home/manuel/code/wesen/corporate-headquarters/glazed/pkg/doc/topics/29-serve-external-help-sources.md` | User documentation for serving external help sources. |
 
+## KB reviews
+
+- [[KB-BATCH15-codebase-browser-docs-product]] (2026-05-11) — Batch L docs-as-product review; created [[Tribal/canonical-doc-model-across-delivery-modes]] and advanced embedded-SPA/SQLite docs candidates.
+
+## Related KB entries
+
+- [[On-Ramp/go-cli-with-embedded-spa]] — 10-minute orientation for single-binary Go CLIs that serve or export embedded React/Vite SPAs.
+- [[Tribal/canonical-doc-model-across-delivery-modes]] — one structured documentation/index/help model projected into live server, static export, SQLite, embedded SPA, and external-source serving modes.
+
 ## Open questions and future work
 
 The current implementation establishes the local exchange format. The next useful improvements are mostly about scale, polish, and remote sources.

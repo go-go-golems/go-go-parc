@@ -327,3 +327,17 @@ For future dual-target Go tools, copy this structure:
 4. Wrap WASM in `wasm/` with `syscall/js`
 5. Build with `GOOS=js GOARCH=wasm go build`
 6. Serve via HTTP (not `file://`)
+
+## KB reviews
+
+- [[KB-BATCH12-wasm-browser-runtime]] (2026-05-11) — Batch J analysis; second report variant reinforcing the JSON Flattener Go→WASM pattern.
+
+## Related KB entries
+
+- [[On-Ramp/wasm-from-go]] — browser WASM target over a shared Go core.
+- [[Tribal/go-to-wasm-compilation]] — TinyGo vs standard Go tradeoff example.
+
+**Tribal candidates** (not yet written / needs review):
+- Reinforces standard Go vs TinyGo comparison harness (covered by existing WASM KB entries).
+- Reinforces dual-target utility with shared pure-Go kernel.
+

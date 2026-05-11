@@ -951,6 +951,14 @@ npx remotion render TheVoid --output=the-void.mp4
 <Audio src={staticFile("glitch_burst.wav")} playbackRate={0.8} volume={0.3} />
 ```
 
+## KB reviews
+
+- [[KB-BATCH16-media-audio-video-pipelines]] (2026-05-11) — Batch H media/audio/video review; advanced ASR, browser audio, WebRTC/media-plane, and media pipeline candidates.
+
+## Related KB entries
+
+**Candidate concepts**: media/audio pipeline orchestration, browser audio playback, ASR transcript state, and media delivery boundaries tracked in [[KB-BATCH16-media-audio-video-pipelines]].
+
 ## Open questions
 
 - [ ] Should RabbitHole (laser eyes version) be kept or removed?

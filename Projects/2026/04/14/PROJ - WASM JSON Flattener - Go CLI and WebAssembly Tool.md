@@ -328,3 +328,18 @@ Repository-local documentation:
 
 > [!important]
 > Always test both CLI and WASM paths after changes to `pkg/flatten`. The core logic is shared—regressions affect both targets.
+
+## KB reviews
+
+- [[KB-BATCH12-wasm-browser-runtime]] (2026-05-11) — Batch J analysis; reinforced [[On-Ramp/wasm-from-go]] and [[Tribal/go-to-wasm-compilation]].
+
+## Related KB entries
+
+- [[On-Ramp/wasm-from-go]] — direct example of one pure-Go core compiled to browser WASM.
+- [[Tribal/go-to-wasm-compilation]] — standard Go vs TinyGo tradeoffs over the same utility kernel.
+
+**Tribal candidates** (not yet written / needs review):
+- Standard Go vs TinyGo comparison harness (3/3 across JSON Flattener, Goja WASM Web REPL, WASM Plugin REPL) — covered by existing WASM KB entries.
+- Dual-target utility with shared pure-Go kernel (2/3) — same core serving CLI and browser targets.
+- Minimal WASI polyfill for TinyGo browser target (1/3).
+

@@ -383,6 +383,14 @@ The `--newline` flag makes yt-dlp print each progress update on a new line inste
 - `/home/manuel/code/wesen/claw-stuff/ttmp/2026/05/02/latent-space-openai-symphony--download-latent-space-podcast-episode-openai-symphony-harness-engineering/reference/02-diary.md` — the implementation diary with surf CLI field notes
 - `/home/manuel/code/wesen/claw-stuff/podcasts/latent-space-harness-eng-ryans-lopopolo-openai-symphony.mp3` — the downloaded episode
 
+## KB reviews
+
+- [[KB-BATCH16-media-audio-video-pipelines]] (2026-05-11) — Batch H media/audio/video review; advanced ASR, browser audio, WebRTC/media-plane, and media pipeline candidates.
+
+## Related KB entries
+
+**Candidate concepts**: media/audio pipeline orchestration, browser audio playback, ASR transcript state, and media delivery boundaries tracked in [[KB-BATCH16-media-audio-video-pipelines]].
+
 ## Open questions
 
 - **YouTube vs Substack quality trade-off**: YouTube gives higher quality (106MB @ 189kbps vs Substack 50MB @ 96kbps) but is a third-party mirror. Substack is the official source but at lower quality. The script should let users choose, or default to Substack and offer `--hq` flag for YouTube.

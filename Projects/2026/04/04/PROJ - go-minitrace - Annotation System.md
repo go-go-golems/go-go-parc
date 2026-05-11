@@ -715,3 +715,16 @@ The most likely near-term steps are:
 > Treat SQLite as the working annotation store, DuckDB as the live analytical read layer, and `.minitrace.json` as the canonical interchange format updated only through explicit sync.
 >
 > That separation is the reason the system is both pleasant to use and structurally sane.
+
+## KB reviews
+
+- [[KB-BATCH10-minitrace-transcript-analysis]] (2026-05-11) — Batch F analysis; contributed to [[Tribal/transcript-analysis-with-go-minitrace]] and annotation/storage candidates.
+
+## Related KB entries
+
+- [[Tribal/transcript-analysis-with-go-minitrace]] — annotations as the human judgment layer over transcript evidence.
+
+**Tribal candidates** (not yet written / covered by broader entry):
+- SQLite working store + DuckDB analytical read layer + JSON interchange (3/3, covered by transcript-analysis entry) — separate write, read, and portable artifact roles.
+- Explicit sync from working store to portable artifact (1/3).
+- Annotation UX as navigation problem (1/3) — cards, transcript targets, inline markers, and focused jumps.

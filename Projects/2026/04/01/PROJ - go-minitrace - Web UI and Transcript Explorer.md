@@ -666,3 +666,17 @@ The stale `@storybook/test` 8.x package was removed and story helpers were migra
 > [!important]
 > Keep the web UI thin where possible.
 > Put transcript semantics, query-library rules, and archive loading rules in the backend, and let the frontend focus on navigation, inspection, and iteration rather than reconstructing domain logic client-side.
+
+## KB reviews
+
+- [[KB-BATCH10-minitrace-transcript-analysis]] (2026-05-11) — Batch F analysis; contributed to [[Tribal/transcript-analysis-with-go-minitrace]] and DuckDB/transcript UI candidates.
+
+## Related KB entries
+
+- [[Tribal/transcript-analysis-with-go-minitrace]] — archive → DuckDB → transcript reader → query/report workflow.
+- [[Tribal/sql-as-first-class-command-source]] — SQL files and query catalogs as reusable command/workflow definitions.
+
+**Tribal candidates** (not yet written / covered by broader entry):
+- Backend transcript semantics, frontend navigation (3/3, covered by transcript-analysis entry) — backend computes blocks, badges, DTOs, and query semantics.
+- Query library roots with deterministic shadowing (1/3) — built-in, preset, and saved query roots merge predictably.
+- File-backed query hot reload without clobbering editor edits (1/3).

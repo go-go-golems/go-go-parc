@@ -344,3 +344,19 @@ The CozoDB editor is now a much more coherent system than the original prototype
 - and a cleaner separation between raw model output and rendered UI meaning.
 
 That is the actual project.
+
+## KB reviews
+
+- [[KB-BATCH13-cozo-editor-structured-browser-tools]] (2026-05-11) — Batch D analysis; highlighted the semantic-event projector architecture and its relation to later notebook packaging work.
+
+## Related KB entries
+
+**Tribal candidates** (not yet written / needs review):
+- Backend-authoritative semantic event stream projected into stable UI threads (2/3 across the Cozo editor line).
+- Request-scoped projection defaults (1/3).
+- Canonical preview/final identity (1/3).
+- Preset adapter over notebook core behavior (supports the later packaging line; 3/3 across the broader Cozo family).
+
+**On-Ramp candidates** (not yet written):
+- Semantic event projection in notebook/editor UIs (1/5 internal-domain seed).
+

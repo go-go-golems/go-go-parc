@@ -585,6 +585,15 @@ Should the title section be preserved in summaries? The default strips it. Keepi
 
 Should bad titles be rejected with stronger validation? Current sanitization is simple. A future version could reject titles that are too generic, too short, or too similar to prior names.
 
+## KB reviews
+
+- [[KB-BATCH14-pi-extensions-tooling]] (2026-05-11) — Batch K Pi extension/tooling review; created [[Tribal/pi-extension-event-seams]] and advanced Pi TUI/model-config candidates.
+
+## Related KB entries
+
+- [[Tribal/pi-extension-event-seams]] — Pi lifecycle/event seams, prompt shaping, tool-call mutation, TUI surfaces, and model/config integration discipline.
+- [[Fundamentals/host-mediated-sandbox-principles]] — the host/runtime boundary principle behind narrow extension capabilities and mediated side effects.
+
 ## Near-term next steps
 
 1. Run `/reload` in an interactive Pi session.

@@ -477,3 +477,22 @@ Both documents were uploaded to reMarkable at `/ai/2026/04/25/GOJA-WAZERO-REPL-0
 ## Project working rule
 
 The boundary is the architecture. Every design decision — memory allocation, capability exports, argument encoding, error handling — flows from the single principle that the host must mediate all guest access to the outside world. The plugin is a sandboxed computation unit; the host is the operating system. Keep that separation clean, and the system remains testable, secure, and extensible.
+
+## KB reviews
+
+- [[KB-BATCH12-wasm-browser-runtime]] (2026-05-11) — Batch J analysis; highlighted host-mediated Wasm capability boundaries and ABI design.
+
+## Related KB entries
+
+- [[On-Ramp/wasm-from-go]] — useful contrast: Wasm guest boundary in a Go host rather than in a browser.
+- [[Tribal/go-to-wasm-compilation]] — standard Go vs TinyGo plugin comparison case.
+- [[Tribal/data-only-vs-host-access-module-split]] — adjacent host-mediated capability boundary.
+
+**Tribal candidates** (not yet written / needs review):
+- Host-mediated guest capability boundary (2/3 with Capsule Lab).
+- JSON-through-memory Wasm ABI (1/3).
+- One primitive registry shared by JS callers and Wasm guests (1/3).
+
+**On-Ramp candidates** (not yet written):
+- WASI / Wasm guest ABI for plugin calls (1/5 🌐).
+

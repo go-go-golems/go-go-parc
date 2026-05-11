@@ -13,6 +13,8 @@ created: 2026-05-11
 
 # MicroVM as Execution Boundary — How We Do It
 
+Related foundation: [[Fundamentals/host-mediated-sandbox-principles]]
+
 > [!summary]
 > A small virtual machine defines the execution boundary; the host mediates all I/O. We use this pattern across three very different scales: Firecracker microVMs on x86 for code sandboxing, WAMR (WebAssembly Micro Runtime) on ESP32-S3 for embedded extensibility, and pi-sandbox for coding agent isolation. The core insight is the same regardless of scale: the VM owns computation, the host owns everything else.
 

@@ -523,3 +523,17 @@ The sensible next steps are now smaller and more selective:
 
 - [[PROJ - GO GO GOLEMS - GLAZED]]
 - [[PROJ - GO GO GOLEMS - GEPPETTO]]
+
+## KB reviews
+
+- [[KB-BATCH11-geppetto-runtime-evolution]] (2026-05-11) — Batch B analysis; contributed to [[Tribal/geppetto-engine-config-vs-runtime-behavior]] and reinforced config-separation patterns.
+
+## Related KB entries
+
+- [[Tribal/geppetto-engine-config-vs-runtime-behavior]] — generic infrastructure owns plan machinery; apps own local runtime/config policy.
+- [[Tribal/app-config-vs-command-config-separation]] — config discovery and provenance should not be hidden inside command parsing.
+
+**Tribal candidates** (not yet written / partially covered):
+- Declarative layered config plan (2/3) — precedence as explicit data, not hidden path helpers.
+- Provenance-aware config loading (1/3).
+- Remove old architecture stories (1/3) — delete obsolete APIs so new code cannot bypass the plan model.

@@ -612,6 +612,15 @@ The decision table looks like this:
 
 The strength of the architecture is that every row has a reason. Nothing is placed on the backend because “backends are serious,” and nothing is placed in the browser because “static is simpler.” The boundary follows the credentials.
 
+## KB reviews
+
+- [[KB-BATCH16-media-audio-video-pipelines]] (2026-05-11) — Batch H media/audio/video review; advanced ASR, browser audio, WebRTC/media-plane, and media pipeline candidates.
+
+## Related KB entries
+
+- [[Tribal/host-mediated-secret-delivery]] — backend keeps private key material out of static browser code.
+- [[On-Ramp/go-cli-with-embedded-spa]] — local Go server plus static browser UI shape.
+
 ## Open questions
 
 - Can the Apple Developer Program membership be renewed or reactivated so a MusicKit key can be created?

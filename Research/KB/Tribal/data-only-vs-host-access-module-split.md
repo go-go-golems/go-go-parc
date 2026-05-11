@@ -13,6 +13,8 @@ created: 2026-05-11
 
 # Data-Only vs Host-Access Module Split — How We Do It
 
+Related foundation: [[Fundamentals/host-mediated-sandbox-principles]]
+
 > [!summary]
 > In embedded or sandboxed JS runtimes, modules that only compute on data are safe defaults. Modules that touch the outside world are explicit opt-ins. We use this split to keep runtimes safe-by-default and capability-driven. Three projects converge on it: Node-like Primitives, Capsule Lab, and the generic goja embedding pattern.
 

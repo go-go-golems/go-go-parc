@@ -530,3 +530,17 @@ If you only remember one thing, remember this:
 > [!important]
 > Keep reusable scoped runtime semantics, API contracts, and adoption docs in Geppetto.
 > Keep demo shells, renderer UX, and teaching-oriented TUI examples in Pinocchio.
+
+## KB reviews
+
+- [[KB-BATCH11-geppetto-runtime-evolution]] (2026-05-11) — Batch B analysis; contributed to [[Tribal/geppetto-engine-config-vs-runtime-behavior]] and scoped runtime candidates.
+
+## Related KB entries
+
+- [[Tribal/geppetto-engine-config-vs-runtime-behavior]] — Geppetto owns reusable runtime packaging; apps own scope, modules, globals, and helper docs.
+- [[Tribal/goja-embedding-in-go]] — prepared goja runtime, native modules, globals, and host-owned capabilities.
+
+**Tribal candidates** (not yet written / covered by broader entries):
+- Prepared JavaScript environment as one model-facing tool (3/3, covered for now) — `EnvironmentSpec` + `Builder` + runtime registration.
+- Runtime manifest as model-facing capability description (1/3).
+- Demo surface as observability for tool calls (1/3).

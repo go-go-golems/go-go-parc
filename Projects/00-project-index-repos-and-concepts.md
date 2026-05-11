@@ -1006,23 +1006,664 @@ Focused batch from the campaign handoff's Batch C. See [[KB-BATCH9-tree-sitter-s
 
 **On-Ramp candidates**: Reconciliation loops / controller pattern (1/5), Goja sandbox for scenario scripts (covered partly by goja KB entries)
 
+## Batch 12: WASM / Browser Runtime Cluster (7 projects)
+
+Focused batch from the campaign handoff's Batch J. See [[KB-BATCH12-wasm-browser-runtime]] for the full analysis.
+
+### 56. WASM JSON Flattener — Go CLI and WebAssembly Tool
+
+**Date**: 2026-04-14
+
+**Summary**: Practical Go JSON flattener that runs both as a native CLI and as a browser WASM module. The same pure-Go flattening core powers standard Go and TinyGo browser targets, making the size/interoperability trade visible instead of theoretical.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-14--wasm-transcript-conversation/jsonflatten` | `pkg/flatten`, CLI wrapper, standard Go WASM, TinyGo WASM, web demos |
+
+**Tribal entries**: Reinforces [[Tribal/go-to-wasm-compilation]]
+
+**Tribal candidates**:
+- Standard Go vs TinyGo comparison harness (3/3, covered by existing WASM KB entries)
+- Dual-target utility with shared pure-Go kernel (2/3)
+- Minimal WASI polyfill for TinyGo browser target (1/3)
+
+**On-Ramp candidates**: Reinforces [[On-Ramp/wasm-from-go]]
+
+### 57. JSON Flattener — Go WASM JSON Conversion Tool
+
+**Date**: 2026-04-15
+
+**Summary**: Second report variant for the JSON Flattener project, emphasizing the single-codebase dual-target story and the 95% TinyGo size reduction. Useful mainly as additional support for the same Go→WASM pattern rather than as a separate architecture cluster.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-14--wasm-transcript-conversation/jsonflatten` | same canonical JSON Flattener repo; alternate report framing |
+
+**Tribal entries**: Reinforces [[Tribal/go-to-wasm-compilation]]
+
+**Tribal candidates**:
+- Reinforces standard Go vs TinyGo comparison harness
+- Reinforces dual-target utility with shared pure-Go kernel
+
+**On-Ramp candidates**: No separate count beyond the canonical JSON Flattener cluster
+
+### 58. VT100 WASM Emulator
+
+**Date**: 2026-04-15
+
+**Summary**: Browser-based Rust/WASM emulator for the DEC VT100 that models the actual 8080 firmware and hardware rather than only escape-sequence behavior. It broadens the batch from Go-specific browser WASM into hardware-faithful browser emulation.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-15--8080-rom/vt100-wasm-emulator` | Rust 8080 CPU, VT100 system integration, planned browser UI |
+
+**Tribal entries**: None new
+
+**On-Ramp candidates**: VT100 hardware emulation mental model (1/5 🌐), Rust/WASM browser emulator architecture (1/5 🌐)
+
+### 59. Goja WASM Web REPL — A JavaScript Sandbox in the Browser
+
+**Date**: 2026-04-25
+
+**Summary**: Browser REPL that runs Goja compiled to WASM, exposing a tiny `gojaEval` bridge through `syscall/js`. The project demonstrates both the usefulness of nested runtimes for sandboxing and the practical TinyGo timeout constraint on larger initialization-heavy programs.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-25--goja-wasm-web-repl` | Goja REPL WASM module, browser test page, TinyGo experiments, ticket docs |
+
+**Tribal entries**: Reinforces [[Tribal/go-to-wasm-compilation]]
+
+**Tribal candidates**:
+- goja-in-WASM as sandbox boundary (2/3 with Capsule Lab)
+- Standard Go vs TinyGo comparison harness (covered by existing WASM KB entries)
+- TinyGo interpreter-timeout as compile-system constraint (1/3)
+
+**On-Ramp candidates**: Reinforces [[On-Ramp/wasm-from-go]]
+
+### 60. WASM Plugin REPL — Goja wazero Deep Dive
+
+**Date**: 2026-04-25
+
+**Summary**: Pure-Go host/guest plugin architecture where Wasm guests request capabilities through imports and exchange data through a JSON-through-memory ABI. The key lesson is that a plugin system stays understandable only if the host mediates capabilities instead of letting guests tunnel through the boundary.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-25--goja-wazero` | wazero plugin manager, host module, primitive registry, Goja bridge, example plugins |
+
+**Tribal entries**: Adjacent to [[Tribal/data-only-vs-host-access-module-split]]
+
+**Tribal candidates**:
+- Host-mediated guest capability boundary (2/3 with Capsule Lab)
+- JSON-through-memory Wasm ABI (1/3)
+- One primitive registry shared by JS callers and Wasm guests (1/3)
+
+**On-Ramp candidates**: WASI / Wasm guest ABI for plugin calls (1/5 🌐)
+
+### 61. Federated Modules — Single-Origin Runtime Demo
+
+**Date**: 2026-03-22
+
+**Summary**: Teaching-oriented Module Federation demo where host, remote, and registry are all served from one origin so the runtime-loading boundary stays visible. The important lesson is not scale; it is the difference between build-configured and runtime-discovered remote modules.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-03-22--federated-modules` | host app, remote app, registry, same-origin Express server, smoke script |
+
+**Tribal entries**: None new
+
+**Tribal candidates**:
+- Same-origin runtime federation teaching surface (1/3)
+- Runtime module shape discipline (1/3)
+
+**On-Ramp candidates**: Module Federation mental model (1/5 🌐)
+
+### 62. Browser-Side React Widget Runtime — In-Browser TSX Compilation and Reload
+
+**Date**: 2026-04-30
+
+**Summary**: Browser runtime that treats TSX source as data until the browser compiles it with `esbuild-wasm`, wraps it with host bindings, imports it as a blob module, and renders it as a React component. The project makes runtime code loading explicit instead of hiding it behind Vite HMR assumptions.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-30--react-browser-reload` | live-widget runtime, demo app, Go harness server, ticket docs |
+
+**Tribal entries**: None new
+
+**Tribal candidates**:
+- Source string → browser transform → blob import runtime (1/3)
+- Shared React instance injected into dynamic modules (1/3)
+- Strict import allowlist before compilation/import (1/3)
+
+**On-Ramp candidates**: Browser-side TSX compilation and blob-module import (1/5 🌐)
+
+## Batch 13: Cozo / Editor / Structured Browser Tools (6 projects)
+
+Focused batch from the campaign handoff's Batch D. See [[KB-BATCH13-cozo-editor-structured-browser-tools]] for the full analysis.
+
+### 63. CozoDB Editor — SEM Streaming, Widgetization, and Hydration Refactor
+
+**Date**: 2026-03-15
+
+**Summary**: Browser-based CozoScript workbench where AI output becomes a semantic event stream rather than plain prose. The backend extracts structured payloads, the frontend projector turns them into stable bundle-backed UI threads, and widgets render under editor context. Key insight: semantic assistance needs a stable local event contract, not just streamed text.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-03-14--cozodb-editor` | Cozo editor backend/frontend, semantic extraction pipeline, projector, widget renderer |
+
+**Tribal entries**: None new
+
+**Tribal candidates**:
+- Backend-authoritative semantic event stream projected into stable UI threads (2/3 across the Cozo editor line)
+- Request-scoped projection defaults (1/3)
+- Canonical preview/final identity (1/3)
+- Preset adapter over notebook core behavior (supports later Cozo packaging line; 3/3 across the broader family)
+
+**On-Ramp candidates**: Semantic event projection in notebook/editor UIs (1/5 internal-domain seed)
+
+### 64. CozoScript Web UI — CodeMirror Language Package and Browser Editor
+
+**Date**: 2026-03-19
+
+**Summary**: Browser-native CozoScript editor built around a Lezer grammar, CodeMirror 6 language package, and CozoDB WASM-backed web shell. The project treats the grammar and language package as the main product, with the browser UI as a thin consumer. Key insight: grammar first, editor second, shell third.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-02-24--cozoscript-treesitter-autocomplete` | `lang-cozoscript`, `cozo-webui`, examples, Lezer grammar, tests |
+
+**Tribal entries**: None new
+
+**Tribal candidates**:
+- Language package as product, browser shell as consumer (2/3 with later Cozo editor modularization)
+- Parse-context-driven autocomplete rather than regex-driven autocomplete (1/3)
+- Browser shell intentionally thin over language package (1/3)
+
+**On-Ramp candidates**: CodeMirror 6 language package mental model (2/5 🌐)
+
+### 65. CozoDB Editor — Notebook Packaging and JavaScript Preset
+
+**Date**: 2026-03-22
+
+**Summary**: Cozo-focused notebook environment refactored into shared notebook infrastructure plus current preset families, including a JavaScript preset powered by go-go-goja. Key insight: keep shared notebook seams honest, and keep runtime-specific behavior behind preset wrappers.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-03-14--cozodb-editor` | shared backend/frontend notebook modules, current Cozo and JS presets, Storybook/MSW validation |
+
+**Tribal entries**: None new
+
+**Tribal candidates**:
+- Preset adapter over notebook core behavior (2/3 here; 3/3 across the Cozo line)
+- Shared notebook seams own runtime result vocabulary (1/3)
+- Storybook/MSW as architecture test for preset surfaces (1/3)
+
+**On-Ramp candidates**: Notebook preset architecture (2/5)
+
+### 66. CozoDB Editor — Merge Resolution, SQLite Preset, and Editor Highlighting
+
+**Date**: 2026-03-23
+
+**Summary**: Follow-up proving that the packaged notebook/editor architecture survives a real upstream merge and absorbs a third preset family through SQLite. The key lesson is architectural: when a feature differs by runtime or language, add or refine an adapter instead of mutating the notebook core.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-03-14--cozodb-editor` | notebook package, preset registry, reusable CodeMirror shell, SQLite preset, merge-resolved frontend |
+
+**Tribal entries**: None new
+
+**Tribal candidates**:
+- Preset adapter over notebook core behavior (3/3 across the Cozo line)
+- Language package as product, browser shell as consumer (2/3 with CozoScript Web UI)
+- Keep modular architecture during merge; port behavior into new seams instead of regressing structure (1/3)
+
+**On-Ramp candidates**: CodeMirror 6 language package mental model (2/5 🌐), Notebook preset architecture (2/5)
+
+### 67. SQLide Browser — Go Wasm SQL IDE
+
+**Date**: 2026-04-02
+
+**Summary**: Browser-only SQL IDE where Go/Wasm handles SQL splitting and editor intelligence while SQLite's own Wasm build runs in a worker and owns OPFS persistence. Key insight: keep the split architecture until an all-Go persistence story is actually proven.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-02--sqlide-browser` | Go/Wasm module, bridge loader, SQLite worker, OPFS persistence, browser UI |
+
+**Tribal entries**: Reinforces [[On-Ramp/wasm-from-go]]
+
+**Tribal candidates**:
+- Go/Wasm editor intelligence over worker-owned SQLite engine (2/3 when considered with broader Wasm/browser evidence)
+- Keep split architecture: text/state in Go, DB engine in worker (1/3)
+
+**On-Ramp candidates**: SQLite worker + OPFS mental model (1/5 🌐)
+
+### 68. Hover Component Inspector — Building a Browser Overlay Lens
+
+**Date**: 2026-04-28
+
+**Summary**: Chrome MV3 extension that inspects hovered page elements through a content-script overlay rendered in Shadow DOM. The important insight is boundary discipline: the overlay must see the page without becoming the page, and component identity must be treated as evidence rather than certainty.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-28--overlay-extenseion` | MV3 extension, content script, overlay, inspector helpers, popup/options, tests |
+
+**Tribal entries**: None new
+
+**Tribal candidates**:
+- Page-level overlay as guest, not page owner (1/3)
+- Inspection result as central curated data structure (1/3)
+- Component identity as evidence, not certainty (1/3)
+
+**On-Ramp candidates**: Browser overlay inspection architecture (1/5 🌐)
+
+### 69. Pi Extension — Hello World Before Thinking Blocks
+
+**Date**: 2026-04-21
+
+**Summary**: Minimal Pi extension that watches `message_update` for thinking-block events and displays a widget while the model is thinking. Key insight: streaming assistant events are an observation seam; UI should be added through documented widget APIs rather than mutating messages.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-21--pi-extensions` | hello-world-thinking extension, docmgr analysis, API cheat sheet, setup/test playbook |
+
+**Tribal entries**: Created [[Tribal/pi-extension-event-seams]]
+
+**Tribal candidates**:
+- Thinking-block UI as stream observer, not message mutation (covered by [[Tribal/pi-extension-event-seams]])
+- Widget cleanup on lifecycle edges (covered by [[Tribal/pi-extension-event-seams]])
+
+**On-Ramp candidates**: Pi extension authoring mental model (1/5), Pi TUI widget/status surfaces (1/5)
+
+### 70. Pi Extension — A Textbook on Writing and Testing Pi Extensions
+
+**Date**: 2026-04-23
+
+**Summary**: Textbook-style report that generalizes the first two Pi extensions into the observation/injection/display model. Key insight: most events are read-only observations; the few mutable seams must be used deliberately.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-21--pi-extensions` | hello-world and session-summary extensions, textbook docs, go-minitrace analysis examples |
+
+**Tribal entries**: Reinforces [[Tribal/pi-extension-event-seams]] and [[Tribal/transcript-analysis-with-go-minitrace]]
+
+**Tribal candidates**:
+- Observation / injection / display as extension architecture (covered by [[Tribal/pi-extension-event-seams]])
+- File logging plus go-minitrace as extension debugging workflow (1/3; related to [[Tribal/transcript-analysis-with-go-minitrace]])
+
+**On-Ramp candidates**: Pi extension authoring mental model (2/5), Pi TUI widget/status surfaces (2/5)
+
+### 71. Pi Session Summary Extension — Textbook Report
+
+**Date**: 2026-04-25
+
+**Summary**: Extension that enforces a `<summary>` contract, parses the final assistant response, and renders a full-width-aware summary widget. Key insight: use a contract + parser + widget architecture, and keep the raw assistant text as the durable record.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-21--pi-extensions/extensions/session-summary` | prompt contract, turn_end parser, widget renderer, commands, directory symlink install |
+
+**Tribal entries**: Reinforces [[Tribal/pi-extension-event-seams]]
+
+**Tribal candidates**:
+- Contract + parser + widget extension architecture (1/3)
+- Multi-file Pi extension installed as directory symlink (1/3)
+- Widget should preserve meaning and only adapt wrapping (1/3)
+
+**On-Ramp candidates**: Pi extension authoring mental model (3/5), Pi TUI widget/status surfaces (3/5)
+
+### 72. Pi Extensions — Agent Env, Response Capture, and Compaction Meter
+
+**Date**: 2026-04-26
+
+**Summary**: Three operational extensions: `agent-env` exports session/tool metadata into shell commands, `response-capture` saves assistant output into docmgr, and `compaction-meter` shows distance to compaction. Key insight: each extension should touch one boundary and preserve Pi's built-in behavior around it.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-21--pi-extensions/extensions/agent-env` | PI_AGENT_* command preamble and self-tests |
+| `/home/manuel/code/wesen/2026-04-21--pi-extensions/extensions/response-capture` | turn_end response capture, markdown save, docmgr import |
+| `/home/manuel/code/wesen/2026-04-21--pi-extensions/extensions/compaction-meter` | context-usage arithmetic and footer status |
+
+**Tribal entries**: Reinforces [[Tribal/pi-extension-event-seams]]
+
+**Tribal candidates**:
+- Safe bash command preamble injection with idempotence markers (1/3)
+- Extension-to-docmgr artifact handoff via saved markdown and `docmgr import file` (1/3)
+- Status item as lightweight agent instrument (1/3)
+
+**On-Ramp candidates**: Pi extension authoring mental model (4/5), Pi TUI widget/status surfaces (4/5), Pi context compaction model (1/5)
+
+### 73. Pi Extensions — Compaction Title Extension
+
+**Date**: 2026-04-27
+
+**Summary**: Extension that reuses Pi's built-in `compact()` helper, appends title instructions, parses `## Session Title`, and stores the title as session metadata. Key insight: compaction is memory preservation first; title generation is a narrow appendix.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-21--pi-extensions/extensions/compaction-title` | session_before_compact hook, title parser, session name storage, self-tests |
+
+**Tribal entries**: Reinforces [[Tribal/pi-extension-event-seams]]
+
+**Tribal candidates**:
+- Built-in behavior plus one appendix for high-risk hooks (1/3)
+- Compaction as session metadata checkpoint (1/3)
+- Multi-file Pi extension installed as directory symlink (2/3)
+
+**On-Ramp candidates**: Pi extension authoring mental model (5/5 — ready/covered by article; consider On-Ramp only if KB form is desired), Pi context compaction model (2/5)
+
+### 74. Pi Extensions — Direnv Bash Extension
+
+**Date**: 2026-04-27
+
+**Summary**: Extension that loads the current directory's allowed direnv environment before Pi bash and user_bash commands. Key insight: preserve Pi's built-in bash runner and direnv's trust model by injecting `direnv export bash`, not by sourcing `.envrc` directly.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-21--pi-extensions/extensions/direnv-bash` | direnv shell preamble, tool_call/user_bash hooks, tmux tests, README |
+
+**Tribal entries**: Reinforces [[Tribal/pi-extension-event-seams]]
+
+**Tribal candidates**:
+- Safe bash command preamble injection with idempotence markers (2/3 with agent-env)
+- Preserve external tool trust model instead of bypassing it (1/3)
+- Extension load + standalone + tmux validation ladder (1/3)
+
+**On-Ramp candidates**: Pi extension authoring mental model (5/5), Pi TUI widget/status surfaces (4/5), direnv for agent-launched shells (1/5)
+
+### 75. Configuring Wafer Models in Pi
+
+**Date**: 2026-05-05
+
+**Summary**: Configuration report adding Wafer Pass as a custom OpenAI-compatible provider in Pi's `models.json`. Key insight: model-provider integration is a schema/configuration seam; use provider docs for hard limits, validate JSON, and treat `pi --list-models` as the local registry ground truth.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/gec/2026-03-16--gec-rag` | work context for Wafer/Pi configuration |
+| `~/.pi/agent/models.json` | Pi custom provider registry edited by the project |
+
+**Tribal entries**: Reinforces [[Tribal/pi-extension-event-seams]] at the configuration/provider boundary
+
+**Tribal candidates**:
+- Documentation-first model-provider registration (1/3)
+- `pi --list-models` as registry validation ground truth (1/3)
+
+**On-Ramp candidates**: Pi custom model/provider configuration (1/5 🌐), OpenAI-compatible model endpoint registration (1/5)
+
+### 76. Codebase Browser — Embedded Go+TS Doc Server with Live Source Snippets
+
+**Date**: 2026-04-19
+
+**Summary**: Single-binary documentation browser for Go and TypeScript codebases. A build-time indexer emits one schema-shared index, a Go binary embeds index/source/docs/SPA assets, and markdown pages resolve live source snippets by symbol ID.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-19--go-codebase-browser` | Go+TS indexer, embedded source/index/doc FS, Go server, React SPA, Dagger TS build |
+
+**Tribal entries**: Created [[Tribal/canonical-doc-model-across-delivery-modes]]
+
+**Tribal candidates**:
+- Stable symbol IDs as documentation contract (1/3)
+- Schema-first multi-language code index (1/3; reinforced by drill-down)
+- Live source snippets by symbol identity, not copy-paste (1/3)
+
+**On-Ramp candidates**: Go CLI with embedded SPA (3/5), TypeScript Compiler API for code intelligence (1/5), Dagger-orchestrated Node tooling from Go (1/5)
+
+### 77. Codebase Browser — Static Analysis and Dagger Pipeline
+
+**Date**: 2026-04-20
+
+**Summary**: Drill-down on the Codebase Browser's Go+TypeScript static analysis pipeline and Dagger-orchestrated Node build. Key insight: one shared schema plus deterministic Dagger/local outputs makes the Node toolchain a build-time implementation detail, not a runtime dependency.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-19--go-codebase-browser` | `internal/indexer`, `tools/ts-indexer`, `cmd/build-ts-index`, `internal/indexfs` |
+
+**Tribal entries**: Reinforces [[Tribal/canonical-doc-model-across-delivery-modes]]
+
+**Tribal candidates**:
+- Schema-first multi-language code index (2/3 with embedded server report)
+- Dagger/local build paths must produce byte-identical artifacts (1/3)
+- Build-time foreign toolchain behind Go orchestrator (1/3)
+
+**On-Ramp candidates**: Dagger-orchestrated Node tooling from Go (2/5), TypeScript Compiler API for code intelligence (2/5)
+
+### 78. Codebase Browser — Static WASM Build and SQLite Prototype
+
+**Date**: 2026-04-23
+
+**Summary**: Codebase Browser can now ship as a static artifact and has a working SQLite/browser prototype. Key insight: the browser UI should keep asking for index/package/symbol/xref/doc data while the transport changes from live HTTP to static/Wasm/SQLite.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-19--go-codebase-browser` | static build, TinyGo/Wasm lookup path, SQLite design/prototype scripts |
+
+**Tribal entries**: Reinforces [[Tribal/canonical-doc-model-across-delivery-modes]] and [[On-Ramp/wasm-from-go]]
+
+**Tribal candidates**:
+- Dual-mode frontend over live API or static snapshot (3/3 — covered by [[Tribal/canonical-doc-model-across-delivery-modes]])
+- Shared canonical model across delivery modes (3/3 — covered by [[Tribal/canonical-doc-model-across-delivery-modes]])
+- SQLite as browser-queryable documentation/index runtime (1/3)
+
+**On-Ramp candidates**: Go CLI with embedded SPA (4/5), SQLite worker/browser database mental model (2/5), static browser artifact with HashRouter/file delivery (1/5)
+
+### 79. Glazed Help Export and External Serve Sources
+
+**Date**: 2026-04-28
+
+**Summary**: Glazed help became a portable documentation interface: `help export` emits JSON/files/SQLite, and `glaze serve --from-*` loads markdown, JSON, SQLite, or another Glazed binary's export. Key insight: structured help is a database/product surface, not just terminal text.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/corporate-headquarters/glazed` | `pkg/help/cmd/export.go`, `pkg/help/loader/sources.go`, `pkg/help/server/serve.go`, help docs |
+
+**Tribal entries**: Reinforces [[Tribal/canonical-doc-model-across-delivery-modes]]
+
+**Tribal candidates**:
+- Documentation export as subsystem contract (1/3)
+- External documentation sources as loaders into canonical store (1/3)
+- Unsafe slugs become security-sensitive when exported as files (1/3)
+
+**On-Ramp entries**: [[On-Ramp/go-cli-with-embedded-spa]]
+
+**On-Ramp candidates**: SQLite as documentation snapshot format (1/5), Glazed help entries as structured docs (1/5)
+
+### 80. Rabbit Hole Podcast Intros — Remotion Video Generation
+
+**Date**: 2026-04-11
+
+**Summary**: Remotion/React project generating podcast video intros with programmatic animation, deep-fried visual effects, and synthesized audio. Key insight: short-form video can be generated as code when timing, audio, and visual effects are frame-addressable.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/patreon/videos/003-rabbit-hole` | Remotion compositions, generated audio assets, Python audio synthesis |
+
+**Tribal entries**: None new
+
+**Tribal candidates**:
+- Programmatic media composition as code (1/3)
+- Generated audio SFX as timeline assets (1/3)
+
+**On-Ramp candidates**: Remotion for code-generated video (1/5 🌐), browser/React video rendering mental model (1/5)
+
+### 81. Jingle Extractor — AI Audio Pipeline with MiniMax Demucs WhisperX
+
+**Date**: 2026-04-13
+
+**Summary**: Python audio pipeline that generates music, separates stems with Demucs, transcribes vocals with WhisperX, mines beat-aligned clips with librosa, and exports vocal/instrumental/mixed jingles. Key insight: useful media tools are staged pipelines with explicit intermediate artifacts.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-13--jingle-extraction` | MiniMax integration, Demucs, WhisperX, librosa scoring, pydub export |
+
+**Tribal entries**: None new
+
+**Tribal candidates**:
+- Staged ML media pipeline with durable intermediates (1/3)
+- Beat/transient-scored clip mining (1/3)
+
+**On-Ramp candidates**: ASR/stem-separation audio pipeline (1/5 🌐), Demucs stem separation (1/5), WhisperX word-level alignment (1/5)
+
+### 82. Transcription Go — Dagger Nemotron ASR Pipeline
+
+**Date**: 2026-04-13
+
+**Summary**: Go transcription CLI with pure-Go WAV conversion, Dagger-managed Python/Nemotron ASR service, and Go-owned SRT/VTT/TXT/SQLite output. Key insight: keep the ML runtime behind a narrow inference service and let Go own the product artifact boundary.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-13--transcription-go` | Go CLI, Dagger service/tunnel lifecycle, FastAPI ASR, output writers |
+
+**Tribal entries**: None new
+
+**Tribal candidates**:
+- ML service as narrow inference engine, Go owns artifacts (1/3)
+- Dagger host-tunnel lifecycle discipline (1/3)
+- Pure-Go media conversion to reduce host dependencies (1/3)
+
+**On-Ramp candidates**: ASR pipeline architecture (2/5), Dagger service + host tunnel lifecycle (1/5)
+
+### 83. Transcription Go — Streaming Transcription Architecture
+
+**Date**: 2026-04-13
+
+**Summary**: Streaming transcription subsystem with replay-driven validation, WebSocket sessions, explicit partial/final transcript state, SQLite outputs, and timing fixes around incoming `pts`. Key insight: streaming transcription is a state/timing problem, not merely a transport problem.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-04-13--transcription-go` | live command, WebSocket transport, transcript state, replay metrics, SQLite comparison tools |
+
+**Tribal entries**: None new
+
+**Tribal candidates**:
+- Pending vs committed transcript state (1/3)
+- Replay-driven validation for live media systems (1/3)
+- Incoming PTS as authority for streaming timestamps (1/3)
+
+**On-Ramp candidates**: ASR pipeline architecture (3/5), WebSocket streaming media/session model (1/5), transcript timing semantics (1/5)
+
+### 84. MiroTalk SFU on K3s — Video Realm and WebRTC Deployment
+
+**Date**: 2026-04-28
+
+**Summary**: GitOps/K3s deployment of MiroTalk SFU with Keycloak OIDC, Vault-synced secrets, TLS ingress, and direct TCP/UDP media ports. Key insight: the web page and WebRTC media packets are different network paths.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-03-27--hetzner-k3s` | Kustomize app, Argo CD application, hostNetwork deployment, firewall/media config |
+| `/home/manuel/code/wesen/terraform/keycloak/apps/mirotalk-sfu/envs/k3s-parallel` | dedicated Keycloak video realm and OIDC client |
+
+**Tribal entries**: Reinforces [[On-Ramp/oauth-2-oidc-flows]] and [[On-Ramp/vault-on-k3s-with-vso]]
+
+**Tribal candidates**:
+- WebRTC media plane is not HTTPS ingress (1/3)
+- Dedicated identity realm for media app (1/3)
+
+**On-Ramp candidates**: WebRTC/SFU deployment mental model (1/5 🌐), mediasoup/MiroTalk SFU orientation (1/5)
+
+### 85. Static Apple Music Player — Deep Dive
+
+**Date**: 2026-05-01
+
+**Summary**: Static MusicKit JS frontend backed by a narrow Go token server that signs short-lived Apple Music developer tokens while keeping the `.p8` private key out of the browser. Key insight: static frontend does not mean secret-free; the backend should own exactly the secret-bearing operation.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-05-01--static-music-player` | Go/Glazed server, Apple token signer, static MusicKit frontend |
+
+**Tribal entries**: Reinforces [[Tribal/host-mediated-secret-delivery]] and [[On-Ramp/go-cli-with-embedded-spa]]
+
+**Tribal candidates**:
+- Static frontend plus token-vending backend (1/3)
+- Browser owns playback, backend owns developer identity (1/3)
+
+**On-Ramp candidates**: MusicKit JS / Apple Music developer token model (1/5 🌐), browser media API playback model (1/5)
+
+### 86. Latent Space Podcast Downloader
+
+**Date**: 2026-05-02
+
+**Summary**: Python script that downloads latent.space podcast episodes from RSS when available and falls back to YouTube/yt-dlp when Substack's 20-item feed window drops older episodes. Key insight: media downloaders often need discovery fallbacks and MIME-aware enclosure handling, not just URL fetching.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/claw-stuff/scripts/01-download-latent-space.py` | RSS parsing, MIME filtering, YouTube search fallback, yt-dlp extraction |
+
+**Tribal entries**: None new
+
+**Tribal candidates**:
+- Discovery ladder for podcast/audio downloads (1/3)
+- MIME type over file extension for RSS enclosure classification (1/3)
+
+**On-Ramp candidates**: Podcast RSS enclosure model (1/5), yt-dlp as fallback extractor (1/5)
+
+### 87. LibriVox Player — Retro Macintosh Browser Audio Prototype
+
+**Date**: 2026-03-22
+
+**Summary**: Single-file browser audiobook player with retro Macintosh UI, curated LibriVox/Archive.org audio URLs, and direct `Audio.src` playback. Key insight: for a small static media prototype, verified source URLs and simple browser audio semantics matter more than clever fetch wrappers.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `/home/manuel/code/wesen/2026-03-22--librivox-player` | single-file HTML/CSS/JS player, static catalog, browser Audio controller |
+
+**Tribal entries**: None new
+
+**Tribal candidates**:
+- Curated external media catalog as product data (1/3)
+- Direct browser `Audio.src` over custom fetch wrappers (1/3)
+
+**On-Ramp candidates**: Browser audio playback model (2/5), LibriVox/Archive.org audio sourcing (1/5)
+
 ---
 
 ## Campaign Status
 
 - **Total project reports**: 167
-- **Analyzed so far**: 55
-- **Remaining**: 112
+- **Analyzed so far**: 87
+- **Remaining**: 80
 - **Current KB totals**:
-  - Tribal: 18 entries
-  - On-Ramp: 17 entries
-  - Fundamentals: 4 entries
+  - Tribal: 22 entries
+  - On-Ramp: 19 entries
+  - Fundamentals: 5 entries
 
 ### Unwritten entries that are actually READY
 
-At the moment there are **no threshold-triggered unwritten entries**.
+There are a few threshold or near-threshold candidates that need editorial judgment before writing:
 
-What remains is:
+- **Pi extension authoring mental model** — 5/5, but much of the material already exists as a PARC article/playbook; decide whether to canonicalize it into an On-Ramp entry.
+- **Tree-sitter as structural prefilter plus semantic layer**, **Conservative repair boundary**, **Shared parse-aware analysis object**, and **Preset adapter over notebook core behavior** — 3/3 Tribal candidates, but each may overlap with existing entries or be too product-family-specific.
+
+What remains is mostly:
 - sub-threshold candidates (1/3, 2/3, 1/5, 2/5, etc.)
 - concepts intentionally folded into existing entries instead of split into new ones
 - user-requested entries written below normal thresholds
@@ -1051,7 +1692,10 @@ What remains is:
 | **Envelope encryption for selective sharing** | E2E Storage, AUTODISCO Keyhive | 2/3 |
 | **CRDT-local authorization layer** | AUTODISCO Keyhive, future CRDT projects | 2/3 |
 | **OAuth refresh with bounded retry** | Remarquee, Smailnail OIDC | 2/3 |
-| **goja-in-WASM as sandbox boundary** | Capsule Lab, future goja+WASM projects | 1/3 |
+| **goja-in-WASM as sandbox boundary** | Capsule Lab, Goja WASM Web REPL | 2/3 |
+| **Host-mediated guest capability boundary** | Capsule Lab, WASM Plugin REPL | 2/3 |
+| **Preset adapter over notebook core behavior** | Cozo Notebook Packaging, Cozo Merge/SQLite follow-up, Cozo SEM refactor | 3/3 — candidate |
+| **Language package as product, browser shell as consumer** | CozoScript Web UI, Cozo editor modularization | 2/3 |
 | **Host-mediated op-stream API** | Capsule Lab | 1/3 |
 | **goja NaN sanitization in JSON export** | Capsule Lab | 1/3 |
 | **Four-stage e-ink render pipeline** | Gnosis | 1/3 |
@@ -1110,11 +1754,29 @@ What remains is:
 | **Source overlay runtime** | jsverbs | 1/3 |
 | **Shared binding plan** | jsverbs | 1/3 |
 | **Multi-source scanning** | jsverbs | 1/3 |
-| **Go CLI with embedded SPA** | Glazed Serve, Glazed Static Help Export | 2/3 |
-| **Dual-mode frontend over live API or static snapshot** | Glazed Serve, Glazed Static Help Export | 2/3 |
-| **Shared canonical model across delivery modes** | Glazed Serve, Glazed Static Help Export | 2/3 |
+| **Stable symbol IDs as documentation contract** | Codebase Browser embedded server | 1/3 |
+| **Schema-first multi-language code index** | Codebase Browser embedded server, Codebase Browser static analysis drill-down | 2/3 |
+| **Dagger/local build paths must produce byte-identical artifacts** | Codebase Browser static analysis drill-down | 1/3 |
+| **Documentation export as subsystem contract** | Glazed Help Export | 1/3 |
+| **External documentation sources as loaders into canonical store** | Glazed Help Export | 1/3 |
 | **Scanner-first JS command extraction** | jsverbs, go-minitrace PR #6 | 2/3 |
 | **Repository-local command catalogs** | go-minitrace local config, related local overlays | 2/3 |
+| **Safe bash command preamble injection with idempotence markers** | Pi agent-env, Pi direnv-bash | 2/3 |
+| **Multi-file Pi extension installed as directory symlink** | Pi session-summary, Pi compaction-title | 2/3 |
+| **Contract + parser + widget extension architecture** | Pi session-summary | 1/3 |
+| **Extension-to-docmgr artifact handoff via saved markdown** | Pi response-capture | 1/3 |
+| **Status item as lightweight agent instrument** | Pi compaction-meter | 1/3 |
+| **Compaction as session metadata checkpoint** | Pi compaction-title | 1/3 |
+| **Extension load + standalone + tmux validation ladder** | Pi direnv-bash | 1/3 |
+| **Documentation-first model-provider registration** | Configuring Wafer Models in Pi | 1/3 |
+| **Staged ML media pipeline with durable intermediates** | Jingle Extractor | 1/3 |
+| **ML service as narrow inference engine, Go owns artifacts** | Transcription Go batch | 1/3 |
+| **Dagger host-tunnel lifecycle discipline** | Transcription Go batch | 1/3 |
+| **Pending vs committed transcript state** | Transcription Go streaming | 1/3 |
+| **WebRTC media plane is not HTTPS ingress** | MiroTalk SFU | 1/3 |
+| **Static frontend plus token-vending backend** | Static Apple Music Player | 1/3 |
+| **Discovery ladder for podcast/audio downloads** | Latent Space Podcast Downloader | 1/3 |
+| **Direct browser Audio.src over custom fetch wrappers** | LibriVox Player | 1/3 |
 
 ### Tribal concepts intentionally covered by existing entries
 
@@ -1134,7 +1796,22 @@ What remains is:
 | **Arduino-cli cross-compilation** | uLisp PicoCalc, future Arduino projects | 2/5 🌐 | Arduino docs assume IDE-first workflows |
 | **Obsidian CLI from Go** | ZK Tool | 1/5 | Obsidian docs exist, but not the Go-centric integration patterns |
 | **ESM support in Go JS engines** | Goja vs Sobek | 1/5 🌐 | Spec exists; engine migration/orientation material does not |
-| **Go CLI with embedded SPA** | Glazed Serve, Glazed Static Help Export | 2/5 | Single-binary Go+SPA delivery pattern needs orientation |
+| **Dagger-orchestrated Node tooling from Go** | Codebase Browser embedded server, Codebase Browser static analysis drill-down | 2/5 | Dagger docs exist, but not the Go-orchestrated pnpm/Node build-time toolchain pattern. |
+| **TypeScript Compiler API for code intelligence** | Codebase Browser embedded server, Codebase Browser static analysis drill-down | 2/5 | TS Compiler API docs exist, but alias-following/xref extraction needs a newcomer orientation. |
+| **SQLite as documentation snapshot format** | Glazed Help Export | 1/5 | SQLite docs exist, but not docs/help export as portable queryable artifact. |
+| **ASR pipeline architecture** | Jingle Extractor, Transcription Go batch, Transcription Go streaming | 3/5 🌐 | Public ASR docs are model-specific; our projects need the pipeline view: conversion, chunking, alignment, transcript state, and durable outputs. |
+| **Browser audio playback model** | Static Apple Music Player, LibriVox Player | 2/5 | Browser media docs exist, but our reports need orientation around Audio/MusicKit, autoplay, source URLs, and token boundaries. |
+| **WebRTC/SFU deployment mental model** | MiroTalk SFU | 1/5 🌐 | WebRTC docs exist, but not the K3s/ingress/firewall/media-plane deployment view. |
+| **Podcast RSS enclosure model** | Latent Space Podcast Downloader | 1/5 | RSS docs exist, but feed windowing, enclosure MIME types, and fallback discovery need a practical orientation. |
+| **Remotion for code-generated video** | Rabbit Hole Podcast Intros | 1/5 🌐 | Remotion docs exist, but not the frame-addressed media-as-code mental model. |
+| **CodeMirror 6 language package mental model** | CozoScript Web UI, Cozo editor modularization | 2/5 🌐 | Docs exist, but not the “grammar first, highlighting second, shell third” orientation from a real language workbench port. |
+| **Notebook preset architecture** | Cozo notebook packaging line | 2/5 | Notebook docs are often framework-specific and do not explain the preset/runtime split crisply. |
+| **SQLite worker + OPFS mental model** | SQLide Browser | 1/5 🌐 | SQLite Wasm and OPFS docs exist, but not the precise boundary between Go/Wasm text logic, worker RPC, and DB ownership. |
+| **Browser overlay inspection architecture** | Hover Component Inspector | 1/5 🌐 | Browser extension docs exist, but not a newcomer-focused mental model for overlay-as-guest inspection. |
+| **Pi extension authoring mental model** | Pi Hello World, Pi Extension Textbook, Session Summary, Agent Env/Response Capture/Compaction Meter, Compaction Title, Direnv Bash | 5/5 — ready/covered by article; consider KB On-Ramp if the article should be canonicalized into KB form. |
+| **Pi TUI widget/status surfaces** | Pi Hello World, Pi Extension Textbook, Session Summary, Agent Env/Response Capture/Compaction Meter | 4/5 🌐 | Pi docs list APIs, but a newcomer needs the surface-selection mental model: status vs widget vs overlay vs renderer. |
+| **Pi context compaction model** | Compaction Meter, Compaction Title | 2/5 | Pi docs describe compaction, but extension authors need the operational model for thresholds, hooks, and continuation summaries. |
+| **Pi custom model/provider configuration** | Configuring Wafer Models in Pi | 1/5 🌐 | Pi docs describe models.json, but provider registration needs a documentation-first, validation-oriented workflow. |
 
 ### On-Ramp entries created during the campaign
 
@@ -1158,7 +1835,6 @@ These are in the library already and should not be treated as unwritten candidat
 | Concept | Supports | Status |
 |---------|----------|--------|
 | **Distributed consistency** | [[On-Ramp/crdts-and-local-first]] | 1 supporting KB entry — needs 1 more |
-| **Host-mediated sandbox principles** | goja embedding + microVM cluster | 1 supporting KB entry — consolidation question |
 
 ---
 
@@ -1166,7 +1842,7 @@ These are in the library already and should not be treated as unwritten candidat
 
 ### Tribal
 
-The current tribal library contains the 18 entries in `Research/KB/Tribal/`, including the campaign-created entries:
+The current tribal library contains the 22 entries in `Research/KB/Tribal/`, including the campaign-created entries:
 - [[Tribal/application-native-authorization]]
 - [[Tribal/goja-execution-model]]
 - [[Tribal/microvm-as-execution-boundary]]
@@ -1179,10 +1855,14 @@ The current tribal library contains the 18 entries in `Research/KB/Tribal/`, inc
 - [[Tribal/data-only-vs-host-access-module-split]]
 - [[Tribal/iife-cell-rewrite]]
 - [[Tribal/js-defined-glazed-commands]]
+- [[Tribal/transcript-analysis-with-go-minitrace]]
+- [[Tribal/geppetto-engine-config-vs-runtime-behavior]]
+- [[Tribal/pi-extension-event-seams]]
+- [[Tribal/canonical-doc-model-across-delivery-modes]]
 
 ### On-Ramp
 
-The current on-ramp library contains the 17 entries in `Research/KB/On-Ramp/`, including the 8 user-requested below-threshold entries written during this campaign and [[On-Ramp/tree-sitter-for-go-tools]] from Batch 9.
+The current on-ramp library contains the 19 entries in `Research/KB/On-Ramp/`, including the 8 user-requested below-threshold entries written during this campaign, [[On-Ramp/tree-sitter-for-go-tools]] from Batch 9, [[On-Ramp/js-to-wasm-compiler-architecture]], and [[On-Ramp/go-cli-with-embedded-spa]].
 
 ### Fundamentals
 
@@ -1191,6 +1871,7 @@ The current fundamentals library contains:
 - [[Fundamentals/access-control-models]]
 - [[Fundamentals/encoding-and-framing]]
 - [[Fundamentals/rendering-pipeline-fundamentals]]
+- [[Fundamentals/host-mediated-sandbox-principles]]
 
 ---
 
@@ -1210,6 +1891,8 @@ The current fundamentals library contains:
 | Tribal/data-only-vs-host-access-module-split | Node-like Primitives, Capsule Lab, goja-embedding |
 | Tribal/iife-cell-rewrite | REPL API, Goja REPL Hardening, goja-execution-model |
 | Tribal/js-defined-glazed-commands | jsverbs, JS Discord Bot jsverbs, go-minitrace PR #6 |
+| Tribal/pi-extension-event-seams | Pi Hello World, Pi Extension Textbook, Session Summary, Agent Env, Response Capture, Compaction Meter, Compaction Title, Direnv Bash, Wafer model config |
+| Tribal/canonical-doc-model-across-delivery-modes | Glazed Serve, Glazed Static Help Export, Codebase Browser embedded/static/SQLite line, Glazed Help Export |
 | On-Ramp/crdts-and-local-first | AUTODISCO |
 | On-Ramp/oauth-2-oidc-flows | BYOK Host, Wish Git, hosted Keycloak apps |
 | On-Ramp/openssh-certificates | Wish Git |
@@ -1217,7 +1900,8 @@ The current fundamentals library contains:
 | On-Ramp/esc-pos-thermal-printer | SToMS3R |
 | On-Ramp/e-ink-display-driving | Gnosis, Paper Pro, reMarkable cluster |
 | On-Ramp/git-hooks-for-policy-enforcement | Wish Git |
-| On-Ramp/wasm-from-go | Capsule Lab, SQLide, JSON Flattener, VT100, Codebase Browser |
+| On-Ramp/wasm-from-go | Capsule Lab, JSON Flattener, Goja WASM Web REPL, VT100, Codebase Browser, SQLide Browser |
+| On-Ramp/js-to-wasm-compiler-architecture | Generic Agent compiler experiment, GPT Base Principles compiler experiment |
 | On-Ramp/esp-idf-console-repl-bring-up | SToMS3R, Wi-Fi Audio Cues Lab |
 | On-Ramp/web-serial-browser-to-embedded | Cardputer Web Serial |
 | On-Ramp/es8311-codec-bring-up-atoms3r | Wi-Fi Audio Cues Lab |
@@ -1227,7 +1911,9 @@ The current fundamentals library contains:
 | On-Ramp/automerge-keyhive-local-first-auth | AUTODISCO Keyhive |
 | On-Ramp/what-is-a-stack-based-vm | Smalltalk-80 VM, uLisp PicoCalc, Gnosis VM |
 | On-Ramp/tree-sitter-for-go-tools | Query Treesitter, Tree-sitter Templating, Sanitize structured text/YAML/JSON |
+| On-Ramp/go-cli-with-embedded-spa | Glazed Serve, Glazed Static Help Export, Codebase Browser embedded/static line, Glazed Help Export |
 | Fundamentals/signal-quantization-and-sampling | Dithering / ESC-POS / E-ink clusters |
 | Fundamentals/access-control-models | OAuth / OpenSSH / application authorization cluster |
 | Fundamentals/encoding-and-framing | ESC-POS / serial / line-protocol clusters |
 | Fundamentals/rendering-pipeline-fundamentals | E-ink / retained-mode rendering clusters |
+| Fundamentals/host-mediated-sandbox-principles | MicroVM boundary, data-only vs host-access module split, Wasm host/guest boundary, goja embedding |

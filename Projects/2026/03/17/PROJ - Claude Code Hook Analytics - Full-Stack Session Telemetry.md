@@ -260,3 +260,16 @@ Both writer scripts (`log-to-sqlite.py` and `statusline.py`) follow the same saf
 
 > [!important]
 > The hook must never interfere with Claude Code's operation. Silent failure is always correct. If in doubt, swallow the error and lose the row — never hang the session. The web UI is read-only and serves on localhost only.
+
+## KB reviews
+
+- [[KB-BATCH10-minitrace-transcript-analysis]] (2026-05-11) — Batch F analysis; contributed to [[Tribal/transcript-analysis-with-go-minitrace]] and hook telemetry candidates.
+
+## Related KB entries
+
+- [[Tribal/transcript-analysis-with-go-minitrace]] — transcript evidence workflow, hook/token/transcript joins, and reportable analysis.
+
+**Tribal candidates** (not yet written / covered by broader entry):
+- Join by `session_id` and `tool_use_id` (1/3) — correlation keys across hook events, token snapshots, and transcript tool calls.
+- Silent telemetry hook failure (2/3) — telemetry must never hang Claude Code.
+- Raw JSON plus structured columns (3/3, candidate) — indexed common fields plus raw payload escape hatch.

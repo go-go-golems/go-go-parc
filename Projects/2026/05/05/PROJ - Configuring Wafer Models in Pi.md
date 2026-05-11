@@ -230,6 +230,15 @@ Wafer Pass bills through a subscription, but it also publishes overage rates. Re
 - Pinocchio profiles: `~/.config/pinocchio/profiles.yaml`
 - Pi model configuration documentation: `~/.nvm/versions/node/v22.22.1/lib/node_modules/@mariozechner/pi-coding-agent/docs/models.md`
 
+## KB reviews
+
+- [[KB-BATCH14-pi-extensions-tooling]] (2026-05-11) — Batch K Pi extension/tooling review; created [[Tribal/pi-extension-event-seams]] and advanced Pi TUI/model-config candidates.
+
+## Related KB entries
+
+- [[Tribal/pi-extension-event-seams]] — Pi lifecycle/event seams, prompt shaping, tool-call mutation, TUI surfaces, and model/config integration discipline.
+- [[Fundamentals/host-mediated-sandbox-principles]] — the host/runtime boundary principle behind narrow extension capabilities and mediated side effects.
+
 ## Near-Term Next Steps
 
 - Monitor Wafer's documentation for new models or updated context window values

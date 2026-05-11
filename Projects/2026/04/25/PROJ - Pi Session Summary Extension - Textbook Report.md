@@ -324,6 +324,15 @@ The code and docs for this project are spread across a few places:
 
 Those documents tell the story from different angles. The repo code shows how it works, the ticket docs show why it was built, and this note connects them into a longer narrative.
 
+## KB reviews
+
+- [[KB-BATCH14-pi-extensions-tooling]] (2026-05-11) — Batch K Pi extension/tooling review; created [[Tribal/pi-extension-event-seams]] and advanced Pi TUI/model-config candidates.
+
+## Related KB entries
+
+- [[Tribal/pi-extension-event-seams]] — Pi lifecycle/event seams, prompt shaping, tool-call mutation, TUI surfaces, and model/config integration discipline.
+- [[Fundamentals/host-mediated-sandbox-principles]] — the host/runtime boundary principle behind narrow extension capabilities and mediated side effects.
+
 ## Near-term next steps
 
 The extension is already useful, but there are still a few natural next steps if the project continues:

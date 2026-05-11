@@ -536,3 +536,19 @@ That rule held up in all three pieces of new work:
 - editor syntax highlighting for JS and SQL
 
 That is a good sign that the project’s packaging direction is now structurally real, not just aspirational.
+
+## KB reviews
+
+- [[KB-BATCH13-cozo-editor-structured-browser-tools]] (2026-05-11) — Batch D analysis; confirmed that the packaged notebook/editor architecture survived merge pressure and a third preset family.
+
+## Related KB entries
+
+**Tribal candidates** (not yet written / needs review):
+- Preset adapter over notebook core behavior (3/3 across the Cozo line).
+- Language package as product, browser shell as consumer (2/3 with CozoScript Web UI).
+- Keep modular architecture during merge; port behavior into new seams instead of regressing structure (1/3).
+
+**On-Ramp candidates** (not yet written):
+- CodeMirror 6 language package mental model (2/5 🌐).
+- Notebook preset architecture (2/5).
+

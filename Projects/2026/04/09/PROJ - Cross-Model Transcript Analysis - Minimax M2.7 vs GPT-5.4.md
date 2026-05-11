@@ -580,3 +580,16 @@ Based on this analysis, recommendations for the next minimax session:
 ├── sqleton-minitrace/go-minitrace/pkg/minitracecmd/          # GPT-5.4 Phase 1+2
 └── sqleton-minitrace/go-minitrace/cmd/go-minitrace/cmds/query/commands.go  # GPT-5.4 CLI
 ```
+
+## KB reviews
+
+- [[KB-BATCH10-minitrace-transcript-analysis]] (2026-05-11) — Batch F analysis; contributed to [[Tribal/transcript-analysis-with-go-minitrace]] and agent-evaluation methodology candidates.
+
+## Related KB entries
+
+- [[Tribal/transcript-analysis-with-go-minitrace]] — SQL metrics plus transcript/code review as evidence for agent behavior claims.
+
+**Tribal candidates** (not yet written / covered by broader entry):
+- Same-task cross-model transcript comparison (1/3) — isolate model behavior from task differences.
+- Tool-ratio behavioral metrics (1/3) — read/edit/write/bash ratios as evidence, not conclusions.
+- SQL metrics plus code-quality review (1/3) — quantitative transcript analysis followed by source inspection.

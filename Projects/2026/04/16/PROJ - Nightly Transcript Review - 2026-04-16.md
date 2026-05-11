@@ -280,3 +280,16 @@ This matters because it makes the report resumable: if a later pass needs more d
 ## Bottom line
 
 The day was productive, but it was not simple. It contained one very large operational effort, one very large tooling-analysis effort, and a smaller amount of research/documentation work. The strongest signal is that the analysis pipeline now produces a real narrative view of the work, not just a table of sessions.
+
+## KB reviews
+
+- [[KB-BATCH10-minitrace-transcript-analysis]] (2026-05-11) — Batch F analysis; contributed to [[Tribal/transcript-analysis-with-go-minitrace]] and nightly-review methodology candidates.
+
+## Related KB entries
+
+- [[Tribal/transcript-analysis-with-go-minitrace]] — repeatable transcript analysis pipeline from raw sessions to management report.
+
+**Tribal candidates** (not yet written / covered by broader entry):
+- Nightly transcript review pipeline (1/3) — discover, convert, query, synthesize report, write durable note.
+- Transcript fidelity before management conclusions (1/3) — adapter bugs can materially change failure counts.
+- Report from query artifacts, not raw rereading every time (1/3).

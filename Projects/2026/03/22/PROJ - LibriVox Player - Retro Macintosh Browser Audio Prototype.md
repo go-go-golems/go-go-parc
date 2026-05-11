@@ -276,6 +276,14 @@ At the moment, the main documentation is the code:
 
 There is no separate README, ticket document, or design note in the repository yet.
 
+## KB reviews
+
+- [[KB-BATCH16-media-audio-video-pipelines]] (2026-05-11) — Batch H media/audio/video review; advanced ASR, browser audio, WebRTC/media-plane, and media pipeline candidates.
+
+## Related KB entries
+
+**Candidate concepts**: media/audio pipeline orchestration, browser audio playback, ASR transcript state, and media delivery boundaries tracked in [[KB-BATCH16-media-audio-video-pipelines]].
+
 ## Open questions
 
 - Should the book catalog remain hand-curated, or should it be generated from LibriVox pages or feeds?

@@ -593,6 +593,15 @@ Should the extension expose the generated preamble? For debugging shell quoting 
 
 Should tests include a real LLM-triggered bash tool call? The current tests avoid model cost and model availability. A more integrated test could run Pi with a cheap/local model and ask it to call `bash`, but that would be less deterministic than the current extension-load and shell-semantics tests.
 
+## KB reviews
+
+- [[KB-BATCH14-pi-extensions-tooling]] (2026-05-11) — Batch K Pi extension/tooling review; created [[Tribal/pi-extension-event-seams]] and advanced Pi TUI/model-config candidates.
+
+## Related KB entries
+
+- [[Tribal/pi-extension-event-seams]] — Pi lifecycle/event seams, prompt shaping, tool-call mutation, TUI surfaces, and model/config integration discipline.
+- [[Fundamentals/host-mediated-sandbox-principles]] — the host/runtime boundary principle behind narrow extension capabilities and mediated side effects.
+
 ## Near-term next steps
 
 1. Run `/reload` in existing Pi sessions so the symlinked extension is active.

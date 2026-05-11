@@ -400,3 +400,19 @@ The most important code locations are:
 
 > [!important]
 > Keep provider bugfixes narrow, evidence-backed, and live-validated. If the bug is in the serializer, fix the serializer first, prove the model can ground on the media, and only then consider broader cross-provider schema redesign.
+
+## KB reviews
+
+- [[KB-BATCH11-geppetto-runtime-evolution]] (2026-05-11) — Batch B analysis; treated this as a narrow provider-serializer fix reinforcing [[Tribal/geppetto-engine-config-vs-runtime-behavior]].
+
+## Related KB entries
+
+- [[Tribal/geppetto-engine-config-vs-runtime-behavior]] — provider serializer fixes stay narrow and do not smuggle broad runtime/media policy into engine config.
+
+**Tribal candidates** (not yet at threshold):
+- Narrow provider serializer fix (2/3) — fix the provider wire translation first, then consider broader schema design.
+- Live smoke for multimodal grounding (1/3).
+- Provider-neutral turn model translated by engine-specific serializer (1/3).
+
+**On-Ramp candidates**:
+- OpenAI Responses API content parts (2/5).

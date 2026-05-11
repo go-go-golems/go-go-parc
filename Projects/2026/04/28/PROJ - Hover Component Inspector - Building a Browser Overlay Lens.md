@@ -775,3 +775,18 @@ The working rule for this project should be:
 “Honest” means component names remain guesses unless backed by explicit evidence. “Local” means page data stays in the browser and is not sent to a server. “Lightweight” means the extension should not slow the page, steal interaction, or become harder to understand than the page it is inspecting.
 
 That rule captures the spirit of the first version. The extension is useful because it makes the invisible structure of a page visible, but it remains careful about what it claims and how much it does.
+
+## KB reviews
+
+- [[KB-BATCH13-cozo-editor-structured-browser-tools]] (2026-05-11) — Batch D analysis; treated as the browser-overlay/inspection tooling case in the structured browser tools cluster.
+
+## Related KB entries
+
+**Tribal candidates** (not yet written / needs review):
+- Page-level overlay as guest, not page owner (1/3).
+- Inspection result as central curated data structure (1/3).
+- Component identity as evidence, not certainty (1/3).
+
+**On-Ramp candidates** (not yet written):
+- Browser overlay inspection architecture (1/5 🌐).
+

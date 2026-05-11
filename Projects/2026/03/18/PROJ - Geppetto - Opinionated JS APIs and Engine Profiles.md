@@ -389,3 +389,16 @@ The most accurate summary of the Geppetto work on this branch is:
 - `GP-49` removed the deeper architectural ambiguity by making engine profiles engine-only
 
 That combination is why this branch matters. It does not merely rename things. It makes the library's execution model more coherent across Go, JavaScript, examples, docs, and downstream adoption.
+
+## KB reviews
+
+- [[KB-BATCH11-geppetto-runtime-evolution]] (2026-05-11) — Batch B analysis; canonical source for [[Tribal/geppetto-engine-config-vs-runtime-behavior]].
+
+## Related KB entries
+
+- [[Tribal/geppetto-engine-config-vs-runtime-behavior]] — engine profiles are engine-only; app runtime behavior is explicit.
+
+**Tribal candidates** (covered by new entry):
+- Engine profiles are engine-only — provider/model/settings, not prompt/tool/runtime policy.
+- Opinionated JS runner as default public path (1/3).
+- Runtime metadata materialization must be centralized (1/3).

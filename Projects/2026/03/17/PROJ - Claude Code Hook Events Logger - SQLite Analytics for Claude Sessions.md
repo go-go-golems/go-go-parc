@@ -255,3 +255,16 @@ The empty `matcher` string matches all tool names. For events that don't support
 
 > [!important]
 > The hook must never interfere with Claude Code's operation. Silent failure is always correct. If in doubt, swallow the error and lose the row — never hang the session.
+
+## KB reviews
+
+- [[KB-BATCH10-minitrace-transcript-analysis]] (2026-05-11) — Batch F analysis; contributed to [[Tribal/transcript-analysis-with-go-minitrace]] and hook telemetry candidates.
+
+## Related KB entries
+
+- [[Tribal/transcript-analysis-with-go-minitrace]] — capture-first transcript telemetry and queryable agent-session evidence.
+
+**Tribal candidates** (not yet written / covered by broader entry):
+- Capture everything, extract common fields, preserve raw JSON (3/3, candidate) — durable telemetry without premature schema loss.
+- Single-table sparse telemetry schema (1/3) — one hook-event table across many event shapes.
+- Hook must be invisible to the user (2/3) — WAL, busy timeout, schema-on-run, swallowed errors.

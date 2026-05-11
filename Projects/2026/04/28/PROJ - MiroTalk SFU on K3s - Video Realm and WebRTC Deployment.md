@@ -381,6 +381,15 @@ The first Keycloak setup used manual `kcadm.sh` operations in the `infra` realm.
 
 Terraform can manage Keycloak users, but `initial_password` values become part of Terraform state. The S3 backend is encrypted, yet the state should still be treated as sensitive. For long-term operation, consider SSO or temporary passwords with rotation.
 
+## KB reviews
+
+- [[KB-BATCH16-media-audio-video-pipelines]] (2026-05-11) — Batch H media/audio/video review; advanced ASR, browser audio, WebRTC/media-plane, and media pipeline candidates.
+
+## Related KB entries
+
+- [[On-Ramp/oauth-2-oidc-flows]] — OIDC login layer for the video realm.
+- [[On-Ramp/vault-on-k3s-with-vso]] — Vault/VSO secret delivery pattern used by the deployment.
+
 ## Open questions
 
 - Does the public-IP ICE announcement fix the two-person audio/video spinner?

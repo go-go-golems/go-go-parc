@@ -389,6 +389,14 @@ If you wanted to add, say, Python or Rust to the same index:
 > [!important]
 > **Symbol IDs survive moves within a module, not across modules.** Documented in the README; callers of `codebase-snippet` need full `sym:` IDs for TS (where intra-directory collisions are possible) and can use short `pkg.Name` forms for Go.
 
+## KB reviews
+
+- [[KB-BATCH15-codebase-browser-docs-product]] (2026-05-11) — Batch L docs-as-product review; created [[Tribal/canonical-doc-model-across-delivery-modes]] and advanced embedded-SPA/SQLite docs candidates.
+
+## Related KB entries
+
+- [[Tribal/canonical-doc-model-across-delivery-modes]] — one structured documentation/index/help model projected into live server, static export, SQLite, embedded SPA, and external-source serving modes.
+
 ## Related notes
 
 - [[PROJ - Codebase Browser - Embedded Go+TS Doc Server with Live Source Snippets]] — project-level overview

@@ -633,3 +633,12 @@ The go-minitrace transcript analysis system is documented at:
 
 > [!important]
 > The most important single fact about Pi extension development: event handlers receive read-only copies of session state. The only events where your return value changes behavior are `before_agent_start` (system prompt), `input` (prompt), and `tool_call` (blocking). Everything else is observation only.
+
+## KB reviews
+
+- [[KB-BATCH14-pi-extensions-tooling]] (2026-05-11) — Batch K Pi extension/tooling review; created [[Tribal/pi-extension-event-seams]] and advanced Pi TUI/model-config candidates.
+
+## Related KB entries
+
+- [[Tribal/pi-extension-event-seams]] — Pi lifecycle/event seams, prompt shaping, tool-call mutation, TUI surfaces, and model/config integration discipline.
+- [[Fundamentals/host-mediated-sandbox-principles]] — the host/runtime boundary principle behind narrow extension capabilities and mediated side effects.

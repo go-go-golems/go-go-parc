@@ -12,11 +12,11 @@ It answers three questions:
 ## Current campaign state
 
 - **Total project reports found**: 167 canonical reports (168 raw files, including one duplicate Racket report variant)
-- **Analysis slots completed**: 55
-- **Unique project reports analyzed/indexed**: 51
-- **Unique project reports still unindexed / unanalyzed**: 116
+- **Analysis slots completed**: 87
+- **Unique project reports analyzed/indexed**: 83
+- **Unique project reports still unindexed / unanalyzed**: 84
 
-### Why 49 analysis slots but only 45 unique projects?
+### Why analysis slots and unique projects differ
 
 A few projects were revisited in later batches because they became useful for cross-batch concept counting or because a later batch reframed them in a different cluster:
 - Smalltalk-80 VM
@@ -24,13 +24,26 @@ A few projects were revisited in later batches because they became useful for cr
 - SToMS3R
 - a few runtime/auth projects indirectly fed later synthesis
 
-For handoff purposes, **the important number is 51 unique project reports already covered** after Batch C / Batch 9.
+For handoff purposes, **the important number is 83 unique project reports already covered** after Batch H / Batch 16.
 
 ### Completed after this handoff was first drafted
 
 - **Batch C / Batch 9 — Tree-sitter and structured text systems** is complete. See [[KB-BATCH9-tree-sitter-structured-text]].
 - Created [[On-Ramp/tree-sitter-for-go-tools]].
-- Updated the canonical index through project 55.
+- **Batch J / Batch 12 — WASM/browser runtime cluster** is complete. See [[KB-BATCH12-wasm-browser-runtime]].
+- Updated [[On-Ramp/wasm-from-go]] and [[Tribal/go-to-wasm-compilation]].
+- **Batch D / Batch 13 — Cozo / editor / structured browser tools** is complete. See [[KB-BATCH13-cozo-editor-structured-browser-tools]].
+- Updated [[On-Ramp/wasm-from-go]].
+- Updated the canonical index through project 68.
+- **Batch K / Batch 14 — Pi extensions and Pi tooling cluster** is complete. See [[KB-BATCH14-pi-extensions-tooling]].
+- Created [[Tribal/pi-extension-event-seams]].
+- Updated the canonical index through project 75.
+- **Batch L / Batch 15 — Codebase Browser / docs-as-product cluster** is complete. See [[KB-BATCH15-codebase-browser-docs-product]].
+- Created [[Tribal/canonical-doc-model-across-delivery-modes]].
+- Updated the canonical index through project 79.
+- **Batch H / Batch 16 — Media / audio / video pipeline cluster** is complete. See [[KB-BATCH16-media-audio-video-pipelines]].
+- Advanced **ASR pipeline architecture** to 3/5 and **Browser audio playback model** to 2/5.
+- Updated the canonical index through project 87.
 
 ---
 
@@ -87,12 +100,44 @@ For handoff purposes, **the important number is 51 unique project reports alread
 49. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/03/27/PROJ - Sanitize - JSON Recovery Experiments and Limits.md`
 50. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/03/27/PROJ - Sanitize - YAML Sanitizing Deep Dive.md`
 51. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/03/15/PROJ - Scenario Runtime Workbench - Scenario-Driven Reconciliation Demo.md`
+52. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/14/PROJ - WASM JSON Flattener - Go CLI and WebAssembly Tool.md`
+53. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/15/PROJ - JSON Flattener - Go WASM JSON Conversion Tool.md`
+54. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/15/PROJ - VT100 WASM Emulator.md`
+55. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/25/PROJ - Goja WASM Web REPL - A JavaScript Sandbox in the Browser.md`
+56. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/25/PROJ - WASM Plugin REPL - Goja wazero Deep Dive.md`
+57. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/03/22/PROJ - Federated Modules - Single-Origin Runtime Demo.md`
+58. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/30/PROJ - Browser-Side React Widget Runtime - In-Browser TSX Compilation and Reload.md`
+59. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/03/15/PROJ - CozoDB Editor - SEM Streaming, Widgetization, and Hydration Refactor.md`
+60. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/03/19/PROJ - CozoScript Web UI - CodeMirror Language Package and Browser Editor.md`
+61. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/03/22/PROJ - CozoDB Editor - Notebook Packaging and JavaScript Preset.md`
+62. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/03/23/PROJ - CozoDB Editor - Merge Resolution, SQLite Preset, and Editor Highlighting.md`
+63. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/02/PROJ - SQLide Browser - Go Wasm SQL IDE.md`
+64. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/28/PROJ - Hover Component Inspector - Building a Browser Overlay Lens.md`
+65. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/21/PROJ - Pi Extension - Hello World Before Thinking Blocks.md`
+66. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/23/PROJ - Pi Extension - A Textbook on Writing and Testing Pi Extensions.md`
+67. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/25/PROJ - Pi Session Summary Extension - Textbook Report.md`
+68. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/26/PROJ - Pi Extensions - Agent Env and Response Capture.md`
+69. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/27/PROJ - Pi Extensions - Compaction Title Extension.md`
+70. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/27/PROJ - Pi Extensions - Direnv Bash Extension.md`
+71. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/05/05/PROJ - Configuring Wafer Models in Pi.md`
+72. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/20/PROJ - Codebase Browser - Embedded Go+TS Doc Server with Live Source Snippets.md`
+73. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/20/PROJ - Codebase Browser - Static Analysis and Dagger Pipeline.md`
+74. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/23/PROJ - Codebase Browser - Static WASM Build and SQLite Prototype.md`
+75. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/28/PROJ - Glazed Help Export and External Serve Sources - Technical Project Report.md`
+76. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/11/PROJ - Rabbit Hole Podcast Intros - Remotion Video Generation.md`
+77. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/13/PROJ - Jingle Extractor - AI Audio Pipeline with MiniMax Demucs WhisperX.md`
+78. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/13/PROJ - Transcription Go - Dagger Nemotron ASR Pipeline.md`
+79. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/13/PROJ - Transcription Go - Streaming Transcription Architecture and Implementation Report.md`
+80. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/04/28/PROJ - MiroTalk SFU on K3s - Video Realm and WebRTC Deployment.md`
+81. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/05/01/PROJ - Static Apple Music Player - Deep Dive.md`
+82. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/05/02/PROJ - Latent Space Podcast Downloader.md`
+83. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/03/22/PROJ - LibriVox Player - Retro Macintosh Browser Audio Prototype.md`
 
 ---
 
 ## Unique project reports not yet analyzed / indexed
 
-> Note: This section still preserves the original raw backlog listing from the first handoff draft. Batch C items in this list have now been completed; use the completed list above and the canonical index for authoritative progress.
+> Note: This section still preserves the original raw backlog listing from the first handoff draft. Some items in this list have now been completed by later batches (C, D, J, K); use the completed list above and the canonical index for authoritative progress.
 
 1. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/03/15/PROJ - Coolify Hetzner - Self-Hosted Deployment Platform.md`
 2. `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/03/15/PROJ - CozoDB Editor - SEM Streaming, Widgetization, and Hydration Refactor.md`
@@ -241,10 +286,10 @@ This batch should consolidate the older Geppetto/Pinocchio runtime lineage and c
 
 Completed as [[KB-BATCH9-tree-sitter-structured-text]]. Created [[On-Ramp/tree-sitter-for-go-tools]]. Strong follow-up candidates are conservative repair boundary, shared parse-aware analysis object, and Tree-sitter as structural prefilter plus semantic layer; all should get implementer review before Tribal entries are written.
 
-### Batch D — Cozo / editor / structured browser tools
+### Batch D — Cozo / editor / structured browser tools — COMPLETED 2026-05-11
 **Projects**: CozoDB Editor SEM Streaming, CozoDB Notebook Packaging, CozoDB Merge Resolution, CozoScript Web UI, MySQL IDE on K3s, SQLide Browser.
 
-This batch should expose a browser-database/editor cluster: query surfaces, packaging, preset systems, browser IDE patterns, and maybe more SQL/command-config interplay. It could reinforce command-source patterns and produce new on-ramp candidates around browser SQL tooling.
+Completed as [[KB-BATCH13-cozo-editor-structured-browser-tools]]. This batch did not create a new standalone KB entry, but it introduced a new 3/3 Tribal candidate — **preset adapter over notebook core behavior** — and new On-Ramp seeds around CodeMirror language packages, notebook preset architecture, SQL worker/OPFS mental models, and browser overlay inspection.
 
 ### Batch E — PaperS3 / reMarkable / e-ink continuation
 **Projects**: PaperS3 Firmware Setup, Glyph Protractor, PaperS3 E-Reader, Paper Pro Pen Probe, Paper Pro E-Ink DRM/KMS, Paper Pro Ghidra RE, Paper Pro Pen Input Fix, reMarkable Cleanup, reMarkable Cloud Activity, reMarkable Book Indexing, Remarquee Markdown Upload Polish, Remarquee V6 Y-placement bug.
@@ -261,30 +306,30 @@ This batch should turn transcript analysis into a stronger domain cluster. Likel
 
 This batch is about browser/device/control-loop experiments. It may reinforce browser-side processing, serial/web transport patterns, UI overlay tooling, and event/logging surface design.
 
-### Batch H — Media / audio / video pipeline cluster
+### Batch H — Media / audio / video pipeline cluster — COMPLETED 2026-05-11
 **Projects**: Rabbit Hole Podcast Intros, Jingle Extractor, Transcription Go Nemotron pipeline, Transcription Go Streaming Architecture, MiroTalk SFU on K3s, Static Apple Music Player, Latent Space Podcast Downloader, LibriVox Player.
 
-This is the strongest remaining media cluster. It should deepen or expand the Screencast/GStreamer on-ramp domain and potentially create new tribal material around ASR pipelines, media orchestration, and pipeline/runtime boundaries.
+Completed as [[KB-BATCH16-media-audio-video-pipelines]]. This batch did not create a new standalone KB entry, but advanced **ASR pipeline architecture** to 3/5 🌐, **Browser audio playback model** to 2/5, and added candidates around WebRTC/SFU deployment, staged ML media pipelines, transcript state, podcast RSS enclosures, and Remotion code-generated video.
 
 ### Batch I — Compiler / VM / language experiments
 **Projects**: Gnosis Compiler, Gnosis Dynamic VM, Generic Agent compiler experiment, GPT Base Principles compiler experiment, KV-Cache VM, Racket Web Editor (both reports), What Is a Stack-Based VM feeder projects.
 
 This batch could produce strong language-runtime and compiler design candidates. It also gives more support for the stack-VM on-ramp and perhaps future fundamentals if VM theory starts underpinning multiple entries.
 
-### Batch J — WASM/browser runtime cluster
+### Batch J — WASM/browser runtime cluster — COMPLETED 2026-05-11
 **Projects**: WASM JSON Flattener, JSON Flattener Go WASM, VT100 WASM Emulator, Goja WASM Web REPL, WASM Plugin REPL, Federated Modules, Browser-Side React Widget Runtime.
 
-This batch is high-yield for Go→WASM, browser runtime boundaries, module loading, and plugin/runtime architecture. It may create more support for sandbox and browser-runtime on-ramp material.
+Completed as [[KB-BATCH12-wasm-browser-runtime]]. This batch did not create a new standalone KB entry, but it strengthened [[On-Ramp/wasm-from-go]] and [[Tribal/go-to-wasm-compilation]], pushed **goja-in-WASM as sandbox boundary** to 2/3, and added new On-Ramp seeds around Module Federation, browser-side TSX compilation, and Wasm plugin ABIs.
 
-### Batch K — Pi extensions and Pi tooling cluster
+### Batch K — Pi extensions and Pi tooling cluster — COMPLETED 2026-05-11
 **Projects**: Pi Extension Hello World, Pi Extension textbook, Pi Session Summary Extension, Pi Extensions Compaction Title, Pi Extensions Direnv Bash, Pi Extensions Agent Env and Response Capture, Configuring Wafer Models in Pi.
 
-This batch should create a coherent Pi-extension/tooling cluster. Good candidate for future on-ramp material around Pi extension authoring and host/runtime contract patterns.
+Completed as [[KB-BATCH14-pi-extensions-tooling]]. This batch created [[Tribal/pi-extension-event-seams]], advanced **Pi extension authoring mental model** to 5/5 (ready/covered by article), advanced **Pi TUI widget/status surfaces** to 4/5 🌐, and added candidates around safe bash preamble injection, directory-symlink extension packaging, compaction hooks, and model-provider configuration.
 
-### Batch L — Codebase Browser / docs-as-product cluster
+### Batch L — Codebase Browser / docs-as-product cluster — COMPLETED 2026-05-11
 **Projects**: Codebase Browser embedded doc server, static analysis & Dagger pipeline, static WASM/SQLite prototype, Glazed Help Export and External Serve Sources.
 
-This batch deepens the Go CLI + embedded SPA + docs/browser tooling direction. It may justify a proper on-ramp for “Go CLI with embedded SPA” if two more projects land in that area.
+Completed as [[KB-BATCH15-codebase-browser-docs-product]]. This batch created [[Tribal/canonical-doc-model-across-delivery-modes]], advanced **Go CLI with embedded SPA** to 5/5 ready, and added candidates around schema-first multi-language code indexes, Dagger-orchestrated Node tooling from Go, TypeScript Compiler API code intelligence, and SQLite documentation snapshots.
 
 ### Batch M — Auth/product follow-on cluster
 **Projects**: VibeBot Sessions, CoinVault RAG Web Chat, Email Triage, TupleSpace, maybe AUTODISCO Automerge Discord App Architecture.

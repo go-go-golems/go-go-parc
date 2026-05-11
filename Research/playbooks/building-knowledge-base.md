@@ -263,7 +263,7 @@ a good reason to do it differently, document that reason here so the
 variation doesn't get "fixed" by someone who only read The Pattern.
 ```
 
-**Length**: 4–7 KB (1–2 printed pages). Our existing entries range from 4.6 KB (ESP-IDF) to 6.7 KB (Keycloak). If you exceed 7 KB, the concept is probably two concepts — split it.
+**Length target**: roughly 4–7 KB for most Tribal entries, with 7–10 KB acceptable when the entry needs real project variation, concrete gotchas, or code/path examples. Treat this as a writing target, not a hard rule. If an entry pushes past the target, pause and ask whether the concept should be split, whether examples can be tightened, or whether the extra length is justified by scar tissue the reader needs.
 
 ### On-Ramp entry template
 
@@ -327,7 +327,7 @@ Do NOT include more than 5 links. The point is curation, not
 completeness.
 ```
 
-**Length**: 5–6 KB (our existing entries range from 5.1 KB to 6.3 KB). The original 1-page guideline was too strict for complex topics like OAuth, SSH certificates, and CRDTs. These need room for step-by-step flows and gotchas. If you exceed 7 KB, split the concept.
+**Length target**: roughly 5–7 KB for most On-Ramp entries, with 7–10 KB acceptable for protocols or concepts that need step-by-step flows, diagrams/tables, and concrete gotchas. Treat the target as a readability signal, not an enforcement rule. If the draft grows beyond the target, review whether the concept is doing too much or whether the extra explanation is genuinely helping a newcomer get unstuck.
 
 ### Fundamental entry template
 
@@ -396,7 +396,7 @@ definitive survey. Not 20 references — the 1–3 that a motivated
 reader should actually read.
 ```
 
-**Length**: 5–7 KB (our existing entries range from 5.6 KB to 6.9 KB). The fundamental entry is longer than an On-Ramp because theory takes space to state precisely, but it is still not a textbook chapter.
+**Length target**: roughly 6–10 KB for Fundamentals. Theory sometimes needs more space than a Tribal or On-Ramp entry because it must state the principle, show intuition, and connect several concrete project failures. The target is not a hard limit; if the entry grows beyond it, use that as a prompt to check whether it is becoming a textbook chapter or whether it is legitimately serving multiple KB entries.
 
 ---
 
@@ -568,7 +568,7 @@ Before submitting a KB entry, verify:
 
 - [ ] **Correct section**: Tribal, On-Ramp, or Fundamental — not mixed
 - [ ] **Template followed**: All required sections present, in order
-- [ ] **Length in range**: Tribal 4–7 KB, On-Ramp 5–6 KB, Fundamental 5–7 KB
+- [ ] **Length reviewed as a target, not a rule**: Tribal usually 4–7 KB, On-Ramp usually 5–7 KB, Fundamentals usually 6–10 KB; longer entries are acceptable when the extra length carries necessary examples, gotchas, or project variation
 - [ ] **Writing style**: No AI slop (see anti-pattern table above). Prose develops ideas. Concrete over abstract.
 - [ ] **Gotchas section present**: Every entry has real project failures, not theoretical concerns
 - [ ] **On-ramp candidates balanced with tribal candidates**: roughly equal counts per batch; if not, re-read the project with the newcomer question

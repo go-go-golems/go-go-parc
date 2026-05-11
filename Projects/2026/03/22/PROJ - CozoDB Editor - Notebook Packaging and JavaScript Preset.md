@@ -480,3 +480,18 @@ Most important current ticket docs:
 
 > [!important]
 > Keep shared notebook seams honest, and keep preset-specific behavior behind preset wrappers. If a change only makes sense for one language or one host, it should not be introduced as shared package behavior by default.
+
+## KB reviews
+
+- [[KB-BATCH13-cozo-editor-structured-browser-tools]] (2026-05-11) — Batch D analysis; used as the core preset-architecture report in the Cozo notebook line.
+
+## Related KB entries
+
+**Tribal candidates** (not yet written / needs review):
+- Preset adapter over notebook core behavior (2/3 here; 3/3 across the Cozo line).
+- Shared notebook seams own runtime result vocabulary (1/3).
+- Storybook/MSW as architecture test for preset surfaces (1/3).
+
+**On-Ramp candidates** (not yet written):
+- Notebook preset architecture (2/5).
+

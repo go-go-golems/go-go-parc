@@ -411,6 +411,14 @@ python jingle_extractor.py full \
 > [!important]
 > The pipeline prioritizes instrumental output for content creator workflows. When in doubt, extract from the `no_vocals` stem—that's the most useful output for under-dialogue beds and clean transitions. The vocal and mixed variants are secondary outputs for specific use cases.
 
+## KB reviews
+
+- [[KB-BATCH16-media-audio-video-pipelines]] (2026-05-11) — Batch H media/audio/video review; advanced ASR, browser audio, WebRTC/media-plane, and media pipeline candidates.
+
+## Related KB entries
+
+**Candidate concepts**: media/audio pipeline orchestration, browser audio playback, ASR transcript state, and media delivery boundaries tracked in [[KB-BATCH16-media-audio-video-pipelines]].
+
 ## Related notes
 
 - [[ARTICLE - Building an AI Audio Jingle Pipeline]] - Deep technical dive into the pattern

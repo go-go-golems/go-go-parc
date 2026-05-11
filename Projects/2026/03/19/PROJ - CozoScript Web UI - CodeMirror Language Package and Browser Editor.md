@@ -389,3 +389,18 @@ The ticket workspace is valuable enough that it effectively acts as the project'
 > [!important]
 > Treat `lang-cozoscript` as the product and `cozo-webui` as its consumer.
 > When debugging browser behavior, always distinguish between source truth, built package truth, and Vite cache state before changing the grammar.
+
+## KB reviews
+
+- [[KB-BATCH13-cozo-editor-structured-browser-tools]] (2026-05-11) — Batch D analysis; surfaced the grammar-first editor-workbench pattern and new CodeMirror-oriented on-ramp material.
+
+## Related KB entries
+
+**Tribal candidates** (not yet written / needs review):
+- Language package as product, browser shell as consumer (2/3 with later Cozo editor modularization).
+- Parse-context-driven autocomplete rather than regex-driven autocomplete (1/3).
+- Browser shell intentionally thin over language package (1/3).
+
+**On-Ramp candidates** (not yet written):
+- CodeMirror 6 language package mental model (2/5 🌐).
+

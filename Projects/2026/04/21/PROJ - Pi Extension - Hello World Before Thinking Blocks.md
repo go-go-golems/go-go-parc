@@ -345,6 +345,15 @@ The extension is installed at `~/.pi/agent/extensions/hello-world-thinking.ts`.
 - Should the extension register a command like `/hello-thinking` to toggle the behavior on and off?
 - Should the extension track statistics across turns (total thinking time, thinking blocks per turn)?
 
+## KB reviews
+
+- [[KB-BATCH14-pi-extensions-tooling]] (2026-05-11) — Batch K Pi extension/tooling review; created [[Tribal/pi-extension-event-seams]] and advanced Pi TUI/model-config candidates.
+
+## Related KB entries
+
+- [[Tribal/pi-extension-event-seams]] — Pi lifecycle/event seams, prompt shaping, tool-call mutation, TUI surfaces, and model/config integration discipline.
+- [[Fundamentals/host-mediated-sandbox-principles]] — the host/runtime boundary principle behind narrow extension capabilities and mediated side effects.
+
 ## Near-term next steps
 
 - [ ] Test the extension with Claude 3.7 Sonnet to verify widget display

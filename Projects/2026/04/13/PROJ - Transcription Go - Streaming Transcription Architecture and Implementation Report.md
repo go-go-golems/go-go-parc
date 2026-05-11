@@ -748,6 +748,14 @@ If work resumes later, the most sensible next steps would be:
 
 > In this repository, “live transcription” now means a WS-first, session-oriented path with Go-owned transcript state and persistence. Chunk mode still exists, but only as a fallback/debug comparison path. Do not collapse those roles back together.
 
+## KB reviews
+
+- [[KB-BATCH16-media-audio-video-pipelines]] (2026-05-11) — Batch H media/audio/video review; advanced ASR, browser audio, WebRTC/media-plane, and media pipeline candidates.
+
+## Related KB entries
+
+**Candidate concepts**: media/audio pipeline orchestration, browser audio playback, ASR transcript state, and media delivery boundaries tracked in [[KB-BATCH16-media-audio-video-pipelines]].
+
 ## Related notes
 
 - [[PROJ - Transcription Go - Dagger Nemotron ASR Pipeline]]

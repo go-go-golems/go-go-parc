@@ -309,3 +309,19 @@ The Vite config applies these for both `server` and `preview` modes. This is a d
 
 > [!important]
 > Keep the split architecture. Go does text processing and state; SQLite Wasm does database operations in a worker. Do not try to merge the two runtimes until the all-Go persistence story is actually proven.
+
+## KB reviews
+
+- [[KB-BATCH13-cozo-editor-structured-browser-tools]] (2026-05-11) — Batch D analysis; used as the browser-side structured tool that reinforced the split Go/Wasm + worker-owned engine pattern.
+
+## Related KB entries
+
+- [[On-Ramp/wasm-from-go]] — new split-architecture example where Go/Wasm handles editor intelligence and a worker-owned SQLite Wasm build owns DB execution.
+
+**Tribal candidates** (not yet written / needs review):
+- Go/Wasm editor intelligence over worker-owned SQLite engine (2/3 when considered with broader Wasm/browser evidence).
+- Keep split architecture: text/state in Go, DB engine in worker (1/3).
+
+**On-Ramp candidates** (not yet written):
+- SQLite worker + OPFS mental model (1/5 🌐).
+

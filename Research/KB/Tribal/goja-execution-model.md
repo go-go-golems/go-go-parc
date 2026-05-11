@@ -135,6 +135,8 @@ This gives JavaScript-native scoping semantics (block scope per cell, but accumu
 - [[PROJ - go-go-goja Node-like Primitives - Technical Deep Dive]] — async native module pattern: goroutine does blocking fs I/O, Promise settlement on owner thread
 - [[PROJ - JS Discord Bot Framework]] — Discord interaction dispatch: goroutines handle HTTP, post closures back to VM owner
 - [[PROJ - Scenario Runtime Workbench - Scenario-Driven Reconciliation Demo]] — related variation: Go owns lifecycle, snapshots, and transport while JavaScript owns scenario semantics
+- [[PROJ - Scopedjs Runtime - Geppetto Final State]] — related variation: shared goja runtime execution is serialized around the whole eval lifecycle
+- [[PROJ - Goja REPL Essay - Implementation Deep Dive]] — teaching surface over real session/evaluation behavior
 
 **Also related** (session-like patterns without the full session model):
 - [[PROJ - Capsule Lab - A Sandboxed JS Capsule Runtime in the Browser]] — goja-in-WASM; no session persistence, no async (synchronous op-stream)

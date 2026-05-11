@@ -51,19 +51,21 @@ The host calls `dispatch()` and receives structured results. Every side effect t
 | Repo | Use | Compiler |
 |------|-----|----------|
 | `2026-04-02--capsule-lab` | goja sandbox in WASM | Go (standard) |
+| `2026-04-14--wasm-transcript-conversation/jsonflatten` | JSON tool in browser with standard Go + TinyGo variants | Go (standard) / TinyGo |
+| `2026-04-25--goja-wasm-web-repl` | goja REPL in browser WASM | Go (standard) / TinyGo |
 | `corporate-headquarters/sqlide` | SQL IDE in browser | Go (standard) |
-| `corporate-headquarters/json-flattener` | JSON tool in browser | Go (standard) |
-| `corporate-headquarters/vt100` | Terminal emulator | Go (standard) |
 | `corporate-headquarters/codebase-browser` | Code navigator | Go (standard) |
 
 ### Related PARC project reports
 
 - [[PROJ - Capsule Lab - A Sandboxed JS Capsule Runtime in the Browser]] — goja-in-WASM with op-stream host/kernel boundary
+- [[PROJ - WASM JSON Flattener - Go CLI and WebAssembly Tool]] — pure-Go kernel shared between CLI and browser targets, with a standard-Go vs TinyGo comparison
+- [[PROJ - Goja WASM Web REPL - A JavaScript Sandbox in the Browser]] — larger Go payload, `syscall/js` bridge, and TinyGo interpreter-timeout gotcha
 - [[ARTICLE - Playbook - Self-Contained Go Wasm and JavaScript Browser Applications]] — our general WASM-from-Go playbook
 
 ## Common mistakes
 
-1. **Using TinyGo when you don't need CGo.** TinyGo has a smaller runtime, no garbage collector (it uses a simple allocator), and missing standard library packages (`encoding/json`, `database/sql`, parts of `net`). If your code is pure Go, use the standard compiler. TinyGo is for when you need CGo (SQLite, image processing via C libraries) and can accept the reduced runtime.
+1. **Using TinyGo without deciding why.** TinyGo can be the right answer for size or special runtime constraints, but it is not a free drop-in replacement for standard Go. The JSON Flattener project used TinyGo successfully because the core was small and the pointer-based ABI was acceptable. The Goja WASM REPL showed the other side: larger initialization-heavy code may compile only after extending TinyGo's interpreter timeout, and the resulting build/debug loop becomes part of the architecture.
 
 2. **Direct DOM access from Go.** Code like `js.Global().Get("document").Call("getElementById", "canvas")` ties the kernel to the browser. If you need to test it, you need a headless browser. Instead, have the host pass the canvas context as a parameter: the host calls `kernel.init(canvas)`, passing the canvas JS value. The kernel stores it but never accesses the DOM directly.
 
@@ -71,10 +73,12 @@ The host calls `dispatch()` and receives structured results. Every side effect t
 
 4. **Forgetting `wasm_exec.js` version matching.** The `wasm_exec.js` glue file is version-locked to the Go version that compiled the WASM binary. A mismatch between `wasm_exec.js` version and the compiled binary causes cryptic runtime errors ("Go program has already exited"). Always copy `wasm_exec.js` from the same Go installation used to build.
 
-5. **Large WASM binaries from heavy dependencies.** A Go WASM binary that imports `encoding/json`, `html/template`, and `net/http` can be 10–20 MB. For browser delivery, this is painful. Consider: can the kernel be a small computation unit that receives pre-parsed JSON from the host? Can image processing happen in the browser? Strip dependencies ruthlessly.
+5. **Large WASM binaries or long compile times from heavy dependencies.** A Go WASM binary that imports `encoding/json`, `html/template`, and `net/http` can be 10–20 MB. For browser delivery, this is painful. And with TinyGo, large static tables or expensive `init()` work can also make compilation itself painful. Consider: can the kernel be a small computation unit that receives pre-parsed JSON from the host? Can image processing happen in the browser? Can you keep the browser-facing kernel narrower than the native tool?
 
 ## Variations
 
 - **TinyGo with CGo for SQLite in the browser**: The SQLide project compiles SQLite (a C library) via TinyGo's CGo support. The WASM binary runs SQLite queries in the browser with zero network calls. The tradeoff: TinyGo's runtime limitations (no `encoding/json` with struct tags, reduced `reflect` support) require workarounds.
 
-- **Go+goja in WASM for JavaScript sandboxing**: The Capsule Lab pattern — compile the goja interpreter to WASM, then run user-provided JavaScript inside goja inside WASM. Three layers of sandboxing: the browser sandbox, the WASM sandbox, and the goja sandbox. No other system gives you this depth of isolation for running untrusted JavaScript.
+- **Go+goja in WASM for JavaScript sandboxing**: The Capsule Lab and Goja WASM Web REPL pattern — compile the goja interpreter to WASM, then run user-provided JavaScript inside goja inside WASM. Three layers of sandboxing: the browser sandbox, the WASM sandbox, and the goja sandbox. No other system gives you this depth of isolation for running untrusted JavaScript.
+
+- **Dual-target utility with the same pure-Go core**: The JSON Flattener pattern — one shared Go package powers a native CLI and one or more browser WASM front-ends. This is the cleanest way to validate whether a candidate algorithm actually belongs in a browser kernel.

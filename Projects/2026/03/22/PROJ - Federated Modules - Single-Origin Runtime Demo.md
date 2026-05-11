@@ -472,3 +472,17 @@ Primary implementation code:
 > [!important]
 > Keep the deployment story simpler than the federation story.
 > The point of the project is to teach runtime loading, not to bury it inside multi-process operational noise.
+
+## KB reviews
+
+- [[KB-BATCH12-wasm-browser-runtime]] (2026-05-11) — Batch J analysis; used as the runtime-loaded browser-module teaching case in the wider browser-runtime cluster.
+
+## Related KB entries
+
+**Tribal candidates** (not yet written / needs review):
+- Same-origin runtime federation teaching surface (1/3).
+- Runtime module shape discipline (`default` export expectations, manifest/remoteEntry split) (1/3).
+
+**On-Ramp candidates** (not yet written):
+- Module Federation mental model (1/5 🌐).
+

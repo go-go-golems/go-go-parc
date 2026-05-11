@@ -14,6 +14,8 @@ created: 2026-05-11
 
 # WebAssembly from Go
 
+Related foundation: [[Fundamentals/host-mediated-sandbox-principles]]
+
 > [!summary]
 > Go compiles to WebAssembly with `GOOS=js GOARCH=wasm`. The output runs in the browser with a JavaScript glue layer (`wasm_exec.js`). Go code communicates with the browser through `syscall/js`; it cannot access the DOM, network, or filesystem directly. This entry covers the compilation pipeline, the Go↔JS bridge, the difference between standard Go and TinyGo for WASM, and the structural pattern that keeps your WASM kernel testable from Go without a browser.
 
@@ -87,7 +89,7 @@ The bridge is synchronous: when Go calls `ctx.Call("fillRect", ...)`, it blocks 
 | Goroutines | Full support | Limited (no preemption in some cases) |
 | `syscall/js` | Full support | Full support |
 
-Use **standard Go** unless you need CGo. TinyGo's reduced runtime means you'll spend time working around missing standard library features. The binary size difference (10 MB vs 2 MB) matters less with gzip compression (both compress to ~2–3 MB).
+Use **standard Go** unless size or a very constrained runtime forces the trade. The JSON Flattener work is a good example: standard Go gave the simplest `syscall/js` bridge, while TinyGo cut the browser binary from roughly 3.1 MB to 171 KB at the cost of manual pointer-based interop and a tiny WASI polyfill. The Goja WASM REPL and WASM Plugin REPL show the opposite side of the trade: larger or more initialization-heavy programs may still compile under TinyGo, but build behavior, compile time, and stdlib/runtime limits become part of the architecture.
 
 ## The testable kernel pattern
 
@@ -113,9 +115,15 @@ func main() {
 
 The `Dispatch` function is pure Go. It can be tested from Go without a browser. The `main` function is a thin adapter that registers the bridge and blocks. This separation means your WASM code is testable with `go test` and debuggable from Go, not only from browser DevTools.
 
+A useful variation appears in [[PROJ - SQLide Browser - Go Wasm SQL IDE]]. There, Go does editor-oriented work — SQL splitting, statement picking, and small browser-side helpers — while the actual SQLite engine stays in a dedicated worker using SQLite's own Wasm build. That is still a host/kernel split, but the kernel is narrower: Go owns text intelligence, JavaScript owns worker RPC, and SQLite's own Wasm owns the database engine.
+
 ## Where to go deeper
 
 - **Go Wiki: WebAssembly** — <https://github.com/golang/go/wiki/WebAssembly> — Official compilation instructions and known issues.
 - [[Tribal/go-to-wasm-compilation]] — Our specific patterns for compiling Go to WASM.
 - [[Tribal/goja-embedding-in-go]] — The three-layer sandbox pattern (browser → WASM → goja) for running untrusted JavaScript.
 - [[PROJ - Capsule Lab - A Sandboxed JS Capsule Runtime in the Browser]] — testable kernel pattern, op-stream API, permission enforcement
+- [[PROJ - WASM JSON Flattener - Go CLI and WebAssembly Tool]] — side-by-side standard Go vs TinyGo browser targets over the same pure-Go core
+- [[PROJ - Goja WASM Web REPL - A JavaScript Sandbox in the Browser]] — non-trivial Go library compiled to browser WASM with `syscall/js` bridge and TinyGo timeout lessons
+- [[PROJ - WASM Plugin REPL - Goja wazero Deep Dive]] — contrast case where the host/guest boundary is Wasm plugin loading in Go rather than browser embedding
+- [[PROJ - SQLide Browser - Go Wasm SQL IDE]] — split architecture where Go/Wasm handles editor intelligence and a separate SQLite worker owns DB operations and OPFS persistence

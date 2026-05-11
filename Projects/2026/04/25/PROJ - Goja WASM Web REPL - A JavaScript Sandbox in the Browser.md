@@ -356,3 +356,19 @@ All three documents were uploaded to reMarkable as a bundle at `/ai/2026/04/25/W
 
 > [!important]
 > The boundary is the architecture. Every design decision — what APIs to expose, how data crosses the Go/JS bridge, whether to use standard Go or TinyGo — flows from the principle that the sandboxed JavaScript engine must not have implicit access to the host environment. Capabilities are injected explicitly through the bridge. Keep that separation clean, and the system remains testable, secure, and portable.
+
+## KB reviews
+
+- [[KB-BATCH12-wasm-browser-runtime]] (2026-05-11) — Batch J analysis; reinforced the Go→WASM entries and advanced the goja-in-WASM sandbox candidate.
+
+## Related KB entries
+
+- [[On-Ramp/wasm-from-go]] — concrete `syscall/js` bridge and browser-hosted Go WASM runtime.
+- [[Tribal/go-to-wasm-compilation]] — larger-runtime standard Go vs TinyGo tradeoff case.
+- [[Tribal/goja-embedding-in-go]] — adjacent sandbox/host-boundary pattern.
+
+**Tribal candidates** (not yet written / needs review):
+- goja-in-WASM as sandbox boundary (2/3 with Capsule Lab).
+- Standard Go vs TinyGo comparison harness (covered by existing WASM KB entries).
+- TinyGo interpreter-timeout as compile-system constraint (1/3).
+
