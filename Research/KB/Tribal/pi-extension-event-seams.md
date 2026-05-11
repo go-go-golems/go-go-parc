@@ -13,6 +13,8 @@ created: 2026-05-11
 
 # Pi Extension Event Seams — How We Do It
 
+Related on-ramp: [[On-Ramp/pi-extension-authoring-mental-model]]
+
 > [!summary]
 > Our Pi extensions work best when they treat Pi's documented lifecycle events as narrow integration seams: observe state, transform inputs only at mutable hooks, display through TUI surfaces, and avoid replacing Pi internals unless the seam cannot express the behavior.
 

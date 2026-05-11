@@ -1284,7 +1284,9 @@ Focused batch from the campaign handoff's Batch D. See [[KB-BATCH13-cozo-editor-
 - Thinking-block UI as stream observer, not message mutation (covered by [[Tribal/pi-extension-event-seams]])
 - Widget cleanup on lifecycle edges (covered by [[Tribal/pi-extension-event-seams]])
 
-**On-Ramp candidates**: Pi extension authoring mental model (1/5), Pi TUI widget/status surfaces (1/5)
+**On-Ramp entries**: [[On-Ramp/pi-extension-authoring-mental-model]]
+
+**On-Ramp candidates**: Pi TUI widget/status surfaces (1/5)
 
 ### 70. Pi Extension — A Textbook on Writing and Testing Pi Extensions
 
@@ -1303,7 +1305,9 @@ Focused batch from the campaign handoff's Batch D. See [[KB-BATCH13-cozo-editor-
 - Observation / injection / display as extension architecture (covered by [[Tribal/pi-extension-event-seams]])
 - File logging plus go-minitrace as extension debugging workflow (1/3; related to [[Tribal/transcript-analysis-with-go-minitrace]])
 
-**On-Ramp candidates**: Pi extension authoring mental model (2/5), Pi TUI widget/status surfaces (2/5)
+**On-Ramp entries**: [[On-Ramp/pi-extension-authoring-mental-model]]
+
+**On-Ramp candidates**: Pi TUI widget/status surfaces (2/5)
 
 ### 71. Pi Session Summary Extension — Textbook Report
 
@@ -1323,7 +1327,9 @@ Focused batch from the campaign handoff's Batch D. See [[KB-BATCH13-cozo-editor-
 - Multi-file Pi extension installed as directory symlink (1/3)
 - Widget should preserve meaning and only adapt wrapping (1/3)
 
-**On-Ramp candidates**: Pi extension authoring mental model (3/5), Pi TUI widget/status surfaces (3/5)
+**On-Ramp entries**: [[On-Ramp/pi-extension-authoring-mental-model]]
+
+**On-Ramp candidates**: Pi TUI widget/status surfaces (3/5)
 
 ### 72. Pi Extensions — Agent Env, Response Capture, and Compaction Meter
 
@@ -1345,7 +1351,9 @@ Focused batch from the campaign handoff's Batch D. See [[KB-BATCH13-cozo-editor-
 - Extension-to-docmgr artifact handoff via saved markdown and `docmgr import file` (1/3)
 - Status item as lightweight agent instrument (1/3)
 
-**On-Ramp candidates**: Pi extension authoring mental model (4/5), Pi TUI widget/status surfaces (4/5), Pi context compaction model (1/5)
+**On-Ramp entries**: [[On-Ramp/pi-extension-authoring-mental-model]]
+
+**On-Ramp candidates**: Pi TUI widget/status surfaces (4/5), Pi context compaction model (1/5)
 
 ### 73. Pi Extensions — Compaction Title Extension
 
@@ -1365,7 +1373,9 @@ Focused batch from the campaign handoff's Batch D. See [[KB-BATCH13-cozo-editor-
 - Compaction as session metadata checkpoint (1/3)
 - Multi-file Pi extension installed as directory symlink (2/3)
 
-**On-Ramp candidates**: Pi extension authoring mental model (5/5 — ready/covered by article; consider On-Ramp only if KB form is desired), Pi context compaction model (2/5)
+**On-Ramp entries**: [[On-Ramp/pi-extension-authoring-mental-model]]
+
+**On-Ramp candidates**: Pi context compaction model (2/5)
 
 ### 74. Pi Extensions — Direnv Bash Extension
 
@@ -1385,7 +1395,9 @@ Focused batch from the campaign handoff's Batch D. See [[KB-BATCH13-cozo-editor-
 - Preserve external tool trust model instead of bypassing it (1/3)
 - Extension load + standalone + tmux validation ladder (1/3)
 
-**On-Ramp candidates**: Pi extension authoring mental model (5/5), Pi TUI widget/status surfaces (4/5), direnv for agent-launched shells (1/5)
+**On-Ramp entries**: [[On-Ramp/pi-extension-authoring-mental-model]]
+
+**On-Ramp candidates**: Pi TUI widget/status surfaces (4/5), direnv for agent-launched shells (1/5)
 
 ### 75. Configuring Wafer Models in Pi
 
@@ -1653,14 +1665,13 @@ Focused batch from the campaign handoff's Batch D. See [[KB-BATCH13-cozo-editor-
 - **Remaining**: 80
 - **Current KB totals**:
   - Tribal: 22 entries
-  - On-Ramp: 19 entries
+  - On-Ramp: 20 entries
   - Fundamentals: 5 entries
 
 ### Unwritten entries that are actually READY
 
 There are a few threshold or near-threshold candidates that need editorial judgment before writing:
 
-- **Pi extension authoring mental model** — 5/5, but much of the material already exists as a PARC article/playbook; decide whether to canonicalize it into an On-Ramp entry.
 - **Tree-sitter as structural prefilter plus semantic layer**, **Conservative repair boundary**, **Shared parse-aware analysis object**, and **Preset adapter over notebook core behavior** — 3/3 Tribal candidates, but each may overlap with existing entries or be too product-family-specific.
 
 What remains is mostly:
@@ -1808,7 +1819,6 @@ What remains is mostly:
 | **Notebook preset architecture** | Cozo notebook packaging line | 2/5 | Notebook docs are often framework-specific and do not explain the preset/runtime split crisply. |
 | **SQLite worker + OPFS mental model** | SQLide Browser | 1/5 🌐 | SQLite Wasm and OPFS docs exist, but not the precise boundary between Go/Wasm text logic, worker RPC, and DB ownership. |
 | **Browser overlay inspection architecture** | Hover Component Inspector | 1/5 🌐 | Browser extension docs exist, but not a newcomer-focused mental model for overlay-as-guest inspection. |
-| **Pi extension authoring mental model** | Pi Hello World, Pi Extension Textbook, Session Summary, Agent Env/Response Capture/Compaction Meter, Compaction Title, Direnv Bash | 5/5 — ready/covered by article; consider KB On-Ramp if the article should be canonicalized into KB form. |
 | **Pi TUI widget/status surfaces** | Pi Hello World, Pi Extension Textbook, Session Summary, Agent Env/Response Capture/Compaction Meter | 4/5 🌐 | Pi docs list APIs, but a newcomer needs the surface-selection mental model: status vs widget vs overlay vs renderer. |
 | **Pi context compaction model** | Compaction Meter, Compaction Title | 2/5 | Pi docs describe compaction, but extension authors need the operational model for thresholds, hooks, and continuation summaries. |
 | **Pi custom model/provider configuration** | Configuring Wafer Models in Pi | 1/5 🌐 | Pi docs describe models.json, but provider registration needs a documentation-first, validation-oriented workflow. |
@@ -1862,7 +1872,7 @@ The current tribal library contains the 22 entries in `Research/KB/Tribal/`, inc
 
 ### On-Ramp
 
-The current on-ramp library contains the 19 entries in `Research/KB/On-Ramp/`, including the 8 user-requested below-threshold entries written during this campaign, [[On-Ramp/tree-sitter-for-go-tools]] from Batch 9, [[On-Ramp/js-to-wasm-compiler-architecture]], and [[On-Ramp/go-cli-with-embedded-spa]].
+The current on-ramp library contains the 20 entries in `Research/KB/On-Ramp/`, including the 8 user-requested below-threshold entries written during this campaign, [[On-Ramp/tree-sitter-for-go-tools]] from Batch 9, [[On-Ramp/js-to-wasm-compiler-architecture]], [[On-Ramp/go-cli-with-embedded-spa]], and [[On-Ramp/pi-extension-authoring-mental-model]].
 
 ### Fundamentals
 
@@ -1912,6 +1922,7 @@ The current fundamentals library contains:
 | On-Ramp/what-is-a-stack-based-vm | Smalltalk-80 VM, uLisp PicoCalc, Gnosis VM |
 | On-Ramp/tree-sitter-for-go-tools | Query Treesitter, Tree-sitter Templating, Sanitize structured text/YAML/JSON |
 | On-Ramp/go-cli-with-embedded-spa | Glazed Serve, Glazed Static Help Export, Codebase Browser embedded/static line, Glazed Help Export |
+| On-Ramp/pi-extension-authoring-mental-model | Pi Hello World, Pi Extension Textbook, Session Summary, Agent Env, Response Capture, Compaction Meter, Compaction Title, Direnv Bash, Wafer model config |
 | Fundamentals/signal-quantization-and-sampling | Dithering / ESC-POS / E-ink clusters |
 | Fundamentals/access-control-models | OAuth / OpenSSH / application authorization cluster |
 | Fundamentals/encoding-and-framing | ESC-POS / serial / line-protocol clusters |

@@ -640,5 +640,6 @@ The go-minitrace transcript analysis system is documented at:
 
 ## Related KB entries
 
+- [[On-Ramp/pi-extension-authoring-mental-model]] — 10-minute orientation to Pi extension lifecycle, events, tools, UI surfaces, and state scopes.
 - [[Tribal/pi-extension-event-seams]] — Pi lifecycle/event seams, prompt shaping, tool-call mutation, TUI surfaces, and model/config integration discipline.
 - [[Fundamentals/host-mediated-sandbox-principles]] — the host/runtime boundary principle behind narrow extension capabilities and mediated side effects.
