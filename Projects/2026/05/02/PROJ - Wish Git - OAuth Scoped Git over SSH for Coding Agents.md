@@ -367,3 +367,20 @@ The important remaining work is hardening:
 The working rule for Wish Git is: the database owns authorization, and every external artifact is only a pointer back to that authorization. OAuth tokens point to users. SSH certificates point to runs. Git commands point to repositories. Hooks point to ref/path policy. If a future change makes the artifact itself the source of truth, it is probably weakening the design.
 
 That rule keeps the project understandable. The user logs in. The run defines scope. The cert proves possession. The SSH server checks the run. The hook checks the push. Git does the Git work.
+
+## Related KB entries
+
+These knowledge base entries provide orientation for the concepts this project depends on:
+
+- [[On-Ramp/openssh-certificates]] — the SSH certificate fields (principals, force-command, valid-before) that represent scoped agent runs
+- [[On-Ramp/oauth-2-oidc-flows]] — the Keycloak Authorization Code + PKCE flow that authenticates the human user
+- [[On-Ramp/git-hooks-for-policy-enforcement]] — the pre-receive hook that is the final enforcement layer for agent push scope
+- [[Tribal/keycloak-oauth-in-go-services]] — local JWT validation, PKCE from CLI, and the Keycloak integration patterns
+- [[Tribal/application-native-authorization]] — three-credential separation: Keycloak authenticates, forge decides what agents can do via SSH certificates and hooks
+- [[Fundamentals/access-control-models]] — the authn/authz/delegation three-credential separation that this project implements
+
+**Tribal candidates** (our-specific patterns not yet at 3-project threshold):
+- Three-credential separation (2/3) — user credential → broker credential → agent credential
+- SSH certificate as scoped delegation (1/3) — principals = repo, force-command = git-receive-pack, expiry = 5 minutes
+- pre-receive hook as policy enforcement layer (1/3) — forge-hook binary reads allowed refs/paths from database
+- git-upload-pack/git-receive-pack interception at SSH layer (1/3) — exec callback inspects command against agent run scope

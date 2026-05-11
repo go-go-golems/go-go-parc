@@ -75,3 +75,19 @@ That separation is the whole point of the project.
 
 - [[ARTICLE - Brokered BYOK with Keycloak and SQLite - A Technical Deep Dive]]
 - [[PROJ - BYOK Host - Keycloak and SQLite Broker Intern Research Guide]]
+
+## Related KB entries
+
+These knowledge base entries provide orientation for the concepts this project depends on:
+
+- [[Tribal/keycloak-oauth-in-go-services]] — the local JWT validation pattern, PKCE from CLI, and audience checking that this broker implements
+- [[Tribal/application-native-authorization]] — broker-not-proxy architecture: Keycloak authenticates, broker decides what the connection may be used for
+- [[Tribal/sqlite-as-application-database]] — WAL mode, embedded migrations, and the CGo-free modernc driver that this broker uses for persistence
+- [[On-Ramp/oauth-2-oidc-flows]] — the Authorization Code + PKCE flow and Client Credentials flow that this project uses
+- [[Fundamentals/access-control-models]] — the authn/authz/delegation separation that the broker-not-proxy architecture enforces
+
+**Tribal candidates** (our-specific patterns not yet at 3-project threshold):
+- Broker-not-proxy architecture (1/3) — broker makes authorization decisions, issues own tokens, stores grants
+- Signed broker session cookies (1/3) — HMAC-signed cookies to avoid server-side session state
+- SQLite persistence surviving broker restart (1/3) — WAL mode, schema migrations in Go, connection pooling
+- Authorization Code + PKCE from Go CLI (2/3) — open browser → callback → exchange code; implemented in BYOK Host and Wish Git

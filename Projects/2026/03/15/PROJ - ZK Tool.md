@@ -209,6 +209,24 @@ These are currently repo-local rather than vault-local:
 - decide on the write path for new notes
 - add a project-level command that wraps a real ZK use case instead of only `run-script`
 
+## KB reviews
+
+- [[KB-PLAYBOOK-TRIAL - Intern Reports for 6 Projects]] (2026-05-11) — concept extraction + classification; goja native module registration at 2/3, ZK note routing at 1/3
+
+## Related KB entries
+
+These knowledge base entries provide orientation for the concepts this project depends on:
+
+- [[Tribal/goja-embedding-in-go]] — the Go+JS runtime pattern used to run JavaScript locally inside the `zk` CLI
+
+**Tribal candidates** (our-specific patterns not yet at 3-project threshold):
+- goja native module registration (2/3) — the `require("obsidian")` pattern where Go APIs are exposed as JS modules; seen in goja-embedding (generic), ZK Tool (Obsidian), Loupedeck (hardware)
+- ZK note routing logic (1/3) — our specific vault filing workflow for classifying and placing notes
+
+**On-Ramp candidates** (lookupable concepts our angle is missing, not yet at 5-project threshold):
+- Obsidian CLI from Go (1/5) — calling the local `obsidian` binary from a Go program
+- Luhmann-style branching codes (1/5) — the ZK coding system (2, 2a, 2a0, 2a0a, 2a0a1…)
+
 ## Project working rule
 
 > [!important]

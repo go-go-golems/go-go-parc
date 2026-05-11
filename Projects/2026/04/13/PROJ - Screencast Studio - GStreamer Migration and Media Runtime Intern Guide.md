@@ -715,6 +715,22 @@ If the web layer starts depending directly on FFmpeg/GStreamer specifics, migrat
 - implement shared capture graphs and remove preview suspend/restore from Phase 4
 - decide on rollout policy for making GStreamer the default runtime
 
+## KB reviews
+
+- [[KB-PLAYBOOK-TRIAL - Intern Reports for 6 Projects]] (2026-05-11) — concept extraction + classification; opens new media domain (zero KB coverage); GStreamer on-ramp at 2/5, runtime seam at 1/3
+
+## Related KB entries This project opens a new technology domain for the KB.)
+
+**Tribal candidates** (our-specific patterns not yet at 3-project threshold):
+- GStreamer pipeline construction from Go (1/3) — building native media pipelines using go-gst bindings; appsink delivery, bus watch handling
+- Runtime seam for engine migration (1/3) — PreviewRuntime/RecordingRuntime interfaces behind which FFmpeg and GStreamer coexist; allows incremental migration
+- GLib main loop coexistence with Go (1/3) — running enough GLib for GStreamer bus handling inside a Go server without replacing the Go runtime
+- DSL → normalized config → compiled plan (2/3) — user description → media-engine-independent plan; seen in Screencast Studio, Almanach Studio
+
+**On-Ramp candidates** (lookupable concepts our angle is missing, not yet at 5-project threshold):
+- GStreamer for Go programmers (2/5) — elements, pads, caps, bus, state transitions, EOS, pipeline construction; the 10-minute orientation for reading our media code
+- Preview vs recording lifecycle (1/5) — live pipeline (low latency) vs file pipeline (correct finalization); the different stop strategies each demands
+
 ## Project working rule
 
 > [!important]

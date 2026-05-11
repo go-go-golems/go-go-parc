@@ -341,3 +341,20 @@ The first bitmap streaming approach interleaved TCP reads with UART writes: read
 ## Project working rule
 
 > When adding a new printer command, check the ESC/POS command reference in the K118 research ticket (0090) first. The printer implements a subset of the full ESC/POS specification, and not all documented commands work. When in doubt, test with `printer_raw <hex>` before writing a dedicated command.
+
+## Related KB entries
+
+These knowledge base entries provide orientation for the concepts this project depends on:
+
+- [[Tribal/esp-idf-firmware-patterns]] — the esp_console + web UI + UART driver + NVS architecture that this firmware follows
+- [[On-Ramp/esc-pos-thermal-printer]] — the GS v 0 raster command, bit packing, and the timing constraint that causes stripe artifacts
+- [[On-Ramp/dithering-and-rasterization]] — the Atkinson dithering + gamma 1.8 pre-correction that produces good thermal prints
+- [[Fundamentals/signal-quantization-and-sampling]] — why dithering works: quantization error becomes high-frequency noise
+- [[Fundamentals/encoding-and-framing]] — the length-prefixed binary framing of ESC/POS commands and why gaps in the stream corrupt output
+
+**Tribal candidates** (our-specific patterns not yet at 3-project threshold):
+- Buffer-full-body-before-UART pattern (2/3) — read entire HTTP body before sending GS v 0 to prevent stripe artifacts
+- MSB-first bit packing for ESC/POS (2/3) — `0x80 >> (x % 8)` packing convention
+- Browser-side image processing for embedded devices (2/3) — heavy computation in browser, only final bitmap to ESP32
+- AtomS3R Lite over ATOM Lite for printer projects (1/3) — ESP32-S3 frees all GPIO pins, 8 MB PSRAM
+- Pin-swapping for K118 cable at runtime (1/3) — straight-through cable needs TX/RX swap in software

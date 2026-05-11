@@ -569,3 +569,18 @@ INFO Exiting via button press
 
 > [!important]
 > **Do not double-bind knobs.** TouchDial creates IntKnobs internally. Creating your own IntKnobs for the same knobs causes conflicts. Let TouchDial handle all knob binding.
+
+## Related KB entries
+
+These knowledge base entries provide orientation for the concepts this project depends on:
+
+- [[Tribal/serial-protocols-from-go]] — the serial communication patterns (full-body buffering, CTS flow control) that this driver uses
+- [[Tribal/goja-embedding-in-go]] — the advanced driver adds a goja runtime for SVG and JavaScript rendering
+- [[Fundamentals/encoding-and-framing]] — the WebSocket-over-serial framing that the Loupedeck uses, and why standard parsers fail
+- [[Fundamentals/rendering-pipeline-fundamentals]] — the dirty-rectangle tracking and region coalescing that the render scheduler uses
+
+**Tribal candidates** (our-specific patterns not yet at 3-project threshold):
+- "Mutant WebSocket over serial" protocol handling (1/3) — device sends non-standard control frames, rate-limiting required
+- Draw batching at 30fps (1/3) — queue draws and send at fixed rate to avoid confusing the device
+- Render scheduler with region coalescing (1/3) — merge dirty rectangles to minimize serial bandwidth
+- SVG→bitmap→serial pipeline (1/3) — parse SVG, rasterize, cache, tile for 60×360 LCD

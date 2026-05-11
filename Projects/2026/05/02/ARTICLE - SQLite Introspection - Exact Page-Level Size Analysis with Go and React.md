@@ -30,7 +30,7 @@ This article describes the design and implementation of a tool that inspects SQL
 > 4. The frontend uses stacked proportional bars to compare table data against index sizes on a shared scale.
 > 5. Per-column size estimates are obtained by sampling row bytes via `length(CAST(col AS BLOB))`, which complements the page-level `dbstat` totals.
 
-![[Attachments/Pasted image 20260502122207.png]]
+![[Pasted image 20260502122207.png]]
 ## Why exact size measurement matters
 
 When a SQLite database file grows, the natural question is: where is the space going? SQLite stores everything — tables, indexes, triggers, views — in a single file. The `sqlite_master` catalog tells you what objects exist, but it does not tell you how large they are.

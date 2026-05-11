@@ -444,6 +444,19 @@ The SQLite smoke tests were not just verification after the fact. They shaped th
 - reuse the sqleton parser/config ownership pattern when similar app-config collisions appear elsewhere
 - consider a small "authoring guide" help page for `.sql` commands and `.alias.yaml` aliases if new users will create these frequently
 
+## KB reviews
+
+- [[KB-PLAYBOOK-TRIAL - Intern Reports for 6 Projects]] (2026-05-11) — concept extraction + classification; SQL-as-command-source at 2/3, app-vs-command-config at 2/3
+
+## Related KB entries — SQLite as the runtime database for SQL command smoke tests
+
+**Tribal candidates** (our-specific patterns not yet at 3-project threshold):
+- SQL as first-class command source (2/3) — `.sql` files define Glazed commands via metadata preambles, not YAML wrappers; seen in Sqleton, Minitrace Query Commands
+- App config vs command config separation (2/3) — `repositories:` is app-level, `sql-connection:` is command-level; keeping them out of the same parser; seen in Sqleton, BYOK Host
+
+**On-Ramp candidates** (lookupable concepts our angle is missing, not yet at 5-project threshold):
+- Glazed CLI command framework (2/5) — our internal command definition and output formatting system
+
 ## Project working rule
 
 > [!important]

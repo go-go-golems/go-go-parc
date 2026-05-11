@@ -441,3 +441,17 @@ cd web && npx playwright test
 - Add more kernel-level logging: permission denials, callback lifecycle, timer management
 - Explore multiple canvases or off-screen rendering for capsule isolation
 - Build a capsule package format for sharing and importing
+
+## Related KB entries
+
+These knowledge base entries provide orientation for the concepts this project depends on:
+
+- [[Tribal/goja-embedding-in-go]] — the goja interpreter that runs inside the WASM kernel; the permission-locked API surface and NaN sanitization pattern come from here
+- [[Tribal/go-to-wasm-compilation]] — the Go→WASM compilation pipeline and the host/kernel boundary that this project instantiates
+- [[On-Ramp/wasm-from-go]] — the browser-side perspective: syscall/js bridge, wasm_exec.js, and the testable kernel pattern
+
+**Tribal candidates** (our-specific patterns not yet at 3-project threshold):
+- goja-in-WASM as sandbox boundary (1/3) — three-layer sandboxing: browser → WASM → goja
+- Host-mediated op-stream API (1/3) — dispatch() returns ops, host decides whether to execute them
+- goja NaN sanitization in JSON export (1/3) — recursive NaN→null before json.Marshal
+- Permission-locked API surface (1/3) — sandbox installs only the API functions declared in manifest

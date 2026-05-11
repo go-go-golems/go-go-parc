@@ -606,6 +606,22 @@ Important files:
 
 These are not secondary artifacts. They explain why the code is shaped the way it is, especially around Keycloak, signed requests, run-token scoping, and SQLite hardening.
 
+## KB reviews
+
+- [[KB-PLAYBOOK-TRIAL - Intern Reports for 6 Projects]] (2026-05-11) — concept extraction + classification; application-native authorization tribal at 3/3 (READY), three-layer credential separation at 2/3
+
+## Related KB entries — Keycloak JWT/JWKS validation pattern used for human authentication
+- [[On-Ramp/oauth-2-oidc-flows]] — the browser OAuth flow for human login
+- [[Fundamentals/access-control-models]] — authn/authz/delegation separation; the model behind three-layer credential narrowing
+- [[Tribal/sqlite-as-application-database]] — SQLite as security-relevant storage (hash-only token storage, transactional claims, WAL + backup)
+- [[Tribal/application-native-authorization]] — Keycloak authenticates humans, the Go application owns agent/run/task authorization
+
+**Tribal candidates** (our-specific patterns not yet at 3-project threshold):
+- Three-layer credential separation (2/3) — human token → agent key → run token; each narrower than the last; seen in Wish Git (Keycloak → OAuth → SSH cert), Agent Enroll (Keycloak → agent key → run token)
+- Canonical request signing (1/3) — Ed25519 signatures on METHOD + PATH + SHA256(body) + TIMESTAMP + NONCE
+- Opaque scoped bearer tokens (1/3) — hash-only storage, task/run binding, short expiry, revocation
+- Enrollment tokens (one-time, hash-only) (1/3) — short-lived, hash-stored, single-use enrollment secret; burns in the same transaction that creates the agent
+
 ## Project working rule
 
 When adding a feature, identify which authority plane it belongs to before writing code.

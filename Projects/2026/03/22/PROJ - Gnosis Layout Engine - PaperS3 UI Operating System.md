@@ -562,3 +562,17 @@ This firmware builds directly on the patterns established in:
 - `0077-papers3-alphabet-graffiti`: introduced deferred rendering, mode switching, and the Lain/Navi visual theme
 
 The Gnosis layout engine generalizes the manual coordinate approach from 0076/0077 into a reusable, declarative system. The rendering code, EPD mode management, and touch handling patterns are direct descendants of those earlier projects.
+
+## Related KB entries
+
+These knowledge base entries provide orientation for the concepts this project depends on:
+
+- [[Fundamentals/rendering-pipeline-fundamentals]] — the four-stage pipeline (Layout → Update → Collect+Merge → Render+Refresh) that this project implements
+- [[On-Ramp/e-ink-display-driving]] — waveform mode selection (epd_text vs epd_quality), ghosting mitigation, and the partial-refresh tradeoffs this project navigates
+- [[Tribal/esp-idf-firmware-patterns]] — the broader ESP-IDF architecture that this firmware follows (esp_console, NVS, web server)
+
+**Tribal candidates** (our-specific patterns not yet at 3-project threshold):
+- Four-stage e-ink render pipeline (1/3) — Layout → Update → Collect+Merge → Render+Refresh
+- Compile-time DSL → struct initializer lists (1/3) — skipping JSON parsing by compiling DSL into C++ initializer lists
+- Custom 5×7 bitmap font at 4× scale (1/3) — character-as-seven-bytes, rendered as fillRect blocks
+- Waveform mode selection strategy (1/3) — epd_text for partial refreshes, epd_quality for periodic full clean

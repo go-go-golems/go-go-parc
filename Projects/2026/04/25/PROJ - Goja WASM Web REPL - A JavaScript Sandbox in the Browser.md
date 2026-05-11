@@ -45,7 +45,7 @@ The project also exists because Goja is a genuinely useful engine for sandboxing
 
 ## What was built
 
-![[Attachments/screenshot.png]]
+![[../../../../../2026-04-25--goja-wasm-web-repl/screenshot.png]]
 
 *Screenshot of the browser test page showing all three expressions evaluating correctly through the Go WASM → Goja bridge.*
 

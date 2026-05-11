@@ -487,6 +487,20 @@ The current MVP is already useful because it proves the baseline:
 
 The next phase is where the project becomes more ambitious. If the tooling-disk model, guest SELinux model, and later host SELinux model land cleanly, this repo becomes much more than a boot demo. It becomes a real design study in how to build a comfortable but intentionally constrained runtime for autonomous coding work.
 
+## KB reviews
+
+- [[KB-PLAYBOOK-TRIAL - Intern Reports for 6 Projects]] (2026-05-11) — concept extraction + classification; microVM boundary at 2/3, host-mediated secrets at 2/3, sandbox-principles fundamental at 1/2
+
+## Related KB entries — the delegation model behind host-mediated secret delivery (host decides what the guest sees)
+
+**Tribal candidates** (our-specific patterns not yet at 3-project threshold):
+- MicroVM as execution boundary (2/3) — one Firecracker VM per agent run, not shared process state; seen in Firecracker VM, pi-sandbox
+- Host-mediated secret delivery (2/3) — Vault on host, secrets materialized in guest via vsock, not guest-side Vault; seen in Firecracker VM, BYOK Host (credential mediation)
+- Ext4 workspace as boundary artifact (1/3) — host files → staged tree → ext4 image → guest mount → retained output; not a bind mount
+
+**Fundamental candidates** (theory underpinning multiple KB entries, not yet at 2-entry threshold):
+- Host-mediated sandbox principles (1/2) — the design principle shared with Capsule Lab's WASM sandbox: host prepares sealed inputs, guest consumes them, output comes back as artifact
+
 ## Project working rule
 
 > [!important]

@@ -649,3 +649,15 @@ This repository is no longer "an interpreter skeleton with many stubs." It is no
 > [!important]
 > When behavior diverges, assume a specification mismatch before assuming the image is strange.
 > In this project, the winning debugging move has usually been to go back to representation details: tag bits, field indices, argument shape, header format, or object class/size assumptions.
+
+## Related KB entries
+
+These knowledge base entries provide orientation for the concepts this project depends on:
+
+- [[Tribal/goja-embedding-in-go]] — goja is our standard JS interpreter; this project's spec-first discipline contrasts with goja's pragmatic embedding approach
+- [[On-Ramp/wasm-from-go]] — if this VM were browser-deployed, it would follow the Go→WASM patterns documented here
+
+**Tribal candidates** (our-specific patterns not yet at 3-project threshold):
+- Spec-first implementation discipline (1/3) — building from a formal specification instead of referencing another implementation as an oracle
+- Regression-trace-driven debugging (1/3) — comparing VM execution against known-good image traces to find divergence
+- Go struct packing for VM word formats (1/3) — mapping Smalltalk's object-pointer encoding onto Go structs

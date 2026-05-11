@@ -106,14 +106,14 @@ At a high level, the user-facing flow is:
 
 ```mermaid
 flowchart LR
-    A[Input WAV<br/>large stereo screencast recording] --> B[Go converter<br/>internal/convert]
-    B --> C[16k mono WAV<br/>out/audio_16k_mono.wav]
-    C --> D[Go CLI<br/>cmd/transcribe]
-    D --> E[Dagger container service<br/>python + ffmpeg + nemo + fastapi]
-    E --> F[FastAPI endpoint<br/>POST /transcribe/full]
-    F --> G[Nemotron ASR model<br/>CPU eval mode]
-    G --> H[JSON words[]<br/>word start end]
-    H --> I[Go output layer<br/>internal/output]
+    A[Input WAV large stereo screencast recording] --> B[Go converter internal/convert]
+    B --> C[16k mono WAVout/audio_16k_mono.wav]
+    C --> D[Go CLI cmd/transcribe]
+    D --> E[Dagger container service python + ffmpeg + nemo + fastapi]
+    E --> F[FastAPI endpoint POST /transcribe/full]
+    F --> G[Nemotron ASR model CPU eval mode]
+    G --> H[JSON words word start end]
+    H --> I[Go output layer internal/output]
     I --> J[SRT]
     I --> K[VTT]
     I --> L[TXT]

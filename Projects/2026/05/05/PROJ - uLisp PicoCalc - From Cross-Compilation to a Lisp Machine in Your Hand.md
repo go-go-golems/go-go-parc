@@ -226,6 +226,21 @@ All 19 web source documents are archived in `ttmp/.../sources/`.
 - **Write Lisp test suites** that run on native Linux, then port to PicoCalc
 - **Explore the WASM playground** at `eliot-akira.github.io/ulisp-wasm` for interactive tutorials
 
+## KB reviews
+
+- [[KB-PLAYBOOK-TRIAL - Intern Reports for 6 Projects]] (2026-05-11) — concept extraction + classification; C99 native port at 2/3, TFT_eSPI patching at 2/3, deviates from ESP-IDF patterns
+
+## Related KB entries — the *other* firmware architecture we use (not this one; this project uses Arduino-cli instead of ESP-IDF)
+
+**Tribal candidates** (our-specific patterns not yet at 3-project threshold):
+- C99 native port for host testing (2/3) — compile a host-side REPL for fast iteration, then deploy to target via UF2; seen in uLisp PicoCalc, Smalltalk-80 VM (partial)
+- TFT_eSPI patching for RP2040 (2/3) — two-file configuration dance (User_Setups + Setup_Select) with the "blank screen with no error" gotcha; any RP2040 + TFT_eSPI project hits this
+- I2C address routing quirk (1/3) — addresses ≥ 128 route to Wire1 in uLisp; keyboard must use `#x9F` not `#x1F`; discovered by reading source, not documented anywhere
+- Dangerous register gotcha (1/3) — reading keyboard I2C register `0x08` (RST) crashes the STM32 MCU and hangs the I2C bus
+
+**On-Ramp candidates** (lookupable concepts our angle is missing, not yet at 5-project threshold):
+- Arduino-cli cross-compilation (2/5) — headless Arduino builds from the command line, no IDE; our specific workflow with reproducible scripts
+
 ## Project working rule
 
 When resuming this project: read the diary at `ttmp/.../reference/01-diary.md` first, check the postmortem at `ttmp/.../reference/04-postmortem.md` for the full arc, and use the source index at `docs/ulisp-picocalc-source-index.md` to navigate the source. The CLion playbook at `ttmp/.../design/03-playbook-clion-for-arduino-picocalc-development.md` covers IDE setup from scratch. All build scripts are in `ttmp/.../scripts/` with numeric prefixes for execution order.
