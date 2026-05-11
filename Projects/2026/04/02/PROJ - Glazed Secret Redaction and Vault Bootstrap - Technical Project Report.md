@@ -409,3 +409,7 @@ These docs are the best place to look if someone later asks:
 > 3. one source-layer Vault middleware
 > 4. one bootstrap helper instead of a broader configuration framework
 
+
+## KB reviews
+
+- [[KB-BATCH5-infra-secrets-glazed]] (2026-05-11) — concept extraction + classification

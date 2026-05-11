@@ -661,3 +661,11 @@ These knowledge base entries provide orientation for the concepts this project d
 - Spec-first implementation discipline (1/3) — building from a formal specification instead of referencing another implementation as an oracle
 - Regression-trace-driven debugging (1/3) — comparing VM execution against known-good image traces to find divergence
 - Go struct packing for VM word formats (1/3) — mapping Smalltalk's object-pointer encoding onto Go structs
+
+## KB reviews
+
+- [[KB-BATCH4-embedded-hardware]] (2026-05-11) — concept extraction + classification
+
+## Related KB entries
+
+- [[Tribal/goja-embedding-in-go]] — contrast: spec-first discipline vs pragmatic embedding

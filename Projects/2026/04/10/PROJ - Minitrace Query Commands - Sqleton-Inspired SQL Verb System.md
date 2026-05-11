@@ -507,3 +507,7 @@ The annotation system (implemented before this feature, documented in [[PROJ - g
 - [[PROJ - Sqleton SQL Command Cleanup]] — the sqleton-side work that validated the format
 - [[PROJ - go-minitrace - Annotation System]] — prerequisite boundary event metadata
 - [[Code Review with go-minitrace]] — methodology for transcript-driven review
+
+## KB reviews
+
+- [[KB-BATCH5-infra-secrets-glazed]] (2026-05-11) — concept extraction + classification

@@ -204,3 +204,7 @@ terraform plan -no-color
 
 > [!important]
 > Treat cloud-init as first-boot only. After the cluster exists, prefer moving configuration into GitOps rather than modifying bootstrap and risking Terraform-driven server replacement.
+
+## KB reviews
+
+- [[KB-BATCH5-infra-secrets-glazed]] (2026-05-11) — concept extraction + classification

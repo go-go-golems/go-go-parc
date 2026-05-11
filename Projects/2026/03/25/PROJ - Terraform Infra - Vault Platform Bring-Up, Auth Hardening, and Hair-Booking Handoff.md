@@ -386,3 +386,7 @@ Representative session commits:
 
 > [!important]
 > Treat Vault changes as multi-plane work. Repo files, host-level deployment behavior, live Vault auth/policy state, and secret-handling workflows must all be documented together. If one of those planes is changed without updating the matching ticket docs and diary, the system will quickly become difficult to reason about and unsafe to operate.
+
+## KB reviews
+
+- [[KB-BATCH5-infra-secrets-glazed]] (2026-05-11) — concept extraction + classification

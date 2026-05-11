@@ -314,3 +314,11 @@ That means the project ended with two useful conclusions:
 
 > [!important]
 > When debugging low-level runtime crashes, keep reducing the problem until the smallest toxic step is obvious. Do not let a later visible crash site define the theory of the bug.
+
+## KB reviews
+
+- [[KB-BATCH4-embedded-hardware]] (2026-05-11) — concept extraction + classification
+
+## Related KB entries
+
+- **microVM as execution boundary** (3/3) → **READY** — WAMR as execution boundary on ESP32-S3

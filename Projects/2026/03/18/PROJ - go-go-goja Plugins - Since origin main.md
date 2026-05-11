@@ -620,3 +620,16 @@ That rule explains why the good parts of this branch feel coherent:
 - REPL surfaces consume runtime-owned state instead of inventing their own state model
 
 If that rule holds for future work, the branch should stay maintainable even as the feature surface grows.
+
+## KB reviews
+
+- [[KB-BATCH3-goja-ecosystem]] (2026-05-11) — concept extraction + classification
+
+## Related KB entries
+
+- [[Tribal/goja-embedding-in-go]] — the Go+JS runtime pattern
+
+**Tribal candidates** (not yet at 3-project threshold):
+- HashiCorp go-plugin for JS modules (1/3)
+- Plugin authoring SDK (1/3)
+- Runtime-scoped docs hub (1/3)

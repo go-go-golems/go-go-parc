@@ -494,3 +494,12 @@ The diary is worth reading because it captures the exact sequence of false start
 
 > [!important]
 > When the full browser app behaves strangely, first prove the transport with the smallest page and the smallest wire protocol possible. Only then move back up into the richer app.
+
+## KB reviews
+
+- [[KB-BATCH4-embedded-hardware]] (2026-05-11) — concept extraction + classification
+
+## Related KB entries
+
+- **reduction-ladder debugging** (2/3) — smoke.html pattern
+- [[Tribal/browser-side-processing-for-embedded]] — browser as protocol engine (CREATED)

@@ -71,6 +71,15 @@ Alternatives we considered and rejected:
 - [[PROJ - Capsule Lab - A Sandboxed JS Capsule Runtime in the Browser]] — goja-in-WASM sandbox with op-stream API
 - [[PROJ - Loupedeck Live Hello World - Serial Go Driver]] — goja embedded in Go process for SVG/animation
 - [[PROJ - go-go-goja Plugins - Since origin main]] — module system and require() wiring
+- [[PROJ - go-go-goja REPL API - Profiles, IIFE Rewriting, and AST-Driven Session Semantics]] — profile-based execution, IIFE rewrite, session semantics
+- [[PROJ - go-go-goja Node-like Primitives - Technical Deep Dive]] — runtime factory composition, data-only vs host-access module split
+- [[PROJ - JS Discord Bot Framework]] — goja-based bot host with defineBot DSL
+- [[PROJ - go-go-goja jsverbs - JavaScript to Glazed Commands]] — JS-defined Glazed commands
+
+**Variations** (projects that extend this pattern):
+- **Profile-based execution** (REPL API) — raw/interactive/persistent profiles configure session behavior on top of the base embedding
+- **Runtime factory composition** (Node-like Primitives) — engine.NewBuilder() with module specs and runtime initializers for explicit capability selection
+- **JS-defined Glazed commands** (jsverbs) — .js files scanned as command definitions, exposed as Glazed verbs
 
 ## Common mistakes
 
@@ -85,6 +94,9 @@ Alternatives we considered and rejected:
 5. **Circular references in JS objects leak memory** — goja's GC can't collect JS objects that reference each other in a cycle if Go also holds a reference. Break cycles explicitly or let Go references go out of scope.
 
 ## Variations
+
+> [!note]
+> For session semantics, thread discipline, and async patterns, see the companion entry: [[Tribal/goja-execution-model]].
 
 - **goja-in-WASM** (Capsule Lab pattern): The goja Runtime runs inside a WASM kernel. The browser host calls `dispatch()` and receives an op stream. This adds a serialization boundary but gives complete control over the sandbox.
 

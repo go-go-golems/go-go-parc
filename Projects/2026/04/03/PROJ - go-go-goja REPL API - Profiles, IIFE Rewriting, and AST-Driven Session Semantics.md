@@ -1319,3 +1319,19 @@ The main next step is:
 After that, the older prototype-oriented surfaces can be retired more confidently.
 
 The important thing now is not to lose the clarity of the current split. `replapi` should stay small and explicit. `replsession` should stay the session brain. `repldb` should stay the durable memory. As long as those boundaries remain clear, the subsystem can keep growing without collapsing back into "just a web REPL with some SQLite attached".
+
+## KB reviews
+
+- [[KB-BATCH3-goja-ecosystem]] (2026-05-11) — concept extraction + classification
+
+## Related KB entries
+
+- [[Tribal/goja-embedding-in-go]] — the Go+JS runtime pattern
+- [[Tribal/goja-execution-model]] — sessions + thread discipline (CREATED)
+
+**Tribal candidates** (not yet at 3-project threshold):
+- REPL session semantics (3/3) → **READY**
+- IIFE cell rewrite (2/3)
+- Runtime owner thread discipline (3/3) → **READY**
+- Promise handling in evaluation (2/3)
+- Replay-based restore (1/3)

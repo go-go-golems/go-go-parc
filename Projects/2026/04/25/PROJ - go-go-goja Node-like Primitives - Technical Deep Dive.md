@@ -599,3 +599,17 @@ The working rule for this project is:
 That rule is why `Buffer` is global, `path` is default, `fs` is opt-in, and global `process` requires a named initializer. It keeps the runtime pleasant for scripts without making the host boundary invisible.
 
 The implementation is successful because it does not treat Node compatibility as an all-or-nothing identity. It treats Node as a vocabulary. `go-go-goja` can speak enough of that vocabulary to be useful, while still being an embedded Go runtime whose capabilities are composed deliberately.
+
+## KB reviews
+
+- [[KB-BATCH3-goja-ecosystem]] (2026-05-11) — concept extraction + classification
+
+## Related KB entries
+
+- [[Tribal/goja-embedding-in-go]] — the Go+JS runtime pattern
+- [[Tribal/goja-execution-model]] — sessions + thread discipline (CREATED)
+
+**Tribal candidates** (not yet at 3-project threshold):
+- Data-only vs host-access module split (2/3)
+- Runtime owner thread discipline (3/3) → **READY**
+- Runtime-scoped module registrars (2/3)

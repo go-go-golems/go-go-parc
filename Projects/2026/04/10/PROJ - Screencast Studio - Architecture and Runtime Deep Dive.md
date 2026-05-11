@@ -534,3 +534,12 @@ This is a strong architecture for a project of this size.
 
 - [[Process Supervision and Cancellation: Designing Reliable Long-Lived Local Servers]]
 - [[Designing Process Supervision and Cancellation in Local Tools]]
+
+## KB reviews
+
+- [[KB-BATCH2-ZK-Sqleton-Firecracker-ulisp-screencast-agent]] (2026-05-11) — concept extraction + classification
+
+## Related KB entries
+
+- [[Tribal/dsl-normalized-config-compiled-plan]] — DSL → EffectiveConfig → CompiledPlan (CREATED)
+- [[Tribal/microvm-as-execution-boundary]] — ffmpeg as execution engine behind the plan

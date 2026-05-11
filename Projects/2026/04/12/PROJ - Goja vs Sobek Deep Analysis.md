@@ -350,3 +350,15 @@ Key repo locations:
 > 3. You want Renovate-managed dependencies
 >
 > The ~4.6% code size increase is modest, but the conceptual overhead of ESM (event loops, module resolution, async evaluation) is significant if you don't actually need it.
+
+## KB reviews
+
+- [[KB-BATCH3-goja-ecosystem]] (2026-05-11) — concept extraction + classification
+
+## Related KB entries
+
+- [[Tribal/goja-embedding-in-go]] — the Go+JS runtime pattern
+
+**Tribal candidates** (not yet at 3-project threshold):
+- ESM support in Go JS engines (1/5) 🌐 Domain seed
+- Goja vs Sobek decision framework (1/3)

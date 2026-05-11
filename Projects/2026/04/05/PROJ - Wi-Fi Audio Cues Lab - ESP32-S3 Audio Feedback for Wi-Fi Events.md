@@ -322,3 +322,11 @@ Sibling lab projects in the same repo:
 > Bring-up must follow the validated sequence: console first, then codec reachability, then direct tone, then queued cues, then event-driven cues.
 > Never debug hardware routing, tone generation, queueing, and event semantics at the same time.
 > Use `tone` to prove the audio path before investigating cue-level issues.
+
+## KB reviews
+
+- [[KB-BATCH4-embedded-hardware]] (2026-05-11) — concept extraction + classification
+
+## Related KB entries
+
+- [[Tribal/esp-idf-firmware-patterns]] — textbook instance

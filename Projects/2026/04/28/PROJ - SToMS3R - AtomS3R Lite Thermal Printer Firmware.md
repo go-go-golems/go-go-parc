@@ -358,3 +358,13 @@ These knowledge base entries provide orientation for the concepts this project d
 - Browser-side image processing for embedded devices (2/3) — heavy computation in browser, only final bitmap to ESP32
 - AtomS3R Lite over ATOM Lite for printer projects (1/3) — ESP32-S3 frees all GPIO pins, 8 MB PSRAM
 - Pin-swapping for K118 cable at runtime (1/3) — straight-through cable needs TX/RX swap in software
+
+## KB reviews
+
+- [[KB-BATCH4-embedded-hardware]] (2026-05-11) — concept extraction + classification
+
+## Related KB entries
+
+- [[Tribal/esp-idf-firmware-patterns]] — textbook instance
+- [[On-Ramp/esc-pos-thermal-printer]] — GS v 0 raster, bit packing, UART timing
+- [[Tribal/browser-side-processing-for-embedded]] — browser-side dithering + bit-packing (CREATED)

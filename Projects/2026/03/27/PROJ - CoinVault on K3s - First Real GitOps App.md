@@ -250,3 +250,7 @@ go test ./cmd/coinvault/... ./internal/bootstrap/... -count=1
 
 > [!important]
 > Treat application migration as both an infrastructure problem and an application-runtime problem. A `Healthy` pod is only the midpoint; the real finish line is correct authenticated behavior with real data.
+
+## KB reviews
+
+- [[KB-BATCH5-infra-secrets-glazed]] (2026-05-11) — concept extraction + classification

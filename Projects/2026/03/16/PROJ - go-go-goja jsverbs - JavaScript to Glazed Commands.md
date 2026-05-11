@@ -176,3 +176,14 @@ The current user-facing help content lives in:
 > [!important]
 > Prefer strict static metadata, shared binding contracts, and explicit failure modes over clever inference or permissive parsing.
 > This subsystem is much easier to maintain when scanning stays declarative and runtime behavior follows the same plan the schema used.
+
+## KB reviews
+
+- [[KB-BATCH3-goja-ecosystem]] (2026-05-11) — concept extraction + classification
+
+## Related KB entries
+
+- [[Tribal/goja-embedding-in-go]] — the Go+JS runtime pattern
+
+**Tribal candidates** (not yet at 3-project threshold):
+- JS-defined Glazed commands (2/3)

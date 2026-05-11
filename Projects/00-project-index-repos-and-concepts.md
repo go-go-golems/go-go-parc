@@ -311,7 +311,268 @@ These 6 projects were analyzed as part of the KB-PLAYBOOK-TRIAL intern assignmen
 
 ---
 
-### 8. AUTODISCO — Automerge Discord App Architecture
+## Batch 3: goja/JS Runtime Ecosystem (6 projects)
+
+These 6 projects were analyzed as part of the goja ecosystem batch. See [[KB-BATCH3-goja-ecosystem]] for the full analysis.
+
+### 15. go-go-goja REPL API — Profiles, IIFE Rewriting, and Session Semantics
+
+**Date**: 2026-04-03
+
+**Summary**: The REPL subsystem of go-go-goja, implementing profile-based execution (raw/interactive/persistent), IIFE cell rewrites for lexical capture, replay-based session restore, and SQLite-backed persistence. The key insight: a JavaScript REPL session is not just a live VM — it's a product concept with explicit binding capture, execution policy, and optional durable history.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `go-go-goja` (workspace) | pkg/replapi, pkg/replsession, pkg/repldb |
+
+**Tribal entries**: [[Tribal/goja-embedding-in-go]] (variation: profile-based execution), [[Tribal/goja-execution-model]] (sessions + thread discipline)
+
+**Tribal candidates**:
+- IIFE cell rewrite (2/3) — async IIFE wrapping for lexical capture + last-expression semantics
+- Promise handling in evaluation (2/3) — detect promise-like results and await before building cell response
+- Replay-based restore (1/3) — re-execute persisted source into a fresh runtime
+- Static analysis for cell planning (1/3) — jsparse + Tree-sitter for declarations, unresolved refs, final expression
+- Console capture / JSDoc sentinels (1/3) — structured console events and no-op doc helpers
+
+**On-Ramp candidates**: None new
+
+### 16. go-go-goja Node-like Primitives — Technical Deep Dive
+
+**Date**: 2026-04-25
+
+**Summary**: Node.js-like primitive modules in go-go-goja: Buffer, URL, fs, path, os, crypto, time, timer. The key design: data-only primitives are default-enabled; host-access modules (fs, os, exec, database) require explicit opt-in. Async native modules follow the goroutine → Promise pattern.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `go-go-goja` (workspace) | engine/factory.go, modules/fs/, modules/path/, modules/os/, modules/crypto/ |
+
+**Tribal entries**: [[Tribal/goja-embedding-in-go]] (variation: runtime factory composition with engine.NewBuilder())
+
+**Tribal candidates**:
+- Data-only vs host-access module split (2/3) — safe defaults vs opt-in host modules; seen in Node-like Primitives, Capsule Lab
+- Runtime-scoped module registrars (2/3) — per-runtime module registration and cleanup; seen in Plugins, Node-like Primitives
+- Granular module selection (1/3) — DefaultRegistryModule("fs") vs DefaultRegistryModules()
+- process global opt-in (1/3) — require-able but not installed globally
+- Module specs vs runtime initializers (1/3) — two composition APIs: require registry vs live VM mutation
+
+**On-Ramp candidates**: None new
+
+### 17. go-go-goja Plugins — Since origin main
+
+**Date**: 2026-03-18
+
+**Summary**: Full external plugin stack for go-go-goja using HashiCorp go-plugin: plugin discovery, manifest validation, subprocess lifecycle, authoring SDK, docs hub, and REPL integration. The key rule: the host runtime is the center of truth; plugins extend it through controlled RPC bridges, never by owning the VM.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `go-go-goja` (workspace) | pkg/hashiplugin/, pkg/docaccess/, plugins/examples/ |
+
+**Tribal candidates**:
+- HashiCorp go-plugin for JS modules (1/3) — external subprocess providing JS modules via RPC
+- Plugin authoring SDK (1/3) — MustModule/Function/Object/Method/Call/Serve DSL
+- Plugin discovery + manifest validation (1/3)
+- Runtime-scoped docs hub (1/3) — docaccess.Hub with providers (Glazed, jsdoc, plugin manifest)
+- Docs-aware REPL autocomplete (1/3) — plugin docs feeding completion candidates
+- Result normalization before structpb encoding (1/3) — rewriting Go values into structpb-friendly shapes
+
+**On-Ramp candidates**: None new
+
+### 18. Goja vs Sobek Deep Analysis
+
+**Date**: 2026-04-12
+
+**Summary**: Comprehensive comparison of goja and its Grafana-maintained fork Sobek. Three findings: (1) Sobek tracks Goja with near-zero lag, (2) ESM is the only major difference (+4.6% code size, +5 files), (3) Sobek exists to power k6 with modern JS module capabilities.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `2026-04-12--goja-vs-sobek` | Clones of both repos, analysis scripts |
+
+**Tribal candidates**:
+- Goja vs Sobek decision framework (1/3) — when to choose Sobek (ESM, k6, Renovate)
+
+**On-Ramp candidates**: ESM support in Go JS engines (1/5) 🌐 Domain seed
+
+### 19. JS Discord Bot Framework
+
+**Date**: 2026-04-20
+
+**Summary**: Go Discord bot host running JavaScript bot scripts via goja with a clean defineBot DSL. Commands, components, modals, events, and runtime config. Key decision: single-bot per process (not multi-bot composition).
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `2026-04-20--js-discord-bot` | internal/jsdiscord/, internal/bot/, internal/botcli/ |
+
+**Tribal entries**: Contributes to [[Tribal/goja-execution-model]] (owner thread discipline variation)
+
+**Tribal candidates**:
+- goja-based Discord bot host (1/3)
+- defineBot DSL (1/3) — command/component/modal/event registration
+- Single-bot per process (1/3) — architectural decision against multi-bot composition
+- Two-stage Glazed parsing for runtime config (2/3) — pre-parse static flags, then dynamically build schema
+- UI DSL for Discord (1/3) — message/embed/button/select/form/card/confirm builders
+
+**On-Ramp candidates**: None new
+
+### 20. go-go-goja jsverbs — JavaScript to Glazed Commands
+
+**Date**: 2026-03-16
+
+**Summary**: JavaScript-defined Glazed commands — .js files scanned as command definitions, exposed as Glazed verbs. Static metadata extraction via AST, source overlay runtime preserving relative require(), shared binding plan between schema and execution.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `go-go-goja` (workspace) | pkg/jsverbs/ |
+
+**Tribal candidates**:
+- JS-defined Glazed commands (2/3) — JS files as first-class Glazed verb definitions; seen in jsverbs, (Glazed help?)
+- Static metadata extraction via AST (1/3)
+- Source overlay runtime (1/3) — in-memory loader preserving relative require()
+- Shared binding plan (1/3) — one contract between schema generation and runtime invocation
+- Multi-source scanning (1/3) — ScanDir/ScanFS/ScanSource/ScanSources
+
+**On-Ramp candidates**: None new
+
+---
+
+## Batch 4: Embedded/Hardware Ecosystem (6 projects)
+
+These 6 projects were analyzed as part of the embedded/hardware batch. See [[KB-BATCH4-embedded-hardware]] for the full analysis.
+
+### 21. Smalltalk-80 VM — Blue Book Interpreter in Go
+
+**Date**: 2026-03-18
+
+**Summary**: A Blue-Book-first Smalltalk-80 interpreter in Go. The VM matches the execution model from the canonical specification closely enough to boot the real image, run the scheduler, and execute real image methods. Key insight: when behavior diverges, assume specification mismatch before assuming the image is strange.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `2026-03-17--smalltalk` | pkg/interpreter/, pkg/objectmemory/, pkg/image/ |
+
+**Tribal entries**: [[Tribal/goja-embedding-in-go]] (contrast: spec-first discipline vs pragmatic embedding)
+
+**Tribal candidates**:
+- Spec-first VM implementation (2/3) — building from formal spec, not referencing another implementation as oracle
+- Regression-trace-driven debugging (1/3) — comparing VM execution against known-good image traces
+- SmallInteger boundary bugs (1/3) — positive integers exceeding SmallInteger range cause silent corruption
+- Method cache hash translation (1/3) — wrong hash causes semantic corruption, not just performance loss
+- Context lifetime bugs as disguised send failures (1/3) — bugs in context creation appear later as unrelated crashes
+- Primitive argument widening (1/3) — primitives should accept non-negative integers, not just SmallIntegers
+
+**On-Ramp candidates**: None new
+
+### 22. PaperS3 WAMR Debugging — Embedded Wasm Root Cause
+
+**Date**: 2026-03-23
+
+**Summary**: A long debugging campaign proving that WAMR's interpreter loader mutates flash-mapped embedded Wasm buffers in place, causing later PSRAM crashes. Key insight: the crash site is not the cause site. Shrink the problem until the smallest toxic step is obvious.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `esp32-s3-m5` (workspace) | 0079-.../0082-... firmware dirs, ESP-39..46 tickets |
+
+**Tribal entries**: Contributes to **microVM as execution boundary** (3/3 → READY)
+
+**Tribal candidates**:
+- Reduction-ladder debugging (2/3) — shrink until smallest toxic step is obvious
+- Flash-mapped buffer mutability bug (1/3) — WAMR rewrites const strings on read-only flash
+- Cross-board A/B debugging (1/3) — using AtomS3R as control to separate board vs runtime bugs
+
+**On-Ramp candidates**: None new
+
+### 23. Cardputer Web Serial Demo — Browser-to-Device over Web Serial
+
+**Date**: 2026-04-02
+
+**Summary**: M5Stack Cardputer ADV firmware speaks NDJSON over USB Serial/JTAG, browser connects via Web Serial with either Raw JS or Go→WASM protocol engine. Key insight: when the full browser app behaves strangely, prove the transport with the smallest possible page first.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `2026-04-02--cardputer-web-demo` | firmware/, wasm/, web/ |
+
+**Tribal entries**: Contributes to **reduction-ladder debugging** (2/3 — smoke.html pattern)
+
+**Tribal candidates**:
+- NDJSON as wire protocol for embedded (2/3) — simple, observable, debuggable
+- Web Serial for browser-to-embedded (1/3)
+- Go→WASM protocol engine A/B with Raw JS (1/3)
+- ESP-IDF driver_ng conflict with legacy I2C driver (1/3)
+- Board-specific GPIO pin remapping (1/3)
+
+**On-Ramp candidates**: None new
+
+### 24. SToMS3R — AtomS3R Lite Thermal Printer Firmware
+
+**Date**: 2026-04-28
+
+**Summary**: ESP-IDF firmware for AtomS3R Lite driving K118 58mm thermal printer. 16 esp_console commands + web UI with browser-side Floyd-Steinberg dithering. Key insight: ESP32 does zero image processing — browser does dithering, bit-packing, and POSTs raw 1-bit bitmap.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `esp32-s3-m5/stoms3r` (workspace) | 2,291 lines of C and HTML across 14 source files |
+
+**Tribal entries**: [[Tribal/esp-idf-firmware-patterns]] (textbook instance: esp_console + web UI + UART + NVS)
+
+**Tribal candidates**:
+- Buffer-full-body-before-UART (2/3) — read entire HTTP body before single uart_write_bytes()
+- Browser-side image processing for embedded (2/3) — heavy computation in browser, only final bitmap to ESP32
+- GPIO pin swap at runtime (1/3) — uart_set_pin() for straight-through K118 cable
+
+**On-Ramp candidates**: Directly exercises [[On-Ramp/esc-pos-thermal-printer]], [[On-Ramp/dithering-and-rasterization]], [[Fundamentals/encoding-and-framing]]
+
+### 25. Wi-Fi Audio Cues Lab — ESP32-S3 Audio Feedback for Wi-Fi Events
+
+**Date**: 2026-04-05
+
+**Summary**: ESP-IDF firmware for AtomS3R-CAM + Atomic Echo Base: USB Serial/JTAG REPL for Wi-Fi station management, data-driven audio cues through ES8311 codec. Key insight: bring-up must follow strict sequence — console → codec → tone → cues → events. Never debug multiple layers simultaneously.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `kball/esp-projects/wifi_audio_cues_lab` | main/ with wifi_manager, audio_cue_player, audio_backend_es8311 |
+
+**Tribal entries**: [[Tribal/esp-idf-firmware-patterns]] (textbook instance: esp_console + NVS + WiFi STA)
+
+**Tribal candidates**:
+- Bring-up sequence discipline (2/3) — bring up one layer at a time, never debug multiple layers simultaneously
+- Data-driven audio cue system (1/3) — static note-step tables, queue, event-driven playback
+- ES8311 codec bring-up (1/3) — I2C, I/O expander unmute, I2S TX, clock tree
+- Phase accumulator tone generation (1/3)
+- Pending-only queue deduplication (1/3)
+
+**On-Ramp candidates**: None new
+
+### 26. uLisp PicoCalc Firmware Split — CMake Modularization Report
+
+**Date**: 2026-05-06
+
+**Summary**: Monolithic Arduino .ino sketch → flat side-by-side .h/.cpp modules with CMake-orchestrated Arduino-Pico bridge. Generated forward-declarations deleted, replaced by focused subsystem headers. Key insight: keep the project flat until the seams stop moving.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `2026-05-05--ulisp-picocalc` | ulisp-picocalc/ with 20+ extracted modules |
+
+**Tribal entries**: [[Tribal/goja-embedding-in-go]] (contrast: Arduino sketch preprocessing vs explicit C++ modules)
+
+**Tribal candidates**:
+- Monolithic sketch → flat C++ module split (1/3) — process knowledge, not architecture
+- Arduino sketch preprocessing as migration hazard (1/3) — hidden prototypes, implicit Arduino.h
+- Translation-unit-local macros are behavior (1/3) — #define Serial Serial1 lost across .cpp boundaries
+- CMake bridge for Arduino-Pico builds (1/3)
+- UF2 Loader deployment workflow (1/3)
+- Shared error messages / C++ internal linkage (1/3)
+
+**On-Ramp candidates**: None new
 
 **Date**: 2026-05-09
 
@@ -336,6 +597,94 @@ These 6 projects were analyzed as part of the KB-PLAYBOOK-TRIAL intern assignmen
 **Fundamental concepts this project rests on**:
 - Distributed consistency (CAP, eventual consistency, commutative operations)
 - Encoding and framing (WebSocket sync message format)
+
+---
+
+## Batch 5: Infrastructure/Secrets/Glazed (6 projects)
+
+Strategic batch targeting 2/3 candidates near threshold. See [[KB-BATCH5-infra-secrets-glazed]] for the full analysis.
+
+### 27. Vault on K3s — Auth and Secret Delivery Platform
+
+**Date**: 2026-03-27
+
+**Summary**: Vault on K3s with Raft + AWS KMS auto-unseal, Keycloak OIDC for humans, Kubernetes auth for machines, VSO for GitOps-friendly secret delivery. Key insight: secret intent in Git, secret values in Vault.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `2026-03-27--hetzner-k3s` | gitops/applications/vault.yaml, vault/policies/, vault/roles/ |
+
+**Tribal entries**: Contributes to **host-mediated secret delivery** (3/3 → READY)
+
+**Tribal candidates**:
+- Separate human auth (OIDC) from machine auth (AppRole/K8s) (2/3)
+- Keycloak group-gated Vault access (2/3)
+
+### 28. Glazed Secret Redaction and Vault Bootstrap
+
+**Date**: 2026-04-02
+
+**Summary**: Two-phase Glazed framework work: central secret redaction, then Vault source middleware with bootstrap parsing. Key insight: only TypeSecret fields eligible for Vault hydration.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `add-vault-middleware-to-glazed/glazed` | pkg/cmds/fields/sensitive.go, pkg/cmds/sources/vault.go |
+
+**Tribal entries**: Contributes to **host-mediated secret delivery** (3/3 → READY), **app config vs command config** (3/3 → READY)
+
+### 29. Minitrace Query Commands — Sqleton-Inspired SQL Verb System
+
+**Date**: 2026-04-10
+
+**Summary**: .sql files with YAML preambles → catalog → CLI + API + UI forms. Key insight: SQL is a command definition format.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `corporate-headquarters/go-minitrace` | pkg/minitracecmd/ |
+
+**Tribal entries**: Contributes to **SQL as first-class command source** (3/3 → READY)
+
+### 30. Hetzner K3s Platform — Single-Node GitOps Bring-Up
+
+**Date**: 2026-03-27
+
+**Summary**: Terraform creates, cloud-init bootstraps, Argo CD reconciles. Key insight: the platform is the product, not Kubernetes.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `2026-03-27--hetzner-k3s` | gitops/, terraform/ |
+
+**Tribal candidates**: Terraform/cloud-init/Argo three-phase bring-up (1/3)
+
+### 31. CoinVault on K3s — First Real GitOps App
+
+**Date**: 2026-03-27
+
+**Summary**: First real app migration onto K3s platform: Keycloak auth, VSO secrets, MySQL, PVC, HTTPS. Key insight: a platform is only real once a real workload lands on it.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `2026-03-27--hetzner-k3s` | gitops/applications/coinvault.yaml |
+
+**Tribal entries**: [[Tribal/keycloak-oauth-in-go-services]] (Keycloak redirect for K3s hostname)
+
+### 32. Terraform Infra — Vault Platform Bring-Up
+
+**Date**: 2026-03-25
+
+**Summary**: Coolify-hosted Vault, Keycloak OIDC for humans, AppRole for machines, KV layout, first app handoff. Four control planes in one session.
+
+**Repos**:
+| Path | Notes |
+|------|-------|
+| `terraform` (wesen) | vault/ module, keycloak/ module |
+
+**Tribal entries**: Contributes to **host-mediated secret delivery** (3/3 → READY)
 
 ---
 
@@ -365,22 +714,72 @@ These 6 projects were analyzed as part of the KB-PLAYBOOK-TRIAL intern assignmen
 | **Pin-swapping for K118 cable at runtime** | SToMS3R | 1/3 |
 | **AtomS3R Lite over ATOM Lite for printer** | SToMS3R | 1/3 |
 | **goja native module registration** | goja-embedding (generic), ZK Tool (Obsidian), Loupedeck (hardware) | 2/3 |
-| **SQL as first-class command source** | Sqleton, Minitrace Query Commands | 2/3 |
-| **App config vs command config separation** | Sqleton, BYOK Host | 2/3 |
-| **MicroVM as execution boundary** | Firecracker VM, pi-sandbox | 2/3 |
-| **Host-mediated secret delivery** | Firecracker VM, BYOK Host (credential mediation) | 2/3 |
+| **SQL as first-class command source** | Sqleton, Minitrace Query Commands | 3/3 → **READY** |
+| **App config vs command config separation** | Sqleton, BYOK Host, Glazed Vault (bootstrap parsing) | 3/3 → **READY** |
+| **MicroVM as execution boundary** | Firecracker VM, pi-sandbox, PaperS3 WAMR | 3/3 → CREATED |
+| **Host-mediated secret delivery** | Firecracker VM, BYOK Host, Vault/Glazed/Terraform Vault | 3/3 → **READY** |
 | **Three-layer credential separation** | Wish Git, Agent Enroll | 2/3 |
-| **C99 native port for host testing** | uLisp PicoCalc, Smalltalk-80 VM (partial) | 2/3 |
+| **C99 native port for host testing** | uLisp PicoCalc | 1/3 |
 | **TFT_eSPI patching for RP2040** | uLisp PicoCalc, (other display projects) | 2/3 |
-| **DSL → normalized config → compiled plan** | Screencast Studio, Almanach Studio | 2/3 |
+| **Bring-up sequence discipline** | Wi-Fi Audio Cues Lab, SToMS3R | 2/3 |
+| **Reduction-ladder debugging** | PaperS3 WAMR, Cardputer Web Serial (smoke.html) | 2/3 |
+| **Bring-up sequence discipline** | Wi-Fi Audio Cues Lab, SToMS3R | 2/3 |
+| **Spec-first VM implementation** | Smalltalk-80 VM (Blue Book), uLisp PicoCalc (from spec) | 2/3 |
+| **Reduction-ladder debugging** | PaperS3 WAMR, Cardputer Web Serial (smoke.html) | 2/3 |
+| **Buffer-full-body-before-UART** | SToMS3R, PaperS3 WAMR (buffer before load) | 2/3 |
+| **NDJSON as wire protocol for embedded** | Cardputer Web Serial, SToMS3R | 2/3 |
+| **Separate human auth (OIDC) from machine auth** | Vault on K3s, Terraform Vault | 2/3 |
+| **Keycloak group-gated Vault access** | Vault on K3s, Terraform Vault | 2/3 |
+| **Data-only vs host-access module split** | Node-like Primitives, Capsule Lab | 2/3 |
+| **Runtime-scoped module registrars** | Plugins, Node-like Primitives | 2/3 |
+| **Two-stage Glazed parsing for runtime config** | JS Discord Bot, (other Glazed apps?) | 2/3 |
+| **JS-defined Glazed commands** | jsverbs, (Glazed help?) | 2/3 |
 | **GStreamer pipeline construction from Go** | Screencast Studio | 1/3 |
 | **Runtime seam for engine migration** | Screencast Studio | 1/3 |
 | **GLib main loop coexistence with Go** | Screencast Studio | 1/3 |
+| **Regression-trace-driven debugging** | Smalltalk-80 VM | 1/3 |
+| **SmallInteger boundary bugs** | Smalltalk-80 VM | 1/3 |
+| **Method cache hash translation** | Smalltalk-80 VM | 1/3 |
+| **Context lifetime bugs as disguised send failures** | Smalltalk-80 VM | 1/3 |
+| **Primitive argument widening** | Smalltalk-80 VM | 1/3 |
+| **Flash-mapped buffer mutability bug** | PaperS3 WAMR | 1/3 |
+| **Cross-board A/B debugging** | PaperS3 WAMR | 1/3 |
+| **Web Serial for browser-to-embedded** | Cardputer Web Serial | 1/3 |
+| **Go→WASM protocol engine A/B** | Cardputer Web Serial | 1/3 |
+| **ESP-IDF driver_ng conflict** | Cardputer Web Serial | 1/3 |
+| **GPIO pin swap at runtime** | SToMS3R | 1/3 |
+| **Data-driven audio cue system** | Wi-Fi Audio Cues Lab | 1/3 |
+| **ES8311 codec bring-up** | Wi-Fi Audio Cues Lab | 1/3 |
+| **Phase accumulator tone generation** | Wi-Fi Audio Cues Lab | 1/3 |
+| **Pending-only queue deduplication** | Wi-Fi Audio Cues Lab | 1/3 |
+| **Monolithic sketch → flat C++ module split** | uLisp PicoCalc Firmware Split | 1/3 |
+| **Arduino sketch preprocessing hazard** | uLisp PicoCalc Firmware Split | 1/3 |
+| **Translation-unit-local macros are behavior** | uLisp PicoCalc Firmware Split | 1/3 |
+| **CMake bridge for Arduino-Pico** | uLisp PicoCalc Firmware Split | 1/3 |
+| **UF2 Loader deployment** | uLisp PicoCalc Firmware Split | 1/3 |
+| **Shared error messages / internal linkage** | uLisp PicoCalc Firmware Split | 1/3 |
 | **Canonical request signing** | Agent Enroll | 1/3 |
 | **Opaque scoped bearer tokens** | Agent Enroll | 1/3 |
 | **Enrollment tokens (one-time, hash-only)** | Agent Enroll | 1/3 |
 | **ZK note routing logic** | ZK Tool | 1/3 |
 | **Ext4 workspace as boundary artifact** | Firecracker VM | 1/3 |
+| **HashiCorp go-plugin for JS modules** | Plugins | 1/3 |
+| **process global opt-in** | Node-like Primitives | 1/3 |
+| **HashiCorp go-plugin for JS modules** | Plugins | 1/3 |
+| **Plugin authoring SDK** | Plugins | 1/3 |
+| **Plugin discovery + manifest validation** | Plugins | 1/3 |
+| **Runtime-scoped docs hub** | Plugins | 1/3 |
+| **Docs-aware REPL autocomplete** | Plugins | 1/3 |
+| **Result normalization before structpb** | Plugins | 1/3 |
+| **Goja vs Sobek decision framework** | Goja vs Sobek | 1/3 |
+| **goja-based Discord bot host** | JS Discord Bot | 1/3 |
+| **defineBot DSL** | JS Discord Bot | 1/3 |
+| **Single-bot per process** | JS Discord Bot | 1/3 |
+| **UI DSL for Discord** | JS Discord Bot | 1/3 |
+| **Static metadata extraction via AST** | jsverbs | 1/3 |
+| **Source overlay runtime** | jsverbs | 1/3 |
+| **Shared binding plan** | jsverbs | 1/3 |
+| **Multi-source scanning** | jsverbs | 1/3 |
 
 ### On-Ramp candidates (trigger at 5 projects)
 
@@ -393,9 +792,10 @@ These 6 projects were analyzed as part of the KB-PLAYBOOK-TRIAL intern assignmen
 | **Go→WASM compilation** | Capsule Lab, SQLide, JSON Flattener, VT100, Codebase Browser | 5/5 → **READY** |
 | **goja ECMAScript interpreter** | Capsule Lab, Loupedeck, go-go-goja ecosystem | 2/5 (from 8-project sample; 52/5 in full library) |
 | **CRDTs and local-first architecture** | AUTODISCO | 1/5 (from 8-project sample) |
-| **GStreamer for Go programmers** | Screencast Studio, (future media projects) | 2/5 |
-| **Arduino-cli cross-compilation** | uLisp PicoCalc, (other Arduino projects) | 2/5 |
+| **GStreamer for Go programmers** | Screencast Studio, (future media projects) | 2/5 🌐 Domain seed |
+| **Arduino-cli cross-compilation** | uLisp PicoCalc, (other Arduino projects) | 2/5 🌐 Domain seed |
 | **Obsidian CLI from Go** | ZK Tool | 1/5 |
+| **ESM support in Go JS engines** | Goja vs Sobek | 1/5 🌐 Domain seed |
 
 ### Fundamental candidates (trigger when supporting 2+ KB entries)
 
@@ -423,6 +823,13 @@ Based on the candidate counts across the full 304-project library (not just the 
 5. **Serial Protocols: Talking to Hardware from Go** — 17 projects
 6. **SQLite as Application Database in Go** — 84 projects
 7. **Application-Native Authorization** — 3 projects (BYOK Host, Wish Git, Agent Enroll) ← **NEW**
+8. **goja Execution Model** — 5 projects (REPL API, Geppetto/Pinocchio, Loupedeck, Node-like Primitives, JS Discord Bot) ← **NEW**
+9. **MicroVM as Execution Boundary** — 3 projects (Firecracker VM, pi-sandbox, PaperS3 WAMR) ← **NEW**
+10. **DSL → Normalized Config → Compiled Plan** — 2 projects + implementer confirmation (Screencast Studio, Almanach Studio) ← **NEW**
+11. **Browser-Side Processing for Embedded Devices** — 2 projects + implementer confirmation (SToMS3R, Cardputer Web Serial) ← **NEW**
+12. **SQL as First-Class Command Source** — 2 projects + implementer confirmation (Sqleton, Minitrace Query Commands) ← **NEW**
+13. **Host-Mediated Secret Delivery** — 3+ projects (Firecracker VM, BYOK Host, Vault K3s, Glazed Vault, Terraform Vault) ← **NEW**
+14. **App Config vs Command Config Separation** — 3 projects (Sqleton, BYOK Host, Glazed Vault) ← **NEW**
 
 ### On-Ramp (5+ projects, lookupable but our angle missing)
 
@@ -467,3 +874,10 @@ Based on the candidate counts across the full 304-project library (not just the 
 | Fundamentals/encoding-and-framing | Loupedeck, SToMS3R |
 | Fundamentals/rendering-pipeline-fundamentals | Gnosis, Loupedeck |
 | Tribal/application-native-authorization | BYOK Host, Wish Git, Agent Enroll |
+| Tribal/goja-execution-model | REPL API, Node-like Primitives, JS Discord Bot, Geppetto/Pinocchio, Loupedeck |
+| Tribal/microvm-as-execution-boundary | Firecracker VM, pi-sandbox, PaperS3 WAMR |
+| Tribal/dsl-normalized-config-compiled-plan | Screencast Studio, Almanach Studio |
+| Tribal/browser-side-processing-for-embedded | SToMS3R, Cardputer Web Serial |
+| Tribal/sql-as-first-class-command-source | Sqleton, Minitrace Query Commands |
+| Tribal/host-mediated-secret-delivery | Firecracker VM, BYOK Host, Vault K3s, Glazed Vault, Terraform Vault |
+| Tribal/app-config-vs-command-config-separation | Sqleton, BYOK Host, Glazed Vault |

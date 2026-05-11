@@ -258,3 +258,7 @@ vault login -method=oidc role=operators
 
 > [!important]
 > Keep secret **intent** in Git and secret **values** in Vault. If a deployment fix depends on copying secrets by hand into Kubernetes, the platform story has regressed.
+
+## KB reviews
+
+- [[KB-BATCH5-infra-secrets-glazed]] (2026-05-11) — concept extraction + classification

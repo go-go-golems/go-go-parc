@@ -949,3 +949,11 @@ At this point, the original goal has effectively been met:
 - the current result is hardware validated.
 
 Remaining work is optional refinement, not required completion work for this ticket.
+
+## KB reviews
+
+- [[KB-BATCH4-embedded-hardware]] (2026-05-11) — concept extraction + classification
+
+## Related KB entries
+
+- [[Tribal/goja-embedding-in-go]] — contrast: Arduino sketch preprocessing vs explicit C++ modules

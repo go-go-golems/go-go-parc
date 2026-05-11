@@ -257,3 +257,17 @@ JavaScript `Error` objects exported through Goja's `Export()` often collapsed in
 - [go-go-goja](https://github.com/go-go-golems/go-go-golems) — Goja runtime engine
 - [Glazed](https://github.com/go-go-golems/go-go-golems) — CLI framework
 - [discordgo](https://github.com/bwmarrin/discordgo) — Discord API client
+
+## KB reviews
+
+- [[KB-BATCH3-goja-ecosystem]] (2026-05-11) — concept extraction + classification
+
+## Related KB entries
+
+- [[Tribal/goja-embedding-in-go]] — the Go+JS runtime pattern
+- [[Tribal/goja-execution-model]] — sessions + thread discipline (CREATED)
+
+**Tribal candidates** (not yet at 3-project threshold):
+- Runtime owner thread discipline (3/3) → **READY**
+- Two-stage Glazed parsing for runtime config (2/3)
+- goja-based Discord bot host (1/3)
