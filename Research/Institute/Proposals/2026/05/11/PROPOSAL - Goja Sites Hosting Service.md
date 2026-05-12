@@ -686,6 +686,105 @@ quota.update
 
 Audit events are not merely logs. They are part of the security model. They let a user answer: “Which agent pushed the broken version?” and “Who granted that agent production deploy permission?”
 
+### 11.2 User dashboard research: Agent Enroll as the closest existing UI
+
+The closest existing dashboard is the Agent Enroll React/Vite UI at `/home/manuel/code/wesen/2026-05-03--agent-enroll/web/dashboard/src`. It is not a hosting dashboard, but it already solves the shape of a logged-in user workspace for organizations, agents, enrollment tokens, runs, usage, and audit. That makes it the best UI starting point for this project.
+
+The useful pattern begins in `App.tsx`. The app wraps pages in an `AppShell`, checks the browser session with `useBrowserSession`, and protects organization routes with `RequireSession`. The route table is small and understandable:
+
+```tsx
+<Route path="/orgs/:orgId/agents" element={<RequireSession session={session}><AgentsPage /></RequireSession>} />
+<Route path="/orgs/:orgId/usage" element={<RequireSession session={session}><UsagePage /></RequireSession>} />
+<Route path="/orgs/:orgId/audit" element={<RequireSession session={session}><AuditPage /></RequireSession>} />
+```
+
+For the hosting service, the same dashboard skeleton becomes:
+
+```tsx
+<Route path="/orgs/:orgId/sites" element={<SitesPage />} />
+<Route path="/orgs/:orgId/sites/:siteId" element={<SiteDetailPage />} />
+<Route path="/orgs/:orgId/sites/:siteId/deployments/:deploymentId" element={<DeploymentDetailPage />} />
+<Route path="/orgs/:orgId/agents" element={<AgentsPage />} />
+<Route path="/orgs/:orgId/tokens" element={<BotTokensPage />} />
+<Route path="/orgs/:orgId/audit" element={<AuditPage />} />
+```
+
+The important lesson is not the specific CSS style. The lesson is that the dashboard should be a first-class control plane client. It calls the same `/v1` API as the CLI, uses the same authorization checks, and displays the same audit-backed state.
+
+The Agent Enroll `AgentsPage.tsx` is especially relevant. It lists agents, polls running runs every 15 seconds, creates enrollment tokens, shows a one-time token panel, and revokes agents through a confirmation dialog. This maps directly to site-deploy agents:
+
+| Agent Enroll dashboard object | Hosting dashboard equivalent |
+|---|---|
+| Board | Site |
+| Task run | Deploy run |
+| Enrollment token | Bot/agent registration token |
+| Agent revoke | Revoke deploy bot and outstanding deploy tokens |
+| Usage page | Site request/storage/deployment usage |
+| Audit page | Site, token, deployment, and agent audit trail |
+
+The token UI is also worth reusing conceptually. `EnrollmentTokenPanel.tsx` shows the secret once through `SecretRevealBox` and provides a copyable command through `CommandCopyBox`:
+
+```tsx
+<SecretRevealBox label="Enrollment Token" secret={token} />
+<CommandCopyBox title="Headless enrollment command" command={`kanban-agent enroll --token ${token}`} />
+```
+
+The hosting dashboard should do the same for bot tokens and deploy agents:
+
+```tsx
+<SecretRevealBox label="Bot Registration Token" secret={token} />
+<CommandCopyBox title="Register bot" command={`goja-host-agent enroll --token ${token}`} />
+<CommandCopyBox title="Deploy site" command={`goja-host-agent deploy ./site --site ${siteSlug}`} />
+```
+
+This one-time reveal pattern is a good product and security habit. Users can copy the token, but the platform does not need to show it again. The database should store only a token hash, as Agent Enroll does for run tokens and enrollment tokens.
+
+The API client in `api/kanbanApi.ts` uses Redux Toolkit Query with typed endpoints, bearer-token header preparation, cache tags, and invalidation after mutations. That gives the hosting dashboard a concrete implementation model:
+
+```tsx
+listSites: builder.query<{ sites: Site[] }, { org_id: string }>({ ... })
+createDeployment: builder.mutation<Deployment, { site_id: string; bundle: File }>({ ... })
+createBotToken: builder.mutation<BotTokenResponse, { site_id: string; expires_in_seconds: number }>({ ... })
+revokeAgent: builder.mutation<{ ok: boolean }, { agent_id: string }>({ ... })
+listAuditLog: builder.query<{ events: AuditEvent[] }, AuditQuery>({ ... })
+```
+
+The hosting project should therefore include a **user dashboard**, not only an operator admin console. The distinction matters:
+
+| UI surface | Audience | Scope |
+|---|---|---|
+| User dashboard | Normal org users and developers | Their orgs, sites, deployments, bot tokens, usage, and audit events. |
+| Platform admin console | Installation operators | All users, all orgs, global runtime health, quotas, domain policy, abuse response. |
+
+For v1, these can be two role-gated areas in one embedded SPA. The left navigation should make the product model visible:
+
+```text
+Organization switcher
+  Sites
+    Site detail
+    Deployments
+    Domains
+    Environment / capabilities
+    Logs
+  Bot tokens / Agents
+  Usage
+  Audit log
+  Members
+Platform admin, if role allows
+```
+
+The dashboard MVP should include these user-facing workflows:
+
+1. **Create a site**: choose name, slug, base-domain hostname, and starter template.
+2. **See deployment instructions**: copy `goja-host deploy ./site --site <slug>`.
+3. **Upload or activate deployment**: upload bundle, inspect validation, activate or rollback.
+4. **Manage bot tokens and agents**: create one-time enrollment token, copy enrollment command, list agents, revoke agent.
+5. **Grant deploy permissions**: select a site and allowed channels/paths for an agent.
+6. **Inspect usage**: requests, errors, database size, bundle size, deployment count.
+7. **Read audit trail**: filter by actor, action, site, deployment, agent, and time.
+
+This dashboard research should be treated as part of the implementation plan. The backend API should be designed so every dashboard action is a normal API mutation with a typed request, a typed response, cache invalidation, and an audit event. If an action cannot be represented cleanly in the API client, the product model is probably unclear.
+
 ---
 
 ## 12. CLI and agent workflows
@@ -1074,6 +1173,10 @@ If we keep that model visible in the code, the project can grow without becoming
 | App-owned authorization | [[Tribal/application-native-authorization]] | Explains human -> agent -> run narrowing. |
 | Agent signed requests | `/home/manuel/code/wesen/2026-05-03--agent-enroll/internal/agent/signature.go` | Reusable Ed25519 timestamp/nonce request authentication. |
 | Run tokens | `/home/manuel/code/wesen/2026-05-03--agent-enroll/internal/runs/runs.go` | Reusable pattern for short-lived opaque operation tokens. |
+| User dashboard shell | `/home/manuel/code/wesen/2026-05-03--agent-enroll/web/dashboard/src/App.tsx` | Shows authenticated app shell, protected org routes, and page layout. |
+| Agent/token dashboard | `/home/manuel/code/wesen/2026-05-03--agent-enroll/web/dashboard/src/pages/AgentsPage.tsx` | Closest existing model for listing agents, polling runs, creating enrollment tokens, and revoking agents. |
+| One-time token UI | `/home/manuel/code/wesen/2026-05-03--agent-enroll/web/dashboard/src/components/organisms/EnrollmentTokenPanel.tsx` | Shows secret reveal plus copyable headless enrollment command. |
+| Typed dashboard API client | `/home/manuel/code/wesen/2026-05-03--agent-enroll/web/dashboard/src/api/kanbanApi.ts` | RTK Query pattern for typed endpoints, bearer auth, cache tags, and invalidation. |
 | Scoped write policy | `/home/manuel/code/wesen/2026-05-01--wish-git/internal/policy/authorize.go` | Simple path/action/ref authorization functions. |
 | Boundary enforcement | `/home/manuel/code/wesen/2026-05-01--wish-git/internal/githook/pre_receive.go` | Model for validating writes at the final mutation boundary. |
 | Host-mediated sandboxing | [[Fundamentals/host-mediated-sandbox-principles]] | Explains why Goja modules must be capabilities, not ambient power. |

@@ -1,203 +1,199 @@
 ---
-title: "go-go-os Frontend npm Packages: Publishing and Standalone Consumption"
+title: "go-go-os Frontend npm Packages: Publishing, Standalone Consumption, and Trusted CI/CD"
 aliases:
   - go-go-os npm publishing deep dive
   - go-go-os package publishing report
   - go-go-os standalone consumer report
+  - go-go-os trusted publishing report
+  - go-go-os npm ci cd report
 tags:
   - article
   - npm
+  - trusted-publishing
+  - github-actions
+  - provenance
   - react
+  - vite
   - storybook
   - rtk-query
   - design-system
   - go-go-golems
   - frontend
+  - go-go-os
+  - quickjs
+  - vm-runtime
 status: active
 type: article
 created: 2026-05-11
+updated: 2026-05-12
 repo: /home/manuel/workspaces/2026-05-11/npm-packages-go-go-os
+source_repo: https://github.com/go-go-golems/go-go-os-frontend
+examples_repo: https://github.com/go-go-golems/go-go-os-examples
+live_examples: https://go-go-os-examples.yolo.scapegoat.dev/
 ---
 
-# go-go-os Frontend npm Packages: Publishing and Standalone Consumption
+# go-go-os Frontend npm Packages: Publishing, Standalone Consumption, and Trusted CI/CD
 
-This article documents the full technical path from a private frontend monorepo to public npm packages and then to a real standalone consumer application. The source work happened across two repositories inside the same dated workspace:
+This article documents the full technical path from a private frontend monorepo to a public npm package family, a real standalone consumer application, a deployed examples site, and finally a GitHub Actions Trusted Publishing pipeline with npm provenance.
 
-- `/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/go-go-os-frontend`
-- `/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/2026-05-11--npm-go-go-os-test`
+The work started with a narrow question: can the reusable frontend pieces in `go-go-os-frontend` be published as public npm packages and consumed outside the source monorepo? It ended with a complete release system:
 
-The goal was not simply to publish tarballs. The goal was to prove that the low-level UI system in `go-go-os-frontend` can leave the source monorepo, survive npm publication, and function as an actual package surface inside a normal React application with independent tooling, independent dependency installation, and independent runtime orchestration.
+- npm packages are published under the public `@go-go-golems/*` scope;
+- a standalone examples app consumes the public packages rather than sibling workspace aliases;
+- VM/runtime packages work without package-internal Vite `?raw` workarounds;
+- the examples app is deployed publicly as a static site;
+- npmjs Trusted Publishing is configured for the package family;
+- GitHub Actions can publish package releases to npmjs using OIDC and provenance, without an `NPM_TOKEN`;
+- the first coordinated package stack has been published through the trusted pipeline.
 
-The work therefore breaks into two problems. The first problem is package publication: identify reusable boundaries, convert package metadata from private/internal settings to public npm settings, fix the build pipeline, and publish the first versions. The second problem is package consumption: install those packages into a fresh application, use the exported APIs directly, theme the application with the OS1/macOS-1 visual system, and verify that the result works under Vite, Storybook, Redux Toolkit, RTK Query, and devctl supervision.
+The main source repositories are:
 
-> [!summary]
-> The journey had four decisive technical results:
-> 1. `@go-go-golems/os-core`, `@go-go-golems/os-repl`, and `@go-go-golems/os-widgets` were successfully published to the public npm registry at version `0.1.0`.
-> 2. The publication path required explicit fixes for TypeScript availability, public package metadata, registry targeting, and token/OTP behavior.
-> 3. A standalone consumer app proved that the published packages work outside the source monorepo, both in production builds and in Storybook.
-> 4. The consumer app was then wrapped in a devctl plugin so the Vite app and Storybook can be launched, supervised, and inspected as one local environment.
-
----
-
-## Why this note exists
-
-The immediate reason for this note is practical: future work on `go-go-os-frontend` package extraction should not have to rediscover the same registry, build, and consumer-integration constraints. The first publication of a package family always contains the highest concentration of friction because multiple systems are being aligned for the first time: workspace layout, TypeScript output, CSS side effects, npm auth, version rewriting, and the question of whether exported APIs are meaningful outside the original runtime.
-
-The deeper reason is architectural. A frontend monorepo often accumulates reusable components long before it accumulates a reusable package boundary. Inside the monorepo, local path aliases and workspace dependencies conceal whether the public API is coherent. Publication removes those conveniences. Once the code leaves the monorepo, every assumption becomes explicit: what package owns what types, what CSS must be imported, what state helpers a consumer must wire, and which integrations are optional versus mandatory. This note records the process of making those assumptions visible and then testing them under realistic conditions.
-
----
-
-## The source system: what existed before publication
-
-Before publication, `go-go-os-frontend` already had the rough shape of a package monorepo. The root package declared workspaces for `packages/*` and `apps/*`, and the repository already contained multiple logical frontend packages. The most important package families for this effort were:
-
-- `@go-go-golems/os-core`
-- `@go-go-golems/os-repl`
-- `@go-go-golems/os-widgets`
-- `@go-go-golems/os-kanban` (investigated, but not part of the first public release)
-
-What mattered is that the packages already existed as directories and already exported source entrypoints. What did **not** yet exist was a hardened publication path. The package metadata still reflected internal/private assumptions:
-
-- packages were marked `private: true`
-- publication targeted GitHub Packages rather than npmjs
-- the build path depended on TypeScript being available in a way that the workspace did not yet guarantee
-- the package family had never been validated in a fully independent consumer app
-
-In other words, the repository had package **names**, **folders**, and **exports**, but not yet a demonstrated public package system.
-
-### The first-wave package boundaries
-
-The first decision was which packages should become public first. The answer was driven by reuse, dependency shape, and surface clarity.
-
-| Package | Role in the system | Why it was included in the first wave |
-|---|---|---|
-| `@go-go-golems/os-core` | low-level primitives, theme entrypoints, core React UI components | it is the actual foundation for standalone use |
-| `@go-go-golems/os-repl` | REPL/terminal-oriented components and CSS | it is a direct dependency of some richer widgets |
-| `@go-go-golems/os-widgets` | higher-level widgets and widget primitives | it validates that the richer exported surface also works outside the monorepo |
-
-The critical architectural judgment here is that `os-core` is the primary low-level package. It exports primitive building blocks such as buttons, checkboxes, radio buttons, tabs, data tables, forms, alerts, and the OS1 visual theme. `os-widgets` sits one level higher: it contains richer widgets and some widget-level primitives such as toolbars, status bars, search bars, separators, sparklines, and similar small pieces. That distinction matters because the standalone consumer application later used `os-core` as the main primitive layer and only used `os-widgets` selectively.
-
----
-
-## The publication problem: turning workspace packages into public npm packages
-
-The publication effort was not one change. It was a sequence of corrections. Each correction surfaced a hidden assumption in the original monorepo.
-
-### 1. The TypeScript compiler was not actually available to the publication build
-
-The existing publication build script in `go-go-os-frontend` already had a substantial amount of logic. It rewrote source exports into `dist` exports, copied CSS assets, generated `dist/package.json`, and rewrote `workspace:*` dependency specifiers into concrete versions. The build entrypoint was:
-
-- `/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/go-go-os-frontend/scripts/packages/build-dist.mjs`
-
-But the first validation attempt failed immediately because `npm exec -- tsc` could not find a usable TypeScript compiler in the workspace environment. That failure was important because it established that the package pipeline was only *nominally* ready.
-
-The first instinct was to install TypeScript with npm. That failed because the repository already used `workspace:*` package specifiers, and npm rejected them during dependency installation. The exact practical lesson is simple: a monorepo can be buildable by one package manager and non-installable by another, even when package scripts still invoke `npm run`.
-
-The fix was:
-
-1. use pnpm for installation,
-2. add `typescript` at the workspace level,
-3. run `pnpm install` so the package-local dependency links are fully materialized.
-
-Once that happened, the existing `build:dist` scripts began to work.
-
-### 2. Public npm metadata had to replace private/internal metadata
-
-The three published packages required the same category of metadata changes:
-
-- set `private` to `false`
-- change `publishConfig` to `{"access": "public"}`
-- add keywords suitable for package discovery
-- explicitly preserve CSS side effects
-
-This was not a cosmetic change. It is what converted the package meaning from “internal workspace package” to “registry package that a stranger can install.”
-
-A representative transformation looked like this conceptually:
-
-```json
-{
-  "private": false,
-  "publishConfig": {
-    "access": "public"
-  },
-  "sideEffects": [
-    "**/*.css",
-    "./theme/index.js",
-    "./theme/*.css"
-  ]
-}
+```text
+/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/go-go-os-frontend
+/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/2026-05-11--npm-go-go-os-test
 ```
 
-The `sideEffects` field is especially important for frontend packages because CSS imports are side-effect imports by design. If the package metadata does not mark them appropriately, downstream bundlers may eliminate them in optimization passes.
+The public examples repository and site are:
 
-### 3. Registry targeting had to be forced back to npmjs
+```text
+https://github.com/go-go-golems/go-go-os-examples
+https://go-go-os-examples.yolo.scapegoat.dev/
+```
 
-There was a subtle but important registry problem. Even after the package metadata was rewritten for public npm, the CLI could still target GitHub Packages because the user's npm configuration had a scoped registry mapping for `@go-go-golems` pointing to `https://npm.pkg.github.com`.
+> [!summary]
+> The final system has four durable results.
+> 1. The public package family now includes core UI, REPL, shell, chat, confirmation, widget, scripting, UI-card, and Kanban runtime packages.
+> 2. The external examples app validates the package surfaces through progressive stages from theme smoke tests to QuickJS VM Kanban rendering.
+> 3. The examples app is deployed as a static Vite site through a shared Caddy/K3s static hosting pattern.
+> 4. npmjs Trusted Publishing is configured and proven end-to-end with GitHub Actions provenance for the coordinated package stack.
 
-That means public package metadata alone is not enough. The actual publish destination depends on the full npm configuration stack.
+---
 
-The fix was a repo-local `.npmrc` in `go-go-os-frontend`:
+## 1. Why this report exists
+
+The first publication of a package family concentrates several classes of risk in one place. A package can look reusable inside a monorepo while still depending on hidden assumptions: path aliases, workspace dependency resolution, global CSS side effects, local npm registry configuration, unpublished transitive packages, and human-controlled CLI credentials.
+
+This report records how those assumptions were made explicit and then removed or documented. It is meant to be useful for future package extraction work, future npm releases, and future consumer applications that want to depend on `go-go-os` packages without cloning the source monorepo.
+
+The central standard used throughout the project was:
+
+```text
+A package is public only after an independent consumer can install it from npmjs,
+import it through documented exports, build it with normal frontend tooling,
+render it correctly in a browser, and upgrade it through a repeatable release path.
+```
+
+That standard is stricter than “npm publish succeeded.” It requires package publication, consumer validation, production build validation, runtime validation, and release automation.
+
+---
+
+## 2. Initial package extraction: from package-shaped folders to public packages
+
+Before publication, `go-go-os-frontend` already had package-shaped directories under `packages/`. Important package names already existed:
+
+```text
+@go-go-golems/os-core
+@go-go-golems/os-repl
+@go-go-golems/os-widgets
+@go-go-golems/os-kanban
+```
+
+But those directories were not yet hardened public packages. The metadata and tooling still reflected internal assumptions:
+
+- packages were private or internally oriented;
+- scoped npm config could route `@go-go-golems` to GitHub Packages;
+- `workspace:*` dependencies needed conversion for public consumers;
+- TypeScript build prerequisites were not fully established;
+- CSS theme entrypoints needed explicit side-effect preservation;
+- no independent consumer application had installed the packages from public npm.
+
+The first public release was deliberately small:
+
+| Package | Role | First release |
+|---|---|---|
+| `@go-go-golems/os-core` | low-level UI primitives, theme entrypoints, Redux slices, desktop primitives | `0.1.0` |
+| `@go-go-golems/os-repl` | REPL/terminal component, driver contracts, theme | `0.1.0` |
+| `@go-go-golems/os-widgets` | higher-level widgets and widget primitives | `0.1.0` |
+
+This was the smallest coherent first wave. `os-core` provides the theme and primitive foundation. `os-repl` is independently useful and is consumed by richer widgets. `os-widgets` proves that the higher-level component surface can also leave the monorepo.
+
+---
+
+## 3. The publication build pipeline
+
+The source packages are authored as TypeScript and CSS. The public npm artifacts are built into `dist/` directories by:
+
+```text
+scripts/packages/build-dist.mjs
+```
+
+The build script does several important transformations:
+
+1. compiles TypeScript to JavaScript and declaration files;
+2. copies CSS and `.vm.js` runtime assets;
+3. removes test/story artifacts from publish output;
+4. rewrites `exports`, `main`, and `types` from source paths to dist paths;
+5. rewrites `workspace:*` dependencies to concrete package versions;
+6. writes a publishable `dist/package.json`;
+7. copies package README files into `dist`.
+
+The publication surface is therefore not the source directory. It is:
+
+```text
+packages/<package>/dist
+```
+
+This matters because npm consumers should receive built JavaScript, declarations, CSS assets, generated VM source modules, package metadata, and README documentation — not the source tree and local test fixtures.
+
+### Initial build failure: TypeScript availability
+
+The first build validation exposed that TypeScript was not available in the way the package build expected. Installing it with npm failed because npm did not accept the workspace protocol shape in this repository:
+
+```text
+npm error code EUNSUPPORTEDPROTOCOL
+npm error Unsupported URL Type "workspace:": workspace:*
+```
+
+The practical fix was to use pnpm for the workspace install and make TypeScript available through the workspace dependency graph. This established the first operational rule:
+
+```text
+Use pnpm for repository dependency installation and npm only for npm CLI publication commands.
+```
+
+### Registry targeting failure: GitHub Packages versus npmjs
+
+Another early failure came from scoped npm configuration. A user-level config mapped the `@go-go-golems` scope to GitHub Packages:
+
+```ini
+@go-go-golems:registry=https://npm.pkg.github.com
+```
+
+That produced permission failures when the intended target was npmjs. The repo now has a project `.npmrc` that points the scope at npmjs:
 
 ```ini
 @go-go-golems:registry=https://registry.npmjs.org/
 access=public
 ```
 
-This mattered for two reasons:
+Later, the user-level npm config was also cleaned so local verification works normally:
 
-- it made `npm publish --dry-run` actually target npmjs rather than GitHub Packages
-- it made the repository self-describing for future publishing work
+```bash
+npm config set @go-go-golems:registry https://registry.npmjs.org/ --location=user
+```
 
-### 4. Publication still required the right authentication mechanism
-
-The first real publish attempts still failed, even after package metadata, build output, and registry targeting were correct. The immediate failure mode was npm asking for a one-time password. A passkey alone was not sufficient for the CLI flow, and an initial token still triggered publish-time 2FA.
-
-The underlying lesson is that “CLI is authenticated” and “CLI can publish without OTP” are different conditions.
-
-The final successful path used an npm token that bypassed 2FA for publishing. The token was loaded from environment and injected into a temporary npm config so that it never needed to be written into the repository. That method mattered because it kept the repository clean while still proving a fully non-interactive publish path.
-
-### Publication flow in sequence
-
-The effective flow for the first successful public release was:
+The general lesson is:
 
 ```text
-1. Fix TypeScript availability and install dependencies with pnpm.
-2. Rewrite package metadata for public npm publication.
-3. Rebuild dist artifacts.
-4. Dry-run npm publish against npmjs.
-5. Build a standalone smoke app from local tarballs.
-6. Retry authentication with a publish-capable npm token.
-7. Publish os-core, then os-repl, then os-widgets.
-8. Verify versions from the public registry.
+Package metadata does not determine the registry by itself. npm configuration does.
 ```
 
 ---
 
-## The publication architecture
+## 4. Public package chronology
 
-The publication path becomes easier to reason about when reduced to a flow of transformations.
+The package family grew in waves.
 
-```mermaid
-flowchart TD
-  A[go-go-os-frontend package source] --> B[build-dist.mjs]
-  B --> C[dist JS output]
-  B --> D[dist d.ts output]
-  B --> E[dist CSS assets]
-  B --> F[dist package.json]
-  F --> G[npm publish target selection]
-  G --> H[npmjs registry]
-  H --> I[@go-go-golems/os-core]
-  H --> J[@go-go-golems/os-repl]
-  H --> K[@go-go-golems/os-widgets]
-```
-
-The important point is that publication does not expose `src/` directly as the deliverable. The public contract is the `dist/` directory after rewriting and asset copying. The `src/` tree remains the authoring surface. The `dist/` tree becomes the distribution surface.
-
----
-
-## What was actually published
-
-The first public release produced three packages at version `0.1.0`:
+### First wave
 
 ```text
 @go-go-golems/os-core@0.1.0
@@ -205,383 +201,836 @@ The first public release produced three packages at version `0.1.0`:
 @go-go-golems/os-widgets@0.1.0
 ```
 
-The verification step queried npm directly:
+These releases proved the basic npmjs publication path and independent installation.
 
-```bash
-npm view @go-go-golems/os-core version
-npm view @go-go-golems/os-repl version
-npm view @go-go-golems/os-widgets version
-```
-
-All three returned `0.1.0`.
-
-This is a small detail, but it matters: publication is not finished when the CLI prints a success line. Publication is finished when the registry resolves the package and the consumer can install it.
-
----
-
-## The consumer problem: proving the packages outside the monorepo
-
-Publication only proves that package archives exist. It does not prove the exported APIs are useful. The second half of the work therefore moved into a fresh repository:
-
-- `/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/2026-05-11--npm-go-go-os-test`
-
-This repository had its own git history, its own docmgr ticket, its own package.json, its own TypeScript config, and its own Storybook configuration. That isolation is what makes the consumer result meaningful.
-
-### Why the consumer app used low-level primitives rather than only rich widgets
-
-The core question was not “can we render a large widget?” The more useful question was “do the low-level UI contracts actually behave like a package-level design system?”
-
-That is why the consumer application focused on:
-
-- `Btn`
-- `Checkbox`
-- `RadioButton`
-- `TabControl`
-- `ListBox`
-- `DataTable`
-- `FormView`
-- `AlertDialog`
-- `Toast`
-- OS1/macOS-1 theme imports
-
-These came primarily from `@go-go-golems/os-core`. The app also used some widget-level primitives from `@go-go-golems/os-widgets`, such as:
-
-- `WidgetToolbar`
-- `WidgetStatusBar`
-- `SearchBar`
-- `Separator`
-- `Sparkline`
-- `ButtonGroup`
-- `LabeledSlider`
-
-That package split is the real architectural proof: the consumer was able to build a coherent standalone UI by combining `os-core` primitives with a small amount of `os-widgets` surface, without needing the original monorepo.
-
----
-
-## The consumer app: structure and intent
-
-The standalone app was designed as an **OS1 Control Panel**. It was not just a demo page. It was a small but structured frontend with the following properties:
-
-- React + Vite + TypeScript
-- Redux Toolkit store
-- RTK Query API layer using `fakeBaseQuery`
-- Storybook with colocated component stories
-- one directory per component
-- OS1/macOS-1 themed shell
-
-The important repository files include:
-
-- `/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/2026-05-11--npm-go-go-os-test/package.json`
-- `/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/2026-05-11--npm-go-go-os-test/src/services/controlPanelApi.ts`
-- `/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/2026-05-11--npm-go-go-os-test/src/features/ControlPanelApp/ControlPanelApp.tsx`
-- `/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/2026-05-11--npm-go-go-os-test/.storybook/preview.tsx`
-- `/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/2026-05-11--npm-go-go-os-test/.devctl.yaml`
-
-### Component structure
-
-The consumer app adopted a strict component directory pattern:
+### README/docs patch wave
 
 ```text
-src/components/
-  Os1Shell/
-    Os1Shell.tsx
-    Os1Shell.css
-    Os1Shell.stories.tsx
-    index.ts
-  PrimitiveGallery/
-    PrimitiveGallery.tsx
-    PrimitiveGallery.css
-    PrimitiveGallery.stories.tsx
-    index.ts
-  SettingsForm/
-    SettingsForm.tsx
-    SettingsForm.stories.tsx
-    index.ts
-  DeviceList/
-    DeviceList.tsx
-    DeviceList.css
-    DeviceList.stories.tsx
-    index.ts
-  SystemStatusTable/
-    SystemStatusTable.tsx
-    SystemStatusTable.stories.tsx
-    index.ts
-  FeedbackDemo/
-    FeedbackDemo.tsx
-    FeedbackDemo.css
-    FeedbackDemo.stories.tsx
-    index.ts
+@go-go-golems/os-core@0.1.1
+@go-go-golems/os-repl@0.1.1
+@go-go-golems/os-widgets@0.1.1
 ```
 
-This pattern was not arbitrary. It made each component independently storyable, independently reviewable, and easy to locate from the feature composition layer.
+These made the npm package pages usable for consumers.
 
-### RTK Query in a fully local consumer app
+### REPL focus and dependent package wave
 
-A useful part of the consumer experiment was proving that the app could have realistic state flow without any backend dependency. That is why the app used RTK Query with `fakeBaseQuery`. The point was not to simulate a network. The point was to validate the architectural shape of a real app:
+A browser interaction bug appeared in the REPL: after pressing Enter, the input lost focus. The root cause was that the input line used a real DOM `disabled` attribute during command execution. Browsers blur disabled inputs. The fix was to use `aria-disabled` instead so the input remained focusable.
 
-- query hooks for loading state
-- mutation hooks for updates
-- reducer and middleware wiring
-- feature components that read and write through RTK Query rather than direct prop-only toy state
+Published fixes:
 
-This made the app more than a visual gallery. It became a small but structurally credible frontend.
+```text
+@go-go-golems/os-repl@0.1.5
+@go-go-golems/os-widgets@0.1.2
+```
+
+A package-local focus repro was added under:
+
+```text
+packages/os-repl/repro/focus
+```
+
+### Shell and VM package wave
+
+The standalone examples needed public shell and VM/runtime surfaces. The next package family was published:
+
+```text
+@go-go-golems/os-shell@0.1.0
+@go-go-golems/os-chat@0.1.0
+@go-go-golems/os-confirm@0.1.0
+@go-go-golems/os-scripting@0.1.0
+@go-go-golems/os-ui-cards@0.1.0
+@go-go-golems/os-kanban@0.1.0
+```
+
+This moved the project from a widget-only package family to a runtime package family. Consumers could now use the shell/window-manager boundary, QuickJS runtime host, VM UI-card renderer, and VM Kanban renderer.
 
 ---
 
-## The consumer architecture
+## 5. The standalone consumer evolved into progressive examples
 
-```mermaid
-flowchart TD
-  A[main.tsx] --> B[Redux Provider]
-  B --> C[ControlPanelApp]
-  C --> D[RTK Query hooks]
-  D --> E[controlPanelApi fakeBaseQuery]
-  C --> F[Os1Shell]
-  F --> G[PrimitiveGallery]
-  F --> H[SettingsForm]
-  F --> I[DeviceList]
-  F --> J[SystemStatusTable]
-  F --> K[FeedbackDemo]
-  G --> L[@go-go-golems/os-core]
-  G --> M[@go-go-golems/os-widgets]
-  H --> L
-  I --> L
-  J --> L
-  K --> L
+The first consumer app was an OS1 Control Panel. It used public packages in a normal React/Vite/Redux/Storybook application. That proved the basic package surfaces, but the project soon needed a better teaching and regression structure.
+
+The app became a progressive examples workspace, published publicly as:
+
+```text
+https://github.com/go-go-golems/go-go-os-examples
 ```
 
-What this architecture proves is straightforward: the published packages are not only importable, but composable under ordinary React application patterns.
+The examples are numbered so each stage validates a specific package boundary:
 
----
+| Stage | Directory | Purpose |
+|---|---|---|
+| 00 | `examples/00-theme-smoke` | Theme imports and root scoping contract |
+| 01 | `examples/01-os-core-primitives` | `os-core` primitive components |
+| 02 | `examples/02-local-state-forms` | local React state with package controls |
+| 03 | `examples/03-rtk-query-control-panel` | Redux Toolkit and RTK Query app structure |
+| 04 | `examples/04-rich-widgets` | richer widgets from `os-widgets` |
+| 05 | `examples/05-window-manager-shell` | public `os-shell` shell/window-manager boundary |
+| 06 | `examples/06-repl-console` | `MacRepl`, custom drivers, completions, host effects |
+| 07 | `examples/07-vm-ui-card` | QuickJS runtime rendering `ui.card.v1` |
+| 08 | `examples/08-vm-events-and-intents` | VM handlers dispatching draft updates and host notifications |
+| 09 | `examples/09-vm-kanban-runtime` | VM-authored `kanban.v1` rendering via `os-kanban` |
 
-## Theme loading and scoping: the most important consumer-side rule
+The root app is only a navigator. The examples are the contract tests.
 
-The consumer application depended on two theme imports:
+### Theme contract
+
+Every consumer must import the theme layers and render inside the theme scope:
 
 ```ts
 import '@go-go-golems/os-core/theme';
 import '@go-go-golems/os-core/desktop-theme-macos1';
+import '@go-go-golems/os-widgets/theme';
 ```
-
-And the app root had to apply the correct scope:
 
 ```tsx
 <div data-widget="hypercard" className="theme-macos1">
-  ...
+  <App />
 </div>
 ```
 
-This detail is fundamental. The OS1/macOS-1 theme is not a global CSS reset. It is scoped through the `data-widget="hypercard"` attribute plus the `theme-macos1` class. A consumer that imports the CSS but omits this wrapper will not get the intended theme behavior.
-
-This is precisely the kind of rule that package publication exposes. Inside the original codebase, the scoping rule may be visually obvious from surrounding components. Outside the codebase, it has to become documentation.
+The theme system is not merely CSS. It is a CSS import plus a DOM scoping contract.
 
 ---
 
-## Storybook as package validation, not decoration
+## 6. VM runtime packaging: removing package-internal raw imports
 
-Storybook in the consumer repo served a real engineering purpose. It validated that the package API is usable at the component boundary, not only inside the final composed app. The consumer app therefore placed `.stories.tsx` files directly next to each component.
+The most technical package boundary was the VM runtime family. VM packages need to provide JavaScript source strings to the QuickJS runtime. Initial releases used package-internal Vite raw imports such as:
 
-This mattered for two reasons.
+```ts
+import stackBootstrapSource from './stack-bootstrap.vm.js?raw';
+import uiPackagePrelude from './runtime-packages/ui.package.vm.js?raw';
+import kanbanPackagePrelude from './runtime-packages/kanban.package.vm.js?raw';
+```
 
-First, it ensured that every component wrapper had an isolated usage example. A package consumer should be able to learn a component by reading a story and its props, not by navigating a monolithic application.
-
-Second, Storybook flushed out real integration issues. One of the early failures was that the Storybook preview file contained JSX but was named `.ts` rather than `.tsx`. Another set of failures came from strict published type declarations: readonly arrays where mutable arrays were expected, widened `string` values where exact field config unions were required, and generic constraints around table row types.
-
-Those are useful failures. They show that the package surface is strict enough to catch misuse early.
-
----
-
-## Devctl support: making the consumer app operationally coherent
-
-Once the standalone app and Storybook worked, the final operational step was adding devctl support so both processes could be launched and supervised together.
-
-The consumer repo added:
-
-- `.devctl.yaml`
-- `scripts/devctl/os1_component_lab_plugin.py`
-
-The plugin implements devctl protocol v2 and supports:
-
-- `config.mutate`
-- `validate.run`
-- `launch.plan`
-
-The launch plan defines two services:
+This worked in some contexts but failed in Vite dependency optimization when the raw imports came from `node_modules`:
 
 ```text
-app       npm run dev -- --host 127.0.0.1 --port 5173
-storybook npm run storybook -- --host 127.0.0.1
+No matching export in "node_modules/@go-go-golems/os-kanban/runtime-packages/kanban.package.vm.js?raw" for import "default"
+No matching export in "node_modules/@go-go-golems/os-scripting/plugin-runtime/stack-bootstrap.vm.js?raw" for import "default"
+No matching export in "node_modules/@go-go-golems/os-ui-cards/runtime-packages/ui.package.vm.js?raw" for import "default"
 ```
 
-This is important because it turns the repo into a coherent local environment rather than two unrelated commands. The consumer app is no longer just buildable. It is operable.
+The durable fix was “Option A”: keep readable `.vm.js` files as source of truth, but generate committed TypeScript modules that export source strings.
 
-### Operational diagram
-
-```mermaid
-flowchart LR
-  A[devctl up] --> B[plugin handshake]
-  B --> C[config.mutate]
-  C --> D[validate.run]
-  D --> E[launch.plan]
-  E --> F[Vite app service :5173]
-  E --> G[Storybook service :6006]
-  F --> H[HTTP health check]
-  G --> I[HTTP health check]
-```
-
-The verification step confirmed that both URLs answered with HTTP 200 and that devctl status reported both services as alive.
-
----
-
-## Failure modes that shaped the final result
-
-This project is useful because the failures are concrete and generalizable.
-
-### Failure mode 1: package existence is not package readiness
-
-A folder under `packages/` with a `package.json` and an `exports` field is not the same thing as a public package.
-
-A package is not ready until:
-
-- it can build its distributable output
-- its metadata matches the target registry model
-- its CSS side effects are preserved
-- its dependencies are rewritten correctly for external consumers
-- a real external consumer has compiled it successfully
-
-### Failure mode 2: registry metadata and CLI registry targeting are independent
-
-Changing `publishConfig` is not enough if npm configuration still points the scope elsewhere.
-
-This matters because publication bugs can look like authentication failures or permissions problems when the real issue is simply that the CLI is talking to the wrong registry.
-
-### Failure mode 3: passkeys, OTP, and tokens are distinct mechanisms
-
-Browser login, CLI authentication, CLI publication, and 2FA bypass are separate concerns. The work only completed once the distinction between “I can log in” and “I can publish non-interactively” was handled explicitly.
-
-### Failure mode 4: strict exported types expose sloppy local assumptions
-
-The standalone app hit exactly the kinds of type issues one wants to find early:
-
-- wrong story args shape
-- readonly arrays where mutable arrays were expected
-- too-wide string typing for config structures
-- generic constraints not satisfied by local interfaces
-
-This is not noise. This is the package API doing its job.
-
-### Failure mode 5: theme systems require usage rules, not just CSS files
-
-The published theme worked because the consumer understood and applied the scoping contract. This is a reminder that a theme system is partly code and partly convention. Publication forces that convention into the open.
-
----
-
-## The resulting working rules
-
-The most valuable outcome of this journey is a set of rules that can be reused for future package work.
-
-### Rule 1: publish the smallest coherent package family, not the whole monorepo
-
-The first release succeeded because it focused on three packages with a clear dependency chain. A first release should minimize moving parts while still proving the core architecture.
-
-### Rule 2: always validate with an external consumer repo
-
-A tarball dry-run is necessary but insufficient. A separate repository with its own lockfile, Storybook, state wiring, and build output is the real test.
-
-### Rule 3: package theme systems need a documented root wrapper contract
-
-If a theme depends on scope attributes or classes, that contract belongs in both code examples and docs.
-
-### Rule 4: treat Storybook as an integration test for package APIs
-
-Stories are not only for screenshots. They verify that a consumer can understand and instantiate the package surface at the component boundary.
-
-### Rule 5: operational polish matters after the build succeeds
-
-The devctl step was not required for publication, but it made the consumer repository substantially more useful. Once package consumption works, local orchestration becomes the next multiplier.
-
----
-
-## Pseudocode summary of the full journey
+Generator:
 
 ```text
-investigate monorepo
-identify reusable packages
-fix build pipeline prerequisites
-rewrite package metadata for public npm
-ensure scoped registry points at npmjs
-run dry-run publish
-create standalone smoke app from tarballs
-solve npm publish authentication
-publish package family in dependency order
-verify registry versions
-create standalone consumer repository
-install public packages from npm
-build OS1-themed app with low-level primitives
-add RTK Query and Storybook
-validate production and Storybook builds
-add devctl support for multi-process local operation
-verify service health and URLs
+scripts/packages/generate-vm-source-modules.mjs
 ```
 
----
-
-## Important repository and document references
-
-### Publication work
-
-- repo: `/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/go-go-os-frontend`
-- ticket docs:
-  - `ttmp/2026/05/11/npm-widget-packages--extract-widgets-and-theme-packages-as-public-npm-packages/`
-- key package files:
-  - `packages/os-core/package.json`
-  - `packages/os-repl/package.json`
-  - `packages/os-widgets/package.json`
-- build script:
-  - `scripts/packages/build-dist.mjs`
-
-### Consumer app work
-
-- repo: `/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/2026-05-11--npm-go-go-os-test`
-- ticket docs:
-  - `ttmp/2026/05/11/os1-component-lab--build-standalone-os1-component-lab-with-published-npm-packages/`
-- key app files:
-  - `package.json`
-  - `src/services/controlPanelApi.ts`
-  - `src/features/ControlPanelApp/ControlPanelApp.tsx`
-  - `.storybook/preview.tsx`
-  - `.devctl.yaml`
-  - `scripts/devctl/os1_component_lab_plugin.py`
-
-### Consumer app commit history
+Generated files:
 
 ```text
-080b628 Document OS1 component lab plan
-744d593 Scaffold OS1 component lab app
-e447e32 Build RTK Query OS1 component lab
-daeab9e Add devctl support for OS1 lab
-5017a80 Record devctl service verification
+packages/os-scripting/src/plugin-runtime/stackBootstrapSource.generated.ts
+packages/os-ui-cards/src/runtime-packages/uiPackageSource.generated.ts
+packages/os-kanban/src/runtime-packages/kanbanPackageSource.generated.ts
+```
+
+The package runtime now imports normal TypeScript modules, not `?raw` package-internal URLs:
+
+```ts
+import stackBootstrapSource from './stackBootstrapSource.generated';
+```
+
+The invariant is enforced by:
+
+```bash
+pnpm run check:vm-sources
+```
+
+Published raw-source fix packages:
+
+```text
+@go-go-golems/os-scripting@0.1.1
+@go-go-golems/os-ui-cards@0.1.1
+@go-go-golems/os-kanban@0.1.1
+```
+
+README/docs patch releases followed:
+
+```text
+@go-go-golems/os-scripting@0.1.2
+@go-go-golems/os-ui-cards@0.1.2
+@go-go-golems/os-kanban@0.1.2
+```
+
+The consumer app then removed its temporary Vite workaround:
+
+```ts
+optimizeDeps: {
+  exclude: [...],
+  include: ['debug'],
+}
+```
+
+This restored the intended package contract: consumers may use raw imports for their own local `.vm.js` bundles, but published package internals no longer require consumers to configure Vite around dependency raw imports.
+
+---
+
+## 7. Runtime host notifications and provider boundaries
+
+Stage 08 exposed a subtle runtime-host issue. The VM handler dispatched:
+
+```js
+ctx.dispatch({
+  type: 'notify.show',
+  payload: { message: 'Notification dispatched from QuickJS' },
+});
+```
+
+The runtime route correctly converted that to a `showToast` action. The missing piece was a toast presenter inside the same isolated VM example Redux provider. The fix was to render host chrome from inside `VmExampleHost`:
+
+```tsx
+function VmExampleToast() {
+  const dispatch = useDispatch();
+  const toast = useSelector((state) => selectToast(state));
+
+  if (!toast) {
+    return null;
+  }
+
+  return <Toast message={toast} onDone={() => dispatch(clearToast())} />;
+}
+```
+
+This established another public-runtime rule:
+
+```text
+If a VM dispatches host-facing system actions, the host must render the corresponding host chrome inside the same store/provider boundary.
 ```
 
 ---
 
-## What remains unfinished
+## 8. Production CSS side effects and the Kanban failure
 
-A useful report should end by describing what is still not done.
+The deployed examples site revealed a production-only CSS failure in stage 09. The Kanban DOM rendered, but the board was unstyled. Computed styles showed block layout rather than flex layout, and the built stylesheet lacked Kanban selectors.
 
-The package family is public and consumable, but several follow-up items remain structurally important:
+The consumer already imported:
 
-- README quality for the published packages still matters; public packages need public onboarding, not only working code
-- npm Trusted Publishers should be configured so future releases can rely on OIDC-based publication rather than ad hoc manual token handling
-- additional packages such as `@go-go-golems/os-shell`, `@go-go-golems/os-kanban`, or `@go-go-golems/os-ui-cards` still require their own publication decisions
-- the source repository currently contains the publication changes as working tree modifications rather than a clean final commit sequence; that is acceptable for the experiment, but not ideal for long-term traceability
+```ts
+import '@go-go-golems/os-kanban/theme';
+```
 
-This last point is worth being explicit about. The package publication was technically successful, but the source-repository history is not yet the clean narrative that the consumer repository now has. If this package line becomes durable, the publication repo should be normalized into reviewable commits as well.
+The package metadata was the problem. It preserved CSS files:
+
+```json
+"sideEffects": ["**/*.css"]
+```
+
+But the public theme entrypoint was a JavaScript module that imported CSS:
+
+```js
+import './kanban.css';
+```
+
+If a bundler tree-shakes the JavaScript theme module, the CSS import inside it never runs. The fix was to preserve the JS theme entrypoints too:
+
+```json
+"sideEffects": [
+  "**/*.css",
+  "./theme/index.js",
+  "./theme/*.js"
+]
+```
+
+Published fix:
+
+```text
+@go-go-golems/os-kanban@0.1.3
+```
+
+Live validation after redeploy showed:
+
+```json
+{
+  "kbDisplay": "flex",
+  "boardDisplay": "flex",
+  "boardOverflowX": "auto",
+  "columnWidth": "200px",
+  "hasKanbanCssRule": true
+}
+```
+
+The same audit later found related theme-entry risks in `os-chat` and `os-core`, leading to metadata fixes and Trusted Publishing releases:
+
+```text
+@go-go-golems/os-chat@0.1.1
+@go-go-golems/os-core@0.1.2
+```
+
+---
+
+## 9. Browser regressions in the examples app
+
+The manual failures became automated browser checks in the examples app. Playwright was added with:
+
+```text
+playwright.config.ts
+tests/e2e/runtime-stages.spec.ts
+scripts/check-kanban-css.mjs
+```
+
+The tests cover:
+
+- stage 06: REPL input stays focused after submitting `status`;
+- stage 08: clicking `Notify host` shows `Notification dispatched from QuickJS`;
+- stage 09: Kanban computed styles prove theme CSS is present;
+- no unexpected browser console or page errors.
+
+The production CSS script checks built stylesheets for representative Kanban selectors:
+
+```text
+[data-part=kb-board]
+[data-part=kb-card]
+[data-part=kb-column]
+```
+
+Validation command set:
+
+```bash
+npm run build
+npm run check:kanban-css
+npm run test:e2e
+```
+
+The first Playwright run failed because browser binaries were not installed locally:
+
+```text
+Executable doesn't exist ... Please run: npx playwright install
+```
+
+After:
+
+```bash
+npx playwright install chromium
+```
+
+all tests passed.
+
+---
+
+## 10. Public static examples deployment
+
+The examples app was published as a public static site:
+
+```text
+https://go-go-os-examples.yolo.scapegoat.dev/
+```
+
+The repository publishes a static artifact image:
+
+```text
+ghcr.io/go-go-golems/go-go-os-examples-static:sha-<short-sha>
+```
+
+The image contains `/site`, not a web server. The K3s cluster has a shared Caddy static host that serves many static sites from a shared PVC:
+
+```text
+/srv/sites/{host}/current
+```
+
+For the examples site:
+
+```text
+/srv/sites/go-go-os-examples.yolo.scapegoat.dev/current -> releases/sha-e41d1c5ed7bc
+```
+
+This matters because the deployment is another consumer validation layer. The packages must work not only in Vite dev and Storybook, but also in a production Vite build served through the cluster.
+
+---
+
+## 11. npm Trusted Publishing: replacing token publication with OIDC
+
+Manual token publication proved the package family, but it was not the desired long-term release path. The final pipeline uses npmjs Trusted Publishing.
+
+npmjs package settings now trust this identity for all public packages:
+
+```text
+Repository: go-go-golems/go-go-os-frontend
+Workflow: publish-npm.yml
+Environment: npm-production
+```
+
+Configured package-side trusted publishers:
+
+```text
+@go-go-golems/os-core
+@go-go-golems/os-repl
+@go-go-golems/os-widgets
+@go-go-golems/os-shell
+@go-go-golems/os-chat
+@go-go-golems/os-confirm
+@go-go-golems/os-scripting
+@go-go-golems/os-ui-cards
+@go-go-golems/os-kanban
+```
+
+The workflow is:
+
+```text
+.github/workflows/publish-npm.yml
+```
+
+The publish job declares:
+
+```yaml
+environment: npm-production
+permissions:
+  contents: read
+  id-token: write
+```
+
+The real publish command uses provenance:
+
+```bash
+npm publish packages/<pkg>/dist \
+  --access public \
+  --tag latest \
+  --registry=https://registry.npmjs.org/ \
+  --provenance
+```
+
+No `NPM_TOKEN` is required for this path.
+
+### Workflow inputs
+
+The workflow is manual (`workflow_dispatch`) and supports:
+
+```text
+package_set: single | os-core | first-wave | shell-stack | vm-stack | all
+package_name: package name or package dir for single-package releases
+npm_tag: latest | next | canary | ...
+dry_run: true by default
+skip_existing: true by default
+confirm_latest_publish: must be CONFIRM_LATEST for real latest publishes
+```
+
+There are two guards for real `latest` releases:
+
+1. the workflow input must contain `CONFIRM_LATEST`;
+2. the helper script refuses a real `latest` publish unless `CONFIRM_LATEST_PUBLISH=true` is present.
+
+### Publish helper
+
+The workflow calls:
+
+```text
+scripts/packages/publish-npm-package-set.mjs
+```
+
+The helper:
+
+- resolves package sets and single package names;
+- reads built `dist/package.json` files;
+- checks whether each `name@version` already exists on npmjs;
+- skips existing versions when requested;
+- publishes only from `dist`;
+- uses npmjs explicitly;
+- includes provenance for real publishes.
+
+Package sets live in:
+
+```text
+scripts/packages/package-sets.mjs
+```
+
+The `vm-stack` set includes `os-widgets` because `os-kanban` depends on it:
+
+```text
+os-core
+os-scripting
+os-ui-cards
+os-widgets
+os-kanban
+```
+
+### Lockfile and CI install determinism
+
+`pnpm-lock.yaml` is now committed. Workflows use:
+
+```yaml
+cache: pnpm
+```
+
+and:
+
+```bash
+pnpm install --frozen-lockfile
+```
+
+This fixed the earlier compromise where the workflow used non-frozen installs because the lockfile was ignored.
+
+### Node version
+
+The publish workflow uses Node 24 for repository commands:
+
+```yaml
+node-version: '24'
+```
+
+This provides npm 11.x, which supports Trusted Publishing and provenance without mutating npm during the workflow.
+
+GitHub still emits a non-failing warning that some action implementations run on Node 20. That warning is about the internals of `actions/checkout`, `actions/setup-node`, and `pnpm/action-setup`, not the project command runtime.
+
+---
+
+## 12. Trusted Publishing release chronology
+
+The first dry-run workflow could not be dispatched until `publish-npm.yml` existed on `main`. After pushing it to `main`, the first run exposed two setup issues:
+
+1. `actions/setup-node` with `cache: pnpm` failed because `pnpm-lock.yaml` was not tracked;
+2. `npm install -g npm@latest` failed under Node 22 with `Cannot find module 'promise-retry'`.
+
+The fixes were:
+
+- commit `pnpm-lock.yaml` and restore `pnpm install --frozen-lockfile`;
+- use Node 24 and remove the npm self-upgrade step.
+
+The first successful dry-run was:
+
+```text
+25705092100 — os-core dry-run, skipped existing version
+```
+
+The first real Trusted Publishing release was:
+
+```text
+@go-go-golems/os-chat@0.1.1
+Run: 25705272997
+Provenance: https://search.sigstore.dev/?logIndex=1513355990
+```
+
+Then `os-core` was published through the same pipeline:
+
+```text
+@go-go-golems/os-core@0.1.2
+Run: 25705516239
+Provenance: https://search.sigstore.dev/?logIndex=1513414083
+```
+
+Finally the full coordinated package stack was published:
+
+```text
+Run: 25706017029
+```
+
+Skipped existing versions:
+
+```text
+@go-go-golems/os-core@0.1.2
+@go-go-golems/os-repl@0.1.5
+@go-go-golems/os-chat@0.1.1
+```
+
+Published new versions:
+
+```text
+@go-go-golems/os-scripting@0.1.3
+@go-go-golems/os-ui-cards@0.1.3
+@go-go-golems/os-confirm@0.1.1
+@go-go-golems/os-shell@0.1.1
+@go-go-golems/os-widgets@0.1.3
+@go-go-golems/os-kanban@0.1.4
+```
+
+Provenance logs from the coordinated publish:
+
+```text
+os-scripting@0.1.3   https://search.sigstore.dev/?logIndex=1513569688
+os-ui-cards@0.1.3    https://search.sigstore.dev/?logIndex=1513570254
+os-confirm@0.1.1     https://search.sigstore.dev/?logIndex=1513570738
+os-shell@0.1.1       https://search.sigstore.dev/?logIndex=1513571277
+os-widgets@0.1.3     https://search.sigstore.dev/?logIndex=1513571856
+os-kanban@0.1.4      https://search.sigstore.dev/?logIndex=1513572491
+```
+
+Registry verification confirmed Trusted Publisher metadata:
+
+```text
+@go-go-golems/os-core@0.1.2        publisher=GitHub Actions trusted=github
+@go-go-golems/os-chat@0.1.1        publisher=GitHub Actions trusted=github
+@go-go-golems/os-scripting@0.1.3   publisher=GitHub Actions trusted=github
+@go-go-golems/os-ui-cards@0.1.3    publisher=GitHub Actions trusted=github
+@go-go-golems/os-confirm@0.1.1     publisher=GitHub Actions trusted=github
+@go-go-golems/os-shell@0.1.1       publisher=GitHub Actions trusted=github
+@go-go-golems/os-widgets@0.1.3     publisher=GitHub Actions trusted=github
+@go-go-golems/os-kanban@0.1.4      publisher=GitHub Actions trusted=github
+```
+
+`os-repl@0.1.5` was skipped because it already existed, so that version still shows its original manual publisher. A future `os-repl@0.1.6` would prove Trusted Publishing for `os-repl` itself.
+
+---
+
+## 13. Current aligned public package stack
+
+The current aligned public stack is:
+
+```text
+@go-go-golems/os-core@0.1.2
+@go-go-golems/os-chat@0.1.1
+@go-go-golems/os-repl@0.1.5
+@go-go-golems/os-scripting@0.1.3
+@go-go-golems/os-ui-cards@0.1.3
+@go-go-golems/os-confirm@0.1.1
+@go-go-golems/os-shell@0.1.1
+@go-go-golems/os-widgets@0.1.3
+@go-go-golems/os-kanban@0.1.4
+```
+
+The examples app now consumes this stack directly from npmjs. Its `package.json` was updated to the matching caret ranges, `npm install` resolved without peer conflicts, and local validation passed:
+
+```bash
+npm run build
+npm run check:kanban-css
+npm run test:e2e
+```
+
+The validation result was:
+
+```text
+Production build passed.
+Kanban CSS selector check passed.
+3 Playwright runtime regression tests passed.
+```
+
+This alignment was necessary because updating only a consumer app to `os-core@0.1.2` failed while older packages still depended on or peered against `os-core@0.1.1`:
+
+```text
+npm error ERESOLVE unable to resolve dependency tree
+npm error Found: @go-go-golems/os-core@0.1.2
+npm error Could not resolve dependency:
+npm error peer @go-go-golems/os-core@"0.1.1" from @go-go-golems/os-widgets@0.1.2
+```
+
+The coordinated package releases fixed that class of conflict by rebuilding and publishing downstream packages with updated dependency metadata.
+
+---
+
+## 14. Release runbook
+
+The release process is now documented in:
+
+```text
+ttmp/2026/05/11/npm-trusted-publishing-cicd--set-up-npmjs-trusted-publishing-ci-cd-for-public-packages/playbooks/01-npm-trusted-publishing-release-runbook.md
+```
+
+The single-package release flow is:
+
+```bash
+# 1. bump package version
+# 2. update lockfile if needed
+pnpm install --lockfile-only
+pnpm install --frozen-lockfile
+
+# 3. local validation
+pnpm --filter @go-go-golems/os-core run typecheck
+pnpm --filter @go-go-golems/os-core run test
+pnpm --filter @go-go-golems/os-core run build:dist
+node scripts/packages/pack-smoke.mjs packages/os-core
+node scripts/packages/publish-npm-package-set.mjs --package packages/os-core --tag latest --dry-run
+
+# 4. commit and push to main
+# 5. run workflow dry-run
+# 6. run real workflow publish with confirm_latest_publish=CONFIRM_LATEST
+```
+
+Verification can use npm directly now that local scope config is cleaned:
+
+```bash
+npm view @go-go-golems/os-core@0.1.2 version --registry=https://registry.npmjs.org/
+```
+
+For provenance details, the registry API remains useful because it exposes the trusted publisher fields:
+
+```python
+import json, urllib.request
+pkg = '@go-go-golems/os-core'
+ver = '0.1.2'
+url = f"https://registry.npmjs.org/{pkg.replace('/', '%2F')}/{ver}"
+with urllib.request.urlopen(url) as r:
+    data = json.load(r)
+print(data['_npmUser'])
+```
+
+---
+
+## 15. Lessons from the finished pipeline
+
+### Lesson 1: publishability is transitive
+
+Publishing `os-core@0.1.2` was not enough. Packages that depended on or peered against `os-core@0.1.1` also needed patch releases. Frontend package systems often require coordinated publication even when the source change is metadata-only.
+
+### Lesson 2: dry-runs and real OIDC publishes prove different things
+
+Dry-runs validate package contents, scripts, and workflow setup. They do not prove npm accepts the OIDC identity. The first real publish is the only proof that Trusted Publishing is configured correctly.
+
+### Lesson 3: CSS side effects require JS entrypoint preservation
+
+Marking `**/*.css` as side-effectful is insufficient when the public theme export is a JS module that imports CSS. Public theme JS entrypoints must also be preserved.
+
+### Lesson 4: local npm config can invalidate verification
+
+A stale user-level scoped registry can make a correct package appear inaccessible. The pipeline should force npmjs in CI, and local development should keep the scope registry aligned with the intended public registry.
+
+### Lesson 5: generated runtime source needs CI enforcement
+
+The VM runtime packages depend on generated source-string modules. `check:vm-sources` now runs in CI and release workflows because stale generated modules would silently break published runtime packages.
+
+### Lesson 6: an examples app is an integration test, not a marketing page
+
+The examples workspace caught focus bugs, host notification provider mistakes, Vite raw-import packaging problems, and production CSS tree-shaking failures. It is part of the package quality system.
+
+---
+
+## 16. Important tickets and documents
+
+### Package publication
+
+```text
+go-go-os-frontend/ttmp/2026/05/11/npm-widget-packages--extract-widgets-and-theme-packages-as-public-npm-packages
+```
+
+### VM raw source modules
+
+```text
+go-go-os-frontend/ttmp/2026/05/11/vm-raw-source-modules--generate-bundler-agnostic-vm-source-modules-for-published-runtime-packages
+```
+
+### Trusted Publishing CI/CD
+
+```text
+go-go-os-frontend/ttmp/2026/05/11/npm-trusted-publishing-cicd--set-up-npmjs-trusted-publishing-ci-cd-for-public-packages
+```
+
+Important files:
+
+```text
+.github/workflows/publish-npm.yml
+.github/workflows/launcher-ci.yml
+.github/workflows/publish-github-package-canary.yml
+scripts/packages/build-dist.mjs
+scripts/packages/generate-vm-source-modules.mjs
+scripts/packages/package-sets.mjs
+scripts/packages/pack-smoke.mjs
+scripts/packages/publish-npm-package-set.mjs
+pnpm-lock.yaml
+```
+
+### Examples app
+
+```text
+2026-05-11--npm-go-go-os-test/ttmp/2026/05/11/example-workspaces--build-progressive-example-workspaces-for-published-go-go-os-packages
+```
+
+Important files:
+
+```text
+playwright.config.ts
+tests/e2e/runtime-stages.spec.ts
+scripts/check-kanban-css.mjs
+examples/shared/src/VmExampleHost.tsx
+examples/06-repl-console
+examples/08-vm-events-and-intents
+examples/09-vm-kanban-runtime
+```
+
+---
+
+## 17. Final consumer deployment
+
+After the coordinated trusted-published package stack was available on npmjs, the public examples app was updated to consume it and redeployed. This closed the loop between package publication and external consumption.
+
+The examples repo commit that updated the package stack was:
+
+```text
+6adb83f Use trusted-published go-go-os package stack
+```
+
+A later diary-only commit moved the examples repository head to:
+
+```text
+c363726 Diary: record examples package stack push
+```
+
+The static artifact workflow published:
+
+```text
+ghcr.io/go-go-golems/go-go-os-examples-static:sha-c36372695688
+```
+
+The K3s GitOps repo then updated the `go-go-os-examples` publish Job to that artifact. Deployment is Argo CD driven: Argo reconciles the `go-go-os-examples` Application, creates the new publish Job, the Job copies `/site` from the artifact image into the shared Caddy PVC, and Caddy serves the new release directory.
+
+Final Argo CD state:
+
+```text
+go-go-os-examples   Synced   Healthy
+static-sites-host   Synced   Healthy
+```
+
+Final publish Job:
+
+```text
+publish-go-go-os-examples-sha-c36372695688   Complete   1/1
+```
+
+The publish Job log confirmed the live release directory:
+
+```text
+/srv/sites/go-go-os-examples.yolo.scapegoat.dev/releases/sha-c36372695688/index.html
+/srv/sites/go-go-os-examples.yolo.scapegoat.dev/releases/sha-c36372695688/assets/index-Bo0T2Qsq.css
+/srv/sites/go-go-os-examples.yolo.scapegoat.dev/releases/sha-c36372695688/assets/index-C2LYUfLG.js
+```
+
+The final live browser smoke returned:
+
+```json
+{
+  "title": "Go-Go OS1 Component Lab",
+  "replFocused": true,
+  "toastVisible": true,
+  "kanban": {
+    "kbDisplay": "flex",
+    "boardDisplay": "flex",
+    "boardOverflowX": "auto",
+    "columnWidth": "200px",
+    "hasKanbanCssRule": true
+  },
+  "errors": []
+}
+```
+
+The live site is therefore serving the trusted-published package stack at:
+
+```text
+https://go-go-os-examples.yolo.scapegoat.dev/
+```
+
+## 18. What remains
+
+The pipeline is complete enough to use. Remaining work is incremental hardening, not first-time setup.
+
+1. Optionally publish a future `@go-go-golems/os-repl@0.1.6` through Trusted Publishing so every package has at least one trusted-provenance release. The current `os-repl@0.1.5` was skipped in the coordinated publish because it already existed.
+
+2. Consider adding a clean install-smoke workflow that creates a temporary consumer project and installs the latest package stack from npmjs.
+
+3. Add `PLAYWRIGHT_BASE_URL` support to the examples Playwright config so the same runtime tests can run against both local Vite and the deployed public site.
+
+4. Consider path filters for the examples static artifact workflow so docs-only changes under `ttmp/**` do not build and publish a new image.
+
+5. Monitor GitHub's Node 20 action deprecation warnings and upgrade action versions when upstream actions publish Node 24-compatible versions.
 
 ---
 
 ## Closing
 
-The most important result of this work is not that three packages were published. The important result is that the `go-go-os-frontend` UI system now has evidence of external life. It has moved from “components that happen to be in package-shaped folders” to “a package family that can be published, installed, themed, composed, built, storybooked, and supervised outside its source monorepo.”
+The project is no longer only a successful manual npm publication. It is now a public frontend package system with an external consumer app, VM runtime examples, production deployment, browser regressions, generated-source checks, deterministic CI installs, and npmjs Trusted Publishing with provenance.
 
-That change is architectural. It means future work on the system can be evaluated against an external consumer standard. If a new component, type surface, or theme rule cannot survive that external boundary, it is not yet a package-level abstraction. If it can, then the project is no longer only building an app. It is building a frontend system.
+That changes the engineering standard for future work. A new package change can now be judged against concrete gates:
+
+```text
+source build -> dist artifact -> pack smoke -> npm Trusted Publishing -> external examples app -> production build -> browser regression -> Argo CD static-site deployment -> live browser smoke
+```
+
+The strongest result is that the package family now has external evidence. It can be installed from npmjs, composed in a separate React application, rendered in a public browser site, released again through a repeatable OIDC-based CI/CD pipeline, and redeployed through Argo CD as a static production site. That is the difference between a monorepo component collection and a frontend system.
