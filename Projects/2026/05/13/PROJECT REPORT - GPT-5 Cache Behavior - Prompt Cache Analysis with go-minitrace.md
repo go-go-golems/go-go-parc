@@ -166,6 +166,51 @@ COALESCE(t.unnest->>'model', s.environment->>'model') LIKE 'gpt-%'
 
 This extra filter matters because some sessions classified as OpenAI Codex can contain earlier mixed turn-model labels from provider changes or adapter transitions. Without this filter, an OpenAI-only analysis can accidentally include non-OpenAI turn rows.
 
+The actual extraction query in `scripts/query-commands/cache/openai.js` is built as a reusable CTE. The important part is that the JSON fields are extracted once, cast to integers, and then passed to every downstream verb. This is the SQL shape that turns minitrace JSON into a tabular turn stream:
+
+```sql
+WITH token_turns AS (
+  SELECT
+    s.id AS session_id,
+    COALESCE(s.title, '') AS title,
+    s.environment->>'provider_hint' AS provider,
+    s.environment->>'model' AS session_model,
+    TRY_CAST(s.metrics->>'turn_count' AS BIGINT) AS session_turns,
+    TRY_CAST(t.unnest->>'index' AS BIGINT) AS turn_index,
+    t.unnest->>'timestamp' AS timestamp,
+    COALESCE(t.unnest->>'model', s.environment->>'model') AS turn_model,
+    TRY_CAST((t.unnest->'usage')->>'input_tokens' AS BIGINT) AS input_tokens,
+    TRY_CAST((t.unnest->'usage')->>'output_tokens' AS BIGINT) AS output_tokens,
+    TRY_CAST((t.unnest->'usage')->>'cache_read_tokens' AS BIGINT) AS cache_read_tokens,
+    TRY_CAST((t.unnest->'usage')->>'cache_creation_tokens' AS BIGINT) AS cache_creation_tokens
+  FROM sessions_base s, UNNEST(s.turns) t
+  WHERE s.environment->>'provider_hint' = 'openai-codex'
+    AND COALESCE(t.unnest->>'model', s.environment->>'model') LIKE 'gpt-%'
+    AND (t.unnest->'usage') IS NOT NULL
+    AND (((t.unnest->'usage')->>'input_tokens') IS NOT NULL
+      OR ((t.unnest->'usage')->>'output_tokens') IS NOT NULL
+      OR ((t.unnest->'usage')->>'cache_read_tokens') IS NOT NULL
+      OR ((t.unnest->'usage')->>'cache_creation_tokens') IS NOT NULL)
+)
+```
+
+The reason to keep this inside a JS query command rather than a standalone SQL file is that the JS layer can assemble filters safely. For example, the command supports model filters, session filters, minimum turn thresholds, and output limits without duplicating the extraction SQL for every verb.
+
+```js
+function whereClause(filters, alias) {
+  const mt = require("minitrace");
+  const p = alias ? `${alias}.` : "";
+  const clauses = [`${p}environment->>'provider_hint' = 'openai-codex'`];
+  if (filters.model?.length) {
+    clauses.push(`${p}environment->>'model' IN (${mt.sql.stringIn(filters.model)})`);
+  }
+  if (filters.sessionId) {
+    clauses.push(`${p}id = ${mt.sql.string(filters.sessionId)}`);
+  }
+  return clauses.join(" AND ");
+}
+```
+
 ## 5. Normalized metrics
 
 The analysis uses `effective_prompt_tokens` as the denominator for cache percentages:
@@ -260,6 +305,51 @@ else:
 ```
 
 The order of these checks matters. For example, a model switch that also drops cache to zero is classified as `model_switch`, because model switch is treated as a stronger explanation candidate than a generic drop.
+
+The actual event classifier is expressed as a SQL `CASE` expression. This keeps the event labels reproducible: the dashboard, the event-window export, and the summary script all consume the same classification output.
+
+```sql
+CASE
+  WHEN prev_model IS NOT NULL AND prev_model <> turn_model THEN 'model_switch'
+  WHEN COALESCE(cache_creation_tokens, 0) > 0
+       AND COALESCE(cache_read_tokens, 0) = 0 THEN 'cache_create_no_read'
+  WHEN COALESCE(cache_read_tokens, 0) > 0
+       AND COALESCE(prev_cache_read_tokens, 0) = 0 THEN 'first_cache_hit'
+  WHEN COALESCE(prev_cache_read_tokens, 0) > 0
+       AND COALESCE(cache_read_tokens, 0) = 0 THEN 'cache_drop_to_zero'
+  WHEN COALESCE(prev_cache_read_tokens, 0) > 0
+       AND COALESCE(cache_read_tokens, 0) < prev_cache_read_tokens * 0.5
+       THEN 'cache_drop_gt_50pct'
+  WHEN COALESCE(cache_read_tokens, 0) > COALESCE(prev_cache_read_tokens, 0) * 1.5
+       THEN 'cache_growth_gt_50pct'
+  ELSE 'steady_or_unclear'
+END AS event_type
+```
+
+Event windows are then produced by joining selected event rows back to the classified turn stream by token sequence. This is the core of the `event-windows` verb:
+
+```sql
+selected_events AS (
+  SELECT *
+  FROM classified
+  WHERE event_type IN ('cache_drop_to_zero', 'model_switch')
+), windows AS (
+  SELECT
+    e.session_id,
+    e.event_type,
+    e.turn_index AS event_turn_index,
+    w.turn_index,
+    w.token_seq - e.token_seq AS window_offset,
+    w.cache_read_pct_effective,
+    w.seconds_since_prev_token_turn
+  FROM selected_events e
+  JOIN classified w
+    ON w.session_id = e.session_id
+   AND w.token_seq BETWEEN e.token_seq - 8 AND e.token_seq + 8
+)
+```
+
+That join is what lets the report say that complete drops recover quickly. The statement is not based on individual anecdotes; it is based on aggregating `cache_read_pct_effective` by `window_offset` across all selected events.
 
 ## 7. Corpus summary
 
@@ -439,6 +529,21 @@ go-minitrace query commands \
   --archive-glob 'analysis/pi/active/*/*.minitrace.json' \
   --output json
 ```
+
+The generator is intentionally plain shell. It turns command output into stable files that the browser can load without needing to execute go-minitrace itself:
+
+```bash
+run_cmd sessions --limit "$SESSION_LIMIT" > "$OUT_DIR/openai-sessions.json"
+run_cmd turns --limit "$TURN_LIMIT" > "$OUT_DIR/openai-turns.json"
+run_cmd events --limit "$EVENT_LIMIT" > "$OUT_DIR/openai-events.json"
+run_cmd event-windows \
+  --eventType cache_drop_to_zero \
+  --before "$WINDOW_BEFORE" \
+  --after "$WINDOW_AFTER" \
+  --limit "$WINDOW_LIMIT" > "$OUT_DIR/openai-event-windows.json"
+```
+
+The dashboard then treats those JSON files as its API. For example, the session scatterplot is drawn from `openai-sessions.json`, while the selected-session timeline is drawn from `openai-turns.json` filtered by `session_id`.
 
 The other verbs are:
 
