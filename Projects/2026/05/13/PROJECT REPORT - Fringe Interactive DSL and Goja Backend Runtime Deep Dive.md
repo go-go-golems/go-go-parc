@@ -659,7 +659,7 @@ This is a development implementation. Before production, it needs user/session o
 
 ## 13. Test coverage
 
-The current tests cover both the Goja runtime and the HTTP endpoint layer.
+The current tests now cover the backend runtime, the HTTP endpoint layer, and the frontend renderer/container bridge. The tests are important because this architecture has several boundaries where a field-name mismatch or action-routing mistake can make the system appear correct while silently failing to update state.
 
 Important backend tests include:
 
@@ -674,40 +674,97 @@ Important backend tests include:
 | `pkg/dslgoja/dispatch_errors_test.go` | Unknown action errors and callback exceptions. |
 | `pkg/server/handlers_dsl_test.go` | HTTP start/get/event dispatch round trip. |
 
-The most important endpoint test starts a flow, extracts a real action id from the returned page JSON, posts a `change` event selecting `extensions`, and verifies the returned page has `category-tabs.props.value = "extensions"`. That test exercises the core design:
+The most important backend endpoint test starts a flow, extracts a real action id from the returned page JSON, posts a `change` event selecting `extensions`, and verifies the returned page has `category-tabs.props.value = "extensions"`. That test exercises the core backend design:
 
 ```text
 HTTP start -> Goja render -> page JSON -> action id extraction -> HTTP event -> Goja callback -> updated page JSON
 ```
 
-The latest focused validation command was:
+The frontend bridge adds a second test layer:
+
+| Test file | Coverage |
+|---|---|
+| `web/src/page-dsl/BackendDslPage.test.tsx` | Backend action refs from nodes, shell navigation refs, `BackendDslPage` flow start/fetch/event client behavior. |
+| `web/src/page-dsl/InteractiveDsl.test.tsx` | Browser-local interactive DSL action routing for group nodes and photo tiles. |
+| `web/src/InteractiveWidgets.test.tsx` | App-ready widget callback contracts. |
+| `web/src/SelectionGroups.test.tsx` | Group component selection state and metadata. |
+| `web/src/atoms/Chip/ChipGroup.test.tsx` | Chip and ChipGroup selection behavior. |
+
+The most recent full validation sequence passed:
 
 ```bash
-go test ./pkg/dslgoja ./pkg/server -count=1
+go test ./... -count=1
+cd web && pnpm test -- --runInBand
+cd web && npx tsc --noEmit
+cd web && npx storybook build --test
 ```
 
-It passed after the HTTP endpoint implementation.
+At the time of the frontend bridge update, the web test run reported 5 test files and 19 passing tests. The Storybook build also passed after adding the backend-shaped flow demo.
 
-## 14. What remains unfinished
+## 14. The frontend bridge is now implemented
 
-The backend can now serve a Goja-authored DSL flow, but the frontend is not yet wired to it. The remaining HAIR-033 tasks are:
+The earlier version of this report described the frontend backend bridge as the missing piece. That bridge now exists.
 
-| Task | Work |
+The new files are:
+
+| File | Role |
 |---|---|
-| 18 | Add `backendClient` and `BackendDslPage` so React can start flows and post events. |
-| 19 | Update `DslPageRenderer` to support backend action refs in `props.actions` while preserving local Storybook action names. |
-| 20 | Add a Storybook or dev-route demo for the Goja-backed multi-step intake flow. |
-| 21 | Run full repository validation: Go tests, web tests, typecheck, Storybook build. |
-| 22 | Update final docs/diary/changelog and upload the final implementation guide bundle to reMarkable. |
+| `web/src/page-dsl/backendClient.ts` | Fetch client for `startDslFlow`, `getDslFlow`, and `postDslEvent`. |
+| `web/src/page-dsl/BackendDslPage.tsx` | React container that owns backend flow state and posts renderer events to Go. |
+| `web/src/page-dsl/BackendDslPage.test.tsx` | Tests for backend action refs and container/client behavior. |
+| `web/src/page-dsl/BackendDslPage.stories.tsx` | Storybook demo under `Page DSL / Backend Goja Flow`. |
 
-The renderer already has local action support. The production extension should add a backend dispatch path. A node may have either local Storybook action names or backend action references. The renderer should resolve backend refs first:
+The renderer was updated in:
+
+```text
+web/src/page-dsl/render.tsx
+```
+
+The schema was extended in:
+
+```text
+web/src/page-dsl/schema.ts
+```
+
+The new client speaks the endpoint contract introduced in `pkg/server/handlers_dsl.go`:
 
 ```ts
-function dispatchAction(node, props, eventName, value, meta) {
-  const ref = props.actions?.[eventName];
-  if (ref) {
-    return context.backendDispatch({
-      nodeId: node.meta?.id,
+export async function startDslFlow(flowId = "fringe.intake.v1"): Promise<DslFlowState>
+export async function getDslFlow(sessionId: string): Promise<DslFlowState>
+export async function postDslEvent(sessionId: string, event: DslInteractionEvent): Promise<DslFlowState>
+```
+
+The container owns the state that the renderer should not know about:
+
+```tsx
+export function BackendDslPage({ flowId = "fringe.intake.v1", sessionId, client }) {
+  const [state, setState] = useState<DslFlowState | null>(null);
+
+  // Start or fetch a session.
+  // Render the returned page.
+  // Attach backendDispatch to the renderer.
+}
+```
+
+The separation is deliberate. `DslPageRenderer` renders a page and reports node-level interactions. It does not know how sessions are started, how page versions are tracked, or how event ids are generated. `BackendDslPage` owns those transport responsibilities.
+
+## 15. Backend action refs in the renderer
+
+The renderer now supports two action models:
+
+1. Local Storybook actions, where a node has a string such as `action: "tonesChanged"` and the renderer calls `context.actions.tonesChanged(...)`.
+2. Backend action refs, where a node has `props.actions.change = { id: "act_...", event: "change" }` and the renderer calls `context.backendDispatch(...)`.
+
+Backend refs are preferred when present. Local action names remain as a fallback so all existing Storybook examples keep working.
+
+The core helper has this shape:
+
+```ts
+function dispatchAction(ctx, node, props, eventName, localKey, value, meta) {
+  const ref = actionRef(props, eventName);
+  if (ref && ctx?.backendDispatch) {
+    return ctx.backendDispatch({
+      nodeId: node.meta?.id || "",
       nodeKind: node.kind,
       actionId: ref.id,
       event: ref.event,
@@ -716,41 +773,59 @@ function dispatchAction(node, props, eventName, value, meta) {
     });
   }
 
-  const localName = props.action;
+  const localName = props[localKey];
   if (localName) {
-    return context.actions?.[localName]?.({ node, action: localName, value, meta });
+    return ctx.actions?.[localName]?.({ node, action: localName, value, meta });
   }
 }
 ```
 
-The frontend container should own the page state returned by the backend:
+The shell needed its own path because `IntakeShell` is not a normal node in the page tree. The renderer now dispatches shell actions such as `shell.next` with node kind `intakeShell`:
 
-```tsx
-function BackendDslPage({ flowId }) {
-  const [state, setState] = useState<DslFlowState | null>(null);
-
-  useEffect(() => {
-    startDslFlow(flowId).then(setState);
-  }, [flowId]);
-
-  async function backendDispatch(event) {
-    if (!state) return;
-    const next = await postDslEvent(state.sessionId, {
-      eventId: crypto.randomUUID(),
-      pageVersion: state.pageVersion,
-      ...event,
+```ts
+function dispatchShellAction(ctx, props, eventName, localKey) {
+  const ref = actionRef(props, eventName);
+  if (ref && ctx?.backendDispatch) {
+    return ctx.backendDispatch({
+      nodeId: `shell.${eventName}`,
+      nodeKind: "intakeShell",
+      actionId: ref.id,
+      event: ref.event,
     });
-    setState(next);
   }
 
-  if (!state) return <Loading />;
-  return <DslPageRenderer page={state.page} context={{ backendDispatch }} />;
+  return localActionFallback(...);
 }
 ```
 
-That container is the missing bridge between the current backend runtime and the existing React renderer.
+This shell path matters because bottom navigation is one of the user's explicit requirements. Pressing the bottom button should tell the backend exactly which button was pressed, and the backend should look up the registered handler for that page.
 
-## 15. Design decisions worth preserving
+## 16. Storybook now has a backend-shaped flow demo
+
+The new Storybook story lives at:
+
+```text
+Page DSL / Backend Goja Flow / Mocked Backend Flow
+```
+
+The story uses `BackendDslPage` with a mocked `BackendDslClient`. It does not require the Go server to be running, but it uses the same data contract as the real backend:
+
+- `startDslFlow` returns `{ sessionId, pageVersion, page }`.
+- widget interactions produce `{ nodeId, nodeKind, actionId, event, value, meta }`.
+- `postDslEvent` returns a new `{ sessionId, pageVersion, page, effects }`.
+
+The mocked story is not a replacement for the Go HTTP tests. It is a review surface for the frontend contract. It lets a reviewer click Cut / Color / Extensions, service options, tone chips, rating controls, and shell navigation while watching the action id and value that would be posted to the backend.
+
+The distinction between the two test/demo surfaces is useful:
+
+| Surface | What it proves |
+|---|---|
+| Go HTTP tests | The actual backend endpoints start sessions and dispatch events into Goja callbacks. |
+| Storybook mocked backend flow | The frontend renderer/container can consume backend-shaped pages and produce backend-shaped events. |
+
+A future dev route can connect `BackendDslPage` to the live Go server. The current story is intentionally isolated so the component build remains deterministic.
+
+## 17. Design decisions worth preserving
 
 ### The JSON boundary is the contract
 
@@ -776,7 +851,11 @@ A render failure must not leave the session with half-installed actions. New act
 
 Go structs use Go field names. JSON and JavaScript use lowerCamelCase names. The runtime explicitly converts events to lowerCamelCase maps before invoking callbacks.
 
-## 16. Failure modes and current protections
+### The renderer is not the session manager
+
+The renderer should not know how to start flows, generate event ids, or track page versions. It should report interactions. `BackendDslPage` should attach transport-level fields and replace the page with the backend response.
+
+## 18. Failure modes and current protections
 
 | Failure mode | Current protection | Remaining work |
 |---|---|---|
@@ -789,12 +868,13 @@ Go structs use Go field names. JSON and JavaScript use lowerCamelCase names. The
 | Memory growth from old sessions/actions. | Action lifecycle exists. | Add expiry, pruning, cleanup goroutine. |
 | Browser sends unknown action id. | Runtime returns error; HTTP maps to `dsl_dispatch_failed`. | Add more precise error code mapping. |
 | Browser sends action for wrong user. | Not implemented in prototype. | Add ownership checks when auth/session integration is added. |
+| Frontend loses backend session state. | `BackendDslPage` can fetch by `sessionId` if one is supplied. | Add route-level session persistence/recovery policy. |
 
-The most important unresolved production issue is session lifecycle. The current in-memory store is acceptable for a prototype because it proves the event model. It is not a production session manager.
+The most important unresolved production issue remains session lifecycle. The current in-memory store is acceptable for a prototype because it proves the event model. It is not a production session manager.
 
-## 17. Implementation sequence so far
+## 19. Implementation sequence so far
 
-The Goja implementation followed a useful sequence. It is worth preserving because each step established one invariant before adding the next.
+The implementation followed a useful sequence. It is worth preserving because each step established one invariant before adding the next.
 
 1. **Schema first.** `pkg/dslgoja/schema.go` defined the JSON contract and DTOs.
 2. **Runtime second.** `StartFlow` loaded JavaScript, called `initialState`, called `render`, and exposed `ctx.action`.
@@ -803,14 +883,15 @@ The Goja implementation followed a useful sequence. It is worth preserving becau
 5. **Flow script fifth.** `intake.flow.js` made the architecture concrete.
 6. **Dispatch sixth.** `FlowSession.Dispatch` connected browser events to Goja callbacks.
 7. **Endpoint seventh.** HTTP handlers exposed the runtime to clients.
+8. **Frontend bridge eighth.** `backendClient`, `BackendDslPage`, and backend action-ref support connected the React renderer to the endpoint contract.
 
 This sequence is the right order. Reversing it would have created broad HTTP or frontend surfaces before the runtime invariants were tested.
 
-## 18. Current status
+## 20. Current status
 
-The project is active and mid-implementation. The backend runtime slice is functional enough to start and dispatch a two-step flow through Go tests and HTTP handler tests. The frontend side still needs the backend client and renderer changes for real browser interaction with backend action refs.
+The project is active and now has the first end-to-end architectural slice. The backend can start and dispatch a two-step Goja-authored flow through HTTP. The frontend can consume backend-shaped page state and route widget/shell interactions through `backendDispatch`. The Storybook demo uses a mocked backend client, while Go tests cover the real HTTP endpoints.
 
-Current code commits for the backend runtime slice include:
+Current code commits for the runtime and bridge slice include:
 
 | Commit | Meaning |
 |---|---|
@@ -822,31 +903,15 @@ Current code commits for the backend runtime slice include:
 | `d6298c4` | Event dispatch into Goja callbacks. |
 | `d81d233` | Expanded dispatch tests. |
 | `2396d07` | HTTP endpoints for Goja DSL flows. |
+| `3942190` | Frontend backend client, `BackendDslPage`, renderer action refs, tests, and Storybook demo. |
 
-The most recent focused validation command was:
+The final HAIR-033 documentation bundle was uploaded to reMarkable at:
 
-```bash
-go test ./pkg/dslgoja ./pkg/server -count=1
+```text
+/ai/2026/05/13/HAIR-033/HAIR_033_Interactive_Widgets_and_Goja_DSL_Final_Bundle.pdf
 ```
 
-The remaining integration work should not change the backend model. It should connect the existing frontend renderer to the backend action refs and endpoint responses.
-
-## 19. Near-term next steps
-
-The next implementation should be narrow and testable.
-
-1. Add `web/src/page-dsl/backendClient.ts` with:
-   - `startDslFlow(flowId)`
-   - `getDslFlow(sessionId)`
-   - `postDslEvent(sessionId, event)`
-2. Add `web/src/page-dsl/BackendDslPage.tsx` that:
-   - starts `fringe.intake.v1`,
-   - stores `{ sessionId, pageVersion, page }`,
-   - passes `backendDispatch` into `DslPageRenderer`,
-   - replaces local page state with backend responses.
-3. Update `DslPageRenderer` so each interactive node checks `props.actions?.[eventName]` before falling back to local Storybook action names.
-4. Add a Storybook story or dev route for the backend-backed flow.
-5. Run full validation:
+The most recent full validation sequence was:
 
 ```bash
 go test ./... -count=1
@@ -855,9 +920,43 @@ cd web && npx tsc --noEmit
 cd web && npx storybook build --test
 ```
 
-If that passes, the project has crossed the key boundary: a JavaScript flow in Goja inside Go can drive a React UI in the browser through JSON pages and opaque action ids.
+This means the project has crossed the key boundary: a JavaScript flow in Goja inside Go can drive a React UI contract through JSON pages and opaque action ids. The remaining work is production hardening and expanding the prototype flow, not proving the central mechanism.
 
-## 20. Working rules for future contributors
+## 21. Near-term next steps
+
+The next work should be productionization, not another redesign of the core loop.
+
+1. Add flow-session lifecycle management:
+   - idle expiry,
+   - absolute expiry,
+   - cleanup goroutine,
+   - processed event pruning,
+   - retired action pruning.
+2. Add user/session ownership checks for DSL sessions before exposing the runtime beyond dev/demo contexts.
+3. Extend `pkg/dslgoja/flows/intake.flow.js` from two steps to the full sequence:
+   - service,
+   - color,
+   - photos,
+   - budget,
+   - booking,
+   - confirm.
+4. Add a live dev route or app route that renders `BackendDslPage` against the real Go backend, not only the mocked Storybook client.
+5. Add a safe `fringe/intake` host module that wraps existing Go intake services for estimates and final submission.
+6. Decide the persistence strategy:
+   - keep in-memory sessions for local/dev,
+   - add durable state and recreated/symbolic handlers for production,
+   - or use sticky sessions with explicit operational constraints.
+7. Add structured logging for:
+   - session id,
+   - page version,
+   - action id,
+   - node id,
+   - callback duration,
+   - error effects.
+
+The near-term objective is a full intake flow that can run in development through the live Go server. The production objective is a bounded, authorized, observable session runtime.
+
+## 22. Working rules for future contributors
 
 - Keep flow state JSON-serializable. Do not store Goja functions, file handles, or host objects in `ctx.state`.
 - Treat `render(ctx)` as a pure page-construction step. Mutate state in callbacks, then return a render.
@@ -868,8 +967,9 @@ If that passes, the project has crossed the key boundary: a JavaScript flow in G
 - Keep widget callbacks value-oriented. The backend needs selected values, not only click notifications.
 - Add tests at the runtime layer before adding HTTP or frontend code for the same behavior.
 - Keep the frontend renderer a data interpreter. Business transitions belong in the backend flow runtime.
+- Keep `BackendDslPage` responsible for transport state. Do not push session ids and page versions into widget components.
 
-## 21. Why this architecture matters
+## 23. Why this architecture matters
 
 The resulting system gives the project a server-driven UI architecture without discarding React components. React remains responsible for rendering and user interaction. Go remains responsible for HTTP, sessions, domain services, and hosting the JavaScript runtime. Goja provides the programmable middle layer: flow authors can write concise JavaScript state machines that emit JSON pages and register callbacks.
 
@@ -881,4 +981,4 @@ The architecture is valuable because it separates three responsibilities that ar
 
 That separation is the reason the system can support multi-step intake flows. A step is not a hard-coded React route. It is a function of backend flow state. An interaction is not a local browser state update. It is an event delivered to the backend flow session. The page that comes back is the next authoritative state of the interaction.
 
-The current implementation proves the central mechanics. The next work is integration: connect the browser renderer to the backend event API, then extend the two-step prototype into the full intake sequence.
+The current implementation proves the central mechanics on both sides of the boundary. The backend can produce and dispatch Goja pages. The frontend can render backend-shaped pages and post backend-shaped events. The next phase is to make the runtime durable, authorized, observable, and complete enough for the full intake flow.
