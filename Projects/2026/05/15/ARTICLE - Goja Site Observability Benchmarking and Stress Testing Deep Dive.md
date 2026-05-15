@@ -22,6 +22,7 @@ repo: /home/manuel/code/wesen/2026-05-03--goja-hosting-site
 source_tickets:
   - GOJA-PERF-BENCH
   - GOJA-STRESS-TEST
+  - GOJA-MULTI-VM-STRESS
 ---
 
 # Goja Site Observability, Benchmarking, and Stress Testing Deep Dive
@@ -32,9 +33,10 @@ The source repository is `/home/manuel/code/wesen/2026-05-03--goja-hosting-site`
 
 - `ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting`
 - `ttmp/2026/05/15/GOJA-STRESS-TEST--stress-testing-breakdown-experiments-for-goja-site`
+- `ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site`
 
 > [!summary]
-> The project now has a private Prometheus diagnostics listener, optional pprof capture, OpenTelemetry tracing, request-context propagation from HTTP into Goja native modules, a Vegeta benchmark matrix, SQLite-backed result storage, SQL-backed Markdown reports, and stress-test evidence showing that the Kanban action path begins to saturate around 80 requests per second on the current single-VM fixture.
+> The project now has a private Prometheus diagnostics listener, optional pprof capture, OpenTelemetry tracing, request-context propagation from HTTP into Goja native modules, a Vegeta benchmark matrix, SQLite-backed result storage, SQL-backed Markdown reports, single-VM stress evidence showing that the Kanban action path begins to saturate around 80 requests per second, and multi-VM `serve-multi` evidence showing that Kanban fragment rendering saturates through shared rendering, allocation, GC, and large-response costs rather than Host-header dispatch.
 
 ## 1. What was being measured
 
@@ -512,7 +514,202 @@ The profile supports the diagnosis: `kanban-action` is expensive because each ac
 
 `preciseMoveForm` is especially important because it is not just one form. In the fixture, the board has many cards, and each card can include controls and options for precise movement. Repeating that work for every action response creates a cost proportional to the rendered board, not just the moved card.
 
-## 11. How to read the saturation behavior
+
+## 11. Multi-VM testing with `serve-multi`
+
+The single-VM stress results answered one question: how far can one already-started Goja VM go for each fixture? The next question was different. We needed to know what happens when one process hosts multiple Goja VMs at the same time.
+
+The existing `serve-multi` command gave us the first correct testing surface. In `pkg/app/multi_server.go`, `NewMultiServer` loops over configured sites and creates one `Server` per site. Since each `Server` constructs its own `engine.Runtime`, each configured site gets its own Goja runtime and VM. Requests are dispatched by normalized `Host:` header.
+
+The architecture is:
+
+```mermaid
+flowchart TD
+    Client[Vegeta]
+    Listener[serve-multi listener]
+    Dispatch[Host-header dispatch]
+
+    Site1[site-001 host]
+    Site2[site-002 host]
+    Site3[site-003 host]
+    SiteN[site-N host]
+
+    VM1[Goja VM 1]
+    VM2[Goja VM 2]
+    VM3[Goja VM 3]
+    VMN[Goja VM N]
+
+    Client --> Listener --> Dispatch
+    Dispatch --> Site1 --> VM1
+    Dispatch --> Site2 --> VM2
+    Dispatch --> Site3 --> VM3
+    Dispatch --> SiteN --> VMN
+```
+
+This is not a transparent VM pool behind one logical host. It is a multi-site configuration where each site can run the same script directory. That is sufficient for testing many loaded VMs and many hot VMs, but it does not answer session-affinity or request-balancing questions for a future same-host VM pool.
+
+A new ticket, `GOJA-MULTI-VM-STRESS`, was created for this work. Its scripts live under:
+
+```text
+ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/scripts
+```
+
+The main single-run script is `01-run-multi-vm-vegeta.sh`. It generates a temporary `serve-multi` config, creates one site per requested VM, writes Vegeta targets with matching `Host:` headers, runs load, captures metrics before and after, diffs selected metrics into `metrics-delta.txt`, writes Vegeta JSON/text summaries, and optionally captures pprof.
+
+A generated config has this shape:
+
+```yaml
+addr: "127.0.0.1:18820"
+dataDir: "/tmp/goja-site-multi-data"
+baseDomain: "multi-vm.bench.test"
+dev: false
+sites:
+  - name: site-001
+    host: site-001.multi-vm.bench.test
+    dbPolicy: simple
+    allowWrites: true
+    scripts:
+      - bench/scripts/kanban-board
+  - name: site-002
+    host: site-002.multi-vm.bench.test
+    dbPolicy: simple
+    allowWrites: true
+    scripts:
+      - bench/scripts/kanban-board
+```
+
+The target file selects the VM through the `Host:` header:
+
+```text
+GET http://127.0.0.1:18820/_kanban/bench/fragment
+Host: site-001.multi-vm.bench.test
+
+GET http://127.0.0.1:18820/_kanban/bench/fragment
+Host: site-002.multi-vm.bench.test
+```
+
+The script supports three distributions. `even-hot` includes all sites in the target file, so traffic is distributed across all configured VMs. `one-hot` includes only `site-001`, so the remaining VMs are loaded but idle. `skewed` repeats `site-001` more often than the other sites.
+
+The quick validation sweep used:
+
+```text
+null even-hot:             1,2,4,8 VMs at 200/s
+null one-hot:              2,4,8 VMs at 200/s
+kanban-fragment even-hot:  1,2,4,8 VMs at 50/s
+```
+
+All eleven runs returned HTTP 200 only with 100% Vegeta success and no error sets. The `null` route stayed below 1 ms p95 in all quick cells. The `kanban-fragment` route stayed healthy at 50/s total across 1, 2, 4, and 8 VMs, with p95 between 16.95 ms and 20.31 ms. This established that the generated configs, Host-header routing, per-site metrics, and result summaries were working.
+
+## 12. Multi-VM saturation results
+
+The higher-rate multi-VM sweep was designed to find an inflection point. It intentionally tested the minimal `null` path and the real `kanban-fragment` render path, but not `kanban-action`. The single-VM action test had already shown an action-refresh knee around 80/s; the multi-VM saturation pass first needed a rendering workload without action mutation.
+
+The saturation sweep shape was:
+
+```text
+null even-hot:
+  vm_count: 1,2,4,8
+  rates:    400/s,800/s,1200/s,2000/s
+
+kanban-fragment even-hot:
+  vm_count: 1,2,4,8
+  rates:    100/s,200/s,400/s
+```
+
+All twenty-eight runs returned HTTP 200 only with 100% success. Once again, the failure mode was not request failure. It was throughput shortfall and tail latency.
+
+The `null` route did not saturate through 2000/s total offered rate. Across 1, 2, 4, and 8 VMs, p95 stayed below 0.6 ms and throughput matched the offered rate. That result is important because it separates Host-header dispatch and minimal route execution from the expensive render path. If dispatch were the bottleneck, the minimal route would have shown it.
+
+The `kanban-fragment` route produced the real inflection point:
+
+| VMs | Rate | Throughput | p50 | p95 | p99 | Interpretation |
+|---:|---:|---:|---:|---:|---:|---|
+| 1 | 100/s | 100.04/s | 12.18 ms | 58.91 ms | 77.78 ms | Healthy. |
+| 1 | 200/s | 124.64/s | 2736.46 ms | 5901.66 ms | 6009.52 ms | Saturated. |
+| 2 | 100/s | 100.02/s | 7.36 ms | 65.83 ms | 190.53 ms | Mostly healthy with tail variance. |
+| 2 | 200/s | 183.80/s | 429.62 ms | 720.15 ms | 831.36 ms | Degraded. |
+| 4 | 200/s | 199.87/s | 13.81 ms | 179.41 ms | 214.69 ms | Usable but elevated. |
+| 4 | 400/s | 246.53/s | 3126.74 ms | 5861.77 ms | 6097.19 ms | Saturated. |
+| 8 | 200/s | 198.41/s | 20.75 ms | 564.94 ms | 665.56 ms | Throughput holds, tail latency degraded. |
+| 8 | 400/s | 249.44/s | 2804.86 ms | 5559.25 ms | 6235.44 ms | Saturated. |
+
+The approximate useful ceilings from this run are:
+
+- One VM bends between 100/s and 200/s.
+- Two VMs are already degraded at 200/s.
+- Four VMs remain usable at 200/s but saturate at 400/s.
+- Eight VMs still show high p95 at 200/s and saturate at 400/s.
+
+The 400/s rows converged around 240-250 achieved requests per second with multi-second p95 latency. That is the most important multi-VM result. Adding VMs helps, but the improvement is not linear. The likely limit is process-level rendering, allocation, GC, and large response work. Each `kanban-fragment` response is about 246 KB, so high-rate tests are also high response-output tests.
+
+## 13. Multi-VM pprof and the shared bottleneck
+
+The next diagnostic target was the degraded `kanban-fragment` cell with four VMs at 400/s. This cell was saturated, but it still represented a multi-VM configuration rather than the one-VM collapse case.
+
+The valid pprof run used:
+
+```bash
+ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/scripts/01-run-multi-vm-vegeta.sh \
+  --scenario kanban-fragment \
+  --vm-count 4 \
+  --distribution even-hot \
+  --rate 400/s \
+  --duration 10s \
+  --warmup-duration 3s \
+  --port 19001 \
+  --metrics-port 20001 \
+  --out-dir ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/archive/pprof-kanban-fragment-4vm-400rps-20260515T170138Z \
+  --pprof \
+  --pprof-seconds 10
+```
+
+One harness bug was found during this step. The first multi-VM pprof attempt collected the CPU profile after the measured attack had already completed, which produced a zero-sample CPU profile. The script was fixed so `/debug/pprof/profile` starts just before the Vegeta attack and overlaps the measured load window. Heap, allocs, and goroutine snapshots still run after the measured load.
+
+The valid run reproduced the degraded behavior:
+
+```text
+3999 requests
+400/s offered
+214.66/s achieved throughput
+100% success
+HTTP 200 only
+p50 4.725s
+p95 8.066s
+p99 8.516s
+max 8.632s
+```
+
+The CPU profile captured 41.10 seconds of samples over 10 seconds of wall-clock time, so the process was using roughly four cores during the profile window. The main cumulative costs were:
+
+```text
+github.com/go-go-golems/go-go-goja/modules/uidsl.renderNode      12.57s cumulative, 30.58%
+github.com/go-go-golems/goja-site/pkg/kanbanddsl.(*Board).preciseMoveForm 11.57s cumulative, 28.15%
+github.com/go-go-golems/go-go-goja/modules/uidsl.renderAttrs     10.09s cumulative, 24.55%
+github.com/go-go-golems/go-go-goja/modules/uidsl.attrValue        4.04s cumulative, 9.83%
+github.com/dop251/goja.(*vm).run                                  3.47s cumulative, 8.44%
+```
+
+Allocation and GC were also prominent:
+
+```text
+runtime.mallocgc                         9.42s cumulative, 22.92%
+runtime.gcDrain                          9.09s cumulative, 22.12%
+runtime.mallocgcSmallScanNoHeader        7.11s cumulative, 17.30%
+runtime.newobject                        4.81s cumulative, 11.70%
+runtime.scanSpan                         4.49s cumulative, 10.92%
+```
+
+The heap profile was dominated by HTTP buffering:
+
+```text
+bufio.NewReaderSize  11308.06kB, 32.86%
+bufio.NewWriterSize   9764.08kB, 28.37%
+runtime.mallocgc      4612.42kB, 13.40%
+```
+
+This profile confirms the interpretation from the saturation sweep. Multi-VM `serve-multi` is not primarily blocked by Host-header dispatch. The expensive work is still per-request rendering and response construction. Multiple VMs let multiple owner loops execute in parallel, but every request still renders a large board fragment, serializes attributes, constructs precise movement controls, allocates heavily, and writes a large response.
+
+## 14. How to read the saturation behavior
 
 The stress results should be read through queueing and serialized JavaScript execution. The server can accept concurrent HTTP requests, but Goja VM execution is protected by the runtime owner. If a request requires JavaScript and native rendering work, it must wait for owner-loop availability. When the service time of the expensive path approaches the inter-arrival time of requests, queueing grows. The observed p95 growth between 70/s and 80/s is consistent with a single hot serialized path approaching its useful capacity.
 
@@ -525,7 +722,7 @@ The important facts are:
 - p95 growth between adjacent rates is useful. It identifies the knee before hard failures appear.
 - pprof should be taken near or slightly beyond the knee. Profiles far below the knee show normal costs; profiles too far beyond the knee can mostly show queueing symptoms.
 
-## 12. Testing and validation
+## 15. Testing and validation
 
 The implementation was tested at several levels.
 
@@ -550,9 +747,9 @@ go test ./...
 docmgr doctor --ticket GOJA-STRESS-TEST --stale-after 30
 ```
 
-Both passed after the targeted knee-search and pprof artifacts were committed.
+Those checks passed after the targeted single-VM knee-search and pprof artifacts were committed. The multi-VM ticket used the same validation rule: `docmgr doctor --ticket GOJA-MULTI-VM-STRESS --stale-after 30` and `go test ./...` passed after the quick sweep, saturation sweep, pprof timing fix, and multi-VM pprof report.
 
-## 13. What we learned about the system
+## 16. What we learned about the system
 
 The work produced several durable findings.
 
@@ -564,9 +761,11 @@ Third, the short baseline showed that the system is healthy at modest rates. The
 
 Fourth, the first meaningful stress limit is domain-specific. `kanban-action` bends far earlier than `null`, `render`, and `db-write`. The slow path is not the database write itself. It is the action-refresh response path that performs full-board rendering and JSON encoding.
 
-Fifth, the result should not be overgeneralized. It is a single-site, single-VM result. It says little about many-site dispatch overhead, memory per VM, cold-start time, or fairness among sites. Those require separate experiments.
+Fifth, the initial result should not be overgeneralized. It is a single-site, single-VM result. It says little about many-site dispatch overhead, memory per VM, cold-start time, or fairness among sites. Those require separate experiments.
 
-## 14. Recommended next implementation work
+Sixth, the first multi-VM experiments show that `serve-multi` itself is not the bottleneck for the tested ranges. The minimal route stayed healthy through 2000/s total across up to 8 VMs. The Kanban fragment route saturated because of rendering, allocation, GC, and large response output. The pprof evidence for 4 VMs at 400/s points to the same functions as the single-VM action profile: `uidsl.renderNode`, `uidsl.renderAttrs`, `attrValue`, and `kanbanddsl.(*Board).preciseMoveForm`.
+
+## 17. Recommended next implementation work
 
 The highest-impact optimization is to reduce the work done by a Kanban action response. The current action path returns refreshed HTML for the full board. If the UI can accept a smaller response, the server should return a patch, an affected column, or enough structured state for the client to update the moved card without full-board re-rendering.
 
@@ -578,20 +777,22 @@ The next candidates are inside rendering:
 4. Reuse buffers in HTML rendering and JSON response construction.
 5. Run a second pprof at 90/s or 100/s if optimization work needs a profile from a consistently degraded state.
 
-The next benchmarking work should separate new dimensions:
+The multi-VM results change the next implementation priority. Before building a transparent VM pool, it is worth reducing per-request render cost. A pool would multiply the number of owner loops, but it would not remove the cost of rendering and returning a 246 KB board fragment for every request.
+
+The next benchmarking work should separate these dimensions:
 
 | Dimension | Required experiment |
 |---|---|
-| Many configured sites | `serve-multi` with fixed N sites and Host-header distribution. |
-| Many idle VMs | Many configured sites with one hot site and many idle sites. |
-| Many hot VMs | Multiple hot sites with Host-header weighted targets. |
+| Many configured sites | Already started with `serve-multi`; extend to 16, 32, and 64 VMs. |
+| Many idle VMs | Extend `one-hot` runs with many loaded idle sites and one hot site. |
+| Many hot VMs | Already started with `even-hot`; add longer repeats and pprof at degraded cells. |
 | VM startup | Time from process start or site load to first successful request. |
 | Reload behavior | Runtime replacement or script reload under controlled request load. |
 | Long soak | Lower rate, longer duration, heap/goroutine/DB-size tracking. |
 
-The broad hour-scale stress script should not be run unchanged if the goal is a healthy soak. It includes rates that push `kanban-action` past the knee. That may be useful for a saturation experiment, but it is not a good default production-like soak. A safer hour-scale run would cap `kanban-action` near or below 70/s, or split it into a separate known-saturation run.
+The broad hour-scale stress script should not be run unchanged if the goal is a healthy soak. It includes rates that push `kanban-action` past the knee. That may be useful for a saturation experiment, but it is not a good default production soak. A safer hour-scale run would cap `kanban-action` near or below 70/s, or split it into a separate known-saturation run.
 
-## 15. Working rules that came out of the project
+## 18. Working rules that came out of the project
 
 The most important working rules are now explicit:
 
@@ -601,10 +802,11 @@ The most important working rules are now explicit:
 - Benchmark reports should include the exact SQL that generated each table.
 - Stress tests should start with a short validation sweep before hour-scale experiments.
 - Single-VM results should be described as single-VM results.
+- Multi-VM `serve-multi` results should be described as Host-header-dispatched multi-site results, not as a transparent same-host VM pool.
 - pprof artifacts should be kept, but huge raw load-result files should not be committed when they are not needed.
 - A 100% success ratio does not mean the system is healthy; tail latency and throughput ratio matter.
 
-## 16. File map
+## 19. File map
 
 The most important implementation files are:
 
@@ -627,6 +829,10 @@ pkg/kanbanddsl/mount.go
 scripts/bench-vegeta.sh
 scripts/bench-matrix.sh
 bench/scenarios.yaml
+ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/scripts/01-run-multi-vm-vegeta.sh
+ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/scripts/02-run-multi-vm-quick-sweep.sh
+ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/scripts/04-run-multi-vm-saturation-sweep.sh
+bench/scenarios.yaml
 bench/scripts/kanban-board/app.js
 ```
 
@@ -637,6 +843,9 @@ ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measureme
 ttmp/2026/05/15/GOJA-STRESS-TEST--stress-testing-breakdown-experiments-for-goja-site/reference/02-quick-stress-sweep-sqlite-report.md
 ttmp/2026/05/15/GOJA-STRESS-TEST--stress-testing-breakdown-experiments-for-goja-site/reference/03-kanban-action-knee-sqlite-report.md
 ttmp/2026/05/15/GOJA-STRESS-TEST--stress-testing-breakdown-experiments-for-goja-site/reference/04-kanban-action-pprof-report.md
+ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/reference/02-multi-vm-quick-sweep-report.md
+ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/reference/03-multi-vm-saturation-sweep-report.md
+ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/reference/04-multi-vm-kanban-fragment-pprof-report.md
 ```
 
 The `go-go-goja` context-propagation work lives in the adjacent repository:
@@ -649,8 +858,8 @@ The `go-go-goja` context-propagation work lives in the adjacent repository:
 
 The local `goja-site` repository currently uses a temporary local `go.mod` replace for that dependency. That should eventually be replaced by a released version or pseudo-version.
 
-## 17. Closing assessment
+## 20. Closing assessment
 
 The project moved `goja-site` from informal performance checks to an evidence-producing measurement system. The important result is not only the `kanban-action` knee at roughly 80/s. The more durable result is the instrumentation and reporting path that made that finding explainable: HTTP metrics, domain metrics, request-parented DB spans, SQLite-backed benchmark storage, SQL-rendered reports, and pprof capture all point to the same interpretation.
 
-The current data says that the single-VM host is healthy for the tested low-rate baseline and that the first high-rate stress failure is full Kanban action refresh rendering. The next engineering decision is not whether to run a bigger benchmark. It is whether the Kanban action response should continue to render and return an entire board after every action. If that behavior changes, the same harness can measure the improvement with the same scenarios, rates, reports, and profiling workflow.
+The current data says that the single-VM host is healthy for the tested low-rate baseline, that the first single-VM high-rate stress failure is full Kanban action refresh rendering, and that the first multi-VM stress failure is full Kanban fragment rendering plus large response output. The next engineering decision is not whether to run a bigger benchmark. It is whether Kanban requests should continue to render and return an entire board-sized HTML response for high-frequency interactions. If that behavior changes, the same harness can measure the improvement with the same scenarios, rates, reports, and profiling workflow.
