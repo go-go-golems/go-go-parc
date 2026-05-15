@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Projects/2026/05/14/ARTICLE - Image QA - A Deep Dive into Bridging Vision Language Models and Coding Agents.md",
+                "file": "Projects/2026/05/15/PROJECT REPORT - Fringe Admin DSL and React Renderer Technique Deep Dive.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ARTICLE - Image QA - A Deep Dive into Bridging Vision Language Models and Coding Agents"
+              "title": "PROJECT REPORT - Fringe Admin DSL and React Renderer Technique Deep Dive"
             }
           }
         ]
@@ -183,9 +183,13 @@
   },
   "active": "4c10531c1febb63b",
   "lastOpenFiles": [
+    "Projects/2026/05/14/ARTICLE - Image QA - A Deep Dive into Bridging Vision Language Models and Coding Agents.md",
+    "Projects/2026/05/15/PROJECT REPORT - Fringe Admin DSL and React Renderer Technique Deep Dive.md",
+    "Projects/2026/05/15/ARTICLE - Providence Therapist Search - End-to-End Research System and LLM Extraction Lab.md",
+    "Projects/2026/05/15/PROJECT REPORT - goja-kanban Deployment Fix - Config Schema Drift Between GitOps and Goja Runtime.md",
+    "Projects/2026/05/15",
     "Projects/2026/05/14/ARTICLE - Pi Agent Dashboard - RPC Streaming Presets and Protobuf Deep Dive.md",
     "Projects/2026/05/14/ARTICLE - Providence Therapist Search - A Retro Monochrome Research Dashboard.md",
-    "Projects/2026/05/14/ARTICLE - Image QA - A Deep Dive into Bridging Vision Language Models and Coding Agents.md",
     "Projects/2026/05/14/PROJECT REPORT - Go-Go Parc Website - Implementation Deployment and Git-Sync Runtime.md",
     "Projects/2026/05/13/PROJECT REPORT - Iterating on a Keycloak Theme with QA-Image Refinement.md",
     "Projects/2026/05/14",
@@ -208,16 +212,12 @@
     "Projects/2026/05/13",
     "Projects/2026/04/24/ARTICLE - Textbook - Using CSS Visual Diff Scripts for Pixel Perfect Websites.md",
     "Projects/2026/04/25/ARTICLE - Textbook - Using the CSS Visual Diff JavaScript API to Validate Website Implementations.md",
-    "Projects/2026/04/27/PROJ - CSS Visual Diff Review Site.md",
-    "Projects/2026/04/21/PROJ - CSS Visual Diff - Hair Booking Fringe Restyle Tooling.md",
-    "Projects/2026/04/23/ARTICLE - Pyxis - Developer Handoff for Visual Comparisons and Storybook Parity.md",
     "Projects/2026/05/12",
     "Research/Institute/Proposals/2026/05/11",
     "Research/Institute/Proposals/2026/05",
     "Research/Institute/Proposals/2026",
     "Projects/2026/05/11",
     "Logs/2026/05/11",
-    "Logs/2026/05",
-    "Logs/2026"
+    "Logs/2026/05"
   ]
 }
