@@ -760,5 +760,6 @@ The system is ready for design review and for the next round of semantic refinem
 
 - [[PROJECT REPORT - Fringe UI DSL Pattern Backend Frontend Walkthrough]]
 - [[PROJECT REPORT - Fringe Go Host Modules Walkthrough]]
+- [[PROJECT REPORT - Fringe Admin DSL Backend Driven Admin Interfaces Deep Dive]]
 
-The first related note explains the backend-driven intake DSL pattern that inspired the Admin DSL. This report focuses on the Admin DSL and React renderer technique after the broader layout catalog work.
+The first related note explains the backend-driven intake DSL pattern that inspired the Admin DSL. This report focuses on the Admin DSL and React renderer technique after the broader layout catalog work. The backend-driven Admin interfaces deep dive continues the story through the Goja Admin runtime, protobuf Admin DSL transport, `/admin/services`, `/admin/intake`, and the real persisted intake admin backend.
