@@ -17,8 +17,8 @@ status: active
 type: article
 created: 2026-05-16
 repo: /home/manuel/code/wesen/2026-05-16--js-repl-wolfram/wolframjs-repl
+github: https://github.com/wesen/2026-05-16--wolframjs-repl
 ---
-
 # Building a WolframJS REPL: Rich Object Representation in a JavaScript Notebook
 
 This article documents the design and implementation of a browser-based JavaScript REPL where every evaluation result becomes a rich, inspectable, transformable object. The project is called **WolframJS REPL**, and it borrows its interaction model from Wolfram Mathematica's notebook interface — not its syntax, but its commitment to treating every output as a structured value that can be inspected from multiple perspectives, explained in natural language, and composed into subsequent computations.
