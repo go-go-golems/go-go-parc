@@ -57,20 +57,22 @@ The application is a single-page Vite app with no build-time framework. The sour
 
 ```
 src/
-├── main.js              # 451 lines — app shell, eval loop, control wiring
+├── main.js              # ~500 lines — app shell, eval loop, control wiring, tab system
 ├── specimen.js          # 109 lines — canonical page built via the public API
-├── styles.css           # 556 lines — specimen + chrome CSS
+├── styles.css           # ~300 lines — chrome CSS only (specimen styles are in JS)
 ├── manual/
-│   ├── theme.js         # 181 lines — typography tokens, retro1986 theme, CSS var mapping
+│   ├── theme.js         # ~120 lines — typography tokens, retro1986 theme, settings→theme
 │   ├── builder.js       # 218 lines — fluent Manual.document() API, plain tree emission
-│   └── renderHtml.js    # 171 lines — document tree → semantic DOM
+│   ├── renderHtml.js    # ~150 lines — document tree → semantic DOM (no CSS vars)
+│   ├── styles.js        # ~50 lines — rule(), px/em/ch(), featureSettings(), joinCss()
+│   └── specimen-styles.js # ~200 lines — JS style definitions (the Renderer editor content)
 ├── lab/
 │   ├── controls.js      #  53 lines — typographyLab DSL for declaring settings
-│   └── editor.js        #  80 lines — CodeMirror 6 wrapper with vim compartment
-└── settings.js          # 203 lines — defaults, lab declaration, preset I/O
+│   └── editor.js        # ~100 lines — async CodeMirror 6 wrapper with vim (code-split)
+└── settings.js          # ~220 lines — defaults, lab declaration, preset I/O
 ```
 
-The build produces a 582 KB JS bundle (dominated by CodeMirror) and 8.8 KB of CSS.
+The build produces 8 code-split JS chunks (largest 199 KB, no size warnings) and 4.8 KB of CSS for chrome only. Specimen styles are defined in JS and injected dynamically.
 
 ## Architecture
 
@@ -78,10 +80,13 @@ The system has five distinct layers. Data flows downward through them; no layer 
 
 ```mermaid
 flowchart TD
-    A["CodeMirror editor<br/>(user-authored JS)"] -->|"eval() with<br/>Manual, retro1986, typography<br/>injected scope"| B["Builder API<br/>(Manual.document())"]
+    A["CodeMirror editors<br/>(Builder, Controls, Renderer)"] -->|"Builder eval:<br/>Manual, retro1986, typography"| B["Builder API<br/>(Manual.document())"]
+    A -->|"Renderer eval:<br/>rule, px/em/ch, theme"| H["JS Style Rules<br/>(rule() calls)"]
     B -->|"emits plain<br/>document tree"| C["Settings layer<br/>(settings ↔ theme tokens)"]
-    C -->|"CSS custom properties<br/>+ theme object"| D["HTML renderer<br/>(tree → DOM)"]
-    D -->|"semantic HTML + CSS vars"| E["Browser DOM"]
+    C -->|"theme object"| D["HTML renderer<br/>(tree → DOM)"]
+    D -->|"semantic HTML"| E["Browser DOM"]
+    H -->|"CSS string"| I["&lt;style&gt; injection"]
+    I --> E
     F["Settings panel<br/>(sliders, toggles)"] -->|"mutates settings<br/>object"| C
     G["Presets / localStorage"] -->|"settings + code"| A
     G -->|"settings + code"| F
@@ -115,7 +120,7 @@ const type = typography({
 
 `applySettingsToTheme()` takes the base theme and the current settings object and produces a derived theme where every numeric value comes from the settings. This means the settings panel controls the theme without the theme knowing about the settings panel.
 
-`themeToCssVars()` flattens the theme into a `Record<string, string>` of CSS custom properties. The renderer applies these as inline styles on the page root element. This means one settings change updates all derived CSS in a single operation.
+The Renderer editor receives `theme` directly in its eval scope. Style rules read from the theme object using JS helpers like `px(title.size)` and `em(label.tracking)`. No CSS custom properties are used — values flow from JS directly into CSS rule declarations. When a slider changes, the Renderer is re-eval'd with the updated theme, producing a new CSS stylesheet that replaces the previous one.
 
 The OpenType feature layer is worth noting: `featureSettings()` produces a `font-feature-settings` string from a simple boolean map:
 
@@ -219,7 +224,7 @@ The renderer maps node types to element creation functions:
 
 Rail holes are generated as repeated `<span class="rail-hole">` elements inside a flex column. The count is derived from `Math.ceil((pageHeight - holeOffsetTop) / holeSpacing)`. The seam line is an inline SVG `<line>` with a dashed stroke, sized to the full page height.
 
-The renderer applies the theme CSS variables to the page root element via `applyVars()`. This means the entire visual surface is controlled by approximately 40 CSS custom properties, all derived from the theme object, all adjustable from the settings panel.
+The Renderer editor is the single source of truth for all specimen styling. It defines CSS rules using the `rule()` helper with theme values injected directly — for example, `fontSize: px(title.size)` instead of `fontSize: var(--title-size)`. When a slider changes, the Renderer re-evals with the new theme and produces an updated CSS stylesheet. There are no CSS custom properties; the values come straight from JS.
 
 `htmlForTree()` captures the rendered DOM as a formatted HTML string for the HTML output tab. It re-parses the DOM into a container element and serializes each node with proper indentation, producing human-readable markup without depending on the builder API.
 
@@ -346,20 +351,20 @@ The overlay is not part of the document tree. It is injected after rendering by 
 
 The specimen page uses CSS custom properties for every adjustable value. There are approximately 40 properties, set as inline styles on the page root by the theme layer:
 
-```css
-.manual-page {
-  width: var(--page-width);
-  height: var(--page-height);
-  color: var(--ink);
-  background: var(--paper);
-  font-size: var(--body-size);
-  line-height: var(--body-line);
-  letter-spacing: var(--body-track);
-  font-feature-settings: var(--feature-settings);
-}
+```js
+rule(".manual-page", {
+  width:           px(t.page.width),
+  height:          px(t.page.height),
+  color:           ink,
+  background:      paper,
+  fontSize:        px(body.size),
+  lineHeight:      px(body.line),
+  letterSpacing:   em(body.tracking),
+  fontFeatureSettings: featureSettings(t.features),
+}),
 ```
 
-This pattern means a single property change on the root element cascades through the entire page. There are no per-component style recalculations and no JavaScript DOM manipulation for visual updates. The settings panel writes to the settings object, the theme layer produces new CSS var values, and the renderer applies them in one `applyVars()` call.
+This pattern means the Renderer CSS is regenerated on every settings change. The eval produces the entire stylesheet — rules and values — in one pass. There are no CSS custom properties and no separate var-application step. The settings panel writes to the settings object, the theme layer produces a new theme, and the Renderer eval produces new CSS that is injected as a `<style>` element.
 
 The outer chrome uses a different aesthetic than the specimen. The chrome is Mac OS 1 monochrome: pure black on white, 1 px solid borders, no gradients, no shadows, no rounded corners. Buttons invert to white-on-black on `:active`. Active tabs are black with white text. The specimen page retains its warm paper tones and has a hard 3 px offset shadow (`box-shadow: 3px 3px 0 #000`) that references the original Macintosh drag shadow.
 
@@ -387,7 +392,7 @@ The pre-implementation documentation step (commit 1) was deliberate. The specime
 
 **Overlay alignment.** The original specimen image is 818×812 px while the generated page defaults to 794×794 px. The overlay width and height controls allow the image to be stretched to match the page dimensions, but the aspect ratio difference means exact pixel parity requires either cropping or scaling distortion. The overlay `mix-blend-mode: multiply` helps visually because it darkens overlapping ink and leaves paper-colored gaps where the generated content does not match.
 
-**CSS custom property count.** Approximately 40 CSS custom properties are set on the page root. This is manageable but approaching the limit of what is convenient to debug in browser DevTools. A future improvement would group related properties (rail, panel, title-card) into sub-objects and flatten them at render time.
+**Renderer eval performance.** The Renderer eval runs on every slider change, producing the full CSS stylesheet (~200 rules). This is fast enough for interactive use but could become a concern if the rule count grows significantly. A future improvement would diff the previous and new CSS to avoid full replacement.
 
 **Bundle size.** CodeMirror 6 and its dependencies account for roughly 580 KB of the 582 KB JS bundle. The application code itself is only ~5 KB minified. Code-splitting the editor into a dynamic import would reduce the initial load for users who just want to adjust sliders, but the current single-bundle approach is simpler.
 
@@ -411,7 +416,7 @@ The pre-implementation documentation step (commit 1) was deliberate. The specime
 ## Working rules
 
 - The builder API is the public surface. It should never expose coordinates or pixel values. If a caller needs to place something at a specific position, add a semantic method that wraps the coordinate logic.
-- Theme tokens own spacing. Code that uses `42px` directly is a bug; it should use `var(--space-lg)` or a named theme value.
+- Theme tokens own spacing. Code that uses `42px` directly is a bug; it should use `px(t.space.lg)` or a named theme value.
 - The document tree is plain data. No class instances, no circular references, no DOM nodes. If it cannot be passed to `JSON.stringify()`, it is wrong.
 - Settings mutations flow through `setPath()` and trigger `renderFromSettings()` or `liveRefresh()`. Direct DOM manipulation for visual updates is not allowed.
 - Presets must capture the full experiment state (settings + code). A preset that only captures half the state is a bug.
