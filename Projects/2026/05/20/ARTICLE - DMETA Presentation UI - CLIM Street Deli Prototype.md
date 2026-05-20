@@ -207,6 +207,8 @@ The complete prototype action groups are:
 
 The `HELP` command renders this table inside the interface. That is not only documentation; it is part of the interaction model. A user can inspect the live command vocabulary without reading source code.
 
+![The CLIM menu view uses typed text presentations. Each visible menu item is rendered as a `<MenuItem>` with an id and price, while the command line remains ready for typed action names.](clim-01-menu.png)
+
 ## The two interaction modes
 
 The implementation converged on two modes because a single click behavior could not satisfy both command-first and presentation-first use.
@@ -252,6 +254,10 @@ function showActionsFor(type, id, idx) {
 ```
 
 This path is useful when the user sees an object and wants to know what can be done with it. It is the direct presentation-first path.
+
+![Normal mode after clicking Classic BLTA. The selected `<MenuItem>` is highlighted and the action bar lists the commands that accept a menu item, including `CUSTOMIZE`, `ADD-TO-ORDER`, and `DESCRIBE`.](clim-02-presentation-selected.png)
+
+![After choosing `DESCRIBE` for the selected Classic BLTA, the command result appears in bright white above the `Command:` prompt, separated from the grey guidance hint.](clim-03-describe-result.png)
 
 ### Select mode
 
@@ -316,6 +322,10 @@ function executePendingAction(type, id, idx) {
 This path is useful when the user already knows the command and wants to supply an argument from visible presentations. It is the command-first path.
 
 The two modes are not two separate applications. They share the same command table and the same action implementations. The only difference is the order in which the user supplies the command and the argument.
+
+![Command-first select mode after typing `DESCRIBE`. The mode label changes to `MENU ▸ DESCRIBE`, and every compatible `<MenuItem>` presentation turns red because it can serve as the command argument.](clim-04-command-select-mode.png)
+
+![After clicking the red Grilled Cheese presentation, select mode exits and the `DESCRIBE` result is shown in the white result area.](clim-05-command-result.png)
 
 ## How the CLIM prototype derives from the same model as the mobile prototype
 
@@ -492,6 +502,8 @@ Each field exists for a specific part of the interaction model:
 
 The state model is small enough to audit manually. That is valuable for a prototype whose purpose is to teach interaction semantics.
 
+![The CLIM customizer for Grilled Cheese. The item is still mostly text, but each ingredient is a typed presentation with bracketed semantic roles.](clim-06-customizer.png)
+
 ## The replacement flow in the CLIM interface
 
 The replacement flow uses the same ingredient roles and substitution candidates as the mobile prototype, but it renders them as command-addressable text.
@@ -532,6 +544,14 @@ click red <Substitution ★auto Avocado>
 This command-first path is the most important feature of the CLIM version. It shows that the UI can invert the normal visual-control order. The user does not need to find a remove button near an ingredient. The user can name the command first, then choose a compatible object from the visible presentations.
 
 The implementation does not perform a general search over hidden objects. Select mode only marks currently rendered presentations. That is the right constraint for this prototype. The point is not to implement a full object store; the point is to show that visible semantic presentations can serve as typed command arguments.
+
+![Typing `REMOVE-INGREDIENT` in the Grilled Cheese customizer enters select mode. Active ingredient presentations turn red because they can be supplied as the command argument.](clim-07-remove-select-mode.png)
+
+![After selecting Cheddar Cheese as the argument to `REMOVE-INGREDIENT`, the ingredient is struck through, its roles are reported as unfilled, and replacement candidates appear as `<Substitution>` presentations.](clim-08-substitution-candidates.png)
+
+![Typing `APPLY` while substitution candidates are visible enters select mode again. The `<Substitution>` presentations turn red because they are valid arguments to `APPLY`.](clim-09-apply-select-mode.png)
+
+![After clicking the red Avocado substitution, the composition updates to show Avocado in place of Cheddar Cheese and the white result area records the applied substitution.](clim-10-applied-substitution.png)
 
 ## Action output and guidance output
 
