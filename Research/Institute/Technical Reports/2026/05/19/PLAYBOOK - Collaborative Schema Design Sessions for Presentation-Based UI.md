@@ -717,5 +717,5 @@ That is the playbook to test next.
 ## Related notes
 
 - [[ARTICLE - Playbook - A DSL for Creating Design Systems]]
-- [[ARTICLE - Technical Specification - Design System DSL Data Structures and Toolchain]]
+- [[SPEC - Design System DSL Data Structures and Toolchain]]
 - [[ARTICLE - Presentation-Based UI for Log Viewing]]

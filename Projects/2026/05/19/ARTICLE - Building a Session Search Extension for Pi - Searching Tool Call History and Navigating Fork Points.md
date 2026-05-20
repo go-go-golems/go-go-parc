@@ -155,7 +155,7 @@ The extension has four layers: types, scanner, overlay UI, and command handler. 
 ```mermaid
 graph TD
     SM[SessionManager<br/>getBranch] --> SC[Scanner<br/>scanBranch]
-    SC --> TL[ToolCallMatch[]<br/>match data]
+    SC --> TL[ToolCallMatch..<br/>match data]
     TL --> UI[Overlay UI<br/>SessionSearchOverlay]
     UI --> NAV[Command Handler<br/>navigateTree / fork]
     NAV --> SM
