@@ -69,7 +69,180 @@ The stable parts are:
 
 This is the difference between a component library and a design-system factory. A component library gives developers implementation parts. A design-system factory gives the team a process and a language for producing coherent parts.
 
-## The design problem for designers
+## The real source project: incorporating HAIR-041
+
+The most important thing about the DMETA work so far is that it did not start from a blank whiteboard. It started by deliberately carrying over a body of work from HAIR-041 in the hair-booking project and then subjecting that material to a second reading under a different problem.
+
+That source material included:
+
+- a technical specification for the design-system toolchain;
+- a widget IR catalog;
+- a formal widget-definition YAML format specification;
+- a design-language IR;
+- widget family YAML files;
+- a Storybook coverage manifest;
+- multiple implementation and review playbooks;
+- audit guides and review diaries.
+
+The carry-over was not mechanical copying. It was interpretive work. We had to answer questions like:
+
+- Which parts of HAIR-041 are specific to a CRUD/admin backend?
+- Which parts are really about a reusable design-system authoring process?
+- Which artifacts are runtime-adjacent and which are authoring-only?
+- Which YAML splits were essential because tooling consumed them, and which splits existed only because the widget inventory had grown large?
+- Which review practices mattered because they kept the generated and hand-written parts aligned?
+
+This is why the DMETA work is interesting as a meta-project. The core activity has not been "design a new design system from scratch." The core activity has been "extract the reusable engineering process from a previous design-system project, then adapt it to a more generic and semantically explicit problem space."
+
+## What was carried over from HAIR-041
+
+Several things survived almost unchanged.
+
+### 1. The pass model
+
+The strongest reusable lesson from HAIR-041 was that design-system work becomes tractable when it is broken into named passes with explicit inputs and outputs.
+
+In HAIR-041 the practical pipeline looked like this:
+
+```text
+renderer inventory
+  -> widget catalog
+  -> widget IR formalization
+  -> design-language IR formalization
+  -> scaffold generation
+  -> shared helper generation
+  -> manual widget promotion
+  -> Storybook hardening
+  -> lint / validation
+  -> audit and compliance review
+```
+
+DMETA keeps the same logic, but inserts semantic archetypes and presentations earlier in the stack:
+
+```text
+semantic/archetype model
+  -> presentation/action model
+  -> design-language model
+  -> widget IR
+  -> validation
+  -> generation
+  -> promotion
+  -> audit
+```
+
+The important carry-over is not the exact sequence of filenames. It is the rule that every stage should produce durable artifacts and that transitions between stages should be reviewable.
+
+### 2. The split between Markdown and machine-consumed IR
+
+HAIR-041 was valuable partly because it did **not** pretend that everything should be YAML. Long-form reasoning lived in Markdown. Tool inputs lived in YAML. Review, audits, and playbooks lived in Markdown. Generated code lived elsewhere.
+
+DMETA adopted that separation directly.
+
+Markdown now holds:
+
+- vision and scope;
+- semantic model rationale;
+- visual archetype rationale;
+- concrete system spec;
+- tooling plans;
+- diaries and changelogs;
+- implementation guides.
+
+YAML now holds:
+
+- core semantic package;
+- design-language package;
+- widget IR.
+
+That separation is easy to overlook, but it is one of the most important aspects of the meta-approach. It prevents the project from turning conceptual reasoning into prematurely formal configuration.
+
+### 3. Deterministic generation plus manual promotion
+
+HAIR-041 showed that code generation becomes useful when it generates the boring, repeatable, structurally predictable parts:
+
+- file layout;
+- shared types;
+- scaffold components;
+- story stubs;
+- metadata sidecars;
+- shared helper modules.
+
+It also showed that generation should stop before the point where visual judgment, accessibility nuance, or domain-specific interaction detail begins.
+
+DMETA inherits that rule exactly. The validator is generated-tooling infrastructure. The planned `generate-core` command will generate registries and helpers. Future widget scaffolding will generate structures. But a promoted dense table, stream, or detail drawer will still require human implementation judgment.
+
+### 4. The review and audit layer
+
+HAIR-041 contributed more than source files. It contributed a culture of documentation and review:
+
+- implementation playbooks;
+- review playbooks;
+- audit guides;
+- compliance reports;
+- detailed diaries.
+
+This matters because a design-system factory fails if it only produces artifacts and never checks whether those artifacts still describe the real implementation. DMETA has already adopted the same discipline: every substantive step is recorded in ticket diaries and changelogs, and long-term documents are promoted out of the ticket workspace when they become durable knowledge.
+
+### 5. The adapter boundary
+
+One of the best engineering rules from HAIR-041 was the adapter boundary:
+
+> The runtime transport format is not the widget contract.
+
+That rule survives into DMETA as a first-class architectural boundary:
+
+- runtime data stays JSON-safe;
+- the adapter reads raw transport data;
+- widgets receive typed props and semantic presentation references;
+- widgets emit typed callbacks or action requests;
+- backend dispatch remains outside widget code.
+
+For designers this may sound like an implementation detail, but it is essential. It is what allows a presentation-based semantic UI to remain testable, generated, and auditable.
+
+## What had to change from HAIR-041
+
+The carry-over was real, but so was the transformation.
+
+### Widget-first became semantic-first
+
+HAIR-041 was built around a widget-definition IR extracted from an admin/backend renderer. DMETA begins one layer earlier. Before widget classes, it defines:
+
+- archetypes;
+- capabilities;
+- presentations;
+- actions.
+
+This shift matters because the problem is no longer only "what widgets exist?" It is "what kinds of semantic things can appear on screen, and how can they be acted on?"
+
+### Domain-specific nouns became archetypes
+
+HAIR-041's source material was already specific: admin shells, resource tables, forms, panels. DMETA had to generalize aggressively. `Agent`, `Shipment`, `Order`, `ToolRun`, and `ScanEvent` are no longer the model. They are examples mapped onto:
+
+- `Actor`
+- `WorkItem`
+- `Event`
+- `Resource`
+- `Metric`
+- `TimelineSpan`
+- `ActionSpec`
+- `ActionInvocation`
+
+This is the core meta move. It is what turns one design-system project into a framework for many design-system instances.
+
+### Visual language became an archetype, not a theme
+
+HAIR-041 contributed the discipline of a design-language IR. DMETA pushed that discipline further by making the visual system itself range-based and reusable. Instead of locking onto one aesthetic, the project defines a sober dense operational UI archetype with:
+
+- cool-grey / neutral texture-free surfaces;
+- low chrome;
+- strong typographic hierarchy;
+- compact density modes;
+- semantic color;
+- explicit focus/selection/candidate states.
+
+The point is not to freeze one look. The point is to freeze the constraints that make the look usable.
+
+## Why this is a rigorous framework rather than a loose pattern
 
 The visual target is a sober dense operational UI. The phrase is deliberately specific. The interface should make large amounts of operational state readable. It should use typography, alignment, spacing, keylines, density modes, and semantic color. It should avoid decorative background noise. During the work, an earlier paper-grain direction was removed. The current design language is texture-free: subtle cool grey or neutral surfaces, low chrome, restrained status color, and careful hierarchy.
 
