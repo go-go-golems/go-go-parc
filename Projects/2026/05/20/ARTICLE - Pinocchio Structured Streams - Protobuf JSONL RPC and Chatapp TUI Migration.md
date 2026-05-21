@@ -30,9 +30,9 @@ The implementation lives in `/home/manuel/workspaces/2026-05-20/pinocchio-struct
 
 > [!summary]
 > - Pinocchio now has a protobuf-defined JSONL/RPC output mode where every stdout line is a `pinocchio.chatapp.rpc.v1.RpcLine` encoded with `protojson`.
-> - CLI RPC and command TUI mode now both route through `chatapp.Runner`, `sessionstream.Hub`, chatapp projections, and `sessionstream.UIFanout` adapters.
-> - The migration removed the old command TUI raw Geppetto forwarding path, the standalone `switch-profiles-tui` helper, and the profile-switch TUI package that kept that path alive.
-> - Real tmux smoke tests validated RPC and TUI behavior with `PINOCCHIO_PROFILE=gpt-5-nano-low` and `PINOCCHIO_PROFILE=gpt-5-mini`, including TAB-submitted multi-turn TUI conversations.
+> - CLI RPC, command TUI mode, debug event logs, and the blocking debug path route through `chatapp.Runner`, `sessionstream.Hub`, chatapp projections, and `sessionstream.UIFanout` adapters.
+> - The migration removed the old command TUI raw Geppetto forwarding path, restored human stdout behavior, restored the post-answer chat-continuation prompt, and added `--debug-events-jsonl` for diagnosing projected UI events without contaminating stdout.
+> - Real tmux smoke tests validated RPC, TUI, TAB-submitted multi-turn chat, default stdout continuation, debug logging, and Wafer GLM reasoning-stream rendering.
 
 ## Why this project existed
 
@@ -639,3 +639,473 @@ The core migration is complete for command RPC and command TUI. The remaining wo
 - Continue checking that web chat, command RPC, and command TUI stay aligned as new chatapp event types are added.
 
 The main technical result is that Pinocchio now has one command stream model for script output and terminal chat. The model is chatapp/sessionstream. The CLI JSONL writer and the Bubble Tea TUI are adapters over that model, not separate interpretations of raw provider events.
+
+
+## 2026-05-20 update: final sessionstream polish, stdout recovery, debug traces, and reasoning plugin registration
+
+The original report stopped at the point where the core migration was complete: RPC JSONL existed, command chat mode had moved onto chatapp/sessionstream, and the old raw TUI path had been removed. Several important follow-up changes happened after that. They were not cosmetic. They corrected the user-facing shape of the migration and made the new unified stream observable enough to debug real providers.
+
+The most important lesson from the follow-up work is that a stream migration is not finished when the new transport works. It is finished when the old user workflows still feel correct, the protocol can be inspected when the UI looks wrong, and every feature plugin that contributes semantic events is actually registered in the non-web runners.
+
+### New ticket: finalizing the sessionstream port
+
+A second docmgr ticket was created for this stabilization pass:
+
+```text
+PIN-20260520-SESSIONSTREAM-FINALIZE
+```
+
+The ticket workspace is:
+
+```text
+/home/manuel/workspaces/2026-05-20/pinocchio-structured-data-cli/pinocchio/ttmp/2026/05/20/PIN-20260520-SESSIONSTREAM-FINALIZE--finalize-sessionstream-port-and-debug-streaming-visibility
+```
+
+It contains:
+
+```text
+design-doc/01-finalize-sessionstream-port-and-event-debug-logging.md
+reference/01-implementation-diary.md
+changelog.md
+tasks.md
+```
+
+This ticket existed because the first migration pass created a correct architecture but surfaced three practical regressions:
+
+1. Ordinary commands were too eager to enter Bubble Tea instead of preserving stdout-first command behavior.
+2. TUI streaming looked hard to diagnose because there was no durable trace of projected UI events.
+3. The default human text output had started using a structured/debug printer, which exposed raw reasoning metadata instead of the old readable thinking markers.
+
+The stabilization work treated those regressions as first-class design issues rather than local UI bugs.
+
+### Restoring stdout-first command behavior without giving up the chatapp stream
+
+Before the follow-up, `interactive: true` could select the interactive TUI path by default. That made ordinary command invocations feel like they had “lost stdout”: instead of producing normal answer text, they immediately entered the TUI. The fix was to separate two concepts that had been conflated:
+
+- **stdout-first command execution**: the default path for normal CLI use;
+- **chat continuation**: an optional terminal prompt after the first answer;
+- **explicit TUI entry**: `--chat`, `--interactive`, or `--force-interactive`.
+
+The refined run-mode boundary became:
+
+```text
+--rpc or --output jsonl     => RPC JSONL stdout
+--chat                      => start in Bubble Tea chat mode
+--interactive               => answer once, then force the chat-continuation prompt
+--force-interactive         => force interactive behavior even with non-tty stdout
+--non-interactive           => suppress continuation prompts
+(default in a tty)          => blocking stdout answer, then ask whether to continue in chat
+(default outside a tty)     => blocking stdout answer and exit
+--debug-events-jsonl PATH   => record projected UI events to PATH without changing stdout
+```
+
+The code paths that implement this live in:
+
+```text
+pkg/cmds/cmd.go
+pkg/cmds/cmdlayers/helpers.go
+pkg/cmds/run/context.go
+```
+
+The important symbols are:
+
+```go
+determineRunMode(settings *cmdlayers.HelpersSettings) run.RunMode
+runBlockingMaybeContinueInChat(ctx context.Context, rc *run.RunContext)
+runInteractive(ctx context.Context, rc *run.RunContext)
+runBlockingOnce(ctx context.Context, rc *run.RunContext)
+shouldAskForChatContinuation(rc *run.RunContext, force bool) bool
+askForChatContinuation() (bool, error)
+```
+
+The subtle part was avoiding a second provider call. If the user answers “yes” to the continuation prompt, the TUI should open with the already-produced user/assistant exchange. It should not resubmit the original command prompt. The solution was to store the initial blocking result in `rc.ResultTurn` and let `runChat` use that turn as the session seed:
+
+```go
+result, err := g.runBlockingOnce(ctx, rc)
+if err != nil {
+    return nil, err
+}
+
+continueInChat, err := askForChatContinuation()
+if err != nil || !continueInChat {
+    return result, err
+}
+
+rc.ResultTurn = result
+rc.RunMode = run.RunModeChat
+return g.runChat(ctx, rc)
+```
+
+Inside `runChat`, the seed selection now prefers `rc.ResultTurn` when it exists. That preserves the initial answer and prevents duplicate inference.
+
+### The debug trace flag: `--debug-events-jsonl`
+
+The new debug flag is one of the most useful pieces of the follow-up work:
+
+```text
+--debug-events-jsonl PATH
+```
+
+It creates or truncates `PATH`, creates missing parent directories, and writes the same protobuf JSONL `RpcLine` family used by RPC mode. This choice matters: debug logging did not introduce an ad hoc second format. It reused the stable subprocess protocol.
+
+The implementation lives mostly in:
+
+```text
+pkg/cmds/cmd.go
+pkg/cmds/cmdlayers/helpers.go
+pkg/cmds/run/context.go
+pkg/ui/multi_fanout.go
+pkg/chatapp/rpc/jsonl/fanout.go
+pkg/chatapp/rpc/jsonl/writer.go
+```
+
+The helper functions in `pkg/cmds/cmd.go` write lifecycle frames to every active JSONL fanout:
+
+```go
+openDebugEventsFanout(settings *run.UISettings)
+writeHelloAll(sid, capabilities, fanouts...)
+writeSnapshotAll(snap, fanouts...)
+writeErrorAll(sid, code, err, terminal, fanouts...)
+writeDoneAll(sid, status, fanouts...)
+```
+
+The fanout shape is simple:
+
+```mermaid
+flowchart LR
+    UIEvents[Projected sessionstream UI events] --> Multi[MultiUIFanout]
+    Multi --> TUI[Bubble Tea ChatAppUIFanout]
+    Multi --> Debug[RPC JSONL debug fanout]
+    Debug --> File[debug-events.jsonl]
+
+    style Multi fill:#edf7ff,stroke:#2671b9
+    style Debug fill:#fff8db,stroke:#aa7a00
+    style File fill:#e8f7e8,stroke:#228b22
+```
+
+For RPC mode, stdout and the optional debug file both receive protobuf JSONL frames. For TUI mode, Bubble Tea receives UI events while the debug file records the same projected events. For normal blocking mode, the debug path routes the single inference through chatapp/sessionstream to collect projected events, then reconstructs and prints normal final assistant text to stdout.
+
+That last case is important. It means this works as a debugging command without contaminating stdout:
+
+```bash
+go run ./cmd/pinocchio code professional hello \
+  --with-caller \
+  --debug-events-jsonl /tmp/pinocchio-events.jsonl \
+  --
+```
+
+Stdout stays human-readable. The event trace goes to disk.
+
+### Why the debug trace records projected UI events, not raw Geppetto events
+
+A tempting implementation would have logged raw Geppetto events directly. That would have been less useful for this migration. The question during TUI debugging is usually not “did the provider emit something?” but “did the projected chatapp/sessionstream UI boundary contain the event the TUI is supposed to render?”
+
+The debug trace therefore records the same level consumed by RPC clients and Bubble Tea:
+
+```text
+sessionstream.UIEvent
+  name: ChatTextPatch | ChatReasoningPatch | ChatRunFinished | ...
+  payload: protobuf Any with pinocchio.chatapp.v1.* type
+```
+
+That makes the diagnostic rule precise:
+
+- if `ChatReasoningPatch` is in the debug JSONL file but not visible in the TUI, the bug is in rendering;
+- if it is absent from the debug JSONL file, the bug is in provider emission, runtime sink conversion, plugin registration, or projection;
+- if `ChatRunFailed` is present but the command exits successfully, the bug is in terminal status propagation.
+
+This rule was used later to find the missing reasoning plugin registration.
+
+### Fixing false-success terminal status
+
+The first RPC implementation could wait for the session to become idle and then emit a successful `done` even if the model run had failed. That is a classic stream lifecycle mistake: “the stream stopped” is not the same thing as “the run succeeded.”
+
+The fix added `pkg/cmds/run_status_fanout.go`. This fanout wraps another `sessionstream.UIFanout`, forwards all batches, and observes terminal run events:
+
+```text
+ChatRunFinished => status ok
+ChatRunStopped  => status stopped
+ChatRunFailed   => status failed + error
+```
+
+RPC, blocking-debug, and TUI paths now wrap their live fanout with this status observer. Runtime failures now produce a consistent set of effects:
+
+```text
+ChatRunFailed UI event
+terminal error frame
+done.status = "failed"
+returned Go error
+```
+
+The important invariant is that terminal status comes from run-level events, not from `WaitIdle` alone.
+
+### Restoring readable default text output
+
+After the stream migration, a normal command such as:
+
+```bash
+go run ./cmd/pinocchio code professional hello --with-caller --
+```
+
+could print noisy structured event metadata in text mode: `reasoning-summary-started`, `reasoning-summary-ended`, repeated reasoning summaries, and a final YAML-like `reasoning-summary` aggregate. The reason was not provider behavior. It was printer selection. Default `--output text` was using Geppetto’s structured/debug printer, whose text format is intended for inspecting event payloads.
+
+The fix added a Pinocchio human text printer in:
+
+```text
+pkg/cmds/event_printer.go
+pkg/cmds/event_printer_test.go
+```
+
+The selection rule is:
+
+```go
+shouldUsePrettyTextPrinter(settings *run.UISettings) bool
+```
+
+Default/normal text output uses the pretty printer. Explicit structured/debug output still uses `events.NewStructuredPrinter`.
+
+The pretty printer behavior is intentionally human-oriented:
+
+```text
+reasoning-summary-started => --- Thinking started ---
+reasoning-summary-ended   => --- Thinking ended ---
+reasoning-summary         => suppressed final aggregate
+reasoning-summary-delta   => suppressed duplicate aggregate/delta info
+EventReasoningDelta       => streamed thinking text
+EventTextDelta            => streamed answer text
+```
+
+This restored the intended default shape:
+
+```text
+--- Thinking started ---
+...thinking text...
+--- Thinking ended ---
+...assistant output...
+```
+
+The lesson is that `text` is not one thing. There is human text, and there is structured/debug text. They should not share the same printer by accident.
+
+### Making TUI text and reasoning patches cumulative
+
+The Bubble Tea timeline renderer expects updates that can represent current entity state. Streaming providers often emit append-mode deltas. If the fanout forwards only tiny deltas without accumulating them, the UI can appear non-streaming or incomplete depending on how the renderer applies patches.
+
+`pkg/ui/chatapp_fanout.go` now accumulates append-mode `ChatTextPatch` and `ChatReasoningPatch` events before sending timeline updates. The core logic is:
+
+```go
+func (f *ChatAppUIFanout) applyTextPatch(id, patch string, mode chatappv1.ChatStreamPatchMode) string {
+    switch mode {
+    case APPEND, UNSPECIFIED:
+        f.texts[id] += patch
+    case SNAPSHOT, REPLACE:
+        f.texts[id] = patch
+    default:
+        f.texts[id] += patch
+    }
+    return f.texts[id]
+}
+```
+
+Tests verify progression like:
+
+```text
+hel  -> hello
+```
+
+for append-mode patches. The same accumulation is used for reasoning patches.
+
+### Segment completion is not run completion
+
+One of the PR review issues was that the TUI backend could send `BackendFinishedMsg` when a text segment finished. That is too early. A model run can have multiple segments, tool calls, reasoning blocks, or other follow-up events. The TUI should only consider the backend finished when the run itself reaches a terminal state.
+
+`ChatAppUIFanout` now sends `BackendFinishedMsg` only on:
+
+```text
+ChatRunFinished
+ChatRunFailed
+ChatRunStopped
+```
+
+It does not send backend-finished on `ChatTextSegmentFinished`. This keeps the input model and loading state aligned with the actual run lifecycle.
+
+### The missing reasoning stream: plugin registration, not just rendering
+
+The final important follow-up came from testing real reasoning-capable profiles. The user suggested `gpt-5-mini` and Wafer GLM from:
+
+```text
+~/.config/pinocchio/profiles.yaml
+```
+
+The useful profiles were:
+
+```text
+gpt-5-mini
+wafer-glm-5.1
+gpt-5-nano-low
+```
+
+Initial tests with `--chat --debug-events-jsonl` showed that `gpt-5-mini` and `wafer-glm-5.1` were producing text patches but no `ChatReasoning*` frames. That suggested the issue was not only the TUI renderer. The command runners were being constructed without chatapp feature plugins.
+
+`chatapp.NewRunner` accepts optional plugins. The reasoning projection lives in:
+
+```text
+pkg/chatapp/plugins/reasoning.go
+```
+
+The tool-call projection lives in:
+
+```text
+pkg/chatapp/plugins/toolcall.go
+```
+
+The command runner setup now uses a small helper in `pkg/cmds/cmd.go`:
+
+```go
+func commandRunnerOptions(fanout sessionstream.UIFanout) chatapp.RunnerOptions {
+    return chatapp.RunnerOptions{
+        UIFanout: fanout,
+        Plugins: []chatapp.ChatPlugin{
+            plugins.NewReasoningPlugin(),
+            plugins.NewToolCallPlugin(),
+        },
+    }
+}
+```
+
+That helper is used for:
+
+```text
+runRPCJSONL
+runBlockingWithDebugEvents
+runChat
+```
+
+The reason this helper lives in `pkg/cmds` rather than `pkg/chatapp` is import direction. The plugins package imports chatapp, so making chatapp import its plugin package by default would create an import cycle. The command layer is the correct place to choose the command runner’s plugin set.
+
+### Real reasoning smoke results
+
+After plugin registration, the debug trace became decisive.
+
+`gpt-5-mini` still emitted only text patches in the tested run. The local profile sets the engine but does not set `reasoning_summary` like `gpt-5-nano-low` does, so it may need a profile variant if visible summaries are expected.
+
+`gpt-5-nano-low` emitted reasoning start/finish events but no patch text in that run. The TUI therefore showed an empty `(thinking)` block. That is still useful: it proves the event path exists, but the provider did not produce visible summary text for that particular request.
+
+`wafer-glm-5.1` was the best smoke. It produced many `ChatReasoningPatch` frames in the JSONL debug file and visible `(thinking)` content in the TUI. A representative run was:
+
+```bash
+PINOCCHIO_PROFILE=wafer-glm-5.1 \
+  go run ./cmd/pinocchio code professional \
+  "Solve this briefly: if all flurbs are snarks and no snarks are glimms, can a flurb be a glimm? Explain then end with glm_plugin_ok" \
+  --with-caller \
+  --chat \
+  --debug-events-jsonl /tmp/pin-chat-glm-plugin-debug.jsonl \
+  --
+```
+
+The debug file contained frames like:
+
+```text
+uiEvent.name = ChatReasoningPatch
+payload.@type = type.googleapis.com/pinocchio.chatapp.v1.ChatReasoningPatch
+payload.role = thinking
+payload.source = thinking
+```
+
+The TUI capture showed a `(thinking)` block followed by the assistant answer. This validated the full path:
+
+```mermaid
+flowchart TD
+    Provider[Wafer GLM / OpenAI-compatible stream]
+    Provider --> Geppetto[Geppetto canonical reasoning events]
+    Geppetto --> RuntimeSink[chatapp runtime event sink]
+    RuntimeSink --> ReasoningPlugin[chatapp ReasoningPlugin]
+    ReasoningPlugin --> BackendEvent[ChatReasoningPatch backend event]
+    BackendEvent --> Projection[sessionstream UI projection]
+    Projection --> DebugJSONL[--debug-events-jsonl RpcLine]
+    Projection --> TUI[Bubble Tea thinking entity]
+
+    style ReasoningPlugin fill:#edf7ff,stroke:#2671b9
+    style DebugJSONL fill:#fff8db,stroke:#aa7a00
+    style TUI fill:#e8f7e8,stroke:#228b22
+```
+
+### Updated command and code map
+
+The follow-up stabilization work touched these important files:
+
+```text
+pkg/cmds/cmd.go
+pkg/cmds/cmdlayers/helpers.go
+pkg/cmds/run/context.go
+pkg/cmds/run_status_fanout.go
+pkg/cmds/event_printer.go
+pkg/cmds/event_printer_test.go
+pkg/cmds/cmd_rpc_jsonl_test.go
+pkg/cmds/cmd_sessionstream_finalize_test.go
+pkg/ui/chatapp_fanout.go
+pkg/ui/chatapp_fanout_test.go
+pkg/ui/multi_fanout.go
+pkg/ui/multi_fanout_test.go
+cmd/pinocchio/doc/general/06-rpc-jsonl-output.md
+```
+
+The most important new or refined user-facing commands are:
+
+```bash
+# Human stdout with optional tty continuation prompt.
+go run ./cmd/pinocchio code professional hello --with-caller --
+
+# Force the continuation prompt after the first answer.
+go run ./cmd/pinocchio code professional hello --with-caller --interactive --
+
+# Start directly in the TUI.
+go run ./cmd/pinocchio code professional hello --with-caller --chat --
+
+# Record projected UI events while using the TUI.
+go run ./cmd/pinocchio code professional hello --with-caller \
+  --chat \
+  --debug-events-jsonl /tmp/pinocchio-chat-events.jsonl \
+  --
+
+# Record projected UI events while keeping stdout human-readable.
+go run ./cmd/pinocchio code professional hello --with-caller \
+  --debug-events-jsonl /tmp/pinocchio-blocking-events.jsonl \
+  --
+
+# Script-friendly protobuf JSONL RPC stdout.
+go run ./cmd/pinocchio code professional hello --with-caller --rpc --
+```
+
+### Updated commit sequence
+
+The original phase commits remain useful, but the later stabilization commits are now part of the story:
+
+| Commit | Purpose |
+|---|---|
+| `dd60c99` | Finished Phase 8 user help/docs and removed raw timeline persistence leftovers. |
+| `02c0216` | Finalized sessionstream debug tracing: stdout-first defaults, `--debug-events-jsonl`, multi-fanout, TUI cumulative patches, run status handling, PR review fixes. |
+| `6dfa440` | Restored pretty human text output and suppressed noisy structured reasoning-summary aggregates in default text mode. |
+| `26962fc` | Restored interactive chat continuation and made explicit `--interactive` meaningful again. |
+| `b1e45cf` | Recorded the interactive continuation fix in the ticket diary/changelog. |
+| `b24b93e` | Registered reasoning/tool-call chatapp plugins for command runners and added `ChatReasoningPatch` regression coverage. |
+| `4165003` | Recorded command plugin registration and reasoning-profile smoke results in the ticket docs. |
+
+### Updated working rules
+
+The follow-up added several rules to the migration playbook:
+
+- Default command output and debug/structured text output are different products. Do not route human text through a structured event printer by accident.
+- TTY continuation prompts should be a layer on top of blocking stdout, not a reason to enter the TUI before the first answer.
+- `WaitIdle` means the stream is quiet; it does not prove success. Terminal success/failure must come from run-level events.
+- Debug logs should record the same projected UI boundary consumed by clients. That makes UI bugs diagnosable without knowing provider internals.
+- Feature plugins must be installed in every runner that expects plugin-defined events. A web server and a command runner can share `chatapp`, but they still need the same plugin set if they should expose the same semantic stream.
+- Real TUI validation needs both screenshots/captures and event logs. A visible terminal symptom plus a `ChatReasoningPatch` count is far more useful than either alone.
+
+### What remains after the update
+
+The core migration and stabilization are now complete. The remaining work is smaller and mostly polish:
+
+- Consider adding or documenting a `gpt-5-mini` profile variant that explicitly enables reasoning summaries if visible `ChatReasoningPatch` output is expected from that profile.
+- Consider a tiny helper command or script that summarizes debug JSONL files by `uiEvent.name` counts.
+- Consider documenting the differences between `--chat`, `--interactive`, `--force-interactive`, default TTY continuation, and `--non-interactive` in a user-facing help page.
+- Keep the command runner plugin set aligned with web-chat as new chatapp plugins are added.
