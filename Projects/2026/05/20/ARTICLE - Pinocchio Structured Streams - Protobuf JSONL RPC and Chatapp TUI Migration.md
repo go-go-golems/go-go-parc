@@ -1109,3 +1109,288 @@ The core migration and stabilization are now complete. The remaining work is sma
 - Consider a tiny helper command or script that summarizes debug JSONL files by `uiEvent.name` counts.
 - Consider documenting the differences between `--chat`, `--interactive`, `--force-interactive`, default TTY continuation, and `--non-interactive` in a user-facing help page.
 - Keep the command runner plugin set aligned with web-chat as new chatapp plugins are added.
+
+## 2026-05-21 update: what the TUI turns persistence design clarified
+
+A follow-up ticket on 2026-05-21 turned one remaining architectural gap into an explicit design item: command TUI chat can now carry turns correctly while the process is alive, but it still does not persist those turns the way web-chat persists conversation state. The new ticket is:
+
+```text
+PIN-20260521-TUI-TURNS-PERSISTENCE
+/home/manuel/workspaces/2026-05-20/pinocchio-structured-data-cli/pinocchio/ttmp/2026/05/21/PIN-20260521-TUI-TURNS-PERSISTENCE--persist-turns-in-tui-chatapp
+```
+
+The main design document is:
+
+```text
+ttmp/2026/05/21/PIN-20260521-TUI-TURNS-PERSISTENCE--persist-turns-in-tui-chatapp/design-doc/01-persisting-turns-in-the-tui-chatapp.md
+```
+
+The diary for that ticket records the important correction: the command TUI and web-chat both use `chatapp`, but they do not use it with the same turn-input contract. That difference determines where persistence has to be wired.
+
+### What was still wrong or incomplete
+
+After the sessionstream migration, the command TUI had the right in-memory accumulator:
+
+```text
+currentTurn.Clone() + user prompt
+  -> PromptRequest.InitialTurn
+  -> Geppetto inference
+  -> PromptRequest.OnFinalTurn(finalTurn)
+  -> currentTurn = finalTurn.Clone()
+```
+
+That fixed the earlier mistake of trying to reconstruct model context from `sessionstream` timeline entities. The remaining issue was durability. `currentTurn` lives inside the running `ChatAppBackend`, so when the TUI exits the final model-context turn disappears unless another path saves it.
+
+The CLI already exposed persistence-looking flags:
+
+```text
+--turns-db
+--turns-dsn
+--timeline-db
+--timeline-dsn
+```
+
+Those flags are defined in `pkg/cmds/cmdlayers/helpers.go` and copied into `run.PersistenceSettings` in `pkg/cmds/cmd.go`. The misleading part is that the command TUI path did not actually wire them into `runChat` in the useful web-chat sense. In particular:
+
+- `runChat` still creates `chatapp.NewRunner(commandRunnerOptions(fanoutProxy))` with the default in-memory `sessionstream` hydration store.
+- `ChatAppBackend.currentTurn` is in-memory only.
+- Passing a `TurnStore` to the runner would not, by itself, persist TUI turns because the TUI submits explicit `PromptRequest.InitialTurn` values.
+- The existing `openChatPersistenceStores` helper opens an older `chatstore.TimelineStore`, but `chatapp.NewRunner` needs a live `sessionstream.HydrationStore` for sessionstream timeline persistence.
+
+The practical result is that the flags existed, but command chat needed explicit persistence wiring before they could mean what a user would reasonably expect.
+
+### The key distinction the design had to make
+
+The design had to keep two state tracks separate:
+
+| State | Purpose | Correct persistence target |
+|---|---|---|
+| `turns.Turn` | Model-context accumulator for the next inference call. | `chatstore.TurnStore` / turns DB. |
+| `sessionstream` timeline | Visible UI state, snapshots, debug frames, and client hydration. | `sessionstream.HydrationStore` / timeline DB. |
+
+The turns DB is not a UI transcript store. It stores final Geppetto turns, including blocks that may not appear as simple visible chat messages. The timeline DB is not a safe source of model context. It stores projected UI entities and ordinals. It is excellent for hydration and debugging, but it can flatten, omit, or transform data that matters to the model.
+
+The working rule from the new ticket is:
+
+```text
+final turns.Turn -> next model context
+sessionstream timeline -> visible UI/debug/RPC state
+```
+
+This is the same rule that emerged during the TUI accumulator fix, now extended to persistence.
+
+### Why web-chat could not simply be copied
+
+web-chat submits prompts without `InitialTurn`:
+
+```go
+chatapp.PromptRequest{
+    Prompt:  in.Prompt,
+    Runtime: runtime,
+}
+```
+
+Because `InitialTurn` is absent, the `chatapp` runtime path can load the latest persisted final turn from `TurnStore`, append the new user prompt, run inference, and let the runtime persister save the next final turn. That is the web-chat model:
+
+```text
+HTTP prompt
+  -> load latest final turn from TurnStore
+  -> append user prompt
+  -> run inference
+  -> persist final turn
+  -> project visible sessionstream events
+```
+
+The command TUI deliberately does something different. It owns `currentTurn` in memory and sends complete input turns:
+
+```go
+chatapp.PromptRequest{
+    Prompt:      prompt,
+    InitialTurn: initialTurn,
+    Runtime:     runtime,
+    OnFinalTurn: func(t *turns.Turn) { ... },
+}
+```
+
+When `InitialTurn` is present, `chatapp` intentionally skips `TurnStore` history loading. That prevents accidental double context. It also means the command TUI needs its own persistence sink at the backend boundary. The final turn is already available through `OnFinalTurn`; that is the right object to persist.
+
+### The design change: persist from the TUI backend, not from timeline reconstruction
+
+The proposed implementation adds a small interface at the TUI boundary:
+
+```go
+type TurnPersister interface {
+    PersistTurn(ctx context.Context, t *turns.Turn) error
+}
+```
+
+`ChatAppBackend` would receive it through an option:
+
+```go
+type ChatAppBackendOption func(*ChatAppBackend)
+
+func WithTurnPersister(p TurnPersister) ChatAppBackendOption {
+    return func(b *ChatAppBackend) {
+        b.turnPersister = p
+    }
+}
+```
+
+Then `Start` persists only the successful final turn returned through `OnFinalTurn`:
+
+```go
+initialTurn := turnWithUserPrompt(b.currentTurn, prompt)
+
+req := chatapp.PromptRequest{
+    Prompt:      prompt,
+    InitialTurn: initialTurn,
+    Runtime:     b.runtime,
+    OnFinalTurn: func(t *turns.Turn) {
+        finalTurn = t.Clone()
+    },
+}
+
+service.SubmitPromptRequest(ctx, sid, req)
+service.WaitIdle(ctx, sid)
+
+if finalTurn != nil {
+    turnPersister.PersistTurn(ctx, finalTurn.Clone())
+    b.currentTurn = finalTurn.Clone()
+}
+```
+
+The important part is what this avoids. It does not build a turn from Bubble Tea messages. It does not build a turn from `sessionstream.Snapshot.Entities`. It does not assume that the visible timeline is equivalent to model history. It persists the same final turn Geppetto produced for inference continuation.
+
+### The second change: use the right timeline store
+
+For visible timelines, the command TUI should not reuse the old `chatstore.TimelineStore` helper blindly. `chatapp.NewRunner` expects this interface from `sessionstream`:
+
+```go
+type HydrationStore interface {
+    Apply(ctx context.Context, sid SessionId, ord uint64, entities []TimelineEntity) error
+    Snapshot(ctx context.Context, sid SessionId, asOf uint64) (Snapshot, error)
+    View(ctx context.Context, sid SessionId) (TimelineView, error)
+    Cursor(ctx context.Context, sid SessionId) (uint64, error)
+}
+```
+
+The SQLite implementation is in:
+
+```text
+github.com/go-go-golems/sessionstream/pkg/sessionstream/hydration/sqlite
+```
+
+The command TUI timeline implementation should therefore create a `sessionstream` SQLite hydration store and pass it into the runner:
+
+```go
+reg := sessionstream.NewSchemaRegistry()
+hydrationStore := openCLISessionstreamHydrationStore(rc.Persistence, reg)
+
+runner, err := chatapp.NewRunner(chatapp.RunnerOptions{
+    Registry:       reg,
+    HydrationStore: hydrationStore,
+    UIFanout:       fanoutProxy,
+    Plugins: []chatapp.ChatPlugin{
+        plugins.NewReasoningPlugin(),
+        plugins.NewToolCallPlugin(),
+    },
+})
+```
+
+This preserves the existing command-runner plugin requirement. The reasoning and tool-call plugins must remain installed in command runners; otherwise a persisted timeline can still be semantically incomplete because the projected `ChatReasoningPatch` and tool-call events may never be created.
+
+### The updated implementation roadmap
+
+The follow-up ticket splits the work into three phases.
+
+#### Phase 1: persist final TUI turns
+
+Wire `--turns-db` and `--turns-dsn` into command chat so every successful prompt submission saves the final `turns.Turn`.
+
+The narrow implementation is:
+
+```text
+runChat
+  -> open chatstore.TurnStore if turns DB configured
+  -> create cliTurnStorePersister(convID=sessionID, phase="final")
+  -> pass it to ChatAppBackend with WithTurnPersister
+
+ChatAppBackend.Start
+  -> capture final turn from OnFinalTurn
+  -> PersistTurn(finalTurn)
+  -> currentTurn = finalTurn.Clone()
+```
+
+This gives durable final turns for inspection and future export. It does not by itself imply resume.
+
+#### Phase 2: persist sessionstream timelines
+
+Wire `--timeline-db` and `--timeline-dsn` into command chat as a `sessionstream` SQLite hydration store.
+
+The narrow implementation is:
+
+```text
+runChat
+  -> create sessionstream.SchemaRegistry
+  -> open sessionstream hydration sqlite store
+  -> pass Registry and HydrationStore to chatapp.NewRunner
+  -> keep TUI fanout and debug JSONL fanout as live UI adapters
+```
+
+This gives durable visible timeline snapshots without changing inference accumulation.
+
+#### Phase 3: add resume UX
+
+Resume needs stable ids and explicit user-facing behavior. A generated UUID session id is fine for a single run, but not enough for a user to resume a prior chat. The design recommends a later UX such as:
+
+```bash
+pinocchio ... --chat --turns-db ~/.local/share/pinocchio/turns.db --session-id abc --resume
+```
+
+or a dedicated command:
+
+```bash
+pinocchio chat resume abc --turns-db PATH --timeline-db PATH
+```
+
+Startup would then load the latest `phase="final"` turn from the turns DB and use it as the backend seed. Visible hydration could come from the timeline DB if available, or fall back to `snapshotFromTurnForHydration`.
+
+### The lesson for future stream work
+
+This follow-up clarified a broader rule that belongs in the migration article. Reusing `chatapp` is not enough by itself. Every caller also has to choose the correct ownership model for turn accumulation:
+
+- one-shot RPC builds an explicit `InitialTurn` and exits;
+- command TUI keeps `currentTurn` in memory and should persist `OnFinalTurn` output when requested;
+- web-chat does not pass `InitialTurn`, so `chatapp` can load and save final turns through `TurnStore`;
+- `sessionstream` remains the shared UI projection and hydration layer across all of them.
+
+The corrected architecture for command TUI persistence is:
+
+```mermaid
+flowchart TD
+    Prompt[User submits prompt in TUI]
+    Current[ChatAppBackend.currentTurn]
+    Input[Clone currentTurn and append user block]
+    Request[PromptRequest InitialTurn]
+    Runtime[chatapp runtime inference]
+    Final[Final Geppetto turns.Turn]
+    TurnDB[(Turns DB)]
+    Timeline[(sessionstream timeline DB)]
+    UI[Bubble Tea timeline]
+
+    Prompt --> Input
+    Current --> Input
+    Input --> Request
+    Request --> Runtime
+    Runtime --> Final
+    Final --> Current
+    Final --> TurnDB
+    Runtime --> Timeline
+    Runtime --> UI
+
+    style Final fill:#e8f7e8,stroke:#228b22
+    style TurnDB fill:#fff8db,stroke:#aa7a00
+    style Timeline fill:#edf7ff,stroke:#2671b9
+```
+
+The key fix is to persist the final turn at the inference boundary and persist the timeline at the sessionstream boundary. Mixing those boundaries is the source of the subtle bugs this migration spent time removing.
