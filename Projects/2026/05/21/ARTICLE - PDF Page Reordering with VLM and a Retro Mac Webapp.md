@@ -251,14 +251,24 @@ The first version was functional but looked "modern web monochrome" rather than 
 
 ![[typeface-app-retro.png|The refined version with authentic System 1 styling]]
 
+### Persistent sidebar with live preview
+
+A key design decision was making the sidebar always visible rather than a toggle-able overlay. The layout uses a flex container with the thumbnail grid on the left and a persistent sidebar on the right (40% width). The sidebar automatically updates whenever the selection changes — whether by clicking a card, navigating with arrow keys, or completing a drag-and-drop.
+
+![[typeface-app-sidebar.png|The final layout with persistent sidebar showing the selected page at full size]]
+
+The sidebar header bar (reverse-video, matching the top header) shows the page label (e.g. "p25" or "Ch1 Motives opener"). Below it, a thin info strip shows the PDF page number and position (e.g. "PDF #3 · POS 3/130"). The main area displays the full-resolution page image, scrollable when the image exceeds the viewport.
+
+This design eliminates the need for a separate "open preview" / "close preview" workflow. The human validator can simply arrow-key through the entire book, reading each page at full size in the sidebar while maintaining spatial awareness of the grid on the left. This turns the validation task from a click-wait-close loop into a fluid scan.
+
 ### Key UI features
 
 The webapp supports these interactions:
 
 - **Grid view**: 130 page thumbnails arranged in a responsive grid, each showing the page image, a label (page number or chapter title), and a position number.
+- **Persistent sidebar**: The right side of the screen always shows the selected page at full size. No opening or closing needed — it updates live on every selection change.
 - **Drag-and-drop**: Reorder pages by dragging one card onto another. The source page is inserted at the target position.
-- **Keyboard navigation**: Arrow keys to move selection, Enter to open full-size preview, M to open the "Move to Position" dialog, S to save, Escape to close preview.
-- **Full-size preview**: Double-click a page to see it at full resolution in a side panel.
+- **Keyboard navigation**: Arrow keys to move selection (sidebar updates automatically), M to open the "Move to Position" dialog, S to save.
 - **Search/filter**: Type a page number or label to filter the grid.
 - **Move dialog**: Press M with a page selected to type an exact position number.
 - **Save Order**: Persists the current order to `current-order.json` on the server.
