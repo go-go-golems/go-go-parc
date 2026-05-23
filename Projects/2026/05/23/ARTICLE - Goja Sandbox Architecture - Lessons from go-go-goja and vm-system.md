@@ -15,6 +15,9 @@ tags:
   - architecture
   - go-go-goja
   - vm-system
+  - go-go-host
+  - hosting
+  - durable-objects
   - speculative-design
 status: active
 type: article
@@ -22,19 +25,22 @@ created: 2026-05-23
 repos:
   - /home/manuel/workspaces/2026-05-22/xgoja/go-go-goja
   - /home/manuel/code/wesen/go-go-golems/vm-system
+  - /home/manuel/code/wesen/go-go-golems/go-go-host
+  - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host
 ---
 
 # Goja Sandbox Architecture: Lessons from go-go-goja and vm-system
 
-This note steps back from the recent `go-go-goja` runtime work and compares it with the Goja runtime plane in `vm-system`. The purpose is to ask a larger architectural question: what would a powerful, effective, and elegant Goja sandbox management system look like if it had to support persistent sessions, request-scoped executions, generated runtimes, controlled native modules, asynchronous Go-backed APIs, durable execution history, and long-lived daemon hosting?
+This note steps back from the recent `go-go-goja` runtime work and compares it with the Goja runtime planes in `vm-system` and `go-go-host`. The purpose is to ask a larger architectural question: what would a powerful, effective, and elegant Goja sandbox management system look like if it had to support persistent sessions, HTTP-hosted sites, request-scoped executions, generated runtimes, controlled native modules, asynchronous Go-backed APIs, durable execution history, deployment activation, and long-lived daemon hosting?
 
-The answer is not that the recent `go-go-goja` design is wrong. The answer is also not that `vm-system` should be copied into `go-go-goja` as-is. The two systems solve different slices of the same problem. `go-go-goja` has a strong runtime substrate. `vm-system` has a strong control-plane vocabulary. The most valuable future design probably combines those two strengths while deleting the duplicated and weaker runtime mechanisms.
+The answer is not that the recent `go-go-goja` design is wrong. The answer is also not that `vm-system` or `go-go-host` should be copied wholesale into `go-go-goja`. The three systems solve different slices of the same problem. `go-go-goja` has a strong runtime substrate. `vm-system` has a strong template/session/execution vocabulary. `go-go-host` has the strongest concrete hosted-site supervisor and deployment activation model. The most valuable future design probably combines those strengths while deleting duplicated and weaker runtime mechanisms.
 
 > [!summary]
 > - `go-go-goja` now has the stronger live runtime substrate: `engine.Runtime`, event loop ownership, runtime owner scheduling, per-call context propagation, runtime-aware module registration, lifecycle closers, and explicit module exposure policy.
-> - `vm-system` has the stronger product/control-plane vocabulary: templates, sessions, executions, event streams, REST/CLI access, worktree roots, startup files, daemon ownership, stale-session reconciliation, and persisted audit history.
-> - The main architectural gap is that neither repository currently expresses a single first-class concept of a managed sandbox. `go-go-goja` owns a runtime instance; `vm-system` owns a session record and raw Goja runtime. The future object should own both runtime execution and control-plane policy.
-> - The most promising direction is a sandbox manager built on `go-go-goja/engine.Runtime` and informed by `vm-system`'s template/session/execution/event model. It should support long-lived keyed sessions, short-lived invocation runtimes, and generated xgoja runtimes through the same lifecycle contracts.
+> - `vm-system` has the stronger generic control-plane vocabulary: templates, sessions, executions, event streams, REST/CLI access, worktree roots, startup files, daemon ownership, stale-session reconciliation, and persisted audit history.
+> - `go-go-host` has the strongest concrete hosting model: immutable deployment bundles, dry-run validation, smoke checks, per-site runtime activation, host-header dispatch, runtime status/events, per-site SQLite state, capability policy, and safe traffic swaps.
+> - The main architectural gap is that these repositories still express different partial versions of a managed sandbox. `go-go-goja` owns a runtime instance; `vm-system` owns a session record and raw Goja runtime; `go-go-host` owns a site runtime and supervisor. The future object should own runtime execution, control-plane policy, and ingress-specific lifecycle in one coherent layer.
+> - The most promising direction is a sandbox manager built on `go-go-goja/engine.Runtime`, informed by `vm-system`'s template/session/execution/event model and `go-go-host`'s deployment/supervisor model. It should support long-lived keyed sessions, hosted-site runtimes, short-lived invocation runtimes, and generated xgoja runtimes through the same lifecycle contracts.
 > - Sobek is relevant because it adds first-class ES Modules, dynamic import, top-level await, and import metadata, which could simplify modern source loading and library policy. It does not remove the need for runtime ownership, context propagation, lifecycle, execution records, or resource policy.
 > - The main warning is feature accumulation without a contract boundary. Modules, event capture, limits, startup scripts, libraries, persistence, and HTTP control should not each invent their own runtime lifecycle. They should attach to one sandbox lifecycle.
 
@@ -44,14 +50,17 @@ The recent `go-go-goja` work added important runtime capabilities: owner-aware s
 
 `vm-system` is relevant because it already attempted the next layer up. It models templates, live sessions, executions, event streams, daemon hosting, REST APIs, CLI commands, startup files, library loading, and worktree boundaries. Its runtime implementation is older and weaker than the current `go-go-goja` engine, but its domain model captures use cases that `go-go-goja` does not yet model directly.
 
+`go-go-host` is relevant because it already implements the hosted-site version of this idea on its `task/go-go-host-v1` branch. It has one active runtime per site deployment, immutable bundle validation, dry-run runtime loading, health checks, supervisor-controlled activation, host-header dispatch, per-site SQLite state, capability policy, runtime status persistence, and public HTTP request routing through Goja handlers. That makes it the closest current artifact to a durable-object-style hosting service, even though it is specialized for sites rather than generic sandbox sessions.
+
 The question is therefore architectural, not only technical:
 
 - Which parts of the current `go-go-goja` runtime design are strong enough to become the foundation?
 - Which parts of `vm-system` should be preserved as concepts?
-- Which parts of both systems are accidental complexity?
-- What contract should exist between a JavaScript runtime substrate and a durable sandbox control plane?
+- Which parts of `go-go-host` should be preserved as concrete hosting mechanics?
+- Which parts of these systems are accidental complexity?
+- What contract should exist between a JavaScript runtime substrate, a durable sandbox control plane, and an ingress-specific host such as HTTP site hosting?
 
-This report is speculative, but it is grounded in current files and behavior in both repositories.
+This report is speculative, but it is grounded in current files and behavior in the inspected repositories and branches.
 
 ## Source map
 
@@ -90,6 +99,23 @@ The main `vm-system` files considered here are:
 └── ttmp/...                       # earlier architecture and quality review docs
 ```
 
+The `go-go-host` path requested by the prompt is currently a template stub on `main`. The implementation that matters for this analysis is checked out at `/home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host` on branch `task/go-go-host-v1`. The main files considered there are:
+
+```text
+/home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/
+├── internal/runtime/runtime.go        # SiteRuntime: one engine.Runtime per site deployment
+├── internal/runtime/supervisor.go     # active runtime maps, activation, restart, stop, host dispatch
+├── internal/control/deployments.go    # upload validation, dry-run runtime load, activation, restore
+├── internal/deploy/bundle.go          # manifest/path/capability validation and unpacking
+├── internal/sitejs/web/host.go        # HTTP request to Goja handler bridge
+├── internal/sitejs/web/express_module.go
+├── internal/sitejs/dbguard/guard.go   # per-site SQLite quota and cleanup callback
+├── internal/store/runtime_status.go   # persisted runtime status and stale reconciliation
+├── internal/store/runtime_events.go   # persisted runtime lifecycle events
+├── docs/contributing/runtime-and-deployment-guidelines.md
+└── cmd/go-go-host/doc/js-api-reference.md
+```
+
 The earlier Obsidian note [[ARTICLE - go-go-goja Runtime System - Creation Context Scheduling and Modules|go-go-goja Runtime System: Creation, Context, Scheduling, Bindings, and Modules]] explains the current `go-go-goja` runtime mechanism. This note builds on that explanation and asks what the next architectural layer should be.
 
 ## The central distinction: runtime substrate versus sandbox control plane
@@ -102,20 +128,20 @@ The **sandbox control plane** is responsible for identity, policy, persistence, 
 
 The current repositories divide these concerns unevenly.
 
-| Concern | go-go-goja current state | vm-system current state |
-|---|---|---|
-| Owned Goja runtime | Strong: `engine.Runtime` owns VM, loop, owner, bridge, closers. | Weak: `Session` stores raw `*goja.Runtime` and a mutex. |
-| Module registration | Strong: `RuntimeModuleSpec` receives runtime context before `require` is enabled. | Partial: template modules call go-go-goja module registry loaders directly. |
-| Async module safety | Strong: `runtimebridge` + `runtimeowner` support owner-thread promise settlement. | Weak: raw VM has no event loop owner bindings for async go-go-goja modules. |
-| Context propagation | Strong: `runtimebridge.CurrentContext(vm)` follows owner calls. | Minimal: execution methods do not attach a call context to VM execution. |
-| Session identity | Minimal: runtime values exist, but no durable session model. | Strong: session records, statuses, worktree path, template ID, timestamps. |
-| Execution history | Package-specific: jsverbs returns values; no canonical execution stream. | Strong: execution rows and sequential event rows. |
-| Daemon hosting | Out of scope in engine. | Strong direction: long-lived daemon, REST API, CLI client. |
-| Startup files and libraries | Out of scope in engine. | Present: startup file execution and library loading. |
-| Limit semantics | Mostly module exposure policy; not a full resource manager. | Modeled, but enforcement is partial and post-execution. |
-| Generated runtime composition | Strong in xgoja. | Not a generated-binary builder. |
+| Concern | go-go-goja current state | vm-system current state | go-go-host current state |
+|---|---|---|---|
+| Owned Goja runtime | Strong: `engine.Runtime` owns VM, loop, owner, bridge, closers. | Weak: `Session` stores raw `*goja.Runtime` and a mutex. | Stronger: `SiteRuntime` already wraps `*engine.Runtime`. |
+| Module registration | Strong: `RuntimeModuleSpec` receives runtime context before `require` is enabled. | Partial: template modules call go-go-goja module registry loaders directly. | Good but version-drifted: uses engine runtime and registrars, but branch still targets the old `WithRuntimeModuleRegistrars` API. |
+| Async module safety | Strong: `runtimebridge` + `runtimeowner` support owner-thread promise settlement. | Weak: raw VM has no event loop owner bindings for async go-go-goja modules. | Mostly good: scripts and HTTP handlers run through owner calls; DB guard callback paths need owner-context review. |
+| Context propagation | Strong: `runtimebridge.CurrentContext(vm)` follows owner calls. | Minimal: execution methods do not attach a call context to VM execution. | Good for HTTP request entry: `Host.ServeHTTP` calls route handlers through `owner.Call(r.Context(), ...)`. |
+| Durable identity | Minimal: runtime values exist, but no durable session model. | Strong generic sessions: VM/session/execution rows. | Strong site identity: org/site/deployment/runtime status rows. |
+| Execution history | Package-specific: jsverbs returns values; no canonical execution stream. | Strong: execution rows and sequential event rows. | Partial: runtime status/events and request counters exist, but no per-request execution event stream. |
+| Daemon hosting | Out of scope in engine. | Strong direction: long-lived daemon, REST API, CLI client. | Strong concrete host: daemon restores active runtimes and supervisor routes public traffic by Host header. |
+| Deployment/code snapshots | Out of scope in engine; xgoja generates binaries. | Startup files and libraries exist, but not immutable app deployments. | Strong: immutable bundles, manifests, dry-run runtime load, smoke path, activation, rollback. |
+| Limit semantics | Mostly module exposure policy; not a full resource manager. | Modeled, but enforcement is partial and post-execution. | Concrete for per-site SQLite quota and request timeout, but not hard CPU/memory isolation. |
+| Generated runtime composition | Strong in xgoja. | Not a generated-binary builder. | Not generated; it is an online hosting supervisor around uploaded bundles. |
 
-The synthesis is straightforward: keep `go-go-goja` as the runtime substrate, and let `vm-system` inform a higher-level sandbox control plane. Do not keep two Goja runtime implementations.
+The synthesis changes after considering `go-go-host`. The future design should keep `go-go-goja` as the runtime substrate, use `vm-system` for generic template/session/execution vocabulary, and treat `go-go-host` as the strongest concrete example of runtime supervision, deployment validation, and ingress routing. Do not keep three separate Goja runtime management implementations.
 
 ## What `go-go-goja` gets right
 
@@ -495,6 +521,200 @@ reg.Enable(vm)
 
 This was sensible before `go-go-goja` had a unified runtime-aware module API. It is now a compatibility-shaped path. A future adapter should produce `engine.RuntimeModuleSpec` values or use `engine.MiddlewareOnly` for default-registry modules. That would preserve module policy while gaining runtime context and owner bindings.
 
+## What `go-go-host` adds to the picture
+
+`go-go-host` changes the analysis because it is not merely another runtime experiment. On the `task/go-go-host-v1` branch, it is a concrete Goja hosting service. It accepts deployment bundles, validates manifests, creates per-site runtime instances, health-checks candidate runtimes, swaps live traffic, routes public requests by host name, persists runtime status, exposes admin restart/stop operations, and gives hosted JavaScript a deliberately small API.
+
+That makes it the closest current system to the durable-object-style hosting service described in the prompt. It is not a general durable object runtime yet. It is a hosted-site runtime. But many of the operational mechanics are exactly the mechanics a durable object service would need.
+
+### 1. `SiteRuntime` is already the right kind of live object
+
+`internal/runtime/runtime.go` defines a `SiteRuntime` that owns:
+
+```go
+type SiteRuntime struct {
+    spec    Spec
+    db      *sql.DB
+    guard   *dbguard.Guard
+    runtime *engine.Runtime
+    host    *web.Host
+    started time.Time
+}
+```
+
+This is much closer to the desired managed sandbox object than `vm-system`'s raw `*goja.Runtime` session. It owns the engine runtime, the per-site SQLite database, the quota guard, the HTTP bridge, the runtime specification, and the start time.
+
+The construction path is also product-shaped:
+
+1. Validate required runtime inputs such as scripts directory and DB path.
+2. Open and ping the per-site SQLite database.
+3. Create the `web.Host` HTTP bridge.
+4. Configure the DB guard and metered DB wrapper.
+5. Register database modules as preconfigured modules with `configure` disabled.
+6. Select safe utility modules such as `path`, `time`, and `timer`.
+7. Register host modules such as `express`, `ui.dsl`, and `db.guard`.
+8. Create an `engine.Runtime`.
+9. Inject the runtime owner into the HTTP host.
+10. Mount static assets when assets are configured and allowed.
+11. Load JavaScript files through `runtime.Owner.Call`.
+12. Close runtime and database if construction fails.
+
+That sequence is valuable. A generic sandbox manager should preserve the shape: build all host resources first, create the engine runtime with explicit modules, load startup code through the owner path, verify health, and close everything on failure.
+
+### 2. The supervisor has the traffic-swap semantics a hosting service needs
+
+`internal/runtime/supervisor.go` defines a `Supervisor` with maps by site and host:
+
+```go
+type Supervisor struct {
+    bySite map[string]*SiteRuntime
+    byHost map[string]*SiteRuntime
+    status map[string]RuntimeStatus
+    specs  map[string]Spec
+}
+```
+
+`Activate` builds the next runtime before replacing the old one. It sets status to `starting`, constructs `NewSiteRuntime`, runs `HealthCheck`, then swaps maps under a lock. Only after the replacement is ready does it remove old host mappings and install new ones. The previous runtime is closed asynchronously after traffic has moved.
+
+This is a strong operational invariant:
+
+```text
+set status starting
+build candidate runtime
+run smoke health check
+lock supervisor maps
+swap site and host mappings
+set status ready
+unlock
+persist ready status
+close previous runtime
+```
+
+This is exactly the kind of invariant a durable hosting service needs. Activation must not replace working traffic with a runtime that has not loaded or passed a smoke check. `vm-system` has session creation and stale reconciliation; `go-go-host` adds live traffic safety.
+
+### 3. The deployment pipeline provides immutable code snapshots
+
+`internal/control/deployments.go` and `internal/deploy/bundle.go` give `go-go-host` a deployment model that `vm-system` does not have.
+
+The upload path reserves a deployment row, stores the archive under an immutable deployment ID, unpacks to a deployment-specific directory, validates paths and capabilities, performs a dry-run runtime load, hits the smoke path, marks the deployment as `validated` or `rejected`, and records audit events. Activation then loads the validated deployment and changes live traffic.
+
+That matters for a durable object platform because code versioning is part of runtime identity. A live object should not be defined only by a mutable script directory. It should be defined by a code snapshot and a policy snapshot. `go-go-host` already models this with site, deployment, bundle hash, manifest JSON, validation JSON, active deployment, and rollback.
+
+A future sandbox manager should preserve this distinction:
+
+```text
+sandbox identity: site/session/object key
+code identity: deployment/template/profile snapshot
+state identity: per-site DB / durable storage namespace
+live identity: runtime instance currently serving traffic
+```
+
+### 4. The hosted JavaScript API is product-shaped and intentionally small
+
+`cmd/go-go-host/doc/js-api-reference.md` describes a hosted JavaScript API with `express`, `ui.dsl`, preconfigured `database`/`db`, `db.guard`, static assets, and safe utilities. It explicitly blocks `fs` and `exec` in hosted v1.
+
+This is the right posture for a hosting product. App authors should receive host-mediated capabilities, not host internals. The platform owns the HTTP server. JavaScript registers route handlers. The platform owns the database handle. JavaScript queries a preconfigured database. The platform owns request metadata. JavaScript reads `req.platform`.
+
+That API is more opinionated than a generic sandbox API, and that is good. It suggests the future architecture should separate a generic sandbox kernel from product-specific host APIs.
+
+```text
+sandbox kernel: runtime, owner, context, events, lifecycle, module policy
+site host API: express, ui.dsl, database, db.guard, assets, platform context
+vm-system API: REPL, run-file, execution records, worktree roots
+xgoja API: generated CLI commands and provider modules
+```
+
+A robust platform needs the kernel to be shared and the host APIs to remain product-specific.
+
+### 5. Runtime status and runtime events are distinct from execution events
+
+`go-go-host` stores runtime status and runtime events. It tracks status such as `starting`, `ready`, `failed`, `stopped`, and request/error counters. It reconciles stale runtime statuses on daemon startup and records runtime status events.
+
+This is not the same as `vm-system`'s execution event stream. `vm-system` records what happened inside a specific execution. `go-go-host` records lifecycle and operational state for a hosted site runtime.
+
+Both streams are needed in a mature system:
+
+| Stream | Scope | Examples |
+|---|---|---|
+| Runtime lifecycle events | Runtime instance / site / deployment. | starting, ready, failed, stopped, restarted, stale reconciled. |
+| Execution events | One request, REPL call, job, or startup step. | input, console, value, exception, module event, output limit. |
+| Audit events | Control-plane mutation by a human, agent, or system. | deployment.upload, deployment.activate, runtime.restart, policy change. |
+
+`go-go-host` currently has lifecycle and audit. `vm-system` has execution events. The durable object platform should have all three, with clear separation.
+
+## What `go-go-host` still leaves unresolved
+
+The fact that `go-go-host` is relevant does not mean it is the final architecture. It is a product-specific implementation with several important gaps.
+
+### 1. The branch targets an older go-go-goja runtime API
+
+The inspected implementation depends on `github.com/go-go-golems/go-go-goja v0.4.16` and still calls:
+
+```go
+WithRuntimeModuleRegistrars(web.NewExpressRegistrar(host), uidsl.NewRegistrar(), dbguard.NewRegistrar(guard))
+```
+
+The current `go-go-goja` engine has cut over to `RuntimeModuleSpec` and `WithModules(...)`. That means `go-go-host` has to migrate before it can consume the latest runtime substrate. The migration should be straightforward because its registrars already have the right runtime-aware shape; they need the new method name and builder call.
+
+### 2. Capability policy does not appear to compile fully into runtime policy
+
+`go-go-host` validates requested capabilities during upload, and the docs describe capabilities as the contract. But `NewSiteRuntime` currently registers database modules unconditionally, always registers host modules such as `express`, `ui.dsl`, and `db.guard`, and uses `DefaultCapabilities()` when building dry-run and live specs in the deployment service. Timers and assets are conditional, but the overall capability model is not yet a complete runtime plan.
+
+This matters because a durable hosting platform must make the final enforcement point server-side and runtime-side. Validation reports are useful, but the runtime must be built from the effective policy.
+
+The target shape should be:
+
+```go
+effective := policy.Intersect(manifest.RequestedCapabilities)
+spec.Capabilities = effective
+runtimePlan := CompileCapabilitiesToRuntimePlan(effective)
+```
+
+Then `NewSiteRuntime` should register modules only through that compiled plan. If `database` is not effective, `require("database")` should fail. If `ui.dsl` is not effective, `require("ui.dsl")` should fail. If `express` is not effective, route registration should not be available.
+
+There may be a product decision that every hosted site always gets `express` and `ui.dsl`. If so, those are baseline platform capabilities and should not be represented as optional manifest capabilities. The design should choose one model and implement it consistently.
+
+### 3. Request timeout does not equal JavaScript interruption
+
+`Supervisor.ServeHTTP` uses `http.TimeoutHandler` when `RequestTimeoutMS` is configured. That protects the HTTP response path, but it does not by itself prove that JavaScript execution stops immediately. A route handler running inside Goja may continue until it returns unless the runtime execution path also uses cancellation or interruption.
+
+The engine owner call receives `r.Context()`, so Go-backed modules that read `runtimebridge.CurrentContext(vm)` can observe cancellation. Pure JavaScript CPU loops are a different problem. The hosting docs already state that Goja is not a general-purpose sandbox boundary. The durable object platform should preserve that honesty and decide whether it needs Goja interrupt support, worker processes, or OS-level isolation for hard request limits.
+
+### 4. The DB guard callback path should be reviewed for owner discipline
+
+`dbguard.Guard` stores a `*goja.Runtime` and `goja.Callable` callback for `onLimitExceeded`. When `CheckNow` triggers cleanup, it calls the callback directly:
+
+```go
+result, callErr := callback(goja.Undefined(), vm.ToValue(event))
+```
+
+This is safe only if `CheckNow` is always invoked while already on the runtime owner path. That is likely true for database writes initiated by hosted JavaScript. It may become false if quota checks move into background maintenance, admin-triggered cleanup, or asynchronous database monitoring.
+
+The robust rule is simple: any callback into JavaScript from outside the owner path should use `runtime.Owner.Call` or `runtime.Owner.Post`. A future guard module should store the owner runner, not only the VM pointer.
+
+### 5. There is no per-request execution/event record
+
+`go-go-host` counts requests and errors, and it can record runtime lifecycle events. It does not currently create a per-request execution record with console logs, exceptions, return values, module events, or output budget accounting. For a small hosted-site platform this may be acceptable. For a durable object style service, per-invocation traces become important.
+
+The design should not blindly persist every public request body or response. That would create privacy and storage problems. But it should have an execution scope that can emit structured diagnostics when enabled, during validation, during smoke checks, during development, and during sampled production failures.
+
+### 6. `SiteRuntime` is product-specific, not yet the generic sandbox object
+
+`SiteRuntime` is a strong object, but it mixes generic runtime ownership with site-specific concerns: HTTP routes, assets, per-site SQLite, deployment IDs, and health paths. A generic sandbox manager should not import sitejs or know about `/assets`. Instead, `go-go-host` should eventually compile a site deployment into a generic managed sandbox plus a site host API module set.
+
+That suggests this split:
+
+```text
+sandbox.Instance
+  owns engine.Runtime, lifecycle, execution gate, event scope, close policy
+
+hostsite.Runtime
+  owns site Spec, DB guard, web.Host, assets, health check
+  uses sandbox.Instance underneath
+```
+
+This keeps the proven `go-go-host` product behavior while preventing the generic sandbox layer from becoming a web-hosting-only package.
+
 ## The architectural concept that is missing
 
 The missing concept is a **managed sandbox instance**.
@@ -588,7 +808,7 @@ The goal is not to rename everything immediately. The goal is to prevent future 
 
 ## The target architecture
 
-The target architecture has three layers.
+The target architecture has four layers when `go-go-host` is included. The extra layer is the ingress/product host: the part that knows whether an execution is an HTTP request, a REPL snippet, a generated CLI verb, or a deployment smoke check.
 
 ### Layer 1: engine runtime substrate
 
@@ -627,9 +847,21 @@ Responsibilities:
 - close `engine.Runtime` on session close or crash,
 - expose in-process APIs for daemon/CLI/server callers.
 
-### Layer 3: control-plane adapters
+### Layer 3: ingress and product hosts
 
-This is where `vm-system` is already strong.
+This is where `go-go-host` is strongest. It knows how a public HTTP request becomes a JavaScript route handler call, how static assets are served, how platform context enters the request DTO, and how site deployments are health-checked before activation. `vm-system` would have different ingress hosts for REPL and run-file execution. xgoja has generated CLI command ingress.
+
+Responsibilities:
+
+- translate ingress-specific work into `ExecutionRequest` values,
+- attach product context such as site ID, deployment ID, request ID, or workspace root,
+- expose product-specific JavaScript APIs such as `express`, `ui.dsl`, `db.guard`, or jsverbs,
+- perform ingress health checks and smoke checks,
+- keep product-specific code out of the generic engine substrate.
+
+### Layer 4: control-plane adapters
+
+This is where `vm-system` and `go-go-host` are already strong.
 
 Responsibilities:
 
@@ -645,14 +877,16 @@ The layers should point downward:
 ```mermaid
 flowchart TD
     API[HTTP / CLI / UI adapters] --> Control[Control services]
-    Control --> Manager[SandboxManager]
+    Control --> Host[Ingress/product host]
+    Host --> Manager[SandboxManager]
     Manager --> Engine[go-go-goja engine.Runtime]
     Engine --> Goja[goja VM]
     Manager --> Store[(Template/session/execution store)]
     Control --> Store
+    Host --> Store
 ```
 
-The control plane may store records before and after runtime operations. The sandbox manager owns live runtime correctness. The engine owns VM correctness.
+The control plane may store records before and after runtime operations. The ingress host owns product-specific request translation and health checks. The sandbox manager owns live runtime correctness. The engine owns VM correctness.
 
 ## The execution model
 
@@ -1001,9 +1235,53 @@ Only `CloseStaleSessions` is currently honest without snapshotting. Other modes 
 
 The worktree boundary should become part of the sandbox instance. Modules that expose filesystem access should use the worktree root and resolver policy rather than accepting arbitrary host paths.
 
-## What should move from go-go-goja into vm-system
+## What should move from go-go-host into the next design
 
-If `vm-system` continues as a daemon product, it should migrate to the current `go-go-goja` runtime substrate.
+The following `go-go-host` concepts are worth preserving and generalizing.
+
+### Immutable deployments and dry-run validation
+
+A sandbox platform should distinguish uploaded code from active code. `go-go-host` does this well: upload validates and stores a candidate deployment; activation changes live traffic only after a runtime can load and answer the smoke path.
+
+The generic concept is a code snapshot validation pipeline:
+
+```text
+receive artifact
+validate manifest and path policy
+store immutable artifact
+build candidate runtime
+run startup and smoke checks
+mark snapshot validated or rejected
+activate only validated snapshots
+```
+
+This is useful beyond hosted sites. A durable object class, a REPL workspace template, or a generated worker bundle all benefit from pre-activation validation.
+
+### Supervisor traffic-swap invariant
+
+The `Supervisor.Activate` pattern should become the reference for replacing live runtimes. Build the next runtime first. Health-check it. Swap maps under a lock. Preserve the old runtime if the replacement fails. Close the old runtime after the new mapping is live.
+
+A future `SandboxManager.Replace` should encode the same invariant for any keyed runtime, not only HTTP sites.
+
+### Host-header dispatch as one ingress adapter
+
+`go-go-host` dispatches public requests by normalized Host header into `SiteRuntime`. That should remain product-specific. The generic sandbox manager should not know about Host headers, but it should expose enough stable lookup/execute primitives for the host router to remain simple.
+
+### Platform context in request DTOs
+
+The `req.platform` object is a useful pattern. Hosted JavaScript needs deployment and request metadata without reading environment variables. A generic execution scope can carry the same metadata, and product hosts can decide which parts to expose.
+
+### Per-site durable state
+
+The per-site SQLite database is the current durable state mechanism. It is more concrete than `vm-system`'s session heap state and maps well to durable object use cases: live JavaScript heap is ephemeral, but object state lives in a durable store. A future platform should make that explicit. Durable state should be a capability with a storage namespace, quota policy, and backup/export story.
+
+### Runtime lifecycle status separate from execution traces
+
+`go-go-host` runtime status rows and lifecycle events should be preserved as a separate stream from per-execution events. Operators need to know whether a site runtime is ready, failed, stopped, restarted, or stale-reconciled even when no individual request trace is being inspected.
+
+## What should move from go-go-goja into vm-system and go-go-host
+
+If `vm-system` continues as a daemon product, it should migrate to the current `go-go-goja` runtime substrate. If `go-go-host` continues from its v1 branch, it should update to the current `RuntimeModuleSpec` API and compile effective capability policy into the runtime plan.
 
 ### Replace raw sessions with engine-backed sessions
 
@@ -1077,6 +1355,51 @@ return session.Runtime.Owner.Call(ctx, "vm-system.repl", func(ctx context.Contex
 ```
 
 The real implementation should also attach `ExecutionScope` to `ctx` and record events through that scope.
+
+### Update go-go-host registrars to RuntimeModuleSpec
+
+Current go-go-host registrars already receive `RuntimeModuleContext`, but they use the old method name:
+
+```go
+func (r *ExpressRegistrar) RegisterRuntimeModules(ctx *engine.RuntimeModuleContext, reg *require.Registry) error
+```
+
+After the current `go-go-goja` cutover, the method should be:
+
+```go
+func (r *ExpressRegistrar) RegisterRuntimeModule(ctx *engine.RuntimeModuleContext, reg *require.Registry) error
+```
+
+and runtime construction should call:
+
+```go
+builder = builder.WithModules(web.NewExpressRegistrar(host), uidsl.NewRegistrar(), dbguard.NewRegistrar(guard))
+```
+
+This is a mechanical migration, but it is important. It keeps hosted-site runtime modules on the same extension seam as xgoja providers, plugin modules, and default modules.
+
+### Compile go-go-host capabilities to runtime modules
+
+The current `go-go-host` deployment path validates requested capabilities, but runtime construction still tends to use default capabilities. The future path should compile effective capabilities into a runtime plan:
+
+```go
+effective := policy.Resolve(sitePolicy, manifest.Capabilities)
+plan := RuntimePlan{}
+if effective.Database {
+    plan.Modules = append(plan.Modules, preconfiguredDatabaseModules(...))
+}
+if effective.Express {
+    plan.Modules = append(plan.Modules, web.NewExpressRegistrar(host))
+}
+if effective.UIDSL {
+    plan.Modules = append(plan.Modules, uidsl.NewRegistrar())
+}
+if effective.Timers {
+    plan.ModuleSelector = append(plan.ModuleSelector, "time", "timer")
+}
+```
+
+The final runtime should be built from `plan`, not from documentation assumptions. This is the difference between capability reporting and capability enforcement.
 
 ## Areas where the current go-go-goja design may need refinement
 
@@ -1194,11 +1517,21 @@ This phase aligns observability with runtime context propagation.
 
 - Define a `RuntimePlan` or `SandboxTemplateSnapshot` type.
 - Compile vm-system templates into that type.
+- Compile go-go-host effective deployment capabilities into that type.
 - Compile xgoja profiles into the same kind of plan where appropriate.
 - Keep engine builder as the low-level constructor.
 - Use one validation path for module exposure policy.
 
 This phase prevents configuration drift.
+
+### Phase 3b: Extract the go-go-host supervisor invariant
+
+- Update go-go-host to the current `RuntimeModuleSpec` API.
+- Compile effective deployment capabilities into `SiteRuntime` construction.
+- Keep `Supervisor.Activate` as the reference safe-swap implementation.
+- Extract a generic replace-runtime operation only after go-go-host and vm-system both need it.
+
+This phase preserves the most valuable hosting-specific behavior without prematurely forcing all products into a web-site abstraction.
 
 ### Phase 4: Add sandbox manager API
 
@@ -1263,6 +1596,13 @@ vm-system/
   pkg/vmstore/             # persistence stays here
   pkg/vmtransport/http/    # REST stays here
   cmd/vm-system/           # CLI stays here
+
+go-go-host/
+  internal/runtime/         # SiteRuntime and Supervisor stay product-specific initially
+  internal/sitejs/          # hosted-site JavaScript API modules
+  internal/deploy/          # bundle validation and deployment snapshots
+  internal/control/         # activation/rollback/audit orchestration
+  internal/hostsandbox/     # future adapter from site deployments to sandbox.Manager, if warranted
 ```
 
 The `sandbox` package should not require SQLite. It should define interfaces:
@@ -1282,11 +1622,13 @@ type ExecutionStore interface {
 }
 ```
 
-`vm-system` can implement those interfaces with SQLite. Another host can implement them in memory. xgoja can ignore them for simple CLI eval and jsverb paths.
+`vm-system` can implement those interfaces with SQLite. `go-go-host` can implement them with its Postgres store and per-site deployment model if it needs generic execution traces. Another host can implement them in memory. xgoja can ignore them for simple CLI eval and jsverb paths.
 
 ## The likely best near-term answer
 
-The most effective next step is not a grand rewrite. It is to make `vm-system` a consumer of the current `go-go-goja` engine runtime and let the friction reveal the right sandbox API.
+The most effective next step is not a grand rewrite. It is two focused migrations and one exploratory spike.
+
+First, make `vm-system` a consumer of the current `go-go-goja` engine runtime and let the friction reveal the right sandbox API. Second, update `go-go-host` to the current `RuntimeModuleSpec` API and make effective deployment capabilities compile into runtime construction. Third, run a narrow Sobek prototype only for ESM source-loading evidence.
 
 A focused spike should answer these questions with code:
 
@@ -1295,27 +1637,34 @@ A focused spike should answer these questions with code:
 3. Can console capture become a runtime initializer that emits to an execution scope?
 4. Can startup files be represented as persisted executions?
 5. Can existing vm-system integration tests pass after this migration?
-6. Which engine APIs feel too low-level after the migration?
-7. Can a small Sobek prototype run the same startup/execution/event-scope model for ESM modules without forcing a full rewrite of existing Goja-native modules?
+6. Can `go-go-host` move from `WithRuntimeModuleRegistrars` to `WithModules` and still pass deployment/runtime tests?
+7. Can `go-go-host` build a `SiteRuntime` from effective capability policy rather than `DefaultCapabilities()`?
+8. Does `go-go-host` need per-request execution scopes, or are lifecycle events and sampled diagnostics enough for hosted sites?
+9. Which engine APIs feel too low-level after the vm-system and go-go-host migrations?
+10. Can a small Sobek prototype run the same startup/execution/event-scope model for ESM modules without forcing a full rewrite of existing Goja-native modules?
 
-That spike would provide better evidence than an abstract design debate. If the migration is smooth, then the existing `go-go-goja` architecture is validated. If the migration produces repeated adapter code, that adapter code probably wants to become the new `sandbox` package. The Sobek part of the spike should be treated as an ESM backend experiment, not as a replacement decision for the current Goja runtime substrate.
+That spike would provide better evidence than an abstract design debate. If the migrations are smooth, then the existing `go-go-goja` architecture is validated. If they produce repeated adapter code, that adapter code probably wants to become the new `sandbox` package. The Sobek part of the spike should be treated as an ESM backend experiment, not as a replacement decision for the current Goja runtime substrate.
 
 ## Judgement on the current design
 
 The current `go-go-goja` design is mostly good and necessary for its use cases. The runtime owner, bridge bindings, runtime-aware module API, explicit default-module controls, and xgoja engine reuse all solve real problems. They are not ornamental complexity.
 
-The risk is not that these pieces exist. The risk is that higher-level systems will keep bypassing them. `vm-system` currently does bypass them because it predates the newer engine shape. That creates an architectural mismatch: one repository has the strong runtime substrate, while the other has the durable sandbox product model.
+The risk is not that these pieces exist. The risk is that higher-level systems will keep bypassing them or partially reimplementing them. `vm-system` currently bypasses them because it predates the newer engine shape. `go-go-host` mostly uses them, but its v1 branch is pinned to an older `go-go-goja` API and has capability-policy drift. That creates an architectural mismatch: one repository has the strong runtime substrate, one has the generic durable sandbox vocabulary, and one has the strongest hosted-site supervisor.
 
-The current `vm-system` design is also mostly good at the control-plane level. Templates, sessions, executions, event streams, daemon hosting, REST adapters, CLI clients, and stale-session reconciliation are the right concepts. The problematic part is its raw runtime implementation. It should be retired in favor of `engine.Runtime`.
+The current `vm-system` design is mostly good at the control-plane level. Templates, sessions, executions, event streams, daemon hosting, REST adapters, CLI clients, and stale-session reconciliation are the right concepts. The problematic part is its raw runtime implementation. It should be retired in favor of `engine.Runtime`.
+
+The current `go-go-host` design is mostly good at the hosting layer. Immutable deployment bundles, dry-run runtime validation, health-checked activation, host-header dispatch, per-site SQLite state, runtime status/events, and explicit hosted APIs are exactly the kind of mechanics a durable-object-style service needs. The problematic parts are the version drift from the current engine API, incomplete compilation of capability policy into runtime modules, and the absence of a generic execution/event scope for request-level diagnostics.
 
 The future architecture should therefore be evolutionary:
 
 - keep `engine.Runtime` as the default Goja execution substrate,
 - preserve `vm-system`'s template/session/execution/event vocabulary,
+- preserve `go-go-host`'s deployment/supervisor/activation invariants,
 - introduce a managed sandbox layer only where repeated integration code proves it is needed,
+- keep product ingress adapters separate from the generic sandbox kernel,
 - keep the high-level source policy neutral enough that a Sobek ESM backend can be evaluated later,
 - classify isolation guarantees honestly,
-- keep module policy explicit,
+- keep module policy explicit and compiled into runtime construction,
 - make execution scope and event emission context-driven,
 - stop constructing bare Goja runtimes in managed systems.
 
@@ -1327,7 +1676,9 @@ The runtime substrate answers: how is JavaScript executed safely inside this Go 
 
 The sandbox control plane answers: who owns this runtime, what policy created it, what code ran inside it, what did it emit, when should it close, and what survives process restart? `vm-system` has most of that vocabulary already, with a daemon and persisted event stream to make it operational.
 
-The next architecture should join these two answers. A managed sandbox should be an engine runtime plus durable identity, policy snapshot, execution scope, event sink, and lifecycle state. That object can support long-lived sessions, request-scoped invocations, generated xgoja binaries, REPLs, HTTP handlers, and background workers without each feature inventing a runtime lifecycle.
+The hosting plane answers: how does validated code become live traffic, how is a replacement runtime checked before activation, how is a public request routed to the correct runtime, and how is durable state attached to a hosted unit? `go-go-host` has the strongest current answer: immutable deployments, dry-run validation, smoke checks, supervisor activation, Host-header dispatch, per-site SQLite, runtime status, and lifecycle events.
+
+The next architecture should join these three answers. A managed sandbox should be an engine runtime plus durable identity, policy snapshot, execution scope, event sink, lifecycle state, and optional ingress host. That object can support long-lived sessions, hosted sites, request-scoped invocations, generated xgoja binaries, REPLs, HTTP handlers, and background workers without each feature inventing a runtime lifecycle.
 
 Sobek adds one more design pressure: modern JavaScript source increasingly expects ESM. That pressure belongs in the source/module backend, not in the control-plane model. If the sandbox layer keeps template, session, execution, event, and lifecycle concepts independent from CommonJS assumptions, Sobek can become an optional ESM backend when the product needs it.
 
