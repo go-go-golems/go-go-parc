@@ -77,6 +77,11 @@ The main `go-go-goja` files considered here are:
 ├── pkg/runtimeowner/runner.go     # owner Call/Post scheduling and context propagation
 ├── pkg/runtimebridge/runtimebridge.go
 ├── pkg/jsverbs/runtime.go         # owner-aware JavaScript verb invocation
+├── pkg/replapi/app.go             # REPL app facade over live sessions and durable store
+├── pkg/replsession/service.go     # live REPL session manager backed by engine.Runtime
+├── pkg/replsession/evaluate.go    # cell evaluation pipeline and reports
+├── pkg/repldb/schema.go           # SQLite sessions/evaluations/console/binding history
+├── pkg/replhttp/handler.go        # JSON session/history/export/restore HTTP API
 └── pkg/xgoja/app/factory.go       # generated runtime profile adaptation to engine.Runtime
 ```
 
@@ -134,8 +139,8 @@ The current repositories divide these concerns unevenly.
 | Module registration | Strong: `RuntimeModuleSpec` receives runtime context before `require` is enabled. | Partial: template modules call go-go-goja module registry loaders directly. | Good but version-drifted: uses engine runtime and registrars, but branch still targets the old `WithRuntimeModuleRegistrars` API. |
 | Async module safety | Strong: `runtimebridge` + `runtimeowner` support owner-thread promise settlement. | Weak: raw VM has no event loop owner bindings for async go-go-goja modules. | Mostly good: scripts and HTTP handlers run through owner calls; DB guard callback paths need owner-context review. |
 | Context propagation | Strong: `runtimebridge.CurrentContext(vm)` follows owner calls. | Minimal: execution methods do not attach a call context to VM execution. | Good for HTTP request entry: `Host.ServeHTTP` calls route handlers through `owner.Call(r.Context(), ...)`. |
-| Durable identity | Minimal: runtime values exist, but no durable session model. | Strong generic sessions: VM/session/execution rows. | Strong site identity: org/site/deployment/runtime status rows. |
-| Execution history | Package-specific: jsverbs returns values; no canonical execution stream. | Strong: execution rows and sequential event rows. | Partial: runtime status/events and request counters exist, but no per-request execution event stream. |
+| Durable identity | Mixed: `engine.Runtime` has no durable ID, but `replapi`/`repldb` have durable REPL session IDs and metadata. | Strong generic sessions: VM/session/execution rows. | Strong site identity: org/site/deployment/runtime status rows. |
+| Execution history | Strong but REPL-specific: `replapi`/`replsession`/`repldb` persist evaluated cells, console events, binding versions, docs, history, export, and replay-restore; there is still no generic sandbox-wide execution stream. | Strong generic: execution rows and sequential event rows for startup, run-file, and REPL. | Partial: runtime status/events and request counters exist, but no per-request execution event stream. |
 | Daemon hosting | Out of scope in engine. | Strong direction: long-lived daemon, REST API, CLI client. | Strong concrete host: daemon restores active runtimes and supervisor routes public traffic by Host header. |
 | Deployment/code snapshots | Out of scope in engine; xgoja generates binaries. | Startup files and libraries exist, but not immutable app deployments. | Strong: immutable bundles, manifests, dry-run runtime load, smoke path, activation, rollback. |
 | Limit semantics | Mostly module exposure policy; not a full resource manager. | Modeled, but enforcement is partial and post-execution. | Concrete for per-site SQLite quota and request timeout, but not hard CPU/memory isolation. |
@@ -243,19 +248,51 @@ builder := engine.NewBuilder(
 
 This is significant because xgoja has strict module selection semantics. The generated binary may compile many providers, but each runtime profile exposes only selected modules. The fact that xgoja can now use `engine.Runtime` without inheriting broad defaults shows that the engine substrate is flexible enough for policy-sensitive hosts.
 
+### 6. replapi already provides a REPL-specific execution-history subsystem
+
+The earlier version of this report undercounted `go-go-goja` here. The GOJA-043 diary and the Goja REPL Essay note both point at the same fact: `pkg/replapi`, `pkg/replsession`, `pkg/repldb`, and `pkg/replhttp` are already a real application-level control plane for REPL sessions.
+
+`replapi.App` combines a live `replsession.Service` with an optional SQLite `repldb.Store`. In persistent mode it can create sessions, evaluate cells, restore sessions by replaying source, list sessions, return history, export full session state, return binding views, return extracted docs, and run callers against the live `engine.Runtime` through `WithRuntime`.
+
+The durable schema is not trivial. It stores:
+
+- `sessions`, with session ID, engine kind, metadata, and deletion state,
+- `evaluations`, with raw source, rewritten source, status, result JSON, error text, static analysis JSON, and global snapshots,
+- `console_events`, sequenced per evaluation,
+- `bindings` and `binding_versions`, with per-cell insert/update/remove records,
+- `binding_docs`, with extracted documentation associated with symbols.
+
+The HTTP layer exposes this through routes such as:
+
+```text
+GET  /api/sessions
+POST /api/sessions
+GET  /api/sessions/:id
+POST /api/sessions/:id/evaluate
+POST /api/sessions/:id/restore
+GET  /api/sessions/:id/history
+GET  /api/sessions/:id/bindings
+GET  /api/sessions/:id/docs
+GET  /api/sessions/:id/export
+```
+
+So the right conclusion is not "go-go-goja has no execution history." It has a strong REPL-cell history system. The remaining gap is that this history model is not yet a generic sandbox execution model for startup files, run-file executions, hosted HTTP requests, xgoja command invocations, jsverb calls, and future durable-object requests.
+
 ## What `go-go-goja` still does not provide
 
-The current engine is a runtime substrate, not a full sandbox manager. That is appropriate, but it should be recognized explicitly.
+The current engine is a runtime substrate, not a full sandbox manager. The REPL packages are an important exception: they already provide a product-level session/history API for one application shape. The remaining gaps are about making that idea generic enough for non-REPL sandbox products.
 
-### 1. There is no durable sandbox identity
+### 1. There is no generic durable sandbox identity
 
-`engine.Runtime` has a lifecycle context and values map, but it has no durable ID, template snapshot, workspace, worktree root, status, restart policy, execution history, or owner process lease. Those are not engine responsibilities by default, but any durable sandbox use case needs them.
+`engine.Runtime` has a lifecycle context and values map, but it has no durable ID, template snapshot, workspace, worktree root, status, restart policy, execution history, or owner process lease. `replapi` fills part of that gap for REPL sessions by giving them durable IDs, SQLite records, evaluation history, export, and replay restore. It does not define a general sandbox identity that also covers vm-system worktrees, go-go-host site deployments, xgoja generated command runtimes, or durable-object keys.
 
-### 2. There is no canonical execution record
+### 2. There is no generic execution record contract
 
-`jsverbs` has command invocation logic. REPL code has evaluator paths. xgoja has eval commands. HTTP modules dispatch JavaScript handlers. Each path can run JavaScript, but there is no shared execution record contract equivalent to `vm-system`'s `Execution` and `ExecutionEvent` model.
+`replsession.CellReport` and `repldb.EvaluationRecord` are strong REPL-specific execution records. They are richer than `vm-system` in some ways: they preserve rewrite information, static analysis, runtime diffs, binding versions, docs, console output, result envelopes, and replay source. They should be treated as a major design input.
 
-This is acceptable at the engine layer. It becomes a problem if the repository wants to offer managed sandboxes as a product-level abstraction.
+The missing piece is a shared execution record contract across all JavaScript entrypoints. `jsverbs` has command invocation logic. xgoja has eval and mounted verb commands. HTTP modules dispatch JavaScript handlers. go-go-host serves public requests. vm-system has startup and run-file executions. Each path can run JavaScript, but only the REPL path currently uses the replapi history model.
+
+This is acceptable at the engine layer. It becomes a problem if the repository wants to offer managed sandboxes as a product-level abstraction. A future generic execution model should probably borrow heavily from `replsession.CellReport` and `repldb.EvaluationRecord`, while also preserving vm-system's execution-kind and event-stream vocabulary.
 
 ### 3. Limits are not a complete sandbox policy
 
@@ -370,7 +407,7 @@ The event stream is one of the most valuable ideas in `vm-system`. Managed JavaS
 - what exception it threw,
 - which events were emitted in what order.
 
-`go-go-goja` has no equivalent canonical record today. If the future platform includes durable or operational sandboxes, the event stream should be preserved and generalized.
+`go-go-goja` does have an equivalent for REPL cells in `replapi`/`replsession`/`repldb`: persistent evaluations, console events, binding versions, docs, export, and replay restore. What it does not yet have is a generic execution stream that applies equally to REPL cells, startup executions, run-file executions, jsverb invocations, xgoja commands, and hosted HTTP requests. If the future platform includes durable or operational sandboxes, the vm-system event stream and the replapi cell history should be preserved and generalized together.
 
 ### 5. It models worktree boundaries
 
