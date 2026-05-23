@@ -1,0 +1,874 @@
+---
+title: "xgoja: Compile-Time Goja Module Composition and jsverbs Mounting"
+aliases:
+  - xgoja deep dive
+  - xgoja compile-time composition
+  - xgoja jsverbs mounting
+  - xgoja implementation report
+tags:
+  - article
+  - xgoja
+  - goja
+  - javascript
+  - cli
+  - glazed
+  - architecture
+  - code-generation
+  - jsverbs
+status: active
+type: article
+created: 2026-05-22
+repo: /home/manuel/workspaces/2026-05-22/xgoja/go-go-goja
+---
+
+# xgoja: Compile-Time Goja Module Composition and jsverbs Mounting
+
+This note is a technical deep dive into the `xgoja` implementation that now lives inside `go-go-goja`. It explains the project from the outside in: what problem `xgoja` is solving, how the generated binary model works, how the Go code is organized, how runtime profiles are interpreted, how generated programs execute provider modules, how `jsverbs` were mounted, where the current implementation is intentionally minimal, and where the next engineering pressure points are.
+
+The intended reader is someone who writes Go, reads generated code comfortably, and wants to understand the system well enough to extend it without guessing. The goal is not to restate the ticket history. The goal is to describe the design as a working system.
+
+> [!summary]
+> - `xgoja` is an xcaddy-style builder for goja-powered CLIs. It takes a declarative build spec, generates Go source, and compiles a new binary instead of loading native plugins into an existing one.
+> - The implementation is split into buildspec parsing, provider registration, deterministic source generation, build execution, and generated runtime/application layers.
+> - The generated runtime currently uses a minimal `goja.New()` + `goja_nodejs/require.Registry` path rather than the richer `engine.Factory` path because of an existing workspace dependency mismatch between `goja` and `goja_nodejs`.
+> - Real filesystem `jsverbs` mounting now works in generated binaries. Embedded local jsverbs and provider-shipped verb sources are the next natural extensions.
+
+## Why this note exists
+
+The xgoja work spanned multiple tickets and touched several layers at once: Glazed CLI wiring, YAML schema handling, provider API design, code generation, generated runtime design, Go toolchain execution, adapter/Cobra target modes, and finally `jsverbs` mounting. That makes it easy to lose the overall shape when reading the code file by file.
+
+This note exists to preserve the architecture as a coherent whole. The implementation is already working, but some design decisions are conditional on current repository constraints. A future contributor needs to see both the current behavior and the reasoning behind it.
+
+## The problem xgoja is solving
+
+A goja-hosted CLI often wants two kinds of extensibility at the same time:
+
+1. **Go-backed native modules**, such as `fetch`, `database`, `yaml`, `fs`, or application-specific bindings.
+2. **JavaScript-defined commands**, written as source files and exposed through a CLI command tree.
+
+The problem is that these two kinds of extension behave differently.
+
+A JavaScript file can be loaded dynamically. A Go module cannot be added safely to an already-built binary without re-entering the entire space of Go plugin ABI compatibility, shared package identity, build tags, local replacements, generated files, and toolchain exactness. The reliable boundary for in-process Go extensions is source-level composition followed by a normal Go build.
+
+That is the foundational decision behind xgoja.
+
+The user should be able to write a build spec like this:
+
+```yaml
+name: fixture
+packages:
+  - id: fixture
+    import: github.com/go-go-golems/go-go-goja/pkg/xgoja/testprovider
+runtimes:
+  repl:
+    modules:
+      - package: fixture
+        name: hello
+        as: hello
+commands:
+  repl:
+    enabled: true
+    runtime: repl
+  jsverbs:
+    enabled: true
+    runtime: repl
+    name: verbs
+jsverbs:
+  - id: local
+    path: ./verbs
+    embed: false
+```
+
+and then run:
+
+```bash
+xgoja build -f xgoja.yaml --output ./dist/fixture
+```
+
+The result should be a binary that already contains the selected Go-backed modules and knows how to mount the configured JavaScript verb sources.
+
+## The current project shape
+
+The implementation lives in the main `go-go-goja` module rather than a separate repository. The important directories are:
+
+```text
+cmd/xgoja/
+  main.go
+  root.go
+  cmd_build.go
+  cmd_doctor.go
+  cmd_inspect.go
+  cmd_list_modules.go
+  internal/
+    buildexec/
+    buildspec/
+    generate/
+    testprovider/
+
+pkg/xgoja/
+  providerapi/
+  app/
+  testprovider/
+  testcobra/
+  testadapter/
+
+pkg/jsverbs/
+  scan.go
+  command.go
+  runtime.go
+```
+
+The system has three major layers.
+
+### Layer 1: the builder CLI
+
+This is the `xgoja` command under `cmd/xgoja`. It parses YAML, validates it, generates source files, runs `go mod tidy`, runs `go build`, and exposes diagnostic commands such as `doctor`, `inspect`, and `list-modules`.
+
+### Layer 2: reusable xgoja runtime packages
+
+These live under `pkg/xgoja`. They are public because generated programs need to import them from a temporary build module. This layer contains the provider registration API and the generated application/runtime helpers.
+
+### Layer 3: generated programs
+
+The builder generates a temporary main module containing:
+
+- a generated `go.mod`,
+- a generated `main.go`,
+- a normalized embedded spec file,
+- eventually, copied/embedded local JS verb source trees.
+
+The generated program is not an implementation detail in the sense of being opaque. It is intentionally readable and disposable. When a build fails, the work directory should explain why.
+
+## The mental model: build time and run time
+
+The most important distinction in xgoja is between what the build chooses and what the runtime chooses.
+
+At build time, xgoja decides which Go packages become part of the resulting binary. That decision is expressed by the `packages:` section of the build spec. The generator turns that list into real Go imports and calls each provider package's registration function.
+
+At run time, the binary decides which of the compiled-in capabilities are available in a specific command or runtime profile. That decision is expressed by the `runtimes:` and `commands:` sections of the build spec.
+
+```mermaid
+flowchart TD
+    subgraph BuildTime[Build time]
+        A[xgoja.yaml] --> B[Parse and validate]
+        B --> C[Select provider imports]
+        C --> D[Generate go.mod]
+        C --> E[Generate main.go]
+        E --> F[Embed normalized spec JSON]
+        F --> G[go mod tidy]
+        G --> H[go build]
+    end
+
+    subgraph RunTime[Run time]
+        I[Start generated binary] --> J[Create provider registry]
+        J --> K[Call provider Register functions]
+        K --> L[Decode embedded spec]
+        L --> M[Create runtime factory]
+        M --> N[Run eval or mounted jsverb command]
+        N --> O[Create goja runtime for selected profile]
+        O --> P[Register selected require modules]
+    end
+
+    H --> I
+```
+
+This separation is the reason the system stays understandable. The generator decides **what can exist**. The runtime decides **what is active for this invocation**.
+
+## The buildspec layer
+
+The buildspec package is the contract between the user and the builder. It lives under:
+
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/internal/buildspec/spec.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/internal/buildspec/load.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/internal/buildspec/validate.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/internal/buildspec/report.go`
+
+The central types are:
+
+- `Spec`
+- `TargetSpec`
+- `PackageSpec`
+- `Runtime`
+- `ModuleInstance`
+- `CommandsSpec`
+- `JSVerbSourceSpec`
+
+A simplified sketch looks like this:
+
+```go
+type Spec struct {
+    Name     string
+    Go       GoSpec
+    Target   TargetSpec
+    Packages []PackageSpec
+    Runtimes map[string]Runtime
+    Commands CommandsSpec
+    JSVerbs  []JSVerbSourceSpec
+    BaseDir  string
+}
+
+type PackageSpec struct {
+    ID       string
+    Import   string
+    Version  string
+    Register string
+    Replace  string
+}
+
+type Runtime struct {
+    Modules []ModuleInstance
+}
+
+type ModuleInstance struct {
+    Package string
+    Name    string
+    As      string
+    Config  map[string]any
+}
+```
+
+### What the loader does
+
+`LoadFile` in `load.go` does four things in order:
+
+1. Resolve the spec path to an absolute path.
+2. Read and unmarshal YAML.
+3. Record the spec base directory so relative paths can be interpreted correctly.
+4. Apply defaults and validate.
+
+The defaults are intentionally simple:
+
+- `name` defaults to `xgoja-app` if missing.
+- `go.version` defaults to `1.26`.
+- `go.module` defaults to `example.com/generated/<name>`.
+- `target.kind` defaults to `xgoja`.
+- `target.output` defaults to `dist/<name>`.
+- provider register functions default to `Register`.
+- command names default to `repl` and `verbs` where appropriate.
+
+### What validation checks
+
+Validation is not trying to prove the entire world. It is trying to catch structural mistakes early.
+
+The validator currently checks:
+
+- supported target kinds,
+- required target fields,
+- package ID uniqueness,
+- package import presence,
+- local replace path existence,
+- runtime profile existence,
+- runtime module references to known package IDs,
+- duplicate aliases inside one runtime profile,
+- enabled command runtime references,
+- jsverb source ID uniqueness,
+- embedded filesystem source path existence.
+
+The validator returns a structured report rather than a single flat error string. That is what `xgoja doctor` prints.
+
+### Why the buildspec is internal
+
+The buildspec package is command-local for now. That is deliberate. It is still changing, and generated binaries do not need it directly. The generated program consumes a normalized runtime spec JSON through public `pkg/xgoja/app` types instead.
+
+## The provider API
+
+The provider API is public because generated programs need to import it from outside the repository root when they are built in a temporary main module.
+
+It lives under:
+
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/xgoja/providerapi/module.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/xgoja/providerapi/registry.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/xgoja/providerapi/verbs.go`
+
+The key concepts are:
+
+- `Registry`
+- `Package`
+- `Module`
+- `VerbSource`
+- `ModuleFactory`
+- `ModuleContext`
+
+A provider package calls:
+
+```go
+func Register(registry *providerapi.Registry) error {
+    return registry.Package("fixture",
+        providerapi.Module{
+            Name:      "hello",
+            DefaultAs: "hello",
+            New:       newHelloModule,
+        },
+        providerapi.VerbSource{
+            Name: "verbs",
+            Root: "verbs",
+        },
+    )
+}
+```
+
+The provider registry enforces a few invariants immediately:
+
+- package IDs must be unique,
+- module names inside one provider package must be unique,
+- verb source names inside one provider package must be unique,
+- module factories must not be nil,
+- empty names are rejected.
+
+This is important because it pushes ambiguity out of the runtime path. By the time a generated binary starts, provider declarations should already be structurally sound.
+
+## Deterministic source generation
+
+The generator lives under:
+
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/internal/generate/gomod.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/internal/generate/main.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/internal/generate/generate.go`
+
+This layer takes a validated buildspec and renders the temporary module.
+
+### Generated go.mod
+
+The generated `go.mod` includes:
+
+- the generated module name,
+- the Go version,
+- a require on `github.com/go-go-golems/go-go-goja`,
+- requires for provider modules when versions are specified,
+- replace directives for local development.
+
+The generator currently applies a pragmatic module-path rule:
+
+- if a provider import ends in `/xgoja`, the required module path becomes its parent directory,
+- otherwise the import path itself is used as the module path.
+
+That rule is useful now, but it is heuristic. An explicit per-package module path would be more robust in a future revision.
+
+### Generated main.go
+
+The generated `main.go` is the center of the system. It imports:
+
+- `pkg/xgoja/app`,
+- `pkg/xgoja/providerapi`,
+- every selected provider package,
+- optionally a target package for adapter/Cobra modes.
+
+The basic flow is:
+
+1. create a provider registry,
+2. call each provider's `Register` function,
+3. decode the embedded spec when needed,
+4. choose a target mode,
+5. execute the resulting Cobra root.
+
+The generator supports three target kinds.
+
+#### Pure xgoja
+
+```go
+root, err := app.NewRootCommand(app.Options{Providers: registry, SpecJSON: embeddedSpecJSON})
+must(err)
+```
+
+#### Adapter target
+
+```go
+spec := decodeSpec()
+host := app.NewHost(registry, spec)
+root, err := target.Build(context.Background(), host)
+must(err)
+```
+
+#### Cobra attach target
+
+```go
+spec := decodeSpec()
+host := app.NewHost(registry, spec)
+root := target.NewRootCommand()
+host.AttachDefaultCommands(root)
+```
+
+### Embedded spec JSON
+
+The generated binary embeds a normalized JSON representation of the buildspec fields it needs at runtime. This is intentionally lower-case JSON with stable names rather than raw Go struct field serialization.
+
+That detail matters. The first implementation accidentally emitted `Kind`, `Import`, and similar Go field names. Explicit JSON tags were added to the buildspec structs so the embedded payload is predictable and reasonable to treat as a public shape.
+
+## Build execution
+
+The build executor lives under:
+
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/internal/buildexec/buildexec.go`
+
+It is deliberately narrow. It knows how to run:
+
+- `go mod tidy`
+- `go build -o ...`
+
+and capture combined output.
+
+The build command under `cmd/xgoja/cmd_build.go` orchestrates the whole flow.
+
+```mermaid
+flowchart TD
+    A[xgoja build] --> B[Load and validate spec]
+    B --> C[Choose work dir]
+    C --> D[Write generated files]
+    D --> E[go mod tidy]
+    E --> F[Resolve absolute output path]
+    F --> G[Create output directory]
+    G --> H[go build -o output .]
+    H --> I[Report final binary path]
+```
+
+A few details are important here.
+
+### Temporary workspaces
+
+If `--work-dir` is not provided, `xgoja build` creates a temporary directory. Unless `--keep-work` is set, that directory is removed afterward. This keeps the default flow clean while still allowing debugging of failed generated builds.
+
+### Relative output paths
+
+The build happens inside the generated workspace, so the final output path must be resolved before calling `go build`. Otherwise a relative `-o dist/fixture` would be interpreted relative to the workspace instead of the caller's working directory.
+
+### Local replace of go-go-goja
+
+The current builder injects a local replace for the repository root so generated programs can import the just-implemented `pkg/xgoja` packages before anything is published as a versioned module release.
+
+This is a development convenience, but it is also a real architectural decision. Today, xgoja assumes the repo it is running from is the source of truth.
+
+## The generated runtime layer
+
+The generated runtime lives under `pkg/xgoja/app` and is public so the generated binary can import it.
+
+Important files:
+
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/xgoja/app/spec.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/xgoja/app/factory.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/xgoja/app/root.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/xgoja/app/host.go`
+
+### Why the runtime is minimal
+
+There is an existing richer runtime abstraction in `go-go-goja/engine`, but the current workspace still has a dependency mismatch between the local `goja` checkout in `go.work` and the resolved `goja_nodejs` version. Importing the richer runtime path in the generated app would currently drag in the mismatch and make generated runtime work less stable than the rest of the builder.
+
+So the generated runtime uses a minimal path:
+
+- `goja.New()`
+- `require.NewRegistry(...)`
+- provider module registration into that require registry
+- `registry.Enable(vm)`
+
+That is enough to prove the core value of xgoja: selected provider modules are present and can be used through `require(...)`.
+
+### RuntimeFactory
+
+The `RuntimeFactory` receives:
+
+- a provider registry,
+- the decoded runtime spec.
+
+Its job is simple: create a fresh runtime for one profile.
+
+Pseudocode:
+
+```go
+func NewRuntime(ctx, profile, opts...) {
+    runtimeSpec := spec.Runtimes[profile]
+    vm := goja.New()
+    reqRegistry := require.NewRegistry(opts...)
+
+    for each selected module instance:
+        module := providers.ResolveModule(packageID, name)
+        configJSON := json.Marshal(instance.Config)
+        loader := module.New(ModuleContext{...})
+        reqRegistry.RegisterNativeModule(instance.Alias(), loader)
+
+    req := reqRegistry.Enable(vm)
+    return JSRuntime{VM: vm, Require: req}
+}
+```
+
+This makes the runtime profile an actual enforcement boundary. If a profile does not select a module, it is not registered.
+
+### Host
+
+The public `Host` type exists for adapter and Cobra attach target modes. It bundles:
+
+- the providers,
+- the decoded spec,
+- the runtime factory.
+
+It also exposes attachment helpers:
+
+- `AttachDefaultCommands`
+- `AttachEval`
+- `AttachModules`
+- `AttachVerbs`
+
+This is a clean separation. The generated code should not need to know where an existing application wants to attach xgoja commands. It constructs a host and lets the adapter or target application use it.
+
+## The command surface
+
+The current generated app exposes three conceptual command families.
+
+### eval
+
+`eval` is the minimal JavaScript execution path.
+
+```bash
+generated-binary eval 'require("hello").greet("intern")'
+```
+
+This creates a runtime profile, runs the string, and prints the result if it is non-null.
+
+It is intentionally simple, but it is enough for smoke tests and useful as a debugging primitive.
+
+### modules
+
+`modules` lists the provider modules registered in the generated binary.
+
+It is diagnostic, not operational. It answers the question: which provider modules made it through build-time registration?
+
+### verbs
+
+This is where the implementation changed meaningfully during the project.
+
+The first pass of xgoja only listed configured source IDs. That was a placeholder. The current implementation mounts real filesystem jsverbs as executable commands.
+
+## How jsverbs works in xgoja
+
+The jsverbs subsystem already existed in the repository. What xgoja needed was a compatible runtime execution path.
+
+### Existing jsverbs model
+
+`pkg/jsverbs` already provided three core capabilities:
+
+1. scan JS files and extract verb/package metadata,
+2. build Glazed commands from discovered verbs,
+3. invoke those verbs inside an `engine.Runtime`.
+
+The existing runtime entrypoint was:
+
+```go
+func (r *Registry) InvokeInRuntime(ctx context.Context, runtime *engine.Runtime, verb *VerbSpec, parsedValues *values.Values) (interface{}, error)
+```
+
+That was not sufficient for xgoja because the generated app is currently not using `engine.Runtime`.
+
+### Direct invocation path
+
+The solution was to add a second invocation API in:
+
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/jsverbs/runtime.go`
+
+```go
+func (r *Registry) InvokeInGojaRuntime(
+    ctx context.Context,
+    vm *goja.Runtime,
+    req *require.RequireModule,
+    verb *VerbSpec,
+    parsedValues *values.Values,
+) (interface{}, error)
+```
+
+This function reuses the existing binding model:
+
+- build the argument binding plan,
+- build argument values,
+- load the JS module through `req.Require(...)`,
+- find the captured function in `__glazedVerbRegistry`,
+- call it with converted arguments,
+- wait for a promise if the result is async.
+
+The direct invocation path duplicates a small amount of logic from `InvokeInRuntime`, but it avoids dragging the full engine path into xgoja while the workspace mismatch still exists.
+
+### Why require loader injection matters
+
+This is the part that makes jsverbs mounting work.
+
+A JS verb file is not executed by directly reading the file and evaluating the source in place. It is loaded through the jsverbs source overlay loader, which injects:
+
+- placeholder no-op functions like `__package__`, `__verb__`, and `doc`,
+- a capture registry for the discovered functions.
+
+That loader is exposed by:
+
+```go
+registry.RequireLoader()
+```
+
+The xgoja runtime factory therefore needed one small extension: it now accepts optional `require.Option` values so callers can provide:
+
+```go
+require.WithLoader(registry.RequireLoader())
+```
+
+That means one runtime can have:
+
+- provider-backed native modules registered normally, and
+- JS source modules loaded through the scanned jsverbs overlay.
+
+## Real jsverbs mounting in the generated app
+
+The generated app runtime now mounts filesystem jsverbs by replacing the placeholder `verbs` command in `pkg/xgoja/app/root.go`.
+
+The logic is:
+
+1. create a Cobra parent command,
+2. for each configured jsverb source with a filesystem `path`, scan it with `jsverbs.ScanDir`,
+3. for each discovered verb, build a Glazed command using `CommandForVerbWithInvoker`,
+4. use an invoker that creates an xgoja runtime for the configured `commands.jsverbs.runtime` profile,
+5. pass `require.WithLoader(registry.RequireLoader())` into that runtime,
+6. invoke through `InvokeInGojaRuntime`.
+
+The essential structure is:
+
+```go
+for _, source := range spec.JSVerbs {
+    registry := jsverbs.ScanDir(source.Path)
+    for _, verb := range registry.Verbs() {
+        cmd := registry.CommandForVerbWithInvoker(verb, func(ctx, _, verb, vals) (any, error) {
+            rt := factory.NewRuntime(ctx, profile, require.WithLoader(registry.RequireLoader()))
+            return registry.InvokeInGojaRuntime(ctx, rt.VM, rt.Require, verb, vals)
+        })
+        mounted = append(mounted, cmd)
+    }
+}
+```
+
+Then those Glazed commands are attached to the parent with:
+
+```go
+glazedcli.AddCommandsToRootCommand(root, mounted, ...)
+```
+
+### What this now enables
+
+A generated xgoja app can now mount a filesystem verb like:
+
+```js
+__package__({ name: "tools" })
+__verb__("greet", {
+  name: "greet",
+  output: "text",
+  fields: {
+    name: { type: "string", required: true }
+  }
+})
+function greet(name) {
+  const hello = require("hello")
+  return hello.greet(name)
+}
+```
+
+and execute it as a command:
+
+```bash
+generated-binary verbs tools greet --name intern
+```
+
+The important detail is that this verb is not isolated from the provider modules. It can call `require("hello")`, and that resolves through the selected runtime profile.
+
+## The jsverbs source story: current and next
+
+The buildspec supports three conceptual jsverb source shapes, but only one is fully implemented today.
+
+### Runtime filesystem sources: implemented
+
+```yaml
+jsverbs:
+  - id: local
+    path: ./verbs
+    embed: false
+```
+
+These are scanned at runtime directly from the filesystem. This is the implemented path.
+
+### Embedded local jsverbs: not implemented yet
+
+```yaml
+jsverbs:
+  - id: local
+    path: ./verbs
+    embed: true
+```
+
+These should be copied into the generated workspace and embedded with `go:embed`, so the final binary works even if the original `./verbs` directory is missing. This still needs dedicated generation support.
+
+### Provider-shipped verb sources: not implemented yet
+
+A provider package can advertise a `VerbSource` in its registry entry. That means the provider package owns the JS source tree and exposes it as part of its public capability set.
+
+This is the right model for default verbs that belong with a provider's modules. That mounting path is not implemented in the current generated app yet.
+
+## The adapter and Cobra target modes
+
+The current implementation supports three generated binary shapes.
+
+### Pure xgoja
+
+The generated binary is fully owned by xgoja. The root command is created by `app.NewRootCommand(...)`.
+
+### Adapter target
+
+The generated program imports a target package exposing:
+
+```go
+Build(context.Context, *app.Host) (*cobra.Command, error)
+```
+
+That target package can decide where xgoja commands are attached and how the host is integrated into the application's existing structure.
+
+### Cobra attach target
+
+The generated program imports a package exposing a root constructor such as:
+
+```go
+NewRootCommand() *cobra.Command
+```
+
+Then xgoja attaches its own commands to the returned root through `Host.AttachDefaultCommands`.
+
+These target modes matter because they are what make xgoja useful beyond pure experiments. Not every application should be rewritten as an xgoja-native root. Some only need new commands added.
+
+## Tests and validation strategy
+
+The implementation is backed by focused tests rather than only manual runs.
+
+Important tests include:
+
+- buildspec parsing and validation tests,
+- provider registry tests,
+- generator output tests,
+- generated app runtime tests,
+- generated program tests for pure, Cobra, and adapter modes,
+- direct jsverbs runtime invocation tests,
+- mounted jsverb command execution tests.
+
+One important operational detail: some of the xgoja/jsverbs-related tests currently need:
+
+```bash
+GOWORK=off
+```
+
+because the workspace includes a local `goja` checkout that conflicts with the `goja_nodejs` version expected by some packages. That is not an xgoja design choice. It is a repository/workspace constraint that the implementation had to route around.
+
+## Current limitations
+
+The current system is working, but it is intentionally not pretending to be finished.
+
+### The generated runtime is minimal
+
+It does not yet reuse the full `engine.Factory` runtime lifecycle. It uses `goja.New()` and `require.Registry` directly.
+
+### Filesystem jsverbs are the only mounted source type
+
+This is enough to prove the concept, but:
+
+- embedded local jsverbs still need generation support,
+- provider-shipped verb sources still need mounting support.
+
+### Glazed output capture in tests is imperfect
+
+Some command output paths for Glazed writer commands do not cleanly respect the root's output buffer in the simplest test harness shape. The mounted verb tests currently prove execution, and the direct runtime path proves the returned value.
+
+### REPL integration is still minimal
+
+The generated app has `eval`, not a richer interactive or persistent REPL command. That was a conscious scope boundary.
+
+## The most important engineering decisions
+
+The implementation has a few decisions that should remain visible.
+
+### 1. Build-time composition, not Go plugins
+
+This is the central architectural decision. It is what makes the entire system tractable.
+
+### 2. Public packages only where generated binaries need them
+
+- buildspec stays internal,
+- provider API and generated app runtime are public.
+
+That boundary is correct and should be preserved.
+
+### 3. Deterministic generated code
+
+The work directory is a debugging tool, not just a temporary scratch space. Generated files should remain readable.
+
+### 4. Runtime profiles are real enforcement boundaries
+
+The runtime profile determines which provider modules are registered into one invocation. This is not decoration. It is how capability surfaces stay explicit.
+
+### 5. jsverbs mounting is a runtime adaptation problem
+
+The scanner and Glazed command wrappers already existed. The hard part was adapting invocation to the current xgoja runtime shape.
+
+## What should happen next
+
+The next engineering steps are fairly clear.
+
+### Add embedded local jsverb support
+
+When `embed: true`, the generator should:
+
+1. copy the local tree into the generated workspace,
+2. generate a `go:embed` declaration,
+3. mount through `jsverbs.ScanFS` instead of `ScanDir`.
+
+### Add provider-shipped verb source mounting
+
+The generated app should recognize:
+
+```yaml
+jsverbs:
+  - id: provider-defaults
+    package: web
+    source: default-verbs
+```
+
+and resolve the source from the provider registry instead of the filesystem.
+
+### Revisit engine-based runtime integration
+
+Once the workspace dependency mismatch is resolved, the generated app runtime should be re-evaluated against `engine.Factory`. That would make the generated path closer to the rest of the repository runtime model.
+
+### Improve the generated app command surface
+
+`eval` is a good bootstrap primitive. It is not the end-state interface for long-lived use.
+
+## Key file references
+
+These are the files I would read first to understand the implementation:
+
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/root.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/cmd_build.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/internal/buildspec/spec.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/internal/buildspec/validate.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/internal/generate/gomod.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/internal/generate/main.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/cmd/xgoja/internal/buildexec/buildexec.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/xgoja/providerapi/registry.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/xgoja/app/factory.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/xgoja/app/root.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/xgoja/app/host.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/jsverbs/scan.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/jsverbs/command.go`
+- `/home/manuel/workspaces/2026-05-22/xgoja/go-go-goja/pkg/jsverbs/runtime.go`
+
+## Final state
+
+The current xgoja implementation is already more than a design sketch.
+
+It can:
+
+- parse and validate a real build spec,
+- register provider packages,
+- generate deterministic source files,
+- build binaries,
+- create a runtime from selected modules,
+- support pure, adapter, and Cobra target modes,
+- mount filesystem jsverbs as real commands,
+- let mounted jsverbs call provider-backed native modules through `require(...)`.
+
+That is a substantial, coherent system. Its remaining gaps are not about whether the model works. They are about extending the same model to additional source shapes and integrating back into the richer runtime layer when the dependency constraints permit it.
