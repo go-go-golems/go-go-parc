@@ -76,7 +76,7 @@ experiments/008-deterministic-continuity-cleanup/outputs/02-final-quality-v4-min
 The current embedded-figure review artifact from the follow-up `OCR-QUALITY-WORKERS-001` ticket is:
 
 ```text
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/001-go-quality-pass-embedded-figures/outputs/02-embedded-figures.md
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/002-figure-aware-marker-recovery/outputs/02-embedded-figures.md
 ```
 
 ## The problem this project actually solved
@@ -1336,23 +1336,35 @@ The other major improvement was embedded figure extraction. The first 30-page OC
 
 The new figure worker scans normalized markdown for figure markers, tracks the current page marker, loads the corresponding source page image, crops a figure region, writes a PNG into a `figures/` directory, and replaces the marker with a normal Markdown image link.
 
-The current embedded artifact is:
+The first embedded artifact was:
 
 ```text
 /home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/001-go-quality-pass-embedded-figures/outputs/02-embedded-figures.md
 ```
 
-The extracted figure images are:
+A later marker-recovery pass found that Figure 1-2 and Figure 1-3 were also full-page graphical diagrams, but the v4 OCR prompt had transcribed them as plain diagram text without `[FIGURE: ...]` markers. The current embedded artifact is therefore:
 
 ```text
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/001-go-quality-pass-embedded-figures/outputs/figures/page_013_figure_01.png
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/001-go-quality-pass-embedded-figures/outputs/figures/page_021_figure_01.png
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/002-figure-aware-marker-recovery/outputs/02-embedded-figures.md
+```
+
+The extracted figure images in the current artifact are:
+
+```text
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/002-figure-aware-marker-recovery/outputs/figures/page_013_figure_01.png
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/002-figure-aware-marker-recovery/outputs/figures/page_015_figure_01.png
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/002-figure-aware-marker-recovery/outputs/figures/page_017_figure_01.png
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/002-figure-aware-marker-recovery/outputs/figures/page_021_figure_01.png
 ```
 
 The Markdown now contains ordinary image links:
 
 ```markdown
 ![Diagram showing users represented by circles labeled "T" connected to an Application Data Base with arrows labeled "queries", "observables", and "commands"](figures/page_013_figure_01.png)
+
+![Full-page diagram showing The Representation Shift Model](figures/page_015_figure_01.png)
+
+![Full-page diagram showing The Primitive Presentation System (PPS) Model](figures/page_017_figure_01.png)
 
 ![Structure of PSBase diagram](figures/page_021_figure_01.png)
 ```
@@ -1387,7 +1399,9 @@ flowchart TD
     style H fill:#dfd,stroke:#484
 ```
 
-The final crops were checked with the vision tool. The check confirmed that the page numbers and footers were removed and that the complete diagrams remained present. This is good enough for the current first-30-page artifact, but it is not yet a full-book figure segmentation system.
+The final crops were checked with the vision tool. The check confirmed that the page numbers and footers were removed and that the complete diagrams remained present. A later check on the recovered Figure 1-2 and Figure 1-3 crops confirmed that both include the title, full diagram, and important labels without visible page numbers or footers. Figure 1-3 still has noticeable background speckling, which should be handled by a future deterministic enhancement pass. This is good enough for the current first-30-page artifact, but it is not yet a full-book figure segmentation system.
+
+The prompt-side fix is `ocr-quality-v5-figure-aware`. It extends the v4 Report 794 lexicon prompt with a stricter graphical-page contract: full-page diagrams, flowcharts, models, and architecture charts must emit a `[FIGURE: ...]` marker immediately after the caption/title even when all visible diagram labels are also transcribed. The post-processing fallback recovers existing v4 artifacts by synthesizing missing markers for caption-only diagram pages while ignoring Table of Figures rows with dot leaders/page numbers.
 
 ## Segmentation improvements still needed
 
@@ -1461,7 +1475,7 @@ The raw provenance artifact is:
 The current embedded-figure review artifact is:
 
 ```text
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/001-go-quality-pass-embedded-figures/outputs/02-embedded-figures.md
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/002-figure-aware-marker-recovery/outputs/02-embedded-figures.md
 ```
 
 The final lesson is straightforward: prompt optimization worked because it was treated as an experiment system. The prompt text mattered, but the surrounding process mattered just as much: preserve evidence, inspect failures, validate visually, change one thing at a time, run targeted pages first, finish with repeatable QA, and then promote successful scripts into workflow-native workers.
