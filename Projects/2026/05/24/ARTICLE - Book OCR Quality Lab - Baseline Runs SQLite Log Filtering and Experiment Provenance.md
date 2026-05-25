@@ -1,9 +1,10 @@
 ---
-title: "Book OCR Quality Lab: Baseline Runs, SQLite Log Filtering, and Experiment Provenance"
+title: "Book OCR Quality Lab: Prompt Optimization, SQLite Log Filtering, and Experiment Provenance"
 aliases:
   - Book OCR Quality Lab
   - OCR Baseline Log Filtering Report
   - BOOK-OCR-HQ-001 Project Report
+  - Book OCR Prompt Optimization Report
 tags:
   - article
   - project-report
@@ -13,85 +14,146 @@ tags:
   - sqlite
   - logging
   - experiments
+  - prompt-optimization
 status: active
 type: article
 created: 2026-05-24
 repo: /home/manuel/workspaces/2026-05-20/book-ocr
 ---
 
-# Book OCR Quality Lab: Baseline Runs, SQLite Log Filtering, and Experiment Provenance
+# Book OCR Quality Lab: Prompt Optimization, SQLite Log Filtering, and Experiment Provenance
 
-This report explains the work done after the OCR MVP proved that `scraper` could run real provider-backed page OCR. The next problem was not whether the system could call a model. The next problem was whether the system could support repeatable quality experiments on a real book, preserve evidence, reduce noisy logs, and give a future reviewer enough structure to understand what happened.
+This report documents the full quality loop for `BOOK-OCR-HQ-001`, the experiment that turned the OCR MVP into a structured book OCR quality lab for the first 30 pages of MIT Technical Report 794, *Presentation Based User Interfaces* by Eugene C. Ciccarelli IV.
 
-The concrete ticket is `BOOK-OCR-HQ-001`, stored at:
+The important outcome is not just that the first 30 pages were OCRed. The important outcome is that the process became measurable and repeatable. Each run has a manifest, prompt record, logs, SQLite summaries, exported projections, markdown artifacts, comparison notes, diary entries, and final QA. The work progressed from a successful but uneven baseline to a selected high-quality artifact through a sequence of prompt, model, logging, vision-validation, and deterministic cleanup experiments.
+
+> [!summary]
+> 1. The quality loop started with a 30-page `gpt-5-nano-low` baseline and exposed concrete failures: list-page style drift, title/blank-page policy ambiguity, noisy SSE logs, and book-specific OCR mistakes.
+> 2. The optimization loop improved one failure class at a time: first page-type rules, then list-page diplomatic transcription, then model selection, then a Report 794 lexicon, then deterministic QA and cleanup.
+> 3. The selected raw OCR output is Experiment 007; the selected review artifact is Experiment 008, which normalizes list-page dot leaders without hiding the raw model output.
+> 4. The reusable lesson is that prompt optimization should be run as an evidence-preserving experiment system, not as a sequence of unrecorded prompt edits.
+
+## Concrete locations
+
+The ticket workspace is:
 
 ```text
 /home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system
 ```
 
-The first experiment processed pages 1-30 of:
+The source page images are:
 
 ```text
 /home/manuel/code/wesen/claw-stuff/output/books/presentation-based-uis/pages
 ```
 
-The successful run used the `gpt-5-nano-low` profile through a clean temporary Pinocchio profile registry and produced a 30-page markdown artifact. The main optimization in this phase was log handling: provider streaming logs created thousands of Server-Sent Event trace rows, so the work introduced a SQLite-backed log filtering path that preserves full logs while producing compact summaries and queryable timelines.
-
-> [!summary]
-> 1. `BOOK-OCR-HQ-001` turns book OCR from a one-off run into an experiment workspace with manifests, prompts, outputs, logs, and diary entries.
-> 2. The first default-registry baseline failed because the local Pinocchio profile file has duplicate `gpt-5-nano-low` keys; the successful run used a clean temporary registry.
-> 3. The successful 30-page run produced 8687 log lines, of which 8443 were trace-level SSE deltas; SQLite filtering reduced normal inspection to 69 non-trace workflow events.
-
-## Why this work was needed
-
-A durable OCR runtime is only useful if the work can be inspected later. The OCR MVP already had a workflow package, a CLI, a Geppetto-backed OCR client, page artifacts, and projection rows. That made it possible to process real pages. It did not yet make it easy to conduct quality experiments.
-
-Quality experiments need stable evidence. When a prompt changes, the system must preserve the previous prompt, the previous output, and the failure notes. When a provider call fails, the system must preserve the error without burying it in terminal scrollback. When a run succeeds, the output needs to be copied into a named experiment folder so a reviewer can compare it with later runs.
-
-This phase created that structure. It did not try to solve all OCR quality problems at once. It established the first baseline and improved the experiment feedback loop.
-
-## The experiment workspace
-
-The ticket workspace has a design guide, a diary, tasks, changelog entries, and experiment folders. The experiment folder contract is:
+The workflow implementation is in:
 
 ```text
-experiments/001-baseline-single-page/
+/home/manuel/workspaces/2026-05-20/book-ocr/scraper/pkg/workflows/ocrmvp
+/home/manuel/workspaces/2026-05-20/book-ocr/scraper/cmd/ocr-mvp/main.go
+```
+
+The final report in the ticket is:
+
+```text
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/analysis/01-final-ocr-quality-report.md
+```
+
+The best raw model output is:
+
+```text
+experiments/007-quality-v4-mini-pages-001-030/outputs/01-final-quality-v4-mini-pages-001-030.md
+```
+
+The best current review artifact is:
+
+```text
+experiments/008-deterministic-continuity-cleanup/outputs/02-final-quality-v4-mini-pages-001-030-normalized.md
+```
+
+## The problem this project actually solved
+
+The OCR MVP had already proven that `scraper` could call Geppetto directly, resolve Pinocchio profiles, process page images, store page artifacts, assemble markdown, and expose operator commands. That was necessary infrastructure. It was not sufficient for high-quality book OCR.
+
+High-quality book OCR is a different class of problem. It is not solved by one successful provider call. A successful provider call can still produce output that is inconsistent, hard to inspect, or subtly wrong. The quality problem includes at least five separate concerns:
+
+1. **Transcription fidelity**: visible text should be captured accurately.
+2. **Page-type policy**: title pages, intentionally blank pages, table-of-contents pages, figure-list pages, prose pages, and diagram pages need different output rules.
+3. **Cross-page consistency**: pages that form one logical structure should not drift in style from page to page.
+4. **Operational evidence**: prompts, logs, artifacts, failures, and retries must be preserved.
+5. **Review ergonomics**: outputs must be easy to compare, query, and audit without re-running expensive provider calls.
+
+The quality lab was created because these concerns cannot be handled by terminal scrollback and ad hoc prompt changes. They require a controlled experiment loop.
+
+## High-level pipeline
+
+The final system has three layers: workflow execution, experiment evidence, and quality review.
+
+```mermaid
+flowchart TD
+    A[page images] --> B[ocr-mvp workflow]
+    B --> C[(engine.db)]
+    B --> D[(projection DB)]
+    B --> E[page markdown artifacts]
+    B --> F[assembled markdown artifact]
+    B --> G[process logs]
+
+    G --> H[SQLite log capture/filtering]
+    D --> I[page TSV exports]
+    F --> J[experiment output markdown]
+
+    H --> K[compact timeline and summaries]
+    I --> L[page status/char-count review]
+    J --> M[prompt/model comparison]
+    M --> N[QA scripts]
+    N --> O[normalized review artifact]
+
+    style B fill:#eef,stroke:#447
+    style H fill:#efe,stroke:#484
+    style N fill:#ffd,stroke:#aa7
+    style O fill:#dfd,stroke:#484
+```
+
+The workflow is responsible for execution. The experiment folders are responsible for provenance. The QA scripts are responsible for repeatable checks. Keeping those roles separate was one of the main reasons the work stayed understandable.
+
+## Experiment directory contract
+
+The ticket eventually accumulated many experiment folders. Each experiment is a durable unit of evidence, not just a temporary run.
+
+A representative folder contains:
+
+```text
+experiments/007-quality-v4-mini-pages-001-030/
 ├── manifest.yaml
 ├── prompts/
-│   └── 01-page-prompt.md
-├── outputs/
-│   ├── 01-final-baseline-clean.md
-│   ├── pages-clean.tsv
-│   └── timeline-clean.tsv
+│   └── 01-quality-v4-report794-lexicon-prompt.md
 ├── logs/
-│   ├── run.log
-│   ├── run-clean-registry.log
-│   ├── run-clean-registry.sqlite
-│   ├── run-failed-duplicate-profile.sqlite
-│   ├── 01-run-clean-registry-summary.md
-│   └── 02-run-failed-duplicate-profile-summary.md
+│   ├── run-capture.sqlite
+│   └── 01-run-capture-summary.md
+├── outputs/
+│   ├── 01-final-quality-v4-mini-pages-001-030.md
+│   ├── pages.tsv
+│   └── timeline.tsv
 └── notes.md
 ```
 
-Each file has a distinct role:
+The contract matters because prompt optimization is otherwise impossible to reconstruct. A future reviewer must be able to answer:
 
-| File | Purpose |
-| --- | --- |
-| `manifest.yaml` | Records page range, profile choices, strategy, output locations, and quality checks. |
-| `prompts/01-page-prompt.md` | Records which prompt was used for the baseline. |
-| `outputs/01-final-baseline-clean.md` | Stores the assembled 30-page markdown artifact from the successful run. |
-| `outputs/pages-clean.tsv` | Stores page projection rows exported from `projections/ocr-mvp.db`. |
-| `outputs/timeline-clean.tsv` | Stores compact workflow events exported from the log SQLite database. |
-| `logs/run-clean-registry.log` | Preserves the full successful provider run log, including noisy trace rows. |
-| `logs/run-clean-registry.sqlite` | Stores parsed log rows for SQL filtering. |
-| `logs/01-run-clean-registry-summary.md` | Presents the compact log summary for normal review. |
-| `notes.md` | Records the experiment outcome and next review task. |
+- Which model was used?
+- Which prompt version was used?
+- Which pages were processed?
+- Which profile registry was used?
+- Where is the raw output?
+- Where are the logs?
+- Which failures were observed?
+- Why was the next experiment different?
 
-The important point is that the run is not just an artifact in `/tmp`. The result is copied into the ticket, and the run evidence is summarized in a form that can be reviewed without re-running the provider calls.
+The manifest answers the setup questions. The prompt file answers the input question. The output artifact answers the result question. The logs and projections answer operational questions. The notes answer quality questions.
 
-## The baseline run
+## The first baseline and the profile registry failure
 
-The intended baseline command was a straightforward 30-page run:
+The intended baseline was a direct 30-page run with `gpt-5-nano-low` and the initial universal OCR prompt:
 
 ```bash
 cd /home/manuel/workspaces/2026-05-20/book-ocr/scraper
@@ -106,26 +168,25 @@ go run ./cmd/ocr-mvp run \
   --max-workers 2
 ```
 
-That first attempt failed before any useful OCR output was produced. The failure was not an OCR prompt failure. It was profile configuration failure.
-
-The local Pinocchio profile registry contained two `gpt-5-nano-low` keys:
-
-```text
-/home/manuel/.config/pinocchio/profiles.yaml
-181:  gpt-5-nano-low:
-278:  gpt-5-nano-low:
-```
-
-The YAML loader rejected the duplicate key:
+That first run failed before meaningful OCR output. The local Pinocchio profile registry had duplicate `gpt-5-nano-low` keys:
 
 ```text
 yaml: unmarshal errors:
   line 278: mapping key "gpt-5-nano-low" already defined at line 181
 ```
 
-The useful result of this failure was operational knowledge: live OCR experiments should either clean the local profile file or pass an explicit clean registry. For this run, I created a temporary registry under `/tmp/book-ocr-hq-001/profiles-clean.yaml` containing only the needed OpenAI Responses base profile plus `gpt-5-mini-low` and one `gpt-5-nano-low` profile. That file was intentionally not committed because profile registries can contain credentials or sensitive provider settings.
+This failure was useful. It separated infrastructure configuration failure from OCR quality failure. The OCR workflow had not failed because the prompt was bad or the model could not read pages. It failed because the profile registry was invalid.
 
-The successful command used the explicit registry:
+The correct experiment response was:
+
+1. Preserve the failed log.
+2. Convert the failed log into SQLite.
+3. Record the error in the diary.
+4. Create a temporary clean profile registry.
+5. Re-run with `--profile-registries /tmp/book-ocr-hq-001/profiles-clean.yaml`.
+6. Do not commit the temporary profile registry, because profile files can contain sensitive provider settings.
+
+The successful baseline command became:
 
 ```bash
 go run ./cmd/ocr-mvp run \
@@ -139,53 +200,43 @@ go run ./cmd/ocr-mvp run \
   --max-workers 2
 ```
 
-The run completed successfully:
+The baseline completed:
 
 ```text
 workflow_id: ocr-mvp-593bf5b6-19c6-4c8c-b631-b48a2d1aba78
 status: succeeded
 page_count: 30
 final_markdown_chars: 43857
-final_artifact: /tmp/book-ocr-hq-001/001-baseline-single-page-clean/artifacts/assemble-markdown/artifact/001
 ```
 
-The copied ticket artifact is:
+The copied baseline artifact is:
 
 ```text
-BOOK-OCR-HQ-001/experiments/001-baseline-single-page/outputs/01-final-baseline-clean.md
+experiments/001-baseline-single-page/outputs/01-final-baseline-clean.md
 ```
 
-## The log problem
+## The first major operational lesson: logs must become data
 
-The successful run generated a large provider log. The size was not caused by workflow state. It was caused by streaming provider traces. The model client emitted one trace row for many small text deltas during Server-Sent Event streaming.
+The baseline run produced a log with 8687 lines. Most of those lines were not useful for human quality review.
 
-The successful log summary is:
+The summary was:
 
 ```text
 Total lines loaded: 8687
-None lines: 20
-debug lines: 155
-info lines: 69
 trace lines: 8443
-Non-trace workflow events: 69
-Warning/error/failure rows: 0
+non-trace workflow events: 69
+warning/error/failure rows: 0
 ```
 
-The raw trace rows are useful when debugging the provider adapter, but they are not useful for normal OCR experiment review. They hide the workflow timeline, make terminal output hard to read, and make it difficult to see the difference between a workflow failure and normal streaming output.
+The trace rows were provider streaming deltas. They are useful for debugging the provider adapter. They are not useful when reviewing whether the Table of Contents is formatted correctly.
 
-The optimization was to stop treating the terminal log as the primary review artifact. The raw log remains available. The review path goes through SQLite.
-
-## SQLite log filtering
-
-The script is stored at:
+The first log filter script was:
 
 ```text
-BOOK-OCR-HQ-001/scripts/01-filter-ndjson-log-to-sqlite.py
+scripts/01-filter-ndjson-log-to-sqlite.py
 ```
 
-The script reads a log file line by line. If a line is JSON, it extracts common fields. If a line is not JSON, it stores the raw line with `parsed = 0`. This matters because the CLI prints both structured zerolog rows and plain status lines such as `status=running processed=...`.
-
-The table schema is deliberately flat:
+It loads raw NDJSON-style logs into SQLite using a flat table:
 
 ```sql
 create table log_events (
@@ -207,16 +258,7 @@ create table log_events (
 );
 ```
 
-The script adds indexes for common review queries:
-
-```sql
-create index idx_log_level on log_events(level);
-create index idx_log_event on log_events(event);
-create index idx_log_op on log_events(op_id);
-create index idx_log_workflow on log_events(workflow_id);
-```
-
-The central review query suppresses trace rows and shows only workflow events:
+The useful review query is simple:
 
 ```sql
 select line_no, time, level, event, op_id, attempt, message
@@ -226,7 +268,7 @@ where coalesce(event, '') != ''
 order by line_no;
 ```
 
-The failure query is similarly direct:
+The failure query is also simple:
 
 ```sql
 select line_no, time, op_id, attempt, error_code, message
@@ -236,181 +278,992 @@ where level in ('warn','error')
 order by line_no;
 ```
 
-The successful run had zero rows in the failure query. The failed registry run had rows pointing to `ocr_geppetto_failed`, and the page projection database preserved the real underlying message: the duplicate profile key in the Pinocchio registry.
+This was the first important pattern: do not inspect noisy OCR runs through terminal output. Capture logs as data, then query them.
 
-## What the compact timeline showed
-
-The compact timeline made the run understandable. It showed one `discover-pages` step, thirty `ocr-page-NNN` steps, and one `assemble-markdown` step.
-
-A representative part of the timeline is:
+Later, after more live runs produced too much terminal output, this idea was pushed one step earlier in the pipeline with:
 
 ```text
-1:  info workflow_created
-2:  info workflow_updated
-4:  info op_leased op=discover-pages attempt=1
-5:  info op_succeeded op=discover-pages attempt=1
-7:  info op_leased op=ocr-page-001 attempt=1
-40: info op_succeeded op=ocr-page-001 attempt=1
-41: info op_leased op=ocr-page-002 attempt=1
-58: info op_succeeded op=ocr-page-002 attempt=1
-...
-8681: info op_succeeded op=ocr-page-030 attempt=1
-8683: info op_leased op=assemble-markdown attempt=1
-8684: info op_succeeded op=assemble-markdown attempt=1
-8685: info workflow_updated
+scripts/02-run-ocr-capture-log.py
 ```
 
-The one notable workflow event was page 007:
+That script runs the command and stores stdout/stderr lines directly in SQLite while only printing compact progress. The command pattern became:
+
+```bash
+python3 scripts/02-run-ocr-capture-log.py logs/run-capture.sqlite -- \
+  go run ./cmd/ocr-mvp run ... --log-level warn
+```
+
+The OCR CLI also gained `--log-level`, so noisy zerolog trace/debug/info rows could be suppressed at source:
 
 ```text
-ocr-page-007 attempt=1 op_retried
-ocr-page-007 attempt=2 op_succeeded
+--log-level warn
 ```
 
-That retry did not prevent workflow success. This is exactly the kind of signal the workflow runtime should preserve. A single transient provider issue should not invalidate the run; it should be visible, counted, and inspectable.
+This two-part logging change mattered for the rest of the optimization loop. Without it, every provider run would have produced too much terminal noise to inspect comfortably.
 
-## Data flow after the optimization
+## Baseline quality assessment
 
-The experiment now has two data flows: execution and review.
+After the baseline succeeded, the next step was not another run. The next step was to read the output.
+
+The key baseline problems were in the front matter and list pages:
+
+- The Table of Contents pages used inconsistent structure.
+- Page 6 used one style; page 7 used another.
+- Chapter headings drifted between markdown headings, bullets, and plain text.
+- The Table of Figures pages changed formatting across pages 8 and 9.
+- Figure entries did not preserve one stable `Figure N-M: Title ... page` style.
+- Blank/title-page policy was ambiguous.
+- Footer folios and visible page numbers needed explicit rules.
+
+This is the point where prompt optimization became grounded in evidence. The issue was not "make OCR better". The issue was a concrete set of page-type and continuity failures.
+
+The important pages were:
+
+```text
+page_001.png  title page
+page_002.png  intentionally blank page with visible sentence
+page_006.png  Table of Contents, first page
+page_007.png  Table of Contents continuation
+page_008.png  Table of Figures, first page
+page_009.png  Table of Figures continuation
+```
+
+The vision tool was used to validate pages 6-9. That validation confirmed that the OCR review was not just a text-format preference. The scan itself had visible list structures, page numbers, and labels that needed to be preserved consistently.
+
+## Prompt v2: page-type rules
+
+The first prompt improvement was `ocr-quality-v2`.
+
+The goal of v2 was to encode page-type policy directly into the OCR prompt. The baseline prompt was too generic. It told the model to transcribe a scanned page into clean markdown, preserve headings and paragraphs, avoid standalone page numbers, and insert image markers. That was enough to get text. It was not enough to handle front matter.
+
+The v2 prompt added explicit rules for:
+
+- title pages;
+- blank or intentionally blank pages;
+- Table of Contents pages;
+- Table of Figures pages;
+- body text;
+- figures and diagrams;
+- tables;
+- markdown style;
+- footer/page-number exclusion;
+- a quality checklist.
+
+The targeted v2 experiment was:
+
+```text
+experiments/002-quality-v2-targeted
+page_range: 1-9
+profile: gpt-5-nano-low
+prompt_version: ocr-quality-v2
+```
+
+v2 improved several things:
+
+- Page 2 became `[BLANK PAGE]` in one run instead of a prose explanation.
+- Page 8 stopped using markdown bullets for the Table of Figures.
+- Page 9 kept a more similar non-bullet figure-entry style.
+- A misspelling of `Ciccarelli` was fixed.
+- The title page was no longer replaced with an image marker.
+
+But v2 also exposed new problems:
+
+- Page 1 became too visually literal: `Presentation / Based User / Interfaces` was split across lines.
+- Page 7 duplicated `Chapter Six: Constructing Presentation Systems`.
+- Table of Contents continuation style was still not fully stable.
+- Page-number fidelity still needed verification.
+
+This was an important prompt-optimization lesson: a prompt that fixes one policy can create a new policy error. The right response is not to throw away the whole experiment. The right response is to classify the new failure.
+
+v2 showed that page-type specificity helped. It also showed that the prompt needed a stronger distinction between *visual layout preservation* and *readable text normalization*.
+
+## Prompt v3: list-page diplomatic transcription
+
+The next prompt was `ocr-quality-v3-list-diplomatic`.
+
+The purpose of v3 was narrower than v2. It focused on list pages. The prompt instructed the model to treat Table of Contents and Table of Figures pages as diplomatic plain-text lists:
+
+- no markdown bullets;
+- no markdown headings for list rows;
+- one entry per visible row;
+- preserve chapter titles, section numbers, figure labels, punctuation, dot leaders or spacing, and final page numbers;
+- continuation pages must use the same style as the first list page;
+- never duplicate a chapter title line.
+
+It also added a normalization policy:
+
+- prefer readable markdown over visual line wrapping for normal prose;
+- join wrapped title lines when they are clearly one phrase;
+- do not duplicate a line unless it is visibly repeated.
+
+The v3 targeted run with `gpt-5-nano-low` was:
+
+```text
+experiments/003-quality-v3-list-diplomatic
+page_range: 1-9
+profile: gpt-5-nano-low
+prompt_version: ocr-quality-v3-list-diplomatic
+```
+
+v3 improved structure:
+
+- Page 1 became a readable title page: `Presentation Based User Interfaces`.
+- Page 6 became a plain-text Table of Contents.
+- Page 7 no longer duplicated the Chapter Six line.
+- Page 8 and page 9 became plain-text Table of Figures pages.
+
+But v3 with `gpt-5-nano-low` still made visual-recognition mistakes:
+
+- `Figure 4-1: Dired Model` had the wrong page number in one output.
+- `Steamer` became `Streamer`.
+- `PSBase` became `PPSBase`.
+- Some acronym casing remained fragile.
+
+At this point the failure class changed. The prompt policy was better. The remaining defects were small visual-recognition and domain-vocabulary errors.
+
+## Vision validation of the hard details
+
+The vision tool was then used to check the specific disputed details.
+
+For page 002, the question was whether the page was truly blank. The answer was no: the page visibly contains:
+
+```text
+This blank page was inserted to preserve pagination.
+```
+
+That changed the blank-page policy. A truly blank page can become `[BLANK PAGE]`. An intentionally blank page with a visible sentence should transcribe the visible sentence.
+
+For page 006, the vision tool confirmed:
+
+```text
+Chapter One: Introduction and Overview — page 8
+1.1 The Primitive Presentation System Model — page 9
+```
+
+For page 008, it confirmed:
+
+```text
+Figure 4-1: Dired Model — page 72
+Figure 4-9: Sample Steamer Schematic — page 91
+Figure 5-1: PSBase Support of PPS Components — page 101
+```
+
+These observations became requirements for the next iterations. They also became expected strings in the final QA script.
+
+## Model comparison: nano versus mini
+
+The next experiment changed the model while keeping the v3 prompt.
+
+The targeted list-page model comparison was:
+
+```text
+experiments/004-quality-v3-mini-list-pages
+page_range: 6-9
+profile: gpt-5-mini-low
+prompt_version: ocr-quality-v3-list-diplomatic
+```
+
+The result was better than `gpt-5-nano-low` on the hard list pages. The model captured the validated terms and page numbers more reliably:
+
+```text
+Figure 4-1: Dired Model ... 72
+Figure 4-9: Sample Steamer Schematic ... 91
+Figure 5-1: PSBase Support of PPS Components ... 101
+```
+
+Then the same model/prompt combination was run over pages 1-9:
+
+```text
+experiments/005-quality-v3-mini-frontmatter
+page_range: 1-9
+profile: gpt-5-mini-low
+prompt_version: ocr-quality-v3-list-diplomatic
+```
+
+That full front-matter run was mostly strong, but still produced a case regression:
+
+```text
+DiRed
+```
+
+This was the next lesson: even after model selection improves visual fidelity, known book-specific terms need to be stabilized. The right response was not another generic prompt. The right response was a small lexicon.
+
+## Prompt v4: Report 794 lexicon
+
+The final prompt iteration was `ocr-quality-v4-report794-lexicon`.
+
+It kept the v3 list-page rules and added a book-specific vocabulary:
+
+```text
+The report title is "Presentation Based User Interfaces".
+The author is "Eugene C. Ciccarelli IV" or "Eugene Charles Ciccarelli IV" when visible.
+Use "PSBase" for the presentation system base acronym.
+Use "PPS" only for the Primitive Presentation System acronym, for example "PPS Model" or "PPSCalc".
+Use "Dired" exactly, not "DiRed".
+Use "Steamer" exactly, not "Streamer".
+Use "Zmacs" exactly.
+Use "Xerox Star" exactly.
+```
+
+It also refined the blank-page rule:
+
+```text
+Blank page with no visible text: output exactly [BLANK PAGE].
+Intentionally blank page with a visible sentence: transcribe the visible sentence exactly; do not replace it with [BLANK PAGE].
+```
+
+This is the kind of prompt change that should be made only after observation. A book-specific lexicon is powerful, but it should not be guessed too early. It should be added once the output shows repeated domain-vocabulary mistakes.
+
+The targeted v4 run was:
+
+```text
+experiments/006-quality-v4-lexicon-list-pages
+page_range: 6-9
+profile: gpt-5-mini-low
+prompt_version: ocr-quality-v4-report794-lexicon
+```
+
+It fixed the known list-page vocabulary problems.
+
+Then the full first-30-page v4 run was:
+
+```text
+experiments/007-quality-v4-mini-pages-001-030
+page_range: 1-30
+profile: gpt-5-mini-low
+prompt_version: ocr-quality-v4-report794-lexicon
+```
+
+The run completed successfully:
+
+```text
+run id: ocr-mvp-4c5c9406-926a-4ecd-a6b2-e8fedba847d8
+page_count: 30
+projection rows: 30 done
+final_markdown_chars: 51063
+```
+
+The selected raw output is:
+
+```text
+experiments/007-quality-v4-mini-pages-001-030/outputs/01-final-quality-v4-mini-pages-001-030.md
+```
+
+## What improved by the end
+
+The final v4 mini output improved the observed failures in a concrete way.
+
+### Title page
+
+The earlier title-page issue was that the model could either treat the page as an image-like object or preserve visual line breaks too literally.
+
+The selected output gives readable text:
+
+```text
+Technical Report 794
+
+Presentation Based User Interfaces
+
+Eugene C. Ciccarelli IV
+
+MIT Artificial Intelligence Laboratory
+```
+
+### Intentionally blank page
+
+The final rule distinguishes between truly blank pages and visible blank-page notices.
+
+The selected output for page 002 is:
+
+```text
+This blank page was inserted to preserve pagination.
+```
+
+That matches the scan according to vision validation.
+
+### Table of Contents
+
+The baseline had style drift. The final output uses a plain-text list rather than markdown bullets or headings:
+
+```text
+Chapter One: Introduction and Overview..........................................................8
+1.1 The Primitive Presentation System Model....................................................9
+1.2 Constructing Larger Presentation System Models......................................16
+```
+
+The deterministic cleanup later normalizes this for review:
+
+```text
+Chapter One: Introduction and Overview ... 8
+1.1 The Primitive Presentation System Model ... 9
+1.2 Constructing Larger Presentation System Models ... 16
+```
+
+### Table of Figures
+
+The final output preserves the validated hard entries:
+
+```text
+Figure 4-1: Dired Model .................................................. 72
+Figure 4-9: Sample Steamer Schematic .................................... 91
+Figure 5-1: PSBase Support of PPS Components ............................ 101
+```
+
+The normalized review artifact renders these as:
+
+```text
+Figure 4-1: Dired Model ... 72
+Figure 4-9: Sample Steamer Schematic ... 91
+Figure 5-1: PSBase Support of PPS Components ... 101
+```
+
+### Known bad terms
+
+The final QA checked for known regressions:
+
+```text
+DiRed
+Streamer
+PPSBase
+Ciccarrelli
+[IMAGE:
+```
+
+The final selected output had zero hits.
+
+### Diagram pages
+
+The final output uses concise figure markers for diagrams. Vision spot-checking confirmed that pages 13 and 15 had the expected captions and major labels.
+
+For page 013:
+
+```text
+Figure 1-1: A Rudimentary User Interface
+[FIGURE: Diagram showing users represented by circles labeled "T" connected to an Application Data Base with arrows labeled "queries", "observables", and "commands"]
+```
+
+For page 015:
+
+```text
+Figure 1-2: The Representation Shift Model
+```
+
+with the major diagram concepts visible in the scan: Presenter, Recognizer, Presentation Data Base, Application Data Base, Presentation Editor, GET-DB, LOAD-DB, and All info in DB.
+
+## Deterministic QA and cleanup
+
+After Experiment 007, the next step was deliberately not another OCR prompt. The result was already good enough that further prompt changes risked regressions.
+
+The remaining issue was review ergonomics. Dot leaders were irregular because the model tried to approximate the visual alignment from the scan. That is understandable OCR behavior, but it makes the markdown harder to read and compare.
+
+Experiment 008 added two scripts:
+
+```text
+scripts/03-qa-ocr-markdown.py
+scripts/04-normalize-ocr-markdown.py
+```
+
+The QA script checks:
+
+- page marker count and continuity;
+- known bad terms;
+- expected strings;
+- adjacent duplicate non-empty lines;
+- list-page markdown bullet drift;
+- list-page markdown heading drift;
+- figure marker count.
+
+The cleanup script does one narrow transformation: it normalizes list-page dot leaders on pages 006-009.
+
+The transformation is auditable:
+
+```text
+Figure 4-1: Dired Model .................................................. 72
+```
+
+becomes:
+
+```text
+Figure 4-1: Dired Model ... 72
+```
+
+The cleanup does not call a model. It does not rewrite prose. It writes a patch:
+
+```text
+experiments/008-deterministic-continuity-cleanup/outputs/03-cleanup-diff.patch
+```
+
+The normalized review artifact is:
+
+```text
+experiments/008-deterministic-continuity-cleanup/outputs/02-final-quality-v4-mini-pages-001-030-normalized.md
+```
+
+Both pre-cleanup and post-cleanup QA passed:
+
+```text
+Page markers found: 30
+Expected page markers: 30
+Figure markers: 2
+Known bad term checks: pass
+Expected string checks: pass
+Adjacent duplicate non-empty lines: pass
+List pages 006-009: no markdown bullets, no markdown headings
+```
+
+## The final selected artifacts
+
+There are two selected artifacts, because they serve different purposes.
+
+Use this for exact model provenance:
+
+```text
+experiments/007-quality-v4-mini-pages-001-030/outputs/01-final-quality-v4-mini-pages-001-030.md
+```
+
+Use this for human review and downstream markdown reading:
+
+```text
+experiments/008-deterministic-continuity-cleanup/outputs/02-final-quality-v4-mini-pages-001-030-normalized.md
+```
+
+This distinction is important. The normalized artifact is not a replacement for raw evidence. It is a review derivative. The raw artifact remains the record of what the model produced.
+
+## The prompt optimization loop as a reusable method
+
+The most reusable part of this work is the optimization loop. The sequence should be repeated for future OCR prompt work.
 
 ```mermaid
 flowchart TD
-    A[ocr-mvp run] --> B[(engine.db)]
-    A --> C[(artifacts/)]
-    A --> D[(projections/ocr-mvp.db)]
-    A --> E[raw NDJSON log]
+    A[Run small baseline] --> B[Preserve raw output and logs]
+    B --> C[Read output page by page]
+    C --> D[Classify failures]
+    D --> E[Validate disputed details visually]
+    E --> F[Change one variable]
+    F --> G[Run targeted pages]
+    G --> H[Compare against baseline]
+    H --> I{Improves target without regression?}
+    I -- no --> D
+    I -- yes --> J[Run wider page range]
+    J --> K[Automated QA]
+    K --> L[Deterministic cleanup if safe]
+    L --> M[Write final report]
 
-    E --> F[01-filter-ndjson-log-to-sqlite.py]
-    F --> G[(run-clean-registry.sqlite)]
-    G --> H[compact timeline TSV]
-    G --> I[summary markdown]
-
-    C --> J[final markdown copied to ticket]
-    D --> K[page projection TSV]
+    style D fill:#ffd,stroke:#aa7
+    style E fill:#eef,stroke:#447
+    style K fill:#efe,stroke:#484
+    style M fill:#dfd,stroke:#484
 ```
 
-Execution writes runtime state. Review reads runtime state and copies stable evidence into the ticket. That distinction is important. The runtime work directory can remain in `/tmp`, but the ticket contains the reviewable outputs.
+The concrete rules are below.
 
-## Why the SQLite step is better than grepping
+### Rule 1: Start with an intentionally boring baseline
 
-The first way to reduce a large log is to use `grep -v trace`. That helps for a single question, but it does not create a reusable review artifact. SQLite gives the experiment a stable inspection surface.
+The baseline should be simple. It should not include every possible trick. The purpose is to reveal failure modes.
 
-The practical advantages are specific:
+For this project, the baseline was the original universal OCR prompt with `gpt-5-nano-low`. It was not perfect, but it provided a stable comparison target.
 
-- The full raw line is preserved, so filtering is reversible.
-- Structured fields are extracted once and queried many times.
-- The same database can answer workflow, failure, retry, and timing questions.
-- Compact summaries can be regenerated without re-running OCR.
-- A future script can join log events with page projection rows.
+Do not skip the baseline. Without it, there is no evidence that later complexity helped.
 
-The current table is intentionally simple. It is not a logging platform. It is an experiment artifact format.
+### Rule 2: Preserve the failed runs
 
-## The profile registry issue
+The duplicate profile registry failure was preserved. That mattered because it prevented confusion later. The failure was configuration-related, not OCR-quality-related.
 
-The duplicate `gpt-5-nano-low` profile is a configuration hygiene problem. It is separate from the OCR code. The OCR client correctly asked Pinocchio to resolve the profile. Pinocchio correctly rejected invalid YAML. The problem was that the default local registry had a duplicate mapping key.
+Failed runs should produce artifacts too:
 
-The temporary workaround was correct for an experiment:
+- failed log SQLite database;
+- failure summary;
+- diary entry;
+- error message copied verbatim.
 
-1. Preserve the failed run evidence.
-2. Create a clean temporary registry.
-3. Pass it explicitly with `--profile-registries`.
-4. Do not commit the temporary registry.
-5. Record the configuration failure in the diary.
+A failed run can still teach something operational.
 
-The long-term fix is to clean `/home/manuel/.config/pinocchio/profiles.yaml` carefully, without committing secrets or rewriting unrelated profile entries.
+### Rule 3: Convert logs into queryable data
 
-## The state of the first 30-page baseline
+Provider logs can be too large for normal review. In this project, one successful run had 8443 trace-level SSE rows.
 
-The baseline now exists and can be reviewed. The copied markdown artifact has 462 lines and 43857 characters. The next task is not to run another model immediately. The next task is to read the baseline and classify failures.
-
-The review should answer questions like:
-
-- Did the title page become text or a figure description?
-- Did blank pages produce the desired marker or unwanted explanation?
-- Are running headers and page numbers suppressed consistently?
-- Are figures and captions represented with enough detail?
-- Are paragraphs split across page boundaries?
-- Are section headings stable across pages?
-- Are tables or diagrams present in the first 30 pages, and did the prompt handle them?
-
-The ticket already defines later experiments for context windows and chunk-level continuity passes. Those should be driven by observed baseline failures, not by assumptions.
-
-## Implementation details worth preserving
-
-The most important implementation detail is that the OCR workflow and the experiment harness should remain separate.
-
-The workflow runtime should answer operational questions:
-
-- Which steps exist?
-- Which steps succeeded?
-- Which steps failed or retried?
-- Where are the artifacts?
-- What does the page projection say?
-
-The experiment harness should answer research questions:
-
-- Which prompt was used?
-- Which profile was used?
-- Which pages were processed?
-- What did the output look like?
-- What failed qualitatively?
-- What should the next experiment change?
-
-The code boundary follows that distinction:
+The rule for future work is:
 
 ```text
-scraper/pkg/workflows/ocrmvp/      # runtime workflow package
-scraper/cmd/ocr-mvp/               # execution and operator CLI
-ttmp/.../BOOK-OCR-HQ-001/scripts/  # experiment-specific analysis scripts
-ttmp/.../BOOK-OCR-HQ-001/experiments/ # experiment evidence and outputs
+Never use terminal scrollback as the primary evidence store for OCR experiments.
 ```
 
-This is a useful rule for future work. Do not put every experiment idea into the workflow package immediately. First run experiments in ticket scripts and folders. Promote code into `scraper` only after the shape stabilizes.
+Use SQLite capture/filtering. Keep full raw logs. Query them into summaries.
 
-## Current file references
+### Rule 4: Do not optimize from vibes
 
-Primary ticket files:
+Every prompt change should be tied to a named failure.
+
+Examples from this project:
+
+| Failure | Prompt/model response |
+| --- | --- |
+| Title page became image-like or too visually split | Add title/front-matter rules and readable-title normalization. |
+| Page 002 was treated as blank even though it has visible text | Distinguish truly blank pages from visible intentionally-blank notices. |
+| ToC/ToF pages drifted between markdown styles | Add diplomatic list-page rules. |
+| Chapter Six duplicated | Add explicit no-duplicate-line rule for list pages. |
+| `Steamer` became `Streamer` | Add Report 794 lexicon. |
+| `Dired` became `DiRed` | Add Report 794 lexicon and use `gpt-5-mini-low`. |
+| Dot leaders were irregular | Use deterministic cleanup, not another OCR prompt. |
+
+This is the central discipline: change one thing because one observed thing failed.
+
+### Rule 5: Use targeted runs before full runs
+
+The expensive mistake is to rerun 30 or 200 pages after every prompt edit. Most prompt changes should be tested on the pages that expose the failure.
+
+For this project:
+
+- pages 1-9 were enough for front matter;
+- pages 6-9 were enough for Table of Contents / Table of Figures;
+- pages 13 and 15 were useful for diagram spot-checking;
+- page 30 checked the Chapter Two transition.
+
+Only after v4 performed well on targeted pages did it make sense to run pages 1-30.
+
+### Rule 6: Separate prompt-policy failures from model-capacity failures
+
+This was one of the most important discoveries.
+
+v2 and v3 fixed prompt-policy failures. They taught the model what kind of output was wanted.
+
+After that, the remaining defects were small recognition mistakes:
+
+- page numbers;
+- acronym spelling;
+- capitalization of known names.
+
+Those improved by switching from `gpt-5-nano-low` to `gpt-5-mini-low` and adding a book-specific lexicon.
+
+If a prompt clearly expresses the policy and the model still misreads small text, more prompt wording may not be the right fix. Use a better model, add a lexicon, or add post-OCR QA.
+
+### Rule 7: Use vision validation on disputed details
+
+The vision tool was not used to inspect every page. It was used when a detail mattered:
+
+- Is page 002 blank or does it contain a sentence?
+- Is `Dired Model` on page 72 or 75?
+- Is it `Steamer` or `Streamer`?
+- Is it `PSBase` or `PPSBase`?
+- Do diagram pages contain the major labels the OCR described?
+
+That is the correct role for visual validation during prompt optimization. Use it to resolve concrete uncertainty.
+
+### Rule 8: Add deterministic cleanup only after the raw OCR stabilizes
+
+The dot-leader cleanup came at the end. It would have been premature at the beginning.
+
+At the beginning, the system still had transcription and style failures. At the end, the remaining problem was representation: the raw output had irregular but mostly correct dot leaders.
+
+A deterministic cleanup pass is appropriate when:
+
+- the raw content is good;
+- the cleanup rule is narrow;
+- the diff is preserved;
+- QA is run before and after;
+- the raw artifact remains available.
+
+It is not appropriate for silently fixing uncertain OCR content.
+
+### Rule 9: Keep diary entries at experiment boundaries
+
+The diary was not just administrative. It recorded why each iteration happened. That matters because prompt optimization involves many near-misses.
+
+A useful diary entry should include:
+
+- what changed;
+- why it changed;
+- what worked;
+- what failed;
+- exact errors;
+- exact commands;
+- what needs review;
+- next-step rationale.
+
+This made it possible to write the final report without reconstructing the process from memory.
+
+## Implementation details
+
+### OCR prompt dispatch
+
+The prompt versions live in:
 
 ```text
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/design-doc/01-high-quality-book-ocr-experiment-system.md
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/reference/01-experiment-diary.md
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/experiments/001-baseline-single-page/notes.md
+scraper/pkg/workflows/ocrmvp/prompt.go
 ```
 
-Baseline evidence:
+The structure is deliberately simple:
+
+```go
+func RenderPagePrompt(input PageOCRInput) string {
+    version := normalizePromptVersion(input.PromptVersion)
+    switch version {
+    case PromptVersionQualityV4Report794Lexicon:
+        return renderQualityV4Report794LexiconPrompt(input, version)
+    case PromptVersionQualityV3ListDiplomatic:
+        return renderQualityV3ListDiplomaticPrompt(input, version)
+    case PromptVersionQualityV2:
+        return renderQualityV2Prompt(input, version)
+    default:
+        return renderUniversalV1Prompt(input, version)
+    }
+}
+```
+
+This made experiments selectable from the CLI without editing code between runs:
+
+```bash
+--prompt-version ocr-quality-v4-report794-lexicon
+```
+
+The CLI flag is in:
 
 ```text
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/experiments/001-baseline-single-page/outputs/01-final-baseline-clean.md
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/experiments/001-baseline-single-page/outputs/pages-clean.tsv
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/experiments/001-baseline-single-page/outputs/timeline-clean.tsv
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/experiments/001-baseline-single-page/logs/run-clean-registry.sqlite
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/experiments/001-baseline-single-page/logs/01-run-clean-registry-summary.md
+scraper/cmd/ocr-mvp/main.go
 ```
 
-Script:
+### Runtime execution shape
+
+The OCR workflow has a simple DAG shape:
+
+```mermaid
+flowchart TD
+    A[discover-pages] --> B[ocr-page-001]
+    A --> C[ocr-page-002]
+    A --> D[ocr-page-...]
+    A --> E[ocr-page-030]
+    B --> F[assemble-markdown]
+    C --> F
+    D --> F
+    E --> F
+```
+
+Each page step writes markdown and projection data. The assemble step gathers page outputs into one markdown artifact.
+
+### Direct log capture
+
+The direct capture script stores process output into SQLite:
 
 ```text
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/scripts/01-filter-ndjson-log-to-sqlite.py
+scripts/02-run-ocr-capture-log.py
 ```
 
-Runtime code:
+It preserves both JSON and non-JSON lines. This matters because the CLI prints plain status lines such as:
 
 ```text
-/home/manuel/workspaces/2026-05-20/book-ocr/scraper/pkg/workflows/ocrmvp
-/home/manuel/workspaces/2026-05-20/book-ocr/scraper/pkg/workflow
-/home/manuel/workspaces/2026-05-20/book-ocr/scraper/cmd/ocr-mvp/main.go
+started run ocr-mvp-...
+status=running processed=...
+assemble result: {...}
 ```
 
-## Next steps
+Those lines are not zerolog JSON, but they are operationally useful.
 
-The next work should proceed in this order:
+### QA script
 
-1. Review `outputs/01-final-baseline-clean.md` page by page.
-2. Create a failure taxonomy in the experiment notes.
-3. Decide the first prompt change based on observed failures.
-4. Run a targeted prompt experiment before reprocessing all 30 pages.
-5. Add a context-window experiment only after the single-page failure modes are known.
-6. Add a chunk continuity pass after page-level transcription is stable enough to revise.
-7. Keep using SQLite summaries for logs so provider traces do not dominate review.
+The QA script is intentionally conservative:
 
-The key rule is to improve one part of the system at a time. The baseline run proved that the workflow can process the first 30 pages. The log filtering proved that the evidence can be made reviewable. The next task is quality classification.
+```text
+scripts/03-qa-ocr-markdown.py
+```
+
+It should not claim the OCR is perfect. It should report likely regressions.
+
+Its checks are simple:
+
+```python
+KNOWN_BAD_TERMS = [
+    "DiRed",
+    "Streamer",
+    "PPSBase",
+    "Ciccarrelli",
+    "[IMAGE:",
+]
+
+EXPECTED_STRINGS = [
+    "Presentation Based User Interfaces",
+    "This blank page was inserted to preserve pagination.",
+    "Figure 4-1: Dired Model",
+    "Figure 4-9: Sample Steamer Schematic",
+    "Figure 5-1: PSBase Support of PPS Components",
+    "Chapter Two",
+    "The Primitive Presentation System (PPS) Model",
+    "2.1 PPSCalc",
+]
+```
+
+This is not a general OCR metric. It is a regression test for known failure classes.
+
+### Cleanup script
+
+The cleanup script is also narrow:
+
+```text
+scripts/04-normalize-ocr-markdown.py
+```
+
+The core line normalization is:
+
+```python
+return f"{label} ... {page}"
+```
+
+for list-page rows that already have dot leaders or large spacing before a page number.
+
+This kind of deterministic cleanup is safe because it does not decide what the text says. It only normalizes how known list rows connect labels to page numbers.
+
+## Failure modes spotted during the loop
+
+The work surfaced several useful OCR failure modes.
+
+### Failure mode: visible intentionally blank page treated as blank
+
+The model can obey a blank-page rule too strongly. Page 002 is visually a blank-page notice, not a truly blank page. The correct output is the visible sentence.
+
+Future prompt rule:
+
+```text
+Blank page with no visible text: output [BLANK PAGE].
+Intentionally blank page with visible text: transcribe the visible text.
+```
+
+### Failure mode: table/list pages become markdown outlines
+
+A model trained to produce clean markdown may turn a Table of Contents into markdown headings or bullets. That is not always desired. For OCR, a Table of Contents is often best represented as a plain-text diplomatic list.
+
+Future prompt rule:
+
+```text
+Table of Contents and Table of Figures pages are list transcriptions, not markdown outlines.
+```
+
+### Failure mode: continuation pages drift
+
+Page 7 and page 9 do not necessarily repeat the heading from page 6 and page 8. The model may invent continuity headings or change style.
+
+Future prompt rule:
+
+```text
+If a continuation page does not visibly repeat a heading, do not invent one. Keep the same row style as the previous list page.
+```
+
+### Failure mode: known acronyms are close to other known acronyms
+
+`PSBase` and `PPS` both occur in this report. A naive correction rule could break one while fixing the other. The v4 prompt explicitly says:
+
+```text
+Use PSBase for the presentation system base acronym.
+Use PPS only for the Primitive Presentation System acronym, for example PPS Model or PPSCalc.
+```
+
+This is a pattern for lexicons: include disambiguation, not just a list of preferred spellings.
+
+### Failure mode: small text page numbers drift
+
+Even with a good prompt, small ToC/ToF page numbers are easy to misread. This is where model selection helped.
+
+Future rule:
+
+```text
+If the page is list-heavy and page-number accuracy matters, test a stronger model on the hard list pages before running the whole book.
+```
+
+### Failure mode: log noise hides useful retries
+
+The baseline had an `ocr-page-007` retry. That is important, but it is easy to miss inside thousands of SSE trace rows.
+
+Future rule:
+
+```text
+Always summarize retries/failures from structured logs or projections, not by scrolling raw logs.
+```
+
+## What to do next time
+
+For the next prompt-optimization project, use this sequence.
+
+### Step 1: Build an experiment folder before running the model
+
+Create:
+
+```text
+experiments/NNN-short-name/
+├── manifest.yaml
+├── prompts/
+├── logs/
+├── outputs/
+└── notes.md
+```
+
+Do this before running the command. Do not rely on `/tmp` as the only evidence store.
+
+### Step 2: Run a small baseline
+
+Start with a simple prompt and a small page range that includes the hard page types.
+
+For a book, include:
+
+- title page;
+- blank or intentionally blank page;
+- table of contents;
+- table of figures;
+- first prose chapter page;
+- at least one diagram page;
+- at least one page transition.
+
+### Step 3: Capture logs into SQLite from the beginning
+
+Use direct capture:
+
+```bash
+python3 scripts/02-run-ocr-capture-log.py logs/run-capture.sqlite -- \
+  go run ./cmd/ocr-mvp run ... --log-level warn
+```
+
+Do not wait until logs become annoying.
+
+### Step 4: Read the output manually
+
+Automated QA cannot replace manual reading. Read the output and write down concrete defects. Do not change the prompt yet.
+
+Useful categories:
+
+- page-type policy;
+- heading policy;
+- list/table policy;
+- figure/caption policy;
+- footer/page-number policy;
+- known vocabulary;
+- line wrapping;
+- duplicate lines;
+- invented text;
+- omitted visible text.
+
+### Step 5: Use vision validation for disputed details
+
+Ask the vision tool narrow questions:
+
+- "Is this page actually blank?"
+- "What is the page number for this ToC entry?"
+- "Is the word Steamer or Streamer?"
+- "Does this figure caption exist?"
+
+Do not ask it to generally grade the whole output unless the question is scoped.
+
+### Step 6: Change exactly one main variable
+
+One experiment should primarily change one thing:
+
+- prompt policy;
+- model profile;
+- page range;
+- context strategy;
+- cleanup pass.
+
+If multiple things change, the result is harder to interpret.
+
+### Step 7: Run targeted pages first
+
+Use the smallest page set that contains the failure. For this project, pages 6-9 were enough for list-page work.
+
+### Step 8: Promote only after targeted success
+
+Only run 30 pages or the full book after the targeted run improves the failure without introducing obvious regressions.
+
+### Step 9: Add QA checks from observed failures
+
+QA should start from actual failures. In this project, the final bad-term checks came from real observed regressions:
+
+```text
+DiRed
+Streamer
+PPSBase
+Ciccarrelli
+[IMAGE:
+```
+
+Do not make QA too abstract too early. Start with concrete regressions.
+
+### Step 10: Preserve raw and cleaned outputs separately
+
+If a cleanup pass is added, keep:
+
+- raw model output;
+- normalized output;
+- diff;
+- QA before cleanup;
+- QA after cleanup.
+
+This prevents deterministic cleanup from becoming hidden editing.
+
+## What should be built next
+
+The next quality jump should be a real continuity workflow rather than another prompt tweak.
+
+The design should look like this:
+
+```mermaid
+flowchart TD
+    A[first-pass page OCR] --> B[page artifacts]
+    B --> C[page-level QA]
+    C --> D{QA failures?}
+    D -- yes --> E[targeted re-OCR]
+    E --> B
+    D -- no --> F[chunk continuity pass]
+    F --> G[normalized book section markdown]
+    G --> H[final QA report]
+```
+
+The continuity pass should receive:
+
+- the raw page markdown;
+- page numbers;
+- neighboring page text;
+- known vocabulary;
+- table/list page classifications;
+- figure/caption markers;
+- QA findings.
+
+It should produce:
+
+- cleaned section-level markdown;
+- a patch or structured edit list;
+- warnings for uncertain corrections;
+- updated QA results.
+
+The key is that the second pass should not silently rewrite OCR. It should be an auditable transformation.
+
+## Final state
+
+`BOOK-OCR-HQ-001` is complete.
+
+The ticket is closed. `docmgr doctor` passes. All code and documentation changes were committed.
+
+Important commits in the docs repository include:
+
+```text
+97f1259 Diary: record OCR v4 quality run
+4957796 Diary: add OCR QA cleanup pass
+f828196 Docs: finalize OCR quality report
+3b0e7bb Docs: close OCR quality ticket
+```
+
+Important scraper commits include:
+
+```text
+6e05ee1 Add OCR quality v3 list prompt
+8e76419 Add Report 794 OCR lexicon prompt
+```
+
+The selected review artifact is:
+
+```text
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/experiments/008-deterministic-continuity-cleanup/outputs/02-final-quality-v4-mini-pages-001-030-normalized.md
+```
+
+The raw provenance artifact is:
+
+```text
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/experiments/007-quality-v4-mini-pages-001-030/outputs/01-final-quality-v4-mini-pages-001-030.md
+```
+
+The final lesson is straightforward: prompt optimization worked because it was treated as an experiment system. The prompt text mattered, but the surrounding process mattered just as much: preserve evidence, inspect failures, validate visually, change one thing at a time, run targeted pages first, and finish with repeatable QA.
