@@ -19,190 +19,135 @@ tags:
 
 # VLM Separation Benchmark for Book OCR
 
-The Book OCR pipeline now has a benchmark for a specific failure mode: a vision-language model receives several page images and is instructed to transcribe only one of them, but it imports text, captions, or diagram content from the neighboring images. This article explains why the benchmark was built, how it is implemented, what it records, and what the first live run tells us about prompt and block-layout design.
+This article explains the VLM separation benchmark built for the Book OCR project. The benchmark answers one specific question: when a vision-language model receives a target page image and neighboring page context, does it keep the target page boundary intact, or does it import text, captions, and figures from adjacent images?
+
+The question came from a real production failure. A full 202-page OCR run of Report 794 completed successfully as a workflow, but the generated Markdown contained duplicated adjacent figure captions. The workflow had not lost data. The model had crossed page boundaries. That is a different class of error from ordinary OCR noise, because it changes page provenance.
 
 > [!summary]
-> - The full-book OCR run showed adjacent-page contamination when neighboring page PNGs were included as context images.
-> - The new `book-ocr vlm-separation benchmark` command tests whether prompt and Geppetto block layout affect target-page isolation.
-> - The benchmark writes three evidence layers: human-readable files, benchmark SQLite tables, and Pinocchio-compatible Geppetto turn snapshots.
-> - The first live run suggests that multi-block labeled input is worth further testing, but the response schema needs stronger enforcement before large benchmark batches.
+> - The benchmark compares prompt/block layouts for target-page isolation: target-only, single multimodal block with target first, multi-block labeled images, and target image plus text-only context.
+> - The implementation stores three evidence layers: files for human inspection, benchmark SQLite tables for analysis, and Pinocchio-compatible Geppetto turn snapshots for replay/debugging.
+> - The parser now uses `github.com/go-go-golems/sanitize/pkg/json` plus schema repair, so live model schema drift does not get confused with target/context bleed.
+> - The broad risky-page live run covered 16 target pages and 4 scenarios. After retrying two transient TLS failures, all 64 logical trials completed and none showed forbidden-caption bleed under the current oracle.
+> - The production recommendation remains conservative: primary OCR should use target-page-only images; text-only context is acceptable; neighboring page images should stay in diagnostic/benchmark paths until larger evidence supports them.
 
-## Why this note exists
+## 1. The failure that motivated the benchmark
 
-The previous Book OCR work successfully moved OCR out of `scraper` and into the external `book-ocr` application. That architectural boundary is correct: `scraper` remains a workflow runtime, while OCR becomes a workflow application. After that extraction, the full 202-page Report 794 conversion ran through the external command and produced a complete artifact. The run had 202 page markers and 75 extracted figure crops.
+The Book OCR project first validated the generic workflow runtime by running OCR workflows over Report 794, *Presentation Based User Interfaces*. After the OCR code was moved out of `scraper` and into the external `book-ocr` application, the full book was converted through the external command. The run produced complete page coverage and a final Markdown artifact.
 
-The full artifact was not acceptable as final text. The main problem was not a missing page or a failed worker. The problem was content isolation. The OCR command had been run with neighboring page images as context. The prompt told the model that the first image was the target page and the other images were only context. The resulting book contained duplicated adjacent figure captions and false figure markers. Page 12, for example, referenced Figure 1-1 in prose; page 13 contained the actual Figure 1-1 diagram. The output created a figure marker for page 12 as if the figure were physically present there.
+The artifact was structurally complete but not textually safe. The OCR command had been run with neighboring page images as context. The prompt told the model that the first image was the target page and the remaining images were context only. The model sometimes copied adjacent-page visual content into the target page output anyway.
 
-That failure led to an important design question. Should the production pipeline simply stop sending neighboring page images, or can better prompting and better Geppetto turn structure make multi-image context safe enough for some cases? The benchmark exists to answer that question with measured outputs rather than assumptions.
-
-## The target-page isolation problem
-
-A page OCR call has one primary obligation: output only the visible content of the target page. Context may help with terminology, line continuation, and list style, but it must not change which page is being transcribed.
-
-The problematic run violated this invariant. The output contained adjacent duplicate captions such as:
+The most visible symptoms were duplicated adjacent figure captions:
 
 ```text
-[12, 13] Figure 1-1: A Rudimentary User Interface
-[31, 32] Figure 2-2: PPSCalc -- Formula Display
-[31, 32] Figure 2-3: PPSCalc -- Value Display
-[59, 60] Figure 3-2: Extension with Both Planning and Immediate Changes
-[60, 61] Figure 3-3: Command Data Base Extension
+[12, 13]   Figure 1-1: A Rudimentary User Interface
+[31, 32]   Figure 2-2: PPSCalc -- Formula Display
+[31, 32]   Figure 2-3: PPSCalc -- Value Display
+[42, 43]   Figure 2-9: Presenter Parts
+[59, 60]   Figure 3-2: Extension with Both Planning and Immediate Changes
+[60, 61]   Figure 3-3: Command Data Base Extension
+[87, 88]   Figure 4-6: Xerox Star -- Property Sheet
+[97, 98]   Figure 4-12: Sample of Steamer Icons
+[112, 113] Figure 5-6: Command Description Support
+[115, 116] Figure 5-7: Reference Resolution
 ```
 
-This class of error is different from ordinary OCR noise. If a word is misread, a later cleanup pass may repair it. If content from page N+1 is moved into page N, the book structure itself becomes unreliable. Page-level provenance, figure extraction, cross-references, and downstream review all depend on the page boundary being stable.
+The page 12/13 case made the problem concrete. Page 12 contains prose that references Figure 1-1. Page 13 contains the actual Figure 1-1 diagram. The full-book artifact created a figure marker for page 12 as if the figure were physically present there. That is not just a caption transcription error. It is a provenance error.
 
-The current OCR code path that made this possible is in:
+A page OCR call has one primary invariant:
 
 ```text
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/internal/ocrmvp/geppetto_ocr.go
+Only content visibly present on the target page may appear in the target page output.
 ```
 
-The current `multimodalImages` function builds an image list where the target page comes first and context page images follow. Those images are then passed together in a Geppetto user multimodal block. The model sees all images. The instruction says to transcribe only the target image, but the visual content of the context pages is still available to the model.
+The VLM separation benchmark was built to test how robust that invariant is under different prompt and block layouts.
 
-## The benchmark command
+## 2. The engineering question
 
-The benchmark command is:
+The production pipeline needs an answer to a practical design question:
 
-```bash
-book-ocr vlm-separation benchmark
+```text
+Should OCR ever send neighboring page images to the VLM, or should page OCR be target-image-only with at most text context?
 ```
 
-It lives in:
+There are three plausible policies.
+
+| Policy | What the OCR call sees | Benefit | Risk |
+|---|---|---|---|
+| Target-image-only | Only the target page PNG. | Strong page provenance. | Less context for continuation, terminology, and figure references. |
+| Target image plus text context | Target page PNG plus neighboring page text summaries. | Gives continuity without exposing neighboring visual content. | Text context can still bias wording if used carelessly. |
+| Target image plus neighboring page images | Target page PNG plus previous/next PNGs. | Gives the model complete local visual context. | The model can copy adjacent captions, diagrams, or labels. |
+
+The full-book regression showed that the third policy is unsafe when implemented naively. The benchmark asks whether better input structure can make it safer, and whether the evidence is strong enough to change the production policy.
+
+## 3. The benchmark package
+
+The benchmark lives in the external OCR application repository:
 
 ```text
 /home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/internal/vlmseparation
 ```
 
-The entry point is a Glazed command:
+The command is registered under:
 
 ```text
-internal/vlmseparation/command.go
+book-ocr vlm-separation
 ```
 
-It is registered under the existing `book-ocr` CLI in:
+The key files are:
 
-```text
-cmd/book-ocr/main.go
-```
+| File | Responsibility |
+|---|---|
+| `command.go` | Glazed command wiring for `benchmark` and `rescore`. |
+| `types.go` | Run, trial, scenario, metric, oracle, and response structs. |
+| `oracle.go` | Risky-page presets and expected/forbidden phrase oracles. |
+| `scenarios.go` | Geppetto turn construction for each prompt/block layout. |
+| `runner.go` | Trial orchestration, live/fake inference, and artifact persistence. |
+| `scoring.go` | JSON extraction, sanitize-backed repair, schema repair, phrase scoring. |
+| `sqlite.go` | Benchmark-specific SQLite schema and metric persistence. |
+| `turns.go` | Pinocchio-compatible Geppetto turn storage. |
+| `files.go` | Manifest, scenario, response, metric, turn, and summary files. |
+| `rescore.go` | Replay saved provider outputs through the current parser/scorer. |
 
-The command accepts a book ID, image directory, target pages, scenario names, model profile, output directory, result SQLite path, and turns DB path. Normal tests use `--dry-run=true`, which is the default. Live benchmarking is explicit and opt-in with `--dry-run=false`.
+The package is deliberately separate from the generic workflow runtime. The runtime remains in `scraper/pkg/workflow`. The benchmark is Book OCR application logic.
 
-A dry-run command looks like this:
+## 4. The two commands
 
-```bash
-go run ./cmd/book-ocr vlm-separation benchmark \
-  --book-id report-794 \
-  --image-dir /home/manuel/code/wesen/claw-stuff/output/books/presentation-based-uis/pages \
-  --target-pages 12,13 \
-  --scenarios target-only,single-block-target-first,multi-block-labeled \
-  --out-dir /tmp/book-ocr-vlm-separation-dry \
-  --dry-run \
-  --output json
-```
+The benchmark has two important commands.
 
-A live run uses the same command shape and adds a Pinocchio profile:
+### `benchmark`
+
+`benchmark` constructs turns, optionally calls a live model, writes artifacts, and emits one row per trial.
 
 ```bash
 go run ./cmd/book-ocr vlm-separation benchmark \
   --dry-run=false \
   --book-id report-794 \
   --image-dir /home/manuel/code/wesen/claw-stuff/output/books/presentation-based-uis/pages \
-  --target-pages 12,13 \
-  --scenarios target-only,single-block-target-first,multi-block-labeled \
+  --preset report794-figure-adjacent \
+  --scenarios target-only,single-block-target-first,multi-block-labeled,target-plus-text-context \
   --profile gpt-5-mini-low \
   --profile-registries /tmp/book-ocr-hq-001/profiles-clean.yaml \
-  --out-dir /tmp/book-ocr-vlm-separation-live-001 \
+  --out-dir /tmp/book-ocr-vlm-separation-live-risky-pages \
   --output table
 ```
 
-The command is deliberately a benchmark rather than a production OCR path. Its job is to construct controlled turns, run them, store the evidence, and make scenario comparison possible.
+Normal tests and smoke runs use `--dry-run=true`. Live runs require `--dry-run=false`. This is intentional. Provider calls should never be accidental in a unit test or local smoke test.
 
-## What the scenarios test
+### `rescore`
 
-The benchmark currently tests several block-layout scenarios. Each scenario answers a different question about how the VLM receives images and instructions.
+`rescore` replays saved responses through the current parser and scorer. It does not call the provider.
 
-| Scenario | Purpose | Turn shape |
-|---|---|---|
-| `target-only` | Establish the baseline with no image context. | One multimodal user block with one target image. |
-| `single-block-target-first` | Reproduce the current OCR layout. | One multimodal user block with target, previous, and next images. |
-| `single-block-labeled-images` | Test whether richer image metadata helps inside one block. | One multimodal user block with role/page metadata. |
-| `multi-block-labeled` | Test whether text blocks separating image blocks improve isolation. | Multiple user blocks: target image block, separator text, context image blocks. |
-| `context-first-negative-control` | Measure order sensitivity in an intentionally risky layout. | Context images before target image. |
-| `target-plus-text-context` | Test the safer alternative of text context instead of image context. | Text context plus one target image. |
-
-The most important comparison in the first run was between `single-block-target-first` and `multi-block-labeled`. Both provide context images, but they present them differently. The first keeps all images in one multimodal block. The second uses a sequence of user blocks, with explicit text around the target image and explicit text around context images.
-
-The multi-block layout is built in `internal/vlmseparation/scenarios.go`. Conceptually it creates a turn like this:
-
-```text
-system: benchmark OCR contract
-user text: The next image block is the ONLY OCR target.
-user multimodal: TARGET PAGE 013 + target image
-user text: The following images are context only. Do not transcribe them.
-user multimodal: PREVIOUS CONTEXT PAGE 012 + previous image
-user multimodal: NEXT CONTEXT PAGE 014 + next image
-user text: Return JSON for the target page only.
+```bash
+go run ./cmd/book-ocr vlm-separation rescore \
+  --out-dir /tmp/book-ocr-vlm-separation-live-risky-pages \
+  --output table
 ```
 
-This is not a guarantee that the provider will isolate images. It is an experimental condition. The benchmark records whether the condition performs better than the current single-block layout.
+This command matters because provider output and benchmark scoring are different kinds of data. Provider output is the observation. Metrics are a projection over that observation. When the parser or scorer improves, the correct operation is to re-score the saved observation, not to ask the provider a different question.
 
-## Architecture
+## 5. The output directory contract
 
-The benchmark has four layers: command parsing, scenario construction, execution, and persistence. The command is Glazed so that trial results can be emitted as rows and rendered through standard output formats. The scenario layer builds Geppetto turns. The runner executes either fake dry-run responses or live model calls. The persistence layer writes files, result tables, and turns.
-
-```mermaid
-flowchart TD
-    A[book-ocr vlm-separation benchmark] --> B[Glazed command settings]
-    B --> C[Runner]
-    C --> D[Scenario builder]
-    D --> E[Geppetto Turn]
-    E --> F{dry-run?}
-    F -->|yes| G[Fake deterministic VLM response]
-    F -->|no| H[Pinocchio profile resolution]
-    H --> I[Geppetto engine RunInference]
-    G --> J[Trial result]
-    I --> J
-    J --> K[Files]
-    J --> L[Benchmark SQLite]
-    E --> M[Pinocchio turns DB input phase]
-    J --> N[Pinocchio turns DB final phase]
-
-    style K fill:#e8f5e9,stroke:#2e7d32
-    style L fill:#e3f2fd,stroke:#1565c0
-    style M fill:#fff3e0,stroke:#ef6c00
-    style N fill:#fff3e0,stroke:#ef6c00
-```
-
-The important design decision is that the benchmark uses two SQLite databases by default:
-
-```text
-results.sqlite   benchmark-specific run/trial/metric tables
-turns.db         Pinocchio-compatible Geppetto turn store
-```
-
-The turns database reuses Pinocchio's schema. It contains the canonical turn/block tables:
-
-```text
-turns
-blocks
-turn_block_membership
-```
-
-The benchmark database contains experiment analytics:
-
-```text
-benchmark_runs
-benchmark_trials
-trial_metrics
-```
-
-Keeping the two databases separate avoids modifying Pinocchio's canonical turn-store schema while still giving the benchmark queryable run and metric tables.
-
-## The persistence model
-
-Each trial writes evidence in three forms.
-
-First, it writes files under the output directory:
+Every run writes a self-contained output directory:
 
 ```text
 <out-dir>/
@@ -222,258 +167,39 @@ First, it writes files under the output directory:
       trial.json
 ```
 
-Second, it writes benchmark rows to `results.sqlite`. These rows make it easy to compare scenario outcomes without reading every response file:
+Each file answers a different question.
 
-```sql
-select
-  t.id,
-  t.scenario,
-  t.target_page,
-  t.status,
-  m.json_parse_ok,
-  m.expected_phrase_hits,
-  m.expected_phrase_total,
-  m.forbidden_phrase_hits,
-  m.forbidden_caption_hits,
-  m.suspected_bleed,
-  m.target_only_score
-from benchmark_trials t
-join trial_metrics m on t.id = m.trial_id
-order by t.id;
-```
-
-Third, it writes Geppetto turns to the Pinocchio turn store. The turn store is not only a log of model text. It records the block layout that created the model request. This matters because the experimental variable is the turn structure itself.
-
-A useful turn-store query is:
-
-```sql
-select session_id, turn_id, runtime_key
-from turns
-order by session_id;
-```
-
-For the first live run, this produced one turn per page/scenario pair:
-
-```text
-page:012:scenario:multi-block-labeled        trial:trial-0003  book-ocr/vlm-separation/multi-block-labeled
-page:012:scenario:single-block-target-first  trial:trial-0002  book-ocr/vlm-separation/single-block-target-first
-page:012:scenario:target-only                trial:trial-0001  book-ocr/vlm-separation/target-only
-page:013:scenario:multi-block-labeled        trial:trial-0006  book-ocr/vlm-separation/multi-block-labeled
-page:013:scenario:single-block-target-first  trial:trial-0005  book-ocr/vlm-separation/single-block-target-first
-page:013:scenario:target-only                trial:trial-0004  book-ocr/vlm-separation/target-only
-```
-
-## Scoring
-
-The first scoring implementation is intentionally simple. It is not a general OCR quality metric. It is a target-isolation metric for selected pages.
-
-Each page can have an oracle:
-
-```go
-type PageOracle struct {
-    TargetPage        int
-    ExpectedPhrases   []string
-    ForbiddenPhrases  []string
-    ExpectedCaptions  []string
-    ForbiddenCaptions []string
-}
-```
-
-For page 12, the oracle expects prose about the rudimentary interface and representation shift. It forbids the physical Figure 1-1 caption because that caption belongs to page 13 in the scanned pages:
-
-```go
-PageOracle{
-    TargetPage: 12,
-    ExpectedPhrases: []string{
-        "A Rudimentary User Interface",
-        "Representation Shift",
-    },
-    ForbiddenCaptions: []string{
-        "Figure 1-1: A Rudimentary User Interface",
-    },
-}
-```
-
-The scorer checks whether expected phrases appear and whether forbidden phrases or captions appear. It also tracks whether the model returned parseable JSON. The current metric is useful for smoke testing, but the first live run showed that it is not yet robust enough. Some live responses contained valid JSON syntax but used fields with the wrong shapes or unexpected names. Those responses were marked `parse_failed` even when their text was useful.
-
-That distinction matters. A benchmark can fail because the model copied from a context image. It can also fail because the benchmark schema is too weakly enforced. These are different issues and should be reported separately.
-
-## The first live run
-
-The first live run used:
-
-```text
-model/profile: gpt-5-mini-low
-pages:         12, 13
-scenarios:     target-only, single-block-target-first, multi-block-labeled
-output:        /tmp/book-ocr-vlm-separation-live-001
-```
-
-The live run completed six trials. It also exposed a command integration issue: the nested Glazed command did not initialize logging because it was launched from the older manual `book-ocr` CLI. Provider trace deltas printed to the terminal. This was fixed afterward in:
-
-```text
-internal/vlmseparation/command.go
-```
-
-The fix adds Glazed logging flags to the `vlm-separation` Cobra root and calls `logging.InitLoggerFromCobra` in `PersistentPreRunE`.
-
-The result table from `results.sqlite` was:
-
-| Trial | Scenario | Page | Status | JSON parse | Expected hits | Expected total | Forbidden hits | Suspected bleed | Score |
-|---|---|---:|---|---|---:|---:|---:|---|---:|
-| trial-0001 | target-only | 12 | parse_failed | false | 2 | 2 | 0 | false | 0.75 |
-| trial-0002 | single-block-target-first | 12 | succeeded | true | 0 | 2 | 0 | false | 0.00 |
-| trial-0003 | multi-block-labeled | 12 | succeeded | true | 2 | 2 | 0 | false | 1.00 |
-| trial-0004 | target-only | 13 | parse_failed | false | 4 | 4 | 0 | false | 0.75 |
-| trial-0005 | single-block-target-first | 13 | succeeded | true | 0 | 4 | 0 | false | 0.00 |
-| trial-0006 | multi-block-labeled | 13 | succeeded | true | 3 | 4 | 0 | false | 0.75 |
-
-The live run also wrote turn-store evidence:
-
-```text
-turns:                 6
-blocks:                34
-turn_block_membership: 56
-```
-
-The first conclusion is narrow. In this small run, `multi-block-labeled` performed better than `single-block-target-first` under the current scorer. The result is not strong enough to declare multi-image context safe. It is strong enough to justify further testing with stricter schema enforcement and a larger page set.
-
-## What the raw responses show
-
-The response files show two separate problems.
-
-The target-only responses often contained the right text but did not match the benchmark schema exactly. Page 12 target-only returned JSON-like content with fields such as:
-
-```json
-{
-  "target_page": "012",
-  "transcribed_page_identity": "Page 10 (scanned page)",
-  "content_markers": [
-    "A Rudimentary User Interface.",
-    "Representation Shift."
-  ],
-  "transcription": "..."
-}
-```
-
-The benchmark expected `target_page` as a number, `transcribed_page_identity` as an object, and `content_markers` as an object. The response therefore failed strict parsing. It still contained useful target-page content.
-
-The `single-block-target-first` trials returned parseable JSON but used unexpected simplified fields such as `text`. Under the current scorer, those outputs did not populate expected marker fields and scored 0. That may indicate weaker compliance with the requested output contract rather than pure OCR failure.
-
-The `multi-block-labeled` trials matched the schema closely enough to score well. Page 12 scored 1.0. Page 13 scored 0.75 because it captured the figure content but did not hit every expected phrase under the current oracle.
-
-The raw responses did not show a forbidden Figure 1-1 caption leaking into page 12 in the small set. That is important, but it is not enough. The original full-book failure happened over 202 pages with many figure-adjacent contexts. A two-page, three-scenario run is a smoke test, not a final evaluation.
-
-## Why Geppetto turns are the right evidence unit
-
-The benchmark is testing more than prompt text. It is testing how the model reacts to the structure of the input. A flat log that stores only the final response would lose the central experimental variable.
-
-A Geppetto turn preserves:
-
-- the system block,
-- the user text blocks,
-- the user multimodal blocks,
-- the image payload structure,
-- the assistant response block,
-- runtime and inference metadata.
-
-That is why the benchmark writes both `turn-input.yaml` and `turn-final.yaml` for every trial and also stores the same snapshots through Pinocchio's turn store. The file artifacts are easy to inspect in an editor. The turn database is easy to query across many runs.
-
-The relevant persistence wrapper is:
-
-```text
-internal/vlmseparation/turns.go
-```
-
-It reuses:
-
-```go
-github.com/go-go-golems/pinocchio/pkg/persistence/chatstore
-```
-
-The benchmark does not invent a new turns schema. It adds separate benchmark result tables for run/trial/metric data.
-
-## Implementation details
-
-The implementation is intentionally split into small files. Each file has one main responsibility:
-
-| File | Responsibility |
+| File | Question answered |
 |---|---|
-| `types.go` | Run, trial, scenario, response, metric, and oracle data contracts. |
-| `oracle.go` | Scenario normalization, page parsing, and page oracle definitions. |
-| `scoring.go` | Parse model JSON and compute target-isolation metrics. |
-| `scenarios.go` | Construct Geppetto turns for each block-layout scenario. |
-| `runner.go` | Orchestrate trials, call fake or live inference, and connect persistence layers. |
-| `files.go` | Write manifest, scenarios, trial artifacts, turns, and summaries as files. |
-| `sqlite.go` | Manage benchmark-specific SQLite tables. |
-| `turns.go` | Reuse Pinocchio `chatstore.SQLiteTurnStore` for turn snapshots. |
-| `command.go` | Expose the benchmark as a Glazed command. |
+| `manifest.json` | What run configuration created this output directory? |
+| `scenarios.json` | Which scenario definitions were active? |
+| `turn-input.yaml` | What exact Geppetto turn was sent before inference? |
+| `turn-final.yaml` | What did the model append to that turn? |
+| `response.txt` | What raw text did the provider return? |
+| `response.json` | What canonical `BenchmarkResponse` did the parser derive? |
+| `metrics.json` | How did the scorer evaluate this response? |
+| `trial.json` | What complete trial metadata should be preserved? |
+| `results.sqlite` | How can we query the run across all trials? |
+| `turns.db` | How can we inspect turns using Pinocchio's turn-store schema? |
 
-The runner's core loop is simple. It constructs a manifest, inserts a benchmark run row, iterates page/scenario pairs, runs each trial, writes evidence, and emits a summary.
+This structure supports two workflows. A human can open a single trial directory and inspect the exact prompt, response, and score. A script can query `results.sqlite` to compare scenario behavior across pages.
 
-```go
-func (r *Runner) Run(ctx context.Context) (*RunResult, error) {
-    manifest := RunManifest{...}
-    r.Files.WriteManifest(manifest)
-    r.DB.InsertRun(ctx, manifest)
+## 6. The scenario model
 
-    for _, page := range r.Config.TargetPages {
-        for _, scenario := range r.Scenarios {
-            trial := NewTrial(page, scenario)
-            result, err := r.RunTrial(ctx, trial)
-            if err != nil {
-                result = TrialResultFromError(trial, err)
-            }
-            r.DB.InsertTrial(ctx, result)
-            results = append(results, result)
-        }
-    }
+A scenario is a controlled input layout. The page, neighboring images, oracle, model profile, and scoring code stay fixed. The scenario changes how the target and context are presented to the model.
 
-    summary := Summarize(results)
-    r.Files.WriteSummary(summary)
-    r.DB.CompleteRun(ctx, manifest.ID, summary)
-    return &RunResult{Manifest: manifest, Trials: results, Summary: summary}, nil
-}
-```
+The current scenarios are:
 
-Each trial saves the input turn before inference and the final turn after inference:
+| Scenario | What it sends | Why it exists |
+|---|---|---|
+| `target-only` | One target image. | Establishes the isolation baseline. |
+| `single-block-target-first` | Target, previous, and next images in one multimodal block. | Recreates the risky production style in a controlled benchmark. |
+| `single-block-labeled-images` | One multimodal block with richer image metadata. | Tests whether metadata helps without changing block shape. |
+| `multi-block-labeled` | Separate user blocks for target image and context images. | Tests whether block separation and explicit boundary text improve isolation. |
+| `context-first-negative-control` | Context images before target image. | Tests order sensitivity in an intentionally risky layout. |
+| `target-plus-text-context` | Neighboring text context plus target image only. | Tests the safer production candidate. |
 
-```go
-turn, err := BuildTurnForScenario(input)
-requestPath, err := r.Files.WriteTurn(trial.ID, "turn-input.yaml", turn)
-r.Turns.Save(ctx, input.SessionID, input.TurnID, "input", turn)
-
-if r.Config.DryRun {
-    updated = fakeVLMResponse(turn, input)
-} else {
-    updated, err = r.Engine.RunInference(ctx, turn)
-}
-
-r.Files.WriteTurn(trial.ID, "turn-final.yaml", updated)
-r.Turns.Save(ctx, input.SessionID, input.TurnID, "final", updated)
-```
-
-The `input` and `final` phases are important. The input phase answers, “What exactly did we ask the model to process?” The final phase answers, “What did the model append to the same turn?” For this benchmark, both questions are required.
-
-## What should change next
-
-The next implementation step should be response contract enforcement. The benchmark currently asks for strict JSON, but it does not use provider-native structured output. The first live run showed that some responses are semantically useful but structurally incompatible with the scorer.
-
-The next version should add one of these mechanisms:
-
-1. Use Geppetto's structured-output configuration if the active provider path supports it.
-2. Add a repair parser that accepts common schema variants and records a `schema_repaired=true` metric.
-3. Add a second text-only normalization pass over the response before scoring.
-
-The cleanest direction is provider-native structured output. The benchmark is already using Geppetto turns, so the structured-output setting can become part of the turn data. That would make the model contract explicit and reduce parse noise.
-
-After schema enforcement improves, the live benchmark should expand to the known risky page set:
-
-```text
-12,13,31,32,42,43,59,60,87,88,97,98,112,113,115,116
-```
-
-The larger run should include at least:
+The broad live run used four scenarios:
 
 ```text
 target-only
@@ -482,64 +208,211 @@ multi-block-labeled
 target-plus-text-context
 ```
 
-The result should be reviewed in two ways: metrics from SQLite and raw turn/response inspection for sampled failures.
+### Target-only
 
-## Working rules
+`target-only` is the control. The model sees one page image and cannot visually copy neighboring pages.
 
-The benchmark establishes several working rules for future OCR work.
-
-- Primary page OCR should not assume neighboring page PNGs are safe until the benchmark shows that a scenario is reliable over many risky pages.
-- Multi-block labeled input may improve compliance, but it should be measured under strict schema output before being used in production OCR.
-- Text-only context remains the safer default for production. It gives the model continuity information without exposing neighboring visual content.
-- Every live benchmark run should preserve files, benchmark SQLite rows, and turns DB snapshots. Without the turn snapshots, block-layout regressions are hard to diagnose.
-- Parse failures and context bleed are separate failure classes. A benchmark report should not collapse them into one score.
-
-## Related implementation artifacts
-
-Book OCR repository:
-
-```text
-/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr
+```go
+img, err := imagePayload(input.TargetImagePath, "target", input.TargetPage)
+turns.AppendBlock(turn, turns.NewUserMultimodalBlock(
+    targetOnlyPrompt(input),
+    []map[string]any{img},
+))
 ```
 
-Benchmark implementation:
+If this scenario fails by copying a neighboring caption, the problem is not image-context bleed. It is either the oracle, the source page itself, or the model hallucinating from learned priors.
 
-```text
-internal/vlmseparation/command.go
-internal/vlmseparation/scenarios.go
-internal/vlmseparation/runner.go
-internal/vlmseparation/sqlite.go
-internal/vlmseparation/turns.go
-internal/vlmseparation/scoring.go
-internal/vlmseparation/oracle.go
+### Single-block target-first
+
+`single-block-target-first` approximates the original risky layout. It sends target, previous, and next images together in one multimodal block.
+
+```go
+images, err := contextImagePayloads(input, []string{"target", "previous", "next"})
+turns.AppendBlock(turn, turns.NewUserMultimodalBlock(singleBlockPrompt(input), images))
 ```
 
-Ticket documentation:
+The prompt says that the first image is the only target. The model still receives all image content in one block.
 
-```text
-ttmp/2026/05/25/BOOK-OCR-VLM-SEPARATION-001--investigate-vlm-multi-page-input-separation-for-book-ocr/design-doc/01-vlm-multi-page-separation-benchmark-design-and-implementation-guide.md
-ttmp/2026/05/25/BOOK-OCR-VLM-SEPARATION-001--investigate-vlm-multi-page-input-separation-for-book-ocr/reference/01-diary.md
+### Multi-block labeled
+
+`multi-block-labeled` separates the target image and context images into different user blocks, with text boundaries between them.
+
+```go
+turns.AppendBlock(turn, turns.NewUserTextBlock(
+    "The next image block is the ONLY OCR target. Transcribe only that target page.",
+))
+turns.AppendBlock(turn, turns.NewUserMultimodalBlock(
+    fmt.Sprintf("TARGET PAGE %03d. OCR this image only.", input.TargetPage),
+    []map[string]any{targetImage},
+))
+turns.AppendBlock(turn, turns.NewUserTextBlock(
+    "The following image blocks are context only. Do not transcribe text, captions, labels, or figures from them.",
+))
 ```
 
-Live benchmark artifacts:
+The purpose is not to guarantee separation. The purpose is to test whether the model follows a stronger turn structure more reliably than a flat multimodal block.
 
-```text
-/tmp/book-ocr-vlm-separation-live-001/results.sqlite
-/tmp/book-ocr-vlm-separation-live-001/turns.db
-/tmp/book-ocr-vlm-separation-live-001/trials/trial-000*/response.txt
+### Target plus text context
+
+`target-plus-text-context` sends the target image and neighboring page text placeholders. In a production redesign, those placeholders would be replaced with previously computed structured OCR summaries.
+
+```go
+turns.AppendBlock(turn, turns.NewUserTextBlock(
+    "Text-only context from neighboring pages. Use for terminology/style only; do not copy unless visible on target page.\n\n"+
+    "Previous context:\n"+input.PreviousText+"\n\n"+
+    "Next context:\n"+input.NextText,
+))
+turns.AppendBlock(turn, turns.NewUserMultimodalBlock(targetOnlyPrompt(input), []map[string]any{targetImage}))
 ```
 
-## Current status
+This scenario tests the safer long-term design: OCR the target page image only, then use text context in later normalization or continuity passes.
 
-The benchmark is implemented and validated in dry-run mode. A first live smoke run completed with six trials. The tool successfully captured files, benchmark SQLite rows, and Pinocchio turn snapshots. The first result favors `multi-block-labeled` over `single-block-target-first` in a small sample, but the benchmark response schema must be made stricter before the result can guide production OCR policy.
+## 7. Geppetto turns as the evidence unit
 
-The correct near-term path is not to rerun the whole book. It is to strengthen the benchmark contract, run a broader live benchmark on known risky pages, and only then decide whether any image-context scenario is safe enough for production OCR.
+The benchmark is not only testing prompt text. It is testing the structure of a Geppetto turn. That is why the turn is the evidence unit.
 
-## Update: schema repair changed the interpretation of the first live run
+A turn records:
 
-After the first version of this article was written, the benchmark parser was updated to use `github.com/go-go-golems/sanitize/pkg/json` and a conservative schema-repair pass. The important change is not that the model became better. The saved `response.txt` files did not change. The benchmark became better at separating schema drift from OCR separation behavior.
+- system text,
+- user text blocks,
+- user multimodal blocks,
+- image payload metadata,
+- model response blocks,
+- runtime metadata,
+- inference metadata when present.
 
-The original scorer treated several useful responses as parse failures or as empty canonical responses. The live responses used schema variants such as:
+The turn-store wrapper writes each turn through Pinocchio's existing SQLite turn store:
+
+```go
+return s.store.Save(
+    ctx,
+    s.convID,
+    sessionID,
+    turnID,
+    phase,
+    time.Now().UnixMilli(),
+    string(payload),
+    chatstore.TurnSaveOptions{RuntimeKey: runtimeKey, InferenceID: inferenceID},
+)
+```
+
+The benchmark uses these identifiers:
+
+```text
+convID     = vlm-separation:<book-id>:<run-id>
+sessionID  = page:<page>:scenario:<scenario>
+turnID     = trial:<trial-id>
+phase      = input or final
+runtimeKey = book-ocr/vlm-separation/<scenario>
+```
+
+The broad live run wrote:
+
+```text
+turns:                 64
+blocks:                348
+turn_block_membership: 562
+```
+
+The turns DB is stored at:
+
+```text
+/tmp/book-ocr-vlm-separation-live-risky-pages/turns.db
+```
+
+A useful query is:
+
+```sql
+select session_id, turn_id, runtime_key
+from turns
+order by session_id;
+```
+
+This is useful during review because a bad score can be traced back to the exact block layout that produced it.
+
+## 8. Benchmark SQLite schema
+
+The benchmark stores analytics in a separate SQLite database:
+
+```text
+/tmp/book-ocr-vlm-separation-live-risky-pages/results.sqlite
+```
+
+The schema is intentionally separate from the Pinocchio turn store. The turn store preserves conversation/turn data. The benchmark DB preserves experiment projections.
+
+The main tables are:
+
+```sql
+benchmark_runs(id, book_id, profile, prompt_version, started_at, completed_at, out_dir, turns_dsn, dry_run)
+benchmark_trials(id, run_id, scenario, target_page, previous_page, next_page, status, request_path, response_path, parsed_response_path, metrics_path, turn_session_id, turn_id, started_at, completed_at, latency_ms, error)
+trial_metrics(trial_id, json_parse_ok, json_sanitized, schema_repaired, parse_strategy, expected_phrase_hits, expected_phrase_total, forbidden_phrase_hits, forbidden_caption_hits, suspected_bleed, target_only_score, raw_json)
+```
+
+A common result query is:
+
+```sql
+select scenario,
+       count(*) as n,
+       sum(case when benchmark_trials.status = 'succeeded' then 1 else 0 end) as succeeded,
+       sum(json_parse_ok) as parse_ok,
+       sum(schema_repaired) as repaired,
+       sum(suspected_bleed) as bleed,
+       round(avg(target_only_score), 3) as avg_score,
+       min(target_only_score) as min_score
+from trial_metrics
+join benchmark_trials on trial_metrics.trial_id = benchmark_trials.id
+group by scenario
+order by scenario;
+```
+
+The important design point is that metrics are derived. They can be rewritten by `rescore` when parsing or scoring logic improves.
+
+## 9. The oracle layer
+
+The benchmark needs to know what to look for on each page. That knowledge lives in `oracle.go` as `PageOracle` values.
+
+```go
+type PageOracle struct {
+    TargetPage        int      `json:"target_page"`
+    ExpectedPhrases   []string `json:"expected_phrases,omitempty"`
+    ForbiddenPhrases  []string `json:"forbidden_phrases,omitempty"`
+    ExpectedCaptions  []string `json:"expected_captions,omitempty"`
+    ForbiddenCaptions []string `json:"forbidden_captions,omitempty"`
+}
+```
+
+For a prose page adjacent to a figure, the oracle often expects prose phrases and forbids the neighboring figure caption. For a figure page, the oracle expects the visible caption and labels.
+
+The broad risky-page preset is:
+
+```text
+12,13,31,32,42,43,59,60,87,88,97,98,112,113,115,116
+```
+
+The page choices came from two sources:
+
+1. The full-book OCR artifact showed duplicate adjacent captions on these ranges.
+2. A vision inspection pass confirmed which pages visibly contain figures and which pages are mostly prose for several ambiguous pairs.
+
+Examples:
+
+| Page | Expected | Forbidden |
+|---:|---|---|
+| 12 | `A Rudimentary User Interface`, `Representation Shift` | `Figure 1-1: A Rudimentary User Interface` |
+| 13 | `Figure 1-1: A Rudimentary User Interface`, `Application Data Base` | — |
+| 31 | `Figure 2-1: The Primitive Presentation System (PPS) Model` | `Figure 2-2`, `Figure 2-3` |
+| 32 | `Figure 2-2`, `Figure 2-3`, `A1*B1`, `2375` | `Figure 2-1` |
+| 43 | `domain collector`, `semantic presenter` | `Figure 2-9: Presenter Parts` |
+| 88 | `Figure 4-6: Xerox Star -- Property Sheet`, `DOCUMENT PROPERTIES` | `Figure 4-7`, `Figure 4-8` |
+| 116 | `Graphics Redisplay` | `Figure 5-7: Reference Resolution` |
+
+The oracle is intentionally narrow. It is not a full OCR quality evaluator. It detects whether expected anchor phrases appear and whether forbidden adjacent captions appear.
+
+## 10. Response parsing and sanitize-backed repair
+
+The first live smoke run revealed a benchmark-harness problem. The model frequently returned useful JSON, but not always in the exact schema requested by the benchmark.
+
+Examples included:
 
 ```json
 {
@@ -557,23 +430,38 @@ and:
 
 ```json
 {
-  "page_number": 13,
-  "text": "Figure 1-1: A Rudimentary User Interface\n..."
+  "page": 13,
+  "ocr": "Figure 1-1: A Rudimentary User Interface\nApplication Data Base"
 }
 ```
 
-Both are legitimate model attempts, but neither matches the strict benchmark struct exactly. The new parser now applies this sequence:
+Strict Go unmarshalling into the canonical struct is not enough for this. Unknown fields can be ignored. Wrongly shaped fields can fail the parse. Useful text can be present under `text`, `ocr`, or `ocr_text` instead of `transcription`.
+
+The parser now uses a staged pipeline:
 
 ```text
-raw model text
-  -> strip fences and extract first JSON object
-  -> strict BenchmarkResponse parse when shape is complete
-  -> jsonsanitize.Sanitize(...) for malformed JSON recovery
-  -> schema repair into canonical BenchmarkResponse fields
-  -> scoring
+raw provider text
+  -> trim code fences
+  -> extract the first JSON object
+  -> attempt strict BenchmarkResponse parsing
+  -> run jsonsanitize.Sanitize(...)
+  -> attempt strict BenchmarkResponse parsing again
+  -> repair common schema variants into BenchmarkResponse
+  -> score
 ```
 
-The new metrics record the distinction explicitly:
+The repair path accepts common variants:
+
+| Variant | Canonical interpretation |
+|---|---|
+| `target_page: "012"` | `TargetPage = 12` |
+| `page` or `page_number` | `TargetPage` |
+| `text`, `ocr`, `ocr_text`, `markdown`, `content` | `Transcription` |
+| `content_markers` as an array | `UniquePhrases`, with figure-looking entries also copied to `FigureCaptions` |
+| `transcribed_page_identity` as a string | `TitleOrCaptionLines` |
+| `suspected_context_copy` as explanatory text | `Notes`, not a boolean bleed flag |
+
+The metrics record how parsing happened:
 
 ```text
 json_parse_ok
@@ -582,40 +470,415 @@ schema_repaired
 parse_strategy
 ```
 
-Re-scoring the saved first live run with the repaired parser gives this table:
+The broad live run had many `schema-repair` parse strategies. This does not mean the JSON was malformed. It means the model often returned a useful but non-canonical schema shape.
 
-| Trial | Scenario | Page | Parse OK | Schema repaired | Score |
-|---|---|---:|---|---|---:|
-| trial-0001 | target-only | 12 | true | true | 1.00 |
-| trial-0002 | single-block-target-first | 12 | true | true | 1.00 |
-| trial-0003 | multi-block-labeled | 12 | true | true | 1.00 |
-| trial-0004 | target-only | 13 | true | true | 1.00 |
-| trial-0005 | single-block-target-first | 13 | true | true | 1.00 |
-| trial-0006 | multi-block-labeled | 13 | true | true | 0.75 |
+## 11. Phrase scoring
 
-This changes the interpretation of the first live run. The previous conclusion that `single-block-target-first` scored poorly was mostly a parser artifact: the response contained the relevant target-page text, but it put that text in a `text` field rather than in `transcription`. Under the repaired parser, the first live run does not show forbidden-caption bleed for pages 12 and 13 in any of the three tested scenarios.
+The scorer computes a small target-isolation score.
 
-This update does not prove that neighboring page images are safe. It only corrects the evidence from this small run. The production rule remains unchanged: target-page-only OCR or text-only context is still the safe default until a broader benchmark over known risky figure-adjacent pages shows reliable behavior. The next benchmark should use the repaired parser, preserve `parse_strategy` columns, and test the known duplicate-caption page pairs.
+```go
+score := expected_hits / expected_total
+score -= 0.5 * forbidden_hits
+if !json_parse_ok {
+    score -= 0.25
+}
+score = max(score, 0)
+```
 
-## Update: saved-run rescoring is now a first-class command
+The scorer also normalizes whitespace before phrase matching. This became necessary because OCR of diagram labels often breaks phrases over lines:
 
-The benchmark now has a replay path for saved provider outputs:
+```text
+Application
+Data
+Base
+```
+
+The phrase oracle wants to match:
+
+```text
+Application Data Base
+```
+
+The scorer now uses:
+
+```go
+func normalizePhraseText(s string) string {
+    return strings.Join(strings.Fields(strings.ToLower(s)), " ")
+}
+```
+
+This change is important. Without whitespace normalization, a correct diagram transcription can receive a low score simply because line breaks split labels.
+
+## 12. The broad risky-page live run
+
+The broad run used 16 target pages and 4 scenarios:
+
+```text
+16 pages × 4 scenarios = 64 logical trials
+```
+
+Command:
 
 ```bash
-go run ./cmd/book-ocr vlm-separation rescore \
-  --out-dir /tmp/book-ocr-vlm-separation-live-001 \
+go run ./cmd/book-ocr vlm-separation --log-level warn benchmark \
+  --dry-run=false \
+  --book-id report-794 \
+  --image-dir /home/manuel/code/wesen/claw-stuff/output/books/presentation-based-uis/pages \
+  --preset report794-figure-adjacent \
+  --scenarios target-only,single-block-target-first,multi-block-labeled,target-plus-text-context \
+  --profile gpt-5-mini-low \
+  --profile-registries /tmp/book-ocr-hq-001/profiles-clean.yaml \
+  --out-dir /tmp/book-ocr-vlm-separation-live-risky-pages \
   --output table
 ```
 
-This command treats the saved response files as the source of truth. It reads:
+Run ID:
 
 ```text
-<out-dir>/trials/trial-*/trial.json
-<out-dir>/trials/trial-*/response.txt
+vlmsep-4636c84d-e707-4b2c-8134-78e5bda15b9e
 ```
 
-Then it applies the current parser and scorer, rewrites `response.json`, `metrics.json`, `trial.json`, `summary.json`, and `summary.md`, and updates `results.sqlite`. It does not call the provider.
+Output directory:
 
-This is an important benchmark design rule. Provider outputs are experimental observations. Scoring is a projection over those observations. When the projection improves, old observations should be re-scoreable without changing the observations themselves.
+```text
+/tmp/book-ocr-vlm-separation-live-risky-pages
+```
 
-The command also makes the parser-repair update operational. The first live run can now be reinterpreted from the saved files with the same command that future runs will use. That makes the corrected result reproducible without temporary test code.
+Two live calls failed with transient TLS errors:
+
+```text
+trial-0023 page 43 multi-block-labeled       tls: bad record MAC
+trial-0040 page 88 target-plus-text-context  tls: bad record MAC
+```
+
+Both were retried as separate one-trial runs. The page 88 retry succeeded immediately. The page 43 multi-block-labeled retry failed once with the same TLS error and then succeeded on the second retry. The final combined interpretation below uses the successful retries for those two logical cells.
+
+Retry output directories:
+
+```text
+/tmp/book-ocr-vlm-separation-live-risky-pages-retry-43-mbl-2
+/tmp/book-ocr-vlm-separation-live-risky-pages-retry-88-text
+```
+
+## 13. Broad-run results
+
+After applying retries and rescoring all saved outputs with the current parser/scorer:
+
+```text
+logical trials:        64
+successful trials:     64
+parseable trials:      64
+suspected bleed:       0
+forbidden hits:        0
+```
+
+Scenario aggregates:
+
+| Scenario | Trials | Successful | Average score | Minimum score | Suspected bleed |
+|---|---:|---:|---:|---:|---:|
+| `target-only` | 16 | 16 | 0.938 | 0.333 | 0 |
+| `single-block-target-first` | 16 | 16 | 0.906 | 0.333 | 0 |
+| `multi-block-labeled` | 16 | 16 | 0.938 | 0.333 | 0 |
+| `target-plus-text-context` | 16 | 16 | 0.938 | 0.333 | 0 |
+
+Page aggregates:
+
+| Page | Average score across scenarios | Notes |
+|---:|---:|---|
+| 12 | 1.000 | Prose page adjacent to Figure 1-1; no forbidden caption copied. |
+| 13 | 0.938 | Figure page; two scenarios missed one expected anchor but did not copy forbidden content. |
+| 31 | 1.000 | Figure 2-1 page; no copied PPSCalc captions after oracle correction. |
+| 32 | 1.000 | PPSCalc figure page; all scenarios hit expected anchors. |
+| 42 | 1.000 | Presenter Parts figure page. |
+| 43 | 1.000 | Prose page after retry; no Figure 2-9 bleed. |
+| 59 | 0.667 | All scenarios missed one expected oracle anchor; no forbidden captions. |
+| 60 | 1.000 | Prose page; no Figure 3-2 or Figure 3-3 bleed. |
+| 87 | 1.000 | Prose page; no Xerox Star Figure 4-6 bleed. |
+| 88 | 0.938 | Figure page; one scenario missed one expected anchor. |
+| 97 | 1.000 | Steamer icon figure page. |
+| 98 | 1.000 | Prose page; no Figure 4-12 bleed. |
+| 112 | 1.000 | Command Description Support figure page after whitespace-normalized scoring. |
+| 113 | 1.000 | Prose page; no Figure 5-6 bleed. |
+| 115 | 1.000 | Reference Resolution figure page after whitespace-normalized scoring. |
+| 116 | 0.333 | All scenarios hit only one of three expected anchors; no Figure 5-7 bleed. |
+
+The most important result is not the average score. The most important result is the absence of forbidden-caption hits. The benchmark specifically targeted page pairs where the earlier full-book run had duplicated adjacent captions. Under the tested prompt layouts, model profile, parser repair, and oracles, the broad benchmark did not reproduce forbidden-caption bleed.
+
+## 14. Interpreting the low scores
+
+Some low scores are not evidence of context bleed.
+
+Page 59 scored 0.667 in every scenario. This uniformity across scenarios suggests an oracle/anchor issue rather than a block-layout issue. If target-only, image-context, and text-context all miss the same anchor, the missing anchor probably was not a context separation effect.
+
+Page 116 scored 0.333 in every scenario. The model consistently captured the page's opening material around Figure 5-7 references and `5.2 Graphics Redisplay`, but it did not hit two of the three expected anchors. Again, because all scenarios behaved the same way, the result is about expected-phrase coverage rather than image-context bleed.
+
+The benchmark therefore separates three failure classes:
+
+| Failure class | Symptom | Meaning |
+|---|---|---|
+| Context bleed | Forbidden neighboring caption appears. | Target boundary failed. |
+| Coverage miss | Expected anchor absent, no forbidden content. | OCR or oracle coverage issue. |
+| Harness failure | Missing response or parse failure. | Provider/transport/parser issue, not OCR content. |
+
+The broad run showed coverage misses and transient transport failures. It did not show context bleed under the current oracle.
+
+## 15. What the result does and does not prove
+
+The result is encouraging but bounded.
+
+It supports these statements:
+
+- On the tested risky pages, `gpt-5-mini-low` did not copy the forbidden adjacent figure captions under the tested layouts.
+- The previous full-book duplicated-caption failure is not automatically reproduced by every multi-image prompt layout.
+- The repaired parser is necessary for reliable benchmark interpretation because schema drift is common in live responses.
+- Text-only context performed as well as target-only on this benchmark after retries and rescoring.
+
+It does not support these stronger statements:
+
+- It does not prove neighboring page images are safe for production OCR.
+- It does not prove a different model, provider, prompt, page type, or larger book will behave the same way.
+- It does not prove `single-block-target-first` is a good production default.
+- It does not replace page-level validation in the redesigned OCR pipeline.
+
+The production design should still favor target-page-only primary OCR. The benchmark changes the confidence level around diagnostic and experimental image-context calls. It does not remove the need for a conservative production boundary.
+
+## 16. How the benchmark was built
+
+The implementation was built in layers. Each layer preserves a boundary that matters for later debugging.
+
+### Layer 1: Scenario construction
+
+`scenarios.go` converts a `TrialInput` into a Geppetto turn. This is where the experimental variable lives. The runner does not know whether a scenario uses one multimodal block or several blocks. It asks the scenario builder for a turn.
+
+```go
+func BuildTurnForScenario(input TrialInput) (*turns.Turn, error) {
+    turn := &turns.Turn{ID: input.TurnID}
+    turns.AppendBlock(turn, turns.NewSystemTextBlock(benchmarkSystemPrompt()))
+    switch input.Scenario.Name {
+    case ScenarioTargetOnly:
+        ...
+    case ScenarioSingleBlockTargetFirst:
+        ...
+    case ScenarioMultiBlockLabeled:
+        ...
+    }
+    return turn, nil
+}
+```
+
+This makes scenario changes reviewable. To understand a prompt-layout experiment, start in one file.
+
+### Layer 2: Runner orchestration
+
+`runner.go` owns the trial lifecycle:
+
+```text
+build TrialInput
+build Geppetto turn
+write turn-input.yaml
+save input turn to turns.db
+run fake or live inference
+write turn-final.yaml
+save final turn to turns.db
+extract last LLM text
+parse and score response
+write trial artifacts
+insert SQLite rows
+```
+
+The runner writes the input turn before inference. This is important because failed provider calls can still be debugged from `turn-input.yaml`. The broad run's two TLS failures both preserved their input turns.
+
+### Layer 3: Response repair and scoring
+
+`scoring.go` converts provider text into a canonical response and then into metrics. It deliberately records parser behavior as metrics. A repaired schema is not hidden.
+
+```go
+metrics.JSONSanitized = parseResult.Sanitized
+metrics.SchemaRepaired = parseResult.SchemaRepaired
+metrics.ParseStrategy = parseResult.Strategy
+```
+
+This makes later analysis possible. If one model always needs schema repair and another follows the schema strictly, that difference is visible in the database.
+
+### Layer 4: Persistence
+
+The benchmark writes both files and SQLite rows. The files are review artifacts. SQLite is the analysis surface.
+
+```mermaid
+flowchart TD
+    A[TrialInput] --> B[BuildTurnForScenario]
+    B --> C[turn-input.yaml]
+    B --> D[Pinocchio turns.db input phase]
+    B --> E{dry-run?}
+    E -->|yes| F[Fake response]
+    E -->|no| G[Geppetto RunInference]
+    F --> H[Final turn]
+    G --> H[Final turn]
+    H --> I[turn-final.yaml]
+    H --> J[Pinocchio turns.db final phase]
+    H --> K[response.txt]
+    K --> L[Sanitize + schema repair]
+    L --> M[metrics.json]
+    L --> N[trial.json]
+    M --> O[results.sqlite]
+
+    style C fill:#e8f5e9,stroke:#2e7d32
+    style I fill:#e8f5e9,stroke:#2e7d32
+    style D fill:#fff3e0,stroke:#ef6c00
+    style J fill:#fff3e0,stroke:#ef6c00
+    style O fill:#e3f2fd,stroke:#1565c0
+```
+
+### Layer 5: Rescoring
+
+`rescore.go` makes metrics replayable:
+
+```go
+trial, err := readTrialResult(path)
+rescored, err := rescoreTrialResult(trial)
+files.WriteTrialArtifacts(&rescored)
+db.InsertTrial(ctx, rescored)
+```
+
+This is the layer that allowed the first live run to be reinterpreted after response repair and phrase normalization were added.
+
+## 17. How to inspect the broad run
+
+Start with the summary:
+
+```bash
+jq . /tmp/book-ocr-vlm-separation-live-risky-pages/summary.json
+```
+
+Then query scenario aggregates:
+
+```bash
+sqlite3 -header -column /tmp/book-ocr-vlm-separation-live-risky-pages/results.sqlite '
+select scenario,
+       count(*) n,
+       sum(case when bt.status = "succeeded" then 1 else 0 end) succeeded,
+       sum(json_parse_ok) parse_ok,
+       sum(schema_repaired) repaired,
+       sum(suspected_bleed) bleed,
+       round(avg(target_only_score), 3) avg_score,
+       min(target_only_score) min_score
+from trial_metrics tm
+join benchmark_trials bt on tm.trial_id = bt.id
+group by scenario
+order by scenario;
+'
+```
+
+Find low-scoring trials:
+
+```bash
+sqlite3 -header -column /tmp/book-ocr-vlm-separation-live-risky-pages/results.sqlite '
+select bt.target_page,
+       bt.scenario,
+       bt.status,
+       tm.expected_phrase_hits,
+       tm.expected_phrase_total,
+       tm.forbidden_phrase_hits,
+       tm.target_only_score
+from benchmark_trials bt
+join trial_metrics tm on bt.id = tm.trial_id
+where tm.target_only_score < 1
+order by bt.target_page, bt.scenario;
+'
+```
+
+Inspect a trial manually:
+
+```bash
+less /tmp/book-ocr-vlm-separation-live-risky-pages/trials/trial-0010/turn-input.yaml
+less /tmp/book-ocr-vlm-separation-live-risky-pages/trials/trial-0010/response.txt
+jq . /tmp/book-ocr-vlm-separation-live-risky-pages/trials/trial-0010/metrics.json
+```
+
+Inspect turn-store row counts:
+
+```bash
+sqlite3 /tmp/book-ocr-vlm-separation-live-risky-pages/turns.db '
+select count(*) from turns;
+select count(*) from blocks;
+select count(*) from turn_block_membership;
+'
+```
+
+## 18. What should change in production OCR
+
+The benchmark supports a conservative production design.
+
+### Primary page OCR should be target-image-only
+
+The primary OCR call should transcribe only one page image. This gives the strongest page provenance. It makes every page artifact easier to audit. It also reduces the chance that a model copies an adjacent figure.
+
+### Context should be text-first
+
+Context is still useful. It should come from structured text outputs, not neighboring PNGs, in the normal path. A page pipeline can run:
+
+```text
+target-page OCR
+  -> structured blocks
+  -> deterministic Markdown rendering
+  -> text-only continuity/normalization pass
+  -> figure QA
+```
+
+The continuity pass can see prior/next text summaries. It should not need prior/next page images.
+
+### Multi-image prompts should remain diagnostic
+
+The broad benchmark did not reproduce forbidden-caption bleed, but image-context prompts still increase the amount of visual content available to the model. They should be used for benchmark and diagnostic questions, not for the default production transcription path.
+
+### Validation should check forbidden adjacent captions
+
+The benchmark oracle pattern should become part of production QA. If page N references Figure X and page N+1 contains Figure X, the renderer or validator should verify that page N did not gain a figure marker unless the figure is visibly present on page N.
+
+## 19. Current status
+
+The benchmark now has:
+
+- dry-run validation,
+- live benchmark execution,
+- Glazed logging initialization,
+- Pinocchio-compatible turn persistence,
+- benchmark SQLite persistence,
+- sanitize-backed JSON repair,
+- schema repair for common live model variants,
+- whitespace-normalized phrase scoring,
+- saved-run rescoring,
+- specialized oracles for the risky Report 794 page preset,
+- a broad live run over 64 logical trials.
+
+Recent implementation commits in `book-ocr`:
+
+```text
+050aab5 Expand VLM benchmark risky page oracles
+c220e1b Harden VLM benchmark rescore parsing
+d37143b Normalize VLM benchmark phrase scoring
+b606549 Add VLM benchmark rescore command
+```
+
+Key output directories:
+
+```text
+/tmp/book-ocr-vlm-separation-live-risky-pages
+/tmp/book-ocr-vlm-separation-live-risky-pages-retry-43-mbl-2
+/tmp/book-ocr-vlm-separation-live-risky-pages-retry-88-text
+```
+
+## 20. Next steps
+
+The next useful implementation step is a reporting command. `rescore` updates artifacts and emits trial rows, but it does not yet produce the grouped narrative tables used in this article.
+
+A good `report` command would:
+
+- read one or more benchmark output directories,
+- optionally apply retry replacements,
+- group by scenario and page,
+- distinguish bleed, coverage misses, parse repair, and provider failures,
+- write Markdown and JSON summaries,
+- include links to the relevant trial directories.
+
+The next useful OCR pipeline step is to apply the benchmark's lesson to the structured OCR redesign: target-page-only primary OCR, deterministic rendering, text-context normalization, and explicit validation gates for adjacent-page contamination.
