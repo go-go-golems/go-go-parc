@@ -926,24 +926,21 @@ Successful logical trials: 64
 Parseable logical trials: 64
 Suspected bleed: 0
 Forbidden hits: 0
-Average target-only score: 0.930
+Average target-only score: 0.992
 ```
 
 The report command also emits Glazed rows for scenario and page aggregates. The scenario rows from the broad run are:
 
 | Scenario | Trials | Succeeded | Parse OK | Schema repaired | Suspected bleed | Forbidden hits | Average score | Minimum score |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| `multi-block-labeled` | 16 | 16 | 16 | 16 | 0 | 0 | 0.938 | 0.333 |
-| `single-block-target-first` | 16 | 16 | 16 | 16 | 0 | 0 | 0.906 | 0.333 |
-| `target-only` | 16 | 16 | 16 | 16 | 0 | 0 | 0.938 | 0.333 |
-| `target-plus-text-context` | 16 | 16 | 16 | 16 | 0 | 0 | 0.938 | 0.333 |
+| `multi-block-labeled` | 16 | 16 | 16 | 16 | 0 | 0 | 1.000 | 1.000 |
+| `single-block-target-first` | 16 | 16 | 16 | 16 | 0 | 0 | 0.969 | 0.750 |
+| `target-only` | 16 | 16 | 16 | 16 | 0 | 0 | 1.000 | 1.000 |
+| `target-plus-text-context` | 16 | 16 | 16 | 16 | 0 | 0 | 1.000 | 1.000 |
 
-The page rows make the interpretation easier to audit. Pages 59 and 116 are visible as coverage problems because their averages are low across every scenario, while their forbidden-hit and bleed counts remain zero.
+The page rows make the interpretation easier to audit. The first version of the report exposed pages 59 and 116 as uniform low-score pages. That was useful because the uniformity showed the problem was not a prompt-layout effect. After inspecting the saved responses and the page images, the oracles were tightened to use visible, repeatedly transcribed anchors: page 59 now uses diagram labels such as `Presentation Data Base`, `Application Data Base`, and `Future Data Base`; page 116 now uses `Graphics Redisplay`, `PSBase`, and `presentation data base`.
 
-| Page | Trials | Average score | Suspected bleed | Forbidden hits | Interpretation |
-|---:|---:|---:|---:|---:|---|
-| 59 | 4 | 0.667 | 0 | 0 | One expected anchor is probably too strict or inconsistently phrased. |
-| 116 | 4 | 0.333 | 0 | 0 | The page text includes references to Figure 5-7 but did not hit most current anchors. |
+After regenerating the report, pages 59 and 116 score 1.000 across all four scenarios. The remaining low cells are page 13 and page 88 under `single-block-target-first`; both are coverage misses with zero forbidden hits and zero suspected bleed.
 
 This matters because the benchmark should not collapse all low scores into one failure class. A low score with no forbidden hits means expected coverage was incomplete. A low score with forbidden hits means page-boundary failure. A failed trial with no response means provider or transport failure. The report command keeps those cases separate.
 
@@ -990,8 +987,47 @@ Key generated report artifacts:
 /tmp/book-ocr-vlm-separation-live-risky-pages/report.json
 ```
 
-## 22. Next steps
+## 22. Update: first structured OCR contracts landed
 
-The next useful benchmark step is to improve oracle quality for pages 59 and 116. Their low scores appear uniformly across all scenarios, which makes them coverage/oracle issues rather than context-separation issues. Better anchors would make future comparisons more sensitive.
+The benchmark findings have now been folded into the OCR redesign and the first deterministic implementation slice has landed in `book-ocr`.
 
-The next useful OCR pipeline step is to apply the benchmark's lesson to the structured OCR redesign: target-page-only primary OCR, deterministic rendering, text-context normalization, and explicit validation gates for adjacent-page contamination.
+New production-oriented package:
+
+```text
+internal/ocrpipeline/
+  types.go          StructuredPageOCR, OCRBlock, warnings, figure refs
+  renderer.go       deterministic Markdown renderer
+  session.go        Pinocchio turn-store wrapper and page/run ID helpers
+```
+
+New validation package:
+
+```text
+internal/ocrvalidation/
+  anchors.go        expected/forbidden anchor evaluation
+  adjacent.go       adjacent duplicate figure caption detection
+  types.go          warning and oracle contracts
+```
+
+The renderer is the first production write boundary. It turns structured page blocks into Markdown deterministically. It always emits page markers, renders figures through a figure reference resolver, omits page footers by default, and suppresses `diagram_text` unless a debug option asks for it. This directly addresses one of the full-book artifact problems: figure images and ad-hoc diagram text should not both appear in final reader-facing Markdown by accident.
+
+The turn-store wrapper is the second boundary. It uses Pinocchio's `chatstore.SQLiteTurnStore` and the page-oriented IDs from the redesign:
+
+```text
+convID    = book-ocr:<book-id>:<run-id>
+sessionID = page:<NNN>
+turnID    = page:<NNN>:<index>-<name>
+phase     = input, final, parse-error, qa
+```
+
+One implementation detail is important for future debugging. Pinocchio stores one row per `(conv_id, session_id, turn_id)` in `turns`. Phase snapshots such as `input` and `final` are represented in `turn_block_membership`. Tests now assert phase presence through membership rows rather than expecting separate top-level turn rows.
+
+The validation package keeps deterministic production QA separate from the diagnostic benchmark package. It includes anchor evaluation and adjacent duplicate caption detection, with tests for the page-boundary cases that motivated this work:
+
+- page 12 can mention Figure 1-1 in prose, but rendering a Figure 1-1 caption on page 12 is detected as adjacent duplication when page 13 also renders the caption;
+- page 116 can mention Figure 5-7 in prose while still forbidding a rendered `Figure 5-7: Reference Resolution` caption;
+- anchor matching normalizes line breaks, so diagram labels like `Application
+Data
+Base` match `Application Data Base`.
+
+The next implementation step is now clear: add the target-page-only structured OCR client behind fake/dry-run tests. That client should create a Geppetto turn with exactly one target page image, persist `input` and `final` phases through `OCRTurnStore`, parse strict structured JSON into `StructuredPageOCR`, render through `RenderPageMarkdown`, and run deterministic validation before any live model call is allowed into a full-book workflow.
