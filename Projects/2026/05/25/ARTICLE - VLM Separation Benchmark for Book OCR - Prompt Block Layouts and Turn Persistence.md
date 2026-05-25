@@ -596,3 +596,26 @@ Re-scoring the saved first live run with the repaired parser gives this table:
 This changes the interpretation of the first live run. The previous conclusion that `single-block-target-first` scored poorly was mostly a parser artifact: the response contained the relevant target-page text, but it put that text in a `text` field rather than in `transcription`. Under the repaired parser, the first live run does not show forbidden-caption bleed for pages 12 and 13 in any of the three tested scenarios.
 
 This update does not prove that neighboring page images are safe. It only corrects the evidence from this small run. The production rule remains unchanged: target-page-only OCR or text-only context is still the safe default until a broader benchmark over known risky figure-adjacent pages shows reliable behavior. The next benchmark should use the repaired parser, preserve `parse_strategy` columns, and test the known duplicate-caption page pairs.
+
+## Update: saved-run rescoring is now a first-class command
+
+The benchmark now has a replay path for saved provider outputs:
+
+```bash
+go run ./cmd/book-ocr vlm-separation rescore \
+  --out-dir /tmp/book-ocr-vlm-separation-live-001 \
+  --output table
+```
+
+This command treats the saved response files as the source of truth. It reads:
+
+```text
+<out-dir>/trials/trial-*/trial.json
+<out-dir>/trials/trial-*/response.txt
+```
+
+Then it applies the current parser and scorer, rewrites `response.json`, `metrics.json`, `trial.json`, `summary.json`, and `summary.md`, and updates `results.sqlite`. It does not call the provider.
+
+This is an important benchmark design rule. Provider outputs are experimental observations. Scoring is a projection over those observations. When the projection improves, old observations should be re-scoreable without changing the observations themselves.
+
+The command also makes the parser-repair update operational. The first live run can now be reinterpreted from the saved files with the same command that future runs will use. That makes the corrected result reproducible without temporary test code.
