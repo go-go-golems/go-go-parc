@@ -30,8 +30,9 @@ The important outcome is not just that the first 30 pages were OCRed. The import
 > [!summary]
 > 1. The quality loop started with a 30-page `gpt-5-nano-low` baseline and exposed concrete failures: list-page style drift, title/blank-page policy ambiguity, noisy SSE logs, and book-specific OCR mistakes.
 > 2. The optimization loop improved one failure class at a time: first page-type rules, then list-page diplomatic transcription, then model selection, then a Report 794 lexicon, then deterministic QA and cleanup.
-> 3. The selected raw OCR output is Experiment 007; the selected review artifact is Experiment 008, which normalizes list-page dot leaders without hiding the raw model output.
-> 4. The reusable lesson is that prompt optimization should be run as an evidence-preserving experiment system, not as a sequence of unrecorded prompt edits.
+> 3. The selected raw OCR output is Experiment 007; the selected deterministic text cleanup is Experiment 008, which normalizes list-page dot leaders without hiding the raw model output.
+> 4. The follow-up `OCR-QUALITY-WORKERS-001` ticket promoted the Python QA/cleanup scripts into Go workflow-native workers, added bounded surrounding-page OCR context, and produced a current embedded-figure review artifact.
+> 5. The reusable lesson is that prompt optimization should be run as an evidence-preserving experiment system, not as a sequence of unrecorded prompt edits.
 
 ## Concrete locations
 
@@ -66,10 +67,16 @@ The best raw model output is:
 experiments/007-quality-v4-mini-pages-001-030/outputs/01-final-quality-v4-mini-pages-001-030.md
 ```
 
-The best current review artifact is:
+The best deterministic text-only review artifact from `BOOK-OCR-HQ-001` is:
 
 ```text
 experiments/008-deterministic-continuity-cleanup/outputs/02-final-quality-v4-mini-pages-001-030-normalized.md
+```
+
+The current embedded-figure review artifact from the follow-up `OCR-QUALITY-WORKERS-001` ticket is:
+
+```text
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/001-go-quality-pass-embedded-figures/outputs/02-embedded-figures.md
 ```
 
 ## The problem this project actually solved
@@ -1232,9 +1239,184 @@ It should produce:
 
 The key is that the second pass should not silently rewrite OCR. It should be an auditable transformation.
 
-## Final state
+## Follow-up: porting the quality loop into Go workers
 
-`BOOK-OCR-HQ-001` is complete.
+After `BOOK-OCR-HQ-001` closed, the next improvement was to promote the successful Python experiment scripts into first-class Go workflow workers. This happened in the follow-up ticket:
+
+```text
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers
+```
+
+The important shift is that QA and cleanup are no longer external scripts that happen to inspect a markdown file. They are now workflow-native steps that can be registered, run, retried, inspected, and preserved through the same artifact machinery as the OCR workflow itself.
+
+The new package is:
+
+```text
+/home/manuel/workspaces/2026-05-20/book-ocr/scraper/pkg/workflows/ocrquality
+```
+
+It currently provides:
+
+- page-aware markdown splitting;
+- OCR markdown QA checks;
+- known bad term checks;
+- expected string checks;
+- adjacent duplicate line checks;
+- list-page markdown bullet/heading drift checks;
+- deterministic list-page dot-leader normalization;
+- NDJSON/plain log import summaries with optional SQLite output;
+- an `ocr-quality` workflow package;
+- a CLI entry point through `ocr-mvp quality-pass`.
+
+The quality-pass command is intentionally shaped like the experiment scripts, but it writes both local files and workflow artifacts:
+
+```bash
+go run ./cmd/ocr-mvp quality-pass \
+  --markdown RAW.md \
+  --output-dir OUT \
+  --work-dir WORK \
+  --book-id presentation-based-uis-hq-007-v4-mini-30 \
+  --expected-pages 30
+```
+
+The workflow shape is:
+
+```mermaid
+flowchart TD
+    A[raw OCR markdown] --> B[qa-before]
+    A --> C[normalize-markdown]
+    C --> D[qa-after]
+    B --> E[assemble-quality-report]
+    D --> E
+    C --> F[normalized markdown artifact]
+    C --> G[cleanup diff artifact]
+
+    style B fill:#ffd,stroke:#aa7
+    style C fill:#eef,stroke:#447
+    style D fill:#ffd,stroke:#aa7
+    style E fill:#dfd,stroke:#484
+```
+
+This matters because the OCR system can now treat quality checks as part of the workflow graph. The next natural step is to use typed QA findings to decide which pages should be retried, which pages should be manually reviewed, and which pages can move into a continuity or section-level cleanup pass.
+
+## Follow-up: bounded surrounding-page context for OCR
+
+The follow-up work also added a bounded context mechanism to the OCR MVP. The new `--context-window` option lets each target page include previous and next page images in the Geppetto multimodal call. The prompt explicitly says that the first image is the target page and any additional images are context only.
+
+The command shape is:
+
+```bash
+go run ./cmd/ocr-mvp run \
+  --book-id presentation-based-uis-context-window-test \
+  --image-dir /home/manuel/code/wesen/claw-stuff/output/books/presentation-based-uis/pages \
+  --start-page 6 \
+  --end-page 9 \
+  --profile gpt-5-mini-low \
+  --profile-registries /tmp/book-ocr-hq-001/profiles-clean.yaml \
+  --prompt-version ocr-quality-v4-report794-lexicon \
+  --context-window 1 \
+  --log-level warn
+```
+
+This is a continuity lever, not a default policy change. It is useful for tables of contents, continued lists, and pages where a heading or figure reference depends on neighboring pages. It is also risky: a model can accidentally transcribe text from a context page. For that reason, the default remains `--context-window 0`, and context-window runs should be compared against the v4 mini baseline with both automated QA and visual spot checks.
+
+The relevant implementation paths are:
+
+```text
+scraper/pkg/workflows/ocrmvp/types.go
+scraper/pkg/workflows/ocrmvp/discover.go
+scraper/pkg/workflows/ocrmvp/geppetto_ocr.go
+scraper/pkg/workflows/ocrmvp/prompt.go
+scraper/cmd/ocr-mvp/main.go
+```
+
+## Follow-up: embedded extracted figures
+
+The other major improvement was embedded figure extraction. The first 30-page OCR artifact contained two figure markers. The text-only artifact preserved them as semantic placeholders, but a high-quality book OCR output should preserve the visual diagrams themselves.
+
+The new figure worker scans normalized markdown for figure markers, tracks the current page marker, loads the corresponding source page image, crops a figure region, writes a PNG into a `figures/` directory, and replaces the marker with a normal Markdown image link.
+
+The current embedded artifact is:
+
+```text
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/001-go-quality-pass-embedded-figures/outputs/02-embedded-figures.md
+```
+
+The extracted figure images are:
+
+```text
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/001-go-quality-pass-embedded-figures/outputs/figures/page_013_figure_01.png
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/001-go-quality-pass-embedded-figures/outputs/figures/page_021_figure_01.png
+```
+
+The Markdown now contains ordinary image links:
+
+```markdown
+![Diagram showing users represented by circles labeled "T" connected to an Application Data Base with arrows labeled "queries", "observables", and "commands"](figures/page_013_figure_01.png)
+
+![Structure of PSBase diagram](figures/page_021_figure_01.png)
+```
+
+The command used for the embedded-figure pass was:
+
+```bash
+go run ./cmd/ocr-mvp quality-pass \
+  --markdown /home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/experiments/007-quality-v4-mini-pages-001-030/outputs/01-final-quality-v4-mini-pages-001-030.md \
+  --output-dir /tmp/ocr-quality-go-figures/out \
+  --work-dir /tmp/ocr-quality-go-figures/work \
+  --book-id presentation-based-uis-hq-007-v4-mini-30 \
+  --expected-pages 30 \
+  --image-dir /home/manuel/code/wesen/claw-stuff/output/books/presentation-based-uis/pages \
+  --embed-figures
+```
+
+The figure cropper went through several iterations. The first version used a broad non-white bounding box and included page margins, scanner artifacts, and page numbers. The second focused on the dominant ink band but cut off important parts of Figure 1-4. The final first-pass version uses meaningful image ink bands with footer suppression so that page numbers are removed while the full diagrams remain visible.
+
+```mermaid
+flowchart TD
+    A[normalized markdown] --> B[find FIGURE markers]
+    B --> C[map marker to current page]
+    C --> D[load page_NNN.png]
+    D --> E[foreground/ink-band crop heuristic]
+    E --> F[write figures/page_NNN_figure_MM.png]
+    F --> G[replace marker with Markdown image link]
+    G --> H[embedded-figures markdown]
+
+    style E fill:#eef,stroke:#447
+    style F fill:#dfd,stroke:#484
+    style H fill:#dfd,stroke:#484
+```
+
+The final crops were checked with the vision tool. The check confirmed that the page numbers and footers were removed and that the complete diagrams remained present. This is good enough for the current first-30-page artifact, but it is not yet a full-book figure segmentation system.
+
+## Segmentation improvements still needed
+
+The current figure extraction is a first pass. It is a page-level crop heuristic, not a semantic figure detector. That is acceptable for the two simple figure pages in the first 30 pages. It will not be sufficient for the full book without more segmentation work.
+
+The next segmentation improvements should be:
+
+1. **Connected-component candidate extraction.** Threshold the image, remove noise, find connected components, merge nearby components into candidate regions, and score them by size, density, aspect ratio, and distance from page furniture.
+2. **Explicit page-furniture suppression.** Detect recurring bottom page numbers, running headers, punch-hole shadows, scanner borders, and margin artifacts instead of relying only on fixed cutoffs.
+3. **Caption-aware matching.** Use OCR text or markdown captions to match `Figure 1-4` style markers to nearby visual regions.
+4. **Multiple figures per page.** Emit `FigureExtraction[]` candidates rather than assuming one large page crop per marker.
+5. **Debug overlays.** For every extracted figure, write a sidecar JSON and an overlay PNG showing candidate regions, ignored footer zones, and the selected rectangle.
+6. **Figure QA warnings.** Flag crops that are too large, too small, too blank, too close to the full page, likely include a footer, or fail to match the number of figure markers.
+7. **Optional enhancement pass.** Preserve raw crops but optionally emit contrast-enhanced crops for faint diagrams.
+
+The desired future figure artifact shape is:
+
+```text
+figures/page_013_figure_01.raw.png
+figures/page_013_figure_01.enhanced.png
+figures/page_013_figure_01.json
+figures/page_013_figure_01.debug.png
+```
+
+The JSON sidecar should record the source page, crop rectangle, method, warnings, and confidence. The debug overlay should make segmentation failures inspectable without re-running the workflow.
+
+## Updated final state
+
+`BOOK-OCR-HQ-001` is complete, and `OCR-QUALITY-WORKERS-001` has promoted the most valuable follow-up pieces into Go workflow infrastructure.
 
 The ticket is closed. `docmgr doctor` passes. All code and documentation changes were committed.
 
@@ -1252,9 +1434,19 @@ Important scraper commits include:
 ```text
 6e05ee1 Add OCR quality v3 list prompt
 8e76419 Add Report 794 OCR lexicon prompt
+eb19a40 Add OCR quality workflow workers
+509c8f5 Add OCR figure embedding worker
+5c044e6 Add frontmatter to OCR quality reports
 ```
 
-The selected review artifact is:
+Important follow-up docs commits include:
+
+```text
+a97496d Docs: plan OCR quality workers
+a564c8e Docs: record OCR figure embedding pass
+```
+
+The selected text-only review artifact is:
 
 ```text
 /home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/experiments/008-deterministic-continuity-cleanup/outputs/02-final-quality-v4-mini-pages-001-030-normalized.md
@@ -1266,4 +1458,10 @@ The raw provenance artifact is:
 /home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/experiments/007-quality-v4-mini-pages-001-030/outputs/01-final-quality-v4-mini-pages-001-030.md
 ```
 
-The final lesson is straightforward: prompt optimization worked because it was treated as an experiment system. The prompt text mattered, but the surrounding process mattered just as much: preserve evidence, inspect failures, validate visually, change one thing at a time, run targeted pages first, and finish with repeatable QA.
+The current embedded-figure review artifact is:
+
+```text
+/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-QUALITY-WORKERS-001--port-ocr-qa-and-cleanup-scripts-to-go-workflow-workers/experiments/001-go-quality-pass-embedded-figures/outputs/02-embedded-figures.md
+```
+
+The final lesson is straightforward: prompt optimization worked because it was treated as an experiment system. The prompt text mattered, but the surrounding process mattered just as much: preserve evidence, inspect failures, validate visually, change one thing at a time, run targeted pages first, finish with repeatable QA, and then promote successful scripts into workflow-native workers.
