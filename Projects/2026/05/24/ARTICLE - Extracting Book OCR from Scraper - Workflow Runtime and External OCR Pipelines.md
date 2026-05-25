@@ -455,13 +455,37 @@ The book OCR pipeline is a strong example because it uses many runtime features:
 
 None of those features require OCR to live in `scraper`. They require `scraper` to provide a strong workflow API.
 
-## Current correction to the project direction
+## Current implementation status
 
-The earlier report framed the target as keeping generic OCR workflows in `scraper` and moving only Report 794 policy out. That was too narrow. The corrected target is:
+The repository boundary has now been implemented. The OCR page workflow, quality workflow, book profile/discovery code, figure extraction, sidecar generation, and OCR CLI were moved into `2026-05-20--book-ocr`. The old OCR packages and `cmd/ocr-mvp` were removed from `scraper` after the external command passed a real Report 794 quality-pass smoke test.
+
+Current boundary:
 
 ```text
 scraper/                  workflow runtime and job queue mechanisms only
 2026-05-20--book-ocr/     all OCR workflows, CLIs, profiles, prompts, QA, figures, and experiments
 ```
 
-This is the cleaner architecture. It keeps the runtime general and lets the OCR application evolve quickly without turning `scraper` into an OCR product.
+Important commits:
+
+```text
+54fa0be Set up book OCR Go module
+04785a5 Move OCR workflows into book OCR repo
+cd01992 Move OCR workflows out of scraper
+```
+
+The external smoke test ran:
+
+```bash
+go run ./cmd/book-ocr quality-pass \
+  --markdown /home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/BOOK-OCR-HQ-001--high-quality-book-ocr-experiment-system/experiments/007-quality-v4-mini-pages-001-030/outputs/01-final-quality-v4-mini-pages-001-030.md \
+  --output-dir /tmp/book-ocr-external-smoke/out \
+  --work-dir /tmp/book-ocr-external-smoke/work \
+  --book-id report-794 \
+  --image-dir /home/manuel/code/wesen/claw-stuff/output/books/presentation-based-uis/pages \
+  --embed-figures
+```
+
+The output included `embedded-figures.md`, four figure image links, JSON crop sidecars, debug overlays, discovery YAML, and a profile patch. This proves the OCR application can run outside `scraper` while still using the Scraper workflow runtime.
+
+The next cleanup step is naming and productization. The moved packages still carry behavior-preserving names such as `ocrmvp`; those should be renamed after extraction so the new repository presents itself as the Book OCR application rather than as code copied from an MVP package.
