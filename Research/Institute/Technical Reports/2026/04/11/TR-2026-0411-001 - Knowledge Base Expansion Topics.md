@@ -433,7 +433,7 @@ const ACTIVITY_SELECTORS = [
 - **Flyout selectors discovered**:
   - Primary: `body > div:nth-child(5) > div > ... > section` (exact path)
   - Fallback: `[class*="stage-thread-flyout"] section`
-- **Flyout content**: "Activity\nThought for 12 seconds" header, reasoning chain body, "Sources" section footer
+- **Flyout content**: "Activity\\nThought for 12 seconds" header, reasoning chain body, "Sources" section footer
 
 **Timing parameters from `normalizeAndOpen()`**:
 - 250ms `scrollIntoView` delay before click

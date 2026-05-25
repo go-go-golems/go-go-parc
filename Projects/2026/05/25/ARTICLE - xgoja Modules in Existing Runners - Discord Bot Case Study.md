@@ -374,7 +374,7 @@ sequenceDiagram
     DBot->>Init: Init selected module capabilities from parsed values
     Init->>HTTP: Configure HTTP enabled/listen and closer
     Host->>JS: require bot script index.js
-    JS->>HTTP: require("express"); app.get/post routes
+    JS->>HTTP: require("express"); app.get and post routes
     Host->>Discord: create/open session and set outbound ops
     User->>HTTP: Browser GET / or POST /say
     HTTP->>JS: Invoke route handler on Goja owner thread
@@ -845,11 +845,11 @@ This completes the chain from browser to Discord:
 
 ```mermaid
 flowchart LR
-    Browser[Browser form] -->|GET /channels| ExpressRoute[/channels route]
+    Browser[Browser form] -->|GET /channels| ExpressRoute["/channels route"]
     ExpressRoute -->|discord.channels.list| DiscordSession[discordgo session]
     DiscordSession --> ExpressRoute
     ExpressRoute -->|channel names + IDs| Browser
-    Browser -->|POST /say| SayRoute[/say route]
+    Browser -->|POST /say| SayRoute["/say route"]
     SayRoute -->|discord.channels.send| DiscordAPI[Discord API]
 ```
 

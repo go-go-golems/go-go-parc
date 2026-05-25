@@ -74,7 +74,7 @@ Our entries follow a **Peter Norvig textbook style**: foundational first, concre
 |---|---|---|---|
 | **Wandering preamble** | "In the ever-evolving landscape of modern firmware development..." | The reader learns nothing. Signals the writer doesn't trust the material. | Start with the point. |
 | **Hedged non-claims** | "This approach could potentially offer certain advantages in terms of flexibility" | Says nothing while consuming words. | Be direct: "This approach offers flexibility and extensibility." |
-| **Vague bullets** | "- Important concepts\n- Key takeaways" | The reader cannot act on "important concepts." | Every bullet is a complete sentence that could stand alone. |
+| **Vague bullets** | "- Important concepts\\n- Key takeaways" | The reader cannot act on "important concepts." | Every bullet is a complete sentence that could stand alone. |
 | **Overused qualifiers** | "Of course, it goes without saying that clearly..." | Filler that implies uncertainty. | Just say it. |
 | **Philosophical throat-clearing** | "This pattern contains a profound elegance that reveals itself..." | Fills space, conveys no information. | Show the code, let reader decide. |
 | **"As you can see"** | "As you can see, the result is better." | Condescending. | Just show it. |

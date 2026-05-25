@@ -91,7 +91,7 @@ The result is a three-layer system:
 
 ```mermaid
 flowchart TD
-    Pkg[Package code<br/>log.Debug().Msg(...)] --> Wrapper[logcopter.Logger wrapper<br/>area = app.view.render]
+    Pkg["Package code<br/>log.Debug().Msg(...)"] --> Wrapper["logcopter.Logger wrapper<br/>area = app.view.render"]
     Wrapper --> Manager[Manager current state<br/>atomic snapshot]
     Manager --> Resolve[Longest-prefix level lookup]
     Resolve --> Child[zerolog child logger<br/>area field + level]

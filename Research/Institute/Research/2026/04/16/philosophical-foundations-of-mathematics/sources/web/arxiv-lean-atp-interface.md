@@ -41,14 +41,14 @@
 
 <sup class="ltx_note_mark">1</sup><sup class="ltx_note_mark">1</sup>institutetext: Stanford University, Stanford, USA <sup class="ltx_note_mark">2</sup><sup class="ltx_note_mark">2</sup>institutetext: Carnegie Mellon University, Pittsburgh, USA
 
-\\SetWatermarkAngle
 
-0 \\SetWatermarkText                                                                                  [![[Uncaptioned image]](https://arxiv.org/html/x1.png)](https://doi.org/10.1109/5.771073)                                                                               ![[Uncaptioned image]](https://arxiv.org/html/x2.png)
+
+
 
 # Lean-auto: An Interface between Lean 4 and Automated Theorem Provers
 
-Yicheng Qian\\orcidlink0009-0008-0194-9572 11    Joshua Clune\\orcidlink0000-0003-4047-6196 22    Clark Barrett\\orcidlink0000-0002-9522-3084 11     
-and Jeremy Avigad\\orcidlink0000-0003-1275-315X  
+Yicheng Qian-0008-0194-9572 11    Joshua Clune-0003-4047-6196 22    Clark Barrett-0002-9522-3084 11     
+and Jeremy Avigad-0003-1275-315X  
 22
 
 ###### Abstract
@@ -88,9 +88,7 @@ Hammers are not restricted to ITPs with expressive logical systems. Several ITPs
 Dependent type theory, or $\lambda C$ in the $\lambda$\-cube, or calculus of constructions (CoC) \[[3](https://arxiv.org/html/2505.14929v1#bib.bib3)\], is a highly expressive type system and logical system. It is the logical foundation of Coq, Lean 4, and Agda. To align with Lean 4, we use the variant of $\lambda C$ which contains a countable number of non-cumulative universe levels. The syntax of $\lambda C$ terms is defined inductively as follows:
 
 $$
-\mathcal{T}_{C}::=V\ |\ \mathsf{U}_{\ell}\ |\ \mathcal{T}_{C}\ \mathcal{T}_{C}%
-\ |\ \lambda(V:\mathcal{T}_{C}).\mathcal{T}_{C}\ |\ \forall(V:\mathcal{T}_{C})%
-.\mathcal{T}_{C},
+\mathcal{T}_{C}::=V\ |\ \mathsf{U}_{\ell}\ |\ \mathcal{T}_{C}\ \mathcal{T}_{C}\ |\ \lambda(V:\mathcal{T}_{C}).\mathcal{T}_{C}\ |\ \forall(V:\mathcal{T}_{C}).\mathcal{T}_{C},
 $$
 
 where $V$ is the set of variables, $\mathsf{U}_{\ell}\ (\ell\in\mathbb{N})$ are the sorts (i.e., the types of types), $\mathcal{T}_{C}\ \mathcal{T}_{C}$ is function application, $\lambda(V:\mathcal{T}_{C}).\mathcal{T}_{C}$ is $\lambda$ abstraction, and $\forall(V:\mathcal{T}_{C}).\mathcal{T}_{C}$ is product type. $\ell$ is called the universe level of $\mathsf{U}_{\ell}$. We use $\forall$ instead of $\mathrm{\Pi}$ to align with the syntax of Lean, Coq, and Agda. Syntactical equality of terms will be denoted as $=$, and $\beta\eta$\-equivalence of terms will be denoted as $\cong$.
@@ -99,8 +97,7 @@ We adopt the following commonly-used notational conventions: function applicatio
 
 A context $\Gamma$ is a list of variable declarations $x_{1}:\alpha_{1},\dots,x_{n}:\alpha_{n}$. Type judgements will be written as $\Gamma\vdash t:\alpha$, which stands for “$\lambda C$ term $t$ has type $\alpha$ under context $\Gamma$.”<sup class="ltx_note_mark">6</sup><sup class="ltx_note_mark">6</sup>6Derivation rules for type judgements of $\lambda C$ are given in Appendix [0.B](https://arxiv.org/html/2505.14929v1#Pt0.A2 "Appendix 0.B Derivation Rules of PTS ‣ Lean-auto: An Interface between Lean 4 and Automated Theorem Provers"). If $\Gamma\vdash t:\alpha$, then $t$ is called a well-formed term, and $\alpha$ is called a (well-formed) type.<sup class="ltx_note_mark">7</sup><sup class="ltx_note_mark">7</sup>7In $\lambda C$, all well-formed types are also well-formed terms. Under context $\Gamma$, a type $\alpha$ is called inhabited iff there exists $t$ such that $\Gamma\vdash t:\alpha$, in which case $t$ is called an inhabitant of $\alpha$. Propositions are types of type $\mathsf{U}_{0}$. A proof of a proposition $p:\mathsf{U}_{0}$ is an inhabitant of $p$. A proposition $p:\mathsf{U}_{0}$ is provable iff it is inhabited. Given a context $\Gamma$ and a proposition $p$, we use $\Gamma\vdash?p$ to represent the *problem* of finding a proof of $p$ under context $\Gamma$.
 
-For a function $f:\forall(x_{1}:\alpha_{1})\ \dots\ (x_{n}:\alpha_{n}).\beta$ (here $\beta$ may begin with $\forall$), the $n$th argument of $f$ is called a static dependent argument iff $x_{n}$ occurs in $\beta$. In many cases, static dependent arguments are also type arguments; for example, the first and second arguments of $\mathsf{List.map}:\forall(\alpha\ \beta:\mathsf{U}_{1}).(\alpha\to\beta)\to%
-\mathsf{List}\ \alpha\to\mathsf{List}\ \beta$ are both static dependent arguments. Another important concept is dependent argument.<sup class="ltx_note_mark">8</sup><sup class="ltx_note_mark">8</sup>8See Appendix [0.G](https://arxiv.org/html/2505.14929v1#Pt0.A7 "Appendix 0.G 𝜆_→^∗ Abstraction Algorithm ‣ Lean-auto: An Interface between Lean 4 and Automated Theorem Provers") for its formal definition. In practical scenarios, “dependent argument” and “static dependent argument” usually have the same meaning. Their intricate difference is explained in Sect. [4.3](https://arxiv.org/html/2505.14929v1#S4.SS3 "4.3 Challenges Related to Dependent Type Theory and Lean 4 ‣ 4 An Overview of Lean-auto ‣ Lean-auto: An Interface between Lean 4 and Automated Theorem Provers").
+For a function $f:\forall(x_{1}:\alpha_{1})\ \dots\ (x_{n}:\alpha_{n}).\beta$ (here $\beta$ may begin with $\forall$), the $n$th argument of $f$ is called a static dependent argument iff $x_{n}$ occurs in $\beta$. In many cases, static dependent arguments are also type arguments; for example, the first and second arguments of $\mathsf{List.map}:\forall(\alpha\ \beta:\mathsf{U}_{1}).(\alpha\to\beta)\to\mathsf{List}\ \alpha\to\mathsf{List}\ \beta$ are both static dependent arguments. Another important concept is dependent argument.<sup class="ltx_note_mark">8</sup><sup class="ltx_note_mark">8</sup>8See Appendix [0.G](https://arxiv.org/html/2505.14929v1#Pt0.A7 "Appendix 0.G 𝜆_→^∗ Abstraction Algorithm ‣ Lean-auto: An Interface between Lean 4 and Automated Theorem Provers") for its formal definition. In practical scenarios, “dependent argument” and “static dependent argument” usually have the same meaning. Their intricate difference is explained in Sect. [4.3](https://arxiv.org/html/2505.14929v1#S4.SS3 "4.3 Challenges Related to Dependent Type Theory and Lean 4 ‣ 4 An Overview of Lean-auto ‣ Lean-auto: An Interface between Lean 4 and Automated Theorem Provers").
 
 We use $\lambda C$ notation for all logical systems that can be embedded in $\lambda C$. When presenting Lean 4 examples, we use additional Lean 4 notational conventions. These are explained in Sect. [2.4](https://arxiv.org/html/2505.14929v1#S2.SS4 "2.4 Lean and Mathlib ‣ 2 Preliminaries ‣ Lean-auto: An Interface between Lean 4 and Automated Theorem Provers").
 
@@ -133,18 +130,14 @@ The Pure Type System (PTS) \[[3](https://arxiv.org/html/2505.14929v1#bib.bib3)\]
 The specification of a PTS consists of a triple $(\mathcal{S},\mathcal{A},\mathcal{R})$, where $\mathcal{S}$ is the set of sorts, $\mathcal{A}\subseteq\mathcal{S}\times\mathcal{S}$ is the set of axioms, and $\mathcal{R}\subseteq\mathcal{S}\times\mathcal{S}\times\mathcal{S}$ is the set of rules. An axiom $(s_{1},s_{2})\in\mathcal{A}$ is intended to represent the typing axiom $s_{1}:s_{2}$. The syntax of PTS terms is given by
 
 $$
-\mathcal{T}::=V\ |\ \mathcal{S}\ |\ \mathcal{T}\ \mathcal{T}\ |\ \lambda(V:%
-\mathcal{T}).\mathcal{T}\ |\ \forall(V:\mathcal{T}).\mathcal{T}
+\mathcal{T}::=V\ |\ \mathcal{S}\ |\ \mathcal{T}\ \mathcal{T}\ |\ \lambda(V:\mathcal{T}).\mathcal{T}\ |\ \forall(V:\mathcal{T}).\mathcal{T}
 $$
 
 Three type systems, $\lambda C$, $\lambda_{\to}$, and $\lambda_{\to}^{*}$, will be formulated using PTS.<sup class="ltx_note_mark">11</sup><sup class="ltx_note_mark">11</sup>11The derivation rules of PTS are given in Appendix [0.B](https://arxiv.org/html/2505.14929v1#Pt0.A2 "Appendix 0.B Derivation Rules of PTS ‣ Lean-auto: An Interface between Lean 4 and Automated Theorem Provers"). As mentioned above, $\lambda_{\to}$ is the term calculus of HOL, and $\lambda_{\to}^{*}$ is the term calculus of $\text{HOL}^{*}$. Note that $\mathsf{U}_{0}$ is not present in $\lambda_{\to}$ and $\lambda_{\to}^{*}$ because it is a special sort for propositions in $\lambda C$. The type of propositions in HOL and $\text{HOL}^{*}$ will be represented by a special symbol $\mathsf{Bool}:\mathsf{U}_{1}$.
 
-$\lambda_{\to}^{*}$ and $\lambda_{\to}$ are similar, except that $\lambda_{\to}^{*}$ allows a countable number of universe levels $\ell\in\mathbb{N}^{*}$, where $\mathbb{N}^{*}$ is the set of positive integers. For example, in the type $(\alpha\to\beta)\to\gamma$, the subterms $\alpha,\beta,$ and $\gamma$ must be of type $\mathsf{U}_{1}$ in the system $\lambda_{\to}$; however, in $\lambda_{\to}^{*}$, it is possible that $\alpha:\mathsf{U}_{\ell_{1}},\beta:\mathsf{U}_{\ell_{2}},\gamma:\mathsf{U}_{%
-\ell_{3}}$ where $\ell_{1},\ell_{2},\ell_{3}$ may be different. A technicality related to PTS requires the presence of the sorts $\mathsf{U}_{\ell}^{\prime}$ in $\lambda_{\to}^{*}$, with axioms $\mathsf{U}_{\ell}:\mathsf{U}_{\ell}^{\prime}$.
+$\lambda_{\to}^{*}$ and $\lambda_{\to}$ are similar, except that $\lambda_{\to}^{*}$ allows a countable number of universe levels $\ell\in\mathbb{N}^{*}$, where $\mathbb{N}^{*}$ is the set of positive integers. For example, in the type $(\alpha\to\beta)\to\gamma$, the subterms $\alpha,\beta,$ and $\gamma$ must be of type $\mathsf{U}_{1}$ in the system $\lambda_{\to}$; however, in $\lambda_{\to}^{*}$, it is possible that $\alpha:\mathsf{U}_{\ell_{1}},\beta:\mathsf{U}_{\ell_{2}},\gamma:\mathsf{U}_{\ell_{3}}$ where $\ell_{1},\ell_{2},\ell_{3}$ may be different. A technicality related to PTS requires the presence of the sorts $\mathsf{U}_{\ell}^{\prime}$ in $\lambda_{\to}^{*}$, with axioms $\mathsf{U}_{\ell}:\mathsf{U}_{\ell}^{\prime}$.
 
-The logical systems HOL and $\text{HOL}^{*}$ are $\lambda_{\to}$ and $\lambda_{\to}^{*}$ augmented with the symbols $\mathsf{Bool},\bot^{\prime},\to^{\prime},\forall^{\prime}_{s}(\text{for each %
-type }s)$, their corresponding typing rules, and logical rules. The abbreviations $\land^{\prime},\lor^{\prime},\neg^{\prime},\leftrightarrow,=^{\prime}_{s},%
-\exists^{\prime}_{s}$ are defined in a way consistent with their $\lambda C$ counterparts. The set of HOL and $\text{HOL}^{*}$ terms are denoted as $\mathcal{T}_{\to}$ and $\mathcal{T}_{\to}^{*}$, respectively.<sup class="ltx_note_mark">12</sup><sup class="ltx_note_mark">12</sup>12 The specifications of $\lambda C,\lambda_{\to}$, and $\lambda_{\to}^{*}$ using PTS are given in Appendix [0.C](https://arxiv.org/html/2505.14929v1#Pt0.A3 "Appendix 0.C 𝜆⁢𝐶,𝜆_→ and 𝜆_→^∗ ‣ Lean-auto: An Interface between Lean 4 and Automated Theorem Provers"). The formal definitions of HOL and $\text{HOL}^{*}$ are given in Appendix [0.D](https://arxiv.org/html/2505.14929v1#Pt0.A4 "Appendix 0.D HOL and \"HOL\"^∗ ‣ Lean-auto: An Interface between Lean 4 and Automated Theorem Provers").
+The logical systems HOL and $\text{HOL}^{*}$ are $\lambda_{\to}$ and $\lambda_{\to}^{*}$ augmented with the symbols $\mathsf{Bool},\bot^{\prime},\to^{\prime},\forall^{\prime}_{s}(\text{for each type }s)$, their corresponding typing rules, and logical rules. The abbreviations $\land^{\prime},\lor^{\prime},\neg^{\prime},\leftrightarrow,=^{\prime}_{s},\exists^{\prime}_{s}$ are defined in a way consistent with their $\lambda C$ counterparts. The set of HOL and $\text{HOL}^{*}$ terms are denoted as $\mathcal{T}_{\to}$ and $\mathcal{T}_{\to}^{*}$, respectively.<sup class="ltx_note_mark">12</sup><sup class="ltx_note_mark">12</sup>12 The specifications of $\lambda C,\lambda_{\to}$, and $\lambda_{\to}^{*}$ using PTS are given in Appendix [0.C](https://arxiv.org/html/2505.14929v1#Pt0.A3 "Appendix 0.C 𝜆⁢𝐶,𝜆_→ and 𝜆_→^∗ ‣ Lean-auto: An Interface between Lean 4 and Automated Theorem Provers"). The formal definitions of HOL and $\text{HOL}^{*}$ are given in Appendix [0.D](https://arxiv.org/html/2505.14929v1#Pt0.A4 "Appendix 0.D HOL and \"HOL\"^∗ ‣ Lean-auto: An Interface between Lean 4 and Automated Theorem Provers").
 
 ### 2.4 Lean and Mathlib
 
@@ -178,8 +171,7 @@ Encoding-based translation has the advantage of being (almost) complete and stra
 
 The idea behind monomorphization is the fact that the proof of many propositions in the more expressive system can essentially be conducted in the less expressive system. For example, in polymorphic HOL, given
 
-1. the list map function $\mathsf{List.map}:\forall(\alpha\ \beta:\mathsf{U}_{1}).(\alpha\to\beta)\to%
-\mathsf{List}\ \alpha\to\mathsf{List}\ \beta$
+1. the list map function $\mathsf{List.map}:\forall(\alpha\ \beta:\mathsf{U}_{1}).(\alpha\to\beta)\to\mathsf{List}\ \alpha\to\mathsf{List}\ \beta$
 
 2. two lists of natural numbers $xs\ ys:\mathsf{List}\ \mathbb{N}$ and two functions $f\ g:\mathbb{N}\to\mathbb{N}$
 
@@ -188,15 +180,13 @@ The idea behind monomorphization is the fact that the proof of many propositions
 The equality
 
 $$
-\mathsf{List.map}\ \mathbb{N}\ \mathbb{N}\ f\ xs=\mathsf{List.map}\ \mathbb{N}%
-\ \mathbb{N}\ g\ ys
+\mathsf{List.map}\ \mathbb{N}\ \mathbb{N}\ f\ xs=\mathsf{List.map}\ \mathbb{N}\ \mathbb{N}\ g\ ys
 $$
 
 is provable using two rewrites $xs\Rightarrow ys,f\Rightarrow g$. The crucial observation is that, although List.map is polymorphic, the term $\mathsf{List.map}\ \mathbb{N}\ \mathbb{N}$ as a whole behaves just like a monomorphic function, and therefore the rewrites can essentially be performed in monomorphic HOL. More formally, the formula ([1](https://arxiv.org/html/2505.14929v1#S3.E1 "In 3 Encoding-based Translation and Monomorphization ‣ Lean-auto: An Interface between Lean 4 and Automated Theorem Provers")) is the image of the monomorphic HOL formula $h\ f^{*}\ xs^{*}=h\ g^{*}\ ys^{*}$ under the inter-logical-system “substitution”
 
 $$
-\sigma:=\{h\mapsto\mathsf{List.map}\ \mathbb{N}\ \mathbb{N},f^{*}\mapsto f,g^{%
-*}\mapsto g,xs^{*}\mapsto xs,ys^{*}\mapsto ys\},
+\sigma:=\{h\mapsto\mathsf{List.map}\ \mathbb{N}\ \mathbb{N},f^{*}\mapsto f,g^{*}\mapsto g,xs^{*}\mapsto xs,ys^{*}\mapsto ys\},
 $$
 
 and the rewrites $xs\Rightarrow ys,f\Rightarrow g$ in polymorphic HOL are just manifestations of the rewrites $xs^{*}\Rightarrow ys^{*},f^{*}\Rightarrow g^{*}$ in monomorphic HOL.
@@ -238,8 +228,7 @@ $$
 $$
 
 $$
-\displaystyle\ \neg(\mathsf{EqLB}\ (\mathsf{rB}\ (\mathsf{mAB}\ f^{*}\ (%
-\mathsf{rA}\ \mathit{xs}^{*})))\ (\mathsf{mAB}\ f^{*}\ \mathit{xs}^{*}))
+\displaystyle\ \neg(\mathsf{EqLB}\ (\mathsf{rB}\ (\mathsf{mAB}\ f^{*}\ (\mathsf{rA}\ \mathit{xs}^{*})))\ (\mathsf{mAB}\ f^{*}\ \mathit{xs}^{*}))
 $$
 
 $$
@@ -247,25 +236,18 @@ $$
 $$
 
 $$
-\displaystyle\ \{\mathsf{EqLB}\mapsto\texttt{@Eq (List B)},\ \ \mathsf{mAB}%
-\mapsto\texttt{@map A B},
+\displaystyle\ \{\mathsf{EqLB}\mapsto\texttt{@Eq (List B)},\ \ \mathsf{mAB}\mapsto\texttt{@map A B},
 $$
 
 $$
-\displaystyle\ \ \mathsf{rA}\mapsto\texttt{@reverse A},\ \ \mathsf{rB}\mapsto%
-\texttt{@reverse B},\ \ f^{*}\mapsto\texttt{f},\ \ \mathit{xs}^{*}\mapsto%
-\texttt{xs}
+\displaystyle\ \ \mathsf{rA}\mapsto\texttt{@reverse A},\ \ \mathsf{rB}\mapsto\texttt{@reverse B},\ \ f^{*}\mapsto\texttt{f},\ \ \mathit{xs}^{*}\mapsto\texttt{xs}
 $$
 
 $$
-\displaystyle\ \ \mathsf{LA}\to\texttt{List A},\ \ \mathsf{LB}\to\texttt{List %
-B},\ \ \mathsf{A}\to\texttt{A},\ \ \mathsf{B}\to\texttt{B}\},
+\displaystyle\ \ \mathsf{LA}\to\texttt{List A},\ \ \mathsf{LB}\to\texttt{List B},\ \ \mathsf{A}\to\texttt{A},\ \ \mathsf{B}\to\texttt{B}\},
 $$
 
-where $\mathsf{EqLB}:\mathsf{LB}\to\mathsf{LB}\to\mathsf{Bool},\ \mathsf{rA}:\mathsf{%
-LA}\to\mathsf{LA},\ \mathsf{rB}:\mathsf{LB}\to\mathsf{LB},\ \mathsf{mAB}:(%
-\mathsf{A}\to\mathsf{B})\to\mathsf{LA}\to\mathsf{LB},\ f^{*}:\mathsf{A}\to%
-\mathsf{B},\ \mathit{xs}^{*}:\mathsf{LA}$.
+where $\mathsf{EqLB}:\mathsf{LB}\to\mathsf{LB}\to\mathsf{Bool},\ \mathsf{rA}:\mathsf{LA}\to\mathsf{LA},\ \mathsf{rB}:\mathsf{LB}\to\mathsf{LB},\ \mathsf{mAB}:(\mathsf{A}\to\mathsf{B})\to\mathsf{LA}\to\mathsf{LB},\ f^{*}:\mathsf{A}\to\mathsf{B},\ \mathit{xs}^{*}:\mathsf{LA}$.
 
 In a sense, the $\text{HOL}^{*}$ (type) instances are “abstracted” to $\text{HOL}^{*}$ (type) variables. Note that the logical rules of $\text{HOL}^{*}$ are not relevant to this abstraction procedure—only the term calculus $\lambda_{\to}^{*}$ is involved. Therefore, we name this procedure $\lambda_{\to}^{*}$ abstraction.
 
@@ -318,9 +300,7 @@ $$
 $$
 
 $$
-\displaystyle:=\{f\mapsto\texttt{@reverse},\ \ \gamma\mapsto\texttt{(}\forall%
-\ \texttt{\{}\alpha\ \beta\ :\ \texttt{Type\}},\ \texttt{List}\ \alpha\to%
-\texttt{List}\ \beta\texttt{)}\}
+\displaystyle:=\{f\mapsto\texttt{@reverse},\ \ \gamma\mapsto\texttt{(}\forall\ \texttt{\{}\alpha\ \beta\ :\ \texttt{Type\}},\ \texttt{List}\ \alpha\to\texttt{List}\ \beta\texttt{)}\}
 $$
 
 where $f:\gamma$. Then, @reverse = @reverse is the image of the $\text{HOL}^{*}$ formula $\varphi$ under $\sigma$. Intuitively, the dependent arguments in the type of reverse can be “absorbed” into the $\text{HOL}^{*}$ type variable $\gamma$ because neither of the dependent arguments of reverse are present. Our monomorphization procedure is able to detect such context-dependent $\text{HOL}^{*}$ instances.
@@ -387,8 +367,7 @@ The preprocessing stage also performs equational theorem generation. It collects
 
 Currently, Lean-auto supports polymorphic, nested, and mutual inductive types when SMT solvers are used as the backend ATP. For other ATPs or unsupported inductive types, users can always manually supply the properties related to the inductive types as a workaround.
 
-The translation procedure for inductive types resembles monomorphization. For a polymorphic inductive type $T:\forall(\alpha_{1}:\mathsf{U}_{\ell_{1}})\ \dots\ (\alpha_{n}:\mathsf{U}_{%
-\ell_{n}}).\mathsf{U}_{\ell}$, the translation attempts to find all relevant instances $T\ \alpha_{1}\ \dots\ \alpha_{n}$, and translates each instance to a monomorphic inductive type in the SMT solver. For mutual and nested inductive types, the type of their constructors might contain other inductive types not occurring in the input premises. These inductive types will be recursively collected and monomorphized by the translation procedure.
+The translation procedure for inductive types resembles monomorphization. For a polymorphic inductive type $T:\forall(\alpha_{1}:\mathsf{U}_{\ell_{1}})\ \dots\ (\alpha_{n}:\mathsf{U}_{\ell_{n}}).\mathsf{U}_{\ell}$, the translation attempts to find all relevant instances $T\ \alpha_{1}\ \dots\ \alpha_{n}$, and translates each instance to a monomorphic inductive type in the SMT solver. For mutual and nested inductive types, the type of their constructors might contain other inductive types not occurring in the input premises. These inductive types will be recursively collected and monomorphized by the translation procedure.
 
 #### 7.0.3 Quantifier Introduction and Proof by Contradiction:
 
@@ -436,7 +415,7 @@ We compare Lean-auto with the following existing tools:
 
 Figure 5: Comparison with existing tools. Our benchmark set contains 149135 problems.
 
-![Refer to caption](https://arxiv.org/html/extracted/6459691/Pictures/Time-vs-Solved.png)
+*[Figure: Time-vs-Solved (image unavailable)]*
 
 Figure 6: Figure 6: #Solved - Cumulative Time plot (left) and #Solved - Time plot (right)
 
@@ -508,8 +487,7 @@ $$
 $$
 
 $$
-\displaystyle:=\forall p:\mathsf{U}_{0}.p\ \ \ (\neg):=\lambda p:\mathsf{U}_{0%
-}.p\to\bot
+\displaystyle:=\forall p:\mathsf{U}_{0}.p\ \ \ (\neg):=\lambda p:\mathsf{U}_{0}.p\to\bot
 $$
 
 $$
@@ -518,8 +496,7 @@ $$
 
 $$
 \displaystyle:=\lambda p\ q:\mathsf{U}_{0}.\forall r:\mathsf{U}_{0}.(p\to q\to
-r%
-)\to r
+r)\to r
 $$
 
 $$
@@ -527,8 +504,7 @@ $$
 $$
 
 $$
-\displaystyle:=\lambda p\ q:\mathsf{U}_{0}.\forall r:\mathsf{U}_{0}.(p\to r)%
-\to(q\to r)\to r
+\displaystyle:=\lambda p\ q:\mathsf{U}_{0}.\forall r:\mathsf{U}_{0}.(p\to r)\to(q\to r)\to r
 $$
 
 $$
@@ -544,8 +520,7 @@ $$
 $$
 
 $$
-\displaystyle:=\lambda\alpha:\mathsf{U}_{\ell}.\lambda x\ y:\alpha.\forall p:%
-\alpha\to\mathsf{U}_{0}.(p\ x\leftrightarrow p\ y)
+\displaystyle:=\lambda\alpha:\mathsf{U}_{\ell}.\lambda x\ y:\alpha.\forall p:\alpha\to\mathsf{U}_{0}.(p\ x\leftrightarrow p\ y)
 $$
 
 $$
@@ -553,8 +528,7 @@ $$
 $$
 
 $$
-\displaystyle:=\lambda\alpha:\mathsf{U}_{\ell}.\lambda p:\alpha\to\mathsf{U}_{%
-0}.\forall q:\mathsf{U}_{0}.((\forall x:\alpha.p\ x\to q)\to q)
+\displaystyle:=\lambda\alpha:\mathsf{U}_{\ell}.\lambda p:\alpha\to\mathsf{U}_{0}.\forall q:\mathsf{U}_{0}.((\forall x:\alpha.p\ x\to q)\to q)
 $$
 
 ## Appendix 0.B Derivation Rules of PTS
@@ -586,8 +560,7 @@ $$
 $$
 
 $$
-\displaystyle\frac{\Gamma\vdash A:s_{1}\ \ \ \Gamma,x:A\vdash B:s_{2}}{\Gamma%
-\vdash(\forall x:A.B):s_{3}}
+\displaystyle\frac{\Gamma\vdash A:s_{1}\ \ \ \Gamma,x:A\vdash B:s_{2}}{\Gamma\vdash(\forall x:A.B):s_{3}}
 $$
 
 $$
@@ -595,19 +568,16 @@ $$
 $$
 
 $$
-\displaystyle\frac{\Gamma\vdash f:(\forall x:A.B)\ \ \ \Gamma\vdash a:A}{%
-\Gamma\vdash f\ a:B[x:=a]}
+\displaystyle\frac{\Gamma\vdash f:(\forall x:A.B)\ \ \ \Gamma\vdash a:A}{\Gamma\vdash f\ a:B[x:=a]}
 $$
 
 $$
-\displaystyle\frac{\Gamma,x:A\vdash b:B\ \ \ \Gamma\vdash(\forall x:A.B):s}{%
-\Gamma\vdash(\lambda x:A.b):(\forall x:A.B)}
+\displaystyle\frac{\Gamma,x:A\vdash b:B\ \ \ \Gamma\vdash(\forall x:A.B):s}{\Gamma\vdash(\lambda x:A.b):(\forall x:A.B)}
 $$
 
 $$
 \displaystyle\frac{\Gamma\vdash A:B\ \ \ \Gamma\vdash B^{\prime}:s\ \ \ B\cong
-B%
-^{\prime}}{\Gamma\vdash A:B^{\prime}}
+B^{\prime}}{\Gamma\vdash A:B^{\prime}}
 $$
 
 ## Appendix 0.C $\lambda C,\lambda_{\to}$ and $\lambda_{\to}^{*}$
@@ -617,12 +587,10 @@ $$
 $\lambda C$ is the pure type system $(\mathcal{S},\mathcal{A},\mathcal{R})$ where
 
 $$
-\mathcal{S}:=\{\mathsf{U}_{\ell}|\ell\in\mathbb{N}\}\ \ \ \mathcal{A}:=\{(%
-\mathsf{U}_{\ell},\mathsf{U}_{\ell+1})|\ell\in\mathbb{N}\}
+\mathcal{S}:=\{\mathsf{U}_{\ell}|\ell\in\mathbb{N}\}\ \ \ \mathcal{A}:=\{(\mathsf{U}_{\ell},\mathsf{U}_{\ell+1})|\ell\in\mathbb{N}\}
 $$
 $$
-\mathcal{R}:=\{(\mathsf{U}_{\ell},\mathsf{U}_{m},\mathsf{U}_{\mathsf{imax}(%
-\ell,m)})|\ell\in\mathbb{N},m\in\mathbb{N}\}
+\mathcal{R}:=\{(\mathsf{U}_{\ell},\mathsf{U}_{m},\mathsf{U}_{\mathsf{imax}(\ell,m)})|\ell\in\mathbb{N},m\in\mathbb{N}\}
 $$
 $$
 \mathsf{imax}(m,n):=\left\{\begin{aligned} \mathsf{max}(m,n),&&n>0\\
@@ -634,9 +602,7 @@ $$
 $\lambda_{\to}$ is the pure type system $(\mathcal{S},\mathcal{A},\mathcal{R})$ where
 
 $$
-\mathcal{S}:=\{\mathsf{U}_{1},\mathsf{U}_{1}^{\prime}\}\ \ \ \mathcal{A}:=\{(%
-\mathsf{U}_{1},\mathsf{U}_{1}^{\prime})\}\ \ \ \mathcal{R}:=\{(\mathsf{U}_{1},%
-\mathsf{U}_{1},\mathsf{U}_{1})\}
+\mathcal{S}:=\{\mathsf{U}_{1},\mathsf{U}_{1}^{\prime}\}\ \ \ \mathcal{A}:=\{(\mathsf{U}_{1},\mathsf{U}_{1}^{\prime})\}\ \ \ \mathcal{R}:=\{(\mathsf{U}_{1},\mathsf{U}_{1},\mathsf{U}_{1})\}
 $$
 
 This is equivalent to simply typed lambda calculus, where $\mathsf{U}_{1}$ and $\mathsf{U}_{1}^{\prime}$ are usually denoted as $*$ and $\square$, respectively.
@@ -646,13 +612,10 @@ This is equivalent to simply typed lambda calculus, where $\mathsf{U}_{1}$ and $
 $\lambda_{\to}^{*}$ is the pure type system $(\mathcal{S},\mathcal{A},\mathcal{R})$ where
 
 $$
-\mathcal{S}:=\{\mathsf{U}_{\ell}|\ell\in\mathbb{N}^{*}\}\cup\{\mathsf{U}_{\ell%
-}^{\prime}|\ell\in\mathbb{N}^{*}\}\ \ \ \mathcal{A}:=\{(\mathsf{U}_{\ell},%
-\mathsf{U}_{\ell}^{\prime})|\ell\in\mathbb{N}^{*}\}
+\mathcal{S}:=\{\mathsf{U}_{\ell}|\ell\in\mathbb{N}^{*}\}\cup\{\mathsf{U}_{\ell}^{\prime}|\ell\in\mathbb{N}^{*}\}\ \ \ \mathcal{A}:=\{(\mathsf{U}_{\ell},\mathsf{U}_{\ell}^{\prime})|\ell\in\mathbb{N}^{*}\}
 $$
 $$
-\mathcal{R}:=\{(\mathsf{U}_{\ell},\mathsf{U}_{m},\mathsf{U}_{\mathsf{max}\{l,m%
-\}})|\ell\in\mathbb{N}^{*},m\in\mathbb{N}^{*}\}
+\mathcal{R}:=\{(\mathsf{U}_{\ell},\mathsf{U}_{m},\mathsf{U}_{\mathsf{max}\{l,m\}})|\ell\in\mathbb{N}^{*},m\in\mathbb{N}^{*}\}
 $$
 
 ## Appendix 0.D HOL and $\text{HOL}^{*}$
@@ -670,19 +633,15 @@ HOL ($\text{HOL}^{*}$) is defined as $\lambda_{\to}$ ($\lambda_{\to}^{*}$) augme
 the following typing rules:
 
 $$
-\frac{}{\vdash\mathsf{Bool}:\mathsf{U}_{1}}\ \ \ \ \frac{}{\Gamma\vdash\bot^{%
-\prime}:\mathsf{Bool}}
+\frac{}{\vdash\mathsf{Bool}:\mathsf{U}_{1}}\ \ \ \ \frac{}{\Gamma\vdash\bot^{\prime}:\mathsf{Bool}}
 $$
 $$
-\frac{}{\Gamma\vdash\to^{\prime}:\mathsf{Bool}\to\mathsf{Bool}\to\mathsf{Bool}%
-}\ \ \ \ \frac{\Gamma\vdash s:\mathsf{U}_{\ell}}{\Gamma\vdash\forall^{\prime}_%
-{s}:(s\to\mathsf{Bool})\to\mathsf{Bool}}
+\frac{}{\Gamma\vdash\to^{\prime}:\mathsf{Bool}\to\mathsf{Bool}\to\mathsf{Bool}}\ \ \ \ \frac{\Gamma\vdash s:\mathsf{U}_{\ell}}{\Gamma\vdash\forall^{\prime}_{s}:(s\to\mathsf{Bool})\to\mathsf{Bool}}
 $$
 
 and the logical axioms and deduction rules of higher-order logic.
 
-Note: The logical symbols $\neg^{\prime},\land^{\prime},\lor^{\prime},\leftrightarrow,=^{\prime}_{s},%
-\exists^{\prime}_{s}$ are defined in a way consistent with their definition in $\lambda C$:
+Note: The logical symbols $\neg^{\prime},\land^{\prime},\lor^{\prime},\leftrightarrow,=^{\prime}_{s},\exists^{\prime}_{s}$ are defined in a way consistent with their definition in $\lambda C$:
 
 $$
 \displaystyle(\neg^{\prime})
@@ -697,8 +656,7 @@ $$
 $$
 
 $$
-\displaystyle:=\lambda(p\ q:\mathsf{Bool}).\forall(r:\mathsf{Bool}).((p\to^{%
-\prime}q\to^{\prime}r)\to^{\prime}r)
+\displaystyle:=\lambda(p\ q:\mathsf{Bool}).\forall(r:\mathsf{Bool}).((p\to^{\prime}q\to^{\prime}r)\to^{\prime}r)
 $$
 
 $$
@@ -706,8 +664,7 @@ $$
 $$
 
 $$
-\displaystyle:=\lambda(p\ q:\mathsf{Bool}).\forall(r:\mathsf{Bool}).((p\to^{%
-\prime}r)\to^{\prime}(q\to^{\prime}r)\to^{\prime}r)
+\displaystyle:=\lambda(p\ q:\mathsf{Bool}).\forall(r:\mathsf{Bool}).((p\to^{\prime}r)\to^{\prime}(q\to^{\prime}r)\to^{\prime}r)
 $$
 
 $$
@@ -715,8 +672,7 @@ $$
 $$
 
 $$
-\displaystyle:=\lambda(p\ q:\mathsf{Bool}).((p\to^{\prime}q)\land^{\prime}(q%
-\to^{\prime}p))
+\displaystyle:=\lambda(p\ q:\mathsf{Bool}).((p\to^{\prime}q)\land^{\prime}(q\to^{\prime}p))
 $$
 
 $$
@@ -724,8 +680,7 @@ $$
 $$
 
 $$
-\displaystyle:=\lambda(x\ y:s).\forall(p:s\to\mathsf{Bool}).(p\ x%
-\leftrightarrow^{\prime}p\ y)
+\displaystyle:=\lambda(x\ y:s).\forall(p:s\to\mathsf{Bool}).(p\ x\leftrightarrow^{\prime}p\ y)
 $$
 
 $$
@@ -733,8 +688,7 @@ $$
 $$
 
 $$
-\displaystyle:=\lambda(p:s\to\mathsf{Bool}).\forall(q:\mathsf{Bool}).((\forall%
-(x:s).p\ x\to^{\prime}q)\to^{\prime}q)
+\displaystyle:=\lambda(p:s\to\mathsf{Bool}).\forall(q:\mathsf{Bool}).((\forall(x:s).p\ x\to^{\prime}q)\to^{\prime}q)
 $$
 
 We use $\forall^{\prime}(x:s).t$ as a shorthand for $\forall^{\prime}_{s}\ (\lambda(x:s).t)$, and $\exists^{\prime}(x:\alpha).t$ as a shorthand for $\exists_{s}^{\prime}\ (\lambda(x:s).t)$.
@@ -752,43 +706,33 @@ First, we show that $\text{HOL}^{*}$ and HOL are, in a sense, equivalent to each
 Let $\rho^{*}:\mathcal{T}_{\to}^{*}\to\mathcal{T}_{\to}$ be the mapping that forgets the universe levels, i.e.
 
 $$
-\displaystyle\rho^{*}(\mathsf{Bool}):=\mathsf{Bool}\ \ \ \ \ \ \rho^{*}(%
-\mathsf{U}_{\ell}):=\mathsf{U}_{1}\ \ \ \ \ \ \rho^{*}(\mathsf{U}_{\ell}^{%
-\prime}):=\mathsf{U}_{1}^{\prime}\ \ \ \ \ \ \rho^{*}(x):=x,\text{ for }x\in V
+\displaystyle\rho^{*}(\mathsf{Bool}):=\mathsf{Bool}\ \ \ \ \ \ \rho^{*}(\mathsf{U}_{\ell}):=\mathsf{U}_{1}\ \ \ \ \ \ \rho^{*}(\mathsf{U}_{\ell}^{\prime}):=\mathsf{U}_{1}^{\prime}\ \ \ \ \ \ \rho^{*}(x):=x,\text{ for }x\in V
 $$
 
 $$
-\displaystyle\rho^{*}(M\ N):=\rho^{*}(M)\ \rho^{*}(N)\ \ \ \ \ \ \rho^{*}(%
-\lambda(x:s).M):=\lambda(x:\rho^{*}(s)).\rho^{*}(M)
+\displaystyle\rho^{*}(M\ N):=\rho^{*}(M)\ \rho^{*}(N)\ \ \ \ \ \ \rho^{*}(\lambda(x:s).M):=\lambda(x:\rho^{*}(s)).\rho^{*}(M)
 $$
 
 $$
-\displaystyle\rho^{*}(\bot^{\prime}):=\bot^{\prime}\ \ \ \ \ \ \rho^{*}(\to^{%
-\prime}):=\to^{\prime}\ \ \ \ \ \ \rho^{*}(\forall_{s}^{\prime}):=\forall_{%
-\rho^{*}(s)}^{\prime}
+\displaystyle\rho^{*}(\bot^{\prime}):=\bot^{\prime}\ \ \ \ \ \ \rho^{*}(\to^{\prime}):=\to^{\prime}\ \ \ \ \ \ \rho^{*}(\forall_{s}^{\prime}):=\forall_{\rho^{*}(s)}^{\prime}
 $$
 
-$\rho^{*}$ is extended to contexts as follows: $\rho^{*}(\emptyset):=\emptyset;\ \rho^{*}(\Gamma,x:\sigma):=\rho(\Gamma),x:%
-\rho(\sigma)$
+$\rho^{*}$ is extended to contexts as follows: $\rho^{*}(\emptyset):=\emptyset;\ \rho^{*}(\Gamma,x:\sigma):=\rho(\Gamma),x:\rho(\sigma)$
 
 ###### Definition 6
 
 Let $\rho_{\ell}:\mathcal{T}_{\to}\to\mathcal{T}_{\to}^{*}(\ell\in\mathbb{N}^{*})$ be the mapping that turns $\mathsf{U}_{1}$ into $\mathsf{U}_{\ell}$, i.e.
 
 $$
-\displaystyle\rho(\mathsf{Bool}):=\mathsf{Bool}\ \ \ \ \ \ \rho(\mathsf{U}_{1}%
-):=\mathsf{U}_{\ell}\ \ \ \ \ \ \rho(\mathsf{U}_{1}^{\prime}):=\mathsf{U}_{%
-\ell}^{\prime}\ \ \ \ \ \ \rho(x):=x,\text{ for }x\in V
+\displaystyle\rho(\mathsf{Bool}):=\mathsf{Bool}\ \ \ \ \ \ \rho(\mathsf{U}_{1}):=\mathsf{U}_{\ell}\ \ \ \ \ \ \rho(\mathsf{U}_{1}^{\prime}):=\mathsf{U}_{\ell}^{\prime}\ \ \ \ \ \ \rho(x):=x,\text{ for }x\in V
 $$
 
 $$
-\displaystyle\rho(M\ N):=\rho(M)\ \rho(N)\ \ \ \ \ \ \rho(\lambda(x:s).M):=%
-\lambda(x:\rho(s)).\rho(M)
+\displaystyle\rho(M\ N):=\rho(M)\ \rho(N)\ \ \ \ \ \ \rho(\lambda(x:s).M):=\lambda(x:\rho(s)).\rho(M)
 $$
 
 $$
-\displaystyle\rho(\bot^{\prime}):=\bot^{\prime}\ \ \ \ \ \ \rho(\to^{\prime}):%
-=\to^{\prime}\ \ \ \ \ \ \rho(\forall_{s}^{\prime}):=\forall_{\rho(s)}^{\prime}
+\displaystyle\rho(\bot^{\prime}):=\bot^{\prime}\ \ \ \ \ \ \rho(\to^{\prime}):=\to^{\prime}\ \ \ \ \ \ \rho(\forall_{s}^{\prime}):=\forall_{\rho(s)}^{\prime}
 $$
 
 $\rho$ is extended to contexts as follows: $\rho(\emptyset):=\emptyset;\ \rho(\Gamma,x:\sigma):=\rho(\Gamma),x:\rho(\sigma)$
@@ -837,21 +781,17 @@ A universe lifting facility consists of three families of functions
 
 1. $\mathsf{GLift}_{u,v}:\mathsf{U}_{u}\to\mathsf{U}_{\max\{u,v+1\}}$
 
-2. $\mathsf{GLift.up}_{u,v}:\forall(\alpha:\mathsf{U}_{u}).\ \alpha\to\mathsf{%
-GLift}_{u,v}\ \alpha$
+2. $\mathsf{GLift.up}_{u,v}:\forall(\alpha:\mathsf{U}_{u}).\ \alpha\to\mathsf{GLift}_{u,v}\ \alpha$
 
-3. $\mathsf{GLift.down}_{u,v}:\forall(\alpha:\mathsf{U}_{u}).\ \mathsf{GLift}_{u,v%
-}\ \alpha\to\alpha$
+3. $\mathsf{GLift.down}_{u,v}:\forall(\alpha:\mathsf{U}_{u}).\ \mathsf{GLift}_{u,v}\ \alpha\to\alpha$
 
 where $u,v\in\mathbb{N}$, such that they satisfy the following bijectivity condition:
 
 $$
-\forall(\alpha:\mathsf{U}_{u}).\mathsf{GLift.up}_{u,v}\ \alpha\circ\mathsf{%
-GLift.down}_{u,v}\ \alpha=\lambda(x:\mathsf{GLift}_{u,v}\ \alpha).x
+\forall(\alpha:\mathsf{U}_{u}).\mathsf{GLift.up}_{u,v}\ \alpha\circ\mathsf{GLift.down}_{u,v}\ \alpha=\lambda(x:\mathsf{GLift}_{u,v}\ \alpha).x
 $$
 $$
-\forall(\alpha:\mathsf{U}_{u}).\mathsf{GLift.down}_{u,v}\ \alpha\circ\mathsf{%
-GLift.up}_{u,v}\ \alpha=\lambda(x:\alpha).x
+\forall(\alpha:\mathsf{U}_{u}).\mathsf{GLift.down}_{u,v}\ \alpha\circ\mathsf{GLift.up}_{u,v}\ \alpha=\lambda(x:\alpha).x
 $$
 
 In Lean 4, universe lifting facility can be realized by the following inductive type:
@@ -869,22 +809,19 @@ structure GLift.{u, v} (α : Sort u) : Sort (max u (v + 1)) where
 Assume the existence of a universe lifting facility in $\lambda C$. Then, for all $\ell\in\mathbb{N}$, there exists two families of $\lambda C$ functions
 
 $$
-\mathsf{Up}_{s}:s\to\mathsf{UpType}\ s\ \ \ \mathsf{Down}_{s}:\mathsf{UpType}%
-\ s\to s
+\mathsf{Up}_{s}:s\to\mathsf{UpType}\ s\ \ \ \mathsf{Down}_{s}:\mathsf{UpType}\ s\to s
 $$
 
 for sorts $s:\mathsf{U}_{\ell^{\prime}},\ell^{\prime}\leq\ell+1$, satisfying the bijectivity conditions
 
 $$
-\mathsf{Up}_{s}\circ\mathsf{Down}_{s}=\lambda(x:\mathsf{UpType}\ s).x\ \ \ %
-\mathsf{Down}_{s}\circ\mathsf{Up}_{s}=\lambda(x:s).s
+\mathsf{Up}_{s}\circ\mathsf{Down}_{s}=\lambda(x:\mathsf{UpType}\ s).x\ \ \ \mathsf{Down}_{s}\circ\mathsf{Up}_{s}=\lambda(x:s).s
 $$
 
 and the congruence condition
 
 $$
-\forall(f:\alpha\to\beta).\ \mathsf{Up}_{\beta}\ (f\ x)=(\mathsf{Up}_{\alpha%
-\to\beta}\ f)\ (\mathsf{Up}_{\alpha}\ x)
+\forall(f:\alpha\to\beta).\ \mathsf{Up}_{\beta}\ (f\ x)=(\mathsf{Up}_{\alpha\to\beta}\ f)\ (\mathsf{Up}_{\alpha}\ x)
 $$
 
 where $\mathsf{UpType}$ is recursively defined as follows:
@@ -912,8 +849,7 @@ Structural induction on $s$
 1. If $s=a$ , where $a\in V$ is a variable, then we can define
 
 $$
-\mathsf{Up}_{a}:=\mathsf{GLift.up}_{\ell^{\prime},\ell}\ a\ \ \ \mathsf{Down}_%
-{a}:=\mathsf{Glift.down}_{\ell^{\prime},\ell}\ a
+\mathsf{Up}_{a}:=\mathsf{GLift.up}_{\ell^{\prime},\ell}\ a\ \ \ \mathsf{Down}_{a}:=\mathsf{Glift.down}_{\ell^{\prime},\ell}\ a
 $$
 
 2. If $s=(\alpha\to\beta)$ and the induction hypothesis holds for $\alpha$ and $\beta$ , then we can define
@@ -923,8 +859,7 @@ $$
 $$
 
 $$
-\displaystyle:=\lambda(f:\alpha\to\beta)\ (x:\mathsf{UpType}\ \alpha).\ %
-\mathsf{Up}_{\beta}\ (f\ (\mathsf{Down}_{\alpha}\ x))
+\displaystyle:=\lambda(f:\alpha\to\beta)\ (x:\mathsf{UpType}\ \alpha).\ \mathsf{Up}_{\beta}\ (f\ (\mathsf{Down}_{\alpha}\ x))
 $$
 
 $$
@@ -932,8 +867,7 @@ $$
 $$
 
 $$
-\displaystyle:=\lambda(f:\mathsf{UpType}\ \alpha\to\mathsf{UpType}\ \beta)\ (x%
-:\alpha).\ \mathsf{Down}_{\beta}\ (f\ (\mathsf{Up}_{\alpha}\ x))
+\displaystyle:=\lambda(f:\mathsf{UpType}\ \alpha\to\mathsf{UpType}\ \beta)\ (x:\alpha).\ \mathsf{Down}_{\beta}\ (f\ (\mathsf{Up}_{\alpha}\ x))
 $$
 
 The rationale of $\mathsf{UpType}\ (\alpha\to\beta):=\mathsf{UpType}\ \alpha\to\mathsf{UpType}\ \beta$ is that, given $f\ x$ in the canonical embedding of $\text{HOL}^{*}$, where $f:\alpha\to\beta$ and $x:\alpha$, we would like $(\mathsf{Up}_{\alpha\to\beta}\ f)\ (\mathsf{Up}_{\alpha}\ x)$ to be type correct.
@@ -944,8 +878,7 @@ Given $\mathsf{Up}_{s}$, $\mathsf{Down}_{s}$ and $\mathsf{UpType}$ satisfying Th
 
 2. $\mathsf{ULiftTrans}(f\ x):=\mathsf{ULiftTrans}(f)\ \mathsf{ULiftTrans}(x)$
 
-3. $\mathsf{ULiftTrans}(\lambda(x:s).\ y):=\lambda(x^{\prime}:\mathsf{UpType}\ s).%
-\ \mathsf{ULiftTrans}(y)$
+3. $\mathsf{ULiftTrans}(\lambda(x:s).\ y):=\lambda(x^{\prime}:\mathsf{UpType}\ s).\ \mathsf{ULiftTrans}(y)$
 
 It’s easy to verify that $\mathsf{ULiftTrans}(e)$ is definitionally equal to $\mathsf{Up}_{s}\ e$ for all terms $e:s$ in the canonical embedding of $\text{HOL}^{*}$.
 
@@ -958,17 +891,13 @@ In this appendix, we give a formal definition of essentially higher-order proble
 Let $\sigma:V\to\mathcal{T}_{C}$ be a mapping. Define its extension $\overline{\sigma}:\mathcal{T}_{C}\to\mathcal{T}_{C}$ as
 
 $$
-\overline{\sigma}(\mathsf{U}_{\ell}):=\mathsf{U}_{\ell}\ \ \ \ \ \ \overline{%
-\sigma}(x):=\sigma(x),\text{ for }x\in V\ \ \ \ \ \ \overline{\sigma}(M\ N):=%
-\overline{\sigma}(M)\ \overline{\sigma}(M)
+\overline{\sigma}(\mathsf{U}_{\ell}):=\mathsf{U}_{\ell}\ \ \ \ \ \ \overline{\sigma}(x):=\sigma(x),\text{ for }x\in V\ \ \ \ \ \ \overline{\sigma}(M\ N):=\overline{\sigma}(M)\ \overline{\sigma}(M)
 $$
 $$
-\overline{\sigma}(\lambda x:s.M):=\lambda x:\overline{\sigma}(s).\overline{%
-\sigma[x\mapsto x]}(M)
+\overline{\sigma}(\lambda x:s.M):=\lambda x:\overline{\sigma}(s).\overline{\sigma[x\mapsto x]}(M)
 $$
 $$
-\overline{\sigma}(\forall x:s.M):=\forall x:\overline{\sigma}(s).\overline{%
-\sigma[x\mapsto x]}(M)
+\overline{\sigma}(\forall x:s.M):=\forall x:\overline{\sigma}(s).\overline{\sigma[x\mapsto x]}(M)
 $$
 
 where
@@ -1013,28 +942,22 @@ Then $(\Gamma,\Gamma^{\prime},\sigma)$ is called a $M$\-unifier of $t_{1}$ and $
 The canonical embedding $\pi^{*}:\mathcal{T}_{\to}^{*}\to\mathcal{T}_{C}$ of $\text{HOL}^{*}$ into $\lambda C$ is defined as follows:
 
 $$
-\displaystyle\pi^{*}(\mathsf{Bool}):=\mathsf{U}_{0}\ \ \ \ \ \ \pi^{*}(\mathsf%
-{U}_{\ell}):=\mathsf{U}_{\ell}\ \ \ \ \ \ \pi^{*}(\mathsf{U}_{\ell}^{\prime}):%
-=\mathsf{U}_{\ell+1}\ \ \ \ \ \ \pi^{*}(x):=x,\text{ for }x\in V
+\displaystyle\pi^{*}(\mathsf{Bool}):=\mathsf{U}_{0}\ \ \ \ \ \ \pi^{*}(\mathsf{U}_{\ell}):=\mathsf{U}_{\ell}\ \ \ \ \ \ \pi^{*}(\mathsf{U}_{\ell}^{\prime}):=\mathsf{U}_{\ell+1}\ \ \ \ \ \ \pi^{*}(x):=x,\text{ for }x\in V
 $$
 
 $$
-\displaystyle\pi^{*}(M\ N):=\pi^{*}(M)\ \pi^{*}(N)\ \ \ \ \ \ \pi^{*}(\lambda(%
-x:s).M):=\lambda(x:\pi^{*}(s)).\pi^{*}(M)
+\displaystyle\pi^{*}(M\ N):=\pi^{*}(M)\ \pi^{*}(N)\ \ \ \ \ \ \pi^{*}(\lambda(x:s).M):=\lambda(x:\pi^{*}(s)).\pi^{*}(M)
 $$
 
 $$
-\displaystyle\pi^{*}(\bot^{\prime}):=\forall(\alpha:\mathsf{U}_{0}).\alpha\ \ %
-\ \ \ \ \ \ \ \ \pi^{*}(\to^{\prime}):=\lambda(p\ q:\mathsf{U}_{0}).p\to q
+\displaystyle\pi^{*}(\bot^{\prime}):=\forall(\alpha:\mathsf{U}_{0}).\alpha\ \ \ \ \ \ \ \ \ \ \pi^{*}(\to^{\prime}):=\lambda(p\ q:\mathsf{U}_{0}).p\to q
 $$
 
 $$
-\displaystyle\pi^{*}(\forall_{s}^{\prime}):=\lambda(p:\pi^{*}(s)\to\mathsf{U}_%
-{0}).\forall(x:\pi^{*}(s)).p\ x
+\displaystyle\pi^{*}(\forall_{s}^{\prime}):=\lambda(p:\pi^{*}(s)\to\mathsf{U}_{0}).\forall(x:\pi^{*}(s)).p\ x
 $$
 
-$\pi^{*}$ is extended to contexts as follows: $\pi^{*}(\emptyset):=\emptyset,\pi^{*}(\Gamma,x:\sigma):=\pi^{*}(\Gamma),x:\pi^%
-{*}(\sigma)$
+$\pi^{*}$ is extended to contexts as follows: $\pi^{*}(\emptyset):=\emptyset,\pi^{*}(\Gamma,x:\sigma):=\pi^{*}(\Gamma),x:\pi^{*}(\sigma)$
 
 ###### Theorem 0.F.2
 
@@ -1071,9 +994,7 @@ $$
 $$
 
 $$
-\displaystyle\mathbb{N}:\mathsf{U}_{1},\mathsf{Fin}:\mathbb{N}\to\mathsf{U}_{1%
-},\mathsf{add}:\forall(n:\mathbb{N}).(\mathsf{Fin}\ n\to\mathsf{Fin}\ n\to%
-\mathsf{Fin}\ n),n:\mathbb{N}
+\displaystyle\mathbb{N}:\mathsf{U}_{1},\mathsf{Fin}:\mathbb{N}\to\mathsf{U}_{1},\mathsf{add}:\forall(n:\mathbb{N}).(\mathsf{Fin}\ n\to\mathsf{Fin}\ n\to\mathsf{Fin}\ n),n:\mathbb{N}
 $$
 
 $$
@@ -1081,13 +1002,11 @@ $$
 $$
 
 $$
-\displaystyle(\forall(u\ v:\mathsf{Fin}\ n).\mathsf{add}\ n\ u\ v=_{1}\mathsf{%
-add}\ n\ v\ u)\to
+\displaystyle(\forall(u\ v:\mathsf{Fin}\ n).\mathsf{add}\ n\ u\ v=_{1}\mathsf{add}\ n\ v\ u)\to
 $$
 
 $$
-\displaystyle\ \ \ \forall(u\ v\ w:\mathsf{Fin}\ n).\mathsf{add}\ n\ (\mathsf{%
-add}\ n\ x\ y)\ z=_{1}\mathsf{add}\ n\ z\ (\mathsf{add}\ n\ y\ x)
+\displaystyle\ \ \ \forall(u\ v\ w:\mathsf{Fin}\ n).\mathsf{add}\ n\ (\mathsf{add}\ n\ x\ y)\ z=_{1}\mathsf{add}\ n\ z\ (\mathsf{add}\ n\ y\ x)
 $$
 
 Given
@@ -1105,13 +1024,11 @@ $$
 $$
 
 $$
-\displaystyle(\forall^{\prime}(u\ v:\alpha).f\ u\ v=_{\alpha}^{\prime}f\ v\ u)%
-\to^{\prime}
+\displaystyle(\forall^{\prime}(u\ v:\alpha).f\ u\ v=_{\alpha}^{\prime}f\ v\ u)\to^{\prime}
 $$
 
 $$
-\displaystyle\ \ \ \forall^{\prime}(u\ v\ w:\alpha).f\ (f\ u\ v)\ w=_{\alpha}^%
-{\prime}f\ w\ (f\ v\ u)
+\displaystyle\ \ \ \forall^{\prime}(u\ v\ w:\alpha).f\ (f\ u\ v)\ w=_{\alpha}^{\prime}f\ w\ (f\ v\ u)
 $$
 
 The $\text{HOL}^{*}$ problem $\Gamma^{\prime}\vdash?p^{\prime}$ is provable. Moreover, given
@@ -1125,8 +1042,7 @@ The triple $(\pi^{*}(\Gamma^{\prime}),\Gamma,\sigma)$ forms a substitution, and 
 Note that moving implications in the goal into hypotheses (and vice versa) may change the EHOP status of a problem. For example,
 
 $$
-\alpha:\mathsf{U}_{1},x:\alpha,p:\alpha\to\mathsf{U}_{0}\ \vdash?\ (p\ x\to p%
-\ x)
+\alpha:\mathsf{U}_{1},x:\alpha,p:\alpha\to\mathsf{U}_{0}\ \vdash?\ (p\ x\to p\ x)
 $$
 
 is EHOP. However, if we introduce $p\ x$ into the hypotheses, the problem is no longer EHOP:
@@ -1166,8 +1082,7 @@ $$
 to denote that $a_{0}$ is $i$\-dep w.r.t $\Gamma$ and $(a_{1},\dots,a_{k})$. Furthermore, we define
 
 $$
-\mathsf{LFun}(\Gamma;a_{0},(a_{1},\dots,a_{k})):=\lambda(x_{i_{1}}:s_{i_{1}})%
-\dots(x_{i_{m}}:s_{i_{m}}).a_{0}\ w_{1}\ \dots\ w_{m}
+\mathsf{LFun}(\Gamma;a_{0},(a_{1},\dots,a_{k})):=\lambda(x_{i_{1}}:s_{i_{1}})\dots(x_{i_{m}}:s_{i_{m}}).a_{0}\ w_{1}\ \dots\ w_{m}
 $$
 $$
 \mathsf{DArgs}(\Gamma;a_{0},(a_{1},\dots,a_{k})):=(b_{i_{1}},\dots,b_{i_{m}})
@@ -1179,8 +1094,7 @@ $$
 where $i_{1}<i_{2}<\dots<i_{m}$ are all the arguments that are dependent, $j_{1}<j_{2}<\dots<j_{k-m}$ are all the arguments that are non-dependent, $\Gamma\vdash a_{i}:s_{i}$, and
 
 $$
-w_{i}:=\left\{\begin{aligned} a_{i},&&\mathsf{Dep}(\Gamma;a_{0},(a_{1},\dots,a%
-_{k}),i)\\
+w_{i}:=\left\{\begin{aligned} a_{i},&&\mathsf{Dep}(\Gamma;a_{0},(a_{1},\dots,a_{k}),i)\\
 x_{i},&&\text{otherwise}\end{aligned}\right.
 $$
 
@@ -1193,14 +1107,11 @@ $$
 $$
 
 $$
-\displaystyle\ \mathsf{compose}:\forall(\beta\ \gamma:\mathsf{U}_{1}).(\beta%
-\to\gamma)\to\forall(\alpha:\mathsf{U}_{1}).(\alpha\to\beta)\to(\alpha\to%
-\gamma),
+\displaystyle\ \mathsf{compose}:\forall(\beta\ \gamma:\mathsf{U}_{1}).(\beta\to\gamma)\to\forall(\alpha:\mathsf{U}_{1}).(\alpha\to\beta)\to(\alpha\to\gamma),
 $$
 
 $$
-\displaystyle\ A:\mathsf{U}_{1},B:\mathsf{U}_{1},C:\mathsf{U}_{1},f:B\to C,g:A%
-\to B,x:A
+\displaystyle\ A:\mathsf{U}_{1},B:\mathsf{U}_{1},C:\mathsf{U}_{1},f:B\to C,g:A\to B,x:A
 $$
 
 Then
@@ -1212,15 +1123,13 @@ $$
 are $\Gamma$\-lad, while
 
 $$
-\mathsf{compose}\ B\ C,\mathsf{compose}\ B\ C\ f\ A,\mathsf{compose}\ B\ C\ f%
-\ A\ g
+\mathsf{compose}\ B\ C,\mathsf{compose}\ B\ C\ f\ A,\mathsf{compose}\ B\ C\ f\ A\ g
 $$
 
 are not. Therefore, the dependent arguments of $\mathsf{compose}$ w.r.t $(B,C,f,A,g,x)$ are $1,2$ and $4$, and we have
 
 $$
-\mathsf{LFun}(\Gamma;\mathsf{compose},(A,B,C,f,g,x))=\lambda(f:B\to C).\mathsf%
-{compose}\ A\ B\ f\ C
+\mathsf{LFun}(\Gamma;\mathsf{compose},(A,B,C,f,g,x))=\lambda(f:B\to C).\mathsf{compose}\ A\ B\ f\ C
 $$
 $$
 \mathsf{LArgs}(\Gamma;\mathsf{compose},(A,B,C,f,g,x))=(f,g,x)
@@ -1231,22 +1140,19 @@ $$
 Let
 
 $$
-\displaystyle\Gamma:=\mathsf{func}:\forall(\alpha:\mathsf{U}_{1}\to\mathsf{U}_%
-{1})\ (\beta:\mathsf{U}_{1}).\alpha\ \beta,A:\mathsf{U}_{1},B:\mathsf{U}_{1}
+\displaystyle\Gamma:=\mathsf{func}:\forall(\alpha:\mathsf{U}_{1}\to\mathsf{U}_{1})\ (\beta:\mathsf{U}_{1}).\alpha\ \beta,A:\mathsf{U}_{1},B:\mathsf{U}_{1}
 $$
 
 Then $\mathsf{func}$ is $\Gamma$\-lad, while
 
 $$
-\mathsf{func}\ (\lambda\beta.A):\mathsf{U}_{1}\to A\ \ \ \ \ \ \mathsf{func}\ %
-(\lambda\beta.A)\ B:A
+\mathsf{func}\ (\lambda\beta.A):\mathsf{U}_{1}\to A\ \ \ \ \ \ \mathsf{func}\ (\lambda\beta.A)\ B:A
 $$
 
 are not. Therefore, the dependent argument of $\mathsf{func}$ w.r.t $(\lambda\beta.A,B)$ is $1$, and we have
 
 $$
-\mathsf{LFun}(\Gamma;\mathsf{func},(\lambda\beta.A,B))=\mathsf{func}\ (\lambda%
-\beta.A)\ \ \ \ \ \ \mathsf{LArgs}(\Gamma;\mathsf{func},(\lambda\beta.A,B))=B
+\mathsf{LFun}(\Gamma;\mathsf{func},(\lambda\beta.A,B))=\mathsf{func}\ (\lambda\beta.A)\ \ \ \ \ \ \mathsf{LArgs}(\Gamma;\mathsf{func},(\lambda\beta.A,B))=B
 $$
 
 Now, we define quasi-monomorphic terms, the set of $\lambda C$ terms that $\lambda_{\to}^{*}$ abstraction can successfully translate to $\text{HOL}^{*}$. The predicate $\mathsf{QMono}(\Gamma;B,t)$ will be used to represent “$t$ is a quasi-monomorphic term under context $\Gamma$, with variables in $B$ being bound variables”. It is used both in $\lambda_{\to}^{*}$ abstraction and in quantifier instantiation.
@@ -1276,13 +1182,11 @@ $$
 $$
 
 $$
-\displaystyle(\forall t\in\mathsf{DArgs}(\Gamma;x,(t_{1},\dots,t_{n})).FV(t)%
-\cap B=\emptyset)\land
+\displaystyle(\forall t\in\mathsf{DArgs}(\Gamma;x,(t_{1},\dots,t_{n})).FV(t)\cap B=\emptyset)\land
 $$
 
 $$
-\displaystyle(\forall t\in\mathsf{LArgs}(\Gamma;x,(t_{1},\dots,t_{n})).\mathsf%
-{QMono}(\Gamma;B,t))
+\displaystyle(\forall t\in\mathsf{LArgs}(\Gamma;x,(t_{1},\dots,t_{n})).\mathsf{QMono}(\Gamma;B,t))
 $$
 
 3. For variable $x$ and terms $s,t$
@@ -1306,8 +1210,7 @@ $$
 $$
 
 $$
-\displaystyle\neg FV(s)\cap B=\emptyset\land(\Gamma\not\vdash s:\mathsf{U}_{0}%
-)\land(\Gamma\vdash t:\mathsf{U}_{0})\land
+\displaystyle\neg FV(s)\cap B=\emptyset\land(\Gamma\not\vdash s:\mathsf{U}_{0})\land(\Gamma\vdash t:\mathsf{U}_{0})\land
 $$
 
 $$
@@ -1321,8 +1224,7 @@ $$
 $$
 
 $$
-\displaystyle(\Gamma\vdash s:\mathsf{U}_{0})\land(\Gamma\vdash t:\mathsf{U}_{0%
-})\land
+\displaystyle(\Gamma\vdash s:\mathsf{U}_{0})\land(\Gamma\vdash t:\mathsf{U}_{0})\land
 $$
 
 $$
@@ -1332,15 +1234,13 @@ $$
 According to the definition of $\mathsf{QMono}$, terms coming from canonical embedding of $\text{HOL}^{*}$ terms are automatically quasi-monomorphic, e.g.
 
 $$
-\mathsf{QMono}(\alpha:\mathsf{U}_{1},p:(\alpha\to\alpha)\to\mathsf{U}_{0};%
-\emptyset,\forall(p:\alpha\to\alpha).f\ p)
+\mathsf{QMono}(\alpha:\mathsf{U}_{1},p:(\alpha\to\alpha)\to\mathsf{U}_{0};\emptyset,\forall(p:\alpha\to\alpha).f\ p)
 $$
 
 Proofs are not allowed to be quantified by $\lambda$ or dependent $\forall$ binders:
 
 $$
-\neg\mathsf{QMono}(p:\mathsf{U}_{0},q:p\to\mathsf{U}_{0};\emptyset,\forall(x:p%
-).q\ x)
+\neg\mathsf{QMono}(p:\mathsf{U}_{0},q:p\to\mathsf{U}_{0};\emptyset,\forall(x:p).q\ x)
 $$
 
 Occurrence of a dependently typed free variable does not break the quasi-monomorphic property iff its dependent arguments do not contain bound variables (assuming $B=\emptyset$):
@@ -1350,29 +1250,23 @@ $$
 $$
 
 $$
-\displaystyle\mathbb{N}:\mathsf{U}_{1},\mathsf{Fin}:\mathbb{N}\to\mathsf{U}_{1%
-},\mathsf{add}:\forall(n:\mathbb{N}).\mathsf{Fin}\ n\to\mathsf{Fin}\ n\to%
-\mathsf{Fin}\ n,k:\mathbb{N};
+\displaystyle\mathbb{N}:\mathsf{U}_{1},\mathsf{Fin}:\mathbb{N}\to\mathsf{U}_{1},\mathsf{add}:\forall(n:\mathbb{N}).\mathsf{Fin}\ n\to\mathsf{Fin}\ n\to\mathsf{Fin}\ n,k:\mathbb{N};
 $$
 
 $$
-\displaystyle\emptyset,\forall(x\ y:\mathsf{Fin}\ k).\mathsf{add}\ k\ x\ y=%
-\mathsf{add}\ k\ y\ x)
+\displaystyle\emptyset,\forall(x\ y:\mathsf{Fin}\ k).\mathsf{add}\ k\ x\ y=\mathsf{add}\ k\ y\ x)
 $$
 
 Occurrence of a dependently typed bound variable does not break the quasi-monomorphic property iff its dependent arguments are not instantiated:
 
 $$
-\mathsf{QMono}(\emptyset;\emptyset,\lambda(f:(\forall(\alpha:\mathsf{U}_{0}).%
-\alpha)\to(\forall(\alpha:\mathsf{U}_{0}).\alpha))\ (x:\forall(\alpha:\mathsf{%
-U}_{0}).\alpha).f\ x)
+\mathsf{QMono}(\emptyset;\emptyset,\lambda(f:(\forall(\alpha:\mathsf{U}_{0}).\alpha)\to(\forall(\alpha:\mathsf{U}_{0}).\alpha))\ (x:\forall(\alpha:\mathsf{U}_{0}).\alpha).f\ x)
 $$
 
 Except for within type declarations of bound variables, bodies of $\forall$ abstractions must be propositions:
 
 $$
-\neg\mathsf{QMono}(\alpha:\mathsf{U}_{1},\beta:\alpha\to\mathsf{U}_{1};%
-\emptyset,\forall(x:\alpha).\beta\ x)
+\neg\mathsf{QMono}(\alpha:\mathsf{U}_{1},\beta:\alpha\to\mathsf{U}_{1};\emptyset,\forall(x:\alpha).\beta\ x)
 $$
 
 Function *lamAbst(*$\Gamma;B,t$*)*
@@ -1484,28 +1378,24 @@ Let $\Gamma$ be a $\lambda C$ context and $B$ be a set of variables, then
 1. For variable $x$ and terms $t_{1},\dots,t_{n}$,
 
 $$
-\mathsf{holInsts}(\Gamma;B,x\ t_{1}\ \dots\ t_{n}):=\left\{\begin{aligned} S%
-\cup\{l\},&&FV(l)\cap B=\emptyset\\
+\mathsf{holInsts}(\Gamma;B,x\ t_{1}\ \dots\ t_{n}):=\left\{\begin{aligned} S\cup\{l\},&&FV(l)\cap B=\emptyset\\
 S,&&\text{otherwise}\end{aligned}\right.
 $$
 
 where
 
 $$
-l:=\mathsf{LFun}(\Gamma;x,(t_{1}\ \dots\ t_{n}))\ \ \ \ \ \ S:=\bigcup_{t\in%
-\mathsf{LArgs}(\Gamma;x,(t_{1},\dots,t_{n}))}\mathsf{holInsts}(\Gamma;V,t)
+l:=\mathsf{LFun}(\Gamma;x,(t_{1}\ \dots\ t_{n}))\ \ \ \ \ \ S:=\bigcup_{t\in\mathsf{LArgs}(\Gamma;x,(t_{1},\dots,t_{n}))}\mathsf{holInsts}(\Gamma;V,t)
 $$
 
 2. For variable $x$ and terms $a,b$,
 
 $$
-\displaystyle\mathsf{holInsts}(\Gamma;B,\forall(x:a).b)=\mathsf{holInsts}(%
-\Gamma;B,\lambda(x:a).b)
+\displaystyle\mathsf{holInsts}(\Gamma;B,\forall(x:a).b)=\mathsf{holInsts}(\Gamma;B,\lambda(x:a).b)
 $$
 
 $$
-\displaystyle:=\mathsf{holInsts}(\Gamma;B,a)\cup\mathsf{holInsts}(\Gamma,x:a;B%
-\cup\{x\},b)
+\displaystyle:=\mathsf{holInsts}(\Gamma;B,a)\cup\mathsf{holInsts}(\Gamma,x:a;B\cup\{x\},b)
 $$
 
 3. Otherwise, $\mathsf{holInsts}(\Gamma;B,t):=\emptyset$.
@@ -1532,8 +1422,7 @@ Function *match(*$\Gamma;M,m,h$*)*
 
                   $\mathit{lf}:=\mathsf{LFun}(\Gamma;f,arg)$
 
-                   $\mathit{matches}:=\mathsf{union}(\mathit{matches},\mathsf{unify}(\Gamma;M,m,%
-\mathit{lf}))$
+                   $\mathit{matches}:=\mathsf{union}(\mathit{matches},\mathsf{unify}(\Gamma;M,m,\mathit{lf}))$
 
             case *$\forall(v:a).b$* 
 
@@ -1625,8 +1514,7 @@ Function *matchOnePair(*$c,h,\mathit{ci},\mathit{hi},\mathit{active}$*)*
 
              if *$\mathit{nh}\in\mathit{hi}$* then continue
 
-             $\mathit{hi}.\mathsf{push}(\mathit{nh});\mathit{active}.\mathsf{push}((0,%
-\mathit{nh}))$
+             $\mathit{hi}.\mathsf{push}(\mathit{nh});\mathit{active}.\mathsf{push}((0,\mathit{nh}))$
 
              $\mathit{newci}:=\mathsf{holInsts}(\Gamma;\emptyset,\mathit{nh})$
 
@@ -1634,8 +1522,7 @@ Function *matchOnePair(*$c,h,\mathit{ci},\mathit{hi},\mathit{active}$*)*
 
                    if *$\mathit{nc}\in\mathit{ci}$* then continue
 
-                   $\mathit{ci}.\mathsf{push}(\mathit{nc});\mathit{active}.\mathsf{push}((1,%
-\mathit{nc}))$
+                   $\mathit{ci}.\mathsf{push}(\mathit{nc});\mathit{active}.\mathsf{push}((1,\mathit{nc}))$
 
 end
 
@@ -1749,4 +1636,4 @@ In the experiments in Sect. [8](https://arxiv.org/html/2505.14929v1#S8 "8 Experi
 
 Note that the above benchmark generation method only applies to Sect. [8](https://arxiv.org/html/2505.14929v1#S8 "8 Experiments ‣ Lean-auto: An Interface between Lean 4 and Automated Theorem Provers"). For our small-scale experiment, we randomly sample from user-declared Mathlib4 theorems in the environment after importing Mathlib4.
 
-Generated on Tue May 20 21:28:56 2025 by [LaTeXML![[Attachments/a482b6e84569cfa63d4e26e0185e10f0_MD5.png]]](http://dlmf.nist.gov/LaTeXML/)
+Generated on Tue May 20 21:28:56 2025 by [LaTeXML*[Attachments/a482b6e84569cfa63d4e26e0185e10f0_MD5.png]*](http://dlmf.nist.gov/LaTeXML/)

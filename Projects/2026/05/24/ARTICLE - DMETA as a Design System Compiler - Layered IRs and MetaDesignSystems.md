@@ -21,7 +21,7 @@ type: article
 created: 2026-05-24
 repo: /home/manuel/code/wesen/go-go-golems/dmeta
 ---
-
+[]
 # DMETA as a Design System Compiler: Layered IRs, Interaction Representations, and MetaDesignSystems
 
 This note proposes a refined architecture for DMETA. The central claim is that DMETA should be treated as a **design system compiler**: a sequence of typed intermediate representations, validation passes, elaboration passes, lowering passes, and code generation passes that transform high-level semantic design intent into concrete implementation starting points. The compiler framing gives the project a precise vocabulary for concepts that are currently present but partially collapsed into each other: archetypes, capabilities, presentations, widget templates, instance manifests, generated scaffolds, and manually promoted components.
