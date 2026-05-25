@@ -868,17 +868,130 @@ Key output directories:
 /tmp/book-ocr-vlm-separation-live-risky-pages-retry-88-text
 ```
 
-## 20. Next steps
+## 20. The report command
 
-The next useful implementation step is a reporting command. `rescore` updates artifacts and emits trial rows, but it does not yet produce the grouped narrative tables used in this article.
+The benchmark now has a formal report command. This closes a gap in the workflow. `benchmark` creates observations. `rescore` updates the metric projection for one output directory. `report` combines one or more saved output directories into a single logical interpretation and writes grouped Markdown and JSON summaries.
 
-A good `report` command would:
+The command is:
 
-- read one or more benchmark output directories,
-- optionally apply retry replacements,
-- group by scenario and page,
-- distinguish bleed, coverage misses, parse repair, and provider failures,
-- write Markdown and JSON summaries,
-- include links to the relevant trial directories.
+```bash
+go run ./cmd/book-ocr vlm-separation --log-level warn report \
+  --out-dir /tmp/book-ocr-vlm-separation-live-risky-pages \
+  --out-dir /tmp/book-ocr-vlm-separation-live-risky-pages-retry-43-mbl-2 \
+  --out-dir /tmp/book-ocr-vlm-separation-live-risky-pages-retry-88-text \
+  --report-dir /tmp/book-ocr-vlm-separation-live-risky-pages \
+  --output table
+```
+
+The report command reads each directory's saved trial artifacts, runs the current parser and scorer over the saved `response.txt` files, and then groups the result by logical cell:
+
+```text
+logical cell = target page + scenario
+```
+
+This grouping is what makes retry interpretation reproducible. The main broad run contained two failed cells. The retry directories each contain one replacement cell. A human can explain that in prose, but the benchmark needs a command that can apply the same rule every time. `report` does that by ranking candidates for the same logical cell and selecting the best available one. A succeeded, parseable, non-bleed response outranks a failed missing-response cell.
+
+Conceptually, the selection algorithm is:
+
+```text
+for each trial from each input directory:
+    key = target_page + scenario
+    if key has no selected trial:
+        select trial
+    else if rank(trial) > rank(selected[key]):
+        replace selected[key]
+
+rank favors:
+    succeeded status
+    parseable JSON / repaired schema
+    no suspected bleed
+    higher target-only score
+```
+
+The command writes two files by default:
+
+```text
+/tmp/book-ocr-vlm-separation-live-risky-pages/report.md
+/tmp/book-ocr-vlm-separation-live-risky-pages/report.json
+```
+
+The Markdown report is the compact human review artifact. The JSON report preserves the same structure for scripts and future analysis. For the broad risky-page run, the report begins with:
+
+```text
+Raw trials: 66
+Logical trials: 64
+Duplicate logical cells: 2
+Retry replacements selected: 2
+Successful logical trials: 64
+Parseable logical trials: 64
+Suspected bleed: 0
+Forbidden hits: 0
+Average target-only score: 0.930
+```
+
+The report command also emits Glazed rows for scenario and page aggregates. The scenario rows from the broad run are:
+
+| Scenario | Trials | Succeeded | Parse OK | Schema repaired | Suspected bleed | Forbidden hits | Average score | Minimum score |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `multi-block-labeled` | 16 | 16 | 16 | 16 | 0 | 0 | 0.938 | 0.333 |
+| `single-block-target-first` | 16 | 16 | 16 | 16 | 0 | 0 | 0.906 | 0.333 |
+| `target-only` | 16 | 16 | 16 | 16 | 0 | 0 | 0.938 | 0.333 |
+| `target-plus-text-context` | 16 | 16 | 16 | 16 | 0 | 0 | 0.938 | 0.333 |
+
+The page rows make the interpretation easier to audit. Pages 59 and 116 are visible as coverage problems because their averages are low across every scenario, while their forbidden-hit and bleed counts remain zero.
+
+| Page | Trials | Average score | Suspected bleed | Forbidden hits | Interpretation |
+|---:|---:|---:|---:|---:|---|
+| 59 | 4 | 0.667 | 0 | 0 | One expected anchor is probably too strict or inconsistently phrased. |
+| 116 | 4 | 0.333 | 0 | 0 | The page text includes references to Figure 5-7 but did not hit most current anchors. |
+
+This matters because the benchmark should not collapse all low scores into one failure class. A low score with no forbidden hits means expected coverage was incomplete. A low score with forbidden hits means page-boundary failure. A failed trial with no response means provider or transport failure. The report command keeps those cases separate.
+
+The implementation lives in:
+
+```text
+internal/vlmseparation/report.go
+internal/vlmseparation/command.go
+```
+
+The important data structure is `ReportResult`. It stores raw trial count, logical trial count, duplicate count, replacement count, global totals, scenario aggregates, page aggregates, low/notable trials, and the selected logical trials. The command therefore produces both the small report needed for human review and the full selected-trial set needed for future automation.
+
+## 21. Current status after reporting
+
+The benchmark now has:
+
+- dry-run validation,
+- live benchmark execution,
+- Glazed logging initialization,
+- Pinocchio-compatible turn persistence,
+- benchmark SQLite persistence,
+- sanitize-backed JSON repair,
+- schema repair for common live model variants,
+- whitespace-normalized phrase scoring,
+- saved-run rescoring,
+- formal multi-run reporting with retry replacement,
+- specialized oracles for the risky Report 794 page preset,
+- a broad live run over 64 logical trials,
+- a generated Markdown and JSON report for that broad run.
+
+Recent implementation commits in `book-ocr` now include:
+
+```text
+050aab5 Expand VLM benchmark risky page oracles
+c220e1b Harden VLM benchmark rescore parsing
+d37143b Normalize VLM benchmark phrase scoring
+99446a4 Add VLM benchmark report command
+```
+
+Key generated report artifacts:
+
+```text
+/tmp/book-ocr-vlm-separation-live-risky-pages/report.md
+/tmp/book-ocr-vlm-separation-live-risky-pages/report.json
+```
+
+## 22. Next steps
+
+The next useful benchmark step is to improve oracle quality for pages 59 and 116. Their low scores appear uniformly across all scenarios, which makes them coverage/oracle issues rather than context-separation issues. Better anchors would make future comparisons more sensitive.
 
 The next useful OCR pipeline step is to apply the benchmark's lesson to the structured OCR redesign: target-page-only primary OCR, deterministic rendering, text-context normalization, and explicit validation gates for adjacent-page contamination.
