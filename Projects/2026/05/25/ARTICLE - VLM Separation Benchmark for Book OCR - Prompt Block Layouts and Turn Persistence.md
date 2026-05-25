@@ -534,3 +534,65 @@ Live benchmark artifacts:
 The benchmark is implemented and validated in dry-run mode. A first live smoke run completed with six trials. The tool successfully captured files, benchmark SQLite rows, and Pinocchio turn snapshots. The first result favors `multi-block-labeled` over `single-block-target-first` in a small sample, but the benchmark response schema must be made stricter before the result can guide production OCR policy.
 
 The correct near-term path is not to rerun the whole book. It is to strengthen the benchmark contract, run a broader live benchmark on known risky pages, and only then decide whether any image-context scenario is safe enough for production OCR.
+
+## Update: schema repair changed the interpretation of the first live run
+
+After the first version of this article was written, the benchmark parser was updated to use `github.com/go-go-golems/sanitize/pkg/json` and a conservative schema-repair pass. The important change is not that the model became better. The saved `response.txt` files did not change. The benchmark became better at separating schema drift from OCR separation behavior.
+
+The original scorer treated several useful responses as parse failures or as empty canonical responses. The live responses used schema variants such as:
+
+```json
+{
+  "target_page": "012",
+  "transcribed_page_identity": "Page 10 (scanned page)",
+  "content_markers": [
+    "A Rudimentary User Interface.",
+    "Representation Shift."
+  ],
+  "transcription": "..."
+}
+```
+
+and:
+
+```json
+{
+  "page_number": 13,
+  "text": "Figure 1-1: A Rudimentary User Interface\n..."
+}
+```
+
+Both are legitimate model attempts, but neither matches the strict benchmark struct exactly. The new parser now applies this sequence:
+
+```text
+raw model text
+  -> strip fences and extract first JSON object
+  -> strict BenchmarkResponse parse when shape is complete
+  -> jsonsanitize.Sanitize(...) for malformed JSON recovery
+  -> schema repair into canonical BenchmarkResponse fields
+  -> scoring
+```
+
+The new metrics record the distinction explicitly:
+
+```text
+json_parse_ok
+json_sanitized
+schema_repaired
+parse_strategy
+```
+
+Re-scoring the saved first live run with the repaired parser gives this table:
+
+| Trial | Scenario | Page | Parse OK | Schema repaired | Score |
+|---|---|---:|---|---|---:|
+| trial-0001 | target-only | 12 | true | true | 1.00 |
+| trial-0002 | single-block-target-first | 12 | true | true | 1.00 |
+| trial-0003 | multi-block-labeled | 12 | true | true | 1.00 |
+| trial-0004 | target-only | 13 | true | true | 1.00 |
+| trial-0005 | single-block-target-first | 13 | true | true | 1.00 |
+| trial-0006 | multi-block-labeled | 13 | true | true | 0.75 |
+
+This changes the interpretation of the first live run. The previous conclusion that `single-block-target-first` scored poorly was mostly a parser artifact: the response contained the relevant target-page text, but it put that text in a `text` field rather than in `transcription`. Under the repaired parser, the first live run does not show forbidden-caption bleed for pages 12 and 13 in any of the three tested scenarios.
+
+This update does not prove that neighboring page images are safe. It only corrects the evidence from this small run. The production rule remains unchanged: target-page-only OCR or text-only context is still the safe default until a broader benchmark over known risky figure-adjacent pages shows reliable behavior. The next benchmark should use the repaired parser, preserve `parse_strategy` columns, and test the known duplicate-caption page pairs.
