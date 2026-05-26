@@ -73,7 +73,8 @@ The important scripts are:
 | `02-trigger-codex-review.sh` | Posts `@codex review` on a PR. |
 | `03-watch-codex-reactions.py` | Watches Codex reaction transitions. |
 | `04-wait-pr-ready.sh` | Polls one PR until ready, timeout, or substantive Codex feedback. |
-| `05-batch-pr-ready.sh` | Checks many PRs and prints a readiness table. |
+| `05-batch-pr-ready.sh` | Checks or watches many PRs and prints a readiness table. |
+| `06-batch-trigger-codex-review.sh` | Posts `@codex review` to every PR listed in a file. |
 
 The playbooks that define the process are:
 
@@ -255,16 +256,31 @@ The batch command is:
   /tmp/xgoja-release-prs.txt
 ```
 
-The batch output is deliberately compact:
+The batch watch command polls all PRs without blocking on one repository:
+
+```bash
+/home/manuel/code/wesen/go-go-golems/infra-tooling/scripts/go-go-golems/05-batch-pr-ready.sh \
+  /tmp/xgoja-release-prs.txt \
+  --watch --interval 30 --timeout 1800
+```
+
+Codex can be triggered for a whole batch with:
+
+```bash
+/home/manuel/code/wesen/go-go-golems/infra-tooling/scripts/go-go-golems/06-batch-trigger-codex-review.sh \
+  /tmp/xgoja-release-prs.txt
+```
+
+The batch output is deliberately compact, but it now includes the failed check classes when the checker can infer them:
 
 ```text
-STATUS           PR
-------           --
-READY            https://github.com/go-go-golems/geppetto/pull/362
-WAITING_CODEX    https://github.com/go-go-golems/discord-bot/pull/9
-WAITING_CHECKS   https://github.com/go-go-golems/workspace-manager/pull/20
-FAILED_CHECKS    https://github.com/go-go-golems/goja-git/pull/1
-CODEX_FEEDBACK   https://github.com/go-go-golems/css-visual-diff/pull/8
+STATUS             FAILED_CHECKS        PR
+------             -------------        --
+READY              -                    https://github.com/go-go-golems/geppetto/pull/362
+WAITING_CODEX      -                    https://github.com/go-go-golems/discord-bot/pull/9
+WAITING_CHECKS     pending_checks       https://github.com/go-go-golems/workspace-manager/pull/20
+FAILED_CHECKS      checks,lint          https://github.com/go-go-golems/goja-git/pull/1
+CODEX_FEEDBACK     checks,test          https://github.com/go-go-golems/css-visual-diff/pull/8
 ```
 
 This table is an operator dashboard. It does not decide merge order. It tells the operator which PRs are waiting, which need fixes, and which are ready to merge when the dependency graph permits it.
@@ -512,36 +528,55 @@ The diagram separates three forms of waiting:
 - Waiting for Codex with an `EYES` reaction means the review is still running.
 - Codex feedback or failed checks require a new commit.
 
-## 15. What should improve in the tooling
+## 15. Tooling improvements added during the rollout
 
-The current scripts are useful, but the rollout exposed several improvements.
+The first version of the readiness tooling was useful, but the xgoja rollout exposed three practical problems. The single-PR wait script kept polling after Codex had already posted substantive feedback. The batch script classified PRs by grepping human-readable output. Triggering Codex across many PRs required a shell loop.
 
-First, batch readiness should classify from JSON rather than grepping human output. The Python checker already has enough data to emit structured state:
+Those problems were fixed in `infra-tooling` during the rollout.
+
+The Python checker now emits structured JSON state:
 
 ```json
 {
+  "ok": false,
   "state": "codex_feedback",
-  "ready": false,
   "terminal": true,
   "failedCheckKinds": ["lint", "govulncheck"]
 }
 ```
 
-Second, batch readiness should have a watch mode:
+The important fields are:
+
+| Field | Meaning |
+| --- | --- |
+| `ok` | The PR is fully ready when `true`. |
+| `state` | One of `ready`, `waiting_checks`, `waiting_codex`, `no_codex`, `failed_checks`, `codex_feedback`, or `not_ready`. |
+| `terminal` | `true` means waiting alone will not fix the PR; an operator must inspect review feedback or failed checks. |
+| `failedCheckKinds` | Best-effort classification such as `lint`, `test`, `govulncheck`, `gosec`, or `dependency_review`. |
+
+`04-wait-pr-ready.sh` now uses that JSON instead of grepping text. It exits immediately when the state is terminal:
+
+```text
+codex_feedback -> exit 3
+failed_checks  -> exit 4
+```
+
+`05-batch-pr-ready.sh` now has both one-shot and watch modes:
 
 ```bash
+05-batch-pr-ready.sh /tmp/xgoja-release-prs.txt
 05-batch-pr-ready.sh /tmp/xgoja-release-prs.txt --watch --interval 30 --timeout 1800
 ```
 
-The watch mode should keep polling non-terminal states, but it should not hide terminal states. `CODEX_FEEDBACK` and `FAILED_CHECKS` should remain visible until a new commit changes the PR state.
+The watch mode keeps polling non-terminal states such as `waiting_checks` and `waiting_codex`, but it does not hide terminal states. `CODEX_FEEDBACK` and `FAILED_CHECKS` remain visible until a new commit changes the PR state.
 
-Third, Codex triggering should have a batch command:
+`06-batch-trigger-codex-review.sh` triggers Codex for every PR in a file:
 
 ```bash
 06-batch-trigger-codex-review.sh /tmp/xgoja-release-prs.txt
 ```
 
-Fourth, a release-train manifest would be more expressive than a plain PR list:
+One improvement remains for a future pass: a release-train manifest would be more expressive than a plain PR list:
 
 ```yaml
 - repo: geppetto
@@ -558,7 +593,7 @@ Fourth, a release-train manifest would be more expressive than a plain PR list:
     - published geppetto RuntimeOwner API
 ```
 
-A manifest would let the tool report release-train readiness, not only PR readiness.
+A manifest would let the tool report release-train readiness, not only PR readiness. PR readiness says “this PR is green and reviewed.” Release-train readiness also answers “all upstream versions this PR consumes have been merged, tagged, and observed by `GOWORK=off` module resolution.”
 
 ## 16. Working rules
 
