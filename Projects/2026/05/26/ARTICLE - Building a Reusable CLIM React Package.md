@@ -2,7 +2,7 @@
 title: "Building a Reusable CLIM React Package: Cross-Pollinating UX from a Production Viewer into a Standalone Library"
 aliases:
   - PBUI CLIM Package Deep Dive
-  - @go-go-golems/pbui Technical Report
+  - go-go-golems/pbui Technical Report
 tags:
   - article
   - pbui
