@@ -814,6 +814,362 @@ In Phase 2 (where the registry calls Vault's `sys/capabilities-self`), the regis
 - Vault roles must bind `event_name=push` and trusted refs. Do not bind production publishing roles to `pull_request`.
 - The `--publisher-catalog` ConfigMap should not exist in production after the migration is complete.
 
+
+## 2026-05-26 production implementation update
+
+The design above has now been partially implemented and proven in production, with one important correction to the original architecture. The registry-facing credential is not issued by a custom broker service and it is not signed through raw Vault Transit. The production path uses **Vault Identity/OIDC tokens** directly. GitHub Actions first authenticates to Vault with GitHub's OIDC token. The resulting short-lived Vault token can then call Vault's Identity/OIDC token endpoint for one package-specific role. Vault returns an OIDC-compliant JWT whose issuer and signing keys are exposed through Vault's Identity OIDC discovery endpoints. `docs-registry` verifies that JWT offline through OIDC discovery and JWKS.
+
+This keeps the clean property the design wanted: the registry does not need to call Vault during uploads. It also avoids the unsafe raw-Transit shortcut. Vault constructs and signs the publish token, Terraform defines the package-specific token roles, and the registry only accepts tokens with the correct issuer, audience, token purpose, and package claim.
+
+> [!important]
+> The implementation status is: **publishing is production-proven; full documentation-site SSR is not yet complete**. The publish path can mint a package-scoped JWT in a release workflow and upload docs to the public registry. The docs site now has an SSR sidecar and direct deep-link routing works, but the HTML is still largely an SSR shell plus metadata/preloaded JSON/hydration rather than a fully rendered static article/tree for every page.
+
+### What changed from the initial design
+
+The original design described several possible credential issuance mechanisms. Production chose Vault Identity/OIDC tokens, with these concrete values:
+
+| Concern | Production value |
+|---|---|
+| Registry auth mode | `vault-oidc-jwt` |
+| Registry issuer | `https://vault.yolo.scapegoat.dev/v1/identity/oidc` |
+| Registry audience/client ID | `docs-registry` |
+| Vault Identity issuer configuration | `https://vault.yolo.scapegoat.dev` |
+| Discovery URL | `https://vault.yolo.scapegoat.dev/v1/identity/oidc/.well-known/openid-configuration` |
+| JWKS URL | `https://vault.yolo.scapegoat.dev/v1/identity/oidc/.well-known/keys` |
+| Publish token purpose claim | `token_use: docsctl-publish` |
+| Package authorization claim | `package: <package>` |
+| Registry upload endpoint | `PUT /v1/packages/{package}/versions/{version}/sqlite` |
+| Public registry host | `https://docs-registry.yolo.scapegoat.dev` |
+
+There are two issuer strings that look similar but are not interchangeable:
+
+- Terraform configures Vault Identity/OIDC with the root issuer `https://vault.yolo.scapegoat.dev` because Vault's `vault_identity_oidc` resource accepts only a scheme, host, and optional port.
+- The registry verifies tokens against the discovery issuer `https://vault.yolo.scapegoat.dev/v1/identity/oidc`, because that is what Vault advertises in the OIDC discovery document.
+
+This mismatch was one of the first real implementation traps. Setting the Terraform issuer to `/v1/identity/oidc` failed with:
+
+```text
+invalid issuer, which must include only a scheme, host, and optional port (e.g. https://example.com:8200)
+```
+
+The second trap was Vault Identity token template syntax. Dynamic placeholders in the token template render JSON fragments. Quoting them produced invalid JSON during token issuance:
+
+```text
+error parsing template JSON: invalid character '"' after object key:value pair
+```
+
+The fix was to use unquoted dynamic placeholders in the Vault token templates where Vault expects to render JSON values.
+
+### Implemented registry auth mode
+
+The Glazed registry now has two auth modes:
+
+```text
+--auth-mode static-catalog
+--auth-mode vault-oidc-jwt
+```
+
+`static-catalog` remains the default rollback/local-development path. Production uses `vault-oidc-jwt`:
+
+```text
+/usr/local/bin/docs-registry \
+  --address :8090 \
+  --package-root /var/lib/glazed-docs/packages \
+  --auth-mode vault-oidc-jwt \
+  --jwt-issuer https://vault.yolo.scapegoat.dev/v1/identity/oidc \
+  --jwt-client-id docs-registry
+```
+
+The implementation lives in the Glazed repository:
+
+- `/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/pkg/help/publish/jwt_auth.go`
+- `/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/pkg/help/publish/jwt_auth_test.go`
+- `/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/cmd/docs-registry/main.go`
+
+The registry verification rules are deliberately small and application-specific:
+
+1. Verify the JWT through OIDC discovery and JWKS using `github.com/coreos/go-oidc/v3/oidc`.
+2. Require the configured issuer.
+3. Require the configured client ID / audience: `docs-registry`.
+4. Require `token_use == "docsctl-publish"`.
+5. Require a `package` claim.
+6. Require the signed `package` claim to equal the `{package}` route parameter.
+
+The unit tests cover the cases that matter for this authorization boundary: valid token, wrong package, wrong audience, wrong issuer, expired token, tampered token, missing `token_use`, and missing `package`. The most important test is the wrong-package case: a valid token for `pinocchio` must not publish `glazed`.
+
+### Terraform shape for package-scoped Vault roles
+
+Terraform now defines the docs publishing identity graph for the k3s Vault environment. The implementation is in:
+
+- `/home/manuel/code/wesen/terraform/vault/github-actions/envs/k3s/main.tf`
+- `/home/manuel/code/wesen/terraform/vault/github-actions/envs/k3s/variables.tf`
+
+The current publisher set is:
+
+| Package | Repository ID |
+|---|---:|
+| `glazed` | `565461475` |
+| `pinocchio` | `802670903` |
+| `remarquee` | `1116463013` |
+| `sqleton` | `579241534` |
+
+The numeric `repository_id` is intentionally used as a bound claim. Repository names can be renamed or, in some threat models, reused. Numeric repository IDs are more stable identifiers for GitHub repositories.
+
+For each package, Terraform creates or manages:
+
+- a Vault Identity/OIDC token role such as `docsctl-glazed-publisher`;
+- a Vault policy that permits minting only that package's token role;
+- a GitHub Actions JWT auth backend role that binds repository identity, release workflow context, and tag refs;
+- a shared docs registry OIDC key and issuer configuration.
+
+The final production binding is release-workflow/tag based. In other words, documentation publishing is not a random push-to-main side effect. It is part of the release workflow and uses the release tag as the documentation version. The Vault role binding allows workflow refs like:
+
+```text
+*/.github/workflows/release.yaml@refs/tags/v*
+```
+
+This is an important trust boundary. A publish token should be minted from the release workflow running at an immutable release tag, not from arbitrary pull requests or ad-hoc branch workflows.
+
+### Reusable GitHub Actions workflow
+
+The publish mechanics are centralized in a reusable workflow in infra-tooling:
+
+- `/home/manuel/code/wesen/go-go-golems/infra-tooling/.github/workflows/publish-docsctl.yml`
+
+The workflow does the following:
+
+1. Checks out the package repository.
+2. Sets up Go.
+3. Computes package/version/export settings.
+4. Installs `docsctl`.
+5. Exports the help database to SQLite.
+6. Logs into Vault with `hashicorp/vault-action@v3` using GitHub Actions OIDC.
+7. Mints a Vault Identity/OIDC publish JWT from `/v1/identity/oidc/token/<role>`.
+8. Masks the token in logs.
+9. Decodes and prints non-sensitive JWT claims for auditability.
+10. Runs `docsctl publish --token-file` against the public registry.
+11. Verifies the package/version through the public docs API with retries.
+
+The verification retry is not cosmetic. `docs-registry` writes the SQLite package immediately, but `docs-browser` reloads package files on an interval. The first verification implementation could publish successfully and then fail because `/api/packages` had not reloaded yet. The workflow now retries verification so the CI job matches the runtime behavior of the browser.
+
+The verifier also had to be corrected for the deployed API shape. The live `/api/packages` endpoint returns an object like:
+
+```json
+{
+  "packages": [
+    {
+      "name": "glazed",
+      "versions": ["v1.3.4", "v1.3.3", "v1.2.15"],
+      "latestVersion": "v1.3.4"
+    }
+  ],
+  "defaultPackage": "glazed",
+  "defaultVersion": "v1.3.4"
+}
+```
+
+It is not a flat array of `{name, version}` rows. The initial verifier assumed the wrong shape and failed with:
+
+```text
+jq: error (at <stdin>:1): Cannot index array with string "name"
+```
+
+### Release-only publishing in Glazed
+
+Glazed no longer uses a separate `release.published` workflow for docs publishing. The production approach embeds docs publishing into the existing release workflow:
+
+- `/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/.github/workflows/release.yaml`
+
+The `publish-docs` job depends on the release build and calls the reusable infra-tooling workflow:
+
+```yaml
+publish-docs:
+  needs: [goreleaser-merge]
+  uses: go-go-golems/infra-tooling/.github/workflows/publish-docsctl.yml@main
+  with:
+    package_name: glazed
+    package_version: ${{ github.ref_name }}
+    export_command: go run ./cmd/glaze help export --format sqlite --output-path .docsctl/help.sqlite
+    docsctl_install_command: go install github.com/go-go-golems/glazed/cmd/docsctl@latest
+    vault_role: docsctl-glazed-publisher
+    vault_token_role: docsctl-glazed-publisher
+    registry_url: https://docs-registry.yolo.scapegoat.dev
+    verify_packages_url: https://docs.yolo.scapegoat.dev/api/packages
+```
+
+The version is exactly the Git tag, for example `v1.3.4`. This keeps docs URLs aligned with GitHub Releases and Go module tags:
+
+```text
+https://docs.yolo.scapegoat.dev/glazed/v1.3.4/
+```
+
+A disabled template version of this job has also been added to `go-template`, so future Go-Go-Golems repositories receive the publishing pattern without accidentally enabling it before their Vault roles exist.
+
+### Public registry ingress and TLS
+
+The registry is now public because GitHub-hosted runners need to reach it:
+
+```text
+https://docs-registry.yolo.scapegoat.dev
+```
+
+The k3s deployment change lives in:
+
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/docs-yolo/ingress.yaml`
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/docs-yolo/deployment.yaml`
+
+The registry host routes to the `docs-yolo-registry` service and uses a Let's Encrypt certificate in the `docs-yolo` namespace. The first live release proof exposed a TLS mistake: Traefik served its default certificate because the registry host was not listed as a TLS host in the Ingress. The failed publish showed:
+
+```text
+tls: failed to verify certificate: x509: certificate is valid for 0b396939a3d416d36559137df5d4c43c.c2f8d224a3626ef940df7a0249b2b1fd.traefik.default, not docs-registry.yolo.scapegoat.dev
+```
+
+The fix was to add `docs-registry.yolo.scapegoat.dev` to the Ingress TLS hosts and use the `docs-yolo-registry-tls` secret. After cert-manager issued the certificate, registry health returned:
+
+```json
+{"ok": true}
+```
+
+### Live proof
+
+The full production path was proven with a real Glazed release:
+
+- GitHub Actions run: `https://github.com/go-go-golems/glazed/actions/runs/26473600516`
+- Successful docs job: `Publish docs / publish-docs`, job ID `77954577190`
+- Published version: `glazed@v1.3.4`
+
+The successful path was:
+
+```mermaid
+sequenceDiagram
+    participant Release as Glazed release.yaml at tag v1.3.4
+    participant Reusable as infra-tooling publish-docsctl.yml
+    participant GitHub as GitHub OIDC
+    participant Vault as Vault auth/github-actions + Identity/OIDC
+    participant Registry as docs-registry.yolo.scapegoat.dev
+    participant Browser as docs.yolo.scapegoat.dev
+
+    Release->>Reusable: Call reusable workflow with package=glazed, version=v1.3.4
+    Reusable->>Reusable: Export help DB to .docsctl/help.sqlite
+    Reusable->>GitHub: Request Actions OIDC token
+    Reusable->>Vault: Login as docsctl-glazed-publisher
+    Vault-->>Reusable: Short-lived Vault token
+    Reusable->>Vault: Mint /identity/oidc/token/docsctl-glazed-publisher
+    Vault-->>Reusable: Signed publish JWT with package=glazed
+    Reusable->>Registry: PUT /v1/packages/glazed/versions/v1.3.4/sqlite
+    Registry->>Registry: Verify issuer, aud, token_use, package
+    Registry->>Registry: Validate SQLite schema
+    Registry-->>Reusable: Publish accepted
+    Reusable->>Browser: Poll /api/packages until v1.3.4 appears
+```
+
+The publish JWT included non-sensitive audit claims such as:
+
+- `iss`
+- `aud`
+- `token_use`
+- `package`
+- `repository`
+- `repository_id`
+- `workflow_ref`
+- `job_workflow_ref`
+- `run_id`
+
+After cleanup of bootstrap `vtest` data, the live docs API reports:
+
+```text
+glazed:   v1.3.4, v1.3.3, v1.2.15    latest v1.3.4
+pinocchio: v0.10.26                   latest v0.10.26
+```
+
+### The reader-side SSR side quest
+
+The publishing pipeline stores versioned SQLite docs correctly, but that is only half of the docs system. The reader side is the browser at `docs.yolo.scapegoat.dev`. A separate follow-up ticket, `DOCSCTL-SSR-K3S`, investigated and deployed an SSR sidecar for the docs browser.
+
+The current production reader deployment now has three containers in one pod:
+
+| Container | Purpose |
+|---|---|
+| `docs-browser` | Go server for API, static assets, markdown mirrors, SPA fallback, and SSR proxy entrypoint. |
+| `docs-registry` | Upload API for package SQLite databases, protected by Vault OIDC publish JWTs. |
+| `docs-ssr` | Node SSR sidecar listening on localhost for page HTML rendering. |
+
+The deployed images are currently immutable SHA tags:
+
+```text
+ghcr.io/go-go-golems/glazed:sha-a6d688b
+ghcr.io/go-go-golems/glazed-ssr:sha-a6d688b
+```
+
+The `docs-browser` container points page requests at the sidecar:
+
+```text
+--ssr-url http://127.0.0.1:8089
+```
+
+This fixed the mechanical direct-link problems:
+
+- production Vite assets now use root-relative `/assets/...` URLs;
+- nested legacy asset paths such as `/glazed/v1.3.4/assets/main-eukdJBop.js` are normalized by the Go server;
+- root and nested JavaScript asset requests return `content-type: text/javascript` instead of HTML;
+- direct section URLs hydrate without module MIME errors;
+- section markdown mirrors such as `/glazed/v1.3.4/sections/exposing-a-simple-sql-table.md` return Markdown.
+
+However, this should not be confused with complete static article SSR. The current SSR implementation is still closer to:
+
+```text
+SSR shell + metadata + hidden/noscript aids + __PRELOADED_STATE__ + client hydration
+```
+
+than to:
+
+```text
+fully rendered documentation tree + fully rendered article body in initial curl HTML
+```
+
+The reason is in the React SSR entrypoint. `web/src/entry-server.tsx` creates a fresh Redux/RTK Query store for each render, but it does not yet populate that store from the prefetched packages/sections/section data before `renderToString()`. The Node sidecar fetches the data and serializes it into `__PRELOADED_STATE__`, but the React render path still largely depends on client-side hooks after hydration.
+
+This is why a direct curl to a package URL such as:
+
+```text
+https://docs.yolo.scapegoat.dev/glazed/v1.2.15
+```
+
+returns HTML with scripts, metadata, and JSON, but not a rich static article/tree document. The page works in the browser after hydration, and section deep links are mechanically fixed, but the full data-backed React SSR pass remains unfinished.
+
+The next reader-side phase is therefore:
+
+1. Pass prefetched `packages`, `sections`, and `section` data into the SSR Redux/RTK Query cache.
+2. Render `App` with that populated cache during `renderToString()`.
+3. Serialize the exact matching client store state.
+4. Initialize the browser store from that serialized state in `entry-client.tsx`.
+5. Add curl-level acceptance tests that assert initial HTML contains visible tree nodes and article body text before JavaScript executes.
+
+That distinction matters for this article because the publishing credential path is production-proven, but the public documentation consumption experience still has an SSR completeness gap.
+
+### Current operational status
+
+As of the end of the 2026-05-26 implementation session:
+
+- The public registry is live at `https://docs-registry.yolo.scapegoat.dev`.
+- Registry auth mode is `vault-oidc-jwt`.
+- Glazed release publishing has succeeded end to end from GitHub Actions using Vault-issued package-scoped publish JWTs.
+- `vtest` bootstrap docs were removed from live storage and the live catalog.
+- `go-template` contains a disabled docs publishing job template for future repositories.
+- The docs browser SSR sidecar is deployed, but full data-backed article/tree SSR remains future work.
+- Public registry hardening is still incomplete: rate limits, request body limits, storage quotas, overwrite policy, and negative live auth tests should be added.
+
+The remaining security validation work should include negative proofs for:
+
+- wrong package claim;
+- wrong repository;
+- wrong workflow reference;
+- wrong event/ref;
+- expired token;
+- tampered token;
+- public unauthenticated upload attempts.
+
+
 ## Related notes
 
 - [[ARTICLE - Vault OIDC for GitHub Actions - Secretless CI GitOps]] — the platform pattern for GitHub Actions OIDC to Vault that this design builds on.
