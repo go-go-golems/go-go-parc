@@ -425,6 +425,131 @@ The fix had two parts. `go-ast-analysis` registers an `ast` alias in the default
 
 This matters for the web UI because it confirms the architecture is not tied to browsers. The AST module is a reusable domain capability. The frontend can be a CLI, a jsverb, a database script, a web app, or a hardware surface.
 
+## Loupedeck and web integration
+
+The next step was to make the hardware and web interfaces cooperate rather than exist as separate demonstrations. The browser is the better surface for rendering source code. It has a large display, scrollable text, syntax highlighting, and enough room for a file list and a definition list. The Loupedeck is the better surface for tactile navigation. It has knobs, buttons, and touch tiles that can move through a result set without requiring focus in the browser.
+
+The integration uses a local file-backed remote state channel. This is intentionally simple. The Loupedeck scene writes the currently selected definition to a JSON file. The web server exposes that JSON file through `/api/remote-state`. The browser polls the endpoint and jumps when the sequence number changes.
+
+```mermaid
+flowchart LR
+    Deck[Loupedeck scene script]
+    StateFile[dist/loupedeck-remote.json]
+    Server[AST web server]
+    Endpoint[/api/remote-state]
+    Browser[Browser source pane]
+
+    Deck -->|fs.writeFileSync| StateFile
+    Server -->|fs.readFileSync| StateFile
+    Server --> Endpoint
+    Browser -->|poll every ~600ms| Endpoint
+    Browser -->|load source snippet| Source[/api/source]
+
+    style Deck fill:#f4f4f4,stroke:#111111
+    style StateFile fill:#fff5d6,stroke:#9a6b22
+    style Browser fill:#e8f0ff,stroke:#4466cc
+```
+
+The state file lives next to the web example's generated artifacts:
+
+```text
+examples/xgoja/ast-analysis-site/dist/loupedeck-remote.json
+```
+
+A typical payload looks like this:
+
+```json
+{
+  "seq": 1,
+  "source": "loupedeck",
+  "reason": "knob1",
+  "package": "engine",
+  "kind": "method",
+  "name": "NewRuntime",
+  "receiver": "Factory",
+  "label": "Factory.NewRuntime",
+  "file": "/home/manuel/code/wesen/go-go-golems/go-go-goja/engine/factory.go",
+  "relativeFile": "factory.go",
+  "line": 183,
+  "signature": "(*Factory) NewRuntime(opts ...RuntimeOption) (*Runtime, error)",
+  "updatedAt": "2026-05-27T19:47:04.454Z"
+}
+```
+
+The sequence number is the coordination mechanism. The browser remembers the last sequence it applied. Polling can happen repeatedly without disturbing local browser use; only a new sequence triggers a jump.
+
+```javascript
+async function pollRemoteState() {
+  try {
+    await showRemoteState(await window.ASTApi.remoteState())
+  } finally {
+    setTimeout(pollRemoteState, 600)
+  }
+}
+
+async function showRemoteState(remote) {
+  if (!remote || !remote.file || remote.seq === state.remoteSeq) return
+  state.remoteSeq = remote.seq
+
+  const snippet = await window.ASTApi.source({
+    file: remote.file,
+    line: remote.line || 1,
+    radius: 120,
+  })
+  ASTRenderer.source(title, location, sourceView, remote.label, snippet)
+}
+```
+
+The Loupedeck side is similarly direct. `05-web-remote-browser.js` parses the same package, builds a sorted definition list, tracks an index in a reactive signal, and writes the selected definition whenever the user moves or confirms the selection.
+
+```javascript
+function writeRemote(reason) {
+  const def = selected()
+  seq++
+  fs.writeFileSync(remoteStatePath, JSON.stringify({
+    seq,
+    source: "loupedeck",
+    reason,
+    package: pkg.name,
+    kind: def.kind,
+    label: label(def),
+    file: def.file,
+    relativeFile: shortFile(def),
+    line: def.line,
+    signature: def.signature || "",
+    updatedAt: new Date().toISOString(),
+  }, null, 2), "utf8")
+}
+```
+
+The controls are deliberately minimal:
+
+| Control | Behavior |
+|---------|----------|
+| `Knob1` | Move one definition backward or forward. |
+| `Knob2` | Move ten definitions backward or forward. |
+| `Button1` | Resend the current selection. |
+| Touch tiles | Resend the current selection. |
+| `Circle` | Exit the scene. |
+
+This turns the browser into the display and the Loupedeck into a navigation controller. The two processes do not share a runtime. They do not call each other. They communicate through a tiny state contract that can be inspected with `cat`, served over HTTP, and replaced later by a WebSocket or event stream if the interaction model proves useful.
+
+The integration required one runtime change in the Loupedeck repository. The raw Loupedeck scene runtime already had to opt into the optional `ast` module so scene scripts could query Go definitions. The remote-control script also needs `fs` so it can write the state file. The scene runtime now allows the optional AST and filesystem modules without exposing the full host module registry.
+
+```text
+/home/manuel/code/wesen/go-go-golems/loupedeck/runtime/js/runtime.go
+```
+
+The successful live run looked like this:
+
+```text
+Found Loupedeck vendor=2ec2 product=0004 model="Loupedeck Live"
+05-web-remote-browser ready for 140 definitions
+WEB REMOTE initial factory_test.go:11 TestFactoryWithRequireOptions
+```
+
+That output is important because it proves the hardware path reached JavaScript execution, parsed the target package, built the definition list, wrote the first remote selection, and left the runner alive for knob and touch input.
+
 ## Failure modes and corrections
 
 The project had several productive failures. They are worth recording because they describe the real contracts better than the final code alone.
@@ -436,6 +561,7 @@ The project had several productive failures. They are worth recording because th
 | SQLite started to drift into the Go module design. | Storage was treated as part of AST analysis. | Keep storage in JavaScript through the existing `database` module. |
 | `xgoja run` closed the HTTP runtime. | Built-in run is one-shot. | Add package-owned `web serve` command provider. |
 | Loupedeck could not `require("ast")`. | `deck run` used the Loupedeck raw scene runtime rather than the xgoja-selected module aliases. | Register `ast` alias and allow the optional module in the scene runtime. |
+| Loupedeck could not initially drive the browser. | The web UI had no remote-control contract, and the scene runtime could not write the shared state file. | Add `/api/remote-state`, browser polling, `05-web-remote-browser.js`, and optional `fs` access in the scene runtime. |
 | The file collector failed in the web UI. | The fs module returns `stat.isDir` and `stat.isFile`, not Node `Stats` methods. | Use field access instead of `stat.isDirectory()`. |
 | Headless Snap Chromium produced blank screenshots. | DOM rendered, but the screenshot output was blank. | Capture screenshots with Playwright from an existing local `node_modules`. |
 
@@ -481,6 +607,23 @@ examples/xgoja/loupedeck-code-nav/dist/loupedeck-code-nav deck run \
   --log-events
 ```
 
+Run the Loupedeck-to-web remote browser script:
+
+```bash
+examples/xgoja/loupedeck-code-nav/dist/loupedeck-code-nav deck run \
+  examples/xgoja/loupedeck-code-nav/scripts/05-web-remote-browser.js \
+  --duration 0s \
+  --log-events
+```
+
+Or run it in tmux alongside the web UI:
+
+```bash
+tmux new-session -d -s loupedeck-web-remote \
+  -c /home/manuel/code/wesen/2026-05-27--goja-ast-analysis \
+  'examples/xgoja/loupedeck-code-nav/dist/loupedeck-code-nav deck run examples/xgoja/loupedeck-code-nav/scripts/05-web-remote-browser.js --duration 0s --log-events'
+```
+
 ## Current status
 
 The current repository has working implementations for:
@@ -493,6 +636,7 @@ The current repository has working implementations for:
 - SQLite persistence examples,
 - long-running Express web UI,
 - Loupedeck AST interaction prototype,
+- Loupedeck-to-web remote browsing through `05-web-remote-browser.js` and `/api/remote-state`,
 - docmgr design docs and chronological diary,
 - screenshot documentation for the web browser.
 
@@ -505,6 +649,9 @@ c84194b Add retro source browser UI
 a84ad90 Constrain retro AST browser viewport
 bc1582f Show codebase files in AST browser
 f7735da Diary: record AST browser file listing
+270aea8 Add web remote state polling for Loupedeck
+2fec625 Add Loupedeck remote control for AST browser
+7b89f41 Diary: record Loupedeck web browsing bridge
 ```
 
 The implementation is no longer only a binding experiment. It is a working pattern for turning typed Go analysis into scriptable, persistent, interactive tools.
@@ -521,6 +668,7 @@ Other useful extensions:
 - Add call-site indexing so the browser can show where a function is used.
 - Make the analyzed package path configurable through a safe command flag.
 - Add a reproducible screenshot target to the Makefile.
+- Replace the file-backed Loupedeck bridge with an event stream or WebSocket if the interaction model needs lower latency or bidirectional feedback.
 
 The important constraint should remain: do not move orchestration into the Go module. The Go module should keep answering typed AST questions. JavaScript should keep composing those answers into storage, UI, hardware, and HTTP workflows.
 
