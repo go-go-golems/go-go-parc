@@ -1779,17 +1779,108 @@ flowchart TD
 
 This structure is useful during incidents. If a release workflow fails, the operator can check the CI error code, find the request ID, inspect the publish audit event for package/workflow/run provenance, and then look at aggregate metrics to determine whether this was isolated or part of a wider auth/policy/storage problem.
 
-### Remaining work
+### Phase 7: production rollout, validation, and ticket closure
 
-The immediate next phase is production rollout and evidence capture for the Phase 4-6 code. That means building and pushing a new Glazed container image, updating the k3s GitOps image tags, waiting for Argo CD and the Deployment rollout, and then validating:
+Phase 7 is now complete. The Phase 4-6 registry hardening code was pushed to `go-go-golems/glazed` `main`, built by the container workflow, deployed through the k3s GitOps repository, and validated against the live production endpoints.
 
-- `GET https://docs-registry.yolo.scapegoat.dev/healthz`;
-- `GET https://docs-registry.yolo.scapegoat.dev/metrics` or the chosen internal scrape path;
-- the secret-free negative probe script;
-- publish audit logs on controlled publish attempts;
-- request and publish counters after probes.
+The runtime image that matters for production is:
 
-After that, the remaining high-value work is controlled GitHub/Vault negative proof. The local tests prove the registry verifier logic, but production bound-claim failures such as wrong repository ID, wrong workflow ref, wrong job workflow ref, wrong event, and wrong release tag shape need deliberately constructed GitHub Actions/Vault scenarios. Those proofs should capture status codes, stable error codes, request IDs, sanitized audit log lines, and metrics deltas, never raw OIDC or Vault tokens.
+```text
+ghcr.io/go-go-golems/glazed:sha-312fa79
+```
+
+That image contains the publish audit events, `/metrics`, metrics counters, and negative response behavior. The later Glazed commits `6a99c4c` and `a89fae4` fixed/recorded ticket artifacts only: the production-safe probe script cleanup and the final rollout evidence. They do not change registry runtime behavior.
+
+The GitHub Actions container workflow succeeded:
+
+```text
+Workflow: Container image
+Run ID: 26484320165
+Job ID: 77988328251
+Status: success
+Images:
+  ghcr.io/go-go-golems/glazed:sha-312fa79
+  ghcr.io/go-go-golems/glazed-ssr:sha-312fa79
+```
+
+The k3s GitOps rollout was committed as:
+
+```text
+k3s 05deb9c  docs-yolo: deploy registry audit metrics proofs
+```
+
+After the Argo CD hard refresh and Deployment rollout, production reported:
+
+```text
+Synced Healthy Succeeded
+
+docs-browser=ghcr.io/go-go-golems/glazed:sha-312fa79
+docs-registry=ghcr.io/go-go-golems/glazed:sha-312fa79
+docs-ssr=ghcr.io/go-go-golems/glazed-ssr:sha-312fa79
+```
+
+Health checks passed:
+
+```text
+https://docs-registry.yolo.scapegoat.dev/healthz -> {"ok":true}
+https://docs.yolo.scapegoat.dev/api/health -> {"ok":true,"sections":333}
+```
+
+The production `/metrics` endpoint is reachable and shows both request and publish counters. After the safe unauthenticated negative probes, production exposed:
+
+```text
+docs_registry_http_requests_total{route_class="publish",method="PUT",status="401"} 2
+docs_registry_publish_attempts_total{package="glazed",outcome="rejected",error_code="unauthorized"} 2
+```
+
+The production-safe negative probe script also succeeded after a small cleanup fix:
+
+```text
+OK: GET https://docs-registry.yolo.scapegoat.dev/healthz -> 200
+OK: PUT https://docs-registry.yolo.scapegoat.dev/v1/packages/glazed/versions/negative-proof-20260527T010911Z/sqlite -> 401
+OK: GET https://docs-registry.yolo.scapegoat.dev/metrics -> 200
+```
+
+The first run of that script proved the expected registry behavior but failed in its `EXIT` trap under `set -u`:
+
+```text
+tmp_body: unbound variable
+```
+
+The fix was to use a global cleanup variable rather than referencing a function-local variable from the trap:
+
+```text
+Glazed 6a99c4c  DOCSCTL-REGISTRY-HARDENING: fix negative probe cleanup
+```
+
+The registry audit log showed the expected publish-specific audit events for unauthenticated requests. The log lines included request ID, package, version, `status=401`, `outcome=rejected`, and `error_code=unauthorized`, while omitting bearer-token material entirely.
+
+The docmgr ticket is now closed:
+
+```text
+DOCSCTL-REGISTRY-HARDENING
+Status: complete
+Tasks: 29 done / 0 open
+Final docs commit: a89fae4  DOCSCTL-REGISTRY-HARDENING: record phase 7 rollout
+Ticket close changelog: Closed after Phase 7 production rollout: audit events, metrics, negative proof probes, k3s deployment, and production validation evidence are complete.
+```
+
+The final hardening status is:
+
+| Control | Status | Production evidence |
+|---|---:|---|
+| Vault Identity/OIDC publish JWT auth | Done | Live registry uses `--auth-mode vault-oidc-jwt`. |
+| Release-tag-only Vault roles | Done | Terraform roles are applied; real Glazed release publishing already proved the happy path. |
+| Request IDs and access logs | Done | `X-Request-ID` returned and request logs emitted. |
+| Rate/concurrency limits | Done | Production args are explicit. |
+| Immutable versions and quotas | Done | Production args are explicit; same-SHA retry and conflict behavior are tested. |
+| Publish audit events | Done | Live unauthenticated probe emitted `docs registry publish` audit lines. |
+| Metrics | Done | Live `/metrics` exposes request and publish counters. |
+| Production-safe negative probe | Done | Live unauthenticated publish returns `401`. |
+| Ticket documentation | Done | Design guide, diary, changelog, scripts, and rollout evidence are complete. |
+| Ticket status | Complete | `DOCSCTL-REGISTRY-HARDENING` closed. |
+
+Two follow-ups remain useful but are no longer blockers for this ticket. First, decide whether `/metrics` should remain publicly reachable or be restricted to in-cluster scraping. Second, if stronger production proof is desired, create controlled GitHub/Vault negative proof runs for wrong repository ID, workflow ref, job workflow ref, event, tag/ref shape, and package claim. Those proofs should capture status codes, stable error codes, request IDs, sanitized audit log lines, and metrics deltas, never raw OIDC or Vault tokens.
 
 ## Related notes
 
