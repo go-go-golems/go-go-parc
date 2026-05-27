@@ -28,6 +28,7 @@ The reference implementation lives in `/home/manuel/code/wesen/2026-04-21--pi-ex
 > - Extensions register `PaletteItem` entries alongside their existing `actions`, `docs`, `settings`, and `widgets` contributions.
 > - Root-level keys are auto-assigned from extension names; submenu keys are auto-assigned from item titles, with explicit overrides available.
 > - The `CommandPaletteOverlay` TUI component uses a stack-based navigation model: pushing levels for submenus, popping for back navigation.
+> - The final shortcut implementation consumes `Ctrl+Shift+P` at the raw terminal input layer and buffers early keystrokes while the overlay is mounting.
 
 ## Why this note exists
 
@@ -521,6 +522,206 @@ The following extensions register palette items as of this writing:
 
 Notice that root-level keys are derived from extension names, not from the items' own keys. Compaction Title gets `o` (the second unique character of "Compaction Title") because `c` is already taken by Compaction Meter.
 
+
+## Debugging case study: the Ctrl+Shift+P pre-mount input race
+
+The most important bug in the command palette was not in key assignment or rendering. It was in the interval between recognizing the global shortcut and the overlay becoming the focused input receiver. The symptom was precise: pressing `Ctrl+Shift+P` sometimes did not visibly open the palette until the next keypress, and that next key could also appear in the main Pi REPL. The failure was easiest to notice after running `Response Viewer → View last response`, then immediately trying to open the palette again and press `a`, `r`, or another navigation key.
+
+The visible symptom was misleading. It looked like a render problem because the overlay appeared late. The first attempted fixes therefore targeted rendering and focus: call `tui.requestRender()` from the custom UI factory, then call `handle.focus()` from `onHandle`. Both helped in narrow cases, but neither fixed the real failure. Rendering can only happen after the overlay component exists. The leaked key was arriving before that point.
+
+### The reproduction sequence
+
+The minimal sequence was:
+
+```text
+Ctrl+Shift+P   # open the palette
+r              # enter Response Viewer
+v              # execute View last response
+Ctrl+Shift+P   # reopen palette
+a              # expected: enter Agent Env; actual: sometimes leaked to REPL
+```
+
+A tighter stress case was:
+
+```text
+Ctrl+Shift+P r
+```
+
+When `r` arrived immediately after the shortcut, the palette sometimes had not finished mounting. In that state the raw terminal listener saw the `r`, but the overlay was not ready to receive it.
+
+### Why the earlier fixes were incomplete
+
+The first fix called `tui.requestRender()` in the `ctx.ui.custom()` factory. That request can run before the overlay is fully registered with the TUI overlay stack. It does not guarantee that focus is stable or that subsequent keys will be routed to the overlay.
+
+The second fix used `onHandle` and called `handle.focus()` after `showOverlay()` returned the overlay handle. This was closer to the right layer because `onHandle` runs after the overlay is shown. It fixed the case where the overlay existed but needed focus. It still did not fix the case where the next key arrived before `onHandle` itself ran.
+
+The actual timeline looked like this:
+
+```text
+T0  raw terminal input: Ctrl+Shift+P
+T1  shortcut matches
+T2  openPalette() starts
+T3  ctx.ui.custom() calls factory
+T4  user key r arrives
+T5  raw listener sees r, but overlay is not input-ready yet
+T6  onHandle fires and focuses overlay
+```
+
+At `T5`, the system is in a transitional state. `paletteOpen` is true, but the component is not yet the focused receiver. Returning `undefined` from the raw input listener lets the key continue to the editor path. That is the leak.
+
+### Instrumentation: `/palette-debug`
+
+The fix started by adding runtime logging rather than guessing. The command palette extension now supports:
+
+```text
+/palette-debug on
+/palette-debug off
+/palette-debug status
+/palette-debug tail
+/palette-debug clear
+```
+
+Logs are written to:
+
+```text
+/tmp/pi-command-palette-debug.log
+```
+
+The log records:
+
+- raw terminal input chunks seen by `ctx.ui.onTerminalInput`
+- Unicode codepoints for each input chunk
+- whether `matchesKey(data, "ctrl+shift+p")` matched
+- whether the raw terminal listener or fallback shortcut opened the palette
+- the overlay lifecycle (`custom.factory`, `custom.onHandle`, `custom.result`)
+- overlay input handling (`overlay.handleInput`)
+- submenu and leaf activation (`overlay.activate`, `action.run.start`, `action.run.done`)
+
+A useful reproduction run produced this sequence:
+
+```json
+{"event":"terminalInput","data":{"json":"\"\\u001b[112:80;6u\""},"matchesDefaultShortcut":true,"paletteOpen":false}
+{"event":"openPalette.request","source":"raw-terminal-shortcut","paletteOpen":false}
+{"event":"openPaletteOnce.start","source":"raw-terminal-shortcut"}
+{"event":"custom.factory","source":"raw-terminal-shortcut"}
+{"event":"terminalInput","data":{"json":"\"r\""},"matchesDefaultShortcut":false,"paletteOpen":true}
+{"event":"custom.onHandle","source":"raw-terminal-shortcut","isFocusedBefore":true}
+```
+
+The decisive line is the raw `"r"` before `custom.onHandle`. It proves that the first navigation key can arrive before the overlay is ready.
+
+The log also showed kitty/tmux CSI-u sequences. For example, `Ctrl+Shift+P` appeared as:
+
+```json
+{"json":"\"\\u001b[112:80;6u\"","chars":["U+001B","U+005B","U+0031","U+0031","U+0032","U+003A","U+0038","U+0030","U+003B","U+0036","U+0075"]}
+```
+
+and a release or alternate CSI-u event appeared as:
+
+```json
+{"json":"\"\\u001b[112;6:3u\"","chars":["U+001B","U+005B","U+0031","U+0031","U+0032","U+003B","U+0036","U+003A","U+0033","U+0075"]}
+```
+
+The important point is not the exact escape sequence. The important point is that terminal emulators can send multiple chunks for a physical key interaction, and those chunks can interleave with overlay lifecycle callbacks.
+
+### The final fix: consume and buffer while opening
+
+The final implementation adds two pieces of state:
+
+```ts
+let paletteInputReady = false;
+let pendingOpeningInputs: string[] = [];
+```
+
+The raw terminal listener now has three behaviors:
+
+1. If the input is `Ctrl+Shift+P`, open the palette and consume the input.
+2. If the palette is opening (`paletteOpen && !paletteInputReady`), consume the input. If it is a replayable key, buffer it.
+3. If the palette is fully ready, return `undefined` and let normal TUI focus routing deliver keys to the overlay.
+
+The core logic is:
+
+```ts
+terminalShortcutUnsubscribe = ctx.ui.onTerminalInput((data) => {
+  const matched = matchesKey(data, DEFAULT_SHORTCUT);
+
+  if (matched) {
+    void openPalette(ctx as ExtensionCommandContext, "raw-terminal-shortcut");
+    return { consume: true };
+  }
+
+  if (paletteOpen && !paletteInputReady) {
+    if (shouldReplayOpeningInput(data)) {
+      pendingOpeningInputs.push(data);
+    }
+    return { consume: true };
+  }
+
+  return undefined;
+});
+```
+
+When the overlay handle becomes available, the code focuses the overlay, marks input as ready, replays buffered inputs into the overlay component, and requests a render:
+
+```ts
+onHandle: (handle) => {
+  handle.focus();
+  paletteInputReady = true;
+
+  const buffered = pendingOpeningInputs.splice(0);
+  for (const data of buffered) {
+    overlay?.handleInput?.(data);
+  }
+
+  requestRender?.();
+}
+```
+
+The `shouldReplayOpeningInput()` function only replays inputs that should act like normal palette input: printable single-character keys, navigation keys, Enter, Escape, and Backspace. CSI-u release sequences are consumed during the mount window but not replayed.
+
+```ts
+function shouldReplayOpeningInput(data: string): boolean {
+  if (data.length === 1 && data >= " " && data !== "\x7f") return true;
+  if (matchesKey(data, Key.escape)) return true;
+  if (matchesKey(data, Key.enter)) return true;
+  if (matchesKey(data, Key.backspace)) return true;
+  if (matchesKey(data, Key.left)) return true;
+  if (matchesKey(data, Key.right)) return true;
+  if (matchesKey(data, Key.up)) return true;
+  if (matchesKey(data, Key.down)) return true;
+  return false;
+}
+```
+
+After the fix, the same tight reproduction logs the intended sequence:
+
+```json
+{"event":"terminalInput","data":{"json":"\"r\""},"paletteOpen":true,"paletteInputReady":false}
+{"event":"terminalInput.bufferWhileOpening","data":{"json":"\"r\""},"pendingCount":1}
+{"event":"custom.onHandle","pendingOpeningInputs":[{"json":"\"r\""}]}
+{"event":"custom.replayBufferedInput","data":{"json":"\"r\""}}
+{"event":"overlay.handleInput","data":{"json":"\"r\""},"level":"Command Palette"}
+{"event":"overlay.activate","key":"r","itemId":"response-viewer","title":"Response Viewer"}
+```
+
+The UI now opens directly into the Response Viewer submenu when `Ctrl+Shift+P r` is entered quickly:
+
+```text
+╭──────────────────────── Command Palette ─ Response Viewer ────────────────────────╮
+│ ▸ v  View last response                                                           │
+│   b  Browse responses                                                             │
+│   p  Preview last response                                                        │
+│   ← Back    Esc Close    / Search    ↑↓ Navigate                                  │
+╰───────────────────────────────────────────────────────────────────────────────────╯
+```
+
+### Lessons from the bug
+
+- Rendering bugs and input routing bugs can produce the same visible symptom. The overlay appearing late did not mean the render call was missing; it meant the first key arrived before the overlay became the input owner.
+- Editor-scoped shortcuts are not equivalent to raw terminal shortcuts. `pi.registerShortcut()` is attached through the editor path, while `ctx.ui.onTerminalInput()` runs before focused-component input handling.
+- Terminal emulators with CSI-u support can produce multiple input chunks for a physical key interaction. Debug logs must include raw strings and codepoints, not just human-readable key names.
+- Input during overlay mount is a real state. It must be handled explicitly, either by blocking, buffering, or designing the API so the overlay mounts synchronously before returning control to input processing.
+
 ## Common failure modes
 
 ### Duplicate explicit keys at the same level
@@ -537,11 +738,11 @@ If two extensions have names that start with the same letter, the first extensio
 
 **Mitigation:** If an extension's auto-assigned root key is confusing, the extension author can rename the extension or accept the fallback key. Root-level keys are stable as long as the set of extensions does not change.
 
-### Keystrokes leaking to Pi
+### Keystrokes leaking during overlay mount
 
-When the palette overlay is open, keypresses that do not match any item (and are not in search mode) are consumed with no effect. However, in some terminal configurations, escape sequences or timing issues can cause a keystroke to reach Pi's underlying input handler after the palette closes. This is a terminal-level issue, not a palette bug.
+The important leak class occurs before the overlay is focused. After `Ctrl+Shift+P` is recognized, there is a short interval where `paletteOpen` is true but `paletteInputReady` is still false. In kitty/tmux, a fast follow-up key such as `r` can arrive in that interval. If the raw terminal listener returns `undefined`, the key continues to the editor path instead of entering the palette.
 
-**Mitigation:** If a keypress seems to "leak" after palette interaction, it is typically because the palette's `done()` callback resolved and Pi resumed normal input processing before the terminal finished sending the key sequence.
+**Mitigation:** The implementation consumes all input during the opening interval. Replayable keys are buffered and replayed into `CommandPaletteOverlay.handleInput()` after `onHandle` focuses the overlay. Non-replayable CSI-u release sequences are consumed and ignored.
 
 ### Search mode key-matching priority
 
