@@ -1494,6 +1494,303 @@ This is the important architectural change: the registry is no longer only an au
 
 
 
+## 2026-05-27 audit, metrics, and negative proof implementation update
+
+The `DOCSCTL-REGISTRY-HARDENING` work has now moved beyond bounding and immutable storage policy into the parts that make the system explainable under production pressure: publish-specific audit events, low-cardinality metrics, alert sketches, and negative proof scaffolding. This is the phase where the registry stops merely enforcing rules and starts producing evidence about which rule fired, which workflow identity was involved, and which aggregate failure patterns deserve an operator's attention.
+
+The important architectural distinction is that the registry now has two observability layers. The existing access log remains request-shaped: it records method, path, route class, status, response size, request ID, client IP, remote address, user agent, and duration. The new publish audit event is domain-shaped: it records the requested package and version, the publish outcome, stable error code, upload size, validation counts, stored SHA, and non-sensitive publisher provenance copied from the verified JWT. Metrics then aggregate the same outcome vocabulary into counters without copying high-cardinality provenance into time-series labels.
+
+> [!summary]
+> - Phase 4 added publish identity enrichment and one structured `docs registry publish` audit event for every publish attempt.
+> - Phase 5 added `/metrics` with Prometheus text counters for HTTP requests and publish attempts, plus alert sketches and log-based fallback filters.
+> - Phase 6 added stable negative response assertions, a negative proof plan, and a secret-free production-safe probe script.
+> - These phases are implemented and documented locally but still need Phase 7 production rollout and evidence capture.
+
+### Phase 4: publish identity enrichment and audit events
+
+Phase 4 extended the registry's `PublisherIdentity` so the authorization layer no longer throws away safe provenance after verifying the Vault publish JWT. The identity now carries:
+
+```go
+type PublisherIdentity struct {
+    Subject        string `json:"subject"`
+    PackageName    string `json:"packageName"`
+    Method         string `json:"method"`
+    Repository     string `json:"repository,omitempty"`
+    RepositoryID   string `json:"repositoryId,omitempty"`
+    WorkflowRef    string `json:"workflowRef,omitempty"`
+    JobWorkflowRef string `json:"jobWorkflowRef,omitempty"`
+    RunID          string `json:"runId,omitempty"`
+}
+```
+
+`JWTPublisherAuth.AuthorizePublish` copies these fields from the verified JWT claims only after OIDC discovery, JWKS signature verification, audience checking, expiry checking, `token_use == docsctl-publish`, and route package matching have succeeded. The registry still does not trust unsigned request metadata. The provenance exists because Vault minted it into the signed publish credential and the registry verified that credential offline.
+
+A new `pkg/help/publish/audit.go` file defines the publish audit event and the `logPublishAudit` helper. The log message is intentionally stable:
+
+```text
+docs registry publish
+```
+
+Representative audit fields are:
+
+```text
+request_id, package, version, status, outcome, error_code,
+duration_ms, content_length, upload_bytes, section_count, slug_count,
+sha256, client_ip, remote_addr, user_agent,
+subject, auth_method, identity_package, repository, repository_id,
+workflow_ref, job_workflow_ref, run_id
+```
+
+The handler uses a deferred audit event in `handlePublishSQLite`. Each early return path sets `status`, `outcome`, and `error_code`; the deferred logger records the final event. This matters because the publish route has many rejection points:
+
+```mermaid
+flowchart TD
+    A[PUT package version sqlite] --> B[Initialize audit event]
+    B --> C{concurrency slot?}
+    C -- no --> CReject[429 too_many_concurrent_uploads]
+    C -- yes --> D{auth configured?}
+    D -- no --> DReject[503 auth_not_configured]
+    D -- yes --> E{store configured?}
+    E -- no --> EReject[503 store_not_configured]
+    E -- yes --> F[Authorize bearer JWT]
+    F --> G{authorized?}
+    G -- no --> GReject[401/403 unauthorized or forbidden]
+    G -- yes --> H[Receive upload]
+    H --> I{within byte cap?}
+    I -- no --> IReject[413 upload_too_large]
+    I -- yes --> J[Validate SQLite help DB]
+    J --> K{valid?}
+    K -- no --> KReject[400 invalid_help_db]
+    K -- yes --> L[Publish to store]
+    L --> M{policy/storage ok?}
+    M -- no --> MReject[409/507 publish policy error]
+    M -- yes --> N[200 success]
+
+    CReject --> Z[Deferred publish audit log]
+    DReject --> Z
+    EReject --> Z
+    GReject --> Z
+    IReject --> Z
+    KReject --> Z
+    MReject --> Z
+    N --> Z
+
+    style Z fill:#d7e8ff,stroke:#0050b5
+    style N fill:#d7ffd9,stroke:#0a7f28
+```
+
+The test suite now verifies that JWT identity fields propagate into `PublisherIdentity` and that publish audit logs do not leak bearer token material. The specific token string and the `Authorization` header name are absent from the captured JSON logs.
+
+Implementation commits:
+
+```text
+Glazed 889dffe  docs-registry: add publish audit events
+Glazed 47726e5  DOCSCTL-REGISTRY-HARDENING: record phase 4 audit events
+```
+
+Key files:
+
+```text
+/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/pkg/help/publish/auth.go
+/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/pkg/help/publish/jwt_auth.go
+/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/pkg/help/publish/audit.go
+/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/pkg/help/publish/registry.go
+/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/pkg/help/publish/jwt_auth_test.go
+/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/pkg/help/publish/registry_test.go
+```
+
+### Phase 5: metrics and alert guidance
+
+Phase 5 added a lightweight in-process metrics collector in `pkg/help/publish/metrics.go` and exposed it as `GET /metrics`. The output is Prometheus text format, but the implementation deliberately avoids a new metrics dependency. That is appropriate for the current production shape because the registry runs as one replica. If the registry later scales horizontally, Prometheus should scrape every pod and aggregate the counters across replicas.
+
+The metrics are intentionally low-cardinality:
+
+```text
+# HELP docs_registry_http_requests_total Total docs-registry HTTP requests by route class, method, and status.
+# TYPE docs_registry_http_requests_total counter
+docs_registry_http_requests_total{route_class="publish",method="PUT",status="200"} 1
+
+# HELP docs_registry_publish_attempts_total Total docs-registry publish attempts by package, outcome, and stable error code.
+# TYPE docs_registry_publish_attempts_total counter
+docs_registry_publish_attempts_total{package="glazed",outcome="success",error_code="none"} 1
+```
+
+The design deliberately excludes repository, workflow ref, job workflow ref, run ID, request ID, user agent, and client IP from metric labels. Those values are useful for forensics but dangerous for metrics cardinality. They remain available in structured logs. Metrics answer aggregate operational questions; logs answer incident-specific provenance questions.
+
+The alert sketches added to the hardening guide are based on the stable status and error-code vocabulary:
+
+```promql
+sum(rate(docs_registry_http_requests_total{status=~"5.."}[5m])) > 0
+```
+
+```promql
+sum(rate(docs_registry_publish_attempts_total{error_code=~"unauthorized|forbidden"}[5m])) > 0.05
+```
+
+```promql
+sum(rate(docs_registry_publish_attempts_total{error_code="version_already_exists"}[5m])) > 0
+```
+
+```promql
+sum(rate(docs_registry_publish_attempts_total{error_code=~"quota_exceeded|version_quota_exceeded"}[5m])) > 0
+```
+
+```promql
+sum(rate(docs_registry_http_requests_total{status="429"}[5m])) > 0.1
+```
+
+If Prometheus scraping is not configured yet, the documented fallback is to alert on structured `docs registry publish` log events where `outcome="rejected"`, `status>=500`, or the `error_code` is one of `unauthorized`, `forbidden`, `version_already_exists`, `quota_exceeded`, `version_quota_exceeded`, or `too_many_concurrent_uploads`.
+
+Implementation commits:
+
+```text
+Glazed ee4ffe6  docs-registry: expose publish metrics
+Glazed 588360e  DOCSCTL-REGISTRY-HARDENING: record phase 5 metrics
+```
+
+Key files:
+
+```text
+/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/pkg/help/publish/metrics.go
+/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/pkg/help/publish/registry.go
+/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/pkg/help/publish/registry_middleware.go
+/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/pkg/help/publish/registry_test.go
+```
+
+### Phase 6: negative proof coverage and safe production probes
+
+Phase 6 turned the registry's rejection behavior into a more explicit proof surface. Several tests already exercised negative paths, but some of them asserted only HTTP status. They now also assert the stable JSON error code. This matters because CI clients, alert rules, and negative proof scripts should not have to parse prose error messages.
+
+The HTTP-level negative response coverage now includes:
+
+| Case | Expected status | Stable error code |
+|---|---:|---|
+| Missing bearer token | 401 | `unauthorized` |
+| Token for another package | 403 | `forbidden` |
+| Invalid SQLite body | 400 | `invalid_help_db` |
+| Different-content duplicate version | 409 | `version_already_exists` |
+| Package byte quota exceeded | 507 | `quota_exceeded` |
+
+The JWT unit tests already cover additional verifier failures with a local test OIDC issuer:
+
+- package mismatch;
+- wrong audience;
+- wrong issuer;
+- expired token;
+- tampered token;
+- missing `token_use`;
+- missing `package`.
+
+The ticket now contains a dedicated negative proof plan:
+
+```text
+/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/ttmp/2026/05/26/DOCSCTL-REGISTRY-HARDENING--harden-public-docs-registry-publishing-endpoint/sources/03-negative-proof-plan.md
+```
+
+It separates proof cases into three categories. Local automated tests cover registry and verifier behavior without production credentials. Production-safe probes cover only unauthenticated behavior and read-only endpoint checks. GitHub/Vault controlled proofs cover bound-claim failures that require a deliberately constrained workflow or Vault role.
+
+The production-safe probe script is:
+
+```text
+/home/manuel/workspaces/2026-05-25/docsctl-cicd-deploy/glazed/ttmp/2026/05/26/DOCSCTL-REGISTRY-HARDENING--harden-public-docs-registry-publishing-endpoint/scripts/01-production-safe-negative-probes.sh
+```
+
+It intentionally does not read token environment variables and does not send an Authorization header. Its default checks are:
+
+```bash
+REGISTRY_URL=https://docs-registry.yolo.scapegoat.dev \
+  ttmp/2026/05/26/DOCSCTL-REGISTRY-HARDENING--harden-public-docs-registry-publishing-endpoint/scripts/01-production-safe-negative-probes.sh
+```
+
+The script verifies:
+
+- `GET /healthz` returns 200;
+- unauthenticated `PUT /v1/packages/{package}/versions/{fresh-version}/sqlite` returns 401;
+- `GET /metrics` returns 200 if metrics are publicly reachable, or reports a warning if metrics are later ingress-restricted.
+
+The script sends only a tiny invalid body. Because the registry authorizes before reading and validating the upload, a missing bearer token should reject before storage can happen.
+
+Implementation commits:
+
+```text
+Glazed 1e14425  docs-registry: cover negative publish responses
+Glazed 312fa79  DOCSCTL-REGISTRY-HARDENING: record phase 6 negative proofs
+```
+
+### Current hardening status after Phases 4-6
+
+The current hardening status has advanced from basic policy enforcement to auditability and proof readiness:
+
+| Control | Status | Notes |
+|---|---:|---|
+| Vault Identity/OIDC publish JWT auth | Done | Registry validates issuer, audience, signature, expiry, `token_use`, and package claim. |
+| Release-tag-only Vault roles | Done | Terraform binds repo ID, workflow ref, job workflow ref, event, and tag ref. |
+| Explicit upload body cap | Done | `--max-upload-bytes 67108864`. |
+| Request IDs | Done | `X-Request-ID` preserved/generated and returned. |
+| Structured access logs | Done | One request log event per request. |
+| Per-client route-class rate limit | Done | In-process token bucket; OK for current one-replica deployment. |
+| Publish concurrency limit | Done | `--max-concurrent-uploads 2`. |
+| Immutable release versions | Done | Different-content duplicate version publishes reject by default. |
+| Same-SHA idempotent retries | Done | CI retries can succeed without mutating content. |
+| Per-package byte quota | Done | `--max-package-bytes 536870912`. |
+| Per-package version quota | Done | `--max-versions-per-package 25`. |
+| Publish-specific JWT claim audit event | Done locally | Adds `docs registry publish` audit event with non-sensitive repository/workflow/run provenance. |
+| Metrics and alerting | Done locally | Adds `/metrics`, request counters, publish outcome counters, alert sketches, and log fallback guidance. |
+| Negative proof suite | Done locally | Adds stable error assertions, negative proof plan, and safe unauthenticated production probe script. |
+| Production rollout for Phases 4-6 | Pending | Phase 7 should build/push/deploy and capture evidence. |
+
+### Updated hardened pipeline after observability work
+
+The registry is now best understood as a gated publish pipeline with three evidence streams: HTTP access logs, publish audit logs, and metrics counters.
+
+```mermaid
+flowchart TD
+    A[GitHub release workflow] --> B[Vault OIDC login]
+    B --> C[Vault Identity publish JWT]
+    C --> D[PUT docs DB to docs-registry]
+
+    subgraph Registry[docs-registry]
+      D --> E[Request ID middleware]
+      E --> F[Rate limit]
+      F --> G[Concurrency gate]
+      G --> H[JWT verification]
+      H --> I[Upload byte cap]
+      I --> J[SQLite validation]
+      J --> K[Immutable version and quota policy]
+      K --> L[Atomic package store write]
+    end
+
+    E --> M[docs registry request access log]
+    H --> N[PublisherIdentity provenance]
+    G --> O[docs registry publish audit event]
+    H --> O
+    I --> O
+    J --> O
+    K --> O
+    L --> O
+    M --> P[HTTP request metrics]
+    O --> Q[Publish outcome metrics]
+
+    style O fill:#d7e8ff,stroke:#0050b5
+    style P fill:#f2e6ff,stroke:#6f42c1
+    style Q fill:#f2e6ff,stroke:#6f42c1
+    style L fill:#d7ffd9,stroke:#0a7f28
+```
+
+This structure is useful during incidents. If a release workflow fails, the operator can check the CI error code, find the request ID, inspect the publish audit event for package/workflow/run provenance, and then look at aggregate metrics to determine whether this was isolated or part of a wider auth/policy/storage problem.
+
+### Remaining work
+
+The immediate next phase is production rollout and evidence capture for the Phase 4-6 code. That means building and pushing a new Glazed container image, updating the k3s GitOps image tags, waiting for Argo CD and the Deployment rollout, and then validating:
+
+- `GET https://docs-registry.yolo.scapegoat.dev/healthz`;
+- `GET https://docs-registry.yolo.scapegoat.dev/metrics` or the chosen internal scrape path;
+- the secret-free negative probe script;
+- publish audit logs on controlled publish attempts;
+- request and publish counters after probes.
+
+After that, the remaining high-value work is controlled GitHub/Vault negative proof. The local tests prove the registry verifier logic, but production bound-claim failures such as wrong repository ID, wrong workflow ref, wrong job workflow ref, wrong event, and wrong release tag shape need deliberately constructed GitHub Actions/Vault scenarios. Those proofs should capture status codes, stable error codes, request IDs, sanitized audit log lines, and metrics deltas, never raw OIDC or Vault tokens.
+
 ## Related notes
 
 - [[ARTICLE - Vault OIDC for GitHub Actions - Secretless CI GitOps]] — the platform pattern for GitHub Actions OIDC to Vault that this design builds on.
