@@ -27,10 +27,11 @@ This report explains the work done so far on the Tree Center Garden Assistant DM
 The project started with a concrete design system prototype for a mobile garden assistant and an evolving toolkit called `dmeta`. The goal was not simply to copy the prototype into React. The goal was to make the prototype participate in a broader design-to-code workflow: high-level semantic YAML should describe domain concepts, interaction YAML should describe modality-neutral user actions and representations, web meta-design-system YAML should describe widget templates and lowering rules, and a React generator should produce traceable scaffolds that can be reviewed, promoted, merged, or regenerated.
 
 > [!summary]
-> - The project now has a working TTC DMETA source package at `2026-05-27--ttc-design-system/dmeta-ir/` and a working Storybook app at `2026-05-27--ttc-design-system/web/packages/ttc-garden-assistant/`.
-> - Generated React lives in `src/generated/dmeta-widgets/`, while polished hand-maintained UI lives in `src/components/`, `src/pages/`, `src/styles/`, and `src/stories/`.
-> - A lifecycle registry in `src/dmeta/` connects generated metadata to promoted hand components, making the generated/manual boundary explicit.
-> - The work included generator fixes in the nested `dmeta` repo so generated React compiles cleanly instead of requiring hand-patches.
+> - The project now has a working TTC DMETA source package, a Storybook React app, a generated React scaffold layer, and a live Storybook session at `http://localhost:6008/`.
+> - Generated React lives in `src/generated/dmeta-widgets/` with `.generated.*` names and JSON metadata sidecars; hand-owned promoted components live in `src/components/`.
+> - File lifecycle is now enforced by the generator: regenerate-only files are overwritten, scaffold-once files are protected, and sidecars can be regenerated for merge review.
+> - CSS has started moving from flattened component literals into a design-system lowering path: `tokens.css`, DMETA style token/recipe YAML, tokenized generated CSS modules, and CSS-variable validation.
+> - `Chip` and `Button` have been promoted as hand-owned atoms that import regenerate-only generated prop types. `ProductCard` is the next natural molecule to promote.
 
 ## Why this report exists
 
@@ -56,12 +57,16 @@ The current project has four major source zones.
 └── go.work
 ```
 
-The commits that define the current checkpoint are:
+The commits that define the current checkpoint are now broader than the first report. The root repository has moved from a Storybook prototype to a tokenized component-system workflow:
 
 - root repo `6dc2322` — `Add TTC DMETA React workflow`
-- root repo `ef2fb69` — `Diary: record TTC DMETA React workflow`
-- root repo `b312a9b` — `Docs: update TTC DMETA task status`
-- nested `dmeta` repo `dd839fc` — `Fix React scaffold output for TTC workflow`
+- root repo `02c09ec` — `Add TTC component-system React scaffolds`
+- root repo `017f291` — `Use generated suffix for React scaffolds`
+- root repo `c99155e` — `Lower TTC React CSS from design tokens`
+- root repo `5407f50` — `Promote TTC Button atom`
+- root repo `1dfa3ab` — `Diary: record Button promotion`
+- nested `dmeta` repo `853c522` — `Enforce React scaffold file lifecycles`
+- nested `dmeta` repo `5a532ed` — `Lower React scaffold CSS from TTC tokens`
 
 Storybook is running in `tmux`:
 
@@ -950,125 +955,607 @@ The most important files for continuing the work are:
 2026-05-27--ttc-design-system/web/packages/ttc-garden-assistant/src/generated/dmeta-widgets/
 ```
 
-## What remains unfinished
+## Follow-up phase: from generated widgets to a component system
 
-The next substantial work is not another generic scaffold pass. The next work should exercise the lifecycle model.
+The first version of the report ended with a reasonable next step: make lifecycle policy formal and promote a component. That work has now happened. The project no longer treats React generation as a single “write files” operation. It treats each generated file as an artifact with a lifecycle, and it treats promoted React as a separate ownership state.
 
-### 1. Promote `ShoppingPlanSummaryWidget`
+This distinction matters because generated code is not one thing. A generated metadata sidecar is different from a generated implementation scaffold. A generated prop type may remain imported forever. A generated Storybook story may be useful as review evidence even after the component itself is hand-owned. A generated adapter TODO may be a checklist rather than runtime code. The workflow only becomes practical when those differences are represented in tooling.
 
-`ShoppingPlanSummaryWidget` exists only as generated/future output. It is the right next target because the current hand UI has a generative mix screen but not a polished plan summary component. Promoting it would test the workflow end to end:
+The current generated component folder now has a predictable shape:
 
-1. Read generated scaffold and metadata.
-2. Design the hand component using TTC primitives.
-3. Add fixtures.
-4. Add Storybook stories.
-5. Update `widgetRegistry.ts` from `future-generated` to `promoted-hand-maintained`.
-6. Keep generated files as sidecars.
-7. Validate typecheck and Storybook.
-
-This would be the first full proof that generated scaffolds can lead to polished components without losing provenance.
-
-### 2. Add lifecycle policy to YAML and generator behavior
-
-The lifecycle categories currently live in TypeScript. They should eventually live in the React target or instance manifest. A possible YAML shape:
-
-```yaml
-outputs:
-  component:
-    lifecycle: scaffold_once
-    promotion_path: src/components/widgets/ShoppingPlanSummaryWidget.tsx
-  metadata:
-    lifecycle: regenerate_only
-  stories:
-    lifecycle: sidecar_for_merge
-  adapter_todo:
-    lifecycle: scaffold_once
+```text
+src/generated/dmeta-widgets/atoms/Button/
+  Button.generated.tsx
+  Button.generated.types.ts
+  Button.generated.stories.tsx
+  Button.generated.module.css
+  Button.generated.adapter.todo.ts
+  Button.metadata.json
+  index.ts
+  README.md
 ```
 
-The generator could then enforce behavior:
+The important part is the name. `Button.generated.types.ts` is allowed to remain imported by hand code because the import path itself says what is happening. The hand-owned component is not pretending the type is local. It is explicitly depending on generated source.
 
-```go
-switch output.Lifecycle {
-case RegenerateOnly:
-    overwriteWhenForce()
-case ScaffoldOnce:
-    writeOnlyIfMissing()
-case SidecarForMerge:
-    writeToGeneratedSidecar()
-case PromotedHandMaintained:
-    neverOverwritePromotedPath()
+```ts
+import type { ButtonProps as GeneratedButtonProps } from '../../../generated/dmeta-widgets/atoms/Button/Button.generated.types';
+```
+
+That single import line carries useful information for a reviewer. It says that the hand component is promoted, but its contract still comes from the lowering pipeline. If the contract changes, the generated type changes; if the visual implementation changes, the hand component changes. Those are different review events.
+
+## File lifecycle is now enforced by the generator
+
+The generator now carries lifecycle from the Web MetaDesignSystem widget template into the planned file and then into the write step. The lifecycle values are simple, but they change the behavior of regeneration in an important way.
+
+| Lifecycle | Meaning | Write behavior |
+|---|---|---|
+| `regenerate_only` | The file is compiler output and should be overwritten when regenerated. | Always written by scaffold generation. |
+| `scaffold_once` | The file is a starting point for hand ownership. | Written only when missing, even if `--force` is supplied. |
+| `generated_sidecar` / `sidecar_for_merge` | The file is generated evidence for review or manual merge. | Written as generated output, usually with force semantics. |
+
+The TTC atom and molecule YAML now uses this distinction. `Button`, `Chip`, and `ProductCard` explicitly keep their generated types and metadata regenerate-only while protecting implementation scaffolds.
+
+```yaml
+component_system:
+  kind: atom
+  lifecycle:
+    default: scaffold_once
+    types: regenerate_only
+    styles: regenerate_only
+    metadata: regenerate_only
+    stories: sidecar_for_merge
+    promote_into: src/components/atoms/Button
+```
+
+The scaffold output makes the policy visible. A run of `scaffold-react --force` now reports rows such as:
+
+```text
+Button.generated.tsx            skipped  scaffold_once; file exists
+Button.generated.types.ts       written  regenerate_only
+Button.metadata.json            written  regenerate_only
+Button.generated.module.css     written  regenerate_only
+```
+
+This is the point where lifecycle stops being prose. The generator will not casually overwrite a scaffold-once implementation, but it will keep metadata and type contracts current.
+
+The implementation touched the nested `dmeta` repo in these files:
+
+```text
+dmeta/pkg/dmeta/generator/react/model.go
+dmeta/pkg/dmeta/generator/react/plan.go
+dmeta/pkg/dmeta/generator/react/render.go
+dmeta/pkg/dmeta/generator/react/write.go
+```
+
+The key rule is in the writer. In pseudocode, it behaves like this:
+
+```text
+for file in generatedFiles:
+    lifecycle = normalize(file.lifecycle)
+
+    if lifecycle == regenerate_only:
+        write(file)
+        continue
+
+    if lifecycle == scaffold_once and exists(file.path):
+        skip(file, reason = "scaffold_once; file exists")
+        continue
+
+    if lifecycle == scaffold_once:
+        write(file)
+        continue
+
+    if exists(file.path) and not force:
+        skip(file, reason = "file exists")
+        continue
+
+    write(file)
+```
+
+That algorithm is intentionally small. It does not try to solve all merge problems. It only enforces the ownership policy that the IR already declares.
+
+## Generated names changed from template files to generated files
+
+The first scaffold convention used `.template.*` names. That was close, but it implied that generated files were only templates waiting to be copied. The user corrected the model: some generated files should remain generated and still be imported. Types are the clearest example.
+
+The convention is now `.generated.*`:
+
+```text
+Button.generated.tsx
+Button.generated.types.ts
+Button.generated.stories.tsx
+Button.generated.module.css
+Button.generated.adapter.todo.ts
+```
+
+This is a small naming change with a large maintenance effect. Import paths are part of the code review surface. A reviewer who sees this import does not need to inspect a registry to know that the type is generated:
+
+```ts
+import type { ChipProps as GeneratedChipProps } from '../../../generated/dmeta-widgets/atoms/Chip/Chip.generated.types';
+```
+
+The generated TypeScript files now carry compact headers that point to the JSON metadata sidecar rather than embedding large metadata objects inline:
+
+```ts
+// Code generated by dmeta scaffold-react. This is generated source, not hand-owned source.
+// Metadata: ./Button.metadata.json
+// Promotion/use: import as generated, or copy into src/components/atoms/Button and remove .generated from filenames when taking ownership.
+// Do not edit this generated file directly; edit the IR/generator or promote first.
+```
+
+The full provenance remains in `Button.metadata.json`. This keeps source files readable while preserving traceability.
+
+## The Web MetaDesignSystem now models atoms, molecules, and organisms
+
+The first Web MetaDesignSystem was widget-oriented. That was enough to generate chat widgets, but it was not enough to describe a real React component system. React promotion starts from small reusable pieces: buttons, chips, product cards, message rows, cards, rows, and widgets. The IR therefore grew a `component_system` layer.
+
+A widget template can now describe its React component role:
+
+```yaml
+component_system:
+  kind: molecule
+  specificity: domain
+  family: commerce
+  role: product_summary_card
+  role_description: Domain molecule that summarizes a purchasable PlantProduct using branded atoms.
+  promotion_order: 40
+  owns_layout: true
+  owns_behavior: false
+```
+
+The generator uses `kind` to place generated output in a component-system layout:
+
+```text
+src/generated/dmeta-widgets/
+  atoms/
+    Button/
+    Chip/
+  molecules/
+    ProductCard/
+    ChatMessageRow/
+    FilterBar/
+    SuggestionStrip/
+    CompareTeaser/
+  organisms/
+    QuickPicksWidget/
+    TopMatchesWidget/
+    ShoppingPlanSummaryWidget/
+    CareCalendarWidget/
+    UploadPromptWidget/
+```
+
+This layout is useful because it matches the promotion sequence. Atoms are promoted first because molecules depend on them. Molecules come next because organisms need them. Organisms should be promoted only when the smaller pieces are stable enough to compose.
+
+The validation layer was also extended so the Web MetaDesignSystem can catch bad component-system references. It now validates component kind, specificity, composition dependencies, event/action references, and action-slot references. The relevant implementation is in:
+
+```text
+dmeta/pkg/dmeta/validator/model.go
+dmeta/pkg/dmeta/metadesign/web/validate.go
+```
+
+## CSS moved onto a token and recipe path
+
+The original TTC design already had root CSS variables in `original/tokens.css`. Those variables were good. The problem was not the token values. The problem was that component styling was mostly encoded as inline JSX style objects in the imported prototype and then extracted into a large `global.css`. That made the visual result close to the original, but it left the component system flattened.
+
+A flattened component style looks like this: the component directly owns literal paddings, colors, radii, shadows, and font sizes. A lowered component style is different. It composes named design-system tokens and recipes, leaving raw values in a canonical token file.
+
+The project now has a token entrypoint:
+
+```text
+2026-05-27--ttc-design-system/web/packages/ttc-garden-assistant/src/styles/tokens.css
+```
+
+It preserves the original TTC root tokens and adds lowering aliases:
+
+```css
+:root {
+  --ttc-navy-800: #15243f;
+  --ttc-gold-600: #a88a3a;
+  --ttc-line: #e6e7ec;
+
+  --ttc-color-action-primary: var(--ttc-navy-800);
+  --ttc-color-accent-expertise: var(--ttc-gold-600);
+  --ttc-color-border-subtle: var(--ttc-line);
+
+  --ttc-space-3: 8px;
+  --ttc-space-5: 12px;
+  --ttc-radius-control: var(--ttc-r-pill);
+  --ttc-font-role-button: 500 14px/1 var(--ttc-font-body);
 }
 ```
 
-This would move lifecycle out of convention and into tooling.
-
-### 3. Define assistant response and catalog adapter contracts
-
-The remaining ticket task is backend assistant response and product/catalog API contracts. This matters because the current UI uses static fixtures. The real system needs adapters that map assistant/catalog payloads into DMETA-informed view models.
-
-A future contract might distinguish:
-
-- assistant turn envelope;
-- semantic objects emitted by the assistant;
-- product/catalog records;
-- generated presentation obligations;
-- UI view models;
-- action callbacks.
-
-The adapter boundary should probably be explicit and testable. Generated `.adapter.todo.ts` files are a starting point, but they are not yet real adapters.
-
-### 4. Split promoted components when promotion pressure increases
-
-`GardenAssistant.tsx` can remain large for now, but promotion work will become easier if widgets move into individual files. A likely future layout:
+The DMETA side now records the same idea in style IR files:
 
 ```text
-src/components/
-  atoms/
-  molecules/
-  widgets/
-    QuickPicksWidget/
-    TopMatchesWidget/
-    WateringGuideWidget/
-    ShoppingPlanSummaryWidget/
-  chrome/
-  icons/
+2026-05-27--ttc-design-system/dmeta-ir/meta-design-systems/web/style/tokens.yaml
+2026-05-27--ttc-design-system/dmeta-ir/meta-design-systems/web/style/recipes.yaml
 ```
 
-The split should be driven by actual lifecycle needs, not by a desire for neatness alone. Splitting before the registry existed would have created movement without ownership clarity. Splitting after the registry can preserve semantic provenance.
+The generated CSS has changed accordingly. A generated chip no longer receives a generic placeholder style like `border-radius: 12px; padding: 12px;`. It receives tokenized recipe output:
 
-## Working rules for the next phase
+```css
+.root {
+  align-items: center;
+  background: var(--ttc-color-surface-card);
+  border: var(--ttc-border-width-hairline) solid var(--ttc-color-border-strong);
+  border-radius: var(--ttc-radius-control);
+  color: var(--ttc-color-action-primary);
+  display: inline-flex;
+  font: var(--ttc-font-role-body-compact);
+  gap: var(--ttc-space-3);
+  min-height: calc(var(--ttc-space-12) - var(--ttc-space-1));
+  padding: var(--ttc-space-3) var(--ttc-space-7);
+  white-space: nowrap;
+}
+```
 
-The next contributor should follow these rules:
+There is also a validation script:
 
-- Do not hand-edit generated files unless the goal is a temporary experiment. If generated output is wrong, fix YAML or the generator.
-- Do not promote a generated component without updating `src/dmeta/widgetRegistry.ts`.
-- Do not add a new widget directly in React if it represents a new semantic presentation. Add or update the IR first.
-- Do not add add-to-cart behavior to a generic `Plant`; require `PlantProduct` and `purchasable` semantics.
-- Do not show plant pairings without explicit pair reasons.
-- Do not let Storybook be only visual. Keep the workflow/lifecycle Storybook surface alive because it teaches the pipeline.
-- Keep docs and diary updated when pipeline boundaries change.
+```text
+2026-05-27--ttc-design-system/web/packages/ttc-garden-assistant/scripts/validate-css-vars.mjs
+```
 
-## A concrete next implementation sequence
+It scans CSS files and fails if any `var(--ttc-...)` reference is undefined. This was added because TypeScript and Storybook will not catch a misspelled CSS custom property. The promoted `Chip` had already exposed this failure mode with references to nonexistent `--ttc-gold-soft` and `--ttc-gold-700`. The validator now catches that class of mistake.
 
-If I were continuing immediately, I would implement the next phase in this order:
+The command is:
 
-1. Add a small lifecycle policy block to `dmeta-ir/meta-design-systems/web/targets/react.yaml` or the instance manifest.
-2. Extend `reactgen.TargetFile` or `instance.Selected` to parse lifecycle policy.
-3. Add a `Lifecycle` field to planned files in `dmeta/pkg/dmeta/generator/react/model.go`.
-4. Update `WriteFiles` to respect regenerate-only/scaffold-once/sidecar behavior.
-5. Add a dry-run output column showing lifecycle.
-6. Regenerate and confirm output is unchanged except metadata or lifecycle annotations.
-7. Promote `ShoppingPlanSummaryWidget` into hand code.
-8. Update the registry and Storybook table.
-9. Add assistant/catalog adapter contract docs and initial TypeScript types.
-10. Commit the dmeta generator change separately from the TTC web promotion.
+```bash
+cd 2026-05-27--ttc-design-system/web
+pnpm --filter ttc-garden-assistant validate:css-vars
+```
 
-This sequence keeps the system stable while deepening the workflow. It avoids jumping straight into a large visual refactor before the generator can express ownership.
+A passing run currently reports:
 
-## Closing assessment
+```text
+CSS variable validation passed (100 TTC variables defined, 596 TTC variable references checked).
+```
 
-The project is now past the first threshold. It is no longer only a hand-coded Storybook prototype, and it is no longer only a set of proposed YAML files. It has a project-local DMETA IR package, a validating lowering pipeline, generated React scaffolds, a hand-maintained TTC Storybook app, a lifecycle registry connecting generated metadata to promoted components, and a detailed intern guide in the ticket.
+This is not the final CSS architecture. The large legacy `global.css` still contains class-extracted styles from the imported prototype. The important change is that promoted atoms and generated CSS now have a token path. Future promotions should move styles out of the monolith and onto this path.
 
-The remaining work is to make the lifecycle policy more formal and to prove promotion on a real component that does not yet have polished hand UI. `ShoppingPlanSummaryWidget` is the right candidate. After that, the project can begin to treat high-level semantic changes as practical inputs to the application, not only documentation.
+## Promoted atom: Chip
 
-The strongest result so far is the boundary discipline. Generated files compile and stay under `src/generated/`. Hand UI remains visually strong and stays outside generated output. Metadata sidecars cross the boundary. Storybook exposes the boundary. The docs explain the boundary. That gives the project a workable foundation for deterministic, manual, and LLM-assisted lowering phases to coexist without confusing ownership.
+`Chip` was the first promoted atom because it is small and widely reused. The generated type contract lives at:
+
+```text
+src/generated/dmeta-widgets/atoms/Chip/Chip.generated.types.ts
+```
+
+The hand-owned implementation lives at:
+
+```text
+src/components/atoms/Chip/
+  Chip.tsx
+  Chip.module.css
+  Chip.stories.tsx
+  index.ts
+```
+
+The component imports the generated contract and exposes it as the hand-owned prop type:
+
+```ts
+import type { ChipProps as GeneratedChipProps } from '../../../generated/dmeta-widgets/atoms/Chip/Chip.generated.types';
+
+export type ChipProps = GeneratedChipProps;
+```
+
+The component then implements the visual behavior in idiomatic React. It knows about tones, selected state, removability, and optional callbacks. Its CSS is tokenized, not hand-coded against nonexistent token names.
+
+This promotion proved three things:
+
+- A hand-owned component can depend on generated types without copying them.
+- Generated metadata can stay in the registry as the semantic sidecar.
+- CSS variable validation is necessary because visual correctness includes token correctness, not only TypeScript correctness.
+
+`src/dmeta/widgetRegistry.ts` now marks `ttc.chip` as `promoted-hand-maintained`.
+
+## Promoted atom: Button
+
+`Button` was promoted next because product cards and shopping widgets need a stable action primitive. The generated type has one rough edge: the generated contract maps `ReactNode` to `unknown`, because the current type lowering does not yet understand React-specific type aliases deeply enough. The promoted component narrows that one field while preserving the rest of the generated contract:
+
+```ts
+import type { ReactNode } from 'react';
+import type { ButtonProps as GeneratedButtonProps } from '../../../generated/dmeta-widgets/atoms/Button/Button.generated.types';
+
+export type ButtonProps = Omit<GeneratedButtonProps, 'children'> & {
+  children: ReactNode;
+};
+```
+
+The implementation handles variants, sizes, disabled state, and loading state. It uses the generated callback shape, which is currently `(payload: void) => void`:
+
+```ts
+<button
+  disabled={disabled || loading}
+  type="button"
+  onClick={() => onClick?.(undefined as void)}
+>
+  {loading && <span className={styles.spinner} aria-hidden="true" />}
+  <span className={styles.label}>{children}</span>
+</button>
+```
+
+That callback call is correct for the current generated type, but it also reveals the next generator improvement. A `payload_type: void` event should probably lower to `() => void`, not `(payload: void) => void`.
+
+Promoting `Button` also exposed a module-boundary issue. `src/components/index.ts` originally re-exported both `./atoms` and the legacy monolithic `GardenAssistant.tsx`. The monolith already exported a `Button`, so TypeScript correctly reported an ambiguous export:
+
+```text
+src/components/index.ts(2,1): error TS2308: Module './atoms' has already exported a member named 'Button'. Consider explicitly re-exporting to resolve the ambiguity.
+```
+
+The fix was to make `src/components/index.ts` export promoted atoms only for now. Existing app and story code imports the legacy monolith directly, so this did not break current behavior. The lesson is that promotion is not only file movement. It changes the public module graph, and the barrel files must make ownership explicit.
+
+`src/dmeta/widgetRegistry.ts` now marks `ttc.button` as `promoted-hand-maintained`.
+
+## The registry is now the map from generated obligations to hand code
+
+The lifecycle registry is no longer a future idea. It now records concrete promoted atoms as well as larger components whose hand implementations still live inside the monolith.
+
+```text
+src/dmeta/widgetLifecycle.ts
+src/dmeta/widgetRegistry.ts
+src/dmeta/index.ts
+```
+
+For an atom, the registry entry has become straightforward:
+
+```ts
+{
+  templateId: 'ttc.button',
+  generatedComponentName: 'Button',
+  promotedComponentName: 'Button',
+  lifecycle: 'promoted-hand-maintained',
+  metadata: buttonMetadata,
+  notes: 'Promoted hand-owned action atom; implementation imports the regenerate-only generated prop type from Button.generated.types.',
+}
+```
+
+The registry matters because generated metadata remains useful after promotion. Promotion does not delete provenance. It changes which file owns the runtime implementation.
+
+The workflow can be read as a state transition:
+
+```mermaid
+stateDiagram-v2
+    [*] --> GeneratedOnly
+    GeneratedOnly --> ScaffoldOnce: scaffold file created
+    ScaffoldOnce --> PromotedHandMaintained: copy or rewrite into src/components
+    PromotedHandMaintained --> SidecarForMerge: generated output changes
+    SidecarForMerge --> PromotedHandMaintained: human or LLM merges useful changes
+
+    GeneratedOnly: metadata/types regenerated
+    ScaffoldOnce: implementation protected
+    PromotedHandMaintained: runtime code is hand-owned
+    SidecarForMerge: generated output is review evidence
+```
+
+The registry is the table that tells the frontend which state each template is in.
+
+## Storybook is the review surface
+
+Storybook is running in `tmux`:
+
+```text
+session: ttc-storybook
+url:     http://localhost:6008/
+log:     /tmp/ttc-storybook.log
+```
+
+It is not only a visual demo. It now shows several layers of the workflow:
+
+- Polished legacy TTC screens and scenarios.
+- Generated scaffold stories under `Generated React/...`.
+- Promoted atom stories for `Button` and `Chip`.
+- The DMETA workflow/lifecycle table in `DmetaWorkflow.stories.tsx`.
+
+The promoted atom stories are small, but they are important because they create review targets for tokenized, hand-owned components:
+
+```text
+TTC Garden Assistant/Atoms/Button
+TTC Garden Assistant/Atoms/Chip
+```
+
+Each promoted atom story tests the contract boundary. For `Button`, the stories cover variants, sizes, disabled, and loading. For `Chip`, the stories cover tones, selected state, and removability. These stories are where future visual changes should be reviewed before larger molecules depend on the atoms.
+
+## Validation after the follow-up work
+
+The current validation set covers the IR, the generator packages, CSS token references, TypeScript, and Storybook build output:
+
+```bash
+cd dmeta
+go test ./pkg/dmeta/generator/react ./pkg/dmeta/metadesign/web ./pkg/dmeta/interaction ./pkg/dmeta/validator
+
+go run ./cmd/dmeta validate-ir \
+  --root ../2026-05-27--ttc-design-system/dmeta-ir \
+  --include-info \
+  --output table
+
+go run ./cmd/dmeta validate-interactions \
+  --root ../2026-05-27--ttc-design-system/dmeta-ir \
+  --include-info \
+  --output table
+
+go run ./cmd/dmeta lower-web \
+  --root ../2026-05-27--ttc-design-system/dmeta-ir \
+  --interactions-root ../2026-05-27--ttc-design-system/dmeta-ir \
+  --web-root ../2026-05-27--ttc-design-system/dmeta-ir/meta-design-systems/web \
+  --output table
+```
+
+```bash
+cd 2026-05-27--ttc-design-system/web
+pnpm --filter ttc-garden-assistant validate:css-vars
+pnpm --filter ttc-garden-assistant typecheck
+pnpm --filter ttc-garden-assistant build-storybook
+```
+
+The current ticket documentation also passes:
+
+```bash
+docmgr doctor --ticket TTC-REACT-MDS-COMPONENTS --stale-after 30
+```
+
+This validation set is still incomplete. It does not yet verify the registry against generated metadata. It does not yet enforce “no raw CSS values” in generated/promoted component modules. It does not yet check that every promoted component imports the intended generated type. Those are good next validations to add.
+
+## What remains unfinished now
+
+The next substantial work has changed. The old next step was to implement lifecycle policy and prove promotion. That is now done for two atoms. The next step is to promote a real molecule and improve the generator ergonomics exposed by atom promotion.
+
+### 1. Promote `ProductCard`
+
+`ProductCard` is the right next target. It is the first molecule that depends on the promoted atoms. It also carries real domain meaning: product identity, plant names, price, zones, image, saved state, availability, and action affordances.
+
+A likely hand-owned layout is:
+
+```text
+src/components/molecules/ProductCard/
+  ProductCard.tsx
+  ProductCard.module.css
+  ProductCard.stories.tsx
+  index.ts
+```
+
+The component should import its generated prop type from:
+
+```text
+src/generated/dmeta-widgets/molecules/ProductCard/ProductCard.generated.types.ts
+```
+
+It should compose promoted atoms where the generated contract allows it:
+
+```tsx
+<ProductCard>
+  <Chip label={product.zones} tone="leaf" />
+  <Button variant="secondary" size="sm">Add to plan</Button>
+</ProductCard>
+```
+
+This promotion will answer a practical question: can a domain molecule remain faithful to the TTC visual design while being constrained by generated prop contracts and design-token CSS recipes?
+
+### 2. Fix generated React type ergonomics
+
+Two generated type issues are now visible because hand components import generated contracts:
+
+- `ReactNode` fields currently become `unknown` unless hand code narrows them.
+- `payload_type: void` currently becomes `(payload: void) => void` instead of `() => void`.
+
+The desired generated type for `Button` is closer to:
+
+```ts
+import type { ReactNode } from 'react';
+
+export type ButtonProps = {
+  children: ReactNode;
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  disabled?: boolean;
+  loading?: boolean;
+  onClick?: () => void;
+};
+```
+
+This change belongs in the generator, not in every promoted component.
+
+### 3. Parse style recipes instead of mirroring them in Go
+
+The project now has `style/recipes.yaml`, but the generator currently mirrors those recipes in Go helper functions. That is acceptable for a first implementation because it makes generated CSS better immediately. It should not remain the long-term architecture.
+
+The more correct flow is:
+
+```mermaid
+flowchart LR
+    A[style/tokens.yaml] --> C[React CSS renderer]
+    B[style/recipes.yaml] --> C
+    C --> D[*.generated.module.css]
+    D --> E[validate:css-vars]
+```
+
+At that point, changing the chip recipe in YAML would alter generated CSS without editing Go code.
+
+### 4. Add stricter CSS validation for generated and promoted modules
+
+The current CSS validator checks for undefined TTC variables. That is necessary but not sufficient. For generated CSS and promoted atoms/molecules, raw colors and raw spacing values should be rare.
+
+A stricter validator should probably treat these files differently:
+
+```text
+src/generated/**/*.css
+src/components/atoms/**/*.css
+src/components/molecules/**/*.css
+```
+
+It could reject:
+
+- raw hex colors outside `tokens.css`;
+- raw `rgba(...)` colors unless allowlisted;
+- raw pixel spacing outside token definitions;
+- new `--ttc-*` references not defined in `tokens.css`.
+
+Legacy `global.css` should be exempt at first because it still contains the class-extracted original prototype. The goal is not to break the working app. The goal is to keep the new component system clean as it grows.
+
+### 5. Add registry validation
+
+The registry is currently a human-maintained bridge. That is useful, but it should become testable. A `validate:dmeta-registry` script could check:
+
+- every metadata import points to an existing JSON sidecar;
+- every registry `templateId` matches the metadata template ID;
+- every `promoted-hand-maintained` entry has a promoted component path or export;
+- every lifecycle value is valid;
+- every selected generated template appears in the registry.
+
+This would catch drift when generation, promotion, and manual edits happen in different commits.
+
+### 6. Continue splitting the monolith, but only under promotion pressure
+
+`GardenAssistant.tsx` still contains many components. That is now the largest structural risk. It creates duplicate names, as the `Button` barrel conflict showed, and it makes it difficult to see which components are promoted versus legacy.
+
+The split should be incremental:
+
+1. Promote atoms.
+2. Promote molecules.
+3. Replace monolithic internals with promoted components only when the contracts fit.
+4. Move organism widgets once their child atoms and molecules are stable.
+
+This order keeps visual behavior stable while steadily reducing the monolith.
+
+## Updated working rules
+
+The working rules have become more concrete:
+
+- Do not hand-edit generated files unless the goal is a temporary experiment. Fix YAML or generator code instead.
+- Keep generated files under `src/generated/dmeta-widgets/` and keep `.generated.*` names.
+- Keep full generated provenance in JSON sidecars, not inline in every TypeScript file.
+- Let generated types remain imported when that is the right ownership model.
+- Promote components into `src/components/<kind>/<Name>/` and update `src/dmeta/widgetRegistry.ts` in the same change.
+- Use `src/styles/tokens.css` and recipe aliases for promoted component CSS.
+- Run `validate:css-vars` whenever CSS is touched.
+- Do not re-export the legacy monolith wholesale from the same barrel as promoted atoms; duplicate names hide ownership.
+- Keep Storybook running because visual review is part of the workflow, not a separate afterthought.
+
+## Updated concrete next sequence
+
+If continuing immediately, the next sequence should be:
+
+1. Fix generator type lowering for `ReactNode` and `void` callbacks.
+2. Regenerate Button and Chip types and verify promoted atoms no longer need awkward callback calls or type narrowing.
+3. Promote `ProductCard` into `src/components/molecules/ProductCard/`.
+4. Compose promoted `Button` and `Chip` inside the hand-owned ProductCard where appropriate.
+5. Add ProductCard stories for default, liked, unavailable, compact, and with/without zone badges.
+6. Update `widgetRegistry.ts` and the workflow story.
+7. Add `validate:dmeta-registry` to make the registry testable.
+8. Add stricter CSS lint for generated/promoted modules.
+9. Only then move on to a larger organism such as `ShoppingPlanSummaryWidget`.
+
+This order reduces friction before the component tree grows. It fixes the generator issues that atoms revealed, then tests the improved contract on the first domain molecule.
+
+## Closing assessment after the follow-up work
+
+The project is now past a second threshold. The first threshold was having a working DMETA-to-React scaffold and Storybook prototype. The second threshold is having a credible ownership model for generated and hand code.
+
+The strongest improvement is not that `Button` and `Chip` exist as files. The improvement is that they demonstrate a repeatable promotion pattern:
+
+```text
+Web template -> generated type/metadata/style -> hand-owned component -> registry entry -> Storybook story -> validation
+```
+
+The weakest remaining point is still the monolithic prototype. It is valuable because it preserves the original visual design, but it should stop being the hidden source of truth for new work. The project now has the tools to replace it gradually: component-system IR, generated contracts, tokenized recipes, promoted atoms, registry metadata, and Storybook review surfaces.
+
+A future reader should understand the current state this way: the system is no longer trying to choose between generation and hand design. It is building a controlled handoff between them. Generation owns contracts, metadata, scaffolds, and sidecars. Hand code owns polished runtime components. The registry records the handoff. Validation keeps the two sides from drifting silently.
