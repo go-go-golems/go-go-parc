@@ -705,3 +705,191 @@ The expected result is not that every PR is always ready. PR state changes over 
 The project is now in a useful intermediate state. It can inspect, validate, report, and combine status. It can plan Glazed-lint policy conformance without editing files. The next meaningful work is to turn the planner into a tested apply engine. That should be done only after adding fixture coverage from the real Makefiles used in INFRA-002.
 
 The main conclusion is operational: `ggg` should continue to encode real rollout policy after that policy has been exercised against real repositories. INFRA-002 produced exactly that evidence. The implementation should remain grounded in those artifacts.
+
+---
+
+## 19. Addendum: INFRA-003 turned `ggg` from rollout PR tooling into release verification tooling
+
+The original version of this article ended after the INFRA-002 Glazed lint rollout. The next rollout, INFRA-003, changed the shape of `ggg` again. INFRA-002 proved that `ggg` could help open and monitor many PRs. INFRA-003 proved that a rollout is not done when PRs merge: if the change affects release-tag behavior, the real proof is a successful tag-triggered release and a production verification step.
+
+INFRA-003 added docsctl documentation publishing to Go-Go-Golems packages. Each package release workflow now exports Glazed help as SQLite, authenticates to Vault through GitHub OIDC, mints a short-lived docs-registry publishing JWT, uploads the package/version docs, and verifies that the docs browser can see the new version. The rollout forced `ggg` to grow from PR-readiness automation into release-watch, docs-verification, and release-preflight tooling.
+
+> [!summary]
+> - `ggg release watch` and `ggg release verify-docs` were added because merged PRs do not prove release-time docs publishing.
+> - Terraform/Vault roles had to be applied before tag verification; otherwise tag workflows would fail at the OIDC/Vault boundary.
+> - Real tag runs surfaced release workflow defects unrelated to docsctl: missing pnpm installs, stale GoReleaser placeholders, and CGO-disabled builds for tree-sitter packages.
+> - All INFRA-003 target packages eventually published docs, but only after `ggg` learned to watch releases, emit failed-log commands, and run preflight checks.
+
+### 19.1 The new docsctl rollout target
+
+INFRA-003 targeted the packages that can export Glazed help SQLite:
+
+| Package | Published docs version | Public docs URL | Sections |
+| --- | ---: | --- | ---: |
+| `loupedeck` | `v0.1.1` | `https://docs.yolo.scapegoat.dev/loupedeck/v0.1.1` | 4 |
+| `discord-bot` | `v0.1.6` | `https://docs.yolo.scapegoat.dev/discord-bot/v0.1.6` | 3 |
+| `go-minitrace` | `v0.0.17` | `https://docs.yolo.scapegoat.dev/go-minitrace/v0.0.17` | 20 |
+| `workspace-manager` | `v0.0.5` | `https://docs.yolo.scapegoat.dev/workspace-manager/v0.0.5` | 6 |
+| `pinocchio` | `v0.10.29` | `https://docs.yolo.scapegoat.dev/pinocchio/v0.10.29` | 112 |
+| `css-visual-diff` | `v0.1.5` | `https://docs.yolo.scapegoat.dev/css-visual-diff/v0.1.5` | 8 |
+| `go-go-goja` | `v0.6.3` | `https://docs.yolo.scapegoat.dev/go-go-goja/v0.6.3` | 22 |
+
+The key operational correction was that the Terraform/Vault roles were not optional background infrastructure. They were part of the release path. The package release workflows bind GitHub OIDC claims such as repository, repository ID, ref, workflow ref, event, and reusable workflow ref. If the role is missing or the workflow filename is wrong, docs publishing fails even if the package release itself is otherwise healthy.
+
+This mattered concretely for Pinocchio. Pinocchio uses `.github/workflows/release.yml`, while most packages use `release.yaml`. The Terraform role originally needed an exact `workflow_ref` correction from `release.yaml` to `release.yml`. The successful `pinocchio v0.10.29` publish proved that the claim correction was necessary and sufficient.
+
+### 19.2 `ggg release watch` and `ggg release verify-docs`
+
+INFRA-003 added two release-time commands:
+
+```bash
+ggg release watch \
+  --repo go-go-golems/<repo> \
+  --workflow release.yaml \
+  --tag vX.Y.Z \
+  --verify-docs \
+  --package <package>
+```
+
+and:
+
+```bash
+ggg release verify-docs \
+  --package <package> \
+  --version vX.Y.Z \
+  --output json
+```
+
+The watch command solves the “what happened after I pushed the tag?” problem. It finds the tag-triggered GitHub Actions run, optionally streams `gh run watch`, waits for completion, and can then call the docs verifier. For ticket automation, the important mode is:
+
+```bash
+ggg release watch \
+  --repo go-go-golems/<repo> \
+  --tag vX.Y.Z \
+  --verify-docs \
+  --package <package> \
+  --no-stream \
+  --output json
+```
+
+That produces a durable JSON artifact with the run ID, conclusion, docs URL, status code, page title, package/version presence, and section count.
+
+The docs verifier intentionally checks the public browser page instead of depending on a private API shape. It fetches:
+
+```text
+https://docs.yolo.scapegoat.dev/<package>/<version>
+```
+
+and validates the preloaded page state. This was pragmatic: the public page is what readers and agents consume, and it contains enough state to verify package, version, and section count.
+
+### 19.3 Release failures are first-class rollout data
+
+The most useful `ggg` improvement from INFRA-003 came from failure, not success. `css-visual-diff` and `go-go-goja` both had merged docsctl PRs, applied Vault roles, and valid tags. They still failed before docs publishing because their release workflows had latent defects.
+
+For `css-visual-diff`:
+
+1. `v0.1.3` failed because the macOS GoReleaser job ran `go generate ./...`, the generator tried Dagger, Dagger was unavailable on the macOS runner, and the fallback local `pnpm` executable was missing.
+2. `v0.1.4` failed because `pnpm` existed, but `web/review-site/node_modules` had not been installed, so `tsc` was missing.
+3. `v0.1.5` succeeded after the release workflow installed pnpm and ran `pnpm --dir web/review-site install --frozen-lockfile` before GoReleaser.
+
+For `go-go-goja`:
+
+1. `v0.6.1` failed because `.goreleaser.yaml` still contained scaffold placeholders such as `cmd/XXX`.
+2. `v0.6.2` failed because GoReleaser set `CGO_ENABLED=0`, but the tree-sitter JavaScript bindings require CGO.
+3. `v0.6.3` succeeded after the GoReleaser config pointed at `./cmd/goja-repl` and enabled CGO with the needed cross-compiler variables.
+
+Those failures changed `ggg release watch`: failed release results now include a `failed_log_command` field such as:
+
+```bash
+gh run view 26544778174 --repo go-go-golems/css-visual-diff --log-failed
+```
+
+That field turns a failed JSON artifact into an operator handoff. The next person does not need to rediscover which `gh` incantation to run.
+
+### 19.4 The release preflight command
+
+After the failed tags, the next obvious command was:
+
+```bash
+ggg release preflight --repo <repo> --output json
+```
+
+The first version checks for the failure modes that occurred in the rollout:
+
+- `.goreleaser.yaml` scaffold placeholders like `XXX`;
+- `main:` paths that point to missing command directories;
+- `CGO_ENABLED=0` in a module that references tree-sitter packages;
+- `go generate ./...` hooks in repositories with pnpm frontend packages but no release-workflow pnpm setup;
+- frontend package directories that probably need `pnpm --dir <dir> install --frozen-lockfile` before GoReleaser;
+- incomplete docsctl reusable workflow inputs.
+
+The command is intentionally conservative. Some checks are warnings because they are heuristics. For example, `go-go-goja` currently has a `web/` frontend package and a `go generate ./...` hook, so preflight warns about pnpm even though the final successful `v0.6.3` release did not need that frontend path in practice. That is acceptable for a first release preflight: warnings should wake the operator up, not block a release unless `--strict` is used.
+
+The mental model is:
+
+```mermaid
+flowchart TD
+    Repo[Repository] --> GR[Read .goreleaser.yaml]
+    Repo --> WF[Read release workflow]
+    Repo --> Mod[Read go.mod/go.sum]
+    Repo --> Frontend[Find package.json + pnpm-lock.yaml]
+    GR --> Checks[Release preflight checks]
+    WF --> Checks
+    Mod --> Checks
+    Frontend --> Checks
+    Checks --> Findings[errors and warnings]
+    Findings --> Decision{OK?}
+    Decision -->|errors| Stop[Do not tag yet]
+    Decision -->|warnings| Review[Review or use --strict]
+    Decision -->|clean| Tag[Run ggg release tag-patch]
+```
+
+The key design rule is that release preflight should run before tag creation. Failed tags are durable public history. A release preflight cannot guarantee success, but it can prevent the obvious failures that the rollout already paid for.
+
+### 19.5 Updated implementation surface after INFRA-003
+
+The release command surface now includes:
+
+```text
+ggg release tag-patch
+ggg release tag-minor
+ggg release tag-major
+ggg release watch
+ggg release verify-docs
+ggg release preflight
+```
+
+`tag-*` also learned an important ergonomics fix: it no longer performs `git checkout --detach origin/main` before tagging. It now creates the tag directly at the target commit:
+
+```bash
+git tag <tag> <commit>
+```
+
+That matters in worktree-heavy environments. The old implementation left the Loupedeck checkout detached after a successful release. It did not corrupt the release, but it was exactly the kind of operator footgun that `ggg` is supposed to remove.
+
+### 19.6 The broader lesson
+
+INFRA-002 taught that rollout automation needs Codex-aware PR readiness, current-head review signals, batch status, and profile-specific planning. INFRA-003 taught that rollout automation also needs release-time proof.
+
+The final shape is no longer just:
+
+```text
+edit repositories → open PRs → wait for checks → merge
+```
+
+It is:
+
+```text
+edit repositories
+→ open PRs
+→ wait for checks and Codex
+→ apply external infrastructure
+→ merge
+→ preflight releases
+→ tag
+→ watch release workflows
+→ verify production docs
+→ record evidence
+```
+
+That last half is where many hidden problems live. `ggg` is valuable because it records those hidden problems as commands, not just as diary prose. Each rollout should continue this pattern: do the first live operation manually enough to understand it, then promote the repeated part into `ggg`, then update the playbooks so the next operator starts from the improved baseline.
