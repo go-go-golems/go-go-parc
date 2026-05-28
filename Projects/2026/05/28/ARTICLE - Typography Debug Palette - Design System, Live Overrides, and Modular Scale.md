@@ -86,7 +86,7 @@ The central data structure is `TypographyProperties`. It represents the set of C
 
 ```typescript
 interface TypographyProperties {
-  fontFamily?: FontFamily;    // 'ui' | 'mono'
+  fontFamily?: FontFamily;    // 'ui' | 'mono' | 'serif'
   fontSize?: number;          // in px or em
   fontSizeUnit?: 'px' | 'em';
   fontWeight?: FontWeight;     // 100–900
@@ -390,7 +390,7 @@ Presets bundle a complete set of palette state into a named entity. A preset cap
 
 ### Built-in presets
 
-The palette ships with five built-in presets:
+The palette ships with seven built-in presets:
 
 | Preset | Base | Ratio | Approach |
 |--------|------|-------|----------|
@@ -399,8 +399,12 @@ The palette ships with five built-in presets:
 | Dense Terminal | 12 | Minor Third | Custom overrides with monospace everywhere |
 | Large Print | 18 | Perfect Fifth | Custom overrides with big sizes and generous spacing |
 | Scale System (1.25) | 16 | Major Third | All elements in scale mode, no custom overrides |
+| Serif Editorial | 17 | Perfect Fourth | EB Garamond body+headings, Chicago_ chrome, generous line height |
+| Serif Scale | 17 | Major Third | Full design system with EB Garamond, all elements in scale mode |
 
 The Scale System preset demonstrates the design system approach in its purest form. Every element is in scale mode. The overrides map is empty. All values come from the baseline. Changing the base from 16 to 14 immediately shrinks every scale-mode element proportionally. Switching the ratio from Major Third to Perfect Fourth immediately redistributes the size progression.
+
+The Serif Editorial preset shows how a different font family changes the reading experience. EB Garamond — an open-source digitization of the historical Garamond typeface — replaces Chicago_ for body text and headings. The chrome (title bar, menu bar, search inputs) remains in Chicago_ to preserve the classic Mac identity. The Serif Scale preset combines this same font assignment with the full design system approach, putting all elements in scale mode.
 
 ### Custom presets
 
@@ -433,7 +437,7 @@ The palette is activated by `Ctrl+Shift+T` (or `Cmd+Shift+T` on macOS) and by a 
 
 ## File inventory
 
-The palette consists of 20 files across three directories:
+The palette consists of 20 source files across three directories, plus 10 vendored font files:
 
 ```
 web/src/types/typography-palette.ts           # 216 lines — all type definitions
@@ -451,12 +455,21 @@ web/src/components/TypographyPalette/
   ColorStepper.tsx                             #  51 lines — gray shade stepper
   css-override-engine.ts                       # 188 lines — CSS generation + clipboard export
   element-registry.ts                          # 331 lines — all 13 groups, 30+ elements
-  presets.ts                                   # 208 lines — 5 built-in presets
+  presets.ts                                   # 340 lines — 7 built-in presets
   persistence.ts                               #  59 lines — localStorage save/load
   useTypographyOverrides.ts                    # 106 lines — Redux→DOM sync + scale resolution
   usePaletteShortcut.ts                        #  25 lines — Ctrl+Shift+T hook
   parts.ts                                     #  28 lines — data-part constants
   styles/typography-palette.css                # 315 lines — palette styles
+
+web/public/fonts/
+  ChicagoFLF.woff2                             # vendored Chicago_ bitmap font
+  eb-garamond-latin-400-normal.woff2            # EB Garamond regular
+  eb-garamond-latin-400-italic.woff2            # EB Garamond italic
+  eb-garamond-latin-500-normal.woff2            # EB Garamond medium
+  eb-garamond-latin-600-normal.woff2            # EB Garamond semi-bold
+  eb-garamond-latin-700-normal.woff2            # EB Garamond bold
+  eb-garamond-latin-ext-{400,500,600,700}-normal.woff2  # extended Latin subsets
 ```
 
 Three existing files were modified:
