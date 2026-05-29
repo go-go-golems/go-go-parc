@@ -1,0 +1,248 @@
+{
+  "main": {
+    "id": "0b23124bee1581ef",
+    "type": "split",
+    "children": [
+      {
+        "id": "45e305c567eda208",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4c10531c1febb63b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Research/Institute/Technical Reports/2026/05/19/PLAYBOOK - Collaborative Schema Design Sessions for Presentation-Based UI.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "PLAYBOOK - Collaborative Schema Design Sessions for Presentation-Based UI"
+            }
+          },
+          {
+            "id": "9b686ea785dbfa89",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Projects/2026/05/28/ARTICLE - RAG Evaluation System - Building a Database-Backed TTC Corpus Pipeline.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ARTICLE - RAG Evaluation System - Building a Database-Backed TTC Corpus Pipeline"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "14832bbbd73f924e",
+    "type": "split",
+    "children": [
+      {
+        "id": "28f3852250ac8309",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8a5603d396f88269",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "39e1b034aded675c",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "CLIM",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": true,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "614f8274d5dab9b1",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 653.5
+  },
+  "right": {
+    "id": "a66a37bf80c60e6b",
+    "type": "split",
+    "children": [
+      {
+        "id": "52ea915a3391fadc",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e9f514c39ab9d913",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Projects/2026/05/11/ARTICLE - Selective Compaction Extension - Rewriting Middle Session Context.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for ARTICLE - Selective Compaction Extension - Rewriting Middle Session Context"
+            }
+          },
+          {
+            "id": "000c907782e511b3",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "3822559c1d87f3c9",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "d97af0667c9412cb",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "000c4217564a6680",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "9b686ea785dbfa89",
+  "lastOpenFiles": [
+    "Projects/2026/05/28/ARTICLE - RAG Evaluation System - Corpus Explorer and Pipeline Visualization Website.md",
+    "Projects/2026/05/28/assets/rag-eval-05-embeddings.png",
+    "Projects/2026/05/28/assets/rag-eval-04-coverage.png",
+    "Projects/2026/05/28/assets/rag-eval-03-chunks.png",
+    "Projects/2026/05/28/assets/rag-eval-02-documents.png",
+    "Projects/2026/05/28/assets/rag-eval-01-corpus-overview.png",
+    "Projects/2026/05/28/ARTICLE - M5Dial Proper 3D Renderer - Building a Z-Buffered Planet and Terrain on ESP32-S3.md",
+    "Projects/2026/05/28/ARTICLE - RAG Evaluation System - Building a Database-Backed TTC Corpus Pipeline.md",
+    "Projects/2026/05/28/assets/m5dial-proper-3d-renderer/almanach-renderer-math.png",
+    "Projects/2026/05/28/assets/m5dial-proper-3d-renderer/terrain-combo-montage.png",
+    "Projects/2026/05/28/assets/m5dial-proper-3d-renderer/terrain-sweep-montage.png",
+    "Projects/2026/05/28/assets/m5dial-proper-3d-renderer/device-terrain-tuned.png",
+    "Projects/2026/05/28/assets/m5dial-proper-3d-renderer/device-terrain-first.png",
+    "Projects/2026/05/28/assets/m5dial-proper-3d-renderer",
+    "Projects/2026/05/28/assets",
+    "Projects/2026/05/28/PROJ - md-view - Markdown Viewer Daemon.md",
+    "Projects/2026/05/28/ARTICLE - INFRA-004 Release Train Machinery - Dashboard, PR Workflow, and Rollout Control.md",
+    "Projects/2026/05/28/ARTICLE - Typography Debug Palette - Design System, Live Overrides, and Modular Scale.md",
+    "Projects/2026/05/28/ARTICLE - Pi Agent Modals and Terminal Shortcuts - Debugging Overlay Shortcut Behavior.md",
+    "Projects/2026/05/28/ARTICLE - Pi Agent Command Palette Extension Architecture - Shared Registry and Keyboard-Driven Actions.md",
+    "Projects/2026/05/27/ARTICLE - ggg Rollout Automation - Real-World Testing and Implementation.md",
+    "Projects/2026/05/28",
+    "Projects/2026/05/27/ARTICLE - TTC DMETA React Workflow - Semantic IR to Storybook Garden Assistant.md",
+    "Projects/2026/05/27/ARTICLE - M5Dial Dithered 3D Scene Viewer - Software Rendering on ESP32-S3.md",
+    "Projects/2026/05/26/ARTICLE - Structured Book OCR - Target Page Contracts Workflow Runtime and Production Hardening.md",
+    "Projects/2026/05/27/ARTICLE - WiFi Throughput Benchmark on ESP32-P4 with ESP-Hosted - Measured Results and Bottleneck Analysis.md",
+    "Projects/2026/05/27/ARTICLE - ESP32 WiFi Architecture Comparison - ESP-Hosted vs Native WiFi Measured HTTP Throughput.md",
+    "Projects/2026/05/27/ARTICLE - RAG Evaluation System - Workflow-Driven Retrieval Evaluation.md",
+    "Projects/2026/05/27/ARTICLE - ESP32-P4 MIPI DSI Image Blitter - Browser-to-Display Pipeline on the M5Stack Tab5.md",
+    "Projects/2026/05/27/ARTICLE - RAG Evaluation System - Workflow-Driven Retrieval Evaluation Lab.md",
+    "Projects/2026/05/27/ARTICLE - Optimizing WiFi Image Upload on ESP32-P4 - From 6 Seconds to Sub-Second.md",
+    "Projects/2026/05/27/ARTICLE - Go AST Analysis - From JavaScript Bindings to Web Source Browser.md",
+    "Projects/2026/05/27/ARTICLE - Go AST Analysis - xgoja Bindings and Codebase Navigation.md",
+    "Projects/2026/05/27/ARTICLE - Pi Command Palette - Keyboard-Driven Hierarchical Action Menu.md",
+    "Projects/2026/05/27/ARTICLE - ggg - Codex-Aware Release Tooling for Go-Go-Golems.md",
+    "Projects/2026/05/27/ARTICLE - Playbook - Building go-go-goja xgoja Provider Packages.md",
+    "Projects/2026/05/27/ARTICLE - Pretext Print Layout - Building a Swiss Typography Rendering System for Dense Programming Reports.md",
+    "Projects/2026/05/26/ARTICLE - Managing Go-Go-Golems Release Trains.md",
+    "Projects/2026/05/27/ARTICLE - NPM Publishing for Go Go Golems Packages with Vault OIDC.md",
+    "Projects/2026/05/27",
+    "Projects/2026/05/26/ARTICLE - Vault OIDC for CI",
+    "Projects/2026/05/26",
+    "Research/Institute/Research/2026/04/16/philosophical-foundations-of-mathematics/sources/web/sedE9RtSC",
+    "Projects/2026/05/25",
+    "Projects/2026/05/24",
+    "Projects/2026/05/23/assets/dmeta-semantic-inheritance"
+  ]
+}
