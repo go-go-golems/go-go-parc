@@ -12,6 +12,7 @@ tags:
   - ingestion
   - chunking
   - embeddings
+  - bm25
   - sqlite
   - geppetto
   - pinocchio
@@ -33,7 +34,8 @@ The current intake implementation is intentionally explicit. The project stores 
 > - There are two corpus acquisition paths: filesystem/Defuddle Markdown scanning and a database-backed The Tree Center WordPress/WooCommerce dump pipeline.
 > - Chunk identity is strategy-aware: a chunk is identified by `(document_id, strategy_id, chunk_index)`, and chunk IDs hash `document_id`, `strategy_id`, and index.
 > - Embedding identity is provider-aware and model-aware: a stored vector is identified by `(chunk_id, strategy_id, provider, model, dimensions)` and protected by a SHA-256 `text_hash` freshness check.
-> - New developers should start by reading `internal/db/db.go`, `internal/ingest/scanner.go`, `internal/chunking/chunker.go`, `internal/services/chunking/service.go`, `internal/services/embedding/service.go`, and the RAGEVAL-001/RAGEVAL-002 diaries.
+> - BM25 indexing is a derived, disposable index-building step over canonical SQLite chunks; the index can be rebuilt from intake state and is tracked in `search_indexes` metadata.
+> - New developers should start by reading `internal/db/db.go`, `internal/ingest/scanner.go`, `internal/chunking/chunker.go`, `internal/services/chunking/service.go`, `internal/services/embedding/service.go`, `internal/services/search/bm25.go`, and the RAGEVAL-001/RAGEVAL-002/RAGEVAL-004 diaries.
 
 ## Scope of this report
 
@@ -52,19 +54,20 @@ Included:
 - chunk persistence, idempotency, and migration decisions;
 - embedding provider resolution through Geppetto and Pinocchio profiles;
 - embedding batch computation, freshness checks, vector encoding, coverage, and source filtering;
+- BM25 index building over persisted chunks as the first lexical retrieval artifact;
 - current CLI usage for indexing documents and computing embeddings;
 - current implementation risks and next intake-side work.
 
 Not included:
 
-- BM25 indexing;
+- BM25 query behavior and ranking-quality analysis;
 - vector query search;
 - hybrid search and reciprocal rank fusion;
 - search UI behavior;
 - benchmark metrics and retrieval evaluation;
 - answer generation.
 
-Those excluded pieces consume the intake artifacts, but they are not part of the intake side itself.
+Those excluded pieces consume the intake artifacts, but they are not part of the intake side itself. BM25 index building is covered here only as a derived indexing artifact because it is the first place chunks are materialized into an external index directory; BM25 query semantics remain search-side behavior.
 
 ## The intake pipeline as implemented today
 
@@ -899,6 +902,190 @@ The diary recorded coverage after the mixed TTC OpenAI smoke:
 | `ttc-dump-products` | 51 | 10 | 41 |
 
 Coverage currently counts stored rows. It does not recompute text hashes to report stale rows. Freshness is enforced during compute, not during coverage. A future coverage implementation could load chunk text and classify rows as fresh, stale, or missing.
+
+## BM25 indexing as a derived artifact
+
+BM25 indexing sits at the boundary between intake and search. Query execution, ranking interpretation, and retrieval-quality analysis belong to the search side. Index construction, however, is an intake-adjacent materialization step: it reads canonical chunks from SQLite, writes a derived index directory on disk, and records metadata in SQLite so operators know which chunk strategy and source filters produced the index.
+
+The implementation is in `internal/services/search/bm25.go`, with CLI wiring in `cmd/rag-eval/cmds/search/index.go` and database helpers in `internal/db/search_queries.go`. The service builds a Bleve index from persisted chunks. The index is disposable because the canonical state remains in SQLite. If documents are reimported, chunks are rebuilt, or source filters change, the correct response is to rebuild the BM25 index from the canonical tables.
+
+The important design rule is:
+
+```text
+SQLite documents/chunks are source of truth.
+Bleve BM25 index directories are derived state.
+search_indexes rows describe derived indexes; they do not replace chunks.
+```
+
+### What goes into the BM25 index
+
+The builder calls `ListChunksWithDocumentContext(strategyID, sourceIDs, limit)`. That query joins `chunks` to `documents` and returns the fields needed for indexing and result rendering:
+
+- chunk ID;
+- document ID;
+- source ID;
+- document title;
+- document URL;
+- strategy ID;
+- chunk index;
+- chunk text;
+- token count;
+- start offset;
+- end offset.
+
+The indexed document shape is represented by the internal `indexedChunk` struct:
+
+```text
+indexedChunk {
+    chunk_id
+    document_id
+    source_id
+    title
+    url
+    strategy_id
+    chunk_index
+    text
+    token_count
+    start_offset
+    end_offset
+}
+```
+
+Each Bleve document is keyed by the chunk ID. This means BM25 search returns chunk-level hits, not whole-document hits. That matches the rest of the system: chunks are the retrieval unit, documents are context, and sources are corpus partitions.
+
+### Build algorithm
+
+`Service.BuildBM25` is intentionally a rebuild operation rather than an incremental updater.
+
+The algorithm is:
+
+```text
+validate strategy_id
+source_ids = normalized source filters
+index_id = provided index ID or derived from strategy/source filters
+index_path = index_root/index_id
+
+if index_path exists and force is false:
+    fail and ask operator to use --force
+
+chunks = ListChunksWithDocumentContext(strategy_id, source_ids, limit)
+
+tmp_path = index_path + ".tmp"
+remove tmp_path
+create parent directory
+create new Bleve index at tmp_path
+
+batch = new Bleve batch
+for each chunk:
+    build indexedChunk record
+    batch.Index(chunk_id, indexedChunk)
+    every 500 chunks:
+        flush batch
+
+flush final batch
+close index
+if force:
+    remove old index_path
+rename tmp_path to index_path
+upsert search_indexes metadata row
+return counts
+```
+
+The temporary-directory pattern matters. The service writes a complete index into `index_path.tmp` first, closes it, then renames it into place. That avoids leaving a partially written final index path when a build fails. The current implementation still uses a local filesystem rename, so the source and destination should remain on the same filesystem.
+
+The batch flush interval is 500 chunks. This keeps memory bounded while avoiding one disk write per chunk.
+
+### Index identity and source filters
+
+The index is scoped by chunking strategy and optional source filters. A typical TTC index build uses `fixed-1200-150` and selects article and guide sources:
+
+```bash
+./rag-eval search index \
+  --db data/rag-eval.db \
+  --strategy-id fixed-1200-150 \
+  --source-ids ttc-dump-guides,ttc-dump-articles \
+  --index-id bm25-ttc-guides-articles-fixed-1200-150 \
+  --force \
+  --output table
+```
+
+If `--index-id` is omitted, the service derives one from the strategy and source filters. Providing an explicit index ID is better for durable experiments because it makes later query and smoke-test commands easier to read.
+
+The `--limit` flag exists for smoke builds:
+
+```bash
+./rag-eval search index \
+  --strategy-id fixed-1200-150 \
+  --source-ids ttc-dump-guides \
+  --index-id bm25-guides-smoke \
+  --limit 50 \
+  --force
+```
+
+A limited index is not a benchmark-quality index. It is useful for validating that the indexer can read chunks, create a Bleve directory, and record metadata before processing a larger corpus.
+
+### `search_indexes` metadata
+
+After a successful build, `UpsertSearchIndex` writes a row to the `search_indexes` table. The row records:
+
+- index ID;
+- name;
+- strategy ID;
+- index type, currently `bm25`;
+- index path;
+- document count;
+- chunk count;
+- rebuild timestamp;
+- status.
+
+This table is metadata, not the index itself. The actual index lives under the index root, whose default is defined by the search service. In the current local project state, an example index path exists under:
+
+```text
+data/indexes/bm25/bm25-ttc-guides-articles-fixed-1200-150/
+```
+
+The metadata row lets CLI, HTTP, and future UI code find the index path and show which corpus slice was materialized.
+
+### Why BM25 indexing belongs after chunking
+
+BM25 indexing must happen after chunking because the index unit is a chunk. It should not index whole documents in the current design. Whole-document indexing would make search results harder to inspect and less consistent with embedding retrieval, which also operates on chunks.
+
+The correct dependency order is:
+
+```text
+sources -> documents -> chunking_strategies -> chunks -> bm25 index
+```
+
+If chunking changes, the BM25 index is stale. If source filters change, the BM25 index is the wrong corpus slice. If document text changes and chunks are rebuilt, the BM25 index should be rebuilt. The current system does not automatically detect or rebuild stale BM25 indexes. Operators must rebuild with `--force` after intake changes.
+
+### Query behavior is separate
+
+`QueryBM25` uses the built index and searches the `text` field plus a boosted `title` field. That is useful to know when building an index because title and text must be present in the indexed record. The ranking behavior itself belongs to the search-side report.
+
+For intake purposes, the key point is that the BM25 index contains enough stored fields for result rendering:
+
+- chunk ID;
+- document ID;
+- source ID;
+- title;
+- URL;
+- strategy ID;
+- chunk index;
+- text preview source.
+
+This preserves the inspection loop. A BM25 hit can be traced back to a chunk row, then to a document row, then to a source row. That traceability is the same principle used for embeddings.
+
+### Operational rules for BM25 indexing
+
+Use these rules when building or changing BM25 indexes:
+
+- Build BM25 only after the intended documents have been chunked with the intended strategy.
+- Use explicit `--source-ids` for corpus-specific experiments.
+- Use explicit `--index-id` for reproducible reports and smoke tests.
+- Use `--limit` only for smoke builds, not for final comparisons.
+- Use `--force` when rebuilding an existing index after intake changes.
+- Treat the index directory as disposable derived state.
+- Keep `search_indexes` metadata in sync by building through the service, not by manually creating Bleve directories.
 
 ## End-to-end CLI indexing workflow
 
