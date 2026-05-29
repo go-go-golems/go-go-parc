@@ -126,6 +126,42 @@ if (compat.thinkingFormat === "deepseek" && model.reasoning) {
 
 The request still contains `thinking`. It still supports providers that accept `reasoning_effort`. It only removes `reasoning_effort` for models whose merged compatibility object says the field is unsupported.
 
+## Relationship to upstream Pi main
+
+After the local backport was written, I checked the upstream Pi repository and found that `main` already contains the same guard. It arrived through PR [#5196](https://github.com/earendil-works/pi/pull/5196), titled `fix(ai): handle OpenCode reasoning params`.
+
+The implementation commit is:
+
+```text
+4faac05419befa45e051c539e8f712b13a76758a — fix(ai): handle OpenCode reasoning params
+Author: Armin Ronacher <armin.ronacher@active-4.com>
+Author date: 2026-05-29T12:21:37+02:00
+```
+
+The PR was merged with:
+
+```text
+01a8c2d62c997fde2d40ccca0cba96bdb3253be3 — Merge pull request #5196 from earendil-works/fix/opencode-thinking-requests
+Merged: 2026-05-29T20:32:13Z
+Base: main
+Head: fix/opencode-thinking-requests
+```
+
+The upstream diff includes the same one-line DeepSeek guard:
+
+```diff
+ } else if (compat.thinkingFormat === "deepseek" && model.reasoning) {
+   (params as any).thinking = { type: options?.reasoningEffort ? "enabled" : "disabled" };
+-  if (options?.reasoningEffort) {
++  if (options?.reasoningEffort && compat.supportsReasoningEffort) {
+     (params as any).reasoning_effort =
+       model.thinkingLevelMap?.[options.reasoningEffort] ?? options.reasoningEffort;
+   }
+ }
+```
+
+This changes the contribution story. The local `1cf2c943` commit should be treated as a backport and runtime-validation patch for installed `pi-ai@0.77.0`, not as a likely PR against current upstream `main`. The remaining upstream contribution with practical value is the provider metadata fix in `pi-provider-umans`, because Pi AI can only honor `supportsReasoningEffort: false` when the provider advertises that capability correctly.
+
 ## Why this patch has to be paired with provider metadata
 
 A request builder cannot infer every provider's behavior from `thinkingFormat` alone. `thinkingFormat: "deepseek"` says which field should carry the on/off thinking control. It does not answer whether the endpoint also accepts OpenAI's `reasoning_effort`. Those are separate capabilities.
@@ -345,8 +381,8 @@ The work is complete for manual validation.
 | Artifact | Status |
 | --- | --- |
 | Extension workaround | Committed in `/home/manuel/code/wesen/2026-04-21--pi-extensions` as `045f2bf953688840fc992912883408c8a5094907`. |
-| Pi AI source patch | Committed in `/home/manuel/code/wesen/2026-05-29--pi-deepseek-reasoning-fix` as `1cf2c943d7205e66f739aba90f355a76deee59df`. |
-| Provider metadata patch | Committed in `/home/manuel/code/wesen/2026-05-29--pi-provider-umans-reasoning-fix` as `2ec50df66f5ccc6eab8533fb66e540b6e199252e`. |
+| Pi AI source patch | Local backport committed in `/home/manuel/code/wesen/2026-05-29--pi-deepseek-reasoning-fix` as `1cf2c943d7205e66f739aba90f355a76deee59df`; upstream `main` has the same guard via PR #5196 / commit `4faac05419befa45e051c539e8f712b13a76758a`. |
+| Provider metadata patch | Committed in `/home/manuel/code/wesen/2026-05-29--pi-provider-umans-reasoning-fix` as `2ec50df66f5ccc6eab8533fb66e540b6e199252e`; this is the likely useful upstream PR target. |
 | Installed runtime patch | Applied to global Pi's nested `@earendil-works/pi-ai`; backup exists at `pi-ai.backup-20260529-182133`. |
 | Runtime compaction test | Passed with `umans/umans-glm-5.1`, thinking `high`, and manual `/compact`. |
 | Docmgr ticket | `UMANS-GLM-COMPACTION`; all tasks checked; `docmgr doctor` passes. |
@@ -355,21 +391,24 @@ The work is complete for manual validation.
 
 The first open question is operational: should the manually patched installed `pi-ai` remain in place until the next Pi release, or should it be restored from backup after testing? Keeping it fixes the local runtime now. Restoring it returns the installation to a clean package-manager state.
 
-The second question is contribution strategy. Upstream Pi `main` already appears to contain the same DeepSeek guard, so the `pi-ai` branch may be best understood as a local backport for `v0.77.0`. The provider metadata branch is still valuable because Umans must advertise the correct capability for the guard to take effect.
+The second question is contribution strategy. Upstream Pi `main` contains the same DeepSeek guard through PR [#5196](https://github.com/earendil-works/pi/pull/5196), merged as `01a8c2d62c997fde2d40ccca0cba96bdb3253be3`, with implementation commit `4faac05419befa45e051c539e8f712b13a76758a`. The local `pi-ai` branch is therefore best understood as a local backport for `v0.77.0`. The provider metadata branch is still valuable because Umans must advertise the correct capability for the guard to take effect.
 
 The third question is whether to run an auto-compaction test. Manual `/compact` validates the original request shape through the interactive compaction path. Auto-compaction would add confidence, but it costs more context and Umans quota.
 
 ## Near-term next steps
 
 1. Open or prepare the `pi-provider-umans` PR from `fix/reasoning-effort-compat`.
-2. Prefer upgrading Pi when a release includes the `pi-ai` DeepSeek guard, rather than carrying a manually patched nested dependency indefinitely.
-3. If keeping the manual runtime patch, record the backup path in local machine notes so it can be restored later.
-4. Consider a separate provider cleanup for the warning about `apiKey: "UMANS_API_KEY"`; Pi now wants `"$UMANS_API_KEY"` for explicit environment variable references.
+2. Do not open a duplicate Pi core PR against current `main` for the DeepSeek guard; refer to PR #5196 instead.
+3. Prefer upgrading Pi when a release includes PR #5196, rather than carrying a manually patched nested dependency indefinitely.
+4. If keeping the manual runtime patch, record the backup path in local machine notes so it can be restored later.
+5. Consider a separate provider cleanup for the warning about `apiKey: "UMANS_API_KEY"`; Pi now wants `"$UMANS_API_KEY"` for explicit environment variable references.
 
 ## Related notes and artifacts
 
 - [[PROJ - Pi Extensions - Umans GLM Compaction Fix Report]]
 - Ticket workspace: `/home/manuel/code/wesen/2026-04-21--pi-extensions/ttmp/2026/05/29/UMANS-GLM-COMPACTION--fix-umans-glm-pi-compaction-thinking-reasoning-parameter-conflict`
 - Pi AI backport repo: `/home/manuel/code/wesen/2026-05-29--pi-deepseek-reasoning-fix`
+- Upstream Pi PR with the same guard: [earendil-works/pi#5196](https://github.com/earendil-works/pi/pull/5196)
+- Upstream implementation commit: `4faac05419befa45e051c539e8f712b13a76758a`
 - Umans provider repo: `/home/manuel/code/wesen/2026-05-29--pi-provider-umans-reasoning-fix`
 - Runtime evidence: `/tmp/pi-umans-compaction-test-capture.txt`
