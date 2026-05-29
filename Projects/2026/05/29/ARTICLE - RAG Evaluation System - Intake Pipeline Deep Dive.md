@@ -17,6 +17,10 @@ tags:
   - geppetto
   - pinocchio
   - corpus
+  - workflow
+  - scraper
+  - orchestration
+  - durable-execution
 status: active
 type: article
 created: 2026-05-29
@@ -27,6 +31,9 @@ repo: /home/manuel/workspaces/2026-05-27/rag-evaluation-system/2026-05-27--rag-e
 
 This report explains the intake side of the RAG Evaluation System: how source material becomes database documents, how documents become chunks, how chunks become embeddings, and how operators can run those stages from the CLI. It deliberately does not analyze the search side. Search, BM25, vector query retrieval, hybrid ranking, and smoke-query evaluation are separate layers built on top of the intake artifacts described here.
 
+> [!note] 2026-05-29 workflow update
+> The original version of this report described the direct CLI/service intake pipeline before scraper orchestration existed. The project has since been transformed into a scraper-backed durable workflow system. The section [[#Part II: Turning Intake Into a Durable Scraper Workflow System]] records that implementation in detail: custom runner integration, workflow submission, worker execution, preprocessing and enrichment artifacts, live-provider smoke testing, and browser visibility.
+
 The current intake implementation is intentionally explicit. The project stores every major intermediate artifact in SQLite: source records, document records, chunking strategy records, chunks, and chunk embeddings. That persistence model is the central design decision. It makes the pipeline inspectable, rerunnable, and suitable for comparing different chunking and embedding configurations without hiding the intermediate state behind an opaque indexing job.
 
 > [!summary]
@@ -35,7 +42,8 @@ The current intake implementation is intentionally explicit. The project stores 
 > - Chunk identity is strategy-aware: a chunk is identified by `(document_id, strategy_id, chunk_index)`, and chunk IDs hash `document_id`, `strategy_id`, and index.
 > - Embedding identity is provider-aware and model-aware: a stored vector is identified by `(chunk_id, strategy_id, provider, model, dimensions)` and protected by a SHA-256 `text_hash` freshness check.
 > - BM25 indexing is a derived, disposable index-building step over canonical SQLite chunks; the index can be rebuilt from intake state and is tracked in `search_indexes` metadata.
-> - New developers should start by reading `internal/db/db.go`, `internal/ingest/scanner.go`, `internal/chunking/chunker.go`, `internal/services/chunking/service.go`, `internal/services/embedding/service.go`, `internal/services/search/bm25.go`, and the RAGEVAL-001/RAGEVAL-002/RAGEVAL-004 diaries.
+> - The intake pipeline now also has a scraper-backed durable workflow layer: `rag-eval/intake` operations wrap the same services, while scraper stores workflow state, dependencies, leases, retries, and compact operation results.
+> - New developers should start by reading `internal/db/db.go`, `internal/ingest/scanner.go`, `internal/chunking/chunker.go`, `internal/services/chunking/service.go`, `internal/services/embedding/service.go`, `internal/services/search/bm25.go`, `internal/workflow/intake_runner.go`, `internal/workflow/submit.go`, and the RAGEVAL-001/RAGEVAL-002/RAGEVAL-004/RAGEVAL-006 diaries.
 
 ## Scope of this report
 
@@ -1434,9 +1442,9 @@ The system estimates tokens as `rune_count / 4`. This is not model-specific. If 
 
 Coverage reports stored rows, not fresh rows. Compute skips fresh rows and updates stale rows, but coverage does not currently calculate stale counts.
 
-### There is no workflow engine integration yet
+### Workflow integration is now implemented
 
-The original design discussed a workflow system using scraper. The current intake side is CLI/service/API based. It has the right idempotency properties for workflow integration, but the actual workflow engine wiring is not implemented in this repo state.
+The original version of this report said that scraper workflow integration was not implemented yet. That limitation has now been removed. The intake pipeline has a Go-native scraper runner, durable workflow submission, local worker commands, document preprocessing artifacts, chunk enrichment artifacts, live-provider smoke coverage, read-only workflow/artifact APIs, and Workflows/Corpus Explorer UI affordances. See [[#Part II: Turning Intake Into a Durable Scraper Workflow System]] for the complete technical report.
 
 ## Future intake-side work
 
@@ -1469,3 +1477,528 @@ Use these rules when modifying the intake side:
 The intake pipeline is now a coherent foundation for RAG experiments. It is not just an import script and an embedding command. It is a persistent transformation system with explicit state at every stage: sources, documents, chunking strategies, chunks, and embeddings. The implementation decisions came from practical failures and corpus work: stable IDs, strategy-aware chunks, text-hash freshness, source-aware embedding scope, bounded outputs, and replayable ticket scripts.
 
 New developers should understand those decisions before adding features. Most future retrieval quality problems will not be solved by tuning search first. They will be solved by improving intake artifacts: better normalized text, better chunk provenance, appropriate chunk sizes, correct source scoping, and embedding coverage that makes missing or stale vectors visible before queries are run.
+
+
+---
+
+# Part II: Turning Intake Into a Durable Scraper Workflow System
+
+The direct intake pipeline was already a good foundation before the workflow work began. It had the most important property a workflow system needs: each meaningful transformation was expressed as an idempotent service operation over explicit database state. `chunk_document` could rebuild chunks for a document and strategy. `compute_embeddings` could skip vectors whose `text_hash` was still fresh. `build_bm25` could rebuild a derived index from canonical SQLite chunks. The workflow project did not replace that model. It wrapped it.
+
+That distinction is the central lesson of the work. A durable workflow engine should orchestrate domain operations, not become the place where domain logic is reimplemented. Scraper provides workflow runs, operation specs, queues, leases, retries, dependencies, and result storage. Rag-eval provides source, document, chunk, embedding, preprocessing, enrichment, and index semantics. The integration is successful because those responsibilities stay separate.
+
+> [!summary]
+> - The intake pipeline was transformed from direct CLI/service execution into a scraper-backed durable workflow system by adding a Go-native `rag-eval/intake` runner.
+> - Existing services remained canonical. Workflow operations call `chunking.Service`, `embedding.Service`, `search.Service`, `documentprocessing.Service`, and `chunkenrichment.Service` rather than duplicating business logic.
+> - The workflow engine stores orchestration metadata and compact operation results; canonical artifacts remain in the rag-eval SQLite database or disposable index directories.
+> - Document preprocessing and chunk enrichment were added as non-destructive derived artifacts, preparing the system for LLM preprocessing and postprocessing without overwriting source text.
+> - The system now has CLI submission/worker commands, backend workflow APIs, a Workflows UI, artifact coverage in Corpus Explorer, and a bounded live smoke using the `gpt-5-nano-low` profile.
+
+## The problem with a direct-only intake pipeline
+
+The first intake pipeline was intentionally explicit. An operator could run commands such as `rag-eval chunk apply`, `rag-eval embedding compute`, and `rag-eval search index`. Those commands were useful because they were understandable and debuggable. They also forced good service boundaries: if a command needed to chunk a document, the chunking behavior belonged in `internal/services/chunking`, not in Cobra code.
+
+The weakness of direct-only execution appears when intake becomes a multi-stage pipeline. A realistic run is not one command. It is a collection of related operations: select documents, preprocess them, chunk them, compute embeddings, build lexical indexes, enrich chunks, and inspect failures. Some operations are CPU-bound. Some call external providers. Some should retry. Some should not retry. Some depend on all chunking operations finishing first. Some should fan out per document or per chunk.
+
+A shell script can sequence those steps, but it cannot easily answer the questions a developer asks while the pipeline is running:
+
+- Which documents have finished chunking?
+- Which LLM calls failed, and are they retryable?
+- Which operation produced this artifact?
+- Did this embedding run skip fresh chunks or call the provider again?
+- Can I retry one failed operation without rerunning the entire pipeline?
+- Can the browser show progress without scraping terminal logs?
+
+The scraper engine gives those questions a durable representation. A workflow is a row. An operation is a row. Dependencies are rows. Results and errors are rows. The scheduler leases ready operations and advances workflow status. Once intake work is represented this way, the UI can inspect the pipeline as a system rather than as a stream of terminal output.
+
+## The architectural shape after the transformation
+
+The new architecture has two databases and two kinds of state. The rag-eval database remains the canonical corpus and artifact store. The scraper engine database stores workflow orchestration state.
+
+```mermaid
+flowchart TD
+    subgraph Operator[Operator surfaces]
+        CLI[rag-eval workflow CLI]
+        UI[Workflows and Corpus Explorer UI]
+        Direct[Direct debug commands]
+    end
+
+    subgraph Engine[Scraper engine database]
+        WF[(workflows)]
+        OPS[(ops)]
+        DEPS[(op_dependencies)]
+        RES[(results)]
+        LEASES[(leases)]
+    end
+
+    subgraph Runner[Go-native rag-eval/intake runner]
+        Dispatch[operation dispatch]
+        ChunkOp[chunk_document]
+        EmbedOp[compute_embeddings]
+        BM25Op[build_bm25]
+        PreOp[preprocess_document]
+        EnrichOp[enrich_chunk]
+    end
+
+    subgraph RagEvalDB[Rag-eval SQLite database]
+        Docs[(documents)]
+        Chunks[(chunks)]
+        Embeds[(chunk_embeddings)]
+        DocArtifacts[(document_processing_artifacts)]
+        ChunkArtifacts[(chunk_enrichments)]
+        SearchMeta[(search_indexes)]
+    end
+
+    CLI --> WF
+    UI --> WF
+    WF --> OPS
+    OPS --> DEPS
+    OPS --> Runner
+    Runner --> RES
+    Runner --> Docs
+    Runner --> Chunks
+    Runner --> Embeds
+    Runner --> DocArtifacts
+    Runner --> ChunkArtifacts
+    Runner --> SearchMeta
+    Direct --> Docs
+    Direct --> Chunks
+    Direct --> Embeds
+    Direct --> DocArtifacts
+    Direct --> ChunkArtifacts
+
+    style Engine fill:#eef,stroke:#335,stroke-width:2px
+    style RagEvalDB fill:#efe,stroke:#373,stroke-width:2px
+    style Runner fill:#ffe,stroke:#773,stroke-width:2px
+```
+
+The important boundary is between `ops/results` and domain artifacts. Scraper result rows should answer, "What happened when this operation ran?" They should not become a second copy of all chunks, vectors, summaries, and indexes. Those artifacts already have canonical homes in rag-eval tables. The workflow result is therefore compact: counts, IDs, provider identity, model identity, index path, skipped-fresh flags, and error metadata.
+
+## Phase 0: proving scraper could host a Go-native runner
+
+The first implementation step was deliberately small. Before building intake workflows, the project needed to prove that the rag-eval repo could import scraper engine packages, register a custom runner, create an engine store, submit an operation, and execute it with `scheduler.RunOnce`.
+
+The new package began in `internal/workflow`:
+
+| File | Role |
+|---|---|
+| `internal/workflow/constants.go` | Defines the runner kind and queue names. |
+| `internal/workflow/echo_runner.go` | Minimal custom runner used to prove scraper integration. |
+| `internal/workflow/echo_runner_test.go` | Temporary SQLite scheduler test for the custom runner. |
+
+The runner kind became:
+
+```text
+rag-eval/intake
+```
+
+The queue names became:
+
+```text
+rag-eval:cpu
+rag-eval:llm
+rag-eval:embedding
+rag-eval:index
+```
+
+These names encode an important scheduling assumption. Intake is not one homogeneous workload. Chunking and BM25 indexing are local CPU/filesystem work. Embeddings and LLM preprocessing involve provider calls. Keeping those operations on distinct queues gives the scheduler room to apply different concurrency or rate-limit policies later.
+
+The main dependency issue was not in rag-eval code. Importing scraper pulled in scraper's JavaScript/site packages, which expected a `go-go-goja` API version different from the one selected by the module graph. The practical fix was a temporary module replacement:
+
+```text
+replace github.com/go-go-golems/go-go-goja => github.com/go-go-golems/go-go-goja v0.4.16
+```
+
+This is a useful example of an integration spike doing its job. The spike was not only about code compiling; it revealed the dependency boundary between scraper's engine packages and scraper's JS runtime packages.
+
+## Phase 1: wrapping existing services as durable operations
+
+Once the custom runner worked, the next step was to replace the echo operation with real intake operations. The implementation lives primarily in:
+
+- `internal/workflow/ops.go`
+- `internal/workflow/intake_runner.go`
+- `internal/workflow/intake_runner_test.go`
+
+The runner decodes a typed `IntakeOpInput`, switches on `operation`, opens the rag-eval database, calls the relevant service, and returns a compact `model.OpResult`.
+
+The dispatch shape is intentionally simple:
+
+```go
+switch input.Operation {
+case OperationChunkDocument:
+    return r.runChunkDocument(ctx, runCtx, input)
+case OperationPreprocessDocument:
+    return r.runPreprocessDocument(ctx, runCtx, input)
+case OperationEnrichChunk:
+    return r.runEnrichChunk(ctx, runCtx, input)
+case OperationComputeEmbeddings:
+    return r.runComputeEmbeddings(ctx, runCtx, input)
+case OperationBuildBM25:
+    return r.runBuildBM25(ctx, runCtx, input)
+default:
+    return opErrorResult(..."unknown_operation"...), nil
+}
+```
+
+This is not clever code, and that is a feature. The workflow runner is a boundary adapter. It should validate the operation type, call domain services, classify errors enough for retry behavior, and get out of the way.
+
+The first real operation was `chunk_document`. It calls `chunking.Service.Apply`, which already knows how to create a chunking strategy, delete/rebuild chunks for a document/strategy pair, and update document status. The workflow result records only the document ID, strategy ID, and chunk count.
+
+`compute_embeddings` came next. It calls `embedding.Service.Compute`, but the runner introduces a provider resolver seam:
+
+```go
+type ProviderResolver func(ctx context.Context, input IntakeOpInput) (*embeddingservice.ResolvedProvider, error)
+```
+
+That seam is essential. Unit and integration tests should not call OpenAI or Ollama. The workflow tests inject deterministic fake providers, while real runs use the existing profile/direct provider resolver. This preserved test determinism without creating a second embedding implementation.
+
+`build_bm25` wraps `search.Service.BuildBM25`. Its output records index ID, strategy ID, source IDs, index path, chunk count, document count, and whether the index was rebuilt. The index files themselves remain disposable derived state under the configured index root.
+
+The first important correction in this phase was downstream scoping. If a workflow is submitted for `--document-ids doc-a,doc-b`, the embedding and BM25 operations must not process every chunk in the database with the same strategy. The fix propagated `DocumentIDs` through:
+
+- `internal/db/queries.go`
+- `internal/db/search_queries.go`
+- `internal/services/embedding/service.go`
+- `internal/services/search/bm25.go`
+- `internal/workflow/intake_runner.go`
+
+That change is easy to miss because it looks like a small filter addition. It is actually a correctness condition. Without it, a small workflow could trigger large provider or indexing work simply because the strategy name matched older chunks.
+
+## Phase 2: turning the runner into an operator surface
+
+A runner and tests are not enough. Operators need to submit workflows, run workers, and inspect state without writing Go code. Phase 2 added the workflow CLI:
+
+```text
+rag-eval workflow submit-intake
+rag-eval workflow run-once
+rag-eval workflow run-worker
+rag-eval workflow status
+rag-eval workflow ops
+```
+
+The reusable logic lives in `internal/workflow/submit.go` and `internal/workflow/engine.go`. The Cobra package in `cmd/rag-eval/cmds/workflow` is deliberately thin. It parses flags, calls the internal workflow service, and prints JSON.
+
+The submission function builds a workflow topology. For each selected document it creates a `chunk_document` op. It can also create preprocessing ops, aggregate embedding ops, aggregate BM25 ops, and bounded enrichment ops. The first topology looked like this:
+
+```mermaid
+flowchart TD
+    D1[document A]
+    D2[document B]
+    C1[chunk_document A]
+    C2[chunk_document B]
+    E[compute_embeddings]
+    B[build_bm25]
+
+    D1 --> C1
+    D2 --> C2
+    C1 --> E
+    C2 --> E
+    C1 --> B
+    C2 --> B
+
+    style E fill:#efe,stroke:#373,stroke-width:2px
+    style B fill:#eef,stroke:#335,stroke-width:2px
+```
+
+This structure encodes a policy decision. Chunking fans out per document. Embedding and BM25 fan in after chunking. That is the right shape for current services because embedding compute and BM25 build already accept filters and operate across many chunks.
+
+The worker helper centralizes scheduler construction:
+
+```go
+func NewIntakeScheduler(ctx context.Context, cfg WorkerConfig) (*sqlitestore.Store, *scheduler.Scheduler, error)
+```
+
+This function registers `IntakeRunner` and opens the scraper engine store. Both CLI commands and tests use it, which keeps runner registration consistent.
+
+A Phase 2 smoke test submits a workflow against temporary rag-eval and scraper engine databases, runs scheduler cycles with a fake embedding provider, and verifies the workflow reaches `succeeded`. That test proves the same topology used by the CLI is executable under scraper.
+
+## Phase 3: document preprocessing as non-destructive derived state
+
+The original direct intake pipeline treated `documents.content_text` as canonical text. LLM preprocessing introduces a risk: if the system writes cleaned or summarized text back into `documents.content_text`, experiments become destructive. Different prompts, providers, and models would overwrite each other.
+
+Phase 3 solved this by adding `document_processing_artifacts`:
+
+```mermaid
+erDiagram
+    documents ||--o{ document_processing_artifacts : has
+
+    documents {
+        text id PK
+        text content_text
+    }
+
+    document_processing_artifacts {
+        text document_id PK
+        text artifact_type PK
+        text prompt_version PK
+        text provider PK
+        text model PK
+        text input_hash
+        text output_text
+        text output_json
+        text status
+        text error_code
+        text error_message
+    }
+```
+
+The primary key is the experimental identity:
+
+```text
+(document_id, artifact_type, prompt_version, provider, model)
+```
+
+The `input_hash` is the freshness identity. If canonical document text changes, the stored artifact is no longer fresh even if the prompt and provider are the same.
+
+The service lives in `internal/services/documentprocessing`. It has a provider interface, a deterministic fake provider, a `Process` method, and a `Coverage` method. The tests prove the most important invariant:
+
+```text
+documents.content_text is read as input but never overwritten.
+```
+
+The workflow op `preprocess_document` stores a compact result containing document ID, artifact type, prompt version, provider, model, input hash, status, and whether the artifact was skipped as fresh. A direct debugging command was added as well:
+
+```text
+rag-eval document preprocess --document-id DOC --provider fake
+```
+
+The point of the direct command is not convenience only. It preserves the escape hatch. If a workflow preprocessing op fails, a developer can reproduce the service call outside scraper.
+
+## Phase 4: chunk enrichment as retryable postprocessing
+
+Document preprocessing works at document granularity. Chunk enrichment works at chunk granularity. It prepares the system for summaries, topics, entities, and hypothetical questions attached to chunks.
+
+The implementation uses the existing `chunk_enrichments` table and adds helpers in `internal/db/chunk_enrichment_queries.go`. The service lives in `internal/services/chunkenrichment`. Like document preprocessing, it begins with a fake provider and strict validation.
+
+The validation is worth calling out. A provider result must contain:
+
+- a non-empty short summary;
+- a non-empty long summary;
+- non-nil key topics;
+- non-nil entities;
+- non-nil hypothetical questions;
+- a quality score in `[0, 1]`.
+
+This is a contract for future live providers. LLM output is not trusted just because it is JSON-shaped. The service validates the semantic shape before storage.
+
+The workflow op is `enrich_chunk`. It skips fresh enrichments by comparing the current chunk text hash to the stored `text_hash`. The direct command is:
+
+```text
+rag-eval chunk enrich --chunk-id CHUNK --strategy-id STRATEGY --provider fake
+```
+
+There is one deliberate limitation. Workflow submission can create bounded enrichment ops only for chunks that already exist at submission time:
+
+```text
+--skip-chunk-enrichment=false
+--chunks-per-document-to-enrich 1
+```
+
+That is not dynamic fan-out. It is a safe first slice. Fully dynamic fan-out would require an operation that creates new operations after chunking completes. The current scraper integration can support that direction later, but Phase 4 kept the topology simple and inspectable.
+
+## Phase 5: the first live-provider smoke
+
+Fake providers prove correctness of orchestration and storage. They do not prove that profile resolution and network-backed provider execution work inside the workflow path. Phase 5 added a bounded live smoke using the requested `gpt-5-nano-low` Pinocchio profile.
+
+The live provider lives in `internal/services/documentprocessing/live_openai.go`. It resolves Pinocchio/Geppetto profile settings, reads the OpenAI Responses engine, and sends a small preprocessing request. In this environment, the profile resolves as:
+
+```text
+gpt-5-nano-low profile -> gpt-5-nano OpenAI Responses engine
+reasoning_effort: low
+```
+
+The direct smoke ran one document through live preprocessing:
+
+```text
+rag-eval document preprocess \
+  --db data/rag-eval.db \
+  --document-id ttc-product-682105 \
+  --artifact-type live_smoke_clean_text \
+  --prompt-version phase5-gpt-5-nano-low-v1 \
+  --provider openai-responses \
+  --profile gpt-5-nano-low \
+  --force
+```
+
+Then a two-document workflow smoke ran live preprocessing plus chunking, with all other expensive or unnecessary work disabled:
+
+```text
+rag-eval workflow submit-intake \
+  --engine-db state/rageval006-phase5-live.db \
+  --db data/rag-eval.db \
+  --workflow-id phase5-live-gpt5nano-low-001 \
+  --document-ids ttc-product-682105,ttc-product-817621 \
+  --strategy fixed \
+  --chunk-size 32 \
+  --overlap 4 \
+  --skip-preprocessing=false \
+  --preprocess-artifact-type live_smoke_clean_text \
+  --preprocess-prompt-version phase5-gpt-5-nano-low-v1 \
+  --preprocess-provider openai-responses \
+  --preprocess-model gpt-5-nano-low \
+  --skip-embeddings \
+  --skip-bm25 \
+  --skip-chunk-enrichment
+```
+
+The workflow completed with four operations succeeded: two preprocessing operations and two chunking operations. One preprocessing op skipped fresh output from the direct smoke; the second made a live provider call. This is exactly the behavior the freshness model was meant to produce.
+
+The interesting failure was mundane but important:
+
+```text
+Error: ensure schema_migrations table: unable to open database file: no such file or directory
+```
+
+The cause was that `state/` did not exist before creating `state/rageval006-phase5-live.db`. The immediate fix was `mkdir -p state`. The design lesson is that the engine DB path should get the same parent-directory creation treatment as the rag-eval database path.
+
+## Phase 6 and 7: visibility, control, and the browser workflow cockpit
+
+Once workflows exist, developers need to see them. Phase 6 added backend visibility endpoints, and the later UI work turned those endpoints into a browser surface.
+
+The backend added read-only endpoints first:
+
+```text
+GET /api/v1/workflows
+GET /api/v1/workflows/{id}
+GET /api/v1/workflows/{id}/ops
+GET /api/v1/artifacts/document-processing/coverage
+GET /api/v1/artifacts/chunk-enrichment/coverage
+GET /api/v1/documents/{id}/processing-artifacts
+GET /api/v1/chunks/{id}/enrichments
+```
+
+Then the workflow API grew control endpoints:
+
+```text
+GET  /api/v1/workflows/{id}/results/{opId}
+POST /api/v1/workflows/{id}/retry/{opId}
+POST /api/v1/workflows/{id}/cancel
+POST /api/v1/workflows/intake
+GET  /api/v1/queues
+```
+
+These are thin HTTP adapters over scraper `engineview` services and rag-eval workflow submission. The server command gained an `--engine-db` flag so the API can read the scraper workflow database:
+
+```text
+rag-eval serve --db data/rag-eval.db --engine-db state/rag-eval-workflows.db
+```
+
+The frontend work added a `Workflows` tab with a workflow list, queue health, a submit-intake modal, workflow detail, progress bar, op graph, grouped operation summary, and op inspector. The most important UI design correction was grouping operations instead of returning every op. A large workflow can produce thousands of chunk operations. Returning all of them to the browser is not a visibility feature; it is a failure mode.
+
+The grouped response reduces the detail view to operation/status groups:
+
+```text
+operation=chunk_document, status=succeeded, count=3117
+operation=compute_embeddings, status=ready, count=1
+operation=build_bm25, status=ready, count=1
+```
+
+Each group carries a sample op for inspection. Future work can add paginated drill-down for all failed ops in a group.
+
+Corpus Explorer also gained artifact visibility:
+
+- Source panels show preprocessing coverage next to embedding coverage.
+- Document detail has an `Artifacts` tab for document preprocessing outputs.
+- Chunk rows show enrichment status.
+- Artifact rows can link back to the Workflows tab, connecting derived data to the workflow that produced it.
+
+This completes the loop: a workflow produces artifacts; artifacts appear in corpus views; corpus views can point back to workflow execution state.
+
+## The final operation vocabulary
+
+The runner now supports five operation types:
+
+| Operation | Queue | Canonical service | Canonical artifact |
+|---|---|---|---|
+| `chunk_document` | `rag-eval:cpu` | `internal/services/chunking.Service` | `chunks` |
+| `compute_embeddings` | `rag-eval:embedding` | `internal/services/embedding.Service` | `chunk_embeddings` |
+| `build_bm25` | `rag-eval:index` | `internal/services/search.Service` | `search_indexes` + Bleve index directory |
+| `preprocess_document` | `rag-eval:llm` | `internal/services/documentprocessing.Service` | `document_processing_artifacts` |
+| `enrich_chunk` | `rag-eval:llm` | `internal/services/chunkenrichment.Service` | `chunk_enrichments` |
+
+That table is the practical API of the workflow runner. Every new operation should be judged against the same standard: it should wrap an existing or newly created service, write canonical state outside scraper, return compact workflow metadata, and have a direct debugging path.
+
+## Why the transformation worked
+
+The transformation worked because the direct pipeline had already been disciplined into service boundaries. The workflow runner could call services because those services existed. The tests could inject fake providers because provider resolution was already separable. The UI could show progress because scraper already had durable rows for workflows and operations. The artifact views could exist because preprocessing and enrichment were stored as first-class tables rather than hidden in logs or overwritten text columns.
+
+The core pattern is reusable:
+
+```text
+1. Make the domain operation idempotent and testable without a workflow engine.
+2. Store the operation's real output in the domain database or artifact store.
+3. Add a workflow op that calls the domain service and returns compact metadata.
+4. Add fake-provider tests before live-provider tests.
+5. Add a direct CLI/debug path for the same service call.
+6. Add workflow submission only after operation semantics are stable.
+7. Add API and UI visibility only after workflow state is meaningful.
+```
+
+This sequence prevents the workflow engine from becoming a place to hide unstable domain behavior. The engine coordinates work. It does not make unclear work clear.
+
+## Failure modes and design lessons
+
+### Dependency boundaries matter
+
+The first scraper import exposed a `go-go-goja` compatibility problem. This was not an intake bug, but it affected intake workflow integration because the engine packages were not isolated from scraper's JS/site packages. The temporary replacement unblocked development, but the long-term dependency boundary still deserves review.
+
+### Scope filters are cost controls
+
+The document ID filter propagation for embeddings and BM25 was a correctness fix and a cost-control fix. Without it, a small workflow could process a large corpus. Any operation that calls a provider or builds an index must make its scope visible in the input contract.
+
+### Freshness is better than timestamps
+
+Both embeddings and preprocessing/enrichment artifacts use content hashes for freshness. Timestamps tell when a row was written. Hashes tell whether the input still matches the row. For rerunnable intake, hashes are the stronger invariant.
+
+### Fake providers are not throwaway code
+
+The fake providers are part of the architecture. They let tests prove orchestration, skip semantics, coverage, storage, and UI behavior without credentials. Live providers should be opt-in additions, not the only implementation path.
+
+### Dynamic fan-out should be introduced carefully
+
+The current enrichment fan-out selects existing chunks at submission time. That is safe but limited. A more powerful workflow could create chunk enrichment ops after chunking completes. That should be added only when the UI can explain it and the scheduler behavior is easy to inspect.
+
+## What a new developer should read now
+
+The original read list at the end of this article is still useful for understanding direct intake. For workflow-based intake, read in this order:
+
+1. `internal/workflow/ops.go` for the operation input/output vocabulary.
+2. `internal/workflow/intake_runner.go` for dispatch and service wrapping.
+3. `internal/workflow/submit.go` for workflow topology construction.
+4. `internal/workflow/engine.go` for scheduler construction and runner registration.
+5. `cmd/rag-eval/cmds/workflow/*` for operator-facing workflow commands.
+6. `internal/services/documentprocessing/service.go` and `live_openai.go` for preprocessing artifacts and the live smoke provider.
+7. `internal/services/chunkenrichment/service.go` for strict chunk enrichment validation.
+8. `internal/api/workflow_artifact_handlers.go` for workflow/artifact HTTP visibility.
+9. `web/src/components/workflows/WorkflowsView.tsx` for browser workflow inspection and submission.
+10. `web/src/components/corpus/DocumentInspector.tsx` and `web/src/components/corpus/SourcePanel.tsx` for artifact visibility in Corpus Explorer.
+
+## Current status after the workflow transformation
+
+The scraper workflow transformation is no longer just a design. It is implemented through the backend, CLI, live smoke path, API, and UI.
+
+Completed capabilities:
+
+- custom scraper runner registration;
+- durable chunk, embedding, BM25, preprocessing, and enrichment operations;
+- workflow submission and worker CLI;
+- direct debug commands for preprocessing and enrichment;
+- fake-provider workflow tests;
+- bounded live `gpt-5-nano-low` preprocessing smoke;
+- workflow status, ops, result, retry, cancel, queue, and submit APIs;
+- Workflows UI with list, detail, op graph, queue health, and submit modal;
+- Corpus Explorer artifact coverage and detail visibility.
+
+Important remaining questions:
+
+- Should `chunk_enrichments` include provider/model in its primary key before serious live experiments?
+- Should dynamic fan-out be added for post-chunk enrichment workflows?
+- Should the live OpenAI Responses provider move into a shared LLM provider abstraction instead of living under document preprocessing?
+- Should workflow APIs normalize scraper model structs to stable snake_case DTOs before more frontend code depends on their current JSON shape?
+- Should engine DB parent directory creation happen in the scraper store, rag-eval workflow helper, or CLI layer?
+
+## Closing the loop
+
+The project started with an explicit intake pipeline: sources, documents, chunks, embeddings, and indexes. The workflow work did not discard that foundation. It made the same transformations durable, inspectable, retryable, and visible. That is the right kind of workflow integration. It preserves direct debugging while adding orchestration.
+
+A future developer should see two valid paths through the system. If they need to understand one operation, they can run the direct command and read the service. If they need to run a pipeline, they can submit a scraper workflow, watch it in the browser, inspect operation results, retry failures, and see the artifacts appear in Corpus Explorer. The workflow engine is now part of the intake system, but it is not the whole system. It is the durable execution layer around well-defined, testable transformations.
