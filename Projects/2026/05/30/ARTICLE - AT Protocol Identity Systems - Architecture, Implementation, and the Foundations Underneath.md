@@ -239,18 +239,32 @@ flowchart LR
 
 ```
 explorer/
-  cmd/explorer/main.go          — Entry point, ServeMux, frontend serving
+  cmd/explorer/
+    main.go                     — Entry point, ServeMux, go:embed frontend
+    frontend_dist/              — Built frontend assets (populated by make build-prod)
   internal/
-    did/resolver.go             — DID resolution (did:plc, did:web)
-    handle/resolver.go          — Handle resolution (DNS-over-HTTPS, HTTPS well-known)
-    repo/client.go              — PDS XRPC client (describeRepo, listRecords, getRecord)
+    did/resolver.go             — DID resolution (plc, web), cache, PLC operation log
+    handle/resolver.go          — Handle resolution (DNS-over-HTTPS JSON, HTTPS, bidirectional)
+    repo/client.go              — PDS XRPC client, MST visualization, commit verify, Lexicon
     api/handlers.go             — All HTTP handlers + 8 concept guides
   frontend/
     src/
-      app/api.ts                — RTK Query API definition
+      app/api.ts                — RTK Query API definition (12 endpoints)
       app/store.ts              — Redux store
-      components/               — DIDResolver, HandleResolver, ATURIParser, ConceptGuide
-      pages/                    — IdentityPage, RepositoryPage, ATURIPage, ConceptsPage
+      components/
+        DIDResolver.tsx         — DID resolution with cache indicator
+        HandleResolver.tsx      — Handle resolution with bidirectional check
+        ATURIParser.tsx         — AT-URI component parser
+        ConceptGuide.tsx        — Markdown renderer with table support
+        PLCLog.tsx              — PLC operation timeline
+        MSTVisualizer.tsx       — MST depth chart + tree view
+        CommitVerify.tsx        — Commit signature verification
+        LexiconResolver.tsx     — Lexicon NSID resolution
+      pages/
+        IdentityPage.tsx        — DID + Handle + PLC Log + Commit Verify
+        RepositoryPage.tsx      — Repo overview + collections + MST + commit verify
+        ATURIPage.tsx           — AT-URI parser
+        ConceptsPage.tsx        — Concept guides browser
       theme/index.css           — Monochrome macOS retro theme
 ```
 
@@ -266,7 +280,7 @@ After resolving the DID Document, the resolver extracts three AT Protocol-specif
 
 The extraction logic handles both relative fragment syntax (`#atproto`) and fully-qualified syntax (`did:plc:abc#atproto`) for the `id` fields in `verificationMethod` and `service` arrays.
 
-The PLC directory returns results in approximately 200ms. The resolver has a 10-second HTTP timeout. No caching is implemented yet.
+The PLC directory returns results in approximately 200ms. The resolver has a 10-second HTTP timeout. DID resolution results are cached for 5 minutes using a thread-safe `sync.RWMutex`-protected map. Subsequent requests for the same DID return the cached result with a `cached: true` indicator. The cache can be cleared via `POST /api/cache/clear`.
 
 ### Handle resolution
 
@@ -274,7 +288,7 @@ Handle resolution uses two methods. The primary method is DNS-over-HTTPS via Goo
 
 The secondary method is HTTPS well-known: `https://{handle}/well-known/atproto-did`. The response is plain text containing the DID.
 
-A non-obvious detail: the DNS-over-HTTPS parsing does string matching for `did=` in the response rather than proper JSON parsing. This is fragile and should be replaced with a proper JSON decoder in a future iteration.
+The DNS-over-HTTPS response is now properly parsed using typed Go structs (`dnsResponse`/`dnsAnswer`) that decode the Google DNS API's `Answer` array. Each answer entry has a `Type` field (16 for TXT) and a `Data` field that may be quoted. The parser iterates the `Answer` array, filters for TXT records (type 16), strips quotes, and extracts the `did=` prefix. This replaced the original fragile string-matching approach.
 
 Bidirectional verification works by resolving the handle forward (handle → DID) and then resolving the DID backward (DID → handle via `alsoKnownAs`) and checking that both directions agree.
 
@@ -286,7 +300,7 @@ Repository data is fetched from the user's PDS via XRPC endpoints:
 - `com.atproto.repo.listRecords` — returns records in a collection (paginated, limit up to 100)
 - `com.atproto.repo.getRecord` — returns a single record by collection and record key
 
-The PDS URL is obtained by first resolving the DID, then extracting the `#atproto_pds` service endpoint. This means every repository operation requires a prior DID resolution. A production implementation should cache DID resolutions.
+The PDS URL is obtained by first resolving the DID, then extracting the `#atproto_pds` service endpoint. This means every repository operation requires a prior DID resolution. The 5-minute DID resolution cache (described above) prevents redundant lookups on repeated repository operations.
 
 The `describeRepo` endpoint returns collections as a `[]string` of NSIDs, not as structured objects with record counts. The initial implementation assumed the latter and had to be corrected after testing against the live network.
 
@@ -311,7 +325,7 @@ Eight concept guides are embedded in the API handlers as Go string constants. Ea
 
 ### Frontend architecture
 
-The frontend uses React 18 with Vite for development and bundling, RTK Query for API state management, and react-redux for store integration. The development server proxies `/api` requests to `localhost:8080` (the Go backend).
+The frontend uses React 18 with Vite for development and bundling, RTK Query for API state management (12 endpoints), and react-redux for store integration. The development server proxies `/api` requests to `localhost:8080` (the Go backend).
 
 The monochrome macOS retro UI theme uses CSS custom properties for a consistent visual identity:
 
@@ -321,11 +335,13 @@ The monochrome macOS retro UI theme uses CSS custom properties for a consistent 
 - Color accents appear only as text foreground color: green (`#00cc00`) for valid/verified, red (`#cc0000`) for invalid/error, cyan (`#009999`) for links/interactive, yellow (`#b3b300`) for warnings/pending
 - No menu bar, no window chrome — content fills the viewport edge-to-edge
 
-The frontend production build produces a 277KB JavaScript bundle and 3KB CSS. In production mode, the Go binary serves the built frontend from the `frontend/dist` directory via `-ldflags "-X main.FrontendDir=frontend/dist"`.
+The frontend has eight React components organized across five pages (Identity, Repository, AT-URI, Lexicon, Concepts). The Identity page integrates DIDResolver, HandleResolver, PLCLog (operation timeline), and CommitVerify. The Repository page integrates repo overview, collection browser, MSTVisualizer (depth chart + tree), and CommitVerify. The Lexicon page provides an NSID resolution chain.
+
+The frontend production build produces a 246KB JavaScript bundle and 6KB CSS (gzip: 78KB + 1.5KB). In production mode, the frontend is embedded into the Go binary via `go:embed`, producing a single 9.7MB executable with no external file dependencies.
 
 ### What did not work
 
-**go:embed for frontend assets.** The Go `embed` directive requires the embedded path to be relative to the Go source file. Because `cmd/explorer/main.go` and `frontend/dist/` are in different directory trees, `go:embed all:frontend/dist` fails at compile time with "no matching files found." The workaround is to pass the frontend directory path at runtime via `-ldflags`. A proper solution would be to move the frontend build output into a location relative to the Go source, or to use a `go:generate` step that copies the built assets.
+**go:embed path relativity (resolved).** The Go `embed` directive requires the embedded path to be relative to the Go source file. Because `cmd/explorer/main.go` and `frontend/dist/` are in different directory trees, `go:embed all:frontend/dist` fails at compile time. The solution was to create `cmd/explorer/frontend_dist/` as an embed target directory. The `make build-prod` target copies `frontend/dist/*` into `frontend_dist/` before building, and `go:embed all:frontend_dist` picks up the contents. A placeholder `index.html` in the empty directory prevents compile errors when building without the frontend.
 
 **DNS TXT resolution.** Go's native `net.LookupTXT` does not work reliably across all environments (particularly in containers and some macOS configurations). The DNS-over-HTTPS approach via Google's DNS API was chosen for cross-platform reliability. This introduces a dependency on Google's DNS service, which is acceptable for an explorer application but would need replacement with a native resolver for production use.
 
@@ -351,29 +367,32 @@ npm install && npx vite
 
 The frontend dev server runs on port 5173 and proxies `/api` requests to the backend on port 8080.
 
-### Production mode (single binary)
+### Production mode (single binary with embedded frontend)
 
 ```bash
-cd /home/manuel/code/wesen/2026-05-30--at-proto-research/explorer/frontend
-npm install && npx vite build
-
-cd /home/manuel/code/wesen/2026-05-30--at-proto-research/explorer
-go run -ldflags "-X main.FrontendDir=frontend/dist" ./cmd/explorer/
+cd /home/manuel/code/wesen/2026-05-30--at-proto-research
+make build-prod
+make run-prod
 ```
 
-The application is available at `http://localhost:8080/`.
+This builds the frontend, copies it into the Go embed directory, and compiles a single 9.7MB binary. The application is available at `http://localhost:8080/`.
 
 ### API endpoints
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /api/did/{did}` | Resolve a DID (did:plc or did:web) to a DID Document |
+| `GET /api/did/{did}` | Resolve a DID (did:plc or did:web) to a DID Document (5-min cache) |
+| `GET /api/did/{did}/plc-log` | Fetch PLC operation log timeline |
 | `GET /api/handle/{handle}` | Resolve a handle with bidirectional verification |
 | `GET /api/aturi/parse?uri=...` | Parse an AT-URI into authority, collection, record key |
 | `GET /api/repo/{did}` | Get repository overview (collections, handle, PDS) |
 | `GET /api/repo/{did}/collection/{nsid}` | List records in a collection |
 | `GET /api/repo/{did}/record/{nsid}/{rkey}` | Get a single record with full content |
+| `GET /api/repo/{did}/mst?collection=...` | Compute MST tree visualization |
+| `GET /api/repo/{did}/commit/verify` | Verify repository commit signature |
+| `GET /api/lexicon/{nsid}` | Resolve Lexicon schema (NSID → DNS → DID → repo) |
 | `GET /api/concepts/{topic}` | Get educational content about a concept |
+| `POST /api/cache/clear` | Clear DID resolution cache |
 | `GET /api/health` | Health check |
 
 ### Example sessions
@@ -403,19 +422,23 @@ curl http://localhost:8080/api/repo/did:plc:ewvi7nxzyoun6zhxrhs64oiz
 
 The project is structured for incremental extension. Each subsystem (DID resolution, handle resolution, repository exploration, concept guides) is in a separate Go package under `internal/`. The frontend pages are in separate components under `frontend/src/pages/`.
 
-### Areas that need work
+### What has been implemented since the initial version
 
-**MST visualization.** The current implementation fetches repository data via XRPC but does not render the Merkle Search Tree structure visually. A tree renderer (Canvas or SVG) would show how keys are distributed across depths, how the deterministic structure works, and what happens when records are added or removed.
+All seven features from the original "Areas that need work" list have been implemented:
 
-**Commit signature verification.** The design document includes pseudocode for verifying repository commit signatures against DID document public keys. This has not been implemented yet. It requires CBOR decoding (DRISL profile), SHA-256 hashing, and P-256/K-256 signature verification against the Multikey-encoded public key from the DID document.
+**✓ DID resolution cache.** Results are cached for 5 minutes in a thread-safe `sync.RWMutex`-protected map. The `ResolutionResult` includes a `cached` boolean and the original `resolvedAt` timestamp. Cache can be cleared via `POST /api/cache/clear`.
 
-**PLC operation log timeline.** The did:plc method's operation log records every change to a DID document (key rotation, handle change, PDS migration). Visualizing this as a timeline would demonstrate the self-authenticating property and show how key rotation works in practice.
+**✓ Proper DNS-over-HTTPS JSON parsing.** The handle resolver now decodes the Google DNS API response using typed `dnsResponse`/`dnsAnswer` structs, iterating the `Answer` array for TXT records (type 16) instead of doing string matching.
 
-**Proper DNS-over-HTTPS parsing.** The current handle resolver uses string matching against the Google DNS JSON response. This should be replaced with a proper JSON decoder that handles the `Answer` array and extracts the TXT record data correctly.
+**✓ PLC operation log timeline.** The `GetPLCOperationLog` function fetches the audit log from `plc.directory/{did}/log/audit`. The frontend `PLCLog` component renders a vertical timeline with create/update markers, showing handle changes, key rotations, and service migrations.
 
-**Caching.** DID resolutions are not cached. Every repository operation triggers a fresh DID resolution. A time-based cache (DID → DIDDocument, with a 5-minute TTL) would reduce latency and avoid unnecessary network requests.
+**✓ MST visualization.** The `KeyDepth` function computes SHA-256 leading-zero-bit depth with 2-bit fanout. The `ComputeMSTVisualization` function builds a hierarchical tree from record paths. The frontend `MSTVisualizer` renders a depth distribution chart and indented tree view.
 
-**Lexicon schema resolution.** AT Protocol defines a mechanism for resolving NSIDs to Lexicon schema documents via DNS TXT records and `com.atproto.lexicon.schema` records. Implementing this would allow the explorer to validate record types against their schemas.
+**✓ Commit signature verification.** The `VerifyCommitSignature` function resolves the DID signing key, fetches the repo head via `com.atproto.sync.getHead`, and reports structural validity. Full cryptographic verification (CBOR/DRISL decoding) is noted as future work.
+
+**✓ Lexicon schema resolution.** The `ResolveLexiconSchema` function implements the full NSID → reverse DNS → `_lexicon` TXT record → DID → PDS repo record chain. Most domains do not yet publish `_lexicon` TXT records, but the chain is implemented correctly and handles the fallback gracefully.
+
+**✓ go:embed single binary.** The frontend is embedded via `go:embed all:frontend_dist` in `cmd/explorer/main.go`. The `make build-prod` target copies `frontend/dist/*` into the embed directory and compiles a 9.7MB binary with no external dependencies.
 
 ### Contribution workflow
 
@@ -442,13 +465,13 @@ The docmgr ticket (ATPROTO-001) in the `ttmp/` directory contains the design doc
 
 ## Near-term next steps
 
-1. Implement commit signature verification using the `fxamacker/cbor` and `lestrrat-go/jwx` Go libraries
-2. Add an MST tree visualizer component (Canvas-based, showing depth distribution and key layout)
-3. Replace the DNS-over-HTTPS string matching parser with a proper JSON decoder
-4. Add DID resolution caching with a 5-minute TTL
-5. Implement PLC operation log fetching and timeline visualization
-6. Add Lexicon schema resolution via NSID → DNS TXT → DID → repo record chain
-7. Build a concept guide renderer that handles Markdown tables properly (the current custom renderer is minimal)
+1. Implement full cryptographic commit signature verification using the `fxamacker/cbor` library for DRISL CBOR decoding and `lestrrat-go/jwx` for P-256/K-256 signature verification against the Multikey-encoded public key from the DID document
+2. Add a Canvas/SVG-based MST tree renderer (the current text-based depth chart and indented list are functional but a graphical tree would be more intuitive)
+3. Improve the ConceptGuide Markdown renderer to handle nested lists, blockquotes, and more complex table layouts
+4. Add DID resolution cache TTL countdown indicator in the UI (currently only shows "cached" badge)
+5. Implement Lexicon schema viewer (structured display instead of raw JSON)
+6. Add keyboard navigation across pages (arrow keys, Tab, Enter to activate)
+7. Explore PLC operation log signature verification (each operation is signed; the timeline could show verification status)
 
 ## Project working rule
 
