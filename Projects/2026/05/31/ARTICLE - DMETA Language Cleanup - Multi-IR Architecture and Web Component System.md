@@ -4,6 +4,7 @@ aliases:
   - DMETA Language Cleanup
   - DMETA Multi-IR Architecture
   - DMETA Web Component System Cleanup
+  - DMETA Presentation IR Cleanup
   - TTC DMETA Component IR Cleanup Report
 tags:
   - article
@@ -12,6 +13,8 @@ tags:
   - design-system
   - compiler-ir
   - intermediate-representation
+  - interaction-ir
+  - semantic-ir
   - web-mds
   - react
   - codegen
@@ -31,7 +34,8 @@ The concrete work happened in the TTC design-system workspace at `/home/manuel/w
 > [!summary]
 > - DMETA is a design-system compiler organized as multiple IR layers: semantic core model, Interaction IR, target-specific MetaDesignSystems, instance manifests, target planners, generated scaffolds, and promoted runtime code.
 > - The cleanup kept semantic meaning out of Web/component/style fields, moved Web component hierarchy into the Web MetaDesignSystem, and replaced legacy widget fields with one canonical `component` block.
-> - Web templates now use `component.level`, `component.specificity`, `component.role`, `component.generation_policy`, `intent`, and `composition.uses`; validation enforces hierarchy, edge intent, known dependencies, and composition cycles.
+> - A later hard cleanup removed formal `core-model/presentations` entirely: visible obligations now live in Interaction IR `representations`, while the core model owns only archetypes, capabilities, projections, and examples.
+> - Web templates now use `component.level`, `component.specificity`, `component.role`, `component.generation_policy`, `intent`, and `composition.uses`; validation enforces hierarchy, edge intent, known dependencies, representation references, and composition cycles.
 > - React planning now reads canonical component fields only and reports `composition.uses` dependency closure so authors can see which atoms and molecules a selected organism/page requires.
 
 ## Why this report exists
@@ -141,7 +145,7 @@ In the TTC package, the semantic package lives under:
 2026-05-27--ttc-design-system/dmeta-ir/core-model/
 ```
 
-A semantic archetype names a reusable domain role. A capability names reusable domain affordance or projection structure. A presentation names a semantic projection that can become visible to a user, but it does not choose a concrete Web component.
+A semantic archetype names a reusable domain role. A capability names reusable domain affordance or projection structure. After the presentation cleanup, the core model no longer contains formal presentation vocabulary. If something is user-visible, selectable, inspectable, filterable, or action-aware, it belongs in Interaction IR as a representation and/or action.
 
 A useful semantic model says things like:
 
@@ -160,7 +164,7 @@ RecommendationSet uses a green chip row.
 CarePlan belongs in src/components/organisms.
 ```
 
-Those statements belong downstream. The cleanup preserved this boundary by keeping Web component structure and style lowering out of core-model formal fields.
+Those statements belong downstream. The cleanup preserved this boundary by keeping Web component structure, style lowering, and visible representation obligations out of core-model formal fields.
 
 ## Layer 2: Interaction IR
 
@@ -173,17 +177,114 @@ dmeta/sources/dmeta-ir/interactions/
 2026-05-27--ttc-design-system/dmeta-ir/interactions/
 ```
 
-It has three main source files:
+It has three main source catalogs. The generic package still uses monolithic files; the TTC package now uses explicit manifest-listed split directories.
 
-| File | Purpose |
-| --- | --- |
-| `actions.yaml` | Defines modality-neutral actions such as selecting, filtering, uploading, comparing, refining, or adding to a plan. |
-| `representations.yaml` | Defines visible semantic forms such as recommendation lists, product grids, upload prompts, care calendars, warning signs, active filters, and plan summaries. |
-| `elaboration-rules.yaml` | Derives interaction obligations from semantic facts. |
+| Catalog | Generic path | TTC path | Purpose |
+| --- | --- | --- | --- |
+| Actions | `interactions/actions.yaml` | `interactions/actions/*.yaml` | Defines modality-neutral actions such as selecting, filtering, uploading, comparing, refining, browsing, or adding to a plan. |
+| Representations | `interactions/representations.yaml` | `interactions/representations/*.yaml` | Defines visible semantic forms such as recommendation lists, product grids, category collections, landing-page hero campaigns, upload prompts, care calendars, warning signs, active filters, and plan summaries. |
+| Elaboration rules | `interactions/elaboration-rules.yaml` | `interactions/elaboration-rules/*.yaml` | Derives interaction obligations from semantic facts. |
 
 Interaction IR is not a React component list. `select_recommendation` is a good Interaction IR action because it remains meaningful across Web, PBUI, CLI, or another target. `click_quick_pick_button` would be too Web-specific because it names a DOM-style realization.
 
 The Interaction IR boundary gives DMETA its multi-target structure. The Web target can lower an interaction representation into React components. The PBUI target can lower the same interaction representation into typed presentation objects and action affordances. Neither target needs to own the semantic source model.
+
+## Presentation IR cleanup: why representations won
+
+The next language cleanup came from a simple observation during the landing-page work: `core-model/presentations` and `interactions/representations` were serving the same practical purpose. TTC had duplicate IDs in both layers, including `quick_pick_list`, `product_match_grid`, `care_steps`, `warning_signs`, `plant_detail_card`, `shopping_plan_summary`, and `active_filter_bar`. Adding landing-page concepts would have made that duplication worse: every visible page section could be modeled once as a core presentation and again as an interaction representation.
+
+The fix was another hard cut. Formal core-model presentations were removed. The new rule is:
+
+```text
+Core model owns:
+  archetypes
+  capabilities and projections
+  domain examples
+
+Interaction IR owns:
+  representations
+  actions
+  elaboration rules
+```
+
+This is not just a documentation change. The nested `dmeta` compiler changed in commit `985e685`:
+
+| Area | Change |
+| --- | --- |
+| Core model Go types | Removed `CoreModelFile.Presentations`, `CoreModelFiles.Presentations`, `PresentationsFile`, and `Presentation`. |
+| Core loader | Stopped loading or merging `files.presentations` from `01-core-model.yaml`. |
+| Core validator | Stopped validating core presentation references and legacy core actions from presentation files. |
+| Core codegen | `generate-core` now emits only `archetypes.ts`, `capabilities.ts`, and `index.ts`; it no longer emits `presentations.ts`, `actions.ts`, `PresentationRef.ts`, or `actionMatching.ts`. |
+| Web widget model | Renamed `consumes.presentations` and `semantic_context.presentations` to `representations`. |
+| Web validation | Checks widget representation references against the effective Interaction IR package. |
+| Generic source IR | Moved `dmeta/sources/dmeta-ir/core-model/presentations.yaml` into `dmeta/sources/dmeta-ir/interactions/representations.yaml`. |
+
+The TTC package then migrated in root commit `f816120`. The old files under:
+
+```text
+2026-05-27--ttc-design-system/dmeta-ir/core-model/presentations/*.yaml
+```
+
+were deleted, and their non-duplicated vocabulary moved into Interaction IR:
+
+```text
+2026-05-27--ttc-design-system/dmeta-ir/interactions/representations/05-foundation-display.yaml
+2026-05-27--ttc-design-system/dmeta-ir/interactions/representations/25-plant-display.yaml
+2026-05-27--ttc-design-system/dmeta-ir/interactions/representations/35-commerce-display.yaml
+2026-05-27--ttc-design-system/dmeta-ir/interactions/representations/45-landing-page.yaml
+```
+
+Existing richer TTC Interaction representations were preserved where IDs already existed. For example, `product_match_grid` and `care_steps` stayed in the existing Interaction files rather than being overwritten by thinner migrated prose.
+
+The landing-page representations now live where they belong:
+
+```text
+interactions/representations/45-landing-page.yaml
+  landing_page_summary
+  hero_campaign_summary
+  category_collection
+  product_collection
+  editorial_triptych
+  value_proposition_panel
+  assistant_entry_prompt
+```
+
+A future landing-page elaboration rule should now say something like:
+
+```yaml
+- id: landing_page_to_landing_obligations
+  when:
+    all_archetypes: [LandingPageSurface]
+    all_capabilities: [browsable_collection]
+  emits:
+    representations:
+      - landing_page_summary
+      - category_collection
+      - product_collection
+      - assistant_entry_prompt
+    actions:
+      - browse_category
+      - start_garden_assistant
+```
+
+That rule belongs in `interactions/elaboration-rules/*.yaml`, not in the core model and not in Web MDS. Web MDS then lowers those representation/action obligations into page and organism templates.
+
+```mermaid
+flowchart LR
+    A[Core model\nLandingPageSurface + capabilities]
+    B[Elaboration rule\nsemantic selector]
+    C[Interaction obligations\nrepresentations + actions]
+    D[Web lowering rule\npage/organism templates]
+    E[React plan\ncomponent graph + metadata]
+
+    A --> B --> C --> D --> E
+
+    style A fill:#e7f0ff,stroke:#3f7fb9
+    style C fill:#eef7ea,stroke:#5a8f4a
+    style D fill:#fff4d6,stroke:#a88a3a
+```
+
+This cleanup also renamed Web-side runtime contract references from `PresentationRef` to `RepresentationRef` in generic and TTC Web widget template prose/contracts. PBUI still legitimately uses presentation-system terminology because PBUI presentation types are a target MetaDesignSystem concept, not a core-model IR category.
 
 ## Layer 3: MetaDesignSystems
 
@@ -412,7 +513,7 @@ It defines component levels, lowering policy, composition policy, and specificit
 | Level | Purpose | Emitted directly by lowering? | Typical children |
 | --- | --- | --- | --- |
 | `atom` | Small reusable primitive with local rendering or local control state. | No | none |
-| `molecule` | Small composed component that renders one local presentation shape or control group. | No | atoms |
+| `molecule` | Small composed component that renders one local representation shape or control group. | No | atoms |
 | `organism` | Web widget or page section that satisfies one or more interaction obligations. | Yes | molecules, atoms |
 | `rich_widget` | Larger interactive widget with multiple regions or coordinated state. | Yes | organisms, molecules, atoms |
 | `page` | Route or screen-level composition. | Yes | rich widgets, organisms, molecules, atoms |
@@ -650,6 +751,7 @@ Nested `dmeta` commits:
 | `c6c8e99` | Added canonical component fields as an intermediate step. |
 | `2fa497f` | Removed legacy Web component fields and migrated generic Web templates. |
 | `ff912c8` | Added React dependency-closure reporting. |
+| `985e685` | Removed formal core-model presentations, moved generic presentation vocabulary into Interaction IR, updated codegen/validation/tooling/docs. |
 
 Root TTC workspace commits:
 
@@ -660,6 +762,9 @@ Root TTC workspace commits:
 | `3d445b2` | Recorded Web component-system policy progress. |
 | `04fea46` | Recorded hard Web component IR cleanup and TTC template migration. |
 | `3ae958d` | Recorded React dependency-closure reporting. |
+| `c136b0b` | Planned the presentation IR cleanup ticket. |
+| `f816120` | Migrated TTC core-model presentations into Interaction IR representations and renamed Web widget metadata to representations. |
+| `401a3ef` | Recorded presentation IR cleanup diary and ticket bookkeeping. |
 
 The most important implementation files are:
 
@@ -672,7 +777,9 @@ The most important implementation files are:
 | `dmeta/pkg/dmeta/generator/react/plan.go` | Plans React output from canonical component fields and reports dependency closure. |
 | `dmeta/pkg/dmeta/cmds/plan_scaffold.go` | Emits dependency rows in CLI scaffold plans. |
 | `dmeta/pkg/dmeta/generator/react/render.go` | Writes dependency closure into generated metadata. |
-| `2026-05-27--ttc-design-system/dmeta-ir/meta-design-systems/web/widgets/*.yaml` | TTC templates migrated to canonical component blocks. |
+| `dmeta/sources/dmeta-ir/interactions/representations.yaml` | Generic Interaction representation catalog now owns migrated display vocabulary that used to live in core presentations. |
+| `2026-05-27--ttc-design-system/dmeta-ir/interactions/representations/*.yaml` | TTC Interaction representation catalogs, including migrated landing-page visible obligations. |
+| `2026-05-27--ttc-design-system/dmeta-ir/meta-design-systems/web/widgets/*.yaml` | TTC templates migrated to canonical component blocks and `representations` metadata. |
 | `2026-05-27--ttc-design-system/docs/playbooks/dmeta-system-playbook.md` | Human playbook for working in the TTC DMETA system. |
 
 The ticket workspace that records this cleanup is:
@@ -698,7 +805,7 @@ A Web developer normally starts by identifying which layer owns the change.
 | --- | --- | --- |
 | Add a new domain object or projection. | Semantic Core Model | `dmeta-ir/core-model/*.yaml` |
 | Add a new user operation. | Interaction IR | `dmeta-ir/interactions/actions.yaml` |
-| Add a new visible interaction representation. | Interaction IR | `dmeta-ir/interactions/representations.yaml` |
+| Add a new visible interaction representation. | Interaction IR | `dmeta-ir/interactions/representations/*.yaml` in TTC; `interactions/representations.yaml` in the generic package. |
 | Map interaction obligations to a Web widget. | Web MDS lowering | `meta-design-systems/web/lowering-rules.yaml` |
 | Define a component template, props, slots, stories, or style source. | Web MDS widget templates | `meta-design-systems/web/widgets/*.yaml` |
 | Change component hierarchy or composition rules. | Web component-system policy | `component-system.yaml` |
@@ -741,7 +848,7 @@ A designer does not need to think in Go structs, but the layer boundaries still 
 
 If the design change is about meaning, it belongs upstream. For example, Tree Center may need to distinguish a seasonal care task from a general care instruction. That is semantic. It should be modeled before component templates are chosen.
 
-If the design change is about what the user can perceive or do, it belongs in Interaction IR. For example, a user may need to compare two plants, browse categories, refine recommendations, or upload a diagnostic photo. Those are interaction obligations.
+If the design change is about what the user can perceive or do, it belongs in Interaction IR. For example, a user may need to compare two plants, browse categories, refine recommendations, see a category collection, or upload a diagnostic photo. Those are interaction obligations. Do not put those obligations back into the core model as presentations.
 
 If the design change is about Web composition, it belongs in Web MDS. For example, a landing page may need a hero organism, category image-card molecule, product-card molecule, section-header molecule, and page shell. Those are Web component decisions.
 
@@ -750,7 +857,7 @@ If the design change is about visual polish, it belongs in Web style inputs or p
 A useful designer-facing checklist is:
 
 - What domain concept is this section about?
-- What should the user be able to perceive?
+- What should the user be able to perceive as an Interaction IR representation?
 - What action can the user take?
 - Which Web component level realizes the obligation?
 - Which smaller components does it compose?
@@ -805,21 +912,25 @@ Current facts:
 - Generic Web MDS templates have canonical `component` blocks.
 - TTC Web MDS templates have canonical `component` blocks.
 - Legacy widget-level `classification` and `component_system` fields are removed from the Go model.
+- Formal core-model presentations are removed from nested `dmeta` and from the TTC source package.
+- Interaction IR representations are now the single target-neutral visible-obligation layer.
+- Web widget metadata uses `representations` rather than `presentations`, and Web validation checks those references against Interaction IR.
+- Core codegen is semantic-only: archetypes, capabilities, and index.
 - Web validation enforces canonical fields and composition rules.
 - React planning reads canonical fields only.
 - `plan-scaffold` reports dependency closure.
 - Generated metadata includes composition dependency closure.
-- The `TTC-DMETA-WEB-COMPONENT-IR` ticket passes `docmgr doctor`.
-- Validation passed after the cleanup with `go test ./...`, generic `validate-ir`, TTC `validate-ir`, TTC `validate-interactions`, and TTC `lower-web`.
+- The `TTC-DMETA-WEB-COMPONENT-IR` and `TTC-DMETA-PRESENTATION-IR-CLEANUP` tickets pass `docmgr doctor`.
+- Validation passed after the cleanup with `go test ./...`, generic `validate-ir`, generic `validate-interactions`, TTC `validate-ir`, TTC `validate-interactions`, and TTC `lower-web`.
 
-The next major product step is to return to `TTC-DMETA-LANDING-PAGE` and model the landing page semantically before writing React sections.
+The next major product step is to return to `TTC-DMETA-LANDING-PAGE` Step 4 and add landing-page elaboration rules/actions so the migrated landing-page representations are actually emitted from the semantic landing-page domain types.
 
 ## Recommended next steps
 
 The next implementation sequence should be:
 
-1. Resume landing-page semantic modeling in the TTC core-model files.
-2. Add or refine Interaction IR representations/actions for landing-page browsing, category discovery, product collections, and assistant entry points.
+1. Add landing-page Interaction IR elaboration rules/actions for browsing categories, opening products/collections, selecting campaigns, and starting the assistant.
+2. Verify that `elaborate-interactions` emits `landing_page_summary`, `hero_campaign_summary`, `category_collection`, `product_collection`, `editorial_triptych`, `value_proposition_panel`, and `assistant_entry_prompt` for the intended TTC domain types.
 3. Add Web MDS page/organism templates with canonical component blocks.
 4. Use `composition.uses` to declare atoms and molecules required by those templates.
 5. Run Web validation to catch hierarchy and dependency problems.
