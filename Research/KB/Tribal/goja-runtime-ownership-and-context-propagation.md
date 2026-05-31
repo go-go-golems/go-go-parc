@@ -128,7 +128,7 @@ The buildspec separates **compile-time package selection** (what Go code is in t
 - **Mutex around every VM call** — Correct but serializes all work including CPU-bound JS. No way to overlap I/O with computation.
 - **Separate runtime per goroutine** — Correct for isolation but loses shared state. Doesn't work for REPL sessions where cells build on each other.
 
-**Named contexts prevent the wrong cancellation domain from being used.** The pre-refactor API had a single `runtimebridge.Bindings.Context` that was used for both runtime lifetime and request scope. The Loupedeck UI hang demonstrated the consequence: a retained hardware callback was created during an HTTP request, used the request context for its posted callbacks, and the request context was canceled when the HTTP handler returned. The callback never fired. The fix was to name contexts by what they control and provide intent-specific helpers whose names document the decision.
+**Named contexts prevent the wrong cancellation domain from being used.** The pre-refactor API had a single `runtimebridge.Bindings.Context` that was used for both runtime lifetime and request scope. The Loupedeck UI hang (see [[ARTICLE - Runtime Context Ownership in go-go-goja]]) demonstrated the consequence: a retained hardware callback was created during an HTTP request, used the request context for its posted callbacks, and the request context was canceled when the HTTP handler returned. The callback never fired. The fix was to name contexts by what they control and provide intent-specific helpers whose names document the decision.
 
 **Runtime-aware module registration makes all extension seams converge.** Before the unified `RuntimeModuleSpec`, the codebase had static module specs, runtime registrars, and xgoja provider adapters as separate concepts. Each invented its own lifecycle. The unified interface means plugin modules, HTTP modules, generated xgoja providers, and default modules all attach at the same point.
 
@@ -138,15 +138,15 @@ The buildspec separates **compile-time package selection** (what Go code is in t
 
 | Report | Date | Contribution |
 |---|---|---|
-| ARTICLE - go-go-goja Runtime System - Creation Context Scheduling and Modules | 2026-05-23 | Canonical description: factory, RuntimeModuleSpec, runtimebridge, owner scheduling, async Promise pattern, close sequence |
-| ARTICLE - Goja Sandbox Architecture - Lessons from go-go-goja and vm-system | 2026-05-23 | Three-system comparison; identifies engine.Runtime as the strongest substrate; proposes sandbox manager on top |
-| REVIEW - go-go-goja PR 38 - UIDSL attrs and per-call context propagation | 2026-05-23 | First implementation of per-call context bridge; `rows.Err()` review point; `uidsl.Attrs` compile-time normalization |
-| ARTICLE - xgoja - Generated Goja Applications Provider Architecture and Runtime Profiles | 2026-05-24 | xgoja buildspec, provider API, runtime profiles, generated command surface, core/host providers |
-| ARTICLE - xgoja Modules in Existing Runners - Discord Bot Case Study | 2026-05-25 | Inserting xgoja modules into existing runners without rewriting them; domain runtime ownership vs. module composition boundary |
-| ARTICLE - Runtime Context Ownership in go-go-goja | 2026-05-26 | The context refactor: named contexts (startup, lifetime, current-owner, custom, cleanup), RuntimeServices helpers, Loupedeck hang fix, breaking API cleanup, downstream migration |
-| ARTICLE - Go AST Analysis - From JavaScript Bindings to Web Source Browser | 2026-05-27 | Demonstrates composable modules: `ast + db + fs + express` in one generated binary |
-| ARTICLE - Playbook - Building go-go-goja xgoja Provider Packages | 2026-05-27 | Provider authoring workflow: domain logic first, narrow JS API, explicit wrapper objects |
-| ARTICLE - Go AST Analysis - xgoja Bindings and Codebase Navigation | 2026-05-27 | Reinforces explicit wrapper object rule for fluent APIs; goja interop should not rely on Go struct reflection |
+| [[ARTICLE - go-go-goja Runtime System - Creation Context Scheduling and Modules]] | 2026-05-23 | Canonical description: factory, RuntimeModuleSpec, runtimebridge, owner scheduling, async Promise pattern, close sequence |
+| [[ARTICLE - Goja Sandbox Architecture - Lessons from go-go-goja and vm-system]] | 2026-05-23 | Three-system comparison; identifies engine.Runtime as the strongest substrate; proposes sandbox manager on top |
+| [[REVIEW - go-go-goja PR 38 - UIDSL attrs and per-call context propagation]] | 2026-05-23 | First implementation of per-call context bridge; `rows.Err()` review point; `uidsl.Attrs` compile-time normalization |
+| [[ARTICLE - xgoja - Generated Goja Applications Provider Architecture and Runtime Profiles]] | 2026-05-24 | xgoja buildspec, provider API, runtime profiles, generated command surface, core/host providers |
+| [[ARTICLE - xgoja Modules in Existing Runners - Discord Bot Case Study]] | 2026-05-25 | Inserting xgoja modules into existing runners without rewriting them; domain runtime ownership vs. module composition boundary |
+| [[ARTICLE - Runtime Context Ownership in go-go-goja]] | 2026-05-26 | The context refactor: named contexts (startup, lifetime, current-owner, custom, cleanup), RuntimeServices helpers, Loupedeck hang fix, breaking API cleanup, downstream migration |
+| [[ARTICLE - Go AST Analysis - From JavaScript Bindings to Web Source Browser]] | 2026-05-27 | Demonstrates composable modules: `ast + db + fs + express` in one generated binary |
+| [[ARTICLE - Playbook - Building go-go-goja xgoja Provider Packages]] | 2026-05-27 | Provider authoring workflow: domain logic first, narrow JS API, explicit wrapper objects |
+| [[ARTICLE - Go AST Analysis - xgoja Bindings and Codebase Navigation]] | 2026-05-27 | Reinforces explicit wrapper object rule for fluent APIs; goja interop should not rely on Go struct reflection |
 
 ## Working rules
 
@@ -194,7 +194,7 @@ The buildspec separates **compile-time package selection** (what Go code is in t
 
 ## Related KB entries
 
-- `Tribal/goja-embedding-in-go.md` — How we embed goja, expose Go functions as JS APIs, wire `require()`, and handle per-sandbox isolation. This entry covers the embedding layer; the present entry covers the ownership and context layer above it.
-- `Tribal/goja-execution-model.md` — Session semantics, IIFE cell rewriting, replay-based restore, and owner-thread discipline for REPL applications. This entry covers REPL-specific execution; the present entry covers the generic runtime substrate.
-- `Tribal/dsl-normalized-config-compiled-plan.md` — The engine Factory is a compiled plan (frozen module policy) and each `NewRuntime` is a live instance. This is the DSL→Config→Plan pattern applied to JavaScript runtimes.
-- `On-Ramp/go-cli-with-embedded-spa.md` — The SSR sidecar pattern for Go-hosted React SPAs, where the goja runtime serves as the server-side rendering engine.
+- [[Tribal/goja-embedding-in-go]] — How we embed goja, expose Go functions as JS APIs, wire `require()`, and handle per-sandbox isolation. This entry covers the embedding layer; the present entry covers the ownership and context layer above it.
+- [[Tribal/goja-execution-model]] — Session semantics, IIFE cell rewriting, replay-based restore, and owner-thread discipline for REPL applications. This entry covers REPL-specific execution; the present entry covers the generic runtime substrate.
+- [[Tribal/dsl-normalized-config-compiled-plan]] — The engine Factory is a compiled plan (frozen module policy) and each `NewRuntime` is a live instance. This is the DSL→Config→Plan pattern applied to JavaScript runtimes.
+- [[On-Ramp/go-cli-with-embedded-spa]] — The SSR sidecar pattern for Go-hosted React SPAs, where the goja runtime serves as the server-side rendering engine.
