@@ -103,17 +103,17 @@ Alternatives considered and rejected:
 
 ## Evidence
 
-| Report | Date | Contribution |
-|---|---|---|
-| [[ARTICLE - DMETA Design System Factory - From Semantic Schemas to Generated React Widgets]] | 2026-05-23 | Canonical description: nine-layer model, archetypes, capabilities, widget templates, scaffold generation, promotion workflow |
-| [[ARTICLE - DMETA Semantic Inheritance - From Flat Tags to Deli Ordering]] | 2026-05-23 | Explicit abstract roots, `extends: []` validation, Street Deli domain mapping |
-| [[ARTICLE - DMETA as a Design System Compiler - Layered IRs and MetaDesignSystems]] | 2026-05-24 | Proposal for Interaction IR, MetaDesignSystem concept, modality-neutral actions/representations |
-| [[ARTICLE - DMETA Compiler Refactor - Hard Cut to Interaction IR Web MetaDesignSystem and React Target]] | 2026-05-24 | Implementation: removed old scaffold-instance, new pipeline `validate → plan → elaborate → lower → scaffold` |
-| [[ARTICLE - DMETA PBUI Street Deli CLIM React Research Report - From Conceptual Cleanup to Concrete Target]] | 2026-05-25 | CLIM PBUI profile pattern: reusable shell surfaces vs. app-specific overrides, action/command binding layer |
-| [[ARTICLE - TTC DMETA React Workflow - Semantic IR to Storybook Garden Assistant]] | 2026-05-27 | File lifecycle enforcement, CSS token lowering path, generated vs. promoted component workflow |
-| [[ARTICLE - TTC DMETA Visual Parity - Preserving IR and Codegen While Matching the Original Design]] | 2026-05-28 | Visual source of truth = imported original, IR simplification, backfilling after parity passes |
-| [[ARTICLE - Building a Reusable CLIM React Package]] | 2026-05-26 | CLIM interaction modes as discriminated union, semantic intents driving visual rendering, Tailwind npm packaging |
-| [[ARTICLE - Typography Debug Palette - Design System, Live Overrides, and Modular Scale]] | 2026-05-28 | CSS token validation from design-language IR, debug palette for live overrides |
+| Report                                                                                                       | Date       | Contribution                                                                                                                 |
+| ------------------------------------------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| [[ARTICLE - DMETA Design System Factory - From Semantic Schemas to Generated React Widgets]]                 | 2026-05-23 | Canonical description: nine-layer model, archetypes, capabilities, widget templates, scaffold generation, promotion workflow |
+| [[ARTICLE - DMETA Semantic Inheritance - From Flat Tags to Deli Ordering]]                                   | 2026-05-23 | Explicit abstract roots, `extends: []` validation, Street Deli domain mapping                                                |
+| [[ARTICLE - DMETA as a Design System Compiler - Layered IRs and MetaDesignSystems]]                          | 2026-05-24 | Proposal for Interaction IR, MetaDesignSystem concept, modality-neutral actions/representations                              |
+| [[ARTICLE - DMETA Compiler Refactor - Hard Cut to Interaction IR Web MetaDesignSystem and React Target]]     | 2026-05-24 | Implementation: removed old scaffold-instance, new pipeline `validate → plan → elaborate → lower → scaffold`                 |
+| [[ARTICLE - DMETA PBUI Street Deli CLIM React Research Report - From Conceptual Cleanup to Concrete Target]] | 2026-05-25 | CLIM PBUI profile pattern: reusable shell surfaces vs. app-specific overrides, action/command binding layer                  |
+| [[ARTICLE - TTC DMETA React Workflow - Semantic IR to Storybook Garden Assistant]]                           | 2026-05-27 | File lifecycle enforcement, CSS token lowering path, generated vs. promoted component workflow                               |
+| [[ARTICLE - TTC DMETA Visual Parity - Preserving IR and Codegen While Matching the Original Design]]         | 2026-05-28 | Visual source of truth = imported original, IR simplification, backfilling after parity passes                               |
+| [[ARTICLE - Building a Reusable CLIM React Package]]                                                         | 2026-05-26 | CLIM interaction modes as discriminated union, semantic intents driving visual rendering, Tailwind npm packaging             |
+| [[ARTICLE - Typography Debug Palette - Design System, Live Overrides, and Modular Scale]]                    | 2026-05-28 | CSS token validation from design-language IR, debug palette for live overrides                                               |
 
 ## Working rules
 

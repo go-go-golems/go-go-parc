@@ -144,3 +144,5 @@ The frontend is tempting because it is where the product is visible. But if Reac
 - [[PROJ - Codebase Browser - Embedded Go+TS Doc Server with Live Source Snippets]] — one binary serving API, docs, source snippets, and React SPA.
 - [[PROJ - Codebase Browser - Static WASM Build and SQLite Prototype]] — static artifact and browser-side query evolution.
 - [[PROJ - Glazed Help Export and External Serve Sources - Technical Project Report]] — help export/import and serve modes over one structured help store.
+
+For making this Go+SPA pattern agent-readable (SSR sidecar, well-known agent files, Markdown mirrors, a14y audit), see [[Tribal/agent-readable-web-architecture]].

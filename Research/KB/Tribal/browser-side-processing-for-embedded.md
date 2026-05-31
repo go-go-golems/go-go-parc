@@ -94,4 +94,6 @@ Alternatives we considered:
 
 - **Protocol offload in Go/WASM** (Cardputer Web Serial, Go mode). Same as Raw JS, but the protocol engine is Go compiled to WebAssembly. The Go code receives raw text from the serial transport, buffers it, splits into lines, and builds outgoing commands. This proves the offload pattern works across implementation languages.
 
-- **Pure firmware** (SToMS3R console, Wi-Fi Audio Cues Lab). When no browser is connected, the firmware falls back to its own minimal path: esp_console commands for direct hardware control. This is the degenerate case of the pattern — all processing on the device, no browser involved.
+- **Pure firmware** (SToMS3R console, Wi-Fi Audio Cues). When no browser is connected, the firmware falls back to its own minimal path: esp_console commands for direct hardware control. This is the degenerate case of the pattern — all processing on the device, no browser involved.
+
+For the server-side counterpart — making Go-hosted React SPAs readable by AI agents (SSR sidecar, `defuddle`/Playwright scraping, a14y audit) — see [[Tribal/agent-readable-web-architecture]].
