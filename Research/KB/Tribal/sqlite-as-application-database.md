@@ -20,6 +20,8 @@ created: 2026-05-11
 
 SQLite is our default persistence layer for Go services that serve a single user or a small team. The database is a single file on disk. There is no server process, no connection string, no network. The Go binary opens the file, creates the schema if it doesn't exist, and closes it on shutdown. State survives restarts with zero operational effort.
 
+The RAG Evaluation System extends this pattern with a **two-database architecture**: a corpus database for domain data (documents, chunks, embeddings) and an engine database for workflow orchestration state. See [[On-Ramp/rag-evaluation-pipeline-architecture]].
+
 ```go
 // Open SQLite with WAL mode for concurrent reads
 db, err := sql.Open("sqlite", "file:data/broker.db?_journal_mode=WAL&_busy_timeout=5000")

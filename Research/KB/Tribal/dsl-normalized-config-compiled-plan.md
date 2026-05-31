@@ -88,3 +88,5 @@ Alternatives we considered:
 - **GStreamer execution** (Almanach Studio). The same three-stage pipeline, but the compiled plan produces a GStreamer pipeline description instead of ffmpeg command lines. The DSL and normalizer are structurally the same; only the compilation target changes.
 
 - **Glazed command compilation** (go-go-goja jsverbs). The jsverbs scanner performs a similar pipeline: scan JS source for metadata (DSL) → validate and normalize into Go structures (normalized config) → compile into Glazed command definitions (compiled plan). The execution engine is Cobra+Glazed instead of ffmpeg/GStreamer. See [[Tribal/goja-embedding-in-go]] for the jsverbs variation.
+
+- **Design system compilation** (DMETA). The DMETA compiler extends the three-stage pipeline to four layers: `Semantic IR → Interaction IR → Web MetaDesignSystem → React target`. Each layer has its own types, validation, and lowering pass. The Factory freezes module policy like a compiled plan, and each lowering pass is a compilation step. See [[Tribal/dmeta-design-system-compiler-pipeline]] for the full architecture.
