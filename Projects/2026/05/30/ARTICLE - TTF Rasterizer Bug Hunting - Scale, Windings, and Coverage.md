@@ -439,7 +439,27 @@ Even though the AEL provides minimal speedup on Latin fonts today, it provides t
 
 The AEL also makes the rasterizer's complexity explicit: O(active × height × aa_level) instead of the implicit O(cursor_range × height × aa_level) of the original. This is a better foundation for reasoning about performance.
 
-## Near-term next steps
+## Dropout control — thin strokes that vanish
+
+At small pixel sizes, the two edges of a thin diagonal stroke converge into the same pixel. Both crossings have opposite winding and are closer than the near-coincident merge threshold (0.125 pixels), so the merge cancels them and the pixel gets zero coverage. The pixel is inside the glyph (winding ≠ 0) but invisible. This is TTF "dropout" — thin stems and diagonal strokes that simply disappear.
+
+Dropout rates measured on Go-Regular at 12px:
+
+| Glyph | Sub-rows with dropout | Rate |
+|-------|----------------------|------|
+| V | 16/72 | 22.2% |
+| t | 12/72 | 16.7% |
+| A | 8/72 | 11.1% |
+| e | 3/72 | 4.2% |
+| I, r | 0 | 0% |
+
+The I and r stems are wide enough (3–4 pixels) that their left and right edges never fall in the same pixel. Diagonal strokes (V, A) are thinner at the tip and always produce dropout at small sizes.
+
+Dropout control was implemented in the near-coincident merge step: when opposite-winding crossings within the same pixel are cancelled, minimum coverage is assigned (1/aa\_level of a full pixel per affected sub-row, approximately 32 gray levels at 8×AA). The `dropout_control` parameter defaults to `true` and can be disabled for pixel-exact output matching the original rasterizer.
+
+The practical impact of dropout control is small. At 20px, only 11 out of 22,327 "dropped" pixels (where stb\_truetype has coverage but we don't) were fixed. The vast majority of dropped pixels are AA-edge variations — stb assigns partial coverage at a stroke boundary while we assign 0 due to different subpixel rounding — not true dropout. Dropout control is most valuable for aliased (1×AA) rendering, where a missing pixel produces a completely broken stem rather than a slightly dim one.
+
+The right long-term approach for small-size quality is decoupled coordinate/coverage precision (28.8 for coordinates), not dropout control. Higher-precision coordinates position crossings more accurately, reducing the number that fall within the same pixel in the first place.
 
 - Incremental x-interpolation with per-edge `y_last` tracking for O(1) per-edge per-sub-row cost.
 - Batch opcodes (LINE_N_I8, QUAD_N_I8) for repeated operations, reducing bytecode size by ~15–20%.
