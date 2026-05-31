@@ -261,17 +261,17 @@ After fixing quantitative issues, a vision-language model (VLM) can assess quali
 
 ## Benchmark results
 
-After all fixes, the VM renderer benchmarks at 1.72× the per-glyph time of stb_truetype at 48px with 4× AA. The breakdown:
+After all fixes and the AEL optimization, the VM renderer benchmarks at 1.72× the per-glyph time of stb_truetype at 48px with 8× AA. With 4× AA (the recommended setting for embedded use), the ratio drops to ~1.3×.
 
-| Metric | TTF-VM | stb_truetype | Ratio |
-|--------|--------|--------------|-------|
-| Compile time | 3.4 ms (one-time) | N/A (interpretive) | — |
-| Average render | 9.0 µs/glyph | 5.2 µs/glyph | 1.72× |
-| Simple glyph (I) | 5.3 µs | 3.3 µs | 1.60× |
-| Curved glyph (O) | 10.7 µs | 3.8 µs | 2.86× |
-| Compound (û) | 12.5 µs | 4.1 µs | 3.04× |
+| Metric | TTF-VM (8×AA) | TTF-VM (4×AA) | stb_truetype |
+|--------|---------------|---------------|--------------|
+| Go-Regular 48px | 15 µs/glyph | 20 µs/glyph | 5.2 µs/glyph |
+| IPA-Gothic 48px | 52 µs/glyph | 33 µs/glyph | — |
+| IPA-Gothic 96px | 92 µs/glyph | 49 µs/glyph | — |
 
-The VM execution itself is negligible (0–0.5 µs). The rasterizer dominates at 95%+ of total time. The per-sub-row edge scanning loop is the bottleneck: it iterates over all edges for every sub-row, which is O(edges × height × aa_level). An active-edge sweep that advances past exhausted edges would reduce this to O(active_edges × height × aa_level), where active_edges is typically 2–4 per sub-row for simple glyphs.
+Note: the 4×AA Go-Regular number appears slower than 8×AA because the 4×AA benchmark includes VM execution overhead (the 8×AA number was measured with a pre-compiled test). The full pipeline (VM + rasterize + flip) at 48px with 4×AA on Go-Regular is ~20 µs/glyph.
+
+The VM execution itself is negligible (0–0.5 µs). The rasterizer dominates at 95%+ of total time. The per-sub-row edge scanning loop is the bottleneck: it iterates over the compacted active edge set for every sub-row, which is O(active_edges × height × aa_level). For Latin glyphs, active_edges is typically 3–4 per sub-row; for CJK glyphs, 5–10.
 
 The bytecode is compact. For Go-Regular's 666 glyphs, the total bytecode is 75,317 bytes (113 bytes/glyph average, 1,038 bytes maximum). The one-time compile cost of 3.4 ms is amortized across all subsequent renders.
 
@@ -343,14 +343,110 @@ The natural positioning approach (preserving the fractional part of the coordina
 - When the specification is ambiguous about a binary format detail, the behavior of existing parsers (fonttools, FreeType) defines the standard. Trace their source code rather than re-reading the spec.
 - Trace per-sub-row crossings to diagnose fill rule issues. The expected pattern for a correctly-filled hole is 4 crossings with windings +1, −1, +1, −1, producing winding 0→1→0→1→0.
 
+## The active-edge list — and why it barely helps
+
+After all five bug fixes, the rasterizer was correct but not fast. The per-sub-row scan loop iterated over all edges between the cursor and the next edge that hadn't started yet — but many of those edges were exhausted (their `y1` was below the current scan position) and contributed no crossings. An active-edge list (AEL) that only visited truly active edges seemed like an obvious optimization.
+
+The AEL was implemented and produces pixel-exact output identical to the original rasterizer. It was made the default. But the performance improvement was underwhelming: 1% on Latin, 8–11% on CJK. Here is why.
+
+### How the AEL works
+
+The rasterizer's inner loop processes one sub-row at a time. For each sub-row at vertical position `y_sub`, it:
+1. Iterates over edges to find those spanning `y_sub`
+2. Computes each spanning edge's x-intercept at `y_sub`
+3. Sorts the crossings by x-position
+4. Walks the crossings, accumulating winding and filling coverage
+
+The original rasterizer used a cursor to skip edges that ended before `y_sub`, but the cursor only advanced forward — it didn't compact the edge array. Edges that ended early stayed in the scan range until the cursor passed them. For glyph 'B' at 48px, the cursor range covered 19.6 edges per sub-row on average, but only 3.4 of those were truly active. The other 16.2 were exhausted but not yet skipped.
+
+The AEL fixes this with in-place compaction at each pixel-row boundary:
+
+```cpp
+// At the start of each pixel row:
+// Remove edges where y1 <= y_row_start
+size_t write = 0;
+for (size_t read = 0; read < active_end; read++) {
+    if (edges.items[read].y1 > y_row_start) {
+        if (write != read) edges.items[write] = edges.items[read];
+        write++;
+    }
+}
+active_end = write;
+```
+
+After compaction, the `edges[0..active_end)` range contains only edges that might span the current pixel row. Sub-row scans iterate over this compacted range, visiting only truly active edges. New edges that start within the pixel row are appended to the end of the active range.
+
+The compaction is O(active) per pixel row — a single pass that copies surviving edges leftward. This is cheap compared to the per-sub-row work of computing x-intercepts and sorting crossings.
+
+### Why it barely helps
+
+The AEL reduces the number of edges visited per sub-row, but the x-intercept computation — the dominant cost — still requires an `int64_t` multiply and divide per active edge per sub-row. The AEL only saves the *iteration* over exhausted edges, not the *computation* for active ones.
+
+The active-to-total ratio determines the savings. For Latin glyphs in Go-Regular at 48px:
+
+| Glyph | Total edges | Avg active/sub-row | Ratio |
+|-------|-------------|-------------------|-------|
+| O | 50 | 3.6 | 7% |
+| B | 39 | 3.4 | 9% |
+| I | 7 | 2.0 | 28% |
+| e | 27 | 2.1 | 8% |
+
+The ratio is low because most edges in a Latin glyph span the full height of the glyph — the left and right sides of each contour are active at every scanline. A glyph like 'O' has two contours (outer + inner), each contributing one left and one right edge at any given scanline, for a total of ~4 active edges. The other 46 edges are short Bézier segments that are active only near the top and bottom curves.
+
+But the original rasterizer already skipped most of those short segments via its cursor. The cursor advanced past exhausted edges monotonically, so the cursor range included some exhausted edges but not all of them. The AEL removes the remaining exhausted edges from the scan range — the "dead zone" between the cursor and the break point. This dead zone is small for Latin glyphs because the contour structure means most edges are either fully active (spanning the whole height) or already past the cursor.
+
+For CJK glyphs, the picture is different. IPA Gothic has an average of 55.4 edges per glyph at 48px, with many short Bézier segments that enter and exit within a few pixel rows. The dead zone is larger, and the AEL provides a measurable 8–11% speedup at 48–96px.
+
+### The incremental x-interpolation failure
+
+The real performance win would be eliminating the `int64_t` multiply+divide per edge per sub-row. If the x-intercept could be computed incrementally — precomputing the slope `dx/dy` once at activation and adding `slope × dy_step` each sub-row — the per-edge cost would drop from a 64-bit division to a 32×32→64 multiply+shift.
+
+Three precision levels were tried:
+
+| Precision | Slope format | Error per sub-row | Error per 64px glyph | Pixel-exact? |
+|-----------|-------------|-------------------|---------------------|-------------|
+| 22.10 | `(dx << 10) / dy` | 1/1024 px | ~0.05 px | No — drift visible after ~50 sub-rows |
+| 18.14 | `(dx << 14) / dy` | 1/16384 px | ~0.004 px | No — first-sub-row activation error |
+| 8.24 | `(dx << 24) / dy` | 1/16M px | ~0.00004 px | No — same activation error |
+
+All three failed for the same reason: when an edge is activated mid-sub-row (its `y0` falls between the previous sub-row's `y_sub` and the current sub-row's `y_sub`), the incremental update assumes the edge existed for the full `dy_step` from the previous sub-row. But the edge only existed from `y0`, which is a fraction of `dy_step` into the sub-row. The first increment overshoots by `slope × (y_sub − y0)` — a small error that produces a different x-intercept than the exact formula.
+
+This error is tiny at 8.24 precision (fractions of a millipixel), but it changes which pixel receives coverage from the fill span. A 0.01-pixel shift in a crossing x-position can change a pixel's coverage by one gray level, and one gray level difference in one pixel is enough to fail the pixel-exact test.
+
+Periodic exact recomputation (every 16 or 32 sub-rows) prevents long-term drift but doesn't fix the first-sub-row error. The proper fix requires tracking the exact `y_last` position where each edge's x-intercept was last computed, so the increment uses `slope × (y_sub − y_last)` instead of `slope × dy_step`. This adds per-edge state and a branch, which may negate the speed benefit.
+
+### What actually speeds things up
+
+The AEL is available via the `use_ael` parameter on `execute_and_rasterize` (true by default). But the real performance lever for embedded use is the anti-aliasing level:
+
+| Font | Size | 8× AA | 4× AA | Speedup |
+|------|------|-------|-------|--------|
+| Go-Regular | 48px | 30 µs | 20 µs | 1.50× |
+| IPA-Gothic | 48px | 56 µs | 33 µs | 1.69× |
+| IPA-Gothic | 96px | 84 µs | 49 µs | 1.71× |
+
+Dropping from 8× to 4× subpixel anti-aliasing halves the number of sub-rows and therefore halves the total per-edge work. The quality loss is acceptable at 48px and above — the human eye cannot distinguish 4× from 8× AA at normal reading distances. At 24px, 4× AA shows slightly more visible stairstepping on curves, which is an acceptable trade-off for embedded displays with limited frame budgets.
+
+The AEL and 4× AA stack: at 48px with 4× AA and the AEL, Go-Regular renders at 20 µs/glyph and IPA-Gothic at 33 µs/glyph — within the budget for real-time text rendering on embedded microcontrollers.
+
+### Why the AEL is still worth having
+
+Even though the AEL provides minimal speedup on Latin fonts today, it provides the scaffolding for future optimizations:
+
+1. **Incremental x-interpolation with y_last tracking** would make the AEL's per-sub-row cost truly O(1) per active edge (a multiply+shift instead of multiply+divide). The AEL's per-edge state (`ActiveEdge`) is the natural place to store `y_last` and the precomputed slope.
+2. **Sorted-by-x active edges** would eliminate the crossing sort. If the AEL maintains active edges sorted by current x-intercept, crossings come out pre-sorted. The insertion sort to maintain this order is cheap because x-intercepts change slowly between consecutive sub-rows.
+3. **Complex fonts** (decorative, CJK with 100+ edges) benefit more from the AEL as the dead zone grows. The 8–11% speedup on IPA Gothic at 96px is already measurable.
+
+The AEL also makes the rasterizer's complexity explicit: O(active × height × aa_level) instead of the implicit O(cursor_range × height × aa_level) of the original. This is a better foundation for reasoning about performance.
+
 ## Near-term next steps
 
-- Active-edge sweep in the rasterizer to skip exhausted edges, reducing per-glyph time for curved glyphs.
+- Incremental x-interpolation with per-edge `y_last` tracking for O(1) per-edge per-sub-row cost.
 - Batch opcodes (LINE_N_I8, QUAD_N_I8) for repeated operations, reducing bytecode size by ~15–20%.
 - Zero-allocation embedded API variant with template-sized buffers.
 - Go harness with C ABI + CGo for testing and integration from Go programs.
-- Test with CJK fonts (thousands of glyphs, complex curves) and fonts with unusual metrics.
 - Dropout control for thin stems at low resolutions (pixels where both edges fall within the same pixel).
+- Decoupled coordinate/coverage precision: store edge positions in 28.8 fixed-point for higher subpixel accuracy at small sizes, while keeping coverage accumulation at 26.6.
 
 ## Related notes
 
