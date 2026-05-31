@@ -232,7 +232,7 @@ The enrichment join is worth examining in detail. The original chunk query joine
 
 ## API endpoint inventory
 
-The UI consumes 17 API endpoints, organized by concern.
+The UI consumes 19 API endpoints, organized by concern.
 
 | Endpoint | Method | Database | Purpose |
 |---|---|---|---|
@@ -248,6 +248,8 @@ The UI consumes 17 API endpoints, organized by concern.
 | `/api/v1/corpus/documents` | GET | Corpus | Document list for a source |
 | `/api/v1/corpus/documents/{id}` | GET | Corpus | Document detail with chunks and enrichment status |
 | `/api/v1/chunking-strategies` | GET | Corpus | Available chunking strategies |
+| `/api/v1/artifacts/document-processing/identities` | GET | Corpus | Distinct preprocessing identity tuples |
+| `/api/v1/artifacts/chunk-enrichment/identities` | GET | Corpus | Distinct enrichment identity tuples |
 | `/api/v1/artifacts/document-processing/coverage` | GET | Corpus | Per-source preprocessing artifact counts |
 | `/api/v1/documents/{id}/processing-artifacts` | GET | Corpus | Artifacts for one document |
 | `/api/v1/artifacts/chunk-enrichment/coverage` | GET | Corpus | Per-source chunk enrichment counts |
@@ -295,9 +297,18 @@ Three design options exist for solving this:
 
 Option 3 is the recommended approach. It isolates the artifact identity concern from the embedding identity concern and avoids crowding the IdentityBar with fields that only affect the SourcePanel's secondary coverage lines.
 
+This option has been implemented. The `DocProcessingIdentityBar` component renders a compact row of buttons below the embedding IdentityBar. Each button represents a distinct preprocessing identity `(artifact_type, prompt_version, provider, model)` from the `document_processing_artifacts` table, showing the identity tuple and artifact count. Clicking a button changes the preprocessing coverage query parameters, and the SourcePanel re-renders with coverage data for the selected identity.
+
+The implementation adds two backend endpoints:
+
+- `GET /api/v1/artifacts/document-processing/identities` returns `[{artifact_type, prompt_version, provider, model, artifact_count}]`
+- `GET /api/v1/artifacts/chunk-enrichment/identities` returns `[{strategy_id, prompt_version, provider, model, enriched_count}]`
+
+When the identities endpoint returns data, the `CorpusExplorerView` auto-selects the first real identity if the current selection is the default fake provider. This replaces the previously hardcoded `fake/fake-document-processor/v1/clean_text` identity with the actual provider identity from the database (e.g., `openai-responses/gpt-5-nano/phase5-gpt-5-nano-low-v1/live_smoke_clean_text`).
+
 ## RTK Query data flow
 
-All API communication flows through a single RTK Query API slice defined in `web/src/services/api.ts`. The slice defines 17 endpoints with three tag types: `Sources`, `Workflows`, and `Artifacts`. Polling is configured per-endpoint using `pollingInterval`:
+All API communication flows through a single RTK Query API slice defined in `web/src/services/api.ts`. The slice defines 19 endpoints with three tag types: `Sources`, `Workflows`, and `Artifacts`. Polling is configured per-endpoint using `pollingInterval`:
 
 - Workflow list and detail: 2 seconds
 - Queue health: 5 seconds
@@ -374,13 +385,13 @@ The status colors use foreground-only classes (`status-done`, `status-running`, 
 
 **Enrichment join ambiguity.** The `LEFT JOIN chunk_enrichments` in the DocumentDetail query may return an arbitrary row when multiple enrichments exist for the same chunk with different prompt versions. The current query does not specify which enrichment to prefer. A production implementation should add a subquery that selects the latest or highest-quality enrichment per chunk.
 
-**Hardcoded preprocessing identity.** The SourcePanel fetches preprocessing coverage with fixed query parameters (`fake/fake-document-processor/v1`). This does not reflect the actual provider identity used by production workflows. The ArtifactCoveragePanel design described in the identity problem section would solve this.
+**Hardcoded preprocessing identity.** ✅ Resolved. The `DocProcessingIdentityBar` component now fetches distinct identities from the `document_processing_artifacts` table and lets the user select which identity to display coverage for. The auto-select replaces the hardcoded fake provider with the first real identity when available.
 
 **Polling instead of SSE.** All workflow data updates via polling (2s or 5s intervals). This creates unnecessary HTTP traffic when nothing changes and introduces a latency window before updates appear. Server-Sent Events would push status changes as they happen and eliminate the polling-induced re-render cycles that caused the React #310 crash during development.
 
 **No per-group drill-down.** The ops groups table shows one sample op per group. There is no way to list all failed chunk ops or all running preprocess ops with pagination. A future endpoint `GET /api/v1/workflows/{id}/ops?operation=chunk_document&status=failed&limit=50&offset=0` would support this.
 
-**No op result detail.** The endpoint `GET /api/v1/workflows/{id}/results/{opId}` exists as a route registration but the handler returns a stub. There is no way to see what a succeeded op produced (e.g., which chunk IDs were created by a `chunk_document` op, or which embedding batch was written by `compute_embeddings`).
+**No op result detail.** The endpoint `GET /api/v1/workflows/{id}/results/{opId}` now returns the full `OpResult` from the engine store. The frontend `OpResultSection` component renders the result when an inspected op has `succeeded` or `failed` status. The result section shows: the `Data` JSON object, a table of `Records` written (table name + primary key), a list of `Artifacts` produced (name, kind, content type), `Emitted` child op IDs (capped at 20 with overflow indicator), and any `Error` from the result. The result is lazy-loaded only when the inspector opens for a completed op.
 
 ## Implementation sequence
 
@@ -417,7 +428,7 @@ The key implementation insight: RAGEVAL-007 built the Workflows view first, then
 | `web/src/components/workflows/WorkflowsView.tsx` | All workflow UI sub-components |
 | `web/src/components/corpus/CorpusExplorerView.tsx` | Corpus Explorer with preprocessing coverage integration |
 | `web/src/components/corpus/DocumentInspector.tsx` | Document detail with Artifacts tab and Enrich column |
-| `web/src/components/corpus/SourcePanel.tsx` | Source list with preprocessing coverage display |
+| `web/src/components/corpus/ArtifactIdentityBar.tsx` | Artifact identity selector (DocProcessingIdentityBar, ChunkEnrichmentIdentityBar) |
 | `web/src/index.css` | Retro Mac design system CSS |
 
 ## Working rules
