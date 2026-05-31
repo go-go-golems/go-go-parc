@@ -55,13 +55,13 @@ The extension has three layers, each with a single responsibility:
 
 ```mermaid
 flowchart TD
-    A["/rv command<br>or /px action"] --> B["openPicker()"]
-    B --> C["getResponsesFromSession(ctx)"]
-    C --> D["ctx.sessionManager.getBranch()"]
+    A["/rv command<br>or /px action"] --> B["openPicker"]
+    B --> C["getResponsesFromSession ctx "]
+    C --> D["ctx.sessionManager.getBranch"]
     D --> E["SessionEntry[]"]
-    E -->|filter assistant| F["CapturedResponse[]"]
+    E -->|filter assistant| F["CapturedResponse "]
     F -->|reverse| G["ResponsePicker<br>TUI overlay"]
-    G -->|user selects| H["saveToTempFile()"]
+    G -->|user selects| H["saveToTempFile"]
     H --> I["/tmp/pi-response-viewer/last-response.md"]
     I --> J["pi.exec('md-view', ['view', path])"]
 

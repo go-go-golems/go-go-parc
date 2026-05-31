@@ -13,30 +13,15 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Research/Institute/Technical Reports/2026/05/19/PLAYBOOK - Collaborative Schema Design Sessions for Presentation-Based UI.md",
+                "file": "Projects/2026/05/30/ARTICLE - TTF Rasterizer Bug Hunting - Scale, Windings, and Coverage.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "PLAYBOOK - Collaborative Schema Design Sessions for Presentation-Based UI"
-            }
-          },
-          {
-            "id": "9b686ea785dbfa89",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Projects/2026/05/28/ARTICLE - RAG Evaluation System - Building a Database-Backed TTC Corpus Pipeline.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "ARTICLE - RAG Evaluation System - Building a Database-Backed TTC Corpus Pipeline"
+              "title": "ARTICLE - TTF Rasterizer Bug Hunting - Scale, Windings, and Coverage"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -68,7 +53,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "CLIM",
+                "query": "",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": true,
@@ -196,53 +181,53 @@
       "bases:Create new base": false
     }
   },
-  "active": "9b686ea785dbfa89",
+  "active": "8a5603d396f88269",
   "lastOpenFiles": [
-    "Projects/2026/05/28/ARTICLE - RAG Evaluation System - Corpus Explorer and Pipeline Visualization Website.md",
-    "Projects/2026/05/28/assets/rag-eval-05-embeddings.png",
-    "Projects/2026/05/28/assets/rag-eval-04-coverage.png",
-    "Projects/2026/05/28/assets/rag-eval-03-chunks.png",
-    "Projects/2026/05/28/assets/rag-eval-02-documents.png",
-    "Projects/2026/05/28/assets/rag-eval-01-corpus-overview.png",
+    "Projects/2026/05/30/ARTICLE - AT Protocol Identity Systems - Architecture, Implementation, and the Foundations Underneath.md",
+    "Projects/2026/05/30/ARTICLE - ATProto Client - Building a Decentralized Social Web Application with Go and React.md",
+    "Projects/2026/05/30/ARTICLE - Building a Daily Almanach from Git Commits and PRs.md",
+    "Research/2026/05/30/IBM System38 Single-Level Store and Persistence Architecture.md",
+    "Projects/2026/05/30/ARTICLE - TTF Rasterizer Bug Hunting - Scale, Windings, and Coverage.md",
+    "Research/2026/05/30/Newton Object Soup - Full Research Report.md",
+    "Research/2026/05/30/ARTICLE - Newton Object Soup - The Paradigm That Eliminated the Filesystem.md",
+    "Research/Institute/Technical Reports/2026/05/19/PLAYBOOK - Collaborative Schema Design Sessions for Presentation-Based UI.md",
+    "Projects/2026/05/30/Newton Object Soup - Full Research Report.md",
+    "Research/2026/05/30",
+    "Research/2026/05",
+    "Research/2026",
+    "Projects/2026/05/30/ARTICLE - Newton Object Soup - The Paradigm That Eliminated the Filesystem.md",
+    "Projects/2026/05/29/ARTICLE - RAG Evaluation System - Intake Pipeline Deep Dive.md",
+    "Projects/2026/05/30/ARTICLE - AT Protocol DID Explorer - Deep Dive Technical Report.md",
+    "Projects/2026/05/30",
+    "Projects/2026/05/29/ARTICLE - RAG Evaluation - Workflow Intake UI Architecture and Data Exploration.md",
+    "Projects/2026/05/29/ARTICLE - Chatbot Overlay Framework - TypeScript and Frontend Tool Calling Deep Dive.md",
+    "Projects/2026/05/29/ARTICLE - Chat Overlay API - Two Proposals for a Typed Widget Streaming Architecture.md",
+    "Projects/2026/05/29/ARTICLE - Chat Overlay API - Sessionstream Widget Runtime Deep Dive.md",
+    "Projects/2026/05/29/ARTICLE - Playbook - Debugging and Fixing Pi Provider Replay Bugs.md",
+    "Projects/2026/05/29/PROJ - Pi Extensions - Response Viewer Metadata Report.md",
+    "Projects/2026/05/29/ARTICLE - TTF Glyph-Outline VM Renderer - Architecture and Implementation.md",
+    "Projects/2026/05/29/images/U0038_raw.png",
+    "Projects/2026/05/29/images/U0041_raw.png",
+    "Projects/2026/05/29/images/U0049_raw.png",
+    "Projects/2026/05/29/images/U004F_raw.png",
+    "Projects/2026/05/29/images/glyph_0065.png",
+    "Projects/2026/05/29/images/compare_0065.png",
+    "Projects/2026/05/29/images/glyph_006C.png",
+    "Projects/2026/05/29/images/compare_006C.png",
+    "Projects/2026/05/29/images/glyph_004D.png",
+    "Projects/2026/05/29/images/compare_004D.png",
+    "Projects/2026/05/29/images",
+    "Projects/2026/05/29/PROJ - Pi Core - Umans GLM DeepSeek Reasoning Fix Report.md",
+    "Projects/2026/05/29/PROJ - Pi Extensions - Umans GLM Compaction Fix Report.md",
+    "Projects/2026/05/24/ARTICLE - Docsctl and Docs-Yolo Documentation Deployment.md",
+    "Projects/2026/05/21/ARTICLE - Response Viewer - A Pi Extension for Browsing and Opening Assistant Responses in a Markdown Viewer.md",
     "Projects/2026/05/28/ARTICLE - M5Dial Proper 3D Renderer - Building a Z-Buffered Planet and Terrain on ESP32-S3.md",
-    "Projects/2026/05/28/ARTICLE - RAG Evaluation System - Building a Database-Backed TTC Corpus Pipeline.md",
-    "Projects/2026/05/28/assets/m5dial-proper-3d-renderer/almanach-renderer-math.png",
-    "Projects/2026/05/28/assets/m5dial-proper-3d-renderer/terrain-combo-montage.png",
-    "Projects/2026/05/28/assets/m5dial-proper-3d-renderer/terrain-sweep-montage.png",
-    "Projects/2026/05/28/assets/m5dial-proper-3d-renderer/device-terrain-tuned.png",
-    "Projects/2026/05/28/assets/m5dial-proper-3d-renderer/device-terrain-first.png",
+    "Projects/2026/05/29",
+    "Projects/2026/05/28/ARTICLE - TTC DMETA Visual Parity - Preserving IR and Codegen While Matching the Original Design.md",
+    "Projects/2026/05/28/ARTICLE - Pi Agent Command Palette Extension Architecture - Shared Registry and Keyboard-Driven Actions.md",
     "Projects/2026/05/28/assets/m5dial-proper-3d-renderer",
     "Projects/2026/05/28/assets",
-    "Projects/2026/05/28/PROJ - md-view - Markdown Viewer Daemon.md",
-    "Projects/2026/05/28/ARTICLE - INFRA-004 Release Train Machinery - Dashboard, PR Workflow, and Rollout Control.md",
-    "Projects/2026/05/28/ARTICLE - Typography Debug Palette - Design System, Live Overrides, and Modular Scale.md",
-    "Projects/2026/05/28/ARTICLE - Pi Agent Modals and Terminal Shortcuts - Debugging Overlay Shortcut Behavior.md",
-    "Projects/2026/05/28/ARTICLE - Pi Agent Command Palette Extension Architecture - Shared Registry and Keyboard-Driven Actions.md",
-    "Projects/2026/05/27/ARTICLE - ggg Rollout Automation - Real-World Testing and Implementation.md",
     "Projects/2026/05/28",
-    "Projects/2026/05/27/ARTICLE - TTC DMETA React Workflow - Semantic IR to Storybook Garden Assistant.md",
-    "Projects/2026/05/27/ARTICLE - M5Dial Dithered 3D Scene Viewer - Software Rendering on ESP32-S3.md",
-    "Projects/2026/05/26/ARTICLE - Structured Book OCR - Target Page Contracts Workflow Runtime and Production Hardening.md",
-    "Projects/2026/05/27/ARTICLE - WiFi Throughput Benchmark on ESP32-P4 with ESP-Hosted - Measured Results and Bottleneck Analysis.md",
-    "Projects/2026/05/27/ARTICLE - ESP32 WiFi Architecture Comparison - ESP-Hosted vs Native WiFi Measured HTTP Throughput.md",
-    "Projects/2026/05/27/ARTICLE - RAG Evaluation System - Workflow-Driven Retrieval Evaluation.md",
-    "Projects/2026/05/27/ARTICLE - ESP32-P4 MIPI DSI Image Blitter - Browser-to-Display Pipeline on the M5Stack Tab5.md",
-    "Projects/2026/05/27/ARTICLE - RAG Evaluation System - Workflow-Driven Retrieval Evaluation Lab.md",
-    "Projects/2026/05/27/ARTICLE - Optimizing WiFi Image Upload on ESP32-P4 - From 6 Seconds to Sub-Second.md",
-    "Projects/2026/05/27/ARTICLE - Go AST Analysis - From JavaScript Bindings to Web Source Browser.md",
-    "Projects/2026/05/27/ARTICLE - Go AST Analysis - xgoja Bindings and Codebase Navigation.md",
-    "Projects/2026/05/27/ARTICLE - Pi Command Palette - Keyboard-Driven Hierarchical Action Menu.md",
-    "Projects/2026/05/27/ARTICLE - ggg - Codex-Aware Release Tooling for Go-Go-Golems.md",
-    "Projects/2026/05/27/ARTICLE - Playbook - Building go-go-goja xgoja Provider Packages.md",
-    "Projects/2026/05/27/ARTICLE - Pretext Print Layout - Building a Swiss Typography Rendering System for Dense Programming Reports.md",
-    "Projects/2026/05/26/ARTICLE - Managing Go-Go-Golems Release Trains.md",
-    "Projects/2026/05/27/ARTICLE - NPM Publishing for Go Go Golems Packages with Vault OIDC.md",
-    "Projects/2026/05/27",
-    "Projects/2026/05/26/ARTICLE - Vault OIDC for CI",
-    "Projects/2026/05/26",
-    "Research/Institute/Research/2026/04/16/philosophical-foundations-of-mathematics/sources/web/sedE9RtSC",
-    "Projects/2026/05/25",
-    "Projects/2026/05/24",
-    "Projects/2026/05/23/assets/dmeta-semantic-inheritance"
+    "Projects/2026/05/27"
   ]
 }
