@@ -87,6 +87,12 @@ The guard clause handles fonts with unusual metrics. After this change, the pixe
 
 This bug is silent in isolation — there is no visual cue that glyphs are 15% oversized. Only comparison against a reference renderer at the same declared pixel size reveals it. The lesson: when the spec says "pixel height" or "pixel size," it means the visible line height (ascender to descender), not the em square. FreeType uses the same convention as stb_truetype.
 
+![Glyph O rendered with wrong scale (unitsPerEm) — 15% too large](images-ttf-rasterizer/bug1-scale-O.png)
+
+The image above shows glyph O rendered with the `unitsPerEm` divisor. Compare its size to the corrected rendering below.
+
+![Glyph O rendered with correct scale (font height)](images-ttf-rasterizer/fixed-O.png)
+
 ## Bug 2: Winding corruption from Y-flip and sort normalization
 
 ### The problem: holes fill with gray
@@ -127,7 +133,15 @@ The rasterizer's `sort_edges_by_y` function normalizes every edge so that `y0 �
 
 After normalization with negation, a downward edge (winding −1) becomes upward with winding +1. Every edge going upward now has winding +1, regardless of which contour it belongs to. The crossings become: +1, +1, +1, +1. Winding: 0→1→2→3→4. Everything is filled, including the hole.
 
+![Glyph O with winding corruption — hole completely filled](images-ttf-rasterizer/bug2-winding-O.png)
+
+The image above shows glyph O with negate-on-swap winding. The hole is completely filled because all four crossings have the same winding sign. The same defect appears in B and the slashed zero:
+
+![Glyph B with winding corruption — both counters filled](images-ttf-rasterizer/bug2-winding-B.png) ![Glyph zero with winding corruption — interior filled](images-ttf-rasterizer/bug2-winding-zero.png)
+
 The fix: do not negate winding on swap. In font-space rasterization, the winding from `emit()` already encodes the contour direction correctly. The sort normalization changes the edge's geometric direction but should not change its semantic direction. After this change, crossings are: +1, −1, +1, −1. Winding: 0→1→0→1→0. Holes are correctly unfilled.
+
+![Glyph O after winding fix — hole is clean white](images-ttf-rasterizer/fixed-O.png) ![Glyph B after winding fix — counters clean](images-ttf-rasterizer/fixed-B.png) ![Glyph zero after winding fix — interior clean](images-ttf-rasterizer/fixed-zero.png)
 
 ```mermaid
 flowchart TD
@@ -270,6 +284,16 @@ After all five bug fixes, the pixel diff against stb_truetype is 23.3% of total 
 3. **Bézier flattening precision**: Our adaptive subdivision threshold (1/8 pixel) produces slightly different line segment positions than stb_truetype's subdivision, leading to slightly different edge crossings near curve inflection points.
 
 These differences are inherent to the fixed-point, supersampled approach and represent a deliberate trade-off: deterministic, FPU-free rendering at the cost of slight AA variation from float-based renderers.
+
+![Side-by-side comparison: our renderer (left) vs stb_truetype (right) — glyph O](images-ttf-rasterizer/compare-O.png)
+
+![Side-by-side comparison — glyph I](images-ttf-rasterizer/compare-I.png)
+
+![Side-by-side comparison — glyph V](images-ttf-rasterizer/compare-V.png)
+
+![Side-by-side comparison — glyph B](images-ttf-rasterizer/compare-B.png)
+
+![Side-by-side comparison — glyph e](images-ttf-rasterizer/compare-e.png)
 
 ## Common failure modes
 
