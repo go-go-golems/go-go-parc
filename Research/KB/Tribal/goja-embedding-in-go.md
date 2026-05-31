@@ -103,3 +103,5 @@ Alternatives we considered and rejected:
 - **goja as embedded scripting** (Loupedeck pattern): The goja Runtime runs directly in the Go process. JS code calls Go functions synchronously. No serialization — Go and JS share memory within the same process.
 
 - **goja REPL with tool-call dispatch** (Pinocchio pattern): The goja Runtime exposes a REPL where JS code can call Go "tools" that perform side effects. Each tool call is logged and can be replayed.
+
+For the runtime ownership and context propagation model (RuntimeOwner, RuntimeServices, named contexts, async Promise settlement), see [[Tribal/goja-runtime-ownership-and-context-propagation]].

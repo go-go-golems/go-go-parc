@@ -169,3 +169,5 @@ This gives JavaScript-native scoping semantics (block scope per cell, but accumu
 - **Op-stream** (Capsule Lab). No owner thread needed — the host calls `dispatch()` synchronously and processes the op stream. No async, no goroutines. The simplest variation because it runs in a WASM sandbox with no I/O access.
 
 - **Scenario stages** (Scenario Runtime Workbench). The Go runtime owns lifecycle, session state, HTTP/WebSocket transport, and snapshots. JavaScript owns domain semantics through stage files (`observe`, `compare`, `plan`, `execute`). This is not a REPL/session persistence pattern, but it shares the same boundary discipline: Go owns runtime control; JavaScript owns behavior inside a narrow contract.
+
+For the runtime ownership and context propagation model (RuntimeOwner, RuntimeServices, named contexts, async Promise settlement), see [[Tribal/goja-runtime-ownership-and-context-propagation]].
