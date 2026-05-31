@@ -816,3 +816,5 @@ rg 'ChatText|ChatReasoning|ChatRun|ChatTool' /tmp/pin-chat-debug.jsonl
 10. Use tmux for real terminal lifecycle validation.
 
 A complex LLM TUI becomes maintainable when each boundary has one responsibility and one diagnostic artifact. The runtime emits canonical events. `chatapp` and plugins project them. `sessionstream` stores and orders them. Fanouts deliver them. Bubble Tea renders them. RPC and debug traces record them. When a bug appears, the first task is to identify which boundary failed, not to rewrite the whole path.
+
+For the web/browser version of this architecture — typed widget instances, headless overlay runtime, React rendering — see [[Tribal/typed-widget-instance-streaming-for-chat-overlays]].

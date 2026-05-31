@@ -173,3 +173,5 @@ The TUI showcase and Kanban demo prove that a product-shaped Pi extension is oft
 `compaction-title` is the model variation for high-risk hooks. Compaction preserves memory for future turns, so replacing it entirely would be dangerous. The extension calls Pi's built-in `compact()` helper and appends only a small title instruction. It parses `## Session Title`, stores the title with `pi.setSessionName()`, and returns the normal compaction result.
 
 For any high-risk Pi subsystem, prefer this shape: built-in behavior first, one narrow addition second.
+
+For a similar event-driven architecture in web chat overlays — typed widget instances, sessionstream as source of truth, frontend tool calling — see [[Tribal/typed-widget-instance-streaming-for-chat-overlays]].
