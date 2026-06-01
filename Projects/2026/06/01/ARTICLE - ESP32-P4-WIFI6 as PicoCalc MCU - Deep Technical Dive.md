@@ -26,7 +26,8 @@ This article documents a feasibility investigation and initial firmware bring-up
 > [!summary]
 > 1. The Waveshare ESP32-P4-WIFI6 can replace the Pico in the PicoCalc, but not as a drop-in — an adapter PCB is required to remap peripheral connections.
 > 2. The board exposes 25 GPIOs on two 2×20 headers, all available for the PicoCalc project; on-board peripherals (C6 SDIO, I²S codec, SDMMC, UART) consume only internal-trace GPIOs that never reach the headers.
-> 3. The specific board received carries ESP32-P4 revision v1.3 silicon, which is supported by ESP-IDF 5.3+. Phase 1 is now validated: the board boots ESP-IDF v5.4.2, detects 32 MB PSRAM at 200 MHz, reaches `app_main()`, and prints logs through the on-board CH343 USB-UART bridge on `/dev/ttyACM1`.
+> 3. The specific board received carries ESP32-P4 revision v1.3 silicon, which is supported by ESP-IDF 5.3+. Phase 1 is validated: the board boots ESP-IDF v5.4.2, detects 32 MB PSRAM at 200 MHz, reaches `app_main()`, and prints logs through the on-board CH343 USB-UART bridge on `/dev/ttyACM1`.
+> 4. The first networking experiment is also validated: `0098-esp32-p4-wifi6-webserver` brings up the onboard ESP32-C6 over ESP-Hosted SDIO, joins `yolobolo`, starts an `esp_console` REPL, and serves HTTP on the LAN at `http://192.168.0.88/` during the captured run.
 
 ## Why this note exists
 
@@ -433,6 +434,232 @@ The bootloader and application both report a 32 MB flash configuration, and the 
 
 For the next phases, keep the partition table below 16 MB until this warning is resolved. That still leaves enough room for LCD, keyboard, SD, and audio bring-up.
 
+## Networking experiment — ESP-Hosted webserver on the standalone board
+
+The next useful test did not require the PicoCalc to be connected. The Waveshare board already contains the part of the system that is hardest to emulate in software: an ESP32-C6 radio connected to the ESP32-P4 host over SDIO. Validating that path early answers a different question from the LCD or keyboard work. It asks whether the P4 can initialize the C6, run the ESP-Hosted transport, expose the usual `esp_wifi_*` APIs through `esp_wifi_remote`, join a real Wi-Fi network, and serve TCP traffic through lwIP.
+
+The result was a new firmware project:
+
+```text
+/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0098-esp32-p4-wifi6-webserver
+```
+
+This project is deliberately separate from `0097-esp32-p4-picocalc-bringup`. The `0097` firmware remains the minimal hardware sanity check. The `0098` firmware is the first networking application. It connects as a station using the default credentials requested during the session, starts an interactive UART console, and serves a small HTTP diagnostic site.
+
+### Why ESP-Hosted is required
+
+ESP32-P4 is a high-performance MCU, but it does not contain a native Wi-Fi radio. On the Waveshare ESP32-P4-WIFI6 board, Wi-Fi and BLE are provided by an onboard ESP32-C6 module. The P4 is the application host; the C6 is the radio/transport slave. The firmware therefore uses two managed Espressif components:
+
+```yaml
+dependencies:
+  idf: '>=5.4'
+  espressif/esp_hosted: 1.4.0
+  espressif/esp_wifi_remote: 0.8.5
+```
+
+`esp_hosted` handles the host/slave transport. `esp_wifi_remote` presents the familiar `esp_wifi_*` API to the application. That distinction is important: the source code looks like ordinary ESP-IDF Wi-Fi code, but the radio operations are being forwarded to the C6 across SDIO.
+
+### Waveshare-specific SDIO wiring
+
+The Tab5 examples in the workspace already use ESP-Hosted, but their transport configuration cannot be copied directly. The Waveshare board uses a different SDIO pinout and a different reset polarity. The runtime log confirmed the final configuration:
+
+```text
+I (2814) sdio_wrapper: SDIO master: Data-Lines: 4-bit Freq(KHz)[40000 KHz]
+I (2814) sdio_wrapper: GPIOs: CLK[18] CMD[19] D0[14] D1[15] D2[16] D3[17] Slave_Reset[54]
+```
+
+The corresponding board mapping is:
+
+| ESP32-P4 GPIO | ESP32-C6 / SDIO signal |
+|---|---|
+| GPIO18 | SDIO CLK |
+| GPIO19 | SDIO CMD |
+| GPIO14 | SDIO D0 |
+| GPIO15 | SDIO D1 |
+| GPIO16 | SDIO D2 |
+| GPIO17 | SDIO D3 |
+| GPIO54 | C6 reset / EN, active-high from P4 firmware view |
+
+The reset polarity is the non-obvious field. The Waveshare pinout source notes that P4 GPIO54 reaches the C6 EN path through board-level logic and must be treated as active-high from the P4 firmware point of view. Using the Tab5 active-low reset default is the kind of mistake that leads to SDIO command failures before application code has any useful network state.
+
+The project records that wiring in `sdkconfig.defaults`:
+
+```text
+CONFIG_ESP_HOSTED_SDIO_RESET_ACTIVE_HIGH=y
+# CONFIG_ESP_HOSTED_SDIO_RESET_ACTIVE_LOW is not set
+CONFIG_ESP_HOSTED_SDIO_GPIO_RESET_SLAVE=54
+CONFIG_ESP_HOSTED_SDIO_4_BIT_BUS=y
+CONFIG_ESP_HOSTED_SDIO_BUS_WIDTH=4
+CONFIG_ESP_HOSTED_SDIO_CLOCK_FREQ_KHZ=40000
+CONFIG_ESP_HOSTED_SDIO_PIN_CLK=18
+CONFIG_ESP_HOSTED_SDIO_PIN_CMD=19
+CONFIG_ESP_HOSTED_SDIO_PIN_D0=14
+CONFIG_ESP_HOSTED_SDIO_PIN_D1=15
+CONFIG_ESP_HOSTED_SDIO_PIN_D2=16
+CONFIG_ESP_HOSTED_SDIO_PIN_D3=17
+```
+
+### Application structure
+
+The webserver app has four responsibilities.
+
+First, it initializes NVS, `esp_netif`, the default event loop, and the `esp_wifi_remote` stack. The application calls `esp_wifi_init()`, `esp_wifi_set_mode(WIFI_MODE_STA)`, `esp_wifi_set_config()`, and `esp_wifi_start()` just as it would on a native Wi-Fi ESP32. The difference is in the linked components and Kconfig: those calls target the C6 radio through the remote Wi-Fi implementation.
+
+Second, it connects to the default network:
+
+```c
+#define DEFAULT_WIFI_SSID      "yolobolo"
+#define DEFAULT_WIFI_PASSWORD  "bring3248camera"
+```
+
+Third, it starts `esp_http_server` with three routes:
+
+| Route | Purpose |
+|---|---|
+| `GET /` | Small HTML status page with JavaScript that fetches `/status`. |
+| `GET /status` | JSON state: uptime, chip info, flash size, heap/PSRAM, Wi-Fi state, IP address. |
+| `GET /api/ping` | Minimal machine-readable liveness endpoint returning `{"ok":true,"message":"pong"}`. |
+
+Fourth, it starts an `esp_console` REPL over the CH343 UART backend. This gives the board an operator interface without adding a screen or keyboard yet. The implemented commands are intentionally small:
+
+```text
+help
+wifi status
+wifi scan
+wifi reconnect
+wifi set <ssid> [password]
+wifi reconnect
+```
+
+The console is a useful midpoint between hard-coded credentials and a full provisioning UI. It lets the operator inspect Wi-Fi state and change runtime credentials while keeping the firmware simple.
+
+### Build and flash result
+
+The firmware built successfully under ESP-IDF v5.4.2. The final binary size was far below the 3 MB app partition:
+
+```text
+0098-esp32-p4-wifi6-webserver.bin binary size 0xaced0 bytes.
+Smallest app partition is 0x300000 bytes. 0x253130 bytes (77%) free.
+```
+
+Flashing succeeded through the same CH343 UART bridge used for Phase 1:
+
+```text
+Chip is ESP32-P4 (revision v1.3)
+MAC: e8:f6:0a:e0:ec:9f
+Writing at 0x000ba6ad... (100 %)
+Hash of data verified.
+Leaving...
+Hard resetting via RTS pin...
+Done
+```
+
+### Runtime evidence
+
+The boot log shows the same validated P4 fundamentals as Phase 1: v1.3 silicon, ESP-IDF v5.4.2, 32 MB flash configuration, and 32 MB PSRAM at 200 MHz. It then shows ESP-Hosted starting and the C6 transport coming up:
+
+```text
+I (1512) host_init: ESP Hosted : Host chip_ip[18]
+I (1538) H_API: ESP-Hosted starting. Hosted_Tasks: prio:23, stack: 5120 RPC_task_stack: 5120
+I (1654) transport: Attempt connection with slave: retry[0]
+I (1654) transport: Reset slave using GPIO[54]
+I (2814) sdio_wrapper: SDIO master: Data-Lines: 4-bit Freq(KHz)[40000 KHz]
+I (2814) sdio_wrapper: GPIOs: CLK[18] CMD[19] D0[14] D1[15] D2[16] D3[17] Slave_Reset[54]
+I (2924) transport: Received INIT event from ESP32 peripheral
+I (2944) transport:     * WLAN
+I (2964) transport: Slave chip Id[12]
+```
+
+The application then starts the HTTP server and console:
+
+```text
+I (4004) p4_web: starting HTTP server on port 80
+Type 'help' to get the list of commands.
+p4web>
+I (5014) p4_web: console ready: try 'help' or 'wifi status'
+```
+
+Association took several attempts. The logs showed transient disconnect reasons `2` and `205` before the final successful association. This is not yet diagnosed, but the final result was good: the board connected to `yolobolo`, obtained a DHCP address, and printed the URLs.
+
+```text
+W (7764) p4_web: STA disconnected reason=2; retrying
+W (10184) p4_web: STA disconnected reason=205; retrying
+W (13614) p4_web: STA disconnected reason=2; retrying
+W (16034) p4_web: STA disconnected reason=205; retrying
+I (24674) p4_web: STA connected: ssid=yolobolo channel=1 authmode=3
+I (25694) esp_netif_handlers: sta ip: 192.168.0.88, mask: 255.255.255.0, gw: 192.168.0.1
+I (25694) p4_web: Browse:  http://192.168.0.88/
+I (25704) p4_web: Status:  http://192.168.0.88/status
+```
+
+HTTP validation from the host succeeded:
+
+```bash
+curl -sS --max-time 5 http://192.168.0.88/api/ping
+```
+
+```json
+{"ok":true,"message":"pong"}
+```
+
+The status endpoint returned full diagnostic state:
+
+```json
+{
+  "ok": true,
+  "project": "0098-esp32-p4-wifi6-webserver",
+  "uptime_ms": 40280,
+  "chip": {
+    "target": "esp32p4",
+    "revision": 103,
+    "cores": 2
+  },
+  "flash": {
+    "bytes": 33554432
+  },
+  "heap": {
+    "internal_free": 494799,
+    "psram_total": 33554432,
+    "psram_free": 33549744
+  },
+  "wifi": {
+    "mode": "sta",
+    "state": "got_ip",
+    "ssid": "yolobolo",
+    "ip": "192.168.0.88",
+    "retries": 0,
+    "last_disconnect_reason": -1
+  }
+}
+```
+
+This proves the full network path: P4 application code, ESP-Hosted SDIO transport, C6 radio, DHCP on the LAN, HTTP serving, and host-side reachability.
+
+### Build failures that shaped the implementation
+
+Two failures are worth preserving because they clarify ESP-IDF mechanics.
+
+The first CMake run failed because the project listed `esp_flash` as a component requirement. The source includes `esp_flash.h`, but the build-system component name is `spi_flash`:
+
+```text
+Failed to resolve component 'esp_flash' required by component 'main': unknown name.
+```
+
+The fix was to use `spi_flash` in `PRIV_REQUIRES`.
+
+The second compile attempt failed around `MACSTR`/`MAC2STR` while the app was still SoftAP-first. The final implementation moved to STA-first per the corrected requirement and uses the Wi-Fi event logs that matter for this phase: STA connect/disconnect, DHCP IP, and retry state. The lesson is not that AP mode is wrong, but that the first networking app should match the intended operator workflow: serial console plus STA on the normal LAN.
+
+### What this changes for the project
+
+Networking is now no longer an unknown. The ESP32-P4-WIFI6 board can use its onboard C6 through ESP-Hosted on the documented Waveshare pins, and a P4 application can serve HTTP on the LAN. This gives future PicoCalc firmware a viable control-plane path even before the PicoCalc screen and keyboard are ported.
+
+The next networking improvements are incremental rather than foundational:
+
+- Persist console-provided Wi-Fi credentials in NVS.
+- Add an endpoint for ESP-Hosted transport counters or C6 firmware identification if the API exposes it.
+- Run a longer HTTP stability test and record whether reasons `2` and `205` recur.
+- Add a simple benchmark endpoint or reuse the `0094` HTTP benchmark patterns.
+
 ## Open questions
 
 1. **Physical fit.** The Waveshare ESP32-P4-WIFI6 board is larger than a Pico. It may not fit inside the PicoCalc case. Measurement or a test fit is needed before the adapter PCB becomes meaningful.
@@ -443,17 +670,20 @@ For the next phases, keep the partition table below 16 MB until this warning is 
 
 4. **PicoCalc SD slot.** Is the user-accessible SD card slot important enough to consume 5 header GPIOs, or is the Waveshare's onboard MicroSD slot sufficient? The onboard SDMMC path is faster and easier; the PicoCalc slot preserves the original physical user experience.
 
-5. **Flash addressing above 16 MB.** ESP-IDF detected a 32 MB flash configuration but warned that access beyond 16 MB is not supported for the detected flash model yet. Future partition tables should stay below 16 MB until this is resolved or verified.
+5. **ESP-Hosted Wi-Fi retry behavior.** The webserver firmware eventually connected successfully, but the first run showed transient disconnect reasons `2` and `205` before association completed. A longer stability test should determine whether this is normal startup behavior or a configuration/timing issue.
 
-6. **Adapter board design.** A PCB that presents a Pico-compatible 2×20 header footprint while wiring signals to the Waveshare board's headers is needed. The design depends on the physical-fit, power, I²C, and SD-slot decisions above.
+6. **Flash addressing above 16 MB.** ESP-IDF detected a 32 MB flash configuration but warned that access beyond 16 MB is not supported for the detected flash model yet. Future partition tables should stay below 16 MB until this is resolved or verified.
+
+7. **Adapter board design.** A PCB that presents a Pico-compatible 2×20 header footprint while wiring signals to the Waveshare board's headers is needed. The design depends on the physical-fit, power, I²C, and SD-slot decisions above.
 
 ## Near-term next steps
 
-1. Clean up the firmware README and source comments so they state the correct console path: CH343 USB-UART bridge on ESP32-P4 UART0 GPIO37/GPIO38.
-2. Keep using `/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B61091051-if00` or `/dev/ttyACM1` as the Phase 1 console path, with `lsof` checks before every flash/probe session.
-3. Begin Phase 2: implement the SPI2 LCD driver on GPIO28–31 and verify the ST7365P/ILI9488 initialization sequence with colour-bar output.
-4. Measure PicoCalc VSYS voltage and current capacity.
-5. Check physical dimensions of the Waveshare board against the PicoCalc case interior.
+1. Extend `0098-esp32-p4-wifi6-webserver` with NVS-backed credential storage so `wifi set ...` can persist across reboots.
+2. Run a 10–30 minute HTTP stability test against `0098`, recording disconnect/reconnect behavior and whether reasons `2` or `205` recur.
+3. Keep using `/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B61091051-if00` or `/dev/ttyACM1` as the console path, with `lsof` checks before every flash/probe session.
+4. Begin the display-facing hardware phase when ready: implement the SPI2 LCD driver on GPIO28–31 and verify the ST7365P/ILI9488 initialization sequence with colour-bar output.
+5. Measure PicoCalc VSYS voltage and current capacity.
+6. Check physical dimensions of the Waveshare board against the PicoCalc case interior.
 
 ## Working rules
 
@@ -466,3 +696,5 @@ For the next phases, keep the partition table below 16 MB until this warning is 
 - The right-header GND between GPIO46 and GPIO47 is a real physical trap. Never use a multi-pin Dupont housing across that region.
 - Record the chip revision (v1.3) in all design decisions. Any ESP-IDF version or library that requires revision ≥ v3.0 will not work on this board without the "ignore maximum revision" eFuse burned.
 - Keep early partition layouts below 16 MB until the ESP-IDF flash warning about >16 MB access is resolved.
+- For ESP-Hosted networking on this Waveshare board, use SDIO CLK/CMD/D0-D3 GPIO18/19/14/15/16/17 and active-high C6 reset on GPIO54; do not copy Tab5 SDIO defaults.
+- Treat `esp_wifi_*` calls on ESP32-P4 as remote-radio calls when `esp_wifi_remote` is enabled: the application code looks native, but the radio work runs on the C6 over ESP-Hosted.
