@@ -22,6 +22,9 @@ sources:
 
 # NPM Publishing for Go Go Golems Packages with Vault OIDC
 
+> [!important]
+> This note is now historical. `go-go-os-frontend` and `react-chat` have moved to tokenless npm Trusted Publishing, and their npm publish workflows no longer read npm tokens from Vault. Use [[ARTICLE - Trusted npm Publishing for Go Go Golems React Packages]] as the current playbook for public package publishing. Keep this note for understanding the earlier Vault-backed design and the failure mode that motivated the migration.
+
 This article explains how npm publishing was added and hardened for Go Go Golems packages, using `@go-go-golems/pbui` in `dmeta` and the package publishing workflow in `go-go-os-frontend` as the concrete implementations. The main subject is not npm alone. The important system is the connection between package shape, GitHub Actions workflow design, Vault-backed secret access, npm token permissions, and operational safety checks.
 
 > [!summary]

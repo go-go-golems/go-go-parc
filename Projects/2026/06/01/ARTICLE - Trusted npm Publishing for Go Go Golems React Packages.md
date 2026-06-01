@@ -545,9 +545,25 @@ The final checklist is:
 - Treat package settings as part of the release system. A workflow change alone is not a complete security migration.
 - Record workflow run IDs and npm dist-tags in the diary or release notes.
 
+## Cleanup completed after migration
+
+After the trusted publishing workflows were verified, the obsolete Vault-backed npm publish credentials for `react-chat` and `go-go-os-frontend` were removed. The cleanup deleted the repo-specific Vault KV metadata paths, JWT auth roles, and policies that existed only to hand long-lived npm tokens to GitHub Actions:
+
+```text
+kv/ci/github/react-chat/npm-token
+auth/github-actions/role/react-chat-npm-publish
+gha-react-chat-npm-publish
+
+kv/ci/github/go-go-os-frontend/npm-token
+auth/github-actions/role/go-go-os-frontend-npm-publish
+gha-go-go-os-frontend-npm-publish
+```
+
+The `dmeta` / PBUI Vault material was not removed in this cleanup because PBUI was not part of the verified tokenless publish sequence described here.
+
 ## Related notes
 
-- [[NPM Publishing for Go Go Golems Packages with Vault OIDC]]
+- [[NPM Publishing for Go Go Golems Packages with Vault OIDC]] — historical Vault-backed design, now superseded for `react-chat` and `go-go-os-frontend`.
 
 ## Related repositories and files
 
