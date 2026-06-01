@@ -16,6 +16,7 @@ status: active
 type: article
 created: 2026-06-01
 repo: /home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5
+updated: 2026-06-01
 ---
 
 # ESP32-P4-WIFI6 as PicoCalc MCU — Deep Technical Dive
@@ -25,7 +26,7 @@ This article documents a feasibility investigation and initial firmware bring-up
 > [!summary]
 > 1. The Waveshare ESP32-P4-WIFI6 can replace the Pico in the PicoCalc, but not as a drop-in — an adapter PCB is required to remap peripheral connections.
 > 2. The board exposes 25 GPIOs on two 2×20 headers, all available for the PicoCalc project; on-board peripherals (C6 SDIO, I²S codec, SDMMC, UART) consume only internal-trace GPIOs that never reach the headers.
-> 3. The specific board received carries ESP32-P4 revision v1.3 silicon, which is supported by ESP-IDF 5.3+ but requires care with console selection — the USB Serial/JTAG console may not produce output on v1.x chips; UART via the on-board CH343P bridge is the safer default.
+> 3. The specific board received carries ESP32-P4 revision v1.3 silicon, which is supported by ESP-IDF 5.3+. Phase 1 is now validated: the board boots ESP-IDF v5.4.2, detects 32 MB PSRAM at 200 MHz, reaches `app_main()`, and prints logs through the on-board CH343 USB-UART bridge on `/dev/ttyACM1`.
 
 ## Why this note exists
 
@@ -233,7 +234,7 @@ ESP32-P4 Arduino support is still preliminary (arduino-esp32 issue #10278, merge
 | `hardware_i2c` | `i2c_master_driver` (ESP-IDF v6.x) or legacy `i2c_driver` |
 | `hardware_gpio` | `gpio_config()` / `gpio_set_level()` |
 | `hardware_pwm` | `ledc_channel_config()` (LEDC PWM controller) |
-| `pico_stdlib` UART | `uart_driver_config` or USB Serial/JTAG console |
+| `pico_stdlib` UART | ESP-IDF UART0 console via CH343 bridge on GPIO37/GPIO38 |
 | `hardware_flash` | `esp_partition` / `nvs_flash` |
 | FatFS (SPI SD) | `esp_vfs_fat_sdmmc_format` or `esp_vfs_fat_sdspi_format` |
 | PIO PSRAM | Not needed — ESP32-P4 PSRAM managed by MMU/heap |
@@ -292,59 +293,176 @@ MAC: e8:f6:0a:e0:ec:9f
 
 The board carries **ESP32-P4 revision v1.3** (eco2 ROM, July 2024). According to the ESP-IDF COMPATIBILITY.md, revisions v1.0 and v1.3 are supported since ESP-IDF v5.3. ESP-IDF v5.4.2 includes this support. The Kconfig setting `CONFIG_ESP32P4_REV_MIN_FULL=1` (minimum revision v1.0) and `CONFIG_ESP32P4_REV_MAX_FULL=199` (maximum revision v1.99) are compatible with v1.3 silicon.
 
-### Console output problem
+### Serial console model
 
-The first attempt used USB Serial/JTAG as the console (`CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y`). The bootloader loaded and the ROM output appeared on `/dev/ttyACM1`, but the ESP-IDF application produced no console output after the bootloader entry point. The ROM boot log was:
+The first serial interpretation was wrong. The Linux device visible during the bring-up was not the ESP32-P4 native USB Serial/JTAG device. It was the board's external WCH/QinHeng USB serial bridge:
 
+```text
+Bus 003 Device 034: ID 1a86:55d3 QinHeng Electronics USB Single Serial
+/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B61091051-if00 -> ../../ttyACM1
 ```
+
+That distinction matters because ESP-IDF has multiple console backends. Selecting the wrong backend can produce a confusing split: ROM output appears, then application output disappears. The ROM prints through UART0. If ESP-IDF is configured for native USB Serial/JTAG, the application logs move away from the CH343 bridge. The serial capture then shows only the early ROM/loader lines, even though the application may be running correctly.
+
+For this Waveshare board, the correct development console is the CH343 bridge wired to ESP32-P4 UART0:
+
+| Board path | ESP32-P4 function | GPIO |
+|-----------|-------------------|------|
+| CH343 RX input | UART0 TX from ESP32-P4 | GPIO37 |
+| CH343 TX output | UART0 RX into ESP32-P4 | GPIO38 |
+
+ESP-IDF v5.4.2's ESP32-P4 SoC definitions confirm the same mapping:
+
+```text
+UART_NUM_0_TXD_DIRECT_GPIO_NUM = 37
+UART_NUM_0_RXD_DIRECT_GPIO_NUM = 38
+```
+
+Therefore the correct `sdkconfig.defaults` console block is:
+
+```text
+# Console: UART via CH343 bridge on ESP32-P4 UART0
+# CH343 USB CDC device appears as /dev/ttyACM* on Linux.
+# CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG is not set
+CONFIG_ESP_CONSOLE_UART_DEFAULT=y
+```
+
+This is not a workaround for a broken chip. It is the board's normal USB serial path. GPIO24/GPIO25 may still expose ESP32-P4 USB Serial/JTAG functions on the headers, but the USB cable used during this bring-up enumerated the CH343 bridge, not a native Espressif USB console.
+
+### Why the earlier monitor attempts failed
+
+Three independent issues were mixed together.
+
+First, `CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y` routed application logs to a console backend that was not the connected `/dev/ttyACM1` device. The ROM boot lines still appeared because they come from UART0 before ESP-IDF takes over.
+
+Second, `idf.py monitor` was started from a non-TTY shell. ESP-IDF's monitor needs standard input attached to a real terminal because it handles key sequences, reset shortcuts, and serial input. From the non-interactive shell it failed with:
+
+```text
+Monitor requires standard input to be attached to TTY
+```
+
+Third, a raw `cat /dev/ttyACM1` process was left running in the background. That process held the port and caused later flash attempts to fail with a port-busy error. On ESP32-S3/ESP32-P4 USB serial paths this kind of stale owner creates misleading symptoms: write timeouts, missing logs, failed prompt detection, and false suspicions of crashes.
+
+The correct operating rule is simple: one process owns `/dev/ttyACM1` at a time. Before flashing or probing, check:
+
+```bash
+lsof /dev/ttyACM1 || true
+```
+
+### Controlled reset-and-capture
+
+The reliable capture procedure was to avoid `idf.py monitor` entirely for one test and use `pyserial` directly. The script opened the CH343 CDC device, configured 115200 baud, deasserted BOOT/IO0 through DTR, pulsed EN through RTS, then captured all output for eight seconds.
+
+```python
+import serial, time, sys
+
+ser = serial.Serial('/dev/ttyACM1', 115200, timeout=0.05)
+ser.reset_input_buffer()
+
+ser.dtr = False  # IO0 high: normal boot, not download mode
+ser.rts = True   # EN low: hold chip in reset
+time.sleep(0.12)
+ser.rts = False  # EN high: release reset and boot app
+
+start = time.time()
+while time.time() - start < 8:
+    data = ser.read(4096)
+    if data:
+        sys.stdout.buffer.write(data)
+        sys.stdout.buffer.flush()
+
+ser.close()
+```
+
+This capture proved that the app was not crashing. The output contained the ROM log, second-stage bootloader, PSRAM setup, CPU start, `app_main()`, the bring-up banner, the PSRAM write/read test, and the GPIO blink task startup.
+
+Important excerpts:
+
+```text
 ESP-ROM:esp32p4-eco2-20240710
 Build:Jul 10 2024
 rst:0x1 (POWERON),boot:0x30f (SPI_FAST_FLASH_BOOT)
 SPI mode:DIO, clock div:1
-load:0x4ff33ce0,len:0x15f4
-load:0x4ff2abd0,len:0xcf4
-load:0x4ff2cbd0,len:0x3324
+load:0x4ff33ce0,len:0x15f0
+load:0x4ff2abd0,len:0xd88
+load:0x4ff2cbd0,len:0x3310
 entry 0x4ff2abda
+I (25) boot: ESP-IDF v5.4.2 2nd stage bootloader
+I (27) boot: chip revision: v1.3
+I (40) boot.esp32p4: SPI Flash Size : 32MB
 ```
 
-After the `entry` line, nothing. The second stage bootloader and application did not produce any output on USB Serial/JTAG.
+The PSRAM initialization was also clean:
 
-The `sdkconfig.defaults` was then switched to UART console via the CH343P bridge (`CONFIG_ESP_CONSOLE_UART_DEFAULT=y`). The firmware rebuilt and reflashed successfully. The serial console output is pending verification — the CH343P bridge appears on a different serial device than the USB Serial/JTAG CDC, and identifying the correct port requires checking `ls /dev/ttyUSB*` or `dmesg` after the board enumerates.
+```text
+I (376) esp_psram: Found 32MB PSRAM device
+I (377) esp_psram: Speed: 200MHz
+I (1333) esp_psram: SPI SRAM memory test OK
+I (1412) esp_psram: Adding pool of 32768K of PSRAM memory to heap allocator
+```
 
-### Possible causes for the USB Serial/JTAG silence
+The application then reached `app_main()` and printed the bring-up diagnostics:
 
-1. **v1.3 silicon may have USB Serial/JTAG errata.** Early ESP32-P4 revisions are known to have USB-related issues. The CH343P UART path bypasses the chip's USB PHY entirely, making it the more reliable console path.
+```text
+I (1466) main_task: Calling app_main()
+I (1466) bringup: Booting...
+I (1476) bringup: ESP32-P4-WIFI6 PicoCalc Bring-Up
+I (1486) bringup: Chip: esp32p4 rev 1.3
+I (1486) bringup: Cores: 2 (HP dual-core RISC-V)
+I (1486) bringup: CPU freq: 360 MHz
+I (1496) bringup: Flash: 32 MB (OK — 32MB)
+I (1496) bringup: PSRAM: 32768 KB total, 32765 KB free
+I (1506) bringup: PSRAM: OK — 32MB stacked
+I (1506) bringup: Internal RAM: 630 KB total, 580 KB free
+I (1576) bringup: PSRAM: 1MB write/read test PASSED
+I (1576) bringup: blink: starting on GPIO49
+I (1586) bringup: Phase 1 bring-up complete. LED blinking on GPIO49.
+```
 
-2. **GPIO24/GPIO25 strapping conflict.** These pins default to USB Serial/JTAG functions. If the board's strapping resistors or external signals interfere during boot, the USB Serial/JTAG interface may not initialize correctly.
+The phase result is therefore stronger than "flash succeeded". The chip boots the app image, initializes external PSRAM at the intended speed, allocates the PSRAM heap, passes an application-level memory test, and enters the GPIO blink loop.
 
-3. **Application image revision check.** If the second stage bootloader detects a revision mismatch, it aborts silently — no output reaches any console. The Kconfig settings should allow v1.3, but a mismatch between the bootloader's maximum revision check and the actual chip revision would produce exactly this symptom.
+### Remaining Phase 1 warning
+
+One warning remains in the log:
+
+```text
+W (1422) spi_flash: Detected flash size > 16 MB, but access beyond 16 MB is not supported for this flash model yet.
+```
+
+The bootloader and application both report a 32 MB flash configuration, and the current application is far below 16 MB, so this warning does not block Phase 1. It does matter for future partition layouts. If a later firmware stores filesystem data, assets, or OTA slots above the 16 MB boundary, the flash model support must be verified before relying on that address range.
+
+For the next phases, keep the partition table below 16 MB until this warning is resolved. That still leaves enough room for LCD, keyboard, SD, and audio bring-up.
 
 ## Open questions
 
-1. **UART console verification.** The CH343P-based UART console has not been confirmed to produce output yet. The next step is to identify the correct `/dev/ttyUSB*` device and monitor it.
+1. **Physical fit.** The Waveshare ESP32-P4-WIFI6 board is larger than a Pico. It may not fit inside the PicoCalc case. Measurement or a test fit is needed before the adapter PCB becomes meaningful.
 
-2. **Physical fit.** The Waveshare ESP32-P4-WIFI6 board is larger than a Pico. It may not fit inside the PicoCalc case. Measurement or a test fit is needed.
+2. **Power budget.** Can the PicoCalc VSYS rail supply an additional 400–500 mA? Real measurements under USB power, battery power, low-battery state, and power-switch transitions are required before PCB design.
 
-3. **Power budget.** Can the PicoCalc VSYS rail supply an additional 400–500 mA? Real measurements under all power states are required before PCB design.
+3. **I²C bus sharing.** The 10 kHz keyboard polling speed must coexist with the ES8311 codec on the shared I²C0 bus. The codec's minimum I²C clock rate is not documented in the sources examined; testing is required.
 
-4. **I²C bus sharing.** The 10 kHz keyboard polling speed must coexist with the ES8311 codec on the shared I²C0 bus. The codec's minimum I²C clock rate is not documented in the sources examined; testing is required.
+4. **PicoCalc SD slot.** Is the user-accessible SD card slot important enough to consume 5 header GPIOs, or is the Waveshare's onboard MicroSD slot sufficient? The onboard SDMMC path is faster and easier; the PicoCalc slot preserves the original physical user experience.
 
-5. **PicoCalc SD slot.** Is the user-accessible SD card slot important enough to consume 5 header GPIOs, or is the Waveshare's onboard MicroSD slot sufficient?
+5. **Flash addressing above 16 MB.** ESP-IDF detected a 32 MB flash configuration but warned that access beyond 16 MB is not supported for the detected flash model yet. Future partition tables should stay below 16 MB until this is resolved or verified.
 
-6. **Adapter board design.** A PCB that presents a Pico-compatible 2×20 header footprint while wiring signals to the Waveshare board's headers is needed. The design depends on the answers to the questions above.
+6. **Adapter board design.** A PCB that presents a Pico-compatible 2×20 header footprint while wiring signals to the Waveshare board's headers is needed. The design depends on the physical-fit, power, I²C, and SD-slot decisions above.
 
 ## Near-term next steps
 
-1. Verify UART console output on the CH343P serial device.
-2. If UART works, confirm PSRAM detection, flash size, and GPIO blink in the serial log.
-3. Measure PicoCalc VSYS voltage and current capacity.
-4. Check physical dimensions of the Waveshare board against the PicoCalc case interior.
-5. Begin Phase 2: implement the SPI2 LCD driver once the console is confirmed working.
+1. Clean up the firmware README and source comments so they state the correct console path: CH343 USB-UART bridge on ESP32-P4 UART0 GPIO37/GPIO38.
+2. Keep using `/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B61091051-if00` or `/dev/ttyACM1` as the Phase 1 console path, with `lsof` checks before every flash/probe session.
+3. Begin Phase 2: implement the SPI2 LCD driver on GPIO28–31 and verify the ST7365P/ILI9488 initialization sequence with colour-bar output.
+4. Measure PicoCalc VSYS voltage and current capacity.
+5. Check physical dimensions of the Waveshare board against the PicoCalc case interior.
 
 ## Working rules
 
 - Always use ESP-IDF (not Arduino) for ESP32-P4 firmware development at this stage.
-- Prefer the CH343P UART console over USB Serial/JTAG until the USB console is confirmed working on v1.3 silicon.
+- Use the CH343 USB-UART bridge as the default console. On Linux it appears as `1a86:55d3 QinHeng Electronics USB Single Serial`, currently `/dev/ttyACM1`, and maps to ESP32-P4 UART0 on GPIO37/GPIO38.
+- Do not assume that a `/dev/ttyACM*` device is native ESP32 USB Serial/JTAG. Check the USB vendor/product ID and `/dev/serial/by-id` symlink before choosing the ESP-IDF console backend.
+- Treat `/dev/ttyACM1` as single-owner. Before flashing, monitoring, or scripted probing, run `lsof /dev/ttyACM1 || true` and kill stale readers such as `cat`, `idf.py monitor`, or previous pyserial probes.
+- Use `idf.py monitor` only in a real terminal or tmux pane. For non-interactive automation, use a pyserial reset-and-capture script rather than `idf.py monitor`.
 - When assigning GPIOs, check the adsb-p4 project's `board_pinout.md` for the authoritative board-level wiring data — but remember that its "current allocation" column is project-specific, not board-inherent.
 - The right-header GND between GPIO46 and GPIO47 is a real physical trap. Never use a multi-pin Dupont housing across that region.
 - Record the chip revision (v1.3) in all design decisions. Any ESP-IDF version or library that requires revision ≥ v3.0 will not work on this board without the "ignore maximum revision" eFuse burned.
+- Keep early partition layouts below 16 MB until the ESP-IDF flash warning about >16 MB access is resolved.
