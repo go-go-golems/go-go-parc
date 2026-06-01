@@ -698,3 +698,465 @@ The next networking improvements are incremental rather than foundational:
 - Keep early partition layouts below 16 MB until the ESP-IDF flash warning about >16 MB access is resolved.
 - For ESP-Hosted networking on this Waveshare board, use SDIO CLK/CMD/D0-D3 GPIO18/19/14/15/16/17 and active-high C6 reset on GPIO54; do not copy Tab5 SDIO defaults.
 - Treat `esp_wifi_*` calls on ESP32-P4 as remote-radio calls when `esp_wifi_remote` is enabled: the application code looks native, but the radio work runs on the C6 over ESP-Hosted.
+
+## Second deep dive: the physical adapter, keyboard validation, and the first display smoke test
+
+The first version of this article was written after the ESP32-P4-WIFI6 board had proven that it could boot ESP-IDF, detect its 32 MB PSRAM, use the CH343 UART console, and bring up the onboard ESP32-C6 radio through ESP-Hosted. That was enough to answer the broad feasibility question: the board is alive, the toolchain works, the silicon revision is usable, and the radio path is real. The next phase answered a different question: can this board actually behave like the MCU inside a PicoCalc, using the PicoCalc's own keyboard and LCD connections rather than only the Waveshare board's onboard peripherals?
+
+That question exposed an important distinction that should shape every later hardware decision. There are two possible adapter designs, and they are not interchangeable. A function-optimized adapter asks, “which ESP32-P4 pins are best for each peripheral?” A same-position physical adapter asks, “if the Pico socket pin at this position lands on the Waveshare header pin at the same position, which ESP32-P4 GPIO is that?” The first approach gives better electrical and peripheral choices, especially for SPI. The second approach reflects the physical adapter currently being tested. The mistake was to start the keyboard driver with the first mental model while the hardware was wired according to the second.
+
+The practical result was a useful failure. The first keyboard firmware probed the PicoCalc southbridge at address `0x1F` on Waveshare GPIO7/GPIO8 because those pins are labeled SDA/SCL on the Waveshare board. The transaction NACKed. That did not mean the PicoCalc keyboard pinout was wrong. It meant the firmware was probing the wrong physical pins for the adapter that was actually in front of us.
+
+### Two pin-mapping models
+
+The function-optimized mapping is still technically valid if a future interposer PCB cross-routes every PicoCalc net to the best ESP32-P4 GPIO. Under that model, the keyboard could live on the Waveshare board's native I²C0 labels, and the LCD could use the SPI2 IO-MUX group:
+
+| PicoCalc peripheral | Function-optimized ESP32-P4 target | Why it looked attractive |
+|---|---|---|
+| Keyboard I²C | GPIO7/GPIO8 | These are labeled SDA/SCL on the Waveshare header and share the board's I²C0 bus. |
+| LCD SPI | GPIO28/GPIO29/GPIO30/GPIO31 | These are the ESP32-P4 SPI2 IO-MUX direct pins, best for high-speed SPI. |
+| PicoCalc SD SPI | GPIO46/GPIO47/GPIO48/GPIO33/GPIO26 | Available lower-right header pins, usable through the GPIO matrix. |
+| Audio PWM | GPIO27/GPIO32 | Available right-header GPIOs. |
+
+The same-position physical adapter is different. It aligns the two 20-pin side rows by physical position. With both pinout images viewed USB-at-top, Pico physical pin 9 lands on Waveshare left-header position 9, and Waveshare left-header position 9 is GPIO50. Pico physical pin 10 lands on Waveshare left-header position 10, and that position is GPIO49. Therefore the PicoCalc keyboard bus lands on GPIO50/GPIO49, not GPIO7/GPIO8.
+
+The complete corrected physical mapping is now recorded in the ticket document:
+
+```text
+ttmp/2026/06/01/ESP32-P4-PICOCALC--esp32-p4-wifi6-as-picocalc-mcu-replacement-rp2350-swap/design-doc/03-full-rpico-socket-to-waveshare-esp32-p4-pin-map.md
+```
+
+The essential part is this table:
+
+| Pico physical pin | Pico net | PicoCalc role | Waveshare same-position label | ESP32-P4 GPIO |
+|---:|---|---|---|---:|
+| 1 | GP0 | PicoCalc UART0 TX path | GPIO52 | 52 |
+| 2 | GP1 | PicoCalc UART0 RX path | GPIO51 | 51 |
+| 9 | GP6 / SDA1 | Keyboard/southbridge SDA | GPIO50 | 50 |
+| 10 | GP7 / SCL1 | Keyboard/southbridge SCL | GPIO49 | 49 |
+| 14 | GP10 / SPI1 SCK | LCD SCK | GPIO3 | 3 |
+| 15 | GP11 / SPI1 MOSI | LCD MOSI | GPIO2 | 2 |
+| 16 | GP12 / SPI1 MISO | LCD MISO, optional | GPIO8 | 8 |
+| 17 | GP13 | LCD CS | GPIO7 | 7 |
+| 19 | GP14 | LCD DC | GPIO24 | 24 |
+| 20 | GP15 | LCD RST | GPIO25 | 25 |
+| 21 | GP16 / SPI0 MISO | PicoCalc SD MISO | GPIO48 | 48 |
+| 22 | GP17 / SPI0 CS | PicoCalc SD CS | GPIO47 | 47 |
+| 24 | GP18 / SPI0 SCK | PicoCalc SD SCK | GPIO46 | 46 |
+| 25 | GP19 / SPI0 MOSI | PicoCalc SD MOSI | GPIO33 | 33 |
+| 29 | GP22 | SD card detect | GPIO26 | 26 |
+| 31 | GP26 / PWM | Audio left | GPIO23 | 23 |
+| 32 | GP27 / PWM | Audio right | GPIO22 | 22 |
+
+This table is now the firmware source of truth for the same-position adapter. The earlier function-optimized table remains useful as a future PCB design option, but it is not the wiring being tested.
+
+The following diagram shows the source of the confusion and the corrected path.
+
+```mermaid
+flowchart TD
+    subgraph PicoCalc["PicoCalc / RPico socket"]
+        P9["Physical pin 9\nGP6 / SDA"]
+        P10["Physical pin 10\nGP7 / SCL"]
+        P14["Physical pin 14\nGP10 / LCD SCK"]
+        P15["Physical pin 15\nGP11 / LCD MOSI"]
+    end
+
+    subgraph Wrong["Wrong assumption: function labels"]
+        W7["Waveshare GPIO7\nSDA label"]
+        W8["Waveshare GPIO8\nSCL label"]
+    end
+
+    subgraph Correct["Same-position adapter reality"]
+        C50["Waveshare position 9\nGPIO50"]
+        C49["Waveshare position 10\nGPIO49"]
+        C3["Waveshare position 14\nGPIO3"]
+        C2["Waveshare position 15\nGPIO2"]
+    end
+
+    P9 --> C50
+    P10 --> C49
+    P14 --> C3
+    P15 --> C2
+
+    P9 -. not connected by position .-> W7
+    P10 -. not connected by position .-> W8
+
+    style Wrong fill:#3a1f1f,stroke:#aa4444,color:#fff
+    style Correct fill:#16351f,stroke:#55aa66,color:#fff
+```
+
+### The keyboard driver became the first proof of the physical map
+
+The keyboard is the best first peripheral because it has a simple, externally visible success condition. The host does not need the LCD to work. It only needs to initialize I²C, select address `0x1F`, and read the STM32 southbridge status register. A NACK means the bus, address, power, or pin mapping is wrong. An ACK with a sane status byte means the southbridge is alive and reachable.
+
+The corrected driver constants are now:
+
+```c
+#define PICOCALC_KBD_I2C_SDA_GPIO      50
+#define PICOCALC_KBD_I2C_SCL_GPIO      49
+#define PICOCALC_KBD_I2C_SPEED_HZ      10000
+#define PICOCALC_KBD_I2C_ADDR          0x1F
+```
+
+These constants match the physical adapter:
+
+```text
+Pico physical pin 9  / GP6 / SDA -> Waveshare physical position 9  / GPIO50
+Pico physical pin 10 / GP7 / SCL -> Waveshare physical position 10 / GPIO49
+```
+
+The first corrected attempt still failed because the SDA/SCL roles were swapped. That was a useful second failure. The pin positions were correct, but the line roles were not. Once the firmware used `SDA=GPIO50` and `SCL=GPIO49`, the keyboard status path worked.
+
+The validated boot log from `0098` showed the corrected pins:
+
+```text
+I (...) picocalc_kbd: initialized PicoCalc keyboard I2C: sda=50 scl=49 speed=10000 addr=0x1f
+```
+
+The console command then successfully read the status register:
+
+```text
+p4web> kbd status
+kbd status ok=1 raw=0x00 fifo=0 caps=0 num=0 initialized=1 errors=0
+```
+
+A bounded poll also completed cleanly with no queued events:
+
+```text
+p4web> kbd poll 10
+kbd poll done events=0 limit=10
+```
+
+This does not yet prove keypress decoding. It proves the lower layer: power, ground, SDA, SCL, address `0x1F`, bus speed, and the basic register-read transaction. That is the right first milestone. Actual key event capture is the next keyboard milestone and should be done with `kbd raw on` while pressing printable keys, modifiers, arrows, and function keys.
+
+The driver itself is deliberately small. It initializes an ESP-IDF I²C master bus, attaches a device at `0x1F`, implements register reads, tracks an error counter, and exposes raw keyboard events. The read sequence mirrors the Pico firmware: write one register byte, wait briefly for the southbridge's register dispatch, then read the requested data.
+
+```c
+esp_err_t picocalc_keyboard_read_register(uint8_t reg, uint8_t *dst, size_t len)
+{
+    err = i2c_master_transmit(s_dev, &reg, 1, 50);
+    if (err != ESP_OK) return err;
+
+    vTaskDelay(pdMS_TO_TICKS(2));
+
+    err = i2c_master_receive(s_dev, dst, len, 50);
+    return err;
+}
+```
+
+The polling path is exactly the PicoCalc southbridge protocol:
+
+```c
+read register 0x04 -> status
+if ((status & 0x1f) == 0) no event is pending
+read register 0x09 -> two bytes: state, key
+state 1 = pressed, 2 = repeat/hold, 3 = released
+key = ASCII for printable keys, special code for arrows/modifiers/function keys
+```
+
+The key point is that keyboard validation forced the project to distinguish board labels from adapter positions. That distinction now applies to every peripheral.
+
+### Why `idf.py monitor` in tmux changed the workflow
+
+The serial workflow also improved during this phase. Earlier attempts to use `idf.py monitor` from a non-interactive command failed because ESP-IDF's monitor expects standard input to be attached to a TTY. Running the monitor inside tmux solved that, and it enabled the useful ESP-IDF monitor shortcut `Ctrl-T A`, which builds and app-flashes the current application while keeping the monitor session alive.
+
+The working loop became:
+
+```bash
+PORT=/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B61091051-if00
+lsof "$PORT" || true
+
+cd /home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0099-esp32-p4-picocalc-display-keyboard
+source ~/esp/esp-idf-5.4.2/export.sh
+idf.py build
+idf.py -p "$PORT" monitor
+```
+
+Then, inside the monitor:
+
+```text
+Ctrl-T A     # run app-flash and return to monitor
+```
+
+This matters because it removes a source of false evidence. A stale `cat`, old monitor, or pyserial process can make an ESP32-S3/P4 USB-UART session look broken when the real bug is serial ownership. The rule is now strict: check `lsof` before each flash/probe, keep one owner of `/dev/ttyACM1`, and use tmux for interactive monitor work.
+
+### Why `0099` exists
+
+`0098-esp32-p4-wifi6-webserver` proved the networking path. It also became the wrong environment for peripheral bring-up. Every boot produced ESP-Hosted SDIO logs, C6 reset logs, Wi-Fi association attempts, retry messages, DHCP state, and HTTP server state. That noise is acceptable when testing networking. It is a distraction when the immediate question is whether the PicoCalc keyboard and LCD are wired correctly.
+
+The answer was to create a separate lean firmware:
+
+```text
+0099-esp32-p4-picocalc-display-keyboard/
+```
+
+This firmware excludes ESP-Hosted, Wi-Fi, HTTP, and credential persistence. It keeps only the parts needed for PicoCalc peripheral iteration:
+
+- CH343 UART console on the Waveshare board.
+- PicoCalc keyboard I²C on GPIO50/GPIO49.
+- PicoCalc LCD SPI/control on the physical adapter pins.
+- A few console commands for direct validation.
+
+The initial `0099` command set is intentionally small:
+
+```text
+status
+kbd status
+kbd poll 10
+kbd raw on
+kbd raw off
+lcd init
+lcd fill red|green|blue|white|black
+lcd bars
+```
+
+The first build and flash were successful. The app binary was substantially smaller than the Wi-Fi firmware:
+
+```text
+0099-esp32-p4-picocalc-display-keyboard.bin binary size 0x5bde0
+0098-esp32-p4-wifi6-webserver.bin binary size 0xb4a40
+```
+
+That difference does not only save flash space. It shortens the compile path and reduces runtime state. For a hardware bring-up firmware, fewer moving parts is a technical advantage because the logs become easier to interpret.
+
+The validated boot log showed the corrected keyboard and LCD physical mappings:
+
+```text
+I (...) p4_picocalc: boot: ESP32-P4 PicoCalc display+keyboard smoke test
+I (...) p4_picocalc: console: CH343 UART0 bridge at 115200 baud
+I (...) p4_picocalc: keyboard: SDA GPIO50 SCL GPIO49 addr=0x1f hz=10000
+I (...) p4_picocalc: lcd: sck=3 mosi=2 cs=7 dc=24 rst=25 hz=20000000
+I (...) picocalc_kbd: initialized PicoCalc keyboard I2C: sda=50 scl=49 speed=10000 addr=0x1f
+```
+
+The keyboard status command worked in the lean firmware too:
+
+```text
+p4dk> kbd status
+kbd status ok=1 raw=0x00 fifo=0 caps=0 num=0 initialized=1 errors=0
+```
+
+The LCD command path initialized and wrote color bars without firmware-side errors at the initial 20 MHz setting:
+
+```text
+p4dk> lcd init
+I (...) p4_picocalc: LCD SPI ready: sck=3 mosi=2 cs=7 dc=24 rst=25 hz=20000000
+I (...) p4_picocalc: LCD panel initialized (320x320 RGB565)
+lcd init: ESP_OK
+
+p4dk> lcd bars
+lcd bars ok elapsed_ms=95
+```
+
+That result proves the ESP-IDF SPI command path can drive the physical LCD pins at 20 MHz and stream a full 320×320 RGB565 frame. It does not by itself prove the panel displayed the bars correctly; visual confirmation is still required. The firmware can report `ESP_OK` if the SPI bus accepted the transactions, even if the panel ignored the commands because of reset timing, controller variant, or an incomplete initialization sequence. The next display milestone is human-visible output.
+
+### The display mapping is correct physically but not ideal electrically
+
+The same-position physical adapter gives this LCD map:
+
+| PicoCalc LCD net | Pico physical pin | ESP32-P4 GPIO |
+|---|---:|---:|
+| LCD SCK / GP10 | 14 | GPIO3 |
+| LCD MOSI / GP11 | 15 | GPIO2 |
+| LCD MISO / GP12 | 16 | GPIO8, optional and currently unused |
+| LCD CS / GP13 | 17 | GPIO7 |
+| LCD DC / GP14 | 19 | GPIO24 |
+| LCD RST / GP15 | 20 | GPIO25 |
+
+This is the price of a same-position adapter. It is physically direct, but it does not use the ESP32-P4's best SPI pins. The function-optimized design would place LCD SCK/MOSI/CS/DC on the GPIO28–31 group because that group is SPI2 IO-MUX direct. The same-position adapter uses GPIO3/GPIO2/GPIO7/GPIO24/GPIO25, which are general GPIO-matrix paths and also overlap with JTAG/USB Serial-JTAG caveats.
+
+For bring-up this is acceptable. The CH343 UART console is already proven, so losing USB Serial-JTAG on GPIO24/GPIO25 is not a blocker. For maximum display bandwidth, however, the same-position adapter is weaker than a custom cross-routed interposer.
+
+This difference appears immediately in the speed testing.
+
+### What the old PicoCalc firmware does for SPI speed
+
+The older RP2350 PicoCalc firmware in:
+
+```text
+/home/manuel/code/wesen/2026-05-05--ulisp-picocalc/pico-sdk-picocalc-wm
+```
+
+defaults the display to 75 MHz:
+
+```cpp
+constexpr uint kDefaultBaudrate = 75'000'000;
+```
+
+The README explains why:
+
+```text
+The default build now starts at 75 MHz SPI because hardware testing showed
+Pico SDK requests above that quantize to actual=75000000 and the display
+remained stable.
+```
+
+The important word is “quantize.” The Pico SDK does not require every requested speed to be directly representable. It accepts a requested baudrate, chooses a divider, and returns the actual speed:
+
+```cpp
+uint Ili9488::setBaudrate(uint baudrate) {
+  if (!spi_initialized_) {
+    config_.baudrate = baudrate;
+    initSpi();
+    return config_.baudrate;
+  }
+  uint actual = spi_set_baudrate(config_.spi, baudrate);
+  config_.baudrate = actual;
+  printf("display: spi baudrate requested=%u actual=%u\n", baudrate, actual);
+  return actual;
+}
+```
+
+The serial command is similarly direct:
+
+```cpp
+} else if (equalsIgnoreCase(argv[0], "baud")) {
+  uint32_t baud = 0;
+  parseUint(argv[1], &baud);
+  uint actual = display.setBaudrate(baud);
+  gSettings.spi_baud = actual;
+  printf("display: actual baud=%u\n", actual);
+}
+```
+
+So on the RP2350 firmware, requesting `80 MHz` can still result in a valid `75 MHz` actual clock. The command does not fail merely because `80 MHz` is not exactly realizable.
+
+ESP-IDF's ESP32-P4 GPSPI driver is stricter in this configuration. It validates the requested `clock_speed_hz` before adding the SPI device. The relevant check in ESP-IDF v5.4.2 is:
+
+```c
+SPI_CHECK(
+    (dev_config->clock_speed_hz > 0) &&
+    (dev_config->clock_speed_hz <= MIN(clock_source_hz / 2, (80 * 1000000))),
+    "invalid sclk speed",
+    ESP_ERR_INVALID_ARG
+);
+```
+
+In practice, with the current default clock source and same-position LCD pins, the driver rejected 40 MHz, 75 MHz, and 80 MHz during `spi_bus_add_device()`:
+
+```text
+E (...) spi_master: spi_bus_add_device(432): invalid sclk speed
+lcd init: ESP_ERR_INVALID_ARG
+```
+
+The first working `0099` build used 20 MHz and completed `lcd init` and `lcd bars`. After adding live speed testing, attempts to start at 80 MHz and then 40 MHz both failed before any LCD transaction. This is a different failure class from signal integrity. The LCD panel is not rejecting the data. ESP-IDF is rejecting the requested device configuration.
+
+The likely explanation is that the default GPSPI clock source selected by ESP-IDF for this configuration is not high enough to satisfy the `clock_speed_hz <= clock_source_hz / 2` rule at 40 MHz or higher. If the source is 40 MHz, then the maximum accepted SCLK is 20 MHz. That matches the observed behavior: 20 MHz worked, 40 MHz failed.
+
+### The current display-speed lesson
+
+The display-speed lesson is not “the panel cannot do 80 MHz.” The RP2350 firmware already showed that the panel path can be stable around 75 MHz in the original PicoCalc wiring. The lesson is narrower and more useful:
+
+1. The same-position ESP32-P4 adapter places the LCD on GPIO-matrix pins, not on the SPI2 IO-MUX group.
+2. ESP-IDF rejects many requested SPI speeds before it ever talks to the panel.
+3. The default GPSPI clock source appears to cap the accepted speed around 20 MHz in the current `0099` configuration.
+4. A future speed patch should explicitly choose a faster ESP32-P4 GPSPI clock source, if the public ESP-IDF API exposes one suitable for this target.
+5. A future hardware revision that cross-routes the LCD to GPIO28–31 should be able to use the ESP32-P4's faster SPI2 IO-MUX path and is the better design for high-frame-rate display work.
+
+The new `0099` speed-testing commands are the right shape, but the clock-source selection needs more work:
+
+```text
+lcd speed
+lcd speed 20M
+lcd speed 40M
+lcd speed 75M
+lcd speed 80M
+lcd bench 5
+```
+
+The command should report both the requested speed and the actual accepted speed. The RP2350 code did this with `spi_set_baudrate()`. ESP-IDF has `spi_device_get_actual_freq()`, which returns the actual device frequency in kHz once the device has been successfully added. That is why `0099` now tries to report:
+
+```text
+lcd speed requested=<hz> actual_khz=<khz>
+lcd bench loops=<n> elapsed_ms=<ms> per_fill_ms=<ms> requested=<hz> actual_khz=<khz>
+```
+
+The command layer is useful even though 40/75/80 currently fail. It turns future clock-source experiments into console tests instead of rebuild-only tests.
+
+### A useful engineering split: physical proof first, optimized routing later
+
+This project is now in a productive split state. The same-position adapter is excellent for proving that the ESP32-P4 can talk to PicoCalc peripherals through the physical socket positions. It already proved keyboard I²C and a firmware-side LCD SPI path. It is also a good way to learn which PicoCalc nets need special handling before investing in a PCB.
+
+The optimized interposer is a different artifact. It should use the knowledge from the same-position adapter, but it should not be constrained by the same pin positions. If the final goal is a high-performance PicoCalc replacement board, the optimized interposer should probably route:
+
+| PicoCalc function | Better ESP32-P4 target | Reason |
+|---|---|---|
+| Keyboard I²C | Either GPIO50/GPIO49 for physical simplicity, or another quiet I²C pair | Keyboard speed is only 10 kHz; it does not need premium pins. |
+| LCD SCK/MOSI/CS | GPIO30/GPIO29/GPIO28 | SPI2 IO-MUX direct path, better for high SCLK. |
+| LCD DC | GPIO31 or another nearby output | Keeps LCD control lines physically grouped. |
+| LCD RST | GPIO49 or another available output | Reset is low-speed; pin choice is flexible. |
+| PicoCalc SD slot | Optional GPIO-matrix SPI pins | The Waveshare onboard SDMMC slot is faster and may be sufficient. |
+| Audio | Either PicoCalc PWM path or Waveshare ES8311/I²S | Depends whether the goal is original speaker path compatibility or better audio. |
+
+The same-position adapter answers “what is wired where?” The optimized interposer answers “what should be wired where?” Both are useful. Confusing them caused the first keyboard failure. Separating them fixed it.
+
+### Current firmware state after this phase
+
+The project now has three firmware layers that serve different purposes:
+
+| Firmware | Purpose | Current status |
+|---|---|---|
+| `0097-esp32-p4-picocalc-bringup` | Minimal board/PSRAM/boot validation | Built, flashed, app reached `app_main()`, PSRAM validated. |
+| `0098-esp32-p4-wifi6-webserver` | ESP-Hosted/C6 networking and HTTP | Built, flashed, joined Wi-Fi, served HTTP, later gained keyboard diagnostics. |
+| `0099-esp32-p4-picocalc-display-keyboard` | Lean PicoCalc keyboard + LCD bring-up without Wi-Fi | Built, flashed, keyboard status ACKed, LCD SPI command path worked at 20 MHz in the initial build, speed testing now under investigation. |
+
+That separation is important. Each firmware has a different source of noise. `0097` has almost none and is best for board bring-up. `0098` is intentionally noisy because networking is noisy. `0099` should remain the peripheral lab: fast to build, fast to flash, and direct enough that every log line relates to keyboard, display, heap, PSRAM, or the console.
+
+The current live monitor session for `0099` has been run under tmux as:
+
+```text
+tmux session: 0099_p4_dk_monitor
+```
+
+The current core validation commands are:
+
+```text
+status
+kbd status
+kbd poll 10
+kbd raw on
+kbd raw off
+lcd init
+lcd bars
+lcd speed
+lcd bench 5
+```
+
+### What remains to prove
+
+The next concrete keyboard proof is event capture. The status path works, but the project still needs a captured trace like this:
+
+```text
+kbd event state=1 state_name=pressed  key=0x68 ascii='h' name=
+kbd event state=3 state_name=released key=0x68 ascii='h' name=
+kbd event state=1 state_name=pressed  key=0xb4 ascii=.   name=left
+kbd event state=3 state_name=released key=0xb4 ascii=.   name=left
+```
+
+That trace should be collected for normal printable keys, Shift, Ctrl, Alt, Caps Lock, arrows, Home/End/Delete, and function keys. The existing RP2350 keymap already records many expected special codes, but the ESP32-P4 port should preserve its own evidence.
+
+The next concrete display proof is visual. The firmware reported `lcd bars ok elapsed_ms=95` at 20 MHz, but someone must look at the PicoCalc LCD and say whether color bars are visible and whether colors are correct. If the display is blank or colors are wrong, there are three likely causes:
+
+1. The minimal init sequence is insufficient for the ST7365P panel.
+2. The panel needs the full vendor unlock/profile sequence used by the existing Pico firmware.
+3. One or more LCD physical nets are not routed as the same-position table expects.
+
+The next concrete speed proof is accepted SPI clock measurement. The experiment should answer these questions:
+
+- What is the highest speed ESP-IDF accepts on GPIO3/GPIO2/GPIO7/GPIO24/GPIO25 with the current clock source?
+- Can an explicit GPSPI clock source raise that accepted maximum?
+- Does the panel display stable output at the accepted speed?
+- Does the result differ if a future cross-routed adapter uses GPIO28–31?
+
+The best next code change is not to keep guessing speeds. It is to make `0099` enumerate or test a small set of requested speeds, report which ones ESP-IDF accepts, and print actual frequencies for accepted configurations. The best next hardware decision is to decide whether the final adapter should stay same-position for simplicity or become cross-routed for performance.
+
+### Updated working rules from the adventure
+
+- Do not infer same-position adapter wiring from ESP32-P4 silkscreen function labels. Use physical position first, then read the GPIO label at that position.
+- Treat GPIO7/GPIO8 as Waveshare native I²C pins only in a cross-routed design. In the same-position adapter, PicoCalc keyboard I²C is GPIO50/GPIO49.
+- Treat the same-position LCD pins as a bring-up mapping, not the performance mapping. GPIO3/GPIO2/GPIO7/GPIO24/GPIO25 can work, but they are not the ideal SPI2 IO-MUX group.
+- Keep `0099` free of Wi-Fi. Peripheral bring-up should not include ESP-Hosted logs unless the peripheral being tested needs networking.
+- When testing SPI speed, record three facts: requested speed, ESP-IDF accepted/rejected result, and actual speed if accepted.
+- Do not interpret `ESP_OK` SPI transfers as visual display proof. Always separate transaction success from panel-visible success.
+- Preserve the distinction between validated evidence and design preference. “Keyboard status ACKed on GPIO50/GPIO49” is evidence. “LCD should eventually move to GPIO28–31” is a design preference based on ESP32-P4 peripheral routing.
+
