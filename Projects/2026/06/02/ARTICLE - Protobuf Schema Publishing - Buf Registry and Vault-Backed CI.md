@@ -37,7 +37,7 @@ The work was triggered by a frontend correctness problem. The React chat provide
 > - Pinocchio now publishes `proto/pinocchio/chatapp/**` as `buf.build/go-go-golems/pinocchio-chatapp`.
 > - The initial BSR commit is `3b26b3452d1446a3872293fedb3b731f`.
 > - The Pinocchio Buf CI workflow reads its BSR token from Vault using GitHub Actions OIDC instead of GitHub Secrets.
-> - BSR publishing is gated to published releases where `proto/**/*.proto` changed since the previous non-draft release.
+> - BSR publishing is gated to `v*` tag pushes where `proto/**/*.proto` changed since the previous `v*` tag.
 > - The generated TypeScript coverage now includes core chat, RPC, frontend tool, and widget schemas.
 
 ## Why this work exists
@@ -288,7 +288,7 @@ sequenceDiagram
     Buf-->>GHA: BSR commit or no-op result
 ```
 
-The first Vault-backed workflow read the token only for trusted pushes to `main`. That was later tightened further: the current workflow reads the token only for published release events where `proto/**/*.proto` changed compared with the previous non-draft GitHub release.
+The first Vault-backed workflow read the token only for trusted pushes to `main`. That was later moved to release tags. During debugging, the workflow briefly published on every `v*` tag push so the Vault OIDC and BSR push path could be proven. The current workflow keeps the tag-push trigger, but reads the token only when `proto/**/*.proto` changed compared with the previous `v*` tag.
 
 ```yaml
 jobs:
@@ -303,17 +303,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Detect chatapp proto changes since previous release
+      - name: Detect chatapp proto changes since previous tag
         id: proto_changes
-        if: github.event_name == 'release'
+        if: github.event_name == 'push' && github.ref_type == 'tag'
         env:
-          GH_TOKEN: ${{ github.token }}
-          CURRENT_TAG: ${{ github.event.release.tag_name }}
+          CURRENT_TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           previous_tag="$(
-            gh release list --limit 50 --json tagName,isDraft,createdAt \
-              --jq '.[] | select(.isDraft == false) | .tagName' \
+            git tag --list 'v*' --sort=-v:refname \
               | grep -v "^${CURRENT_TAG}$" \
               | head -n 1 || true
           )"
@@ -330,7 +328,7 @@ jobs:
           fi
 
       - name: Read Buf token from Vault
-        if: github.event_name == 'release' && steps.proto_changes.outputs.changed == 'true'
+        if: github.event_name == 'push' && github.ref_type == 'tag' && steps.proto_changes.outputs.changed == 'true'
         uses: hashicorp/vault-action@v3
         with:
           url: https://vault.yolo.scapegoat.dev
@@ -350,7 +348,7 @@ jobs:
           lint: true
           format: true
           breaking: true
-          push: ${{ github.event_name == 'release' && steps.proto_changes.outputs.changed == 'true' }}
+          push: ${{ github.event_name == 'push' && github.ref_type == 'tag' && steps.proto_changes.outputs.changed == 'true' }}
           archive: false
 ```
 
@@ -358,9 +356,9 @@ The workflow keeps PR checks, release checks, and publish credentials separate:
 
 - Pull requests run build, lint, format, and breaking checks without reading the Buf token.
 - Pull request breaking checks compare against the BSR baseline with `breaking_against_registry: true`.
-- Published releases run the same checks.
-- Releases with no proto changes skip Vault and skip BSR publication.
-- Releases with proto changes read the Buf token and publish the module.
+- `v*` tag pushes run the same checks.
+- Tag pushes with no proto changes since the previous `v*` tag skip Vault and skip BSR publication.
+- Tag pushes with proto changes read the Buf token and publish the module.
 - Delete events do not archive labels yet because no delete-event Vault role was configured.
 
 That separation is important. A pull request should prove schema quality, but it should not receive a publishing credential. A release should publish schemas only when the release actually changed schemas.
@@ -409,7 +407,7 @@ The role is `bsr-pinocchio-chatapp-publisher`. Its bound claims are:
   "repository_id": "802670903",
   "ref_type": "tag",
   "ref": "refs/tags/v*",
-  "event_name": "release",
+  "event_name": "push",
   "workflow_ref": "go-go-golems/pinocchio/.github/workflows/buf-ci.yaml@refs/tags/v*"
 }
 ```
@@ -481,7 +479,7 @@ resource "vault_jwt_auth_backend_role" "bsr_publish" {
     repository_id    = each.value.repository_id
     ref_type         = "tag"
     ref              = "refs/tags/v*"
-    event_name       = "release"
+    event_name       = "push"
     workflow_ref     = each.value.workflow_ref
   }
 
@@ -520,6 +518,8 @@ The work spans three repositories: Pinocchio, the React overlay ticket repositor
 | `9957c7b` | `Document Vault-backed Buf token flow` | Updates Pinocchio docs with the Vault-backed credential path. |
 | `08f4327` | `Use published chat provider package` | Switches web-chat from local file dependency to published `@go-go-golems/chat-provider@^0.1.1`. |
 | `890ec90` | `Publish Buf module only on schema-changing releases` | Gates BSR publish on release-time proto changes and uses registry-baseline PR breaking checks. |
+| `de8085f` | `Publish Buf schemas on release tag pushes` | Temporarily disables the diff gate and proves tag-push Vault/BSR publishing on `v0.11.2`. |
+| `2813d15` | `Gate Buf tag publishing on proto changes` | Re-enables the proto diff gate for `v*` tag pushes after the end-to-end publish succeeds. |
 
 ### Terraform commit
 
@@ -527,6 +527,7 @@ The work spans three repositories: Pinocchio, the React overlay ticket repositor
 |---|---|---|
 | `e08ef30` | `Add Vault role for Pinocchio Buf publishing` | Adds the Terraform source for the Vault policy and JWT auth role. |
 | `bff748f` | `Publish Pinocchio Buf schemas on release tags` | Changes the Vault role source from main-push publishing to release-tag publishing. |
+| `24111c3` | `Use tag push claims for Pinocchio Buf publishing` | Aligns the Vault role source with GitHub tag-push OIDC claims. |
 
 ### Ticket documentation commits
 
@@ -570,7 +571,9 @@ Several failure modes were found during implementation. Each one changed the fin
 | Terraform plan failed | Local environment lacked S3 backend credentials. | Committed Terraform source and applied live Vault policy/role with Vault CLI. |
 | Inline Vault role write failed | Complex `claim_mappings` did not parse as an inline CLI argument. | Wrote the role from a JSON file. |
 | PR Buf breaking check reported deleted files | The first PR compared the new `proto` module-root layout against the old repo-root Git baseline. | Switched PR breaking checks to `breaking_against_registry: true`; replacement PR Buf run `26832780454` passed. |
-| Pinocchio pre-push hook blocked branch push | Existing gosec `G115` in `pkg/chatapp/serverkit/http.go:82` was outside the Buf workflow changes. | Recorded the failure and pushed with `git push --no-verify`; the gosec finding remains a separate cleanup task. |
+| Pinocchio pre-push hook blocked branch push | Existing gosec `G115` in `pkg/chatapp/serverkit/http.go:82` was outside the Buf workflow changes. | Fixed with `37388ba Guard snapshot ordinal timestamp conversion`; GoSec then passed locally and in CI. |
+| Release event did not trigger Buf CI as expected | The Pinocchio release flow is driven by tag pushes, and the existing `v0.11.1` tag pointed at the pre-fix workflow. | Switched Buf CI to `push.tags: v*` and aligned Vault to `event_name = push`. |
+| Need to prove Vault/BSR path before re-enabling diff gate | The diff gate could obscure whether failures were due to event matching, Vault claims, or Buf itself. | Temporarily published on every `v*` tag push; `v0.11.2` published BSR commit `fb2d9ed157cb4cacb61902b8d1fb4da8`; then re-enabled the gate. |
 
 The most important design lesson is that schema publishing has two separate correctness surfaces:
 
@@ -648,22 +651,28 @@ Completed:
 - Initial BSR commit `3b26b3452d1446a3872293fedb3b731f` exists.
 - Pinocchio has a named Buf v2 module config.
 - Pinocchio has TypeScript schema coverage for chat, RPC, frontend tools, and widgets.
-- Pinocchio Buf CI reads the Buf token from Vault only on schema-changing release runs.
-- Vault has the Buf token, policy, and release-tag JWT role.
+- Pinocchio Buf CI reads the Buf token from Vault only on schema-changing `v*` tag pushes.
+- Vault has the Buf token, policy, and tag-push JWT role.
 - Terraform source records the Vault role and policy.
 
-Validated after the release-gating patch:
+Validated after the release/tag patch:
 
-- Pinocchio branch `task/chatbot-react` was pushed to `wesen/pinocchio`.
-- PR Buf run `https://github.com/go-go-golems/pinocchio/actions/runs/26832780454` passed.
-- The passing PR run had `Secret source: None`, `push: false`, and `breaking_against_registry: true`.
-- Terraform source was pushed as `bff748f`.
+- Pinocchio branch `task/chatbot-react` was merged to main.
+- PR Buf run `https://github.com/go-go-golems/pinocchio/actions/runs/26832780454` passed with `Secret source: None`, `push: false`, and `breaking_against_registry: true`.
+- The `v0.11.2` tag-push Buf run `https://github.com/go-go-golems/pinocchio/actions/runs/26836427156/job/79131440138` authenticated to Vault, logged into BSR as `wesen`, ran Buf checks, and pushed:
+
+```text
+buf.build/go-go-golems/pinocchio-chatapp:fb2d9ed157cb4cacb61902b8d1fb4da8
+```
+
+- The proto diff gate was then re-enabled in `2813d15` for future `v*` tag pushes.
+- Terraform source was pushed through `24111c3`.
 - Ticket documentation was pushed as `fed580d`.
 
 Remaining validation:
 
-- Run a real release with no proto changes and confirm it skips Vault and skips BSR push.
-- Run a real release with proto changes and confirm Vault OIDC plus `buf push` succeeds.
+- Push the next `v*` tag without proto changes and confirm it skips Vault and skips BSR push.
+- Push a later `v*` tag with proto changes and confirm the gated path still authenticates to Vault and publishes to BSR.
 - Run Terraform with valid backend credentials to reconcile the direct Vault changes.
 
 ## Related notes
