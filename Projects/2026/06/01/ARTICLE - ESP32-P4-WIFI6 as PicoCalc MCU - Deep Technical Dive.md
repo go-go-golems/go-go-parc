@@ -29,6 +29,7 @@ This article documents a feasibility investigation and initial firmware bring-up
 > 3. The specific board received carries ESP32-P4 revision v1.3 silicon, which is supported by ESP-IDF 5.3+. Phase 1 is validated: the board boots ESP-IDF v5.4.2, detects 32 MB PSRAM at 200 MHz, reaches `app_main()`, and prints logs through the on-board CH343 USB-UART bridge on `/dev/ttyACM1`.
 > 4. The first networking experiment is also validated: `0098-esp32-p4-wifi6-webserver` brings up the onboard ESP32-C6 over ESP-Hosted SDIO, joins `yolobolo`, starts an `esp_console` REPL, and serves HTTP on the LAN at `http://192.168.0.88/` during the captured run.
 > 5. The lean display/keyboard firmware now runs the same-position PicoCalc LCD at actual 80 MHz using `SPI_CLK_SRC_SPLL`, validates stable visible output, and includes repeatable performance measurements: 21 ms full-screen fills, 20 pseudo-text screens/s, 1207 8×16 cell updates/s, and 546 full-width 16-pixel row updates/s.
+> 6. The latest display work adds queued SPI payload transfer and double-buffered RGB565 rendering. Pseudo-text redraw improved from 950 ms to 568 ms per 20 screens; moving rectangles, background-restore animation, and mixed dirty-region workloads all improved as well, with the largest gains on medium-size dirty rectangles.
 
 ## Why this note exists
 
@@ -1469,3 +1470,145 @@ The display subsystem has moved from bring-up to engineering. The board, the wir
 7. Keep asking for visual confirmation after any change that affects pixel content or timing.
 
 The project no longer needs to ask whether the ESP32-P4 can drive the PicoCalc display at useful speed. It can. The remaining question is how cleanly to build the UI stack on top of that capability.
+
+## Fourth deep dive: queued transfer, double buffering, and dirty-region workloads
+
+The previous LCD section ended with a balanced pseudo-text result: rendering 20 full 8×16 text screens cost about 477 ms, and transfer/window/SPI work cost about 476 ms. That split is the condition under which queued transfer becomes interesting. If a workload is almost entirely CPU rendering, there is little transfer time to hide. If it is almost entirely SPI transfer, there is little rendering work to overlap. The PicoCalc pseudo-text workload had both.
+
+The first queued experiment therefore did not try to rewrite the whole LCD driver. It kept the manual command/data path and the polling window setup, then queued only the pixel payload while the LCD DC line was already high. The firmware rendered the next row into a second internal DMA-capable buffer while the current row payload was in flight. Before changing the LCD window or driving DC low for another command, it waited for the queued transaction to complete.
+
+That ordering is the central rule of this phase. In the current manual driver, DC is a GPIO, not a field inside the SPI transaction descriptor. The SPI queue can schedule bytes, but it cannot remember that one transaction required DC high and the next command requires DC low. The firmware must enforce that sequencing explicitly.
+
+```text
+render row N into buffer A
+set LCD window for row N
+set DC high
+queue buffer A pixel payload
+render row N+1 into buffer B
+wait for row N payload to complete
+set LCD window for row N+1
+queue buffer B pixel payload
+```
+
+The result was a substantial improvement:
+
+```text
+lcd perf case=text8x16-poll loops=20 elapsed_ms=950 render_ms=461 transfer_ms=476 screens_s=21 cells_s=16841 payload_kib_s=4210
+lcd perf case=text8x16-queued loops=20 elapsed_ms=568 render_ms=463 window_ms=59 wait_ms=21 screens_s=35 cells_s=28152 payload_kib_s=7038
+```
+
+The queued path did not make rendering faster. It made the elapsed time smaller by overlapping row rendering with the previous row's pixel transfer. The remaining measured wait time fell to 21 ms over 20 complete screens because most payload transfer completed while the CPU was generating the next row.
+
+### Moving rectangles and arbitrary dirty payloads
+
+Text rows are not the only realistic workload. A UI also moves cursors, boxes, selection regions, sprites, and small widgets. The next command, `lcd movebench`, generates patterned RGB565 rectangles and compares polling against queued/double-buffered transfer:
+
+```text
+lcd movebench [poll|queued|both] [w h frames]
+```
+
+Measured results at actual 80 MHz:
+
+| Workload | Polling | Queued / double-buffered |
+|---|---:|---:|
+| `lcd movebench both 64 64 500` | 754 ms, 662 frames/s | 503 ms, 992 frames/s |
+| `lcd movebench both 80 40 500` | 607 ms, 823 frames/s | 413 ms, 1208 frames/s |
+| `lcd movebench both 128 64 300` | 854 ms, 351 frames/s | 550 ms, 545 frames/s |
+| `lcd movebench both 128 128 200` | 1106 ms, 180 frames/s | 697 ms, 286 frames/s |
+
+The conclusion is the same as the text benchmark: queued transfer helps arbitrary generated dirty rectangles. The gain is not a property of text. It is a property of workloads that can produce the next RGB565 buffer while the current buffer is being shifted out.
+
+### Background restore and mixed dirty regions
+
+A single moving rectangle is still an incomplete model for UI animation because it never restores the old region. The next benchmark, `lcd restorebench`, emits up to two dirty operations per frame: restore the previous rectangle's background, then draw the current rectangle.
+
+```text
+lcd restorebench [poll|queued|both] [w h frames]
+```
+
+The measured results were:
+
+| Workload | Polling | Queued / double-buffered |
+|---|---:|---:|
+| `lcd restorebench both 64 64 300` | 922 ms, 325 frames/s, 649 ops/s | 604 ms, 496 frames/s, 991 ops/s |
+| `lcd restorebench both 80 40 300` | 742 ms, 404 frames/s, 806 ops/s | 496 ms, 604 frames/s, 1206 ops/s |
+
+The final synthetic workload, `lcd mixedbench`, draws several independent dirty rectangles per frame:
+
+```text
+lcd mixedbench [poll|queued|both] [w h frames rects_per_frame]
+```
+
+The measured results were:
+
+| Workload | Polling | Queued / double-buffered |
+|---|---:|---:|
+| `lcd mixedbench both 24 16 200 6` | 353 ms, 566 frames/s, 3396 ops/s | 315 ms, 633 frames/s, 3802 ops/s |
+| `lcd mixedbench both 40 24 200 4` | 386 ms, 517 frames/s, 2071 ops/s | 303 ms, 659 frames/s, 2638 ops/s |
+
+These numbers are useful because they show both the strength and the limit of the current queued design. Medium rectangles benefit strongly. Very small mixed rectangles still benefit, but less, because each rectangle pays its own address-window commands. At that point the main optimization is not deeper SPI queueing; it is dirty-rectangle coalescing, row batching, or a display task that can collect several app updates before touching the panel.
+
+### What the display task should own
+
+The next architectural step is a display task. The display task is not primarily a performance feature. It is an ownership feature. It gives exactly one FreeRTOS task responsibility for LCD window programming, DC transitions, queued transaction lifetime, DMA-buffer reuse, and dirty-region batching.
+
+A minimal API would look like this:
+
+```c
+typedef enum {
+    DISPLAY_CMD_FILL_RECT,
+    DISPLAY_CMD_BLIT_RGB565,
+    DISPLAY_CMD_TEXT_ROW,
+    DISPLAY_CMD_SCROLL,
+    DISPLAY_CMD_CLEAR,
+    DISPLAY_CMD_PRESENT,
+} display_cmd_type_t;
+
+typedef struct {
+    display_cmd_type_t type;
+    uint16_t x, y, w, h;
+    union {
+        struct { uint16_t color; } fill;
+        struct { const uint16_t *pixels; size_t stride_pixels; } blit;
+        struct { const char *text; uint16_t fg, bg; uint8_t font_id; } text_row;
+        struct { int16_t dy; uint16_t fill_color; } scroll;
+    } u;
+} display_cmd_t;
+
+esp_err_t display_start(void);
+esp_err_t display_submit(const display_cmd_t *cmd, TickType_t timeout);
+esp_err_t display_submit_batch(const display_cmd_t *cmds, size_t count, TickType_t timeout);
+esp_err_t display_flush(TickType_t timeout);
+```
+
+The task loop would drain commands briefly, coalesce compatible dirty regions, render into inactive DMA buffers, queue one pixel payload, render the next payload while the current one transfers, and wait before any command/window/DC change that could affect the in-flight transaction. Application code would submit fills, text rows, scroll requests, and blits. It would not call `lcd_set_window()` or `spi_device_queue_trans()` directly.
+
+This becomes more important as the firmware grows. Keyboard handlers, terminal code, status bars, and future widgets should not share a raw SPI device handle. They should share a command queue whose consumer enforces the LCD protocol.
+
+### Updated project direction
+
+The project has crossed another threshold. The LCD is not merely initialized, and it is not merely fast at full-screen fills. It now has measured behavior across a family of workloads:
+
+- full-screen fills are near the 80 MHz payload floor;
+- generated patterns validate high-frequency pixel output;
+- terminal cells and rows show why row batching matters;
+- pseudo-text shows render/transfer balance;
+- queued text shows overlap can raise redraw throughput from about 21 to 35 screens/s;
+- moving rectangles and background-restore workloads show queued transfer helps animation-like dirty regions;
+- mixed tiny rectangles show that command/window overhead becomes the next limit.
+
+The next production renderer should therefore be built around three rules. First, keep active DMA buffers in internal DMA-capable memory. Second, batch or coalesce small dirty regions before programming the LCD window. Third, route all display writes through a single owner task so the queued-transfer invariant is enforced once, not rediscovered in every caller.
+
+The current unvalidated item remains visual confirmation of the queued workloads. The metrics are good and the commands completed without SPI errors, but the project rule still applies: visible pixel output is the acceptance criterion for display timing changes.
+
+### Additional commits for this phase
+
+```text
+e91b3e5 0099: add queued LCD text benchmark
+24d6677 ESP32-P4-PICOCALC: document queued LCD benchmark
+43c06dc 0099: add moving rectangle LCD benchmark
+3bb260c ESP32-P4-PICOCALC: document moving rectangle benchmark
+665a3fe 0099: add dirty region LCD benchmarks
+c286a0f ESP32-P4-PICOCALC: document dirty region benchmarks
+```
+
