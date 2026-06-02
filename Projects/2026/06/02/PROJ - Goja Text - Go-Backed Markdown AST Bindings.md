@@ -114,15 +114,15 @@ The runtime path starts with JavaScript and ends in Go-backed AST values. A scri
 ```mermaid
 flowchart TD
   JS[JavaScript script]
-  Require[require("markdown")]
+  Require["require(markdown)"]
   Module[pkg/markdown module.Loader]
-  Parse[Parse(input string)]
+  Parse[Parse input string]
   Goldmark[goldmark parser]
-  Convert[ConvertAST(source, goldmark.Node)]
+  Convert[ConvertAST source, goldmark.Node]
   Node[*MarkdownNode tree]
-  Walk[walk(root, visitor)]
-  Text[textContent(node)]
-  Validate[validate(value)]
+  Walk[walk root, visitor]
+  Text[textContent node]
+  Validate[validate value]
 
   JS --> Require
   Require --> Module
@@ -147,7 +147,7 @@ The xgoja build path is separate from the runtime path. xgoja reads a declarativ
 flowchart TD
   Spec[xgoja.yaml]
   Xgoja[xgoja build]
-  Temp[/tmp/xgoja-build-*]
+  Temp["/tmp/xgoja-build-*"]
   Generated[generated main.go and go.mod]
   Providers[provider package imports]
   Build[go mod tidy + go build]
