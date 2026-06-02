@@ -28,6 +28,7 @@ This article documents a feasibility investigation and initial firmware bring-up
 > 2. The board exposes 25 GPIOs on two 2×20 headers, all available for the PicoCalc project; on-board peripherals (C6 SDIO, I²S codec, SDMMC, UART) consume only internal-trace GPIOs that never reach the headers.
 > 3. The specific board received carries ESP32-P4 revision v1.3 silicon, which is supported by ESP-IDF 5.3+. Phase 1 is validated: the board boots ESP-IDF v5.4.2, detects 32 MB PSRAM at 200 MHz, reaches `app_main()`, and prints logs through the on-board CH343 USB-UART bridge on `/dev/ttyACM1`.
 > 4. The first networking experiment is also validated: `0098-esp32-p4-wifi6-webserver` brings up the onboard ESP32-C6 over ESP-Hosted SDIO, joins `yolobolo`, starts an `esp_console` REPL, and serves HTTP on the LAN at `http://192.168.0.88/` during the captured run.
+> 5. The lean display/keyboard firmware now runs the same-position PicoCalc LCD at actual 80 MHz using `SPI_CLK_SRC_SPLL`, validates stable visible output, and includes repeatable performance measurements: 21 ms full-screen fills, 20 pseudo-text screens/s, 1207 8×16 cell updates/s, and 546 full-width 16-pixel row updates/s.
 
 ## Why this note exists
 
@@ -1160,3 +1161,311 @@ The best next code change is not to keep guessing speeds. It is to make `0099` e
 - Do not interpret `ESP_OK` SPI transfers as visual display proof. Always separate transaction success from panel-visible success.
 - Preserve the distinction between validated evidence and design preference. “Keyboard status ACKed on GPIO50/GPIO49” is evidence. “LCD should eventually move to GPIO28–31” is a design preference based on ESP32-P4 peripheral routing.
 
+
+## Third deep dive: LCD performance work after the first visual proof
+
+The previous section ended with the LCD speed path still unresolved. The important update is that the speed problem was solved, and it was not a panel limit. It was an ESP-IDF clock-source configuration issue.
+
+ESP32-P4's GPSPI driver checks requested SPI speed against the selected source clock. In ESP-IDF v5.4.2 the relevant rule is effectively:
+
+```c
+clock_speed_hz <= MIN(clock_source_hz / 2, 80 MHz)
+```
+
+On ESP32-P4, `SPI_CLK_SRC_DEFAULT` maps to the 40 MHz XTAL source. That makes the maximum accepted SCLK 20 MHz. This exactly explained the earlier observations: 20 MHz worked, while higher requests failed with `invalid sclk speed` before any LCD transaction could run.
+
+The fix in `0099-esp32-p4-picocalc-display-keyboard` was to set the LCD SPI device's clock source explicitly:
+
+```c
+#define LCD_DEFAULT_SPI_HZ        (80 * 1000 * 1000)
+#define LCD_SPI_CLK_SRC           SPI_CLK_SRC_SPLL
+```
+
+With `SPI_CLK_SRC_SPLL`, ESP-IDF accepted actual 80 MHz on the same-position LCD wiring:
+
+```text
+lcd init: ESP_OK
+lcd speed requested=80000000 actual_khz=80000
+lcd bars ok elapsed_ms=33
+```
+
+The user visually inspected the 80 MHz color bars and confirmed that the output was good. That confirmation matters: SPI success only proves that bytes were sent. It does not prove that the LCD glass displayed them correctly. After visual inspection, the same-position mapping moved from “transaction path works” to “actual display output works at 80 MHz.”
+
+### Why 80 MHz is the ceiling, but not the end of optimization
+
+The driver-level limit remains 80 MHz. Requesting 100 MHz still fails. The practical conclusion is that the next performance gains cannot come from raising SCLK through the normal ESP-IDF `spi_master` API. They must come from reducing overhead and sending fewer or better-batched pixels.
+
+A 320×320 RGB565 frame is:
+
+```text
+320 * 320 * 2 = 204,800 bytes
+```
+
+At 80 MHz SPI, the raw wire rate is 10 MB/s, so the theoretical minimum for a full-frame payload is about 20.48 ms. That number gives a hard reference point. If a full-screen fill takes 95 ms, the system is overhead-bound. If it takes 21 ms, it is close to the SPI payload floor.
+
+The first 80 MHz implementation still used a small 512-byte stack buffer for solid fills. A full frame therefore required roughly 400 pixel transactions. The first performance optimization replaced that with a reusable 32 KiB internal DMA-capable buffer and raised the SPI bus maximum transfer size to 32 KiB:
+
+```c
+#define LCD_SPI_MAX_TRANSFER_SZ   (32 * 1024)
+#define LCD_FILL_DMA_CHUNK_BYTES  LCD_SPI_MAX_TRANSFER_SZ
+```
+
+The 32 KiB size is not arbitrary. ESP32-P4's SPI low-level layer sets the DMA transaction bit length to `(1 << 18)` bits, which is 32,768 bytes. A full frame now needs about seven pixel transactions instead of about 400.
+
+The result was immediate:
+
+```text
+Before 32 KiB DMA chunks: ~32 ms/fill at 80 MHz
+After  32 KiB DMA chunks:  21 ms/fill at 80 MHz
+```
+
+This is as close to the raw 80 MHz transfer floor as a command/data SPI path can reasonably get for full-screen solid fills.
+
+### The accepted LCD baseline
+
+The current accepted LCD baseline in `0099` is:
+
+```text
+clock_source = SPI_CLK_SRC_SPLL
+requested_hz = 80000000
+actual_khz   = 80000
+dma_chunk    = 32768 bytes
+```
+
+The current same-position physical LCD mapping is still:
+
+```text
+Pico GP10 / LCD SCK  -> ESP32-P4 GPIO3
+Pico GP11 / LCD MOSI -> ESP32-P4 GPIO2
+Pico GP13 / LCD CS   -> ESP32-P4 GPIO7
+Pico GP14 / LCD DC   -> ESP32-P4 GPIO24
+Pico GP15 / LCD RST  -> ESP32-P4 GPIO25
+```
+
+That mapping is not the ideal SPI2 IO-MUX routing, but it now has evidence behind it. It can drive the PicoCalc LCD at actual 80 MHz through the current smoke-test path, with stable visible output in color bars, checkerboards, stripes, diagonals, and pseudo-text workloads.
+
+### Visual stress patterns
+
+Solid color bars are a good first test, but they are weak signal-integrity tests. A mostly constant pixel stream can hide timing and bit-edge problems. The next firmware phase added high-frequency generated patterns:
+
+```text
+lcd pattern checker
+lcd pattern stripes
+lcd pattern diagonal
+lcd pattern all
+```
+
+Observed timings at actual 80 MHz:
+
+```text
+lcd pattern checker  -> 34 ms
+lcd pattern stripes  -> 32 ms
+lcd pattern diagonal -> 33 ms
+```
+
+These are slower than solid fills because the firmware generates per-pixel RGB565 data on the CPU before sending each DMA chunk. The important result was not just timing. The user confirmed that these outputs worked visually. That means the same-position GPIO-matrix wiring is robust enough for high-frequency black/white and diagonal transitions at actual 80 MHz in this setup.
+
+### Dirty-rectangle and terminal-shaped workloads
+
+The next question was not “how fast can the display clear?” but “how fast can a PicoCalc UI update?” A text UI spends most of its time drawing character cells, rows, cursors, and scroll regions. These workloads have a different cost structure from full-screen fills: they send less payload, but they pay more command/setup overhead per byte.
+
+`0099` now includes dirty-rectangle and terminal-style commands:
+
+```text
+lcd rectbench [w h loops]
+lcd cellbench [w h loops]
+lcd rowbench [row_h loops]
+lcd scrollbench [row_h loops]
+```
+
+The measured results at actual 80 MHz were:
+
+```text
+lcd rectbench 16 16 500 -> 1170 rects/s
+lcd rectbench 80 24 200 -> 843 rects/s
+
+lcd cellbench 8 16 1000 -> 1206 cell updates/s
+lcd rowbench 16 200     -> 546 full-width row updates/s
+
+lcd scrollbench 16 20 -> 27 scroll-style redraws/s, 546 row updates/s
+lcd scrollbench 8 20  -> 18 scroll-style redraws/s, 759 row updates/s
+```
+
+The lesson is clear. Tiny cells are update-rate efficient but payload inefficient: the command overhead dominates. Full-width rows are much more efficient because each address-window setup buys more payload. A future terminal renderer should therefore batch by dirty row whenever possible. Per-cell updates are fine for cursor blink or isolated keypress echo, but not for bulk redraw.
+
+The scroll-style redraw results are especially important. A naive 20-row, 16-pixel-high terminal scroll redraw reaches about 27 redraws/s. That is usable, but it is not luxurious. If scrolling becomes central to the UI, the firmware should investigate the ST7365P/ILI9488 vertical scroll commands rather than repainting every row for every scroll.
+
+### Pseudo-text rendering: measuring render cost, not just SPI cost
+
+Solid fills and row fills measure the transport path. They do not measure glyph expansion. To approximate a real terminal renderer, `0099` now includes row-batched pseudo-text commands:
+
+```text
+lcd textbench [cell_w cell_h loops]
+lcd text [cell_w cell_h]
+```
+
+The pseudo-text path does not use a real font yet. Instead, it generates glyph-like black/white RGB565 pixels into the 32 KiB DMA buffer, one full text row at a time, then sends that row to the panel. This preserves the important workload shape: CPU-side glyph expansion plus row-batched SPI transfer.
+
+Measured results:
+
+```text
+lcd textbench 8 16 20
+-> 40x20 cells
+-> 21 screens/s
+-> 17112 cells/s
+
+lcd textbench 8 8 20
+-> 40x40 cells
+-> 20 screens/s
+-> 32653 cells/s
+
+lcd text 8 16
+-> one 40x20 pseudo-text screen in 46 ms
+```
+
+A full pseudo-text redraw is therefore about 20–21 frames/s. That is good enough for many terminal-like interactions, but it also reinforces the previous row-batching lesson. A production text UI should not redraw the entire screen for every keypress. It should maintain dirty rows/cells and redraw only the regions that changed.
+
+### Structured performance suite
+
+The newest change is a repeatable performance suite. One-off commands are useful during bring-up, but they make it hard to compare future changes. `0099` now has:
+
+```text
+lcd perf
+lcd perf full
+```
+
+The suite measures comparable cases and prints stable metric lines:
+
+- full-screen fill,
+- generated high-frequency pattern,
+- pseudo-text 8×16,
+- 8×16 cell updates,
+- 320×16 row updates.
+
+The pseudo-text case now splits CPU render time from transfer/window/SPI time. That split is the most useful measurement in the current firmware because it shows where future optimization should focus.
+
+The accepted full-suite baseline at actual 80 MHz is:
+
+```text
+lcd perf case=fill loops=20 elapsed_ms=439 per_ms=21 payload_kib_s=9105
+lcd perf case=pattern loops=10 elapsed_ms=330 per_ms=33 payload_kib_s=6052
+lcd perf case=text8x16 loops=20 elapsed_ms=955 render_ms=477 transfer_ms=476 screens_s=20 cells_s=16744 payload_kib_s=4186
+lcd perf case=cell8x16 loops=2000 elapsed_ms=1656 updates_s=1207 payload_kib_s=301
+lcd perf case=row320x16 loops=400 elapsed_ms=731 updates_s=546 payload_kib_s=5465
+```
+
+The text result is almost perfectly balanced:
+
+```text
+render time   = 477 ms over 20 pseudo-text screens
+transfer time = 476 ms over 20 pseudo-text screens
+```
+
+This is the main performance insight from the current phase. The text path is not purely SPI-bound and not purely CPU-bound. Future gains need both sides:
+
+1. faster or more selective glyph rendering;
+2. fewer transfers through dirty row/cell tracking;
+3. possibly queued DMA for row transfers;
+4. possibly panel vertical-scroll commands for scrolling workloads.
+
+### Watchdog behavior during long measurements
+
+The first `lcd perf full` implementation used larger loop counts and completed, but it triggered task-watchdog warnings. The reason was not an LCD crash; it was a measurement-loop design problem. The console task on CPU0 ran long tight polling-SPI loops and starved the idle task:
+
+```text
+E (...) task_wdt: Task watchdog got triggered.
+E (...) task_wdt:  - IDLE0 (CPU 0)
+E (...) task_wdt: CPU 0: console_repl
+```
+
+The fix was to treat `lcd perf full` as a stable measurement suite, not a stress test. The loop counts were reduced and cooperative yields were added. The final full-suite run completed without watchdog warnings.
+
+This is a useful embedded-systems rule: benchmark loops that run inside an interactive console must still be scheduler-friendly. If the project later needs very long display stress tests, those should run in a dedicated task with explicit watchdog handling and progress reporting, not inside the REPL command handler.
+
+### Current `0099` command surface
+
+The lean display/keyboard firmware has become a useful peripheral lab. It now covers keyboard status, display bring-up, visual patterns, throughput, terminal workloads, and structured performance measurement:
+
+```text
+status
+kbd status
+kbd poll 10
+kbd raw on
+kbd raw off
+
+lcd init
+lcd speed
+lcd speed 80M
+lcd fill red|green|blue|white|black
+lcd bars
+
+lcd bench 10
+lcd pattern checker
+lcd pattern stripes
+lcd pattern diagonal
+lcd pattern all
+
+lcd rectbench 16 16 500
+lcd cellbench 8 16 1000
+lcd rowbench 16 200
+lcd scrollbench 16 20
+
+lcd textbench 8 16 20
+lcd text 8 16
+
+lcd perf
+lcd perf full
+```
+
+The command set is now rich enough to serve as a regression harness. After any LCD driver change, run `lcd perf full`, then leave a visible pattern or pseudo-text screen for human confirmation.
+
+### Updated performance conclusions
+
+The final conclusions have changed substantially since the previous article section:
+
+1. The same-position adapter's LCD path can run at actual 80 MHz with visible stable output.
+2. The earlier 20 MHz ceiling was an ESP-IDF default clock-source issue, not a panel limitation.
+3. ESP-IDF's normal GPSPI master path still caps SCLK at 80 MHz, so the optimization problem is now batching and rendering, not higher clock requests.
+4. A 32 KiB internal DMA buffer brings full-screen solid fills to about 21 ms, close to the theoretical wire-speed floor.
+5. Generated patterns take about 32–34 ms because CPU pixel generation adds work.
+6. Tiny cell updates are command-overhead dominated; row updates are much more efficient.
+7. Row-batched pseudo-text rendering reaches about 20 screens/s for a 40×20 8×16-cell screen.
+8. Pseudo-text render and transfer costs are roughly equal, so future optimization must address both CPU-side font work and LCD transfer batching.
+9. The next production step is not more synthetic benchmarking. It is a real bitmap font renderer with dirty row/cell tracking, followed by another `lcd perf full` comparison.
+
+### Current commits for this performance phase
+
+The relevant repository commits are:
+
+```text
+7bb4d1a 0099: optimize LCD fill throughput
+241a541 ESP32-P4-PICOCALC: record LCD visual confirmation
+9f7e979 0099: add LCD pattern and rect benchmarks
+0bb3e79 ESP32-P4-PICOCALC: document LCD pattern benchmarks
+1414dfd 0099: add LCD terminal workload benchmarks
+9127238 ESP32-P4-PICOCALC: document LCD terminal benchmarks
+749f254 0099: add LCD pseudo text benchmark
+0c99b20 ESP32-P4-PICOCALC: document LCD pseudo text benchmark
+5c4887a 0099: add LCD performance suite
+1005005 ESP32-P4-PICOCALC: document LCD performance suite
+```
+
+The key ticket document for this phase is:
+
+```text
+ttmp/2026/06/01/ESP32-P4-PICOCALC--esp32-p4-wifi6-as-picocalc-mcu-replacement-rp2350-swap/design-doc/04-picocalc-lcd-spi-throughput-optimization-guide.md
+```
+
+### Updated near-term direction
+
+The display subsystem has moved from bring-up to engineering. The board, the wiring, and the LCD SPI path are no longer speculative. The next useful work is to build a small real renderer on top of the measured primitives:
+
+1. Replace pseudo-glyph generation with a real bitmap font.
+2. Track dirty cells and dirty rows.
+3. Prefer row batching for normal line redraws.
+4. Use per-cell updates only for isolated changes such as a cursor blink.
+5. Investigate panel vertical scrolling for terminal scroll operations.
+6. Rerun `lcd perf full` after each change.
+7. Keep asking for visual confirmation after any change that affects pixel content or timing.
+
+The project no longer needs to ask whether the ESP32-P4 can drive the PicoCalc display at useful speed. It can. The remaining question is how cleanly to build the UI stack on top of that capability.
