@@ -361,6 +361,37 @@ cassowary-layout-demo/
 │   └── main.tsx
 ```
 
+## Step 8: Zoom, Pan, and Guide Drag-to-Create
+
+This step added three viewport interactions: zoom via Ctrl+mouse wheel, pan via middle-click drag or space+left-click drag, and guide creation via drag from the ruler areas.
+
+### What was built
+
+**Zoom** (`Ctrl` + `wheel`): The wheel event handler detects `ctrlKey` or `metaKey` and adjusts the zoom level by 10% increments, clamped to the range 0.1× to 5.0×. The zoom value is stored in the `uiSlice` and applied in the CanvasRenderer via `ctx.scale(zoom, zoom)` after `ctx.translate(panOffset.x, panOffset.y)`.
+
+**Pan** (`middle-click` drag or `Space` + `left-click` drag): On `mousedown`, the handler records the starting screen position and current pan offset. On `mousemove`, it computes the delta and dispatches `setPanOffset({ x: startPan.x + dx, y: startPan.y + dy })`. On `mouseup`, it clears the pan state. The pan offset is applied before the zoom scale in the renderer.
+
+**Guide drag-to-create**: On `mousedown` in the ruler area (horizontal: top strip of height `20 * zoom + panOffset.y`; vertical: left strip of width `20 * zoom + panOffset.x`), the handler records a guide drag state with orientation. On `mousemove`, a preview line (magenta dashed) is drawn at the current canvas-space coordinate. On `mouseup`, if the drag moved at least 10 pixels past the ruler edge, a guide is created via `addGuide({ id, orientation, position })`.
+
+The canvas rendering pipeline uses `ctx.save()` before applying the zoom/pan transform, draws all document content (frames, guides, constraint viz, rulers), then `ctx.restore()` before drawing screen-space overlays (stats).
+
+### What was learned
+
+- Canvas zoom/pan must be applied in the correct order: `translate(pan)` → `scale(zoom)` → draw content. Reversing the order produces incorrect offsets.
+- Ruler hit-testing must account for both pan offset and zoom. The ruler area in screen space is `[panOffset.y, panOffset.y + 20 * zoom]` for the horizontal ruler.
+- Synthetic browser events (`window.dispatchEvent(new MouseEvent(...))`) lack the `buttons` field, which breaks drag state detection. Real browser events (Playwright's mouse API) set `buttons` correctly.
+
+### Verified behavior
+
+| Interaction | Trigger | Result |
+|-------------|---------|--------|
+| Zoom in | Ctrl + wheel up | Canvas scales to 110% |
+| Zoom out | Ctrl + wheel down | Canvas scales to 90% |
+| Pan | Middle-click drag | Canvas content moves with cursor |
+| Pan (alt) | Space + left-click drag | Canvas content moves with cursor |
+| Create horizontal guide | Drag from top ruler | Magenta dashed line appears at y≈200 |
+| Create vertical guide | Drag from left ruler | Magenta dashed line appears at x≈position |
+
 ## Working rules
 
 These rules were derived from the implementation experience and should guide future development:
