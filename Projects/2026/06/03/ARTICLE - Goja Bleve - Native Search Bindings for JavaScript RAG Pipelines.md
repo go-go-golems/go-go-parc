@@ -115,7 +115,7 @@ The system has four layers:
 
 ```mermaid
 flowchart TD
-    JS[JavaScript script] --> Require[require bleve"]
+    JS[JavaScript script] --> Require[require bleve]
     Require --> Exports[Module exports]
     Exports --> Builders[Fluent builders]
     Builders --> Wrappers[JS wrappers with hidden refs]
