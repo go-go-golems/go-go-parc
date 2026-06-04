@@ -53,9 +53,9 @@ Extensions cannot override core `gh` commands. If a name conflicts with a built-
 
 The initial implementation determined the "proper" remote by checking three candidates in order:
 
-1. `upstream` — if a remote named `upstream` exists, use it.
-2. `origin` — if `upstream` does not exist but `origin` does, use it.
-3. The branch's tracked remote — if neither exists, fall back to whatever `@{upstream}` resolves to.
+1. `upstream` - if a remote named `upstream` exists, use it.
+2. `origin` - if `upstream` does not exist but `origin` does, use it.
+3. The branch's tracked remote - if neither exists, fall back to whatever `@{upstream}` resolves to.
 
 This heuristic works for the common case where `upstream` is the canonical repository and `origin` is the user's fork. But it fails when the branch tracks a remote that is neither `upstream` nor `origin`. In the `go-go-goja` workspace at `/home/manuel/workspaces/2026-06-03/goja-runtime-flags/go-go-goja`, the remotes are:
 
@@ -200,21 +200,44 @@ WEB_URL="https://github.com/${WEB_URL}"
 
 URL="${WEB_URL}/tree/${BRANCH}"
 
-if [[ "$NO_BROWSER" == true ]]; then
-  echo "$URL"
-  exit 0
-fi
+URL="${WEB_URL}/tree/${BRANCH}"
 
 if command -v xdg-open &>/dev/null; then
-  xdg-open "$URL" "${EXTRA_ARGS[@]:-}"
+  xdg-open "$URL"
 elif command -v open &>/dev/null; then
-  open "$URL" "${EXTRA_ARGS[@]:-}"
+  open "$URL"
 else
   python3 -m webbrowser "$URL"
 fi
 ```
 
 The script uses `set -euo pipefail` for error handling. The `-e` flag causes the script to exit on any command failure. The `-u` flag treats unset variables as errors. The `-o pipefail` flag causes a pipeline to fail if any command in it fails. These settings are standard for robust bash scripts and prevent silent failures when git commands return empty output.
+
+## File path argument
+
+If a file path is passed as a positional argument, the extension opens that file on the current branch instead of the branch root:
+
+```bash
+gh branch-open pkg/xgoja/providers/host/host.go
+```
+
+This constructs a `/blob` URL instead of a `/tree` URL:
+
+```
+https://github.com/wesen/go-go-goja/blob/task/goja-runtime-flags/pkg/xgoja/providers/host/host.go
+```
+
+The conversion is a single conditional on whether the `FILE` variable is non-empty:
+
+```bash
+if [[ -n "$FILE" ]]; then
+  URL="${WEB_URL}/blob/${BRANCH}/${FILE}"
+else
+  URL="${WEB_URL}/tree/${BRANCH}"
+fi
+```
+
+The script rejects multiple file paths to prevent the ambiguity of which file to open.
 
 ## Testing across repository configurations
 
@@ -268,23 +291,28 @@ The alternative approaches and why they were rejected:
 
 ### "not inside a git repository"
 
-Cause: the current directory is not inside a git work tree.  
+Cause: the current directory is not inside a git work tree.
 Fix: change to a git repository before running the command.
 
 ### "could not determine current branch"
 
-Cause: the repository is in detached HEAD state.  
+Cause: the repository is in detached HEAD state.
 Fix: checkout a branch, or the extension could be enhanced to open the commit page instead.
 
 ### "no remote found"
 
-Cause: the repository has no remotes configured, and the branch has no upstream.  
+Cause: the repository has no remotes configured, and the branch has no upstream.
 Fix: add a remote with `git remote add`.
 
 ### Wrong URL for non-GitHub remotes
 
-Cause: the URL conversion assumes GitHub. A remote on GitLab or another host would produce a GitHub URL.  
+Cause: the URL conversion assumes GitHub. A remote on GitLab or another host would produce a GitHub URL.
 Fix: extend the URL parsing to handle other hosts, or use `gh browse -R owner/repo -b branch` which delegates to `gh`'s own remote resolution.
+
+### Multiple file paths
+
+Cause: more than one positional argument was provided.
+Fix: pass only a single file path, or omit the argument entirely to open the branch root.
 
 ## Architecture
 
@@ -328,8 +356,8 @@ The `--force` flag reinstalls the extension if it already exists, which is usefu
 
 ## Related notes
 
-- [[ARTICLE - xgoja - Building a Query Tool with Jsverbs and Embedded Modules]] — the xgoja diary-db tool from the same session
-- [[ARTICLE - Data Pipeline - From GitHub API to Retro Browser]] — the data collection pipeline
-- [[DAILY-CHANGELOG-2026-06-02]] — the docmgr ticket containing this extension
-- [[gh browse --help]] — the built-in browse command
-- [[gh extension --help]] — extension management commands
+- [[ARTICLE - xgoja - Building a Query Tool with Jsverbs and Embedded Modules]] - the xgoja diary-db tool from the same session
+- [[ARTICLE - Data Pipeline - From GitHub API to Retro Browser]] - the data collection pipeline
+- [[DAILY-CHANGELOG-2026-06-02]] - the docmgr ticket containing this extension
+- [[gh browse --help]] - the built-in browse command
+- [[gh extension --help]] - extension management commands
