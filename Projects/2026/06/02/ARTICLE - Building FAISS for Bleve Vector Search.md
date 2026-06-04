@@ -50,12 +50,11 @@ flowchart TD
     B --> C[go-faiss CGO bindings]
     C --> D[FAISS C API: libfaiss_c.so]
     D --> E[FAISS C++ library: libfaiss.so]
-
     A --> A1[cmd/experiments/bleve-knn/main.go]
     B --> B1[Vector field mapping and SearchRequest.AddKNN]
     C --> C1[Headers under /usr/local/include/faiss]
-    D --> D1[/usr/local/lib/libfaiss_c.so]
-    E --> E1[/usr/local/lib/libfaiss.so]
+    D --> D1["/usr/local/lib/libfaiss_c.so"]
+    E --> E1["/usr/local/lib/libfaiss.so"]
 ```
 
 The experiment command is ordinary Go code. It creates a Bleve index, defines a vector field, indexes documents, and runs KNN and hybrid queries. Bleve is the search abstraction that the application uses. `go-faiss` is not directly imported by the experiment; it is pulled in by Bleve when the `vectors` tag is enabled. FAISS itself is native code. The Go toolchain delegates native compilation and linking to CGO and the platform linker.
