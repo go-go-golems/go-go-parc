@@ -130,27 +130,32 @@ This is a series of bash parameter expansions. Each `#` operator removes the mat
 #!/usr/bin/env bash
 set -euo pipefail
 
-NO_BROWSER=false
-EXTRA_ARGS=()
+# Usage: gh branch-open [-h|--help] [file-path]
+#
+# Examples:
+#   gh branch-open                          # open branch root
+#   gh branch-open cmd/gh/main.go           # open file on branch
+#   gh branch-open --help                   # show this help
+
+FILE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -n|--no-browser)
-      NO_BROWSER=true
-      shift
-      ;;
-    --)
-      shift
-      EXTRA_ARGS+=("$@")
-      break
+    -h|--help)
+      sed -n '4,11p' "$0"
+      exit 0
       ;;
     -*)
       echo "Unknown flag: $1" >&2
-      echo "Usage: gh branch-open [-n|--no-browser]" >&2
+      echo "Usage: gh branch-open [-h|--help] [file-path]" >&2
       exit 1
       ;;
     *)
-      EXTRA_ARGS+=("$1")
+      if [[ -n "$FILE" ]]; then
+        echo "Only one file path allowed. Got: $FILE and $1" >&2
+        exit 1
+      fi
+      FILE="$1"
       shift
       ;;
   esac
@@ -182,7 +187,7 @@ if [[ -z "${REMOTE:-}" ]]; then
 fi
 
 if [[ -z "${REMOTE:-}" ]]; then
-  echo "gh-branch-open: no remote found" >&2
+  echo "gh-branch-open: no remote found (tried: tracked branch, upstream, origin)" >&2
   exit 1
 fi
 
@@ -198,9 +203,11 @@ WEB_URL="${WEB_URL#ssh://git@github.com/}"
 WEB_URL="${WEB_URL#https://github.com/}"
 WEB_URL="https://github.com/${WEB_URL}"
 
-URL="${WEB_URL}/tree/${BRANCH}"
-
-URL="${WEB_URL}/tree/${BRANCH}"
+if [[ -n "$FILE" ]]; then
+  URL="${WEB_URL}/blob/${BRANCH}/${FILE}"
+else
+  URL="${WEB_URL}/tree/${BRANCH}"
+fi
 
 if command -v xdg-open &>/dev/null; then
   xdg-open "$URL"
@@ -327,10 +334,11 @@ flowchart TD
     F --> H[Get remote URL]
     G --> H
     H --> I[Convert git URL to https]
-    I --> J[Build github.com/owner/repo/tree/branch]
-    J --> K{--no-browser?}
-    K -->|yes| L[Print URL]
-    K -->|no| M[Open browser]
+    I --> J{File arg?}
+    J -->|yes| K[Build blob URL]
+    J -->|no| L[Build tree URL]
+    K --> M[Open browser]
+    L --> M
 
     style E fill:#2d4a22,stroke:#4a7c3f
     style F fill:#2d4a22,stroke:#4a7c3f
