@@ -37,17 +37,17 @@ repo: /home/manuel/code/wesen/2026-06-04--context-window-render
 
 The current per-diagram page shows all active render modes for one YAML file. The left side contains the boxed Macintosh-inspired SVG. The right and lower regions show Swiss typography variants, ASCII output, and the YAML source.
 
-![[assets/context-window-render/current-page.png]]
+![](assets/context-window-render/current-page.png)
 
 The Swiss renderer was added later as a second visual system. It uses aligned text columns, semantic color, indentation for nested data, and a compact horizontal allocation line at the bottom.
 
-![[assets/context-window-render/swiss-renderer-rag.png]]
+![](assets/context-window-render/swiss-renderer-rag.png)
 
 Two earlier screenshots are useful for understanding the progression. The first shows the intermediate 3-column grid page with SVG, ASCII, and YAML. The second shows an earlier SVG gallery view before the per-diagram page model replaced output-type galleries.
 
-![[assets/context-window-render/grid-prototype.png]]
+![](assets/context-window-render/grid-prototype.png)
 
-![[assets/context-window-render/svg-gallery-prototype.png]]
+![](assets/context-window-render/svg-gallery-prototype.png)
 
 ## Why this project exists
 
