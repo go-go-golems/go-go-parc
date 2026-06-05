@@ -21,17 +21,18 @@ source_tickets:
   - RAGEVAL-UI-DSL
   - WIDGETSITE-PACKAGING
   - XGOJA-WIDGETSITE
+  - WIDGETDSL-VISUAL-QUALITY
 ---
 
 # Building a Goja UI DSL from Scratch: Widget IR to xgoja
 
-This article explains how the RAG evaluation system grew a Goja-authored UI DSL from a prototype into a runnable generated xgoja site. The system starts with a React component library, introduces a JSON-compatible Widget IR, exposes that IR to JavaScript through `require("widget.dsl")`, executes trusted page scripts in Goja, serves the result over HTTP, packages the renderer as a reusable React package, embeds the default app into Go, and finally wraps the authoring module as an xgoja provider.
+This article explains how the RAG evaluation system grew a Goja-authored UI DSL from a prototype into a runnable generated xgoja site. The system starts with a React component library, introduces a JSON-compatible Widget IR, exposes that IR to JavaScript through `require("widget.dsl")`, executes trusted page scripts in Goja, serves the result over HTTP, packages the renderer as a reusable React package, embeds the default app into Go, wraps the authoring module as an xgoja provider, and then fixes the visual-quality gap that appears when real components are copied into a standalone package without their original theme and page shell environment.
 
 > [!summary]
 > - The central design decision was to make Goja produce Widget IR, not HTML. React remains the renderer and keeps ownership of components, CSS Modules, actions, and accessibility behavior.
 > - The implementation moved through clear layers: TypeScript IR and `WidgetRenderer`, Goja `widget.dsl`, `pkg/widgetrunner`, `pkg/widgetserver`, npm package, embedded SPA, schema/actions, and xgoja provider.
-> - Most difficult failures were boundary failures: Goja struct field names versus JSON names, generated xgoja module replacement rules, Vite asset paths under static mounts, browser favicon noise, CSS build artifact overwrites, and dependency API drift in go-go-goja.
-> - The final xgoja provider exposes `widget.dsl` and `rag.dsl`, ships Glazed help entries, and can build a generated binary that serves a React WidgetRenderer app backed by JavaScript verbs.
+> - Most difficult failures were boundary failures: Goja struct field names versus JSON names, generated xgoja module replacement rules, Vite asset paths under static mounts, browser favicon noise, CSS build artifact overwrites, missing design tokens, weak default page chrome, and typed Go slices crossing into Goja recipes.
+> - The final xgoja provider exposes `widget.dsl` and `rag.dsl`, ships Glazed help entries, and can build a generated binary that serves a React WidgetRenderer app backed by JavaScript verbs. The latest visual-quality pass adds a standalone token bridge, default app shell, and semantic recipe helpers so generated pages look and read like complete RAG applications rather than raw component fragments.
 
 ## Why this project exists
 
@@ -57,6 +58,7 @@ The project unfolded through three related ticket streams.
 | `RAGEVAL-UI-DSL` | Established the Widget IR idea, React renderer, backend demo endpoint, initial Goja `widget.dsl`, and browser smoke. |
 | `WIDGETSITE-PACKAGING` | Turned the prototype into reusable Go packages, npm package, embedded SPA, schema, actions, and end-to-end smoke testing. |
 | `XGOJA-WIDGETSITE` | Wrapped the DSL as an xgoja provider, built a generated binary example, embedded the React app, and added provider-bundled Glazed help. |
+| `WIDGETDSL-VISUAL-QUALITY` | Diagnosed why the standalone site looked visually weak, added theme token compatibility, default shell/page chrome, stable visual evidence, and semantic recipe helpers. |
 
 The major implementation commits on the current branch include:
 
@@ -66,6 +68,9 @@ The major implementation commits on the current branch include:
 | `70f30b1` | Added the xgoja widget site provider and generated binary example. |
 | `36cd6ea` | Embedded the React app into the xgoja widget-site example. |
 | `5cdcf5b` | Added provider-bundled Widget DSL Glazed help docs. |
+| `f65e7a6` | Added the standalone token bridge for copied RAG components. |
+| `94c9701` | Added the default shell/page chrome for the standalone WidgetRenderer app. |
+| `ac3ea44` | Added semantic Widget DSL recipes and refactored the xgoja showcase to use them. |
 
 The earlier WIDGETSITE implementation work also produced `pkg/widgetdsl`, `pkg/widgetrunner`, `pkg/widgetserver`, `pkg/defaultspa`, `pkg/widgetschema`, and `packages/rag-evaluation-site`. Those packages define the reusable architecture.
 
@@ -232,6 +237,72 @@ func (r *runtime) exportChild(value goja.Value) []any {
 
 The first tricky bug appeared here. An early draft tried to call `value.ToObject(nil)` while detecting Widget nodes. That is unsafe because Goja object conversion needs the runtime. The fix was to pass `*goja.Runtime` into the detection path and use `value.ToObject(vm)`. A second early draft used brittle array detection; it was replaced with a reflection-based check against exported slice and array kinds.
 
+### Semantic recipes on top of low-level Widget IR
+
+After the renderer, xgoja provider, token bridge, and shell were working, the authoring problem changed. Scripts could produce good-looking pages, but they still had to manually assemble every metrics grid, toolbar, and master/detail section. The next layer was deliberately not a new renderer feature. It was a recipe layer that expands higher-level RAG page intent into the same plain Widget IR.
+
+The DSL now exposes:
+
+```js
+rag.page({ id, title, meta, root, sections })
+rag.action.server(name, options)
+rag.action.navigate(to, options)
+rag.action.event(event, options)
+rag.action.copy(value)
+
+rag.recipes.metrics({ items })
+rag.recipes.actionToolbar({ title, actions, caption })
+rag.recipes.masterDetailTable({ rows, columns, selectedKey, onRowSelect, detail })
+```
+
+A recipe is just a macro that returns Widget IR. For example, `metrics` expands to a `DashboardGrid` of condensed `Panel` components, each containing a `StatusText`. `actionToolbar` expands string action names into serializable server action specs and places buttons inside an inline toolbar panel. `masterDetailTable` expands a common queue layout into a two-up `DashboardGrid` with a `DataTable` panel and a detail panel.
+
+The xgoja showcase now reads closer to the page's intent:
+
+```js
+return rag.page({
+  schemaVersion: "0.1.0",
+  id,
+  title: "xgoja widget actions demo",
+  sections: [
+    pageSummary(id),
+    toolbar(),
+    rag.recipes.masterDetailTable({
+      title: "Query queue",
+      rows,
+      columns: queryColumns(),
+      selectedKey: appState.selectedId,
+      onRowSelect: "select-query",
+      detail: () => selectedPanel(selected)
+    }),
+    auditPanel()
+  ]
+})
+```
+
+The important design constraint is that `detail` callbacks are evaluated only while constructing the server response. The callback returns a Widget IR node, and that node is exported into JSON-compatible data before it crosses the HTTP boundary. React never receives a JavaScript function.
+
+Two recipe-specific failures were instructive. First, Goja function binding did not pass `goja.FunctionCall` correctly when a Go function accepted `goja.FunctionCall` but returned `map[string]any`; changing these helpers to return `goja.Value` fixed the call shape. Second, xgoja smoke showed `Rows: 4` after an action but the table contained `rows: []`. The root cause was that database query results crossed into the recipe as a typed Go slice, while `anySlice` only accepted `[]any`. The fix was reflection-based slice/array normalization:
+
+```go
+func anySlice(value any) []any {
+    if out, ok := value.([]any); ok {
+        return out
+    }
+    rv := reflect.ValueOf(value)
+    if rv.Kind() != reflect.Slice && rv.Kind() != reflect.Array {
+        return []any{}
+    }
+    out := make([]any, 0, rv.Len())
+    for i := 0; i < rv.Len(); i++ {
+        out = append(out, rv.Index(i).Interface())
+    }
+    return out
+}
+```
+
+This is the same boundary rule again: helpers that look simple in JavaScript still have to normalize Go-backed values deliberately.
+
 ## Layer 3: a runner for trusted page scripts
 
 After `widget.dsl` existed, the next question was how a server should load scripts and ask them for pages. That became `pkg/widgetrunner`.
@@ -380,6 +451,55 @@ pnpm consumer:smoke
 ```
 
 The clean consumer smoke matters. It proves a separate Vite app can install the package artifact, import the renderer, import CSS, typecheck, and build without hidden workspace assumptions.
+
+## Layer 5.5: restoring the standalone visual environment
+
+The reusable package initially rendered real React components, but the generated xgoja site still looked weaker than the original RAG frontend. The key lesson was that rendering real components is not enough: copied components also need the design-token and page-shell environment that made them look correct in the original application.
+
+The visual-quality ticket captured evidence with `css-visual-diff`, Storybook static pages, the generated widget-site, computed CSS artifacts, and Playwright smoke. The root cause was concrete. `packages/rag-evaluation-site/src/theme.css` defined canonical standalone tokens such as `--rag-color-surface`, but many copied components still consumed original RAG variables such as `--mac-surface`, `--mac-border`, `--mac-bg-dark`, `--mac-text`, `--font-mono`, and `--rag-font-role-metadata`. When those variables were missing, CSS declarations were dropped or fell back to browser defaults. Buttons and panels became transparent or default-looking even though the correct React components were being used.
+
+The first fix was a package-local token bridge:
+
+```css
+:root {
+  --rag-color-bg: #f6f7f8;
+  --rag-color-surface: #ffffff;
+  --rag-color-text: #1d232a;
+  --rag-color-border-strong: #000000;
+
+  --mac-bg: var(--rag-color-bg);
+  --mac-bg-dark: #000000;
+  --mac-text: var(--rag-color-text);
+  --mac-text-inv: #ffffff;
+  --mac-border: var(--rag-color-border-strong);
+  --mac-surface: var(--rag-color-surface);
+  --font-mono: var(--rag-font-mono);
+  --rag-font-role-metadata: 400 11px/1.35 var(--font-mono);
+}
+```
+
+This deliberately keeps `--rag-*` as the package's canonical tokens while providing compatibility aliases for components that have not yet been migrated. The post-token-bridge evidence showed the first panel computing to `background-color: rgb(255, 255, 255)` and `border: 1px solid rgb(0, 0, 0)`, and the primary button computing to black background, white text, mono font, and a real border.
+
+The second fix was page chrome. `RagEvaluationSiteApp` originally rendered a bare wrapper around `WidgetRenderer`, so scripts that returned a simple `Stack` or `Panel` looked like fragments pasted into the viewport. The app now wraps pages in a default `AppShell` unless the page opts out with `meta.shell = "none"` or the root node is already an `AppShell`. The shell adds `AppNav`, viewport padding, a bordered frame, root background, content width modes, and stable attributes for tools:
+
+```tsx
+<div
+  className="rag-evaluation-site-root rag-evaluation-site-root--shell"
+  data-rag-page="RagEvaluationSiteApp"
+  data-page-id={page.id}
+  data-rag-shell="default"
+>
+  <AppShell header={<AppNav ... />}>
+    <div className="rag-evaluation-site-content" data-rag-layout="PageContent">
+      <WidgetRenderer node={page.root} onAction={...} />
+    </div>
+  </AppShell>
+</div>
+```
+
+The computed CSS evidence moved the app root from transparent background and `padding: 0px` to `background-color: rgb(246, 247, 248)` and `padding: 8px`. Browser smoke then clicked `Add query`, verified `Rows: 4` and `Follow-up Query 4`, and reported zero console warnings or errors.
+
+One subtle bug appeared during this phase: the first implementation nested a `<main>` inside `AppShell`, which already renders its children inside a `<main>`. It compiled and rendered, but the markup was semantically wrong. The fix was to use a `<div data-rag-layout="PageContent">` for the content boundary.
 
 ## Layer 6: embedding the default SPA in Go
 
@@ -629,6 +749,45 @@ Browser smoke found a favicon `404`. It also exposed a status vocabulary mismatc
 
 Rule: console output and visual text matter. API tests do not catch every integration detail.
 
+### Missing design tokens made real components look broken
+
+The standalone package rendered real components, but several component styles depended on original RAG variables that were absent in the package theme. The visible symptom was transparent/default-looking panels, buttons, and tables. Computed CSS made this obvious: app root and buttons had transparent backgrounds and default-ish metrics.
+
+The fix was not to rewrite every component. The safe first step was a compatibility bridge that maps original `--mac-*`, `--font-*`, and role font variables onto package-local `--rag-*` tokens.
+
+Rule: when extracting a component library, extract or bridge its design-token contract before judging visual quality.
+
+### A bare renderer root is not an application shell
+
+`RagEvaluationSiteApp` initially wrapped `WidgetRenderer` in a bare `<div>`. That is acceptable for embedding and tests, but not for a standalone generated site. The result was a correct component tree without page rhythm, navigation, background, or padding.
+
+The fix was a default shell with explicit escape hatches: do not wrap if `page.meta.shell === "none"`, and do not double-wrap if the root node is already `AppShell`.
+
+Rule: reusable renderers need both an embed mode and a standalone app-shell mode. Make the default good for standalone demos, but keep opt-out for embedding.
+
+### Visual tooling needed stable selectors
+
+The first visual evidence script used broad selectors such as `section:first-of-type`, `table`, and `button`. That made some probes match outer stacks or Storybook controls instead of the intended RAG components.
+
+The fix was to use stable runtime attributes such as:
+
+```text
+[data-rag-page="RagEvaluationSiteApp"]
+[data-rag-layout="Panel"]
+[data-rag-component="DataTable"]
+[data-rag-atom="Button"]
+```
+
+Rule: visual diff tooling should target explicit semantic attributes, not incidental HTML structure.
+
+### Recipe helpers lost typed database rows
+
+The first `masterDetailTable` recipe accepted rows from JavaScript arrays but lost rows from xgoja database query results, because those rows arrived as a typed Go slice rather than `[]any`. The generated-site smoke caught the failure: action counts updated, but table content disappeared.
+
+The fix was reflection-based slice normalization in the DSL.
+
+Rule: Goja APIs must normalize both pure JavaScript values and Go-backed host-service values. Tests should cover both.
+
 ### Full-repo tests were blocked by external dependency drift
 
 Focused tests passed, but full workspace tests failed because a sibling/published `scraper` dependency still imported the old `github.com/go-go-golems/go-go-goja/engine` path while current go-go-goja uses `pkg/engine`.
@@ -644,6 +803,7 @@ The implementation used local documentation and code more than external referenc
 | `RAGEVAL-UI-DSL` design docs and diary | Defined the initial Widget IR, React renderer, and Goja authoring direction. |
 | `WIDGETSITE-PACKAGING` design docs and diary | Defined the reusable package/server architecture and validation plan. |
 | `XGOJA-WIDGETSITE` design docs and diary | Defined the generated xgoja binary plan and provider constraints. |
+| `WIDGETDSL-VISUAL-QUALITY` guide and diary | Diagnosed token/shell visual gaps, established css-visual-diff evidence scripts, and guided the token bridge, shell, and recipe phases. |
 | `go-go-goja/modules` | Showed the native module contract: module name, docs, loader, and exports. |
 | `go-go-goja/pkg/engine` | Defined the runtime factory and module registrar API. |
 | `go-go-goja/cmd/xgoja/doc/*` | Explained xgoja buildspecs, providers, command providers, embedded assets, jsverbs, and generated runtime packaging. |
@@ -697,6 +857,14 @@ examples/xgoja/widget-site/dist/rag-widget-xgoja-site help widget-dsl-getting-st
 examples/xgoja/widget-site/dist/rag-widget-xgoja-site help widget-dsl-js-api-reference
 ```
 
+The visual-quality pass has now completed three concrete implementation phases:
+
+| Phase | Result | Validation |
+|---|---|---|
+| Token bridge | Standalone components receive original RAG token variables through package-local aliases. | Computed CSS changed panels/buttons from transparent/default-looking to bordered and themed. |
+| Default shell | Generated pages get `AppShell`, `AppNav`, background, padding, and content width controls unless they opt out. | Browser smoke verified `data-rag-shell="default"`, root padding `8px`, shell border, action refresh, and zero console warnings/errors. |
+| Semantic recipes | Scripts can use `rag.page`, `rag.action.*`, and `rag.recipes.*` for common dashboard patterns. | Go tests, xgoja smoke, devctl smoke, generated help checks, and browser action smoke passed. |
+
 ## What could be improved
 
 The implementation is useful, but several improvements would make it sturdier.
@@ -707,9 +875,17 @@ The current schema validates node shape and known vocabularies. It does not full
 
 The difficulty is keeping Go and TypeScript schemas synchronized. A generated schema from TypeScript types or a shared protobuf/JSON Schema source would reduce drift.
 
+### Document `page.meta` and recipes in schema output
+
+Provider help now documents `page`, `action`, and recipes, but `/api/widget/schema` still focuses on core Widget IR. The schema endpoint should eventually advertise page metadata such as `shell`, `navItems`, `activeNavItemId`, and `maxWidth`, plus recipe-level authoring conventions if the schema is meant to guide script authors.
+
 ### Improve action error handling in the default app
 
 The default app currently throws when a server action fails. That is acceptable for smoke testing but not ideal for users. It should render visible error state or dispatch a structured toast/error event that the app shell can display.
+
+### Add focused shell and recipe tests
+
+The app now has behavior worth testing directly: default shell wrapping, `meta.shell = "none"`, root `AppShell` double-wrap avoidance, `page.meta.maxWidth`, recipe JSON serialization, and typed Go slice handling in recipes. Some of this is currently covered by Go tests and browser smoke, but a smaller focused test set would catch regressions earlier.
 
 ### Add committed Playwright tests
 
@@ -769,6 +945,8 @@ This project suggests a repeatable sequence for building a Goja UI DSL safely.
 - Generated xgoja examples should validate with `doctor`, `list-modules`, `build`, curl smoke, and browser smoke when applicable.
 - Provider docs should be shipped with the provider and selected in generated binaries through `help.sources`.
 - Any browser-visible warning that appears during smoke should either be fixed or documented as intentional.
+- When a standalone renderer looks visually wrong, inspect computed CSS first; missing custom properties are often more likely than broken React components.
+- Recipes should be treated as JSON-compatible macros over Widget IR, not as a second rendering system.
 
 ## Related notes
 
