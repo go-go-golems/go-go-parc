@@ -81,12 +81,12 @@ The completed implementation is organized as a sequence of packages and artifact
 
 ```mermaid
 flowchart TD
-    Script[Trusted JS scripts] --> DSL[require("widget.dsl")]
+    Script[Trusted JS scripts] --> DSL[require widget.dsl]
     DSL --> IR[Widget IR objects]
     IR --> Runner[pkg/widgetrunner]
     Runner --> Server[pkg/widgetserver]
-    Server --> PageAPI[GET /api/widget/pages/{id}]
-    Server --> ActionAPI[POST /api/widget/actions/{name}]
+    Server --> PageAPI["GET /api/widget/pages/{id}"]
+    Server --> ActionAPI["POST /api/widget/actions/{name}"]
     Server --> SchemaAPI[GET /api/widget/schema]
     Server --> SPA[pkg/defaultspa embedded app]
     SPA --> ReactApp[RagEvaluationSiteApp]

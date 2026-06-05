@@ -165,7 +165,7 @@ flowchart TD
     Store[AssetStore id to fs root mapping]
     Provider[host provider fs module factory]
     Backend[ReadOnlyFSBackend]
-    JS[JavaScript require("fs:assets")]
+    JS[JavaScript require fs:assets]
     Express[express staticFromAssetsModule]
     HTTP[gojahttp static handler]
     Client[HTTP client]
