@@ -38,6 +38,7 @@ The implemented change introduces a provider-backed `serve` command contributed 
 That command is not a special case in the generator. It is a provider-owned command set that uses the same module list, the same jsverb source configuration, the same Glazed section parsing, and the same Goja runtime ownership model as the rest of `xgoja`.
 
 > [!summary]
+>
 > - GOJA-064 connects JavaScript verb discovery to provider-owned commands by adding `JSVerbSourceSet` to `providerapi.CommandSetContext`.
 > - The HTTP provider now registers a `serve` command provider that builds commands from configured jsverbs and keeps the selected runtime alive after route registration.
 > - The implementation follows the simplified single-runtime `xgoja.yaml` schema: one top-level `modules:` list, no runtime-profile selection, and a single generated module set shared by built-in commands and provider commands.
@@ -101,7 +102,7 @@ flowchart TD
     Providers --> HTTPServe[go-go-goja-http serve]
     HTTPServe --> VerbCommand[serve sites demo]
     VerbCommand --> Runtime[engine.Runtime]
-    Runtime --> Express[require("express")]
+    Runtime --> Express[require express]
     Express --> Routes[gojahttp routes]
     Routes --> Requests[HTTP requests]
 
@@ -242,6 +243,7 @@ func newServeCommandSet(ctx providerapi.CommandSetContext) (*providerapi.Command
 ```
 
 The command-provider output is therefore not a manually constructed Cobra command. It is a generated Glazed command derived from the verb metadata.
+
 ## Runtime execution model
 
 The `serve` command differs from ordinary verb execution in exactly one lifecycle decision: it does not close immediately after the JavaScript function returns. The selected verb is treated as setup code. The setup function can import `express`, create an app, and register routes. After setup returns, the runtime remains open and the process blocks until shutdown.
