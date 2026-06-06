@@ -303,6 +303,8 @@ func anySlice(value any) []any {
 
 This is the same boundary rule again: helpers that look simple in JavaScript still have to normalize Go-backed values deliberately.
 
+For a complete treatment of the three recipe implementations — `metrics()`, `actionToolbar()`, `masterDetailTable()` — including full expansion logic, the Goja function callback pattern, the Goja function binding bug, the typed Go slice normalization bug, and the action normalization helper, see [[ARTICLE - Semantic Recipes on Top of Widget IR - qwen3.6 - thinking high]].
+
 ## Layer 3: a runner for trusted page scripts
 
 After `widget.dsl` existed, the next question was how a server should load scripts and ask them for pages. That became `pkg/widgetrunner`.
@@ -951,6 +953,7 @@ This project suggests a repeatable sequence for building a Goja UI DSL safely.
 ## Related notes
 
 - [[ARTICLE - WidgetRenderer Standalone Site - Goja Authored React Rendered UI]]
+- [[ARTICLE - Semantic Recipes on Top of Widget IR - qwen3.6 - thinking high]]
 - [[ARTICLE - Deep Dive - xgoja Scripting for RAG Evaluation Systems]]
 - [[ARTICLE - xgoja - Building a Query Tool with Jsverbs and Embedded Modules]]
 - [[ARTICLE - Trusted npm Publishing for Go Go Golems React Packages]]
