@@ -16,6 +16,7 @@ tags:
 status: active
 type: article
 created: 2026-06-06
+updated: 2026-06-06
 repo: /home/manuel/code/wesen/claw-stuff/ttmp/2026/06/06/CRIB-BACKUP-01--ubuntu-to-proxmox-truenas-backup-design
 ---
 
@@ -305,16 +306,18 @@ The empty `backup-f` user array means the dataset exists but the SFTP user has n
 
 ### What is done
 
-The laptop-side restic client is fully configured:
+The laptop-side restic client is configured and the repository has been initialized:
 
 - `restic 0.16.4` is installed.
 - `~/.config/restic/crib/env` — restic environment (repository path, password file, cache, excludes, SFTP command).
-- `~/.config/restic/crib/password` — empty, mode `0600`, needs filling before `restic init`.
+- `~/.config/restic/crib/password` — generated, mode `0600`, escrowed separately in Vault at `kv/infra/truenas/restic/laptop-f`.
 - `~/.config/restic/crib/excludes` — exclude list (caches, node_modules, build outputs, etc.).
 - `~/.local/bin/restic-crib-backup` — backup script with preflight, backup, retention, and check functions.
 - `~/.config/systemd/user/restic-crib-backup.service` — user service, currently disabled.
 - `~/.config/systemd/user/restic-crib-backup.timer` — user timer, currently disabled.
 - `~/.ssh/id_restic_crib_f` — dedicated ED25519 SSH key for TrueNAS SFTP access.
+- Restic repository `57e82c013a` — initialized at `sftp:backup-f@192.168.0.25:/mnt/media-pool/backups/laptops/f-restic`.
+- Smoke snapshot `a3a15848` — proved a small backup and restore path works.
 
 Public key for TrueNAS:
 
@@ -322,29 +325,26 @@ Public key for TrueNAS:
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGTzNDipozrr877v8vdicRrvAP3h19lcctfp+f6vaklb restic backup from laptop f to TrueNAS
 ```
 
-TrueNAS-side datasets exist:
+TrueNAS-side resources exist:
 
 ```text
 media-pool/backups
 media-pool/backups/laptops
 media-pool/backups/laptops/f-restic
+backup-f uid=3001 gid=3001 home=/mnt/media-pool/backups/laptops/f-restic
 ```
 
-TrueNAS Vault provisioning key is stored at `kv/infra/truenas/provisioning`.
+TrueNAS Vault provisioning key is stored at `kv/infra/truenas/provisioning`. The restic repository password is escrowed at `kv/infra/truenas/restic/laptop-f`.
 
 ### What is not done
 
-- The `backup-f` TrueNAS user has not been created. This is the blocking dependency for restic repository initialization.
-- The restic repository password has not been set in `~/.config/restic/crib/password`.
-- `restic init` has not been run.
-- The systemd timer is not enabled.
+- The first full `/home/manuel` backup has not been run yet. Only a small smoke backup/restore has succeeded.
+- The systemd timer is not enabled. It should stay disabled until the first full manual backup and restore test complete.
 - `/root/.truenas_api_key` has not been rotated or deleted from Proxmox.
 
 ### Next steps
 
-1. Create the `backup-f` TrueNAS user via the TrueNAS UI or API.
-2. Add the SSH public key from laptop `f` to the `backup-f` user.
-3. Verify SFTP access:
+1. Verify SFTP access remains healthy:
 
 ```bash
 ssh -i ~/.ssh/id_restic_crib_f \
@@ -354,18 +354,10 @@ ssh -i ~/.ssh/id_restic_crib_f \
   'test -d /mnt/media-pool/backups/laptops/f-restic && pwd && id'
 ```
 
-4. Fill `~/.config/restic/crib/password` with the repository encryption key.
-5. Initialize the restic repository:
-
-```bash
-set -a; source ~/.config/restic/crib/env; set +a
-restic init
-```
-
-6. Run the first manual backup.
-7. Perform a restore test.
-8. Enable the user timer: `systemctl --user enable --now restic-crib-backup.timer`.
-9. Rotate/delete `/root/.truenas_api_key` from Proxmox.
+2. Run the first full manual backup.
+3. Perform a restore test from the full backup.
+4. Enable the user timer: `systemctl --user enable --now restic-crib-backup.timer`.
+5. Rotate/delete `/root/.truenas_api_key` from Proxmox.
 
 ### Current status
 
@@ -377,18 +369,20 @@ restic init
 │  • config in ~/.config/restic/crib               │
 │  • systemd --user timer installed, disabled      │
 │  • SSH key generated: id_restic_crib_f           │
-│  • password file: empty                          │
+│  • password file: generated + Vault-escrowed    │
+│  • repository initialized: 57e82c013a            │
+│  • smoke restore succeeded: a3a15848             │
 │                                                 │
-│  TrueNAS — dataset created, user missing         │
+│  TrueNAS — dataset and user created              │
 │  • media-pool/backups/laptops/f-restic exists    │
-│  • backup-f user: NOT CREATED                    │
+│  • backup-f uid/gid 3001                         │
 │                                                 │
-│  Vault — provisioning key stored                 │
+│  Vault — provisioning + restic escrow stored      │
 │  • kv/infra/truenas/provisioning ✓              │
-│  • OIDC operator access confirmed               │
+│  • kv/infra/truenas/restic/laptop-f ✓           │
 │  • smoke test script: read-only ✓               │
 │                                                 │
-│  Blocking dependency: TrueNAS backup-f user       │
+│  Blocking dependency: first full backup           │
 └─────────────────────────────────────────────────┘
 ```
 
