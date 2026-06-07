@@ -1,10 +1,15 @@
 ---
 title: "Retro Obsidian Publish — React Router SSR Hydration Cleanup"
+aliases:
+  - Publish Vault SSR Hydration Cleanup
+  - Retro Obsidian Publish SSR Report
 description: A complete case study of replacing a divergent SSR/SPA architecture with a single hydratable React tree using React Router, including live debugging of duplicate React instances and real hydration failures.
-date: 2026-06-07
-topics: [retro-obsidian-publish, ssr, hydration, react-router, web-architecture]
 status: published
-tags: [retro-obsidian-publish, ssr, hydration, react-router, web-architecture, case-study]
+type: project
+created: 2026-06-07
+repo: /home/manuel/workspaces/2026-06-04/publish-vault-ssr/publish-vault
+topics: [retro-obsidian-publish, ssr, hydration, react-router, web-architecture]
+tags: [project, retro-obsidian-publish, ssr, hydration, react-router, web-architecture, case-study]
 ---
 
 # Retro Obsidian Publish — React Router SSR Hydration Cleanup
