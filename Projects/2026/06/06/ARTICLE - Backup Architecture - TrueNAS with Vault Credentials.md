@@ -19,7 +19,7 @@ created: 2026-06-06
 updated: 2026-06-06
 repo: /home/manuel/code/wesen/claw-stuff/ttmp/2026/06/06/CRIB-BACKUP-01--ubuntu-to-proxmox-truenas-backup-design
 ---
-
+z
 # Backup Architecture: TrueNAS with Vault Credentials
 
 This article documents the design and partial implementation of a backup system for an Ubuntu laptop backing up to a TrueNAS instance running inside a Proxmox homelab. It covers the architectural decisions that shaped the system, the security problems with the initial credential setup, the Vault-backed solution for administrative access, and the concrete implementation state.

@@ -23,15 +23,16 @@ repo: /home/manuel/workspaces/2026-06-04/publish-vault-ssr/publish-vault
 
 # Retro Obsidian Publish
 
-Retro Obsidian Publish is a small self-hosted web application that turns an Obsidian vault directory into a publishable website. It reads Markdown files from a vault, builds an in-memory note index with wiki-link resolution and backlinks, and serves both a JSON REST API and a monochrome retro-styled React frontend from a single Go process.
+Retro Obsidian Publish is a self-hosted web application that turns an Obsidian vault directory into a publishable website. It reads Markdown files from a vault, builds an in-memory note index with wiki-link resolution and backlinks, and serves both a JSON REST API and a monochrome retro-styled React frontend from a single Go binary. The Go module lives at the repository root.
 
 > [!summary]
-> Retro Obsidian Publish has three core identities:
+> Retro Obsidian Publish has four core identities:
 > 1. a single-binary vault publisher with Obsidian wiki-link support and backlinks
 > 2. a retro macOS System 1 visual design system for Obsidian content
 > 3. a full SSR sidecar system with Node.js Express, RTK Query cache preloading, and React hydration
+> 4. an agent-readable site with markdown mirrors, a14y score 99/100, and structured discovery
 
-The project is a Go application with a React/Vite frontend, targeting people who want to publish a personal knowledge base without changing how they write notes. The vault directory remains the source of truth — the application treats it as read-only content and derives everything from it.
+The Go module is a root-level package. The React/Vite frontend lives in `web/`. The vault directory is the source of truth — the application treats it as read-only content and derives everything from it.
 
 ## Why this project exists
 
@@ -43,11 +44,9 @@ The retro monochrome aesthetic was chosen deliberately: it avoids the distractio
 
 ## Current project status
 
-The project is in an active development phase. All core features are implemented and production-ready.
+The project is in production. All features are implemented, tested, and deployed.
 
-What is implemented:
-
-### Backend (Go)
+### Backend (Go — root-level module)
 - A single Go binary built from `cmd/retro-obsidian-publish/` that serves both the API and the web frontend
 - Vault loader: recursive `.md` file discovery, Goldmark parsing, frontmatter extraction, wiki-link resolution, backlink computation, and full-text search via Bleve
 - JSON REST API: `/api/notes`, `/api/notes/{slug}`, `/api/tree`, `/api/search`, `/api/tags`, `/api/config`
@@ -55,8 +54,33 @@ What is implemented:
 - Live filesystem watching with fsnotify (optional; disabled in git-sync deployments)
 - Content reload endpoint (`POST /api/admin/reload`) for GitOps workflows
 - Asset handling: vault images served via `/vault-assets/` with path resolution and URL escaping
-- Docker build: multi-stage build with Go + Node.js + Alpine
-- Kubernetes deployment manifests with ArgoCD and git-sync
+- `--ssr-url` flag to enable SSR sidecar proxying
+- `--vault` flag to point at any vault directory
+- golangci-lint v2.12.2 + gosec (0 issues)
+
+### Agent-readability (a14y — added 2026-06-07)
+- Markdown mirrors: `/index.md` and `/note/{slug}.md` endpoints with frontmatter, canonical `Link` headers, and `## Sitemap` sections
+- Content negotiation: `Accept: text/markdown` returns markdown mirrors for `/` and `/note/{slug}`
+- Agent discovery endpoints: `/AGENTS.md`, `/llms.txt`, `/sitemap.md`, `/sitemap.xml`
+- SSR HTML advertises markdown mirrors with `<link rel="alternate" type="text/markdown">` and response `Link` headers
+- JSON-LD `dateModified` on every page, longer descriptions, hidden glossary/agent guide links
+- Unresolved wiki links converted to same-page `#unresolved-*` anchors (prevents crawlable 404 pages)
+- a14y score: **62 → 99** (only remaining issue: homepage `html.headings`, outside approved scope)
+- Final audit: 17 pages crawled, 187 passed, 1 failed
+
+### Docker build
+- Multi-stage build: Node 22 → Go 1.25 → Alpine 3.20
+- SSR sidecar image published as `ghcr.io/go-go-golems/publish-vault-ssr`
+- Go app image published as `ghcr.io/go-go-golems/publish-vault`
+
+### Kubernetes deployment
+- `gitops/kustomize/retro-obsidian-publish/` with deployment, service, ingress, service account
+- ArgoCD deployed to `parc.yolo.scapegoat.dev`
+- Three-container pod: `app` (Go), `ssr` (Node.js), `git-sync` (vault sync)
+- git-sync watches go-go-parc vault, calls reload endpoint on change
+- Vault secrets via Vault Operator + VaultStaticSecret resources
+- Image pull secrets via GHCR authentication
+- Automatic image patching via infra-tooling publish workflow
 
 ### Frontend (React + Vite)
 - A retro System 1 (1984 Macintosh) visual design system with monochrome ink-on-paper aesthetic
@@ -89,46 +113,48 @@ A complete SSR system for SEO and agent-readability:
 
 ## Project shape
 
-The repository has a clean two-layer structure: a Go backend and a Vite-based React frontend.
+The repository has a flat structure with Go at the root and a separate frontend subdirectory.
 
 ```text
 retro-obsidian-publish/
-├── backend/                         # Go module (single binary)
-│   ├── cmd/retro-obsidian-publish/   # CLI entrypoint
-│   │   ├── main.go
-│   │   └── commands/
-│   │       ├── root.go
-│   │       ├── build/
-│   │       │   ├── root.go
-│   │       │   └── web.go           # "build web" — Vite build + copy
-│   │       ├── serve/
-│   │       │   └── serve.go         # "serve" — Glazed-backed CLI
-│   └── internal/
-│       ├── api/                     # JSON REST API handlers
-│       │   ├── api.go               # Handler, Register, endpoint types
-│       │   └── api_test.go
-│       ├── parser/                  # Markdown parsing with wiki-link support
-│       │   ├── parser.go            # Goldmark pipeline + wiki-link extraction
-│       │   └── parser_test.go       # Comprehensive parsing tests
-│       ├── server/                  # HTTP server
-│       │   ├── server.go            # Router, handlers, proxy, asset serving
-│       │   ├── server_test.go
-│       │   └── runtime.go           # RuntimeState: mutex-protected Vault + search index
-│       ├── vault/                   # Vault loader and data models
-│       │   ├── vault.go             # Note struct, file tree, backlinks, slug generation
-│       │   └── vault_test.go
-│       ├── search/                  # Bleve full-text search index
-│       │   ├── search.go            # Index, persistent index, search with fuzzy matching
-│       │   └── search_test.go
-│       ├── watcher/                 # fsnotify-based file watching
-│       │   ├── watcher.go
-│       │   └── watcher_test.go
-│       └── web/                     # SPA handler and embed support
-│           ├── embed.go             # //go:build embed — embedded filesystem
-│           ├── embed_none.go        # //go:build !embed — disk serving (dev)
-│           ├── static.go            # SPAHandler: static files + index.html fallback
-│           ├── generate.go          # go:generate runs "build web"
-│           └── static_test.go
+├── cmd/retro-obsidian-publish/   # CLI entrypoint
+│   ├── main.go
+│   └── commands/
+│       ├── root.go
+│       ├── build/
+│       │   ├── root.go
+│       │   └── web.go           # "build web" — Vite build + copy
+│       ├── serve/
+│       │   └── serve.go         # "serve" — Glazed-backed CLI
+├── internal/
+│   ├── api/                     # JSON REST API handlers
+│   │   ├── api.go               # Handler, Register, endpoint types
+│   │   └── api_test.go
+│   ├── parser/                  # Markdown parsing with wiki-link support
+│   │   ├── parser.go            # Goldmark pipeline + wiki-link extraction
+│   │   └── parser_test.go       # Comprehensive parsing tests
+│   ├── server/                  # HTTP server
+│   │   ├── server.go            # Router, handlers, proxy, asset serving
+│   │   ├── server_test.go
+│   │   ├── runtime.go           # RuntimeState: mutex-protected Vault + search index
+│   │   ├── agent_markdown.go    # Discovery endpoints + markdown mirror rendering
+│   │   ├── agent_markdown_test.go
+│   │   └── ssr_proxy_test.go
+│   ├── vault/                   # Vault loader and data models
+│   │   ├── vault.go             # Note struct, file tree, backlinks, slug generation
+│   │   └── vault_test.go
+│   ├── search/                  # Bleve full-text search index
+│   │   ├── search.go            # Index, persistent index, search with fuzzy matching
+│   │   └── search_test.go
+│   ├── watcher/                 # fsnotify-based file watching
+│   │   ├── watcher.go
+│   │   └── watcher_test.go
+│   └── web/                     # SPA handler and embed support
+│       ├── embed.go             # //go:build embed — embedded filesystem
+│       ├── embed_none.go        # //go:build !embed — disk serving (dev)
+│       ├── static.go            # SPAHandler: static files + index.html fallback
+│       ├── generate.go          # go:generate runs "build web"
+│       └── static_test.go
 ├── web/                              # React/Vite frontend
 │   ├── public/
 │   │   └── __manus__/               # Manus debug collector
@@ -166,11 +192,13 @@ retro-obsidian-publish/
 ├── plugins/
 │   └── retro-obsidian-publish.py    # devctl plugin (3-service orchestration)
 ├── .devctl.yaml                     # devctl profiles and plugin config
-├── ideas.md                         # Design philosophy (System 1 aesthetic)
-├── docker-compose.yml               # Multi-service deployment
-├── backend/Dockerfile               # Multi-stage build (Go + Node + Alpine)
 ├── deploy/
 │   └── gitops-targets.json          # ArgoCD/gitops deployment targets
+├── ideas.md                         # Design philosophy (System 1 aesthetic)
+├── docker-compose.yml               # Multi-service deployment
+├── Dockerfile                       # Multi-stage build (Go + Node + Alpine)
+├── go.mod
+├── go.sum
 ├── ttmp/                            # docmgr ticket workspace
 │   └── 2026/06/06/RETRO-SSR-009/    # SSR sidecar design docs, diary, tasks
 └── README.md
@@ -509,23 +537,18 @@ createRoot(root).render(<App />);
 - Receives page requests from the Go server's reverse proxy
 - Pre-fetches data from the Go API
 - Calls `renderApp()` to render React to HTML
-- Assembles complete HTML with meta tags, JSON-LD, and `<noscript>` fallback
+- Assembles complete HTML with meta tags, JSON-LD, `<noscript>` fallback, and `<link rel="alternate" type="text/markdown">` for agent discovery
 
-**4. Go server proxy (`server.go`)** — The Go server gains an `--ssr-url` flag. When set, page requests are reverse-proxied to the Node.js sidecar. If the sidecar is unavailable, the server falls back to the SPA handler.
+**4. Go server proxy (`server.go`)** — The Go server gains an `--ssr-url` flag. When set, page requests are reverse-proxied to the Node.js sidecar using `httputil.NewSingleHostReverseProxy`. If the sidecar is unavailable, the server falls back to the SPA handler.
 
 ```go
 func newSSRProxy(ssrURL string, spaHandler http.Handler) http.Handler {
-    proxy := &http.Client{Timeout: 10 * time.Second}
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        proxyReq, _ := http.NewRequestWithContext(r.Context(), r.Method, proxyURL.String(), nil)
-        resp, err := proxy.Do(proxyReq)
-        if err != nil || resp.StatusCode >= 500 {
-            spaHandler.ServeHTTP(w, r)  // fallback to SPA
-            return
-        }
-        // Copy response headers and body
-        io.Copy(w, resp.Body)
-    })
+    ssrEndpoint, _ := url.Parse(ssrURL)
+    proxy := httputil.NewSingleHostReverseProxy(ssrEndpoint)
+    proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+        spaHandler.ServeHTTP(w, r)  // fallback to SPA
+    }
+    return proxy
 }
 ```
 
@@ -535,10 +558,11 @@ Key design decisions in the SSR implementation:
 - **Store factory**: The store is a factory (`makeStore(preloadedState?)`) so each SSR request gets its own store, preventing data leaking between concurrent renders.
 - **URL parsing without Wouter**: Wouter doesn't support server-side rendering (no `StaticRouter`). The SSR entry parses URLs manually and renders matching components directly.
 - **Static assets through Go**: `/assets/` and `/fonts/` routes are served directly by the Go server, not through the SSR proxy. The SSR sidecar only renders page HTML.
+- **SSR pre-build in devctl**: The devctl plugin builds the web bundle (`pnpm build:all`) before starting the SSR sidecar, so developers don't need to run builds manually. In Kubernetes, the `ssr` container uses the `ghcr.io/go-go-golems/publish-vault-ssr` image.
 
 ### Deployment
 
-The project uses a multi-stage Docker build:
+The project uses a multi-stage Docker build with two published images:
 
 ```
 ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
@@ -549,14 +573,45 @@ The project uses a multi-stage Docker build:
 │  pnpm build:all  │    │  go build        │    │  serve --port 8080│
 │  → dist/         │    │  → binary        │    │                  │
 └──────────────────┘    └──────────────────┘    └──────────────────┘
+
+┌──────────────────┐
+│  Node 22 Alpine  │
+│  (ssr-builder)   │
+│                  │
+│  pnpm install    │
+│  pnpm build:all  │
+│  → node server.mjs│
+└──────────────────┘
 ```
 
-In production, the Go binary is the only container. The web assets are embedded at build time via `//go:embed`. The build command is `retro-obsidian-publish build web` which runs `vite build`.
+Two images are published:
+- `ghcr.io/go-go-golems/publish-vault:sha-*` — Go binary + embedded assets
+- `ghcr.io/go-go-golems/publish-vault-ssr:sha-*` — SSR sidecar
+
+The `deploy/gitops-targets.json` configures the infra-tooling publish workflow to update both images in the GitOps manifest.
+
+### Kubernetes deployment (parc.yolo.scapegoat.dev)
+
+The production deployment uses three containers in a single pod:
+
+1. **app** — Go binary with `--ssr-url http://127.0.0.1:8089` and `--vault /git/root/current`
+2. **ssr** — Node.js sidecar with `SSR_PORT=8089`, `API_BASE=http://127.0.0.1:8080`, `BASE_URL=https://parc.yolo.scapegoat.dev`
+3. **git-sync** — Watches `go-go-parc.git` vault repo, calls reload endpoint on change
+
+The deployment lives in `gitops/kustomize/retro-obsidian-publish/deployment.yaml`:
+- Ingress via Traefik at `parc.yolo.scapegoat.dev` with cert-manager TLS
+- Vault secrets via VaultOperator (static secrets for git SSH, image pull, runtime config)
+- Health probes on both `app` (`/api/healthz`) and `ssr` (`/health`)
+- Automatic image patching via infra-tooling publish workflow (GitOps PRs open on merge)
+
+### Development
 
 For local development, three services run via devctl:
-- **Backend**: Go server with `go run ./cmd/... serve --vault ... --serve-web=false`
+- **Backend**: Go server with `go run ./cmd/... serve --vault ... --serve-web` (root-level module)
 - **Web**: Vite dev server with `pnpm dev` (hot-reload for frontend changes)
-- **SSR**: Node.js sidecar with `node server.mjs` (for SSR pages)
+- **SSR**: Node.js sidecar — devctl builds the bundle (`pnpm build:all`) before starting `server.mjs`
+
+In production, the Go binary is the only container with embedded assets via `//go:embed`. The build command is `retro-obsidian-publish build web` which runs `vite build`.
 
 ## Implementation details
 
@@ -733,23 +788,41 @@ pnpm --dir web install --frozen-lockfile
 devctl up --profile example
 
 # Or manually:
-cd backend && go run ./cmd/retro-obsidian-publish serve \
+go run ./cmd/retro-obsidian-publish serve \
   --vault ./vault-example \
-  --port 8080 &
+  --port 8080 --serve-web &
 
-cd web && pnpm dev
-
+cd web && pnpm dev &
 cd web && node server.mjs  # SSR sidecar
+```
+
+### Testing
+
+```bash
+# Go tests from root
+go test ./... -count=1
+
+# Web type check
+cd web && pnpm check
+
+# Web build
+cd web && pnpm build:all
+
+# golangci-lint
+golangci-lint run -c .golangci.yml --timeout=5m
+
+# gosec
+gosec -exclude-generated -exclude=G101,G304,G301,G306,G204 ./...
 ```
 
 ### Deployment
 
 ```bash
-# Docker build
-docker build -t retro-obsidian-publish -f backend/Dockerfile .
+# Docker build (Go binary)
+docker build -t retro-obsidian-publish -f Dockerfile .
 
-# Docker Compose (includes SSR sidecar)
-docker compose up --build
+# Docker build (SSR sidecar)
+docker build -t retro-obsidian-publish-ssr -f web/ssr.Dockerfile .
 
 # Production: single Go binary with embedded assets
 go build -tags embed -o retro-obsidian-publish ./cmd/retro-obsidian-publish
@@ -759,7 +832,9 @@ go build -tags embed -o retro-obsidian-publish ./cmd/retro-obsidian-publish
 ## Important project docs
 
 - **DESIGN DOC**: `ttmp/2026/06/06/RETRO-SSR-009/design-doc/01-ssr-sidecar-analysis-and-implementation-guide.md` — Comprehensive SSR sidecar design with architecture diagrams, decision records, pseudocode, and phased implementation plan
+- **A14Y DESIGN DOC**: `ttmp/2026/06/06/RETRO-SSR-009/design-doc/02-markdown-mirror-and-a14y-implementation-guide.md` — Agent readability, markdown mirrors, discovery endpoints, a14y validation (62 → 99)
 - **DIARY**: `ttmp/2026/06/06/RETRO-SSR-009/reference/01-implementation-diary.md` — Chronological investigation diary capturing all decisions, failures, and lessons
+- **CONFIG**: `ttmp/2026/06/06/RETRO-SSR-009/scripts/01-a14y-config.md` — a14y baseline/final score history and local audit command
 - **DESIGN IDEAS**: `ideas.md` — Design philosophy, the System 1 aesthetic rationale, color system
 - **README**: `README.md` — Project overview and quick start
 - **DEVCTL PLUGIN**: `plugins/retro-obsidian-publish.py` — Local development orchestration for 3 services
@@ -777,13 +852,15 @@ go build -tags embed -o retro-obsidian-publish ./cmd/retro-obsidian-publish
 
 5. **Plugin system**: The project is currently self-contained. A plugin system (similar to Obsidian's) could allow community extensions for custom rendering, additional data sources, etc.
 
+6. **Raw Markdown mirrors**: The markdown mirrors currently derive content from rendered HTML because `vault.Note` does not preserve raw Markdown. Preserving raw Markdown would allow cleaner `.md` mirror output and frontmatter that matches the original note.
+
 ## Near-term next steps
 
-- [ ] Add `retro-obsidian-publish serve --ssr-url http://localhost:8089` flag to the help output
 - [ ] Add integration tests that verify the full SSR pipeline (Go → SSR → client)
 - [ ] Add a `docs/` directory with developer setup instructions
 - [ ] Consider adding a GraphQL API alongside the REST API for more flexible querying
 - [ ] Evaluate streaming SSR for large vaults (1000+ notes)
+- [ ] Preserve raw Markdown in `vault.Note` for cleaner markdown mirror output
 
 ## Project working rule
 
