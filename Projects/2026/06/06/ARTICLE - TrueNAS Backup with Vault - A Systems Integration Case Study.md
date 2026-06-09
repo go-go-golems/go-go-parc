@@ -18,6 +18,7 @@ tags:
 status: active
 type: article
 created: 2026-06-06
+updated: 2026-06-08
 repo: /home/manuel/code/wesen/claw-stuff/ttmp/2026/06/06/CRIB-BACKUP-01--ubuntu-to-proxmox-truenas-backup-design
 ---
 
@@ -27,14 +28,14 @@ This case study examines the design and partial implementation of a backup syste
 
 The work began with a single user request: "I want to set up proper backup from this computer to it." The phrase "proper backup" turned out to be a design challenge in disguise. A proper backup is not just a transfer tool with a cron job. It requires a transport that cannot silently fail into a wrong destination, a credential model that does not rely on plaintext secrets, and a scope definition that respects the existing responsibilities of the destination environment. Each of those requirements led to a decision that shaped the whole system.
 
-The result is a design that separates provisioning credentials from runtime backup credentials, uses SFTP as the exclusive backup transport with a mandatory preflight, and keeps the restic client entirely user-owned with no root privileges. The system has been partially implemented: the repository is initialized, a smoke backup/restore has succeeded, and the TrueNAS user `backup-f` is operational. The full `/home/manuel` backup has not been run yet.
+The result is a design that separates provisioning credentials from runtime backup credentials, uses SFTP as the exclusive backup transport with a mandatory preflight, and keeps the restic client entirely user-owned with no root privileges. The system has moved past initial implementation: the repository is initialized, a smoke backup/restore has succeeded, the TrueNAS user `backup-f` is operational, a first full snapshot exists, a clean incremental snapshot has completed with exit status 0, a restore test passed, and the user timer is enabled. The remaining major work is credential cleanup on Proxmox and broader restore/monitoring hardening.
 
 > [!summary]
 > - The laptop has 1.7T of used data on a 1.8T disk, 95% full. Backup scope and excludes are part of the architecture, not an afterthought.
 > - The backup transport is SFTP-only with a mandatory preflight that fails closed. No NFS fallback exists. This decision came from a prior Jellyfin outage where a missing NFS mount was silently replaced by an empty local directory.
 > - The TrueNAS provisioning API key was moved from plaintext `/root/.truenas_api_key` on Proxmox into Vault at `kv/infra/truenas/provisioning`, using OIDC operator login for authentication.
 > - The restic client runs as user `manuel` with all configuration under `~/.config/restic/crib/`, all scripts under `~/.local/bin/`, and scheduling via `systemd --user`.
-> - Implementation state: repository initialized (repo `57e82c013a`), smoke backup/restore succeeded (snapshot `a3a15848`), `backup-f` user operational, timer still disabled pending first full backup.
+> - Implementation state: repository initialized (repo `57e82c013a`), smoke backup/restore succeeded (snapshot `a3a15848`), first full snapshot saved with warnings (`be13295c`), clean incremental snapshot succeeded (`b5530e39`), restore test passed, and the user timer is enabled.
 
 ## The Trigger
 
@@ -475,6 +476,9 @@ The laptop-side restic client is configured and the repository has been initiali
 - `~/.ssh/id_restic_crib_f` — dedicated ED25519 SSH key.
 - Restic repository `57e82c013a` — initialized.
 - Smoke snapshot `a3a15848` — proved backup/restore path works.
+- Warning full snapshot `be13295c` — processed 709.457 GiB and saved a full snapshot but exited status 3 due to unreadable generated/service-owned files.
+- Clean incremental snapshot `b5530e39` — processed 668.281 GiB, stored 995 MiB of new data, exited status 0, and became the clean operational baseline.
+- Restore test from `b5530e39` — restored the CRIB-BACKUP scripts directory and `~/.ssh/id_restic_crib_f.pub`, then verified file count and public-key content.
 
 The restic repository is initialized at:
 
@@ -508,10 +512,9 @@ kv/infra/truenas/restic/laptop-f — restic password escrow (version 1)
 
 ### What is not done
 
-- The first full backup of `/home/manuel` has not been run.
-- The systemd timer is disabled. It should stay disabled until the full backup and a full restore test complete.
-- `/root/.truenas_api_key` on Proxmox has not been rotated or deleted. This is still the operational key. The Vault-stored key is a copy; the plaintext key should be rotated (new TrueNAS API key generated) or deleted only after confirming Vault-managed access is working correctly.
+- `/root/.truenas_api_key` on Proxmox has not been rotated or deleted. This is still the operational key. The Vault-stored key is a copy; the plaintext key should be rotated (new TrueNAS API key generated) or deleted now that Vault-managed access and restic backups are proven.
 - An off-site copy has not been implemented. A future Terraform-managed bucket (`scapegoat-k3s-backups`) could serve as phase 2.
+- Stale-backup monitoring has not been implemented. The timer is enabled, but there is not yet an alert if scheduled backups stop running.
 
 ### Current state diagram
 
@@ -521,11 +524,14 @@ kv/infra/truenas/restic/laptop-f — restic password escrow (version 1)
 │  • restic installed                              │
 │  • scripts in ~/.local/bin                       │
 │  • config in ~/.config/restic/crib               │
-│  • systemd --user timer installed, disabled      │
+│  • systemd --user timer installed, enabled       │
 │  • SSH key: id_restic_crib_f (ED25519)          │
 │  • password generated + Vault-escrowed           │
 │  • repository initialized: 57e82c013a            │
 │  • smoke backup/restore succeeded: a3a15848      │
+│  • full warning snapshot: be13295c                │
+│  • clean baseline snapshot: b5530e39              │
+│  • restore test passed                            │
 │                                                 │
 │  TrueNAS — dataset and user created              │
 │  • media-pool/backups/laptops/f-restic exists    │
@@ -538,7 +544,7 @@ kv/infra/truenas/restic/laptop-f — restic password escrow (version 1)
 │  • OIDC operator login works                    │
 │  • smoke test script: read-only ✓               │
 │                                                 │
-│  Next: first full backup → restore test          │
+│  Next: rotate/delete Proxmox TrueNAS API key      │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -595,12 +601,11 @@ Several patterns appeared during investigation that should be avoided in future 
 
 Several items remain to complete the system:
 
-1. **Run the first full manual backup** of `/home/manuel` with the current exclude list.
-2. **Restore a representative directory** from the full backup and verify permissions and content.
-3. **Enable the user systemd timer** only after the full restore test succeeds.
-4. **Rotate or delete `/root/.truenas_api_key`** from Proxmox after confirming Vault-managed access works correctly.
+1. **Verify the first scheduled timer run** after `2026-06-09 03:30 EDT` and confirm it creates a clean scheduled snapshot.
+2. **Rotate or delete `/root/.truenas_api_key`** from Proxmox after confirming Vault-managed access remains healthy.
+3. **Add monitoring/alerting** for stale backups — a backup that has not run in 48 hours should generate an alert.
+4. **Run a larger restore test** against a real project or document directory, beyond the small representative restore already completed.
 5. **Implement an off-site copy** as phase 2, possibly using the existing Terraform-managed bucket `scapegoat-k3s-backups` in Hetzner Object Storage.
-6. **Add monitoring/alerting** for stale backups — a backup that has not run in 48 hours should generate an alert.
 
 ## References
 
