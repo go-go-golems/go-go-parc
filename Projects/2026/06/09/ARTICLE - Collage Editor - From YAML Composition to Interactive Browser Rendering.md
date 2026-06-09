@@ -39,7 +39,11 @@ The solution is to separate positioning concerns from absolute coordinates. Inst
 
 ## The YAML Composition DSL
 
-The foundation is a YAML document that describes a collage. A collage is a stack of layers painted bottom-to-top onto a fixed-size canvas. Each layer places one PNG image with optional transforms.
+The foundation is a YAML document that describes a collage. A collage is a stack of layers painted bottom-to-top onto a fixed-size canvas. Each layer places one PNG image with optional transforms. The browser editor renders each layer as an individual positioned `<img>` element inside a relative container, with an SVG overlay for bounding boxes, guides, and POI markers.
+
+![The browser editor showing the "Intent Astronaut Portal" composition. Six layer images render as positioned `<img>` elements on a white canvas, with cyan bounding boxes and guide crosshairs overlaid as SVG. The right panel shows the layer list and inspector.](screenshot-full.png)
+
+The YAML document below is a real composition file. Notice how every layer has a `description` that explains its role:
 
 ```yaml
 title: "Intent Astronaut Portal"
@@ -161,6 +165,8 @@ Catalog POIs (Points of Interest) are vetted metadata on assets. A catalog is a 
 These are not inferred from image analysis. They are hand-placed metadata that define semantic points on an asset. When a layer references `catalog_id`, the placement grammar can use any POI name as the `point` value. The system looks up the POI in the catalog and gets its `x_pct`/`y_pct`, then computes the layer's position relative to that point.
 
 This means you can say "place the astronaut's feet on the ground line" and the system looks up where the feet are in the source image, then positions the layer accordingly. The layer moves correctly even if the source image dimensions change or if you swap to a different astronaut image with different proportions.
+
+![Layer inspector showing the astronaut layer's resolved position (x: 325, y: 300), sizing (700x1000px), catalog ID, and the semantic placement grammar used to position it.](screenshot-inspector.png)
 
 ### Layer repeat patterns
 
