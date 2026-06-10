@@ -355,7 +355,7 @@ When adding story-only args like `palette` to a Storybook meta that still declar
 <details>
 <summary>Context Diagram Panel — Widget IR with varied legend vocabularies</summary>
 
-![](.playwright-mcp/storybook-context-diagram-panel-views.png)
+![](storybook-context-diagram-panel-views.png)
 
 The Widget IR `ContextDiagramPanelViews` story shows four different legend sizes (3, 4, 5, and 6 labels) under the same layout. The palette dropdown in Storybook Controls switches colors independently of the legend vocabulary.
 
@@ -364,7 +364,7 @@ The Widget IR `ContextDiagramPanelViews` story shows four different legend sizes
 <details>
 <summary>Transcript Message Card States — Palette-controlled with neutral bodies</summary>
 
-![](.playwright-mcp/storybook-message-card-states.png)
+![](storybook-message-card-states.png)
 
 Each message card shows a palette-colored title bar with halftone pattern, a token-count chip with a mostly-white background, and a white message body. The note-link chips ("note 5", "note 4") use a neutral background with a palette left-border accent.
 
@@ -373,7 +373,7 @@ Each message card shows a palette-colored title bar with halftone pattern, a tok
 <details>
 <summary>Transcript Action Logger — Full transcript workspace with palette control</summary>
 
-![](.playwright-mcp/storybook-transcript-action-logger.png)
+![](storybook-transcript-action-logger.png)
 
 The transcript action logger Widget IR story renders a full `TranscriptWorkspacePanel` with palette controls. The palette dropdown switches between all four preferred palettes across the entire transcript surface — message title bars, note chips, and annotation rails all update.
 
@@ -384,7 +384,7 @@ The transcript action logger Widget IR story renders a full `TranscriptWorkspace
 <details>
 <summary>Transcript message cards with Signal Orange / Cyan palette</summary>
 
-![](.playwright-mcp/sb-message-cards-orange.png)
+![](sb-message-cards-orange.png)
 
 The same message card states under the Signal Orange / Cyan palette. The assistant title bars now use cyan tones, tool call bars use orange, and the note chips have cyan borders. Token chips remain neutral-white.
 
@@ -395,7 +395,7 @@ The same message card states under the Signal Orange / Cyan palette. The assista
 <details>
 <summary>Context diagram panel views with Cobalt / Sand palette</summary>
 
-![](.playwright-mcp/sb-context-diagram-cobalt.png)
+![](sb-context-diagram-cobalt.png)
 
 The `ContextDiagramPanelViews` story under the Cobalt / Sand palette. The strip diagram, budget bar, stack diagram, and treemap all use cobalt blue for active elements and sand for passive/hovered tones.
 
@@ -406,7 +406,7 @@ The `ContextDiagramPanelViews` story under the Cobalt / Sand palette. The strip 
 <details>
 <summary>Transcript action logger with Slate / Coral palette</summary>
 
-![](.playwright-mcp/sb-slate-coral-action-logger.png)
+![](sb-slate-coral-action-logger.png)
 
 The transcript workspace under the Slate / Coral palette. The assistant bars use slate tones, tool call bars use coral, and the annotation note cards use slate-accented title bars with neutral bodies.
 
