@@ -67,19 +67,143 @@ The display is a 2.0-inch IPS LCD at 320×240 resolution driven by an ILI9342C c
 
 ### Audio Pipeline
 
-Audio input uses an ES7210 codec connected to dual microphones via I2S. The I2S signals are:
+The audio pipeline is the most complex subsystem in StackChan. It must simultaneously capture microphone input, play speaker output, run wake-word detection, perform acoustic echo cancellation, encode and decode Opus audio, and stream data to and from a cloud server — all on a dual-core ESP32-S3 with constrained memory. Understanding how these pieces fit together is essential for anyone modifying the voice assistant or building a similar system.
 
-- **I2S_BCK** (GPIO34) — bit clock
-- **I2S_WCK** (GPIO33) — word select (left/right channel)
-- **I2S_DATO** (GPIO13) — data out from ES7210 to ESP32-S3
-- **I2S_MCLK** (GPIO0) — master clock
+#### Hardware Signal Path
 
-Audio output uses an AW88298 16-bit I2S power amplifier driving a 1W built-in speaker:
+Audio input uses an ES7210 codec connected to dual microphones via I2S. Audio output uses an AW88298 16-bit I2S power amplifier driving a 1W built-in speaker. Both codecs share the same I2S bus but operate in opposite directions:
 
-- **I2S_DIN** (GPIO14) — data in from ESP32-S3 to AW88298
-- Shares I2S_BCK and I2S_WCK with the input codec
+| Signal | GPIO | Direction | Purpose |
+|--------|------|-----------|----------|
+| I2S_MCLK | GPIO0 | ESP32-S3 → both codecs | Master clock (256× sample rate) |
+| I2S_BCK | GPIO34 | ESP32-S3 → both codecs | Bit clock |
+| I2S_WCK | GPIO33 | ESP32-S3 → both codecs | Word select (L/R channel) |
+| I2S_DOUT | GPIO13 | ESP32-S3 → AW88298 | Speaker output data |
+| I2S_DIN | GPIO14 | ES7210 → ESP32-S3 | Microphone input data |
 
-The dual-microphone configuration supports acoustic echo cancellation (AEC), which is required for the voice assistant to work while the speaker is playing TTS output. The XiaoZhi firmware enables AEC by default using Espressif's `esp-sr` library.
+The CoreS3 audio codec implementation (`CoreS3AudioCodec`) creates a **full-duplex** I2S channel: the TX channel uses I2S standard mode (for the speaker), while the RX channel uses I2S TDM mode (for the microphones, which need multi-slot support for the dual-mic + reference channel configuration). Both run at the same sample rate, which is required for duplex operation on a shared I2S bus.
+
+The ES7210 is configured with three microphone inputs selected (`ES7210_SEL_MIC1 | ES7210_SEL_MIC2 | ES7210_SEL_MIC3`). Two of these are the physical microphones; the third slot carries a **reference signal** from the speaker output, which is essential for acoustic echo cancellation.
+
+#### The Audio Service: Two Data Flows
+
+The `AudioService` class manages all audio processing. It defines two independent data flows that run concurrently:
+
+```
+Uplink (Microphone → Server):
+  MIC → [AFE Processor] → {Encode Queue} → [Opus Encoder] → {Send Queue} → WebSocket → Server
+
+Downlink (Server → Speaker):
+  Server → WebSocket → {Decode Queue} → [Opus Decoder] → {Playback Queue} → Speaker
+```
+
+Three FreeRTOS tasks drive these flows:
+
+1. **AudioInputTask** — reads PCM samples from the ES7210, feeds them through the AFE processor (which performs AEC, noise reduction, and VAD), then pushes processed frames to the encode queue
+2. **OpusCodecTask** — consumes frames from the encode queue, encodes them to Opus, and pushes the resulting packets to the send queue; also consumes packets from the decode queue, decodes them to PCM, and pushes to the playback queue
+3. **AudioOutputTask** — reads PCM frames from the playback queue and writes them to the AW88298
+
+The queue depths are calibrated to balance latency against memory usage:
+
+| Queue | Max Depth | Rationale |
+|-------|-----------|----------|
+| Encode queue | 2 tasks | Small — the Opus encoder must keep up with real-time input |
+| Decode queue | 40 packets | Larger — buffers against network jitter (2400ms / 60ms per frame) |
+| Playback queue | 2 tasks | Small — the speaker output must stay tightly synchronized |
+| Send queue | 40 packets | Larger — allows the network to absorb bursts |
+
+#### Opus Codec Configuration
+
+The audio codec is Opus, configured for voice-optimized streaming:
+
+| Parameter | Value | Reason |
+|-----------|-------|--------|
+| Sample rate | 16 kHz (uplink), 24 kHz (downlink) | 16 kHz sufficient for speech; 24 kHz for higher-quality TTS playback |
+| Channels | 1 (mono) | Voice doesn't need stereo |
+| Bit depth | 16-bit | Standard for PCM → Opus |
+| Frame duration | 60 ms | Tradeoff between latency and efficiency |
+| Bitrate | Auto (VBR) | Opus adapts bitrate to content complexity |
+| Application mode | VOIP | Optimized for speech, not music |
+| Complexity | 0 | Minimum CPU usage — important on embedded |
+| FEC | Disabled | Forward error correction adds overhead |
+| DTX | Enabled | Discontinuous transmission — sends nothing during silence |
+| VBR | Enabled | Variable bitrate — saves bandwidth during quiet segments |
+
+The 60ms frame duration means each Opus frame contains 960 samples at 16 kHz. The encoder produces compact packets (typically 40–80 bytes for active speech) that are sent as binary WebSocket frames to the server.
+
+The server may respond with TTS audio at 24 kHz, which provides better fidelity for synthesized speech. The `AudioService` handles the sample rate mismatch by resampling the decoded PCM from 24 kHz to the output rate using Espressif's `esp_ae_rate_cvt` utility.
+
+#### Acoustic Echo Cancellation (AEC)
+
+AEC is the hardest problem in any voice assistant. The device must hear the user's voice while simultaneously playing TTS output through its speaker. Without AEC, the microphone picks up the speaker output, and the server's ASR transcribes the robot's own speech as if the user said it.
+
+The XiaoZhi firmware supports two AEC modes:
+
+1. **Device-side AEC** (default for CoreS3) — The `AfeAudioProcessor` uses Espressif's `esp-sr` AFE (Audio Front-End) library. This runs on the ESP32-S3 itself, using the speaker output as a reference signal. The ES7210 captures this reference on a third channel alongside the two microphone channels. The AFE processor then subtracts the reference from the microphone input, producing clean speech.
+
+2. **Server-side AEC** (optional, enabled via `CONFIG_USE_SERVER_AEC`) — The device sends raw (unprocessed) microphone audio plus timestamps to the server, which performs AEC in software. This requires the Binary Protocol v2, which includes a `timestamp` field in each packet for synchronization. Server-side AEC is higher quality but adds latency and requires the server to implement the echo cancellation algorithm.
+
+The device advertises its AEC capability in the WebSocket hello message:
+
+```json
+{
+  "type": "hello",
+  "features": { "aec": true },
+  "audio_params": {
+    "format": "opus",
+    "sample_rate": 16000,
+    "channels": 1,
+    "frame_duration": 60
+  }
+}
+```
+
+When device-side AEC is active, the `CoreS3AudioCodec` sets `input_reference_ = true` and `input_channels_ = 2` (microphone + reference). The AFE processor receives this two-channel input and outputs single-channel clean speech to the Opus encoder.
+
+#### Wake Word Detection
+
+Wake word detection runs on the ESP32-S3 using Espressif's `esp-sr` WakeNet neural network. The default wake word is "Hi, StackChan" (customizable via the xiaozhi-assets-generator web tool).
+
+The `AfeWakeWord` class shares the AFE processor's input stream. When the AFE processes a frame of audio, it simultaneously:
+
+- Outputs clean speech (for the Opus encoder)
+- Runs the WakeNet model (for wake word detection)
+- Reports VAD state changes (speaking / not speaking)
+
+When the wake word is detected, the device:
+
+1. Stores the audio containing the wake word in a ring buffer
+2. Encodes it to Opus (so the server can verify the wake word and potentially perform voice-print identification)
+3. Sends a `listen` message with `state: "detect"` to the server
+4. Transitions from Idle to Connecting, then to Listening
+
+#### Voice Session State Machine
+
+The voice assistant follows a defined state machine:
+
+```
+Idle → Connecting → Listening → Speaking → Idle
+                         ↑          │
+                         └──────────┘ (auto-continue mode)
+```
+
+| Transition | Trigger | Action |
+|------------|---------|--------|
+| Idle → Connecting | Wake word or screen tap | Open WebSocket, send hello |
+| Connecting → Listening | Server hello received | Start microphone streaming |
+| Listening → Speaking | Server sends `tts: start` | Stop mic, play TTS audio |
+| Speaking → Idle | Server sends `tts: stop` | Return to idle (or auto-continue) |
+| Any → Idle | Abort or disconnect | Close WebSocket |
+
+In "auto" listening mode (the default), after the server finishes speaking (TTS stop), the device automatically returns to Listening rather than Idle. This enables multi-turn conversation without requiring the user to say the wake word again. In "manual" mode, the user must tap the screen or say the wake word to start each turn.
+
+The device can also abort a response mid-speech if the wake word is detected again ("barge-in"). It sends an `abort` message with `reason: "wake_word_detected"`, and the server stops generating TTS.
+
+#### The I2C Bus Reset Problem
+
+The ES7210 and AW88298 both sit on the same system I2C bus as the AXP2101, BMI270, and other peripherals. During audio operation, the I2C bus is accessed continuously to configure codec parameters (volume changes, input gain, channel selection). If any other I2C device holds the bus (for example, the IMU performing a burst read), the codec configuration can stall.
+
+The `CoreS3AudioCodec` uses Espressif's `esp_codec_dev` abstraction layer, which handles I2C transactions through a mutex-protected control interface. In practice, the DMA-based I2S data path (which carries the actual audio samples) is independent of the I2C control path, so audio streaming continues even if I2C configuration commands are delayed. But rapid volume changes or input enable/disable transitions can produce audible glitches if the I2C bus is contended.
 
 ### Power Management
 
