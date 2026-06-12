@@ -238,20 +238,151 @@ The PY32L020 I/O expander at I2C address 0x6F (configurable to 0x71) controls tw
 
 #### The SCS0009 Feedback Servos
 
-The SCS0009 servos use a UART-based serial protocol (not PWM). Two servos share the same UART bus on GPIO6 (TX) and GPIO7 (RX). The protocol supports:
+The SCS0009 servos use a UART-based serial protocol (not PWM). Two servos share the same UART bus on GPIO6 (TX) and GPIO7 (RX) at 1 Mbps. The protocol is implemented by the Feetech `SCSCL` driver class, which provides a half-duplex serial command set:
 
-- Position control with angle and speed parameters
-- Position feedback — the servo reports its current angle
-- Torque enable/disable
-- Baud rate configuration (default 1 Mbps)
+| Command | Method | Description |
+|---------|--------|-------------|
+| WritePos | `WritePos(id, position, time, speed)` | Move to absolute position with optional time/speed |
+| WritePWM | `WritePWM(id, pwm)` | Direct PWM output (for continuous rotation) |
+| SwitchMode | `SwitchMode(id, mode)` | Toggle Position mode vs PWM mode |
+| EnableTorque | `EnableTorque(id, enable)` | Enable/disable servo torque |
+| FeedBack | `FeedBack(id)` | Read all feedback registers at once |
+| ReadPos | `ReadPos(id)` | Current position (raw units) |
+| ReadMove | `ReadMove(id)` | Whether the servo is still moving |
+| ReadLoad | `ReadLoad(id)` | Motor load percentage (0–1000) |
+| ReadCurrent | `ReadCurrent(id)` | Motor current draw |
 
-The horizontal servo provides 360° continuous rotation, meaning it can spin indefinitely in either direction. The vertical servo provides 90° of movement. Both include position feedback, which the firmware uses for:
+The servo's internal memory map exposes both writable control registers (goal position, time, speed, torque enable) and read-only feedback registers (current position, speed, load, voltage, temperature, current, moving state). The `FeedBack()` command reads the entire feedback block in a single UART transaction, which is more efficient than reading individual registers.
+
+The horizontal servo (ID 1) provides 360° continuous rotation, meaning it can spin indefinitely in either direction. The vertical servo (ID 2) provides 90° of movement. Both include position feedback, which the firmware uses for:
 
 - Zero-position calibration (stored in NVS)
 - The "Sender" mode in ESP-NOW control, where the current servo angles are read and broadcast
 - Smooth motion control through the `moveWithSpeed(yaw, pitch, speed)` API
+- Stall detection and protection
 
-During boot, the firmware reads the zero positions from NVS (e.g., servo ID 1: position 446, servo ID 2: position 652) and uses these to center the robot's head. The calibration can be adjusted through the on-device Settings menu.
+#### Servo Configuration and Calibration
+
+The HAL initializes the servos in `servo_init()` with hardcoded defaults:
+
+| Parameter | Yaw Servo (ID 1) | Pitch Servo (ID 2) |
+|-----------|-------------------|---------------------|
+| Servo ID | 1 | 2 |
+| Default zero position | 460 | 620 |
+| Angle limit | -1280 .. 1280 | 30 .. 870 |
+| Raw position limit | 0 .. 1000 | 0 .. 1000 |
+| NVS namespace | "servo" | "servo" |
+| NVS key | "zero_pos_1" | "zero_pos_2" |
+| PWM mode enabled | Yes | No |
+| Stall protection | No | Yes |
+
+The angle values are in units of 0.1°, so the yaw range of -1280..1280 represents ±128° and the pitch range of 30..870 represents 3°..87°. Raw position values are in the servo's native units, where one raw step corresponds to 0.3125° (the conversion factor is `5/16 = 0.3125`).
+
+The zero position is loaded from NVS at boot. If the NVS value is out of range or missing, the default is used instead and the NVS is updated. The user can recalibrate through the on-device Settings menu, which calls `setCurrentAngleAsZero()` — this reads the current raw position from the servo and writes it to NVS.
+
+#### Spring-Based Motion Animation
+
+The `Servo` base class does not send raw position commands directly to the hardware. Instead, it uses a **spring animation system** (`uitk::AnimateValue` with spring physics) to smoothly interpolate between the current angle and the target angle. This is what makes StackChan's head movements look natural rather than robotic.
+
+A spring animation is governed by three parameters:
+
+- **Stiffness** (k) — how strongly the spring pulls toward the target. Higher stiffness = faster motion.
+- **Damping** (d) — how quickly oscillation is suppressed. Critical damping (d = 2√(m·k)) produces motion that reaches the target as fast as possible without overshooting.
+- **Mass** (m) — inertial parameter. Always 1.0 in this system.
+
+The default spring parameters are stiffness=170.0 and damping=26.0, which produces a smooth, slightly underdamped motion that settles in roughly 200–300ms. These defaults are used by `move(angle)` and by the idle motion system.
+
+The `moveWithSpeed(angle, speed)` method maps the speed parameter (0–1000) to spring stiffness using a quadratic curve:
+
+```
+k = k_min + (speed/1000)² × (k_max - k_min)
+  = 10 + (speed/1000)² × 640
+```
+
+The damping is then set to critical damping for that stiffness: `d = 2 × √(m × k)`. This means:
+
+| Speed | Stiffness | Damping | Behavior |
+|-------|-----------|---------|----------|
+| 0 | 10 | 6.3 | Very slow, gentle drift |
+| 250 | 50 | 14.1 | Slow, deliberate turn |
+| 500 | 170 | 26.0 | Default speed, natural motion |
+| 750 | 370 | 38.5 | Fast, purposeful turn |
+| 1000 | 650 | 51.0 | Maximum speed, snappy |
+
+At high speeds (>800), the rest thresholds are loosened (restDelta=0.5, restSpeed=0.5 instead of 0.1) to prevent micro-oscillation caused by the discrete position steps of the servo.
+
+The `update()` method runs at approximately 50 Hz (20ms intervals) and advances the spring simulation with a fixed delta time of 0.02s. When the animation reaches its rest state, the servo snaps to the exact target angle and, if auto-torque-release is enabled, disables the servo torque after 200ms of inactivity. This prevents the servo from buzzing at rest and reduces power consumption.
+
+#### Stall Detection and Protection
+
+The pitch servo has stall protection enabled. This is critical for safety: if something physically blocks the vertical servo (for example, someone pushing the robot's head down), the servo must stop driving to avoid burning out the motor or stripping gears.
+
+The stall detection algorithm runs every 50ms during motion:
+
+1. Read current position, current draw, and load via `FeedBack()`
+2. Calculate the delta between the target position and current position
+3. If the delta is below a minimum threshold (8 raw units ≈ 2.5°), skip — the servo is close enough to its target
+4. Check if the position has changed by more than 1 raw unit since the last check
+5. If position is stuck **and** (current spike ≥ 80 units OR load spike ≥ 150 units OR absolute current ≥ 350 OR absolute load ≥ 650), increment the stall confirmation counter
+6. If the position has actually moved, reset the counter
+7. After 2 consecutive stall confirmations, declare a stall
+
+When a stall is detected, the firmware:
+
+1. Stops the spring animation at the current position
+2. **Shrinks the angle limit** toward the stall point (preventing future commands from driving into the same obstruction)
+3. Holds the current position with a low-effort `WritePos()` command
+4. Logs the stall with raw position, angle, direction, current, and load values
+
+The runtime angle limit adjustment means that if the servo stalls at, say, pitch=400, the firmware will not attempt to drive past that angle again until the device is rebooted or recalibrated. This is a self-protecting behavior that prevents repeated stall events.
+
+#### Torque Management and PWM Mode
+
+The yaw servo supports PWM mode in addition to position mode. In PWM mode, the servo rotates continuously at a velocity proportional to the PWM value (0–1023). This is used for the 360° continuous rotation capability of the horizontal axis.
+
+The firmware manages torque carefully:
+
+- **Auto torque release** — After the spring animation settles and the servo is at rest, the torque is disabled. This prevents the servo from holding position against external forces (which would cause buzzing and power waste) but also means the head can be moved freely by hand.
+- **Auto angle sync** — When enabled (the default), each new `move()` command reads the current physical angle from the servo and uses it as the starting point for the spring animation. This prevents "jumps" when the head has been moved manually, but can cause stuttering during high-frequency updates because the animation's velocity is reset. When disabled, the animation maintains momentum from its previous state, producing smoother continuous motion but risking a "snap" if the physical and internal states have diverged.
+- **Modify lock** — The `Motion` class has a `setModifyLock()` flag that prevents modifiers from sending motion commands. This is used during ESP-NOW control and AI agent interaction to prevent the idle motion system from fighting with external control inputs.
+
+#### Motion Modifiers: Idle Behavior and Pet Responses
+
+The `StackChan` class maintains a list of `Modifier` objects that run every frame. These modifiers add personality to the robot's idle behavior:
+
+**IdleMotionModifier** — Triggers random head movements every 4–8 seconds when the robot is idle. It selects from four action types:
+
+| Weight | Action | Description |
+|--------|--------|-------------|
+| 50% | Look around | `lookAtNormalized(x, y)` with x∈[-0.4, 0.4], y∈[-0.95, 0.2], speed 150–300 |
+| 30% | Small shift | ±150 yaw, ±80 pitch from current position, speed 100–250 |
+| 10% | Quick glance | Random yaw±500, pitch 100–400, speed 250–400 |
+| 10% | Re-center | Yaw→0 (home), random pitch 50–400, speed 100–300 |
+
+The modifier checks `isMoving()` before issuing a new command, so it never stacks commands while the head is still in motion. It can be paused and resumed (for example, paused during AI agent interaction and resumed when idle).
+
+**HeadPetModifier** — Responds to swipe gestures on the top touch panel. When a swipe is detected:
+
+1. Saves the current emotion and head position
+2. Sets the avatar emotion to Happy
+3. Adds heart and shy decorators to the face display
+4. Performs a random pet-response motion (head tilt, head raise, or large happy motion)
+5. After the hand is released, waits 3 seconds, then restores the original emotion and head position
+
+**SpeakingModifier** — Synchronizes mouth animation with TTS audio playback.
+
+**IdleExpressionModifier** — Triggers random facial expressions (blinking, gaze shifts) on a timer.
+
+**ImuModifier** — Detects shaking (via the BMI270 IMU) and triggers a dizzy expression.
+
+#### Inverse Kinematics: lookAtPoint()
+
+The `Motion` class provides two spatial targeting methods:
+
+- `lookAtNormalized(x, y, speed)` — Maps normalized coordinates [-1.0, 1.0] to the servo angle limits. Used by face tracking and joystick-style control.
+- `lookAtPoint(x, y, z, speed)` — Performs inverse kinematics to direct the head at a 3D point. Uses `atan2(y, x)` for yaw and `atan2(z, √(x² + y²))` for pitch. The coordinate system is right-handed: X forward, Y left, Z up. Returns angles in 0.1° units.
+
+The IK solver is simple because the robot only has two degrees of freedom (yaw and pitch) and the rotation center is fixed at (0,0,0). There is no translation component — the head only rotates in place. This means the IK solution is just a pair of `atan2` calls, with no iterative optimization needed.
 
 ```mermaid
 graph TD
