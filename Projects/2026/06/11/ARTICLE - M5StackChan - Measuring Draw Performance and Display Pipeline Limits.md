@@ -201,6 +201,10 @@ Small partial updates: can be much faster than full-screen updates
 
 The last line matters. A UI that moves a small dot or updates a label does not necessarily flush the full 153,600 bytes. LVGL is designed around invalidated regions. If the invalidated area is small, the display bus is not the bottleneck. If an animation invalidates the entire screen, the bus becomes central.
 
+![](images-m5stackchan-draw-performance/spi-transfer-ceiling-by-region.png)
+
+The chart uses only the 40 MHz SPI payload rate and RGB565 byte count. It intentionally ignores command overhead, render time, DMA gaps, and scheduling. Its purpose is to make the order-of-magnitude relationship visible: shrinking the invalidated region changes the achievable frame cadence much more than small code-level optimizations do.
+
 ## Draw time is not one measurement
 
 The phrase "draw performance" hides several separate timings. A useful benchmark should keep them separate because they imply different fixes.
@@ -306,6 +310,10 @@ enum class BenchMode {
     Target30Fps,
 };
 ```
+
+![](images-m5stackchan-draw-performance/benchmark-loop-rate-by-mode.png)
+
+The loop-rate chart is deliberately plotted on a logarithmic axis because `yield` mode spins much faster than the paced modes. This chart should not be read as display FPS. It shows how often the outer benchmark loop iterates while the expensive work is throttled.
 
 Each mode periodically does three kinds of work:
 
@@ -452,7 +460,15 @@ The `delay_1_tick` row contains two obvious outliers: LVGL wait p95 and first as
 
 The stable result for the small UI update is the LVGL lock hold time: about 0.8 ms. That is the time spent inside the benchmark's LVGL lock while updating two labels and a small dot. It is not a full-screen render time, and it is not flush completion time.
 
+![](images-m5stackchan-draw-performance/benchmark-lvgl-lock-wait-hold.png)
+
+The lock chart separates waiting from holding. That separation is the main point: a long wait means the benchmark could not enter LVGL because something else owned it; a long hold means the benchmark itself occupied the critical section. The hold time is stable around 0.8 ms, while the `delay_1_tick` wait path shows cold-start or scheduling outliers.
+
 The RGB result is also important. Refreshing all 12 RGB LEDs through the direct HAL path costs about 6–7 ms. That is large enough to matter if done inside an animation-critical loop, especially if combined with display work. It should remain outside LVGL lock timing and should probably run at a controlled cadence.
+
+![](images-m5stackchan-draw-performance/benchmark-rgb-asset-costs.png)
+
+The peripheral chart shows why RGB refresh and asset lookup should be accounted for separately from LVGL drawing. RGB refresh is consistently millisecond-scale. Asset lookup is normally tiny after warmup, but the first cold path includes initialization and checksum work that can dominate a frame budget.
 
 ## What these numbers do and do not prove
 
@@ -635,6 +651,7 @@ The most important local sources for this investigation are:
 | `/home/manuel/workspaces/2025-12-21/echo-base-documentation/M5StackChan/build/firmware/main/stackchan/stackchan.h` | `GetStackChan().update()` behavior called from launcher |
 | `/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/06/11/M5STACKCHAN-BENCH--standalone-cores3-benchmark-harness-for-stackchan-firmware-performance/reference/01-investigation-diary.md` | Chronological benchmark implementation diary and failure record |
 | `/tmp/stackchan-bench-monitor4.log` | First successful serial benchmark output |
+| `/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/06/11/M5STACKCHAN-BENCH--standalone-cores3-benchmark-harness-for-stackchan-firmware-performance/scripts/01-render-benchmark-charts.py` | Reproducible chart renderer for the benchmark illustrations embedded in this article |
 
 ## Near-term next steps
 
