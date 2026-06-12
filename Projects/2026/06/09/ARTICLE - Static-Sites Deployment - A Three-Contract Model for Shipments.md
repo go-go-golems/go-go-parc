@@ -155,7 +155,7 @@ flowchart TD
         M --> N[publisher Job runs]
         N --> O[cp /site/. to PVC]
         O --> P[ln -s current -> releases/<sha>]
-        P --> Q[Caddy: root /srv/sites/{host}/current]
+        P --> Q["Caddy: root /srv/sites/{host}/current"]
         Q --> R[Ingress: https://<host>/]
     end
 

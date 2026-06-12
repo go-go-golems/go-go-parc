@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Black field -->
+  <rect width="512" height="512" fill="#000000"/>
+
+  <!-- Single hexagonal frame -->
+  <polygon points="256,40 440,132 440,380 256,472 72,380 72,132"
+           fill="none" stroke="#FFFFFF" stroke-width="6"/>
+
+  <!-- === HEAD — angular slab === -->
+  <polygon points="180,136 332,136 348,176 332,216 180,216 164,176"
+           fill="#FFFFFF"/>
+
+  <!-- Left eye void -->
+  <rect x="194" y="160" width="44" height="28" fill="#000000"/>
+  <!-- Left eye bar -->
+  <rect x="198" y="166" width="36" height="16" fill="#FFFFFF"/>
+
+  <!-- Right eye void -->
+  <rect x="274" y="160" width="44" height="28" fill="#000000"/>
+  <!-- Right eye bar -->
+  <rect x="278" y="166" width="36" height="16" fill="#FFFFFF"/>
+
+  <!-- Mouth -->
+  <rect x="228" y="200" width="56" height="6" fill="#000000"/>
+
+  <!-- === NECK === -->
+  <rect x="220" y="216" width="72" height="24" fill="#FFFFFF"/>
+
+  <!-- === BODY — monolith === -->
+  <rect x="152" y="240" width="208" height="152" fill="#FFFFFF"/>
+
+  <!-- Chest void -->
+  <rect x="196" y="272" width="120" height="88" fill="#000000"/>
+
+  <!-- Angular G glyph -->
+  <polygon points="212,288 300,288 300,308 236,308 236,320 276,320 276,338 236,338 236,352 212,352"
+           fill="#FFFFFF"/>
+
+  <!-- === ARMS === -->
+  <rect x="88" y="256" width="64" height="136" fill="#FFFFFF"/>
+  <!-- Arm hatching -->
+  <rect x="96" y="268" width="48" height="6" fill="#000000"/>
+  <rect x="96" y="284" width="48" height="6" fill="#000000"/>
+  <rect x="96" y="300" width="48" height="6" fill="#000000"/>
+
+  <rect x="360" y="256" width="64" height="136" fill="#FFFFFF"/>
+  <!-- Arm hatching -->
+  <rect x="368" y="268" width="48" height="6" fill="#000000"/>
+  <rect x="368" y="284" width="48" height="6" fill="#000000"/>
+  <rect x="368" y="300" width="48" height="6" fill="#000000"/>
+
+  <!-- === GROUND BAR === -->
+  <rect x="72" y="408" width="368" height="6" fill="#FFFFFF"/>
+
+  <!-- Registration mark — bottom right only -->
+  <rect x="432" y="428" width="20" height="6" fill="#FFFFFF" opacity="0.6"/>
+  <rect x="440" y="440" width="12" height="6" fill="#FFFFFF" opacity="0.3"/>
+</svg>
