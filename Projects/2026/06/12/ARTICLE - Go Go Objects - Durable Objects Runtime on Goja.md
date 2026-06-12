@@ -354,14 +354,15 @@ sequenceDiagram
     participant Store as Object SQLite
     participant Index as Alarm Index
     participant Manager as Manager
-    participant Actor as Actor
+    participant Actor_ as Actor
 
     JS->>Store: setAlarm(dueAt)
     Store->>Index: upsert object_alarms row
     Manager->>Index: DueAlarms(now, limit)
     Index-->>Manager: ObjectID list
-    Manager->>Actor: Dispatch KindAlarm
-    Actor->>JS: instance.alarm()
+    Manager->>Actor_: Dispatch KindAlarm
+    
+    Actor_->>JS: instance.alarm()
     Manager->>Index: delete dispatched alarm
 ```
 
