@@ -661,7 +661,7 @@ The generated declaration includes:
 - 64-bit integer fields as `number | string`.
 - Bytes fields as `Uint8Array | string`.
 
-Oneof-specific declarations are intentionally not emitted yet. The ticket still has oneof runtime helper work open, and the declaration generator should not promise methods that do not exist at runtime.
+Oneof-specific declarations are now emitted for real, non-synthetic oneofs. The generator skips proto3 optional backing oneofs, but real oneofs get `which<Oneof>()` and `clear<Oneof>()` methods in both runtime output and TypeScript declarations.
 
 ## Host integration helpers
 
@@ -725,6 +725,225 @@ The implementation should keep these rules stable:
 
 ## Current status
 
-The project is now in the first generated-builder stage. The runtime representation is in place, the compiler plugin exists, and generated companion files can create Goja module exports that build real protobuf messages. Generated messages can be consumed by Go through `protogoja.MessageFromValue`; generated namespaces carry hidden prototype tokens recoverable through `protogoja.MessagePrototypeFromValue`; generated modules can provide TypeScript descriptors through `RawDTS`.
+The project has reached a complete first implementation slice. The runtime representation is in place, the compiler plugin exists, generated companion files can build real protobuf messages, and a compiled xgoja provider example now exercises the whole path from a local `.proto` file to JavaScript builder usage and Go-side `protogoja.MessageFromValue` extraction.
 
-The next substantive work is either to deepen protobuf field coverage in `pkg/protogoja`—maps, oneofs, optional presence, and well-known types—or to add more complete examples and package-level integration helpers around the generated module surface.
+Generated messages can be consumed by Go through `protogoja.MessageFromValue`; generated namespaces carry hidden prototype tokens recoverable through `protogoja.MessagePrototypeFromValue`; generated modules provide TypeScript descriptors through `RawDTS`; and host applications can install generated modules through raw `require.Registry`, `engine.NativeModuleRegistrar`, or xgoja provider registration.
+
+## Final implementation update: runtime coverage, generated helpers, and compiled xgoja example
+
+The ticket has now moved from “first generated-builder stage” to a complete first implementation slice. The remaining runtime gaps were closed, the generated API and DTS surface were expanded, documentation was added, the implementation bundle was uploaded to reMarkable, and the task branch was pushed.
+
+The pushed branch is:
+
+```text
+origin/task/goja-sessionstream
+```
+
+The GitHub pull request URL offered by the push is:
+
+```text
+https://github.com/go-go-golems/go-go-goja/pull/new/task/goja-sessionstream
+```
+
+The implementation bundle was uploaded to reMarkable at:
+
+```text
+/ai/2026/06/12/GOJA-PB-001/GOJA PB 001 Implementation Bundle.pdf
+```
+
+### Runtime helpers are now substantially broader
+
+`pkg/protogoja.BuilderRef` now covers the main field-shape primitives needed by generated fluent builders:
+
+- scalar conversion for strings, booleans, floats, doubles, integer widths, bytes, and enums;
+- message conversion from generated `ProtoMessage` refs;
+- message conversion from generated builder refs;
+- repeated replacement and append;
+- map replacement from plain objects and JavaScript `Map` values;
+- map `Put`, `Delete`, and `Clear` semantics;
+- oneof `WhichOneof` and `ClearOneof`;
+- explicit-presence `Has` checks;
+- repeated/map field-path error wrapping such as `capabilities[1]` and `labels["bad"]`;
+- well-known type conversion for `Timestamp`, `Duration`, `Any`, `Struct`, `Value`, `ListValue`, wrapper types, and `FieldMask`.
+
+The well-known type rules are deliberately narrow. Plain JavaScript objects are still not accepted for arbitrary protobuf message fields. They are accepted only for JSON-shaped well-known types such as `Struct` and `Value`. Ordinary message composition still goes through hidden Go-backed `ProtoMessage` objects or builder refs.
+
+Representative JavaScript now works like this:
+
+```javascript
+const task = pb.Task.builder()
+  .id("task-1")
+  .title("Ship protobuf builders")
+  .addTags("protobuf")
+  .addTags("xgoja")
+  .putLabels("component", "goja")
+  .priority(pb.TaskPriority.TASK_PRIORITY_HIGH)
+  .dueAt(new Date("2026-06-12T20:00:00Z"))
+  .metadata({ owner: "agent", reviewed: true })
+  .build()
+```
+
+That `task` value is still a Go-backed protobuf object, not JSON.
+
+### Generated builders now expose richer helpers
+
+The generator now emits more than field replacement setters. Generated builders include:
+
+- `<field>(value): this` for replacement;
+- `add<Field>(value): this` for repeated fields;
+- `put<Field>(key, value): this` for map fields;
+- `delete<Field>(key): this` for map fields;
+- `has<Field>(): boolean` for fields with explicit protobuf presence;
+- `clear<Field>(): this` for field clearing;
+- `which<Oneof>(): "jsonField" | undefined` for real oneofs;
+- `clear<Oneof>(): this` for real oneofs;
+- `build()` and `clone()`.
+
+The TypeScript declarations are generated from the same descriptors and now include the corresponding repeated, map, optional-presence, and oneof helpers. The generator explicitly skips synthetic proto3 optional backing oneofs so implementation details do not become public JavaScript API.
+
+### A real generator bug was found by the compiled example
+
+The compiled provider example introduced a schema with a map field:
+
+```proto
+message Task {
+  string id = 1;
+  string title = 2;
+  repeated string tags = 3;
+  map<string, string> labels = 4;
+  TaskPriority priority = 5;
+  google.protobuf.Timestamp due_at = 6;
+  google.protobuf.Struct metadata = 7;
+}
+```
+
+That immediately exposed a generator bug: the generator was trying to emit public builders for synthetic map-entry messages such as `Task_LabelsEntry`. The Go protobuf generator does not expose those as normal user-facing structs, so the generated Goja companion file failed to compile.
+
+The fix was to skip `msg.Desc.IsMapEntry()` everywhere public message APIs are emitted or enumerated:
+
+- TypeScript message declarations;
+- message name lists;
+- host message-type registration;
+- nested message API generation.
+
+This is exactly why the compiled example matters. Golden tests and the hashiplugin fixture did not contain map fields, so they could not reveal this class of bug.
+
+### The compiled xgoja provider example now exercises the full path
+
+The new example lives at:
+
+```text
+examples/xgoja/15-protobuf-builder-provider/
+```
+
+It contains:
+
+```text
+examples/xgoja/15-protobuf-builder-provider/proto/task.proto
+examples/xgoja/15-protobuf-builder-provider/proto/task.pb.go
+examples/xgoja/15-protobuf-builder-provider/proto/task_goja.pb.go
+examples/xgoja/15-protobuf-builder-provider/proto/generate.go
+examples/xgoja/15-protobuf-builder-provider/provider/provider.go
+examples/xgoja/15-protobuf-builder-provider/provider/provider_test.go
+examples/xgoja/15-protobuf-builder-provider/scripts/build-task.js
+examples/xgoja/15-protobuf-builder-provider/xgoja.yaml
+examples/xgoja/15-protobuf-builder-provider/Makefile
+examples/xgoja/15-protobuf-builder-provider/README.md
+```
+
+The example starts from a local `.proto` file, generates normal Go protobuf code, generates the Goja builder companion file, registers the generated module as an xgoja provider module, executes JavaScript that requires the module, builds protobuf values, and extracts the resulting Go messages directly.
+
+The provider registration is small:
+
+```go
+func Register(registry *providerapi.ProviderRegistry) error {
+  return registry.Package(PackageID, providerapi.Module{
+    Name:        ModuleName,
+    Description: "Generated Goja protobuf builders for the xgoja protobuf example schema",
+    TypeScript:  taskpb.GojaBuilderFileTaskProtoTypeScriptModule(ModuleName),
+    NewModuleFactory: func(providerapi.ModuleSetupContext) (require.ModuleLoader, error) {
+      return taskpb.NewGojaBuilderFileTaskProtoLoader(ModuleName), nil
+    },
+  })
+}
+```
+
+The compiled test verifies three things at once:
+
+1. xgoja provider registration resolves the generated module.
+2. TypeScript declarations render through both `tsgen/render` and `xgoja/dtsgen`.
+3. JavaScript-built protobuf objects extract back into concrete Go protobuf messages with `protogoja.MessageFromValue`.
+
+The key test path is:
+
+```go
+taskMsg, ok := protogoja.MessageFromValue(exports.Get("task"))
+task, ok := taskMsg.(*taskpb.Task)
+```
+
+No `JSON.stringify`, no `protojson.Unmarshal`, and no schema-name lookup are involved.
+
+### Generation workflows are now documented
+
+The new generator README documents:
+
+- generated helper functions;
+- JavaScript builder usage;
+- raw `require.Registry` integration;
+- `engine.NativeModuleRegistrar` integration;
+- xgoja provider integration;
+- consuming-module patterns using `MessageFromValue` and `MessagePrototypeFromValue`;
+- `protoc` usage;
+- Buf usage;
+- `go:generate` usage;
+- runtime input rules.
+
+The file is:
+
+```text
+cmd/protoc-gen-goja-builder/README.md
+```
+
+### Validation status
+
+The latest relevant validation commands passed:
+
+```bash
+make -C examples/xgoja/15-protobuf-builder-provider smoke
+go test ./cmd/protoc-gen-goja-builder ./pkg/protogoja ./examples/xgoja/15-protobuf-builder-provider/... -count=1
+go test ./... -count=1
+```
+
+The pre-commit hook also passed for the compiled example commit. It ran linting, `go generate ./...`, and `go test ./...`.
+
+### New important commits
+
+The most recent project commits after the earlier article update are:
+
+| Commit | Purpose |
+|---|---|
+| `6411e52` | Adds object/Map map builder helpers and map delete semantics. |
+| `bc3949c` | Adds oneof `WhichOneof` and `ClearOneof` runtime helpers. |
+| `0205764` | Adds optional presence helpers and generated `has<Field>()`. |
+| `f98cdf0` | Adds field-path-rich conversion errors. |
+| `b65868b` | Adds well-known type conversions. |
+| `7ef08bd` | Generates repeated/map/oneof helper methods and DTS declarations. |
+| `7978c2f` | Adds generator integration workflow documentation. |
+| `2e474ab` | Closes the GOJA-PB-001 ticket docs. |
+| `8c0ccd5` | Adds the compiled xgoja protobuf builder provider example and fixes map-entry generation. |
+
+### Final status after the compiled example
+
+The project is no longer just a design plus generator skeleton. It now has a working end-to-end path:
+
+```text
+.proto schema
+  -> protoc-gen-go
+  -> protoc-gen-goja-builder
+  -> generated Goja module
+  -> xgoja provider registration
+  -> JavaScript fluent protobuf construction
+  -> Go-side concrete proto.Message extraction
+```
+
+The most important remaining future improvement is stronger generated fixture coverage for every field shape in one schema: maps, real oneofs, proto3 optional fields, and well-known types. The new xgoja example already covers maps, repeated fields, enums, messages, `Timestamp`, and `Struct`; it can be extended later with real oneofs and optional scalar fields if those need generated-runtime demonstration coverage.
