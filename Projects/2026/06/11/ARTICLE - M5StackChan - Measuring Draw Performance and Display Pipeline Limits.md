@@ -24,15 +24,16 @@ repo: /home/manuel/workspaces/2025-12-21/echo-base-documentation/M5StackChan
 
 This article records the current state of the M5StackChan draw-performance investigation. The immediate question was simple: the launcher animation feels choppy, so what is the real performance limit? The answer is not a single number yet. The current evidence separates three different quantities that are easy to confuse: the cost of mutating LVGL objects, the cost of flushing pixels to the LCD, and the scheduling cost of running those updates inside the production firmware loop.
 
-The investigation produced two benchmark firmwares and multiple serial measurement runs on real hardware. The first benchmark measured small LVGL object updates, RGB LED refresh cost, asset lookup, and LVGL lock timing. The second benchmark bypassed LVGL scene rendering and measured raw `esp_lcd_panel_draw_bitmap()` throughput for full-screen and partial-region RGB565 blits at 40 MHz, 60 MHz, and 80 MHz requested SPI clocks.
+The investigation produced two benchmark firmwares and multiple serial measurement runs on real hardware. The first benchmark measured small LVGL object updates, RGB LED refresh cost, asset lookup, and LVGL lock timing. The second benchmark bypassed LVGL scene rendering and measured raw `esp_lcd_panel_draw_bitmap()` throughput for full-screen and partial-region RGB565 blits at 40 MHz, 60 MHz, and 80 MHz requested SPI clocks. That raw benchmark has now evolved into an interactive ESP console tool for visual experiments: diagnostics, full/partial raw throughput cases, tearing tests, smooth ball/bar animations, and memory allocation probes can be triggered from `rawblit>` without rebuilding.
 
-The work also exposed several benchmark-design mistakes that are useful lessons in their own right: an overly aggressive loop can starve the system and trip the interrupt watchdog, `lv_label_set_text()` can introduce allocator churn in a hot path, large C++ metric buffers can overflow the ESP-IDF `main` task stack, and raw RGB565 buffers must match LVGL's byte-swap behavior before visual results are trustworthy. Those failures shaped the measurement method as much as the final numbers did.
+The work also exposed several benchmark-design mistakes that are useful lessons in their own right: an overly aggressive loop can starve the system and trip the interrupt watchdog, `lv_label_set_text()` can introduce allocator churn in a hot path, large C++ metric buffers can overflow the ESP-IDF `main` task stack, raw RGB565 buffers must match LVGL's byte-swap behavior before visual results are trustworthy, and full-screen animation benchmarks can hide the much more useful production answer: update only the dirty object bounds when possible. Those failures shaped the measurement method as much as the final numbers did.
 
 > [!summary]
 > - The display is a 320×240 RGB565 LCD driven as an ILI9341-compatible ILI9342 panel over SPI, through ESP-IDF `esp_lcd` and `esp_lvgl_port`.
 > - At the factory 40 MHz SPI setting, the best measured raw full-screen generated-pattern blit is 25.00 FPS using 120-line chunks; 20-line chunks, matching the current LVGL draw-buffer height, are much slower for full-screen updates.
-> - At an 80 MHz requested LCD SPI clock, the best measured raw full-screen generated-pattern blit is 36.42 FPS using 120-line chunks; the user visually confirmed the byte-swapped diagnostic colors look better and full-screen RGB screens are visible.
-> - Raw transfer completion is not VSYNC. True tear-free sync would require a wired LCD TE/tearing-effect signal; without that, the next practical step is software-paced moving-bar tests and production launcher instrumentation.
+> - At an 80 MHz requested LCD SPI clock, the best measured raw full-screen generated-pattern blit is about 36 FPS, but an apples-to-apples simplified moving-bar test produced random blits/yellow flashing that were not present at 40 MHz. The working conclusion is: keep 40 MHz as the safe visual default for now.
+> - Raw transfer completion is not VSYNC. The CoreS3 schematic does not show an LCD TE/tearing-effect signal routed to the ESP32-S3, so the practical path is software pacing, dirty rectangles, and visual confirmation.
+> - Dirty-rectangle animation is the most promising production pattern so far: full-screen ball/bar redraws at 40 MHz only reach about 12.5 FPS, while dirty restore/redraw of old/new object bounds reaches about 25–30 FPS.
 
 ## Why this note exists
 
@@ -530,11 +531,19 @@ static uint16_t to_lcd_rgb565(uint16_t rgb565)
 }
 ```
 
-The benchmark now starts with simple visual diagnostics: full-screen red, green, blue, white, black, and color bars. The user confirmed that the colors look better and that full-screen RGB screens are visible. That confirms the geometry and byte-order path well enough to continue treating the 80 MHz measurements as meaningful, pending further visual tearing checks.
+The benchmark now starts with simple visual diagnostics: full-screen red, green, blue, white, black, and color bars. The user confirmed that the colors look better and that full-screen RGB screens are visible. That confirmed the geometry and byte-order path, but later moving-pattern tests showed that color diagnostics alone are too weak: 80 MHz can pass solid-color screens while still producing random blits/yellow flashing during motion.
 
 ### Measured raw throughput
 
 The 40 MHz baseline results show that full-screen throughput depends strongly on chunk height. A full 240-line DMA buffer could not be allocated after normal HAL initialization, even though total internal heap was larger than the request; the firmware did not have a contiguous 153,600-byte DMA-capable block available. Chunked full-screen updates work.
+
+The following charts are generated from the serial monitor logs by `M5STACKCHAN-RAWBLIT/.../scripts/01-render-raw-blit-results.py`.
+
+![[images-m5stackchan-draw-performance/raw-blit-fullscreen-throughput.png]]
+
+![[images-m5stackchan-draw-performance/raw-blit-partial-throughput.png]]
+
+![[images-m5stackchan-draw-performance/raw-blit-chunk-completion-latency.png]]
 
 | Requested clock | Case | Pattern | FPS | Effective MB/s | Interpretation |
 |---:|---|---|---:|---:|---|
@@ -543,7 +552,7 @@ The 40 MHz baseline results show that full-screen throughput depends strongly on
 | 40 MHz | `full_320x240_chunk80_solid` | solid | 24.27 | 3.72 | Reducing fill cost helps but does not beat 120-line generated. |
 | 40 MHz | `full_320x240_chunk40` | generated | 16.66 | 2.56 | Transaction/chunk overhead dominates. |
 | 40 MHz | `full_320x240_chunk20` | generated | 16.30 | 2.50 | Similar to the current LVGL 20-line buffer height. |
-| 80 MHz | `full_320x240_chunk120` | generated | 36.42 | 5.59 | Best measured full-screen raw blit result so far. |
+| 80 MHz | `full_320x240_chunk120` | generated | 36.42 | 5.59 | Best throughput result, but later visual tests made 80 MHz suspect. |
 | 80 MHz | `full_320x240_chunk80` | generated | 33.33 | 5.12 | Good full-screen throughput; reaches the old 40 MHz theoretical ceiling. |
 | 80 MHz | `full_320x240_chunk40` | generated | 31.91 | 4.90 | Still strong, but below 120-line chunks. |
 | 80 MHz | `full_320x240_chunk20` | generated | 24.19 | 3.71 | Too much chunk overhead for full-screen updates. |
@@ -561,7 +570,7 @@ Partial-region measurements reinforce the same lesson: FPS increases as the rect
 | 80 MHz | `tile_80x60_chunk60` | 263.69 | 2.53 | Small tile improves but remains overhead-limited. |
 | 80 MHz | `tile_32x32_chunk32` | 268.87 | 0.55 | Tiny tile does not benefit much from higher clock. |
 
-The 60 MHz requested-clock build was stable but behaved essentially like the 40 MHz build. That suggests clock-divider quantization or another effective-clock limit on that requested value. A logic analyzer would be needed to confirm the actual SCLK waveform. The 80 MHz requested-clock build did change measured throughput substantially and the user believes it is visually fine after the byte-swap fix.
+The 60 MHz requested-clock build was stable but behaved essentially like the 40 MHz build. That suggests clock-divider quantization or another effective-clock limit on that requested value. A logic analyzer would be needed to confirm the actual SCLK waveform. The 80 MHz requested-clock build did change measured throughput substantially, but later simplified moving-pattern tests showed visible instability, so 80 MHz is no longer treated as a safe setting.
 
 ### What this changes about the FPS answer
 
@@ -573,7 +582,7 @@ Factory-like 20-line full-screen chunks:       16.30 FPS measured
 80 MHz raw full-screen generated blit:         36.42 FPS best measured
 ```
 
-For production LVGL, the 20-line number matters because the current LVGL draw buffer is `width * 20` pixels. The raw benchmark suggests that larger flush chunks can materially improve large-region/full-screen throughput if enough DMA-capable memory is available. The 80 MHz number matters because it shows the LCD/SPI path has more headroom than the factory 40 MHz baseline, at least in the raw benchmark and with the current visual confirmation.
+For production LVGL, the 20-line number matters because the current LVGL draw buffer is `width * 20` pixels. The raw benchmark suggests that larger flush chunks can materially improve large-region/full-screen throughput if enough DMA-capable memory is available. The 80 MHz number remains useful as a throughput ceiling experiment, but the current production-safe conclusion is to stay at 40 MHz and send fewer pixels.
 
 ## The display protocol answer
 
@@ -616,24 +625,108 @@ while (running) {
 }
 ```
 
-No TE/VSYNC GPIO has been found in the current StackChan firmware configuration. The known LCD-related signals are MOSI, SCLK, CS, DC, and reset/control through board logic. If the TE pin is not routed from the panel to the ESP32-S3, firmware cannot implement true VSYNC. It can only pace updates in software.
+No TE/VSYNC GPIO was found in the StackChan firmware configuration or in the CoreS3 v1.0 schematic. The CoreS3 LCD connector (`M5_LCD_10P`) exposes SPI/control/power nets: `SPI_MOSI`, `SPI_SCK`, `SPI_MISO`, `LCD_CS`, `LCD_RST`, `VDD_3V3`, `VCC_BL`, and `GND`. The rendered schematic pages show several reserved/unlabeled LCD connector pins, but no `LCD_TE`, `TE`, `TEAR`, or LCD `VSYNC` net routed to the ESP32-S3. The `CAM_VSYNC` net exists, but it belongs to the camera connector, not the LCD.
 
-The practical next benchmark should therefore add visible tearing tests, not just throughput tests:
+That means firmware probably cannot implement true panel-synchronized full-screen updates on this hardware. The practical fallback is software pacing plus visual inspection.
 
-1. Draw a moving vertical bar or diagonal line.
-2. Run it at raw maximum speed, transfer-completion pacing, fixed 36 FPS, fixed 30 FPS, and fixed 25 FPS.
-3. Compare visible tearing and smoothness.
-4. If schematics reveal a wired TE pin, add a TE-interrupt mode and compare it against software pacing.
+The raw-blit firmware now includes visible tearing tests, not just throughput tests. The first version used a moving red vertical bar, a moving white diagonal stripe, and fixed green horizontal reference marks. That pattern was intentionally simplified after visual inspection: the current useful tearing test uses a black background, one fixed green horizontal reference line, and one moving red vertical bar. If the green line flashes, jitters, or turns yellow, the pattern generator itself is not moving that line.
 
-This is the next frontier: the raw benchmark tells us how fast pixels can move; the tearing benchmark will tell us which pacing strategy looks best.
+The simplified test produced the most important visual result of the investigation so far:
+
+| Requested LCD clock | Visual result | Interpretation |
+|---:|---|---|
+| 40 MHz | Fixed green reference line was stable; red bar tearing was visible but understandable. | Safe default for now. |
+| 80 MHz | Random blits/yellow flashing returned with the same simplified pattern and corrected pacing. | Throughput is higher, but the visual path is suspect on this hardware/configuration. |
+
+This means the raw throughput table should not be read as a production recommendation to run at 80 MHz. 80 MHz can move more bytes, but the display path is only useful if the pixels are visually stable. Until a logic analyzer or deeper panel-timing experiment proves otherwise, 40 MHz is the conservative setting.
+
+## Smooth animation and dirty rectangles
+
+The PicoCalc display-optimization article in the vault was useful here because it reframes animation as a dirty-region problem rather than a full-frame problem. Its central lesson applies directly: terminal-like and widget-like workloads should not redraw the whole screen when only a few objects moved. They should restore old object bounds, draw new object bounds, coalesce adjacent regions, and keep LCD window changes explicit and ordered.
+
+The StackChan raw-blit benchmark now has smooth ball/bar animation modes that test both shapes:
+
+```text
+smooth full  30 180 24 16   # full-screen redraw, target 30 FPS
+smooth full  25 150 24 16   # full-screen redraw, target 25 FPS
+smooth dirty 30 180 24 16   # dirty restore/redraw, target 30 FPS
+smooth dirty 25 150 24 16   # dirty restore/redraw, target 25 FPS
+```
+
+The visual scene is deliberately simple: black background, a horizontally scrolling blue/cyan vertical bar, and a bouncing white/yellow ball. Full mode redraws the complete 320×240 scene in 120-line chunks. Dirty mode redraws only the coalesced old/new bounds for the moving bar and the moving ball.
+
+The measured result at the safe 40 MHz clock is stark:
+
+| Mode | Target | Measured behavior | Meaning |
+|---|---:|---|---|
+| `smooth full` | 30 FPS | about 12.5 FPS, all deadlines missed | Full-screen generated animation is render/transfer limited at 40 MHz. |
+| `smooth full` | 25 FPS | about 12.5 FPS, all deadlines missed | Lower target does not help because the workload is still too large. |
+| `smooth dirty` | 30 FPS | about 30 FPS, no missed deadlines in the captured run | Dirty regions are viable for smooth object motion. |
+| `smooth dirty` | 25 FPS | about 25 FPS after fixing dirty-buffer sizing | Lower-paced dirty motion is viable and should be visually calmer. |
+
+The dirty implementation initially crashed from heap corruption when the old/new coalesced dirty rectangle was larger than the allocation sized for a single object. That failure was useful: dirty-rectangle code must allocate for the union of old and new bounds, not only for the object size. The fixed implementation keeps a conservative margin around the vertical bar and ball rectangles.
+
+## Interactive raw-blit console
+
+The raw-blit benchmark is now interactive. On boot it clears the display and starts an ESP console prompt over USB Serial/JTAG:
+
+```text
+rawblit>
+```
+
+The current commands are:
+
+```text
+rb
+mem
+diag
+clear [hex565]
+smooth [full|dirty] [fps] [frames] [bar_width] [ball_radius]
+tear [max|fps] [chunk_h] [frames] [bar_width]
+raw [all|case]
+cases
+```
+
+Useful examples:
+
+```text
+smooth dirty 30 300 24 16
+smooth dirty 25 250 16 12
+smooth full 25 120 24 16
+tear 25 120 200 36
+tear 25 240 200 36
+raw full_320x240_chunk120
+mem
+```
+
+The console was first wired to the UART REPL, which let `idf_monitor` read logs but not send commands back over `/dev/ttyACM0`. The working setup makes USB Serial/JTAG the primary console in the local benchmark defaults so tmux plus `idf.py monitor` can drive the REPL interactively.
+
+## PSRAM-DMA and full-frame chunks
+
+A full-screen 320×240 RGB565 transfer buffer is 153,600 bytes. After normal HAL initialization, the internal DMA heap may have enough total free bytes but not a large enough contiguous block. The benchmark now exposes this explicitly:
+
+```text
+mem
+```
+
+The memory report prints internal DMA, generic DMA, PSRAM, and PSRAM-DMA free/largest-block values. In the observed run, internal DMA largest block was around 114–122 KiB, too small for a 153,600-byte full-frame chunk, while `MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA` succeeded:
+
+```text
+RAWBLIT_ALLOC_FALLBACK case=console_tear requested_chunk_h=240 actual_chunk_h=240 bytes=153600 location=psram_dma
+RAWBLIT_TEARING_SUMMARY ... chunk_h=240 requested_chunk_h=240 buffer_location=psram_dma ...
+```
+
+So PSRAM can be used for full-frame transfer buffers in this build when requested as `MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA`. That does not automatically make PSRAM the best production choice. It makes it testable. Internal DMA chunks remain the conservative baseline; PSRAM-DMA full-frame chunks should be compared visually and by timing against 120-line and 80-line internal chunks.
 
 ## Production implications
 
 The raw results point to several concrete optimization directions for the production firmware:
 
-- Larger LVGL flush buffers may improve full-screen and large-region updates. The current 20-line buffer maps to one of the slower raw full-screen cases.
-- Reducing invalidated area remains the safest optimization. Small rectangles can update at high frame rates, but they are overhead-bound; they should be used deliberately rather than accidentally causing many tiny transactions.
-- The 80 MHz LCD SPI clock is worth further testing. It produced a major raw-throughput improvement and now has basic visual color confirmation.
+- Keep the LCD SPI clock at 40 MHz for now. 80 MHz improves serial throughput numbers but failed the simplified visual stability test.
+- Larger LVGL flush buffers may improve full-screen and large-region updates, but full-screen generated animation still looks like the wrong target for the launcher.
+- Reducing invalidated area is the safest optimization. The smooth dirty-rectangle benchmark reached 25–30 FPS at 40 MHz where full-screen redraw stayed around 12.5 FPS.
+- Coalesce old/new object bounds before drawing. Dirty rectangles are only safe if the allocation and rendering region cover the union of the old and new bounds.
+- Use PSRAM-DMA as an experimental full-frame transfer path, not as a default assumption. It works in the current benchmark for a 240-line chunk, but visual quality and timing must still be compared.
 - Any production change must still measure LVGL render cost, not just raw blit cost. A fast panel path does not help if the launcher spends too long in `_view->update()` or `GetStackChan().update()` under the LVGL lock.
 - Tear-free animation may require software pacing if no TE/VSYNC pin is available.
 
@@ -650,10 +743,12 @@ The investigation produced several practical rules that should guide the next ro
 - Do not begin with a stress test. First make a stable measurement harness; then add stress modes one at a time.
 - Do not trust raw RGB565 colors until byte order is validated against the production LVGL `.swap_bytes` setting.
 - Do not treat SPI/DMA transfer completion as VSYNC; without TE/VSYNC wiring, transfer completion only proves that bytes reached panel GRAM.
+- Do not accept a higher SPI clock based on throughput alone. Re-run a simple visual reference pattern and reject settings that produce random blits, yellow flashes, or stable-line jitter.
+- Do not size dirty buffers for object size only. Size for the coalesced old/new bounds plus a margin, or the benchmark can corrupt the heap.
 
 ## Current status
 
-The current point of investigation is no longer just a small-update LVGL benchmark. We now have two complementary datasets.
+The investigation now has four complementary layers of evidence.
 
 Completed:
 
@@ -663,28 +758,40 @@ Completed:
 - Raw `esp_lcd_panel_draw_bitmap()` measurements for full-screen, half-screen, quarter-screen, 80×60, and 32×32 regions.
 - 40 MHz, 60 MHz requested, and 80 MHz requested LCD SPI clock measurements.
 - RGB565 byte-swap fix matching LVGL's `.swap_bytes = 1` behavior.
-- User visual confirmation that byte-swapped colors look better and full-screen RGB diagnostic screens are visible.
+- CoreS3 schematic inspection showing no LCD TE/VSYNC signal routed to ESP32-S3 GPIO.
+- Simplified tearing benchmark showing 80 MHz visual instability and 40 MHz stability.
+- Smooth ball/bar benchmark showing full-screen animation is too expensive at 40 MHz, while dirty-rectangle animation can hit 25–30 FPS.
+- Interactive `rawblit>` ESP console over USB Serial/JTAG with commands for diagnostics, memory probing, tearing tests, smooth animation, and raw throughput cases.
+- PSRAM-DMA allocation probe showing full-frame 240-line transfer buffers can be allocated from `MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA` when internal DMA lacks a contiguous 153,600-byte block.
 - Documentation in docmgr, reMarkable, and this Obsidian article.
+
+Current working conclusions:
+
+- 40 MHz is the safe LCD SPI clock for visual work on the current hardware/configuration.
+- 80 MHz is not production-safe yet because the same simplified reference pattern produced random blits/yellow flashing.
+- Full-screen generated animation at 40 MHz is around 12.5 FPS in the smooth benchmark, so it is the wrong goal for launcher smoothness.
+- Dirty-rectangle restore/redraw is the promising production pattern; it reached 25–30 FPS in the raw benchmark.
+- PSRAM-DMA enables full-frame transfer experiments, but does not remove the need for visual validation.
 
 Still open:
 
-- Confirm actual SCLK frequencies with a logic analyzer, especially the 60 MHz requested case.
-- Confirm 80 MHz visual quality beyond solid-color diagnostics, using moving bars or other tearing-sensitive patterns.
-- Inspect schematics/board wiring for an LCD TE/tearing-effect pin.
-- Add LVGL full-screen invalidation measurements with larger draw buffers.
+- Compare PSRAM-DMA full-frame chunks visually and by timing against internal 120-line/80-line chunks.
+- Add LVGL full-screen and dirty-region invalidation measurements with larger draw buffers.
 - Instrument the production launcher hot path and compare against raw throughput.
-- Add charts for the raw blit dataset, analogous to the first benchmark charts already embedded above.
+- Translate the raw dirty-rectangle lesson into LVGL/launcher-level invalidation or scene-graph changes.
 
-The best current answer to "what is the max FPS for full-screen animations?" is now evidence-based but still split by layer:
+The best current answer to "what is the max FPS for animations?" is now layer-specific:
 
 ```text
-Raw full-screen blit, 40 MHz, 120-line chunks: 25.00 FPS measured
-Raw full-screen blit, 80 MHz, 120-line chunks: 36.42 FPS measured
-Current LVGL-style 20-line chunks at 40 MHz:   16.30 FPS measured raw
-Small LVGL object updates:                     ~0.8 ms lock hold, not full-screen FPS
+Raw full-screen blit, 40 MHz, 120-line chunks:       25.00 FPS measured
+Raw full-screen generated smooth scene, 40 MHz:      ~12.5 FPS measured
+Raw dirty-rectangle smooth scene, 40 MHz:            ~25–30 FPS measured
+Raw full-screen blit, 80 MHz, 120-line chunks:       ~36 FPS measured but visually suspect
+Current LVGL-style 20-line full-screen raw chunks:   16.30 FPS measured at 40 MHz
+Small LVGL object updates:                           ~0.8 ms lock hold, not full-screen FPS
 ```
 
-The production launcher's true full-screen animation rate remains unmeasured because it includes LVGL render cost, invalidated-area behavior, lock scope, Mooncake scheduling, and any non-display work performed in the same update path.
+The production launcher's true animation rate remains unmeasured because it includes LVGL render cost, invalidated-area behavior, lock scope, Mooncake scheduling, and any non-display work performed in the same update path.
 
 ## Source map
 
@@ -703,20 +810,26 @@ The most important local sources for this investigation are:
 | `/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/06/11/M5STACKCHAN-BENCH--standalone-cores3-benchmark-harness-for-stackchan-firmware-performance/scripts/01-render-benchmark-charts.py` | Reproducible chart renderer for the benchmark illustrations embedded in this article |
 | `/home/manuel/workspaces/2025-12-21/echo-base-documentation/M5StackChan/build/firmware/main/bench/raw_blit_benchmark_main.cpp` | Raw full-screen and partial-region blit benchmark implementation |
 | `/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/06/11/M5STACKCHAN-RAWBLIT--raw-lcd-blit-performance-benchmark-for-m5stackchan/reference/01-investigation-diary.md` | Raw blit implementation diary, byte-swap finding, and VSYNC/TE notes |
+| `/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/06/11/M5STACKCHAN-RAWBLIT--raw-lcd-blit-performance-benchmark-for-m5stackchan/reference/02-raw-blit-results.md` | Generated raw-blit results table and chart references |
+| `/home/manuel/workspaces/2025-12-21/echo-base-documentation/M5StackChan/ttmp/2026/06/11/M5STACKCHAN--kawaii-desktop-robot-full-documentation-research/sources/schematic-cores3-v1.0.pdf` | CoreS3 schematic used to check LCD connector pins and absence of LCD TE routing |
 | `/tmp/stackchan-rawblit-40-monitor.log` | 40 MHz raw blit measurement log |
 | `/tmp/stackchan-rawblit-60-monitor.log` | 60 MHz requested raw blit measurement log |
 | `/tmp/stackchan-rawblit-80-monitor.log` | 80 MHz raw blit measurement log |
 | `/tmp/stackchan-rawblit-byteswap-80-monitor.log` | Byte-swapped 80 MHz follow-up monitor log, if available from the interrupted capture |
+| `/tmp/stackchan-rawblit-tearing-40-monitor.log` | Simplified 40 MHz tearing benchmark capture |
+| `/tmp/stackchan-rawblit-tearing-80-monitor.log` | Simplified 80 MHz tearing benchmark capture that reproduced visual instability |
+| `/tmp/stackchan-smooth-40-fixed2-monitor.log` | Smooth ball/bar full-vs-dirty benchmark capture after fixing dirty-buffer sizing |
+| `/tmp/stackchan-psram-fallback-test.log` | Console memory probe and `tear max 240` PSRAM-DMA allocation test |
 
 ## Near-term next steps
 
-The next engineering step is no longer "write a raw blit benchmark"; that has been done. The next step is to connect raw throughput to visible animation quality.
+The next engineering step is to move from raw benchmark proof to production-shaped rendering experiments.
 
-1. Add a moving-bar tearing benchmark at fixed 25, 30, and 36 FPS pacing modes.
-2. Inspect the StackChan/CoreS3 schematic for an LCD TE/tearing-effect signal routed to an ESP32-S3 GPIO.
-3. If TE exists, implement a TE-interrupt pacing mode; if not, document that software pacing is the practical limit.
-4. Add raw-blit charts to this article showing 40 MHz versus 80 MHz full-screen and partial-region throughput.
-5. Try larger LVGL display buffers and measure LVGL full-screen invalidation throughput.
-6. Instrument production launcher timing: lock wait, `_view->update()`, `screensaver_update()`, `GetStackChan().update()`, lock hold, and frame cadence.
+1. Use the `rawblit>` console to tune visually acceptable dirty animation parameters: `smooth dirty 25 250 16 12`, `smooth dirty 30 300 24 16`, and similar variants.
+2. Compare `tear 25 240 ...` using PSRAM-DMA against `tear 25 120 ...` and `tear 25 80 ...` using internal DMA chunks.
+3. Keep 40 MHz as the default unless a later hardware/timing investigation explains and fixes the 80 MHz random-blit/yellow-flash behavior.
+4. Add LVGL full-screen and dirty-region invalidation measurements with larger draw buffers.
+5. Instrument production launcher timing: lock wait, `_view->update()`, `screensaver_update()`, `GetStackChan().update()`, lock hold, invalidated area, flush count, and frame cadence.
+6. Prototype production dirty-region or smaller-invalidated-area animation in the launcher rather than chasing full-screen FPS.
 
 The important discipline remains the same: keep each number attached to the operation it actually measures. On this device, "FPS" is not a single property of the screen. It is the result of how many pixels changed, how expensive they were to render, how quickly the SPI bus moved them, whether the rest of the firmware gave the render task enough time to run, and whether the update was synchronized to panel scanout or merely transferred into GRAM.
