@@ -40,7 +40,7 @@ The most important ticket documents are:
 
 ## Why the architecture changed
 
-The first TypeScript implementation made `.ts` files executable in `xgoja run`, jsverbs, and HTTP hot reload. That implementation was useful because it introduced a small compiler facade in `pkg/tsscript` and kept the existing goja runtime intact. TypeScript was compiled before goja saw the source. The runtime did not become Node.js, and the provider module system stayed Go-backed.
+The first TypeScript implementation ([[ARTICLE - XGoja TypeScript Support - Esbuild, JSVerbs, and Hot Reload|XGoja TypeScript Support Deep Dive]]) made `.ts` files executable in `xgoja run`, jsverbs, and HTTP hot reload. That implementation was useful because it introduced a small compiler facade in `pkg/tsscript` and kept the existing goja runtime intact. TypeScript was compiled before goja saw the source. The runtime did not become Node.js, and the provider module system stayed Go-backed.
 
 That first implementation also exposed a structural issue. xgoja had several places that needed to answer the same questions, but each place answered them locally:
 
