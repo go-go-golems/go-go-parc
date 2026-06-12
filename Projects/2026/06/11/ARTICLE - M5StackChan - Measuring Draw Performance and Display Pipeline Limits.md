@@ -718,6 +718,19 @@ RAWBLIT_TEARING_SUMMARY ... chunk_h=240 requested_chunk_h=240 buffer_location=ps
 
 So PSRAM can be used for full-frame transfer buffers in this build when requested as `MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA`. That does not automatically make PSRAM the best production choice. It makes it testable. Internal DMA chunks remain the conservative baseline; PSRAM-DMA full-frame chunks should be compared visually and by timing against 120-line and 80-line internal chunks.
 
+A follow-up console tuning pass compared those cases directly at the safe 40 MHz clock:
+
+| Command | Buffer path | Result | Interpretation |
+|---|---|---|---|
+| `tear 25 80 60 36` | internal DMA | 20.03 FPS, all deadlines missed | Too many chunks; command/transaction overhead dominates. |
+| `tear 25 120 60 36` | internal DMA | 24.99 FPS, no missed deadlines | Best current full-screen tearing-test shape. |
+| `tear 25 240 60 36` | PSRAM-DMA | 19.99 FPS, all deadlines missed | Full-frame PSRAM-DMA works, but is slower for this workload. |
+| `smooth dirty 30 120 16 12` | small dirty rects | 30.17 FPS, no missed deadlines | Good tuning candidate for smooth object motion. |
+| `smooth dirty 25 100 16 12` | small dirty rects | 25.18 FPS, no missed deadlines | Calmer smooth-motion candidate. |
+| `smooth full 25 30 24 16 240` | PSRAM-DMA full frame | 12.44 FPS, all deadlines missed | Full-frame scene generation remains the wrong production target. |
+
+The surprising detail is that PSRAM-DMA is useful for capacity but not automatically useful for pacing. The full-frame PSRAM-DMA path spends enough time in fill/submit/complete work that it misses a 25 FPS deadline, while 120-line internal DMA chunks can meet it. This reinforces the current production rule: stay at 40 MHz, prefer dirty rectangles, and use 120-line internal chunks as the large-region baseline before reaching for PSRAM.
+
 ## Production implications
 
 The raw results point to several concrete optimization directions for the production firmware:
@@ -775,7 +788,7 @@ Current working conclusions:
 
 Still open:
 
-- Compare PSRAM-DMA full-frame chunks visually and by timing against internal 120-line/80-line chunks.
+- Visually compare the current best candidates: `smooth dirty 30 120 16 12`, `smooth dirty 25 100 16 12`, and `tear 25 120 60 36`.
 - Add LVGL full-screen and dirty-region invalidation measurements with larger draw buffers.
 - Instrument the production launcher hot path and compare against raw throughput.
 - Translate the raw dirty-rectangle lesson into LVGL/launcher-level invalidation or scene-graph changes.
@@ -826,7 +839,7 @@ The most important local sources for this investigation are:
 The next engineering step is to move from raw benchmark proof to production-shaped rendering experiments.
 
 1. Use the `rawblit>` console to tune visually acceptable dirty animation parameters: `smooth dirty 25 250 16 12`, `smooth dirty 30 300 24 16`, and similar variants.
-2. Compare `tear 25 240 ...` using PSRAM-DMA against `tear 25 120 ...` and `tear 25 80 ...` using internal DMA chunks.
+2. Treat `tear 25 120 ...` as the current full-screen pacing baseline; PSRAM-DMA 240-line chunks work but missed the 25 FPS deadline in the follow-up test.
 3. Keep 40 MHz as the default unless a later hardware/timing investigation explains and fixes the 80 MHz random-blit/yellow-flash behavior.
 4. Add LVGL full-screen and dirty-region invalidation measurements with larger draw buffers.
 5. Instrument production launcher timing: lock wait, `_view->update()`, `screensaver_update()`, `GetStackChan().update()`, lock hold, invalidated area, flush count, and frame cadence.
