@@ -24,13 +24,15 @@ repo: /home/manuel/workspaces/2025-12-21/echo-base-documentation/M5StackChan
 
 This article records the current state of the M5StackChan draw-performance investigation. The immediate question was simple: the launcher animation feels choppy, so what is the real performance limit? The answer is not a single number yet. The current evidence separates three different quantities that are easy to confuse: the cost of mutating LVGL objects, the cost of flushing pixels to the LCD, and the scheduling cost of running those updates inside the production firmware loop.
 
-The investigation produced a working standalone benchmark firmware and a first set of serial measurements on real hardware. It also exposed three benchmark-design mistakes that are useful lessons in their own right: an overly aggressive loop can starve the system and trip the interrupt watchdog, `lv_label_set_text()` can introduce allocator churn in a hot path, and large C++ metric buffers can overflow the ESP-IDF `main` task stack. Those failures shaped the measurement method as much as the final numbers did.
+The investigation produced two benchmark firmwares and multiple serial measurement runs on real hardware. The first benchmark measured small LVGL object updates, RGB LED refresh cost, asset lookup, and LVGL lock timing. The second benchmark bypassed LVGL scene rendering and measured raw `esp_lcd_panel_draw_bitmap()` throughput for full-screen and partial-region RGB565 blits at 40 MHz, 60 MHz, and 80 MHz requested SPI clocks.
+
+The work also exposed several benchmark-design mistakes that are useful lessons in their own right: an overly aggressive loop can starve the system and trip the interrupt watchdog, `lv_label_set_text()` can introduce allocator churn in a hot path, large C++ metric buffers can overflow the ESP-IDF `main` task stack, and raw RGB565 buffers must match LVGL's byte-swap behavior before visual results are trustworthy. Those failures shaped the measurement method as much as the final numbers did.
 
 > [!summary]
-> - The display is a 320×240 RGB565 LCD driven as an ILI9341-compatible ILI9342 panel over 40 MHz SPI, through ESP-IDF `esp_lcd` and `esp_lvgl_port`.
-> - A raw full-screen frame is 153,600 bytes, so the 40 MHz SPI bus gives a theoretical full-screen transfer ceiling of about 32.5 FPS before command overhead, DMA overhead, render time, and scheduling jitter.
-> - The first stable benchmark measured a small LVGL label/dot update, not a full-screen blit: LVGL lock hold time was about 0.8 ms, RGB refresh for all 12 LEDs cost about 6–7 ms, and `target_60_fps` reached about 49 loop Hz under the current pacing logic.
-> - The next measurement should be a dedicated full-screen RGB565 fill/blit benchmark that times render cost, flush submission cost, flush completion cadence, and warm versus cold asset paths separately.
+> - The display is a 320×240 RGB565 LCD driven as an ILI9341-compatible ILI9342 panel over SPI, through ESP-IDF `esp_lcd` and `esp_lvgl_port`.
+> - At the factory 40 MHz SPI setting, the best measured raw full-screen generated-pattern blit is 25.00 FPS using 120-line chunks; 20-line chunks, matching the current LVGL draw-buffer height, are much slower for full-screen updates.
+> - At an 80 MHz requested LCD SPI clock, the best measured raw full-screen generated-pattern blit is 36.42 FPS using 120-line chunks; the user visually confirmed the byte-swapped diagnostic colors look better and full-screen RGB screens are visible.
+> - Raw transfer completion is not VSYNC. True tear-free sync would require a wired LCD TE/tearing-effect signal; without that, the next practical step is software-paced moving-bar tests and production launcher instrumentation.
 
 ## Why this note exists
 
@@ -95,7 +97,7 @@ void InitializeIli9342Display()
     io_config.cs_gpio_num       = GPIO_NUM_3;
     io_config.dc_gpio_num       = GPIO_NUM_35;
     io_config.spi_mode          = 2;
-    io_config.pclk_hz           = 40 * 1000 * 1000;
+    io_config.pclk_hz           = CONFIG_STACKCHAN_LCD_PIXEL_CLOCK_HZ;
     io_config.trans_queue_depth = 10;
     io_config.lcd_cmd_bits      = 8;
     io_config.lcd_param_bits    = 8;
@@ -191,15 +193,7 @@ That number is the bus-limited ceiling for full-screen RGB565 updates. It is not
 - The LVGL port task has priority and scheduling constraints.
 - Other firmware tasks run concurrently: touch, servo feedback, IO expander, Wi-Fi/BLE, audio, logging, and the application loop.
 
-A reasonable current expectation is therefore:
-
-```text
-Full-screen theoretical ceiling: about 32 FPS
-Practical full-screen target: about 20–30 FPS until measured directly
-Small partial updates: can be much faster than full-screen updates
-```
-
-The last line matters. A UI that moves a small dot or updates a label does not necessarily flush the full 153,600 bytes. LVGL is designed around invalidated regions. If the invalidated area is small, the display bus is not the bottleneck. If an animation invalidates the entire screen, the bus becomes central.
+The first raw-blit benchmark changed that estimate into measured data. At the factory 40 MHz clock, the best full-screen generated-pattern result is 25.00 FPS with 120-line chunks. At an 80 MHz requested clock, the best measured full-screen generated-pattern result is 36.42 FPS with 120-line chunks. The last line still matters. A UI that moves a small dot or updates a label does not necessarily flush the full 153,600 bytes. LVGL is designed around invalidated regions. If the invalidated area is small, the display bus is not the bottleneck. If an animation invalidates the entire screen, the bus becomes central.
 
 ![](images-m5stackchan-draw-performance/spi-transfer-ceiling-by-region.png)
 
@@ -470,17 +464,116 @@ The RGB result is also important. Refreshing all 12 RGB LEDs through the direct 
 
 The peripheral chart shows why RGB refresh and asset lookup should be accounted for separately from LVGL drawing. RGB refresh is consistently millisecond-scale. Asset lookup is normally tiny after warmup, but the first cold path includes initialization and checksum work that can dominate a frame budget.
 
-## What these numbers do and do not prove
+## What the first LVGL benchmark did and did not prove
 
 The first benchmark proves that a standalone HAL/LVGL path can run stably and produce measurements. It also proves that the simple LVGL update itself is not obviously expensive: mutating a couple of labels and moving a small object holds the LVGL lock for around 0.8 ms.
 
-It does not prove that full-screen animation can reach 49 FPS. The `target_60_fps` loop reported 49 Hz because of the benchmark's pacing and periodic workload. The screen was not being fully redrawn every loop. A full-screen RGB565 animation is bounded by the 40 MHz SPI bus and is likely closer to 20–30 FPS in practice.
+It does not prove that full-screen animation can reach 49 FPS. The `target_60_fps` loop reported 49 Hz because of the benchmark's pacing and periodic workload. The screen was not being fully redrawn every loop. That result belongs to the small-object LVGL benchmark, not the raw display-transfer benchmark.
 
-A precise statement is:
+A precise statement for the first benchmark is:
 
-> The current measured benchmark shows that small LVGL object updates are cheap relative to a 16.7 ms frame budget, but it has not yet measured full-screen render-and-flush throughput. The bus-level maximum for full-screen RGB565 transfer is about 32.5 FPS, so any measured full-screen result above that would indicate that the screen is not actually flushing every pixel each frame.
+> Small LVGL object updates are cheap relative to a 16.7 ms frame budget, but that benchmark did not measure full-screen render-and-flush throughput.
 
-This distinction matters because embedded UIs often get smoothness by reducing invalidated area. A launcher that scrolls icons or animates small elements may stay under the bus limit if only small regions change. A full-screen transition, camera preview, or large avatar redraw may hit the bus limit quickly.
+The raw-blit benchmark below fills that gap. It measures raw `esp_lcd_panel_draw_bitmap()` transfer throughput directly, with LVGL scene rendering bypassed.
+
+## Raw blit benchmark: full-screen and partial-region measurements
+
+The raw-blit benchmark lives in:
+
+```text
+/home/manuel/workspaces/2025-12-21/echo-base-documentation/M5StackChan/build/firmware/main/bench/raw_blit_benchmark_main.cpp
+```
+
+It is selected with:
+
+```text
+CONFIG_STACKCHAN_RAW_BLIT_BENCHMARK=y
+CONFIG_STACKCHAN_LCD_PIXEL_CLOCK_HZ=<40000000|60000000|80000000>
+```
+
+The benchmark reuses the real StackChan HAL and board initialization, then obtains the initialized raw `esp_lcd_panel_handle_t` and `esp_lcd_panel_io_handle_t` through narrow bridge accessors. It calls `esp_lcd_panel_draw_bitmap()` directly for full-screen and partial rectangles, bypassing LVGL object rendering. It also registers an `on_color_trans_done` callback so it can distinguish submit time from SPI/DMA transfer-completion time.
+
+The relevant implementation changes are:
+
+| File | Role |
+|---|---|
+| `main/Kconfig.projbuild` | Adds `CONFIG_STACKCHAN_RAW_BLIT_BENCHMARK` and `CONFIG_STACKCHAN_LCD_PIXEL_CLOCK_HZ`. |
+| `main/CMakeLists.txt` | Selects `bench/raw_blit_benchmark_main.cpp` when the raw benchmark is enabled. |
+| `main/hal/board/stackchan_display.h` | Exposes raw panel and panel-IO handles. |
+| `main/hal/board/hal_bridge.h` / `.cc` | Adds benchmark bridge accessors for those handles. |
+| `main/hal/board/stackchan.cc` | Uses `CONFIG_STACKCHAN_LCD_PIXEL_CLOCK_HZ` for LCD SPI `pclk_hz`. |
+| `main/bench/raw_blit_benchmark_main.cpp` | Implements visual diagnostics and timed raw blit cases. |
+
+### Why byte order mattered
+
+The first raw benchmark produced correct rectangle geometry but suspicious rainbow diagonal colors. The user provided a blurry webcam photo showing the structure clearly enough to diagnose the issue. The raw benchmark was writing host-endian `uint16_t` RGB565 values directly into the transmit buffer, but the production LVGL path uses:
+
+```cpp
+.flags = {
+    .swap_bytes = 1,
+}
+```
+
+The ILI9341-compatible `esp_lcd` driver sends the supplied `color_data` bytes as-is:
+
+```cpp
+size_t len = (x_end - x_start) * (y_end - y_start) * ili9341->fb_bits_per_pixel / 8;
+esp_lcd_panel_io_tx_color(io, LCD_CMD_RAMWR, color_data, len);
+```
+
+So the raw benchmark needed the same byte-order conversion that LVGL applies. The fix was to byte-swap every RGB565 value before it enters the transmit buffer:
+
+```cpp
+static uint16_t to_lcd_rgb565(uint16_t rgb565)
+{
+    return static_cast<uint16_t>((rgb565 >> 8) | (rgb565 << 8));
+}
+```
+
+The benchmark now starts with simple visual diagnostics: full-screen red, green, blue, white, black, and color bars. The user confirmed that the colors look better and that full-screen RGB screens are visible. That confirms the geometry and byte-order path well enough to continue treating the 80 MHz measurements as meaningful, pending further visual tearing checks.
+
+### Measured raw throughput
+
+The 40 MHz baseline results show that full-screen throughput depends strongly on chunk height. A full 240-line DMA buffer could not be allocated after normal HAL initialization, even though total internal heap was larger than the request; the firmware did not have a contiguous 153,600-byte DMA-capable block available. Chunked full-screen updates work.
+
+| Requested clock | Case | Pattern | FPS | Effective MB/s | Interpretation |
+|---:|---|---|---:|---:|---|
+| 40 MHz | `full_320x240_chunk120` | generated | 25.00 | 3.84 | Best factory-clock full-screen generated result. |
+| 40 MHz | `full_320x240_chunk80` | generated | 22.18 | 3.40 | More chunks reduce throughput. |
+| 40 MHz | `full_320x240_chunk80_solid` | solid | 24.27 | 3.72 | Reducing fill cost helps but does not beat 120-line generated. |
+| 40 MHz | `full_320x240_chunk40` | generated | 16.66 | 2.56 | Transaction/chunk overhead dominates. |
+| 40 MHz | `full_320x240_chunk20` | generated | 16.30 | 2.50 | Similar to the current LVGL 20-line buffer height. |
+| 80 MHz | `full_320x240_chunk120` | generated | 36.42 | 5.59 | Best measured full-screen raw blit result so far. |
+| 80 MHz | `full_320x240_chunk80` | generated | 33.33 | 5.12 | Good full-screen throughput; reaches the old 40 MHz theoretical ceiling. |
+| 80 MHz | `full_320x240_chunk40` | generated | 31.91 | 4.90 | Still strong, but below 120-line chunks. |
+| 80 MHz | `full_320x240_chunk20` | generated | 24.19 | 3.71 | Too much chunk overhead for full-screen updates. |
+
+Partial-region measurements reinforce the same lesson: FPS increases as the rectangle shrinks, but effective MB/s drops because fixed command and transaction overhead dominates small payloads.
+
+| Requested clock | Case | FPS | Effective MB/s | Interpretation |
+|---:|---|---:|---:|---|
+| 40 MHz | `half_320x120_chunk40` | 33.33 | 2.56 | Same MB/s as full chunk40, half the bytes per frame. |
+| 40 MHz | `quarter_160x120_chunk40` | 61.69 | 2.36 | Smaller region, lower bus utilization. |
+| 40 MHz | `tile_80x60_chunk60` | 198.89 | 1.90 | High FPS but overhead-bound. |
+| 40 MHz | `tile_32x32_chunk32` | 266.08 | 0.54 | Mostly measures fixed transaction overhead. |
+| 80 MHz | `half_320x120_chunk40` | 61.43 | 4.71 | Strong partial-region result. |
+| 80 MHz | `quarter_160x120_chunk40` | 89.55 | 3.43 | Faster than 40 MHz, still overhead-bound. |
+| 80 MHz | `tile_80x60_chunk60` | 263.69 | 2.53 | Small tile improves but remains overhead-limited. |
+| 80 MHz | `tile_32x32_chunk32` | 268.87 | 0.55 | Tiny tile does not benefit much from higher clock. |
+
+The 60 MHz requested-clock build was stable but behaved essentially like the 40 MHz build. That suggests clock-divider quantization or another effective-clock limit on that requested value. A logic analyzer would be needed to confirm the actual SCLK waveform. The 80 MHz requested-clock build did change measured throughput substantially and the user believes it is visually fine after the byte-swap fix.
+
+### What this changes about the FPS answer
+
+The earlier answer was an estimate: practical full-screen animation would likely be 20–30 FPS. The raw-blit benchmark makes the statement more precise:
+
+```text
+Factory 40 MHz raw full-screen generated blit: 25.00 FPS best measured
+Factory-like 20-line full-screen chunks:       16.30 FPS measured
+80 MHz raw full-screen generated blit:         36.42 FPS best measured
+```
+
+For production LVGL, the 20-line number matters because the current LVGL draw buffer is `width * 20` pixels. The raw benchmark suggests that larger flush chunks can materially improve large-region/full-screen throughput if enough DMA-capable memory is available. The 80 MHz number matters because it shows the LCD/SPI path has more headroom than the factory 40 MHz baseline, at least in the raw benchmark and with the current visual confirmation.
 
 ## The display protocol answer
 
@@ -506,93 +599,43 @@ The display-control protocol is ILI9341/ILI9342-style SPI. More precisely:
 
 The panel is not controlled over I2C. I2C is heavily used elsewhere on the board for PMU, RTC, IMU, touch, audio codec, and I/O expanders, but the LCD pixel stream is SPI. The touch controller is separate from the display pixel path.
 
-## A better next benchmark: full-screen draw and flush
+## From raw throughput to tear-free animation
 
-The next benchmark should measure full-screen animation directly. It should not replace the current benchmark; it should add a mode that answers a narrower question: how many full-screen RGB565 frames per second can this stack push, and where is the time spent?
+Raw throughput is not the same as tear-free animation. The raw benchmark's `on_color_trans_done` callback tells us that an SPI/DMA color transaction completed. It does not tell us where the LCD panel is in its scanout cycle. The LCD controller stores pixel data in internal GRAM and scans that memory to the glass independently. If the MCU writes into a region while the panel is scanning it, the user may see tearing even when the transfer is fast.
 
-A good full-screen benchmark needs four phases.
-
-### Phase 1: raw panel fill outside LVGL
-
-This phase should allocate one RGB565 frame buffer or one chunk buffer and call `esp_lcd_panel_draw_bitmap()` directly. It measures the LCD driver and SPI bus without LVGL scene-graph cost.
-
-Pseudocode:
+A true VSYNC-style implementation would require a hardware signal from the panel. ILI9341/ILI9342-class controllers often support a tearing-effect output, commonly enabled by the `TEON` command (`0x35`). The firmware could then wait for a TE GPIO interrupt before submitting a full-screen or large-region update:
 
 ```cpp
-static uint16_t* frame = allocate_dma_or_internal_buffer(320 * 240);
+// Conceptual only: requires TE pin to be physically wired.
+enable_panel_te_output();
+configure_gpio_interrupt(TE_GPIO);
 
-for each frame_index in duration:
-    fill frame with color pattern
-    t0 = esp_timer_get_time()
-    esp_lcd_panel_draw_bitmap(panel, 0, 0, 320, 240, frame)
-    t1 = esp_timer_get_time()
-    record submit_or_blocking_time(t1 - t0)
-```
-
-If `draw_bitmap()` returns before DMA completion, this phase also needs a completion callback or synchronization point. Without completion timing, the benchmark only measures submission cost.
-
-### Phase 2: LVGL full-screen invalidation
-
-This phase should create a full-screen LVGL object or canvas and invalidate it every frame. It measures LVGL render plus flush behavior through the actual port.
-
-Pseudocode:
-
-```cpp
-create full_screen_obj
-
-for each frame:
-    GetHAL().lvglLock()
-    update full_screen_obj color or image source
-    lv_obj_invalidate(full_screen_obj)
-    GetHAL().lvglUnlock()
-    wait for target cadence or flush completion signal
-```
-
-The challenge is flush completion. LVGL object mutation time is not enough. The benchmark should either instrument the LVGL display flush callback in `esp_lvgl_port` or add a frame counter that increments when flush completion occurs.
-
-### Phase 3: partial invalidation sweep
-
-Full-screen FPS is not the only useful number. The UI usually changes smaller regions. A partial-invalidation sweep should measure rectangles such as:
-
-| Region | Pixels | Payload bytes | Theoretical SPI-only max |
-|---|---:|---:|---:|
-| 32×32 | 1,024 | 2,048 | ~2441 FPS |
-| 64×64 | 4,096 | 8,192 | ~610 FPS |
-| 160×120 | 19,200 | 38,400 | ~130 FPS |
-| 320×120 | 38,400 | 76,800 | ~65 FPS |
-| 320×240 | 76,800 | 153,600 | ~32.5 FPS |
-
-These theoretical maxima ignore overhead, but the ratios teach the right lesson: invalidated area dominates once rendering is cheap. A smooth launcher should minimize the number of pixels it invalidates per frame.
-
-### Phase 4: production launcher instrumentation
-
-After the standalone benchmark has full-screen and partial-screen numbers, instrument the production launcher:
-
-```cpp
-void AppLauncher::onLauncherRunning()
-{
-    uint64_t t0 = esp_timer_get_time();
-    LvglLockGuard lock;
-    uint64_t t1 = esp_timer_get_time();
-
-    _view->update();
-    uint64_t t2 = esp_timer_get_time();
-
-    screensaver_update();
-    uint64_t t3 = esp_timer_get_time();
-
-    GetStackChan().update();
-    uint64_t t4 = esp_timer_get_time();
-
-    record("launcher_lock_wait", t1 - t0);
-    record("launcher_view", t2 - t1);
-    record("screensaver", t3 - t2);
-    record("stackchan_update", t4 - t3);
-    record("launcher_lock_hold", t4 - t1);
+while (running) {
+    wait_for_te_pulse();
+    draw_next_frame();
 }
 ```
 
-The production measurements will answer whether the launcher is slower than the standalone ceiling because it is doing too much inside the lock, invalidating too much screen area, or getting preempted by other subsystem work.
+No TE/VSYNC GPIO has been found in the current StackChan firmware configuration. The known LCD-related signals are MOSI, SCLK, CS, DC, and reset/control through board logic. If the TE pin is not routed from the panel to the ESP32-S3, firmware cannot implement true VSYNC. It can only pace updates in software.
+
+The practical next benchmark should therefore add visible tearing tests, not just throughput tests:
+
+1. Draw a moving vertical bar or diagonal line.
+2. Run it at raw maximum speed, transfer-completion pacing, fixed 36 FPS, fixed 30 FPS, and fixed 25 FPS.
+3. Compare visible tearing and smoothness.
+4. If schematics reveal a wired TE pin, add a TE-interrupt mode and compare it against software pacing.
+
+This is the next frontier: the raw benchmark tells us how fast pixels can move; the tearing benchmark will tell us which pacing strategy looks best.
+
+## Production implications
+
+The raw results point to several concrete optimization directions for the production firmware:
+
+- Larger LVGL flush buffers may improve full-screen and large-region updates. The current 20-line buffer maps to one of the slower raw full-screen cases.
+- Reducing invalidated area remains the safest optimization. Small rectangles can update at high frame rates, but they are overhead-bound; they should be used deliberately rather than accidentally causing many tiny transactions.
+- The 80 MHz LCD SPI clock is worth further testing. It produced a major raw-throughput improvement and now has basic visual color confirmation.
+- Any production change must still measure LVGL render cost, not just raw blit cost. A fast panel path does not help if the launcher spends too long in `_view->update()` or `GetStackChan().update()` under the LVGL lock.
+- Tear-free animation may require software pacing if no TE/VSYNC pin is available.
 
 ## Working rules from this investigation
 
@@ -605,37 +648,43 @@ The investigation produced several practical rules that should guide the next ro
 - Do not allocate large metric reservoirs on the ESP-IDF `main` task stack. Use static storage, explicit heap allocation, or a dedicated task with a known stack size.
 - Do not trust the first asset timing sample. Separate cold-start initialization from warm-cache lookup.
 - Do not begin with a stress test. First make a stable measurement harness; then add stress modes one at a time.
+- Do not trust raw RGB565 colors until byte order is validated against the production LVGL `.swap_bytes` setting.
+- Do not treat SPI/DMA transfer completion as VSYNC; without TE/VSYNC wiring, transfer completion only proves that bytes reached panel GRAM.
 
 ## Current status
 
-The current point of investigation is a stable Phase 1 benchmark, not a complete display-profiler suite.
+The current point of investigation is no longer just a small-update LVGL benchmark. We now have two complementary datasets.
 
 Completed:
 
-- Kconfig-selectable standalone benchmark entry point.
-- CMake switch between production `main.cpp` and benchmark `bench/benchmark_main.cpp`.
-- Real hardware build and flash.
-- Stable four-mode serial summary output.
-- Measurement of LVGL lock wait/hold for small updates.
-- Measurement of direct RGB refresh cost.
-- Measurement of cold/warm asset lookup behavior.
-- Documentation in docmgr and reMarkable.
+- Kconfig-selectable standalone LVGL/small-update benchmark.
+- Stable four-mode serial summary output for LVGL lock wait/hold, RGB refresh, asset lookup, and loop pacing.
+- Kconfig-selectable raw LCD blit benchmark.
+- Raw `esp_lcd_panel_draw_bitmap()` measurements for full-screen, half-screen, quarter-screen, 80×60, and 32×32 regions.
+- 40 MHz, 60 MHz requested, and 80 MHz requested LCD SPI clock measurements.
+- RGB565 byte-swap fix matching LVGL's `.swap_bytes = 1` behavior.
+- User visual confirmation that byte-swapped colors look better and full-screen RGB diagnostic screens are visible.
+- Documentation in docmgr, reMarkable, and this Obsidian article.
 
-Not yet completed:
+Still open:
 
-- Direct full-screen RGB565 FPS measurement.
-- LVGL flush-completion instrumentation.
-- Partial invalidation sweep.
-- Production launcher instrumentation.
-- Mooncake app benchmark for framework overhead comparison.
+- Confirm actual SCLK frequencies with a logic analyzer, especially the 60 MHz requested case.
+- Confirm 80 MHz visual quality beyond solid-color diagnostics, using moving bars or other tearing-sensitive patterns.
+- Inspect schematics/board wiring for an LCD TE/tearing-effect pin.
+- Add LVGL full-screen invalidation measurements with larger draw buffers.
+- Instrument the production launcher hot path and compare against raw throughput.
+- Add charts for the raw blit dataset, analogous to the first benchmark charts already embedded above.
 
-The best current answer to "what is the max FPS for full-screen animations?" is therefore an estimate, not a measurement:
+The best current answer to "what is the max FPS for full-screen animations?" is now evidence-based but still split by layer:
 
 ```text
-Theoretical SPI payload ceiling: ~32.5 FPS for 320×240 RGB565
-Practical expected ceiling: likely 20–30 FPS
-Measured so far: small LVGL updates only, not full-screen animation
+Raw full-screen blit, 40 MHz, 120-line chunks: 25.00 FPS measured
+Raw full-screen blit, 80 MHz, 120-line chunks: 36.42 FPS measured
+Current LVGL-style 20-line chunks at 40 MHz:   16.30 FPS measured raw
+Small LVGL object updates:                     ~0.8 ms lock hold, not full-screen FPS
 ```
+
+The production launcher's true full-screen animation rate remains unmeasured because it includes LVGL render cost, invalidated-area behavior, lock scope, Mooncake scheduling, and any non-display work performed in the same update path.
 
 ## Source map
 
@@ -652,11 +701,22 @@ The most important local sources for this investigation are:
 | `/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/06/11/M5STACKCHAN-BENCH--standalone-cores3-benchmark-harness-for-stackchan-firmware-performance/reference/01-investigation-diary.md` | Chronological benchmark implementation diary and failure record |
 | `/tmp/stackchan-bench-monitor4.log` | First successful serial benchmark output |
 | `/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/06/11/M5STACKCHAN-BENCH--standalone-cores3-benchmark-harness-for-stackchan-firmware-performance/scripts/01-render-benchmark-charts.py` | Reproducible chart renderer for the benchmark illustrations embedded in this article |
+| `/home/manuel/workspaces/2025-12-21/echo-base-documentation/M5StackChan/build/firmware/main/bench/raw_blit_benchmark_main.cpp` | Raw full-screen and partial-region blit benchmark implementation |
+| `/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/06/11/M5STACKCHAN-RAWBLIT--raw-lcd-blit-performance-benchmark-for-m5stackchan/reference/01-investigation-diary.md` | Raw blit implementation diary, byte-swap finding, and VSYNC/TE notes |
+| `/tmp/stackchan-rawblit-40-monitor.log` | 40 MHz raw blit measurement log |
+| `/tmp/stackchan-rawblit-60-monitor.log` | 60 MHz requested raw blit measurement log |
+| `/tmp/stackchan-rawblit-80-monitor.log` | 80 MHz raw blit measurement log |
+| `/tmp/stackchan-rawblit-byteswap-80-monitor.log` | Byte-swapped 80 MHz follow-up monitor log, if available from the interrupted capture |
 
 ## Near-term next steps
 
-The next engineering step should be a full-screen benchmark mode. It should be narrow and explicit: one mode for raw `esp_lcd_panel_draw_bitmap()`, one mode for LVGL full-screen invalidation, and one mode for partial invalidation rectangles. The output should include both serial summaries and raw per-frame CSV/NDJSON records so the results can be plotted later.
+The next engineering step is no longer "write a raw blit benchmark"; that has been done. The next step is to connect raw throughput to visible animation quality.
 
-After that, instrument the production launcher with the same timing vocabulary: lock wait, view update, screensaver update, `StackChan::update()`, lock hold, and frame completion cadence. Only then should we decide whether to optimize scheduling, redraw area, LVGL task priority, lock scope, asset caching, or the launcher animation itself.
+1. Add a moving-bar tearing benchmark at fixed 25, 30, and 36 FPS pacing modes.
+2. Inspect the StackChan/CoreS3 schematic for an LCD TE/tearing-effect signal routed to an ESP32-S3 GPIO.
+3. If TE exists, implement a TE-interrupt pacing mode; if not, document that software pacing is the practical limit.
+4. Add raw-blit charts to this article showing 40 MHz versus 80 MHz full-screen and partial-region throughput.
+5. Try larger LVGL display buffers and measure LVGL full-screen invalidation throughput.
+6. Instrument production launcher timing: lock wait, `_view->update()`, `screensaver_update()`, `GetStackChan().update()`, lock hold, and frame cadence.
 
-The important discipline is to keep each number attached to the operation it actually measures. On this device, "FPS" is not a single property of the screen. It is the result of how many pixels changed, how expensive they were to render, how quickly the SPI bus moved them, and whether the rest of the firmware gave the render task enough time to run.
+The important discipline remains the same: keep each number attached to the operation it actually measures. On this device, "FPS" is not a single property of the screen. It is the result of how many pixels changed, how expensive they were to render, how quickly the SPI bus moved them, whether the rest of the firmware gave the render task enough time to run, and whether the update was synchronized to panel scanout or merely transferred into GRAM.
