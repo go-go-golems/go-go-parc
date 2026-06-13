@@ -947,3 +947,458 @@ The project is no longer just a design plus generator skeleton. It now has a wor
 ```
 
 The most important remaining future improvement is stronger generated fixture coverage for every field shape in one schema: maps, real oneofs, proto3 optional fields, and well-known types. The new xgoja example already covers maps, repeated fields, enums, messages, `Timestamp`, and `Struct`; it can be extended later with real oneofs and optional scalar fields if those need generated-runtime demonstration coverage.
+
+## Sessionstream integration follow-up: protobuf builders become a real application boundary
+
+After the generic protobuf builder work landed in `go-go-goja`, the next downstream validation target was `sessionstream`. This was the original motivating application: `sessionstream` is intentionally protobuf-first, and its Go API expects concrete `proto.Message` payloads for commands, backend events, UI events, and timeline entities. The new work proves that the generated Goja protobuf builder system is not just an isolated code generator; it can be used as the typed JavaScript construction layer for a real session-oriented Go framework.
+
+The implementation lives in the sibling repository:
+
+```text
+/home/manuel/workspaces/2026-06-12/goja-sessionstream/sessionstream
+```
+
+The main sessionstream commit is:
+
+```text
+14ca1f54b1edb88819bd085cd597351aa0da1e7a
+Add Goja bindings for sessionstream
+```
+
+This commit completed the implementation portion of ticket `SS-GOJA-001`: "Goja bindings for sessionstream: expose Hub, SchemaRegistry, Projections, and WS transport as require('sessionstream')". The ticket remains useful as review context because it contains a design doc, task list, changelog, and implementation diary under:
+
+```text
+sessionstream/ttmp/2026/06/12/SS-GOJA-001--goja-bindings-for-sessionstream-expose-hub-schemaregistry-projections-and-ws-transport-as-require-sessionstream/
+```
+
+### What changed conceptually
+
+The protobuf-builder project now has a second proof point beyond the generic `examples/xgoja/15-protobuf-builder-provider` example. The new proof point is more important architecturally because it crosses from "build a protobuf value in JavaScript" into "drive a Go application substrate from JavaScript with typed protobuf contracts".
+
+The new end-to-end path is:
+
+```text
+sessionstream chatdemo .proto
+  -> protoc-gen-go
+  -> protoc-gen-goja-builder
+  -> generated chatdemo Goja builder module
+  -> JavaScript StartInferenceCommand builder
+  -> protogoja.MessageFromValue
+  -> *chatdemov1.StartInferenceCommand
+  -> sessionstream Hub.Submit
+  -> command handler / event publisher / projections / fanout / snapshot
+```
+
+That sequence matters because it keeps the system's type boundary honest. JavaScript code is allowed to author behavior, but it does not get to smuggle arbitrary untyped maps into the framework's internal command/event pipeline. When JavaScript uses the generated builder module, the Go side receives the same concrete protobuf type it would have received from hand-written Go code.
+
+### New generated chatdemo builder companion
+
+The sessionstream chatdemo schema now has a generated Goja builder companion:
+
+```text
+sessionstream/examples/chatdemo/gen/sessionstream/examples/chatdemo/v1/chat_goja.pb.go
+```
+
+The `go:generate` directive in `examples/chatdemo/generate.go` was updated so the companion is reproducible:
+
+```go
+//go:generate protoc -I proto \
+//  --go_out=gen --go_opt=paths=source_relative \
+//  --goja-builder_out=gen --goja-builder_opt=paths=source_relative \
+//  proto/sessionstream/examples/chatdemo/v1/chat.proto
+```
+
+The generated module name is:
+
+```text
+sessionstream.examples.chatdemo.v1
+```
+
+From JavaScript, the important first use looks like this:
+
+```javascript
+const pb = require("sessionstream.examples.chatdemo.v1")
+
+exports.command = pb.StartInferenceCommand.builder()
+  .prompt("Explain ordinals")
+  .build()
+```
+
+The Go test then extracts the concrete command value:
+
+```go
+msg, ok := protogoja.MessageFromValue(exports.Get("command"))
+cmd := msg.(*chatdemov1.StartInferenceCommand)
+```
+
+This is the minimal proof that the generated builders satisfy the core sessionstream requirement: JavaScript can construct a command payload that is still a real Go protobuf message.
+
+### The compiled `examples/goja-chatdemo` proof
+
+A new compiled example package was added:
+
+```text
+sessionstream/examples/goja-chatdemo/
+```
+
+Its purpose is deliberately narrow: before building the full `require("sessionstream")` module, prove that the protobuf-builder layer can feed the existing chatdemo Hub and Engine.
+
+Key files:
+
+```text
+examples/goja-chatdemo/scripts/start-inference.js
+examples/goja-chatdemo/goja_chatdemo_test.go
+examples/goja-chatdemo/provider/provider.go
+examples/goja-chatdemo/provider/provider_test.go
+examples/goja-chatdemo/xgoja.yaml
+examples/goja-chatdemo/README.md
+examples/goja-chatdemo/Makefile
+```
+
+The test does four important things:
+
+1. Creates a raw Goja runtime and `require.Registry`.
+2. Registers the generated chatdemo protobuf builder module.
+3. Runs JavaScript that builds `StartInferenceCommand`.
+4. Extracts the generated `ProtoMessage` with `protogoja.MessageFromValue` and submits it into the existing chatdemo Hub.
+
+The Hub assertions are not superficial. The test verifies that the JavaScript-built command reaches the real chatdemo engine, produces the expected user and assistant timeline entities, and publishes UI fanout batches. That makes it an application-level proof rather than a generator smoke test.
+
+The xgoja provider part is also compiled:
+
+```go
+const (
+    PackageID  = "sessionstream-chatdemo"
+    ModuleName = "sessionstream.examples.chatdemo.v1"
+)
+```
+
+The provider exposes the generated chatdemo builder module with TypeScript declarations. Its tests validate provider registration, DTS rendering, module loading, and command construction.
+
+### The new `require("sessionstream")` module
+
+The larger implementation is the new native Goja module:
+
+```text
+sessionstream/pkg/js/modules/sessionstream/
+```
+
+It exports a phase-1 JavaScript API:
+
+```javascript
+const ss = require("sessionstream")
+
+const schemas = ss.schemas()
+const hub = ss.hub({ schemas })
+```
+
+The module intentionally lives outside the core `pkg/sessionstream` package. This keeps the framework substrate free of Goja dependencies while still letting Goja/xgoja hosts opt into the binding.
+
+Important files:
+
+```text
+pkg/js/modules/sessionstream/module.go
+pkg/js/modules/sessionstream/codec.go
+pkg/js/modules/sessionstream/api_schemas.go
+pkg/js/modules/sessionstream/api_hub.go
+pkg/js/modules/sessionstream/api_callbacks.go
+pkg/js/modules/sessionstream/api_view.go
+pkg/js/modules/sessionstream/api_fanout.go
+pkg/js/modules/sessionstream/api_websocket.go
+pkg/js/modules/sessionstream/typescript.go
+pkg/js/modules/sessionstream/module_test.go
+pkg/js/modules/sessionstream/provider/provider.go
+pkg/js/modules/sessionstream/provider/provider_test.go
+```
+
+The exported module surface includes:
+
+```javascript
+ss.version
+ss.schemas(input?)
+ss.hub({ schemas, fanout, projectionPolicy })
+ss.eventEmitterFanout(emitter)
+ss.fanout.eventEmitter(emitter)
+ss.webSocket.server(hub)
+```
+
+The Hub wrapper exposes:
+
+```javascript
+hub.submit(sessionId, commandName, payload)
+hub.snapshot(sessionId)
+hub.command(name, handler)
+hub.uiProjection(handler)
+hub.timelineProjection(handler)
+hub.run()
+hub.shutdown()
+```
+
+The phase-1 callback model is synchronous. Handlers and projections can be routed through `runtimeowner.RuntimeOwner.Call` when a runtime owner is configured, but Promise-aware callback completion is intentionally left as a future enhancement.
+
+### Schema registration now uses generated prototype tokens
+
+One of the most important integration details is schema registration. The generated builder module attaches hidden prototype tokens to message namespace objects. The sessionstream module consumes those tokens so schemas can be registered from generated namespaces rather than fragile string-only mappings.
+
+Example:
+
+```javascript
+const ss = require("sessionstream")
+const pb = require("sessionstream.examples.chatdemo.v1")
+
+const schemas = ss.schemas()
+  .registerCommand("ChatStartInference", pb.StartInferenceCommand)
+  .registerEvent("ChatUserMessageAccepted", pb.UserMessageAcceptedEvent)
+  .registerUIEvent("ChatMessageAccepted", pb.ChatMessageUpdate)
+  .registerTimelineEntity("ChatMessage", pb.ChatMessageEntity)
+```
+
+This validates a design choice from the protobuf-builder work: generated message namespaces should carry more than a builder function. They are also schema tokens that consuming modules can use to discover the represented protobuf descriptor.
+
+The module can also resolve protobuf full-name strings through host prototypes or `protoregistry.GlobalTypes`, but the generated namespace token is the most ergonomic path.
+
+### Codec behavior: prefer hidden protobuf refs, fallback to protojson
+
+The codec layer is where the protobuf-builder work pays off.
+
+For command, event, UI event, and timeline entity payloads, the module first tries:
+
+```go
+protogoja.MessageFromValue(value)
+```
+
+If that succeeds, it validates that the built message descriptor matches the registered schema and then clones the protobuf message. If the value is not a generated `ProtoMessage`, it falls back to plain-object conversion:
+
+```text
+JS object -> encoding/json -> protojson.UnmarshalOptions{DiscardUnknown:false} -> registered protobuf prototype
+```
+
+That fallback is useful for simple scripts, but the generated builder path remains the typed path. The fallback is strict enough that misspelled fields fail rather than silently disappearing.
+
+This is the practical resolution of the original design tension:
+
+- JavaScript authors can use ordinary object literals for convenience in simple cases.
+- Typed builder values preserve descriptor identity and avoid JSON as the internal representation.
+- The framework still remains protobuf-first.
+
+### Command handlers and event publishing
+
+The new `hub.command` adapter lets JavaScript register a sessionstream command handler:
+
+```javascript
+hub.command("ChatStartInference", (cmd, session, pub) => {
+  pub.publish("ChatUserMessageAccepted",
+    pb.UserMessageAcceptedEvent.builder()
+      .messageId("m1-user")
+      .role("user")
+      .content(cmd.payload.prompt)
+      .streaming(false)
+      .build())
+})
+```
+
+On the Go side, the adapter converts the incoming `sessionstream.Command` into a JavaScript object with JSON-shaped payload fields. The publisher object then converts JavaScript output back into a registered event protobuf message, again preferring generated `ProtoMessage` refs.
+
+This creates a useful hybrid model:
+
+- inbound Go protobuf messages are rendered into ergonomic JS objects for reading;
+- outbound JS payloads can be generated protobuf builder values for type-preserving publication.
+
+### UI projections, timeline projections, and snapshots
+
+The module also wraps sessionstream projections:
+
+```javascript
+hub.uiProjection((event, session, view) => [{
+  name: "ChatMessageAccepted",
+  payload: pb.ChatMessageUpdate.builder()
+    .messageId(event.payload.messageId)
+    .role("user")
+    .content(event.payload.content)
+    .build(),
+}])
+
+hub.timelineProjection((event, session, view) => [{
+  kind: "ChatMessage",
+  id: event.payload.messageId,
+  payload: pb.ChatMessageEntity.builder()
+    .messageId(event.payload.messageId)
+    .role("user")
+    .content(event.payload.content)
+    .status("accepted")
+    .build(),
+}])
+```
+
+The `TimelineView` wrapper is read-only and exposes:
+
+```javascript
+view.ordinal()
+view.get(kind, id)
+view.list(kind)
+```
+
+Snapshots are returned to JavaScript as JSON-shaped objects. Ordinals are represented as decimal strings so JavaScript does not lose precision for `uint64` values.
+
+### EventEmitter-backed UI fanout
+
+The module exposes EventEmitter fanout:
+
+```javascript
+const EventEmitter = require("events")
+const events = new EventEmitter()
+const fanout = ss.eventEmitterFanout(events)
+const hub = ss.hub({ schemas, fanout })
+
+events.on("ui", batch => {
+  // batch.sessionId, batch.ordinal, batch.events
+})
+```
+
+The Go adapter uses `jsevents.Manager` and `EmitterRef`, which means the Go-side `UIFanout` can safely schedule JavaScript listener delivery onto the Goja owner thread.
+
+The tricky part was reentrancy. The first implementation tried synchronous `EmitWithBuilderSync`. That deadlocked when a JavaScript-originated `hub.submit` synchronously reached fanout while already executing on the Goja owner thread. The final implementation uses asynchronous `EmitWithBuilder`, which schedules the UI batch onto the owner loop and avoids waiting on itself.
+
+This is a reusable rule for future Goja bindings: if a Go callback can be reached from inside JavaScript, do not blindly use a synchronous owner-thread round trip for downstream JavaScript emissions.
+
+### WebSocket wrapper and provider shape
+
+The module includes a narrow wrapper around the existing sessionstream WebSocket transport:
+
+```javascript
+const ws = ss.webSocket.server(hub)
+ws.connections()
+```
+
+This returns a JavaScript wrapper around `transport/ws.Server` and exposes connection introspection. The implementation deliberately does not pretend that an Express-style route callback can handle WebSocket upgrades. The next integration step should mount the server through provider-level host services or a concrete `gojahttp.Host` mount contract.
+
+The xgoja provider package is:
+
+```text
+pkg/js/modules/sessionstream/provider
+```
+
+It registers package id:
+
+```text
+sessionstream
+```
+
+and contributes the `sessionstream` module, config schema, TypeScript descriptor, and module loader factory. The config schema already sketches future WebSocket configuration:
+
+```json
+{
+  "websocket": {
+    "enabled": true,
+    "path": "/ws",
+    "maxHydrationBufferedBatches": 1024
+  }
+}
+```
+
+Provider-level WebSocket mounting is not yet complete, but the module/provider boundary is ready for it.
+
+### TypeScript declarations
+
+The sessionstream module now has handwritten `RawDTS` declarations. These describe:
+
+- `Schemas`
+- `Hub`
+- `Publisher`
+- `Command`
+- `Event`
+- `Session`
+- `TimelineView`
+- `UIEvent`
+- `TimelineEntity`
+- `Snapshot`
+- `Fanout`
+- `WebSocketServer`
+
+The provider test renders the declaration bundle through `go-go-goja/pkg/xgoja/dtsgen`, so the module is not just runtime-loadable; it is declaration-visible to xgoja tooling.
+
+### Validation status after sessionstream integration
+
+The sessionstream validation passed:
+
+```bash
+cd /home/manuel/workspaces/2026-06-12/goja-sessionstream/sessionstream
+
+go test ./pkg/js/modules/sessionstream/... -count=1
+go test ./examples/chatdemo ./examples/goja-chatdemo/... ./pkg/js/modules/sessionstream/... -count=1
+make schema-vet
+go test ./... -count=1
+```
+
+The go-go-goja compatibility validation also passed:
+
+```bash
+cd /home/manuel/workspaces/2026-06-12/goja-sessionstream/go-go-goja
+
+go test ./pkg/xgoja/... ./pkg/protogoja ./pkg/jsevents/... -count=1
+```
+
+`docmgr doctor` for the sessionstream ticket also passed:
+
+```bash
+docmgr --root ttmp doctor --ticket SS-GOJA-001 --stale-after 30
+```
+
+### Current status and important caveat
+
+The sessionstream binding work is now committed in `sessionstream` as:
+
+```text
+14ca1f5 Add Goja bindings for sessionstream
+```
+
+The new binding is substantial enough to be reviewed as a first phase. It includes real tests, real generated protobuf builder companions, a compiled demo, a module package, a provider package, and documentation.
+
+The important caveat is dependency publication. Local development works because the workspace has a `go.work` file that includes both `sessionstream` and the local `go-go-goja` checkout:
+
+```text
+/home/manuel/workspaces/2026-06-12/goja-sessionstream/go.work
+```
+
+A standalone `go mod tidy` inside `sessionstream` still fails if it tries to resolve the latest published `github.com/go-go-golems/go-go-goja`, because the currently published version does not yet contain `pkg/protogoja`. That should be resolved by publishing a new `go-go-goja` release containing the protobuf-builder runtime before expecting `sessionstream` to build independently outside the workspace.
+
+### What this proves for the protobuf-builder project
+
+This integration changes the confidence level of the protobuf-builder design. Before this, the generator was validated by runtime tests, golden tests, and a standalone xgoja provider example. After this, it is validated as the typed payload construction layer for a separate protobuf-first framework.
+
+The reusable pattern is now clear:
+
+```mermaid
+flowchart TD
+  JS[JavaScript application code]
+  Builders[Generated protobuf builder module]
+  ProtoRef[Hidden protogoja MessageRef]
+  Binding[Goja native binding module]
+  Registry[SchemaRegistry]
+  Hub[sessionstream Hub]
+  Projections[JS command handlers and projections]
+  Fanout[EventEmitter / WebSocket fanout]
+
+  JS --> Builders
+  Builders --> ProtoRef
+  ProtoRef --> Binding
+  Binding --> Registry
+  Binding --> Hub
+  Hub --> Projections
+  Projections --> Builders
+  Hub --> Fanout
+```
+
+The key lesson is that the generated builder modules should be treated as both value constructors and schema metadata providers. The same generated namespace object can give JavaScript authors a fluent API, TypeScript tooling a declaration surface, and Go bindings a hidden prototype token for schema registration.
+
+### Remaining follow-ups
+
+The most important remaining follow-ups are now operational rather than conceptual:
+
+1. Publish or otherwise version `go-go-goja` with `pkg/protogoja` so downstream modules do not require a local workspace checkout.
+2. Merge `origin/main` into the active `go-go-goja` branch and rerun xgoja/protogoja/sessionstream compatibility tests, because xgoja changed significantly after the protobuf-builder work started.
+3. Decide whether Promise-returning JavaScript command handlers and projections should be supported in phase 1 or explicitly rejected with a clear error.
+4. Implement provider-level WebSocket mounting through a concrete host-service contract instead of only exposing `webSocket.server(hub)`.
+5. Consider splitting the sessionstream PR into reviewable layers if reviewers prefer: generated chatdemo proof, native module core, provider/WebSocket layer, docs/ticket artifacts.
+
+The major design question is no longer whether generated Goja protobuf builders are useful. The sessionstream integration demonstrates that they are useful exactly at the kind of framework boundary they were designed for.
