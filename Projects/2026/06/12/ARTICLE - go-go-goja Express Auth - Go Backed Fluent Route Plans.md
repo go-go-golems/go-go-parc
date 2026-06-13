@@ -13,7 +13,10 @@ tags:
   - authentication
   - authorization
   - architecture
-status: wrapped-up
+  - postgres
+  - audit
+  - persistence
+status: active
 type: article
 created: 2026-06-12
 updated: 2026-06-12
@@ -547,3 +550,319 @@ The Express auth branch is now rebased/merged over the xgoja/v2 mainline without
 - compatibility with the new xgoja/v2 examples and TypeScript declaration generation.
 
 The main follow-up is not a code blocker: improve docs/checklists so future feature branches can merge across xgoja example/documentation reorganizations with less archaeology.
+---
+
+## Follow-up: persistent host auth stores and production-shaped Keycloak/Postgres smoke
+
+The branch did not stop at the planned Express route boundary. After the xgoja/v2 port, the work moved into the host-auth productionization track: durable sessions, durable audit records, contract tests for future store implementations, and a Keycloak smoke that now exercises real Postgres-backed app sessions and audit tables.
+
+This is an important shift in the project. The first part of the work answered: “How does JavaScript safely declare route security intent?” The follow-up work answers: “How does a real Go host back those declarations with durable authentication state, operational audit records, and production-shaped examples?”
+
+> [!summary]
+> - `sessionauth/sqlstore` now provides a `database/sql` implementation of `sessionauth.Store`, with SQLite tests and Postgres DDL.
+> - `audit/sqlstore` now provides a `database/sql` implementation of `audit.Store`, with durable audit rows, redaction tests, and operational query examples.
+> - Reusable store contract packages now define expected behavior for session, audit, capability, and appauth stores before more SQL adapters are added.
+> - The Keycloak example now starts Postgres, uses Postgres-backed app sessions and audit records, and verifies persisted audit rows in its smoke test.
+
+### New follow-up tickets
+
+Three follow-up tickets now capture the next productionization tracks:
+
+| Ticket | Purpose | Current shape |
+| --- | --- | --- |
+| `XGOJA-AUTH-STORES` | Durable production stores for host auth packages. | Active implementation ticket; session and audit stores are now implemented. |
+| `XGOJA-AUTH-KEYCLOAK-MFA` | Production Keycloak hardening and concrete MFA freshness flows. | Design ticket for OIDC transaction storage, secure deployment settings, logout semantics, and `Session.MFAAt` update flows. |
+| `XGOJA-AUTH-PROD-DOCS` | Production deployment guide, policy-adapter planning, and process cleanup. | Planning ticket for operator docs, optional Casbin/OpenFGA/OPA adapters, example-numbering rules, and TypeScript regeneration process. |
+
+The important body/schema conclusion is also recorded in the Keycloak/MFA design: body schema validation is security-relevant, but it is not authentication. It matters when authorization depends on body fields such as `tenantId`, `role`, `ownerId`, `resourceId`, or capability/invite attributes. It should become a separate request-validation and authorization-safety follow-up after stores and Keycloak/MFA hardening, not a blocker for session persistence.
+
+### Store contracts before SQL adapters
+
+Before adding SQL stores, the branch added reusable contract tests under `pkg/gojahttp/auth/internal/*test`:
+
+```text
+pkg/gojahttp/auth/internal/sessionauthtest/store_contract.go
+pkg/gojahttp/auth/internal/audittest/store_contract.go
+pkg/gojahttp/auth/internal/capabilitytest/store_contract.go
+pkg/gojahttp/auth/internal/appauthtest/store_contract.go
+```
+
+These contract packages are deliberately small and behavior-focused. They are meant to be run against the in-memory implementations today and every SQL/Postgres implementation later.
+
+| Contract | What it proves |
+| --- | --- |
+| `sessionauthtest.RunStoreContract` | Sessions can be created, loaded, touched, rotated, revoked, and missing sessions map to invalid cookies. It also asserts clone isolation for slices, maps, and timestamp pointers. |
+| `audittest.RunStoreContract` | Audit records are inserted in order and snapshots cannot mutate stored attributes. |
+| `capabilitytest.RunStoreContract` | Capabilities store token hashes, redeem with purpose/expiry/revocation checks, and enforce atomic single-use behavior under concurrent redemption attempts. |
+| `appauthtest.RunStoreContract` | App-owned users, Keycloak subjects, memberships, roles, resources, revoked/disabled state, and clone isolation behave consistently. |
+
+The contract extraction exposed clone-isolation gaps in the in-memory stores. Those were fixed immediately:
+
+- `sessionauth.cloneSession` now clones `MFAAt` and `RevokedAt` pointers.
+- `capability.cloneCapability` now clones `UsedAt` and `RevokedAt` pointers.
+- `appauth.MemoryStore` clones users, memberships, and resources on add/load paths.
+- `audit.MemoryStore` was added as a concrete in-memory `audit.Store` and clones attributes recursively.
+
+This matters because SQL stores naturally deserialize fresh values from the database, while memory stores can accidentally share caller-owned pointers, slices, maps, or byte slices. The contracts make the intended boundary explicit.
+
+### SQL session store
+
+The first durable adapter is `pkg/gojahttp/auth/sessionauth/sqlstore`. It implements the existing `sessionauth.Store` interface with `database/sql`, without changing `sessionauth.Manager`, Keycloak callback handling, or the Express route API.
+
+```go
+db, err := sql.Open("postgres", dsn)
+if err != nil { return err }
+
+store, err := sqlstore.New(sqlstore.Config{
+    DB:      db,
+    Dialect: sqlstore.DialectPostgres,
+})
+if err != nil { return err }
+
+if err := store.ApplySchema(ctx); err != nil { return err }
+
+sessions, err := sessionauth.New(sessionauth.Config{Store: store})
+```
+
+The store supports `Create`, `Get`, `Touch`, `Rotate`, and `Revoke`. `Rotate` runs in a SQL transaction: delete the old session ID and insert the new session in one commit. `Revoke` remains idempotent for missing sessions, matching the memory-store contract.
+
+The session schema stores the fields needed by app sessions, Keycloak normalization, CSRF, and MFA freshness:
+
+```text
+id
+user_id
+keycloak_sub
+email
+email_verified
+tenant_ids_json
+csrf_token
+mfa_at
+created_at
+last_seen_at
+idle_expires_at
+absolute_expires_at
+revoked_at
+claims_json
+```
+
+For Postgres, `tenant_ids_json` and `claims_json` are `JSONB`, and timestamps are `TIMESTAMPTZ`. SQLite DDL exists for fast local tests and contract execution.
+
+```mermaid
+flowchart TD
+  Browser[Browser] --> Cookie[Opaque app session cookie]
+  Cookie --> Manager[sessionauth.Manager]
+  Manager --> Store[sessionauth.Store]
+  Store --> SQL[sessionauth/sqlstore]
+  SQL --> DB[(Postgres auth_sessions)]
+  Manager --> Actor[gojahttp.Actor]
+  Actor --> Host[planned route pipeline]
+```
+
+The SQLite tests run the reusable session store contract and a full-projection test that verifies identity fields, tenant IDs, MFA timestamps, revoked timestamps, and claims survive persistence. The later Keycloak smoke also proved the Postgres path against a real database driver and container.
+
+### Postgres in the Keycloak example
+
+The Keycloak host example now includes Postgres in `examples/xgoja/19-express-keycloak-auth-host/docker-compose.yml`. The service is intentionally for the Go host’s app-side auth state, not Keycloak’s internal dev database. This keeps the example fast while validating the new stores through a real Postgres server.
+
+Default smoke database:
+
+```text
+postgres://goja:goja@127.0.0.1:15432/goja_auth?sslmode=disable
+```
+
+The example host now has `--session-db-dsn`. When it is empty, the example falls back to `sessionauth.MemoryStore`. When it is set, the host opens Postgres with `github.com/lib/pq`, applies the `sessionauth/sqlstore` schema, and uses Postgres-backed app sessions.
+
+The smoke target now starts both Keycloak and Postgres:
+
+```bash
+make -C examples/xgoja/19-express-keycloak-auth-host smoke
+```
+
+It verifies public health, unauthenticated denial, Keycloak Authorization Code + PKCE login, Postgres-backed app-session creation, CSRF-token retrieval, unsafe mutation denial without CSRF, unsafe mutation success with CSRF, resource-not-found behavior, logout, and post-logout denial.
+
+The important proof is that the app session used by this flow is no longer only in memory.
+
+### SQL audit store
+
+The second durable adapter is `pkg/gojahttp/auth/audit/sqlstore`. It implements `audit.Store` and is intended to be wired through `audit.Sink`:
+
+```go
+store, err := auditsqlstore.New(auditsqlstore.Config{
+    DB:      db,
+    Dialect: auditsqlstore.DialectPostgres,
+})
+if err != nil { return err }
+
+if err := store.ApplySchema(ctx); err != nil { return err }
+
+sink := audit.Sink{Store: store}
+```
+
+This separation is intentional: `audit/sqlstore` persists normalized records; `audit.Sink` and `audit.Normalizer` perform normalization and redaction before insert. The SQL store does not try to rediscover which fields are secret. The host should wire the normalized sink.
+
+The schema stores route and request context useful for incident review:
+
+```text
+id
+event
+outcome
+reason
+status_code
+route_name
+method
+pattern
+action
+actor_id
+actor_kind
+tenant_id
+resource_type
+resource_id
+request_id
+ip_hash
+user_agent
+attributes_json
+created_at
+```
+
+For Postgres, `attributes_json` is `JSONB`. Indexes exist for common operational filters: `created_at`, `outcome`, `event`, `actor_id`, `(resource_type, resource_id)`, and `tenant_id`.
+
+The package also includes a small query helper and README examples for operational use:
+
+```go
+denied, err := store.QueryByOutcome(ctx, "denied", 100)
+```
+
+Equivalent SQL for operators:
+
+```sql
+SELECT created_at, event, outcome, reason, actor_id, tenant_id,
+       resource_type, resource_id, action, request_id
+FROM auth_audit_records
+WHERE outcome IN ('denied', 'failed')
+ORDER BY created_at DESC
+LIMIT 100;
+```
+
+The tests prove three important details:
+
+1. The SQL store satisfies the reusable `audittest` contract.
+2. Records written through `audit.Sink` are redacted before reaching SQL.
+3. `QueryByOutcome` returns denied/failed records in useful newest-first order.
+
+### Persistent audit in the Keycloak smoke
+
+The Keycloak example now also has `--audit-db-dsn` / `AUDIT_DB_DSN`. If no audit DSN is provided, the example uses `audit.LogSink`. If a DSN is provided, it uses `audit/sqlstore` through `audit.Sink`.
+
+The Makefile defaults `AUDIT_DB_DSN` to `SESSION_DB_DSN`, so the smoke uses one Postgres service for both `auth_sessions` and `auth_audit_records`.
+
+The smoke now checks that planned-route audit records were really persisted:
+
+```bash
+SELECT count(*)
+FROM auth_audit_records
+WHERE event IN ('health.checked', 'user.self.read', 'project.updated')
+```
+
+A passing smoke now ends with output like:
+
+```text
+ok persisted audit records 12
+```
+
+This proves the full route-audit path:
+
+```mermaid
+sequenceDiagram
+  participant JS as JS planned route
+  participant Host as gojahttp.Host
+  participant Sink as audit.Sink
+  participant Store as audit/sqlstore
+  participant DB as Postgres
+
+  JS->>Host: .audit("project.updated") in RoutePlan
+  Host->>Host: authenticate / CSRF / resolve / authorize
+  Host->>Sink: RecordAudit(allowed/completed/denied)
+  Sink->>Sink: Normalize + redact attributes
+  Sink->>Store: InsertAuditRecord(record)
+  Store->>DB: INSERT auth_audit_records
+```
+
+### Smoke hardening: detecting stale local hosts
+
+The first attempt to verify persisted audit rows failed with `count=0`, but the root cause was not audit storage. A stale host process was already listening on `127.0.0.1:8790`, so the newly launched host exited with:
+
+```text
+listen tcp 127.0.0.1:8790: bind: address already in use
+```
+
+The old smoke readiness function only checked whether `/healthz` was reachable. That meant it could talk to the stale process and continue. The smoke script now uses `wait_for_host_url`, which checks that the specific launched host PID is still alive before accepting the health endpoint as ready.
+
+This is a small but important test rule: end-to-end smokes should verify the process they launched, not just that a URL responds.
+
+### Current implementation status
+
+The persistent-store track has completed these `XGOJA-AUTH-STORES` phases:
+
+| Phase | Status |
+| --- | --- |
+| Reusable store contract tests | Done. |
+| SQL session store | Done. |
+| Keycloak/Postgres app-session smoke | Done. |
+| SQL audit store | Done. |
+| Keycloak/Postgres audit persistence smoke | Done. |
+| SQL capability store | Not started. |
+| SQL appauth user/tenant/membership/resource store | Not started. |
+| Full Keycloak + Postgres + sessionauth + appauth + audit + capability smoke | Partially done; session and audit are wired, appauth and capability remain in-memory/not wired. |
+
+The current branch now has a much more concrete production story than the first report did. The Express framework boundary is still the same, but the host side is no longer just an interface sketch: sessions and audit records have working SQL implementations, and the Keycloak example proves those implementations through a realistic browser-login flow.
+
+### New commits after the xgoja/v2 report
+
+The major new commits since the previous vault update are:
+
+| Commit | Purpose |
+| --- | --- |
+| `9e3eb7d` | Created persistent-store and Keycloak/MFA follow-up planning tickets. |
+| `8478fb8` | Created production deployment docs and policy-adapter planning ticket. |
+| `22eb7d6` | Added reusable auth store contract tests. |
+| `c495b26` | Added generated logcopter stubs for the auth store contract packages. |
+| `304f833` | Added `sessionauth/sqlstore`. |
+| `8bde147` | Recorded auth store implementation diary steps. |
+| `e53d063` | Wired Keycloak smoke to Postgres-backed sessions. |
+| `cf7a2d8` | Recorded Postgres Keycloak smoke diary. |
+| `8821692` | Added `audit/sqlstore`. |
+| `5fcac51` | Added generated logcopter stub for `audit/sqlstore`. |
+| `c962de2` | Persisted Keycloak smoke audit records. |
+| `19edaf4` | Recorded persistent audit smoke diary. |
+
+### Current validation commands
+
+The branch has passed:
+
+```bash
+go test ./pkg/gojahttp/auth/... -count=1
+
+go test \
+  ./examples/xgoja/19-express-keycloak-auth-host/cmd/host \
+  ./pkg/gojahttp/auth/audit/sqlstore \
+  ./pkg/gojahttp/auth/sessionauth/sqlstore \
+  -count=1
+
+make -C examples/xgoja/19-express-keycloak-auth-host smoke
+```
+
+The pre-commit and pre-push hooks also ran lint and `go test ./...` successfully on the pushed commits.
+
+### What remains next
+
+The next implementation step is `capability/sqlstore`. It is the highest-risk remaining store because single-use token redemption must be atomic. The contract already encodes the desired behavior: many concurrent redeem attempts against the same single-use token should produce exactly one success and the rest `ErrUsed`.
+
+After that, the app-owned auth domain needs a SQL starter store:
+
+- users,
+- Keycloak subject mapping,
+- tenants,
+- memberships and roles,
+- resources.
+
+Only after sessions, audit, capabilities, and appauth are all persistent should the production deployment guide and optional policy-adapter work become the main focus.
