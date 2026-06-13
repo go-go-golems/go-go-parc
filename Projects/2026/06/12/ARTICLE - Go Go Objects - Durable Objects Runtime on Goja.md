@@ -16,56 +16,82 @@ tags:
 status: active
 type: article
 created: 2026-06-12
+updated: 2026-06-12
 repo: /home/manuel/workspaces/2026-06-12/goja-durable-objects/go-go-objects
 ---
 
 # Go Go Objects: Durable Objects Runtime on Goja
 
-`go-go-objects` is an experimental Durable Objects runtime implemented in Go on top of `goja` and the `go-go-goja` runtime owner infrastructure. The project implements a local, single-process version of the Durable Objects execution model: each object identity resolves to one live JavaScript actor, that actor owns one `goja.Runtime`, and each actor has private SQLite-backed durable storage.
+This article explains the `go-go-objects` Durable Objects runtime as it exists after the xgoja/v2 integration work. The goal is not to memorize every type in the repository. The goal is to understand the execution model: how a stable object identity becomes a live JavaScript actor, how that actor owns a `goja.Runtime`, how SQLite gives the actor durable state, and how xgoja-generated binaries expose the runtime through both direct and composable HTTP commands.
 
-The important design decision is to treat Durable Objects as an **addressable actor runtime**, not as a Cloudflare Workers compatibility layer. The implementation does not attempt to provide the full Workers API, WHATWG request/response classes, WebSocket hibernation, distributed placement, or global uniqueness. It implements the kernel that makes the model useful: stable identity, serialized execution, durable object-local state, RPC dispatch, fetch dispatch, alarms, and eviction.
+The project implements a local, single-process Durable Objects kernel. It is not a Cloudflare Workers compatibility layer. It does not try to provide the full Workers API, distributed placement, WebSocket hibernation, WHATWG request/response classes, or hostile-code isolation. It implements the smaller core that makes the pattern useful inside Go programs: identity, serialized execution, object-local storage, RPC dispatch, fetch dispatch, alarms, eviction, and embeddable HTTP serving.
 
 > [!summary]
-> - The runtime maps `(namespace, name)` to a stable `ObjectID`, lazily starts an actor, and dispatches work through that actor's owned `goja.Runtime`.
-> - The actor boundary is also the concurrency boundary: JavaScript execution is serialized through `go-go-goja/pkg/engine.Runtime` and `runtimeowner.RuntimeOwner`.
-> - SQLite storage is private to each object, while a central alarm index allows evicted objects to be woken when alarms become due.
-> - xgoja integration is implemented as a thin provider layer over the core `pkg/durableobjects` package.
+> - A Durable Object is identified by `(namespace, name)`, lazily started as one JavaScript actor, and backed by one private SQLite database.
+> - Each live object owns one `go-go-goja/pkg/engine.Runtime`; all JavaScript execution for that object runs through `RuntimeOwner.Call()`.
+> - The HTTP gateway translates `/rpc/...` and `/fetch/...` routes into manager dispatch envelopes.
+> - The xgoja provider now supports xgoja/v2, embedded asset roots, `durableobjects.gateway()` mountable handlers, and a direct `durableobjects serve` command.
 
 ## Why this project exists
 
-JavaScript runtimes embedded in Go often start as script execution tools. They can run a file, expose a few native modules, and return a result. That is enough for command-style execution, but it is not enough for stateful application components that must be addressable over time. A counter, a collaborative session, a chat room, a workflow coordinator, or a per-user agent all need the same missing property: callers need a stable way to send work to the same logical object again later.
+Embedded JavaScript runtimes often start with a simple shape: create a runtime, load a script, call a function, return a value. That shape works for command execution. It is insufficient for stateful components that need to be addressed repeatedly over time. A counter, a document session, a workflow coordinator, or a per-user agent needs a stable identity. Callers must be able to say, "send this request to object `COUNTER/global`," and the host must route that request to the same logical object state across calls, evictions, and restarts.
 
-Durable Objects provide that property by tying identity, execution, memory, and storage together. An object is not just a JavaScript class. It is a JavaScript class instance associated with a durable identity. The host guarantees that work for that identity reaches the same live actor while it is active, and that the actor can recover its durable state after eviction or process restart.
+Durable Objects provide that missing identity-bound execution model. The important property is not just persistence. A database can persist state by itself. The important property is that identity, in-memory JavaScript state, serialized execution, and durable storage are tied together. For a given object identity, the runtime guarantees that one live actor handles work at a time, and that actor has private access to its durable state.
 
-The `go-go-objects` project explores how small this runtime can be when it is built on existing `go-go-goja` primitives. The result is not a large platform. It is a compact kernel with a clear execution path and a constrained JavaScript API.
+`go-go-objects` explores how small that kernel can be when built on `go-go-goja` primitives. The result is deliberately compact. The runtime does not introduce a second JavaScript scheduler. It uses the existing `engine.Runtime`, `runtimeowner.RuntimeOwner`, CommonJS loading, and xgoja provider APIs. The Durable Objects layer adds identity, lifecycle, storage, dispatch, and serving.
 
-## Current status
+## Current project status
 
-The repository currently contains a working MVP implementation in:
+The implementation is no longer just a design. The repository contains a working MVP in:
 
 ```text
 /home/manuel/workspaces/2026-06-12/goja-durable-objects/go-go-objects
 ```
 
-Implemented code paths include:
+The current important paths are:
 
-- `pkg/durableobjects`: core runtime, actor manager, storage, gateway, alarms, eviction, and tests.
-- `pkg/xgoja/providers/durableobjects`: xgoja provider integration.
-- `cmd/go-go-objects`: a small runnable demo server with a hard-coded counter object.
-- `ttmp/2026/06/12/GOJA-DO-001--implement-durable-objects-for-go-go-goja`: design guide, investigation diary, source research, changelog, and tasks.
+| Path | Role |
+| --- | --- |
+| `pkg/durableobjects` | Core runtime: identity, manager, actors, storage, alarms, gateway, server helper, schedulers, and tests. |
+| `pkg/xgoja/providers/durableobjects` | xgoja provider: CommonJS module, config capability, embedded assets, mountable handler export, and direct command provider. |
+| `cmd/go-go-objects` | Standalone demo/custom-bundle server for local development. |
+| `examples/counter` | Counter object, xgoja/v2 buildspec, runtime config, and JS HTTP serve composition verb. |
+| `examples/templates/durableobjects_http_runtime.go.tmpl` | Custom xgoja template for embedding the Durable Objects runtime into an existing Go HTTP server. |
+| `ttmp/2026/06/12/GOJA-DO-001--implement-durable-objects-for-go-go-goja` | docmgr ticket with the implementation diary, design guide, tasks, and changelog. |
 
-The validation command currently passes:
+The validated implementation includes:
+
+- one live actor per active object identity;
+- one `goja` runtime per live actor;
+- CommonJS bundle loading from `exports.objects`;
+- automatic namespace derivation from exported class names, for example `Counter -> COUNTER`;
+- optional explicit manifest aliases;
+- per-object SQLite storage with KV, metadata, alarm state, and schema version metadata;
+- a central `alarms.sqlite` index for waking evicted objects;
+- alarm reconciliation from object-local alarm records back into the central index;
+- active-dispatch tracking so idle eviction does not close a running actor;
+- singleflight-style actor startup suppression for concurrent first requests;
+- HTTP gateway routes for `/rpc` and `/fetch`;
+- xgoja/v2 generated binary support through both HTTP `serve` composition and direct `durableobjects serve`.
+
+The main validation commands pass:
 
 ```bash
 cd /home/manuel/workspaces/2026-06-12/goja-durable-objects/go-go-objects
 go test ./... -count=1
+docmgr doctor --ticket GOJA-DO-001 --stale-after 30
 ```
 
-The runtime is still an MVP. It intentionally uses CommonJS bundles, synchronous storage calls, JSON-compatible RPC values, and plain fetch DTOs. These constraints make the first version easier to reason about and test.
+Targeted xgoja validation also passes in the sibling repository:
 
-## The core execution model
+```bash
+cd /home/manuel/workspaces/2026-06-12/goja-durable-objects/go-go-goja
+go test ./pkg/xgoja/app ./pkg/gojahttp ./modules/express ./pkg/xgoja/providers/http -count=1
+```
 
-A Durable Object request begins with identity. The host receives a namespace, a name, and a dispatch kind. The namespace selects a JavaScript class. The name selects one object instance inside that namespace. Together they form an `ObjectID`.
+## The core mental model
+
+A Durable Object request starts as a name. The name has two parts: a namespace and an object name. The namespace chooses a JavaScript class. The object name chooses one instance of that class. Together they form the `ObjectID` that the runtime uses for actor lookup and storage placement.
 
 ```go
 type ObjectID struct {
@@ -75,50 +101,56 @@ type ObjectID struct {
 }
 ```
 
-The hash is computed from `namespace + "\x00" + name`. The namespace and name remain visible for logs and user-facing behavior, while the hash gives the runtime a stable filesystem-safe storage key.
+The hash is derived from the namespace and name. The human-readable fields remain available for logs, routing, and error messages. The hash gives the storage layer a stable filesystem-safe key.
 
-The dispatch path has four stages:
+A request then follows a short path:
 
-1. A gateway or module builds an `Envelope` containing object identity and request data.
-2. The `Manager` resolves or starts the live `Actor` for the object identity.
-3. The `Actor` serializes execution through its owned runtime's `RuntimeOwner`.
-4. The JavaScript instance handles `rpc`, `fetch`, or `alarm` dispatch and returns a JSON-compatible result.
+1. An HTTP gateway or xgoja module creates an `Envelope` describing the object identity and dispatch kind.
+2. The `Manager` validates the namespace and resolves the live actor.
+3. If the actor does not exist, the manager starts it by opening storage, creating a runtime, evaluating the bundle, and constructing the JavaScript class.
+4. The actor runs the dispatch on its runtime owner thread.
+5. The result is converted back to a JSON-compatible Go value or a fetch response.
 
 ```mermaid
 flowchart TD
     Client[HTTP caller or xgoja script]
-    Envelope[Envelope: kind, ObjectID, method, args/request]
-    Manager[durableobjects.Manager]
-    Actor[durableobjects.Actor]
-    Runtime[engine.Runtime + goja.Runtime]
-    Instance[JavaScript object instance]
-    Storage[(SQLite object database)]
+    Gateway[Gateway or durableobjects module]
+    Envelope[Envelope: ObjectID, kind, method/request]
+    Manager[Manager: validates namespace and resolves actor]
+    Actor[Actor: one live object instance]
+    Runtime[engine.Runtime + RuntimeOwner]
+    JS[JavaScript class instance]
+    Storage[(Object SQLite database)]
 
-    Client --> Envelope
+    Client --> Gateway
+    Gateway --> Envelope
     Envelope --> Manager
-    Manager -->|getOrStart| Actor
-    Actor -->|RuntimeOwner.Call| Runtime
-    Runtime --> Instance
-    Instance --> Storage
-    Instance --> Runtime
+    Manager --> Actor
+    Actor --> Runtime
+    Runtime --> JS
+    JS --> Storage
+    Storage --> JS
+    JS --> Runtime
     Runtime --> Actor
     Actor --> Manager
-    Manager --> Client
+    Manager --> Gateway
+    Gateway --> Client
 
-    style Storage fill:#eef,stroke:#447
-    style Runtime fill:#efe,stroke:#474
+    style Runtime fill:#eef,stroke:#447
+    style Storage fill:#efe,stroke:#474
 ```
 
-This design has one central invariant: object JavaScript state is only touched on the actor runtime's owner thread. The `Actor.instance` field is a `*goja.Object`, but code comments explicitly mark it as owner-thread-only. The manager never receives or stores `goja.Value` results. Values crossing actor boundaries are converted to JSON-compatible Go values.
+The central invariant is simple: JavaScript state for an actor is only accessed on that actor's runtime owner thread. The `Actor` struct stores a `*goja.Object`, but that pointer is not a shared concurrency primitive. It is owner-thread-only state, and all calls go through `RuntimeOwner.Call()`.
 
-## Manager: identity, lifecycle, and dispatch
+## Manager: identity, startup, and lifecycle
 
-The `Manager` is the public Go entry point for object dispatch. It owns the manifest, bundle, storage factory, live actor map, and lifecycle context.
+The `Manager` is the public entry point for dispatch. It owns the manifest, bundle, storage factory, live actor map, startup suppression map, and lifecycle context.
 
 ```go
 type Manager struct {
     mu       sync.Mutex
     actors   map[ObjectID]*Actor
+    starts   map[ObjectID]*startCall
     manifest Manifest
     bundle   *Bundle
     storage  StorageFactory
@@ -129,11 +161,16 @@ type Manager struct {
 }
 ```
 
-`Manager.Dispatch` performs three checks before work reaches JavaScript. It rejects a nil manager, rejects an empty `ObjectID`, and verifies that the namespace exists in the manifest. Only then does it call `getOrStart`.
+`NewManager` accepts either an explicit manifest or a bundle from which the manifest can be derived. This is an important usability decision. A user can write:
 
-The `getOrStart` method is deliberately small. It checks the live actor map. If the actor exists, it returns it. If not, it starts a new actor, then attempts to install it in the map. If another goroutine installed an actor for the same ID while this actor was starting, the duplicate actor is closed and the existing actor is returned.
+```js
+class Counter { /* ... */ }
+exports.objects = { Counter };
+```
 
-This is sufficient for the MVP. It avoids holding the manager lock while opening SQLite, constructing a goja runtime, or evaluating JavaScript. It does not yet prevent duplicate startup work under concurrent first requests. A future version can add `singleflight` if startup duplication becomes measurable.
+and the runtime can derive the namespace `COUNTER` without requiring a separate manifest file. Explicit manifests remain available for aliases and future configuration.
+
+Dispatch begins with validation:
 
 ```go
 func (m *Manager) Dispatch(ctx context.Context, env Envelope) (Result, error) {
@@ -141,7 +178,8 @@ func (m *Manager) Dispatch(ctx context.Context, env Envelope) (Result, error) {
         return Result{}, coded(CodeBadRequest, "dispatch object id is required")
     }
     if _, ok := m.manifest.ClassForNamespace(env.ID.Namespace); !ok {
-        return Result{}, coded(CodeUnknownNamespace, "unknown namespace")
+        return Result{}, coded(CodeUnknownNamespace,
+            "unknown durable object namespace %q", env.ID.Namespace)
     }
     actor, err := m.getOrStart(ctx, env.ID)
     if err != nil {
@@ -151,25 +189,20 @@ func (m *Manager) Dispatch(ctx context.Context, env Envelope) (Result, error) {
 }
 ```
 
-The manager also owns explicit maintenance methods:
+The subtle part is `getOrStart`. Starting an actor can take real work: open SQLite, create a runtime, evaluate JavaScript, and construct the object instance. The manager must not hold its lock while doing those operations. At the same time, two concurrent first requests for the same object should not create two actors that both become visible. The current implementation uses a `starts` map so later callers wait for the in-flight startup instead of racing their own startup path.
 
-- `Evict(ctx, id)` removes a specific actor and closes its runtime.
-- `EvictIdle(ctx, now)` closes actors whose last-used time exceeds `Options.IdleTimeout`.
-- `DispatchDueAlarms(ctx, now, limit)` reads due alarms from the storage factory's alarm index and dispatches `KindAlarm` envelopes.
-- `Close(ctx)` cancels the manager lifecycle context and closes all live actor runtimes.
+This is the kind of detail that makes the runtime feel boring in use. Callers do not create objects explicitly. They dispatch to identities. The manager makes identity resolution deterministic.
 
-The manager lifecycle context matters because actor runtimes are long-lived relative to individual requests. Earlier implementation notes recorded a correction here: actor runtime lifetimes should not use the startup request context, because that request can end while the actor should remain alive. The current implementation derives actor runtime lifetimes from the manager context.
+## Actor: one JavaScript object with one owner thread
 
-## Actor: JavaScript instance ownership
-
-An `Actor` is the runtime representation of one live Durable Object. It holds the object identity, class name, engine runtime, JavaScript instance, storage handle, manager pointer, CPU timeout, and activity counters.
+An `Actor` represents one live object identity. It holds the JavaScript instance, its runtime, its storage handle, and a small amount of lifecycle metadata.
 
 ```go
 type Actor struct {
     id         ObjectID
     className  string
     runtime    *engine.Runtime
-    instance   *goja.Object
+    instance   *goja.Object // owner-thread only; access through runtime.Owner.Call.
     storage    Storage
     manager    *Manager
     cpuTimeout time.Duration
@@ -178,13 +211,21 @@ type Actor struct {
 }
 ```
 
-Actor startup performs three operations:
+Startup evaluates the CommonJS bundle and constructs the class from `exports.objects`:
 
-1. Open the object's SQLite storage.
-2. Create a new `engine.Runtime` from `go-go-goja`.
-3. Evaluate the CommonJS bundle and construct the JavaScript class named by the manifest.
+```go
+exports, err := bundle.Evaluate(ctx, vm)
+objects := exports.Get("objects")
+ctorVal := objects.ToObject(vm).Get(a.className)
+ctor, ok := goja.AssertConstructor(ctorVal)
+instance, err := ctor(ctorVal.ToObject(vm),
+    newStateObject(vm, a),
+    newEnvObject(vm, a.manager, a.id),
+)
+a.instance = instance
+```
 
-The JavaScript authoring model is intentionally simple:
+The JavaScript authoring model is intentionally small:
 
 ```js
 class Counter {
@@ -211,26 +252,11 @@ class Counter {
 exports.objects = { Counter };
 ```
 
-The bundle must export an `objects` table. The manifest maps namespace names to class names:
+The constructor receives `state` and `env`. `state` contains identity and storage. `env` contains namespace stubs for object-to-object calls. The instance remains in memory until it is evicted or the manager closes.
 
-```json
-{
-  "objects": {
-    "COUNTER": "Counter"
-  }
-}
-```
+## Dispatch: RPC, fetch, and alarms
 
-The actor constructs the class once per live actor lifetime. It passes two host objects into the constructor:
-
-- `state`, which includes `state.id` and `state.storage`.
-- `env`, which includes namespace stubs for object-to-object RPC.
-
-Once constructed, the instance remains in memory until the actor is evicted or the manager closes.
-
-## Dispatch: RPC, fetch, and alarm
-
-The actor dispatch method increments an active counter, updates its last-used timestamp, and schedules JavaScript work through `RuntimeOwner.Call`. The active counter prevents idle eviction from closing an actor while it is handling a request.
+Dispatch is where the actor boundary becomes concrete. The actor increments an active counter, updates its last-used time, and schedules the JavaScript work on the runtime owner.
 
 ```go
 func (a *Actor) Dispatch(ctx context.Context, env Envelope) (Result, error) {
@@ -242,47 +268,49 @@ func (a *Actor) Dispatch(ctx context.Context, env Envelope) (Result, error) {
     }()
 
     return a.withInterrupt(func() (Result, error) {
-        ret, err := a.runtime.Owner.Call(ctx, "durable-object."+string(env.Kind), func(ctx context.Context, vm *goja.Runtime) (any, error) {
-            return a.dispatchOnOwner(ctx, vm, env)
-        })
-        ...
+        ret, err := a.runtime.Owner.Call(ctx,
+            "durable-object."+string(env.Kind),
+            func(ctx context.Context, vm *goja.Runtime) (any, error) {
+                return a.dispatchOnOwner(ctx, vm, env)
+            })
+        // ... convert ret to Result ...
     })
 }
 ```
 
-The dispatch kind selects one of three JavaScript entry points.
+There are three dispatch kinds:
 
 | Kind | JavaScript target | Input | Output |
 | --- | --- | --- | --- |
-| `rpc` | named public method | JSON array or `{ args: [...] }` | JSON-encoded exported value |
-| `fetch` | `instance.fetch(req)` | plain request object | plain response object |
-| `alarm` | `instance.alarm()` | no input | no response body |
+| `rpc` | A named method on the instance. | JSON array, or an object with `args`. | JSON-compatible value. |
+| `fetch` | `instance.fetch(req)`. | Plain request DTO with lower-case JS fields. | Plain response DTO. |
+| `alarm` | `instance.alarm()`. | No input. | No response body. |
 
-RPC converts JSON input into Go values, then into `goja.Value` arguments. The result is exported from goja and marshaled back to JSON. Fetch uses an explicit lower-case map for the request object because JavaScript code expects fields such as `req.path`, not Go-style `req.Path`. This detail is small but important: host DTOs should be shaped deliberately at the JavaScript boundary.
+RPC and fetch deliberately use JSON-compatible values at the actor boundary. The runtime does not pass `goja.Value` objects between actors, between Go HTTP handlers, or back to callers. This keeps ownership clear: a `goja.Value` belongs to the runtime that created it.
 
-The CPU budget is implemented through `goja.Runtime.Interrupt`:
+CPU budget support is implemented with `goja.Runtime.Interrupt`:
 
 ```go
 timer := time.AfterFunc(a.cpuTimeout, func() {
     a.runtime.VM.Interrupt(fmt.Errorf("durable object CPU budget exceeded"))
 })
 defer func() {
-    timer.Stop()
+    _ = timer.Stop()
     a.runtime.VM.ClearInterrupt()
 }()
 ```
 
-This interrupts JavaScript execution. It does not interrupt arbitrary blocking native Go calls. Storage calls still need context-aware database operations and appropriate SQLite timeouts if this becomes production-facing.
+This interrupts JavaScript execution. It does not magically cancel every native Go operation that JavaScript may call. That distinction matters for future production hardening: storage and native module calls need their own context-aware behavior.
 
 ## Storage: private SQLite per object
 
-Each object receives a private SQLite database. The default path is derived from storage root, namespace, hash prefix, and full object hash:
+Each object has its own SQLite database. The default path is derived from storage root, namespace, a hash prefix, and the full object hash:
 
 ```text
 <storage-root>/<namespace>/<first-two-hash-chars>/<hash>.sqlite
 ```
 
-The object database currently creates three tables:
+The object database stores KV data, metadata, and object-local alarm state. Values are JSON blobs.
 
 ```sql
 CREATE TABLE IF NOT EXISTS kv (
@@ -317,24 +345,24 @@ state.storage.getAlarm()
 state.storage.deleteAlarm()
 ```
 
-Synchronous storage is a deliberate MVP choice. Because each actor processes one JavaScript dispatch at a time, a simple read-modify-write sequence is deterministic inside an object:
+Synchronous storage is not an accident. The MVP already serializes dispatch per object. Inside one dispatch, a read-modify-write sequence has a clear order:
 
 ```js
 const current = state.storage.get("count") || 0;
 state.storage.put("count", current + 1);
 ```
 
-The current implementation stores values as JSON blobs. That keeps the boundary explicit and makes the same representation usable for RPC results, storage values, and test assertions. A later version can introduce a richer structured-clone-like format if the JavaScript API needs to preserve values that JSON cannot represent.
+An async storage API can be added later if the runtime needs to emulate Cloudflare's JavaScript surface more closely. The first version optimizes for a small correctness model.
 
-## Alarms and eviction
+## Alarms: waking objects after eviction
 
-The object-local alarm table records one alarm for the object. That is not enough to wake evicted objects efficiently, because an evicted actor has no open object database and no in-memory timer. The runtime therefore maintains a central alarm index at:
+Object-local storage alone is not enough for alarms. If an object is evicted, the runtime no longer has an in-memory timer for it. The implementation therefore maintains a central alarm index in:
 
 ```text
 <storage-root>/alarms.sqlite
 ```
 
-The central index stores object identity and due time:
+The central index records which object identities have due times:
 
 ```sql
 CREATE TABLE IF NOT EXISTS object_alarms (
@@ -346,35 +374,53 @@ CREATE TABLE IF NOT EXISTS object_alarms (
 );
 ```
 
-`state.storage.setAlarm(...)` writes both the object-local alarm record and the central index. `Manager.DispatchDueAlarms(ctx, now, limit)` asks the storage factory for due records, dispatches `KindAlarm` to each object's actor, and deletes the central index entry after successful dispatch.
+When JavaScript calls `state.storage.setAlarm(...)`, the storage layer records both the object-local alarm and the central index entry. When the scheduler ticks, `Manager.DispatchDueAlarms` asks the index for due alarms, clears the alarm before dispatch, and sends an alarm envelope to the target object.
 
 ```mermaid
 sequenceDiagram
-    participant JS as Object JS
-    participant Store as Object SQLite
-    participant Index as Alarm Index
+    participant JS as Object JavaScript
+    participant DB as Object SQLite
+    participant Index as Central alarm index
     participant Manager as Manager
-    participant Actor_ as Actor
+    participant Actor as Actor
 
-    JS->>Store: setAlarm(dueAt)
-    Store->>Index: upsert object_alarms row
+    JS->>DB: state.storage.setAlarm(dueAt)
+    DB->>Index: upsert object_alarms row
     Manager->>Index: DueAlarms(now, limit)
-    Index-->>Manager: ObjectID list
-    Manager->>Actor_: Dispatch KindAlarm
-    
-    Actor_->>JS: instance.alarm()
-    Manager->>Index: delete dispatched alarm
+    Index-->>Manager: due ObjectID records
+    Manager->>DB: clear object-local alarm before dispatch
+    Manager->>Actor: Dispatch KindAlarm
+    Actor->>JS: instance.alarm()
 ```
 
-This design has a known consistency limitation: object-local alarm state and central alarm index updates are not a cross-database atomic transaction. The MVP accepts this because it keeps storage simple. A production version should reconcile the index from object-local alarm records or move alarm metadata into a storage backend that can update both records atomically.
+The implementation also reconciles object-local alarm rows back into the central index. That matters because the object database and central index are separate SQLite files; there is no cross-database atomic transaction. Reconciliation makes the index recoverable after partial failures.
 
-Idle eviction is explicit. `Manager.EvictIdle(ctx, now)` scans live actors and removes actors whose `lastUsedNS` exceeds the configured idle timeout. It does not evict actors with `active > 0`. This was added as a testable invariant: a long-running actor dispatch remains live while the eviction scan runs.
+## Eviction: memory is temporary, storage is durable
 
-## HTTP gateway
+Actors are not intended to live forever. Idle eviction removes inactive actors from the manager map and closes their runtimes. The object database remains on disk, so the next dispatch recreates the actor and reconstructs the JavaScript instance with the same storage.
 
-The HTTP gateway is a separate handler, not an extension of `gojahttp.Host`. This distinction matters because `gojahttp.Host` routes requests into one JavaScript runtime, while Durable Objects route requests into a manager that may select many actor runtimes.
+The eviction rule has one essential guard: active actors are not idle.
 
-The gateway supports two route shapes:
+```go
+func (a *Actor) isIdle(now time.Time, idleTimeout time.Duration) bool {
+    if a == nil || idleTimeout <= 0 || a.active.Load() > 0 {
+        return false
+    }
+    last := a.lastUsedNS.Load()
+    if last == 0 {
+        return false
+    }
+    return now.Sub(time.Unix(0, last)) >= idleTimeout
+}
+```
+
+This is a small invariant with large consequences. Without it, a background eviction tick could close a runtime while a request is still executing. The tests cover this behavior directly.
+
+## HTTP gateway: routes become dispatch envelopes
+
+The HTTP gateway is a Go `http.Handler` that translates URLs into dispatch envelopes. It is separate from `gojahttp.Host` because it does not route into one JavaScript callback table. It routes into a manager that may select many actor runtimes.
+
+The route grammar is intentionally small:
 
 ```text
 POST /rpc/:namespace/:name/:method
@@ -387,24 +433,20 @@ RPC returns a JSON envelope:
 {"ok": true, "result": 2}
 ```
 
-Fetch writes the returned status, headers, and body from the object's `fetch(req)` method. The gateway currently treats object names as one path segment. If names need slashes or other reserved characters, callers must URL-escape them or the route grammar must be expanded.
+Fetch writes the status, headers, and body returned by the object's `fetch(req)` method.
 
-The demo server mounts the gateway directly:
-
-```go
-server := &http.Server{
-    Addr:    *addr,
-    Handler: durableobjects.NewGateway(mgr, durableobjects.GatewayOptions{DevErrors: true}),
-}
-```
-
-The built-in demo can be run with:
+A local server can be started directly:
 
 ```bash
-go run ./cmd/go-go-objects --addr 127.0.0.1:8787 --storage ./var/durable-objects
+cd /home/manuel/workspaces/2026-06-12/goja-durable-objects/go-go-objects
+rm -rf /tmp/go-go-objects-real
+go run ./cmd/go-go-objects \
+  --addr 127.0.0.1:8787 \
+  --storage /tmp/go-go-objects-real \
+  --bundle ./examples/counter/objects.js
 ```
 
-Then:
+Then the counter can be exercised with plain HTTP:
 
 ```bash
 curl -X POST http://127.0.0.1:8787/rpc/COUNTER/global/increment \
@@ -414,7 +456,7 @@ curl -X POST http://127.0.0.1:8787/rpc/COUNTER/global/increment \
 curl http://127.0.0.1:8787/fetch/COUNTER/global/count
 ```
 
-## xgoja provider integration
+## xgoja/v2 integration: two serving paths
 
 The xgoja provider lives in:
 
@@ -422,119 +464,233 @@ The xgoja provider lives in:
 pkg/xgoja/providers/durableobjects
 ```
 
-The provider is intentionally thin. It does not reimplement actor logic. It registers an xgoja package, exposes configuration, creates a manager during runtime initialization, and exposes a small JavaScript module.
+The provider is intentionally an integration layer over `pkg/durableobjects`. It does not contain actor semantics. It registers the `durableobjects` module, reads config, resolves filesystem or embedded assets, creates a manager, contributes host services, and exposes JavaScript functions.
 
-The provider package ID is:
+The package ID is:
 
 ```text
 go-go-objects-durableobjects
 ```
 
-The module name is:
-
-```text
-durableobjects
-```
-
-The module exports two functions:
+The CommonJS module exports four useful entry points:
 
 ```ts
 rpc(namespace: string, name: string, method: string, args?: unknown[]): unknown
 fetch(namespace: string, name: string, request: FetchRequest): FetchResponse
+gateway(): object
+handler(): object
 ```
 
-A generated xgoja script can call:
+`gateway()` and `handler()` return JavaScript objects with a hidden Go `http.Handler` attached through `gojahttp.AttachHTTPHandler`. This is the PR75-style mountable HTTP handler ABI. It lets a normal xgoja HTTP `serve` command mount Durable Objects into an Express app from JavaScript.
 
-```js
-const objects = require("durableobjects");
-const value = objects.rpc("COUNTER", "global", "increment", [2]);
-```
-
-Runtime initialization reads configuration from the `durableobjects` section:
+The xgoja/v2 counter example shows the current recommended composition:
 
 ```yaml
-durableobjects:
-  enabled: true
-  storage-root: ./var/durable-objects
-  bundle-path: ./objects.js
-  manifest-path: ./durableobjects.yaml
-  cpu-timeout: 2s
-  idle-timeout: 5m
-  alarm-interval: 1s
-  idle-interval: 1m
+schema: xgoja/v2
+name: durableobjects-counter
+
+providers:
+  - id: go-go-objects-durableobjects
+    import: github.com/go-go-golems/go-go-objects/pkg/xgoja/providers/durableobjects
+    register: Register
+  - id: go-go-goja-http
+    import: github.com/go-go-golems/go-go-goja/pkg/xgoja/providers/http
+    register: Register
+
+runtime:
+  modules:
+    - provider: go-go-objects-durableobjects
+      name: durableobjects
+      as: durableobjects
+      config:
+        storageRoot: ./var/durable-objects
+        bundleAsset: counter-bundle
+        bundleAssetPath: objects.js
+    - provider: go-go-goja-http
+      name: express
+      as: express
 ```
 
-The provider currently loads bundle and manifest from filesystem paths. It starts optional alarm and idle loops tied to the engine runtime context, and it closes the manager when the runtime closes.
+The JS verb composes the HTTP app:
 
-This is enough for generated runtimes to call Durable Objects. It is not yet full generated HTTP host integration. The provider defines `GatewayService` and `HostServiceKey`, but automatic gateway mounting into generated Go HTTP servers remains a follow-up.
+```js
+const express = require("express");
+const durableobjects = require("durableobjects");
+
+__package__({ name: "durableobjects" });
+__verb__("site", { name: "site", short: "Mount Durable Objects gateway", output: "text" });
+
+function site() {
+  const app = express.app();
+  const gateway = durableobjects.gateway();
+
+  app.get("/healthz", (_req, res) => res.send("ok"));
+  app.mount("/rpc", gateway);
+  app.mount("/fetch", gateway);
+  return "durableobjects gateway mounted";
+}
+
+module.exports = { site };
+```
+
+Mounting `/rpc` and `/fetch` explicitly is important. An earlier version mounted the gateway at `/`, which caused the gateway to shadow `/healthz`. Express mounting does not need to strip those prefixes because the Durable Objects gateway expects to see `/rpc/...` and `/fetch/...` in the request path.
+
+The generated binary supports two server paths.
+
+The composable HTTP path uses the HTTP provider's long-running serve command and the JS verb above:
+
+```bash
+/tmp/durableobjects-counter serve durableobjects site \
+  --http-listen 127.0.0.1:18887 \
+  --durableobjects-storage-root /tmp/do-generated-http
+```
+
+The direct path uses the provider-owned command set:
+
+```bash
+/tmp/durableobjects-counter durableobjects serve \
+  --addr 127.0.0.1:18888 \
+  --durableobjects-storage-root /tmp/do-generated-direct
+```
+
+Both paths were smoke-tested against `/rpc/COUNTER/...` and `/fetch/COUNTER/...`.
+
+## The generated binary smoke test
+
+The counter example is a useful end-to-end test because it exercises embedded assets, module configuration, JavaScript HTTP composition, and the Durable Objects manager.
+
+Build the generated binary from the sibling `go-go-goja` repository:
+
+```bash
+cd /home/manuel/workspaces/2026-06-12/goja-durable-objects/go-go-goja
+rm -f /tmp/durableobjects-counter
+go run ./cmd/xgoja build \
+  -f ../go-go-objects/examples/counter/xgoja-buildspec.yaml \
+  --output /tmp/durableobjects-counter
+```
+
+The expected build output ends with:
+
+```text
+xgoja build ok: /tmp/durableobjects-counter
+```
+
+Start the composable HTTP server:
+
+```bash
+rm -rf /tmp/do-generated-http
+/tmp/durableobjects-counter serve durableobjects site \
+  --http-listen 127.0.0.1:18887 \
+  --durableobjects-storage-root /tmp/do-generated-http
+```
+
+Verify the three routes:
+
+```bash
+curl http://127.0.0.1:18887/healthz
+# ok
+
+curl -X POST http://127.0.0.1:18887/rpc/COUNTER/generated/increment \
+  -H 'content-type: application/json' \
+  -d '[11]'
+# {"ok":true,"result":11}
+
+curl http://127.0.0.1:18887/fetch/COUNTER/generated/count
+# 11
+```
+
+This trace proves that the generated binary has embedded the counter bundle, initialized the Durable Objects provider, exposed a mountable handler into JavaScript, mounted it through Express, and routed requests back into the actor manager.
 
 ## Tests as executable documentation
 
-The most important tests live in two files:
+The tests in this project are not just regression checks. They describe the runtime contract.
 
-```text
-pkg/durableobjects/durableobjects_test.go
-pkg/xgoja/providers/durableobjects/durableobjects_test.go
-```
-
-The core tests verify these properties:
+The core runtime tests in `pkg/durableobjects/durableobjects_test.go` verify that:
 
 - `ObjectID` hashing is stable.
 - A counter persists across actor eviction.
-- `/rpc/...` dispatch increments the counter.
-- `/fetch/...` dispatch reads the counter.
-- A due alarm wakes an evicted actor.
+- `/rpc/...` dispatch increments object-local state.
+- `/fetch/...` dispatch reads object-local state.
+- Due alarms wake evicted actors.
 - The central alarm index is cleared after successful dispatch.
+- Alarm reconciliation restores central index rows from object-local alarm records.
 - Idle eviction removes inactive actors but preserves durable state.
 - Idle eviction does not remove an actor while a dispatch is active.
-- Scheduler and evictor `Tick` methods call the manager correctly.
+- Concurrent first dispatches start only one live actor.
+- Scheduler and evictor tick methods call the manager correctly.
 
-The provider tests verify these properties:
+The provider tests in `pkg/xgoja/providers/durableobjects/durableobjects_test.go` verify that:
 
-- The provider registers a `durableobjects` module.
-- The provider exposes a config section with slug `durableobjects`.
-- Runtime initialization requires bundle and manifest paths when enabled.
-- A script running inside an xgoja runtime can call `require("durableobjects").rpc(...)` and reach the manager.
+- The provider registers the `durableobjects` module.
+- Glazed config maps into xgoja module config.
+- Filesystem bundles and embedded asset bundles both initialize a manager.
+- A script can call `require("durableobjects").rpc(...)` and reach the manager.
+- `durableobjects.gateway()` can be mounted into an Express app and served by the xgoja HTTP host.
+- Embedded asset roots work with `bundleAssetPath`.
 
-These tests are important because the project combines several stateful concerns: runtime ownership, SQLite persistence, context lifetime, and Go-to-JavaScript value conversion. A failure in any of these areas can look like a JavaScript bug unless the tests isolate the boundary.
+These tests matter because failures in this runtime can appear at the wrong layer. A bad asset path can look like a JavaScript module error. A runtime ownership bug can look like a SQLite bug. A gateway path bug can look like an actor dispatch bug. Focused tests keep those boundaries visible.
+
+## Design decisions that should remain explicit
+
+### One runtime per live object
+
+The runtime uses one `engine.Runtime` per live actor. This is more expensive than sharing one runtime across all objects, but it gives the cleanest ownership model. A `goja.Runtime` is not safe for concurrent use. By giving each actor its own runtime and serializing calls through that runtime's owner, the Durable Objects layer can make object isolation a structural property rather than a convention.
+
+### RuntimeOwner is the actor mailbox
+
+The design does not add a second mailbox goroutine in front of the runtime owner. `RuntimeOwner.Call()` already serializes access to the VM. Adding another queue would create more lifecycle and cancellation behavior without improving the core invariant.
+
+### Storage is object-local
+
+Each object has its own SQLite database. This makes eviction and restart behavior easy to reason about: the actor owns one durable store. It also makes per-object cleanup and inspection straightforward. A future storage backend can choose a different physical layout while preserving the logical storage interface.
+
+### Values crossing actor boundaries are JSON-compatible
+
+The runtime does not move `goja.Value` across actors or out to HTTP callers. JSON-compatible values are less expressive, but they are much easier to reason about. The project can add richer encoding later with tests for each new type.
+
+### xgoja provider code stays thin
+
+The provider creates and exposes the runtime. It should not become the runtime. Actor lifecycle, storage, alarms, and gateway behavior belong in `pkg/durableobjects` so the same core can be used from CLI, generated binaries, and embedded Go servers.
 
 ## Current limitations
 
-The current implementation is an MVP, and the limitations are part of the design:
+The implementation is intentionally pre-1.0. The important limitations are:
 
-- The JavaScript authoring model is CommonJS only. It expects `exports.objects = { ClassName }`.
-- RPC values are JSON-compatible. `goja.Value` instances do not cross actor boundaries.
-- Fetch uses plain objects, not WHATWG `Request` and `Response`.
-- Storage is synchronous and JSON-backed.
-- Object-local alarms and the central alarm index are not updated atomically across one database transaction.
-- The manager startup path can duplicate startup work under concurrent first requests, then close the duplicate actor.
-- The xgoja provider does not yet support embedded bundle or manifest assets.
-- The xgoja provider does not yet automatically mount the gateway into generated HTTP hosts.
-- The `go.mod` currently uses a local `replace` to `../go-go-goja` for workspace development.
+- JavaScript bundles are trusted code. This is not a hostile-code sandbox.
+- Storage quotas are not enforced.
+- SQLite schema versioning exists through metadata and `PRAGMA user_version`, but there is no multi-version migration chain yet.
+- RPC values are JSON-compatible, not structured-clone compatible.
+- Fetch uses plain DTOs, not WHATWG `Request` and `Response` objects.
+- Object names are one URL path segment in the gateway grammar.
+- The central alarm index is reconciled, but object-local and index writes are still not one atomic cross-database transaction.
+- Generated-binary smoke testing is currently manual rather than CI-protected.
+- The workspace still uses a local `replace github.com/go-go-golems/go-go-goja => ../go-go-goja` during coordinated development.
 
-These constraints keep the first implementation small. The next design work should decide which constraints are product requirements and which ones should remain permanent boundaries.
+These limitations are acceptable for an MVP because they keep the model small. The runtime now has enough shape that each limitation can be evaluated as a separate design choice rather than as an unknown.
 
 ## Near-term next steps
 
-The next useful implementation work is concrete and bounded:
+The most valuable next step is to push the two repositories and open or update pull requests. The code has passed local tests, docmgr validation, xgoja build validation, and generated binary smoke tests. The next review should happen in GitHub with CI and a clean checkout.
 
-1. Add CLI flags for external bundle and manifest paths instead of only the built-in counter demo.
-2. Add embedded bundle and manifest support to the xgoja provider.
-3. Add automatic gateway mounting for generated HTTP host applications, or document the host-service mounting pattern explicitly.
-4. Add reconciliation for alarm index consistency after crashes.
-5. Add `singleflight` around actor startup if concurrent first-request duplication becomes visible in tests or benchmarks.
-6. Add metrics for actor starts, closes, live actors, dispatched alarms, evictions, storage errors, and JavaScript execution errors.
-7. Decide whether the synchronous storage API should remain the default or become a compatibility layer under an async API.
+After that, the next technical improvements are clear:
 
-## Working rules for this codebase
+1. Add a scripted generated-binary smoke test so xgoja/v2 integration remains protected.
+2. Decide whether short provider IDs should be supported in xgoja/v2 command provider references, or whether examples should always use package IDs.
+3. Add metrics for actor starts, closes, live actors, dispatch latency, alarm dispatches, evictions, and storage errors.
+4. Add a storage migration policy before calling the format stable.
+5. Decide whether the direct `durableobjects serve` command should remain a first-class path or become a convenience wrapper around the composable HTTP serve model.
+6. Add richer examples, especially a multi-object example that exercises `env` stubs.
 
-The code is easiest to extend safely if these rules remain explicit:
+## Working rules for future changes
 
-- Do not pass `goja.Value`, `*goja.Object`, or `goja.Callable` between actors.
+The code is safest to extend if these rules remain visible:
+
+- Do not pass `goja.Value`, `*goja.Object`, or `goja.Callable` across actor boundaries.
+- Do not touch `Actor.instance` except on the actor runtime owner thread.
 - Do not hold the manager lock while opening storage, creating runtimes, evaluating bundles, or executing JavaScript.
-- Treat `Actor.instance` as owner-thread-only state.
-- Keep xgoja provider code as an integration layer over `pkg/durableobjects`; do not move actor runtime behavior into provider packages.
-- Keep the MVP API smaller than Cloudflare's API until each missing compatibility feature has a clear testable contract.
-- Prefer direct manager methods with deterministic tests before adding background goroutines.
+- Do not close an actor whose active dispatch count is non-zero.
+- Keep `pkg/xgoja/providers/durableobjects` as an integration layer over `pkg/durableobjects`.
+- Prefer deterministic manager methods and tests before adding background goroutine behavior.
+- Keep the public JavaScript API smaller than Cloudflare's API until each compatibility feature has a concrete contract and tests.
 
-`go-go-objects` is now past the pure design stage. It has the core runtime behavior in code, tests that exercise the main invariants, and an xgoja provider layer that proves the runtime can be embedded into generated Go/JavaScript systems. The remaining work is integration quality: richer configuration, generated host mounting, crash reconciliation, metrics, and a more complete authoring workflow.
+`go-go-objects` has now crossed the boundary from design exercise to working runtime. The core actor model is implemented, the storage model persists across eviction, alarms can wake evicted objects, the HTTP gateway is usable directly, and xgoja/v2 generated binaries can serve the gateway through JavaScript composition. The remaining work is release engineering and hardening: CI smoke tests, metrics, migration policy, and a small set of examples that teach users how to build on the runtime without depending on implementation details.
