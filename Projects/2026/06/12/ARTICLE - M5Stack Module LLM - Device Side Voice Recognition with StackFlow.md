@@ -581,3 +581,72 @@ fa6641d5f707aadafaa5bfba4ff4782a1980f6c5 Record Module LLM KWS and speaker valid
 ```
 
 The most important practical result is the validated StackFlow shape: persistent KWS setup for wake-word events, and `melotts` routed to `sys.play.0_1` for device speaker output. Those two facts make the rest of the voice assistant pipeline an integration task rather than an unknown hardware problem.
+
+## Update: first integrated voice-assistant loop
+
+After the initial report was written, the project advanced from separate KWS and speaker validation to a first integrated device-side loop. The new script is:
+
+```text
+/home/manuel/code/wesen/2026-06-12--llm-mate-voice-recognition/ttmp/2026/06/12/llm-mate-voice--llm-mate-voice-recognition-demo/scripts/06-device-voice-assistant-loop.py
+```
+
+The script drives StackFlow directly through the forwarded socket on port `10001`. It resets StackFlow, configures onboard audio, starts KWS, starts ASR, starts the installed Qwen2.5 0.5B LLM, starts MeloTTS, then waits for speech events. The successful run proved the complete path once:
+
+```text
+KWS/ASR path: device microphone -> StackFlow ASR event
+ASR output:    " hello"
+LLM output:    "Hello."
+TTS output:    object "sys.play.0_1"
+```
+
+The important engineering change in this iteration was response correlation. The first version of the loop assumed that the first JSON object received after a setup request was the matching response. That assumption was wrong. StackFlow can emit delayed responses and side events on the same socket, especially when the socket is kept open for asynchronous KWS and ASR messages. The corrected script waits for a JSON object whose `request_id` matches the request being sent and logs non-matching objects as side events.
+
+The fixed setup sequence now observes the expected work ids:
+
+```text
+audio.setup   -> audio
+kws.setup     -> kws.1001
+asr.setup     -> asr.1002
+llm.setup     -> llm.1003
+melotts.setup -> melotts.1004
+```
+
+A later validation run set up cleanly but timed out waiting for another wake/ASR event. That means the system is no longer blocked on package installation, model loading, or speaker output; the remaining work is robustness. The next implementation phase should focus on cleanup commands, repeated-turn handling, and model quality.
+
+### Revised implementation sequence
+
+The current known-good control pattern is:
+
+```python
+reset_stackflow()
+setup_audio(capdevice=0, playdevice=1)
+setup_kws(model="sherpa-onnx-kws-zipformer-gigaspeech-3.3M-2024-01-01",
+          response_format="kws.bool",
+          input="sys.pcm",
+          keyword="HELLO")
+setup_asr(model="sherpa-ncnn-streaming-zipformer-20M-2023-02-17",
+          response_format="asr.utf-8",
+          input="sys.pcm",
+          enkws=True)
+setup_llm(model="qwen2.5-0.5B-prefill-20e",
+          response_format="llm.utf-8.stream")
+setup_melotts(model="melotts-en-default",
+              response_format="sys.play.0_1")
+
+for event in stackflow_events():
+    if event.object == "asr.utf-8":
+        answer = llm_infer(event.data)
+        melotts_speak(answer)
+```
+
+This is now the baseline from which larger models and alternative STT paths should be evaluated.
+
+### Immediate next experiments
+
+The next phase should do three things in order:
+
+1. Add explicit cleanup for active StackFlow tasks. Repeated resets work for experiments, but a reusable demo should be able to exit `audio`, `kws`, `asr`, `llm`, and `melotts` tasks intentionally.
+2. Test a larger LLM model. The current `qwen2.5-0.5B-prefill-20e` model is enough to prove the route, but it gives minimal answers. The best next candidates are `qwen2.5-1.5B` and `deepseek-r1-1.5B` variants from the M5Stack apt repository.
+3. Compare ASR options after the LLM path is stable. The built-in `asr` service is currently easier to integrate than Whisper/VAD, but Whisper may produce better recognition quality for some phrases.
+
+The current project state is therefore: hardware path proven, first loop proven once, quality and robustness still under active development.
