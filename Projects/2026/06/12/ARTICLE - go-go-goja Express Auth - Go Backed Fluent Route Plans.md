@@ -406,3 +406,144 @@ For future work, keep this rule intact:
 > Express route authors declare intent. Go host code enforces security. Application packages own identity, sessions, users, tenants, capabilities, and policy.
 
 That rule is what keeps the JavaScript API pleasant without letting the JavaScript layer become the security boundary.
+
+---
+
+## Follow-up: porting the Express auth branch across the xgoja/v2 merge
+
+After PR #73 landed on `origin/main`, the Express auth branch had to be merged across the new `xgoja/v2` configuration and example layout. The merge was not just a mechanical rebase: the xgoja examples were renumbered, the native schema changed to `schema: xgoja/v2`, several older xgoja help pages were deleted, and new TypeScript/protobuf examples occupied the old Express-auth example numbers.
+
+> [!summary]
+> - The Express auth examples were moved from `15/16/17` to `17/18/19` so the new protobuf and TypeScript xgoja examples can remain `15` and `16`.
+> - The new TypeScript xgoja HTTP example had to be updated to the hard-cutover Express API: `app.get(path).public().handle(...)` instead of `app.get(path, handler)`.
+> - The build-VCS stamping issue is now fixed on `origin/main`; the branch no longer needs the `GOFLAGS=-buildvcs=false` workaround for normal `go test ./...`.
+
+### What changed during the port
+
+The merge brought in the xgoja/v2 planner and the new example numbering from `origin/main`. The main conflict was that this branch had added Express-auth examples as `15-express-planned-auth`, `16-express-auth-host`, and `17-express-keycloak-auth-host`, while `origin/main` now uses those slots for:
+
+| Number | `origin/main` example | Express-auth branch resolution |
+| --- | --- | --- |
+| `15` | `15-protobuf-builder-provider` | Kept from `origin/main`. |
+| `16` | `16-typescript-jsverbs` | Kept from `origin/main`, then updated to planned Express routes. |
+| `17` | free after the new v2 examples | Moved `15-express-planned-auth` here. |
+| `18` | free after the new v2 examples | Moved `16-express-auth-host` here. |
+| `19` | free after the new v2 examples | Moved `17-express-keycloak-auth-host` here. |
+
+The concrete path changes are:
+
+```text
+examples/xgoja/15-express-planned-auth        -> examples/xgoja/17-express-planned-auth
+examples/xgoja/16-express-auth-host          -> examples/xgoja/18-express-auth-host
+examples/xgoja/17-express-keycloak-auth-host -> examples/xgoja/19-express-keycloak-auth-host
+```
+
+All user-facing help pages and example READMEs were updated to reference the new paths:
+
+```text
+pkg/doc/18-express-module.md
+pkg/doc/29-express-auth-user-guide.md
+pkg/doc/30-migrate-express-apps-to-planned-auth.md
+pkg/doc/31-express-auth-examples.md
+examples/xgoja/README.md
+```
+
+The `examples/xgoja/README.md` learning path now has the xgoja/v2 examples first and the Express-auth examples after them:
+
+```text
+15. 15-protobuf-builder-provider
+16. 16-typescript-jsverbs
+17. 17-express-planned-auth
+18. 18-express-auth-host
+19. 19-express-keycloak-auth-host
+```
+
+### The extra fix: TypeScript HTTP example used the old Express API
+
+The only semantic code fix found during the port was in the newly merged TypeScript xgoja example. Its `verbs/sites.ts` used the old raw Express handler overload:
+
+```ts
+app.get("/healthz", (_req: unknown, res: any) => {
+  res.json({ ok: true, site: "typescript-demo", version })
+})
+```
+
+Because the Express auth branch intentionally hard-cuts verb helpers, that route must now be planned explicitly:
+
+```ts
+app.get("/healthz")
+  .public()
+  .handle((_ctx: unknown, res: any) => {
+    res.json({ ok: true, site: "typescript-demo", version })
+  })
+```
+
+Running the TypeScript example smoke regenerated `examples/xgoja/16-typescript-jsverbs/js/types/xgoja-modules.d.ts`, which is a useful confirmation that the generated declarations now expose the planned-route builder types (`RouteNeedsSecurity`, `RouteNeedsHandler`, `PlannedContext`, `UserAuthBuilder`, and resource specs) instead of the removed raw handler overloads.
+
+### What was hard to figure out
+
+The first hard part was separating true conflicts from old-number collisions. The merge looked large because xgoja/v2 moved or deleted many files, but most of that was upstream work. The actual Express-auth work was narrow: keep the new xgoja/v2 docs and examples, move the Express-auth examples after them, and fix stale paths.
+
+The second hard part was deciding what to do with conflicts in old xgoja docs and generated tests. `origin/main` intentionally deleted several old tutorial pages and replaced them with v2 docs such as `migrating-to-xgoja-v2` and `xgoja-v2-reference`, so the right resolution was to keep the deletion rather than revive obsolete v1 tutorials. For `cmd/xgoja/internal/generate/generate_test.go`, the branch only had tiny Express route syntax edits, while `origin/main` had a broader v2 planner rewrite. The right resolution was to take the v2 version and then search for stale raw Express route calls elsewhere.
+
+The third hard part was remembering that the new TypeScript example is not part of the Express-auth branch historically, but it imports `express` and therefore must obey the new hard-cutover API. The quick check that caught it was:
+
+```bash
+rg 'app\.get\([^\n]+,' examples/xgoja pkg/xgoja/providers/http cmd/xgoja/internal/generate
+```
+
+That found `examples/xgoja/16-typescript-jsverbs/verbs/sites.ts`, which was then converted and validated.
+
+### Validation after the port
+
+The merged branch now validates without the old build-VCS workaround:
+
+```bash
+go test ./... -count=1
+make -C examples/xgoja/16-typescript-jsverbs smoke
+make -C examples/xgoja/18-express-auth-host smoke
+make -C examples/xgoja/19-express-keycloak-auth-host smoke
+```
+
+The targeted auth and docs checks also passed:
+
+```bash
+go test ./pkg/gojahttp ./modules/express ./pkg/gojahttp/auth/... ./pkg/xgoja/providers/http ./examples/xgoja/18-express-auth-host/cmd/host ./examples/xgoja/19-express-keycloak-auth-host/cmd/host -count=1
+go run ./cmd/goja-repl help express-auth-user-guide
+go run ./cmd/goja-repl help express-auth-examples
+docmgr doctor --ticket XGOJA-HOST-AUTH --stale-after 30
+docmgr doctor --ticket XGOJA-EXPRESS-AUTH --stale-after 30
+```
+
+### Documentation that should be improved
+
+The docs are good enough for the PR, but a few improvements would make future merges and feature branches easier:
+
+1. **Add an xgoja/v2 example-numbering rule.** `examples/xgoja/README.md` should explicitly say that new examples should append after the current learning path and should check `origin/main` before choosing a number. This would have made the `15/16/17` collision obvious earlier.
+
+2. **Add a planned-Express migration note to the TypeScript xgoja docs.** The TypeScript example now demonstrates the planned API, but the v2 TypeScript docs could mention that generated declarations reflect the installed provider API. If a provider hard-cuts an API, TypeScript examples should regenerate sidecar `.d.ts` files and update call sites together.
+
+3. **Add a small PR-merge checklist for branches touching examples.** A useful checklist would be:
+   - fetch `origin/main`,
+   - compare `examples/xgoja/README.md`,
+   - check for duplicate example numbers,
+   - run `rg 'app\.(get|post|put|patch|delete|all)\([^\n]+,'` when Express is touched,
+   - run the affected example smoke targets,
+   - regenerate generated declarations when provider APIs changed.
+
+4. **Make `xgoja doctor` surface stale provider API examples if possible.** This is a larger improvement, but stale raw Express usage in a TypeScript jsverb was only caught by smoke. If `doctor` can cheaply parse or compile TypeScript sources with generated declarations, it could catch this kind of provider API mismatch earlier.
+
+5. **Document the distinction between xgoja examples and host-only examples.** `17-express-planned-auth`, `18-express-auth-host`, and `19-express-keycloak-auth-host` are under `examples/xgoja`, but they are not all native `xgoja.yaml` build fixtures. The README now hints at this, but a clearer section would help readers understand which examples are xgoja generated-binary examples and which are host integration examples.
+
+### Current status after the port
+
+The Express auth branch is now rebased/merged over the xgoja/v2 mainline without losing the planned-auth work. The remaining PR shape is cleaner than before because `origin/main` also fixed the generated build VCS stamping issue. The branch now contains:
+
+- planned Express route builders and hard-cut verb helpers,
+- host-side auth packages,
+- dev-auth and Keycloak examples renumbered after the v2 xgoja examples,
+- consolidated Glazed help pages,
+- automated dev and Keycloak smokes,
+- compatibility with the new xgoja/v2 examples and TypeScript declaration generation.
+
+The main follow-up is not a code blocker: improve docs/checklists so future feature branches can merge across xgoja example/documentation reorganizations with less archaeology.
