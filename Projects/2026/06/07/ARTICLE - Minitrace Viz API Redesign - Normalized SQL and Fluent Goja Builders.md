@@ -102,7 +102,7 @@ flowchart TD
     
     subgraph "Output"
         D[Normalized SQLite tables]
-        E[query() / queryOne() / queryResult()]
+        E["query() / queryOne() / queryResult()"]
     end
     
     A --> B

@@ -423,7 +423,7 @@ sequenceDiagram
     participant BM as BoundMethod
     participant GO as Go method
     FE->>CT: Greet("World")
-    CT->>CT: id=nanoid; store resolvers
+    CT->>CT: "id=nanoid store resolvers"
     CT->>RT: call(0,0,{id,methodID,args})
     RT->>WV: fetch POST /wails/runtime
     WV->>HT: intercept request

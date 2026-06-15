@@ -382,15 +382,15 @@ sequenceDiagram
     participant DB as Object SQLite
     participant Index as Central alarm index
     participant Manager as Manager
-    participant Actor as Actor
+    participant Actor_ as Actor
 
     JS->>DB: state.storage.setAlarm(dueAt)
     DB->>Index: upsert object_alarms row
     Manager->>Index: DueAlarms(now, limit)
     Index-->>Manager: due ObjectID records
     Manager->>DB: clear object-local alarm before dispatch
-    Manager->>Actor: Dispatch KindAlarm
-    Actor->>JS: instance.alarm()
+    Manager->>Actor_: Dispatch KindAlarm
+    Actor_->>JS: instance.alarm()
 ```
 
 The implementation also reconciles object-local alarm rows back into the central index. That matters because the object database and central index are separate SQLite files; there is no cross-database atomic transaction. Reconciliation makes the index recoverable after partial failures.

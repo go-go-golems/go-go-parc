@@ -64,9 +64,9 @@ flowchart LR
     B --> C[PID / port / socket files]
     A --> D[Unix socket JSON command]
     D --> E[daemon]
-    E --> F[/render HTTP endpoint]
+    E --> F["/render HTTP endpoint"]
     F --> G[browser tab]
-    E --> H[/events SSE]
+    E --> H["/events SSE"]
     H --> G
 ```
 

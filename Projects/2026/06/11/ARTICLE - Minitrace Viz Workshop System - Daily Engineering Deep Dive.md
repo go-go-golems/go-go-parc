@@ -248,13 +248,13 @@ The file-level flow is:
 flowchart TD
     A[Course Markdown files] --> B[lib/slide-loader.js]
     A --> C[lib/handout-loader.js]
-    D[Course media files] --> E[/course-assets route]
+    D[Course media files] --> E["/course-assets route"]
     B --> F[lib/course-pages.js]
     C --> F
     E --> F
     F --> G[Widget IR slides]
     F --> H[Widget IR handouts]
-    I[Admin upload page] --> J[lib/course-material-service.js]
+    I[Admin upload page] --> J["lib/course-material-service.js"]
     J --> A
     J --> D
 

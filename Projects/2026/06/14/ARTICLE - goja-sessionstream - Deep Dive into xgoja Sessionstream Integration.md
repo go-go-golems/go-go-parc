@@ -373,7 +373,7 @@ flowchart TD
     HOST --> SERVICES["app.HostServices"]
     SERVICES --> PROVIDER["sessionstream provider"]
     PROVIDER --> LOADER["NewLoader(DefaultHubOptions)"]
-    LOADER --> JS["require(\"sessionstream\")"]
+    LOADER --> JS["require(sessionstream)"]
     JS --> HUB["ss.hub({ schemas })"]
     HUB --> OPTS["HubOptions applied"]
     OPTS --> BUS["WithEventBus(pub, sub, topic)"]
