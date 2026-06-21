@@ -47,6 +47,10 @@ The report is written for an engineer who needs to understand, modify, or reuse 
 
 ## Why this project exists
 
+![[reflow-sidebar-and-stage.png]]
+
+*The playground: a left sidebar drives a right stage where body text reflows around draggable callout blocks in real time.*
+
 Wrapping body text around an arbitrary box is hard to do well on the web. CSS `float` only positions a box relative to the current flow position, forces a full layout reflow on every change, and cannot wrap text on both sides of a centered box at once. CSS `shape-outside` has uneven browser support and still triggers layout reflow. CSS grid and exclusions give no per-line control.
 
 This project takes a different approach. Instead of asking the browser to lay text out around the boxes, the application computes the line breaks itself in JavaScript, using `@chenglou/pretext` as the measurement engine. Pretext measures text using the browser's canvas `measureText` as a width oracle but performs its own segmentation, bidi handling, and line breaking in pure TypeScript. Because the measurement does not touch the DOM, the slow part of text layout (reading glyph widths) happens once, and the fast part (deciding where lines break at a given width) is pure arithmetic that runs in tens of microseconds.
@@ -75,6 +79,10 @@ while (true) {
   // place line at its (x, y)...
 }
 ```
+
+![[reflow-pullquote-left.png]]
+
+*A pull-quote callout on the left; body text wraps to its right, computed one line at a time by the fast layout stage.*
 
 The interaction model maps directly onto this split. `prepare` runs when the body text changes, the font family/size/weight changes, or letter-spacing changes. It must not run when the column resizes or a callout moves, because those only change the width passed to the fast `layout` stage. This constraint is enforced by a `useMemo` whose dependency array contains exactly the prepare inputs and nothing else, and a `PerfHud` component that counts the two stages independently so a regression (a `prepare` firing per drag frame) is visible immediately.
 
@@ -106,6 +114,10 @@ Regions are produced in three steps. First, the column is divided into horizonta
 
 The subtraction is pure one-dimensional interval arithmetic and is the entire correctness surface for "around" placement. Subtracting a hole that falls in the middle of an interval splits it into two pieces; subtracting a hole that covers the whole interval removes it; subtracting a hole at an edge trims that edge. When a centered callout carves its horizontal extent out of a band, the result is two intervals, which become two regions stacked at the same `y` — the left gutter and the right gutter.
 
+![[reflow-around-placement.png]]
+
+*The "around" placement: a centered callout leaves two gutters, and the body text flows into both — the case the single-interval model could not express.*
+
 ```mermaid
 flowchart LR
   A["band at y\nfull interval [0, W]"] --> B{"callouts in band?"}
@@ -115,6 +127,10 @@ flowchart LR
   B -- "none" --> F["one region [0, W]"]
   B -- "'block' callout" --> G["no intervals\n(band skipped)"]
 ```
+
+![[reflow-both-sides.png]]
+
+*Left and right placements together: a citation on the left margin and a sidenote on the right squeeze the same band from both sides.*
 
 The placement mode determines how a callout becomes an obstruction. `left` and `right` carve the callout's horizontal extent (plus margin) from one side. `around` carves the same extent but is the only mode that leaves intervals on both sides. `block` returns an obstruction spanning the entire column width, so the band has no free intervals and produces no regions; the text simply continues in the next band below the callout. When a callout has no explicit placement, the effective placement is derived from its horizontal center: a callout straddling the column midline is treated as `around`, otherwise `left` or `right` by center.
 
@@ -223,6 +239,10 @@ const prepared = useMemo(
 This failure mode generalizes beyond pretext. Any library that caches measurements derived from an asynchronously-loaded resource (fonts, images used for intrinsic sizing, locale data) will silently cache wrong values if the first measurement races the load. The defense is the same in every case: gate the first measurement on the load promise, and clear the cache when the load completes.
 
 ## Rendering: DOM and canvas
+
+![[reflow-canvas-perfhud.png]]
+
+*The canvas renderer draws the same computed lines as `ctx.fillText` calls; the perf HUD shows the `prepare` and `reflow` stage counts independently.*
 
 The same computed `Line[]` feeds two renderers. The DOM renderer places each line as an absolutely-positioned `<div>` at its `(x, y)` with its measured width, using the centralized line style so the rendered font matches the measured font. The canvas renderer draws each line with `ctx.fillText(line.text, line.x, line.y)` on a device-pixel-ratio-scaled canvas. Because pretext is renderer-agnostic — it returns lines, the caller draws them — the two renderers produce identical glyph positions, which serves as the parity check that the font configuration is correct.
 
