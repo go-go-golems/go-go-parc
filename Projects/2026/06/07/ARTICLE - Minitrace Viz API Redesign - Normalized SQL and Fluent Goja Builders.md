@@ -435,5 +435,10 @@ db.close();
 
 ## Related notes
 
-- [[PROJ - ZK Tool]] — reference note for project note structure
-- [[ARTICLE - Playbook - Self-Contained Go Wasm and JavaScript Browser Applications]] — reference note for the article/playbook style used here
+- [[ARTICLE - Minitrace API Redesign - From Prototype Complexity to Normalized SQL and Fluent Builders]] — final implementation report for the same redesign after the fluent `mt.db()` builder and normalized SQLite contract stabilized.
+- [[ARTICLE - Fluent Builders with Go-Backed Objects for JavaScript]] — reusable design pattern behind the builder-composed API: Go-backed intermediate objects, explicit validation, and JavaScript as workflow driver.
+- [[Projects/2026/06/10/ARTICLE - Minitrace Viz - CLI Session Models and Token Provenance|ARTICLE - Minitrace Viz - CLI Session Models and Token Provenance]] — later validation of the “one model pipeline, multiple renderers” rule using CLI jsverbs over the same transcript/context model as the web UI.
+- [[PROJ - Geppetto - Opinionated JS APIs and Engine Profiles]] — related public API simplification: high-level JS runner surface over lower-level execution machinery without mixing engine configuration and app runtime behavior.
+- [[ARTICLE - CozoDB Editor Modernization - Sessionstream Hard Cutover]] — related hard-cutover note; useful contrast for migrating from exploratory surfaces to typed substrate ownership.
+- [[PROJ - ZK Tool]] — reference note for project note structure.
+- [[ARTICLE - Playbook - Self-Contained Go Wasm and JavaScript Browser Applications]] — reference note for the article/playbook style used here.

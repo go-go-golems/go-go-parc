@@ -22,7 +22,7 @@ type: article
 created: 2026-06-22
 repo: /home/manuel/workspaces/2026-06-20/ui-notebook-package/2026-03-14--cozodb-editor
 ---
-
+[]
 # CozoDB Editor Modernization — Sessionstream Hard Cutover
 
 This article explains the modernization of the CozoDB editor notebook from a legacy SEM/websocket streaming design to a typed `sessionstream` architecture. The work happened in `/home/manuel/workspaces/2026-06-20/ui-notebook-package/2026-03-14--cozodb-editor` on branch `task/ui-notebook-package`. The related ticket documentation lives in `/home/manuel/workspaces/2026-06-20/ui-notebook-package/ui-notebook/ttmp/2026/06/21/NOTEBOOK-BACKEND-001--notebook-backend-sessionstream-chatapp-migration`.
@@ -488,6 +488,14 @@ That separation made the hard cutover possible. Once the protobuf contract exist
 The second lesson is that typed artifacts should be modeled as their own domain objects. A hint text delta and a query suggestion artifact are not the same kind of data. They can be produced by the same inference run, and they can be delivered through the same sessionstream session, but their persistence and rendering rules differ. Modeling them separately made it possible to treat previews as transient UI events while hydrating extracted and failed artifacts as durable entities.
 
 The third lesson is that a hard cutover must be paired with broad validation. Deleting compatibility code is only safe when the new path has enough tests to replace the confidence the old tests provided. In this migration, confidence came from package-level hydration tests, full backend tests, frontend projection tests, component rendering tests, Storybook smoke, and explicit legacy scans.
+
+## Related project reports
+
+- [[ARTICLE - Fluent Builders with Go-Backed Objects for JavaScript]] — relevant to the follow-on notebook Widget IR DSL work: Go-backed fluent builders keep domain invariants in Go while JavaScript stays readable.
+- [[ARTICLE - Minitrace API Redesign - From Prototype Complexity to Normalized SQL and Fluent Builders]] — related hard-cutover pattern: remove overlapping legacy API surfaces once a normalized substrate and fluent builder become canonical.
+- [[ARTICLE - Minitrace Viz API Redesign - Normalized SQL and Fluent Goja Builders]] — earlier minitrace-viz design report that frames the “one canonical surface instead of several exploratory DSLs” lesson.
+- [[PROJ - Geppetto - Opinionated JS APIs and Engine Profiles]] — related ownership split: core libraries own generic configuration/substrate; applications own runtime behavior and domain policy.
+- [[PROJ - CozoDB Editor - Notebook Packaging and JavaScript Preset]] — historical CozoDB editor context before the sessionstream hard cutover and package/DSL work.
 
 ## References
 

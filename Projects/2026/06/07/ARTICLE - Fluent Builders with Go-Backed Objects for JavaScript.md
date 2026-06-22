@@ -537,6 +537,14 @@ Key files for xgoja wiring:
 - `cmd/goja-text/jsverbs/markdown.js` — CLI commands
 - `pkg/xgoja/providers/text/doc/markdown-builder-api-reference.md` — Glazed help page
 
+## Related notes
+
+- [[ARTICLE - Minitrace API Redesign - From Prototype Complexity to Normalized SQL and Fluent Builders]] — applies the same Go-backed builder pattern to a larger data/query API and records the hard cut away from legacy query surfaces.
+- [[ARTICLE - Minitrace Viz API Redesign - Normalized SQL and Fluent Goja Builders]] — earlier minitrace-viz snapshot showing why a single fluent builder surface replaced overlapping DSL/lens/workbench APIs.
+- [[PROJ - goja-text - Template and HTML Rendering Module]] — project report for the template builder work that helped establish this pattern.
+- [[PROJ - Geppetto - Opinionated JS APIs and Engine Profiles]] — related public-API cleanup: opinionated high-level JS API over explicit lower-level machinery, with engine/runtime ownership kept separate.
+- [[ARTICLE - CozoDB Editor Modernization - Sessionstream Hard Cutover]] — later notebook modernization work using the same hard-cutover instinct: typed substrate first, no compatibility wrappers once the new ownership model is clear.
+
 ---
 
 > This article documents patterns developed during the implementation of the `template` module (GOJA-TEXT-004) and the `markdown` builder module (GOJA-TEXT-005) in the `goja-text` repository. Both modules share the same architectural pattern and failure modes. The article is written for future contributors who need to add new modules or adapt the pattern to different domains.

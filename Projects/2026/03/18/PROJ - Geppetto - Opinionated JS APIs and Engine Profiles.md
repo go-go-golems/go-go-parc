@@ -390,6 +390,13 @@ The most accurate summary of the Geppetto work on this branch is:
 
 That combination is why this branch matters. It does not merely rename things. It makes the library's execution model more coherent across Go, JavaScript, examples, docs, and downstream adoption.
 
+## Related project reports
+
+- [[ARTICLE - Fluent Builders with Go-Backed Objects for JavaScript]] — later reusable formulation of a Goja API rule that this Geppetto branch also follows: JavaScript gets an opinionated workflow surface, while Go keeps the typed model and validation boundary.
+- [[ARTICLE - Minitrace API Redesign - From Prototype Complexity to Normalized SQL and Fluent Builders]] — related hard simplification of a JavaScript-facing API: remove parallel exploratory surfaces and make one builder-composed path canonical.
+- [[ARTICLE - Minitrace Viz API Redesign - Normalized SQL and Fluent Goja Builders]] — related earlier minitrace-viz snapshot showing the same “default public path plus explicit advanced machinery” pattern.
+- [[ARTICLE - CozoDB Editor Modernization - Sessionstream Hard Cutover]] — later notebook/server migration with the same ownership principle: the substrate owns generic runtime semantics, applications own domain behavior.
+
 ## KB reviews
 
 - [[KB-BATCH11-geppetto-runtime-evolution]] (2026-05-11) — Batch B analysis; canonical source for [[Tribal/geppetto-engine-config-vs-runtime-behavior]].

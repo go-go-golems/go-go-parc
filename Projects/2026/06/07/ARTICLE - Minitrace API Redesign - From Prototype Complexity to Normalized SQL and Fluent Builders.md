@@ -239,4 +239,8 @@ GOTOOLCHAIN=auto go test ./... -count=1
 ## Related notes
 
 - [[ARTICLE - Minitrace Viz API Redesign - Normalized SQL and Fluent Goja Builders]] — earlier snapshot of this article from before full implementation.
+- [[ARTICLE - Fluent Builders with Go-Backed Objects for JavaScript]] — reusable Go-backed builder design rules that the `mt.db()` API follows: Go owns the model, JavaScript owns the workflow, `Validate()` / `Build()` mark lifecycle boundaries.
+- [[Projects/2026/06/10/ARTICLE - Minitrace Viz - CLI Session Models and Token Provenance|ARTICLE - Minitrace Viz - CLI Session Models and Token Provenance]] — later minitrace-viz work that reuses the normalized model pipeline from CLI jsverbs rather than introducing a second parser.
+- [[PROJ - Geppetto - Opinionated JS APIs and Engine Profiles]] — related example of simplifying the public JS path while keeping deeper execution machinery explicit and app-owned behavior separate.
+- [[ARTICLE - CozoDB Editor Modernization - Sessionstream Hard Cutover]] — related hard-cutover pattern: replace legacy parallel surfaces once the typed substrate and validation path exist.
 - [[PROJ - ZK Tool]] — reference for article note structure.
