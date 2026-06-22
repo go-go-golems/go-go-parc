@@ -481,6 +481,14 @@ Most important current ticket docs:
 > [!important]
 > Keep shared notebook seams honest, and keep preset-specific behavior behind preset wrappers. If a change only makes sense for one language or one host, it should not be introduced as shared package behavior by default.
 
+## Related projects
+
+- [[Projects/2026/03/15/PROJ - CozoDB Editor - SEM Streaming, Widgetization, and Hydration Refactor]] — The SEM projector, structured extraction pipeline, and editor seams from the earlier phase were packaged into preset composition in this project. The `semHandlers.ts` cleanup (COZODB-011) moved the generic sem handler boundary from a Cozo-named file into the shared notebook package.
+- [[Projects/2026/03/19/PROJ - CozoScript Web UI - CodeMirror Language Package and Browser Editor]] — The `lang-cozoscript` Lezer grammar package built in that project is consumed by the current Cozo preset's `CozoScriptEditor.tsx`. The CozoScript CodeMirror editor landed on `origin/main` and was integrated during the COZODB-015 merge.
+- [[Projects/2026/03/23/PROJ - CozoDB Editor - Merge Resolution, SQLite Preset, and Editor Highlighting]] — The follow-up to this project that added a third preset (SQLite), extracted a reusable CodeMirror editor layer, and survived a real upstream merge — validating that the preset architecture is durable, not just aspirational.
+- [[Projects/2026/04/02/PROJ - SQLide Browser - Go Wasm SQL IDE]] — A separate browser-based SQLite IDE using Go/Wasm instead of a Go server. Compares to the SQLite preset added in 03/23: same problem domain (browser SQL IDE), different architecture (pure browser vs. Go backend + React frontend).
+- [[Projects/2026/05/24/ARTICLE - xgoja - Generated Goja Applications Provider Architecture and Runtime Profiles]] — The JavaScript preset's ad-hoc go-go-goja runtime integration (COZODB-014) was a precursor to the generalized xgoja provider architecture. The cozodb-editor proved that Goja could serve as a notebook runtime; xgoja systematized that pattern into a build-time composition system with provider packages and runtime profiles.
+
 ## KB reviews
 
 - [[KB-BATCH13-cozo-editor-structured-browser-tools]] (2026-05-11) — Batch D analysis; used as the core preset-architecture report in the Cozo notebook line.

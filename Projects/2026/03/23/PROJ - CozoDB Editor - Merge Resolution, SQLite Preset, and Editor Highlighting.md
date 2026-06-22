@@ -537,6 +537,14 @@ That rule held up in all three pieces of new work:
 
 That is a good sign that the project’s packaging direction is now structurally real, not just aspirational.
 
+## Related projects
+
+- [[Projects/2026/03/22/PROJ - CozoDB Editor - Notebook Packaging and JavaScript Preset]] — The predecessor to this project. This follow-up added SQLite as a third preset, extracted a reusable CodeMirror editor layer, and validated that the notebook packaging architecture survived real merge pressure.
+- [[Projects/2026/03/15/PROJ - CozoDB Editor - SEM Streaming, Widgetization, and Hydration Refactor]] — The `NotebookCodeMirrorEditor` extracted in COZODB-017 is the continuation of the `PadEditor.jsx` → `NotebookPage.tsx` editor modularization from the earlier SEM refactor. The render-after-line seam evolved into the preset-driven editor adapter pattern.
+- [[Projects/2026/03/19/PROJ - CozoScript Web UI - CodeMirror Language Package and Browser Editor]] — The `lang-cozoscript` Lezer grammar built in that project underpins the CozoScript CodeMirror editor that was merged into the notebook architecture during COZODB-015.
+- [[Projects/2026/04/02/PROJ - SQLide Browser - Go Wasm SQL IDE]] — A separate browser-based SQLite IDE using Go/Wasm. Compares to the SQLite preset added here: same problem domain (browser SQL IDE), different architecture (pure browser with Go/Wasm vs. Go backend + React frontend with a preset seam).
+- [[Projects/2026/05/24/ARTICLE - xgoja - Generated Goja Applications Provider Architecture and Runtime Profiles]] — The JavaScript preset's ad-hoc go-go-goja runtime integration (in the predecessor project) was a precursor to the generalized xgoja provider architecture with compile-time composition and runtime profiles.
+
 ## KB reviews
 
 - [[KB-BATCH13-cozo-editor-structured-browser-tools]] (2026-05-11) — Batch D analysis; confirmed that the packaged notebook/editor architecture survived merge pressure and a third preset family.

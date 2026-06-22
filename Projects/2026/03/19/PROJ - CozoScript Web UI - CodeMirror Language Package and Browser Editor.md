@@ -390,6 +390,10 @@ The ticket workspace is valuable enough that it effectively acts as the project'
 > Treat `lang-cozoscript` as the product and `cozo-webui` as its consumer.
 > When debugging browser behavior, always distinguish between source truth, built package truth, and Vite cache state before changing the grammar.
 
+## Related projects
+
+- [[Projects/2026/03/22/PROJ - CozoDB Editor - Notebook Packaging and JavaScript Preset]] — The notebook packaging arc answers this project's own open question: *"Should the long-term direction stay 'editor plus examples,' or evolve toward a notebook-like CozoDB environment?"* The CozoDB Editor's `CozoScriptEditor.tsx` consumes the `lang-cozoscript` Lezer grammar package built here, and the notebook preset architecture is the notebook-like environment this project was considering.
+
 ## KB reviews
 
 - [[KB-BATCH13-cozo-editor-structured-browser-tools]] (2026-05-11) — Batch D analysis; surfaced the grammar-first editor-workbench pattern and new CodeMirror-oriented on-ramp material.

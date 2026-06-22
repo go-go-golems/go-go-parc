@@ -345,6 +345,12 @@ The CozoDB editor is now a much more coherent system than the original prototype
 
 That is the actual project.
 
+## Related projects
+
+- [[Projects/2026/03/22/PROJ - CozoDB Editor - Notebook Packaging and JavaScript Preset]] — The SEM projector, structured extraction pipeline, and editor seams built in this project were packaged into preset composition in 03/22. The `semHandlers.ts` cleanup in COZODB-011 moved the generic sem handler boundary (originally in a Cozo-named file) into the shared notebook package, making it truly preset-agnostic.
+- [[Projects/2026/03/23/PROJ - CozoDB Editor - Merge Resolution, SQLite Preset, and Editor Highlighting]] — The reusable `NotebookCodeMirrorEditor` extracted in COZODB-017 is the direct continuation of the `PadEditor.jsx` → `NotebookPage.tsx` editor modularization started here. The render-after-line seam evolved into the preset-driven editor adapter pattern.
+- [[Projects/2026/03/19/PROJ - CozoScript Web UI - CodeMirror Language Package and Browser Editor]] — The `lang-cozoscript` Lezer grammar package built in that project was consumed by the CozoScript CodeMirror editor that landed on `origin/main` and was then integrated into the notebook architecture during the COZODB-015 merge.
+
 ## KB reviews
 
 - [[KB-BATCH13-cozo-editor-structured-browser-tools]] (2026-05-11) — Batch D analysis; highlighted the semantic-event projector architecture and its relation to later notebook packaging work.

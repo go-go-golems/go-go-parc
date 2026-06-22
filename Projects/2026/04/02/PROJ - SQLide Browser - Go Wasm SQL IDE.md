@@ -310,6 +310,11 @@ The Vite config applies these for both `server` and `preview` modes. This is a d
 > [!important]
 > Keep the split architecture. Go does text processing and state; SQLite Wasm does database operations in a worker. Do not try to merge the two runtimes until the all-Go persistence story is actually proven.
 
+## Related projects
+
+- [[Projects/2026/03/23/PROJ - CozoDB Editor - Merge Resolution, SQLite Preset, and Editor Highlighting]] — The CozoDB Editor added a SQLite preset as a third notebook language family, using a Go backend + React frontend. That project and this one solve the same user problem (browser SQL IDE against SQLite) with different architectures: Go backend server vs. pure browser Go/Wasm, React frontend vs. vanilla JS, preset seam vs. split worker architecture.
+- [[Projects/2026/03/22/PROJ - CozoDB Editor - Notebook Packaging and JavaScript Preset]] — The notebook packaging architecture that the SQLite preset was built on. Useful context for understanding an alternative approach to composable SQL editing environments.
+
 ## KB reviews
 
 - [[KB-BATCH13-cozo-editor-structured-browser-tools]] (2026-05-11) — Batch D analysis; used as the browser-side structured tool that reinforced the split Go/Wasm + worker-owned engine pattern.
