@@ -13,20 +13,22 @@ tags:
   - esp32p4
   - quickjs
   - debugging
-status: active
+status: resolved
 type: article
 created: 2026-06-23
+updated: 2026-06-23
 repo: /home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0100-esp32-p4-quickjs-wasm
 ---
 
 # QuickJS-WASM on the ESP32-P4: Device Bring-Up and Two WAMR Embedding Crashes
 
-This note records what happened when a QuickJS engine compiled to WebAssembly was first run on an ESP32-P4 after it had already passed on a host PC. The host result was correct, so the device session became a study of the assumptions a host environment hides. Two failures appeared, both in the WebAssembly Micro Runtime (WAMR) embedding layer rather than in QuickJS, and both are general to any WAMR-on-ESP-IDF embedding. The first is fixed and verified on hardware; the second is diagnosed and left for the next session. The note is written so the pattern outlives this one project.
+This note records what happened when a QuickJS engine compiled to WebAssembly was first run on an ESP32-P4 after it had already passed on a host PC. The host result was correct, so the device session became a study of the assumptions a host environment hides. Two failures appeared, both in the WebAssembly Micro Runtime (WAMR) embedding layer rather than in QuickJS, and both are general to any WAMR-on-ESP-IDF embedding. Both failures are now fixed and verified on hardware: the firmware completes `qjs_init` and evaluates JavaScript from the ESP console on the ESP32-P4.
 
 > [!summary]
 > - On the host, the wasm module buffer was `malloc`'d and the calling thread was a pthread. On the device, `EMBED_FILES` puts the module in read-only flash and `app_main` runs on a FreeRTOS task that is not a pthread. Both differences caused a crash that the host could not expose.
 > - **Crash 1 (fixed):** WAMR's loader writes into the module buffer it is given. A flash-mapped buffer is read-only, so `wasm_runtime_load` faulted with a store-access exception. Copy the module to writable PSRAM before loading.
-> - **Crash 2 (open):** `wasm_runtime_call_wasm` records the calling thread via `pthread_self`. `app_main`'s task is not a pthread, so the call asserts. Run WAMR calls from a pthread.
+> - **Crash 2 (fixed):** `wasm_runtime_call_wasm` records the calling thread via `pthread_self`. `app_main`'s task is not a pthread, so the call asserted. The fix is a long-lived owner pthread: it initializes WAMR's thread environment, owns the QuickJS/WAMR session, and services console eval requests through a queue.
+> - **Verified result:** on the ESP32-P4, `qjs_init` completes in roughly 2.7 seconds and `js eval "print(1+2)"` prints `3`.
 
 ## Why this note exists
 
@@ -82,9 +84,9 @@ g_mod = wasm_runtime_load(g_wasm_copy, sz, err, sizeof(err));
 
 After this change the device log reads `copied quickjs.wasm (1231348 bytes) to writable buffer 0x49000aa8` and the load completes. This crash is closed. The general rule: the buffer handed to `wasm_runtime_load` must be writable. `EMBED_FILES` does not produce a writable buffer, so an embedded Wasm module must be copied to RAM or PSRAM before loading.
 
-## Failure mode 2 — `wasm_runtime_call_wasm` needs a pthread
+## Failure mode 2 — `wasm_runtime_call_wasm` needs a valid thread identity
 
-With the load fixed, the firmware calls `qjs_init` (a `wasm_runtime_call_wasm` with zero arguments) and asserts immediately:
+With the load fixed, the firmware originally called `qjs_init` (a `wasm_runtime_call_wasm` with zero arguments) directly from `app_main` and asserted immediately:
 
 ```
 assert failed: pthread_self pthread...
@@ -98,22 +100,47 @@ assert failed: pthread_self pthread...
 #9  app_main ()
 ```
 
-`wasm_runtime_call_wasm` calls `wasm_exec_env_set_thread_info`, which records the thread that owns the execution environment. On ESP-IDF that resolves through `os_self_thread` to `pthread_self`. `pthread_self` is only valid on a task created through ESP-IDF's pthread layer. The `main_task` that runs `app_main` is a plain FreeRTOS task, not a pthread, so the call asserts.
+`wasm_runtime_call_wasm` calls `wasm_exec_env_set_thread_info`, which records the thread that owns the execution environment. In the registry `espressif/wasm-micro-runtime` component used by 0100, the ESP-IDF platform implementation reaches `pthread_self`. `pthread_self` is only valid on a task created through ESP-IDF's pthread layer. The `main_task` that runs `app_main` is a plain FreeRTOS task, not a pthread, so the call asserted before QuickJS executed.
 
-The host did not hit this because every Linux thread is a pthread. A second project in the same workspace, `0079-papers3-wamr-assemblyscript-console`, runs WAMR on an ESP32-S3 without this crash, which means `0079` either calls `wasm_runtime_call_wasm` from a task that is a pthread, or configures WAMR to skip the thread lookup. That reference is the fastest path to the fix, because it is a known-working configuration on the same family of chips.
+The comparison project `0079-papers3-wamr-assemblyscript-console` provided the key clue. It has a pthread-worker execution path (`RunEmbeddedWasmModuleOnWorkerThread`) and a local WAMR ESP-IDF shim where `os_self_thread()` returns `xTaskGetCurrentTaskHandle()` instead of calling `pthread_self`. For 0100, the durable fix was to avoid editing generated `managed_components` and instead make the application own the thread context explicitly.
 
-The fix directions, in order of how much guessing they require:
+The fixed 0100 runner now has one long-lived owner pthread:
 
-1. Read `0079`'s runner and `sdkconfig` to find which task invokes `wasm_runtime_call_wasm` and what WAMR options it sets. Reproduce that.
-2. Run the WAMR calls from a pthread: create the session (`load`, `instantiate`, `qjs_init`) and the `qjs_eval` calls inside a task launched with `pthread_create` and `esp_pthread_set_cfg`, and feed it JavaScript from the console command through a queue.
-3. Initialise lazily from the `esp_console` task on the first `js eval`, after confirming whether that task is a pthread; if it is not, fall back to direction 2.
+1. `wasm_runner_init()` creates a pthread and waits for it to finish initialization.
+2. The worker calls `wasm_runtime_init_thread_env()`.
+3. The worker copies `quickjs.wasm` to PSRAM, loads it, instantiates it, creates the WAMR exec environment, and calls `qjs_init`.
+4. The worker then waits on a FreeRTOS queue for eval requests.
+5. `js eval` commands call `wasm_runner_eval()`, which queues an `EvalRequest`, blocks on a completion semaphore, and returns the worker's result.
+6. All `wasm_runtime_call_wasm()` calls now happen on the owner pthread, not on `app_main` or the console task.
 
-This crash is open. It is the single blocker between the current state and running JavaScript on the device.
+The design fixes the assertion and also serializes access to the QuickJS context. That is important because QuickJS contexts should be treated as single-owner state unless deliberately protected by a stronger concurrency design.
+
+Verified hardware output after this fix:
+
+```text
+I (2001) 0100_run: copied quickjs.wasm (1231348 bytes) to writable buffer 0x49000aa8
+I (4681) 0100_run: QuickJS ready (qjs_init ok on worker pthread)
+I (4681) 0100: QuickJS ready. Try: js eval "print(1+2)"
+
+0100>  js eval "print(1+2)"
+3
+0100>  js status
+runtime=ready
+pool=0x48000aa4 external=yes size=16777216
+wamr.heap_total=16777024 heap_free=14547872 highmark=2229152
+0100>  js eval "let s=0; for (let i=0;i<5;i++) s+=i; print(s)"
+10
+0100>  js eval "throw new Error(\"boom\")"
+Error: boom
+Command returned non-zero error code: 0x1 (ERROR)
+```
+
+The observed `qjs_init` latency was roughly 2.7 seconds, measured from `I (2001)` (`quickjs.wasm` copied) to `I (4681)` (`QuickJS ready`).
 
 ## Working rules
 
 - The buffer passed to `wasm_runtime_load` must be writable. An `EMBED_FILES` blob lives in read-only flash; copy it to PSRAM before loading. This applies to every WAMR embedding that embeds its module, not only QuickJS.
-- `wasm_runtime_call_wasm` must run on a pthread on ESP-IDF, because WAMR's thread tracking calls `pthread_self`. `app_main`'s `main_task` is not a pthread.
+- `wasm_runtime_call_wasm` must run from a context that gives WAMR a valid thread identity. In 0100, the safe application-level pattern is a long-lived owner pthread, not ad hoc calls from `app_main` or the console task.
 - A host smoke test does not substitute for a device test. The host provides writable memory and pthreads by default; the device does not. Treat a passing host test as evidence that the embedding logic is correct, not that the device will run.
 - When a crash dumps `MCAUSE` and `MTVAL`, read them: `MCAUSE 0x7` is a store fault, and `MTVAL` is the faulting address. Compare `MTVAL` to the linker segment ranges in the bootloader log to tell flash from SRAM from PSRAM.
 - Keep one monitor per serial port. Drive the ESP-IDF console through `idf.py monitor` in a tmux session so commands can be sent with `tmux send-keys` and output captured with `tmux capture-pane`, and kill the session before flashing so the flash and monitor never contend for the port.
@@ -132,11 +159,18 @@ tmux send-keys -t qjs0100 'js eval "print(1+2)"' Enter
 tmux kill-session -t qjs0100
 ```
 
-The firmware currently reaches `copied quickjs.wasm ... to writable buffer` and then asserts in `pthread_self` at the `qjs_init` call. Until failure mode 2 is resolved, `js eval` will not return a result.
+The fixed firmware now reaches the prompt and returns the expected result:
+
+```text
+0100> js eval "print(1+2)"
+3
+```
+
+Keep the monitor single-owner and kill `qjs0100` before reflashing.
 
 ## Related notes
 
 - Host implementation and its own failure modes: [[ARTICLE - QuickJS Wasm on WAMR - Running a JS Engine Inside a Wasm Sandbox]].
-- Full device post-mortem with addresses and backtraces: `0100-esp32-p4-quickjs-wasm` ticket `design/02-phase1-device-bringup-post-mortem.md`.
+- Full device post-mortem with addresses, backtraces, and the resolved hardware smoke result: `0100-esp32-p4-quickjs-wasm` ticket `design/02-phase1-device-bringup-post-mortem.md`.
 - Working WAMR-on-ESP32-S3 reference to compare against: `0079-papers3-wamr-assemblyscript-console` (its `wasm_module_runner.cpp`, `wasm_command.cpp`, and `sdkconfig`).
 - ESP-IDF build/dev-environment rules: `AGENTS.md` and `docs/01-playbook-esp-idf-build-and-dev-environment.md` in the `esp32-s3-m5` workspace.
