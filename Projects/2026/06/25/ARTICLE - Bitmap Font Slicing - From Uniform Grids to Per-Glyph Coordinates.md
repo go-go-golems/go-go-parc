@@ -12,6 +12,8 @@ tags:
   - react
   - redux
   - firmware
+  - cli
+  - parity
 status: active
 type: article
 created: 2026-06-25
@@ -22,13 +24,14 @@ repo: /home/manuel/code/wesen/2026-06-24--bitmap-font-browser
 
 This is a deep-dive technical analysis of a second-generation bitmap font slicer. The first generation assumed every glyph in a font sprite sheet sat on a single uniform grid. That assumption covers most of a collection of 817 retro bitmap fonts, but it breaks for the fonts that matter most: variable-width block fonts, sparse irregular grids, and sheets that pack two distinct typefaces into one image. The second generation replaces the uniform grid with a per-glyph coordinate model and recovers those coordinates automatically with connected-component analysis. It then labels each glyph by character using a technique that needs no optical character recognition and no machine-vision model: it renders text itself and compares the result to the source sheet, pixel for pixel.
 
-The article explains why the uniform-grid model fails, how connected-component analysis recovers glyph structure, why credit-text bands must be separated before clustering, and how a self-rendering oracle labels glyphs without recognition. It covers the renderer's adjustable line height and letter spacing, the firmware-portability contract, and the visual design system for the editing tool. The reference implementation is the PicoCalc Bitmap Font Browser, a Go + React + Vite + Redux application whose rendering core is written to port directly to C firmware.
+The article explains why the uniform-grid model fails, how connected-component analysis recovers glyph structure, why credit-text bands must be separated before clustering, and how a self-rendering oracle labels glyphs without recognition. It covers the renderer's adjustable line height and letter spacing, the firmware-portability contract, and the visual design system for the editing tool. The reference implementation is the PicoCalc Bitmap Font Browser. Its rendering core was written first in framework-free TypeScript as the portable reference; that core has since been transliterated to Go and is now the primary command-line renderer and batch analyzer, with a third in-browser JavaScript port driving an interactive gallery. The three implementations are kept in lockstep because they are all transliteration targets for the same future C firmware.
 
 > [!summary]
 > 1. A uniform `cellW × cellH` grid cannot represent variable-width or multi-region fonts; a per-glyph `(x, y, w, h)` coordinate list is the general model, and a uniform grid is its degenerate case.
 > 2. Connected-component analysis with row/column clustering recovers glyph structure that projection-autocorrelation cannot, because it keys off where glyphs sit rather than the periodicity of ink density.
 > 3. Credit and version text often dominate a sheet's component count; it must be classified into a separate band and dropped before clustering, or the detector invents roughly twice as many glyphs as exist.
-> 4. Because these are bitmap fonts, the tool can render candidate text itself and compare it to the sheet. A correct character-set hypothesis reproduces the sheet exactly, so labeling reduces to a self-consistency check — no OCR, no vision model.
+> 4. The self-rendering oracle is a sound *idea* — verify a charset hypothesis by rendering it and diffing against the sheet — but the shipped implementation compares each box to its own source glyph, so its coverage metric collapses to "fraction of boxes that captured ink" (a layout-alignment signal), not charset correctness. Labels remain a hypothesis until a human confirms them.
+> 5. The algorithm now exists in three languages (TypeScript, Go, JavaScript) that must agree pixel-for-pixel. That three-way parity is the firmware-portability contract: any of the three can be the reference for the C port, and divergence between them is a bug.
 
 ## Why this note exists
 
@@ -80,22 +83,23 @@ Two facts jump out of this table, and each drives a part of the design. First, t
 
 The replacement for the uniform grid is a list of independent glyph records. Each record carries a bounding box in source-sheet pixels — `x, y, w, h` — plus the cropped one-bit bitmap for that box, plus the character label once it has been determined. There is no global cell size. A uniform grid is the special case in which every box shares the same width and height and is placed at `(col * (w + gap), row * (h + gap))`.
 
-```typescript
-interface Glyph {
-  x: number; y: number; w: number; h: number;   // bounding box in sheet pixels
-  bits: Uint8Array;                              // packed 1-bit bitmap, w*h bits, row-major
-  char: string;                                  // label; "" until the oracle fills it
+```go
+type Glyph struct {
+    X, Y, W, H int
+    Bits       []byte  // packed 1-bit bitmap, w*h bits, row-major; byte i>>3, bit i&7
+    Char       string  // label; "" until the oracle fills it
 }
 
-interface GlyphSet {
-  name: string;
-  glyphs: Glyph[];                               // variable count, variable sizes
-  lineHeight: number;                            // render-time row pitch (source px)
-  advance: number;                               // default horizontal advance (source px)
+type GlyphSet struct {
+    Name       string
+    SrcW, SrcH int
+    Glyphs     []Glyph
+    LineHeight int  // render-time row pitch (source px)
+    Advance    int  // default horizontal advance (source px)
 }
 ```
 
-The choice to store a `bits` array per glyph rather than one concatenated atlas is forced by variable sizes. The first generation packed all glyphs into a single `Uint8Array` indexed by `index * cellW * cellH`, an index that only works when every glyph is the same size. Variable sizes break that index, so each glyph owns its own bits. The packing within a single glyph is unchanged from the first generation: one bit per pixel, row-major, byte `i >> 3`, bit `i & 7`. This matters because it keeps the firmware port mechanical — the asset baker emits one C struct plus one bitblob per glyph, the same layout as the BDF and PCF bitmap font formats.
+The choice to store a `bits` array per glyph rather than one concatenated atlas is forced by variable sizes. The first generation packed all glyphs into a single array indexed by `index * cellW * cellH`, an index that only works when every glyph is the same size. Variable sizes break that index, so each glyph owns its own bits. The packing within a single glyph is unchanged from the first generation: one bit per pixel, row-major, byte `i >> 3`, bit `i & 7`. This matters because it keeps the firmware port mechanical — the asset baker emits one C struct plus one bitblob per glyph, the same layout as the BDF and PCF bitmap font formats.
 
 This representation is deliberately a superset of the first generation's. It does not preserve a separate uniform-grid code path with a compatibility shim. A uniform grid is constructed by listing boxes at grid positions. Collapsing two old configuration concepts (a slicing config and an overrides file) into one layout document is a consequence of the same generality.
 
@@ -113,7 +117,7 @@ inkDistance(img, x, y, bg) = max(|r - bg.r|, |g - bg.g|, |b - bg.b|)
 isInk(x, y) = (inkDistance >= threshold) XOR invert
 ```
 
-The `invert` flag XORs the result, which absorbs the polarity question (whether ink is darker or lighter than the background) into the same threshold. This is the foundation of every later stage; reverting to a luminance threshold would silently drop colored fonts.
+The `invert` flag XORs the result, which absorbs the polarity question (whether ink is darker or lighter than the background) into the same threshold. This is the foundation of every later stage; reverting to a luminance threshold would silently drop colored fonts. The Go port carries the same rule, and the same red-ink regression test (`08X08-F1` renders ink, not blank) guards it in both language implementations.
 
 ## Finding glyphs with connected components
 
@@ -162,7 +166,7 @@ detectRowsCols(components, rowTol, colTol):
 
 This recovers a grid even when glyphs have no inter-cell gutter, because it keys off where glyphs sit rather than where gutters are. On `LIGHT` it recovers approximately 16 columns by 3 rows. On `HOMEBOY` it recovers 7 rows even though the columns have no gutter at all.
 
-After clustering, a refinement stage cleans up the cells. Cells that are suspiciously wide relative to the row's median glyph width likely contain two glyphs whose centers fell in one column band, and are split at the local projection valley. Adjacent components within a row cell whose gap is small relative to the median glyph width are merged, reassembling the fragmented strokes of a block letter into one glyph. Components whose area is below a minimum are dropped as speckle unless they sit directly above a row, in which case they are diacritic dots assigned to the glyph below.
+After clustering, a refinement stage cleans up the cells. Adjacent components within a row cell whose gap is small relative to the median glyph width are merged, reassembling the fragmented strokes of a block letter into one glyph. Components whose area is below a minimum are dropped as speckle. Cells that are suspiciously wide relative to the row's median glyph width likely contain two glyphs whose centers fell in one column band; the design reserves a split-at-valley pass for these, though the shipped refinement merges and drops but does not yet split.
 
 ## Most components are not glyphs: the credit-text problem
 
@@ -203,70 +207,110 @@ Detecting glyph boxes solves only half the problem. The boxes are unlabeled. To 
 
 Asked to transcribe the glyphs of `16X16-F1` (a ground-truth sheet whose layout was already known by inspection), the vision model hallucinated a canonical codepage. It invented lowercase letters that do not exist in the font. On a high-resolution crop of the row containing `H I J K L M N O P Q R S T U V W X Y Z [`, it reported `A B C D E F G H I J K L M N O P Q R S T`, imposing the prior that capital letters start at `A` rather than reading the actual pixels. Open-ended transcription of bitmap glyphs is unreliable because the model pattern-matches to a canonical codepage instead of reading pixels.
 
-The second generation replaces recognition with verification, and it needs no model at all. The key realization is that the tool can render text itself. The font is a bitmap font. Given a hypothesis about which characters the sheet contains and in what order, the tool can render that hypothesis string using the detected glyph boxes and compare the result to the source sheet, pixel for pixel. A correct hypothesis reproduces the sheet exactly, because the rendered output is built from the sheet's own bitmaps. Labeling reduces to a self-consistency check.
+The second generation replaces recognition with verification, and it needs no model at all. The key realization is that the tool can render text itself. The font is a bitmap font. Given a hypothesis about which characters the sheet contains and in what order, the tool can render that hypothesis string using the detected glyph boxes and compare the result to the source sheet, pixel for pixel. A correct hypothesis reproduces the sheet exactly, because the rendered output is built from the sheet's own bitmaps. Labeling reduces to a self-consistency check. The intended design is:
 
 ```text
 oracleLabel(sheet, layout, hypothesisCharset):
     expected = renderHypothesis(layout, hypothesisCharset)   # same dimensions as sheet
     for each (box, i):
-        glyphSource = crop(binized sheet, box)
-        glyphHypothesis = crop(expected, hypothesisBox[i])
+        glyphSource     = crop(binarized sheet, box)          # what the sheet shows here
+        glyphHypothesis = crop(expected, box)                # what the hypothesis predicts here
         score = IoU(glyphSource, glyphHypothesis)
         if score >= 0.85:  accept hypothesisCharset[i] as the label for box
         elif score >= 0.5: flag box as needs-review
         else:              reject the hypothesis at this box
 ```
 
-The oracle never guesses a glyph. It only verifies that a hypothesis reproduces the pixels. A wrong hypothesis is rejected by pixel disagreement, not by a model's priors. This is strictly better than vision transcription, which hallucinates, and even better than vision comparison, which the first generation found reliable but which requires an external model and rate limits.
+In this design the oracle never guesses a glyph. It renders the hypothesis character for each box and compares that rendered character to the sheet pixels at the box. A wrong hypothesis is rejected by pixel disagreement, not by a model's priors. This is strictly better than vision transcription, which hallucinates.
 
-The hypothesis charset comes from a small ordered list of candidates. The first is standard ASCII starting at the space character, which is the majority case. The second is an alphabetic layout starting at `A`, which covers fonts like `DUKEFONT`. The third is interactive: the user types the characters in order over the editor, and each typed glyph is matched to a box by the same IoU comparison. When none of the hypotheses match, the boxes remain unlabeled and are addressed in the manual editor.
+### The shipped oracle, and the tautology it contains
 
-The match metric is intersection-over-union of the binarized glyph against the hypothesis, or equivalently the fraction of agreeing bits over the cell. A threshold of 0.85 IoU marks a confident label; 0.5 to 0.85 marks a box for review; below 0.5 rejects the hypothesis at that position. The golden test for the oracle is a known-correct layout on `16X16-F1` with the standard-ASCII hypothesis, which should produce per-glyph IoU above 0.95.
+The implementation that shipped — first in TypeScript, then transliterated to Go — does not quite do what the pseudocode above describes, and the difference matters enough to state plainly. The shipped `verifyHypothesis` does not render the hypothesis character for box `i`. It renders box `i`'s own source glyph and compares that to box `i`'s source crop. The glyph it renders is `glyphs.glyphs[i]`, the bitmap that `expandLayout` cropped from box `i` in the first place. The hypothesis charset only supplies the label string; it does not select which glyph is rendered.
 
-## The renderer: adjustable line height and letter spacing
+```text
+# what the shipped oracle actually computes, per box i:
+src = crop(binarized sheet, box i)              # the sheet at box i
+hyp = renderCharBits(glyphs.glyphs[i], box i)   # box i's OWN glyph, re-rendered into box i
+score = IoU(src, hyp)                            # ~1.0 whenever box i has any ink
+```
 
-Once glyphs are detected and labeled, rendering is a bit-block transfer. The renderer is the firmware-portable core of the project. It is integer-only, allocation-light, and uses a single platform-specific call — `setPixel` — to write to the framebuffer. In the browser the framebuffer is a canvas `ImageData` (RGBA, four bytes per pixel). On the device it is the LCD buffer (RGB565). The algorithm is identical between the two; only `setPixel` changes.
+Because the hypothesis glyph and the source crop come from the same box, the comparison is self-referential. Whenever a box contains ink, the rendered glyph reproduces that ink and the IoU is near 1.0, regardless of which character the hypothesis says the box depicts. The coverage metric — the fraction of boxes scored "ok" — therefore collapses to the fraction of boxes that captured any ink at all. The Go port confirms this directly: on `HOMEBOY`, `oracleCov` and `yield` (the non-blank-box fraction) are equal to three decimal places. Coverage is a layout-alignment signal, not a charset-correctness proof.
+
+This is a genuine flaw, not a feature, and it changes what the oracle can honestly claim. It can tell you that the detected boxes land on ink rather than on gutters — useful, because a layout whose boxes are mostly blank is a bad layout. It cannot tell you that the labels are correct. A font whose boxes all capture ink but whose ASCII-from-space labels are shifted by one position scores full coverage with entirely wrong labels. The batch analyzer's triage report states this explicitly: a layout marked `auto` has generated boxes and a charset hypothesis, and the labels are a hypothesis that a human must confirm before the layout is used.
+
+The honest metric the Go port adds is `Yield`: the fraction of glyph boxes that contain at least one ink pixel. It is computed without any self-referential rendering, and it equals the oracle's coverage by construction. The intended oracle — render each hypothesis character and compare to the sheet — is documented as future work. Until it exists, the labels are not verified, and the editing tool's manual label step is not optional.
+
+## The renderer: adjustable line height, letter spacing, and color mode
+
+Once glyphs are detected and labeled, rendering is a bit-block transfer. The renderer is the firmware-portable core of the project. It is integer-only, allocation-light, and uses a single platform-specific call — `setPixel` — to write to the framebuffer. In the browser the framebuffer is a canvas `ImageData` (RGBA, four bytes per pixel). In the Go CLI it is a `[]byte` RGBA slice. On the device it is the LCD buffer (RGB565). The algorithm is identical between the three; only `setPixel` changes.
 
 The renderer draws one glyph by walking its bitmap and writing each ink pixel scaled by an integer zoom factor. It lays out text by maintaining a pen position, advancing horizontally after each glyph and vertically after each line break or wrap. The extension over the first generation is that the horizontal advance is per-glyph — each glyph's own width plus a configurable letter spacing — and the vertical advance is a configurable line height. The first generation used a single global cell size for both, which is correct only for uniform fonts.
 
 ```text
-renderText(glyphSet, text, canvas, lineHeight, letterSpacing, zoom, fg, bg):
+renderText(glyphSet, text, canvas, lineHeight, letterSpacing, zoom, fg, bg, colorMode, source):
     fill framebuffer with bg
-    lineH = lineHeight * zoom          # source px scaled to device px
+    lineH = lineHeight * zoom
     gap   = letterSpacing * zoom
     penX = 0; penY = 0
     for each character ch in text:
         if ch == newline: penX = 0; penY += lineH; continue
-        if wrap and penX + maxGlyphWidth*zoom > canvas.w: penX = 0; penY += lineH
+        if wrap and col >= cols: penX = 0; penY += lineH
         glyph = resolveGlyph(glyphSet, ch)
         if glyph:
-            blitGlyph(framebuffer, glyph, penX, penY, zoom, fg, bg)
-            penX += glyph.w * zoom + gap      # advance by THIS glyph's width
+            blitGlyph(framebuffer, glyph, penX, penY, zoom, fg, bg, colorMode, source)
+            penX += glyph.w * zoom + gap
         else:
             penX += defaultAdvance * zoom + gap
 ```
 
-The adjustable line height exists for block fonts. `HOMEBOY` glyphs are 22 pixels tall and, at the default line height equal to the cell height, the rows touch. Increasing the line height to the cell height plus a few pixels inserts a gap so the block letters do not collide. The same text rendered at two line heights shows the effect directly. At the default, the rows are packed tight:
+The adjustable line height exists for block fonts. `HOMEBOY` glyphs are 22 pixels tall and, at the default line height equal to the cell height, the rows touch. Increasing the line height to the cell height plus a few pixels inserts a gap so the block letters do not collide. Letter spacing does the same horizontally. Both are render-time overrides, not baked into the glyph boxes, because the boxes describe the source while spacing is a render concern. A terminal render of the same font wants tight spacing; a title render wants loose spacing. Keeping them separate lets one layout serve both.
 
-![Text rendered in 16X16-F1 at the default line height (equal to cell height). Rows are packed with no gap between them.](render-lineheight-tight.png)
+### Color mode: flat mask versus original sheet colors
 
-At cell height plus six pixels, the rows separate:
+The renderer has two color modes. Mask mode paints every ink pixel a single flat foreground color — the PicoCalc green-on-dark look — and every background pixel the background color. Source mode paints each ink pixel its original color from the sheet, reading the source `ImageData` at the glyph's sheet position. Source mode exists because many fonts in the collection use colored ink that carries information the flat mask discards: `08X08-F1` is pure red, `16X16-F1` is light gray, and several sheets use multiple ink colors within one typeface. In source mode the rendered text shows the font as its author drew it; in mask mode it shows how the font will look on a monochrome device. The Go CLI exposes this as `--color-mode mask|source`, and the gallery exposes it as a toggle. The blit changes by exactly one line: when `source` is non-nil, the on-bit color comes from `sourcePixel(img, glyph.x + gx, glyph.y + gy)` instead of the flat `fg`.
 
-![The same text rendered with line height increased by six pixels. The extra vertical space keeps rows from touching — the feature block fonts need.](render-lineheight-loose.png)
+### Case fallback: rendering text on incomplete fonts
 
-Letter spacing does the same horizontally. Both are render-time overrides, not baked into the glyph boxes, because the boxes describe the source while spacing is a render concern. A terminal render of the same font wants tight spacing; a title render wants loose spacing. Keeping them separate lets one layout serve both. The firmware must honor the same integer metrics for the on-device render to match the browser preview.
+Most fonts in the collection ship only one ASCII case. `16X16-F1` has uppercase `A`–`Z` but no lowercase; a few fonts are the reverse. A renderer that resolved each character to exactly one labeled glyph would render blanks for every missing-case character, which makes previewing normal prose on an uppercase-only font useless. The resolver falls back to the opposite ASCII case: a lowercase input character whose glyph is absent resolves to its uppercase counterpart, and vice versa. The fallback is symmetric and applies only when the exact label is missing, so a font that genuinely has both cases renders each correctly. The effect is that `"Hello World"` renders as `"HELLO WORLD"` on an uppercase-only font — legible, if inaccurate — which is the right behavior for a browsing and triage tool.
 
-## The firmware-portability contract
+## From TypeScript core to Go CLI
 
-The renderer and the glyph representation are written so that a C port is mechanical, and the constraints that make that true are worth stating explicitly because they govern many small decisions.
+The algorithm was written first in framework-free TypeScript under `web/src/core/`, deliberately isolated from React and Redux so it could be transliterated. That transliteration is now done. The Go package `internal/core` mirrors the TypeScript files one for one, and a `bfb` command-line tool exposes the core as a renderer, a batch analyzer, and an interactive gallery. The Go port was a transliteration, not a redesign: the same per-stage invariants, the same packed-1bpp indexing, the same connected-component and clustering logic, ported file for file so that a passing Go test suite and a passing TypeScript test suite together prove the two agree.
 
-A glyph is a C struct: signed integer coordinates and dimensions, a pointer to a packed one-bit bitmap, and a one-byte code. The bitmap packing within a glyph is one bit per pixel, row-major, byte `i >> 3`, bit `i & 7`, identical to the TypeScript representation. The asset baker emits one such struct and one bitblob per glyph per font.
+| TypeScript (port source) | Go (transliteration) | Role |
+|---------------------------|----------------------|------|
+| `core/types.ts` | `internal/core/types.go` | `Glyph`, `GlyphSet`, `FontLayout`, `RenderRequest` |
+| `core/bits.ts` | `internal/core/bits.go` | packed 1-bpp `GetBit`/`SetBit`/`PackMask` |
+| `core/binarize.ts` | `internal/core/binarize.go` | background-distance binarization |
+| `core/detect.ts` | `internal/core/detect.go` | connected components, region classification, clustering |
+| `core/oracle.ts` | `internal/core/oracle.go` | IoU, `VerifyHypothesis`, `LabelLayout`, `Yield` |
+| `core/layout.ts` | `internal/core/layout.go` | `ExpandLayout` (layout → glyph set) |
+| `core/render.ts` | `internal/core/render.go` | integer-only blit, `RenderText`, case fallback |
+| `core/heuristics.ts` | `internal/core/heuristics.go` | filename/divisor cell-size guess |
 
-The blit and the text layout use only integer arithmetic. There is no floating point, no anti-aliasing, no alpha blending. The only platform-specific operation is `setPixel`, which writes either RGBA to an `ImageData` in the browser or RGB565 to the LCD buffer on the device. The line height, letter spacing, and per-glyph width are plain integers.
+The Go tests mirror the TypeScript tests case for case. The same synthetic ASCII-art fixtures, the same expected pixel colors, the same component counts. Where the TypeScript suite asserts `getPixelColor(fb, 2, 0) === [10, 20, 30]`, the Go suite asserts the same pixel equals `RGB{10, 20, 30}`. The most important parity check runs against real sheets rather than synthetic art: the Go detector on `HOMEBOY` produces a credit-band cut at exactly `y = 117`, with 41 glyph-band and 58 credit-band components — the same numbers the TypeScript offline verifier produced. Drift in that number means the port diverged.
+
+The CLI is built on the Glazed command framework, which gives each subcommand structured output (`--output json`, `--output csv`), a help system, and logging for free. Three subcommands ship today.
+
+`bfb render` takes a font sheet, an optional layout JSON, a text string, and render parameters, and writes a PNG. Without a layout it seeds one from the filename heuristic, so a clean uniform font renders with no curated configuration. It is the headless rendering path the firmware build pipeline can call, and it removes the indirection of a Node script for offline rendering.
+
+`bfb analyze` runs the connected-component detector, the region classifier, and the self-consistency oracle across the whole collection. For each font it picks the better of two layouts — the detected-box layout or the heuristic uniform grid — by yield, writes a `FontLayout` JSON, and appends a row to a triage report. The full collection (487 sheets present locally of 817 catalogued) analyzes in about five seconds. The triage report sorts fonts into `auto` (a layout was generated; labels are an unverified hypothesis), `needs-review` (detection was weak), and `missing` (the sheet is not downloaded), so a human can work the queue rather than click through fonts one at a time.
+
+`bfb gallery` generates a standalone HTML gallery for browsing and marking fonts. Demos render on demand in the browser through a third port of the core — a vanilla-JavaScript implementation inlined into the page — so any text preset, color mode, and zoom can be tried live without re-running Go. A small Redux-like store holds the gallery state: the current font, the text preset, the color mode, the zoom, and two kinds of per-font marks. The operator marks a font liked or marks its slicing bad, adds free-form tags, and filters the list by mark or tag to jump straight to the fonts that need attention. Marks and tags persist to `localStorage`, and the liked set exports to a JSON bundle (name, layout, tags) that round-trips through `bfb render --layout`.
+
+The three implementations are not redundant. The TypeScript core is the browser and portable reference. The Go CLI is the authoritative renderer for the build pipeline and the only one that runs the batch analyzer at scale. The JavaScript gallery port exists so the operator can switch presets and color modes interactively, which pre-rendered PNGs cannot support. All three must agree, because any of them can be the reference for the C firmware port.
+
+## The firmware-portability contract, as a three-way parity
+
+The renderer and the glyph representation are written so that a C port is mechanical, and the constraints that make that true are worth stating explicitly because they govern many small decisions. The contract is now a three-way parity rather than a two-way one: the TypeScript core, the Go CLI, and the JavaScript gallery port must all produce the same framebuffer for the same glyph set, text, and parameters, because the C firmware will be transliterated from whichever is most convenient and must match all three.
+
+A glyph is a C struct: signed integer coordinates and dimensions, a pointer to a packed one-bit bitmap, and a one-byte code. The bitmap packing within a glyph is one bit per pixel, row-major, byte `i >> 3`, bit `i & 7`, identical across all three implementations. The asset baker emits one such struct and one bitblob per glyph per font.
+
+The blit and the text layout use only integer arithmetic. There is no floating point, no anti-aliasing, no alpha blending. The only platform-specific operation is `setPixel`, which writes RGBA to an `ImageData` in the browser, RGBA to a `[]byte` in Go, and RGB565 to the LCD buffer on the device. The line height, letter spacing, and per-glyph width are plain integers.
 
 The detection stage and the oracle are host-only tools. They run at build time to produce the layout JSON. They do not run on the device. The device consumes only the resulting coordinate layout. Keeping detection and oracle out of the firmware port is part of the contract: the device does a fixed blit from a known layout, nothing more.
 
-The lock-step guarantee between the browser and the device is maintained by golden-image tests. The same glyph set, text, and spacing produce byte-identical framebuffers in both, after RGB565 conversion. Any divergence is a bug in one of the two.
+The lock-step guarantee between the implementations is maintained by mirrored unit tests today: each Go test asserts the same value the TypeScript test asserts on the same input, and the gallery's source-color render of `08X08-F1` produces the same red ink shades the Go CLI produces. The remaining gate is an automated cross-implementation pixel diff — render the same `(sheet, layout, text, params)` in TypeScript, Go, and JavaScript and assert byte-identical RGBA. The gallery's planned Go-backend render mode, which fetches a Go-rendered PNG and displays it next to the in-browser JavaScript render with a pixel diff, is the interactive form of that gate.
 
 ## The editing tool's visual design system
 
@@ -286,7 +330,7 @@ ui/
   organisms/    full regions: FontList, GlyphEditor, PreviewCanvas, Controls
 ```
 
-The dependency rule is the backbone of the system. Changing a token changes the whole application. Changing an atom changes every molecule that uses it. No organism ever hardcodes a color or a spacing value, because it can only reach those through the layers below. This makes the monochrome field and the color-as-signal rules enforceable by construction rather than by convention. A component literally cannot introduce a decorative color because it has no access to raw color values.
+The dependency rule is the backbone of the system. Changing a token changes the whole application. Changing an atom changes every molecule that uses it. No organism ever hardcodes a color or a spacing value, because it can only reach those through the layers below it. This makes the monochrome field and the color-as-signal rules enforceable by construction rather than by convention. A component literally cannot introduce a decorative color because it has no access to raw color values.
 
 The typographic discipline is Swiss: one grid, two typefaces, strong contrast through size and weight. A monospace face drives the interface labels and numbers. A sans-serif face is reserved for the content the user types into the preview, so the neutral interface never competes with the bitmap font being judged. Generous whitespace, a four-pixel base grid to which every dimension snaps, and sharp corners complete the system. The bitmap preview is the visual center of the tool; everything else is calibrated to recede.
 
@@ -302,9 +346,13 @@ Several failure modes recur across this kind of system, and naming them helps av
 
 **Vision transcription for labeling** hallucinates a canonical codepage. This is not a tunable problem; it is a category error about what vision models do with unfamiliar pixel layouts. The fix is the rendering oracle, which verifies rather than recognizes.
 
+**A self-referential oracle** is a subtler failure than a hallucinating one. The shipped oracle renders each box's own source glyph, so its coverage metric reports layout alignment rather than charset correctness. It looks like it works — coverage is high — while proving nothing about the labels. The fix is to render the hypothesis character for each box and compare to the sheet, the intended design the pseudocode describes; until that exists, use `Yield` (non-blank-box fraction) as the honest metric and treat labels as unverified.
+
 **Baking spacing into glyph boxes** couples the source representation to one render context and prevents tight versus loose renders of the same font. The fix is render-time line height and letter spacing overrides.
 
 **Mixing the detection or oracle into the firmware port** violates the portability contract and bloats the device binary. The fix is the strict boundary: detection and oracle are host build tools; the device consumes only the resulting layout.
+
+**Letting three implementations drift** silently breaks the parity contract. The fix is mirrored tests that assert the same values across TypeScript and Go, plus a cross-implementation pixel diff for the gallery's JavaScript port.
 
 ## Working rules
 
@@ -312,18 +360,26 @@ The decisions above distill into a small set of rules that govern the system.
 
 - Store glyphs as per-glyph coordinates. A uniform grid is the degenerate case. Never add a parallel uniform-grid code path with a compatibility shim.
 - Detect structure with connected components plus row-column clustering, never with projection autocorrelation. Classify and drop the credit band before clustering.
-- Label glyphs with the rendering oracle, never with OCR or vision transcription. Verify hypotheses; do not recognize pixels.
-- Keep the renderer integer-only and single-`setPixel`. Line height and letter spacing are render-time overrides in source pixels, not properties of the boxes.
+- Label glyphs with the rendering oracle, never with OCR or vision transcription. Verify hypotheses; do not recognize pixels. Until the oracle renders the hypothesis character per box, treat its coverage as a layout-alignment signal (`Yield`) and the labels as an unverified hypothesis.
+- Keep the renderer integer-only and single-`setPixel`. Line height and letter spacing are render-time overrides in source pixels, not properties of the boxes. Offer mask and source color modes; the blit differs by one line.
+- Resolve glyphs with a symmetric ASCII case fallback so incomplete-case fonts still render legible text.
 - Keep detection and the oracle off the device. The firmware consumes the layout; it does not compute it.
+- Keep the TypeScript, Go, and JavaScript implementations in lockstep. Mirror the tests across languages; add a cross-implementation pixel diff before trusting any one as the firmware reference.
 - Express the visual identity in tokens and enforce the atomic layering as a dependency rule. Reserve color for state; never convey state by color alone.
 
 ## Implementation references
 
-The reference implementation is the PicoCalc Bitmap Font Browser. The active design lives in the repository's docmgr ticket, and the first-generation code is archived under `v1/` as provenance.
+The reference implementation is the PicoCalc Bitmap Font Browser. The TypeScript core and its design live in one docmgr ticket; the Go port and CLI live in a second.
 
 - Repository: `/home/manuel/code/wesen/2026-06-24--bitmap-font-browser`
-- Active design guide: `ttmp/2026/06/25/BITMAP-FONT-SLICER-V2--*/design-doc/01-bitmap-font-slicer-v2-intern-design-implementation-guide.md`
-- Investigation diary: `ttmp/2026/06/25/BITMAP-FONT-SLICER-V2--*/reference/01-investigation-diary.md`
+- TypeScript core (port source): `web/src/core/{types,bits,binarize,detect,oracle,layout,render,heuristics}.ts` and `*.test.ts`
+- Go core (transliteration): `internal/core/{types,bits,binarize,detect,oracle,layout,render,heuristics}.go` and `*_test.go`
+- PNG codec bridge (the only image-library import): `internal/pngx/png.go`
+- CLI: `cmd/bfb/{main,render,analyze,gallery}.go`
+- v2 design guide: `ttmp/2026/06/25/BITMAP-FONT-SLICER-V2--*/design-doc/01-bitmap-font-slicer-v2-intern-design-implementation-guide.md`
+- v2 investigation diary: `ttmp/2026/06/25/BITMAP-FONT-SLICER-V2--*/reference/01-investigation-diary.md`
+- Go-port design guide: `ttmp/2026/06/25/BITMAP-FONT-RENDER-GO--*/design-doc/01-go-renderer-cli-and-batch-heuristics-oracle-intern-design-implementation-guide.md`
+- Go-port investigation diary: `ttmp/2026/06/25/BITMAP-FONT-RENDER-GO--*/reference/01-investigation-diary.md`
 - First-generation binarization and renderer (reused): `v1/web/src/core/fontLoader.ts`, `v1/web/src/core/renderer.ts`, `v1/web/src/core/bits.ts`
 - First-generation detector (the approach replaced): `v1/web/src/core/detect.ts`
 - Analysis scripts (connected components, clustering, band separation): `ttmp/2026/06/25/BITMAP-FONT-SLICER-V2--*/scripts/01-…` through `07-…`
@@ -334,12 +390,14 @@ The reference implementation is the PicoCalc Bitmap Font Browser. The active des
 
 The design leaves several questions for implementation to resolve empirically.
 
-- The merge and split tolerances in the clustering refinement are the highest-risk part of the detector. Over-merging joins two adjacent glyphs; under-merging leaves a glyph fragmented. The proposed gap threshold of 30 percent of the row's median glyph width needs validation on the hardest font, `HOMEBOY`.
+- The merge tolerance in the clustering refinement over-joins `HOMEBOY`'s first row into a single 285×22 box. The Go port reproduces this faithfully (parity before tuning), and tuning the merge-gap threshold — or adding the reserved split-at-valley pass — is a separate ticket. The fix must not break the `HOMEBOY` cut-`y=117` parity anchor.
 - The multi-region detection rule for sheets like `M_TWINS` needs a confidence signal so it does not fire on legitimately wide single-style sheets.
-- The oracle's hypothesis ordering covers the common cases but not every custom minority. The interactive typing fallback must be genuinely usable, since auto-labeling will miss the custom-layout fonts.
-- The persistence model for curated layouts — whether they are committed as JSON files in the asset tree or stored separately — affects how curated work is shared across machines.
+- The oracle's tautology is the largest open item. The intended probe-render oracle — render each hypothesis character into its box and compare to the sheet — is documented but not shipped. Until it exists, labels are unverified, and the manual editor is the only charset authority.
+- The three-way parity is enforced by mirrored unit tests today, not by an automated cross-implementation pixel diff. The gallery's planned Go-backend render plus diff mode is the interactive version of that gate; a headless version belongs in CI.
+- The persistence model for curated layouts is resolved in principle (JSON files under `assets/fonts/layouts/`, one per font, shareable and committable) but the gallery's session state — marks, tags, current text and preset — is currently `localStorage` plus a downloaded JSON. Server-side persistence and a Go `bfb serve` command that hosts the gallery alongside a render endpoint are the next step.
 
 ## Related notes
 
+- [[ARTICLE - Bitmap Font Browser - The Portable Core and the Firmware Contract]] — the companion article on the portable core and the device contract.
 - [[PROJ - ZK Tool]] — another Go + tooling project in the vault; shares the "framework-free core, thin shell" pattern.
 - [[ARTICLE - Playbook - Self-Contained Go Wasm and JavaScript Browser Applications]] — the Go-plus-browser frontend pattern this project's stack descends from.
