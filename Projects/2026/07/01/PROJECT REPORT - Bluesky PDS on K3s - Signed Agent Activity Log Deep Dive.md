@@ -25,13 +25,14 @@ repo: /home/manuel/code/wesen/2026-03-27--hetzner-k3s
 
 This report explains how the reference Bluesky Personal Data Server (PDS) was installed on the `yolo.scapegoat.dev` single-node K3s cluster and verified end to end, and how a small Go client was written around it to prove the full AT Protocol data loop. The work spans three repositories: the cluster GitOps repo, the DNS terraform repo, and a new Go repository that consumes the PDS directly. The goal of the report is not to record that a deployment happened, but to make the PDS's internal architecture legible — what a PDS is, how its identity and repository model behave, and where the deployment deviates from the reference setup and why.
 
-The implementation lives across three repositories. The cluster manifests and ticket documentation are in `/home/manuel/code/wesen/2026-03-27--hetzner-k3s`, ticket `HK3S-0031`, under `ttmp/2026/07/01/HK3S-0031--install-the-bluesky-pds-on-k3s-as-a-signed-agent-activity-log`. The DNS records are in `/home/manuel/code/wesen/terraform` at `dns/zones/scapegoat-dev/envs/prod/main.tf`. The Go client is in `/home/manuel/code/wesen/2026-07-01--pds-lab`. The relevant commits are `2ee66b0` (GitOps package), `eeac9ca` (port and service-link fix), `76669e6` and `b8aa134` (diary and bookkeeping) in the cluster repo, `ce73041` in the terraform repo, and `0b57ae5` in the pds-lab repo.
+The implementation lives across three repositories. The cluster manifests and ticket documentation are in `/home/manuel/code/wesen/2026-03-27--hetzner-k3s`, ticket `HK3S-0031`, under `ttmp/2026/07/01/HK3S-0031--install-the-bluesky-pds-on-k3s-as-a-signed-agent-activity-log`. The DNS records are in `/home/manuel/code/wesen/terraform` at `dns/zones/scapegoat-dev/envs/prod/main.tf`. The Go client is in `/home/manuel/code/wesen/2026-07-01--pds-lab`. The relevant commits are `2ee66b0` (GitOps package), `eeac9ca` (port and service-link fix), `76669e6` and `b8aa134` (diary and bookkeeping), and `e695cc3` (DNS token rotation and public verification) in the cluster repo, `ce73041` in the terraform repo, and `0b57ae5` (client) plus `20a014b` (atproto-skills submodule) in the pds-lab repo.
 
 > [!summary]
 > - The reference Bluesky PDS (`ghcr.io/bluesky-social/pds:0.4`, runtime `0.4.5009`) runs on the cluster under Argo CD, on port `3000`, with secrets delivered by Vault Secrets Operator. The full AT Protocol write/read/firehose loop was verified in-cluster against a real account.
 > - Two non-obvious defects were found and fixed by reading the live process, not the documentation. The PDS application listens on `3000`, but Kubernetes injects a malformed `PDS_PORT` environment variable (because the Service is named `pds`) that makes the application fall back to `2583`. The fix is `enableServiceLinks: false`. Separately, the firehose frame is two concatenated CBOR objects, not a CBOR array, which broke the first consumer implementation.
 > - A new Go repository, `pds-lab`, implements the XRPC client, the firehose consumer, and a CARv1 reader by hand. Its `demo` command writes a record and observes the resulting `#commit` event on the firehose, closing the actor → record → PDS → stream → consumer loop.
-> - One blocker remains: the cluster's shared DigitalOcean DNS API token is expired (HTTP 401), so the wildcard TLS certificate cannot yet issue. The PDS is fully functional in-cluster and over port-forward; only public HTTPS is pending token rotation.
+> - The DigitalOcean DNS token was rotated after the initial deployment (the prior shared token had expired, returning HTTP 401 and blocking every wildcard DNS-01 certificate on the cluster). With a fresh Domains-scoped token, the `*.pds.yolo.scapegoat.dev` certificate issued, public HTTPS works, and the full loop was re-verified over the real internet through Traefik. The Argo CD application is `Synced/Healthy`.
+> - This is the live surface for a broader design: coding agents, humans, and a physical robot (Stack-chan) as ATProto accounts whose actions, approvals, and commands are typed records. The PDS serves as the signed, replayable activity log; a Go consumer reads the firehose and drives the robot. The report documents the foundation; the agent-bridge, fake-agent, and stackchan-controller services are the next phases.
 
 ## Why this implementation exists
 
@@ -343,13 +344,37 @@ DEMO OK: record observed on the firehose.
 
 The sequence number is monotonic. The record key in the caught event matches the record key in the write response. The consumer resolved the record from the CAR slice and read its `$type` and `kind`. This is the full loop the project set out to establish.
 
+### Public verification through Traefik
+
+The in-cluster loop proved the protocol. The public loop proved the deployment. After the DNS token was rotated, the same `demo` command was run against the public HTTPS endpoint instead of the port-forward, with no other change:
+
+```bash
+PDS_HOST=https://pds.yolo.scapegoat.dev \
+AT_HANDLE=agent1.pds.yolo.scapegoat.dev AT_PASSWORD=agent-pass-001 \
+pds-lab demo
+```
+
+The output, captured verbatim, shows the record traversing the real internet path: client, Traefik ingress with a valid Let's Encrypt certificate, the PDS, the WebSocket firehose back through Traefik, and the consumer.
+
+```text
+firehose: connected to pds.yolo.scapegoat.dev/xrpc/com.atproto.sync.subscribeRepos
+wrote at://did:plc:3jno7qw5v2yrse5bhtde5tfs/com.example.agent.event/3mpmj7swffk25
+      (cid bafyreia66pujsti5yrkksvkvzm5qjhu7du3jv4v7l4q55amd4vjcfdpsey, rkey 3mpmj7swffk25)
+>>> FIREHOSE caught: seq=13 repo=did:plc:3jno7q…5tfs create com.example.agent.event/3mpmj7swffk25
+DEMO OK: record observed on the firehose.
+```
+
+The certificate is real. The subject is `CN=pds.yolo.scapegoat.dev`, the issuer is `Let's Encrypt YR1`, the validity window runs from 2026-07-01 to 2026-09-29, and the subject alternative names are `*.pds.yolo.scapegoat.dev` and `pds.yolo.scapegoat.dev`. The health endpoint over HTTPS returns `{"version":"0.4.5009"}`. Because Traefik proxies WebSocket upgrades natively, the firehose required no ingress annotation, and the connection upgrade succeeded through the same TLS termination path as the XRPC calls. This is the configuration the reference distribution warns is hard to reproduce when porting away from Caddy; on this cluster it required no special handling because Traefik and cert-manager already provide the two things Caddy was bundled to provide.
+
 ## Remaining work and open questions
 
-The single remaining blocker is external to the implementation. The cluster's shared DigitalOcean DNS API token, stored in `Secret/cert-manager/digitalocean-dns` and used by the DNS-01 cluster issuer, is expired. A direct call to the DigitalOcean API returns HTTP 401. This blocks every wildcard DNS-01 certificate on the cluster, not only this one. The token cannot be regenerated through the API; it must be created in the DigitalOcean console. A rotation script at `ttmp/2026/07/01/HK3S-0031--…/scripts/02-rotate-digitalocean-dns-token.sh` updates the secret in all three places that hold it (the cert-manager secret, the terraform environment file, and the doctl configuration), restarts cert-manager, and re-triggers the certificate. Until the token is rotated, the PDS is reachable in-cluster and over port-forward, but not over public HTTPS with a valid certificate. The Argo CD sync operation is healthy in every resource except the certificate, whose health is gated on issuance.
+The DNS token blocker is resolved. During the initial deployment the cluster's shared DigitalOcean DNS API token, stored in `Secret/cert-manager/digitalocean-dns` and used by the DNS-01 cluster issuer, was found expired. A direct call to the DigitalOcean API returned HTTP 401, which blocked every wildcard DNS-01 certificate on the cluster, not only this one. The token could not be regenerated through the API; Personal Access Tokens are console-only by design, and there is no `digitalocean_token` terraform resource. A fresh token was generated in the DigitalOcean console with a Domains-write scope and stored in `terraform/.envrc` as `DIGITAL_OCEAN_ACCESS_TOKEN__DNS`. A rotation script at `ttmp/2026/07/01/HK3S-0031--…/scripts/02-rotate-digitalocean-dns-token.sh` propagates that token into the cert-manager secret, restarts cert-manager, and re-triggers the certificate. After rotation, the certificate issued, public HTTPS worked, and the loop was re-verified over the internet. A follow-up worth filing is to move the token into Vault and materialize the cert-manager secret through the Vault Secrets Operator, so future rotations are a `vault kv patch` rather than a manual script that touches Git. The token is a single point of failure for every wildcard certificate on the cluster and will expire again.
 
 The consumer currently trusts the internal PDS. It does not verify commit signatures against the DID document, and it does not recompute MST hashes. The protocol's self-authenticating guarantee only holds when a consumer performs this verification. For an internal deployment on a trusted cluster this is an acceptable starting posture, but verification is a necessary hardening step before the system is used to make decisions. The verification path is well defined: extract the commit object from the CAR slice, fetch the DID document for the event's account, read the signing key, and verify the commit signature. The `goat` CLI exposes `--verify-sig` and `--verify-mst` flags on its firehose command, which provide reference implementations to compare against.
 
 The `com.example` namespace is a placeholder. Before any Lexicon schemas are published, the namespace must change to a domain under the project's control, because Lexicons are referenced by NSID and become difficult to revise once other records point at them. The decision between `did:plc` and `did:web` for the internal deployment remains open. The `did:plc` default depends on the external PLC directory for identity operations. A `did:web` deployment would derive identity from the PDS's own domain and remove that external dependency, which is attractive for a fully self-contained internal system.
+
+The next build phases turn the verified foundation into the agent-activity-log system the project is aimed at. An HTTP service, the agent-bridge, accepts agent POSTs and writes them as records using its own authenticated session. A fake-agent emits the demo sequence of events. A stackchan-controller subscribes to the firehose, persists its cursor, maps records to robot state, and drives the Stack-chan robot. The `pds-lab` client already contains the XRPC and firehose primitives these services need.
 
 ## Working rules
 
