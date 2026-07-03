@@ -5,6 +5,7 @@ aliases:
   - Glossary AppView deep dive
   - HK3S-0036 project report
   - pds-lab AppView implementation report
+  - HK3S-0038 Lexicon API formalization report
 tags:
   - project-report
   - atproto
@@ -15,6 +16,9 @@ tags:
   - go
   - k3s
   - gitops
+  - lexicon
+  - xrpc
+  - api-contracts
 status: active
 type: project-report
 created: 2026-07-03
@@ -26,6 +30,8 @@ live_url: https://glossary-appview.yolo.scapegoat.dev
 related_tickets:
   - HK3S-0034
   - HK3S-0036
+  - HK3S-0037
+  - HK3S-0038
 ---
 
 # ATProto Glossary AppView — Deep Dive
@@ -619,27 +625,235 @@ It does not expose a live streaming UI. The architecture can support one. The cl
 
 It does not yet expose operational metrics. The service logs reconnects and indexed commits, but it does not publish Prometheus metrics for last sequence, reconnect count, ingestion lag, or rejected records.
 
+## Update: Lexicon/API formalization and follow-up design tickets
+
+After the initial AppView report, two follow-up tickets were created to turn the MVP into a more durable platform component.
+
+`HK3S-0037` documented the design for a future streaming view. It did not implement live streaming yet. It produced an intern-facing guide for adding `GET /events` as a Server-Sent Events stream and `GET /live` as a browser page. The guide recommends streaming interpreted AppView events rather than raw PDS firehose frames. The important design seam is still `internal/glossaryappview/indexer/indexer.go`: after the indexer validates and stores a record, it can publish a compact live event containing the action, sequence, AT URI, repo DID, term, tags, and ingestion timestamp.
+
+`HK3S-0038` then formalized and deployed the glossary AppView API contract. This changed the project from “hand-written XRPC-like endpoints with documented behavior” to “Lexicon-described endpoints with typed Go response contracts, explicit validation, and cursor pagination.” The deployed services now run the same implementation commit across AppView, Node writer, and Go writer:
+
+```text
+ghcr.io/wesen/pds-lab-glossary-appview:sha-0f6d800
+ghcr.io/wesen/pds-lab-glossary-node:sha-0f6d800
+ghcr.io/wesen/pds-lab-glossary-go:sha-0f6d800
+```
+
+The implementation commit is:
+
+```text
+/home/manuel/code/wesen/2026-07-01--pds-lab
+0f6d800 HK3S-0038: formalize glossary AppView API contracts
+```
+
+The GitOps deployment commits are:
+
+```text
+/home/manuel/code/wesen/2026-03-27--hetzner-k3s
+411bb12 Deploy glossary Lexicon API formalization images
+0f64c2a HK3S-0038: record Lexicon API implementation
+3b04037 HK3S-0038: record final reMarkable upload
+```
+
+The formal Lexicon set now lives at:
+
+```text
+/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary/README.md
+/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary/definition.json
+/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary/defs.json
+/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary/searchDefinitions.json
+/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary/getDefinition.json
+/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary/listDefinitions.json
+/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary/getStats.json
+```
+
+The record Lexicon describes the canonical repository record:
+
+```text
+dev.scapegoat.glossary.definition
+```
+
+It requires:
+
+```text
+term
+definition
+language
+createdAt
+updatedAt
+```
+
+and bounds the main fields so writers and parsers agree on the shape. The AppView parser remains tolerant of older records by defaulting a missing `language` to `en`, but the Node and Go writer apps now emit `language` as a required field and validate `sourceUrl` and size limits before creating records.
+
+The shared AppView response schema is in `dev.scapegoat.glossary.defs`. Its most important object is `definitionView`, which is not the same thing as the repository record. A repository record is the canonical user-authored data. A `definitionView` is the AppView projection that adds fields needed by readers:
+
+```text
+uri
+cid
+authorDid
+term
+definition
+context
+aliases
+tags
+sourceUrl
+language
+createdAt
+updatedAt
+indexedAt
+```
+
+That separation is now explicit. It keeps the AppView free to return indexed metadata without pretending that the metadata is part of the user's repository record.
+
+The API endpoints now have formal query Lexicons:
+
+| Endpoint NSID | Purpose | Important output shape |
+|---|---|---|
+| `dev.scapegoat.glossary.searchDefinitions` | Search by text and optional filters | `{ cursor?, definitions: definitionView[] }` |
+| `dev.scapegoat.glossary.getDefinition` | Fetch one definition by AT URI | `{ definition: definitionView }` |
+| `dev.scapegoat.glossary.listDefinitions` | Traverse indexed definitions with filters | `{ cursor?, definitions: definitionView[] }` |
+| `dev.scapegoat.glossary.getStats` | Return index statistics | `{ definitions, authors, lastSeq, lastIndexedAt? }` |
+
+The Go API code now has typed DTOs in:
+
+```text
+/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/contract/types.go
+```
+
+The HTTP handlers in `internal/glossaryappview/api/server.go` return those typed wrappers instead of anonymous maps. This matters because the code now has a concrete boundary between internal store models and public API contracts. A future generated client can target the Lexicon/DTO shape without reading the SQLite code.
+
+The most important runtime behavior added by HK3S-0038 is cursor pagination. Before this update, `limit` bounded the result set, but clients could not traverse stable pages. The store now encodes a cursor as URL-safe base64 JSON:
+
+```json
+{"seq":57,"uri":"at://did:plc:.../dev.scapegoat.glossary.definition/3mpr3latv7c25"}
+```
+
+The SQL ordering is:
+
+```sql
+order by d.seq desc, d.uri desc
+```
+
+The next-page predicate matches that ordering:
+
+```sql
+and (d.seq < ? or (d.seq = ? and d.uri < ?))
+```
+
+This exact pairing is important. If the cursor predicate does not match the order clause, records can be skipped or duplicated between pages. The implemented shape fetches `limit + 1` rows, returns only `limit`, and emits a cursor only when there is another page.
+
+```mermaid
+flowchart TD
+  Lexicons["Lexicon JSON\nlexicons/dev/scapegoat/glossary"]
+  Contract["Go contract DTOs\ninternal/glossaryappview/contract"]
+  API["HTTP/XRPC handlers\ninternal/glossaryappview/api"]
+  Store["SQLite store\ninternal/glossaryappview/store"]
+  Writers["Node + Go writer validation"]
+  Clients["Current and future clients"]
+
+  Lexicons --> Contract
+  Contract --> API
+  API --> Store
+  Lexicons --> Writers
+  API --> Clients
+
+  style Lexicons fill:#eef2ff,stroke:#4f46e5,stroke-width:2px
+  style Contract fill:#ecfdf5,stroke:#047857,stroke-width:2px
+  style Store fill:#fff7ed,stroke:#c2410c,stroke-width:2px
+```
+
+Validation for this update included:
+
+```bash
+cd /home/manuel/code/wesen/2026-07-01--pds-lab
+go test ./... -count=1
+cd glossary-node
+pnpm check
+pnpm test
+pnpm build
+```
+
+Public smoke tests confirmed the deployed behavior:
+
+```text
+https://glossary-appview.yolo.scapegoat.dev/healthz
+https://pds.yolo.scapegoat.dev/glossary/healthz
+https://pds.yolo.scapegoat.dev/glossary-go/healthz
+https://glossary-appview.yolo.scapegoat.dev/xrpc/dev.scapegoat.glossary.getStats
+```
+
+A cursor smoke on `searchDefinitions?q=same-origin&limit=1` returned a cursor on the first page and the next matching definition on the second page. An invalid author smoke returned the formal XRPC-style error body:
+
+```json
+{"error":"InvalidRequest","message":"author must be a DID"}
+```
+
+The updated report bundle for HK3S-0038 was also uploaded to reMarkable at:
+
+```text
+/ai/2026/07/03/HK3S-0038/HK3S-0038 Glossary AppView Lexicon API Formalization Final
+```
+
+### What client generation would mean from here
+
+The new Lexicon set makes client generation possible because the schema is now outside the server implementation. A generator would read the JSON files and emit typed client code. For Go, the generated surface would look like this:
+
+```go
+type SearchDefinitionsParams struct {
+    Q        string
+    Author   string
+    Tag      string
+    Language string
+    Limit    int
+    Cursor   string
+}
+
+type SearchDefinitionsOutput struct {
+    Cursor      string
+    Definitions []DefinitionView
+}
+
+func (c *Client) SearchDefinitions(ctx context.Context, p SearchDefinitionsParams) (*SearchDefinitionsOutput, error) {
+    // GET /xrpc/dev.scapegoat.glossary.searchDefinitions?q=...&limit=...
+}
+```
+
+For TypeScript, the generated surface would let a UI or automation script call the AppView without manually constructing query strings:
+
+```ts
+const out = await client.dev.scapegoat.glossary.searchDefinitions({
+  q: 'same-origin',
+  limit: 10,
+})
+
+for (const def of out.definitions) {
+  console.log(def.term, def.uri)
+}
+```
+
+The safe next step is to generate client types and client methods first. Server stubs are less urgent because the AppView server is small and already explicit. Generated clients would immediately help tests, examples, future UIs, and external consumers.
+
 ## Recommended next steps
 
-The next steps should be driven by the intended use of the glossary. If it remains a lab proof, the current AppView is enough. If it becomes a shared glossary product, the following work should happen in order.
+The next steps have changed because API formalization and cursor pagination are now complete. The glossary AppView is no longer just an MVP with implicit endpoint shapes; it has a formal lab contract, typed Go responses, writer-side validation, deployed images, and cursor traversal.
 
-First, formalize the API. Write Lexicons for `dev.scapegoat.glossary.searchDefinitions`, `getDefinition`, `listDefinitions`, and `getStats`. The published response shape should be stable before other clients depend on it.
+The highest-value next step is now to decide how the Lexicons should be published or served. Today they are source-controlled contract artifacts. A client developer can read them in Git, but the AppView does not yet expose them as public documentation or machine-readable files over HTTP.
 
-Second, improve search. SQLite FTS is the smallest next step because the service already uses SQLite. The FTS table should index term, aliases, definition, context, and tags. Search results should include deterministic ordering and possibly a simple score.
+Second, generate client code from the Lexicons. Start with generated DTOs and typed clients rather than generated server stubs. The AppView server remains small; clients are where manual query construction and response decoding will duplicate fastest.
 
-Third, add pagination cursors. The current `limit` parameter bounds result sets, but clients need a cursor for stable traversal once there are more than a few records.
+Third, improve search. SQLite FTS is still the smallest next step because the service already uses SQLite. The FTS table should index term, aliases, definition, context, and tags. Search results should include deterministic ordering and possibly a simple score.
 
-Fourth, add a streaming view if live activity matters. The preferred MVP is:
+Fourth, implement the HK3S-0037 streaming view if live activity matters. The preferred MVP remains:
 
 ```text
 indexer.ProcessCommit
-  -> publish interpreted glossary event
+  -> publish interpreted glossary event after successful store write
   -> in-memory broadcaster
   -> GET /events server-sent events
   -> GET /live browser page
 ```
 
-The streamed event should use the AppView's parsed model:
+The streamed event should use the AppView's parsed model rather than raw firehose frames:
 
 ```json
 {
@@ -682,8 +896,26 @@ Primary AppView files:
 - `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/store/store.go`
 - `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/indexer/indexer.go`
 - `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/api/server.go`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/api/validation.go`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/contract/types.go`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/contract/lexicon_test.go`
 - `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/integration_test.go`
 - `/home/manuel/code/wesen/2026-07-01--pds-lab/glossary-appview/Dockerfile`
+
+Formal Lexicon files:
+
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary/definition.json`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary/defs.json`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary/searchDefinitions.json`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary/getDefinition.json`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary/listDefinitions.json`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary/getStats.json`
+
+Writer alignment files:
+
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/glossary-node/src/glossary/records.ts`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/glossary-node/lexicons/dev/scapegoat/glossary/definition.json`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/glossary-go/internal/glossary/record.go`
 
 Primary GitOps files:
 
@@ -691,6 +923,8 @@ Primary GitOps files:
 - `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/atproto-glossary-appview/deployment.yaml`
 - `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/atproto-glossary-appview/ingress.yaml`
 - `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/atproto-glossary-appview/vault-static-secret-image-pull.yaml`
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/atproto-glossary-node/deployment.yaml`
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/atproto-glossary-go/deployment.yaml`
 
 Related vault note:
 
@@ -700,3 +934,5 @@ Ticket source material:
 
 - `HK3S-0034`: same-origin routing and OAuth writer cutover.
 - `HK3S-0036`: AppView design, implementation, deployment, live smoke, and post-deploy root page fix.
+- `HK3S-0037`: streaming/live view design guide for future SSE `/events` and browser `/live` work.
+- `HK3S-0038`: Lexicon/API formalization design, implementation diary, validation record, and final reMarkable bundle.
