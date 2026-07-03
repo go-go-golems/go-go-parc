@@ -6,6 +6,7 @@ aliases:
   - HK3S-0036 project report
   - pds-lab AppView implementation report
   - HK3S-0038 Lexicon API formalization report
+  - HK3S-0041 live React UI report
 tags:
   - project-report
   - atproto
@@ -19,6 +20,11 @@ tags:
   - lexicon
   - xrpc
   - api-contracts
+  - react
+  - vite
+  - redux
+  - sse
+  - live-ui
 status: active
 type: project-report
 created: 2026-07-03
@@ -27,11 +33,15 @@ source_repos:
   - /home/manuel/code/wesen/2026-07-01--pds-lab
   - /home/manuel/code/wesen/2026-03-27--hetzner-k3s
 live_url: https://glossary-appview.yolo.scapegoat.dev
+live_ui_url: https://glossary-appview.yolo.scapegoat.dev/live
+sse_url: https://glossary-appview.yolo.scapegoat.dev/events
 related_tickets:
   - HK3S-0034
   - HK3S-0036
   - HK3S-0037
   - HK3S-0038
+  - HK3S-0039
+  - HK3S-0041
 ---
 
 # ATProto Glossary AppView — Deep Dive
@@ -443,10 +453,16 @@ The public hostname is served through Traefik and cert-manager:
 https://glossary-appview.yolo.scapegoat.dev
 ```
 
-The active image after the root-page fix is:
+The image after the root-page fix was:
 
 ```text
 ghcr.io/wesen/pds-lab-glossary-appview:sha-031df74
+```
+
+The current deployed image after the live React UI rollout is:
+
+```text
+ghcr.io/wesen/pds-lab-glossary-appview:sha-b6a015e
 ```
 
 The image is private on GHCR, so the namespace needs an image-pull secret. That is handled through Vault Secrets Operator:
@@ -621,9 +637,9 @@ It is not a formal protocol surface yet. The endpoints use XRPC-style paths and 
 
 It is not horizontally scalable. The deployment has one replica and a SQLite PVC. That is correct for this lab deployment. If read traffic or indexing volume grows, the next storage step is Postgres or a split indexer/API topology.
 
-It does not expose a live streaming UI. The architecture can support one. The clean version would emit interpreted glossary index events from the indexer, then serve those events over Server-Sent Events to a `/live` page. The browser should receive application-level events such as `create`, `update`, and `delete`, not the raw PDS firehose.
+It now exposes a live streaming UI, but the live event timeline is not durable across pod restarts. `/events` is already a Server-Sent Events endpoint, and `/live` is a deployed React/Vite browser page. The durability boundary is the event history: glossary definitions remain durable in SQLite, while recent SSE events are kept in memory for replay to newly connected browsers.
 
-It does not yet expose operational metrics. The service logs reconnects and indexed commits, but it does not publish Prometheus metrics for last sequence, reconnect count, ingestion lag, or rejected records.
+It does not yet expose operational metrics. The service logs reconnects and indexed commits, but it does not publish Prometheus metrics for last sequence, reconnect count, ingestion lag, rejected record count, connected SSE subscribers, or published live event count.
 
 ## Update: Lexicon/API formalization and follow-up design tickets
 
@@ -833,40 +849,138 @@ for (const def of out.definitions) {
 
 The safe next step is to generate client types and client methods first. Server stubs are less urgent because the AppView server is small and already explicit. Generated clients would immediately help tests, examples, future UIs, and external consumers.
 
+## Update: Generated client tooling and deployed live React UI
+
+After Lexicon/API formalization, the next two follow-ups moved the AppView from a documented API into a more usable platform surface.
+
+`HK3S-0039` added generated Go client tooling from the glossary Lexicons. The generator is a Glazed CLI at:
+
+```text
+/home/manuel/code/wesen/2026-07-01--pds-lab/cmd/glossary-lexgen/main.go
+```
+
+It reads the formal Lexicons in:
+
+```text
+/home/manuel/code/wesen/2026-07-01--pds-lab/lexicons/dev/scapegoat/glossary
+```
+
+and generates a typed Go client package under:
+
+```text
+/home/manuel/code/wesen/2026-07-01--pds-lab/pkg/glossaryclient
+```
+
+The generated client covers the public AppView query endpoints: `GetStats`, `GetDefinition`, `ListDefinitions`, and `SearchDefinitions`. The important shift is that client DTOs and query methods now derive from the Lexicon contract rather than from a reader manually copying the current server handlers. The generator also has golden tests, generated-client tests, a gated live smoke test against the deployed AppView, and embedded Glazed help:
+
+```bash
+go run ./cmd/glossary-lexgen help glossary-lexicon-codegen
+```
+
+`HK3S-0041` then implemented the live view that HK3S-0037 had only designed. The deployed AppView now serves:
+
+```text
+https://glossary-appview.yolo.scapegoat.dev/live
+https://glossary-appview.yolo.scapegoat.dev/events
+```
+
+`/events` is a Server-Sent Events stream of interpreted glossary AppView events. It does not expose raw PDS firehose frames. The indexer publishes events after successful store writes, so a browser receiving a `create` event can immediately read the corresponding definition through the query API. Rejected and deleted glossary operations also produce application-level events.
+
+`/live` is a React/Vite application embedded into the Go AppView binary. It uses Redux Toolkit and RTK Query for the durable read APIs (`getStats`, `listDefinitions`, `searchDefinitions`) and an `EventSource` connection for incremental live activity. Live events invalidate the RTK Query definition/stat tags so the browser refreshes its read model when the indexer observes a new glossary record.
+
+The live UI intentionally follows a constrained visual direction: a white-background, monochrome Mac OS 1-inspired structure using modern system typography instead of Chicago, no menu bar, no fake window chrome, and restrained 1950s pastel foreground accents. The final deployment softened the rose accent after visual review so the page stayed closer to the requested pastel-only accent palette.
+
+The new implementation files are:
+
+```text
+/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/live/event.go
+/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/live/broadcaster.go
+/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/live/sse.go
+/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/web/web.go
+/home/manuel/code/wesen/2026-07-01--pds-lab/glossary-appview/ui/src/App.tsx
+/home/manuel/code/wesen/2026-07-01--pds-lab/glossary-appview/ui/src/features/glossaryApi.ts
+/home/manuel/code/wesen/2026-07-01--pds-lab/glossary-appview/ui/src/features/liveSlice.ts
+/home/manuel/code/wesen/2026-07-01--pds-lab/glossary-appview/ui/src/styles.css
+```
+
+The runtime data flow now has an additional live branch:
+
+```mermaid
+flowchart TD
+  PDS["PDS firehose"]
+  Indexer["AppView indexer"]
+  Store[("SQLite glossary projection")]
+  API["XRPC read API"]
+  Broadcaster["In-memory SSE broadcaster"]
+  Events["GET /events"]
+  Live["GET /live React app"]
+  Browser["Browser operator view"]
+
+  PDS --> Indexer
+  Indexer -->|after successful upsert/delete| Store
+  Store --> API
+  Indexer -->|interpreted create/update/delete/reject| Broadcaster
+  Broadcaster --> Events
+  Events --> Live
+  API --> Live
+  Live --> Browser
+
+  style Store fill:#fff7ed,stroke:#c2410c,stroke-width:2px
+  style Broadcaster fill:#eef2ff,stroke:#4f46e5,stroke-width:2px
+  style Live fill:#ecfdf5,stroke:#047857,stroke-width:2px
+```
+
+The final deployed image is:
+
+```text
+ghcr.io/wesen/pds-lab-glossary-appview:sha-b6a015e
+```
+
+The GitOps deployment commit is:
+
+```text
+/home/manuel/code/wesen/2026-03-27--hetzner-k3s
+e569d5d HK3S-0041: deploy softened live UI image
+```
+
+Deployment validation reached:
+
+```text
+Argo: atproto-glossary-appview Synced/Healthy
+Image: ghcr.io/wesen/pds-lab-glossary-appview:sha-b6a015e
+```
+
+Public smoke checks passed for `/live`, `/events`, `getStats`, and `listDefinitions`. A full live event smoke created a real glossary definition through the PDS XRPC API and observed the corresponding SSE event from the deployed AppView:
+
+```text
+Term: Live UI deploy smoke 1783117223
+URI:  at://did:plc:3jno7qw5v2yrse5bhtde5tfs/dev.scapegoat.glossary.definition/3mprlef7byc25
+SSE:  event: glossary
+Kind: create
+Seq:  58
+```
+
+This proves the deployed chain now includes the browser-facing live branch:
+
+```text
+PDS createRecord -> PDS firehose -> AppView indexer -> SQLite -> SSE broadcaster -> /events -> /live
+```
+
+The SSE stream is live but not durable. The glossary definitions themselves remain durable in SQLite, and `/live` reloads current state through the query API. The live event timeline is only kept in an in-memory replay buffer. If durable event replay becomes important, the next design step is a `glossary_live_event` SQLite table plus `Last-Event-ID` replay semantics. That would preserve the SSE event log across pod restarts; it would not change the fact that `/events` already uses Server-Sent Events today.
+
 ## Recommended next steps
 
-The next steps have changed because API formalization and cursor pagination are now complete. The glossary AppView is no longer just an MVP with implicit endpoint shapes; it has a formal lab contract, typed Go responses, writer-side validation, deployed images, and cursor traversal.
+The next steps have changed because API formalization, cursor pagination, generated client tooling, and the first deployed live UI are now complete. The glossary AppView now has a formal lab contract, typed Go responses, writer-side validation, generated Go client tooling, cursor traversal, `/events` SSE, and a deployed `/live` React UI.
 
 The highest-value next step is now to decide how the Lexicons should be published or served. Today they are source-controlled contract artifacts. A client developer can read them in Git, but the AppView does not yet expose them as public documentation or machine-readable files over HTTP.
 
-Second, generate client code from the Lexicons. Start with generated DTOs and typed clients rather than generated server stubs. The AppView server remains small; clients are where manual query construction and response decoding will duplicate fastest.
+Second, decide how the generated Go client should be used in examples, integration tests, or downstream services. HK3S-0039 generated the client package, but the AppView and UI still call the HTTP endpoints directly. A small example or smoke command using `pkg/glossaryclient` would make the generated client more visible.
 
 Third, improve search. SQLite FTS is still the smallest next step because the service already uses SQLite. The FTS table should index term, aliases, definition, context, and tags. Search results should include deterministic ordering and possibly a simple score.
 
-Fourth, implement the HK3S-0037 streaming view if live activity matters. The preferred MVP remains:
+Fourth, decide whether the SSE timeline needs durability. The current `/events` endpoint is real SSE and the current `/live` page is deployed, but recent event replay is in memory. If operators need history across pod restarts, add a `glossary_live_event` SQLite table and implement `Last-Event-ID` replay semantics.
 
-```text
-indexer.ProcessCommit
-  -> publish interpreted glossary event after successful store write
-  -> in-memory broadcaster
-  -> GET /events server-sent events
-  -> GET /live browser page
-```
-
-The streamed event should use the AppView's parsed model rather than raw firehose frames:
-
-```json
-{
-  "seq": 57,
-  "action": "create",
-  "uri": "at://did:plc:.../dev.scapegoat.glossary.definition/3mpr3iuxuw225",
-  "repo": "did:plc:3jno7qw5v2yrse5bhtde5tfs",
-  "term": "Same-origin Node smoke HK3S-0034",
-  "indexedAt": "2026-07-03T18:24:04Z"
-}
-```
-
-Fifth, add metrics and alerts. At minimum, expose last indexed sequence, last indexed time, reconnect count, rejected record count, and store error count. Those metrics would make it possible to detect a stalled AppView before a human notices stale search results.
+Fifth, add metrics and alerts. At minimum, expose last indexed sequence, last indexed time, reconnect count, rejected record count, store error count, connected SSE subscriber count, and published live event count. Those metrics would make it possible to detect a stalled AppView before a human notices stale search results.
 
 ## Engineering rules preserved by this work
 
@@ -900,6 +1014,14 @@ Primary AppView files:
 - `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/contract/types.go`
 - `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/contract/lexicon_test.go`
 - `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/integration_test.go`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/live/event.go`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/live/broadcaster.go`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/live/sse.go`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/internal/glossaryappview/web/web.go`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/glossary-appview/ui/src/App.tsx`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/glossary-appview/ui/src/features/glossaryApi.ts`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/glossary-appview/ui/src/features/liveSlice.ts`
+- `/home/manuel/code/wesen/2026-07-01--pds-lab/glossary-appview/ui/src/styles.css`
 - `/home/manuel/code/wesen/2026-07-01--pds-lab/glossary-appview/Dockerfile`
 
 Formal Lexicon files:
@@ -934,5 +1056,7 @@ Ticket source material:
 
 - `HK3S-0034`: same-origin routing and OAuth writer cutover.
 - `HK3S-0036`: AppView design, implementation, deployment, live smoke, and post-deploy root page fix.
-- `HK3S-0037`: streaming/live view design guide for future SSE `/events` and browser `/live` work.
+- `HK3S-0037`: streaming/live view design guide that shaped the later SSE `/events` and browser `/live` implementation.
 - `HK3S-0038`: Lexicon/API formalization design, implementation diary, validation record, and final reMarkable bundle.
+- `HK3S-0039`: Glazed Lexicon Go client generator and generated `pkg/glossaryclient` package.
+- `HK3S-0041`: deployed `/events` SSE and `/live` React/Vite/RTK Query UI.
