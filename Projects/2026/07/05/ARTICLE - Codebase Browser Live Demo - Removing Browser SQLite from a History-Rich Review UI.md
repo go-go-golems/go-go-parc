@@ -482,10 +482,10 @@ The Kubernetes deployment is managed through the Hetzner K3s GitOps repository a
 edd12c9 Deploy codebase-browser no-sqljs frontend
 ```
 
-At the time of the final check, ArgoCD had synced to that revision and was still progressing toward full health:
+At the final deployment check, ArgoCD had synced to that revision and reported the application healthy:
 
 ```text
-Synced Progressing edd12c9c7d0b2344fe7b4ce257669709017864a8
+Synced Healthy edd12c9c7d0b2344fe7b4ce257669709017864a8
 ```
 
 The public health endpoint responded successfully:
@@ -589,12 +589,9 @@ The project produced several rules that are worth applying elsewhere.
 
 ## Current status
 
-The repo now has a backend-only frontend data layer. The last local code validation passed, the no-sql.js image was built and pushed, and the GitOps deployment was updated to that image. The yolo public health endpoint responds as a live Go server.
+The repo now has a backend-only frontend data layer. The last local code validation passed, the no-sql.js image was built and pushed, and the GitOps deployment was updated to that image. The yolo application reached `Synced Healthy`, public `/api/health` responds as a live Go server, and public `/api/history/commits` returns 118 commits.
 
-Two operational details remain worth tracking:
-
-1. ArgoCD had synced to the new GitOps revision but was still `Progressing` at the final observed check. It should be checked again until it reports `Synced Healthy`.
-2. The image still embeds the SQLite database. That is acceptable for this review demo but should be revisited if the database or deployment cadence grows.
+One operational detail remains worth tracking: the image still embeds the SQLite database. That is acceptable for this review demo but should be revisited if the database or deployment cadence grows.
 
 ## Source map for future readers
 
