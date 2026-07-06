@@ -472,7 +472,7 @@ ok tinyidp login smoke; session email=alice@example.test
 ok tinyidp replacement smoke
 ```
 
-The same smoke passed with a path-based issuer. The exact invocation used Make command-line variables because the Makefile defines `TINYIDP_ISSUER := ...` internally, so shell environment assignment is not sufficient for that variable:
+The same Step 06 smoke passed with a path-based issuer. The exact invocation used Make command-line variables because the Makefile defines `TINYIDP_ISSUER := ...` internally, so shell environment assignment is not sufficient for that variable:
 
 ```text
 make tinyidp-smoke \
@@ -482,6 +482,26 @@ make tinyidp-smoke \
 ...
 ok tinyidp login smoke; session email=alice@example.test
 ok tinyidp replacement smoke
+```
+
+Step 07 and Step 08 were then revalidated with the same password-protected users fixture. Step 07 proves Alice/Bob inbox isolation. Step 08 proves device-token capture isolation while keeping device authorization owned by the generated xgoja host. Both passed for root issuer and path-based issuer:
+
+```text
+# Step 07 root issuer
+ok tinyidp alice/bob inbox isolation
+ok tinyidp isolation smoke
+
+# Step 07 path issuer
+ok tinyidp alice/bob inbox isolation
+ok tinyidp isolation smoke
+
+# Step 08 root issuer
+ok tinyidp device capture isolation
+ok tinyidp device authorization smoke
+
+# Step 08 path issuer
+ok tinyidp device capture isolation
+ok tinyidp device authorization smoke
 ```
 
 The docmgr tickets also passed doctor and were closed:
@@ -541,13 +561,11 @@ That shift matters for reuse. A config file can be reviewed, copied, passed to `
 
 ## Remaining work
 
-The immediate next technical step is to validate xgoja Step 07 and Step 08 with the new users fixture. Step 06 is proven for both root and path issuer shapes. Step 07 exercises Alice/Bob isolation, which is where the fixed subjects, roles, and passwords are most useful. Step 08 remains different because the device authorization flow is implemented by the generated xgoja host, not by tinyidp as an external device authorization endpoint.
+The immediate xgoja validation gap is now closed for Steps 06, 07, and 08, each with root and path issuer shapes. The next technical step is to decide whether the documented smoke overrides should become official Make targets. The current commands work, but a target such as `tinyidp-smoke-realm` would reduce the chance of a developer using shell environment assignment for a Make variable that is defined with `:=` inside the Makefile.
 
-The second step is to decide whether the documented smoke overrides should become official Make targets. The current commands work, but a target such as `tinyidp-smoke-realm` would reduce the chance of a developer using shell environment assignment for a Make variable that is defined with `:=` inside the Makefile.
+The second step is to decide whether `users-file` should remain working-directory-relative or become config-file-relative. The current behavior is documented and acceptable. Config-file-relative paths would be more portable, but only if the configuration layer can expose the source file path without a fragile workaround.
 
-The third step is to decide whether `users-file` should remain working-directory-relative or become config-file-relative. The current behavior is documented and acceptable. Config-file-relative paths would be more portable, but only if the configuration layer can expose the source file path without a fragile workaround.
-
-The fourth step is to keep the provider-neutral boundary intact. It is still possible to write provider-specific claims under `claims`. That is the correct escape hatch. New first-class fields should be added only when they describe generic relying-party concepts, not one provider's internal authorization model.
+The third step is to keep the provider-neutral boundary intact. It is still possible to write provider-specific claims under `claims`. That is the correct escape hatch. New first-class fields should be added only when they describe generic relying-party concepts, not one provider's internal authorization model.
 
 ## Key points
 
@@ -568,4 +586,5 @@ The fourth step is to keep the provider-neutral boundary intact. It is still pos
 - Server-flow tests: `internal/server/server_test.go`
 - Portable configs: `examples/configs/`
 - Personal-inbox users fixture: `examples/users/personal-inbox-users.yaml`
-- xgoja helper change: `examples/xgoja/23-personal-knowledge-inbox/06-browser-login-keycloak/scripts/tinyidp_login_smoke.py` in `go-go-goja`, commit `eccfa5b`
+- xgoja Step 06 helper change: `examples/xgoja/23-personal-knowledge-inbox/06-browser-login-keycloak/scripts/tinyidp_login_smoke.py` in `go-go-goja`, commit `eccfa5b`
+- xgoja Step 07/08 helper changes: `tinyidp_inbox_isolation_smoke.py` and `tinyidp_device_capture_isolation_smoke.py` in `go-go-goja`, commit `873c015`
