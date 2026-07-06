@@ -1,0 +1,7 @@
+# .vault-ignore — paths excluded from the published vault everywhere
+# (note index, file tree, search, backlinks, raw source, /vault-assets/, watcher).
+# Syntax: documented gitignore subset. See publish-vault README.
+# Takes effect on the next full reload (git-sync POSTs /api/admin/reload).
+
+# docmgr authoring scaffolding — private, never publish
+ttmp/_*/
