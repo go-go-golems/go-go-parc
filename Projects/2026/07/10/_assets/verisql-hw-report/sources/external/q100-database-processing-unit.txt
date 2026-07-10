@@ -1,0 +1,1222 @@
+                                      Q100: The Architecture and Design
+                                        of a Database Processing Unit
+
+             Lisa Wu            Andrea Lottarini           Timothy K. Paine               Martha A. Kim               Kenneth A. Ross
+                                                      Columbia University, New York, NY
+                                     {lisa,lottarini,martha,kar}@cs.columbia.edu/tkp2108@columbia.edu
+
+
+
+
+Abstract                                                                                    It goes on to describe big data analytics as not just impor-
+In this paper, we propose Database Processing Units, or                                     tant for business, but essential. The article emphasized that
+DPUs, a class of domain-specific database processors that                                   analyses must process large volumes of a wide variety, and
+can efficiently handle database applications. As a proof of                                 at real-time or nearly real-time velocity. With the big data
+concept, we present the instruction set architecture, microar-                              technology and services market forecast to grow from $3.2B
+chitecture, and hardware implementation of one DPU, called                                  in 2010 to $16.9B in 2015 [23], and 2.6 exabytes of data
+Q100. The Q100 has a collection of heterogeneous ASIC                                       created each day [28], it is imperative for the research com-
+tiles that process relational tables and columns quickly and                                munity to develop machines that can keep up with this data
+energy-efficiently. The architecture uses coarse grained in-                                deluge.
+structions that manipulate streams of data, thereby maxi-                                       For its part, the Database Management System (DBMS)
+mizing pipeline and data parallelism, and minimizing the                                    software    community has been exploring optimizations such
+need to time multiplex the accelerator tiles and spill inter-                               as  using  column    stores [1–3, 24, 27, 34], pipelining opera-
+mediate results to memory. This work explores a Q100 de-                                    tions  [4, 6], and  vectorizing  operations [40], to take advan-
+sign space of 150 configurations, selecting three for further                               tage  of  commodity    server hardware.
+analysis: a small, power-conscious implementation, a high-                                      This work applies those same techniques, but in hard-
+performance implementation, and a balanced design that                                      ware,  to construct a domain-specific processor for databases.
+maximizes performance per Watt. We then demonstrate that                                    Just as  conventional DBMSs operate on data in logical enti-
+the power-conscious Q100 handles the TPC-H queries with                                     ties of  tables and columns, our processor manipulates these
+three orders of magnitude less energy than a state of the art                               same    data  primitives.  Like DBMSs use software pipelin-
+software DBMS, while the performance-oriented design out-                                   ing  between    relational operators to reduce intermediate re-
+performs the same DBMS by 70X.                                                              sults, we   too can  exploit pipelining between relational oper-
+                                                                                            ators implemented in hardware to increase throughput and
+Categories and Subject Descriptors C.3 [Special-purpose                                     reduce query completion time. In light of the SIMD instruc-
+and application-based systems]: Microprocessor/microcomputer tion set advances in general purpose CPUs in the last decade,
+applications                                                                                DBMSs also vectorize their implementations of many oper-
+Keywords Accelerator; Specialized functional unit; Stream-                                  ators to exploit data parallelism. Our hardware does not use
+ing data; Microarchitecture; Database; DPU                                                  vectorized instructions, but exploits data parallelism by pro-
+                                                                                            cessing multiple streams of data, corresponding to tables and
+1. Introduction                                                                             columns, at once.
+                                                                                                Streams of data. Pipelines. Parallel functional units. All
+Harvard Business Review recently published an article on                                    of these techniques have long been known to be excellent
+Big Data that leads with a piece of artwork by Tamar Co-                                    fits for hardware, creating what we believe to be an op-
+hen titled “You can’t manage what you don’t measure” [28].                                  portunity to address some very practical, real-world con-
+                                                                                            cerns regarding big data. Our vision is of a class of domain-
+Permission to make digital or hard copies of all or part of this work for personal or
+                                                                                            specific processors called DPUs, that is analogous to GPUs.
+classroom use is granted without fee provided that copies are not made or distributed       Whereas GPUs target graphics applications, DPUs target an-
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than ACM
+                                                                                            alytic database workloads. As GPUs operate on vertices,
+must be honored. Abstracting with credit is permitted. To copy otherwise, or republish,     DPUs operate on tables and columns.
+to post on servers or to redistribute to lists, requires prior specific permission and/or a
+fee. Request permissions from permissions@acm.org.
+                                                                                                We design and evaluate a first DPU, called Q100. The
+ASPLOS ’14, March 1–5, 2014, Salt Lake City, Utah, USA.                                     Q100 is a performance and energy efficient data analy-
+Copyright c 2014 ACM 978-1-4503-2305-5/14/03. . . $15.00.                                   sis accelerator. It contains a heterogeneous collection of
+http://dx.doi.org/10.1145/2541940.2541961
+fixed-function ASIC tiles, each of which implements a well-       B Sample query written in SQL
+                                                                           SELECT        S SEASON ,
+known relational operator, such as a join or sort. The Q100                              SUM(S QU AN T IT Y ) as SUM QTY
+tiles operate on streams of data corresponding to tables and               FROM          SALES
+                                                                           WHERE         S SHIP DAT E <= ’1998-12-01’ - INTERVAL ’90’ DAY
+columns, over which the microarchitecture aggressively ex-                 GROUP BY S SEASON
+ploits pipeline and data parallelism.                                      ORDER BY S SEASON
+
+    This paper makes the following contributions:                 B Sample query plan converted to proposed DPU spatial instructions
+                                                                           Col1          ← ColSelect(S SEASON from SALES);
+ • An energy-efficient instruction set architecture for pro-               Col2          ← ColSelect(S QU AN T IT Y from SALES);
+     cessing data-analytic workloads, with instructions that               Col3          ← ColSelect(S SHIP DAT E from SALES);
+                                                                           Bool1         ← BoolGen(Col3, ’1998-09-02’, LTE);
+     both closely match standard relational primitives and are             Col4          ← ColFilter(Col1 using Bool1);
+     good fits for hardware acceleration.                                  Col5          ← ColFilter(Col2 using Bool1);
+                                                                           T able1       ← Stitch(Col4, Col5);
+ • A high-performance, energy-efficient DPU, called Q100.                  T able2..T able5 ← Partition(T able1 using key column Col4);
+                                                                           Col6..7       ← ColSelect(Col4..5 from T able2);
+     Using custom processing tiles, all physically designed in             Col8..9       ← ColSelect(Col4..5 from T able3);
+     32nm standard cells, this chip provides orders of magni-              Col10..11 ← ColSelect(Col4..5 from T able4);
+                                                                           Col12..13 ← ColSelect(Col4..5 from T able5);
+     tude improvements in both TPC-H performance and en-                   T able6 ← Append(Aggregate(SUM Col7 from T able2 group by Col6),
+     ergy consumption over state-of-the-art DBMS software.                                     Aggregate(SUM Col9 from T able3 group by Col8));
+                                                                           T able7 ← Append(Aggregate(SUM Col11 from T able4 group by Col10),
+ • An in-depth tour of the Q100 design process, revealing                                      Aggregate(SUM Col13 from T able5 group by Col12));
+                                                                           F inalAns ← Append(T able6, T able7);
+     the many opportunities, pitfalls, tradeoffs, and overheads
+     one can expect to encounter when designing small accel-
+     erators to process big data.                                 Figure 1. An example query (top) is transformed into a
+    In the following section, we present the design and spec-     spatial instruction plan (bottom) that map onto an array of
+ification of the Q100 ISA, the first DPU ISA. Then, in Sec-       heterogeneous specialized tiles for efficient execution.
+tion 3, we detail the step-by-step design process of the Q100,       SALES                                         Table2          Col6
+                                                                                                                             Col
+starting from physical design of the tiles and working up                 Col
+                                                                                  Col1
+                                                                                            Col
+                                                                                                       Col4
+                                                                                                                               Col
+                                                                                                                            Select        Agg
+                                                                         Select            Filter                             Select
+towards an exploration of resource scheduling algorithms.                                                       Parti-               Col7
+                                                                                                                                                 Append
+                                                                                                    Col5         tion                Col8
+The results of this process are three Q100 designs, each op-                      Col2                                       Col
+                                                                          Col               Col                                Col
+                                                                                                                            Select                    Table6
+timized for a particular objective (e.g., low power, high per-           Select            Filter            Table1           Select      Agg
+                                                                                                                       Table3        Col9
+formance, etc.). In Section 4 we compare the performance                          Col3
+                                                                                                  Bool1
+                                                                                                                             Col
+                                                                                                                                   Col10            Append
+                                                                          Col              Bool
+and energy consumption of TPC-H queries running on these                 Select            Gen              Stitch
+                                                                                                                               Col
+                                                                                                                            Select        Agg             Table7
+                                                                                                                              Select
+                                                                                                                       Table4
+Q100 designs to a state of the art, column store DBMS run-                                                                          Col11
+                                                                                                                                   Col12           Append
+                                                                                                                             Col
+ning on a Sandybridge server. Before concluding, we close                                                                      Col
+                                                                                                                            Select
+                                                                                                                                          Agg            Final
+with a survey of related work in Section 5.                                                                           Table5
+                                                                                                                              Select
+                                                                                                                                   Col13
+                                                                                                                                                        Answer
+
+
+                                                                     (a) Unrestricted Graph of Spatial Instructions
+2.     Q100 Instruction Set Architecture
+Q100 instructions implement standard relational operators
+that manipulate database primitives such as columns, tables,          4 ColSelect        2 ColFilter       2 BoolGen   1 Stitch 1 Part 2 Aggregator 2 Appender
+and constants. The producer and consumer relationship be-            (b) Resource Profile
+tween operators are captured with dependencies specified by
+                                                                    Temporal Instruction #1
+the instruction set architecture. Queries are represented as
+graphs of these instructions with the edges representing data
+dependencies between instructions. For execution, a query           Temporal Instruction #2
+
+is mapped to a spatial array of specialized processing tiles,
+each of which carries out one of the primitive functions.           Temporal Instruction #3
+When producer-consumer node pairs are mapped to the same
+temporal stage of the query, they operate as a pipeline with
+data streaming direction from producer to consumer.                  (c) Resource-Aware Temporal Instructions
+   The basic instruction is called a spatial instruction or
+sinst. These instructions implement standard SQL-esque op-        Figure 2. The example query from Figure 1 is mapped onto
+erators, namely select, join, aggregate, boolgen, colfilter,      a directed graph with nodes as relational operators and edges
+partition, and sort. Figure 1 shows a simple query written        as data dependencies. Given a set of Q100 resources, the
+in SQL to produce a summary sales quantity report per sea-        graph is broken into three temporal instructions that are
+son for all items shipped as of a given date. Figure 1 bottom     executed in sequence, one after another.
+shows the query transformed into Q100 spatial instructions,
+retaining data dependencies. Together, boolgen and colfil-
+                                        Area                  Power        Critical Path            Design Width (bits)
+                 Tile           mm2      % Xeon a      mW       % Xeon                ns   Record     Column Comparator           Other Constraint
+                 Aggregator     0.029     0.07%         7.1      0.14%             1.95                  256             256
+                 ALU            0.091     0.21%        12.0      0.24%             0.29                   64              64
+                 BoolGen        0.003     0.01%         0.2     <0.01%             0.41                  256             256
+ Functional      ColFilter      0.001     <0.01%       0.1      <0.01%             0.23                  256
+                 Joiner         0.016     0.04%         2.6      0.05%             0.51      1024        256             64
+                 Partitioner    0.942     2.20%        28.8      0.58%          ***3.17      1024        256             64
+                 Sorter         0.188     0.44%        39.4      0.79%             2.48      1024        256             64      1024 entries at a time
+                 Append         0.011      0.03%        5.4     0.11%               0.37     1024        256
+                 ColSelect      0.049      0.11%        8.0     0.16%               0.35     1024        256
+ Auxiliary
+                 Concat         0.003      0.01%        1.2     0.02%               0.28                 256
+                 Stitch         0.011      0.03%        5.4     0.11%               0.37                 256
+
+a Intel E5620 Xeon server with 2 chips. Each chip contains 4 cores 8 threads running at 2.4 GHz with 12 M B LLC, 3 channels of DDR3, providing 24 GB
+
+RAM. Comparisons are done using estimated single core area and power consumption derived from published specification.
+
+
+Table 1. The physical design characteristics of Q100 tiles post place and route, and compared to a Xeon core. ***The slowest
+tile, the partitioner, determines the frequency of Q100 at 315 M Hz.
+
+
+ter for example, support the WHERE clauses, while partition                      This instruction set architecture is energy efficient be-
+and sort are to support the ORDER BY clauses found in many                    cause it closely matches building blocks of our target do-
+query languages. Generating a column of booleans using a                      main, while simultaneously encapsulating operations that
+condition specified via a WHERE clause then filtering the pro-                can be implemented very efficiently in hardware. Spatial
+jected columns is not a new concept, and is implemented by                    instructions are executed in a dataflow-esque style seen in
+Vectorwise [40], a commercial DBMS, and other database                        dataflow machines in the 80’s [12, 17], in the 90’s [19], and
+software vendors that use column-stores.                                      more recently [13, 31, 35], eliminating complex issue and
+    Other helper spatial instructions perform a variety of aux-               control logic, exposing parallelism, and passing data depen-
+iliary functions such as (1) tuple reconstruction (i.e. stitch in-            dencies directly from producer to consumer. All of these fea-
+dividual columns of a row back into a row, or append smaller                  tures provide performance benefit and energy savings.
+tables with the same attributes into bigger tables) to trans-
+form columns into intermediate or final table outputs, and
+(2) GROUP BY and ORDER BY clauses to perform aggrega-                         3.    Q100 Microarchitecture
+tions and sorts (i.e. concatenate entries in a pair of columns
+                                                                              In this section we walk through the Q100 design process.
+to create one column in order to reduce the number of sorts
+                                                                              We start with descriptions of the hardware tiles that imple-
+performed when there are multiple ORDER BY columns).
+                                                                              ment the Q100 ISA including their size and delays when im-
+    In situations where a query does not fit on the array of
+                                                                              plemented in 32nm physical design (Section 3.1). Then, us-
+available Q100 of tiles, it must be split into multiple tempo-
+                                                                              ing 19 TPC-H queries as benchmarks we perform a detailed
+ral stages. These temporal stages are called temporal instruc-
+                                                                              Q100 design space exploration with which we explore the
+tions, or tinsts, and are executed in order. Each tinst contains
+                                                                              tradeoffs and select three interesting Q100 designs: minimal
+a set of spatial instructions, pulling input data from the mem-
+                                                                              power, peak performance, and a balanced design that offers
+ory subsystem and pushing completed partial query results
+                                                                              maximal performance per Watt (Section 3.2). We then ex-
+back to the memory subsystem. Figure 2 walks through how
+                                                                              plore the impact of communication – both intra tile and with
+a graph representation of spatial instructions, implementing
+                                                                              memory – on these three designs (Section 3.3) as well as the
+the example query from Figure 1, is mapped onto available
+                                                                              instruction scheduling algorithm (Section 3.4).
+specialized processing tiles. Figure 2 (a) shows the entire
+query as one graph with each shape representing a differ-
+ent primitive and edges representing producer-consumer re-                    3.1    Q100 Tile Implementation and Characterization
+lationships (i.e., data dependencies). Figure 2 (b) shows an                  The Q100 contains eleven types of hardware tile correspond-
+example array of specialized hardware tiles, or a resource                    ing to the eleven operators in the ISA. As in the ISA, we
+profile, for a particular Q100 configuration. Figure 2 (c) de-                break the discussion into core functional tiles and auxiliary
+picts how the query must to be broken into three temporal in-                 helper tiles. The facts and figures of this section are sum-
+structions, because the resource profile does not have enough                 marized in Table 1, while the text that follows focuses on the
+column selectors, column filters, aggregators, or appenders                   design choices and tradeoffs. The slowest tile determines the
+at each stage.                                                                clock cycle of the Q100. As Table 1 indicates, the partitioner
+                                                                              limits the Q100 frequency to 315 M Hz.
+Methodology. Each tile has been implemented in Verilog                    boolean generator is often paired with the column filter (de-
+and synthesized, placed, and routed using Synopsys 32nm                   scribed next) with no need for an ALU. It is also often used
+Generic Libraries1 with the Synopsys [36] Design and IC                   in a chain or tree to form complex predicates, again not al-
+Compilers to produce timing, area, and power numbers. We                  ways in 1-to-1 correspondence with ALUs.
+report the post-place-and-route critical path of each design                  The column filter takes in a column of booleans (from a
+as logic delay plus clock network delay, adhering to the                  boolean generator) and a second data column. It outputs the
+industry standard of reporting critical paths with a margin.              same data column but dropping all rows where the corre-
+                                                                          sponding bool is false.
+Q100 functional tiles. The sorter sorts its input table using                 Finally the aggregator takes in the column to be aggre-
+a designated key column and a bitonic sort [26]. In general,              gated and a “group by” column whose values determine
+hardware sorters operate in batches, and require all items in             which entries in the first column to aggregate. For example,
+the batch to be buffered at the ready prior to the start of the           if the query sums purchases by zipcode, the data column are
+sort. As buffers and sorting networks are costly, this limits             the purchase totals while the group-by is the zipcode. The
+the number of items that can be sorted at once. For the Q100              tile requires that both input columns arrive sorted on the
+tile, this is 1024 records, so to sort larger tables, they must           group-by column so that the tile can simply compare con-
+first be partitioned with the partitioner.                                secutive group-by values to determine where to close each
+    The partitioner splits a large table into multiple smaller            aggregation. This decision has tradeoffs. A hash-based im-
+tables called partitions. Each row in the input table is as-              plementation might not require pre-sorting, but it would re-
+signed to exactly one partition based on the value of the key             quire a buffer of unknown size to maintain the partial aggre-
+field. The Q100 implements range partitioner, which splits                gation results for each group. The Q100 aggregator supports
+the space of keys into contiguous ranges. We chose this be-               all aggregation operations in the SQL spec, namely MAX,
+cause it is tolerant of irregular data distributions [39] and             MIN, COUNT, SUM, and AVG.
+produces ordered partitions, making it a suitable precursor
+to the sorter.                                                            Q100 auxiliary tiles. The column selector extracts a col-
+    The joiner performs an inner-equijoin of two tables, one              umn from a table, and the column stitcher does the inverse,
+with a primary key and the other with a foreign key. To keep              taking multiple input columns (up to a maximum total width)
+the design simple, the Q100 currently supports only inner-                and producing a table. This operation often precedes parti-
+equijoins. It is by far the most common type of join, though              tions and sorts where queries frequently require column A
+extending the joiner to support other types (e.g., outer-joins)           sorted according to the values in column B. The column
+would not increase its area or power substantially.                       concatenator concatenates corresponding entries in two in-
+    The ALU tile performs arithmetic and logical operations               put columns to produce one output column. This can cut
+on two input columns, producing one output column. It sup-                down on sorts and partitions when a query requires sorting
+ports all arithmetic and logical operations found in SQL (i.e.,           or grouping on more than one attribute (i.e., column). Fi-
+ADD, SUB, MUL, DIV, AND, OR, and NOT) as well as                          nally, the table appender appends two tables with the same
+constant multiplication and division. We use these latter op-             schema. This is often used to combine the results of per-
+erations to work around the current lack of a floating point              partition computations.
+unit in the Q100. In its place, we multiply any SQL deci-
+mal data type by a large constant, apply the integer arith-               Modifications to TPC-H due to tile limitations. The de-
+metic, finally divide the result by the original scaling fac-             sign parameters such as record, column, key, and compara-
+tor, effectively using fixed point to support single precision            tor widths are generally sized conservatively. However, we
+floating point arithmetic, as most domain-specific accelera-              encountered a small number of situations where we had to
+tors have done. SQL does not specify precision requirements               modify the layout of an underlying table or adjust the oper-
+for floating point calculations and most commercial DBMS                  ation, though never the semantics, of a query. When a col-
+supports either single-precision floating point and/or double-            umn width exceeds the 32 byte maximum column width the
+precision floating point calculations.                                    Q100 can support, we divide the wide column vertically into
+    The boolean generator compares an input column with                   smaller ones of no more than 32 bytes and process them
+either a constant or a second input column, producing a col-              in parallel. Out of 8 tables and 61 columns in TPC-H, just
+umn of boolean values. Using just two hardware compara-                   10 were split in this fashion. Similarly, because the Q100
+tors, the tile provides all six comparisons used in SQL (i.e.             does not currently support regular expression matching, as
+EQ, NEQ, LTE, LT, GT, GTE). While this tile could have                    with the SQL LIKE keyword, the query is converted to use
+been combined with the ALU, offering two tiles à la carte                as many WHERE EQ clauses as required. These are all minor
+leaves more flexibility when allocating tile resources. The               side effects of the current Q100 design and may not be re-
+                                                                          quired in future implementations.
+1 Normal operating conditions (1.25V supply voltage at 25◦ C) with high
+
+threshold voltage to minimize leakage.
+                             120%                                                               120%                                                                   120%                                     q1
+                                                                                                                                                                                                                q2
+                                                                                                                                                                                                                q3
+                             100%                                                               100%                                                                   100%                                     q4
+
+
+
+
+                                                                                                                                              % Runtime wrt 1 Sorter
+% Runtime wrt 1 Aggregator
+
+
+
+
+                                                                          % Runtime wrt 1 ALU
+                                                                                                                                                                                                                q5
+                             80%                                                                80%                                                                    80%                                      q6
+                                                                                                                                                                                                                q7
+                                                                                                                                                                                                                q8
+                             60%                                                                60%                                                                    60%                                      q10
+                                                                                                                                                                                                                q11
+                             40%                                                                                                                                       40%                                      q12
+                                                                                                40%
+                                                                                                                                                                                                                q14
+                                                                                                                                                                                                                q15
+                             20%                                                                20%                                                                    20%                                      q16
+                                                                                                                                                                                                                q17
+                                                                                                                                                                                                                q18
+                              0%                                                                 0%                                                                     0%                                      q19
+                                0.98   1   1.02 1.04 1.06 1.08 1.1 1.12                            0.98   1   1.02 1.04 1.06 1.08 1.1 1.12                                0.72   0.82     0.92    1.02   1.12   q20
+                                                Power (W)                                                          Power (W)                                                            Power (W)               q21
+
+
+
+Figure 3. Aggregator sensitivity study Figure 4. ALU tiles are more power hun- Figure 5. Sorter tiles are the most power
+shows that Q1 is the only query that is gry than aggregators, but adding more hungry, dissipating almost 40 mW per
+sensitive to number of aggregators, and its ALUs helps most query’s performance. tile. Q17 exhibits a corner case where
+performance plateaus beyond 8 tiles.        This tradeoff necessitates an exploration the scheduler makes bad decisions caus-
+                                            of the design space varying number of ing performance to degrade as number of
+                                            ALUs.                                     sorters increase.
+
+3.2                             Q100 Tile Mix Design Space Exploration                                                                         Maximum “Tiny” Tile Counts
+                                                                                                                                Tile          Useful Count Tile Explored
+To understand the relative utility of each type of tile, and
+                                                                                                                                Aggregator                               4         X             4
+the tradeoffs amongst them, we explore a wide design space                                                                      ALU                                      5                    1 ... 5
+of different sets of Q100 tiles. We start with a sensitivity                                                                    BoolGen                                  6         X             6
+analysis of TPC-H performance, evaluating each type of tile                                                                     ColFilter                                6         X             6
+                                                                                                                                Joiner                                   4         X             4
+in isolation to bound the maximum number of useful tiles                                                                        Partitioner                              5                    1 ... 5
+of each type. We then carry out a complete design space                                                                         Sorter                                   6                    1 ... 6
+exploration considering multiple tiles at once, from which                                                                      Append                                   8         X            8
+we understand the power performance shape of the Q100                                                                           ColSelect                                7         X            7
+space and select three configurations (i.e., tile mixtures) for                                                                 Concat                                   2         X            2
+further analysis.Methodology. We have developed a func-                                                                         Stitch                                   3         X            3
+
+
+tional and timing Q100 simulator in C++. The function and                                                             Table 2. “Tiny” tiles are the ones that dissipate <10 mW
+throughput of each tile have been validated against simula-                                                           per tile as seen in Table 1. We eliminate configurations that
+tions of the corresponding Verilog. As we do not yet have a                                                           will result in similar power or performance characteristics
+compiler for the Q100, we have manually implemented each                                                              before running the design space exploration to cut down on
+TPC-H query in the Q100 ISA. Using the simulator, we have                                                             the number of Q100 configurations under consideration.
+confirmed that the Q100 query implementations produce the
+same results as the SQL versions running on MonetDB [8].                                                              the others is not affected. On the other hand, many queries
+Given a query and a Q100 configuration, a scheduling al-                                                              benefit from more ALUs, with improvements flattening be-
+gorithm described and evaluated later in Section 3.4 sched-                                                           yond 5 ALUs. Note that the aggregator and the ALU exper-
+ules each query into a sequence of temporal instructions. The                                                         iments are plotted with the same X-axis, while the sorter, at
+simulator produces cycle counts, which we convert to wall                                                             39.4 mW per tile, covers a much larger power range. Across
+clock time using a Q100 frequency of 315 M Hz.                                                                        the board, these sensitivity experiments reveal that for all
+                                                                                                                      queries and all tiles, performance plateaus by or before ten
+Tile count sensitivity. To understand how sensitive Q100 is                                                           tiles of each type.
+to the number of each type of tile, say aggregators, we sim-
+ulate a range of Q100 configurations, sweeping the number                                                             Design space parameters. A complete design space ex-
+aggregators, while holding all other types of tiles at suffi-                                                         ploration, with 1 to 10 instances of each of 11 types of tile,
+ciently high counts so as not to limit performance. Figure 3                                                          would result in an overwhelmingly large design space. Using
+shows how the runtime of each TPC-H varies with the num-                                                              the tile sizes and the results of the sensitivity study above,
+ber of aggregators in the design. Having run this experiment                                                          we are able to prune the space substantially. First, we elimi-
+for each of the eleven types of tile, we highlight three sets of                                                      nate all of the “negligible” tiles from the design space. There
+results here and in Figures 3-5. Just one query, Q1, is sensi-                                                        are the tiles that are so tiny that the difference between one
+tive to the number of aggregators, while the performance of                                                           or two or ten will have a negligible impact on the results
+                                      12	                                            LowPower	  Design	               cies. For example, one would expect that boolgen outputs
+                                                                                                                         are often fed into column selects. To test this hypothesis, we
+                                      10	                                                                               count the number of connections between each combination
+        Run,me	  (miliseconds)	  
+
+
+                                        8	                                                                              of tiles. For this analysis, we include memory as a “tile” as it
+                                                                                                                         is one of the communicating blocks in the system. Figures 7-
+                                        6	                                                                              9 indicate how many times a particular source (y-axis) feeds
+                                                        Pareto	  Design	                                               into a particular destination (x-axis) across all of TPC-H.
+                                        4	  
+                                                                                   HighPerf	  Design	  
+                                                                                                                         Looking at this data we observe first that most tiles commu-
+                                        2	                                                                              nicate to and from memory so often, that it will be important
+                                                                                                                         to properly understand and provision for the Q100 to/from
+                                        0	  
+                                                0	             0.2	         0.4	             0.6	          0.8	     memory bandwidth. Second, tiles do tend to communicate
+                                                                          Power	  (Wa<s)	                              with a subset of each other, validating our hypothesis that the
+                                                                                                                         communication was not truly all-to-all. Thirdly, we note that
+Figure 6. Out of 150 configurations, we selected three                                                                   these communication patterns do not vary across the three
+designs for further evaluation: LowPower for an energy-                                                                  Q100 designs.
+conscious configuration, HighPerf for a performance-
+conscious configuration, and Pareto for a design that max-                                                               On-chip bandwidth constraints. We envision a NoC like
+imizes performance per Watt.                                                                                             the one implemented on Intel’s TeraFlops chip [38]. It is
+                                                                                                                         a 2D mesh and can support 80 execution nodes2 . While
+                                                                                                                         specific NoC design is outside the scope of this paper, we
+of the exploration. For these tiny tiles, defined to be those                                                            want to understand whether such a design can provide the
+eight tiles that consume less than 10 mW , we use the per-                                                               bandwidth required by these queries. To make a conservative
+tile sensitivity analysis to identify the maximum number of                                                              estimate, we scaled down TeraFlop’s node-to-node 80 GB/s
+useful tiles, and always allocate this many instances. For                                                               at 4 GHz to the frequency of the Q100, resulting in a
+the remaining three non-tiny tiles (the ALU, partitioner, and                                                            conservative Q100 NoC bandwidth of 6.3 GB/s.
+sorter), we explore the design space only up to that count.                                                                 Figures 10-12 plot the peak bandwidth for each connec-
+Table 2 summarizes how the tile size and sensitivity reduce                                                              tion in the same fashion as the earlier connection counts. The
+the design space from millions to 150 configurations.                                                                    cells marked with X are those for which the peak bandwidth
+                                                                                                                         at some point, during one or more of the TPC-H query ex-
+Power-performance design space. Figure 6 plots the
+                                                                                                                         ecutions, exceed our estimated limit of 6.3 GB/s. In those
+power-performance tradeoffs for 150 Q100 designs. Amongst
+                                                                                                                         cases the NoC will slow down the overall query execution.
+these configurations we select the three designs indicated in
+                                                                                                                         We also note the following. First, that common connections
+the plot for further evaluation:
+                                                                                                                         (per Figures 7-9) do not require high bandwidth except for
+1. An energy-conscious design point (LowPower) that has                                                                  the Appender to Appender connection, which manipulates
+   just 1 partitioner, 1 sorter, and 1 ALU, and consumes the                                                             large volumes of data in a short amount of time. Second,
+   lowest power amongst all the configurations.                                                                          there are a handful of very common, high-bandwidth con-
+2. A balanced design on the Pareto-optimal frontier (Pareto),                                                            nections that, if need be, can be fixed with point to point
+   that, with 2 partitioners, 1 sorter, and 4 ALUs, provides                                                             connections at some cost to instruction mapping flexibility,
+   the most performance per Watt amongst the designs.                                                                    but at some potential energy and throughput savings.
+                                                                                                                            To understand and quantify the performance impact of
+3. A performance-optimized design (HighPerf), with 3 par-
+                                                                                                                         the Q100 NoC bandwidth, we perform a sensitivity study,
+   titioners, 6 sorters, and 5 ALUs, that maximizes perfor-
+                                                                                                                         sweeping the bandwidth from 5 GB/s to 20 GB/s as shown
+   mance at the cost of a relatively higher power consump-
+                                                                                                                         in Figure 13. The runtime of all queries in all three config-
+   tion.
+                                                                                                                         urations are normalized to that of the HighPerf design with
+3.3   Q100 Communication Needs                                                                                           unlimited NoC bandwidth (IDEAL). We observe that only
+Having explored the Q100’s computational needs, we now                                                                   a handful of queries are sensitive to an imposed NoC band-
+turn to its communication needs, both on-chip intra-tile com-                                                            width limit, however, the slowdown for those queries can be
+munication and off-chip with memory. Because the target                                                                  as much as 50X, making interconnect throughput a perfor-
+workload is large scale data, each of these channels will need                                                           mance bottleneck when limited to 6.3 GB/s.
+to support substantial throughput.
+                                                                                                                         Off-chip bandwidth constraints. Memory, we have also
+Communication topology. In the experiments and simula-                                                                   seen, is a very frequent communicator, acting as a source or
+tions thus far, we have assumed all-to-all communication for                                                             2 Though the more recent version of the Intel SCC [21] provides higher
+all of the Q100 tiles and memory. However, analytic queries                                                              bandwidth and lower power, we chose TeraFlops because it connects exe-
+are not random, and we expect them to have certain tenden-                                                               cution units rather than CPU cores, and therefore better resembles the Q100.
+Figure 7. A heat map of tile-to-tile con- Figure 8. Our Pareto design uses Figure 9. HighPerf design intra-tile heat
+nection counts for the LowPower design slightly more connections than Low- map exhibits almost identical behavior as
+shows that most intra-tile connections ex- Power design when running the TPC-H Pareto design.
+ist mostly when communicating to and suite, but memory is still the busiest com-
+from memory.                               munication tile.
+
+
+
+
+Figure 10. Even with a LowPower de- Figure 11. Similar to connection count Figure 12. Heat map of HighPerf design
+sign, the communication bandwidth for heat map, Pareto design maximum intra- max bandwidth per connection.
+most connections exceed the provisioned connection bandwidth exhibit almost
+6.3 GB/s NoC bandwidth, marked as X’s identical behavior as HighPerf design.
+in the figures.
+
+
+destination for all types of Q100 tiles. Half of those connec-    we expect the NoC will limit performance, realistic available
+tions also require high throughput connections. In Figure 14      bandwidth to and from memory is also likely to slow query
+and Figure 15, we examine the high, low, and average read         processing.
+and write memory bandwidth for each query, sorted by av-             Multiple instances of a streaming framework, such as the
+erage bandwidth. We first notice that queries vary substan-       one described in recent work [39], could feed the Q100 as-
+tially in their memory read bandwidths but relatively little in   suming 5 GB/s per stream. At that rate, the Q100 would
+their write bandwidths. This is largely due to their being an-    require 4-6 inbound stream buffers depending on the con-
+alytic queries, taking in large volumes of data and producing     figuration and 2 outbound stream buffers, reflecting the
+comparatively small results, matching the volcano style [16]      read/write imbalance noted earlier. The provided bandwidths
+of software relational database pipelined execution. Second,      from these stream buffers are shown in shaded rectangles in
+queries generally consume more bandwidth as the design be-        the figure.
+comes higher performance (i.e., going from LowPower to               To quantify the performance impact of memory band-
+HighPerf), as the faster designs tend to process more data        width, we perform a sweep of memory read bandwidth from
+in a smaller period of time. Finally, in the same fashion that    10 GB/s to 40 GB/s and memory write bandwidth from 5
+                                         60.0                                            q1                                                  q1                                           q1    q10
+                                                        LowPower                         q10        Pareto                                   q10     HighPerf
+                                         50.0                                                                                                                                             q11   q12
+                                                                                         q11                                                 q11                                          q14   q15
+                    Runtime Normalized
+
+
+                                         40.0                                            q12                                                 q12
+                     to HighPerf IDEAL
+
+                                                                                                                                                                                          q16   q17
+                                                                                         q14                                                 q14                                          q18   q19
+                                         30.0                                            q15                                                 q15                                          q2    q20
+                                         20.0                                            q16                                                 q16                                          q21   q3
+                                                                                         q17                                                 q17                                          q4    q5
+                                         10.0                                            q18                                                 q18                                          q6    q7
+                                                                                         q19                                                 q19                                          q8
+                                          0.0                                            q2                                                  q2
+                                                    5   10       15         20   IDEAL    5
+                                                                                         q20   10     15     20                  IDEAL   5   q2010     15       20      IDEAL
+                                                                                         q21 NOC BW Limit (GB/s)                             q21
+
+
+Figure 13. Most TPC-H queries are not sensitive to the Q100 intra-connection throughput, except for Q10, Q16, and Q11.
+These queries process large volumes of records throughout the query with little local selection conditions to “funnel” down the
+intermediate results. When NoC bandwidth is constrained, these queries could execute fifty times slower.
+
+
+                                                                                                   Memory	  Read	  BW	  
+                           50.0	  
+                           45.0	  
+                           40.0	  
+ Bandwidth	  (GB/s)	  
+
+
+
+
+                           35.0	  
+                           30.0	  
+                           25.0	                                                        SB6	  
+                           20.0	                                                        SB5	  
+                           15.0	         SB4	  
+                           10.0	         SB3	  
+                            5.0	         SB2	  
+                            0.0	         SB1	  
+                                         q14	  
+                                         q19	  
+                                         q12	  
+
+
+                                         q17	  
+
+                                          q5	  
+                                         q15	  
+
+                                          q1	  
+
+                                         q16	  
+                                         q18	  
+                                         q21	  
+
+                                         q20	  
+                                         q10	  
+                                         q11	  
+                                         q14	  
+                                         q17	  
+                                         q19	  
+
+                                          q5	  
+
+
+
+
+                                         q15	  
+                                         q12	  
+
+                                         q18	  
+                                          q1	  
+                                         q21	  
+                                         q16	  
+
+                                         q11	  
+                                         q20	  
+                                         q10	  
+                                         q14	  
+                                         q19	  
+
+
+
+
+                                         q12	  
+                                          q1	  
+
+                                         q17	  
+                                         q21	  
+                                         q15	  
+                                         q18	  
+                                          q5	  
+
+                                         q16	  
+
+                                         q10	  
+                                         q20	  
+                                         q11	  
+                                          q8	  
+                                          q6	  
+
+                                          q7	  
+
+
+                                          q4	  
+
+                                          q3	  
+
+
+
+
+                                          q2	  
+
+
+
+
+                                          q8	  
+
+                                          q7	  
+                                          q3	  
+                                          q4	  
+
+
+                                          q6	  
+
+
+
+
+                                          q2	  
+
+
+
+
+                                          q8	  
+                                          q4	  
+                                          q7	  
+
+
+                                          q3	  
+
+
+
+
+                                          q6	  
+
+                                          q2	  
+                                                        LowPower	  Design	                                  Pareto	  Design	                                 HighPerf	  Design	  
+
+
+
+Figure 14. A plot of all TPC-H query read memory bandwidth demands (hi, lo, and avg) sorted by average. Read bandwidth
+varies quite a bit from query to query, having Q10 and Q11 being the most bandwidth starved. For Q100, LowPower design is
+provisioned with 4 stream buffers, and Pareto and HighPerf designs are provisioned with 6 stream buffers as shown in shaded
+gradations.
+                                                                                                   Memory	  Write	  BW	  
+                           30.0	  
+ Bandwidth	  (GB/s)	  
+
+
+
+
+                           25.0	  
+                           20.0	  
+                           15.0	  
+                           10.0	  
+                            5.0	         SB2	  
+                                          SB1	  
+                            0.0	  
+                                          q4	  
+                                         q12	  
+                                          q6	  
+                                         q20	  
+                                         q14	  
+                                         q18	  
+                                         q15	  
+                                          q2	  
+                                         q19	  
+                                         q21	  
+                                          q7	  
+                                         q16	  
+                                         q11	  
+                                         q17	  
+                                          q3	  
+                                          q8	  
+                                          q1	  
+                                          q5	  
+                                         q10	  
+                                          q4	  
+                                         q12	  
+                                          q6	  
+                                         q20	  
+                                         q14	  
+                                         q15	  
+                                         q18	  
+                                          q7	  
+                                         q21	  
+                                         q19	  
+                                         q11	  
+                                         q17	  
+                                          q2	  
+                                          q3	  
+                                          q1	  
+                                          q5	  
+                                          q8	  
+                                         q16	  
+                                         q10	  
+                                          q4	  
+                                          q6	  
+                                         q12	  
+                                         q18	  
+                                         q15	  
+                                         q20	  
+                                         q14	  
+                                         q21	  
+                                         q19	  
+                                         q16	  
+                                          q7	  
+                                         q11	  
+                                          q1	  
+                                          q3	  
+                                          q2	  
+                                          q8	  
+                                          q5	  
+                                         q17	  
+                                         q10	  
+                                                        LowPower	  Design	                                  Pareto	  Design	                                 HighPerf	  Design	  
+
+
+
+Figure 15. Write bandwidth demands are quite a bit lower than read bandwidth demands for most queries. We sized all three
+designs with 2 stream buffers, providing 10 GB/s write bandwidth to memory.
+
+
+GB/s to 20 GB/s as shown in Figure 16 and Figure 17. As                                                              is applied to an unlimited-bandwidth simulation. On account
+with the NoC study, only 2 or 3 queries are sensitive to mem-                                                        of on-chip communication, queries slow down 33-61%, with
+ory read and write bandwidth limits, but with much more                                                              only a slight additional loss on account of memory to 34-
+modest slowdowns.                                                                                                    62% slowdown overall. These effects are largely due to Q10
+                                                                                                                     and Q11, the two most memory hungry queries, which suffer
+Performance impact of communication resources. Ap-                                                                   1.4X-1.5X slowdown and 6X to 11X slowdown respectively
+plying the NoC and memory bandwidth limits discussed                                                                 compared to software.
+above, we simulate a NoC bandwidth cap of 6.3 GB/s,                                                                      Our simulator models a uniform memory access latency
+memory read limit of 20 GB/s for LowPower and 30 GB/s                                                                of 160ns, based on a 300 cycle memory access time from a
+for Pareto and HighPerf, and memory write limit of 10                                                                2 GHz CPU. When the imposed interconnect and memory
+GB/s. Figure 18 shows the impact as each of these limits                                                             throughput slow the execution of a spatial and a temporal
+                        12.0                                    q1                                                     q1                            q1      q10
+                                    LowPower                    q10        Pareto                                      q10   HighPerf
+                        10.0                                                                                                                         q11     q12
+                                                                q11                                                    q11                           q14     q15
+   Runtime Normalized
+    to HighPerf IDEAL
+
+                         8.0                                    q12                                                    q12                           q16     q17
+                                                                q14                                                    q14                           q18     q19
+                         6.0                                    q15                                                    q15                           q2      q20
+                         4.0                                    q16                                                    q16                           q21     q3
+                                                                q17                                                    q17
+                                                                                                                                                     q4      q5
+                         2.0                                    q18                                                    q18
+                                                                                                                                                     q6      q7
+                                                                q19                                                    q19
+                         0.0                                    q2                                                     q2
+                                                                                                                                                     q8
+                               10   20   30     40   IDEAL      10
+                                                                q20   20     30     40    IDEAL                     10 q2020    30    40     IDEAL
+                                                                q21 MEM Read BW Limit (GB/s)                           q21
+
+
+Figure 16. Similar to NoC bandwidth, most queries are not sensitive to memory read bandwidth. Q16 is particularly affected
+for the LowPower and Pareto designs suffering up to 12X slowdown. However, in the HighPerf design, more resources allow
+for a more efficient scheduling of temporal instructions, reducing high-volume communications to and from memory.
+                        25.0                                    q1                                                      q1                           q1      q10
+                                    LowPower                    q10        Pareto                                       q10    HighPerf              q11     q12
+                        20.0                                    q11                                                     q11                          q14     q15
+   Runtime Normalized
+
+
+
+
+                                                                q12                                                     q12
+    to HighPerf IDEAL
+
+
+
+
+                                                                                                                                                     q16     q17
+                        15.0                                    q14                                                     q14                          q18     q19
+                                                                q15                                                     q15                          q2      q20
+                        10.0                                    q16                                                     q16                          q21     q3
+                                                                q17                                                     q17                          q4      q5
+                         5.0                                    q18                                                     q18
+                                                                                                                                                     q6      q7
+                                                                q19                                                     q19
+                         0.0                                    q2                                                      q2                           q8
+                               5    10   15     20   IDEAL       5
+                                                                q20   10     15     20    IDEAL                     5   q20 10    15    20   IDEAL
+                                                                q21 MEM Write BW Limit (GB/s)                           q21
+
+
+Figure 17. With 10 GB/s of memory write bandwidth, only one (LowPower and Pareto) or two (HighPerf) queries are
+performance- limited by memory write bandwidth.
+
+                                   Area                          Power                                      3
+                        Tiles NoC SBs Total Total Tiles NoC      SBs Total Total
+                                                                                      Runtime Normalized
+
+
+
+
+                                                                                                           2.5
+                                                                                       to HighPerf Ideal
+
+
+
+
+                        mm mm mm2 mm2 % Xeon W
+                            2    2
+                                                        W        W     W % Xeon                                                                      Ideal
+LowPower 1.890 0.567 0.520 2.978                7.0% 0.238 0.071 0.400 0.710 14.2%                          2
+Pareto   3.107 0.932 0.780 4.819               11.3% 0.303 0.091 0.600 0.994 19.9%                         1.5                                       + NocBW Limit
+HighPerf 5.080 1.524 0.780 7.384               17.3% 0.541 0.162 0.600 1.303 26.1%
+                                                                                                            1                                        + MemBW +
+                                                                                                           0.5                                       NoCBW Limit
+Table 3. Area and power of the three Q100 configura-                                                        0
+tions, broken down by tile, on chip interconnect, and stream                                                     LowPower    Pareto     HighPerf
+buffers.
+                                                                                     Figure 18. From the bandwidth heat maps plotted earlier,
+                                                                                     we see that Q100 was demanding a lot more NoC bandwidth
+                                                                                     than provisioned. Here, we plotted runtime with respect to
+instruction respectively, the simulator reflects that, although                      no bandwidth limit penalties, and see a large slowdown
+we found that throughput was primarily interconnect-limited                          at 30-60%, a caution for future implementations to design
+and thus the visible slowdown beyond that due to memory                              sufficient bandwidth for intra-tile connections.
+was negligible. The Q100 reduces total memory accesses
+relative to software implementations by eliminating many
+reads and writes of intermediate results. For the remaining
+                                                                                     Perf configuration including NoC and stream buffers taking
+memory accesses, the Q100 is able to mask most stalls
+                                                                                     17.3% area and 26.1% power of a single Xeon core.
+thanks to heavily parallelized computation that exploits both
+data and pipeline parallelism.
+                                                                                     3.4              Query Scheduling Algorithms
+Area and power impact of communication resources.                                    The final component of the Q100 design to explore is the
+Starting with the area and power for the tiles in each Q100                          scheduling algorithm, by which instructions are mapped to
+design (based on Table 1), we add the additional area and                            processing tiles.
+power due to the NoC and stream buffers. Table 3 lists the
+area of the three design points broken down by tile, NoC, and                        Problem formulation and experimental algorithms. In
+stream buffers. We add an extra 30% area and power to the                            the general case, the Q100 has fewer tiles than there are
+Q100 designs for the NoC, based on the characteristics of the                        instructions in a query, so the algorithm must schedule them
+TeraFlops implementation [38]. For the stream buffers, we                            into multiple temporal instructions, subject to the following
+add 0.13 mm2 and 0.1 W atts for each stream buffer [39].                             constraints. An instruction can be scheduled only (1) on a
+In sum, the Q100 remains quite small, with the large, High-                          tile that performs its operation, and (2) if and only if all of
+                           3.0
+  Runtime Normalized to
+
+
+
+                           2.5              Naïve                                                                                                                               1.2
+                                                                                                                                                                                          Naive     Data-Aware        Semi-Exhaustive
+
+
+
+
+                                                                                                                                                           Runtime Normalized
+                           2.0              Data-Aware                                                                                                                          1.0
+                                                                                                                                                                                0.8
+          Naive
+
+
+
+
+                                            Semi-Exhaustive
+
+
+
+
+                                                                                                                                                                to Naive
+                           1.5
+                                                                                                                                                                                0.6
+                           1.0                                                                                                                                                  0.4
+                                                                                                                                                                                0.2
+                           0.5
+                                                                                                                                                                                0.0
+                           0.0                                                                                                                                                           LowPower            Pareto         HighPerf
+                                  q1    q2    q3     q4    q5   q6   q7   q8 q10 q11 q12 q14 q15 q16 q17 q18 q19 q20 q21
+
+                                        Figure 19. Completion time normalized to naive.                                                                    Figure 20. Average completion time
+                                                                                                                                                           normalized to completion time of
+                                                                                                                                                           naive.
+
+                           10
+Spill Volume Relative to
+
+
+
+
+                                            Naïve                                                                                                                                Naive      Data-Aware        Semi-Exhaustive
+                            8                                                                                                                              1.2
+
+
+
+
+                                                                                                                                  Data Volume Normalized
+                                            Data-Aware                                                                                                     1.0
+        In/Out Vol
+
+
+
+
+                            6
+                                            Semi-Exhaustive                                                                                                0.8
+
+
+
+
+                                                                                                                                          to Naive
+                                                                                                                                                           0.6
+                            4
+                                                                                                                                                           0.4
+                            2                                                                                                                              0.2
+                                                                                                                                                           0.0
+                                                                                                                                                                                 LowPower           Pareto            HighPerf
+                                 q1    q2    q3     q4    q5    q6   q7   q8 q10 q11 q12 q14 q15 q16 q17 q18 q19 q20 q21
+
+Figure 21. Data transfer size normalized to the volume of input and output                                                        Figure 22. Average data transfer size
+data of the query.                                                                                                                normalized to size of naive.
+
+its inputs producers have been scheduled in the same or in                                                         terminate, but only semi-exhaustive. While not feasible
+preceding temporal instructions.                                                                                   in practice, this algorithm gives us an approximate upper
+    We implemented and evaluated three scheduling algo-                                                            bound for schedule quality.
+rithms:
+      • Naive greedily packs instructions into the Q100, subject
+                  to the constraints listed above, advancing to the next
+                  temporal instructions when no more instructions can fit,                                     Analysis of results. We start our analysis on the LowPower
+                  and stopping when all instructions have been scheduled.                                      Q100 configuration as it has the fewest tiles and is thus most
+                  In doing this it presumes no knowledge of the volume                                         likely to be sensitive to scheduling. We can see in Figures 19
+                  of data flowing between instructions and therefore makes                                     and 21 that, relative to naive, data-aware usually succeeds in
+                  no effort to minimize data transfer between temporal                                         reducing the size of memory spills, and that this correlates
+                  instructions.                                                                                with a decrease in the completion time.
+      • In contrast, data-aware considers the volume of data                                                       We also see that, for most queries, semi-exhaustive suc-
+                  passed between instructions, not as unrealistic as it may                                    ceeds in finding schedules with the smallest amount of
+                  seem, as DBMSs estimate sample or otherwise estimate                                         data transferred amongst these algorithms. The exceptions
+                  the rough size of various queries. The information we                                        are Q1, Q17, and Q19, which are so large that the semi-
+                  assume in this study is routinely available at query parse                                   exhaustive approach can only cover a small portion of the
+                  and planning time. It proceeds from largest to smallest                                      search space. Most interestingly, we observe the following
+                  data value, greedily attempting to pack all producers and                                    pattern. For queries that must spill large volumes of data
+                  consumers into the same temporal instruction to reduce                                       during execution, the strategy of minimizing data spills is a
+                  spills to memory.                                                                            good one. However, for queries with negligible spills in the
+                                                                                                               first place, attempting to minimize these negligible transfers
+      • Finally, because both naive and data-aware are greedy
+                                                                                                               will cause the scheduler to sub-optimally allocate spatial in-
+                  and subject to local minima, semi-exhaustive searches                                        structions to temporal instructions. The specific problem we
+                  all legal schedules.3 Because truly exhaustive search is                                     see in Q15, for instance, is the scheduler spreading multiple
+                  infeasible – the longer runs are probably still going! –                                     slow operations across several steps (in an attempt to mini-
+                  we use a heuristic to prune the search space, making it                                      mize spills) which ends up increasing the overall completion
+3 Because the space of legal Q100 schedules is such a small portion of                                         time of the query. While the data-aware scheduler is suffi-
+all Q100 schedules, algorithms that consider non-legal schedules, such as                                      cient for our current analyses, this indicates a multi-objective
+genetic algorithms, are not likely to be efficient for this use.                                               heuristic may produce higher quality schedules.
+                                                                                                                                             MonetDB	  1T	  SW	  
+                      100.0%
+                                        LowPower Q100
+ % Runtime Normalized to
+
+
+
+
+                                        Pareto Q100
+      MonetDB 1T SW
+
+
+
+
+                           10.0%        HighPerf Q100
+                                                                                                                                                    Ideal	  24T	  SW	  
+
+                            1.0%
+
+
+                            0.1%
+
+
+                            0.0%
+                                   q1      q2     q3      q4   q5     q6   q7   q8   q10   q11     q12   q14   q15   q16   q17   q18   q19   q20         q21         AVG
+
+
+Figure 23. TPC-H query runtime normalized to MonetDB single-thread SW shows a 37X–70X performance improvement on
+average across all queries.
+                                                                                                                                             MonetDB	  1T	  SW	  
+                       100.0%
+                                        LowPower Q100
+ % ENergy Normalized to
+
+
+
+
+                                        Pareto Q100
+                           10.0%
+     MonetDB 1T SW
+
+
+
+
+                                        HighPerf Q100
+                                                                                                                                                   Ideal	  24T	  SW	  
+
+                            1.0%
+
+
+                            0.1%
+
+
+                            0.0%
+                                   q1      q2    q3       q4   q5     q6   q7   q8   q10   q11    q12    q14   q15   q16   q17   q18   q19   q20       q21         AVG
+
+
+Figure 24. TPC-H query energy consumption normalized to MonetDB single-thread running on cores consuming non-idle
+power shows 691X–983X energy efficiency on average across all queries.
+
+
+                                   System Configuration                                          during which we measured the elapsed time and the energy
+ Chip                                   2X Intel E5-2430                                         consumption. For the latter we used Intel’s Running Average
+                                        6C/12T, 2.2 GHz, 15 M B LLC                              Power Limit (RAPL) energy meters [10, 20] which exposes
+ Memory                                 32 GB per chip, 3 Channels, DDR3
+ Max Memory BW                          32 GB/sec per chip                                       energy usage estimates to software via model-specific regis-
+ Max TDP                                95 W atts per chip                                       ters. We sample the core energy counters at 10 ms intervals
+ Lithography                            32 nm
+                                                                                                 throughout the execution of each TPC-H query. We further
+Table 4. Hardware platform used in software measurements                                         deduct any idle “background” power as measured by the
+(Section 4. Source: Intel [25].)                                                                 same methods on a completely idle machine. The MonetDB
+                                                                                                 energy measurements we report here include only the addi-
+                                                                                                 tional energy consumption above idle.
+4.                 Q100 Evaluation                                                                  Although MonetDB supports multiple threads, our mea-
+Taking what we have learned about the Q100 system, its                                           surements of power and speedups indicate that individ-
+ISA, its implementation, and its communication both in-                                          ual TPC-H queries do not parallelize well, even for large
+ternal and external, we now compare our three configura-                                         databases (i.e., 40 GB). Here we will compare the Q100’s
+tions, LowPower, Pareto, and HighPerf, with a conventional                                       performance and energy to the measured single threaded
+software DBMS. This evaluation takes on three parts: ini-                                        values, as well as to an optimistic estimate of a 24-way par-
+tial power and performance benchmarking for the TPC-H                                            allelized software query, one that runs 24 times faster than
+queries as executed on a conventional DBMS+CPU system,                                           the single threaded at the same average power as a single
+comparison of Q100’s execution of TPC-H to that system’s,                                        software thread. In the upcoming comparisons, we will pro-
+and finally an evaluation of how a Q100 designed for one                                         vide both the MonetDB single-thread SW and MonetDB
+scale of database handles the same queries over a database                                       24-thread SW (Idealized) as reference points.
+100 times larger.                                                                                   For the Q100, we use the full timing and power model,
+                                                                                                 that incorporates the runtime, area, and energy of the on-
+Methodology. We measure the performance and energy                                               chip NoC and off-chip memory communication as described
+consumption of MonetDB 11.11.5 running on the Xeon                                               in Section 3.3.
+server described in Table 4 and executing the set of TPC-
+H queries. Each reported result is the average of five runs
+                                                                                       MonetDB	  1T	  SW	                                                                                                        MonetDB	  1T	  SW	  
+                           100%                                                                                                                       100.0%
+                            90%
+ Large Dataset % Runtime
+
+
+
+
+                                                                                                                             Large Dataset % Energy
+                                                                                          LowPower                                                                                                                        LowPower
+
+
+
+
+                                                                                                                              Normalized to 1T SW
+                            80%
+   Normalized to 1T SW
+
+
+
+                                                                                                                                                       10.0%                                                              Pareto
+                            70%                                                           Pareto
+                            60%                                                           HighPerf                                                                                                                        HighPerf
+                            50%                                                                                                                         1.0%
+                            40%
+                            30%
+                                                                                                                                                        0.1%
+                            20%
+                            10%
+                             0%                                                                                                                         0.0%
+                                  q1
+                                       q2
+                                            q3
+                                                 q4
+                                                      q5
+                                                           q6
+                                                                q7
+                                                                     q10
+                                                                           q12
+                                                                                 q14
+                                                                                        q15
+                                                                                              q16
+                                                                                                    q18
+                                                                                                          q19
+                                                                                                                q21
+                                                                                                                      AVG
+
+
+
+
+                                                                                                                                                               q1
+                                                                                                                                                                    q2
+                                                                                                                                                                         q3
+                                                                                                                                                                              q4
+                                                                                                                                                                                   q5
+                                                                                                                                                                                        q6
+                                                                                                                                                                                             q7
+                                                                                                                                                                                                  q10
+                                                                                                                                                                                                        q12
+                                                                                                                                                                                                              q14
+                                                                                                                                                                                                                    q15
+                                                                                                                                                                                                                          q16
+                                                                                                                                                                                                                                q18
+                                                                                                                                                                                                                                      q19
+                                                                                                                                                                                                                                            q21
+                                                                                                                                                                                                                                                  AVG
+Figure 25. With a dataset that is 100X the size of our previ-                                                               Figure 26. With a 100X larger dataset, the Q100 still con-
+ous input tables, TPC-H still shows a 10X performance im-                                                                   sumes 1/100th of the energy that software consumes.
+provement relative to software on average.
+
+
+Q100 performance comparison. Figure 23 plots the query                                                                      5.                    Related Work
+execution time on the Q100 designs relative to the execu-
+tion time on single threaded MonetDB. We see that Q100                                                                      Hardware acceleration of databases. Database machines
+performance exceeds a single software thread by 37X–70X,                                                                    were developed by the database community in the early
+and exceeds a perfectly-scaled 24-thread software by 1.5X–                                                                  1980s as specialized hardware for database workloads.
+2.9X. This is primarily due to Q100’s reduced instruction                                                                   These efforts largely failed, primarily because commodity
+control costs which are a byproduct of the large instruction                                                                CPUs were improving so rapidly at the time, and hardware
+granularity, where each Q100 instruction does the work of                                                                   design was slow and expensive [7]. The architectures pro-
+billions (or more, depending on the data size) software in-                                                                 posed at that time targeted a different set of challenges than
+structions. In addition, the Q100 processes many instruc-                                                                   those we face today, namely dark silicon, the utilization wall,
+tions at once, in pipelines and in parallel, generating further                                                             the power wall, etc.
+speedups. Finally the Q100, having brought some data onto                                                                       Much more recently, a flurry of projects accelerates
+the chip, exploits on-chip communication tile parallelism to                                                                queries by compiling them down to FPGAs, such as LIN-
+perform multiple operations on the data before returning the                                                                Qits [9], Teradata [11], and [29]. Industry appliances us-
+results to memory, thereby maximizing the work per mem-                                                                     ing Xeon servers combined with FPGAs such as the IBM
+ory access and hiding the memory latency with computation.                                                                  Netezza [22] also show promising performance and energy
+                                                                                                                            efficiency. Whereas we have designed a domain specific cir-
+Q100 energy comparison. Fixed function ASICs, which                                                                         cuit, these projects produce query-specific circuits, a differ-
+comprise the Q100, are inherently more energy efficient than                                                                ent point in the specialization space. Other have investigated
+general purpose processors. Both industry and academia, for                                                                 using existing accelerators, such as network processors [14]
+example, state that GPUs are 10X-1000X more efficient than                                                                  or GPUs [15] to speed relational operators. Our work is
+multi-core CPUs for well-suited graphics kernels; Similarly,                                                                similar in that we too accelerate database queries and rela-
+the Q100 is 1400X-2300X more energy efficient than Mon-                                                                     tional operators, but differs in the overall strategy and spe-
+etDB when executing the analytic queries for which it was                                                                   cific hardware platform.
+designed. We note that the energy efficiency of our Pareto
+design is 1.1X better than our LowPower design and 1.6X                                                                     Streaming computation. StreamIt [37] is a programming
+better than our HighPerf design.                                                                                            language and a compilation infrastructure supporting paral-
+                                                                                                                            lel execution of stream-based applications. It relates to our
+Scaling up data. Finally, as big data continues to grow, we                                                                 work in as much as Q100 processes database queries in
+wish to evaluate how the Q100 handles databases that are                                                                    streams of data, forming direct communication between pro-
+orders of magnitude larger than the ones for which it was                                                                   ducing and consuming kernels. However, whereas we tar-
+initially developed, we performed the same Q100-MonetDB                                                                     get database-specific, hardware kernels, StreamIt supports
+comparison using 100X larger data. Figure 25 and Figure 26                                                                  user-defined software kernels, from other domains including
+show the results. With the input data having grown by 100X,                                                                 digital signal processing, multimedia, and cellular commu-
+Q100 speedup over software drops from 100X to 10X. The                                                                      nications. It is worth noting that the Q100 does not process
+total energy remains 100X lower regardless of data size.                                                                    streams in the most general sense of the term. Our ISA and
+                                                                                                                            implementation operate on relational streams (i.e., where
+multiple streams have corresponding elements) which is a            [2] Sybase IQ.      http://www.sybase.com/products/
+specific type of stream.                                                archivedproducts/sybaseiq.
+                                                                    [3] D. J. Abadi, P. A. Boncz, and S. Harizopoulos. Column-
+Domain-specific accelerators. The Q100 is a domain spe-                 oriented database systems. VLDB, August 2009.
+cific processor, of which there are many others targeting           [4] D. J. Abadi, D. S. Myers, D. J. DeWitt, and S. R. Madden. Ma-
+different domains. GPUs are perhaps the most visible and                terialization strategies in a column-oriented dbms. In ICDE,
+among the most successful such processors targeting graph-              2007.
+ics applications [5, 30]. There is a large body of research         [5] AMD/ATI. http://www.amd.com.
+around other domain-specific acceleration: Convolution En-
+                                                                    [6] P. A. Boncz, M. Zukowski, and N. Nes. Monetdb/x100:
+gine [32] targets image processing kernels and stencil com-
+                                                                        Hyper-pipelining query execution. In CIDR, 2005.
+putations, [33] uses specialization to speed up regular ex-
+                                                                    [7] Haran Boral and David J. DeWitt. Database machines: an idea
+pression matching in queries, and [18] accelerates H.264
+                                                                        whose time has passed? In IWDM, 1983.
+video encoders. In spirit these projects share similarities with
+the Q100, but in their design and target particulars they are       [8] Centrum Wiskunde and Informatica.                http://www.
+                                                                        monetdb.org.
+quite different.
+                                                                    [9] E. S. Chung, J. D. Davis, and J. Lee. Linqits: Big data on little
+6.   Conclusion                                                         clients. In ISCA, 2013.
+                                                                   [10] Intel Corporation. Intel 64 R and IA-32 architectures soft-
+As data quantities continue to explode, technology must
+                                                                        ware developer’s manual. http://download.intel.com/
+keep pace. To mitigate commensurate increases in time                   products/processor/manual/253669.pdf.
+and energy required to process this data with conventional
+                                                                   [11] Teradata Corporation. http://www.teradata.com.
+DBMSs running on general purpose CPUs, this paper has
+presented the Q100, a DPU for analytic query workloads.            [12] J. B. Dennis. Advanced topics in data-flow computing.
+    With the Q100, we have presented an instruction set ar-             Prentice-Hall, 1991.
+chitecture which closely resembles common SQL operators,           [13] M. Gebhart, B. A. Maher, K. E. Coons, J. Diamond, P. Gratz,
+together with a set of specialized hardware modules im-                 M. Marino, N. Ranganathan, B. Robatmili, A. Smith, J. Bur-
+plementing these operators. The Q100 demonstrates a sig-                rill, S. W. Keckler, D. Burger, and K. S. McKinley. An evalu-
+                                                                        ation of the TRIPS computer system. In ASPLOS, 2009.
+nificant performance gain over optimistically scaled multi-
+threaded software, and an order of magnitude gain over sin-        [14] B. Gold, A. Ailamaki, L. Huston, and B. Falsafi. Accelerating
+gle threaded software, for less than 15% the area and power             database operators using a network processor. In DaMoN,
+                                                                        2005.
+of a Xeon core at the evaluated configurations. Importantly,
+as inputs scale by 100X, the Q100 sees only a single or-           [15] N. K. Govindaraju, B. Lloyd, W. Wang, M. Lin, and
+der of magnitude drop in performance and negligible de-                 D. Manocha. Fast computation of database operations using
+                                                                        graphics processors. In SIGGRAPH, 2005.
+crease in energy efficiency. Given the current gap between
+the Q100 and standard software query processing, as well           [16] G. Graefe and W. J. McKenna. The volcano optimizer gener-
+as the growth rate in data volumes, it is clear that special-           ator: Extensivility and efficient search. In ICDE, 1993.
+ized hardware like the Q100 is the only way systems will be        [17] J.R. Gurd, C. C. Kirkham, and I. Watson. The manchester
+able to keep pace with increases in data without sacrificing            prototype dataflow computer. Communications of the ACM,
+energy efficiency.                                                      1985.
+                                                                   [18] R. Hameed, W. Qadeer, M. Wachs, O. Azizi, A. Solomatnikov,
+7.   Acknowledgements                                                   B. C. Lee, S. Richardson, C. Kozyrakis, and M. Horowitz. Un-
+                                                                        derstanding sources of inefficiency in general-purpose chips.
+This material is based upon work supported by the National              In ISCA, 2010.
+Science Foundation under Grant No. 1065338. The infras-            [19] J. Hicks, D. Chiou, B. S. Ang, and Arvind. Performance
+tructure was partly supported by resources of Sethumadha-               studies of ld on the monsoon dataflow system. 1993.
+van’s Comp Arch and Security Technology Lab (CASTL)
+                                                                   [20] D. Howard, E. Gorbatov, U. R. Hanebutte, R. Khanna, and
+which is funded through grants CNS/TC 1054844, FA                       C. Le. Rapl: memory power estimateion and capping. In
+99500910389, FA 865011C7190, FA 87501020253 and gifts                   ISLPED, 2010.
+from Microsoft Research, WindRiver Corp, Xilinx Inc. and
+                                                                   [21] J. Howard, S. Dighe, Y. Hoskote, S. R. Vangal, D. Finan,
+Synopsys Inc.. The authors also wish to thank Yunsung Kim,              G. Ruhl, D. Jenkins, H. Wilson, N. Borkar, G. Schrom,
+Stephen Edwards, and the anonymous reviewers for their                  F. Pailet, S. Jain, T. Jacob, S. Yada, S. Marella, P. Sali-
+time and feedback.                                                      hundam, V. Erraguntla, M. Konow, M. Riepen, G. Droege,
+                                                                        J. Lindemann, M. Gries, T. Apel, K. Henriss, T. Lund-Larsen,
+References                                                              S. Steibl, S. Borkar, V. De, R. F. Van der Wijngaart, and T. G.
+ [1] Kx systems.     http://kx.com/_papers/Kx_White_                    Mattson. A 48-core IA-32 message-passing processor with
+     Paper-2013-02c.pdf.                                                DVFS in 45nm CMOS. In ISSCC, pages 108–109, 2010.
+[22] IBM. IBM Netezza Data Warehouse Appliance.            http:     [32] W. Qadeer, R. Hameed, O. Shacham, P. Venkatesan,
+     //www-01.ibm.com/software/data/netezza/.                             C. Kozyrakis, and M. A. Horowitz. Convolution engine: Bal-
+[23] IDC Research. IDC’s most recent worldwide Big Data tech-             ancing efficiency and flexibility in specialized computing. In
+     nology and services market forecast. http://www.idc.com/             ISCA, 2013.
+     getdoc.jsp?containerId=prUS23355112.                            [33] V. Salapura, T. Karkhanis, P. Nagpurkar, and J. Moreira. Ac-
+[24] S. Idreos, F. Groffen, N. Nes, S. Manegold, K. S. Mullender,         celerating business analytics applications. In HPCA, 2012.
+     and M. L. Kersten. Monetdb: Two decades of research in          [34] M. Stonebraker, D. J. Abadi, A. Batkin, X. Chen, M. Cher-
+     column-oriented database architectures. Data Engineering             niack, M. Ferreira, E. Lau, A. Lin, S. Madden, E. O’Neil,
+     Bulletin, 2012.                                                      P. O’Neil, A. Rasin, N. Tran, and S. Zdonik. C-store: a
+[25] Intel Corporation.   Intel Xeon Processor E5-2430,                   column-oriented dbms. In VLDB, 2005.
+     2012.       http://ark.intel.com/products/64616/                [35] S. Swanson, A. Schwerin, M. Mercaldi, A. Petersen, A. Put-
+     Intel-Xeon-Processor-E5-2430--(15M-Cache-2_                          nam, K. Michelson, M. Oskin, and S. J. Eggers. The
+     20-GHz-7_20-GTs-Intel-QPI).                                          wavescalar architecture. ACM Trans. Comp. Syst., 2007.
+[26] M. F. Ionescu and K. E. Schauser. Optimizing parallel bitonic   [36] Synopsys, Inc. 32/28nm Generic Library for IC Design,
+     sort. In IPDPS, 1997.                                                Design Compiler, IC Compiler. http://www.synopsys.
+[27] A. Lamb, M. Fuller, R. Varadarajan, N. Tran, B. Vandiver,            com.
+     L. Doshi, and C. Bear. The vertica analytic database: C-store   [37] W. Thies and S. Amarasinghe. An empirical characterization
+     7 years later. In VLDB, 2012.                                        of stream programs and its implications for language and
+[28] A. McAfee and E. Brynjolfsson. Big Data: The management              compiler design. In PACT, 2010.
+     revolution. Harvard Business Review, October 2012.              [38] S. Vangal, J. Howard, G. Ruhl, S. Dighe, H. Wilson,
+[29] R. Muller and J. Teubner. FPGAs: A new point in the database         J. Tschanz, D. Finan, P. Iyer, A. Singh, T. Jacob, S. Jain,
+     design space, 2010. EDBT Tutorial.                                   S. Venkataraman, Y. Hoskote, and N. Borkar. An 80-tile
+                                                                          1.28TFLOPS network-on-chip in 65nm CMOS. In ISSCC,
+[30] NVIDIA. http://www.nvidia.com.
+                                                                          February 2007.
+[31] A. Parashar, M. Pellauer, M. Adler, B. Ahsan, N. Crago,
+                                                                     [39] L. Wu, R. J. Barker, M. A. Kim, and K. A. Ross. Navigating
+     D. Lustig, V. Pavlov, A. Zhai, M. Gambhir, A. Jaleel, R. All-
+                                                                          big data with high-throughput, energy-efficient data partition-
+     mon, R. Rayess, and J. Emer. Triggered instructions: A
+                                                                          ing. In ISCA, 2013.
+     control paradigm for spatially-programmed architectures. In
+                                                                     [40] M. Zukowski and P. Boncz. Vectorwise: Beyond column
+     ISCA, 2013.
+                                                                          stores. Data Engineering Bulletin, 2012.
+

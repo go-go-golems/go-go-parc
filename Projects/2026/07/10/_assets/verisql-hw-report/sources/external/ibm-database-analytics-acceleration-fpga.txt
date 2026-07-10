@@ -1,0 +1,849 @@
+                 Database Analytics Acceleration using FPGAs
+                     Bharat Sukhwani§, Hong Min§, Mathew Thoennes§, Parijat Dube§,
+                  Balakrishna Iyer†, Bernard Brezzo§, Donna Dillenberger§, Sameh Asaad§
+           §                                                                                        †
+               IBM T. J. Watson Research Center                                                    IBM Santa Teresa Lab
+                 Yorktown Heights, NY, 10598                                                555 Bailey Ave, San Jose, CA 95141
+                   {bharats, hongmin, tardis, pdube, balaiyer, brezzo, engd, asaad}@us.ibm.com
+
+
+ABSTRACT                                                                          maximize yield, or purchase hedge contracts on fuel prices
+Business growth and technology advancements have resulted in                      to make a transportation company’s forthcoming quarter’s
+growing amounts of enterprise data. To gain valuable business                     budget more predictable, rapid analysis of transactional
+insight and competitive advantage, businesses demand the                          data in corporate database management systems has become
+capability of performing real-time analytics on such data. This,                  a business necessity. Snapshot warehousing, such as in [1],
+however, involves expensive query operations that are very time                   is the existing practice where a snapshot of data is taken
+consuming on traditional CPUs. Additionally, in traditional                       from an online transaction processing (OLTP) system to a
+database management systems (DBMS), the CPU resources are                         warehouse system for decision support analysis.
+dedicated to mission-critical transactional workloads. Offloading                 Snapshot warehousing has been acceptable in the past when
+expensive analytics query operations to a co-processor can allow                  updates to the database were infrequent. Performing
+efficient execution of analytics workloads in parallel with                       analysis on a month old, week old or day old snapshot of
+transactional workloads.                                                          business data was good enough for making executive
+In this paper, we present a Field Programmable Gate Array                         decisions pertaining to business. Interpersonal networking,
+(FPGA) based acceleration engine for database operations in                       the empowering of individuals by personal communication
+analytics queries. The proposed solution provides a mechanism                     devices and the wide use of social media networking has
+for a DBMS to seamlessly harness the FPGA compute power                           changed the dynamics of the marketplace. Increasingly,
+without requiring any changes in the application or the existing                  businesses are finding themselves required to respond to
+data layout. Using a software-programmed query control block,                     changes in market conditions in real time. For example, an
+the accelerator can be tailored to execute different queries without              airline may have the luxury of no more than a few minutes
+reconfiguration. Our prototype is implemented in a PCIe-attached                  to respond to fare modifications by its competitor. Real
+FPGA system and is integrated into a commercial DBMS                              time analytics is the capability to process analytical queries
+platform. The results demonstrate up to 94% CPU savings on real                   and other operations directly on transactional data.
+customer data compared to the baseline software cost with up to                   Injecting expensive analytics query operations into the data
+an order of magnitude speedup in the offloaded computations and                   operating environment also poses challenges. One challenge
+up to 6.2x improvement in end-to-end performance.                                 is that system resources such as CPU and I/O have to be
+                                                                                  shared between transactional and analytical workloads.
+Categories and Subject Descriptors                                                Normally, transactional workloads have stringent Service
+C.3 [Special-purpose and application-based systems];                              Level Agreements (SLAs); further, because these are
+H.2.4 [Database Management]: Systems                                              directly tied to revenue generation, they are often the
+                                                                                  primary focus of the business. Analytical workloads need to
+Keywords                                                                          run against the same data without impacting the SLA of the
+Relational database, analytics, FPGA, acceleration                                transaction workloads. Meeting this challenge requires
+                                                                                  consideration of both CPU and I/O resource issues.
+1. INTRODUCTION
+                                                                                  In this paper we focus on the CPU issue. We propose a
+We find ourselves, today, in the midst of the widespread
+                                                                                  hardware acceleration approach that offloads and
+adoption of analytics in the business world. Whether it is to
+                                                                                  accelerates some of the most CPU-intensive query
+stock store shelves just-in-time, set airline ticket prices to
+                                                                                  operations on an FPGA. Our architecture enables the FPGA
+Permission to make digital or hard copies of all or part of this work for         to retrieve DBMS in-memory data, which is mostly up-to-
+personal or classroom use is granted without fee provided that copies are
+                                                                                  date, perform expensive query operations, and send the
+not made or distributed for profit or commercial advantage and that
+copies bear this notice and the full citation on the first page. To copy          results back to the database engine. The accelerator has
+otherwise, or republish, to post on servers or to redistribute to lists,          been made customizable by architecting a query control
+requires prior specific permission and/or a fee.                                  block, and making the FPGA logic behave as an interpreter
+PACT’12, September 19–23, 2012, Minneapolis, Minnesota, USA.
+Copyright 2012 ACM 978-1-4503-1182-3/12/09...$15.00.
+                                                                                  of the query control block. In this sense, one principle of
+                                                                                  object oriented programming, late binding, has been
+
+
+
+                                                                            411
+implemented on the FPGA, making it versatile for DBMS                  Data warehouse appliances such as the Netezza
+queries. The presented work includes the following key                 Performance Server [13] or the IBM DB2 Analytics
+contributions:                                                         Accelerator (IDAA) [14] also use FPGAs to accelerate
+•    an architecture that integrates an FPGA into a host               query operations. In the former, the FPGA is in the I/O
+     system and processes data extracted from the memory               path, hence requiring a write-through I/O protocol which
+     of a DBMS,                                                        would increase the IOPS to unacceptable levels in an OLTP
+• the design and prototype of FPGA functions including                 system. In IDAA, data from an OLTP system is periodically
+     data decompression and predicate evaluation, both of              copied, which is appropriate for applications without
+     which consume considerable CPU cycles on                          stringent real time analytics needs.
+     conventional processor architectures,
+• a software integration approach that enables FPGA-                   3. DBMS DATA PAGE PROCESSING
+     based acceleration for an existing DBMS,                          3.1 Relational Database Tables and Pages
+• experimental and performance observations from our                   In relational DBMS, records are stored in objects called
+     integrated prototype.                                             tables. Records are often referred to as rows, and record
+The rest of the paper is organized as follows. Section 2               attributes are called columns (or fields). Table 3-1 is a
+outlines the previous work. Section 3 introduces related               simplified illustration of a three-row table with six attribute
+background information on database systems. In section 4,              columns (PhoneNumber, FirstName, LastName, Age, State,
+we present the overview of our proposed architecture and               SalesTotal($)) per row.
+system integration. Section 5 describes the FPGA design of
+the data decompression and predicate evaluation functions.                         Table 3-1 Example “Customers” table
+Section 6 describes software integration of the FPGA-based               Phone          First    Last     Age    State   SalesTotal($)
+accelerator into an existing DBMS system. Section 7                      Number         Name     Name
+presents our experiments and results. Section 8 concludes                212-111-1111   Ann      Smith    25     NY      250.54
+the paper with discussions and future work.                              212-111-0000   Steve    Jones    31     NY      500.00
+                                                                         203-222-2222   Emily    Brown    29     CT      900.01
+2. PREVIOUS WORK
+Over the years, there have been many efforts to speed up
+query processing in database management systems. As the                Typically, the physical unit of storage and I/O processing of
+increase in the speed of processors diminishes each year,              a non in-memory database table is a page. All pages in a
+further focus has been placed on parallelization techniques.           table are the same size such as 4KB, 8KB, 16KB, 32KB
+                                                                       etc. A database has designated memory space, called buffer
+One approach is to increase the number of processors [2]
+                                                                       cache or buffer pool (BP), for temporarily storing the data
+and threads [3] exploited by the DBMS. The problem here
+                                                                       pages. All relational data operations get the data pages from
+lies in how to partition the data, metadata, updates and data
+                                                                       the BP and the I/O operations between the BP and the disk
+deltas to reduce memory conflicts and contention between
+                                                                       are managed transparently. When a page is updated,
+cores [4]. Moreover, suboptimal utilization of the cores in
+                                                                       including insertions and deletions, its BP image is
+large multi-core systems results in power inefficiencies [5].
+                                                                       committed first, before eventually being written to the disk.
+Single Instruction Multiple Data (SIMD) operation                      Enabling processing of the latest data in the BP is the main
+provides data level parallelism by processing multiple data            reason that our accelerator is connected to the memory
+entities in a single instruction [6][7]. Effective SIMD                instead in the I/O path, as is done in [13].
+exploitation, however, requires the DBMS data to be laid
+out in specific formats and packed tightly into 64 or 128 bit          3.2 Page Format
+registers. This requires extra processing or compilation for           In transactional database systems, data is typically stored in
+each database table [6]. Further work has been done to                 a row-based layout where all the columns of a row are
+exploit Graphics Processing Units (GPUs) to aid database               stored in contiguous storage. A page is a collection of slots
+sort operations [8]. GPUs offer a relatively fixed                     that each contains a row [15]. At the end of a page, there is
+architecture, however, leading to limitations similar to those         an array whose entries contain the offsets of the rows within
+of SIMD architectures.                                                 the same page. The pair <pageID, slot number> is often
+Prior work [9][10][11] use FPGAs for parallel query                    referred to as record ID (RID), which uniquely identifies a
+processing. One of the differentiators of our work is the              row within a table. Figure 3-1 illustrates such page format.
+enablement of FPGAs to execute different queries without               When processing a row in a table, the corresponding page is
+reconfiguration. This is different than the compilation-               read from the buffer pool (if necessary, disk I/O is
+based approach [12] which first compiles queries into a                involved) and the row offset is used to extract the row from
+hardware description and then synthesizes into FPGA                    the page. If a row is deleted, its corresponding slot number
+circuit.                                                               holds an invalid value.
+
+
+
+                                                                 412
+        Row Count                   ….
+                           Page header                 Row Prefix        Row # 1         From a processor CPU consumption perspective, predicate
+           Row # 2                      Row # 3                       Row # 4            evaluation against each row becomes an intensive operation
+                     Row # 5                      ….                                     as the number of predicates increase, especially against a
+                                                                                         very large number of rows. Furthermore, decompression,
+                                                             00            …
+                                                                                         being a per-byte operation, significantly increases required
+    …     Row # 4 Offset   Row # 3 Offset   Row # 2 Offset        Row # 1 Offset
+                                                                                         CPU cycles. Reducing the cost of both predicate evaluation
+                    Figure 3-1 Example page format                                       and decompression on the processor executing OLTP is
+                                                                                         critical to maintain OLTP performance.
+3.3 SQL Predicate Evaluation
+Structured Query Language (SQL) has become the de facto                                  4. DATABASE ACCELERATOR ON FPGA
+standard language for schema definition, data manipulation                               - SYSTEM OVERVIEW
+and data query for relational DBMS. Large high throughput                                Figure 4-1 shows the high-level system architecture for the
+enterprise class OLTP applications based on SQL power a                                  FPGA-accelerated DBMS. The prototyped system is
+huge number of commercial applications today.                                            implemented on a PCIe-attached FPGA card and is
+                                                                                         integrated with a commercial database system. The FPGA
+SQL predicate evaluation refers to the process of retrieving
+                                                                                         operates on DBMS’ in-memory data and writes the results
+those DBMS table rows that qualify under some criteria.
+                                                                                         back into the host CPU’s main memory. Data is transferred
+The query typically may require logical inequality or
+                                                                                         between the FPGA and the host using direct memory access
+equality comparisons of fields from records against
+                                                                                         (DMA) operations. Once the DBMS sends a job request to
+constants, or test set containment for a field in a record. For
+                                                                                         the FPGA, all the DMA operations are initiated by the
+example, the SQL statement “SELECT salesTotal FROM
+                                                                                         FPGA without any intervention from the host CPU.
+Customer WHERE state =’NY’ AND age <30” asks for
+sales dollar amount from all customers in state ‘NY’ that                                            Host
+
+
+
+
+                                                                                                                         Device Driver
+                                                                                                                                         Page      Page
+
+
+
+
+                                                                                                                          + Control
+are younger than 30 years old from the example Table 3-1.
+                                                                                                                 CPU                       Main
+Efficient access to one or few records is usually achieved in                                                                             Memory
+DBMS by means of an I/O efficient B+ tree index data                                                                   PCIe
+                                                                                                                      Gen2 x8
+structure based on the data retrieval key. B+ tree indexes
+                                                                                                    PCIe-attached FPGA card
+have also been explored to retrieve large number of records.
+                                                                                                                       Service Layer
+In a DBMS that supports OLTP and analytics
+simultaneously, the indexes that support OLTP serve the                                                           Application Logic
+purpose to speed up OLTP. Any indexes that are intended                                                 Input     Decompression +                Output
+                                                                                                       Input         Predicate                  Output
+merely to speed up analytics, however, have a detrimental                                              Buffers
+                                                                                                      Buffers        Evaluation                  Buffers
+                                                                                                                                                Buffers
+impact on OLTP because insert, update, delete operations
+on records could entail index updates, resultant CPU and                                     Figure 4-1 System overview of the FPGA accelerator
+I/O consumption and hence impact on OLTP throughput. A
+                                                                                         The FPGA solution has been structured in a modular
+mechanism is needed to accelerate the evaluation of SQL
+                                                                                         fashion. There are two distinct pieces of logic that
+predicates on relational data without building B+ tree
+                                                                                         implement the required functionality. The service layer
+indexes specifically to accelerate their execution.
+                                                                                         provides all of the logic that interfaces to the PCIe, DMA
+                                                                                         engines and job management logic. The application logic
+3.4 Data Compression and Decompression
+                                                                                         implements just the functions required to process database
+Since the early 90’s, data compression has been embedded
+                                                                                         queries on the FPGA. A set of well defined interfaces exists
+into DBMS [16]. Since OLTP applications typically only
+                                                                                         between the two that include data buses for input and output
+access a single or a small number of related rows, good
+                                                                                         data, queues for DMA requests, and control signals.
+OLTP systems select the database row as the unit of
+compression. DBMS data structures allow database logic to                                On the host CPU, a job queue is maintained and the device
+find the row; the DBMS merely decompressed the row                                       driver and service layer logic cooperate to dispatch the jobs
+before processing it. In the absence of indexes, the DBMS                                to the FPGA. Once a job has been dispatched, the service
+has to scan the table, decompress each row, and then apply                               layer passes the job structures to the application logic and
+SQL predicates against the decompressed row. The                                         signals it to begin. From then on, the service layer only
+decompression technique built into the DBMS we worked                                    processes the DMA requests and updates the status of the
+with is typical of common DBMS in that decompression                                     jobs to the host. This structure allows the application logic
+proceeds by taking some part of the input string and                                     to be developed independent of the service layer.
+matching it against strings in a dictionary and retrieving its                           To maximize the overall performance, the service layer
+decompressed representation. Concatenating various                                       must perform data transfers at full PCIe bandwidth and the
+decompressed fragments reproduces the decompressed row.                                  application layer must process the data at the rate sustained
+
+
+
+                                                                                   413
+by the service layer. For our current bus interface, the peak           Multiple database rows are processed concurrently using
+bandwidth is 3.2 GB/sec (16B at 200 MHz); maintaining                   parallel instances of row decompression and predicate
+such rate is a challenge and must be addressed at all levels.           evaluation logic within a scan tile (see Figure 5-1).
+The first challenge is to maximize the available bus                    Obtaining a balanced system with multiple parallel
+bandwidth; this is addressed in a number of ways. First, a              execution units requires careful rate matching and data
+set of job structures, which are passed to the application              staging. A scan tile forms a balanced unit for scanning the
+logic, are created for each job; these specify the DMA                  rows. It encapsulates the entire design flow for scanning
+addresses of all the data for the job. Second, a set of queues          database rows on the FPGA; the design can be scaled
+between the service layer and the application logic is                  simply by replicating the tiles.
+implemented that allow the application logic to queue up                A scan tile contains 8 row scanners, each preceded by a
+DMA requests, thereby maximizing the use of the DMA                     decompressor, plus buffers to store the input and output
+engines. Finally, multiple input and output buffers enable              database pages, logic to extract the rows from the input
+double buffering, thereby completely hiding the host-FPGA               pages and logic to write the qualified rows in the output
+transfer latencies. With these techniques, we achieve a data            buffers in a database-specific page format. Each input and
+transfer rate of up to 2.7 GB/sec over the PCIe bus.                    output page buffer is 4KB in size, to match the target
+Next, the FPGA must consume the 16B of data delivered                   database page size. Each instance of the expansion
+every cycle. The predicate evaluation/decompression                     dictionary is 32 KB and is shared by two decompression
+engine is designed to consume 1B every clock cycle.                     units; both have concurrent access to the dictionary using
+Replicating this engine sixteen times will enable the FPGA              two independent read ports.
+to consume all data being delivered. For uncompressed                    Scan tile                                                         Row            Row
+data, this results in a balance system. For compressed data,                                                          0                Decompressor 0   Scanner 0       0
+
+however, creating a balanced system becomes more                                                                      1
+
+
+
+
+                                                                                                                                                                                                         Output Page
+                                                                                                                                                                                                         Buffer (4KB)
+                                                                                                                                                                        1
+difficult. For data compressed down to 40% of its original                Buffer (4KB)
+
+
+
+
+                                                                                                                                                                            Cyclic Switch
+                                                                                                      Cyclic Switch
+                                                                           Input Page
+
+
+
+
+                                                                                         Extraction
+                                                                                                                                           Dictionary
+
+
+
+
+                                                                                                                                                                                            Formatting
+size, for example, the 16 bytes transferred on the PCIe per
+                                                                                           Row
+
+
+
+
+                                                                                                                                                                                              Page
+cycle expands to 40 bytes, consequently requiring a 2.5-fold                                                                               Row            Row
+                                                                                                                                       Decompressor 1   Scanner 1
+increase in the number of engines to sustain the                                                                  6                                                     6
+
+
+
+                                                                                                                          …
+
+
+
+
+                                                                                                                                                                    …
+                                                                                                                                       0
+uncompressed bandwidth. Simply increasing the number of                                                               7
+                                                                                                                                   1                                    7
+
+parallel engines may require more logic resources than the                                                                     2
+                                                                                                                              3
+capacity of a given FPGA. Our FPGA design is thus
+architected such that the number of engines can be traded                         Figure 5-1 Architecture for row processing on FPGA
+against the complexity of the query handled by each engine.
+                                                                        A scan tile scans one database page at a time. More than
+Thus for very high levels of compression, high throughput
+                                                                        one page can be scanned in parallel by having multiple
+can still be maintained, albeit for relatively simpler queries.
+                                                                        independent scan tiles on the FPGA. Processing at full PCIe
+                                                                        bus bandwidth requires a minimum of two tiles, provided
+5. QUERY PROCESSING ON FPGA                                             the pages are uncompressed or have a small compression
+The query processing engine on the FPGA is designed with
+                                                                        ratio. Utilizing full bus bandwidth for highly compressed
+two goals in mind: to support the most common cases in the
+                                                                        pages would require larger number of parallel scan tiles.
+target database system and to achieve maximum
+                                                                        For a given FPGA area, the number of tiles can be traded
+performance from the available hardware resources.
+                                                                        against the number of PEs within each row scanner.
+Consequently, the size of the largest predicate supported,
+                                                                        Depending on the query complexity and the compression
+the database page buffer size and the decompression
+                                                                        ratio, different hardware configurations can be used. In one
+dictionary buffer size were chosen based on real-life
+                                                                        configuration, we instantiate 2 tiles for a total of 16 row
+customer workloads. While these sizes are fixed in the
+                                                                        scanners, each with 64 PEs, thus decompressing 16 rows
+current design, supporting other sizes is trivial.
+                                                                        concurrently and evaluating 1024 predicates in parallel. A
+Figure 5-1 shows the overall architecture for database row              query with fewer predicates, on the other hand, can allow
+processing on FPGA. The design is architected to exploit                more tiles and thus higher page-level parallelism. This
+parallelism at various levels. The core computational unit is           flexibility to exploit parallelism at different granularities is
+a predicate evaluation unit (PE), which evaluates a single              an essential part of the design as it allows different database
+predicate by comparing two up to 64-bit long quantities: a              queries to obtain the highest performance from the available
+stored predicate value supplied by the query and a row field            FPGA resources. Since generating an FPGA image is a
+streamed in from main memory. All the predicates within a               time-consuming process, we pre-generate FPGA bit files for
+row are evaluated concurrently by the multiple instances of             a variety of different hardware configurations and load the
+PEs inside a row scanner (Figure 5-4). The number of PEs                one that is best-matched to the given workload, where a
+inside a row scanner is configurable at synthesis time.                 workload is a collection of different queries.
+
+
+
+
+                                                                  414
+5.1 Row Decompression on FPGA                                                                        A given database page may contain compressed rows mixed
+In our design, the compressed rows are decompressed on-                                              with rows in raw form; the decompression logic thus works
+the-fly on the FPGA before being fed to the predicate                                                in two modes – decompression mode and pass-through
+evaluation logic. Performing decompression on the FPGA                                               mode. As a new row is fetched from the row buffer, the
+brings numerous benefits. First, database pages can be sent                                          header parser determines if the row is compressed or raw. If
+directly from the host to the FPGA without the need to pre-                                          raw, the row is simply passed along to the uncompressed
+filter and decompress on the host. Secondly, offloading                                              row buffer, two bytes per cycle. Even though a raw row can
+decompression to the FPGA increases the amount of                                                    be copied over faster, only two bytes are transferred per
+computation per datum transferred to the FPGA. Thirdly,                                              cycle to keep a common read interface from the row buffer
+efficient parallel hardware implementation of the                                                    for both raw data as well as compressed tokens. This
+decompression algorithm results in improved performance.                                             reduces extra multiplexing at the output of the row buffer.
+Finally, transferring compressed rows increases the                                                  Note that reading just 2 bytes a cycle does not cause any
+“effective” PCIe transfer bandwidth. This is especially                                              starvation of the downstream predicate evaluation logic
+important since the overall accelerator performance is often                                         since it consumes data at a rate of 1 byte per cycle.
+limited by the available host-to-FPGA data transfer                                                  For compressed rows, the tokenizer module fetches the
+bandwidth. Depending on the compression ratio,                                                       compressed token from the row buffer, one token at a time,
+transferring compressed rows increases the effective                                                 as requested by the controller FSM. For a character-type
+bandwidth by a factor of 2 to 5.                                                                     token, the 8-bit character data is decoded from the token
+              Row Decompressor                                                                       and written into the uncompressed row buffer. For a
+                        12-bit
+                                                                Control FSM                          dictionary token, the controller reads the 8-byte entry from
+                                                 GetNextToken
+                Row                                                                                  the dictionary.
+                                 Tokenizer        GetRawBytes
+               Buffer
+                        2B                                                                           A dictionary entry can be unpreceded or preceded and is
+                                                                                                     decoded appropriately by the dictionary data decoder. An
+                                 Header           Char.                                              unpreceded entry contains up to 7 bytes of data and a length
+                                 Parser          Decoder
+Dictionary                                                                       1B-7B               field. It is a terminal entry, indicating that the current token
+  Buffer                                  Data                  Data selection       Uncomp          has been fully decompressed. A preceded entry contains up
+ (32 KB)          Dictionary                                    and alignment          Row
+                 Data Decoder       Length, Offset                                    Buffer         to 5 bytes of data and its length. Additionally, it contains a
+                                                                                                     pointer to the next chaining dictionary entry that must be
+             Figure 5-2 Row decompression logic on FPGA                                              decoded to continue decompressing the current token, and
+                                                                                                     an offset that indicates the relative position of the data bytes
+As mentioned in section 3, our target row decompression
+                                                                                                     from the current entry within the complete uncompressed
+algorithm performs dictionary-based expansion. A
+                                                                                                     data for the token. Decompression of a compressed token is
+compressed row consists of one or more 12-bit compressed
+                                                                                                     continued until an unpreceded entry is found, at which point
+symbols (tokens); a symbol may either represent a character
+                                                                                                     the next token is fetched from the row buffer.
+of the uncompressed row or a pointer to a dictionary entry,
+which in turn may contain up to 7 characters of the                                                  Optimal implementation of the decompressor design on the
+uncompressed row. The decompression operation                                                        FPGA requires the operations described above to be staged
+essentially involves decoding all the compressed symbols in                                          in pipelined fashion. This, however, presents a potential
+a row and building the uncompressed row by stitching                                                 problem – since the algorithm is not purely feed-forward, a
+together character data from each of them.                                                           new token cannot be fetched until the previous one is
+                                                                                                     completely decompressed. Similarly, a new dictionary entry
+Row decompression logic on FPGA is shown in Figure 5-2.
+                                                                                                     cannot be read until the current one has been read and
+During an initial setup phase, the expansion dictionary is
+                                                                                                     decoded. These lead to empty cycles or bubbles between
+downloaded from the host into the dictionary buffers on the
+                                                                                                     consecutive token reads and dictionary reads. This is not a
+FPGA. This is a one-time process; it need not be repeated
+                                                                                                     problem as long as the average output rate of the
+for each job, unless the table and hence the dictionary
+                                                                                                     decompressor is higher than 1 byte per cycle, which is the
+changes. During the scan phase, as the database pages are
+                                                                                                     rate at which the predicate evaluation logic consumes data.
+streamed to the FPGA, rows are extracted and stored in the
+                                                                                                     For data with a very high compression ratio, this rate is
+row buffer. This extra buffering is required for rate
+                                                                                                     easily achieved. For data with a lower compression ratio,
+matching between the decompressor and the row extraction
+                                                                                                     however, where each compressed token expands to a few
+logic and to provide each decompressor instance dedicated
+                                                                                                     bytes, the average rate may drop below one byte per cycle,
+access to its respective rows in parallel to the rest. At the
+                                                                                                     leading to stalling of the predicate evaluation pipeline.
+output of the decompression logic is an uncompressed row
+buffer which stores the decompressed rows. It provides a                                             We address this issue by adding token prefetch logic in the
+variable-bytes write interface, from 1 to 7 bytes, to support                                        tokenizer, wherein the 8 next tokens are prefetched and
+variable output rates from the decompressor.                                                         stored in a FIFO. With this approach, the next token is
+
+
+
+                                                                                               415
+ready for processing as soon as the current one is finished.                     may dominate the overall processing time. Moreover, even
+When the entire row is fully decompressed, any outstanding                       a slight change in the query would require regeneration of
+tokens in the FIFO are flushed and a new set of tokens is                        the FPGA image and reconfiguration of the FPGA.
+prefetched from the next compressed row. Figure 5-3 shows                              Row         1B
+the effect of adding the prefetch logic on the overall                                stream
+pipeline utilization, for a specific real-life workload.                              Query             PE1       PE2     …       PEn   Commit Qualified
+Adding the prefetcher results in a more than 50% reduction                         Configuration                                                Row
+                                                                                      stream                                                    Buffer
+in row decompression time; for the 165 byte long rows, the                                                    Reduction Network
+average row decompression time is reduced from 190                                                            Qualify
+cycles to 80 cycles, bringing the average decompressor
+output rate well above the required 1 byte/cycle. Actual                             Figure 5-4 Row scanner for evaluating database rows
+savings and the average output rate, of course, are                              To address this issue, we designed the row scanner such
+dependent on the compression ratio and the number of                             that a given hardware image can be tailored to a variety of
+tokens to be analyzed to decompress a row of certain                             different queries. To that end, each PE is designed to
+length. The worst case of compression arises where a token                       perform 1 of 6 inequality operations; the actual operation to
+does not access the dictionary and simply generates a single                     be performed is chosen during the query load time.
+byte. With prefetching, such tokens can be processed in a                        Moreover, some of the PEs can also be disabled and
+single cycle, thus maintaining a throughput of 1 byte/cycle.                     excluded from participating in the query. Similarly, the
+                                              Pipeline idle, waiting for         reduction network is constructed as a binary tree of
+                                                 the next row to be
+                                                   decompressed                  reduction units. Each reduction unit is a 2 to 1 reducer
+                                                                                 capable of performing one of 6 1-bit operations between the
+                                                     No idle time
+                                                  between two rows               two inputs: AND, OR, NOT a, NOT b, PASS a, or PASS b.
+                                                                                 During the query load phase, the configuration options are
+    Figure 5-3 Effect of prefetching on pipeline utilization                     propagated down the PE chain and the reduction tree. PEs
+                                                                                 are configured using 5 options: (i) enable, to indicate
+Note that similar optimization is not possible on the                            whether the current PE is being used, (ii) predicate value,
+dictionary read side since the reads from the dictionary are                     the constant against which the row field is compared, (iii)
+not from sequential locations and depend on the value of                         the inequality operation to be performed, (iv) offset of the
+the pointer. This, however, is a concern only for the                            first byte of the desired field within the row and (v) length
+dictionary tokens that generate three or fewer bytes of data.                    of the field. A reduction unit has only one configuration
+Such tokens would appear in data with a very low                                 option: the operation to perform between two predicates.
+compression ratio and can potentially lead to sub-optimal
+utilization of the predicate evaluation pipelines.                               During the scan phase, database rows are streamed over the
+                                                                                 PEs, one byte per cycle. Streaming at a granularity of 1 byte
+5.2 Predicate Evaluation on FPGA                                                 is essential since fields in a row can be of varying length
+Once the rows are decompressed, they are sent to                                 and may start at any byte position within the row. To reduce
+downstream predicate evaluation logic for filtering based                        the latency of evaluating a row, the streaming bytes are
+on the query predicates. A row scanner is used to evaluate                       broadcast to all the PEs as opposed to being rippled down
+the database rows against the query (Figure 5-4). It consists                    the chain. Further, they are also speculatively written into
+of a chain of independent predicate evaluation units and a                       the qualified row buffer; this write is later committed or
+reduction network (RN). Each PE evaluates a single                               invalidated based on whether the row qualifies. Since
+predicate on a particular column of the database row. The                        broadcasting requires large fan out, we use a register tree to
+reduction network then reduces the outputs of the PEs, as                        feed all the PEs concurrently while keeping the fan out low.
+per the query, to a 1-bit qualify signal.                                        As the row is streamed in, each PE captures the required
+To evaluate a query on the FPGA, each PE must perform a                          bytes (using the start offset and length fields), evaluates its
+specific operation on specific bytes of the database row,                        respective predicate and outputs a 1-bit match/mismatch
+and the reduction network must combine the outputs of the                        signal. These funnel down the reduction network to
+PEs in a certain manner. The operation to perform and the                        generate the row qualify signal. For PEs disabled during the
+fields to evaluate are specific to a given query and change                      query load phase, the corresponding reduction unit either
+with the query. Generating a new FPGA hardware image                             disables itself (if both the PEs feeding into it are disabled)
+for each query and reprogramming the FPGA is not viable                          or replaces the output from the disabled unit with the
+since synthesis and place-and-route typically take hours to                      default pertaining to the function programmed into the
+finish. Reprogramming the FPGA with a pre-generated                              reduction unit (e.g. 1 for an AND operation).
+FPGA image is plausible, though for queries that operate on                      For an N-byte long row, it takes N + log2(nPE) cycles to
+relatively small amounts of data, the reconfiguration time                       qualify the row, where nPE is the number of PEs in the row
+
+
+
+                                                                           416
+scanner. At that point, the row, if qualified, is committed                                   6.2 DBMS-FPGA Communication Protocol
+into the qualified row buffer. The qualified rows from                                        Communication between the DBMS and the FPGA is
+different row scanners are copied over to the output page                                     achieved through a series of control blocks that are passed
+buffer by the page formatting logic (see Figure 5-1), at a                                    from the host to the FPGA. These carry the necessary
+rate of 16 bytes per cycle. Formatted pages are sent to the                                   information for describing the operations and data transfers.
+host for further processing. Note that the FPGA returns the
+rows in uncompressed form, for direct consumption by the                                      6.2.1 DMA Addressing
+DBMS. This does not affect the processing rate on the                                         Since the FPGA does not have direct addressability to host
+FPGA since the filtering of the database rows typically                                       memory, all in-memory data blocks and control information
+results in lower bandwidth requirements on the return path.                                   blocks need to be transferred to the FPGA via DMA over
+                                                                                              PCIe. When constructing the communication protocol
+6. SOFTWARE ENABLEMENT FOR FPGA                                                               between software and the FPGA, the DMA addresses for
+ACCELRATION                                                                                   the memory are used instead of the host addresses, as
+                                                                                              shown throughout this section.
+Enabling FPGA acceleration for a DBMS is an end-to-end
+effort. One aspect of this effort is to restructure the data                                  6.2.2 Host Control Block
+flow. Secondly, the capability of transforming a DBMS                                         A query may be broken up into multiple jobs. A job is
+query into a format that the FPGA accelerator can interpret                                   submitted to the FPGA via a host control block (HCB),
+for dynamic self-re-customization is also critical for                                        which encapsulates the job information but is independent
+accelerating various workloads without the need for                                           of the application logic. The HCB is interpreted by the
+reconfiguring the FPGA.                                                                       service layer in the FPGA; it carries information such as
+                                                Application                                   whether the current HCB is the last job in the queue, the
+                                                                                              DMA address of the query control block (see 6.2.3), as well
+         Database Management System
+
+
+
+
+                                      SQL
+                                      Service                                                 as updatable fields indicating an active job’s status. A
+                                      Layer                   a row
+                                                                                              queue of HCBs is maintained which allows more jobs to be
+                                      Data            Result data in a buffer    FPGA         queued while a job is active on the FPGA. FPGA will
+                                      Service
+                  (DBMS)
+
+
+
+
+                                                                                 Card
+                                      Layer
+                                                       Addr of a list of pages                continue to the next job in the queue, if one is available,
+                                      Buffer
+                                                         a Page                               when the current one is completed.
+                                      Service
+                                                    4KData
+                                                   4K page
+                                      Layer            page
+                                                     page                                     6.2.3 Query Control Block
+                                                                                              A query control block (QCB) is a data structure that is used
+                                                     Disk
+                                                                                              to tailor the FPGA application logic to a specific query. To
+   Figure 6-1 Block operation to enable FPGA acceleration                                     address different invocation scenarios, we devise two
+                                                                                              formats of the QCBs. Both formats contain an address list
+6.1 Block Level Data Operation                                                                of the input data pages to be processed and the address of
+An important design aspect for integration performance is                                     the output buffer. The first format, shown as QCB1 in
+to reduce the chattiness during the interactions between the                                  Figure 6-2, is used when the FPGA needs to interpret new
+host and the accelerator. For this purpose, we introduce a                                    query instructions and customize its internal logic. It thus
+block level data operation within the DBMS query                                              also contains predicate function information and an address
+processing engine. More specifically, a long running                                          list of the 8 4K dictionary pages to be loaded. When the
+predicate evaluation query is divided into multiple jobs for                                  second format, shown as QCB2 in Figure 6-2, is used, the
+an FPGA to process sequentially. Each job consists of a                                       FPGA performs the same task as in the previous job on a
+number of data pages as input for the FPGA to read, and an                                    different set of data. This saves the time needed to re-
+output buffer into which the FPGA writes the results. Both                                    customize the FPGA logic and reload the dictionary.
+data transferring actions are initiated by the FPGA.                                          To process more data pages per job than the limit imposed
+Figure 6-1 illustrates the changes made for enabling the                                      by a single QCB, a query control data continuation block
+block level data processing, as opposed to a traditional one                                  (QCDCB), shown in Figure 6-2, enables more input pages to
+page or one row at a time processing flow. For FPGA                                           be chained to a job. The last entry in QCB’s data list points
+acceleration, a list of BP pages (addresses) is obtained by                                   to the next QCDCB when this is needed.
+the Data Service Layer in DBMS and read by the FPGA.
+                                                                                              6.2.4 Query Mapping to FPGA Engines
+For output data from the FPGA, the DBMS pre-allocates a
+                                                                                              To express predicate instruction to the FPGA, QCB1
+large enough buffer that is filled by the FPGA engine with
+                                                                                              contains a list of predicate function control blocks and a list
+its results. The data format in this output buffer conforms to
+                                                                                              of reduction control blocks. A predicate function control
+the structure that is understood by DBMS processing engine
+                                                                                              block, shown in Figure 6-3, is a 16 byte data structure that
+for further downstream processing so additional data copy
+                                                                                              has information on the column, the comparison operator
+and formatting software can be avoided.
+
+
+
+                                                                                        417
+and the constant to compare against the column value that                                               FPGA system is a PLDA XpressGX4LP card [18] with an
+personalizes each PE.                                                                                   Altera Stratix IV GX530 FPGA. The card communicates
+Reduction control blocks, logically structured as a tree for                                            with the host system over a PCIe gen2 x8 interface.
+the RN, contain the Boolean operations information among                                                               Table 7-1 FPGA resource requirements
+the simple predicates in a complex predicate expression.                                                  Tiles   PEs     Logic     ALUTs         Registers      Memory Bits
+Figure 6-4 shows an example mapping of a predicate                                                                16       9%      24637 (6%)     27338 (6%)
+                                                                                                                                                                2179840 (10%)
+expression to the PEs and the reduction network.                                                           1      32      16%      39893 (9%)    48949(12%)
+
+   Work Description Block              Work Description Block            Work Description Block
+                                                                                                                  64      30%     70,240 (17%)   91114 (21%)
+          (128B)                              (128B)                            (128B)
+                                                                                                                  16      19%     47,877 (11%)   54,318 (13%)
+  Predicate Function Control                                                                                                                                    4359680 (21%)
+  Block (16B*128 = 2048B)                                                                                  2      32      33%     76,681 (18%)   97,441 (23%)
+   Reduction Control Block                                                                                        64      59%     136149 (32%)   181750 (43%)
+     (4-bits * 128 = 64B)            Data List Control Block
+                                      (3456B = 16B*216)                 Data List Control Block
+ Dictionary List Control Block                                                                                    16      38%     95,795 (23%)   108269 (25%)
+        (144B = 16B*9)                                                   (3968B = 16B*248)                 4                                                    8,719,360 (41%)
+   Data List Control Block                                                                                        32      66%     152,687(36%)   194416 (46%)
+     (1200B = 16B*75)
+
+  Output Data Control Block          Output Data Control Block
+                                                                                                        Table 7-1 lists the FPGA resource requirements for the
+           (512B)                             (512B)
+                                                                                                        different configurations of the database acceleration engine.
+          QCB1                                QCB2                              QCDCB
+                                                                                                        This does not include the service layer, which occupies a
+    Figure 6-2 Different formats of the query control block                                             fixed area of around 25% of the target FPGA. For a given
+                                                                                                        number of tiles, the logic requirements increase
+                                                                                                        proportionately with the number of PEs within a row
+                                                                                                        scanner, while the memory requirements remain unchanged.
+                                                                                                        Increasing the number of tiles, on the other hand, increases
+         Figure 6-3 16B predicate function control block
+                                                                                                        the number of row scanners, leading to higher logic as well
+                    (state = NY AND age > 20 AND age < 30) OR                                           as memory requirements. While the former is due to the
+                           A          B             C
+                    (state = CT AND age > 20 AND age < 30)
+                                                                                                        increased number of PEs, the latter results from having
+                           D           E            F                                                   more dictionary and data staging buffers. With 64 PEs per
+                         A       B     C      X    D      E     F   X
+                        PE0 PE1 PE2 PE3           PE4 PE5 PE6 PE7
+                                                                                                        row scanner, the current FPGA can support up to 2 tiles; 4
+                                                                                                        tiles can be instantiated with fewer PEs per scanner.
+                          AND           AND         AND          AND
+
+                                 AND                      AND
+                                                                                                        We now present the results of evaluating our FPGA-based
+                                              OR
+                                                                        X - Disabled                    accelerator for database systems, using three metrics: CPU
+                                                                                                        savings, speedup on offloaded computations, and overall
+   Figure 6-4 Mapping predicate expression to PE and RN                                                 end-to-end speedup. Additionally, we discuss the cost and
+                                                                                                        relative merit of invoking the FPGA kernel. In our
+6.3 Transforming Query to QCBs                                                                          experimental workload, the data is derived from real
+SQL provides rich syntaxes to express data relations.                                                   customer database tables, and the query operations include
+Predicate expression are not limited to just comparisons and                                            decompression and predicate evaluation, which are two of
+Boolean operations. For example, expression “WHERE                                                      the most CPU intensive functions. Both the baseline and
+state IN (‘NY’, ‘CT’) AND age between 20 AND 30” tests                                                  hardware-accelerated versions of the code are single-
+set containment for field “state” and it can not be directly                                            threaded and run on a single processor core. All the
+mapped to PEs and RUs as is. However, existing SQL                                                      measurements were taken with the data in buffer pools and
+parsing and transformation capabilities in the DBMS are                                                 do not include disk I/O time. Measurements were taken
+capable of converting the predicate into the comparison and                                             with both uncompressed and compressed rows; the
+Boolean only expressions shown in Figure 6-4 and                                                        uncompressed row lengths for the two workloads evaluated
+representing it in an internal format [17]. A realistic                                                 (customer 1 and customer 2 in Figure 7-2) are 165 bytes and
+approach for query transformation integration is to inject                                              229 bytes, with the average compression space savings of
+the FPGA QCB build function into the query processing                                                   80% and 50% respectively.
+flow such that it can take advantage of the transformed
+                                                                                                        CPU savings represent the CPU runtime reduction obtained
+expression for its input. It is then straightforward for the
+                                                                                                        by offloading the computations from the CPU to the FPGA.
+QCB build function to map the transformed expression to
+                                                                                                        This is an important metric since it effectively represents
+predicate function control blocks and correct topology in
+                                                                                                        freeing-up of the CPU resources for online transaction
+the reduction network.
+                                                                                                        processing in real-time analytics systems. Figure 7-1 shows
+                                                                                                        the savings obtained while processing 468K database pages
+7. EXPERIMENTS AND RESULTS
+                                                                                                        of uncompressed data and 101K pages of compressed data
+Our prototype is built upon a commercial DBMS running
+                                                                                                        from customer 1 workload, for a range of data qualification
+on a 3.8GHz multi-core super scalar system. Our target
+
+
+
+                                                                                                  418
+ratios. Note that the reduced CPU time shown for the                                    words, the row scanners on the FPGA are idle for 63% of
+FPGA-assisted database system does not include the time                                 the time, waiting for data. Transferring compressed data, on
+spent on the FPGA to perform the actual computations.                                   the other hand, results in data expansion on the FPGA, thus
+                  14                                                                    leading to higher effective uncompressed bandwidth,
+                                CPU Time (Uncompressed)                  14.74%
+                  12                                                                    thereby overcoming the effects of the PCIe limitation. For
+     Time (sec)
+
+
+
+
+                  10
+                   8
+                                         Baseline    w/ FPGA                            customer 2 workload, where the data is compressed down
+                   6                                                                    to 50%, the effective bandwidth is 4.8GB/sec and the
+                                                       55.21%   45.61%
+                   4   67.91%    64.15%      61.95%                                     FPGA engines achieve 75.7% of their peak performance.
+                   2
+                   0                                                                    Here, all the available raw bandwidth has been utilized and
+                       0.3       1.7        2.7         6       12       99.5           the overall performance is still limited by PCIe. For
+                                         Rows qualified (%)
+                                                                                        customer 1 data, however, which is compressed down to
+                  16
+                  14             CPU Time (Compressed)
+                                                                          27.8%         20%, the effective bandwidth is 6.8GB/sec with the actual
+                  12                                                                    transfer bandwidth of just 1.5GB/sec. In this case, the
+     Time (sec)
+
+
+
+
+                  10                     Baseline    w/ FPGA
+                   8                                                                    design achieves 98.5% pipeline utilization and the
+                   6
+                       93.8%     90.2%       87.7%     80.4%
+                                                                71.7%                   performance is limited by the available FPGA resources.
+                   4
+                   2
+                   0
+                                                                                        As can be seen, compression plays an important role; due to
+                       0.3       1.7        2.7         6       12       99.5           the high compression ratio, even a portion of the available
+                                          Rows qualified (%)                            bus bandwidth is sufficient to saturate the predicate
+                                                                                        evaluation engines on the FPGA. Higher PCIe utilization
+    Figure 7-1 CPU savings obtained from FPGA offload
+                                                                                        and further performance improvement can be achieved by
+As shown, for compressed data, an 27.8% to 93.8%                                        instantiating more scan tiles on the FPGA. Data with a
+reduction in CPU time is obtained, while the reduction is                               smaller compression ratio, alternatively, can utilize higher
+between 14.7% and 67.9% for uncompressed data. This                                     PCIe bus bandwidth to achieve high data processing rate.
+difference is expected; for uncompressed data, no                                       Note that the actual and effective bandwidths for
+decompression operation is involved, so the offload, and                                uncompressed data are one and the same.
+hence the savings is smaller. Moreover, for both
+compressed and uncompressed data, the savings are higher                                                                     Row Processing Rate
+when a smaller fraction of rows qualify. This is due to the                                                       50
+                                                                                              Million rows/sec.
+
+
+
+
+                                                                                                                                     10.7x                 Baseline      FPGA
+                                                                                                                  40
+post-processing of the qualified data by the CPU, such as
+                                                                                                                  30                                                     6.7x
+moving data to application buffer. When a larger fraction of                                                      20       1.2x
+                                                                                                                                          6.8 GB/sec
+                                                                                                                                                           1.3x           4.8 GB/sec
+rows qualify, there is more processing on the CPU and                                                             10         2.6 GB/sec                     2.7 GB/sec
+hence lower overall CPU savings. Overall, both compressed                                                          0
+                                                                                                                       Uncompressed Compressed         Uncompressed Compressed
+and uncompressed cases achieve significant saving of CPU                                                                    Customer
+                                                                                                                            Customer 11                     Customer 2
+                                                                                                                                                            Customer
+resources, which in turn can be diverted to OLTP work.
+                                                                                            Figure 7-2 FPGA speedup over the baseline software
+Next we compare the raw power of the FPGA to that of the
+host processor in performing the same work, expressed in                                To evaluate the ultimate benefit of the proposed approach
+Figure 7-2 in terms of ‘rows processed per second’, for                                 to an end customer, we measure the improvements on the
+compressed and uncompressed data from two customer                                      end-to-end query response time. Figure 7-3 plots response
+workloads. Also shown is the effective uncompressed data                                times for compressed and uncompressed data. The dataset
+processing throughput achieved by the FPGA for each case.                               used is the same as that reported in Figure 7-1. The
+The FPGA design was instantiated with 4 scan tiles, for a                               measured time includes data transfer time, the time for pre
+total of 32 row scanners, and runs at 200 MHz. Note that                                and post processing of the data on the host CPU and the
+the processing rate shown here measures just the offloaded                              time spent on the FPGA accelerator.
+computations and is thus independent of data characteristics                            Again, the end-to-end response time is dependent on the
+such as qualification ratio. These measurements do,                                     filtering ratio, due to the post-processing of the qualified
+however, include the time for host-FPGA data transfers.                                 data. For compressed data, the graph shows similar trend as
+As shown, the FPGA achieves speedups of 10.7x and 6.7x                                  that for CPU savings – larger end-to-end speedups for
+on compressed data, whereas the speedups on                                             lower qualification ratio, with speedups in the range of 1.2x
+uncompressed data are relatively modest. The reason is as                               to 6.2x for various filtering ratios. Uncompressed data, on
+follows: for uncompressed data, the overall performance is                              the other hand, does not show any improvement in response
+limited by the data transfer bandwidth; therefore, in this                              time. This is mainly due to two reasons: first, the amount of
+case, the FPGA engines are starved and not fully utilized.                              processing that is offloaded is not enough to amortize the
+With uncompressed transfer bandwidth of 2.6GB/sec, the                                  costs associated with invoking the FPGA routine and
+design achieves pipeline utilization of just 37%. In other                              second, the computation-only speedup obtained from the
+                                                                                        FPGA is modest, as discussed earlier, due to the bus
+
+
+
+                                                                                  419
+bandwidth limitations. While the latter can be addressed by                          up to 94% savings of CPU resources and up to an order of
+tuning the current PCIe DMA interface or using a higher                              magnitude speedup in the offloaded computations on the
+bandwidth bus, addressing the former requires offloading                             tested workload. We presented a general approach for an
+more computations to the FPGA. These include some of the                             existing DBMS to seamlessly leverage the FPGA
+post processing operations performed by the CPU.                                     accelerator and validated with a prototype that integrates
+Nonetheless, the fact that there is no regression in response                        the accelerator into a commercial DBMS and achieves
+time in the uncompressed case still makes offloading an                              significant end-to-end performance improvements.
+effective improvement due to CPU savings. More                                       As part of our future work, we are investigating offload of
+importantly, the compressed data performance is                                      other database computations to the FPGA to further
+particularly significant in that most enterprise customers do                        improve the overall performance. Moreover, in our current
+compress their large tables for storage savings.                                     work, we focused on the issue of CPU resources while
+                 14
+                              Response Time (Uncompressed)
+                                                                      0.97x          running analytics queries in parallel with mission-critical
+                 12
+                                                                                     transactional work. While CPU is the most critical resource
+    Time (sec)
+
+
+
+
+                 10
+                                        Baseline   w/ FPGA
+                  8                                                                  in such environments, in some cases, I/O resources can also
+                  6
+                                                     0.96x    0.99x                  affect the overall performance. Addressing this also forms a
+                  4   0.96x     0.97x     0.96x
+                  2                                                                  part of our future work.
+                  0
+                       0.3       1.7       2.7        6        12      99.5
+                                        Rows qualified (%)
+                                                                                     9. REFERENCES
+                                                                                     [1] http://www.teradata.com/
+                 16
+                 14            Response Time (Compressed)               1.2x
+                                                                                     [2] Krueger, J., et. al. “Fast Updates on Read Optimized
+                 12                                                                       Databases Using MultiCore CPUs” Proceedings of the
+    Time (sec)
+
+
+
+
+                 10                     Baseline   w/ FPGA
+                  8
+                                                                                          VLDB Endowment, Vol. 5, No. 1, August 2012.
+                  6
+                                           4.6x      3.4x      2.6x                  [3] Low, B., Ooi, B., and Wong, C., “Exploration on Scalability
+                       6.2x      5.1x
+                  4                                                                       of Database Bulk Insertion with Multi-threading” Int. J. New
+                  2
+                  0                                                                       Computer Architectures and Their Applications, 2011.
+                       0.3       1.7       2.7        6       12       99.5          [4] Horikawa, T., “An Unexpected Scalability Bottleneck in a
+                                         Rows qualified (%)                               DBMS: A Hidden Pitfall in Implementing Mutual
+                                                                                          Exclusion”, Parallel and Distributed Computing and
+                  Figure 7-3 Query response time improvement                              Systems, 2011.
+As is clear from the above discussions, offloading the                               [5] Scofield, T. C., et. al., “XtremeData dbX: An FPGA-Based
+decompression operation to the FPGA is crucial to                                         Data Warehouse Appliance” Computing in Science and
+                                                                                          Engineering, IEEE 2010.
+obtaining overall performance improvement. Our FPGA
+                                                                                     [6] Johnson, R., Raman, V., Sidle, R., Swart, G. “Rowwise
+design performs streaming, on-the-fly decompression of the                                Parallel Predicate Evaluation” Proc. Int. Conf on VLDB’08.
+compressed rows, thereby offsetting PCIe bus bandwidth                               [7] Zhou, J. and Ross, K. A., Implementing Database Operations
+limitations without incurring any performance penalties for                               Using SIMD Instructions”, ACM SIGMOD, 2002, 145-156.
+large, throughput-centric analytics workloads.                                       [8] Satish N., et. al., “Fast sort on CPUs and GPUs: a case for
+                                                                                          bandwidth oblivious SIMD sort”. ACM SIGMOD, 2010.
+Finally, we discuss the overhead of calling the FPGA
+                                                                                     [9] Leung, K., Ercegovac, M., and Muntz, R. “Exploiting
+routine. Since sending a query to the FPGA incurs some                                    Reconfigurable FPGA for Parallel Query Processing in
+start-up cost, we performed experiments to find the                                       Computation Intensive Data Mining Applications” In UC
+minimum query data size needed to offset that cost and                                    MICRO Technical Report Feb. 1999.
+obtain an overall performance benefit. In terms of absolute                          [10] Mueller, R. and Teubner, J. “FPGA: What’s in it for a
+time, the CPU cost for FPGA invocation is around 50 to                                    Database?.” In ACM SIGMOD, 2009, 999-1004.
+100 milliseconds on this processor. Based on our                                     [11] Mueller, R., Teubner, J. and Alonso, G., “Data processing on
+                                                                                          FPGAs”, Proceedings of the VLDB Endowment, v.2 n.1,
+experiments, this cost gets offset for tables with 4000 to
+                                                                                          August 2009.
+10,000 uncompressed pages or 400 to 1,000 compressed                                 [12] Mueller, R., Teubner, J. and Alonso, G., “Glacier: a query-
+pages. For smaller queries, invoking the FPGA routine does                                to-hardware compiler”, In ACM SIGMOD’2010, 1159-1162.
+not pay off and the original software path should be used                            [13] http://www.netezza.com/
+instead. A future work in deploying this acceleration                                [14] http://www-01.ibm.com/software/data/db2/zos/analytics-
+technology to DBMS is to enhance the query optimizer                                      accelerator
+such that it can select the appropriate execution path                               [15] Ramakrishnan, R., and Gehrke, J. Database Management
+between software and the acceleration based on database                                   Systems. McGraw-Hill, 3rd edition.
+                                                                                     [16] Iyer, B. and Wilhite, D. 1994. Data Compression Support in
+statistics and the optimizer’s analysis of the query.                                     Databases. In Proceedings of Int. Conf on VLDB.
+                                                                                     [17] Lorie, R.A., and Nilsson, J.F.. 1979. “An access specification
+8. CONCLUSIONS AND FUTURE WORK                                                            language for a relational data base system”, IBM J. Res. Dev.
+We have presented an FPGA-accelerated database system                                [18] http://www.plda.com/prodetail.php?pid=184
+for evaluating expensive analytics queries. The results show
+
+
+
+                                                                               420
+

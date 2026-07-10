@@ -1,0 +1,30 @@
+ruff check verisql tests formal tools
+All checks passed!
+ruff format --check verisql tests formal tools
+14 files already formatted
+PYTHONPATH=. python3 -m pytest -q
+...............                                                          [100%]
+15 passed in 1.49s
+PYTHONPATH=. python3 formal/prove.py
+RTL integrity: PASS (5 files)
+Z3 version: 4.16.0
+PASS  INT32 comparator + SQL NULL semantics: UNSAT (no counterexample)
+PASS  packed four-lane/four-predicate AND datapath: UNSAT (no counterexample)
+PASS  stream: reset clears output state: UNSAT (no counterexample)
+PASS  stream: backpressure preserves valid and payload: UNSAT (no counterexample)
+PASS  stream: accepted row appears next cycle: UNSAT (no counterexample)
+PASS  stream: drain without replacement clears valid: UNSAT (no counterexample)
+PASS  stream: stalled input cannot be accepted/overwrite output: UNSAT (no counterexample)
+All contract proofs discharged.
+vsg -c .vsg-parse.yaml -f rtl/*.vhd tb/*.vhd formal/*.vhd -of summary
+File: rtl/elastic_match_step.vhd OK (0 rules checked) [Error: 0] [Warning: 0]
+File: rtl/sql_cmp32.vhd OK (0 rules checked) [Error: 0] [Warning: 0]
+File: rtl/sql_pkg.vhd OK (0 rules checked) [Error: 0] [Warning: 0]
+File: rtl/sql_predicate_accel.vhd OK (0 rules checked) [Error: 0] [Warning: 0]
+File: rtl/sql_predicate_datapath.vhd OK (0 rules checked) [Error: 0] [Warning: 0]
+File: tb/tb_sql_cmp32.vhd OK (0 rules checked) [Error: 0] [Warning: 0]
+File: tb/tb_sql_predicate_accel.vhd OK (0 rules checked) [Error: 0] [Warning: 0]
+File: tb/tb_sql_vector_file.vhd OK (0 rules checked) [Error: 0] [Warning: 0]
+File: formal/cmp_formal.vhd OK (0 rules checked) [Error: 0] [Warning: 0]
+File: formal/datapath_formal.vhd OK (0 rules checked) [Error: 0] [Warning: 0]
+File: formal/stream_step_formal.vhd OK (0 rules checked) [Error: 0] [Warning: 0]

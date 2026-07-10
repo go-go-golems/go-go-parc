@@ -1,0 +1,948 @@
+Farview: Disaggregated Memory with Operator Off-loading for
+                     Database Engines
+                   Dario Korolija                                        Dimitrios Koutsoukos                               Kimberly Keeton*
+             dario.korolija@inf.ethz.ch                                      dkoutsou@inf.ethz.ch                         kimberlykeeton@acm.org
+                    ETH Zurich                                                   ETH Zurich                                 Hewlett Packard Labs
+                    Switzerland                                                  Switzerland                                        USA
+
+               Konstantin Taranov                                              Dejan Milojičić                             Gustavo Alonso
+         konstantin.taranov@inf.ethz.ch                                   dejan.milojicic@hpe.com                            alonso@inf.ethz.ch
+                  ETH Zurich                                                Hewlett Packard Labs                                ETH Zurich
+                  Switzerland                                                       USA                                          Switzerland
+ABSTRACT                                                                                    computing; and the amount of data to be processed keeps growing
+Cloud deployments disaggregate storage from compute, providing                              while DRAM capacity does not.
+more flexibility to both the storage and compute layers. In this paper,                        Optimized query plans typically push down selection and pro-
+we explore disaggregation by taking it one step further and apply-                          jection operators to filter out the base tables as early as possible.
+ing it to memory (DRAM). Disaggregated memory uses network                                  However, filtering base tables to get the data actually needed by the
+attached DRAM as a way to decouple memory from CPU. In the                                  query is an expensive step. Base tables are fetched from storage as
+context of databases, such a design offers significant advantages                           blocks that are placed in a buffer cache in memory. From there, a
+in terms of making a larger memory capacity available as a cen-                             query thread reads the data and filters it to form the input to the rest
+tral pool to a collection of smaller processing nodes. To explore                           of the query plan. Often, most of the data is dropped because it does
+these possibilities, we have implemented Farview, a disaggregated                           not match the query’s selection predicate. As more data is involved,
+memory solution for databases, operating as a remote buffer cache                           the overhead becomes larger. Data movement has been identified
+with operator offloading capabilities. Farview is implemented as an                         as one of the biggest inefficiencies in computing [24, 25], making
+FPGA-based smart NIC making DRAM available as a disaggregated,                              the way databases operate intrinsically problematic from a systems
+network attached memory pool capable of performing data process-                            perspective, even if main memory could grow indefinitely.
+ing at line rate over data streams to/from disaggregated memory.                               However, DRAM capacity is also a major limitation, because the
+Farview supports query offloading using operators such as selection,                        size of data processed by analytical databases keeps growing [47].
+projection, aggregation, regular expression matching and encryption.                        The current approach to tackle such a limitation is to use NVM,
+In this paper we focus on analytical queries and demonstrate the                            introduced as an alternative that is both cheaper and has higher
+viability of the idea through an extensive experimental evaluation of                       capacity than DRAM (and persists data), but has larger latency.
+Farview under different workloads. Farview is competitive with a                            In databases, it is increasingly used to improve and expand the
+local buffer cache solution for all the workloads and outperforms it                        memory hierarchy [10–12, 57, 69, 70]. Such designs do not address
+in a number of cases, proving that a smart disaggregated memory can                         the overhead of moving large data sets to the CPU, only to have
+be a viable alternative for databases deployed in cloud environments.                       most of it filtered or projected out. Specialized hardware between
+                                                                                            memory and the CPU has even been proposed to filter data as early
+                                                                                            as possible, minimizing bus congestion and cache pollution [4, 30].
+1     INTRODUCTION                                                                             An alternative approach for addressing memory pressure is to
+Historically, databases have invested significant efforts to reduce                         exploit the distributed nature of database engines, particularly in the
+I/O overheads. Initially, memory was very limited in capacity and                           cloud, to take advantage of non-local memory. In such distributed
+disks were slow. Over time the bottleneck shifted as faster storage                         settings, the coupling of storage, compute, and memory capacity is
+became available (SSDs, Non-Volatile Memory (NVM)), memories                                problematic both cost-wise and performance-wise: the inability to in-
+became larger, and multicore emerged. Yet, the I/O overhead remains                         dependently provision each of those elements leads to inefficiencies
+a major factor in the overall performance. To minimize it, databases                        due to over-provisioning. For instance, allocating large amounts of
+have relied on keeping more and more data in memory, a trend that                           memory for tasks that are not compute-heavy leaves CPU unused, as
+cannot continue for two main reasons: databases induce considerable                         other applications might not be able to run on the remaining memory.
+data movement, which is known to be highly inefficient in modern                            Conversely, allocating many virtual CPUs to a task may result in the
+                                                                                            memory being underutilized for lack of compute capacity for other
+* Now at Google                                                                             tasks. Due to these challenges, essentially all cloud architectures fol-
+                                                                                            low a clear trend towards disaggregation. Currently, the most visible
+This paper is published under the Creative Commons Attribution 4.0 International (CC-       form of disaggregation is the separation of compute and storage. The
+BY 4.0) license. Authors reserve their rights to disseminate the work on their personal     next step is the disaggregation of memory and compute, which is
+and corporate Web sites with the appropriate attribution, provided that you attribute the
+original work to the authors and CIDR 2022. 12th Annual Conference on Innovative            being pursued in various forms: disaggregated DRAM [34, 48, 49],
+Data Systems Research (CIDR ’22). January 10-13, 2022, Chaminade, USA.
+    SELECT T.a, S.b                                           πT.a,S.b()                   Compute node
+                                                                                                                  Smart disaggregated memory
+    FROM T, S                                                  ⋈                            Query thread:         Operator offloading
+    WHERE T.id = S.id                                                                        πT.a,S.b()             πT.a,T.id(σT.c>50(T))
+    AND T.c > 50 AND S.d < 2012;      πT.a,T.id(σT.c>50(T))   πS.b,S.id(σS.d<2012(S))        ⋈                      πS.b,S.id(σS.d<2012(S))
+                                                                                                          RDMA                                Buffer
+    SELECT R.d, S.b                                           πR.d,S.b()                                          Operator offloading
+                                                                                           Compute node            πR.d,R.id(σR.a=3.14(R))    Cache
+    FROM R, S                                                  ⋈                            Query thread:
+    WHERE R.id = S.id                                                                                             πS.b,S.id(σS.a<>2020(S))
+                                      πR.d,R.id(σR.a=3.14(R)) πS.b,S.id(σS.a<>2020(S))       πR.d,S.b()
+    AND R.a = 3.14 AND S.a <> 2012;                                                          ⋈
+
+
+
+Figure 1: Farview query execution: Offloading of query operators to the smart disaggregated memory and splitting the query plan
+between compute and memory nodes
+
+
+disaggregated persistent memory [52, 68], far memory [3, 7] and                  and query processing elasticity to future work. Farview currently
+smart remote memory [45, 67].                                                    supports a wide range of query operators: selection, projection, ag-
+   In this paper we demonstrate that databases are uniquely posi-                gregation, distinct, group by, regular expression matching, and en-
+tioned to exploit disaggregated memory to address both the issues                cryption. All these operators achieve near line-rate speed, adding
+of inefficient data movement and DRAM capacity. Our approach                     insignificant latency to baseline network overheads. Farview also
+is based on physically detaching query processing from memory                    supports concurrent access, with multiple clients all accessing the
+buffer management. The buffer pool is placed on network attached                 same disaggregated memory. Our experiments show that Farview
+disaggregated memory, with query processing nodes provisioned on                 induces almost no overhead over operating on local memory and
+demand to run a query by reading the data from the network attached              provides significant performance gains when data can be reduced in
+buffer pool. This design presents multiple advantages. Consider, for             the disaggregated memory.
+example, queries with low selectivity (e.g., TPC-H Q6) or an ag-
+gregation after a GROUP BY statement. In the first case, the query
+reads a large amount of data from the buffer pool just to discard                2       BACKGROUND AND RELATED WORK
+most of it. In the second case, a query of the form SELECT T.a,                  In this section we motivate Farview and discuss related work. Farview
+COUNT(*) FROM T GROUP BY T.a will usually return only                            is based on extensive experience in data center, computer, and proces-
+a handful of tuples, but it still requires reading the entire table. The         sor design [19, 31]. For reasons of space, we focus here only on two
+smart disaggregated memory we propose offers the opportunity to                  salient aspects: memory disaggregation and near-data processing.
+(1) reduce data movement by pushing down operators to the dis-
+aggregated memory, so that the processing nodes receive only the
+relevant data; and (2) reduce memory requirements for computing                  2.1      Coping with memory pressure
+nodes by centralizing the buffer cache in disaggregated memory and               Data growth has turned DRAM into a major bottleneck [29, 47].
+removing unnecessary copying of the data to the compute nodes.                   To cope with this bottleneck, advances in memory technologies
+Figure 1 shows an example where projection and selection of two                  and networking are leveraged to increase effective DRAM capacity.
+concurrent queries are offloaded to smart disaggregated memory,                  Within a local node, studies have explored compressing cold pages
+while the join and the final projection happen at the compute nodes.             into local DRAM [47] or using local NVM directly as memory or
+   To prove that these ideas can work in practice, we have developed             with DRAM acting as a transparent caching layer [28, 59, 62]. These
+Farview (FV), a novel platform for data processing over disaggre-                designs have also been used in databases in different ways, to expand
+gated memory. Farview supports near-data processing to compensate                virtual memory [57], directly as memory [10], or as a cache [69].
+for the added latency of accessing memory through the network by                 While in many cases there are performance advantages, these efforts
+moving data reduction operators (selection, projection, aggregation,             require significant redesign in the database engine and do not address
+etc.) to the disaggregated memory. Farview is based on a smart NIC               the underlying problem of inefficient data movement.
+built on top of Coyote, an open source FPGA shell [46] that enables                 In a distributed setting, the notion that memory can be shared
+the FPGA to support dynamic operator push down on concurrent                     across a cluster of machines has been around for decades [8]. More
+streams reading from memory. The smart NIC supports RoCE v2 at                   recently, the advent of fast networks like InfiniBand FDR/EDR has
+100 Gbps using an open source RDMA stack [67], optimizing the                    renewed interest in exploiting memory (DRAM or NVM) accessed
+interaction between network and memory as well as minimizing the                 over the network. Remote memory, a distributed memory infrastruc-
+network processing overheads on the computing node CPU, thereby                  ture where a group of comparably equipped compute nodes make
+freeing processing capacity. From a database perspective, Farview                their memory available to their peers, has been exposed to applica-
+acts as a disaggregated memory buffer pool with operator push down               tions as a remote paging device [7, 37], as a file system [1], and as
+capability that is byte addressable by the threads running queries at            distributed shared memory [27, 54, 66]. Although this organization
+the computing nodes.                                                             leverages existing resources and can improve resource utilization of
+   For reasons of space, in this paper we focus on the design, ar-               otherwise unused memory, it entangles compute and memory for
+chitecture, and experimental evaluation of Farview when running                  provisioning and expands the failure domain and attack surfaces of
+queries, leaving other aspects such as cache replacement policies                each machine [2, 47].
+                                                                             2
+   In contrast, disaggregated memory systems use network attached                    The network overheads can be addressed using advances in net-
+memory that is distinct from the memory in the compute nodes [49,                 working (in addition to compensating for it by using near-data pro-
+68]. This approach allows the disaggregated memory to scale inde-                 cessing). Most of the work on different forms of disaggregated
+pendently of the system’s computing or storage capacity [48], and                 memory utilizes low-latency RDMA instead of TCP/IP, often ex-
+removes the need to over-provision one resource to scale another.                 tending one-sided operations on RDMA to offload group-based op-
+From the database perspective, this is a promising architecture. An               erations for storage replication (e.g., HyperLoop [45]), concurrency
+evaluation of existing database engines (MonetDB and PostgresSQL)                 and transactions for data structures (e.g., AsymNVM [52]), and
+using LegOS [65], an operating system for disaggregated memory,                   memory access operations for key-value stores (e.g., StRoM [67]).
+indicates that the network overhead is the main bottleneck [75, 76].              RDMA employs the network protocol (InfiniBand [38], RoCE [39])
+The authors conclude that disaggregated memory has potential, but                 and the Network Interface Card (NIC) to move data directly be-
+significant performance loss occurs due to the use of sub-optimal                 tween the memory of different machines. At the speed at which
+algorithms and lack of suitable data structures.                                  networks operate today, RDMA can be used to efficiently transfer
+   In Farview, we demonstrate that disaggregated memory is es-                    large amounts of data across machines at the rates of DRAM mem-
+pecially suitable to database engines when used as a buffer pool                  ory channels [33]. It is thus especially suitable for disaggregated
+(also suggested in [75]). This makes the integration of disaggregated             memory and databases [5]. It has been shown to speed up distributed
+memory a more natural way to address the memory capacity limita-                  operators such as data shuffling [50], joins [14, 15], transactional
+tion as neither the interface to memory needs to be changed nor the               workloads [16], and indexing [77]. In Farview, we use RDMA to
+memory hierarchy expanded. What remains to be addressed are the                   efficiently transfer data through the network so that the query pro-
+data movement inefficiencies and network overheads.                               cessing thread directly gets the data from the remote buffer pool. As
+                                                                                  suggested by current architectural trends in the cloud, Farview is
+                                                                                  implemented on top of an FPGA-based smart NIC. It supports SQL
+                                                                                  operators acting on the RDMA data streams as they move along
+2.2    Efficient data movement                                                    the data path connecting the disaggregated memory to the network.
+Data movement inefficiencies can be addressed by using near-data                  The design efficiently combines near-data processing with faster
+processing. Expanding on decades-old work that memory and stor-                   network transfers, while removing the need for a conventional CPU
+age can be active components [43, 58, 60, 61], several approaches                 to support the disaggregated memory (a design that resembles that
+to memory disaggregation explore increasing the intelligence of                   of AQUA, which also uses FPGAs instead of conventional CPUs,
+network-attached memory. Far memory [3] proposes simple hard-                     and that is aligned with how FPGAs are deployed in Microsoft’s
+ware extensions to reduce the number of network traversals to access              Azure [20, 32, 63]).
+non-local memory, and support for efficient notifications to facilitate
+consistency of data cached in the local memory of the nodes. In the               3     FARVIEW: SYSTEM OVERVIEW
+context of databases, the advantages of processing data in the dis-
+                                                                                  Farview is a smart disaggregated memory attached to the smart NIC
+aggregated memory have also been suggested [75, 76], but without
+                                                                                  with operator offloading capabilities that behaves as a database buffer
+proposing a possible implementation. The argument in favor of such
+                                                                                  pool. Traditionally, query processing threads access base tables by
+designs is simple: push down selection and projection operators (as
+                                                                                  reading them from the buffer pool and copying the data to their
+well as potentially other operators such as grouping, aggregation or
+                                                                                  private working space. With Farview, nothing changes for the query
+even joins where one of the tables is small) to the memory or storage
+                                                                                  thread, except that the read operation is on a remote disaggregated
+so that the base table is filtered out in-situ and irrelevant data does not
+                                                                                  memory rather than local memory, potentially with a subset of the
+need to be moved or sent. Although to our knowledge not yet used
+                                                                                  operators already applied.
+with disaggregated memory, the idea mirrors a growing trend to push
+SQL operators near the data, until now mostly to storage [41, 71].
+Even more ambitious are accelerators embedded in the data path                    3.1    Smart buffer pool with operator offloading
+between memory and CPU caches [22, 30], which can filter data as                  Farview exposes a data API to the buffer pool (Section 4.2) that can
+it is read from memory to reduce data movement and cache pollution.               offload operators to the disaggregated memory. Farview executes
+Finally, in the cloud, systems like Amazon’s AQUA [13] use SSDs                   an operator pipeline with one or more operators (e.g., a selection
+attached to FPGAs to implement a caching layer for RedShift that                  and then an aggregation) to process the data as it is read from dis-
+supports SQL filtering operations and operator push-down to mini-                 aggregated memory, effectively functioning as a bump-in-the-wire
+mize the amount of data movement from storage to the processing                   stream processor (Section 5). As done in conventional query pro-
+nodes. These designs are based on introducing a bump-in-the-wire                  cessing, operator pipelines are constructed from individual blocks
+processor to be able to process data closer to where it initially resides,        that implement a given operator and provide standard interfaces to
+instead of moving it first and then processing it. In Farview we adopt            combine them into pipelines. The modular nature of these pipelines
+a similar design, with operators placed directly in the path of the               and the reconfigurability of the FPGAs allows the list of operators to
+network and memory. Farview requires neither changes to the stor-                 be swapped and easily extended in the future (e.g., join operators).
+age layer interface nor specialized processors, whilst adding a layer                Farview currently supports a range of operators, including: (1)
+of dynamicity provided by the reconfigurable platforms. Moreover,                 projection operators to reduce the columns returned (and potentially
+we focus on disaggregating the buffer pool in DRAM, rather than                   reduce memory accesses) (2) selection operators that filter data
+introducing additional caching layers between storage and compute.                according to a collection of predicates; (3) grouping operators that
+                                                                              3
+combine tuples (e.g., distinct, group by and aggregation); and (4)
+system support operators that process data in-situ before sending the
+                                                                                         DRAM            DRAM                  DRAM
+data (e.g., encryption/decryption) and perform system optimization                      Channel 1       Channel 2            Channel M
+tasks like packing the data to reduce the overall network usage.                          Arbiter 1      Arbiter 2            Arbiter M
+
+                                                                                    ~18 GBps
+3.2    FPGA-based architecture                                                      per
+Prototyping smart disaggregated memory requires several compo-                      channel DMA 1       DMA 2                DMA N
+nents, including DRAM, memory controllers, a network stack, a                            Memory Management Unit (Virtualized Layer)
+mechanism to support concurrent access to the memory, and stream
+                                                                                                                              Memory Stack
+processing capacity for operator push-down. Modern FPGAs are a                      Operator Stack
+natural match for such functionality, as high performance and flexi-                 Dynamic Region    Dynamic Region         Dynamic Region
+bility can all be combined in a single device rather than having to
+                                                                                       Operators
+                                                                                          VIEW
+                                                                                                         Operators
+                                                                                                             VIEW
+                                                                                                                                Operators
+                                                                                                                                   VIEW
+connect separate components such as processor, NIC, and memory,                             1                  1                     1
+
+                                                                                          1                 2                       3
+all inducing significant data movement overheads. FPGAs can also
+support substantial amounts of local memory, directly attached to
+the FPGA. This on-board memory is usually organized in multiple                              Packet Based Arbitration (Fair-sharing)
+channels (even High Bandwidth Memory (HBM)) [6]. Farview’s                          Network Stack     ~12 GBps
+design (Section 4) leverages these characteristics to implement dis-
+                                                                                                         Roce v2 RDMA
+aggregated memory as a lean component.
+                                                                                                         Network Stack
+   To deploy operators that can process data on the disaggregated
+memory, the FPGA is divided into multiple isolated virtual dynamic                   Figure 2: High level view of Farview’s architecture
+regions that operate concurrently. These dynamic regions can be
+obtained by different clients and can process different query requests.
+Each dynamic region serves an access request to the disaggregated
+memory and can implement a separate operator pipeline that can                be seen as a specialized stream processor acting on the data as it
+execute a set of different queries. These regions are dynamically             moves from the memory stack to the network stack. It also controls
+reconfigurable: the logic deployed in them can be swapped at runtime          how data is retrieved from the memory stack. The operator stack is
+without having to reconfigure the whole FPGA. This swap takes on              reconfigurable, and its operator logic can be changed at any point
+the order of milliseconds, depending on the size of the regions [46].         without affecting the operation of the rest of the system.
+   A combination of operators is precompiled as an operator pipeline             Clients access the disaggregated memory by opening a connection
+into a hardware design that is dynamically loaded into the FPGA               with Farview to one of the dynamic regions, each able to contain
+at runtime, upon a request from a client (i.e., a thread processing           one of the possible operator pipelines. Whenever a client makes
+a query at a computing node). The operators and their pipelines               a request to Farview, the network stack routes the request to the
+can be modified or extended, and new ones can easily be added by              correct virtual dynamic region in the operator stack belonging to
+combining the existing ones or changing their parameters.                     the client that initiated the request. The read request is forwarded to
+                                                                              the memory stack, which translates the virtual address to a physical
+                                                                              address in the on-board FPGA memory, and then issues the actual
+4     FARVIEW: IMPLEMENTATION
+                                                                              data request. The clients have the local catalog information that is
+Farview is implemented on top of Coyote, our open source FPGA                 used to determine the addresses of the tables to be accessed. The
+shell [46]. The shell provides a layer of abstraction hiding services         returned data is streamed back to the dynamic region, where the
+like RDMA network stack and memory virtualization from concur-                loaded operators are applied. Finally, the resulting data is forwarded
+rent system users behind high level interfaces.                               to the network stack, and further sent directly to the memory of the
+                                                                              client.
+4.1    Architecture                                                              The interfaces of the data and the requests are all based on a sim-
+As shown in Figure 2, Farview is organized around three main mod-             ple AXI stream handshaking protocol [26], which provides uncom-
+ules: the network stack, the memory stack, and the operator stack.            plicated synchronization, pipelining, and backpressure mechanisms,
+The network stack (Section 4.3) manages all external connections              all allowing Farview nodes to support processing at high through-
+and RDMA requests, providing fair share mechanisms across all                 put. The standard interfaces help with portability across different
+concurrent accesses. The memory stack (Section 4.4) implements                boards. The dynamic region where the operators are loaded always
+the buffer pool, and can be used as regular memory, with block-               exposes the same set of interfaces to the operators, thereby simpli-
+s/pages being loaded from storage as needed. The memory stack                 fying the task of creating the operators. This protocol also permits
+houses the memory management unit (MMU), which handles all                    deep pipelining of the overall design, which allows processing to
+address translations to the on-board memory attached to the FPGA              occur simultaneously in different areas of the system.
+and provides the necessary arbitration and isolation between con-                To attain high frequencies and reduce the impact of the phys-
+current accesses. The operator stack (Subsection 4.5) contains the            ical distance between the stacks, data is buffered in queues as it
+dynamic logic necessary to push down operators to the disaggregated           traverses from one stack to the other. The queues, as well as any
+memory. It lies between the memory and the network stacks and can             temporary state created by Farview operators, are implemented using
+                                                                          4
+fast on-chip FPGA memory. The buffering allows clear decoupling                   Farview’s request corresponds to a specialized InfiniBand verb [38]
+of processing stages, which helps with structuring the overall sys-           that invokes the remote processing capabilities with an arbitrary pa-
+tem and allows Farview nodes to achieve the operating frequencies             rameter set, specific to each operator pipeline. This verb is invoked
+necessary to sustain processing at line speeds. The frequencies of            in the following generic function, which is used as the basis for build-
+the components in Farview range between 250 MHz (network stack,               ing additional higher level functions supporting specific operator
+operator stack) and 300 MHz (memory stack).                                   combinations and queries:
+   Compared to existing FPGA frameworks (which support arbitrary
+                                                                              void farView(QPair* qp, FTable *ft, uint64_t
+functionality), in Farview the dynamic regions must be connected to
+                                                                                  ↩→ *params);
+the network and memory stacks, which have fixed locations within
+the FPGA, thus reducing the degrees of freedom in placement and                  As an example higher level function, we present a selection oper-
+sizing. Farview’s management infrastructure must cope with net-               ator with real number predicates:
+work speeds of 100 Gbps (and even higher internal speeds), which              void select(QPair* qp, FTable *ft, uint64_t
+require wide buses (at least 512 bit) [64, 67], further restricting re-
+                                                                                  ↩→ *projection_flags, uint64_t *
+gion placement and sizing. We choose predefined dynamic regions
+                                                                                  ↩→ selection_flags, float predicate);
+to accommodate these placement and sizing restrictions. In practice
+this implies that the size of each virtual dynamic region is fixed and           This function can be used for the following type of queries:
+cannot be changed. However, each region is more than large enough             SELECT S.a FROM S WHERE S.c > 3.14;
+for the purposes of offloading the operators we intend to support.
+                                                                                  In this case, the projection_flags variable signals column
+4.2    Farview programmatic interface                                         a while selection_flags signals column c. The predicate is
+                                                                              passed as a value. More complex variations are possible: for instance,
+Farview exposes a simple high level data API covering both the
+                                                                              if the hardware operator supports it, the predicate operand could also
+critical path operations and connection management operations. The
+                                                                              be a variable.
+former utilize the high performance 100G fabric, whilst the lat-
+                                                                                  The interface presented here is intended to be used by the query
+ter are handled via regular TCP/IP connections. The critical path
+                                                                              compiler in Farview, rather than directly by the client. The develop-
+operations include both standard low level one-sided RDMA read
+                                                                              ment of the query compiler is left as future work.
+and write commands to read (write) data from (to) memory and
+an extra Farview command, which invokes the operator(s) in the
+                                                                              4.3    Network stack
+Farview node directly over the read data stream. We use the Farview
+command as the basis for more complex SQL expressions.                        Farview’s network stack implements a reliable RDMA connection
+   A client running on a remote computing node begins by estab-               protocol, building on an existing open source stack [67] that imple-
+lishing a connection to Farview. In response, it gets a created object        ments regular one-sided RDMA read and write verbs. We extend
+representing the connection (QPair), which holds all the necessary            the original stack with support for out-of-order execution at the
+information for the connection and is used as an argument to sub-             granularity of single network packets. The out-of-order execution,
+sequent Farview methods. The following function is used for this              along with credit-based flow control and packet based processing,
+purpose:                                                                      allows Farview to provide fair sharing, an important feature in a
+                                                                              system shared by multiple separate clients concurrently. Crucially,
+bool openConnection(QPair *qp, FView *node);                                  it prevents any malevolent behaviour by any of the users that could
+   The client can then at any point request that a different operator         lead to a complete system stall.
+pipeline be loaded. Operator pipelines are precompiled and kept                   Similar to other remote memory systems based on RDMA (e.g.,
+in the operator pipeline library on the target Farview node. The              [52]), we add a Farview verb (based on InfiniBand SEND) to con-
+operation is executed with the following command, where the opid              trol the operators. Requests sent using this verb are directly written
+is a unique id of the requested pipeline:                                     into receive queues in the FPGA fabric instead of into the memory.
+                                                                              Because of this, the operators can react to these requests directly,
+bool loadPipeline(QPair *qp, int32_t opid);                                   incurring no additional memory latency overheads. This verb can
+   Farview memory is virtualized, and internal management is han-             contain an arbitrary number of additional operator-specific param-
+dled by the MMU in the Farview node. Since we are focusing on                 eters to indicate to the disaggregated memory how to access and
+read-only scenarios, Farview does not currently provide concurrency           process the data. The network stack manages connections and keeps
+control. Clients allocate memory for tables using the following allo-         the necessary state, while remaining highly customizable for further
+cation functions:                                                             extensions.
+                                                                                  In RDMA, the information describing a single node-to-node con-
+bool allocTableMem(QPair* qp, FTable *ft);                                    nection or RDMA flow is associated with a queue pair; every net-
+void freeTableMem(QPair *qp, FTable *ft);                                     work packet sent is associated with a queue pair. Each connection
+   Regular RDMA requests for simple reading/writing of the remote             flow contains a set of unique identifiers, which are used to differenti-
+table can be sent with the following two functions:                           ate the flows and to provide network and hardware isolation between
+                                                                              flows. The isolation extends to the MMU, where it provides the
+void tableRead(QPair* qp, FTable *ft);                                        necessary protection of the memory regions associated with each
+void tableWrite(QPair* qp, FTable *ft);                                       queue pair. Queue pairs also keep track of the memory buffers in
+                                                                          5
+Farview nodes where the tables reside, and the client nodes where
+results are written. As part of establishing the connection flow, the                          Wr + Rd                   512 * N_DDR_CHAN     Write
+                                                                                               memory                                         DATA
+client sends the virtual address of its local buffer to the Farview node.                      requests
+Upon completion of query requests, Farview will load results into
+this client buffer using one-sided RDMA operations. The buffer in                                    DYNAMIC REGION
+the Farview node can also be shared between different queue pairs,
+enabling multiple requests to share intermediate results. The current                         Projection                        Operator
+prototype focuses on read-only operators and has no transactional                             Operator                          Pipeline
+memory support.                                                                                             Set of operator
+   Upon connection establishment, each network connection flow                                             parameter queues
+
+and its corresponding queue pair are associated with one of the                                     Farview network
+                                                                                         Wr + Rd    requests
+available virtual dynamic regions and in turn with one data stream                       base
+                                                                                         RDMA                 Farview network       512
+                                                                                                                                            Read
+from the Farview memory stack. This data stream is used to read                          requests                   responses               DATA
+the queried data into the dynamic regions, process it, and send it
+over the network. The flow is ready to process data once the operator                 Figure 3: Single dynamic region in the operator stack
+pipeline corresponding to the flow is present in the dynamic region.
+
+
+                                                                                4.5    Operator stack
+                                                                                The operator stack is where the operator pipelines attached to con-
+                                                                                nection flows to/from memory are deployed. The stack is imple-
+4.4    Memory stack                                                             mented as a collection of predefined dynamic regions. The opera-
+The memory stack implements the buffer pool memory using the                    tors deployed in the dynamic regions use the interfaces exposed by
+on-board DRAM memory attached to the FPGA. It handles dynamic                   Farview’s network and memory stacks.
+memory allocations, address translations, and concurrent accesses.                  Operator pipeline logic can be deployed and swapped on-the-fly
+   The central part of this stack is the MMU, which is responsible for          without affecting the integrity and operation of the system or other
+all memory address translations to a shared dynamically allocated               operator pipelines belonging to other clients. These regions and their
+memory. It propagates and routes all memory requests and subse-                 access to memory are isolated from each other (see Section 4.4).
+quent data. It supports the issuing of multiple outstanding requests            Such functionality is typically not available in commercial systems,
+and has fully decoupled read and write channels. It provides parallel           but very often studied in the literature, e.g., [44, 51, 74].
+interfaces, isolation and protection for the requests stemming from                 Figure 3 illustrates how a single dynamic region processes a
+different dynamic regions with a set of arbitrators, crossbars, and             query request. The base RDMA read and write requests forward the
+dedicated credit-based queues. Farview’s MMU supports naturally                 virtual address and transfer length parameters directly to the memory
+aligned 2 MB pages, which greatly reduces the coverage problem                  stack and to the MMU (the blue path in Figure 3), bypassing the
+of smaller pages. The MMU contains a translation lookaside buffer               dynamic region. If the request is a simple RDMA read/write request,
+(TLB) implemented on Block RAM (BRAM), the fast on-chip FPGA                    it contains no additional parameters. If the request is a Farview
+memory. Farview’s TLB holds all virtual-to-physical address map-                command, it carries a number of operator-specific parameters (green
+pings for the dynamic regions.                                                  path), along with information about the virtual memory locations
+   The on-board DRAM memory is organized into multiple channels.                it is accessing. The number of parameters can vary depending on
+The “softcore” memory controllers for these channels are instanti-              the specific operators that are present in the operator pipeline. The
+ated in the fabric of the FPGA. Each memory channel can provide                 write path allows RDMA updates to the memory. The operators’
+a certain amount of memory bandwidth. Our prototype uses the                    bump-in-the-wire data processing occurs along the read data path.
+Xilinx Alveo u250 [72], which has up to four separate memory chan-              The width of the data path’s input to the dynamic region scales with
+nels. For the tests in this paper we utilized up to two channels, each          the number of available memory channels. As a result, with the
+with its own softcore controller that runs at 300 MHz. The width                aforementioned striping technique, each dynamic region gets the full
+of the interface to the memory channel controller is 64 bytes. This             bandwidth potential of the disaggregated memory and its multiple
+implies a maximum theoretical bandwidth of 18 GBps per channel                  memory channels. The output is forwarded to the network stack
+(Figure 2). The bandwidth matches the bandwidth usually found on                using a 64-byte datapath width, the same as the provided network
+more conventional systems with general purpose CPUs [17].                       interface.
+   The multiple channel organization of on-board FPGA memory                        Query responses are sent via the response channel (green path),
+offers additional parallelization potential. Farview’s MMU provides             which initiates one-sided RDMA transfers to the client. The operator
+an interleaved abstraction for DRAM accesses that aggregates the                pipeline dynamically generates these responses for each result packet
+bandwidth from multiple memory channels. It does this by allo-                  only when the packet is ready to be sent to the client node. This
+cating memory in a striped pattern across all available memory                  approach enables the operators to dynamically control the size of the
+channels [46], thus maximizing the available bandwidth to each                  result data transfers, which is important for operators (e.g., filtering)
+dynamic region. The higher bandwidth available to each dynamic                  where the size of the result data is unknown when the request arrives,
+region also enables a vectorized processing model (Section 5.3).                prior to processing. The direct data streams between the memory
+                                                                            6
+                                                                                                   the resulting data is sent back to the client over the network. Each
+                  Requests                         Data                    Operator                pipeline has the potential to be fed with input data each FPGA clock
+                 (to DRAM)                     (from DRAM)                 pipeline                cycle. In query terms, this translates to each pipeline being fed with
+                                 Keys
+                                            Decryption                                             up to a single tuple in each cycle. In the same manner, a pipeline has
+                                                                                                   the potential to produce results on the output of every cycle. Using
+                            Annotations                                                            this design, operator processing overhead can be efficiently hidden
+                                            Projection
+                                                                                                   behind the memory and network operations.
+           Query                                                                                      Operators are written by the Farview developer as part of the
+          request            Predicates      Selection | Regular expressions                       smart disaggregated memory system design, using common hard-
+          handler                                                  Regex       Regex               ware description languages like VHDL or Verilog or in the C++-like
+                                              > X?     > X?         eng.        eng.
+            and
+           smart
+                                                                                                   syntax supported by high-level synthesis tools such as Vivado HLS.
+         addressing          Aggregation                                                           The operator pipeline is precompiled, so that it can be deployed to a
+                                             Group by/Distinct/Aggregation
+                                                                                                   dynamic region at runtime. Operator implementations use Farview’s
+                                                                                                   network, memory and operator stack interfaces, rather than the in-
+                              Network
+                             parameters                                                            terfaces of the underlying FPGA board, which makes the operators
+                                              Packing + Sending (RDMA)                             portable across Farview deployments on different platforms.
+                   Requests                             Data
+                 (from client)                       (to client)
+                                                                                                   5.2    Projection operators
+                   Figure 4: Operator pipeline example                                                Projection: A common operation in databases is projection,
+                                                                                                   which returns a subset of a table’s columns. Consider for exam-
+                                                                                                   ple a projection of the form SELECT S.car, S.price FROM
+controller, the operator, and the network are scaled so as to saturate
+                                                                                                   S, where S.car and S.price are non-consecutive attributes and
+the bandwidth in each module and to provide optimal performance.
+                                                                                                   have a number of fixed-length attributes between them. The pro-
+                                                                                                   jection operator reads the table from the disaggregated memory,
+5     FARVIEW: OPERATORS AND PIPELINES
+                                                                                                   parses the incoming data stream based on query parameters describ-
+In this section we discuss operator pipelines and four classes of                                  ing the tuples and their size, and projects the requested tuples into
+operators: projection, selection, grouping and system support.                                     the pipeline for further processing using annotation. During pars-
+                                                                                                   ing, the tuples are annotated with parameters from the requested
+5.1      Operator pipelines                                                                        query, and obtained from the parameter queues. These parameters
+As described above, a query is transformed into an operator pipeline,                              are simple flags that state which of the columns are part of the se-
+which is deployed on a dynamic region allocated to the correspond-                                 lection, projection or grouping phases. Their interpretation depends
+ing client. An operator pipeline contains one or more operators that                               on the actual combination of operators being used and their specific
+provide partial query processing on datapath operations to disaggre-                               implementations.
+gated memory. This processing is effectively a bump-in-the-wire                                       Smart addressing: In scenarios where queries request only a
+that operates on data without introducing significant overheads.                                   small subset of the columns from a very wide table, performance
+   Figure 4 illustrates a generic operator pipeline that includes a                                would benefit from reading only the requested columns from mem-
+broad set of operator classes, including projection, selection (e.g.,                              ory, rather than reading full rows and applying the projection on
+predicate selection, regular expression matching), grouping (e.g.,                                 the incoming data stream. For this purpose, we implement a smart
+distinct, group by, and aggregation), and system support (e.g., en-                                addressing optimization that issues multiple, more specific, data
+cryption/decryption).1 These example operators are described in                                    requests to memory. Smart addressing is most effective when the
+more detail in the remainder of this section. Which operators are ac-                              total number of columns per tuple is large and the number of pro-
+tually present in the pipeline depends on the requested set of queries                             jected columns is much smaller than the total; otherwise, it is more
+to be executed. In one scenario, the pipeline can support projec-                                  efficient to read entire tuples and project using annotations, as de-
+tion, followed by selection and group by. In another, it can support                               scribed above, since the memory access is sequential. We explore
+regular expression matching on encrypted strings, which requires                                   the crossover point between these two modes in Section 6.3.
+decryption early in the pipeline. The reconfigurable nature of the
+regions provides flexibility, as it allows arbitrary operator types and
+combinations to be natively supported by the system.                                               5.3    Selection operators
+   When a query request arrives, it is first forwarded to the query                                Selection operations that filter data directly map to the SQL WHERE
+request handler, which requests the data from the memory stack                                     clause (e.g., in queries of the form SELECT * FROM T WHERE
+via smart addressing. At the same time, any necessary parameters                                   T.a > 50). These operators have the ability to greatly reduce the
+for additional processing are forwarded to the remaining operators                                 amount of data to be processed by later stages and ultimately the
+in the pipeline. Data arriving from the memory is processed in a                                   overall amount of data sent through the network, thus reducing the
+streaming fashion by these operators. Once the processing is done,                                 overall network bandwidth usage. For example in TPC-H Q6, only
+1 We assume that all data is stored in row format, but there is nothing intrinsic preventing       2% of the data is finally selected. Pushing the filtering to the disag-
+support for column data.                                                                           gregated memory reduces the I/O overhead by orders of magnitude.
+                                                                                               7
+Farview’s selection operators consist of predicate selection, regular                                LRU cache
+expression matching and vectorized selection operators.                            Input                                                                   Output
+    Predicate selection: For selection, the value of an attribute is                       AND
+                                                                                                                     LOOKUP                      LOOKUP
+                                                                                                                                                   Stage
+                                                                                                                     REQUEST                    RESPONSE
+                                                                                                                                                     2
+
+compared against a constant provided in the query. In FPGAs, such
+                                                                                                                        Requests           Responses Updates
+a comparison can be implemented in different ways. We choose to                                  =   =           =
+hardwire the selection predicate as an actual matching circuit instead                                   OR
+                                                                                                                         h1(x)     h2(x)                    hN(x)
+of creating a truth table as done in [71], as Farview has the ability to
+dynamically exchange the operators. This approach uses fewer re-
+sources and, at the same time, supports a variety of different possible
+                                                                                                                                 Cuckoo hash tables
+predicates. It also permits complex predicates defined over different
+tuple columns, which can be split into multiple pipelined cycles.                      Figure 5: Architecture of the DISTINCT operator
+The supplied annotations from the request determine which of the
+columns in the tuple are evaluated during the predicate matching
+phase.
+    Regular expression matching: String matching is becoming an                 T.a, T.b FROM T. It operates by hashing the values and pre-
+increasingly important operator in SQL (e.g., using either LIKE                 serving the entries in the hash tables present in the fast FPGA on-chip
+predicates as in TPC-H Q16 or regular expression matching). It is               memory. As the complete hashing is calculated in the FPGA, the dis-
+even more important in unstructured data types, such as in the case of          tinct operation can be done on multiple columns without noticeable
+JSON fields in PostgreSQL. In Farview we have integrated an open                performance overhead, but using more FPGA resources.
+source regular expression library for FPGAs [40] and use it to filter               To sustain the line rate without negatively affecting the overall
+strings. In these operators, data is retrieved from the remote node             pipeline processing, the distinct operator needs to be fully pipelined
+only when it matches the given regular expression. The operator                 in order to overcome the latency of the lookups and updates of
+implements regular expression matching using multiple parallel                  the hash table. This pipelining creates potential data hazards, in
+engines, instantiated in the operator stack. The parallelization allows         the case where two successive tuples with the same value will be
+the module to fully sustain processing at line rate. Unlike software            inserted into the hash table and ultimately sent over the network
+solutions, the performance of the operator is dominated by the length           as distinct elements. Because of the latency of the hash table, the
+of the string and does not depend on the complexity of the regular              second (following) tuple cannot see the update produced by the
+expression used [40].                                                           first one. To approach this problem we apply the strategy explained
+    Vectorization: Farview implements a limited form of vector-                 in [71] by implementing an LRU cache to hide the hash table latency.
+ization as an optimization to improve the performance of stateless              The main difference is the far higher line rate that we have to sustain
+operators like selection. To alleviate the inefficiencies of the tuple-         in our system (over 40 times greater), yielding additional design
+at-a-time query processing model [36] and its next() function                   constraints.
+calls that pass tuples from one operator to the next, the database                  To guarantee full pipelining and constant lookup times, the hash
+community has adopted query compilation [56] and column stores.                 table that we implement does not handle collisions. Instead, col-
+Column stores either process data in full batches like MonetDB [18],            lisions are written into a buffer, which is sent to the client to be
+or in smaller vectors like VectorWise [78]. The latter allows the               deduplicated in software. To greatly reduce the collision likelihood,
+use of tight loops and/or SIMD instructions to process column data,             we implement cuckoo hashing, with several hash tables that can
+allowing DBMSs to take advantage of the latest CPU advances for                 be looked up in parallel. Upon eviction from one of the tables, the
+data processing. In Farview, we use a vectorized model similar to               evicted entry is inserted into the next hash table with a different
+that of VectorWise, but with a vector size that is chosen based on              function. This occurs in the background and does not affect the full
+the degree of memory striping (described above), rather than trying             pipelining of the operator.
+to fit the size of the processor’s L1 cache. With vectorization, data               To successfully hide the latency of the hash table, we implement a
+is read in parallel from multiple memory channels, and individual               cache to hold the most recent keys. The cache needs to be a true Least
+tuples are emitted to a set of selection operators executing in parallel.       Recently Used (LRU) cache in order to guarantee protection from
+The number of parallel operators is chosen based on the number of               possible data hazards. The standard implementations of LRU caches
+memory channels and the tuple width. This approach achieves both                come with a lot of overhead, as pointers and extra history-keeping
+higher read bandwidth from the memory stack (due to memory strip-               data structures need to be present. For this reason, we implement
+ing) and higher processing throughput (due to the parallel operators).          the cache with a shift register, which adds a negligible latency to the
+At the moment the operator pipeline with vectorization is enabled               data streams (the amount depends on the number of cuckoo hash
+for the simpler queries and workloads that can be easily parallelized           tables), but is able to efficiently provide a quick lookup. The nature
+without data dependencies (e.g., selection).                                    of the shift register provides a true LRU replacement policy and
+                                                                                this solution thus fully satisfies the strict requirements imposed by
+                                                                                Farview. The design of the distinct operator is shown in Figure 5.
+5.4    Grouping operators                                                           Group by: In many applications, data is read and grouped to
+   Distinct: The distinct operator eliminates repeated column en-               perform some form of aggregation (e.g., TPC-H Q1). Operations like
+tries before they are sent over the network. It directly maps to the            these directly map to the SQL GROUP BY clause (e.g., queries such
+SQL DISTINCT clause, in queries such as: SELECT DISTINCT                        as SELECT T.b, COUNT(*) FROM T GROUP BY T.b).
+                                                                            8
+   Farview provides a group by operator with a structure similar to                          Table 1: Resource consumption of Farview
+the distinct operator, with analogous challenges and design choices.
+                                                                                     Configuration                      CLB LUTs    Regs   BRAM tiles   DSPs
+The same cuckoo hash tables are used to preserve the groups. The                     6 regions                               24%    23%         29%      0%
+implemented cache in this case is write-through, as it is no longer                  Operators (per dynamic region)     CLB LUTs    Regs   BRAM tiles   DSPs
+                                                                                     Projection/Selection/Aggregation        <1%    <1%          0%      0%
+sufficient to just discard the data prior to sending it. The operator                Regular expression                      2.3%   <1%          0%      0%
+reads the complete table and all of its tuples without sending anything              Distinct/Group by                       2.1%   1.3%         8%      0%
+                                                                                     En(de)cryption                          3.6%   <1%          0%      0%
+over the network, to perform the full aggregation. At the same time, it              Packing/Sending                         <1%    <1%          0%      0%
+inserts the distinct entries into a separate queue. Once the aggregation
+has completed, the queue is used to lookup and flush the entries from
+the hash table along with any of the requested aggregation results to
+the network.                                                                   implementation details of our platforms. We then measure base-
+   Aggregation: Aggregation operators can easily be supported in               line RDMA performance using microbenchmarks, individual query
+FPGAs as standalone, where simple computations are performed                   performance using various operators, and query performance with
+directly on the passing data streams, or on top of the group by                multiple clients.
+operator, where each entry in the hash table contains an additional
+aggregation result. Farview supports a range of standard aggregation
+operators like count, min, max, sum and average.                               6.1      Experimental setup
+                                                                               We compare Farview’s smart disaggregated buffer pool (FV) with
+                                                                               two different baselines: a buffer cache implemented in local (client)
+5.5    System support operators                                                memory, where the processing is done on the local CPU (LCPU),
+   Encryption/decryption: A key concern for both remote memory                 and a remote buffer cache implemented on the memory of a different
+and smart disaggregated memory is the need for data encryption [47].           machine and reachable through a commercial NIC via two-sided
+Farview implements encryption so that the data is treated similarly to         RDMA operations (RCPU). This latter configuration resembles
+Microsoft’s Cypherbase [9], where a database stores only encrypted             what is being done today for storage, where part of the processing
+data, but can still answer queries over such data by using an FPGA             is moved to a CPU located in the storage server. It also matches
+as a trusted module. We have implemented encryption as an operator             the definition of remote memory proposed in the literature. For
+using 128-bit AES in counter mode. Since the AES module is fully               RDMA microbenchmark experiments, we compare remote reads
+parallelized and pipelined, it can operate at full network bandwidth.          from Farview (FV) to remote reads to a different machine using
+This means that no throughput penalty is paid when this operator is            one-sided RDMA operations over a commercial NIC (RNIC) that
+applied on the stream, incurring only a negligible overhead in latency.        accesses the remote memory over PCIe. Finally, in the selection tests
+This allows the data to be stored securely. Because no real processing         we also use a version of Farview with vectorization (FV-V).
+penalty is incurred, encryption/decryption can be placed at both the              We have implemented Farview on a Xilinx Alveo u250 board [72].
+input and the output of the operator pipeline. Similarly one could             The board is part of the XACC cluster [73], which contains 10
+provide additional system support operators such as compression,               different Alveo boards connected by a switch. The board has up to
+decompression, etc.                                                            4 DRAM channels (16GB each) connected directly to the FPGA.
+   Packing: At the end of the processing pipeline, the annotated               Each channel has a softcore (running as reconfigurable logic on the
+columns are first packed based on their annotation flags in a bid to re-       FPGA) DRAM controller with a maximum theoretical bandwidth of
+duce the overall data sent over the network. Multiple columns across           18GB/s. In our tests we used two of the four available channels to
+the tuples are packed into 64 byte words prior to being written into           reduce compilation times. The tests can be done with four channels
+the output queue. This packing uses an overflow buffer to efficiently          as well, which might yield some additional performance in specific
+sustain the line rate. In case of the vectorized processing model, the         cases. The board has two (QSFP) 100Gbps network ports. We use
+tuples are first combined from each of the parallel pipelines with a           six dynamic regions in our experiments; Farview has been tested
+simple round-robin arbiter.                                                    with up to ten regions, the empirical limit for our device. Similarly to
+   Sending: The sender unit is the final step before the results are           DRAM channels, we choose six regions to limit compilation times
+emitted to the network stack. It monitors the queue where the packed           and routing complexity.
+results are written, and, based on the queue’s status, issues specific            The CPU baselines contain Intel Xeon Gold CPUs: LCPU uses a
+RDMA packet commands needed to produce correct packet header                   Xeon 6248 (clocked at 3.0–3.7 GHz), and RCPU uses a Xeon 6154
+information in the network stack. The sender module’s dynamic                  (clocked at 2.5–3.9 GHz). For the remote buffer cache and one-sided
+approach to handling RDMA commands allows us to create RDMA                    RDMA microbenchmark baselines (RCPU and RNIC, respectively),
+commands even when the final data size is not known a priori, as is            we used a commercial Mellanox 100G card (ConnectX-5 VPI) [53].
+the case with most of the operators.                                           For the CPU-based baselines we used all available compiler and
+                                                                               code optimizations.
+                                                                                  As shown in Table 1, Farview requires only modest FPGA re-
+6     EVALUATION                                                               sources (less than 30% of the total on-chip resources) to implement
+In this section we evaluate Farview’s performance, and compare it              the operator stack, the network stack, and the memory stack. The
+with alternatives using a local buffer cache or a remote buffer cache.         majority of the utilized on-chip memory is attributed to the memory
+We first describe our experimental setup, including the hardware               management unit and the state keeping structures of the operator
+                                                                           9
+     Throughput [GBps]              Response time [us]                                   Response time [us]
+   12                             10                                               800
+   10         FV                         FV                                                  FV-SA     FV-t256B   FV-t512B
+                                   8                                               600
+    8        RNIC                       RNIC
+    6                              6                                               400
+    4                              4
+                                                                                   200
+    2                              2
+    0                                                                                0
+        128    512      2k     8k       512 2k        8k 32k                                256      512
+                                                                                                       1k   2k     4k   8k 16k
+         Transfer size [bytes]          Transfer size [bytes]                                        Number of tuples
+                  (a)                            (b)                               Figure 7: Standard projection vs. smart addressing
+       Figure 6: RDMA throughput and response time
+
+                                                                             FPGA DRAM memory. The difference during reads is ~1 us, con-
+and network stack. Most of the implemented operators are not com-            sistent with PCIe latencies [55]. The reduction in response time pro-
+pute heavy and do not consume many resources, making it easier to            vided by Farview is substantial (at least 20%). RNIC offers lower
+combine them.                                                                response times for smaller transfer sizes, but for higher transfer sizes
+                                                                             the multi-packet processing and page handling in the FPGA network
+                                                                             stack performs better. The network round trip latency dominates the
+6.2    RDMA throughput and response time                                     overall time. Above 8 kB, the amount of data causes a substantial
+For each experiment, we measure the running time until the final             increase in response times.
+results are written to the memory of the client machine for both
+Farview and the baselines. This makes the performance numbers                6.3    Projection
+comparable, as the initial and end states are the same. We evaluate
+                                                                             To investigate how to maximize the efficiency of accessing DRAM,
+performance for a range of the operators and supported queries.
+                                                                             we compare the standard projection operator, where the whole table
+Unless otherwise mentioned, our base tables consist of 8 attributes,
+                                                                             is fetched from memory and projection is done in the first pipeline
+where each attribute is 8 bytes long. The results for each experiment
+                                                                             stage, versus the smart addressing operator, which issues individual
+are averaged over multiple runs. As the CPU configurations may
+                                                                             memory requests only for the target projected columns. In this ex-
+experience interference (e.g., due to context switches, interrupts),
+                                                                             periment, we project three contiguous 8-byte columns from a larger
+the LCPU and RCPU results are averaged over 10000 runs. Because
+                                                                             row. Figure 7 illustrates execution times for the smart addressing
+the FPGA circuits provide more deterministic behavior, the Farview
+                                                                             operator on a 512-byte tuple (FV-SA) and the standard projection
+(FV) experiments are averaged over 1000 runs.
+                                                                             operator with tuple sizes of 256 bytes and 512 bytes (FV-t256B
+   To characterize the system, we measure the network throughput
+                                                                             and FV-t512B, respectively). For smaller tuples (FV-t256B), it is
+and response time of RDMA reads from Farview (FV). For reference
+                                                                             more beneficial to read the whole table sequentially from the DRAM
+and to establish a baseline we also provide the results for reads of
+                                                                             memory and handle the projection in the operator pipeline. Once the
+remote memory accessed with a commercial RDMA NIC (RNIC).
+                                                                             tuples become larger (512 bytes), it is better to use smart addressing
+   Figure 6(a) shows the median throughput for RDMA read op-
+                                                                             to read only the columns that are required by the query (FV-SA). In
+erations. In Farview, a single dynamic region is present. To obtain
+                                                                             the following experiments, which use 64B tuples, smart addressing
+valid read measurements, we measure the network Round Trip Time
+                                                                             is not used.
+(RTT) and average it over 1000 runs. The transfer size represents
+the total data sent over the network for a single request. We vary
+this parameter until we saturate the network, using a 1kB packet
+                                                                             6.4    Selection
+size. The results show the that when we use RDMA, the network                As mentioned, selection in Farview can have more than one predicate,
+bandwidth is under-utilized for small requests. Below 4 kB, where            even on multiple columns. The overhead of the selection on the
+the saturation takes place, RNIC achieves better throughput. This            overall processing is negligible and is fully hidden behind memory
+happens because RNIC uses a specialized circuitry running at a               operations. For the evaluation, we run the following query:
+higher clock rate, which provides better performance for small pack-
+                                                                             SELECT * FROM S WHERE S.a < X AND S.b < Y;
+ets. Reading from local on-board FPGA memory peaks at 12 GBps,
+less than the 18GBps memory channel bandwidth. This indicates                We compare Farview with the aforementioned baseline systems. The
+that the network is the main bottleneck. In the RNIC case, where             64-byte tuples are equal to the width of the pipeline, which leads
+memory is accessed over PCIe, throughput peaks at ~11 GBps be-               to the highest pipeline throughput (i.e., a tuple is forwarded each
+cause it is bound by the PCIe bus bandwidth. This result shows the           cycle). We vary the selectivity of the query and present our results
+limitation of PCIe-attached memory as proposed in remote memory              in Figure 8.
+approaches, regardless of whether it is DRAM or NVM.                            As we observe, in all cases (FV, FV-V) Farview outperforms both
+   In Figure 6(b), we present the median response time for an RDMA           LCPU and RCPU. LCPU incurs high overheads, as it must read
+read operation. The setup is the same as for the throughput mea-             the input data from DRAM (not from the processor cache) and then
+surements. The results show the response times of accessing remote           write the results back to DRAM. The RCPU baseline additionally
+memory over PCIe in comparison to accessing remote on-board                  has to transfer the data through the network, leading to consistently
+                                                                        10
+       Response time [us]                                Response time [us]                                    Response time [us]
+ 400      FV-V    FV
+                                                  400      FV-V    FV
+                                                                                                        400        FV-V     FV
+                         LCPU     RCPU                                    LCPU        RCPU                                       LCPU      RCPU
+ 300                                              300                                                   300
+ 200                                              200                                                   200
+ 100                                              100                                                   100
+
+          64k   128k 256k 512k 1M                    64k 128k 256k 512k 1M                         64k 128k 256k 512k 1M
+                 Table size [bytes]                          Table size [bytes]                           Table size [bytes]
+                        (a)                                         (b)                                           (c)
+         Figure 8: Response times for selection queries with (a) 100% selectivity, (b) 50% selectivity, and (c) 25% selectivity
+
+       Response time [us]                                Response time [us]                                       Response time [us]
+ 600                                                                                                       400
+          FV     LCPU    RCPU                    1,500      FV    LCPU         RCPU
+ 500                                                                                                       300
+ 400                                             1,000
+ 300                                                                                                       200              FV      LCPU          RCPU
+ 200                                               500                                                     100
+ 100
+                                                0                                                            0
+          64k  128k 256k 512k 1M                      64k 128k 256k 512k 1M                    256   512    1k     2k   4k
+                Table size [bytes]                           Table size [bytes]                      Number of groups
+                        (a)                                         (b)                                     (c)
+Figure 9: Response time comparisons for (a) a distinct query, (b) a group by query with aggregation on an increasing number of
+distinct elements, and (c) a group by query by with aggregation on a stable number of elements
+
+
+slower response times than LCPU. The advantage of the bump-in-                  Farview. For Farview’s non-vectorized model (FV), the bottleneck
+the-wire processing present in Farview is clear, especially as the              shifts to the bandwidth of a single query pipeline and performance
+amount of data becomes larger. We now go into specific details for              is similar to the 50% selectivity case. The pipeline parallelization of
+each selectivity level.                                                         the vectorized model (FV-V) can fully utilize the available memory
+   On Figure 8(a), the query does not discard any tuples and it                 bandwidth, and thus FV-V is roughly twice as fast as FV.
+fetches the whole table. The query is equivalent to executing:
+                                                                                6.5     Grouping
+SELECT * FROM S;
+                                                                                In this section we evaluate the performance of the DISTINCT and
+Since no data is excluded from the selection predicate, FV and                  GROUP BY grouping operators. We use the same baselines as in
+RCPU send the whole table through the network. Farview has similar              the selection experiments. For these operators, our baselines use
+performance for the vectorized (FV-V) and non-vectorized (FV)                   a hashing implementation based on a very fast hash map library2 .
+models of processing, because the available network bandwidth is the            Figure 9(a) presents the results for the following query:
+bottleneck (i.e., parallelization does not provide additional benefit).
+                                                                                SELECT DISTINCT(S.a) FROM S;
+The memory bandwidth of the remote node is thus underutilized in
+this specific scenario.                                                         The number of distinct elements is randomized and the results are
+   Figure 8(b)’s 50% selectivity query alleviates the pressure on               averaged out over a number of runs. For the cuckoo hash table
+the network and permits more utilization of the DRAM bandwidth,                 implemented in Farview, we assume that no hash collisions occur.
+leading to higher overall performance for Farview. In this case,                In the case of collisions, they would be written in an overflow buffer
+the vectorized model is slightly more performant than the standard              and sent to the CPU for post-processing. Farview outperforms both
+execution model, as the parallelization of the processing allows                baselines, and the baseline runtimes increase dramatically as the
+the reads from DRAM to occur at higher speeds. Still, even at this              input size gets larger. We attribute part of the difference to reading
+selectivity, the network is the bottleneck and the DRAM bandwidth               from/writing to DRAM, as in the case of selection. Two additional
+is not fully utilized for a single client. The execution times of the           factors contribute to the slowdown of the baselines: 1) the memory
+baselines improve relative to 100% selectivity, especially as the input         resizing of the hash table as more elements are added and 2) the
+size grows, but they are still slower than both of Farview’s execution          ability of FPGAs to hash much faster than CPUs, even when the
+models.                                                                         hash function is complex [42]. Additionally, in Farview the query
+   With 25% selectivity, only a small portion of the data is sent               is fully pipelined and there is not much overhead compared to the
+over the network, so the network is no longer the bottleneck. For               base selection. Finally, the number of distinct tuples has an impact
+LCPU, the data movement between the DRAM and the CPU is                         on performance, similar to the impact of selectivity in the selection
+reduced because less data is written back; as a result, its performance
+is better when compared to 50% selectivity, but still worse than                2 https://github.com/greg7mdp/parallel-hashmap
+
+                                                                          11
+      Response time [us]                                                                 Response time [us]               Throughput [GBps]
+                                                                                    1,250          FV                     10
+ 20       FV      LCPU     RCPU                                                                                                       FV-RD
+                                                                                    1,000         LCPU                     8        FV-RD+Dec
+ 15                                                                                   750         RCPU                     6
+ 10                                                                                   500                                  4
+  5                                                                                   250                                  2
+                                                                                        0                                  0
+           256             1k              4k         16k                                    128k 256k 512k 1M                256      1k      4k
+                           String size [bytes]                                                  Table size [bytes]          Transfer size [bytes]
+               Figure 10: Regular expression matching                                                  (a)                           (b)
+                                                                                         Figure 11: Encryption response time and throughput
+
+experiments. The lower the number of distinct elements is, the lower
+the amount of data moved through the network, leading to better
+performance.                                                                            Response time [us]
+   Next, we execute a simple query that has a GROUP BY and an
+                                                                                  800       FV     LCPU        RCPU
+aggregation (SUM):
+                                                                                  600
+SELECT S.a, SUM(S.b) FROM S GROUP BY S.a;                                         400
+   In Figure 9(b) and Figure 9(c), we present the performance of                  200
+the query for increasing data sizes and number of tuples, respec-
+tively. The GROUP BY operator performs a similar operation as the                           64k         128k     256k      512k       1M        2M
+                                                                                                              Transfer size [bytes]
+DISTINCT operator. The main difference is that for GROUP BY,
+we calculate aggregated statistics for each of the distinct tuples in                                     Figure 12: Multiple clients
+the hash table. After the aggregation is complete, all of the (unique)
+entries in the hash table along with their aggregations are sent over
+the network. This process adds a small amount of latency to the
+operator execution. The response time is thus bigger if the number                The ability of the FPGA to sustain line rate processing yields a big
+of aggregates is higher. Even with this added latency, Farview out-               advantage, as the overhead of the encryption is fully hidden. FV
+performs the LCPU and RCPU baselines for both experiments, for                    significantly outperforms the LCPU and RCPU baselines, which
+the same reasons that were mentioned in the distinct experiment.                  use the same encryption/decryption scheme through the Cryptopp
+                                                                                  [23] library. The difference in execution time is caused by both the
+6.6     Regular expression matching                                               cold caches as well as the decryption overhead in the CPU compared
+We compare the performance of Farview and the baselines for regu-                 with the highly parallelizable AES implementation available in the
+lar expression matching for different string sizes, where the regular             FPGA. The throughput graph in Figure 11(b) compares an RDMA
+expression matches 50% of the generated strings. The baselines use                read operation in Farview (FV-RD) and the same operation together
+the highly optimized Google RE2 regular expression library [35].                  with the decryption (FV-RD+Dec) on the read data stream. As the
+FV outperforms both LCPU and RCPU. FV’s regular expression                        throughput graph shows, there is no noticeable performance penalty,
+operator is able to sustain the full line rate regardless of the predicate        indicating that encryption/decryption can be easily combined with
+complexity, due to its use of deep pipelining and parallel regular                all the previous operators without changing the overall performance.
+expression engines, which take advantage of the spatial architecture
+of the FPGA. This implementation outperforms RE2, as the imple-                   6.8     Multiple clients
+mentation on the CPU has far less parallelization potential and the               We finally evaluate the behaviour of the system with multiple clients
+overhead of the data movement from/to DRAM is quite high.                         reading from memory at the same time. We use six clients run-
+                                                                                  ning the distinct query in both Farview and the two CPU baselines
+6.7     Encryption/decryption                                                     (LCPU, RCPU). The number of distinct elements is small to prevent
+As an example of a commonly used system support operator, we                      the network from becoming the main bottleneck and to maximize
+explore encryption/decryption. The encryption algorithm used in                   DRAM performance in all of the clients. For the CPU baselines, we
+Farview is a 128-bit AES in parallelized counter mode. The op-                    use MPI with 6 processes. The measurements shown in Figure 12
+erator can be placed at the beginning or the end of the operator                  represent the time taken until all six client queries have completed.
+pipelines (handling decryption and encryption) with only a small                  Farview achieves better performance than both CPU baselines due
+extra overhead. This allows Farview to decrypt data residing in dis-              to the spatial parallelization between multiple dynamic regions, each
+aggregated memory for processing and sending it to the client; to                 containing a separate client. The decoupling of the DRAM and the
+encrypt data after processing to secure the transmission to the client;           fair sharing (Section 4.4) provide optimal distribution of the DRAM
+or to decrypt the data, process it, and encrypt it again for transmis-            bandwidth between all dynamic regions and their clients. Both CPU
+sion. The response time graph in Figure 11(a) compares the time                   baselines compete for access both to the DRAM and the shared
+taken to decrypt data being read in Farview and in the two baselines.             caches, causing interference that affects the overall performance.
+                                                                             12
+7    CONCLUSIONS                                                                             [12] Joy Arulraj, Andy Pavlo, and Krishna Teja Malladi. 2019. Multi-tier Buffer
+                                                                                                  Management and Storage System Design for Non-volatile Memory. arXiv preprint
+Farview implements network-attached disaggregated memory with                                     arXiv:1901.10938 (2019).
+the capability to offload query processing operators directly to the                         [13] AWSCloud. 2020. AQUA (Advanced Query Accelerator) for Amazon Redshift.
+                                                                                                  https://pages.awscloud.com/AQUA_Preview.html
+memory. In this paper, we have discussed the design of Farview and                           [14] Claude Barthels, Simon Loesing, Gustavo Alonso, and Donald Kossmann. 2015.
+how it helps to address DRAM capacity challenges (by allowing us                                  Rack-scale in-memory join processing using RDMA. In Proceedings of the 2015
+to move the buffer pool to a central location) and data movement in-                              ACM SIGMOD International Conference on Management of Data. 1463–1475.
+                                                                                             [15] Claude Barthels, Ingo Müller, Timo Schneider, Gustavo Alonso, and Torsten
+efficiencies (by enabling near-data processing to filter the data before                          Hoefler. 2017. Distributed join algorithms on thousands of cores. Proceedings of
+it is sent through the network). Through the use of RDMA, Farview                                 the VLDB Endowment 10, 5 (2017), 517–528.
+provides performance that is comparable to that attainable using                             [16] Claude Barthels, Ingo Müller, Konstantin Taranov, Gustavo Alonso, and Torsten
+                                                                                                  Hoefler. 2019. Strong consistency is not hard to get: Two-Phase Locking and
+local memory, a performance advantage that is augmented by the                                    Two-Phase Commit on Thousands of Cores. Proc. VLDB Endow. 12, 13 (2019),
+ability to process data in-situ. The next steps for the Farview project                           2325–2338.
+                                                                                             [17] Carsten Binnig, Andrew Crotty, Alex Galakatos, Tim Kraska, and Erfan Zamanian.
+are to develop a query optimizer that takes the new capabilities of                               2016. The End of Slow Networks: It’s Time for a Redesign. Proc. VLDB Endow.
+the system into consideration, to design suitable cache management                                (2016).
+strategies to move data back and forth to persistent storage, and to                         [18] Peter A Boncz, Martin L Kersten, and Stefan Manegold. 2008. Breaking the
+                                                                                                  memory wall in MonetDB. Commun. ACM 51, 12 (2008), 77–85.
+expand the range of operators supported. We also want to explore, as                         [19] K. M. Bresniker, S. Singhal, and R. S. Williams. 2015. Adapting to Thrive in a
+part of a query optimizer, options such as performing joins against                               New Economy of Memory Abundance. Computer 48, 12 (2015), 44–53.
+small tables in the memory by reading the small table into the FPGA                          [20] Adrian Caulfield, Eric S. Chung, Andrew Putnam, Hari Angepat, Jeremy Fowers,
+                                                                                                  and et. al. 2016. A Cloud-Scale Acceleration Architecture. In 2016 49th Annual
+and matching the tuples read from memory against it. Additionally,                                IEEE/ACM International Symposium on Microarchitecture (MICRO).
+we plan to port Farview to Enzian [21], a heterogeneous research                             [21] David Cock, Abishek Ramdas, Daniel Schwyn, Michael Giardino, Adam Tur-
+                                                                                                  owski, Zhenhao He, Nora Hossle, Dario Korolija, Melissa Licciardello, Kristina
+platform that offers both more network and memory bandwidth.                                      Martsenko, Reto Achermann, Gustavo Alonso, and Timothy Roscoe. 2022. En-
+                                                                                                  zian: an open, general, CPU/FPGA platform for OS research. In Proceedings of
+ACKNOWLEDGEMENTS                                                                                  the 27th International Conference on Architectural Support for Programming
+                                                                                                  Languages and Operating Systems.
+We would like to thank Xilinx for the generous donation of the                               [22] Oracle Corporation. [n. d.]. Accelerating Spark SQL Using SPARC with DAX.
+equipment used to perform the experiments in the paper and for                               [23] CryptoPP. Accessed 2021. Crypto++® Library 8.6. https://www.cryptopp.com/.
+                                                                                             [24] William Dally. 2011. Power, programmability, and granularity: The challenges of
+access to the XACC ETHZ Cluster. The work of Dario Korolija has                                   exascale computing. In 2011 IEEE International Test Conference. IEEE Computer
+been funded in part by a donation from HPE.                                                       Society, 12–12.
+                                                                                             [25] William J Dally, Yatish Turakhia, and Song Han. 2020. Domain-specific hardware
+                                                                                                  accelerators. Commun. ACM 63, 7 (2020), 48–57.
+REFERENCES                                                                                   [26] ARM developer. 2021. About the AXI4-Stream protocol. https://pages.awscloud.
+ [1] Marcos K. Aguilera, Nadav Amit, Irina Calciu, Xavier Deguillard, Jayneel Gandhi,             com/AQUA_Preview.html
+     Stanko Novakovic, Arun Ramanathan, Pratap Subrahmanyam, Lalith Suresh,                  [27] Aleksandar Dragojević, Dushyanth Narayanan, Miguel Castro, and Orion Hodson.
+     Kiran Tati, Rajesh Venkatasubramanian, and Michael Wei. 2018. Remote Regions:                2014. FaRM: Fast Remote Memory. In 11th USENIX Symposium on Networked
+     a Simple Abstraction for Remote Memory. In Proceedings of the 2018 USENIX                    Systems Design and Implementation (NSDI 14).
+     Conference on Usenix Annual Technical Conference. 775–787.                              [28] Subramanya R Dulloor, Amitabha Roy, Zheguang Zhao, Narayanan Sundaram,
+ [2] Marcos K. Aguilera, Nadav Amit, Irina Calciu, Xavier Deguillard, Jayneel Gandhi,             Nadathur Satish, Rajesh Sankaran, Jeff Jackson, and Karsten Schwan. 2016. Data
+     Pratap Subrahmanyam, Lalith Suresh, Kiran Tati, Rajesh Venkatasubramanian, and               Tiering in Heterogeneous Memory Systems. In European Conference on Computer
+     Michael Wei. 2017. Remote Memory in the Age of Fast Networks. In Proceedings                 Systems.
+     of the 2017 Symposium on Cloud Computing. 121–127.                                      [29] Assaf Eisenman, Darryl Gardner, Islam AbdelRahman, Jens Axboe, Siying Dong,
+ [3] Marcos K. Aguilera, Kimberly Keeton, Stanko Novakovic, and Sharad Singhal.                   Kim Hazelwood, Chris Petersen, Asaf Cidon, and Sachin Katti. 2018. Reducing
+     2019. Designing Far Memory Data Structures: Think Outside the Box. In Pro-                   DRAM Footprint with NVM in Facebook. In European Conference on Computer
+     ceedings of the Workshop on Hot Topics in Operating Systems. 120–126.                        Systems (EuroSys) 2018.
+ [4] Kathirgamar Aingaran, Sumti Jairath, and David Lutz. 2016. Software in Silicon          [30] Yuanwei Fang, Chen Zou, and Andrew Chien. 2019. Accelerating Raw Data
+     in the Oracle SPARC M7 Processor. In 2016 IEEE Hot Chips 28 Symposium                        Analysis with the ACCORDA Software and Hardware Architecture. In Proc.
+     (HCS). 1–31.                                                                                 VLDB Endow.
+ [5] Gustavo Alonso, Carsten Binnig, Ippokratis Pandis, Kenneth Salem, Jan                   [31] Paolo Faraboschi, Kimberly Keeton, Tim Marsland, and Dejan Milojicic. 2015.
+     Skrzypczak, Ryan Stutsman, Lasse Thostrup, Tianzheng Wang, Zeke Wang, and                    Beyond Processor-centric Operating Systems. In 15th Workshop on Hot Topics in
+     Tobias Ziegler. 2019. DPI: The Data Processing Interface for Modern Networks.                Operating Systems (HotOS XV).
+     In CIDR 2019, 9th Biennial Conference on Innovative Data Systems Research,              [32] Daniel Firestone, Andrew Putnam, Hari Angepat, Derek Chiou, Adrian Caulfield,
+     Online Proceedings.                                                                          Chun Chung, Matt Humphrey, and et. al. 2018. Azure Accelerated Networking:
+ [6] Gustavo Alonso, Timothy Roscoe, David Cock, Mohsen Ewaida, Kaan Kara,                        SmartNICs in the Public Cloud. In Proceedings of the 15th USENIX Conference
+     Dario Korolija, David Sidler, and Zeke Wang. 2020. Tackling Hardware/Software                on Networked Systems Design and Implementation.
+     Co-design from a Database Perspective. In CIDR’20.                                      [33] Carsten Binnig Andrew Crotty Alex Galakatos and Tim Kraska Erfan Zamanian.
+ [7] Emmanuel Amaro, Christopher Branner-Augmon, Zhihong Luo, Amy Ousterhout,                     2016. The End of Slow Networks: It’s Time for a Redesign. Proceedings of the
+     Marcos K. Aguilera, Aurojit Panda, Sylvia Ratnasamy, and Scott Shenker. 2020.                VLDB Endowment 9, 7 (2016).
+     Can Far Memory Improve Job Throughput?. In Proceedings of the Fifteenth                 [34] Peter Xiang Gao, Akshay Narayan, Sagar Karandikar, Joao Carreira, Sangjin
+     European Conference on Computer Systems. 14:1–14:16.                                         Han, Rachit Agarwal, Sylvia Ratnasamy, and Scott Shenker. 2016. Network
+ [8] Cristiana Amza, Alan L. Cox, Sandhya Dwarkadas, Peter J. Keleher, Honghui Lu,                Requirements for Resource Disaggregation. In OSDI. 249–264.
+     Ramakrishnan Rajamony, Weimin Yu, and Willy Zwaenepoel. 1996. TreadMarks:               [35] Google. Accessed 2021. re2 Library. https://github.com/google/re2.
+     Shared Memory Computing on Networks of Workstations. IEEE Computer 29, 2                [36] Goetz Graefe. 1990. Encapsulation of parallelism in the volcano query processing
+     (1996), 18–28.                                                                               system. ACM SIGMOD Record 19, 2 (1990), 102–111.
+ [9] Arvind Arasu, Ken Eguro, Manas Joglekar, Raghav Kaushik, Donald Kossmann,               [37] Juncheng Gu, Youngmoon Lee, Yiwen Zhang, Mosharaf Chowdhury, and Kang G.
+     and Ravi Ramamurthy. 2015. Transaction processing on confidential data using                 Shin. 2017. Efficient Memory Disaggregation with Infiniswap. In 14th USENIX
+     cipherbase. In ICDE’15. 435–446.                                                             Symposium on Networked Systems Design and Implementation (NSDI 17). 649–
+[10] Joy Arulraj and Andrew Pavlo. 2017. How to build a non-volatile memory database              667.
+     management system. In Proceedings of the 2017 ACM International Conference              [38] InfiniBand. Accessed 2021. InfiniBand™ Architecture Volume 1 and Volume 2.
+     on Management of Data. 1753–1758.                                                            https://www.infinibandta.org/ibta-specification/.
+[11] Joy Arulraj and Andrew Pavlo. 2019. Non-volatile Memory Database Management             [39] InfiniBand. Accessed 2021. InfiniBand™Architecture Specification Release 1.2.1
+     Systems. Synthesis Lectures on Data Management 11 (2019).                                    Annex A16: RoCE. https://cw.infinibandta.org/document/dl/7148.
+                                                                                        13
+[40] Zsolt István, David Sidler, and Gustavo Alonso. 2017. Caribou: Intelligent Dis-              International Symposium on Memory Systems. 304–315.
+     tributed Storage. Proc. VLDB Endow. (Aug. 2017), 1202–1213.                             [63] Andrew Putnam, Adrian M. Caulfield, Eric S. Chung, Derek Chiou, and et. al.
+[41] Insoon Jo, Duck-Ho Bae, Andre S. Yoon, Jeong-Uk Kang, Sangyeun Cho, Daniel                   2014. A Reconfigurable Fabric for Accelerating Large-Scale Datacenter Ser-
+     D. G. Lee, and Jaeheon Jeong. 2016. YourSQL: A High-Performance Database                     vices. In Proceeding of the 41st Annual International Symposium on Computer
+     System Leveraging In-Storage Computing. Proc. VLDB Endow. 9, 12 (2016),                      Architecuture (ISCA).
+     924–935.                                                                                [64] Mario Ruiz, David Sidler, Gustavo Sutter, Gustavo Alonso, and Sergio López-
+[42] K. Kara and G. Alonso. 2016. Fast and robust hashing for database operators. In              Buedo. 2019. Limago: An FPGA-Based Open-Source 100 GbE TCP/IP Stack. In
+     2016 26th International Conference on Field Programmable Logic and Applica-                  FPL 2019. 286–292.
+     tions (FPL). 1–4.                                                                       [65] Yizhou Shan, Yutong Huang, Yilun Chen, and Yiying Zhang. 2018. LegoOS: A
+[43] Kimberly Keeton, David A. Patterson, and Joseph M. Hellerstein. 1998. A Case                 Disseminated, Distributed OS for Hardware Resource Disaggregation. In OSDI.
+     for Intelligent Disks (IDISKs). SIGMOD Rec. 27, 3 (1998), 42–52.                             69–87.
+[44] Ahmed Khawaja, Joshua Landgraf, Rohith Prakash, Michael Wei, Eric Schkufza,             [66] Yizhou Shan, Shin-Yeh Tsai, and Yiying Zhang. 2017. Distributed Shared Persis-
+     and Christopher J. Rossbach. 2018. Sharing, Protection, and Compatibility for                tent Memory. In ACM Symposium on Cloud Computing (SOCC) 2017.
+     Reconfigurable Fabric with AmorphOS. In 13th USENIX Symposium on Operating              [67] David Sidler, Zeke Wang, Monica Chiosa, Amit Kulkarni, and Gustavo Alonso.
+     Systems Design and Implementation (OSDI 18). 107–127.                                        2020. StRoM: Smart Remote Memory. In EuroSys’20. 29:1–29:16.
+[45] Daehyeok Kim, Amirsaman Memaripour, Anirudh Badam, Yibo Zhu,                            [68] Shin-Yeh Tsai, Yizhou Shan, and Yiying Zhang. 2020. Disaggregating Persistent
+     Hongqiang Harry Liu, Jitu Padhye, Shachar Raindel, Steven Swanson, Vyas                      Memory and Controlling Them Remotely: An Exploration of Passive Disaggre-
+     Sekar, and Srinivasan Seshan. 2018. HyperLoop: Group-Based NIC-Offloading                    gated Key-Value Stores. In USENIX ATC 2020.
+     to Accelerate Replicated Transactions in Multi-Tenant Storage Systems. In Pro-          [69] Alexander van Renen, Viktor Leis, Alfons Kemper, Thomas Neumann, Takushi
+     ceedings of the 2018 Conference of the ACM Special Interest Group on Data                    Hashida, Kazuichi Oe, Yoshiyasu Doi, Lilian Harada, and Mitsuru Sato. 2018.
+     Communication. 297—-312.                                                                     Managing non-volatile memory in database systems. In Proceedings of the 2018
+[46] Dario Korolija, Timothy Roscoe, and Gustavo Alonso. 2020. Do OS abstractions                 International Conference on Management of Data. 1541–1555.
+     make sense on FPGAs?. In 14th USENIX Symposium on Operating Systems                     [70] Alexander van Renen, Lukas Vogel, Viktor Leis, Thomas Neumann, and Alfons
+     Design and Implementation (OSDI 20). 991–1010.                                               Kemper. 2019. Persistent memory I/O primitives. In Proceedings of the 15th
+[47] H. Andrés Lagar-Cavilla, Junwhan Ahn, Suleiman Souhlal, Neha Agarwal, Ra-                    International Workshop on Data Management on New Hardware.
+     doslaw Burny, Shakeel Butt, Jichuan Chang, Ashwin Chaugule, Nan Deng, Junaid            [71] Louis Woods, Zsolt István, and Gustavo Alonso. 2014. Ibex - An Intelligent
+     Shahid, Greg Thelen, Kamil Adam Yurtsever, Yu Zhao, and Parthasarathy Ran-                   Storage Engine with Support for Advanced SQL Off-loading. Proc. VLDB Endow.
+     ganathan. 2019. Software-Defined Far Memory in Warehouse-Scale Computers.                    7, 11 (2014), 963–974.
+     In Proceedings of the Twenty-Fourth International Conference on Architectural           [72] Xilinx. Accessed 2021. Alveo U250 Data Center Accelerator Card. https://www.
+     Support for Programming Languages and Operating Systems. 317–330.                            xilinx.com/products/boards-and-kits/alveo/u250.html#specifications.
+[48] Kevin T. Lim, Jichuan Chang, Trevor N. Mudge, Parthasarathy Ranganathan,                [73] Xilinx. Accessed 2021. Xilinx Adaptive Compute Cluster (XACC) Program.
+     Steven K. Reinhardt, and Thomas F. Wenisch. 2009. Disaggregated memory                       https://www.xilinx.com/support/university/XUP-XACC.html.
+     for expansion and sharing in blade servers. In 36th International Symposium on          [74] Yue Zha and Jing Li. 2020. Virtualizing FPGAs in the Cloud. In ASPLOS’20.
+     Computer Architecture (ISCA 2009). 267–278.                                                  845–858.
+[49] Kevin T. Lim, Yoshio Turner, Jose Renato Santos, Alvin AuYoung, Jichuan Chang,          [75] Qizhen Zhang, Yifan Cai, Sebastian Angel, Vincent Liu, Ang Chen, and
+     Parthasarathy Ranganathan, and Thomas F. Wenisch. 2012. System-level impli-                  Boon Thau Loo. 2020. Rethinking Data Management Systems for Disaggre-
+     cations of disaggregated memory. In IEEE International Symposium on High-                    gated Data Centers. In CIDR 2020, 10th Conference on Innovative Data Systems
+     Performance Comp Architecture. 189–200.                                                      Research, Online Proceedings. www.cidrdb.org.
+[50] Feilong Liu, Lingyan Yin, and Spyros Blanas. 2019. Design and Evaluation of             [76] Qizhen Zhang, Yifan Cai, Xinyi Chen, Sebastian Angel, Ang Chen, Vincent Liu,
+     an RDMA-aware Data Shuffling Operator for Parallel Database Systems. ACM                     and Boon Thau Loo. 2020. Understanding the Effect of Data Center Resource
+     Trans. Database Syst. 44, 4 (2019), 17:1–17:45.                                              Disaggregation on Production DBMSs. Proc. VLDB Endow. 13, 9 (2020), 1568–
+[51] Jiacheng Ma, Gefei Zuo, Kevin Loughlin, Xiaohe Cheng, Yanqiang Liu, Abel Mu-                 1581.
+     lugeta Eneyew, Zhengwei Qi, and Baris Kasikci. 2020. A Hypervisor for Shared-           [77] Tobias Ziegler, Sumukha Tumkur Vani, Carsten Binnig, Rodrigo Fonseca, and
+     Memory FPGA Platforms. In ASPLOS ’20. 827–844.                                               Tim Kraska. 2019. Designing distributed tree-based index structures for fast
+[52] Teng Ma, Mingxing Zhang, Kang Chen, Zhuo Song, Yongwei Wu, and Xuehai                        RDMA-capable networks. In Proceedings of the 2019 International Conference
+     Qian. 2020. AsymNVM: An Efficient Framework for Implementing Persistent                      on Management of Data. 741–758.
+     Data Structures on Asymmetric NVM Architecture. In ASPLOS’20. 757–773.                  [78] Marcin Zukowski and Peter A Boncz. 2012. Vectorwise: Beyond column stores.
+[53] Mellanox. Accessed 2021. ConnectX®-5 VPI Card. https://www.mellanox.com/                     IEEE Data Engineering Bulletin 35, 1 (2012), 21–27.
+     files/doc-2020/pb-connectx-5-vpi-card.pdf.
+[54] Jacob Nelson, Brandon Holt, Brandon Myers, Preston Briggs, Luis Ceze, Simon
+     Kahan, and Mark Oskin. 2015. Latency-Tolerant Software Distributed Shared
+     Memory. In USENIX Annual Technical Conference ATC 2015.
+[55] Rolf Neugebauer, Gianni Antichi, José Fernando Zazo, Yury Audzevich, Sergio
+     López-Buedo, and Andrew W. Moore. 2018. Understanding PCIe Performance
+     for End Host Networking (SIGCOMM ’18). 327–341.
+[56] Thomas Neumann. 2011. Efficiently compiling efficient query plans for modern
+     hardware. Proceedings of the VLDB Endowment 4, 9 (2011), 539–550.
+[57] Thomas Neumann and Michael J Freitag. 2020. Umbra: A Disk-Based System
+     with In-Memory Performance.. In CIDR.
+[58] Mark Oskin, Frederic T. Chong, and Timothy Sherwood. 1998. Active Pages: A
+     Computation Model for Intelligent Memory. In Proceedings of the 25th Annual
+     International Symposium on Computer Architecture, ISCA 1998, Barcelona, Spain,
+     June 27 - July 1, 1998. 192–203.
+[59] Onkar Patil, Latchesar Ionkov, Jason Lee, Frank Mueller, and Michael Lang. 2019.
+     Performance characterization of a DRAM-NVM hybrid memory architecture for
+     HPC applications using intel optane DC persistent memory modules. In MEMSYS
+     2019. 288–303.
+[60] David A. Patterson, Thomas E. Anderson, Neal Cardwell, Richard Fromm, Kim-
+     berly Keeton, Christoforos E. Kozyrakis, Randi Thomas, and Katherine A. Yelick.
+     1997. A case for intelligent RAM. IEEE Micro 17, 2 (1997), 34–44.
+[61] David A. Patterson, Krste Asanovic, Aaron B. Brown, Richard Fromm, Jason
+     Golbus, Benjamin Gribstad, Kimberly Keeton, Christoforos E. Kozyrakis, David R.
+     Martin, Stylianos Perissakis, Randi Thomas, Noah Treuhaft, and Katherine A.
+     Yelick. 1997. Intelligent RAM (IRAM): The Industrial Setting, Applications and
+     Architectures. In Proceedings International Conference on Computer Design VLSI
+     in Computers and Processors. 2–7.
+[62] Ivy Bo Peng, Maya B. Gokhale, and Eric W. Green. 2019. System evaluation
+     of the Intel optane byte-addressable NVM. In MEMSYS ’19: Proceedings of the
+                                                                                        14
+

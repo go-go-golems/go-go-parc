@@ -1,0 +1,16 @@
+[options]
+mode prove
+depth 1
+
+[engines]
+smtbmc z3
+
+[script]
+ghdl --std=08 sql_pkg.vhd sql_cmp32.vhd sql_predicate_datapath.vhd datapath_formal.vhd -e datapath_formal
+prep -top datapath_formal
+
+[files]
+../rtl/sql_pkg.vhd
+../rtl/sql_cmp32.vhd
+../rtl/sql_predicate_datapath.vhd
+datapath_formal.vhd

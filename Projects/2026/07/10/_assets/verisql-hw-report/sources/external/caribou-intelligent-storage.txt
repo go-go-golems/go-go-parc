@@ -1,0 +1,985 @@
+                          Caribou: Intelligent Distributed Storage
+
+                                      Zsolt István               David Sidler              Gustavo Alonso
+                          Systems Group, Department of Computer Science, ETH Zürich, Switzerland
+                                                    {firstname.lastname}@inf.ethz.ch
+
+
+
+
+ABSTRACT                                                                              Data movement between layers can be reduced by pushing
+The ever increasing amount of data being handled in data                           operators down to storage. This is already done in shared-
+centers causes an intrinsic inefficiency: moving data around                       disk architectures that rely on traditional servers to provide
+is expensive in terms of bandwidth, latency, and power con-                        storage supporting query offloading [62]. Today, however,
+sumption, especially given the low computational complex-                          processing offload can be achieved with much less hardware
+ity of many database operations.                                                   and resources, for instance, by using SSDs embedded with
+   In this paper we explore near-data processing in database                       computational capabilities [10, 14, 23, 24, 64]. Compared
+engines, i.e., the option of offloading part of the compu-                         to these two approaches, we explore an alternative design
+tation directly to the storage nodes. We implement our                             point: smart distributed storage with replication that ex-
+ideas in Caribou, an intelligent distributed storage layer in-                     poses a high level interface such as those found in shared
+corporating many of the lessons learned while building sys-                        disk DBMSs and provides performance characteristics on a
+tems with specialized hardware. Caribou provides access to                         par with CPUs, but is implemented with energy efficient
+DRAM/NVRAM storage over the network through a simple                               specialized hardware such as that found in “active” SSDs.
+key-value store interface, with each storage node providing                           In this work we use DRAM for storage as it allows us
+high-bandwidth near-data processing at line rate and fault                         to explore near-data processing ideas for upcoming memory
+tolerance through replication. The result is a highly effi-                        technologies without being limited by either random access
+cient, distributed, intelligent data storage that can be used                      performance or bandwidth of the underlying medium. Fur-
+to both boost performance and reduce power consumption                             thermore, storage is already moving away from strict block-
+and real estate usage in the data center thanks to the micro-                      based interfaces and allows more flexible access methods [6].
+server architecture adopted.                                                       For instance, Intel Optane SSDs1 can be used as a persistent
+                                                                                   extension of RAM, blurring the boundaries between main-
+                                                                                   memory and persistent storage.
+                                                                                      We use field programmable gate arrays (FPGAs) to create
+1.    INTRODUCTION                                                                 Caribou 2 , a first prototype of our ideas for near-data pro-
+  The exponential increase of data to be stored and pro-                           cessing for database engines. Caribou builds on top of earlier
+cessed in datacenters is a challenge for current systems. An                       projects [19, 21, 50, 64] and consolidates their ideas into a
+answer to this challenge comes in the form of distributed                          single system. It shows that it is possible to hide the idiosyn-
+in-memory database systems [27, 33, 36, 40] that scale out                         crasies of specialized hardware behind regular TCP/IP sock-
+compute and storage capacity beyond a single machine. One                          ets and a clean, general purpose, key-value interface. Repli-
+common architectural element in such systems is the sepa-                          cation is built into the system for fault tolerance. Thanks to
+ration between storage and processing nodes [36, 37]. The                          the internal dataflow parallelism, Caribou nodes deliver rich
+storage nodes expose a single large shared pool of network-                        functionality at a high bandwidth and low latency. We iden-
+addressable storage which can be accessed from any process-                        tify a set of features and properties a storage node should
+ing node. Since data in the storage layer is shared across all                     have to be suitable for use with relational databases and ex-
+processing nodes, flexibility is increased and load balancing                      plain below how Caribou fulfills these. To our knowledge,
+at the processing layer is simplified [5, 36]. Additionally, the                   Caribou is the first system to integrate all these aspects into
+two layers can be independently provisioned. While there                           a single device:
+are many benefits to such an architecture, the data move-
+                                                                                   Low latency and high throughput: We extend the state
+ment it requires is an obvious source of inefficiencies.
+                                                                                   of the art in hardware-based key-value stores [8, 53, 67],
+                                                                                   generalizing to use-cases beyond caching. This is done by
+                                                                                   implementing a cuckoo hash table with a slab-based memory
+                                                                                   allocator to improve the handling of collisions and various
+                                                                                   value sizes.
+This work is licensed under the Creative Commons Attribution-
+NonCommercial-NoDerivatives 4.0 International License. To view a copy              Lookups and scans on the same data: To minimize the
+of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/. For      amount of data transfered over the network, it is important
+any use beyond those covered by this license, obtain permission by emailing        1
+info@vldb.org.                                                                       https://www.intel.com/content/www/us/en/
+Proceedings of the VLDB Endowment, Vol. 10, No. 11                                 solid-state-drives/optane-ssd-dc-p4800x-brief.html
+                                                                                   2
+Copyright 2017 VLDB Endowment 2150-8097/17/07.                                       Project website at http://systems.ethz.ch/fpga
+
+
+
+
+                                                                                1202
+to execute scans without having to send multiple requests
+to the storage. We have augmented the key-value store with
+bitmap indexes for efficient scan operations.
+
+Near-data computation: We implement selection both
+for structured and unstructured data in an effort to reduce
+data movement even further in a wide range of workloads.
+Our design ensures that in-storage processing has no nega-
+tive impact on the data retrieval rate as the selection opera-
+tors are parameterizable at runtime (require no reprogram-           Figure 1: Caribou offers replicated intelligent storage
+ming for different queries).                                         for shared-data databases. Replication uses Zookeeper’s
+                                                                     Atomic Broadcast and is transparent to the layers above.
+Fault tolerance through transparent replication: We
+demonstrated in earlier work [21] that FPGAs can be used
+to build replication into a system at high throughput and            3.    SYSTEM OVERVIEW
+without slowing down common operations. In this work we
+integrate this module into a complex processing pipeline.            3.1    Interface
+Simple interface over traditional network: Many hard-                   Caribou implements a distributed key-value store with
+ware solutions today expose either no proper API (the inter-         built-in replication and offload capabilities. Figure 1 shows
+face is intertwined with software) or require dedicated sec-         that Caribou exposes a key-value store interface over 10Gbps
+ondary networks. We acknowledge the importance of easy               TCP/IP sockets [48] to the processing nodes (we will re-
+integration with existing infrastructures, and provide tradi-        fer to these as clients for the remaining of the paper) and
+tional TCP/IP connectivity using our network stack [49].             runs Zookeeper’s Atomic Broadcast protocol [21, 26] be-
+                                                                     tween nodes. Replication happens over the same network
+                                                                     as the client-serving traffic.
+                                                                        We target row-oriented databases which have a shared-
+2.   BACKGROUND                                                      data model. Figure 2 illustrates how relations can be stored
+                                                                     in the key-value data structure: the primary key column(s)
+   There are multiple possible internal architectures for near-
+                                                                     represent the key for a row and the whole tuple is stored as
+data processing, ranging from using low-power ARM cores
+                                                                     the value. The system can handle variable sized keys and
+all the way to fully custom hardware, with various steps
+                                                                     values, and at its core is agnostic to the schema of the rela-
+in between, combining for instance ARMs and FPGAs. In
+                                                                     tion. Selection and more advanced processing requires more
+this work we prototype our ideas on FPGAs. These are
+                                                                     structural information but, for the purpose of management,
+hardware chips that can be reprogrammed and, once pro-
+                                                                     tuples are treated as BLOBs in memory. Caribou exposes
+grammed, deliver similar properties as application specific
+                                                                     the following operations to clients:
+integrated circuits (ASICs) but have lower clock rates. For
+network-facing applications they are usually clocked in the          Insert – Stores a value in memory, under a key specified
+150-300MHz range. What makes them interesting as proto-              in the request. It can be performed both in a replicated or
+typing tools is that, in comparison to traditional processors,       a node-local way. The response encodes the success/failure
+they allow fine-grained dataflow parallelism due to the fact         state of the operation.
+that all “code” executes in parallel in the device [54]. This        Read – Retrieves a value based on a key. If the key is not
+allows for exploring implementations that break traditional          present in the system it will return failure.
+software tradeoffs of complexity vs. performance.                    Conditional Read – Retrieves a value corresponding to
+   Internally, FPGAs are a collection of small look-up tables        the key in the request and evaluates a predicate on it. The
+(LUTs), on-chip memory (BRAM) and specialized digital                parameters for the predicate evaluation are provided with
+signal processing units (DSPs), which can be configured and          the request. If the predicate matches, the value is returned.
+interconnected in such a way to implement any hardware               Otherwise a failure header (16 B) is returned.
+logic on top. Their energy footprint is an order of magnitude
+lower than that of server-grade CPUs.                                Delete – Removes a key’s entry from the hash table and
+   A majority of the FPGA platforms available for develop-           frees the memory holding the value.
+ment today are intended for networking or accelerator use-           Update – Given a key and a value, updates value stored in
+cases and have only modest amounts of DRAM (1-8 GBs).                the system. This operation does not allocate memory if the
+The limitation is not fundamental. There are examples of             new value size is the same4 as the existing one. Updating a
+FPGAs with access to tens of GBs of DRAM (e.g. Maxeler               non-existent key will fail.
+MPX2000 or Convey HC-2).                                             Scan Query – Scans internally over all5 values in the stor-
+   Many of the ideas presented in this paper could be ap-            age and evaluates a predicate on each. Only the values that
+plied to future architectures and the presence of a CPU core         fulfill the predicate are sent to the client.
+would also simplify management tasks. The Xilinx MPSoC
+                                                                     4
+line3 , for instance, promises a combination of ARM cores              To be more precise, as long as the new value and the old value
+and programmable fabric attached to fast DRAM memory.                are the same multiple of 64 Bs
+                                                                     5
+                                                                       The scan operation retrieves all values stored in the same ta-
+                                                                     blespace. In our current implementation there is only a global
+                                                                     tablespace, but as later explained the system can be extended
+3
+  https://www.xilinx.com/support/documentation/                      to support multiple tablespaces. This means that scans on one
+product-briefs/zynq-ultrascale-plus-product-brief.pdf                relation will not be influenced by the size of other relations.
+
+
+
+
+                                                                  1203
+      Figure 2: Mapping tables to storage in Caribou.
+                                                                           Figure 3: Modules in Caribou and their connections.
+
+   Keys can be variable size, with a maximum size of 16 B.
+                                                                         We used Zookeeper’s atomic broadcast [21, 26] to replicate
+Values can be of arbitrary length, but we have designed
+                                                                      data from the node that acts as master copy to the replica
+and optimized the system with smaller (32-512 B) values in
+                                                                      nodes. Writes are directed to the master copy and they are
+mind. For larger values, the management tasks become less
+                                                                      successful if a majority of nodes perform them. Reads can
+challenging and can be performed by software as well (as
+                                                                      be directed to any node, but an external commit manager
+the transmission overhead dominates the cost).
+                                                                      or coordinator [36, 43] should be used by the processing
+   We consider the above set of operations enough to imple-
+                                                                      nodes to make sure that they are not reading from nodes
+ment a transactional processing layer on top. In the future,
+                                                                      with stale data (e.g., after recovering from a network parti-
+depending on the needs of applications, it could be benefi-
+                                                                      tion). The implementation in hardware comes from previ-
+cial to augment the interface with compare-and-set (CAS)
+                                                                      ous work [21] and we chose this algorithm because it allows
+operations to implement versioning. We showed in our ear-
+                                                                      for pipelining of proposal sending and taking commit deci-
+lier work how CAS operations can be added to a hardware
+                                                                      sions, fitting well with hardware execution. Furthermore,
+hash-table [21].
+                                                                      low latency TCP/IP networking and reliable response times
+3.2    Architectural Elements                                         of other FPGA nodes help to maintain high performance
+                                                                      while using ordinary sockets instead of special purpose net-
+   Figure 3 depicts the high level architecture of a single           working or dedicated links.
+Caribou node. The logic is centered around a hash table
+that 1) can handle reads and writes in constant time, so
+that the storage has predictable performance, and 2) can              4.     KEY-VALUE STORE
+store variable sized or non-ordered keys, so that Caribou               There is a rich body of work on implementing key-value
+can be used in different use-cases. We implement a Cuckoo             stores based on hash tables inside an FPGA. Most of it is
+hash table because it provides constant time lookups. Inser-          focused on caching use-cases [7, 8, 19, 53, 67]. This means
+tions and deletions might need variable time to be carried            that read operations are given more importance than writes
+out but our implementation can finalize these operations in           and hash collisions are usually not resolved if this would lead
+the background while still providing constant time answers            to variable response time (hence, the data structures are
+to clients. In order to make sure that memory space is used           typically lossy). For Caribou we implemented from scratch
+efficiently, the location of hash table entries and values needs      a cuckoo hash table with slab-based memory allocation to
+to be completely decoupled. Memory for the values is allo-            be able to handle update workloads and make more efficient
+cated by a separate module. The same module is respon-                use of memory even with changing value sizes.
+sible for carrying out scans as well. Caribou implements a
+slab-based allocation strategy (similar to the one found in           4.1     Cuckoo Hash Table
+memcached).                                                              In a cuckoo hash table every item has two possible loca-
+   Near-memory processing is carried out by the module at             tions, determined by two different hash functions. When
+the end of the pipeline. It receives values retrieved either          a key is searched, it has to be in either one of its two lo-
+as a result of a lookup or a scan operation. This module              cations, otherwise it is not in the table. If upon an insert
+supports selection on both structured and less structured             both locations are occupied, a randomly chosen key in one
+data. Thanks to hardware parallelism, selection can be com-           of these locations is “kicked out”. This key is then rein-
+bined with other transformations, e.g., decompression. As             serted in the background (done using the connection on top
+explained in Section 5, these units exploit parallelism using         in Figure 4). Even if this leads to an additional reorgani-
+methods that apply to other data processing operators as              zation, it has no impact on the throughput of the system
+well. Functionality could be extended in the future with,             since regular lookup/insert requests are processed in paral-
+e.g., group-by aggregation [64], with statistics [22], skyline        lel to the reinsert. The implementation of the hash table
+queries [63] or complex pattern detection [65].                       is depicted in Figure 4, and shows how the different opera-
+   The networking component of Caribou is taken from ear-             tions are pipelined. As a result multiple key lookups can be
+lier work on TCP/IP stacks in hardware (more details can              carried out in parallel.
+be found in [48, 49]). An important feature of the network-              In order to reduce reorganizations on collisions, each loca-
+ing stack is that it has low latency (< 10µs RTTs), can               tion in the hash table is a “bucket” with three slots. The size
+saturate 10Gbps even with small packets, and can support              of the bucket is a function of memory line width (64 B) and
+up to thousands of connections at the same time. We use               the maximum key size chosen (16 B). Additional metadata is
+the same network interface and the same networking stack              stored for each key, containing the length of its correspond-
+to communicate both with clients and with other FPGAs.                ing value and a pointer to the data area of the memory.
+
+
+
+                                                                   1204
+                                                                        Figure 5: Data structures used for memory allocation
+          Figure 4: Pipelined cuckoo hash table
+
+
+   Incoming keys are hashed and the hash value is used to           at high clock rates and are very efficient at executing itera-
+request the corresponding hash table bucket from the mem-           tive, loop-based code. In hardware, iterative code would run
+ory. We implemented two hash functions for this system: a           too slow, so we opted instead for a method that introduces
+simple shift-and-XOR function well suited for mostly consec-        no “background noise” in the system during normal execu-
+utive binary keys, and a multiplicative hash function similar       tion and requires no lengthy garbage collection operations,
+to the one used in [18] that works well on ASCII strings. The       thereby making response times more predictable.
+two functions we chose illustrate well the difference in on-
+chip area required for a low and high compute complexity            4.3     Management of Pages and Blocks
+function (we quantify area requirements in Section 6.3). Al-
+                                                                       We tailored the allocation logic to predefined classes of
+ternatively, there are also hash functions that require very
+                                                                    value sizes (this is done similarly in memcached and other
+little compute (hence minimal logic footprint) but rely on
+                                                                    related work [31, 53]). The current circuit supports 4 allo-
+pre-generated tables (leading to more BRAM resource us-
+                                                                    cation classes, but the modules are parameterizable and can
+age) such as the one described by Kara et al. [29].
+                                                                    support more. The size classes can be dynamically chosen
+   The FPGA has no caches in front of DRAM, so each read
+                                                                    as multiples of 64B, which is the smallest allocation unit
+is served directly from memory. Read requests are pipelined
+                                                                    supported (called a “block” in Figure 5). This is because
+to hide the memory latency. Incoming keys are queued at
+                                                                    our DRAM bus width is 64 B. An empty memory page is
+the decide module and consumed when the corresponding
+                                                                    32 KB and initially it can hold any size values. Once a page
+data from the memory arrives. Multiple memory requests
+                                                                    is used to allocate data of, e.g., 128 B, it becomes associated
+can be in flight, and although there is no need for locking
+                                                                    with this size class and the leftover space has to be allocated
+in the software sense, read-after-write hazards might still
+                                                                    in the same increments. The pointer lists shown in Figure 5
+occur. That is, the modifications that a previous key has
+                                                                    encode free space as pointers to pages, extended with an
+written to the hash table might arrive to the DRAM after
+                                                                    associated class (or none if the page is empty). When a
+the current key’s table entry has already been fetched. To
+                                                                    page is freed completely, it can be used to allocate any size
+prevent this, the decide module implements a small write-
+                                                                    data again. The way we keep track of the allocated and free
+through cache that stores recent writes with their address,
+                                                                    or reclaimable space is through bitmaps that represent each
+much like the write buffers present in CPUs. Then, each key
+                                                                    block with one bit, as seen in Figure 5.
+is compared either to the data from memory, or if available,
+                                                                       On an FPGA, accessing DRAM has more than an or-
+its most recent corresponding write stored in this cache.
+                                                                    der of magnitude higher latency than accessing the on-chip
+There is also a secondary data structure that holds keys
+                                                                    BRAMs, therefore we keep the head and tail of each free-
+which have been kicked out and are “in flight”. This is im-
+                                                                    page list in on-chip memory and periodically flush/grab a
+portant to ensure that the same key is not inserted twice or
+                                                                    batch of entries from main memory. Since there is only one
+appears to be deleted but then reappears later.
+                                                                    component reading and writing these lists, storing parts of
+4.2   Choice of Memory Allocator                                    them in BRAM does not lead to inconsistencies. Because
+                                                                    the BRAM buffers can hold thousands of entries per list, the
+   We use a slab-based memory allocator in Caribou. It al-
+                                                                    cost of additional memory accesses is amortized over many
+locates and deallocates memory in constant time and its
+                                                                    operations, leading to near constant cost for allocation.
+performance does not degrade with higher fill rates. Back-
+ground processing is avoided through combining housekeep-
+ing tasks with allocation/deallocation requests (e.g. reclaim-      4.4     Bitmaps and Scanning
+ing large chunks of freed memory). The memory allocator               Two bitmaps are used to keep track of allocated memory
+can handle 2 million operations per second, currently bot-          (“written”) and memory that has been freed but it is not
+tlenecked only by the DRAM access latency.                          contained yet in a page descriptor as usable space, i.e., it is
+   An alternative decision would have been to opt for log-          “reclaimable”. The “written” bitmap is updated on every
+structured storage and its corresponding allocation scheme.         insert and delete operation, and is used in scan operations.
+In software, log-based structures have the advantage of sim-        The scan reads the bitmaps representing the whole memory
+ple append-only writes and updates, the drawback is that            and for each bit set to 1, it issues a read command to memory
+they require periodic garbage collection [3]. This is not only      to fetch that address. Since in this module the actual size of
+because of deletes, but also updates that do not happen in          values is not known, we rely on meta-data stored with the
+place. In software this is less of an issue because CPUs run        values to process them in the reading modules.
+
+
+
+                                                                 1205
+   Deletions are handled by returning pointers and updating          Table 1: The overhead for engine data structures is small.
+the “reclaimable” bitmap indicating that it has been freed
+but not yet reclaimed. A memory page is reclaimed and put                Type                                     MBs      % of total
+in the “free list” if either a) all data on it has been freed            Space for data                           3840       93%
+                                                                         “Reclaimable” bitmap                       8        0.2%
+(fully free page), or b) in case the system is low on free mem-
+                                                                         “Written bitmap” (one tablesp.)            8        0.2%
+ory, if it has a large enough empty space to allow for further           “Written bitmap” (seven tablespaces)       32       0.8%
+allocations (partially free page). Every time the bitmap is              Pointer lists (1+4 classes)               25        0.6%
+updated, the system will attempt to reclaim memory. This                 Hash table (1Mio. @ 75%)                 21.3       0.5%
+is done by inspecting the amount of contiguous “free bits” in            Hash table (12Mio. @ 75%)                 256       6.2%
+the bitmap representing the page. If either condition a) or b)           Total overhead for engine                 297       7.2%
+is fulfilled, the bits representing the reclaimed memory are
+flipped and the newly created page descriptor is appended
+to the corresponding free list.
+   For relational database use-cases, it is beneficial if the
+storage nodes can differentiate between data belonging to
+one table, a set of tables, and others. This way, the cost
+of scan operations, for instance, are not influenced by the
+size of other tables. The allocator module has support for
+tablespaces but, in our experiments, by default a single ta-
+blespace is used given that the prototype platform has less
+DRAM than a real system would. A tablespace is defined as
+a set of keys that belong to the same logical collection and
+is encoded in the high order bits of the key. They are imple-
+                                                                             (a) Evaluation pipeline            (b) Data-parallel unit
+mented by extending the “written” bitmap to contain more
+than one bit per entry, signifying to which tablespace the
+                                                                     Figure 6: Exploiting parallelism: for adding complexity
+data belongs to. This does not affect insert/delete perfor-
+                                                                     in a pipeline, or for increasing the throughput of compute-
+mance because these operations access the bitmap at 64 B
+                                                                     intensive operations
+granularity. As for scan performance, larger bitmaps natu-
+rally take longer to scan but, as shown in Section 6.4, the
+cost of bitmap traversal is much less than that of processing
+                                                                     property, though in different ways. Operators that are com-
+the actual values. For high selectivity performance is always
+                                                                     putationally cheap can be combined in deep pipelines to pro-
+bottlenecked on network bandwidth.
+                                                                     vide more sophisticated predicates (Figure 6a). Computa-
+4.5    Data Structure Sizes in Memory                                tionally costly operations can be replicated in a data-parallel
+                                                                     fashion to increase overall throughput (Figure 6b).
+  Table 1 depicts how much memory each management data
+                                                                        In the following we describe the implementation of three
+structure uses, the largest portion being taken up by the
+                                                                     operators: First, we present how simple selection predicates
+hash table. We use Xilinx VC709 Evaluation boards to build
+                                                                     such as those present in most SQL queries are expressed as
+Caribou equipped with two 4 GB DDR3 SODIMMs. We
+                                                                     comparisons. While these are cheap to execute in software,
+collocated the hash table and the data area (value storage)
+                                                                     when multiple of them are combined they can become com-
+on one of the SODIMMs, while the TCP buffers, bitmaps,
+                                                                     pute bound. Second, we investigate a compute-intensive se-
+pointers and replication log overflow reside on the other one.
+                                                                     lection predicate involving substring matching to illustrate
+This partitioning is a limitation on our current evaluation
+                                                                     how hardware can speed up operations that are compute-
+platform and should not be needed on future systems. In our
+                                                                     bound in software [20]. Third, as another example of a
+evaluation setup the management data structures use less
+                                                                     computationally costly operator, we look at decompression
+than 8% of the memory space, and even if the expected size
+                                                                     of values before executing one of the previously described
+of values would be halved, effectively doubling the number
+                                                                     selection predicates.
+of required hash table entries, the management overhead
+would still amount to less than one fifth of the memory.             5.1      Comparison-based Selection
+                                                                        The simple selection predicate compares a 32 bit word at
+5.    PROCESSING: SELECTION OFFLOAD                                  a specific offset of the value to a constant. The comparison
+   In Caribou, storage and management capabilities are ex-           can be done using different functions. We have implemented
+tended to support selection predicates on data before send-          ==, !=, < and >, but this could be easily extended. The
+ing it to the processing nodes. One important requirement            unit is pipelined, so multiple conditions at different offsets
+for selection is that the circuit has to be able to adapt            can be combined. In the current prototype, we allow for
+quickly to each different query. We have borrowed ideas              up to 8 conditions on the same value, and these are com-
+from related work [28, 55] and our previous work [20, 50] to         bined into a single boolean value, by ANDing them together.
+implement the operations inside the FPGA in such a way               Only values matching all conditions will be sent out over the
+that they require no reprogramming. Instead, client requests         network. Figure 6a shows how the individual condition eval-
+parametrize the underlying circuits at runtime.                      uators are assembled into a pipeline, all of them working in
+   The benefit of specialized hardware when it comes to pro-         parallel on different parts of a value, or different values.
+cessing near the data is that it can execute operations in              The pipeline is parametrized at runtime with a Condi-
+parallel without degrading performance. Both low and high            tional Read or Scan Query request. This takes one clock cy-
+compute complexity operations can take advantage of this             cle and does not degrade performance, even if every lookup
+
+
+
+                                                                  1206
+uses predicates. These requests encode the predicate for             clocking and space constraints. However, these are not fun-
+each comparator unit as a triplet: 1) a byte offset in the           damental limitations and would not apply on larger FPGAs.
+value representing the start of the column, 2) a comparison
+function, and 3) a 32 bit value that is evaluated against the
+value at the given offset with the given function. To give           6.         EVALUATION
+an example a predicate definition corresponding to where
+col2=123 and col3<4 and col4=’a’ would result in three               6.1          Platform and Experimental Setup
+triplets sent with the Conditional Read request, with the off-          Our prototype platform for Caribou is composed of five
+sets of each column depending on the schema of the table.            Xilinx VC709 Evaluation boards6 with Virtex-7 VX690T
+                                                                     FPGAs and 8 GBs of DDR3 memory. They are connected
+5.2    Substring-based Selection                                     to a conventional 10Gbps switch. We use one node as the
+                                                                     leader (master copy) and the others are replicas. Measure-
+   This selection predicate matches substrings in the value,
+                                                                     ments are performed either with the leader only, or by repli-
+separated by wildcards (e.g., in the LIKE clause of SQL
+                                                                     cating to two (R3 ) or four (R5 ) other nodes. We use up to
+queries). This unit is based on earlier work [50] with which
+                                                                     twelve load generating machines, with dual Xeon E5-2630
+it shares its internal design, but it has a modified interface.
+                                                                     v3 CPUs (8 physical cores running at 2.4 GHz) and an In-
+Just as the regular expression matchers presented in [20, 50],
+                                                                     tel 82599ES 10Gbps network adapter per machine, with the
+it is composed of a series of comparators with small register
+                                                                     standard ixgbe drivers. All machines are connected to the
+memories into which the bytes of the strings are loaded in
+                                                                     same 10Gbps switch as Caribou.
+parallel. The circuit is provisioned with 20 characters and
+                                                                        For load generation we used clients written in Go, based
+the position of the wildcard can be chosen with an extra
+                                                                     on the memcached client library7 . Each machine is able to
+parameter. This selection predicate is useful if the data
+                                                                     generate more than a million requests/s when simulating
+stored in memory is unstructured or semi-structured.
+                                                                     64 clients, which allows us to measure 10Gbps performance
+   Instead of pipelining, in the case of this module, there are
+                                                                     even for small values on a single instance of Caribou. Un-
+multiple parallel units that match on one input value each.
+                                                                     less otherwise stated, we read and write to a single node
+This is because the string has to be searched for one byte
+                                                                     (master copy), with replicated requests then being trans-
+at a time in the input, which translates to 156MB/s perfor-
+                                                                     mitted transparently to the replica nodes. The key size is
+mance per matcher – when 32 of them are deployed in paral-
+                                                                     always 8 B (simulating 64 bit row IDs) and values contain
+lel on the other hand, the aggregate processing throughput
+                                                                     2 B of extra metadata encoding their length. By default we
+reaches close to 5GB/s, i.e., four times the 10Gbps network
+                                                                     deploy Caribou with 8 comparison-based selection modules
+bandwidth (1.25 GB/s). This is important for low selectiv-
+                                                                     and store uncompressed data. Response time is measured
+ity scans because, as opposed to high selectivity ones that
+                                                                     at the client, so it contains the network round-trip time.
+are bottlenecked by the network, these achieve speedup due
+                                                                     Throughput numbers are reported as averages of 10 repeti-
+to the additional internal bandwidth.
+                                                                     tions although we have seen no significant standard devia-
+   Figure 6b depicts the way different values are sent to in-
+                                                                     tion in our experiments. Whenever we show “10Gbps limit”
+dependent string matchers using a round-robin order, where
+                                                                     on graphs, we compute it by adding 54 B of TCP/IP head-
+they are buffered in small on-chip memories while the string-
+                                                                     ers and 12 B of interframe gap to the average size of the
+matching is performed. The output is gathered using the
+                                                                     response packets. This number is slightly optimistic as it
+same round-robin order. This layout trades chip space for
+                                                                     does not account for any retransmissions, but we find it a
+higher performance and is a standard technique in hardware
+                                                                     good enough approximation of the achievable line-rate.
+design to achieve the desired performance of inherently it-
+erative computational units.
+                                                                     6.2          Micro-benchmarks
+                                                                        As a first baseline we establish the response times for var-
+5.3    Decompression                                                 ious operations performed on Caribou. We measure them
+   Another form of processing in storage that we explore is          by running a single client issuing requests and reporting the
+decompression. Since in many modern systems compres-                 median of the time taken per operation (Figures 7a and
+sion is used as a way of fitting more data into the available        7b). The measurements taken at the client contain not only
+storage, or to optimize data movement across the storage hi-         the hardware cost of the operations but the overhead of
+erarchy and network we implement a decompression module              traversing the software stack and NIC in the client. We
+to make it possible to evaluate selections even if the data is       approximate this cost with the ping time between the client
+stored in a compressed format in memory.                             machines and Caribou: 17-18µs depending on packet size
+   We implement LZ77 [68] as proof of concept, because it            (marked as a line on response time graphs). Decompression,
+is a basic building block for more complex decompression             when enabled, adds as many cycles latency as the uncom-
+solutions and works well for text data. Since the decoding           pressed value size (e.g. 1.6µs for 256 Bs). When compared
+works at the granularity of bytes, this module in hardware           to the total response time, these overheads are acceptable.
+can produce one byte of output per clock cycle.                         Overall Caribou has low latency with no large differences
+   To achieve higher rates, multiple of these units are de-          between operation types, as long as they are local to the
+ployed on the chip in a data-parallel architecture (6b). They        master node. Replication introduces a 6µs overhead but this
+add latency linearly with the length of the decompressed             is less significant the larger the values get. The difference
+data (e.g., 256 clock cycles at 156 MHz for a 256 B value)           between replicating to two (R3 ) or four other nodes (R5 )
+but do not impact throughput. We deploy 8 units to reach
+                                                                         6
+10Gbps network bandwidth. While reaching higher output                       https://www.xilinx.com/products/boards-and-kits
+                                                                         7
+rates is possible, on our current platform we are bound by                   https://github.com/bradfitz/gomemcache
+
+
+
+
+                                                                  1207
+                             60          Insert    Ins.R3               60         Update        Upd.R3                         Read 50th         Read 99th
+                                                                                                                     60
+        Response time [us]
+                                        Ins.R5                                     Upd.R5         Read                         Update 50th       Update 99th
+                             50                                         50                                           50
+                             40                                         40                                           40
+                             30                                         30                                           30
+                             20                          ping           20                           ping                                              ping
+                                                                                                                     20
+                             10                                         10                                           10
+                                   16     32    64     128      256          16      32    64     128       256            0      2     4    6    8        10
+                                           Value size [B]                             Value size [B]                             Total Load [MOps/s]
+(a) Insert response time increases with the value                      (b) Reads and Updates become more costly     (c) Median and 99th percentile response times
+size. Replication adds constant overhead.                              with large values. Replication overhead is   are stable even with high load (workload: 50%
+                                                                       the same as for Inserts.                     read 50% update, 64 B value)
+
+                                                    Figure 7: Response times for different operation mixes and load levels
+
+
+                             12                                                                of Caribou is close to be network bound for reads and up-
+ Throughput [MOps/s]
+
+
+
+
+                                                                         100% Read
+                                                                          10% Upd.             dates which means that it is able to handle the load that
+                             10
+                                                                       10% Upd. R3             can be received over a 10Gbps Ethernet link.
+                              8                                        10% Upd. R5                Inserts and deletes do more work than reads and updates
+                              6                                           30% Upd.             because they also modify the bitmaps and pointers in mem-
+                                                                      Netw. Read Limit
+                                                                                               ory. Even though their response times are low, they cannot
+                              4                                                                be executed at the same rate as read requests. The maxi-
+                              2                                                                mum rate at which inserts can be performed in our current
+                                                                                               implementation is capped at 2M Ops./s by memory access
+                              0                                                                latency. Regardless of value size, the “written” bitmap up-
+                                  16     32       64     128
+                                                                                               dating operations incur a full memory access latency. While
+                                        Value size [B]                                         this can be optimized in principle, it requires additional data
+                                                                                               structures for temporal caching of bitmaps. We defer such
+Figure 8: Throughput is mostly limited by the network for                                      an optimization to future work as the current maximum rate
+read-heavy operation mixes                                                                     is fast enough for most workloads. Delete operations access
+                                                                                               two bitmaps but these are pipelined so only a single memory
+                                                                                               access latency is incurred. Therefore the delete performance
+is not visible from the client because proposal sending is                                     is equal to insert performance on average.
+pipelined and reaching majority is quickly achieved.                                              To show the trend of response times as a function of
+   If we compare the latency of Caribou as measured at the                                     throughput, we ran the system with a single threaded client
+nodes to other FPGA-based systems [7, 21, 53] and OS-                                          machine to measure the response time and the rest of the
+bypassed software solutions (e.g., MICA [35]) the numbers                                      machines as load generators. The issued operations are 50%
+are in the same range, even though Caribou implements ad-                                      reads and 50% updates. Figure 7c shows that both me-
+ditional functionality (Table 3).                                                              dian and 99th percentile response times are stable up until
+                                                                                               reaching maximum throughput. If we put more load on
+6.3                           Read/Write effects                                               the system the input link to the FPGA would get congested
+                                                                                               leading to dropped packets. This in turn would trigger TCP
+   To test the throughput of Caribou under a more realis-
+                                                                                               retransmissions, lowering the achievable throughput.
+tic mix of operations [4] we start experiments with a pre-
+                                                                                                  The hardware pipeline handles locking and concurrency
+populated store and issue reads and updates from the clients.
+                                                                                               differently from software. In software multi-threaded access
+Figure 8 shows that performance stays close to the maximum
+                                                                                               to data structures can lead to contention, especially in the
+read-only throughput achievable over 10Gbps Ethernet and
+                                                                                               presence of hot-spots. Conversely, in hardware there is a
+TCP/IP. For small response packets, the system does not
+                                                                                               single logical execution thread that is not impacted by access
+achieve the theoretical maximum but it is close to 90% of
+                                                                                               skew. To illustrate this point we ran a 90% read 10% update
+it. As the value size increases, the theoretical maximum
+                                                                                               experiment where an increasingly small percentage of the
+can be achieved and the system becomes network bound.
+                                                                                               key-set is accessed. Figure 9 shows that even when this
+With more updates, the average size of a response packet
+                                                                                               set is as small as 128 keys, the performance stays virtually
+decreases, which in turn increases the achievable through-
+                                                                                               identical to the uniform access pattern case (the throughput
+put over the network link. Performance with replication on
+                                                                                               variation is <1% over the points in the figure).
+the master node is as high as 70% of the non-replicated one,
+and this amount of overhead is expected as both the repli-
+cation logic and the TCP/IP stack has to issue and receive                                     6.4    Scan Performance
+additional messages for each replication round. From the                                         Scans and conditional reads are very similar in Caribou,
+perspective of replicas, the overhead of replicated writes is                                  the main difference being the amount of data passed through
+very close to that of local writes. Overall, the performance                                   the selection operators per request. For a conditional read
+
+
+
+                                                                                         1208
+                              8                                                                                       Internal (Selection Predicates)
+
+
+             Throughput
+              [MOps/s]
+                              6                                                                  80                         Max. Input Rate
+                                                                                                                      Max. Output Rate (100% Sel.)
+
+
+
+
+                                                                                 Throughput
+                              4
+
+
+
+
+                                                                                  [MOps/s]
+                                                                                                 60
+                              2
+                                                                                                 40
+                              0
+                                   0.1%     1%      25%       All                                20
+                                  Fraction of keys hot out of 128k
+                                                                                                  0
+                                                                                                       64 128     256                   512
+Figure 9: Skew has no negative impact on throughput due                                                         Value size [B]
+to the single processing pipeline (10% updates, 64 B values)
+                                                                             Figure 11: When combining single-value reads and selec-
+               70                                             Read-only      tion, network is the limiting factor. Internal bandwidth is
+               60                                             1% Write       clearly over-provisioned
+Throughput
+ [MOps/s]
+
+
+
+
+               50                                             5% Write
+               40                                             10% Write                          108
+               30                                             50% Write                                                                 64B Value
+
+
+
+
+                                                                                   [Values/s]
+                                                                                   Scan rate
+               20                                                                                                                       128B Value
+               10                                                                                107                                    256B Value
+                0
+                          3         5        7       9
+                          Number of Caribou Nodes
+                                                                                                 106
+                                                                                                       0         50          100
+Figure 10: Projected scalability of Caribou with replica-
+tion to all nodes and different workloads (64 B values)                                                    Selectivity [%]
+
+                                                                             Figure 12: Scan performance is limited by selection (close
+operation the throughput is limited not by the selection per-                to 5GB/s, regardless of type) for low selectivity, and by the
+formance but by the network. The request has to encode                       network (at most 1.25GB/s) for high selectivity
+both the key to lookup and the parameters for the selection
+computation (48 B both for the string matcher and the 8
+conditional expressions), hence for small values the system                  6.5                Scalability
+could become bottlenecked on the input bandwidth. The                          In our current setup we are constrained by the number of
+output becomes a bottleneck if selectivity is high. For low                  load generators, that are unable to saturate multiple FPGAs
+selectivity the “non-match” responses are smaller than the                   for small values, but given our measurements on the 3 and
+requests (16 B) making the input the main limiting element.                  5 node setup, it is possible to extrapolate for larger deploy-
+Figure 11 depicts the maximum selection rate inside the pro-                 ments of Caribou. We assume the presence of an external
+cessing pipeline, and the best achievable throughput both on                 transaction/commit manager that maps the database-level
+the input and on the output side for increasing value sizes.                 transaction identifiers to the lower level consensus rounds.
+   The selection operators are best utilized for predicate eval-             This enables the clients to read from all nodes, provided that
+uation when the client initiates a scan query. This way a                    they contain the updates that have to be visible to a specific
+large number of values can be streamed through the pro-                      transaction. As a result, the projected read-only through-
+cessing units with minimal overhead. The result of a scan                    put increases linearly with the number of nodes. Writes
+query only contains the matching values, other values are                    have to go through the master copy (leader in consensus
+discarded from the result set. As a consequence, for low se-                 terms), which can be a limiting factor for write-heavy work-
+lectivity queries the outgoing network link is less likely to                loads. For write-only workloads the leader can sustain 2.2M
+become the bottleneck. Of course, if many values fulfill the                 and 1.1M requests/s for R3 resp. R5 for 64 B values. Fig-
+predicate, the network link will become the bottleneck. Fig-                 ure 10 sums up these numbers and projects the aggregated
+ure 12 depicts the rate at which the data area can be scanned                throughput of Caribou nodes for larger deployments. The
+given the selectivity and different value sizes. The trend in                decline in performance with more writes is explained by the
+the graph is expected because, regardless of the choice of se-               bottleneck on the leader’s output bandwidth and is typical
+lection types, the processing pipeline of the FPGA is bound                  for systems replicating from a single master copy [58]. In
+at 5 GB/s throughput, which translates to lower tuple/s                      larger deployments it could be beneficial to partition the
+rate with larger values. For low selectivity this limits the                 data among multiple smaller groups of Caribou nodes, in-
+throughput, while for high selectivity the network and the                   stead of treating it as one logical unit. This way both high
+client’s capacity to ingest data dominates. The overhead for                 performance and fault tolerance could be achieved, even in
+scanning the bitmaps which determine what memory lines                       the presence of write-intensive workloads.
+to retrieve amounts to 400µs for each GB of value storage.
+This should not impact performance unless the tablespace                     6.6                Effect of Complexity on Software
+is very sparsely populated. To counter these cases, in the                     In hardware it is possible to add processing stages to the
+future these bitmaps could be augmented with pointers to                     global pipeline without reducing performance, whereas in
+skip over non-allocated areas.                                               software, once the execution becomes compute bound, any
+
+
+
+                                                                          1209
+Rel. throughput [%]                                                                                                Table 2: Resource consumption of each module in Caribou.
+
+
+
+
+                                                   Rel. throughput [%]
+                       100                                                  100                                        Module                     Logic slices (%)   BRAMs (%)
+                                                                                                                       DRAM Controller                25k (23%)        128 (9%)
+                                                                                                                       Networking                     11k (10%)        151 (10%)
+                                                                                                                       Replication                   3.5k (3.2%)       65 (4.4%)
+                        50                                                    50                                       Memory allocation             2.9k (2.7%)        8 (<1%)
+                                                                                                                       Hashtable                     3.9k (4.4%)       119 (8%)
+                                                                                                                       Total w/o processing        46.3k (42.9%)      471 (32%)
+                                                                                                                       Pred. Eval: 8 Conditions      4.8k (4.4%)       78 (5.3%)
+                         0                                                      0                                      Pred. Eval: Substring        16.4k (15.2%)      240 (16%)
+                                           s   .                                               s       s    .
+                               C3 tch ard ond                                      ea
+                                                                                      d
+                                                                                            on      rd   nd            Decompression                 4.5k (4.2%)       64 (4.4%)
+                          em ma ldc          C                                  R diti dca Co
+                        M d.         wi . &                                 A                 il                       Available on device          108k (100%)      1470 (100%)
+                              n                                            G Con w . &
+                         C o     w /
+                                       m
+                                        p                                FP 8           w /
+                                                                                                m
+                                                                                                  p
+                       + ngs eco                                           + gs eco
+                                                                                   n
+                          r i     D                                            r i       D
+                        St      +                                           St        +                            additional functionality. The memory controller is one of the
+                      +                                                   +                                        largest modules because it is responsible both for accessing
+                          (a) Software                                          (b) Hardware                       memory and acting as an arbiter for many concurrent access
+                                                                                                                   channels. Newer FPGA devices have hardened memory con-
+Figure 13: Impact on adding more processing to Caribou                                                             trollers that are faster and would not require real estate on
+and MemC3 has different effects. Throughput is normalized                                                          the programmable fabric. The string matcher unit has high
+to the platform-specific maximum.                                                                                  real estate requirements because it is a combination of 32
+                                                                                                                   smaller units, and the BRAM memories are used as FIFOs
+                                                                                                                   for distributing and collecting work. Other modules, such as
+added functionality decreases performance. We illustrate                                                           the hash table or the memory allocator, have more complex
+this effect with a simple experiment for which we use a mod-                                                       logic than the previously mentioned ones but, since they
+ified version of MemC3 [16]. We chose it because it has good                                                       have narrower internal buses, they consume less resources
+performance (almost 4.5MRPS for a 16 thread setup), and                                                            overall. To sum up, even when one would deploy all the
+is easy to benchmark and extend. We augmented the code                                                             features we implemented in the same system, there would
+performing a GET operation so that it would a) check for a                                                         be chip space left to add more functionality to Caribou.
+hardcoded array of bytes in the value (“Cond. match” using
+strstr ), b) check for a string search with wildcards (“Sub-                                                       7.     RELATED WORK
+string match” using GNU C Regexp) and combined these
+with the same decompression as in hardware (using the zlib                                                         7.1      High-performance Key-value Stores
+library). We ran the server on a single thread and used 8                                                             There is a growing body of performance-oriented key-
+machines with 8 threads each to generate load. The key                                                             value stores built in software and hardware. Software ap-
+is 16 B and the uncompressed values are 512 B. Figure 13a                                                          proaches [15, 16, 34] focus on two main aspects, 1) reducing
+shows the relative performance degradation with more fea-                                                          the overhead of networking by exploiting user-space net-
+tures added (100% amounts to 310k read requests/s). Fig-                                                           work stacks and RDMA, 2) adapting data structures for
+ure 13b illustrates how Caribou delivers network-bound, or                                                         multi-core scalability and make them aware of the underly-
+close to network bound throughput with or without added                                                            ing hardware. On the hardware side, novel solutions based
+features (the workload has 8B keys and 512 B values with                                                           on dataflow architectures have been proposed [7, 8, 53, 67].
+100% selectivity, and results are normalized to 1.99MRPS).                                                         The goal is to implement complete processing pipelines in
+The main purpose of this experiment is not to focus on the                                                         hardware which operate at a high-bandwidth and are able
+absolute numbers but to illustrate that in software “there                                                         to hide the memory access latency.
+is no free lunch”. Unfortunately it also does not exist in                                                            MemC3 [16] optimizes memcached with algorithmic and
+hardware with the trade-off being in terms of chip space vs.                                                       data structure improvements by replacing the original hash
+complexity rather than performance vs. complexity.                                                                 table with a cuckoo-hash [41] based structure to reduce lock-
+                                                                                                                   ing conflicts. To achieve even higher throughput in software
+6.7                    Resource Utilization                                                                        it is necessary to “specialize” the whole software stack to
+   In hardware the cost for complexity is real estate, which                                                       the key-value store workload. In MICA [34, 35], for in-
+translates into power consumption. However, the power                                                              stance, Intel’s DPDK library is used to access the network
+drawn by an FPGA is an order of magnitude lower than                                                               from user-space, thereby removing the overhead of the op-
+that of a server-grade CPU, even when fully utilized. Addi-                                                        erating system’s network stack and reducing latencies. To
+tionally, with increased chip-area usage, placing and routing                                                      reduce the overhead of networking further, MICA uses UDP
+of the logic elements on the chip becomes more difficult. In                                                       for client-server communication. While this stateless proto-
+Table 2 we list the real estate requirements of each mod-                                                          col increases throughput, it is less robust than TCP. The
+ule in our system, divided into “logic” and “memory” cat-                                                          results of this work are very promising: the complete sys-
+egories. The former is a measure for how many logic slices                                                         tem demonstrates 120 MRPS over four 40Gbps NICs in a
+(a subdivision of the FPGA area) the module uses, while                                                            single machine. It achieves its high access rate through a
+the second one expresses how many blocks of 36 Kb on-chip                                                          combination of lossy and lossless data structures. On the
+memory it requires for its operation. These are mostly used                                                        downside, in MICA clients perform some of the server’s
+for buffers and various caching structures. As depicted in                                                         tasks (e.g. hashing the key) and skewed workloads expe-
+Table 2, all modules have fairly modest requirements on the                                                        rience slowdowns due to the partitioned nature of the data
+prototype FPGA, and there is space left for implementing                                                           structures. In Caribou there is a single data structure and
+
+
+
+                                                                                                                1210
+                      Table 3: Comparison of representative hardware and software key-value store designs
+
+           System           Type                 Properties             Ops/s Per Node       Min. Latency Power Per Node
+      Tanaka et al. [53] FPGA                 Single node, UDP           20M (on 20Gbps)            4µs         15W + 100W
+      Blott et al. [7, 19] FPGA               Single node, UDP                 13M                4.5µs              26W
+       BlueCache [67]       FPGA          Custom dedicated network             4M                 >20µs             40W?
+         MemC3 [16]          SW               Single node, TCP                4.4M               >20µs‡            >120W†
+          MICA [34]          SW               Single node, UDP        120M (on 4x40Gbps)          <20µs             317W
+         FARM [15]           SW       Replicated, Transactions, RDMA    >10M (on 40Gbps)          <10µs            >230W†
+           Caribou          FPGA Replicated, Data processing, TCP              11M               10-20µs            29W?
+    Legend: ? – includes power drawn by DRAM, not only processing; † – lower bound, the thermal design power (TDP) of the processor
+    used for the original evaluation; ‡ – our measurement
+
+
+key-access skew inside a node has no negative effect on per-          data management and data processing in a single, small foot-
+formance (Section 6.3, Figure 9).                                     print device efficiently.
+  Another way of addressing the networking overhead in the               Examples of projects using specialized hardware are IBM’s
+traditional stack is to use RDMA [15, 40, 44]. In (one-sided)         Netezza data warehouse appliance9 , Ibex [64], and various
+RDMA the CPU is not involved in the data movement lead-               others [11, 24, 25, 61]. Thanks to the dataflow parallelism
+ing to a drastic reduction in latency. In FARM [15], the              of the devices, complex processing can be performed on the
+authors implement a distributed key-value storage designed            storage side without slowing down data transmission. In
+for large, scale-out workloads. Replication and offloading is         fact pre-processing, -selection, and -aggregation can lead to
+built into the nodes and per node mixed-workload through-             a reduction in the amount of data that has to be transmit-
+put surpasses 10 MRPS. These systems are however not able             ted. A clear drawback of such devices is that they are less
+to fully saturate the underlying network (Infiniband QDR              flexible than traditional software solutions. Examples such
+and 40GbE). For small request sizes they are limited by the           as the SmartSSD from UWisconsin [14] or the recent work
+packet rate. This illustrates that for software based solutions       from Samsung [23] demonstrate the versatility of software,
+there is a fixed overhead per packet which would continue             but also show its limitations in compute complexity. In this
+to increase when adding further functionality.                        work we focus on computational capability first, but also try
+  Recent work by Xilinx [8] extends the hardware-based                to make the circuit as runtime-parameterizable as possible.
+caching-KVS design with flash-based storage for more ca-                 In the domain of databases, multiple distributed DRAM-
+pacity. The work by Tanaka et. al [53] is a memcached                 based storage solutions exist, such as RamCloud [40] or Tell-
+replacement with flash storage attached to the FPGA for               Store [42]. Trivedi et al. [57] also explore a similar design,
+higher capacity. It uses a hash table design similar to the           targeting graph processing. Furthermore, various related
+one in Caribou, but lacks near-storage processing. Caribou            work explores how relations can be represented with a va-
+would benefit from a higher storage capacity, as it is cur-           riety of data structures optimized for low latency random
+rently limited by the DDR memory available on the FPGA                access [9, 13, 32, 33]. It is also becoming more common to
+board. The techniques used in the previously mentioned                design relational engines with a more clear separation be-
+works could be used to extend its storage capacity with flash.        tween processing and storage layer [5, 36, 40, 47]. We see
+  BlueCache [67] is a flash-based key-value store for caching.        Caribou as a natural fit for these systems.
+The nodes are connected through a special purpose dedi-
+cated network. The performance of a single node reaches up            7.3         Query Processing on FPGAs
+to 4 M operations/s demonstrating that flash-based FPGA                  There is a significant interest in using specialized hard-
+designs can achieve excellent performance. In contrast to             ware to increase the efficiency or performance of database
+Caribou, BlueCache nodes are not stand-alone and offer no             workloads. These works show promising results in either of-
+built-in replication or processing. While the dedicated net-          floading sub-operators (e.g., partitioning [30, 59]) or whole
+work delivers excellent latency and eliminates virtually all          execution pipelines to hardware [12, 38, 45, 51, 60].
+packet loss, we consider TCP a more flexible method of con-              Even though the above mentioned works are in the con-
+necting multiple nodes together. This applies even more if            text of accelerators near a CPU, the operator designs could
+we want to provision regular servers and specialized nodes            be ported to Caribou to offload for instance joins directly
+separately inside a rack.                                             to the storage. Furthermore, the body of related work im-
+                                                                      plementing statistics on FPGAs [22, 52, 56] could be used
+7.2      Near-data Processing                                         to provide insights about the data to the processing layer at
+   The idea of performing near-data computation is not new,           no additional cost.
+and has been explored both in the context of main memory
+(active memory [2, 17, 39, 66]) and persistent storage (active        7.4         Performance Comparison
+disk [1, 14, 23, 46]). What makes Caribou different is that
+                                                                         We compare Caribou to a set of representative designs in
+it targets distributed systems by design and combines pro-
+                                                                      more detail in Table 3. The comparison includes functional-
+cessing with high-level interfaces and fast networking. And
+                                                                      ity, performance, and energy consumption. Our prototype
+while network-attached HDDs and SSDs with key-value in-
+                                                                      platform consumes 29 Ws, including 2 DDR3 SODIMMs.
+terfaces are also available, e.g, from Toshiba and Seagate 8 ,
+                                                                      While this device is not necessarily tailored to the intelligent
+these do not implement application-specific processing. In
+                                                                      storage use-case, it provides an upper bound on how much
+Caribou we demonstrate that it is possible to perform both
+8                                                                        9
+    https://www.openkinetic.org/technology                                   http://www.ibm.com/software/data/netezza/
+
+
+
+
+                                                                  1211
+power an FPGA-based solution for this use-case would con-            9.    CONCLUSION
+sume (with more DRAM or Flash this would increase, but                   We presented Caribou, a hardware-managed distributed
+these have the same power requirements in all systems).              storage solution with near-data computation. Its design is
+   The other FPGA-based solutions provide similar through-           based on and extends our earlier work [19, 21, 50, 64], and
+put and latency but lack the functionalities provided by             fills gaps that currently exist in similar solutions (such as
+Caribou. The throughput of software solutions is in the              memory allocation). Thanks to the dataflow parallelism of
+same range as Caribou but they have higher latencies (with           hardware, Caribou delivers competitive performance while
+the exception of MICA [34, 35]). MICA achieves an order              also providing rich function offloading and both point-lookup
+of magnitude higher throughput which makes it a very en-             and scan-based access methods. We benchmark the system
+ergy efficient system, demonstrating 378k RPS/Watt. This             and demonstrate up to 11MRPS performance even for small
+number is comparable to our prototype which reaches as               value sizes. Response time is low (tens of µs end-to-end), a
+high as 380k RPS/Watt. With replication it can achieve               significant part of which is the software overhead in clients.
+267k RPS/Watt and this reduction is explained mostly by              The ideas in this paper can be used as a starting point for
+the consensus messages consuming part of the network band-           porting or building database engines on top of disaggregated
+width. It is however important to note that Caribou runs             storage that has a small energy footprint, and as a result can
+general purpose TCP/IP while MICA uses UDP and mul-                  scale wider.
+tiple network cards in the same machine. It also pushes
+complexity to the clients. In contrast, Caribou is able to           Acknowledgments
+perform predicate evaluation operations or decompression
+on the data without reducing performance. This shows the             This work has been partially funded by the Microsoft Swiss
+different trade-offs that hardware and software face and why         Joint Research Center (JRC). We would like to thank Xilinx
+we consider specialized hardware a viable way for managing           for their generous donation of the FPGAs used in this work.
+and computing on large disaggregated storage.
+                                                                     10.    REFERENCES
+8.   LESSONS LEARNED                                                  [1] A. Acharya, M. Uysal, and J. Saltz. Active disks:
+                                                                          Programming model, algorithms and evaluation. ACM
+   Caribou is an exercise in near-data processing. Its internal           SIGPLAN Notices, 33(11), 1998.
+design is driven by the goal of keeping up with network line-         [2] J. Ahn, S. Hong, S. Yoo, et al. A scalable
+rate and this influenced the choice of data structures and                processing-in-memory accelerator for parallel graph
+algorithms. For instance, even though some parts of the                   processing. In ACM SIGARCH Computer Architecture
+hash table could have been run at a higher clock-rate than                News, volume 43, pages 105–117, 2015.
+the network or extended to a wider data-bus, making these             [3] D. G. Andersen, J. Franklin, M. Kaminsky, et al. FAWN: A
+units faster would not change performance if it is already                fast array of wimpy nodes. In SOSP’09. ACM.
+                                                                      [4] B. Atikoglu, Y. Xu, E. Frachtenberg, et al. Workload
+limited by the network. The same applies for interfacing the
+                                                                          analysis of a large-scale key-value store. In
+DRAM memory and selection operators. Such co-design also                  SIGMETRICS’12.
+applies to many high performance software key-value stores            [5] P. A. Bernstein, C. W. Reid, and S. Das. Hyder: A
+but what makes hardware different is that there are less                  transactional record manager for shared flash. In CIDR,
+“unknowns”. Everything between the network interface and                  volume 11, pages 9–20, 2011.
+the memory controller is under the control of the hardware            [6] M. Bjorling, P. Bonnet, L. Bouganim, and N. Dayan. The
+designer. The circuit on the FPGA can be designed such                    necessary death of the block device interface. In CIDR’13.
+that it is neither over- nor under-provisioned. This leads to         [7] M. Blott, K. Karras, L. Liu, et al. Achieving 10gbps
+                                                                          line-rate key-value stores with FPGAs. In HotCloud’13.
+predictable behavior, which is crucial for a storage service.
+                                                                      [8] M. Blott, L. Liu, K. Karras, and K. Vissers. Scaling out to
+Conversely, in software there are many interacting layers                 a single-node 80gbps memcached server with 40Terabytes
+and caches that could introduce jitter in the behavior. This              of memory. In Usenix HotStorage’15.
+holds even when using DPDK and other user-space libraries.            [9] L. Braun, T. Etter, G. Gasparis, et al. Analytics in motion:
+   Another aspect to consider related to systems running on               High performance event-processing and real-time analytics
+specialized hardware is that while improvements over highly-              in the same database. In SIGMOD’15.
+optimized software solutions might not be very large in in-          [10] A. De, M. Gokhale, R. Gupta, et al. Minerva: Accelerating
+dividual dimensions, they are significant when considering                data analysis in next-generation SSDs. In FCCM’13.
+multiple dimensions at the same time (e.g., Caribou deliv-           [11] C. Dennl, D. Ziener, and J. Teich. Acceleration of SQL
+                                                                          restrictions and aggregations through FPGA-based
+ers lower response time and higher throughput, in an overall              dynamic partial reconfiguration. In FCCM’13.
+lower energy footprint). In addition to the raw performance          [12] C. Dennl, D. Ziener, and J. Teich. On-the-fly composition
+numbers, specialized hardware will often provide more stable              of FPGA-based SQL query accelerators using a partially
+and predictable response times, even when combined with                   reconfigurable module library. In FCCM’12.
+complex processing. In contrast to software, adding func-            [13] C. Diaconu, C. Freedman, E. Ismert, et al. Hekaton: SQL
+tionality to a dataflow pipeline does not reduce throughput.              server’s memory-optimized OLTP engine. In SIGMOD’13.
+We illustrated this point with a comparison-based selection          [14] J. Do, Y.-S. Kee, J. M. Patel, et al. Query processing on
+operator and a string matcher, both working as pipelines at               smart SSDs: opportunities and challenges. In SIGMOD’13.
+the same rate. In the future, additional functionality such          [15] A. Dragojević, D. Narayanan, O. Hodson, and M. Castro.
+                                                                          Farm: Fast remote memory. In NSDI’14.
+as partial aggregation [64], statistics [22], complex event de-
+                                                                     [16] B. Fan, D. G. Andersen, and M. Kaminsky. Memc3:
+tection [65], etc., could be added to the circuit.                        Compact and concurrent memcache with dumber caching
+                                                                          and smarter hashing. In NSDI’13.
+                                                                     [17] M. Gao and C. Kozyrakis. Hrl: Efficient and flexible
+                                                                          reconfigurable logic for near-data processing. In HPCA’16.
+
+
+
+
+                                                                  1212
+[18] Z. István, G. Alonso, M. Blott, and K. Vissers. A hash           [43] C. Plattner and G. Alonso. Ganymed: Scalable replication
+     table for line-rate data processing. ACM TRETS, 8(2),                  for transactional web applications. In Middleware, 2004.
+     Mar. 2015.                                                        [44] M. Poke and T. Hoefler. DARE: high-performance state
+[19] Z. István, G. Alonso, M. Blott, and K. A. Vissers. A                  machine replication on RDMA networks. In HPDC’15.
+     flexible hash table design for 10Gbps key-value stores on         [45] B. Salami, G. A. Malazgirt, O. Arcas-Abella, et al.
+     FPGAs. In FPL’13.                                                      AxleDB: A novel programmable query processing platform
+[20] Z. István, D. Sidler, and G. Alonso. Runtime                          on FPGA. Elsevier Microprocessors and Microsystems, 51,
+     parameterizable regular expression operators for databases.            2017.
+     In FCCM’16.                                                       [46] S. Seshadri, M. Gahagan, S. Bhaskaran, et al. Willow: a
+[21] Z. Istvan, D. Sidler, G. Alonso, and M. Vukolic. Consensus             user-programmable SSD. In OSDI’14.
+     in a box: Inexpensive coordination in hardware. In                [47] J. Shute, M. Oancea, S. Ellner, et al. F1-the fault-tolerant
+     NSDI’16.                                                               distributed RDBMS supporting Google’s Ad business. In
+[22] Z. István, L. Woods, and G. Alonso. Histograms as a side              SIGMOD’12.
+     effect of data movement for big data. In SIGMOD’14.               [48] D. Sidler, G. Alonso, M. Blott, et al. Scalable 10Gbps
+[23] I. Jo, D.-H. Bae, A. S. Yoon, et al. YourSQL: a                        TCP/IP stack architecture for reconfigurable hardware. In
+     high-performance database system leveraging in-storage                 FCCM’15.
+     computing. VLDB’16.                                               [49] D. Sidler, Z. István, and G. Alonso. Low-latency TCP/IP
+[24] S.-W. Jun, M. Liu, K. E. Fleming, et al. Scalable                      stack for data center applications. In FPL’16.
+     multi-access flash store for big data analytics. In FPGA’14.      [50] D. Sidler, Z. István, M. Owaida, and G. Alonso.
+[25] S.-W. Jun, M. Liu, S. Lee, et al. BlueDBM: an appliance                Accelerating pattern matching queries in hybrid
+     for big data analytics. In ISCA’15.                                    CPU-FPGA architectures. In SIGMOD’17.
+[26] F. P. Junqueira, B. C. Reed, et al. Zab: High-performance         [51] B. Sukhwani, H. Min, M. Thoennes, et al. Database
+     broadcast for primary-backup systems. In DSN’11.                       analytics acceleration using FPGAs. In PACS’12.
+[27] R. Kallman, H. Kimura, J. Natkins, et al. H-store: a              [52] Y. Sun, Z. Wang, S. Huang, et al. Accelerating frequent
+     high-performance, distributed main memory transaction                  item counting with FPGA. In FPGA’14.
+     processing system. VLDB’08.                                       [53] S. Tanaka and C. Kozyrakis. High performance
+[28] Y. Kaneta, S.-i. Minato, and H. Arimura. Fast bit-parallel             hardware-accelerated flash key-value store. In Non-volatile
+     matching for network and regular expressions. In Proc.                 Memories Workshop (NVMW), 2014.
+     17th SPIRE. Springer, 2010.                                       [54] J. Teubner and L. Woods. Data processing on FPGAs.
+[29] K. Kara and G. Alonso. Fast and robust hashing for                     Morgan & Claypool Synthesis Lectures on Data
+     database operators. In FPL’16.                                         Management, 2013.
+[30] K. Kara, J. Giceva, and G. Alonso. FPGA based data                [55] J. Teubner, L. Woods, and C. Nie. Skeleton automata for
+     partitioning. In SIGMOD’17.                                            FPGAs: reconfiguring without reconstructing. In
+[31] F. Klein, K. Beineke, and M. Schöttner. Memory                        SIGMOD’12.
+     management for billions of small objects in a distributed         [56] D. Tong and V. Prasanna. High throughput sketch based
+     in-memory storage. In IEEE CLUSTER’14.                                 online heavy hitter detection on FPGA. ACM SIGARCH
+[32] J. J. Levandoski, D. B. Lomet, and S. Sengupta. The                    Computer Architecture News, 43, 2016.
+     bw-tree: A b-tree for new hardware platforms. In ICDE’13.         [57] A. Trivedi, P. Stuedi, B. Metzler, et al. Rstore: A
+[33] J. J. Levandoski, D. B. Lomet, S. Sengupta, et al. High                direct-access DRAM-based data store. In ICDCS’15. IEEE.
+     performance transactions in Deuteronomy. In CIDR’15.              [58] R. van Renesse and F. B. Schneider. Chain replication for
+[34] S. Li, H. Lim, V. W. Lee, et al. Architecting to achieve a             supporting high throughput and availability. In OSDI’04.
+     billion requests per second throughput on a single key-value      [59] Z. Wang, B. He, and W. Zhang. A study of data
+     store server platform. In ACM SIGARCH Computer                         partitioning on opencl-based fpgas. In FPL’15.
+     Architecture News, volume 43. ACM, 2015.                          [60] Z. Wang, J. Paul, H. Y. Cheah, B. He, and W. Zhang.
+[35] H. Lim, D. Han, D. G. Andersen, and M. Kaminsky.                       Relational query processing on opencl-based fpgas. In
+     MICA: a holistic approach to fast in-memory key-value                  FPL’16, 2016.
+     storage. In NSDI’14.                                              [61] M. Wei, J. D. Davis, T. Wobber, et al. Beyond block I/O:
+[36] S. Loesing, M. Pilman, T. Etter, and D. Kossmann. On the               implementing a distributed shared log in hardware. In
+     design and scalability of distributed shared-data databases.           Proceedings of the 6th International Systems and Storage
+     In SIGMOD’15.                                                          Conference. ACM, 2013.
+[37] D. Makreshanski, J. Giceva, C. Barthels, and G. Alonso.           [62] R. Weiss. A technical overview of the oracle exadata
+     BatchDB: Efficient isolated execution of hybrid                        database machine and exadata storage server. Oracle White
+     OLTP+OLAP workloads for interactive applications.                      Paper. Oracle Corporation, Redwood Shores, 2012.
+     SIGMOD’17.                                                        [63] L. Woods, G. Alonso, and J. Teubner. Parallelizing data
+[38] M. Najafi, M. Sadoghi, and H.-A. Jacobsen. Flexible query              processing on FPGAs with shifter lists. ACM Transactions
+     processor on FPGAs. VLDB’13.                                           on Reconfigurable Technology and Systems (TRETS), 8(2),
+[39] M. Oskin, F. T. Chong, and T. Sherwood. Active pages: a                2015.
+     computation model for intelligent memory, volume 26.              [64] L. Woods, Z. István, and G. Alonso. Ibex - an intelligent
+     IEEE Computer Society, 1998.                                           storage engine with support for advanced SQL off-loading.
+[40] J. Ousterhout, P. Agrawal, D. Erickson, et al. The case for            PVLDB, 7(11), July 2014.
+     RAMClouds: scalable high-performance storage entirely in          [65] L. Woods, J. Teubner, and G. Alonso. Complex event
+     DRAM. ACM SIGOPS Operating Systems Review, 2010.                       detection at wire speed with FPGAs. VLDB’10.
+[41] R. Pagh and F. F. Rodler. Cuckoo hashing. In European             [66] S. L. Xi, O. Babarinsa, M. Athanassoulis, and S. Idreos.
+     Symposium on Algorithms. Springer, 2001.                               Beyond the wall: Near-data processing for databases. In
+[42] M. Pilman. Tell: An elastic database system for mixed                  DAMoN’15. ACM.
+     workloads (PhD Dissertation No. 24147), ETH Zürich,              [67] S. Xu, S. Lee, S.-W. Jun, et al. Bluecache: A scalable
+     Switzerland, 2017.                                                     distributed flash-based key-value store. In VLDB’16.
+     https://www.systems.ethz.ch/sites/default/files/                  [68] J. Ziv and A. Lempel. A universal algorithm for sequential
+     file/UpcomingPublications/PilmanMarkus2016.pdf.                        data compression. IEEE Transactions on information
+                                                                            theory, 23(3), 1977.
+
+
+
+
+                                                                    1213
+

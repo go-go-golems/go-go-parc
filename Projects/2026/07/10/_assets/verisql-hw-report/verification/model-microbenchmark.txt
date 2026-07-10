@@ -1,0 +1,4 @@
+software evaluator: rows=200000, selected=60486, median=0.125847s, throughput=1,589,234 rows/s, samples=[0.125977, 0.125717, 0.132709, 0.121615]
+combinational Python RTL model: rows=200000, selected=60486, median=0.529320s, throughput=377,843 rows/s, samples=[0.512797, 0.558341, 0.543284, 0.515356]
+cycle-accurate Python stream model: rows=200000, selected=60486, median=0.735493s, throughput=271,927 rows/s, samples=[0.725077, 0.716756, 0.777042, 0.745908]
+Caveat: these are Python model timings, not synthesized VHDL or FPGA measurements.

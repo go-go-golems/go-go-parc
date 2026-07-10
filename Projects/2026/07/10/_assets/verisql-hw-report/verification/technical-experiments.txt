@@ -1,0 +1,30 @@
+EXPERIMENT 1: packed ABI example
+row=(5, -7, None, -2147483648)
+in_row=0x8000000000000000fffffff900000005
+in_null=0b0100
+cfg_enable=0b1011
+cfg_column=0x09
+cfg_opcode=0x435
+cfg_rhs=0x000000640000000000000000fffffff6
+
+EXPERIMENT 2: cycle trace with backpressure
+cycle  in_valid  in_ready  accepted  out_valid  out_ready  emitted  out_match  input
+    0         1         1         1          0          1        0          0    (-3,)
+    1         1         1         1          1          1        1          0     (0,)
+    2         1         0         0          1          0        0          1     (7,)
+    3         1         0         0          1          0        0          1     (7,)
+    4         1         1         1          1          1        1          1     (7,)
+    5         1         1         1          1          1        1          1  (None,)
+    6         0         1         0          1          1        1          0     None
+
+EXPERIMENT 3: storage bytes and record geometry
+file_size=62 bytes
+header_size=44 bytes, record_size=9 bytes, row_count=2
+hex=5653514c54423031020000002a5a844b00fb97b99e99744fbf1f565d0bc2f094bc8f114432cc0d9fd027b1070001000000feffffff020300000000000000
+
+EXPERIMENT 4: documented INT32 boundary bypass on >4-predicate software fallback
+predicate_count=5
+compile_predicates=None
+plan=SOFTWARE_FILTER_SCAN
+query_result=((1,),)
+observation=the out-of-range constant is accepted because compile_predicates returns before validating constants when predicate_count > 4

@@ -1,0 +1,28 @@
+name: contract-ci
+
+"on":
+  push:
+  pull_request:
+
+jobs:
+  python-and-smt:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e '.[dev,formal]'
+      - run: make check
+
+  vhdl-simulation:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ghdl/setup-ghdl@v1.5.1
+        with:
+          version: "6.0.0"
+          backend: mcode
+      - run: ghdl --version
+      - run: make vhdl-test
+      - run: make vhdl-synth

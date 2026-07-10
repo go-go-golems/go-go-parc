@@ -1,0 +1,4 @@
+$ command -v ghdl yosys sby
+ghdl: NOT INSTALLED
+yosys: NOT INSTALLED
+sby: NOT INSTALLED

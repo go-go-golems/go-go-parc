@@ -1,0 +1,19 @@
+$ PYTHONPATH=. python -m verisql --db ... --file demo.sql
+created table readings
+
+inserted 5 rows
+
+operator            | details                                                  
+--------------------+----------------------------------------------------------
+VHDL_PREDICATE_SCAN | 3 conjunctive predicate(s), four-lane INT32/NULL contract
+(1 row(s))
+
+id | temperature
+---+------------
+5  | 25         
+(1 row(s))
+
+count
+-----
+4    
+(1 row(s))

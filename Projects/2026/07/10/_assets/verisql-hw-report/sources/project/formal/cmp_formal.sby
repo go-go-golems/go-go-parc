@@ -1,0 +1,15 @@
+[options]
+mode prove
+depth 1
+
+[engines]
+smtbmc z3
+
+[script]
+ghdl --std=08 sql_pkg.vhd sql_cmp32.vhd cmp_formal.vhd -e cmp_formal
+prep -top cmp_formal
+
+[files]
+../rtl/sql_pkg.vhd
+../rtl/sql_cmp32.vhd
+cmp_formal.vhd

@@ -1,0 +1,14 @@
+[options]
+mode prove
+depth 1
+
+[engines]
+smtbmc z3
+
+[script]
+ghdl --std=08 elastic_match_step.vhd stream_step_formal.vhd -e stream_step_formal
+prep -top stream_step_formal
+
+[files]
+../rtl/elastic_match_step.vhd
+stream_step_formal.vhd

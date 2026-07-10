@@ -1,0 +1,11 @@
+{
+  "note": "Changing a hash requires re-reviewing formal/prove.py and RTL-level SBY proofs.",
+  "schema": 1,
+  "sha256": {
+    "rtl/elastic_match_step.vhd": "8a18df030ad62186c20772b49bf2fd234ba91448eb39a0bd543a8164d95bc75b",
+    "rtl/sql_cmp32.vhd": "4c6b4ae7aba38fffe9c20d63409607770d76f6e4825880a1e19da11f6adf0dc8",
+    "rtl/sql_pkg.vhd": "453d31702774bbfb7176344c5536a65a2f1accf2ba6c5be8d9ef1c571696ac0c",
+    "rtl/sql_predicate_accel.vhd": "7135600383b44fd98124efdfb74dcff30d2908717d2380d6d520a7fef0145f4e",
+    "rtl/sql_predicate_datapath.vhd": "59da1b1cede864a90c3f7369c5806354f7ed324036ea54c5d353db9090098bfa"
+  }
+}

@@ -1,0 +1,11 @@
+$ PYTHONPATH=. python formal/prove.py
+RTL integrity: PASS (5 files)
+Z3 version: 4.16.0
+PASS  INT32 comparator + SQL NULL semantics: UNSAT (no counterexample)
+PASS  packed four-lane/four-predicate AND datapath: UNSAT (no counterexample)
+PASS  stream: reset clears output state: UNSAT (no counterexample)
+PASS  stream: backpressure preserves valid and payload: UNSAT (no counterexample)
+PASS  stream: accepted row appears next cycle: UNSAT (no counterexample)
+PASS  stream: drain without replacement clears valid: UNSAT (no counterexample)
+PASS  stream: stalled input cannot be accepted/overwrite output: UNSAT (no counterexample)
+All contract proofs discharged.

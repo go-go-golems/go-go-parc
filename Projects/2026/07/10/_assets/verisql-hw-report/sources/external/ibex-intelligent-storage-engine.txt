@@ -1,0 +1,976 @@
+                         Ibex—An Intelligent Storage Engine
+                     with Support for Advanced SQL Off-loading
+
+                                     Louis Woods                    Zsolt István              Gustavo Alonso
+                          Systems Group, Department of Computer Science, ETH Zurich, Switzerland
+                                                    {firstname.lastname}@inf.ethz.ch
+
+
+
+ABSTRACT                                                                              J. Do et al. have recently explored this idea [11], by using
+Modern data appliances face severe bandwidth bottlenecks                              the processor inside SSD devices for query off-loading.
+when moving vast amounts of data from storage to the query                               Executing an SQL query can be a fairly complex process,
+processing nodes. A possible solution to mitigate these bot-                          involving many different components of a DBMS, ranging
+tlenecks is query off-loading to an intelligent storage engine,                       from query parsing and query plan generation/optimization
+where partial or whole queries are pushed down to the stor-                           to actual data retrieval. For many of these tasks, the flex-
+age engine. In this paper, we present Ibex , a prototype of an                        ibility of a general-purpose CPU is needed. Nevertheless,
+intelligent storage engine that supports off-loading of com-                          scanning, filtering and aggregating large volumes of data at
+plex query operators. Besides increasing performance, Ibex                            high throughput rates can be more efficiently implemented
+also reduces energy consumption, as it uses an FPGA rather                            using dedicated hardware. Thus, a hybrid database system,
+than conventional CPUs to implement the off-load engine.                              composed of specialized hardware and commodity hardware
+Ibex is a hybrid engine, with dedicated hardware that evalu-                          can provide the best of both worlds.
+ates SQL expressions at line-rate and a software fallback for                            In this paper, we explore the implementation of an intelli-
+tasks that the hardware engine cannot handle. Ibex supports                           gent storage engine using FPGAs and SSDs. Our prototype,
+GROUP BY aggregation, as well as projection- and selection-                           Ibex [34, 35], supports query off-loading to an FPGA-based
+based filtering. GROUP BY aggregation has a higher impact                             accelerator. This first version of Ibex has been implemented
+on performance but is also a more challenging operator to                             as a pluggable storage engine for MySQL as a proof of con-
+implement on an FPGA.                                                                 cept, with the goal of creating an open research platform for
+                                                                                      hardware/software co-design in a database context. Com-
+                                                                                      pared with the little public information on commercial sys-
+                                                                                      tems [17], we provide an exhaustive description of the ar-
+1.    INTRODUCTION                                                                    chitecture and design trade-offs behind intelligent storage
+  Data warehousing and a move to the more service-oriented                            engines that opens up interesting research directions. More-
+business model of cloud computing have led to the rise of                             over, Ibex supports more complex operators (such as multi-
+so-called database appliances. By combining hardware and                              predicate WHERE clauses and GROUP BY aggregation) that are
+software in a single closed box, vendors can carefully tune                           significantly more expensive when performed in software
+both aspects of the system for maximum efficiency. In these                           [26], and that have so far not been sufficiently addressed in
+appliances, specialized hardware components together with                             both commercial [17] and related research systems [6, 7, 28].
+large scale parallelism are often used to improve perfor-                             In Ibex , these operators are implemented in an efficient and
+mance. Oracle’s Exadata [23] or IBM’s Netezza [17] are                                generic way.
+commercial examples of this trend. These systems use het-
+erogeneous architectures to different degrees, all having the                         Contributions. (i) We present a first prototype of an intel-
+notion of an intelligent storage engine in common.                                    ligent storage engine implemented with FPGAs. Both the
+  An intelligent storage engine is a specialized component                            software and hardware code of Ibex will be released as open
+that turns the classical storage engine of a database into                            source to facilitate research in this field. (ii) We discuss
+an active element capable of processing query operators, al-                          several new techniques that advance the state of the art of
+lowing the database to off-load partial or entire queries to                          SQL query processing in hardware. In previous work, only
+the storage engine for more efficient processing in terms of                          projection- and selection-based filtering is being pushed to
+both performance and energy consumption. For instance,                                specialized hardware [6, 17, 28]. By contrast, Ibex also eval-
+                                                                                      uates complex WHERE clause expressions and GROUP BY aggre-
+                                                                                      gation queries at line-rate. (iii) Our experiments show sev-
+This work is licensed under the Creative Commons Attribution-                         eral advantages of Ibex compared to well-established MySQL
+NonCommercial-NoDerivs 3.0 Unported License. To view a copy of this li-               storage engines such as MyISAM and INNODB, both in
+cense, visit http://creativecommons.org/licenses/by-nc-nd/3.0/. Obtain per-           terms of performance and energy consumption. (iv) Finally,
+mission prior to any use beyond those covered by the license. Contact                 our results prove that hardware accelerators can be inte-
+copyright holder by emailing info@vldb.org. Articles from this volume                 grated into a real DBMS, complex SQL operators can be
+were invited to present their results at the 40th International Conference on         pushed down and accelerated, and that an intelligent stor-
+Very Large Data Bases, September 1st - 5th 2014, Hangzhou, China.
+Proceedings of the VLDB Endowment, Vol. 7, No. 11                                     age engine can improve performance, as well as lower power
+Copyright 2014 VLDB Endowment 2150-8097/14/07.                                        consumption.
+
+
+
+                                                                                963
+2.    RELATED WORK                                                                                           filtered      host
+   Databases have a long history of exploring tailor-made                   SSD      raw data      FPGA                   system
+hardware, dating back to the idea of a database machine [8,                                                   data       (MySQL)
+9] in the seventies. But in those times the rapid evolution of
+commodity CPUs rendered such approaches uneconomical.
+However, in the last ten years, after clock frequency scaling                     Figure 1: Data path architecture of Ibex .
+has more or less come to an end [4], hardware awareness
+has become an increasingly important topic. This has lead
+to a number of novel approaches that exploit specialized                FPGA technique called partial reconfiguration, which allows
+hardware to accelerate data processing, using, for example,             them to build query plans from pre-compiled components at
+GPUs [14,16], network processors [13], or FPGAs [20,21,25].             runtime. Partial reconfiguration is useful to time-multiplex
+                                                                        multiple circuits that would otherwise not fit on the same
+2.1    Intelligent Storage Engines                                      FPGA. In our case, however, the entire circuit fits onto one
+   In the big data era, databases are spending an increasing            FPGA, and we use runtime parameterization instead to load
+amount of CPU cycles on scanning vast amounts of data. To               new queries, using techniques similar to the ones proposed
+produce a query result, often gigabytes of data are moved to            in several other systems [17, 22, 28].
+the CPU although most of this data is either irrelevant to the
+final query result or will contribute to it only in the form of         2.4       State of the Art
+aggregates. Thus, intelligent storage engines such as in Or-               In IBM’s data warehouse appliance Netezza [17], simple
+acle’s Exadata [23] have recently been suggested to support             selection- and projection-based filtering is pushed to mul-
+early filtering of data to both increase query performance              tiple parallel FPGAs. However, more complex operations
+and reduce energy consumption. J. Do et al. [11] evaluated              such as GROUP BY aggregation are handled by the CPU. Two
+pushing query processing into smart SSDs, concluding that               different solutions to handle multi-predicate WHERE clause
+the idea has a lot of potential but that the hardware inside            expressions in an FPGA have been proposed in [6,28]. How-
+current SSDs is too limited, and that the processor quickly             ever, both approaches have unnecessary limitations, as we
+becomes a bottleneck. As another example, with the NDB1                 show in Section 4.2, where we present our solution. The
+storage engine for cluster environments, MySQL changed                  only attempt to accelerate GROUP BY aggregation queries with
+the storage engine interface to allow pushing WHERE clause              FPGAs that we know of is [7] but note that the proposed
+predicates down to the storage layer because moving entire              approach only works with pre-sorted tuples. In this paper,
+tables between nodes of a cluster is too costly.                        we present a novel algorithm for implementing GROUP BY ag-
+                                                                        gregation in an FPGA that does not require sorting. Fur-
+2.2    Data Processing with FPGAs                                       thermore, we provide a holistic solution for both GROUP BY
+   To accelerate data-intensive applications, FPGAs are in-             and multi-predicate WHERE clauses that also handles the case
+teresting because they allow building custom hardware at                where the intermediate state of the operator exceeds the ca-
+relatively low development cost. Furthermore, FPGAs have                pacity of an FPGA.
+the potential to improve performance and at the same time
+reduce energy consumption. It has already been shown that
+FPGA-based solutions excel at a number of data processing               3.    SYSTEM OVERVIEW
+tasks, e.g., XML pattern matching [20], network intrusion                 To give a high-level overview of the system, we first dis-
+detection [37], traffic control information processing [32], or         cuss physical architecture options before we cover challenges
+algorithmic trading [24], to name a few. While these solu-              of integrating an FPGA with a database, such as interfac-
+tions demonstrate the potential of FPGAs, they all focus                ing with the DBMS, operator pushdown, accessing data via
+on accelerating only very specific tasks, not on supporting a           FPGA, and the implementation of an FPGA driver.
+general-purpose database engine.
+                                                                        3.1       Architecture Options
+2.3    SQL Acceleration with FPGAs                                        FPGAs can be integrated into a system in many ways,
+   Initial approaches that used FPGAs for database tasks                e.g., via PCIe [28], Ethernet [17], or even by putting the
+were mostly targeted at stream processing, e.g., Glacier [21]           FPGA in a socket using the frontside bus [5]. The way the
+is a compiler that translates SQL queries into VHDL code.               FPGA is integrated determines the type of data processing
+Similarly, Takenaka et al. [29] developed a synthesis frame-            that can later be efficiently performed using that FPGA.
+work that generates complex event processing (CEP) engines
+for FPGAs from an SQL-based language. Stream processing                 Explicit Co-Processor. One option is to incorporate the
+applications typically have long-running, standing queries,             FPGA as a PCIe-attached co-processor, i.e., the same way
+which justifies invoking a time-consuming synthesis and re-             GPUs are typically integrated. This is done in systems like
+configuration step of the FPGA for every new query.                     Microsoft’s Cipherbase [1]2 and IBM’s database analytics
+   In contrast to stream processing, in a data warehouse sce-           accelerator [28]. The drawback is that data needs to be
+nario the query workload is unpredictable and queries are               copied to and from the FPGA explicitly. Thus, it only pays
+not always long-running. Thus, several minutes (or even                 off to use the co-processor for workloads that are compute-
+hours) of synthesis time for every query is unacceptable.               intensive enough to justify the data transfer.
+Dennl et al. address this problem in [6], by applying a special
+                                                                        2
+                                                                         Note that in Cipherbase [1] data confidentiality and not
+1
+ The Network DataBase (NDB) storage engine is used to                   performance is the goal, as the FPGA is used as a trusted
+enable the MySQL Cluster distributed database system.                   computing base and not as an accelerator.
+
+
+
+                                                                  964
+Implicit Co-Processor. Alternatively, the FPGA-based                                                                FPGA                      Host
+co-processor can be inserted in the data path between stor-
+
+
+
+
+                                                                                                     & Projection
+                                                                                                     Tuple Parser
+age and host CPU, as illustrated in Figure 1. The FPGA cir-
+
+
+
+
+                                                                                                                                   Group By
+                                                                                                                       Selection
+cuits can be designed to operate on the data in a stream pro-
+
+
+
+
+                                                                                                                                               MySQL Software
+cessing manner such that routing data through the FPGA
+
+
+
+
+                                                                                         SATA Core
+does not hurt throughput and adds only negligible latency.                      SATA
+The advantage of this design is that there are no additional
+                                                                        SSD
+transfer costs since the FPGA only operates on data that
+is being transmitted to the CPU anyway. In Ibex , we are
+
+
+
+
+                                                                                                                                   reg.
+                                                                                                                                   file
+interested in this type of integration and place the FPGA
+between SSD and MySQL (cf. Figure 1). An interesting al-
+ternative would be to insert an FPGA directly into the mem-
+ory bus between CPU and main memory, applying the same                                                              raw data
+techniques that we present here to main memory databases.
+We leave this option to future work.                                   Figure 2: Hardware SQL engine embedded in the
+                                                                       data path between an SDD and MySQL, supporting
+3.2     Integration Challenges                                         block-level access (raw data) and a tuple-level query
+                                                                       pipeline, which is parameterizable via register file.
+3.2.1    Interfacing with the DBMS
+  To extend a database with an intelligent storage engine,
+the parts of the code base that communicate with the disk              our FPGA engine to get the best of both worlds. Further-
+driver need to be replaced by code that interfaces with the            more, all major components (Parser, Selection, GROUP BY)
+FPGA. MySQL features a pluggable storage engine (since                 are runtime-parameterizable to the right degree to allow us
+version 5.1) that allows multiple storage engines to co-exist          to execute a wide range of queries without costly reconfig-
+in a single database instance, and even combining differ-              uration of the FPGA, as will be discussed in more detail in
+ent storage engines. For example, in an existing database,             Section 4.
+one could migrate several tables, for which query off-loading
+makes sense, to Ibex , and leave other tables unchanged.               3.2.3    Data Access Modes
+While the migrated tables now would benefit from hardware                 In Ibex , the FPGA has a direct SATA link to an SSD. The
+acceleration, higher-level operations like joins across tables         hardware engine transfers data to/from the SSD via a SATA
+associated with different engines would still be possible.             IP core instantiated on the FPGA. Thus, the hardware
+  MySQL implements the Volcano iterator model [15]. The                engine has to operate on blocks of raw data. In answering
+query processor communicates with its storage engines at a             block requests for an upstream system, it is not immediately
+tuple granularity, e.g., when a table is scanned the query             clear how an accelerator could filter or modify individual
+processor repeatedly calls rnd_next(...) until the storage             tuples within those blocks.
+engine does not return any more tuples. Inserting into a               Tuple-Level versus Block-Level Operation. The se-
+table follows a similar pattern. Hence, the storage engine             mantics of any filtering or aggregation task have to be ex-
+has complete freedom as of where to fetch or store tuples,             pressed on the tuple level, which is why these tasks are typ-
+e.g., on a local storage media or—as in the case of Ibex —via          ically handled above the storage engine. To let the hard-
+database-aware hardware implemented on an FPGA.                        ware engine perform query processing tasks, the mismatch
+                                                                       problem between block-oriented disk access and the tuple-
+3.2.2    Operator Pushdown                                             oriented semantics of these tasks needs to be solved. Since
+   The main purpose of the storage engine is to translate              Ibex is designed for hybrid query processing, the Ibex hard-
+pages stored on disk into tuples (and vice versa), i.e., query         ware supports both block-level and tuple-level access to base
+processing typically takes place in the upper layers of a              tables. Figure 2 illustrates on a high level how we designed
+database. However, as mentioned earlier, MySQL intro-                  the hardware part of Ibex internally to support block- and
+duced a mechanism to push WHERE clause conditions to the               tuple-level access modes.
+storage engine. In Ibex , we take this approach one step
+further—we have extended the existing MySQL storage en-                Tuple-Level Access. When sub-queries are off-loaded to
+gine interface to also allow pushing projection and GROUP BY           the FPGA, the hardware switches to a tuple-based interface,
+aggregation down to the storage engine.                                i.e., disk blocks are parsed in hardware and processed by
+   To implement SQL operators on an FPGA, an important                 a parameterizable query pipeline, and the result tuples are
+challenge is to find the right balance between flexibility and         forwarded to the host system as a sequence of tuples, which
+performance [24]. To give an example, best performance                 are directly fed into the query evaluation pipeline of the
+is achieved if we implement each query on the FPGA as a                database. Tuples provide the right abstraction here in a
+hard-wired circuit. However, this approach would allow us              Volcano-style execution engine like the one of MySQL.
+to only execute a limited set of known queries. On the other           Block-Level Access. In all other cases, data is accessed
+hand, the most flexible solution would be to implement a mi-           in the conventional block-oriented mode, i.e., using the raw
+croprocessor on the FPGA to execute queries, resulting in a            data path in Figure 2. This includes not only un-predicated
+slow solution because all of the benefits of dedicated hard-           table scans, as in the above example, but also any operation
+ware would be lost. Ibex is in between these two extremes,             that does not require hardware acceleration can use block-
+where for every component we had to carefully decide how               level access just like an off-the-shelf system would, e.g., up-
+to divide the work between the flexible CPU on the host and            date operations, maintenance tasks (backup/recovery, etc.),
+
+
+
+                                                                 965
+                                                                                                                          0 0 0   0
+                                                       match                >α                               >α           0 0 1   0
+             column 1             >α                                                 and                                  0 1 0   0
+Parser
+
+
+
+                                                                            =β                               =β           0 1 1   1   0/1
+                                               combine
+             column 2             =β                                                          or                          1 0 0   1
+                                              predicates                                                                  1 0 1   1
+                                                                           <> γ                             <> γ          1 1 0   1
+             column 3            <> γ
+                                                   selection                                                              1 1 1   1
+                ...               ...            component
+                                                                         Figure 4: Hard-wired circuit (left) for combined
+Figure 3: Selection component with three base                            predicate WHERE (col1 > α AND col2 = β) OR col3 <> γ versus
+predicate circuits parameterized for the expression                      truth table approach (right).
+WHERE (col1 > α AND col2 = β) OR col3 <> γ.
+                                                                         clause. Subsequent components will use this signal to ignore
+or index-based plans. However, note that the focus of this               tuples not satisfying the WHERE clause condition. For queries
+paper is the tuple-level access path, for which we consider              without a WHERE clause, match will be set to logic high for
+solely read-only workloads, at this stage.                               every tuple.
+
+3.2.4      FPGA Driver                                                   4.2.1    Base Predicates
+   For communication with the FPGA, we implemented a                       The selection component can be configured to support
+driver, which is accessible from within the MySQL source                 np base predicates. We refer to a base predicate as simple
+code. The communication abstraction is based on three fun-               comparison between a column value and a constant, e.g.,
+damental components that reside on the FPGA: (a) an input                                  WHERE column θ constant .
+buffer, (b) an output buffer, (c) and a bi-directional regis-
+ter file. C++ functions allow writing to the input buffer                All three parts of every base predicate are parameterizable,
+and reading from the output buffer, as well as reading and               i.e.: (1) the column, which is set by specifying the corre-
+writing individual registers of the register file. The incentive         sponding column ID, (2) the comparator, for which one out
+is to use the input and output buffers to transfer data be-              of six possibilities is selected (θ ∈ {=, <>, <, >, <=, >=}),
+tween host system and FPGA, while the register file is used              and (3) a constant value. Currently, our selection compo-
+to control the hardware accelerators. Under the hood, com-               nent only supports predicates on fixed-length columns such
+munication to the FPGA is implemented over Gigabit Eth-                  as integers. That is, base predicates with string comparisons
+ernet. Unfortunately, Gigabit Ethernet provides less band-               still need to be handled in software. However, one could
+width (125 MB/s) than SATA II (300 MB/s), i.e., with fast                implement such functionality on an FPGA in a streaming
+SSDs the Ethernet bandwidth could become the bottleneck                  manner, similar to how Teubner et. al implemented XPath
+if the FPGA does not filter out enough data. However, this               matching [30]. Thus, the higher-level architecture would not
+limitation is due to the FPGA board that we are currently                change much if we added this functionality.
+using. In a production system, a higher bandwidth connec-                   Data is loaded into each base predicate circuit in a pipe-
+tion is realistic, e.g., PCIe, 10G Ethernet, or InfiniBand.              lined fashion, i.e., the data stream passes by all base pred-
+                                                                         icate circuits, as illustrated in Figure 3. If the column ID
+4.       QUERY PIPELINE                                                  of the annotated stream matches the column ID parame-
+                                                                         ter of a particular base predicate circuit, the corresponding
+  This section covers the three main components enabling
+                                                                         part of the data stream will participate in the comparison
+query processing on the FPGA (cf. Figure 2): (1) Parsing
+                                                                         of that base predicate. This even allows evaluating several
+& Projection, (2) Selection, and (3) GROUP BY Aggregation.
+                                                                         base predicates on the same column, e.g., WHERE clause ex-
+4.1      Parsing and Projection                                          pressions of the following form are also possible:
+   Before fetching a table from disk, the corresponding cat-                               WHERE col1 = α OR col1 = β .
+alog information is loaded from the host into a small local
+                                                                         Hence, we can evaluate np arbitrary base predicates in par-
+RAM on the FPGA. For each column, we also store a pro-
+                                                                         allel, independent of which columns will participate in the
+jection flag (that indicates whether the column is part of
+                                                                         comparisons. Notice that np only limits the number of base
+the projection). We then use standard techniques to parse
+                                                                         predicates that can be handled by the FPGA, np does not
+the raw data stream coming from the SATA link at line-rate
+                                                                         in any way limit the number of columns that an Ibex table
+and annotate it with catalog information. Furthermore, an
+                                                                         can have, nor does it constrain queries to only consist of np
+additional signal is generated, indicating which parts of the
+                                                                         base predicates—for more complex WHERE clauses there still
+data stream are part of the projection.
+                                                                         exists the option of partial filtering, i.e., only the part of the
+4.2      Selection-based Filtering                                       WHERE clause that fits on the FPGA is handled in hardware,
+                                                                         and the rest of the expression is evaluated in software.
+   After the parsing stage, the annotated data stream is
+loaded into the selection component. The selection compo-                4.2.2    Combined Predicates
+nent processes this data in a pipelined manner and forwards
+                                                                           Combined predicates are composed of base predicates and
+it to the GROUP BY component. In the selection component an
+                                                                         connected via Boolean operators, e.g.:
+additional signal (match) is generated (cf. Figure 3), which
+is set to logic high, whenever a tuple matches a given WHERE                      WHERE (col1 > α AND col2 = β) OR col3 <> γ .
+
+
+
+                                                                   966
+To implement combined predicates in hardware, intuitively               Data                   32                                32
+                                                                                       key1    /                                 /    key1
+we would like to use logic AND and OR gates, as illustrated             stream                 32                                32
+                                                                                       key2    /                                 /    key2
+on the left of Figure 4. However, it would take too long to                            key3
+                                                                                               32
+                                                                                               /
+                                                                                                                                 32
+                                                                                                                                 /    key3
+synthesize the corresponding hard-wired circuit at runtime.                            val4
+                                                                                               32
+                                                                                               /
+                                                                                                                                 32
+                                                                                                                                 /    agg4
+Existing Approaches. In [6] the WHERE clause expression                                val5
+                                                                                               32
+                                                                                               /
+                                                                                                         Hash Table              32
+                                                                                                                                 /    agg5
+                                                                                               32                                32
+is dynamically mapped to an operator pipeline using partial                            val6    /                                 /    agg6
+                                                                                               32                                32
+reconfiguration. Unfortunately, “spare chunks” need to be                              val7    /                                 /    agg7
+                                                                                               32                                32
+                                                                                       val8    /                                 /    agg8
+inserted into every tuple beforehand so that intermediate
+results can be stored. The number of spare chunks depends
+on the complexity of the WHERE clause, and it is not clear             Figure 5: High-level architecture of the GROUP BY
+how these chunks are inserted at runtime. Moreover, in-                component. Data is loaded in a pipelined fashion
+serting spare chunks into a data stream reduces its actual             (pipeline registers → ).
+bandwidth. In [28] a hard-wired reduction tree with param-
+eterizable operators (tree nodes) is instantiated. However,
+this tree introduces additional latency, i.e., for an n-byte           now, we treat the hash table as a black box and focus on
+long tuple, it takes n + log2 (#predicates) cycles to qualify          the GROUP BY component on a high level. A typical GROUP BY
+a tuple. Furthermore, no details are given of how to map an            query is illustrated below.
+arbitrary WHERE clause expression to such a tree.
+                                                                               SELECT col2 , col7 , MAX ( col1 ), MIN ( col1 )
+Truth Tables. Fortunately, a much simpler solution ex-                           FROM table                                           (Q1 )
+ists to support combined predicates, which does not have                     GROUP BY col2 , col7 ;
+the shortcomings discussed above. Namely, we can use a
+method of parameterization that resembles the implemen-                The grouping criteria that defines the individual groups is
+tation of the FPGA hardware itself: lookup tables. With                specified in the GROUP BY clause. This can be a single col-
+np base predicates, there can be at most 2np different eval-           umn or a combination of several columns, as in Q1 . In the
+uation results for those base predicates. Thus, 2np bits of            following, we refer to this grouping criteria as the group key.
+storage are sufficient to materialize the output of the oper-             In the presence of a GROUP BY clause, only columns that
+ator tree for every possible input bit vector. Note how this           are part of the GROUP BY clause can be projected without an
+is independent of the complexity of the Boolean expression.            aggregation function, all other columns need to be part of an
+   In Ibex , we use on-chip block memory (BRAM) to store               aggregate since for every group there will be a single result
+operator trees as explicit truth tables. Each base predicate           tuple. Notice that the same column can appear in multiple
+circuit has one output signal that carries the result of the           aggregates, e.g., MAX ( col1 ) and MIN ( col1 ) in Q1 .
+base predicate evaluation. The output signals of all base              Group Keys and Aggregates. The high-level design of
+predicates together compose the lookup address in the truth            the GROUP BY component is depicted in Figure 5. After the
+table, and are directly connected to the respective BRAM               selection stage, relevant data is loaded into a wide input
+block, as depicted on the right of Figure 4.                           buffer (here, 256 bits wide), which is divided into multiple
+   A single BRAM block can hold up to 36 × 210 bits of data,           32-bit slots. If the match signal from the selection compo-
+which is enough to store truth tables for up to np = 15 base           nent indicates that a tuple did not satisfy the WHERE clause,
+predicates. To support np > 15 there are several possibili-            the data in the buffer will be invalidated and overwritten by
+ties. First of all, multiple BRAM blocks can easily be com-            the next tuple.
+bined to form larger BRAMs, using the Xilinx tool chain.                  At runtime, a bit mask determines how many slots belong
+However, BRAM consumption grows exponentially with the                 to the group key and how many slots are used for aggrega-
+number of predicates. Therefore, a better solution would               tion. In Figure 5, the first three slots are used for the group
+be to split the Boolean expression of the WHERE clause into            key and the remaining five for aggregation. Notice that we
+groups and assign each group a separate smaller truth table.           do not require all slots to be used. It is perfectly valid to
+The results from those truth tables could then be combined             use, say, only the first two slots, one for the group key, and
+via lookup in a subsequent, higher-level truth table.                  the other for a single aggregate. Our design exhibits flexi-
+Generating the Truth Table. Before executing a query,                  bility not only to support combined group keys, as in Q1 ,
+the Ibex software computes the truth tables values corre-              but also group keys on columns that are wider than 32 bits.
+sponding to the operator tree of the WHERE clause, and then            For group keys that are smaller than 32 bits, we simply add
+loads them into the corresponding BRAM on the FPGA.                    a padding of zeros to the 32-bit slot.
+Computation of the truth table in software is simple. First,
+                                                                       Input Buffer Loading. Besides assigning slots for group-
+the Boolean expression is converted into disjunctive normal
+                                                                       ing and aggregation, each slot can be mapped to a column at
+form (DNF). Then, starting with a truth table that has
+                                                                       runtime. Furthermore, also the type of aggregation (COUNT,
+all bits set to zero, the corresponding bits are set to one
+                                                                       SUM, MIN, MAX)3 can be set for every slot. Data is loaded
+iteratively for every conjunctive clause. Finally, the truth
+                                                                       into the slots in a pipelined fashion, using the same tech-
+table is transmitted to the FPGA, which can also be done
+                                                                       nique that we described earlier, in Section 4.2.1, to load data
+efficiently, e.g., transfer time of 36 Kbit (for np ≤ 15) over
+                                                                       into the base predicate circuits of the selection component.
+Gigabit Ethernet is only 36µs.
+                                                                       This allows us to compute multiple aggregates on the same
+4.3   GROUP BY Aggregation                                             column. Moreover, even the order of aggregates can be spec-
+                                                                       ified already in hardware, i.e., reordering in software is not
+   The GROUP BY component handles grouping, using a spe-
+cially designed hardware hash table, the implementation of             3
+                                                                         For the average, we compute SUM and COUNT in hardware,
+which we are going to discuss separately, in Section 5. For            and perform the division AVG ≡ SUM/COUNT in software.
+
+
+
+                                                                 967
+            1        2                     4          3                                 Hash          Read       Update         Write
+     16                                                                             1             2              3             4
+      /   hash                                     update
+
+                                                                                                                Memory
+                  memory (BRAM/DRAM)
+                                                                              Figure 7: Pipelined hash table hides latencies, al-
+Figure 6: Abstract view of our hash table with the                            lowing concurrent processing of four tuples.
+four fundamental operations: 1 hash, 2 read, 3
+update, and 4 write.
+                                                                              software, and implement a first-come-first-served policy in
+                                                                              our hash table. Getting rid of collision resolution, however,
+necessary. Another advantage is the scalability of the tech-                  only partially solves the problem since the four steps de-
+nique. Here, we set the buffer width to 256 bits (eight slots),               picted in Figure 6, each require at least one clock cycle.
+because it matches the DRAM word-width used in the hash                       Performing these four steps in a sequential way would again
+table later. However, wider buffers to support more aggre-                    cause stalling of the input stream. Therefore, we propose a
+gates are also possible since the pipelined loading mecha-                    fully-pipelined hash table that hides these latencies.
+nism easily scales to wider buffers, without causing timing
+or routing problems on the FPGA.                                              5.1       Fully-pipelined Hash Table
+                                                                                 The pipelined version of the hash table is displayed in
+Hash Collisions and Bypass Tuples. Once the match
+                                                                              Figure 7. The four stages hash, read, update, and write
+signal from the selection component asserts that the data
+                                                                              can now be executed in parallel for different tuples in the
+in the input buffer is valid, all slots are read out from the
+                                                                              pipeline. The number of clock cycles that we are allowed
+buffer in parallel. The group key slots are used to probe the
+                                                                              to spend in each stage depends on the size of the tuples in
+hash table, upon which the hash table returns an entry the
+                                                                              the database table—the larger the tuples the more time we
+size of the input buffer, containing the group key, as well as
+                                                                              have. The smallest tuple that our database engine supports
+the current running aggregates. All aggregates are updated
+                                                                              is 32 bits wide. This means that in the most extreme case
+in parallel and the entry is written back to the hash table.
+                                                                              we have only two clock cycles in every stage.
+   As discussed in more detail in Section 5, we only detect
+                                                                                 The multiplicative hash function that we use is itself fully
+but do not resolve hash collisions in hardware. When a col-
+                                                                              pipelined, and consumes 16 bits per clock cycle matching the
+liding tuple is detected we simply bypass the hash table and
+                                                                              input rate. Using BRAM, reading and writing each take one
+forward it to the host instead. Thus, during query process-
+                                                                              cycle (we will discuss the DRAM case separately). Finally,
+ing bypassed tuples of the form {key1 , . . . , keyi , vali+1 , . . .
+                                                                              updating all the aggregates of a tuple is done in parallel and
+, valn } are forwarded to the output buffer. After the entire
+                                                                              can also be handled in a single cycle. Thus, with BRAM we
+table has been read, the hash table contents are flushed and
+                                                                              can guarantee line-rate processing. Nevertheless, care needs
+aggregated tuples of the form {key1 , . . . , keyi , aggi+1 , . . .
+                                                                              to be taken when two tuples of the same group follow closely
+, aggn } are forwarded to the output buffer.
+                                                                              after each other since this could lead to data hazards.
+
+5.    GROUP BY WITH HASHING                                                   5.2       Avoiding Data Hazards
+   At the heart of our GROUP BY component is a hardware im-                      When two consecutive tuples access the same memory lo-
+plementation of a hash table. While hash tables on FPGAs                      cation because they belong to the same group, it is essential
+have been studied in prior work [10, 18, 27, 31], the hash ta-                that the second tuple sees the modifications of the preceding
+ble design we present here is specially tailored at supporting                one, otherwise updates will get lost. The design in Figure 7
+GROUP BY queries at line-rate. The hash table allows us to                    cannot guarantee this when tuples are small.
+execute GROUP BY aggregation in a single pass, without hav-                      One approach is to detect situations where potential data
+ing to first sort the input data. Figure 6 illustrates how this               hazards could occur, and then stall the pipeline for an ap-
+works: 1 First, the group key is hashed. 2 The bits of                        propriate amount of time. However, such stalling is only
+the hash value (or a subset thereof) serve as the memory                      acceptable if it happens infrequently. Unfortunately, tuples
+address, and the corresponding memory word is read from                       of the same group stored close together is not an unlikely sce-
+that address. 3 A special flag indicates whether we are                       nario. Moreover, pre-sorted tables would exhibit the worst
+processing a particular group for the first time. If this is                  performance, which is counter-intuitive.
+the case, we perform an insert, i.e., we completely overwrite                    To solve this problem, we introduce a caching layer be-
+the just read memory word. Otherwise, we simply update                        tween memory and the pipelined hash table. This layer im-
+the running aggregates in the memory word. 4 Finally, the                     plements a write-through cache that holds the n last writes
+processed memory word is written back to memory.                              to memory. As shown in Figure 8, all read requests are
+   As mentioned previously, our goal is to achieve line-rate                  logged temporarily in a queue, and the following writes to
+performance for GROUP BY aggregation inside the FPGA (i.e.,                   memory are cached during the write stage. When a new
+300 MB/s or 16 bits per clock cycle at 150 MHz). However,                     read is performed, the address of the key is first checked in
+to do so we face several challenges. First of all, constant time              the queue of recently accessed memory locations. For this
+lookup is only guaranteed if there are no hash collisions, i.e.,              purpose, the queue exposes a CAM-like4 interface for read-
+if no two groups map to the same memory address. Instead                      4
+                                                                               Content-addressable memory (CAM) is a storage device in
+of stalling the input stream to perform collision resolution                  which the information is identified by content rather than
+on the FPGA, we choose to bypass colliding tuples to host                     by an address.
+
+
+
+                                                                        968
+      Hash         Read         Update         Write                                               300
+
+
+
+
+                                                                              Performance (MB/s)
+                                                        Write-through
+                                                                                                                               Ibex (4 MB pages)
+                                                                                                                               Ibex (16 KB pages)
+                                                                                                   200
+
+
+
+
+                                                           Cache
+                                                                                                                               MyISAM
+                                                                                                                               INNODB (16 KB pages)
+
+                                                                                                   100
+                                Memory
+
+                                                                                                    0
+Figure 8: Pipelined hash table with write-through
+                                                                                                         1      200      400      600     800   1000
+cache to avoid data hazards.
+                                                                                                                        Table size (MB)
+ing, which returns the index inside the queue of the most
+recent access to the memory address in question. Using this                   Figure 9: Performance (table size/execution time) of Ibex
+index, the write cache, holding the data recently written to                  versus MyISAM and INNODB for table sizes rang-
+memory, can be accessed. Thus, in the read stage, actual                      ing from one to 1024 megabytes.
+read requests to memory are only issued for memory ad-
+dresses that have not been accessed in the recent past. The
+logic in the read stage then instructs the subsequent update                  6.1                   Experimental Setup
+stage to either fetch the next tuple from the write cache, or                   All experiments were conducted on a Desktop PC featur-
+wait for it to be delivered from memory.                                      ing a Quad-Core Intel (i7-2700K, 3.50 GHz) processor with
+                                                                              8 GB of main memory. We ran MySQL 5.5.25 on a 64-bit
+5.3    DRAM-based Hash Table                                                  Windows 7 platform, which was installed on a 256 GB OCZ
+   Using BRAM to store the hash table has the advantage of                    Vertex 4 SATA III 2.5” SSD. An identical SSD was con-
+very low access latencies but BRAM is also a scarce resource                  nected directly to the FPGA (Virtex 5, XC5VLX110T)5 .
+on the FPGA. A hash table that can store a few thousand
+groups in BRAM takes up a big portion of the available                        6.2                   GROUP BY Aggregation Queries
+BRAM blocks. Thus, for workloads with many different                            In this first experiment, we want to compare how fast My-
+groups, using on-board DRAM (in the order of hundreds of                      ISAM, INNODB, and Ibex can execute GROUP BY queries. In
+megabytes) could be a preferable option.                                      particular, we want to show how far MyISAM and INNODB
+   Thanks to the caching layer, discussed above, DRAM can                     are from SATA II (300 MB/s) line-rate query processing. To
+be used instead of BRAM transparently with our hash table                     this end, we ran the following simple GROUP BY query on a
+pipeline. The only required modification to the hash table                    synthetic workload:
+logic is the correct sizing of the memory access cache. The
+size of the cache depends on the actual memory latency, be-                                                   SELECT col1 , COUNT ( ∗ )
+cause items in the cache can be evicted only once they have                                                     FROM table                       (Q2 )
+been written to memory for effective protection against the                                                  GROUP BY col1 ;
+data hazards discussed earlier. For instance, with BRAM a                     We varied the table size between one and 1024 megabytes
+capacity of eight is sufficient, while with the DRAM on our                   and every table always consisted of exactly 16 groups, each
+platform the cache needs to hold at least 32 entries.                         containing an equal amount of tuples stored in unsorted or-
+   A side effect of the caching layer for the DRAM-based                      der. In Figure 9, on the x-axis we plot the table size and on
+hash table is that it not only helps avoiding data hazards                    the y-axis performance as tablesize/executiontime.
+but also may increase performance. With DRAM it is not                          MyISAM stores tables in files managed by the operat-
+always possible to completely hide the memory latency since                   ing system, i.e., a notion of database pages does not exist.
+it is significantly higher than for BRAM but the caching                      By contrast, INNODB has all the bells and whistles of a
+layer at least mitigates the impact of memory read latency.                   full-fledged storage engine, including a buffer pool to cache
+                                                                              database pages, with a default page size of 16 KB6 .
+6.    PERFORMANCE EVALUATION                                                    As can be seen in Figure 9, MyISAM performs better
+   In this section, we compare the performance of MyISAM                      than INNODB. In all of our experiments, MyISAM always
+and INNODB (two common MySQL storage engines) to                              exhibited better performance than INNODB, which is due
+Ibex , running the same queries with each engine, and com-                    to its simplicity compared to INNODB. For example, My-
+paring the execution times reported directly by MySQL.                        ISAM does not support database transactions and therefore
+Our main focus is to thoroughly evaluate one of the key con-                  5
+                                                                                The OCZ Vertex 4 SSD is SATA III compatible but we used
+tributions of this paper—the GROUP BY acceleration compo-                     it exclusively in SATA II mode since our FPGA only sup-
+nent. Furthermore, at the end of this section, we also show                   ports SATA II, allowing a theoretical maximum bandwidth
+experiments that illustrate performance gains of selection-                   of 300 MB/s.
+                                                                              6
+based filtering and how Ibex can impact more complex queries                    According to the documentation, by recompiling the code,
+such as those in the TPC-H benchmark.                                         one can set the page size to values ranging from 8 KB to
+                                                                              64 KB. However, this is not officially supported, and for our
+                                                                              version of MySQL, we could not compile the INNODB code
+                                                                              with pages larger than 16 KB.
+
+
+
+                                                                        969
+                                                                                                                             60
+
+
+
+
+                                                                                                 Execution time (seconds)
+                                        Ibex (4 MB pages)           MyISAM                                                                Ibex
+                           12
+Execution time (seconds)
+                                        Ibex (16 KB pages)          Ibex (opt)                                               50           MyISAM
+                           10                                                                                                             INNODB
+                                                                                                                             40
+                            8
+                                                                                                                             30
+                            6
+                                                                                                                             20
+                            4
+                                                                                                                             10
+                            2
+                                                                                                                              0
+                            0
+                                                                                                                                      1       2       3      4       5       6    7
+                                    0    10   20   30   40   50   60    70   80   90
+                                                                                                                                                  Number of aggregates
+                                           Bypass tuples (% of all tuples)
+                                                                                                                            Figure 11: Varying the number of aggregates.
+   Figure 10: Impact of bypasses on execution time.
+
+                                                                                                 results are depicted in Figure 10. The y-axis shows execu-
+employs a simpler locking mechanism. Since our goal is to                                        tion time, and the x-axis displays the percentage of tuples
+compare performance of Ibex against the fastest common                                           that are bypassed and aggregated in software.
+MySQL storage engines, we sometimes omit INNODB re-                                              MyISAM. When running query Q3 with MyISAM, there
+sults in the following plots for readability reasons.                                            are of course no bypass tuples but since we modified the
+   Ibex , configured to use 16 KB pages ( ), performs signif-                                    group keys for every run, we show a separate measurement
+icantly better than both MyISAM ( ) and INNODB ( ).                                              for each workload also for MyISAM. Not surprisingly, exe-
+However, the throughput is still far below the 300 MB/s                                          cution time is relatively constant for all workloads and takes
+of SATA II. Throughput can be increased by using larger                                          roughly 8.5 seconds ( ).
+database pages. Thus, Ibex with 4 MB pages ( ) pretty                                            Ibex . When running query Q03 with Ibex , the execution time
+much saturates the SATA II link, and shows that Ibex can                                         depends on the number of bypass tuples. With no bypasses
+sustain SATA II wire speed. Though the maximum band-                                             and 4 MB pages ( ) query execution takes only 0.26 seconds,
+width of SATA II is 300 MB/s, note that actual transfer                                          which is 32 times faster than MyISAM. Execution time then
+rates of stored data are around 280 MB/s due to protocol                                         increases linearly with respect to the number of tuples by-
+overhead and latencies within the SSD.                                                           passed. At 90% bypassed tuples, the performance of Ibex is
+                                                                                                 slightly worse than that of MyISAM since query Q03 actually
+6.2.1                            The Impact of Bypass Tuples                                     consists of two queries, while query Q3 is a single query.
+   The previous experiment assumed that the entire GROUP BY                                         We ran query Q03 both with 4 MB pages ( ) and 16 KB
+aggregation could be off-loaded to the FPGA. However, for                                        pages ( ). Figure 10 shows that the page size here does not
+other workloads hash collisions may occur, or the predeter-                                      significantly affect execution time. Hence, execution time is
+mined size of the hash table may be chosen too small to hold                                     dominated by the overhead of software. We confirmed this
+all groups. Thus, we need to quantify how bypass tuples im-                                      observation also using the query profiler built into MySQL.
+pact performance. For this purpose, we ran query Q3                                              Ibex : Handling Bypass Tuples Natively. To avoid the
+                                                                                                 high cost of running the outer query of Q03 in MySQL we
+                                           SELECT col1 , SUM ( col2 )                            extended Ibex to deal with bypass tuples directly in the
+                                             FROM table                           (Q3 )          software part of the storage engine such that we could run
+                                          GROUP BY col1 ;                                        query Q3 using Ibex even with bypass tuples. To this end,
+                                                                                                 we used a software hash table to deal with the bypass tuples,
+on a table from the previous experiment with modified group                                      which lead to a significantly more efficient implementation,
+keys for each run to produce a varying number of collisions                                      depicted in Figure 10 ( ). Thus, even the workload with
+and bypass tuples.                                                                               90% bypass tuples executed in 1.83 seconds, which results
+  If there are bypass tuples we need to do a separate GROUP BY                                   in a speedup of roughly 4.5X, compared to MyISAM. This
+and aggregation step in software. Our first attempt to achieve                                   performance difference is due to known inefficienes (e.g.,
+this was to rewrite query Q3 as follows for the FPGA case:                                       high tuple interpretation overhead and low IPC efficiency)
+                                                                                                 of Volcano-style database engines such as MySQL [3].
+                                 SELECT col1 , SUM ( s )
+                                   FROM (SELECT col1 , SUM ( col2 ) AS s                         6.2.2                            Increasing the Number of Aggregates
+                                          FROM       table                        (Q03 )
+                                                                                                   In software, not only grouping is an expensive operation
+                                          GROUP BY col1 ) AS t1
+                                                                                                 but also the computation of aggregates itself. This can be
+                                GROUP BY col1 ;
+                                                                                                 seen by running query Q4 with a varying number of SUM()
+                                                                                                 aggregates.
+The inner query is executed by the Ibex storage engine, re-
+turning a result table that contains bypass tuples, as well as                                                                  SELECT col1 , SUM ( col2 ), SUM ( col3 ), · · ·
+partial aggregates. The outer query, on the other hand, is                                                                        FROM table                                          (Q4 )
+evaluated completely by the MySQL query processor. The                                                                        GROUP BY col1 ;
+
+
+
+                                                                                           970
+Execution time (seconds)   103                      Ibex (BRAM)           MyISAM                                         Q5.1 Ibex    Q5.1 MyISAM     Q5.1 Speedup
+                                                                                                                100                                                    10
+
+
+
+
+                                                                                         Execution time (sec)
+                                                    Ibex (DRAM, cache hit)                                               Q5.2 Ibex    Q5.2 MyISAM     Q5.2 Speedup
+                                                    Ibex (DRAM, cache miss)
+                                                                                                                 80                                                    8
+
+
+
+
+                                                                                                                                                                            Speedup
+                           102
+                                                                                                                 60                                                    6
+
+                                                                                                                 40                                                    4
+                           101
+                                                                                                                 20                                                    2
+
+
+                                   1   2    3   4   5   6   7   8   9 10 11 12                                             SF=1          SF=5          SF=10
+                                           Number of 32-bit INT columns
+                                                                                         Figure 13: Performance of filter queries on TPC-H
+                                                                                         lineitem table for scale factors (SF) one, five and ten.
+Figure 12: Varying tuple width. Wider tuples allow
+for better hiding of memory latencies.
+                                                                                         that the cache is always hit ( ), as well as a workload,
+                                                                                         where the cache is never hit ( ), i.e., every tuple needs to
+We executed this query on a table with eight INT columns
+                                                                                         first read from DRAM and then write back to it. In the
+and two million rows, and computed between one and seven
+                                                                                         worst case (a single-column table), the query executes in
+SUM() aggregates. The results, plotted in Figure 11, show
+                                                                                         41.3 seconds when the cache is always missed, and about
+how total execution time significantly increases with every
+                                                                                         twice as fast (23.4 seconds) when the cache is always hit. In
+additional aggregate when run with MyISAM ( ) or INN-
+                                                                                         the former case, line-rate speed is reached at eleven columns
+ODB ( ). The added overhead for every additional aggre-
+                                                                                         (44 bytes wide tuples), whereas in the later case already at
+gate is similar for both MyISAM and INNODB, which is
+                                                                                         seven columns (28 bytes wide tuples).
+expected since the aggregates are computed outside of the
+storage engines. By contrast, execution time remains con-                                MyISAM. For comparison, we also plotted MyISAM per-
+stant in the case of Ibex ( ) because each aggregate is com-                             formance ( ) for the same query and workloads. The exe-
+puted by a separate parallel unit on the FPGA.                                           cution time is substantially higher than that of both FPGA
+   A similar effect, though not quite as pronounced, can be                              versions (BRAM and DRAM). Observe that also for My-
+observed when several columns are used to form the group                                 ISAM the table schema matters. This is because the per-
+key, i.e., execution time remains constant with Ibex , whereas                           tuple overhead in MySQL is significant [3]. Thus, for the
+it increases for MyISAM and INNODB linearly with the                                     same amount of data, more tuples result in slower execu-
+complexity of the combined keys.                                                         tion. With MyISAM, on the single-column table query Q2
+                                                                                         executed in 535.6 seconds and on the 12-column table in
+6.2.3                            BRAM- versus DRAM-Hash Table                            45.2 seconds. Thus, we could always measure a speedup of
+   To analyze the performance characteristics of the BRAM-                               at least one order of magnitude compared to MyISAM, even
+based hash table versus the DRAM-based hash table, we                                    for workloads where the write-through cache was ineffective.
+varied the number of columns of a 1 GB database table and
+then executed query Q2 on it. Hence, a 1 GB table with a                                 6.3                       Filter Queries
+single-column consisted of 268,435,456 rows (1 GB ÷ 4 bytes),                               Running GROUP BY queries with Ibex benefits from two ef-
+whereas a 1 GB table with eight columns consisted of only                                fects: (1) filtering and (2) an efficient GROUP BY implemen-
+33,554,432 rows (1 GB ÷ 32 bytes).                                                       tation in hardware. In this section, we discuss the impact
+                                                                                         of pure filtering queries. To do so, we ran query Q5.1 and
+BRAM Version. As can be seen in Figure 12, execution
+                                                                                         query Q5.2 below on the TPC-H lineitem table. Q5.1 invokes
+time of the BRAM version ( ) is independent of the ta-
+                                                                                         a simple selection filter (a single predicate on a date field),
+ble schema and is determined solely by the amount of data
+                                                                                         as well as a projection filter that keeps only three out of a
+transferred. The execution time is constant, with 3.8 sec-
+                                                                                         total of 16 columns. Q5.2 , on the other hand, has a more
+onds for a 1 GB table corresponding to roughly 280 MB/s.
+                                                                                         complex WHERE clause but the same projection filter. Both
+DRAM Version. The DRAM version behaves differently.                                      queries also have similar selectivity, i.e., the filtering effect
+For narrow tables, performance is worse than that of the                                 is the same but the evaluation complexity is higher for Q5.2 .
+BRAM version. The reason is that DRAM can handle less                                                              SELECT l orderkey, l shipdate, l linenumber
+operations per second than BRAM due to the higher latency                                                            FROM lineitem                                   (Q5.1 )
+of DRAM. For wide tables, on the other hand, our pipelined                                                          WHERE l shipdate = ’1995-1-17’
+hash table architecture can completely hide the DRAM la-
+tency.
+                                                                                                                SELECT l orderkey, l shipdate, l linenumber
+Write-through Cache. Depending on whether there is                                                                FROM lineitem
+a cache hit or a cache miss in the write-through cache of                                                        WHERE (l shipdate = ’1995-1-17’ OR
+the hash table, each tuple causes one DRAM access or two,                                                                                                            (Q5.2 )
+                                                                                                                         l shipdate = ’1995-1-18’)
+respectively. To measure the impact of the write-through                                                               AND
+cache we generated a workload with little enough groups                                                                (l linenumber = 1 OR l linenumber = 2)
+
+
+
+                                                                                   971
+In Figure 13, we show the results. On the y-axis execu-                                                    Ibex          Speedup
+
+
+
+
+                                                                               Execution time (sec)
+tion time and speedup are displayed and on the x-axis we                                              10   MyISAM                                 10
+show the scale factor used to generate workloads of different
+                                                                                                       8                                          8
+
+
+
+
+                                                                                                                                                       Speedup
+sizes for both queries. Since Ibex evaluates WHERE clause
+expressions at line-rate, independent of their complexity,
+                                                                                                       6                                          6
+there is no performance difference between query Q5.1 and
+query Q5.2 . Conversely, for MyISAM and INNODB the
+                                                                                                       4                                          4
+more complex query Q5.2 causes a slight decrease in perfor-
+mance because evaluating the complex WHERE clause requires                                             2                                          2
+more instructions. Nevertheless, for selection and projection
+it is mainly the amount of data that affects performance and
+not query complexity. Moreover, note that the speedup of                                                   16 groups   1000 groups   unmodified
+roughly 2.5X is similar for all three scale factors.
+
+6.4       Putting It All Together                                              Figure 14: Execution time and speedup for Q13 of
+                                                                               the TPC-H benchmark (Ibex versus MyISAM).
+   While Ibex already supports running a wide range of que-
+ries with hardware acceleration in MySQL, there are still
+missing parts in the current version of our prototype (op-
+                                                                               scratch the surface of a topic beyond the scope of this paper:
+timizer modifications, indices, etc.) that would allow us to
+                                                                               the implications of Ibex for the optimizer.
+efficiently run all queries of a sophisticated benchmark such
+as TPC-H. Nevertheless, to give a glimpse of the impact that                   Performance. Figure 14 shows our measurements for Q13
+Ibex can have on more complex queries, we used Query 13                        and scale factor = 1.0. We executed three experiments: “un-
+of the TPC-H benchmark (cf. Q13 below)7 and handcrafted                        modified” refers to the original orders table (14,730 groups
+the missing parts to run this query.                                           after selection), for “1000 groups” and “16 groups” we mod-
+                                                                               ified o custkey to reduce the number of groups to one thou-
+    1       SELECT c count, COUNT ( ∗ ) AS custdist                            sand and sixteen, respectively. Since there are no bypass
+    2         FROM
+                                                                               tuples here, the performance of Ibex is consistent, indepen-
+    3     ( SELECT c custkey, COUNT ( o orderkey ) AS c count
+    4         FROM customer LEFT OUTER JOIN orders ON
+                                                                               dent of the number of groups, whereas MyISAM is faster for
+    5              c custkey = o custkey AND                    (Q13 )         a smaller number of groups, resulting in speedups between
+    6              o comment LIKE ‘%express%packages%’                         7X and 11X. The increased speedup compared to Figure 13
+    7    GROUP BY c custkey ) AS c orders                                      can be attributed to the effect of the additional GROUP BY
+    8    GROUP BY c count                                                      pushdown (as opposed to mere selection and projection).
+    9    ORDER BY custdist DESC, c count DESC;
+
+Eager Aggregation. Q13 involves two base tables: cus-                          7.                      ENERGY EFFICIENCY
+tomer and orders. We store customer as a MyISAM table and                         An important limiting factor in many systems today is
+orders as an Ibex table. By default, Ibex will push projec-                    energy consumption. A key appeal to design heterogeneous
+tion (line 3) and selection (line 6) to the FPGA. The GROUP                    systems thus lies in achieving lower energy consumption and
+BY clause (line 7), however, would not be pushed because                       a good performance/watt ratio. Off-loading queries to spe-
+of the preceding join (line 4), which is computed outside of                   cialized hardware naturally reduces the load on the host
+the storage engine. Fortunately, it is possible to evaluate                    CPU, which in turn may significantly reduce the overall en-
+the GROUP BY clause before the join by replacing the orders                    ergy consumption of the system. Hardware accelerators, on
+table (line 4) with the following inner query:                                 the other hand, consume only a fraction of the 40–130 watts
+                                                                               that commodity processors consume today.
+         ( SELECT o custkey, COUNT ( o orderkey ) AS c count
+             FROM orders                                                       Power Consumption Characteristics. The maximum
+            WHERE o comment LIKE ‘%express%packages%’                          thermal design power (TDP) of our Intel Quad-Core CPU
+        GROUP BY o custkey ) AS orders2                                        is 95 watts. By contrast, one Vertex 4 SSD only consumes
+                                                                               2.5 watts of power when active, and 1.3 watts otherwise. We
+Furthermore, the COUNT (line 3 in Q13 ) and GROUP BY clause                    measured the wall power of our entire system with a power
+(line 7 in Q13 ) of the outer query can now be removed. This                   meter. The power consumption of the system is 39 watts
+technique is known as eager aggregation and has been stud-                     when MySQL is idle and the FPGA board is turned off.
+ied in detail, e.g., in [36].                                                  With one core under full load the power consumption in-
+On-the-fly Index Creation. A storage engine with index                         creases to 54 watts, and with all 4 cores under full load
+support (e.g., MyISAM), will solve the join (line 4 in Q13 )                   total power consumption amounts to 105 watts.
+using the index given by the foreign key relationship. While                      The FPGA chip itself configured with Ibex requires only
+Ibex does not support indices yet, it is possible to use the                   2.9 watts.8 Power consumption of our FPGA board (includ-
+hash table that is created on behalf of the GROUP BY query                     ing the FPGA) is roughly 8 watts, i.e., the system consumes
+as an index for the subsequent join. For this to work, the                     47 watts when idle with the FPGA board connected and
+optimizer needs to be tweaked to use an index-based access                     powered on. However, much of the 8 watts are spent on the
+path even though an explicit index does not exist. Here we                     FPGA board (i.e., an energy in-efficient, general-purpose
+                                                                               development board) and not the FPGA chip itself.
+7
+ We took the liberty to replace the NOT LIKE of the origi-
+                                                                               8
+nal TPC-H query with LIKE in Q13 (line 6) to increase the                        FPGA power consumption was estimated using the Xilinx
+selectivity of the WHERE clause.                                               Power Analyzer tool.
+
+
+
+                                                                         972
+Table 1: Energy and power consumption during                              Table 2: Chip utilization on our Virtex-5 FPGA.
+query execution of different queries.                                          Module          Slices           BRAMs
+Query / Engine    Energy    Exec Time     ∅ Power    ∆ Power
+                                                                                Available    17,280    100.0 %       148     100.0 %
+Q2 / MyISAM       3,888 J        66.7 s   58.3 W      19.3 W
+                                                                             SIRC [12]        1027        5.9 %        11       7.4 %
+Q2 / Ibex           216 J         4.4 s   49.1 W       2.1 W
+                                                                         SATA core [33]        725        4.2 %         2       1.4 %
+Q13 / MyISAM        576 J        10.4 s   55.4 W      16.4 W
+                                                                              Ibex (BRAM)     4188       24.2 %     1+n       ≥1.4 %
+Q13 / Ibex           47 J        0.95 s   49.8 W       2.8 W
+                                                                         DRAM core [2]        1651       10.0 %         4       2.7 %
+                                                                           Ibex (DRAM)        5047       29.2 %         1       0.7 %
+Energy Consumption During Query Execution. We
+measured energy consumption (joules) of the host system
+during execution of the following two queries from the pre-              Ibex (DRAM). The advantage of DRAM is that we can
+vious section: (i) Q2 discussed in Section 6.2, (ii) Q13                 support a large number of groups without having to spend
+discussed in Section 6.4. The average power consumption                  precious BRAM blocks for the hash table. Nevertheless,
+(∅ Power) can be computed by dividing the measured en-                   using DRAM incurs other resource consumption costs. The
+ergy consumption by the execution time. ∆ Power rep-                     DRAM core [2] consumes additional 10 % of slices, as well
+resents the increase of power consumption versus the sys-                as four BRAM blocks. Moreover, the use of DRAM also
+tem being idle (for MyISAM measurements idle power is 39                 affects resource consumption of Ibex since additional logic
+watts, whereas for Ibex it is 47 watts, as explained above).             such as clock bridges and a more complex control flow are
+The results are displayed in Table 1.                                    required. Thus, in total, we measured that Ibex consumes
+  Our measurements indicate that power consumption in-                   roughly 40 % of all available slices when using DRAM, i.e.,
+creases significantly for commodity storage engines when                 15 % more than the BRAM version.
+executing queries, whereas when the queries are off-loaded
+to the FPGA there is only a minimal increase of power.                   9.     FUTURE WORK
+The overall amount of energy consumed is the product of
+                                                                            Ibex opens up several interesting lines of research beyond
+power and time. Since the queries execute much faster on
+                                                                         query processing. One example is online gathering of data-
+the FPGA, energy consumption is improved even more dra-
+                                                                         base statistics. The trade-off between statistics accuracy
+matically, e.g., for the GROUP BY query Q2 , Ibex requires only
+                                                                         and maintenance cost is a long-standing database problem.
+216 joules, whereas MyISAM consumes 3,888 joules.
+                                                                         The embedding of Ibex in the data path of a DBMS would
+Future Outlook. Notice that the energy consumption                       allow additional hardware units to eavesdrop on the regular
+measurements for Ibex include power consumption of the                   traffic, as data is read from secondary storage. While doing
+FPGA board, and yet we see significant improvements com-                 so, such units could compute, e.g., relevant histograms on-
+pared to MyISAM. It is conceivable that in an appliance the              the-fly, as a side effect of regular query processing without
+FPGA would be integrated directly into the SSD itself for                any runtime or CPU overhead (as in [19]).
+query off-loading, in the spirit of [11], leading to a further              Moreover, additional functionality could be placed within
+reduction in power consumption and as a result even better               the processing pipeline of Figure 2, e.g., to perform data
+energy efficiency. Furthermore, since Ibex rarely uses the               (de)compression to increase throughput to and from the
+full power of the CPU at all, overall energy consumption is              FPGA (as in [17]), or to perform encryption/decryption
+likely to improve when we exchange our high-performance                  to implement confidentiality and other security features (as
+Intel CPU with less powerful but more energy-efficient pro-              in [1]). The only overhead would be additional chip space
+cessor, e.g., an ARM or Atom.                                            for the add-on functionality, which is available, even for the
+                                                                         small FPGA used in this paper, as we showed in Section 8.
+8.   RESOURCE CONSUMPTION
+  In Table 2, we display resource consumption for differ-                10.     CONCLUSION
+ent circuit components of our complete system. To com-                      In this paper, we presented Ibex —a prototype of an in-
+municate with the host that runs the MySQL database we                   telligent storage engine—that uses FPGAs to implement
+used Microsoft’s communication framework SIRC [12] and                   hardware accelerators close to the storage medium, in the
+for SATA we used our open source core Groundhog [33].                    data path of a DBMS. We integrated Ibex with MySQL
+Together these components consume slightly less than 10 %                but we believe that the concepts presented are more gen-
+of the available resources. Furthermore, we distinguish two              eral, and that most existing database systems would benefit
+versions of Ibex , one using the BRAM-based hash table for               from an intelligent storage engine such as Ibex . To the best
+the GROUP BY component, and the other using DRAM to                      of our knowledge, Ibex is the first storage engine that al-
+store hash table entries.                                                lows combining hardware acceleration with an existing open-
+Ibex (BRAM). Excluding SIRC and the SATA core, Ibex                      source DBMS in a seamless manner. Ibex is also the first
+consumes roughly 25 % slices independent of how big the                  FPGA-based accelerator that supports complex operators
+hash table is. The number of BRAM blocks n depends on                    like GROUP BY rather than mere filtering of rows. Finally, we
+the size of the hash table. Here the word width was set to               intend to release the source code of Ibex in the near future.
+256 bits (8 × 32 bit), i.e., one 36-Kbit BRAM block can                  Acknowledgments.
+hold k = 144 entries. However, the actual hash table size is             This work was supported by the Enterprise Computing Cen-
+restricted to powers of two, i.e., k = 2blog2 (n∗36)c+2 entries.         ter (ECC) of ETH Zurich (http://www.ecc.ethz.ch).
+
+
+
+                                                                   973
+11.   REFERENCES                                               [20] R. Moussalli et al. Accelerating XML Query Matching
+                                                                    through Custom Stack Generation on FPGAs. In
+ [1] A. Arasu et al. Orthogonal Security with Cipherbase.           Proc. 5th HiPEAC, pages 141–155, Pisa, Italy, 2010.
+     In Proc. 6th CIDR, Asilomar, CA, USA, 2013.               [21] R. Müller, J. Teubner, and G. Alonso. Streams on
+ [2] R. Bittner. The Speedy DDR2 Controller For FPGAs.              Wires—A Query Compiler for FPGAs. PVLDB,
+     In Proc. ERSA, pages 205–211, Las Vegas, NV, USA,              2(1):229–240, 2009.
+     2009.                                                     [22] M. Najafi, M. Sadoghi, and H.-A. Jacobsen. Flexible
+ [3] P. Boncz, M. Zukowski, and N. Nes. MonetDB/X100:               Query Processor on FPGAs. PVLDB,
+     Hyper-Pipelining Query Execution. In Proc. 2nd                 6(12):1310–1313, 2013.
+     CIDR, pages 225–237, Asilomar, CA, USA, 2005.             [23] Oracle. A Technical Overview of the Oracle Exadata
+ [4] S. Borkar and A. Chien. The Future of                          Database Machine and Exadata Storage Server, 2012.
+     Microprocessors. Commun. ACM, 54(5), 2011.                     White paper: http://www.oracle.com/technetwork/
+ [5] C. Computer. Convey HC-2, 2012.                                database/exadata/exadata-technical-whitepaper-
+     http://www.conveycomputer.com.                                 134575.pdf.
+ [6] C. Dennl, D. Ziener, and J. Teich. On-the-fly             [24] M. Sadoghi et al. Efficient Event Processing through
+     Composition of FPGA-Based SQL Query Accelerators               Reconfigurable Hardware for Algorithmic Trading.
+     Using a Partially Reconfigurable Module Library. In            PVLDB, 3(2):1525–1528, 2010.
+     Proc. 20th FCCM, pages 45–52, Toronto, ON,                [25] M. Sadoghi et al. Multi-Query Stream Processing on
+     Canada, 2012.                                                  FPGAs. In Proc. 28th ICDE, pages 1229–1232, 2012.
+ [7] C. Dennl, D. Ziener, and J. Teich. Acceleration of SQL    [26] A. Shatdal, C. Kant, and J. Naughton. Cache
+     Restrictions and Aggregations through FPGA-Based               Conscious Algorithms for Relational Query
+     Dynamic Partial Reconfiguration. In Proc. 21st                 Processing. In Proc. 20th VLDB, pages 510–521,
+     FCCM, pages 25–28, Seattle, WA, USA, 2013.                     Santiago de Chile, Chile, 1994.
+ [8] D. Dewitt. DIRECT—A Multiprocessor Organization           [27] I. Sourdis et al. A Reconfigurable Perfect-Hashing
+     for Supporting Relational Database Management                  Scheme For Packet Inspection. In Proc. 15th FPL,
+     Systems. IEEE Trans. on Comp., 28(6):395–406, 1979.            pages 644–647, 2005.
+ [9] D. Dewitt et al. The Gamma Database Machine               [28] B. Sukhwani et al. Database Analytics Acceleration
+     Project. IEEE Trans. on Knowl. and Data Eng.,                  using FPGAs. In Proc. 21st PACT, pages 411–420,
+     2(1):44–62, 1990.                                              Minneapolis, MN, USA, 2012.
+[10] U. Dhawan and A. DeHon. Area-Efficient                    [29] T. Takenaka, M. Takagi, and H. Inoue. A Scalable
+     Near-Associative Memories on FPGAs. In Proc. 21st              Complex Event Processing Framework for
+     FPGA, pages 191–200, Monterey, California, USA,                Combination of SQL-based Continuous Queries and
+     2013.                                                          C/C++ Functions. In Proc. 22nd FPL, pages
+[11] J. Do et al. Query Processing on Smart SSDs:                   237–242, Oslo, Norway, 2012.
+     Opportunities and Challenges. In Proc. SIGMOD,            [30] J. Teubner, L. Woods, and C. Nie. Skeleton Automata:
+     pages 1221–1230, New York, NY, USA, 2013.                      Reconfiguring without Reconstructing. In Proc.
+[12] K. Eguro. SIRC: An Extensible Reconfigurable                   SIGMOD, pages 229–240, Scottsdale, AZ, USA, 2012.
+     Computing Communication API. In Proc. 18th                [31] T. Thinh, S. Kittitornkun, and S. Tomiyama.
+     FCCM, pages 135–138, Charlotte, NC, USA, 2010.                 Applying Cuckoo Hashing for FPGA-based Pattern
+[13] B. Gold et al. Accelerating Database Operations                Matching in NIDS/NIPS. In ICFPT, pages 121–128,
+     Using a Network Processor. In Proc. 1st DaMoN,                 2007.
+     Baltimore, MD, USA, 2005.                                 [32] P. Vaidya et al. Symbiote: A Reconfigurable Logic
+[14] N. Govindaraju et al. GPUTeraSort:                             Assisted data Stream Management System
+     High-Performance Graphics Co-Processor Sorting for             (RLADSMS). In Proc. SIGMOD, pages 1147–1150,
+     Large Database Management. In Proc. SIGMOD,                    Indianapolis, IN, USA, 2010.
+     pages 325–336, Chicago, IL, USA, 2006.                    [33] L. Woods and K. Eguro. Groundhog—A Serial ATA
+[15] G. Graefe. Volcano—An Extensible and Parallel                  Host Bus Adapter (HBA) for FPGAs. In Proc. 20th
+     Query Evaluation System. IEEE Trans. on Knowl.                 FCCM, pages 220–223, 2012.
+     and Data Eng., 6(1):120–135, 1994.                        [34] L. Woods, Z. István, and G. Alonso. Hybrid
+[16] B. He et al. Relational Joins on Graphics Processors.          FPGA-accelerated SQL Query Processing. In Proc.
+     In Proc. SIGMOD, pages 511–524, Vancouver, BC,                 23rd FPL, page 1, Porto, Portugal, 2013.
+     USA, 2008.                                                [35] L. Woods, J. Teubner, and G. Alonso. Less Watts,
+[17] IBM/Netezza. The Netezza Data Appliance                        More Performance: An Intelligent Storage Engine for
+     Architecture: A Platform for High Performance Data             Data Appliances. In Proc. SIGMOD, pages 1073–1076,
+     Warehousing and Analytics, 2011. White paper:                  New York, NY, USA, 2013.
+     http://www.redbooks.ibm.com/abstracts/redp4725.html.      [36] W. Yan and P.-A. Larson. Eager Aggregation and
+[18] Z. István et al. A Flexible Hash Table Design for             Lazy Aggregation. In Proc. 21th VLDB, pages
+     10GBPs Key-Value Stores in FPGAs. In Proc. 23rd                345–357, Zurich, Switzerland, 1995.
+     FPL, pages 1–8, Porto, Portugal, 2013.                    [37] Y.-H. Yang, W. Jiang, and V. Prasanna. Compact
+[19] Z. István, L. Woods, and G. Alonso. Histograms as a           Architecture for High-Throughput Regular Expression
+     Side Effect of Data Movement for Big Data. In Proc.            Matching on FPGA. In Proc. ANCS, 2008.
+     SIGMOD, Snowbird, UT, USA, 2014.
+
+
+
+                                                         974
+

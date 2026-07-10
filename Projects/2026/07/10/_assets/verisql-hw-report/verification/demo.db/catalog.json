@@ -1,0 +1,25 @@
+{
+  "format_version": 1,
+  "tables": {
+    "readings": {
+      "columns": [
+        {
+          "name": "id",
+          "nullable": false
+        },
+        {
+          "name": "temperature",
+          "nullable": true
+        },
+        {
+          "name": "pressure",
+          "nullable": true
+        },
+        {
+          "name": "quality",
+          "nullable": false
+        }
+      ]
+    }
+  }
+}
