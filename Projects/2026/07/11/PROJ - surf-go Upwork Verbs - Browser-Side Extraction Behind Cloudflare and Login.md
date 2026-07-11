@@ -85,6 +85,26 @@ The **published-date node sometimes wraps the proposals tier**, producing text l
 
 The title href is site-relative and carries a `?referrer_url_path=…` query. The extractor strips the query and resolves the path against `location.origin` to produce the canonical posting URL, and it pulls the job id from the `~<id>` segment of the path.
 
+### Server-honored search filters
+
+Upwork's search page honors several filter parameters server-side, which means the verb does not have to fetch everything and filter in Go — it can push the filter into the URL and let Upwork return a smaller, correct result set. Each parameter was confirmed by navigating to the parameterized URL and checking that every returned tile matched the filter. The verb exposes friendly flags that map to the confirmed parameters.
+
+| Flag | Upwork param | Confirmation |
+|------|--------------|-------------|
+| `--job-type hourly` / `fixed` / `both` | `t=0` / `t=1` / `t=0,1` | `t=0` returned 10/10 hourly tiles; `t=1` returned 10/10 fixed |
+| `--experience entry,intermediate,expert` | `contractor_tier=1,2,3` | `contractor_tier=3` returned 10/10 expert tiles |
+| `--min-rate` / `--max-rate` | `hourly_rate=min-max` | `hourly_rate=30-` returned tiles whose max rate is ≥ 30 |
+| `--min-budget` / `--max-budget` | `amount=min-max` | accepted for fixed-price searches |
+
+The rate and budget filters use range-overlap semantics: a job matches when its rate or budget range overlaps the requested interval, not when its lower bound clears the minimum. The filters compose — `?q=python&t=0&contractor_tier=3&hourly_rate=40-` returned ten tiles that were simultaneously hourly, expert, and priced at forty dollars an hour or above.
+
+The URL builder validates the friendly values before any browser work begins. An invalid `--job-type weekly` or `--experience guru` returns an error immediately, rather than constructing a malformed URL and discovering the problem after opening a tab. Category filtering exists on Upwork but keys on numeric category identifiers rather than names, so it is not exposed as a friendly flag.
+
+```
+surf-go upwork jobs --query python --job-type hourly --experience expert --min-rate 40
+surf-go upwork jobs --query "web scraping" --job-type fixed --min-budget 1000 --max-budget 5000
+```
+
 ## The detail verb: `upwork job <url>`
 
 The detail verb takes a posting URL as a positional argument and returns a single row. The detail page is where login-gating bites hardest: the public view exposes only two useful `data-test` markers, `Description` and `about-client-container`. The verb therefore mixes stable attribute reads with deliberate text parsing, and it records which fields are trustworthy.
@@ -150,14 +170,17 @@ The full page analysis, selector tables, and diary are in ticket `SURF-20260711-
 
 ## Open questions
 
-- Does the search page honor additional query parameters for category, hourly-versus-fixed, and budget range? If so, `upwork jobs` could grow filter flags.
 - The detail page's budget and experience are text-parsed. Would a signed-in session expose stable attributes for them that the public view hides?
+- Category filtering keys on numeric category identifiers rather than names. Is there a stable name-to-id mapping worth embedding so a `--category` flag could accept human names?
 
 ## Near-term next steps
 
-- Investigate search query-parameter filters and add flags to the listing verb if they are server-honored.
 - Consider a watch wrapper over the listing fetch that polls and diffs by job id for new postings.
 - Exercise the verbs against a live extension socket, not only Playwright, once a session is available.
+
+## Resolved
+
+- **Server-honored search filters** (2026-07-11): confirmed `t`, `contractor_tier`, `hourly_rate`, and `amount` are honored, and wired them to `--job-type`, `--experience`, `--min-rate`/`--max-rate`, and `--min-budget`/`--max-budget` on `upwork jobs`.
 
 ## Related notes
 
