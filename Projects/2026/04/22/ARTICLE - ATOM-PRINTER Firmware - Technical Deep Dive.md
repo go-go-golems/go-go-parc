@@ -18,6 +18,8 @@ type: article
 
 # ATOM-PRINTER Firmware - Technical Deep Dive
 
+This is the thermal-printer firmware branch of the [[esp32]] project map.
+
 A complete reverse-engineering analysis of the M5Stack ATOM Printer firmware architecture, communication protocols, and implementation details. This document covers the full stack: ESP32 firmware, thermal printer protocol, MQTT integration, HTTP web server, and WiFi connectivity.
 
 > [!info]

@@ -27,6 +27,8 @@ commits:
 
 # go-go-goja HTTP Serve Support for xgoja Generated Verbs
 
+This is the generated HTTP-service branch of the [[go-go-goja]] project map.
+
 GOJA-064 adds a first-class way for generated `xgoja` binaries to serve HTTP applications whose setup code is written as JavaScript verbs. Before this work, generated binaries could run JavaScript verbs as short-lived commands, and they could run long-lived HTTP setup scripts through `run --keep-alive`. Those two capabilities did not meet at the command-provider boundary. A generated verb could register Express routes, but the normal verb command closed the runtime after the function returned. A long-lived server could be created from a script file, but not from the generated verb command tree.
 
 The implemented change introduces a provider-backed `serve` command contributed by the first-party HTTP provider. The command mirrors configured JavaScript verbs, invokes the selected verb once to register Express routes, and keeps the runtime alive until the process receives Ctrl-C, SIGTERM, or context cancellation. The result is a generated command path such as:

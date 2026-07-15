@@ -26,6 +26,8 @@ branch: task/goja-express-auth
 
 # go-go-goja Express Auth: Go-Backed Fluent Route Plans
 
+This is the declarative route/auth-plan branch of the [[go-go-goja]] project map.
+
 This report wraps up the Express authentication work implemented in `go-go-goja` on branch `task/goja-express-auth`. The final implementation is no longer just an MVP side path: the Express verb helpers have been hard-cut over to planned route builders, planned routes now support host-owned auth/resource/authorization/CSRF/audit enforcement, strict hosts can reject raw routes, and the examples include both a route-authoring sketch and a runnable Go-owned auth host.
 
 > [!summary]

@@ -15,6 +15,8 @@ created: 2026-05-31
 
 # Playbook: Extracting Tribal Knowledge into KB Entries
 
+This is the knowledge-extraction branch of the [[docmgr]] project map.
+
 ## Purpose
 
 This playbook describes how to read project reports from the Obsidian vault, identify reusable tribal knowledge, and write it into the go-go-parc Knowledge Base at `~/code/wesen/go-go-golems/go-go-parc/Research/KB/`.

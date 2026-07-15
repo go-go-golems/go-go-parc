@@ -20,6 +20,8 @@ repo: /home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5
 
 # PaperS3 Firmware Setup and Build Workflow
 
+This is the firmware bring-up foundation in the [[esp32]] project map.
+
 PaperS3 firmware development in this repo is built around one practical decision: do not rediscover board support from scratch. The correct display bring-up, GT911 touch path, and e-paper update behavior already exist in the donor `M5PaperS3-UserDemo` project, so new firmware apps in `esp32-s3-m5` are structured as small product-specific shells layered on top of those donor components.
 
 > [!summary]

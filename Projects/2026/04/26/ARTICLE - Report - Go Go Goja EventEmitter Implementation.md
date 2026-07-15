@@ -22,6 +22,8 @@ source_ticket: EVT-001
 
 # Report: Go-Go-Goja EventEmitter Implementation
 
+This is the event-delivery implementation branch of the [[go-go-goja]] project map.
+
 This report explains the implementation of the Go-native `EventEmitter` module in `go-go-goja`, and the connected-emitter infrastructure that grew out of it. The code lives in `/home/manuel/workspaces/2026-04-26/add-event-emitter-module/go-go-goja`, with the central implementation in `modules/events/events.go` and the connected resource bridge in `pkg/jsevents/manager.go`.
 
 The most important design decision is that EventEmitter behavior lives in Go, not in an embedded JavaScript shim. JavaScript sees a familiar Node-style API through `require("events")`, but the listener table, once-listener removal, unhandled error behavior, and Go adoption hooks are implemented as native Go data structures. That makes the emitter inspectable and adoptable from Go, which is what later enables helpers such as Watermill and fswatch.

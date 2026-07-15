@@ -23,6 +23,8 @@ source_commit: 9a342a2
 
 # go-go-goja Context Management: Runtime, Request, and Async Call Context
 
+This is the context-ownership branch of the [[go-go-goja]] project map.
+
 This article explains how context management works inside `go-go-goja`. The codebase embeds a single-threaded JavaScript runtime in Go, exposes Go modules to JavaScript, runs HTTP handlers inside the runtime, and lets Go goroutines settle JavaScript Promises later. Those requirements create a precise context problem: every piece of JavaScript must execute on the runtime owner thread, while every request-specific operation must still see the Go `context.Context` that started it.
 
 The important distinction is that `go-go-goja` has more than one kind of context. A runtime has a lifecycle context. A call has a request or operation context. The owner runner has an internal owner context used for safe reentrant execution. Async modules must capture the current call context before leaving the owner thread and restore it when they settle a Promise. These contexts are related, but they are not interchangeable.

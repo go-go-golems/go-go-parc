@@ -31,6 +31,8 @@ repos:
 
 # Goja Sandbox Architecture: Lessons from go-go-goja and vm-system
 
+This is the capability-boundary and sandbox branch of the [[go-go-goja]] project map.
+
 This note steps back from the recent `go-go-goja` runtime work and compares it with the Goja runtime planes in `vm-system` and `go-go-host`. The purpose is to ask a larger architectural question: what would a powerful, effective, and elegant Goja sandbox management system look like if it had to support persistent sessions, HTTP-hosted sites, request-scoped executions, generated runtimes, controlled native modules, asynchronous Go-backed APIs, durable execution history, deployment activation, and long-lived daemon hosting?
 
 The answer is not that the recent `go-go-goja` design is wrong. The answer is also not that `vm-system` or `go-go-host` should be copied wholesale into `go-go-goja`. The three systems solve different slices of the same problem. `go-go-goja` has a strong runtime substrate. `vm-system` has a strong template/session/execution vocabulary. `go-go-host` has the strongest concrete hosted-site supervisor and deployment activation model. The most valuable future design probably combines those strengths while deleting duplicated and weaker runtime mechanisms.

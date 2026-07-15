@@ -22,6 +22,8 @@ repo: /home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5
 
 # Native QuickJS on ESP32-P4: Removing Wasm from the Firmware Stack
 
+This is the native embedded-JavaScript branch of the [[esp32]] project map.
+
 This report explains the native QuickJS firmware implemented for the ESP32-P4 after the earlier QuickJS-through-Wasm experiment succeeded. The result is a working ESP-IDF firmware target, `0101-esp32-p4-native-quickjs`, that compiles upstream QuickJS directly into the firmware, starts a single-owner JavaScript service task, and exposes an interactive UART console with `js status`, `js eval`, `js reset`, `js gc`, and `js bench`.
 
 The important result is not only that the firmware runs. The important result is that the system becomes simpler and much faster when the Wasm layer is removed. The previous firmware, `0100-esp32-p4-quickjs-wasm`, proved that QuickJS could run as a WebAssembly module under WAMR on the ESP32-P4. That path was valuable because it established the host API, revealed the WAMR embedding rules, and produced a baseline. The native path takes the same JavaScript engine and the same board, removes WAMR and Wasm linear memory, and lets ESP-IDF compile QuickJS as normal C code for the ESP32-P4 RISC-V target.

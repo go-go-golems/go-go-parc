@@ -28,6 +28,8 @@ previous_note: "[[ARTICLE - go-go-goja Express Auth - Go Backed Fluent Route Pla
 
 # go-go-goja Express Auth: From Planned Routes to Generated Host Auth
 
+This is the generated-host authentication branch of the [[go-go-goja]] project map.
+
 This report records the work completed after [[ARTICLE - go-go-goja Express Auth - Go Backed Fluent Route Plans]]. The earlier article described the hard cutover from raw Express handlers to Go-backed planned route builders. The current branch has moved beyond that boundary. It now contains durable auth stores, production-shaped Keycloak/Postgres validation, xgoja/v2 runtime compatibility, command-scoped HTTP serving, provider-level HTTP host configuration, a reusable `hostauth` package, HTTP `serve` integration for generated auth services, hot reload support, and a runtime-package generated-host example.
 
 The central design has not changed: JavaScript declares route intent, and Go owns security enforcement. What changed is the surrounding infrastructure. The branch now shows how a generated xgoja host can construct sessions, stores, audit sinks, resource resolvers, and authorizers without putting that machinery inside the Express JavaScript module.

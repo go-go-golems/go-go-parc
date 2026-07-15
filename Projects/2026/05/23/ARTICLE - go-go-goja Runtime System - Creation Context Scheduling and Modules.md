@@ -23,6 +23,8 @@ repo: /home/manuel/workspaces/2026-05-22/xgoja/go-go-goja
 
 # go-go-goja Runtime System: Creation, Context, Scheduling, Bindings, and Modules
 
+This is the runtime-architecture foundation in the [[go-go-goja]] project map.
+
 This note explains the runtime creation mechanism in `go-go-goja`: how a JavaScript VM is created, how the Node-style event loop is started, how `require()` modules are selected and registered, how Go code schedules work onto the runtime owner path, how contexts move from Go callers into native JavaScript module callbacks, and how the runtime is shut down safely.
 
 The target reader is a Go developer who wants to build or maintain native modules, generated xgoja binaries, HTTP-backed JavaScript applications, plugin-backed runtimes, `jsverbs` commands, or REPL integrations on top of `go-go-goja`. The goal is to make the runtime system understandable as a coherent implementation rather than a set of separate packages.

@@ -18,6 +18,8 @@ repo: /home/manuel/workspaces/2026-03-16/add-glazed-js-layer/go-go-goja
 
 # go-go-goja jsverbs
 
+This is the JavaScript-to-Glazed command-generation branch of the [[go-go-goja]] project map.
+
 This project adds a JavaScript-defined command layer to `go-go-goja` so that plain `.js` files can be scanned, interpreted as command definitions, and exposed as ordinary Glazed verbs. The practical goal is to let a developer author command behavior in JavaScript while still getting Glazed schema generation, Cobra integration, structured output, help pages, and predictable runtime binding on the Go side.
 
 > [!summary]

@@ -21,6 +21,8 @@ repo: /home/manuel/code/wesen/2026-04-02--cardputer-web-demo
 
 # Cardputer Web Demo: Adding Bluetooth Without Rewriting the Project
 
+This is the Bluetooth/browser transport branch of the [[esp32]] project map.
+
 One of the most satisfying moments in a systems project is when a new transport drops into place and the rest of the architecture barely flinches. That is what happened here.
 
 This project began as a Web Serial demo for the **M5Stack Cardputer ADV**: firmware on an ESP32-S3 exported a tiny newline-delimited JSON protocol, the browser connected over Web Serial, and the Cardputer became a small physical frontend for a browser-native UI. The project was already interesting because it split responsibilities cleanly across embedded firmware, browser transport, UI state, and a swappable protocol engine that could run either as plain JavaScript or as Go compiled to WebAssembly.

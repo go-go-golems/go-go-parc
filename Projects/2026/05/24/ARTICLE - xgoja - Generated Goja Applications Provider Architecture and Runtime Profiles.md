@@ -27,6 +27,8 @@ repo: /home/manuel/workspaces/2026-05-22/xgoja/go-go-goja
 
 # xgoja: Generated Goja Applications, Provider Architecture, and Runtime Profiles
 
+This is the generated-host architecture branch of the [[go-go-goja]] project map.
+
 `xgoja` is a build tool for creating Goja-powered command-line applications. It reads a declarative `xgoja.yaml` file, generates a small Go program, imports selected provider packages, embeds a normalized runtime specification, and compiles a normal Go binary. The generated binary can evaluate JavaScript, run JavaScript files, start an interactive terminal REPL, list compiled-in provider modules, and mount JavaScript verbs as Glazed/Cobra commands.
 
 This report explains the project as a system. It starts with the problem `xgoja` solves, then builds the model from the build specification to generated source, provider registration, runtime creation, command execution, JavaScript verb mounting, and first-party provider packages. The goal is to make the design understandable enough that a reader can extend it without reconstructing the design from commit history.

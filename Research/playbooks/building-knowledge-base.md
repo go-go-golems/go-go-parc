@@ -13,6 +13,8 @@ updated: 2026-05-11
 
 # Playbook: Building the go-go-parc Knowledge Base
 
+This playbook is indexed by the [[docmgr]] project map because its KB workflow depends on ticketed documentation, related files, and durable project history.
+
 This playbook tells you how to take a project report from the PARC library, extract the concepts it depends on, classify those concepts, and create or update knowledge base entries. The goal is a consistent, growing library that lets any team member — human or agent — understand any project report without getting stuck on an unfamiliar concept.
 
 ---

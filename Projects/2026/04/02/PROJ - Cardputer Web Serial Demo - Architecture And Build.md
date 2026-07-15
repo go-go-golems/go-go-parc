@@ -19,6 +19,8 @@ repo: /home/manuel/code/wesen/2026-04-02--cardputer-web-demo
 
 # Cardputer Web Serial Demo
 
+This is the Web Serial transport branch of the [[esp32]] project map.
+
 This project turns an M5Stack Cardputer ADV into a browser-connected physical terminal. The Cardputer runs ESP-IDF firmware on an ESP32-S3, exports a tiny newline-delimited JSON protocol over USB Serial/JTAG, and becomes a bidirectional companion for a web app that can render state, receive keyboard events, and send commands back to the device.
 
 What makes it interesting is not only that it works, but that it draws a clean line through four different environments without getting bloated: embedded C++, Web Serial, browser JavaScript, and Go compiled to WebAssembly. The result is a compact project that feels like an interface prototype, a transport experiment, and a protocol architecture demo at the same time.

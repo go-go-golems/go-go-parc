@@ -24,6 +24,8 @@ topics:
 
 # ATOMS3R BLE-Provisioning Firmware Analysis
 
+This is the BLE provisioning analysis branch of the [[esp32]] project map.
+
 > **Audience**: New firmware developer joining the ATOMS3R BLE provisioning project  
 > **Purpose**: Provide comprehensive background knowledge before writing any code  
 > **Prerequisites**: Basic embedded C, some networking knowledge helpful but not required

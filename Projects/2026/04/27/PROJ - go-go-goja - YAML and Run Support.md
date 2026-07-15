@@ -20,6 +20,8 @@ repo: /home/manuel/code/wesen/go-go-golems/go-go-goja
 
 # go-go-goja YAML and Run Support
 
+This is the declarative configuration and execution branch of the [[go-go-goja]] project map.
+
 This report describes a small but important usability pass over `go-go-goja`: the runtime learned how to read and write YAML as a built-in JavaScript primitive, and the `goja-repl` CLI learned how to run a JavaScript file directly with `goja-repl run <file>`. These two changes belong together. YAML support gives scripts a practical data format for configuration and automation; the `run` verb gives those scripts a direct way to execute without first creating a persistent REPL session.
 
 > [!summary]

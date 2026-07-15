@@ -24,6 +24,8 @@ topics:
 
 # ATOMS3R BLE-Provisioning Firmware Implementation Guide
 
+This is the BLE provisioning implementation branch of the [[esp32]] project map.
+
 > **Purpose**: Step-by-step tutorial for implementing BLE provisioning on the ATOMS3R (M5Stack ATOM thermal printer)  
 > **Audience**: New firmware developer, intern  
 > **Prerequisites**: C programming, basic embedded systems, ESP-IDF setup  

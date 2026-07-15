@@ -22,6 +22,8 @@ repo: /home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5
 
 # ESP32 WiFi Architecture Comparison: ESP-Hosted vs Native WiFi
 
+This is the Wi-Fi architecture and measurement branch of the [[esp32]] project map.
+
 This article compares measured WiFi/HTTP throughput across three M5Stack devices that share the same 2.4 GHz 802.11n radio but differ in how that radio connects to the application processor. The M5Stack Tab5 uses an ESP32-P4 application processor with an ESP32-C6 WiFi slave connected over SDIO (the ESP-Hosted architecture). The M5Stack CoreS3 and M5Dial both use an ESP32-S3 with integrated WiFi — the radio and the CPU share the same silicon die.
 
 The central question is practical: how much does the SDIO interconnect cost, and how much can TCP stack tuning recover? The answer is not what intuition suggests. The default-configured native WiFi device uploads data *slower* than the ESP-Hosted device. After TCP window tuning, it is nearly four times faster. The SDIO link itself is not the bottleneck. The TCP receive window is.

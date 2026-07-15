@@ -22,6 +22,8 @@ repo: /home/manuel/workspaces/2026-06-30/benchmark-cpu-inference
 
 # benchmark-cpu-inference Workspace: researchctl Bootstrap Deep Dive
 
+This is a concrete docmgr-backed project-bootstrap example in the [[docmgr]] project map; the researchctl architecture itself is mapped separately in [[researchctl]].
+
 This report explains the initial project structure for the `benchmark-cpu-inference` workspace and the newly bootstrapped `researchctl` repository. The important outcome is not a completed benchmark suite yet. The important outcome is a clean multi-repository development environment where benchmark code can live in a dedicated CLI, compile against the local copies of `goja`, `go-go-goja`, and `glazed`, and preserve its design history through `docmgr` from the first commit.
 
 The workspace lives at `/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference`. The canonical `researchctl` checkout lives at `/home/manuel/code/wesen/go-go-golems/researchctl`, while the workspace worktree lives at `/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference/researchctl`. The upstream repository is `github.com/go-go-golems/researchctl`; the personal fork is `github.com/wesen/researchctl`.

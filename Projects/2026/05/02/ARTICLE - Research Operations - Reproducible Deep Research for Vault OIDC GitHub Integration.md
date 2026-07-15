@@ -27,6 +27,8 @@ related:
 
 # Research Operations: Reproducible Deep Research for Vault OIDC GitHub Integration
 
+This is the reproducible-research and ticket-evidence branch of the [[docmgr]] project map.
+
 This report documents the research workflow used for the Vault OIDC GitHub Actions integration and the follow-up GitHub App installation-token design. It is not primarily about the final architecture. It is about how the research was performed, how sources were collected, how tool outputs were preserved, how conclusions were checked against implementation reality, and how future research projects can repeat the pattern.
 
 > [!summary]

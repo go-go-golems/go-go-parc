@@ -24,6 +24,8 @@ repo: /home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/005
 
 # M5 Tab5 - Getting Acquainted
 
+This is the hardware-orientation entry in the [[esp32]] project map.
+
 The M5Stack Tab5 is a touchscreen IoT terminal built around two Espressif chips: a host application processor and a separate wireless co-processor. That dual-chip design is the first thing to understand, because it makes the board fundamentally different from every ESP32 tutorial board that puts Wi-Fi on the same silicon as the application CPU. This project is the first hands-on investigation of that architecture, starting from the official factory firmware and ending with a working browser-based text echo demo that can be reached from a phone or laptop on the same network.
 
 > [!summary]

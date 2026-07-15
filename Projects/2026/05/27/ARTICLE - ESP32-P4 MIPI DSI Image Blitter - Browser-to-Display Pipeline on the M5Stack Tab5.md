@@ -20,6 +20,8 @@ repo: /home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/009
 
 # ESP32-P4 MIPI DSI Image Blitter: Browser-to-Display Pipeline on the M5Stack Tab5
 
+This is the browser-to-display rendering branch of the [[esp32]] project map.
+
 This article documents the architecture, failure modes, and working patterns for streaming pixel data from a browser over WiFi to a 720x1280 MIPI DSI panel driven by an ESP32-P4. The system eliminates the traditional reflashing workflow: instead of compiling a UI into firmware, you open a web page, drag an image onto it, and the image appears on the physical display within seconds. The pipeline crosses five distinct domains — browser JavaScript, HTTP binary transfer, IDF embedded web serving, LVGL 9 rendering, and MIPI DSI panel driving — and each domain has its own constraints that shape the design.
 
 > [!summary]

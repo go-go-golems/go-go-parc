@@ -20,6 +20,8 @@ repo: /home/manuel/workspaces/2026-04-03/js-repl-smailnail/go-go-goja
 
 # go-go-goja REPL API: Profiles, IIFE Rewriting, and AST-Driven Session Semantics
 
+This is the interactive-session branch of the [[go-go-goja]] project map.
+
 This part of `go-go-goja` started life as a browser-oriented REPL prototype and then slowly revealed its real shape: not "a web page that can run JavaScript", but a reusable session kernel that can serve a CLI, a JSON server, and eventually multiple interactive clients. Once that becomes the design center, the interesting questions change. The hard part is no longer "how do we evaluate a line of JavaScript?" The hard part is "what counts as a session, what metadata do we preserve, how much of the execution do we observe, and how do we make that behavior configurable without turning the API into an incoherent matrix of flags?"
 
 That is what `replapi` and `replsession` are solving today. The current system deliberately spans a spectrum. At one end, it can act like a near-straight Goja execution wrapper. At the other end, it can behave like a full persistent REPL with session history, replay-based restore, runtime diffing, binding version history, and JSDoc extraction from REPL-authored source. The center of gravity is a profile system that makes these behaviors explicit instead of accidental.

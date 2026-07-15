@@ -23,6 +23,8 @@ repo: /home/manuel/workspaces/2026-05-22/xgoja/go-go-goja
 
 # xgoja: Compile-Time Goja Module Composition and jsverbs Mounting
 
+This is the compile-time composition branch of the [[go-go-goja]] project map.
+
 This note is a technical deep dive into the `xgoja` implementation that now lives inside `go-go-goja`. It explains the project from the outside in: what problem `xgoja` is solving, how the generated binary model works, how the Go code is organized, how runtime profiles are interpreted, how generated programs execute provider modules, how `jsverbs` were mounted, where the current implementation is intentionally minimal, and where the next engineering pressure points are.
 
 The intended reader is someone who writes Go, reads generated code comfortably, and wants to understand the system well enough to extend it without guessing. The goal is not to restate the ticket history. The goal is to describe the design as a working system.

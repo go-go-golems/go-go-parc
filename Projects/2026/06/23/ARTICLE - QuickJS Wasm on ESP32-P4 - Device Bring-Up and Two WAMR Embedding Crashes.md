@@ -22,6 +22,8 @@ repo: /home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/010
 
 # QuickJS-WASM on the ESP32-P4: Device Bring-Up and Two WAMR Embedding Crashes
 
+This is the Wasm runtime failure-analysis branch of the [[esp32]] project map.
+
 This note records what happened when a QuickJS engine compiled to WebAssembly was first run on an ESP32-P4 after it had already passed on a host PC. The host result was correct, so the device session became a study of the assumptions a host environment hides. Two failures appeared, both in the WebAssembly Micro Runtime (WAMR) embedding layer rather than in QuickJS, and both are general to any WAMR-on-ESP-IDF embedding. Both failures are now fixed and verified on hardware: the firmware completes `qjs_init` and evaluates JavaScript from the ESP console on the ESP32-P4.
 
 > [!summary]

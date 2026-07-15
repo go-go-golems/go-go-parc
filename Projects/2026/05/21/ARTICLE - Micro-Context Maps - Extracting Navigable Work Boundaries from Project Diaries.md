@@ -23,6 +23,8 @@ related:
 
 # Micro-Context Maps: Extracting Navigable Work Boundaries from Project Diaries
 
+This is the compact-context and ticket-navigation branch of the [[docmgr]] project map.
+
 This article documents the design and implementation of the micro-context map package: a reusable workflow and YAML format for distilling a project's accumulated history into a small number of named work boundaries that a worker can select from before starting a session. The package was built to solve a concrete problem — the DMETA design-system factory had accumulated 18 diary steps across three ticket workspaces, 48 widget templates, two working prototypes, a production deployment, and seven design documents. Returning to the project required reading thousands of lines of narrative prose before knowing where to start. The micro-context map reduced that orientation cost to five labeled contexts with file paths, open questions, and connectivity.
 
 The package is self-contained: a playbook, a YAML specification, a template, a validator, a renderer, and a worked example. It is designed to be copied into any project that uses structured diaries and ticket workspaces.

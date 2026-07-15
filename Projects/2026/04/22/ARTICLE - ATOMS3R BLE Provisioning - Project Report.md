@@ -18,6 +18,8 @@ software: Arduino + NimBLE-Arduino
 
 # ATOMS3R BLE Provisioning: From Concept to Working Firmware
 
+This is the completed provisioning report in the [[esp32]] project map.
+
 > **Project**: ATOMS3R-BLEPROV  
 > **Date**: 2026-04-22  
 > **Status**: ✅ Deployed and operational  
