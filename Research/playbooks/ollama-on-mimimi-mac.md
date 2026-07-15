@@ -339,6 +339,80 @@ tmux kill-session -t ollama-mimimi
 This stops only the SSH forwarding session. It does not stop Ollama on the
 Mac.
 
+## Operational status: 2026-07-15 model laboratory set
+
+This is a dated operational snapshot, not an immutable experiment
+specification. It records which model families were selected for the RAG
+laboratory and the state observed while their downloads were in progress.
+
+The Mac has 64 GB of unified memory and approximately 425 GiB free disk space
+at the time of this check. The selected set deliberately contains a larger
+primary model, a fast MoE comparison model, and small Gemma variants for
+latency- and quality-sensitive experiment matrices.
+
+| Role | Ollama tag | Size reported by Ollama/library | State at check |
+| --- | --- | ---: | --- |
+| Embedding baseline | `nomic-embed-text:latest` | 274 MB, 768 dimensions | Installed |
+| Dense Qwen comparison | `qwen3.6:27b` | 17 GB | Installed |
+| Primary Qwen | `qwen3.6:35b` | 23 GB locally (about 24 GB listed) | Installed |
+| Primary Gemma | `gemma4:26b` | about 18 GB listed | Download in progress |
+| Medium Gemma | `gemma4:12b` | about 7.6 GB listed | Queued |
+| Small Gemma | `gemma4:e4b` | about 9.6 GB listed | Queued |
+| Smallest Gemma | `gemma4:e2b` | about 7.2 GB listed | Queued |
+
+The primary comparison pair is `qwen3.6:35b` and `gemma4:26b`. Both are
+256K-context multimodal MoE models. `qwen3.6:27b` remains installed because it
+is a useful dense-model control in coding, summarization, and RAG-answer
+experiments. `gemma4:12b`, `gemma4:e4b`, and `gemma4:e2b` make it possible to
+measure the quality/latency/memory trade-off within one family.
+
+The downloads are serialized deliberately. A follow-up process pulls, in this
+order, `qwen3.6:35b`, `gemma4:26b`, `gemma4:12b`, `gemma4:e4b`, and
+`gemma4:e2b`; it waits for the earlier 27B Qwen pull to finish. The Mac did
+not have `tmux` installed, so the current operator job is a detached `nohup`
+process with logs at:
+
+```text
+/tmp/ollama-model-pulls.log
+/tmp/ollama-model-pulls-v2.log
+```
+
+Inspect status without starting a second pull:
+
+```bash
+ssh mimimi-2.local \
+  '/Applications/Ollama.app/Contents/Resources/ollama list'
+
+ssh mimimi-2.local \
+  'tail -n 20 /tmp/ollama-model-pulls-v2.log'
+```
+
+### Tailscale Serve: configured but not yet application-ready
+
+Tailscale Serve is now configured on the Mac as:
+
+```text
+https://mimimi.tail879302.ts.net/  ->  http://127.0.0.1:11434
+```
+
+This is the desired topology: Ollama still listens only on loopback, while
+Tailscale owns the Tailnet-facing HTTPS listener. Confirm the configuration
+with:
+
+```bash
+ssh mimimi-2.local '/usr/local/bin/tailscale serve status'
+```
+
+However, an HTTPS request to `/api/tags` returned `HTTP/2 403` when tested on
+2026-07-15. Treat direct Tailnet access as **not yet validated**. The response
+occurs before Ollama receives the request, so investigate the Tailnet policy or
+Serve authorization path before configuring an application with the HTTPS base
+URL. The SSH tunnel remains the verified application endpoint:
+
+```text
+http://127.0.0.1:11435
+```
+
 ## Related material
 
 - RAG experiment operator reference: `/home/manuel/workspaces/2026-07-13/rag-eval-ttc/rag-evaluation-system/ttmp/2026/07/14/RAGEVAL-RAG-DSL-001--typed-fluent-javascript-rag-laboratory-module/reference/03-mimimi-ollama-tunnel-operator-playbook.md`
