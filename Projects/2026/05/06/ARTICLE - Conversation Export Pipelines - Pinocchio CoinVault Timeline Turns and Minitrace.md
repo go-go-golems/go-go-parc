@@ -24,6 +24,9 @@ source_ticket: COINVAULT-038
 
 # Conversation Export Pipelines: Pinocchio, CoinVault, Timeline State, Turns, and Minitrace
 
+> [!warning] Historical DuckDB commands
+> This note contains an older go-minitrace query example. The export-pipeline architecture remains useful, but use [[go-minitrace]] and the normalized SQLite workflow documented in [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 A chat application becomes much easier to debug when its state can leave the browser. Pinocchio and CoinVault already had durable pieces of state: sessionstream timeline entities for UI hydration, and Geppetto turns for model replay. What they lacked was a clear operator path from a visible conversation to a file: a JSON or YAML export for inspection, and a minitrace export for deeper analysis.
 
 This article is a technical deep dive into the export pipeline added for COINVAULT-038. It explains the data model, the package boundary, the route design, the minitrace conversion, and the failure modes that shaped the implementation.

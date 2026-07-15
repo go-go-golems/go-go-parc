@@ -23,6 +23,9 @@ repo: /home/manuel/code/wesen/2026-04-21--pi-extensions
 
 # Pi Extension: A Textbook on Writing and Testing Pi Extensions
 
+> [!warning] Historical DuckDB commands
+> This note contains an older go-minitrace query example. The Pi-extension guidance remains useful, but use [[go-minitrace]] and the normalized SQLite workflow documented in [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 This is a textbook. Its purpose is to teach you how Pi's extension system works at a level that lets you build your own extensions from first principles—not by copying examples, but by understanding why the API is shaped the way it is, which parts are reliable and which are fragile, and how to debug when things go wrong.
 
 Two extensions were built while writing this document. The first was a minimal proof-of-concept that displayed "Hello World" in a widget whenever the LLM emitted a thinking block. The second was a session-summary extension that injected a system prompt instruction, appended reminders to user prompts, parsed `<summary>...</summary>` blocks at turn end, and displayed them in a bordered widget. Building both revealed a great deal about how Pi actually works—not just how the documentation describes it, but how it behaves in practice. This textbook is the record of that learning.
@@ -636,10 +639,10 @@ The go-minitrace transcript analysis system is documented at:
 
 ## KB reviews
 
-- [[KB-BATCH14-pi-extensions-tooling]] (2026-05-11) — Batch K Pi extension/tooling review; created [[Tribal/pi-extension-event-seams]] and advanced Pi TUI/model-config candidates.
+- [[KB-BATCH14-pi-extensions-tooling]] (2026-05-11) — Batch K Pi extension/tooling review; created [[pi-extension-event-seams]] and advanced Pi TUI/model-config candidates.
 
 ## Related KB entries
 
-- [[On-Ramp/pi-extension-authoring-mental-model]] — 10-minute orientation to Pi extension lifecycle, events, tools, UI surfaces, and state scopes.
-- [[Tribal/pi-extension-event-seams]] — Pi lifecycle/event seams, prompt shaping, tool-call mutation, TUI surfaces, and model/config integration discipline.
-- [[Fundamentals/host-mediated-sandbox-principles]] — the host/runtime boundary principle behind narrow extension capabilities and mediated side effects.
+- [[pi-extension-authoring-mental-model]] — 10-minute orientation to Pi extension lifecycle, events, tools, UI surfaces, and state scopes.
+- [[pi-extension-event-seams]] — Pi lifecycle/event seams, prompt shaping, tool-call mutation, TUI surfaces, and model/config integration discipline.
+- [[host-mediated-sandbox-principles]] — the host/runtime boundary principle behind narrow extension capabilities and mediated side effects.

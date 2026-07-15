@@ -18,6 +18,9 @@ repo: /home/manuel/code/wesen/trace-analysis
 
 # Transcript Analysis with go-minitrace
 
+> [!warning] Historical DuckDB commands
+> This textbook chapter was written against the removed DuckDB query engine. The reduction method remains useful, but its commands and SQL require migration to `go-minitrace query run` and normalized SQLite. See [[go-minitrace]] and [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 This chapter explains how to use `go-minitrace` as a disciplined transcript-analysis system. The goal is not to document every feature of the tool. The goal is to teach a single method: how to turn a large corpus of agent session transcripts into a small body of trustworthy evidence, quickly enough that it is worth doing on every significant investigation.
 
 The method was built while debugging a real Loupedeck transport regression, and every pattern in this chapter is drawn from that experience. The concrete commands are real. The mistakes are real. The commands that finally worked are real.

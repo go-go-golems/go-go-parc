@@ -21,6 +21,9 @@ repo: /home/manuel/workspaces/2026-04-22/fix-loupedeck-serial/loupedeck
 
 # Project Report: Tracing the Loupedeck Serial Bug with Transcript Analysis
 
+> [!warning] Historical DuckDB commands
+> The transcript-analysis commands in this historical report use the removed DuckDB backend. The hardware-debugging evidence remains valid; use [[go-minitrace]] and [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]] for the current query workflow.
+
 This report documents how a hardware communication bug in the Loupedeck Live serial protocol was traced, diagnosed, and fixed using a hybrid approach: **transcript archaeology** with `go-minitrace` to recover historical evidence, combined with **live hardware debugging** to validate the root cause. The bug manifested as intermittent `"websocket: bad opcode 4"` and `"malformed HTTP response"` errors when running JavaScript scenes on the device.
 
 > [!summary]

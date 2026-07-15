@@ -34,6 +34,8 @@ This report documents a single session of work that moved through three connecte
 
 The pull request at the center of the investigation is [go-go-golems/go-go-goja#95](https://github.com/go-go-golems/go-go-goja/pull/95), *Add xgoja personal inbox auth and device login tutorial*. At the time of this report it is open, mergeable, and passing all status checks.
 
+This report is the current operational case study in the [[go-minitrace]] map: it demonstrates the repaired SQLite workflow, workspace-cwd discovery fallback, and transcript-backed review.
+
 > [!summary]
 > - The `go-minitrace` skill and its query recipes were rewritten for the normalized SQLite engine that replaced the removed DuckDB backend; seven stale vault articles were marked deprecated with inline migration callouts.
 > - The go-go-goja PR #95 work could not be found by `discover pi --cwd-contains go-go-goja` because the session ran from a workspace directory, not the repository. A content grep over raw JSONL located it, and the converted archive was then queried with SQL.

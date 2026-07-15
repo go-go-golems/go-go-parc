@@ -25,6 +25,8 @@ This note is a project report, but it is written as a teaching document rather t
 
 The motivating incident was a Loupedeck transport regression. The current live run succeeds at the websocket handshake and then dies with `websocket: bad opcode 4`. That kind of failure is exactly where transcript analysis helps. If you only read today's logs, you know that the current code is broken. If you analyze the old sessions efficiently, you can answer the more important question: _what used to work, what changed, and where should you look next?_
 
+This playbook is indexed by [[go-minitrace]]. Its historical DuckDB examples should be migrated using [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 > [!summary]
 > - `go-minitrace` is most effective when treated as a **small analysis framework**, not as a one-off SQL runner.
 > - The most efficient workflow is a **three-layer funnel**: session inventory, targeted evidence extraction, then JS-backed summarization.

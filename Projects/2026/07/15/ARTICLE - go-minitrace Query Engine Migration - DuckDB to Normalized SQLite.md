@@ -24,14 +24,16 @@ skill_commit: 064f187
 
 `go-minitrace` has replaced its analytical backend. The legacy DuckDB engine — exposed through the `go-minitrace query duckdb` command family — has been removed. All SQL against converted `.minitrace.json` archives now runs on a normalized SQLite engine through the single command `go-minitrace query run`. This article is the authoritative deprecation map for the vault: it records which existing notes still describe the removed engine, marks them deprecated, and gives the concrete rewrites a reader needs to move their saved SQL onto the current engine.
 
-The removal is not cosmetic. A reader who follows an older note verbatim will invoke a command that no longer exists. Because several of those notes are otherwise high-quality engineering references, the goal here is to keep them findable while making their staleness impossible to miss, rather than deleting them.
+The removal is not cosmetic. A reader who follows an older note verbatim will invoke a command that no longer exists.
+
+This is the authoritative migration and deprecation entry in the [[go-minitrace]] map. Because several of those notes are otherwise high-quality engineering references, the goal here is to keep them findable while making their staleness impossible to miss, rather than deleting them.
 
 > [!warning] DuckDB commands are removed
 > Any vault note instructing `go-minitrace query duckdb …` describes a command that no longer runs. Substitute `go-minitrace query run …` with the same `--archive-glob`, `--sql`, `--sql-file`, and `--preset` flags. The SQL syntax itself also changed: the normalized schema replaces JSON-blob access and `UNNEST` with real tables and columns. See the migration table at the end of this note.
 
 > [!summary]
 > - The DuckDB backend (`go-minitrace query duckdb`) is removed; the replacement is `go-minitrace query run`, a sandboxed read-only SQLite runner that builds its database from the archive glob automatically.
-> - Seven vault notes still reference the removed engine and are marked **deprecated** below until their SQL is migrated; four clean notes are unaffected.
+> - The vault contains multiple historical notes that reference the removed engine; affected notes are marked **deprecated** below or with inline warnings until their SQL is migrated.
 > - The normalized schema exposes real tables (`sessions`, `turns`, `tool_calls`, `annotations`, `metrics`, `files`, `events`, `attachments`, `handovers`) plus a `sessions_base` compatibility view for legacy session-level SQL.
 > - `go-minitrace help query-duckdb` is now a migration guide, not a command reference; `help duckdb-query-recipes` and `help writing-duckdb-queries` redirect to `help query-recipes` and `help writing-queries`.
 
@@ -82,7 +84,7 @@ Readers who learned the workflow from the skill before this commit should re-rea
 
 ## Deprecation map of vault articles
 
-Each entry below was checked by grepping the note for DuckDB references and confirming against the current tool. The status column states whether the note's commands still run as written.
+Each entry below was checked by grepping the note for DuckDB references and confirming against the current tool. Additional historical notes contain inline warnings where they mention the old command surface incidentally. The status column states whether the note's commands still run as written.
 
 | Article | Status | DuckDB refs | Action |
 | --- | --- | --- | --- |

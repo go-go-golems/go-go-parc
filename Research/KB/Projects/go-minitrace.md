@@ -62,7 +62,7 @@ A metric without transcript inspection is a lead, not a conclusion.
 
 ## Current query engine
 
-The current analytical path is the normalized SQLite engine:
+The current analytical path is the normalized SQLite engine. The migration guide and historical-note status are tracked in [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
 
 ```bash
 go-minitrace query run \

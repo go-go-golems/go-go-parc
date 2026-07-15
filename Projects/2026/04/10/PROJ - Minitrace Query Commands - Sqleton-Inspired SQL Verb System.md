@@ -22,6 +22,9 @@ repo: /home/manuel/code/wesen/corporate-headquarters/go-minitrace
 
 # Minitrace Query Commands - Sqleton-Inspired SQL Verb System
 
+> [!warning] Historical DuckDB commands
+> This note describes an earlier `go-minitrace query duckdb` command surface. The structured-command design remains useful, but query execution now uses normalized SQLite through `go-minitrace query run`. See [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 This project documents the addition of a sqleton-inspired SQL verb/query command system to go-minitrace. The feature adds a structured query catalog layer that lets teams define, discover, and execute parameterized SQL queries as named commands. Commands are defined in source files (`.sql` with YAML preambles, `.alias.yaml` for shortcuts), loaded from embedded and external repositories, and exposed through both a CLI subgroup (`go-minitrace query commands`) and a v2 HTTP API for the web UI.
 
 > [!summary]
@@ -504,7 +507,7 @@ The annotation system (implemented before this feature, documented in [[PROJ - g
 
 - [[PROJ - Improving Minitrace and Transcript Analysis]] — broader improvement agenda
 - [[PROJ - Cross-Model Transcript Analysis - Minimax M2.7 vs GPT-5.4]] — comparative analysis using this feature
-- [[PROJ - Sqleton SQL Command Cleanup]] — the sqleton-side work that validated the format
+- [[PROJ - Sqleton SQL Command Cleanup - Technical Project Report]] — the sqleton-side work that validated the format
 - [[PROJ - go-minitrace - Annotation System]] — prerequisite boundary event metadata
 - [[Code Review with go-minitrace]] — methodology for transcript-driven review
 

@@ -20,6 +20,8 @@ repo: /home/manuel/code/wesen/go-go-golems/go-minitrace
 
 This article explains how to inspect a coding-agent session from start to finish: convert raw transcripts into a structured archive, query the archive with SQL and JavaScript via DuckDB, and produce diagram visualizations in a custom JSON-based DSL. It is a complete working guide with every command, query, and script included in full so you can copy-paste and run it yourself.
 
+This is a historical method note in the [[go-minitrace]] map. Its reduction workflow remains useful, but its DuckDB commands require the rewrites in [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 > [!summary]
 > - **The pipeline** is three stages: convert transcripts → query with DuckDB → compose diagram JSON. Each stage has well-defined interfaces.
 > - **Tool calls are the interesting data**. Every action a coding agent takes is a tool call with structured input and output. Extracting these fields correctly is the central challenge.

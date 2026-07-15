@@ -21,6 +21,9 @@ related_ticket: /home/manuel/code/wesen/trace-analysis/ttmp/2026/04/27/2026-04-2
 
 # go-minitrace Local Query Repository Config
 
+> [!warning] Historical DuckDB commands
+> This note contains query-repository examples from the removed DuckDB engine. The repository/configuration pattern remains useful, but use `go-minitrace query run` and normalized SQLite query surfaces. See [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 This project slice added Pinocchio-style local query repository discovery to `go-minitrace`. The immediate trigger was the Pyxis CSS visual diff trace-analysis work: the custom `pyxis trace-summary ...` JS verbs worked, but every command had to repeat a long `--query-repository` flag unless the caller remembered to export an environment variable.
 
 > [!summary]

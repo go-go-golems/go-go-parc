@@ -21,6 +21,8 @@ repo: /home/manuel/workspaces/2026-07-05/improve-docmgr/go-minitrace
 
 go-minitrace converts AI coding-agent transcripts — from Claude Code, Codex, Pi, GitHub Copilot CLI, claude.ai, ChatGPT, and Geppetto/Pinocchio — into a single archive format called minitrace, and then lets an analyst query thousands of those archives with SQL, reusable structured commands, JavaScript handlers, or a web UI. This note is a deep-dive into the part of the system that changed most recently and most fundamentally: the query engine. The engine used to be DuckDB reading JSON blobs. It is now a normalized SQLite database built on demand from the archives, wrapped in a sandboxed read-only runner shared by every query surface. This report explains what that architecture is, why each piece exists, and what would break if any of it were removed.
 
+This is the current architecture entry in the [[go-minitrace]] map; use the migration guide for historical DuckDB-to-SQLite rewrites.
+
 > [!summary]
 > - The query engine is a single normalized SQLite database (`normalized-sqlite-v3`) with one table per minitrace entity, built from `.minitrace.json` archives on demand and cached by content fingerprint.
 > - One sandboxed read-only query runner — a SQLite authorizer that permits only `SELECT` over an allowlist of tables plus a `sessions_base` compatibility view — backs all four surfaces: `query run`, `query commands`, the `mt.db()` JavaScript builder, and `serve`.

@@ -20,6 +20,9 @@ repo: /home/manuel/code/wesen/2026-06-22--analyze-tool-calls-gemma4
 
 # Analyzing Agent Tool-Calling Behavior with go-minitrace
 
+> [!warning] Historical DuckDB commands
+> This note contains `go-minitrace query duckdb` examples from an earlier engine generation. The tool-behavior analysis remains useful, but use `go-minitrace query run` and the normalized SQLite schema. See [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 This article is a deep-dive technical analysis of one workflow: taking a raw agent transcript, turning it into a queryable database, and writing a repository of structured queries that explain how a model drove its tools during a single session. It documents the concrete pipeline used to analyze two Pi sessions — one driven by `gpt-5.5` coding a Discord bot, one driven by `gemma4:e4b` searching for vacation rentals — and the report-generation layer built on top of those queries.
 
 The target reader writes Go or JavaScript, works with LLM agent transcripts, and wants to understand agent behavior from evidence rather than intuition. Nothing here is speculative; every number in the worked example comes from a named query that runs against a normalized database built from the transcript.

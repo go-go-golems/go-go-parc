@@ -23,6 +23,8 @@ repo: /home/manuel/code/wesen/corporate-headquarters/go-minitrace
 
 This project adds a read-only, self-contained HTML export path to `go-minitrace`. The goal is simple to state but surprisingly subtle to implement: given a `.minitrace.json` session archive, generate a single HTML file that can be handed to another person and opened locally as a rich transcript reader without depending on a running server, a database, or external static assets.
 
+This is the portable-export branch of the [[go-minitrace]] map; it is independent of the DuckDB-to-SQLite query migration.
+
 The current implementation is centered around a simplified “Proposal 2” chronological reader. Instead of inventing extra narrative layers, it stays close to the source material: raw session data, deterministic display reshaping, and original annotations. The result is a reader that is easier to trust, easier to validate, and easier to ship as a durable artifact.
 
 > [!summary]
@@ -355,11 +357,11 @@ The most important working rule for this project is:
 
 ## KB reviews
 
-- [[KB-BATCH10-minitrace-transcript-analysis]] (2026-05-11) — Batch F analysis; contributed to [[Tribal/transcript-analysis-with-go-minitrace]] and self-contained review artifact candidates.
+- [[KB-BATCH10-minitrace-transcript-analysis]] (2026-05-11) — Batch F analysis; contributed to [[transcript-analysis-with-go-minitrace]] and self-contained review artifact candidates.
 
 ## Related KB entries
 
-- [[Tribal/transcript-analysis-with-go-minitrace]] — portable transcript review artifacts as part of the analysis workflow.
+- [[transcript-analysis-with-go-minitrace]] — portable transcript review artifacts as part of the analysis workflow.
 
 **Tribal candidates** (not yet at 3-project threshold):
 - Self-contained review artifact (2/3) — one HTML file with payload, JS, and CSS for offline review.

@@ -21,6 +21,9 @@ repo: /home/manuel/code/others/llms/pi/mariozechner/pi-mono
 
 # Playbook: Debugging and Fixing Pi Provider Replay Bugs
 
+> [!warning] Historical DuckDB commands
+> This note contains an older go-minitrace query example. The replay-debugging method remains useful, but use [[go-minitrace]] and the normalized SQLite workflow documented in [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 This note records the investigation of a Pi provider failure where OpenAI Codex rejected a conversation with `Error: Duplicate item found with id msg_3. Remove duplicate items from your input and try again.` The immediate incident happened while working in `/home/manuel/workspaces/2026-05-29/chatbot-react`, but the useful knowledge belongs to Pi itself: how session transcripts are structured, how provider replay transforms historical messages into model-specific request items, and how to test a local Pi source checkout without losing the trail of evidence.
 
 The goal is not only to remember that one bug was fixed upstream. The goal is to preserve a repeatable method for future Pi debugging work: isolate the failing transcript, inspect the provider conversion boundary, write a targeted regression test, and verify the fixed checkout before updating the global installation.

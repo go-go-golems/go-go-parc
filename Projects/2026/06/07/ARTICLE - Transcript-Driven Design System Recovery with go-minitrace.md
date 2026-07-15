@@ -21,6 +21,9 @@ repo: /home/manuel/workspaces/2026-05-27/rag-evaluation-system/2026-05-27--rag-e
 
 # Transcript-Driven Design System Recovery with go-minitrace
 
+> [!warning] Historical DuckDB commands
+> This note contains `go-minitrace query duckdb` examples from an earlier engine generation. The transcript-recovery method remains useful, but use `go-minitrace query run` and the normalized SQLite schema. See [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 This article documents a complete method for recovering documented design-system knowledge from AI coding-agent transcripts using `go-minitrace`, DuckDB, and git. The method was applied to the `2026-05-27--rag-evaluation-system` repository to find prior frontend and design-system playbooks without manually reading through hundreds of session transcripts.
 
 The method produces three outputs that together constitute a recoverable research trail: a ranked list of candidate sessions, a catalog of recovered documents with metadata, and the executable scripts that produced everything.

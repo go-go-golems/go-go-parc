@@ -23,6 +23,9 @@ source_ticket: /home/manuel/workspaces/2026-06-07/club-meetup-site/ClubMedMeetup
 
 # Minitrace Viz: CLI Session Models and Token Provenance
 
+> [!warning] Historical DuckDB commands
+> This note contains `go-minitrace query duckdb` examples from an earlier engine generation. The analysis remains useful, but use `go-minitrace query run` and the normalized SQLite schema. See [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 This report explains the MINIVIZ-011 implementation in `ClubMedMeetup/minitrace-viz`: a new xgoja jsverb interface that exposes the same transcript and context-window models used by the web UI as terminal commands. The work started as a request for a CLI preview surface and became a tighter validation path for normalized agent transcripts, source facts, tool-call token accounting, and context-window composition.
 
 The implementation is a good example of a useful rule for transcript tooling: a browser view should not be the only way to inspect the data model that feeds it. If a web component receives a transcript model, the model should also be available as structured CLI data. If the CLI displays token counts, those counts should state whether they are actual transcript usage fields or estimates reconstructed for visualization.
