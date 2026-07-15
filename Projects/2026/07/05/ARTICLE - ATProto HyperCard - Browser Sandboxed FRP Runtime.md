@@ -17,6 +17,8 @@ status: active
 type: article
 created: 2026-07-05
 repo: /home/manuel/code/wesen/2026-07-02--atproto-hypercard
+related:
+  - "[[ARTICLE - Browser Sandboxed Plugin Runtime - Data-Only Extension Pattern]]"
 ---
 
 # ATProto HyperCard: Browser-Sandboxed FRP Runtime
@@ -707,6 +709,11 @@ The next engineering steps are clear:
 - The static app must remain usable without signing in. ATProto persistence is a publishing feature, not a prerequisite for viewing local stacks.
 - Remote stacks are untrusted input. They should require validation, limits, and explicit user intent before execution.
 - The deployment artifact is a static `/site` image. The k3s static-sites-host remains the first production-like delivery target.
+
+## Related notes
+
+- [[ARTICLE - Browser Sandboxed Plugin Runtime - Data-Only Extension Pattern]] generalizes the same host-owned, data-only sandbox boundary into a reusable plugin-runtime pattern.
+- [[PROJECT REPORT - Browser Plugin VM - Stateful Feed Middleware Runtime Deep Dive]] is the later QuickJS plugin-runtime project that extends the browser sandbox idea with plugin-local state, audited runtime actions, and feed middleware hooks.
 
 ## Related files
 

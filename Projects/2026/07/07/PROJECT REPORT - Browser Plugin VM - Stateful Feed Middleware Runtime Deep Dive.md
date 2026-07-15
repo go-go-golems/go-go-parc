@@ -20,6 +20,8 @@ status: active
 type: project-report
 created: 2026-07-07
 repo: /home/manuel/code/wesen/2026-07-07--browser-js-inject-vm
+related:
+  - "[[ARTICLE - Browser Sandboxed Plugin Runtime - Data-Only Extension Pattern]]"
 ---
 
 # Browser Plugin VM: Stateful Feed Middleware Runtime Deep Dive
@@ -1059,6 +1061,10 @@ Important files:
 | `sources/stateful-feed-middleware-demo.png` | Screenshot captured after browser verification. |
 
 The report in this vault is a durable project analysis. The docmgr design docs are more detailed implementation guides. The diary is the operational record of what changed, what failed, and how it was verified.
+
+Related vault note:
+
+- [[ARTICLE - Browser Sandboxed Plugin Runtime - Data-Only Extension Pattern]] extracts the reusable data-only sandboxed plugin architecture from this project.
 
 ## Key points
 

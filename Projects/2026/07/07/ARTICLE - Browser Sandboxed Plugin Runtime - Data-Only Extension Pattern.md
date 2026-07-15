@@ -21,6 +21,7 @@ created: 2026-07-07
 repo: /home/manuel/code/wesen/2026-07-07--browser-js-inject-vm
 related:
   - "[[PROJECT REPORT - Browser Plugin VM - Stateful Feed Middleware Runtime Deep Dive]]"
+  - "[[ARTICLE - ATProto HyperCard - Browser Sandboxed FRP Runtime]]"
 ---
 
 # Browser Sandboxed Plugin Runtime: The Data-Only Extension Pattern
