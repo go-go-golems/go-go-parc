@@ -21,6 +21,8 @@ repo: /home/manuel/code/wesen/2026-04-21--pi-extensions
 
 # Playbook: Building and Testing Pi Extensions
 
+This is the primary authoring and validation playbook in the [[pi-extensions]] project map.
+
 This is a practical playbook for building, testing, and debugging Pi extensions. It covers the extension lifecycle, the event system, the UI API, common failure modes, and the tools you need to debug extensions in a live terminal session.
 
 The reference implementation is the [[PROJ - Pi Extension - Hello World Before Thinking Blocks|Hello World Thinking Block]] extension. That project produced detailed analysis and implementation documents; this playbook distills the engineering knowledge into reusable guidance.

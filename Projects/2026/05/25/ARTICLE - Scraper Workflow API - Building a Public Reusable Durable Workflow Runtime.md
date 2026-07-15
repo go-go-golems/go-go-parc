@@ -21,6 +21,8 @@ pr: https://github.com/go-go-golems/scraper/pull/3
 
 # Scraper Workflow API: Building a Public Reusable Durable Workflow Runtime
 
+This is the workflow-runtime foundation in the [[scraper]] project map.
+
 This report explains the public reusable workflow API added to the scraper repository in PR #3, "Feat: Introduce an embeddable workflow engine." The API lives under `pkg/workflow` and turns scraper's lower-level engine, scheduler, runner registry, store, artifacts, projections, and operator controls into a small Go-facing package for embedding durable workflows in another program.
 
 > [!summary]

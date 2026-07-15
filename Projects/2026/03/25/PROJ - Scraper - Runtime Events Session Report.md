@@ -19,6 +19,8 @@ repo: /home/manuel/workspaces/2026-03-23/js-scraper/scraper
 
 # Scraper Runtime Events Session Report
 
+This is the runtime-events branch of the [[scraper]] project map.
+
 This session turned the scraper repository from a mostly backend-oriented workflow engine into a system that now has a coherent runtime-event architecture, a documented transport/design decision trail, and the first operator-facing frontend surfaces for live monitoring. The work was not one single patch. It was a sequence: architecture analysis, ticket creation, transport/schema decisions, backend event-pipeline implementation, frontend follow-up design, validation/tooling cleanup, and then actual frontend implementation against that new design.
 
 The repository now has a much clearer mental model: workers and server components emit protobuf-defined runtime events through Watermill, the API server keeps a replayable in-memory hub and exposes both history and SSE endpoints, and the React frontend has a reusable live-event data layer that powers a global `/events` view plus an op-scoped runtime tab in the workflow drawer.

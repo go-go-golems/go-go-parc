@@ -27,6 +27,8 @@ source_repo: https://github.com/go-go-golems/go-go-os-examples
 
 # go-go-os Examples: Public Packages, VM Runtime Demos, and Shared Static Hosting
 
+This is the public-package and static-hosting branch of the [[go-go-os]] project map.
+
 This report explains the technical path from reusable `go-go-os-frontend` packages to a public examples site running on the Hetzner K3s cluster. The work started as package publication: move UI, shell, REPL, and VM runtime code out of a monorepo-only context and prove that ordinary React applications can consume it from npm. It ended with a deployed static site served through a shared Caddy host, with the examples app published as an immutable GHCR artifact image.
 
 The important point is not that a Vite app was deployed. The important point is that the deployment validates the package boundaries. The public site exercises the same package surfaces that a third-party consumer would use: theme imports, low-level primitives, rich widgets, a shell/window manager, a REPL, QuickJS runtime bundles, host-intent routing, and a Kanban runtime renderer. The site is therefore both documentation and integration test.

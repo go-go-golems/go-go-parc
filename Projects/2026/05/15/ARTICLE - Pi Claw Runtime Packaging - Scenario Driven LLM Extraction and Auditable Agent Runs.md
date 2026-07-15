@@ -23,6 +23,8 @@ related_repos:
 
 # Pi Claw Runtime Packaging: Scenario Driven LLM Extraction and Auditable Agent Runs
 
+This is the auditable-run packaging branch of the [[pi-extensions]] project map.
+
 This article explains how the Providence therapist search project turned an ad hoc set of LLM extraction experiments into a reusable run system built around pi, Claw, SQLite, generated tools, and scenario files. The work matters because LLM extraction is not just a prompt. It is a data production pipeline. A useful extraction run must record what data went in, which model and prompt were used, which tool schema was available, what raw events came back from the agent process, what structured result was accepted, and how that result was normalized into tables that other systems can use.
 
 > [!summary]

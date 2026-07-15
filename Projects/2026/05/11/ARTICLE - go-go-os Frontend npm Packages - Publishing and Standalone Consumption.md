@@ -34,6 +34,8 @@ live_examples: https://go-go-os-examples.yolo.scapegoat.dev/
 
 # go-go-os Frontend npm Packages: Publishing, Standalone Consumption, and Trusted CI/CD
 
+This is the frontend-package and publishing branch of the [[go-go-os]] project map.
+
 This article documents the full technical path from a private frontend monorepo to a public npm package family, a real standalone consumer application, a deployed examples site, and finally a GitHub Actions Trusted Publishing pipeline with npm provenance.
 
 The work started with a narrow question: can the reusable frontend pieces in `go-go-os-frontend` be published as public npm packages and consumed outside the source monorepo? It ended with a complete release system:

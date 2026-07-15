@@ -21,6 +21,8 @@ repo: /home/manuel/workspaces/2026-05-20/book-ocr
 
 # Extracting Book OCR from Scraper: Workflow Runtime Boundaries and External OCR Pipelines
 
+This is the extraction-boundary branch of the [[scraper]] project map.
+
 The corrected architectural goal is stronger than moving Report 794-specific constants out of `scraper/`. The goal is to move **all OCR and book-OCR functionality** out of `scraper/` and into the sibling `2026-05-20--book-ocr/` repository. `scraper/` should keep the workflow management, execution, scheduling, job queue, artifact, projection, retry, and operator mechanisms. The OCR pipelines should become an external workflow application that imports and uses those mechanisms.
 
 This matters because OCR is not part of the core identity of `scraper`. OCR is a workload. It exercises the workflow runtime well: it has many page-level jobs, provider calls, artifacts, retries, quality checks, image extraction, discovery state, and review loops. But those are reasons to use the runtime, not reasons to place OCR inside the runtime repository.

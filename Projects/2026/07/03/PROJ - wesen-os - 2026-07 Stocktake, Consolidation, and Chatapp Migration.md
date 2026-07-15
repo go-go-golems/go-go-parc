@@ -21,6 +21,8 @@ repo: /home/manuel/workspaces/2026-03-02/os-openai-app-server/wesen-os
 
 # wesen-os: the 2026-07 stocktake, consolidation, and chatapp migration
 
+This is the current consolidation branch of the [[go-go-os]] project map.
+
 This note is the technical record of a three-part effort executed on 2026-07-03: measuring how far the wesen-os system had drifted from its dependency ecosystem after a three-month pause, consolidating the scattered April work back onto `main`, and porting both of its chat backends from the deleted pinocchio `pkg/webchat` architecture onto the new `pkg/chatapp` + sessionstream stack. By the end of this note you should understand what wesen-os is, why the migration was structurally forced rather than optional, how the new chat host works internally, and which parts of the system remain to be ported. The full working record lives in the docmgr ticket `WESEN-OS-STOCKTAKE-2026-07` inside the repo's `ttmp/` tree; this note is the durable synthesis.
 
 > [!summary]

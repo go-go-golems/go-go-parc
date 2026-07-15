@@ -21,6 +21,8 @@ repo: /home/manuel/workspaces/2026-05-29/chatbot-react
 
 # Chat Overlay API: Sessionstream Widget Runtime Deep Dive
 
+This is the chat/widget runtime branch of the [[go-go-os]] project map.
+
 This article turns two proposed ecommerce chat-overlay API sketches into a concrete architecture for a reusable React and plain JavaScript package. The core result is a small browser API backed by `sessionstream` hydration, a typed widget registry, and a product-owned Geppetto/Pinocchio agent layer. The article is written as a technical deep dive rather than as an implementation diary: it explains the design decisions, the repo evidence that supports them, the API boundaries, and the first implementation sequence.
 
 > [!summary]

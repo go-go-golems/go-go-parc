@@ -31,6 +31,8 @@ related_docs:
 
 # Pi Extensions Shared Framework and Tool Surface Deep Dive
 
+This is the shared-framework foundation in the [[pi-extensions]] project map.
+
 This report explains the current state of the Pi extensions repository after the recent work on the shared extension framework, LLM-callable tools, TUI overlays, testing practice, and repository documentation. It is written as a technical article rather than a changelog. The goal is to make the architecture legible: what the extension framework is for, how extensions declare themselves, how tools delegate to external programs safely, how terminal UI fits into the model, and how we now validate the whole system in a repeatable way.
 
 The source repository is `/home/manuel/code/wesen/2026-04-21--pi-extensions`. The recent work added three product-shaped extensions: `image-qa`, `kagi-web-search`, and `markdown-recent-viewer`. It also produced a testing guide and rewrote the repository README so the project describes itself as an extension collection and framework, not as transcript-analysis notes.

@@ -22,6 +22,8 @@ source_ticket: CMD-PALETTE
 
 # Pi Agent Command Palette Extension Architecture: Shared Registry and Keyboard-Driven Actions
 
+This is the shared command-palette branch of the [[pi-extensions]] project map.
+
 This note explains the command palette extension in the Pi extensions repository. It is not only a description of one shortcut. It is a reusable architecture for collecting extension-owned actions into a shared registry, building a hierarchical palette from those contributions, rendering that palette as a Pi TUI overlay, and executing selected actions through a stable callback contract.
 
 > [!summary]

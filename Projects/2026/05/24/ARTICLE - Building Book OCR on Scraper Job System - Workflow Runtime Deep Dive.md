@@ -21,6 +21,8 @@ repo: /home/manuel/workspaces/2026-05-20/book-ocr
 
 # Building Book OCR on the Scraper Job System: Workflow Runtime Deep Dive
 
+This is the Book OCR workflow integration branch of the [[scraper]] project map.
+
 This note is a deep technical report on turning `scraper` from a scraping-oriented durable job engine into a workflow runtime that can run book OCR campaigns. The concrete implementation lives in `/home/manuel/workspaces/2026-05-20/book-ocr/scraper`, and the first OCR workflow package lives under `scraper/pkg/workflows/ocrmvp`.
 
 > [!summary]

@@ -23,6 +23,8 @@ repo: /home/manuel/code/wesen/2026-04-21--pi-extensions
 
 # Pi Extension: A Textbook on Writing and Testing Pi Extensions
 
+This is the extended lifecycle and testing reference in the [[pi-extensions]] project map.
+
 > [!warning] Historical DuckDB commands
 > This note contains an older go-minitrace query example. The Pi-extension guidance remains useful, but use [[go-minitrace]] and the normalized SQLite workflow documented in [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
 

@@ -22,6 +22,8 @@ repo: /home/manuel/code/wesen/2026-05-20--book-ocr
 
 # Book OCR Productization: Plugin Seams, Profile Policy, and the Road to v0.1.0
 
+This is the productization and plugin-policy branch of the [[scraper]] project map.
+
 This note records one day of work (2026-07-03) that took the book-ocr repository from a one-book pipeline that did not compile on a clean machine to a released v0.1.0 with a plugin architecture, profile-driven book policy, a PDF onboarding path, and a CI/release pipeline that runs green. It is written as a technical analysis rather than a changelog: the emphasis is on why each change took the shape it did, which invariants were preserved and how that preservation was proven, and which engineering rules generalize beyond this repository. Two earlier notes cover the May 2026 sprint that built the underlying system: [[ARTICLE - Structured Book OCR - Target Page Contracts Workflow Runtime and Production Hardening]] and [[ARTICLE - Book OCR Project Report - Structured Workflow Runtime and Manual PDF Repair]].
 
 > [!summary]
