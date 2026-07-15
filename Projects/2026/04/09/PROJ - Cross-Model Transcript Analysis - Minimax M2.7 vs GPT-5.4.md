@@ -22,6 +22,54 @@ repo: /home/manuel/workspaces/2026-04-08/sqleton-minitrace
 
 # Cross-Model Transcript Analysis - Minimax M2.7 vs GPT-5.4
 
+> [!warning] Deprecated command examples — rewritten below
+> This note ran its four core queries with `go-minitrace query duckdb` against `sessions_base` using `UNNEST(tool_calls)` and double-quoted `json_extract` comparisons. The DuckDB backend has been removed; use `go-minitrace query run` and the normalized `tool_calls` table instead. The cross-model comparison methodology and conclusions are unchanged. Full deprecation map and migration table: [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+>
+> Rewritten command and the four migrated queries:
+>
+> ```bash
+> # was: go-minitrace query duckdb --archive-glob '<glob-pattern>/*.minitrace.json' --sql-file scripts/analysis/01-tool-frequency.sql
+> go-minitrace query run \
+>   --archive-glob '<glob-pattern>/*.minitrace.json' \
+>   --sql-file scripts/analysis/01-tool-frequency.sql
+> ```
+>
+> ```sql
+> -- 1. Tool frequency (was UNNEST + json_extract)
+> SELECT s.agent_framework AS framework,
+>        tc.tool_name,
+>        COUNT(*) AS calls
+> FROM tool_calls tc
+> JOIN sessions s USING (session_id)
+> GROUP BY framework, tc.tool_name
+> ORDER BY calls DESC;
+>
+> -- 2. File touch frequency (no more double-quoting: tc.tool_name = 'read', not '"read"')
+> SELECT tc.file_path, tc.tool_name AS tool, COUNT(*) AS count
+> FROM tool_calls tc
+> JOIN sessions s USING (session_id)
+> WHERE tc.tool_name IN ('read', 'write', 'edit')
+>  AND tc.file_path IS NOT NULL
+> GROUP BY tool, tc.file_path
+> ORDER BY count DESC
+> LIMIT 40;
+>
+> -- 3. Build/test cycles (command is a real column now; no CAST AS VARCHAR needed for LIKE)
+> SELECT
+>  CASE
+>    WHEN tc.command LIKE '%go build%' THEN 'go-build'
+>    WHEN tc.command LIKE '%go test%'  THEN 'go-test'
+>    ELSE 'other'
+>  END AS cmd_type,
+>  COUNT(*) AS count
+> FROM tool_calls tc
+> JOIN sessions s USING (session_id)
+> WHERE tc.tool_name = 'bash'
+>  AND (tc.command LIKE '%go build%' OR tc.command LIKE '%go test%')
+> GROUP BY cmd_type
+> ORDER BY count DESC;
+> ```
+
 This project documents a systematic comparison of two AI coding agent sessions implementing the same feature (sqleton-style verb query loading for go-minitrace) using different models: MiniMax-M2.7 (minimax) and GPT-5.4. The analysis used go-minitrace to convert session transcripts into analyzable format, then ran SQL queries to extract behavioral patterns, tool usage statistics, and code quality metrics. The goal was to understand how these models differ in approach, efficiency, and output quality when tasked with identical coding problems.
 
 > [!summary]

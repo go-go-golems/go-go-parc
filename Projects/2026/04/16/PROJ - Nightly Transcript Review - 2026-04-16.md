@@ -20,6 +20,28 @@ repo: /home/manuel/code/wesen/corporate-headquarters/go-minitrace
 
 # Nightly Transcript Review - 2026-04-16
 
+> [!warning] Deprecated command examples — rewritten below
+> This note's query bundle invokes `go-minitrace query duckdb` and references the DuckDB static-link build conflict. The DuckDB backend has been removed entirely, which also resolves the build conflict described here. Run the nightly query bundle with `go-minitrace query run` instead. The nightly-review methodology (convert, run a query catalog, synthesize a report) is unchanged. Full deprecation map and migration table: [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+>
+> ```bash
+> # was: go-minitrace query duckdb --archive-glob ... --sql-file scripts/01-tool-frequency.sql
+> go-minitrace query run \
+>   --archive-glob '<glob-pattern>/*.minitrace.json' \
+>   --sql-file scripts/01-tool-frequency.sql
+> ```
+>
+> The tool-frequency SQL migrates from `UNNEST(tool_calls)` to a join on the `tool_calls` table:
+>
+> ```sql
+> -- was: FROM sessions_base, UNNEST(tool_calls) AS t(tc)
+> --      SELECT json_extract(tc, '$.tool_name') AS tool_name, COUNT(*) AS calls
+> SELECT tc.tool_name, COUNT(*) AS calls
+> FROM tool_calls tc
+> JOIN sessions s USING (session_id)
+> GROUP BY tc.tool_name
+> ORDER BY calls DESC;
+> ```
+
 This note is a manager-style technical report for the work captured across the previous day’s Pi and Codex sessions. It is based on the nightly minitrace analysis bundle, the generated markdown report, and the ticket docs that were built around the review workflow.
 
 > [!summary]

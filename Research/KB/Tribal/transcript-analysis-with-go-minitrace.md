@@ -9,6 +9,9 @@ created: 2026-05-11
 
 # Transcript Analysis with go-minitrace — How We Do It
 
+> [!warning] Deprecated engine references — see migration guide
+> This Tribal entry describes the workflow as "convert logs into `.minitrace.json`, query with DuckDB". The DuckDB backend (`go-minitrace query duckdb`) has been removed. The workflow shape is unchanged — convert, query, then read the transcript for evidence — but the query step now uses `go-minitrace query run` against the normalized SQLite schema (`sessions`, `turns`, `tool_calls` tables). The diagram line `DuckDB SQL / query catalog` should be read as `SQLite SQL / query catalog`. Full deprecation map and SQL rewrite table: [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 > [!summary]
 > Our standard workflow for turning agent session transcripts into analyzable evidence: convert raw Pi/Codex/Claude logs into minitrace archives, query them with DuckDB/SQL, read sessions through structured transcript views, and preserve human judgments through annotations and exported reports.
 

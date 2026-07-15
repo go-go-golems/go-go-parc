@@ -22,6 +22,43 @@ source_repo: /home/manuel/workspaces/2026-04-07/glaze-help-browser/glazed
 
 # Code Review with go-minitrace: Post-Session Analysis Playbook
 
+> [!warning] Deprecated command examples — rewritten below
+> This note was written against the now-removed DuckDB backend. Its `go-minitrace query duckdb` blocks no longer run; use `go-minitrace query run` on the normalized SQLite engine instead. The methodology and code-review priorities below are still valid — only the commands and SQL dialect are stale. Full map and migration table: [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+>
+> The rewritten equivalents for the queries in this note:
+>
+> ```bash
+> # was: go-minitrace query duckdb --archive-glob ... --preset framework-summary
+> go-minitrace query run \
+>   --archive-glob './analysis/review/active/*/*.minitrace.json' \
+>   --preset framework-summary
+>
+> # was: go-minitrace query duckdb ... --sql-file scripts/01-tool-frequency.sql
+> go-minitrace query run \
+>   --archive-glob './analysis/review/active/*/*.minitrace.json' \
+>   --sql-file scripts/01-tool-frequency.sql
+>
+> # was: ... --sql "SELECT COUNT(*) FROM sessions_base"  (sessions_base compat view still works)
+> go-minitrace query run \
+>   --archive-glob './analysis/review/active/*/*.minitrace.json' \
+>   --sql "SELECT COUNT(*) FROM sessions_base"
+> ```
+>
+> The tool-frequency SQL itself should also be migrated. The old form `FROM sessions_base, UNNEST(tool_calls) AS t(tc)` with `json_extract(tc, '$.tool_name') IN ('"read"', ...)` double-quoting becomes a direct join on the `tool_calls` table with no quote-doubling:
+>
+> ```sql
+> -- was: FROM sessions_base, UNNEST(tool_calls) AS t(tc)
+> --      WHERE json_extract(tc, '$.tool_name') IN ('"read"', '"write"', '"edit"')
+> SELECT s.agent_framework AS framework,
+>        tc.tool_name,
+>        COUNT(*) AS calls
+> FROM tool_calls tc
+> JOIN sessions s USING (session_id)
+> WHERE tc.tool_name IN ('read', 'write', 'edit')
+> GROUP BY framework, tc.tool_name
+> ORDER BY framework, calls DESC;
+> ```
+
 A workflow for using `go-minitrace` to analyze a completed Pi or Codex coding session, extract evidence about what confused the agent, what was rewritten repeatedly, and where the resulting code needs extra scrutiny. Then use that evidence to drive a targeted code review before merging.
 
 > [!summary]

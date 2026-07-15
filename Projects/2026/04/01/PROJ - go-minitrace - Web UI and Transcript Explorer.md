@@ -20,6 +20,9 @@ repo: /home/manuel/code/wesen/corporate-headquarters/go-minitrace
 
 # go-minitrace Web UI and Transcript Explorer
 
+> [!warning] Deprecated engine references — see migration guide
+> This note describes the web UI's SQL workbench as running "ad hoc DuckDB SQL" against a resident in-process DuckDB connection. The DuckDB backend has been removed. The web UI's SQL workbench now runs against the normalized SQLite engine (`go-minitrace query run`'s same engine); preset and saved queries use the normalized schema (`sessions`, `turns`, `tool_calls`) rather than `sessions_base` JSON blobs and `UNNEST`. The in-process-connection design constraint (the browser talks to a small API server that keeps the archive loaded) is unchanged — only the underlying SQL engine changed from DuckDB to SQLite. Full deprecation map and SQL rewrite table: [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 The `go-minitrace` web UI is a browser front-end for exploring converted `.minitrace.json` archives without dropping into a shell for every question. It turns the existing CLI pipeline into an interactive system: load an archive once, browse sessions in a table, open a transcript as structured conversation blocks, and run ad hoc DuckDB SQL in the same process.
 
 > [!summary]

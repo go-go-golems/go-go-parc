@@ -21,6 +21,9 @@ repo: /home/manuel/code/wesen/corporate-headquarters/go-minitrace
 
 # go-minitrace Annotation System
 
+> [!warning] Deprecated engine references — see migration guide
+> This note describes a split-storage architecture of "SQLite for fast working writes, explicit sync back to `.minitrace.json`, and DuckDB for live read-side analytics", including a `DuckDB live read path via sqlite_scanner` section. The DuckDB backend has been removed from `go-minitrace`. The read-side analytical layer is now the same normalized SQLite engine that `go-minitrace query run` uses; annotations live in the `annotations` table of that normalized schema rather than being attached into DuckDB via `sqlite_scanner`. The split-storage principle (fast writes vs. read-side analysis vs. portable artifact) remains the right mental model — only the read-side engine changed. Full deprecation map and SQL rewrite table: [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 This note describes the annotation subsystem inside `go-minitrace`: what problem it solves, how a user works with it, how the storage model is designed, how it plugs into DuckDB and the web UI, and how it was implemented across the repo. It is best read as a follow-up to [[PROJ - go-minitrace - Web UI and Transcript Explorer]], but focused narrowly on the new human-annotation layer.
 
 > [!summary]

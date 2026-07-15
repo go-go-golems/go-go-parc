@@ -1,5 +1,8 @@
 # KB Batch 10: Minitrace Analytics and Transcript-Analysis Workflows
 
+> [!warning] Deprecated engine references — see migration guide
+> This batch summary repeatedly describes the standard workflow as "SQLite capture → DuckDB queries" and lists DuckDB as the analytical read layer. The DuckDB backend (`go-minitrace query duckdb`) has been removed and replaced by `go-minitrace query run` on a normalized SQLite engine. The storage principle the batch documents (SQLite for fast working writes, a separate read-side analytical layer, `.minitrace.json` as the portable artifact) still holds — the read-side layer is now also normalized SQLite rather than DuckDB. Full deprecation map and SQL rewrite table: [[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]].
+
 ## Batch scope
 
 This batch processes the handoff document's **Batch F — Minitrace analytics and transcript-analysis workflows**.
