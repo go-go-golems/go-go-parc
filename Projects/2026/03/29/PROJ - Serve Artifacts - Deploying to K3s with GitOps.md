@@ -24,6 +24,9 @@ ticket: HK3S-0016
 
 # Deploying the Claude Artifact Server to K3s with Full GitOps
 
+> [!warning] Partially superseded (2026-07-15)
+> This note describes the **stateless** deployment of the artifact server ("public stateless app, no secrets, no database"). The application has since been migrated to a **stateful** deployment — two `local-path` PVCs, a Vault-synced write token, off-node backups, and the GitHub-App GitOps-PR credential — and the delivery credential moved off the personal access token described below. For the current architecture and the migration's failure modes (a PVC sync-wave deadlock and a `--force`/`ServerSideApply` ArgoCD loop), see [[PROJ - Serve Artifacts Stateful Migration - PVCs, Vault Write-Token, and an ArgoCD Sync-Wave Deadlock]]. The narrative below is retained as the historical record of the first deployment.
+
 This is a detailed account of deploying the `serve-claude-experiments` Go application as a public web service at `https://artifacts.yolo.scapegoat.dev`. The deployment follows the platform's established CI/CD pattern: GitHub Actions builds and publishes a container image to GHCR, then opens a pull request against the GitOps infrastructure repository, and Argo CD reconciles the desired state into the K3s cluster.
 
 The project is interesting as a deployment case study because it exercises the simplest possible deployment category (public stateless app, no secrets, no database) while still hitting two real build-time surprises and one CI pipeline design bug.

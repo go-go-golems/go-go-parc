@@ -692,6 +692,9 @@ kv/ci/github/retro-obsidian-publish/gitops-pr-token
 - Should Argo CD hard refresh be added to an operator runbook for this app, or was the observed delay just normal polling behavior?
 - Should every source repository use the same GitHub App installation, or should each deployment family get its own App? The single-App pattern is simpler; per-app identities make audit and revocation narrower.
 
+> [!note] Follow-up (2026-07-15)
+> The `serve-artifacts` deployment reused this exact flow and became the **first App-based `gitops_pr_roles` entry codified in Terraform** (the `retro-obsidian-publish` migration above was applied to live Vault by script and never committed). It reuses the shared `wesen-gitops-pr-bot` App by copying its `app_id` + `private_key` into a per-repo Vault path, which is the single-App answer to the open question. See [[PROJ - Serve Artifacts Stateful Migration - PVCs, Vault Write-Token, and an ArgoCD Sync-Wave Deadlock]].
+
 ## Related files and artifacts
 
 - `/home/manuel/code/wesen/2026-05-13--retro-obsidian-publish/.github/workflows/publish-image.yaml`
