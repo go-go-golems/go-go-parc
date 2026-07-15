@@ -22,6 +22,9 @@ created: 2026-07-15
 repo: /home/manuel/workspaces/2026-06-30/benchmark-cpu-inference/researchctl
 source_skill: /home/manuel/.pi/agent/skills/go-minitrace-transcript-analysis/SKILL.md
 experiment_run: /tmp/pi-subagent-rag-session-eval
+skill_revision_before: 064f187
+skill_revision_after: 58bc1a3fa9c043dddadc35c12224d796317eb853
+researchctl_fixture_commit: 8b35856a83682d943fe75c26a24d0eafce4d3994
 related_reports:
   - "[[PROJECT REPORT - go-minitrace Skill Repair and PR 95 Session Recovery]]"
   - "[[ARTICLE - go-minitrace Query Engine Migration - DuckDB to Normalized SQLite]]"
@@ -342,11 +345,13 @@ go-minitrace convert codex \
   --output-dir ./analysis/codex
 ```
 
-### 8.3 Logical-session collisions across Codex rollouts
+### 8.3 Parent/subagent normalization collisions in Codex conversion
 
-Multiple Codex rollout files represented the same logical session ID. Converting them into one output directory produced one normalized archive, so source rollouts were collapsed or overwritten. The worker recovered by converting each rollout into a separate output directory and selecting the original July 9 source as authoritative.
+A later check of native `session_meta` corrected the worker's initial description of this failure. The three July 14 Codex files have distinct native `payload.id` values. Each is a subagent session whose `payload.source.subagent.thread_spawn.parent_thread_id` points to the July 9 parent session `019f4805-c991-70b3-ae0d-855c389d79d7`. They are not native files reusing the parent ID, and the available metadata does not justify calling them resume snapshots.
 
-This behavior requires an explicit preflight and postflight check. The number of input source files must be compared with generated archives, and `sessions.session_id` must be compared with `sessions.source_path`. Once a source has been overwritten in an output directory, a wider query glob cannot recover it.
+The current converter normalizes each child source to the parent thread ID. Converting the parent and children into one output directory therefore makes all four sources target the same normalized archive path, causing outputs to be collapsed or overwritten. The worker recovered by converting each native source into a separate output directory and selecting the original July 9 source as authoritative for the implementation history. The implementer conclusion remains correct; the corrected explanation identifies the collision as converter parent-identity normalization.
+
+This behavior requires an explicit preflight and postflight check. Native IDs and parent-thread links must be recorded before conversion. The number of input source files must be compared with generated archives, and normalized `session_id` values must be compared across source-specific outputs. Once a source has been overwritten in an output directory, a wider query glob cannot recover it.
 
 ### 8.4 Command-specific help was not enforced
 
@@ -411,7 +416,7 @@ For the go-minitrace skill, the accepted patch set should include:
 1. Correct the Codex cwd-discovery description.
 2. Document `--source-session` and `--source-list` for Codex conversion.
 3. Replace default staging with direct narrow conversion.
-4. Add logical-session collision detection and per-rollout output guidance.
+4. Add native Codex parent/subagent auditing, parent-identity collision detection, and per-source output guidance.
 5. Require command-specific help before discovery and conversion.
 6. Add a repository-history attribution procedure.
 7. Define implementer, reviewer, investigator, and reference-only roles.
@@ -645,7 +650,7 @@ Represent evaluator findings as candidates. Add a human review command or workbe
 
 ### Phase 5: Add holdout scenarios
 
-Create scenarios for workspace-cwd discovery, long-lived resumed sessions, auto-review transcript contamination, duplicate logical session IDs, failed nested shell commands, and manifest drift. Keep expected answers unavailable to workers.
+Create scenarios for workspace-cwd discovery, long-lived multi-repository sessions, auto-review transcript contamination, Codex parent/subagent normalization collisions, failed nested shell commands, and manifest drift. Keep expected answers unavailable to workers.
 
 ### Phase 6: Integrate with researchctl
 
@@ -694,7 +699,23 @@ The run is not yet a complete comparative experiment. It tested one model, one s
 - Rerun known fixtures for regression and holdout fixtures for generalization.
 - Keep run records append-only; revise interpretations through new adjudications and reports rather than rewriting historical evidence.
 
-## 18. Related notes
+## 18. Implementation update
+
+The first improvement cycle is now committed rather than remaining a proposal. The go-minitrace skill revision `58bc1a3` corrects Codex cwd discovery and source-selection flags, adds native parent/subagent auditing, documents converter identity collisions, defines a repository-history attribution procedure, separates commit text matches from verified Git objects, adds role classification and diary-timing guidance, and moves advanced JavaScript query authoring out of the primary skill context.
+
+The observed run is preserved under `RESEARCHCTL-012` at:
+
+```text
+fixtures/agent-eval/rag-session-attribution-v1/
+```
+
+Researchctl commit `8b35856a83682d943fe75c26a24d0eafce4d3994` records the exact pre-repair skill revision `064f187`, prompt, native worker transcript, worker report, diary, SQL, evaluator report and queries, launch failures, environment, expected answer, fixture manifest, and checksums. The acceptance script passes 17/17 checks, and reconverting the preserved native session reproduces the one failed worker tool call.
+
+The fixture stores the original Markdown artifacts under `.txt` names and packages the exact skill snapshot as `skill-snapshot.tar`. This preserves their bytes while preventing docmgr from interpreting copied artifacts as managed ticket documents. The final ticket passes `docmgr doctor` cleanly.
+
+A new patched-skill worker was deliberately not launched against the live native stores. Those stores now contain the first worker, evaluator, parent conversation, and this answer-bearing report. Such a run could recover the expected session from later investigation material instead of executing the intended attribution procedure. The next execution should use a bounded read-only source snapshot or a separate holdout scenario.
+
+## 19. Related notes
 
 - [[go-minitrace]] — current knowledge map for transcript conversion, normalized SQLite analysis, annotations, and evidence workflows.
 - [[researchctl]] — current knowledge map for research graphs, executable experiments, artifacts, and evidence import.
