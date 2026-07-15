@@ -26,6 +26,8 @@ repo: /home/manuel/workspaces/2026-06-02/goja-text/goja-text
 
 # Goja Text - Sanitizing and Extracting Structured Data from Messy Text
 
+This is the messy-input and recovery branch of the [[goja-text]] project map.
+
 `goja-text` started as a Markdown parser binding, but the more interesting shape emerged in the second and third tickets. The project became a small text-processing runtime for JavaScript scripts that need Go-grade parsers, repair algorithms, and provenance-aware extraction helpers. The two modules covered here are `require("sanitize")`, which repairs YAML and JSON, and `require("extract")`, which finds structured-data candidates inside larger text before validating them.
 
 > [!summary]

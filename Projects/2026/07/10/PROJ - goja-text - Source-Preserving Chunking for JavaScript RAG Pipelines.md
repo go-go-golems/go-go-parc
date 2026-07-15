@@ -22,6 +22,8 @@ ticket: GOJA-TEXT-006
 
 # goja-text — Source-Preserving Chunking for JavaScript RAG Pipelines
 
+This is the current retrieval/provenance branch of the [[goja-text]] project map.
+
 Chunking becomes a systems problem when the output must support retrieval, citations, reproducible experiments, and multiple embedding models. A string splitter can produce pieces of text. It cannot, by itself, prove that every source byte survived, identify the original byte range of each piece, preserve a Markdown fence, or explain why a chunk exceeded a model budget. PR [go-go-golems/goja-text#10](https://github.com/go-go-golems/goja-text/pull/10) adds those missing semantics to `goja-text` through a new Go-backed JavaScript module named `chunking`.
 
 The implementation separates two operations that are often combined prematurely. Segmentation identifies source boundaries and returns a lossless partition. Packing combines complete spans under a byte, rune, word, or caller-supplied weight budget. JavaScript composes these operations, while Go owns source coordinates, validation, progress guarantees, and diagnostics.

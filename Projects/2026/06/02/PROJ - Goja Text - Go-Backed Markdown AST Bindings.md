@@ -23,6 +23,8 @@ repo: /home/manuel/workspaces/2026-06-02/goja-text/goja-text
 
 # Goja Text - Go-Backed Markdown AST Bindings
 
+This is the structured-Markdown foundation note in the [[goja-text]] project map.
+
 `goja-text` is a Go module that exposes text algorithms to JavaScript through `go-go-goja`. The first implemented module is `require("markdown")`: it parses Markdown with goldmark, converts the goldmark AST into a Go-backed `MarkdownNode` tree, and projects that tree into JavaScript so scripts can inspect fields such as `node.Type`, `node.Children`, `node.Level`, `node.Destination`, and `node.SourcePos`.
 
 > [!summary]

@@ -23,6 +23,8 @@ ticket: TINYIDP-EXTERNAL-DEMO-001
 
 # tiny-idp: From an Embedded Provider to a Standalone Docker OIDC Service
 
+This note is indexed under deployment and standalone service packaging in the [[tiny-idp]] project map.
+
 This report records the construction and verification of a complete two-process
 OpenID Connect demonstration: a standalone `tiny-idp` provider and a separate
 Message Desk relying-party application. Both processes are packaged for Docker

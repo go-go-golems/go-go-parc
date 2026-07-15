@@ -24,6 +24,8 @@ ticket: TINYIDP-EMBED-FOUND-001
 
 # tiny-idp: Public Embedding Foundations for Browser and Device Applications
 
+This note is indexed under public embedding in the [[tiny-idp]] project map.
+
 A Go package becomes usable when an application can construct it, provision its prerequisites, operate it, test it, and shut it down through supported public contracts. `tiny-idp` already had a strict OpenID Provider, durable SQLite state, production checks, and an embedding constructor. The remaining application path still depended on private account, signing-key, store, and same-process transport details. A host could instantiate the provider, but it could not assemble a complete identity subsystem without reproducing repository internals.
 
 `TINYIDP-EMBED-FOUND-001` closes that gap. It publishes a public account lifecycle service, adds declarative browser and device client bootstrap, provisions the initial signing key without exposing its representation, implements a bounded exact-issuer `http.RoundTripper`, migrates the xapp to the public boundary, and enforces the boundary with a repository-specific Go analyzer. The result is a concrete composition path for a browser application today and a stable client model for a later device-authorization application.

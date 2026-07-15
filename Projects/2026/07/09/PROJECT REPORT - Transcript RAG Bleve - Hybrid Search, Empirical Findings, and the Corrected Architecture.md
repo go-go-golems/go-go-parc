@@ -23,6 +23,8 @@ repo: /home/manuel/code/wesen/2026-07-09--transcript-rag
 
 # PROJECT REPORT - Transcript RAG Bleve - Hybrid Search, Empirical Findings, and the Corrected Architecture
 
+This is the empirical architecture branch of the [[goja-bleve]] project map.
+
 > [!warning] Conclusion superseded (2026-07-13)
 > This report's conclusion — keep brute-force cosine, use application-level RRF — was based on validation against `bleve.memory()`, which goja-bleve 0.0.5 built as an upsidedown index (vector kNN requires scorch). goja-bleve 0.0.6 fixed the memory index and exposed IVF params; re-testing on a persistent scorch index showed 100% kNN recall and a true native RRF union. The project now uses native bleve kNN + RRF. See [[Projects/2026/07/13/PROJECT REPORT - Transcript RAG Bleve - goja-bleve 0.0.6 and the Native RRF Restoration]]. The API/build/invariant descriptions below remain accurate; only the architecture conclusion is superseded.
 

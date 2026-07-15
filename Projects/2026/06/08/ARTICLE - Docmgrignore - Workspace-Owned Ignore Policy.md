@@ -21,6 +21,8 @@ pull_request: https://github.com/go-go-golems/docmgr/pull/40
 
 # Docmgrignore: Building a Workspace-Owned Ignore Policy
 
+This is the workspace-boundary branch of the [[docmgr]] project map.
+
 This report explains the implementation of workspace-wide `.docmgrignore` support in `docmgr`. The work started with a concrete failure: a ticket-local `scripts/node_modules` directory contained Markdown files from Playwright, and `docmgr doctor` treated those files as managed documentation. The symptom was a set of frontmatter errors for files that were never intended to be part of the documentation workspace.
 
 The final design makes ignore policy a property of the workspace. `Workspace` constructs one matcher, indexing uses that matcher before frontmatter parsing, `doctor` consumes the indexed result instead of reimplementing ignore semantics, and `docmgr ignore explain` exposes the decision path for a given file. The implementation uses `github.com/denormal/go-gitignore` rather than a handwritten glob engine.

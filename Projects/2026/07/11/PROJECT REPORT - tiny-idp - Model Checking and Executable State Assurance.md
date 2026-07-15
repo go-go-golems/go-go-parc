@@ -24,6 +24,8 @@ ticket: TINYIDP-PROD-IMPL-001
 
 # Model Checking and Executable State Assurance for tiny-idp
 
+This is the assurance and state-model branch of the [[tiny-idp]] project map.
+
 ## Executive summary
 
 tiny-idp has a substantial executable state-assurance program but only a narrow

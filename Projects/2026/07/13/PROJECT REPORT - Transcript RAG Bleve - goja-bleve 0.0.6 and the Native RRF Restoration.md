@@ -23,6 +23,8 @@ supersedes: "[[Projects/2026/07/09/PROJECT REPORT - Transcript RAG Bleve - Hybri
 
 # PROJECT REPORT - Transcript RAG Bleve - goja-bleve 0.0.6 and the Native RRF Restoration
 
+This is the current release and ranking-correction branch of the [[goja-bleve]] project map.
+
 This note corrects the conclusion of the earlier Transcript RAG Bleve report. That report concluded that bleve kNN was unusable and that the semantic leg had to stay as a brute-force cosine scan in JavaScript. The conclusion was wrong. It was an artifact of validating against `bleve.memory()`, which goja-bleve 0.0.5 built as an upsidedown index. Vector kNN executes through scorch, so the in-memory index returned empty results and made both the recall measurement and the fusion measurement fail. goja-bleve 0.0.6 fixed the memory index to use scorch and exposed the FAISS IVF probe parameters. Re-tested against a persistent scorch index — the index type production actually uses — bleve kNN has 100% recall and native reciprocal-rank fusion produces a true lexical∪semantic union. The project now runs the original design: one bleve index holds text and vectors, and a single native RRF search fuses the two legs.
 
 This note is written for an engineer who read the earlier report and needs to know what to believe instead. It states what changed, proves the correction with a re-test, and records the lesson. It does not use analogies.

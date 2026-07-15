@@ -21,6 +21,8 @@ repo: /home/manuel/workspaces/2026-05-27/rag-evaluation-system/goja-bleve
 
 # Goja Bleve: Native Search Bindings for JavaScript RAG Pipelines
 
+This is the native-binding foundation note in the [[goja-bleve]] project map.
+
 `goja-bleve` is a native Go module that exposes Bleve full-text search, vector search, and hybrid score fusion to JavaScript running inside the `goja` runtime. The module is designed for RAG evaluation scripts that need to compose file access, databases, chunking, embeddings, and retrieval logic from JavaScript while keeping the core search objects implemented in Go.
 
 The project started from a precise requirement: use JavaScript as the orchestration language, but do not reduce Bleve's mappings, queries, indexes, batches, and KNN requests to untyped JavaScript maps. The resulting design uses a fluent JavaScript API backed by Go references hidden on wrapper objects. JavaScript receives ergonomic builders; Go retains type safety and calls the real Bleve API.

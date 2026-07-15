@@ -13,6 +13,8 @@ ticket: TINYIDP-ACCOUNT-CHOOSER-001
 
 # tiny-idp: Multi-Account Browser Sessions, Account Choice, and Logout Scopes
 
+This note is indexed under browser sessions and logout behavior in the [[tiny-idp]] project map.
+
 This report records the work completed after the public-embedding foundations report. The work turns a provider that can authenticate one browser session into a system that can represent a bounded set of remembered identities, let a relying party request a standard account-selection interaction, let the user choose another identity without weakening fresh-authentication policy, and distinguish a relying-party logout from provider-wide browser logout.
 
 > [!summary]

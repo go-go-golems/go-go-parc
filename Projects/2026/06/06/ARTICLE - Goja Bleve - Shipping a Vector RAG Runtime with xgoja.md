@@ -25,6 +25,8 @@ related:
 
 # Goja Bleve: Shipping a Vector RAG Runtime with xgoja
 
+This is the generated-host and packaging branch of the [[goja-bleve]] project map.
+
 The first goja-bleve report explained the core binding: JavaScript receives a fluent `require("bleve")` API, while mappings, indexes, queries, batches, KNN clauses, and search requests remain Go-backed values. This follow-up explains what happened after that point. The project moved from a complete native module to a generated xgoja runtime that can embed documents with Geppetto, index them into Bleve vector fields, run KNN or hybrid RRF search, survive review feedback, and document the FAISS build requirements precisely enough that the vector build can be reproduced.
 
 The important change is not a new search primitive. The search primitives already existed by the end of the earlier article. The new work is about shipping conditions: generated host composition, build-time linker configuration, jsverb command shape, review hardening, CI constraints, and operational documentation. Those details decide whether the module is useful outside a direct Go unit test.

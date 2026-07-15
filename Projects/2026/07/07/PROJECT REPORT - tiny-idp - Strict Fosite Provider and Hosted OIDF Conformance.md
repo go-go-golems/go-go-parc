@@ -24,6 +24,8 @@ repo: /home/manuel/workspaces/2026-07-07/prod-tiny-idp/tiny-idp
 
 # tiny-idp: Strict Fosite Provider and Hosted OIDF Conformance
 
+This is the protocol and conformance foundation in the [[tiny-idp]] project map.
+
 This report explains the production reorganization of `tiny-idp` as a complete technical system. The work changed `tiny-idp` from a single local mock OpenID Connect provider into a dual-engine project: the existing mock engine remains available for relying-party failure testing, while a new strict engine uses Ory Fosite, durable protocol storage, server-side browser sessions, persistent consent, key rotation, audit hooks, and hosted OpenID Foundation Basic OP conformance validation.
 
 The repository is `/home/manuel/workspaces/2026-07-07/prod-tiny-idp/tiny-idp`. The main docmgr ticket is `TINYIDP-PROD-001`, stored under `ttmp/2026/07/07/TINYIDP-PROD-001--production-embeddable-idp-reorganization/`. The final hosted conformance summary is `reference/03-hosted-oidf-basic-op-conformance-summary.md` in that ticket workspace.

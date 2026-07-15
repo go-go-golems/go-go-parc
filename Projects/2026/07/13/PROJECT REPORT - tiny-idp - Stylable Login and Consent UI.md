@@ -22,6 +22,8 @@ ticket: TINYIDP-UI-001
 
 # tiny-idp: Building a Stylable Login and Consent UI Without Weakening the Identity Provider
 
+This is the browser-presentation branch of the [[tiny-idp]] project map.
+
 The visible result of this project is a login screen that can carry an application's visual identity. The engineering result is more substantial. `tiny-idp` now has a constrained presentation interface that permits product-owned HTML and CSS while keeping OAuth and OpenID Connect authority inside the identity provider.
 
 That distinction matters. A login page is not an ordinary application form. It receives credentials, carries an opaque continuation handle, participates in forced reauthentication, presents consent, and determines whether an authorization request proceeds or is denied. A rendering extension that gains control over any of those decisions becomes an authentication extension. The implementation therefore treats styling as a capability-design problem rather than as template replacement.

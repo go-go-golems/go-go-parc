@@ -23,6 +23,8 @@ source_ticket: GOJA-TEXT-004
 
 # goja-text — Template and HTML Rendering Module
 
+This is the rendering and output-boundary branch of the [[goja-text]] project map.
+
 ## A Complete Native Module from Design to Bundled Examples
 
 > [!summary]

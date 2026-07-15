@@ -25,6 +25,8 @@ repo: /home/manuel/workspaces/2026-07-07/prod-tiny-idp/tiny-idp
 
 # tiny-idp: Production Embedding API, Security Hardening, and Release Evidence
 
+This is the current embedding and release-hardening branch of the [[tiny-idp]] project map.
+
 This report explains the second production-engineering stage of `tiny-idp`: the work required after a protocol-capable OpenID Provider existed, but before that provider could be treated as a production release. The repository already had a strict Ory Fosite engine, durable SQLite protocol state, server-side sessions, consent, signing keys, and successful hosted OpenID Foundation Basic OP evidence. The July 9 review then evaluated the assembled product at its public API, persistence, authentication, operations, and release boundaries. That review correctly returned a no-go decision.
 
 The subsequent implementation program replaced the unusable embedding boundary, made security transitions transactional, replaced WAL-unsafe backup with verified SQLite online backup, bounded password work, made abuse controls and audit mandatory, separated liveness from readiness, added maintenance and key-retention lifecycles, implemented a hardened production host, and built repository-specific static and runtime analysis tooling. Candidate commit `29309814f1fcdad3a5134674fc27a8938cb39c6a` passed the complete local engineering gate. It remains intentionally **not approved for production** because exact-artifact hosted conformance, signed release artifacts, SBOM/provenance output, license reconciliation, target-environment proof, independent review, and release-owner approval are still open.
