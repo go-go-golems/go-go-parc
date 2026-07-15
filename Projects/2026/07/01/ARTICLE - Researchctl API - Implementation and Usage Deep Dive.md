@@ -27,6 +27,8 @@ source_tickets:
 
 The `researchctl` API models a research project as a typed graph of goals, questions, hypotheses, work packages, experiments, sources, evidence, decisions, reports, review rules, and views. The implementation gives this graph three authoring forms: YAML, JSON, and a trusted JavaScript grammar exposed through `require("researchctl")`. All three forms produce the same Go `ResearchProjectSpec`, pass through the same structural validator, and feed the same filesystem, completion-rule, and report-rendering subsystems.
 
+This is the research-graph half of [[researchctl]], whose companion codesign runtime is documented in the linked codesign API and implementation reports.
+
 > [!summary]
 > - The core API is a typed graph model with stable IDs and validated references. The graph records why work exists, what claims are under test, what evidence was collected, and which decisions were made from that evidence.
 > - The JavaScript API is a graph-construction grammar, not an execution runtime. It builds specs and validates them; it does not run experiments, write files directly, or expose `require("codesign")` during project loading.

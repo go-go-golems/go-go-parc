@@ -23,6 +23,8 @@ repo: /home/manuel/workspaces/2026-06-30/benchmark-cpu-inference/researchctl
 
 This report explains the second major stage of `researchctl`: the implementation of a deterministic CPU/GPU codesign experiment runtime inside the Go repository. The first stage made `researchctl` a project-graph tool: it could load research projects, validate claims and evidence, generate filesystem plans, run completion checks, and render reports. This stage adds the missing execution path. A research project can now describe an experiment, scaffold a `CodesignRun` file, execute that run with a deterministic simulator, persist a manifest, and convert the manifest into reviewable evidence patches for the research graph.
 
+This report is part of the [[researchctl]] knowledge map; read that note first for the relationship between the research graph DSL and the codesign runtime.
+
 The implementation lives in `/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference/researchctl` on branch `task/benchmark-cpu-inference`. The main ticket is `RESEARCHCTL-002`, stored under `ttmp/2026/06/30/RESEARCHCTL-002--cpu-gpu-codesign-experiment-implementation-guide`. The relevant implementation commits are `fb6bdb2`, `628d6e8`, `932e6d1`, `a80435e`, `c5915cb`, `62fe51e`, `7c17a06`, and `cce02e1`.
 
 > [!summary]

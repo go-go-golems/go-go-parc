@@ -23,6 +23,8 @@ repo: /home/manuel/workspaces/2026-06-30/benchmark-cpu-inference/researchctl
 
 This article reports the results of running thirty-six simulation experiments that reproduce the performance concepts of *AI Systems Performance Engineering* (Chris Fregly, O'Reilly, 2025), and it does so in a literate style: the important parts of the code that produced each result are woven into the prose, with the codesign JavaScript API explained as it is used. The previous article in this vault documented the experiments as a plan. This one documents what the code looks like and what happened when it ran. Thirty-four of thirty-six experiments validated their hypotheses.
 
+This is the results entry in the [[researchctl]] knowledge map; the experiment plan and runtime implementation are linked there as companion notes.
+
 The experiments are authored as JavaScript programs, not as YAML configuration, and executed by a standalone xgoja-generated host. The codesign simulator exposes a JavaScript API through `require("codesign")` that defines custom device cost formulas, scheduling policies, metrics, sweeps, and artifact writers directly from script. Because the experiments needed functions more than static data, hand-authored YAML was the wrong surface. No experiment required a Go recompile. Every custom cost formula is a JavaScript callback device.
 
 ## How to run an experiment

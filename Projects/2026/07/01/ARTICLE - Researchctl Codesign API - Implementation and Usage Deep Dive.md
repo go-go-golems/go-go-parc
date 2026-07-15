@@ -27,6 +27,8 @@ source_tickets:
 
 The `codesign` API in `researchctl` is a deterministic experiment runtime for studying CPU/GPU placement, workload shape, scheduling policy, artifact provenance, and parameter sweeps. It is implemented as a Go simulation core with a JavaScript workbench layer exposed through `require("codesign")`. The Go layer owns the data model, validation, simulator, registries, metrics, artifacts, and CLI execution. The JavaScript layer gives researchers a compact grammar for constructing and running experiments without recompiling the binary.
 
+This is the execution half of [[researchctl]], complementing the research-project graph API documented in [[Researchctl API - Implementation and Usage Deep Dive]].
+
 > [!summary]
 > - The codesign runtime models one experiment as `topology + workload + policy + metrics`, validates it as a `CodesignRun`, executes a deterministic event-producing simulator, and writes provenance-preserving artifacts.
 > - The JavaScript API is a fluent workbench grammar over the Go model. Builders produce plain JSON-shaped specs, and service functions validate, run, summarize, sweep, compare, hash, and write artifacts.

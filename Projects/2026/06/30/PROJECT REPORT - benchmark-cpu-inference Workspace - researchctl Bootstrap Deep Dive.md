@@ -38,6 +38,8 @@ CPU inference benchmarking needs more than a one-off script. The benchmark runne
 
 The workspace is also deliberately multi-repository. The benchmark target is expected to sit near the boundary between a Go CLI, a JavaScript runtime host, and low-level runtime behavior. `go-go-goja` provides the host-side runtime composition APIs and native-module system. `goja` provides the JavaScript interpreter. `glazed` provides the structured CLI substrate. `researchctl` is the new command surface that can depend on or inspect those systems without mixing benchmark-specific concerns into their main repositories.
 
+The later research graph and codesign runtime are collected in the [[researchctl]] knowledge map.
+
 The design starts with repository topology because topology controls how future work will be reviewed. If benchmark code is written directly inside `go-go-goja`, it risks becoming coupled to host internals too early. If it is written outside the workspace, it becomes harder to test against local runtime changes. The chosen structure keeps `researchctl` separate while still compiling it against local workspace modules when needed.
 
 ## Repository and workspace facts

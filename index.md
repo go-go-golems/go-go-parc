@@ -26,6 +26,7 @@ The bulk of the vault lives here. Browsing by date shows the chronological arc o
   - `Fundamentals/` — Universal CS/engineering concepts (encoding, access control, rendering pipelines)
   - `On-Ramp/`** — Concepts you need before working on a project (ESC/POS printing, OAuth flows, Tree-sitter)
   - `Tribal/`** — Patterns specific to this body of work (goja embedding, IIFE cell rewrite, reduction-ladder debugging)
+  - `Projects/` — Durable project maps of related reports and articles (for example, `researchctl` and `go-minitrace`)
 - **`Research/Institute/`** — Research institute: long-form investigations
   - `Articles/`, `Books/`, `Guidelines/`, `Magazine/`, `Proposals/`, `Technical Reports/`, `Wiki/`
   - `Research/` — Deep research projects with source material

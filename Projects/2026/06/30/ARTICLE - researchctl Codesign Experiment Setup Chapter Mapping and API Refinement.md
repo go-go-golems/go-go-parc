@@ -23,6 +23,8 @@ repo: /home/manuel/workspaces/2026-06-30/benchmark-cpu-inference/researchctl
 
 This article documents the preliminary research that prepares a CPU/GPU codesign simulator to reproduce the performance concepts of four chapters of *AI Systems Performance Engineering*. It covers three things: the study of the existing `researchctl` codesign simulator, the mapping of chapter concepts onto that simulator's primitives, and the set of application-programming-interface refinements the study surfaced. It includes a worked example — a roofline simulation — that runs today, and it states precisely which concepts require new simulator capabilities. The goal is to record, before any heavy implementation, exactly what the simulator can already express and where its boundaries are.
 
+This article is indexed by the [[researchctl]] knowledge map and is the planning/catalog entry for the later runtime and validation reports.
+
 > [!summary]
 > This report covers four things you should take away:
 > 1. What the codesign simulator is: a discrete-event scheduler over devices that estimate task cost, with an extensible registry of devices, policies, and metrics.
