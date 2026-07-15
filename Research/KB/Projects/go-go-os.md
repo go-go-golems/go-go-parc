@@ -76,7 +76,7 @@ The important boundaries are package versus application, provider events versus 
 - [[ARTICLE - Agent a14y for Go-Hosted React Docs - Converting docsctl from SPA Shell to Agent-Readable Site]] — agent-readable Go-hosted docs.
 - [[ARTICLE - Static-Sites Deployment - A Three-Contract Model for Shipments]] — static delivery contracts.
 - [[ARTICLE - ArgoCD Reorganization - From Flat List to Structured Platform]] — deployment organization.
-- [[PROJECT REPORT - Hetzner K3s Platform — ArgoCD Reorganization and Cleanup]] — platform deployment.
+- [[Projects/2026/06/06/ARGOCD Reorg/PROJ - Hetzner K3s Platform — ArgoCD Reorganization and Cleanup]] — platform deployment.
 
 ## Recommended reading path
 
