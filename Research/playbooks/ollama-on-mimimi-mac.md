@@ -59,6 +59,77 @@ Both HTTP listeners are loopback-only. Keep it that way:
 - Do not add `-g`, `0.0.0.0`, reverse forwarding, or a firewall exception.
 - The tunnel carries no API key. SSH authentication is the access boundary.
 
+## Tailscale status and direct-access decision
+
+The Mac's Tailscale daemon was verified active on 2026-07-15:
+
+```text
+MagicDNS: mimimi.tail879302.ts.net
+IPv4:     100.113.140.75
+```
+
+At that time, a direct request to
+`http://mimimi.tail879302.ts.net:11434/api/tags` was refused. This is expected:
+Tailscale makes the Mac reachable, but Ollama remains bound to
+`127.0.0.1:11434`, so it does not accept traffic addressed to the Mac's
+Tailscale IP.
+
+The SSH tunnel remains the working default because it preserves this loopback
+boundary. There are two deliberate alternatives if direct Tailnet access is
+desired:
+
+1. Bind Ollama only to the Mac's Tailscale IPv4 address
+   `100.113.140.75:11434` and enforce access with Tailscale ACLs. This exposes
+   native Ollama HTTP to permitted tailnet peers, so make the access policy
+   explicit first.
+2. Configure Tailscale Serve on the Mac to proxy a Tailnet endpoint to
+   `http://127.0.0.1:11434`. This keeps Ollama loopback-only and lets Tailscale
+   own the network-facing listener, but it is still an infrastructure change
+   requiring an explicit service and ACL decision.
+
+### Preferred direct-access setup: Tailscale Serve
+
+Prefer Tailscale Serve over changing `OLLAMA_HOST`. It retains the local
+loopback listener and publishes an HTTPS endpoint that is reachable only by
+Tailnet members permitted by the Tailnet access policy.
+
+On the Mac, after confirming that the Tailnet policy permits the intended
+callers, run:
+
+```bash
+tailscale serve --bg http://127.0.0.1:11434
+tailscale serve status
+```
+
+The first command may require an interactive Tailnet administrator approval to
+enable HTTPS certificates. `--bg` makes the mapping persist across shell exits
+and Tailscale restarts. The native Ollama API base URL for permitted peers then
+becomes:
+
+```text
+https://mimimi.tail879302.ts.net
+```
+
+Validate it from another Tailnet peer:
+
+```bash
+curl -fsS https://mimimi.tail879302.ts.net/api/tags | jq -r '.models[].name'
+```
+
+Remove the published mapping when it is no longer wanted:
+
+```bash
+tailscale serve off
+```
+
+Do not use the raw `--tcp=11434` forwarding mode unless a client cannot use the
+HTTPS URL. It has a narrower compatibility benefit while giving up the HTTPS
+reverse-proxy boundary. In either mode, restrict access explicitly with
+Tailnet ACLs; the Ollama API itself has no built-in authentication.
+
+Do not bind Ollama to `0.0.0.0` merely to make the service reachable through
+Tailscale; that also exposes it on ordinary LAN interfaces.
+
 ## Verify the remote server
 
 First check SSH reachability and the model inventory. This does not start a
