@@ -21,6 +21,8 @@ repo: /home/manuel/workspaces/2026-07-03/improve-rag-evaluation-system/rag-evalu
 1
 # Widget DSL Grammar: Designing an Intent-Level UI Authoring Layer for a Widget IR System
 
+This is the grammar foundation in the [[widget-dsl]] project map.
+
 This article documents the design and implementation of a grammar layer for a family of JavaScript UI DSLs embedded in a Go runtime. The work went from a measured audit of a degraded admin page, through a diagnosis of why component-catalog DSLs produce that degradation, to a working implementation: field roles, an order-preserving schema constructor, `record` and `collection` verbs that compile to existing widget IR, a flat sectioning primitive, and a module reorganization that avoided adding a sixth DSL module. The reference system is `rag-evaluation-system` (the widget package and its Go DSL) and `go-go-course` (the consuming application). The full research record lives in the repo tickets `RAGEVAL-CMS-WIDGETS` and `RAGEVAL-UI-GRAMMAR` under `ttmp/2026/07/`.
 
 > [!summary]

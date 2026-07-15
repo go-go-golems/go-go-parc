@@ -24,6 +24,8 @@ related:
 
 # Vault OIDC for GitHub Actions: Secretless CI to GitOps
 
+This is the CI credential-boundary branch of the [[infrastructure-and-release]] project map.
+
 This report explains the GitHub Actions OIDC integration added to the K3s Vault platform in `HK3S-0028`. The implemented system lets a trusted GitHub Actions workflow authenticate to Vault with a short-lived GitHub-issued OIDC token, receive a short-lived Vault token, read the GitOps pull-request credential from Vault, open a deployment pull request, and let Argo CD reconcile the cluster after merge.
 
 The first live proof used the `bot-signup` repository. The second proof applied the same pattern to `hair-booking`. Both source repositories now have no direct `GITOPS_PR_TOKEN` repository secret, both workflows read repo-specific GitOps PR credentials from Vault through GitHub Actions OIDC, both opened GitOps PRs, and Argo CD reconciled both applications to `Synced Healthy`.

@@ -23,6 +23,8 @@ repo: /home/manuel/workspaces/2026-07-03/improve-rag-evaluation-system/rag-evalu
 
 # Widget DSL V2 Cutover: Typed Fluent Builders for Server-Driven Widget IR
 
+This is the typed-builder migration branch of the [[widget-dsl]] project map.
+
 This article is a technical report on the Widget DSL v2 cutover work in `rag-evaluation-system` and `go-go-course`. It explains why the current Widget DSL grammar was useful but insufficient, how the v2 typed/fluent builder layer is being introduced, what has been implemented so far, how the live examples behave, and what remains before the old option-bag public API can be removed.
 
 The report is written as a deep dive rather than as a changelog. The implementation spans Go structs, Goja native modules, React Widget IR rendering, TypeScript action types, generated xgoja packages, embedded SPA assets, live demo pages, documentation cleanup, browser validation, and ticket bookkeeping. The central design decision is that v2 treats the old grammar as evidence, not as a contract. The new authoring layer builds typed intent specs first, validates them, and lowers them to the existing Widget IR renderer.

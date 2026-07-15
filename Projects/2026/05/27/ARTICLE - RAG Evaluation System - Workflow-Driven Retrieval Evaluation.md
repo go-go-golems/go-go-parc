@@ -22,6 +22,8 @@ repo: /home/manuel/workspaces/2026-05-27/rag-evaluation-system/2026-05-27--rag-e
 
 # RAG Evaluation System: Workflow-Driven Retrieval Evaluation
 
+This is the workflow and state-model foundation in the [[rag-evaluation-system]] project map.
+
 This report explains the RAG Evaluation System as it exists after the first implementation and stabilization pass. The project is a Go application with a SQLite state store, a Glazed command-line interface, an HTTP API, and a React frontend. Its purpose is to make document ingestion, chunking, embedding, search, reranking, and evaluation visible enough that an engineer can inspect each step of a retrieval pipeline rather than treating retrieval as a single opaque operation.
 
 The project is still in active development. The important result so far is not a complete retrieval product. The important result is a backend structure that can safely support the next phases: strategy-aware chunks, idempotent ingestion, service-layer behavior shared by CLI and HTTP, Geppetto-backed embedding provider resolution, and an embedding compute service with text-hash staleness checks.

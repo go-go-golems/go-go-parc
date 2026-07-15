@@ -21,6 +21,8 @@ source_ticket: XGOJA-015
 
 # Managing Go-Go-Golems Release Trains
 
+This is the release-train foundation in the [[infrastructure-and-release]] project map.
+
 A release train is the procedure for moving one change through several repositories that depend on each other. In the go-go-golems ecosystem, a change in `go-go-goja` can require follow-up work in `geppetto`, `pinocchio`, `discord-bot`, `go-minitrace`, `workspace-manager`, `goja-git`, `loupedeck`, and `css-visual-diff`. The technical problem is not only to update `go.mod`. The release train must prove that every downstream repository works with published module versions, that every pull request has completed CI, and that Codex review is either satisfied or explicitly addressed.
 
 This chapter explains that procedure from first principles. By the end, the reader should understand why dependency order controls merge order, why `GOWORK=off` is required for downstream validation, how the readiness scripts classify pull requests, and how early downstream PRs can reduce review latency without violating release ordering.

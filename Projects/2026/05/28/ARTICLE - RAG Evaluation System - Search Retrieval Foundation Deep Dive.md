@@ -23,6 +23,8 @@ repo: /home/manuel/workspaces/2026-05-27/rag-evaluation-system/2026-05-27--rag-e
 
 # RAG Evaluation System: Search Retrieval Foundation Deep Dive
 
+This is the retrieval-stack foundation in the [[rag-evaluation-system]] project map.
+
 This article explains the current search implementation in the RAG Evaluation System after the RAGEVAL-004 retrieval foundation work. The system can now build a BM25 index over persisted chunks, run lexical search, embed a live user query and compare it to stored chunk embeddings, merge BM25 and vector results with reciprocal-rank fusion, and run a small smoke-query suite against the corpus.
 
 The implementation is deliberately modest. It is not yet a benchmark system. It is the retrieval layer that makes benchmarks worth building. The important change is that the project can now take a real text query, run it against the The Tree Center corpus artifacts, and return ranked chunks with document/source context and previews. That creates a technical basis for inspecting retrieval quality before labeling evaluation sets or designing metrics.

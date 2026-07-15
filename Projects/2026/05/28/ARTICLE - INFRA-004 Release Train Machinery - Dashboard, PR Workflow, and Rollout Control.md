@@ -23,6 +23,8 @@ source_ticket: INFRA-004
 
 # INFRA-004 Release Train Machinery
 
+This is the release-dashboard and rollout-control branch of the [[infrastructure-and-release]] project map.
+
 This note explains the release train machinery built during the INFRA-004 rollout on 2026-05-28. The work was not only a set of package logger patches across Go-Go-Golems repositories. The central result was a controlled rollout system: a dependency-aware batch plan, a SQLite-backed progress tracker, an auto-refreshing dashboard, a repeatable PR readiness loop, and a corrected `ggg` action-status model where repositories with no workflow runs are terminally successful instead of blocking forever.
 
 > [!summary]

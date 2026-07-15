@@ -21,6 +21,8 @@ repo: /home/manuel/workspaces/2026-05-02/use-sessionstream-coinvault
 
 # Observer Instrumentation: Geppetto, Pinocchio, and Sessionstream Deep Dive
 
+This is the end-to-end observer and evidence branch of the [[sessionstream]] project map.
+
 This report explains the observer instrumentation work across Sessionstream, Pinocchio, and Geppetto. The purpose is not to list every commit. The purpose is to preserve the engineering model: where evidence is captured, why each boundary exists, how provider-level inference events become browser-visible timeline mutations, and what failure modes the new instrumentation can now diagnose.
 
 The work spans three repositories in `/home/manuel/workspaces/2026-05-02/use-sessionstream-coinvault`:

@@ -22,6 +22,8 @@ repo: /home/manuel/workspaces/2026-04-07/extract-webchat/sessionstream
 
 # Sessionstream — Replay Store Remediation and Systemlab UI Refinement
 
+This is the replay-store branch of the [[sessionstream]] project map.
+
 This report describes the sessionstream work completed on 2026-04-29. It is written as a technical narrative rather than as a changelog. The goal is to preserve the design reasoning behind the work: why replay semantics were added, why websocket command ingress was deliberately left out, why local storage now goes through SQLite, and why Systemlab had to become both a teaching instrument and a usable visual debugger.
 
 > [!summary]

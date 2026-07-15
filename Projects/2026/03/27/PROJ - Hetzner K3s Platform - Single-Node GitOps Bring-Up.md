@@ -18,6 +18,8 @@ repo: /home/manuel/code/wesen/2026-03-27--hetzner-k3s
 
 # Hetzner K3s Platform
 
+This is the platform bring-up branch of the [[infrastructure-and-release]] project map.
+
 This project is the new single-node deployment platform on Hetzner for `scapegoat.dev`. It replaces the earlier “one manually nurtured host plus Coolify” mental model with a narrower but cleaner stack: Terraform creates the machine, cloud-init bootstraps K3s, Argo CD becomes the steady-state cluster reconciler, and real applications are expected to land through GitOps rather than through one-off shell state.
 
 It is the foundation for the two follow-on reports in this folder: [[PROJ - Vault on K3s - Auth and Secret Delivery Platform]] and [[PROJ - CoinVault on K3s - First Real GitOps App]]. Without this note, those later two projects are harder to understand because they both depend on the cluster contract defined here.

@@ -22,6 +22,8 @@ author: GPT-5.6 - sol
 
 # RAG Evaluation: Building and Validating an Initial Fixed-Truth Dataset
 
+This is the fixed-truth evaluation branch of the [[rag-evaluation-system]] project map.
+
 Retrieval experiments become meaningful only after the expected result is represented as data with the same care given to the corpus, chunking plan, embedding model, and retrieval algorithm. A system can return plausible documents for a plausible query while still being impossible to compare across runs. If the query set is informal, if relevance labels change in place, if a document identifier can refer to different text over time, or if the currently favored retriever supplied every judged candidate, reported metrics do not describe a stable experiment.
 
 This report describes the first fixed-truth evaluation setup for the TTC RAG laboratory in `/home/manuel/workspaces/2026-07-13/rag-eval-ttc/rag-evaluation-system`. The work rebuilt the TTC source corpus, designed an immutable evaluation-data model, created twenty source-grounded candidate query cards through independent corpus reviews, and added a validator that checks the factual footing of the draft. The result is deliberately not yet a benchmark. It is a validated authoring draft that will become `ttc-baseline-eval-v1` only after document revisions, exact evidence ranges, pooled retrieval candidates, and human adjudication exist.

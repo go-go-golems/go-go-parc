@@ -20,6 +20,8 @@ repo: /home/manuel/workspaces/2026-07-03/improve-rag-evaluation-system/rag-evalu
 
 # CRM Widget Kit: Engine, Contract, and Preset over a Widget IR
 
+This is the reusable widget-engine branch of the [[widget-dsl]] project map.
+
 This project adds a CRM widget kit — a pipeline board, typed record pages, an activity timeline, a dashboard, and a task inbox — to the `rag-evaluation-site` component library. The feature set is deliberately conventional; a CRM is a well-understood product, and the point of building one here is not the product but the method. Every widget in the kit is constructed the same way: a generic **engine** owns arrangement and interaction, a fixed data **contract** connects the engine to the units it displays, and a domain **preset** configures the engine with CRM vocabulary. The kit is the second application of this method in the repository. The first, the scheduling widgets, proved the pattern on a Doodle-style poll; this one applies it to the harder case of a CRM, where the same five arrangement patterns must serve many object types and a field set that customers extend at runtime. The work lives in `packages/rag-evaluation-site/` inside the `rag-evaluation-system` repository, under ticket `RAGEVAL-CRM-WIDGETS`.
 
 > [!summary]

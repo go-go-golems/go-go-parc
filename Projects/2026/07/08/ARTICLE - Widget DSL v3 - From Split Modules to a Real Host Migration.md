@@ -27,6 +27,8 @@ source_ticket: RAGEVAL-SCHEDULE-WIDGETS
 
 # Widget DSL v3: From Split Modules to a Real Host Migration
 
+This is the host-migration branch of the [[widget-dsl]] project map.
+
 This article explains the `widget.dsl` v3 project as a complete technical arc: why the old split-module DSLs were no longer sufficient, how the new v3 module was designed, how it was implemented in phases, how it was validated through golden IR, Storybook, xgoja preview hosting, and browser automation, and how the real `go-go-course` host was migrated to depend on `widget.dsl` rather than the legacy split modules.
 
 The project was consequential because it moved the widget authoring layer from a set of domain-local component factories toward a single compositional language for server-rendered React interfaces. The final result is not merely a new module name. It is a runtime surface, a TypeScript declaration strategy, an example corpus, a preview host, a migration checker, a Storybook regression suite, and a first real application migration.

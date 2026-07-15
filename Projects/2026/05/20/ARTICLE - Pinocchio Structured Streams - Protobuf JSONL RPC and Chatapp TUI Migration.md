@@ -24,6 +24,8 @@ ticket: PIN-20260520-CLI-RPC-JSONL
 
 # Pinocchio Structured Streams: Protobuf JSONL RPC and Chatapp TUI Migration
 
+This is the canonical protobuf/JSONL and TUI migration branch of the [[sessionstream]] project map.
+
 This report explains the migration that changed Pinocchio command execution from several independent streaming paths into a shared chat application stream built on `sessionstream` and `pinocchio/pkg/chatapp`. The work began as a request for script-friendly JSONL/RPC output for Pinocchio verbs. It became a broader stream consolidation project: define a protobuf JSONL subprocess protocol, expose it from CLI verbs, route command TUI mode through the same chatapp/sessionstream projection path, and remove the old raw TUI forwarders that duplicated Geppetto event mapping.
 
 The implementation lives in `/home/manuel/workspaces/2026-05-20/pinocchio-structured-data-cli/pinocchio`. The ticket workspace is `/home/manuel/workspaces/2026-05-20/pinocchio-structured-data-cli/pinocchio/ttmp/2026/05/20/PIN-20260520-CLI-RPC-JSONL--add-jsonl-rpc-output-mode-to-pinocchio-verbs`.

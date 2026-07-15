@@ -26,6 +26,8 @@ related:
 
 # `ggg rollout` automation: real-world testing and implementation
 
+This is the rollout-automation branch of the [[infrastructure-and-release]] project map.
+
 `ggg rollout` is the second major step in turning go-go-golems release operations into typed, resumable, reviewable tooling. The first `ggg` work focused on pull request readiness, Codex review signals, YAML PR lists, and release tagging. The later work described in this report focuses on the part of a rollout that happens before and around PR readiness: repository inventory, rollout configuration, validation across many local checkouts, branch hygiene, PR publication plumbing, combined local/remote status, generated reports, and profile-specific planning.
 
 This report explains the implementation and the real testing work performed during the INFRA-002 Glazed lint rollout. It is written as a technical chapter for someone who needs to continue the system. The important idea is that the rollout was not only a feature implementation. It was tested against ten live repositories, ten live PRs, real Codex feedback, real CI states, existing Makefile variations, branch rewrite mistakes, stale feedback, and policy corrections discovered only after remote review.

@@ -20,6 +20,8 @@ repo: /home/manuel/workspaces/2026-05-02/use-sessionstream-coinvault
 
 # Instrumenting Sessionstream and Browser Streaming Debug Pipelines
 
+This is the transport-observability branch of the [[sessionstream]] project map.
+
 This article explains the observability architecture we built around `sessionstream` and Pinocchio's browser chat UI. The goal is not merely to say that we added logging. The goal is to show how a streaming system can be instrumented so that a future debugging session can answer a precise question: **where did this event disappear?**
 
 > [!summary]

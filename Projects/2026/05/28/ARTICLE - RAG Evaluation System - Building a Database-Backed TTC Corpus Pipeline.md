@@ -24,6 +24,8 @@ repo: /home/manuel/workspaces/2026-05-27/rag-evaluation-system/2026-05-27--rag-e
 
 # RAG Evaluation System: Building a Database-Backed TTC Corpus Pipeline
 
+This is the corpus-storage branch of the [[rag-evaluation-system]] project map.
+
 This report explains the database-backed corpus pipeline built for the RAG Evaluation System on 2026-05-28. The work started with a compressed The Tree Center development database dump and ended with a normalized SQLite corpus, an import path into the RAG application database, a bounded chunking sample, source-aware embedding coverage, and a live OpenAI embedding smoke test through Pinocchio/Geppetto profiles.
 
 The result is a reproducible path from a WordPress/WooCommerce MySQL dump to RAG-ready documents and chunks. The system now has two distinct corpus acquisition paths: Defuddle-based web extraction for public pages, and database-backed extraction for canonical WordPress content and product metadata. The database-backed path is more suitable for controlled evaluation because it preserves WordPress IDs, post types, publication status, taxonomy relationships, and product facts.

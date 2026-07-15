@@ -25,6 +25,8 @@ repo:
 
 # Sessionstream, Chatapp, and CoinVault Cleanup
 
+This is the ordering and transcript-segment branch of the [[sessionstream]] project map.
+
 This report explains the cleanup that turned a set of loosely connected streaming, chat, and runtime-debug paths into a more explicit protocol stack. The work touched `sessionstream`, Pinocchio's `pkg/chatapp` and shared chat plugins, CoinVault's sessionstream frontend/backend integration, and a small prerequisite fix in Geppetto's reasoning event stream.
 
 The main result is not a single feature. It is a set of contracts that now agree with each other: websocket frames are protobuf-defined, ordinals have explicit meanings, timeline entities preserve their creation and update positions, reasoning/tool-call behavior lives in shared plugins, and CoinVault consumes the shared protocol instead of carrying its own runtime-debug dialect.
