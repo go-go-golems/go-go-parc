@@ -159,14 +159,18 @@ If no chat-capable model is available, ask the Mac owner before downloading
 one; model pulls consume disk space and network bandwidth. Two useful current
 starting points are:
 
-- `qwen3:8b`: a 8.19B-parameter Q4_K_M model, listed at roughly 5.2 GB by the
-  Ollama library. This is the preferred first model for general local chat,
-  coding, and agent experiments where a roughly 7–8B model is the desired
-  operating point.
-- `gemma3:4b`: about 3.3 GB, with text and image input plus a 128K context
-  window. Choose this when fast, smaller multimodal experimentation matters.
-  `gemma3:12b` is the higher-quality Gemma option but is about 8.1 GB and
-  needs materially more memory; reserve it for a Mac that runs it comfortably.
+- `qwen3.5:9b`: the current default Qwen 3.5 tag is about 6.6 GB, supports
+  text and image input, tools and thinking, and has a 256K context window.
+  This is the recommended first general-purpose local model for chat, coding,
+  and agent experiments on this Mac.
+- `gemma4:12b`: about 7.6 GB, with text and image input and a 256K context
+  window. Use this when testing the current Gemma family or when its
+  multimodal and reasoning behaviour is the point of comparison.
+
+Both are current-generation models, not aliases for the older Qwen 3 or Gemma
+3 recommendations. Do not pull both by default: choose one, measure the Mac's
+responsiveness and memory pressure, then add the other only when comparison is
+useful.
 
 The Ollama library names are authoritative at pull time. Confirm free disk
 space and available memory first, then pull exactly one model as an explicit
@@ -175,14 +179,14 @@ app-bundle path:
 
 ```bash
 ssh mimimi-2.local \
-  '/Applications/Ollama.app/Contents/Resources/ollama pull qwen3:8b'
+  '/Applications/Ollama.app/Contents/Resources/ollama pull qwen3.5:9b'
 ```
 
 Or install the smaller multimodal option:
 
 ```bash
 ssh mimimi-2.local \
-  '/Applications/Ollama.app/Contents/Resources/ollama pull gemma3:4b'
+  '/Applications/Ollama.app/Contents/Resources/ollama pull gemma4:12b'
 ```
 
 The command runs the download on the Mac, so it continues to use the Mac's
@@ -200,7 +204,7 @@ curl -fsS http://127.0.0.1:11435/api/tags | jq -r '.models[].name'
 curl -fsS --max-time 180 http://127.0.0.1:11435/api/chat \
   -H 'Content-Type: application/json' \
   -d '{
-    "model": "qwen3:8b",
+    "model": "qwen3.5:9b",
     "stream": false,
     "messages": [{"role": "user", "content": "Reply with exactly: ready"}]
   }' \
@@ -228,8 +232,8 @@ for scripts; omit it or set `true` when consuming Ollama's streamed JSON
 responses.
 
 The model recommendations and reported sizes above are based on the current
-[Qwen3 8B Ollama listing](https://ollama.com/library/qwen3%3A8b) and
-[Gemma 3 Ollama listing](https://ollama.com/library/gemma3). Consult the
+[Qwen 3.5 Ollama listing](https://ollama.com/library/qwen3.5) and
+[Gemma 4 Ollama listing](https://ollama.com/library/gemma4). Consult the
 library immediately before a large pull because available tags and sizes can
 change.
 
