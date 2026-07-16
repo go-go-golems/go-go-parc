@@ -5,6 +5,8 @@ aliases:
   - Atkinson Dithering Thermal Printer
   - Thermal Printer Heat Calibration
   - Bitmap Fonts Thermal Printing
+  - Crisp Small Text Thermal Printer
+  - Anti-aliasing Off Thermal Rendering
 tags:
   - article
   - thermal-printer
@@ -12,6 +14,9 @@ tags:
   - halftoning
   - image-processing
   - bitmap-fonts
+  - font-hinting
+  - anti-aliasing
+  - supersampling
   - esc-pos
   - go
   - almanach
@@ -179,7 +184,7 @@ A comparison card rendered the same text three ways: anti-aliased vector under t
 
 The result is unambiguous. The anti-aliased section breaks up badly by 8 pixels. Disabling anti-aliasing helps but the glyphs are blocky and still crumble at the smallest size. The bitmap section is crisp all the way down: the 6×9 and 6×10 fonts are more legible than the 11-pixel anti-aliased line above them, counters stay open at 5×7, and even 4×6 is readable. For small text on this class of device, the font choice dominates every host-side algorithm trick.
 
-The production consequence is that the render pipeline should use a pixel or bitmap web font for small text, with font smoothing disabled and glyphs placed at native device pixels, rather than relying on the dithering stage to rescue anti-aliased vector text.
+The production consequence looked, at first, like "use a pixel web font." It is not that simple, because the production renderer draws through Chrome rather than a direct rasterizer, and Chrome will not use a web font's embedded bitmap strike. What actually works in the pipeline — disabling anti-aliasing, choosing a well-hinted font, and setting it large enough — is worked out in the follow-up section below, and it reframes this whole result: the lesson is not "ship a bitmap font" but "let the font's own hinting make the one-bit decision."
 
 ## Putting it together: per-segment heat
 
@@ -215,8 +220,8 @@ Every value below was confirmed on the physical K118, not chosen from a screen p
 | Content | Recipe |
 |---------|--------|
 | Photographs and continuous-tone art | Atkinson dithering, gamma 0.8, density ≈ 20, speed 80 |
-| Small text | Bitmap font, 6×9 or 6×10 as the sweet spot |
-| Text heat | Density ≈ 28–32; slower speed to suppress power droop |
+| Small text (render) | 1× anti-aliasing-off, a well-hinted font (DejaVu Serif/Sans) set large enough, bold for the smallest and for italic — see the production follow-up. A bitmap font is ideal only when drawn directly, not via a web font. |
+| Text heat | Density ≈ 30–38 (38 read best on hinted fonts); density matters more than speed |
 | Mixed pages | Per-segment density and speed on the existing segmented path |
 | High-contrast line art, QR codes | Fixed threshold |
 
@@ -262,14 +267,73 @@ The failures below are the ones that cost the most time, stated so they can be r
 ## Working rules
 
 - Default photographs to Atkinson with gamma near 0.8, and tune density downward until the shadows stop merging.
-- Default small text to a bitmap font sized 6×9 or 6×10; reserve anti-aliased vector fonts for large text.
+- For small text in a Chrome-rendered pipeline, disable anti-aliasing and pick a well-hinted font set large enough (bold for the smallest and for italic); reach for supersampling only for a delicate display font you refuse to change. A directly-drawn bitmap font is the ideal, but the browser will not use a web font's embedded bitmap strike.
 - Treat density and speed as content-dependent, and set them per segment on mixed pages.
 - Keep a byte-identical threshold path so any rasterization change is reversible, and assert it with a test.
 - When a printed artifact varies within a single line, suspect power droop and lower the speed before touching anything else.
+
+## Follow-up: making small text legible in the production renderer
+
+The bitmap-font result above was proven with a Python rasterizer that drew glyphs directly. Production renders differently: headless Chrome turns an HTML page into the screenshot, and only then does the 1-bit conversion run. Reproducing "use a bitmap font" inside that pipeline turned out to be neither possible nor necessary. This section is the production follow-through, and it is worth reading in full because it reversed its own conclusion twice — and each reversal came from a printed page rather than an argument.
+
+### Why the obvious fix does not work: embedded-bitmap web fonts
+
+The direct translation of "use a bitmap font" is to serve the browser a web font that carries the pixel design as embedded monochrome bitmap strikes (the OpenType `EBDT`/`EBLC` tables), applied to small-text elements at the strike's native pixel size. The render browser already captures at device-pixel-ratio 1, so a `font-size: 9px` element occupies exactly nine device pixels, which is where a 9-pixel strike should land verbatim.
+
+It failed. A classic X11 PCF font was converted to an OpenType font carrying its bitmap strike (fontforge, run headless), embedded via `@font-face`, and rendered at 384 pixels. Chrome did not use the strike. Blink renders the font's vector outlines and ignores embedded monochrome bitmaps for normal text; the outlines that fontforge auto-traced from the bitmap were crude, so the custom font rendered *worse* than the stock font. In the figure below, the left half is anti-aliased-on and the right half anti-aliased-off; the custom "AlmanachPixel" rows are degraded on both sides, because in both cases Chrome is drawing outlines, not the strike.
+
+![[Attachments/almanach-raster/pixelfont-aa-off-vs-on.png]]
+
+### Disabling anti-aliasing
+
+The mechanism that actually helps is upstream of any font choice. On Linux, Chrome rasterizes text through FreeType, and whether FreeType anti-aliases is a fontconfig decision, not a CSS one — `-webkit-font-smoothing` is a no-op in Chrome on Linux. Supplying the render browser a fontconfig file with `antialias=false` (through the `FONTCONFIG_FILE` environment variable, set on the browser process) switches FreeType to its monochrome rasterizer. That rasterizer makes the black-or-white decision per pixel *with hinting applied*, so it preserves stems the same way it does on a low-resolution screen.
+
+The effect is measurable: the render screenshot goes from a few percent gray pixels to **zero**. There is no longer any light-gray fringe for the downstream luminance threshold to discard, so nothing drops. In the figure above, the right (anti-aliasing-off) column keeps the 8-pixel vector line legible where the left column has already broken it up. The important shift is conceptual: the 1-bit decision moves from a dumb luminance threshold applied after the fact to FreeType's hint-aware rasterizer applied at draw time.
+
+Anti-aliasing off is enough for a well-hinted font. It is not enough for every font, which is the next problem.
+
+### Supersampling: rescuing delicate fonts without changing them
+
+A delicate serif such as EB Garamond renders roughly even with anti-aliasing off, and worst of all in its italic, because its slanted hairline serifs are thinner than a pixel and italic hinting is weak. Supersampling addresses this without touching the font. The page is rendered at three times the device resolution with anti-aliasing on, so a stroke one target-pixel wide is captured across three source pixels; the screenshot is then box-averaged back down to the target resolution and thresholded. A stroke that would have vanished at 1× survives as a run of gray that the threshold keeps.
+
+The implementation has two sharp edges. First, the scale must actually take: `chromedp.EmulateViewport` defaults the device scale factor to 1 and would override the launch flag, so the factor is set through `chromedp.EmulateScale`, verified by the screenshot coming out three times as wide. Second, the downscale must be fast — a naive `image.At()` box average took seventeen seconds on a full page — so the decoded screenshot is drawn once into a packed RGBA buffer and the inner loop indexes the pixel bytes directly with fixed-point luminance weights, which brings a 3× render to about two and a half seconds.
+
+Supersampling works: the small serif italic that was broken at 1× becomes complete while still looking like a serif. It shipped first as the default.
+
+### The font/size/technique/heat matrix
+
+Then the question was posed properly. Rather than argue about techniques, a harness rendered the same small text across six fonts, sizes eight through sixteen, five techniques (1× anti-aliasing-off, 2×/3×/4× supersampling, and a darker-threshold variant), and a grid of printer densities and speeds — every sheet downsampled to the 384-pixel target exactly like the pipeline, self-labeled with its settings, printed, and read on paper.
+
+The font comparison is the first result. A well-hinted font stays crisp to eight or nine pixels; a lightly-hinted one does not, in any technique.
+
+![[Attachments/almanach-raster/pixelfont-font-matrix.png]]
+
+Four findings came out of the matrix, and the first two overturned earlier decisions:
+
+- **The font's hinting quality dominates.** DejaVu Serif and DejaVu Sans are crisp small; EB Garamond, DM Sans, and Noto Sans are rough small regardless of technique.
+- **For a hinted font, 1× anti-aliasing-off is as crisp as — usually crisper than — supersampling, and about three times faster.** Bytecode hinting is designed to snap stems to exact pixels, and supersampling bypasses hinting entirely by rendering large and shrinking. This reversed the supersampling default.
+- **Effective size is set by x-height, not nominal size.** EB Garamond has a small x-height and renders two to three pixels smaller than DejaVu at the same `font-size` (Garamond 16–17 reads like DejaVu 11–12), so a delicate face must simply be set larger.
+- **Weight is the biggest remaining lever.** Heavier strokes survive the threshold far better, and bold italic is legible where normal italic is not.
+
+![[Attachments/almanach-raster/pixelfont-weight-sweep.png]]
+
+The printer heat sweep closed the loop with the earlier heat work. Across densities 24–38 at speeds 37 and 80, **density ≈ 38 read best, and the two speeds were not visibly distinguishable** on these fonts — so the faster speed stays, and only the density matters for text.
+
+### The shipped decision and the recipe
+
+The default render technique is now **1× anti-aliasing-off**: sharper for a hinted font and three times faster. Supersampling remains available as an opt-in (`--supersample`) for anyone who insists on a delicate display font rendered small. The byte-compatible packed-bitmap contract is unchanged throughout.
+
+The rest of the recipe is a set of typographic choices rather than pipeline code, because the matrix showed that the font and its size do more for legibility than any rasterization trick. For crisp small thermal text: pick a **well-hinted font** (DejaVu Serif for a serif look, DejaVu Sans for maximum crispness) or set a delicate face like EB Garamond about three points larger; use **bold or medium weight for the smallest and for italic text**; keep text from getting too small in the first place; and print at **density ≈ 38**.
+
+### The lesson
+
+The fix migrated from "ship a special font" to "turn anti-aliasing off, choose a hinted font, and don't set it too small" — and every step along the way was decided by a printed page, not by reasoning about rasterizers. The general rule for a one-bit device is that legibility is governed more by the font's hinting and its size than by any clever conversion technique layered on top. Techniques matter at the margin; the font and the size set the ceiling.
 
 ## Related notes
 
 - [[On-Ramp/dithering-and-rasterization]] — the standing knowledge-base entry on the three dithering families.
 - [[On-Ramp/esc-pos-thermal-printer]] — the `GS v 0` framing and the ESC/POS command reference.
+
+The small-text production work above is recorded run-by-run under the ticket `ALMANACH-PIXELFONT` at `ttmp/2026/07/16/` in the Almanach repository, with the font/heat matrix harness at `scripts/02-font-matrix.py`.
 
 The full run-by-run record, the experiment harness, the intern-oriented system guide, and the bundled bitmap fonts live in the Almanach repository under the ticket `ALMANACH-RASTER-LAB` at `ttmp/2026/07/16/`.
