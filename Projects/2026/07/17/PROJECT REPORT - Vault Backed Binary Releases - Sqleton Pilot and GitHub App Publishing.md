@@ -36,8 +36,9 @@ The important outcome is not simply that some values now live in Vault. The outc
 > - The release workflow uses GoReleaser Pro split builds for Linux and macOS, then invokes an infra-tooling reusable merge/publish workflow once.
 > - Static GoReleaser and Fury values were migrated through a one-time, exact-path workflow without printing them; Vault metadata records version `1` for the resulting paths.
 > - A private GitHub App, installed only on `go-go-golems/homebrew-go-go-go` with Contents read/write permission, replaced the Homebrew publisher PAT design. Its installation token was proven by creating and removing a temporary branch.
-> - The migration run and App proof run completed successfully. The completed temporary Vault roles are removed by merged Terraform PR #18; the corresponding Sqleton workflow-deletion PR #274 remains open and must be merged before the temporary manual entry points disappear from the repository.
+> - The migration run and App proof run completed successfully. Terraform PR #18 and Sqleton PR #274 remove the completed temporary role/workflow configuration; the remaining live temporary-role cleanup must be applied through its own reviewed plan.
 > - A real production tag still requires a focused GoReleaser v2 configuration-deprecation decision. `goreleaser check --soft` validated syntax; strict checking reports the existing deprecated configuration fields.
+> - The same Vault/App approach now also covers GitOps: Almanach creates a PR through a narrowly installed writer App, while Argo CD clones `wesen/crib-k3s` through a separate read-only App. The live cluster verified all six affected applications as `Synced` and `Healthy`.
 
 ## 1. Scope, repository map, and evidence
 
@@ -303,13 +304,140 @@ The implementation was reviewed and merged in independently scoped changes.
 | [terraform #17](https://github.com/wesen/terraform/pull/17) | Merged | Corrected bootstrap policy-field reference found by plan. |
 | [infra-tooling #25](https://github.com/go-go-golems/infra-tooling/pull/25) | Merged | Recorded live bootstrap and updated the contract harness for permanent state. |
 | [terraform #18](https://github.com/wesen/terraform/pull/18) | Merged | Deletes temporary bootstrap and verifier policy/role declarations. |
-| [sqleton #274](https://github.com/go-go-golems/sqleton/pull/274) | Open | Deletes the temporary manual workflows after their successful proof. |
+| [sqleton #274](https://github.com/go-go-golems/sqleton/pull/274) | Merged | Deletes the temporary manual workflows after their successful proof. |
 
 The successful migration run is [Sqleton Actions run 29618538658](https://github.com/go-go-golems/sqleton/actions/runs/29618538658). It completed the confirmation, secret-availability, OIDC, and two fixed Vault-write steps. The successful App proof is [Sqleton Actions run 29618554610](https://github.com/go-go-golems/sqleton/actions/runs/29618554610). It completed Vault read, App-token minting, temporary branch create, and cleanup. The ticket recorded KV metadata version `1` for all three target paths and confirmed no verifier branches remained.
 
-The permanent roles are merged, but the temporary-role deletion must still be applied to the live Vault environment after the merged Terraform cleanup configuration is planned and reviewed. The temporary workflow deletion is also not yet merged. Until that PR is merged, the repository retains manual entry points that should no longer be used. They do not belong in the steady state.
+The permanent roles are merged, and Sqleton's temporary workflow deletion is now merged. The temporary-role deletion still must be applied to the live Vault environment after the merged Terraform cleanup configuration is planned and reviewed. That remaining cleanup must not be folded into an unrelated infrastructure mutation.
 
-## 10. Production gate and residual work
+## 10. GitOps extension: writer and reader Apps have different trust boundaries
+
+The release-publishing work exposed a second GitHub credential problem in the
+same infrastructure. `go-go-golems/almanach` publishes a GHCR image and then
+opens a GitOps pull request against `wesen/crib-k3s`. Its
+`.github/workflows/publish-image.yaml` calls infra-tooling's reusable
+`publish-ghcr-image.yml` workflow with `gitops_pr_token_source: github_app`.
+The workflow reads an App ID and private key from
+`kv/ci/github/almanach-render-service/gitops-pr-app`, then calls
+`actions/create-github-app-token@v2` for the fixed `wesen/crib-k3s` target.
+
+The first live run, [Almanach run 29618613972](https://github.com/go-go-golems/almanach/actions/runs/29618613972), successfully built and pushed the image but failed in the `Open GitOps PR` job. The failing step was specifically `Mint GitHub App token for GitOps repository`. GitHub returned `Not Found` from the endpoint that resolves an installation for the authenticated App. Vault read had already succeeded, so the failure was neither an OIDC failure nor a missing Vault policy. It meant that the App authenticated successfully but was not installed on the requested selected repository.
+
+The App installation was updated under the `wesen` account to include
+`crib-k3s`. Re-running only the failed job minted the installation token and
+created [crib-k3s PR #6](https://github.com/wesen/crib-k3s/pull/6), which
+updates the Almanach production image to
+`ghcr.io/go-go-golems/almanach:sha-305abd9`. This establishes a useful
+operational test: a real, ordinary publisher operation proves the App's
+selected-repository scope, token minting, and Contents write capability.
+
+Argo CD requires a different credential. The GitHub Actions publisher needs
+write access for short-lived automation. Argo CD's repository server needs to
+read the GitOps repository repeatedly and holds its configuration in the
+cluster. Reusing a writer App for this reader role would leave a write-capable
+private key in the cluster. The durable design therefore uses separate Apps:
+
+| Consumer | App authority | Vault record | Reason |
+| --- | --- | --- | --- |
+| Almanach GitHub Actions publisher | Contents read/write on `wesen/crib-k3s` | `kv/ci/github/almanach-render-service/gitops-pr-app` | Create a branch and pull request that changes an image reference. |
+| Argo CD repository server | Contents read on `wesen/crib-k3s` | `kv/ci/github/crib-k3s/argocd-repository-app` | List refs and clone manifests. It never writes GitOps branches. |
+
+```mermaid
+flowchart LR
+    Build[Almanach image workflow] --> WriterVault[Vault writer-App record]
+    WriterVault --> WriterToken[Short-lived GitHub App token]
+    WriterToken --> PR[GitOps PR on crib-k3s]
+    Argo[Argo CD repo-server] --> ReaderSecret[Argo repository Secret]
+    ReaderSecret --> ReaderKey[Read-only GitHub App key]
+    ReaderKey --> ReaderToken[Short-lived installation token]
+    ReaderToken --> Fetch[Fetch crib-k3s manifests]
+    PR --> Fetch
+```
+
+### 10.1 The stale PAT failure
+
+Before the reader-App migration, Terraform created the cluster Secret
+`argocd/repo-crib-k3s` from `kv/ci/github/gitops-pr-token`. The Secret used an
+HTTPS `username: x-access-token` plus `password` token form. This was a
+separate, older credential from the GitHub Actions writer-App record. Its
+token had become invalid or revoked.
+
+Argo CD made the operational effect visible: `almanach`, `argocd-crib`,
+`grafana-crib`, `jellyfin`, `platform-cert-issuer`, and `poll-modem` were all
+`Sync: Unknown` with the same comparison error:
+
+```text
+failed to list refs: authentication required: Invalid username or token.
+Password authentication is not supported for Git operations.
+```
+
+The error was emitted by `argocd-repo-server` while resolving
+`https://github.com/wesen/crib-k3s.git`. Local Git remotes and the historical
+`/home/manuel/code/wesen/2026-03-27--hetzner-k3s` checkout were not the live
+credential source. The current cluster uses the `crib-k3s` repository and its
+Kubernetes repository Secret.
+
+### 10.2 Terraform recovery and live proof
+
+An operator generated a dedicated `crib-k3s-argocd-reader` App key, installed
+it only on `wesen/crib-k3s`, and granted Contents read permission. The PEM was
+restricted to mode `0600`, validated without printing it, and stored directly
+in Vault at the reader-specific path. The record contains only `app_id` and
+`private_key`; the recorded Vault metadata version is `1`.
+
+[Terraform PR #19](https://github.com/wesen/terraform/pull/19), **use GitHub
+App for crib repository**, changed
+`vault/github-actions/envs/k3s/main.tf` from the PAT fields to Argo CD's native
+GitHub App repository fields:
+
+```hcl
+data "vault_kv_secret_v2" "crib_k3s_argocd_repository_app" {
+  mount = "kv"
+  name  = "ci/github/crib-k3s/argocd-repository-app"
+}
+
+data = {
+  type                = "git"
+  url                 = "https://github.com/wesen/crib-k3s.git"
+  githubAppID         = data.vault_kv_secret_v2.crib_k3s_argocd_repository_app.data["app_id"]
+  githubAppPrivateKey = data.vault_kv_secret_v2.crib_k3s_argocd_repository_app.data["private_key"]
+}
+```
+
+Argo CD v3.3.9 supports these fields and can discover the installation ID from
+the repository organization. Live logs confirmed that it auto-discovered the
+`wesen` installation and generated Almanach manifests successfully. The
+reader App's key fingerprint was compared locally and in the Kubernetes Secret
+without emitting the key. GitHub's App API also confirmed selected-repository
+scope and Contents read permission.
+
+The normal Terraform plan included seven unrelated pending destroys: the
+previous Sqleton temporary-role cleanup and an unrelated Almanach docsctl
+state discrepancy. No full apply occurred. A fresh saved targeted plan against
+the merged Terraform main branch contained exactly one in-place update to
+`argocd/repo-crib-k3s` and was applied. This was a documented recovery
+exception; the unrelated state must still be reconciled independently.
+
+After the Secret update, a hard refresh of the six affected Applications
+forced repository comparison through the new App credentials. All six reached
+`Synced`, `Healthy`, and had no `ComparisonError`. Repository-server logs no
+longer reported invalid credentials.
+
+### 10.3 The remaining secret-delivery boundary
+
+The App private key is not committed to source, a variable file, plan output,
+or documentation. Terraform reads the Vault record to populate the Kubernetes
+Secret. This is necessary for the current Terraform/Kubernetes-provider
+arrangement, but it means the encrypted remote Terraform state is a sensitive
+credential boundary. State access must remain tightly restricted and audited.
+
+An External Secrets or dedicated credential-provider migration would be the
+next architectural improvement. It would let the cluster synchronize the
+reader key from Vault without Terraform receiving and recording the key value.
+That work is outside this recovery; it should be designed and tested as a
+separate secret-delivery change.
+
+## 11. Production gate and residual work
 
 The pilot proves the credential and App paths. It does not certify the first production tag. The remaining work is explicit and bounded.
 
@@ -320,7 +448,7 @@ The pilot proves the credential and App paths. It does not certify the first pro
 5. **Update third-party actions before broad adoption.** The successful workflows emitted non-failing Node.js 20 deprecation warnings for `hashicorp/vault-action@v3` and `actions/create-github-app-token@v2` under GitHub’s Node 24 transition. Verify supported versions and behavior in an isolated update before copying this pattern to additional repositories.
 6. **Reconcile the unrelated Almanach Terraform drift in its own ticket.** The drift was intentionally excluded from the Sqleton plan. It should not be normalized by an unrelated release migration apply.
 
-## 11. Adoption principles for the next repository
+## 12. Adoption principles for the next repository
 
 The pilot establishes a reusable sequence, not a blind template copy.
 
@@ -337,7 +465,7 @@ The pilot establishes a reusable sequence, not a blind template copy.
 
 The companion reusable procedure is [[Research/playbooks/infra/PLAYBOOK - Vault Backed Go Binary Releases]]. It is written for a new repository and for an existing repository conversion. It includes inputs, Terraform and workflow contracts, bootstrap rules, test matrix, failure handling, and closure checklist.
 
-## 12. API and file reference
+## 13. API and file reference
 
 | Concern | File or API | Reader action |
 | --- | --- | --- |
@@ -348,8 +476,10 @@ The companion reusable procedure is [[Research/playbooks/infra/PLAYBOOK - Vault 
 | Contract test | `INFRA-007/scripts/check_sqleton_release_contract.sh` | Run it against explicit clean checkouts before a release change. |
 | App storage helper | `INFRA-007/scripts/03-store-homebrew-publisher-app.sh` | Use only from an authorized operator environment; it writes the fixed App path. |
 | Bootstrap runbook | `INFRA-007/reference/02-release-bootstrap-runbook.md` | Follow for a new migration; never paste values into tickets or shell history. |
+| Argo CD reader migration | `terraform/vault/github-actions/envs/k3s/main.tf` | Trace the reader-App Vault record into the `argocd/repo-crib-k3s` Secret. |
+| GitOps writer workflow | `infra-tooling/.github/workflows/publish-ghcr-image.yml` | Inspect App token minting and its fixed target repository input. |
 
-## 13. Final assessment
+## 14. Final assessment
 
 INFRA-007 produced a materially stronger release architecture for Sqleton. The release workflow is no longer an undifferentiated collection of repository secrets. It now has named policy boundaries, exact identity constraints, short Vault leases, a short-lived cross-repository GitHub token, a deterministic one-time migration path, executable cross-repository checks, and successful live proof of the credential and App write paths.
 
@@ -366,3 +496,4 @@ The project also demonstrates appropriate restraint. A successful bootstrap is n
 - [GitHub App installation authentication](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation)
 - [GitHub App private-key management](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/managing-private-keys-for-github-apps)
 - [Vault policies](https://developer.hashicorp.com/vault/docs/concepts/policies)
+- [Argo CD declarative GitHub App repository credentials](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/)
