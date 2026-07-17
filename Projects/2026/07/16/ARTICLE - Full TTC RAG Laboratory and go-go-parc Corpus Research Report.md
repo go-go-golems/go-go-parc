@@ -30,9 +30,9 @@ WhenToUse: ""
 
 This report records the design, implementation, experiments, and operating procedures for the TTC RAG laboratory. The laboratory is a self-contained research system in `rag-evaluation-system`. It indexes a frozen export of the TTC WordPress corpus, executes reproducible retrieval experiments, stores immutable run metadata, and exposes the results to a web application and JavaScript-oriented workflows. The report also describes the parallel corpus investigation performed over the `go-go-parc` Obsidian vault. The vault is treated as a second, heterogeneous corpus containing project notes, implementation diaries, design documents, playbooks, and code-oriented research records.
 
-The central engineering result is a measurable baseline rather than a claim that one retrieval method is universally superior. The TTC snapshot contains approximately 2,600 products, 483 posts, 121 pages, 35 FAQs, and 19 guides. Its canonical snapshot hash is `sha256:be434a1422487d33e324b5f3833067dcc530efab2df0fea2f7e7bfa9ca86f409`. The corresponding chunk set, BM25 index, and embedding artifact are separately identified by content hashes. The development candidate dataset contains 148 registered cards after excluding two cards whose source identifier was absent from the frozen export. On the 144 answerable development cards, vector retrieval was stronger than BM25 at the measured cutoffs, while reciprocal-rank fusion improved relevant-document recall at ten results but did not improve every top-rank metric.
+The central engineering result is a measurable baseline rather than a claim that one retrieval method is universally superior. The source inventory contains approximately 2,600 products, 483 posts, 121 pages, 35 FAQs, and 19 guides; the selected immutable TTC baseline snapshot contains 200 documents under fixed kind quotas. Its canonical snapshot hash is `sha256:be434a1422487d33e324b5f3833067dcc530efab2df0fea2f7e7bfa9ca86f409`. The corresponding chunk set, BM25 index, and embedding artifact are separately identified by content hashes. The corrected development candidate dataset `candidate:ttc-expansion-v1` contains 148 registered cards after excluding two source traces outside dataset membership and correcting five v0 queries truncated at apostrophes. On the 144 answerable development cards, vector retrieval was stronger than BM25 at the measured cutoffs, while reciprocal-rank fusion improved relevant-document recall at ten results but did not improve every top-rank metric.
 
-The current development result is provisional. The cards are model-authored and source-validated, but human adjudication, holdout execution, generation-quality scoring, parent-chunk collapse, original-source citation hydration, and reranker comparisons remain open. The report therefore distinguishes implemented facts, observed measurements, and hypotheses for the next experiment. It does not silently promote development measurements to a production quality claim.
+The current development result is provisional. The cards are model-authored and source-validated, but human adjudication, holdout execution, generation-quality scoring, parent-chunk collapse, original-source citation hydration, and reproducible real-reranker comparisons remain open. The external 148-card evidence has now been imported into researchctl and rerun natively with exact channel/final-document rank parity and aggregate metric parity. The vault remains an investigated design corpus rather than an implemented evaluated corpus. The report therefore distinguishes implemented facts, observed measurements, and pending work; it does not promote development measurements to a frozen benchmark or production-quality claim.
 
 The report is written for an intern who must be able to reproduce the current state, understand the data model, extend the laboratory, and avoid common evaluation errors. It includes API references, file references, pseudocode, Mermaid diagrams, shell and Go snippets, failure records, and a chronological diary. The authoring agent is GPT-5.6 (Sol).
 
@@ -48,7 +48,7 @@ The evaluation problem is constrained by four requirements:
 
 - A run must be reproducible from a content-addressed corpus, chunk, embedding, and configuration.
 - Search channels must be independently inspectable before fusion.
-- Evaluation cards must identify expected source documents and distinguish `0_FAIL`, `1_INCOMPLETE`, `2_SUBSTANTIAL`, and `3_AUTHORITATIVE` answer quality.
+- Evaluation cards identify expected source documents and distinguish `0_FAIL`, `1_PARTIAL`, `2_SUBSTANTIAL`, and `3_AUTHORITATIVE` answer quality.
 - The operator must be able to compare retrieval-only and generation-enabled pipelines while recording latency, token/model cost, and storage.
 
 ## Proposed Solution
@@ -97,7 +97,7 @@ ExperimentSpec {
 }
 ```
 
-The run identifier is derived from the canonical JSON representation of this value and the dataset version. The executor refuses to overwrite a completed run. A new model, prompt, index, or code revision creates a new run identity.
+The canonical scientific envelope produces a content-derived specification ID. A run ID is instead a fresh laboratory ULID representing one scientific replicate; repeated execution may reuse the specification ID while creating distinct runs and attempts. A changed model, prompt, index, or code revision changes specification identity. Prototype fingerprints and run IDs survive only as external provenance.
 
 ## Design Decisions
 
@@ -109,11 +109,11 @@ Current artifact identities:
 
 | Artifact | Identifier | Meaning |
 |---|---|---|
-| TTC snapshot | `sha256:be434a1422487d33e324b5f3833067dcc530efab2df0fea2f7e7bfa9ca86f409` | Frozen source export |
+| TTC snapshot | `sha256:be434a1422487d33e324b5f3833067dcc530efab2df0fea2f7e7bfa9ca86f409` | Selected immutable 200-document snapshot; not the full source inventory |
 | Chunk set | `sha256:ef7bdab76583f092d7bc50c9f501fe8c17739d395fcb37d0eaaba5a09c7c9392` | Canonical chunk rows |
 | BM25 index | `sha256:cf6491873ec521135ade41000800751dc8eeaecba52dabbeacda1cf530f7b691` | Lexical index artifact |
 | Embeddings | `sha256:2665c5249b8352ce6904fc00c934534dd179f3eeef0a6a75429a9034be0e03e0` | Existing Ollama 768D vectors |
-| Candidate dataset | `candidate:ttc-expansion-v0` | 148 source-validated cards |
+| Candidate dataset | `candidate:ttc-expansion-v1` | 148 provisional source-validated cards; five apostrophe-truncated v0 queries corrected immutably |
 
 The canonicalization implementation is in `internal/experiments/canonical.go`; the typed specification is in `internal/experimentspec/specification.go`; SQLite persistence is in `pkg/raglab/catalog_sqlite.go` and `pkg/raglab/executor_sqlite.go`.
 
@@ -149,7 +149,7 @@ The rubric is explicit and ordered:
 | Label | Numeric value | Definition |
 |---|---:|---|
 | `0_FAIL` | 0 | Incorrect, unsupported, or materially misleading |
-| `1_INCOMPLETE` | 1 | Some correct content, but omits a required fact or citation |
+| `1_PARTIAL` | 1 | Related material that misses a required condition or material answer part |
 | `2_SUBSTANTIAL` | 2 | Covers the principal answer with minor omissions |
 | `3_AUTHORITATIVE` | 3 | Complete, precise, source-grounded, and correctly cited |
 
@@ -168,7 +168,7 @@ Example exploratory script:
 ```javascript
 const run = rag.experiment("ttc-vector-vs-bm25")
   .corpus(rag.snapshot("sha256:be434...f409"))
-  .dataset(rag.dataset("candidate:ttc-expansion-v0").split("development"))
+  .dataset(rag.dataset("candidate:ttc-expansion-v1").split("development"))
   .representations(rag.representations()
     .raw({ chunker: "markdown-heading", maxTokens: 420 })
     .summary({ model: "qwen3.6", maxTokens: 96 })
@@ -183,7 +183,7 @@ const run = rag.experiment("ttc-vector-vs-bm25")
   .run();
 ```
 
-The example is an API target, not a promise that every method is already implemented. The current Go executor and the JavaScript examples should be extended in small increments, with each addition represented in the experiment spec and trace schema.
+The example is an API target, not a promise that every method is executable. The current native path supports raw BM25, vector, weighted RRF, document collapse, and explicit reranking capability. Filters remain authorable but are rejected before any observation or retrieval until every channel can enforce and trace them; summary/question representations and parent-chunk collapse are likewise rejected. Additions must land with specification semantics, capability validation, trace evidence, and tests rather than silent fallback.
 
 ## Alternatives Considered
 
@@ -269,7 +269,7 @@ function rrf(channelHits, k):
     return sortDescending(scores, provenance)
 ```
 
-The filter leak investigated during development occurs when a filter is applied to one channel before fusion but not to the other, or when an expected source ID is compared with a representation ID without parent mapping. The fix is not to hide the discrepancy in the scorer. Each trace must show pre-filter hits, post-filter hits, parent IDs, and hydrated source IDs. A test should assert that a card's allowed scope produces no candidate outside that scope in any channel.
+A filter leak would occur if a filter were applied to one channel before fusion but not another, or if an expected source ID were compared with a representation ID without parent mapping. The current executor does not claim filter support: global and channel filters are authorable but rejected before any observation or retrieval. Enabling them requires every channel to expose pre-filter and post-filter evidence, parent IDs, and hydrated source IDs, plus tests proving that no out-of-scope candidate reaches fusion.
 
 ### Parent collapse and citation hydration
 
@@ -332,7 +332,8 @@ The following files are the primary implementation surfaces:
 | `internal/chunking/chunker.go` | Deterministic chunking primitives |
 | `internal/api/experiment_handlers.go` | Experiment/run HTTP endpoints |
 | `internal/api/workflow_artifact_handlers.go` | Workflow artifact endpoints |
-| `packages/rag-evaluation-site/` | React/TypeScript UI |
+| `packages/rag-evaluation-site/` | Reusable React/TypeScript components and widgets |
+| `web/` | Application pages, including evaluation views and Redux/RTK Query integration |
 | `examples/rag-lab-js/` | JavaScript orchestration examples |
 | `scripts` under `RAGEVAL-TTC-LAB-001` | Reproduction, validation, and scoring tools |
 
@@ -356,11 +357,9 @@ Run pseudocode:
 
 ```text
 spec = canonicalize(inputSpec)
-runID = sha256(spec + dataset.manifestHash)
-if catalog.runExists(runID):
-    return catalog.loadRun(runID)
-
-run = catalog.begin(runID, spec)
+specificationID = sha256(domainNeutralEnvelope(spec, immutableInputs))
+runID = newULID()  // a fresh replicate, not a content hash
+run = laboratory.createRun(runID, specificationID)
 for card in dataset.split(spec.split):
     trace = retrieveAndHydrate(card.query, spec)
     answer = maybeGenerate(trace, spec.generator)
@@ -377,7 +376,7 @@ The trace is the principal debugging artifact. A useful JSON shape is:
 
 ```json
 {
-  "run_id": "run:sha256:...",
+  "run_id": "run_01K...",
   "card_id": "ttc-expand-001",
   "query": "Which ...?",
   "channels": {
@@ -427,7 +426,7 @@ The ellipses above are for readability; an intern should use the absolute ticket
 
 ### Web application
 
-The React site under `packages/rag-evaluation-site` should expose four views:
+The reusable components under `packages/rag-evaluation-site` and application pages under `web/` provide parts of the UI surface. The following complete provenance-aware laboratory views remain the target rather than a claim that every view is already wired:
 
 1. **Corpus.** Snapshot hash, source counts, inclusion/exclusion manifest, and representation counts.
 2. **Experiment builder.** Typed controls for dataset split, channels, fusion, collapse, reranker, generator, and budget.
@@ -456,7 +455,7 @@ quality: recall@1/@3/@10, MRR, nDCG, citation coverage, answer label mean
 
 ### Findings from the current development run
 
-The 148-card candidate trace is the first useful end-to-end measurement for the expanded TTC corpus. It used 144 answerable cards. The trace recorded a mean retrieval latency of 173 ms, p50 of 175 ms, p95 of 230 ms, minimum 72 ms, and maximum 465 ms. No billed embedding cost was recorded because vectors came from the local Ollama service and the existing 768D embedding artifact.
+The standalone 148-card candidate trace was the first useful end-to-end measurement for the expanded TTC corpus. It used 144 answerable cards and recorded a mean retrieval latency of 173 ms, p50 of 175 ms, p95 of 230 ms, minimum 72 ms, and maximum 465 ms. It has since been transformed and imported as external evidence, then rerun natively through the researchctl worker using immutable `candidate:ttc-expansion-v1`. BM25/vector channel ranks, hybrid document ranks, relevance, and aggregate metrics matched; 88 representative-chunk differences are accepted deterministic citation-selection changes. No billed embedding cost was recorded because vectors came from the local Ollama service and the existing 768D embedding artifact. Imported latency remains source provenance and is not claimed to match native machine timing.
 
 The measured retrieval table is:
 
@@ -551,7 +550,7 @@ An intern taking ownership of the next implementation should proceed in this ord
 6. Inspect one trace for a BM25-only hit, one vector-only hit, and one fused hit.
 7. Add tests for channel provenance and filter scope before implementing parent collapse.
 8. Implement parent collapse and citation hydration without changing the existing retrieval metrics.
-9. Add an artifact-level regression test: changing one chunk changes the chunk hash and run ID.
+9. Keep the artifact-level regression rule precise: changing one chunk changes the chunk/input and specification identity; each execution still receives a fresh run ULID.
 10. Fix and test the Geppetto embedding-cache YAML decoding behavior.
 11. Run raw, summary, raw+summary, raw+question, and all-representation comparisons.
 12. Add the result documents and scripts to the ticket; do not commit generated SQLite WAL files.
