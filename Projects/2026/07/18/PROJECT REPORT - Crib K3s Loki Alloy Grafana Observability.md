@@ -1024,3 +1024,61 @@ discipline, not as another undocumented manual Secret copy.
 - Alloy RBAC: `/home/manuel/code/wesen/crib-k3s/gitops/kustomize/logging-crib/alloy-log-reader-rbac.yaml`
 - Loki NetworkPolicy: `/home/manuel/code/wesen/crib-k3s/gitops/kustomize/logging-crib/loki-network-policy.yaml`
 - Grafana route: `/home/manuel/code/wesen/crib-k3s/gitops/kustomize/grafana-crib/ingressroute.yaml`
+
+## 21. Follow-up evidence: certificate recovery and Vault migration
+
+The status in the preceding sections was captured before the namespaced TLS change
+was merged. PR #12 in `wesen/crib-k3s` is now merged and Argo has applied
+`Certificate/monitoring/grafana-crib-tls`. The first issuance attempt exposed a
+second, independent defect: the existing `cert-manager/digitalocean-dns` Secret in
+crib contained a different, invalid credential. cert-manager reported HTTP 401 from
+the DigitalOcean DNS API while processing the ACME DNS-01 challenge.
+
+The valid DNS-scoped credential from the Hetzner cluster was copied into the shared
+Vault at:
+
+```text
+kv/platform/cert-manager/prod/digitalocean
+```
+
+The Secret in both clusters was refreshed from that Vault value without printing the
+credential. The existing ACME Order and Challenge in crib had captured the old
+credential, so they were deleted and recreated. cert-manager then completed the
+challenge and issued the replacement certificate:
+
+```text
+Certificate: monitoring/grafana-crib-tls
+Ready:       True
+Issuer:      Let's Encrypt (YR1)
+notBefore:   2026-07-18 00:37:36 UTC
+notAfter:    2026-10-16 00:37:35 UTC
+```
+
+External validation now succeeds:
+
+```text
+openssl s_client -connect grafana.crib.scapegoat.dev:443 \
+  -servername grafana.crib.scapegoat.dev
+subject=CN = grafana.crib.scapegoat.dev
+issuer=C = US, O = Let's Encrypt, CN = YR1
+notAfter=Oct 16 00:37:35 2026 GMT
+
+curl -fsS https://grafana.crib.scapegoat.dev/api/health
+{"database":"ok","version":"12.4.3","commit":"86c83248"}
+```
+
+The manual Secret refresh is only the immediate recovery step. The durable
+reconciliation work is represented by two GitOps pull requests:
+
+- `crib-k3s` PR #13 adds Vault Secrets Operator, an external Vault connection, an
+  AppRole-backed `VaultAuth`, and a `VaultStaticSecret` that owns
+  `cert-manager/digitalocean-dns`.
+- `2026-03-27--hetzner-k3s` PR #173 adds the equivalent Vault-managed resources for
+  the Hetzner cluster and records the least-privilege Vault policy.
+
+The Vault AppRole policy can read only the DigitalOcean DNS credential path. AppRole
+Secret IDs are provisioned out of band and are not stored in Git. After both PRs are
+merged and Argo has reconciled them, rotating the DigitalOcean credential in Vault
+will update the cert-manager Secret in both clusters automatically. The final
+validation must then confirm the `VaultStaticSecret` conditions, Secret value
+freshness, and a successful DNS-01 renewal without manual Secret copying.
