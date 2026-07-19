@@ -40,6 +40,9 @@ The Lisp Machine environments of the 1980s, and later the Common Lisp Interface 
 
 The starting point for this project was a working React prototype of exactly this model (`ttmp/.../sources/pbui-shell.jsx` in the repo, 868 lines): a binary-split tiling shell where colors, numbers, notes, log events, tiles, and workspaces are all presentations, commands read objects via `await ui.accept(type, prompt)`, and a central table maps types to verbs. The prototype proves the interaction design. The project exists to answer the harder question: **what does it take to make this real, on a real display server, across real process boundaries?**
 
+![[go-go-wm-prototype-full-shell.png]]
+*The React prototype: color lab, number field, listener, notes, trace, and inspector as tiles; a type-directed menu open on a `<color>` swatch. Every ported behavior in the Go system cites a line range in this file.*
+
 ## Current project status
 
 As of 2026-07-18, the repository contains a complete, verified implementation of the core system:
@@ -62,6 +65,9 @@ The X server has no opinion about where windows go. A **window manager** is not 
 go-go-wm is a **reparenting** window manager. On each `MapRequest`, it creates a *frame* window that it owns, re-parents the client's window inside the frame (offset below a title strip), and maps both. The frame is where the entire look lives: the title strip with its color, the drag grip, the split/close buttons, and the 2px border are all drawn by the window manager itself into the frame, using nothing but filled rectangles and text rendering. This matters aesthetically — the project's paper-and-ink look (flat fills, hard 1–2px rules, IBM Plex Mono, no gradients, no transparency) requires no compositor, because it descends from an era before compositors — and it matters architecturally, because the title strip is where tiles themselves become presentations.
 
 Layout is a **binary split tree**, the same data model as the bspwm window manager: every leaf is a tile holding one client (or one built-in app), and every interior node splits its rectangle horizontally or vertically at a ratio. Closing a tile removes its leaf; the sibling absorbs the space. The tree, not the server, is the source of truth for geometry.
+
+![[go-go-wm-first-light-xterms.png]]
+*First light: two unmodified xterms managed under Xvfb. The frames — colored title strips, grip dots, split/close buttons, 2px borders — are drawn by the window manager itself; the workspace strip and the status/documentation line are WM-owned bar windows.*
 
 ## The central problem: presentations do not fit X11
 
@@ -159,6 +165,9 @@ func Snap(f float64) (float64, bool) {
 
 Within a band of 2.2% around the fractions ¼ ⅓ ½ ⅔ ¾, the divider locks to the exact fraction. The boolean feeds visual feedback: the divider window recolors to mustard while snapped, sage while dragging free, so the user *feels* the detents. In live testing, releasing the pointer at position 0.336 produced a stored ratio of exactly ⅓.
 
+![[go-go-wm-divider-states.png]]
+*The three active divider states, cropped from live screenshots: hover (pale, dotted grip), dragging free (sage), and snapped to a detent (mustard).*
+
 The engine is verified by a property test that runs 20 seeds × 500 random operations, validating the full desktop after every step: unique node ids, splits always binary with in-range ratios, no dangling leaves, and per-operation-class leaf-count invariants (a split adds exactly one leaf; a move preserves the count; an operation that returns an error must leave the desktop bit-identical).
 
 ### The wire protocol and the broker
@@ -184,6 +193,9 @@ The protocol is newline-delimited JSON over `$XDG_RUNTIME_DIR/pbui.sock` — one
 An object on the wire is `{ptype, value, label?, doc?}` where `ptype` is an open string namespace — `"color"`, `"number"`, `"file"`, `"tile"`, anyone may mint `"deploy-target"` tomorrow — and matching is exact-or-`"any"`. The prototype demonstrated the entire interaction model without subtyping, so the CLIM type lattice was deliberately not ported; that decision is recorded in the ticket and revisited only when a real verb needs refinement.
 
 The accept flow, across processes:
+
+![[go-go-wm-accept-banner.png]]
+*Accept mode, live: the red ACCEPTING banner replaces the workspace strip, the status line switches to ACCEPT MODE, and matching presentations highlight. Clicking the left tile's title answered this session with `{"ptype":"tile","value":"n1"}`.*
 
 ```mermaid
 sequenceDiagram
@@ -236,6 +248,9 @@ Concrete responsibilities, each a file:
 
 - **Managing clients** (`manage.go`): intercept `MapRequest`, create the frame, set the client's border to zero, re-parent at offset `(2, 22)` (border width, title height), add the client to the server's save-set so it survives a WM crash, and honor `WM_DELETE_WINDOW` when closing. New clients land in the first *launcher* leaf (an empty tile) or auto-split the focused tile.
 - **Interactive drags** (`input.go`): a press on a divider or a title-strip grip grabs the pointer; motion events run through `Snap` or `ZoneAt`. `ZoneAt` classifies the pointer position inside a target tile as `center` (swap the two tiles' contents) or an edge (detach the dragged tile and re-split the target on that side — a move, not a copy). During an edge hover the WM shows the drop preview: a checkerboard-stippled red overlay with a dashed border, drawn into an override-redirect window. Stippling was chosen over translucency deliberately — real transparency requires a compositor, and the hard-edged stipple suits the aesthetic the project descends from.
+
+  ![[go-go-wm-drag-stipple.png]]
+  *A grip drag in flight: the target tile is covered by the stippled preview with the "= swap apps" chip; the status line reads MOVING APP. Releasing here exchanged the two tiles' contents.*
 - **Divider windows** (`divider.go`): the gaps between tiles are real windows with four visual states (idle with a dotted grip mark, hover, dragging, snapped) and proper resize cursors, reconciled against the layout after every operation.
 - **EWMH** (`ewmh.go`): the Extended Window Manager Hints are the freedesktop convention by which pagers, bars, and tools learn about desktops and windows. The WM publishes `_NET_NUMBER_OF_DESKTOPS`, `_NET_CURRENT_DESKTOP`, `_NET_CLIENT_LIST`, per-window desktop assignments, and the supporting-WM-check handshake; `wmctrl -d` against the running WM lists its workspaces.
 - **The control socket** (`ipc.go`): a second Unix socket speaking `{"q":"tree"}` / `{"q":"windows"}` / `{"q":"op","op":{…}}`. "Ask the window manager what it believes" is vastly more reliable than screenshot inspection, and it doubles as the scripting surface: every layout mutation can be driven externally today, by hand, with `socat`.
@@ -272,6 +287,9 @@ A region may carry *both* an object and an action — a directory row in the fil
 
 The two hosts:
 
+![[go-go-wm-full-desktop.png]]
+*The full application layer running: WM-embedded listener, trace, and inspector alongside three client processes (color lab, file browser, markdown viewer). The trace shows the real connection and registration events as each client joined.*
+
 **Embedded applications** live inside the window-manager process: the launcher (shown on empty tiles), a help page, and — matching the Genera shell, where the Listener was part of the environment — the **trace**, **listener**, and **inspector**. These are tiles whose frames have no client window; the WM renders their content itself over a shared `World` state. The trace is nothing but a view of the broker's event bus, which the WM subscribes to like any other client. The listener's commands (`Describe…`, `Sum…`, `Pick color…`) are the accept protocol exercised from inside the shell: `Sum…` runs two sequential accepts for `<number>` and prints the result *as a live number presentation*, which can itself be summed, inspected, or collected.
 
 **Client applications** are separate processes hosted by `pkg/apps/xapp`, a shell that owns an ordinary X window (which the WM frames like any other client), the same ping-multiplexed event loop, and the broker bridge: `accept.mode` triggers a highlighted repaint, `verb.run` dispatches to the app, pointer hovers publish `doc.hover` (which is why hovering a swatch in one process updates the documentation line drawn by another). Six demo applications exist: the color lab, number field, and notes from the prototype, plus a file browser, a todo list (with real keyboard input), and a markdown viewer.
@@ -282,6 +300,9 @@ Verbs complete the picture. Each application registers its verbs on connect (`co
 
 - **Verbs compose with accept.** `color.mix` is a verb that, when run, starts its own accept for a second color. A right-click menu action can therefore put the whole desktop into accept mode — the prototype's signature move, preserved across process boundaries.
 - **Verbs are contributed system-wide.** While the markdown viewer runs, *every* `<file>` presentation anywhere — file-browser rows, scraped terminal output — gains "View as markdown" in its menu, because menus are built from the broker's registry, not from the displaying application's knowledge.
+
+![[go-go-wm-tile-menu.png]]
+*A type-directed menu on X11, rendered by the WM from the broker's verb registry: `<tile> n1` with the verbs the WM registered for tiles. Clicking "Split - new tile below" routed `verb.invoke` through the broker back to the WM, which applied the layout op.*
 
 ### Reading a real trace
 
@@ -301,6 +322,9 @@ The following is the actual event sequence from the live verification session (v
 ```
 
 Lines 18–19 are the system's thesis in two rows: a request for a typed value, answered by a different process, identified by session, delivered by value. Note the session ids incrementing — line 21 opens `s2`, and a stale answer to `s1` at that point would be refused.
+
+![[go-go-wm-markdown-accept.png]]
+*The desktop after both accepts: the markdown viewer (right) renders README.md, obtained by accepting a `<file>` answered in the file-browser process; the listener (left) shows `picked ▉#b0563f` as a live color chip; the trace tile records the exact event sequence walked through above. The status line's `color #b0563f` is a hover-documentation message published by the color-lab process.*
 
 ## Testing strategy
 
