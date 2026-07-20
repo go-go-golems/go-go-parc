@@ -212,7 +212,7 @@ sequenceDiagram
     BR->>MD: accept.result {object}
     BR->>WM: accept.clear (broadcast)
     BR->>FB: accept.clear (broadcast)
-    Note over MD: Accept() returns; README renders
+    Note over MD: Accept() returns. README renders
 ```
 
 The broker's session rules encode decisions that the prototype made implicitly inside one process and that become sharp edges across processes:
