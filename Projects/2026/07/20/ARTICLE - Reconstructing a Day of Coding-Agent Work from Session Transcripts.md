@@ -21,7 +21,7 @@ repo: /home/manuel/code/wesen/claw-stuff
 
 This article documents the method used to produce a daily work report for 2026-07-19 from raw coding-agent session logs. The report had to answer one question: what work happened yesterday, across every repository, driven by every agent session that was active that day. The answer had to be grounded in evidence that a reader could verify, not assembled from memory or from a single transcript.
 
-The toolchain is `go-minitrace`, a CLI that converts native session logs from Pi and Codex into a normalized SQLite database and then queries that database with saved SQL and structured commands. The method has five stages: discover the candidate sessions, convert them into archives, query the normalized tables, verify the claims against external state, and report with explicit roles and caveats. Each stage has a specific failure mode, and the value of the method comes from treating each stage's output as a hypothesis that the next stage must confirm.
+The toolchain is `go-minitrace`, a CLI that converts native session logs from Pi, Codex, and Claude Code into a normalized SQLite database and then queries that database with saved SQL and structured commands. The method has five stages: discover the candidate sessions, convert them into archives, query the normalized tables, verify the claims against external state, and report with explicit roles and caveats. Each stage has a specific failure mode, and the value of the method comes from treating each stage's output as a hypothesis that the next stage must confirm.
 
 The reference investigation lives at `/home/manuel/code/wesen/claw-stuff/scripts/2026/07/20/daily-report-yesterday/`. The resulting daily report lives at `Logs/2026/07/20/Daily Report - 2026-07-19.md` in this vault.
 
@@ -55,7 +55,7 @@ Each stage produces a hypothesis. The next stage either confirms or rejects it. 
 
 ### Stage 1: Discovery
 
-The first stage answers: which sessions were active during the target day? The target day is 2026-07-19. The discovery command scans native session stores and emits a JSON list of candidates.
+The first stage answers: which sessions were active during the target day? The target day is 2026-07-19. The discovery command scans native session stores and emits a JSON list of candidates. There are three stores to scan: Pi, Codex, and Claude Code. Missing any one of them produces an incomplete report.
 
 ```bash
 go-minitrace discover pi \
@@ -67,6 +67,11 @@ go-minitrace discover codex \
   --source-dir ~/.codex \
   --active-since 2026-07-19 \
   --output json > codex-discovery.json
+
+go-minitrace discover claude-code \
+  --source-dir ~/.claude/projects \
+  --active-since 2026-07-19 \
+  --output json > claude-code-discovery.json
 ```
 
 Each candidate record has this shape:
@@ -86,7 +91,9 @@ The critical field is `last_activity_at`. A session that started on 2026-07-18 a
 
 `--since` is a start-time filter. It selects sessions whose `started_at` falls in the window. A long-running session that began on 2026-07-18 and did its most important work on 2026-07-19 would be invisible to `--since`. `--active-since` scans the candidate transcripts and emits `last_activity_at`, which recovers those spanning sessions. The cost is higher because the command streams native JSONL to find the last event timestamp. For a daily report, that cost is justified: spanning sessions are common, and missing them produces an incomplete report.
 
-The discovery output for 2026-07-19 returned eight Pi candidates and two Codex candidates. Two of the Pi candidates had `started_at` on 2026-07-20, which means they began today and were not part of yesterday's work. They were filtered out before conversion. The remaining candidates are the sessions whose activity overlapped the target day.
+The discovery output for 2026-07-19 returned eight Pi candidates, two Codex candidates, and four Claude Code candidates. Two of the Pi candidates and one Claude Code candidate had `started_at` on 2026-07-20, which means they began today and were not part of yesterday's work. They were filtered out before conversion. The remaining candidates are the sessions whose activity overlapped the target day.
+
+Claude Code sessions live under `~/.claude/projects`. The adapter prefers JSONL v2 transcripts and ignores subagent transcripts at the discovery layer. The candidate record shape is the same across all three frameworks, so the same filtering logic applies.
 
 ### Stage 2: Conversion
 
@@ -103,6 +110,10 @@ go-minitrace convert codex \
   --source-session /path/to/session-a.jsonl \
   --source-session /path/to/session-b.jsonl \
   --output-dir ./scripts/2026/07/20/daily-report-yesterday/archives/codex
+
+go-minitrace convert claude-code \
+  --source-session /path/to/session-c.jsonl \
+  --output-dir ./scripts/2026/07/20/daily-report-yesterday/archives/claude-code
 ```
 
 The source list is a plain text file with one native path per line. Saving it as an artifact matters: the conversion is reproducible only if the input set is recorded. The investigation directory keeps the source list, the converted archives, the saved SQL, and the result JSON together so that a reader can rerun any step.
@@ -110,6 +121,8 @@ The source list is a plain text file with one native path per line. Saving it as
 Conversion produces one `.minitrace.json` file per session. Each file conforms to the `minitrace-v0.2.0` schema. The top-level object is a session with `turns`, `tool_calls`, `annotations`, `metrics`, and an `operational_context` that records the working directory and git state. The conversion also assigns a quality tier: A for rich conversations with tool I/O, B for conversations without tool I/O, C for sessions with no conversation.
 
 One failure mode appeared during this investigation. The first Codex conversion attempt passed a source list that, through a shell expansion mistake, included files from 2025. The conversion preflight rejected them with `missing native session ID` and exited with a non-zero status. The fix was to pass the two relevant sessions explicitly with repeatable `--source-session` flags. The lesson: construct the source list deliberately, and let preflight failures surface bad inputs rather than suppressing them.
+
+A second failure mode is forgetting a framework entirely. The first version of this report discovered only Pi and Codex sessions, missing three Claude Code sessions that produced 60 commits in the go-go-wm repository. The report undercounted the day's work by roughly 25 percent. The fix is to always run discovery against all three stores: Pi, Codex, and Claude Code.
 
 ### Stage 3: Querying the normalized tables
 
@@ -135,6 +148,9 @@ The output for 2026-07-19:
 | `019f765e` | codex | gpt-5.6-terra | tiny-idp review / Goja identity microkernel | 799 | 2,892 |
 | `019f77c2-c157` | pi | gpt-5.6-terra | Scraper Resumable Workflow Hardening | 2,101 | 2,147 |
 | `019f7b67` | pi | umans-glm-5.2 | Fix code review issues & failing GitHub Actions | 422 | 443 |
+| `f26d0273` | claude-code | claude-opus-4-8 | Implement PBUI window manager in Go with broker protocol | 2,939 | 1,649 |
+| `3daab4ef` | claude-code | claude-opus-4-8 | Optimize go-go-golems documentation with minitrace analysis | 1,235 | 588 |
+| `49ff363e` | claude-code | claude-fable-5 | Analyze publish-vault and create widget.dsl API design | 1,641 | 765 |
 | `019f77c2-61ab` | pi | gpt-5.6-terra | Read RESEARCHCTL-015 ticket | 3 | 1 |
 
 This table is the skeleton of the report. It tells the reader how many sessions were active, which frameworks and models drove them, and how large each was. It does not tell the reader what the sessions accomplished. That requires the history verbs.
@@ -208,7 +224,10 @@ The commit count is the strongest single number in the report. For 2026-07-19, t
 | `go-go-golems/upwork` | 43 |
 | `prod-tiny-idp/tiny-idp` | 167 |
 | `benchmark-cpu-inference/researchctl` | 47 |
-| **Total** | **257** |
+| `go-go-wm` | 59 |
+| `claw-stuff` | 43 |
+| `publish-vault` | 1 |
+| **Total** | **360** |
 
 These numbers come from the repositories, not from the transcripts. An agent may have attempted a commit that failed, or may have described a commit it never made. The git log is immune to those failures. The report uses commit counts as the primary measure of work volume and uses the transcript-derived file and ticket timelines to explain what those commits accomplished.
 
@@ -261,9 +280,13 @@ Discovery returns the cwd of each session. The cwd is a shortlist signal, not a 
 
 A session that started on 2026-07-18 and ended on 2026-07-20 has file-history records on both days. A reader who filters by `first_seen` on 2026-07-19 may conclude that no work happened, when in fact the session was active all day. The report handles this by using `--active-since` for discovery and by verifying against git, which records the commit timestamp rather than the session start.
 
-### Ignoring Codex adapter limitations
+### Ignoring adapter limitations
 
-The Codex adapter normalizes exec and patch operations into `operation_type = OTHER`. The `file_path` column may be empty, and the actual target may live in `arguments_json`. A query that filters on `operation_type IN ('MODIFY', 'NEW')` will miss Codex file operations. The report works around this by using the `files` table, which the adapter populates from `arguments_json`, and by verifying against git.
+The Codex adapter normalizes exec and patch operations into `operation_type = OTHER`. The `file_path` column may be empty, and the actual target may live in `arguments_json`. Claude Code subagent transcripts are ignored at the discovery layer, so work done in subagents is not visible unless the primary transcript records it. A query that filters on `operation_type IN ('MODIFY', 'NEW')` will miss Codex file operations. The report works around this by using the `files` table, which the adapter populates from `arguments_json`, and by verifying against git.
+
+### Forgetting a framework
+
+The most consequential failure mode in this investigation was discovering only Pi and Codex sessions, missing Claude Code entirely. Three Claude Code sessions were active on 2026-07-19, producing 60 commits in the go-go-wm repository and additional work in claw-stuff and publish-vault. The first version of the report undercounted the day's work by roughly 25 percent. The fix is to always run discovery against all three stores. A daily report that scans only one or two frameworks is incomplete by construction.
 
 ## Working rules
 
@@ -277,7 +300,7 @@ The Codex adapter normalizes exec and patch operations into `operation_type = OT
 ## Recommended implementation sequence
 
 1. Establish the target day and the current wall-clock time. Convert the day to UTC if the sessions span timezones.
-2. Run discovery with `--active-since` for both Pi and Codex stores. Save the JSON output.
+2. Run discovery with `--active-since` for Pi, Codex, and Claude Code stores. Save the JSON output for all three.
 3. Filter the candidates to sessions whose activity overlaps the target day. Construct a source list.
 4. Convert the source list into an investigation-specific archive directory. Save the conversion manifest.
 5. Run the `session-list` preset to get the overview. Identify the repositories and tickets involved.

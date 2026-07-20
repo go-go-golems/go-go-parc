@@ -8,11 +8,11 @@ tags: [daily-report, log]
 
 # Daily Report — 2026-07-19
 
-> Generated 2026-07-20 from go-minitrace transcript analysis of all Pi and Codex sessions active on 2026-07-19. Evidence: converted minitrace archives, docmgr ticket changelogs, and repository git history.
+> Generated 2026-07-20 from go-minitrace transcript analysis of all Pi, Codex, and Claude Code sessions active on 2026-07-19. Evidence: converted minitrace archives, docmgr ticket changelogs, and repository git history.
 
 ## Summary
 
-A heavy implementation day across **three major projects**, driven by **5 coding-agent sessions** (4 Pi, 1 Codex) totaling ~5,300 turns and ~7,000 tool calls. **257 commits** landed across three repositories. The day's work fell into three streams: (1) completing the Upwork/Freelancer marketplace tracker CLI refactor, (2) a massive build-out of the tiny-idp Goja identity microkernel (Steps 7–75), and (3) qualifying and stabilizing real-provider RAG evaluation runs in researchctl.
+A heavy implementation day across **six repositories**, driven by **8 coding-agent sessions** (4 Pi, 1 Codex, 3 Claude Code) totaling ~10,500 turns and ~10,000 tool calls. **360 commits** landed across six repositories. The day's work fell into five streams: (1) completing the Upwork/Freelancer marketplace tracker CLI refactor, (2) a massive build-out of the tiny-idp Goja identity microkernel (Steps 7–75), (3) qualifying and stabilizing real-provider RAG evaluation runs in researchctl, (4) implementing a PBUI window manager in Go with a presentation broker, and (5) a publish-vault widget DSL design-system reorganization.
 
 ## Sessions Active on 2026-07-19
 
@@ -23,6 +23,9 @@ A heavy implementation day across **three major projects**, driven by **5 coding
 | `019f77c2-c157` | Pi | gpt-5.6-terra | Scraper Resumable Workflow Hardening | 2,101 | 2,147 | 07-19 00:24 → 07-20 19:34 |
 | `019f7b67` | Pi | umans-glm-5.2 | Fix code review issues & failing GitHub Actions | 422 | 443 | 07-19 17:23 → 07-19 20:21 |
 | `019f77c2-61ab` | Pi | gpt-5.6-terra | Read RESEARCHCTL-015 ticket | 3 | 1 | 07-19 00:24 → 00:24 |
+| `f26d0273` | Claude Code | claude-opus-4-8 | Implement PBUI window manager in Go with broker protocol | 2,939 | 1,649 | 07-19 00:04 → 07-19 22:55 |
+| `3daab4ef` | Claude Code | claude-opus-4-8 | Optimize go-go-golems documentation with minitrace analysis | 1,235 | 588 | 07-19 14:54 → 07-20 20:23 |
+| `49ff363e` | Claude Code | claude-fable-5 | Analyze publish-vault and create widget.dsl API design | 1,641 | 765 | 07-17 19:19 → 07-19 22:41 |
 
 ## Commit Volume (git-verified)
 
@@ -31,7 +34,10 @@ A heavy implementation day across **three major projects**, driven by **5 coding
 | `go-go-golems/upwork` | 43 |
 | `prod-tiny-idp/tiny-idp` | 167 |
 | `benchmark-cpu-inference/researchctl` | 47 |
-| **Total** | **257** |
+| `go-go-wm` | 59 |
+| `claw-stuff` | 43 |
+| `publish-vault` | 1 |
+| **Total** | **360** |
 
 ---
 
@@ -169,10 +175,67 @@ Two sessions advanced the real-provider RAG evaluation pipeline: one built and r
 
 ---
 
+## 4. PBUI Window Manager in Go
+
+**Tickets:** `GGWM-001` through `GGWM-010` (go-go-wm)
+**Session:** Claude Code `f26d0273` (claude-opus-4-8)
+**Repo:** `~/workspaces/2026-07-18/go-go-wm/go-go-wm` — 59 commits
+
+### What happened
+
+A from-scratch implementation of a presentation-based window manager (PBUI) in Go, built around a split-tree layout model and a presentation broker protocol. The session created the core package structure and then dogfooded it through theme switching, a launcher, and a rich REPL.
+
+**Core implementation (new packages):**
+- `pkg/wmcore/` — tree, layout, desktop, ops (the split-tree window model)
+- `pkg/pbui/` — object, wire protocol, broker, client, present (the presentation broker)
+- `pkg/wmx11/` — X11 backend: wm, manage, input, bars, util (16 modifies to `wm.go`, 11 to `manage.go`)
+- `pkg/draw/` — theme, widgets, golden tests
+- `pkg/cmds/` — broker, accept, present, query commands
+- `cmd/go-go-wm/main.go` — CLI entry point
+
+**Dogfooding and fixes:**
+- Fullscreen toggle + A2 daemon wm.command (GGWM-007/008)
+- Theme switching redraws everything: xapp windows follow theme.changed; setTheme rebuilds frame/float/bar buffers instead of poking back-pixel (chrome-repaint fix)
+- Menu defaults to pointer position instead of 0,0
+- Playground grid layout by default + git/ip/url verb daemons
+- A clicked presentation answers a matching pending accept
+- Client actionable error when pointed at the control socket
+
+**PR #1 review and CI fixes (GGWM-010):**
+- Captured Codex review comments RC-1..RC-10, reproduced failing CI locally
+- gosec findings addressed (G115/G703/G302/G108/G114/G404)
+- Bumped go toolchain to 1.26.5, cleared govulncheck stdlib vulnerabilities
+- exhaustive switch + drop named return (lint)
+- Intern analysis/design/implementation guide written + uploaded to reMarkable
+
+## 5. Publish-Vault Widget DSL Design System
+
+**Ticket:** `PV-WIDGET-DSL-015` (publish-vault)
+**Session:** Claude Code `49ff363e` (claude-fable-5)
+**Repo:** `~/workspaces/2026-06-22/goja-publish-vault/publish-vault` — 1 commit
+
+### What happened
+
+A design-system reorganization of the publish-vault web frontend, adding a widget DSL styled after the go-go-goja JS API. The session (spanning from 07-17) created foundation components (Text, Caption, CodeText, VisuallyHidden), layout components (Stack), a tokenized CSS architecture (tokens, bridge, base, chrome, prose), and Storybook stories. The single 07-19 commit fixed serving original markdown source in `/note/*.md` mirrors.
+
+## 6. go-go-golems Documentation Optimization
+
+**Ticket:** `GOGO-DOCS-OPTIMIZE-2026-07-19` (claw-stuff)
+**Session:** Claude Code `3daab4ef` (claude-opus-4-8)
+**Repo:** `~/code/wesen/claw-stuff` — 43 commits (shared with tracker refactor docs)
+
+### What happened
+
+An analysis of go-go-golems coding documentation using minitrace transcript analysis. The session created a docmgr ticket with an investigation diary, a reusable analysis script (`scripts/query-commands/gogowm/analysis.js`), an intern guide to the go-minitrace transcript analysis system, and a synthesis documentation-optimization plan derived from seven subagent analyses.
+
+---
+
 ## Analysis Notes & Caveats
 
-- **Method:** Sessions discovered via `go-minitrace discover --active-since 2026-07-19`, converted to minitrace archives, then queried with `history file-history`, `history ticket-timeline`, and `session-list` presets. Commit counts verified directly against repository git history.
-- **Spanning sessions:** Three sessions (`019f7666`, `019f765e`, `019f77c2-c157`) started on 07-18 or early 07-19 and continued into 07-20. Their 07-19 activity is included; some file-history `first_seen` timestamps fall on 07-20 because the converted archive captures the full session.
+- **Method:** Sessions discovered via `go-minitrace discover --active-since 2026-07-19` across Pi, Codex, and Claude Code stores, converted to minitrace archives, then queried with `history file-history`, `history ticket-timeline`, and `session-list` presets. Commit counts verified directly against repository git history.
+- **Spanning sessions:** Four sessions (`019f7666`, `019f765e`, `019f77c2-c157`, `49ff363e`) started before 07-19 and continued past it. Their 07-19 activity is included; some file-history `first_seen` timestamps fall on adjacent days because the converted archive captures the full session.
 - **Codex adapter caveat:** For the Codex session (`019f765e`), `operation_type` is `OTHER` for exec/patch operations and file paths often remain in `arguments_json`. The 167 tiny-idp commits were verified via git, not inferred from tool-call text matches.
+- **Claude Code adapter:** Claude Code sessions use `jsonl-v2` format. Subagent transcripts are ignored at the discovery layer. The three Claude Code sessions were converted with `go-minitrace convert claude-code`.
+- **Shared commit attribution:** The `claw-stuff` repo's 43 commits on 07-19 include both the tracker refactor docs (Pi session `019f7666`) and the docs-optimization ticket (Claude Code session `3daab4ef`). These are not double-counted in the total.
 - **Attribution:** All commit counts are git-verified against the live repositories, not transcript text matches. Changelog step numbers (e.g. "Step 75") come from the docmgr ticket changelogs, corroborated by commit subjects.
 - **Investigation artifacts:** Converted archives, source lists, and SQL queries are stored under `claw-stuff/scripts/2026/07/20/daily-report-yesterday/`.
