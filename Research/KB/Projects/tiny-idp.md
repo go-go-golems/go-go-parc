@@ -74,6 +74,22 @@ The project treats security review as an executable concern. Static analysis rec
 - [[PROJECT REPORT - tiny-idp - Model Checking and Executable State Assurance]]
 - [[ARTICLE - tinyidp - From Mock OIDC Provider to Reusable Auth Test Fixture]]
 
+### Interpreter constructs and goja semantics
+
+The `task/prod-tiny-idp` branch (ticket TINYIDP-GOJA-001) introduced serialized continuations, deterministic callback registration, invocation capabilities, and other rigorous interpreter work in `pkg/idp`. Several ChatGPT conversations analyzed these constructs and produced monographs:
+
+- [[CHATGPT TRANSCRIPT - Interpreter Constructs Analysis — tiny-idp Goja]] — theory companion + bibliography
+- [[CHATGPT TRANSCRIPT - Branch Interpreter Constructs Analysis v1 — tiny-idp Goja]] — malleable JS interpreter/compiler monograph
+- [[CHATGPT TRANSCRIPT - Branch Interpreter Constructs Analysis v2 — Langblocks]] — langblocks framework design + YAML patterns
+- [[CHATGPT TRANSCRIPT - Branch Interpreter Constructs Analysis — Abstraction Machine]] — abstraction machine substack drafts
+
+Related output artifacts (in `Attachments/chatgpt-outputs/`):
+- `tiny-idp-interpreter-theory-companion.md` + `tiny-idp-interpreter-theory.bib`
+- `tiny-idp-goja-interpreter-monograph.md` / `.pdf`
+- `malleable-js-interpreter-compiler-monograph.md` / `.pdf`
+- `langblocks-framework-design.md`, `langblocks-core-patterns.yaml`, `langblocks-scene-editor-example.yaml`
+- `abstraction-machine-gpt-5-6-substack-draft.md` / `-revised.md`
+
 ## Recommended reading path
 
 1. Read the strict-provider report to understand the protocol boundary.

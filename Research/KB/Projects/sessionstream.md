@@ -88,6 +88,7 @@ Sessionstream is not just a message bus. Event identity, sequence/ordinal behavi
 - [[go-minitrace]] — transcript archives and analysis of resulting sessions.
 - [[go-go-goja]] — JavaScript and generated-host integrations.
 - [[goja-text]] — source-preserving text and transcript chunking.
+- [[CHATGPT TRANSCRIPT - Widget DSL Extension Design — Streaming Chat]] — extending widget.dsl with SSE/websocket streaming chat widgets.
 
 ## Repository map
 

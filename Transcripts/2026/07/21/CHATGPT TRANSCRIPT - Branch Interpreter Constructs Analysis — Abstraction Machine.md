@@ -1,0 +1,3678 @@
+# Branch · Branch · Interpreter Constructs Analysis
+
+- URL: https://chatgpt.com/c/6a5e8a47-4dd8-83ea-ba25-fc7fd232d819
+- Created: 2026-07-20T20:51:21.153Z
+
+## Turn 0 - user
+
+- Message ID: `6e1c4772-b38f-4bf3-b3fa-350b2775820f`
+
+Study https://github.com/go-go-golems/tiny-idp/tree/task/prod-tiny-idp and write a textbook / report / analysis about all the interesting interpreter and goja constructs introduced to properly implement this, things like serialized continuations and invocation capabilities and deterministic callback registration and many more. There is a lot of interesting novel / rigorous interpreter work in there in say pkg/idp script and workflow and such , work done as part of ttmp TINYIDP-GOJA-001 .
+
+## Turn 1 - assistant
+
+- Message ID: `3c76bd06-9a2f-4b8a-be21-50b8c25dcc04`
+- Model: `gpt-5-6-pro`
+
+I’ll trace the branch architecture, commit history, and TINYIDP-GOJA-001 changes across `pkg/idp`, then produce a structured technical report emphasizing concrete code references and invariants.
+
+## Turn 2 - assistant
+
+- Message ID: `f91b53e6-2216-4460-b731-7a6d7669da61`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 3 - assistant
+
+- Message ID: `731076c3-cf3b-4c95-9066-92bc543585f5`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 4 - assistant
+
+- Message ID: `956a18f0-d3d5-44b1-a864-a7cdd03509c4`
+- Model: `gpt-5-6-pro`
+
+The branch reveals a lambda-first workflow machine: Goja-free serialized IR uses stable callback IDs, while browser waits persist versioned continuations that resume fresh, capability-bounded invocations.
+
+## Turn 5 - assistant
+
+- Message ID: `96531e76-c913-404e-aca4-0fb9be504318`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 6 - assistant
+
+- Message ID: `4fa89fcf-6273-4218-8d91-e54c4dcc612e`
+- Model: `gpt-5-6-pro`
+
+The key enforcement pattern is now clear: deterministic registration is checked across isolated runtimes, while opaque JavaScript executes within declared schemas, budgets, capabilities, outcomes, and native-committed effects.
+
+## Turn 7 - assistant
+
+- Message ID: `c56e1b8f-d016-44e4-a8f2-e5a79492288e`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 8 - assistant
+
+- Message ID: `99940c2d-9cef-4f12-b439-74c008a3597d`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 9 - assistant
+
+- Message ID: `49915920-89b1-4786-a8b6-84e8af086b7d`
+- Model: `gpt-5-6-pro`
+
+The full textbook draft is complete and undergoing layout checks. It distinguishes registry determinism from callback-state determinism and implemented guarantees from residual assurance gaps.
+
+## Turn 10 - assistant
+
+- Message ID: `8f1fcc2f-e1cb-4e8d-ba2b-f06b180128a4`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 11 - assistant
+
+- Message ID: `db9830c8-3dff-41ab-bf1b-27743fe719bb`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 12 - assistant
+
+- Message ID: `1af3bd52-cfa1-4e6d-abff-1ee78eb7df78`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 13 - assistant
+
+- Message ID: `85d85c96-1032-4cc8-9510-1ad74f67e46e`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 14 - assistant
+
+- Message ID: `02291538-8914-4a1c-8b3e-fe1331ce80e6`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 15 - assistant
+
+- Message ID: `37432ffa-a605-4757-b95e-f7e6b4801dbb`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 16 - assistant
+
+- Message ID: `c57a49c8-d3b8-47b7-9303-b413176b52ce`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 17 - assistant
+
+- Message ID: `7521ec4c-47f3-4681-b9f2-f12f303a8005`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 18 - assistant
+
+- Message ID: `b2f671b3-2778-4b2a-95f6-0a21c1a1dbfa`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 19 - assistant
+
+- Message ID: `59da3a7e-1181-4ab2-815c-794c4a480b88`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 20 - assistant
+
+- Message ID: `85cd0766-5690-4df9-ac82-6f0682655410`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 21 - assistant
+
+- Message ID: `366fb36e-1004-4e04-af23-c4b0d4554d37`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 22 - assistant
+
+- Message ID: `3c332246-dc8b-44be-a870-990afa2b0bbf`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 23 - assistant
+
+- Message ID: `3b1b2d38-fcc0-4be8-85b3-d3df09b7ab53`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 24 - assistant
+
+- Message ID: `9bdb7e7f-d4de-4ba5-bba1-59195aa82c1e`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 25 - assistant
+
+- Message ID: `71d6aef6-1b62-4de3-8a13-76b8b46f5327`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 26 - assistant
+
+- Message ID: `7a142f71-70dd-4a7b-b6c0-2da64a8ddbcd`
+- Model: `gpt-5-6-pro`
+
+# Interpreting Identity Safely
+
+A 12,390-word technical monograph, rendered as a 42-page report, is complete.
+
+- [Read the PDF](sandbox:/mnt/data/tiny-idp-goja-interpreter-monograph.pdf)
+- [Download the editable DOCX](sandbox:/mnt/data/tiny-idp-goja-interpreter-monograph.docx)
+- [View the Markdown source](sandbox:/mnt/data/tiny-idp-goja-interpreter-monograph.md)
+
+The analysis is pinned to branch commit `d164ae59408bdd8bc21516274b446339b1761b1e` from July 20, 2026. fileciteturn73file0L1-L3
+
+## Central conclusion
+
+The implementation is better understood as a **collection of deliberately small interpreters around a Go identity microkernel**, rather than as an application that happens to embed JavaScript.
+
+The report develops that interpretation through:
+
+- **Definition-time staging:** trusted JavaScript constructs a pure, serializable `idpprogram.Program`, while Goja closures remain confined to a runtime-local callback registry. `pkg/idpprogram` intentionally has no Goja dependency and stores callback identifiers rather than functions. fileciteturn11file0L3-L20
+- **Deterministic callback linking:** the compiled source is re-executed in independently owned runtimes, and workers are accepted only when exported program data, collected program data, callback sets, schema sets, and fingerprints agree. fileciteturn35file0L97-L179
+- **Invocation capabilities:** each lambda receives only declared, versioned, byte-bounded and call-bounded native operations. Promise settlement is routed back through the runtime owner, and retained capability functions lose authority when the invocation ends.
+- **Transactional worker leasing:** a runtime is reusable only after a positive safety proof—valid output, no uncertain interruption, and complete asynchronous settlement. Timeouts, exceptions, malformed results, cancellation races, and late settlements cause disposal and replacement. fileciteturn37file0L42-L176
+- **Serialized continuations through defunctionalization:** browser waits do not serialize a Goja Promise, closure, stack, or heap. They persist a pure-Go record containing a resume-handler label, typed public environment, generation identity, revision, bindings, and native references. fileciteturn40file0L3-L84
+- **Nominal branding by Goja object identity:** lambdas, fields, actions, and secrets are represented by blank JavaScript objects recognized through host-side identity maps, rather than forgeable object properties.
+- **Typed presentation and exact POST projection:** scripts select host-registered UI descriptors; Go owns HTML names, normalization, sensitivity, redisplay policy, request parsing, CSRF handling, and rendering.
+- **Opaque, request-scoped secret capabilities:** passwords are native byte buffers referenced by unforgeable Goja handles, not ordinary JavaScript strings.
+- **Algebraic-effect-style commits:** JavaScript returns inert effect plans. Named native committers revalidate the exact effect sequence and apply identity, credential, continuation, session, invitation, and authorization changes atomically.
+- **Native evidence:** verification codes and authoritative proof state remain native; scripts receive bounded evidence projections that they cannot manufacture themselves.
+- **Generation-pinned semantic time:** continuations resume under the exact retained source and program generation that created them, rather than being silently reinterpreted after hot reload.
+- **A separate verification interpreter:** test JavaScript compiles data-only scenario plans, which must be materialized through finite native step registries before execution.
+- **Critical evaluation:** the report distinguishes implemented guarantees from remaining concerns such as persistent module state in reused workers, declared versus behavioral nondeterminism, generation-retention alignment, key rotation, mail-delivery transaction boundaries, and unfinished assurance consolidation.
+
+The active design itself draws the essential line between in-request asynchronous work and browser-spanning durable control flow: ordinary `await` remains local to one invocation, while browser waits create explicit persisted continuations and later invoke a fresh handler. fileciteturn8file0L44-L91
+
+The implementation ledger records the principal lambda-first runtime phases as complete, while cross-phase assurance consolidation and the final completion gate remain open. The report preserves that distinction rather than presenting the branch as a completed formal-verification system. fileciteturn65file0L103-L116
+
+The PDF is the primary reading edition. The DOCX contains a static linked table of contents, verified page numbers, embedded fonts in the PDF export, 147 outline entries, and source hyperlinks pinned to the analyzed commit. Test claims in the text are attributed to repository records; the repository test suite was not independently re-executed in this environment.
+
+## Turn 27 - user
+
+- Message ID: `935f70bb-d8ac-432f-840a-e9e8afb7ee28`
+
+Research and brainstorm how having access to the goja interpreter or in fact creating our own js interpreter / compiler would influence such a design and potentially make it more usable / elegant / robust / verified / allow new software design patterns both on the implementation of the idp framework and on the side of the plugin/script writers. 
+
+One could also imagine making the js interpreter / compiler malleable and extensible, so that one could extend it in different ways for different projects, not just tiny-idp .
+
+Write a similar doc
+
+## Turn 28 - assistant
+
+- Message ID: `a249e686-304b-424b-8f5e-aac5d54c5893`
+- Model: `gpt-5-6-pro`
+
+I’ll map Goja’s extension boundaries, compare deeper integration, forked-Goja, compiler-front-end, and purpose-built runtime options, then derive Tiny-IDP patterns, cross-project architecture, risks, and a staged roadmap.
+
+## Turn 29 - assistant
+
+- Message ID: `2e308820-986a-4383-b4c0-18a67537aa94`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 30 - assistant
+
+- Message ID: `81863742-78a3-4f09-8522-6a9df3388e11`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 31 - assistant
+
+- Message ID: `1ea6a315-d232-42b3-b8d8-28016cbc82f7`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 32 - assistant
+
+- Message ID: `657cb3a7-be5d-4180-8886-c5e18f8e9b00`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 33 - assistant
+
+- Message ID: `87662c79-6d4c-47f9-a150-66efcfea05e3`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 34 - assistant
+
+- Message ID: `f5a5acd0-55e5-4460-8fb1-128fdedc7e5e`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 35 - assistant
+
+- Message ID: `8e23e267-f0f5-4d5b-90ec-28fdca153b55`
+- Model: `gpt-5-6-pro`
+
+The central question is whether ownership, branding, metering, resumability, finite registries, and exact codecs remain host conventions or become intrinsic semantics without creating a monolithic trusted runtime.
+
+## Turn 36 - assistant
+
+- Message ID: `8c07c2e4-e148-4f42-ae75-263e9e86a28e`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 37 - assistant
+
+- Message ID: `f526d035-6322-4176-ac5f-5309f44c2691`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 38 - assistant
+
+- Message ID: `3e02d68d-819d-4415-91b0-a7f5521c4d88`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 39 - assistant
+
+- Message ID: `46fdbb96-e1bd-48cb-880b-5e9b1cca0abd`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 40 - assistant
+
+- Message ID: `41699096-b737-44ad-96eb-4fefa640b3a2`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 41 - assistant
+
+- Message ID: `f0ba1b3e-e25f-4128-8647-f105edb2405b`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 42 - assistant
+
+- Message ID: `029fe331-0038-45cf-bfa5-cf65b81e9eca`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 43 - assistant
+
+- Message ID: `00aa1c3a-0cc6-4578-8c91-8c678638f03a`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 44 - assistant
+
+- Message ID: `cdcbd8b7-09b1-47ca-b004-ab8991995b84`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 45 - assistant
+
+- Message ID: `da9078d3-a7dd-48fa-a00e-6a4ad95174d0`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 46 - assistant
+
+- Message ID: `b3369116-b109-47df-9f1e-2b62b836cb36`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 47 - assistant
+
+- Message ID: `dd4feb82-973f-494f-b54c-ac2bd3924b3e`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 48 - assistant
+
+- Message ID: `2f2bb716-9f45-498d-8975-1a1fb3dbaf69`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 49 - assistant
+
+- Message ID: `d7c55c72-6456-47ed-b57e-7f56d10adb7f`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 50 - assistant
+
+- Message ID: `96eddb67-2054-43d3-830a-1d7f0a4f4ef6`
+- Model: `gpt-5-6-pro`
+
+The recommendation is converging on owning a typed/effect IR, verifier, and durable-control lowering, while retaining Goja as a compatibility oracle and forking only where essential.
+
+## Turn 51 - assistant
+
+- Message ID: `0c43514c-a952-417e-a8ba-a2908eeb8b4e`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 52 - assistant
+
+- Message ID: `86b09504-757d-44d4-9e57-f23552c4f39e`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 53 - assistant
+
+- Message ID: `55977237-f82e-41fa-bf26-1ec96bd0c660`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 54 - assistant
+
+- Message ID: `96da7ecf-439a-4489-ace9-d6bad45f9b9b`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 55 - assistant
+
+- Message ID: `84a43d41-de2e-48b2-bc74-224ca0435711`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 56 - assistant
+
+- Message ID: `0f31ff37-2417-4d64-8850-7f9cd8f01394`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 57 - assistant
+
+- Message ID: `7dc4c398-7a98-4deb-a367-c1ac72b35c31`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 58 - assistant
+
+- Message ID: `d7331cfc-3fb8-4be8-a913-d4aa504d6c7d`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 59 - assistant
+
+- Message ID: `8f5523c4-b20d-45d6-a288-e8889b99d144`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 60 - assistant
+
+- Message ID: `b7ad7894-1060-42e2-b705-cea0bc2cbdbc`
+- Model: `gpt-5-6-pro`
+
+The 50-page manuscript now frames Tiny-IDP as one authority-selecting “world” atop canonical MIR and versioned dialect packs. Layout defects are corrected; final artifact checks and packaging remain.
+
+## Turn 61 - assistant
+
+- Message ID: `13eff4b2-cf8c-491e-a1f7-81192bc416bd`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 62 - assistant
+
+- Message ID: `82538934-cdb0-4aa0-bcc9-b94046187f5b`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 63 - assistant
+
+- Message ID: `c462d6b9-2a1b-4100-ab9c-f29cc4bcc3bb`
+- Model: `gpt-5-6-pro`
+
+# Malleable JavaScript for Assurance-Oriented Systems
+
+The second monograph is complete.
+
+- [Read the 50-page PDF](sandbox:/mnt/data/malleable-js-interpreter-compiler-monograph.pdf)
+- [Download the editable DOCX](sandbox:/mnt/data/malleable-js-interpreter-compiler-monograph.docx)
+- [View the Markdown source](sandbox:/mnt/data/malleable-js-interpreter-compiler-monograph.md)
+
+The report contains approximately 13,053 words. It is based on the same pinned Tiny-IDP branch snapshot used in the first study, including the work associated with `TINYIDP-GOJA-001`. fileciteturn5file0L1-L3
+
+## Central conclusion
+
+Greater control over Goja would be valuable, but **building a complete JavaScript engine should not be the first move**.
+
+The recommended architecture is a reusable **Malleable JavaScript substrate**:
+
+```text
+standard JavaScript source syntax
+        |
+        v
+versioned assurance-profile checker
+        |
+        v
+typed/effect-aware compiler front end
+        |
+        v
+small canonical semantic IR
+        |
+        +-- reference interpreter
+        +-- Goja compute backend
+        +-- generated Go backend
+        +-- WebAssembly or process-isolated backend
+        +-- model checker
+        +-- documentation and test generators
+```
+
+Projects extend this substrate through versioned **dialects** and **worlds**:
+
+- A **dialect** contributes types, operations, effects, resource classes, verification rules, lowering rules, diagnostics, documentation metadata, and test generators.
+- A **world** selects the exact dialect versions, capabilities, entry points, limits, language profile, trust policy, and backend available to one class of plugin.
+- Tiny-IDP becomes one assurance-sensitive world rather than the hard-coded owner of the compiler platform.
+
+This separates three concerns that are currently entangled in many embedded-language systems:
+
+```text
+source-language ergonomics
+semantic and verification contract
+runtime implementation
+```
+
+JavaScript can remain the author-facing language even when neither JavaScript source nor Goja bytecode is the durable semantic format.
+
+## Principal Tiny-IDP implications
+
+The existing Tiny-IDP architecture is already close to a compiler-oriented runtime. `LambdaSpec` records schemas, outcomes, capabilities, effects, and resource budgets without containing the callback itself. fileciteturn17file0L20-L39
+
+Compiler ownership would allow much of that contract to be **derived rather than repeated**:
+
+| Current declaration | Compiler-derived property |
+|---|---|
+| Callback ID | Package, module, export, or lexical identity |
+| Required capabilities | Reachable capability-call analysis |
+| Allowed effects | Typed effect-constructor analysis |
+| Allowed outcomes | Closed control-flow analysis |
+| Input and output schema use | Property and constructor type checking |
+| Continuation carry schema | Live-variable and region analysis |
+| Source location | Precise source map and transformation provenance |
+| Call and output budgets | Static estimates plus world policy |
+| Compatibility metadata | Semantic-identity and continuation-schema comparison |
+
+The host would still grant the maximum authority. Inference would not grant capabilities. It would prove that a program requests a subset of the selected world’s authority.
+
+## Durable `await` as the flagship compiler feature
+
+The report’s highest-value proposal is browser-spanning `await` syntax that compiles to Tiny-IDP’s existing explicit continuation machinery.
+
+A script author could write:
+
+```javascript
+export async function signup(ctx) {
+  const invitation =
+    await ctx.invites.inspect(ctx.input.code);
+
+  const form =
+    await durable.form(SignupForm, {
+      email: invitation.email,
+    });
+
+  const proof =
+    await durable.emailCode(form.email);
+
+  return effects.commit([
+    identity.create({
+      email: form.email,
+      proof,
+    }),
+    invitation.consume(invitation.ref),
+    session.establish(),
+  ]);
+}
+```
+
+The compiler would transform this into named handlers, typed continuation records, and explicit native suspension operations. Live-variable analysis would calculate exactly which values must survive each suspension.
+
+The compiler would reject a program when a live value is:
+
+- a password or raw secret;
+- a capability function;
+- a transaction or request resource;
+- an unresolved Promise;
+- an ordinary function or closure;
+- a Proxy, Symbol, or cyclic object;
+- an oversized public value;
+- evidence that lacks an approved durable projection.
+
+This preserves the current continuation principle. Tiny-IDP explicitly requires durable records to contain no Goja values, functions, Promises, or goroutine-local state. fileciteturn19file0L3-L5 Its continuation record instead contains stable handler identity, program and workflow identity, carry, bindings, native references, revision, expiry, and terminal state. fileciteturn19file0L56-L84
+
+## Why VM frames should still not be serialized
+
+Access to Goja’s interpreter internals makes VM-frame persistence technically more conceivable, but not architecturally sound.
+
+Goja’s suspended execution context contains runtime-local values, lexical stashes, a program pointer, private environments, program counters, stacks, try frames, iterator state, and reference state. Suspension copies portions of that structure and resumption restores them into the same VM model. fileciteturn21file0L24-L111
+
+Persisting it would bind browser workflow state to:
+
+- one Goja implementation and version;
+- internal opcode and object layouts;
+- garbage-collector assumptions;
+- closure and lexical-environment representation;
+- pending Promise-job semantics;
+- potentially reachable host functions and Go pointers;
+- exact compiled instruction streams;
+- opaque, difficult-to-inspect object graphs.
+
+Interpreter access should instead inform a compiler transformation:
+
+```text
+source async function
+        |
+        v
+control-flow graph
+        |
+        v
+identify durable suspension points
+        |
+        v
+liveness + type + region analysis
+        |
+        v
+defunctionalized handlers
+        |
+        v
+typed continuation schema
+```
+
+The durable representation remains a small application-level state machine.
+
+## What can be built without a Goja fork
+
+A substantial first implementation can sit above stock Goja:
+
+- assurance-profile checking;
+- module and import resolution;
+- capability and effect inference;
+- outcome closure;
+- deterministic callback-ID generation;
+- durable-`await` lowering;
+- continuation-carry liveness analysis;
+- secret and evidence flow checking;
+- state-machine extraction;
+- semantic manifests and diffs;
+- structured-concurrency checks;
+- source-to-source generation;
+- generation-compatibility analysis;
+- IDE diagnostics;
+- test and documentation generation;
+- lowering to a project-independent MIR.
+
+Goja exposes a parser and AST, although its AST package explicitly warns that its interfaces remain works in progress. The report therefore recommends isolating Goja AST access behind a pinned adapter and immediately converting it to a platform-owned syntax representation. fileciteturn22file0L3-L10
+
+## What justifies a narrow Goja fork
+
+A fork becomes justified only for guarantees that cannot be observed reliably at the embedding boundary:
+
+1. **Deterministic instruction fuel**
+
+   Charge a stable semantic cost for VM instructions and size-sensitive operations. Wall time remains an emergency bound rather than the primary execution budget.
+
+2. **Allocation and retained-heap accounting**
+
+   Track logical allocation by runtime, module, invocation, secret, and continuation region.
+
+3. **First-class Promise-job ownership**
+
+   Associate jobs with invocation task scopes, expose pending-job counts, enforce cancellation propagation, and prove quiescence before returning a worker to the pool.
+
+4. **Unforgeable per-value provenance**
+
+   Attach VM-internal origin tags such as native evidence, secret region, capability generation, schema validation, or durable-reference identity.
+
+5. **Precise semantic tracing**
+
+   Trace calls, branches, throws, allocations, suspension points, Promise jobs, source spans, and abstract effect operations.
+
+6. **Stronger reset or snapshot support**
+
+   Snapshot only frozen activation data and immutable module state—not live requests, secrets, capabilities, pending jobs, or control frames.
+
+7. **A stable compiler-IR export**
+
+   This is useful only when source-level rewriting proves too brittle. It should be generic enough to upstream and should not contain Tiny-IDP-specific opcodes.
+
+The fork should remain a replaceable backend. Semantic identity, continuation identity, and verification results must not depend on Goja bytecode.
+
+## New software-design patterns developed in the report
+
+### Compiler-enforced object capabilities
+
+Capabilities become typed imports rather than arbitrary properties on `ctx`. Dynamic access such as:
+
+```javascript
+ctx.cap[namespace][operation](input)
+```
+
+can be rejected or conservatively widened. Libraries cannot acquire their caller’s authority merely because they are imported. Authority must appear in their effect summary or be passed as an explicitly attenuated capability.
+
+### Structured concurrency for embedded JavaScript
+
+Every asynchronous operation belongs to an invocation task region. Before a handler returns, a task must be:
+
+- awaited;
+- joined through a structured combinator;
+- cancelled;
+- or converted into an explicitly declared host-owned delivery effect.
+
+An ordinary Promise may not escape the invocation region.
+
+### Typed algebraic effects
+
+Instead of manufacturing arbitrary result objects, scripts construct typed abstract operations:
+
+```javascript
+return effects.commit([
+  identity.create({ email, proof }),
+  credential.bindPassword({ identity, password }),
+  invitation.consume(invitation),
+  session.establish({ identity }),
+]);
+```
+
+Different backends can interpret the same effect sequence:
+
+- production transaction handler;
+- deterministic in-memory test model;
+- trace-only simulator;
+- migration adapter;
+- model checker;
+- generated documentation.
+
+### Resource regions
+
+Values receive lifetime regions such as:
+
+```text
+static
+invocation
+secret
+transaction
+continuation
+```
+
+The verifier rejects movement into a longer-lived region unless an explicit dialect operation converts the value into an approved native reference.
+
+### Semantic hot reload
+
+Reload compatibility is classified by semantics rather than source text alone:
+
+- backend-only replacement;
+- source-only but MIR-equivalent change;
+- compatible semantic extension;
+- explicit continuation migration;
+- breaking change requiring old-generation retention or revocation.
+
+### Proof-carrying activation
+
+A compiled artifact includes a machine-checkable certificate containing:
+
+- source and frontend identities;
+- canonical MIR hash;
+- world and dialect versions;
+- pass-pipeline identity;
+- inferred capabilities and effects;
+- continuation-schema hashes;
+- resource policies;
+- verifier results;
+- differential-test results;
+- signature.
+
+The production runtime verifies the certificate rather than trusting compiler prose.
+
+### Semantic review diffs
+
+Code review can report changes such as:
+
+```text
++ imports cap.community.lookup@2
++ adds durable state signup.after_recovery
+~ continuation carry 72 bytes -> 416 bytes
++ effect credential.bind-recovery@1
+- denial outcome member_exists
+~ maximum fuel estimate 42k -> 91k
+```
+
+This exposes authority and persistence changes that ordinary source diffs conceal.
+
+## Verification target
+
+The report deliberately does **not** recommend proving all of modern ECMAScript first.
+
+The feasible target is the small MIR and verifier:
+
+- value and resource typing;
+- region safety;
+- capability confinement;
+- outcome closure;
+- continuation type preservation;
+- effect-sequence well-formedness;
+- deterministic suspension semantics;
+- selected lowering-pass trace preservation.
+
+The production Goja backend, generated-Go backend, and reference interpreter can then be differentially tested against the executable semantic model.
+
+“Verified” in the report therefore means a specific verifier, semantic component, or compiler transformation has a stated and checked property. It does not claim that arbitrary JavaScript, all native capabilities, or the complete identity provider has been formally verified.
+
+## Recommended sequence
+
+The concrete roadmap is:
+
+```text
+0. Define trust model and semantic contract
+1. Build a pinned JavaScript front end above stock Goja
+2. Prototype one durable-await transformation
+3. Add task-scope and deterministic-host analysis
+4. Introduce the canonical MIR and reference interpreter
+5. Extract a declarative dialect SDK
+6. Add narrowly measured Goja instrumentation
+7. Formalize and verify the small core
+8. Add isolation and alternative backends
+9. Reconsider a complete engine only if it becomes a strategic product
+```
+
+The PDF is the primary reading edition. The DOCX includes a linked static contents section, internal heading navigation, source links, 207 PDF outline entries, embedded fonts, and conventional numbered references.
+
+## Turn 64 - user
+
+- Message ID: `cf1a4624-d664-457f-80c3-35c360362fa0`
+- Attachment: EC622774-75F0-4F89-AAC3-D14D0F9C2D27.jpeg
+- Attachment: 30800906-D7D5-43FD-9672-6238BB6A058F.jpeg
+- Attachment: 758620C7-4991-4C0B-9E97-36E84A43E415.jpeg
+
+[image: sediment://file_0000000009ec81f5bd8c8a16fe917402]
+[image: sediment://file_00000000edc0822f90c46bd725210a1a]
+[image: sediment://file_0000000093c4820c9f6f5c89ef172efe]
+Based on the documents above I recorded my thoughts :
+
+[Speaker 1 - 0:01]
+All right, so I'm gonna try to talk my way through an article based on what I've been writing on, on WhatsApp this morning. The, the whole thing is about basically the step function that Sol 5.6, so OpenAI's Sol 5.6 model, um, from my perspective, and it being like one of the, the biggest jumps since I guess last year's 5.2 or maybe GPT-5. Actually, GPT-5. So GPT-5 was the first model where I felt that I could actually really refactor, uh, significant refactors, like basically not have to, to babysit, uh, I think it was like Sol at 4 at this time. Um, and 5.6 is, since the last year, kind of feels like a similar step function, and the way I can describe it for now, 'cause it's only been two, two weeks since I played with it, is that it's able to do research on its own in an almost unsupervised manner, the same way GPT-5 was able to do refactoring in an almost unsupervised manner. And it's also able to teach, or by teaching I mean it's able to synthesize pretty complex thinking workflows and patterns that it has recognized and put together in a way that makes sense outside of the scope of this pattern matching. Uh, so it means like explaining concepts up front, being able to synthesize different approaches it's taken, and like giving them names, and being able to relate them to each other, and introduce them in a way that has narrative, and like walks either a reader along, or if you create design documents and specs, uh, able to walk a model along to, to not like confront it with the whole complexity at once. I think that's obviously hard to quantify, hard to describe, um, but what I did this morning, or, or basically, um, been doing over the last two weeks is, uh, I've been basically building my own identity provider, my IDP, and I've also And, um, so I've, I've been creating this IDP, and, uh, once Sol came out, I asked it to, to ask, uh, to, to research and add, uh, static analysis and model checking, and do some research on OAuth, um, theorem proving and formal methods, and it, it did a bunch of research, which, you know, was expected. But usually when I asked previous models to do research, you could tell in the result that it was like kind of copy-pasting research together and maybe like drawing some inferences, but it would quickly go sideways, especially on like complex things like, uh, uh, like formal methods papers, and it would really depend on the kind of stuff that it found. And 5.6, on the other hand, was able, I think, to really kind of synthesize this down to a set of core ideas and kind of apply them to the code base. Uh, and, and this was my very first prompt, so I think it was pretty, pretty mediocre overall, and I would probably do it differently right now. Um, and this IDP is, is a code base that I never read, um, and I got it to build all of it and expanded it, and like kind of got it, uh, decided to, to token max and kind of just forge ahead, build something that I knew would be too complex for me to understand, but kind of see how far I could push the model. And, and Sol built something that, um, worked, right? And also looked pretty systematic in its approach, at least from the, from the few tasks and design documents that I glanced at. It, it looked like not complete madness, and I could tell it, it is doing a s- a pretty clear, uh, job without getting lost in the weeds, which is, which is already kind of fascinating, but not maybe the, the groundbreaking thing. And as I was pushing it into production, I realized that I really wanted to have a scripting layer that I was holding off on to basically allow me to say, to do something like virtual users or to do an invite mechanism that's not like hard-coded into the IDP itself, because I really want to make this like a building block, kind of Lego block system. And one thing I realized is that as it was adding all these static analysis and model checking primitives, it really refactored the code base to fundamentally, on a fundamental level, uh, to introduce objects that allowed it to do the whole tracing and assertions and invariants that the static analysis like kind of required. That's a first. I've, I've never really seen refactoring like completely overhaul the internal structure of a project to, to readapt it to, uh, a new ask without, especially without me asking it to, to do so, because I just told it to research and, and improve it, right? So the second phase of where I was now expecting something similar was adding these scripting primitives and basically make it scriptable. And obviously, scripting an IDP has the potential to just undo all these like invariants, assertions, and all of that that I had put in. In this case, it actually rejected my proposal or like rejected my, my, my naive prompt and said like, "Oh, we're not gonna turn this into a scriptable IDP." Instead, what I will, what, what we will do is, is, um, allow JavaScript to provide very tailored, uh, operators and, and, uh, uh, config options and, and potential other solutions. And I, uh, have a s- a screenshot that I put into WhatsApp of one of the pages that I heavily annotated of a whole bunch of, um- Out of that JS design document where you can really tell that it's, uh, um, taking kind of a like deeply thought out but also pragmatic approach where it first decomposes the problem into primitives, which it kind of already had because of the previous static analysis work. And I also pointed it to, um, my resource, my knowledge base, um, like the project vault that I use for agents to write up on what they did has a significant, uh, uh, m-map of concepts, uh, uh, around the widget DSL and the JavaScript APIs I've been building on. Um, so it had like a significant amount of material to, uh, decide to do, to do good, good work. But, but still I... None of that... I-it's all very messy. It, it mixes a lot of like very quality suggestions. I don't really know what it looked at, uh, but the design it came out with has a significant amount of patterns that on their own are certainly things that I, that you can, uh, uh, have seen before. But the way they were, the way they were strung together and the way the, uh, they are formalized, the way they're all integrated is, I would say, almost kind of novel. I've never really seen a code base which is that systematically abstracted out and cleanly woven together. Like, there's a lot of like little patterns in there that are really interesting, um, that now that I finally am looking at a document in more detail, I was pretty impressed with. And, uh, I have a whole bunch of screenshots which I could describe further. Um, and you can see that it never abandons this like idea of primitives being secure, of not exposing any credentials to the JavaScript, not allowing the JavaScript to do anything that's not deterministic and not double-checked and fingerprinted and audited. And, um, this is really kind of impressive. And what I did, because it is a big project, it is a big code base, I wanted to know, is it able to abstract away from the code base and really focus in on the abstraction patterns and like take a step back and say, you know, part of this work that I did is separate from IDP and is about language design. And, uh, so I asked ChatGPT Pro, which, which is really kind of fantastic to, to write a textbook about this JavaScript work that was done and, um, and to, to, to determine which contracts were, were introduced and, and what they do and how like deterministic callback registrations works and like serialized continuations. All of these patterns that are certainly in the literature, are certainly in some code bases, and are often also just like unnamed techniques. Um, like serialized continuation is basically just putting a state machine field into a database, for example, right? Um, but I wanted to see, and it, it did-- It created a really impressive textbook. I think it was... A, it was pretty long, but despite it pretty-- being pretty long, I found it very concise in the ideas that it showed and how it introduced them. So I have screenshots of that as well, um, which, which, uh, I found really like a, a fantastic textbook in a way that I've never, never seen before. Um, and the prompt for it was pretty simple. It was really like kind of, you know, build a textbook about these abstractions. Um, so I, I also have ba-basically ended up this morning doing a bunch of these researches and ended up with about 200 pages of textbook-style material, which is really interesting to read. Like, usually I get tired and I'm like, "Yeah, this is kind of getting slop, slop-like." Like I'm not feeling kind of this narrative going forward. Here, pretty much every section, and they are concise. They're not like a lot of blah, blah, blah. They're, they're, they're like, uh... It's just a lot of materials 'cause it's a, it's a big project. Uh, s- is very, very interesting. Like, none of these things are, uh, um, seem extraordinarily over-engineered. It certainly is a lot, uh, and I've... I already would have trusted 5.5 to do this much of a lot, but I wouldn't have trusted it to design so much and it being like consistent in itself. Here, everything's like very consistent, and it has survived many, many, many, uh, iterations 'cause it is an IDP. I've added all the static analysis. I've added all kinds of additional features as I went along, pushing it into production. And then I add this whole scripting layer on top, um, which it did very, very systematically. So to me, the, the interesting thing here is, uh, is it seems to... So it, it seems to be able to do math, uh, to do math. What did I say? To do research. And, um, I'm just gonna read what I put on, on WhatsApp this morning. Um, so I said, uh, "Sorry for all the abstract math rambling 'cause currently I'm r- I'm learning category theory. Um, I think my technique of asking for a language or a JS API or protocol up front has the effect of laying bare DNA machinery, both from a domain perspective, but also from a computational perspective." Um, so here I'm, I'm gonna explain a little bit. One of my prompting techniques is always to ask the LLM to create an, a language, um, which can be a YAML DSL, so something that's more declarative, or, uh, if I do want to have computational primitives like for loops and, and, uh, um, that kind of control flow stuff, um, or variable bindings, that, that, that kind of things, then I use a JavaScript API. And I've, I've spent A lot of time. I've been doing this for like three, four years now, and I've built like thousands of languages, I think, um, or generated them. So I've, I've picked up on a, on a bunch of patterns that I never really thought of giving names to, but now I'm getting there. Um, and when I say the, the inner machinery, I mean the inner machinery of the LLM, 'cause I do think LLMs are kind of abstraction machines. They're able to match patterns in the concrete. So when they look at a lot of source code, they're able to recognize certain patterns, move up an abstraction step because they have learned a certain abstraction matching patterns, and then able to manipulate that or like put it into coordination with other things, and then go back into the concrete, which is kind of the inverse of the pattern matching. And the domain perspective is that there are abstractions on the domain. So if I'm doing like a logistics application, there are going to be abstractions on the lo- logistics side, like an order and like a shipment and a refund and, uh, you know, dates like, like, uh, uh, um, paths, like plans. All of these things are kind of in the logistics domain, make a lot of sense for people who are domain experts as well. And then on the other side you have like the computational domain, the computational side of things, which is how is the computer going to do it and how... A- and usually the complexity is when these two worlds meet, right? Which is, um, you do design something in the domain perspective, and a lot of domains have like computational algorithmic aspects to it. Like cooking is very computational, for example, right? Um, but then a lot of things need detail, um, on the computational side of just like which variables are we going to use and just like purely, purely programmatic things. And, um, APIs are basically ways to bridge these two things, and I think function well for humans, function well for LLMs. And, um, being able to shift this boundary has always been, I think, a good way to reduce complexity. So, so if you look at structure and interpretation of computer programming, in the very first few pages it says if, if you have a problem and you're able to design a language to describe that problem and to describe solutions to that problem, then suddenly you don't have a problem anymore. You have like a solution, right? And so this is the approach that I take, is I let the LLM figure out kind of which abstractions are on which side of the whole thing, and then create an L- an API that combines the both, like bridges both. And now suddenly I have a very clean API, uh, which from the domain side has very clear semantics, and then on the computational side is reasonably easy to implement usually, and like kind of, uh, um, allows us when we're building the application to prompt something that goes against the API and that matches the whole thing pretty easily. Like if you-- otherwise prompts have to make the LLM bridge these huge gaps. Like if I say, you know, add a refund, add a refund workflow, it is necessary for it to bridge it all the way down to the CSS for the page that has like the refund UI now, right? And, and so it, it is extremely token intensive, a- a- and depending on the size of the model, might just not be in its capabilities to do all of these steps. Um, however, if you design an API that's just like, you know, called design workflow, and it has a little language to create forms, for example, then suddenly create a refund f- workflow is, is very easy. It's going to be like 20 lines of code with a little bit of UI widgets thrown in there. So anyway, this was an excursion about my, um, my technique of asking for language upfront. Uh, so going back to the WhatsApp stuff. Um, so, so I, I'm really using the word of computational language, uh, as well on purpose and not saying programming because I think programming is just like a distracting word. We, we really are, uh, um, trying to... Programming languages are just ways of describing how a machine can do computation. And there's, there's many of those, and they're ultimately not all that interesting. Um, but they're very distracting because we do think of programming as an activity more so than just what we're doing, which is controlling computation. Um, so, um, the second part then it, it echoes a little bit what I said before in, in WhatsApp. Uh, so what I said in WhatsApp is, so for example, this is the design of my IDP scripting layer by Saul, and this is the first screenshot that I was showing it. It has a ton of really advanced interpreter language semantics work in it, which I think is partly quite novel. Certainly nothing I've really seen in such a condensed version. It was not easy to get to this level of design. Of course, Saul did all the work at the end, but there is real magic here. I've also gotten used to a lot of these patterns over time. So by here I mean language design patterns that might maybe not even be described anywhere, but that I at that point have chunked and don't even think of, 'cause I've built thousands of these languages and I've recognized what works better and worse over time. Uh, I haven't done anything scientific. I think my approach is pretty naive so far. Um, but with Five Six being able to do research, I think we can do a language optimization loop that is not going to devolve pretty quickly. I think Five Six being able to keep research on track is really one of the, of the novel things. Uh, it, it really is doing some kind of PhD level stuff, which is breaking my brain. I don't think it's postdoc level yet [chuckles], but it, it definitely is able to do this like kind of Research that isn't entirely groundbreaking maybe. I mean, some PhDs definitely are, obviously. Um, but it is able to do this, like, pretty systematic, fundamental kind of, uh, loop that stays on track. Um, and the chain of prompts roughly, but without much more effort from my part, besides pointing it to other projects of mine was, uh, first, build an IDP. Second, add static analysis and model checking. Three, add scripting. I have no idea how IDPs work really. It's the first time I also look at the IDP itself in any kind of detail. Um, so what's interesting, um, I've long ago gotten over the vertical feeling of, "Oh God, what is even possible now?" And I can already see some cracks in the five-six shell, um, but this is the closest I've come to this vertical feeling in over a year. Um, in a way, dealing with discovering the unlocks of new models is kind of routine almost now, right? Like every t- every two months, something new comes out that, that is pretty significant. Um, and the first step, the step zero is like, "Whoa, that's, that's not bad at all," which the first demo effect. And then one, I don't really see the difference between the new model and the old model because I don't really know how to fit it into the current workflow yet. Since GPT 5, kind of everything I prompt, uh, it's been really hard for me to prompt things that don't work, and I'm really happy when I do. A- and I wrote an article about that. And then two, it's, "Oh, fuck." This means I stumble upon stuff that uncovers some of the new capabilities or, or, or on the other hand, shows that things are mostly incremental, which doesn't mean that incremental model improvement doesn't have drastic effects, right? Like I think GPT 5.4 was a real unlock because suddenly everything worked. I didn't have to like dig in, you know, every hour or so, like be careful because that amount of work would like take... would like limit what I could do in a day. And then suddenly I could just like let five things run and be pretty sure that they would be good at the end of the day versus launching five things and then basically spending the next five hours fixing one after the other, um, in minute ways. Um, then the third step in when a new model comes out is kind of like routine of discovering new models is like, "Oh, I see the cracks now." I'm st- um, which means that I'm starting to develop some like concrete prompting techniques and, and building tools to fill these cracks. Um, and I kind of know that the next model is probably going to c- to fill these cracks on its own, right? Like that it's already getting trained on exactly that. And the, the fourth step is then just like getting really proficient with the new model and, and like basically being able to prompt it blind, uh, prompt it with like my brutalist prompt. So moving on to the WhatsApp. Um, the next thing... Well, I think maybe, uh, then I show my second screenshot, which, which kind of shows the design of this IDP language, uh, again. And, um, here it has like a lot of notes on the screenshot. Uh, but what I wrote on WhatsApp is this is also saw on a similarly complex domain, um, which is reproducible RAG experiments. So this is actually a second project. Um, a- and here I can see that I kind of prompted it wrong and that, you know, that I could have caught it earlier. Um, but also this work, uh... Actually, I don't know. I think, I think we should stop here. Um, I think that was enough already. Um, and, uh... Well, and, a- and then like the mental part of all of this is I've never seen a model being like so systematic yet tasteful. Like it has a lot of taste. Everything that comes out, I'm like kind of this is really clean. It's not too much. It's not, um... It covers a lot of ground, which in the IDP case, I'm not totally against it covering a lot of security ground. Uh, but contrary to before, where you could kind of tell it's like kind of being like an architecture astronaut, here it is, it is very elegant, I, I, I find. Um, and I said it's, it's not afraid to seriously modify the core of the code to make it work properly instead of like kind of weaseling itself to a successful checklist, right? Um, so I'm not necessarily expecting anybody to understand the examples from the IDP here. That really demands this kind of like research-y work. The textbook that I've written... That I've had it right and, and maybe extracting, you know, its library. But I, I think at this point I'm also like ready to really use the pros that five-five, uh, that five-six generates to, to kind of create good documentation. It's been pretty good at like self-optimizing documentation as well. And the fact that five-six is like, "Oh bro, we're gonna first build a serious abstract fundamental layer, and then we'll rebase the existing app on top of it," that, that's kind of new and especially in, in terms of how aggressive it is, right? Um, a- and, uh... All right. They-- I, I think that's enough, and this is, uh, enough for turning this into an article.
+
+
+—-
+
+Now create a set of potential Substack posts for my gogogolems.substack.com
+
+## Turn 65 - assistant
+
+- Message ID: `2fc414c3-9f67-4b67-8f3e-180ae1f36c70`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 66 - assistant
+
+- Message ID: `2145bf8c-498c-45e7-9f0b-8bdb5faea059`
+- Model: `gpt-5-6-pro`
+
+# Proposed Substack series: **Abstraction Machines**
+
+The material contains several distinct stories that should not be compressed into one oversized article:
+
+1. A personal report on a model capability jump.
+2. A concrete identity-provider case study.
+3. A general method: asking for a language before asking for an application.
+4. A theory of LLMs as abstraction and synthesis machines.
+5. A technical series on interpreter design, continuations, capabilities, and verification.
+6. A forward-looking proposal for language-optimization loops.
+
+A useful umbrella subtitle would be:
+
+> **What changes when models can research systems, redesign their foundations, and teach us the abstractions they discovered?**
+
+Below are twelve viable posts. The first six form the strongest initial sequence.
+
+---
+
+## 1. The First Model I Trust to Do Research Without Me
+
+**Alternative titles**
+
+- **GPT-5 Let Me Stop Babysitting Refactors. 5.6 Let Me Stop Babysitting Research.**
+- **The Research Step Function**
+- **From Unsupervised Refactoring to Unsupervised Research**
+
+**Core thesis**
+
+The meaningful model jump is not higher benchmark performance. It is a change in the unit of work that can be delegated.
+
+GPT-5 crossed a threshold where you could hand off a substantial refactor without continuously steering it. Your experience with 5.6 suggests a similar threshold for research: it can collect material, identify the important abstractions, reconcile them with a real codebase, and produce a coherent technical synthesis.
+
+**Opening**
+
+> GPT-5 was the first model I trusted with refactors large enough that I could stop watching.  
+>   
+> 5.6 is the first model I have trusted with research large enough that I could stop steering every page.
+
+**Structure**
+
+### The first threshold: refactoring without supervision
+
+Describe the shift from launching several agents and spending the rest of the day fixing them to launching several tasks with reasonable confidence that they will converge.
+
+The important distinction is not that the model writes better functions. It is that it can preserve a larger set of invariants across a longer transformation.
+
+### The second threshold: research without collage
+
+Contrast previous research outputs with the new experience.
+
+Earlier systems often produced something recognizably assembled from search results:
+
+- one paper summarized correctly;
+- another concept pasted beside it;
+- a plausible but unstable connection between them;
+- rapid degradation once the subject became mathematically or architecturally dense.
+
+The new behavior is closer to synthesis:
+
+- identifying a small number of governing ideas;
+- applying them to the codebase;
+- naming recurring patterns;
+- showing how the patterns constrain one another;
+- arranging them into a teachable narrative.
+
+### The IDP experiment
+
+Explain the intentionally extreme setup:
+
+- build an identity provider in a domain you did not know deeply;
+- add static analysis and model checking;
+- push it toward production;
+- add a scripting layer that could easily compromise the previous guarantees;
+- ask the model to extract the interpreter and language-design ideas afterward.
+
+### What “teaching” means here
+
+The model did not merely describe files. It reconstructed a conceptual progression:
+
+```text
+closed outcomes
+    -> native effect plans
+    -> invocation capabilities
+    -> explicit continuations
+    -> deterministic callback registration
+    -> generation-pinned resumption
+    -> fail-stop runtime leasing
+```
+
+That progression is useful to a reader who has never seen the code.
+
+### Where the claim stops
+
+Keep this grounded:
+
+- this is a report about a workflow threshold, not a benchmark;
+- the model still has cracks;
+- the research remains easier to trust when it produces inspectable code, tests, diagrams, manifests, and source-linked claims;
+- “nearly unsupervised” does not mean “unaccountable.”
+
+**Suggested image**
+
+Use the first annotated screenshot as the central visual. Crop around the continuation requirements and package plan.
+
+**Suggested caption**
+
+> The moment I realized the scripting design contained a reusable interpreter architecture, not merely a set of JavaScript callbacks.
+
+**Estimated length:** 2,500–3,500 words.
+
+---
+
+## 2. I Asked an AI to Make My Identity Provider Scriptable. It Refused.
+
+**Alternative titles**
+
+- **The Best Thing the Model Did Was Reject My Prompt**
+- **How Not to Add JavaScript to an Identity Provider**
+- **A Scriptable Identity Provider Is Probably the Wrong Abstraction**
+
+**Core thesis**
+
+The impressive result was not that the model implemented scripting. It recognized that the naive feature request would dissolve the system’s security model and replaced it with a constrained language architecture.
+
+This is the most differentiated and concrete post in the set.
+
+**Opening**
+
+> I asked the model to make my identity provider scriptable. It refused.  
+>   
+> Not literally. It implemented the feature. But it rejected the premise that JavaScript should be allowed to become a second identity provider inside the first one.
+
+**Structure**
+
+### The innocent feature request
+
+You wanted:
+
+- virtual users;
+- invitation logic;
+- project-specific signup policies;
+- provider customization;
+- reusable Lego-like composition;
+- behavior that did not have to be hard-coded into the IDP.
+
+The obvious solution was a JavaScript host object:
+
+```javascript
+ctx.store
+ctx.sql
+ctx.fetch
+ctx.oauth
+ctx.tokens
+ctx.signingKey
+```
+
+The design explicitly refused all of this.
+
+### Why scripting could undo the previous work
+
+The system had already been refactored around:
+
+- assertions;
+- invariants;
+- protocol transitions;
+- model checking;
+- explicit evidence;
+- typed state;
+- transaction boundaries.
+
+Exposing credentials, stores, tokens, HTTP, or signing material to JavaScript would move those invariants into arbitrary script behavior.
+
+The scripting layer would become an alternate implementation of the IDP.
+
+### The replacement architecture
+
+JavaScript receives only narrow, versioned capabilities and returns members of a closed outcome algebra.
+
+```text
+JavaScript may:
+  choose a policy branch
+  request a host-defined lookup
+  select a host-defined presentation
+  construct an inert commit proposal
+  name a legal continuation
+
+JavaScript may not:
+  open a database transaction
+  consume a credential
+  mint a token
+  handle signing keys
+  write an HTTP response
+  persist a Goja object
+```
+
+The model did not merely add restrictions after designing a broad API. It made restrictions the organizing principle.
+
+### Explicit continuations
+
+Explain the key browser-boundary rule in accessible terms:
+
+- an ordinary Promise may remain alive during one HTTP request;
+- a browser interaction cannot;
+- the system stores a first-order continuation record;
+- the record names the next handler and carries only bounded, serializable, non-secret data;
+- the next request starts a fresh invocation.
+
+A serialized continuation is “just a state-machine field in a database” at the mechanical level. The interesting work is specifying everything that cannot cross that field.
+
+### Deterministic callback registration
+
+A callback ID in persisted state must resolve to the same intended code in every runtime generation.
+
+The system therefore checks:
+
+- source identity;
+- canonical program identity;
+- callback-set identity;
+- schema identity;
+- exact generation identity at resume time.
+
+This is not merely module loading. It is linking executable closures to durable semantic names.
+
+### Why this felt tasteful
+
+Define taste behaviorally:
+
+- it rejected ambient authority;
+- it did not invent a general framework where a closed mechanism sufficed;
+- it introduced abstractions only where they protected an invariant;
+- it paired each abstraction with a validation pass and an implementation phase;
+- it preserved the native protocol kernel;
+- it still delivered the requested flexibility.
+
+**Suggested images**
+
+Use the first and third screenshots.
+
+The third screenshot is particularly valuable because it shows that the architecture was tied to concrete phases and gates:
+
+- explicit continuation domain;
+- provider-owned presentation;
+- signup vertical slice;
+- restart and browser tests.
+
+**Suggested caption**
+
+> What convinced me this was not architecture astronautics: each abstraction had an implementation phase, a gate, and an end-to-end test.
+
+**Estimated length:** 2,000–3,000 words.
+
+---
+
+## 3. Ask for a Language First
+
+**Alternative titles**
+
+- **My Highest-Leverage Prompting Technique Is to Ask for a Language**
+- **Stop Asking the Model to Build the App**
+- **Before You Ask for the Feature, Ask for the Language That Describes It**
+
+**Core thesis**
+
+Many apparently difficult application tasks become small once the right boundary language exists.
+
+The model is being asked to bridge too many semantic layers when a prompt says only “add refunds,” “add invitations,” or “add a research experiment.” A language or API moves part of that bridge into the software itself.
+
+**Opening**
+
+> When I ask a model to add a refund workflow, I may be asking it to bridge the entire stack in one inference: domain policy, data structures, state transitions, validation, persistence, forms, rendering, and CSS.  
+>   
+> When I ask it to design the language of refund workflows first, most of that bridge becomes part of the project.
+
+**Structure**
+
+### Domain abstractions and computational abstractions
+
+On the domain side:
+
+```text
+order
+shipment
+refund
+approval
+invitation
+challenge
+credential
+experiment
+retriever
+evaluation
+```
+
+On the computational side:
+
+```text
+values
+bindings
+branches
+loops
+effects
+state transitions
+transactions
+serialization
+concurrency
+```
+
+An API or language is the negotiated boundary between them.
+
+### Why direct feature prompts become token-intensive
+
+Without a language, the model repeatedly reconstructs the bridge:
+
+```text
+“add a refund”
+  -> infer the domain model
+  -> find the state machine
+  -> identify database operations
+  -> construct validation
+  -> add the form
+  -> wire the route
+  -> add rendering
+  -> style the page
+  -> write tests
+```
+
+With a language:
+
+```javascript
+workflow("refund", ({ form, order, effects }) => {
+  const request = form(RefundRequest);
+  return effects.refund(order.id, request.amount);
+});
+```
+
+The domain operation becomes compact because the implementation already understands the computational semantics.
+
+### YAML DSL versus JavaScript API
+
+Use YAML when the problem is mostly declarative:
+
+- configuration;
+- finite manifests;
+- schemas;
+- static graphs;
+- policy tables.
+
+Use JavaScript when the problem requires:
+
+- lexical bindings;
+- reusable functions;
+- branching;
+- iteration;
+- composition;
+- asynchronous native operations.
+
+The key is not to “use JavaScript everywhere.” It is to expose only the computational primitives the domain requires.
+
+### Languages as complexity compression
+
+A good language performs several kinds of compression simultaneously:
+
+1. **Conceptual compression** — a domain idea gets one stable name.
+2. **Implementation compression** — repeated infrastructure moves behind an operator.
+3. **Prompt compression** — future model requests become much smaller.
+4. **Verification compression** — many generated programs share one trusted implementation.
+5. **Documentation compression** — examples teach both the user and the model.
+
+### Why languages expose the model’s reasoning
+
+Asking for an application permits the model to hide conceptual confusion inside implementation details.
+
+Asking for a language forces decisions about:
+
+- what the nouns are;
+- what the operations are;
+- where authority lives;
+- which state transitions exist;
+- which values persist;
+- what is deterministic;
+- what is an error;
+- what must remain native.
+
+This is why the technique appears to “lay bare the DNA” of both the domain and the machine.
+
+### The resulting development loop
+
+```text
+ask for a language
+    -> implement a small interpreter
+    -> express real examples
+    -> find awkward constructions
+    -> research alternative abstractions
+    -> revise the language
+    -> regenerate applications and tests
+```
+
+**Suggested image**
+
+Use the second annotated screenshot. It shows the same language-first instinct applied to a different domain: reproducible RAG experiments.
+
+**Suggested caption**
+
+> The same move in another domain: turn a pile of research infrastructure into a small operator language with explicit inputs, capabilities, artifacts, and reproducibility rules.
+
+**Estimated length:** 2,500–3,500 words.
+
+---
+
+## 4. LLMs Are Abstraction Machines
+
+**Alternative titles**
+
+- **Pattern Matching Is Not the Interesting Part**
+- **From Concrete Code to Abstract Machinery and Back**
+- **What I Mean When I Call an LLM an Abstraction Machine**
+
+**Core thesis**
+
+A useful mental model is not that an LLM merely imitates code. It recognizes structures in concrete artifacts, moves to a learned abstraction, coordinates that abstraction with others, and then lowers the result back into a new concrete implementation.
+
+The article should present this as a working hypothesis, not a settled theory of cognition.
+
+**Opening**
+
+> “Pattern matching” is technically true and descriptively useless. The interesting question is what kind of patterns a model can recognize, at what level of abstraction, and whether it can return from that abstraction to working code without losing the constraints it started with.
+
+**Structure**
+
+### The four movements
+
+```text
+concrete artifacts
+    -> abstraction recognition
+    -> abstraction coordination
+    -> concrete reconstruction
+```
+
+In the IDP:
+
+```text
+routes, database calls, handlers, forms
+    -> protocol transitions and evidence
+    -> capability systems, state machines, effect plans
+    -> new packages, schemas, interpreters, and tests
+```
+
+### Moving upward is not enough
+
+Many models can propose abstractions. The difficult part is descending again:
+
+- assigning packages;
+- choosing data structures;
+- preserving compatibility;
+- writing migration paths;
+- adding tests;
+- respecting the existing codebase;
+- fixing the consequences of the abstraction.
+
+This is where architectural “slop” usually appears.
+
+### Synthesis as coordination
+
+The interesting design was not any individual technique:
+
+- state machines;
+- capabilities;
+- schema validation;
+- continuation records;
+- worker pools;
+- canonical hashes.
+
+The interesting part was their coordination.
+
+Each technique solved one failure mode and reinforced the others.
+
+### Naming unnamed techniques
+
+A model can also function as a conceptual compiler:
+
+```text
+implementation pattern
+    -> named construct
+    -> relation to literature
+    -> reusable explanation
+    -> transferable design pattern
+```
+
+This is what turned the codebase into textbook material.
+
+### Why language design is a good probe
+
+A language forces abstractions to become operational.
+
+It is not enough to say “use capabilities.” One must define:
+
+- what a capability value is;
+- how it is obtained;
+- how long it lives;
+- whether it can be stored;
+- what arguments it accepts;
+- what results it produces;
+- how it is revoked;
+- what happens at a continuation boundary.
+
+Language design reveals whether the abstraction is actually coherent.
+
+**Estimated length:** 1,800–2,500 words.
+
+---
+
+## 5. The Codebase I Never Read
+
+**Alternative titles**
+
+- **Can You Own Software You Have Not Read?**
+- **I Pushed a Model-Built Identity Provider Toward Production**
+- **What Does Understanding a Codebase Mean After Agents?**
+
+**Core thesis**
+
+Model-generated software forces a distinction between reading every line and possessing a reliable model of the system.
+
+The article should neither celebrate blind trust nor retreat to “humans must read everything.” It should investigate the artifacts that can substitute for line-by-line familiarity.
+
+**Opening**
+
+> I built an identity provider that I did not understand in the traditional sense. I had not read most of the code. I did not know the domain well when I started. And yet I could push the system through increasingly invasive changes without it immediately collapsing into incoherence.
+
+**Structure**
+
+### The experiment
+
+You intentionally “token-maxed” the project:
+
+- selected a difficult domain;
+- permitted the model to build beyond your immediate comprehension;
+- added formal and static-analysis requirements;
+- introduced production pressure;
+- later added a scripting subsystem.
+
+The point was partly to discover the edge of model-owned complexity.
+
+### The difference between familiarity and control
+
+Traditional familiarity means:
+
+- remembering important files;
+- knowing historical accidents;
+- recognizing conventions by feel;
+- being able to debug locally.
+
+System control may instead come from:
+
+- explicit invariants;
+- closed state-transition models;
+- conformance suites;
+- generated manifests;
+- architectural boundaries;
+- source-linked design documents;
+- operational traces;
+- semantic diffs;
+- reproducible builds.
+
+These are not identical forms of understanding.
+
+### Design documents as control surfaces
+
+A strong design document is not merely retrospective documentation. It tells future agents:
+
+- which abstractions are intentional;
+- where authority belongs;
+- which shortcuts are forbidden;
+- what every phase must preserve;
+- how completion is tested.
+
+It becomes part of the execution environment for future model work.
+
+### The uncomfortable question
+
+At what point are you supervising software rather than authoring it?
+
+A useful answer may be:
+
+> Ownership moves from remembering implementation details toward controlling the language, invariants, tests, and evidence by which implementation changes are accepted.
+
+### Where this can fail
+
+Address the difficult cases:
+
+- a test suite can encode the wrong specification;
+- generated documentation can be internally coherent but false;
+- security properties can fail between modeled boundaries;
+- long dependency chains remain opaque;
+- production incidents require operational understanding;
+- the model may optimize for passing stated gates while missing unstated intent.
+
+The post becomes stronger by treating this as an unresolved engineering discipline.
+
+**Estimated length:** 2,000–2,800 words.
+
+---
+
+## 6. From Codebase to Textbook
+
+**Alternative titles**
+
+- **The Model Built the System, Then Taught Me Its Design**
+- **I Asked for Documentation and Got a Programming-Languages Textbook**
+- **Documentation as Reverse Compilation**
+
+**Core thesis**
+
+A model’s most valuable post-implementation capability may be reconstructing the conceptual architecture of a system and presenting it as a sequence a human—or another model—can learn.
+
+**Opening**
+
+> I had a large codebase I had barely read and a scripting subsystem full of techniques I recognized only partially. I asked the model to extract the interesting interpreter ideas. By the end of the morning, I had roughly two hundred pages of textbook-style material that was more readable than the source and more precise than a conventional architecture overview.
+
+**Structure**
+
+### Documentation normally follows the directory tree
+
+Most generated documentation says:
+
+```text
+this package contains X
+this struct has fields Y
+this function calls Z
+```
+
+That is useful reference material, but it does not teach the system.
+
+### The textbook followed the dependency of ideas
+
+The resulting explanation instead asked:
+
+1. Why is scripting an identity provider dangerous?
+2. Which authority must remain native?
+3. How can JavaScript express policy without possessing authority?
+4. How are callbacks linked to durable state?
+5. What survives a browser boundary?
+6. How is asynchronous work bounded?
+7. When is a runtime safe to reuse?
+8. How does hot reload preserve old continuations?
+
+That ordering is pedagogical rather than structural.
+
+### Reverse compilation
+
+A useful metaphor:
+
+```text
+source code
+  -> implementation structures
+  -> architectural invariants
+  -> named programming-language concepts
+  -> explanatory narrative
+```
+
+The model reverse-compiled the implementation into a conceptual language.
+
+### Documentation for humans and models
+
+A good text serves several audiences:
+
+- a new human maintainer;
+- a reviewer;
+- an operator;
+- a future coding agent;
+- a model asked to extend the architecture;
+- a model asked to challenge the design.
+
+This changes the economics of writing extensive internal textbooks.
+
+### The danger of beautiful explanations
+
+Coherence can be persuasive even when it is wrong.
+
+A serious documentation pipeline should preserve:
+
+- links to exact source;
+- statements of what was inferred;
+- distinctions between implemented and proposed behavior;
+- references to tests;
+- unresolved concerns;
+- version and commit identity.
+
+**Suggested image**
+
+The first screenshot works here as well. The handwritten annotations visually show the human recognition step: noticing that apparently ordinary package planning contains interpreter machinery.
+
+**Estimated length:** 1,800–2,500 words.
+
+---
+
+## 7. Serialized Continuations Are Just a Database Field—Until You Care About Invariants
+
+**Alternative titles**
+
+- **The Surprisingly Deep Design of a Browser Continuation**
+- **How to Suspend JavaScript Without Serializing JavaScript**
+- **Why My IDP Never Persists a Promise**
+
+**Core thesis**
+
+The low-level mechanism is simple: store the next state and resume later. The design becomes interesting when persistence, security, code generations, secret flow, replay, and browser interaction are treated rigorously.
+
+This should be the first deeply technical article in the series.
+
+**Opening**
+
+> A serialized continuation can sound like programming-languages mysticism. In this system it is, at first approximation, a state-machine field in a database.  
+>   
+> The hard part is specifying everything else that must be true before that field is safe to trust.
+
+**Structure**
+
+### The naive implementation
+
+```json
+{
+  "next": "signup.verify_email",
+  "data": {
+    "email": "alice@example.com"
+  }
+}
+```
+
+This looks sufficient until the questions begin.
+
+### Which code does `signup.verify_email` identify?
+
+A string must be bound to:
+
+- one workflow;
+- one callback registry;
+- one program generation;
+- one compatible input schema;
+- one expected browser event;
+- one permitted predecessor edge.
+
+### Which data may survive?
+
+Allowed:
+
+- bounded public carry;
+- stable native references;
+- request-binding information;
+- revision and expiry;
+- evidence identifiers.
+
+Forbidden:
+
+- functions;
+- Goja objects;
+- Promises;
+- credentials;
+- raw challenge codes;
+- HTTP objects;
+- database transactions;
+- capability functions.
+
+### What prevents replay?
+
+Explain:
+
+- opaque handles;
+- keyed hashes;
+- expiry;
+- revisions;
+- atomic consume;
+- one-time evidence;
+- browser binding;
+- terminal status.
+
+### What happens after hot reload?
+
+The continuation must not silently resume under code with different meaning.
+
+Possible policies:
+
+- retain the old generation;
+- run an explicit migration;
+- reject incompatibility safely;
+- revoke the continuation.
+
+### Why not serialize the Goja stack?
+
+A VM snapshot would capture too much:
+
+- engine-specific program counters;
+- object identities;
+- lexical environments;
+- native references;
+- potentially secret-bearing values;
+- pending microtasks;
+- runtime implementation details.
+
+The explicit continuation is smaller precisely because it records semantic state rather than machine state.
+
+### The compiler opportunity
+
+A future compiler could let the author write:
+
+```javascript
+const form = await durable.present(SignupForm);
+const proof = await durable.emailCode(form.email);
+```
+
+while compiling it into explicit named handlers and typed continuation frames.
+
+This provides direct style without making VM state durable.
+
+**Estimated length:** 3,000–4,500 words.
+
+---
+
+## 8. Taste Is the New Frontier
+
+**Alternative titles**
+
+- **Systematic, but Not an Architecture Astronaut**
+- **What Model Taste Looks Like in Software Design**
+- **The Difference Between More Architecture and Better Architecture**
+
+**Core thesis**
+
+“Taste” should not mean that the generated code resembles the author’s preferences. It means the model makes coherent trade-offs, refuses bad premises, introduces structure at the right level, and is willing to rebuild foundations rather than decorate a failing design.
+
+**Opening**
+
+> Models have been capable of generating elaborate architecture for a while. The problem was that they often seemed unable to tell whether the architecture was earning its keep. What surprised me about this work was not its complexity. It was its restraint.
+
+**Define taste through observable behaviors**
+
+### It rejected the naive abstraction
+
+Instead of exposing the store and protocol internals to JavaScript, it narrowed the scripting problem.
+
+### It was willing to modify the core
+
+The model did not preserve a poor internal structure merely to minimize the diff.
+
+It introduced the objects required for:
+
+- tracing;
+- assertions;
+- model checking;
+- typed outcomes;
+- capability boundaries;
+- explicit continuations.
+
+### It made the abstractions pay rent
+
+Every major abstraction had:
+
+- a threat or failure mode;
+- a validation rule;
+- an implementation package;
+- a test gate;
+- a production integration point.
+
+### It remained coherent across iterations
+
+The architecture survived:
+
+- the original IDP;
+- formal-analysis additions;
+- production hardening;
+- scripting;
+- continuation storage;
+- provider integration.
+
+### It did not confuse coverage with quality
+
+The system covers substantial security ground, but the design does not appear to introduce arbitrary abstraction merely because more abstraction sounds sophisticated.
+
+### Taste remains contextual
+
+The same design could be excessive for:
+
+- a static marketing site;
+- a disposable internal script;
+- a prototype with no durable state.
+
+The identity-provider context justifies a larger assurance envelope.
+
+**Suggested image**
+
+Use the third screenshot, which shows the phased implementation plan and concrete gates.
+
+**Estimated length:** 1,500–2,200 words.
+
+---
+
+## 9. The Five Stages of Learning a New Frontier Model
+
+**Alternative titles**
+
+- **Every New Model Arrives in the Same Five Acts**
+- **From Demo Effect to Prompting Blind**
+- **How I Actually Learn What a New Model Changes**
+
+**Core thesis**
+
+Your model-adoption cycle is itself a useful post. It gives readers a vocabulary for distinguishing novelty from actual workflow change.
+
+**The five stages**
+
+### Stage 0: “That is not bad at all”
+
+The first-demo effect. A conspicuously good answer establishes possibility but not yet repeatability.
+
+### Stage 1: “I cannot tell the difference”
+
+The new capability has not been integrated into the existing workflow. Old prompting habits underuse it.
+
+### Stage 2: “Oh, fuck”
+
+A task unexpectedly reveals that the workable unit of delegation has changed.
+
+This is the real unlock.
+
+Examples:
+
+- GPT-5: substantial refactoring without babysitting.
+- 5.4: multiple parallel tasks without spending the day repairing each one.
+- 5.6: sustained research and synthesis without constant steering.
+
+### Stage 3: “I see the cracks”
+
+Repeated use reveals the failure modes.
+
+This is where:
+
+- prompting techniques emerge;
+- scaffolding gets built;
+- evaluation tasks become concrete;
+- the next generation’s training target becomes visible.
+
+### Stage 4: Fluency
+
+You can prompt the model “blind” because you have internalized:
+
+- what context it needs;
+- when to ask for research;
+- when to ask for a language;
+- how much autonomy to grant;
+- where to require checkpoints;
+- which outputs are reliable enough to use directly.
+
+### The larger point
+
+New-model adoption is not primarily about collecting tricks. It is about discovering the new stable unit of delegation.
+
+**Estimated length:** 1,200–1,800 words.
+
+This would work well as a shorter, highly shareable post between technical essays.
+
+---
+
+## 10. Toward a Language Optimization Loop
+
+**Alternative titles**
+
+- **What Happens When the Model Can Research the Language It Is Designing?**
+- **Compilers, Agents, and the Language Optimization Loop**
+- **The Next Agent Workflow Is Not Code Generation. It Is Language Evolution.**
+
+**Core thesis**
+
+Your language-first method has so far been largely intuitive. Better research synthesis makes it possible to turn it into a systematic optimization loop.
+
+**Opening**
+
+> I have generated thousands of small languages over the last several years. Most were not designed through a scientific process. I tried an API, noticed where it felt awkward, asked the model to revise it, and gradually accumulated a set of patterns I no longer consciously name.  
+>   
+> A model that can conduct sustained programming-languages research changes what this loop can become.
+
+**Structure**
+
+### The current informal loop
+
+```text
+describe the domain
+    -> ask for a DSL or JS API
+    -> implement examples
+    -> encounter friction
+    -> patch the API
+    -> repeat
+```
+
+### A research-enabled loop
+
+```text
+collect representative tasks
+    -> infer domain ontology
+    -> propose competing languages
+    -> implement small interpreters
+    -> synthesize example programs
+    -> measure complexity and error modes
+    -> research analogous language designs
+    -> revise semantics
+    -> test human and model authoring
+    -> promote stable constructs
+```
+
+### Possible optimization criteria
+
+A language can be evaluated for:
+
+- program length;
+- number of concepts required;
+- authority exposed;
+- invalid states representable;
+- quality of diagnostics;
+- ease of static analysis;
+- ease of model generation;
+- edit locality;
+- backwards compatibility;
+- interpreter complexity;
+- proof burden;
+- performance;
+- human readability.
+
+### Model-generated language benchmarks
+
+Create a corpus of tasks such as:
+
+```text
+add an invitation-based signup
+add a refundable order cancellation
+run a reproducible RAG comparison
+add a two-person approval
+migrate an existing durable workflow
+explain why one request was denied
+```
+
+Compile or express each task in competing language designs.
+
+Then compare:
+
+- mistakes;
+- tokens used;
+- repair iterations;
+- authority requested;
+- size of generated implementation;
+- static errors caught;
+- runtime errors remaining.
+
+### The human role
+
+The model can optimize measurable properties, but the human still selects:
+
+- which concepts deserve names;
+- which complexity should be visible;
+- which policies are non-negotiable;
+- which language feels honest about the domain;
+- which abstraction will remain useful after the current project.
+
+### From Tiny-IDP to a malleable interpreter
+
+The endpoint is not one perfect IDP scripting API. It is a compiler and interpreter substrate that projects can extend with:
+
+- types;
+- capabilities;
+- effects;
+- durable operations;
+- verification rules;
+- cost models;
+- native bindings.
+
+**Suggested image**
+
+Use the second annotated screenshot. It demonstrates that the same package-and-language pattern is already appearing in a separate RAG experimentation system.
+
+**Estimated length:** 2,500–3,500 words.
+
+---
+
+## 11. Programming Is a Distracting Word
+
+**Alternative titles**
+
+- **We Are Not Teaching Models to Program. We Are Designing Languages for Computation.**
+- **The Problem With Calling It Programming**
+- **Software Is a Collection of Computational Languages**
+
+**Core thesis**
+
+“Programming” overemphasizes the human activity of writing code. The more useful frame is the design of languages that describe permissible computation.
+
+This could be a more philosophical and concise essay.
+
+**Opening**
+
+> “Programming” is a distracting word because it makes us think about the activity of writing instructions. The deeper activity is deciding what computations can be expressed, what they mean, and which details the author should never have to mention.
+
+**Sections**
+
+- Why general-purpose languages expose accidental complexity.
+- How every mature framework contains smaller languages.
+- Configuration files, schemas, builders, query APIs, workflow descriptions, and component trees as computational languages.
+- Why models benefit disproportionately from stable domain languages.
+- Why a good language can transform a difficult feature into a small description.
+- The danger: every abstraction hides something, and hidden authority is worse than visible complexity.
+- A language is successful when it moves complexity to a place where it can be implemented and verified once.
+
+**Estimated length:** 1,400–2,000 words.
+
+---
+
+## 12. The Same Pattern in Two Domains: Identity and Reproducible RAG
+
+**Alternative titles**
+
+- **Why My Identity Provider and My RAG Lab Started Looking Alike**
+- **From Identity Workflows to Reproducible Research Operators**
+- **The Recurring Architecture of Agent-Built Systems**
+
+**Core thesis**
+
+The second annotated document suggests that the IDP architecture is not an isolated accident. Similar patterns appear in reproducible RAG experiments:
+
+```text
+trusted source package
+canonical artifact
+typed configuration
+declared capabilities
+fresh constrained runtime
+native execution
+normal domain values and evidence
+```
+
+This post should be written after documenting the RAG project in more detail.
+
+**Potential comparison**
+
+| Identity provider | RAG experiment system |
+|---|---|
+| Workflow package | Operator package |
+| Callback registry | Operator registry |
+| Program generation | Experiment artifact identity |
+| Invocation capability | Host/provider capability |
+| Continuation evidence | Evaluation evidence |
+| Native commit | Native experiment execution |
+| Typed outcomes | Typed result bundles |
+| Generation-pinned resume | Reproducible package digest |
+| Closed script runtime | Fresh constrained Goja realm |
+
+**Central question**
+
+Why do two very different domains converge on the same structure?
+
+Because both need to allow experimentation while retaining native custody of the hard guarantees:
+
+- identity security in one case;
+- experimental reproducibility in the other.
+
+The general pattern may be:
+
+> Scripts describe bounded computation; native code owns the evidence that the computation was performed correctly.
+
+**Suggested image**
+
+Use the complete second screenshot as the primary image. The annotations themselves support the post’s thesis: “configurable but reproducible,” “what is a port,” “what is a host,” and which capabilities belong on which side of the boundary.
+
+**Estimated length:** 2,500–3,500 words.
+
+---
+
+# Recommended initial publishing sequence
+
+## Post 1: **I Asked an AI to Make My Identity Provider Scriptable. It Refused.**
+
+This is the strongest opening because it has:
+
+- a concrete story;
+- a surprising reversal;
+- a serious technical subject;
+- visible artifacts;
+- a clear lesson beyond one model release;
+- enough depth to establish the quality of the series.
+
+It demonstrates the capability before making the broader claim about 5.6.
+
+## Post 2: **Ask for a Language First**
+
+This extracts the reusable personal method from the case study.
+
+The first article says: “Here is something remarkable that happened.”
+
+The second says: “Here is the technique that created the conditions for it.”
+
+## Post 3: **The First Model I Trust to Do Research Without Me**
+
+Once readers have seen the evidence, the broader claim about the model step function has more weight.
+
+## Post 4: **Serialized Continuations Are Just a Database Field—Until You Care About Invariants**
+
+This provides the technical proof that the architectural praise is substantive rather than aesthetic.
+
+## Post 5: **From Codebase to Textbook**
+
+This introduces the second capability: not merely producing the design, but reverse-engineering it into an educational narrative.
+
+## Post 6: **Toward a Language Optimization Loop**
+
+This moves from retrospective case study to a future research program.
+
+A coherent six-post arc is therefore:
+
+```text
+surprising case study
+    -> reusable prompting method
+    -> model capability thesis
+    -> technical deep dive
+    -> documentation and teaching
+    -> future language-research loop
+```
+
+---
+
+# Three shorter posts that can run between the major essays
+
+These can maintain cadence without requiring a full research article.
+
+## Taste Is the New Frontier
+
+A 1,500-word argument defining model taste through rejection, restraint, structural coherence, and willingness to repair foundations.
+
+## The Five Stages of Learning a New Frontier Model
+
+A concise and shareable personal taxonomy.
+
+## Programming Is a Distracting Word
+
+A philosophical note connecting language design, computation, frameworks, and agent workflows.
+
+---
+
+# Suggested series framing
+
+The first post could include a small editor’s note:
+
+> This is the first in a series about a model-built identity provider, the unusual interpreter architecture that emerged inside it, and a prompting technique I have used for several years: ask for the language of the problem before asking for the solution.  
+>   
+> The series moves between a concrete codebase, programming-language design, model capability, and a larger question: what happens when software agents can not only implement systems, but also research, name, and teach the abstractions those systems require?
+
+---
+
+# Editorial principles for the series
+
+## Keep the claims autobiographical
+
+Prefer:
+
+> “This is the first model I have trusted to conduct this kind of research with limited steering.”
+
+over:
+
+> “This is the first model capable of autonomous scientific research.”
+
+The former is both more credible and more interesting. It identifies a real workflow threshold.
+
+## Use the IDP as evidence, not decoration
+
+Do not introduce ten interpreter terms before establishing the problem they solve.
+
+The reader should first understand:
+
+- why identity scripting is dangerous;
+- why you wanted it anyway;
+- why the obvious design was unacceptable.
+
+Then introduce capabilities and continuations.
+
+## Define “taste” operationally
+
+Taste is otherwise too easy to dismiss. Tie it to observable choices:
+
+- rejecting ambient authority;
+- introducing a smaller language;
+- altering the foundation rather than adding adapters;
+- connecting every abstraction to a failure mode;
+- supplying implementation phases and gates;
+- preserving coherence across subsequent changes.
+
+## Preserve the unresolved tension
+
+The story is stronger because you have not read most of the code.
+
+Do not hide that. Make it one of the central questions:
+
+> What forms of evidence are sufficient to responsibly operate software whose implementation exceeds the maintainer’s line-by-line familiarity?
+
+## Alternate narrative and technical posts
+
+A run of six dense interpreter essays would narrow the audience. Alternate:
+
+```text
+personal observation
+technical case study
+general method
+deep technical analysis
+personal reflection
+future research direction
+```
+
+---
+
+# Strongest ready-to-use opening
+
+For the first post:
+
+> I asked an AI to make my identity provider scriptable. It refused.  
+>   
+> Not literally. It implemented the feature. But it rejected the obvious architecture. It would not expose a database, HTTP client, credential store, token service, or signing key to JavaScript. Doing so would have turned the scripting layer into a second identity provider hidden inside the first and dissolved the invariants the system had just been rebuilt to enforce.  
+>   
+> Instead, it designed a small language. JavaScript could select policies, invoke narrowly granted capabilities, choose host-defined presentations, and propose typed effects. Go retained custody of credentials, transactions, protocol state, browser handling, and durable evidence. Browser waits became explicit continuation records rather than suspended JavaScript heaps. Callback registration was fingerprinted across independent runtimes. A timed-out worker was destroyed rather than optimistically reused.  
+>   
+> None of those techniques is individually unprecedented. What surprised me was the way they were fitted together: systematically, conservatively, and without abandoning the practical feature I had asked for.  
+>   
+> This is an article about that design. It is also an article about the first model I have used that seems capable not merely of generating a great deal of architecture, but of exercising something uncomfortably close to architectural taste.
+
+## Turn 67 - user
+
+- Message ID: `30f889bf-ba6f-4fd7-b1c4-9e2ee7cf799f`
+
+okI do actually want a fairly expansive article about the capabilities of llm, the jump of 5.6, them being abstraction machines. It can be a bit longer, and combine 1 2 3 4 6 8 9 10, with emphasis more on 1 2 10 and using the others as illustrations and background and sections.
+
+## Turn 68 - user
+
+- Message ID: `dd1d2df1-9534-4322-914a-9b8d3ee7cf02`
+
+Ok, I do actually want a longer article that can be a bit "rambling" (compare to my others about abstraction for example), and a combination of 1 2 3 4 6 8 9 10, with 1 2 9 10 being the most important, and the others more as like examples / side points.
+
+## Turn 69 - assistant
+
+- Message ID: `c2e9e57d-67d1-4db8-994d-657f09072696`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 70 - assistant
+
+- Message ID: `5aa2f5a0-76a8-4197-aa91-c2d9a75ebaf0`
+- Model: `gpt-5-6-pro`
+
+
+
+## Turn 71 - assistant
+
+- Message ID: `1352f87a-901a-4440-a640-6ebfcb94c55c`
+- Model: `gpt-5-6-pro`
+
+I drafted this as one 7,588-word essay rather than a stitched collection of mini-posts. The five-stage model-adoption cycle provides the spine; the identity-provider case supplies the evidence; and the argument builds toward the language-optimization loop.
+
+[Download the editable Markdown draft](sandbox:/mnt/data/abstraction-machine-gpt-5-6-substack-draft.md)
+
+I normalized the model name to **GPT-5.6 Sol**, OpenAI’s official name for the flagship tier, while using “5.6” in the body. citeturn941125search0
+
+---
+
+# 5.6 and the Abstraction Machine
+
+## On unsupervised research, architectural taste, asking for a language first, and the possibility that the next important agent loop happens above the level of code
+
+*Editor’s note: I use “5.6” throughout for GPT-5.6 Sol.*
+
+I asked 5.6 to make my identity provider scriptable. It more or less refused.
+
+Not literally. It implemented the feature. But it rejected the obvious interpretation of the feature: embed JavaScript, hand it the useful internal objects, and let deployments customize the system by calling into them. Instead it designed a small constrained language in which JavaScript could make policy decisions and compose host-defined operations while Go retained custody of credentials, transactions, protocol state, browser behavior, and durable evidence.
+
+It then implemented the interpreter machinery required to make that boundary real: explicit continuations instead of persisted Promises, invocation-scoped capabilities instead of ambient services, deterministic callback registration, canonical fingerprints, opaque secret handles, closed outcomes, native effect plans, generation-aware resumption, and fail-stop worker reuse.
+
+This article is partly about that design. More importantly, it is about what the design made me realize about the new model: the unit of work I can delegate has moved again.
+
+New models arrive in a fairly predictable sequence for me by now.
+
+The zeroth stage is the demo effect: *oh, that is not bad at all*. Something works that did not work before, or it works with an ease that is conspicuous enough to make me stop for a minute. This part is exciting, but it is also the least reliable. Every model can look like a revolution if you happen to ask it exactly the right question on the first day.
+
+The first stage is stranger: I often cannot really tell the difference between the new model and the old one. I am still using my old workflow, my old prompts, my old expectations, and my old unit of delegation. The model may be better, but I have not yet found the task shape that exposes what the improvement is *for*.
+
+Then comes the second stage, which is the useful one: *oh, fuck*.
+
+This is when I stumble into a task that changes the amount or kind of work I can hand over. The relevant thing is not that the model writes a nicer function or catches an extra bug. The unit of delegation changes.
+
+GPT-5 was the first model where I felt comfortable delegating significant refactors without continuously babysitting them. Before that, I could ask for large changes, but I was usually committing myself to spending the next several hours following the model through the codebase, catching local misunderstandings, repairing half-finished migrations, and steering it back toward the original goal. GPT-5 was the first time I regularly felt I could describe a substantial structural change and let the model carry enough of the invariants through the refactor that I could review the result rather than co-pilot every intermediate edit.
+
+There were more incremental unlocks after that. One of the meaningful ones was simply that enough things started working on the first pass that I could launch several jobs in parallel without effectively scheduling several future repair sessions for myself. That sounds like a modest improvement, but it changes the shape of a day. There is a huge difference between starting five tasks and then spending five hours fixing them one by one, and starting five tasks with a reasonable expectation that most will converge.
+
+With 5.6, I think I have encountered another one of these changes in the unit of delegation. It is the first model I have used where research can feel almost unsupervised in the same way that refactoring started to feel almost unsupervised with GPT-5.
+
+I do not mean that I can ask it any research question and receive truth. I do not mean that it is a replacement for subject-matter expertise, peer review, experiments, or proofs. I mean something more practical and, for my work, more consequential: I can point it at a difficult body of literature, a large unfamiliar codebase, and a broad engineering objective, and it can often keep the research loop coherent long enough to synthesize the literature into a small set of ideas, apply those ideas to the code, restructure the implementation around them, and then explain what it did in a way that teaches me the resulting system.
+
+That entire loop is new enough that I am still trying to find words for it.
+
+I am somewhere between stage two and stage three with 5.6 now. Stage three is when the initial vertical feeling wears off and I start seeing the cracks: which tasks make it drift, which prompts produce architecture astronautics, where the research becomes a collage, where it confuses a plausible formalism with a valid one, where it needs a tool or a constraint or an explicit intermediate artifact. That is when prompting techniques become concrete and when I start building machinery around the model. Usually, by the time I become fluent at filling those cracks, I can already imagine the next model filling several of them by itself.
+
+But I am not there yet. I can see some cracks. I also still have a bit of the vertical feeling, which I have not had this strongly in over a year.
+
+The best example is an identity provider I have been building.
+
+## The identity provider I mostly did not read
+
+An identity provider is the part of a system that decides who you are and produces the assertions the rest of the system trusts. It deals with logins, sessions, credentials, challenges, invitations, consent, tokens, protocol state, and all of the unpleasant security boundaries around those things.
+
+I did not begin this project because I had deep expertise in identity systems. Quite the opposite. Part of the experiment was to choose a domain complicated enough that I could not quietly rely on my own background to repair the model’s work. I let the model build a great deal of the system. I pushed it toward production. I added requirements as I went. I did not read most of the code line by line.
+
+This is obviously not a sentence I would have written approvingly about software development a few years ago.
+
+The point was not to prove that reading code no longer matters. It was to see how far I could push a different form of ownership: one based on design documents, explicit invariants, tests, traces, model-checking artifacts, package boundaries, and repeated architectural interrogation. I wanted to know whether a model could build something too large for me to hold locally while still producing enough structure that I could develop a reliable global understanding of it.
+
+At some point I asked it to research static analysis, model checking, formal methods, and work on OAuth protocol verification, and then to improve the system accordingly. This was deliberately broad and, in retrospect, not even an especially good prompt.
+
+Previous models could do the research part in a recognizable way. They would find papers, summarize them, extract a few concepts, and draw plausible connections. But on difficult material you could often see the seams. The answer behaved like a stack of research notes that had been glued together. One source would be represented accurately, the next would be simplified too aggressively, and the connection between them would become increasingly decorative. If I asked it to apply the result to a real codebase, the implementation often settled for adding a layer of assertions or a few formal-looking types around the existing structure.
+
+What surprised me here was that the model did not merely add analysis tools around the code. It refactored the codebase so that the important protocol ideas became representable in the first place.
+
+It introduced objects and transitions that made tracing, assertions, invariants, and model checking possible. It changed the internal ontology of the project. Instead of treating the existing implementation as fixed and finding somewhere to attach the requested feature, it recognized that the request implied a different foundational representation and rebuilt toward it.
+
+That is a very particular kind of competence. It is easy to satisfy a checklist by adding a checker at the edge. It is much harder to notice that the code does not currently contain the right objects for the checker to say anything useful, introduce those objects, move the existing application onto them, and preserve behavior while doing so.
+
+I had seen models perform large refactors by then. I had not often seen one respond to a research prompt by changing the ontology of the application so that the researched ideas had a natural home.
+
+Then I asked it to make the identity provider scriptable.
+
+## I asked it to make the IDP scriptable. It more or less refused.
+
+The request was reasonable. I wanted the identity provider to be a building block rather than one hard-coded product. I wanted to express things like virtual users, invitations, project-specific signup flows, provider behavior, policy decisions, and other forms of customization without modifying the Go implementation every time.
+
+The naive version of this request is straightforward: embed JavaScript, give it a context object, and expose the useful parts of the application.
+
+Something like:
+
+```javascript
+ctx.store
+ctx.sql
+ctx.fetch
+ctx.oauth
+ctx.tokens
+ctx.signingKey
+```
+
+This is also a good way to undo nearly every invariant the previous work had introduced.
+
+Once arbitrary JavaScript can open stores, issue queries, fetch network resources, inspect credentials, mint tokens, sign values, write responses, or manipulate protocol objects, the scripting layer becomes a second identity provider hidden inside the first one. Every script path now has to preserve the full security model. The native implementation may be carefully typed, traced, checked, and modeled, while the actual behavior of the deployment is determined by a dynamic program with ambient authority.
+
+The model rejected that premise.
+
+It did not reject the feature. It rejected the idea that “scriptable” meant “give JavaScript access to the application.” Instead it designed something closer to a small policy and workflow language implemented using JavaScript syntax.
+
+JavaScript could receive carefully bounded inputs. It could call explicitly granted, versioned capabilities. It could select among host-defined presentation objects. It could return one member of a closed set of outcomes. It could propose an inert sequence of effects for native code to validate and commit. It could name a legal next handler at a browser boundary.
+
+It could not own the identity provider.
+
+The distinction sounds obvious when stated afterward, which is often the sign of a good abstraction. But it has very large consequences.
+
+The JavaScript layer does not get credentials. It may get an opaque password handle that can be passed to a native password verifier or into a native commit operation, but it does not get a string it can log, concatenate, retain, or accidentally serialize. It does not get the raw challenge code. It may get native evidence that a challenge succeeded. It does not get an HTTP response writer. It may choose a presentation from a host-controlled registry. It does not get a SQL transaction. It may construct a typed plan that the native runtime either accepts as one named atomic operation or rejects.
+
+There is no generic “do whatever you need” escape hatch. The language is useful because the operations are narrow enough to have stable meaning.
+
+This is where the design started to feel less like an ordinary embedding API and more like interpreter work.
+
+A handler is not simply a JavaScript function. It has an input schema, an output schema, a set of allowed outcomes, a set of required capabilities, a set of permitted commit effects, a timeout, a call budget, and an output budget. The callback itself exists only inside one runtime, while the serializable program stores a stable callback identifier. The runtime has to prove that the identifier resolves to the same intended callback registry across independently created workers.
+
+The model introduced deterministic callback registration and fingerprints for the source, the canonical program, the callback set, and the schemas. This matters because a browser workflow may persist the name of a handler today and resume it tomorrow. A string such as `signup.email_verified` is not enough. The system needs to know which program generation gave that string meaning, whether the input schema is still compatible, whether the callback exists in every worker, and whether a reload changed the semantics under an already-running workflow.
+
+The browser boundary is where the design becomes especially interesting.
+
+An ordinary JavaScript `await` can remain alive while one HTTP request is running. A browser interaction cannot. The user may close the tab, return hours later, hit a different server instance, or resume after the process has restarted. The system cannot persist a Promise, a JavaScript closure, a Goja object graph, or an interpreter stack and pretend that this is a stable application protocol.
+
+Instead it stores an explicit continuation record. At the simplest mechanical level, this is just a state-machine field in a database: here is the handler to invoke next, and here is the data it needs. But almost all of the interesting work lies in the constraints around that field.
+
+The next handler must be registered in the same workflow. Its input schema must be compatible with the event that will resume it. The carried data must be serializable, bounded, and allowed to cross a durable boundary. Secrets must not leak into it. Native evidence must have been created before resumption. The continuation must expire. It must be bound to an exact program generation or have an explicit migration path. Its revision must advance atomically so that replayed requests cannot consume it twice.
+
+The system therefore never serializes “the callback.” It serializes a first-order description of what should happen next.
+
+This is a known programming-languages move called defunctionalization when stated abstractly: replace a function or continuation with a finite data representation and a native dispatcher. In ordinary application code it may look like nothing more exotic than storing `next_state = "verify_email"`. The interesting part is recognizing it as the same computational pattern and then rigorously defining its schema, authority, lifetime, replay behavior, and relationship to code generations.
+
+That is the kind of synthesis I am talking about. None of the ingredients is individually unprecedented:
+
+- state machines;
+- capability-based APIs;
+- schema validation;
+- opaque handles;
+- worker pools;
+- canonical hashes;
+- effect plans;
+- explicit continuations;
+- generation pinning;
+- fail-stop cleanup.
+
+What impressed me was how they were strung together. Each technique solved one failure mode and made the next technique possible.
+
+The closed outcome set makes native interpretation exhaustive. The capability set prevents ambient authority. The explicit continuation prevents VM state from becoming durable. The generation fingerprint prevents old continuations from silently changing meaning. The worker owner keeps all Goja operations on one goroutine. The settlement tracker prevents a runtime with late asynchronous work from being reused. The fail-stop pool discards a worker after a timeout or uncertain interruption instead of trying to clean up a state it cannot prove safe.
+
+This is not just “a lot of security stuff.” It is a coordinated computational model.
+
+**[IMAGE 1 — annotated continuation requirements and package plan]**
+
+*Suggested caption: The page where I realized the scripting proposal was actually a small interpreter architecture: explicit continuation requirements, pure program contracts, a native workflow interpreter, a constrained Goja runtime, opaque secrets, and invocation capabilities.*
+
+## What I mean by taste
+
+Models have been able to generate elaborate architecture for a while. Elaborate architecture is not the same thing as good architecture. In fact, one of the easiest failure modes to recognize in model-generated systems is the architecture astronaut: the model has encountered a sufficiently serious prompt and responds by producing every pattern it associates with seriousness.
+
+This did not feel like that.
+
+It covered a great deal of ground, especially because identity systems deserve a great deal of security attention, but the abstractions seemed to pay rent. Every major construct corresponded to a concrete failure mode. Every design phase had a gate. The plan moved from an explicit continuation store, to host-owned presentation, to a real signup vertical slice, to provider integrations and production behavior. Restartability, replay, browser flow, runtime replacement, and exact field projection were treated as things to test, not merely things to mention.
+
+More importantly, the model was willing to seriously modify the core of the project. It did not weasel its way to a successful checklist by preserving a weak foundation and adding adapters. It first built the abstract layer it needed and then rebased the application on top of it.
+
+That aggressiveness is part of what felt new. Previous models were often locally obedient. They optimized for making the requested change fit inside the current shape of the code, even when the current shape was the reason the change was difficult. Here the model was willing to say, in effect: the application does not yet contain the right machinery, so we will build the machinery first.
+
+Taste is a dangerous word because it can collapse into “the model made choices I personally like.” I mean something more operational:
+
+- it challenged the framing rather than blindly implementing it;
+- it introduced a smaller language instead of exposing a larger API;
+- it kept authority native and data explicit;
+- it made each abstraction correspond to a validation rule and a testable boundary;
+- it changed the foundation when the new requirement exposed a foundational mismatch;
+- it stopped short of making the scripting language a general-purpose application runtime.
+
+There are codebases where this would be absurdly overengineered. An identity provider is not one of them.
+
+**[IMAGE 2 — implementation phases and gates]**
+
+*Suggested caption: What kept the design from feeling like architecture theater was the implementation plan: each abstract mechanism had a phase, a concrete purpose, and an end-to-end gate.*
+
+## LLMs as abstraction machines
+
+I keep coming back to the idea that LLMs are abstraction machines.
+
+Saying that they are pattern-matching machines is not wrong. It is just too low-resolution to be useful for the work I am doing. The interesting question is what kinds of patterns they can recognize, at what level, how they can coordinate several abstractions, and whether they can descend from the abstraction back into a working concrete system without losing the original constraints.
+
+The movement looks roughly like this:
+
+```text
+concrete artifacts
+    -> recognize a recurring structure
+    -> move into an abstract representation
+    -> coordinate it with other abstractions
+    -> lower the result into new concrete artifacts
+```
+
+In the identity provider, the concrete artifacts were routes, forms, stores, callbacks, protocol handlers, credentials, and tests. The model moved upward into concepts such as evidence, authority, state transitions, effects, continuations, generations, and runtime ownership. It then coordinated those with programming-language patterns and lowered the result back into packages, schemas, registries, worker pools, validators, and integration tests.
+
+Moving upward is not the difficult part by itself. Models have always been able to suggest abstractions. The difficult part is returning to the code without becoming vague.
+
+An architecture astronaut can tell you to “use capabilities” or “model the flow as a state machine.” A useful system has to answer much less glamorous questions:
+
+- What is the capability value?
+- Who creates it?
+- How is it versioned?
+- Can it be retained by a closure?
+- What happens after the invocation ends?
+- How are Promise settlements routed back to a non-thread-safe VM?
+- What can be stored in a continuation?
+- What happens when a worker times out?
+- How does a callback ID link to a closure in a fresh runtime?
+- What happens to a continuation after a deployment?
+
+The abstraction becomes real only when these details have one coherent answer.
+
+This is also why I find language design to be such a strong probe of model capability. A model can write a persuasive architecture document while hiding contradictions in prose. A language forces the abstractions to become operational. The nouns need representations. The operations need signatures. The effects need interpreters. The invalid combinations need errors. The authority needs a location. The state needs a lifetime.
+
+If the model can design a language and then implement its interpreter, it has to walk both directions on the abstraction ladder.
+
+## Ask for a language first
+
+One of my most reliable prompting techniques over the last several years has been to ask for a language before asking for the application.
+
+“Language” here can mean many things. It may be a YAML DSL if the problem is mostly declarative. It may be a JavaScript API if I need bindings, functions, loops, branching, or asynchronous composition. It may be a set of Go interfaces, a widget tree, a query notation, a command language, or a small collection of typed builders.
+
+The point is not to invent syntax for its own sake. The point is to find the boundary where domain concepts and computational concepts meet.
+
+On the domain side, a logistics system contains things such as orders, shipments, refunds, routes, appointments, exceptions, and plans. An identity system contains identities, credentials, invitations, challenges, consent, and sessions. A RAG experiment system contains corpora, retrievers, rankers, prompts, evaluators, datasets, runs, and artifacts.
+
+On the computational side, there are values, bindings, branches, loops, effects, state transitions, retries, transactions, serialization, concurrency, and failure.
+
+Application complexity often accumulates at the seam between these two worlds. A domain expert says “add a refund workflow.” The implementation of that sentence may require a database state transition, permissions, a form, validation, money calculations, an audit event, a queue, a notification, a page, and CSS. A single prompt now asks the model to bridge from a high-level domain intention all the way to dozens of unrelated implementation details.
+
+That is extremely token-intensive in a deeper sense than merely consuming context. The model has to repeatedly reconstruct the same abstraction bridge. Every new feature prompt contains a hidden request to rediscover the architecture.
+
+If the project instead has a small language of workflows, forms, effects, and domain operations, “add a refund workflow” may become twenty lines of code. The language already contains the bridge. The model no longer needs to infer where validation belongs, how a form is rendered, how a transaction is committed, or how an error is represented. Those decisions have been made once in the interpreter.
+
+This is why a good language changes the effective intelligence of the model. It reshapes the problem into a surface on which the model can generalize more reliably.
+
+I wrote about this before as generalization shaping: notation, tools, code, and APIs reduce a messy problem into a smaller one with stronger regularities. The current identity-provider work feels like the same idea applied recursively. I asked the model to build a scripting language, and in doing so it exposed the computational DNA of the host application itself.
+
+There is an old idea in computer science that if you can design a language in which the solution is easy to express, much of the original problem has disappeared. I think “programming language” can actually distract from this. Programming makes us think of an activity performed by programmers. The more fundamental thing is computational language: a way to describe which computations exist, what they mean, and which details are handled by the machine.
+
+This matters even more with LLMs because they are, quite literally, language machines. We have spent decades building abstractions so humans can direct computers with more useful words. Now the machine that writes the instructions also benefits from those abstractions. A well-designed DSL does not only make a human programmer more productive. It gives the model a more stable semantic surface to operate on.
+
+I have generated thousands of small languages and APIs over the last three or four years. That number sounds more systematic than the process has been. Most of it has been vibed. I try a notation, see where the model struggles, add a primitive, remove an escape hatch, move something from script to runtime, generate more examples, and gradually accumulate patterns I no longer consciously name.
+
+Some of those patterns are obvious API design. Some come from Common Lisp, macros, interpreter design, and old-fashioned framework work. Some are specific to how LLMs respond to concepts with strong representation in the training corpus. Some are likely things I have rediscovered badly. Until now, the optimization loop has mostly depended on my own taste and on whether the generated applications feel clean.
+
+The thing 5.6 changes is that the model can participate in the research loop around the language itself.
+
+## From codebase to textbook
+
+Once the identity-provider scripting layer existed, I wanted to know whether the model could step back out of the codebase and identify what had actually been built.
+
+I asked it to study the branch and write a textbook or report about the interesting interpreter constructs: serialized continuations, invocation capabilities, deterministic callback registration, closed outcomes, secret handles, runtime leasing, generation-aware resumption, and the rest.
+
+It produced a long monograph that was surprisingly concise at the level of ideas. It did not simply walk the directory tree and explain that one package contained workflows and another contained scripts. It reconstructed a dependency of concepts.
+
+It began with the danger of scripting an identity provider. From there it explained why protocol authority had to remain native, why JavaScript outcomes had to be closed, why durable control flow could not be a suspended Promise, why callbacks needed stable identities, why capabilities had invocation lifetimes, why a worker could only be reused after positive evidence of quiescence, and why hot reload created semantic generations.
+
+That is what I mean when I say the model can teach. It can synthesize a complex thinking workflow and arrange it so that the next concept is motivated by the previous one. It can give names to techniques that exist in code but may never have been named by the implementer. It can connect those techniques to a wider literature without reducing the document to a literature review.
+
+In a way, it reverse-compiled the codebase:
+
+```text
+implementation
+    -> invariants
+    -> computational patterns
+    -> named concepts
+    -> explanatory sequence
+```
+
+I ended the morning with around two hundred pages of textbook-style material across several related investigations. Normally that amount of generated prose becomes exhausting very quickly. You can feel the entropy rise. Sections begin repeating one another, the narrative stops advancing, and the text becomes polished sludge.
+
+This material remained interesting because each section had a job. There was simply a lot of material because the project contained a lot of machinery.
+
+There is an obvious warning here: a beautiful explanation can be beautifully wrong. Documentation generated by the same model that wrote the code can become a self-consistent mythology. The useful version needs exact source links, implementation status, test references, distinctions between what exists and what is proposed, and explicit unresolved concerns.
+
+But when it has those anchors, the ability to turn a large unfamiliar codebase into a readable conceptual textbook changes how ownership can work. I do not need to reconstruct the architecture from a thousand functions and a stream of diffs. I can read the narrative, inspect the source behind the load-bearing claims, and then use the document as a map for deeper review.
+
+That matters because agentic coding is making code production much faster than code comprehension. A model that can produce both the system and an inspectable theory of the system is doing something qualitatively different from autocomplete.
+
+## The language optimization loop
+
+This is the part I am most interested in now.
+
+If the model can research programming-language ideas without immediately losing the thread, then my informal “ask for a language first” technique can become a much more systematic language optimization loop.
+
+The current loop is roughly:
+
+```text
+describe the domain
+    -> ask for a DSL or JavaScript API
+    -> implement a few examples
+    -> notice awkwardness
+    -> patch the API
+    -> repeat
+```
+
+This works remarkably well, but it is artisanal. The evaluation criteria live mostly in my head. A construction feels too verbose. The model repeatedly misuses one primitive. An abstraction leaks implementation detail. A supposedly generic operator creates too much authority. A domain expert cannot read the resulting program. I change the language and try again.
+
+A research-capable model makes a different loop possible.
+
+Start with a corpus of representative tasks, not one feature request. For an identity system, these might include invitation signup, virtual users, account recovery, multi-factor challenge, policy denial, consent, provider selection, and migration of an in-progress browser workflow. For a RAG lab, they might include comparing retrievers, freezing a corpus, varying a prompt, evaluating with several metrics, caching provider calls, and reproducing a run months later.
+
+Ask the model to infer the domain ontology and the computational requirements separately. Which concepts belong to the domain? Which operations are effects? Which values need stable identity? Which things are secret? Which actions are durable? Which parts need loops or branches? Which choices should remain native policy?
+
+Then ask it to propose competing languages rather than one answer.
+
+One design may be highly declarative and easy to analyze but awkward for complex control flow. Another may use JavaScript callbacks and be pleasant to author but expose too much dynamic behavior. A third may compile direct-style async functions into explicit state machines. A fourth may separate a pure policy language from a transactional effect language.
+
+Implement the smallest possible interpreter for each serious candidate. Generate real programs. Have the model use the language, not merely praise it. Feed it tasks it has not seen. Ask a second model to use it. Ask a human to read the result. Collect the errors.
+
+Now the language can be evaluated on several axes:
+
+- How long are representative programs?
+- How many concepts must an author learn?
+- How often does the model request authority it does not need?
+- How many invalid states can be represented?
+- Which mistakes are caught statically?
+- Which mistakes survive until runtime?
+- How local is a change?
+- How legible is a semantic diff?
+- Can a program be explained from its manifest?
+- Can the interpreter enforce the hard guarantees once for every program?
+- How expensive is the implementation and proof burden?
+- Does the language remain honest about the domain, or does it hide important complexity?
+
+The research step then becomes part of the loop rather than something done once at the beginning. The model can search for analogous designs in workflow systems, capability languages, effect systems, durable execution frameworks, theorem provers, protocol state machines, and compiler workbenches. It can compare the candidate language to those ideas, identify missing distinctions, and propose experiments rather than merely adding fashionable terminology.
+
+Then revise the language, rerun the corpus, and compare.
+
+This is not just prompt optimization. It is not “find the magic phrasing that makes the model produce the right code.” The artifact being optimized is the computational language between the model and the application.
+
+That distinction matters because prompts are ephemeral and local. A language compounds.
+
+Once the IDP has a good workflow language, every future identity feature becomes easier. The interpreter centralizes the security properties. The examples become training material for humans and models. The compiler can infer capability use. The static analyzer can reject secrets crossing a continuation boundary. The runtime can meter host calls. The documentation generator can produce a diagram. The deployment system can show that a new version added one effect and changed one continuation schema.
+
+The language becomes a piece of infrastructure that reshapes all later work.
+
+There is also a peculiar possibility here: the model is simultaneously the language designer, the language user, and part of the evaluation harness.
+
+That could be dangerous. A language optimized only for one model may become alien to humans or brittle across model generations. The model may exploit accidental cues rather than understand the semantics. It may prefer verbose forms because they resemble its training data, or compact forms that are impossible to maintain. We need human readability, independent interpreters, static checks, cross-model tests, and domain-expert review.
+
+But it is also an extraordinary experimental setup. We can generate hundreds of representative programs, mutate them, ask models to repair them, compare error rates, measure the authority each version requests, and observe where the notation helps or hinders generalization. Language design has traditionally been expensive to test because recruiting many skilled users is difficult. Models are not substitutes for users, but they are extremely cheap additional users with interesting failure modes.
+
+The loop could eventually operate above the level of one project.
+
+Imagine a malleable JavaScript compiler or interpreter where a project defines:
+
+- its value types;
+- its capabilities;
+- its effects;
+- its durable operations;
+- its secret and ownership rules;
+- its cost model;
+- its verification passes;
+- its native bindings;
+- its permitted language features.
+
+Tiny-IDP would be one profile. A reproducible RAG laboratory would be another. A deployment orchestrator, document approval system, policy engine, or agent tool runtime could share the compiler and runtime machinery while exposing different computational worlds.
+
+The compiler could turn a familiar JavaScript-shaped surface into a much smaller semantic intermediate representation. It could derive callback manifests, capability requirements, effect rows, continuation schemas, and resource budgets. Different backends could execute the same verified program: Goja for compatibility, a small interpreter for assurance, a symbolic backend for model checking, perhaps generated Go or WebAssembly for deployment.
+
+The flagship feature for Tiny-IDP would be a `durable await` that looks like ordinary direct-style code to the author but compiles into the explicit continuation records the runtime already uses.
+
+```javascript
+const form = await durable.present(SignupForm);
+const proof = await durable.emailCode(form.email);
+return commit.signup(form, proof);
+```
+
+At each durable suspension point, the compiler performs liveness analysis. Which values are needed afterward? Can they be serialized? Are they public? Are they bounded? Are any of them capabilities, secrets, closures, Promises, native resources, or engine-specific objects? If so, compilation fails or the value must be converted into an approved native reference.
+
+The author gets pleasant direct style. The runtime still gets a small, explicit, reviewable state machine. We improve usability without weakening the semantic boundary.
+
+This is the direction I mean by a language optimization loop: not merely having the model generate more code, but having it research, propose, implement, use, analyze, and refine the language in which future code will be expressed.
+
+**[IMAGE 3 — annotated reproducible RAG operator design]**
+
+*Suggested caption: The same shape appearing in a second domain: trusted source packages, canonical artifacts, declared host capabilities, fresh constrained runtimes, typed results, and reproducibility evidence. That recurrence is what makes me think this is a general language pattern rather than an IDP-specific trick.*
+
+## Research without collage
+
+The research capability is what makes this feel possible now rather than merely aspirational.
+
+In the past, I could ask a model to survey effect systems, capability security, durable workflows, and formal verification, but I had to act as the synthesis layer. I had to notice when two papers used similar words for different ideas, when an analogy was superficial, when a technique depended on a closed-world assumption that did not apply, or when the proposed application had quietly lost the original security boundary.
+
+With 5.6, the model is better at maintaining the shape of the research question while moving across sources and then returning to the project. It is not only summarizing papers. It is deciding which ideas matter for this codebase, how they relate, and what concrete refactor would make them useful.
+
+This is what I somewhat recklessly called “PhD-level” in conversation. I do not mean that it is producing a groundbreaking dissertation or that it should receive credentials. I mean the more ordinary but still difficult behavior of sustained technical research: map a literature, identify a tractable core, choose methods, apply them to a complicated artifact, document limitations, and keep the work coherent over many steps.
+
+I do not think it is postdoc-level yet, if we are going to keep abusing the metaphor. I can see it overgeneralize. I can see it become too enchanted by a formalism. I can see places where the bibliography is stronger than the actual argument. I can see it benefit enormously from a human who has enough taste to reject a clean but irrelevant theory.
+
+But the floor has moved. The model can remain inside the research loop long enough that I am no longer merely using it to retrieve and summarize material. I can use it to create a research program around a piece of software.
+
+That changes the economics of ambitious engineering. Many ideas that were previously unreasonable for a small project—not because implementation was impossible, but because the research and synthesis cost was too high—become plausible experiments.
+
+Static analysis for a small identity provider. Model checking for selected protocol transitions. A compiler that derives explicit continuations from JavaScript. A project-specific capability and effect system. A textbook that reverse-engineers the resulting architecture. A comparative language-design loop across two unrelated domains.
+
+Each of these would traditionally be a substantial side project before the application itself could move forward. With a model that can keep the threads coordinated, they become things I can explore in parallel with production work.
+
+That does not make them free. It changes which cost is scarce. Generating a great deal of coherent work becomes cheaper. Deciding what deserves to exist, defining acceptance evidence, and maintaining contact with reality become more important.
+
+## The cracks, and why “unsupervised” cannot mean unaccountable
+
+There is a dangerous version of this story where the conclusion is that the model can now research, architect, implement, verify, and document a system, so the human can simply stop paying attention.
+
+That is not my conclusion.
+
+I built a codebase I largely did not read, and that is interesting partly because it is uncomfortable. A system can have beautiful design documents, passing tests, formal-looking models, and a coherent textbook while still being wrong in ways none of those artifacts represent. Identity protocols have hostile environments, integration assumptions, operational failure modes, cryptographic boundaries, and deployment realities that do not disappear because the internal architecture is elegant.
+
+The model can also create a self-confirming world. It writes the code, writes the tests, writes the design document, and then writes the textbook explaining why the design is good. Without independent anchors, coherence becomes a liability because it is persuasive.
+
+The response is not to abandon the workflow. It is to make the evidence harder to fake.
+
+That means executable conformance suites, adversarial tests, restart tests, replay tests, race detectors, browser integration, source-linked claims, canonical manifests, semantic diffs, explicit generation identities, traceable native effects, and independent review of the most security-sensitive boundaries. It means distinguishing “the model produced a plausible formal model” from “the implementation refines the model under stated assumptions.” It means retaining old generations when a continuation cannot be safely migrated rather than trusting a prose compatibility argument.
+
+It also means treating unsupervised as a description of interaction frequency, not responsibility.
+
+I can let the model work for several hours without steering every step. I cannot let the resulting system enter production without a theory of what evidence makes it acceptable.
+
+This is part of why the language-first approach matters. A smaller language makes independent evidence more tractable. If arbitrary JavaScript owns the identity provider, the review surface is every possible program behavior. If JavaScript can only choose among typed capabilities and return closed outcomes, the trusted boundary is smaller. If browser workflows compile to explicit continuation graphs, they can be inspected. If effects are inert plans, native committers can enforce the transaction shape. If every artifact carries a semantic manifest, deployment review can focus on authority and state changes rather than only text diffs.
+
+Abstraction is not an escape from verification. A good abstraction creates a place where verification can be applied once.
+
+## Where I am in the model cycle
+
+So, returning to the five stages.
+
+Stage zero was immediate: 5.6 produced several outputs that were conspicuously better than what I had become used to.
+
+Stage one was brief because ordinary coding was already working well enough that I did not initially know what the new capability changed. A better patch is still a patch.
+
+Stage two arrived when the identity-provider research kept going. The model did not merely collect material. It altered the fundamental representation of the application, built a scripting system that rejected my naive framing, and then extracted a coherent programming-languages textbook from the result.
+
+That was the *oh, fuck* moment. The unit of delegation had moved from implementation to research-backed system design.
+
+I am entering stage three now. I can see the cracks. The model still needs carefully chosen artifacts. It can write too much. It can construct an elegant conceptual system faster than the empirical evidence accumulates. It needs explicit instructions to separate implemented behavior from proposals. It benefits from being asked for competing designs and falsification criteria rather than one grand synthesis. It needs independent tests and sometimes a second model or a human domain expert to challenge the result.
+
+I am beginning to turn those cracks into techniques:
+
+- ask for a language before an application;
+- ask for multiple candidate languages before selecting one;
+- force the compiler or interpreter contract to become explicit;
+- maintain diaries and research artifacts so the path remains inspectable;
+- require source-linked textbooks rather than detached explanations;
+- use semantic manifests and end-to-end gates;
+- make the model use the language it designed;
+- optimize against a corpus of real tasks;
+- preserve native authority around the things that cannot be delegated safely.
+
+Stage four will be fluency: being able to prompt this kind of research and language evolution almost blindly because the workflow has become internalized. I am not there yet.
+
+The unusual thing is that I can already see the next workflow taking shape.
+
+It is not “ask a larger model to write a larger application.” It is something closer to:
+
+```text
+ask the model to discover the computational language of the domain
+    -> implement and verify the interpreter
+    -> express the application in that language
+    -> observe where humans and models struggle
+    -> research better abstractions
+    -> evolve the language
+    -> regenerate and recheck the application
+```
+
+That loop happens above the level of ordinary code generation. The code becomes one compiled artifact of a more important design activity.
+
+## The abstraction machine
+
+I have spent a lot of time over the last few years trying to find prompts that do not work. Since GPT-5, that has become harder in ordinary programming. The failures increasingly appear not at the level of syntax or local implementation, but at the level of framing: choosing the wrong abstraction, exposing too much authority, failing to define evidence, designing a language that does not match the domain, or optimizing the wrong thing.
+
+5.6 seems materially better at operating in that layer.
+
+It can look at a concrete codebase and recognize that the requested feature is actually a language-design problem. It can look at a collection of papers and identify the subset that changes the implementation. It can introduce an abstract fundamental layer, move the application onto it, and then produce a narrative that teaches the layer back to me. It can be systematic without automatically becoming maximalist. At its best, it can display something close to taste.
+
+The deepest part of this for me is not that the model knows more programming-language terminology. It is that it can coordinate domain abstractions and computational abstractions.
+
+A challenge in an identity system is simultaneously a human concept, a protocol event, a security boundary, a piece of evidence, a browser interaction, a durable state transition, and an input to future policy. A good language decides which of those aspects the script author sees and which the runtime owns. A good interpreter makes that division executable. A good compiler can make the convenient source form lower into the safe runtime form. A good textbook can explain why the division exists.
+
+The model was able to move among all of these views without immediately dropping one.
+
+That is why “abstraction machine” feels like the right phrase to me. Not because the model floats away from concrete details, but because it can move up and down the ladder: recognize patterns in the concrete, manipulate them in the abstract, and return them to the concrete as working machinery.
+
+The next step is to make that movement itself more systematic.
+
+I want to turn the thousands of small languages I have generated by feel into a real experimental loop. I want task corpora, competing notations, interpreters, model users, human readers, static analyses, semantic diffs, and research passes. I want to know which language shapes make models generalize cleanly, which abstractions reduce authority, which errors become impossible, and where elegance merely hides complexity.
+
+Maybe this will devolve. Maybe 5.6 is still better at producing the appearance of a research program than at sustaining one. Maybe the cracks will become obvious once the novelty wears off. I have only been using it for a couple of weeks, and I have learned by now not to confuse the first successful project with a universal capability claim.
+
+But this is the first time I have felt that the language optimization loop is not just a personal prompting trick. It may be a practical research method.
+
+And that is a much larger change than writing code faster.
+
+## Turn 72 - user
+
+- Message ID: `5e4ccc5b-f414-482d-a5e2-fb6fa289bdda`
+
+ok, i do want you to tighten it up by a more structured approach, but I do like th emore expansive form. I do want to put the focus on 5.6 presenting a new step function and its capability to do research and synthesize, and use my idp (but you need to introduce all these things), and then go onto an exploration of what tells me it is better at resech and synthesizing and doing abstraction and such.
+
+## Turn 73 - assistant
+
+- Message ID: `d69e0706-3bd6-43f1-aada-0437fda29557`
+- Model: `gpt-5-6-thinking`
+
+
+
+## Turn 74 - assistant
+
+- Message ID: `0f8b40f3-b801-4751-ba81-e433f2ffaeca`
+- Model: `gpt-5-6-thinking`
+
+
+
+## Turn 75 - assistant
+
+- Message ID: `957b35f7-7686-4a4f-8034-8a0cf3336918`
+- Model: `gpt-5-6-thinking`
+
+
+
+## Turn 76 - assistant
+
+- Message ID: `800da269-b221-48ba-a015-37ac677170e1`
+- Model: `gpt-5-6-thinking`
+
+I restructured the essay around one central claim: **5.6 changes the delegable unit of work from implementation to research-backed system design.**
+
+[Download the revised 7,570-word Substack draft](sandbox:/mnt/data/abstraction-machine-gpt-5-6-substack-revised.md)
+
+The new progression is:
+
+1. The step function and your five-stage model-adoption cycle.
+2. A clear introduction to the identity provider and why it was a demanding experiment.
+3. The static-analysis work as the first evidence: the model changed the application’s ontology rather than attaching superficial checks.
+4. The scripting request as the main case study: it rejected the naive architecture and built a constrained language instead.
+5. A structured account of what specifically demonstrates better research and synthesis.
+6. LLMs as abstraction machines and your “ask for a language first” method.
+7. The language-optimization loop as the larger implication.
+8. Limits, accountability, the cracks you are beginning to see, and a return to the step-function claim.
+
+I retained the expansive, first-person form, the technical side excursions, the five-stage framing, and the three annotated-image placements. I removed some repetition and made the interpreter details serve as evidence for the model-capability argument rather than becoming the article’s primary subject.
+
+The draft uses **GPT-5.6 Sol**, OpenAI’s current official name for the flagship model. citeturn307672search0
+
+## Turn 77 - assistant
+
+- Message ID: `e7416376-357e-42d6-9852-ba9371880d74`
+- Model: `gpt-5-6-thinking`
+
+# The Research Step Function
+
+## What changed when an LLM stopped merely writing code and started redesigning the languages in which the code could be expressed
+
+GPT-5 was the first model I trusted with a genuinely large refactor.
+
+Before that, even when a model appeared capable of changing a substantial codebase, I still had to supervise the process closely. I could delegate a task, but not really relinquish it. I would come back to an implementation that was mostly correct and then spend hours finding the small inconsistencies: duplicated abstractions, slightly wrong assumptions, an incomplete migration, one package following the new architecture while another quietly preserved the old one.
+
+GPT-5 changed the unit of work I could hand off.
+
+I could ask for a significant structural change and expect the model to preserve enough context, follow consequences far enough through the codebase, and repair enough of the damage caused by its own changes that the result was recognizably a refactor rather than a pile of patches.
+
+5.6 feels like a similar jump, but in a different dimension.
+
+The most concise way I can describe it is this:
+
+> GPT-5 was the first model I trusted to refactor almost unsupervised.  
+> 5.6 is the first model I have trusted to research almost unsupervised.
+
+I do not mean that it can search for papers and summarize them. Models have been able to do that for a while.
+
+I mean that it can investigate a difficult subject, separate the important ideas from the surrounding literature, apply them to a real and messy codebase, reorganize that codebase around the resulting concepts, and then explain what it did as a coherent body of thought.
+
+That last part matters.
+
+The output does not merely look like research pasted together. It increasingly looks like the result of someone having formed a model of the problem.
+
+It can identify a set of abstractions, give them names, explain how they relate, arrange them into a sequence that a reader can follow, and then move back down into implementation details without immediately losing the structure it discovered.
+
+I have only been using it for a couple of weeks, so this is not a benchmark claim. It is a report about a change in my own workflow. I can already see cracks in it. I know from experience that the first weeks with a new model are full of both genuine discoveries and demo effects.
+
+But this is the closest I have come in more than a year to the feeling that the boundary of what can be delegated has moved again.
+
+The project that made this visible was an identity provider I had barely read.
+
+---
+
+## The codebase I deliberately did not understand
+
+Over the last several months, I have been building my own identity provider.
+
+“Building” is not quite the right word. I have been directing models to build it.
+
+I did not begin with deep knowledge of OAuth, OpenID Connect, identity-provider architecture, credential storage, challenge flows, or the various protocol and security invariants involved. I was curious how far I could push the agentic workflow if I chose a domain that was both difficult and unforgiving.
+
+So I let the project grow beyond what I could hold in my head.
+
+This was partly deliberate. I wanted to discover what happens when a codebase becomes too large and too specialized for me to maintain through traditional line-by-line familiarity, but is still surrounded by enough structure that I can continue to direct its evolution.
+
+The identity provider worked. More importantly, the work did not immediately look like complete madness.
+
+The implementation appeared systematic. The design documents were consistent. New features were generally integrated into existing abstractions rather than attached as isolated mechanisms. The code survived repeated iterations as I moved it closer to production.
+
+At some point, I asked the model to research and introduce static analysis, model checking, and ideas from formal methods around OAuth and identity protocols.
+
+This was a deliberately broad request. I did not specify a particular theorem prover or formalism. I did not provide a detailed implementation plan. I asked it to research the area and improve the system.
+
+Previous models could do this kind of work in a superficial sense. They could find papers, describe model checking, add a state machine, perhaps generate some assertions, and produce a document containing plausible formal-methods vocabulary.
+
+The problem was that the result often felt assembled.
+
+You could see where one research source ended and another began. The model might correctly summarize several techniques but fail to establish which properties they were supposed to prove, how they applied to the actual code, or what had to change structurally before those techniques became meaningful.
+
+5.6 behaved differently.
+
+It did not merely add a checker beside the existing implementation. It substantially reorganized the internal representation of the application so that tracing, invariants, transition validation, and assertions became natural properties of the system.
+
+That is an important distinction.
+
+Formal analysis is often presented as something you apply to an existing program. In practice, the program frequently has to be reshaped before it has the kinds of objects and transitions that can be analyzed cleanly.
+
+The model recognized this without being explicitly instructed to perform a foundational rewrite.
+
+It introduced clearer representations of state, events, outcomes, evidence, protocol transitions, and native operations. It moved responsibilities into places where assertions could be made about them. It created the objects required to state meaningful invariants.
+
+I had asked it to add analysis.
+
+It changed the ontology of the program so that analysis had something stable to talk about.
+
+I had not previously seen a model make such an aggressive internal redesign, across a large codebase, in response to such a broad research request, while still keeping the project coherent.
+
+That was the first sign that something had changed.
+
+The second came when I asked it to make the identity provider scriptable.
+
+---
+
+## I asked it to make the IDP scriptable. It rejected the premise.
+
+I wanted scripting for practical reasons.
+
+I wanted to support things like invitation flows, virtual users, project-specific signup policies, and alternate identity-provider behavior without hard-coding every variant into the core application.
+
+I wanted the IDP to function more like a set of Lego blocks than a single opinionated service.
+
+The obvious implementation would have been to expose a JavaScript context containing useful host objects:
+
+```javascript
+ctx.store
+ctx.sql
+ctx.fetch
+ctx.oauth
+ctx.tokens
+ctx.signingKey
+```
+
+Perhaps with some wrappers, validation, and documentation.
+
+That would certainly have made the identity provider scriptable.
+
+It would also have undone much of the architecture that had just been introduced.
+
+A script with access to the database, credential state, token issuance, network clients, request objects, signing keys, or protocol internals is not merely customizing an identity provider. It is becoming a second identity provider embedded inside the first.
+
+Every security property would then depend on arbitrary JavaScript preserving it.
+
+The scripting API would no longer be a customization layer. It would be an alternate protocol implementation.
+
+The model effectively refused to build that.
+
+It did not refuse the feature. It rejected my framing of the feature.
+
+Instead of “make the IDP scriptable,” it arrived at something closer to:
+
+> Permit JavaScript to express narrowly bounded policy and composition while Go retains custody of protocol authority, credentials, persistence, browser handling, native evidence, and atomic effects.
+
+That sentence is already a small language design.
+
+JavaScript could receive typed input, invoke explicitly granted capabilities, choose among host-defined presentations, and return one of a closed set of outcomes.
+
+It could ask the host to look something up. It could select a challenge. It could propose an effect plan. It could name a legal next handler.
+
+It could not open a transaction, read a signing key, persist arbitrary runtime state, write an HTTP response, mint a token, consume credentials directly, or reach ambient modules.
+
+The interesting thing was not any single restriction.
+
+Every individual pattern had precedents:
+
+- object capabilities;
+- closed algebraic outcomes;
+- state machines;
+- schema validation;
+- deterministic builds;
+- worker isolation;
+- explicit continuations;
+- transactional effect plans;
+- generation pinning.
+
+The impressive part was the way they were fitted together.
+
+Each mechanism covered a failure mode created by another mechanism.
+
+Capabilities constrained what JavaScript could ask the host to do.
+
+Typed schemas constrained what crossed the language boundary.
+
+Closed outcomes constrained what kinds of control transfer the script could request.
+
+Native effect plans prevented JavaScript from directly mutating identity state.
+
+Explicit continuations prevented browser workflows from depending on a live JavaScript heap.
+
+Generation fingerprints prevented durable state from silently resuming under different code.
+
+Worker-disposal rules prevented a timed-out or ambiguously interrupted runtime from returning to the pool.
+
+None of this was merely ornamental architecture. The design document tied the abstractions to implementation packages, validation passes, rollout phases, and end-to-end gates.
+
+That is what made it feel tasteful rather than merely elaborate.
+
+---
+
+## What model taste looks like
+
+“Taste” is an uncomfortable word to use about a model because it is easy to make it mean whatever we liked about the output.
+
+I do not mean that the model used my preferred naming conventions or produced code that looked elegant at first glance.
+
+I mean something more operational.
+
+The model showed taste by refusing to preserve the wrong abstraction.
+
+It recognized that exposing the underlying IDP machinery to JavaScript would produce a locally convenient but globally incoherent system.
+
+It showed taste by modifying the foundations instead of weaseling its way toward a checklist.
+
+A weaker implementation could have added a script runner, a few wrappers, some validation, and enough examples to declare the task complete. This one introduced a serious semantic boundary and then rebased the requested feature on top of it.
+
+It showed taste by making abstractions pay rent.
+
+The continuation mechanism existed because browser interactions cross process and time boundaries.
+
+The capability system existed because scripts needed selective power without ambient authority.
+
+The fingerprints existed because persisted callback names have to keep meaning the same thing.
+
+The outcome algebra existed because “denied,” “not applicable,” “completed,” and “infrastructure error” must not collapse into arbitrary JavaScript truthiness.
+
+The runtime pool existed because Goja runtimes are stateful and not goroutine-safe.
+
+The worker-disposal rule existed because interruption creates uncertainty, and uncertainty is not a safe state to reuse.
+
+The design covered a lot of ground, but each part answered a specific question.
+
+It also remained pragmatic.
+
+The model did not respond to “make this scriptable” by attempting to formally verify all of ECMAScript or by inventing a new language from scratch. It used JavaScript as an authoring surface while putting the important semantics into Go-owned representations.
+
+This is the kind of distinction models have traditionally struggled with.
+
+They have long been able to generate more architecture.
+
+The difficult part is knowing where more architecture reduces complexity and where it merely moves it around.
+
+---
+
+## A serialized continuation is just a database field
+
+One of the concepts I asked the model to explain afterward was the serialized continuation.
+
+The term sounds more exotic than the basic mechanism.
+
+A browser workflow reaches a point where it must wait for a user to submit a form or complete a challenge. The current HTTP request ends. The process might restart. The next request could arrive on another machine.
+
+The application therefore stores something like:
+
+```json
+{
+  "next": "signup.verify_email",
+  "carry": {
+    "email": "alice@example.com"
+  }
+}
+```
+
+At this level, a serialized continuation is basically a state-machine field in a database.
+
+But that description hides all the important questions.
+
+What exactly does `signup.verify_email` identify?
+
+Is it merely a string?
+
+Does it identify a function in the current source file? A function in any loaded module? The function associated with a particular build? A handler whose input schema matches the stored carry? A handler reachable from the state that created the continuation?
+
+What data can cross the boundary?
+
+Can it contain a password? A JavaScript closure? A Go pointer? A Promise? An HTTP request? A capability function? A raw verification code? A database transaction?
+
+What prevents replay?
+
+What happens if the same browser submits twice?
+
+What happens after the code has been hot-reloaded?
+
+What happens if a callback with the same name has changed meaning?
+
+What happens if the schema changed?
+
+The rigorous design is not the database field. It is the complete set of constraints surrounding it.
+
+The continuation can contain bounded, serializable, schema-checked public data and references to native state.
+
+It cannot contain JavaScript runtime objects.
+
+The resume handler has to be registered in the same workflow.
+
+Its input schema has to match.
+
+The continuation carries expiry, revision, browser binding, generation identity, and native evidence references.
+
+Advancement is atomic.
+
+Old code generations may have to be retained so old continuations can resume under the semantics that created them.
+
+This is a programming-languages idea, a distributed-systems idea, and a security idea at the same time.
+
+What surprised me was that the model not only implemented this, but later reconstructed it as a teachable concept.
+
+It could move from the concrete code to the abstract pattern and then explain why the abstraction mattered.
+
+That is what I mean when I call these systems abstraction machines.
+
+---
+
+## LLMs as abstraction machines
+
+Saying that an LLM is a pattern-matching system is technically reasonable and descriptively almost useless.
+
+The interesting question is what kinds of patterns it can recognize, at what scale, and what it can do after recognizing them.
+
+A useful working model is:
+
+```text
+concrete artifacts
+    -> abstraction recognition
+    -> abstraction coordination
+    -> concrete reconstruction
+```
+
+The concrete artifacts might be:
+
+- routes;
+- structs;
+- database calls;
+- test cases;
+- callback registries;
+- request handlers;
+- design notes;
+- partially implemented features;
+- relevant papers and existing systems.
+
+The model recognizes patterns in them:
+
+- state machines;
+- authority boundaries;
+- transactions;
+- effect plans;
+- event traces;
+- durable continuations;
+- capability passing;
+- lifecycle regions.
+
+But merely recognizing an abstraction is not enough.
+
+Models have been proposing state machines and capability systems for years.
+
+The difficult part is coordinating several abstractions so that they do not contradict one another.
+
+If callbacks can survive across browser requests, their identities have to be durable.
+
+If their identities are durable, code generations have to be tracked.
+
+If code generations are tracked, activation has to be reproducible.
+
+If runtimes are pooled, callbacks have to register consistently in each runtime.
+
+If capabilities can return Promises, asynchronous work has to settle before reuse.
+
+If execution is interrupted, the runtime may no longer be safe.
+
+If secrets cannot enter JavaScript, form handling and effect construction have to preserve opaque native references.
+
+This is not a list of independent features.
+
+It is a dependency graph of ideas.
+
+The model appears increasingly able to form and manipulate these graphs.
+
+It can then move downward again:
+
+- create packages;
+- define interfaces;
+- add validation passes;
+- generate canonical hashes;
+- add conformance tests;
+- migrate existing code;
+- produce a rollout plan.
+
+This downward movement is where many previous generations became unreliable.
+
+They could talk convincingly about an abstract architecture, but once they returned to implementation, the architecture degraded into wrappers and special cases.
+
+The new behavior feels more like an ability to retain the abstraction while reconstructing the concrete system.
+
+I am not claiming that this is how the model “really thinks.” I am describing the most useful mental model I currently have for what it can do.
+
+---
+
+## Ask for a language first
+
+This connects to a prompting technique I have used for several years.
+
+When I begin a new project or a large subsystem, I often ask the model to design a language before asking it to build the application.
+
+Sometimes that language is a YAML DSL.
+
+If the problem is mostly declarative—configuration, schemas, finite graphs, manifests, policy tables—YAML or another data format may be sufficient.
+
+If the problem needs variable binding, branching, loops, composition, or asynchronous operations, I usually ask for a JavaScript API.
+
+The important point is not the syntax.
+
+The point is that a language forces the boundary between the domain and the machine to become explicit.
+
+Consider a logistics application.
+
+The domain contains concepts such as:
+
+- order;
+- shipment;
+- refund;
+- route;
+- delivery window;
+- inventory reservation.
+
+The computational side contains concepts such as:
+
+- variables;
+- branches;
+- state transitions;
+- transactions;
+- retries;
+- persistence;
+- asynchronous effects.
+
+Most application complexity arises where these two sets meet.
+
+If I ask a model to “add a refund workflow,” it may have to bridge all the way from the business concept of a refund to:
+
+- database models;
+- eligibility policy;
+- transaction handling;
+- forms;
+- validation;
+- routes;
+- rendering;
+- styling;
+- tests;
+- audit logging.
+
+That is an enormous semantic distance to cross in one prompt.
+
+The model may have enough tokens to produce all the code, but the difficulty is not only token count. It has to maintain consistency across many levels of abstraction at once.
+
+If the application already contains a small language of workflows, forms, effects, and policies, the same request becomes much smaller:
+
+```javascript
+workflow("refund", async ({ order, form, effects }) => {
+  const request = await form.present(RefundRequest);
+
+  if (!order.refundable(request.amount)) {
+    return deny("not_refundable");
+  }
+
+  return effects.commit(
+    refund.create(order.id, request.amount),
+    notification.sendRefundReceipt(order.customer)
+  );
+});
+```
+
+Now “add a refund workflow” might truly correspond to twenty lines of domain-level code.
+
+The system already knows what a form is, what an effect is, how a transaction is committed, how validation is performed, and how a denial is rendered.
+
+The language has compressed the implementation.
+
+It has also compressed the prompt.
+
+This matters enormously for agents.
+
+A good API is not merely ergonomic for humans. It reduces the inferential distance an LLM has to cross.
+
+It turns a request that previously required reconstructing half the application into a request that fits inside a stable domain vocabulary.
+
+---
+
+## Languages expose the DNA of a system
+
+There is another reason I like asking for a language first.
+
+It is difficult to hide conceptual confusion inside a language design.
+
+A conventional implementation can conceal uncertainty in details. The model can keep adding handlers, helper functions, and data structures without ever stating clearly what the system believes exists.
+
+A language forces questions such as:
+
+- What are the nouns?
+- What are the primitive operations?
+- Which operations have side effects?
+- Which values are durable?
+- Which capabilities can be delegated?
+- What is native and what is script-defined?
+- What counts as success?
+- What counts as denial?
+- What can be retried?
+- What must be atomic?
+- What may cross a process boundary?
+- Which errors are part of the domain?
+
+This lays bare what I think of as the DNA of the application.
+
+There is domain DNA: the concepts meaningful to someone who understands identity, logistics, cooking, research, or finance.
+
+And there is computational DNA: state, control, effects, persistence, concurrency, authority, evidence, and evaluation.
+
+An API is a bridge between the two.
+
+Good language design moves the boundary until the remaining programs become small and honest.
+
+Bad language design either exposes too much machine detail or hides too much domain significance.
+
+This is why language design is such a good probe of model capability.
+
+It is not enough for the model to produce an attractive API. The API has to lower into something implementable. It has to preserve security and operational constraints. It has to support real examples without constantly escaping into host-language hacks.
+
+The IDP scripting layer was a particularly strong demonstration because the domain is unforgiving.
+
+The JavaScript API could not merely feel nice.
+
+It had to preserve the identity provider’s security model.
+
+---
+
+## From codebase to textbook
+
+After the scripting work had become large enough that I could no longer see its shape from the code, I asked the model to write a textbook about it.
+
+The prompt was not especially sophisticated.
+
+I asked it to study the branch and explain the interesting interpreter and Goja constructs: serialized continuations, invocation capabilities, deterministic callback registration, runtime leasing, schema boundaries, native effects, and the rest of the architecture.
+
+The result was much better than the package-by-package documentation I expected.
+
+Most generated technical documentation follows the file tree:
+
+- this package contains these types;
+- this function calls this service;
+- this module registers these callbacks;
+- this struct has these fields.
+
+That is useful reference material. It is not a textbook.
+
+The resulting document instead followed the dependency of ideas.
+
+It began with the danger of scripting an identity provider.
+
+Then it explained why protocol authority must remain native.
+
+Then it introduced typed outcomes and capabilities.
+
+Then it showed why browser interactions require explicit continuations.
+
+Then it explained why durable callback names require deterministic registration and generation identity.
+
+Then it moved into asynchronous settlement, worker reuse, secret handles, effect plans, replay, hot reload, and verification.
+
+The ordering was pedagogical.
+
+The model did not merely summarize the implementation. It reconstructed the reasons the implementation had to take that form.
+
+I ended up with roughly two hundred pages of textbook-style material across several reports.
+
+Normally, generated material of that length becomes exhausting. The prose starts repeating itself. Each section restates the thesis. The document accumulates plausible filler.
+
+This material remained surprisingly dense.
+
+It was long because the project contained many ideas, not because each idea was padded.
+
+That ability—to build something, then step back from it, identify the reusable concepts, name them, connect them to the literature, and teach them in an appropriate order—is part of the capability jump I am trying to describe.
+
+The model became both implementer and reverse compiler.
+
+It compiled research and design into code, then reverse-compiled the code into concepts.
+
+---
+
+## The five stages of learning a new model
+
+I have now gone through enough model releases that the discovery process itself has become familiar.
+
+### Stage zero: “That is not bad at all”
+
+The first interaction produces something visibly better.
+
+This is the demo effect. It establishes that the model can do something impressive, but not whether that ability survives repeated use.
+
+### Stage one: “I cannot really tell the difference”
+
+The new model enters an old workflow.
+
+I prompt it the same way I prompted the previous model and receive somewhat better results, but the qualitative shift is not yet obvious.
+
+Capabilities do not automatically translate into productivity. The surrounding workflow has to change.
+
+### Stage two: “Oh, fuck”
+
+Eventually I stumble into a task that reveals that the unit of delegation has changed.
+
+With GPT-5, that was large refactoring.
+
+With some later models, it was reliability: I could launch several tasks and expect most of them to finish cleanly rather than spending the rest of the day repairing each one.
+
+With 5.6, it has been sustained research and abstraction.
+
+This is the moment when a model stops being “better at the old thing” and begins enabling a different way of working.
+
+### Stage three: “I see the cracks”
+
+After enough use, the limitations become concrete.
+
+The model may overgeneralize a research result. It may produce beautiful but insufficiently grounded documentation. It may create an internally coherent system based on one incorrect assumption. It may optimize the stated acceptance criteria while missing an unstated constraint.
+
+This stage is useful.
+
+Specific cracks produce specific prompting techniques, tools, tests, and guardrails.
+
+They also show what the next generation is likely to improve.
+
+### Stage four: fluency
+
+Eventually I know how to use the model almost without thinking.
+
+I know when to ask it to research first.
+
+I know when to ask for competing designs.
+
+I know when to ask for a language.
+
+I know how much autonomy to grant.
+
+I know which outputs require source verification and which I can usually accept.
+
+At that point I can use what I call brutalist prompts: short, direct prompts that depend on a learned understanding between me, the model, and the project infrastructure.
+
+I am still moving through the earlier stages with 5.6.
+
+The research and synthesis capability is clear enough to change my workflow. The failure modes are only starting to become visible.
+
+---
+
+## Toward a language optimization loop
+
+I have generated thousands of small languages and APIs over the last three or four years.
+
+This sounds more systematic than it has been.
+
+Mostly, I developed intuition.
+
+I would ask for a DSL, try it on real examples, notice which expressions felt awkward, revise the API, and gradually accumulate patterns.
+
+I learned to recognize when YAML was enough and when JavaScript was necessary.
+
+I learned to prefer host-defined effects over arbitrary callbacks.
+
+I learned that models perform much better when domain operations have explicit names.
+
+I learned that examples often teach an API better than prose.
+
+I learned that a good DSL should make invalid states difficult to represent without making ordinary states painful to express.
+
+But I did not run a scientific language-design process.
+
+The ability of 5.6 to stay on track during research suggests that this can become more systematic.
+
+Instead of informally revising a language until it feels good, we could build an explicit optimization loop.
+
+Start with a corpus of representative tasks.
+
+For an identity provider:
+
+- invitation-based signup;
+- passwordless login;
+- virtual users;
+- email challenges;
+- recovery flows;
+- consent;
+- provider selection;
+- account linking;
+- revocation;
+- migration of an in-progress flow.
+
+For a reproducible RAG system:
+
+- swap a retriever;
+- compare chunking strategies;
+- run a benchmark across models;
+- cache an intermediate artifact;
+- declare an experiment matrix;
+- preserve provenance;
+- rerun under an updated provider;
+- explain a result difference.
+
+Then propose several language designs.
+
+Implement small interpreters or compilers for them.
+
+Have humans and models express the same task corpus in each one.
+
+Measure:
+
+- program length;
+- number of concepts required;
+- invalid programs produced;
+- repair iterations;
+- authority exposed;
+- interpreter complexity;
+- quality of diagnostics;
+- static properties that can be checked;
+- generated test coverage;
+- ease of migration;
+- semantic diff quality;
+- token use;
+- consistency across model runs.
+
+Research analogous designs from programming-language literature and production systems.
+
+Revise the language.
+
+Repeat.
+
+This is not automatic language invention. Human judgment remains central.
+
+Someone still has to decide:
+
+- which concepts deserve stable names;
+- which complexity should remain visible;
+- which hidden details are safe to abstract;
+- which guarantees are non-negotiable;
+- which syntax is honest about the domain;
+- which optimizations merely game the benchmark.
+
+But the model can now participate in the loop at a much higher level.
+
+It can search for prior art, derive alternatives, implement them, construct examples, run experiments, explain trade-offs, and update the design without immediately losing the original research question.
+
+This could turn language design from a sporadic act of taste into a continuous engineering process.
+
+---
+
+## The model is not merely writing the language
+
+There is a further implication.
+
+Once the system has a well-defined language, the model is no longer responsible for reconstructing the full application stack each time it performs a task.
+
+It writes small programs in that language.
+
+The trusted implementation moves into the interpreter, compiler, verifier, runtime, and native capabilities.
+
+This is valuable for humans, but it may be even more valuable for models.
+
+A model asked to modify a general codebase has enormous freedom.
+
+It can:
+
+- invent a new abstraction;
+- bypass an old one;
+- call an internal service directly;
+- duplicate behavior;
+- accidentally widen authority;
+- persist the wrong value;
+- interpret an error incorrectly;
+- violate an unstated lifecycle rule.
+
+A model writing in a constrained domain language operates inside a much smaller possibility space.
+
+The language can encode:
+
+- legal state transitions;
+- available capabilities;
+- permissible effects;
+- durable value types;
+- resource budgets;
+- closed outcome variants;
+- required evidence;
+- migration rules.
+
+This changes how we think about agent reliability.
+
+Instead of trying only to make the model reason perfectly over an unrestricted codebase, we can redesign the environment so that a much larger fraction of incorrect reasoning becomes an invalid program.
+
+The model improves.
+
+The language improves.
+
+The compiler improves.
+
+The verifier improves.
+
+These are complementary paths.
+
+---
+
+## What “research without supervision” should actually mean
+
+There is an obvious danger in describing this as autonomous research.
+
+A model can produce a coherent fiction.
+
+It can synthesize an architecture around a misread paper.
+
+It can turn one implementation detail into a grand principle.
+
+It can generate a persuasive textbook whose claims are not fully supported by the source.
+
+The response should not be to deny that the capability has changed. It should be to become more precise about the form of supervision.
+
+The most useful research outputs are not isolated essays.
+
+They are research linked to artifacts:
+
+- source references;
+- implementation diffs;
+- executable examples;
+- static checks;
+- test suites;
+- model-checking traces;
+- generated manifests;
+- explicit assumptions;
+- unresolved questions;
+- comparisons with alternative designs;
+- commit-pinned documentation.
+
+In other words, the model can do more of the intellectual work, but that work should increasingly leave behind machine-checkable evidence.
+
+This is another reason language and compiler design are attractive.
+
+They force research conclusions to become operational.
+
+“Use capabilities” becomes a capability type, a runtime representation, a lifetime rule, and a verifier check.
+
+“Use explicit continuations” becomes a continuation schema, a liveness analysis, a persistence format, and a resume protocol.
+
+“Make execution deterministic” becomes a closed module graph, a clock policy, a scheduler, a fingerprint, and a test.
+
+The model’s explanation is only one output.
+
+The real product is the system that embodies the explanation.
+
+---
+
+## A new unit of software work
+
+The largest change may be that the natural unit of delegation is moving upward again.
+
+First, models wrote functions.
+
+Then they wrote features.
+
+Then they performed refactors.
+
+Then they implemented projects.
+
+Now the useful unit may increasingly be:
+
+- investigate a domain;
+- identify its governing abstractions;
+- design a computational language for those abstractions;
+- implement the language runtime;
+- rebase the existing application onto it;
+- verify the resulting boundaries;
+- teach the architecture to humans and future agents;
+- iterate on the language using real task corpora.
+
+That is a very different activity from code completion.
+
+It is closer to computational institution building.
+
+The model is not merely filling in an implementation. It is helping decide which kinds of programs should exist inside the project at all.
+
+This is why the jump feels larger than an improvement in coding benchmarks.
+
+The model can increasingly participate in the creation of the semantic environment in which future coding takes place.
+
+---
+
+## The closest thing to the vertical feeling
+
+I have become used to new model releases.
+
+Every few months, something improves enough to change how I work. The shock has become routine.
+
+There is an initial demo, a period of uncertainty, a moment of discovering the unlock, a period of finding the cracks, and eventually a new normal.
+
+It has become difficult to recover the feeling of looking vertically upward and realizing that a class of work I considered fundamentally difficult has become ordinary.
+
+This IDP project brought some of that feeling back.
+
+Not because the model built a lot of code.
+
+Models have been able to build a lot of code for some time.
+
+Not because every idea in the architecture was unprecedented.
+
+Most of them have names and histories.
+
+What felt new was the combination:
+
+- sustained research;
+- structural refactoring in response to that research;
+- rejection of a naive feature premise;
+- synthesis of several programming-language and security patterns;
+- coherent implementation across a large codebase;
+- and subsequent reconstruction of the work into a readable textbook.
+
+The model was systematic without being blindly maximalist.
+
+It was aggressive about changing the core but conservative about authority.
+
+It built abstractions, then used them.
+
+It did not merely solve the problem I asked for. It changed the language in which the problem could be stated.
+
+That is the capability I am trying to understand.
+
+And I suspect the most important workflow it enables is not simply asking models to build more applications.
+
+It is asking them to help us discover, test, and refine the computational languages from which those applications can be made.
+

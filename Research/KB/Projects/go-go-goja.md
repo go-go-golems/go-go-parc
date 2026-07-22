@@ -84,6 +84,16 @@ The runtime is the boundary that makes the rest safe. A module should not invent
 - [[ARTICLE - go-go-goja Programmatic Auth After Rate Limiting - Deep Dive]] — auth ordering and route policy.
 - [[ARTICLE - xgoja - Build Environments and Jsverb Command Design for Vector RAG Tools (gpt-5.5 medium)]] — RAG tool host design.
 
+### Interpreter instrumentation and hosting platform analysis
+
+- [[CHATGPT TRANSCRIPT - JavaScript Interpreter Instrumentation — Goja eBPF]] — proposes a jBPF-style probe runtime for goja: function-call/return hooks, invariant assertion, metrics and static analysis
+- [[CHATGPT TRANSCRIPT - Hosting Platform Analysis — Goja Cloud]] — analysis of go-go-goja + go-go-host + tiny-idp for a subscription-based goja hosting platform (AWS Lambda-style with web UIs, Stripe, versioned releases)
+
+Related output artifacts (in `Attachments/chatgpt-outputs/`):
+- `secure-goja-hosting-platform-textbook.md`
+- `hosted-goja-platform-textbook.md`
+- `agent-native-application-cloud-founder-dossier.md`
+
 ## Recommended reading path
 
 1. Start with the runtime-system report and the goja execution-model tribal entry.

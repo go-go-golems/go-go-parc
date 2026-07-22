@@ -77,6 +77,16 @@ The important boundary is semantic versus presentational. A widget DSL should sa
 - [[Research/KB/Tribal/dmeta-design-system-compiler-pipeline]] — reusable compiler pattern.
 - [[Research/KB/Tribal/typed-widget-instance-streaming-for-chat-overlays]] — typed streaming widget instances.
 
+### PBUI, streaming chat, and React integration analyses
+
+- [[CHATGPT TRANSCRIPT - React PBUI Widget DSL Guide]] — applying the widget DSL to a React PBUI framework with go-go-goja, full intern guide
+- [[CHATGPT TRANSCRIPT - Widget DSL Extension Design — Streaming Chat]] — extending widget.dsl with SSE/websocket streaming chat widgets and embeddable widgets
+
+Related output artifacts (in `Attachments/chatgpt-outputs/`):
+- `pbui-widget-dsl-intern-guide.md`
+- `widget-dsl-streaming-chat-architecture-report.md`
+- `docgraph-pbui-delivery-readme.md`
+
 ## Working rules
 
 - Keep author intent separate from renderer implementation.

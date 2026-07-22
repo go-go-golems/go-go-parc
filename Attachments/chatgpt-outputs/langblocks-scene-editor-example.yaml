@@ -1,0 +1,159 @@
+apiVersion: langblocks.dev/platform/v1alpha1
+kind: ScriptPlatform
+metadata:
+  name: scene-editor-tools
+  version: 0.1.0
+spec:
+  frontend:
+    language: javascript
+    backend: goja
+    trust: operator-authored
+    definitionMode: staged
+
+  compilation:
+    pipeline:
+      - parse
+      - normalize
+      - validate
+      - compile
+      - materialize
+      - link
+    contract: scene-tool/v1
+    identities:
+      - source
+      - executable
+      - semantic
+      - callback-manifest
+      - schemas
+      - runtime-profile
+      - host-abi
+
+  runtime:
+    factory: frozen
+    owner: single
+    contexts: [startup, lifetime, invocation, custom-operation, cleanup]
+    workers:
+      mode: exclusive-pool
+      size: 4
+      reusePolicy: positive-proof
+      poisonOn:
+        - timeout
+        - interruption
+        - panic
+        - malformed-output
+        - pending-task
+        - failed-drain
+    moduleProfile:
+      dataOnly: [path, crypto, timer]
+      hostAccess: []
+
+  contract:
+    handlers:
+      - id: tool.translate.start
+        input: scene/PointerEvent@1
+        outcomes:
+          preview: scene/Preview@1
+          awaitInput: scene/ToolContinuationRequest@1
+          commitOperations: scene/OperationPlan@1
+          cancel: core/Empty@1
+          error: core/Error@1
+        capabilities:
+          - scene.query.selection/v1
+          - scene.query.raycast/v1
+        effects:
+          - scene.object.transform/v1
+        budget:
+          wallTime: 50ms
+          capabilityCalls: 16
+          outputBytes: 65536
+          pendingTasks: 4
+        state: invocation
+        determinism:
+          definition: required
+          execution: transcript-relative
+
+      - id: tool.translate.resume
+        input: scene/ToolResumeInput@1
+        outcomes:
+          preview: scene/Preview@1
+          awaitInput: scene/ToolContinuationRequest@1
+          commitOperations: scene/OperationPlan@1
+          cancel: core/Empty@1
+          error: core/Error@1
+        capabilities:
+          - scene.query.object/v1
+          - scene.query.raycast/v1
+        effects:
+          - scene.object.transform/v1
+        budget:
+          wallTime: 50ms
+          capabilityCalls: 16
+          outputBytes: 65536
+          pendingTasks: 4
+        state: durable-continuation
+
+  authority:
+    availability:
+      compiledProviders: [scene-core]
+    exposure:
+      runtimeModules: [scene-tool]
+    invocationCapabilities:
+      - id: scene.query.selection/v1
+        input: core/Empty@1
+        output: scene/SelectionSnapshot@1
+        maxInputBytes: 16
+        maxOutputBytes: 65536
+      - id: scene.query.raycast/v1
+        input: scene/RaycastQuery@1
+        output: scene/RaycastHit@1
+        maxInputBytes: 4096
+        maxOutputBytes: 4096
+      - id: scene.query.object/v1
+        input: scene/ObjectHandle@1
+        output: scene/ObjectSnapshot@1
+        maxInputBytes: 256
+        maxOutputBytes: 65536
+
+  effects:
+    interpreter: scene-operation-interpreter/v1
+    kinds:
+      - id: scene.object.transform/v1
+        payload: scene/TransformOperation@1
+        commitModel: atomic-local
+        requiresSceneRevision: true
+        emitsUndoReceipt: true
+
+  durability:
+    continuation:
+      format: scene-modal-tool/v1
+      store: revisioned-sqlite
+      generationPolicy: pinned
+      carryLabelsAllowed: [public, internal, opaque-reference]
+      carryLabelsDenied: [secret]
+    journal:
+      format: scene-operations/v1
+      snapshots: enabled
+
+  presentation:
+    model: typed-instances
+    registry: scene-editor-presentations/v1
+    targets: [desktop, web]
+    hiddenCallbacks: forbidden
+
+  assurance:
+    profile: contracted-durable
+    requiredPatterns:
+      - normalized-compiled-plan
+      - semantic-firewall
+      - stable-callback-reference
+      - deterministic-activation
+      - single-owner-runtime
+      - invocation-task-group
+      - transactional-runtime-lease
+      - staged-authority
+      - invocation-capability-lease
+      - opaque-nominal-handle
+      - closed-decision-algebra
+      - effect-plan-native-interpreter
+      - defunctionalized-continuation
+      - generation-pinned-resumption

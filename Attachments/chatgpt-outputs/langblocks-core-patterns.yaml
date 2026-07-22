@@ -1,0 +1,233 @@
+apiVersion: langblocks.dev/catalog/v1alpha1
+kind: PatternCatalog
+metadata:
+  name: langblocks-core
+  version: 0.1.0
+  status: proposal
+spec:
+  patterns:
+    - id: normalized-compiled-plan
+      version: 1
+      family: compilation
+      provides: [validated-plan, phase-separation]
+      requires: [diagnostics]
+      conflicts: [execute-raw-dsl]
+      invariants:
+        - executor receives only a validated compiled plan
+        - defaults are inserted once during normalization
+        - the compiled plan is immutable
+      tests: [invalid-source-never-executes, defaults-are-canonical, warnings-survive]
+
+    - id: layered-ir
+      version: 1
+      family: compilation
+      provides: [target-neutral-semantics, explicit-lowering]
+      requires: [normalized-compiled-plan]
+      conflicts: [target-details-in-universal-ir]
+      invariants:
+        - each IR layer has an explicit consumer
+        - target nouns appear only in target-owned layers
+      tests: [lowering-is-deterministic, target-leakage-is-rejected]
+
+    - id: semantic-firewall
+      version: 1
+      family: boundary
+      provides: [vm-independent-state, stable-wire-boundary]
+      requires: [canonical-wire-value, schema-validation]
+      conflicts: [guest-value-persistence, raw-host-object-export]
+      invariants:
+        - stable state contains no backend-owned value
+        - every crossing has type codec size and data-flow policy
+      tests: [closure-rejected, cyclic-host-object-rejected, canonical-roundtrip]
+
+    - id: stable-callback-reference
+      version: 1
+      family: linking
+      provides: [vm-local-callback-linking]
+      requires: [semantic-firewall, registration-manifest]
+      conflicts: [serialized-closure]
+      invariants:
+        - contracts contain callback IDs rather than functions
+        - each runtime resolves IDs only inside its owner context
+      tests: [missing-callback-rejected, extra-callback-rejected, cross-vm-value-rejected]
+
+    - id: deterministic-activation
+      version: 1
+      family: linking
+      provides: [reproducible-materialization]
+      requires: [stable-callback-reference, artifact-identities, deterministic-diagnostics]
+      conflicts: [unchecked-top-level-registration]
+      invariants:
+        - materialized contract matches the artifact contract
+        - callback schema profile and ABI identities match
+      tests: [multi-runtime-manifest-equality, exported-collected-agreement, drift-rejection]
+
+    - id: frozen-factory-live-instance
+      version: 1
+      family: runtime
+      provides: [repeatable-runtime-composition, instance-isolation]
+      requires: [unique-component-ids]
+      conflicts: [mutable-factory-after-build]
+      invariants:
+        - build plan is immutable after validation
+        - per-runtime state is allocated during instantiation
+      tests: [two-runtime-isolation, duplicate-id-rejection, factory-defensive-copy]
+
+    - id: single-owner-runtime
+      version: 1
+      family: runtime
+      provides: [serialized-vm-access]
+      requires: [runtime-scheduler]
+      conflicts: [concurrent-direct-vm-access]
+      invariants:
+        - only the owner touches backend runtime state
+        - reentrant owner calls do not deadlock
+      tests: [race-conformance, reentrant-call, close-while-active]
+
+    - id: named-context-domains
+      version: 1
+      family: runtime
+      provides: [lifetime-correct-cancellation]
+      requires: [single-owner-runtime]
+      conflicts: [one-context-for-all-lifetimes]
+      invariants:
+        - startup lifetime invocation custom-operation and cleanup contexts are distinct
+        - retained resources use runtime lifetime rather than request lifetime
+      tests: [request-cancel-does-not-kill-retained-resource, runtime-close-cancels-resource]
+
+    - id: invocation-task-group
+      version: 1
+      family: runtime
+      provides: [complete-async-settlement]
+      requires: [single-owner-runtime, named-context-domains]
+      conflicts: [return-with-pending-capability-work]
+      invariants:
+        - all spawned invocation work is counted
+        - settlement happens through the runtime owner
+      tests: [late-settlement, canceled-settlement, pending-count-drain]
+
+    - id: transactional-runtime-lease
+      version: 1
+      family: runtime
+      provides: [safe-runtime-reuse]
+      requires: [invocation-task-group, runtime-disposition]
+      conflicts: [unconditional-pool-return]
+      invariants:
+        - worker is exclusive while leased
+        - uncertain state destroys or quarantines the worker
+      tests: [timeout-discards, malformed-output-discards, clean-result-reuses]
+
+    - id: staged-authority
+      version: 1
+      family: authority
+      provides: [monotone-authority-narrowing]
+      requires: [runtime-profile, capability-registry, effect-registry]
+      conflicts: [ambient-authority]
+      invariants:
+        - runtime exposure is a subset of compiled availability
+        - invocation bindings are a subset of handler declarations
+        - committed effects are a subset of accepted proposals
+      tests: [compiled-but-hidden, exposed-but-unbound, undeclared-effect-rejected]
+
+    - id: invocation-capability-lease
+      version: 1
+      family: authority
+      provides: [bounded-revocable-authority]
+      requires: [staged-authority, invocation-task-group]
+      conflicts: [global-host-service-object]
+      invariants:
+        - binding versions satisfy handler requirements
+        - leases are revoked when invocation ends
+        - call byte concurrency and time budgets are enforced
+      tests: [missing-binding, version-mismatch, post-revocation-call, budget-exhaustion]
+
+    - id: opaque-nominal-handle
+      version: 1
+      family: authority
+      provides: [unforgeable-native-reference]
+      requires: [handle-table, lifetime-classification]
+      conflicts: [raw-pointer-export, forgeable-tag-only-handle]
+      invariants:
+        - type and generation are checked by the host table
+        - representation alone grants no authority
+      tests: [forged-handle, stale-generation, wrong-type, cross-runtime-handle]
+
+    - id: closed-decision-algebra
+      version: 1
+      family: effects
+      provides: [exhaustive-native-interpretation]
+      requires: [schema-validation]
+      conflicts: [undefined-means-control-flow, arbitrary-result-map]
+      invariants:
+        - every handler declares allowed decision kinds
+        - every decision payload is validated
+        - host interpretation is exhaustive
+      tests: [undeclared-decision, malformed-payload, exception-is-not-denial]
+
+    - id: effect-plan-native-interpreter
+      version: 1
+      family: effects
+      provides: [host-owned-authoritative-mutation]
+      requires: [closed-decision-algebra, effect-registry]
+      conflicts: [guest-direct-authoritative-mutation]
+      invariants:
+        - guest effects are inert requests
+        - host revalidates permission payload references and preconditions
+        - commit emits a receipt
+      tests: [undeclared-effect, stale-reference, precondition-failure, receipt-recorded]
+
+    - id: honest-commit-model
+      version: 1
+      family: effects
+      provides: [explicit-partial-failure-semantics]
+      requires: [effect-plan-native-interpreter]
+      conflicts: [fake-cross-system-atomicity]
+      invariants:
+        - every effect declares pure atomic-local outbox saga ephemeral kernel-check or hardware semantics
+        - external delivery is not labeled atomic without a coordinating protocol
+      tests: [external-effect-requires-outbox-or-saga, compensation-path, idempotency-key]
+
+    - id: defunctionalized-continuation
+      version: 1
+      family: durability
+      provides: [restart-safe-resumption]
+      requires: [stable-callback-reference, semantic-firewall, revisioned-store, generation-identity]
+      conflicts: [serialized-vm-heap, persisted-capability-lease]
+      invariants:
+        - continuation stores handler label and typed environment
+        - continuation contains no closure stack promise runtime value or raw secret
+      tests: [roundtrip, restart-resume, stale-handler, secret-flow-rejection]
+
+    - id: generation-pinned-resumption
+      version: 1
+      family: durability
+      provides: [semantic-time-consistency]
+      requires: [defunctionalized-continuation, generation-registry]
+      conflicts: [silent-resume-under-latest-code]
+      invariants:
+        - durable state identifies its executable generation
+        - old generations remain available or resume fails explicitly
+        - migration is versioned and explicit
+      tests: [old-generation-resume, missing-generation, explicit-migration, retirement-reference-count]
+
+    - id: event-snapshot-projection
+      version: 1
+      family: durability
+      provides: [durable-source-of-truth, reconnect]
+      requires: [canonical-wire-value, event-registry]
+      conflicts: [frontend-as-authoritative-state]
+      invariants:
+        - commands events projections and snapshots are distinct
+        - reconnect applies snapshot before live events
+      tests: [snapshot-before-live, duplicate-event, projection-rebuild]
+
+    - id: separate-verification-language
+      version: 1
+      family: assurance
+      provides: [non-bypassing-test-plans]
+      requires: [scenario-ir, native-step-registry]
+      conflicts: [production-authority-in-test-dsl]
+      invariants:
+        - verification source compiles to data-only scenarios
+        - scenario execution uses explicit native steps and fakes
+      tests: [unknown-step, undeclared-fake, production-kernel-still-validates]
