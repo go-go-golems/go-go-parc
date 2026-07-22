@@ -25,9 +25,9 @@ This note records what happened when a carefully reasoned performance analysis m
 The engineering content is specific to X11 and to one Go window manager. The transferable content is a failure mode: reading code produces hypotheses that are mechanically correct and causally wrong, and no amount of additional reading distinguishes the two.
 
 > [!summary]
-> - Code reading identified a real mechanism — 1,024 synchronous X round trips per drag — that measurement showed was **not** the bottleneck. Removing every one of those round trips made the system 15% *slower*.
-> - Reconciliation (layout, tree indexing, geometry diffing, request construction) is **1.8%** of a relayout. Painting is the other 98.2%. All the algorithmic optimization work targeted the 1.8%.
-> - The largest single win, a 7.2× speedup, was not in any plan. It surfaced within an hour of the repository having its first benchmark.
+> - Three successive diagnoses each refuted the one before it. Only direct decomposition of the cost terminated the regress.
+> - An A/B between two implementations does not isolate a component — it swaps a bundle. That inference error cost one full round of wrong conclusions.
+> - Final result: **4.8× faster per paint** on MIT-SHM, **3.5×** on the PutImage fallback, with the largest single win coming from an observation none of three review documents contained.
 > - A nested `Xephyr` server turns "needs a spare console and a human" into a tool call that runs in ninety seconds.
 
 ## Why this note exists
@@ -253,18 +253,122 @@ Allocating a fresh map costs more than the depth-first scans it replaces until r
 6. **Bound accepted regressions with a test.** If a change trades exactness for speed, encode the tolerance so the drift cannot grow later without failing.
 7. **Record refuted hypotheses next to the code they explain.** The refutation is more valuable than the conclusion, because the next reader will otherwise re-derive the same plausible wrong answer from the same source.
 
+## The regress of diagnoses
+
+Four diagnoses were produced, in order, each refuting its predecessor.
+
+**First: reading the code.** Three review documents concluded the drag loop performed no synchronous round trips, because the natural audit is `grep '\.Reply()'` and the round trips were spelled `.Check()`. Wrong by omission.
+
+**Second: reading the code more carefully.** `xshm.New` issues two checked requests, and `paintFrame` recreates the surface whenever dimensions change, which during a drag is every tick. 1,024 round trips per drag. Mechanically correct, and it explained why prior CPU optimization had underdelivered.
+
+**Third: an A/B.** Disabling MIT-SHM removes every round trip and made each paint 15% *slower*. Conclusion drawn: round trips are not the bottleneck. **This inference was wrong.** Swapping MIT-SHM for the PutImage fallback does not remove a component from a fixed system; it exchanges one bundle of components for another. The measurement was sound; the reasoning from it was not.
+
+**Fourth: decomposition.** Timing the phases of a paint separately — composition, surface management, conversion, transfer — gave the answer none of the previous three could:
+
+| Component | MIT-SHM | share | PutImage fallback | share |
+|---|---:|---:|---:|---:|
+| compose | 0.85 ms | 16% | 0.74 ms | 11% |
+| **surface management** | **2.99 ms** | **56%** | 1.75 ms | 26% |
+| convert | 1.44 ms | 27% | 0.93 ms | 14% |
+| **transfer** | 0.03 ms | 1% | **3.22 ms** | **49%** |
+
+Surface management *was* dominant on the shm path all along — the second diagnosis was right about it. Disabling shm did not make that cost disappear; it replaced it with a larger one. And the two paths have entirely different bottlenecks, which is why any single A/B was going to mislead.
+
+## The fix, and the observation that produced most of it
+
+Three changes, in the order the decomposition justified.
+
+**Capacity-sized backing stores.** The dimension change on every tick was invalidating the RGBA scratch, the shared pixmap and the fallback XImage. Rounding the backing store up to a bucket makes them survive until the drag crosses a boundary. Surface creations per drag fell from 528 to 64.
+
+The window is then smaller than its backing store. X tiles a background pixmap from the window origin, so an oversized pixmap displays its top-left region and the surplus is clipped. That was an assumption, and it was verified by screenshot rather than argument.
+
+**Chrome-only upload.** This is the observation that mattered most, and it appears in none of the three review documents:
+
+```
++-- frame 636x664 -----------------------+
+| title strip  636 x 22      <- visible  |
++----------------------------------------+
+|B|                                    |B|   B = 2px border, visible
+|o|   client window covers this        |o|
+|r|   ~416,000 px, NEVER visible       |r|
++----------------------------------------+
+| bottom border 636 x 2      <- visible  |
++----------------------------------------+
+```
+
+A frame holding a reparented client shows window-manager pixels only in its title strip and border. Roughly 20,000 visible pixels out of 422,000 — and every paint was composing, converting and uploading all of them. Restricting all three to the visible rectangles dropped the fallback's transfer from 3.22 ms to 0.38 ms per paint.
+
+**This is what the planned "chrome/content split" was for.** That change — giving every frame a title child window — was the highest-risk item in the plan, because it rewrites frame lifecycle. Its purpose was to stop touching pixels the client covers. Those pixels were *already* covered; only the upload had to stop pretending they were visible. The saving was available without creating a single X window.
+
+**Granularity, swept rather than argued.** With composition, conversion and upload all restricted to the chrome, none of them scales with the backing store any more, so a larger bucket costs only memory:
+
+| bucket | surface creations | ms/paint | resident buffers |
+|---:|---:|---:|---:|
+| 16 | 375 | 4.38 | — |
+| 64 | 124 | 1.85 | 7.86 MB |
+| **128** | **64** | **1.08** | **7.86 MB** |
+| 256 | 28 | 0.74 | 9.44 MB |
+
+128 costs exactly the same memory as 64 at this geometry while being 1.5× faster: a 636×664 pane rounds to the same width bucket either way. The conservative default was buying nothing — which was only visible because the memory side was measured instead of estimated.
+
+## Result
+
+| | before | after | |
+|---|---:|---:|---:|
+| MIT-SHM, per paint | 5.31 ms | **1.11 ms** | **4.8×** |
+| MIT-SHM, WM-loop work per drag | 2852 ms | **595 ms** | **4.8×** |
+| PutImage fallback, per paint | 6.63 ms | **1.89 ms** | **3.5×** |
+| PutImage fallback, WM-loop work per drag | 3518 ms | **963 ms** | **3.7×** |
+| Surface creations per drag | 528 | **64** | 8.3× |
+| `draw.Text`, 24-char title | 53.9 µs | **7.46 µs** | 7.2× |
+
+## Verification that a test cannot provide
+
+Every failure mode of the chrome-only upload is visual and silent. Uploading too little leaves stale pixels; excluding the wrong frames renders a title strip over garbage. No unit test fails, and all 15 packages passed throughout.
+
+So the harness screenshots each stage and the images are committed alongside the code. A second harness drives the paths the drag test never touches — fullscreen, floats, workspace switches, focus changes, theme swaps — and screenshots each. That sweep is what confirmed builtin tiles still render their full surface, that floats keep their chrome, and that frames unmap and remap correctly across a workspace switch.
+
+One bug was caught by neither tests nor screenshots, but by a counter that disagreed with its sibling: after capacity sizing, `frames_painted` was 1340 against 496 resizes. The Expose fast path compared buffer dimensions against the viewport, so capacity-sized buffers always looked stale and every Expose triggered a full repaint. The screen looked perfect. Only the ratio between two counters revealed it.
+
+## Common failure modes
+
+**Reasoning from mechanism to magnitude.** Code reading can establish that something happens. It cannot establish how much it matters relative to everything else that also happens.
+
+**Treating an A/B as a decomposition.** Toggling between two implementations tells you which is faster. It tells you nothing about which component inside either one is expensive, because both arms differ in several components at once.
+
+**Optimizing what is legible.** Layout algorithms and redundant requests are visible in source and satisfying to fix. Reconciliation minus paint turned out to be 0.13 ms of a 7.4 ms relayout — under 2%. The work that got done first was the work that was easiest to see.
+
+**The plausible algorithmic win that is a regression.** Replacing an O(n) tree search inside an O(n) loop with a node index is textbook. Benchmarked, the allocating version was **6.2× slower at 2 leaves and 1.6× at 8** — a fresh map costs more than the scans it replaces until roughly 24 leaves, and a real workspace holds two to eight tiles. Reusing one scratch map moved the crossover to about 10. Kept as protection against pathological trees, documented as *not* a speedup.
+
+**A mechanism that loses at one scale winning at another.** Transferring a sub-image rather than the whole buffer was measured at 5.79 ms/paint against 4.09 — worse, because the library allocates a contiguous copy per call. Applied to the chrome instead of the viewport, the same mechanism was decisive: the copy is 22 rows instead of 660. General opinions about mechanisms are not portable across scales.
+
+**Estimating what you could measure.** The 128-versus-256 bucket choice initially rested on an estimated memory cost. Measured, 128 was free relative to 64 — the estimate was directionally reasonable and quantitatively wrong.
+
+## Working rules
+
+1. **A mechanism is not a magnitude.** Reading source establishes that something happens, never how much it costs.
+2. **Decompose; do not A/B.** To attribute cost to a component, measure the component. Swapping strategies exchanges bundles.
+3. **The first benchmark is worth more than the tenth optimization.** The 7.2× glyph cache appeared within an hour of the repository having any benchmark, and was on nobody's list.
+4. **Confirm the fast path is the live path.** This machine's Xorg reports no shared-pixmap support, so an entire prior optimization ticket is inert on it. Nothing logged that above `Info`.
+5. **Use a nested server.** `Xephyr` on an existing display is disposable, scriptable, needs no console, and turns a human-in-the-loop experiment into a ninety-second command.
+6. **Screenshot what tests cannot see.** Where every failure mode is visual and silent, images are evidence and assertions are not.
+7. **Watch counters against each other.** The Expose regression was invisible in isolation and obvious as a ratio.
+8. **Keep tuning constants sweepable.** An environment variable and eight lines turn a debate into a table.
+9. **Re-decide a tuned constant when its cost structure changes.** Bucketing was tuned when its downside was transfer volume; once that downside was removed the old default was leaving 1.5× on the table without anything in the code having changed.
+10. **Record refuted hypotheses next to the code they explain.** The next reader will otherwise re-derive the same plausible wrong answer from the same source.
+
 ## Where this leaves the project
 
-Instrumentation is in place: reconciliation counters, upload-path churn counters, motion admission counters, and a paint breakdown split into compose and upload, all readable over IPC. The measurement harness runs in ninety seconds and produces directly comparable counters across code changes.
+Instrumentation is permanent: reconciliation counters, upload-path churn, motion admission, a four-way paint breakdown, and resident buffer bytes, all readable over IPC. Two harnesses run in ninety seconds each and produce directly comparable numbers across changes.
 
-The confirmed optimizations, all verified at runtime rather than only by unit test: 700 redundant Map/Unmap requests suppressed per drag, 66% of divider repaints eliminated, 46% of motion events coalesced, one layout pass per tick instead of two, a synthetic `ConfigureNotify` replacing a whole-workspace relayout on a client-driven path, and the 7.2× glyph cache.
+The remaining costs on a now ~1–2 ms paint are within a small factor of each other, with no dominant component. Further gains need fewer paints — preview/commit separation, so one drag emits one durable operation instead of one per tick — rather than another constant-factor fix to this path.
 
-The open work, in the order the measurement supports: split the remaining ~98% into colour conversion versus X upload — instrumentation for this is committed but not yet run — then separate window chrome from window content, which is the change that reduces pixel volume.
+The chrome/content window split, previously the plan's centrepiece, should be re-costed before it is scheduled. Its principal saving has already been taken.
 
-Full analysis, investigation diary, and measurement harnesses live in the repository under `ttmp/2026/07/21/GGWM-012-GUIDES--import-go-go-wm-engineering-guides-and-handbook/`.
+Full analysis, a fourteen-step investigation diary, both harnesses and the screenshot set live in the repository under `ttmp/2026/07/21/GGWM-012-GUIDES--import-go-go-wm-engineering-guides-and-handbook/`.
 
 ## Related notes
 
 - Source repository: `/home/manuel/workspaces/2026-07-21/go-go-wm-goja/go-go-wm`
 - Design document: `ttmp/2026/07/21/GGWM-012-GUIDES--.../design-doc/01-go-go-wm-performance-engineering-an-intern-s-guide-to-the-resize-and-render-path.md`
-- Measurement harness: `ttmp/2026/07/21/GGWM-012-GUIDES--.../scripts/ggwm-xephyr-validate.sh`
+- Measurement harnesses: `ttmp/2026/07/21/GGWM-012-GUIDES--.../scripts/ggwm-xephyr-{validate,scenarios}.sh`
