@@ -29,10 +29,6 @@ The strongest consensus is already clear: mathematicians usually defend chalkboa
 
 **Searched mathematician opinions across multiple websites and platforms**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Ensuring proper citations**
 
 I’m considering how to quote specific mathematicians like Timothy Gowers and Hans Lundmark, ensuring I mention them as reputable sources. I’ll check profiles and clarify any limitations.
@@ -48,10 +44,6 @@ I’m considering how to quote specific mathematicians like Timothy Gowers and H
 <details><summary>💭 Thinking</summary>
 
 **Searched multiple resources for chalkboard/blackboard terminology opinions**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Summarizing mathematicians' comments**
 

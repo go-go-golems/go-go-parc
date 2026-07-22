@@ -17,10 +17,6 @@ I’ll frame the answer around what the subobject classifier contributes to logi
 
 **Searched for primary papers on topos theory and classifiers**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Clarifying concepts in CS**
 
 I’m tightening my understanding of category theory, focusing on subobject classifiers, higher-order logic, and their role in semantics. I’ll use proper citations, staying precise to avoid overstatements.
@@ -36,10 +32,6 @@ I’m tightening my understanding of category theory, focusing on subobject clas
 <details><summary>💭 Thinking</summary>
 
 **Searched for citations on categorical logic and topos theory**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Explaining category theory concepts**
 
@@ -199,10 +191,6 @@ I’ll focus on examples where the categorical machinery changes how a computer-
 <details><summary>💭 Thinking</summary>
 
 **Browsed and searched for topos theory, recursion, and sheaves**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Exploring subobject classifier in databases**
 
@@ -480,10 +468,6 @@ I’ll separate two questions: using Lean to formalize topos theory, and using t
 <details><summary>💭 Thinking</summary>
 
 **Searched Lean theorem proving resources and related documentation**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Explaining Lean and topos theory**
 

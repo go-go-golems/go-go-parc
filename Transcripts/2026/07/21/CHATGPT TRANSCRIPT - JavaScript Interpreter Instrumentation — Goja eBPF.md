@@ -27,10 +27,6 @@ bash -lc rm -rf /tmp/goja /tmp/go-go-goja && git clone --depth 1 https://github.
 
 **Cloned GitHub repositories for inspection**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Searched Goja VM details and fetched relevant file portions**
 
 </details>
@@ -43,15 +39,7 @@ bash -lc rm -rf /tmp/goja /tmp/go-go-goja && git clone --depth 1 https://github.
 
 **Searched the web and github.com**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Inspected repo structure and fetched engine data**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Designing JavaScript Probing**
 
@@ -69,10 +57,6 @@ I’m thinking about how to approach JavaScript instrumentation and runtime anal
 
 **Searched the web and github.com**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Located vmCall(vm) instructions in GitHub repo**
 
 </details>
@@ -85,15 +69,7 @@ I’m thinking about how to approach JavaScript instrumentation and runtime anal
 
 **Searched the web and GitHub**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched specific lines from a GitHub file**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched file content for analysis and executed instructions**
 
@@ -106,10 +82,6 @@ I’m thinking about how to approach JavaScript instrumentation and runtime anal
 <details><summary>💭 Thinking</summary>
 
 **Searched the web and GitHub multiple times**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched code snippet and file content from GitHub repository**
 
@@ -125,15 +97,7 @@ Goja’s central bytecode loop and explicit call/return transitions provide prec
 
 **Searched GitHub and Gist for Program struct and metadata**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched file content from GitHub repository**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Clarifying eBPF-inspired probe design**
 
@@ -141,19 +105,11 @@ I’m thinking of proposing an eBPF-inspired probe system for JavaScript. I'll c
 
 **Clarified eBPF-inspired probe design**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Designing JS Probing Events**
 
 I'm considering various event types for JS probing such as function entry, exit, and mutation. I need to ensure safe operations, bounded loops, and clear control flow, with efficient integrations for Go/JS.
 
 **Designed JS Probing Events**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Instrumenting async and static analysis**
 
@@ -161,15 +117,7 @@ I’m considering how to enhance async handling and runtime safety in Go/JS. I�
 
 **Instrumented async and static analysis**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Evaluated probe execution strategies with Go and WebAssembly**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Building an eBPF-inspired probe plane**
 
@@ -184,10 +132,6 @@ I’m considering a Go/JS fork that introduces an eBPF-like probe system. Key st
 <details><summary>💭 Thinking</summary>
 
 **Searched eBPF documentation and related kernel sources**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Inspected Goja repo and searched for profiler insights**
 
@@ -936,25 +880,13 @@ I’ll treat “dejotational” as “denotational” and connect the probe syst
 
 **Searched for primary papers on JavaScript semantics on arxiv.org**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Researching niche topics**
 
 I’m aiming to dive deep into operational and denotational semantics, tracing topics like instrumentation semantics and runtime verification. The literature review will focus on primary papers and recent publications.
 
 **Researched niche topics**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Searched for primary papers on JavaScript semantics**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Exploring trace semantics**
 
@@ -971,10 +903,6 @@ I’m considering how operational semantics, trace domains, and verification app
 <details><summary>💭 Thinking</summary>
 
 **Searched for research papers and sources on semantics and verification**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Refining semantic tools**
 
@@ -993,10 +921,6 @@ The key move is treating hooks as labels on semantic transitions and probes as t
 <details><summary>💭 Thinking</summary>
 
 **Searched for academic papers on algebraic effects and semantics**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Researching formal semantics tools**
 

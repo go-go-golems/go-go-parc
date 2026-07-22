@@ -43,15 +43,7 @@ bash -lc rm -rf /mnt/data/tiny-idp && git clone --branch task/prod-tiny-idp --si
 
 **Searched the web**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Searched GitHub repo for specific ticket content**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Researching GitHub files**
 
@@ -59,15 +51,7 @@ I’m exploring how to dig deeper into a project by examining files, likely from
 
 **Researched GitHub files**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Searched files for package declarations and fetched design documents**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Searched for package references, classes, and functions in repository**
 
@@ -79,15 +63,7 @@ The branch reveals a lambda-first workflow machine: Goja-free serialized IR uses
 
 **Fetched commit metadata, diffs, and related file content**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Evaluated Goja interpreter architecture and searched recent commits**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Organizing file citation**
 
@@ -95,51 +71,19 @@ I’m planning to fetch and organize files from GitHub, keeping track of line nu
 
 **Organized file citation**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched file content and calculated line count**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched and validated files and code from repository**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched value.go, providers.go, and diagnostics.go files**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched file and module content, built workflow components**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched compiler and runtime factory file content from repository**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched and analyzed files and capabilities for settlement tracking**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched continuation types and file content from repository**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Preparing report on TINYIDP**
 
@@ -151,27 +95,11 @@ I’m planning to write a detailed Markdown monograph analyzing TINYIDP's interp
 
 **Prepared report and monograph on TINYIDP**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched files and content from GitHub for analysis and submission**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched file content from GitHub repository**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched and inspected repository files for implementation details**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched and evaluated GitHub files for advanced Goja analysis**
 
@@ -186,10 +114,6 @@ The key enforcement pattern is now clear: deterministic registration is checked 
 <details><summary>💭 Thinking</summary>
 
 **Read skill from PDF and checked required installations**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched commit metadata and inspected go.mod for version**
 
@@ -599,10 +523,6 @@ EOF
 
 **Created and drafted technical monograph with design details**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Organizing textbook/report structure**
 
 I’m working through the structure for a comprehensive textbook on TINYIDP, focusing on its unique constructs, including continuations and callback registration. I’ll cross-check citations carefully and use relevant files.
@@ -769,29 +689,17 @@ bash -lc cat /home/oai/skills/docx/SKILL.md && printf '
 
 **Created document with research, citations, and source files**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Gathering literature sources**
 
 I’ll focus on collecting precise, scholarly sources like research papers, textbooks, and official publications for the user. I'll ensure citations from primary sources like DOIs, ACM, and Springer for accuracy.
 
 **Gathered literature sources**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Finding relevant literature**
 
 I’ll gather literature that spans multiple areas like nominal branding, effect systems, and runtime typing. I’ll focus on textbooks and important research papers for citations, especially for the user’s requested concepts.
 
 **Found relevant literature**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Exploring key concepts**
 
@@ -808,10 +716,6 @@ I’m organizing a range of ideas like object-capability security, algebraic eff
 <details><summary>💭 Thinking</summary>
 
 **Searched for programming theories, contracts, resources, and papers**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Planning document creation**
 

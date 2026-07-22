@@ -1922,10 +1922,6 @@ I’m focusing on properly explaining encoding and decoding trees. If encoding a
 
 **Untangled encoding concepts**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Exploring encoding and hashing**
 
 I’m explaining how encoding and hashing affect trees and bytes. While hashes are surjective (same trees, same digest), they aren’t injective, so collisions can happen. The category approach helps frame "quality" in this context.

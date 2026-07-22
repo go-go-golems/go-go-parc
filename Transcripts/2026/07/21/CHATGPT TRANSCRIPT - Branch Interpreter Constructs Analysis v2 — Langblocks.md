@@ -43,15 +43,7 @@ bash -lc rm -rf /mnt/data/tiny-idp && git clone --branch task/prod-tiny-idp --si
 
 **Searched the web**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Searched GitHub repo for specific ticket content**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Researching GitHub files**
 
@@ -59,15 +51,7 @@ I’m exploring how to dig deeper into a project by examining files, likely from
 
 **Researched GitHub files**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Searched files for package declarations and fetched design documents**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Searched for package references, classes, and functions in repository**
 
@@ -79,15 +63,7 @@ The branch reveals a lambda-first workflow machine: Goja-free serialized IR uses
 
 **Fetched commit metadata, diffs, and related file content**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Evaluated Goja interpreter architecture and searched recent commits**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Organizing file citation**
 
@@ -95,51 +71,19 @@ I’m planning to fetch and organize files from GitHub, keeping track of line nu
 
 **Organized file citation**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched file content and calculated line count**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched and validated files and code from repository**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched value.go, providers.go, and diagnostics.go files**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched file and module content, built workflow components**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched compiler and runtime factory file content from repository**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched and analyzed files and capabilities for settlement tracking**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched continuation types and file content from repository**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Preparing report on TINYIDP**
 
@@ -151,27 +95,11 @@ I’m planning to write a detailed Markdown monograph analyzing TINYIDP's interp
 
 **Prepared report and monograph on TINYIDP**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched files and content from GitHub for analysis and submission**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched file content from GitHub repository**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched and inspected repository files for implementation details**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched and evaluated GitHub files for advanced Goja analysis**
 
@@ -186,10 +114,6 @@ The key enforcement pattern is now clear: deterministic registration is checked 
 <details><summary>💭 Thinking</summary>
 
 **Read skill from PDF and checked required installations**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched commit metadata and inspected go.mod for version**
 
@@ -599,10 +523,6 @@ EOF
 
 **Created and drafted technical monograph with design details**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Organizing textbook/report structure**
 
 I’m working through the structure for a comprehensive textbook on TINYIDP, focusing on its unique constructs, including continuations and callback registration. I’ll cross-check citations carefully and use relevant files.
@@ -767,29 +687,13 @@ bash -lc git -C /mnt/data/tiny-idp rev-parse --abbrev-ref HEAD && git -C /mnt/da
 
 **Inspected repository branch and cloned GitHub repository to container**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Searched GitHub for relevant terms and fetched design documents**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Designing framework and document**
 
 I’m planning to design a framework based on repo patterns, draw from previous content, and use specific file sections. I’ll likely create a detailed markdown report with citations and examples.
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched code, designed framework, and validated schema content**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched repository and GitHub file content and components**
 
@@ -803,10 +707,6 @@ I’m planning to design a framework based on repo patterns, draw from previous 
 
 **Searched the web and GitHub repositories for API URL**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched file content and design documentation from repositories**
 
 </details>
@@ -819,15 +719,7 @@ I’m planning to design a framework based on repo patterns, draw from previous 
 
 **Searched multiple websites for GitHub repository related to idp script**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched file content, tasks, and details from GitHub repository**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Designing the framework**
 
@@ -858,15 +750,7 @@ The framework will have two layers: a production Goja toolkit and a language-neu
 
 **Searched authoritative technical sources and academic papers across platforms**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Inspected GitHub repository, documentation, and runtimeowner implementation**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Designing deliverables**
 
@@ -945,10 +829,6 @@ PY
 
 **Searched GitHub, arxiv.org, and multiple other sources**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Searched repositories and fetched project files and documentation**
 
 </details>
@@ -977,10 +857,6 @@ done
 
 **Cloned repositories for pattern research**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched and examined Goja runtime and repository files**
 
 </details>
@@ -1001,15 +877,7 @@ bash -lc echo noop
 
 **Identified article sections and headings**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Searched and fetched content for fluent builder and CRM analysis**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Designing a reusable architecture**
 
@@ -1021,19 +889,11 @@ I’ve reviewed the GitHub repos and research documents. Key concepts relate to 
 
 **Designed reusable architecture and accessed key insights**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Designing an architecture**
 
 I’m focusing on creating a detailed design for the user’s request. The broad scope suggests a formal report in Markdown, possibly PDF or DOCX, that cites research and Tiny-IDP sources. I’ll finalize the format and citations while inspecting updated files for accuracy.
 
 **Designed an architecture**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Designed Language Platform Construction Kit and inspected code**
 
@@ -1048,10 +908,6 @@ bash -lc git -C /mnt/data/tiny-idp rev-parse --abbrev-ref HEAD && git -C /mnt/da
 <details><summary>💭 Thinking</summary>
 
 **Inspected local Git repository**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Searched files in GitHub repository via API**
 

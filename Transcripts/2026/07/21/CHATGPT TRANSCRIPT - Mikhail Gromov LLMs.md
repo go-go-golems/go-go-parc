@@ -17,10 +17,6 @@ I’ll check whether this refers to a recent talk, article, or commentary by mat
 
 **Searched multiple websites and references for Mikhail Gromov**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Clarifying vague request**
 
 It seems like the user may be referring to Mikhail Gromov's lectures on LLMs, so I'll clarify that. I'll also offer a summary or critique of his work and mathematics.
@@ -65,10 +61,6 @@ I’ll identify the IHES program, lectures, and available recordings related to 
 <details><summary>💭 Thinking</summary>
 
 **Searched web for IHES LLM program information**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Clarifying IHES-LLMs details**
 
@@ -150,10 +142,6 @@ PY
 <details><summary>💭 Thinking</summary>
 
 **Searched multiple websites for information on various topics**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Summarizing details**
 
@@ -268,19 +256,11 @@ I’ll treat this as Gromov’s **“Learning and Understanding in the Mirror of
 
 **Searched various websites for Gromov's "Learning and Understanding" PDF**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Clarifying the thesis**
 
 The paper discusses how understanding works, focusing on learning as a universal process. It proposes that meaning is distributional and grounded, and that cognition is rooted in simplicity and evolution.
 
 **Clarified the thesis**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Refining understanding in AI**
 

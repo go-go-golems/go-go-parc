@@ -63,10 +63,6 @@ done
 
 **Cloned and inspected repositories in container**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Inspected GitHub repository for widget DSL and component references**
 
 </details>
@@ -79,15 +75,7 @@ done
 
 **Searched multiple sites for project information and related tools**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Searched GitHub repositories and fetched relevant file contents**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Planning report creation**
 
@@ -103,37 +91,17 @@ Goja’s runtime ownership, event-loop scheduling, scoped async callbacks, and E
 
 **Fetched project notes, metadata, and files for report creation**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Inspected files and searched repository for widget and WebSocket related terms**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Searched and fetched files, inspected actions and schemas**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched documents and inspected widgetsite integration and architecture**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Crafting developer report**
 
 I’m analyzing GitHub repos and project notes to generate a detailed report on extending the Widget DSL/IR renderer for chatbot support. It’ll include options, mechanics, recommendations, and diagrams.
 
 **Crafted developer report**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched metadata, documentation, and searched code in GitHub repositories**
 
@@ -146,10 +114,6 @@ bash -lc mkdir -p /mnt/data/research-src && cd /mnt/data/research-src && for r i
 <details><summary>💭 Thinking</summary>
 
 **Cloned repositories with validation**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Fetched file content and searched for module and package paths**
 
@@ -175,10 +139,6 @@ The likely design is a generic live-resource adapter: Widget DSL declares typed 
 
 **Listed directory contents**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Searched and fetched files and reports from GitHub repository**
 
 </details>
@@ -191,35 +151,15 @@ bash -lc true
 
 **Searched resource for key terms**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched report content from specified lines and onwards**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Inspected React Chat setup and fetched repository files**
 
-</details>
-
-<details><summary>💭 Thinking</summary>
-
 **Fetched and inspected documents and repository files for details**
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Reviewing architecture and reports**
 
 I’m analyzing frontend tools, widgets, and sessionstream architecture. The reports offer insights into typed instances, versioning, actions, and event normalization, along with frontend/backend integration details.
-
-</details>
-
-<details><summary>💭 Thinking</summary>
 
 **Inspected files, fetched content, and evaluated widget integration**
 
