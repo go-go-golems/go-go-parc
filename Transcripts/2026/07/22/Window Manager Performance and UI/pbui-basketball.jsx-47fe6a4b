@@ -1,0 +1,984 @@
+import React, { useState, useRef, useEffect, useCallback, useContext } from "react";
+
+/* ============================================================
+   PBUI SHELL — BASKETBALL ANALYTICS
+   A CLIM / Genera "Dynamic Windows" flavored framework, ported
+   from the generic demo to a basketball-analytics workbench.
+
+   The framework is unchanged in spirit:
+     · every rendered object is a typed, LIVE presentation
+       — here: <player> <team> <game>
+     · commands ACCEPT objects, from ANY tile, mid-command
+       — "Add to comparison…" reads a <player> from the leaders
+         table, the scatter plot, the radar legend, or a note
+     · right-click object menus, type-directed actions
+     · split-tree window manager + workspaces
+     · apps are singletons: two tiles = two views of one state,
+       so clicking a player in the leaders table live-updates the
+       shot chart and the trend line in other tiles at once.
+
+   PALETTE: the old cream "paper" is gone — the shell is white.
+   ============================================================ */
+
+/* ---------------- palette (white) ---------------- */
+const C = {
+  paper: "#ffffff", pane: "#ffffff", paneAlt: "#f1f1ee",
+  ink: "#23262b", faint: "#7b8087", line: "#d9d9d4",
+  sage: "#7cae9b", blue: "#7aa6c9", rose: "#d59a86",
+  mustard: "#e0b95c", lavender: "#a99fc9", mint: "#8fc7b0",
+  red: "#c2503a", green: "#3f9d6b", sel: "#fdeec6",
+};
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const fmt = (v, d = 1) => (typeof v === "number" ? v.toFixed(d) : v);
+
+/* ============================================================
+   PBUI CORE — presentations + accept
+   ============================================================ */
+const UICtx = React.createContext(null);
+const useUI = () => useContext(UICtx);
+const typeMatches = (want, have) =>
+  want === "any" || (Array.isArray(want) ? want.includes(have) : want === have);
+
+function P({ ptype, value, doc, children, block, onActivate, activateDoc }) {
+  const ui = useUI();
+  const acceptable = ui.accepting && typeMatches(ui.accepting.ptype, ptype);
+  const Tag = block ? "div" : "span";
+  const clickDoc = acceptable ? "L: ACCEPT   R: menu"
+    : onActivate ? "L: " + (activateDoc || "activate") + "   R: menu"
+      : "L/R: menu";
+  return (
+    <Tag
+      className={"pres" + (acceptable ? " acceptable" : "")}
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); ui.openMenu(ptype, value, e.clientX, e.clientY); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (acceptable) { e.preventDefault(); ui.accepting.resolve({ ptype, value }); ui.setAccepting(null); }
+        else if (onActivate) onActivate();
+        else ui.openMenu(ptype, value, e.clientX, e.clientY);
+      }}
+      onMouseEnter={() => ui.setMouseDoc((doc || "<" + ptype + "> " + ui.labelFor(ptype, value)) + "   —   " + clickDoc)}
+      onMouseLeave={() => ui.setMouseDoc(null)}
+    >{children}</Tag>
+  );
+}
+
+/* Pres — default visual for a (ptype, value), used when an app
+   re-presents an object it did not originate (watchlist, inspector chips). */
+function Pres({ ptype, value }) {
+  const ui = useUI();
+  const label = ui.labelFor(ptype, value);
+  const tone = ptype === "player" ? C.blue : ptype === "team" ? C.sage : ptype === "game" ? C.mustard : C.paneAlt;
+  return (
+    <P ptype={ptype} value={value}>
+      <span style={{ background: C.pane, border: "1px solid " + C.ink, borderLeft: "4px solid " + tone, padding: "0 5px", fontSize: 11, whiteSpace: "nowrap" }}>{label}</span>
+    </P>
+  );
+}
+
+/* ============================================================
+   MOCK DATA — deterministic (seeded) so it never jitters
+   ============================================================ */
+function rng(seed) {
+  return function () {
+    seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const gauss = (r, m, sd) => {
+  const u = 1 - r(), v = 1 - r();
+  return m + sd * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+};
+
+const TEAMS = [
+  { abbr: "PVD", city: "Providence", name: "Anchors", conf: "E", w: 41, l: 18, pf: 118.4, pa: 111.9, streak: "W4", tone: C.red },
+  { abbr: "BOS", city: "Boston", name: "Bells", conf: "E", w: 44, l: 15, pf: 120.1, pa: 110.2, streak: "W2", tone: C.sage },
+  { abbr: "NYC", city: "New York", name: "Volt", conf: "E", w: 36, l: 23, pf: 114.7, pa: 112.8, streak: "L1", tone: C.mustard },
+  { abbr: "CHI", city: "Chicago", name: "Gale", conf: "E", w: 28, l: 31, pf: 110.9, pa: 113.6, streak: "L3", tone: C.blue },
+  { abbr: "LAX", city: "Los Angeles", name: "Lumens", conf: "W", w: 39, l: 20, pf: 117.2, pa: 113.1, streak: "W1", tone: C.mustard },
+  { abbr: "SFO", city: "San Francisco", name: "Fog", conf: "W", w: 33, l: 26, pf: 115.5, pa: 114.9, streak: "W1", tone: C.lavender },
+  { abbr: "ATX", city: "Austin", name: "Armadillos", conf: "W", w: 30, l: 29, pf: 112.3, pa: 113.0, streak: "L2", tone: C.rose },
+  { abbr: "SEA", city: "Seattle", name: "Tide", conf: "W", w: 25, l: 34, pf: 109.8, pa: 115.7, streak: "L1", tone: C.mint },
+];
+const TEAM = Object.fromEntries(TEAMS.map((t) => [t.abbr, t]));
+
+/* authored season averages; logs + shot profiles derived from these */
+const RAW = [
+  { name: "Marcus Vale", team: "PVD", pos: "PG", min: 35.2, pts: 28.6, reb: 5.1, ast: 9.4, stl: 1.6, blk: 0.3, tov: 3.1, fgp: 48.2, tpp: 39.1, ftp: 88.4, tsp: 62.1, usg: 31.2, style: "guard" },
+  { name: "Deon Pryce", team: "PVD", pos: "C", min: 31.0, pts: 19.2, reb: 12.3, ast: 2.1, stl: 0.7, blk: 2.4, tov: 1.9, fgp: 61.5, tpp: 24.0, ftp: 67.2, tsp: 64.8, usg: 22.4, style: "big" },
+  { name: "Andre Solis", team: "BOS", pos: "SF", min: 34.4, pts: 26.1, reb: 7.8, ast: 4.9, stl: 1.2, blk: 0.6, tov: 2.4, fgp: 50.3, tpp: 41.7, ftp: 84.0, tsp: 63.9, usg: 28.1, style: "wing" },
+  { name: "Casey Lund", team: "BOS", pos: "SG", min: 32.1, pts: 17.4, reb: 3.6, ast: 3.2, stl: 1.4, blk: 0.2, tpp: 44.2, ftp: 90.1, fgp: 46.9, tsp: 65.2, usg: 19.8, style: "guard" },
+  { name: "Trey Okafor", team: "NYC", pos: "PF", min: 33.7, pts: 22.9, reb: 9.6, ast: 3.4, stl: 0.9, blk: 1.1, tov: 2.7, fgp: 49.1, tpp: 35.4, ftp: 76.5, tsp: 58.7, usg: 27.0, style: "wing" },
+  { name: "Kwame Bright", team: "NYC", pos: "PG", min: 30.9, pts: 15.8, reb: 4.0, ast: 7.7, stl: 1.8, blk: 0.2, fgp: 44.0, tpp: 36.8, ftp: 82.3, tsp: 56.4, usg: 21.1, style: "guard" },
+  { name: "Nikolai Ferro", team: "CHI", pos: "C", min: 29.6, pts: 20.4, reb: 11.1, ast: 4.2, stl: 0.6, blk: 1.6, fgp: 55.8, tpp: 33.0, ftp: 71.9, tsp: 60.2, usg: 26.3, style: "big" },
+  { name: "Jalen Hart", team: "CHI", pos: "SG", min: 31.4, pts: 18.9, reb: 3.9, ast: 4.6, stl: 1.1, blk: 0.3, fgp: 43.5, tpp: 34.1, ftp: 79.0, tsp: 54.9, usg: 24.7, style: "guard" },
+  { name: "Rafael Moss", team: "LAX", pos: "SG", min: 34.0, pts: 25.3, reb: 4.4, ast: 5.1, stl: 1.5, blk: 0.4, fgp: 47.7, tpp: 40.6, ftp: 86.8, tsp: 61.8, usg: 29.4, style: "guard" },
+  { name: "Emeka Dune", team: "LAX", pos: "PF", min: 30.2, pts: 16.1, reb: 8.9, ast: 2.0, stl: 0.8, blk: 1.3, fgp: 58.9, tpp: 30.1, ftp: 68.4, tsp: 61.0, usg: 18.6, style: "big" },
+  { name: "Silas Reed", team: "SFO", pos: "SF", min: 33.1, pts: 21.7, reb: 6.2, ast: 6.0, stl: 1.3, blk: 0.5, fgp: 46.2, tpp: 38.9, ftp: 83.7, tsp: 59.6, usg: 25.9, style: "wing" },
+  { name: "Owen Frost", team: "SFO", pos: "C", min: 28.8, pts: 13.5, reb: 10.4, ast: 1.7, stl: 0.5, blk: 2.0, fgp: 63.2, tpp: 12.0, ftp: 64.1, tsp: 63.5, usg: 16.2, style: "big" },
+  { name: "Diego Nunez", team: "ATX", pos: "PG", min: 32.6, pts: 19.9, reb: 4.7, ast: 8.2, stl: 1.7, blk: 0.2, fgp: 45.4, tpp: 37.2, ftp: 85.5, tsp: 58.9, usg: 26.1, style: "guard" },
+  { name: "Brock Amell", team: "ATX", pos: "PF", min: 29.9, pts: 14.8, reb: 7.5, ast: 2.3, stl: 0.9, blk: 0.9, fgp: 51.0, tpp: 36.0, ftp: 74.8, tsp: 58.0, usg: 19.4, style: "wing" },
+  { name: "Isaiah Crane", team: "SEA", pos: "SG", min: 33.8, pts: 23.4, reb: 5.0, ast: 3.8, stl: 1.2, blk: 0.3, fgp: 44.8, tpp: 35.9, ftp: 81.2, tsp: 56.7, usg: 30.0, style: "guard" },
+  { name: "Malik Osei", team: "SEA", pos: "C", min: 27.4, pts: 12.1, reb: 9.8, ast: 1.4, stl: 0.6, blk: 1.8, fgp: 57.4, tpp: 0.0, ftp: 60.3, tsp: 60.9, usg: 15.1, style: "big" },
+];
+
+/* half-court geometry (px). 50ft x 47ft, 10px/ft. hoop near top baseline. */
+const COURT = { w: 500, h: 470, hoopX: 250, hoopY: 52, arc: 237 };
+function genShots(r, p) {
+  const shots = [];
+  const g = p.style === "guard", big = p.style === "big";
+  const mk = (n, xf, made, val) => { for (let i = 0; i < n; i++) { const s = xf(); s.made = r() < made; s.v = val; shots.push(s); } };
+  // rim
+  mk(big ? 46 : g ? 24 : 32, () => {
+    const a = Math.PI * (0.15 + r() * 0.7), d = 8 + r() * 34;
+    return { x: COURT.hoopX + Math.cos(a) * d * (r() < 0.5 ? -1 : 1), y: COURT.hoopY + Math.sin(a) * d };
+  }, big ? 0.66 : 0.60, 2);
+  // short paint / floaters
+  mk(big ? 18 : 16, () => ({ x: 178 + r() * 144, y: 70 + r() * 110 }), 0.44, 2);
+  // midrange
+  mk(g ? 18 : big ? 8 : 20, () => {
+    const side = r() < 0.5 ? -1 : 1, d = 90 + r() * 120, a = Math.PI * (0.12 + r() * 0.5);
+    return { x: clamp(COURT.hoopX + side * Math.cos(a) * d, 40, 460), y: COURT.hoopY + Math.sin(a) * d };
+  }, clamp(p.fgp / 100 - 0.06, 0.32, 0.5), 2);
+  // corner threes
+  const c3 = Math.round((p.tpp / 40) * (g ? 12 : 8));
+  mk(c3, () => ({ x: (r() < 0.5 ? 14 + r() * 34 : 452 + r() * 34), y: 40 + r() * 92 }), clamp(p.tpp / 100 + 0.02, 0.05, 0.5), 3);
+  // above the break threes
+  const ab = Math.round((p.tpp / 40) * (g ? 30 : big ? 6 : 20));
+  mk(ab, () => {
+    const a = Math.PI * (0.05 + r() * 0.9), d = COURT.arc + 6 + r() * 55;
+    return { x: clamp(COURT.hoopX + Math.cos(a) * d * (r() < 0.5 ? -1 : 1), 34, 466), y: COURT.hoopY + Math.sin(a) * d };
+  }, clamp(p.tpp / 100, 0.05, 0.48), 3);
+  return shots.filter((s) => s.y < 300 && s.y > 8 && s.x > 8 && s.x < 492);
+}
+function genLog(r, p) {
+  const opps = TEAMS.map((t) => t.abbr).filter((a) => a !== p.team);
+  return Array.from({ length: 15 }, (_, i) => {
+    const pts = Math.max(2, Math.round(gauss(r, p.pts, p.pts * 0.28)));
+    const reb = Math.max(0, Math.round(gauss(r, p.reb, Math.max(1.4, p.reb * 0.35))));
+    const ast = Math.max(0, Math.round(gauss(r, p.ast, Math.max(1.2, p.ast * 0.4))));
+    const min = Math.round(clamp(gauss(r, p.min, 3), 20, 42));
+    const fga = Math.max(6, Math.round(gauss(r, p.pts * 0.72, 3)));
+    const fgm = Math.round(clamp(fga * (p.fgp / 100) * (0.8 + r() * 0.4), 1, fga));
+    const tpa = Math.max(0, Math.round(gauss(r, p.usg > 24 ? 7 : 4, 2)));
+    const tpm = Math.round(clamp(tpa * (p.tpp / 100) * (0.7 + r() * 0.6), 0, tpa));
+    return { g: i + 1, opp: opps[Math.floor(r() * opps.length)], pts, reb, ast, min, fgm, fga, tpm, tpa };
+  });
+}
+const PLAYERS = RAW.map((p, i) => {
+  const r = rng(1000 + i * 97);
+  const shots = genShots(r, p);
+  const made = shots.filter((s) => s.made);
+  const efg = shots.length ? (made.filter((s) => s.v === 2).length + 1.5 * made.filter((s) => s.v === 3).length) / shots.length : 0;
+  return { id: "p" + i, ...p, tov: p.tov || +(1.2 + i % 3 * 0.4).toFixed(1), shots, efg: efg * 100, log: genLog(r, p) };
+});
+const PL = Object.fromEntries(PLAYERS.map((p) => [p.id, p]));
+
+/* league reference values for normalization */
+const maxOf = (k) => Math.max(...PLAYERS.map((p) => p[k]));
+const meanOf = (k) => PLAYERS.reduce((s, p) => s + p[k], 0) / PLAYERS.length;
+const LEAGUE = {
+  max: { pts: maxOf("pts"), reb: maxOf("reb"), ast: maxOf("ast"), stl: maxOf("stl"), blk: maxOf("blk"), tpp: maxOf("tpp"), tsp: maxOf("tsp") },
+  meanUsg: meanOf("usg"), meanTs: meanOf("tsp"),
+  minUsg: Math.min(...PLAYERS.map((p) => p.usg)), maxUsg: maxOf("usg"),
+  minTs: Math.min(...PLAYERS.map((p) => p.tsp)), maxTs: maxOf("tsp"),
+};
+
+/* ============================================================
+   WORLD — shared singleton state
+   ============================================================ */
+let seqc = 0, notec = 0;
+class World {
+  constructor() {
+    this.notify = null;
+    this.trace = [];
+    this.watch = [{ id: ++notec, ptype: "player", value: "p0" }, { id: ++notec, ptype: "player", value: "p2" }];
+    this.focus = "p0";
+    this.compare = ["p0", "p2"];
+    this.inspected = { title: "<player> Marcus Vale", value: describeVal("player", "p0") };
+  }
+  bump() { this.notify && this.notify(); }
+  log(type, data) { this.trace.push({ seq: ++seqc, type, data: data || {} }); this.bump(); }
+  inspect(title, value) { this.inspected = { title, value }; this.log("inspected", { title }); }
+  setFocus(id) { this.focus = id; this.log("focused", { player: PL[id].name, note: "shot chart + trend line follow the focused player across every tile" }); }
+  addCompare(id) { if (!this.compare.includes(id)) { this.compare = [...this.compare, id].slice(-3); this.log("compared", { player: PL[id].name }); } }
+  removeCompare(id) { this.compare = this.compare.filter((x) => x !== id); this.log("compare_removed", { player: PL[id].name }); }
+  clearCompare() { this.compare = []; this.log("compare_cleared", {}); }
+  watchAdd(ptype, value) { this.watch.push({ id: ++notec, ptype, value }); this.log("watched", { ptype, value: this.labelShort(ptype, value) }); }
+  watchRemove(id) { this.watch = this.watch.filter((n) => n.id !== id); this.log("watch_removed", { id }); }
+  labelShort(ptype, value) { return ptype === "player" ? PL[value].name : ptype === "team" ? value : String(value); }
+}
+function describeVal(ptype, value) {
+  if (ptype === "player") { const p = PL[value]; return { presentationType: "player", name: p.name, team: p.team, pos: p.pos, per_game: { min: p.min, pts: p.pts, reb: p.reb, ast: p.ast, stl: p.stl, blk: p.blk, tov: p.tov }, shooting: { fg: p.fgp, three: p.tpp, ft: p.ftp, ts: p.tsp, efg: +p.efg.toFixed(1) }, usage: p.usg, shots_charted: p.shots.length }; }
+  if (ptype === "team") { const t = TEAM[value]; return { presentationType: "team", city: t.city, name: t.name, conference: t.conf === "E" ? "East" : "West", record: t.w + "-" + t.l, win_pct: +(t.w / (t.w + t.l)).toFixed(3), points_for: t.pf, points_against: t.pa, differential: +(t.pf - t.pa).toFixed(1), streak: t.streak }; }
+  if (ptype === "game") { const [pid, gi] = String(value).split(":"); const p = PL[pid], g = p.log[+gi]; return { presentationType: "game", player: p.name, game: g.g, vs: g.opp, min: g.min, pts: g.pts, reb: g.reb, ast: g.ast, fg: g.fgm + "/" + g.fga, three: g.tpm + "/" + g.tpa }; }
+  return { presentationType: ptype, value: String(value) };
+}
+
+/* ============================================================
+   WINDOW MANAGER — split tree + workspaces
+   ============================================================ */
+let idc = 1;
+const nid = () => "n" + idc++;
+const leaf = (app) => ({ id: nid(), type: "leaf", app });
+const split = (dir, a, b, ratio = 0.5) => ({ id: nid(), type: "split", dir, a, b, ratio });
+function updateNode(node, id, fn) {
+  if (node.id === id) return fn(node);
+  if (node.type === "split") {
+    const a = updateNode(node.a, id, fn), b = updateNode(node.b, id, fn);
+    if (a !== node.a || b !== node.b) return { ...node, a, b };
+  }
+  return node;
+}
+function removeLeaf(node, id) {
+  if (node.type === "split") {
+    if (node.a.id === id) return node.b;
+    if (node.b.id === id) return node.a;
+    const a = removeLeaf(node.a, id), b = removeLeaf(node.b, id);
+    if (a !== node.a || b !== node.b) return { ...node, a, b };
+  }
+  return node;
+}
+function findLeaf(node, id) {
+  if (node.type === "leaf") return node.id === id ? node : null;
+  return findLeaf(node.a, id) || findLeaf(node.b, id);
+}
+function countLeaves(node) { return node.type === "leaf" ? 1 : countLeaves(node.a) + countLeaves(node.b); }
+function cloneTree(node) {
+  return node.type === "leaf" ? { ...node, id: nid() } : { ...node, id: nid(), a: cloneTree(node.a), b: cloneTree(node.b) };
+}
+const SNAPS = [0.25, 1 / 3, 0.5, 2 / 3, 0.75];
+const STICK = 0.022;
+function snapFrac(f) { for (const s of SNAPS) if (Math.abs(f - s) < STICK) return { f: s, snapped: true }; return { f, snapped: false }; }
+
+function WMDivider({ dir, containerRef, onRatio }) {
+  const [mode, setMode] = useState(0);
+  const row = dir === "row";
+  const down = (e) => {
+    e.preventDefault();
+    const prev = document.body.style.userSelect; document.body.style.userSelect = "none";
+    const move = (ev) => {
+      const el = containerRef.current; if (!el) return;
+      const r = el.getBoundingClientRect();
+      let f = row ? (ev.clientX - r.left) / r.width : (ev.clientY - r.top) / r.height;
+      f = clamp(f, 0.1, 0.9);
+      const s = snapFrac(f); setMode(s.snapped ? 3 : 2); onRatio(s.f);
+    };
+    const up = () => { document.body.style.userSelect = prev; setMode(0); window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+  };
+  const size = row ? { width: 8, cursor: "col-resize", alignSelf: "stretch" } : { height: 8, cursor: "row-resize" };
+  return (
+    <div onMouseDown={down} onMouseEnter={() => mode === 0 && setMode(1)} onMouseLeave={() => mode === 1 && setMode(0)}
+      style={{ ...size, flexShrink: 0, background: mode === 3 ? C.mustard : mode === 2 ? C.sage : mode === 1 ? C.paneAlt : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={row ? { width: 2, height: 26, borderLeft: "2px dotted " + C.line } : { height: 2, width: 26, borderTop: "2px dotted " + C.line }} />
+    </div>
+  );
+}
+function NodeView({ node }) { return node.type === "leaf" ? <TileView leafNode={node} /> : <SplitView node={node} />; }
+function SplitView({ node }) {
+  const ui = useUI(); const ref = useRef(null); const row = node.dir === "row";
+  return (
+    <div ref={ref} style={{ flex: 1, display: "flex", flexDirection: row ? "row" : "column", minWidth: 0, minHeight: 0, alignItems: "stretch" }}>
+      <div style={{ flex: node.ratio + " 1 0px", display: "flex", minWidth: 0, minHeight: 0 }}><NodeView node={node.a} /></div>
+      <WMDivider dir={node.dir} containerRef={ref} onRatio={(r) => ui.wm.setRatio(node.id, r)} />
+      <div style={{ flex: (1 - node.ratio) + " 1 0px", display: "flex", minWidth: 0, minHeight: 0 }}><NodeView node={node.b} /></div>
+    </div>
+  );
+}
+function TBtn({ onClick, children, doc, disabled }) {
+  const ui = useUI();
+  return (
+    <span onMouseEnter={() => ui.setMouseDoc(doc)} onMouseLeave={() => ui.setMouseDoc(null)}
+      onClick={disabled ? undefined : (e) => { e.stopPropagation(); onClick(); }}
+      style={{ cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.35 : 1, border: "1px solid " + C.ink, background: C.paneAlt, padding: "0 5px", fontSize: 10, fontWeight: 700, userSelect: "none", lineHeight: "15px" }}>{children}</span>
+  );
+}
+function TileView({ leafNode }) {
+  const ui = useUI(); const app = APPS[leafNode.app]; const Comp = app.comp; const drag = ui.drag;
+  const isTarget = drag && drag.over === leafNode.id && drag.from !== leafNode.id;
+  const isSource = drag && drag.from === leafNode.id;
+  const zone = isTarget ? drag.zone : null;
+  const zoneRect =
+    zone === "left" ? { left: 0, top: 0, bottom: 0, width: "50%" } :
+      zone === "right" ? { right: 0, top: 0, bottom: 0, width: "50%" } :
+        zone === "top" ? { top: 0, left: 0, right: 0, height: "50%" } :
+          zone === "bottom" ? { bottom: 0, left: 0, right: 0, height: "50%" } :
+            zone === "center" ? { inset: 0 } : null;
+  return (
+    <div ref={(el) => ui.wm.registerRef(leafNode.id, el)} style={{
+      flex: 1, display: "flex", flexDirection: "column", border: "2px solid " + C.ink, background: C.pane,
+      minWidth: 0, minHeight: 0, position: "relative", opacity: isSource ? 0.75 : 1,
+    }}>
+      {zoneRect && (
+        <div style={{ position: "absolute", ...zoneRect, zIndex: 5, pointerEvents: "none", background: "rgba(194,80,58,0.16)", border: "3px dashed " + C.red, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ background: C.pane, border: "2px solid " + C.ink, boxShadow: "2px 2px 0 " + C.ink, padding: "1px 8px", fontSize: 10.5, fontWeight: 700 }}>{zone === "center" ? "⇄ swap apps" : "split-dock here · old tile closes"}</span>
+        </div>
+      )}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, background: app.color, borderBottom: "2px solid " + C.ink, padding: "2px 6px", flexShrink: 0 }}>
+        <span onMouseDown={(e) => ui.wm.startDrag(leafNode.id, e)}
+          onMouseEnter={() => ui.setMouseDoc("drag ⠿ — drop on a tile's CENTER to swap apps, or near an EDGE to split-dock there")} onMouseLeave={() => ui.setMouseDoc(null)}
+          style={{ cursor: "grab", fontWeight: 700, userSelect: "none" }}>⠿</span>
+        <P ptype="tile" value={leafNode.id} doc={"tile [" + app.title + "] — split / close / swap"}>
+          <b style={{ fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>{app.title}</b>
+        </P>
+        <span style={{ flex: 1 }} />
+        <select value={leafNode.app} onChange={(e) => ui.wm.setLeafApp(leafNode.id, e.target.value)} onMouseDown={(e) => e.stopPropagation()}
+          style={{ border: "1px solid " + C.ink, background: C.pane, fontSize: 10, padding: "0 2px", fontFamily: "inherit" }}>
+          {Object.entries(APPS).map(([id, a]) => <option key={id} value={id}>{a.title}</option>)}
+        </select>
+        <TBtn doc="split this tile: new tile to the RIGHT" onClick={() => ui.wm.splitLeaf(leafNode.id, "row")}>⬌</TBtn>
+        <TBtn doc="split this tile: new tile BELOW" onClick={() => ui.wm.splitLeaf(leafNode.id, "col")}>⬍</TBtn>
+        <TBtn doc="close this tile (its sibling absorbs the space)" disabled={!ui.wm.canClose} onClick={() => ui.wm.closeLeaf(leafNode.id)}>✕</TBtn>
+      </div>
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}><Comp leafId={leafNode.id} /></div>
+    </div>
+  );
+}
+
+/* ============================================================
+   SHARED UI BITS
+   ============================================================ */
+const AppBody = ({ children, style }) => (<div style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "6px 8px", ...style }}>{children}</div>);
+const Hint = ({ children }) => <div style={{ color: C.faint, fontSize: 10.5, marginBottom: 6, lineHeight: 1.35 }}>{children}</div>;
+function Btn({ onClick, children, tone, disabled, title }) {
+  return (
+    <button title={title} disabled={disabled} onClick={onClick} style={{
+      fontFamily: "inherit", fontSize: 11, fontWeight: 700, letterSpacing: "0.03em",
+      background: disabled ? C.paneAlt : (tone || C.blue), color: C.ink, border: "2px solid " + C.ink,
+      boxShadow: "2px 2px 0 " + C.ink, padding: "3px 10px", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1,
+    }}>{children}</button>
+  );
+}
+const TEAM_TONE = (abbr) => TEAM[abbr].tone;
+const CMP_TONES = [C.red, C.blue, C.mustard, C.sage, C.lavender];
+/* a <player> chip that focuses on left-click and menus on right-click */
+function PlayerChip({ id, children, doc }) {
+  const w = useUI().world;
+  return (
+    <P ptype="player" value={id} onActivate={() => w.setFocus(id)} activateDoc="focus (drives shot chart + trend)"
+      doc={doc || ("player " + PL[id].name + " · " + PL[id].team)}>{children}</P>
+  );
+}
+
+/* small svg helpers */
+const Axis = ({ x1, y1, x2, y2 }) => <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={C.ink} strokeWidth="1.5" />;
+
+/* ============================================================
+   APP · LEADERS  (sortable stat table + inline bars = the hub)
+   ============================================================ */
+const SORTS = [
+  { k: "pts", label: "PTS" }, { k: "reb", label: "REB" }, { k: "ast", label: "AST" },
+  { k: "tsp", label: "TS%" }, { k: "usg", label: "USG%" }, { k: "efg", label: "eFG%" },
+];
+function LeadersApp() {
+  const w = useUI().world;
+  const [sort, setSort] = useState("pts");
+  const rows = [...PLAYERS].sort((a, b) => b[sort] - a[sort]);
+  const max = Math.max(...rows.map((p) => p[sort]));
+  return (
+    <>
+      <div style={{ display: "flex", gap: 4, flexWrap: "wrap", padding: "6px 8px 4px", flexShrink: 0 }}>
+        <span style={{ fontSize: 10, fontWeight: 700, alignSelf: "center", marginRight: 2 }}>SORT</span>
+        {SORTS.map((s) => (
+          <span key={s.k} onClick={() => setSort(s.k)} style={{ cursor: "pointer", fontSize: 10, fontWeight: 700, padding: "1px 7px", border: "1px solid " + C.ink, background: sort === s.k ? C.sel : C.paneAlt }}>{s.label}</span>
+        ))}
+      </div>
+      <AppBody style={{ paddingTop: 2 }}>
+        <Hint>click a name → <b>focus</b> (shot chart + trend line update everywhere). right-click → compare, watch, inspect.</Hint>
+        <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 11 }}>
+          <thead>
+            <tr style={{ textAlign: "right", color: C.faint, fontSize: 9.5 }}>
+              <th style={{ textAlign: "left", padding: "2px 4px" }}>#</th>
+              <th style={{ textAlign: "left" }}>PLAYER</th><th>TM</th>
+              <th style={{ textAlign: "left", width: "34%" }}>{SORTS.find((s) => s.k === sort).label}</th>
+              <th>PTS</th><th>REB</th><th>AST</th><th>TS%</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((p, i) => {
+              const foc = w.focus === p.id;
+              return (
+                <tr key={p.id} style={{ background: foc ? C.sel : i % 2 ? C.paneAlt : "transparent" }}>
+                  <td style={{ color: C.faint, padding: "2px 4px" }}>{i + 1}</td>
+                  <td><PlayerChip id={p.id}><b style={{ borderBottom: "1px dotted " + C.faint }}>{p.name}</b></PlayerChip></td>
+                  <td style={{ textAlign: "center" }}><P ptype="team" value={p.team} doc={"team " + TEAM[p.team].city}><span style={{ fontSize: 9.5, fontWeight: 700, color: TEAM_TONE(p.team) }}>{p.team}</span></P></td>
+                  <td>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      <div style={{ height: 11, width: (p[sort] / max) * 100 + "%", minWidth: 3, background: foc ? C.red : TEAM_TONE(p.team), border: "1px solid " + C.ink }} />
+                      <span style={{ fontSize: 10, fontVariantNumeric: "tabular-nums" }}>{fmt(p[sort], p[sort] > 60 ? 0 : 1)}</span>
+                    </div>
+                  </td>
+                  <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{fmt(p.pts)}</td>
+                  <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{fmt(p.reb)}</td>
+                  <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{fmt(p.ast)}</td>
+                  <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{fmt(p.tsp)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </AppBody>
+    </>
+  );
+}
+
+/* ============================================================
+   APP · SHOT CHART  (svg half court, follows focused player)
+   ============================================================ */
+function CourtLines() {
+  const { hoopX: hx, hoopY: hy, arc, w: W } = COURT;
+  const bx = Math.sqrt(Math.max(0, arc * arc - (216) * (216)));
+  return (
+    <g stroke={C.ink} fill="none" strokeWidth="1.5">
+      <rect x="1" y="1" width={W - 2} height="299" fill={C.paneAlt} />
+      <rect x="170" y="0" width="160" height="190" />
+      <circle cx={hx} cy="190" r="60" />
+      <path d={`M 34 0 L 34 ${hy + bx} A ${arc} ${arc} 0 0 0 ${W - 34} ${hy + bx} L ${W - 34} 0`} />
+      <circle cx={hx} cy={hy} r="40" />
+      <line x1={hx - 30} y1={hy - 8} x2={hx + 30} y2={hy - 8} strokeWidth="2.5" />
+      <circle cx={hx} cy={hy} r="7.5" fill={C.pane} strokeWidth="2" />
+    </g>
+  );
+}
+function ShotChartApp() {
+  const w = useUI().world; const ui = useUI();
+  const p = PL[w.focus];
+  const zones = { rim: [0, 0], mid: [0, 0], three: [0, 0] };
+  p.shots.forEach((s) => {
+    const d = Math.hypot(s.x - COURT.hoopX, s.y - COURT.hoopY);
+    const z = s.v === 3 ? "three" : d < 45 ? "rim" : "mid";
+    zones[z][1]++; if (s.made) zones[z][0]++;
+  });
+  const pct = (z) => zones[z][1] ? Math.round((zones[z][0] / zones[z][1]) * 100) : 0;
+  const Zchip = ({ z, label }) => (
+    <div style={{ border: "1px solid " + C.ink, background: C.paneAlt, padding: "2px 6px", fontSize: 10, minWidth: 62 }}>
+      <div style={{ color: C.faint, fontSize: 9 }}>{label}</div>
+      <b style={{ fontSize: 13 }}>{pct(z)}%</b> <span style={{ color: C.faint }}>{zones[z][0]}/{zones[z][1]}</span>
+    </div>
+  );
+  return (
+    <>
+      <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", padding: "6px 8px 4px", flexShrink: 0 }}>
+        <PlayerChip id={p.id}><b style={{ fontSize: 12, borderBottom: "1px dotted " + C.faint }}>{p.name}</b></PlayerChip>
+        <span style={{ fontSize: 10, color: C.faint }}>{p.team} · {p.pos} · eFG {fmt(p.efg)}%</span>
+        <span style={{ flex: 1 }} />
+        <Btn tone={C.mint} onClick={async () => { const r = await ui.accept("player", "Pick a PLAYER to chart — click any player, any tile"); if (r) w.setFocus(r.value); }}>Chart player…</Btn>
+      </div>
+      <AppBody style={{ paddingTop: 2 }}>
+        <div style={{ display: "flex", gap: 6, marginBottom: 6, flexWrap: "wrap" }}>
+          <Zchip z="rim" label="AT RIM" /><Zchip z="mid" label="MID-RANGE" /><Zchip z="three" label="3-POINT" />
+          <div style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 10, marginLeft: "auto" }}>
+            <span><svg width="12" height="12"><circle cx="6" cy="6" r="4" fill={C.green} stroke={C.ink} /></svg> make</span>
+            <span><svg width="12" height="12"><circle cx="6" cy="6" r="4" fill="none" stroke={C.red} strokeWidth="1.5" /></svg> miss</span>
+          </div>
+        </div>
+        <svg viewBox="0 0 500 300" style={{ width: "100%", maxWidth: 460, border: "2px solid " + C.ink, background: C.pane, display: "block" }}>
+          <CourtLines />
+          {p.shots.map((s, i) => s.made
+            ? <circle key={i} cx={s.x} cy={s.y} r="4.2" fill={C.green} stroke={C.ink} strokeWidth="0.7" opacity="0.9" />
+            : <circle key={i} cx={s.x} cy={s.y} r="4" fill="none" stroke={C.red} strokeWidth="1.4" opacity="0.85" />)}
+        </svg>
+      </AppBody>
+    </>
+  );
+}
+
+/* ============================================================
+   APP · RADAR  (compare up to 3 players across 7 categories)
+   ============================================================ */
+const RAXES = [
+  { k: "pts", label: "PTS" }, { k: "reb", label: "REB" }, { k: "ast", label: "AST" },
+  { k: "stl", label: "STL" }, { k: "blk", label: "BLK" }, { k: "tpp", label: "3P%" }, { k: "tsp", label: "TS%" },
+];
+function RadarApp() {
+  const w = useUI().world; const ui = useUI();
+  const cx = 150, cy = 148, R = 108, n = RAXES.length;
+  const ang = (i) => -Math.PI / 2 + (i / n) * 2 * Math.PI;
+  const pt = (i, f) => [cx + Math.cos(ang(i)) * R * f, cy + Math.sin(ang(i)) * R * f];
+  const polyFor = (p) => RAXES.map((a, i) => pt(i, clamp(p[a.k] / LEAGUE.max[a.k], 0.05, 1)).join(",")).join(" ");
+  return (
+    <>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", padding: "6px 8px 4px", flexShrink: 0 }}>
+        <Btn tone={C.mustard} onClick={async () => { const r = await ui.accept("player", "Add a PLAYER to the radar — click one anywhere (leaders, scatter, watchlist…)"); if (r) w.addCompare(r.value); }}>Add player…</Btn>
+        <Btn tone={C.paneAlt} onClick={() => w.clearCompare()} disabled={!w.compare.length}>Clear</Btn>
+      </div>
+      <AppBody style={{ paddingTop: 2 }}>
+        <Hint>each spoke is normalized to the league leader in that category. add players from any tile.</Hint>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-start" }}>
+          <svg viewBox="0 0 300 300" style={{ width: 300, maxWidth: "100%", flexShrink: 0 }}>
+            {[0.25, 0.5, 0.75, 1].map((f) => (
+              <polygon key={f} points={RAXES.map((_, i) => pt(i, f).join(",")).join(" ")} fill="none" stroke={C.line} strokeWidth="1" />
+            ))}
+            {RAXES.map((a, i) => {
+              const [x, y] = pt(i, 1); const [lx, ly] = pt(i, 1.16);
+              return (<g key={a.k}>
+                <line x1={cx} y1={cy} x2={x} y2={y} stroke={C.line} strokeWidth="1" />
+                <text x={lx} y={ly} fontSize="9" fontWeight="700" fill={C.ink} textAnchor="middle" dominantBaseline="middle">{a.label}</text>
+              </g>);
+            })}
+            {w.compare.map((id, idx) => {
+              const tone = CMP_TONES[idx % CMP_TONES.length];
+              return <polygon key={id} points={polyFor(PL[id])} fill={tone} fillOpacity="0.22" stroke={tone} strokeWidth="2" />;
+            })}
+          </svg>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 120 }}>
+            {w.compare.length === 0 && <div style={{ color: C.faint, fontSize: 11 }}>No players selected. Use “Add player…”.</div>}
+            {w.compare.map((id, idx) => (
+              <div key={id} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <span style={{ width: 12, height: 12, background: CMP_TONES[idx % CMP_TONES.length], border: "1px solid " + C.ink, flexShrink: 0 }} />
+                <PlayerChip id={id}><span style={{ fontSize: 11, borderBottom: "1px dotted " + C.faint }}>{PL[id].name}</span></PlayerChip>
+                <span onClick={() => w.removeCompare(id)} style={{ cursor: "pointer", color: C.red, fontWeight: 700, fontSize: 12 }} title="remove">×</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </AppBody>
+    </>
+  );
+}
+
+/* ============================================================
+   APP · TRENDS  (line chart, last 15 games, follows focus)
+   ============================================================ */
+const TSTATS = [{ k: "pts", label: "PTS" }, { k: "reb", label: "REB" }, { k: "ast", label: "AST" }, { k: "min", label: "MIN" }];
+function TrendsApp() {
+  const w = useUI().world;
+  const [stat, setStat] = useState("pts");
+  const p = PL[w.focus];
+  const data = p.log.map((g) => g[stat]);
+  const avg = data.reduce((s, v) => s + v, 0) / data.length;
+  const hi = Math.max(...data) * 1.15;
+  const W = 460, H = 190, padL = 26, padB = 18, padT = 8, padR = 8;
+  const px = (i) => padL + (i / (data.length - 1)) * (W - padL - padR);
+  const py = (v) => padT + (1 - v / hi) * (H - padT - padB);
+  const path = data.map((v, i) => (i ? "L" : "M") + px(i) + " " + py(v)).join(" ");
+  return (
+    <>
+      <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", padding: "6px 8px 4px", flexShrink: 0 }}>
+        <PlayerChip id={p.id}><b style={{ fontSize: 12, borderBottom: "1px dotted " + C.faint }}>{p.name}</b></PlayerChip>
+        <span style={{ flex: 1 }} />
+        {TSTATS.map((s) => <span key={s.k} onClick={() => setStat(s.k)} style={{ cursor: "pointer", fontSize: 10, fontWeight: 700, padding: "1px 7px", border: "1px solid " + C.ink, background: stat === s.k ? C.sel : C.paneAlt }}>{s.label}</span>)}
+      </div>
+      <AppBody style={{ paddingTop: 2 }}>
+        <Hint>last 15 games · dashed line = season avg ({fmt(avg)}). dots are &lt;game&gt; presentations — click to inspect the box line.</Hint>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", border: "2px solid " + C.ink, background: C.pane, display: "block" }}>
+          {[0, 0.5, 1].map((f) => { const v = hi * f; return (<g key={f}><line x1={padL} y1={py(v)} x2={W - padR} y2={py(v)} stroke={C.line} strokeWidth="1" /><text x="2" y={py(v) + 3} fontSize="8" fill={C.faint}>{Math.round(v)}</text></g>); })}
+          <line x1={padL} y1={py(avg)} x2={W - padR} y2={py(avg)} stroke={C.red} strokeWidth="1.2" strokeDasharray="4 3" />
+          <path d={path} fill="none" stroke={TEAM_TONE(p.team)} strokeWidth="2.2" />
+          {data.map((v, i) => (
+            <P key={i} ptype="game" value={p.id + ":" + i} doc={"game " + p.log[i].g + " vs " + p.log[i].opp + " · " + v + " " + stat}>
+              <circle cx={px(i)} cy={py(v)} r="4" fill={C.pane} stroke={C.ink} strokeWidth="1.6" style={{ cursor: "pointer" }} />
+            </P>
+          ))}
+          <Axis x1={padL} y1={padT} x2={padL} y2={H - padB} /><Axis x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} />
+        </svg>
+      </AppBody>
+    </>
+  );
+}
+
+/* ============================================================
+   APP · EFFICIENCY  (scatter: USG% vs TS%, bubble = PTS)
+   ============================================================ */
+function EfficiencyApp() {
+  const w = useUI().world;
+  const W = 460, H = 300, padL = 34, padB = 26, padT = 10, padR = 12;
+  const xLo = LEAGUE.minUsg - 2, xHi = LEAGUE.maxUsg + 2, yLo = LEAGUE.minTs - 2, yHi = LEAGUE.maxTs + 2;
+  const px = (v) => padL + ((v - xLo) / (xHi - xLo)) * (W - padL - padR);
+  const py = (v) => padT + (1 - (v - yLo) / (yHi - yLo)) * (H - padT - padB);
+  const rOf = (p) => 3 + (p.pts / LEAGUE.max.pts) * 10;
+  return (
+    <AppBody>
+      <Hint>x = usage% · y = true-shooting% · bubble = points. cross-hairs are league averages — upper-right is high-volume &amp; efficient. click a bubble to focus.</Hint>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", border: "2px solid " + C.ink, background: C.pane, display: "block" }}>
+        <line x1={px(LEAGUE.meanUsg)} y1={padT} x2={px(LEAGUE.meanUsg)} y2={H - padB} stroke={C.line} strokeDasharray="4 3" />
+        <line x1={padL} y1={py(LEAGUE.meanTs)} x2={W - padR} y2={py(LEAGUE.meanTs)} stroke={C.line} strokeDasharray="4 3" />
+        {[52, 56, 60, 64].map((t) => <text key={t} x="4" y={py(t) + 3} fontSize="8" fill={C.faint}>{t}</text>)}
+        {[16, 20, 24, 28, 32].map((u) => <text key={u} x={px(u)} y={H - padB + 12} fontSize="8" fill={C.faint} textAnchor="middle">{u}</text>)}
+        <text x={padL} y={H - 2} fontSize="8.5" fontWeight="700" fill={C.ink}>USG% →</text>
+        <text x="3" y={padT + 2} fontSize="8.5" fontWeight="700" fill={C.ink}>TS%</text>
+        {PLAYERS.map((p) => {
+          const foc = w.focus === p.id;
+          return (
+            <P key={p.id} ptype="player" value={p.id} onActivate={() => w.setFocus(p.id)} activateDoc="focus" doc={"player " + p.name + " · USG " + p.usg + " · TS " + p.tsp}>
+              <g style={{ cursor: "pointer" }}>
+                <circle cx={px(p.usg)} cy={py(p.tsp)} r={rOf(p)} fill={TEAM_TONE(p.team)} fillOpacity="0.55" stroke={foc ? C.red : C.ink} strokeWidth={foc ? 2.4 : 1} />
+                <text x={px(p.usg)} y={py(p.tsp) - rOf(p) - 2} fontSize="8" fontWeight="700" fill={C.ink} textAnchor="middle">{p.name.split(" ")[1]}</text>
+              </g>
+            </P>
+          );
+        })}
+        <Axis x1={padL} y1={padT} x2={padL} y2={H - padB} /><Axis x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} />
+      </svg>
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · STANDINGS  (team table with win% bars)
+   ============================================================ */
+function StandingsApp() {
+  const rows = [...TEAMS].sort((a, b) => b.w / (b.w + b.l) - a.w / (a.w + a.l));
+  return (
+    <AppBody>
+      <Hint>teams are &lt;team&gt; presentations · right-click → inspect or add to watchlist. bar = win%.</Hint>
+      <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 11 }}>
+        <thead><tr style={{ color: C.faint, fontSize: 9.5, textAlign: "right" }}>
+          <th style={{ textAlign: "left", padding: "2px 4px" }}>#</th><th style={{ textAlign: "left" }}>TEAM</th><th>W</th><th>L</th>
+          <th style={{ textAlign: "left", width: "30%" }}>WIN%</th><th>DIFF</th><th>STRK</th></tr></thead>
+        <tbody>
+          {rows.map((t, i) => {
+            const pct = t.w / (t.w + t.l), diff = t.pf - t.pa;
+            return (
+              <tr key={t.abbr} style={{ background: i % 2 ? C.paneAlt : "transparent" }}>
+                <td style={{ color: C.faint, padding: "2px 4px" }}>{i + 1}</td>
+                <td><P ptype="team" value={t.abbr} doc={"team " + t.city + " " + t.name}><b style={{ color: t.tone, borderBottom: "1px dotted " + C.faint }}>{t.abbr}</b> <span style={{ color: C.faint, fontSize: 10 }}>{t.name}</span></P></td>
+                <td style={{ textAlign: "right" }}>{t.w}</td><td style={{ textAlign: "right" }}>{t.l}</td>
+                <td><div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <div style={{ height: 11, width: pct * 100 + "%", minWidth: 3, background: t.tone, border: "1px solid " + C.ink }} />
+                  <span style={{ fontSize: 10, fontVariantNumeric: "tabular-nums" }}>{pct.toFixed(3).slice(1)}</span>
+                </div></td>
+                <td style={{ textAlign: "right", color: diff >= 0 ? C.green : C.red, fontWeight: 700 }}>{diff >= 0 ? "+" : ""}{diff.toFixed(1)}</td>
+                <td style={{ textAlign: "right", fontWeight: 700, color: t.streak[0] === "W" ? C.green : C.red }}>{t.streak}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · WATCHLIST  (collect any presentation, keep it live)
+   ============================================================ */
+function WatchlistApp() {
+  const ui = useUI(); const w = ui.world;
+  return (
+    <AppBody>
+      <div style={{ marginBottom: 6 }}>
+        <Btn tone={C.mustard} onClick={async () => { const r = await ui.accept(["player", "team", "game"], "Click any player, team or game — any tile — to watch it"); if (r) w.watchAdd(r.ptype, r.value); }}>Watch… (accept anything)</Btn>
+      </div>
+      <Hint>watched objects stay LIVE — a watched player can still be focused, compared, or inspected from here.</Hint>
+      {w.watch.map((n) => (
+        <div key={n.id} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 4 }}>
+          <span style={{ color: C.faint, fontSize: 9.5 }}>&lt;{n.ptype}&gt;</span>
+          <Pres ptype={n.ptype} value={n.value} />
+          <span onClick={() => w.watchRemove(n.id)} style={{ cursor: "pointer", color: C.red, fontWeight: 700, marginLeft: "auto" }} title="remove">×</span>
+        </div>
+      ))}
+      {w.watch.length === 0 && <div style={{ color: C.faint }}>Nothing watched yet.</div>}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · INSPECTOR / TRACE / ABOUT / LAUNCHER
+   ============================================================ */
+function InspectorApp() {
+  const w = useUI().world;
+  return (
+    <AppBody>
+      <div style={{ fontWeight: 700, marginBottom: 4, borderBottom: "1px dashed " + C.line }}>{w.inspected.title}</div>
+      <pre style={{ margin: 0, fontSize: 10.5, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{JSON.stringify(w.inspected.value, null, 2)}</pre>
+    </AppBody>
+  );
+}
+const EV_COLOR = {
+  focused: C.blue, compared: C.mustard, compare_removed: C.rose, compare_cleared: C.rose,
+  watched: C.sage, watch_removed: C.rose, inspected: C.paneAlt, accepted: C.mustard,
+  split_tile: C.lavender, close_tile: C.lavender, swap_tiles: C.lavender, move_split: C.lavender, app_changed: C.lavender,
+  workspace_added: C.mint, workspace_removed: C.rose, workspace_renamed: C.mint, workspace_cloned: C.mint,
+};
+function TraceApp() {
+  const w = useUI().world; const endRef = useRef(null);
+  useEffect(() => { endRef.current && endRef.current.scrollIntoView({ block: "nearest" }); }, [w.trace.length]);
+  return (
+    <AppBody>
+      {w.trace.map((e) => (
+        <div key={e.seq} style={{ display: "flex", gap: 6, alignItems: "baseline", marginBottom: 1 }}>
+          <span style={{ color: C.faint, fontSize: 10, width: 26, textAlign: "right", flexShrink: 0 }}>{e.seq}</span>
+          <span style={{ background: EV_COLOR[e.type] || C.paneAlt, border: "1px solid " + C.ink, padding: "0 4px", fontSize: 9.5, fontWeight: 700 }}>{e.type}</span>
+          <span style={{ fontSize: 10.5, wordBreak: "break-word" }}>
+            {Object.entries(e.data).filter(([k]) => k !== "note").map(([k, v]) => <span key={k}>{k}={String(v)} </span>)}
+            {e.data.note && <span style={{ color: C.faint }}>· {e.data.note}</span>}
+          </span>
+        </div>
+      ))}
+      {w.trace.length === 0 && <div style={{ color: C.faint }}>Nothing yet — click a player.</div>}
+      <div ref={endRef} />
+    </AppBody>
+  );
+}
+function AboutApp() {
+  const Sec = ({ t, children }) => (
+    <div style={{ marginBottom: 10 }}>
+      <div style={{ fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", fontSize: 10.5, background: C.sel, display: "inline-block", padding: "0 6px", border: "1px solid " + C.ink }}>{t}</div>
+      <div style={{ marginTop: 4, fontSize: 11.5, lineHeight: 1.45 }}>{children}</div>
+    </div>
+  );
+  return (
+    <AppBody>
+      <Sec t="what this is">A basketball-analytics workbench built on a presentation-based shell (CLIM / Genera lineage). Every <b>player</b>, <b>team</b> and <b>game</b> on screen is a typed, live object — not a string — so the same object can be read by commands in any tile.</Sec>
+      <Sec t="the one trick">Click a player in <b>Stat Leaders</b> or in the <b>Efficiency</b> scatter — the <b>Shot Chart</b> and <b>Trend</b> line jump to that player instantly, because those tiles are two views of one shared focus. That is the whole framework: apps never talk to each other, they only speak presentation types.</Sec>
+      <Sec t="things to try">
+        <div>· <b>Radar → Add player…</b>, then click a player in the leaders table, the scatter, or the watchlist — accept reads across tiles.</div>
+        <div>· Click any bubble in <b>Efficiency</b> to focus it; watch the shot chart repaint.</div>
+        <div>· Right-click a player → <b>Compare</b>, <b>Watch</b>, or <b>Inspect</b> (full stat JSON lands in the Inspector).</div>
+        <div>· Dots on the <b>Trend</b> line are &lt;game&gt; objects — click one to inspect that night's box line.</div>
+        <div>· Drag a tile border (snaps at ¼ ⅓ ½ ⅔ ¾) or drag <b>⠿</b> onto another tile to swap / dock.</div>
+      </Sec>
+      <Sec t="the data">All figures are deterministic mock data — 16 fictional players across 8 fictional teams, with generated 15-game logs and ~100-shot charts each. Nothing here is a real person or franchise.</Sec>
+    </AppBody>
+  );
+}
+function LauncherApp({ leafId }) {
+  const ui = useUI();
+  return (
+    <AppBody>
+      <Hint>empty tile — choose an application (apps are singletons: opening one twice shows the same live state)</Hint>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {Object.entries(APPS).filter(([id]) => id !== "launcher").map(([id, a]) => (
+          <Btn key={id} tone={a.color} onClick={() => ui.wm.setLeafApp(leafId, id)}>{a.title}</Btn>
+        ))}
+      </div>
+    </AppBody>
+  );
+}
+
+const APPS = {
+  launcher: { title: "new tile", color: C.paneAlt, comp: LauncherApp },
+  leaders: { title: "stat leaders", color: C.blue, comp: LeadersApp },
+  shotchart: { title: "shot chart", color: C.rose, comp: ShotChartApp },
+  radar: { title: "compare · radar", color: C.mustard, comp: RadarApp },
+  trends: { title: "game trend", color: C.mint, comp: TrendsApp },
+  efficiency: { title: "efficiency", color: C.sage, comp: EfficiencyApp },
+  standings: { title: "standings", color: C.lavender, comp: StandingsApp },
+  watch: { title: "watchlist", color: C.mustard, comp: WatchlistApp },
+  inspector: { title: "inspector", color: C.lavender, comp: InspectorApp },
+  trace: { title: "trace", color: C.sage, comp: TraceApp },
+  about: { title: "about / help", color: C.sel, comp: AboutApp },
+};
+
+/* ============================================================
+   SHELL
+   ============================================================ */
+const initialSpaces = () => [
+  {
+    id: nid(), name: "scout",
+    tree: split("row",
+      leaf("leaders"),
+      split("col",
+        split("row", leaf("shotchart"), leaf("radar"), 0.52),
+        split("row", leaf("trends"), leaf("efficiency"), 0.5),
+        0.5),
+      0.36),
+  },
+  {
+    id: nid(), name: "league",
+    tree: split("row", leaf("standings"), split("col", leaf("watch"), leaf("trace"), 0.5), 0.5),
+  },
+  { id: nid(), name: "help", tree: split("row", leaf("about"), leaf("inspector"), 0.55) },
+];
+
+export default function App() {
+  const [, force] = useState(0);
+  const bump = useCallback(() => force((x) => x + 1), []);
+  const worldRef = useRef(null);
+  if (!worldRef.current) worldRef.current = new World();
+  const world = worldRef.current;
+  useEffect(() => { world.notify = bump; }, [bump, world]);
+
+  const [spaces, setSpaces] = useState(initialSpaces);
+  const [cur, setCur] = useState(() => spaces[0].id);
+  const [renaming, setRenaming] = useState(null);
+  const [menu, setMenu] = useState(null);
+  const [accepting, setAccepting] = useState(null);
+  const [mouseDoc, setMouseDoc] = useState(null);
+  const [drag, setDrag] = useState(null);
+  const dragRef = useRef(null); dragRef.current = drag;
+  const leafRefs = useRef({});
+
+  const space = spaces.find((s) => s.id === cur) || spaces[0];
+  const tree = space.tree;
+
+  const mutateTree = (fn) => setSpaces((ss) => ss.map((s) => (s.id === space.id ? { ...s, tree: fn(s.tree) } : s)));
+  const setRatio = (id, r) => mutateTree((t) => updateNode(t, id, (n) => ({ ...n, ratio: r })));
+  const splitLeaf = (id, dir) => { mutateTree((t) => updateNode(t, id, (n) => split(dir, n, leaf("launcher"), 0.5))); world.log("split_tile", { dir: dir === "row" ? "⬌" : "⬍" }); };
+  const closeLeaf = (id) => { mutateTree((t) => removeLeaf(t, id)); world.log("close_tile", {}); };
+  const setLeafApp = (id, app) => { mutateTree((t) => updateNode(t, id, (n) => ({ ...n, app }))); world.log("app_changed", { app: APPS[app].title }); };
+  const swapTiles = (a, b) => {
+    mutateTree((t) => { const la = findLeaf(t, a), lb = findLeaf(t, b); if (!la || !lb) return t; return updateNode(updateNode(t, a, (n) => ({ ...n, app: lb.app })), b, (n) => ({ ...n, app: la.app })); });
+    world.log("swap_tiles", { note: "apps traded places; their state lives in the world, not the tile" });
+  };
+  const moveSplit = (fromId, targetId, zone) => {
+    mutateTree((t) => {
+      if (fromId === targetId) return t;
+      const src = findLeaf(t, fromId); if (!src || !findLeaf(t, targetId)) return t;
+      const t2 = removeLeaf(t, fromId); if (findLeaf(t2, fromId)) return t;
+      const dir = zone === "left" || zone === "right" ? "row" : "col";
+      const before = zone === "left" || zone === "top";
+      return updateNode(t2, targetId, (n) => (before ? split(dir, src, n) : split(dir, n, src)));
+    });
+    world.log("move_split", { zone });
+  };
+
+  const registerRef = useCallback((id, el) => { if (el) leafRefs.current[id] = el; else delete leafRefs.current[id]; }, []);
+  const zoneFor = (r, x, y) => {
+    const dl = x - r.left, dr = r.right - x, dt = y - r.top, db = r.bottom - y;
+    const band = Math.min(Math.min(r.width, r.height) * 0.3, 110);
+    const m = Math.min(dl, dr, dt, db);
+    if (m > band) return "center"; if (m === dl) return "left"; if (m === dr) return "right"; if (m === dt) return "top"; return "bottom";
+  };
+  const hitLeaf = (x, y) => {
+    for (const [id, el] of Object.entries(leafRefs.current)) {
+      if (!el || !el.isConnected) continue;
+      const r = el.getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return { id, zone: zoneFor(r, x, y) };
+    }
+    return null;
+  };
+  const startDrag = (leafId, e) => { e.preventDefault(); document.body.style.userSelect = "none"; setDrag({ from: leafId, x: e.clientX, y: e.clientY, over: null, zone: null }); };
+  useEffect(() => {
+    if (!drag) return;
+    const move = (e) => setDrag((d) => { if (!d) return d; const h = hitLeaf(e.clientX, e.clientY); return { ...d, x: e.clientX, y: e.clientY, over: h && h.id, zone: h && h.zone }; });
+    const up = () => { const d = dragRef.current; document.body.style.userSelect = ""; if (d && d.over && d.over !== d.from) { if (d.zone === "center") swapTiles(d.from, d.over); else moveSplit(d.from, d.over, d.zone); } setDrag(null); };
+    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+    return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!drag]);
+
+  const addSpace = () => { const s = { id: nid(), name: "ws-" + (spaces.length + 1), tree: leaf("launcher") }; setSpaces((ss) => [...ss, s]); setCur(s.id); world.log("workspace_added", { name: s.name }); };
+  const removeSpace = (id) => { if (spaces.length < 2) return; setSpaces((ss) => ss.filter((s) => s.id !== id)); if (cur === id) setCur(spaces.find((s) => s.id !== id).id); world.log("workspace_removed", {}); };
+  const cloneSpace = (id) => { const s = spaces.find((x) => x.id === id); if (!s) return; const c = { id: nid(), name: s.name + "′", tree: cloneTree(s.tree) }; setSpaces((ss) => [...ss, c]); setCur(c.id); world.log("workspace_cloned", { from: s.name }); };
+
+  const accept = (ptype, prompt) => new Promise((resolve) => setAccepting({ ptype, prompt, resolve: (r) => { if (r) world.log("accepted", { ptype: r.ptype, value: world.labelShort(r.ptype, r.value) }); resolve(r); } }));
+  useEffect(() => { const esc = (e) => { if (e.key === "Escape") { setMenu(null); if (accepting) { accepting.resolve(null); setAccepting(null); } } }; window.addEventListener("keydown", esc); return () => window.removeEventListener("keydown", esc); }, [accepting]);
+
+  const labelFor = (ptype, value) => {
+    if (ptype === "player") return PL[value] ? PL[value].name : "?";
+    if (ptype === "team") return TEAM[value] ? TEAM[value].abbr + " " + TEAM[value].name : "?";
+    if (ptype === "game") { const [pid, gi] = String(value).split(":"); return PL[pid] ? PL[pid].name.split(" ")[1] + " G" + PL[pid].log[+gi].g + " vs " + PL[pid].log[+gi].opp : "?"; }
+    if (ptype === "tile") { const l = findLeaf(tree, value); return l ? "[" + APPS[l.app].title + "]" : "(closed tile)"; }
+    if (ptype === "workspace") { const s = spaces.find((x) => x.id === value); return s ? s.name : "?"; }
+    return String(value);
+  };
+  const describe = (ptype, value) => {
+    if (ptype === "tile") { const l = findLeaf(tree, value); return { presentationType: "tile", app: l ? APPS[l.app].title : "(closed)", workspace: space.name }; }
+    if (ptype === "workspace") { const s = spaces.find((x) => x.id === value); return { presentationType: "workspace", name: s && s.name, tiles: s && countLeaves(s.tree) }; }
+    return describeVal(ptype, value);
+  };
+
+  const actionsFor = (ptype, value) => {
+    const acts = [{ label: "Inspect", run: () => world.inspect("<" + ptype + "> " + labelFor(ptype, value), describe(ptype, value)) }];
+    if (ptype === "player") {
+      acts.push({ label: "Focus (shot chart + trend)", run: () => world.setFocus(value) });
+      acts.push({ label: "Add to comparison (radar)", run: () => world.addCompare(value) });
+      acts.push({ label: "Compare with…  (accept a player)", run: async () => { const r = await accept("player", "COMPARE " + PL[value].name + " — click another PLAYER anywhere (Esc cancels)"); if (r) { world.compare = [value, r.value]; world.log("compared", { player: PL[value].name + " vs " + PL[r.value].name }); } } });
+      acts.push({ label: "Add to watchlist", run: () => world.watchAdd("player", value) });
+    }
+    if (ptype === "team") {
+      acts.push({ label: "Add to watchlist", run: () => world.watchAdd("team", value) });
+      acts.push({ label: "Focus a player from this team", run: () => { const p = PLAYERS.find((x) => x.team === value); if (p) world.setFocus(p.id); } });
+    }
+    if (ptype === "game") acts.push({ label: "Add to watchlist", run: () => world.watchAdd("game", value) });
+    if (ptype === "tile") {
+      acts.push({ label: "Split ⬌ (new tile right)", run: () => splitLeaf(value, "row") });
+      acts.push({ label: "Split ⬍ (new tile below)", run: () => splitLeaf(value, "col") });
+      acts.push({ label: "Swap app with…  (accept a tile)", run: async () => { const r = await accept("tile", "SWAP — click another TILE's title (Esc cancels)"); if (r && r.value !== value) swapTiles(value, r.value); } });
+      if (tree.type !== "leaf") acts.push({ label: "Close tile", run: () => closeLeaf(value) });
+    }
+    if (ptype === "workspace") {
+      acts.push({ label: "Switch to", run: () => setCur(value) });
+      acts.push({ label: "Rename", run: () => setRenaming(value) });
+      acts.push({ label: "Duplicate", run: () => cloneSpace(value) });
+      if (spaces.length > 1) acts.push({ label: "Delete", run: () => removeSpace(value) });
+    }
+    return acts;
+  };
+
+  const ui = {
+    world, accepting, setAccepting, setMouseDoc, accept, labelFor, describe, drag,
+    openMenu: (ptype, value, x, y) => setMenu({ ptype, value, x, y }),
+    wm: { setRatio, splitLeaf, closeLeaf, setLeafApp, startDrag, registerRef, canClose: tree.type !== "leaf" },
+  };
+  const dragSrcLeaf = drag && findLeaf(tree, drag.from);
+
+  return (
+    <UICtx.Provider value={ui}>
+      <div onClick={() => setMenu(null)} style={{ fontFamily: "'IBM Plex Mono', ui-monospace, Menlo, monospace", background: C.paper, color: C.ink, height: "100vh", display: "flex", flexDirection: "column", fontSize: 12 }}>
+        <style>{`
+          .pres { cursor: pointer; }
+          .pres:hover { outline: 1px dotted ${C.ink}; background: ${C.sel}; }
+          .pres.acceptable { outline: 2px solid ${C.red}; background: ${C.sel}; animation: pulse 0.9s infinite; cursor: pointer; }
+          @keyframes pulse { 50% { outline-color: ${C.mustard}; } }
+          ::-webkit-scrollbar { width: 12px; height: 12px; }
+          ::-webkit-scrollbar-thumb { background: ${C.line}; border: 3px solid ${C.pane}; }
+          ::-webkit-scrollbar-track { background: ${C.pane}; }
+          table th { font-weight: 700; }
+          @media (prefers-reduced-motion: reduce) { .pres.acceptable { animation: none; } }
+        `}</style>
+
+        <div style={{ background: C.ink, color: C.paper, textAlign: "center", padding: "4px 0", fontWeight: 700, letterSpacing: "0.28em", fontSize: 13, flexShrink: 0 }}>
+          P B U I &nbsp;—&nbsp; B A S K E T B A L L &nbsp; A N A L Y T I C S
+        </div>
+
+        {accepting && (
+          <div style={{ background: C.red, color: C.paper, padding: "3px 10px", fontWeight: 700, flexShrink: 0 }}>
+            ACCEPTING &lt;{Array.isArray(accepting.ptype) ? accepting.ptype.join("|") : accepting.ptype}&gt; — {accepting.prompt} — works across tiles AND workspaces
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 6, alignItems: "center", padding: "5px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em" }}>WORKSPACES</span>
+          {spaces.map((s) =>
+            renaming === s.id ? (
+              <input key={s.id} autoFocus defaultValue={s.name}
+                onKeyDown={(e) => { if (e.key === "Enter") { const name = e.target.value.trim() || s.name; setSpaces((ss) => ss.map((x) => (x.id === s.id ? { ...x, name } : x))); world.log("workspace_renamed", { name }); setRenaming(null); } }}
+                onBlur={() => setRenaming(null)}
+                style={{ border: "2px solid " + C.ink, background: C.pane, fontFamily: "inherit", fontSize: 11, padding: "1px 5px", width: 90 }} />
+            ) : (
+              <P key={s.id} ptype="workspace" value={s.id} onActivate={() => setCur(s.id)} activateDoc="switch to it" doc={"workspace " + s.name + " (" + countLeaves(s.tree) + " tiles)"}>
+                <span style={{ border: "2px solid " + C.ink, background: cur === s.id ? C.sel : C.paneAlt, padding: "1px 9px", fontWeight: cur === s.id ? 700 : 400, cursor: "pointer" }}>{s.name}</span>
+              </P>
+            ))}
+          <Btn tone={C.mint} onClick={addSpace}>+ workspace</Btn>
+          <span style={{ color: C.faint, fontSize: 10.5 }}>chip: L switches · R for rename / duplicate / delete</span>
+        </div>
+
+        <div style={{ flex: 1, display: "flex", padding: 8, minHeight: 0 }}><NodeView node={tree} /></div>
+
+        <div style={{ background: C.ink, color: C.paper, padding: "3px 10px", fontSize: 11, flexShrink: 0, display: "flex", gap: 16 }}>
+          <span style={{ color: C.mustard, fontWeight: 700 }}>{accepting ? "ACCEPT MODE" : drag ? "MOVING APP" : "READY"}</span>
+          <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {mouseDoc || (accepting ? accepting.prompt + "   (Esc: abort)" : "click a player to focus it (shot chart + trend follow) · right-click any object for its menu · drag borders to resize · drag ⠿ to swap / dock tiles")}
+          </span>
+          <span style={{ color: C.faint }}>{countLeaves(tree)} tiles · {spaces.length} workspaces</span>
+        </div>
+
+        {drag && dragSrcLeaf && (
+          <div style={{ position: "fixed", left: drag.x + 12, top: drag.y + 12, zIndex: 200, pointerEvents: "none", background: APPS[dragSrcLeaf.app].color, border: "2px solid " + C.ink, boxShadow: "3px 3px 0 " + C.ink, padding: "1px 8px", fontSize: 11, fontWeight: 700 }}>
+            {APPS[dragSrcLeaf.app].title} → {drag.over && drag.over !== drag.from ? (drag.zone === "center" ? "swap apps" : "dock " + ({ left: "⇤", right: "⇥", top: "⤒", bottom: "⤓" }[drag.zone] || "") + " (source closes)") : "drop on a tile · center swaps · edges split"}
+          </div>
+        )}
+
+        {menu && (
+          <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", left: Math.min(menu.x, (typeof window !== "undefined" ? window.innerWidth : 800) - 320), top: menu.y, zIndex: 100, background: C.pane, border: "2px solid " + C.ink, boxShadow: "4px 4px 0 " + C.ink, minWidth: 260 }}>
+            <div style={{ background: C.ink, color: C.paper, padding: "2px 8px", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em" }}>
+              &lt;{menu.ptype}&gt; {labelFor(menu.ptype, menu.value).slice(0, 26)}
+            </div>
+            {actionsFor(menu.ptype, menu.value).map((a, i) => (
+              <div key={i} onClick={() => { setMenu(null); a.run(); }}
+                style={{ padding: "4px 10px", cursor: "pointer", borderTop: i ? "1px dotted " + C.line : "none", fontSize: 11.5 }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = C.sel)} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                {a.label}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </UICtx.Provider>
+  );
+}
