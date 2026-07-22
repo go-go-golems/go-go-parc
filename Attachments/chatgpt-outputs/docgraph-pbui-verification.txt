@@ -1,0 +1,89 @@
+Docgraph PBUI Widget DSL verification
+=======================================
+UTC: 2026-07-20T23:36:01Z
+
+[1] Modified JSX syntax/type parse
+PASS: TypeScript parser accepted the final JSX.
+
+[2] Compiler and Widget/PBUI contract tests
+{
+  "matrix": [
+    {
+      "id": "01-minimal",
+      "plugin": "acme.adr",
+      "recipes": 0,
+      "views": 0,
+      "errors": 0
+    },
+    {
+      "id": "02-topology",
+      "plugin": "acme.topology",
+      "recipes": 0,
+      "views": 0,
+      "errors": 0
+    },
+    {
+      "id": "03-search-recipe",
+      "plugin": "acme.search",
+      "recipes": 1,
+      "views": 0,
+      "errors": 0
+    },
+    {
+      "id": "04-script-operator",
+      "plugin": "acme.incident-search",
+      "recipes": 1,
+      "views": 0,
+      "errors": 0
+    },
+    {
+      "id": "05-full-project",
+      "plugin": "acme.project-docs",
+      "recipes": 1,
+      "views": 0,
+      "errors": 0
+    },
+    {
+      "id": "06-broken",
+      "plugin": "acme.broken",
+      "recipes": 1,
+      "views": 0,
+      "errors": 2
+    },
+    {
+      "id": "07-widget-pbui",
+      "plugin": "acme.pbui-widget",
+      "recipes": 1,
+      "views": 1,
+      "errors": 0
+    }
+  ],
+  "widgetPage": {
+    "id": "docgraph-pbui-workbench",
+    "nodes": 125,
+    "ptypes": 6,
+    "commands": 5,
+    "hitIsDoc": true,
+    "errors": 0
+  },
+  "closureRejected": true,
+  "rawEventAttrRejected": true
+}
+
+[3] Reference TypeScript seams
+PASS: Reference TypeScript typechecked against API-shaped PBUI/React declarations.
+
+[4] JSON Schema fixture
+WidgetPage fixture validates; unsafe raw attribute is rejected.
+
+[5] Go validator
+ok  	example.com/widgetdsltest	(cached)
+
+[6] Patch reproducibility
+patching file docgraph-workbench.jsx
+PASS: Applying the patch reproduces the delivered JSX byte-for-byte.
+
+[7] Guide structure
+lines=1776 words=9655 code_fences=102 balanced=True
+
+OVERALL: PASS
