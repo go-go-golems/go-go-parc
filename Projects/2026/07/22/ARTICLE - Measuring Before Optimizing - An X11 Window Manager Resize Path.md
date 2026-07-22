@@ -256,6 +256,7 @@ Full analysis, a sixteen-step investigation diary, both harnesses and the screen
 
 ## Related notes
 
+- Companion: [[ARTICLE - Optimizing an X11 Window Manager Paint Path]] — the engineering catalogue: every change that landed, every one that was built and rejected, with numbers
 - Source repository: `/home/manuel/workspaces/2026-07-21/go-go-wm-goja/go-go-wm`
 - Design document: `ttmp/2026/07/21/GGWM-012-GUIDES--.../design-doc/01-go-go-wm-performance-engineering-an-intern-s-guide-to-the-resize-and-render-path.md`
 - Measurement harnesses: `ttmp/2026/07/21/GGWM-012-GUIDES--.../scripts/ggwm-xephyr-{validate,scenarios}.sh`
