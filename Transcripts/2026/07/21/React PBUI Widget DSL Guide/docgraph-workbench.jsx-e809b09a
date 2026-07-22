@@ -1,0 +1,1904 @@
+import React, { useState, useRef, useEffect, useCallback } from "react";
+
+/* ============================================================
+   DOCGRAPH WORKBENCH — Prototype 0.1
+   A visual IDE / teaching tool for the JS-native unified
+   semantic help system ("docgraph" / "docscript").
+
+   REAL, RIGHT NOW (in your browser):
+     - The preset scripts on the left are REAL JavaScript,
+       executed against a sandboxed authoring API:
+         definePlugin / s.* schema DSL / search.recipe / ...
+     - Configurators run once at registration; what survives is
+       a normalized PluginPlan (inspect it — no closures inside,
+       except intentionally registered script operators).
+     - Search recipes compile to a SearchPlan of operator nodes;
+       the engine executes the plan against the selected corpus:
+       exact resolve, BM25-ish lexical, RRF fusion, graph
+       expansion over typed relations, bounded script scoring.
+     - Document types really validate corpus docs (required
+       blocks, frontmatter schemas, enums).
+     - Definition conflicts really fail (no last-write-wins §4.5).
+
+   WHAT IS EMULATED (honest stopgaps, not empty stubs):
+     Go, Goja, SQLite, Bleve. The build pipeline (discover →
+     parse → extract → enrich → link → snapshot) runs over the
+     in-memory corpus; snapshots are content-addressed with a
+     toy hash; context packs assemble under a naive token
+     estimator; host APIs (ctx.config / ctx.graph / ctx.index)
+     are capability-gated; the vector provider reports
+     "skipped", exactly as an optional missing provider should.
+   The authoring API arrives as one injected host object,
+   `docgraph` — no module system is involved.
+
+   UI: presentation-based (CLIM / Genera dynamic windows).
+   Right-click any underlined object for its command menu.
+   Some commands enter ACCEPT mode: click a pulsing object
+   of the requested presentation type. Esc aborts.
+   ============================================================ */
+
+/* ---------------- palette (shared with sibling machines) ---------------- */
+const C = {
+  paper: "#e9e2d0", pane: "#f5f0e3", paneAlt: "#efe9d9",
+  ink: "#33302a", faint: "#7a7365",
+  sage: "#a9bda2", blue: "#9cb4c2", rose: "#cfa08f",
+  mustard: "#d3b56a", lavender: "#b3abc4", mint: "#b7c9b3",
+  red: "#b0563f", sel: "#f4e6b8",
+};
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+/* ============================================================
+   TEST CORPORA — canonical-format documents (ggdoc/document/v1)
+   ============================================================ */
+const CORPORA = [
+  {
+    id: "acme-services",
+    title: "acme-services",
+    blurb: "runbooks, service cards, ADRs, one MOC — includes two deliberately invalid docs",
+    hostConfig: { activeIncidentServices: ["payments-api"], currentTeam: "payments" },
+    docs: [
+      {
+        id: "runbook/payments-latency", type: "acme:runbook",
+        title: "Payments API p99 Latency Runbook",
+        summary: "Diagnose and repair elevated latency on payments-api.",
+        body: "p99 above 800ms on charge endpoint. Check connection pool saturation first, then scale the pool and flush stale sessions. Verify latency drops below 200ms.",
+        blocks: ["symptoms", "diagnosis", "procedure", "rollback", "verification"],
+        symbols: ["PAY-LAT-01", "pool.max"], aliases: ["payments latency"],
+        meta: { service: "payments-api", severity: "degraded" },
+        relations: [
+          { predicate: "acme:troubleshoots", target: "svc/payments-api" },
+          { predicate: "core:part-of", target: "moc/oncall" },
+        ],
+      },
+      {
+        id: "runbook/search-outage", type: "acme:runbook",
+        title: "Search API Full Outage Runbook",
+        summary: "Regional outage response for search-api.",
+        body: "Search returns 5xx in all regions. Failover to the warm standby index. NOTE: this doc is intentionally invalid — it has no procedure block and an out-of-enum severity.",
+        blocks: ["symptoms", "diagnosis"], // missing required "procedure"
+        symbols: ["SRCH-5XX"], aliases: [],
+        meta: { service: "search-api", severity: "sev1" }, // invalid enum value
+        relations: [
+          { predicate: "acme:troubleshoots", target: "svc/search-api" },
+          { predicate: "core:part-of", target: "moc/oncall" },
+        ],
+      },
+      {
+        id: "svc/payments-api", type: "acme:service",
+        title: "payments-api",
+        summary: "Card charging and refunds. Tier: backend. Owner: payments team.",
+        body: "Handles charge, refund, and dispute flows. Scales on queue depth.",
+        blocks: [], symbols: ["payments-api"], aliases: ["payments"],
+        meta: { tier: "backend", owner: "payments" },
+        relations: [{ predicate: "acme:operated-by", target: "team/payments" }],
+      },
+      {
+        id: "svc/search-api", type: "acme:service",
+        title: "search-api",
+        summary: "Full-text product search. Tier: backend. Owner: discovery team.",
+        body: "BM25 lexical retrieval over the product catalog with nightly index rebuilds.",
+        blocks: [], symbols: ["search-api"], aliases: [],
+        meta: { tier: "backend", owner: "discovery" },
+        relations: [{ predicate: "acme:operated-by", target: "team/discovery" }],
+      },
+      {
+        id: "team/payments", type: "acme:team-page",
+        title: "Payments Team",
+        summary: "Owns charging infrastructure. Slack #payments-oncall.",
+        body: "Operates payments-api and the ledger workers.",
+        blocks: [], symbols: [], aliases: [], meta: {},
+        relations: [{ predicate: "acme:operates", target: "svc/payments-api" }],
+      },
+      {
+        id: "adr/012-single-relay", type: "acme:adr",
+        title: "ADR-012: Single Untrusted Relay",
+        summary: "Decision to route all device traffic through one untrusted relay.",
+        body: "Context: multiple relays complicate epoch ordering. Decision: one relay, treated as untrusted. Consequences: simpler fan-out, relay sees metadata only.",
+        blocks: ["context", "decision", "consequences"],
+        symbols: [], aliases: [], meta: { status: "accepted" },
+        relations: [],
+      },
+      {
+        id: "adr/013-vector-index", type: "acme:adr",
+        title: "ADR-013: Defer Vector Search",
+        summary: "Vector retrieval is optional until evaluation proves lift.",
+        body: "Context: hybrid retrieval adds operational cost. Decision pending — intentionally invalid doc: status field missing, decision block missing.",
+        blocks: ["context"], // missing required "decision"
+        symbols: [], aliases: [], meta: {}, // missing required "status"
+        relations: [],
+      },
+      {
+        id: "moc/oncall", type: "ggdoc.core:moc",
+        title: "On-call — Map of Content",
+        summary: "Curated entry points for incident response.",
+        body: "Start with the service card, then the runbook.",
+        blocks: [], symbols: [], aliases: [], meta: {},
+        relations: [
+          { predicate: "core:curates", target: "runbook/payments-latency" },
+          { predicate: "core:curates", target: "runbook/search-outage" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "golem-core",
+    title: "golem-core",
+    blurb: "concepts, tutorials, guides and symbols from the go-go-golems ecosystem",
+    hostConfig: {},
+    docs: [
+      {
+        id: "concept/reciprocal-rank-fusion", type: "ggdoc.core:concept",
+        title: "Reciprocal Rank Fusion",
+        summary: "Combining ranked lists from multiple retrievers without comparing raw scores.",
+        body: "RRF merges candidate lists by rank position rather than score magnitude, avoiding calibration of BM25 against cosine similarity.",
+        blocks: [], symbols: ["rrf"], aliases: ["rrf"],
+        meta: {}, relations: [{ predicate: "core:part-of", target: "moc/documentation-systems" }],
+      },
+      {
+        id: "tutorial/getting-started-glazed-help", type: "ggdoc.core:tutorial",
+        title: "Getting Started with Glazed Help",
+        summary: "Add embedded, searchable help sections to a Cobra CLI in ten minutes.",
+        body: "Install glazed, register a help section, and serve it from your binary. Use AddSection to attach markdown topics to commands.",
+        blocks: [], symbols: ["glazed.help.AddSection", "--help"], aliases: [],
+        meta: {}, relations: [{ predicate: "core:documents", target: "concept/reciprocal-rank-fusion" }],
+      },
+      {
+        id: "guide/embedding-help-xgoja", type: "ggdoc.core:guide",
+        title: "Embedding Documentation in Generated xgoja Hosts",
+        summary: "How generated binaries select doc bundles, search profiles, and providers.",
+        body: "The docaccess Hub exposes several documentation providers through one runtime surface. Generated hosts select plugins and search recipes at build time.",
+        blocks: [], symbols: ["docaccess.Hub"], aliases: [],
+        meta: {},
+        relations: [
+          { predicate: "core:part-of", target: "moc/documentation-systems" },
+          { predicate: "core:documents", target: "reference/provider-help-sources" },
+        ],
+      },
+      {
+        id: "reference/provider-help-sources", type: "ggdoc.core:reference",
+        title: "Provider Help Sources",
+        summary: "Reference for providerapi.HelpSource and embedded doc trees.",
+        body: "A provider registers help sources; the runtime merges them into the hub. Sources are versioned and snapshot-addressed.",
+        blocks: [], symbols: ["providerapi.HelpSource"], aliases: [],
+        meta: {}, relations: [],
+      },
+      {
+        id: "moc/documentation-systems", type: "ggdoc.core:moc",
+        title: "Documentation Systems — Map of Content",
+        summary: "Curated entry points into search, indexing, and help-system design.",
+        body: "Start with retrieval concepts, then the embedding guide.",
+        blocks: [], symbols: [], aliases: [], meta: {},
+        relations: [
+          { predicate: "core:curates", target: "concept/reciprocal-rank-fusion" },
+          { predicate: "core:curates", target: "guide/embedding-help-xgoja" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "docscript-spec",
+    title: "docscript-spec",
+    blurb: "docs about the plugin system itself — good for exact symbol queries",
+    hostConfig: {},
+    docs: [
+      {
+        id: "concept/plugin-scopes", type: "ggdoc.core:concept",
+        title: "Plugin Scopes and Trust",
+        summary: "Built-in, global, workspace, project, local-override, invocation. Scope is not trust.",
+        body: "A project plugin is not automatically trusted merely because it is inside the repository. Scope answers where a plugin is activated; permissions are separate.",
+        blocks: [], symbols: ["allowedScopes"], aliases: [],
+        meta: {}, relations: [{ predicate: "core:documents", target: "reference/script-operators" }],
+      },
+      {
+        id: "reference/script-operators", type: "ggdoc.core:reference",
+        title: "Script Operators",
+        summary: "Bounded, phase-pinned JavaScript policy: typed ports, capabilities, budgets.",
+        body: "A scriptOperator declares phase, input and output contracts, config schema, and bounds like maxItems and timeoutMs. It returns typed deltas; the engine applies them.",
+        blocks: [], symbols: ["scriptOperator", "op.bounded", "op.phase"], aliases: [],
+        meta: {}, relations: [],
+      },
+      {
+        id: "guide/search-recipes", type: "ggdoc.core:guide",
+        title: "Writing Search Recipes",
+        summary: "Compose parse, rewrite, retrieve, fuse, expand, rank into a SearchPlan.",
+        body: "Recipes compile to plans of registered operators. definePlugin registers the recipe; the closure does not survive compilation.",
+        blocks: [], symbols: ["search.recipe", "definePlugin", "fuse.rrf/v1"], aliases: [],
+        meta: {}, relations: [{ predicate: "core:documents", target: "concept/plugin-scopes" }],
+      },
+    ],
+  },
+];
+
+/* ============================================================
+   PRESET SCRIPTS — real source, executed on Compile
+   ============================================================ */
+const PRESETS = [
+  {
+    id: "01-minimal",
+    label: "01 · minimal — one document type",
+    corpus: "acme-services", query: "single relay decision",
+    src: `// The smallest useful plugin: one document type.
+// Compile, then look at "Compiled plugin plan": the configurator
+// closure is gone; only a normalized definition remains.
+// Corpus "acme-services" contains two ADRs — one valid, one broken.
+
+// the host injects one object: docgraph
+const { definePlugin, s } = docgraph;
+
+module.exports = definePlugin("acme.adr", "0.1.0", p => {
+  p.summary("Architecture Decision Records for ACME repos");
+  p.allowedScopes("project");
+
+  p.documentType("acme:adr", d => {
+    d.label("Decision record");
+    d.frontmatter(s.object(o => {
+      o.field("status", s.enum("proposed", "accepted", "superseded").required());
+    }));
+    d.requireBlock("context");
+    d.requireBlock("decision");
+    d.optionalBlock("consequences");
+  });
+});
+`,
+  },
+  {
+    id: "02-topology",
+    label: "02 · vocabulary + node types + predicates",
+    corpus: "acme-services", query: "payments",
+    src: `// Purely declarative, but now shaping the graph: node types,
+// a vocabulary, and typed predicates with retrieval policy.
+// Nothing here executes at search time.
+
+const { definePlugin, s } = docgraph;
+
+module.exports = definePlugin("acme.topology", "0.2.0", p => {
+  p.summary("ACME service topology");
+
+  p.vocabulary("acme:tier", v => {
+    v.term("frontend"); v.term("backend"); v.term("data");
+  });
+
+  p.nodeType("acme:team", n => {
+    n.property("name", s.string().required());
+    n.index("name");
+  });
+
+  p.nodeType("acme:service", n => {
+    n.property("name", s.string().required());
+    n.property("tier", s.term("acme:tier"));
+    n.property("owner", s.ref("acme:team"));
+    n.aliases("name");
+    n.index("name", "tier");
+  });
+
+  p.relation("acme:operates", r => {
+    r.domain("acme:team"); r.range("acme:service");
+    r.inverse("acme:operated-by");
+    r.cardinality("many-to-many");
+  });
+
+  p.relation("acme:troubleshoots", r => {
+    r.domain("acme:runbook"); r.range("acme:service");
+    r.qualifiers(s.object(o => {
+      o.field("failureMode", s.string().optional());
+      o.field("since", s.semverRange().optional());
+    }));
+    r.retrieval({ followForward: true, followInverse: true,
+                  defaultDepth: 1, candidateBoost: 0.3 });
+  });
+
+  p.relation("acme:contradicts", r => {
+    r.symmetric(true);
+    r.retrieval({ contextOnly: true }); // a warning, never a boost
+  });
+});
+`,
+  },
+  {
+    id: "03-search-recipe",
+    label: "03 · search recipe (declarative composition)",
+    corpus: "golem-core", query: "docaccess.Hub",
+    src: `// A recipe compiles to a SearchPlan of operator nodes.
+// The JS below runs at authoring time only — inspect the plan,
+// then run a query. Try the exact symbol "docaccess.Hub",
+// then a prose query like "how are help sources embedded".
+
+const { definePlugin, search } = docgraph;
+
+const debugSearch = search.recipe("acme:debug-search/v1", r => {
+  const q = r.parse(search.query.codeAware());
+  const rw = r.rewrite(q,
+    search.rewrite.vocabulary(),
+    search.rewrite.symbolAliases());
+
+  const exact = r.retrieve(rw, search.retrieve.exact({ topK: 20 }));
+  const lexical = r.retrieve(rw, search.retrieve.bm25({ topK: 80 }));
+  const semantic = r.retrieve(rw, search.retrieve.vector({ topK: 60, optional: true }));
+
+  const fused = r.fuse({ exact: exact, lexical: lexical, semantic: semantic },
+    search.fusion.weightedRRF({ k: 60,
+      weights: { exact: 3.0, lexical: 1.0, semantic: 0.8 } }));
+
+  const expanded = r.expand(fused, search.graph.follow({
+    predicates: ["core:documents", "core:part-of", "core:curates",
+                 "acme:troubleshoots"],
+    depth: 1, maxAdded: 30,
+  }));
+
+  r.output(r.limit(expanded, 12));
+});
+
+module.exports = definePlugin("acme.search", "0.1.0", p => {
+  p.summary("Debug-oriented hybrid search");
+  p.searchRecipe("debug", debugSearch);
+});
+`,
+  },
+  {
+    id: "04-script-operator",
+    label: "04 · script operator — bounded live scoring",
+    corpus: "acme-services", query: "latency",
+    src: `// First executable step: real JS runs at search time, but only
+// inside a declared, phase-pinned, bounded contract.
+// The corpus host config says payments-api has an ACTIVE INCIDENT.
+// Run "latency" and watch the payments runbook jump the ranking —
+// the trace shows the operator fire with its reason.
+
+const { definePlugin, s, search } = docgraph;
+
+// ctx.config is a capability-gated host surface — remove the
+// op.capability("host.config") line below and watch this fail.
+function boostIncidentServices(ctx, hits, config) {
+  var active = {};
+  (ctx.config.activeIncidentServices || []).forEach(function (x) { active[x] = true; });
+  return hits.map(function (h) {
+    var svc = h.metadata && h.metadata.service;
+    if (svc && active[svc]) {
+      return Object.assign({}, h, {
+        score: h.score + config.boost,
+        reasons: h.reasons.concat(["active incident on " + svc + " (+" + config.boost + ")"]),
+      });
+    }
+    return h;
+  });
+}
+
+module.exports = definePlugin("acme.incident-search", "0.1.0", p => {
+  p.scriptOperator("acme:boost-incident-services", op => {
+    op.phase("search.rank");
+    op.input("hits", "core:search-hit-list");
+    op.output("hits", "core:search-hit-list");
+    op.config(s.object(o => o.field("boost", s.number().default(0.25))));
+    op.pure();
+    op.bounded({ maxItems: 500, timeoutMs: 50 });
+    op.capability("host.config");
+    op.implementation(boostIncidentServices);
+  });
+
+  p.searchRecipe("incident", search.recipe("acme:incident-search/v1", r => {
+    const q = r.parse(search.query.codeAware());
+    const exact = r.retrieve(q, search.retrieve.exact({ topK: 20 }));
+    const lexical = r.retrieve(q, search.retrieve.bm25({ topK: 80 }));
+    const fused = r.fuse({ exact: exact, lexical: lexical },
+      search.fusion.weightedRRF({ k: 60, weights: { exact: 3.0, lexical: 1.0 } }));
+    const ranked = r.apply(fused, "acme:boost-incident-services", { boost: 0.4 });
+    r.output(r.limit(ranked, 10));
+  }));
+});
+`,
+  },
+  {
+    id: "05-full-project",
+    label: "05 · full project plugin — everything at once",
+    corpus: "acme-services", query: "payments latency",
+    src: `// The ladder's top rung: types + predicates + script operators +
+// search recipe + BUILD recipe + CONTEXT recipe + command + agent
+// tool in one plugin. Validate the corpus (two docs fail on
+// purpose), run "payments latency", then right-click the build
+// recipe chip (run the pipeline: watch the enrichment op emit a
+// graph delta) and the context recipe chip (assemble a pack).
+
+const { definePlugin, s, search, build, context } = docgraph;
+
+function boostIncidentServices(ctx, hits, config) {
+  var active = {};
+  (ctx.config.activeIncidentServices || []).forEach(function (x) { active[x] = true; });
+  return hits.map(function (h) {
+    var svc = h.metadata && h.metadata.service;
+    return (svc && active[svc])
+      ? Object.assign({}, h, { score: h.score + config.boost,
+          reasons: h.reasons.concat(["active incident on " + svc]) })
+      : h;
+  });
+}
+
+module.exports = definePlugin("acme.project-docs", "1.0.0", p => {
+  p.summary("ACME service, runbook, ownership, and search policy");
+  p.allowedScopes("workspace", "project", "local");
+  p.requires("ggdoc.core", ">=0.1.0 <1.0.0");
+
+  p.documentType("acme:runbook", d => {
+    d.label("Runbook");
+    d.frontmatter(s.object(o => {
+      o.field("service", s.ref("acme:service").required());
+      o.field("severity", s.enum("routine", "degraded", "outage").default("routine"));
+    }));
+    d.requireBlock("symptoms");
+    d.requireBlock("diagnosis");
+    d.requireBlock("procedure");
+    d.optionalBlock("rollback");
+    d.repeatBlock("verification");
+  });
+
+  p.documentType("acme:adr", d => {
+    d.frontmatter(s.object(o => {
+      o.field("status", s.enum("proposed", "accepted", "superseded").required());
+    }));
+    d.requireBlock("context");
+    d.requireBlock("decision");
+    d.optionalBlock("consequences");
+  });
+
+  p.relation("acme:troubleshoots", r => {
+    r.domain("acme:runbook"); r.range("acme:service");
+    r.retrieval({ followForward: true, followInverse: true, candidateBoost: 0.3 });
+  });
+
+  p.scriptOperator("acme:boost-incident-services", op => {
+    op.phase("search.rank");
+    op.input("hits", "core:search-hit-list");
+    op.output("hits", "core:search-hit-list");
+    op.config(s.object(o => o.field("boost", s.number().default(0.25))));
+    op.pure();
+    op.bounded({ maxItems: 500, timeoutMs: 50 });
+    op.capability("host.config");
+    op.implementation(boostIncidentServices);
+  });
+
+  // ---- build side: enrichment op returns a typed graph delta ----
+  p.source("docs", { include: ["runbook/**", "svc/**", "adr/**", "moc/**", "team/**"] });
+
+  p.scriptOperator("acme:tag-tier-nodes", op => {
+    op.phase("build.enrich");
+    op.input("documents", "core:document-list");
+    op.output("delta", "core:graph-delta");
+    op.bounded({ maxItems: 1000, timeoutMs: 100 });
+    op.implementation(function tagTierNodes(ctx, docs, config) {
+      var nodes = [], edges = [];
+      docs.forEach(function (d) {
+        if (d.type === "acme:service" && d.metadata.tier) {
+          nodes.push({ type: "acme:tier-tag", id: "tier/" + d.metadata.tier });
+          edges.push({ predicate: "acme:has-tier", from: d.ref, to: "tier/" + d.metadata.tier });
+        }
+      });
+      return { nodes: nodes, edges: edges };
+    });
+  });
+
+  p.buildRecipe("nightly", build.recipe("acme:nightly-build/v1", r => {
+    r.discover({ include: ["runbook/**", "svc/**", "adr/**", "moc/**", "team/**"] });
+    r.parse();
+    r.extract();
+    r.enrich("acme:tag-tier-nodes", {});
+    r.link();
+    r.commit({ activate: true });
+  }));
+
+  // ---- context pack: search results shaped under a token budget ----
+  p.contextRecipe("incident-pack", context.recipe("acme:incident-pack/v1", r => {
+    r.fromSearch("acme:coding-search/v1");
+    r.budget(1200);
+    r.section("primary", { take: 3, fields: ["title", "summary", "body"] });
+    r.section("related", { take: 5, fields: ["title", "summary"] });
+  }));
+
+  p.searchRecipe("coding-search", search.recipe("acme:coding-search/v1", r => {
+    const q = r.parse(search.query.codeAware());
+    const exact = r.retrieve(q, search.retrieve.exact({ topK: 30 }));
+    const lexical = r.retrieve(q, search.retrieve.bm25({ topK: 80 }));
+    const fused = r.fuse({ exact: exact, lexical: lexical },
+      search.fusion.weightedRRF({ k: 60, weights: { exact: 3.0, lexical: 1.0 } }));
+    const expanded = r.expand(fused, search.graph.follow({
+      predicates: ["acme:troubleshoots", "acme:operated-by", "core:part-of", "core:curates"],
+      depth: 1, maxAdded: 40,
+    }));
+    const ranked = r.apply(expanded, "acme:boost-incident-services", { boost: 0.3 });
+    r.output(r.boost(r.limit(ranked, 20), { documentTypes: { "acme:runbook": 1.2 } }));
+  }));
+
+  p.command("project-impact", c => {
+    c.summary("Find documentation impacted by a symbol, file, or service");
+    c.argument("target", s.string().required());
+    c.run("acme:coding-search/v1");
+  });
+
+  p.agentTool("project_impact", t => {
+    t.description("Find project documentation impacted by a target");
+    t.input(s.object(o => o.field("target", s.string().required())));
+    t.run("acme:coding-search/v1");
+  });
+});
+`,
+  },
+  {
+    id: "06-broken",
+    label: "06 · broken plugin — diagnostics demo",
+    corpus: "acme-services", query: "latency",
+    src: `// Deliberately wrong, three ways:
+//   1. "acme:runbook" is defined twice — definitions never
+//      last-write-wins (§4.5): the second registration FAILS.
+//   2. The recipe applies "acme:no-such-operator" — unknown
+//      operator, flagged at compile AND skipped at runtime.
+//   3. The script operator throws at search time — the engine
+//      catches it, keeps the pipeline alive, and logs a failure.
+// Compile, validate, then run "latency" and read the trace.
+
+const { definePlugin, s, search } = docgraph;
+
+function explode(ctx, hits, config) {
+  return hits.map(function (h) {
+    // config.mode is undefined -> TypeError at runtime
+    return Object.assign({}, h, { score: h.score * config.mode.toUpperCase() });
+  });
+}
+
+module.exports = definePlugin("acme.broken", "0.0.1", p => {
+  p.documentType("acme:runbook", d => {
+    d.requireBlock("symptoms");
+    d.requireBlock("procedure");
+  });
+
+  // CONFLICT: same ref, registered again
+  p.documentType("acme:runbook", d => {
+    d.requireBlock("vibes");
+  });
+
+  p.scriptOperator("acme:explode", op => {
+    op.phase("search.rank");
+    op.input("hits", "core:search-hit-list");
+    op.output("hits", "core:search-hit-list");
+    op.bounded({ maxItems: 100, timeoutMs: 20 });
+    op.implementation(explode);
+  });
+
+  p.searchRecipe("chaos", search.recipe("acme:chaos/v1", r => {
+    const q = r.parse();
+    const lexical = r.retrieve(q, search.retrieve.bm25({ topK: 40 }));
+    const a = r.apply(lexical, "acme:no-such-operator", {});
+    const b = r.apply(a, "acme:explode", {});
+    r.output(r.limit(b, 10));
+  }));
+});
+`,
+  },
+];
+
+/* ============================================================
+   ENGINE — sandboxed authoring API, compiler, plan executor
+   ============================================================ */
+function makeSchemaDSL() {
+  const mk = (kind, extra) => {
+    const n = Object.assign({ __schema: true, kind, req: false }, extra || {});
+    n.required = () => { n.req = true; return n; };
+    n.optional = () => { n.req = false; return n; };
+    n.default = (v) => { n.def = v; return n; };
+    n.minLength = (m) => { n.min = m; return n; };
+    return n;
+  };
+  return {
+    string: () => mk("string"), number: () => mk("number"), bool: () => mk("bool"),
+    time: () => mk("time"), glob: () => mk("glob"), semverRange: () => mk("semver-range"),
+    enum: (...vals) => mk("enum", { values: vals }),
+    list: (item) => mk("list", { item }),
+    ref: (t) => mk("ref", { target: t || "any" }),
+    term: (scheme) => mk("term", { scheme }),
+    object: (fn) => {
+      const o = { __schema: true, kind: "object", fields: {}, order: [], closed: false };
+      fn({
+        field: (name, sch) => { o.fields[name] = sch; o.order.push(name); },
+        closed: () => { o.closed = true; },
+      });
+      return o;
+    },
+  };
+}
+
+function makeSearchDSL() {
+  const search = {
+    recipe(id, fn) {
+      const plan = { id, nodes: [], output: null };
+      let n = 0;
+      const mk = (operator, config, inputs) => {
+        const node = { id: "n" + (++n), operator, config: config || {}, inputs: inputs || {} };
+        plan.nodes.push(node);
+        return { __node: node.id };
+      };
+      const r = {
+        parse: (cfg) => mk("query.parse/v1", cfg || {}),
+        rewrite: (q, ...rules) => mk("query.rewrite/v1", { rules: rules.map((x) => (x && x.rule) || x) }, { in: q }),
+        retrieve: (q, spec) => mk(spec.op, spec.cfg || {}, { query: q }),
+        exact: (q, cfg) => mk("resolve.exact/v1", cfg || {}, { query: q }),
+        bm25: (q, cfg) => mk("retrieve.bm25/v1", cfg || {}, { query: q }),
+        fts: (q, cfg) => mk("retrieve.bm25/v1", cfg || {}, { query: q }),
+        fuse: (map, spec) => mk(spec.op, spec.cfg || {}, map),
+        rrf: (map, cfg) => mk("fuse.rrf/v1", cfg || {}, map),
+        expand: (input, spec) => mk("graph.expand/v1", (spec && spec.cfg) || spec || {}, { in: input }),
+        apply: (input, opRef, cfg) => mk("script:" + opRef, cfg || {}, { in: input }),
+        boost: (input, cfg) => mk("rank.boost/v1", cfg || {}, { in: input }),
+        limit: (input, nTop) => mk("rank.limit/v1", { n: nTop }, { in: input }),
+        output: (node) => { plan.output = node.__node; },
+      };
+      fn(r);
+      return { __recipe: true, plan };
+    },
+    query: { codeAware: () => ({ mode: "code-aware" }) },
+    rewrite: {
+      vocabulary: () => ({ rule: "vocabulary" }),
+      symbolAliases: () => ({ rule: "symbol-aliases" }),
+    },
+    retrieve: {
+      exact: (cfg) => ({ op: "resolve.exact/v1", cfg }),
+      bm25: (cfg) => ({ op: "retrieve.bm25/v1", cfg }),
+      vector: (cfg) => ({ op: "retrieve.vector/v1", cfg }),
+    },
+    fusion: {
+      weightedRRF: (cfg) => ({ op: "fuse.rrf/v1", cfg }),
+      rrf: (cfg) => ({ op: "fuse.rrf/v1", cfg }),
+    },
+    graph: { follow: (cfg) => ({ cfg }) },
+  };
+  return search;
+}
+
+function makeBuildDSL() {
+  return {
+    recipe(id, fn) {
+      const plan = { id, kind: "build", nodes: [] };
+      let n = 0;
+      const mk = (operator, config) => { const node = { id: "b" + (++n), operator, config: config || {} }; plan.nodes.push(node); return { __node: node.id }; };
+      fn({
+        discover: (cfg) => mk("source.discover/v1", cfg),
+        parse: (cfg) => mk("parse.markdown/v1", cfg),
+        extract: (cfg) => mk("extract.frontmatter/v1", cfg),
+        enrich: (opRef, cfg) => mk("script:" + opRef, cfg),
+        link: (cfg) => mk("graph.link/v1", cfg),
+        commit: (cfg) => mk("snapshot.commit/v1", cfg),
+      });
+      return { __build: true, plan };
+    },
+  };
+}
+
+function makeContextDSL() {
+  return {
+    recipe(id, fn) {
+      const plan = { id, kind: "context", searchRecipe: null, budgetTokens: 2000, sections: [] };
+      fn({
+        fromSearch: (rid) => { plan.searchRecipe = rid; },
+        budget: (t) => { plan.budgetTokens = t; },
+        section: (name, cfg) => plan.sections.push(Object.assign({ name }, cfg || {})),
+      });
+      return { __context: true, plan };
+    },
+  };
+}
+
+/* toy content-address for emulated snapshots */
+const fakeSha = (str) => {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+  return ("0000000" + h.toString(16)).slice(-8);
+};
+const globToRe = (g) => new RegExp("^" + g.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*\*/g, "\u0001").replace(/\*/g, "[^/]*").replace(/\u0001/g, ".*") + "$");
+
+function schemaSummary(sch) {
+  if (!sch) return null;
+  if (sch.kind === "object") {
+    const out = {};
+    for (const f of sch.order) out[f] = schemaSummary(sch.fields[f]);
+    return out;
+  }
+  let t = sch.kind;
+  if (sch.kind === "enum") t = "enum(" + sch.values.join("|") + ")";
+  if (sch.kind === "ref") t = "ref<" + sch.target + ">";
+  if (sch.kind === "term") t = "term<" + sch.scheme + ">";
+  if (sch.kind === "list") t = "list<" + (sch.item ? sch.item.kind : "any") + ">";
+  if (sch.req) t += " REQUIRED";
+  if (sch.def !== undefined) t += " default=" + JSON.stringify(sch.def);
+  return t;
+}
+
+function compileScript(src, log) {
+  const reg = {
+    pluginId: null, version: null, summary: "", scopes: [], requires: [],
+    docTypes: {}, nodeTypes: {}, predicates: {}, vocabularies: {},
+    scriptOps: {}, recipes: {}, buildRecipes: {}, contextRecipes: {},
+    sources: [], commands: [], agentTools: [], views: [],
+    diagnostics: [], defOrder: [],
+  };
+  const register = (bucket, kind, ref, def) => {
+    if (bucket[ref]) {
+      reg.diagnostics.push({ level: "error", ref, message: "definition conflict: " + kind + " '" + ref + "' is already registered — definitions never last-write-wins (§4.5); second registration rejected" });
+      log("definition_conflict", { ref, kind, note: "explicit replace-with-version-constraint would be required" });
+      return false;
+    }
+    bucket[ref] = def;
+    reg.defOrder.push({ kind, ref });
+    log("definition_registered", { kind, ref });
+    return true;
+  };
+
+  const s = makeSchemaDSL();
+  const search = makeSearchDSL();
+
+  const definePlugin = (id, version, fn) => {
+    reg.pluginId = id; reg.version = version;
+    const p = {
+      summary: (t) => { reg.summary = t; },
+      allowedScopes: (...sc) => { reg.scopes = sc; },
+      requires: (rid, range) => { reg.requires.push({ id: rid, range }); },
+      vocabulary: (ref, fn2) => {
+        const v = { ref, terms: [] };
+        fn2({ term: (tid, opts) => v.terms.push(Object.assign({ id: tid }, opts || {})) });
+        register(reg.vocabularies, "vocabulary", ref, v);
+      },
+      nodeType: (ref, fn2) => {
+        const n = { ref, label: ref, properties: {}, indexes: [], aliasFields: [] };
+        fn2({
+          label: (l) => { n.label = l; },
+          property: (name, sch) => { n.properties[name] = sch; },
+          index: (...f) => { n.indexes.push(...f); },
+          aliases: (...f) => { n.aliasFields.push(...f); },
+        });
+        register(reg.nodeTypes, "node-type", ref, n);
+      },
+      relation: (ref, fn2) => {
+        const r = { ref, label: ref, retrieval: null };
+        fn2({
+          label: (l) => { r.label = l; }, inverseLabel: (l) => { r.inverseLabel = l; },
+          domain: (d) => { r.domain = d; }, range: (rr) => { r.range = rr; },
+          inverse: (i) => { r.inverse = i; },
+          qualifiers: (sch) => { r.qualifiers = sch; },
+          retrieval: (pol) => { r.retrieval = pol; },
+          cardinality: (c) => { r.cardinality = c; },
+          symmetric: (b) => { r.symmetric = b; },
+          acyclic: (b) => { r.acyclic = b; },
+        });
+        register(reg.predicates, "predicate", ref, r);
+      },
+      documentType: (ref, fn2) => {
+        const d = { ref, label: ref, frontmatter: null, requiredBlocks: [], optionalBlocks: [], repeatedBlocks: [] };
+        fn2({
+          label: (l) => { d.label = l; },
+          frontmatter: (sch) => { d.frontmatter = sch; },
+          requireBlock: (b) => d.requiredBlocks.push(b),
+          optionalBlock: (b) => d.optionalBlocks.push(b),
+          repeatBlock: (b) => d.repeatedBlocks.push(b),
+        });
+        register(reg.docTypes, "document-type", ref, d);
+      },
+      scriptOperator: (ref, fn2) => {
+        const op = { ref, phase: null, inputs: [], outputs: [], config: null, pure: false, bounds: {}, capabilities: [], impl: null };
+        fn2({
+          phase: (ph) => { op.phase = ph; },
+          input: (name, contract) => op.inputs.push({ name, contract }),
+          output: (name, contract) => op.outputs.push({ name, contract }),
+          config: (sch) => { op.config = sch; },
+          pure: () => { op.pure = true; },
+          bounded: (b) => { op.bounds = b; },
+          capability: (c) => op.capabilities.push(c),
+          implementation: (f) => { op.impl = f; op.implName = f && f.name ? f.name : "(anonymous)"; },
+        });
+        if (op.impl && op.implName === "(anonymous)") {
+          reg.diagnostics.push({ level: "warn", ref, message: "anonymous implementation for '" + ref + "' — hash-based identity; refactoring may change operator identity unexpectedly (§7.8)" });
+        }
+        if (register(reg.scriptOps, "script-operator", ref, op)) {
+          log("script_operator_registered", { ref, phase: op.phase, impl: op.implName, bounds: JSON.stringify(op.bounds) });
+        }
+      },
+      searchRecipe: (name, recipe) => {
+        if (!recipe || !recipe.__recipe) {
+          reg.diagnostics.push({ level: "error", ref: name, message: "searchRecipe('" + name + "') did not receive a compiled recipe" });
+          return;
+        }
+        reg.recipes[recipe.plan.id] = { name, plan: recipe.plan };
+        reg.defOrder.push({ kind: "search-recipe", ref: recipe.plan.id });
+        log("recipe_compiled", { ref: recipe.plan.id, nodes: recipe.plan.nodes.length });
+      },
+      buildRecipe: (name, recipe) => {
+        if (!recipe || !recipe.__build) {
+          reg.diagnostics.push({ level: "error", ref: name, message: "buildRecipe('" + name + "') did not receive a compiled build recipe" });
+          return;
+        }
+        reg.buildRecipes[recipe.plan.id] = { name, plan: recipe.plan };
+        reg.defOrder.push({ kind: "build-recipe", ref: recipe.plan.id });
+        log("recipe_compiled", { ref: recipe.plan.id, nodes: recipe.plan.nodes.length, note: "build phases" });
+      },
+      contextRecipe: (name, recipe) => {
+        if (!recipe || !recipe.__context) {
+          reg.diagnostics.push({ level: "error", ref: name, message: "contextRecipe('" + name + "') did not receive a compiled context recipe" });
+          return;
+        }
+        reg.contextRecipes[recipe.plan.id] = { name, plan: recipe.plan };
+        reg.defOrder.push({ kind: "context-recipe", ref: recipe.plan.id });
+        log("recipe_compiled", { ref: recipe.plan.id, note: "context pack, budget " + recipe.plan.budgetTokens + " tokens" });
+      },
+      source: (name, cfg) => {
+        reg.sources.push({ name, cfg: cfg || {} });
+        reg.defOrder.push({ kind: "source", ref: name });
+        log("definition_registered", { kind: "source", ref: name });
+      },
+      command: (name, fn2) => {
+        const c = { name, summary: "", args: [] };
+        fn2({ summary: (t) => { c.summary = t; }, argument: (a) => c.args.push(a && a.kind ? "arg:" + a.kind : String(a)), run: (r) => { c.recipe = r; } });
+        reg.commands.push(c); reg.defOrder.push({ kind: "command", ref: name });
+        log("definition_registered", { kind: "command", ref: name });
+      },
+      agentTool: (name, fn2) => {
+        const t = { name, description: "" };
+        fn2({ description: (d) => { t.description = d; }, input: (sch) => { t.input = sch; }, output: (sch) => { t.output = sch; }, run: (r) => { t.recipe = r; } });
+        reg.agentTools.push(t); reg.defOrder.push({ kind: "agent-tool", ref: name });
+        log("definition_registered", { kind: "agent-tool", ref: name });
+      },
+      view: (name, fn2) => {
+        const v = { name, mounts: [] };
+        fn2({ mount: (path, cfg) => v.mounts.push({ path, cfg }) });
+        reg.views.push(v); reg.defOrder.push({ kind: "view", ref: name });
+      },
+    };
+    fn(p);
+    return { __plugin: reg.pluginId };
+  };
+
+  const moduleObj = { exports: {} };
+  const docgraphApi = {
+    definePlugin, s, schema: s, search,
+    build: makeBuildDSL(), context: makeContextDSL(),
+    host: { name: "docgraph-workbench", version: "0.1", engine: "browser (stopgap for Go/Goja)" },
+  };
+
+  try {
+    // eslint-disable-next-line no-new-func
+    // one injected host object; the script destructures what it needs
+    const f = new Function("docgraph", "module", "exports", src);
+    f(docgraphApi, moduleObj, moduleObj.exports);
+  } catch (e) {
+    reg.diagnostics.push({ level: "error", ref: "(script)", message: "evaluation failed: " + (e && e.message ? e.message : String(e)) });
+    log("compile_error", { error: String(e && e.message ? e.message : e) });
+    return reg;
+  }
+
+  // static plan check: unknown script operators referenced by recipes
+  const allPlans = [];
+  for (const rid of Object.keys(reg.recipes)) allPlans.push([rid, reg.recipes[rid].plan]);
+  for (const rid of Object.keys(reg.buildRecipes)) allPlans.push([rid, reg.buildRecipes[rid].plan]);
+  for (const [rid, plan] of allPlans) {
+    for (const node of plan.nodes) {
+      if (node.operator.startsWith("script:")) {
+        const opRef = node.operator.slice(7);
+        if (!reg.scriptOps[opRef]) {
+          reg.diagnostics.push({ level: "error", ref: rid, message: "recipe references unregistered script operator '" + opRef + "' — unsupported behavior fails explicitly (§2.4)" });
+          log("unknown_operator", { recipe: rid, ref: opRef });
+        }
+      }
+    }
+  }
+  log("plugin_compiled", {
+    plugin: (reg.pluginId || "(none)") + "@" + (reg.version || "?"),
+    definitions: reg.defOrder.length, recipes: Object.keys(reg.recipes).length,
+    diagnostics: reg.diagnostics.length,
+  });
+  return reg;
+}
+
+/* ---------------- validation ---------------- */
+function validateCorpus(reg, corpus, log) {
+  const diags = [];
+  for (const doc of corpus.docs) {
+    const dt = reg.docTypes[doc.type];
+    if (!dt) {
+      if (!doc.type.startsWith("ggdoc.core")) diags.push({ level: "info", doc: doc.id, message: "no registered type for '" + doc.type + "' — skipped" });
+      continue;
+    }
+    let bad = false;
+    for (const b of dt.requiredBlocks) {
+      if (!doc.blocks.includes(b)) { diags.push({ level: "error", doc: doc.id, message: "missing required block '" + b + "' for " + doc.type }); bad = true; }
+    }
+    if (dt.frontmatter && dt.frontmatter.fields) {
+      for (const fname of dt.frontmatter.order) {
+        const sch = dt.frontmatter.fields[fname];
+        const v = doc.meta ? doc.meta[fname] : undefined;
+        if (sch.req && (v === undefined || v === "")) { diags.push({ level: "error", doc: doc.id, message: "frontmatter '" + fname + "' is required (" + doc.type + ")" }); bad = true; }
+        else if (v !== undefined && sch.kind === "enum" && !sch.values.includes(v)) { diags.push({ level: "error", doc: doc.id, message: "frontmatter '" + fname + "'=" + JSON.stringify(v) + " not in enum [" + sch.values.join(", ") + "]" }); bad = true; }
+      }
+    }
+    if (!bad) diags.push({ level: "ok", doc: doc.id, message: "valid " + doc.type });
+    log(bad ? "doc_invalid" : "doc_valid", { doc: doc.id, type: doc.type, note: bad ? diags.filter((d) => d.doc === doc.id && d.level === "error").map((d) => d.message).join("; ") : undefined });
+  }
+  return diags;
+}
+
+/* ---------------- search plan execution ---------------- */
+const tokenize = (str) => (str || "").toLowerCase().split(/[^a-z0-9:./_-]+/).filter(Boolean);
+const countOcc = (hay, needle) => {
+  if (!needle) return 0;
+  let c = 0, i = 0;
+  const h = hay.toLowerCase();
+  while ((i = h.indexOf(needle, i)) >= 0) { c++; i += needle.length; }
+  return c;
+};
+
+/* capability-gated host surfaces for script operators (§7.7):
+   an operator sees only what it declared. Undeclared surfaces are
+   undefined, and the denial is logged the moment they're touched. */
+function makeHostCtx(def, corpus, log, extra) {
+  const caps = new Set(def.capabilities || []);
+  const byId = {}; corpus.docs.forEach((d) => { byId[d.id] = d; });
+  const ctx = Object.assign({}, extra || {});
+  const gate = (name, capName, make) => Object.defineProperty(ctx, name, {
+    get() {
+      if (!caps.has(capName)) {
+        log("capability_denied", { ref: def.ref, capability: capName, note: "declare op.capability(\"" + capName + "\") to receive ctx." + name });
+        return undefined;
+      }
+      return make();
+    },
+  });
+  gate("config", "host.config", () => corpus.hostConfig || {});
+  gate("graph", "graph.read", () => ({
+    neighbors: (ref) => {
+      const out = [];
+      const d = byId[ref];
+      if (d) for (const rel of (d.relations || [])) out.push({ predicate: rel.predicate, ref: rel.target, direction: "forward" });
+      for (const o of corpus.docs) for (const rel of (o.relations || [])) if (rel.target === ref) out.push({ predicate: rel.predicate, ref: o.id, direction: "inverse" });
+      return out;
+    },
+  }));
+  gate("index", "index.read", () => ({
+    get: (ref) => { const d = byId[ref]; return d ? { ref: d.id, type: d.type, title: d.title, metadata: d.meta || {} } : null; },
+    count: () => corpus.docs.length,
+  }));
+  return ctx;
+}
+
+function runSearchPlan(reg, recipe, corpus, rawQuery, log) {
+  const artifacts = {};
+  const stages = [];
+  const docs = corpus.docs;
+  const byId = {}; docs.forEach((d) => { byId[d.id] = d; });
+  const mkHit = (doc, score, reason, comp) => ({
+    ref: doc.id, title: doc.title, type: doc.type, doc,
+    score, reasons: reason ? [reason] : [], components: comp || {},
+  });
+
+  for (const node of recipe.plan.nodes) {
+    const t0 = performance.now();
+    let out = null, note = "";
+    const inp = {};
+    for (const [k, v] of Object.entries(node.inputs)) inp[k] = artifacts[v.__node];
+    const op = node.operator;
+
+    if (op === "query.parse/v1") {
+      const tokens = tokenize(rawQuery);
+      out = { raw: rawQuery, tokens };
+      note = "tokens: " + tokens.join(" ");
+    } else if (op === "query.rewrite/v1") {
+      const q = inp.in || { raw: rawQuery, tokens: tokenize(rawQuery) };
+      const tokens = q.tokens.slice();
+      const added = [];
+      if ((node.config.rules || []).includes("vocabulary")) {
+        for (const v of Object.values(reg.vocabularies)) {
+          for (const term of v.terms) {
+            const aliases = (term.aliases || []).map((a) => a.toLowerCase());
+            if (q.tokens.some((t) => aliases.includes(t)) && !tokens.includes(term.id)) { tokens.push(term.id); added.push(term.id + " (vocab alias)"); }
+          }
+        }
+      }
+      if ((node.config.rules || []).includes("symbol-aliases")) {
+        for (const t of q.tokens) {
+          if (t.includes(".") || t.includes("/")) {
+            for (const part of t.split(/[./]/)) if (part && !tokens.includes(part)) { tokens.push(part); added.push(part + " (symbol split)"); }
+          }
+        }
+      }
+      out = { raw: q.raw, tokens };
+      note = added.length ? "added: " + added.join(", ") : "no rewrites applied";
+      if (added.length) log("rewrite_applied", { added: added.join(", ") });
+    } else if (op === "resolve.exact/v1") {
+      const q = inp.query;
+      const ql = (q.raw || "").trim().toLowerCase();
+      out = [];
+      for (const doc of docs) {
+        const syms = (doc.symbols || []).map((x) => x.toLowerCase());
+        const als = (doc.aliases || []).map((x) => x.toLowerCase());
+        let why = null;
+        if (doc.id.toLowerCase() === ql) why = "exact document ref";
+        else if (doc.title.toLowerCase() === ql) why = "exact title";
+        else if (syms.includes(ql)) why = "exact symbol '" + q.raw.trim() + "'";
+        else if (als.includes(ql)) why = "exact alias '" + q.raw.trim() + "'";
+        else { const hit = q.tokens.find((t) => syms.includes(t)); if (hit) why = "exact symbol token '" + hit + "'"; }
+        if (why) out.push(mkHit(doc, 10, why, { exact: { score: 10 } }));
+      }
+      out = out.slice(0, node.config.topK || 20);
+      note = out.length ? out.map((h) => h.ref).join(", ") : "no exact resolution";
+    } else if (op === "retrieve.bm25/v1") {
+      const q = inp.query;
+      const W = { title: 4.0, summary: 2.5, body: 1.0, symbols: 6.0, blocks: 1.5 };
+      out = [];
+      for (const doc of docs) {
+        let score = 0; const why = [];
+        const fields = { title: doc.title, summary: doc.summary, body: doc.body, symbols: (doc.symbols || []).join(" "), blocks: (doc.blocks || []).join(" ") };
+        for (const t of q.tokens) {
+          for (const [fname, text] of Object.entries(fields)) {
+            const tf = countOcc(text, t);
+            if (tf > 0) { score += W[fname] * (1 + Math.log(tf)); if (why.length < 3) why.push("'" + t + "' in " + fname); }
+          }
+        }
+        if (score > 0) {
+          const h = mkHit(doc, +score.toFixed(3), null, {});
+          h.reasons = why.map((w) => "bm25: " + w);
+          h.components.lexical = { score: +score.toFixed(3) };
+          out.push(h);
+        }
+      }
+      out.sort((a, b) => b.score - a.score);
+      out = out.slice(0, node.config.topK || 50);
+      out.forEach((h, i) => { h.components.lexical.rank = i + 1; });
+      note = out.length + " lexical candidates";
+    } else if (op === "retrieve.vector/v1") {
+      out = [];
+      note = node.config.optional ? "skipped — no vector provider registered (optional:true)" : "FAILED — vector provider required but absent";
+      log("vector_stage", { note });
+    } else if (op === "fuse.rrf/v1") {
+      const k = node.config.k || 60;
+      const weights = node.config.weights || {};
+      const merged = {};
+      for (const [name, list] of Object.entries(inp)) {
+        const w = weights[name] !== undefined ? weights[name] : 1.0;
+        (list || []).forEach((h, i) => {
+          const cur = merged[h.ref] || (merged[h.ref] = Object.assign({}, h, { score: 0, reasons: [], components: {} }));
+          cur.score += w * (1 / (k + i + 1));
+          cur.components[name] = { rank: i + 1, score: h.score };
+          for (const r of h.reasons) if (!cur.reasons.includes(r)) cur.reasons.push(r);
+        });
+      }
+      out = Object.values(merged).map((h) => Object.assign(h, { score: +h.score.toFixed(4) }));
+      out.sort((a, b) => b.score - a.score);
+      note = "fused " + Object.keys(inp).map((n) => n + ":" + ((inp[n] || []).length)).join(" ") + " → " + out.length;
+    } else if (op === "graph.expand/v1") {
+      const base = (inp.in || []).slice();
+      const preds = new Set(node.config.predicates || []);
+      const maxAdded = node.config.maxAdded || 30;
+      const present = new Set(base.map((h) => h.ref));
+      const added = [];
+      for (const h of base) {
+        // forward relations from the hit document
+        for (const rel of (h.doc.relations || [])) {
+          if (preds.has(rel.predicate) && byId[rel.target] && !present.has(rel.target) && added.length < maxAdded) {
+            const t = byId[rel.target];
+            const nh = mkHit(t, +(h.score * 0.5).toFixed(4), "related: " + rel.predicate + " ← " + h.title, { graph: { via: rel.predicate, from: h.ref } });
+            present.add(t.id); added.push(nh);
+          }
+        }
+        // inverse: other docs pointing at the hit
+        for (const other of docs) {
+          if (present.has(other.id)) continue;
+          for (const rel of (other.relations || [])) {
+            if (rel.target === h.ref && preds.has(rel.predicate) && added.length < maxAdded) {
+              const nh = mkHit(other, +(h.score * 0.4).toFixed(4), "related: " + rel.predicate + " → " + h.title + " (inverse)", { graph: { via: rel.predicate, to: h.ref } });
+              present.add(other.id); added.push(nh);
+              break;
+            }
+          }
+        }
+      }
+      out = base.concat(added);
+      note = added.length ? "expanded +" + added.length + ": " + added.map((a) => a.ref).join(", ") : "no graph neighbors added";
+    } else if (op.startsWith("script:")) {
+      const opRef = op.slice(7);
+      const def = reg.scriptOps[opRef];
+      const base = inp.in || [];
+      if (!def || !def.impl) {
+        out = base;
+        note = "UNKNOWN OPERATOR '" + opRef + "' — stage skipped, pipeline continues";
+        log("unknown_operator", { ref: opRef, note: "referenced by recipe at runtime" });
+      } else {
+        const maxItems = (def.bounds && def.bounds.maxItems) || 500;
+        const bounded = base.slice(0, maxItems);
+        // defaults from config schema
+        const cfg = {};
+        if (def.config && def.config.fields) for (const f of def.config.order) { if (def.config.fields[f].def !== undefined) cfg[f] = def.config.fields[f].def; }
+        Object.assign(cfg, node.config);
+        const plain = bounded.map((h) => ({ ref: h.ref, title: h.title, type: h.type, score: h.score, reasons: h.reasons.slice(), metadata: h.doc.meta || {} }));
+        const ctx = makeHostCtx(def, corpus, log, { query: rawQuery });
+        try {
+          const t1 = performance.now();
+          const result = def.impl(ctx, plain, cfg);
+          const dur = performance.now() - t1;
+          const byRef = {}; (result || []).forEach((r) => { byRef[r.ref] = r; });
+          out = base.map((h) => {
+            const r = byRef[h.ref];
+            if (!r) return h;
+            const changed = r.score !== h.score;
+            return Object.assign({}, h, { score: +(+r.score).toFixed(4), reasons: r.reasons || h.reasons, components: changed ? Object.assign({}, h.components, { script: { op: opRef, delta: +(r.score - h.score).toFixed(3) } }) : h.components });
+          });
+          out.sort((a, b) => b.score - a.score);
+          const boosted = out.filter((h) => h.components.script).length;
+          note = def.implName + "() over " + bounded.length + " bounded items — " + boosted + " adjusted";
+          log("script_operator_applied", { ref: opRef, impl: def.implName, items: bounded.length, adjusted: boosted, ms: dur.toFixed(2), note: "bounds " + JSON.stringify(def.bounds) });
+          if (def.bounds && def.bounds.timeoutMs && dur > def.bounds.timeoutMs) log("budget_exceeded", { ref: opRef, ms: dur.toFixed(2), budget: def.bounds.timeoutMs + "ms" });
+        } catch (e) {
+          out = base;
+          note = "IMPLEMENTATION THREW: " + (e && e.message ? e.message : e) + " — input passed through unchanged";
+          log("script_operator_failed", { ref: opRef, error: String(e && e.message ? e.message : e), note: "engine catches, pipeline survives; typed deltas were never applied" });
+        }
+      }
+    } else if (op === "rank.boost/v1") {
+      const base = inp.in || [];
+      const tb = node.config.documentTypes || {};
+      out = base.map((h) => {
+        const m = tb[h.type];
+        if (m) return Object.assign({}, h, { score: +(h.score * m).toFixed(4), reasons: h.reasons.concat(["type boost ×" + m + " (" + h.type + ")"]) });
+        return h;
+      });
+      out.sort((a, b) => b.score - a.score);
+      note = Object.keys(tb).length ? "type boosts: " + JSON.stringify(tb) : "no boost rules";
+    } else if (op === "rank.limit/v1") {
+      const base = (inp.in || []).slice().sort((a, b) => b.score - a.score);
+      out = base.slice(0, node.config.n || 10);
+      out.forEach((h, i) => { h.rank = i + 1; });
+      note = "top " + out.length;
+    } else {
+      out = inp.in || [];
+      note = "no handler for " + op + " (passthrough)";
+    }
+
+    artifacts[node.id] = out;
+    stages.push({
+      node: node.id, operator: op,
+      durationMs: +(performance.now() - t0).toFixed(2),
+      count: Array.isArray(out) ? out.length : (out && out.tokens ? out.tokens.length : 1),
+      note, config: node.config,
+    });
+    log("stage_executed", { operator: op, count: Array.isArray(out) ? out.length : "·", note });
+  }
+  const hits = recipe.plan.output ? (artifacts[recipe.plan.output] || []) : [];
+  const list = Array.isArray(hits) ? hits : [];
+  list.forEach((h, i) => { h.rank = i + 1; });
+  return { hits: list, stages };
+}
+
+/* ---------------- build plan execution (stopgap pipeline) ----------------
+   Runs the declared phases over the in-memory corpus: discover by glob,
+   parse/extract stats, enrichment script ops emitting typed graph deltas,
+   link materialization, and a toy content-addressed snapshot commit. */
+function runBuildPlan(reg, recipe, corpus, log) {
+  const stages = [];
+  let working = corpus.docs.slice();
+  const delta = { nodes: [], edges: [] };
+  let snapshot = null;
+  for (const node of recipe.plan.nodes) {
+    const t0 = performance.now();
+    let note = "";
+    const op = node.operator;
+    if (op === "source.discover/v1") {
+      const globs = (node.config.include || ["**"]).map(globToRe);
+      working = corpus.docs.filter((d) => globs.some((re) => re.test(d.id)));
+      note = working.length + "/" + corpus.docs.length + " docs matched " + JSON.stringify(node.config.include || ["**"]);
+    } else if (op === "parse.markdown/v1") {
+      const blocks = working.reduce((n2, d) => n2 + (d.blocks || []).length, 0);
+      note = "parsed " + working.length + " docs · " + blocks + " typed blocks (emulated markdown pass)";
+    } else if (op === "extract.frontmatter/v1") {
+      const keys = working.reduce((n2, d) => n2 + Object.keys(d.meta || {}).length, 0);
+      note = "extracted " + keys + " frontmatter fields · " + working.reduce((n2, d) => n2 + (d.symbols || []).length, 0) + " symbols";
+    } else if (op.startsWith("script:")) {
+      const opRef = op.slice(7);
+      const def = reg.scriptOps[opRef];
+      if (!def || !def.impl) {
+        note = "UNKNOWN OPERATOR '" + opRef + "' — enrichment skipped";
+        log("unknown_operator", { ref: opRef, note: "referenced by build recipe" });
+      } else if (def.phase && !String(def.phase).startsWith("build")) {
+        note = "PHASE VIOLATION: '" + opRef + "' is pinned to " + def.phase + ", not a build phase — skipped";
+        log("phase_violation", { ref: opRef, phase: def.phase, note: "operators run only in their declared phase (§7.7)" });
+      } else {
+        const maxItems = (def.bounds && def.bounds.maxItems) || 1000;
+        const plainDocs = working.slice(0, maxItems).map((d) => ({ ref: d.id, type: d.type, title: d.title, metadata: d.meta || {}, symbols: d.symbols || [] }));
+        const ctx = makeHostCtx(def, corpus, log, {});
+        try {
+          const res = def.impl(ctx, plainDocs, node.config) || {};
+          const nn = (res.nodes || []).length, ne = (res.edges || []).length;
+          delta.nodes.push(...(res.nodes || []));
+          delta.edges.push(...(res.edges || []));
+          note = def.implName + "() emitted graph delta: +" + nn + " nodes, +" + ne + " edges (typed data, applied by the engine — never direct writes)";
+          log("graph_delta", { ref: opRef, nodes: nn, edges: ne });
+        } catch (e) {
+          note = "IMPLEMENTATION THREW: " + (e && e.message ? e.message : e) + " — delta discarded, pipeline continues";
+          log("script_operator_failed", { ref: opRef, error: String(e && e.message ? e.message : e), note: "build enrichment failure is contained" });
+        }
+      }
+    } else if (op === "graph.link/v1") {
+      const edges = working.reduce((n2, d) => n2 + (d.relations || []).length, 0);
+      note = "materialized " + edges + " authored relations + " + delta.edges.length + " enriched edges";
+    } else if (op === "snapshot.commit/v1") {
+      const content = working.map((d) => d.id).join("|") + "|" + delta.nodes.length + "|" + delta.edges.length;
+      snapshot = "sha256:" + fakeSha(content) + fakeSha(content + "x") + "… (emulated content address)";
+      note = "committed " + snapshot + (node.config.activate ? " · activated atomically" : " · staged");
+      log("snapshot_committed", { snapshot, docs: working.length });
+    } else {
+      note = "no handler for " + op + " (passthrough)";
+    }
+    stages.push({ node: node.id, operator: op, durationMs: +(performance.now() - t0).toFixed(2), note, config: node.config });
+    log("build_stage", { operator: op, note });
+  }
+  return { stages, snapshot, delta, docCount: working.length };
+}
+
+/* ---------------- context pack assembly (stopgap) ----------------
+   Runs the underlying search recipe, then fills declared sections
+   under a naive 4-chars-per-token budget estimator. */
+function assembleContextPack(reg, ctxRecipe, corpus, rawQuery, log) {
+  const plan = ctxRecipe.plan;
+  const sr = plan.searchRecipe && reg.recipes[plan.searchRecipe];
+  if (!sr) {
+    log("context_failed", { ref: plan.id, note: "underlying search recipe '" + plan.searchRecipe + "' is not compiled" });
+    return { error: "search recipe '" + plan.searchRecipe + "' not found in this plugin" };
+  }
+  const { hits } = runSearchPlan(reg, sr, corpus, rawQuery, log);
+  const est = (s2) => Math.ceil((s2 || "").length / 4);
+  let used = 0, cursor = 0;
+  const sections = [];
+  for (const sec of plan.sections) {
+    const items = [];
+    const take = sec.take || 3;
+    const fields = sec.fields || ["title", "summary"];
+    for (let i = 0; i < take && cursor < hits.length; i++, cursor++) {
+      const h = hits[cursor];
+      const text = fields.map((f) => (f === "title" ? h.doc.title : f === "summary" ? h.doc.summary : f === "body" ? h.doc.body : "")).filter(Boolean).join(" — ");
+      const cost = est(text);
+      if (used + cost > plan.budgetTokens) {
+        items.push({ ref: h.ref, omitted: true, note: "over budget (" + cost + " est. tokens)" });
+        continue;
+      }
+      used += cost;
+      items.push({ ref: "ggdoc://" + h.ref, estTokens: cost, excerpt: text.slice(0, 140) + (text.length > 140 ? "…" : "") });
+    }
+    sections.push({ section: sec.name, fields, items });
+  }
+  log("context_assembled", { ref: plan.id, query: rawQuery, sections: sections.length, estTokens: used, budget: plan.budgetTokens });
+  return { recipe: plan.id, query: rawQuery, corpus: corpus.id, budgetTokens: plan.budgetTokens, estTokensUsed: used, sections };
+}
+
+/* ============================================================
+   PRESENTATION FRAMEWORK (CLIM-style, shared with siblings)
+   ============================================================ */
+const UICtx = React.createContext(null);
+function P({ ptype, value, doc, children, block }) {
+  const ui = React.useContext(UICtx);
+  const acceptable = ui.accepting && ui.accepting.ptype === ptype;
+  const Tag = block ? "div" : "span";
+  return (
+    <Tag className={"pres" + (acceptable ? " acceptable" : "")}
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); ui.openMenu(ptype, value, e.clientX, e.clientY); }}
+      onClick={(e) => { if (acceptable) { e.stopPropagation(); ui.accepting.resolve(value); ui.setAccepting(null); } }}
+      onMouseEnter={() => ui.setMouseDoc((doc || ptype + " " + value) + "   —   R: menu" + (acceptable ? "   L: ACCEPT" : ""))}
+      onMouseLeave={() => ui.setMouseDoc(null)}>
+      {children}
+    </Tag>
+  );
+}
+function Pane({ label, color, children, style, bodyStyle }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", border: "2px solid " + C.ink, background: C.pane, minHeight: 0, ...style }}>
+      <div style={{ flex: 1, overflow: "auto", padding: "6px 8px", minHeight: 0, ...bodyStyle }}>{children}</div>
+      <div style={{ borderTop: "2px solid " + C.ink, background: color, padding: "2px 8px", fontWeight: 700, letterSpacing: "0.08em", fontSize: 11, textTransform: "uppercase", flexShrink: 0 }}>{label}</div>
+    </div>
+  );
+}
+function Divider({ dir, onDelta }) {
+  const [hot, setHot] = useState(false);
+  const down = (e) => {
+    e.preventDefault();
+    let lx = e.clientX, ly = e.clientY;
+    const prev = document.body.style.userSelect; document.body.style.userSelect = "none";
+    const move = (ev) => { onDelta(ev.clientX - lx, ev.clientY - ly); lx = ev.clientX; ly = ev.clientY; };
+    const up = () => { document.body.style.userSelect = prev; window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+  };
+  const size = dir === "v" ? { width: 8, cursor: "col-resize", alignSelf: "stretch" } : { height: 8, cursor: "row-resize" };
+  return (
+    <div onMouseDown={down} onMouseEnter={() => setHot(true)} onMouseLeave={() => setHot(false)}
+      style={{ ...size, flexShrink: 0, background: hot ? C.mustard : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={dir === "v" ? { width: 2, height: 26, borderLeft: "2px dotted " + C.faint } : { height: 2, width: 26, borderTop: "2px dotted " + C.faint }} />
+    </div>
+  );
+}
+function Btn({ onClick, children, tone, disabled, title }) {
+  return (
+    <button title={title} disabled={disabled} onClick={onClick} style={{
+      fontFamily: "inherit", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
+      background: disabled ? C.paneAlt : (tone || C.blue), color: C.ink, border: "2px solid " + C.ink,
+      boxShadow: "2px 2px 0 " + C.ink, padding: "3px 10px", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1,
+    }}>{children}</button>
+  );
+}
+const EV_COLOR = {
+  plugin_compiled: C.blue, definition_registered: C.lavender, definition_conflict: C.red,
+  recipe_compiled: C.mustard, script_operator_registered: C.mustard, compile_error: C.red,
+  doc_valid: C.sage, doc_invalid: C.rose, corpus_activated: C.blue,
+  stage_executed: C.mint, rewrite_applied: C.paneAlt, vector_stage: C.paneAlt,
+  script_operator_applied: C.sage, script_operator_failed: C.red, budget_exceeded: C.red,
+  unknown_operator: C.red, search_done: C.sage, single_validation: C.sel, teaching_note: C.sel,
+  build_stage: C.mint, graph_delta: C.lavender, snapshot_committed: C.blue,
+  capability_denied: C.red, phase_violation: C.red,
+  context_assembled: C.sage, context_failed: C.red,
+};
+const LEGEND = {
+  "what this machine is": "an IDE for docgraph/docscript: JS describes documentation intent; the engine compiles it to plans and executes those plans against a corpus.",
+  "what is REAL here": "the preset scripts really execute (sandboxed definePlugin / schema DSL / search.recipe); recipes really compile to operator plans; searches really run: exact, BM25-ish, RRF, graph expansion, live bounded script operators; document types really validate docs; definition conflicts really fail.",
+  "what is emulated (stopgaps, not stubs)": "Go, Goja, SQLite, Bleve. The build pipeline runs discover→parse→extract→enrich→link→snapshot over the in-memory corpus with toy content-addressed snapshots; context packs assemble under a naive token estimator; ctx.config / ctx.graph / ctx.index are capability-gated; the vector retriever reports 'skipped' — exactly what an optional missing provider should do.",
+  "things to try": [
+    "Preset 04, corpus acme-services, query 'latency': the script operator boosts the payments runbook (active incident, via capability-gated ctx.config).",
+    "Preset 05: right-click acme:nightly-build/v1 → run the build; the enrichment op emits a graph delta and a snapshot commits.",
+    "Preset 05: right-click acme:incident-pack/v1 → assemble a context pack under its 1200-token budget.",
+    "Delete op.capability(\"host.config\") in preset 04 and recompile: capability_denied, then a contained failure.",
+    "Preset 06: a definition conflict, an unknown operator, and a script op that throws — read the trace.",
+    "Right-click a recipe → 'Run against… (accept a corpus)': CLIM accept mode.",
+    "Right-click a document type → 'Validate a document…' then click a pulsing doc.",
+    "Preset 03, query 'docaccess.Hub': exact symbol resolution beats lexical; graph expansion pulls in the MOC.",
+  ],
+};
+
+/* ============================================================
+   APP
+   ============================================================ */
+export default function App() {
+  const [, force] = useState(0);
+  const bump = useCallback(() => force((x) => x + 1), []);
+
+  const M = useRef(null);
+  if (!M.current) M.current = { trace: [], seq: 0, reg: null, valDiags: [], lastRun: null, compiledFor: null };
+  const st = M.current;
+  const log = useCallback((type, data) => { st.seq += 1; st.trace.push({ seq: st.seq, type, data: data || {} }); }, [st]);
+
+  const [menu, setMenu] = useState(null);
+  const [accepting, setAccepting] = useState(null);
+  const [mouseDoc, setMouseDoc] = useState(null);
+  const [inspected, setInspected] = useState({ title: "about this machine", value: LEGEND });
+  const [presetId, setPresetId] = useState(PRESETS[3].id);
+  const [source, setSource] = useState(PRESETS[3].src);
+  const [corpusId, setCorpusId] = useState(PRESETS[3].corpus);
+  const [query, setQuery] = useState(PRESETS[3].query);
+  const [recipeId, setRecipeId] = useState(null);
+  const traceEndRef = useRef(null);
+
+  const containerRef = useRef(null);
+  const [leftFrac, setLeftFrac] = useState(0.40);
+  const [corpH, setCorpH] = useState(215);
+  const [planH, setPlanH] = useState(190);
+  const [inspH, setInspH] = useState(235);
+
+  const corpus = CORPORA.find((c) => c.id === corpusId);
+  const reg = st.reg;
+
+  const insp = (title, value) => setInspected({ title, value });
+  const ui = {
+    accepting, setAccepting, setMouseDoc,
+    openMenu: (ptype, value, x, y) => setMenu({ ptype, value, x, y }),
+    accept: (ptype, prompt) => new Promise((resolve) => setAccepting({ ptype, prompt, resolve })),
+  };
+
+  /* ---------- engine actions ---------- */
+  const doCompile = useCallback((src, cId) => {
+    st.reg = compileScript(src, log);
+    st.compiledFor = presetId;
+    st.valDiags = validateCorpus(st.reg, CORPORA.find((c) => c.id === (cId || corpusId)), log);
+    const rids = Object.keys(st.reg.recipes);
+    setRecipeId(rids[0] || null);
+    st.lastRun = null;
+    bump();
+  }, [st, log, corpusId, presetId, bump]);
+
+  const doValidate = useCallback((cId) => {
+    if (!st.reg) return;
+    st.valDiags = validateCorpus(st.reg, CORPORA.find((c) => c.id === (cId || corpusId)), log);
+    bump();
+  }, [st, corpusId, log, bump]);
+
+  const doSearch = useCallback((q, rId, cId) => {
+    const r = st.reg && st.reg.recipes[rId || recipeId];
+    const co = CORPORA.find((c) => c.id === (cId || corpusId));
+    if (!r) { log("teaching_note", { note: "no compiled search recipe — compile a preset that registers one (03, 04, 05, 06)" }); bump(); return; }
+    const res = runSearchPlan(st.reg, r, co, q !== undefined ? q : query, log);
+    st.lastRun = { query: q !== undefined ? q : query, recipe: r.plan.id, corpus: co.id, ...res };
+    log("search_done", { recipe: r.plan.id, corpus: co.id, query: st.lastRun.query, hits: res.hits.length });
+    bump();
+  }, [st, recipeId, corpusId, query, log, bump]);
+
+  const loadPreset = useCallback((pid, andRun) => {
+    const p = PRESETS.find((x) => x.id === pid);
+    if (!p) return;
+    setPresetId(pid); setSource(p.src); setCorpusId(p.corpus); setQuery(p.query);
+    log("teaching_note", { note: "loaded preset '" + p.label + "' — suggested corpus " + p.corpus + ", query \"" + p.query + "\"" });
+    if (andRun) {
+      st.reg = compileScript(p.src, log);
+      st.compiledFor = pid;
+      st.valDiags = validateCorpus(st.reg, CORPORA.find((c) => c.id === p.corpus), log);
+      const rids = Object.keys(st.reg.recipes);
+      setRecipeId(rids[0] || null);
+      if (rids[0]) {
+        const res = runSearchPlan(st.reg, st.reg.recipes[rids[0]], CORPORA.find((c) => c.id === p.corpus), p.query, log);
+        st.lastRun = { query: p.query, recipe: rids[0], corpus: p.corpus, ...res };
+        log("search_done", { recipe: rids[0], corpus: p.corpus, query: p.query, hits: res.hits.length });
+      } else st.lastRun = null;
+    }
+    bump();
+  }, [st, log, bump]);
+
+  useEffect(() => { loadPreset(PRESETS[3].id, true); }, []); // eslint-disable-line
+  useEffect(() => { traceEndRef.current && traceEndRef.current.scrollIntoView({ behavior: "smooth" }); }, [st.trace.length]); // eslint-disable-line
+  useEffect(() => {
+    const esc = (e) => { if (e.key === "Escape") { setMenu(null); if (accepting) { accepting.resolve(null); setAccepting(null); } } };
+    window.addEventListener("keydown", esc); return () => window.removeEventListener("keydown", esc);
+  }, [accepting]);
+
+  /* ---------- inspector describers ---------- */
+  const fnSafe = (k, v) => (typeof v === "function" ? "[live function " + (v.name || "anonymous") + "] (never serialized into the plan)" : (v && v.__schema ? schemaSummary(v) : v));
+  const describeDoc = (d) => ({
+    ref: "ggdoc://" + d.id, type: d.type, title: d.title, summary: d.summary,
+    blocks: d.blocks, symbols: d.symbols, aliases: d.aliases, frontmatter: d.meta,
+    relations: (d.relations || []).map((r) => r.predicate + " → " + r.target),
+    bodyPreview: d.body.slice(0, 160) + (d.body.length > 160 ? "…" : ""),
+  });
+  const describeHit = (h) => ({
+    rank: h.rank, ref: "ggdoc://" + h.ref, type: h.type, score: h.score,
+    reasons: h.reasons, components: h.components,
+    snapshot: "(emulated) sha256:corpus-" + (st.lastRun ? st.lastRun.corpus : "?"),
+  });
+  const describeRecipe = (rid) => {
+    const r = reg.recipes[rid];
+    return {
+      id: rid, registeredAs: r.name,
+      note: "a SearchPlan is data — operator refs, port bindings, canonical config; no closures",
+      nodes: r.plan.nodes.map((n) => ({ [n.id]: { operator: n.operator, inputs: Object.fromEntries(Object.entries(n.inputs).map(([k, v]) => [k, v.__node])), config: n.config } })),
+      output: r.plan.output,
+    };
+  };
+  const describeOp = (ref) => {
+    const o = reg.scriptOps[ref];
+    return {
+      ref, phase: o.phase, implementation: o.implName + "() — live JS, invoked only through this contract",
+      inputs: o.inputs, outputs: o.outputs, pure: o.pure, bounds: o.bounds,
+      capabilities: o.capabilities, configSchema: schemaSummary(o.config),
+    };
+  };
+  const describeDocType = (ref) => {
+    const d = reg.docTypes[ref];
+    return { ref, label: d.label, requiredBlocks: d.requiredBlocks, optionalBlocks: d.optionalBlocks, repeatedBlocks: d.repeatedBlocks, frontmatter: schemaSummary(d.frontmatter) };
+  };
+  const describePlan = () => ({
+    plugin: (reg.pluginId || "(none)") + "@" + (reg.version || "?"), summary: reg.summary,
+    allowedScopes: reg.scopes, requires: reg.requires,
+    definitions: reg.defOrder.map((d) => d.kind + " " + d.ref),
+    sources: reg.sources.map((x) => x.name + " " + JSON.stringify(x.cfg.include || [])),
+    scriptOperators: Object.keys(reg.scriptOps).map((r) => r + " [" + (reg.scriptOps[r].phase || "?") + (reg.scriptOps[r].capabilities.length ? " · caps: " + reg.scriptOps[r].capabilities.join(",") : "") + "]"),
+    searchRecipes: Object.keys(reg.recipes),
+    buildRecipes: Object.keys(reg.buildRecipes),
+    contextRecipes: Object.keys(reg.contextRecipes),
+    commands: reg.commands.map((c) => c.name), agentTools: reg.agentTools.map((t) => t.name),
+    diagnostics: reg.diagnostics.map((d) => d.level.toUpperCase() + " " + d.ref + ": " + d.message),
+  });
+
+  /* ---------- context-menu actions per presentation type ---------- */
+  const actions = {
+    doc: (id) => {
+      const d = corpus.docs.find((x) => x.id === id); if (!d) return [];
+      const acts = [{ label: "Inspect document", run: () => insp("ggdoc://" + id, describeDoc(d)) }];
+      if (reg && reg.docTypes[d.type]) acts.push({
+        label: "Validate against " + d.type, run: () => {
+          const diags = validateCorpus(reg, { docs: [d], hostConfig: {} }, log);
+          insp("validation: " + id, diags.map((x) => x.level.toUpperCase() + ": " + x.message));
+          log("single_validation", { doc: id, result: diags.map((x) => x.level).join(",") }); bump();
+        },
+      });
+      acts.push({ label: "Show graph neighbors", run: () => {
+        const fwd = (d.relations || []).map((r) => r.predicate + " → " + r.target);
+        const inv = corpus.docs.filter((o) => (o.relations || []).some((r) => r.target === id)).map((o) => o.id + " → this");
+        insp("neighbors of " + id, { forward: fwd, inverse: inv });
+      }});
+      acts.push({ label: "Use title as query", run: () => { setQuery(d.title); } });
+      return acts;
+    },
+    corpus: (id) => {
+      const c = CORPORA.find((x) => x.id === id); if (!c) return [];
+      return [
+        { label: "Activate corpus", run: () => { setCorpusId(id); log("corpus_activated", { corpus: id, docs: c.docs.length }); if (st.reg) doValidate(id); bump(); } },
+        { label: "Inspect corpus", run: () => insp("corpus " + id, { id, docs: c.docs.map((d) => d.id + "  (" + d.type + ")"), hostConfig: c.hostConfig, note: c.blurb }) },
+        { label: "Validate all documents", run: () => { setCorpusId(id); doValidate(id); } },
+      ];
+    },
+    docType: (ref) => reg && reg.docTypes[ref] ? [
+      { label: "Inspect definition", run: () => insp(ref, describeDocType(ref)) },
+      { label: "Validate a document…  (accept a doc)", run: async () => {
+        const id = await ui.accept("doc", "Click a DOCUMENT in the corpus pane to validate it against " + ref + " (Esc cancels)");
+        if (id) {
+          const d = corpus.docs.find((x) => x.id === id);
+          const diags = validateCorpus(reg, { docs: [d], hostConfig: {} }, log);
+          insp("validation: " + id + " as " + ref, diags.map((x) => x.level.toUpperCase() + ": " + x.message));
+          bump();
+        }
+      }},
+      { label: "List documents of this type", run: () => insp("docs of type " + ref, corpus.docs.filter((d) => d.type === ref).map((d) => d.id)) },
+    ] : [],
+    predicate: (ref) => reg && reg.predicates[ref] ? [{ label: "Inspect predicate", run: () => insp(ref, JSON.parse(JSON.stringify(reg.predicates[ref], fnSafe))) }] : [],
+    vocab: (ref) => reg && reg.vocabularies[ref] ? [{ label: "Inspect vocabulary", run: () => insp(ref, reg.vocabularies[ref]) }] : [],
+    nodeType: (ref) => reg && reg.nodeTypes[ref] ? [{ label: "Inspect node type", run: () => insp(ref, JSON.parse(JSON.stringify(reg.nodeTypes[ref], fnSafe))) }] : [],
+    operator: (ref) => reg && reg.scriptOps[ref] ? [{ label: "Inspect script operator", run: () => insp(ref, describeOp(ref)) }] : [],
+    recipe: (rid) => reg && reg.recipes[rid] ? [
+      { label: "Inspect compiled SearchPlan", run: () => insp(rid, describeRecipe(rid)) },
+      { label: "Run current query with this recipe", run: () => { setRecipeId(rid); doSearch(undefined, rid); } },
+      { label: "Run against…  (accept a corpus)", run: async () => {
+        const cid = await ui.accept("corpus", "Click a CORPUS to run " + rid + " against it (Esc cancels)");
+        if (cid) { setCorpusId(cid); setRecipeId(rid); doSearch(undefined, rid, cid); }
+      }},
+    ] : [],
+    buildRecipe: (rid) => reg && reg.buildRecipes[rid] ? [
+      { label: "Inspect build plan (phases)", run: () => insp(rid, { id: rid, phases: reg.buildRecipes[rid].plan.nodes.map((n) => ({ [n.id]: { operator: n.operator, config: n.config } })), note: "a BuildPlan is data; enrichment ops return typed graph deltas" }) },
+      { label: "Run build against active corpus", run: () => {
+        const res = runBuildPlan(reg, reg.buildRecipes[rid], corpus, log);
+        insp("build result: " + rid, {
+          corpus: corpus.id, docsProcessed: res.docCount, snapshot: res.snapshot,
+          graphDelta: { nodes: res.delta.nodes, edges: res.delta.edges.map((e) => e.from + " —" + e.predicate + "→ " + e.to) },
+          stages: res.stages.map((s2) => ({ [s2.operator]: s2.note })),
+        });
+        bump();
+      }},
+      { label: "Run build against…  (accept a corpus)", run: async () => {
+        const cid = await ui.accept("corpus", "Click a CORPUS to run " + rid + " against it (Esc cancels)");
+        if (cid) {
+          const co = CORPORA.find((c) => c.id === cid);
+          const res = runBuildPlan(reg, reg.buildRecipes[rid], co, log);
+          insp("build result: " + rid, { corpus: cid, docsProcessed: res.docCount, snapshot: res.snapshot, graphDelta: res.delta, stages: res.stages.map((s2) => ({ [s2.operator]: s2.note })) });
+          bump();
+        }
+      }},
+    ] : [],
+    ctxRecipe: (rid) => reg && reg.contextRecipes[rid] ? [
+      { label: "Inspect context plan (sections, budget)", run: () => insp(rid, reg.contextRecipes[rid].plan) },
+      { label: "Assemble pack with current query", run: () => {
+        const pack = assembleContextPack(reg, reg.contextRecipes[rid], corpus, query, log);
+        insp("context pack: " + rid, pack);
+        bump();
+      }},
+    ] : [],
+    hit: (ref) => {
+      const h = st.lastRun && st.lastRun.hits.find((x) => x.ref === ref); if (!h) return [];
+      return [
+        { label: "Inspect hit (components, reasons)", run: () => insp("hit " + ref, describeHit(h)) },
+        { label: "Inspect underlying document", run: () => insp("ggdoc://" + ref, describeDoc(h.doc)) },
+        { label: "Explain via stage trace", run: () => insp("stages for '" + st.lastRun.query + "'", st.lastRun.stages.map((s) => ({ [s.operator]: { count: s.count, ms: s.durationMs, note: s.note } }))) },
+      ];
+    },
+    diag: (i) => {
+      const d = st.valDiags[i]; if (!d) return [];
+      const acts = [{ label: "Inspect diagnostic", run: () => insp("diagnostic", d) }];
+      if (d.doc) acts.push({ label: "Inspect document " + d.doc, run: () => { const doc = corpus.docs.find((x) => x.id === d.doc); if (doc) insp("ggdoc://" + d.doc, describeDoc(doc)); } });
+      return acts;
+    },
+    event: (seq) => {
+      const e = st.trace.find((x) => x.seq === seq);
+      return e ? [{ label: "Inspect event", run: () => insp("event #" + seq + " " + e.type, e) }] : [];
+    },
+    stage: (i) => {
+      const s2 = st.lastRun && st.lastRun.stages[i]; if (!s2) return [];
+      return [{ label: "Inspect stage", run: () => insp(s2.operator, s2) }];
+    },
+  };
+
+  const defChip = (kind, ref, ptype, tone) => (
+    <P key={kind + ref} ptype={ptype} value={ref} doc={kind + " " + ref}>
+      <span style={{ border: "1px solid " + C.ink, background: tone || C.paneAlt, padding: "0 5px", fontSize: 10, marginRight: 4, display: "inline-block", marginBottom: 2 }}>{ref}</span>
+    </P>
+  );
+
+  const scoreBar = (score, max) => (
+    <span style={{ display: "inline-block", width: 46, height: 7, border: "1px solid " + C.ink, background: C.paneAlt, verticalAlign: "middle" }}>
+      <span style={{ display: "block", height: "100%", width: clamp((score / (max || 1)) * 100, 2, 100) + "%", background: C.mustard }} />
+    </span>
+  );
+
+  const maxScore = st.lastRun && st.lastRun.hits.length ? Math.max(...st.lastRun.hits.map((h) => h.score)) : 1;
+  const errCount = reg ? reg.diagnostics.filter((d) => d.level === "error").length : 0;
+  const valErr = st.valDiags.filter((d) => d.level === "error").length;
+
+  return (
+    <UICtx.Provider value={ui}>
+      <div onClick={() => setMenu(null)} style={{
+        fontFamily: "'IBM Plex Mono', ui-monospace, Menlo, monospace", background: C.paper, color: C.ink,
+        height: "100vh", display: "flex", flexDirection: "column", fontSize: 12,
+      }}>
+        <style>{`
+          .pres { cursor: context-menu; }
+          .pres:hover { outline: 1px dotted ${C.ink}; background: ${C.sel}; }
+          .pres.acceptable { outline: 2px solid ${C.red}; background: ${C.sel}; animation: pulse 0.9s infinite; cursor: pointer; }
+          @keyframes pulse { 50% { outline-color: ${C.mustard}; } }
+          ::-webkit-scrollbar { width: 12px; height: 12px; }
+          ::-webkit-scrollbar-thumb { background: ${C.faint}; border: 3px solid ${C.pane}; }
+          ::-webkit-scrollbar-track { background: ${C.paneAlt}; }
+          textarea:focus, input:focus, select:focus { outline: 2px solid ${C.mustard}; }
+          @media (prefers-reduced-motion: reduce) { .pres.acceptable { animation: none; } }
+        `}</style>
+
+        <div style={{ background: C.ink, color: C.paper, textAlign: "center", padding: "4px 0", fontWeight: 700, letterSpacing: "0.3em", fontSize: 13, flexShrink: 0 }}>
+          D O C G R A P H &nbsp; W O R K B E N C H &nbsp;—&nbsp; S C R I P T S ,&nbsp; C O R P O R A ,&nbsp; P L A N S
+        </div>
+        {accepting && (
+          <div style={{ background: C.red, color: C.paper, padding: "3px 10px", fontWeight: 700, flexShrink: 0 }}>
+            ACCEPTING &lt;{accepting.ptype}&gt; — {accepting.prompt}
+          </div>
+        )}
+
+        <div ref={containerRef} style={{ flex: 1, display: "flex", padding: 8, minHeight: 0 }}>
+
+          {/* ===== LEFT: script editor + corpora ===== */}
+          <div style={{ display: "flex", flexDirection: "column", minHeight: 0, width: (leftFrac * 100) + "%", minWidth: 340 }}>
+            <Pane style={{ flex: 1, minHeight: 140 }} label="Docscript — authoring runs once; plans survive" color={C.lavender}
+              bodyStyle={{ display: "flex", flexDirection: "column", gap: 6, padding: 6 }}>
+              <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                <select value={presetId} onChange={(e) => loadPreset(e.target.value, false)}
+                  style={{ border: "2px solid " + C.ink, background: C.pane, fontSize: 11, padding: "2px 4px", maxWidth: 300 }}>
+                  {PRESETS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+                </select>
+                <Btn tone={C.sage} onClick={() => doCompile(source)}>Compile plugin</Btn>
+                <Btn tone={C.blue} onClick={() => doValidate()} disabled={!reg}>Validate corpus</Btn>
+                {reg && (
+                  <span style={{ fontSize: 10, border: "1px solid " + C.ink, background: errCount ? C.rose : C.mint, padding: "0 5px" }}>
+                    {reg.defOrder.length} defs · {errCount} errors
+                  </span>
+                )}
+              </div>
+              <textarea value={source} onChange={(e) => setSource(e.target.value)} spellCheck={false}
+                onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") doCompile(source); }}
+                style={{
+                  flex: 1, minHeight: 80, resize: "none", border: "2px solid " + C.ink, background: "#fbf8ef",
+                  fontFamily: "inherit", fontSize: 11, lineHeight: 1.45, padding: 8, whiteSpace: "pre", overflow: "auto",
+                }} />
+              <div style={{ fontSize: 10, color: C.faint }}>⌘/Ctrl-Enter compiles · the editor is live — break things on purpose (preset 06 shows what good failure looks like)</div>
+            </Pane>
+
+            <Divider dir="h" onDelta={(dx, dy) => setCorpH((h) => clamp(h - dy, 120, 460))} />
+
+            <Pane style={{ height: corpH, flexShrink: 0 }} label="Corpora — canonical test documents" color={C.blue}>
+              {CORPORA.map((c) => (
+                <div key={c.id} style={{ marginBottom: 7 }}>
+                  <div style={{ display: "flex", gap: 6, alignItems: "baseline", flexWrap: "wrap" }}>
+                    <P ptype="corpus" value={c.id} doc={"corpus " + c.id + " (" + c.docs.length + " docs)"}>
+                      <span style={{ border: "2px solid " + C.ink, background: c.id === corpusId ? C.sel : C.paneAlt, padding: "1px 7px", fontWeight: 700 }}>
+                        {c.id === corpusId ? "▣ " : "▢ "}{c.title}
+                      </span>
+                    </P>
+                    <span style={{ fontSize: 10, color: C.faint }}>{c.blurb}</span>
+                  </div>
+                  <div style={{ marginTop: 3, marginLeft: 6, display: "flex", flexWrap: "wrap", gap: 3 }}>
+                    {c.docs.map((d) => {
+                      const vd = c.id === corpusId ? st.valDiags.filter((x) => x.doc === d.id) : [];
+                      const bad = vd.some((x) => x.level === "error");
+                      const ok = vd.some((x) => x.level === "ok");
+                      return (
+                        <P key={d.id} ptype="doc" value={d.id} doc={d.type + "  ·  " + d.title}>
+                          <span style={{
+                            border: "1px solid " + C.ink, padding: "0 5px", fontSize: 10,
+                            background: bad ? C.rose : ok ? C.mint : C.paneAlt,
+                            textDecoration: "underline dotted",
+                          }}>{d.id}</span>
+                        </P>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+              <div style={{ borderTop: "1px dashed " + C.faint, paddingTop: 4, fontSize: 10, color: C.faint }}>
+                doc chips turn <span style={{ background: C.mint, border: "1px solid " + C.ink, padding: "0 3px" }}>green</span> /
+                <span style={{ background: C.rose, border: "1px solid " + C.ink, padding: "0 3px", marginLeft: 3 }}>red</span> after validation ·
+                host config of the active corpus feeds ctx.config in script operators
+              </div>
+            </Pane>
+          </div>
+
+          <Divider dir="v" onDelta={(dx) => setLeftFrac((f) => clamp(f + dx / ((containerRef.current && containerRef.current.clientWidth) || 1200), 0.28, 0.62))} />
+
+          {/* ===== RIGHT: plan + results + trace/inspector ===== */}
+          <div style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1, minWidth: 360 }}>
+
+            <Pane style={{ height: planH, flexShrink: 0 }} label={"Compiled plugin plan" + (reg ? " — " + (reg.pluginId || "(none)") + "@" + (reg.version || "?") : " — nothing compiled")} color={C.mustard}>
+              {!reg && <div style={{ color: C.faint }}>Press Compile. The plan pane shows what survives authoring: normalized definitions, operator registrations, recipes — data, not closures.</div>}
+              {reg && (
+                <div style={{ fontSize: 11 }}>
+                  <div style={{ marginBottom: 3 }}>
+                    <P ptype="plan" value="plan" doc={"PluginPlan for " + reg.pluginId}>
+                      <span style={{ border: "1px solid " + C.ink, background: C.sel, padding: "0 6px", fontWeight: 700 }}
+                        onClickCapture={() => insp("PluginPlan " + reg.pluginId, describePlan())}>PluginPlan</span>
+                    </P>
+                    <span style={{ color: C.faint, marginLeft: 6 }}>{reg.summary || "(no summary)"}{reg.scopes.length ? "  ·  scopes: " + reg.scopes.join(",") : ""}</span>
+                  </div>
+                  {Object.keys(reg.docTypes).length > 0 && <div><span style={{ color: C.faint }}>doc types </span>{Object.keys(reg.docTypes).map((r) => defChip("document-type", r, "docType", C.mint))}</div>}
+                  {Object.keys(reg.nodeTypes).length > 0 && <div><span style={{ color: C.faint }}>node types </span>{Object.keys(reg.nodeTypes).map((r) => defChip("node-type", r, "nodeType"))}</div>}
+                  {Object.keys(reg.predicates).length > 0 && <div><span style={{ color: C.faint }}>predicates </span>{Object.keys(reg.predicates).map((r) => defChip("predicate", r, "predicate", C.lavender))}</div>}
+                  {Object.keys(reg.vocabularies).length > 0 && <div><span style={{ color: C.faint }}>vocabularies </span>{Object.keys(reg.vocabularies).map((r) => defChip("vocabulary", r, "vocab"))}</div>}
+                  {Object.keys(reg.scriptOps).length > 0 && <div><span style={{ color: C.faint }}>script ops </span>{Object.keys(reg.scriptOps).map((r) => defChip("script-operator", r, "operator", C.mustard))}</div>}
+                  {Object.keys(reg.recipes).length > 0 && <div><span style={{ color: C.faint }}>recipes </span>{Object.keys(reg.recipes).map((r) => defChip("search-recipe", r, "recipe", C.sel))}</div>}
+                  {Object.keys(reg.buildRecipes).length > 0 && <div><span style={{ color: C.faint }}>build </span>{Object.keys(reg.buildRecipes).map((r) => defChip("build-recipe", r, "buildRecipe", C.blue))}{reg.sources.map((x) => <span key={x.name} style={{ fontSize: 10, color: C.faint }}> · source "{x.name}"</span>)}</div>}
+                  {Object.keys(reg.contextRecipes).length > 0 && <div><span style={{ color: C.faint }}>context </span>{Object.keys(reg.contextRecipes).map((r) => defChip("context-recipe", r, "ctxRecipe", C.rose))}</div>}
+                  {(reg.commands.length > 0 || reg.agentTools.length > 0) && (
+                    <div style={{ color: C.faint }}>surfaces: {reg.commands.map((c) => "docs " + c.name).join(", ")}{reg.commands.length && reg.agentTools.length ? " · " : ""}{reg.agentTools.map((t) => "tool:" + t.name).join(", ")}</div>
+                  )}
+                  {(reg.diagnostics.length > 0 || valErr > 0) && (
+                    <div style={{ marginTop: 4, borderTop: "1px dashed " + C.faint, paddingTop: 3 }}>
+                      {reg.diagnostics.map((d, i) => (
+                        <div key={"pd" + i} style={{ fontSize: 10.5, color: d.level === "error" ? C.red : C.faint }}>
+                          ⚠ {d.level.toUpperCase()} · {d.ref} — {d.message}
+                        </div>
+                      ))}
+                      {st.valDiags.filter((d) => d.level === "error").map((d, i) => (
+                        <P key={"vd" + i} ptype="diag" value={st.valDiags.indexOf(d)} doc={"diagnostic on " + d.doc}>
+                          <div style={{ fontSize: 10.5, color: C.red, textDecoration: "underline dotted" }}>✗ {d.doc} — {d.message}</div>
+                        </P>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </Pane>
+
+            <Divider dir="h" onDelta={(dx, dy) => setPlanH((h) => clamp(h + dy, 100, 420))} />
+
+            <Pane style={{ flex: 1, minHeight: 100 }} label={"Search results" + (st.lastRun ? " — \"" + st.lastRun.query + "\" via " + st.lastRun.recipe + " on " + st.lastRun.corpus : "")} color={C.sage}
+              bodyStyle={{ paddingTop: 2 }}>
+              <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 5, position: "sticky", top: 0, background: C.pane, paddingBottom: 3, flexWrap: "wrap", zIndex: 2 }}>
+                <select value={recipeId || ""} onChange={(e) => setRecipeId(e.target.value)} disabled={!reg || !Object.keys(reg.recipes).length}
+                  style={{ border: "2px solid " + C.ink, background: C.pane, fontSize: 11, padding: "1px 4px", maxWidth: 210 }}>
+                  {reg && Object.keys(reg.recipes).length
+                    ? Object.keys(reg.recipes).map((r) => <option key={r} value={r}>{r}</option>)
+                    : <option value="">no compiled recipe</option>}
+                </select>
+                <input value={query} onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") doSearch(); }}
+                  style={{ flex: 1, minWidth: 120, border: "2px solid " + C.ink, background: "#fbf8ef", padding: "3px 6px", fontSize: 11 }} />
+                <Btn tone={C.mint} disabled={!reg || !recipeId} onClick={() => doSearch()}>Run plan</Btn>
+              </div>
+
+              {!st.lastRun && <div style={{ color: C.faint }}>No plan executed yet.</div>}
+              {st.lastRun && (
+                <>
+                  <div style={{ fontSize: 10, marginBottom: 4, display: "flex", flexWrap: "wrap", gap: 3, alignItems: "center" }}>
+                    <span style={{ color: C.faint }}>stages:</span>
+                    {st.lastRun.stages.map((s2, i) => (
+                      <React.Fragment key={i}>
+                        {i > 0 && <span style={{ color: C.faint }}>→</span>}
+                        <P ptype="stage" value={i} doc={s2.operator + "  ·  " + s2.note}>
+                          <span style={{ border: "1px solid " + C.ink, background: s2.note.startsWith("IMPLEMENTATION THREW") || s2.note.startsWith("UNKNOWN") ? C.rose : C.paneAlt, padding: "0 4px" }}>
+                            {s2.operator.replace("/v1", "")}·{s2.count}
+                          </span>
+                        </P>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                  {st.lastRun.hits.length === 0 && <div style={{ color: C.faint }}>0 hits — try a different query or corpus.</div>}
+                  {st.lastRun.hits.map((h) => (
+                    <div key={h.ref} style={{ marginBottom: 4, display: "flex", gap: 6, alignItems: "baseline" }}>
+                      <span style={{ color: C.faint, fontSize: 10, width: 16, textAlign: "right", flexShrink: 0 }}>{h.rank}</span>
+                      {scoreBar(h.score, maxScore)}
+                      <span style={{ fontSize: 10, width: 46, flexShrink: 0 }}>{h.score.toFixed(3)}</span>
+                      <div style={{ minWidth: 0 }}>
+                        <P ptype="hit" value={h.ref} doc={"hit " + h.ref + "  score " + h.score}>
+                          <span style={{ fontWeight: 700, textDecoration: "underline dotted" }}>{h.title}</span>
+                        </P>
+                        <span style={{ fontSize: 9.5, border: "1px solid " + C.ink, background: h.type === "acme:runbook" ? C.rose : C.paneAlt, padding: "0 4px", marginLeft: 5 }}>{h.type}</span>
+                        <span style={{ fontSize: 9.5, color: C.faint, marginLeft: 5 }}>
+                          {Object.keys(h.components).map((c2) => c2 + (h.components[c2].rank ? "#" + h.components[c2].rank : "")).join(" ")}
+                        </span>
+                        <div style={{ fontSize: 10, color: C.faint }}>
+                          {h.reasons.slice(0, 2).join("  ·  ")}{h.reasons.length > 2 ? "  ·  +" + (h.reasons.length - 2) + " more" : ""}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </Pane>
+
+            <Divider dir="h" onDelta={(dx, dy) => setInspH((h) => clamp(h - dy, 90, 600))} />
+
+            <div style={{ display: "flex", height: inspH, flexShrink: 0, minHeight: 0 }}>
+              <Pane style={{ flex: 1.15, minWidth: 0 }} label="Trace — compilation, validation, execution" color={C.mint}>
+                {st.trace.map((e) => (
+                  <div key={e.seq} style={{ display: "flex", gap: 6, alignItems: "baseline", marginBottom: 1 }}>
+                    <span style={{ color: C.faint, fontSize: 10, width: 26, textAlign: "right", flexShrink: 0 }}>{e.seq}</span>
+                    <P ptype="event" value={e.seq} doc={"event #" + e.seq + " " + e.type}>
+                      <span style={{ background: EV_COLOR[e.type] || C.paneAlt, border: "1px solid " + C.ink, padding: "0 4px", fontSize: 9.5, fontWeight: 700 }}>{e.type}</span>
+                    </P>
+                    <span style={{ fontSize: 10.5, wordBreak: "break-word" }}>
+                      {e.data.kind && <span style={{ color: C.faint }}>{e.data.kind} </span>}
+                      {e.data.ref && <b>{e.data.ref} </b>}
+                      {e.data.plugin && <b>{e.data.plugin} </b>}
+                      {e.data.recipe && <span>{e.data.recipe} </span>}
+                      {e.data.operator && <span>{e.data.operator} </span>}
+                      {e.data.doc && <b>{e.data.doc} </b>}
+                      {e.data.corpus && <span>[{e.data.corpus}] </span>}
+                      {e.data.query && <span>"{e.data.query}" </span>}
+                      {e.data.impl && <span style={{ color: C.faint }}>{e.data.impl}() </span>}
+                      {e.data.count !== undefined && <span>·{e.data.count} </span>}
+                      {e.data.hits !== undefined && <b>→ {e.data.hits} hits </b>}
+                      {e.data.adjusted !== undefined && <b>adjusted {e.data.adjusted} </b>}
+                      {e.data.nodes !== undefined && <span>+{e.data.nodes}n/+{e.data.edges}e </span>}
+                      {e.data.snapshot && <span style={{ color: C.faint }}>{String(e.data.snapshot).slice(0, 24)}… </span>}
+                      {e.data.capability && <b style={{ color: C.red }}>{e.data.capability} </b>}
+                      {e.data.estTokens !== undefined && <span>{e.data.estTokens}/{e.data.budget} tok </span>}
+                      {e.data.ms && <span style={{ color: C.faint }}>{e.data.ms}ms </span>}
+                      {e.data.error && <b style={{ color: C.red }}>{e.data.error} </b>}
+                      {e.data.note && <span style={{ color: C.faint }}>· {e.data.note}</span>}
+                    </span>
+                  </div>
+                ))}
+                <div ref={traceEndRef} />
+              </Pane>
+              <div style={{ width: 8 }} />
+              <Pane style={{ flex: 1, minWidth: 0 }} label="Inspector" color={C.rose}>
+                <div style={{ fontWeight: 700, marginBottom: 4, borderBottom: "1px dashed " + C.faint }}>{inspected.title}</div>
+                <pre style={{ margin: 0, fontSize: 10.5, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                  {JSON.stringify(inspected.value, (k, v) => (typeof v === "function" ? "[live function " + (v.name || "anonymous") + "]" : (v && v.__schema ? schemaSummary(v) : v)), 2)}
+                </pre>
+              </Pane>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ background: C.ink, color: C.paper, padding: "3px 10px", fontSize: 11, flexShrink: 0, display: "flex", gap: 16 }}>
+          <span style={{ color: C.mustard, fontWeight: 700 }}>{accepting ? "ACCEPT MODE" : "READY"}</span>
+          <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {mouseDoc || (accepting ? accepting.prompt + "   (Esc: abort)" : "R: object menu on docs, corpora, types, predicates, operators, recipes, hits, stages, diagnostics, events")}
+          </span>
+          <span style={{ color: C.faint }}>plans are data · script ops run bounded · definitions never last-write-wins</span>
+        </div>
+
+        {menu && (
+          <div onClick={(e) => e.stopPropagation()} style={{
+            position: "fixed", left: Math.min(menu.x, (typeof window !== "undefined" ? window.innerWidth : 800) - 340), top: Math.min(menu.y, (typeof window !== "undefined" ? window.innerHeight : 600) - 180), zIndex: 100,
+            background: C.pane, border: "2px solid " + C.ink, boxShadow: "4px 4px 0 " + C.ink, minWidth: 280,
+          }}>
+            <div style={{ background: C.ink, color: C.paper, padding: "2px 8px", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em" }}>
+              &lt;{menu.ptype}&gt; {typeof menu.value === "string" ? (menu.value.length > 34 ? menu.value.slice(0, 30) + "…" : menu.value) : menu.value}
+            </div>
+            {(actions[menu.ptype] ? actions[menu.ptype](menu.value) : []).map((a, i) => (
+              <div key={i} onClick={() => { setMenu(null); a.run(); }}
+                style={{ padding: "4px 10px", cursor: "pointer", borderTop: i ? "1px dotted " + C.faint : "none", fontSize: 11.5 }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = C.sel)} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                {a.label}
+              </div>
+            ))}
+            {(!actions[menu.ptype] || actions[menu.ptype](menu.value).length === 0) && <div style={{ padding: "4px 10px", color: C.faint, fontSize: 11 }}>no applicable actions</div>}
+          </div>
+        )}
+      </div>
+    </UICtx.Provider>
+  );
+}

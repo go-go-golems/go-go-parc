@@ -119,8 +119,6 @@ The key enforcement pattern is now clear: deterministic registration is checked 
 
 </details>
 
-```unknown
-bash -lc cat > /mnt/data/tiny-idp-goja-interpreter-monograph.md <<'EOF'
 ---
 title: "Interpreting Identity Safely"
 subtitle: "A Technical Monograph on Tiny-IDP's Goja Microkernel, Explicit Continuations, Invocation Capabilities, and Assurance-Oriented Runtime"
