@@ -49,6 +49,7 @@ Pinocchio has several output modes, but they should share a runtime contract rat
 
 ### CLI, profiles, and declarative configuration
 
+- [[loading-pinocchio-geppetto-profiles-for-llm-and-embeddings-inference]] — playbook for loading engine and embedding profiles for LLM and embeddings inference, reusing `pinocchio/pkg/cmds/profilebootstrap` and geppetto's `AppBootstrapConfig`.
 - [[PROJ - PinocchioRC - Declarative Config Plans and Cleanup]] — the shared config-plan architecture across Glazed, Geppetto, and Pinocchio.
 - [[ARTICLE - Pinocchio Structured Streams - Protobuf JSONL RPC and Chatapp TUI Migration]] — current CLI/RPC/TUI stream contract.
 - [[PROJ - Scopedjs Runtime - Geppetto Final State]] — runtime profile and host history.

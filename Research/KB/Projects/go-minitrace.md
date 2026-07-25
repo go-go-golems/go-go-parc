@@ -166,6 +166,7 @@ Use queries to find relevant turns, tool calls, files, commits, and failures. Re
 
 ### Applications and case studies
 
+- [[PROJECT REPORT - Tracing Profile-Loading Adoption Across 119 Coding-Agent Sessions with go-minitrace]] — full method writeup: git-anchored attribution, the relevance-score→distinct-files-written narrowing, the inverted filesystem-grounded adoption search, and the four-count commit verification discipline.
 - [[PROJ - Nightly Transcript Review - 2026-04-16]] — repeatable nightly review pipeline.
 - [[PROJ - Cross-Model Transcript Analysis - Minimax M2.7 vs GPT-5.4]] — comparative model analysis.
 - [[ARTICLE - Transcript Mining - Using go-minitrace to Find and Fix Tool-Call Churn in Agent Sessions]] — mining tool-call behavior for process improvement.

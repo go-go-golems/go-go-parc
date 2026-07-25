@@ -49,6 +49,7 @@ Geppetto should not own every application concern. Storage, UI projections, host
 
 ### Engines, profiles, and provider boundaries
 
+- [[loading-pinocchio-geppetto-profiles-for-llm-and-embeddings-inference]] — playbook for loading engine and embedding profiles for LLM and embeddings inference, reusing `geppetto/pkg/cli/bootstrap` (`AppBootstrapConfig`, `ResolveCLIEngineSettings`, `ResolveCLIProfileRuntime`) and `geppetto/pkg/sections`.
 - [[PROJ - Geppetto - Opinionated JS APIs and Engine Profiles]] — engine profiles and the opinionated JavaScript surface.
 - [[PROJ - Geppetto - Open Responses and Chat Boundary Cutover]] — provider routing and response normalization.
 - [[PROJ - Geppetto - OpenAI Responses Image Support]] — multimodal response handling.
