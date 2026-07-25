@@ -307,6 +307,46 @@ The investigation produced a playbook and an attribution analysis. The playbook 
 
 The methodological claim is narrow and worth restating. Transcript-based attribution works when the question is stated in advance, the evidence standard is fixed before searching, and external state — git history and the filesystem — anchors every conclusion. Symbol frequency narrows; it does not conclude. The decisive evidence is always the join between a transcript operation and a verified repository object. When the question turns from building to adopting, the search inverts: the filesystem, not the transcript, supplies the target set, and the transcript is queried only to attribute what the filesystem already proved exists.
 
+## 15. Updating the skill from the investigation
+
+An investigation that produces a reusable method should leave the method reusable. The transcript-analysis skill is a set of files under `~/.pi/agent/skills/go-minitrace-transcript-analysis/`: a `SKILL.md` entry point and three reference documents. After this investigation closed, the skill was audited against what the work had actually surfaced, and three gaps were found. This section records what was added, what was left alone, and why.
+
+The audit was structured as a comparison between what the investigation did and what the skill instructed. The skill's implementation-attribution workflow — git history first, then content grep, then convert, then query writes, then verify commits — held up exactly as written. The investigation followed it step for step, and it produced correct results. That workflow was not modified. Changing a method that works is unfounded drift, and the audit exists to distinguish a real gap from a preference.
+
+The gaps were all downstream of a distinction the skill did not make: the difference between building a mechanism and adopting one.
+
+### The missing concept: adoption as a distinct question
+
+The skill had a reference document, `attribution.md`, with thirteen sections on implementation attribution. It answered the question "which session implemented this repository work?" It had no concept of the question "which session adopted this mechanism into a different codebase?" The two questions share symbols but not target files, and they require opposite search directions.
+
+Implementation attribution starts from the mechanism's own repository and moves outward into transcripts. Adoption attribution cannot start there, because the mechanism's symbols appear in review, investigation, and report sessions — not only in adoption sessions. The investigation established this concretely: a raw grep for `profilebootstrap` returned 109 files, of which 6 were implementers. Symbol frequency could not separate an adopter from a reviewer who quoted the same symbols.
+
+The technique that resolved this was the inverted search, described in Section 9. The investigation derived it from scratch. A future investigation that faces the same question should not have to derive it again. The skill update encodes the technique so the next agent starts from the solution, not from the problem.
+
+### What was added
+
+Three changes were made, each tied to a specific finding from the investigation.
+
+A new reference document, `references/adoption-attribution.md`, records the inverted-search technique. It is structured to mirror `attribution.md` so the two read as a pair: a statement of why the implementation workflow fails for adoption, the four-step inverted search (filesystem grep, convert consumer-workspace sessions, query writes to known consumer files, verify adoption commits), the broad-versus-precise query pairing and why both are kept, the handling of unresolved adopters with the `--active-since` recovery, the two adoption shapes, and a decision table for when to use it against `attribution.md`. The unresolved-adopter handling is documented as a pattern, not as a failure, because the investigation produced two such cases and the correct response — document the limit, do not force a match — is itself a methodological rule worth stating.
+
+Two query patterns were added to `references/queries.md`. The first is the symbol-relevance score, the ranking query from Section 6, with explicit framing that it is a narrowing device and not an attribution. The worked CTE counts tool calls whose command or file path touches a set of distinctive symbols, plus write and exec totals for context, and orders sessions by symbol-hit count. The framing states the limit directly: two sessions can have identical scores and opposite roles. The second is the distinct-files-written-per-session query, the decisive query from Section 7, with the two properties that made it decisive stated as design requirements — `operation_type IN ('NEW','MODIFY')` to exclude reads, and `DISTINCT` to collapse repeated edits to one row per session per file.
+
+Two additions were made to `SKILL.md` itself. The "Load references selectively" section now points at `adoption-attribution.md` alongside the existing `attribution.md` pointer, so an agent that reads the entry point knows the adoption reference exists. The Discovery caveats section gained two bolded statements: that symbol frequency narrows but does not attribute, and that adoption is a different question from implementation. Each statement cross-references the document that develops the technique. These are short pointers, not rederivations, because the skill entry point should route to depth rather than contain it.
+
+### What was left alone
+
+The audit distinguished three categories: what worked, what was missing, and what was a matter of preference. Only the second category was changed.
+
+The implementation-attribution workflow was left untouched. The evidence hierarchy (strong, supporting, weak) was left untouched. The four-count commit separation was left untouched. The role-classification query, the built-in query-commands section, the Codex parent/subagent collision guidance, and every existing flag and command example were left untouched. These held up under real use, and the investigation is the evidence that they held up.
+
+No preference-driven edits were made. The skill's section ordering, its prose style, and its choice to keep query commands in the binary rather than in the skill are not things this investigation tested. Editing them would express a taste, not a finding.
+
+### Why encode the method in the skill rather than only in the report
+
+The report and the skill serve different readers. The report is a narrative record of one investigation; it is read to understand what happened. The skill is a reusable instruction set; it is read to perform the next investigation. A technique that lives only in a report must be rediscovered each time. A technique that lives in the skill is available to every future session that loads it, without any agent having to find the report first.
+
+The inverted search is the technique most worth encoding, because it is non-obvious and generalizable. The report's Section 9 derives it. The skill's `adoption-attribution.md` states it as a method. The derivation stays in the report; the method lives in the skill. An agent that later faces an adoption question loads the skill, reads the reference, and starts from the solution. That is the reason for the update, and the measure of whether it succeeded is whether the next adoption investigation needs to re-derive the inversion.
+
 ## File reference
 
 | Artifact | Path |
@@ -319,3 +359,6 @@ The methodological claim is narrow and worth restating. Transcript-based attribu
 | Attribution analysis | ticket `PROFILE-LOADING-PLAYBOOK-2026-07-25`, `analysis/01-session-attribution-analysis.md` |
 | Diary | ticket `PROFILE-LOADING-PLAYBOOK-2026-07-25`, `reference/01-diary.md` |
 | Companion playbook | [[loading-pinocchio-geppetto-profiles-for-llm-and-embeddings-inference]] |
+| Skill: adoption reference | `~/.pi/agent/skills/go-minitrace-transcript-analysis/references/adoption-attribution.md` (new) |
+| Skill: query patterns | `~/.pi/agent/skills/go-minitrace-transcript-analysis/references/queries.md` (symbol-relevance score + distinct-files-written added) |
+| Skill: entry point | `~/.pi/agent/skills/go-minitrace-transcript-analysis/SKILL.md` (adoption reference + two caveats added) |
