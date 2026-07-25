@@ -15,7 +15,7 @@ tags:
   - security
   - glazed
   - infrastructure
-status: active
+status: complete
 type: project-report
 created: 2026-07-25
 repo: /home/manuel/code/wesen/2026-07-25--zitadel-go-test
@@ -29,14 +29,14 @@ related:
 
 This project began with a small product requirement: a public landing page, hosted signup and login, and a private todo list. The implementation became a focused study of identity boundaries because the visible feature depends on several systems agreeing about one browser session. ZITADEL owns credentials and hosted interaction. Terraform owns the identity resources. PostgreSQL stores local users and todos. A Go service owns sessions, CSRF validation, request authorization, and HTML. Docker Compose runs the local constellation. Traefik gives browsers and containers one issuer address.
 
-The application now runs locally as a complete five-service stack. Normal login through ZITADEL reaches the protected todo page. One authenticated user has created, toggled, and deleted a todo and logged out. Authorization requests use Code flow with PKCE S256, direct signup uses `prompt=create`, Terraform converges with no drift, and the non-secret smoke suite passes. A fresh registration callback and a second-user browser isolation proof remain open. That distinction is part of the result: the project has strong implementation evidence, but it does not convert partial browser coverage into a full acceptance claim.
+The application now runs locally as a complete five-service stack. Normal login and fresh hosted registration both return through the real callback to the protected todo page. Two authenticated users have proven list and mutation isolation, one-user create/toggle/delete behavior, re-login persistence, logout, CSRF rejection, and a sub-4-KiB encrypted session. Authorization requests use Code flow with PKCE S256, direct signup uses `prompt=create`, Terraform converges with no drift, and the non-secret smoke suite passes.
 
 > [!summary] Current result
 > - A Glazed-configured, server-rendered Go service implements hosted ZITADEL login/signup, encrypted cookie sessions, independent CSRF protection, PostgreSQL-backed todos, SQL-enforced ownership, embedded migrations, browser security headers, liveness, and readiness.
 > - Docker Compose runs PostgreSQL 17.2, ZITADEL 4.15.3, Login V2, Traefik 3.6.8, and a distroless non-root application container. `make compose-up` executes the required bootstrap sequence rather than starting all services at once.
 > - Terraform provider 3.3.0 creates the local organization, project, public PKCE application, redirect URIs, and login policy through an ignored RSA System API identity. The current plan is zero-drift.
 > - The most difficult deployment failure was not a ZITADEL defect. This project's Traefik read the global Docker socket, merged another project's same-named `zitadel-api` service, and routed Terraform RPCs to the foreign backend. Provider constraints fixed the defect without stopping the colleague's stack.
-> - The remaining acceptance work is explicit: complete hosted registration as a fresh user, prove two-user isolation in a browser, and record invalid-CSRF behavior. The source repository also needs a reviewed commit series; most implementation files still exist outside Git history.
+> - Final browser acceptance is complete: fresh signup callback, two-user list/mutation isolation, persistence, missing/invalid CSRF rejection, and cookie-size checks passed. The reviewed source history is published privately at `wesen/2026-07-25--zitadel-go-test`.
 
 ## 1. The project contract
 
@@ -67,10 +67,11 @@ The project design treats the following as separate evidence gates:
 | Direct signup request with `prompt=create` | Passed | Smoke test and hosted registration route reached |
 | Normal login callback | Passed | Real administrator login reached `/todos` |
 | One-user todo lifecycle | Passed | Create, toggle, delete, reload, and logout exercised |
-| Fresh hosted registration callback | Open | Registration route reached; completion hit a transient gateway timeout |
+| Fresh hosted registration callback | Passed | Disposable fresh user completed Login V2 registration and returned to `/todos` |
 | Two-user ownership in PostgreSQL | Passed | Integration test against real PostgreSQL |
-| Two-user ownership in browser | Open | Ticket task `cjw5` |
-| Missing/invalid CSRF rejected | Unit behavior passed; browser proof open | CSRF tests and protected wrapper |
+| Two-user ownership in browser | Passed | Administrator saw no foreign todo; valid-CSRF foreign toggle/delete returned `404`; owner todo remained |
+| Missing/invalid CSRF rejected | Passed | Authenticated browser-context requests returned `403` for both cases |
+| Session cookie below 4 KiB | Passed | Session value 2,456 bytes; localhost header estimate 2,902 bytes |
 | Terraform convergence | Passed | Apply followed by detailed plan exit `0` |
 | Deterministic stopped-to-healthy startup | Passed | Ordered `make compose-up` after proxy isolation fix |
 
@@ -638,33 +639,34 @@ Terraform first used an explicit operator-provided PAT boundary, then moved to t
 
 Repeated recreation exposed the cross-project Traefik collision. The final fix added provider constraints, protocol-level startup gating, and a correct Make dependency chain. The reusable procedure was written to [[Research/playbooks/infra/PLAYBOOK - Local ZITADEL Docker Compose Go Web Service]]. This report and the backfilled diary preserve both the architecture and the failed approaches.
 
-## 15. What remains incomplete
+### Phase 5: final browser acceptance and publication
 
-The open work is narrow but important.
+A fresh disposable user completed hosted password registration and returned through the real callback to `/todos`. The user created a todo, signed out, and recovered it after re-login. The administrator saw an empty list and received `404` for valid-CSRF toggle/delete requests against the fresh user's known todo ID; the owner later confirmed the todo remained. Missing and invalid CSRF tokens returned `403`. The application session value measured 2,456 bytes, below the 4 KiB threshold.
 
-### Fresh-user browser completion
+The accumulated source was then audited for ignored credentials and organized into research/design, application, deployment, and diary commits. The clean history was published to the private repository `https://github.com/wesen/2026-07-25--zitadel-go-test`.
 
-The direct `/signup` route reaches hosted registration with the correct prompt and PKCE transaction. A fresh user must still complete registration, callback, local projection, and first `/todos` render. This will also verify that the low-level signup relying party's cookies are accepted through the high-level SDK callback path in the complete browser interaction.
+## 15. Local MVP completion evidence
 
-### Two-user browser isolation
+The final evidence is stored at:
 
-The PostgreSQL integration test proves the storage invariant. Browser acceptance must create or use a second ZITADEL user, verify that the first user's todos are absent, and attempt a foreign mutation URL. The expected result is `404`, not `403`, because missing and foreign objects are intentionally indistinguishable.
+```text
+ttmp/2026/07/25/ZITADEL-001-WEBAPP-MVP--plan-a-go-webapp-mvp-with-zitadel-authentication-on-k3s/
+  sources/experiments/08-browser-e2e-final.txt
+```
 
-### Explicit browser CSRF rejection
+It records no password, authorization code, token, private key, session value, CSRF value, or cookie value. The results are:
 
-Unit tests validate token behavior and all mutations pass through the CSRF wrapper. Browser/API evidence should submit a POST with no token and one with an invalid token and record `403` responses.
+- Fresh hosted registration and callback: passed.
+- Re-login persistence: passed.
+- Two-user list isolation: passed.
+- Valid-CSRF foreign toggle/delete: `404` and no mutation.
+- Missing and invalid CSRF: `403`.
+- Application session cookie value: 2,456 bytes.
+- Estimated localhost Cookie header: 2,902 bytes.
+- Ticket tasks: 7 complete, 0 open.
+- Ticket status: complete.
 
-### Source history
-
-The source repository has only the initial commit `0fb14dc`. The implementation, ticket, scripts, and vocabulary changes are modified or untracked. This is the largest collaboration risk in the current state. Before publishing or handing off the source repository:
-
-1. inspect `.gitignore` and `.dockerignore` against `.env`, `.local/`, `.terraform/`, and Terraform state;
-2. verify no private key or secret is staged;
-3. split the implementation into reviewable commits by concern;
-4. preserve the ticket and diary in the same history or an explicitly linked documentation commit;
-5. rerun the full validation matrix from the staged tree.
-
-Runtime success does not replace source-control hygiene.
+Production deployment is not part of this local acceptance result. It remains approval-bound work under the decisions in the next section.
 
 ## 16. Production design and unresolved owner decisions
 
@@ -814,4 +816,4 @@ The project achieved its principal local engineering objective. It turned a plan
 
 The strongest part of the work is the preservation of boundaries. ZITADEL owns credentials. Terraform owns identity resources. The Go service owns its session and local authorization decisions. PostgreSQL enforces ownership in the mutation itself. Compose owns local process order. Traefik is constrained to the containers it is allowed to discover. Each boundary has a concrete failure mode and a corresponding test or operational check.
 
-The project is not yet finished as a collaborative source deliverable or as a production deployment. Fresh-user and second-user browser evidence remains open, and the source implementation has not been organized into commits. Those are visible, bounded tasks. They do not invalidate the local architecture, and they should not be omitted from its status.
+The local MVP is complete as an implemented, validated, documented, and privately published source deliverable. Fresh signup, two-user browser isolation, CSRF rejection, persistence, cookie size, Terraform convergence, deterministic startup, and automated validation all have recorded evidence. Production deployment remains a separate approval-bound project rather than an implicit extension of this ticket.
