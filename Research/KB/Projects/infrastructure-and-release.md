@@ -89,6 +89,7 @@ The recurring invariant is dependency order. A release is not a single repositor
 - [[ARTICLE - Observability - Hetzner K3s Metrics Logging and Alerting]] — platform observability.
 - [[PROJ - Serve Artifacts - Deploying to K3s with GitOps]] — application delivery.
 - [[ARTICLE - Deploying Glazed Help Browser to Argo CD - Production Deep Dive]] — Go/web deployment case study.
+- [[Research/playbooks/infra/PLAYBOOK - Argo CD Application with a local-path PVC on k3s]] — procedure for deploying a stateful application through Argo CD without deadlocking on `WaitForFirstConsumer`; covers the sync-wave invariant, file layout, Vault secrets, and the `validate_gitops.sh` check that enforces it.
 
 ## Recommended reading path
 
