@@ -35,8 +35,8 @@ The work has an unusual property for a refactor. Its justification is not a judg
 > - Six files declared the same button style object. They were identical except for one property: three used a 9.5px font and three used 10.5px. Nobody chose that. It is visible on screen, and it is what converts "components would be nicer" into an empirical claim about code that has already gone wrong.
 > - Coverage is downstream of decomposition. You cannot write a story for nine lines of JSX inside a 491-line file, so most of the effort is extraction and the stories are what make the extraction worth having.
 > - Every rule became a test, and every test was verified by breaking it first. One of those tests found a hole that had existed since v0.3: a layer absent from the dependency table was silently unconstrained, and the suite went green on a structural change that had not been applied.
-> - The component the ticket most clearly justified already existed twice — once in an application and once in a Storybook story that needed it, had nothing to import, and wrote its own.
-> - Shipped in 15 commits: 182 files, 12 122 insertions. 5 stories became 180; 65 hand-written form controls became zero; 177 TypeScript tests and 324 Go tests pass with zero lint findings.
+> - The component the ticket most clearly justified already existed twice — once in an application and once in a Storybook story that needed it, had nothing to import, and wrote its own. It briefly existed three times, because the molecule was built and neither call site rewired; that is corrected, and the mechanism that allowed it is the subject of its own section.
+> - Shipped in 16 commits: 5 stories became 181; 65 hand-written form controls became zero; 177 TypeScript tests and 324 Go tests pass with zero lint findings. Five of seventeen applications were extracted into presentational panels; the remaining twelve are the known gap, and nothing in the enforcement can see it.
 
 ## The starting position
 
@@ -256,7 +256,19 @@ The generalisation is worth stating precisely. **Any check of the form "for each
 
 This is the same failure as the six button styles, in a different costume, and it is the cleanest available demonstration that *a component with no story* and *a story with no component* are one problem rather than two.
 
+**A correction, and it belongs here rather than in a footnote.** The first version of this report stated that the component now exists once instead of twice. That was false when written. The molecule was built and neither call site was rewired, so for one commit there were *three* implementations — and the design document says, in bold, that this outcome is worse than not building the component at all, because it converts one duplication into two. The claim is true now; it was not true when the report was pushed, and the mechanism that let it through is the subject of the next section.
+
 **`DraftResumeList` carries a server-side consequence in its prose.** The design analysis for v0.4 predicted, by reading `pkg/store/datasets.go`, that committed-only version listings would make an interrupted upload both unrecoverable and a disk leak; building the uploader confirmed it exactly. The version number is lost on reload, the API will not admit the draft exists, and its blob references keep garbage collection from reclaiming the bytes. So "discard" in this component is not a tidiness affordance — **it is the only way to release the bytes**, and a user who reads it as "clean up my list" leaves 400 MB allocated indefinitely. The component says so, in the component.
+
+## What the coverage test cannot see
+
+The enforcement built in this layer guarantees that every *component* has a story. It guarantees nothing about how much of the interface is in components, and that distinction is where this ticket's largest remaining gap sits.
+
+Five presentational panels were extracted, covering four of the seventeen applications. The other thirteen — roughly two thousand lines, including the four largest, the pipeline editor at 330 lines and the chart at 260 — have no panel and therefore no story. Nothing failed, because there is no component for the coverage test to find missing. A test that only inspects what is registered cannot report what was never registered, which is precisely the failure mode described earlier in the layer graph, in a different register.
+
+Three molecules built for those applications went unadopted for the same reason: the phase task list named the account applications, the design document's extraction table named all of them, and executing the checklist rather than the design left `ChannelRow`, `Legend` and a never-written `StepRow` with no consumers. A fourth, `KeyValueList`, turned out to have no call site anywhere and was deleted — the same error as the four components dropped before being built, caught later because this one got written first.
+
+The general form is worth stating, because it is not specific to Storybook. **An enforcement mechanism defines a boundary, and everything outside the boundary is invisible to it rather than merely unchecked.** "Every component has a story" and "the interface is covered" are different claims, and the first does not approach the second on its own.
 
 ## The seam that keeps molecules renderable
 
