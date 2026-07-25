@@ -90,6 +90,8 @@ The recurring invariant is dependency order. A release is not a single repositor
 - [[PROJ - Serve Artifacts - Deploying to K3s with GitOps]] — application delivery.
 - [[ARTICLE - Deploying Glazed Help Browser to Argo CD - Production Deep Dive]] — Go/web deployment case study.
 - [[Research/playbooks/infra/PLAYBOOK - Argo CD Application with a local-path PVC on k3s]] — procedure for deploying a stateful application through Argo CD without deadlocking on `WaitForFirstConsumer`; covers the sync-wave invariant, file layout, Vault secrets, and the `validate_gitops.sh` check that enforces it.
+- [[Research/playbooks/infra/PLAYBOOK - Restic Backups to the Crib NAS]] — procedure for encrypted, deduplicated, scheduled restic backups from a laptop to TrueNAS over SFTP; covers TrueNAS dataset/user provisioning, Vault password escrow, the critical `sftp.args` option, systemd/launchd scheduling, and restore validation. Parameterized scripts at `Research/playbooks/infra/scripts/restic-crib-backup/`.
+- [[PROJECT REPORT - Restic Backup Scope Design - From 1.7T Home to a 247G Recovery Unit]] — scope investigation that turned a 1.7T home directory into a 247G restic recovery unit; covers the 3-tier classification (back up / exclude / handle separately), the dry-run that corrected a twofold underestimate, the 99-line excludes file, and the permission-denied service-owned state pattern.
 
 ## Recommended reading path
 

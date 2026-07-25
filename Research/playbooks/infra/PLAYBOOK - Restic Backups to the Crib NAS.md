@@ -28,7 +28,7 @@ related:
 
 This playbook defines the procedure for setting up an encrypted, deduplicated, scheduled restic backup from a laptop to the crib TrueNAS NAS at `192.168.0.25` (`crib.scapegoat.dev`). It covers both Linux (systemd) and macOS (launchd) sources, and it generalizes two production implementations: an Ubuntu laptop (`f`) whole-home backup and a macOS (`mimimi-2`) selected-photo/Lightroom backup.
 
-Use this playbook alongside the implementation reports [[ARTICLE - Crib Backup - From Design to Operational Restic Baseline]] and [[ARTICLE - Recoverable Mac Photo Backups with Restic TrueNAS and launchd]]. For exact historical commands and session evidence, consult docmgr tickets `CRIB-BACKUP-01` (Ubuntu) and `CRIB-OPS-20260711` (macOS) rather than copying their machine-specific IDs or paths.
+Use this playbook alongside the implementation reports [[ARTICLE - Crib Backup - From Design to Operational Restic Baseline]] and [[ARTICLE - Recoverable Mac Photo Backups with Restic TrueNAS and launchd]], and the scope investigation [[PROJECT REPORT - Restic Backup Scope Design - From 1.7T Home to a 247G Recovery Unit]]. Parameterized scripts for every step live at `Research/playbooks/infra/scripts/restic-crib-backup/`. For exact historical commands and session evidence, consult docmgr tickets `CRIB-BACKUP-01` (Ubuntu), `CRIB-OPS-20260711` (macOS), and `BACKUP-SCOPE-2026-07-25` (scope investigation) rather than copying their machine-specific IDs or paths.
 
 > [!warning] Security rule
 >
@@ -354,7 +354,7 @@ On macOS, store the password in a password manager. Do not store it next to the 
 
 ### 6.4 Create the excludes file (if backing up a home directory)
 
-Excludes are part of the architecture, not cleanup after the fact. They prevent the repository from filling with caches, generated dependency trees, build outputs, and service-owned state.
+Excludes are part of the architecture, not cleanup after the fact. They prevent the repository from filling with caches, generated dependency trees, build outputs, and service-owned state. The excludes file below is a baseline. For a real scope investigation including a dry-run, see [[PROJECT REPORT - Restic Backup Scope Design - From 1.7T Home to a 247G Recovery Unit]] and ticket `BACKUP-SCOPE-2026-07-25`, which produced a 99-line excludes file verified by `restic backup --dry-run`.
 
 ```bash
 cat > "$HOME/.config/restic/${MACHINE}/excludes" <<'EOF'
@@ -870,6 +870,7 @@ This playbook produces an operational backup with a tested restore path. It is n
 ## Evidence and implementation references
 
 - **This playbook's ticket:** `claw-stuff/ttmp/2026/07/25/PLAYBOOK-EXTRACTION-2026-07-25--extract-playbooks-from-past-work-restic-backup-to-crib-scapegoat-dev-nas/`
+- **Parameterized scripts:** `go-go-parc/Research/playbooks/infra/scripts/restic-crib-backup/` — `00-restic-crib-env.sh` (config) through `08-install-launchdaemon.sh` (macOS scheduler). See the `README.md` in that directory for a quick-start sequence.
 - **go-minitrace analysis artifacts:** `claw-stuff/scripts/2026/07/25/restic-playbook-extraction/` (queries, results, archives)
 - **Ubuntu laptop `f` ticket:** `claw-stuff/ttmp/2026/06/06/CRIB-BACKUP-01--ubuntu-to-proxmox-truenas-backup-design/`
   - Reference scripts: `scripts/01-restic-crib-env.example` through `scripts/07-restic-crib-manual-full`
