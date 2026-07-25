@@ -119,6 +119,11 @@ The design favors explicit transitions. Running an experiment does not rewrite h
 
 ### Project history and context
 
+- [[PROJECT REPORT - rag-ttc - Clean-Slate RAG Experiments in Plain Go]] —
+  records why the TTC RAG research loop stopped using Researchctl as an
+  execution dependency and moved to direct Go programs plus filesystem run
+  evidence. This is a scoped architectural reversal for RAG experiments, not a
+  removal of Researchctl's independent research and codesign roles.
 - [[PROJECT REPORT - benchmark-cpu-inference Workspace - researchctl Bootstrap Deep Dive]] — records the repository bootstrap and the original CPU-inference benchmarking direction.
 - [[PROJ - Research Lab - Filesystem-First Evidence Infrastructure]] — describes the broader filesystem-first evidence and audit infrastructure that complements researchctl.
 - [[ARTICLE - Tiny Model CPU Inference - Threads Runner Replacement and Experimental Limits]] — an applied research report demonstrating the evidence and audit problems the broader workflow is designed to handle.
@@ -159,3 +164,6 @@ Repository: `/home/manuel/code/wesen/go-go-golems/researchctl`
 ## Source notes
 
 The core implementation and experiment articles date from the June–July 2026 `benchmark-cpu-inference` work. The canonical repository is `github.com/wesen/researchctl`; the local checkout is `/home/manuel/code/wesen/go-go-golems/researchctl`.
+
+Related project map: [[rag-ttc]] documents the smaller direct-Go experiment
+architecture that now owns the clean-slate TTC RAG work.

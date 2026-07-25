@@ -67,6 +67,10 @@ The system's correctness depends on identity. A chunk must retain its source and
 
 ### Evaluation workflow and UI
 
+- [[PROJECT REPORT - rag-ttc - Clean-Slate RAG Experiments in Plain Go]] —
+  clean-slate successor that retains typed retrieval and evaluation semantics
+  while replacing DSL/workflow execution with ordinary Go programs, a small
+  experiment-directory ledger, and self-contained execution controls.
 - [[ARTICLE - RAG Evaluation - Workflow Intake UI Architecture and Data Exploration]] — intake and exploration UI.
 - [[PROJ - RAG Evaluation - Workflow Intake UI Implementation Report]] — implemented workflow surface.
 - [[ARTICLE - RAG Evaluation - Building and Validating an Initial Fixed-Truth Dataset]] — fixed-truth evaluation.
@@ -101,6 +105,7 @@ The system's correctness depends on identity. A chunk must retain its source and
 
 ## Related project maps
 
+- [[rag-ttc]] — clean-slate TTC RAG toolbox and direct-Go experiment programs.
 - [[goja-text]] — text parsing and source-preserving chunking.
 - [[goja-bleve]] — native vector and hybrid search runtime.
 - [[sessionstream]] — streamed inspection and chat evidence.

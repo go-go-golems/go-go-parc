@@ -68,6 +68,11 @@ The runtime is more important than any individual scraper. A workflow must expos
 
 ### RAG and evidence consumers
 
+- [[PROJECT REPORT - rag-ttc - Clean-Slate RAG Experiments in Plain Go]] —
+  documents the TTC RAG reset that deliberately removes Workflow V3 from the
+  experiment execution path while retaining focused durability ideas such as
+  atomic artifacts and recoverable per-item work.
+- [[rag-ttc]] — project map for the direct-Go TTC RAG toolbox.
 - [[rag-evaluation-system]] — retrieval and relevance evaluation.
 - [[goja-text]] — source-preserving text/chunking.
 - [[goja-bleve]] — search and vector indexing.
