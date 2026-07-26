@@ -16,6 +16,7 @@ repository: /home/manuel/code/wesen/go-go-golems/go-go-parc
 repository_commit: dbb76bf21c6d3293629a36603be9feee88ac8b5b
 related_files:
   - Research/KB/Projects/rag-evaluation-system.md
+  - Research/KB/Projects/rag-ttc.md
   - Research/KB/Projects/widget-dsl.md
   - Research/playbooks/building-knowledge-base.md
 ---
@@ -156,6 +157,10 @@ The comparison step prevents accidental standardization. Two projects may use si
 ### zitadel-go-test
 
 [[Research/Software Architecture Garden/zitadel-go-test/README|zitadel-go-test]] studies a small server-rendered Go application whose important architecture lies at system boundaries. It covers OIDC identity projection, organization-bound authorization, PostgreSQL ownership, signed Stripe webhook projection, Vault/VSO secret delivery, privileged database bootstrap, Kustomize tenant overlays, immutable images, Argo reconciliation, and evidence-backed production acceptance. Its failures reveal reusable guidance about oversized stateless sessions, PostgreSQL `PUBLIC CONNECT`, top-level GitOps bootstrap, and direct cross-tenant negative testing.
+
+### rag-ttc
+
+[[Research/Software Architecture Garden/rag-ttc/README|rag-ttc]] studies a plain-Go RAG experiment laboratory. Its strongest patterns are the explicit separation of experiment policy from reusable mechanisms, bounded and budgeted execution with per-item durable recovery, experiment directories as result custody, typed domain interfaces with provider adapters, and zero-budget replay as a semantic-identity test. Its active simplification work also provides direct evidence for packaging code by semantic dependency rather than first use.
 
 ## Relationship to the existing knowledge base
 
