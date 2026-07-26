@@ -33,8 +33,11 @@ historical RAG DSL, Researchctl, or Scraper Workflow V3.
 >   retrieval, fusion, reranking, generation, evaluation, and reporting.
 > - **Safe execution:** worker bounds, resource rates, finite budgets, and
 >   atomic per-item caching control expensive provider work and allow recovery.
-> - **Current evidence:** all examples pass on a deterministic synthetic corpus;
->   the authoritative TTC evaluation run is still pending input selection.
+> - **Current evidence:** persistent backends have been measured on the
+>   canonical TTC candidate dataset; a five-query OpenAI smoke and 30-query
+>   paired pilot completed within explicit provider budgets.
+> - **Current boundary:** human review is paused because independent
+>   zero-budget replay exposed an unresolved semantic-identity instability.
 
 ## Primary report
 
@@ -42,6 +45,14 @@ historical RAG DSL, Researchctl, or Scraper Workflow V3.
   textbook-style architecture and implementation deep dive, including the
   experiment directory, execution controls, cache recovery algorithm, examples,
   validation boundary, and real-TTC integration sequence.
+- [[PROJECT REPORT - rag-ttc - From Clean-Slate Toolbox to Live TTC Answer Quality Evaluation]] —
+  chronological implementation deep dive through
+  persistent backends, Geppetto profiles, real TTC measurements, recoverable
+  provider execution, live OpenAI experiments, and the replay blocker.
+- [[ARTICLE - rag-ttc - Architecture of a Reproducible Go RAG Evaluation System]] —
+  repository-oriented reference covering data records, interfaces,
+  backends, execution controls, run artifacts, answer contracts, blinded
+  review, and measurement semantics without implementation history.
 
 ## Architecture
 
@@ -76,13 +87,14 @@ packages owns a generic end-to-end workflow.
 | --- | --- |
 | Canonical records and interfaces | `pkg/rag/types.go`, `pkg/rag/components.go` |
 | Source-preserving chunking | `pkg/rag/chunking` |
-| Deterministic local embeddings | `pkg/rag/embedding` |
-| BM25 and exact vector search | `pkg/rag/lexical`, `pkg/rag/vector` |
+| Local and Geppetto embeddings | `pkg/rag/embedding`, `pkg/rag/providers/geppetto` |
+| BM25, FTS5, and exact vector search | `pkg/rag/lexical`, `pkg/rag/vector` |
 | Collapse, fusion, and hydration | `pkg/rag/retrieval` |
 | Reranking and answer generation | `pkg/rag/reranking`, `pkg/rag/generation` |
 | Retrieval metrics and reports | `pkg/rag/evaluation`, `pkg/rag/report` |
 | Workers, rates, budgets, caches | `pkg/rag/execution` |
 | Run directory lifecycle | `pkg/experiment` |
+| Live answer-quality command | `cmd/rag-ttc/cmds/experiments/answerquality` |
 | Progressive onboarding | `examples/01_chunking` through `examples/06_end_to_end_experiment` |
 
 ## Source project evidence
@@ -117,26 +129,35 @@ Important historical reports:
 
 ## Current validation boundary
 
-The package tests, race tests, build, lint, and all six examples pass. The
-examples use `pkg/sampledata`, a deterministic synthetic tree-care corpus. No
-authoritative TTC export or protected evaluation split has been run in this
-repository.
+The repository now contains and has exercised the canonical 200-document TTC
+candidate corpus, 1,982 raw representations, judged queries, persistent
+lexical/vector backends, OpenAI embeddings, and OpenAI Responses generation.
 
-This boundary must remain visible in future reports:
+The five-query smoke completed ten cells and replayed with all provider budgets
+at zero. The 30-query pilot completed 60 cells with 30 query-embedding and 60
+generation work calls. A later independent zero-budget replay found an
+identity/cache instability, so the 60-item blinded queue has not been
+distributed.
+
+The current boundary is:
 
 ```text
-synthetic example success != TTC retrieval quality
+successful provider execution
+  != reproducible review identity
+  != completed human answer-quality evidence
 ```
 
 ## Next production step
 
-1. Confirm the authoritative TTC corpus export.
-2. Confirm the approved development and protected evaluation splits.
-3. Implement a focused loader into `rag.Document` and `rag.EvaluationSet`.
-4. Record corpus and evaluation digests in the run directory.
-5. Execute and inspect the BM25 baseline.
-6. Add provider embeddings only after the input mapping is trusted.
-7. Apply worker, rate, budget, and cache controls to provider work.
+1. Audit semantic identity across retrieval evidence, generation cache keys,
+   and review IDs.
+2. Define one versioned canonical selected-evidence identity.
+3. Require at least two independent zero-budget replays with zero work calls
+   and identical evidence, answers, queues, and private keys.
+4. Commit the coherent identity fix and replay evidence.
+5. Distribute the 60-cell primary queue and balanced ten-cell overlap queue.
+6. Import annotations through a zero-budget run and publish paired arm and
+   reviewer-disagreement results.
 
 ## Working rules
 

@@ -71,6 +71,13 @@ The system's correctness depends on identity. A chunk must retain its source and
   clean-slate successor that retains typed retrieval and evaluation semantics
   while replacing DSL/workflow execution with ordinary Go programs, a small
   experiment-directory ledger, and self-contained execution controls.
+- [[PROJECT REPORT - rag-ttc - From Clean-Slate Toolbox to Live TTC Answer Quality Evaluation]] —
+  complete successor-project implementation history,
+  real TTC provider runs, and the current replay-identity boundary.
+- [[ARTICLE - rag-ttc - Architecture of a Reproducible Go RAG Evaluation System]] —
+  standalone reference for the direct-Go toolbox, persistent
+  backends, controlled provider execution, artifact model, and blinded answer
+  review.
 - [[ARTICLE - RAG Evaluation - Workflow Intake UI Architecture and Data Exploration]] — intake and exploration UI.
 - [[PROJ - RAG Evaluation - Workflow Intake UI Implementation Report]] — implemented workflow surface.
 - [[ARTICLE - RAG Evaluation - Building and Validating an Initial Fixed-Truth Dataset]] — fixed-truth evaluation.
