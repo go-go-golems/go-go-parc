@@ -75,6 +75,7 @@ The recurring invariant is dependency order. A release is not a single repositor
 - [[PROJ - K3s Migration Program - From Coolify to GitOps Platform]] — platform migration.
 - [[PROJ - Vault on K3s - Auth and Secret Delivery Platform]] — Vault delivery.
 - [[PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery]] — production ZITADEL email verification and password recovery through Vault-backed SES, including Login V2 gate versus asynchronous delivery semantics.
+- [[PROJECT REPORT - Stripe Billing - End to End Subscription Infrastructure and Acceptance]] — Terraform catalog ownership, hosted Checkout and Portal, signed webhook convergence, Tax, Test Clocks, Vault delivery, quota enforcement, and production rollout boundaries.
 - [[PROJ - Terraform Infra - Vault Platform Bring-Up, Auth Hardening, and Hair-Booking Handoff]] — infrastructure-as-code and auth.
 - [[PROJ - wesen terraform - Infra Session Report]] — Terraform operations.
 - [[ARTICLE - ArgoCD Reorganization - From Flat List to Structured Platform]] — Argo CD organization.
