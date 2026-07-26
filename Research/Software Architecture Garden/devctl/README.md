@@ -21,7 +21,7 @@ repository_commit: 303e264ab9f0d9721fc8a03eac8ed95e822735c8
 repository_ref: task/prod-tiny-idp
 repository_commit_date: 2026-07-26T17:44:09-04:00
 repository_worktree: clean
-analysis_commit: pending
+analysis_commit: 7379e4d2ff9be55f546a1361f87e3f43c244f7ab
 go_module: github.com/go-go-golems/devctl
 binary: devctl
 source_ticket: DEVCTL-OPERATOR-UX-001
@@ -168,4 +168,3 @@ This study introduces several candidates that should be tested against other rep
 - Compare wrapper-owned process evidence with local demo systems in `tiny-idp`, generated application hosts, and dev servers.
 
 The study does not promote these patterns by itself. It names the invariant, records evidence, and identifies where another project can confirm or disprove reuse.
-

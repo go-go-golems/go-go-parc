@@ -21,7 +21,7 @@ repository_commit: 303e264ab9f0d9721fc8a03eac8ed95e822735c8
 repository_ref: task/prod-tiny-idp
 repository_commit_date: 2026-07-26T17:44:09-04:00
 repository_worktree: clean
-analysis_commit: pending
+analysis_commit: 7379e4d2ff9be55f546a1361f87e3f43c244f7ab
 source_ticket: DEVCTL-OPERATOR-UX-001
 related_files:
   - pkg/protocol/types.go
@@ -228,4 +228,3 @@ The reusable invariant is not “store a catalog.” It is: **metadata used for 
 - Static precedence and deterministic conflicts make injection predictable.
 - Live handshake revalidation detects drift before side effects.
 - Provider-qualified execution resolves ambiguity explicitly.
-

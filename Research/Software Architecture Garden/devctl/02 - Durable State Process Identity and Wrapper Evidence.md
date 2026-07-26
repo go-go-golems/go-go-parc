@@ -20,7 +20,7 @@ repository_commit: 303e264ab9f0d9721fc8a03eac8ed95e822735c8
 repository_ref: task/prod-tiny-idp
 repository_commit_date: 2026-07-26T17:44:09-04:00
 repository_worktree: clean
-analysis_commit: pending
+analysis_commit: 7379e4d2ff9be55f546a1361f87e3f43c244f7ab
 source_ticket: DEVCTL-OPERATOR-UX-001
 related_files:
   - pkg/runstate/schema.go
@@ -259,4 +259,3 @@ It should not be copied wholesale into a foreground tool or a service already ma
 - A persisted process identity requires both PID and start token.
 - Wrapper artifacts make detached startup and exit observable across commands.
 - Unknown is a safety-preserving result when evidence contradicts or is incomplete.
-

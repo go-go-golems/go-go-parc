@@ -20,7 +20,7 @@ repository_commit: 303e264ab9f0d9721fc8a03eac8ed95e822735c8
 repository_ref: task/prod-tiny-idp
 repository_commit_date: 2026-07-26T17:44:09-04:00
 repository_worktree: clean
-analysis_commit: pending
+analysis_commit: 7379e4d2ff9be55f546a1361f87e3f43c244f7ab
 source_ticket: DEVCTL-OPERATOR-UX-001
 related_files:
   - pkg/runlog/contracts.go
@@ -247,4 +247,3 @@ The journal is per run, not a global operation journal. Cross-run ordering uses 
 - Queries compose filters and tail per run before stable merging.
 - Follow validates journal identity and observes `exit.json` directly.
 - Retention and polling are explicit current limits.
-
