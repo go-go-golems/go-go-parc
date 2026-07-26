@@ -91,6 +91,7 @@ Infrastructure supplies TLS, secret delivery, database provisioning, immutable i
 7. [[Research/Software Architecture Garden/zitadel-go-test/07 - Acceptance as Architecture Evidence|Acceptance as Architecture Evidence]] explains why direct positive and negative probes are part of architecture work.
 8. [[Research/Software Architecture Garden/zitadel-go-test/08 - Architecture Debt and Patterns Not to Repeat|Architecture Debt and Patterns Not to Repeat]] preserves limits and failed assumptions.
 9. [[Research/Software Architecture Garden/zitadel-go-test/09 - Candidate Ecosystem Guidelines|Candidate Ecosystem Guidelines]] extracts rules to compare with future projects.
+10. [[Research/Software Architecture Garden/zitadel-go-test/10 - PostgreSQL Backed OIDC Session Follow-up|PostgreSQL-Backed OIDC Session Follow-up]] records the implemented replacement for the oversized stateless session and its deployed restart evidence.
 
 ## Pattern map
 
@@ -142,9 +143,9 @@ Third, privileged setup and unprivileged runtime use different identities. A sho
 
 ## What remains unresolved at this snapshot
 
-The tenant deployments reached `Synced / Healthy`, trusted TLS, independent Vault paths, and direct cross-database denial. Identity acceptance uncovered a production defect in session representation: `authentication.WithCookieSession` serializes the complete OIDC context, including tokens, and the encrypted result is larger than browsers accept. The correct next step is a server-side PostgreSQL session store with a small encrypted random identifier in the cookie.
+The tenant deployments reached `Synced / Healthy`, trusted TLS, independent Vault paths, and direct cross-database denial. At the original snapshot, identity acceptance had uncovered a production defect in session representation: `authentication.WithCookieSession` serialized the complete OIDC context, including tokens, and the encrypted result was larger than browsers accept. This defect was subsequently corrected and accepted in [[Research/Software Architecture Garden/zitadel-go-test/10 - PostgreSQL Backed OIDC Session Follow-up|PostgreSQL-Backed OIDC Session Follow-up]].
 
-The initial customer-administrator handoff also remains incomplete because it requires approved external email addresses and real verification. Synthetic acceptance users can test application authorization, but they cannot substitute for the administrator invitation and handoff contract.
+The initial customer-administrator handoff still remains incomplete because it requires approved external email addresses and real verification. Synthetic acceptance users can test application authorization, but they cannot substitute for the administrator invitation and handoff contract.
 
 ## Source tickets and evidence
 
