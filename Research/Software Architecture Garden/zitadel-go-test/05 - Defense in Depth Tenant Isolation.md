@@ -19,10 +19,10 @@ related_files:
   - cmd/todo-demo/serve_test.go
   - /home/manuel/code/wesen/terraform/zitadel/toy-tenants/envs/prod/main.tf
   - /home/manuel/code/wesen/terraform/zitadel/toy-tenants/envs/prod/variables.tf
-  - /tmp/hetzner-todo-prod/gitops/kustomize/todo-tenant/base/deployment.yaml
-  - /tmp/hetzner-todo-prod/gitops/kustomize/todo-tenant/base/db-bootstrap-script-configmap.yaml
-  - /tmp/hetzner-todo-prod/gitops/kustomize/todo-tenant/overlays/prod/alpha/tenant-patch.yaml
-  - /tmp/hetzner-todo-prod/gitops/kustomize/todo-tenant/overlays/prod/beta/tenant-patch.yaml
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/todo-tenant/base/deployment.yaml
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/todo-tenant/base/db-bootstrap-script-configmap.yaml
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/todo-tenant/overlays/prod/alpha/tenant-patch.yaml
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/todo-tenant/overlays/prod/beta/tenant-patch.yaml
 ---
 
 # Defense-in-Depth Tenant Isolation

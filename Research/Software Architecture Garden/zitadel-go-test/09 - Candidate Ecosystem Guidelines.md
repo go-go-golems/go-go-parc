@@ -21,8 +21,8 @@ related_files:
   - internal/store/postgres/migrations.go
   - internal/store/postgres/billing.go
   - .github/workflows/publish-image.yaml
-  - /tmp/hetzner-todo-prod/gitops/kustomize/todo-tenant
-  - /tmp/hetzner-todo-prod/vault/policies/kubernetes
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/todo-tenant
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/vault/policies/kubernetes
 ---
 
 # Candidate Ecosystem Guidelines

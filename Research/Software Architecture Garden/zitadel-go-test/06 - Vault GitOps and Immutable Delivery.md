@@ -17,11 +17,11 @@ related_files:
   - .github/workflows/publish-image.yaml
   - Dockerfile
   - cmd/todo-demo/healthcheck.go
-  - /tmp/hetzner-todo-prod/gitops/applications/todo-tenant-alpha.yaml
-  - /tmp/hetzner-todo-prod/gitops/applications/todo-tenant-beta.yaml
-  - /tmp/hetzner-todo-prod/gitops/kustomize/todo-tenant/base/runtime-secret.yaml
-  - /tmp/hetzner-todo-prod/gitops/kustomize/todo-tenant/base/db-bootstrap-job.yaml
-  - /tmp/hetzner-todo-prod/vault/policies/kubernetes/todo-tenant-alpha.hcl
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/applications/todo-tenant-alpha.yaml
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/applications/todo-tenant-beta.yaml
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/todo-tenant/base/runtime-secret.yaml
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/todo-tenant/base/db-bootstrap-job.yaml
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/vault/policies/kubernetes/todo-tenant-alpha.hcl
 ---
 
 # Vault, GitOps, and Immutable Delivery

@@ -15,9 +15,9 @@ related_files:
   - cmd/todo-demo/serve.go
   - infra/zitadel/local/terraform.tfstate
   - infra/zitadel/local/terraform.tfstate.backup
-  - /tmp/hetzner-todo-prod/gitops/applications/todo-tenant-alpha.yaml
-  - /tmp/hetzner-todo-prod/gitops/projects/prod-apps.yaml
-  - /tmp/hetzner-todo-prod/gitops/kustomize/todo-tenant/base/db-bootstrap-script-configmap.yaml
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/applications/todo-tenant-alpha.yaml
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/projects/prod-apps.yaml
+  - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/todo-tenant/base/db-bootstrap-script-configmap.yaml
 ---
 
 # Architecture Debt and Patterns Not to Repeat
