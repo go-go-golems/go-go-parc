@@ -13,7 +13,7 @@ type: knowledge-garden
 created: 2026-07-26
 analyzed: 2026-07-26
 repository: /home/manuel/code/wesen/go-go-golems/go-go-parc
-repository_commit: dbb76bf21c6d3293629a36603be9feee88ac8b5b
+repository_commit: 37a22ab423e0879610d6cdaf574b433bbc0d8897
 related_files:
   - Research/KB/Projects/rag-evaluation-system.md
   - Research/KB/Projects/rag-ttc.md
@@ -157,6 +157,10 @@ The comparison step prevents accidental standardization. Two projects may use si
 ### zitadel-go-test
 
 [[Research/Software Architecture Garden/zitadel-go-test/README|zitadel-go-test]] studies a small server-rendered Go application whose important architecture lies at system boundaries. It covers OIDC identity projection, organization-bound authorization, PostgreSQL ownership, signed Stripe webhook projection, Vault/VSO secret delivery, privileged database bootstrap, Kustomize tenant overlays, immutable images, Argo reconciliation, and evidence-backed production acceptance. Its failures reveal reusable guidance about oversized stateless sessions, PostgreSQL `PUBLIC CONNECT`, top-level GitOps bootstrap, and direct cross-tenant negative testing.
+
+### devctl
+
+[[Research/Software Architecture Garden/devctl/README|devctl]] studies a repository-local development-environment operator whose architecture is organized around durable evidence and reconciliation. It covers desired environment state, immutable service attempts, PID/start-token ownership, wrapper request/owner/ready/exit artifacts, a shared typed controller, raw streams plus sequenced JSONL journals, declarative NDJSON plugins, live-validated dynamic command injection, Glazed CLI and help contracts, and a three-view Bubble Tea client. Its review history exposes reusable rules about starting a complete environment before health evaluation, observing terminal artifacts directly, and preserving stronger evidence during reconciliation.
 
 ### rag-ttc
 
