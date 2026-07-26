@@ -123,6 +123,182 @@ complete run
 
 Every step is an ordinary function call. The important architecture is not a hidden engine but the boundary between each call's domain contract and the command's policy.
 
+## A worked query path
+
+Consider one query in a hybrid retrieval experiment. The command already has a prepared corpus, lexical index, vector index, and embedder.
+
+```go
+query := rag.Query{
+    ID:   "q-17",
+    Text: "Which tree tolerates compacted urban soil?",
+}
+
+lexicalHits, err := lexical.Search(ctx, query, 20)
+vectorHits, err := vector.Search(ctx, query, 20)
+
+fused, err := retrieval.WeightedRRF(
+    map[string][]rag.Hit{
+        "lexical": lexicalHits,
+        "vector":  vectorHits,
+    },
+    retrieval.RRFConfig{
+        RankConstant: 60,
+        Weights:      map[string]float64{"lexical": 1, "vector": 1},
+    },
+)
+
+evidence, err := retrieval.Hydrate(fused, chunks, 8)
+```
+
+This small program crosses several patterns.
+
+The query and hits use stable domain records. `lexical.Search` and `vector.Search` are interchangeable through `rag.Searcher`. The retrieval package owns rank fusion and hydration. The command owns channel selection, limits, and weights because those values define the experiment.
+
+If the vector searcher performs live query embedding, an execution decorator may resolve the embedding cache before provider budget admission. The run directory records the cache outcome, timings, and final ranking. None of those mechanisms changes the query-path code's scientific meaning.
+
+## Package responsibilities as API boundaries
+
+### `pkg/rag`
+
+The root domain package defines records and interfaces. It should contain concepts such as `Document`, `Chunk`, `Query`, `Hit`, `Embedder`, and `Searcher`, not filesystem publication or CLI profile parsing.
+
+### `pkg/rag/<capability>`
+
+Capability packages implement one operation family:
+
+```text
+chunking      source-preserving document segmentation
+embedding     local and provider-backed vector generation
+lexical       BM25 and persistent full-text indexes
+vector        exact vector indexes
+retrieval     collapse, fusion, and evidence hydration
+reranking     evidence reordering
+generation    representation and answer generation
+evaluation    ranking metrics
+```
+
+### `pkg/rag/providers/geppetto`
+
+Provider adapters translate Geppetto engines and provider objects into RAG interfaces. They validate external response shape before returning domain values.
+
+### `pkg/rag/execution` at the analyzed commit
+
+This package contains workers, limiters, budgets, rate admission, caches, and provider-aware cache decorators. The accepted reorganization moves generic mechanics to `pkg/execution` and provider-aware decorators to the relevant RAG capabilities.
+
+### `pkg/experiment`
+
+This package owns run directories, inputs, atomic artifacts, observation streams, and terminal state. It knows nothing about retrieval or generation.
+
+### `cmd/rag-ttc/cmds/experiments`
+
+Commands own Glazed settings and experiment policy. They are composition roots.
+
+## The composition root pattern
+
+A composition root is the code location that chooses concrete implementations and connects them. In `rag-ttc`, the experiment command performs this role.
+
+```go
+func run(ctx context.Context, cfg Settings) error {
+    run, err := experiment.Create(ctx, cfg.RunOptions(), cfg)
+    if err != nil {
+        return err
+    }
+
+    embedder, closeProviders, err := resolveEmbedder(ctx, cfg)
+    if err != nil {
+        return err
+    }
+    defer closeProviders()
+
+    cachedEmbedder, err := embedding.NewCachedEmbedder(embedder, cfg.Cache)
+    if err != nil {
+        return err
+    }
+
+    lexical := buildLexicalIndex(cfg)
+    vector := buildVectorIndex(ctx, cachedEmbedder, cfg)
+
+    result, err := executeComparison(ctx, lexical, vector, cfg)
+    if err != nil {
+        _ = run.Fail(context.WithoutCancel(ctx), err)
+        return err
+    }
+
+    return run.Complete(ctx, summarize(result))
+}
+```
+
+The exact functions differ in the repository, but the responsibility assignment is concrete:
+
+- constructors build mechanisms;
+- the command selects constructors;
+- the domain interfaces connect components;
+- the run records what occurred.
+
+## Data lineage invariants
+
+Each transformation must preserve enough identity for the next stages.
+
+```text
+Document:
+    ID, text, metadata, content digest
+
+Chunk:
+    ID, document ID, exact text, source range, content digest
+
+Representation:
+    ID, chunk ID, document ID, kind, text, content digest
+
+Vector:
+    representation ID, model, numeric values
+
+Hit:
+    representation ID, chunk ID, document ID, channel, score, rank
+```
+
+The validator checks that a chunk's source range selects the same text from its document. This means chunking is not merely string splitting. It produces verifiable lineage.
+
+## Control flow and ownership
+
+The complete ownership rule can be expressed as pseudocode:
+
+```text
+command:
+    parse operational settings
+    resolve concrete capabilities
+    create run custody
+    execute experiment policy
+    complete or fail run
+
+capability:
+    accept domain input
+    implement one semantic operation
+    return domain output
+
+execution:
+    bound, admit, cache, and observe calls
+    preserve order and cancellation
+
+experiment run:
+    preserve inputs and artifacts
+    enforce terminal state
+```
+
+The architecture remains understandable because every concern has one primary owner.
+
+## How to navigate the source
+
+An unfamiliar engineer can read the repository in this order:
+
+1. `pkg/rag/types.go` to learn the records.
+2. `pkg/rag/components.go` to learn the operation boundaries.
+3. `examples/01_chunking` through `examples/06_end_to_end_experiment` to see progressive composition.
+4. `pkg/rag/execution/map.go` and `cached_map.go` to understand expensive work.
+5. `pkg/experiment/run.go` and `terminal.go` to understand custody.
+6. one concrete experiment runner to see policy.
+
+This order builds from vocabulary to mechanisms to composition. Starting with the largest runner makes the architecture appear more complicated because every layer is visible at once.
+
 ## How the patterns are woven together
 
 The package boundaries reinforce one another:

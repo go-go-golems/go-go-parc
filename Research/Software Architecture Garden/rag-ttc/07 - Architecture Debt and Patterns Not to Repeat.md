@@ -92,6 +92,166 @@ Timing experiments can write per-arm files, combined JSON, CSV, Glazed rows, obs
 
 Pairwise statistics, bootstrap intervals, reviewer overlap, and disagreement reporting are useful but have one consumer. They should remain an optional command-local module until another project demonstrates the same contract. Moving them into `pkg` merely because they are mathematically generic would create an unsupported public abstraction.
 
+## Diagnosing ownership debt
+
+The simplification audit uses dependency evidence rather than file size alone. A file is in the wrong package when its API and imports contradict the package's stated domain.
+
+For `pkg/rag/execution`, the classification is:
+
+| Files | Uses RAG types? | Correct target |
+|---|---:|---|
+| `map.go`, `budget.go`, `rate.go`, `chain.go` | No | `pkg/execution` |
+| `cache.go`, `cached_map.go`, `cached_batch_map.go` | No | `pkg/execution` |
+| `cached_embedder.go` | Yes | `pkg/rag/embedding` |
+| `cached_generation.go` generation half | Yes | `pkg/rag/generation` |
+| `cached_generation.go` reranking half | Yes | `pkg/rag/reranking` |
+
+The test is not “could another program use this?” Almost any function can be generalized. The test is “does the public contract already express a domain-independent invariant?”
+
+## Why forwarding packages would preserve the debt
+
+An internal package move can update every caller atomically. Leaving aliases such as:
+
+```go
+package execution
+
+type Budget = genericexecution.Budget
+var Map = genericexecution.Map
+```
+
+would preserve two import paths and make migration completion ambiguous. New code could continue importing the old path. Documentation would need to explain both names.
+
+The project has no external compatibility requirement for these internal packages, so the design deletes the old package after caller migration.
+
+## Why runner splitting comes last
+
+Suppose the answer-quality runner is split before shared mechanics move:
+
+```text
+runner.go
+  -> preparation.go
+  -> embedding_stage.go
+  -> retrieval_stage.go
+  -> generation_stage.go
+  -> artifact_stage.go
+```
+
+The file count improves, but command-local embedding scheduling, usage merging, provider setup, and artifact inference remain. The same responsibilities have only moved horizontally.
+
+The accepted order is:
+
+```mermaid
+flowchart LR
+    FIX[Behavior fixtures]
+    MOVE[Correct package ownership]
+    EXTRACT[Extract shared mechanisms]
+    MIGRATE[Migrate all command callers]
+    DELETE[Delete command-local mechanics]
+    SPLIT[Split remaining policy into direct functions]
+
+    FIX --> MOVE --> EXTRACT --> MIGRATE --> DELETE --> SPLIT
+```
+
+After deletion, the remaining runner functions correspond to scientific operations rather than infrastructure fragments.
+
+## A target runner before and after
+
+The current summary generation operation locally performs:
+
+```text
+build keys
+load cache
+group misses
+schedule provider calls
+observe requests
+parse responses
+validate IDs
+store each item
+merge usage
+reconstruct order
+measure arm
+write artifacts
+```
+
+The target command-local operation performs:
+
+```go
+func runSummaryVariant(ctx context.Context, arm Arm, items []Item) (ResultRow, error) {
+    groups := pack(items, arm) // experiment policy
+
+    summaries, cacheReport, err := execution.MapCachedGroups(
+        ctx,
+        groups,
+        arm.ExecutionOptions(),
+        func(ctx context.Context, group execution.Group[Item]) ([]Summary, error) {
+            request := buildSummaryRequest(group, arm) // experiment prompt policy
+            result, err := generator.Generate(ctx, request)
+            if err != nil {
+                return nil, err
+            }
+            return parseAndValidateSummaries(result.Text, group.Items)
+        },
+    )
+    if err != nil {
+        return ResultRow{}, err
+    }
+
+    return measure(arm, summaries, cacheReport), nil
+}
+```
+
+The target remains explicit about packing, prompts, and contracts. It delegates cache and scheduling mechanics.
+
+## Artifact debt as an authority problem
+
+Multiple formats are not automatically redundant. JSON, CSV, and Markdown can be useful views. Debt appears when several files can each be interpreted as the authoritative set of completed results.
+
+The correct authority chain is:
+
+```text
+completed variant JSONL records  primary
+    -> combined JSON             derived
+    -> CSV                       derived
+    -> Markdown                  derived
+    -> Glazed rows               derived
+```
+
+An exporter should never infer scientific completion from the presence of `concurrency-4.json`.
+
+## What should remain local even after cleanup
+
+The cleanup is not trying to make commands tiny. These concerns remain local:
+
+- summary arm matrices and packing policy;
+- answer prompts and structured schemas;
+- evidence context limits;
+- query and split selection;
+- result columns and human-readable report structure;
+- blinded review score definitions;
+- human-review statistics until a second consumer exists.
+
+A successful refactor leaves substantial command code because experiments contain substantial policy.
+
+## Refactor verification
+
+The refactor is incomplete unless searches show:
+
+```text
+no import of pkg/rag/execution
+no experiment importing another experiment
+no duplicate usage aggregation
+no duplicate retrieval target switches
+no command-local cache storage
+no filename-based completed-result inference
+no compatibility forwarding package
+```
+
+Behavior verification then compares command schemas, cache identities, rankings, metrics, result keys, missing usage fields, failure recovery, and zero-budget replay.
+
+## Review rule
+
+> Extraction is complete only when the old implementation is deleted and the remaining command code describes policy rather than relocated mechanics.
+
 ## Patterns not to repeat
 
 - Do not place generic code under a domain package because the first caller is domain-specific.
