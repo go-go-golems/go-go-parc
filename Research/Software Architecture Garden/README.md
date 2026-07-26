@@ -13,12 +13,14 @@ type: knowledge-garden
 created: 2026-07-26
 analyzed: 2026-07-26
 repository: /home/manuel/code/wesen/go-go-golems/go-go-parc
-repository_commit: 37a22ab423e0879610d6cdaf574b433bbc0d8897
+repository_commit: 384ba7df1df20538d6c2964de1f71464b7c92458
 related_files:
   - Research/KB/Projects/rag-evaluation-system.md
   - Research/KB/Projects/rag-ttc.md
   - Research/KB/Projects/widget-dsl.md
   - Research/playbooks/building-knowledge-base.md
+  - Projects/2026/07/17/ARTICLE - Upwork Tracker Agent Interfaces - Safe REST and jsverbs Automation.md
+  - Projects/2026/07/26/PROJECT REPORT - Upwork Tracker Self-Containment - XDG State and WAL-Safe Restic Backups.md
 ---
 
 # Software Architecture Garden
@@ -149,6 +151,10 @@ The comparison step prevents accidental standardization. Two projects may use si
 ### rag-evaluation-system
 
 [[Research/Software Architecture Garden/rag-evaluation-system/README|rag-evaluation-system]] is a useful starting point because it contains both strong boundaries and accumulated migration residue. Its Widget system demonstrates semantic authoring, typed lowering, JSON transport, adapter-based React rendering, generated runtime packaging, embedded frontend delivery, and dual Go/npm releases. It also demonstrates the cost of parallel generations, duplicate catalogs, raw escape hatches, and compatibility paths without retirement criteria.
+
+### Upwork Tracker
+
+[[Research/Software Architecture Garden/upwork-tracker/README|Upwork Tracker]] studies a local-first marketplace evidence and application-workflow system. Its strongest patterns are immutable capture boundaries, reviewed ingestion plans, rebuildable remote projections separated from local workflow state, namespaced identity, a shared service behind CLI and REST adapters, an atomic human-confirmation write transaction, a generated xgoja host, and a WAL-safe backup design for operator-owned state. Its architecture debt is equally instructive: two ingestion semantics for one envelope, duplicated schema ownership, non-atomic general mutations, direct Widget mutations that bypass stable service policy, process-global Widget selection, a generic path that can record `submitted`, and incomplete eligibility checks in the dedicated confirmation path itself.
 
 ### publish-vault
 
