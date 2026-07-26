@@ -74,6 +74,7 @@ The recurring invariant is dependency order. A release is not a single repositor
 - [[PROJ - Hetzner K3s Platform - Single-Node GitOps Bring-Up]] — k3s foundation.
 - [[PROJ - K3s Migration Program - From Coolify to GitOps Platform]] — platform migration.
 - [[PROJ - Vault on K3s - Auth and Secret Delivery Platform]] — Vault delivery.
+- [[PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery]] — production ZITADEL email verification and password recovery through Vault-backed SES, including Login V2 gate versus asynchronous delivery semantics.
 - [[PROJ - Terraform Infra - Vault Platform Bring-Up, Auth Hardening, and Hair-Booking Handoff]] — infrastructure-as-code and auth.
 - [[PROJ - wesen terraform - Infra Session Report]] — Terraform operations.
 - [[ARTICLE - ArgoCD Reorganization - From Flat List to Structured Platform]] — Argo CD organization.
