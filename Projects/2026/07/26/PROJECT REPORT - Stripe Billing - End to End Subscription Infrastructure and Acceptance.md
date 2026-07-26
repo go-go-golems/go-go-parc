@@ -575,7 +575,7 @@ Argo CD reports the TODO and ZITADEL applications Synced and Healthy. Trusted Le
 
 This deployment intentionally uses sandbox Stripe credentials on a public production-shaped hostname. It is not a live-money deployment. It permits end-to-end receiver, OIDC, Checkout, and Portal acceptance under the exact ingress, Vault, PostgreSQL, and application topology intended for production.
 
-The sandbox endpoint exists and its secret is in Vault, but the production-host Stripe journey has not yet been completed in the current evidence set. That is the next acceptance phase.
+The sandbox endpoint exists and its secret is in Vault. A subsequent production-host acceptance completed hosted Checkout, processed six signed events without event errors, projected Pro/1,000, created a TODO, rendered Portal and its paid invoice, scheduled period-end cancellation with Pro retention, forced terminal cancellation, projected Free/25 without deleting the TODO, and removed all synthetic fixtures. Sanitized evidence is stored in `sources/experiments/22-k3s-stripe-sandbox-acceptance.json`.
 
 ## 17. Webhook secret rotation
 
@@ -675,21 +675,17 @@ Passing tests at one layer does not replace another. Unit signature tests do not
 
 ## 22. What remains
 
-The remaining work is production-host and live-mode acceptance:
+The remaining work is live-mode acceptance:
 
 1. Complete a fresh verified login after privately rotating the password exposed during SES testing.
-2. Run sandbox Checkout against `todo.yolo.scapegoat.dev`.
-3. Confirm the deployed endpoint receives signed events and projects Pro/1,000.
-4. Run Portal cancellation and terminal downgrade on the K3s deployment.
-5. Confirm event ledger contains no processing errors or expired claims.
-6. Approve live product Tax classification, origin, registrations, and filing ownership.
-7. Provision a restricted live runtime key directly into Vault.
-8. Inventory the live Stripe account and import matching catalog resources.
-9. Plan/apply the guarded live Terraform root and verify zero drift.
-10. Create the live endpoint operationally and stream its signing secret to Vault.
-11. Replace sandbox runtime fields through Vault/VSO and roll out.
-12. Complete low-risk live Checkout/Portal/Tax acceptance approved by the operator.
-13. Exercise live signing-secret rotation and retained-event recovery.
+2. Approve live product Tax classification, origin, registrations, and filing ownership.
+3. Provision a restricted live runtime key directly into Vault.
+4. Inventory the live Stripe account and import matching catalog resources.
+5. Plan/apply the guarded live Terraform root and verify zero drift.
+6. Create the live endpoint operationally and stream its signing secret to Vault.
+7. Replace sandbox runtime fields through Vault/VSO and roll out.
+8. Complete low-risk live Checkout/Portal/Tax acceptance approved by the operator.
+9. Exercise live signing-secret rotation and retained-event recovery.
 
 The system is production-shaped but not yet live-money complete. That distinction must remain explicit in operational documentation.
 
