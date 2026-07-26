@@ -33,6 +33,9 @@ related_files:
   - ui/test/lessons.test.ts
   - ui/test/api-surface.test.ts
   - ui/biome/no-table-for-in-render.grit
+  - cmd/datadrop/tree_test.go
+  - pkg/cli/rows_test.go
+last_reviewed: 2026-07-26
 ---
 
 # Structural Guard Tests as a Genre
@@ -119,6 +122,23 @@ The genre has three properties that make it more than a collection of scripts.
 
 **Some tests keep documentation and code in agreement.** `tour.test.ts` asserts that the interface's reference rack and the application registry hold the same set — so an application cannot ship without appearing in the documentation, and a documentation card cannot name an application that does not exist. `stories.test.ts` asserts that every component has been *looked at*. These are structural tests over prose, which is unusual and effective.
 
+**Update, 2026-07-26 — the genre crossed a language boundary.** At the first analysis all thirteen instances were TypeScript running under `bun test`, which left a live objection: the genre might be an artefact of a stack with a fast runner and a filesystem-shaped module system. DATADROP-9 added four Go instances, and they behave the same way.
+
+| Test | Invariant | Why no other layer can see it |
+|---|---|---|
+| `TestEveryClientVerbHasTheClientSection` | every verb that talks to a server carries `--addr` and `--token` | a verb missing the section compiles, runs, and fails at its first request against the default address regardless of `--addr` |
+| `TestTheCommandSurfaceIsComplete` | the leaf set is exactly the nineteen expected verbs | a command group whose registrar was never named produces a binary that builds, tests clean, and is missing commands |
+| `TestNoVerbHasBothFormatAndOutput` | `--format` names a server-side format, `--output` a client-side rendering; no verb has both | the invariant is about *meaning*; nothing structural can see it |
+| `TestClientTokenIsASecret` | the credential field's type is one the framework redacts | see below — this is the interesting one |
+
+Two differences from the TypeScript instances are worth naming.
+
+**The Go instances walk an assembled object graph, not the source tree.** `cmd/datadrop/tree_test.go` constructs the real command tree in process and interrogates it. It lives in `package main` because that is the only package importing every command group — which is also precisely why a forgotten group is possible. The genre's essential property is not "scan the source"; it is **assert a property that no single unit can observe**, and an assembled graph serves that as well as a file walk does.
+
+**One guard failed for the wrong reason, and that was informative.** `TestClientTokenIsASecret` was first written over the assembled Cobra flags, asserting `flag.Value.Type() == "secret"`. It failed on all eighteen verbs — because `glazed` registers `TypeString` and `TypeSecret` through the same `flagSet.String(...)` call, so the property is invisible at that layer. The test was correct in intent and wrong in layer, and had to be rewritten one level down against the section's field definition. **A structural guard that fails on every subject is usually the test's model of the system being wrong, not the system.**
+
+Of the three guards written over the command tree, one found a real defect (a verb with both `--format` and `--output`, written by the same author twenty minutes earlier), one found a misunderstanding in its author's model of the framework, and one passed. All three outcomes are useful; the second is the one that would not have occurred had the test been written to pass.
+
 **One rule moved to a linter, and only one.** During the analysis session a Biome plugin was added for the render-path rule, scoped to the component tree, so it fails in the editor before the test runs. The test was kept. The reasoning is in [[Research/Software Architecture Garden/go-go-datadrop/04 - The Enforced Layer Graph and the Container Panel Split|document 04]]: the linter is a fast signal, the test is the guard.
 
 ## 4. Why it works
@@ -149,7 +169,16 @@ break: unquote a colon in YAML frontmatter      → "declares slug X, which does
 break: add a fifth FilterOp without a case      → both branches fail to compile
 ```
 
-The last one is not a source-scanning test but the same discipline applied to a type-level guard.
+The last one is not a source-scanning test but the same discipline applied to a type-level guard. Four more from DATADROP-9:
+
+```text
+break: rename a row key seq -> sequence         → names both key lists, before and after
+break: remove the exit-code wrapper             → "exit code = 1, want 3" AND the prefix changes
+break: silence the deprecation warning          → "no deprecation warning on stderr"
+break: drop half the deprecation mapping        → "produced a JSON array, so it was not mapped"
+```
+
+The last of those is the most instructive failure in the set, because the broken output is still valid JSON containing the right data. A human eyeballing it would accept it. Only the concatenated-versus-array distinction is wrong, and that distinction is the entire subject of the deprecation the test guards.
 
 **Not every guard was verified.** The genre is a convention, not a rule, and some of the thirteen have no recorded break. That is the honest gap: the discipline is applied by whoever remembers it.
 
@@ -169,7 +198,9 @@ Almost always, and earlier than feels justified. The cost of the first such test
 
 The signal that a project needs one: **a convention has just been stated in a review comment for the second time.** That is the moment it should become a test, because the third statement will not happen and the fourth violation will.
 
-Non-applicability: a project small enough that one person reads every diff does not need them, and a project without a fast test runner will find the walk annoying. Both thresholds are lower than they appear — this repository's thirteen tests run in well under a second.
+Non-applicability: a project small enough that one person reads every diff does not need them, and a project without a fast test runner will find the walk annoying. Both thresholds are lower than they appear — this repository's thirteen browser tests run in well under a second, and the four Go instances that assemble a whole command tree run in about 30 ms.
+
+The Go instances also relax the applicability condition. A guard does not need a source-tree walk; it needs an assembled artefact and a property no unit can see. Any project with a registry, a plugin set, a command tree or a route table has that artefact already.
 
 ## 7. What should become ecosystem guidance
 

@@ -161,6 +161,39 @@ Three losses from one cause: the documented code collapses to 1, the message pre
 
 Filed as [glazed#611](https://github.com/go-go-golems/glazed/issues/611) with the reproduction and three proposed fixes. **Every CLI in this ecosystem that adopts the builder has this defect**, and it is silent unless a test asserts the codes. This project's test does, which is the only reason it was found before the conversion shipped.
 
+#### Update, 2026-07-26: the conversion shipped with a local workaround
+
+DATADROP-9 converted all nineteen verbs and could not wait for the upstream fix, so the defect now has a measured workaround and a known cost. Two things were learned that the original analysis did not know.
+
+**The blast radius is larger than the exit code.** Errors raised by the framework *before* application code runs — a flag parse failure — are reported by the framework itself with `Fprintln(os.Stderr, err)`, then `cmd.Help()`, then `cobra.CheckErr(err)`. The message therefore appears twice with two different prefixes, and nothing the application can install reaches it:
+
+```console
+$ datadrop query greenhouse --order sideways
+Argument order has invalid choice sideways
+Error: Argument order has invalid choice sideways
+```
+
+The exit code there is 1, which it also was before the conversion, so the documented contract survives; only the presentation is inconsistent, and only for that class.
+
+**Where the compensating adapter is applied matters more than what it does.** The action is forced — map the error and exit before returning. Applying it at every error site, which the ticket's design specified, creates the failure mode that same design lists four sections later: one omitted call loses the mapping for one verb, which is worse than losing it everywhere because it looks like it works. Applying it once at registration, as a wrapper over the framework's three command interfaces, makes the omission unrepresentable:
+
+```go
+func WithExitCodes(command cmds.Command) cmds.Command {
+    switch typed := command.(type) {
+    case cmds.GlazeCommand:  return &exitCodeGlazeCommand{GlazeCommand: typed}
+    case cmds.WriterCommand: return &exitCodeWriterCommand{WriterCommand: typed}
+    case cmds.BareCommand:   return &exitCodeBareCommand{BareCommand: typed}
+    default:                 return command
+    }
+}
+```
+
+Verified by removal: dropping the wrapper makes `TestExitCodes` fail with both symptoms in one output — the codes collapsing to 1 *and* the prefix changing from `datadrop: ` to `Error: `.
+
+The costs are recorded in [[Research/Software Architecture Garden/go-go-datadrop/10 - Adopting a Command Framework|document 10]] §3: `os.Exit` skips deferred cleanup, in-process tests need `os.Exit` and `os.Stderr` indirected behind package variables, and the parse-error class above stays with the framework's presentation.
+
+One further note for anyone reproducing this. Verify against the version `go.mod` pins, not against a local development checkout: this repository builds `glazed v1.3.8` while the working checkout of `glazed` was at `v1.2.7-34-g58e0bd0`, so reading the checkout would have been reading older code.
+
 ### The help system triples the binary
 
 Measured at the analyzed commit:
@@ -187,14 +220,14 @@ That is a real cost for a self-hostable tool distributed as a container image, a
 
 **Generated log areas: yes, for any Go service with more than a handful of packages.** The generator plus the flag is a small amount of machinery for a large gain in diagnosability.
 
-**Exit codes as an API: yes, and document them** — but be aware that adopting a command framework may take them away without saying so.
+**Exit codes as an API: yes, and document them** — but be aware that adopting a command framework may take them away without saying so, and that the compensating adapter belongs at the registration seam rather than at every error site.
 
 **Not applicable**: a library, a tool with no interface, or a service deployed as a fleet where a 37 MB binary difference multiplies.
 
 ## 7. What should become ecosystem guidance
 
 1. **Embedded SPAs keep Node at build time.** Corroboration of an existing candidate.
-2. **A CLI's exit codes are an API, and a command framework that owns error handling can silently destroy them.** Assert them in a test that shells out to the built binary.
+2. **A CLI's exit codes are an API, and a command framework that owns error handling can silently destroy them.** Assert them in a test that shells out to the built binary, and put the compensating adapter at the seam — see [[Research/Software Architecture Garden/go-go-datadrop/10 - Adopting a Command Framework|document 10]].
 3. **Weigh a convenience dependency against the artefact it produces.** A help system that triples a self-hosted binary is a trade worth making consciously.
 4. **Generated observability categories beat maintained ones.**
 

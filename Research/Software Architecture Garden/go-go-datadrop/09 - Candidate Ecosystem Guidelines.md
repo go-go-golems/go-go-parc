@@ -167,7 +167,7 @@ This also engages rag's **Candidate 11** (match validation method to contract ty
 
 **Rule:** A test that asserts a structural invariant must be verified by breaking the thing it guards, and the break belongs in the commit message.
 
-**Evidence:** eight verifications recorded in this project's history, including six performed during the analysis session. Two guards written in this cycle were confirmed to fail for the right reason and with a usable message; one — a help-page frontmatter guard — found a real defect on its first run, in which an unquoted colon caused a page to be **silently dropped by the loader with no error**.
+**Evidence:** twelve verifications recorded in this project's history — eight at the first analysis, four more in DATADROP-9, where the break output is pasted into the commit message that introduces each guard. Two guards written in this cycle were confirmed to fail for the right reason and with a usable message; one — a help-page frontmatter guard — found a real defect on its first run, in which an unquoted colon caused a page to be **silently dropped by the loader with no error**.
 
 **Compare against:** any repository with source-scanning tests, mutation-testing efforts, coverage gates.
 
@@ -209,6 +209,30 @@ This also engages rag's **Candidate 11** (match validation method to contract ty
 
 ---
 
+### N7: Framework adoption is a namespace merge — audit it before writing code
+
+**Rule:** Before adopting a framework that contributes flags, sections or environment variables, enumerate its field names and intersect them with yours. Include the environment prefix in the intersection: a mechanically derived prefix maps variables onto fields by name alone, with no regard to meaning.
+
+**Evidence:** DATADROP-9 hit all three collision kinds. `--stream` and `--flatten` were hard collisions that fail the construction of the *entire* command tree, not of one verb, and were discovered in phases three and five by running the binary. `DATADROP_ADDR` — the client's server address — would have been mapped onto `serve --addr`, the socket to bind, a collision that had existed harmlessly for the project's whole life because Cobra's flag shadowing kept the two names apart. `dataset import --format` and `--output` were a semantic overlap that nothing detects and only a stated rule caught. The ticket's own design document listed `--stream` among the flags the framework *adds*, without noticing the application already had one.
+
+**Compare against:** any adoption of a CLI framework, a web framework contributing middleware configuration, a build tool contributing environment variables, or a plugin host contributing a settings namespace.
+
+**Promotion test:** the project can produce the intersection of its own field names with the framework's, and state the disposition of every entry.
+
+**Why the ordering matters:** the audit is mechanical and takes minutes. Performed in phase one it produces a rename list; performed in phase five it produces two renames of flags that six verbs already share, plus a migration in which the old spelling still parses with a different type and fails with a message about an unrelated rule.
+
+### N8: A framework's introspection output is an exfiltration surface
+
+**Rule:** When a framework can print its own resolved configuration, enumerate which of your fields carry credentials and verify what that output does with each one. Do it on the first command, not the fifteenth.
+
+**Evidence:** `glazed` attaches a command-settings section to every command, contributing `--print-parsed-fields`, which dumps every resolved value with its provenance. A bearer token declared `fields.TypeString` is printed in full three times — value, parse log, and the name of the environment variable it came from. Declared `fields.TypeSecret` it renders `sm***ef`. There is no opt-out: the section is attached by the parser, not by the command. The distinction is also invisible at the Cobra layer, because both types register through the same `flagSet.String(...)` call, so a guard written over the assembled flags fails on every verb for the wrong reason.
+
+**Compare against:** any framework with a `--print-config`, `--dump-settings`, `/debug/vars` or equivalent; structured-logging libraries that serialise a settings struct; error reporters that attach configuration to a crash report.
+
+**Promotion test:** the project can name every credential-bearing field and show the framework's debug output for each.
+
+**Why it is separable from N7:** N7 is about names colliding; this is about a capability arriving that the application never asked for. Both are consequences of adoption being a merge rather than an addition, but they are found by different audits.
+
 ## Part III — Not a candidate: an upstream defect
 
 Commands built through `glazed`'s Cobra builder can only exit `0` or `1`, because the builder assigns `cmd.Run` rather than `cmd.RunE` and terminates with `cobra.CheckErr`. The application's `Execute()` never sees the error; the exit code, the message prefix and any application-level error handling are all lost.
@@ -218,6 +242,8 @@ Reproduced during this analysis against `v1.3.8` with a two-command program: the
 This affects **every CLI in the ecosystem that adopts the builder**, and it is silent unless a test asserts the codes. It is recorded here rather than as a candidate because it is a bug to fix, not a pattern to weigh — but it produces one candidate-adjacent rule worth stating:
 
 > A CLI's exit codes are a machine-facing API. Assert them in a test that shells out to the built binary, because a framework that owns error handling can remove them without failing anything.
+
+**Update, 2026-07-26.** DATADROP-9 shipped the conversion with a local workaround rather than waiting for the fix, which turned the defect from a blocker into a measured cost. Two additions to the record: the blast radius includes flag-parse errors, which the framework reports itself before any application code runs and which no adapter can reach; and *where* the adapter is applied is a design decision with a wrong answer. See [[Research/Software Architecture Garden/go-go-datadrop/10 - Adopting a Command Framework|document 10]] §3. The workaround should be deleted when the upstream hook lands.
 
 ---
 
@@ -244,7 +270,7 @@ None of the five below has a Garden entry yet.
 
 | Project | Why compare it |
 |---|---|
-| **glazed** | Owns the exit-code defect; also the natural test of N1–N3, since it is the ecosystem's convention-heaviest library. |
+| **glazed** | Owns the exit-code defect; the natural test of N1–N3, since it is the ecosystem's convention-heaviest library; and now the necessary second comparison for **N7 and N8**, since it is the framework whose namespace and introspection surface produced them. Comparing from the framework's side would also answer whether the collisions are avoidable by design. |
 | **go-go-os frontend** | Component layering, design tokens, Storybook packaging — direct comparison for Candidate 3 and N1. |
 | **Upwork Tracker** | Embedded SPA plus SQLite plus a committed artefact — the test of Candidate 14's new failure clause, on a fourth occurrence. |
 | **geppetto / pinocchio** | Command registries and provider packaging — tests N5 against rag's Candidate 5. |
@@ -263,11 +289,15 @@ flowchart LR
   T10["rag-ttc 10 — tests as contracts"] --> R2["promote, with the structural family added"]
   D9["Debt 9 — story coverage"] --> R["revise wording, then promote"]
   N["N1–N6 — new from this project"] --> T["candidate; need a third project"]
+  N7["N7, N8 — framework adoption<br/>(DATADROP-9)"] --> T2["candidate; glazed is the<br/>obvious second comparison"]
+  style T2 fill:#e3f2fd
   style P1 fill:#e8f5e9
   style R fill:#fff8e1
 ```
 
 ## Related notes
+
+- [[Research/Software Architecture Garden/go-go-datadrop/10 - Adopting a Command Framework]]
 
 - [[Research/Software Architecture Garden/go-go-datadrop/README|Architecture Garden — go-go-datadrop]]
 - [[Research/Software Architecture Garden/README|Software Architecture Garden]]
