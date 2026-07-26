@@ -143,9 +143,15 @@ flowchart LR
 
 The comparison step prevents accidental standardization. Two projects may use similar code for different reasons. The invariant matters more than the surface syntax.
 
-## Initial project
+## Analyzed projects
 
-The first study is [[Research/Software Architecture Garden/rag-evaluation-system/README|rag-evaluation-system]]. It is a useful starting point because it contains both strong boundaries and accumulated migration residue. Its Widget system demonstrates semantic authoring, typed lowering, JSON transport, adapter-based React rendering, generated runtime packaging, embedded frontend delivery, and dual Go/npm releases. It also demonstrates the cost of parallel generations, duplicate catalogs, raw escape hatches, and compatibility paths without retirement criteria.
+### rag-evaluation-system
+
+[[Research/Software Architecture Garden/rag-evaluation-system/README|rag-evaluation-system]] is a useful starting point because it contains both strong boundaries and accumulated migration residue. Its Widget system demonstrates semantic authoring, typed lowering, JSON transport, adapter-based React rendering, generated runtime packaging, embedded frontend delivery, and dual Go/npm releases. It also demonstrates the cost of parallel generations, duplicate catalogs, raw escape hatches, and compatibility paths without retirement criteria.
+
+### zitadel-go-test
+
+[[Research/Software Architecture Garden/zitadel-go-test/README|zitadel-go-test]] studies a small server-rendered Go application whose important architecture lies at system boundaries. It covers OIDC identity projection, organization-bound authorization, PostgreSQL ownership, signed Stripe webhook projection, Vault/VSO secret delivery, privileged database bootstrap, Kustomize tenant overlays, immutable images, Argo reconciliation, and evidence-backed production acceptance. Its failures reveal reusable guidance about oversized stateless sessions, PostgreSQL `PUBLIC CONNECT`, top-level GitOps bootstrap, and direct cross-tenant negative testing.
 
 ## Relationship to the existing knowledge base
 
