@@ -51,10 +51,11 @@ A moderate implementation day across **eight repositories**, driven by **11 codi
 **Ticket:** `TINYIDP-LOCAL-COMPOSE-2026-07-22` (tiny-idp)
 **Sessions:** Pi `019f37ea` (gpt-5.6-sol) + Codex `019f765e` (gpt-5.6-sol)
 **Repos:** `~/code/wesen/go-go-golems/tiny-idp` — 22 commits; `go-go-goja` — 2 commits
+**Project reports:** [[PROJECT REPORT - tiny-idp - Professional Signup and Application Membership Invitations]], [[PROJECT REPORT - tiny-idp - Multi-Account Browser Sessions and Logout Scopes]]
 
 ### What happened
 
-The day closed the local shared two-app compose ticket and completed the authentication UX matrix, with email-code recovery, browser rate-limit rendering, and consent-redirect fixes. The go-go-goja repo remediated a `golang.org/x/text` vulnerability and shipped the auth host.
+The day closed the local shared two-app compose ticket and completed the authentication UX matrix, with email-code recovery, browser rate-limit rendering, and consent-redirect fixes. The go-go-goja repo remediated a `golang.org/x/text` vulnerability and shipped the auth host. This completed the signup UX matrix started on [[PROJECT REPORT - tiny-idp - Professional Signup and Application Membership Invitations|07-21]] and fed directly into the [[PROJECT REPORT - tiny-idp - Jitsi Production Rollout and Least-Privilege Startup|Jitsi production rollout]] on 07-23.
 
 **Local compose & topology:**
 - Made fresh local topology deterministic (`69f3283`); enforced durable invitation lifecycle (`48153c1`)
@@ -79,10 +80,11 @@ The day closed the local shared two-app compose ticket and completed the authent
 **Ticket:** `RESEARCHCTL-EXPERIMENT-PLAN` (researchctl)
 **Session:** Pi `019f77c2` (gpt-5.6-terra)
 **Repo:** `~/code/wesen/go-go-golems/researchctl` — 10 commits
+**Project reports:** [[PROJECT REPORT - Experiment Platform Convergence - Researchctl Workflow V3 and RAG]], [[ARTICLE - Workflow V3 - Durable External Operation Evidence Instrumentation]]
 
 ### What happened
 
-The Workflow V3 session designed and implemented a generic experiment-plan lifecycle, then audited and cleaned up legacy researchctl code.
+The Workflow V3 session designed and implemented a generic experiment-plan lifecycle, then audited and cleaned up legacy researchctl code. This is the experiment-plan foundation that converged with the RAG DSL into the [[PROJECT REPORT - Experiment Platform Convergence - Researchctl Workflow V3 and RAG|experiment platform convergence]] reported on 07-24, and the durable-evidence counterpart to the [[ARTICLE - Scraper Workflow V3 - Compact Durable Dataflow and Typed JavaScript|Scraper Workflow V3]].
 
 **Experiment-plan lifecycle:**
 - Designed scriptable experiment platform convergence (`81ad2f3`)
@@ -98,10 +100,11 @@ The Workflow V3 session designed and implemented a generic experiment-plan lifec
 
 **Session:** Pi `019f7cf3` (umans-glm-5.2)
 **Repo:** `~/code/wesen/go-go-golems/go-go-parc` — 8 commits
+**Project reports:** [[ARTICLE - Measuring Before Optimizing - An X11 Window Manager Resize Path]], [[ARTICLE - Optimizing an X11 Window Manager Paint Path]]
 
 ### What happened
 
-The go-go-wm code-review session produced a series of X11 window-manager performance deep-dive articles, plus ChatGPT transcript archiving and a Workflow V3 instrumentation report.
+The go-go-wm code-review session produced a series of X11 window-manager performance deep-dive articles, plus ChatGPT transcript archiving and a Workflow V3 instrumentation report. These articles are the performance-analysis companion to the [[PROJ - go-go-wm - Themes, an i3 Config, and Profile-Driven Rendering Performance|go-go-wm themes & profile-driven rendering]] work.
 
 **X11 deep dives:**
 - Measuring before optimizing an X11 window manager resize path (`817ec72`)
@@ -121,10 +124,11 @@ The go-go-wm code-review session produced a series of X11 window-manager perform
 
 **Session:** Pi `019f85d9` (umans-glm-5.2)
 **Repo:** `~/code/wesen/2026-03-27--hetzner-k3s` — 7 commits
+**Project reports:** [[PROJECT REPORT - tiny-idp - Standalone Docker OIDC Message Desk]], [[PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery]]
 
 ### What happened
 
-GitOps deployment of the Goja Auth host and a private Mailpit-backed verified signup flow, plus the tiny-message-desk-prod rollout.
+GitOps deployment of the Goja Auth host and a private Mailpit-backed verified signup flow, plus the tiny-message-desk-prod rollout. The Mailpit verified-signup flow is the local precursor to the [[PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery|Vault-backed ZITADEL SES SMTP]] work reported on 07-26.
 
 - Deployed tiny-message-desk-prod using `ghcr.io/go-go-golems/tiny-idp:sha-...` (`e2aea5b`)
 - Deployed private Mailpit verified signup flow (`78308e6`); documented verified signup acceptance (`62025f1`)
@@ -138,12 +142,22 @@ GitOps deployment of the Goja Auth host and a private Mailpit-backed verified si
 
 **Session:** Pi `019f8bf1` (gpt-5.6-sol)
 **Repo:** (no commits yet on 07-22; session started 22:27 UTC)
+**Project reports:** [[PROJECT REPORT - rag-ttc - Clean-Slate RAG Experiments in Plain Go]], [[ARTICLE - Immutable TTC RAG Laboratory - From Fixed Truth to Executable JavaScript Experiments]]
 
 ### What happened
 
-A new session began the real TTC RAG study readiness work, continuing into 07-23/24. The upwork session also added triage comments and fact pinning (`4fcac7b`, `80f8f95`), and the rag-evaluation-system added a DataTable multiselect design ticket (`d36be0b`).
+A new session began the real TTC RAG study readiness work, continuing into 07-23/24. This session drove the [[PROJ - LLM Proxy BYOK - Tiny-IDP Coding-Agent Authority Chain|llm-proxy BYOK authority chain]] completion on 07-23 and seeded the [[PROJECT REPORT - rag-ttc - Clean-Slate RAG Experiments in Plain Go|rag-ttc clean-slate]] project. The upwork session also added triage comments and fact pinning (`4fcac7b`, `80f8f95`), and the rag-evaluation-system added a DataTable multiselect design ticket (`d36be0b`).
 
 ---
+
+## Related Project Reports
+
+- [[PROJECT REPORT - tiny-idp - Professional Signup and Application Membership Invitations]] — tiny-idp signup UX matrix completion
+- [[PROJECT REPORT - Experiment Platform Convergence - Researchctl Workflow V3 and RAG]] — researchctl experiment-plan lifecycle
+- [[ARTICLE - Measuring Before Optimizing - An X11 Window Manager Resize Path]] — X11 resize deep dive
+- [[ARTICLE - Optimizing an X11 Window Manager Paint Path]] — X11 paint path deep dive
+- [[PROJECT REPORT - tiny-idp - Standalone Docker OIDC Message Desk]] — tiny-message-desk-prod rollout
+- [[ARTICLE - Workflow V3 - Durable External Operation Evidence Instrumentation]] — Workflow V3 instrumentation
 
 ## Analysis Notes & Caveats
 

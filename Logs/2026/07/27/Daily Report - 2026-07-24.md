@@ -57,10 +57,11 @@ A moderate, documentation-and-research-heavy day across **eight repositories**, 
 **Ticket:** `DATADROP-1` (go-go-datadrop)
 **Session:** Pi `019f94ce` (umans-glm-5.2)
 **Repo:** `~/code/wesen/go-go-golems/go-go-datadrop` — 3 commits
+**Project reports:** [[PROJECT REPORT - go-go-datadrop v0.1 - Building an Append-Only Event Store from Two Reference Implementations]], [[PROJECT REPORT - Seeding go-go-datadrop and go-go-goja Instrumentation from ChatGPT Conversations]]
 
 ### What happened
 
-A new go-go-golems project was created from the go-template, and the DATADROP-1 MVP ticket was opened with a v0.1 design and investigation diary, seeded from an Open Source Wolfram Datadrop ChatGPT conversation.
+A new go-go-golems project was created from the go-template, and the DATADROP-1 MVP ticket was opened with a v0.1 design and investigation diary, seeded from an Open Source Wolfram Datadrop ChatGPT conversation. The seeding process is documented in [[PROJECT REPORT - Seeding go-go-datadrop and go-go-goja Instrumentation from ChatGPT Conversations|seeding go-go-datadrop from ChatGPT conversations]], and the v0.1 append-only event store in [[PROJECT REPORT - go-go-datadrop v0.1 - Building an Append-Only Event Store from Two Reference Implementations|go-go-datadrop v0.1]]. This project would grow through ten versioned reports over the week.
 
 - Initial commit (`a954e2a`); initialized go-go-datadrop project (`df58b33`)
 - Created DATADROP-1 MVP ticket, imported OpenDrop conversation source (transcript + 5 artifacts) via surf, wrote v0.1 MVP design and investigation diary (`51cbdb5`)
@@ -72,10 +73,11 @@ A new go-go-golems project was created from the go-template, and the DATADROP-1 
 **Ticket:** `PRL-0001` (lean4-dsl)
 **Session:** Claude Code `7e3d3f0a` (claude-opus-4-8)
 **Repo:** `~/code/wesen/2026-07-24--lean4-dsl` — 6 commits
+**Project report:** [[PROJECT REPORT - PRL-0 - A Machine-Checked Reactive Rules DSL in Lean 4]]
 
 ### What happened
 
-A from-scratch machine-checked Lean 4 reactive rules DSL, with syntax, validation reflection, state, guards, an interpreter, worked examples, and golden tests with traced theorems.
+A from-scratch machine-checked Lean 4 reactive rules DSL, with syntax, validation reflection, state, guards, an interpreter, worked examples, and golden tests with traced theorems. The full system is documented in [[PROJECT REPORT - PRL-0 - A Machine-Checked Reactive Rules DSL in Lean 4|PRL-0: A Machine-Checked Reactive Rules DSL in Lean 4]].
 
 - Initial commit (`7392540`); PRL-0 Lean kernel: syntax, validation reflection, state, guards (`c863a64`)
 - PRL-0 authorization, interpreter, worked example (`16ef2cd`)
@@ -90,10 +92,11 @@ A from-scratch machine-checked Lean 4 reactive rules DSL, with syntax, validatio
 **Ticket:** `GOJA-069` (go-go-goja-instrumentation)
 **Session:** Claude Code `3ecf0619` (claude-opus-5) — "Plan next steps"
 **Repo:** `~/workspaces/2026-07-24/go-go-goja-instrumentation/goja` — 1 commit
+**Project report:** [[PROJECT REPORT - GOJA-069 - Semantic Probes for a JavaScript Interpreter]]
 
 ### What happened
 
-A read-only semantic-probe layer was added to a forked goja interpreter, the first phase of GOJA-069 (semantic probes for a JavaScript interpreter).
+A read-only semantic-probe layer was added to a forked goja interpreter, the first phase of GOJA-069 (semantic probes for a JavaScript interpreter). The full design is documented in [[PROJECT REPORT - GOJA-069 - Semantic Probes for a JavaScript Interpreter|GOJA-069: Semantic Probes for a JavaScript Interpreter]].
 
 - Added read-only semantic-probe layer — GOJA-069 Phase 1 (`c669150`)
 
@@ -104,10 +107,11 @@ A read-only semantic-probe layer was added to a forked goja interpreter, the fir
 **Ticket:** `ESP-54` (echo-base-documentation/esp32-s3-m5)
 **Session:** Pi `019f9188` (gpt-5.6-sol)
 **Repo:** `~/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5` — 1 commit
+**Project report:** [[PROJ - PULP OS Device Authorization - Native OAuth and E-Ink Sensor Streaming]]
 
 ### What happened
 
-Analysis of tiny-idp integration friction and improvements for the ESP-54 PULP device authentication work.
+Analysis of tiny-idp integration friction and improvements for the ESP-54 PULP device authentication work, following the [[PROJ - PULP OS Device Authorization - Native OAuth and E-Ink Sensor Streaming|PULP OS device authorization]] implementation on 07-23.
 
 - Analyzed tiny-idp integration friction and improvements (`529bcd6`)
 
@@ -117,10 +121,11 @@ Analysis of tiny-idp integration friction and improvements for the ESP-54 PULP d
 
 **Session:** Codex `019f957c-0900` (gpt-5.6-sol)
 **Repo:** `~/code/wesen/go-go-golems/researchctl` — 5 commits
+**Project report:** [[PROJECT REPORT - Experiment Platform Convergence - Researchctl Workflow V3 and RAG]]
 
 ### What happened
 
-Release and CI fixes for researchctl: experiment-plan provenance, analysis artifact permissions, docs publisher OIDC, and release OIDC.
+Release and CI fixes for researchctl: experiment-plan provenance, analysis artifact permissions, docs publisher OIDC, and release OIDC. These fixes unblocked the [[PROJECT REPORT - Experiment Platform Convergence - Researchctl Workflow V3 and RAG|experiment platform convergence]] merge.
 
 - Preserved experiment plan provenance (`1699779`); restricted analysis artifact permissions (`4654a7c`)
 - Granted docs publisher OIDC permission (`2a3d649`); merged PRs #3–#4 (`6592a45`, `87acdac`)
@@ -131,10 +136,11 @@ Release and CI fixes for researchctl: experiment-plan provenance, analysis artif
 
 **Sessions:** Pi `019f94ba` (umans-glm-5.2) + Claude Code `7e08313e` (claude-opus-4-8)
 **Repo:** `~/code/wesen/go-go-golems/go-go-parc` — 17 commits
+**Project reports:** [[PROJECT REPORT - tiny-idp - Administration Control Plane and Widget DSL Console]], [[PROJECT REPORT - GOJA-069 - Semantic Probes for a JavaScript Interpreter]], [[PROJECT REPORT - PRL-0 - A Machine-Checked Reactive Rules DSL in Lean 4]]
 
 ### What happened
 
-A large batch of vault deep-dive reports covering tiny-idp, go-go-datadrop, go-go-wm, PRL-0, and the experiment platform, plus the start of the ZITADEL production deployment playbooks session (which continues into 07-25/26/27).
+A large batch of vault deep-dive reports covering tiny-idp, go-go-datadrop, go-go-wm, PRL-0, and the experiment platform, plus the start of the ZITADEL production deployment playbooks session (which continues into 07-25/26/27). These reports synthesize the week's implementation work into long-form technical analysis, including the [[PROJECT REPORT - tiny-idp - Administration Control Plane and Widget DSL Console|tiny-idp administration control plane]], [[PROJECT REPORT - GOJA-069 - Semantic Probes for a JavaScript Interpreter|GOJA-069 semantic probes]], and [[PROJECT REPORT - PRL-0 - A Machine-Checked Reactive Rules DSL in Lean 4|PRL-0 Lean 4 DSL]] reports.
 
 **Deep-dive reports:**
 - Experiment platform convergence deep dive (`386613f`); tiny-idp BYOK authority chain deep dive (`63ab3d8`)
@@ -156,6 +162,17 @@ A large batch of vault deep-dive reports covering tiny-idp, go-go-datadrop, go-g
 - **Codex tiny-idp administration backend ticket** (`019f9176-bdbf`, 464 turns) — created a docmgr ticket for a tiny-idp administration backend; no commits on 07-24.
 
 ---
+
+## Related Project Reports
+
+- [[PROJECT REPORT - go-go-datadrop v0.1 - Building an Append-Only Event Store from Two Reference Implementations]] — go-go-datadrop MVP
+- [[PROJECT REPORT - Seeding go-go-datadrop and go-go-goja Instrumentation from ChatGPT Conversations]] — project seeding
+- [[PROJECT REPORT - PRL-0 - A Machine-Checked Reactive Rules DSL in Lean 4]] — Lean 4 reactive rules DSL
+- [[PROJECT REPORT - GOJA-069 - Semantic Probes for a JavaScript Interpreter]] — go-go-goja semantic probes
+- [[PROJ - PULP OS Device Authorization - Native OAuth and E-Ink Sensor Streaming]] — ESP-54 device-auth friction
+- [[PROJECT REPORT - Experiment Platform Convergence - Researchctl Workflow V3 and RAG]] — researchctl release/CI
+- [[PROJECT REPORT - tiny-idp - Administration Control Plane and Widget DSL Console]] — tiny-idp admin control plane
+- [[PROJECT REPORT - devctl - Durable Operator State, Structured Logs, and Robust Dynamic Commands]] — devctl operator architecture
 
 ## Analysis Notes & Caveats
 

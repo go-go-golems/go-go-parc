@@ -51,10 +51,11 @@ A moderate, documentation-and-deployment day across **three repositories**, driv
 **Tickets:** `DATADROP-2` (DuckDB-Wasm), Datadrop Go invariant analysis
 **Sessions:** Pi `019fa3e0` (gpt-5.6-terra) + `019fa3e6` (gpt-5.6-sol) + `019fa3f3` (gpt-5.6-sol) + `019fa3ec` (umans-glm-5.2)
 **Repo:** `~/code/wesen/go-go-golems/go-go-datadrop` (commits land in vault docs on 07-27)
+**Project reports:** [[PROJECT REPORT - go-go-datadrop v0.10 - From JavaScript Pipelines to DuckDB-Wasm]], [[PROJECT REPORT - go-go-datadrop v0.9 - Root Authority Removal and Browser-Approved Agent Credentials]]
 
 ### What happened
 
-Four parallel sessions worked on the go-go-datadrop project: device authentication implementation, a DuckDB-Wasm clean cutover (DATADROP-2), a Go invariant analysis ticket, and artifact-import tooling guidance.
+Four parallel sessions worked on the go-go-datadrop project: device authentication implementation, a DuckDB-Wasm clean cutover (DATADROP-2), a Go invariant analysis ticket, and artifact-import tooling guidance. The DuckDB-Wasm cutover is documented in [[PROJECT REPORT - go-go-datadrop v0.10 - From JavaScript Pipelines to DuckDB-Wasm|go-go-datadrop v0.10: From JavaScript Pipelines to DuckDB-Wasm]], and the device-auth/root-authority work in [[PROJECT REPORT - go-go-datadrop v0.9 - Root Authority Removal and Browser-Approved Agent Credentials|go-go-datadrop v0.9: Root Authority Removal and Browser-Approved Agent Credentials]]. This continues the datadrop series started on [[PROJECT REPORT - go-go-datadrop v0.1 - Building an Append-Only Event Store from Two Reference Implementations|07-24]].
 
 - **Datadrop Device Authentication Implementation** (`019fa3e0`, 645 turns, gpt-5.6-terra)
 - **DATADROP-2 DuckDB-Wasm Clean Cutover** (`019fa3e6`, 1,209 turns, gpt-5.6-sol) — the largest session of the day
@@ -71,10 +72,11 @@ Four parallel sessions worked on the go-go-datadrop project: device authenticati
 
 **Session:** Pi `019fa403` (gpt-5.6-sol)
 **Repo:** `~/code/wesen/go-go-golems/go-go-parc` — (vault docs)
+**Project report:** [[PROJ - Glazed - Structured Output and Cobra Runtime Cleanup]]
 
 ### What happened
 
-A glazed structured-output cleanup and skill cleanup session, producing a deep-dive report.
+A glazed structured-output cleanup and skill cleanup session, producing a deep-dive report. The full cleanup is documented in [[PROJ - Glazed - Structured Output and Cobra Runtime Cleanup|Glazed: Structured Output and Cobra Runtime Cleanup]].
 
 - Glazed structured output cleanup deep dive (`916ff6e`)
 
@@ -84,10 +86,11 @@ A glazed structured-output cleanup and skill cleanup session, producing a deep-d
 
 **Session:** Pi `019fa3ec` (umans-glm-5.2) + Claude Code `3ecf0619` (claude-opus-5)
 **Repo:** `~/code/wesen/2026-03-29--serve-claude-experiments` — 14 commits
+**Project reports:** [[PROJ - serve-artifacts - TSX, Per-Artifact Import Maps, and devctl Orchestration]], [[PROJECT REPORT - devctl - Durable Operator State, Structured Logs, and Robust Dynamic Commands]]
 
 ### What happened
 
-TSX support and per-artifact import maps on the serve-claude-experiments artifact server, plus a devctl plugin to build and serve the artifact server.
+TSX support and per-artifact import maps on the serve-claude-experiments artifact server, plus a devctl plugin to build and serve the artifact server. The full TSX/import-maps/devctl work is documented in [[PROJ - serve-artifacts - TSX, Per-Artifact Import Maps, and devctl Orchestration|serve-artifacts: TSX, Per-Artifact Import Maps, and devctl Orchestration]], building on the [[PROJECT REPORT - devctl - Durable Operator State, Structured Logs, and Robust Dynamic Commands|devctl operator architecture]] report.
 
 **TSX support (Phases 1–3):**
 - Added pbui-* artifacts (agent-workbench, basketball, landing) (`17511bd`)
@@ -110,10 +113,11 @@ TSX support and per-artifact import maps on the serve-claude-experiments artifac
 
 **Session:** Pi `019fa508` (umans-glm-5.2) — Address code review issues
 **Repo:** `~/code/wesen/2026-03-27--hetzner-k3s` — 6 commits
+**Project reports:** [[PROJECT REPORT - tiny-idp - From Transcript Audit to an Enforced GitOps Invariant]], [[PROJ - Serve Artifacts Stateful Migration - PVCs, Vault Write-Token, and an ArgoCD Sync-Wave Deadlock]]
 
 ### What happened
 
-Hardening of the validate-gitops CI workflow: recursive Kustomize root discovery and sudo tool installation for root-owned /usr/local.
+Hardening of the validate-gitops CI workflow: recursive Kustomize root discovery and sudo tool installation for root-owned /usr/local. This is the CI enforcement layer for the [[PROJECT REPORT - tiny-idp - From Transcript Audit to an Enforced GitOps Invariant|GitOps invariant]] work and the [[PROJ - Serve Artifacts Stateful Migration - PVCs, Vault Write-Token, and an ArgoCD Sync-Wave Deadlock|PVC sync-wave deadlock]] fixes.
 
 - Deployed artifacts-prod (`50ac7f5`); merged automation PRs (`6d01193`, `345f5fa`)
 - Discovered base/overlay Kustomize roots recursively (`587dd98`)
@@ -125,10 +129,11 @@ Hardening of the validate-gitops CI workflow: recursive Kustomize root discovery
 
 **Sessions:** Pi `019f99f9` + `019fa02e` + `019fa3e6` + `019fa403` + `019fa54b` (this session)
 **Repo:** `~/code/wesen/go-go-golems/go-go-parc` — 11 commits
+**Project reports:** [[PROJECT REPORT - go-go-datadrop v0.10 - From JavaScript Pipelines to DuckDB-Wasm]], [[PROJ - Glazed - Structured Output and Cobra Runtime Cleanup]], [[PROJ - serve-artifacts - TSX, Per-Artifact Import Maps, and devctl Orchestration]]
 
 ### What happened
 
-A batch of vault deep-dive reports and articles covering Datadrop, Glazed, rag-ttc, ZITADEL, serve-artifacts, and a LinkedIn resume.
+A batch of vault deep-dive reports and articles covering Datadrop, Glazed, rag-ttc, ZITADEL, serve-artifacts, and a LinkedIn resume. These synthesize the week's implementation into long-form analysis, including the [[PROJECT REPORT - go-go-datadrop v0.10 - From JavaScript Pipelines to DuckDB-Wasm|datadrop DuckDB-Wasm cutover]], [[PROJ - Glazed - Structured Output and Cobra Runtime Cleanup|Glazed structured output cleanup]], and [[PROJ - serve-artifacts - TSX, Per-Artifact Import Maps, and devctl Orchestration|serve-artifacts TSX]] reports.
 
 - Production ZITADEL deployment playbooks (`954d141`)
 - Datadrop DuckDB-Wasm deep dive (`50fb3b6`); Datadrop root authority device auth report (`52d7520`)
@@ -151,6 +156,17 @@ A batch of vault deep-dive reports and articles covering Datadrop, Glazed, rag-t
 - **Daily log generation** (`019fa54b`, this session): ran the daily-log skill to generate reports for 2026-07-21 through 2026-07-27.
 
 ---
+
+## Related Project Reports
+
+- [[PROJECT REPORT - go-go-datadrop v0.10 - From JavaScript Pipelines to DuckDB-Wasm]] — DuckDB-Wasm clean cutover
+- [[PROJECT REPORT - go-go-datadrop v0.9 - Root Authority Removal and Browser-Approved Agent Credentials]] — datadrop device auth
+- [[PROJ - Glazed - Structured Output and Cobra Runtime Cleanup]] — glazed structured output cleanup
+- [[PROJ - serve-artifacts - TSX, Per-Artifact Import Maps, and devctl Orchestration]] — serve-artifacts TSX & devctl
+- [[PROJECT REPORT - devctl - Durable Operator State, Structured Logs, and Robust Dynamic Commands]] — devctl operator architecture
+- [[ARTICLE - Deep Dive - Generating a Print-Ready Resume From a LinkedIn Profile]] — LinkedIn resume
+- [[ARTICLE - rag-ttc - Refactoring Explicit Experiments and Reusable Mechanisms]] — rag-ttc refactor
+- [[ARTICLE - rag-ttc - Reproducible TTC RAG Evaluation with Blinded LLM Judges]] — rag-ttc blinded judges
 
 ## Analysis Notes & Caveats
 

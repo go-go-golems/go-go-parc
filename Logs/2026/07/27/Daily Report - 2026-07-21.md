@@ -49,10 +49,11 @@ A heavy implementation day across **eight repositories**, driven by **9 coding-a
 **Ticket:** `TINYIDP-INVITES-001` (tiny-idp)
 **Sessions:** Pi `019f37ea` (gpt-5.6-sol) + Codex `019f765e` (gpt-5.6-sol)
 **Repo:** `~/code/wesen/go-go-golems/tiny-idp` — 82 commits; `go-go-goja` — 8 commits
+**Project report:** [[PROJECT REPORT - tiny-idp - Professional Signup and Application Membership Invitations]]
 
 ### What happened
 
-The day completed the code-backed intern design for separate TinyIDP account-creation and go-go-goja organization-membership invitations, then implemented Phases 1–6 of durable signup invitations and transactional admin bootstrap. The Codex session (`019f765e`) ran a parallel review of the tiny-idp Goja microkernel.
+The day completed the code-backed intern design for separate TinyIDP account-creation and go-go-goja organization-membership invitations, then implemented Phases 1–6 of durable signup invitations and transactional admin bootstrap. The Codex session (`019f765e`) ran a parallel review of the tiny-idp Goja microkernel. This work extended the earlier [[PROJECT REPORT - tiny-idp - Stylable Login and Consent UI|stylable login/consent UI]] and [[PROJECT REPORT - tiny-idp - Multi-Account Browser Sessions and Logout Scopes|multi-account browser sessions]] efforts, and laid the groundwork for the [[PROJECT REPORT - tiny-idp - Administration Control Plane and Widget DSL Console|administration control plane]] reported later in the week.
 
 **Invitation lifecycle (Phases 1–5):**
 - Activated TinyIDP durable signup invitations; added atomic and identity-bound application membership acceptance
@@ -81,10 +82,11 @@ The day completed the code-backed intern design for separate TinyIDP account-cre
 **Ticket:** `UPWORK-LIFECYCLE-2026-07-21` (upwork)
 **Session:** Pi `019f7666` (umans-glm-5.2)
 **Repo:** `~/code/wesen/go-go-golems/upwork` — 80 commits
+**Project reports:** [[ARTICLE - Private Operator Facts - Provenance-Aware Memory for Proposal Work]], [[ARTICLE - Upwork Freelance Bid Operations - Tracker, Surf, Facts, and Human Submission]]
 
 ### What happened
 
-The day built a provenance-linked operator-facts schema and a complete proposal lifecycle with transactional submission safety, evidence freshness, and human confirmation dialogs.
+The day built a provenance-linked operator-facts schema and a complete proposal lifecycle with transactional submission safety, evidence freshness, and human confirmation dialogs. This is the proposal-lifecycle counterpart to the [[ARTICLE - Upwork Tracker Agent Interfaces - Safe REST and jsverbs Automation|tracker agent REST/jsverbs interfaces]] and the [[PROJ - surf-go Upwork Bidding - Two-Phase Proposals, Automation Flakiness, and an Accidental Submit|two-phase bidding]] work.
 
 **Operator-facts provenance (Steps 1–8):**
 - Created a versioned private operator-facts schema design with title/summary/body and tags
@@ -115,10 +117,11 @@ The day built a provenance-linked operator-facts schema and a complete proposal 
 **Ticket:** `CHATGPT-FILES-2026-07-21` (surf-cli)
 **Session:** Pi `019f8568` (umans-glm-5.2)
 **Repo:** `~/code/others/llms/pi/nicobailon/surf-cli` — 22 commits
+**Project report:** [[PROJECT REPORT - surf-go ChatGPT File Downloader - Driving the Backend API Through the Page Context]]
 
 ### What happened
 
-A from-scratch implementation of a ChatGPT discussion-file downloader, progressing from a Node client to a native Go `surf-go chatgpt download` command with resumability, retry, and bulk export.
+A from-scratch implementation of a ChatGPT discussion-file downloader, progressing from a Node client to a native Go `surf-go chatgpt download` command with resumability, retry, and bulk export. The downloader reused the browser-context extraction pattern from the [[PROJ - surf-go Upwork Verbs - Browser-Side Extraction Behind Cloudflare and Login|surf-go Upwork verbs]] and [[PROJ - surf-go Freelancer Verbs - Browser-Side Command Deep Dive|Freelancer verbs]] work.
 
 **Implementation (Steps 4–11):**
 - Implemented `chatgpt-files-client.cjs` + 23 unit tests (`d2ab057`); all 249 tests pass
@@ -142,10 +145,11 @@ A from-scratch implementation of a ChatGPT discussion-file downloader, progressi
 **Ticket:** `RESEARCHCTL-016` (researchctl)
 **Session:** Pi `019f77c2` (gpt-5.6-terra)
 **Repo:** `~/code/wesen/go-go-golems/researchctl` — 3 commits
+**Project reports:** [[ARTICLE - Scraper Workflow V3 - Compact Durable Dataflow and Typed JavaScript]], [[ARTICLE - Workflow V3 - Durable External Operation Evidence Instrumentation]]
 
 ### What happened
 
-The Workflow V3 session advanced the real TTC RAG study readiness work, recording durable-preparation hardening and analysis for the RESEARCHCTL-016 ticket.
+The Workflow V3 session advanced the real TTC RAG study readiness work, recording durable-preparation hardening and analysis for the RESEARCHCTL-016 ticket. This is the durable-evidence layer of the [[ARTICLE - Immutable TTC RAG Laboratory - From Fixed Truth to Executable JavaScript Experiments|immutable TTC RAG laboratory]] and feeds into the [[PROJECT REPORT - Experiment Platform Convergence - Researchctl Workflow V3 and RAG|experiment platform convergence]] reported later in the week.
 
 - Recorded durable preparation hardening (`0a9b1be`)
 - Analyzed durable preparation latency (`76e52ac`)
@@ -158,10 +162,11 @@ The Workflow V3 session advanced the real TTC RAG study readiness work, recordin
 **Tickets:** k3s deployment automation (hetzner-k3s)
 **Sessions:** Pi `019f85d9` (umans-glm-5.2) + `019f8702` (umans-glm-5.2)
 **Repos:** `2026-03-27--hetzner-k3s` — 5 commits; `2026-03-29--serve-claude-experiments` — 2 commits; `go-go-golems/go-go-parc` — 10 commits
+**Project reports:** [[PROJ - serve-artifacts - Write API, Production Deployment, and the JSON Contract]], [[PROJECT REPORT - tiny-idp - Standalone Docker OIDC Message Desk]]
 
 ### What happened
 
-GitOps deployments of the shared TinyIDP (two themed apps) and Goja Auth host, plus a JSON 404 fix on the artifacts API and a batch of vault documentation imports.
+GitOps deployments of the shared TinyIDP (two themed apps) and Goja Auth host, plus a JSON 404 fix on the artifacts API and a batch of vault documentation imports. The serve-artifacts write-API work is documented in [[PROJ - serve-artifacts - Write API, Production Deployment, and the JSON Contract]], and the standalone TinyIDP message desk in [[PROJECT REPORT - tiny-idp - Standalone Docker OIDC Message Desk]].
 
 **k3s deployments:**
 - Configured shared TinyIDP for two themed apps (`fee8104`); pinned shared TinyIDP rollout images (`9577509`)
@@ -174,6 +179,15 @@ GitOps deployments of the shared TinyIDP (two themed apps) and Goja Auth host, p
 - Added serve-artifacts deep dive, scraper workflow v3 deep dive, tiny-idp invitations report, surf-go ChatGPT downloader report, and provenance-aware operator facts article
 
 ---
+
+## Related Project Reports
+
+- [[PROJECT REPORT - tiny-idp - Professional Signup and Application Membership Invitations]] — tiny-idp invitations & admin bootstrap
+- [[ARTICLE - Private Operator Facts - Provenance-Aware Memory for Proposal Work]] — upwork operator-facts provenance
+- [[PROJECT REPORT - surf-go ChatGPT File Downloader - Driving the Backend API Through the Page Context]] — ChatGPT discussion-file downloader
+- [[ARTICLE - Scraper Workflow V3 - Compact Durable Dataflow and Typed JavaScript]] — researchctl Workflow V3 durable preparation
+- [[PROJ - serve-artifacts - Write API, Production Deployment, and the JSON Contract]] — serve-artifacts write API & k3s deploy
+- [[ARTICLE - Upwork Freelance Bid Operations - Tracker, Surf, Facts, and Human Submission]] — upwork bid operations overview
 
 ## Analysis Notes & Caveats
 

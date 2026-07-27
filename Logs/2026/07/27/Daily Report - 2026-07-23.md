@@ -58,10 +58,11 @@ A heavy implementation day across **fourteen repositories**, driven by **27 codi
 **Ticket:** `TINYIDP-JITSI-PLUGIN` (tiny-idp)
 **Sessions:** Pi `019f37ea` (gpt-5.6-sol) + Codex `019f765e` (gpt-5.6-sol)
 **Repos:** `~/code/wesen/go-go-golems/tiny-idp` — 57 commits; `go-go-goja` — 1 commit; `2026-03-27--hetzner-k3s` — 15 commits
+**Project reports:** [[PROJECT REPORT - tiny-idp - Jitsi Production Rollout and Least-Privilege Startup]], [[PROJECT REPORT - tiny-idp - From Transcript Audit to an Enforced GitOps Invariant]]
 
 ### What happened
 
-The largest effort of the day: a complete TinyIDP Jitsi identity plugin, from local validation through production GitOps hardening. The plugin supports identity intents and safe completion, with a Kubernetes deployment contract and release-gate repairs.
+The largest effort of the day: a complete TinyIDP Jitsi identity plugin, from local validation through production GitOps hardening. The plugin supports identity intents and safe completion, with a Kubernetes deployment contract and release-gate repairs. The production GitOps hardening (PVC repair, restart-safe init, theme/audit pinning) is the subject of the [[PROJECT REPORT - tiny-idp - From Transcript Audit to an Enforced GitOps Invariant|transcript-audit-to-GitOps-invariant]] report, and the Jitsi rollout itself is documented in [[PROJECT REPORT - tiny-idp - Jitsi Production Rollout and Least-Privilege Startup|Jitsi production rollout & least-privilege startup]].
 
 **Jitsi plugin (local):**
 - Added identity intents and safe completion (`b4cedfa`); added local TinyIDP Jitsi stack example (`e9c25b9`)
@@ -87,10 +88,11 @@ The largest effort of the day: a complete TinyIDP Jitsi identity plugin, from lo
 **Ticket:** `UPWORK-AUDIT-LOGS-2026-07-23` (upwork)
 **Session:** Pi `019f7666` (umans-glm-5.2)
 **Repo:** `~/code/wesen/go-go-golems/upwork` — 20 commits
+**Project reports:** [[ARTICLE - Upwork Tracker Agent Interfaces - Safe REST and jsverbs Automation]], [[ARTICLE - Upwork Freelance Bid Operations - Tracker, Surf, Facts, and Human Submission]]
 
 ### What happened
 
-A complete agent job audit-log system: schema, CLI, API, UI, and migration during job reconciliation, plus a proposal review queue.
+A complete agent job audit-log system: schema, CLI, API, UI, and migration during job reconciliation, plus a proposal review queue. This is the observability layer for the [[ARTICLE - Upwork Tracker Agent Interfaces - Safe REST and jsverbs Automation|tracker agent REST/jsverbs interfaces]] and the [[ARTICLE - Upwork Freelance Bid Operations - Tracker, Surf, Facts, and Human Submission|freelance bid operations]] work.
 
 **Audit-log foundation:**
 - Added agent job audit log design ticket (`322e7cc`); recorded agent audit log policies (`0fac372`)
@@ -113,10 +115,11 @@ A complete agent job audit-log system: schema, CLI, API, UI, and migration durin
 **Ticket:** `RESEARCHCTL-EXPERIMENT-PLAN` (researchctl)
 **Session:** Pi `019f77c2` (gpt-5.6-terra)
 **Repo:** `~/code/wesen/go-go-golems/researchctl` — 16 commits
+**Project reports:** [[PROJECT REPORT - Experiment Platform Convergence - Researchctl Workflow V3 and RAG]], [[ARTICLE - Scraper Workflow V3 - Compact Durable Dataflow and Typed JavaScript]]
 
 ### What happened
 
-The Workflow V3 session completed the experiment-plan implementation ticket, integrated graceful external workflow runners, and established canonical Scraper observation custody.
+The Workflow V3 session completed the experiment-plan implementation ticket, integrated graceful external workflow runners, and established canonical Scraper observation custody. The Scraper execution contract v2 is the durable-dataflow foundation documented in [[ARTICLE - Scraper Workflow V3 - Compact Durable Dataflow and Typed JavaScript|Scraper Workflow V3]], and the experiment-plan work converged into the [[PROJECT REPORT - Experiment Platform Convergence - Researchctl Workflow V3 and RAG|experiment platform convergence]] report.
 
 **Experiment plans:**
 - Added experiment plan log areas (`1dae2cd`); enforced strict JavaScript plan policies (`1cba380`)
@@ -137,10 +140,11 @@ The Workflow V3 session completed the experiment-plan implementation ticket, int
 **Ticket:** `LLM-PROXY-BYOK` (llm-proxy)
 **Session:** Pi `019f8bf1` (gpt-5.6-sol) — Real TTC RAG Study Readiness
 **Repo:** `~/code/wesen/go-go-golems/llm-proxy` — 12 commits
+**Project reports:** [[PROJ - LLM Proxy BYOK - Tiny-IDP Coding-Agent Authority Chain]], [[PROJ - LLM-Proxy BYOK - Credential Vault, Token Minting, and Metered Proxy Enforcement]]
 
 ### What happened
 
-Completion of the tiny-idp BYOK agent authority chain in the llm-proxy, with live Umans GLM 5.2 acceptance and a phased BYOK observability design.
+Completion of the tiny-idp BYOK agent authority chain in the llm-proxy, with live Umans GLM 5.2 acceptance and a phased BYOK observability design. This is the coding-agent authority chain documented in [[PROJ - LLM Proxy BYOK - Tiny-IDP Coding-Agent Authority Chain|LLM Proxy BYOK: Tiny-IDP Coding-Agent Authority Chain]], extending the earlier [[PROJ - LLM-Proxy BYOK - Credential Vault, Token Minting, and Metered Proxy Enforcement|credential vault & metered proxy]] work.
 
 - Completed tiny-idp BYOK agent authority chain (`7cebfac`); recorded tiny-idp BYOK completion evidence (`5c9c7c8`)
 - Recorded live Umans GLM 5.2 acceptance (`f134887`); recorded direct x/sys dependency (`eadd5f4`)
@@ -155,10 +159,11 @@ Completion of the tiny-idp BYOK agent authority chain in the llm-proxy, with liv
 **Ticket:** `ESP-54` (echo-base-documentation/esp32-s3-m5)
 **Session:** Pi `019f8592` (gpt-5.6-luna)
 **Repo:** `~/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5` — 10 commits
+**Project reports:** [[PROJ - PULP OS Device Authorization - Native OAuth and E-Ink Sensor Streaming]], [[ARTICLE - tinyidp - Native Device Authorization Grant Implementation]]
 
 ### What happened
 
-Native device authentication for the ESP-54 PULP device: embedded tiny-idp device auth, protected APIs, a sensor WebSocket UI, and a probe battery validating live auth, bearer REST, WSS, and QR.
+Native device authentication for the ESP-54 PULP device: embedded tiny-idp device auth, protected APIs, a sensor WebSocket UI, and a probe battery validating live auth, bearer REST, WSS, and QR. This is the device-auth implementation documented in [[PROJ - PULP OS Device Authorization - Native OAuth and E-Ink Sensor Streaming|PULP OS Device Authorization]], building on the [[ARTICLE - tinyidp - Native Device Authorization Grant Implementation|native device authorization grant]] work.
 
 - Server: embedded tiny-idp device auth, protected APIs, sensor WS (`c6f742b`)
 - Firmware: native device auth, protected clients, and sensor UI (`4c2364c`)
@@ -174,10 +179,11 @@ Native device authentication for the ESP-54 PULP device: embedded tiny-idp devic
 **Ticket:** `PBUI-GOG-2026-07-23` (serve-claude-experiments)
 **Session:** Pi `019f9090` (umans-glm-5.2)
 **Repo:** `~/code/wesen/2026-03-29--serve-claude-experiments` — 10 commits
+**Project reports:** [[PROJ - serve-artifacts - From Static Viewer to Searchable, Organizable, Visual Gallery]], [[PROJ - PBUI - Presentation-Based UIs in TypeScript and React]]
 
 ### What happened
 
-A slide-deck builder (pbui-gog) on the serve-claude-experiments artifact server: artifact import, CSV upload with OPFS persistence, a zero-dep client-side ZIP writer, a deck model with markdown renderer, and a DeckApp editor.
+A slide-deck builder (pbui-gog) on the serve-claude-experiments artifact server: artifact import, CSV upload with OPFS persistence, a zero-dep client-side ZIP writer, a deck model with markdown renderer, and a DeckApp editor. This extends the [[PROJ - serve-artifacts - From Static Viewer to Searchable, Organizable, Visual Gallery|serve-artifacts gallery]] with the [[PROJ - PBUI - Presentation-Based UIs in TypeScript and React|PBUI presentation-based UI]] model.
 
 - Imported artifact + CSV upload with OPFS persistence (`a1f44b0`); marked Steps 1–4 done (`926ce55`)
 - Added zero-dep client-side ZIP writer + CSV/PNG helpers (`61d2056`); wired ZIP bundle download UI (`3df2f60`)
@@ -196,6 +202,16 @@ A slide-deck builder (pbui-gog) on the serve-claude-experiments artifact server:
 - **terraform** authorized Goja GitHub App GitOps workflow in Vault (`c0203b4`).
 
 ---
+
+## Related Project Reports
+
+- [[PROJECT REPORT - tiny-idp - Jitsi Production Rollout and Least-Privilege Startup]] — tiny-idp Jitsi plugin & GitOps hardening
+- [[PROJECT REPORT - tiny-idp - From Transcript Audit to an Enforced GitOps Invariant]] — transcript audit to GitOps invariant
+- [[ARTICLE - Upwork Tracker Agent Interfaces - Safe REST and jsverbs Automation]] — upwork audit-log system
+- [[PROJECT REPORT - Experiment Platform Convergence - Researchctl Workflow V3 and RAG]] — researchctl experiment plans & Scraper custody
+- [[PROJ - LLM Proxy BYOK - Tiny-IDP Coding-Agent Authority Chain]] — llm-proxy BYOK authority chain
+- [[PROJ - PULP OS Device Authorization - Native OAuth and E-Ink Sensor Streaming]] — ESP-54 PULP device auth
+- [[PROJ - serve-artifacts - From Static Viewer to Searchable, Organizable, Visual Gallery]] — pbui-gog slide-deck builder
 
 ## Analysis Notes & Caveats
 

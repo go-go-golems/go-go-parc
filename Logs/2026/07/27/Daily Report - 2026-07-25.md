@@ -51,10 +51,11 @@ A heavy implementation day across **five repositories**, driven by **23 coding-a
 **Ticket:** `ZITADEL-002-IDENTITY-BILLING` (zitadel-go-test)
 **Session:** Pi `019f99f9` (gpt-5.6-sol) — ZITADEL Production Deployment Playbooks
 **Repos:** `~/code/wesen/2026-07-25--zitadel-go-test` — 30 commits; `terraform` — 4 commits
+**Project reports:** [[PROJECT REPORT - ZITADEL Go Webapp MVP - From Identity Design to Deterministic Local Deployment]], [[PROJECT REPORT - Stripe Billing - End to End Subscription Infrastructure and Acceptance]]
 
 ### What happened
 
-The day built a complete identity-and-billing stack on a self-hosted ZITADEL Go webapp: Stripe subscriptions and account billing, Mailpit-backed email recovery, profile and atomic TODO plan limits, and production Stripe readiness auditing. The ticket was created, implemented, and closed in one day.
+The day built a complete identity-and-billing stack on a self-hosted ZITADEL Go webapp: Stripe subscriptions and account billing, Mailpit-backed email recovery, profile and atomic TODO plan limits, and production Stripe readiness auditing. The ticket was created, implemented, and closed in one day. The full identity design is documented in [[PROJECT REPORT - ZITADEL Go Webapp MVP - From Identity Design to Deterministic Local Deployment|ZITADEL Go Webapp MVP]], and the Stripe billing in [[PROJECT REPORT - Stripe Billing - End to End Subscription Infrastructure and Acceptance|Stripe Billing: End to End Subscription Infrastructure]]. The Mailpit recovery work would later become the [[PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery|Vault-backed ZITADEL SES SMTP]] report.
 
 **Architecture & design:**
 - Created ticket workspace, inventoried local SES/ZITADEL/app boundaries, preserved ZITADEL and Stripe upstream sources
@@ -90,10 +91,11 @@ The day built a complete identity-and-billing stack on a self-hosted ZITADEL Go 
 
 **Session:** Pi `019f99f9` (gpt-5.6-sol)
 **Repo:** `~/code/wesen/go-go-golems/go-go-parc` — 12 commits (shared with stream 4)
+**Project reports:** [[PROJECT REPORT - ZITADEL Go Webapp MVP - From Identity Design to Deterministic Local Deployment]], [[PROJECT REPORT - Restic Backup Scope Design - From 1.7T Home to a 247G Recovery Unit]]
 
 ### What happened
 
-The ZITADEL production deployment playbooks session began (continuing into 07-26/27), producing local ZITADEL Go service playbooks and a ZITADEL Go webapp project report.
+The ZITADEL production deployment playbooks session began (continuing into 07-26/27), producing local ZITADEL Go service playbooks and a ZITADEL Go webapp project report. The restic backup scope design documented here is the foundation for the [[PROJECT REPORT - Upwork Tracker Self-Containment - XDG State and WAL-Safe Restic Backups|upwork tracker self-containment]] work on 07-26.
 
 - Added local ZITADEL Go service playbook (`75a0699`); added ZITADEL Go webapp project report (`10d20e2`, `c332818`)
 - Added Argo CD Application with local-path PVC on k3s playbook; updated infra MOC (`07ff093`)
@@ -106,10 +108,11 @@ The ZITADEL production deployment playbooks session began (continuing into 07-26
 **Ticket:** `PLAYBOOK-EXTRACTION-2026-07-25` (claw-stuff)
 **Sessions:** Pi `019f9a86` (umans-glm-5.2) + `019f9aad` (umans-glm-5.2) + `019f9ab3` (umans-glm-5.2)
 **Repo:** `~/code/wesen/claw-stuff` — 4 commits
+**Project reports:** [[PROJECT REPORT - Tracing Profile-Loading Adoption Across 119 Coding-Agent Sessions with go-minitrace]], [[PROJECT REPORT - Mining Agent Sessions with go-minitrace - A Self-Contained Upwork Playbook Analysis]]
 
 ### What happened
 
-A docmgr ticket was created to extract playbooks about recent projects, with a go-minitrace search for the profile-loading coding session and an analysis of staged data that shouldn't be committed.
+A docmgr ticket was created to extract playbooks about recent projects, with a go-minitrace search for the profile-loading coding session and an analysis of staged data that shouldn't be committed. The profile-loading analysis became [[PROJECT REPORT - Tracing Profile-Loading Adoption Across 119 Coding-Agent Sessions with go-minitrace|Tracing Profile-Loading Adoption Across 119 Sessions]], and the playbook-extraction method reuses the [[PROJECT REPORT - Mining Agent Sessions with go-minitrace - A Self-Contained Upwork Playbook Analysis|mining agent sessions]] approach.
 
 - Merged remote-tracking branch into feature/upwork-agent-r (`e39691a`)
 - Added docmgr ticket workspaces, investigation scripts, and .gitignore hygiene (`7d15643`)
@@ -122,10 +125,11 @@ A docmgr ticket was created to extract playbooks about recent projects, with a g
 
 **Sessions:** Pi `019f99f9` + `019f9a86` + Claude Code `3ecf0619`
 **Repo:** `~/code/wesen/go-go-golems/go-go-parc` — 12 commits
+**Project reports:** [[PROJECT REPORT - go-go-datadrop v0.4 - Two Credentials, One Principal, and an Issuer That Is Not an Address]], [[PROJECT REPORT - rag-ttc - Clean-Slate RAG Experiments in Plain Go]]
 
 ### What happened
 
-Vault reports covering go-go-datadrop, rag-ttc, ZITADEL, and profile-loading transcript analysis.
+Vault reports covering go-go-datadrop, rag-ttc, ZITADEL, and profile-loading transcript analysis. The go-go-datadrop v0.4/v0.5 reports continued the datadrop series started on [[PROJECT REPORT - go-go-datadrop v0.1 - Building an Append-Only Event Store from Two Reference Implementations|07-24]], and the rag-ttc clean-slate report ([[PROJECT REPORT - rag-ttc - Clean-Slate RAG Experiments in Plain Go|rag-ttc: Clean-Slate RAG Experiments in Plain Go]]) seeded the new rag-ttc project.
 
 - go-go-datadrop v0.4 project report (`da1322a`); rag-ttc clean-slate project report (`b67d57f`)
 - go-go-datadrop v0.5 project report (`72590db`); PROJECT REPORT v0.5 — corrected a false claim, named the gap it revealed (`a2b5aae`)
@@ -141,6 +145,15 @@ Vault reports covering go-go-datadrop, rag-ttc, ZITADEL, and profile-loading tra
 - **Stripe implementation planner** (`019f9b7d-b908`, 4 turns): used the stripe_implementation_planner tool for `the.scapegoat.dev`.
 
 ---
+
+## Related Project Reports
+
+- [[PROJECT REPORT - ZITADEL Go Webapp MVP - From Identity Design to Deterministic Local Deployment]] — ZITADEL-002 identity billing
+- [[PROJECT REPORT - Stripe Billing - End to End Subscription Infrastructure and Acceptance]] — Stripe subscriptions & billing
+- [[PROJECT REPORT - Restic Backup Scope Design - From 1.7T Home to a 247G Recovery Unit]] — restic backup scope
+- [[PROJECT REPORT - Tracing Profile-Loading Adoption Across 119 Coding-Agent Sessions with go-minitrace]] — profile-loading analysis
+- [[PROJECT REPORT - go-go-datadrop v0.4 - Two Credentials, One Principal, and an Issuer That Is Not an Address]] — datadrop v0.4
+- [[PROJECT REPORT - rag-ttc - Clean-Slate RAG Experiments in Plain Go]] — rag-ttc clean-slate
 
 ## Analysis Notes & Caveats
 

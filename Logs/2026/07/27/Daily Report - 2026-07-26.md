@@ -53,10 +53,11 @@ A heavy implementation day across **seven repositories**, driven by **26 coding-
 **Ticket:** `ZITADEL-ONBOARDING` (zitadel-go-test)
 **Session:** Pi `019f99f9` (gpt-5.6-sol)
 **Repo:** `~/code/wesen/2026-07-25--zitadel-go-test` — 26 commits
+**Project reports:** [[ARTICLE - Deep Dive - Self-Service ZITADEL Tenant Onboarding Control Plane]], [[ARTICLE - Deep Dive - Completing the ZITADEL SaaS Tenant Control Plane]]
 
 ### What happened
 
-The day built a self-service SaaS tenant onboarding control plane: durable onboarding state, ZITADEL tenant organizations, a tenant onboarding control plane, and verified tenant administrator onboarding with rate limiting. Phase 1 and Phase 2 were audited and accepted.
+The day built a self-service SaaS tenant onboarding control plane: durable onboarding state, ZITADEL tenant organizations, a tenant onboarding control plane, and verified tenant administrator onboarding with rate limiting. Phase 1 and Phase 2 were audited and accepted. The full control-plane design is documented in [[ARTICLE - Deep Dive - Self-Service ZITADEL Tenant Onboarding Control Plane|Self-Service ZITADEL Tenant Onboarding Control Plane]] and its completion in [[ARTICLE - Deep Dive - Completing the ZITADEL SaaS Tenant Control Plane|Completing the ZITADEL SaaS Tenant Control Plane]]. This extends the [[PROJECT REPORT - ZITADEL Go Webapp MVP - From Identity Design to Deterministic Local Deployment|ZITADEL Go Webapp MVP]] from 07-25.
 
 **Onboarding state & control plane:**
 - Designed self-service SaaS tenant onboarding (`e354a60`); recorded onboarding state foundation (`4260afc`)
@@ -80,10 +81,11 @@ The day built a self-service SaaS tenant onboarding control plane: durable onboa
 
 **Session:** Pi `019f99f9` (gpt-5.6-sol)
 **Repos:** `~/code/wesen/2026-03-27--hetzner-k3s` — 17 commits; `terraform` — 1 commit
+**Project reports:** [[PROJECT REPORT - Stripe Billing - End to End Subscription Infrastructure and Acceptance]], [[PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery]]
 
 ### What happened
 
-GitOps deployment of ZITADEL through Argo CD and Vault, a TODO app with ZITADEL and Stripe sandbox, isolated Alpha/Beta TODO tenants, and PostgreSQL-backed TODO sessions with cross-tenant connection denial.
+GitOps deployment of ZITADEL through Argo CD and Vault, a TODO app with ZITADEL and Stripe sandbox, isolated Alpha/Beta TODO tenants, and PostgreSQL-backed TODO sessions with cross-tenant connection denial. This is the production deployment of the [[PROJECT REPORT - Stripe Billing - End to End Subscription Infrastructure and Acceptance|Stripe billing]] and [[PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery|ZITADEL SES SMTP]] work.
 
 - Deployed ZITADEL through argocd and vault (`951ecfd`); deployed todo app with zitadel and stripe sandbox (`6a01993`)
 - Routed todo oidc through cluster ingress (`645da13`); deployed isolated Alpha and Beta TODO tenants (`da5a79f`)
@@ -100,10 +102,11 @@ GitOps deployment of ZITADEL through Argo CD and Vault, a TODO app with ZITADEL 
 **Ticket:** `LINKEDIN-VERBS-20260726` (surf-cli)
 **Session:** Pi `019fa02e` (umans-glm-5.2)
 **Repo:** `~/code/others/llms/pi/nicobailon/surf-cli` — 13 commits
+**Project reports:** [[ARTICLE - Deep Dive - Generating a Print-Ready Resume From a LinkedIn Profile]], [[PROJ - surf-go Upwork Verbs - Browser-Side Extraction Behind Cloudflare and Login]]
 
 ### What happened
 
-A set of LinkedIn browser verbs for surf-go: jobs search, job detail, saved/applied jobs, and profile/company verbs, with mock-host integration tests and pagination probing.
+A set of LinkedIn browser verbs for surf-go: jobs search, job detail, saved/applied jobs, and profile/company verbs, with mock-host integration tests and pagination probing. These verbs reuse the browser-context extraction pattern from the [[PROJ - surf-go Upwork Verbs - Browser-Side Extraction Behind Cloudflare and Login|surf-go Upwork verbs]] and would later drive the [[ARTICLE - Deep Dive - Generating a Print-Ready Resume From a LinkedIn Profile|print-ready resume from a LinkedIn profile]] work on 07-27.
 
 - Added LINKEDIN-VERBS-20260726 investigation ticket (`ff195c5`); documented linkedin jobs verb and recommendations trap (`333bffa`)
 - Consolidated remaining work and fixed task accuracy (`881a286`); made LinkedIn mock-host integration tests pass (`7156fef`)
@@ -119,10 +122,11 @@ A set of LinkedIn browser verbs for surf-go: jobs search, job detail, saved/appl
 
 **Session:** Pi `019f8fd8` (gpt-5.6-sol) — Upwork Tracker and Widget Architecture Garden
 **Repo:** `~/code/wesen/go-go-golems/go-go-parc` — 25 commits (shared with stream 5)
+**Project reports:** [[ARTICLE - Deep Dive - Retro Obsidian Publish - Vault-Driven Publishing Architecture]], [[PROJECT REPORT - Upwork Tracker Self-Containment - XDG State and WAL-Safe Restic Backups]]
 
 ### What happened
 
-A Software Architecture Garden study series analyzing the architecture of multiple projects (publish-vault, zitadel-go-test, upwork, go-go-datadrop, rag-ttc, devctl), plus go-go-datadrop v0.7/v0.8/v0.9 reports and a PostgreSQL-backed OIDC session pattern doc.
+A Software Architecture Garden study series analyzing the architecture of multiple projects (publish-vault, zitadel-go-test, upwork, go-go-datadrop, rag-ttc, devctl), plus go-go-datadrop v0.7/v0.8/v0.9 reports and a PostgreSQL-backed OIDC session pattern doc. The publish-vault study is [[ARTICLE - Deep Dive - Retro Obsidian Publish - Vault-Driven Publishing Architecture|Retro Obsidian Publish: Vault-Driven Publishing Architecture]], and the upwork self-containment report is [[PROJECT REPORT - Upwork Tracker Self-Containment - XDG State and WAL-Safe Restic Backups|Upwork Tracker Self-Containment: XDG State and WAL-Safe Restic Backups]].
 
 **Architecture garden studies:**
 - Started software architecture garden (`af5f4cb`); Retro Obsidian Publish (publish-vault) deep dive (`69b8225`)
@@ -149,10 +153,11 @@ A Software Architecture Garden study series analyzing the architecture of multip
 **Ticket:** `PUBLISH-VAULT-PUBLISH-FLAG` (publish-vault)
 **Sessions:** Pi `019fa02f` (umans-glm-5.2) + `019fa08a` (umans-glm-5.2)
 **Repo:** `~/code/wesen/go-go-golems/go-go-parc` — (vault docs)
+**Project reports:** [[ARTICLE - Playbook - Subscription Search Product Architecture]], [[PROJ - Publish Vault Widget DSL - Server-Driven Pages from an Embedded JavaScript Runtime]]
 
 ### What happened
 
-A docmgr ticket to add `publish: true|false` support to publish-vault, plus a subscription-search product architecture article and a thermal-printer text rastering investigation.
+A docmgr ticket to add `publish: true|false` support to publish-vault, plus a subscription-search product architecture article and a thermal-printer text rastering investigation. The subscription-search article is [[ARTICLE - Playbook - Subscription Search Product Architecture|Playbook: Subscription Search Product Architecture]], extending the [[PROJ - Publish Vault Widget DSL - Server-Driven Pages from an Embedded JavaScript Runtime|publish-vault widget DSL]] work.
 
 - Created docmgr ticket to add publish: true|false support to publish-vault (`019fa02f`)
 - Subscription search product website session (`019fa08a`) — produced ARTICLE: Playbook - Subscription Search Product Architecture (committed 07-27)
@@ -167,6 +172,18 @@ A docmgr ticket to add `publish: true|false` support to publish-vault, plus a su
 - **Codex rag-eval analysis** (`019fa09b-93a4`, 613 turns): analyzed the rag-eval setup for TTC; continues 07-27.
 
 ---
+
+## Related Project Reports
+
+- [[ARTICLE - Deep Dive - Self-Service ZITADEL Tenant Onboarding Control Plane]] — ZITADEL tenant onboarding control plane
+- [[ARTICLE - Deep Dive - Completing the ZITADEL SaaS Tenant Control Plane]] — ZITADEL SaaS control plane completion
+- [[PROJECT REPORT - Stripe Billing - End to End Subscription Infrastructure and Acceptance]] — Stripe/TODO tenant GitOps
+- [[PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery]] — ZITADEL SES SMTP
+- [[ARTICLE - Deep Dive - Generating a Print-Ready Resume From a LinkedIn Profile]] — LinkedIn verbs & resume
+- [[ARTICLE - Deep Dive - Retro Obsidian Publish - Vault-Driven Publishing Architecture]] — publish-vault architecture garden
+- [[PROJECT REPORT - Upwork Tracker Self-Containment - XDG State and WAL-Safe Restic Backups]] — upwork self-containment
+- [[PROJECT REPORT - go-go-datadrop v0.7 - What Makes a Defect Findable]] — datadrop v0.7
+- [[ARTICLE - Playbook - Subscription Search Product Architecture]] — subscription search product
 
 ## Analysis Notes & Caveats
 
