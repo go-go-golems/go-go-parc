@@ -75,6 +75,8 @@ The recurring invariant is dependency order. A release is not a single repositor
 - [[PROJ - K3s Migration Program - From Coolify to GitOps Platform]] — platform migration.
 - [[PROJ - Vault on K3s - Auth and Secret Delivery Platform]] — Vault delivery.
 - [[PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery]] — production ZITADEL email verification and password recovery through Vault-backed SES, including Login V2 gate versus asynchronous delivery semantics.
+- [[Research/playbooks/infra/PLAYBOOK - Production ZITADEL for a Single Go Web Application on k3s]] — ordered single-application deployment through DNS, TLS, Vault/VSO, PostgreSQL bootstrap, the official chart, Terraform PKCE resources, SMTP, GitOps, and browser acceptance.
+- [[Research/playbooks/infra/PLAYBOOK - Production Multi-Tenant ZITADEL SaaS Platform on k3s]] — expansion into tenant-owned organizations, isolated namespaces/Vault paths/databases, organization-scoped OIDC, delegated administration, billing, self-service onboarding, and cross-tenant acceptance.
 - [[PROJECT REPORT - Stripe Billing - End to End Subscription Infrastructure and Acceptance]] — Terraform catalog ownership, hosted Checkout and Portal, signed webhook convergence, Tax, Test Clocks, Vault delivery, quota enforcement, and production rollout boundaries.
 - [[ARTICLE - Deep Dive - Completing the ZITADEL SaaS Tenant Control Plane]] — completed self-service tenant identity control plane with generated organization IDs, organization-scoped OIDC, verified administrator continuation, PostgreSQL concurrency controls, live browser acceptance, and idempotent cleanup.
 - [[PROJ - Terraform Infra - Vault Platform Bring-Up, Auth Hardening, and Hair-Booking Handoff]] — infrastructure-as-code and auth.
