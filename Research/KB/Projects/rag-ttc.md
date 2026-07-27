@@ -18,7 +18,7 @@ type: knowledge-base
 created: "2026-07-25"
 repo: /home/manuel/workspaces/2026-06-30/benchmark-cpu-inference/rag-ttc
 analyzed: "2026-07-27"
-repository_commit: ca5bffcfc094776eeb24a0d60be7a6220e07898b
+repository_commit: c94d41c0501e0602cc8508d4440b778a0529af9b
 repository_branch: task/ttc-live-rag-quality-experiment
 repository_remote: git@github.com:wesen/rag-ttc.git
 ---
@@ -40,8 +40,9 @@ historical RAG DSL, Researchctl, or Scraper Workflow V3.
 > - **Current evidence:** persistent backends have been measured on the
 >   canonical TTC candidate dataset; a five-query OpenAI smoke and 30-query
 >   paired pilot completed within explicit provider budgets.
-> - **Current boundary:** human review is paused because independent
->   zero-budget replay exposed an unresolved semantic-identity instability.
+> - **Current result:** semantic identity is stable across independent
+>   zero-budget replays; two blinded `umans-glm-5.2` judge sessions completed
+>   70 annotations, and the imported pilot favors RRF over BM25.
 
 ## Primary report
 
@@ -62,6 +63,14 @@ historical RAG DSL, Researchctl, or Scraper Workflow V3.
   execution primitives, per-item cache recovery, artifact reduction,
   arm-aware dependency planning, real TTC validation, and bounded OpenAI
   generation and embedding evidence.
+- [[ARTICLE - rag-ttc - Reproducible TTC RAG Evaluation with Blinded LLM Judges]] —
+  complete 30-query BM25-versus-RRF protocol, grounded generation contract,
+  semantic-identity replay, blinded LLM judging, paired results, disagreement
+  audit, and zero-provider-work annotation import.
+- [[ARTICLE - rag-ttc - Refactoring Explicit Experiments and Reusable Mechanisms]] —
+  textbook-style account of the final dependency structure, generic execution
+  and experiment custody, semantic RAG decorators, command-owned policy,
+  deletion decisions, and validation rules.
 
 ## Software Architecture Garden
 
@@ -149,29 +158,33 @@ lexical/vector backends, OpenAI embeddings, and OpenAI Responses generation.
 
 The five-query smoke completed ten cells and replayed with all provider budgets
 at zero. The 30-query pilot completed 60 cells with 30 query-embedding and 60
-generation work calls. A later independent zero-budget replay found an
-identity/cache instability, so the 60-item blinded queue has not been
-distributed.
+generation work calls. A shared score-independent evidence identity then made
+generation keys and blinded review IDs stable across two independent
+zero-budget replays.
+
+Two independent Pi sessions using `umans/umans-glm-5.2` reviewed all 60 cells
+with a balanced ten-item overlap. The zero-budget annotation import made no
+provider calls. RRF improved MRR, Recall@10, nDCG@10, hit rate, and all five
+mean judge dimensions. Paired bootstrap intervals excluded zero for
+correctness and completeness. This is LLM-judge pilot evidence, not human
+review.
 
 The current boundary is:
 
 ```text
 successful provider execution
-  != reproducible review identity
-  != completed human answer-quality evidence
+  + reproducible semantic identity
+  + completed blinded LLM judging
+  != independent human answer-quality evidence
 ```
 
 ## Next production step
 
-1. Audit semantic identity across retrieval evidence, generation cache keys,
-   and review IDs.
-2. Define one versioned canonical selected-evidence identity.
-3. Require at least two independent zero-budget replays with zero work calls
-   and identical evidence, answers, queues, and private keys.
-4. Commit the coherent identity fix and replay evidence.
-5. Distribute the 60-cell primary queue and balanced ten-cell overlap queue.
-6. Import annotations through a zero-budget run and publish paired arm and
-   reviewer-disagreement results.
+1. Revise the rubric for non-abstention dimensions when an answer abstains.
+2. Preserve the same 30-query split for the next exploratory comparison.
+3. Compare vector retrieval with RRF under the revised judge protocol.
+4. Add RRF-versus-reranked-RRF after a real reranking provider is configured.
+5. Use a held-out or expanded query set for confirmatory claims.
 
 ## Working rules
 
