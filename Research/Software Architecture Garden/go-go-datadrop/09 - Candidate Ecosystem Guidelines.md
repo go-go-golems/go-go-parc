@@ -24,7 +24,7 @@ compared_against:
     repository_commit: 7164b02ce8fedb21697e6d4079e785984007b0b7
     outcome: four candidates confirmed, one debt item refined
   - project: rag-ttc
-    document: Research/Software Architecture Garden/rag-ttc/08 - Candidate Ecosystem Guidelines.md
+    document: Research/Software Architecture Garden/rag-ttc/05 - Provider Integration Validation and Ecosystem Lessons.md
     outcome: candidate 10 confirmed and split into runtime and structural families
   - project: publish-vault
     document: Research/Software Architecture Garden/publish-vault/04 - Candidate Ecosystem Guidelines.md

@@ -17,8 +17,8 @@ status: active
 type: knowledge-base
 created: "2026-07-25"
 repo: /home/manuel/workspaces/2026-06-30/benchmark-cpu-inference/rag-ttc
-analyzed: "2026-07-26"
-repository_commit: 3583bc92cd738fe5175b2369e546794f850c7fae
+analyzed: "2026-07-27"
+repository_commit: ca5bffcfc094776eeb24a0d60be7a6220e07898b
 repository_branch: task/ttc-live-rag-quality-experiment
 repository_remote: git@github.com:wesen/rag-ttc.git
 ---
@@ -66,7 +66,7 @@ historical RAG DSL, Researchctl, or Scraper Workflow V3.
 ## Software Architecture Garden
 
 - [[Research/Software Architecture Garden/rag-ttc/README|Architecture Garden — rag-ttc]] — commit-pinned project study of how plain-Go experiment policy, typed RAG contracts, provider adapters, bounded recoverable execution, semantic identity, and experiment result custody are woven together.
-- [[Research/Software Architecture Garden/rag-ttc/08 - Candidate Ecosystem Guidelines|rag-ttc candidate ecosystem guidelines]] — reusable rules for package ownership, expensive-work recovery, zero-authority replay, adapter validation, and durable completed-result streams.
+- [[Research/Software Architecture Garden/rag-ttc/05 - Provider Integration Validation and Ecosystem Lessons|rag-ttc provider integration and ecosystem lessons]] — validated provider boundaries and reusable rules for package ownership, expensive-work recovery, zero-authority replay, adapter validation, and durable completed-result streams.
 
 ## Architecture
 
@@ -74,7 +74,7 @@ historical RAG DSL, Researchctl, or Scraper Workflow V3.
 flowchart TD
     PROGRAM[Plain Go experiment]
     RAG[pkg/rag capabilities]
-    EXEC[pkg/rag/execution]
+    EXEC[pkg/execution]
     LEDGER[pkg/experiment]
     DATA[Corpus + evaluation set]
     OUTPUT[Inspectable run directory]

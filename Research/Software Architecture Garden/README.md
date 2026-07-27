@@ -170,7 +170,7 @@ The comparison step prevents accidental standardization. Two projects may use si
 
 ### rag-ttc
 
-[[Research/Software Architecture Garden/rag-ttc/README|rag-ttc]] studies a plain-Go RAG experiment laboratory. Its strongest patterns are the explicit separation of experiment policy from reusable mechanisms, bounded and budgeted execution with per-item durable recovery, experiment directories as result custody, typed domain interfaces with provider adapters, and zero-budget replay as a semantic-identity test. Its active simplification work also provides direct evidence for packaging code by semantic dependency rather than first use.
+[[Research/Software Architecture Garden/rag-ttc/README|rag-ttc]] studies a plain-Go RAG experiment laboratory at the completed simplification boundary. Its consolidated study explains five larger systems: explicit experiment composition, bounded and recoverable expensive work, semantic identity with durable result custody, representation-centered retrieval, and validated provider integration. Real TTC workloads, controlled late failures, bounded OpenAI calls, and zero-work replay provide operational evidence for the candidate ecosystem rules.
 
 ### go-go-datadrop
 
