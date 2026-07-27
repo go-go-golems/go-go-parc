@@ -256,6 +256,215 @@ kubectl -n zitadel get serviceaccount
 kubectl -n zitadel get vaultauth,vaultstaticsecret
 ```
 
+## Bootstrap a private GHCR image-pull credential for a new project
+
+Skip this section when the GHCR package is public: k3s can pull a public package anonymously, and an unnecessary registry token increases secret exposure. Use this procedure when a clean unauthenticated pull returns `401 Unauthorized` or the approved package visibility is private.
+
+Publishing and pulling use different credentials. GitHub Actions normally publishes with its repository-scoped `GITHUB_TOKEN` and `packages: write`. The cluster needs a long-lived or renewable deployment credential with read access to the private package. Prefer a dedicated machine identity and the narrowest GitHub credential supported by the package owner. For a classic GitHub PAT, grant `read:packages`, not `write:packages` or repository administration. Confirm that the identity is authorized for the organization and package.
+
+### Create the Vault record without putting the token in Git or shell history
+
+The reusable Vault record contract is:
+
+```text
+server   = ghcr.io
+username = <GitHub deployment identity>
+password = <token with package read access>
+auth     = base64("<username>:<token>")
+```
+
+Use one application-owned path:
+
+```text
+kv/apps/<application>/<environment>/image-pull
+```
+
+The following bootstrap prompts without echo, uses a mode-`0600` temporary JSON file instead of placing the token in a `vault kv put key=value` command argument, and removes local material on exit:
+
+```bash
+set -euo pipefail
+umask 077
+
+: "${VAULT_ADDR:?set VAULT_ADDR}"
+: "${VAULT_TOKEN:?authenticate to Vault without printing the token}"
+
+app='example-app'
+environment='prod'
+secret_path="kv/apps/${app}/${environment}/image-pull"
+github_username="$(gh api user --jq '.login')"
+
+read -rsp 'GHCR read token: ' ghcr_token
+printf '\n' >&2
+
+tmpdir="$(mktemp -d)"
+cleanup() {
+  unset ghcr_token auth_b64
+  rm -rf "$tmpdir"
+}
+trap cleanup EXIT INT TERM
+
+auth_b64="$(printf '%s:%s' "$github_username" "$ghcr_token" | base64 | tr -d '\n')"
+
+GHCR_SERVER=ghcr.io \
+GHCR_USERNAME="$github_username" \
+GHCR_PASSWORD="$ghcr_token" \
+GHCR_AUTH="$auth_b64" \
+python3 - <<'PY' >"$tmpdir/image-pull.json"
+import json
+import os
+
+json.dump(
+    {
+        "server": os.environ["GHCR_SERVER"],
+        "username": os.environ["GHCR_USERNAME"],
+        "password": os.environ["GHCR_PASSWORD"],
+        "auth": os.environ["GHCR_AUTH"],
+    },
+    fp=__import__("sys").stdout,
+)
+PY
+
+vault kv put "$secret_path" @"$tmpdir/image-pull.json" >/dev/null
+printf 'Seeded %s for %s; no credential value was printed.\n' \
+  "$secret_path" "$github_username"
+```
+
+The temporary file is still sensitive while the command runs. Keep it on a trusted local filesystem, retain `umask 077`, and do not run the script with shell tracing. Do not attach command output, environment dumps, or the JSON file to a ticket.
+
+If a previously approved pull credential should be reused, copy it inside a private temporary directory without rendering fields to the terminal:
+
+```bash
+set -euo pipefail
+umask 077
+source_path='kv/apps/existing-app/prod/image-pull'
+destination_path='kv/apps/example-app/prod/image-pull'
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT INT TERM
+
+vault kv get -format=json "$source_path" \
+  | jq '.data.data | {server, username, password, auth}' \
+  >"$tmpdir/image-pull.json"
+
+jq -e '
+  (.server == "ghcr.io") and
+  (.username | type == "string" and length > 0) and
+  (.password | type == "string" and length > 0) and
+  (.auth | type == "string" and length > 0)
+' "$tmpdir/image-pull.json" >/dev/null
+
+vault kv put "$destination_path" @"$tmpdir/image-pull.json" >/dev/null
+printf 'Copied approved pull credential to %s; values were not printed.\n' \
+  "$destination_path"
+```
+
+Reusing a credential in multiple Vault paths isolates Kubernetes access to those records; it does **not** isolate the underlying GitHub token. Track every destination path so one token rotation updates all copies. Prefer independent credentials when GitHub package permissions and operational overhead allow it.
+
+### Let VSO render the Docker registry Secret
+
+Grant the application's Vault policy read access only to its path. KV v2 policy paths include `data/`:
+
+```hcl
+path "kv/data/apps/example-app/prod/image-pull" {
+  capabilities = ["read"]
+}
+```
+
+Bind the policy to the application's exact Kubernetes namespace and service account through its Vault Kubernetes auth role. Then render the record as the Secret type Kubernetes expects:
+
+```yaml
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: example-app-ghcr-pull
+  namespace: example-app
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  vaultAuthRef: example-app
+  mount: kv
+  type: kv-v2
+  path: apps/example-app/prod/image-pull
+  refreshAfter: 30s
+  destination:
+    name: example-app-ghcr-pull
+    create: true
+    overwrite: true
+    type: kubernetes.io/dockerconfigjson
+    transformation:
+      excludes:
+        - ".*"
+      templates:
+        .dockerconfigjson:
+          text: |
+            {"auths":{"{{ .Secrets.server }}":{"username":"{{ .Secrets.username }}","password":"{{ .Secrets.password }}","auth":"{{ .Secrets.auth }}"}}}
+```
+
+Attach the generated Secret to the workload's ServiceAccount so Deployments and hook Jobs inherit it consistently:
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: example-app
+  namespace: example-app
+imagePullSecrets:
+  - name: example-app-ghcr-pull
+```
+
+Do not commit a handcrafted `kubernetes.io/dockerconfigjson` Secret. Git should contain only the Vault path and transformation template.
+
+### Validate bootstrap without displaying the Secret
+
+Check object status and key presence, not decoded values:
+
+```bash
+kubectl -n example-app wait \
+  --for=jsonpath='{.status.conditions[?(@.type=="Ready")].status}'=True \
+  vaultstaticsecret/example-app-ghcr-pull \
+  --timeout=120s
+
+kubectl -n example-app get secret example-app-ghcr-pull \
+  -o jsonpath='{.type}{"\n"}'
+
+kubectl -n example-app get secret example-app-ghcr-pull \
+  -o jsonpath='{.data\.dockerconfigjson}' \
+  | awk 'length($0)>0 {print "dockerconfigjson_present=true"}'
+```
+
+The expected type is `kubernetes.io/dockerconfigjson`. Do not pipe the field through `base64 --decode` in logs or evidence.
+
+Prove a real private pull with a disposable pod using an image tag or digest that exists:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ghcr-pull-check
+  namespace: example-app
+spec:
+  restartPolicy: Never
+  serviceAccountName: example-app
+  containers:
+    - name: check
+      image: ghcr.io/example/example-app@sha256:<approved-digest>
+      command: ["/app", "healthcheck"]
+```
+
+Apply it, require successful image pull and process completion, then delete it. If the production image has no suitable one-shot command, validate through the real Deployment rollout rather than changing its entrypoint speculatively.
+
+### Rotate and revoke
+
+1. Create or approve the replacement read-only credential.
+2. Update every Vault path that contains the old credential.
+3. Wait for each `VaultStaticSecret` generation and destination Secret resource version to change.
+4. Force a controlled pull from GHCR on a node that does not already have the image, or use a new immutable digest.
+5. Confirm all affected workloads can pull.
+6. Revoke the old GitHub credential.
+7. Run another controlled pull to prove the new credential remains sufficient.
+8. Record only path names, object readiness, image digest, and success/failure booleans.
+
+An existing running pod and a node-cached image do not prove that the rotated credential works.
+
 ## 6. Build the ZITADEL prerequisite package
 
 The reference package is `gitops/kustomize/zitadel/` in the k3s repository. It contains:

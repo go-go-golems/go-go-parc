@@ -377,6 +377,109 @@ Create a separate database-bootstrap policy and service account. It may read the
 
 Acceptance should request peer Vault paths with each tenant identity and require permission denial. Checking only that the intended path succeeds is incomplete.
 
+## Bootstrap private GHCR pulls for tenant projects
+
+Follow the complete first-time procedure in [[Research/playbooks/infra/PLAYBOOK - Production ZITADEL for a Single Go Web Application on k3s#Bootstrap a private GHCR image-pull credential for a new project]]. It defines the `server`, `username`, `password`, and `auth` Vault record, secret-safe bootstrap, VSO `.dockerconfigjson` transformation, ServiceAccount attachment, validation, rotation, and revocation.
+
+For tenant deployments, create a separate Vault record at every tenant path even when the first rollout deliberately reuses one approved GHCR read credential:
+
+```text
+kv/apps/todo-tenant-alpha/prod/image-pull
+kv/apps/todo-tenant-beta/prod/image-pull
+```
+
+The accepted Alpha/Beta bootstrap read an existing approved pull record and copied only these fields into each tenant-owned path without printing values:
+
+```text
+server
+username
+password
+auth
+```
+
+A reusable noninteractive helper can copy the record with private temporary files:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+
+[[ $# -eq 2 ]] || {
+  echo "usage: $0 <source-vault-path> <destination-vault-path>" >&2
+  exit 2
+}
+
+source_path="$1"
+destination_path="$2"
+tmpdir="$(mktemp -d)"
+cleanup() { rm -rf "$tmpdir"; }
+trap cleanup EXIT INT TERM
+
+vault kv get -format=json "$source_path" \
+  | jq '.data.data | {server, username, password, auth}' \
+  >"$tmpdir/image-pull.json"
+
+jq -e '
+  (.server == "ghcr.io") and
+  (.username | type == "string" and length > 0) and
+  (.password | type == "string" and length > 0) and
+  (.auth | type == "string" and length > 0)
+' "$tmpdir/image-pull.json" >/dev/null
+
+vault kv put "$destination_path" @"$tmpdir/image-pull.json" >/dev/null
+printf 'image_pull_record_written=true path=%s\n' "$destination_path"
+```
+
+Example invocations:
+
+```bash
+./copy-image-pull-record \
+  kv/apps/todo-demo/prod/image-pull \
+  kv/apps/todo-tenant-alpha/prod/image-pull
+
+./copy-image-pull-record \
+  kv/apps/todo-demo/prod/image-pull \
+  kv/apps/todo-tenant-beta/prod/image-pull
+```
+
+Do not enable `set -x`; do not print the temporary JSON; do not decode the resulting Kubernetes Secret during acceptance. Store a maintained helper under the infrastructure repository's `scripts/` directory rather than copying commands from shell history.
+
+Each overlay rewrites the base `VaultStaticSecret` path:
+
+```yaml
+# Alpha overlay
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: todo-tenant-ghcr-pull
+spec:
+  path: apps/todo-tenant-alpha/prod/image-pull
+```
+
+The base renders `todo-tenant-ghcr-pull` as `kubernetes.io/dockerconfigjson`, and the tenant ServiceAccount names it under `imagePullSecrets`. The Alpha Vault policy can read only Alpha's path; Beta's policy can read only Beta's path.
+
+This gives tenant-specific Vault and Kubernetes authorization, but copied records still contain the same GitHub credential. Maintain an inventory such as:
+
+```text
+credential generation: ghcr-pull-2026-07
+Vault destinations:
+  - kv/apps/todo-demo/prod/image-pull
+  - kv/apps/todo-tenant-alpha/prod/image-pull
+  - kv/apps/todo-tenant-beta/prod/image-pull
+```
+
+The inventory contains no credential value. Use it to update every copy before revoking the old token. As tenant count grows, replace manual copies with a managed credential-distribution or renewable registry-auth design; do not allow one forgotten Vault path to retain a revoked token.
+
+Tenant bootstrap acceptance requires:
+
+- [ ] each `VaultStaticSecret` reports Ready;
+- [ ] each destination Secret has type `kubernetes.io/dockerconfigjson`;
+- [ ] Alpha and Beta service accounts reference their namespace-local pull Secret;
+- [ ] a fresh node or new immutable digest pulls successfully for each tenant;
+- [ ] each tenant Vault identity is denied access to the peer image-pull path;
+- [ ] no decoded registry configuration enters logs or evidence;
+- [ ] rotation succeeds before the previous credential is revoked.
+
 ## 10. Provision separate PostgreSQL databases and roles
 
 The shared PostgreSQL service may host tenant databases, but each tenant receives:
