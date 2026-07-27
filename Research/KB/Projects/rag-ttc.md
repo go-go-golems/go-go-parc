@@ -57,6 +57,11 @@ historical RAG DSL, Researchctl, or Scraper Workflow V3.
   repository-oriented reference covering data records, interfaces,
   backends, execution controls, run artifacts, answer contracts, blinded
   review, and measurement semantics without implementation history.
+- [[PROJECT REPORT - rag-ttc - Simplifying a Recoverable and Measurable RAG Experiment System]] —
+  post-refactor technical analysis of the final package boundaries, generic
+  execution primitives, per-item cache recovery, artifact reduction,
+  arm-aware dependency planning, real TTC validation, and bounded OpenAI
+  generation and embedding evidence.
 
 ## Software Architecture Garden
 
