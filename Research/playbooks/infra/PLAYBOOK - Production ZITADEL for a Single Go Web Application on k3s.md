@@ -696,15 +696,27 @@ See [[PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery
 
 Once discovery works, apply a dedicated production Terraform root. The root should use a remote backend with locking and restricted readers. Store the administrative PAT at `kv/apps/zitadel/prod/terraform` under the `access_token` field. This is a separate operator credential from the chart-generated `zitadel/iam-admin-pat` Kubernetes Secret used by the branding reconciler; do not copy either credential into the ZITADEL runtime record.
 
-Terraform binds environment variables named `TF_VAR_<variable>` to input variables. Therefore `TF_VAR_zitadel_access_token` is the process-boundary input name, not a storage location. Scope it to one command and source it directly from Vault:
+Use the Vault provider's ephemeral KV v2 resource to pass the PAT directly into the ZITADEL provider:
 
-```bash
-TF_VAR_zitadel_access_token="$(
-  vault kv get -field=access_token kv/apps/zitadel/prod/terraform
-)" AWS_PROFILE=manuel terraform plan
+```hcl
+provider "vault" {}
+
+ephemeral "vault_kv_secret_v2" "zitadel_terraform" {
+  mount = "kv"
+  name  = "apps/zitadel/prod/terraform"
+}
+
+provider "zitadel" {
+  domain       = var.zitadel_domain
+  port         = "443"
+  insecure     = false
+  access_token = ephemeral.vault_kv_secret_v2.zitadel_terraform.data["access_token"]
+}
 ```
 
-Do not export it for the lifetime of an interactive shell, write it to an `approved-token-file`, place it in tfvars, or render it into a saved plan. Grant approved operators or protected automation only `read` on `kv/data/apps/zitadel/prod/terraform`; do not grant access to runtime, SMTP, application, or PostgreSQL records merely to run this root.
+Pin a reviewed Vault provider release that implements `vault_kv_secret_v2`; the accepted roots use `hashicorp/vault` `5.10.1` with Terraform `>= 1.12.0`. Do not replace the ephemeral block with `data "vault_kv_secret_v2"`: ordinary data-source results are written to state. Remove the `zitadel_access_token` variable entirely.
+
+Terraform still needs ambient Vault authentication. Grant approved operators or protected automation only `read` on `kv/data/apps/zitadel/prod/terraform`; do not grant access to runtime, SMTP, application, or PostgreSQL records merely to run this root.
 
 Create:
 
@@ -755,19 +767,16 @@ external IdPs:             disabled until configured
 forced MFA:                policy decision, not an accidental default
 ```
 
-Run initialization and static checks without the provider credential, then source the PAT from Vault for provider operations:
+Authenticate to Vault with the `zitadel-terraform` policy, then run Terraform without a ZITADEL token variable:
 
 ```bash
+vault login -method=oidc
 terraform init
 terraform fmt -check
 terraform validate
-
-TF_VAR_zitadel_access_token="$(vault kv get -field=access_token kv/apps/zitadel/prod/terraform)" \
-  AWS_PROFILE=manuel terraform plan
-TF_VAR_zitadel_access_token="$(vault kv get -field=access_token kv/apps/zitadel/prod/terraform)" \
-  AWS_PROFILE=manuel terraform apply
-TF_VAR_zitadel_access_token="$(vault kv get -field=access_token kv/apps/zitadel/prod/terraform)" \
-  AWS_PROFILE=manuel terraform plan -detailed-exitcode
+AWS_PROFILE=manuel terraform plan
+AWS_PROFILE=manuel terraform apply
+AWS_PROFILE=manuel terraform plan -detailed-exitcode
 ```
 
 The final detailed plan must exit `0`. Publish only the client ID and organization/project identifiers required by deployment. Do not output administrative PATs, machine private keys, invitation links, or user credentials.
