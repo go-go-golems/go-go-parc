@@ -17,8 +17,8 @@ status: active
 type: knowledge-base
 created: "2026-07-25"
 repo: /home/manuel/workspaces/2026-06-30/benchmark-cpu-inference/rag-ttc
-analyzed: "2026-07-27"
-repository_commit: c94d41c0501e0602cc8508d4440b778a0529af9b
+analyzed: "2026-07-28"
+repository_commit: aff358e2df1a9640507086f6cf14bc380cc0b66e
 repository_branch: task/ttc-live-rag-quality-experiment
 repository_remote: git@github.com:wesen/rag-ttc.git
 ---
@@ -71,6 +71,10 @@ historical RAG DSL, Researchctl, or Scraper Workflow V3.
   textbook-style account of the final dependency structure, generic execution
   and experiment custody, semantic RAG decorators, command-owned policy,
   deletion decisions, and validation rules.
+- [[PROJECT REPORT - Zapx - Defensive Varint Decoding for Corrupt Bleve Postings]] —
+  corpus-level diagnosis of a malformed Bleve posting, the retained `goja`
+  reproducer, the Zapx truncated-varint bounds fix, recovery by deterministic
+  index rebuilding, and the remaining writer-side uncertainty.
 
 ## Software Architecture Garden
 
