@@ -330,12 +330,263 @@ The silent skip is a deliberate design choice. A missing `oldText` means the con
 
 The fourth SQL query (`04-bash-edits-surf-cli.sql`) found `bash` tool calls that modified files via `sed`, `cat >`, `cat >>`, heredocs, `echo >>`, `git apply`, or `patch`. This query is necessary because files created by `bash` commands do not appear in the `write`/`edit` tool call results.
 
-The query found 37 file-modifying bash commands in the Jul 26 session, including:
+The full SQL query:
+
+```sql
+-- 04-bash-edits-surf-cli.sql
+-- Find bash/exec tool calls that may have modified surf-cli files
+-- via sed, cat >, heredocs, echo >>, git apply, etc.
+-- These changes are NOT captured by the write/edit tool call queries.
+WITH exec_calls AS (
+  SELECT
+    session_id,
+    emitting_turn_index AS turn_index,
+    tool_call_id,
+    tool_name,
+    success,
+    exit_code,
+    coalesce(nullif(command, ''),
+             json_extract(arguments_json, '$.command'),
+             json_extract(arguments_json, '$.cmd'),
+             json_extract(arguments_json, '$.input'),
+             arguments_json) AS command_text,
+    substr(result, 1, 500) AS result_head
+  FROM tool_calls
+  WHERE tool_name IN ('bash', 'exec', 'exec_command', 'shell')
+    AND session_id = '019fa02e-27e0-73ef-9e91-013a075adb67'
+)
+SELECT *
+FROM exec_calls
+WHERE (
+  -- sed commands that modify files
+  command_text LIKE '%sed -i%'
+  -- cat heredocs that write files
+  OR command_text LIKE '%cat >%'
+  OR command_text LIKE '%cat <<%'
+  OR command_text LIKE '%EOF%'
+  -- echo append/write
+  OR (command_text LIKE '%echo%' AND (command_text LIKE '%>%' OR command_text LIKE '%>>%'))
+  -- git apply / patch
+  OR command_text LIKE '%git apply%'
+  OR command_text LIKE '%patch %'
+  -- tee
+  OR command_text LIKE '%tee %'
+  -- python script that writes files
+  OR (command_text LIKE '%python%' AND command_text LIKE '%open(%' AND command_text LIKE '%.write%')
+  -- direct file redirect
+  OR (command_text LIKE '%>%' AND command_text LIKE '%linkedin%')
+  OR (command_text LIKE '%>%' AND command_text LIKE '%generate-resume%')
+  OR (command_text LIKE '%>%' AND command_text LIKE '%main.go%')
+)
+ORDER BY turn_index;
+```
+
+The `coalesce` chain in the CTE handles the fact that different agent frameworks store the command string in different JSON fields. Pi uses `arguments_json.command`, Claude Code may use `arguments_json.input`, and the raw `command` column is the first fallback. The WHERE clause matches every common file-writing shell pattern: `sed -i` for in-place edits, `cat >` and `cat <<` for heredoc creation, `echo >>` for appends, `git apply` and `patch` for diff application, `tee` for pipe redirects, and Python scripts that call `open()` and `.write()`. The last three conditions catch direct file redirects (`> file`) that mention the target filenames.
+
+The query found 37 file-modifying bash commands in the Jul 26 session. The file-creating commands were:
+
 - `t408`: `sed` creating `linkedin_jobs_applied.go` from `linkedin_jobs_saved.go`
 - `t422`: `sed` creating `linkedin_jobs_applied_test.go` from `linkedin_jobs_saved_test.go`
 - `t431`: `sed` creating `linkedin_company.go` from `linkedin_profile.go`
-- `t425/t451`: `cat >> integration_test.go` appending integration tests
-- `t457`: `sed -i` modifying `integration_test.go`
+- `t425`: `cat >> integration_test.go` appending the LinkedIn Jobs Applied integration test
+- `t451`: `cat >> integration_test.go` appending the LinkedIn Profile integration test
+- `t457`: `sed -i` modifying `integration_test.go` to fix the search subcommand path
+- `t423`: `sed -i` fixing the invariant function name in the applied test
+- `t424`: `sed -i` fixing the test function name in the applied test
+
+The full `sed` command at t408 that created `linkedin_jobs_applied.go` from `linkedin_jobs_saved.go` used 37 substitution expressions, transforming every Saved-specific identifier, string literal, help text, URL path, and function name to the Applied equivalent:
+
+```bash
+sed -e 's/LinkedInJobsSavedCommand/LinkedInJobsAppliedCommand/g' \
+    -e 's/LinkedInJobsSavedSettings/LinkedInJobsAppliedSettings/g' \
+    -e 's/linkedInJobsSavedData/linkedInJobsAppliedData/g' \
+    -e 's/LinkedInJobsSaved/LinkedInJobsApplied/g' \
+    -e 's/linkedin_jobs_saved.js/linkedin_jobs_applied.js/g' \
+    -e 's/linkedInJobsSavedScript/linkedInJobsAppliedScript/g' \
+    -e 's|cardType=JOB|cardType=APPLIED|g' \
+    -e 's|linkedin-jobs-saved|linkedin-jobs-applied|g' \
+    -e 's/listing-saved/listing-applied/g' \
+    -e 's#Open your saved-jobs page.*extracts each saved job#Open your applied-jobs page and extract each job you have applied to#' \
+    -e 's#jobs you have saved#jobs you have applied to#g' \
+    -e 's#Saved Jobs#Applied Jobs#g' \
+    -e 's#saved jobs#applied jobs#g' \
+    -e 's#saved-jobs#applied-jobs#g' \
+    -e 's#savedJobLinks#appliedJobLinks#g' \
+    -e 's#savedjobs#applied#g' \
+    -e 's#"No LinkedIn saved jobs found#"No LinkedIn applied jobs found#g' \
+    -e 's#saved jobs extraction returned zero#applied jobs extraction returned zero#g' \
+    -e 's#saved jobs (page may be logged out#applied jobs (page may be logged out#g' \
+    -e 's#No saved jobs found#No applied jobs found#g' \
+    -e 's#isLinkedInSavedTransientErr#isLinkedInAppliedTransientErr#g' \
+    -e 's#linkedInSavedTransientErrMarkers#linkedInAppliedTransientErrMarkers#g' \
+    -e 's#extractSavedJob#extractAppliedJob#g' \
+    -e 's#extractSavedJobs#extractAppliedJobs#g' \
+    -e 's#_No saved jobs found#_No applied jobs found#g' \
+    -e 's#NewLinkedInJobsSavedCommand#NewLinkedInJobsAppliedCommand#g' \
+    -e 's#buildLinkedInJobsSavedCode#buildLinkedInJobsAppliedCode#g' \
+    -e 's#fetchLinkedInJobsSavedFixedTarget#fetchLinkedInJobsAppliedFixedTarget#g' \
+    -e 's#fetchLinkedInJobsSaved#fetchLinkedInJobsApplied#g' \
+    -e 's#parseLinkedInJobsSavedResponse#parseLinkedInJobsAppliedResponse#g' \
+    -e 's#linkedInJobsSavedDataToRows#linkedInJobsAppliedDataToRows#g' \
+    -e 's#renderLinkedInJobsSavedMarkdown#renderLinkedInJobsAppliedMarkdown#g' \
+    -e 's#enforceLinkedInSavedInvariant#enforceLinkedInAppliedInvariant#g' \
+    -e 's#linkedInSavedJobsURL#linkedInAppliedJobsURL#g' \
+    -e 's#"saved"#"applied"#g' \
+    -e 's#List LinkedIn jobs you have saved#List LinkedIn jobs you have applied to#g' \
+    -e 's#Maximum number of saved jobs#Maximum number of applied jobs#g' \
+    -e 's#saved jobs extraction#applied jobs extraction#g' \
+    -e 's#zero saved jobs#zero applied jobs#g' \
+    -e 's#empty saved list#empty applied list#g' \
+    internal/cli/commands/linkedin_jobs_saved.go > internal/cli/commands/linkedin_jobs_applied.go
+```
+
+The `sed` command at t431 that created `linkedin_company.go` from `linkedin_profile.go` used 21 substitution expressions, transforming profile-specific identifiers to company-specific ones and changing the URL path from `/in/` to `/company/`:
+
+```bash
+sed -e 's/LinkedInProfileCommand/LinkedInCompanyCommand/g' \
+    -e 's/LinkedInProfileSettings/LinkedInCompanySettings/g' \
+    -e 's/linkedInProfileData/linkedInCompanyData/g' \
+    -e 's/LinkedInProfile/LinkedInCompany/g' \
+    -e 's/linkedin_profile.js/linkedin_company.js/g' \
+    -e 's/linkedInProfileScript/linkedInCompanyScript/g' \
+    -e 's#/in/#{slug}/#g' \
+    -e 's#/in/#/company/#g' \
+    -e 's#profile URL#company URL#g' \
+    -e 's#"profile"#"company"#g' \
+    -e 's#profile may not exist#company may not exist#g' \
+    -e 's#normalizeLinkedInProfileURL#normalizeLinkedInCompanyURL#g' \
+    -e 's#buildLinkedInProfileCode#buildLinkedInCompanyCode#g' \
+    -e 's#fetchLinkedInProfile#fetchLinkedInCompany#g' \
+    -e 's#parseLinkedInProfileResponse#parseLinkedInCompanyResponse#g' \
+    -e 's#linkedInProfileDataToRow#linkedInCompanyDataToRow#g' \
+    -e 's#renderLinkedInProfileMarkdown#renderLinkedInCompanyMarkdown#g' \
+    -e 's#Open a LinkedIn profile#Open a LinkedIn company#g' \
+    -e 's#profile top-card details#company top-card details#g' \
+    -e 's#extracts the name, headline, location, connection degree, and follower count#extracts the name, industry, location, follower count, and employee count#g' \
+    -e 's#/in/{slug}/#/company/{slug}/#g' \
+    -e 's#Profile data is DOM-extracted#Company data is DOM-extracted#g' \
+    -e 's#Voyager identity endpoints are deprecated#Voyager company endpoint is 404#g' \
+    internal/cli/commands/linkedin_profile.go > internal/cli/commands/linkedin_company.go
+```
+
+The `cat >>` heredoc at t425 appended a full mock-host integration test for the LinkedIn Jobs Applied command to `integration_test.go`. The heredoc body is a complete Go test function that simulates the surf socket protocol — a Unix socket listener that responds to `tab.new`, `js`, and `tab.close` tool calls with mocked responses. The test verifies that the owned-tab flow opens the correct URL, runs the extraction script (checked by testing for `SURF_OPTIONS` and `appliedJobLinks` in the code), and closes the tab only after extraction completes:
+
+```bash
+cat >> cmd/surf-go/integration_test.go <<'EOF'
+
+// TestSurfGoLinkedInJobsAppliedCommandAgainstMockHost verifies the owned-tab
+// tool sequence for `surf-go linkedin jobs applied`. Mirrors the saved test.
+func TestSurfGoLinkedInJobsAppliedCommandAgainstMockHost(t *testing.T) {
+    sock := filepath.Join(t.TempDir(), "surf.sock")
+    ln, err := net.Listen("unix", sock)
+    if err != nil {
+        t.Fatalf("listen failed: %v", err)
+    }
+    defer ln.Close()
+    const appliedURL = "https://www.linkedin.com/my-items/saved-jobs/?cardType=APPLIED"
+    done := make(chan error, 1)
+    go func() {
+        defer close(done)
+        extracted := false
+        for {
+            conn, err := ln.Accept()
+            if err != nil {
+                done <- err
+                return
+            }
+            line, err := bufio.NewReader(conn).ReadBytes('\n')
+            if err != nil {
+                _ = conn.Close()
+                done <- err
+                return
+            }
+            var req map[string]any
+            if err := json.Unmarshal(line, &req); err != nil {
+                _ = conn.Close()
+                done <- err
+                return
+            }
+            params := req["params"].(map[string]any)
+            tool, _ := params["tool"].(string)
+            args, _ := params["args"].(map[string]any)
+            var result string
+            switch tool {
+            case "tab.new":
+                if extracted || args["url"] != appliedURL {
+                    _ = conn.Close()
+                    done <- fmt.Errorf("unexpected tab.new request: %#v", args)
+                    return
+                }
+                result = `{"success":true,"tabId":102,"url":"` + appliedURL + `"}`
+            case "js":
+                code, _ := args["code"].(string)
+                if !strings.Contains(code, "SURF_OPTIONS") {
+                    result = `{"href":"` + appliedURL + `","title":"My Jobs | LinkedIn","readyState":"complete"}`
+                    break
+                }
+                if extracted {
+                    _ = conn.Close()
+                    done <- fmt.Errorf("unexpected second extraction call")
+                    return
+                }
+                if !strings.Contains(code, "appliedJobLinks") {
+                    _ = conn.Close()
+                    done <- fmt.Errorf("embedded script missing appliedJobLinks")
+                    return
+                }
+                extracted = true
+                // Empty applied state (noResults=true), matching this account.
+                result = `{"href":"` + appliedURL + `","title":"My Jobs | LinkedIn","loggedIn":true,"waitedMs":10,"maxResults":3,"noResults":true,"jobCount":0,"jobs":[]}`
+            case "tab.close":
+                if !extracted {
+                    _ = conn.Close()
+                    done <- fmt.Errorf("tab closed before extraction")
+                    return
+                }
+                if id, ok := args["id"].(float64); !ok || int64(id) != 102 {
+                    _ = conn.Close()
+                    done <- fmt.Errorf("unexpected close tab id: %#v", args["id"])
+                    return
+                }
+                result = `{"success":true,"tabId":102}`
+            default:
+                _ = conn.Close()
+                done <- fmt.Errorf("unexpected tool: %q", tool)
+                return
+            }
+            response := map[string]any{"type": "tool_response", "id": req["id"], "result": map[string]any{"content": []map[string]any{{"type": "text", "text": result}}}}
+            payload, _ := json.Marshal(response)
+            _, err = conn.Write(append(payload, '\n'))
+            _ = conn.Close()
+            if err != nil {
+                done <- err
+                return
+            }
+            if tool == "tab.close" {
+                done <- nil
+                return
+            }
+        }
+    }()
+    // ... (rest of test: invoke command, assert no error)
+EOF
+```
+
+The `sed -i` at t457 fixed a breaking CLI change in the integration tests. The restructured `linkedin jobs` command added a `search` subgroup, so the test's command arguments changed from `"linkedin", "jobs", "--query"` to `"linkedin", "jobs", "search", "--query"`:
+
+```bash
+sed -i 's/"linkedin", "jobs", "--query"/"linkedin", "jobs", "search", "--query"/g' cmd/surf-go/integration_test.go
+```
+
+The `sed -i` commands at t423 and t424 fixed the applied test file after the initial `sed` at t422 missed two function names that used a different casing pattern:
+
+```bash
+# t423: fix the invariant function name
+sed -i 's/enforceLinkedInSavedInvariant/enforceLinkedInAppliedInvariant/g' internal/cli/commands/linkedin_jobs_applied_test.go
+
+# t424: fix the test function name
+sed -i 's/TestEnforceLinkedInSavedInvariant/TestEnforceLinkedInAppliedInvariant/g' internal/cli/commands/linkedin_jobs_applied_test.go
+```
 
 ### Step 6: Re-executing sed and applying subsequent edits
 
