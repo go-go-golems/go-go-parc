@@ -242,20 +242,26 @@ Use exact tenant HTTPS callback URLs. Do not reuse one client across tenant host
 
 The login policy should allow approved local methods and registration behavior. Keep external IdPs disabled until each provider and domain policy is designed.
 
-Supply the production PAT only at the process boundary:
+Store the production Terraform PAT in Vault at `kv/apps/zitadel/prod/terraform`, field `access_token`. `TF_VAR_zitadel_access_token` is Terraform's process-boundary input name, not a secret store. Read the field directly for each provider operation so the token is never written to an intermediate file or exported for the lifetime of the shell:
 
 ```bash
-export TF_VAR_zitadel_access_token="$(<approved-token-file)"
 AWS_PROFILE=production terraform init
-AWS_PROFILE=production terraform plan
+AWS_PROFILE=production terraform validate
+TF_VAR_zitadel_access_token="$(vault kv get -field=access_token kv/apps/zitadel/prod/terraform)" \
+  AWS_PROFILE=production terraform plan
+TF_VAR_zitadel_access_token="$(vault kv get -field=access_token kv/apps/zitadel/prod/terraform)" \
+  AWS_PROFILE=production terraform apply
 ```
 
-Do not store PATs, machine keys, generated user credentials, or invitation links in tfvars, plans, logs, or shell history.
+This PAT is distinct from the chart-generated `zitadel/iam-admin-pat` Kubernetes Secret consumed by the branding reconciler. Do not synchronize the Terraform PAT into tenant namespaces or application runtime Secrets. Bind approved operators or protected automation to a Vault policy with only `read` on `kv/data/apps/zitadel/prod/terraform`.
+
+Do not store PATs, machine keys, generated user credentials, invitation links, or saved secret-bearing plans in tfvars, logs, shell history, or Git.
 
 After apply:
 
 ```bash
-terraform plan -detailed-exitcode
+TF_VAR_zitadel_access_token="$(vault kv get -field=access_token kv/apps/zitadel/prod/terraform)" \
+  AWS_PROFILE=production terraform plan -detailed-exitcode
 ```
 
 Require exit `0`. Export a sanitized tenant inventory containing only organization IDs, client IDs, and public URLs for the provisioning handoff.
