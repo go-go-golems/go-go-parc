@@ -135,6 +135,8 @@ packages owns a generic end-to-end workflow.
 
 ## Historical context
 
+- [[bleve]] indexes the lexical backend, FAISS vector experiments, hybrid
+  retrieval evidence, and the Zapx persisted-posting integrity investigation.
 - [[rag-evaluation-system]] indexes the earlier corpus, DSL, workflow, and
   evaluation implementation.
 - [[researchctl]] indexes the experiment control-plane and analysis system that

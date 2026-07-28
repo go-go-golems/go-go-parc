@@ -470,6 +470,7 @@ A later hardening pass can investigate whether Bleve exposes a practical full-in
 
 ## Related notes
 
+- [[bleve]]
 - [[rag-ttc]]
 - [[ARTICLE - rag-ttc - Architecture of a Reproducible Go RAG Evaluation System]]
 - [[ARTICLE - rag-ttc - Refactoring Explicit Experiments and Reusable Mechanisms]]

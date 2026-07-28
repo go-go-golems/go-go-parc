@@ -88,6 +88,8 @@ The JavaScript API is an application surface over native search state. Index cre
 
 ## Related notes
 
+- [[bleve]] — upstream search-engine concepts, application evidence, native
+  vector dependencies, hybrid retrieval corrections, and index integrity.
 - [[goja-text]] — source parsing and source-preserving chunking companion.
 - [[go-go-goja]] — host runtime and xgoja composition.
 - [[ARTICLE - Deep Dive - xgoja Scripting for RAG Evaluation Systems]] — evaluation and generated-host scripting.
