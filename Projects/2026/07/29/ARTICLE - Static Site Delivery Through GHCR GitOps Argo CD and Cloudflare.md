@@ -27,7 +27,7 @@ This article documents the complete delivery path built for the Hyperslop System
 > - The site repository builds a deliberately small static artifact containing only the public HTML and Berkeley Mono web fonts, then publishes an immutable GHCR image tagged with the source SHA.
 > - A reusable release workflow opens a GitOps pull request that replaces the publisher Job image reference. Argo CD runs that Job, which copies the artifact into the shared static-sites PVC; the existing static host serves the selected release.
 > - Cloudflare DNS routes the apex and `www` names to the cluster. The Kubernetes ingress owns HTTPS and redirects `www` to the apex.
-> - The production image remains private. A dedicated Vault path and a VSO-rendered `kubernetes.io/dockerconfigjson` Secret give only the Hyperslop publisher Job the read access it needs. The site is live on the SHA-`5cac770` release.
+> - The production image remains private. A dedicated Vault path and a VSO-rendered `kubernetes.io/dockerconfigjson` Secret give only the Hyperslop publisher Job the read access it needs. The site is live on the SHA-`e28f786` release.
 
 ## Why this note exists
 
@@ -329,17 +329,59 @@ Cause: a Traefik middleware exists but is not attached to the ingress, DNS does 
 
 Resolution: confirm the ingress annotation names `static-sites-hyperslop-systems-redirect-www-to-apex@kubernetescrd`, the namespace/name prefix is correct, and the middleware regex covers HTTP and HTTPS. Validate with `curl -I` rather than following redirects automatically.
 
+## 7. Review findings: immutable Jobs, sync waves, and secret bootstrap
+
+The first live deployment worked because the Argo Application did not yet exist. Argo created the publisher Job with its private image-pull configuration in a single operation. A later review correctly focused on a different transition: what happens when a completed SHA-named Job already exists and a GitOps change changes the object around it.
+
+The review produced three findings. They should be evaluated separately because they concern different Kubernetes invariants.
+
+| Finding | Resolution | Technical result |
+| --- | --- | --- |
+| A publisher Job's pod template is immutable. | The release process changes every SHA-bearing field, including `metadata.name`; the follow-up release created `publish-hyperslop-systems-sha-e28f786` instead of editing the completed `sha-5cac770` Job. | Kubernetes created and completed a new Job. The old completed Job remains as historical evidence. |
+| The ServiceAccount must precede Vault authentication resources. | The ServiceAccount remains at sync wave `-2`; `VaultConnection`, `VaultAuth`, and `VaultStaticSecret` are at `-1`; the publisher Job is at `1`. | VSO authenticates only after the Kubernetes identity exists, and the Job is scheduled only after the pull Secret can be rendered. |
+| A fresh environment needs a reproducible credential-seeding procedure. | `scripts/bootstrap-hyperslop-systems-secrets.sh` accepts runtime GHCR credentials and writes `kv/apps/hyperslop-systems/prod/image-pull`. | No token is committed. The repository documents the exact key contract used by the VSO transformation. |
+
+### Why `Replace=true` was not sufficient by itself
+
+The review proposed `argocd.argoproj.io/sync-options: Replace=true` as one possible immutable-Job remedy. The annotation was added as a defensive option, but the observed Argo operation demonstrated its limit. Argo used a Kubernetes replacement request against the existing `publish-hyperslop-systems-sha-5cac770` Job. Kubernetes Jobs have server-generated selectors that are immutable. The desired manifest did not declare that selector, so the replacement request effectively supplied a null selector while retaining the same Job name. The API rejected the request with `spec.selector: field is immutable` and a corresponding pod-template immutability error.
+
+This distinction matters. `Replace=true` changes the apply method; it does not necessarily delete the existing object before the API validates immutable fields. `Force=true` can delete and recreate an object, but deletion is not the preferred normal release path for this publisher. A static release already has an immutable identifier: its source SHA. Changing the SHA changes the Job name, which gives Kubernetes a new object and avoids mutation entirely.
+
+The recovery followed that intended model. Source commit `e28f786` removed the obsolete package-visibility step from the release workflow. It produced a new GHCR tag and GitOps PR #250, which rewrote the Job name, image, release label, and shell `release` variable together to `sha-e28f786`. Argo then created `publish-hyperslop-systems-sha-e28f786`, which completed in five seconds. The Application converged at revision `e1063f061f61fd460d662573cb234a3c93710473` with `Synced` and `Healthy` status.
+
+### The bootstrap script contract
+
+The new helper is deliberately narrow:
+
+```bash
+VAULT_ADDR=... VAULT_TOKEN=... \
+HYPERSLOP_SYSTEMS_GHCR_USERNAME=... \
+HYPERSLOP_SYSTEMS_GHCR_TOKEN=... \
+scripts/bootstrap-hyperslop-systems-secrets.sh
+```
+
+It writes four keys and no runtime application values:
+
+```text
+server   = ghcr.io
+username = <GHCR deployment identity>
+password = <read:packages token>
+auth     = base64("<username>:<token>")
+```
+
+`VaultStaticSecret` transforms those values into the single `.dockerconfigjson` key that Kubernetes requires for `kubernetes.io/dockerconfigjson`. The validation rule is to inspect only Secret type and key presence. Do not decode its contents into logs, terminal history, tickets, or Git.
+
 ## Live status and release criteria
 
 The source site, static image definition, GitOps configuration, Vault policy/role, and Terraform DNS records have been committed and pushed. The Terraform change added the apex A record and the `www` CNAME without modifying other records. The landing page's production document is `site/index.html` and uses Berkeley Mono only.
 
-The site is **live** as of 2026-07-29. The production package intentionally remains private: an approved existing GHCR reader was first tested against `ghcr.io/hyperslop-systems/infra-static:sha-5cac770`, then copied without printing values into `kv/apps/hyperslop-systems/prod/image-pull`. The K3s package now has a site-specific ServiceAccount, VaultConnection, VaultAuth, VaultStaticSecret, Vault policy, and Kubernetes auth role. The VSO resource reported `Synced=True`, `Healthy=True`, and `Ready=True`; the rendered Secret had type `kubernetes.io/dockerconfigjson` with a present `.dockerconfigjson` key.
+The site is **live** as of 2026-07-29. The production package intentionally remains private: an approved existing GHCR reader was first tested against `ghcr.io/hyperslop-systems/infra-static:sha-5cac770`, then copied without printing values into `kv/apps/hyperslop-systems/prod/image-pull`. The K3s package now has a site-specific ServiceAccount, VaultConnection, VaultAuth, VaultStaticSecret, Vault policy, Kubernetes auth role, and reproducible bootstrap helper. The VSO resource reported `Synced=True`, `Healthy=True`, and `Ready=True`; the rendered Secret had type `kubernetes.io/dockerconfigjson` with a present `.dockerconfigjson` key.
 
-GitOps PR #247 merged the final safe image pin (`sha-5cac770`). GitOps PR #248 added the private-pull wiring. The publisher Job `publish-hyperslop-systems-sha-5cac770` completed successfully and its file manifest contained only `index.html`, `index-rows.html`, and the two Berkeley Mono font files. PR #249 corrected an over-escaped Traefik regular expression; after Argo CD reconciled revision `fd869da`, `www.hyperslop.systems` returned `308 Location: https://hyperslop.systems/`.
+GitOps PR #247 merged the first safe image pin (`sha-5cac770`). GitOps PR #248 added the private-pull wiring. The publisher Job `publish-hyperslop-systems-sha-5cac770` completed successfully and its file manifest contained only `index.html`, `index-rows.html`, and the two Berkeley Mono font files. PR #249 corrected an over-escaped Traefik regular expression; after Argo CD reconciled revision `fd869da`, `www.hyperslop.systems` returned `308 Location: https://hyperslop.systems/`. PR #251 incorporated the review hardening, and PR #250 advanced the release safely to `sha-e28f786`.
 
 Final acceptance established all required conditions:
 
-- The `hyperslop-systems` Argo CD Application is `Synced` and `Healthy`.
+- The `hyperslop-systems` Argo CD Application is `Synced` and `Healthy` at revision `e1063f061f61fd460d662573cb234a3c93710473`.
 - cert-manager issued a Ready `hyperslop-systems-tls` certificate for both apex and `www`.
 - `https://hyperslop.systems` returns HTTPS `200` from the static host.
 - `https://www.hyperslop.systems` returns permanent HTTPS `308` to the apex.
