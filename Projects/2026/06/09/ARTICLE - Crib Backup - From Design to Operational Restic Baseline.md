@@ -654,3 +654,9 @@ Obsidian: 199a650 — Update TrueNAS backup case study with clean snapshot
 ```
 
 This article is a new append-only report that summarizes the system from investigation through operational baseline. It should be read alongside the ticket if exact command history or implementation files are needed.
+
+## Related notes
+
+- [[PROJECT REPORT - Tailscale on TrueNAS - Making Restic Backups Work From Any Network]] — Tailscale installation on TrueNAS that makes this backup reachable from any network, not just the home LAN.
+- [[PROJECT REPORT - Restic Backup Scope Design - From 1.7T Home to a 247G Recovery Unit]] — later scope investigation that refined the excludes file and verified the backup size.
+- [[PLAYBOOK - Restic Backups to the Crib NAS]] — generalized playbook with parameterized scripts extracted from this and the macOS implementation.

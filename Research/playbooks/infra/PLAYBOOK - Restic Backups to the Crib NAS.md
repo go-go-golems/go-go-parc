@@ -101,11 +101,21 @@ Before starting, confirm the environment:
 
 | Component | Address / identity | Role |
 |---|---|---|
-| TrueNAS SCALE | VM 106, `192.168.0.25` | Backup repository host and SFTP endpoint |
-| TrueNAS admin SSH | `admin@192.168.0.25` | Provisioning (dataset, user, quota, snapshots) |
+| TrueNAS SCALE | VM 106, `192.168.0.25` (LAN) or `truenas-scale` (Tailscale) | Backup repository host and SFTP endpoint |
+| TrueNAS admin SSH | `admin@192.168.0.25` (LAN) or `admin@truenas-scale` (Tailscale) | Provisioning (dataset, user, quota, snapshots) |
 | Proxmox host | `192.168.0.227` | Hypervisor hosting TrueNAS |
 | Vault | `https://vault.yolo.scapegoat.dev` | Optional: TrueNAS API key + restic password escrow |
 | Source laptop | the machine to back up | restic client |
+
+> [!tip] Tailscale for off-LAN backups
+>
+> If the source laptop travels outside the home network, install Tailscale on the TrueNAS so the backup works from any network. See [[PROJECT REPORT - Tailscale on TrueNAS - Making Restic Backups Work From Any Network]] for the full installation procedure. The key points:
+> - Install the Tailscale community app on TrueNAS SCALE with `hostNetwork: true` and `userspace: false`
+> - Generate the auth key from the same tailnet as the laptop
+> - Update the restic env and backup scripts to use the Tailscale hostname (`truenas-scale`) instead of the LAN IP (`192.168.0.25`)
+> - Add the Tailscale hostname to `~/.ssh/known_hosts`
+>
+> Without Tailscale, the backup only works when the laptop is on the same LAN as the TrueNAS.
 
 On the source machine:
 

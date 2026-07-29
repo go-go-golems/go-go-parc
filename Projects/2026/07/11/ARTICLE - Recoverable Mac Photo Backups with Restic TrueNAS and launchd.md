@@ -456,3 +456,9 @@ The following work remains before the system should be described as resilient ag
 - Earlier LaunchAgent installer: `scripts/04-install-mimimi-2-restic-launchagent.sh`
 - TrueNAS quota and ZFS snapshot configuration: `scripts/05-configure-mimimi-2-restic-truenas-protection.sh`
 - Final LaunchDaemon installer: `scripts/06-install-mimimi-2-restic-launchdaemon.sh`
+
+## Related notes
+
+- [[PROJECT REPORT - Tailscale on TrueNAS - Making Restic Backups Work From Any Network]] — Tailscale installation on TrueNAS that makes this backup reachable from any network. The Mac backup should be updated to use `truenas-scale` instead of `192.168.0.25` for the same benefit.
+- [[PROJECT REPORT - Restic Backup Scope Design - From 1.7T Home to a 247G Recovery Unit]] — scope investigation for the Ubuntu laptop `f` backup, with a verified 247G scope and 99-line excludes file.
+- [[PLAYBOOK - Restic Backups to the Crib NAS]] — generalized playbook with parameterized scripts extracted from this and the Ubuntu implementation.

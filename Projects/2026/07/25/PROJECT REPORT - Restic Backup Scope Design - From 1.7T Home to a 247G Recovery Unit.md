@@ -389,3 +389,4 @@ The investigation produced a set of working rules that generalize beyond this sp
   - [[ARTICLE - Crib Backup - From Design to Operational Restic Baseline]]
   - [[ARTICLE - Recoverable Mac Photo Backups with Restic TrueNAS and launchd]]
   - [[ARTICLE - TrueNAS Backup with Vault - A Systems Integration Case Study]]
+  - [[PROJECT REPORT - Tailscale on TrueNAS - Making Restic Backups Work From Any Network]] — Tailscale installation on TrueNAS that makes this backup reachable from any network, not just the home LAN.
