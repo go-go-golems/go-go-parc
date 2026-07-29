@@ -27,7 +27,7 @@ This article documents the complete delivery path built for the Hyperslop System
 > - The site repository builds a deliberately small static artifact containing only the public HTML and Berkeley Mono web fonts, then publishes an immutable GHCR image tagged with the source SHA.
 > - A reusable release workflow opens a GitOps pull request that replaces the publisher Job image reference. Argo CD runs that Job, which copies the artifact into the shared static-sites PVC; the existing static host serves the selected release.
 > - Cloudflare DNS routes the apex and `www` names to the cluster. The Kubernetes ingress owns HTTPS and redirects `www` to the apex.
-> - The remaining activation gate as of 2026-07-29 is GHCR access: `ghcr.io/hyperslop-systems/infra-static:sha-5cac770` returned `unauthorized` when pulled anonymously. Do not create the Argo application until this is resolved.
+> - The production image remains private. A dedicated Vault path and a VSO-rendered `kubernetes.io/dockerconfigjson` Secret give only the Hyperslop publisher Job the read access it needs. The site is live on the SHA-`5cac770` release.
 
 ## Why this note exists
 
@@ -329,22 +329,23 @@ Cause: a Traefik middleware exists but is not attached to the ingress, DNS does 
 
 Resolution: confirm the ingress annotation names `static-sites-hyperslop-systems-redirect-www-to-apex@kubernetescrd`, the namespace/name prefix is correct, and the middleware regex covers HTTP and HTTPS. Validate with `curl -I` rather than following redirects automatically.
 
-## Current status and completion criteria
+## Live status and release criteria
 
 The source site, static image definition, GitOps configuration, Vault policy/role, and Terraform DNS records have been committed and pushed. The Terraform change added the apex A record and the `www` CNAME without modifying other records. The landing page's production document is `site/index.html` and uses Berkeley Mono only.
 
-The site is **not yet live** at the time of this report. The final image tag `sha-5cac770` was not anonymously pullable, the `hyperslop-systems` Argo application was not present, and no matching resources were present in `static-sites`. The package visibility job also failed because the default GitHub Actions token could not administer the organization container package.
+The site is **live** as of 2026-07-29. The production package intentionally remains private: an approved existing GHCR reader was first tested against `ghcr.io/hyperslop-systems/infra-static:sha-5cac770`, then copied without printing values into `kv/apps/hyperslop-systems/prod/image-pull`. The K3s package now has a site-specific ServiceAccount, VaultConnection, VaultAuth, VaultStaticSecret, Vault policy, and Kubernetes auth role. The VSO resource reported `Synced=True`, `Healthy=True`, and `Ready=True`; the rendered Secret had type `kubernetes.io/dockerconfigjson` with a present `.dockerconfigjson` key.
 
-Completion requires all of the following:
+GitOps PR #247 merged the final safe image pin (`sha-5cac770`). GitOps PR #248 added the private-pull wiring. The publisher Job `publish-hyperslop-systems-sha-5cac770` completed successfully and its file manifest contained only `index.html`, `index-rows.html`, and the two Berkeley Mono font files. PR #249 corrected an over-escaped Traefik regular expression; after Argo CD reconciled revision `fd869da`, `www.hyperslop.systems` returned `308 Location: https://hyperslop.systems/`.
 
-- The final GHCR image is publicly pullable, or the Job has a tested pull secret.
-- The newest safe GitOps pinning PR is merged.
-- `hyperslop-systems` exists in Argo CD and is `Synced`/`Healthy`.
-- The SHA-named publisher Job completes and the static-site PVC contains its release directory.
-- A public CA-issued certificate is valid for apex and `www`.
-- The apex serves the expected page and `www` redirects permanently to the apex.
+Final acceptance established all required conditions:
 
-Once these checks pass, the normal release path is mechanical: change the site, validate the explicit artifact contents, merge the source change, review the generated image pinning PR, and repeat the verification table. The only mutable serving pointer is the PVC's `current` symlink, and its selected release remains represented by the GitOps image SHA.
+- The `hyperslop-systems` Argo CD Application is `Synced` and `Healthy`.
+- cert-manager issued a Ready `hyperslop-systems-tls` certificate for both apex and `www`.
+- `https://hyperslop.systems` returns HTTPS `200` from the static host.
+- `https://www.hyperslop.systems` returns permanent HTTPS `308` to the apex.
+- Playwright Chromium screenshots at 1440×1000 and 390×844 showed the deployed Berkeley Mono page, including the responsive folded product layout.
+
+The earlier visibility job has been removed from the source workflow. Its default `GITHUB_TOKEN` could publish the package but not administer organization package visibility, so it made otherwise successful releases appear failed. Future releases retain the private image and use the tested Vault/VSO pull path. The normal release procedure is now mechanical: change the site, validate the explicit artifact contents, merge the source change, review the generated image-pinning PR, and repeat the verification table. The only mutable serving pointer is the PVC's `current` symlink, and its selected release remains represented by the GitOps image SHA.
 
 ## Related source material
 
