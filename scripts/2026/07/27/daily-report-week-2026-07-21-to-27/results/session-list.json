@@ -1,0 +1,1058 @@
+[
+{
+  "duration_s": 1539260.8,
+  "framework": "pi",
+  "id": "019f37ea-9e4c-713d-9753-03cf25971f7e",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.26,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-06T14:52:30Z",
+  "title": "TinyIDP BYOK Phases Zero Through Five",
+  "tools": 4140,
+  "turns": 3672
+}
+, {
+  "duration_s": 509610.9,
+  "framework": "codex",
+  "id": "019f765e-47a9-7e72-a9a5-eb8594f2fa5b",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-18T17:57:09Z",
+  "title": "Creat ea new docmgr ticket to do a review of tiny-idp/ in the axis of using it a",
+  "tools": 7647,
+  "turns": 1913
+}
+, {
+  "duration_s": 696540.8,
+  "framework": "pi",
+  "id": "019f7666-f46a-730b-b756-f52939577305",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.19,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-18T18:04:46Z",
+  "title": "Upwork Agent Job Audit Logs",
+  "tools": 4048,
+  "turns": 4463
+}
+, {
+  "duration_s": 338580.3,
+  "framework": "pi",
+  "id": "019f77c2-c157-7f3b-8424-24adfb4af971",
+  "model": "gpt-5.6-terra",
+  "read_ratio": 0.25,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-19T00:24:40Z",
+  "title": "Workflow V3 External Operation Ledger",
+  "tools": 6597,
+  "turns": 6943
+}
+, {
+  "duration_s": 311790.6,
+  "framework": "pi",
+  "id": "019f7cf3-c32b-74bd-b4df-edc31f282065",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.2,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-20T00:36:17Z",
+  "title": "Address code review issues and failing actions on https://github.com/go-go-golem",
+  "tools": 637,
+  "turns": 650
+}
+, {
+  "duration_s": 111074.1,
+  "framework": "pi",
+  "id": "019f8568-1ed1-7b3f-8411-df451be11464",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.17,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-21T16:00:21Z",
+  "title": "ChatGPT Discussion File Downloader for surf-go",
+  "tools": 785,
+  "turns": 811
+}
+, {
+  "duration_s": 172271.8,
+  "framework": "pi",
+  "id": "019f8592-52b3-7a90-84e0-201cc49a1304",
+  "model": "gpt-5.6-luna",
+  "read_ratio": 0.3,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-21T16:46:26Z",
+  "title": "ESP32 Display Validation Proposal",
+  "tools": 778,
+  "turns": 779
+}
+, {
+  "duration_s": 21727.4,
+  "framework": "pi",
+  "id": "019f85d9-25d5-7005-a02d-654e3d9171ba",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.13,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-21T18:03:48Z",
+  "title": "How can I scrape the latest artifacts and upload them to the live site?",
+  "tools": 170,
+  "turns": 170
+}
+, {
+  "duration_s": 13447.9,
+  "framework": "pi",
+  "id": "019f8702-d73e-7cee-92cd-881a0bdf91fb",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.08,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-21T23:28:58Z",
+  "title": "I am setting up a new laptop on d.local. I'm going to use it for developming my ",
+  "tools": 317,
+  "turns": 312
+}
+, {
+  "duration_s": 67.3,
+  "framework": "pi",
+  "id": "019f8a59-b472-7eea-b213-55ab50f5bbbd",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.5,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-22T15:02:42Z",
+  "title": "Launch go-go-wm in a xephyr",
+  "tools": 14,
+  "turns": 11
+}
+, {
+  "duration_s": 160567,
+  "framework": "pi",
+  "id": "019f8bf1-1c98-7d6b-b076-2c7e2a69e431",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.3,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-22T22:27:42Z",
+  "title": "Real TTC RAG Study Readiness",
+  "tools": 3178,
+  "turns": 2879
+}
+, {
+  "duration_s": 87373.2,
+  "framework": "codex",
+  "id": "019f8f87-ce0b-7f73-ba05-2b736aa6e2bf",
+  "model": "codex-auto-review",
+  "read_ratio": 0.28,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-23T15:13:08Z",
+  "title": "The following is the Codex agent history whose request action you are assessing.",
+  "tools": 7,
+  "turns": 1066
+}
+, {
+  "duration_s": 49.9,
+  "framework": "pi",
+  "id": "019f8fc6-7f02-794a-a5da-c27d78189728",
+  "model": "inkling-nvfp4",
+  "read_ratio": null,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T16:19:38Z",
+  "title": "Look for the session we used to scrape and apply to new jobs in upwork yesterday",
+  "tools": 0,
+  "turns": 2
+}
+, {
+  "duration_s": 247,
+  "framework": "pi",
+  "id": "019f8fc8-6412-7027-a432-996d4cbe1865",
+  "model": "inkling-nvfp4",
+  "read_ratio": 0.34,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T16:21:42Z",
+  "title": "Look for the session we used to scrape and apply to new jobs in upwork yesterday",
+  "tools": 29,
+  "turns": 37
+}
+, {
+  "duration_s": 388.3,
+  "framework": "pi",
+  "id": "019f8fcc-9c4e-7f56-b9a5-c076a17b643f",
+  "model": "gpt-5.6-luna",
+  "read_ratio": 0.2,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T16:26:19Z",
+  "title": "Search for sessions which scraped upwork/freelancer for new work yesterday, use ",
+  "tools": 34,
+  "turns": 27
+}
+, {
+  "duration_s": 111,
+  "framework": "pi",
+  "id": "019f8fd7-381d-7113-8a59-15bc3ca0d711",
+  "model": "inkling-nvfp4",
+  "read_ratio": 0.18,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T16:37:54Z",
+  "title": "which skills are you aware of?",
+  "tools": 17,
+  "turns": 27
+}
+, {
+  "duration_s": 283042.9,
+  "framework": "pi",
+  "id": "019f8fd8-fafb-7de1-873b-139c1b0ffcab",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.3,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T16:39:49Z",
+  "title": "Upwork Tracker and Widget Architecture Garden",
+  "tools": 608,
+  "turns": 587
+}
+, {
+  "duration_s": 2.6,
+  "framework": "pi",
+  "id": "019f8fdf-e558-7d35-9586-4ac6662c3510",
+  "model": "glm-5.2-nvfp4",
+  "read_ratio": null,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T16:47:22Z",
+  "title": "subagent-upwork-operator-a99e1381-1",
+  "tools": 0,
+  "turns": 2
+}
+, {
+  "duration_s": 2.9,
+  "framework": "pi",
+  "id": "019f8fe0-06a7-7600-b682-8e695f6948a4",
+  "model": "inkling-nvfp4",
+  "read_ratio": 1,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T16:47:31Z",
+  "title": "subagent-delegate-f9b39444-1",
+  "tools": 1,
+  "turns": 2
+}
+, {
+  "duration_s": 18.5,
+  "framework": "pi",
+  "id": "019f8fe0-4102-7d45-8700-405689d25e19",
+  "model": "inkling-nvfp4",
+  "read_ratio": 0.43,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T16:47:46Z",
+  "title": "subagent-delegate-18543bde-1",
+  "tools": 7,
+  "turns": 9
+}
+, {
+  "duration_s": 35.8,
+  "framework": "pi",
+  "id": "019f8fe0-a091-79fd-983a-58c7b3b2f5d0",
+  "model": "inkling-nvfp4",
+  "read_ratio": 0.13,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T16:48:10Z",
+  "title": "subagent-delegate-5770dcee-1",
+  "tools": 16,
+  "turns": 18
+}
+, {
+  "duration_s": 37.6,
+  "framework": "pi",
+  "id": "019f8fe1-3aa5-745e-9f3c-75cc8040bfda",
+  "model": "inkling-nvfp4",
+  "read_ratio": 0.21,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T16:48:50Z",
+  "title": "subagent-delegate-8ce468f3-1",
+  "tools": 14,
+  "turns": 16
+}
+, {
+  "duration_s": 205.9,
+  "framework": "pi",
+  "id": "019f8fe2-0592-7e38-b163-1bd44390e9a4",
+  "model": "inkling-nvfp4",
+  "read_ratio": 0.29,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T16:49:42Z",
+  "title": "subagent-delegate-a144a78f-1",
+  "tools": 34,
+  "turns": 36
+}
+, {
+  "duration_s": 3.1,
+  "framework": "pi",
+  "id": "019f9027-eacc-7e89-88e0-46d609345b4c",
+  "model": "gpt-5.6-luna",
+  "read_ratio": null,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T18:06:02Z",
+  "title": "subagent-upwork-proposal-drafter-e716ab7d-1",
+  "tools": 0,
+  "turns": 2
+}
+, {
+  "duration_s": 178.9,
+  "framework": "pi",
+  "id": "019f9029-8d6f-71ea-9ee7-9157b6cfbebc",
+  "model": "gpt-5.6-luna",
+  "read_ratio": 0.52,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T18:07:50Z",
+  "title": "subagent-upwork-proposal-drafter-030c9c27-1",
+  "tools": 29,
+  "turns": 8
+}
+, {
+  "duration_s": 173.6,
+  "framework": "pi",
+  "id": "019f902d-78e1-73b8-8910-8ff55bb1eae0",
+  "model": "gpt-5.6-luna",
+  "read_ratio": 0.24,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T18:12:07Z",
+  "title": "subagent-upwork-proposal-drafter-2701cf60-1",
+  "tools": 21,
+  "turns": 10
+}
+, {
+  "duration_s": 169,
+  "framework": "pi",
+  "id": "019f9031-729f-7f90-9c7a-52f01bb398ac",
+  "model": "gpt-5.6-luna",
+  "read_ratio": 0.61,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T18:16:27Z",
+  "title": "subagent-upwork-proposal-drafter-ca948d30-1",
+  "tools": 39,
+  "turns": 12
+}
+, {
+  "duration_s": 152,
+  "framework": "pi",
+  "id": "019f9034-85c7-7e4d-a1df-5a27e38f1651",
+  "model": "gpt-5.6-luna",
+  "read_ratio": 0.47,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T18:19:49Z",
+  "title": "subagent-upwork-proposal-drafter-0b27bb1f-1",
+  "tools": 32,
+  "turns": 16
+}
+, {
+  "duration_s": 13.2,
+  "framework": "pi",
+  "id": "019f9042-747d-7e17-afa8-fda650be6ad8",
+  "model": "gpt-5.6-luna",
+  "read_ratio": null,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T18:35:02Z",
+  "title": "subagent-delegate-75237327-4d0f-40ba-b221-3e22b2ef2a0b-1",
+  "tools": 0,
+  "turns": 2
+}
+, {
+  "duration_s": 5668.8,
+  "framework": "pi",
+  "id": "019f9061-de30-7dd7-ad88-75837fece9fd",
+  "model": "gpt-5.6-luna",
+  "read_ratio": 0.47,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T19:09:20Z",
+  "title": "Pi Session Context Metadata Design",
+  "tools": 236,
+  "turns": 183
+}
+, {
+  "duration_s": 74.5,
+  "framework": "pi",
+  "id": "019f907c-a4d0-779e-9f5c-433383fd7e17",
+  "model": "gpt-5.6-luna",
+  "read_ratio": null,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T19:38:35Z",
+  "title": "Say only the two session prompt numbers from the additional session metadata. Do",
+  "tools": 0,
+  "turns": 2
+}
+, {
+  "duration_s": 16074.6,
+  "framework": "pi",
+  "id": "019f9090-53bb-7759-b776-7d4fec218feb",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.17,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-23T20:00:05Z",
+  "title": "Run the server in tmux, and import ~/Downloads/pbui-gog.jsx and show it to me",
+  "tools": 290,
+  "turns": 299
+}
+, {
+  "duration_s": 325023,
+  "framework": "codex",
+  "id": "019f9176-bdbf-7a90-bcc3-ad4fb7767ff2",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.09,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-24T00:13:37Z",
+  "title": "Create a new docmgr ticket for tiny-idp to add a proper administration backend, ",
+  "tools": 2288,
+  "turns": 464
+}
+, {
+  "duration_s": 59362.6,
+  "framework": "codex",
+  "id": "019f9176-be5a-7e53-8568-9466282c493a",
+  "model": "codex-auto-review",
+  "read_ratio": 0,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-24T00:29:47Z",
+  "title": "The following is the Codex agent history whose request action you are assessing.",
+  "tools": 1,
+  "turns": 386
+}
+, {
+  "duration_s": 53343.4,
+  "framework": "pi",
+  "id": "019f9188-fcc0-750a-8e97-2f69377c4eac",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.34,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-24T00:31:41Z",
+  "title": "ESP-54 PULP Device Authentication",
+  "tools": 427,
+  "turns": 374
+}
+, {
+  "duration_s": 103591.6,
+  "framework": "pi",
+  "id": "019f94ba-7edb-77f0-8108-558e17aed6db",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.11,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-24T15:24:37Z",
+  "title": "Analyze codex session 019f765e-47a9-7e72-a9a5-eb8594f2fa5b  with go-minitrace (s",
+  "tools": 195,
+  "turns": 200
+}
+, {
+  "duration_s": 3902,
+  "framework": "pi",
+  "id": "019f94ce-efb7-78ef-acaf-25b4b8d5a8a6",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.19,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-24T15:46:57Z",
+  "title": "Create a new go go golems project (see skill, use go-template to create) called ",
+  "tools": 118,
+  "turns": 107
+}
+, {
+  "duration_s": 4244,
+  "framework": "claude-code",
+  "id": "7e3d3f0a-3913-446e-a388-a9694ec9529f",
+  "model": "claude-opus-4-8",
+  "read_ratio": 0.07,
+  "source_format": "claude-code-jsonl-v2",
+  "started_at": "2026-07-24T15:53:45Z",
+  "title": "Implement Reactive Rules DSL in Lean 4 with proofs",
+  "tools": 109,
+  "turns": 206
+}
+, {
+  "duration_s": 253713.8,
+  "framework": "claude-code",
+  "id": "3ecf0619-dc35-4535-83a9-2db643ce3ff8",
+  "model": "claude-opus-5",
+  "read_ratio": 0.07,
+  "source_format": "claude-code-jsonl-v2",
+  "started_at": "2026-07-24T16:06:13Z",
+  "title": "Plan next steps",
+  "tools": 3368,
+  "turns": 5656
+}
+, {
+  "duration_s": 4993.2,
+  "framework": "claude-code",
+  "id": "7e08313e-252b-4995-99f5-e2d65fd4437f",
+  "model": "claude-opus-4-8",
+  "read_ratio": 0.08,
+  "source_format": "claude-code-jsonl-v2",
+  "started_at": "2026-07-24T16:11:02Z",
+  "title": "Write Obsidian vault technical analysis report",
+  "tools": 179,
+  "turns": 306
+}
+, {
+  "duration_s": 0,
+  "framework": "claude-code",
+  "id": "9f750138-6745-4a0a-b322-377250ae6f9b",
+  "model": null,
+  "read_ratio": null,
+  "source_format": "claude-code-jsonl-v2",
+  "started_at": "2026-07-24T17:04:43Z",
+  "title": "\u003clocal-command-caveat\u003eCaveat: The messages below were generated by the user whil",
+  "tools": 0,
+  "turns": 3
+}
+, {
+  "duration_s": 0,
+  "framework": "claude-code",
+  "id": "7cb4881c-c5b1-4414-9846-fd91e22311f0",
+  "model": null,
+  "read_ratio": null,
+  "source_format": "claude-code-jsonl-v2",
+  "started_at": "2026-07-24T17:08:14Z",
+  "title": null,
+  "tools": 0,
+  "turns": 2
+}
+, {
+  "duration_s": 834.7,
+  "framework": "claude-code",
+  "id": "a843c3c1-b99c-4a87-a034-91549196ce51",
+  "model": null,
+  "read_ratio": null,
+  "source_format": "claude-code-jsonl-v2",
+  "started_at": "2026-07-24T17:09:02Z",
+  "title": "\u003clocal-command-caveat\u003eCaveat: The messages below were generated by the user whil",
+  "tools": 0,
+  "turns": 5
+}
+, {
+  "duration_s": 263213.4,
+  "framework": "codex",
+  "id": "019f9522-025e-7b10-9a33-0886da8d3d60",
+  "model": "codex-auto-review",
+  "read_ratio": 0,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-24T17:23:38Z",
+  "title": "The following is the Codex agent history whose request action you are assessing.",
+  "tools": 1,
+  "turns": 478
+}
+, {
+  "duration_s": 286,
+  "framework": "codex",
+  "id": "019f957c-0900-7421-96a2-b55896fb8db3",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-24T18:56:13Z",
+  "title": "Address the code review issues from https://github.com/go-go-golems/scraper/pull",
+  "tools": 27,
+  "turns": 6
+}
+, {
+  "duration_s": 44.2,
+  "framework": "codex",
+  "id": "019f957c-0997-7390-b332-2ad933ca7f0b",
+  "model": "codex-auto-review",
+  "read_ratio": 0,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-24T18:56:32Z",
+  "title": "The following is the Codex agent history whose request action you are assessing.",
+  "tools": 1,
+  "turns": 6
+}
+, {
+  "duration_s": 179636,
+  "framework": "pi",
+  "id": "019f99f9-ef24-7644-95c4-8eb18b1d9986",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.26,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-25T15:52:01Z",
+  "title": "ZITADEL Production Deployment Playbooks",
+  "tools": 3233,
+  "turns": 2906
+}
+, {
+  "duration_s": 160.7,
+  "framework": "pi",
+  "id": "019f9a00-1f78-7a88-b852-87ce8d5bdb3f",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.63,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-25T15:58:47Z",
+  "title": "subagent-scout-2bc0524a-2144-4255-b268-861907778235-1",
+  "tools": 24,
+  "turns": 8
+}
+, {
+  "duration_s": 128.4,
+  "framework": "pi",
+  "id": "019f9a00-1fd4-7369-a660-16635c77fcd3",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.58,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-25T15:58:47Z",
+  "title": "subagent-scout-2bc0524a-2144-4255-b268-861907778235-2",
+  "tools": 26,
+  "turns": 7
+}
+, {
+  "duration_s": 386.3,
+  "framework": "pi",
+  "id": "019f9a00-1fd9-7c59-8ac5-361cff051698",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.47,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-25T15:58:47Z",
+  "title": "subagent-reviewer-2bc0524a-2144-4255-b268-861907778235-3",
+  "tools": 72,
+  "turns": 21
+}
+, {
+  "duration_s": 176.4,
+  "framework": "pi",
+  "id": "019f9a1e-1f20-70f5-9ca9-d6ec45046175",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.06,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-25T16:31:33Z",
+  "title": "subagent-scout-54dec368-1",
+  "tools": 18,
+  "turns": 9
+}
+, {
+  "duration_s": 442.9,
+  "framework": "pi",
+  "id": "019f9a1e-1f39-749e-af09-bae40704e099",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.63,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-25T16:31:33Z",
+  "title": "subagent-reviewer-54dec368-3",
+  "tools": 51,
+  "turns": 14
+}
+, {
+  "duration_s": 179.6,
+  "framework": "pi",
+  "id": "019f9a1e-1f68-7ff3-9c0e-4452ee7cc1c0",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.73,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-25T16:31:33Z",
+  "title": "subagent-scout-54dec368-2",
+  "tools": 26,
+  "turns": 10
+}
+, {
+  "duration_s": 107092.8,
+  "framework": "codex",
+  "id": "019f9a1e-84bf-7e10-926c-57e4b6ebb4bd",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.06,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-25T16:32:12Z",
+  "title": "Ok, analyze the rag-eval setup for TTC we have been working on in ~/work",
+  "tools": 1300,
+  "turns": 397
+}
+, {
+  "duration_s": 637.4,
+  "framework": "pi",
+  "id": "019f9a21-032c-7729-a2d6-6891af14feb1",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.29,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-25T16:34:42Z",
+  "title": "Create a new go-go-golems project in ~/code/ttc/ called rag-ttc and add it to th",
+  "tools": 24,
+  "turns": 22
+}
+, {
+  "duration_s": 17182.6,
+  "framework": "codex",
+  "id": "019f9a1e-851a-77d0-bec6-1ca991f846c5",
+  "model": "codex-auto-review",
+  "read_ratio": null,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-25T17:29:17Z",
+  "title": "The following is the Codex agent history whose request action you are assessing.",
+  "tools": 0,
+  "turns": 215
+}
+, {
+  "duration_s": 179603.8,
+  "framework": "pi",
+  "id": "019f9a86-6022-783e-a12f-77a7d7ac1881",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.15,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-25T18:25:25Z",
+  "title": "Create a new docmgr ticket which is going to be about extracting playbooks about",
+  "tools": 236,
+  "turns": 236
+}
+, {
+  "duration_s": 2967.5,
+  "framework": "pi",
+  "id": "019f9aad-7e92-786e-9403-9b1c63982c78",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.21,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-25T19:08:09Z",
+  "title": "Use go-minitrace to search for coding session where we added profile loading fro",
+  "tools": 116,
+  "turns": 106
+}
+, {
+  "duration_s": 95760.5,
+  "framework": "pi",
+  "id": "019f9ab3-9de6-7e87-8bdc-6c988984f1f7",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.05,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-25T19:14:50Z",
+  "title": "Analyze what's currently staged, and what is data that shouldn't be committed / ",
+  "tools": 37,
+  "turns": 41
+}
+, {
+  "duration_s": 530.9,
+  "framework": "codex",
+  "id": "019f9b59-4eeb-7321-b890-f77412c4e42e",
+  "model": "codex-auto-review",
+  "read_ratio": 0,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-25T22:15:49Z",
+  "title": "The following is the Codex agent history whose request action you are assessing.",
+  "tools": 2,
+  "turns": 26
+}
+, {
+  "duration_s": 171.9,
+  "framework": "codex",
+  "id": "019f9b7d-b908-7263-ae1a-1db8965db0ec",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.27,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-25T22:55:35Z",
+  "title": "Use the stripe_implementation_planner tool. Business: https://the.scapegoat.dev,",
+  "tools": 11,
+  "turns": 4
+}
+, {
+  "duration_s": 28.8,
+  "framework": "codex",
+  "id": "019f9b7d-b98d-7b01-a9a8-0767380762bf",
+  "model": "codex-auto-review",
+  "read_ratio": null,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-25T22:55:50Z",
+  "title": "The following is the Codex agent history whose request action you are assessing.",
+  "tools": 0,
+  "turns": 4
+}
+, {
+  "duration_s": 82751.3,
+  "framework": "codex",
+  "id": "019f9b91-0f48-7c72-8408-9bda4ee18a20",
+  "model": "codex-auto-review",
+  "read_ratio": null,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-25T23:17:17Z",
+  "title": "The following is the Codex agent history whose request action you are assessing.",
+  "tools": 0,
+  "turns": 343
+}
+, {
+  "duration_s": 294.2,
+  "framework": "pi",
+  "id": "019fa01d-cbfa-744e-aafe-b3a1be11f52b",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.16,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T20:28:55Z",
+  "title": "subagent-reviewer-cffbc943-1",
+  "tools": 49,
+  "turns": 20
+}
+, {
+  "duration_s": 1408,
+  "framework": "pi",
+  "id": "019fa024-699a-7df4-a30f-3b50470052ee",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.62,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T20:36:08Z",
+  "title": "Create a new docmgr ticket to do a review of the go-go-datadrop codebase.   Anal",
+  "tools": 112,
+  "turns": 40
+}
+, {
+  "duration_s": 696.9,
+  "framework": "pi",
+  "id": "019fa029-8e8e-7c9c-a3d1-703820f460ff",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.7,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T20:41:45Z",
+  "title": "subagent-reviewer-20df97d1-1",
+  "tools": 152,
+  "turns": 56
+}
+, {
+  "duration_s": 136.1,
+  "framework": "pi",
+  "id": "019fa029-8fac-733e-894a-ce8a8ba18c1d",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.71,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T20:41:46Z",
+  "title": "subagent-scout-637b8c50-3",
+  "tools": 35,
+  "turns": 9
+}
+, {
+  "duration_s": 421.4,
+  "framework": "pi",
+  "id": "019fa029-8fae-7a7c-b387-96fc69ee9b42",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.77,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T20:41:46Z",
+  "title": "subagent-reviewer-637b8c50-2",
+  "tools": 126,
+  "turns": 29
+}
+, {
+  "duration_s": 87098.7,
+  "framework": "pi",
+  "id": "019fa02e-27e0-73ef-9e91-013a075adb67",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.14,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T20:46:47Z",
+  "title": "LinkedIn surf-go browser verbs and HTML resume",
+  "tools": 668,
+  "turns": 705
+}
+, {
+  "duration_s": 9093.9,
+  "framework": "pi",
+  "id": "019fa02f-8464-7b48-9137-4790d990c626",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.29,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T20:48:16Z",
+  "title": "Create a new docmgr ticket to add publish: true|false support to publish-vault. ",
+  "tools": 189,
+  "turns": 181
+}
+, {
+  "duration_s": 328,
+  "framework": "pi",
+  "id": "019fa057-2d56-7875-816b-8dfe39863c36",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.24,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T21:31:35Z",
+  "title": "subagent-reviewer-fc033b11-1",
+  "tools": 72,
+  "turns": 20
+}
+, {
+  "duration_s": 60956.7,
+  "framework": "pi",
+  "id": "019fa08a-980b-7c84-89c5-a357e51f15bb",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.85,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T22:27:45Z",
+  "title": "I want to build a website where customers can signup monthly to search a databas",
+  "tools": 39,
+  "turns": 34
+}
+, {
+  "duration_s": 242.2,
+  "framework": "pi",
+  "id": "019fa099-bfac-71d0-ad70-6850d95d47c9",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.45,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T22:44:18Z",
+  "title": "subagent-reviewer-f400e70b-2",
+  "tools": 38,
+  "turns": 16
+}
+, {
+  "duration_s": 263.1,
+  "framework": "pi",
+  "id": "019fa099-bfb5-7b62-90a6-da017dace7f6",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.8,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T22:44:18Z",
+  "title": "subagent-reviewer-f400e70b-1",
+  "tools": 60,
+  "turns": 24
+}
+, {
+  "duration_s": 79088.5,
+  "framework": "codex",
+  "id": "019fa09b-93a4-7cc3-a329-6074908b157f",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.06,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-26T22:46:18Z",
+  "title": "Ok, analyze the rag-eval setup for TTC we have been working on in ~/work",
+  "tools": 2185,
+  "turns": 613
+}
+, {
+  "duration_s": 78318.1,
+  "framework": "codex",
+  "id": "019fa09b-9597-7ea1-9384-96b36e1b75f6",
+  "model": "codex-auto-review",
+  "read_ratio": 1,
+  "source_format": "codex-session-jsonl-v1",
+  "started_at": "2026-07-26T22:58:38Z",
+  "title": "The following is the Codex agent history whose request action you are assessing.",
+  "tools": 1,
+  "turns": 419
+}
+, {
+  "duration_s": 381.6,
+  "framework": "pi",
+  "id": "019fa0a7-9cc8-7b65-abaa-31794b832ca8",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.26,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T22:59:27Z",
+  "title": "subagent-reviewer-60643d3d-1",
+  "tools": 57,
+  "turns": 21
+}
+, {
+  "duration_s": 195.9,
+  "framework": "pi",
+  "id": "019fa0b1-5cd5-7eb6-b9ec-3f763ed4b51f",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.36,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T23:10:06Z",
+  "title": "subagent-reviewer-70d98fc3-1",
+  "tools": 42,
+  "turns": 13
+}
+, {
+  "duration_s": 6662,
+  "framework": "pi",
+  "id": "019fa0b4-9a0a-72ff-acc8-f2cc2f44319d",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.27,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-26T23:13:38Z",
+  "title": "How do I best raster text for a thermal printer?  [REMINDER] Output a \u003csummary\u003e.",
+  "tools": 45,
+  "turns": 47
+}
+, {
+  "duration_s": 25064.8,
+  "framework": "pi",
+  "id": "019fa3e0-cb6d-74d0-a406-3be76af64b54",
+  "model": "gpt-5.6-terra",
+  "read_ratio": 0.38,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-27T14:00:46Z",
+  "title": "Datadrop Device Authentication Implementation",
+  "tools": 741,
+  "turns": 645
+}
+, {
+  "duration_s": 23056.8,
+  "framework": "pi",
+  "id": "019fa3e6-5fba-7be1-87c6-45d41f6acf5b",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.29,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-27T14:06:51Z",
+  "title": "DATADROP-2 DuckDB-Wasm Clean Cutover",
+  "tools": 1520,
+  "turns": 1209
+}
+, {
+  "duration_s": 23953.9,
+  "framework": "pi",
+  "id": "019fa3ec-242e-7a14-8c5c-f17d9c2f77fc",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.16,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-27T14:13:09Z",
+  "title": "How do I import artifacts into a local instance of this tool, and how do I do so",
+  "tools": 366,
+  "turns": 386
+}
+, {
+  "duration_s": 117.3,
+  "framework": "pi",
+  "id": "019fa3ed-c8f6-70b9-9187-1240bec3ff3d",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-27T14:14:57Z",
+  "title": "how can I get the identity of a window on my x11 server?  [REMINDER] Output a \u003cs",
+  "tools": 3,
+  "turns": 7
+}
+, {
+  "duration_s": 16725.5,
+  "framework": "pi",
+  "id": "019fa3f3-63c2-7d64-8033-64428bf72d87",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.36,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-27T14:21:04Z",
+  "title": "Datadrop Go Invariant Analysis Ticket",
+  "tools": 235,
+  "turns": 193
+}
+, {
+  "duration_s": 20368.2,
+  "framework": "pi",
+  "id": "019fa403-7e07-7361-aef1-b8d61acd34c7",
+  "model": "gpt-5.6-sol",
+  "read_ratio": 0.37,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-27T14:38:40Z",
+  "title": "Glazed Structured Output and Skill Cleanup",
+  "tools": 481,
+  "turns": 373
+}
+, {
+  "duration_s": 2303.5,
+  "framework": "pi",
+  "id": "019fa508-fcaf-7cbc-8032-ce115ea96b7b",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.18,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-27T19:24:17Z",
+  "title": "Address code review issues: https://github.com/wesen/2026-03-27--hetzner-k3s/pul",
+  "tools": 77,
+  "turns": 68
+}
+, {
+  "duration_s": 387.7,
+  "framework": "pi",
+  "id": "019fa532-bca7-76d0-83af-b3f5dce2cb44",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.38,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-27T20:09:53Z",
+  "title": "Check the argocd sync errors for example error when replacing \"/dev/shm/43505627",
+  "tools": 40,
+  "turns": 25
+}
+, {
+  "duration_s": 1313.3,
+  "framework": "pi",
+  "id": "019fa54b-2eb1-7f62-9a48-3ab4156e5c3f",
+  "model": "umans-glm-5.2",
+  "read_ratio": 0.31,
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-07-27T20:36:35Z",
+  "title": "Run the daily log skill using go-minitrace and write a daily log for each day of",
+  "tools": 13,
+  "turns": 11
+}
+]

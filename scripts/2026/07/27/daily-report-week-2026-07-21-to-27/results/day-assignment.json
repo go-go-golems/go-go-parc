@@ -1,0 +1,1376 @@
+{
+  "2026-07-21": [
+    {
+      "id": "019f8702-d73e-7cee-92cd-881a0bdf91fb",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel",
+      "started_at": "2026-07-21T23:28:58.174Z",
+      "last_activity_at": "2026-07-22T03:13:06.118Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel--/2026-07-21T23-28-58-174Z_019f8702-d73e-7cee-92cd-881a0bdf91fb.jsonl"
+    },
+    {
+      "id": "019f8568-1ed1-7b3f-8411-df451be11464",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/others/llms/pi/nicobailon/surf-cli",
+      "started_at": "2026-07-21T16:00:21.201Z",
+      "last_activity_at": "2026-07-22T22:51:35.253Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-others-llms-pi-nicobailon-surf-cli--/2026-07-21T16-00-21-201Z_019f8568-1ed1-7b3f-8411-df451be11464.jsonl"
+    },
+    {
+      "id": "019f85d9-25d5-7005-a02d-654e3d9171ba",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "started_at": "2026-07-21T18:03:48.565Z",
+      "last_activity_at": "2026-07-22T00:05:55.994Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-03-29--serve-claude-experiments--/2026-07-21T18-03-48-565Z_019f85d9-25d5-7005-a02d-654e3d9171ba.jsonl"
+    },
+    {
+      "id": "019f37ea-9e4c-713d-9753-03cf25971f7e",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "started_at": "2026-07-06T14:52:30.668Z",
+      "last_activity_at": "2026-07-24T10:26:51.476Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-04-17--byok-host--/2026-07-06T14-52-30-668Z_019f37ea-9e4c-713d-9753-03cf25971f7e.jsonl"
+    },
+    {
+      "id": "019f7666-f46a-730b-b756-f52939577305",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-18T18:04:46.570Z",
+      "last_activity_at": "2026-07-26T19:33:47.352Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-18T18-04-46-570Z_019f7666-f46a-730b-b756-f52939577305.jsonl"
+    },
+    {
+      "id": "019f8592-52b3-7a90-84e0-201cc49a1304",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-21T16:46:26.995Z",
+      "last_activity_at": "2026-07-23T16:37:38.783Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-21T16-46-26-995Z_019f8592-52b3-7a90-84e0-201cc49a1304.jsonl"
+    },
+    {
+      "id": "019f77c2-c157-7f3b-8424-24adfb4af971",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-19T00:24:40.023Z",
+      "last_activity_at": "2026-07-22T22:27:40.37Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-06-30-benchmark-cpu-inference--/2026-07-19T00-24-40-023Z_019f77c2-c157-7f3b-8424-24adfb4af971.jsonl"
+    },
+    {
+      "id": "019f7cf3-c32b-74bd-b4df-edc31f282065",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-18/go-go-wm",
+      "started_at": "2026-07-20T00:36:17.835Z",
+      "last_activity_at": "2026-07-23T15:12:48.415Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-07-18-go-go-wm--/2026-07-20T00-36-17-835Z_019f7cf3-c32b-74bd-b4df-edc31f282065.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-18T13-55-18-019f765e-47a9-7e72-a9a5-eb8594f2fa5b",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-18T17:57:09.114Z",
+      "last_activity_at": "2026-07-24T15:30:40.037Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/18/rollout-2026-07-18T13-55-18-019f765e-47a9-7e72-a9a5-eb8594f2fa5b.jsonl"
+    }
+  ],
+  "2026-07-22": [
+    {
+      "id": "019f8702-d73e-7cee-92cd-881a0bdf91fb",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel",
+      "started_at": "2026-07-21T23:28:58.174Z",
+      "last_activity_at": "2026-07-22T03:13:06.118Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel--/2026-07-21T23-28-58-174Z_019f8702-d73e-7cee-92cd-881a0bdf91fb.jsonl"
+    },
+    {
+      "id": "019f8568-1ed1-7b3f-8411-df451be11464",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/others/llms/pi/nicobailon/surf-cli",
+      "started_at": "2026-07-21T16:00:21.201Z",
+      "last_activity_at": "2026-07-22T22:51:35.253Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-others-llms-pi-nicobailon-surf-cli--/2026-07-21T16-00-21-201Z_019f8568-1ed1-7b3f-8411-df451be11464.jsonl"
+    },
+    {
+      "id": "019f85d9-25d5-7005-a02d-654e3d9171ba",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "started_at": "2026-07-21T18:03:48.565Z",
+      "last_activity_at": "2026-07-22T00:05:55.994Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-03-29--serve-claude-experiments--/2026-07-21T18-03-48-565Z_019f85d9-25d5-7005-a02d-654e3d9171ba.jsonl"
+    },
+    {
+      "id": "019f37ea-9e4c-713d-9753-03cf25971f7e",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "started_at": "2026-07-06T14:52:30.668Z",
+      "last_activity_at": "2026-07-24T10:26:51.476Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-04-17--byok-host--/2026-07-06T14-52-30-668Z_019f37ea-9e4c-713d-9753-03cf25971f7e.jsonl"
+    },
+    {
+      "id": "019f7666-f46a-730b-b756-f52939577305",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-18T18:04:46.570Z",
+      "last_activity_at": "2026-07-26T19:33:47.352Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-18T18-04-46-570Z_019f7666-f46a-730b-b756-f52939577305.jsonl"
+    },
+    {
+      "id": "019f8592-52b3-7a90-84e0-201cc49a1304",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-21T16:46:26.995Z",
+      "last_activity_at": "2026-07-23T16:37:38.783Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-21T16-46-26-995Z_019f8592-52b3-7a90-84e0-201cc49a1304.jsonl"
+    },
+    {
+      "id": "019f77c2-c157-7f3b-8424-24adfb4af971",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-19T00:24:40.023Z",
+      "last_activity_at": "2026-07-22T22:27:40.37Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-06-30-benchmark-cpu-inference--/2026-07-19T00-24-40-023Z_019f77c2-c157-7f3b-8424-24adfb4af971.jsonl"
+    },
+    {
+      "id": "019f8bf1-1c98-7d6b-b076-2c7e2a69e431",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-22T22:27:42.360Z",
+      "last_activity_at": "2026-07-24T19:03:49.333Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-06-30-benchmark-cpu-inference--/2026-07-22T22-27-42-360Z_019f8bf1-1c98-7d6b-b076-2c7e2a69e431.jsonl"
+    },
+    {
+      "id": "019f7cf3-c32b-74bd-b4df-edc31f282065",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-18/go-go-wm",
+      "started_at": "2026-07-20T00:36:17.835Z",
+      "last_activity_at": "2026-07-23T15:12:48.415Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-07-18-go-go-wm--/2026-07-20T00-36-17-835Z_019f7cf3-c32b-74bd-b4df-edc31f282065.jsonl"
+    },
+    {
+      "id": "019f8a59-b472-7eea-b213-55ab50f5bbbd",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-18/go-go-wm/go-go-wm",
+      "started_at": "2026-07-22T15:02:42.546Z",
+      "last_activity_at": "2026-07-22T15:03:49.831Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-07-18-go-go-wm-go-go-wm--/2026-07-22T15-02-42-546Z_019f8a59-b472-7eea-b213-55ab50f5bbbd.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-18T13-55-18-019f765e-47a9-7e72-a9a5-eb8594f2fa5b",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-18T17:57:09.114Z",
+      "last_activity_at": "2026-07-24T15:30:40.037Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/18/rollout-2026-07-18T13-55-18-019f765e-47a9-7e72-a9a5-eb8594f2fa5b.jsonl"
+    }
+  ],
+  "2026-07-23": [
+    {
+      "id": "019f9090-53bb-7759-b776-7d4fec218feb",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "started_at": "2026-07-23T20:00:05.563Z",
+      "last_activity_at": "2026-07-24T00:28:00.194Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-03-29--serve-claude-experiments--/2026-07-23T20-00-05-563Z_019f9090-53bb-7759-b776-7d4fec218feb.jsonl"
+    },
+    {
+      "id": "019f37ea-9e4c-713d-9753-03cf25971f7e",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "started_at": "2026-07-06T14:52:30.668Z",
+      "last_activity_at": "2026-07-24T10:26:51.476Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-04-17--byok-host--/2026-07-06T14-52-30-668Z_019f37ea-9e4c-713d-9753-03cf25971f7e.jsonl"
+    },
+    {
+      "id": "019f9061-de30-7dd7-ad88-75837fece9fd",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-04-21--pi-extensions",
+      "started_at": "2026-07-23T19:09:20.816Z",
+      "last_activity_at": "2026-07-23T20:43:49.657Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-04-21--pi-extensions--/2026-07-23T19-09-20-816Z_019f9061-de30-7dd7-ad88-75837fece9fd.jsonl"
+    },
+    {
+      "id": "019f907c-a4d0-779e-9f5c-433383fd7e17",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-04-21--pi-extensions",
+      "started_at": "2026-07-23T19:38:35.600Z",
+      "last_activity_at": "2026-07-23T19:39:50.053Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-04-21--pi-extensions--/2026-07-23T19-38-35-600Z_019f907c-a4d0-779e-9f5c-433383fd7e17.jsonl"
+    },
+    {
+      "id": "019f7666-f46a-730b-b756-f52939577305",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-18T18:04:46.570Z",
+      "last_activity_at": "2026-07-26T19:33:47.352Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-18T18-04-46-570Z_019f7666-f46a-730b-b756-f52939577305.jsonl"
+    },
+    {
+      "id": "019f8592-52b3-7a90-84e0-201cc49a1304",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-21T16:46:26.995Z",
+      "last_activity_at": "2026-07-23T16:37:38.783Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-21T16-46-26-995Z_019f8592-52b3-7a90-84e0-201cc49a1304.jsonl"
+    },
+    {
+      "id": "019f8fd7-381d-7113-8a59-15bc3ca0d711",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T16:37:54.333Z",
+      "last_activity_at": "2026-07-23T16:39:45.346Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-37-54-333Z_019f8fd7-381d-7113-8a59-15bc3ca0d711.jsonl"
+    },
+    {
+      "id": "019f8fd8-fafb-7de1-873b-139c1b0ffcab",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T16:39:49.755Z",
+      "last_activity_at": "2026-07-26T23:17:12.671Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T18:07:50.127Z",
+      "last_activity_at": "2026-07-23T18:10:48.98Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/030c9c27/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T18:19:49.063Z",
+      "last_activity_at": "2026-07-23T18:22:21.032Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/0b27bb1f/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T16:47:46.434Z",
+      "last_activity_at": "2026-07-23T16:48:04.892Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/18543bde/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T18:12:07.009Z",
+      "last_activity_at": "2026-07-23T18:15:00.648Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/2701cf60/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T16:48:10.897Z",
+      "last_activity_at": "2026-07-23T16:48:46.702Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/5770dcee/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T16:48:50.341Z",
+      "last_activity_at": "2026-07-23T16:49:27.899Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/8ce468f3/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T16:49:42.290Z",
+      "last_activity_at": "2026-07-23T16:53:08.193Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/a144a78f/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T16:47:22.968Z",
+      "last_activity_at": "2026-07-23T16:47:25.604Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/a99e1381/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T18:35:02.141Z",
+      "last_activity_at": "2026-07-23T18:35:15.387Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/c04b1533/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T18:16:27.551Z",
+      "last_activity_at": "2026-07-23T18:19:16.558Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/ca948d30/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T18:06:02.956Z",
+      "last_activity_at": "2026-07-23T18:06:06.097Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/e716ab7d/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T16:47:31.495Z",
+      "last_activity_at": "2026-07-23T16:47:34.428Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/f9b39444/run-0/session.jsonl"
+    },
+    {
+      "id": "019f8fc6-7f02-794a-a5da-c27d78189728",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/upwork",
+      "started_at": "2026-07-23T16:19:38.370Z",
+      "last_activity_at": "2026-07-23T16:20:28.232Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-go-go-golems-upwork--/2026-07-23T16-19-38-370Z_019f8fc6-7f02-794a-a5da-c27d78189728.jsonl"
+    },
+    {
+      "id": "019f8fc8-6412-7027-a432-996d4cbe1865",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/upwork",
+      "started_at": "2026-07-23T16:21:42.546Z",
+      "last_activity_at": "2026-07-23T16:25:49.552Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-go-go-golems-upwork--/2026-07-23T16-21-42-546Z_019f8fc8-6412-7027-a432-996d4cbe1865.jsonl"
+    },
+    {
+      "id": "019f8fcc-9c4e-7f56-b9a5-c076a17b643f",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/upwork",
+      "started_at": "2026-07-23T16:26:19.086Z",
+      "last_activity_at": "2026-07-23T16:32:47.353Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-go-go-golems-upwork--/2026-07-23T16-26-19-086Z_019f8fcc-9c4e-7f56-b9a5-c076a17b643f.jsonl"
+    },
+    {
+      "id": "019f8bf1-1c98-7d6b-b076-2c7e2a69e431",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-22T22:27:42.360Z",
+      "last_activity_at": "2026-07-24T19:03:49.333Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-06-30-benchmark-cpu-inference--/2026-07-22T22-27-42-360Z_019f8bf1-1c98-7d6b-b076-2c7e2a69e431.jsonl"
+    },
+    {
+      "id": "019f7cf3-c32b-74bd-b4df-edc31f282065",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-18/go-go-wm",
+      "started_at": "2026-07-20T00:36:17.835Z",
+      "last_activity_at": "2026-07-23T15:12:48.415Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-07-18-go-go-wm--/2026-07-20T00-36-17-835Z_019f7cf3-c32b-74bd-b4df-edc31f282065.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-18T13-55-18-019f765e-47a9-7e72-a9a5-eb8594f2fa5b",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-18T17:57:09.114Z",
+      "last_activity_at": "2026-07-24T15:30:40.037Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/18/rollout-2026-07-18T13-55-18-019f765e-47a9-7e72-a9a5-eb8594f2fa5b.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-23T11-11-09-019f8f87-ce0b-7f73-ba05-2b736aa6e2bf",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-23T15:13:08.852Z",
+      "last_activity_at": "2026-07-24T15:29:22.049Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/23/rollout-2026-07-23T11-11-09-019f8f87-ce0b-7f73-ba05-2b736aa6e2bf.jsonl"
+    }
+  ],
+  "2026-07-24": [
+    {
+      "id": "019f9090-53bb-7759-b776-7d4fec218feb",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "started_at": "2026-07-23T20:00:05.563Z",
+      "last_activity_at": "2026-07-24T00:28:00.194Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-03-29--serve-claude-experiments--/2026-07-23T20-00-05-563Z_019f9090-53bb-7759-b776-7d4fec218feb.jsonl"
+    },
+    {
+      "id": "019f37ea-9e4c-713d-9753-03cf25971f7e",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "started_at": "2026-07-06T14:52:30.668Z",
+      "last_activity_at": "2026-07-24T10:26:51.476Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-04-17--byok-host--/2026-07-06T14-52-30-668Z_019f37ea-9e4c-713d-9753-03cf25971f7e.jsonl"
+    },
+    {
+      "id": "019f7666-f46a-730b-b756-f52939577305",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-18T18:04:46.570Z",
+      "last_activity_at": "2026-07-26T19:33:47.352Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-18T18-04-46-570Z_019f7666-f46a-730b-b756-f52939577305.jsonl"
+    },
+    {
+      "id": "019f8fd8-fafb-7de1-873b-139c1b0ffcab",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T16:39:49.755Z",
+      "last_activity_at": "2026-07-26T23:17:12.671Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab.jsonl"
+    },
+    {
+      "id": "019f94ce-efb7-78ef-acaf-25b4b8d5a8a6",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems",
+      "started_at": "2026-07-24T15:46:57.591Z",
+      "last_activity_at": "2026-07-24T16:51:59.627Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-go-go-golems--/2026-07-24T15-46-57-591Z_019f94ce-efb7-78ef-acaf-25b4b8d5a8a6.jsonl"
+    },
+    {
+      "id": "019f8bf1-1c98-7d6b-b076-2c7e2a69e431",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-22T22:27:42.360Z",
+      "last_activity_at": "2026-07-24T19:03:49.333Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-06-30-benchmark-cpu-inference--/2026-07-22T22-27-42-360Z_019f8bf1-1c98-7d6b-b076-2c7e2a69e431.jsonl"
+    },
+    {
+      "id": "019f94ba-7edb-77f0-8108-558e17aed6db",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-24T15:24:37.979Z",
+      "last_activity_at": "2026-07-25T20:11:09.588Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-07-07-prod-tiny-idp--/2026-07-24T15-24-37-979Z_019f94ba-7edb-77f0-8108-558e17aed6db.jsonl"
+    },
+    {
+      "id": "019f9188-fcc0-750a-8e97-2f69377c4eac",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-23/tiny-idp-device-auth-eink",
+      "started_at": "2026-07-24T00:31:41.760Z",
+      "last_activity_at": "2026-07-24T15:20:45.206Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-07-23-tiny-idp-device-auth-eink--/2026-07-24T00-31-41-760Z_019f9188-fcc0-750a-8e97-2f69377c4eac.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-18T13-55-18-019f765e-47a9-7e72-a9a5-eb8594f2fa5b",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-18T17:57:09.114Z",
+      "last_activity_at": "2026-07-24T15:30:40.037Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/18/rollout-2026-07-18T13-55-18-019f765e-47a9-7e72-a9a5-eb8594f2fa5b.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-23T11-11-09-019f8f87-ce0b-7f73-ba05-2b736aa6e2bf",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-23T15:13:08.852Z",
+      "last_activity_at": "2026-07-24T15:29:22.049Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/23/rollout-2026-07-23T11-11-09-019f8f87-ce0b-7f73-ba05-2b736aa6e2bf.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-23T20-11-45-019f9176-bdbf-7a90-bcc3-ad4fb7767ff2",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-24T00:13:37.865Z",
+      "last_activity_at": "2026-07-27T18:30:40.845Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/23/rollout-2026-07-23T20-11-45-019f9176-bdbf-7a90-bcc3-ad4fb7767ff2.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-23T20-11-46-019f9176-be5a-7e53-8568-9466282c493a",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-24T00:29:47.864Z",
+      "last_activity_at": "2026-07-24T16:59:10.43Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/23/rollout-2026-07-23T20-11-46-019f9176-be5a-7e53-8568-9466282c493a.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-24T13-17-41-019f9522-025e-7b10-9a33-0886da8d3d60",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-24T17:23:38.659Z",
+      "last_activity_at": "2026-07-27T18:30:32.03Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/24/rollout-2026-07-24T13-17-41-019f9522-025e-7b10-9a33-0886da8d3d60.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-24T14-56-01-019f957c-0900-7421-96a2-b55896fb8db3",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-24T18:56:13.809Z",
+      "last_activity_at": "2026-07-24T19:00:59.858Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/24/rollout-2026-07-24T14-56-01-019f957c-0900-7421-96a2-b55896fb8db3.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-24T14-56-01-019f957c-0997-7390-b332-2ad933ca7f0b",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-24T18:56:32.006Z",
+      "last_activity_at": "2026-07-24T18:57:16.171Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/24/rollout-2026-07-24T14-56-01-019f957c-0997-7390-b332-2ad933ca7f0b.jsonl"
+    },
+    {
+      "id": "3ecf0619-dc35-4535-83a9-2db643ce3ff8",
+      "framework": "claude-code",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-24/datadrop-mcp",
+      "started_at": "2026-07-24T16:06:13.946Z",
+      "last_activity_at": "2026-07-27T14:34:47.71Z",
+      "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-24-datadrop-mcp/3ecf0619-dc35-4535-83a9-2db643ce3ff8.jsonl"
+    },
+    {
+      "id": "7cb4881c-c5b1-4414-9846-fd91e22311f0",
+      "framework": "claude-code",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+      "started_at": "2026-07-24T17:08:14.336Z",
+      "last_activity_at": "2026-07-24T17:08:14.336Z",
+      "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/7cb4881c-c5b1-4414-9846-fd91e22311f0.jsonl"
+    },
+    {
+      "id": "7e08313e-252b-4995-99f5-e2d65fd4437f",
+      "framework": "claude-code",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-24/go-go-goja-instrumentation",
+      "started_at": "2026-07-24T16:11:02.269Z",
+      "last_activity_at": "2026-07-24T17:34:15.476Z",
+      "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-24-go-go-goja-instrumentation/7e08313e-252b-4995-99f5-e2d65fd4437f.jsonl"
+    },
+    {
+      "id": "7e3d3f0a-3913-446e-a388-a9694ec9529f",
+      "framework": "claude-code",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+      "started_at": "2026-07-24T15:53:45.708Z",
+      "last_activity_at": "2026-07-24T17:04:29.724Z",
+      "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/7e3d3f0a-3913-446e-a388-a9694ec9529f.jsonl"
+    },
+    {
+      "id": "9f750138-6745-4a0a-b322-377250ae6f9b",
+      "framework": "claude-code",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+      "started_at": "2026-07-24T17:04:43.881Z",
+      "last_activity_at": "2026-07-24T17:04:43.881Z",
+      "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/9f750138-6745-4a0a-b322-377250ae6f9b.jsonl"
+    },
+    {
+      "id": "a843c3c1-b99c-4a87-a034-91549196ce51",
+      "framework": "claude-code",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+      "started_at": "2026-07-24T17:09:02.397Z",
+      "last_activity_at": "2026-07-24T17:22:57.099Z",
+      "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/a843c3c1-b99c-4a87-a034-91549196ce51.jsonl"
+    }
+  ],
+  "2026-07-25": [
+    {
+      "id": "019f99f9-ef24-7644-95c4-8eb18b1d9986",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+      "started_at": "2026-07-25T15:52:01.572Z",
+      "last_activity_at": "2026-07-27T17:45:57.604Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-07-25--zitadel-go-test--/2026-07-25T15-52-01-572Z_019f99f9-ef24-7644-95c4-8eb18b1d9986.jsonl"
+    },
+    {
+      "id": "019f7666-f46a-730b-b756-f52939577305",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-18T18:04:46.570Z",
+      "last_activity_at": "2026-07-26T19:33:47.352Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-18T18-04-46-570Z_019f7666-f46a-730b-b756-f52939577305.jsonl"
+    },
+    {
+      "id": "019f8fd8-fafb-7de1-873b-139c1b0ffcab",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T16:39:49.755Z",
+      "last_activity_at": "2026-07-26T23:17:12.671Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/upwork",
+      "started_at": "2026-07-25T16:31:33.152Z",
+      "last_activity_at": "2026-07-25T16:34:29.591Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/54dec368/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-25T16:31:33.224Z",
+      "last_activity_at": "2026-07-25T16:34:32.792Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/54dec368/run-1/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/upwork",
+      "started_at": "2026-07-25T16:31:33.177Z",
+      "last_activity_at": "2026-07-25T16:38:56.125Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/54dec368/run-2/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-25T15:58:47.160Z",
+      "last_activity_at": "2026-07-25T16:01:27.865Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/f9927fc1/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/upwork",
+      "started_at": "2026-07-25T15:58:47.253Z",
+      "last_activity_at": "2026-07-25T16:00:55.62Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/f9927fc1/run-1/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-25T15:58:47.257Z",
+      "last_activity_at": "2026-07-25T16:05:13.553Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/f9927fc1/run-2/session.jsonl"
+    },
+    {
+      "id": "019f9a86-6022-783e-a12f-77a7d7ac1881",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-25T18:25:25.538Z",
+      "last_activity_at": "2026-07-27T20:18:49.305Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-25T18-25-25-538Z_019f9a86-6022-783e-a12f-77a7d7ac1881.jsonl"
+    },
+    {
+      "id": "019f9aad-7e92-786e-9403-9b1c63982c78",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-25T19:08:09.234Z",
+      "last_activity_at": "2026-07-25T19:57:36.711Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-25T19-08-09-234Z_019f9aad-7e92-786e-9403-9b1c63982c78.jsonl"
+    },
+    {
+      "id": "019f9ab3-9de6-7e87-8bdc-6c988984f1f7",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-25T19:14:50.470Z",
+      "last_activity_at": "2026-07-26T21:50:50.948Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-25T19-14-50-470Z_019f9ab3-9de6-7e87-8bdc-6c988984f1f7.jsonl"
+    },
+    {
+      "id": "019f9a21-032c-7729-a2d6-6891af14feb1",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-25T16:34:42.604Z",
+      "last_activity_at": "2026-07-25T16:45:20.05Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-06-30-benchmark-cpu-inference--/2026-07-25T16-34-42-604Z_019f9a21-032c-7729-a2d6-6891af14feb1.jsonl"
+    },
+    {
+      "id": "019f94ba-7edb-77f0-8108-558e17aed6db",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-24T15:24:37.979Z",
+      "last_activity_at": "2026-07-25T20:11:09.588Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-07-07-prod-tiny-idp--/2026-07-24T15-24-37-979Z_019f94ba-7edb-77f0-8108-558e17aed6db.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-23T20-11-45-019f9176-bdbf-7a90-bcc3-ad4fb7767ff2",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-24T00:13:37.865Z",
+      "last_activity_at": "2026-07-27T18:30:40.845Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/23/rollout-2026-07-23T20-11-45-019f9176-bdbf-7a90-bcc3-ad4fb7767ff2.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-24T13-17-41-019f9522-025e-7b10-9a33-0886da8d3d60",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-24T17:23:38.659Z",
+      "last_activity_at": "2026-07-27T18:30:32.03Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/24/rollout-2026-07-24T13-17-41-019f9522-025e-7b10-9a33-0886da8d3d60.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-25T12-31-59-019f9a1e-84bf-7e10-926c-57e4b6ebb4bd",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-25T16:32:12.426Z",
+      "last_activity_at": "2026-07-26T22:17:05.257Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T12-31-59-019f9a1e-84bf-7e10-926c-57e4b6ebb4bd.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-25T12-31-59-019f9a1e-851a-77d0-bec6-1ca991f846c5",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-25T17:29:17.820Z",
+      "last_activity_at": "2026-07-25T22:15:40.391Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T12-31-59-019f9a1e-851a-77d0-bec6-1ca991f846c5.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-25T18-15-49-019f9b59-4eeb-7321-b890-f77412c4e42e",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-25T22:15:49.276Z",
+      "last_activity_at": "2026-07-25T22:24:40.153Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T18-15-49-019f9b59-4eeb-7321-b890-f77412c4e42e.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-25T18-55-35-019f9b7d-b908-7263-ae1a-1db8965db0ec",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+      "started_at": "2026-07-25T22:55:35.881Z",
+      "last_activity_at": "2026-07-25T22:58:27.782Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T18-55-35-019f9b7d-b908-7263-ae1a-1db8965db0ec.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-25T18-55-35-019f9b7d-b98d-7b01-a9a8-0767380762bf",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+      "started_at": "2026-07-25T22:55:50.622Z",
+      "last_activity_at": "2026-07-25T22:56:19.464Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T18-55-35-019f9b7d-b98d-7b01-a9a8-0767380762bf.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-25T19-16-42-019f9b91-0f48-7c72-8408-9bda4ee18a20",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-25T23:17:17.370Z",
+      "last_activity_at": "2026-07-26T22:16:28.651Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T19-16-42-019f9b91-0f48-7c72-8408-9bda4ee18a20.jsonl"
+    },
+    {
+      "id": "3ecf0619-dc35-4535-83a9-2db643ce3ff8",
+      "framework": "claude-code",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-24/datadrop-mcp",
+      "started_at": "2026-07-24T16:06:13.946Z",
+      "last_activity_at": "2026-07-27T14:34:47.71Z",
+      "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-24-datadrop-mcp/3ecf0619-dc35-4535-83a9-2db643ce3ff8.jsonl"
+    }
+  ],
+  "2026-07-26": [
+    {
+      "id": "019fa02e-27e0-73ef-9e91-013a075adb67",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/others/llms/pi/nicobailon/surf-cli",
+      "started_at": "2026-07-26T20:46:47.264Z",
+      "last_activity_at": "2026-07-27T20:56:43.192Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-others-llms-pi-nicobailon-surf-cli--/2026-07-26T20-46-47-264Z_019fa02e-27e0-73ef-9e91-013a075adb67.jsonl"
+    },
+    {
+      "id": "019f99f9-ef24-7644-95c4-8eb18b1d9986",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+      "started_at": "2026-07-25T15:52:01.572Z",
+      "last_activity_at": "2026-07-27T17:45:57.604Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-07-25--zitadel-go-test--/2026-07-25T15-52-01-572Z_019f99f9-ef24-7644-95c4-8eb18b1d9986.jsonl"
+    },
+    {
+      "id": "019f7666-f46a-730b-b756-f52939577305",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-18T18:04:46.570Z",
+      "last_activity_at": "2026-07-26T19:33:47.352Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-18T18-04-46-570Z_019f7666-f46a-730b-b756-f52939577305.jsonl"
+    },
+    {
+      "id": "019f8fd8-fafb-7de1-873b-139c1b0ffcab",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-23T16:39:49.755Z",
+      "last_activity_at": "2026-07-26T23:17:12.671Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "started_at": "2026-07-26T22:59:27.048Z",
+      "last_activity_at": "2026-07-26T23:05:48.64Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/60643d3d/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "started_at": "2026-07-26T20:41:45.870Z",
+      "last_activity_at": "2026-07-26T20:53:22.741Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/637b8c50/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "started_at": "2026-07-26T20:41:46.158Z",
+      "last_activity_at": "2026-07-26T20:48:47.57Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/637b8c50/run-1/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "started_at": "2026-07-26T20:41:46.156Z",
+      "last_activity_at": "2026-07-26T20:44:02.288Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/637b8c50/run-2/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "started_at": "2026-07-26T23:10:06.037Z",
+      "last_activity_at": "2026-07-26T23:13:21.945Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/70d98fc3/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/upwork",
+      "started_at": "2026-07-26T20:28:55.162Z",
+      "last_activity_at": "2026-07-26T20:33:49.373Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/cffbc943/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/upwork",
+      "started_at": "2026-07-26T22:44:18.485Z",
+      "last_activity_at": "2026-07-26T22:48:41.598Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/f400e70b/run-0/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/upwork",
+      "started_at": "2026-07-26T22:44:18.476Z",
+      "last_activity_at": "2026-07-26T22:48:20.707Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/f400e70b/run-1/session.jsonl"
+    },
+    {
+      "id": "session",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "started_at": "2026-07-26T21:31:35.638Z",
+      "last_activity_at": "2026-07-26T21:37:03.604Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-23T16-39-49-755Z_019f8fd8-fafb-7de1-873b-139c1b0ffcab/fc033b11/run-0/session.jsonl"
+    },
+    {
+      "id": "019f9a86-6022-783e-a12f-77a7d7ac1881",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-25T18:25:25.538Z",
+      "last_activity_at": "2026-07-27T20:18:49.305Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-25T18-25-25-538Z_019f9a86-6022-783e-a12f-77a7d7ac1881.jsonl"
+    },
+    {
+      "id": "019f9ab3-9de6-7e87-8bdc-6c988984f1f7",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-25T19:14:50.470Z",
+      "last_activity_at": "2026-07-26T21:50:50.948Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-25T19-14-50-470Z_019f9ab3-9de6-7e87-8bdc-6c988984f1f7.jsonl"
+    },
+    {
+      "id": "019fa08a-980b-7c84-89c5-a357e51f15bb",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "started_at": "2026-07-26T22:27:45.291Z",
+      "last_activity_at": "2026-07-27T15:23:41.943Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-go-go-golems-go-go-parc--/2026-07-26T22-27-45-291Z_019fa08a-980b-7c84-89c5-a357e51f15bb.jsonl"
+    },
+    {
+      "id": "019fa0b4-9a0a-72ff-acc8-f2cc2f44319d",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "started_at": "2026-07-26T23:13:38.314Z",
+      "last_activity_at": "2026-07-27T01:04:40.361Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-go-go-golems-go-go-parc--/2026-07-26T23-13-38-314Z_019fa0b4-9a0a-72ff-acc8-f2cc2f44319d.jsonl"
+    },
+    {
+      "id": "019fa02f-8464-7b48-9137-4790d990c626",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-22/goja-publish-vault",
+      "started_at": "2026-07-26T20:48:16.484Z",
+      "last_activity_at": "2026-07-26T23:19:50.43Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-06-22-goja-publish-vault--/2026-07-26T20-48-16-484Z_019fa02f-8464-7b48-9137-4790d990c626.jsonl"
+    },
+    {
+      "id": "019fa024-699a-7df4-a30f-3b50470052ee",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-24/datadrop-mcp",
+      "started_at": "2026-07-26T20:36:08.731Z",
+      "last_activity_at": "2026-07-26T20:59:36.689Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-07-24-datadrop-mcp--/2026-07-26T20-36-08-731Z_019fa024-699a-7df4-a30f-3b50470052ee.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-23T20-11-45-019f9176-bdbf-7a90-bcc3-ad4fb7767ff2",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-24T00:13:37.865Z",
+      "last_activity_at": "2026-07-27T18:30:40.845Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/23/rollout-2026-07-23T20-11-45-019f9176-bdbf-7a90-bcc3-ad4fb7767ff2.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-24T13-17-41-019f9522-025e-7b10-9a33-0886da8d3d60",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-24T17:23:38.659Z",
+      "last_activity_at": "2026-07-27T18:30:32.03Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/24/rollout-2026-07-24T13-17-41-019f9522-025e-7b10-9a33-0886da8d3d60.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-25T12-31-59-019f9a1e-84bf-7e10-926c-57e4b6ebb4bd",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-25T16:32:12.426Z",
+      "last_activity_at": "2026-07-26T22:17:05.257Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T12-31-59-019f9a1e-84bf-7e10-926c-57e4b6ebb4bd.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-25T19-16-42-019f9b91-0f48-7c72-8408-9bda4ee18a20",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-25T23:17:17.370Z",
+      "last_activity_at": "2026-07-26T22:16:28.651Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T19-16-42-019f9b91-0f48-7c72-8408-9bda4ee18a20.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-26T18-46-18-019fa09b-93a4-7cc3-a329-6074908b157f",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-26T22:46:18.683Z",
+      "last_activity_at": "2026-07-27T20:44:27.194Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/26/rollout-2026-07-26T18-46-18-019fa09b-93a4-7cc3-a329-6074908b157f.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-26T18-46-18-019fa09b-9597-7ea1-9384-96b36e1b75f6",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-26T22:58:38.167Z",
+      "last_activity_at": "2026-07-27T20:43:56.218Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/26/rollout-2026-07-26T18-46-18-019fa09b-9597-7ea1-9384-96b36e1b75f6.jsonl"
+    },
+    {
+      "id": "3ecf0619-dc35-4535-83a9-2db643ce3ff8",
+      "framework": "claude-code",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-24/datadrop-mcp",
+      "started_at": "2026-07-24T16:06:13.946Z",
+      "last_activity_at": "2026-07-27T14:34:47.71Z",
+      "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-24-datadrop-mcp/3ecf0619-dc35-4535-83a9-2db643ce3ff8.jsonl"
+    }
+  ],
+  "2026-07-27": [
+    {
+      "id": "019fa02e-27e0-73ef-9e91-013a075adb67",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/others/llms/pi/nicobailon/surf-cli",
+      "started_at": "2026-07-26T20:46:47.264Z",
+      "last_activity_at": "2026-07-27T20:56:43.192Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-others-llms-pi-nicobailon-surf-cli--/2026-07-26T20-46-47-264Z_019fa02e-27e0-73ef-9e91-013a075adb67.jsonl"
+    },
+    {
+      "id": "019fa508-fcaf-7cbc-8032-ce115ea96b7b",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "started_at": "2026-07-27T19:24:17.455Z",
+      "last_activity_at": "2026-07-27T20:02:40.956Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-03-27--hetzner-k3s--/2026-07-27T19-24-17-455Z_019fa508-fcaf-7cbc-8032-ce115ea96b7b.jsonl"
+    },
+    {
+      "id": "019fa532-bca7-76d0-83af-b3f5dce2cb44",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "started_at": "2026-07-27T20:09:53.575Z",
+      "last_activity_at": "2026-07-27T20:16:21.315Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-03-27--hetzner-k3s--/2026-07-27T20-09-53-575Z_019fa532-bca7-76d0-83af-b3f5dce2cb44.jsonl"
+    },
+    {
+      "id": "019fa3ec-242e-7a14-8c5c-f17d9c2f77fc",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "started_at": "2026-07-27T14:13:09.806Z",
+      "last_activity_at": "2026-07-27T20:52:23.721Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-03-29--serve-claude-experiments--/2026-07-27T14-13-09-806Z_019fa3ec-242e-7a14-8c5c-f17d9c2f77fc.jsonl"
+    },
+    {
+      "id": "019f99f9-ef24-7644-95c4-8eb18b1d9986",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+      "started_at": "2026-07-25T15:52:01.572Z",
+      "last_activity_at": "2026-07-27T17:45:57.604Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-07-25--zitadel-go-test--/2026-07-25T15-52-01-572Z_019f99f9-ef24-7644-95c4-8eb18b1d9986.jsonl"
+    },
+    {
+      "id": "019fa3ed-c8f6-70b9-9187-1240bec3ff3d",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+      "started_at": "2026-07-27T14:14:57.526Z",
+      "last_activity_at": "2026-07-27T14:16:54.806Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-2026-07-25--zitadel-go-test--/2026-07-27T14-14-57-526Z_019fa3ed-c8f6-70b9-9187-1240bec3ff3d.jsonl"
+    },
+    {
+      "id": "019f9a86-6022-783e-a12f-77a7d7ac1881",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/claw-stuff",
+      "started_at": "2026-07-25T18:25:25.538Z",
+      "last_activity_at": "2026-07-27T20:18:49.305Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-claw-stuff--/2026-07-25T18-25-25-538Z_019f9a86-6022-783e-a12f-77a7d7ac1881.jsonl"
+    },
+    {
+      "id": "019fa08a-980b-7c84-89c5-a357e51f15bb",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "started_at": "2026-07-26T22:27:45.291Z",
+      "last_activity_at": "2026-07-27T15:23:41.943Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-go-go-golems-go-go-parc--/2026-07-26T22-27-45-291Z_019fa08a-980b-7c84-89c5-a357e51f15bb.jsonl"
+    },
+    {
+      "id": "019fa0b4-9a0a-72ff-acc8-f2cc2f44319d",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "started_at": "2026-07-26T23:13:38.314Z",
+      "last_activity_at": "2026-07-27T01:04:40.361Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-go-go-golems-go-go-parc--/2026-07-26T23-13-38-314Z_019fa0b4-9a0a-72ff-acc8-f2cc2f44319d.jsonl"
+    },
+    {
+      "id": "019fa54b-2eb1-7f62-9a48-3ab4156e5c3f",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "started_at": "2026-07-27T20:36:35.633Z",
+      "last_activity_at": "2026-07-27T20:56:46.797Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-code-wesen-go-go-golems-go-go-parc--/2026-07-27T20-36-35-633Z_019fa54b-2eb1-7f62-9a48-3ab4156e5c3f.jsonl"
+    },
+    {
+      "id": "019fa3f3-63c2-7d64-8033-64428bf72d87",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-24/datadrop-mcp",
+      "started_at": "2026-07-27T14:21:04.834Z",
+      "last_activity_at": "2026-07-27T18:59:50.365Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-07-24-datadrop-mcp--/2026-07-27T14-21-04-834Z_019fa3f3-63c2-7d64-8033-64428bf72d87.jsonl"
+    },
+    {
+      "id": "019fa3e6-5fba-7be1-87c6-45d41f6acf5b",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-27/datadrop-duckdb",
+      "started_at": "2026-07-27T14:06:51.834Z",
+      "last_activity_at": "2026-07-27T20:31:08.663Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-07-27-datadrop-duckdb--/2026-07-27T14-06-51-834Z_019fa3e6-5fba-7be1-87c6-45d41f6acf5b.jsonl"
+    },
+    {
+      "id": "019fa3e0-cb6d-74d0-a406-3be76af64b54",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-27/datadrop-zitadel",
+      "started_at": "2026-07-27T14:00:46.189Z",
+      "last_activity_at": "2026-07-27T20:53:05.741Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-07-27-datadrop-zitadel--/2026-07-27T14-00-46-189Z_019fa3e0-cb6d-74d0-a406-3be76af64b54.jsonl"
+    },
+    {
+      "id": "019fa403-7e07-7361-aef1-b8d61acd34c7",
+      "framework": "pi",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-27/glazed-cleanup/glazed",
+      "started_at": "2026-07-27T14:38:40.135Z",
+      "last_activity_at": "2026-07-27T20:18:08.34Z",
+      "source_path": "/home/manuel/.pi/agent/sessions/--home-manuel-workspaces-2026-07-27-glazed-cleanup-glazed--/2026-07-27T14-38-40-135Z_019fa403-7e07-7361-aef1-b8d61acd34c7.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-23T20-11-45-019f9176-bdbf-7a90-bcc3-ad4fb7767ff2",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-24T00:13:37.865Z",
+      "last_activity_at": "2026-07-27T18:30:40.845Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/23/rollout-2026-07-23T20-11-45-019f9176-bdbf-7a90-bcc3-ad4fb7767ff2.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-24T13-17-41-019f9522-025e-7b10-9a33-0886da8d3d60",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+      "started_at": "2026-07-24T17:23:38.659Z",
+      "last_activity_at": "2026-07-27T18:30:32.03Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/24/rollout-2026-07-24T13-17-41-019f9522-025e-7b10-9a33-0886da8d3d60.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-26T18-46-18-019fa09b-93a4-7cc3-a329-6074908b157f",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-26T22:46:18.683Z",
+      "last_activity_at": "2026-07-27T20:44:27.194Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/26/rollout-2026-07-26T18-46-18-019fa09b-93a4-7cc3-a329-6074908b157f.jsonl"
+    },
+    {
+      "id": "rollout-2026-07-26T18-46-18-019fa09b-9597-7ea1-9384-96b36e1b75f6",
+      "framework": "codex",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+      "started_at": "2026-07-26T22:58:38.167Z",
+      "last_activity_at": "2026-07-27T20:43:56.218Z",
+      "source_path": "/home/manuel/.codex/sessions/2026/07/26/rollout-2026-07-26T18-46-18-019fa09b-9597-7ea1-9384-96b36e1b75f6.jsonl"
+    },
+    {
+      "id": "3ecf0619-dc35-4535-83a9-2db643ce3ff8",
+      "framework": "claude-code",
+      "model": null,
+      "title": null,
+      "cwd": "/home/manuel/workspaces/2026-07-24/datadrop-mcp",
+      "started_at": "2026-07-24T16:06:13.946Z",
+      "last_activity_at": "2026-07-27T14:34:47.71Z",
+      "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-24-datadrop-mcp/3ecf0619-dc35-4535-83a9-2db643ce3ff8.jsonl"
+    }
+  ]
+}

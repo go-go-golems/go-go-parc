@@ -1,0 +1,378 @@
+[
+{
+  "cwd": "/home/manuel/code/others/llms/pi/nicobailon/surf-cli",
+  "format_hint": "jsonl-v2",
+  "id": "02ffebb3-20a8-4b6f-b28a-d9bc78d70313",
+  "last_activity_at": "2026-07-15T13:11:39.581Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-others-llms-pi-nicobailon-surf-cli/02ffebb3-20a8-4b6f-b28a-d9bc78d70313.jsonl",
+  "started_at": "2026-07-06T20:53:29.738Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-30/add-launcher",
+  "format_hint": "jsonl-v2",
+  "id": "0837f389-8f89-4639-be62-c62a2abf8e8c",
+  "last_activity_at": "2026-07-31T00:53:35.451Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-30-add-launcher/0837f389-8f89-4639-be62-c62a2abf8e8c.jsonl",
+  "started_at": "2026-07-30T22:14:24.023Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-30/transcript-agent",
+  "format_hint": "jsonl-v2",
+  "id": "0f96f565-d7af-47a5-add7-2fbfd47199f6",
+  "last_activity_at": "2026-07-30T23:56:33.317Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-30-transcript-agent/0f96f565-d7af-47a5-add7-2fbfd47199f6.jsonl",
+  "started_at": "2026-07-30T22:00:33.576Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-03/improve-rag-evaluation-system",
+  "format_hint": "jsonl-v2",
+  "id": "15c16406-f4e0-46b8-8b4f-89d16db9645c",
+  "last_activity_at": "2026-07-07T19:02:03.689Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-03-improve-rag-evaluation-system/15c16406-f4e0-46b8-8b4f-89d16db9645c.jsonl",
+  "started_at": "2026-07-06T22:17:55.249Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-05/llm-proxy-byok",
+  "format_hint": "jsonl-v2",
+  "id": "27016ffe-fdf7-45e4-89b8-61d7527c499b",
+  "last_activity_at": "2026-07-06T14:52:24.438Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-05-llm-proxy-byok/27016ffe-fdf7-45e4-89b8-61d7527c499b.jsonl",
+  "started_at": "2026-07-06T14:52:24.438Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/hyperslop-systems/infra",
+  "format_hint": "jsonl-v2",
+  "id": "345c09fc-52a3-47a0-bb3c-4c8ed551df63",
+  "last_activity_at": "2026-07-31T02:13:56.746Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-hyperslop-systems-infra/345c09fc-52a3-47a0-bb3c-4c8ed551df63.jsonl",
+  "started_at": "2026-07-30T19:45:54.013Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-05/improve-docmgr",
+  "format_hint": "jsonl-v2",
+  "id": "34d8f508-743e-46e8-877c-ae06d963d01d",
+  "last_activity_at": "2026-07-06T14:59:13.559Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-05-improve-docmgr/34d8f508-743e-46e8-877c-ae06d963d01d.jsonl",
+  "started_at": "2026-07-05T22:27:28.227Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-03/improve-rag-evaluation-system",
+  "format_hint": "jsonl-v2",
+  "id": "38c91731-a5e0-4cec-bd0f-02b733ff746a",
+  "last_activity_at": "2026-07-06T14:53:49.52Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-03-improve-rag-evaluation-system/38c91731-a5e0-4cec-bd0f-02b733ff746a.jsonl",
+  "started_at": "2026-07-05T21:28:39.645Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+  "format_hint": "jsonl-v2",
+  "id": "3b1bb098-f8a4-4e76-a685-0884f6c41d30",
+  "last_activity_at": "2026-07-31T02:12:44.453Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-06-30-benchmark-cpu-inference/3b1bb098-f8a4-4e76-a685-0884f6c41d30.jsonl",
+  "started_at": "2026-07-30T21:03:40.790Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/claw-stuff",
+  "format_hint": "jsonl-v2",
+  "id": "3daab4ef-7b9b-4454-8748-cb6c0367b12f",
+  "last_activity_at": "2026-07-20T21:22:09.947Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-claw-stuff/3daab4ef-7b9b-4454-8748-cb6c0367b12f.jsonl",
+  "started_at": "2026-07-19T14:54:53.024Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-24/datadrop-mcp",
+  "format_hint": "jsonl-v2",
+  "id": "3ecf0619-dc35-4535-83a9-2db643ce3ff8",
+  "last_activity_at": "2026-07-27T14:34:47.71Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-24-datadrop-mcp/3ecf0619-dc35-4535-83a9-2db643ce3ff8.jsonl",
+  "started_at": "2026-07-24T16:06:13.946Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/hyperslop-systems/infra",
+  "format_hint": "jsonl-v2",
+  "id": "410c4ff5-8075-490b-87d6-4901cccaf9fe",
+  "last_activity_at": "2026-07-29T20:57:38.071Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-hyperslop-systems-infra/410c4ff5-8075-490b-87d6-4901cccaf9fe.jsonl",
+  "started_at": "2026-07-29T20:41:25.527Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/go-go-golems/almanach",
+  "format_hint": "jsonl-v2",
+  "id": "43761ff8-7243-4c31-a454-a9ac483ee336",
+  "last_activity_at": "2026-07-16T22:47:34.722Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-go-go-golems-almanach/43761ff8-7243-4c31-a454-a9ac483ee336.jsonl",
+  "started_at": "2026-07-16T18:07:29.337Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-03/improve-rag-evaluation-system",
+  "format_hint": "jsonl-v2",
+  "id": "471c94ef-41b2-4844-8af0-59550e77cfe4",
+  "last_activity_at": "2026-07-07T20:29:14.71Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-03-improve-rag-evaluation-system/471c94ef-41b2-4844-8af0-59550e77cfe4.jsonl",
+  "started_at": "2026-07-07T17:19:47.355Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-03/improve-rag-evaluation-system",
+  "format_hint": "jsonl-v2",
+  "id": "474d7b7e-f3f2-45c7-9675-a3d6e3c801ab",
+  "last_activity_at": "2026-07-05T20:00:02.273Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-03-improve-rag-evaluation-system/474d7b7e-f3f2-45c7-9675-a3d6e3c801ab.jsonl",
+  "started_at": "2026-07-03T20:50:29.735Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-03/improve-rag-evaluation-system",
+  "format_hint": "jsonl-v2",
+  "id": "49c6098f-0276-4dc7-a066-1b540294a2bc",
+  "last_activity_at": "2026-07-07T20:49:36.011Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-03-improve-rag-evaluation-system/49c6098f-0276-4dc7-a066-1b540294a2bc.jsonl",
+  "started_at": "2026-07-07T19:14:35.181Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-06-22/goja-publish-vault/publish-vault",
+  "format_hint": "jsonl-v2",
+  "id": "49ff363e-8c94-4ae5-84c0-992d3ebb5d40",
+  "last_activity_at": "2026-07-19T22:41:27.831Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-06-22-goja-publish-vault-publish-vault/49ff363e-8c94-4ae5-84c0-992d3ebb5d40.jsonl",
+  "started_at": "2026-07-17T19:19:28.826Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-05-20--book-ocr",
+  "format_hint": "jsonl-v2",
+  "id": "4d1ce189-c0c2-4f70-a97a-2853011b447f",
+  "last_activity_at": "2026-07-03T22:50:55.781Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-05-20--book-ocr/4d1ce189-c0c2-4f70-a97a-2853011b447f.jsonl",
+  "started_at": "2026-07-03T17:38:05.436Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-12--clim-jsx",
+  "format_hint": "jsonl-v2",
+  "id": "5031c2cd-6e48-49aa-bfe0-29fcf327e667",
+  "last_activity_at": "2026-07-13T18:37:50.701Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-12--clim-jsx/5031c2cd-6e48-49aa-bfe0-29fcf327e667.jsonl",
+  "started_at": "2026-07-12T21:06:53.415Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-30/transcript-agent",
+  "format_hint": "jsonl-v2",
+  "id": "542e801c-3870-495d-a76d-1a70e6fd2f72",
+  "last_activity_at": "2026-07-30T22:41:06.33Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-30-transcript-agent/542e801c-3870-495d-a76d-1a70e6fd2f72.jsonl",
+  "started_at": "2026-07-30T14:59:24.596Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-07--hypha-tests",
+  "format_hint": "jsonl-v2",
+  "id": "5461acae-abec-4616-8147-571f4da180c8",
+  "last_activity_at": "2026-07-07T18:08:54.739Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-07--hypha-tests/5461acae-abec-4616-8147-571f4da180c8.jsonl",
+  "started_at": "2026-07-07T18:00:19.865Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5",
+  "format_hint": "jsonl-v2",
+  "id": "54dcb4c0-c2e3-4b6f-903e-607ab2dc0e5c",
+  "last_activity_at": "2026-07-14T15:35:59.782Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2025-12-21-echo-base-documentation-esp32-s3-m5/54dcb4c0-c2e3-4b6f-903e-607ab2dc0e5c.jsonl",
+  "started_at": "2026-07-14T14:56:01.124Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-05/llm-proxy-byok",
+  "format_hint": "jsonl-v2",
+  "id": "552fdf21-d02d-4975-92c0-5033603d1664",
+  "last_activity_at": "2026-07-06T14:51:56.056Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-05-llm-proxy-byok/552fdf21-d02d-4975-92c0-5033603d1664.jsonl",
+  "started_at": "2026-07-05T23:03:35.991Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-03/improve-rag-evaluation-system",
+  "format_hint": "jsonl-v2",
+  "id": "561ebdf8-77cb-461b-859e-a0dec07ea7b8",
+  "last_activity_at": "2026-07-07T19:14:28.948Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-03-improve-rag-evaluation-system/561ebdf8-77cb-461b-859e-a0dec07ea7b8.jsonl",
+  "started_at": "2026-07-07T19:14:28.948Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-05/improve-docmgr",
+  "format_hint": "jsonl-v2",
+  "id": "5d9916ba-0feb-425c-9066-0937e1a49072",
+  "last_activity_at": "2026-07-06T14:58:19.278Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-05-improve-docmgr/5d9916ba-0feb-425c-9066-0937e1a49072.jsonl",
+  "started_at": "2026-07-05T22:27:28.227Z"
+}
+, {
+  "cwd": "/home/manuel/.pi/agent/sessions",
+  "format_hint": "jsonl-v2",
+  "id": "602c72f4-8199-4248-af0f-7f00d9deef08",
+  "last_activity_at": "2026-07-20T17:22:05.167Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel--pi-agent-sessions/602c72f4-8199-4248-af0f-7f00d9deef08.jsonl",
+  "started_at": "2026-07-20T17:22:05.167Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-03/pi-extension-prompto",
+  "format_hint": "jsonl-v2",
+  "id": "65801a47-c7df-4f5d-9051-a305ec7dc0bc",
+  "last_activity_at": "2026-07-03T14:19:42.14Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-03-pi-extension-prompto/65801a47-c7df-4f5d-9051-a305ec7dc0bc.jsonl",
+  "started_at": "2026-07-03T14:19:42.140Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-06-25--foocamp-research",
+  "format_hint": "jsonl-v2",
+  "id": "7a31e95d-12c0-48dd-8765-c05f7bda636f",
+  "last_activity_at": "2026-07-06T15:02:08.853Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-06-25--foocamp-research/7a31e95d-12c0-48dd-8765-c05f7bda636f.jsonl",
+  "started_at": "2026-06-26T08:15:25.112Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+  "format_hint": "jsonl-v2",
+  "id": "7cb4881c-c5b1-4414-9846-fd91e22311f0",
+  "last_activity_at": "2026-07-24T17:08:14.336Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/7cb4881c-c5b1-4414-9846-fd91e22311f0.jsonl",
+  "started_at": "2026-07-24T17:08:14.336Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-24/go-go-goja-instrumentation",
+  "format_hint": "jsonl-v2",
+  "id": "7e08313e-252b-4995-99f5-e2d65fd4437f",
+  "last_activity_at": "2026-07-24T17:34:15.476Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-24-go-go-goja-instrumentation/7e08313e-252b-4995-99f5-e2d65fd4437f.jsonl",
+  "started_at": "2026-07-24T16:11:02.269Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+  "format_hint": "jsonl-v2",
+  "id": "7e3d3f0a-3913-446e-a388-a9694ec9529f",
+  "last_activity_at": "2026-07-24T17:04:29.724Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/7e3d3f0a-3913-446e-a388-a9694ec9529f.jsonl",
+  "started_at": "2026-07-24T15:53:45.708Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+  "format_hint": "jsonl-v2",
+  "id": "7ff45cfe-2f57-4c0f-a853-4fc7c2d25082",
+  "last_activity_at": "2026-07-09T21:32:18.703Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-07-prod-tiny-idp/7ff45cfe-2f57-4c0f-a853-4fc7c2d25082.jsonl",
+  "started_at": "2026-07-09T16:14:26.922Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5",
+  "format_hint": "jsonl-v2",
+  "id": "83ecb6f7-89c7-42d0-a098-cb647af38690",
+  "last_activity_at": "2026-07-17T01:26:11.483Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2025-12-21-echo-base-documentation-esp32-s3-m5/83ecb6f7-89c7-42d0-a098-cb647af38690.jsonl",
+  "started_at": "2026-07-15T17:51:25.205Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-02--slop-test",
+  "format_hint": "jsonl-v2",
+  "id": "88e53e24-adcb-4672-805e-fdbbdb44cb9d",
+  "last_activity_at": "2026-07-02T20:49:33.033Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-02--slop-test/88e53e24-adcb-4672-805e-fdbbdb44cb9d.jsonl",
+  "started_at": "2026-07-02T14:56:55.845Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+  "format_hint": "jsonl-v2",
+  "id": "9f750138-6745-4a0a-b322-377250ae6f9b",
+  "last_activity_at": "2026-07-24T17:04:43.881Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/9f750138-6745-4a0a-b322-377250ae6f9b.jsonl",
+  "started_at": "2026-07-24T17:04:43.881Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-03/pi-extension-prompto",
+  "format_hint": "jsonl-v2",
+  "id": "a26ce62b-5071-493d-8058-627857aff2d4",
+  "last_activity_at": "2026-07-03T17:36:30.768Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-03-pi-extension-prompto/a26ce62b-5071-493d-8058-627857aff2d4.jsonl",
+  "started_at": "2026-07-03T14:36:35.321Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-04--mdlint-fable",
+  "format_hint": "jsonl-v2",
+  "id": "a4b6434f-f64a-4d14-af81-bd7c00aa593c",
+  "last_activity_at": "2026-07-04T16:59:19.973Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-04--mdlint-fable/a4b6434f-f64a-4d14-af81-bd7c00aa593c.jsonl",
+  "started_at": "2026-07-04T16:26:42.205Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+  "format_hint": "jsonl-v2",
+  "id": "a843c3c1-b99c-4a87-a034-91549196ce51",
+  "last_activity_at": "2026-07-24T17:22:57.099Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/a843c3c1-b99c-4a87-a034-91549196ce51.jsonl",
+  "started_at": "2026-07-24T17:09:02.397Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+  "format_hint": "jsonl-v2",
+  "id": "a8963ef8-f42e-4bc0-abaf-efa63f218986",
+  "last_activity_at": "2026-07-30T01:52:21.723Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-06-30-benchmark-cpu-inference/a8963ef8-f42e-4bc0-abaf-efa63f218986.jsonl",
+  "started_at": "2026-07-28T15:17:52.665Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-03-02/os-openai-app-server",
+  "format_hint": "jsonl-v2",
+  "id": "b780255a-7810-4efc-8ad3-2b50379c3cdd",
+  "last_activity_at": "2026-07-05T17:51:39.883Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-03-02-os-openai-app-server/b780255a-7810-4efc-8ad3-2b50379c3cdd.jsonl",
+  "started_at": "2026-07-03T18:59:51.847Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/hyperslop-systems/infra",
+  "format_hint": "jsonl-v2",
+  "id": "ba7350b5-b1b2-4dc5-b936-b5256fad0082",
+  "last_activity_at": "2026-07-29T20:28:30.289Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-hyperslop-systems-infra/ba7350b5-b1b2-4dc5-b936-b5256fad0082.jsonl",
+  "started_at": "2026-07-29T20:22:00.042Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/job-search",
+  "format_hint": "jsonl-v2",
+  "id": "c00c05d8-25f5-4e8f-9dfd-595010fb2de0",
+  "last_activity_at": "2026-07-31T02:14:18.136Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-job-search/c00c05d8-25f5-4e8f-9dfd-595010fb2de0.jsonl",
+  "started_at": "2026-07-30T23:47:35.447Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/go-go-golems/almanach",
+  "format_hint": "jsonl-v2",
+  "id": "ca22f2a2-3587-45a6-b047-f4598c7fdb5d",
+  "last_activity_at": "2026-07-17T18:20:31.919Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-go-go-golems-almanach/ca22f2a2-3587-45a6-b047-f4598c7fdb5d.jsonl",
+  "started_at": "2026-07-16T22:48:02.455Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-06-22/goja-publish-vault/publish-vault",
+  "format_hint": "jsonl-v2",
+  "id": "d2712826-1dd1-4d87-84c1-604b1f85a1f7",
+  "last_activity_at": "2026-07-30T22:25:58.585Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-06-22-goja-publish-vault-publish-vault/d2712826-1dd1-4d87-84c1-604b1f85a1f7.jsonl",
+  "started_at": "2026-07-30T21:30:17.183Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-04-21--pi-extensions",
+  "format_hint": "jsonl-v2",
+  "id": "de243162-1bea-42eb-85fe-90ebb464d887",
+  "last_activity_at": "2026-07-05T16:25:31.25Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-04-21--pi-extensions/de243162-1bea-42eb-85fe-90ebb464d887.jsonl",
+  "started_at": "2026-07-05T16:25:31.250Z"
+}
+, {
+  "cwd": "",
+  "format_hint": "jsonl-v2",
+  "id": "ef654747-0aab-4895-8dbb-33fcf7b90d65",
+  "last_activity_at": "2026-07-28T02:08:17.92Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-27-datadrop-signup-landing-page/ef654747-0aab-4895-8dbb-33fcf7b90d65.jsonl",
+  "started_at": ""
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-18/go-go-wm",
+  "format_hint": "jsonl-v2",
+  "id": "f26d0273-b30e-43e8-af89-65ba00b99ab2",
+  "last_activity_at": "2026-07-19T22:55:45.523Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-18-go-go-wm/f26d0273-b30e-43e8-af89-65ba00b99ab2.jsonl",
+  "started_at": "2026-07-19T00:04:11.701Z"
+}
+]

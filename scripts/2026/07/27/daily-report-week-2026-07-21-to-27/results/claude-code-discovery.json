@@ -1,0 +1,50 @@
+[
+{
+  "cwd": "/home/manuel/workspaces/2026-07-24/datadrop-mcp",
+  "format_hint": "jsonl-v2",
+  "id": "3ecf0619-dc35-4535-83a9-2db643ce3ff8",
+  "last_activity_at": "2026-07-27T14:34:47.71Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-24-datadrop-mcp/3ecf0619-dc35-4535-83a9-2db643ce3ff8.jsonl",
+  "started_at": "2026-07-24T16:06:13.946Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+  "format_hint": "jsonl-v2",
+  "id": "7cb4881c-c5b1-4414-9846-fd91e22311f0",
+  "last_activity_at": "2026-07-24T17:08:14.336Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/7cb4881c-c5b1-4414-9846-fd91e22311f0.jsonl",
+  "started_at": "2026-07-24T17:08:14.336Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-24/go-go-goja-instrumentation",
+  "format_hint": "jsonl-v2",
+  "id": "7e08313e-252b-4995-99f5-e2d65fd4437f",
+  "last_activity_at": "2026-07-24T17:34:15.476Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-24-go-go-goja-instrumentation/7e08313e-252b-4995-99f5-e2d65fd4437f.jsonl",
+  "started_at": "2026-07-24T16:11:02.269Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+  "format_hint": "jsonl-v2",
+  "id": "7e3d3f0a-3913-446e-a388-a9694ec9529f",
+  "last_activity_at": "2026-07-24T17:04:29.724Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/7e3d3f0a-3913-446e-a388-a9694ec9529f.jsonl",
+  "started_at": "2026-07-24T15:53:45.708Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+  "format_hint": "jsonl-v2",
+  "id": "9f750138-6745-4a0a-b322-377250ae6f9b",
+  "last_activity_at": "2026-07-24T17:04:43.881Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/9f750138-6745-4a0a-b322-377250ae6f9b.jsonl",
+  "started_at": "2026-07-24T17:04:43.881Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+  "format_hint": "jsonl-v2",
+  "id": "a843c3c1-b99c-4a87-a034-91549196ce51",
+  "last_activity_at": "2026-07-24T17:22:57.099Z",
+  "source_path": "/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/a843c3c1-b99c-4a87-a034-91549196ce51.jsonl",
+  "started_at": "2026-07-24T17:09:02.397Z"
+}
+]

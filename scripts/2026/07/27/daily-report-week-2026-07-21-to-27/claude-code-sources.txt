@@ -1,0 +1,6 @@
+/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/7cb4881c-c5b1-4414-9846-fd91e22311f0.jsonl
+/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/7e3d3f0a-3913-446e-a388-a9694ec9529f.jsonl
+/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/9f750138-6745-4a0a-b322-377250ae6f9b.jsonl
+/home/manuel/.claude/projects/-home-manuel-code-wesen-2026-07-24--lean4-dsl/a843c3c1-b99c-4a87-a034-91549196ce51.jsonl
+/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-24-datadrop-mcp/3ecf0619-dc35-4535-83a9-2db643ce3ff8.jsonl
+/home/manuel/.claude/projects/-home-manuel-workspaces-2026-07-24-go-go-goja-instrumentation/7e08313e-252b-4995-99f5-e2d65fd4437f.jsonl

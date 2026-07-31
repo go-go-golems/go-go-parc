@@ -1,0 +1,1179 @@
+{
+  "2026-07-01": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-06-25--foocamp-research",
+      "/home/manuel/code/wesen/2026-06-30--ai-systems-ocr",
+      "/home/manuel/code/wesen/2026-07-01--pds-lab",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/terraform"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 7,
+      "/home/manuel/code/wesen/2026-06-30--ai-systems-ocr": 1,
+      "/home/manuel/code/wesen/2026-07-01--pds-lab": 7,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 11,
+      "/home/manuel/code/wesen/terraform": 1
+    },
+    "total_commits": 27,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-06-30--ai-systems-ocr",
+      "/home/manuel/code/wesen/2026-07-01--pds-lab",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/terraform"
+    ]
+  },
+  "2026-07-02": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-04-19--go-codebase-browser",
+      "/home/manuel/code/wesen/2026-06-25--foocamp-research",
+      "/home/manuel/code/wesen/2026-06-30--ai-systems-ocr",
+      "/home/manuel/code/wesen/2026-07-01--pds-lab",
+      "/home/manuel/code/wesen/2026-07-02--slop-test",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/terraform"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 11,
+      "/home/manuel/code/wesen/2026-07-01--pds-lab": 12
+    },
+    "total_commits": 23,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-07-01--pds-lab"
+    ]
+  },
+  "2026-07-03": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-04-19--go-codebase-browser",
+      "/home/manuel/code/wesen/2026-04-21--pi-extensions",
+      "/home/manuel/code/wesen/2026-05-20--book-ocr",
+      "/home/manuel/code/wesen/2026-06-25--foocamp-research",
+      "/home/manuel/code/wesen/2026-06-30--ai-systems-ocr",
+      "/home/manuel/code/wesen/2026-07-01--pds-lab",
+      "/home/manuel/code/wesen/2026-07-02--atproto-hypercard",
+      "/home/manuel/code/wesen/go-go-golems/go-go-os-frontend",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/terraform"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 42,
+      "/home/manuel/code/wesen/2026-04-21--pi-extensions": 29,
+      "/home/manuel/code/wesen/2026-05-20--book-ocr": 27,
+      "/home/manuel/code/wesen/2026-07-01--pds-lab": 25,
+      "/home/manuel/code/wesen/go-go-golems/go-go-os-frontend": 4,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 8
+    },
+    "total_commits": 135,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-04-21--pi-extensions",
+      "/home/manuel/code/wesen/2026-05-20--book-ocr",
+      "/home/manuel/code/wesen/2026-07-01--pds-lab",
+      "/home/manuel/code/wesen/go-go-golems/go-go-os-frontend",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc"
+    ]
+  },
+  "2026-07-04": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-04-19--go-codebase-browser",
+      "/home/manuel/code/wesen/2026-06-25--foocamp-research",
+      "/home/manuel/code/wesen/2026-07-02--atproto-hypercard",
+      "/home/manuel/code/wesen/2026-07-04--mdlint-fable",
+      "/home/manuel/code/wesen/2026-07-04--mdlint-glm5",
+      "/home/manuel/code/wesen/2026-07-04--mdlint-gpt5",
+      "/home/manuel/code/wesen/2026-07-04--mdlint-kimi2.7",
+      "/home/manuel/code/wesen/2026-07-04--mdlint-qwen3",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 4,
+      "/home/manuel/code/wesen/2026-07-02--atproto-hypercard": 6,
+      "/home/manuel/code/wesen/2026-07-04--mdlint-fable": 6,
+      "/home/manuel/code/wesen/2026-07-04--mdlint-glm5": 7,
+      "/home/manuel/code/wesen/2026-07-04--mdlint-gpt5": 7,
+      "/home/manuel/code/wesen/2026-07-04--mdlint-kimi2.7": 5,
+      "/home/manuel/code/wesen/2026-07-04--mdlint-qwen3": 9
+    },
+    "total_commits": 44,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-07-02--atproto-hypercard",
+      "/home/manuel/code/wesen/2026-07-04--mdlint-fable",
+      "/home/manuel/code/wesen/2026-07-04--mdlint-glm5",
+      "/home/manuel/code/wesen/2026-07-04--mdlint-gpt5",
+      "/home/manuel/code/wesen/2026-07-04--mdlint-kimi2.7",
+      "/home/manuel/code/wesen/2026-07-04--mdlint-qwen3"
+    ]
+  },
+  "2026-07-05": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-04-14--browser-e2e-encryption",
+      "/home/manuel/code/wesen/2026-04-19--go-codebase-browser",
+      "/home/manuel/code/wesen/2026-04-21--pi-extensions",
+      "/home/manuel/code/wesen/2026-06-23--seven-sketches-discussion",
+      "/home/manuel/code/wesen/2026-06-23--wazero-qjs-performance",
+      "/home/manuel/code/wesen/2026-06-24--common-tools-research-jesse",
+      "/home/manuel/code/wesen/2026-06-25--foocamp-research",
+      "/home/manuel/code/wesen/2026-06-27--discord-loupedeck",
+      "/home/manuel/code/wesen/2026-06-29--font-editor",
+      "/home/manuel/code/wesen/2026-07-02--atproto-hypercard",
+      "/home/manuel/code/wesen/2026-07-02--slop-test",
+      "/home/manuel/code/wesen/go-go-golems/docmgr",
+      "/home/manuel/code/wesen/go-go-golems/go-go-course",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/publish-vault",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/react-chat",
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp",
+      "/home/manuel/code/wesen/wesen-os"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 4,
+      "/home/manuel/code/wesen/2026-04-14--browser-e2e-encryption": 1,
+      "/home/manuel/code/wesen/2026-04-19--go-codebase-browser": 16,
+      "/home/manuel/code/wesen/2026-04-21--pi-extensions": 2,
+      "/home/manuel/code/wesen/2026-06-23--seven-sketches-discussion": 1,
+      "/home/manuel/code/wesen/2026-06-23--wazero-qjs-performance": 1,
+      "/home/manuel/code/wesen/2026-06-24--common-tools-research-jesse": 1,
+      "/home/manuel/code/wesen/2026-06-27--discord-loupedeck": 2,
+      "/home/manuel/code/wesen/2026-06-29--font-editor": 1,
+      "/home/manuel/code/wesen/2026-07-02--atproto-hypercard": 1,
+      "/home/manuel/code/wesen/2026-07-02--slop-test": 1,
+      "/home/manuel/code/wesen/go-go-golems/docmgr": 9,
+      "/home/manuel/code/wesen/go-go-golems/go-go-course": 6,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 13,
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy": 11,
+      "/home/manuel/code/wesen/go-go-golems/publish-vault": 13,
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system": 22,
+      "/home/manuel/code/wesen/go-go-golems/react-chat": 10,
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp": 11,
+      "/home/manuel/code/wesen/wesen-os": 6
+    },
+    "total_commits": 132,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-04-14--browser-e2e-encryption",
+      "/home/manuel/code/wesen/2026-04-19--go-codebase-browser",
+      "/home/manuel/code/wesen/2026-04-21--pi-extensions",
+      "/home/manuel/code/wesen/2026-06-23--seven-sketches-discussion",
+      "/home/manuel/code/wesen/2026-06-23--wazero-qjs-performance",
+      "/home/manuel/code/wesen/2026-06-24--common-tools-research-jesse",
+      "/home/manuel/code/wesen/2026-06-27--discord-loupedeck",
+      "/home/manuel/code/wesen/2026-06-29--font-editor",
+      "/home/manuel/code/wesen/2026-07-02--atproto-hypercard",
+      "/home/manuel/code/wesen/2026-07-02--slop-test",
+      "/home/manuel/code/wesen/go-go-golems/docmgr",
+      "/home/manuel/code/wesen/go-go-golems/go-go-course",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/publish-vault",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/react-chat",
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp",
+      "/home/manuel/code/wesen/wesen-os"
+    ]
+  },
+  "2026-07-06": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-06-25--foocamp-research",
+      "/home/manuel/code/wesen/2026-07-06--calendar-demo",
+      "/home/manuel/code/wesen/go-go-golems/docmgr",
+      "/home/manuel/code/wesen/go-go-golems/geppetto",
+      "/home/manuel/code/wesen/go-go-golems/glazed",
+      "/home/manuel/code/wesen/go-go-golems/go-go-app-inventory",
+      "/home/manuel/code/wesen/go-go-golems/go-go-course",
+      "/home/manuel/code/wesen/go-go-golems/go-go-os-frontend",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/publish-vault",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/react-chat",
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp",
+      "/home/manuel/code/wesen/terraform"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 9,
+      "/home/manuel/code/wesen/2026-07-06--calendar-demo": 2,
+      "/home/manuel/code/wesen/go-go-golems/docmgr": 13,
+      "/home/manuel/code/wesen/go-go-golems/geppetto": 13,
+      "/home/manuel/code/wesen/go-go-golems/glazed": 20,
+      "/home/manuel/code/wesen/go-go-golems/go-go-app-inventory": 1,
+      "/home/manuel/code/wesen/go-go-golems/go-go-course": 12,
+      "/home/manuel/code/wesen/go-go-golems/go-go-os-frontend": 2,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 3,
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace": 21,
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go": 4,
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy": 6,
+      "/home/manuel/code/wesen/go-go-golems/publish-vault": 15,
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system": 14,
+      "/home/manuel/code/wesen/go-go-golems/react-chat": 6,
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp": 17
+    },
+    "total_commits": 158,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-07-06--calendar-demo",
+      "/home/manuel/code/wesen/go-go-golems/docmgr",
+      "/home/manuel/code/wesen/go-go-golems/geppetto",
+      "/home/manuel/code/wesen/go-go-golems/glazed",
+      "/home/manuel/code/wesen/go-go-golems/go-go-app-inventory",
+      "/home/manuel/code/wesen/go-go-golems/go-go-course",
+      "/home/manuel/code/wesen/go-go-golems/go-go-os-frontend",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/publish-vault",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/react-chat",
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp"
+    ]
+  },
+  "2026-07-07": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-07-07--atproto-experiments",
+      "/home/manuel/code/wesen/2026-07-07--browser-js-inject-vm",
+      "/home/manuel/code/wesen/2026-07-07--hypha-tests",
+      "/home/manuel/code/wesen/go-go-golems/glazed",
+      "/home/manuel/code/wesen/go-go-golems/go-go-course",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/react-chat",
+      "/home/manuel/code/wesen/terraform"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-07-07--atproto-experiments": 23,
+      "/home/manuel/code/wesen/2026-07-07--browser-js-inject-vm": 17,
+      "/home/manuel/code/wesen/2026-07-07--hypha-tests": 2,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 9
+    },
+    "total_commits": 51,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-07-07--atproto-experiments",
+      "/home/manuel/code/wesen/2026-07-07--browser-js-inject-vm",
+      "/home/manuel/code/wesen/2026-07-07--hypha-tests",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc"
+    ]
+  },
+  "2026-07-08": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-07-07--atproto-experiments",
+      "/home/manuel/code/wesen/2026-07-07--browser-js-inject-vm",
+      "/home/manuel/code/wesen/go-go-golems/go-go-course",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/terraform"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-07-07--atproto-experiments": 7,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 4
+    },
+    "total_commits": 11,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-07-07--atproto-experiments",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc"
+    ]
+  },
+  "2026-07-09": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-07-07--browser-js-inject-vm",
+      "/home/manuel/code/wesen/2026-07-08--hypha-cli",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2",
+      "/home/manuel/code/wesen/go-go-golems/go-go-course",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/hypha-cli",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/hypha",
+      "/home/manuel/code/wesen/terraform"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-07-08--hypha-cli": 3,
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag": 14,
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol": 15,
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2": 12,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 8,
+      "/home/manuel/code/wesen/hypha": 30
+    },
+    "total_commits": 82,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-07-08--hypha-cli",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/hypha"
+    ]
+  },
+  "2026-07-10": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-07-07--browser-js-inject-vm",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2",
+      "/home/manuel/code/wesen/2026-07-10--research-lab",
+      "/home/manuel/code/wesen/go-go-golems/go-go-course",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/terraform"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 1,
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2": 3,
+      "/home/manuel/code/wesen/2026-07-10--research-lab": 14,
+      "/home/manuel/code/wesen/go-go-golems/go-go-course": 3,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 4
+    },
+    "total_commits": 25,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2",
+      "/home/manuel/code/wesen/2026-07-10--research-lab",
+      "/home/manuel/code/wesen/go-go-golems/go-go-course",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc"
+    ]
+  },
+  "2026-07-11": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-07-07--browser-js-inject-vm",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2",
+      "/home/manuel/code/wesen/2026-07-10--research-lab",
+      "/home/manuel/code/wesen/crib-k3s",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/terraform"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2": 6,
+      "/home/manuel/code/wesen/crib-k3s": 8,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 7
+    },
+    "total_commits": 21,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2",
+      "/home/manuel/code/wesen/crib-k3s",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc"
+    ]
+  },
+  "2026-07-12": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-07-07--browser-js-inject-vm",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2",
+      "/home/manuel/code/wesen/2026-07-10--research-lab",
+      "/home/manuel/code/wesen/2026-07-12--clim-jsx",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/crib-k3s",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/terraform"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-07-12--clim-jsx": 23,
+      "/home/manuel/code/wesen/claw-stuff": 4,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 3,
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system": 32
+    },
+    "total_commits": 62,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-07-12--clim-jsx",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system"
+    ]
+  },
+  "2026-07-13": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-07-07--browser-js-inject-vm",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2",
+      "/home/manuel/code/wesen/2026-07-10--research-lab",
+      "/home/manuel/code/wesen/2026-07-12--clim-jsx",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/crib-k3s",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/infra-tooling",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 3,
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments": 12,
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag": 5,
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2": 9,
+      "/home/manuel/code/wesen/2026-07-10--research-lab": 1,
+      "/home/manuel/code/wesen/2026-07-12--clim-jsx": 10,
+      "/home/manuel/code/wesen/claw-stuff": 7,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 7,
+      "/home/manuel/code/wesen/go-go-golems/infra-tooling": 1,
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system": 4,
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5": 6
+    },
+    "total_commits": 65,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2",
+      "/home/manuel/code/wesen/2026-07-10--research-lab",
+      "/home/manuel/code/wesen/2026-07-12--clim-jsx",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/infra-tooling",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5"
+    ]
+  },
+  "2026-07-14": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-07-07--browser-js-inject-vm",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2",
+      "/home/manuel/code/wesen/2026-07-12--clim-jsx",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/crib-k3s",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/infra-tooling",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/publish-vault",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 8,
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments": 38,
+      "/home/manuel/code/wesen/2026-07-12--clim-jsx": 1,
+      "/home/manuel/code/wesen/claw-stuff": 13,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 10,
+      "/home/manuel/code/wesen/go-go-golems/publish-vault": 19,
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system": 3,
+      "/home/manuel/code/wesen/terraform": 1,
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5": 60
+    },
+    "total_commits": 153,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-07-12--clim-jsx",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/publish-vault",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5"
+    ]
+  },
+  "2026-07-15": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-07-07--browser-js-inject-vm",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/geppetto",
+      "/home/manuel/code/wesen/go-go-golems/glazed",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/publish-vault",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 6,
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments": 4,
+      "/home/manuel/code/wesen/claw-stuff": 2,
+      "/home/manuel/code/wesen/go-go-golems/geppetto": 1,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 23,
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace": 13,
+      "/home/manuel/code/wesen/terraform": 1,
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5": 43
+    },
+    "total_commits": 93,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/geppetto",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5"
+    ]
+  },
+  "2026-07-16": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/almanach",
+      "/home/manuel/code/wesen/go-go-golems/geppetto",
+      "/home/manuel/code/wesen/go-go-golems/glazed",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 2,
+      "/home/manuel/code/wesen/claw-stuff": 27,
+      "/home/manuel/code/wesen/go-go-golems/almanach": 37,
+      "/home/manuel/code/wesen/go-go-golems/geppetto": 16,
+      "/home/manuel/code/wesen/go-go-golems/glazed": 3,
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja": 7,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 12,
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace": 25,
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system": 6,
+      "/home/manuel/code/wesen/go-go-golems/upwork": 19,
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5": 51
+    },
+    "total_commits": 205,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/almanach",
+      "/home/manuel/code/wesen/go-go-golems/geppetto",
+      "/home/manuel/code/wesen/go-go-golems/glazed",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5"
+    ]
+  },
+  "2026-07-17": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-07-09--transcript-rag-sol2",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/almanach",
+      "/home/manuel/code/wesen/go-go-golems/geppetto",
+      "/home/manuel/code/wesen/go-go-golems/glazed",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/golem-docs",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 6,
+      "/home/manuel/code/wesen/claw-stuff": 18,
+      "/home/manuel/code/wesen/go-go-golems/almanach": 27,
+      "/home/manuel/code/wesen/go-go-golems/glazed": 2,
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja": 6,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 6,
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace": 3,
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system": 7,
+      "/home/manuel/code/wesen/go-go-golems/upwork": 13,
+      "/home/manuel/code/wesen/terraform": 21
+    },
+    "total_commits": 109,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/almanach",
+      "/home/manuel/code/wesen/go-go-golems/glazed",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/code/wesen/terraform"
+    ]
+  },
+  "2026-07-18": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-04-21--pi-extensions",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/almanach",
+      "/home/manuel/code/wesen/go-go-golems/geppetto",
+      "/home/manuel/code/wesen/go-go-golems/glazed",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-go-wm",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/golem-docs",
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/publish-vault",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/researchctl",
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/terraform-vault-auth"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-04-21--pi-extensions": 2,
+      "/home/manuel/code/wesen/claw-stuff": 34,
+      "/home/manuel/code/wesen/go-go-golems/geppetto": 28,
+      "/home/manuel/code/wesen/go-go-golems/glazed": 1,
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja": 71,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 5,
+      "/home/manuel/code/wesen/go-go-golems/go-go-wm": 10,
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace": 7,
+      "/home/manuel/code/wesen/go-go-golems/golem-docs": 5,
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go": 4,
+      "/home/manuel/code/wesen/go-go-golems/publish-vault": 21,
+      "/home/manuel/code/wesen/go-go-golems/researchctl": 34,
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp": 29,
+      "/home/manuel/code/wesen/go-go-golems/upwork": 33,
+      "/home/manuel/code/wesen/terraform": 2,
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/terraform-vault-auth": 2
+    },
+    "total_commits": 288,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-04-21--pi-extensions",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/geppetto",
+      "/home/manuel/code/wesen/go-go-golems/glazed",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-go-wm",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/golem-docs",
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go",
+      "/home/manuel/code/wesen/go-go-golems/publish-vault",
+      "/home/manuel/code/wesen/go-go-golems/researchctl",
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/terraform-vault-auth"
+    ]
+  },
+  "2026-07-19": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/geppetto",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/golem-docs",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/upwork"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/claw-stuff": 43,
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja": 1,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 5,
+      "/home/manuel/code/wesen/go-go-golems/upwork": 43
+    },
+    "total_commits": 92,
+    "commit_repos": [
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/upwork"
+    ]
+  },
+  "2026-07-20": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/almanach",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/upwork"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/claw-stuff": 25,
+      "/home/manuel/code/wesen/go-go-golems/almanach": 3,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 6,
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace": 11,
+      "/home/manuel/code/wesen/go-go-golems/upwork": 25
+    },
+    "total_commits": 70,
+    "commit_repos": [
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/almanach",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/upwork"
+    ]
+  },
+  "2026-07-21": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/researchctl",
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp",
+      "/home/manuel/code/wesen/go-go-golems/upwork"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 5,
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments": 2,
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja": 8,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 10,
+      "/home/manuel/code/wesen/go-go-golems/researchctl": 3,
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp": 82,
+      "/home/manuel/code/wesen/go-go-golems/upwork": 80
+    },
+    "total_commits": 190,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/researchctl",
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp",
+      "/home/manuel/code/wesen/go-go-golems/upwork"
+    ]
+  },
+  "2026-07-22": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/researchctl",
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/code/wesen/pi-mcp-adapter"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 7,
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja": 2,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 8,
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go": 1,
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system": 1,
+      "/home/manuel/code/wesen/go-go-golems/researchctl": 10,
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp": 22,
+      "/home/manuel/code/wesen/go-go-golems/upwork": 2,
+      "/home/manuel/code/wesen/pi-mcp-adapter": 2
+    },
+    "total_commits": 55,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/researchctl",
+      "/home/manuel/code/wesen/go-go-golems/tiny-idp",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/code/wesen/pi-mcp-adapter"
+    ]
+  },
+  "2026-07-23": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-04-21--pi-extensions",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/upwork"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments": 10,
+      "/home/manuel/code/wesen/2026-04-21--pi-extensions": 1,
+      "/home/manuel/code/wesen/claw-stuff": 1,
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja": 1,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 2,
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy": 12,
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system": 1,
+      "/home/manuel/code/wesen/go-go-golems/upwork": 20
+    },
+    "total_commits": 48,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-21--pi-extensions",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/go-go-goja",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/upwork"
+    ]
+  },
+  "2026-07-24": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-04-17--byok-host",
+      "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/devctl",
+      "/home/manuel/code/wesen/go-go-golems/go-go-datadrop",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go",
+      "/home/manuel/code/wesen/go-go-golems/llm-proxy",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/researchctl",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5",
+      "/home/manuel/workspaces/2026-07-24/go-go-goja-instrumentation/goja"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 6,
+      "/home/manuel/code/wesen/2026-07-24--lean4-dsl": 6,
+      "/home/manuel/code/wesen/go-go-golems/devctl": 55,
+      "/home/manuel/code/wesen/go-go-golems/go-go-datadrop": 30,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 17,
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go": 1,
+      "/home/manuel/code/wesen/go-go-golems/researchctl": 5,
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5": 1,
+      "/home/manuel/workspaces/2026-07-24/go-go-goja-instrumentation/goja": 1
+    },
+    "total_commits": 122,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-07-24--lean4-dsl",
+      "/home/manuel/code/wesen/go-go-golems/devctl",
+      "/home/manuel/code/wesen/go-go-golems/go-go-datadrop",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go",
+      "/home/manuel/code/wesen/go-go-golems/researchctl",
+      "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5",
+      "/home/manuel/workspaces/2026-07-24/go-go-goja-instrumentation/goja"
+    ]
+  },
+  "2026-07-25": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/code/wesen/terraform"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-07-25--zitadel-go-test": 30,
+      "/home/manuel/code/wesen/claw-stuff": 4,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 12,
+      "/home/manuel/code/wesen/terraform": 4
+    },
+    "total_commits": 50,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/terraform"
+    ]
+  },
+  "2026-07-26": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/devctl",
+      "/home/manuel/code/wesen/go-go-golems/go-go-datadrop",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/code/wesen/job-search",
+      "/home/manuel/code/wesen/surf-cli",
+      "/home/manuel/code/wesen/terraform"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 17,
+      "/home/manuel/code/wesen/2026-07-25--zitadel-go-test": 26,
+      "/home/manuel/code/wesen/go-go-golems/devctl": 2,
+      "/home/manuel/code/wesen/go-go-golems/go-go-datadrop": 84,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 25,
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system": 3,
+      "/home/manuel/code/wesen/go-go-golems/upwork": 1,
+      "/home/manuel/code/wesen/terraform": 1
+    },
+    "total_commits": 159,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+      "/home/manuel/code/wesen/go-go-golems/devctl",
+      "/home/manuel/code/wesen/go-go-golems/go-go-datadrop",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/code/wesen/terraform"
+    ]
+  },
+  "2026-07-27": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/devctl",
+      "/home/manuel/code/wesen/go-go-golems/esp32-s3-m5",
+      "/home/manuel/code/wesen/go-go-golems/glazed",
+      "/home/manuel/code/wesen/go-go-golems/go-go-datadrop",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/code/wesen/job-search",
+      "/home/manuel/code/wesen/surf-cli",
+      "/home/manuel/code/wesen/terraform"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 18,
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments": 14,
+      "/home/manuel/code/wesen/go-go-golems/devctl": 7,
+      "/home/manuel/code/wesen/go-go-golems/esp32-s3-m5": 1,
+      "/home/manuel/code/wesen/go-go-golems/glazed": 9,
+      "/home/manuel/code/wesen/go-go-golems/go-go-datadrop": 134,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 19,
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go": 3,
+      "/home/manuel/code/wesen/terraform": 7
+    },
+    "total_commits": 212,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/go-go-golems/devctl",
+      "/home/manuel/code/wesen/go-go-golems/esp32-s3-m5",
+      "/home/manuel/code/wesen/go-go-golems/glazed",
+      "/home/manuel/code/wesen/go-go-golems/go-go-datadrop",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/homebrew-go-go-go",
+      "/home/manuel/code/wesen/terraform"
+    ]
+  },
+  "2026-07-28": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/crib-k3s",
+      "/home/manuel/code/wesen/go-go-golems/esp32-s3-m5",
+      "/home/manuel/code/wesen/go-go-golems/glazed",
+      "/home/manuel/code/wesen/go-go-golems/go-go-datadrop",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/go-template",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/remarquee",
+      "/home/manuel/code/wesen/go-go-golems/sqleton",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/code/wesen/hyperslop-systems/hyperslop-cli",
+      "/home/manuel/code/wesen/job-search",
+      "/home/manuel/code/wesen/surf-cli",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference/zapx"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 4,
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments": 1,
+      "/home/manuel/code/wesen/claw-stuff": 4,
+      "/home/manuel/code/wesen/crib-k3s": 1,
+      "/home/manuel/code/wesen/go-go-golems/go-go-datadrop": 55,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 8,
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace": 1,
+      "/home/manuel/code/wesen/go-go-golems/go-template": 3,
+      "/home/manuel/code/wesen/go-go-golems/remarquee": 7,
+      "/home/manuel/code/wesen/hyperslop-systems/hyperslop-cli": 2,
+      "/home/manuel/code/wesen/surf-cli": 2,
+      "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference/zapx": 1
+    },
+    "total_commits": 89,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/2026-03-29--serve-claude-experiments",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/crib-k3s",
+      "/home/manuel/code/wesen/go-go-golems/go-go-datadrop",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/go-template",
+      "/home/manuel/code/wesen/go-go-golems/remarquee",
+      "/home/manuel/code/wesen/hyperslop-systems/hyperslop-cli",
+      "/home/manuel/code/wesen/surf-cli",
+      "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference/zapx"
+    ]
+  },
+  "2026-07-29": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/esp32-s3-m5",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/infra-tooling",
+      "/home/manuel/code/wesen/go-go-golems/rag-evaluation-system",
+      "/home/manuel/code/wesen/go-go-golems/sqleton",
+      "/home/manuel/code/wesen/go-go-golems/upwork",
+      "/home/manuel/code/wesen/hyperslop-systems/hyperslop-cli",
+      "/home/manuel/code/wesen/hyperslop-systems/infra",
+      "/home/manuel/code/wesen/hyperslop-systems/pbui",
+      "/home/manuel/code/wesen/hyperslop-systems/plot",
+      "/home/manuel/code/wesen/job-search",
+      "/home/manuel/code/wesen/surf-cli",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/infra-tooling-datalab",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/plot",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/terraform-vault-auth"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s": 18,
+      "/home/manuel/code/wesen/claw-stuff": 1,
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 11,
+      "/home/manuel/code/wesen/go-go-golems/infra-tooling": 1,
+      "/home/manuel/code/wesen/hyperslop-systems/hyperslop-cli": 36,
+      "/home/manuel/code/wesen/hyperslop-systems/infra": 20,
+      "/home/manuel/code/wesen/hyperslop-systems/pbui": 25,
+      "/home/manuel/code/wesen/hyperslop-systems/plot": 43,
+      "/home/manuel/code/wesen/job-search": 12,
+      "/home/manuel/code/wesen/surf-cli": 1,
+      "/home/manuel/code/wesen/terraform": 6,
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/infra-tooling-datalab": 1,
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/plot": 43,
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/terraform-vault-auth": 6
+    },
+    "total_commits": 224,
+    "commit_repos": [
+      "/home/manuel/code/wesen/2026-03-27--hetzner-k3s",
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/infra-tooling",
+      "/home/manuel/code/wesen/hyperslop-systems/hyperslop-cli",
+      "/home/manuel/code/wesen/hyperslop-systems/infra",
+      "/home/manuel/code/wesen/hyperslop-systems/pbui",
+      "/home/manuel/code/wesen/hyperslop-systems/plot",
+      "/home/manuel/code/wesen/job-search",
+      "/home/manuel/code/wesen/surf-cli",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/infra-tooling-datalab",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/plot",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/terraform-vault-auth"
+    ]
+  },
+  "2026-07-30": {
+    "touched_repos": [
+      "/home/manuel/code/wesen/claw-stuff",
+      "/home/manuel/code/wesen/go-go-golems/esp32-s3-m5",
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/go-minitrace",
+      "/home/manuel/code/wesen/go-go-golems/infra-tooling",
+      "/home/manuel/code/wesen/go-go-golems/sqleton",
+      "/home/manuel/code/wesen/hyperslop-systems/agentlogic",
+      "/home/manuel/code/wesen/hyperslop-systems/hyperslop-cli",
+      "/home/manuel/code/wesen/hyperslop-systems/infra",
+      "/home/manuel/code/wesen/hyperslop-systems/maillist",
+      "/home/manuel/code/wesen/hyperslop-systems/pbui",
+      "/home/manuel/code/wesen/hyperslop-systems/plot",
+      "/home/manuel/code/wesen/job-search",
+      "/home/manuel/code/wesen/resume",
+      "/home/manuel/code/wesen/surf-cli",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/infra-tooling-datalab",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/plot",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/terraform-vault-auth"
+    ],
+    "commit_counts": {
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc": 6,
+      "/home/manuel/code/wesen/go-go-golems/infra-tooling": 4,
+      "/home/manuel/code/wesen/hyperslop-systems/agentlogic": 6,
+      "/home/manuel/code/wesen/hyperslop-systems/hyperslop-cli": 5,
+      "/home/manuel/code/wesen/hyperslop-systems/infra": 5,
+      "/home/manuel/code/wesen/hyperslop-systems/maillist": 10,
+      "/home/manuel/code/wesen/hyperslop-systems/pbui": 10,
+      "/home/manuel/code/wesen/hyperslop-systems/plot": 1,
+      "/home/manuel/code/wesen/job-search": 34,
+      "/home/manuel/code/wesen/resume": 6,
+      "/home/manuel/code/wesen/surf-cli": 3,
+      "/home/manuel/code/wesen/terraform": 2,
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/infra-tooling-datalab": 5,
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/plot": 1,
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/terraform-vault-auth": 2
+    },
+    "total_commits": 100,
+    "commit_repos": [
+      "/home/manuel/code/wesen/go-go-golems/go-go-parc",
+      "/home/manuel/code/wesen/go-go-golems/infra-tooling",
+      "/home/manuel/code/wesen/hyperslop-systems/agentlogic",
+      "/home/manuel/code/wesen/hyperslop-systems/hyperslop-cli",
+      "/home/manuel/code/wesen/hyperslop-systems/infra",
+      "/home/manuel/code/wesen/hyperslop-systems/maillist",
+      "/home/manuel/code/wesen/hyperslop-systems/pbui",
+      "/home/manuel/code/wesen/hyperslop-systems/plot",
+      "/home/manuel/code/wesen/job-search",
+      "/home/manuel/code/wesen/resume",
+      "/home/manuel/code/wesen/surf-cli",
+      "/home/manuel/code/wesen/terraform",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/infra-tooling-datalab",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/plot",
+      "/home/manuel/workspaces/2026-07-28/split-datadrop/terraform-vault-auth"
+    ]
+  }
+}

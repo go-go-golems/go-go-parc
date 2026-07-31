@@ -1,0 +1,122 @@
+[
+{
+  "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-18T13-55-18-019f765e-47a9-7e72-a9a5-eb8594f2fa5b",
+  "last_activity_at": "2026-07-24T15:30:40.037Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/18/rollout-2026-07-18T13-55-18-019f765e-47a9-7e72-a9a5-eb8594f2fa5b.jsonl",
+  "started_at": "2026-07-18T17:57:09.114Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-23T11-11-09-019f8f87-ce0b-7f73-ba05-2b736aa6e2bf",
+  "last_activity_at": "2026-07-24T15:29:22.049Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/23/rollout-2026-07-23T11-11-09-019f8f87-ce0b-7f73-ba05-2b736aa6e2bf.jsonl",
+  "started_at": "2026-07-23T15:13:08.852Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-23T20-11-45-019f9176-bdbf-7a90-bcc3-ad4fb7767ff2",
+  "last_activity_at": "2026-07-27T18:30:40.845Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/23/rollout-2026-07-23T20-11-45-019f9176-bdbf-7a90-bcc3-ad4fb7767ff2.jsonl",
+  "started_at": "2026-07-24T00:13:37.865Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-23T20-11-46-019f9176-be5a-7e53-8568-9466282c493a",
+  "last_activity_at": "2026-07-24T16:59:10.43Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/23/rollout-2026-07-23T20-11-46-019f9176-be5a-7e53-8568-9466282c493a.jsonl",
+  "started_at": "2026-07-24T00:29:47.864Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-07-07/prod-tiny-idp",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-24T13-17-41-019f9522-025e-7b10-9a33-0886da8d3d60",
+  "last_activity_at": "2026-07-27T18:30:32.03Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/24/rollout-2026-07-24T13-17-41-019f9522-025e-7b10-9a33-0886da8d3d60.jsonl",
+  "started_at": "2026-07-24T17:23:38.659Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-24T14-56-01-019f957c-0900-7421-96a2-b55896fb8db3",
+  "last_activity_at": "2026-07-24T19:00:59.858Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/24/rollout-2026-07-24T14-56-01-019f957c-0900-7421-96a2-b55896fb8db3.jsonl",
+  "started_at": "2026-07-24T18:56:13.809Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-24T14-56-01-019f957c-0997-7390-b332-2ad933ca7f0b",
+  "last_activity_at": "2026-07-24T18:57:16.171Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/24/rollout-2026-07-24T14-56-01-019f957c-0997-7390-b332-2ad933ca7f0b.jsonl",
+  "started_at": "2026-07-24T18:56:32.006Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-25T12-31-59-019f9a1e-84bf-7e10-926c-57e4b6ebb4bd",
+  "last_activity_at": "2026-07-26T22:17:05.257Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T12-31-59-019f9a1e-84bf-7e10-926c-57e4b6ebb4bd.jsonl",
+  "started_at": "2026-07-25T16:32:12.426Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-25T12-31-59-019f9a1e-851a-77d0-bec6-1ca991f846c5",
+  "last_activity_at": "2026-07-25T22:15:40.391Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T12-31-59-019f9a1e-851a-77d0-bec6-1ca991f846c5.jsonl",
+  "started_at": "2026-07-25T17:29:17.820Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-25T18-15-49-019f9b59-4eeb-7321-b890-f77412c4e42e",
+  "last_activity_at": "2026-07-25T22:24:40.153Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T18-15-49-019f9b59-4eeb-7321-b890-f77412c4e42e.jsonl",
+  "started_at": "2026-07-25T22:15:49.276Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-25T18-55-35-019f9b7d-b908-7263-ae1a-1db8965db0ec",
+  "last_activity_at": "2026-07-25T22:58:27.782Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T18-55-35-019f9b7d-b908-7263-ae1a-1db8965db0ec.jsonl",
+  "started_at": "2026-07-25T22:55:35.881Z"
+}
+, {
+  "cwd": "/home/manuel/code/wesen/2026-07-25--zitadel-go-test",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-25T18-55-35-019f9b7d-b98d-7b01-a9a8-0767380762bf",
+  "last_activity_at": "2026-07-25T22:56:19.464Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T18-55-35-019f9b7d-b98d-7b01-a9a8-0767380762bf.jsonl",
+  "started_at": "2026-07-25T22:55:50.622Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-25T19-16-42-019f9b91-0f48-7c72-8408-9bda4ee18a20",
+  "last_activity_at": "2026-07-26T22:16:28.651Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/25/rollout-2026-07-25T19-16-42-019f9b91-0f48-7c72-8408-9bda4ee18a20.jsonl",
+  "started_at": "2026-07-25T23:17:17.370Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-26T18-46-18-019fa09b-93a4-7cc3-a329-6074908b157f",
+  "last_activity_at": "2026-07-27T20:44:27.194Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/26/rollout-2026-07-26T18-46-18-019fa09b-93a4-7cc3-a329-6074908b157f.jsonl",
+  "started_at": "2026-07-26T22:46:18.683Z"
+}
+, {
+  "cwd": "/home/manuel/workspaces/2026-06-30/benchmark-cpu-inference",
+  "format_hint": "session-jsonl-v1",
+  "id": "rollout-2026-07-26T18-46-18-019fa09b-9597-7ea1-9384-96b36e1b75f6",
+  "last_activity_at": "2026-07-27T20:43:56.218Z",
+  "source_path": "/home/manuel/.codex/sessions/2026/07/26/rollout-2026-07-26T18-46-18-019fa09b-9597-7ea1-9384-96b36e1b75f6.jsonl",
+  "started_at": "2026-07-26T22:58:38.167Z"
+}
+]
