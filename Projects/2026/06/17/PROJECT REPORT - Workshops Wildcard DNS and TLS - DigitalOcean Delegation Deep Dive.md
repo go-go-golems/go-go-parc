@@ -39,6 +39,16 @@ k3s_commits:
   - 3cc12b1
 ---
 
+> [!note] Provider- and wildcard-specific
+> This zone is DigitalOcean (`digitalocean_record`). `hyperslop.systems` is Cloudflare
+> (`cloudflare_dns_record`), where the value field is `content`, MX `priority` is a separate
+> argument, `tags` cannot be set on the current plan, and values must not carry a trailing dot.
+>
+> The DNS-01 challenge here is required because the certificate is a **wildcard**, and it is
+> what forces a DNS provider credential into the cluster. A single hostname uses HTTP-01 and
+> needs no such credential — see
+> [[Projects/2026/07/31/PROJECT REPORT - Hyperslop Mailing List - Double Opt-In Service from Zero to Production]].
+
 # Workshops Wildcard DNS and TLS — DigitalOcean Delegation Deep Dive
 
 This report explains the rollout of `*.workshops.tokenmaxxing-rehab.com` onto the Hetzner K3s cluster. The deployed proof is `https://hello-world.workshops.tokenmaxxing-rehab.com/`, a static smoke-test page served by the cluster's shared `static-sites-host` service over a Let's Encrypt wildcard certificate.

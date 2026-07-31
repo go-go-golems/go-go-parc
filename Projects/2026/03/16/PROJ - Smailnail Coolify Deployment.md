@@ -15,7 +15,7 @@ tags:
   - docker
   - hetzner
   - self-hosted
-status: active
+status: historical
 type: project
 created: 2026-03-16
 repo: /home/manuel/workspaces/2026-03-08/update-imap-mcp/smailnail
@@ -25,6 +25,17 @@ mcp-url: https://smailnail.mcp.scapegoat.dev/mcp
 keycloak-issuer: https://auth.scapegoat.dev/realms/smailnail
 dovecot-host: 89.167.52.236
 ---
+
+> [!warning] Historical — the Coolify platform is retired
+> This note describes deployment on Coolify. The platform moved to Hetzner k3s with Argo CD
+> and Vault; see [[Projects/2026/03/27/PROJ - K3s Migration Program - From Coolify to GitOps Platform]].
+> Nothing after 2026-05 runs on Coolify. Every service named here that still exists now has an
+> Argo CD package under `gitops/kustomize/` in `wesen/2026-03-27--hetzner-k3s`.
+>
+> The analysis and the reasons for the migration remain worth reading. The **procedures** do not
+> apply — for current deployment see
+> [[Research/KB/Projects/infrastructure-and-release]] and the k3s repo's
+> `docs/app-deployment-pipeline.md`.
 
 # Smailnail Coolify Deployment
 

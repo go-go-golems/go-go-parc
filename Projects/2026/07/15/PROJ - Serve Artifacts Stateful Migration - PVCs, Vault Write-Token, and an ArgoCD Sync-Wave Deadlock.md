@@ -26,6 +26,14 @@ tickets:
   - SERVE-20260714-ARTIFACTAPI
 ---
 
+> [!tip] The rule this note derived is now a playbook and an enforced check
+> A `local-path` PVC and the workload that mounts it must share the same Argo CD sync wave.
+> Do not re-derive it: see
+> [[Research/playbooks/infra/PLAYBOOK - Argo CD Application with a local-path PVC on k3s]] for the
+> procedure and
+> [[Projects/2026/07/24/PROJECT REPORT - tiny-idp - From Transcript Audit to an Enforced GitOps Invariant]]
+> for the render-time validator that now blocks a violating pull request.
+
 # Serve Artifacts Stateful Migration to K3s
 
 This note records the migration of the `artifacts` application (the Claude artifact gallery at `https://artifacts.yolo.scapegoat.dev`) from a stateless deployment to a stateful one, and the two infrastructure problems that dominated the work. The migration adds two `local-path` persistent volumes, a Vault-synchronised write token, an off-node backup job, and a GitHub-App-based GitOps pull-request credential. The original stateless deployment is described in [[PROJ - Serve Artifacts - Deploying to K3s with GitOps]]; that note is now partially superseded by this one.

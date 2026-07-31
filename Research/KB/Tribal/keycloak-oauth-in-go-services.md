@@ -10,6 +10,17 @@ type: knowledge-base
 created: 2026-05-11
 ---
 
+> [!warning] Keycloak is superseded by ZITADEL for new work
+> ZITADEL is the platform's identity provider going forward; see
+> [[Research/playbooks/infra/PLAYBOOK - Production ZITADEL for a Single Go Web Application on k3s]]
+> and [[Research/playbooks/infra/PLAYBOOK - Production Multi-Tenant ZITADEL SaaS Platform on k3s]].
+> Do not stand up a new Keycloak realm for a new service.
+>
+> Keycloak is still deployed (`gitops/kustomize/keycloak`) and two live integrations still
+> depend on it: Vault operator login (`auth/oidc` → `https://auth.scapegoat.dev/realms/infra`)
+> and Grafana. This note stays accurate for those; treat it as describing a system being
+> migrated off, not a pattern to copy.
+
 # Keycloak OAuth in Go Services — How We Do It
 
 > [!summary]

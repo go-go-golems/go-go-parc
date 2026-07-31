@@ -22,6 +22,22 @@ related:
   - /home/manuel/code/wesen/hair-booking
 ---
 
+> [!warning] The credential this describes is deprecated — the mechanism is not
+> The Vault OIDC exchange described here is still exactly how CI authenticates: a workflow JWT
+> is presented to `auth/github-actions` and traded for a short-lived Vault token. That part is
+> current.
+>
+> What CI reads **afterwards** has changed. This note has it read a long-lived personal access
+> token from `kv/ci/github/<repo>/gitops-pr-token`. That PAT expired in production and GitHub
+> rejected the push with `Bad credentials` — Vault returned the secret successfully, so the
+> failure surfaced only at the GitHub API. Since
+> [[Projects/2026/06/01/ARTICLE - GitHub App Tokens for GitOps PR Automation]] the credential is
+> a GitHub App id and private key at `kv/ci/github/<repo>/gitops-pr-app`, exchanged for an
+> installation token that lives for one run. `TF-012-GITOPS-GITHUB-APP-MIGRATION` (terraform
+> repo, 2026-07-17) completed the migration.
+>
+> Use `gitops_pr_token_source: github_app`, never `vault` or `secret`.
+
 # Vault OIDC for GitHub Actions: Secretless CI to GitOps
 
 This is the CI credential-boundary branch of the [[infrastructure-and-release]] project map.

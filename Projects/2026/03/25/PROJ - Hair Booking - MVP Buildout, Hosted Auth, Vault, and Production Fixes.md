@@ -26,6 +26,27 @@ app-url: https://hair-booking.app.scapegoat.dev
 issuer: https://auth.scapegoat.dev/realms/hair-booking
 ---
 
+> [!warning] Partly superseded — the platform moved to k3s
+> The Vault-on-Coolify and Coolify-deployment parts of this note are historical. Vault now
+> runs on Hetzner k3s under Argo CD, and `hair-booking` has an Argo CD package at
+> `gitops/kustomize/hair-booking`. See
+> [[Projects/2026/03/27/PROJ - K3s Migration Program - From Coolify to GitOps Platform]] and
+> [[Projects/2026/03/27/PROJ - Vault on K3s - Auth and Secret Delivery Platform]].
+>
+> The **SES credential model** described here is also superseded. One shared, hand-created
+> SMTP credential served every consumer, so it could not be rotated for one application
+> without breaking the others. The current standard is a per-application IAM principal with
+> `ses:SendRawEmail` scoped to one identity —
+> [[Projects/2026/07/26/PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery]]
+> sets the rule and
+> [[Projects/2026/07/31/PROJECT REPORT - Hyperslop Mailing List - Double Opt-In Service from Zero to Production]]
+> is the first application to have one.
+>
+> The **DNS** here is DigitalOcean (`digitalocean_record`). Newer zones are Cloudflare
+> (`cloudflare_dns_record`), where the value field is `content`, MX `priority` is separate,
+> `tags` cannot be set, and values carry no trailing dot. A record map does not port between
+> the two.
+
 # Hair Booking - MVP Buildout, Hosted Auth, Vault, and Production Fixes
 
 This note is the project-level report for the work completed in the `hair-booking` effort across the app repo and the shared Terraform repo during this session arc. It is not a single-ticket summary. It is the stitched-together story of the backend MVP design, the frontend integration, the stylist workflow buildout, the hosted deployment, the Keycloak realm separation, SES and Vault integration, and the first production debugging cycle after going live.

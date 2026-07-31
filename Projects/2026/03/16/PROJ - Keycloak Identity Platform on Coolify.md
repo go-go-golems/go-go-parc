@@ -13,12 +13,34 @@ tags:
   - coolify
   - hetzner
   - self-hosted
-status: active
+status: historical
 type: project
 created: 2026-03-16
 domain: auth.scapegoat.dev
 server: 89.167.52.236
 ---
+
+> [!warning] Historical — the Coolify platform is retired
+> This note describes deployment on Coolify. The platform moved to Hetzner k3s with Argo CD
+> and Vault; see [[Projects/2026/03/27/PROJ - K3s Migration Program - From Coolify to GitOps Platform]].
+> Nothing after 2026-05 runs on Coolify. Every service named here that still exists now has an
+> Argo CD package under `gitops/kustomize/` in `wesen/2026-03-27--hetzner-k3s`.
+>
+> The analysis and the reasons for the migration remain worth reading. The **procedures** do not
+> apply — for current deployment see
+> [[Research/KB/Projects/infrastructure-and-release]] and the k3s repo's
+> `docs/app-deployment-pipeline.md`.
+
+> [!warning] Keycloak is superseded by ZITADEL for new work
+> ZITADEL is the platform's identity provider going forward; see
+> [[Research/playbooks/infra/PLAYBOOK - Production ZITADEL for a Single Go Web Application on k3s]]
+> and [[Research/playbooks/infra/PLAYBOOK - Production Multi-Tenant ZITADEL SaaS Platform on k3s]].
+> Do not stand up a new Keycloak realm for a new service.
+>
+> Keycloak is still deployed (`gitops/kustomize/keycloak`) and two live integrations still
+> depend on it: Vault operator login (`auth/oidc` → `https://auth.scapegoat.dev/realms/infra`)
+> and Grafana. This note stays accurate for those; treat it as describing a system being
+> migrated off, not a pattern to copy.
 
 # Keycloak Identity Platform on Coolify
 

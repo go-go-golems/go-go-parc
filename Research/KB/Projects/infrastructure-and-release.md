@@ -100,6 +100,234 @@ The recurring invariant is dependency order. A release is not a single repositor
 - [[PROJECT REPORT - Restic Backup Scope Design - From 1.7T Home to a 247G Recovery Unit]] — scope investigation that turned a 1.7T home directory into a 247G restic recovery unit; covers the 3-tier classification (back up / exclude / handle separately), the dry-run that corrected a twofold underestimate, the 99-line excludes file, and the permission-denied service-owned state pattern.
 - [[PROJECT REPORT - Tailscale on TrueNAS - Making Restic Backups Work From Any Network]] — Tailscale installation on TrueNAS SCALE 23.10.2 via the community catalog app; covers the `hostNetwork` decision, cached state from a wrong-tailnet auth key, and the update from LAN IP to Tailscale hostname so backups work from any network.
 
+## Vault — how credentials actually work here
+
+Vault is the single source of every runtime and CI credential on this platform. This section
+is the concrete operational reference: where a secret lives, who creates it, who may read it,
+and which file in which repository declares that.
+
+**Server.** `https://vault.yolo.scapegoat.dev`, running on Hetzner k3s under Argo CD
+(`gitops/kustomize/vault`), auto-unsealed with AWS KMS (`seal "awskms"`). The earlier
+Vault-on-Coolify deployment at `vault.app.scapegoat.dev` is retired; March 2026 notes
+describing it are historical.
+
+### The four ways in
+
+| Auth mount | Who | How the identity is proven | Where it is declared |
+|---|---|---|---|
+| `auth/oidc` | Humans (operators) | Keycloak realm `infra` at `https://auth.scapegoat.dev/realms/infra`, group-gated | `scripts/bootstrap-vault-oidc.sh`, `vault/policies/operators/*.hcl` (k3s repo) |
+| `auth/kubernetes` | Workload Pods | ServiceAccount name + namespace | `vault/roles/kubernetes/<app>.json` + `vault/policies/kubernetes/<app>.hcl` (k3s repo) |
+| `auth/github-actions` | CI workflows | GitHub Actions OIDC JWT, bound to repo/branch/event | `vault/roles/github-actions/*.json` (k3s repo) **and** `terraform/vault/github-actions/envs/k3s/main.tf` — see the split-brain warning below |
+| `auth/approle` | The one workload VSO cannot bind by ServiceAccount | role id (in git) + secret id (in a Secret) | `gitops/kustomize/platform-cert-issuer/vault-auth.yaml` — cert-manager reading its DigitalOcean DNS-01 token |
+
+Operator login is still Keycloak even though ZITADEL supersedes Keycloak for new application
+identity. Do not "fix" this by pointing Vault at ZITADEL without a plan; it is the path by
+which every bootstrap script authenticates.
+
+### The KV layout
+
+KV v2 mounted at `kv/`. Four top-level prefixes, and the prefix determines who can read it:
+
+```text
+kv/apps/<app>/<env>/<secret>        runtime secrets, read by that app's Pod only
+kv/ci/github/<repo>/<credential>    CI credentials, read by that repo's workflow only
+kv/infra/<service>/<scope>          shared cluster services (postgres, mysql, redis,
+                                    monitoring/grafana-oauth, backups/object-storage)
+kv/platform/<component>/<env>/...   platform components (cert-manager/prod/digitalocean)
+```
+
+Note the API path is `kv/data/...` in a policy and `kv/...` in a `vault kv` command. A policy
+must grant both `kv/data/<path>` and `kv/metadata/<path>`.
+
+### The rule that decides what Terraform may own
+
+Terraform owns the **boundary**; Vault owns the **credential value**. Declare the identity,
+the policy, the role, and the scope in Terraform, where a plan is reviewable and nothing
+secret appears. Create the credential itself out-of-band and write it straight to Vault.
+
+The failure this prevents is concrete: `aws_iam_access_key` stores both `secret` and
+`ses_smtp_password_v4` in state, which extends their lifetime into every state snapshot,
+plan, log, and state-reader's permissions. See
+[[Projects/2026/07/26/PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery]]
+for the rule and
+[[Projects/2026/07/31/PROJECT REPORT - Hyperslop Mailing List - Double Opt-In Service from Zero to Production]]
+for what violating it looks like and the rotation that reverses it. Reverting is a rotation,
+not a detach: the value is already in state history, so it must be replaced and the old one
+deleted.
+
+### Delivery into a Pod
+
+The Vault Secrets Operator renders a Vault path into a Kubernetes `Secret`. Three CRDs, all
+in the application's own kustomize package:
+
+- `VaultConnection` — the server address.
+- `VaultAuth` — which `auth/kubernetes` role this ServiceAccount uses.
+- `VaultStaticSecret` — `mount: kv`, `type: kv-v2`, `path: apps/<app>/<env>/<secret>`,
+  `refreshAfter`, and the `Secret` to create.
+
+Give these `argocd.argoproj.io/sync-wave: "-1"` so the Secret exists before the Deployment.
+
+**Environment variables sourced from a Secret do not refresh in a running container.** VSO
+updating the Secret is not enough — a credential rotation needs `kubectl rollout restart`.
+This is the most commonly missed step in a rotation.
+
+### Adding a new application: the concrete path
+
+1. Write `vault/policies/kubernetes/<app>.hcl` granting `kv/data/apps/<app>/<env>/*` and the
+   matching `kv/metadata/...`, and nothing else. Name explicitly which paths it must *not*
+   read if a neighbouring app has a similar one.
+2. Write `vault/roles/kubernetes/<app>.json` with `bound_service_account_names`,
+   `bound_service_account_namespaces`, `policies`, and `token_ttl`.
+3. `bash scripts/bootstrap-vault-kubernetes-auth.sh` (needs `VAULT_ADDR` and an operator token
+   from `vault login -method=oidc role=operators`). It picks up both files.
+4. Seed the KV path by hand.
+5. Add the three VSO resources to the app's kustomize package.
+6. `bash scripts/validate-vault-kubernetes-auth.sh`.
+
+The policy and role files are the durable artifact; the script is only the applier. A path
+that exists in Vault but has no file in git is drift.
+
+### Where to look
+
+**Playbooks and procedures** (`wesen/2026-03-27--hetzner-k3s/docs/`):
+
+- `app-runtime-secrets-and-identity-provisioning-playbook.md` — the main one: provisioning
+  runtime secrets and identity for a new app.
+- `github-actions-vault-oidc-playbook.md` — the CI auth path.
+- `vault-backed-postgres-bootstrap-job-pattern.md` — a Job that reads Vault to bootstrap a database.
+- `vault-snapshot-and-server-backup-playbook.md` — Raft snapshots and host backups.
+- `keycloak-vault-smtp-reconciler-pattern.md` — reconciling mutable provider state (Keycloak's
+  SMTP config) from Vault, since Argo cannot declare it and Terraform would persist it in state.
+- `argocd-private-gitops-repo-secret.md` — Argo CD's own read credential, separate from CI's.
+
+**Declarations:** `vault/policies/{operators,kubernetes,github-actions}/` and
+`vault/roles/{kubernetes,github-actions}/` in the k3s repo;
+`terraform/vault/github-actions/envs/k3s/` in the terraform repo.
+
+**Scripts** (k3s repo `scripts/`): `bootstrap-vault-oidc.sh`,
+`bootstrap-vault-kubernetes-auth.sh`, `bootstrap-vault-github-actions-oidc.sh`,
+`bootstrap-vault-aws-kms-secret.sh`, and a `validate-*` counterpart for each.
+
+**Origin tickets:** `HK3S-0002`–`HK3S-0007` (Vault on k3s, Kubernetes auth, VSO, first app),
+`HK3S-0014` (Vault-backed GHCR pull secrets), `HK3S-0017` (snapshots and backups),
+`HK3S-0026` (operator membership in Terraform), `HK3S-0028` (GitHub Actions OIDC);
+`TF-004`/`TF-008`/`TF-009`/`TF-010` in the terraform repo (the Coolify-era design, auth
+hardening, audit logging, and the first SES handoff).
+
+**Reports:** [[PROJ - Vault on K3s - Auth and Secret Delivery Platform]],
+[[ARTICLE - Report - Terraform Managed Vault Admin Access Through Keycloak OIDC]] (still
+current — this is the operator login),
+[[Projects/2026/04/02/PROJ - Glazed Secret Redaction and Vault Bootstrap - Technical Project Report]],
+[[ARTICLE - Backup Architecture - TrueNAS with Vault Credentials]].
+
+## GitHub authentication, tokens, and CI/CD
+
+Four distinct GitHub credentials operate here and they are routinely confused. Each has a
+different holder, lifetime, and blast radius.
+
+| Credential | Held by | Purpose | Status |
+|---|---|---|---|
+| GitHub App installation token, minted per run from an App key in Vault | CI workflows | Open GitOps PRs against `wesen/2026-03-27--hetzner-k3s` | **Current** |
+| PAT at `kv/ci/github/<repo>/gitops-pr-token` | CI workflows | Same | **Deprecated** |
+| PAT in a source-repo GitHub Actions secret (`GITOPS_PR_TOKEN`) | CI workflows | Same | **Deprecated, oldest** |
+| Argo CD repository read credential | Argo CD, in-cluster | List refs, render manifests, sync | Current, separate concern — `docs/argocd-private-gitops-repo-secret.md` |
+| GHCR image-pull credential in `kv/apps/<app>/<env>/image-pull` | The Pod's ServiceAccount | Pull a private image | Current |
+
+### The three `gitops_pr_token_source` modes
+
+The shared workflow is `go-go-golems/infra-tooling/.github/workflows/publish-ghcr-image.yml@main`.
+
+```yaml
+gitops_pr_token_source: github_app          # use this
+vault_role: <repo>-gitops-pr
+gitops_app_secret_path: kv/data/ci/github/<repo>/gitops-pr-app
+gitops_app_owner: wesen
+gitops_app_repositories: 2026-03-27--hetzner-k3s
+```
+
+All four App inputs are required; the preflight rejects the run without the last two, and
+that error is easy to misread as a Vault problem.
+
+`vault` mode is deprecated. The Vault OIDC exchange it uses is unchanged and still correct —
+what is wrong is what CI reads afterwards: a long-lived PAT. It expired in production, and
+because Vault returned it successfully the failure surfaced only at the GitHub API as
+`Bad credentials`. `secret` mode is older still.
+
+**Diagnostic:** App-mode pull requests are authored by `app/wesen-gitops-pr-bot`. A GitOps PR
+authored by `github-actions[bot]` means that caller is still in PAT mode.
+
+### The Vault role binding
+
+```json
+{
+  "role_type": "jwt",
+  "user_claim": "repository",
+  "bound_audiences": ["https://vault.yolo.scapegoat.dev"],
+  "bound_claims": {
+    "repository_owner": "hyperslop-systems",
+    "repository": "hyperslop-systems/maillist",
+    "ref": "refs/heads/main",
+    "event_name": "push"
+  },
+  "policies": ["gha-<repo>-gitops-pr"],
+  "ttl": "10m"
+}
+```
+
+`event_name: push` means a `workflow_dispatch` run cannot authenticate. Re-running a failed
+publish by hand fails at the Vault step with a claim mismatch, which reads like a
+misconfiguration rather than a deliberate restriction. Never reuse another repository's role.
+
+### Two authorities for the same object
+
+GitHub Actions Vault roles are declared in **two** places:
+
+- `terraform/vault/github-actions/envs/k3s/main.tf`, in the `local.gitops_pr_roles` map.
+- `2026-03-27--hetzner-k3s/vault/roles/github-actions/*.json`, applied by a shell script.
+
+`bot-signup-gitops-pr` and `hair-booking-gitops-pr` are declared in **both**; whichever ran
+last wins. Before adding a role, check both. Consolidating them is unfinished work.
+
+### Known drift, as of 2026-07-31
+
+`TF-012-GITOPS-GITHUB-APP-MIGRATION` (terraform repo, 2026-07-17) is marked complete and
+migrated ten workflows, but a re-scan of the working tree finds four repositories off the
+standard. These are stated as observations from the checked-out files, not verified against
+live Vault:
+
+- `hyperslop-systems/infra` — `gitops_pr_token_source: vault` reading `.../gitops-pr-token`,
+  policy consistent, and it works: recent GitOps PRs are authored by `github-actions[bot]`.
+  Created after the migration, so this is a new repo built on the deprecated pattern.
+- `2026-06-25--foocamp-research` — workflow reads `.../gitops-pr-token`, but its policy grants
+  only `.../gitops-pr-app`. Expected to fail at the Vault read on its next push.
+- `2026-05-03--goja-hosting-site` — workflow reads `.../gitops-pr-token`; Terraform declares
+  the role with a `gitops-pr-app` secret path; the k3s repo has no policy or role file for it
+  at all.
+- `go-go-datadrop` — policy still grants a `gitops-pr-token` path.
+
+### Where to look
+
+- `wesen/2026-03-27--hetzner-k3s/docs/github-actions-vault-oidc-playbook.md` — the auth path
+  and onboarding steps.
+- `wesen/2026-03-27--hetzner-k3s/docs/app-deployment-pipeline.md` — the full source-to-cluster
+  pipeline and its per-repo checklist.
+- `go-go-golems/infra-tooling/docs/platform/source-repo-to-gitops-pr.md` — the caller contract
+  for the shared workflow.
+- `go-go-golems/infra-tooling/.github/workflows/publish-ghcr-image.yml` — the authority on
+  which inputs exist; read it before trusting any prose about them.
+- `terraform/ttmp/2026/07/17/TF-012-GITOPS-GITHUB-APP-MIGRATION--*` — the migration ticket,
+  its design doc and investigation diary.
+- `wesen/2026-03-27--hetzner-k3s/ttmp/2026/05/02/HK3S-0028--*` — the original OIDC enablement.
+
+**Reports:** [[Projects/2026/06/01/ARTICLE - GitHub App Tokens for GitOps PR Automation]]
+(the current design),
+[[Projects/2026/07/17/PROJECT REPORT - Vault Backed Binary Releases - Sqleton Pilot and GitHub App Publishing]]
+(App separation for release publishing and Argo CD readers),
+[[Projects/2026/05/02/ARTICLE - Vault OIDC for GitHub Actions - Secretless CI GitOps]]
+(deprecated credential, current mechanism),
+[[Projects/2026/05/26/ARTICLE - Vault OIDC for CI/CD Docs Publishing - Designing Short-Lived Package-Scoped Credentials]],
+[[Projects/2026/05/02/ARTICLE - Research - Vault OIDC and Short-Lived GitHub App Tokens for GitOps PR Automation]].
+
 ## Recommended reading path
 
 1. Read the release-train article and dependency-order tribal entry.

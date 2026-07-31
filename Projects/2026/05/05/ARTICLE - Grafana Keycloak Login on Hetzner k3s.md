@@ -19,6 +19,17 @@ created: 2026-05-05
 repo: /home/manuel/code/wesen/2026-03-27--hetzner-k3s
 ---
 
+> [!warning] Keycloak is superseded by ZITADEL for new work
+> ZITADEL is the platform's identity provider going forward; see
+> [[Research/playbooks/infra/PLAYBOOK - Production ZITADEL for a Single Go Web Application on k3s]]
+> and [[Research/playbooks/infra/PLAYBOOK - Production Multi-Tenant ZITADEL SaaS Platform on k3s]].
+> Do not stand up a new Keycloak realm for a new service.
+>
+> Keycloak is still deployed (`gitops/kustomize/keycloak`) and two live integrations still
+> depend on it: Vault operator login (`auth/oidc` → `https://auth.scapegoat.dev/realms/infra`)
+> and Grafana. This note stays accurate for those; treat it as describing a system being
+> migrated off, not a pattern to copy.
+
 # Grafana Keycloak Login on Hetzner k3s
 
 This note records the shorter but important follow-up to the k3s resize: Grafana was exposed at `https://grafana.yolo.scapegoat.dev` with a valid Let's Encrypt certificate and Grafana's built-in Generic OAuth login against Keycloak. The immediate goal was to stop relying on local port-forwarding or an ad hoc proxy while also avoiding anonymous public Grafana access.

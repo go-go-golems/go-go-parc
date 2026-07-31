@@ -35,6 +35,17 @@ source_branch: task/goja-express-auth
 gitops_branch: task/clubmed-prod-gitops
 ---
 
+> [!warning] Keycloak is superseded by ZITADEL for new work
+> ZITADEL is the platform's identity provider going forward; see
+> [[Research/playbooks/infra/PLAYBOOK - Production ZITADEL for a Single Go Web Application on k3s]]
+> and [[Research/playbooks/infra/PLAYBOOK - Production Multi-Tenant ZITADEL SaaS Platform on k3s]].
+> Do not stand up a new Keycloak realm for a new service.
+>
+> Keycloak is still deployed (`gitops/kustomize/keycloak`) and two live integrations still
+> depend on it: Vault operator login (`auth/oidc` → `https://auth.scapegoat.dev/realms/infra`)
+> and Grafana. This note stays accurate for those; treat it as describing a system being
+> migrated off, not a pattern to copy.
+
 # xgoja Keycloak Auth Host — Production Deployment Deep Dive
 
 This report explains how the `go-go-goja` Keycloak-backed HTTP auth host was taken from an example directory to a running HTTPS service on the `yolo.scapegoat.dev` K3s cluster. The result is live at `https://goja-auth.yolo.scapegoat.dev`, uses the real cluster Keycloak server, stores runtime secrets through Vault Secrets Operator, persists auth data in shared PostgreSQL, and is reconciled by Argo CD.
