@@ -85,6 +85,7 @@ The recurring invariant is dependency order. A release is not a single repositor
 - [[PROJ - Hetzner K3s Platform — ArgoCD Reorganization and Cleanup]] — platform cleanup.
 - [[Projects/2026/07/18/PROJECT REPORT - Crib K3s Loki Alloy Grafana Observability]] — Argo-managed Loki and Alloy logging, Grafana provisioning, least-privilege RBAC, live validation, and the remaining Grafana TLS secret distribution issue.
 - [[Projects/2026/07/17/PROJECT REPORT - Vault Backed Binary Releases - Sqleton Pilot and GitHub App Publishing]] — GitHub App separation for GitOps writers and Argo CD repository readers; recovery of `wesen/crib-k3s` comparison health.
+- [[Projects/2026/07/31/PROJECT REPORT - Hyperslop Mailing List - Double Opt-In Service from Zero to Production]] — a double opt-in signup service taken from an empty repository to production across four repositories; covers the anti-enumeration property a synchronous send silently broke, a tombstone that left its confirmation token working, Caddy's `try_files` fallback answering any unrouted POST with HTTP 200, the SES identity/credential distinction and terraform-managed SMTP derivation, and the AppProject allowlist that is not applied by merging.
 
 ### Production operations and failure recovery
 
