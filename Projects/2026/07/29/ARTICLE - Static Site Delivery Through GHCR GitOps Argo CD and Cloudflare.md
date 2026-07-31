@@ -17,6 +17,9 @@ repo:
   - /home/manuel/code/wesen/hyperslop-systems/infra
   - /home/manuel/code/wesen/2026-03-27--hetzner-k3s
   - /home/manuel/code/wesen/terraform
+related:
+  - "[[Projects/2026/07/31/PROJECT REPORT - Hyperslop Mailing List - Double Opt-In Service from Zero to Production]]"
+  - "[[Research/KB/Projects/infrastructure-and-release]]"
 ---
 
 # Static Site Delivery Through GHCR, GitOps, Argo CD, and Cloudflare

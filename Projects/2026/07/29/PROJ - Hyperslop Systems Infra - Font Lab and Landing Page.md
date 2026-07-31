@@ -15,7 +15,18 @@ status: active
 type: project
 created: 2026-07-29
 repo: /home/manuel/code/wesen/hyperslop-systems/infra
+related:
+  - "[[Projects/2026/07/29/ARTICLE - Static Site Delivery Through GHCR GitOps Argo CD and Cloudflare]]"
+  - "[[Projects/2026/07/31/PROJECT REPORT - Hyperslop Mailing List - Double Opt-In Service from Zero to Production]]"
 ---
+
+> [!info] Superseded on two points, 2026-07-31
+> The production page now defaults to **IBM Plex Mono**, not OPS Cubic Trial, and the trial
+> fonts are excluded from the published static artifact. The page also carries a fifth row,
+> `SIGNUP — STAY UP TO DATE`, which opens a dialog posting to
+> `https://list.hyperslop.systems/subscribe`; see
+> [[Projects/2026/07/31/PROJECT REPORT - Hyperslop Mailing List - Double Opt-In Service from Zero to Production]].
+> The font lab itself is unchanged.
 
 # Hyperslop Systems Infrastructure
 

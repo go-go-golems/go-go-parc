@@ -20,6 +20,13 @@ status: active
 type: project-report
 created: 2026-07-31
 repo: /home/manuel/code/wesen/hyperslop-systems/maillist
+related:
+  - "[[Projects/2026/07/26/PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery]]"
+  - "[[Projects/2026/07/29/ARTICLE - Static Site Delivery Through GHCR GitOps Argo CD and Cloudflare]]"
+  - "[[Research/playbooks/infra/PLAYBOOK - Argo CD Application with a local-path PVC on k3s]]"
+  - "[[Projects/2026/07/24/PROJECT REPORT - tiny-idp - From Transcript Audit to an Enforced GitOps Invariant]]"
+  - "[[Projects/2026/06/17/PROJECT REPORT - Workshops Wildcard DNS and TLS - DigitalOcean Delegation Deep Dive]]"
+  - "[[Research/KB/Projects/infrastructure-and-release]]"
 ---
 
 # Hyperslop Mailing List — A Double Opt-In Service from Zero to Production
@@ -38,7 +45,7 @@ exists, and that a merged manifest is not a deployed one.
 
 > [!summary]
 > - **Service:** Go, SQLite via `modernc` (no cgo), distroless, 16MB image, one replica with `Recreate`.
-> - **Delivery:** SES domain identity for the apex, a terraform-managed IAM user for SMTP, DKIM/MX/SPF in Cloudflare.
+> - **Delivery:** SES domain identity for the apex, a terraform-managed IAM user for SMTP whose access key is created out-of-band and lives only in Vault, DKIM/MX/SPF in Cloudflare.
 > - **Platform:** Argo CD on Hetzner k3s, Vault-issued credentials, HTTP-01 certificate, NetworkPolicy that opens TCP 587.
 > - **Review:** an automated review produced 16 comments across two pull requests; 15 were correct and 1 was factually wrong. Four were P1.
 
@@ -320,28 +327,61 @@ The identity is the **apex**, `hyperslop.systems`, not a `mail.` subdomain. Veri
 `mail.hyperslop.systems` would only permit sending as `@mail.hyperslop.systems`, and the
 requirement was `hello@hyperslop.systems`.
 
+The hand-created user was **imported** rather than recreated, and the plan then showed no
+diff on the policy, which confirmed the hand-written policy already matched the declared
+one.
+
+### 6.1.1 Where the credential must not live
+
 The SMTP password is a SigV4 derivation over the IAM secret with a fixed date, the message
-`SendRawEmail`, and a `0x04` version byte. It can be computed by hand, and initially was.
-It should not be: `aws_iam_access_key` exposes `ses_smtp_password_v4`, so the derivation
-belongs in the provider where it cannot be re-run incorrectly:
+`SendRawEmail`, and a `0x04` version byte. Terraform can perform that derivation:
+`aws_iam_access_key` exposes `ses_smtp_password_v4`. The first implementation used it, on
+the reasoning that a derivation in the provider cannot be re-run incorrectly by hand.
 
-```hcl
-resource "aws_iam_access_key" "smtp" {
-  user = aws_iam_user.smtp.name
-}
+That was the wrong trade, and [[Projects/2026/07/26/PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery]]
+had already established why:
 
-output "smtp_password" {
-  value     = aws_iam_access_key.smtp.ses_smtp_password_v4
-  sensitive = true
-}
+> Terraform does not create or retain the SMTP access key secret… Storing either in
+> Terraform inputs or provider-managed application resources would extend their lifetime
+> into state snapshots, plans, logs, and state-reader permissions.
+
+The consequence is observable rather than theoretical. Pulling the state after that apply
+showed both values present on the resource:
+
+```
+aws_iam_access_key attributes carrying secret material in state: ['secret', 'ses_smtp_password_v4']
+  secret: 40 chars
+  ses_smtp_password_v4: 44 chars
 ```
 
-The pre-existing equivalent for another application was created by hand and appears in no
-state file, which is why its credential cannot be rotated or audited from code. The
-hand-created user here was **imported** rather than recreated, and the plan then showed no
-diff on the policy, which confirmed the hand-written policy already matched the declared
-one. The hand-created access key was deleted afterwards, leaving only the terraform-owned
-one.
+The boundary that report draws is the correct one, and it is worth stating precisely
+because it is not the obvious one. Terraform owns the **sending boundary**: the identity,
+DKIM, the MAIL FROM domain, the configuration set, the IAM principal, and the policy that
+restricts what that principal may send as. All of those are reviewable, benefit from a
+plan, and contain no secrets. Vault owns the **credential values**, whose lifetime should
+be as short and as narrowly readable as possible.
+
+Reverting is a rotation, not a detach. The secret was already written to state history, so
+removing the resource does not unpublish it. The sequence that actually restores the
+property:
+
+1. Issue a new access key out-of-band and write it straight to `kv/apps/maillist/prod/ses`.
+2. `terraform state rm aws_iam_access_key.smtp`, then delete that key in AWS, so the copy
+   in state history authenticates nothing.
+3. Remove the resource and its outputs from the configuration.
+4. Restart the Deployment.
+
+Step 4 is not optional and is easy to miss. Environment variables sourced from a Secret are
+injected when the container starts. The Vault Secrets Operator refreshing the Secret does
+not change the environment of a running process, so the pod would have kept presenting the
+deleted credential until it was replaced. Verified after the restart: the SES `Send` metric
+moved from 3 to 4 on a live signup.
+
+This report's earlier position on that point was wrong, and the vault should not be read as
+carrying two standards. The ZITADEL report's boundary stands. What this work adds is the
+other half of its recommendation — that report noted a shared credential should become "a
+dedicated IAM SMTP principal … with `ses:SendRawEmail` limited to the verified identity",
+which is what `maillist-ses-smtp-prod` now is.
 
 ### 6.2 `terraform_remote_state` creates a hard apply order
 
@@ -493,6 +533,12 @@ factually wrong adds code that implies a hazard which does not exist.
   content type.
 - An SES identity and an SES credential are separate objects. The identity constrains
   `From:`; the IAM policy constrains what the credential may send as.
+- Terraform should own the sending boundary and not the credential value.
+  `aws_iam_access_key` writes both `secret` and `ses_smtp_password_v4` into state, which
+  extends their lifetime into every state snapshot, plan, log, and state-reader's
+  permissions.
+- Rotating a Secret does not rotate a running Pod. Environment variables sourced from a
+  Secret are injected at container start, so a credential change needs a rollout restart.
 - `terraform_remote_state` introduces an apply order that fails with an error naming
   neither package.
 - Merging a manifest does not deploy it when the cluster has no app-of-apps layer, and the
@@ -522,3 +568,50 @@ factually wrong adds code that implies a hazard which does not exist.
 | `hyperslop-systems/infra` | Signup row and dialog on the landing page |
 | `wesen/terraform` | SES identity, SMTP IAM user, DKIM/MX/SPF, `list` A record |
 | `wesen/2026-03-27--hetzner-k3s` | Argo CD package, NetworkPolicy, Vault policy and roles |
+
+## Related material
+
+Nothing in the vault is marked `deprecated`, so the notes below are still accurate about
+what they describe. Several describe an *earlier* arrangement of the same system, and the
+differences are worth stating so a reader does not follow the older shape by accident.
+
+| Note | Relation |
+|---|---|
+| [[Projects/2026/07/26/PROJECT REPORT - ZITADEL SES SMTP - Vault Backed Verification and Recovery]] | Sets the credential boundary this work follows, and asked for exactly the principal this work built |
+| [[Projects/2026/07/29/ARTICLE - Static Site Delivery Through GHCR GitOps Argo CD and Cloudflare]] | The delivery path for the page the signup row was added to |
+| [[Research/playbooks/infra/PLAYBOOK - Argo CD Application with a local-path PVC on k3s]] | The procedure the `maillist` package follows; its sync-wave rule is why the PVC is in wave 1 |
+| [[Projects/2026/07/24/PROJECT REPORT - tiny-idp - From Transcript Audit to an Enforced GitOps Invariant]] | Where that sync-wave rule became an enforced check rather than documentation |
+| [[Projects/2026/06/17/PROJECT REPORT - Workshops Wildcard DNS and TLS - DigitalOcean Delegation Deep Dive]] | The DNS-01 wildcard path, contrasted below with the HTTP-01 path used here |
+| [[Projects/2026/05/20/ARTICLE - DMETA Examples Production Rollout - Static Publisher GitOps and Vault OIDC]] | The origin of the Vault OIDC GitOps-PR automation that `publish-image.yaml` reuses |
+| [[Projects/2026/03/25/PROJ - wesen terraform - Infra Session Report]] | The first SES domain in this account, `mail.scapegoat.dev` |
+| [[Projects/2026/03/25/PROJ - Hair Booking - MVP Buildout, Hosted Auth, Vault, and Production Fixes]] | The first SES consumer, and the source of the credential shape at `kv/apps/hair-booking/prod/ses` |
+| [[Projects/2026/07/29/PROJ - Hyperslop Systems Infra - Font Lab and Landing Page]] | The landing page project note |
+
+### Where the older notes no longer describe the current system
+
+**The SES credential model.** The March 2026 notes describe SES set up for
+`mail.scapegoat.dev` with a credential created by hand and placed in Vault. That was the
+right call on the state question and the wrong call on the principal question: one shared
+credential served every consumer, so it could not be rotated for one application without
+breaking the others, and its policy did not restrict which identity it could send as. The
+ZITADEL report of 2026-07-26 named the fix. `maillist` is the first application to have it:
+a dedicated IAM user whose `ses:SendRawEmail` is scoped by `Resource` to this identity's
+ARN and configuration set, at a Vault path only its own Kubernetes role can read. Treat the shared-credential arrangement as
+the thing being migrated away from, not as the pattern to copy.
+
+**The DNS provider is not the same for every zone.** The Workshops report and the March
+Terraform report both describe DigitalOcean zones, where a record's value field is `value`
+and MX priority is part of the record. `hyperslop.systems` is a Cloudflare zone, where the
+field is `content`, `priority` is separate, `tags` cannot be set at all on the current plan,
+and record values must not carry a trailing dot. A DNS map copied between the two providers
+does not apply; section 6.3 covers the translation.
+
+**Certificate issuance differs by hostname shape.** The Workshops report covers a wildcard
+certificate, which requires the DNS-01 challenge and therefore a DNS provider credential in
+the cluster. `list.hyperslop.systems` is a single name, so it uses HTTP-01 and needs no such
+credential — only that the A record resolves to the ingress before Argo syncs.
+
+**The landing page's typeface.** The Font Lab note describes OPS Cubic Trial as the default
+with Berkeley Mono as the fallback. The production page now defaults to IBM Plex Mono, and
+the trial fonts are excluded from the published static artifact. The font lab itself is
+unchanged.

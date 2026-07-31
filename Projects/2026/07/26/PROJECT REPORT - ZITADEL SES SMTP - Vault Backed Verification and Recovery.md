@@ -24,6 +24,7 @@ related:
   - "[[Research/KB/Projects/infrastructure-and-release]]"
   - "[[PROJ - Vault on K3s - Auth and Secret Delivery Platform]]"
   - "[[ARTICLE - Vault OIDC for GitHub Actions - Secretless CI GitOps]]"
+  - "[[Projects/2026/07/31/PROJECT REPORT - Hyperslop Mailing List - Double Opt-In Service from Zero to Production]]"
 ---
 
 # ZITADEL SES SMTP: Vault-Backed Verification and Recovery on K3s
@@ -185,6 +186,9 @@ This operation preserved two properties:
 - No secret value appeared in a shell argument, Git diff, Terraform plan, ticket artifact, or terminal output.
 
 Credential reuse is operationally expedient but broadens impact. The long-term production posture should use a dedicated IAM SMTP principal for ZITADEL, with `ses:SendRawEmail` limited to the verified identity, followed by a controlled Vault update and revocation of the shared credential.
+
+> [!note] Follow-up, 2026-07-31
+> That posture was first built for a different application. [[Projects/2026/07/31/PROJECT REPORT - Hyperslop Mailing List - Double Opt-In Service from Zero to Production]] creates a per-application IAM user whose `ses:SendRawEmail` is scoped by `Resource` to one identity and configuration set, in Terraform, with the access key still created out-of-band and written straight to Vault. That report also records what happens when the state rule here is violated and how the violation is reverted. ZITADEL itself still uses the shared credential.
 
 ### 3.3 ZITADEL owns mutable provider state
 
