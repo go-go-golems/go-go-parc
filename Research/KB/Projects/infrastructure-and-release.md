@@ -249,9 +249,18 @@ All four App inputs are required; the preflight rejects the run without the last
 that error is easy to misread as a Vault problem.
 
 `vault` mode is deprecated. The Vault OIDC exchange it uses is unchanged and still correct —
-what is wrong is what CI reads afterwards: a long-lived PAT. It expired in production, and
-because Vault returned it successfully the failure surfaced only at the GitHub API as
-`Bad credentials`. `secret` mode is older still.
+what is wrong is what CI reads afterwards: a long-lived PAT.
+
+When such a PAT expires, the Vault steps still succeed, so the log reads as though credential
+retrieval worked. The failure lands at **`git clone`**: `open_gitops_pr.py` embeds the token
+in the clone URL (`https://x-access-token:<token>@github.com/...`) and clones the GitOps repo
+before it ever calls `gh`. Two messages have been seen there — `Invalid username or token.
+Password authentication is not supported for Git operations.` (Glazed, 2026-07-17, the one
+TF-012 and the migration playbook document) and `Bad credentials` (publish-vault,
+2026-06-01). `GH_TOKEN=<token> gh api user` confirms a dead credential in one step.
+
+`secret` mode is older still. To move a repository off either, follow
+`go-go-golems/infra-tooling/docs/go-go-golems/playbooks/github-app-gitops-pr-migration-playbook.md`.
 
 **Diagnostic:** check the pull request **actor**, never the commit author.
 
