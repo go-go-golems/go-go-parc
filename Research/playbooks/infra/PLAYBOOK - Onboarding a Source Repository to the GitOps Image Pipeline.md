@@ -124,6 +124,41 @@ changes do not publish an image and open a deployment PR.
 Detail: `2026-03-27--hetzner-k3s/docs/app-deployment-pipeline.md` and
 `infra-tooling/docs/platform/source-repo-to-gitops-pr.md`.
 
+> [!warning] If the module set is private, budget a session for CI, not a step
+> Onboarding turboproof and agentlogic — both importing the private
+> `hyperslop-systems/pbui` — cost far more than the deployment itself, in three ways
+> that all present as something other than what they are. The detail is in
+> `infra-tooling/docs/go-go-golems/playbooks/private-go-module-authentication-playbook.md`;
+> the orchestration-level warnings are:
+>
+> - **Every job that typechecks needs the credential**, not just build and test:
+>   `golangci-lint`, `govulncheck`, `gosec` and CodeQL each fail differently and only
+>   `go build` names the cause. Add `setup-private-go` to all of them at once.
+> - **A green CI run does not prove the job is configured right.** `setup-go`'s module
+>   cache is shared across jobs in a run, so a job with no credential passes while a
+>   sibling job warms the cache — until the first push to a branch with a cold cache.
+> - **A new profile in the shared workflow does not reach an old run.** The `@main` ref
+>   resolves when a run starts, so re-running the failure after merging the profile
+>   reproduces it exactly. Trigger a new run instead.
+
+### 4a. Advanced Security jobs on a private repository
+
+A generated repository usually arrives with `dependency-review` and CodeQL jobs. Both need
+**GitHub Advanced Security**, which private repositories here do not have, so both fail from
+the first pull request with messages that sound like configuration errors — "Dependency
+review is not supported on this repository", "Advanced Security must be enabled".
+
+Guard them on visibility rather than deleting them, so they return by themselves if the
+repository is ever made public:
+
+```yaml
+if: github.event.repository.visibility == 'public'
+```
+
+Use that rather than `!= 'private'`: an *internal* repository is not private and still has no
+Advanced Security, so the negative form re-enables a job that cannot pass. TruffleHog,
+`govulncheck` and `gosec` need no Advanced Security and should keep running.
+
 ### 5. The kustomize package
 
 Namespace, ServiceAccount, VaultConnection/VaultAuth/VaultStaticSecret, Deployment, Service,
@@ -176,6 +211,11 @@ logs at all.
 | Symptom | Cause |
 |---|---|
 | Application `Unknown/Unknown` | AppProject allowlist not applied — §6 |
+| Lint green on pull requests, red on the first push to `main` | the job has no private-module credential and was passing on a sibling job's warm module cache — §4 |
+| `Unsupported private_dependencies_profile` persists after merging the profile | the run predates the merge; `@main` resolves at run start, so re-running cannot fix it — §4 |
+| `role "<repo>-private-dependencies" could not be found` | the Vault role was never created; a declaration file alone does not create it — §2 |
+| `claim "repository" does not match any associated bound claim values` | the repository was renamed or moved owners after the role was written — §2 |
+| `Dependency review is not supported on this repository` | Advanced Security, not a workflow error — §4a |
 | Vault step fails on a `workflow_dispatch` re-run | role binds `event_name: push` — §3 |
 | Every PR build fails at the Vault step | private-dependency role copied GitOps PR bound claims — §3 |
 | PVC `Pending`, sync never advances | PVC in an earlier wave than its workload — §5 |
