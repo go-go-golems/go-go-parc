@@ -17,9 +17,9 @@ status: active
 type: knowledge-base
 created: "2026-07-25"
 repo: /home/manuel/workspaces/2026-06-30/benchmark-cpu-inference/rag-ttc
-analyzed: "2026-07-28"
-repository_commit: aff358e2df1a9640507086f6cf14bc380cc0b66e
-repository_branch: task/ttc-live-rag-quality-experiment
+analyzed: "2026-07-31"
+repository_commit: 6dc1258d274b7e82170d9269ce78a246f01358b3
+repository_branch: task/rag-ttc-tui-polish
 repository_remote: git@github.com:wesen/rag-ttc.git
 ---
 
@@ -32,17 +32,22 @@ historical RAG DSL, Researchctl, or Scraper Workflow V3.
 
 > [!summary]
 > - **Direct experiments:** Go programs keep the hypothesis, stage order, and
->   measurements visible.
-> - **Shared toolbox:** packages provide chunking, embedding, lexical/vector
->   retrieval, fusion, reranking, generation, evaluation, and reporting.
-> - **Safe execution:** worker bounds, resource rates, finite budgets, and
->   atomic per-item caching control expensive provider work and allow recovery.
-> - **Current evidence:** persistent backends have been measured on the
->   canonical TTC candidate dataset; a five-query OpenAI smoke and 30-query
->   paired pilot completed within explicit provider budgets.
-> - **Current result:** semantic identity is stable across independent
->   zero-budget replays; two blinded `umans-glm-5.2` judge sessions completed
->   70 annotations, and the imported pilot favors RRF over BM25.
+>   measurements visible; a 38+-arm representation registry screens on BM25
+>   and promotes winners into full retrieval confirmation with zero re-spend.
+> - **Two tracks, one module:** the research lab and a Bubble Tea chat app
+>   (`pkg/app/`), with a test-enforced one-way dependency boundary.
+> - **Headline findings:** the hybrid retrieval reversal (summaries win under
+>   BM25-only; raw wins under vector; RRF-over-raw dominates); judged answer
+>   quality shows faithfulness ≈0.98–0.99 on every arm with **answerability**
+>   as the real differentiator (BM25 fails to answer 30% vs vector's 14%);
+>   findings replicate across generation models (GLM era → luna era).
+> - **LLM judge:** a two-step decomposed pipeline (statement extraction →
+>   per-statement verdicts; faithfulness computed, never asked), cached so a
+>   re-judge is a 100% replay; 20-card human audit gates any cited number.
+> - **Subscription economics:** answers and up-front generation run on
+>   gpt-5.6-luna over ChatGPT-plan OAuth (codex profile extension) at ~234
+>   calls/min at 24 workers; the full 3,149-doc corpus is extracted with the
+>   148-query evaluation set preserved verbatim.
 
 ## Primary report
 
@@ -75,6 +80,76 @@ historical RAG DSL, Researchctl, or Scraper Workflow V3.
   corpus-level diagnosis of a malformed Bleve posting, the retained `goja`
   reproducer, the Zapx truncated-varint bounds fix, recovery by deterministic
   index rebuilding, and the remaining writer-side uncertainty.
+
+## Campaign reports (2026-07-30 → 07-31)
+
+The chunk-lab / judge / luna-era campaign, in reading order:
+
+- [[PROJ - RAG-TTC Chunk Lab Results - From BM25 Screening to the Hybrid Retrieval Reversal]] —
+  the 38-arm screening bench, Track A size/overlap results (knee at
+  1600–2400 runes, overlap dead), Track B representations (summaries best for
+  BM25 breadth, llm-chunk efficient, questions churny), and the E10
+  confirmation that reversed the story: the summary advantage is
+  BM25-length-normalization-local, vector prefers raw, hybrid RRF over raw
+  dominates.
+- [[PROJ - Codex OAuth for gpt-5.6-luna - Subscription-Plan Inference Through Geppetto's OpenAI-Codex Transport]] —
+  the standalone smoke tool that proved subscription generation end to end:
+  PKCE constants recovered from the codex binary, the `invalid_scope` and
+  `store=false` discoveries, JWT-derived account identity.
+- [[PROJ - RAG-TTC Codebase Consolidation - Review-Then-Execute from 49k Lines to a Two-Track Repository]] —
+  the evidence-first review (three parallel sweeps), the deletions
+  (−3,152 lines), the `pkg/app/` split with a boundary test, `pkg/harness`
+  extraction, and the byte-identical replay gate.
+- [[PROJ - RAG-TTC LLM Judge - A Two-Step Decomposed Faithfulness Pipeline from Design to Live Run]] —
+  the judge's contracts, outcome taxonomy, cache identity, multi-profile
+  resolution (`ResolveNamed`), and the discovery that the judge, not the
+  answerer, is the throughput bottleneck of judged experiments.
+- [[PROJ - RAG-TTC Luna Era - Executing the Six-Item Sequence on Subscription Economics]] —
+  codex wiring behind a profile extension, the audit tooling, E10b
+  per-channel fusion, E16/E17, E11, the four-attempt judge reliability
+  campaign, and the pinocchio registry-resolution regression (upstream PR
+  #191).
+- [[ARTICLE - Study - RAG for AIGC Survey Zhao et al 2026 - Digest and Experiment Candidates]] —
+  the survey study that seeded SYSLAB E14–E21 (E16/E17 implemented; E21
+  became the judge).
+
+## Textbook article series
+
+Durable fundamentals distilled from the campaign, each anchored to repo code:
+
+- [[ARTICLE - Chunking Theory - Cut Strategies and the Exact-Slice Invariant]]
+- [[ARTICLE - Representation Theory for Retrieval - Indexing Descriptions Instead of Content]]
+- [[ARTICLE - Retrieval Models - Lexical, Vector, and Hybrid Retrieval in RAG Systems]]
+- [[ARTICLE - Rank Fusion - Weighted Reciprocal Rank Fusion over Heterogeneous Channels]]
+- [[ARTICLE - Query and Index Transformations - Closing the Vocabulary Gap from Both Sides]]
+- [[ARTICLE - Reranking - Cross-Encoder Second Stages and Their Diagnostics]]
+- [[ARTICLE - Retrieval Evaluation - Judged Sets, Ranking Metrics, and Per-Query Analysis]]
+- [[ARTICLE - RAG Evaluation and LLM Judges - Behavioral Benchmarks, Judged Metrics, and Judge Reliability]]
+- [[ARTICLE - Reproducibility Engineering - Digests, Caches, Budgets, and Provenance]]
+- [[ARTICLE - Measurement Discipline and LLM IO - Throughput, Batching, and Structured Output]]
+
+## Papers and techniques implemented
+
+Techniques in the codebase, mapped to their sources (RES notes live in
+`Projects/2026/07/30/resources/`):
+
+| Technique | Where in rag-ttc | Source |
+| --- | --- | --- |
+| Decomposed faithfulness judging | `answerquality/judge.go` (statements → verdicts; F computed) | [[RES - Es et al 2023 - RAGAS Automated Evaluation of RAG (arXiv full)]] |
+| Judge reliability + biases | judge validation plan; audit gate | [[RES - Zheng et al 2023 - Judging LLM-as-a-Judge MT-Bench (arXiv)]], [[RES - Panickssery et al 2024 - LLM Evaluators Favor Their Own Generations (arXiv)]], [[RES - Gu et al 2024 - A Survey on LLM-as-a-Judge (arXiv)]], [[RES - Liu et al 2023 - G-Eval NLG Evaluation with GPT-4 (arXiv)]], [[RES - Saad-Falcon et al 2023 - ARES Automated RAG Evaluation (arXiv full)]] |
+| Reciprocal rank fusion | `pkg/rag/retrieval` (weighted RRF) | Cormack, Clarke & Büttcher 2009 (SIGIR; no RES note — ACM paywall) |
+| HyDE hypothetical documents | `answering.StrategyHyDE`; E11 arm | [[RES - Gao et al 2022 - HyDE Precise Zero-Shot Dense Retrieval (arXiv)]] |
+| Query expansion by prediction | questions arms (`questions-only*`) — index-side doc2query mirror | [[RES - Nogueira Cho 2019 - Document Expansion by Query Prediction doc2query (arXiv)]] |
+| Contextual representations | contextual arms (`contextual-*`) | [[RES - Anthropic 2024 - Introducing Contextual Retrieval]] |
+| Hierarchical summaries (E16) | `representations.DocumentSummaries`; `raptor-lite` arm — screened FLAT | Sarthi et al 2024, RAPTOR ([arXiv:2401.18059](https://arxiv.org/abs/2401.18059)) |
+| Atomic statement indexing (E17) | `GeneratedStatementsBatched`; `statements-only` arms — informative negative (questions beat statements on both axes) | Chen et al 2023, Dense X Retrieval / propositions ([arXiv:2312.06648](https://arxiv.org/abs/2312.06648)) |
+| Dense passage retrieval | `vector/sqliteexact` + OpenAI embeddings | [[RES - Karpukhin et al 2020 - Dense Passage Retrieval (arXiv)]] |
+| Cross-encoder reranking | `pkg/rag/reranking` (deterministic stand-in; real reranker pending) | [[RES - Nogueira Cho 2019 - Passage Re-ranking with BERT (arXiv)]] |
+| Chunking strategy evaluation | Track A size/overlap sweep | [[RES - Chroma Research - Evaluating Chunking Strategies for Retrieval]], [[RES - Gunther et al 2024 - Late Chunking Contextual Chunk Embeddings (arXiv)]] |
+| Behavioral RAG benchmarks | abstention/contract discipline | [[RES - Chen et al 2023 - RGB Benchmarking LLMs in RAG (arXiv)]], [[RES - Yang et al 2024 - CRAG Comprehensive RAG Benchmark (arXiv)]], [[RES - Thakur et al 2021 - BEIR Zero-Shot IR Benchmark (arXiv)]] |
+| Retry with backoff + jitter | `generation.WithRetry` (incident-grown marker set) | [[RES - AWS Architecture Blog - Exponential Backoff and Jitter.md|RES - AWS Architecture Blog - Exponential Backoff and Jitter]] |
+| ANN indexing (pending bakeoff) | SCALE-001 plan | [[RES - Malkov Yashunin 2016 - HNSW Approximate Nearest Neighbor (arXiv)]] |
+| Coordinated-omission-aware measurement | throughput benches | [[RES - ScyllaDB - On Coordinated Omission]] |
 
 ## Software Architecture Garden
 
@@ -112,17 +187,22 @@ packages owns a generic end-to-end workflow.
 
 | Concern | Repository location |
 | --- | --- |
-| Canonical records and interfaces | `pkg/rag/types.go`, `pkg/rag/components.go` |
+| Canonical records and interfaces | `pkg/rag/types.go`, `pkg/rag/components.go`, `pkg/rag/target.go` |
 | Source-preserving chunking | `pkg/rag/chunking` |
+| Representations, prompts, batching | `pkg/rag/representations` (incl. `DocumentSummaries`, statements) |
 | Local and Geppetto embeddings | `pkg/rag/embedding`, `pkg/rag/providers/geppetto` |
-| BM25, FTS5, and exact vector search | `pkg/rag/lexical`, `pkg/rag/vector` |
+| Subscription (codex) generation | `pkg/rag/providers/geppetto/codex` + `profile` (extension-selected) |
+| BM25 and exact vector search | `pkg/rag/lexical/bleve`, `pkg/rag/vector/sqliteexact` |
 | Collapse, fusion, and hydration | `pkg/rag/retrieval` |
-| Reranking and answer generation | `pkg/rag/reranking`, `pkg/rag/generation` |
-| Retrieval metrics and reports | `pkg/rag/evaluation`, `pkg/rag/report` |
-| Workers, rates, budgets, caches | `pkg/rag/execution` |
+| Reranking and answer generation | `pkg/rag/reranking`, `pkg/rag/generation` (incl. `WithRetry`) |
+| Retrieval metrics | `pkg/rag/evaluation` |
+| Workers, rates, budgets, caches | `pkg/execution`; harness glue in `pkg/harness` |
 | Run directory lifecycle | `pkg/experiment` |
-| Live answer-quality command | `cmd/rag-ttc/cmds/experiments/answerquality` |
-| Progressive onboarding | `examples/01_chunking` through `examples/06_end_to_end_experiment` |
+| Screening bench (38+ arms) | `cmd/rag-ttc/cmds/experiments/chunkcompare` |
+| Answer quality + LLM judge + E10b/E11 | `cmd/rag-ttc/cmds/experiments/answerquality` (`judge.go`, `representationarm.go`) |
+| Index bundles + corpus inspection | `pkg/rag/indexbundle`, `cmds/indexes`, `cmds/corpus` |
+| Interactive app track (frozen boundary) | `pkg/app/{chatui,chat,session,annotation}`, boundary test in `cmd/rag-ttc/boundary_test.go` |
+| Progressive onboarding | `examples/01_chunking`, `examples/06_end_to_end_experiment` |
 
 ## Source project evidence
 
@@ -156,41 +236,45 @@ Important historical reports:
 - [[ARTICLE - RAG DSL v2 - Developer Guide]]
 - [[ARTICLE - Immutable TTC RAG Laboratory - From Fixed Truth to Executable JavaScript Experiments]]
 
-## Current validation boundary
+## Current validation boundary (2026-07-31)
 
-The repository now contains and has exercised the canonical 200-document TTC
-candidate corpus, 1,982 raw representations, judged queries, persistent
-lexical/vector backends, OpenAI embeddings, and OpenAI Responses generation.
+Established, with digit-exact replay evidence throughout:
 
-The five-query smoke completed ten cells and replayed with all provider budgets
-at zero. The 30-query pilot completed 60 cells with 30 query-embedding and 60
-generation work calls. A shared score-independent evidence identity then made
-generation keys and blinded review IDs stable across two independent
-zero-budget replays.
-
-Two independent Pi sessions using `umans/umans-glm-5.2` reviewed all 60 cells
-with a balanced ten-item overlap. The zero-budget annotation import made no
-provider calls. RRF improved MRR, Recall@10, nDCG@10, hit rate, and all five
-mean judge dimensions. Paired bootstrap intervals excluded zero for
-correctness and completeness. This is LLM-judge pilot evidence, not human
-review.
+- **Retrieval:** the full 148-query E10 confirmation series across bm25 /
+  vector / rrf; the hybrid reversal; luna-era screening replicating the
+  GLM-era representation findings across generation models; E16 flat and
+  E17 an informative negative (questions beat statements on both axes).
+- **Judged answers:** decomposed faithfulness ≈0.98–0.99 on every arm,
+  relevance ≈0.96–0.97, with answerability the differentiator (bm25 30%
+  non-answers vs vector 14%); zero unjudged/partial cells; re-judging is a
+  proven 100% cache replay. Labeled `same_family_verdicts: true` (GLM
+  judging GLM-era answers).
+- **Scale groundwork:** the full 3,149-document corpus extracted with all 200
+  evaluation documents verbatim (judgments carry over); a deterministic
+  2,000-doc build subset; measured luna throughput (~58/min at 4 workers to
+  ~234/min at 24, thinking level immaterial for summaries).
 
 The current boundary is:
 
 ```text
-successful provider execution
-  + reproducible semantic identity
-  + completed blinded LLM judging
-  != independent human answer-quality evidence
+judged numbers + replicated screening findings
+  != human-audited judge (20-card audit sheet awaiting grading)
+  != cross-family judged evidence (luna answers + GLM judge pending)
+  != full-corpus confirmation (2,000-doc bundle building; ANN bakeoff pending)
 ```
 
-## Next production step
+## Next steps
 
-1. Revise the rubric for non-abstention dimensions when an answer abstains.
-2. Preserve the same 30-query split for the next exploratory comparison.
-3. Compare vector retrieval with RRF under the revised judge protocol.
-4. Add RRF-versus-reranked-RRF after a real reranking provider is configured.
-5. Use a held-out or expanded query set for confirmatory claims.
+1. Human 20-card audit grading (`judge-audit.py score`; ≥90% unlocks judged
+   numbers for write-ups).
+2. E10b per-channel fusion verdict (configs a/b/c) and the 2,000-doc bundle
+   (both running in tmux at time of writing).
+3. Cross-family judged run: luna answers over the codex subscription, GLM
+   judge — `same_family_verdicts: false` by construction.
+4. SYSLAB E14/E15/E18/E20 on the judged harness; ANN bakeoff (HNSW candidate)
+   on the 2,000-doc bundle per SCALE-001.
+5. Real cross-encoder reranker (mac-bge tunnel) to replace the deterministic
+   stand-in.
 
 ## Working rules
 
