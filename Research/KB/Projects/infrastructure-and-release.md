@@ -290,20 +290,34 @@ last wins. Before adding a role, check both. Consolidating them is unfinished wo
 
 ### Known drift, as of 2026-07-31
 
-`TF-012-GITOPS-GITHUB-APP-MIGRATION` (terraform repo, 2026-07-17) is marked complete and
-migrated ten workflows, but a re-scan of the working tree finds four repositories off the
-standard. These are stated as observations from the checked-out files, not verified against
-live Vault:
+`TF-012-GITOPS-GITHUB-APP-MIGRATION` (terraform repo, 2026-07-17) migrated ten workflows to
+App mode and is marked complete. Auditing `origin/main` for every source repository confirms
+it held. Three items remain, all of a different kind:
 
-- `hyperslop-systems/infra` — `gitops_pr_token_source: vault` reading `.../gitops-pr-token`,
-  policy consistent, and it works: recent GitOps PRs are authored by `github-actions[bot]`.
-  Created after the migration, so this is a new repo built on the deprecated pattern.
-- `2026-06-25--foocamp-research` — workflow reads `.../gitops-pr-token`, but its policy grants
-  only `.../gitops-pr-app`. Expected to fail at the Vault read on its next push.
-- `2026-05-03--goja-hosting-site` — workflow reads `.../gitops-pr-token`; Terraform declares
-  the role with a `gitops-pr-app` secret path; the k3s repo has no policy or role file for it
-  at all.
-- `go-go-datadrop` — policy still grants a `gitops-pr-token` path.
+- **`hyperslop-systems/infra` is on PAT mode.** It reads
+  `kv/ci/github/hyperslop-systems-infra/gitops-pr-token`, and it works — recent GitOps PRs are
+  authored by `github-actions[bot]`. The repository was created *after* the migration closed,
+  from the then-current onboarding steps, which still prescribed PAT mode. A completed
+  migration does not stay complete while the documentation that produces new repositories
+  still describes the old shape.
+- **Three workflows read another source's Vault path.** `maillist`, `datalab`, and `clim-jsx`
+  point at `tiny-idp/gitops-pr-app` and `react-pbui/gitops-pr-app` respectively. App mode is
+  correct; the path is not. TF-012's decision record chose one installed App identity with
+  **per-source Vault paths**, and explicitly rejected a shared path, because per-source paths
+  keep each policy narrow and make ownership visible. Borrowing a path re-creates the shared
+  credential the migration removed, one level down.
+- **`go-go-datadrop` was renamed to `hyperslop-systems/datalab`.** The Vault policy and role
+  files kept the old name and bound `repository: go-go-golems/go-go-datadrop`, which no longer
+  pushes, while the live role `datalab-gitops-pr` that the workflow actually uses was declared
+  in no file in either repository. A rename leaves a role bound to a dead repository name and
+  a working role that exists only in Vault.
+
+> [!warning] How to audit this correctly
+> An earlier pass of this audit was wrong twice. `rg` skips hidden directories by default, so
+> a search that does not pass `--hidden` silently misses every `.github/workflows/` file. And
+> local checkouts sit on stale feature branches — five repositories looked like they were on
+> PAT mode when `origin/main` had already been migrated. Audit with
+> `git show origin/main:<path>`, never the working tree.
 
 ### Where to look
 
