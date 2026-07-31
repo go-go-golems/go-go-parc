@@ -47,9 +47,9 @@ Overlap — repeating the tail of each chunk at the head of the next — is conv
 
 **Sentence snapping** retreats each window boundary to the last sentence-final position within a bounded distance, eliminating mid-word and mid-sentence cuts. Implementation requires one guard: a snap that would move the boundary to or before the window's start-plus-overlap stalls the sliding window; such snaps must revert to the unsnapped boundary, or pathological inputs (long runs without sentence boundaries, or consisting entirely of them) never terminate. Measured effect: small and positive (+5/−1 queries), consistent with cut cleanliness mattering at the margin.
 
-**Semantic-breakpoint cutting** embeds sentences and places boundaries at similarity minima between neighbors — cuts where the topic measurably shifts. It costs one embedding pass and is worth running only when cruder levers leave headroom.
+**Semantic-breakpoint cutting** embeds sentences and places boundaries at similarity minima between neighbors — cuts where the topic measurably shifts. Chroma's chunking-strategy evaluation (2024) measured this family against fixed windows across corpora and found the differences real but modest next to size effects, consistent with this lab's dead-and-live-lever findings. It costs one embedding pass and is worth running only when cruder levers leave headroom.
 
-**Late chunking** inverts the pipeline: embed the whole document with a long-context embedder, then pool per-chunk vectors from the token embeddings afterward, so each chunk's vector reflects its full-document context. It is gated on embedder capability (input limits) and is a research-grade arm rather than a default.
+**Late chunking** (Günther et al. 2024, Jina AI) inverts the pipeline: embed the whole document with a long-context embedder, then pool per-chunk vectors from the token embeddings afterward, so each chunk's vector reflects its full-document context. It is gated on embedder capability (input limits) and is a research-grade arm rather than a default.
 
 ### Small-to-big: dissolving the trade
 
@@ -96,6 +96,14 @@ The failure semantics are the design: an unmatched marker degrades *granularity*
 - Verify a cut strategy is live (changes the chunk population materially) before spending effort on it.
 - Keep the exact-slice invariant absolute; models propose boundaries as verbatim markers, alignment happens locally, and unmatched proposals merge rather than guess.
 - When precision and context conflict, reach for small-to-big before compromising either.
+
+## Sources and further reading
+
+- Chroma Research (2024). *Evaluating Chunking Strategies for Retrieval.* [trychroma.com/research/evaluating-chunking](https://www.trychroma.com/research/evaluating-chunking) · [[RES - Chroma Research - Evaluating Chunking Strategies for Retrieval]] — token-level evaluation of fixed, recursive, and semantic chunkers; the closest published analogue to this lab's Track A.
+- Günther, M. et al. (2024). *Late Chunking: Contextual Chunk Embeddings Using Long-Context Embedding Models.* [arXiv:2409.04701](https://arxiv.org/abs/2409.04701) · [[RES - Gunther et al 2024 - Late Chunking Contextual Chunk Embeddings (arXiv)]]
+- Anthropic (2024). *Introducing Contextual Retrieval.* [[RES - Anthropic 2024 - Introducing Contextual Retrieval]] — the generation-side response to the same lost-context problem late chunking attacks on the embedding side.
+- *Advanced RAG: Small-to-Big Retrieval.* [Medium](https://medium.com/data-science/advanced-rag-01-small-to-big-retrieval-172181b396d4) — the sentence-window / parent-document retriever pattern in the LlamaIndex ecosystem; this lab implements it purely through the representation layer.
+- Implementation discussed: `pkg/rag/chunking/` (`fixed.go`, `snapToSentence`, `FromRanges`) and `cmd/rag-ttc/cmds/experiments/chunkcompare/llmchunk.go` (`alignMarkers`).
 
 ## Related notes
 

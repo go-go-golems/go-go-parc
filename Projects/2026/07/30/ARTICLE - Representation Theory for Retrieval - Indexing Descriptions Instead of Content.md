@@ -71,8 +71,8 @@ This is the **hydration invariant**, and everything else in the layer is a conse
 | `breadcrumb` | heading path prepended (`Breadcrumbs`, deterministic from document structure) | zero | lost document context |
 | `summary` (extractive) | lead sentence (`ExtractiveSummarizer`) | zero | term density |
 | `summary` (abstractive) | model-written, sentence or keyword form | 1 call/chunk | term density + normalization of phrasing |
-| `contextual` | model-written situating paragraph + chunk body (`Contextual`) | 1 call/chunk | lost document context (the contextual-retrieval hypothesis) |
-| `question` | 2–3 model-written questions, each its own representation (`GeneratedQuestions`) | 1 call/chunk | query-distribution match; see [[ARTICLE - Query and Index Transformations - Closing the Vocabulary Gap from Both Sides]] |
+| `contextual` | model-written situating paragraph + chunk body (`Contextual`); Anthropic's contextual retrieval (2024) | 1 call/chunk | lost document context (the contextual-retrieval hypothesis) |
+| `question` | 2–3 model-written questions, each its own representation (`GeneratedQuestions`); the doc2query lineage (Nogueira et al. 2019) | 1 call/chunk | query-distribution match; see [[ARTICLE - Query and Index Transformations - Closing the Vocabulary Gap from Both Sides]] |
 | `entities` | chunk + model-written synonym/species line (`EntityExpansions`) | 1 call/chunk | rare-term synonymy |
 | `small` | small chunk's text under its *parent* chunk's identity (`SmallToBig`) | zero | precision/context decoupling; see [[ARTICLE - Chunking Theory - Cut Strategies and the Exact-Slice Invariant]] |
 
@@ -109,6 +109,14 @@ Generated representations carry `Model` and `PromptDigest`, and their `ID` diges
 - Stamp `Model` and `PromptDigest` on every generated representation; a changed prompt is a new representation population and a new experiment arm.
 - Screen representation ideas with the cheapest retrieval that can rank them (lexical, in-memory) before spending embeddings on them.
 - Read the regressed queries of every winning representation: they mark the boundary of its mechanism.
+
+## Sources and further reading
+
+- Nogueira, R. et al. (2019). *Document Expansion by Query Prediction (doc2query).* [arXiv:1904.08375](https://arxiv.org/abs/1904.08375) · [[RES - Nogueira Cho 2019 - Document Expansion by Query Prediction doc2query (arXiv)]] — the founding index-side representation paper; expansion text is appended so a plain inverted index benefits.
+- Anthropic (2024). *Introducing Contextual Retrieval.* [anthropic.com/engineering/contextual-retrieval](https://www.anthropic.com/engineering/contextual-retrieval) · [[RES - Anthropic 2024 - Introducing Contextual Retrieval]] — situating blurbs prepended before embedding and BM25 indexing; reported 35–49% retrieval-failure reductions motivated this lab's E6.
+- Günther, M. et al. (2024). *Late Chunking.* [arXiv:2409.04701](https://arxiv.org/abs/2409.04701) — the embedding-side alternative: context restored in the vector rather than in the text.
+- Robertson, S. & Zaragoza, H. (2009). *The Probabilistic Relevance Framework.* [PDF](https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf) — the length-normalization mechanics behind "lossy beats complete".
+- Implementation discussed: `pkg/rag/representations/` (types, `Hydrate`, `Compose`, `EnsureRaw`, builders, `prompts.go`).
 
 ## Related notes
 

@@ -52,7 +52,7 @@ The stages are instrumented separately because their failure modes are disjoint.
 
 ### Lexical retrieval: the BM25 scoring model
 
-BM25 scores a document $d$ for a query $q$ as a sum of per-term contributions:
+BM25 — the culmination of the probabilistic relevance framework developed by Robertson and colleagues (Robertson & Zaragoza 2009) — scores a document $d$ for a query $q$ as a sum of per-term contributions:
 
 $$\text{score}(d,q) = \sum_{t \in q} \text{IDF}(t)\; \cdot\; \frac{f(t,d)\,(k_1+1)}{f(t,d) + k_1\left(1-b+b\,\dfrac{|d|}{\text{avgdl}}\right)}$$
 
@@ -68,11 +68,11 @@ where $f(t,d)$ is the term's frequency in the document, $|d|$ the document lengt
 
 An embedding model $E$ maps text to $\mathbb{R}^n$ such that semantic relatedness corresponds to angular proximity; retrieval ranks stored vectors by cosine similarity to $E(\text{query})$. Vector retrieval's characteristic strength is exactly lexical retrieval's characteristic weakness: it bridges vocabulary gaps, because "arborvitae" and "Thuja" embed near each other despite sharing no tokens. Its characteristic weaknesses are the mirror image: exact identifiers, numbers, and rare names — the tokens IDF rewards — are represented diffusely, and a query for a specific model number may retrieve texts about the product category.
 
-Search over stored vectors is either exact (compare against every vector) or approximate (graph- or quantization-based indexes such as HNSW). The engineering discipline worth recording: *exact search is the correctness oracle and should remain permanently available*. An approximate index is a measured trade, acceptable only against an explicit threshold — in the motivating system, recall@20 ≥ 0.98 against exact results with p95 latency under 50 ms, evaluated by a dedicated bakeoff harness. "Exact search proved fast enough; no ANN index" is a legitimate outcome of that measurement, and at small corpus scales it is the common one.
+Search over stored vectors is either exact (compare against every vector) or approximate — graph-based indexes such as HNSW (Malkov & Yashunin 2016) being the dominant family. Dense retrieval as a trained end-to-end alternative to lexical search was established by DPR (Karpukhin et al. 2020); the BEIR benchmark (Thakur et al. 2021) later showed that BM25 remains a strong zero-shot baseline across domains, which is one reason a lexical channel stays in every hybrid design. The engineering discipline worth recording: *exact search is the correctness oracle and should remain permanently available*. An approximate index is a measured trade, acceptable only against an explicit threshold — in the motivating system, recall@20 ≥ 0.98 against exact results with p95 latency under 50 ms, evaluated by a dedicated bakeoff harness. "Exact search proved fast enough; no ANN index" is a legitimate outcome of that measurement, and at small corpus scales it is the common one.
 
 ### Fusion of heterogeneous rankings
 
-BM25 scores and cosine similarities occupy unrelated scales, and any weighted sum of raw scores encodes an arbitrary exchange rate between them. Reciprocal rank fusion sidesteps the incommensurability by discarding scores entirely: candidate $d$'s fused score is
+BM25 scores and cosine similarities occupy unrelated scales, and any weighted sum of raw scores encodes an arbitrary exchange rate between them. Reciprocal rank fusion (Cormack, Clarke & Büttcher, SIGIR 2009) sidesteps the incommensurability by discarding scores entirely: candidate $d$'s fused score is
 
 $$\text{RRF}(d) = \sum_{c \,\in\, \text{channels}} \frac{1}{k + r_c(d)}$$
 
@@ -82,9 +82,9 @@ where $r_c(d)$ is the candidate's rank in channel $c$ (absent candidates contrib
 
 Queries and documents are drawn from different linguistic distributions: users write short interrogatives, documents write declarative prose. Transformations can move either distribution toward the other.
 
-**Query-side, paid per query.** *Multi-query expansion* generates several paraphrases of the question and retrieves with all of them, fusing per-variant channels; it hedges against a single unlucky phrasing. *HyDE* (hypothetical document embeddings) generates a plausible answer to the question and embeds that answer as the query vector, on the observation that an answer resembles relevant documents more than the question does.
+**Query-side, paid per query.** *Multi-query expansion* generates several paraphrases of the question and retrieves with all of them, fusing per-variant channels; it hedges against a single unlucky phrasing. *HyDE* (hypothetical document embeddings; Gao et al. 2022) generates a plausible answer to the question and embeds that answer as the query vector, on the observation that an answer resembles relevant documents more than the question does.
 
-**Index-side, paid once.** *Synthetic questions* generate, for each chunk, the questions the chunk answers, and index those questions as additional searchable representations. This is HyDE's mirror image: instead of transforming each query toward document space at query time, every document is transformed toward query space at indexing time, where the cost is incurred once, cached, and amortized over all future queries. When the evaluation queries are questions — the usual case — question representations are drawn from the same distribution as the queries themselves, which is the strongest distributional match available.
+**Index-side, paid once.** *Synthetic questions* — the doc2query lineage (Nogueira et al. 2019) — generate, for each chunk, the questions the chunk answers, and index those questions as additional searchable representations. This is HyDE's mirror image: instead of transforming each query toward document space at query time, every document is transformed toward query space at indexing time, where the cost is incurred once, cached, and amortized over all future queries. When the evaluation queries are questions — the usual case — question representations are drawn from the same distribution as the queries themselves, which is the strongest distributional match available.
 
 The symmetry gives a cost rule: prefer index-side transformations when the corpus is stable and query volume is high; prefer query-side transformations when the corpus churns faster than the query stream would amortize.
 
@@ -107,6 +107,16 @@ First-stage retrievers must score query and document *independently* — that in
 - Fuse by rank, never by raw score, across heterogeneous channels.
 - When retrieval fails on rare-term synonymy, reach for representation enrichment or vector channels before tuning BM25 parameters.
 - Record channel contributions through fusion so demotions are attributable.
+
+## Sources and further reading
+
+- Robertson, S. & Zaragoza, H. (2009). *The Probabilistic Relevance Framework: BM25 and Beyond.* Foundations and Trends in IR. [PDF](https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf) · [ACM](https://dl.acm.org/doi/10.1561/1500000019) — the definitive derivation of BM25, including the saturation and length-normalization analysis this article leans on.
+- Malkov, Y. & Yashunin, D. (2016). *Efficient and Robust Approximate Nearest Neighbor Search Using HNSW Graphs.* [arXiv:1603.09320](https://arxiv.org/abs/1603.09320) · [[RES - Malkov Yashunin 2016 - HNSW Approximate Nearest Neighbor (arXiv)]]
+- Karpukhin, V. et al. (2020). *Dense Passage Retrieval for Open-Domain Question Answering.* [arXiv:2004.04906](https://arxiv.org/abs/2004.04906) · [[RES - Karpukhin et al 2020 - Dense Passage Retrieval (arXiv)]]
+- Thakur, N. et al. (2021). *BEIR: A Heterogeneous Benchmark for Zero-shot Evaluation of IR Models.* [arXiv:2104.08663](https://arxiv.org/abs/2104.08663) · [[RES - Thakur et al 2021 - BEIR Zero-Shot IR Benchmark (arXiv)]] — the evidence that lexical baselines survive domain shift better than most dense models.
+- Cormack, G., Clarke, C. & Büttcher, S. (2009). *Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods.* SIGIR. [PDF](https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf) · [ACM](https://dl.acm.org/doi/10.1145/1571941.1572114)
+- Gao, L. et al. (2022). *Precise Zero-Shot Dense Retrieval without Relevance Labels (HyDE).* [arXiv:2212.10496](https://arxiv.org/abs/2212.10496) · [[RES - Gao et al 2022 - HyDE Precise Zero-Shot Dense Retrieval (arXiv)]]
+- Nogueira, R. et al. (2019). *Document Expansion by Query Prediction (doc2query).* [arXiv:1904.08375](https://arxiv.org/abs/1904.08375) · [[RES - Nogueira Cho 2019 - Document Expansion by Query Prediction doc2query (arXiv)]]
 
 ## Related notes
 

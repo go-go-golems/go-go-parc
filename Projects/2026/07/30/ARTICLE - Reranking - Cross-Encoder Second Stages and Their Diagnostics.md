@@ -36,7 +36,7 @@ Reranking occupies an awkward position in retrieval systems: universally recomme
 
 A first-stage retriever must assign scores through independent computations on query and document: BM25 sums precomputed per-term statistics; vector search compares a query embedding against document embeddings computed at indexing time. Independence is precisely what permits an index — all document-side work happens once, before any query exists.
 
-A cross-encoder consumes the concatenated pair $(q, d)$ and attends across the boundary: query terms condition the reading of the document and vice versa. This joint computation is strictly more expressive — it resolves anaphora, negation, and specificity distinctions that independent encodings blur — and it forecloses indexing entirely, because nothing document-side can be computed before the query arrives. The cost per pair is a full model forward pass.
+A cross-encoder consumes the concatenated pair $(q, d)$ and attends across the boundary — the design that Nogueira & Cho (2019) showed producing large precision gains over BM25 orderings on MS MARCO, establishing the retrieve-then-rerank pattern: query terms condition the reading of the document and vice versa. This joint computation is strictly more expressive — it resolves anaphora, negation, and specificity distinctions that independent encodings blur — and it forecloses indexing entirely, because nothing document-side can be computed before the query arrives. The cost per pair is a full model forward pass.
 
 The architecture follows from the cost structure: a cheap indexable stage reduces the corpus to a candidate list of tens, and the expensive accurate stage reorders that list.
 
@@ -104,6 +104,12 @@ The motivating environment currently has *no reranking provider*: the LLM gatewa
 - Ship the movement accounting (promoted/demoted versus fused order) in the same surface that shows retrieval hits.
 - Keep a deterministic degenerate reranker wired for tests and offline arms.
 - Record unrunnable arms as absent-with-evidence; never let an arm vanish from a comparison silently.
+
+## Sources and further reading
+
+- Nogueira, R. & Cho, K. (2019). *Passage Re-ranking with BERT.* [arXiv:1901.04085](https://arxiv.org/abs/1901.04085) · [[RES - Nogueira Cho 2019 - Passage Re-ranking with BERT (arXiv)]] — the paper that fixed the two-stage retrieve-then-rerank architecture in its modern form.
+- Thakur, N. et al. (2021). *BEIR.* [arXiv:2104.08663](https://arxiv.org/abs/2104.08663) — cross-encoder rerankers over BM25 candidates are among the strongest zero-shot configurations in the benchmark, at the highest compute cost per query.
+- Implementation discussed: `pkg/rag/answering/service.go` (`StrategyRRFReranked`), `pkg/rag/reranking/` (cached layer, `TermOverlap` degenerate reranker), `pkg/chatui/hits.go` (`renderRerankSummary`) in the rag-ttc repository.
 
 ## Related notes
 

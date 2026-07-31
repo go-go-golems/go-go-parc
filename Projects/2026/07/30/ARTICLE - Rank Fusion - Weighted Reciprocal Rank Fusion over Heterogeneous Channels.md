@@ -37,7 +37,7 @@ Hybrid retrieval — lexical and vector channels over the same corpus — is now
 
 A BM25 score is an unbounded sum of term contributions whose magnitude depends on corpus statistics, query length, and parameter choices. A cosine similarity is a bounded geometric quantity whose distribution depends on the embedding model. A linear combination $\alpha \cdot \text{bm25} + \beta \cdot \text{cosine}$ therefore encodes an exchange rate between quantities that share no unit; the choice of $\alpha/\beta$ silently decides most orderings, varies in effect across queries (BM25 score ranges swing with query length), and cannot be tuned once because it is not stable. Score normalization (min-max or z-scoring within each list) reduces but does not remove the problem: normalized scores remain distribution-dependent, and a channel that returns ten near-identical scores after normalization contributes noise.
 
-Rank fusion dissolves the problem by keeping only each channel's *ordering*. Ranks are dimensionless, identically distributed across channels by construction ($1, 2, 3, \dots$), and robust to every monotone transformation of the underlying scores.
+Rank fusion dissolves the problem by keeping only each channel's *ordering*. The canonical result is due to Cormack, Clarke and Büttcher (SIGIR 2009), who showed that RRF — with no training and no score access — consistently beat both Condorcet fusion and individual learning-to-rank methods when combining heterogeneous systems; the paper has since accumulated well over a thousand citations and RRF is the default fusion in most production hybrid-search stacks. Ranks are dimensionless, identically distributed across channels by construction ($1, 2, 3, \dots$), and robust to every monotone transformation of the underlying scores.
 
 ### The RRF formula and its properties
 
@@ -128,6 +128,12 @@ Fusion operates on chunk identities and precedes hydration; representations of d
 - Record per-channel contributions on every fused hit; surface them in inspection tooling.
 - Sort channels and break ties deterministically; fusion output must be a pure function of its inputs.
 - Resolve weights by channel family when channel names are dynamic.
+
+## Sources and further reading
+
+- Cormack, G., Clarke, C. & Büttcher, S. (2009). *Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods.* SIGIR '09. [PDF](https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf) · [ACM](https://dl.acm.org/doi/10.1145/1571941.1572114) — the original three-page paper; the $k=60$ convention originates here.
+- Robertson, S. & Zaragoza, H. (2009). *The Probabilistic Relevance Framework: BM25 and Beyond.* [PDF](https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf) — why lexical scores are shaped the way they are, and hence why they cannot be averaged with cosines.
+- Implementation discussed: `pkg/rag/retrieval/retrieval.go` (`WeightedRRF`) and `pkg/rag/answering/service.go` (`fuseChannels`) in the rag-ttc repository.
 
 ## Related notes
 

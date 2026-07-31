@@ -33,7 +33,7 @@ Retrieval changes are cheap to make and expensive to judge by eye. A team that l
 
 ### The three artifacts
 
-A judged evaluation set consists of:
+A judged evaluation set follows the structure the TREC evaluations standardized (queries, pooled relevance judgments, a fixed target identity; Voorhees 2005 surveys the methodology). It consists of:
 
 1. **Queries** — texts drawn from the distribution the system will actually serve. In the motivating set: 148 questions.
 2. **Judgments** — assertions that a *target* is relevant to a query, with a grade. Grades permit distinguishing "the answer" from "related background"; binary metrics collapse grades, nDCG uses them. In the motivating set: 243 judgments.
@@ -63,7 +63,7 @@ For one query, let $R$ be its judged-relevant unit set, and let the system emit 
 
 **HitRate@k** is the indicator $[\,R \cap \text{top-}k \neq \emptyset\,]$: did the user who reads $k$ results see at least one relevant one. It is the bluntest and most saturable metric — the motivating system's HitRate@10 sits above 0.93, so most experiments cannot move it and the residual headroom lives in a small, enumerable set of hard queries.
 
-**nDCG@k** discounts graded gain by position and normalizes by the ideal ordering:
+**nDCG@k** — introduced by Järvelin & Kekäläinen (2002) precisely to use graded rather than binary judgments — discounts gain by position and normalizes by the ideal ordering:
 
 $$\text{DCG@k} = \sum_{i=1}^{k} \frac{2^{g_i}-1}{\log_2(i+1)}, \qquad \text{nDCG@k} = \frac{\text{DCG@k}}{\text{IDCG@k}}$$
 
@@ -111,6 +111,13 @@ Three rules make experimental numbers interpretable rather than merely reproduci
 - Attach improved/unchanged/regressed counts versus an in-run baseline to every reported aggregate; persist per-query ranks.
 - Audit coverage once per corpus change; report evaluated and skipped counts with every table.
 - Gate harness changes on digit-exact reproduction of a recorded result.
+
+## Sources and further reading
+
+- Järvelin, K. & Kekäläinen, J. (2002). *Cumulated Gain-Based Evaluation of IR Techniques.* ACM TOIS. [PDF](https://faculty.cc.gatech.edu/~zha/CS8803WST/dcg.pdf) · [ACM](https://dl.acm.org/doi/10.1145/582415.582418) — the origin of DCG/nDCG and the argument for graded relevance.
+- Voorhees, E. (2005). *TREC: Improving Information Access through Evaluation.* [Wiley](https://asistdl.onlinelibrary.wiley.com/doi/10.1002/bult.2003.1720320105); TREC relevance-judgment data: [trec.nist.gov](https://trec.nist.gov/data/reljudge_eng.html) — pooling, judgment methodology, and the practical limits of judged sets.
+- Thakur, N. et al. (2021). *BEIR.* [arXiv:2104.08663](https://arxiv.org/abs/2104.08663) · [[RES - Thakur et al 2021 - BEIR Zero-Shot IR Benchmark (arXiv)]] — cross-domain evaluation design; nDCG@10 as the headline metric across eighteen datasets.
+- Implementation discussed: `pkg/rag/evaluation/retrieval.go` (`EvaluateRankings`, `Retrieval`) and the per-query delta accounting in `cmd/rag-ttc/cmds/experiments/chunkcompare/deltas.go`.
 
 ## Related notes
 

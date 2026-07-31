@@ -83,7 +83,7 @@ Three details make the gate honest. It prices the **worst case**, not the expect
 Long batch runs meet transient failures — HTTP 429 at a concurrency cap, dropped streams, resets. The layering that works:
 
 - **Batch layer: fail fast.** The first hard error stops the run. Partial progress is already durable (per-item commitment), and continuing past an error of unknown class risks compounding it.
-- **Item layer: absorb transients.** A retrying wrapper (`pkg/rag/generation/retry.go`, `WithRetry`) retries classified-transient failures with exponential backoff and jitter, never retries context cancellation, and never retries provider verdicts (a model refusing a malformed request will refuse it identically six times). Classification is by substring against the flat error strings the provider layer emits — an admission that no typed error surface crosses that boundary, recorded as such.
+- **Item layer: absorb transients.** A retrying wrapper (`pkg/rag/generation/retry.go`, `WithRetry`) retries classified-transient failures with exponential backoff and full jitter — the strategy the AWS Architecture Blog's analysis showed minimizes both completion time and contention among competing clients — never retries context cancellation, and never retries provider verdicts (a model refusing a malformed request will refuse it identically six times). Classification is by substring against the flat error strings the provider layer emits — an admission that no typed error surface crosses that boundary, recorded as such.
 
 Placement beneath the cache means a retried success stores once and every replay is free; placement of *classification* at the item layer means the batch layer needs no provider knowledge at all.
 
@@ -112,6 +112,12 @@ Every experiment invocation writes an immutable directory (`pkg/experiment/`): c
 - Refuse provider work without a worst-case budget, stated with its arithmetic; enforce with a hard limiter besides the preflight.
 - Retry transients per item beneath the cache; fail batches fast.
 - Write immutable run directories; permanent names; verbatim prompts; claims cite runs.
+
+## Sources and further reading
+
+- Brooker, M. (2015). *Exponential Backoff and Jitter.* AWS Architecture Blog. [aws.amazon.com](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/) · [[RES - AWS Architecture Blog - Exponential Backoff and Jitter]] — the simulation-backed case for full jitter; the companion [retry-with-backoff pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/retry-backoff.html) catalogues the variants.
+- *Git Internals — Git Objects.* [git-scm.com](https://git-scm.com/book/en/v2/Git-Internals-Git-Objects) — the most widely deployed content-addressed store; the digest-identity discipline in this article is the same idea applied to experiment artifacts.
+- Implementation discussed: `pkg/execution/` (`MapCached`, budgets, `FileCache`), `pkg/rag/generation/cached.go` and `retry.go`, `pkg/rag/indexbundle/` (digested bundles), `pkg/experiment/` (run directories) in the rag-ttc repository.
 
 ## Related notes
 

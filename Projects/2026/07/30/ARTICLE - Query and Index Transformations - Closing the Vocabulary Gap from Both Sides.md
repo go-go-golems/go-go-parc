@@ -76,7 +76,7 @@ Under reciprocal rank fusion with zero-for-absence semantics (see [[ARTICLE - Ra
 
 The variant generation itself (`generateVariants`) is a strict-contract call — "Return exactly one JSON object: {\"variants\": [...]}" — with defensive post-processing: variants are trimmed, deduplicated against the original question, and capped at the requested count. The governing rule is stated in the code's comment and deserves elevation to principle: **reformulation failure degrades to the plain question, never to a failed turn**, and the retrieval record carries both the variants used (`result.Variants`) and the failure reason when generation failed (`result.VariantError`). A turn must not become less reliable because an optional enhancement misfired; a record must not pretend the enhancement ran.
 
-**HyDE** replaces the query on the *vector channel only* with a generated hypothetical answer, on the observation that an answer written in document register embeds nearer to relevant documents than an interrogative does. The implementation (`StrategyHyDE`) keeps the lexical channel on the original question — exact terms the user typed remain valuable lexical evidence — and swaps only the vector query:
+**HyDE** (Gao et al. 2022) replaces the query on the *vector channel only* with a generated hypothetical answer, on the observation that an answer written in document register embeds nearer to relevant documents than an interrogative does. The implementation (`StrategyHyDE`) keeps the lexical channel on the original question — exact terms the user typed remain valuable lexical evidence — and swaps only the vector query:
 
 ```go
 hypothetical, variantErr := s.generateHypothetical(ctx, state, query)
@@ -93,11 +93,11 @@ The prompt constrains register and length ("a short plausible answer … as it w
 
 ### Index-side transformations
 
-**Synthetic questions** generate, per chunk, the questions the chunk answers, and index each question as its own representation whose identity points back to the source chunk (`GeneratedQuestions` and `GeneratedQuestionsBatched` in `pkg/rag/representations/`; kind `question`; the hydration invariant of [[ARTICLE - Representation Theory for Retrieval - Indexing Descriptions Instead of Content]] does the rest). This is HyDE reflected across the index boundary: instead of transforming each query toward document space at answer time, every chunk is transformed toward query space at indexing time. When evaluation queries are questions — the usual case, and this corpus's case — the indexed questions are drawn from the *same distribution as the queries themselves*, the strongest distributional match available to either side.
+**Synthetic questions** — document expansion by query prediction, introduced as doc2query (Nogueira et al. 2019) and scaled as docTTTTTquery — generate, per chunk, the questions the chunk answers, and index each question as its own representation whose identity points back to the source chunk (`GeneratedQuestions` and `GeneratedQuestionsBatched` in `pkg/rag/representations/`; kind `question`; the hydration invariant of [[ARTICLE - Representation Theory for Retrieval - Indexing Descriptions Instead of Content]] does the rest). This is HyDE reflected across the index boundary: instead of transforming each query toward document space at answer time, every chunk is transformed toward query space at indexing time. When evaluation queries are questions — the usual case, and this corpus's case — the indexed questions are drawn from the *same distribution as the queries themselves*, the strongest distributional match available to either side.
 
 **Entity expansion** targets the synonymy failure directly: one generation per chunk lists "the plant species, common names, botanical synonyms, and product names this text concerns" (prompt constant `PromptEntities` in `pkg/rag/representations/prompts.go`), appended to the chunk text as an expansion line (kind `entities`). The design prediction, checkable in per-query deltas: improvements should concentrate on the species-synonymy queries identified in the judged-miss audit, and an improvement smeared evenly across queries would indicate the arm is working by some other mechanism than the hypothesis.
 
-**Contextual blurbs** address a different gap — chunks lose their document context when cut — but travel the same machinery: generated once per chunk, indexed as retrieval material, hydrated to source.
+**Contextual blurbs** (Anthropic's contextual retrieval, 2024 — reporting up to a 49% reduction in retrieval failure rate when combined with BM25 on their corpora) address a different gap — chunks lose their document context when cut — but travel the same machinery: generated once per chunk, indexed as retrieval material, hydrated to source.
 
 ### The cost rule
 
@@ -125,6 +125,13 @@ A second, quieter asymmetry: index-side transformations are *inspectable at rest
 - Keep HyDE vector-only; keep multi-query fused with family-resolved weights.
 - Choose the side by the cost rule (corpus stability × query volume), then measure both jointly; the sides compose.
 - Validate index-side arms against their *mechanism* via per-query deltas, not only against aggregate lift.
+
+## Sources and further reading
+
+- Gao, L., Ma, X., Lin, J. & Callan, J. (2022). *Precise Zero-Shot Dense Retrieval without Relevance Labels.* [arXiv:2212.10496](https://arxiv.org/abs/2212.10496) · [ACL 2023](https://aclanthology.org/2023.acl-long.99/) · [[RES - Gao et al 2022 - HyDE Precise Zero-Shot Dense Retrieval (arXiv)]] — the HyDE paper; note its framing as *zero-shot* retrieval, where no relevance-tuned encoder exists.
+- Nogueira, R., Yang, W., Lin, J. & Cho, K. (2019). *Document Expansion by Query Prediction.* [arXiv:1904.08375](https://arxiv.org/abs/1904.08375) · [[RES - Nogueira Cho 2019 - Document Expansion by Query Prediction doc2query (arXiv)]] — the index-side original; expansion before indexing so plain BM25 benefits.
+- Anthropic (2024). *Introducing Contextual Retrieval.* [anthropic.com/engineering/contextual-retrieval](https://www.anthropic.com/engineering/contextual-retrieval) · [[RES - Anthropic 2024 - Introducing Contextual Retrieval]] — contextual embeddings + contextual BM25, prompt-caching economics, and the reported failure-rate reductions the lab's E6 tests against.
+- Implementation discussed: `pkg/rag/answering/service.go` (`generateVariants`, `generateHypothetical`, `StrategyMultiQuery`, `StrategyHyDE`) and `pkg/rag/representations/` in the rag-ttc repository.
 
 ## Related notes
 
