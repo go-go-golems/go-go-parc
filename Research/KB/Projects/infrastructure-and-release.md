@@ -189,6 +189,15 @@ that exists in Vault but has no file in git is drift.
 
 ### Where to look
 
+**Cross-repository playbooks** (this vault, `Research/playbooks/infra/`):
+
+- [[Research/playbooks/infra/PLAYBOOK - Onboarding a Source Repository to the GitOps Image Pipeline]]
+  — the orchestration view: what happens in which repository and in what order.
+- [[Research/playbooks/infra/PLAYBOOK - Per-Application SES Sending Identity]] — SES identity,
+  IAM principal, the credential-out-of-state rule, and Vault delivery.
+- [[Research/playbooks/infra/PLAYBOOK - Argo CD Application with a local-path PVC on k3s]]
+- [[Research/playbooks/infra/PLAYBOOK - Vault Backed Go Binary Releases]]
+
 **Playbooks and procedures** (`wesen/2026-03-27--hetzner-k3s/docs/`):
 
 - `app-runtime-secrets-and-identity-provisioning-playbook.md` — the main one: provisioning
@@ -346,6 +355,10 @@ it held. Three items remain, all of a different kind:
   pipeline and its per-repo checklist.
 - `go-go-golems/infra-tooling/docs/platform/source-repo-to-gitops-pr.md` — the caller contract
   for the shared workflow.
+- `go-go-golems/infra-tooling/docs/go-go-golems/playbooks/private-go-module-authentication-playbook.md`
+  — the **other** GitHub App credential: read access to private
+  `github.com/hyperslop-systems/*` Go modules at build time. Different scope, different bound
+  claims, and easy to confuse with the GitOps PR credential.
 - `go-go-golems/infra-tooling/.github/workflows/publish-ghcr-image.yml` — the authority on
   which inputs exist; read it before trusting any prose about them.
 - `terraform/ttmp/2026/07/17/TF-012-GITOPS-GITHUB-APP-MIGRATION--*` — the migration ticket,
