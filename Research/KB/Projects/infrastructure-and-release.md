@@ -253,8 +253,18 @@ what is wrong is what CI reads afterwards: a long-lived PAT. It expired in produ
 because Vault returned it successfully the failure surfaced only at the GitHub API as
 `Bad credentials`. `secret` mode is older still.
 
-**Diagnostic:** App-mode pull requests are authored by `app/wesen-gitops-pr-bot`. A GitOps PR
-authored by `github-actions[bot]` means that caller is still in PAT mode.
+**Diagnostic:** check the pull request **actor**, never the commit author.
+
+```sh
+gh pr list --repo wesen/2026-03-27--hetzner-k3s --state all \
+  --json number,author,headRefName \
+  --jq '.[] | select(.headRefName|test("automation/")) | "\(.number) \(.author.login)"'
+```
+
+App mode shows `app/wesen-gitops-pr-bot`; PAT mode shows the PAT owner's username.
+`open_gitops_pr.py` hardcodes `github-actions[bot]` as the git author in every mode unless
+`GITOPS_PR_GIT_AUTHOR_NAME` overrides it, so the commit author is identical for both and
+distinguishes nothing.
 
 ### The Vault role binding
 
