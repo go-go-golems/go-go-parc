@@ -80,6 +80,7 @@ Read this map by device and pipeline rather than by date. The oldest PaperS3 and
 - [[PROJ - PaperS3 E-Reader - Interactive Book Reader on E-Ink]] — e-ink reader architecture.
 - [[PROJ - PaperS3 WAMR Debugging - Embedded Wasm Root Cause]] — Wasm and e-paper debugging.
 - [[ARTICLE - PaperS3 EPD Qualification - What Software Success Did Not Prove]] — hardware qualification limits.
+- [[PROJ - PULP OS Image Gallery - mDNS Browser Upload and the Bitmap Blit]] — browser-side 4-bit grayscale image upload, SD storage, and the latent DrawOpKind::Bitmap rasterizer implemented as a picture-frame pipeline.
 - [[Research/KB/On-Ramp/e-ink-display-driving]] — e-ink display fundamentals.
 - [[ARTICLE - ESP32-P4 MIPI DSI Image Blitter - Browser-to-Display Pipeline on the M5Stack Tab5]] — browser-to-display data path.
 - [[ARTICLE - ESP32-P4 PicoCalc Display Optimization - Queued SPI and Dirty Rectangles]] — display scheduling and dirty regions.
