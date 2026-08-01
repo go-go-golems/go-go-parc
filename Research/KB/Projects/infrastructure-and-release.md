@@ -66,6 +66,7 @@ The recurring invariant is dependency order. A release is not a single repositor
 - [[ARTICLE - NPM Publishing for Go Go Golems Packages with Vault OIDC]] — npm delivery.
 - [[ARTICLE - Trusted npm Publishing for Go Go Golems React Packages]] — trusted frontend package publishing.
 - [[ARTICLE - Static-Sites Deployment - A Three-Contract Model for Shipments]] — static artifact contracts.
+- [[Research/playbooks/infra/PLAYBOOK - Vite Static Site on the Shared K3s Host]] — Vite/React/TypeScript static builds, `/site` artifact images, the shared Caddy/PVC publisher Job, GitOps `static-publisher-job` handoff, Vault image pulls, and HTTPS activation.
 - [[ARTICLE - Git Repository Consolidation - Migrating Corporate Submodules and Worktrees]] — repository topology.
 
 ### Platforms and GitOps
