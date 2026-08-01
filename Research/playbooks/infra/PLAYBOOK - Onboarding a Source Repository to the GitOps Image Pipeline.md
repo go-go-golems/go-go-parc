@@ -13,6 +13,7 @@ tags:
   - k3s
   - github-actions
   - github-apps
+  - ghcr
   - vault
   - ci-cd
 status: active
@@ -87,6 +88,88 @@ that state.
 
 Detail: `2026-03-27--hetzner-k3s/docs/app-runtime-secrets-and-identity-provisioning-playbook.md`.
 For mail specifically, [[Research/playbooks/infra/PLAYBOOK - Per-Application SES Sending Identity]].
+
+#### 2a. Private GHCR image-pull credential: create, seed, and prove it
+
+A private GHCR image needs a **third** credential boundary, separate from both CI credentials in
+§3. The Pod uses a Docker-compatible `imagePullSecret`; Vault Secrets Operator (VSO) renders it
+from `kv/apps/<app>/<env>/image-pull`. It is a runtime credential, not a GitOps PR credential
+and not a GitHub Actions credential.
+
+GitHub Container Registry currently requires a **classic personal access token (PAT)** for this
+non-Actions registry pull. Create it from an account that has read access to the package:
+
+1. In a browser, open `https://github.com/settings/tokens/new` and complete GitHub's sudo
+   authentication. Passkey/security-key approval is human-in-the-loop; the operator completes it
+   in the browser before the agent continues.
+2. Give the token an app- and environment-specific note, for example
+   `hair-booking-k3s-ghcr-pull (rotate YYYY-MM-DD)`.
+3. Keep GitHub's deliberately short expiration (30 days unless an operator chooses otherwise) and
+   record the rotation date in the note. Select **only** `read:packages`; do not select
+   `write:packages`, `delete:packages`, `repo`, or any unrelated scope.
+4. If the `wesen` organization enforces SSO, authorize the token for that organization.
+5. GitHub displays the token only once. The agent must **never** read it aloud, return it in a
+   tool result, put it in a prompt, commit it, or attempt to scrape it from the browser. Ask the
+   operator to copy it to a restrictive temporary file such as `/tmp/ghcr-token-<app>.txt`.
+
+Use a dedicated machine-user credential per app where possible. Do not copy a working app's
+Vault record to a new app: shared readers make revocation and incident scope needlessly broad.
+GitHub Apps and their installation tokens are suitable for GitOps PR automation, but cannot
+currently authenticate a Kubernetes pull from private GHCR; `GITHUB_TOKEN` is likewise
+short-lived and only exists inside an Actions run.
+
+After the operator has created the temporary file, validate the credential and write it directly
+to Vault without printing it. The following pattern removes the file even when an intermediate
+step fails:
+
+```bash
+set -euo pipefail
+secret_file=/tmp/ghcr-token-<app>.txt
+app=<app>
+env=prod
+ghcr_username=<github-machine-user>
+
+[[ -s "$secret_file" ]] || { echo "missing GHCR token file" >&2; exit 1; }
+chmod 600 "$secret_file"
+trap 'rm -f "$secret_file"' EXIT
+
+ghcr_token="$(tr -d '\r\n' < "$secret_file")"
+[[ "$ghcr_token" =~ ^(ghp_|github_pat_) ]] || {
+  echo "unexpected GHCR token format" >&2
+  exit 1
+}
+
+# Test package access without emitting the PAT or the registry bearer token.
+status="$(printf 'user = "%s:%s"\n' "$ghcr_username" "$ghcr_token" |
+  curl --silent --show-error --output /dev/null --write-out '%{http_code}' --config - \
+    "https://ghcr.io/token?service=ghcr.io&scope=repository%3Awesen%2F${app}%3Apull")"
+[[ "$status" == 200 ]] || { echo "GHCR authorization failed: HTTP $status" >&2; exit 1; }
+
+auth_b64="$(printf '%s:%s' "$ghcr_username" "$ghcr_token" | base64 | tr -d '\n')"
+vault kv put "kv/apps/${app}/${env}/image-pull" \
+  server=ghcr.io \
+  username="$ghcr_username" \
+  password="$ghcr_token" \
+  auth="$auth_b64" \
+  source="dedicated ${app} GHCR pull PAT" >/dev/null
+unset ghcr_token auth_b64
+```
+
+The destination `VaultStaticSecret` must transform the four fields into a
+`kubernetes.io/dockerconfigjson` Secret and its ServiceAccount must reference that Secret in
+`imagePullSecrets`. Confirm VSO has refreshed it, then inspect the new Pod:
+
+```bash
+kubectl -n <app> get vaultstaticsecret <app>-ghcr-pull
+kubectl -n <app> get pods
+kubectl -n <app> describe pod <new-pod-name>
+```
+
+VSO refreshes the Secret according to `refreshAfter` (normally 30 seconds). A Pod already in
+`ImagePullBackOff` may retain its retry backoff after the secret update; delete **only that failed
+Pod** and let its Deployment recreate it. Do not delete the Deployment, PVC, or VSO resources.
+A successful `Pulled` event proves registry access only; wait for `Ready` and check application
+logs before declaring rollout health.
 
 ### 3. CI credentials
 
@@ -222,6 +305,8 @@ logs at all.
 | Sends hang until timeout | NetworkPolicy has no egress rule for the port — §5 |
 | Certificate never issues | DNS not resolving before sync — §1 |
 | GitOps PR never opens, image published fine | CI credential: path not seeded, or policy not applied — §3 |
+| New Pod reports `ErrImagePull` / GHCR HTTP 403 | The app's `kv/apps/<app>/<env>/image-pull` credential is expired, unauthorized for that package, or has malformed Docker config — §2a |
+| New image pulls but the container CrashLoops | Registry access is fixed; read `kubectl logs --previous` and treat the startup failure as a separate application/image defect |
 
 ## Related
 
