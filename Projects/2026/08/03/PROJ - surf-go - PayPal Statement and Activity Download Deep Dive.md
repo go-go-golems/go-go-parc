@@ -241,7 +241,7 @@ The captured report was decoded once, verified by size and SHA-256 before the at
 - Investigation diary (12 steps): same workspace, `reference/01-investigation-diary.md`
 - Probe scripts and sanitized results: same workspace, `scripts/01`–`27`
 - Implementation: `/home/manuel/code/wesen/surf-cli/go/internal/cli/commands/paypal.go`, `scripts/paypal.js`, `paypal_test.go`
-- Related: [[PROJ - surf-go - Bank of America Statement and Transaction Downloads]] (precedent provider, same boundary design)
+- Related: [[Authenticated Bank of America Browser Verbs in surf-go - Deep Technical Project Report]] and [[PROJECT REPORT - surf-go Apple Card Statement Downloads]] (precedent providers, same boundary design)
 
 ## Project working rule
 
