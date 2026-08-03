@@ -1,27 +1,27 @@
 ---
-title: "Deep-Dive Project Report: surf-go Apple Card Statement Downloads"
-aliases:
-  - surf-go Apple Card Statement Downloads
-  - Apple Card Browser Verb Deep Dive
-  - surf-go Financial Document Downloads
-
-tags:
-  - project-report
-  - surf-go
-  - surf-cli
-  - browser-automation
-  - apple-card
-  - javascript
-  - go
-  - glazed
-  - data-extraction
-  - financial-data
-status: active
-type: article
-created: 2026-08-03
-repo: /home/manuel/code/wesen/surf-cli
-ticket: SURF-20260803-APPLECARD1
+Title: ""
+Ticket: ""
+Status: ""
+Topics: []
+DocType: ""
+Intent: ""
+Owners: []
+RelatedFiles:
+    - Path: abs:///home/manuel/code/wesen/go-go-golems/go-go-parc/Research/2026/08/03/PROJECT REPORT - surf-go Apple Card Statement Downloads.md
+      Note: Full Obsidian vault copy of the technical report
+    - Path: repo://go/cmd/surf-go/main.go
+      Note: Command registration analyzed by the report
+    - Path: repo://go/internal/cli/commands/apple_card.go
+      Note: Primary implementation analyzed by the deep-dive report
+    - Path: repo://go/internal/cli/commands/scripts/apple_card.js
+      Note: Page-context request and encoding implementation analyzed by the report
+ExternalSources: []
+Summary: ""
+LastUpdated: 0001-01-01T00:00:00Z
+WhatFor: ""
+WhenToUse: ""
 ---
+
 
 # Deep-Dive Project Report: surf-go Apple Card Statement Downloads
 
