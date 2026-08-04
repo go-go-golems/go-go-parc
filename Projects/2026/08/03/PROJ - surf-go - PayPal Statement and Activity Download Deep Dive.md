@@ -224,12 +224,12 @@ The captured report was decoded once, verified by size and SHA-256 before the at
 |---|---|---|
 | `paypal statements` | Implemented, live-validated | 25 statements listed from tab `441403489` |
 | `paypal statement-download --month YYYY-MM` | Implemented, live-validated | 280,872-byte PDF, SHA-256 verified |
-| Activity Download contract | Fully observed, artifact validated | 1059-byte CSV, SHA-256 `05432e08…cb392` |
-| `paypal activity-export` command | Unblocked, not yet implemented | Design guide Section 7.3 |
+| `paypal activity-export` | Implemented, live-validated end-to-end | Two 1649-byte CSV artifacts with identical SHA-256 `e87df2ad…d85a` (manual + full CLI run), mode `0o600` |
+
+Post-publication update: the Activity Download implementation surfaced three live-only failure modes, each now fixed and documented in the ticket diary (Step 14). The report CSV is prefixed with a UTF-8 BOM, so validation strips the BOM before checking the header. The date-range control is a preset dropdown (`Since last download`, `Today`, …) whose custom `From`/`To` inputs commit only via `M/D/YYYY` plus Enter — typing alone silently submits today's date, and the script now refuses to submit unless the picker model visibly reflects the requested range. PayPal sessions bounce through `/signin` during silent token refreshes, so the poll loop tolerates short `not-ready` streaks instead of dying mid-wait. The submitted `formdata` dates are 14-digit `YYYYMMDDHHMMSS` values in the account timezone, start-of-day to end-of-day.
 
 ## Open questions and near-term next steps
 
-- Implement `paypal activity-export`: form fill (transaction type, date range, format), submit, poll history to ready with a budget measured in tens of minutes, Blob capture, validated atomic write. Task `[zf2l]` in the ticket tracks this.
 - Verify the Blob byte source holds for TAB, PDF, IIF, and QIF formats; only CSV is proven.
 - Measure how generation latency scales with date-range size; the single observation (~25 minutes for one day) may be a floor or a constant.
 - Determine whether `Download all` on the monthly page is a repeated per-month request or a separate ZIP contract.
