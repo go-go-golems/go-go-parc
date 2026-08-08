@@ -766,7 +766,791 @@ The device is usable, but several technical questions remain:
 
 The immediate development path is stable: edit QML, build with Clickable, install over SSH, query the full app ID, and launch through Lomiri. USB recovery remains available by manually loading `cdc_acm` and using the preloader command when needed.
 
-## 19. References
+## 19. Reproducible command runbook
+
+This section consolidates the commands used during the session into one ordered procedure. It is not a generic flashing script. The reader must confirm that the device is a Rabbit R1, that the firmware package is rabbitOS v0.8.293, and that the GPT partition names match before executing raw reads or writes.
+
+> [!danger] Stop conditions
+> Stop if fastboot reports a locked bootloader before a write, if the firmware files or partition sizes differ, if the `seccfg` candidate is not exactly 8 MiB, if `lock_state` is not `3`, or if candidate differences extend outside the authenticated header and managed-verity record. Never copy another device's `seccfg`, NVRAM, NVData, `protect*`, or `proinfo` partitions.
+
+### 19.1 Establish paths and verify the stock archive
+
+The session used these paths:
+
+```bash
+R1ROOT="$HOME/code/others/rabbit-r1"
+R1ESC="$R1ROOT/r1_escape"
+FW="$R1ROOT/rabbit_OS_v0.8.293_20250516110545"
+BACKUP="$R1ROOT/r1-backup"
+ZIP="$HOME/Downloads/rabbit_OS_v0.8.293.zip"
+```
+
+Inspect and hash the archive before extraction:
+
+```bash
+ls -lh "$ZIP"
+sha256sum "$ZIP"
+unzip -l "$ZIP" | head -80
+```
+
+Expected archive SHA-256:
+
+```text
+f6c28b221a91055ec5e44ab0ac0ee59c7e6b52fac12ad08f2bb23c8f0551c6c0
+```
+
+Extract it into the recovery working directory:
+
+```bash
+cd "$R1ROOT"
+unzip -qo "$ZIP" -d .
+find "$FW" -maxdepth 1 -type f -printf '%f\n' | sort
+```
+
+The required stock payloads include `boot.img`, `super.img`, `userdata.img`, all three vbmeta images, and the A/B boot-chain firmware listed earlier in this report.
+
+### 19.2 Create one Python environment for MediaTek tools
+
+Using a fixed virtual-environment interpreter prevents `sudo` from silently switching to a Python installation without `pyusb` or `pyserial`:
+
+```bash
+cd "$R1ESC"
+python3 -m venv .venv
+.venv/bin/python -m pip install -U pip wheel pyserial
+.venv/bin/python -m pip install -r mtkclient/requirements.txt
+```
+
+Verify both required imports:
+
+```bash
+"$R1ESC/.venv/bin/python" - <<'PY'
+import serial
+import usb.core
+print("pyserial and pyusb are available")
+PY
+```
+
+When root access is required, invoke that exact interpreter:
+
+```bash
+sudo "$R1ESC/.venv/bin/python" "$R1ESC/mtkclient/mtk" printgpt
+```
+
+Do not substitute bare `sudo python3`.
+
+### 19.3 Capture the GPT and persistent backups
+
+Power the Rabbit off and disconnect it before each command. Start the command first; connect the powered-off device only when `mtkclient` reports that it is waiting for preloader or BROM mode. Disconnect it after each command completes. Run only one `mtkclient` process at a time.
+
+```bash
+mkdir -p "$BACKUP"
+cd "$R1ESC/mtkclient"
+
+sudo "$R1ESC/.venv/bin/python" ./mtk printgpt \
+  | tee "$R1ROOT/mtk-gpt.txt"
+```
+
+Read the security and unlock-policy partitions:
+
+```bash
+sudo "$R1ESC/.venv/bin/python" ./mtk r seccfg \
+  "$BACKUP/seccfg-original.bin"
+
+sudo "$R1ESC/.venv/bin/python" ./mtk r frp \
+  "$BACKUP/frp-current.bin"
+```
+
+Read the persistent calibration and provisioning partitions found in this device's GPT:
+
+```bash
+sudo "$R1ESC/.venv/bin/python" ./mtk r nvcfg \
+  "$BACKUP/nvcfg-original.bin"
+
+sudo "$R1ESC/.venv/bin/python" ./mtk r nvdata \
+  "$BACKUP/nvdata-original.bin"
+
+sudo "$R1ESC/.venv/bin/python" ./mtk r protect1 \
+  "$BACKUP/protect1-original.bin"
+
+sudo "$R1ESC/.venv/bin/python" ./mtk r protect2 \
+  "$BACKUP/protect2-original.bin"
+
+sudo "$R1ESC/.venv/bin/python" ./mtk r proinfo \
+  "$BACKUP/proinfo-original.bin"
+
+sudo "$R1ESC/.venv/bin/python" ./mtk r nvram \
+  "$BACKUP/nvram-original.bin"
+```
+
+Normalize ownership and record hashes:
+
+```bash
+sudo chown -R "$USER:$USER" "$BACKUP"
+sha256sum "$BACKUP"/*.bin > "$BACKUP/SHA256SUMS"
+cat "$BACKUP/SHA256SUMS"
+```
+
+Confirm backup sizes against `mtk-gpt.txt`:
+
+```bash
+ls -lh "$BACKUP"
+grep -Ei 'seccfg|frp|nvcfg|nvdata|nvram|proinfo|protect1|protect2' \
+  "$R1ROOT/mtk-gpt.txt"
+```
+
+### 19.4 Enter bootloader fastboot through the MediaTek preloader
+
+The host normally keeps `cdc_acm` blacklisted because it interfered with later ADB experiments. Load it explicitly for preloader serial access:
+
+```bash
+sudo modprobe cdc_acm
+cd "$R1ESC"
+.venv/bin/python mtkbootcmd.py FASTBOOT
+```
+
+Start the Python command while the device is powered off and disconnected. Plug in the powered-off Rabbit when it waits. Verify the transition:
+
+```bash
+fastboot devices -l
+```
+
+The button method can also be attempted from a powered-off state by rotating the scroll wheel upward while holding the side power button until the boot-mode menu appears, then selecting Fastboot. The serial method was more deterministic during this session.
+
+### 19.5 Capture fastboot state before changing it
+
+Fastboot variables are commonly printed on standard error, so redirect both streams:
+
+```bash
+{
+  date -Is
+  fastboot --version
+  fastboot devices -l
+  fastboot getvar product
+  fastboot getvar unlocked
+  fastboot getvar secure
+  fastboot getvar current-slot
+  fastboot getvar slot-count
+  fastboot getvar slot-successful:a
+  fastboot getvar slot-unbootable:a
+  fastboot getvar slot-retry-count:a
+  fastboot getvar slot-successful:b
+  fastboot getvar slot-unbootable:b
+  fastboot getvar slot-retry-count:b
+  fastboot getvar is-userspace
+} > "$R1ROOT/post-stock-fastboot-state.txt" 2>&1
+
+cat "$R1ROOT/post-stock-fastboot-state.txt"
+```
+
+After the WebUSB stock flash, this showed a locked bootloader and slot A marked unbootable. Check unlock eligibility:
+
+```bash
+fastboot flashing get_unlock_ability
+```
+
+Then unlock and confirm the on-device prompt:
+
+```bash
+fastboot flashing unlock
+```
+
+The unlock wipes userdata. Re-enter fastboot if the device reboots, then normalize slot A:
+
+```bash
+fastboot set_active a
+fastboot reboot bootloader
+```
+
+Capture the resulting state:
+
+```bash
+{
+  fastboot getvar unlocked
+  fastboot getvar current-slot
+  fastboot getvar slot-successful:a
+  fastboot getvar slot-unbootable:a
+  fastboot getvar slot-retry-count:a
+  fastboot getvar slot-successful:b
+  fastboot getvar slot-unbootable:b
+  fastboot getvar slot-retry-count:b
+} 2>&1 | tee "$R1ROOT/post-unlock-slot-state.txt"
+```
+
+The required precondition for the terminal stock restore was:
+
+```text
+unlocked: yes
+current-slot: a
+slot-unbootable:a: no
+slot-unbootable:b: no
+```
+
+### 19.6 Restore the stock image set without relocking
+
+The session created `r1-terminal-stock-restore.sh`. Its executable path was:
+
+```bash
+chmod +x "$R1ROOT/r1-terminal-stock-restore.sh"
+bash "$R1ROOT/r1-terminal-stock-restore.sh"
+```
+
+The script checked for a connected fastboot device, required `unlocked: yes`, verified all source files, and then ran the following effective sequence:
+
+```bash
+fastboot erase userdata
+
+for slot in a b; do
+  fastboot flash "vbmeta_${slot}" "$FW/vbmeta.img"
+  fastboot flash "vbmeta_system_${slot}" "$FW/vbmeta_system.img"
+  fastboot flash "vbmeta_vendor_${slot}" "$FW/vbmeta_vendor.img"
+  fastboot flash "md1img_${slot}" "$FW/md1img.img"
+  fastboot flash "spmfw_${slot}" "$FW/spmfw.img"
+  fastboot flash "scp_${slot}" "$FW/scp.img"
+  fastboot flash "sspm_${slot}" "$FW/sspm.img"
+  fastboot flash "gz_${slot}" "$FW/gz.img"
+  fastboot flash "lk_${slot}" "$FW/lk.img"
+  fastboot flash "boot_${slot}" "$FW/boot.img"
+  fastboot flash "dtbo_${slot}" "$FW/dtbo.img"
+  fastboot flash "tee_${slot}" "$FW/tee.img"
+done
+
+fastboot flash logo "$FW/logo.bin"
+fastboot flash super "$FW/super.img"
+fastboot flash userdata "$FW/userdata.img"
+fastboot set_active a
+fastboot reboot bootloader
+```
+
+This sequence intentionally omitted preloader and all backed-up persistent partitions. It also omitted every `flashing lock` operation and every `--disable-verity` or `--disable-verification` flag.
+
+Verify state again before a normal boot:
+
+```bash
+{
+  fastboot getvar unlocked
+  fastboot getvar current-slot
+  fastboot getvar slot-successful:a
+  fastboot getvar slot-unbootable:a
+  fastboot getvar slot-retry-count:a
+  fastboot getvar slot-successful:b
+  fastboot getvar slot-unbootable:b
+  fastboot getvar slot-retry-count:b
+} 2>&1 | tee "$R1ROOT/post-terminal-stock-state.txt"
+```
+
+Attempt one stock boot:
+
+```bash
+fastboot reboot
+```
+
+The red dm-verity screen persisted despite a coherent stock set and healthy slot metadata. That result opened the `seccfg` decision gate.
+
+### 19.7 Inspect the current `seccfg` state
+
+The original backup can be inspected without connecting the device:
+
+```bash
+cd "$R1ROOT"
+python3 - <<'PY'
+from pathlib import Path
+
+p = Path("r1-backup/seccfg-original.bin")
+b = p.read_bytes()
+print("size:", len(b))
+print("magic:", b[0:4])
+print("version:", int.from_bytes(b[0x04:0x08], "little"))
+print("header-size-field:", int.from_bytes(b[0x08:0x0c], "little"))
+print("lock_state:", int.from_bytes(b[0x0c:0x10], "little"))
+print("critical_or_verity:", int.from_bytes(b[0x10:0x14], "little"))
+print("managed_record_nonzero:", any(b[0x240:0x2c0]))
+PY
+```
+
+The observed values were:
+
+```text
+size: 8388608
+magic: b'MMMM'
+version: 4
+header-size-field: 60
+lock_state: 3
+critical_or_verity: 1
+managed_record_nonzero: True
+```
+
+### 19.8 Patch `mtkclient` for authenticated, dump-only header generation
+
+The local `mtkclient` revision was recorded before patching:
+
+```bash
+cd "$R1ESC/mtkclient"
+git rev-parse HEAD
+```
+
+Observed revision:
+
+```text
+cd27d1cc03ca9f140c591f5d4b9f025e01e44d0e
+```
+
+Back up the source files before applying the reviewed community patch:
+
+```bash
+REV=$(git rev-parse HEAD)
+cp mtkclient/Library/Hardware/seccfg.py "/tmp/seccfg.py.$REV.original"
+cp mtkclient/Library/DA/xflash/extension/xflash.py \
+  "/tmp/xflash.py.$REV.original"
+```
+
+The community patch came from:
+
+```text
+https://github.com/jonathanprocter/rabbit-r1-deverity-recovery
+patches/mtkclient-seccfg-critical0.patch
+```
+
+Apply it and inspect the exact diff:
+
+```bash
+git apply /tmp/rabbit-r1-deverity-recovery/patches/mtkclient-seccfg-critical0.patch
+git diff -- \
+  mtkclient/Library/Hardware/seccfg.py \
+  mtkclient/Library/DA/xflash/extension/xflash.py
+```
+
+The session added one local safety guard after the generated dump was written:
+
+```python
+if os.environ.get("R1_SECCFG_DUMP_ONLY") == "1":
+    return True, "Generated seccfg candidate without writing device."
+```
+
+This guard belongs immediately after `R1_SECCFG_DUMP` is written and before `writeflash(...)` is called.
+
+### 19.9 Read a fresh base and generate the corrected header
+
+Read the current full partition again rather than constructing the candidate from an older backup:
+
+```bash
+cd "$R1ESC/mtkclient"
+sudo "$R1ESC/.venv/bin/python" ./mtk r seccfg \
+  "$BACKUP/seccfg-current.bin"
+```
+
+Power off and reconnect as instructed by `mtkclient`. Disconnect after the read. Generate a 512-byte authenticated header without writing the device:
+
+```bash
+sudo env \
+  MTK_SECCFG_UNLOCK_CRITICAL_STATE=0 \
+  R1_SECCFG_DUMP="$BACKUP/seccfg-generated-critical0.bin" \
+  R1_SECCFG_DUMP_ONLY=1 \
+  "$R1ESC/.venv/bin/python" \
+  "$R1ESC/mtkclient/mtk" \
+  da seccfg unlock \
+  --preloader "$FW/preloader_k65v1_64_bsp.bin"
+```
+
+Again, start with the device powered off and disconnected, then connect it when prompted. The `R1_SECCFG_DUMP_ONLY=1` precondition must be present.
+
+### 19.10 Build and audit the full candidate
+
+Normalize ownership of the fresh read:
+
+```bash
+sudo chown "$USER:$USER" "$BACKUP/seccfg-current.bin"
+```
+
+Run the checked helper:
+
+```bash
+python3 "$R1ROOT/r1-build-seccfg-candidate.py"
+```
+
+The helper replaces the first 512 bytes with the generated authenticated header and clears only `0x240:0x2c0`. Required output:
+
+```text
+size 8388608
+lock_state 3
+critical/dm-verity state 0
+managed-verity record nonzero? False
+```
+
+Perform an independent byte-range audit:
+
+```bash
+cd "$R1ROOT"
+python3 - <<'PY'
+from pathlib import Path
+import hashlib
+
+base = Path("r1-backup/seccfg-current.bin").read_bytes()
+cand = Path(
+    "r1-backup/seccfg-candidate-critical0-clear-verity.bin"
+).read_bytes()
+
+changed = [i for i, (a, b) in enumerate(zip(base, cand)) if a != b]
+print("same size:", len(base) == len(cand), len(base))
+print("changed bytes:", len(changed))
+print("first changed:", hex(min(changed)) if changed else None)
+print("last changed:", hex(max(changed)) if changed else None)
+print(
+    "outside header/managed:",
+    any(i >= 0x200 and not (0x240 <= i < 0x2c0) for i in changed),
+)
+print("header bytes changed:", sum(i < 0x200 for i in changed))
+print(
+    "managed bytes changed:",
+    sum(0x240 <= i < 0x2c0 for i in changed),
+)
+print("sha current:", hashlib.sha256(base).hexdigest())
+print("sha candidate:", hashlib.sha256(cand).hexdigest())
+PY
+```
+
+The session observed 93 changed bytes, all confined to the authenticated header and managed record. `outside header/managed` was `False`.
+
+### 19.11 Write the corrected `seccfg` once
+
+Only after all invariants pass, power the device off, start the write command, and connect the Rabbit when prompted:
+
+```bash
+cd "$R1ESC/mtkclient"
+sudo "$R1ESC/.venv/bin/python" ./mtk w seccfg \
+  "$BACKUP/seccfg-candidate-critical0-clear-verity.bin"
+```
+
+The successful session reported:
+
+```text
+100.0% Write (Sector 0x4000 of 0x4000)
+Wrote ...seccfg-candidate-critical0-clear-verity.bin
+  to sector 393216 with sector count 16384.
+```
+
+Wait for the process to return. Unplug USB, hold the side button for approximately 10–15 seconds, release, then boot normally. Do not repeat the raw write if the camera moves, the orange warning appears, fastbootd starts, or first-boot setup begins.
+
+If the device stops in fastbootd after the orange warning, connect USB and run:
+
+```bash
+fastboot devices -l
+fastboot getvar is-userspace
+fastboot getvar current-slot
+fastboot reboot
+```
+
+If it instead returns to bootloader fastboot:
+
+```bash
+fastboot set_active a
+fastboot reboot
+```
+
+### 19.12 Install Ubuntu Touch with UBports Installer
+
+Install or run UBports Installer 0.11.2 as the normal desktop user. The session had both the stable Snap and downloaded Debian package available:
+
+```bash
+snap list ubports-installer
+/snap/bin/ubports-installer
+```
+
+In the GUI select:
+
+```text
+Device: rabbit r1
+Channel: stable (20.04 OTA-12 during this session)
+Bootstrap: enabled
+Wipe Userdata: enabled
+```
+
+Keep the bootloader unlocked. The installer performs the supported device sequence: download verified artifacts, unpack `super.zip`, flash `vbmeta`, `boot`, and `super`, format userdata, reboot recovery, and install the system image. Do not run independent fastboot commands while it is active.
+
+The orange boot warning remains expected after installation. A large battery percentage screen is powered-off charging mode; unplug and hold the side button for 5–10 seconds to boot rather than repeatedly short-pressing it.
+
+### 19.13 Install Clickable and build the QML application
+
+Clickable was installed as a Snap:
+
+```bash
+sudo snap install clickable
+sudo snap connect clickable:ssh-keys
+sudo snap connect clickable:etc-gitconfig
+clickable setup
+clickable --version
+```
+
+The generated-template command that was attempted was:
+
+```bash
+mkdir -p "$R1ROOT/apps"
+clickable create \
+  --dir "$R1ROOT/apps" \
+  --name hello-world \
+  --namespace manuel \
+  --title 'Hello World' \
+  --description 'A minimal Ubuntu Touch Hello World app' \
+  --maintainer 'Manuel' \
+  --mail manuel@example.com \
+  --template pure-qml-cmake \
+  --license mit \
+  --skip-image-setup
+```
+
+It failed because `https://gitlab.com/clickable/ut-app-meta-template.git` was unavailable. The project was then created manually at:
+
+```text
+/home/manuel/code/others/rabbit-r1/apps/hello-world
+```
+
+The first build exposed a YAML type error because `qt_version: 5.12` was parsed as a number. It was corrected to:
+
+```yaml
+qt_version: "5.12"
+```
+
+Build the ARM64 package:
+
+```bash
+cd "$R1ROOT/apps/hello-world"
+clickable build --arch arm64 --accept-review-warnings
+```
+
+The output package is:
+
+```text
+build/aarch64-linux-gnu/app/hello-world.manuel_0.1.0_arm64.click
+```
+
+A pure-QML package can trigger `lint:architecture_specified_needed` because it declares ARM64 but contains no compiled native binaries. The package still built successfully.
+
+### 19.14 Diagnose USB ADB and control `cdc_acm`
+
+The official Ubuntu Touch ADB sequence is:
+
+```text
+Settings -> About -> Developer Mode -> enable
+reboot
+connect USB
+```
+
+On the host:
+
+```bash
+adb kill-server
+sudo modprobe -r cdc_acm 2>/dev/null || true
+adb start-server
+adb devices -l
+```
+
+The session once observed:
+
+```text
+<redacted serial> unauthorized usb:3-3 transport_id:1
+```
+
+At that point, unlock the Rabbit screen and accept the authorization prompt. After later normal boots the device often did not enumerate at all, consistent with the port's partial ADB/MTP status.
+
+Persistently prevent automatic `cdc_acm` loading on the host:
+
+```bash
+echo 'blacklist cdc_acm' \
+  | sudo tee /etc/modprobe.d/blacklist-cdc_acm.conf
+sudo modprobe -r cdc_acm
+lsmod | grep cdc_acm || echo 'cdc_acm is unloaded'
+```
+
+Load it only for preloader recovery:
+
+```bash
+sudo modprobe cdc_acm
+# run mtkbootcmd.py FASTBOOT
+sudo modprobe -r cdc_acm
+```
+
+If the device appears to cycle before Ubuntu Touch starts, inspect USB events:
+
+```bash
+sudo dmesg -w
+```
+
+Transient entries with `idVendor=0e8d`, `idProduct=2000`, and product `MT65xx Preloader` identify preloader mode, not ADB.
+
+### 19.15 Configure SSH deployment over Wi-Fi
+
+Create an Ed25519 host key if one does not exist:
+
+```bash
+ssh-keygen -t ed25519
+```
+
+Serve only the public key on the local network:
+
+```bash
+mkdir -p /tmp/rabbit-key-share
+cp ~/.ssh/id_ed25519.pub /tmp/rabbit-key-share/manuel.pub
+python3 -m http.server 8000 \
+  --bind 192.168.0.39 \
+  --directory /tmp/rabbit-key-share
+```
+
+On the Rabbit, open Terminal and run:
+
+```bash
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+wget -O ~/.ssh/authorized_keys \
+  http://192.168.0.39:8000/manuel.pub
+chmod 600 ~/.ssh/authorized_keys
+sudo systemctl start ssh.socket
+hostname -I
+```
+
+The Rabbit address during the session was `192.168.0.5`. Verify access:
+
+```bash
+ssh -o StrictHostKeyChecking=accept-new \
+  phablet@192.168.0.5 \
+  'printf "SSH_OK\n"; uname -m; systemctl is-active ssh.socket'
+```
+
+Install the Click package:
+
+```bash
+cd "$R1ROOT/apps/hello-world"
+clickable install \
+  build/aarch64-linux-gnu/app/hello-world.manuel_0.1.0_arm64.click \
+  --ssh 192.168.0.5
+```
+
+Discover the complete Lomiri application ID:
+
+```bash
+ssh phablet@192.168.0.5 \
+  "click list | grep hello-world; lomiri-app-launch-appids | grep hello"
+```
+
+The observed ID was:
+
+```text
+hello-world.manuel_hello-world_0.1.0
+```
+
+Launch it:
+
+```bash
+ssh phablet@192.168.0.5 \
+  'lomiri-app-launch hello-world.manuel_hello-world_0.1.0'
+```
+
+Verify the QML process:
+
+```bash
+ssh phablet@192.168.0.5 \
+  "pgrep -af 'qmlscene.*Main.qml'"
+```
+
+Clickable's Snap printed `known_hosts` atomic-update warnings despite successful SSH and installation. Host inspection showed `~/.ssh` mode `0700` and `known_hosts` mode `0600`; Snap confinement, not host ownership, caused those warnings.
+
+## 20. Wi-Fi reauthentication and disconnect investigation
+
+After SSH deployment worked, the Rabbit repeatedly disconnected from the `yolobolo` network and presented a password dialog. The first hypothesis was that Ubuntu Touch was failing to save the credential. NetworkManager state disproved that hypothesis.
+
+The connection was inspected over SSH without printing the PSK:
+
+```bash
+ssh phablet@192.168.0.5 '
+UUID=$(nmcli -g connection.uuid connection show yolobolo | head -1)
+echo "UUID=$UUID"
+nmcli -f \
+connection.id,connection.uuid,connection.autoconnect,connection.permissions,\
+802-11-wireless.ssid,802-11-wireless.band,802-11-wireless.powersave,\
+802-11-wireless-security.key-mgmt,802-11-wireless-security.psk-flags \
+connection show "$UUID"
+'
+```
+
+The relevant output was:
+
+```text
+connection.autoconnect: yes
+connection.permissions: --
+802-11-wireless-security.key-mgmt: wpa-psk
+802-11-wireless-security.psk-flags: 0 (none)
+802-11-wireless.powersave: 0 (default)
+```
+
+`psk-flags: 0` means NetworkManager owns a persisted secret rather than requiring an external agent to supply it on each activation. The journal confirmed this directly:
+
+```text
+connection 'yolobolo' has security, and secrets exist. No new secrets needed.
+```
+
+The failure sequence was instead:
+
+```text
+associated -> 4way_handshake -> completed -> disconnected
+...
+4way_handshake -> disconnected
+Activation: (wifi) disconnected during association, asking for new key
+state change: activated -> need-auth
+```
+
+NetworkManager interpreted a supplicant or driver disconnect as a possible bad-key condition and requested the already-stored credential again. This behavior matches the failure class described in UBports Ubuntu Touch issue #1018.
+
+Disable Wi-Fi power saving for this connection from the Rabbit Terminal:
+
+```bash
+nmcli connection modify yolobolo 802-11-wireless.powersave 2
+nmcli connection down yolobolo
+nmcli connection up yolobolo
+```
+
+The second command intentionally drops SSH. Verify locally on the Rabbit or after reconnection:
+
+```bash
+nmcli -f 802-11-wireless.powersave connection show yolobolo
+```
+
+Expected result:
+
+```text
+2 (disable)
+```
+
+If disconnects continue, test the access point with a dedicated compatibility profile:
+
+- WPA2-PSK with AES only;
+- WPA3 transition mode disabled;
+- 802.11r fast roaming disabled;
+- band steering disabled temporarily;
+- a dedicated 2.4 GHz SSID.
+
+The supplied `dmesg` excerpt was dominated by MediaTek vendor-kernel diagnostics rather than a crash:
+
+- `charger_thread` and `mt6370_*` lines poll and configure the charger;
+- `CHG_STATUS = done` reports completed charging;
+- `SPM`, `SODI`, `dpidle`, and wake-source lines record SoC power-state transitions;
+- `DISP ESD check` is display health monitoring;
+- `MTP do_monitor_work` is periodic gadget-worker activity;
+- AUXADC, thermal, and sensor-hub lines are normal hardware polling.
+
+The excerpt contained no kernel panic, charger fault, or direct Wi-Fi authentication diagnosis. For Wi-Fi, the useful command is:
+
+```bash
+journalctl -b --no-pager -u NetworkManager \
+  | grep -Ei 'wlan0|yolobolo|auth|deauth|disconnect|reason|secret|supplicant'
+```
+
+To inspect current link state and nearby access points after reconnecting:
+
+```bash
+iw dev wlan0 link
+nmcli -f IN-USE,BSSID,SSID,CHAN,FREQ,RATE,SIGNAL,SECURITY \
+  device wifi list
+```
+
+## 21. References
 
 Local references:
 
