@@ -1,0 +1,30 @@
+---
+title: "Transcript Inventory - RAG and AI Systems"
+tags:
+  - chatgpt
+  - transcripts
+  - subject/rag-ai-systems
+aliases:
+  - "RAG and AI Systems transcripts"
+---
+
+# Transcript Inventory: RAG and AI Systems
+
+Retrieval-augmented generation, LLMs, agents, research systems, and AI architecture.
+
+**Coverage:** 12 transcript notes. **Classification:** primary topic assigned from title and opening prompt; conversations may span multiple subjects.
+
+## Conversations
+
+- [[Transcripts/2026/07/21/CHATGPT TRANSCRIPT - Mikhail Gromov LLMs|Mikhail Gromov LLMs]] — `2026/07/21` — Mikhail gromov- llms Ihes - llms The Expressive Power of Large Language Models — Gabriel Pey
+- [[Transcripts/2026/07/28/CHATGPT TRANSCRIPT - LLM Codebase Analysis|LLM Codebase Analysis]] — `2026/07/28`; 1 archived artifact(s) — Look at github.com/go-go-golems/scraper and https://parc.yolo.scapegoat.dev/note/research/kb/projects/scraper (and links) and do a deep dive analysis of the codebase, which I think might be a bit overengineered and…
+- [[Transcripts/2026/07/29/CHATGPT TRANSCRIPT - Complexity in AI Coding|Complexity in AI Coding]] — `2026/07/29`; 1 archived artifact(s) — https://github.com/spinozans/emender/blob/main/docs/RESILIENT_DILOCO_FAILURE_CATALOG.md This ai coding session spiraled out of control into complexity madness, with overengineered patterns. Analyze how this happened,…
+- [[Transcripts/2026/07/29/CHATGPT TRANSCRIPT - LLM Agents and Planning|LLM Agents and Planning]] — `2026/07/29` — What if we consider llm agents to actually be planning / operations research algorithms with a magic heuristic blackbox? What are the parallels?
+- [[Transcripts/2026/07/29/CHATGPT TRANSCRIPT - Researchctl Analysis for Scientists|Researchctl Analysis for Scientists]] — `2026/07/29`; 6 archived artifact(s) — Analyze https://github.com/go-go-golems/researchctl from the perspective of a scientist / new user. Does this actually address the needs on managing experiments and their artifacts and steps in a reproducible…
+- [[Transcripts/2026/07/31/CHATGPT TRANSCRIPT - Recent RAG Papers|Recent RAG Papers]] — `2026/07/31` — 3recent papers about rag and chunking and reranking recent survey article too more specialized papers? why these in particular? did they stick out?
+- [[Transcripts/2026/08/01/CHATGPT TRANSCRIPT - AgensFlow and Multiagent Systems|AgensFlow and Multiagent Systems]] — `2026/08/01` — https://arxiv.org/pdf/2605.27466 overlap / parallels between this and the mitp multiagent systems and algorithms for decision making, in the references, subject, maths, concepts, benchmarks, evals, etc...
+- [[Transcripts/2026/08/03/CHATGPT TRANSCRIPT - Eduardo Sontag Systems Theory|Eduardo Sontag Systems Theory]] — `2026/08/03` — Mathematical systems theory Eduardo Sontag Willems polderman Hopf algebra Formal power systems
+- [[Transcripts/2026/08/04/CHATGPT TRANSCRIPT - Chatbot Design for Shop|Chatbot Design for Shop]] — `2026/08/04`; 1 archived artifact(s) — [image: sediment://file_00000000e314820c88e0039c121094a9] make me an image of a dense chatbot for the logistics backend of our gold coin shop to answer questions about inventory and products and such, with tables and…
+- [[Transcripts/2026/08/06/CHATGPT TRANSCRIPT - RAG DSL for Retrieval|RAG DSL for Retrieval]] — `2026/08/06`; 36 archived artifact(s) — Create a new dsl to representation transformation of RAG information retrieval and prove properties on it, using transfinite induction, linking the colimits back to other categorical constructions that might be relevant
+- [[Transcripts/2026/08/07/CHATGPT TRANSCRIPT - Designing RAG Abstractions|Designing RAG Abstractions]] — `2026/08/07`; 45 archived artifact(s) — we are building a rag engine, both indexing / optimization / querying. We have started building two common packages: ragkit and ragopt, one for general rag functionality and querying, one for optimization loop…
+- [[Transcripts/2026/08/08/CHATGPT TRANSCRIPT - Job System Design Thesis|Job System Design Thesis]] — `2026/08/08`; 10 archived artifact(s) — I want to design a job system to run indexing in production as the DB changes for these RAG systems (both TTC, GEC), and even evaluation batch runs and all that. Maybe based on riverqueue, maybe my own. WIth proper…
