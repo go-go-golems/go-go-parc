@@ -758,42 +758,42 @@ The most important client rules are:
 
 | Source | Description |
 | --- | --- |
-| [local-api-display.c](busybar-firmware-sources/local-api-display-c.md) | HTTP draw and clear parser, element validation, async Canvas submission, response mapping. |
-| [local-assets-openapi.yaml](busybar-firmware-sources/local-assets-openapi-yaml.md) | OpenAPI contract for assets and display elements. |
-| [local-canvas.h](busybar-firmware-sources/local-canvas-h.md) | Canvas result enum, element model, limits, and public service API. |
-| [local-canvas.c](busybar-firmware-sources/local-canvas-c.md) | Canvas event loop, retained widget dictionary, priority logic, timeouts, open/close lifecycle. |
-| [local-canvas_i.h](busybar-firmware-sources/local-canvas_i-h.md) | Canvas widget record and timeout context declarations. |
-| [local-canvas-widgets.c](busybar-firmware-sources/local-canvas-widgets-c.md) | LVGL widget adapters for all Canvas element types. |
-| [local-gui.c](busybar-firmware-sources/local-gui-c.md) | LVGL display creation, direct buffers, layer roots, timers, input queue, and flush callbacks. |
-| [local-gui.h](busybar-firmware-sources/local-gui-h.md) | GUI service public structures and display identifiers. |
-| [local-front-display.c](busybar-firmware-sources/local-front-display-c.md) | Front RGB888 frame ownership, queueing, transfer state, brightness, and power. |
-| [local-front-display.h](busybar-firmware-sources/local-front-display-h.md) | Front display dimensions and service API. |
-| [local-front-display-driver.c](busybar-firmware-sources/local-front-display-driver-c.md) | Front controller transfer implementation. |
-| [local-back-display.c](busybar-firmware-sources/local-back-display-c.md) | L8-to-L4 conversion, host-side double buffering, dirty state, and tearing event. |
-| [local-back-display.h](busybar-firmware-sources/local-back-display-h.md) | Back display dimensions and service API. |
-| [local-api-streaming.c](busybar-firmware-sources/local-api-streaming-c.md) | Display framebuffer streaming endpoint and logical frame extraction. |
-| [local-api-status-streaming.c](busybar-firmware-sources/local-api-status-streaming-c.md) | WebSocket status stream lifecycle and queue backpressure. |
-| [local-anim-file.c](busybar-firmware-sources/local-anim-file-c.md) | Compiled animation file parsing and section/frame access. |
-| [local-anim-file.h](busybar-firmware-sources/local-anim-file-h.md) | Animation file structures, constants, and playback declarations. |
-| [local-test-display-draw.py](busybar-firmware-sources/local-test-display-draw-py.md) | Draw API validation and lifecycle integration tests. |
-| [local-test-display-priority.py](busybar-firmware-sources/local-test-display-priority-py.md) | Priority arbitration and screenshot-level display tests. |
+| [local-api-display.c](local-api-display-c.md) | HTTP draw and clear parser, element validation, async Canvas submission, response mapping. |
+| [local-assets-openapi.yaml](local-assets-openapi-yaml.md) | OpenAPI contract for assets and display elements. |
+| [local-canvas.h](local-canvas-h.md) | Canvas result enum, element model, limits, and public service API. |
+| [local-canvas.c](local-canvas-c.md) | Canvas event loop, retained widget dictionary, priority logic, timeouts, open/close lifecycle. |
+| [local-canvas_i.h](local-canvas_i-h.md) | Canvas widget record and timeout context declarations. |
+| [local-canvas-widgets.c](local-canvas-widgets-c.md) | LVGL widget adapters for all Canvas element types. |
+| [local-gui.c](local-gui-c.md) | LVGL display creation, direct buffers, layer roots, timers, input queue, and flush callbacks. |
+| [local-gui.h](local-gui-h.md) | GUI service public structures and display identifiers. |
+| [local-front-display.c](local-front-display-c.md) | Front RGB888 frame ownership, queueing, transfer state, brightness, and power. |
+| [local-front-display.h](local-front-display-h.md) | Front display dimensions and service API. |
+| [local-front-display-driver.c](local-front-display-driver-c.md) | Front controller transfer implementation. |
+| [local-back-display.c](local-back-display-c.md) | L8-to-L4 conversion, host-side double buffering, dirty state, and tearing event. |
+| [local-back-display.h](local-back-display-h.md) | Back display dimensions and service API. |
+| [local-api-streaming.c](local-api-streaming-c.md) | Display framebuffer streaming endpoint and logical frame extraction. |
+| [local-api-status-streaming.c](local-api-status-streaming-c.md) | WebSocket status stream lifecycle and queue backpressure. |
+| [local-anim-file.c](local-anim-file-c.md) | Compiled animation file parsing and section/frame access. |
+| [local-anim-file.h](local-anim-file-h.md) | Animation file structures, constants, and playback declarations. |
+| [local-test-display-draw.py](local-test-display-draw-py.md) | Draw API validation and lifecycle integration tests. |
+| [local-test-display-priority.py](local-test-display-priority-py.md) | Priority arbitration and screenshot-level display tests. |
 
 ### External technical references
 
 | Source | Description |
 | --- | --- |
-| [external-lvgl-9-3-display-setup.md](busybar-firmware-sources/external-lvgl-9-3-display-setup.md) | LVGL 9.3 display objects, buffers, render modes, and flush callbacks. |
-| [external-lvgl-display-interface.md](busybar-firmware-sources/external-lvgl-display-interface.md) | LVGL display interface and buffer behavior. |
-| [external-lvgl-9-3-widgets.md](busybar-firmware-sources/external-lvgl-9-3-widgets.md) | LVGL 9.3 widget catalog. |
-| [external-lvgl-layers.md](busybar-firmware-sources/external-lvgl-layers.md) | LVGL layer creation order, top layer, and system layer behavior. |
-| [external-lvgl-github.md](busybar-firmware-sources/external-lvgl-github.md) | LVGL project overview and integration constraints. |
-| [external-flipper-js-gui.md](busybar-firmware-sources/external-flipper-js-gui.md) | Flipper GUI concepts: event loop, canvas, viewport, views, dispatcher, and scene manager. |
-| [external-flipper-gui-framework.md](busybar-firmware-sources/external-flipper-gui-framework.md) | External GUI framework overview used as a comparison point for service ownership and layer routing. |
-| [external-busybar-firmware-github.md](busybar-firmware-sources/external-busybar-firmware-github.md) | Upstream firmware repository build and source-layout documentation. |
-| [external-ssd1320-datasheet.pdf](busybar-firmware-sources/external-ssd1320-datasheet-txt.md) | Solomon Systech SSD1320 controller datasheet. |
-| [external-ssd1320-datasheet.txt](busybar-firmware-sources/external-ssd1320-datasheet-txt.md) | Text extraction of the SSD1320 datasheet used for searchable citations. |
-| [assistant-lvgl-rendering.md](busybar-firmware-sources/assistant-lvgl-rendering.md) | Kagi Assistant synthesis of LVGL rendering, layers, buffers, and flush semantics. |
-| [assistant-ssd1320-display.md](busybar-firmware-sources/assistant-ssd1320-display.md) | Kagi Assistant synthesis of SSD1320 memory packing, geometry, contrast, and tearing synchronization. |
+| [external-lvgl-9-3-display-setup.md](external-lvgl-9-3-display-setup.md) | LVGL 9.3 display objects, buffers, render modes, and flush callbacks. |
+| [external-lvgl-display-interface.md](external-lvgl-display-interface.md) | LVGL display interface and buffer behavior. |
+| [external-lvgl-9-3-widgets.md](external-lvgl-9-3-widgets.md) | LVGL 9.3 widget catalog. |
+| [external-lvgl-layers.md](external-lvgl-layers.md) | LVGL layer creation order, top layer, and system layer behavior. |
+| [external-lvgl-github.md](external-lvgl-github.md) | LVGL project overview and integration constraints. |
+| [external-flipper-js-gui.md](external-flipper-js-gui.md) | Flipper GUI concepts: event loop, canvas, viewport, views, dispatcher, and scene manager. |
+| [external-flipper-gui-framework.md](external-flipper-gui-framework.md) | External GUI framework overview used as a comparison point for service ownership and layer routing. |
+| [external-busybar-firmware-github.md](external-busybar-firmware-github.md) | Upstream firmware repository build and source-layout documentation. |
+| [external-ssd1320-datasheet.pdf](external-ssd1320-datasheet-txt.md) | Solomon Systech SSD1320 controller datasheet. |
+| [external-ssd1320-datasheet.txt](external-ssd1320-datasheet-txt.md) | Text extraction of the SSD1320 datasheet used for searchable citations. |
+| [assistant-lvgl-rendering.md](assistant-lvgl-rendering.md) | Kagi Assistant synthesis of LVGL rendering, layers, buffers, and flush semantics. |
+| [assistant-ssd1320-display.md](assistant-ssd1320-display.md) | Kagi Assistant synthesis of SSD1320 memory packing, geometry, contrast, and tearing synchronization. |
 
 ### External URLs
 

@@ -317,7 +317,7 @@ The overall composition is **established**. It is exercised by examples, sample 
 
 ## Related documents
 
-- [[README|Architecture Garden — rag-ttc]]
+- [[Research/Software Architecture Garden/rag-ttc/archive/2026-07-26-pre-refactor/README|Architecture Garden — rag-ttc]]
 - [[02 - Plain Go Experiments and the Mechanism Policy Boundary]]
 - [[03 - Recoverable Bounded Execution for Expensive Work]]
 - [[04 - Experiment Directories as Result Custody]]

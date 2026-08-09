@@ -12,7 +12,7 @@ aliases:
 
 Interpreters, DSLs, software architecture, operating systems, workflows, and developer tools.
 
-**Coverage:** 29 transcript notes. **Classification:** primary topic assigned from title and opening prompt; conversations may span multiple subjects.
+**Coverage:** 30 transcript notes. **Classification:** primary topic assigned from title and opening prompt; conversations may span multiple subjects.
 
 ## Conversations
 
@@ -45,3 +45,4 @@ Interpreters, DSLs, software architecture, operating systems, workflows, and dev
 - [[Transcripts/2026/08/08/CHATGPT TRANSCRIPT - Content Addressable Data S3|Content Addressable Data S3]] — `2026/08/08` — doing content addressable data on s3? or what's a good way to do that at scale? what if i want to run something like this on my own server?
 - [[Transcripts/2026/08/08/CHATGPT TRANSCRIPT - Content-Addressable Immutable Data|Content-Addressable Immutable Data]] — `2026/08/08` — mathematical underpinnings / theory / computer science theory of content-addressable immutable data.
 - [[Transcripts/2026/08/08/CHATGPT TRANSCRIPT - Git as Coalgebra|Git as Coalgebra]] — `2026/08/08` — git as coalgebra, and how does it relate to mathematics of time Given a commit, what can I observe now, and where can I continue observing?
+- [[Transcripts/2026/08/09/CHATGPT TRANSCRIPT - JS Compiler on FreeRTOS|JS Compiler on FreeRTOS]] — `2026/08/09` — V8 on freertos or some other js compiler I have a big ass arm that usually runs Linux

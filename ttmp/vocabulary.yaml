@@ -5,6 +5,14 @@ topics:
       description: Backend services
     - slug: websocket
       description: WebSocket lifecycle & events
+    - slug: chatgpt
+      description: ChatGPT conversations and export workflows
+    - slug: transcripts
+      description: Conversation transcript archives
+    - slug: archiving
+      description: Data and artifact archival workflows
+    - slug: surf-go
+      description: surf-go browser automation and CLI workflows
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes

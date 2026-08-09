@@ -12,7 +12,7 @@ aliases:
 
 React/PBUI/CLIM interfaces, visual design, typography, landing pages, and product concepts.
 
-**Coverage:** 14 transcript notes. **Classification:** primary topic assigned from title and opening prompt; conversations may span multiple subjects.
+**Coverage:** 15 transcript notes. **Classification:** primary topic assigned from title and opening prompt; conversations may span multiple subjects.
 
 ## Conversations
 
@@ -30,3 +30,4 @@ React/PBUI/CLIM interfaces, visual design, typography, landing pages, and produc
 - [[Transcripts/2026/08/01/CHATGPT TRANSCRIPT - Cat Vector Drawing Request|Cat Vector Drawing Request]] — `2026/08/01`; 3 archived artifact(s) — [image: sediment://file_000000003b78822fb4e17ddcdfce1a8e] Make a vector drawing of this cat so I can engrave it
 - [[Transcripts/2026/08/03/CHATGPT TRANSCRIPT - LED Banner Design Request|LED Banner Design Request]] — `2026/08/03`; 2 archived artifact(s) — a few banners for my 72x16 LED pixel graphics busy.bar to display the status of my coding agent. CYBERPUNK NEOTOKYO aesthetics.
 - [[Transcripts/2026/08/08/CHATGPT TRANSCRIPT - Rabbit R1 UI Design|Rabbit R1 UI Design]] — `2026/08/08` — make an image with a series of screen captures for rabbit r1 applications (minimalistic, blold typo, relying on scrollwheel) for an engineer.
+- [[Transcripts/2026/08/09/CHATGPT TRANSCRIPT - AI Assistant Screenshot Design|AI Assistant Screenshot Design]] — `2026/08/09`; 1 archived artifact(s) — [image: sediment://file_000000000920822fa747e1007806eff5] an AI assistant set of screenshots, but wider format like the Rabbit R1, like 2 wide 3 high. A bit more bolder typography, more whimsical, no "o" on the left.
