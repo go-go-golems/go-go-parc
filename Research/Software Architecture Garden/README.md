@@ -11,9 +11,10 @@ tags:
 status: active
 type: knowledge-garden
 created: 2026-07-26
-analyzed: 2026-07-26
+analyzed: 2026-08-10
 repository: /home/manuel/code/wesen/go-go-golems/go-go-parc
-repository_commit: 384ba7df1df20538d6c2964de1f71464b7c92458
+repository_commit: c8cf80ee45bb81154c9d5b690964bbd71778cbaf
+repository_worktree: dirty
 related_files:
   - Research/KB/Projects/rag-evaluation-system.md
   - Research/KB/Projects/rag-ttc.md
@@ -31,6 +32,8 @@ The Software Architecture Garden is a project-by-project study of how our applic
 > - Each project has its own directory and evidence-backed architecture analysis.
 > - Patterns are described through concrete code paths, runtime flows, deployment artifacts, tests, and failure modes.
 > - A pattern becomes an ecosystem guideline only after comparison across projects demonstrates that it is stable and reusable.
+
+This index was revalidated on 2026-08-10 from committed vault base `c8cf80ee45bb81154c9d5b690964bbd71778cbaf` (`main`, `Clarify report evidence and mathematical notation`). The Geppetto, Pinocchio, and Scraper entries were authored in a working tree based on that commit and pin their target repositories separately; `repository_commit` records the analyzed base rather than claiming those entries existed in it.
 
 ## Why this Garden exists
 
@@ -68,7 +71,7 @@ The directory is a study collection, not a dump of project reports. Every docume
 
 ## Pattern maturity vocabulary
 
-Every pattern should carry one of five maturity labels.
+Every pattern should carry one of six maturity labels.
 
 | Label | Meaning | Required evidence |
 |---|---|---|
@@ -77,6 +80,7 @@ Every pattern should carry one of five maturity labels.
 | **Candidate ecosystem pattern** | The structure appears reusable and should be compared across repositories. | One strong implementation plus at least one likely comparison target. |
 | **Architecture debt** | The structure adds cost, duplicates authority, or preserves obsolete behavior. | Concrete duplication, false contract, failure, or unused abstraction. |
 | **Retired** | The pattern was replaced and should remain only as historical context. | Migration evidence and a named replacement. |
+| **Open correctness obligation** | The design promises a law that current implementation or tests do not fully establish. | The promised invariant, the concrete enforcement/test gap, and its operational consequence. |
 
 Maturity is not a quality ranking. An emergent pattern may be excellent but undocumented. A retired pattern may have been correct under earlier constraints. Architecture debt may contain a useful idea implemented at the wrong layer.
 
@@ -180,7 +184,19 @@ Its largest recorded debt, a hand-rolled CLI output layer in which eleven of nin
 
 ### sessionstream
 
-[[Research/Software Architecture Garden/sessionstream/README|sessionstream]] studies a reusable typed event kernel for session-scoped streaming applications. Commands enter host-owned handlers; canonical protobuf events feed independent UI and timeline projections; an append-only store supports replay and rebuild; and reconnecting WebSocket clients receive a snapshot prefix before its buffered live suffix. The study connects these mechanisms to both Pattern Zoos and to devctl, Upwork Tracker, publish-vault, rag-ttc, rag-evaluation-system, go-go-datadrop, and zitadel-go-test. It proposes shared vocabulary for scope keys, intent values, canonical events, materialized entities, sequence coordinates, prefix cuts, projection checkpoints, and live suffixes, while recording open laws around per-session serialization, consistent SQLite cuts, stable redelivery identity, and atomic projection progress.
+[[Research/Software Architecture Garden/sessionstream/README|sessionstream]] studies a reusable typed event kernel for session-scoped streaming applications. Commands enter host-owned handlers; canonical protobuf events feed independent UI and timeline projections; an append-only store supports replay and rebuild; and reconnecting WebSocket clients receive a declared snapshot ordinal and entity rows before buffered live observations. Transport ordering fences snapshot-before-live delivery, but the SQLite store reads its cursor and rows separately and therefore does not prove a database-consistent prefix cut under concurrent writes. The study connects these mechanisms to both Pattern Zoos and to devctl, Upwork Tracker, publish-vault, rag-ttc, rag-evaluation-system, go-go-datadrop, and zitadel-go-test. It proposes shared vocabulary for scope keys, intent values, canonical events, materialized entities, sequence coordinates, declared snapshot ordinals, projection checkpoints, and live suffixes, while recording open laws around per-session serialization, consistent SQLite cuts, stable redelivery identity, and atomic projection progress.
+
+### Geppetto
+
+[[Research/Software Architecture Garden/geppetto/README|Geppetto]] studies a provider-neutral LLM runtime organized around typed mutable turns, middleware-wrapped engines, an explicit host-owned tool interpreter, cancelable session executions, best-effort observations, final-turn materialization, deterministic profile resolution, and runtime-owner-safe Goja APIs. Host credentials remain Go-only, but direct `gp.agent().inference(settings).build()` bypasses the renewable source used by `gp.engine()`. The entry preserves the decisive non-equivalence between live events and durable event sourcing, and records open laws around credential-path domination, persistence outcome, retry safety, session linearization, snapshot isolation, and profile-store CAS.
+
+### Pinocchio
+
+[[Research/Software Architecture Garden/pinocchio/README|Pinocchio]] studies an application orchestration layer around Geppetto inference and Sessionstream persistence/projection/transport. Browser, JSONL/stdin RPC, and TUI/chat paths use the typed `chatapp` kernel; ordinary blocking and Goja paths compose directly over Geppetto plus Pinocchio bootstrap and do not traverse chat events/projections. Pinocchio delegates event append/replay and WebSocket protocol behavior to Sessionstream while retaining app policy, translation, route composition, and credential binding. The entry records behavior-incomplete commands, unenforced idempotency, absent route authorization, behavior-incomplete runtime identity, and unresolved profile-tool authority.
+
+### Scraper
+
+[[Research/Software Architecture Garden/scraper/README|Scraper]] studies SQLite-backed durable dependency-graph execution intended for DAGs, with strict filesystem manifest/schema/root admission, transactional queue/lease admission, heartbeat and recovery, lease-fenced store completion, JavaScript/HTTP runners, site-owned projections, and optional Sessionstream observations. Both Goja environments receive writable `scraper-db`, so admitted scripts can bypass store authority and lease fencing; manifest `modules` is not a capability allowlist. Runtime observations bracket activity rather than uniformly following transitions, are not workflow event-sourcing evidence, and released binaries do not include sites or the frontend.
 
 ## Cross-correlation with the Pattern Zoos
 
@@ -196,10 +212,13 @@ The [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo|RAG-MATHS Pattern Zoo]] an
 | Cached discovery is advisory; a small live boundary revalidates module identity, capability, and schema. | [[Research/Software Architecture Garden/devctl/05 - Declarative Plugins and Validated Dynamic Commands#Catalog as discovery cache|devctl plugin validation]] | [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo#Pattern 10 — Large Producers, Small Trusted Validators / Proof-Carrying Artifacts|RAG 10]]; [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook#Pattern 7 — Contextual Applicability and Dispatch|PBUI 7]]; [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook#Pattern 9 — Registry and Module Boundary|PBUI 9]] | Strong for admission and registry laws; not a formal proof certificate |
 | One transaction combines request replay, revision claim, transition, evidence, and audit—but audited eligibility and adapter dominance are incomplete. | [[Research/Software Architecture Garden/upwork-tracker/05 - Proposal Lifecycle and Human Submission Boundary#Dedicated confirmation transaction|confirmation transaction]], [[Research/Software Architecture Garden/upwork-tracker/05 - Proposal Lifecycle and Human Submission Boundary#Critical finding UT-P0-001: generic submitted transition bypass|generic bypass]], [[Research/Software Architecture Garden/upwork-tracker/05 - Proposal Lifecycle and Human Submission Boundary#Critical finding UT-P0-002: incomplete dedicated confirmation validation|incomplete validation]] | [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook#Pattern 14 — Transactional Interaction and Evidence|PBUI 14]]; [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo#Pattern 9: Constraint-First Decisions and Partial Preference|RAG 9]] | Positive transaction shape; negative constraint-dominance evidence |
 | Readers observe one complete snapshot while publication atomically changes the active pointer and delays old-epoch cleanup. | [[Research/Software Architecture Garden/publish-vault/README|publish-vault]] | [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo#Pattern 11 — Immutable Release as Synchronization Root|RAG 11]] | Strong for synchronization; no claim about behavior-complete RAG release identity |
-| A reconnecting client receives one materialized event-prefix cut followed only by newer buffered and live observations. | [[Research/Software Architecture Garden/sessionstream/README#4. Snapshots as cuts in the prefix order|sessionstream snapshot cuts]] | [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo#Pattern 11 — Immutable Release as Synchronization Root|RAG 11]]; [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook#Pattern 11 — Authoritative State, Resolver, and Revision|PBUI 11]] | Strong prefix-fence protocol; not a behavior-complete release root |
+| A reconnecting client receives a declared snapshot ordinal and entity rows before buffered/live observations; the transport fence is ordered, but the SQLite reads do not prove one coherent prefix cut. | [[Research/Software Architecture Garden/sessionstream/README#4. Snapshots as cuts in the prefix order|sessionstream snapshot analysis]] | [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo#Pattern 11 — Immutable Release as Synchronization Root|RAG 11]]; [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook#Pattern 11 — Authoritative State, Resolver, and Revision|PBUI 11]] | Partial: snapshot-before-live ordering is established; database-consistent cut remains open |
 | Runtime state is instance-scoped rather than process-global. | [[Research/Software Architecture Garden/go-go-datadrop/README|go-go-datadrop]] | [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook#Pattern 10 — Scoped Runtime and Context|PBUI 10]] | Strong |
 | Tenant authority is enforced across application and infrastructure boundaries; adapter-local authorization is insufficient. | [[Research/Software Architecture Garden/zitadel-go-test/README|zitadel-go-test]], [[Research/Software Architecture Garden/upwork-tracker/05 - Proposal Lifecycle and Human Submission Boundary#Critical finding UT-P0-001: generic submitted transition bypass|Upwork bypass]] | [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo#Pattern 12 — Authorization Dominates Disclosure|RAG 12]] | Generalized positive analogue plus concrete counterexample |
 | Run custody retains configuration, inputs, per-unit observations, status, and results under one coordinate. | [[Research/Software Architecture Garden/rag-ttc/03 - Reproducible Experiment Custody and Semantic Identity#3. The run directory|rag-ttc run custody]] | [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo#Pattern 8: Exact Experimental Coordinates and Explicit Coupling|RAG 8]] | Partial: coordinate custody only; coupling and estimand laws unverified |
+| Provider-neutral turns and provider-specific wire values meet at fixed boundary adapters. | [[Research/Software Architecture Garden/geppetto/README#Architecture and runtime path|Geppetto provider path]] | [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook#Pattern 6 — Explicit Translation|PBUI 6]] | Adjacent: concrete adaptation exists, but not PBUI's semantic-reference graph, path provenance, selection, or coherence laws |
+| One library observation stream is mapped through named, tested adapters into app-owned chat events and browser projection mutations. | [[Research/Software Architecture Garden/pinocchio/README#Architecture and runtime path|Pinocchio runtime path]] | [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook#Pattern 6 — Explicit Translation|PBUI 6]] | Adjacent: concrete adaptation exists, but not PBUI's semantic-reference graph, path provenance, selection, or coherence laws |
+| Store completion APIs fence current-lease acceptance, while writable engine SQL and earlier site/network effects can bypass or escape that fence. | [[Research/Software Architecture Garden/scraper/README#Architecture debt and open laws|Scraper authority and external-effect gap]] | [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook#Pattern 14 — Transactional Interaction and Evidence|PBUI 14]]; [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo#Pattern 7: Append-Only Events, Pure Reducers, and Observable Idempotence|RAG 7]] | Negative: concrete bypass and repeatable effects show that store transactions do not imply authority domination, global atomicity, or observable idempotence |
 
 The Garden also exposes patterns not yet represented cleanly by either zoo: structural guard tests, simultaneous raw and structured evidence, wrapper-owned process evidence, reconciliation before mutation, and explicit human-confirmation boundaries. These should remain extension candidates rather than being forced into a merely similar chapter. In particular, a PBUI occurrence is not a transport IR node, a RAG entity–derivation–observation graph is not a capture/projection ownership split, ordinary Go experiment control flow is not a typed plan with multiple interpreters, a dependency graph is not a binding graph, and a registry entry never grants execution authority by itself.
 
