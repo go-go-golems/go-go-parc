@@ -351,6 +351,9 @@ Review the implementation with a mutation matrix. Query, release, fusion constan
 | Behavior identity; build-key projection | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#13. Behavior identity and causal identity]] |
 | Runtime identity; behavior-complete release identity | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#5.4 Runtime identity]] |
 
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/rag-ttc/03 - Reproducible Experiment Custody and Semantic Identity#2. Deterministic digest mechanisms|rag-ttc's deterministic digest design]] projects behavior-relevant configuration into versioned operation keys; [[Research/Software Architecture Garden/upwork-tracker/02 - Capture Ingestion Projection and Local State#Canonical identity|Upwork Tracker's canonical identity boundary]] distinguishes occurrence identity from content identity; and [[Research/Software Architecture Garden/zitadel-go-test/README|zitadel-go-test]] projects external users through the scoped `(issuer, subject)` coordinate.
+
 ## Key points
 
 - Identity is an API decision expressed by $P$, not a serializer feature.
@@ -1294,6 +1297,9 @@ The structured trace is semantically relevant. Two runs can return the same chun
 | Structured trace algebra | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization.md#8. Structured trace algebra]] |
 | Observation model | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#Observation model]] |
 
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/devctl/README|devctl]] preserves raw streams alongside sequenced run journals and explicit owner/ready/exit artifacts; [[Research/Software Architecture Garden/rag-ttc/README|rag-ttc]] records bounded-work outcomes and durable result custody. These are operational observations, not interchangeable semantic facts.
+
 ## Key points
 
 - Make success, abstention, attributable failure, and cancellation disjoint states.
@@ -1766,6 +1772,9 @@ A browser follows the same rule. If it hydrates at ordinal 120 while events 119,
 | exactly-once boundary / observable idempotence | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#10.13 Exactly-once boundary]] |
 | ambiguous completion | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#12.5 Ambiguous completion]] |
 
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/upwork-tracker/03 - SQLite Evidence and Workflow Ledger#Append-only proposal evidence|Upwork Tracker's proposal ledger]] accumulates immutable form observations, receipts, submissions, and lifecycle events; its separate [[Research/Software Architecture Garden/upwork-tracker/03 - SQLite Evidence and Workflow Ledger#Durable idempotency|durable-idempotency boundary]] recognizes replayed requests. This is narrower than a universal event-sourced reducer, but it protects append-only history and observable idempotence at the submission boundary.
+
 ## Key points
 
 - Persist immutable events and derive mutable views with a pure reducer and fold.
@@ -1985,6 +1994,9 @@ Distributed workers need leases or fencing so only one terminal record is accept
 | coupling compatibility | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#13.3 Coupling compatibility]] |
 | direction-normalized differences | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#14.1 Direction-normalized differences]] |
 
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/rag-ttc/03 - Reproducible Experiment Custody and Semantic Identity#3. The run directory|rag-ttc's run directory]] supplies operational evidence only for coordinate completeness and custody: effective configuration, immutable inputs, per-unit observations, status, and completed results remain together for recovery and replay. The study does **not** establish this chapter's stronger stochastic-coupling, terminal-coverage, or estimand laws.
+
 ## Key points
 
 - Give every result one immutable, complete coordinate and enforce uniqueness.
@@ -2187,6 +2199,9 @@ The decision ledger retains B's rejection, A's earlier undecided result, the new
 | sound promotion rule | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#24. A sound promotion rule]] |
 | ordered gates | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#15.2 Ordered gates]] |
 | partial order and Pareto fronts | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#16. Partial order and Pareto fronts]] |
+
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/upwork-tracker/05 - Proposal Lifecycle and Human Submission Boundary#Critical finding UT-P0-001: generic submitted transition bypass|Upwork Tracker's generic submission bypass]] and [[Research/Software Architecture Garden/upwork-tracker/05 - Proposal Lifecycle and Human Submission Boundary#Critical finding UT-P0-002: incomplete dedicated confirmation validation|incomplete dedicated validation]] are counterexamples to this pattern. Eligibility checks shown in the workspace do not dominate every path to `submitted`; the audit therefore demonstrates why hard constraints must be centralized before the irreversible transition, not a successful implementation of Pareto selection.
 
 ## Key points
 
@@ -2406,6 +2421,9 @@ The minimum selects the shortest available finite derivation; the maximum requir
 | Proof-carrying candidates | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#17.4 Proof-carrying candidates]] |
 | Assemble and verify | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#14.7 Assemble and verify]] |
 
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/devctl/05 - Declarative Plugins and Validated Dynamic Commands#Catalog as discovery cache|devctl's plugin catalog]] treats cached discovery as advisory and revalidates module identity, capabilities, and schemas against the live provider before invocation. This is a small trusted admission boundary around a larger extension producer; it is not a formal proof certificate.
+
 ## Key points
 
 - Complex or stochastic components propose artifacts; small deterministic validators admit them.
@@ -2591,6 +2609,9 @@ The handle is the only route to release material. Rebuilding `R41`'s plan may yi
 | Mixed-release prohibitions | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#14.6 Mixed-release prohibitions]] |
 | Immutable data plane, mutable control plane | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#4.3 Immutable data plane, mutable control plane]] |
 | Publication aliases | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#13.5 Publication aliases]] |
+
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/publish-vault/README|publish-vault]] builds a complete immutable site snapshot, atomically swaps the active pointer, and delays cleanup while readers may still hold the old epoch. This directly protects complete-epoch reads; rag-ttc result custody is intentionally not treated as equivalent because it lacks activation aliases and request-time release acquisition.
 
 ## Key points
 
@@ -2801,6 +2822,9 @@ A regression test uses a spy reranker and fails if any request contains `VIP-SEC
 | Authorization before remote disclosure | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#D.7 ADR-007: authorization before remote disclosure]] |
 | Security labels, authorization, and noninterference | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-research-projects-compendium#P13 - Security Labels, Authorization, and Noninterference]] |
 | Reranking and remote disclosure | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#38.3 Reranking and remote disclosure]] |
+
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/zitadel-go-test/README|zitadel-go-test]] supplies a generalized security analogue: tenant authority is repeated across OIDC, PostgreSQL, Vault, Kubernetes, and GitOps so that a presentation-layer filter cannot become the security boundary. [[Research/Software Architecture Garden/upwork-tracker/05 - Proposal Lifecycle and Human Submission Boundary#Critical finding UT-P0-001: generic submitted transition bypass|Upwork Tracker's generic submission bypass]] is negative evidence—the Widget guard is bypassed by other adapters because the authoritative service policy does not dominate them.
 
 ## Key points
 

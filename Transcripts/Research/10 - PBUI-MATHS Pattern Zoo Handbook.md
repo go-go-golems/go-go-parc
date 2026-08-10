@@ -290,6 +290,9 @@ function runRename(intent, stores): Result:
 
 “Presentation reference” is overloaded in the corpus: it sometimes means the semantic reference alone and sometimes a handle carrying type, value, or occurrence metadata. This chapter reserves **semantic reference** for the stable application coordinate.
 
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/upwork-tracker/02 - Capture Ingestion Projection and Local State#Canonical identity|Upwork Tracker's canonical identity analysis]] distinguishes occurrence identity from content identity, while [[Research/Software Architecture Garden/zitadel-go-test/README|zitadel-go-test]] projects an external principal to the scoped `(issuer, subject)` coordinate. Both confirm that identity must outlive one in-memory representation.
+
 ## Key points
 
 - A semantic reference is a scoped, sort-indexed key, not a live object or renderer identity.
@@ -652,6 +655,9 @@ The first term is stable structural compatibility. The second may change with pe
 | [[Transcripts/2026/08/06/Branch Branch CLIM UI in React/Semantic-Interfaces-Textbook#5.4 Set operations as type constructors|Semantic Interfaces textbook]] | type expression, atom, union, intersection | Types denote sets of semantic references | Generated proposal extends far beyond the baseline and must name its decidable fragment. |
 
 “Type” is overloaded. A TypeScript type checks source programs; a backend schema validates data shape; a semantic type classifies a reference's interface meaning at runtime; a form chooses how an occurrence is rendered. This chapter concerns only the third.
+
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/go-go-datadrop/02 - The Presentation Protocol#2. The concrete shape|go-go-datadrop's presentation protocol]] uses interface-level presentation types to classify what a visible value means and which verbs it offers, independently of the value's TypeScript structural shape.
 
 ## Key points
 
@@ -1075,6 +1081,9 @@ The authorization check is inside the transaction, not copied from the offer. `p
 
 In this chapter, **command** means typed user-intent data, **offer/descriptor** means a discoverable contribution, **effect** means an interpreted external consequence, and **workflow** means a sequence of acquisitions, commands, and effects. Existing sources also use “action” and “verb”; those words must be defined at each package boundary.
 
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/go-go-datadrop/02 - The Presentation Protocol#4. Why it works|go-go-datadrop's presentation protocol]] attaches pure serializable verbs to visible objects and interprets them at one reducer seam; [[Research/Software Architecture Garden/rag-evaluation-system/04 - Serializable Actions and Host Owned Effects#Action flow|rag-evaluation-system's action flow]] transports intent across the Goja/Go/React boundary while effects remain host-owned.
+
 ## Key points
 
 - One stable command instance should serve menus, buttons, palettes, automation, transport, and typed argument acquisition.
@@ -1427,6 +1436,9 @@ For an owned archivable project, the specific archive rule shadows the general a
 | [[Transcripts/2026/08/06/CLIM UI in React/PRESENTATION-BASED-UI-CLIM-DESIGN-AND-IMPLEMENTATION#9.2 Action rules|PBUI implementation guide]] | action rules, command-table-style rules | Stable IDs, selectors, and ordering derive commands. | Baseline ordering includes explicit priority; product dispatch is a later extension. |
 | [[Transcripts/2026/08/06/Branch Branch CLIM UI in React/Semantic-Interfaces-Textbook#17.7 Command tables and scopes|Semantic Interfaces textbook]] | multimethods, command tables | Applicability depends on arguments and active scope. | Generated design evidence, not independent runtime validation. |
 
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/devctl/05 - Declarative Plugins and Validated Dynamic Commands#Catalog as discovery cache|devctl's dynamic-command catalog]] discovers cached commands but revalidates them against the live provider before invocation. [[Research/Software Architecture Garden/go-go-datadrop/02 - The Presentation Protocol#2. The concrete shape|go-go-datadrop's presentation protocol]] derives available operations from the presented value's semantic type. Both keep discovery contextual and execution authoritative.
+
 ## Key points
 
 - Available behavior is a relation among subject, context, gesture, arguments, scope, and current facts, not property of a rendering component.
@@ -1566,6 +1578,9 @@ A second renderer can fold the same nodes into an accessibility tree. If the pro
 | [[Transcripts/2026/07/22/PBUI WM Integration Possibilities/pbui_wails_qml_integration_report#6.1 Preserve the debuggable v1 transport|WM integration]] | protocol messages, declarative surfaces | Inspectable transport joins independent toolkits/processes. | Includes leases, broker security, and reliable-state concerns. |
 | [[Transcripts/2026/07/26/Codebase Analysis and Refactor/PBUI_REACT_ARCHITECTURE_REVIEW#36. Do not serialize runtime objects directly|Architecture review]] | serializable stores, bundle formats | Runtime objects and derived state stay outside persistence. | Concerned with application save/import as well as UI delivery. |
 | [[Transcripts/2026/08/06/Branch Branch CLIM UI in React/Semantic-Interfaces-Textbook#24.2 Serialization classes|Semantic Interfaces textbook]] | portable type expressions, action verbs | Stable IDs and arguments cross the boundary; lambdas do not. | Broader proposed semantic type calculus; generated design evidence. |
+
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/rag-evaluation-system/04 - Serializable Actions and Host Owned Effects#Action flow|rag-evaluation-system's action flow]] carries bounded action and binding data through Widget IR while the receiving host owns interpretation and effects. [[Research/Software Architecture Garden/go-go-datadrop/02 - The Presentation Protocol#4. Why it works|go-go-datadrop]] independently confirms the serializable-intent boundary.
 
 ## Key points
 
@@ -1717,6 +1732,9 @@ A plugin may contain executable local adapter code, but the manifest crossing a 
 | [[Transcripts/2026/07/26/Codebase Analysis and Refactor/PBUI_REACT_ARCHITECTURE_REVIEW#18. `APPS` is a useful registry but is still static and parallel|Architecture review]] | `APPS`, source registry | Static parallel maps expose the need for an explicit compiled boundary. | Concrete refactor finding, not a complete plugin protocol. |
 | [[Transcripts/2026/08/06/Branch Branch CLIM UI in React/Semantic-Interfaces-Textbook#24.6 Plugin registry construction|Semantic Interfaces textbook]] | plugin builder, frozen snapshot | Restricted contributions validate then freeze a new version. | Broad open-world semantics are proposed/generated. |
 | [[Transcripts/2026/08/06/Branch CLIM UI in React/P07-open-components-plugin-composition#Signature language|P07 brief]] | component signature, plugin compiler | Independent modules expose typed boundaries and explicit requirements. | Research brief with validation obligations, not implementation attestation. |
+
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/devctl/05 - Declarative Plugins and Validated Dynamic Commands#Catalog as discovery cache|devctl's plugin catalog]] compiles extension metadata with deterministic conflict handling, then revalidates live module identity and capability before execution. [[Research/Software Architecture Garden/rag-evaluation-system/08 - Architecture Debt and Patterns Not to Repeat#7. Extension abstractions without extension users|rag-evaluation-system's unused extension machinery]] is counter-evidence: one default registry, duplicated incomplete catalogs, and unenforced version labels do not establish this pattern.
 
 ## Key points
 
@@ -1915,6 +1933,9 @@ Tests should create two scopes with the same local entity key and overlapping co
 
 **Aliases:** CLIM frame, Provider, root, host, surface context, project scope, desktop context, broker context. These names overlap but differ in lifetime and authority; use **runtime scope** for the general pattern.
 
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/go-go-datadrop/README|go-go-datadrop]] constructs its Redux store as a factory, allowing six independent workbench instances on one page without a module singleton. This is direct implementation evidence for instance-scoped runtime state.
+
 ## Key points
 
 - Runtime services and interaction state are indexed by explicit owner and lifetime.
@@ -2066,6 +2087,9 @@ Tests should cover deletion, revision change, permission revocation, schema epoc
 | [[Transcripts/2026/08/06/CLIM UI in React/LINKED-ANALYSIS-WORKSPACES-PBUI-DATALAB-STUDY#19.6 Revision checks|Linked workspace study]] | revision checks | Remote/topology mutations reject stale observations. | Binding topology revisions may differ from entity revisions. |
 
 **Aliases:** source of truth, entity store, repository, provider, resolver, snapshot, epoch, ETag, revision, dependency fingerprint. `Resolver` is the lookup protocol; the other terms name authorities, implementations, or validity coordinates and are not exact synonyms.
+
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/devctl/02 - Durable State Process Identity and Wrapper Evidence#Environment state is not run history|devctl's durable state model]] resolves a stable service slot through a revisioned current index to immutable attempt evidence. [[Research/Software Architecture Garden/upwork-tracker/02 - Capture Ingestion Projection and Local State#Four ownership classes|Upwork Tracker]] likewise separates rebuildable remote projections from operator-owned workflow authority.
 
 ## Key points
 
@@ -2765,6 +2789,9 @@ Use the explicit lifecycle for operations that cross time, authority, or multipl
 | [[Transcripts/2026/07/26/Codebase Analysis and Refactor/PBUI_REACT_ARCHITECTURE_REVIEW.md#44. Trace and undo|trace and undo]] | typed runtime events | actions support trace, undo, analytics, and tests | recommends snapshots, not event replay, as canonical persistence |
 
 The P09, P10, and P13 documents are coordinated project briefs, so they are related research elaborations rather than three independent confirmations. The WM boundary, concrete PBUI implementation account, architecture review, and linked-workspace study provide the broader recurrence.
+
+> [!example] Architecture Garden evidence
+> [[Research/Software Architecture Garden/upwork-tracker/05 - Proposal Lifecycle and Human Submission Boundary#Dedicated confirmation transaction|Upwork Tracker's dedicated confirmation transaction]] confirms the atomic write shape: idempotency, expected revision, transition, event, audit evidence, and replay response commit together. Its eligibility policy remains incomplete, and a [[Research/Software Architecture Garden/upwork-tracker/05 - Proposal Lifecycle and Human Submission Boundary#Critical finding UT-P0-001: generic submitted transition bypass|generic submitted transition bypass]] shows that every adapter must be forced through the same authoritative boundary.
 
 ## Key points
 

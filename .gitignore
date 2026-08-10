@@ -1,5 +1,9 @@
 .obsidian/workspace.json
 
+# Python cache files produced by repository-local skill validators.
+**/__pycache__/
+*.py[cod]
+
 # Raw go-minitrace session dumps pulled in by the daily-log scripts. Derived data,
 # regenerable from ~/.claude, ~/.codex and the pi archives, duplicated between
 # bundles, and 1.3 GB — it does not belong in the vault's history.
