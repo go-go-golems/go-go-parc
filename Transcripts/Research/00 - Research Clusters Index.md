@@ -16,6 +16,7 @@ This folder reorganizes the long-form research generated in ChatGPT conversation
 - [[Transcripts/Research/01 - Markdown Thesis and PDF Inventory|Markdown Thesis and PDF Inventory]] — file-level register of generated Markdown and PDF artifacts.
 - [[Transcripts/Research/02 - PBUI and CLIM Research|PBUI and CLIM Research]] — presentation-based UI, semantic interfaces, widget DSLs, CLIM, Sentinel, typed selectors, and the P01–P15 research program.
 - [[Transcripts/Research/03 - RAG and Retrieval Research|RAG and Retrieval Research]] — rag-ttc, compositional retrieval, semantic provenance, durable boundaries, and RAG job systems.
+- [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo|RAG-MATHS Pattern Zoo]] — a first-week-friendly textbook of twelve recurring semantic patterns, each paired with its category-theoretic or abstract-mathematical formulation and source sightings.
 - [[Transcripts/Research/04 - Mathematics and Formal Foundations|Mathematics and Formal Foundations]] — structural mathematics editors, category/type theory, Lean/HoTT, ERP ontologies, and formal semantics.
 - [[Transcripts/Research/05 - CNC and CAM Research|CNC and CAM Research]] — CAM algorithms, Dropcut, CNC IR design, G-code semantics, and Z1 manufacturing workflows.
 - [[Transcripts/Research/06 - Goja, Interpreters, and Language Systems|Goja, Interpreters, and Language Systems]] — tiny-idp, malleable interpreters, Langblocks, instrumentation, and hosted Goja.

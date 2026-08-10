@@ -49,6 +49,7 @@ The job-system thesis adds a queue-neutral operational semantics: finite version
 
 ## Major deliverables
 
+- [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo|RAG-MATHS Pattern Zoo]] — textbook synthesis of twelve recurring design patterns, with professional first-day explanations, formal semantics, advanced category-theory and abstract-mathematics sections, worked examples, aliases, and source sightings.
 - [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis|rag-ttc P01–P03 doctoral thesis]] — semantic identity, canonical provenance, and lawful merge.
 - [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-research-projects-compendium|rag-ttc research projects compendium]] — charter, project briefs, and composition playbook.
 - [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-semantic-handbook|rag-ttc semantic handbook]].
