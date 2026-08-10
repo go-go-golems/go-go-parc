@@ -37,18 +37,18 @@ to become the serving dependency.
 The deployed service is reachable at
 `https://admin.dev.goldeneaglecoin.com/coinvault/`. The service target is
 healthy, its MySQL reader connection is healthy, and it has opened a reviewed
-20-document vector smoke bundle. The GEC PHP principal endpoint has now been
-released to development, but browser authorization is not complete: Apache's
-outer development Basic gate rejects CoinVault's cookie-only backchannel before
-PHP can resolve the employee. This is a useful state to document precisely. It
-separates a working service substrate and deployed PHP authority contract from
-an unproven server-to-server session handoff.
+20-document vector smoke bundle. The GEC PHP principal endpoint is deployed,
+and the development admin virtual host now admits that exact endpoint through
+Apache's outer Basic-auth gate so PHP can enforce employee authorization. Public
+differential probes prove that the exception is path-exact and fail-closed.
+End-to-end acceptance with a capable employee browser session remains pending.
 
 > [!summary]
 > - CoinVault is an employee-facing ECS service behind the existing shared ALB. It owns chat execution, RAG retrieval, read-only SQL tools, conversation state, and evidence handling; it does not own employee login.
 > - GEC PHP remains the authority for employee sessions, active status, and capabilities. CoinVault asks PHP for a small principal document and fails closed if the response is absent, malformed, or insufficiently authorized.
 > - The first service uses a digest-pinned image and a separately attested 20-document OpenAI-vector smoke bundle on EFS. The full 114,116-representation index build completed embedding but was killed at a 2 GiB memory limit before publication; it is intentionally a separate remediation effort.
 > - There are two release systems. Terraform changes AWS resources and is applied from reviewed plans. GEC application releases deploy `develop` to dev and `master` to production through a GitHub Actions SSH workflow. A successful Terraform apply does not publish PHP routes.
+> - PR [#969](https://github.com/goldeneagle/goldeneaglecoin.com/pull/969) reconciles the deployment source: it recovers the seed task, explicit model profiles, ALB priority correction, the correct development Apache vhost exception, and a production source-only equivalent. No production runtime change was made by this reconciliation.
 
 ## 1. What is being built
 
@@ -127,12 +127,21 @@ meaningful outcomes are:
 | 403 | The employee exists but is inactive or lacks a capability. | Deny; do not create a login loop. |
 | 404, 405, malformed JSON, or 5xx | The authority contract is absent, wrong, or unavailable. | Fail closed; do not treat it as a user identity. |
 
-The endpoint is now deployed. Reached through the development outer gate and
-without a PHP session, it returns PHP JSON `401 Unauthorized` with
-`Cache-Control: no-store`. Reached without that outer gate, it instead receives
-an Apache HTML Basic challenge before PHP. CoinVault takes the second path
-because its resolver forwards only `PHPSESSID`; the resulting browser login
-redirect repeats indefinitely.
+The endpoint is now deployed and admitted through the outer gate by one exact
+Apache exception. Its public behavior distinguishes PHP authorization from
+Apache authentication:
+
+| Probe | Observed response | Interpretation |
+|---|---|---|
+| `/rest/admin/coinvault/principal`, no Basic credentials and no PHP session | HTTP 401 JSON `"Unauthorized"`, `Cache-Control: no-store`, no `WWW-Authenticate` | The exact endpoint reached PHP, which rejected the absent employee session. |
+| `/rest/admin/coinvault/principalx`, no credentials | Apache HTML 401 with `WWW-Authenticate: Basic` | A neighboring path remains protected by the outer gate. |
+| `/coinvault/`, no session | HTTP 302 to `/admin/login?return_to=%2Fcoinvault%2F` | CoinVault delegates missing identity to the same-origin login flow. |
+
+Before the exact exception was installed, CoinVault's resolver forwarded only
+`PHPSESSID` and received Apache's Basic challenge before PHP could run. The
+browser then alternated between `/coinvault/` and `/admin/login`, producing a
+redirect loop. The differential probes above show that this particular failure
+has been removed without opening a broader route prefix.
 
 ## 3. Routing is an ordered program
 
@@ -384,9 +393,68 @@ and invokes:
 Neither command applies Terraform. That separation matters operationally: a
 PHP release can make a new endpoint available without changing AWS resources,
 and an ECS image/route update can succeed while the required PHP contract is
-still absent. The current development state demonstrates exactly that case.
+still absent. This ordering caused an earlier intermediate failure and is now
+recorded as deployment history rather than the current state.
 
-## 9. Current state and the next proof sequence
+## 9. Reconstructing source and live deployment state
+
+The final obstacle was not an application algorithm. It was configuration
+provenance. The deployed machines, Git branches, Terraform state, and reviewed
+pull request did not initially describe the same system. Reconciliation
+therefore began by treating each as independent evidence.
+
+The two development Apache source files serve different hostnames and map to
+different live files:
+
+| Repository source | Live site file | Hostname |
+|---|---|---|
+| `infra/webserver-config/dev/apache/admin.conf` | `/etc/apache2/sites-enabled/admin-dev.conf` | `admin.dev.goldeneaglecoin.com` |
+| `infra/webserver-config/dev/apache/virtualhost.conf` | `/etc/apache2/sites-enabled/dev.conf` | `dev.goldeneaglecoin.com` |
+
+The exact principal exception belongs in `admin.conf`. An earlier diagnostic
+attempt placed the same exception in the live `dev.conf`; that redundant line
+does not explain the successful admin-host probe and should be removed after
+PR #969 is merged and the authoritative admin vhost is reconfirmed. A broad
+bootstrap is not appropriate until unrelated source/live Apache drift has been
+reviewed.
+
+Administrative access is intentionally routed through the repository SSH
+configuration:
+
+```bash
+cd /home/manuel/code/gec/goldeneaglecoin.com/infra
+ssh -F ./ssh.conf webserver.gec
+```
+
+That alias uses `ProxyJump control.gec`, reaches the control host on port
+`11122`, and logs into the webserver as `ubuntu`. A direct attempt to SSH as
+`dev` to a raw address was a diagnostic mistake; host-key verification stopped
+it before any remote command ran.
+
+PR #969 recovers infrastructure work that had already been applied but was
+stranded on a branch not descended from `develop`:
+
+| Capability | Original stranded commit | Replayed PR commit |
+|---|---|---|
+| One-shot EFS artifact seeder | `9a698716f` | `9e511feea` |
+| Explicit chat and embedding profiles | `e0ea34e66` | `57f83a0d2` |
+| CoinVault ALB listener priority 3 | `032f5900a` | `a355d3a95` |
+
+Commit `a9c3541b3` corrects the development Apache source and deployment
+documentation. Commit `d8aff2720` adds the same exact-path exception to
+`infra/webserver-config/prod/apache/admin.conf` for a future, separately
+approved production bootstrap. It does not change the live production host.
+
+Read-only inspection with `AWS_PROFILE=gec` confirms that development already
+contains the artifact bucket, seed task definition, seed IAM role and policy,
+ECS service, and priority-3 listener rule. A development plan using the
+original smoke-service variable file with `-refresh=false -lock=false` reported
+`No changes`. All three Terraform roots validate and the relevant files pass
+format checking. The artifact root has one unrelated, unapplied GitHub OIDC
+subject normalization; the production root has no resource changes and only a
+new empty output representation.
+
+## 10. Current state and the next proof sequence
 
 The deployed substrate is real, but the user-facing proof is incomplete.
 
@@ -396,23 +464,24 @@ The deployed substrate is real, but the user-facing proof is incomplete.
 | ECS service | Complete | One healthy task and target; public health HTTP 200 | Inspect logs during authenticated tool use |
 | Database | Complete for connectivity | `gec_dev_ro` reader probe healthy | Run representative read-only SQL queries and policy failures |
 | Smoke RAG bundle | Complete for service opening | Exact EFS path and 1,536-dimensional OpenAI identity | Run retrieval and citation scenarios under a real employee session |
-| PHP principal | Deployed, but unreachable to CoinVault backchannel | PHP returns JSON 401 through the outer gate; Apache returns Basic 401 without it | Add and review an exact path-only outer-gate exception; test 401/403/200 behavior |
-| Login return | Deployed | Browser preserves `/coinvault/`, then loops because principal resolution fails | Retest after backchannel reaches PHP |
+| PHP principal | Deployed and reachable through an exact Apache exception | Exact path returns PHP JSON 401; adjacent path returns Apache Basic 401 | Test 403 and 200 with inactive, uncapable, and capable employees |
+| Login return | Anonymous behavior verified | `/coinvault/` preserves its return path and redirects to same-origin login | Complete a capable employee browser session and confirm the loop is gone |
+| Source reconciliation | Open for review | PR #969 contains recovered Terraform, corrected dev vhost source, documentation, and prod source preparation | Review, merge, and reconfirm a read-only no-change dev plan |
 | Full vector bundle | Deferred | Embeddings complete; bundle not published after OOM | Implement separate bounded-memory recovery ticket |
 
 The next tests should be performed in this order:
 
-1. Review and manually execute the prepared exact-path Apache exception
-   runbook. It requires a candidate/live `dev.conf` diff, a timestamped
-   rollback copy, `apachectl configtest`, and a reload only after validation.
-2. Verify an anonymous cookie-only request reaches PHP and produces PHP 401,
-   not an Apache Basic challenge.
+1. Review and merge PR #969. Repeat the read-only development Terraform plan
+   and require a no-change result before any apply is considered.
+2. Remove the redundant manually added exception from live `dev.conf`, retain
+   the exception in `admin-dev.conf`, run `apachectl configtest`, reload, and
+   repeat both exact-path and adjacent-path probes.
 3. Verify an inactive or uncapable employee receives PHP 403.
 4. Verify a capable employee receives the constrained 200 principal document.
-5. Open `/coinvault/` in the browser and verify no cross-host redirect or loop
-   occurs.
-6. Submit read-only SQL and knowledge-search questions; inspect citations and
-   deny attempts that violate tool policy.
+5. Open `/coinvault/` in the capable employee browser session and verify no
+   cross-host redirect or loop occurs.
+6. Submit representative read-only SQL and knowledge-search questions; inspect
+   citations and deny attempts that violate tool policy.
 7. Inspect task/application logs and conversation records for session IDs,
    database passwords, OpenAI keys, and unnecessary query-row disclosure.
 
@@ -421,7 +490,7 @@ contracts. A model answer cannot demonstrate correct employee authorization if
 the principal endpoint is missing; a successful SQL query cannot demonstrate
 correct RAG citations; a healthy target cannot demonstrate either.
 
-## 10. Design rules worth retaining
+## 11. Design rules worth retaining
 
 The deployment has produced a set of durable rules for this system.
 
@@ -446,6 +515,8 @@ The deployment has produced a set of durable rules for this system.
 ## Important source material
 
 - Deployment ticket: `/home/manuel/code/gec/2026-03-16--gec-rag/ttmp/2026/08/10/COINVAULT-ENV-DEPLOY-001--environment-aware-coinvault-deployment-from-gec-dev-to-production/`
+- Deployment reconciliation audit: `/home/manuel/code/gec/2026-03-16--gec-rag/ttmp/2026/08/10/COINVAULT-ENV-DEPLOY-001--environment-aware-coinvault-deployment-from-gec-dev-to-production/reference/03-deployment-reconciliation-audit-and-verified-as-built-state.md`
+- Reconciliation pull request: [goldeneaglecoin.com PR #969](https://github.com/goldeneagle/goldeneaglecoin.com/pull/969)
 - OOM ticket: `/home/manuel/code/gec/2026-03-16--gec-rag/ttmp/2026/08/10/COINVAULT-INDEX-OOM-001--bounded-memory-full-knowledge-bundle-build/`
 - PHP principal and cache policy: `/home/manuel/code/gec/goldeneaglecoin.com/src/rest/AdminRest.php`, `/home/manuel/code/gec/goldeneaglecoin.com/src/lib/WebSite.php`, and `/home/manuel/code/gec/goldeneaglecoin.com/src/lib/CoinVaultLoginReturn.php`
 - Dev runtime root: `/home/manuel/code/gec/goldeneaglecoin.com/infra/terraform/coinvault-dev/`
