@@ -32,6 +32,7 @@ related_notes:
   - "[[Research/Software Architecture Garden/README]]"
   - "[[Research/Software Architecture Garden/rag-ttc/README]]"
   - "[[Research/Software Architecture Garden/ragopt/README]]"
+  - "[[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel]]"
   - "[[Transcripts/Research/09 - RAG-MATHS Pattern Zoo]]"
   - "[[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook]]"
 ---
@@ -377,6 +378,7 @@ The shell Go was `go1.25.5 linux/amd64`; automatic toolchain selection satisfied
 - [[Research/Software Architecture Garden/rag-ttc/02 - Recoverable and Resource-Bounded Execution|rag-ttc — Recoverable and Resource-Bounded Execution]]
 - [[Research/Software Architecture Garden/rag-ttc/04 - Representation-Centered Retrieval Architecture|rag-ttc — Representation-Centered Retrieval Architecture]]
 - [[Research/Software Architecture Garden/ragopt/README|Ragopt]]
+- [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel|Source-Authoritative Evidence Ledger Kernel]]
 - [[Research/Software Architecture Garden/researchctl/README|Researchctl]]
 - [[Research/Software Architecture Garden/geppetto/README|Geppetto]]
 - [[Research/Software Architecture Garden/scraper/README|Scraper]]

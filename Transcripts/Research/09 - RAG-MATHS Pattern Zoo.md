@@ -350,6 +350,7 @@ Review the implementation with a mutation matrix. Query, release, fusion constan
 | Semantic invocation key | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax.md#7.2 Semantic invocation key]] |
 | Behavior identity; build-key projection | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#13. Behavior identity and causal identity]] |
 | Runtime identity; behavior-complete release identity | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#5.4 Runtime identity]] |
+| Evidence-ledger policy and snapshot identity | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Identity projections|Source-Authoritative Evidence Ledger Kernel — identity projections]] |
 
 > [!example] Architecture Garden evidence
 > [[Research/Software Architecture Garden/rag-ttc/03 - Reproducible Experiment Custody and Semantic Identity#2. Deterministic digest mechanisms|rag-ttc's deterministic digest design]] projects behavior-relevant configuration into versioned operation keys; [[Research/Software Architecture Garden/upwork-tracker/02 - Capture Ingestion Projection and Local State#Canonical identity|Upwork Tracker's canonical identity boundary]] distinguishes occurrence identity from content identity; and [[Research/Software Architecture Garden/zitadel-go-test/README|zitadel-go-test]] projects external users through the scoped `(issuer, subject)` coordinate.
@@ -587,6 +588,7 @@ Input roles must preserve semantic order. For a derivation with left and right o
 | Source evidence versus derivational and experimental evidence | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#6.3 "Evidence" names three different things]] |
 | Observation-rich codomain | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#6.3 Observation-rich codomains]] |
 | Typed evidence with provenance | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#2.4 Structured facts and connected retrieval]] |
+| Source chunk, retrieval observation, admission, label, and use separation | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Vocabulary and authority|Source-Authoritative Evidence Ledger Kernel — vocabulary and authority]] |
 
 ## Key points
 
@@ -827,6 +829,7 @@ A concurrent implementation may mutate inner sets under a lock instead of clonin
 | Evidence-ledger effects | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#10.4 Evidence-ledger effects]] |
 | Mergeable evidence; monoidal reduction | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#20.1 Mergeable evidence]] |
 | Idempotent semantic stages | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax.md#1.3 Design thesis]] |
+| Ordered idempotent chunk admission with bounded-fold caveat | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Ordered unique state|Source-Authoritative Evidence Ledger Kernel — ordered unique state]] |
 
 ## Key points
 
@@ -1296,6 +1299,7 @@ The structured trace is semantically relevant. Two runs can return the same chun
 | Outcome structure | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization.md#7.2 Outcome structure]] |
 | Structured trace algebra | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization.md#8. Structured trace algebra]] |
 | Observation model | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#Observation model]] |
+| Typed evidence admission decisions with optional traces | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Claim, entry, and decision|Source-Authoritative Evidence Ledger Kernel — claim, entry, and decision]] |
 
 > [!example] Architecture Garden evidence
 > [[Research/Software Architecture Garden/devctl/README|devctl]] preserves raw streams alongside sequenced run journals and explicit owner/ready/exit artifacts; [[Research/Software Architecture Garden/rag-ttc/README|rag-ttc]] records bounded-work outcomes and durable result custody. These are operational observations, not interchangeable semantic facts.
@@ -1771,6 +1775,7 @@ A browser follows the same rule. If it hydrates at ordinal 120 while events 119,
 | event-prefix integrity | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#10.5 Event-prefix integrity]] |
 | exactly-once boundary / observable idempotence | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#10.13 Exactly-once boundary]] |
 | ambiguous completion | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#12.5 Ambiguous completion]] |
+| Claim-word fold as an internal model with trace as an extension | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Internal event-word model|Source-Authoritative Evidence Ledger Kernel — internal event-word model]] |
 
 > [!example] Architecture Garden evidence
 > [[Research/Software Architecture Garden/upwork-tracker/03 - SQLite Evidence and Workflow Ledger#Append-only proposal evidence|Upwork Tracker's proposal ledger]] accumulates immutable form observations, receipts, submissions, and lifecycle events; its separate [[Research/Software Architecture Garden/upwork-tracker/03 - SQLite Evidence and Workflow Ledger#Durable idempotency|durable-idempotency boundary]] recognizes replayed requests. This is narrower than a universal event-sourced reducer, but it protects append-only history and observable idempotence at the submission boundary.
@@ -2199,6 +2204,7 @@ The decision ledger retains B's rejection, A's earlier undecided result, the new
 | sound promotion rule | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#24. A sound promotion rule]] |
 | ordered gates | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#15.2 Ordered gates]] |
 | partial order and Pareto fronts | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#16. Partial order and Pareto fronts]] |
+| Constraint-first source-chunk admission | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Deterministic transition|Source-Authoritative Evidence Ledger Kernel — deterministic transition]] |
 
 > [!example] Architecture Garden evidence
 > [[Research/Software Architecture Garden/upwork-tracker/05 - Proposal Lifecycle and Human Submission Boundary#Critical finding UT-P0-001: generic submitted transition bypass|Upwork Tracker's generic submission bypass]] and [[Research/Software Architecture Garden/upwork-tracker/05 - Proposal Lifecycle and Human Submission Boundary#Critical finding UT-P0-002: incomplete dedicated confirmation validation|incomplete dedicated validation]] are counterexamples to this pattern. Eligibility checks shown in the workspace do not dominate every path to `submitted`; the audit therefore demonstrates why hard constraints must be centralized before the irreversible transition, not a successful implementation of Pareto selection.
@@ -2420,6 +2426,7 @@ The minimum selects the shortest available finite derivation; the maximum requir
 | Evidence as a certificate, not a Boolean | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#17.2 Evidence as a certificate, not a Boolean]] |
 | Proof-carrying candidates | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#17.4 Proof-carrying candidates]] |
 | Assemble and verify | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#14.7 Assemble and verify]] |
+| Source-authority rebound through a small resolver/kernel boundary | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Source interface|Source-Authoritative Evidence Ledger Kernel — source interface]] |
 
 > [!example] Architecture Garden evidence
 > [[Research/Software Architecture Garden/devctl/05 - Declarative Plugins and Validated Dynamic Commands#Catalog as discovery cache|devctl's plugin catalog]] treats cached discovery as advisory and revalidates module identity, capabilities, and schemas against the live provider before invocation. This is a small trusted admission boundary around a larger extension producer; it is not a formal proof certificate.
@@ -2822,6 +2829,7 @@ A regression test uses a spy reranker and fails if any request contains `VIP-SEC
 | Authorization before remote disclosure | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#D.7 ADR-007: authorization before remote disclosure]] |
 | Security labels, authorization, and noninterference | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-research-projects-compendium#P13 - Security Labels, Authorization, and Noninterference]] |
 | Reranking and remote disclosure | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#38.3 Reranking and remote disclosure]] |
+| Product authorization around shared evidence admission and projection | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Product extensions|Source-Authoritative Evidence Ledger Kernel — product extensions]] |
 
 > [!example] Architecture Garden evidence
 > [[Research/Software Architecture Garden/zitadel-go-test/README|zitadel-go-test]] supplies a generalized security analogue: tenant authority is repeated across OIDC, PostgreSQL, Vault, Kubernetes, and GitOps so that a presentation-layer filter cannot become the security boundary. [[Research/Software Architecture Garden/upwork-tracker/05 - Proposal Lifecycle and Human Submission Boundary#Critical finding UT-P0-001: generic submitted transition bypass|Upwork Tracker's generic submission bypass]] is negative evidence—the Widget guard is bypassed by other adapters because the authoritative service policy does not dominate them.
