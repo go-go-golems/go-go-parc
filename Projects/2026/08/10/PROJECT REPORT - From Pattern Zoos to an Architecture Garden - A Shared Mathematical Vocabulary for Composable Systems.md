@@ -75,9 +75,9 @@ This evidence discipline became part of both authoring skills. It also prevented
 
 ### 1.2 The archive operation behind the research
 
-The conceptual work depended on a substantial preservation pass. Fourteen ChatGPT conversations active on 2026-08-09 were archived under `Transcripts/2026/08/09/`. Their linked outputs produced 163 downloaded files, including 25 ZIP bundles retained as source or reproducibility artifacts. Duplicate conversation titles required explicit disambiguation: one `Branch Branch Designing RAG Abstractions` transcript was restored with a stable suffix rather than silently overwriting its sibling.
+The conceptual work depended on a substantial preservation pass. Fourteen ChatGPT conversations active on 2026-08-09 were archived under `Transcripts/2026/08/09/`. The session's operator log recorded 163 downloaded linked outputs, including 25 retained ZIP bundles. Those two figures describe the historical import operation; no file manifest was committed, so they are not independently reproducible from the current worktree. Duplicate conversation titles required explicit disambiguation: one `Branch Branch Designing RAG Abstractions` transcript was restored with a stable suffix rather than silently overwriting its sibling.
 
-The first generated-artifact inventory contained 300 Markdown and PDF files—183 Markdown documents and 117 PDFs. Subject inventories were then refreshed over 142 transcripts. The research cluster notes linked to artifacts in place instead of moving or duplicating them, preserving original conversation directories and branch context. Before synthesis, 402 internal links from the Research folder were checked.
+The committed generated-artifact inventory contains 300 Markdown and PDF files—183 Markdown documents and 117 PDFs. The operator log also records that subject inventories were refreshed over 142 transcripts and that 402 Research-folder links were checked before synthesis. These are historical execution counts rather than claims recoverable from a retained validation log. The research cluster notes link to artifacts in place instead of moving or duplicating them, preserving original conversation directories and branch context.
 
 This operational work matters because a pattern claim is only as reviewable as its source path. The archive now supports three different reading modes:
 
@@ -97,7 +97,7 @@ The work proceeded in five stages:
 | PBUI synthesis | Fourteen-pattern handbook committed as `6aea9ac681fc33b47702d98f155c339fb4f925a7` |
 | Implementation comparison | Garden cross-correlation, sessionstream study, and Architecture Garden analysis skill |
 
-The RAG research bundle, Pattern Zoo playbook, and PBUI handbook were separately rendered and uploaded to reMarkable:
+The operator record states that the RAG research bundle, Pattern Zoo playbook, and PBUI handbook were separately rendered and uploaded to reMarkable at these destinations:
 
 ```text
 /ai/2026/08/09/RAG-MATHS/RAG MATHS Research Pattern Zoo Bundle.pdf
@@ -105,7 +105,7 @@ The RAG research bundle, Pattern Zoo playbook, and PBUI handbook were separately
 /ai/2026/08/09/PBUI-MATHS/PBUI_MATHS_Pattern_Zoo_Handbook.pdf
 ```
 
-These PDFs support annotation. The Markdown remains authoritative because it retains exact wikilinks, source headings, and editable mathematics.
+These paths are publication-history records; the vault does not contain a cloud receipt or upload manifest that independently verifies them. The PDFs support annotation. The Markdown remains authoritative because it retains exact wikilinks, source headings, and editable mathematics.
 
 ## 2. The Pattern Zoo method
 
@@ -203,10 +203,12 @@ The RAG and PBUI zoos are not the same system. Their overlap is nevertheless sub
 
 ### 5.1 Explicit projections define identity
 
-Let $X$ be a complete runtime value and $P:X\to Y$ the projection that retains fields relevant to one identity contract. Let $C:Y\to B^*$ be canonical encoding and $H:B^*\to I$ a digest.
+Let $X$ be a complete runtime value and $P:X\to Y$ the projection that retains fields relevant to one identity contract. Let $B$ be the byte alphabet, $D$ a set of domain tags, $V$ a set of framing-version identifiers, $\operatorname{Enc}:Y\to B^*$ a canonical encoding, and $H:B^*\to I$ a digest. A typed framing function prevents values from different domains or framing versions from sharing an undifferentiated preimage:
 
 $$
-\operatorname{ID}(x)=H(\operatorname{frame}(D,V,C(P(x)))).
+\operatorname{frame}:D\times V\times B^*\to B^*,
+\qquad
+\operatorname{ID}_{d,v}(x)=H(\operatorname{frame}(d,v,\operatorname{Enc}(P(x)))).
 $$
 
 The important function is $P$, not $H$. The projection states which changes preserve identity and which must produce another name. In UI systems, the same principle separates a semantic reference from an occurrence ID and a React key. In experiment systems, it separates operation identity from run identity and artifact identity.
@@ -219,10 +221,10 @@ $$
 C=C_1+C_2+\cdots+C_n.
 $$
 
-An interpreter receives a command, current state, and authority context:
+Let $S$ be the state space, $A$ the authority-context space, $O$ the outcome space, and $\mathrm{Eff}$ the alphabet of explicit effect descriptions. An interpreter receives a command, current state, and authority context and returns an outcome, successor state, and finite effect plan:
 
 $$
-\operatorname{run}:C\times S\times A\to O\times S\times E^*.
+\operatorname{run}:C\times S\times A\to O\times S\times \mathrm{Eff}^*.
 $$
 
 This shape appears in PBUI commands, DataDrop verbs, rag-evaluation actions, devctl dynamic commands, and sessionstream command handlers. It does not imply that all projects should share one command interface. It says that transportable intent, current authorization, state transition, and external effects should not be represented by one callback captured at render time.
@@ -231,12 +233,12 @@ This shape appears in PBUI commands, DataDrop verbs, rag-evaluation actions, dev
 
 Two superficially similar operations require different mathematics.
 
-An ordered event history is a word in the free monoid $E^*$:
+Let $\mathrm{Ev}$ be the canonical-event alphabet. An ordered event history is a word in the free monoid $\mathrm{Ev}^*$, and a replay fold has type $\operatorname{fold}:S\times\mathrm{Ev}^*\to S$. For $s_0\in S$ and histories $x,y\in\mathrm{Ev}^*$:
 
 $$
-\operatorname{fold}(S_0,xy)
+\operatorname{fold}(s_0,xy)
 =
-\operatorname{fold}(\operatorname{fold}(S_0,x),y).
+\operatorname{fold}(\operatorname{fold}(s_0,x),y).
 $$
 
 Grouping may change; order generally may not.
@@ -457,17 +459,21 @@ for await (const item of session.snapshotThenLive({ sessionId })) {
 }
 ```
 
-The sum type forces recovery and terminal outcomes into the public contract.
+The tagged protocol makes recovery and terminal outcomes explicit in the public contract. JavaScript does not force exhaustive handling: callers can omit a case. A TypeScript binding can add compile-time pressure with a discriminated union and an `assertNever` default branch, provided the compiler and lint configuration preserve exhaustive checking.
 
 ### 8.4 Pure projectors and lawful products
 
-Two independent projectors over one canonical event can be combined by product interpretation:
+Let $p:S_p\times\mathrm{Ev}\to S_p$ and $q:S_q\times\mathrm{Ev}\to S_q$ be independent stateful projectors over the same canonical-event alphabet. Their product projector is typed as follows:
 
 $$
-(p\otimes q)(s,e)=(p(s,e),q(s,e)).
+(p\otimes q):(S_p\times S_q)\times\mathrm{Ev}\to S_p\times S_q,
 $$
 
-This supports timeline, UI, audit, metrics, and accessibility views without coupling their representations. The law only remains useful if projectors do not perform hidden effects that alter another projector's input. External I/O belongs in handlers or explicit effect interpreters; projector dependencies such as time, randomness, and mutable metadata must be represented if replay equality matters.
+$$
+(p\otimes q)((s_p,s_q),e)=(p(s_p,e),q(s_q,e)).
+$$
+
+This supports timeline, UI, audit, metrics, and accessibility views without coupling their state representations. The law only remains useful if projectors do not perform hidden effects that alter another projector's input. External I/O belongs in handlers or explicit effect interpreters; projector dependencies such as time, randomness, and mutable metadata must be represented if replay equality matters.
 
 ### 8.5 Composition must earn its name
 
@@ -591,10 +597,10 @@ The principal artifacts are:
 | [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook|PBUI-MATHS Pattern Zoo]] | 14 patterns; about 29,000 words | Structural, 171-link validation after Garden additions, and substantive review |
 | [[Research/Software Architecture Garden/README|Architecture Garden]] | Eight project studies plus cross-correlation matrix | Exact Garden/Zoo links and reviewed evidence grading |
 | [[Research/Software Architecture Garden/sessionstream/README|sessionstream study]] | Typed event kernel, ten vocabulary candidates, seven mathematical foundations | 41 links; focused sessionstream tests passed |
-| Pattern Zoo skill | 1,174 committed lines across skill, template, playbook, and validator | Validator exercised on both handbooks and negative fixtures |
+| Pattern Zoo skill | 1,174 committed lines across skill, template, playbook, and validator | Reproducible successful validation of both handbooks, including exact pattern and link counts |
 | Architecture Garden skill | Skill, 733-line playbook, entry template, validator, and regression suite | Python compile, Ruff, sessionstream validation, and five validator regression tests |
 
-The RAG research bundle, Pattern Zoo authoring playbook, and PBUI handbook were also rendered for reMarkable review. Those tablet renditions are publication artifacts; the Markdown files in this vault remain the source documents.
+The operator record says that the RAG research bundle, Pattern Zoo authoring playbook, and PBUI handbook were also rendered for reMarkable review. The vault retains no independent upload receipt. Those tablet renditions are publication artifacts; the Markdown files in this vault remain the source documents.
 
 ## Conclusion
 
