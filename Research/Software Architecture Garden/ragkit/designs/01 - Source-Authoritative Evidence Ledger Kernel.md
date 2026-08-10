@@ -33,6 +33,9 @@ This design records a small evidence-ledger kernel for ragkit. The goal is to re
 > - Ragkit extensions provide bundle sources, answering, traces, cards, metrics, and evaluation. Products retain lifecycle, authorization meaning, UI payloads, prompts, and experiment policy.
 > - Ragopt receives summary metrics and a native trace artifact. A ledger snapshot is not a ragopt run, cell, or custody protocol.
 
+> [!important] Proposed pattern, deferred implementation
+> This note preserves a design candidate for later study. COINVAULT-045 should first complete conservative ragkit/ragopt/rag-ttc unification while leaving the current TTC and GEC ledger APIs and semantics in place. Implement this kernel only through a separate follow-up ticket after its source, scope, extension, and identity contracts receive additional review.
+
 ## Why this design exists
 
 Ragkit already defines `Document`, exact-source `Chunk`, derived `Representation`, backend `Hit`, fused hit, hydrated `Evidence`, and score-independent `EvidenceIdentity`. It does not define the stateful mechanism that products use across multiple search calls. That mechanism is duplicated today:
