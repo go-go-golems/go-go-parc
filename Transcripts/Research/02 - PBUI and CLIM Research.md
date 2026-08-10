@@ -46,6 +46,7 @@ The program then produces implementation compendia, a subsystem handbook, a rese
 
 ### Program-level documents
 
+- [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook|PBUI-MATHS Pattern Zoo Handbook]] — evidence-backed synthesis of fourteen recurring patterns, separating independent source families from duplicate branches and pairing first-week explanations with category theory and abstract mathematics.
 - [[Transcripts/2026/08/06/Branch Branch CLIM UI in React/PBUI-RESEARCH-PROJECTS-COMPENDIUM|PBUI research projects compendium]] — the fifteen-project program, composition pass, and evidence protocol.
 - [[Transcripts/2026/08/06/Branch Branch CLIM UI in React/PBUI-SUBSYSTEM-RESEARCH-PROGRAM-HANDBOOK|PBUI subsystem research program handbook]] — graduate/engineering-research framing for independent capsules and controlled composition.
 - [[Transcripts/2026/08/06/Branch Branch CLIM UI in React/PBUI-RESEARCH-PROJECT-INDEX|PBUI research project index]] — navigation and project-level status.
