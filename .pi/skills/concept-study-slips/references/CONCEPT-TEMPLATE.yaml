@@ -1,0 +1,88 @@
+# One concept, one file. Both printed forms render from this — never edit a
+# generated layout. Every code line and file:line must exist at the pinned
+# commit; open the file and check before writing it here.
+
+id: "NN"                       # the study's own section number, two digits;
+                               # unique within this concepts/ directory
+slug: kebab-case-slug          # kebab-case concept name; also the block-id prefix
+title: SHORT NAME              # the STUDY'S term, uppercase — do not coin a new
+                               # one; the h1 wraps at ~16 chars a line
+subtitle: Concept NN · the one thing it is not
+one_liner: >-                  # not printed on the card; the file's own summary
+  One sentence a reader could repeat back.
+
+# --- the card -----------------------------------------------------------
+
+symbols:                       # 3-5 rows; the sets or objects the law ranges over
+  - ["X", "what X is"]
+
+law: "the formula"             # goes in the banner; keep it under ~28 chars
+law_extra: "a second line"     # optional: the corollary, or the partiality note
+
+discipline:                    # same length, read as parallel pairs
+  is:
+    - "three short phrases"
+  is_not:
+    - "three short phrases"
+
+vocabulary:
+  local: "what this repo calls it"
+  proposed: "the neutral pattern name"      # EXACTLY ONE name — the join key
+                                            # across codebases; two defeats it
+  elsewhere: "what the wild calls it"       # a comma-separated list is fine here
+
+sighted_in:
+  symbol: "TheFunction()"
+  file: "path/to/file.go:13-38"
+  code:                        # 3-5 lines that ARE the law: read the whole
+                               # function, then take the lines where the
+                               # invariant is enforced — not the signature,
+                               # not the local setup. Tokens verbatim; you may
+                               # re-wrap to fit ~40 chars and mark cuts "...".
+                               # One list item per printed line.
+    - "the lines where the invariant is enforced"
+
+observed: >-                   # prefer a test assertion or a doc-comment example
+  A concrete, checkable behaviour, with its file:line.
+
+note: >-                       # the limit: the substitution the law does NOT license
+  What this does not say.
+
+source_url: https://github.com/<org>/<repo>/blob/<full-sha>/<path>#L13-L38
+
+# --- the briefing (REQUIRED — it is the form people learn from) ----------
+# Five sections are required: WHY IT EXISTS, THE WHOLE FUNCTION, WHO CALLS IT,
+# TRAP, IF YOU ADD ONE. The two marked optional below may be dropped when the
+# concept has nothing to put in them. Keep this order.
+
+briefing:
+  label: INTERN BRIEFING NN
+  headline: THE SAME NAME
+  file: "path/to/file.go:13-38"
+  sections:                    # each: label + any of text / code / kv / checks
+    - label: WHY IT EXISTS     # REQUIRED
+      text: >-
+        The problem in the user's terms, not the code's. What goes wrong
+        without this.
+    - label: THE WHOLE FUNCTION  # REQUIRED
+      code:
+        - "verbatim lines"
+    - label: A DESIGN DECISION   # optional
+      text: >-
+        Why it was built this way and what the alternative would have cost.
+    - label: SOMETHING WITH TWO SIDES   # optional — rename it for the content
+      kv:
+        - ["LEFT", "when a table beats a paragraph"]
+        - ["RIGHT", "the other side"]
+      text: >-
+        The sentence the table cannot carry.
+    - label: WHO CALLS IT      # REQUIRED
+      text: >-
+        Including "nobody in this repo, and that is the design" when that is
+        the truth — check with grep before writing this.
+    - label: TRAP              # REQUIRED
+      text: >-
+        The thing that will cost someone an afternoon.
+    - label: IF YOU ADD ONE    # REQUIRED
+      checks:
+        - "the steps that keep it honest"

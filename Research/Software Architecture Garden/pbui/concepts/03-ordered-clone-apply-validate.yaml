@@ -1,0 +1,89 @@
+id: "03"
+slug: ordered-clone-apply-validate
+title: CLONE APPLY VALIDATE
+subtitle: Concept 03 · a batch is a partial function
+one_liner: >-
+  A mutation batch clones once, applies every body in order, and validates the
+  whole graph once — or fails leaving the caller's value untouched.
+symbols:
+  - ["𝒮", "graphs Validate accepts"]
+  - ["ℳ", "generated mutations"]
+  - ["ℳ*", "finite ordered lists"]
+law: "Apply : 𝒮 × ℳ* ⇀ 𝒮"
+law_extra: "partial: a validated clone, or an error"
+discipline:
+  is:
+    - "in-memory atomicity"
+    - "order sensitive"
+    - "validate once, at end"
+  is_not:
+    - "storage atomicity"
+    - "serializability"
+    - "audited commit"
+vocabulary:
+  local: "ApplyMutations, Clone, Validate"
+  proposed: "graph batch transition"
+  elsewhere: "transaction, fold, batch apply"
+sighted_in:
+  symbol: "ApplyMutations()"
+  file: "pkg/workbench/mutation.go:13-38"
+  code:
+    - "output := Clone(input)"
+    - "for index, mutation := range mutations {"
+    - "  applyMutation(output, mutation)"
+    - "}"
+    - "Validate(ctx, output, deps, limits)"
+observed: >-
+  A failed batch leaves the input alone: after a rename plus an illegal close,
+  document.Name is still "Production" (workbench_test.go:414-429).
+note: >-
+  No commutativity law is claimed. This is not a database linearization point
+  and carries no audit or effect commit.
+source_url: https://github.com/hyperslop-systems/pbui/blob/c865ea5ed11ee16ed47cf3b35cedea99305aec95/pkg/workbench/mutation.go#L13-L38
+
+briefing:
+  label: INTERN BRIEFING 03
+  headline: CLONE APPLY VALIDATE
+  file: pkg/workbench/mutation.go:13-38
+  sections:
+    - label: WHY IT EXISTS
+      text: >-
+        One user gesture is several graph edits. Closing a pane emits
+        placementClose — plus viewDelete when that was the view's last
+        placement (builders.ts:151-169). A list applied halfway leaves a
+        state no user asked for.
+    - label: THE WHOLE FUNCTION
+      code:
+        - "output := Clone(input)"
+        - "for index, mutation := range mutations {"
+        - "  applyMutation(output, mutation)"
+        - "}"
+        - "Validate(ctx, output, deps, limits)"
+    - label: CLONE FIRST
+      text: >-
+        proto.Clone deep-copies, so you edit the copy. A failed batch returns
+        an error and your input is unchanged: a rename followed by an illegal
+        close leaves Name still "Production" (workbench_test.go:414-429).
+    - label: TWO LAYERS OF CHECKING
+      kv:
+        - ["PER STEP", "structural: unknown_view, duplicate_id, document_in_use"]
+        - ["AT THE END", "whole graph: limits, catalog membership, unique IDs, exact view order"]
+      text: >-
+        Why not check everything per step? Mid-swap, both placements point at
+        one view — a legal gesture with an invalid instant inside it.
+    - label: WHO CALLS IT
+      text: >-
+        Nobody in this repo; grep finds only tests. pkg/workbench holds no
+        storage, HTTP, auth or UI (model.go:1-5). A host server is the caller:
+        decode the batch, apply, store under If-Match, bump the revision.
+        Datalab today drives the full-document replace path instead.
+    - label: TRAP
+      text: >-
+        apply.ts mirrors this applier arm for arm but skips Validate. A
+        mutation it accepts locally can still come back 422 from the server.
+    - label: IF YOU ADD A MUTATION KIND
+      checks:
+        - "proto oneof, then regenerate"
+        - "Go applyMutation arm"
+        - "apply.ts arm, same error codes"
+        - "fixture in fixtures/mutations"

@@ -1,0 +1,43 @@
+id: "04"
+slug: alias-preserving-view-clone
+title: ALIAS PRESERVING CLONE
+subtitle: Concept 04 · a new view, the same documents
+one_liner: >-
+  Cloning a view mints a fresh view identity while every document binding keeps
+  pointing at the original document.
+symbols:
+  - ["V", "logical view IDs"]
+  - ["B", "binding names"]
+  - ["D", "document IDs"]
+  - ["bind", "V × B ⇀ D"]
+law: "bind(v', b) = bind(v, b)"
+law_extra: "for every b where bind(v,b) is defined"
+discipline:
+  is:
+    - "an independent view"
+    - "documents still shared"
+    - "a fresh view ID"
+  is_not:
+    - "a document fork"
+    - "a linked placement"
+    - "a deep state copy"
+vocabulary:
+  local: "ViewClone mutation"
+  proposed: "alias-preserving clone"
+  elsewhere: "duplicate, fork, shallow copy"
+sighted_in:
+  symbol: "Mutation_ViewClone"
+  file: "pkg/workbench/mutation.go:161-184"
+  code:
+    - "clone := proto.Clone(source).(*AppView)"
+    - "clone.Id = value.NewViewId"
+    - "document.Views[clone.Id] = clone"
+    - "ViewOrder = append(ViewOrder, clone.Id)"
+    - "// Documents map rides along untouched"
+observed: >-
+  out.Views["view-copy"].Documents["primary"] is still "document-1"
+  (workbench_test.go:310-349).
+note: >-
+  Linked placement preserves the view itself; this preserves the bindings of a
+  new view. Two distinct alias contracts, both tested.
+source_url: https://github.com/hyperslop-systems/pbui/blob/c865ea5ed11ee16ed47cf3b35cedea99305aec95/pkg/workbench/mutation.go#L161-L184

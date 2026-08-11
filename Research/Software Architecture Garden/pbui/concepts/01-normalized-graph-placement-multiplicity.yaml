@@ -1,0 +1,92 @@
+id: "01"
+slug: normalized-graph-placement-multiplicity
+title: PLACEMENT MULTIPLICITY
+subtitle: Concept 01 · a placement is not a view
+one_liner: >-
+  Documents, logical views and placements are three separate identity spaces;
+  the placement relation is many-to-one onto views.
+symbols:
+  - ["D", "document IDs"]
+  - ["V", "logical view IDs"]
+  - ["P", "placement IDs"]
+  - ["A", "application IDs"]
+  - ["B", "binding names"]
+law: "places ⊆ P × V"
+law_extra: "view : V ⇀ A × (B ⇀ D)"
+discipline:
+  is:
+    - "a normalized graph"
+    - "many placements, one view"
+    - "geometry owned by P"
+  is_not:
+    - "a mount identity"
+    - "a document"
+    - "an event log"
+vocabulary:
+  local: "Node leaf, AppView, DocumentPayload"
+  proposed: "placement occurrence"
+  elsewhere: "tile, pane, shared view"
+sighted_in:
+  symbol: "ApplyMutations + countViewPlacements"
+  file: "pkg/workbench/workbench_test.go:310-349"
+  code:
+    - "// one ViewClone, two PlacementSplits"
+    - "countViewPlacements(out,'view-chart')==3"
+    - "countViewPlacements(out,'view-copy') ==1"
+    - "countViewPlacements(doc,'view-chart')==2"
+    - "// input document was never mutated"
+observed: >-
+  Validation rejects a leaf whose viewId does not resolve
+  (validate.go:220-227).
+note: >-
+  A durable placement is not a mounted PBUI occurrence. Remount generations do
+  not exist in this repository.
+source_url: https://github.com/hyperslop-systems/pbui/blob/c865ea5ed11ee16ed47cf3b35cedea99305aec95/pkg/workbench/workbench_test.go#L310-L349
+
+briefing:
+  label: INTERN BRIEFING 01
+  headline: PLACEMENT MULTIPLICITY
+  file: Tile.tsx · validate.go · workbench_test.go
+  sections:
+    - label: WHY IT EXISTS
+      text: >-
+        The same chart can sit in two panes at once. If a pane and the thing it
+        shows were one object, the second pane would need a copy and the two
+        would drift apart. So identity is split three ways, and each edit says
+        which of the three it touches.
+    - label: THE THREE SPACES
+      kv:
+        - ["DOCUMENT", "the data itself; lives in the documents map"]
+        - ["VIEW", "app ID, title, and named document bindings"]
+        - ["PLACEMENT", "a leaf Node in a workspace tree; geometry only"]
+    - label: HOW A TILE RESOLVES
+      code:
+        - "const view = state.layout.views[node.viewId]"
+        - "const app  = appFor(view?.appId ?? '')"
+        - "const docId = primaryDocId(view)"
+        - "const Component = app?.Component"
+        - "// Tile.tsx:18-24, 60-72"
+      text: >-
+        The tile is geometry plus a reference to one logical view. The view owns
+        application, binding and title, so linked placements stay in sync.
+    - label: LINKED VERSUS CLONED
+      kv:
+        - ["LINKED", "new placement, same view: both panes observe one state"]
+        - ["CLONED", "new view, same documents (concept 04)"]
+    - label: THE TEST THAT PINS IT
+      code:
+        - "// one ViewClone, two PlacementSplits"
+        - "countViewPlacements(out,'view-chart')==3"
+        - "countViewPlacements(out,'view-copy') ==1"
+        - "countViewPlacements(doc,'view-chart')==2"
+    - label: WHAT VALIDATION ENFORCES
+      text: >-
+        A leaf must reference a view that exists (validate.go:220-227). A view's
+        bindings must name a binding its application declares and a document
+        that exists (validate.go:143-151). Dangling references cannot survive a
+        batch.
+    - label: TRAP
+      text: >-
+        A placement is not a React mount. It survives remounting, and one tile
+        can contain many nested presentations that have no identity at all.
+        Never use a placement ID as a mount identity.

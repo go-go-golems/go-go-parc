@@ -1,0 +1,42 @@
+id: "06"
+slug: once-only-accept-settlement
+title: ONCE ONLY SETTLEMENT
+subtitle: Concept 06 · one slot, one promise
+one_liner: >-
+  Typed value acquisition holds exactly one pending resolver; settle clears the
+  slot before resolving, so the promise settles at most once.
+symbols:
+  - ["pending", "the stored resolver"]
+  - ["accepting", "the live request"]
+  - ["onAccept", "the parallel callback"]
+law: "clear pending, then resolve"
+law_extra: "a competing request resolves to null"
+discipline:
+  is:
+    - "a one-slot state machine"
+    - "escape-abortable"
+    - "promise-once semantics"
+  is_not:
+    - "a fence for onAccept"
+    - "unmount safe"
+    - "request identified"
+vocabulary:
+  local: "accept, settle, abortAccept"
+  proposed: "typed input context"
+  elsewhere: "picker mode, one-shot promise"
+sighted_in:
+  symbol: "settle() / accept()"
+  file: "src/presentation/createPbui.tsx:120-155"
+  code:
+    - "const resolve = pending.current"
+    - "pending.current = null"
+    - "onAccept?.(result); resolve?.(result)"
+    - "// accept(): newcomer never displaces"
+    - "if (pending.current) { resolve(null) }"
+observed: >-
+  Acceptability is exact type match first, then ordered one-hop conversions;
+  Datalab installs only cat -> field.
+note: >-
+  No cleanup settles the resolver when the Provider unmounts, and settle calls
+  onAccept even with no live request. Open obligation.
+source_url: https://github.com/hyperslop-systems/pbui/blob/c865ea5ed11ee16ed47cf3b35cedea99305aec95/src/presentation/createPbui.tsx#L120-L155

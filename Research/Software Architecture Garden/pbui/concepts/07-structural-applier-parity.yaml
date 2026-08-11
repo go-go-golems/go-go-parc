@@ -1,0 +1,43 @@
+id: "07"
+slug: structural-applier-parity
+title: STRUCTURAL PARITY
+subtitle: Concept 07 · one corpus, two languages
+one_liner: >-
+  A shared fixture corpus pins the Go and TypeScript structural appliers to the
+  same output graph and the same error code — and to nothing more.
+symbols:
+  - ["F", "fixtures/mutations/*.json"]
+  - ["applyGo", "pkg/workbench applier"]
+  - ["applyTS", "workbench-protocol applier"]
+  - ["code", "stable error string"]
+law: "applyGo(f) ≡ applyTS(f)  for all f ∈ F"
+law_extra: "structural only; |F| ≥ 10 asserted twice"
+discipline:
+  is:
+    - "structural parity"
+    - "shared error codes"
+    - "input immutability (TS)"
+  is_not:
+    - "full Validate parity"
+    - "catalog or limit checks"
+    - "storage or auth parity"
+vocabulary:
+  local: "fixtures/mutations, MutationError"
+  proposed: "structural applier parity"
+  elsewhere: "golden files, conformance suite"
+sighted_in:
+  symbol: "TestApplierParityFixtures"
+  file: "pkg/workbench/parity_fixtures_test.go:15-99"
+  code:
+    - "output := Clone(&document)"
+    - "applyErr := applyMutation(output, &mut)"
+    - "proto.Equal(output, &expected)"
+    - "// TS asserts the same file:"
+    - "expect(toJson(applied)).toEqual(exp)"
+observed: >-
+  Both suites fail if the corpus drops below ten fixtures, so the two appliers
+  can only drift by breaking a build.
+note: >-
+  The TS layer is deliberately weaker: a mutation it accepts can still be 422'd
+  by the server's full-graph Validate.
+source_url: https://github.com/hyperslop-systems/pbui/blob/c865ea5ed11ee16ed47cf3b35cedea99305aec95/pkg/workbench/parity_fixtures_test.go#L15-L99

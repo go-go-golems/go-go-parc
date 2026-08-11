@@ -1,0 +1,42 @@
+id: "02"
+slug: scope-intersection
+title: SCOPE INTERSECTION
+subtitle: Concept 02 · offered is not allowed
+one_liner: >-
+  The set of applications a picker may offer is the intersection of the
+  instance, stage and workspace allow-sets.
+symbols:
+  - ["U", "registered app IDs"]
+  - ["I", "instance allow-set"]
+  - ["S", "stage allow-set"]
+  - ["Q", "workspace allow-set"]
+law: "Offered = I ∩ S ∩ Q"
+law_extra: "X ⊆ Y ⇒ X∩Z ⊆ Y∩Z"
+discipline:
+  is:
+    - "a picker filter"
+    - "order preserving"
+    - "monotone"
+  is_not:
+    - "authorization"
+    - "a mount gate"
+    - "a tenant policy"
+vocabulary:
+  local: "AppScope, useAvailableApps"
+  proposed: "presentation policy scope"
+  elsewhere: "feature flag, capability filter"
+sighted_in:
+  symbol: "useAvailableApps()"
+  file: "packages/datalab-ui/src/appkit/AppScope.tsx:125-142"
+  code:
+    - "apps.filter((app) =>"
+    - "(!inStage || inStage.has(app.id)) &&"
+    - "(!inSpace || inSpace.has(app.id)),"
+    - ")"
+observed: >-
+  A stage offering [signin] inside an instance offering [chart] offers nothing
+  at all; Launcher shows its empty state.
+note: >-
+  Narrowing never re-offers. A named app still mounts; the server is what
+  denies data.
+source_url: https://github.com/hyperslop-systems/pbui/blob/c865ea5ed11ee16ed47cf3b35cedea99305aec95/packages/datalab-ui/src/appkit/AppScope.tsx#L125-L142
