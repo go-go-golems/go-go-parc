@@ -25,11 +25,13 @@ Sessionstream should implement the paper's complete model.
 | `11-cloudevents-specification.md` | CloudEvents specification, archived at repository commit `c2845a49bc9831be02f305a4a792401b932d77d4`. <https://github.com/cloudevents/spec> | Distinguishes an occurrence from its event representation and separates event context from event data. It informs envelope design but does not justify one universal in-process record. |
 | `12-fowler-event-sourcing.md` | Martin Fowler, “Event Sourcing.” <https://martinfowler.com/eaaDev/EventSourcing.html> | Describes state reconstruction from an ordered event log and the distinction between current application state and authoritative event history. |
 | `13-mit-queueing-models.pdf` | Cathy Wu, “Queuing Models: Stochastic Throughput,” MIT 1.041/1.200, Spring 2023. <https://web.mit.edu/1.041/spring2023/lectures/L8-queuing-models-2023sp.pdf> | Supplies queue-capacity, throughput, stationary-analysis, and Little's-law foundations for sizing and measuring a bounded diagnostic dispatcher. |
+| `14-go-blog-testing-concurrent-code-with-synctest.md` | Damien Neil, “Testing concurrent code with testing/synctest,” Go Blog, 2025. <https://go.dev/blog/synctest> | Explains fake time, isolated goroutine bubbles, durable blocking, and `synctest.Wait` for deterministic concurrent tests. |
+| `15-go-testing-synctest-package.md` | Go standard library documentation for `testing/synctest`. <https://pkg.go.dev/testing/synctest> | Records the exact testing API and operational definitions used by the runtime-refinement design. |
 
 ## Retrieval methods
 
 - Primary PDFs and raw GitHub specifications were downloaded directly with `curl -fL`.
-- OpenTelemetry and Fowler pages were converted to Markdown with `defuddle parse <url> --md`.
+- OpenTelemetry, Fowler, and Go `testing/synctest` pages were converted to Markdown with `defuddle parse <url> --md`.
 - Archived Markdown was normalized to LF line endings and trailing whitespace was removed for stable vault rendering and Git validation.
 - The Reactive Streams and CloudEvents source revisions were recorded with `git ls-remote`.
 - `pdftotext -layout` was used during research, but generated text copies are not retained because the original PDFs and this index are sufficient.

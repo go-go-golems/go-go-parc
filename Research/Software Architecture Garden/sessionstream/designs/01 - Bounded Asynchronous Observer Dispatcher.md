@@ -22,6 +22,7 @@ related_notes:
   - "[[PROJECT REPORT - Bounded Asynchronous Observer Dispatch - Contracts Lifecycle and Generic Go Design]]"
   - "[[PROJECT REPORT - Sessionstream Heartbeats - From Ping Pong Loops to a Timed Failure Detector]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement]]"
 ---
 
 # Bounded Asynchronous Observer Dispatcher
@@ -410,7 +411,7 @@ stop Once
 
 The current implementation satisfies the intended behavior. A concrete `observerDispatcher` extraction could simplify `Server`. A generic dispatcher could simplify that concrete unit further.
 
-However, `TransportObserver` has only one non-test in-repository consumer: `cmd/sessionstream-systemlab`. If Systemlab and observer APIs are removed, no dispatcher remains to extract. Deletion should precede generalization when the consumer is being retired.
+The initial repository-only audit found only Systemlab, but the later cross-workspace audit found rag-ttc uses subscribed-stage observations for reconnect metrics. `TransportObserver` and its dispatcher therefore remain. Bus, Pipeline, and Error observers were removed with Systemlab. There is still only one retained dispatcher use, so generic extraction remains premature.
 
 ## Relation to other Sessionstream observers
 
@@ -484,11 +485,11 @@ Domain adapters separately test:
 
 ## Decision record: Generic mechanism, delayed abstraction
 
-- **Context:** The delivery mechanics are general, but Sessionstream currently has one demonstrated non-test consumer and plans to evaluate removing that consumer.
-- **Options considered:** Keep mechanics embedded; extract a transport-specific dispatcher; create a generic internal dispatcher immediately; remove observer infrastructure.
-- **Decision:** Preserve this pattern as a Garden design. Do not implement the generic package until the Systemlab-removal audit decides whether any observer dispatcher remains and a second matching consumer justifies the abstraction.
-- **Rationale:** Generalizing unused code preserves complexity without product evidence. The design remains available if retained observers need identical policy.
-- **Consequences:** Current code may remain structurally complex until deletion or extraction. A later implementation has explicit contracts and tests.
+- **Context:** The delivery mechanics are general, and rag-ttc is now a demonstrated non-test consumer of Transport observation, but no second retained dispatcher use exists.
+- **Options considered:** Keep mechanics embedded; extract a transport-specific dispatcher; create a generic internal dispatcher immediately; replace the observer with a narrower callback.
+- **Decision:** Retain the concrete transport dispatcher and preserve this Garden design. Do not implement a generic package until a second matching consumer justifies the abstraction.
+- **Rationale:** One valid consumer justifies behavior, not generalization. The existing implementation is tested and matches rag-ttc's best-effort diagnostic use.
+- **Consequences:** Dispatcher state remains embedded in `ws.Server`. A later extraction has explicit contracts and tests if another use appears.
 - **Status:** accepted
 
 ## Decision record: One buffered channel
@@ -524,3 +525,4 @@ Domain adapters separately test:
 - `pkg/sessionstream/hub.go`
 - `ttmp/2026/05/06/SS-OBSERVERS--add-hub-and-websocket-observers-for-sessionstream-diagnostics/design-doc/01-observer-implementation-guide.md`
 - [[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra|Typed Transition Systems and Trace Algebra]]
+- [[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement|Effect-Acknowledged State Machines and Runtime Refinement]]

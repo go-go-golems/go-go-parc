@@ -25,6 +25,7 @@ related_notes:
   - "[[Research/Software Architecture Garden/sessionstream/designs/01 - Bounded Asynchronous Observer Dispatcher|Bounded Asynchronous Observer Dispatcher]]"
   - "[[PROJECT REPORT - Bounded Asynchronous Observer Dispatch - Contracts Lifecycle and Generic Go Design]]"
   - "[[PROJECT REPORT - Sessionstream Heartbeats - From Ping Pong Loops to a Timed Failure Detector]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement]]"
 ---
 
 # Typed Transition Systems and Trace Algebra
@@ -43,6 +44,9 @@ This report develops that model and applies it directly to `BusObserver`, `Pipel
 > - Lamport order, event ordinals, writer order, and dispatcher admission order are distinct relations. No timestamp or global callback sequence should silently replace them.
 > - Reactive Streams, Kahn process networks, CloudEvents, and OpenTelemetry solve adjacent problems. None is a drop-in universal kernel for Sessionstream.
 > - Sessionstream can simplify by keeping pure reducers and explicit durable event contracts, deleting unused observer APIs, and using standard telemetry adapters where operational diagnostics are still required.
+
+> [!update] Implementation outcome
+> SESSIONSTREAM-006 removed Systemlab plus Bus, Pipeline, and Error observers. A cross-workspace audit found rag-ttc uses `TransportObserver` for reconnect metrics, so Transport observation and its bounded dispatcher remain. [[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement|Design 03]] extends the transition model from pure kernels to their concurrent runtime refinements.
 
 ## 1. The direct answer
 
@@ -315,7 +319,7 @@ One subsystem's output action becomes another subsystem's input. Correctness can
 1. Prove or test each component against its local transition contract.
 2. Verify that the runtime wiring refines the high-level contract.
 
-The heartbeat arbitration bug found during PR review was a refinement bug: the pure reducer handled admitted events correctly, but runtime selection among already-admitted channels could present a deadline before a timely pong. The shared arbitration helper restored the intended refinement.
+The heartbeat arbitration bug found during PR review was a refinement bug: the pure reducer handled admitted events correctly, but runtime selection among already-admitted channels could present a deadline before a timely pong. The shared arbitration helper restored the intended refinement. [[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement|Effect-Acknowledged State Machines and Runtime Refinement]] develops this proof obligation and applies it to chat startup and cancellation.
 
 ## 5. Traces as words and folds
 
