@@ -120,6 +120,12 @@ The answer is “monotone and approximately increasing, but not strictly linear.
 | 75,000 | 31.61 s | 1.03 GiB | 977 MiB | 1.05 GiB |
 | 114,106 | 47.35 s | 1.74 GiB | 1.69 GiB | 1.78 GiB |
 
+The measured relationship is shown below. The external RSS and anonymous-memory series come from the process sampler; the in-process RSS series comes from the verifier's EMF events. The SVG is committed beside this report so the figure remains available when the temporary `/tmp` experiment directory is removed.
+
+![[CoinVault verifier memory sweep.svg]]
+
+_Figure 1. Peak memory increases with representation count; the final point is the exact full bundle shape._
+
 The external RSS values are the maxima from `/proc/<pid>/status` and `smaps_rollup`. The in-process values are maxima from EMF events emitted by `knowledge verify --memory-metrics cloudwatch`. The measurements are close, but they are sampled independently and can observe different instants during a short-lived allocation peak.
 
 An ordinary least-squares fit over the five external RSS points is:
@@ -312,7 +318,7 @@ The implementation and evidence are split across three repositories.
 - `scripts/08-run-verifier-scaling-hosts.sh` — sequential sweep runner.
 - `scripts/09-summarize-verifier-sweep.sh` — CSV/SVG summary generator.
 - `/tmp/coinvault-verifier-sweep-results-20260811/summary.csv` — measured values.
-- `/tmp/coinvault-verifier-sweep-results-20260811/summary.svg` — graph of peak memory.
+- `CoinVault verifier memory sweep.svg` — embedded graph of peak memory.
 
 The ticket tasks mark telemetry integration and local export verification complete. The task for the isolated host/container baseline remains open until the corrected container run produces valid cgroup data.
 
