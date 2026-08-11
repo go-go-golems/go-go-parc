@@ -40,6 +40,7 @@ related_notes:
   - "[[Research/Software Architecture Garden/README]]"
   - "[[Transcripts/Research/09 - RAG-MATHS Pattern Zoo]]"
   - "[[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/01 - Bounded Asynchronous Observer Dispatcher]]"
 ---
 
 # Architecture Garden — sessionstream
@@ -53,6 +54,7 @@ This repository is a useful bridge between the [[Transcripts/Research/09 - RAG-M
 > - The mathematical center is a family of session-indexed ordered event words interpreted by stateful folds and output projections.
 > - Snapshot-before-live is a **prefix-cut protocol**: a snapshot represents one event prefix and buffered live events provide the ordered suffix.
 > - Protobuf schemas and schema-vet form a small trusted admission boundary around Go, Goja, JSON, persistence, and browser clients.
+> - Best-effort observer delivery is a separate bounded concurrency contract; see [[Research/Software Architecture Garden/sessionstream/designs/01 - Bounded Asynchronous Observer Dispatcher|Bounded Asynchronous Observer Dispatcher]].
 > - The implementation is strongest at contract separation and reconnect fencing. Per-session serialization, stable redelivery identity, consistent SQLite cuts, and atomic projection progress remain important laws to harden.
 
 ## Snapshot identity and evidence
@@ -328,6 +330,14 @@ $$
 
 This law justifies deriving UI, timeline, audit, metrics, and accessibility views from one canonical event without coupling their representations. It does not justify letting one projector perform hidden effects that alter another projector's input.
 
+## Design entries
+
+### Bounded asynchronous observer dispatcher
+
+[[Research/Software Architecture Garden/sessionstream/designs/01 - Bounded Asynchronous Observer Dispatcher|Bounded Asynchronous Observer Dispatcher]] separates a domain observer from its callback-delivery mechanism. It specifies bounded admission, ordered asynchronous delivery, nonblocking producers, explicit drop accounting, panic isolation, admission closure, accepted-work draining, and completion waiting.
+
+The design is relevant to Sessionstream because WebSocket `TransportObserver` delivery currently embeds queue and lifecycle state in `ws.Server`. The mechanism is technically reusable, but Systemlab is its only non-test in-repository consumer. The design therefore records both the generic contract and the deletion boundary: do not generalize infrastructure that disappears when its consumer is removed.
+
 ## Candidate ecosystem patterns
 
 The comparison suggests six vocabulary entries worth developing across projects:
@@ -362,3 +372,4 @@ These names should remain candidates until compared with consumers and additiona
 - [[Research/Software Architecture Garden/rag-evaluation-system/README|rag-evaluation-system architecture study]]
 - [[Research/Software Architecture Garden/go-go-datadrop/README|go-go-datadrop architecture study]]
 - [[Research/Software Architecture Garden/zitadel-go-test/README|zitadel-go-test architecture study]]
+- [[Research/Software Architecture Garden/sessionstream/designs/01 - Bounded Asynchronous Observer Dispatcher|Bounded Asynchronous Observer Dispatcher design]]
