@@ -252,6 +252,10 @@ The [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo|RAG-MATHS Pattern Zoo]] an
 
 The Garden also exposes patterns not yet represented cleanly by either zoo: structural guard tests, simultaneous raw and structured evidence, wrapper-owned process evidence, reconciliation before mutation, and explicit human-confirmation boundaries. These should remain extension candidates rather than being forced into a merely similar chapter. In particular, a PBUI occurrence is not a transport IR node, a RAG entity–derivation–observation graph is not a capture/projection ownership split, ordinary Go experiment control flow is not a typed plan with multiple interpreters, a dependency graph is not a binding graph, and a registry entry never grants execution authority by itself.
 
+## Cross-project architecture research
+
+- [[Research/Software Architecture Garden/Research/01 - Theory-to-Code Correspondence Manifests|Theory-to-Code Correspondence Manifests]] proposes a human-rich YAML layer linking long-form theory to code symbols, verification obligations, evidence maturity, LLM assessments, and longitudinal drift. Sessionstream heartbeat, runtime refinement, chat startup, and observer retention provide the initial concrete examples.
+
 ## Relationship to the existing knowledge base
 
 The Architecture Garden complements existing notes rather than replacing them:
