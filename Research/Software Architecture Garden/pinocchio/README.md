@@ -129,16 +129,16 @@ JSONL/stdin RPC and TUI/chat modes converge on the `chatapp` application kernel:
 
 ## Candidate common vocabulary
 
-| Proposed term | Project-local name | Invariant | Nearby ecosystem names | Difference retained |
-|---|---|---|---|---|
-| **Runtime selection plan** | resolved profile + `ResolvedRuntimePlan` | Config-derived description before effect capabilities are allocated. | Typed plan/profile stack | Current `ComposedRuntime` is not serializable plan data. |
-| **Composed inference capability** | `ComposedRuntime` | Host-owned engine, middleware, registry/executor, and sink wrapper. | Interpreter/runtime | Must not cross wire or stand for profile identity. |
-| **Observation translator** | `runtimeEventSink` | Maps library observations into app event vocabulary. | Adapter/event bridge | May lose detail and does not own inference. |
-| **Chat occurrence event** | `Chat*` event | Sessionstream appends the typed lifecycle occurrence before projection. | Canonical event | Persistence authority is delegated; in-memory mode is not restart-durable. |
-| **Hydrated timeline materialization** | `TimelineEntity` | Query/render state reported with a declared snapshot ordinal. | Projection/read model | The SQLite reads do not prove a transactionally consistent prefix cut; this is not a turn or PBUI mounted occurrence. |
-| **Inference turn snapshot** | stored `Turn` | Accumulated provider-neutral state for resume/debug. | Checkpoint/snapshot | No atomic cut with timeline hydration. |
-| **Redacted runtime projection** | runtime fingerprint | Diagnostic projection excluding secrets. | Coordinate/digest | Not behavior-complete today. |
-| **Host-only credential capability** | `BearerTokenSource` | Renewable credential never becomes JS data. | Capability | Selection data is not the capability itself. |
+| Proposed term                         | Project-local name                       | Invariant                                                               | Nearby ecosystem names   | Difference retained                                                                                                   |
+| ------------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| **Runtime selection plan**            | resolved profile + `ResolvedRuntimePlan` | Config-derived description before effect capabilities are allocated.    | Typed plan/profile stack | Current `ComposedRuntime` is not serializable plan data.                                                              |
+| **Composed inference capability**     | `ComposedRuntime`                        | Host-owned engine, middleware, registry/executor, and sink wrapper.     | Interpreter/runtime      | Must not cross wire or stand for profile identity.                                                                    |
+| **Observation translator**            | `runtimeEventSink`                       | Maps library observations into app event vocabulary.                    | Adapter/event bridge     | May lose detail and does not own inference.                                                                           |
+| **Chat occurrence event**             | `Chat*` event                            | Sessionstream appends the typed lifecycle occurrence before projection. | Canonical event          | Persistence authority is delegated; in-memory mode is not restart-durable.                                            |
+| **Hydrated timeline materialization** | `TimelineEntity`                         | Query/render state reported with a declared snapshot ordinal.           | Projection/read model    | The SQLite reads do not prove a transactionally consistent prefix cut; this is not a turn or PBUI mounted occurrence. |
+| **Inference turn snapshot**           | stored `Turn`                            | Accumulated provider-neutral state for resume/debug.                    | Checkpoint/snapshot      | No atomic cut with timeline hydration.                                                                                |
+| **Redacted runtime projection**       | runtime fingerprint                      | Diagnostic projection excluding secrets.                                | Coordinate/digest        | Not behavior-complete today.                                                                                          |
+| **Host-only credential capability**   | `BearerTokenSource`                      | Renewable credential never becomes JS data.                             | Capability               | Selection data is not the capability itself.                                                                          |
 
 ## Mathematical and computer-science foundations
 

@@ -1,0 +1,161 @@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Running breadth-first search Model-Checking with fp 123 and seed 2697376753399558642 with 4 workers on 8 cores with 14244MB heap and 64MB offheap memory [pid: 1217188] (Linux 6.8.0-137-generic amd64, Ubuntu 21.0.11 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/tla/Dispatcher.tla
+Parsing file /tmp/Integers.tla
+Parsing file /tmp/Sequences.tla
+Parsing file /tmp/FiniteSets.tla
+Parsing file /tmp/TLC.tla
+Parsing file /tmp/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Dispatcher
+Starting... (2026-08-11 07:31:49)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-08-11 07:31:50.
+Error: Invariant NoSendAfterClose is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ lockOwner = "none"
+/\ attempts = 0
+/\ current = <<>>
+/\ rejected = 0
+/\ workerDone = FALSE
+/\ pc = ( p1 :> "ready" @@
+  p2 :> "ready" @@
+  "closer" :> "cready" @@
+  "worker" :> "wrecv" @@
+  "waiter" :> "wait" )
+/\ dropped = 0
+/\ closing = FALSE
+/\ panics = 0
+/\ submitK = (p1 :> 0 @@ p2 :> 0)
+/\ closesDone = 0
+/\ offered = <<>>
+/\ queue = <<>>
+/\ waiterDone = FALSE
+/\ sendsAfterClose = 0
+/\ closeCount = 0
+/\ admitted = <<>>
+
+State 2: <CloseAcquire line 153, col 5 to line 160, col 69 of module Dispatcher>
+/\ lockOwner = "closer"
+/\ attempts = 0
+/\ current = <<>>
+/\ rejected = 0
+/\ workerDone = FALSE
+/\ pc = ( p1 :> "ready" @@
+  p2 :> "ready" @@
+  "closer" :> "close" @@
+  "worker" :> "wrecv" @@
+  "waiter" :> "wait" )
+/\ dropped = 0
+/\ closing = FALSE
+/\ panics = 0
+/\ submitK = (p1 :> 0 @@ p2 :> 0)
+/\ closesDone = 0
+/\ offered = <<>>
+/\ queue = <<>>
+/\ waiterDone = FALSE
+/\ sendsAfterClose = 0
+/\ closeCount = 0
+/\ admitted = <<>>
+
+State 3: <CloseBody line 163, col 5 to line 172, col 45 of module Dispatcher>
+/\ lockOwner = "closer"
+/\ attempts = 0
+/\ current = <<>>
+/\ rejected = 0
+/\ workerDone = FALSE
+/\ pc = ( p1 :> "ready" @@
+  p2 :> "ready" @@
+  "closer" :> "crelease" @@
+  "worker" :> "wrecv" @@
+  "waiter" :> "wait" )
+/\ dropped = 0
+/\ closing = TRUE
+/\ panics = 0
+/\ submitK = (p1 :> 0 @@ p2 :> 0)
+/\ closesDone = 1
+/\ offered = <<>>
+/\ queue = <<>>
+/\ waiterDone = FALSE
+/\ sendsAfterClose = 0
+/\ closeCount = 1
+/\ admitted = <<>>
+
+State 4: <CloseRelease line 175, col 5 to line 181, col 69 of module Dispatcher>
+/\ lockOwner = "none"
+/\ attempts = 0
+/\ current = <<>>
+/\ rejected = 0
+/\ workerDone = FALSE
+/\ pc = ( p1 :> "ready" @@
+  p2 :> "ready" @@
+  "closer" :> "cdone" @@
+  "worker" :> "wrecv" @@
+  "waiter" :> "wait" )
+/\ dropped = 0
+/\ closing = TRUE
+/\ panics = 0
+/\ submitK = (p1 :> 0 @@ p2 :> 0)
+/\ closesDone = 1
+/\ offered = <<>>
+/\ queue = <<>>
+/\ waiterDone = FALSE
+/\ sendsAfterClose = 0
+/\ closeCount = 1
+/\ admitted = <<>>
+
+State 5: <SubmitAcquire line 102, col 5 to line 109, col 69 of module Dispatcher>
+/\ lockOwner = p2
+/\ attempts = 0
+/\ current = <<>>
+/\ rejected = 0
+/\ workerDone = FALSE
+/\ pc = ( p1 :> "ready" @@
+  p2 :> "submit" @@
+  "closer" :> "cdone" @@
+  "worker" :> "wrecv" @@
+  "waiter" :> "wait" )
+/\ dropped = 0
+/\ closing = TRUE
+/\ panics = 0
+/\ submitK = (p1 :> 0 @@ p2 :> 0)
+/\ closesDone = 1
+/\ offered = <<>>
+/\ queue = <<>>
+/\ waiterDone = FALSE
+/\ sendsAfterClose = 0
+/\ closeCount = 1
+/\ admitted = <<>>
+
+State 6: <SubmitBody line 112, col 5 to line 137, col 63 of module Dispatcher>
+/\ lockOwner = p2
+/\ attempts = 1
+/\ current = <<>>
+/\ rejected = 0
+/\ workerDone = FALSE
+/\ pc = ( p1 :> "ready" @@
+  p2 :> "release" @@
+  "closer" :> "cdone" @@
+  "worker" :> "wrecv" @@
+  "waiter" :> "wait" )
+/\ dropped = 0
+/\ closing = TRUE
+/\ panics = 0
+/\ submitK = (p1 :> 0 @@ p2 :> 1)
+/\ closesDone = 1
+/\ offered = <<>>
+/\ queue = <<<<p2, 1>>>>
+/\ waiterDone = FALSE
+/\ sendsAfterClose = 1
+/\ closeCount = 1
+/\ admitted = <<<<p2, 1>>>>
+
+37 states generated, 34 distinct states found, 12 states left on queue.
+The depth of the complete state graph search is 7.
+The average outdegree of the complete state graph is 2 (minimum is 0, the maximum 4 and the 95th percentile is 4).
+Finished in 01s at (2026-08-11 07:31:50)

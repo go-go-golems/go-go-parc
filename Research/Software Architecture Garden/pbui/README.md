@@ -35,6 +35,7 @@ related_notes:
   - "[[Research/Software Architecture Garden/rag-evaluation-system/README]]"
 ---
 
+k
 # Architecture Garden — PBUI
 
 PBUI combines three systems whose boundaries matter more than their shared vocabulary: a generic React presentation/accept/menu mechanism, Datalab's normalized document/view/placement workbench, and a protobuf graph with Go and TypeScript mutation paths plus a revision-aware remote frontend. Together they demonstrate typed intent with host-owned effects, scope-owned UI runtime, and alias-preserving graph edits. They do **not** implement the complete formal system hypothesized by the generated [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook|PBUI-MATHS handbook]].
@@ -139,20 +140,20 @@ The committed menu-geometry regression is concrete historical failure evidence. 
 
 ## Authority and state map
 
-| Object | Owner | Identity or freshness | Durable? | Must not be confused with |
-|---|---|---|---|---|
-| Presentation value | React call site | exact type tag plus embedded value | Only if a consumer persists it | scoped stable reference |
-| Mounted `Presentation` | React | no semantic mount ID; DOM lifetime only | No | placement or `AppView` |
-| Descriptor-derived offer | descriptor plus current Provider environment | action `id`; Datalab derives it from type/index/label | No | authorization, committed command, or outcome |
-| Datalab verb | host UI intent producer | target IDs where present; no general invocation ID | No | performed effect |
-| Document | Redux world or protocol `DocumentPayload` | document ID plus format/schema version | In snapshots | view or placement |
-| Logical view | Redux layout or protocol `AppView` | view ID | In snapshots | React mount or placement |
-| Placement | workspace tree `Node` | node/placement ID | In snapshots | logical view; many may point to one view |
-| Workbench graph | Redux/protobuf | workbench ID; remote resource revision is separate | When host persists it | append-only event history |
-| Protocol mutation | generated `Mutation.oneof` | no invocation ID; host envelope may carry request ID | Request-dependent | committed transition or audit evidence |
-| Remote revision | frontend controller and host response | exact `bigint` resource version | Host-defined | semantic identity or event ordinal |
-| Go application catalog | host dependency | application ID | Host-defined | authorization policy |
-| Structural parity fixture | repository corpus | fixture filename and expected graph/error | Yes | full Go validation parity |
+| Object                    | Owner                                        | Identity or freshness                                 | Durable?                       | Must not be confused with                    |
+| ------------------------- | -------------------------------------------- | ----------------------------------------------------- | ------------------------------ | -------------------------------------------- |
+| Presentation value        | React call site                              | exact type tag plus embedded value                    | Only if a consumer persists it | scoped stable reference                      |
+| Mounted `Presentation`    | React                                        | no semantic mount ID; DOM lifetime only               | No                             | placement or `AppView`                       |
+| Descriptor-derived offer  | descriptor plus current Provider environment | action `id`; Datalab derives it from type/index/label | No                             | authorization, committed command, or outcome |
+| Datalab verb              | host UI intent producer                      | target IDs where present; no general invocation ID    | No                             | performed effect                             |
+| Document                  | Redux world or protocol `DocumentPayload`    | document ID plus format/schema version                | In snapshots                   | view or placement                            |
+| Logical view              | Redux layout or protocol `AppView`           | view ID                                               | In snapshots                   | React mount or placement                     |
+| Placement                 | workspace tree `Node`                        | node/placement ID                                     | In snapshots                   | logical view; many may point to one view     |
+| Workbench graph           | Redux/protobuf                               | workbench ID; remote resource revision is separate    | When host persists it          | append-only event history                    |
+| Protocol mutation         | generated `Mutation.oneof`                   | no invocation ID; host envelope may carry request ID  | Request-dependent              | committed transition or audit evidence       |
+| Remote revision           | frontend controller and host response        | exact `bigint` resource version                       | Host-defined                   | semantic identity or event ordinal           |
+| Go application catalog    | host dependency                              | application ID                                        | Host-defined                   | authorization policy                         |
+| Structural parity fixture | repository corpus                            | fixture filename and expected graph/error             | Yes                            | full Go validation parity                    |
 
 ## Identity discipline
 

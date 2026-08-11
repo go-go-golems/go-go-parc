@@ -43,6 +43,7 @@ related_notes:
   - "[[Research/Software Architecture Garden/sessionstream/designs/01 - Bounded Asynchronous Observer Dispatcher]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/research/01 - Proving the Bounded Asynchronous Observer Dispatcher]]"
 ---
 
 # Architecture Garden — sessionstream
@@ -353,6 +354,10 @@ The report also explains why this common structure should not become one univers
 [[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement|Effect-Acknowledged State Machines and Runtime Refinement]] compares the implemented heartbeat reducer/supervisor with chat startup and cancellation. Both follow `State × Event → State × Action*`, but chat's lifecycle state is still distributed across handlers, an active-run map, goroutines, contexts, publication, and cleanup.
 
 The design defines commit-before-concurrency, action completion events, lifecycle laws, generation isolation, linearization points, abstraction mappings, trace inclusion, deterministic barriers, `testing/synctest`, and state-aware runtime fuzzing. It explains how to extend correctness evidence beyond a pure kernel to the runtime machinery that interprets it.
+
+### Verification research: proving the dispatcher
+
+[[Research/Software Architecture Garden/sessionstream/designs/research/01 - Proving the Bounded Asynchronous Observer Dispatcher|Proving the Bounded Asynchronous Observer Dispatcher]] attacks the observer-dispatcher contract with four formal lenses and one executable scaffold: a TLA+ concurrent model (exhaustive check plus a send-after-close counterexample for the racy variant), an Alloy temporal model (which additionally surfaces a post-exit drain violation), mechanized invariant proofs of the transition kernel in both Coq and Lean 4 (arbitrary capacity and run length, axiom-audited), and a Go verification scaffold replaying execution traces through an oracle transliterated from the proved kernel, with deterministic and turnstile tests, a 3.3M-execution fuzz campaign, and five contract-targeted mutations that are all caught. Artifacts live in `designs/research/specs/`.
 
 ## Candidate ecosystem patterns
 

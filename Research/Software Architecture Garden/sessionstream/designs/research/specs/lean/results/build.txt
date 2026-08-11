@@ -1,0 +1,7 @@
+'Dispatcher.queue_bound' depends on axioms: [propext, Quot.sound]
+'Dispatcher.admitted_factors' depends on axioms: [propext, Quot.sound]
+'Dispatcher.drain_complete' depends on axioms: [propext, Quot.sound]
+'Dispatcher.no_send_after_close' depends on axioms: [propext, Quot.sound]
+'Dispatcher.wait_after_exit' depends on axioms: [propext, Quot.sound]
+'Dispatcher.close_once' depends on axioms: [propext, Quot.sound]
+'Dispatcher.dropped_monotone' depends on axioms: [propext, Quot.sound]
