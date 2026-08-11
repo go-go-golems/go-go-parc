@@ -256,6 +256,18 @@ CloudWatch EMF events are emitted to stdout and captured by the ECS `awslogs` dr
 
 The ECS operation should alarm on cgroup utilization and task exit status. RSS and Go heap explain the process; cgroup current and limit determine whether the task is about to be killed. The local host cgroup cannot answer that question because it includes unrelated workspace cache. The isolated container run is mandatory before declaring an AWS alarm threshold.
 
+The EMF contract now also publishes the bounded application position needed to
+interpret those resource graphs: elapsed milliseconds; documents, chunks,
+representations, vectors, processed and total counts; embedding batch size and
+worker count; embedding-cache hits, misses, writes, and provider work calls;
+heap/system-memory peaks; and cumulative garbage-collection pause time. The
+verify terminal sample includes the validated manifest counts and terminal
+state. The dimensions remain `Environment`, `Component`, and `Stage` only;
+bundle IDs, paths, provider names, and other high-cardinality values are event
+metadata or deliberately omitted rather than becoming separate CloudWatch
+series. This makes the telemetry suitable for dashboards without unbounded
+metric proliferation.
+
 ### 6.4 Separate file-backed memory from anonymous memory
 
 The external sampler records `anonymous_bytes`, `pss_bytes`, `private_dirty_bytes`, and cgroup file bytes. A high cgroup total with low anonymous memory can represent EFS-backed or page-cache residency rather than Go heap:
@@ -301,6 +313,7 @@ The implementation and evidence are split across three repositories.
 - `/home/manuel/code/gec/coinvault/cmd/coinvault/cmds/knowledge.go` — verify flags and sampler lifecycle.
 - `/home/manuel/code/gec/coinvault/internal/knowledgebuild/telemetry_emf.go` — Zerolog and CloudWatch EMF sinks.
 - Commit `bf1e3c7` — adds verifier telemetry and distinct operation identities.
+- Commit `7ce24f0` — publishes application progress, cache counters, runtime peaks, and GC timing through EMF.
 
 ### RagKit
 
