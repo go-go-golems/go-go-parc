@@ -21,6 +21,7 @@ related_notes:
   - "[[Research/Software Architecture Garden/sessionstream/README|Architecture Garden — sessionstream]]"
   - "[[PROJECT REPORT - Bounded Asynchronous Observer Dispatch - Contracts Lifecycle and Generic Go Design]]"
   - "[[PROJECT REPORT - Sessionstream Heartbeats - From Ping Pong Loops to a Timed Failure Detector]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra]]"
 ---
 
 # Bounded Asynchronous Observer Dispatcher
@@ -419,7 +420,7 @@ Sessionstream also has:
 - `BusObserver`;
 - `ErrorObserver`.
 
-Their callback semantics must be audited before reuse. A generic type is mechanically applicable only if each observer accepts:
+Their callback semantics must be audited before reuse. [[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra|Typed Transition Systems and Trace Algebra]] models all four as typed projections of execution traces and explains why that common structure does not imply a common reliability policy. A generic type is mechanically applicable only if each observer accepts:
 
 ```text
 bounded best-effort loss
@@ -522,3 +523,4 @@ Domain adapters separately test:
 - `pkg/sessionstream/bus.go`
 - `pkg/sessionstream/hub.go`
 - `ttmp/2026/05/06/SS-OBSERVERS--add-hub-and-websocket-observers-for-sessionstream-diagnostics/design-doc/01-observer-implementation-guide.md`
+- [[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra|Typed Transition Systems and Trace Algebra]]

@@ -41,6 +41,7 @@ related_notes:
   - "[[Transcripts/Research/09 - RAG-MATHS Pattern Zoo]]"
   - "[[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/01 - Bounded Asynchronous Observer Dispatcher]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra]]"
 ---
 
 # Architecture Garden — sessionstream
@@ -55,6 +56,7 @@ This repository is a useful bridge between the [[Transcripts/Research/09 - RAG-M
 > - Snapshot-before-live is a **prefix-cut protocol**: a snapshot represents one event prefix and buffered live events provide the ordered suffix.
 > - Protobuf schemas and schema-vet form a small trusted admission boundary around Go, Goja, JSON, persistence, and browser clients.
 > - Best-effort observer delivery is a separate bounded concurrency contract; see [[Research/Software Architecture Garden/sessionstream/designs/01 - Bounded Asynchronous Observer Dispatcher|Bounded Asynchronous Observer Dispatcher]].
+> - Bus, Pipeline, Transport, Error, heartbeat, and Systemlab traces share a typed transition-and-trace foundation without sharing one reliability policy; see [[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra|Typed Transition Systems and Trace Algebra]].
 > - The implementation is strongest at contract separation and reconnect fencing. Per-session serialization, stable redelivery identity, consistent SQLite cuts, and atomic projection progress remain important laws to harden.
 
 ## Snapshot identity and evidence
@@ -338,6 +340,12 @@ This law justifies deriving UI, timeline, audit, metrics, and accessibility view
 
 The design is relevant to Sessionstream because WebSocket `TransportObserver` delivery currently embeds queue and lifecycle state in `ws.Server`. The mechanism is technically reusable, but Systemlab is its only non-test in-repository consumer. The design therefore records both the generic contract and the deletion boundary: do not generalize infrastructure that disappears when its consumer is removed.
 
+### Typed transition systems and trace algebra
+
+[[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra|Typed Transition Systems and Trace Algebra]] identifies the common mathematical structure behind canonical events, projections, heartbeat reducers, Bus/Pipeline/Transport/Error observers, bounded dispatch, and Systemlab checks. It models subsystems as typed transitions, histories as words, projections and checks as folds, observers as trace projections, and dispatchers as queue transducers with explicit loss and lifecycle laws.
+
+The report also explains why this common structure should not become one universal event bus. It compares Kahn process networks, Reactive Streams, publish/subscribe, CloudEvents, OpenTelemetry, failure detectors, linearizability, and finite-capacity queueing. Its primary sources and specification snapshots are retained under `designs/sources/` with checksums and provenance.
+
 ## Candidate ecosystem patterns
 
 The comparison suggests six vocabulary entries worth developing across projects:
@@ -373,3 +381,4 @@ These names should remain candidates until compared with consumers and additiona
 - [[Research/Software Architecture Garden/go-go-datadrop/README|go-go-datadrop architecture study]]
 - [[Research/Software Architecture Garden/zitadel-go-test/README|zitadel-go-test architecture study]]
 - [[Research/Software Architecture Garden/sessionstream/designs/01 - Bounded Asynchronous Observer Dispatcher|Bounded Asynchronous Observer Dispatcher design]]
+- [[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra|Typed Transition Systems and Trace Algebra design]]
