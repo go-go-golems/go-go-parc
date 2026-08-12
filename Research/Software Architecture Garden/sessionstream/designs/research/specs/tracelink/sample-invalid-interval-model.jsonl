@@ -1,0 +1,15 @@
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":1,"operation_id":"op-1","operation":"try_submit","action":"submit_accepted","value":10,"has_value":true,"queue_len":1,"dropped":0}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":2,"operation_id":"op-2","operation":"delivery","action":"receive","value":10,"has_value":true,"queue_len":0,"dropped":0}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":3,"operation_id":"op-3","operation":"try_submit","action":"submit_accepted","value":20,"has_value":true,"queue_len":1,"dropped":0}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":4,"operation_id":"op-4","operation":"try_submit","action":"submit_accepted","value":30,"has_value":true,"queue_len":2,"dropped":0}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":5,"operation_id":"op-5","operation":"try_submit","action":"submit_dropped","value":40,"has_value":true,"queue_len":2,"dropped":1}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":6,"operation_id":"op-6","operation":"close","action":"close_effective","has_value":false,"queue_len":2,"dropped":1}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":7,"operation_id":"op-7","operation":"close","action":"close_noop","has_value":false,"queue_len":2,"dropped":1}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":8,"operation_id":"op-8","operation":"try_submit","action":"submit_accepted","value":50,"has_value":true,"queue_len":2,"dropped":1}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":9,"operation_id":"op-2","operation":"delivery","action":"offered","value":10,"has_value":true,"queue_len":2,"dropped":1}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":10,"operation_id":"op-10","operation":"delivery","action":"receive","value":20,"has_value":true,"queue_len":1,"dropped":1}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":11,"operation_id":"op-10","operation":"delivery","action":"panic_recovered","value":20,"has_value":true,"queue_len":1,"dropped":1}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":12,"operation_id":"op-11","operation":"delivery","action":"receive","value":30,"has_value":true,"queue_len":0,"dropped":1}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":13,"operation_id":"op-11","operation":"delivery","action":"offered","value":30,"has_value":true,"queue_len":0,"dropped":1}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":14,"operation_id":"op-12","operation":"worker_exit","action":"worker_exit","has_value":false,"queue_len":0,"dropped":1}
+{"schema_version":1,"run_id":"tracegen-run","dispatcher_id":"observer-1","sequence":15,"operation_id":"op-9","operation":"wait","action":"wait_returned","has_value":false,"queue_len":0,"dropped":1}

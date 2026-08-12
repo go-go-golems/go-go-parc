@@ -1,0 +1,126 @@
+  1:	proc  0 (:init::1) Dispatcher.pml:106 (state 1)	[mutex!1]
+		queue 1 (mutex): [1]
+Starting Producer with pid 1
+  2:	proc  0 (:init::1) Dispatcher.pml:108 (state 2)	[(run Producer(0))]
+		queue 1 (mutex): [1]
+Starting Producer with pid 2
+  3:	proc  0 (:init::1) Dispatcher.pml:109 (state 3)	[(run Producer(1))]
+		queue 1 (mutex): [1]
+Starting Closer with pid 3
+  4:	proc  0 (:init::1) Dispatcher.pml:110 (state 4)	[(run Closer())]
+		queue 1 (mutex): [1]
+Starting Worker with pid 4
+  5:	proc  0 (:init::1) Dispatcher.pml:111 (state 5)	[(run Worker())]
+		queue 1 (mutex): [1]
+  6:	proc  2 (Producer:1) Dispatcher.pml:40 (state 1)	[((k<2))]
+		queue 1 (mutex): [1]
+  7:	proc  1 (Producer:1) Dispatcher.pml:40 (state 1)	[((k<2))]
+		queue 1 (mutex): [1]
+  8:	proc  3 (Closer:1) Dispatcher.pml:76 (state 1)	[mutex?token]
+		queue 1 (mutex):
+		Closer(3):token = 1
+  9:	proc  3 (Closer:1) Dispatcher.pml:78 (state 2)	[(!(closing))]
+		queue 1 (mutex):
+ 10:	proc  3 (Closer:1) Dispatcher.pml:79 (state 3)	[closing = 1]
+		queue 1 (mutex):
+		closing = 1
+ 11:	proc  4 (Worker:1) Dispatcher.pml:94 (state 3)	[((closing&&(len(queue)==0)))]
+		queue 1 (mutex):
+		queue 2 (queue):
+ 12:	proc  4 (Worker:1) Dispatcher.pml:97 (state 8)	[assert(closing)]
+		queue 1 (mutex):
+		queue 2 (queue):
+ 13:	proc  4 (Worker:1) Dispatcher.pml:98 (state 9)	[assert((len(queue)==0))]
+		queue 1 (mutex):
+		queue 2 (queue):
+ 14:	proc  4 (Worker:1) Dispatcher.pml:99 (state 10)	[assert((offered==admitted))]
+		queue 1 (mutex):
+		queue 2 (queue):
+ 15:	proc  4 (Worker:1) Dispatcher.pml:100 (state 11)	[workerDone!1]
+		queue 1 (mutex):
+		queue 2 (queue):
+		queue 3 (workerDone): [1]
+ 16: proc 4 terminates
+ 17:	proc  3 (Closer:1) Dispatcher.pml:80 (state 4)	[closeCount = (closeCount+1)]
+		queue 1 (mutex):
+		queue 2 (queue):
+		queue 3 (workerDone): [1]
+		closeCount = 1
+ 18:	proc  3 (Closer:1) Dispatcher.pml:83 (state 9)	[assert((closeCount<=1))]
+		queue 1 (mutex):
+		queue 2 (queue):
+		queue 3 (workerDone): [1]
+ 19:	proc  3 (Closer:1) Dispatcher.pml:84 (state 10)	[mutex!token]
+		queue 1 (mutex): [1]
+		queue 2 (queue):
+		queue 3 (workerDone): [1]
+ 20:	proc  3 (Closer:1) Dispatcher.pml:85 (state 11)	[closerDone!1]
+		queue 1 (mutex): [1]
+		queue 2 (queue):
+		queue 4 (closerDone): [1]
+		queue 3 (workerDone): [1]
+ 21: proc 3 terminates
+ 22:	proc  2 (Producer:1) Dispatcher.pml:41 (state 2)	[mutex?token]
+		queue 1 (mutex):
+		queue 2 (queue):
+		queue 4 (closerDone): [1]
+		queue 3 (workerDone): [1]
+		Producer(2):token = 1
+ 23:	proc  2 (Producer:1) Dispatcher.pml:54 (state 3)	[((len(queue)<2))]
+		queue 1 (mutex):
+		queue 2 (queue):
+		queue 4 (closerDone): [1]
+		queue 3 (workerDone): [1]
+ 24:	proc  2 (Producer:1) Dispatcher.pml:56 (state 4)	[(closing)]
+		queue 1 (mutex):
+		queue 2 (queue):
+		queue 4 (closerDone): [1]
+		queue 3 (workerDone): [1]
+ 25:	proc  2 (Producer:1) Dispatcher.pml:56 (state 5)	[sendsAfterClose = (sendsAfterClose+1)]
+		queue 1 (mutex):
+		queue 2 (queue):
+		queue 4 (closerDone): [1]
+		queue 3 (workerDone): [1]
+		sendsAfterClose = 1
+ 26:	proc  2 (Producer:1) Dispatcher.pml:59 (state 10)	[queue!((id*2)+k)]
+		queue 1 (mutex):
+		queue 2 (queue): [2]
+		queue 4 (closerDone): [1]
+		queue 3 (workerDone): [1]
+ 27:	proc  2 (Producer:1) Dispatcher.pml:60 (state 11)	[admitted = (admitted+1)]
+		queue 1 (mutex):
+		queue 2 (queue): [2]
+		queue 4 (closerDone): [1]
+		queue 3 (workerDone): [1]
+		admitted = 1
+spin: Dispatcher.pml:65, Error: assertion violated
+spin: text of failed assertion: assert((sendsAfterClose==0))
+ 28:	proc  2 (Producer:1) Dispatcher.pml:65 (state 16)	[assert((sendsAfterClose==0))]
+		queue 1 (mutex):
+		queue 2 (queue): [2]
+		queue 4 (closerDone): [1]
+		queue 3 (workerDone): [1]
+spin: trail ends after 28 steps
+#processes: 3
+		queue 1 (mutex):
+		queue 2 (queue): [2]
+		queue 4 (closerDone): [1]
+		queue 3 (workerDone): [1]
+		closing = 1
+		closeCount = 1
+		admitted = 1
+		offered = 0
+		dropped = 0
+		rejected = 0
+		sendsAfterClose = 1
+ 28:	proc  2 (Producer:1) Dispatcher.pml:66 (state 17)
+		Producer(2):token = 1
+		Producer(2):k = 0
+		Producer(2):id = 1
+ 28:	proc  1 (Producer:1) Dispatcher.pml:41 (state 2)
+		Producer(1):token = 0
+		Producer(1):k = 0
+		Producer(1):id = 0
+ 28:	proc  0 (:init::1) Dispatcher.pml:113 (state 7)
+		:init:(0):done = 0
+5 processes created

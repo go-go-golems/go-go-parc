@@ -1,0 +1,43 @@
+Gobra 1.1-SNAPSHOT (43512ff6@(detached))
+(c) Copyright ETH Zurich 2012 - 2024
+22:10:27.542 [main] INFO viper.gobra.Gobra - Verifying package .. - probe [22:10:27]
+22:10:29.493 [main] ERROR viper.gobra.GobraRunner$ - An unknown Exception was thrown.
+22:10:29.495 [main] ERROR viper.gobra.GobraRunner$ - Boxed Exception
+java.util.concurrent.ExecutionException: Boxed Exception
+	at scala.concurrent.impl.Promise$.scala$concurrent$impl$Promise$$resolve(Promise.scala:99)
+	at scala.concurrent.impl.Promise$Transformation.handleFailure(Promise.scala:477)
+	at scala.concurrent.impl.Promise$Transformation.run(Promise.scala:539)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: scala.NotImplementedError: an implementation is missing
+	at scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+	at viper.gobra.frontend.Desugar$Desugarer.stmtD(Desugar.scala:1927)
+	at viper.gobra.frontend.Desugar$Desugarer.$anonfun$blockD$1(Desugar.scala:1007)
+	at scala.collection.immutable.Vector1.map(Vector.scala:2155)
+	at scala.collection.immutable.Vector1.map(Vector.scala:386)
+	at viper.gobra.frontend.Desugar$Desugarer.blockD(Desugar.scala:1007)
+	at viper.gobra.frontend.Desugar$Desugarer.$anonfun$functionMemberOrLitD$25(Desugar.scala:697)
+	at scala.Option.map(Option.scala:242)
+	at viper.gobra.frontend.Desugar$Desugarer.functionMemberOrLitD(Desugar.scala:694)
+	at viper.gobra.frontend.Desugar$Desugarer.functionD(Desugar.scala:576)
+	at viper.gobra.frontend.Desugar$Desugarer.registerFunction(Desugar.scala:3776)
+	at viper.gobra.frontend.Desugar$Desugarer.$anonfun$packageD$1(Desugar.scala:427)
+	at scala.collection.StrictOptimizedIterableOps.flatMap(StrictOptimizedIterableOps.scala:118)
+	at scala.collection.StrictOptimizedIterableOps.flatMap$(StrictOptimizedIterableOps.scala:105)
+	at scala.collection.immutable.Vector.flatMap(Vector.scala:116)
+	at viper.gobra.frontend.Desugar$Desugarer.packageD(Desugar.scala:419)
+	at viper.gobra.frontend.Desugar$.desugar(Desugar.scala:57)
+	at viper.gobra.Gobra.performDesugaring(Gobra.scala:286)
+	at viper.gobra.Gobra.$anonfun$verify$4(Gobra.scala:177)
+	at scalaz.EitherT.$anonfun$flatMap$1(EitherT.scala:101)
+	at scala.concurrent.impl.Promise$Transformation.run(Promise.scala:503)
+	... 3 common frames omitted
+Gobra 1.1-SNAPSHOT (43512ff6@(detached))
+(c) Copyright ETH Zurich 2012 - 2024
+22:10:30.641 [main] INFO viper.gobra.Gobra - Verifying package .. - probe [22:10:30]
+22:10:32.063 [thread-1] ERROR viper.gobra.reporting.FileWriterReporter - Error at: </home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/gobra/probes/Recover.gobra:6:7> /home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/gobra/probes/Recover.gobra:6:7:error: got unknown identifier recover
+		_ = recover()
+      ^
+
+22:10:32.071 [thread-1] ERROR viper.gobra.Gobra - Gobra found 1 error.

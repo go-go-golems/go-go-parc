@@ -29,6 +29,7 @@ package dispatchlab
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 )
 
 // Dispatcher is a bounded, single-worker, best-effort asynchronous callback
@@ -44,6 +45,16 @@ import (
 //	D8  every accepted value is offered before worker exit
 //	D9  Wait returns only after the worker exits
 //	D10 exactly one callback worker
+//
+// TraceIdentity partitions model events from independent runs and dispatcher
+// instances. Callers that persist or merge traces should provide stable IDs.
+type TraceIdentity struct {
+	RunID        string
+	DispatcherID string
+}
+
+var checkedDispatcherSequence atomic.Uint64
+
 type Dispatcher[T any] struct {
 	deliver func(T)
 	queue   chan T
@@ -61,23 +72,40 @@ type Dispatcher[T any] struct {
 	nonempty chan struct{}
 
 	// Test-only seams (nil / nil in production use).
-	log         *eventLog[T]
-	preDecision func()
+	log           *eventLog[T]
+	nextOperation atomic.Uint64
+	preDecision   func()
 }
 
 // New returns a dispatcher without instrumentation.
 func New[T any](capacity int, deliver func(T)) (*Dispatcher[T], error) {
-	return newDispatcher[T](capacity, deliver, false)
+	return newDispatcher[T](capacity, deliver, false, TraceIdentity{})
 }
 
 // NewChecked returns a dispatcher with the linearization-point event log
 // enabled. The trace can be retrieved with d.trace() and replayed against
 // the abstract kernel with replayIntLog (for T = int).
 func NewChecked[T any](capacity int, deliver func(T)) (*Dispatcher[T], error) {
-	return newDispatcher[T](capacity, deliver, true)
+	identity := TraceIdentity{
+		RunID:        "local-process",
+		DispatcherID: fmt.Sprintf("dispatcher-%d", checkedDispatcherSequence.Add(1)),
+	}
+	return newDispatcher[T](capacity, deliver, true, identity)
 }
 
-func newDispatcher[T any](capacity int, deliver func(T), checked bool) (*Dispatcher[T], error) {
+// NewCheckedWithIdentity enables model events using caller-supplied stable
+// partition keys. Empty keys are rejected to prevent ambiguous merged traces.
+func NewCheckedWithIdentity[T any](capacity int, deliver func(T), identity TraceIdentity) (*Dispatcher[T], error) {
+	if identity.RunID == "" {
+		return nil, fmt.Errorf("trace run ID is empty")
+	}
+	if identity.DispatcherID == "" {
+		return nil, fmt.Errorf("trace dispatcher ID is empty")
+	}
+	return newDispatcher[T](capacity, deliver, true, identity)
+}
+
+func newDispatcher[T any](capacity int, deliver func(T), checked bool, identity TraceIdentity) (*Dispatcher[T], error) {
 	if capacity <= 0 {
 		return nil, fmt.Errorf("dispatcher capacity must be positive")
 	}
@@ -91,7 +119,7 @@ func newDispatcher[T any](capacity int, deliver func(T), checked bool) (*Dispatc
 		nonempty: make(chan struct{}, 1),
 	}
 	if checked {
-		d.log = &eventLog[T]{}
+		d.log = &eventLog[T]{runID: identity.RunID, dispatcherID: identity.DispatcherID}
 	}
 	d.wg.Add(1)
 	go d.run()
@@ -108,6 +136,8 @@ func (d *Dispatcher[T]) TrySubmit(item T) bool {
 		return false
 	}
 
+	operationID := d.beginOperation("try_submit")
+	defer d.endOperation(operationID, "try_submit")
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
@@ -117,13 +147,13 @@ func (d *Dispatcher[T]) TrySubmit(item T) bool {
 
 	// MUTATION-POINT: closing-guard
 	if d.closing {
-		d.emitLocked(evSubmitRejected, item, true)
+		d.emitLocked(evSubmitRejected, operationID, "try_submit", item, true)
 		return false
 	}
 
 	select {
 	case d.queue <- item:
-		d.emitLocked(evSubmitAccepted, item, true)
+		d.emitLocked(evSubmitAccepted, operationID, "try_submit", item, true)
 		select {
 		case d.nonempty <- struct{}{}:
 		default:
@@ -131,7 +161,7 @@ func (d *Dispatcher[T]) TrySubmit(item T) bool {
 		return true
 	default:
 		d.dropped++ // MUTATION-POINT: drop-accounting
-		d.emitLocked(evSubmitDropped, item, true)
+		d.emitLocked(evSubmitDropped, operationID, "try_submit", item, true)
 		return false
 	}
 }
@@ -144,17 +174,19 @@ func (d *Dispatcher[T]) Close() {
 		return
 	}
 
+	operationID := d.beginOperation("close")
+	defer d.endOperation(operationID, "close")
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
 	// MUTATION-POINT: close-idempotence
 	if d.closing {
-		d.emitLocked(evCloseNoop, *new(T), false)
+		d.emitLocked(evCloseNoop, operationID, "close", *new(T), false)
 		return
 	}
 	d.closing = true
 	close(d.queue)
-	d.emitLocked(evCloseEffective, *new(T), false)
+	d.emitLocked(evCloseEffective, operationID, "close", *new(T), false)
 	select {
 	case d.nonempty <- struct{}{}:
 	default:
@@ -166,8 +198,10 @@ func (d *Dispatcher[T]) Wait() {
 	if d == nil {
 		return
 	}
+	operationID := d.beginOperation("wait")
+	defer d.endOperation(operationID, "wait")
 	d.wg.Wait()
-	d.emitMu(evWaitReturned, *new(T), false)
+	d.emitMu(evWaitReturned, operationID, "wait", *new(T), false)
 }
 
 // Dropped reports how many submissions were rejected because the bounded
@@ -204,13 +238,16 @@ func (d *Dispatcher[T]) run() {
 		case item, ok := <-d.queue:
 			if !ok {
 				// Closed and drained (D8).
-				d.emitLocked(evWorkerExit, *new(T), false)
+				operationID := d.beginOperation("worker_exit")
+				d.emitLocked(evWorkerExit, operationID, "worker_exit", *new(T), false)
+				d.endOperation(operationID, "worker_exit")
 				d.mu.Unlock()
 				return
 			}
-			d.emitLocked(evReceive, item, true)
+			operationID := d.beginOperation("delivery")
+			d.emitLocked(evReceive, operationID, "delivery", item, true)
 			d.mu.Unlock()
-			d.deliverSafe(item)
+			d.deliverSafe(operationID, item)
 		default:
 			d.mu.Unlock()
 			<-d.nonempty
@@ -219,36 +256,39 @@ func (d *Dispatcher[T]) run() {
 }
 
 // deliverSafe invokes the callback with per-call panic isolation (D5).
-func (d *Dispatcher[T]) deliverSafe(item T) {
+func (d *Dispatcher[T]) deliverSafe(operationID string, item T) {
+	defer d.endOperation(operationID, "delivery")
 	defer func() {
 		// MUTATION-POINT: panic-recovery
 		if r := recover(); r != nil {
-			d.emitMu(evPanic, item, true)
+			d.emitMu(evPanic, operationID, "delivery", item, true)
 		}
 	}()
 	d.deliver(item) // MUTATION-POINT: delivery
-	d.emitMu(evOffered, item, true)
+	d.emitMu(evOffered, operationID, "delivery", item, true)
 }
 
 // emitLocked records an event. The caller must hold d.mu, which makes the
 // recorded order a true linearization of the execution (see model.go).
-func (d *Dispatcher[T]) emitLocked(kind eventKind, value T, hasValue bool) {
+func (d *Dispatcher[T]) emitLocked(kind eventKind, operationID, operation string, value T, hasValue bool) {
 	if d.log == nil {
 		return
 	}
 	d.log.emit(event[T]{
-		kind:     kind,
-		value:    value,
-		hasValue: hasValue,
-		queueLen: len(d.queue),
-		dropped:  d.dropped,
+		kind:        kind,
+		operationID: operationID,
+		operation:   operation,
+		value:       value,
+		hasValue:    hasValue,
+		queueLen:    len(d.queue),
+		dropped:     d.dropped,
 	})
 }
 
 // emitMu records an event, acquiring d.mu first (worker-side events).
-func (d *Dispatcher[T]) emitMu(kind eventKind, value T, hasValue bool) {
+func (d *Dispatcher[T]) emitMu(kind eventKind, operationID, operation string, value T, hasValue bool) {
 	d.mu.Lock()
-	d.emitLocked(kind, value, hasValue)
+	d.emitLocked(kind, operationID, operation, value, hasValue)
 	d.mu.Unlock()
 }
 
@@ -262,6 +302,40 @@ func (d *Dispatcher[T]) trace() []event[T] {
 	out := make([]event[T], len(d.log.events))
 	copy(out, d.log.events)
 	return out
+}
+
+// ModelTrace returns a versioned, serializable copy of the model-event stream.
+// NewChecked enables this stream; an uninstrumented dispatcher returns nil.
+func (d *Dispatcher[T]) ModelTrace() []ModelEvent[T] {
+	if d == nil || d.log == nil {
+		return nil
+	}
+	return d.log.modelEvents()
+}
+
+// OperationIntervals returns invocation/linearization/return events. The
+// sequence is independent of ModelTrace.Sequence; OperationID links streams.
+func (d *Dispatcher[T]) OperationIntervals() []OperationIntervalEvent {
+	if d == nil || d.log == nil {
+		return nil
+	}
+	return d.log.operationIntervals()
+}
+
+func (d *Dispatcher[T]) beginOperation(operation string) string {
+	if d.log == nil {
+		return ""
+	}
+	operationID := fmt.Sprintf("op-%d", d.nextOperation.Add(1))
+	d.log.emitInterval(operationID, operation, "invoke", "")
+	return operationID
+}
+
+func (d *Dispatcher[T]) endOperation(operationID, operation string) {
+	if d.log == nil {
+		return
+	}
+	d.log.emitInterval(operationID, operation, "return", "")
 }
 
 // setPreDecision installs the critical-section hook used by the turnstile

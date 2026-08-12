@@ -1,0 +1,104 @@
+Gobra dispatcher-kernel feasibility run
+Date: 2026-08-11
+
+Toolchain
+- Gobra release tag: v26.02
+- Gobra checkout: 21b8fc69b8934a4fe5e881d87fa999f12afb5874
+- Gobra CLI banner: 1.1-SNAPSHOT (43512ff6@(detached))
+- Java: openjdk 21.0.11
+- Z3: 4.8.7, the version pinned by Gobra's Viper/Silicon submodule CI
+
+Positive verification
+
+  gobra -i DispatcherKernel.gobra
+
+Result:
+
+  INFO viper.gobra.Gobra - Gobra found 0 errors.
+
+The verified contracts establish for the deterministic admission/close kernel:
+- queue length remains in [0, capacity];
+- capacity is stable;
+- drop count is monotone;
+- closing is sticky;
+- a closed dispatcher rejects without state mutation;
+- an open non-full dispatcher accepts exactly one item;
+- an open full dispatcher increments drops exactly once;
+- Close preserves capacity, queue length, and drops while making closing true;
+- repeated Close is idempotent at the abstract-state level.
+
+Mutation sensitivity
+
+The temporary mutation changed the accepted branch from:
+
+  d.queueLen = d.queueLen + 1
+
+to:
+
+  d.queueLen = d.queueLen + 2
+
+Result (exit 1, expected):
+
+  Error at: </tmp/DispatcherKernel-mutated.gobra:25:9> Postcondition might not hold.
+  Gobra found 1 error.
+
+Shell-primitives verification
+
+  gobra -i DispatcherShellPrimitives.gobra
+
+Result:
+
+  INFO viper.gobra.Gobra - Gobra found 0 errors.
+
+This second feasibility artifact verifies two mechanisms independently:
+- a sync.Mutex invariant exclusively owns lifecycle closing/drop state;
+- a buffered channel transfers exclusive ownership of an admitted item from
+  producer to worker, allowing worker-side mutation without producer aliasing.
+
+Shell mutation sensitivity
+
+1. Removing mu.Lock() before unfolding the lifecycle invariant is rejected:
+
+  Unfold might fail.
+  Gobra found 1 error.
+
+2. Writing item.offered after sending the item/permission into the channel is
+rejected:
+
+  Assignment might fail.
+  Gobra found 1 error.
+
+Combined-shell feasibility blockers
+
+The requested production-shaped combination was probed directly against Gobra
+v26.02:
+
+  gobra -i probes/SelectDefault.gobra
+
+reaches the frontend desugarer and fails with:
+
+  scala.NotImplementedError: an implementation is missing
+  at viper.gobra.frontend.Desugar$Desugarer.stmtD
+
+The Gobra source also contains an explicit select-support TODO. Therefore the
+actual guarded `select { case c <- item: default: }` admission cannot currently
+be translated to Viper.
+
+  gobra -i probes/Recover.gobra
+
+is rejected with:
+
+  error: got unknown identifier recover
+
+Therefore callback panic isolation cannot be represented from the actual Go
+construct either. `probe_unsupported.sh` checks both diagnostics and will fail
+when a future Gobra version changes support, forcing reevaluation.
+
+Scope limitation / hard stop
+
+The kernel and primitive proofs cannot currently combine sync.Mutex,
+nonblocking select/default admission, channel-close authority, goroutine
+termination, callback panic recovery, and Wait synchronization into one
+production-shaped Gobra proof. Modeling select or recover as trusted helper
+contracts would move the two central obligations outside the proof and is not
+accepted as completion evidence.

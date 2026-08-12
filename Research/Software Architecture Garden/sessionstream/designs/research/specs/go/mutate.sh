@@ -54,7 +54,7 @@ run_mutation "M1" "remove closing guard (D7) — TLA/Alloy NoSendAfterClose coun
 
 # M2: bypass deliverSafe so a callback panic propagates and kills the worker.
 run_mutation "M2" "bypass panic recovery (D5) — worker death" \
-  's/d\.deliverSafe(item)/d.deliver(item)/'
+  's/d\.deliverSafe(operationID, item)/d.deliver(item)/'
 
 # M3: stop incrementing the drop counter (trace replay + oracle compare Dropped).
 run_mutation "M3" "disable drop accounting (D4)" \

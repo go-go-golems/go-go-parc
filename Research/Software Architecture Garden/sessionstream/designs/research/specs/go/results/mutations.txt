@@ -5,22 +5,23 @@ MUTATION M1: remove closing guard (D7) — TLA/Alloy NoSendAfterClose counterpar
 --- FAIL: TestSubmitAfterCloseReturnsFalse (0.00s)
 panic: send on closed channel [recovered, repanicked]
 
-goroutine 9 [running]:
-testing.tRunner.func1.2({0x6ed360, 0x77d880})
+goroutine 37 [running]:
+testing.tRunner.func1.2({0x6f3b00, 0x785790})
 	/usr/local/go/src/testing/testing.go:1872 +0x419
 testing.tRunner.func1()
 	/usr/local/go/src/testing/testing.go:1875 +0x683
-panic({0x6ed360?, 0x77d880?})
+panic({0x6f3b00?, 0x785790?})
 	/usr/local/go/src/runtime/panic.go:783 +0x132
-dispatchlab.(*Dispatcher[...]).TrySubmit(0x7833c0, 0x2)
-	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:120 +0x139
-dispatchlab.TestSubmitAfterCloseReturnsFalse(0xc0000c48c0)
-	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher_test.go:124 +0x8c
-testing.tRunner(0xc0000c48c0, 0x73a0f8)
+dispatchlab.(*Dispatcher[...]).TrySubmit(0x78b660, 0x2)
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:150 +0x274
+dispatchlab.TestSubmitAfterCloseReturnsFalse(0xc00008a700)
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher_test.go:124 +0x7b
+testing.tRunner(0xc00008a700, 0x741700)
 	/usr/local/go/src/testing/testing.go:1934 +0x21d
 created by testing.(*T).Run in goroutine 1
 	/usr/local/go/src/testing/testing.go:1997 +0x9d3
-FAIL	dispatchlab	0.014s
+FAIL	dispatchlab	0.023s
+?   	dispatchlab/cmd/tracegen	[no test files]
 FAIL
 --- exit status: 1 (non-zero = harness caught the mutation)
 
@@ -29,7 +30,7 @@ MUTATION M2: bypass panic recovery (D5) — worker death
 ----------------------------------------------------------------
 --- go test -race -count=1 -timeout 90s ./...
 --- FAIL: TestDeliveredInAdmissionOrder (0.00s)
-    dispatcher_test.go:40: trace replay against abstract kernel failed: trace event 102 (receive value=1): D10: worker received while another item is in flight
+    dispatcher_test.go:40: trace replay against abstract kernel failed: trace event 3 (receive value=1): D10: worker received while another item is in flight
 --- FAIL: TestFullQueueDropsAndCounts (0.00s)
     dispatcher_test.go:91: trace replay against abstract kernel failed: trace event 8 (receive value=1): D10: worker received while another item is in flight
 --- FAIL: TestCloseDrainsAccepted (0.00s)
@@ -40,14 +41,15 @@ MUTATION M2: bypass panic recovery (D5) — worker death
     dispatcher_test.go:146: trace replay against abstract kernel failed: trace event 5 (worker_exit value=0): D8: worker exit with an item still in flight
 panic: boom
 
-goroutine 12 [running]:
+goroutine 45 [running]:
 dispatchlab.TestPanicDoesNotStopDelivery.func1(0x2)
 	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher_test.go:155 +0x65
-dispatchlab.(*Dispatcher[...]).run(0x7833c0)
-	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:213 +0x187
-created by dispatchlab.newDispatcher[...] in goroutine 11
-	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:97 +0x325
-FAIL	dispatchlab	0.013s
+dispatchlab.(*Dispatcher[...]).run(0x78a600)
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:250 +0x1ee
+created by dispatchlab.newDispatcher[...] in goroutine 44
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:125 +0x3ea
+FAIL	dispatchlab	0.027s
+?   	dispatchlab/cmd/tracegen	[no test files]
 FAIL
 --- exit status: 1 (non-zero = harness caught the mutation)
 
@@ -57,15 +59,14 @@ MUTATION M3: disable drop accounting (D4)
 --- go test -race -count=1 -timeout 90s ./...
 --- FAIL: TestFullQueueDropsAndCounts (0.00s)
     dispatcher_test.go:80: Dropped() = 0, want 1
---- FAIL: TestConcurrentProducersAndClose (0.01s)
-    dispatcher_test.go:288: trace replay against abstract kernel failed: trace event 8 (submit_dropped value=6001): drop counter evidence: event recorded 0, model has 1
+--- FAIL: TestConcurrentProducersAndClose (0.05s)
+    dispatcher_test.go:288: trace replay against abstract kernel failed: trace event 10 (submit_dropped value=4000): drop counter evidence: event recorded 0, model has 1
 --- FAIL: FuzzDispatcherOps (0.00s)
     --- FAIL: FuzzDispatcherOps/seed#4 (0.00s)
         fuzz_test.go:98: trace replay against abstract kernel failed: trace event 4 (submit_dropped value=9): drop counter evidence: event recorded 0, model has 1
-    --- FAIL: FuzzDispatcherOps/seed#5 (0.00s)
-        fuzz_test.go:98: trace replay against abstract kernel failed: trace event 4 (submit_dropped value=5): drop counter evidence: event recorded 0, model has 1
 FAIL
-FAIL	dispatchlab	0.225s
+FAIL	dispatchlab	0.284s
+?   	dispatchlab/cmd/tracegen	[no test files]
 FAIL
 --- exit status: 1 (non-zero = harness caught the mutation)
 
@@ -73,7 +74,7 @@ FAIL
 MUTATION M4: skip callback delivery (D8)
 ----------------------------------------------------------------
 --- go test -race -count=1 -timeout 90s ./...
---- FAIL: TestDeliveredInAdmissionOrder (0.00s)
+--- FAIL: TestDeliveredInAdmissionOrder (0.01s)
     dispatcher_test.go:38: delivery order = [], want [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99]
 --- FAIL: TestFullQueueDropsAndCounts (0.00s)
     dispatcher_test.go:89: delivered = [], want [0 1 2 3 4]
@@ -81,7 +82,7 @@ MUTATION M4: skip callback delivery (D8)
     dispatcher_test.go:107: delivered 0 items, want all 50 drained
 --- FAIL: TestRepeatedCloseHarmless (0.00s)
     dispatcher_test.go:144: delivered = [], want [1]
---- FAIL: TestPanicDoesNotStopDelivery (0.00s)
+--- FAIL: TestPanicDoesNotStopDelivery (0.01s)
     dispatcher_test.go:165: delivered = [], want [0 1 2 3 4 5] (panic must not stop delivery)
 --- FAIL: TestWaitBlocksWhileCallbackBlocked (0.00s)
     dispatcher_test.go:187: Wait returned while the callback was still blocked
@@ -89,11 +90,11 @@ MUTATION M4: skip callback delivery (D8)
     dispatcher_test.go:219: delivered = [], want [0 1 2]
 --- FAIL: TestFinalQueueSlotDelivered (0.00s)
     dispatcher_test.go:250: delivered = [], want [0 1 2 3]
---- FAIL: TestConcurrentProducersAndClose (0.01s)
-    dispatcher_test.go:294: delivered 0 items != admitted 92 items (D3/D8)
+--- FAIL: TestConcurrentProducersAndClose (0.09s)
+    dispatcher_test.go:294: delivered 0 items != admitted 16 items (D3/D8)
 --- FAIL: TestSubmitCloseSerializeThroughMutex (0.10s)
     linearization_test.go:81: delivered = [], want [1]
---- FAIL: FuzzDispatcherOps (0.00s)
+--- FAIL: FuzzDispatcherOps (0.01s)
     --- FAIL: FuzzDispatcherOps/seed#0 (0.00s)
         fuzz_test.go:102: D3/D5/D8 violated: invoked = [], admitted = [1 2 3]
     --- FAIL: FuzzDispatcherOps/seed#1 (0.00s)
@@ -107,7 +108,8 @@ MUTATION M4: skip callback delivery (D8)
     --- FAIL: FuzzDispatcherOps/seed#6 (0.00s)
         fuzz_test.go:102: D3/D5/D8 violated: invoked = [], admitted = [1]
 FAIL
-FAIL	dispatchlab	0.127s
+FAIL	dispatchlab	0.249s
+?   	dispatchlab/cmd/tracegen	[no test files]
 FAIL
 --- exit status: 1 (non-zero = harness caught the mutation)
 
@@ -118,22 +120,23 @@ MUTATION M5: remove close idempotence (D6)
 --- FAIL: TestRepeatedCloseHarmless (0.00s)
 panic: close of closed channel [recovered, repanicked]
 
-goroutine 40 [running]:
-testing.tRunner.func1.2({0x6ed360, 0x77d890})
+goroutine 24 [running]:
+testing.tRunner.func1.2({0x6f3b00, 0x7857b0})
 	/usr/local/go/src/testing/testing.go:1872 +0x419
 testing.tRunner.func1()
 	/usr/local/go/src/testing/testing.go:1875 +0x683
-panic({0x6ed360?, 0x77d890?})
+panic({0x6f3b00?, 0x7857b0?})
 	/usr/local/go/src/runtime/panic.go:783 +0x132
-dispatchlab.(*Dispatcher[...]).Close(0x7833a0)
-	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:151 +0xdd
-dispatchlab.TestRepeatedCloseHarmless(0xc000182700)
-	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher_test.go:140 +0x13d
-testing.tRunner(0xc000182700, 0x73a0e8)
+dispatchlab.(*Dispatcher[...]).Close(0x78b660)
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:183 +0x22b
+dispatchlab.TestRepeatedCloseHarmless(0xc00008b6c0)
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher_test.go:140 +0x127
+testing.tRunner(0xc00008b6c0, 0x7416f0)
 	/usr/local/go/src/testing/testing.go:1934 +0x21d
 created by testing.(*T).Run in goroutine 1
 	/usr/local/go/src/testing/testing.go:1997 +0x9d3
-FAIL	dispatchlab	0.015s
+FAIL	dispatchlab	0.028s
+?   	dispatchlab/cmd/tracegen	[no test files]
 FAIL
 --- exit status: 1 (non-zero = harness caught the mutation)
 

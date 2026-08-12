@@ -44,6 +44,7 @@ related_notes:
   - "[[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/research/01 - Proving the Bounded Asynchronous Observer Dispatcher]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/research/02 - Constraining the Go Binary - Layered Refinement from Proved Kernels to Executables]]"
 ---
 
 # Architecture Garden — sessionstream
@@ -358,6 +359,10 @@ The design defines commit-before-concurrency, action completion events, lifecycl
 ### Verification research: proving the dispatcher
 
 [[Research/Software Architecture Garden/sessionstream/designs/research/01 - Proving the Bounded Asynchronous Observer Dispatcher|Proving the Bounded Asynchronous Observer Dispatcher]] attacks the observer-dispatcher contract with four formal lenses and one executable scaffold: a TLA+ concurrent model (exhaustive check plus a send-after-close counterexample for the racy variant), an Alloy temporal model (which additionally surfaces a post-exit drain violation), mechanized invariant proofs of the transition kernel in both Coq and Lean 4 (arbitrary capacity and run length, axiom-audited), and a Go verification scaffold replaying execution traces through an oracle transliterated from the proved kernel, with deterministic and turnstile tests, a 3.3M-execution fuzz campaign, and five contract-targeted mutations that are all caught. Artifacts live in `designs/research/specs/`.
+
+### Verification research: constraining the Go executable
+
+[[Research/Software Architecture Garden/sessionstream/designs/research/02 - Constraining the Go Binary - Layered Refinement from Proved Kernels to Executables|Constraining the Go Binary]] focuses on the refinement boundary the first study exposes. It proposes a proved deterministic kernel, a thin Go concurrency shell, versioned model events checked with a PGo/TraceLink-style constrained TLC validator, Gobra verification of mutex/channel ownership, optional Goose/Perennial proofs, Gomela/SPIN protocol exploration, deterministic `testing/synctest` shell tests, Go memory-model reasoning, and correlated `runtime/trace` diagnostics. Its `designs/research/sources/` archive retains 15 Defuddle snapshots and 12 primary papers/theses with provenance and SHA-256 checksums.
 
 ## Candidate ecosystem patterns
 

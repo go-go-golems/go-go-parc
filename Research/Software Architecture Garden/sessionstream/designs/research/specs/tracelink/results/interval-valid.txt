@@ -1,0 +1,259 @@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 70 and seed -1677980330588557430 with 1 worker on 8 cores with 16024MB heap and 64MB offheap memory [pid: 244718] (Linux 6.8.0-137-generic amd64, Ubuntu 21.0.11 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/tracelink/GeneratedIntervalTrace.tla
+Parsing file /home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/tracelink/DispatcherIntervalValidator.tla
+Parsing file /tmp/Integers.tla
+Parsing file /tmp/Sequences.tla
+Parsing file /tmp/FiniteSets.tla
+Parsing file /tmp/TLC.tla
+Parsing file /tmp/Naturals.tla
+Parsing file /home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/tracelink/DispatcherTraceValidator.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module DispatcherTraceValidator
+Semantic processing of module DispatcherIntervalValidator
+Semantic processing of module GeneratedIntervalTrace
+Starting... (2026-08-11 22:10:07)
+Warning: The subscript of the next-state relation specified by the specification
+does not seem to contain the state variable kernelPos
+Warning: The subscript of the next-state relation specified by the specification
+does not seem to contain the state variable current
+Warning: The subscript of the next-state relation specified by the specification
+does not seem to contain the state variable dropped
+Warning: The subscript of the next-state relation specified by the specification
+does not seem to contain the state variable consumed
+Warning: The subscript of the next-state relation specified by the specification
+does not seem to contain the state variable waited
+Warning: The subscript of the next-state relation specified by the specification
+does not seem to contain the state variable closing
+Warning: The subscript of the next-state relation specified by the specification
+does not seem to contain the state variable exited
+Warning: The subscript of the next-state relation specified by the specification
+does not seem to contain the state variable offered
+Warning: The subscript of the next-state relation specified by the specification
+does not seem to contain the state variable queue
+Warning: The subscript of the next-state relation specified by the specification
+does not seem to contain the state variable closeCount
+Warning: The subscript of the next-state relation specified by the specification
+does not seem to contain the state variable admitted
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-08-11 22:10:07.
+Error: Invariant NoCompleteLinearization is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ kernelPos = 1
+/\ current = <<>>
+/\ dropped = 0
+/\ consumed = {}
+/\ waited = FALSE
+/\ closing = FALSE
+/\ exited = FALSE
+/\ offered = <<>>
+/\ queue = <<>>
+/\ closeCount = 0
+/\ admitted = <<>>
+
+State 2: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<>>
+/\ dropped = 0
+/\ consumed = {1}
+/\ waited = FALSE
+/\ closing = FALSE
+/\ exited = FALSE
+/\ offered = <<>>
+/\ queue = <<10>>
+/\ closeCount = 0
+/\ admitted = <<10>>
+
+State 3: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<10>>
+/\ dropped = 0
+/\ consumed = {1, 2}
+/\ waited = FALSE
+/\ closing = FALSE
+/\ exited = FALSE
+/\ offered = <<>>
+/\ queue = <<>>
+/\ closeCount = 0
+/\ admitted = <<10>>
+
+State 4: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<10>>
+/\ dropped = 0
+/\ consumed = {1, 2, 3}
+/\ waited = FALSE
+/\ closing = FALSE
+/\ exited = FALSE
+/\ offered = <<>>
+/\ queue = <<20>>
+/\ closeCount = 0
+/\ admitted = <<10, 20>>
+
+State 5: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<10>>
+/\ dropped = 0
+/\ consumed = {1, 2, 3, 4}
+/\ waited = FALSE
+/\ closing = FALSE
+/\ exited = FALSE
+/\ offered = <<>>
+/\ queue = <<20, 30>>
+/\ closeCount = 0
+/\ admitted = <<10, 20, 30>>
+
+State 6: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<10>>
+/\ dropped = 1
+/\ consumed = {1, 2, 3, 4, 5}
+/\ waited = FALSE
+/\ closing = FALSE
+/\ exited = FALSE
+/\ offered = <<>>
+/\ queue = <<20, 30>>
+/\ closeCount = 0
+/\ admitted = <<10, 20, 30>>
+
+State 7: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<10>>
+/\ dropped = 1
+/\ consumed = {1, 2, 3, 4, 5, 6}
+/\ waited = FALSE
+/\ closing = TRUE
+/\ exited = FALSE
+/\ offered = <<>>
+/\ queue = <<20, 30>>
+/\ closeCount = 1
+/\ admitted = <<10, 20, 30>>
+
+State 8: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<10>>
+/\ dropped = 1
+/\ consumed = {1, 2, 3, 4, 5, 6, 7}
+/\ waited = FALSE
+/\ closing = TRUE
+/\ exited = FALSE
+/\ offered = <<>>
+/\ queue = <<20, 30>>
+/\ closeCount = 1
+/\ admitted = <<10, 20, 30>>
+
+State 9: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<10>>
+/\ dropped = 1
+/\ consumed = {1, 2, 3, 4, 5, 6, 7, 8}
+/\ waited = FALSE
+/\ closing = TRUE
+/\ exited = FALSE
+/\ offered = <<>>
+/\ queue = <<20, 30>>
+/\ closeCount = 1
+/\ admitted = <<10, 20, 30>>
+
+State 10: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<>>
+/\ dropped = 1
+/\ consumed = {1, 2, 3, 4, 5, 6, 7, 8, 9}
+/\ waited = FALSE
+/\ closing = TRUE
+/\ exited = FALSE
+/\ offered = <<10>>
+/\ queue = <<20, 30>>
+/\ closeCount = 1
+/\ admitted = <<10, 20, 30>>
+
+State 11: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<20>>
+/\ dropped = 1
+/\ consumed = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+/\ waited = FALSE
+/\ closing = TRUE
+/\ exited = FALSE
+/\ offered = <<10>>
+/\ queue = <<30>>
+/\ closeCount = 1
+/\ admitted = <<10, 20, 30>>
+
+State 12: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<>>
+/\ dropped = 1
+/\ consumed = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
+/\ waited = FALSE
+/\ closing = TRUE
+/\ exited = FALSE
+/\ offered = <<10, 20>>
+/\ queue = <<30>>
+/\ closeCount = 1
+/\ admitted = <<10, 20, 30>>
+
+State 13: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<30>>
+/\ dropped = 1
+/\ consumed = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+/\ waited = FALSE
+/\ closing = TRUE
+/\ exited = FALSE
+/\ offered = <<10, 20>>
+/\ queue = <<>>
+/\ closeCount = 1
+/\ admitted = <<10, 20, 30>>
+
+State 14: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<>>
+/\ dropped = 1
+/\ consumed = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
+/\ waited = FALSE
+/\ closing = TRUE
+/\ exited = FALSE
+/\ offered = <<10, 20, 30>>
+/\ queue = <<>>
+/\ closeCount = 1
+/\ admitted = <<10, 20, 30>>
+
+State 15: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<>>
+/\ dropped = 1
+/\ consumed = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}
+/\ waited = FALSE
+/\ closing = TRUE
+/\ exited = TRUE
+/\ offered = <<10, 20, 30>>
+/\ queue = <<>>
+/\ closeCount = 1
+/\ admitted = <<10, 20, 30>>
+
+State 16: <Action line 27, col 1 to line 33, col 53 of module GeneratedIntervalTrace>
+/\ kernelPos = 1
+/\ current = <<>>
+/\ dropped = 1
+/\ consumed = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
+/\ waited = TRUE
+/\ closing = TRUE
+/\ exited = TRUE
+/\ offered = <<10, 20, 30>>
+/\ queue = <<>>
+/\ closeCount = 1
+/\ admitted = <<10, 20, 30>>
+
+298 states generated, 23 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 16.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2).
+Finished in 01s at (2026-08-11 22:10:07)

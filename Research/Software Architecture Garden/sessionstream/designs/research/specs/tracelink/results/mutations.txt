@@ -1,0 +1,55 @@
+================================================================
+M1: remove post-close admission guard
+panic: send on closed channel
+
+goroutine 1 [running]:
+dispatchlab.(*Dispatcher[...]).TrySubmit(0x51fb60, 0x32)
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:150 +0x165
+main.main()
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/cmd/tracegen/main.go:52 +0x365
+exit status 2
+exit status: 1 (nonzero required)
+================================================================
+M2: bypass callback panic recovery
+panic: intentional tracegen callback panic
+
+goroutine 6 [running]:
+main.main.func1(0x14)
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/cmd/tracegen/main.go:30 +0xdf
+dispatchlab.(*Dispatcher[...]).run(0x51fae0)
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:250 +0x17c
+created by dispatchlab.newDispatcher[...] in goroutine 1
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:125 +0x1c5
+exit status 2
+exit status: 1 (nonzero required)
+================================================================
+M3: disable drop accounting
+tracegen: drop count mismatch: 0
+exit status 1
+exit status: 1 (nonzero required)
+================================================================
+M4: skip callback invocation
+fatal error: all goroutines are asleep - deadlock!
+
+goroutine 1 [chan receive]:
+main.main()
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/cmd/tracegen/main.go:41 +0x29e
+
+goroutine 18 [chan receive]:
+dispatchlab.(*Dispatcher[...]).run(0x51fb60)
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:253 +0x1e5
+created by dispatchlab.newDispatcher[...] in goroutine 1
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:125 +0x1c5
+exit status 2
+exit status: 1 (nonzero required)
+================================================================
+M5: remove close idempotence guard
+panic: close of closed channel
+
+goroutine 1 [running]:
+dispatchlab.(*Dispatcher[...]).Close(0x51fb40)
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/dispatcher.go:183 +0x10f
+main.main()
+	/home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/sessionstream/designs/research/specs/go/cmd/tracegen/main.go:51 +0x34c
+exit status 2
+exit status: 1 (nonzero required)

@@ -1,0 +1,2 @@
+{"schema_version":1,"run_id":"invalid-run","dispatcher_id":"observer-1","sequence":1,"action":"close_effective","has_value":false,"queue_len":0,"dropped":0}
+{"schema_version":1,"run_id":"invalid-run","dispatcher_id":"observer-1","sequence":2,"action":"submit_accepted","value":10,"has_value":true,"queue_len":1,"dropped":0}

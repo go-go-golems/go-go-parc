@@ -1,0 +1,9 @@
+// Expected unsupported-feature probe for Gobra v26.02.
+package probe
+
+func Safe() {
+	defer func() {
+		_ = recover()
+	}()
+	panic("boom")
+}

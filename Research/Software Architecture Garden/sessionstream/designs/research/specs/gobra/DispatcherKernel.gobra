@@ -1,0 +1,57 @@
+// DispatcherKernel.gobra is a first Gobra feasibility artifact for the
+// deterministic admission/close kernel. It deliberately excludes mutexes and
+// channels: those belong to the next shell-verification step.
+package dispatcher
+
+const (
+	Rejected = 0
+	Accepted = 1
+	Dropped  = 2
+)
+
+type Dispatcher struct {
+	capacity int
+	queueLen int
+	dropped  int
+	closing  bool
+}
+
+requires acc(d)
+requires d.capacity > 0
+requires 0 <= d.queueLen && d.queueLen <= d.capacity
+requires 0 <= d.dropped
+ensures acc(d)
+ensures d.capacity == old(d.capacity)
+ensures 0 <= d.queueLen && d.queueLen <= d.capacity
+ensures d.dropped >= old(d.dropped)
+ensures old(d.closing) ==> d.closing
+ensures old(d.closing) ==> result == Rejected
+ensures !old(d.closing) && old(d.queueLen) < old(d.capacity) ==> result == Accepted
+ensures !old(d.closing) && old(d.queueLen) == old(d.capacity) ==> result == Dropped
+ensures result == Rejected ==> d.queueLen == old(d.queueLen) && d.dropped == old(d.dropped)
+ensures result == Accepted ==> d.queueLen == old(d.queueLen) + 1 && d.dropped == old(d.dropped)
+ensures result == Dropped ==> d.queueLen == old(d.queueLen) && d.dropped == old(d.dropped) + 1
+func Submit(d *Dispatcher) (result int) {
+	if d.closing {
+		return Rejected
+	}
+	if d.queueLen < d.capacity {
+		d.queueLen = d.queueLen + 1
+		return Accepted
+	}
+	d.dropped = d.dropped + 1
+	return Dropped
+}
+
+requires acc(d)
+requires d.capacity > 0
+requires 0 <= d.queueLen && d.queueLen <= d.capacity
+requires 0 <= d.dropped
+ensures acc(d)
+ensures d.capacity == old(d.capacity)
+ensures d.queueLen == old(d.queueLen)
+ensures d.dropped == old(d.dropped)
+ensures d.closing
+func Close(d *Dispatcher) {
+	d.closing = true
+}

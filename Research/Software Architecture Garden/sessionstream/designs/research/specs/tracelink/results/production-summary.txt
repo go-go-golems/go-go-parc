@@ -1,0 +1,51 @@
+Actual Sessionstream observer-dispatcher production harvest
+Date: 2026-08-11
+Sessionstream commits:
+- ed506015ff4b167dd076cfc4bf0c48d457891705 Add observer dispatcher refinement tracing
+- 957c906a2558091270ba684bc81961eb69975f6a Stabilize observer trace harvest coverage
+- 229a47ebf1b2403c10075105e9504558fb675495 Avoid non-atomic observer queue trace claims
+
+Command:
+  ./run_production.sh
+
+Each run harvested 189 model events and 555 interval events from the actual
+pkg/sessionstream/transport/ws observer dispatcher. Every run also produced a
+readable Go runtime trace containing ws.observer_dispatcher tasks,
+observer.operation regions/logs, and observer.linearize operation IDs.
+
+TLC operation-interval refinement results:
+
+GOMAXPROCS=1
+- complete legal linearization witness found
+- 938 states generated
+- 190 distinct states
+- depth 190
+
+GOMAXPROCS=2
+- complete legal linearization witness found
+- 9,362 states generated
+- 800 distinct states
+- depth 190
+
+GOMAXPROCS=4
+- complete legal linearization witness found
+- 17,778 states generated
+- 1,215 distinct states
+- depth 190
+
+Important instrumentation correction discovered by the campaign:
+queue_len sampled after native channel send/receive is not an atomic abstract
+update. Under GOMAXPROCS=2 a worker could pop between send and logging. Commit
+229a47e removed those claims and lets TLC reconstruct queue state from actions.
+
+Failure capture:
+run_production.sh copies model JSONL, interval JSONL, runtime.trace, generated
+TLA, TLC output, and a reason file under results/failures/ whenever harvesting,
+runtime parsing, generation, or TLC refinement fails.
+
+Production mutations (./run_production_mutations.sh):
+- missing operation ID: rejected structurally before TLC
+- close_effective with updates.closing=false: no complete linearization
+  (1,185 generated / 45 distinct / depth 25)
+- accepted submit interval moved after Close return: no complete linearization
+  (1 generated / 1 distinct / depth 1)

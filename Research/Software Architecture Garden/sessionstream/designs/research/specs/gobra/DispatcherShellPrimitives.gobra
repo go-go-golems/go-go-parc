@@ -1,0 +1,88 @@
+// DispatcherShellPrimitives.gobra probes the two permission mechanisms needed
+// by the Go shell: mutex-owned lifecycle state and channel ownership transfer.
+// It does not yet encode select/default or channel-close authority.
+package dispatcher
+
+import "sync"
+
+type Lifecycle struct {
+	closing bool
+	dropped int
+}
+
+pred lifecycleInvariant(s *Lifecycle) {
+	acc(s) && 0 <= s.dropped
+}
+
+requires acc(mu.LockP(), _) && mu.LockInv() == lifecycleInvariant!<s!>
+ensures acc(mu.LockP(), _) && mu.LockInv() == lifecycleInvariant!<s!>
+func CloseLocked(mu *sync.Mutex, s *Lifecycle) {
+	mu.Lock()
+	unfold lifecycleInvariant!<s!>()
+	s.closing = true
+	fold lifecycleInvariant!<s!>()
+	mu.Unlock()
+}
+
+requires acc(mu.LockP(), _) && mu.LockInv() == lifecycleInvariant!<s!>
+ensures acc(mu.LockP(), _) && mu.LockInv() == lifecycleInvariant!<s!>
+func CountDropLocked(mu *sync.Mutex, s *Lifecycle) {
+	mu.Lock()
+	unfold lifecycleInvariant!<s!>()
+	if !s.closing {
+		s.dropped = s.dropped + 1
+	}
+	fold lifecycleInvariant!<s!>()
+	mu.Unlock()
+}
+
+type Item struct {
+	id      int
+	offered bool
+}
+
+pred itemOwned(item *Item) {
+	acc(item) && item.id > 0
+}
+
+// The producer transfers exclusive item ownership into the channel.
+requires acc(c.SendChannel(), 1/2)
+requires c.SendGivenPerm() == itemOwned!<_!>
+requires c.SendGotPerm() == PredTrue!<!>
+requires acc(item) && item.id > 0
+func Enqueue(c chan *Item, item *Item) {
+	fold itemOwned!<_!>(item)
+	c <- item
+}
+
+// The worker receives the same permission, allowing exclusive callback-side
+// mutation without sharing the item with the producer.
+requires acc(c.RecvChannel(), 1/2)
+requires c.RecvGivenPerm() == PredTrue!<!>
+requires c.RecvGotPerm() == itemOwned!<_!>
+func ReceiveAndOffer(c chan *Item) {
+	fold PredTrue!<!>()
+	item, ok := <-c
+	if ok {
+		unfold itemOwned!<_!>(item)
+		item.offered = true
+	}
+}
+
+func LifecycleClient() {
+	state@ := Lifecycle{false, 0}
+	mu@ := sync.Mutex{}
+	fold lifecycleInvariant!<&state!>()
+	(&mu).SetInv(lifecycleInvariant!<&state!>)
+	go CloseLocked(&mu, &state)
+	go CountDropLocked(&mu, &state)
+}
+
+func ChannelClient() {
+	c := make(chan *Item, 1)
+	c.Init(itemOwned!<_!>, PredTrue!<!>)
+	go ReceiveAndOffer(c)
+
+	item@ := Item{1, false}
+	Enqueue(c, &item)
+}

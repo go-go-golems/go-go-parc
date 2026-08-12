@@ -1,0 +1,18 @@
+// Expected unsupported-feature probe for Gobra v26.02.
+package probe
+
+pred sendPerm(v int) { true }
+
+requires acc(c.SendChannel(), 1/2)
+requires c.SendGivenPerm() == sendPerm!<_!>
+requires c.SendGotPerm() == PredTrue!<!>
+func TrySend(c chan int, v int) (ok bool) {
+	fold sendPerm!<_!>(v)
+	select {
+	case c <- v:
+		return true
+	default:
+		unfold sendPerm!<_!>(v)
+		return false
+	}
+}
