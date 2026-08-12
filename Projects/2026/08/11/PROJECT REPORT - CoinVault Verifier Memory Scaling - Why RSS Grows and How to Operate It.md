@@ -28,12 +28,12 @@ repo:
 
 This report analyzes the memory behavior of CoinVault's immutable knowledge-bundle verifier. The verifier runs before a bundle is trusted for deployment; it reads the manifest, chunks, representations, Bleve index, and SQLite vector index, then checks their identities against the manifest. The investigation measured five deterministic bundle sizes locally and added the same memory telemetry contract used by the indexer build command.
 
-The central result is precise: memory increases with representation count, but the measured points do not form a constant-slope linear function. The exact 114,106-representation bundle reached 1,872,289,792 bytes of external process RSS and 1,915,330,560 bytes in the in-process telemetry sample. A two-gibibyte ECS task is too close to the observed peak to be a safe capacity choice.
+The investigation first established that the eager verifier reached 2,205,364,224 bytes of external process RSS and 2,146,291,712 bytes of cgroup memory on the exact 114,106-representation bundle. The bounded implementation now verifies that same immutable bundle with unchanged identity at 280,842,240 bytes peak external RSS and 92,467,200 bytes peak cgroup usage. A second exact run completed under a 512 MiB hard limit.
 
 > [!summary]
-> - The five-point external RSS series was 242 MiB, 621 MiB, 828 MiB, 1.03 GiB, and 1.74 GiB for 10,000, 25,000, 50,000, 75,000, and 114,106 representations.
-> - The dominant allocations are the decoded chunks and representations retained simultaneously, temporary canonical-digest material, and the Bleve content inspection query that requests every hit and constructs a second record slice.
-> - Production must run verification as a bounded one-shot operation with cgroup telemetry, no overlapping retries, and explicit memory headroom. The container baseline remains the next validation step because the host cgroup includes unrelated page cache.
+> - The eager container baseline peaked at 2.054 GiB RSS and 1.999 GiB cgroup usage; retained decoded text and all-hit Bleve inspection caused the peak.
+> - Streaming JSON validation and paged Bleve inspection reduced peak RSS by 87.27% and cgroup usage by 95.69% without changing schema version, digests, or bundle ID.
+> - The exact bundle passed both the comparable 8 GiB run and a 512 MiB hard-limit run. Runtime increased from 37.07 seconds to 49.71 seconds.
 
 ## 1. The question and the boundary
 
@@ -307,6 +307,62 @@ one-shot verifier task is the pragmatic provisional allocation for this bundle.
 That recommendation still requires one Fargate/EFS confirmation and does not
 automatically size the separate indexing build.
 
+### 6.3.2 Bounded verifier result
+
+RagKit commit `7e4072a` separates one-shot verification from the eager serving
+loader. A strict `json.Decoder` walks `chunks.json` and
+`representations.json` one value at a time. Each value is validated and fed to
+`digest.JSONSequence`, which emits the same canonical separators and encoded
+values as `encoding/json` would emit for the complete non-nil slice. The
+verifier retains chunk and representation identities, not their complete text
+payloads. Bleve inspection requests 512 `_id`-sorted records at a time and
+folds them into the existing lexical content digest. SQLite vector inspection
+was already an ordered streaming fold and did not change.
+
+```mermaid
+flowchart LR
+    M[Manifest] --> C[Stream chunks]
+    C --> CM[Compact chunk identity map]
+    CM --> R[Stream representations]
+    R --> BI[Reconstruct existing bundle ID]
+    BI --> BP[Page Bleve by _id]
+    BP --> VS[Stream SQLite vector rows]
+    VS --> OK[Verified unchanged bundle]
+
+    style CM fill:#DBEAFE,stroke:#1D4ED8
+    style BI fill:#DCFCE7,stroke:#15803D
+    style OK fill:#DCFCE7,stroke:#15803D
+```
+
+The 8 GiB before/after run used the exact same bundle, one CPU, read-only
+mount, 250 ms EMF sampling, and 250 ms external sampling.
+
+| Measurement | Eager verifier | Streaming verifier | Reduction |
+|---|---:|---:|---:|
+| External RSS | 2,205,364,224 B | 280,842,240 B | 87.27% |
+| Anonymous memory | 2,141,069,312 B | 90,038,272 B | 95.79% |
+| Cgroup usage | 2,146,291,712 B | 92,467,200 B | 95.69% |
+| Cgroup anonymous | 2,141,069,312 B | 90,537,984 B | 95.77% |
+| Runtime | 37.07 s | 49.71 s | 34.1% slower |
+
+![[CoinVault verifier eager versus streaming memory.svg]]
+
+_Figure 3. Exact-bundle eager and streaming verifier peaks under the same 8 GiB container limit._
+
+The 512 MiB proof run also completed with exit status zero and
+`OOMKilled=false`. Its peak external RSS was 282,648,576 bytes, peak anonymous
+memory was 91,594,752 bytes, and peak sampled cgroup usage was 86,523,904
+bytes. External RSS includes mappings that are not equivalent to private
+charged anonymous pages, so ECS sizing and alarms should continue to use
+cgroup usage as the kill boundary and retain RSS as diagnostic context.
+
+This is a bounded-payload design rather than a strict constant-space design.
+Identity and uniqueness maps still grow with record count. They are compact
+strings and set entries instead of the corpus text and vector coordinates that
+dominated the eager verifier. A temporary disk relation is unnecessary at the
+current scale; it remains a later option if identity-map memory becomes
+material.
+
 ### 6.4 Separate file-backed memory from anonymous memory
 
 The external sampler records `anonymous_bytes`, `pss_bytes`, `private_dirty_bytes`, and cgroup file bytes. A high cgroup total with low anonymous memory can represent EFS-backed or page-cache residency rather than Go heap:
@@ -319,9 +375,12 @@ The current host series is dominated by anonymous memory at the largest sizes, b
 
 ## 7. Streaming remediation for larger bundles
 
-The verifier does not need to retain every logical record to prove a digest if the bundle format supplies a deterministic order and the digest can be updated incrementally. The current implementation retains full slices because it reuses eager validation helpers and because Bleve's search API returns all hits at once.
+The verifier no longer retains every logical record to prove a digest. The
+bundle format supplies a deterministic order, and the existing canonical
+digest is updated incrementally. Serving remains eager because the public
+`Bundle` exposes complete slices; verification uses its own compact state.
 
-A bounded implementation would change the memory contract in three places:
+The implementation changes the memory contract in three places:
 
 1. Decode chunks and representations incrementally from an ordered JSON stream or newline-delimited representation format.
 2. Validate each record against compact ID state and digest state, releasing record text after processing.
@@ -341,7 +400,9 @@ measure isolated current verifier
   -> lower ECS allocation only after the new peak is measured
 ```
 
-Streaming is not required to serve a verified bundle. It becomes necessary when the full bundle or future daily updates exceed the approved verifier memory envelope.
+Streaming is not required to serve a verified bundle. It is now the default
+for the one-shot verification gate, where the full bundle exceeded the former
+memory envelope.
 
 ## 8. Reproduction and artifacts
 
@@ -357,9 +418,11 @@ The implementation and evidence are split across three repositories.
 ### RagKit
 
 - `/home/manuel/code/wesen/go-go-golems/ragkit/rag/indexbundle/verify.go` — verification stages.
+- `/home/manuel/code/wesen/go-go-golems/ragkit/rag/indexbundle/verify_stream.go` — strict streaming JSON validation and compact identity state.
 - `/home/manuel/code/wesen/go-go-golems/ragkit/rag/indexbundle/open.go` — eager JSON loading and identity validation.
 - `/home/manuel/code/wesen/go-go-golems/ragkit/rag/lexical/bleve/index.go` — read-only Bleve inspection.
 - Commit `cb7e939` — opens Bleve verifier indexes read-only.
+- Commit `7e4072a` — streams bundle verification and pages Bleve inspection.
 
 ### Investigation ticket
 
@@ -371,6 +434,9 @@ The implementation and evidence are split across three repositories.
 - `scripts/09-summarize-verifier-sweep.sh` — CSV/SVG summary generator.
 - `/tmp/coinvault-verifier-sweep-results-20260811/summary.csv` — measured values.
 - `CoinVault verifier memory sweep.svg` — embedded graph of peak memory.
+- `sources/04-streaming-verifier-8g-*` — comparable streaming telemetry.
+- `sources/05-streaming-verifier-512m-*` — hard-limit proof telemetry.
+- `sources/06-verifier-before-after.{csv,svg}` — reproducible comparison.
 
 The ticket tasks now mark telemetry integration, local export verification,
 and the isolated host/container baseline complete. The remaining operational
@@ -394,14 +460,15 @@ The serving service should consume only a bundle that passed this procedure. Ver
 
 ## 10. Current status and next step
 
-The telemetry path, local scaling experiment, and isolated Docker baseline are
-complete. The measurements explain why the full bundle crosses the
-two-gibibyte boundary and identify eager retained verifier data around the
-representations/lexical transition as the largest transient allocation. The
-Docker cgroup result supports a provisional 4 GiB one-shot verifier allocation.
+The bounded verifier, compatibility gates, exact 8 GiB comparison, and 512 MiB
+proof are complete. The original 4 GiB provisional recommendation is no longer
+appropriate for this verifier. For the current exact bundle, 512 MiB is a
+demonstrated local ceiling; a 1 GiB one-shot ECS verifier is the pragmatic
+initial development allocation because it provides substantial environment
+and growth margin without returning to multi-gibibyte sizing.
 
-The next concrete action is to repeat the exact verification once as a
-development ECS/Fargate task against EFS, then build the CloudWatch dashboard
-and alarms from `CgroupUtilization`, `PeakRSSBytes`, stage, terminal status, and
-GC metrics. Streaming verifier work is warranted only if the Fargate result or
-future corpus growth makes the 4 GiB operational envelope unacceptable.
+The next operational action is one development ECS/Fargate verification
+against EFS using the same image and EMF contract. If its peak remains well
+below 512 MiB, adopt 1 GiB for scheduled verification and alarm on sustained
+cgroup utilization above 75%, terminal failure, or `OOMKilled`. Index building
+is a separate workload and must retain its independently measured allocation.
