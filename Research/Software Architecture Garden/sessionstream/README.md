@@ -45,6 +45,7 @@ related_notes:
   - "[[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/research/01 - Proving the Bounded Asynchronous Observer Dispatcher]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/research/02 - Constraining the Go Binary - Layered Refinement from Proved Kernels to Executables]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/research/03 - Continuous and Reproducible Refinement Evidence - Flight Recorders Multi-Dispatcher Harvests and Seeded Schedules]]"
 ---
 
 # Architecture Garden — sessionstream
@@ -62,6 +63,7 @@ This repository is a useful bridge between the [[Transcripts/Research/09 - RAG-M
 > - Bus, Pipeline, Transport, Error, heartbeat, and Systemlab traces share a typed transition-and-trace foundation without sharing one reliability policy; see [[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra|Typed Transition Systems and Trace Algebra]].
 > - Heartbeat and chat startup share an effect-acknowledged state-machine model, but only heartbeat currently has a pure reducer and serialized supervisor; see [[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement|Effect-Acknowledged State Machines and Runtime Refinement]].
 > - The implementation is strongest at contract separation and reconnect fencing. Per-session serialization, stable redelivery identity, consistent SQLite cuts, and atomic projection progress remain important laws to harden.
+> - The next production-refinement research project combines bounded flight recording, multi-dispatcher partition validation, and versioned seeded workload plans; see [[Research/Software Architecture Garden/sessionstream/designs/research/03 - Continuous and Reproducible Refinement Evidence - Flight Recorders Multi-Dispatcher Harvests and Seeded Schedules|Continuous and Reproducible Refinement Evidence]].
 
 ## Snapshot identity and evidence
 
