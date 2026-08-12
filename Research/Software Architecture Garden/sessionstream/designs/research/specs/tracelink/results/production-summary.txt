@@ -8,10 +8,11 @@ Sessionstream commits:
 Command:
   ./run_production.sh
 
-Each run harvested 189 model events and 555 interval events from the actual
-pkg/sessionstream/transport/ws observer dispatcher. Every run also produced a
+Every run harvested a contiguous, single-partition model/interval stream from
+the actual pkg/sessionstream/transport/ws observer dispatcher and produced a
 readable Go runtime trace containing ws.observer_dispatcher tasks,
-observer.operation regions/logs, and observer.linearize operation IDs.
+observer.operation regions/logs, and observer.linearize operation IDs. Event
+and TLC state counts legitimately vary with the harvested concurrent schedule.
 
 TLC operation-interval refinement results:
 
@@ -23,15 +24,16 @@ GOMAXPROCS=1
 
 GOMAXPROCS=2
 - complete legal linearization witness found
-- 9,362 states generated
-- 800 distinct states
+- observed campaigns: 9,362–12,966 states generated
+- observed campaigns: 800–1,001 distinct states
 - depth 190
 
 GOMAXPROCS=4
 - complete legal linearization witness found
-- 17,778 states generated
-- 1,215 distinct states
-- depth 190
+- observed campaigns: 17,778–99,138 states generated
+- observed campaigns: 1,215–6,246 distinct states
+- observed depth: 190–238
+- richer run: 237 model / 651 interval events
 
 Important instrumentation correction discovered by the campaign:
 queue_len sampled after native channel send/receive is not an atomic abstract

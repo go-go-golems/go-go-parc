@@ -203,11 +203,15 @@ checks contiguous single-partition JSONL, parses each `runtime.trace`, verifies
 runtime task/operation correlation, generates interval TLA+, and requires TLC
 to find a complete legal linearization. Results:
 
-| GOMAXPROCS | Model / interval events | TLC generated | Distinct | Depth |
+| GOMAXPROCS | Observed model / interval events | Observed TLC generated | Distinct | Depth |
 |---:|---:|---:|---:|---:|
 | 1 | 189 / 555 | 938 | 190 | 190 |
-| 2 | 189 / 555 | 9,362 | 800 | 190 |
-| 4 | 189 / 555 | 17,778 | 1,215 | 190 |
+| 2 | 189 / 555 | 9,362–12,966 | 800–1,001 | 190 |
+| 4 | 189–237 / 555–651 | 17,778–99,138 | 1,215–6,246 | 190–238 |
+
+Counts vary with the harvested concurrent schedule; the acceptance criterion is
+a complete legal linearization witness plus contiguous partitioned streams and
+runtime correlation, not an exact state count.
 
 The campaign found and corrected an instrumentation claim: native channel
 `queue_len` sampled after send/receive is not atomic because another goroutine
