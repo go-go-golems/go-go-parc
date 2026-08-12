@@ -363,6 +363,143 @@ dominated the eager verifier. A temporary disk relation is unnecessary at the
 current scale; it remains a later option if identity-map memory becomes
 material.
 
+#### The code boundary that changed
+
+The refactor intentionally does not change the serving bundle API. Serving
+still calls `loadVerifiedBundle`, obtains complete `[]rag.Chunk` and
+`[]rag.Representation` slices, and exposes them on `indexbundle.Bundle`.
+Changing that API would affect query-time callers and would mix a release-gate
+memory problem with a serving architecture project.
+
+Only `indexbundle.Verify` moves onto the bounded path:
+
+| File and API | Responsibility after the change |
+|---|---|
+| `rag/indexbundle/verify.go` | Orchestrates manifest, chunks, representations, lexical, vector, and complete stages. |
+| `rag/indexbundle/verify_stream.go:streamJSONArray` | Strictly decodes one JSON-array value, calls its validator, and contributes it to the existing canonical digest. |
+| `rag/indexbundle/verify_stream.go:streamVerifiedChunks` | Validates chunk identities, ranges, content digests, duplicate IDs, document counts, and ordinals. |
+| `rag/indexbundle/verify_stream.go:streamVerifiedStoredIdentity` | Validates representation identities and lineage, collects kinds, and reconstructs the existing bundle ID. |
+| `rag/lexical/bleve/index.go:InspectContentDigest` | Opens Bleve read-only and digests 512 `_id`-sorted logical records per request. |
+| `rag/vector/sqliteexact/index.go:Inspect` | Continues to scan ordered SQLite rows through `digest.JSONSequence`; no vector change was required. |
+
+The central streaming primitive has this logical form:
+
+```text
+streamJSONArray(path, consume):
+    open path
+    require first token == '['
+
+    digest = JSONSequence(yield):
+        while decoder has another element:
+            check context cancellation
+            decode exactly one typed value
+            reject unknown fields
+            consume(index, value)       // validate and update compact state
+            yield(value)                // canonical encoding/json contribution
+
+        require closing token == ']'
+        require next decode == EOF      // reject trailing values
+
+    return count, digest
+```
+
+`JSONSequence` writes the opening bracket, canonical JSON encoding for each
+typed value separated by commas, and the closing bracket. Consequently, it
+produces the same SHA-256 input bytes as `digest.JSON(nonNilSlice)` even when
+the source file contains insignificant whitespace. Hashing the source file
+directly would not provide this compatibility.
+
+#### Validation state and complexity
+
+The chunk pass retains `chunk ID -> content digest`. Per-document ordinal sets
+exist only during the chunk pass and can be released before backend
+inspection. The representation pass retains a representation-ID set for
+duplicate detection and a small set of representation kinds. The current
+value's text is discarded after validation and digest contribution.
+
+Let (C) be chunk count, (R) representation count, (P) Bleve page size,
+and (L_{max}) the largest encoded value. The relevant payload-memory shape
+is:
+
+```text
+O(C identity entries + R identity entries + P records + L_max)
+```
+
+It is not:
+
+```text
+O(total chunk text + total representation text + all Bleve hits + all vectors)
+```
+
+This distinction explains why record-count metadata remains visible in heap
+measurements while the approximately two-gibibyte anonymous peak disappears.
+The implementation uses in-memory maps because 57,053 chunk identities and
+114,106 representation identities are inexpensive at this scale. A disk-backed
+identity relation would add lifecycle and I/O complexity without solving a
+measured current problem.
+
+#### Stage-level result data
+
+The bounded run's stage maxima show that representation identity validation is
+now the largest observed RSS stage, while charged anonymous memory remains
+below 91 MiB. The lexical stage is longer but no longer owns an all-hit result
+set.
+
+| Completed stage | Samples | End elapsed | Peak external RSS | Peak anonymous | Peak cgroup | Peak Go heap |
+|---|---:|---:|---:|---:|---:|---:|
+| manifest | 6 | 1.86 s | 87.3 MiB | 41.7 MiB | 43.4 MiB | 25.2 MiB |
+| chunks | 12 | 5.39 s | 93.3 MiB | 47.5 MiB | 49.0 MiB | 37.9 MiB |
+| representations | 65 | 24.20 s | 267.8 MiB | 85.9 MiB | 88.2 MiB | 69.7 MiB |
+| lexical | 87 | 48.60 s | 81.4 MiB | 32.2 MiB | 33.3 MiB | 10.9 MiB |
+| complete | 1 | 48.88 s | 73.0 MiB | 23.7 MiB | 24.7 MiB | 8.2 MiB |
+
+The apparent difference between external RSS and cgroup anonymous memory is
+not an arithmetic inconsistency: RSS includes resident mappings with different
+charging and sharing behavior, while `memory.current` and `memory.stat` report
+the container cgroup's charged pages. The hard 512 MiB run is the important
+operational check because the kernel enforced that limit directly.
+
+#### Compatibility and failure tests
+
+The implementation was accepted only after the following gates:
+
+- canonical digest parity between streamed values and `digest.JSON`;
+- rejection of non-array input, unknown fields, trailing JSON, and canceled
+  contexts;
+- Bleve content-digest parity at page sizes 1, 2, and 512;
+- existing end-to-end bundle build and verification with the same bundle ID;
+- focused race tests for `rag/indexbundle` and `rag/lexical/bleve`;
+- complete RagKit unit tests, lint, Logcopter generation checks, `go generate`,
+  generation cleanliness, and `go build ./...`;
+- complete CoinVault unit tests and build against the pinned RagKit commit;
+- two exact-bundle container executions with terminal identity and counts.
+
+The raw-representation invariant deserves explicit treatment. The eager
+validator compared chunk and raw-representation strings directly. The bounded
+validator recomputes SHA-256 for each current string and then compares their
+required content identities. This avoids retaining every chunk string and is
+consistent with the content-addressed integrity model used throughout the
+bundle. A reviewer who does not accept SHA-256 equality as the identity
+contract should require a disk-backed exact-text relation; retaining all text
+again would defeat the purpose of this change.
+
+#### Cost and rejected extensions
+
+The measured cost is a 12.64-second runtime increase. Offset-based Bleve
+pagination performs repeated ordered searches and is less efficient than one
+all-hit request. A search-after cursor could reduce this cost, but it would add
+backend-specific cursor semantics and new ordering edge cases. Verification
+runs infrequently, and 49.71 seconds is operationally acceptable, so the
+current implementation favors the smaller API and stronger reviewability.
+
+The vector digest was not replaced. SQLite verification already reads rows in
+stable order and streams them through the canonical digester. Changing that
+hash would have changed vector content identity and the containing bundle ID
+without reducing the measured peak. Merkle trees, schema version 2, raw file
+hashes, resume checkpoints, and disk-backed identity maps were rejected for
+the same proportionality reason: they are potential future capabilities, not
+requirements for the observed verifier failure.
+
 ### 6.4 Separate file-backed memory from anonymous memory
 
 The external sampler records `anonymous_bytes`, `pss_bytes`, `private_dirty_bytes`, and cgroup file bytes. A high cgroup total with low anonymous memory can represent EFS-backed or page-cache residency rather than Go heap:
