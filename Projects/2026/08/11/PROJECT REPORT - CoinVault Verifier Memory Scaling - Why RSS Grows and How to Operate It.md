@@ -268,6 +268,45 @@ metadata or deliberately omitted rather than becoming separate CloudWatch
 series. This makes the telemetry suitable for dashboards without unbounded
 metric proliferation.
 
+### 6.3.1 Isolated Docker result
+
+The exact exported development bundle was subsequently verified in a local
+Docker container with an 8 GiB cgroup limit, one CPU, a read-only bundle mount,
+and synchronized 250 ms application and external sampling. The run used bundle
+`rk-ed6c4e01a46f5cde946d87bf43cea47f`: 19,977 documents, 57,053 chunks, and
+114,106 representations. It completed in 37.07 seconds with exit status zero
+and `OOMKilled=false`.
+
+| Measurement | Peak |
+|---|---:|
+| External RSS/HWM | 2,205,364,224 bytes (2.054 GiB) |
+| Anonymous/private-dirty | 2,141,069,312 bytes (1.994 GiB) |
+| Cgroup current | 2,146,291,712 bytes (1.999 GiB) |
+| Cgroup anonymous | 2,141,069,312 bytes (1.994 GiB) |
+| Cgroup file | 0 bytes at sampled instants |
+| In-process RSS | 2,205,356,032 bytes (2.054 GiB) |
+| Go heap allocation | 1,975,095,080 bytes (1.840 GiB) |
+| Go runtime system memory | 2,148,167,416 bytes (2.001 GiB) |
+
+The graph below joins each external proc/smaps/cgroup sample to the nearest EMF
+event within 375 ms. The upper panel attributes memory; the lower panel shows
+the verifier application stage and cumulative GC count. Verification currently
+reports corpus counts only in its successful terminal event, so stage is the
+meaningful application coordinate during the run. Embedding counters remain
+zero because verification does not invoke an embedding provider.
+
+![[CoinVault full container correlated telemetry.svg]]
+
+_Figure 2. Synchronized Docker memory attribution aligned with verifier stage and GC activity._
+
+The result resolves the principal attribution question. The full verifier is
+dominated by anonymous/private-dirty memory rather than file-backed cgroup
+cache. A 2 GiB task is unsafe: sampled cgroup usage alone reached approximately
+1.999 GiB, before allowing for runtime variance or corpus growth. A 4 GiB
+one-shot verifier task is the pragmatic provisional allocation for this bundle.
+That recommendation still requires one Fargate/EFS confirmation and does not
+automatically size the separate indexing build.
+
 ### 6.4 Separate file-backed memory from anonymous memory
 
 The external sampler records `anonymous_bytes`, `pss_bytes`, `private_dirty_bytes`, and cgroup file bytes. A high cgroup total with low anonymous memory can represent EFS-backed or page-cache residency rather than Go heap:
@@ -333,7 +372,10 @@ The implementation and evidence are split across three repositories.
 - `/tmp/coinvault-verifier-sweep-results-20260811/summary.csv` — measured values.
 - `CoinVault verifier memory sweep.svg` — embedded graph of peak memory.
 
-The ticket tasks mark telemetry integration and local export verification complete. The task for the isolated host/container baseline remains open until the corrected container run produces valid cgroup data.
+The ticket tasks now mark telemetry integration, local export verification,
+and the isolated host/container baseline complete. The remaining operational
+validation is one development Fargate/EFS verifier run using the same EMF
+contract, followed by CloudWatch dashboards and alarms.
 
 ## 9. Operational checklist
 
@@ -352,6 +394,14 @@ The serving service should consume only a bundle that passed this procedure. Ver
 
 ## 10. Current status and next step
 
-The telemetry path and local scaling experiment are complete. The measurements explain why the full bundle approaches the two-gibibyte boundary and identify the eager Bleve inspection stage as the largest transient allocation in the current implementation. The result does not yet justify a final ECS memory size because the host cgroup is shared.
+The telemetry path, local scaling experiment, and isolated Docker baseline are
+complete. The measurements explain why the full bundle crosses the
+two-gibibyte boundary and identify eager retained verifier data around the
+representations/lexical transition as the largest transient allocation. The
+Docker cgroup result supports a provisional 4 GiB one-shot verifier allocation.
 
-The next concrete action is to run the exact 114,106-representation bundle in the corrected container harness with the updated read-only Bleve code. That run must report cgroup current, cgroup limit, anonymous memory, file memory, and process RSS. After it passes, the team can choose between a conservative larger verifier task and the bounded streaming verifier work described above.
+The next concrete action is to repeat the exact verification once as a
+development ECS/Fargate task against EFS, then build the CloudWatch dashboard
+and alarms from `CgroupUtilization`, `PeakRSSBytes`, stage, terminal status, and
+GC metrics. Streaming verifier work is warranted only if the Fargate result or
+future corpus growth makes the 4 GiB operational envelope unacceptable.
