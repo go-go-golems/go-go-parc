@@ -43,6 +43,7 @@ related_notes:
   - "[[Research/Software Architecture Garden/sessionstream/designs/01 - Bounded Asynchronous Observer Dispatcher]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/04 - Observer as Diagnostic Projection and Refinement Boundary]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/research/01 - Proving the Bounded Asynchronous Observer Dispatcher]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/research/02 - Constraining the Go Binary - Layered Refinement from Proved Kernels to Executables]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/research/03 - Continuous and Reproducible Refinement Evidence - Flight Recorders Multi-Dispatcher Harvests and Seeded Schedules]]"
@@ -62,6 +63,7 @@ This repository is a useful bridge between the [[Transcripts/Research/09 - RAG-M
 > - Best-effort observer delivery is a separate bounded concurrency contract; see [[Research/Software Architecture Garden/sessionstream/designs/01 - Bounded Asynchronous Observer Dispatcher|Bounded Asynchronous Observer Dispatcher]].
 > - Bus, Pipeline, Transport, Error, heartbeat, and Systemlab traces share a typed transition-and-trace foundation without sharing one reliability policy; see [[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra|Typed Transition Systems and Trace Algebra]].
 > - Heartbeat and chat startup share an effect-acknowledged state-machine model, but only heartbeat currently has a pure reducer and serialized supervisor; see [[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement|Effect-Acknowledged State Machines and Runtime Refinement]].
+> - The observer is a diagnostic trace projection with a deliberately weaker bounded/lossy delivery contract; its model/interval evidence and refinement obligations are documented in [[Research/Software Architecture Garden/sessionstream/designs/04 - Observer as Diagnostic Projection and Refinement Boundary|Observer as Diagnostic Projection and Refinement Boundary]].
 > - The implementation is strongest at contract separation and reconnect fencing. Per-session serialization, stable redelivery identity, consistent SQLite cuts, and atomic projection progress remain important laws to harden.
 > - The next production-refinement research project combines bounded flight recording, multi-dispatcher partition validation, and versioned seeded workload plans; see [[Research/Software Architecture Garden/sessionstream/designs/research/03 - Continuous and Reproducible Refinement Evidence - Flight Recorders Multi-Dispatcher Harvests and Seeded Schedules|Continuous and Reproducible Refinement Evidence]].
 
@@ -358,6 +360,10 @@ The report also explains why this common structure should not become one univers
 
 The design defines commit-before-concurrency, action completion events, lifecycle laws, generation isolation, linearization points, abstraction mappings, trace inclusion, deterministic barriers, `testing/synctest`, and state-aware runtime fuzzing. It explains how to extend correctness evidence beyond a pure kernel to the runtime machinery that interprets it.
 
+### Observer as diagnostic projection and refinement boundary
+
+[[Research/Software Architecture Garden/sessionstream/designs/04 - Observer as Diagnostic Projection and Refinement Boundary|Observer as Diagnostic Projection and Refinement Boundary]] documents the current WebSocket observer as a diagnostic projection rather than an authority path. It generalizes the bounded asynchronous dispatcher, records its ownership, FIFO, drop, panic, close, drain, and wait laws, and explains the model/interval trace design through labeled transition systems, free-monoid histories, linearizability, happens-before, partial orders, safety/liveness, and concrete-to-abstract refinement.
+
 ### Verification research: proving the dispatcher
 
 [[Research/Software Architecture Garden/sessionstream/designs/research/01 - Proving the Bounded Asynchronous Observer Dispatcher|Proving the Bounded Asynchronous Observer Dispatcher]] attacks the observer-dispatcher contract with four formal lenses and one executable scaffold: a TLA+ concurrent model (exhaustive check plus a send-after-close counterexample for the racy variant), an Alloy temporal model (which additionally surfaces a post-exit drain violation), mechanized invariant proofs of the transition kernel in both Coq and Lean 4 (arbitrary capacity and run length, axiom-audited), and a Go verification scaffold replaying execution traces through an oracle transliterated from the proved kernel, with deterministic and turnstile tests, a 3.3M-execution fuzz campaign, and five contract-targeted mutations that are all caught. Artifacts live in `designs/research/specs/`.
@@ -403,3 +409,4 @@ These names should remain candidates until compared with consumers and additiona
 - [[Research/Software Architecture Garden/sessionstream/designs/01 - Bounded Asynchronous Observer Dispatcher|Bounded Asynchronous Observer Dispatcher design]]
 - [[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra|Typed Transition Systems and Trace Algebra design]]
 - [[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement|Effect-Acknowledged State Machines and Runtime Refinement design]]
+- [[Research/Software Architecture Garden/sessionstream/designs/04 - Observer as Diagnostic Projection and Refinement Boundary|Observer as Diagnostic Projection and Refinement Boundary design]]
