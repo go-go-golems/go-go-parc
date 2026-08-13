@@ -11,6 +11,8 @@ analyzed: 2026-08-13
 repository: /home/manuel/workspaces/2026-08-12/deploy-dev-indexer/sessionstream
 repository_remote: https://github.com/go-go-golems/sessionstream
 source_pull_request: https://github.com/go-go-golems/sessionstream/pull/13
+tracking_issue: https://github.com/go-go-golems/sessionstream/issues/14
+architecture_catalog: https://github.com/orgs/go-go-golems/projects/3
 source_commit: 229a47ebf1b2403c10075105e9504558fb675495
 source_branch: task/deploy-dev-indexer
 tags:
@@ -49,7 +51,7 @@ The observer trace added around this mechanism makes the boundary inspectable. I
 > - The implementation is a composition of the Observer, Producer–Consumer, Mailbox, Bulkhead, Single-Writer, and Flight Recorder patterns, constrained by a lossy delivery policy.
 > - The mathematical core is a labeled transition system whose attempted submission word is mapped to the accepted subsequence, then to a callback trace; linearization points and happens-before edges make the concurrent implementation reviewable.
 > - Refinement tracing is most valuable when it records both abstract transitions and operation intervals, because one global sequence cannot represent all concurrent order relations honestly.
-> - This is a candidate ecosystem pattern for diagnostics only. It must not be reused for canonical events, commands, authorization decisions, persistence, or correctness-critical control messages.
+> - This is a candidate ecosystem pattern for diagnostics only. It must not be reused for canonical events, commands, authorization decisions, persistence, or correctness-critical control messages. The idea is tracked as [sessionstream issue #14](https://github.com/go-go-golems/sessionstream/issues/14) in the [Architecture & Pattern Catalog project](https://github.com/orgs/go-go-golems/projects/3), currently in `Documented` status.
 
 ## 1. Why this note exists
 
