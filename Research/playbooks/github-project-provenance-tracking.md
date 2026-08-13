@@ -702,6 +702,129 @@ Verify the item and fields through GraphQL, especially the multi-select values. 
 - provenance fields identify the discovery context;
 - implementation tasks remain on the task project rather than replacing the catalog entry.
 
+## 14. Cross-organization project limitations
+
+GitHub permits a project owned by one organization to contain an issue from another organization, provided the acting user has sufficient access. This produces a project item, but it does **not** produce a fully reciprocal issue-page association.
+
+The observed case was:
+
+```text
+Issue:   goldeneagle/coinvault#5
+Project: go-go-golems/projects/3
+```
+
+`gh project item-add` succeeded, and Project 3 contained the issue with all custom field values. The issue's own `projectItems` GraphQL connection nevertheless returned zero items:
+
+```graphql
+query {
+  repository(owner: "goldeneagle", name: "coinvault") {
+    issue(number: 5) {
+      projectItems(first: 20) {
+        totalCount
+        nodes { id }
+      }
+    }
+  }
+}
+```
+
+Observed result:
+
+```json
+{"totalCount":0,"nodes":[]}
+```
+
+### Why the issue sidebar does not show the project
+
+For a project to be discoverable as a repository-linked project, GitHub requires the project and repository to have the same owner. The explicit mutation:
+
+```graphql
+mutation($project: ID!, $repo: ID!) {
+  linkProjectV2ToRepository(input: {
+    projectId: $project
+    repositoryId: $repo
+  }) {
+    repository { nameWithOwner }
+  }
+}
+```
+
+failed with:
+
+```text
+Only projects owned by the same owner as the repository can be linked.
+```
+
+Therefore, cross-organization membership is asymmetric:
+
+```text
+central project → contains foreign issue
+foreign issue   ↛ reports central project membership
+```
+
+The board is not corrupt, and the item was not added incorrectly. The limitation is GitHub's project/repository ownership rule.
+
+### Diagnose a missing issue-page project link
+
+First verify the project side:
+
+```bash
+gh project item-list 3 \
+  --owner go-go-golems \
+  --limit 1000 \
+  --format json
+```
+
+Then verify the issue side:
+
+```bash
+gh api graphql -f query='query {
+  repository(owner:"goldeneagle",name:"coinvault") {
+    issue(number:5) {
+      url
+      projectItems(first:20) {
+        totalCount
+        nodes {
+          id
+          project { id number title url }
+        }
+      }
+    }
+  }
+}'
+```
+
+If the board contains the item but the issue reports zero project items, compare owners. Do not repeatedly add the item; that does not repair the reciprocal association.
+
+### Cross-organization policy options
+
+Choose one policy deliberately:
+
+1. **Central catalog with manual issue links.** Keep Project 3 as the organization-wide catalog. Add the catalog URL to the foreign issue body. This preserves one catalog but accepts that the issue sidebar will not show it.
+2. **Owner-local catalogs.** Create a corresponding catalog under each organization. Issue-page integration works, but cross-organization discovery requires a separate aggregation process.
+3. **Mirrored catalog issue.** Create the durable pattern issue in a `go-go-golems` repository and link its body to the foreign implementation evidence. This provides native Project 3 integration but separates the catalog record from the evidence-owning repository.
+4. **Repository transfer.** If organizational ownership is changing for independent reasons, moving the repository under the project owner resolves the limitation. Do not transfer repositories merely to fix project UI metadata.
+
+For the current setup, the recommended default is the **central catalog with an explicit Markdown link in cross-organization issue bodies**. The project remains authoritative for classification, while the issue body makes membership visible to readers.
+
+Example:
+
+```markdown
+## Architecture catalog
+
+Tracked in the [Go-Go-Golems Architecture & Pattern Catalog](
+https://github.com/orgs/go-go-golems/projects/3).
+```
+
+### Update the completion checklist
+
+For cross-organization entries, verification must distinguish two conditions:
+
+- [ ] The central project contains the item and all field values.
+- [ ] The issue body contains an explicit catalog link because sidebar association is unavailable.
+
+Do not require `issue.projectItems` to report the cross-owner project; GitHub currently cannot establish that reciprocal association.
+
 ## Reference
 
 - Task project: [go-go-golems Project 1](https://github.com/orgs/go-go-golems/projects/1)
