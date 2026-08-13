@@ -497,9 +497,215 @@ Immediate population is preferable to later backfilling. At issue-creation time,
 - [ ] Scripts use project item IDs for field mutation.
 - [ ] No unrelated repository or vault files were staged.
 
+## 13. Add architecture and pattern catalog entries
+
+Task tracking and pattern cataloging serve different lifecycles. Project 1 records work that should be completed. [Project 3](https://github.com/orgs/go-go-golems/projects/3) records reusable technical findings that should remain discoverable after any implementation issue is closed.
+
+A catalog item should state a technical claim:
+
+```text
+Canonical logical records decouple artifact identity from physical storage
+```
+
+Do not phrase it as an implementation task:
+
+```text
+Refactor the index digest code
+```
+
+The task can live in Project 1 and reference the catalog item in its issue body. The catalog entry describes the abstraction, evidence, constraints, and known applications.
+
+### Catalog schema
+
+Project 3 uses:
+
+| Field | Type | Values or meaning |
+|---|---|---|
+| `Status` | Single select | `Discovered`, `Documented`, `Validated`, `Adopted`, `Rejected` |
+| `Pattern type` | Multi-select | `Abstraction`, `Data Structure`, `Algorithm`, `Invariant`, `Operational Pattern` |
+| `Domain` | Multi-select | `RAG`, `Execution`, `Storage`, `CLI`, `UI`, `Agents`, `Infrastructure` |
+| `Docmgr ticket` | Text | Associated research workspace or `N/A` |
+| `Agent Pi session` | Text | Discovery session ID |
+| `Working directory` | Text | Local checkout used for the study |
+
+GitHub's GraphQL API supports `MULTI_SELECT`, including the `multiSelectOptionIds` update value. The installed `gh project field-create` command may not list this type, so multi-select creation and updates require `gh api graphql`.
+
+### Write the catalog issue
+
+Create a repository issue in the repository that owns the strongest evidence. Its body should contain:
+
+1. a precise statement of the pattern;
+2. the problem it solves;
+3. concrete source files and symbols;
+4. invariants and failure modes;
+5. other occurrences or likely reuse sites;
+6. limits and counterexamples;
+7. related implementation issues and documents.
+
+Then add it to Project 3:
+
+```bash
+OWNER=go-go-golems
+CATALOG_PROJECT=3
+ISSUE_URL=https://github.com/go-go-golems/ragkit/issues/10
+
+ITEM_ID=$(gh project item-add "$CATALOG_PROJECT" \
+  --owner "$OWNER" \
+  --url "$ISSUE_URL" \
+  --format json \
+  --jq .id)
+```
+
+### Resolve the catalog field schema through GraphQL
+
+The current `gh project field-list` renderer does not expose names and IDs for multi-select fields correctly. Resolve all fields directly from the Project node:
+
+```bash
+PROJECT_ID=$(gh project view "$CATALOG_PROJECT" \
+  --owner "$OWNER" --format json --jq .id)
+
+QUERY='query($id:ID!){
+  node(id:$id){
+    ... on ProjectV2 {
+      fields(first:100){
+        nodes {
+          ... on ProjectV2Field { id name }
+          ... on ProjectV2SingleSelectField {
+            id name options { id name }
+          }
+          ... on ProjectV2MultiSelectField {
+            id name multiSelectOptions { id name }
+          }
+        }
+      }
+    }
+  }
+}'
+
+gh api graphql -f query="$QUERY" -F id="$PROJECT_ID" \
+  > /tmp/pattern-catalog-fields.json
+```
+
+Extract IDs by name:
+
+```bash
+STATUS_FIELD=$(jq -r '.data.node.fields.nodes[] |
+  select(.name=="Status") | .id' /tmp/pattern-catalog-fields.json)
+TYPE_FIELD=$(jq -r '.data.node.fields.nodes[] |
+  select(.name=="Pattern type") | .id' /tmp/pattern-catalog-fields.json)
+DOMAIN_FIELD=$(jq -r '.data.node.fields.nodes[] |
+  select(.name=="Domain") | .id' /tmp/pattern-catalog-fields.json)
+DOC_FIELD=$(jq -r '.data.node.fields.nodes[] |
+  select(.name=="Docmgr ticket") | .id' /tmp/pattern-catalog-fields.json)
+SESSION_FIELD=$(jq -r '.data.node.fields.nodes[] |
+  select(.name=="Agent Pi session") | .id' /tmp/pattern-catalog-fields.json)
+CWD_FIELD=$(jq -r '.data.node.fields.nodes[] |
+  select(.name=="Working directory") | .id' /tmp/pattern-catalog-fields.json)
+```
+
+Resolve option IDs rather than embedding them permanently in scripts. Option IDs change if an option is deleted and recreated.
+
+```bash
+STATUS_OPTION=$(jq -r '.data.node.fields.nodes[] |
+  select(.name=="Status") | .options[] |
+  select(.name=="Discovered") | .id' /tmp/pattern-catalog-fields.json)
+
+TYPE_OPTIONS=$(jq -c '[.data.node.fields.nodes[] |
+  select(.name=="Pattern type") | .multiSelectOptions[] |
+  select(.name=="Abstraction" or .name=="Invariant") | .id]' \
+  /tmp/pattern-catalog-fields.json)
+
+DOMAIN_OPTIONS=$(jq -c '[.data.node.fields.nodes[] |
+  select(.name=="Domain") | .multiSelectOptions[] |
+  select(.name=="RAG" or .name=="Storage") | .id]' \
+  /tmp/pattern-catalog-fields.json)
+```
+
+### Populate status and multi-select fields
+
+Use the standard CLI for the single-select status:
+
+```bash
+gh project item-edit \
+  --id "$ITEM_ID" \
+  --project-id "$PROJECT_ID" \
+  --field-id "$STATUS_FIELD" \
+  --single-select-option-id "$STATUS_OPTION"
+```
+
+Use GraphQL for multi-select values:
+
+```bash
+MUTATION='mutation(
+  $project:ID!, $item:ID!, $field:ID!, $options:[String!]!
+){
+  updateProjectV2ItemFieldValue(input:{
+    projectId:$project,
+    itemId:$item,
+    fieldId:$field,
+    value:{multiSelectOptionIds:$options}
+  }){
+    projectV2Item { id }
+  }
+}'
+
+gh api graphql -f query="$MUTATION" \
+  -F project="$PROJECT_ID" \
+  -F item="$ITEM_ID" \
+  -F field="$TYPE_FIELD" \
+  -F options[]="$(printf '%s' "$TYPE_OPTIONS" | jq -r '.[0]')" \
+  -F options[]="$(printf '%s' "$TYPE_OPTIONS" | jq -r '.[1]')"
+
+gh api graphql -f query="$MUTATION" \
+  -F project="$PROJECT_ID" \
+  -F item="$ITEM_ID" \
+  -F field="$DOMAIN_FIELD" \
+  -F options[]="$(printf '%s' "$DOMAIN_OPTIONS" | jq -r '.[0]')" \
+  -F options[]="$(printf '%s' "$DOMAIN_OPTIONS" | jq -r '.[1]')"
+```
+
+For automation, construct the GraphQL variables as JSON instead of assuming exactly two selected options. The important contract is that the update receives the complete desired option-ID set.
+
+### Populate provenance fields
+
+```bash
+DOCMGR_TICKET=N/A
+
+gh project item-edit --id "$ITEM_ID" --project-id "$PROJECT_ID" \
+  --field-id "$DOC_FIELD" --text "$DOCMGR_TICKET"
+gh project item-edit --id "$ITEM_ID" --project-id "$PROJECT_ID" \
+  --field-id "$SESSION_FIELD" --text "$PI_AGENT_SESSION_ID"
+gh project item-edit --id "$ITEM_ID" --project-id "$PROJECT_ID" \
+  --field-id "$CWD_FIELD" --text "$PI_AGENT_CWD"
+```
+
+### Maturity rules
+
+Use status consistently:
+
+- **Discovered** means the pattern has a name and initial code evidence.
+- **Documented** means the issue body explains the structure, constraints, and evidence sufficiently for another engineer to evaluate it.
+- **Validated** means tests, multiple implementations, or a focused study support the claim.
+- **Adopted** means the organization intentionally reuses or standardizes the pattern.
+- **Rejected** means the pattern was evaluated and should not be reused; preserve the entry and rationale.
+
+A status transition is a claim about evidence, not progress toward closing the issue. Catalog issues normally remain open because they are durable records. Use comments, linked issues, or the body to record new occurrences.
+
+### Catalog verification
+
+Verify the item and fields through GraphQL, especially the multi-select values. Check that:
+
+- the title states a pattern rather than a task;
+- status reflects evidence maturity;
+- every applicable pattern type and domain is selected;
+- the body contains concrete source evidence;
+- provenance fields identify the discovery context;
+- implementation tasks remain on the task project rather than replacing the catalog entry.
+
 ## Reference
 
-- Project: [go-go-golems Project 1](https://github.com/orgs/go-go-golems/projects/1)
+- Task project: [go-go-golems Project 1](https://github.com/orgs/go-go-golems/projects/1)
+- Pattern catalog: [Go-Go-Golems Architecture & Pattern Catalog](https://github.com/orgs/go-go-golems/projects/3)
 - GitHub CLI project commands: `gh project --help`
 - Pi environment: `env | sort | grep '^PI_AGENT_'`
 - Docmgr workflow: [[docmgr]]
