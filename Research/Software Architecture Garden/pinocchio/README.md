@@ -34,7 +34,8 @@ related_notes:
   - "[[Research/Software Architecture Garden/README]]"
   - "[[Research/Software Architecture Garden/geppetto/README]]"
   - "[[Research/Software Architecture Garden/sessionstream/README]]"
-  - "[[Transcripts/Research/09 - RAG-MATHS Pattern Zoo]]"
+  - "[[Research/Software Architecture Garden/pinocchio/designs/01 - Immediate-First Ordered Stream Coalescing]]"
+  - "[[Transcripts/Research/09 - RAG-MATHS Pattern Zoo]]"},{
   - "[[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook]]"
 ---
 
@@ -263,6 +264,12 @@ Documentation debt includes obsolete frontend architecture paths, stale event na
 2. **Canonical occurrence, purpose-specific projections** — one admitted occurrence feeds live and hydrated views without either projection becoming effect authority.
 
 The first has independent host-owned-effect support but different object families. The second currently uses Sessionstream and Pinocchio as one implementation stack; promotion needs an independent substrate/consumer pair.
+
+## Design entries
+
+### Immediate-first ordered stream coalescing
+
+[[Research/Software Architecture Garden/pinocchio/designs/01 - Immediate-First Ordered Stream Coalescing|Immediate-First Ordered Stream Coalescing]] documents Pinocchio's fixed-window batcher for assistant text, reasoning, and streamed tool-call arguments. It extracts the reusable law: publish the first patch for each logical stream immediately, coalesce later compatible append patches in one ordered pending slot, and flush before lifecycle or cross-stream boundaries. The design treats batching as a trace refinement that changes fragment boundaries without changing accumulated semantic content or lifecycle order.
 
 ## Recommended next investigations
 
