@@ -1,0 +1,32 @@
+=== RUN   TestSemanticDigestStableAcrossReserialization
+--- PASS: TestSemanticDigestStableAcrossReserialization (0.00s)
+=== RUN   TestSemanticDigestSensitiveToCaseOrder
+--- PASS: TestSemanticDigestSensitiveToCaseOrder (0.00s)
+=== RUN   TestSemanticDigestInsensitiveToGroupOrder
+--- PASS: TestSemanticDigestInsensitiveToGroupOrder (0.00s)
+=== RUN   TestLoadSuiteRejectsDuplicateAndUnknown
+--- PASS: TestLoadSuiteRejectsDuplicateAndUnknown (0.00s)
+=== RUN   TestLedgerFoldSupersedesAndWithdraws
+--- PASS: TestLedgerFoldSupersedesAndWithdraws (0.01s)
+=== RUN   TestLedgerDetectsTamperedRecord
+--- PASS: TestLedgerDetectsTamperedRecord (0.01s)
+=== RUN   TestLedgerDetectsDeletedRecord
+--- PASS: TestLedgerDetectsDeletedRecord (0.00s)
+=== RUN   TestLedgerToleratesOnlyTornTail
+--- PASS: TestLedgerToleratesOnlyTornTail (0.00s)
+=== RUN   TestCommitRejectsSelfApproval
+--- PASS: TestCommitRejectsSelfApproval (0.00s)
+=== RUN   TestCommitMintsDigestNamedImmutableSet
+--- PASS: TestCommitMintsDigestNamedImmutableSet (0.00s)
+=== RUN   TestCommitValidatesResultNotProposals
+--- PASS: TestCommitValidatesResultNotProposals (0.00s)
+=== RUN   TestClosedSplitIsUnloadable
+--- PASS: TestClosedSplitIsUnloadable (0.00s)
+=== RUN   TestOpenSplitRequiresEvidence
+--- PASS: TestOpenSplitRequiresEvidence (0.00s)
+=== RUN   TestLockVerifyAndBindRun
+--- PASS: TestLockVerifyAndBindRun (0.00s)
+=== RUN   TestLockRejectsUnapprovedReview
+--- PASS: TestLockRejectsUnapprovedReview (0.00s)
+PASS
+ok  	github.com/go-go-golems/garden-research/evaluation-loops/suitegov	0.029s

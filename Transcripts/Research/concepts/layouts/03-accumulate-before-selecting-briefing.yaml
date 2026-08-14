@@ -1,0 +1,234 @@
+almanach_studio_version: 1
+theme: brutalist
+paperWidth: 384
+bodyScale: 1
+feedLines: 8
+blocks:
+- id: accumulate-before-selecting-b-band
+  type: banner
+  data:
+    text: INTERN BRIEFING 03
+    pad: m
+- id: accumulate-before-selecting-b-title
+  type: title
+  data:
+    text: ACCUMULATE BEFORE SELECTING
+    subtitle: pkg/execution/cached_batch_map.go:54-94
+- id: accumulate-before-selecting-b0-rule
+  type: rule
+  data:
+    weight: thick
+- id: accumulate-before-selecting-b0-label
+  type: text
+  data:
+    text: WHY IT EXISTS
+    preset: micro
+- id: accumulate-before-selecting-b0-text
+  type: text
+  data:
+    text: Concurrent workers finish in an order determined by timing, latency, retries, and batching. If the first results consume the budget or become the selected evidence, identical work can produce different answers. Accumulate complete candidates first; rank and select only after the available evidence has a defined boundary.
+    preset: body
+  style:
+    textCase: none
+- id: accumulate-before-selecting-b1-rule
+  type: rule
+  data:
+    weight: thick
+- id: accumulate-before-selecting-b1-label
+  type: text
+  data:
+    text: THE WHOLE FUNCTION
+    preset: micro
+- id: accumulate-before-selecting-b1-code-0
+  type: text
+  data:
+    text: groups := make([]keyGroup, 0, len(items))
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: accumulate-before-selecting-b1-code-1
+  type: text
+  data:
+    text: groupByDigest := make(map[string]int, len(items))
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: accumulate-before-selecting-b1-code-2
+  type: text
+  data:
+    text: if groupIndex, ok := groupByDigest[keyDigest]; ok {
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: accumulate-before-selecting-b1-code-3
+  type: text
+  data:
+    text: '  groups[groupIndex].indexes = append(... )'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: accumulate-before-selecting-b1-code-4
+  type: text
+  data:
+    text: '}'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: accumulate-before-selecting-b1-code-5
+  type: text
+  data:
+    text: results := make([]R, len(items))
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: accumulate-before-selecting-b1-code-6
+  type: text
+  data:
+    text: for _, group := range groups {
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: accumulate-before-selecting-b1-code-7
+  type: text
+  data:
+    text: '  found, err := options.Cache.Load(...)'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: accumulate-before-selecting-b1-code-8
+  type: text
+  data:
+    text: '  if !found { misses = append(misses, group) }'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: accumulate-before-selecting-b1-code-9
+  type: text
+  data:
+    text: '}'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: accumulate-before-selecting-b2-rule
+  type: rule
+  data:
+    weight: thick
+- id: accumulate-before-selecting-b2-label
+  type: text
+  data:
+    text: A DESIGN DECISION
+    preset: micro
+- id: accumulate-before-selecting-b2-text
+  type: text
+  data:
+    text: The implementation groups duplicate semantic keys before making provider calls, then restores each grouped result to every original index. This separates accumulation and deduplication from the caller-visible order. A mutex could prevent races, but it would not by itself make an order-sensitive update policy schedule-independent.
+    preset: body
+  style:
+    textCase: none
+- id: accumulate-before-selecting-b3-rule
+  type: rule
+  data:
+    weight: thick
+- id: accumulate-before-selecting-b3-label
+  type: text
+  data:
+    text: THEORETICAL UNDERPINNINGS
+    preset: micro
+- id: accumulate-before-selecting-b3-kv
+  type: kv
+  data:
+    items:
+    - - ACCUMULATION
+      - 'monotone: information is added'
+    - - SELECTION
+      - 'non-monotone: more evidence can replace a choice'
+    - - BARRIER
+      - the named snapshot between them
+- id: accumulate-before-selecting-b3-text
+  type: text
+  data:
+    text: 'The accumulation phase is a join-semilattice. Its join obeys three laws: S ⊔ T = T ⊔ S (commutative), (S ⊔ T) ⊔ U = S ⊔ (T ⊔ U) (associative), and S ⊔ S = S (idempotent). These make completion order, batch grouping, and duplicate delivery irrelevant for a fixed set of admitted records.'
+    preset: body
+  style:
+    textCase: none
+- id: accumulate-before-selecting-b4-rule
+  type: rule
+  data:
+    weight: thick
+- id: accumulate-before-selecting-b4-label
+  type: text
+  data:
+    text: WHO CALLS IT
+    preset: micro
+- id: accumulate-before-selecting-b4-text
+  type: text
+  data:
+    text: MapCachedBatches is used by cached execution paths, including summary generation and other bounded batch work. The broader RAG evidence-merge law is a design pattern; this repository specimen demonstrates the concrete duplicate-grouping and result-restoration half of it.
+    preset: body
+  style:
+    textCase: none
+- id: accumulate-before-selecting-b5-rule
+  type: rule
+  data:
+    weight: thick
+- id: accumulate-before-selecting-b5-label
+  type: text
+  data:
+    text: TRAP
+    preset: micro
+- id: accumulate-before-selecting-b5-text
+  type: text
+  data:
+    text: A lock gives race freedom, not schedule independence. First-arrival selection, admission-time budgets, or immediate citation labels still let timing decide the result. Also, this specimen groups identical keys; it does not retain conflicting records under one semantic ID.
+    preset: body
+  style:
+    textCase: none
+- id: accumulate-before-selecting-b6-rule
+  type: rule
+  data:
+    weight: thick
+- id: accumulate-before-selecting-b6-label
+  type: text
+  data:
+    text: IF YOU ADD ONE
+    preset: micro
+- id: accumulate-before-selecting-b6-checks
+  type: checks
+  data:
+    items:
+    - Accumulate all admitted records before ranking or budgeting.
+    - Make join commutative, associative, and idempotent.
+    - Preserve same-ID conflicting variants for verification.
+    - Define a reproducible selection barrier or snapshot.
+    - Use a total ordering for ties and assign labels after selection.
+    columns: 1

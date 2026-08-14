@@ -1,0 +1,169 @@
+almanach_studio_version: 1
+theme: brutalist
+paperWidth: 384
+bodyScale: 1
+feedLines: 8
+blocks:
+- id: once-only-accept-settlement-title
+  type: title
+  data:
+    text: ONCE ONLY SETTLEMENT
+    subtitle: Concept 06 · one slot, one promise
+- id: once-only-accept-settlement-sym-label
+  type: text
+  data:
+    text: SYMBOLS
+    preset: micro
+- id: once-only-accept-settlement-sym
+  type: table
+  data:
+    cols:
+    - label: SYM
+      w: 78
+    - label: MEANING
+      w: 1fr
+    rows:
+    - - pending
+      - the stored resolver
+    - - accepting
+      - the live request
+    - - onAccept
+      - the parallel callback
+- id: once-only-accept-settlement-law
+  type: banner
+  data:
+    text: clear pending, then resolve
+    pad: m
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: once-only-accept-settlement-law2
+  type: text
+  data:
+    text: a competing request resolves to null
+    preset: body
+    align: center
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: once-only-accept-settlement-disc-label
+  type: text
+  data:
+    text: DISCIPLINE
+    preset: micro
+- id: once-only-accept-settlement-disc
+  type: table
+  data:
+    cols:
+    - label: IT IS
+      w: 1fr
+    - label: IT IS NOT
+      w: 1fr
+    rows:
+    - - a one-slot state machine
+      - a fence for onAccept
+    - - escape-abortable
+      - unmount safe
+    - - promise-once semantics
+      - request identified
+- id: once-only-accept-settlement-vocab
+  type: kv
+  data:
+    items:
+    - - LOCAL
+      - accept, settle, abortAccept
+    - - AS A PATTERN
+      - typed input context
+    - - ELSEWHERE
+      - picker mode, one-shot promise
+- id: once-only-accept-settlement-rule1
+  type: rule
+  data:
+    weight: thick
+- id: once-only-accept-settlement-sight
+  type: text
+  data:
+    text: SIGHTED IN  settle() / accept()
+    preset: micro
+- id: once-only-accept-settlement-file
+  type: text
+  data:
+    text: src/presentation/createPbui.tsx:120-155
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: once-only-accept-settlement-code-0
+  type: text
+  data:
+    text: const resolve = pending.current
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: once-only-accept-settlement-code-1
+  type: text
+  data:
+    text: pending.current = null
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: once-only-accept-settlement-code-2
+  type: text
+  data:
+    text: onAccept?.(result); resolve?.(result)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: once-only-accept-settlement-code-3
+  type: text
+  data:
+    text: '// accept(): newcomer never displaces'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: once-only-accept-settlement-code-4
+  type: text
+  data:
+    text: if (pending.current) { resolve(null) }
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: once-only-accept-settlement-obs-label
+  type: text
+  data:
+    text: OBSERVED
+    preset: micro
+- id: once-only-accept-settlement-obs
+  type: text
+  data:
+    text: Acceptability is exact type match first, then ordered one-hop conversions; Datalab installs only cat -> field.
+    preset: body
+- id: once-only-accept-settlement-rule2
+  type: rule
+  data:
+    weight: heavy
+- id: once-only-accept-settlement-note
+  type: text
+  data:
+    text: No cleanup settles the resolver when the Provider unmounts, and settle calls onAccept even with no live request. Open obligation.
+    preset: body
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none

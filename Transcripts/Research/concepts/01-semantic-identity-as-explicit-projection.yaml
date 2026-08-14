@@ -1,0 +1,129 @@
+id: "01"
+slug: semantic-identity-as-explicit-projection
+title: SEMANTIC IDENTITY AS EXPLICIT PROJECTION
+subtitle: Concept 01 · a digest is not a policy
+one_liner: >-
+  Choose the fields that define meaning before canonical serialization and hashing;
+  the hash only commits to the choice.
+
+symbols:
+  - ["X", "complete runtime requests"]
+  - ["P", "the projection retaining semantic fields"]
+  - ["C", "canonical JSON encoding"]
+  - ["H", "SHA-256 digest"]
+
+law: "ID(x)=H(C(P(x)))"
+law_extra: "same projection, same identity"
+
+discipline:
+  is:
+    - "explicit semantic fields"
+    - "versioned cache identity"
+    - "deterministic bytes"
+  is_not:
+    - "all struct fields"
+    - "a truth certificate"
+    - "automatic semantic judgment"
+
+vocabulary:
+  local: "execution.NewKey, digest.JSON, InputDigest"
+  proposed: "semantic identity projection"
+  elsewhere: "canonical identity, content addressing, cache key"
+
+sighted_in:
+  symbol: "NewKey()"
+  file: "pkg/execution/cache.go:24-51"
+  code:
+    - "data, err := json.Marshal(input)"
+    - "if err != nil { ... }"
+    - "InputDigest: digest.Bytes(data),"
+    - "}, nil"
+
+observed: >-
+  TestJSONIsDeterministicAcrossMapInsertionOrder asserts that maps inserted in
+  different orders produce equal digests, with the golden digest
+  43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777
+  (pkg/digest/digest_test.go:18-26).
+
+note: >-
+  This guarantees deterministic encoding of the supplied input, not that callers
+  selected every field affecting the result; NewKey's doc comment explicitly
+  puts that responsibility on callers.
+
+source_url: https://github.com/wesen/rag-ttc/blob/ca5bffcfc094776eeb24a0d60be7a6220e07898b/pkg/execution/cache.go#L24-L51
+
+briefing:
+  label: INTERN BRIEFING 01
+  headline: SEMANTIC IDENTITY AS EXPLICIT PROJECTION
+  file: "pkg/execution/cache.go:24-51"
+  sections:
+    - label: WHY IT EXISTS
+      text: >-
+        Caches need to know when two requests mean the same thing. Worker count,
+        display labels, credentials, prompts, models, and corpus releases do not
+        all have the same semantic status. If identity is an accidental struct
+        dump, harmless changes cause misses; if important fields are omitted,
+        stale work can be reused. Decide the identity fields first, then encode
+        and hash them.
+    - label: THE WHOLE FUNCTION
+      code:
+        - "func NewKey(step, version string, input any) (Key, error) {"
+        - "  if step == \"\" { return Key{}, ... }"
+        - "  if version == \"\" { return Key{}, ... }"
+        - "  data, err := json.Marshal(input)"
+        - "  if err != nil { return Key{}, ... }"
+        - "  return Key{"
+        - "    Step: step,"
+        - "    Version: version,"
+        - "    InputDigest: digest.Bytes(data),"
+        - "  }, nil"
+        - "}"
+    - label: A DESIGN DECISION
+      text: >-
+        The key keeps Step and Version beside the input digest. Version is a
+        deliberate escape hatch: when identity semantics change, a new namespace
+        prevents old cache entries from silently changing meaning. JSON gives the
+        implementation a deterministic byte representation for the admitted input;
+        it does not decide which input should have been admitted.
+    - label: THEORETICAL UNDERPINNINGS
+      text: >-
+        This is an equivalence-relation idea. Two runtime requests are equivalent
+        when the identity projection cannot distinguish them: x ≡ y iff P(x) = P(y).
+        The projection P decides what “same meaning” means; canonicalization C turns
+        that choice into stable bytes; hashing H makes the bytes addressable. The law
+        is ID(x) = H(C(P(x))). A digest cannot repair an incomplete projection:
+        omitted model, prompt, corpus, or normalization fields can produce a false
+        cache hit. The mathematics separates policy, representation, and commitment;
+        it does not prove the policy is complete.
+      kv:
+        - ["PROJECTION", "chooses semantic fields"]
+        - ["CANONICALIZATION", "chooses stable representation"]
+        - ["HASHING", "commits to the representation"]
+    - label: TWO LAYERS
+      kv:
+        - ["POLICY", "P chooses what can change the result"]
+        - ["REPRESENTATION", "C turns that choice into stable bytes"]
+        - ["COMMITMENT", "H makes the bytes addressable"]
+      text: >-
+        Most identity bugs are omissions in P or a missing version, not failures
+        of SHA-256.
+    - label: WHO CALLS IT
+      text: >-
+        NewKey has real callers in summary generation, cached embedding,
+        generation, reranking, examples, and experiment helpers. The package
+        exposes the primitive; each caller must construct the input containing
+        every result-affecting identity, as the NewKey doc comment requires.
+    - label: TRAP
+      text: >-
+        A digest cannot detect a field you failed to include. Adding workers to a
+        projection can create false misses; omitting a model, prompt, corpus, or
+        normalization identity can create a false hit. Deterministic JSON is not
+        proof that the projection is semantically complete.
+    - label: IF YOU ADD ONE
+      checks:
+        - "Name the object whose identity is being computed."
+        - "Classify each field: semantic, lineage, observation, presentation, or operational."
+        - "Add every result-affecting field to the explicit input record."
+        - "Bump Version when the identity contract changes."
+        - "Add a deterministic golden test and a changed-input test."
+        - "Verify the cache key with zero-work replay before trusting reuse."

@@ -1,0 +1,171 @@
+almanach_studio_version: 1
+theme: brutalist
+paperWidth: 384
+bodyScale: 1
+feedLines: 8
+blocks:
+- id: revision-fenced-replacement-title
+  type: title
+  data:
+    text: REVISION FENCE
+    subtitle: Concept 05 · an intended law, not an audited one
+- id: revision-fenced-replacement-sym-label
+  type: text
+  data:
+    text: SYMBOLS
+    preset: micro
+- id: revision-fenced-replacement-sym
+  type: table
+  data:
+    cols:
+    - label: SYM
+      w: 78
+    - label: MEANING
+      w: 1fr
+    rows:
+    - - G
+      - complete graph snapshots
+    - - R
+      - resource revisions
+    - - K
+      - request IDs
+    - - ℐ
+      - K ⇀fin (S × (G×R))
+- id: revision-fenced-replacement-law
+  type: banner
+  data:
+    text: 'Replace: e = r, then r'' > r'
+    pad: m
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: revision-fenced-replacement-law2
+  type: text
+  data:
+    text: same key + same signature ⇒ replay
+    preset: body
+    align: center
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: revision-fenced-replacement-disc-label
+  type: text
+  data:
+    text: DISCIPLINE
+    preset: micro
+- id: revision-fenced-replacement-disc
+  type: table
+  data:
+    cols:
+    - label: IT IS
+      w: 1fr
+    - label: IT IS NOT
+      w: 1fr
+    rows:
+    - - an expected-revision fence
+      - the linearization point
+    - - one UUID per fingerprint
+      - proof of CAS
+    - - a header contract
+      - canonical identity
+- id: revision-fenced-replacement-vocab
+  type: kv
+  data:
+    items:
+    - - LOCAL
+      - replaceWorkbench, useRemoteWorkbench
+    - - AS A PATTERN
+      - revision fence
+    - - ELSEWHERE
+      - ETag CAS, optimistic concurrency
+- id: revision-fenced-replacement-rule1
+  type: rule
+  data:
+    weight: thick
+- id: revision-fenced-replacement-sight
+  type: text
+  data:
+    text: SIGHTED IN  replaceWorkbench mutation
+    preset: micro
+- id: revision-fenced-replacement-file
+  type: text
+  data:
+    text: packages/datalab-ui/src/api/client.ts:413-453
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: revision-fenced-replacement-code-0
+  type: text
+  data:
+    text: '''If-Match'': workbenchETag(id, revision)'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: revision-fenced-replacement-code-1
+  type: text
+  data:
+    text: '''Idempotency-Key'': requestId'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: revision-fenced-replacement-code-2
+  type: text
+  data:
+    text: // useRemoteWorkbench.ts:170-232
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: revision-fenced-replacement-code-3
+  type: text
+  data:
+    text: fingerprint = JSON.stringify(docJSON)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: revision-fenced-replacement-code-4
+  type: text
+  data:
+    text: reuse request.id while it is unchanged
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: revision-fenced-replacement-obs-label
+  type: text
+  data:
+    text: OBSERVED
+    preset: micro
+- id: revision-fenced-replacement-obs
+  type: text
+  data:
+    text: Revision is kept as an exact bigint outside Redux; incoming revisions are deferred while saving and reported, not applied, when local state is dirty.
+    preset: body
+- id: revision-fenced-replacement-rule2
+  type: rule
+  data:
+    weight: heavy
+- id: revision-fenced-replacement-note
+  type: text
+  data:
+    text: JSON.stringify is a local fingerprint, not canonical semantic identity. Even an increment of exactly one is not proved here.
+    preset: body
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none

@@ -1,0 +1,171 @@
+almanach_studio_version: 1
+theme: brutalist
+paperWidth: 384
+bodyScale: 1
+feedLines: 8
+blocks:
+- id: structural-applier-parity-title
+  type: title
+  data:
+    text: STRUCTURAL PARITY
+    subtitle: Concept 07 · one corpus, two languages
+- id: structural-applier-parity-sym-label
+  type: text
+  data:
+    text: SYMBOLS
+    preset: micro
+- id: structural-applier-parity-sym
+  type: table
+  data:
+    cols:
+    - label: SYM
+      w: 78
+    - label: MEANING
+      w: 1fr
+    rows:
+    - - F
+      - fixtures/mutations/*.json
+    - - applyGo
+      - pkg/workbench applier
+    - - applyTS
+      - workbench-protocol applier
+    - - code
+      - stable error string
+- id: structural-applier-parity-law
+  type: banner
+  data:
+    text: applyGo(f) ≡ applyTS(f)  for all f ∈ F
+    pad: m
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: structural-applier-parity-law2
+  type: text
+  data:
+    text: structural only; |F| ≥ 10 asserted twice
+    preset: body
+    align: center
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: structural-applier-parity-disc-label
+  type: text
+  data:
+    text: DISCIPLINE
+    preset: micro
+- id: structural-applier-parity-disc
+  type: table
+  data:
+    cols:
+    - label: IT IS
+      w: 1fr
+    - label: IT IS NOT
+      w: 1fr
+    rows:
+    - - structural parity
+      - full Validate parity
+    - - shared error codes
+      - catalog or limit checks
+    - - input immutability (TS)
+      - storage or auth parity
+- id: structural-applier-parity-vocab
+  type: kv
+  data:
+    items:
+    - - LOCAL
+      - fixtures/mutations, MutationError
+    - - AS A PATTERN
+      - structural applier parity
+    - - ELSEWHERE
+      - golden files, conformance suite
+- id: structural-applier-parity-rule1
+  type: rule
+  data:
+    weight: thick
+- id: structural-applier-parity-sight
+  type: text
+  data:
+    text: SIGHTED IN  TestApplierParityFixtures
+    preset: micro
+- id: structural-applier-parity-file
+  type: text
+  data:
+    text: pkg/workbench/parity_fixtures_test.go:15-99
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: structural-applier-parity-code-0
+  type: text
+  data:
+    text: output := Clone(&document)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: structural-applier-parity-code-1
+  type: text
+  data:
+    text: applyErr := applyMutation(output, &mut)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: structural-applier-parity-code-2
+  type: text
+  data:
+    text: proto.Equal(output, &expected)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: structural-applier-parity-code-3
+  type: text
+  data:
+    text: '// TS asserts the same file:'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: structural-applier-parity-code-4
+  type: text
+  data:
+    text: expect(toJson(applied)).toEqual(exp)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: structural-applier-parity-obs-label
+  type: text
+  data:
+    text: OBSERVED
+    preset: micro
+- id: structural-applier-parity-obs
+  type: text
+  data:
+    text: Both suites fail if the corpus drops below ten fixtures, so the two appliers can only drift by breaking a build.
+    preset: body
+- id: structural-applier-parity-rule2
+  type: rule
+  data:
+    weight: heavy
+- id: structural-applier-parity-note
+  type: text
+  data:
+    text: 'The TS layer is deliberately weaker: a mutation it accepts can still be 422''d by the server''s full-graph Validate.'
+    preset: body
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none

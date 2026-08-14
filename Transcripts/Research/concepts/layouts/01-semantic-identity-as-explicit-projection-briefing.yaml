@@ -1,0 +1,271 @@
+almanach_studio_version: 1
+theme: brutalist
+paperWidth: 384
+bodyScale: 1
+feedLines: 8
+blocks:
+- id: semantic-identity-as-explicit-projection-b-band
+  type: banner
+  data:
+    text: INTERN BRIEFING 01
+    pad: m
+- id: semantic-identity-as-explicit-projection-b-title
+  type: title
+  data:
+    text: SEMANTIC IDENTITY AS EXPLICIT PROJECTION
+    subtitle: pkg/execution/cache.go:24-51
+- id: semantic-identity-as-explicit-projection-b0-rule
+  type: rule
+  data:
+    weight: thick
+- id: semantic-identity-as-explicit-projection-b0-label
+  type: text
+  data:
+    text: WHY IT EXISTS
+    preset: micro
+- id: semantic-identity-as-explicit-projection-b0-text
+  type: text
+  data:
+    text: Caches need to know when two requests mean the same thing. Worker count, display labels, credentials, prompts, models, and corpus releases do not all have the same semantic status. If identity is an accidental struct dump, harmless changes cause misses; if important fields are omitted, stale work can be reused. Decide the identity fields first, then encode and hash them.
+    preset: body
+  style:
+    textCase: none
+- id: semantic-identity-as-explicit-projection-b1-rule
+  type: rule
+  data:
+    weight: thick
+- id: semantic-identity-as-explicit-projection-b1-label
+  type: text
+  data:
+    text: THE WHOLE FUNCTION
+    preset: micro
+- id: semantic-identity-as-explicit-projection-b1-code-0
+  type: text
+  data:
+    text: func NewKey(step, version string, input any) (Key, error) {
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-b1-code-1
+  type: text
+  data:
+    text: '  if step == "" { return Key{}, ... }'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-b1-code-2
+  type: text
+  data:
+    text: '  if version == "" { return Key{}, ... }'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-b1-code-3
+  type: text
+  data:
+    text: '  data, err := json.Marshal(input)'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-b1-code-4
+  type: text
+  data:
+    text: '  if err != nil { return Key{}, ... }'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-b1-code-5
+  type: text
+  data:
+    text: '  return Key{'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-b1-code-6
+  type: text
+  data:
+    text: '    Step: step,'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-b1-code-7
+  type: text
+  data:
+    text: '    Version: version,'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-b1-code-8
+  type: text
+  data:
+    text: '    InputDigest: digest.Bytes(data),'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-b1-code-9
+  type: text
+  data:
+    text: '  }, nil'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-b1-code-10
+  type: text
+  data:
+    text: '}'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-b2-rule
+  type: rule
+  data:
+    weight: thick
+- id: semantic-identity-as-explicit-projection-b2-label
+  type: text
+  data:
+    text: A DESIGN DECISION
+    preset: micro
+- id: semantic-identity-as-explicit-projection-b2-text
+  type: text
+  data:
+    text: 'The key keeps Step and Version beside the input digest. Version is a deliberate escape hatch: when identity semantics change, a new namespace prevents old cache entries from silently changing meaning. JSON gives the implementation a deterministic byte representation for the admitted input; it does not decide which input should have been admitted.'
+    preset: body
+  style:
+    textCase: none
+- id: semantic-identity-as-explicit-projection-b3-rule
+  type: rule
+  data:
+    weight: thick
+- id: semantic-identity-as-explicit-projection-b3-label
+  type: text
+  data:
+    text: THEORETICAL UNDERPINNINGS
+    preset: micro
+- id: semantic-identity-as-explicit-projection-b3-kv
+  type: kv
+  data:
+    items:
+    - - PROJECTION
+      - chooses semantic fields
+    - - CANONICALIZATION
+      - chooses stable representation
+    - - HASHING
+      - commits to the representation
+- id: semantic-identity-as-explicit-projection-b3-text
+  type: text
+  data:
+    text: 'This is an equivalence-relation idea. Two runtime requests are equivalent when the identity projection cannot distinguish them: x ≡ y iff P(x) = P(y). The projection P decides what “same meaning” means; canonicalization C turns that choice into stable bytes; hashing H makes the bytes addressable. The law is ID(x) = H(C(P(x))). A digest cannot repair an incomplete projection: omitted model, prompt, corpus, or normalization fields can produce a false cache hit. The mathematics separates policy, representation, and commitment; it does not prove the policy is complete.'
+    preset: body
+  style:
+    textCase: none
+- id: semantic-identity-as-explicit-projection-b4-rule
+  type: rule
+  data:
+    weight: thick
+- id: semantic-identity-as-explicit-projection-b4-label
+  type: text
+  data:
+    text: TWO LAYERS
+    preset: micro
+- id: semantic-identity-as-explicit-projection-b4-kv
+  type: kv
+  data:
+    items:
+    - - POLICY
+      - P chooses what can change the result
+    - - REPRESENTATION
+      - C turns that choice into stable bytes
+    - - COMMITMENT
+      - H makes the bytes addressable
+- id: semantic-identity-as-explicit-projection-b4-text
+  type: text
+  data:
+    text: Most identity bugs are omissions in P or a missing version, not failures of SHA-256.
+    preset: body
+  style:
+    textCase: none
+- id: semantic-identity-as-explicit-projection-b5-rule
+  type: rule
+  data:
+    weight: thick
+- id: semantic-identity-as-explicit-projection-b5-label
+  type: text
+  data:
+    text: WHO CALLS IT
+    preset: micro
+- id: semantic-identity-as-explicit-projection-b5-text
+  type: text
+  data:
+    text: NewKey has real callers in summary generation, cached embedding, generation, reranking, examples, and experiment helpers. The package exposes the primitive; each caller must construct the input containing every result-affecting identity, as the NewKey doc comment requires.
+    preset: body
+  style:
+    textCase: none
+- id: semantic-identity-as-explicit-projection-b6-rule
+  type: rule
+  data:
+    weight: thick
+- id: semantic-identity-as-explicit-projection-b6-label
+  type: text
+  data:
+    text: TRAP
+    preset: micro
+- id: semantic-identity-as-explicit-projection-b6-text
+  type: text
+  data:
+    text: A digest cannot detect a field you failed to include. Adding workers to a projection can create false misses; omitting a model, prompt, corpus, or normalization identity can create a false hit. Deterministic JSON is not proof that the projection is semantically complete.
+    preset: body
+  style:
+    textCase: none
+- id: semantic-identity-as-explicit-projection-b7-rule
+  type: rule
+  data:
+    weight: thick
+- id: semantic-identity-as-explicit-projection-b7-label
+  type: text
+  data:
+    text: IF YOU ADD ONE
+    preset: micro
+- id: semantic-identity-as-explicit-projection-b7-checks
+  type: checks
+  data:
+    items:
+    - Name the object whose identity is being computed.
+    - 'Classify each field: semantic, lineage, observation, presentation, or operational.'
+    - Add every result-affecting field to the explicit input record.
+    - Bump Version when the identity contract changes.
+    - Add a deterministic golden test and a changed-input test.
+    - Verify the cache key with zero-work replay before trusting reuse.
+    columns: 1

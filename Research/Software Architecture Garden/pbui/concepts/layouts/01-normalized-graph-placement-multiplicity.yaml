@@ -1,0 +1,173 @@
+almanach_studio_version: 1
+theme: brutalist
+paperWidth: 384
+bodyScale: 1
+feedLines: 8
+blocks:
+- id: normalized-graph-placement-multiplicity-title
+  type: title
+  data:
+    text: PLACEMENT MULTIPLICITY
+    subtitle: Concept 01 · a placement is not a view
+- id: normalized-graph-placement-multiplicity-sym-label
+  type: text
+  data:
+    text: SYMBOLS
+    preset: micro
+- id: normalized-graph-placement-multiplicity-sym
+  type: table
+  data:
+    cols:
+    - label: SYM
+      w: 78
+    - label: MEANING
+      w: 1fr
+    rows:
+    - - D
+      - document IDs
+    - - V
+      - logical view IDs
+    - - P
+      - placement IDs
+    - - A
+      - application IDs
+    - - B
+      - binding names
+- id: normalized-graph-placement-multiplicity-law
+  type: banner
+  data:
+    text: places ⊆ P × V
+    pad: m
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: normalized-graph-placement-multiplicity-law2
+  type: text
+  data:
+    text: 'view : V ⇀ A × (B ⇀ D)'
+    preset: body
+    align: center
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: normalized-graph-placement-multiplicity-disc-label
+  type: text
+  data:
+    text: DISCIPLINE
+    preset: micro
+- id: normalized-graph-placement-multiplicity-disc
+  type: table
+  data:
+    cols:
+    - label: IT IS
+      w: 1fr
+    - label: IT IS NOT
+      w: 1fr
+    rows:
+    - - a normalized graph
+      - a mount identity
+    - - many placements, one view
+      - a document
+    - - geometry owned by P
+      - an event log
+- id: normalized-graph-placement-multiplicity-vocab
+  type: kv
+  data:
+    items:
+    - - LOCAL
+      - Node leaf, AppView, DocumentPayload
+    - - AS A PATTERN
+      - placement occurrence
+    - - ELSEWHERE
+      - tile, pane, shared view
+- id: normalized-graph-placement-multiplicity-rule1
+  type: rule
+  data:
+    weight: thick
+- id: normalized-graph-placement-multiplicity-sight
+  type: text
+  data:
+    text: SIGHTED IN  ApplyMutations + countViewPlacements
+    preset: micro
+- id: normalized-graph-placement-multiplicity-file
+  type: text
+  data:
+    text: pkg/workbench/workbench_test.go:310-349
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-code-0
+  type: text
+  data:
+    text: // one ViewClone, two PlacementSplits
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-code-1
+  type: text
+  data:
+    text: countViewPlacements(out,'view-chart')==3
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-code-2
+  type: text
+  data:
+    text: countViewPlacements(out,'view-copy') ==1
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-code-3
+  type: text
+  data:
+    text: countViewPlacements(doc,'view-chart')==2
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-code-4
+  type: text
+  data:
+    text: // input document was never mutated
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-obs-label
+  type: text
+  data:
+    text: OBSERVED
+    preset: micro
+- id: normalized-graph-placement-multiplicity-obs
+  type: text
+  data:
+    text: Validation rejects a leaf whose viewId does not resolve (validate.go:220-227).
+    preset: body
+- id: normalized-graph-placement-multiplicity-rule2
+  type: rule
+  data:
+    weight: heavy
+- id: normalized-graph-placement-multiplicity-note
+  type: text
+  data:
+    text: A durable placement is not a mounted PBUI occurrence. Remount generations do not exist in this repository.
+    preset: body
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none

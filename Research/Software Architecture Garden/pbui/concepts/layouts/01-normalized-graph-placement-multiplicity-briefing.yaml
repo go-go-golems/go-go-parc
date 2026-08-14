@@ -1,0 +1,215 @@
+almanach_studio_version: 1
+theme: brutalist
+paperWidth: 384
+bodyScale: 1
+feedLines: 8
+blocks:
+- id: normalized-graph-placement-multiplicity-b-band
+  type: banner
+  data:
+    text: INTERN BRIEFING 01
+    pad: m
+- id: normalized-graph-placement-multiplicity-b-title
+  type: title
+  data:
+    text: PLACEMENT MULTIPLICITY
+    subtitle: Tile.tsx · validate.go · workbench_test.go
+- id: normalized-graph-placement-multiplicity-b0-rule
+  type: rule
+  data:
+    weight: thick
+- id: normalized-graph-placement-multiplicity-b0-label
+  type: text
+  data:
+    text: WHY IT EXISTS
+    preset: micro
+- id: normalized-graph-placement-multiplicity-b0-text
+  type: text
+  data:
+    text: The same chart can sit in two panes at once. If a pane and the thing it shows were one object, the second pane would need a copy and the two would drift apart. So identity is split three ways, and each edit says which of the three it touches.
+    preset: body
+  style:
+    textCase: none
+- id: normalized-graph-placement-multiplicity-b1-rule
+  type: rule
+  data:
+    weight: thick
+- id: normalized-graph-placement-multiplicity-b1-label
+  type: text
+  data:
+    text: THE THREE SPACES
+    preset: micro
+- id: normalized-graph-placement-multiplicity-b1-kv
+  type: kv
+  data:
+    items:
+    - - DOCUMENT
+      - the data itself; lives in the documents map
+    - - VIEW
+      - app ID, title, and named document bindings
+    - - PLACEMENT
+      - a leaf Node in a workspace tree; geometry only
+- id: normalized-graph-placement-multiplicity-b2-rule
+  type: rule
+  data:
+    weight: thick
+- id: normalized-graph-placement-multiplicity-b2-label
+  type: text
+  data:
+    text: HOW A TILE RESOLVES
+    preset: micro
+- id: normalized-graph-placement-multiplicity-b2-code-0
+  type: text
+  data:
+    text: const view = state.layout.views[node.viewId]
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-b2-code-1
+  type: text
+  data:
+    text: const app  = appFor(view?.appId ?? '')
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-b2-code-2
+  type: text
+  data:
+    text: const docId = primaryDocId(view)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-b2-code-3
+  type: text
+  data:
+    text: const Component = app?.Component
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-b2-code-4
+  type: text
+  data:
+    text: // Tile.tsx:18-24, 60-72
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-b2-text
+  type: text
+  data:
+    text: The tile is geometry plus a reference to one logical view. The view owns application, binding and title, so linked placements stay in sync.
+    preset: body
+  style:
+    textCase: none
+- id: normalized-graph-placement-multiplicity-b3-rule
+  type: rule
+  data:
+    weight: thick
+- id: normalized-graph-placement-multiplicity-b3-label
+  type: text
+  data:
+    text: LINKED VERSUS CLONED
+    preset: micro
+- id: normalized-graph-placement-multiplicity-b3-kv
+  type: kv
+  data:
+    items:
+    - - LINKED
+      - 'new placement, same view: both panes observe one state'
+    - - CLONED
+      - new view, same documents (concept 04)
+- id: normalized-graph-placement-multiplicity-b4-rule
+  type: rule
+  data:
+    weight: thick
+- id: normalized-graph-placement-multiplicity-b4-label
+  type: text
+  data:
+    text: THE TEST THAT PINS IT
+    preset: micro
+- id: normalized-graph-placement-multiplicity-b4-code-0
+  type: text
+  data:
+    text: // one ViewClone, two PlacementSplits
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-b4-code-1
+  type: text
+  data:
+    text: countViewPlacements(out,'view-chart')==3
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-b4-code-2
+  type: text
+  data:
+    text: countViewPlacements(out,'view-copy') ==1
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-b4-code-3
+  type: text
+  data:
+    text: countViewPlacements(doc,'view-chart')==2
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: normalized-graph-placement-multiplicity-b5-rule
+  type: rule
+  data:
+    weight: thick
+- id: normalized-graph-placement-multiplicity-b5-label
+  type: text
+  data:
+    text: WHAT VALIDATION ENFORCES
+    preset: micro
+- id: normalized-graph-placement-multiplicity-b5-text
+  type: text
+  data:
+    text: A leaf must reference a view that exists (validate.go:220-227). A view's bindings must name a binding its application declares and a document that exists (validate.go:143-151). Dangling references cannot survive a batch.
+    preset: body
+  style:
+    textCase: none
+- id: normalized-graph-placement-multiplicity-b6-rule
+  type: rule
+  data:
+    weight: thick
+- id: normalized-graph-placement-multiplicity-b6-label
+  type: text
+  data:
+    text: TRAP
+    preset: micro
+- id: normalized-graph-placement-multiplicity-b6-text
+  type: text
+  data:
+    text: A placement is not a React mount. It survives remounting, and one tile can contain many nested presentations that have no identity at all. Never use a placement ID as a mount identity.
+    preset: body
+  style:
+    textCase: none

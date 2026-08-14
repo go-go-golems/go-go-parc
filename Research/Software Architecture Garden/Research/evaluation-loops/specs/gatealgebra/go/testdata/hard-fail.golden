@@ -1,0 +1,9 @@
+status=fail
+identity/policy_bytes=pass
+identity/run_complete=pass
+identity/complete_pairing=pass
+hard/require_all_cells=pass
+hard/require_completed=fail
+hard/require_contract_valid=pass
+hard/max_failure_rate=fail
+hard/metric_floor:safety=pass

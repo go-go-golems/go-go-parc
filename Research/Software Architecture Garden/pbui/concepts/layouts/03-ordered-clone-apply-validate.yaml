@@ -1,0 +1,169 @@
+almanach_studio_version: 1
+theme: brutalist
+paperWidth: 384
+bodyScale: 1
+feedLines: 8
+blocks:
+- id: ordered-clone-apply-validate-title
+  type: title
+  data:
+    text: CLONE APPLY VALIDATE
+    subtitle: Concept 03 · a batch is a partial function
+- id: ordered-clone-apply-validate-sym-label
+  type: text
+  data:
+    text: SYMBOLS
+    preset: micro
+- id: ordered-clone-apply-validate-sym
+  type: table
+  data:
+    cols:
+    - label: SYM
+      w: 78
+    - label: MEANING
+      w: 1fr
+    rows:
+    - - 𝒮
+      - graphs Validate accepts
+    - - ℳ
+      - generated mutations
+    - - ℳ*
+      - finite ordered lists
+- id: ordered-clone-apply-validate-law
+  type: banner
+  data:
+    text: 'Apply : 𝒮 × ℳ* ⇀ 𝒮'
+    pad: m
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: ordered-clone-apply-validate-law2
+  type: text
+  data:
+    text: 'partial: a validated clone, or an error'
+    preset: body
+    align: center
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: ordered-clone-apply-validate-disc-label
+  type: text
+  data:
+    text: DISCIPLINE
+    preset: micro
+- id: ordered-clone-apply-validate-disc
+  type: table
+  data:
+    cols:
+    - label: IT IS
+      w: 1fr
+    - label: IT IS NOT
+      w: 1fr
+    rows:
+    - - in-memory atomicity
+      - storage atomicity
+    - - order sensitive
+      - serializability
+    - - validate once, at end
+      - audited commit
+- id: ordered-clone-apply-validate-vocab
+  type: kv
+  data:
+    items:
+    - - LOCAL
+      - ApplyMutations, Clone, Validate
+    - - AS A PATTERN
+      - graph batch transition
+    - - ELSEWHERE
+      - transaction, fold, batch apply
+- id: ordered-clone-apply-validate-rule1
+  type: rule
+  data:
+    weight: thick
+- id: ordered-clone-apply-validate-sight
+  type: text
+  data:
+    text: SIGHTED IN  ApplyMutations()
+    preset: micro
+- id: ordered-clone-apply-validate-file
+  type: text
+  data:
+    text: pkg/workbench/mutation.go:13-38
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: ordered-clone-apply-validate-code-0
+  type: text
+  data:
+    text: output := Clone(input)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: ordered-clone-apply-validate-code-1
+  type: text
+  data:
+    text: for index, mutation := range mutations {
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: ordered-clone-apply-validate-code-2
+  type: text
+  data:
+    text: '  applyMutation(output, mutation)'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: ordered-clone-apply-validate-code-3
+  type: text
+  data:
+    text: '}'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: ordered-clone-apply-validate-code-4
+  type: text
+  data:
+    text: Validate(ctx, output, deps, limits)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: ordered-clone-apply-validate-obs-label
+  type: text
+  data:
+    text: OBSERVED
+    preset: micro
+- id: ordered-clone-apply-validate-obs
+  type: text
+  data:
+    text: 'A failed batch leaves the input alone: after a rename plus an illegal close, document.Name is still "Production" (workbench_test.go:414-429).'
+    preset: body
+- id: ordered-clone-apply-validate-rule2
+  type: rule
+  data:
+    weight: heavy
+- id: ordered-clone-apply-validate-note
+  type: text
+  data:
+    text: No commutativity law is claimed. This is not a database linearization point and carries no audit or effect commit.
+    preset: body
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none

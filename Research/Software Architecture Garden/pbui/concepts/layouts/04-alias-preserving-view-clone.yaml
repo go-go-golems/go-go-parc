@@ -1,0 +1,171 @@
+almanach_studio_version: 1
+theme: brutalist
+paperWidth: 384
+bodyScale: 1
+feedLines: 8
+blocks:
+- id: alias-preserving-view-clone-title
+  type: title
+  data:
+    text: ALIAS PRESERVING CLONE
+    subtitle: Concept 04 · a new view, the same documents
+- id: alias-preserving-view-clone-sym-label
+  type: text
+  data:
+    text: SYMBOLS
+    preset: micro
+- id: alias-preserving-view-clone-sym
+  type: table
+  data:
+    cols:
+    - label: SYM
+      w: 78
+    - label: MEANING
+      w: 1fr
+    rows:
+    - - V
+      - logical view IDs
+    - - B
+      - binding names
+    - - D
+      - document IDs
+    - - bind
+      - V × B ⇀ D
+- id: alias-preserving-view-clone-law
+  type: banner
+  data:
+    text: bind(v', b) = bind(v, b)
+    pad: m
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: alias-preserving-view-clone-law2
+  type: text
+  data:
+    text: for every b where bind(v,b) is defined
+    preset: body
+    align: center
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: alias-preserving-view-clone-disc-label
+  type: text
+  data:
+    text: DISCIPLINE
+    preset: micro
+- id: alias-preserving-view-clone-disc
+  type: table
+  data:
+    cols:
+    - label: IT IS
+      w: 1fr
+    - label: IT IS NOT
+      w: 1fr
+    rows:
+    - - an independent view
+      - a document fork
+    - - documents still shared
+      - a linked placement
+    - - a fresh view ID
+      - a deep state copy
+- id: alias-preserving-view-clone-vocab
+  type: kv
+  data:
+    items:
+    - - LOCAL
+      - ViewClone mutation
+    - - AS A PATTERN
+      - alias-preserving clone
+    - - ELSEWHERE
+      - duplicate, fork, shallow copy
+- id: alias-preserving-view-clone-rule1
+  type: rule
+  data:
+    weight: thick
+- id: alias-preserving-view-clone-sight
+  type: text
+  data:
+    text: SIGHTED IN  Mutation_ViewClone
+    preset: micro
+- id: alias-preserving-view-clone-file
+  type: text
+  data:
+    text: pkg/workbench/mutation.go:161-184
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: alias-preserving-view-clone-code-0
+  type: text
+  data:
+    text: clone := proto.Clone(source).(*AppView)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: alias-preserving-view-clone-code-1
+  type: text
+  data:
+    text: clone.Id = value.NewViewId
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: alias-preserving-view-clone-code-2
+  type: text
+  data:
+    text: document.Views[clone.Id] = clone
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: alias-preserving-view-clone-code-3
+  type: text
+  data:
+    text: ViewOrder = append(ViewOrder, clone.Id)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: alias-preserving-view-clone-code-4
+  type: text
+  data:
+    text: // Documents map rides along untouched
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: alias-preserving-view-clone-obs-label
+  type: text
+  data:
+    text: OBSERVED
+    preset: micro
+- id: alias-preserving-view-clone-obs
+  type: text
+  data:
+    text: out.Views["view-copy"].Documents["primary"] is still "document-1" (workbench_test.go:310-349).
+    preset: body
+- id: alias-preserving-view-clone-rule2
+  type: rule
+  data:
+    weight: heavy
+- id: alias-preserving-view-clone-note
+  type: text
+  data:
+    text: Linked placement preserves the view itself; this preserves the bindings of a new view. Two distinct alias contracts, both tested.
+    preset: body
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none

@@ -1,0 +1,181 @@
+almanach_studio_version: 1
+theme: brutalist
+paperWidth: 384
+bodyScale: 1
+feedLines: 8
+blocks:
+- id: ordered-clone-apply-validate-b-band
+  type: banner
+  data:
+    text: INTERN BRIEFING 03
+    pad: m
+- id: ordered-clone-apply-validate-b-title
+  type: title
+  data:
+    text: CLONE APPLY VALIDATE
+    subtitle: pkg/workbench/mutation.go:13-38
+- id: ordered-clone-apply-validate-b0-rule
+  type: rule
+  data:
+    weight: thick
+- id: ordered-clone-apply-validate-b0-label
+  type: text
+  data:
+    text: WHY IT EXISTS
+    preset: micro
+- id: ordered-clone-apply-validate-b0-text
+  type: text
+  data:
+    text: One user gesture is several graph edits. Closing a pane emits placementClose — plus viewDelete when that was the view's last placement (builders.ts:151-169). A list applied halfway leaves a state no user asked for.
+    preset: body
+  style:
+    textCase: none
+- id: ordered-clone-apply-validate-b1-rule
+  type: rule
+  data:
+    weight: thick
+- id: ordered-clone-apply-validate-b1-label
+  type: text
+  data:
+    text: THE WHOLE FUNCTION
+    preset: micro
+- id: ordered-clone-apply-validate-b1-code-0
+  type: text
+  data:
+    text: output := Clone(input)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: ordered-clone-apply-validate-b1-code-1
+  type: text
+  data:
+    text: for index, mutation := range mutations {
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: ordered-clone-apply-validate-b1-code-2
+  type: text
+  data:
+    text: '  applyMutation(output, mutation)'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: ordered-clone-apply-validate-b1-code-3
+  type: text
+  data:
+    text: '}'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: ordered-clone-apply-validate-b1-code-4
+  type: text
+  data:
+    text: Validate(ctx, output, deps, limits)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: ordered-clone-apply-validate-b2-rule
+  type: rule
+  data:
+    weight: thick
+- id: ordered-clone-apply-validate-b2-label
+  type: text
+  data:
+    text: CLONE FIRST
+    preset: micro
+- id: ordered-clone-apply-validate-b2-text
+  type: text
+  data:
+    text: 'proto.Clone deep-copies, so you edit the copy. A failed batch returns an error and your input is unchanged: a rename followed by an illegal close leaves Name still "Production" (workbench_test.go:414-429).'
+    preset: body
+  style:
+    textCase: none
+- id: ordered-clone-apply-validate-b3-rule
+  type: rule
+  data:
+    weight: thick
+- id: ordered-clone-apply-validate-b3-label
+  type: text
+  data:
+    text: TWO LAYERS OF CHECKING
+    preset: micro
+- id: ordered-clone-apply-validate-b3-kv
+  type: kv
+  data:
+    items:
+    - - PER STEP
+      - 'structural: unknown_view, duplicate_id, document_in_use'
+    - - AT THE END
+      - 'whole graph: limits, catalog membership, unique IDs, exact view order'
+- id: ordered-clone-apply-validate-b3-text
+  type: text
+  data:
+    text: Why not check everything per step? Mid-swap, both placements point at one view — a legal gesture with an invalid instant inside it.
+    preset: body
+  style:
+    textCase: none
+- id: ordered-clone-apply-validate-b4-rule
+  type: rule
+  data:
+    weight: thick
+- id: ordered-clone-apply-validate-b4-label
+  type: text
+  data:
+    text: WHO CALLS IT
+    preset: micro
+- id: ordered-clone-apply-validate-b4-text
+  type: text
+  data:
+    text: 'Nobody in this repo; grep finds only tests. pkg/workbench holds no storage, HTTP, auth or UI (model.go:1-5). A host server is the caller: decode the batch, apply, store under If-Match, bump the revision. Datalab today drives the full-document replace path instead.'
+    preset: body
+  style:
+    textCase: none
+- id: ordered-clone-apply-validate-b5-rule
+  type: rule
+  data:
+    weight: thick
+- id: ordered-clone-apply-validate-b5-label
+  type: text
+  data:
+    text: TRAP
+    preset: micro
+- id: ordered-clone-apply-validate-b5-text
+  type: text
+  data:
+    text: apply.ts mirrors this applier arm for arm but skips Validate. A mutation it accepts locally can still come back 422 from the server.
+    preset: body
+  style:
+    textCase: none
+- id: ordered-clone-apply-validate-b6-rule
+  type: rule
+  data:
+    weight: thick
+- id: ordered-clone-apply-validate-b6-label
+  type: text
+  data:
+    text: IF YOU ADD A MUTATION KIND
+    preset: micro
+- id: ordered-clone-apply-validate-b6-checks
+  type: checks
+  data:
+    items:
+    - proto oneof, then regenerate
+    - Go applyMutation arm
+    - apply.ts arm, same error codes
+    - fixture in fixtures/mutations
+    columns: 1

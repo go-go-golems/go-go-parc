@@ -1,0 +1,23 @@
+Error: Invariant JudgeAttribution is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ applicable = TRUE
+/\ judged = FALSE
+/\ completed = FALSE
+/\ exercised = FALSE
+/\ outcome = "pending"
+/\ phase = "start"
+/\ failure = "none"
+/\ contractOK = FALSE
+/\ artifact = FALSE
+
+State 2: <Execute line 51, col 3 to line 55, col 37 of module TreatmentCell>
+/\ applicable = TRUE
+/\ judged = FALSE
+/\ completed = FALSE
+/\ exercised = FALSE
+/\ outcome = "ok"
+/\ phase = "assess"
+/\ failure = "none"
+/\ contractOK = FALSE
+/\ artifact = FALSE

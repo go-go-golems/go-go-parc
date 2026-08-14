@@ -1,0 +1,84 @@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 75 and seed 1070584685439338197 with 1 worker on 8 cores with 16024MB heap and 64MB offheap memory [pid: 3671180] (Linux 6.8.0-137-generic amd64, Ubuntu 21.0.11 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /home/manuel/code/wesen/go-go-golems/go-go-parc/Research/Software Architecture Garden/Research/evaluation-loops/specs/runcustody/tla/RunCustody.tla
+Parsing file /tmp/Naturals.tla
+Parsing file /tmp/Sequences.tla
+Parsing file /tmp/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module RunCustody
+Starting... (2026-08-14 13:02:00)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-08-14 13:02:00.
+Error: Invariant DurableDistinct is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ pending = "none"
+/\ effects = ("c1/inc" :> 0 @@ "c1/chal" :> 0 @@ "c2/inc" :> 0 @@ "c2/chal" :> 0)
+/\ corrupt = FALSE
+/\ crashes = 0
+/\ torn = FALSE
+/\ phase = "running"
+/\ durable = <<>>
+
+State 2: <ExecEffect line 71, col 5 to line 78, col 59 of module RunCustody>
+/\ pending = "c1/inc"
+/\ effects = ("c1/inc" :> 1 @@ "c1/chal" :> 0 @@ "c2/inc" :> 0 @@ "c2/chal" :> 0)
+/\ corrupt = FALSE
+/\ crashes = 0
+/\ torn = FALSE
+/\ phase = "running"
+/\ durable = <<>>
+
+State 3: <CommitCell line 83, col 5 to line 91, col 50 of module RunCustody>
+/\ pending = "none"
+/\ effects = ("c1/inc" :> 1 @@ "c1/chal" :> 0 @@ "c2/inc" :> 0 @@ "c2/chal" :> 0)
+/\ corrupt = FALSE
+/\ crashes = 0
+/\ torn = FALSE
+/\ phase = "running"
+/\ durable = <<"c1/inc">>
+
+State 4: <Crash line 97, col 5 to line 103, col 46 of module RunCustody>
+/\ pending = "none"
+/\ effects = ("c1/inc" :> 1 @@ "c1/chal" :> 0 @@ "c2/inc" :> 0 @@ "c2/chal" :> 0)
+/\ corrupt = FALSE
+/\ crashes = 1
+/\ torn = FALSE
+/\ phase = "crashed"
+/\ durable = <<"c1/inc">>
+
+State 5: <Recover line 108, col 5 to line 111, col 64 of module RunCustody>
+/\ pending = "none"
+/\ effects = ("c1/inc" :> 1 @@ "c1/chal" :> 0 @@ "c2/inc" :> 0 @@ "c2/chal" :> 0)
+/\ corrupt = FALSE
+/\ crashes = 1
+/\ torn = FALSE
+/\ phase = "resumed"
+/\ durable = <<"c1/inc">>
+
+State 6: <ExecEffect line 71, col 5 to line 78, col 59 of module RunCustody>
+/\ pending = "c1/inc"
+/\ effects = ("c1/inc" :> 2 @@ "c1/chal" :> 0 @@ "c2/inc" :> 0 @@ "c2/chal" :> 0)
+/\ corrupt = FALSE
+/\ crashes = 1
+/\ torn = FALSE
+/\ phase = "resumed"
+/\ durable = <<"c1/inc">>
+
+State 7: <CommitCell line 83, col 5 to line 91, col 50 of module RunCustody>
+/\ pending = "none"
+/\ effects = ("c1/inc" :> 2 @@ "c1/chal" :> 0 @@ "c2/inc" :> 0 @@ "c2/chal" :> 0)
+/\ corrupt = FALSE
+/\ crashes = 1
+/\ torn = FALSE
+/\ phase = "resumed"
+/\ durable = <<"c1/inc", "c1/inc">>
+
+36 states generated, 30 distinct states found, 6 states left on queue.
+The depth of the complete state graph search is 7.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 3 and the 95th percentile is 3).
+Finished in 00s at (2026-08-14 13:02:00)

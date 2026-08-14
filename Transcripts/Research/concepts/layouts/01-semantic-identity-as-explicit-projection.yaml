@@ -1,0 +1,161 @@
+almanach_studio_version: 1
+theme: brutalist
+paperWidth: 384
+bodyScale: 1
+feedLines: 8
+blocks:
+- id: semantic-identity-as-explicit-projection-title
+  type: title
+  data:
+    text: SEMANTIC IDENTITY AS EXPLICIT PROJECTION
+    subtitle: Concept 01 · a digest is not a policy
+- id: semantic-identity-as-explicit-projection-sym-label
+  type: text
+  data:
+    text: SYMBOLS
+    preset: micro
+- id: semantic-identity-as-explicit-projection-sym
+  type: table
+  data:
+    cols:
+    - label: SYM
+      w: 78
+    - label: MEANING
+      w: 1fr
+    rows:
+    - - X
+      - complete runtime requests
+    - - P
+      - the projection retaining semantic fields
+    - - C
+      - canonical JSON encoding
+    - - H
+      - SHA-256 digest
+- id: semantic-identity-as-explicit-projection-law
+  type: banner
+  data:
+    text: ID(x)=H(C(P(x)))
+    pad: m
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: semantic-identity-as-explicit-projection-law2
+  type: text
+  data:
+    text: same projection, same identity
+    preset: body
+    align: center
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: semantic-identity-as-explicit-projection-disc-label
+  type: text
+  data:
+    text: DISCIPLINE
+    preset: micro
+- id: semantic-identity-as-explicit-projection-disc
+  type: table
+  data:
+    cols:
+    - label: IT IS
+      w: 1fr
+    - label: IT IS NOT
+      w: 1fr
+    rows:
+    - - explicit semantic fields
+      - all struct fields
+    - - versioned cache identity
+      - a truth certificate
+    - - deterministic bytes
+      - automatic semantic judgment
+- id: semantic-identity-as-explicit-projection-vocab
+  type: kv
+  data:
+    items:
+    - - LOCAL
+      - execution.NewKey, digest.JSON, InputDigest
+    - - AS A PATTERN
+      - semantic identity projection
+    - - ELSEWHERE
+      - canonical identity, content addressing, cache key
+- id: semantic-identity-as-explicit-projection-rule1
+  type: rule
+  data:
+    weight: thick
+- id: semantic-identity-as-explicit-projection-sight
+  type: text
+  data:
+    text: SIGHTED IN  NewKey()
+    preset: micro
+- id: semantic-identity-as-explicit-projection-file
+  type: text
+  data:
+    text: pkg/execution/cache.go:24-51
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-code-0
+  type: text
+  data:
+    text: data, err := json.Marshal(input)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-code-1
+  type: text
+  data:
+    text: if err != nil { ... }
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-code-2
+  type: text
+  data:
+    text: 'InputDigest: digest.Bytes(data),'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-code-3
+  type: text
+  data:
+    text: '}, nil'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: semantic-identity-as-explicit-projection-obs-label
+  type: text
+  data:
+    text: OBSERVED
+    preset: micro
+- id: semantic-identity-as-explicit-projection-obs
+  type: text
+  data:
+    text: TestJSONIsDeterministicAcrossMapInsertionOrder asserts that maps inserted in different orders produce equal digests, with the golden digest 43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777 (pkg/digest/digest_test.go:18-26).
+    preset: body
+- id: semantic-identity-as-explicit-projection-rule2
+  type: rule
+  data:
+    weight: heavy
+- id: semantic-identity-as-explicit-projection-note
+  type: text
+  data:
+    text: This guarantees deterministic encoding of the supplied input, not that callers selected every field affecting the result; NewKey's doc comment explicitly puts that responsibility on callers.
+    preset: body
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none

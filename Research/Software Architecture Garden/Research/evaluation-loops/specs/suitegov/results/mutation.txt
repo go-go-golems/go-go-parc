@@ -1,0 +1,7 @@
+KILLED    M1-self-approval-bypass
+KILLED    M2-minted-set-overwrite
+KILLED    M3-ledger-digest-skip
+KILLED    M4-ledger-chain-skip
+KILLED    M5-sentinel-ignore
+KILLED    M6-bind-run-skip
+PASS: all mutations killed

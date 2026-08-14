@@ -1,0 +1,28 @@
+judgekernel — build and verification record (2026-08-14)
+toolchain: go version go1.26.0 linux/amd64; lean Lean (version 4.33.0, x86_64-unknown-linux-gnu, commit d8b18978322de05a8f3dba51ef03cf5461676c17, Release)
+
+$ GOWORK=off go vet ./... && GOWORK=off go test ./... -count=1
+ok  	github.com/go-go-golems/garden-research/evaluation-loops/judgekernel	0.003s
+
+$ GOWORK=off go test -run TestNone -fuzz FuzzAdmit$ -fuzztime 15s .   (final lines)
+fuzz: elapsed: 15s, execs: 1033072 (74100/sec), new interesting: 132 (total: 137)
+PASS  (1,033,072 executions, no counterexample)
+
+$ GOWORK=off go test -run TestNone -fuzz FuzzAdmitStatements -fuzztime 10s .   (final lines)
+fuzz: elapsed: 10s, execs: 784831 (66050/sec), new interesting: 141 (total: 144)
+PASS  (784,831 executions, no counterexample)
+
+$ ./mutate.sh
+caught    M1-supported-without-evidence
+caught    M2-unknown-evidence
+caught    M3-count-mismatch
+caught    M4-abstention-buys-faithfulness
+caught    M5-unbounded-repair
+caught    M6-faithfulness-not-computed
+all mutations caught
+
+$ lean lean/JudgeKernel.lean
+LEAN OK (all theorems check; core Lean 4.33.0, no mathlib, no sorry)
+
+Lean mutation probe: weakening verdictOK's supported-evidence conjunct to 'true'
+makes check_sound fail to compile — the proofs track the checker.

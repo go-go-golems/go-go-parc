@@ -1,0 +1,113 @@
+id: "03"
+slug: accumulate-before-selecting
+title: ACCUMULATE BEFORE SELECTING
+subtitle: Concept 03 · timing must not choose evidence
+one_liner: >-
+  Collect complete results into an order-independent state before ranking,
+  budgeting, deduplicating, or assigning labels.
+
+symbols:
+  - ["S", "accumulated evidence state"]
+  - ["⊔", "lawful join"]
+  - ["V", "final deterministic view"]
+
+law: "S ⊔ T = T ⊔ S"
+law_extra: "merge first; select at the barrier"
+
+discipline:
+  is:
+    - "order-independent accumulation"
+    - "duplicate-tolerant state"
+    - "snapshot selection"
+  is_not:
+    - "first arrivals win"
+    - "mutex equals semantics"
+    - "streaming finality"
+
+vocabulary:
+  local: "MapCachedBatches, key groups, misses"
+  proposed: "accumulate-then-select"
+  elsewhere: "join-semilattice, lawful merge, CRDT-style accumulation"
+
+sighted_in:
+  symbol: "MapCachedBatches()"
+  file: "pkg/execution/cached_batch_map.go:54-94"
+  code:
+    - "groups := make([]keyGroup, 0, len(items))"
+    - "groupByDigest := make(map[string]int, len(items))"
+    - "if groupIndex, ok := groupByDigest[keyDigest]; ok {"
+    - "  groups[groupIndex].indexes = append(... )"
+    - "results[index] = cached"
+
+observed: >-
+  TestMapCachedBatchesBoundsCallsAndPreservesOrder asserts results
+  [10, 20, 20, 30, 40, 50], three provider calls, and budget spent exactly 5
+  after duplicate key 2 is grouped (pkg/execution/cached_batch_map_test.go:10-50).
+
+note: >-
+  Grouping and lawful accumulation do not make provider results deterministic,
+  make final ranking monotone, or make deletion safe. Selection still needs a
+  named snapshot and policy.
+
+source_url: https://github.com/wesen/rag-ttc/blob/ca5bffcfc094776eeb24a0d60be7a6220e07898b/pkg/execution/cached_batch_map.go#L54-L94
+
+briefing:
+  label: INTERN BRIEFING 03
+  headline: ACCUMULATE BEFORE SELECTING
+  file: "pkg/execution/cached_batch_map.go:54-94"
+  sections:
+    - label: WHY IT EXISTS
+      text: >-
+        Concurrent workers finish in an order determined by timing, latency,
+        retries, and batching. If the first results consume the budget or become
+        the selected evidence, identical work can produce different answers.
+        Accumulate complete candidates first; rank and select only after the
+        available evidence has a defined boundary.
+    - label: THE WHOLE FUNCTION
+      code:
+        - "groups := make([]keyGroup, 0, len(items))"
+        - "groupByDigest := make(map[string]int, len(items))"
+        - "if groupIndex, ok := groupByDigest[keyDigest]; ok {"
+        - "  groups[groupIndex].indexes = append(... )"
+        - "}"
+        - "results := make([]R, len(items))"
+        - "for _, group := range groups {"
+        - "  found, err := options.Cache.Load(...)"
+        - "  if !found { misses = append(misses, group) }"
+        - "}"
+    - label: A DESIGN DECISION
+      text: >-
+        The implementation groups duplicate semantic keys before making provider
+        calls, then restores each grouped result to every original index. This
+        separates accumulation and deduplication from the caller-visible order.
+        A mutex could prevent races, but it would not by itself make an
+        order-sensitive update policy schedule-independent.
+    - label: THEORETICAL UNDERPINNINGS
+      text: >-
+        The accumulation phase is a join-semilattice. Its join obeys three laws:
+        S ⊔ T = T ⊔ S (commutative), (S ⊔ T) ⊔ U = S ⊔ (T ⊔ U) (associative),
+        and S ⊔ S = S (idempotent). These make completion order, batch grouping,
+        and duplicate delivery irrelevant for a fixed set of admitted records.
+      kv:
+        - ["ACCUMULATION", "monotone: information is added"]
+        - ["SELECTION", "non-monotone: more evidence can replace a choice"]
+        - ["BARRIER", "the named snapshot between them"]
+    - label: WHO CALLS IT
+      text: >-
+        MapCachedBatches is used by cached execution paths, including summary
+        generation and other bounded batch work. The broader RAG evidence-merge
+        law is a design pattern; this repository specimen demonstrates the
+        concrete duplicate-grouping and result-restoration half of it.
+    - label: TRAP
+      text: >-
+        A lock gives race freedom, not schedule independence. First-arrival
+        selection, admission-time budgets, or immediate citation labels still let
+        timing decide the result. Also, this specimen groups identical keys; it
+        does not retain conflicting records under one semantic ID.
+    - label: IF YOU ADD ONE
+      checks:
+        - "Accumulate all admitted records before ranking or budgeting."
+        - "Make join commutative, associative, and idempotent."
+        - "Preserve same-ID conflicting variants for verification."
+        - "Define a reproducible selection barrier or snapshot."
+        - "Use a total ordering for ties and assign labels after selection."

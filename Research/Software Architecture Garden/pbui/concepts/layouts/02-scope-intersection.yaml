@@ -1,0 +1,161 @@
+almanach_studio_version: 1
+theme: brutalist
+paperWidth: 384
+bodyScale: 1
+feedLines: 8
+blocks:
+- id: scope-intersection-title
+  type: title
+  data:
+    text: SCOPE INTERSECTION
+    subtitle: Concept 02 · offered is not allowed
+- id: scope-intersection-sym-label
+  type: text
+  data:
+    text: SYMBOLS
+    preset: micro
+- id: scope-intersection-sym
+  type: table
+  data:
+    cols:
+    - label: SYM
+      w: 78
+    - label: MEANING
+      w: 1fr
+    rows:
+    - - U
+      - registered app IDs
+    - - I
+      - instance allow-set
+    - - S
+      - stage allow-set
+    - - Q
+      - workspace allow-set
+- id: scope-intersection-law
+  type: banner
+  data:
+    text: Offered = I ∩ S ∩ Q
+    pad: m
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: scope-intersection-law2
+  type: text
+  data:
+    text: X ⊆ Y ⇒ X∩Z ⊆ Y∩Z
+    preset: body
+    align: center
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none
+- id: scope-intersection-disc-label
+  type: text
+  data:
+    text: DISCIPLINE
+    preset: micro
+- id: scope-intersection-disc
+  type: table
+  data:
+    cols:
+    - label: IT IS
+      w: 1fr
+    - label: IT IS NOT
+      w: 1fr
+    rows:
+    - - a picker filter
+      - authorization
+    - - order preserving
+      - a mount gate
+    - - monotone
+      - a tenant policy
+- id: scope-intersection-vocab
+  type: kv
+  data:
+    items:
+    - - LOCAL
+      - AppScope, useAvailableApps
+    - - AS A PATTERN
+      - presentation policy scope
+    - - ELSEWHERE
+      - feature flag, capability filter
+- id: scope-intersection-rule1
+  type: rule
+  data:
+    weight: thick
+- id: scope-intersection-sight
+  type: text
+  data:
+    text: SIGHTED IN  useAvailableApps()
+    preset: micro
+- id: scope-intersection-file
+  type: text
+  data:
+    text: packages/datalab-ui/src/appkit/AppScope.tsx:125-142
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: scope-intersection-code-0
+  type: text
+  data:
+    text: apps.filter((app) =>
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: scope-intersection-code-1
+  type: text
+  data:
+    text: (!inStage || inStage.has(app.id)) &&
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: scope-intersection-code-2
+  type: text
+  data:
+    text: (!inSpace || inSpace.has(app.id)),
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: scope-intersection-code-3
+  type: text
+  data:
+    text: )
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: scope-intersection-obs-label
+  type: text
+  data:
+    text: OBSERVED
+    preset: micro
+- id: scope-intersection-obs
+  type: text
+  data:
+    text: A stage offering [signin] inside an instance offering [chart] offers nothing at all; Launcher shows its empty state.
+    preset: body
+- id: scope-intersection-rule2
+  type: rule
+  data:
+    weight: heavy
+- id: scope-intersection-note
+  type: text
+  data:
+    text: Narrowing never re-offers. A named app still mounts; the server is what denies data.
+    preset: body
+  style:
+    font: '''DejaVu Sans'', sans-serif'
+    textCase: none

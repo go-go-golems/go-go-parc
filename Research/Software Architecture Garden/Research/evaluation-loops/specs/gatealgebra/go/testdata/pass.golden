@@ -1,0 +1,15 @@
+status=pass
+identity/policy_bytes=pass
+identity/run_complete=pass
+identity/complete_pairing=pass
+hard/require_all_cells=pass
+hard/require_completed=pass
+hard/require_contract_valid=pass
+hard/max_failure_rate=pass
+hard/metric_floor:safety=pass
+target/metric_presence:quality=pass
+target/minimum_mean_delta:quality=pass
+regression/maximum_case_delta:safety=pass
+regression/maximum_mean_delta:all:quality=pass
+tie_break/provider_calls=pass
+tie_break/total_tokens=pass

@@ -1,0 +1,175 @@
+almanach_studio_version: 1
+theme: brutalist
+paperWidth: 384
+bodyScale: 1
+feedLines: 8
+blocks:
+- id: revision-fenced-replacement-b-band
+  type: banner
+  data:
+    text: INTERN BRIEFING 05
+    pad: m
+- id: revision-fenced-replacement-b-title
+  type: title
+  data:
+    text: THE REVISION FENCE
+    subtitle: client.ts:413-453 · useRemoteWorkbench.ts
+- id: revision-fenced-replacement-b0-rule
+  type: rule
+  data:
+    weight: thick
+- id: revision-fenced-replacement-b0-label
+  type: text
+  data:
+    text: WHY IT EXISTS
+    preset: micro
+- id: revision-fenced-replacement-b0-text
+  type: text
+  data:
+    text: Two tabs, one workbench. Without a fence the slower tab's save silently overwrites the faster tab's work. So every write states which revision it believed it was editing, and the host is meant to refuse it if that belief is stale.
+    preset: body
+  style:
+    textCase: none
+- id: revision-fenced-replacement-b1-rule
+  type: rule
+  data:
+    weight: thick
+- id: revision-fenced-replacement-b1-label
+  type: text
+  data:
+    text: WHAT THE BROWSER SENDS
+    preset: micro
+- id: revision-fenced-replacement-b1-code-0
+  type: text
+  data:
+    text: '''If-Match'': workbenchETag(id, revision)'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: revision-fenced-replacement-b1-code-1
+  type: text
+  data:
+    text: '''Idempotency-Key'': requestId'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: revision-fenced-replacement-b1-code-2
+  type: text
+  data:
+    text: 'body: toJson(WorkbenchDocumentSchema, doc)'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: revision-fenced-replacement-b2-rule
+  type: rule
+  data:
+    weight: thick
+- id: revision-fenced-replacement-b2-label
+  type: text
+  data:
+    text: WHERE THE REVISION LIVES
+    preset: micro
+- id: revision-fenced-replacement-b2-text
+  type: text
+  data:
+    text: As an exact bigint in a ref, outside Redux, because JSON numbers would round it. A response for a different workbench ID is rejected rather than applied, and switching workbench resets the whole epoch so old callbacks cannot publish (useRemoteWorkbench.ts:42-100).
+    preset: body
+  style:
+    textCase: none
+- id: revision-fenced-replacement-b3-rule
+  type: rule
+  data:
+    weight: thick
+- id: revision-fenced-replacement-b3-label
+  type: text
+  data:
+    text: RETRY IDENTITY
+    preset: micro
+- id: revision-fenced-replacement-b3-code-0
+  type: text
+  data:
+    text: fingerprint = JSON.stringify(docJSON)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: revision-fenced-replacement-b3-code-1
+  type: text
+  data:
+    text: if (pending.fingerprint === current)
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: revision-fenced-replacement-b3-code-2
+  type: text
+  data:
+    text: '  reuse pending.id   // same request'
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: revision-fenced-replacement-b3-code-3
+  type: text
+  data:
+    text: else id = crypto.randomUUID()
+    preset: small
+  style:
+    font: '''DejaVu Sans Mono'', monospace'
+    textCase: none
+    weight: 700
+    size: 10
+- id: revision-fenced-replacement-b3-text
+  type: text
+  data:
+    text: Retrying the same local state reuses one request ID, so a retry is the same request rather than a second one.
+    preset: body
+  style:
+    textCase: none
+- id: revision-fenced-replacement-b4-rule
+  type: rule
+  data:
+    weight: thick
+- id: revision-fenced-replacement-b4-label
+  type: text
+  data:
+    text: WHAT IS NOT HERE
+    preset: micro
+- id: revision-fenced-replacement-b4-text
+  type: text
+  data:
+    text: The comparison itself. No CAS, no revision increment, no key-to-body binding, no audit, no authorization, no storage. All of that belongs to a host outside this repository, and none of it is audited by this study.
+    preset: body
+  style:
+    textCase: none
+- id: revision-fenced-replacement-b5-rule
+  type: rule
+  data:
+    weight: thick
+- id: revision-fenced-replacement-b5-label
+  type: text
+  data:
+    text: TRAP
+    preset: micro
+- id: revision-fenced-replacement-b5-text
+  type: text
+  data:
+    text: 'JSON.stringify is not canonical identity — key order decides it, so treat it as a local change detector only. And a revision is not an event ordinal: SSE gives invalidate-and-refetch, never replay.'
+    preset: body
+  style:
+    textCase: none
