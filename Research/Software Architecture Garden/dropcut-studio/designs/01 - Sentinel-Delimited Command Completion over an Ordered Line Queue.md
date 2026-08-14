@@ -15,6 +15,10 @@ repository_remote: git@github.com:wesen/dropcut-studio
 repository_branch: task/cnc-control-dropcut
 repository_commit: 5f33ba1
 source_ticket: /home/manuel/workspaces/2026-08-11/cnc-control-dropcut/dropcut-studio/ttmp/2026/08/14/MZ1-005--cnc-to-z1ctl-command-control-protocol-wire-level-study-and-correct-design-theory
+repository_note_url: https://github.com/go-go-golems/go-go-parc/blob/main/Research/Software%20Architecture%20Garden/dropcut-studio/designs/01%20-%20Sentinel-Delimited%20Command%20Completion%20over%20an%20Ordered%20Line%20Queue.md
+published_note_url: https://parc.yolo.scapegoat.dev/note/research/software-architecture-garden/dropcut-studio/designs/01-sentinel-delimited-command-completion-over-an-ordered-line-queue
+tracking_issue: https://github.com/wesen/dropcut-studio/issues/2
+architecture_catalog: https://github.com/orgs/go-go-golems/projects/3
 tags:
   - architecture-garden
   - dropcut-studio
