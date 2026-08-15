@@ -68,9 +68,10 @@ delimits and correlates per-command replies.
 
 ## Design entries
 
-- [[Research/Software Architecture Garden/dropcut-studio/designs/01 - Sentinel-Delimited Command Completion over an Ordered Line Queue|01 — Sentinel-Delimited Command Completion over an Ordered Line Queue]]
-- [[Research/Software Architecture Garden/dropcut-studio/designs/02 - Latched Safety Channel over a Lossy Inbound Queue|02 — Latched Safety Channel over a Lossy Inbound Queue]]
-- [[Research/Software Architecture Garden/dropcut-studio/designs/03 - Dead-Man Keepalive - Fail-Safe Motion by Causal Inversion|03 — Dead-Man Keepalive: Fail-Safe Motion by Causal Inversion]]
+- [[Research/Software Architecture Garden/dropcut-studio/designs/04 - First-Class Session with Typed State Machine, Unique Correlation, and Quarantine Recovery|04 — First-Class Session: Typed State Machine, Unique Correlation, Quarantine Recovery]] *(overarching pattern — the session skeleton; the entries below are its facets)*
+- [[Research/Software Architecture Garden/dropcut-studio/designs/01 - Sentinel-Delimited Command Completion over an Ordered Line Queue|01 — Sentinel-Delimited Command Completion over an Ordered Line Queue]] *(facet: correlation / identity)*
+- [[Research/Software Architecture Garden/dropcut-studio/designs/02 - Latched Safety Channel over a Lossy Inbound Queue|02 — Latched Safety Channel over a Lossy Inbound Queue]] *(facet: safety delivery / observability)*
+- [[Research/Software Architecture Garden/dropcut-studio/designs/03 - Dead-Man Keepalive - Fail-Safe Motion by Causal Inversion|03 — Dead-Man Keepalive: Fail-Safe Motion by Causal Inversion]] *(facet: fail-safe action)*
 
 ## Source provenance
 
