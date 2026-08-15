@@ -73,6 +73,10 @@ delimits and correlates per-command replies.
 - [[Research/Software Architecture Garden/dropcut-studio/designs/02 - Latched Safety Channel over a Lossy Inbound Queue|02 — Latched Safety Channel over a Lossy Inbound Queue]] *(facet: safety delivery / observability)*
 - [[Research/Software Architecture Garden/dropcut-studio/designs/03 - Dead-Man Keepalive - Fail-Safe Motion by Causal Inversion|03 — Dead-Man Keepalive: Fail-Safe Motion by Causal Inversion]] *(facet: fail-safe action)*
 
+## Proposals
+
+- [[Research/Software Architecture Garden/dropcut-studio/proposals/01-z1-communication-api-design-and-implementation-guide|01 — Z1 Communication API: Design and Implementation Guide (Intern Edition)]] — a concrete `pkg/z1session` API design realizing designs 01–04 above.
+
 ## Source provenance
 
 The detailed study behind this Garden project is a docmgr ticket, `MZ1-005`,
