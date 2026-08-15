@@ -446,3 +446,63 @@ repositories before promotion to `Validated`:
   (FLP, timeout-as-signal); the two-generals problem (at-most-once for
   non-idempotent commands); HDLC/SLIP framing (sentinel/flag self-
   synchronization).
+
+## References and further reading
+
+Local copies of the foundational papers and reference pages are saved in
+`../sources/` (see `../sources/SOURCES.md` for the full index mapping each
+source to the section it grounds).
+
+**Foundational papers (PDFs in `../sources/`):**
+
+- Lamport, L. (1978). *Time, Clocks, and the Ordering of Events in a
+  Distributed System.* Communications of the ACM 21(7):558–565.
+  DOI [10.1145/359545.359563](https://doi.org/10.1145/359545.359563) —
+  happens-before, FIFO channels. → `sources/01-lamport-1978-…pdf`
+- Alpern, B. & Schneider, F. B. (1985). *Defining Liveness.* Information
+  Processing Letters 21(4). — safety/liveness, the quarantine-not-timeout
+  argument. → `sources/02-alpern-schneider-1985-…pdf`
+- Fischer, M., Lynch, N. & Paterson, M. (1985). *Impossibility of
+  Distributed Consensus with One Faulty Process.* JACM 32(2).
+  DOI [10.1145/3149.214121](https://doi.org/10.1145/3149.214121) — FLP,
+  timeout-as-signal. → `sources/03-fischer-lynch-paterson-1985-…pdf`
+- Akkoyunlu, E. A., Ekanadham, K. & Huber, R. V. (1975). *Some Constraints
+  and Tradeoffs in the Design of Network Communications.* ACM SOSP.
+  DOI [10.1145/800213.806523](https://doi.org/10.1145/800213.806523) — the
+  two-generals problem, at-most-once. → `sources/04-akkoyunlu-…pdf`
+- Castagnoli, G., Brauer, S. & Herrmann, M. (1993). *Optimization of
+  Cyclic Redundancy-Check Codes with 24 and 32 Parity Bits.* IEEE Trans.
+  Communications 41(6). — CRC undetected-error theory, the detection-≠-
+  authentication distinction. → `sources/05-castagnoli-1993-…pdf`
+
+**Reference pages (extracted in `../sources/`):**
+
+- Koopman, P. *Best CRC Polynomials.* CMU —
+  <https://users.ece.cmu.edu/~koopman/crc/> — practical CRC polynomial
+  selection. → `sources/06-koopman-cmu-crc-…md`
+- *Mathematics of cyclic redundancy checks.* Wikipedia — CRC over GF(2),
+  burst/odd-bit detection. → `sources/07-wikipedia-…md`
+- *Safety and liveness properties.* Wikipedia — the topological
+  characterization. → `sources/08-wikipedia-…md`
+- *Two Generals' Problem.* Wikipedia — overview and history. →
+  `sources/09-wikipedia-…md`
+- Peterson, L. & Davie, B. *Computer Networks: A Systems Approach*,
+  6th ed., ch. 2.3 *Framing* — sentinel characters, character/bit
+  stuffing, HDLC, self-synchronization. Free at
+  <https://book.systemsapproach.org/>. → `sources/10-peterson-davie-…framing.rst`
+- Peterson, L. & Davie, B. ibid., ch. 2.4 *Error Detection* — CRC,
+  undetected errors. → `sources/11-peterson-davie-…error-detection.rst`
+
+**Textbooks (commercial — cited for depth):**
+
+- Tanenbaum, A. & Wetherall, D. *Computer Networks*, 5th ed. (Pearson,
+  2010, ISBN 978-0132126953) — data-link framing and HDLC.
+- Coulouris, G., Dollimore, J., Kindberg, T. & Blair, G. *Distributed
+  Systems: Concepts and Design*, 5th ed. (Pearson, 2011, ISBN
+  978-0132143011) — time, coordination, failure models.
+- Kurose, J. & Ross, K. *Computer Networking: A Top-Down Approach*,
+  7th ed. (Pearson, 2017, ISBN 978-0133587937) — reliable data transfer
+  FSMs, sequence numbers, ACKs (correlation by value).
+- Peterson, L., Davie, B. & Bavier, A. *Computer Networks: A Systems
+  Approach*, 6th ed. (Morgan Kaufmann, 2021) — the free online edition;
+  chapters saved as sources 10–11.
