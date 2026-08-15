@@ -12,7 +12,7 @@ topics:
   - playbook
 section_type: Playbook
 created: 2026-08-13
-updated: 2026-08-13
+updated: 2026-08-14
 published_vault: https://parc.yolo.scapegoat.dev/
 ---
 
@@ -70,10 +70,18 @@ flowchart LR
     NOTE --> ISSUE[Repository GitHub issue]
     ISSUE --> ITEM[Architecture & Pattern Catalog item]
     ITEM --> STATUS[Discovered / Documented / Validated / Adopted / Rejected]
+    ITEM --> SLIP[Brutalist work slip on the thermal printer]
 
     NOTE -. stable remote link .-> ISSUE
     ISSUE -. project item .-> ITEM
+    ISSUE -. QR target .-> SLIP
 ```
+
+The thermal work slip is optional but recommended: a small, physical concept
+card that distills the pattern (law, names, math, fix) and carries a QR code
+linking to the repository issue, which in turn links onward to the Garden
+note. It is a blackboard/index-card artifact for reasoning about the pattern
+away from a screen, not a status log of the work that produced it.
 
 | Artifact | Purpose | Owner | Typical content |
 |---|---|---|---|
@@ -81,6 +89,7 @@ flowchart LR
 | Public note URL | Stable reader-facing link to the vault document | PARC publication site | `/note/<slugified vault path>`; preferred issue link |
 | Repository issue | Maintainer-visible research/design proposal | source repository | concise statement, evidence paths, questions, next steps, Garden link |
 | Project item | Cross-repository catalog and maturity tracking | GitHub Project | status, labels, provenance, future comparison |
+| Work slip | Physical concept card for offline reasoning | thermal printer + archived YAML | task/label header, h1 pattern title, one-line law, phase checklist, facts, QR to the issue |
 
 A repository issue is not a Garden entry. A project item is not an issue. The same idea is represented three times because each location answers a different organizational question.
 
@@ -751,6 +760,60 @@ issue label present when applicable
 
 If the project item is missing, add it. If it is duplicated, delete only the unintended project item after confirming the underlying issue should remain open.
 
+## 10.5 Print a concept work slip (optional but recommended)
+
+Once the issue and catalog item exist, print a brutalist work slip so the
+pattern can be reasoned about on a blackboard. Use the `plan` mode of the
+`brutalist-work-slip` skill: its phase-checklist shape reads as a concept
+card, and its `--url` carries a QR to the repository issue (which links
+onward to the Garden note). Do **not** use `status` mode for a pattern card —
+`status` is a work-progress log (what I did / tricky / next + a commit QR);
+`plan` is a concept index card (law / names / math / fix + an issue QR).
+
+Load the skill for the exact flag reference; the shape is:
+
+```bash
+python3 ~/.pi/agent/skills/brutalist-work-slip/scripts/work_slip.py plan \
+  --task SENTINEL \
+  --label CONCEPT \
+  --title "Sentinel-Delimited Command Completion" \
+  --summary "Inject an echo marker into a line queue you can't reframe; split output on it. A constant sentinel is a delimiter, not a correlation id." \
+  --phase "LAW: delimiter, not correlation id" \
+  --phase "names: sentinel / flag-byte / echo marker" \
+  --phase "math: FIFO + monoid split; pos vs value" \
+  --phase "fix: per-command nonce OR quarantine timeout" \
+  --phase "motion: at-most-once; timeout = unknown" \
+  --phase "use: unreframable line queue, no prompt" \
+  --next "full Garden note (see QR)" \
+  --fact NAMES="in-band sentinel signaling" \
+  --fact MATH="1 - e^(-n*p_t*p_l) desync" \
+  --fact FIX="nonce | quarantine + resync" \
+  --url https://github.com/<owner>/<repo>/issues/<n> \
+  --dry-run-remote
+```
+
+Rules specific to a *concept* card (vs. a status slip):
+
+- `--task`: a short pattern tag (≤ ~14 chars), e.g. `SENTINEL`, `LATCH`, `DEADMAN`.
+- `--label`: `CONCEPT` (distinguish it from the `STATUS`/`STEP N` of a work slip).
+- `--phase`: the reusable idea's load-bearing points — the law, the names it
+  travels under, the math, the fix, the applicability — not what the agent did.
+- `--url`: the **repository issue** URL, not the commit. The issue links
+  onward to the Garden note; the QR is the bridge from the physical card to
+  the full writeup.
+- `--fact`: short `KEY=VALUE` rows for the facts a reader manipulates at a
+  glance (`NAMES`, `MATH`, `FIX`).
+
+Workflow:
+
+1. `--dry-run-remote` to validate without wasting paper.
+2. Print for real (the default, drop `--dry-run-remote`).
+3. Archive the generated YAML with `--out` into the *source repository's*
+  docmgr ticket `scripts/` dir (e.g. `ttmp/.../scripts/NN-work-slip-<pattern>-concept.yaml`), so the card is reproducible from the repo that owns the pattern. Do not archive it into the Garden vault — the vault is for the note, the slip is for the source project.
+4. Optionally `docmgr changelog update` the ticket noting the slip was printed.
+
+A successful print reports `printed: yes`. Verify the QR resolves to the issue.
+
 ## 11. A complete worked example
 
 This is the sequence used for the Sessionstream observer study. It is an example, not a set of IDs to copy into another project.
@@ -799,6 +862,13 @@ Garden note in vault
 ```
 
 The GitHub `go-go-parc` URL remains useful as source provenance, but the public PARC URL is the preferred issue link.
+
+### 11.4 Work slip
+
+A `CONCEPT` work slip was printed for each pattern: `SENTINEL`, `LATCH`,
+`DEADMAN` — one card per reusable idea, QR to the repository issue, layout
+archived to the source repo's docmgr `scripts/` dir. The cards are the
+blackboard artifacts; the issue/Garden note is the depth behind each QR.
 
 ## 12. Common failure modes
 
@@ -852,6 +922,25 @@ Review the issue body as if it were public. Remove tokens, cookies, private URLs
 
 ### 12.13 Declaring a theoretical concern as a historical failure
 
+Say "risk" or "open correctness obligation" when no concrete failure was observed. Say "failure" only when you can name the repository, code path, test, review comment, or command that demonstrates it.
+
+### 12.14 Printing a status slip for a concept
+
+A concept card uses `plan` mode (law/names/math/fix + an issue QR); a work
+log uses `status` mode (did/tricky/next + a commit QR). Printing `status` for
+a pattern produces a card about *the agent's work*, not about *the pattern* —
+the wrong artifact for a blackboard. The two modes share the printer and the
+script but answer different questions; choose by what the card is for, not
+by which flags are familiar.
+
+### 12.15 Archiving the slip into the Garden vault
+
+The slip layout belongs in the **source repository's** docmgr `scripts/`
+dir (the repo that owns the pattern), not in the Garden vault. The vault is
+the durable explanation; the slip is a physical artifact whose reproducible
+YAML is a courtesy kept with the pattern's source. Mixing slip YAML into the
+vault clutters the staged-file safety gate of §7.1.
+
 Say “risk” or “open correctness obligation” when no concrete failure was observed. Say “failure” only when you can name the repository, code path, test, review comment, or command that demonstrates it.
 
 ## 13. Agent checklist
@@ -877,9 +966,11 @@ Copy this checklist into a task plan or implementation diary:
 [ ] Set status explicitly: Discovered, Documented, Validated, Adopted, or Rejected.
 [ ] Populate provenance fields only from explicit evidence.
 [ ] Verify the project item by issue URL.
+[ ] (Optional) Print a CONCEPT work slip: plan mode, --url = issue URL, --dry-run-remote then print.
+[ ] Archive the slip YAML to the source repo's docmgr scripts/ dir, not the Garden vault.
 [ ] Add published-note, source-note, tracking-issue, and catalog links back to the Garden note if desired.
 [ ] Commit and push the metadata follow-up only when the vault source copy is the chosen publication/provenance path.
-[ ] Report note path, public note URL, optional source commit, issue URL, project URL/status, and unresolved questions.
+[ ] Report note path, public note URL, optional source commit, issue URL, project URL/status, slip status, and unresolved questions.
 ```
 
 ## 14. Final handoff format
@@ -901,6 +992,12 @@ Architecture catalog:
   project: ...
   item: ...
   status: ...
+
+Work slip (if printed):
+  mode: plan (CONCEPT) | status (STATUS)
+  QR target: <issue or commit URL>
+  layout: <source repo scripts/ path>
+  printed: yes/no
 
 Evidence:
   source repository/commit: ...
