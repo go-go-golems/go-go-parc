@@ -37,6 +37,8 @@ related_files:
   - pkg/sessionstream/transport/ws/server.go
   - pkg/analysis
 related_notes:
+  - "[[Research/Software Architecture Garden/sessionstream/Index of Design Patterns]]"
+  - "[[Research/Software Architecture Garden/sessionstream/Index of Design Patterns - Rationale]]"
   - "[[Research/Software Architecture Garden/README]]"
   - "[[Transcripts/Research/09 - RAG-MATHS Pattern Zoo]]"
   - "[[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook]]"
@@ -396,6 +398,7 @@ These names should remain candidates until compared with consumers and additiona
 
 ## Related studies
 
+- [[Research/Software Architecture Garden/sessionstream/Index of Design Patterns|Index of Design Patterns]] — back-of-the-book index of this study's patterns and vocabulary, with a companion [[Research/Software Architecture Garden/sessionstream/Index of Design Patterns - Rationale|rationale]]
 - [[Research/Software Architecture Garden/README|Software Architecture Garden]]
 - [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo|RAG-MATHS Pattern Zoo]]
 - [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook|PBUI-MATHS Pattern Zoo Handbook]]
