@@ -15,6 +15,9 @@ repository_remote: git@github.com:wesen/dropcut-studio
 repository_branch: task/cnc-control-dropcut
 repository_commit: 5f33ba1
 source_ticket: /home/manuel/workspaces/2026-08-11/cnc-control-dropcut/dropcut-studio/ttmp/2026/08/14/MZ1-005--cnc-to-z1ctl-command-control-protocol-wire-level-study-and-correct-design-theory
+repository_note_url: https://github.com/go-go-golems/go-go-parc/blob/main/Research/Software%20Architecture%20Garden/dropcut-studio/designs/03%20-%20Dead-Man%20Keepalive%20-%20Fail-Safe%20Motion%20by%20Causal%20Inversion.md
+tracking_issue: https://github.com/wesen/dropcut-studio/issues/4
+architecture_catalog: https://github.com/orgs/go-go-golems/projects/3
 tags:
   - architecture-garden
   - dropcut-studio
