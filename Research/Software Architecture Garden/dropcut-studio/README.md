@@ -69,6 +69,7 @@ delimits and correlates per-command replies.
 ## Design entries
 
 - [[Research/Software Architecture Garden/dropcut-studio/designs/01 - Sentinel-Delimited Command Completion over an Ordered Line Queue|01 — Sentinel-Delimited Command Completion over an Ordered Line Queue]]
+- [[Research/Software Architecture Garden/dropcut-studio/designs/02 - Latched Safety Channel over a Lossy Inbound Queue|02 — Latched Safety Channel over a Lossy Inbound Queue]]
 
 ## Source provenance
 
