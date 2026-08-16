@@ -14,7 +14,10 @@ repository_commit: e02b73d4a19d82a63abb7f0a1a85299e19d5bc7d
 source_pull_request: https://github.com/go-go-golems/publish-vault/pull/20
 published_note_url: https://parc.yolo.scapegoat.dev/note/research/software-architecture-garden/publish-vault/05-parser-owned-structure-and-typed-reference-resolution
 repository_note_url: https://github.com/go-go-golems/go-go-parc/blob/main/Research/Software%20Architecture%20Garden/publish-vault/05%20-%20Parser-Owned%20Structure%20and%20Typed%20Reference%20Resolution.md
+tracking_issue: https://github.com/go-go-golems/publish-vault/issues/22
 architecture_catalog: https://github.com/orgs/go-go-golems/projects/3
+architecture_catalog_item: PVTI_lADOB23p8s4BgM1Yzg2wPV0
+architecture_catalog_status: Documented
 docmgr_ticket: PV-MARKDOWN-023
 tags:
   - architecture-garden
