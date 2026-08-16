@@ -27,7 +27,7 @@ The article exists because the failure mode is general. An investigator who form
 > - docmgr anchors related-file paths with explicit schemes: `repo://`, `ws://`, `docs://`, `doc://`, and `abs://`. The write side (`relate`) chooses the tightest containing anchor; the read side (`doctor`) resolves each scheme to an absolute path and calls `os.Stat`.
 > - The `abs://` scheme is not a broken fallback. Doctor resolves `abs://` directly against the filesystem and finds files outside the repository root. An in-repo `abs://` entry and an out-of-repo `abs://` entry both pass `doctor` when the file exists.
 > - The reported "bug" was stale duplicate frontmatter. The investigator's `--remove-files` calls silently no-op'd because the target strings did not match the stored form, leaving duplicate entries that were never cleaned up.
-> - The genuine residual issue is narrow: `doc relate --remove-files` returns success when no stored entry matches, with no warning. This is a real UX papercut, not a correctness defect.
+> - The actionable output of this report is the **improvement spec**: a gap-to-fix mapping and proposed replacement text for the docmgr skill, `--remove-files` output, the `doctor` message, and a new `--replace-files` command, so the next investigator does not fall into the same hole.
 
 ## Why this note exists
 
@@ -261,6 +261,122 @@ The two sides are symmetric. The write side computes the anchor from the absolut
 - **Attributing stored values to the wrong command.** The `abs://` entries were present, but not produced by the `relate` call under inspection. Treating presence as provenance produced a false premise.
 - **Confusing a no-op with a success.** The `--remove-files` output stated that nothing was removed. Reading only the leading `no related file changes` and ignoring the parenthetical `(remove targets were not present)` led to the belief that the removal had worked.
 - **Reporting a bug without a clean reproduction.** The hypothesis was argued for multiple turns before a clean reproduction was attempted. The reproduction took two commands and disproved it. A reproduction is cheaper than a bug report and more authoritative than an argument.
+
+## Documentation and skill improvement spec
+
+The ordeal is evidence of gaps in three places: the docmgr command help and `doctor` output, the `docmgr` agent skill (`SKILL.md` and `references/docmgr.md`), and the diagnostic playbook. Each wrong turn in the investigation maps to one gap and one concrete fix. This section is the actionable output of the report; it is what should be edited into docmgr or its skills to prevent the next investigator from repeating the rabbit hole.
+
+### Gap-to-fix mapping
+
+| Wrong turn in the ordeal | Where the gap lives | Proposed fix |
+|---|---|---|
+| Concluded `abs://` was a bug without a clean reproduction | docmgr skill `doctor` section; no diagnostic playbook step | Add a "Diagnosing `missing_related_file`" checklist: (1) confirm the file exists at the stored path; (2) wipe the frontmatter entry and re-`relate` from clean state; (3) only then suspect a resolver defect. |
+| Had no model of what `abs://` vs `repo://` means, so guessed "git tracking" | `docmgr` skill `SKILL.md:56` says "Prefer absolute paths" with no anchoring model | Add an "Anchoring model" subsection stating the precedence and the containment rule (see proposed text below). |
+| Assumed repo membership is keyed off git tracking | nowhere stated | State in the anchoring model: containment is by filesystem path (`filepath.Rel`), not by git tracking; an untracked in-repo file still becomes `repo://`. |
+| Misread `no related file changes ... (remove targets were not present)` as success | `doc relate --remove-files` command output | Surface a `WARNING: 0 of N targets matched` line and a non-zero exit when zero targets match, so a no-op is not confusable with a successful removal (see proposed output below). |
+| Could not tell stale duplicate entry from resolver bug | `docmgr doctor` `missing_related_file` message | Include the resolved absolute path the checker `stat`'d: `related file not found: <stored> (resolved to <abs>, stat failed)` (see proposed message below). |
+| Stale duplicate entries accumulated with no clean reset path | `doc relate` only removes by exact stored string | Add `doc relate --replace-files` (atomic replace of the listed notes) so users escape duplicates without hand-editing frontmatter. |
+| Skill instruction "prefer absolute paths" given without the reason | `docmgr` skill `SKILL.md:56`, `references/docmgr.md:191,314` | Annotate the instruction with *why*: absolute paths let `AnchoredFor` pick the tightest anchor automatically; relative paths risk resolving against the wrong base. |
+
+### Proposed skill text: the anchoring model
+
+Add this to the `docmgr` skill (`SKILL.md`, near the `--file-note` conventions) so users can reason about stored paths instead of guessing:
+
+```markdown
+### How related-file paths are anchored
+
+`doc relate` stores each related file with an explicit anchor that makes its
+base directory unambiguous. The anchor is chosen by filesystem containment, in
+this precedence order:
+
+1. `repo://<rel>` — the file is inside the repository root
+2. `ws://<member>/<rel>` — inside a `go.work` workspace member
+3. `docs://<rel>` — inside the docs root (`ttmp`)
+4. `abs://<abs>` — anywhere else (the escape hatch)
+
+Containment is by filesystem path (`filepath.Rel`), **not** by git tracking. An
+untracked file inside the repository root still becomes `repo://`. `abs://` is
+not a broken fallback: `doctor` resolves it directly with `os.Stat`, so an
+`abs://` entry pointing at an existing file passes `doctor`, inside or outside
+the repo.
+
+This is why the skill recommends absolute paths in `--file-note`: an absolute
+path lets `AnchoredFor` pick the tightest anchor automatically. A relative
+path risks being resolved against the wrong base.
+```
+
+### Proposed skill text: diagnosing `missing_related_file`
+
+Add this to the skill's `doctor` / validation section so the default response to a `missing_related_file` warning is a clean reproduction, not a bug report:
+
+```markdown
+### Diagnosing `missing_related_file` before reporting a bug
+
+A `missing_related_file` warning means `doctor` resolved a stored `Path` to an
+absolute path and `os.Stat` failed. Before suspecting a resolver defect:
+
+1. Confirm the file exists at the stored path. `ls -la` the path verbatim.
+2. Check the stored anchor. If it is `abs://` and the file is inside the repo,
+   the entry is likely stale — `relate` would normally produce `repo://` for an
+   in-repo file.
+3. Wipe the entry from frontmatter and re-`relate` from clean state. If the
+   re-`relate` produces `repo://` and `doctor` passes, the warning was a stale
+   entry, not a bug.
+4. Only if a clean re-`relate` reproduces the warning should a resolver defect
+   be suspected.
+```
+
+### Proposed command output: `doc relate --remove-files`
+
+Current output when zero targets match:
+
+```text
+no related file changes for ... (remove targets were not present)
+```
+
+The parenthetical is load-bearing but easy to overlook. Proposed:
+
+```text
+WARNING: 0 of 1 remove target(s) matched stored entries; nothing removed.
+        Stored forms may differ from the supplied strings. Use `doc list --ticket <id>`
+        to inspect stored RelatedFiles paths before retrying.
+exit code: 1
+```
+
+A non-zero exit makes the no-op visible to scripts and to an investigator scanning command output, without changing the success case.
+
+### Proposed command output: `docmgr doctor` missing-related-file
+
+Current message:
+
+```text
+related file not found: abs:///home/.../sources/00-sources-index.md
+```
+
+The message shows the stored path but not the absolute path the checker actually `stat`'d, so the reader cannot distinguish a stale entry from a resolution defect. Proposed:
+
+```text
+related file not found: abs:///home/.../sources/00-sources-index.md
+        (resolved to /home/.../sources/00-sources-index.md, stat failed)
+```
+
+With the resolved path visible, a stale `abs://` entry pointing at an existing file is immediately suspicious — the reader sees `stat failed` next to a path they can `ls`, which points at stale-state rather than resolver logic.
+
+### Proposed command: `doc relate --replace-files`
+
+The investigation got trapped because `--remove-files` removed nothing and left duplicates. An atomic replace would avoid the trap entirely:
+
+```text
+docmgr doc relate --doc <doc> --replace-files \
+  --file-note "path1:reason1" \
+  --file-note "path2:reason2"
+```
+
+Semantics: the listed `--file-note` entries become the complete `RelatedFiles` set for the doc; any prior entries not in the list are removed. This gives users a single command to recover from duplicate or stale entries, instead of hand-editing frontmatter or relying on fragile exact-string removes.
+
+### What this report does not propose
+
+The report does not propose changing the anchoring algorithm, the resolver, or the precedence order. The write side and the read side are symmetric and correct. The fixes are all in the presentation layer: skill text that teaches the model, command output that distinguishes no-op from success, and a doctor message that exposes the resolved path. The rabbit hole was caused by missing models and misleading output, not by incorrect code.
 
 ## Related notes
 
