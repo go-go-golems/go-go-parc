@@ -29,6 +29,8 @@ related_files:
 related_notes:
   - "[[Research/Software Architecture Garden/README]]"
   - "[[ARTICLE - Deep Dive - Retro Obsidian Publish - Vault-Driven Publishing Architecture]]"
+  - "[[Research/Software Architecture Garden/publish-vault/Index of Design Patterns]]"
+  - "[[Research/Software Architecture Garden/publish-vault/Index of Design Patterns - Rationale]]"
 ---
 
 # Architecture Garden — publish-vault
@@ -143,6 +145,11 @@ This study complements existing vault notes rather than replacing them:
 - [[ARTICLE - Deep Dive - Retro Obsidian Publish - Vault-Driven Publishing Architecture]] is the prose deep-dive on the same snapshot; this Garden study extracts the patterns and debt from that analysis.
 - [[ARTICLE - Publish Vault Memory Architecture - Reload-Safe Persistent Search Indexes]] covers the persistent search index in depth; document 01 references it rather than duplicating it.
 - [[PROJ - Publish Vault Widget DSL - Server-Driven Pages from an Embedded JavaScript Runtime]] is the project note for the widget subsystem; document 03 records its migration status.
+
+## Related studies
+
+- [[Research/Software Architecture Garden/publish-vault/Index of Design Patterns|Index of Design Patterns]] — back-of-the-book index of this study's patterns, failures, operations, and vocabulary, with a companion [[Research/Software Architecture Garden/publish-vault/Index of Design Patterns - Rationale|rationale]].
+- [[Research/Software Architecture Garden/README|Software Architecture Garden]] — maturity vocabulary, evidence hierarchy, and comparison rules.
 
 ## Source
 
