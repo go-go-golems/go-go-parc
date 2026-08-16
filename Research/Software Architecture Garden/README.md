@@ -64,10 +64,14 @@ Research/Software Architecture Garden/
     ├── 02 - <Pattern Study>.md
     ├── ...
     ├── 08 - Architecture Debt and Patterns Not to Repeat.md
-    └── 09 - Candidate Ecosystem Guidelines.md
+    ├── 09 - Candidate Ecosystem Guidelines.md
+    ├── Index of Design Patterns.md            ← optional back-of-book index
+    └── Index of Design Patterns - Rationale.md ← why each term was chosen
 ```
 
 The directory is a study collection, not a dump of project reports. Every document should teach a coherent part of the system and link back to the project overview. Related project studies should link to each other when they reveal the same pattern.
+
+An optional `Index of Design Patterns.md` (with its companion rationale) gives a finished study a textbook-style index of its patterns and vocabulary, filed by how readers remember the knowledge. The coinvault entry has the first instance; see [[Research/playbooks/creating-an-index|the index playbook]] for the workflow.
 
 ## Pattern maturity vocabulary
 
