@@ -45,6 +45,9 @@ related_files:
   - go/pkg/marketplacecapture/envelope.go
 related_notes:
   - "[[Research/Software Architecture Garden/surf-cli/01 - Project Architecture Overview|Project Architecture Overview]]"
+  - "[[Research/Software Architecture Garden/surf-cli/02 - Browser-Launched Host Broker|Browser-Launched Host Broker]]"
+  - "[[Research/Software Architecture Garden/surf-cli/Index of Design Patterns|Index of Design Patterns]]"
+  - "[[Research/Software Architecture Garden/surf-cli/Index of Design Patterns - Rationale|Index of Design Patterns - Rationale]]"
   - "[[Research/Software Architecture Garden/README|Software Architecture Garden]]"
 ---
 
@@ -192,8 +195,13 @@ These remain candidates until compared with consumers and additional repositorie
 
 [[Research/Software Architecture Garden/surf-cli/01 - Project Architecture Overview|Project Architecture Overview]] documents the five fundamental patterns (A–E) in full: law, concrete architecture, implementation details, behavioral contract, why alternatives are wrong, failure modes, testing and verification, applicability, and candidate ecosystem guidance. It is the entry to read first; finer-grained sub-patterns (correlation, error classification, retry idempotency, capture envelopes) can be broken out into their own design entries later if cross-project comparison demands it.
 
+### Browser-Launched Host Broker
+
+[[Research/Software Architecture Garden/surf-cli/02 - Browser-Launched Host Broker|Browser-Launched Host Broker]] is the deep treatment of Pattern B — the most novel and most transferable of the five fundamentals. It covers the law (authority flows from being browser-launched; the socket is a layered second channel), the native-messaging framing contract, the single serialized effect channel, identity rewrite at the boundary, the cascade-disconnect contract, the math (process ownership, one writer ⇒ one linearization point, multiplexing as id rewriting, disconnect as a cascade), failure modes (extension reload kills in-flight work; the socket is not a trust boundary; unknown-id replies are silently dropped), and the candidate ecosystem guidance.
+
 ## Related studies
 
+- [[Research/Software Architecture Garden/surf-cli/Index of Design Patterns|Index of Design Patterns]] — back-of-the-book index of this study's patterns and vocabulary, with a companion [[Research/Software Architecture Garden/surf-cli/Index of Design Patterns - Rationale|rationale]]
 - [[Research/Software Architecture Garden/README|Software Architecture Garden]]
 - [[Research/Software Architecture Garden/devctl/README|devctl architecture study]]
 - [[Research/Software Architecture Garden/rag-evaluation-system/README|rag-evaluation-system architecture study]]
