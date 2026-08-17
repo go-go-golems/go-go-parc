@@ -444,6 +444,8 @@ POST …/messages prompt="" + attachment → accepted; conversation title "Image
 
 The 401 is the expected outcome without a real key: the request reached the provider with the image resolved into it, which is the property under test.
 
+A second live run, later the same day, used the local profile registry (which carries real credentials) with the vision extension added to its vision-capable profiles, the built `web/dist` served by the Go binary, MySQL from the repository's compose file, and Playwright driving the real browser UI. A rendered 640×640 coin image bearing the text LIBERTY / 1 OZ FINE GOLD / 50 DOLLARS / 2026 was attached through the file chooser. On `glm-5.2-vision` (OpenAI chat-completions protocol via LunaRoute) the assistant listed all four lines and described the double-ring border; a second turn asked, without re-attaching, for the year and denomination and answered "2026 … 50 dollars" from history, with the server log showing the resolver middleware running once per turn. Switching the model selector to `gpt-5-nano` (OpenAI Responses protocol) and repeating the upload produced the same four lines and "Metal colour: Gold"; the log recorded the request to `https://api.openai.com/v1/responses` with an `input_image` part (body ≈ 62 KB for a 20 KB PNG, status 200). Reloading the page hydrated the user bubble with the `<img>` from `/api/chat/sessions/<sid>/attachments/<id>` (natural size 640×640), and the turn store held two user blocks with no `content` bytes.
+
 ## 7. Delivery
 
 The work was committed on each repository's shared working branch as it happened, then isolated for review:
@@ -469,7 +471,7 @@ The design document in the CoinVault ticket records these as decision records D1
 
 ## 9. What remains
 
-- A live run against a real vision model with `COINVAULT_LUNAROUTE_API_KEY` or an OpenAI key set; the smoke test proved everything up to the provider's authentication.
+- Live runs against Claude (`sonnet`) and Gemini (`gemini-2.5-flash`) to exercise those two adapters end to end; GLM (chat completions) and OpenAI (Responses) are verified.
 - Tagged releases of geppetto and pinocchio after #414 and #199 merge, replacing the pseudo-version pins in pinocchio and CoinVault.
 - An S3-backed `Store` and a k3s manifest flag for `--attachments-dir` before running more than one replica.
 - Optional: provider `file_id` upload for OpenAI Responses as an optimisation; a thumbnail endpoint; per-message deletion; a Storybook interaction test for paste and drop; an upload UI in pinocchio's `cmd/web-chat`.
