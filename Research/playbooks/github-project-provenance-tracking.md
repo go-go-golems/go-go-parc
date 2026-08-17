@@ -1,17 +1,18 @@
 ---
 title: "Playbook: GitHub Project Provenance Tracking for Agent Work"
 slug: github-project-provenance-tracking
-short: "Reset a GitHub Project, add provenance fields, enroll issues, and record docmgr, Pi session, and working-directory context."
+short: "Reset a GitHub Project, add provenance fields, enroll issues, and record docmgr, agent session (Pi or Claude Code), and working-directory context."
 topics:
   - github-projects
   - agent-workflows
   - provenance
   - docmgr
   - pi
+  - claude-code
   - playbook
 section_type: Playbook
 created: 2026-08-12
-updated: 2026-08-12
+updated: 2026-08-17
 ---
 
 # Playbook: GitHub Project Provenance Tracking for Agent Work
@@ -91,6 +92,23 @@ PI_AGENT_CWD          working directory associated with the session
 ```
 
 `PI_AGENT_SESSION_FILE` is useful for audit and transcript recovery, but the board field should normally store the shorter session ID.
+
+### 2.1 Claude Code sessions
+
+Claude Code does not export a session ID in the environment (only `CLAUDE_CODE_ENTRYPOINT` and `CLAUDE_CODE_MESSAGING_SOCKET` are set). The session ID is the UUID that names the transcript file under the per-project directory:
+
+```bash
+ls -t ~/.claude/projects/$(pwd | sed 's#/#-#g')/*.jsonl | head -1
+# e.g. ~/.claude/projects/-home-manuel-code-wesen-go-go-golems-esp32-s3-m5/6356eb91-e077-4a86-a666-db446c46efc0.jsonl
+```
+
+The same UUID appears in the session's scratchpad path (`/tmp/claude-1000/<slugged-cwd>/<uuid>/scratchpad`), which is what the agent itself can see. Record it in the `Agent Pi session` field with an explicit prefix so it is not mistaken for a Pi ID:
+
+```text
+claude-code:6356eb91-e077-4a86-a666-db446c46efc0
+```
+
+The working directory is the session's primary working directory (the directory whose slug names the transcript folder). If the field is renamed to a neutral `Agent session`, keep the prefix convention (`pi:` / `claude-code:`).
 
 ## 3. Inspect before mutating
 
@@ -411,7 +429,8 @@ A ticket can contain design documents, diaries, tasks, changelog entries, and fi
 This identifies the agent transcript that performed the investigation or created the issue:
 
 ```text
-019ff829-68a3-7fea-8a3d-43c5209b3ddf
+019ff829-68a3-7fea-8a3d-43c5209b3ddf            # Pi (PI_AGENT_SESSION_ID)
+claude-code:6356eb91-e077-4a86-a666-db446c46efc0 # Claude Code (transcript UUID, see §2.1)
 ```
 
 The session ID remains useful if session files move or are indexed into another transcript system.
@@ -831,4 +850,6 @@ Do not require `issue.projectItems` to report the cross-owner project; GitHub cu
 - Pattern catalog: [Go-Go-Golems Architecture & Pattern Catalog](https://github.com/orgs/go-go-golems/projects/3)
 - GitHub CLI project commands: `gh project --help`
 - Pi environment: `env | sort | grep '^PI_AGENT_'`
+- Claude Code session: newest `~/.claude/projects/<slugged-cwd>/*.jsonl` (see §2.1)
+- Worked example (Claude Code): [go-go-golems/remarquee#23](https://github.com/go-go-golems/remarquee/issues/23) on Project 1
 - Docmgr workflow: [[docmgr]]
