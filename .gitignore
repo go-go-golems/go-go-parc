@@ -8,3 +8,44 @@
 # regenerable from ~/.claude, ~/.codex and the pi archives, duplicated between
 # bundles, and 1.3 GB — it does not belong in the vault's history.
 scripts/**/archives/
+
+# Local agent-harness shims: auto-created symlinks (.claude/skills, .codex/skills)
+# pointing at ../.pi/skills. Machine-local, not vault content.
+.claude/
+.codex/
+
+# Generated pi extension/skill node_modules, managed by pi and regenerated locally.
+.pi/npm/
+
+# Obsidian trash bin.
+.trash/
+
+# ruff Python linter cache.
+.ruff_cache/
+
+# ChatGPT transcript deliverable bundles (.zip and surf-go's hash-suffixed
+# .zip-<hash> dedup variants). These repackage output files that are already
+# archived uncompressed alongside them in the same transcript folder, so
+# committing both is pure duplication. Established practice in this vault:
+# only ~5 of 159 zips were ever committed. Ignoring them avoids ~227 MB of
+# duplicate blobs.
+Transcripts/**/*.zip
+Transcripts/**/*.zip-*
+Transcripts/**/*.zip.sha256
+Transcripts/**/*.zip-*.sha256
+
+# Other archive/build bundles in transcript output folders: .tar.gz and Python
+# wheels. Like the .zip deliverables above, these are packaged artifacts
+# (0 ever committed in HEAD). Kept on disk, just not versioned.
+Transcripts/**/*.tar.gz
+Transcripts/**/*.whl
+
+# Built firmware/loader blobs dropped into transcript folders (e.g. Rabbit r1
+# bare-metal bring-up: .elf, .Image). 0 ever committed in HEAD. Kept on disk.
+Transcripts/**/*.elf
+Transcripts/**/*.Image
+
+# Entire Rabbit r1 bare-metal build-bundle folders: the firmware blobs above
+# plus their .zip/.map/.txt/SHA256SUMS sidecars. All build artifacts, no
+# transcript .md. Kept on disk, not versioned.
+Transcripts/**/Raw metal firmware Rabbit R1/
