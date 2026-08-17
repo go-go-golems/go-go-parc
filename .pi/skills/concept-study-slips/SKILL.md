@@ -1,6 +1,6 @@
 ---
 name: concept-study-slips
-description: Turns the mathematical or architectural foundations of a study into printable thermal slips — one concept per slip, each grounded in real code from the pinned repository. Produces concept YAML files as the source of truth plus two printed forms: a long intern briefing (why it exists, who calls it, what bites) and a short study card for a chalkboard. Use when asked to make study cards, concept tickets, chalkboard slips, or an intern briefing printout from an Architecture Garden entry, a design document, or a codebase.
+description: "Turns the mathematical or architectural foundations of a study into printable thermal slips — one concept per slip, each grounded in real code from the pinned repository. Produces concept YAML files as the source of truth plus two printed forms: a long intern briefing (why it exists, who calls it, what bites) and a short study card for a chalkboard. Use when asked to make study cards, concept tickets, chalkboard slips, or an intern briefing printout from an Architecture Garden entry, a design document, or a codebase."
 ---
 
 # Concept Study Slips
