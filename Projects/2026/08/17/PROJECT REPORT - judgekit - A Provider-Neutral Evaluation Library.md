@@ -27,16 +27,19 @@ tags:
 
 # judgekit: A Provider-Neutral Evaluation Library
 
-An evaluator's value is not in the score it produces but in the chain of decisions that separates what is measured from how it is measured, what is observed from what is reported, and measurement evidence from deployment decisions. This report documents the implementation of judgekit, a Go library that makes that chain explicit and content-addressed. The repository began as an untouched Go template with a placeholder module path, a placeholder binary, and a logging dependency that transitively imported a command framework, a TUI framework, and a SQLite driver. It is now a provider-neutral evaluation library with five core packages totaling 3,128 lines of non-test code, twelve forbidden-import guards enforced by a root-level test, 74 test functions, and no provider credentials required to run any of them.
+An evaluator's value is not in the score it produces but in the chain of decisions that separates what is measured from how it is measured, what is observed from what is reported, and measurement evidence from deployment decisions. This report documents the implementation of judgekit, a Go library that makes that chain explicit and content-addressed. The repository began as an untouched Go template with a placeholder module path, a placeholder binary, and a logging dependency that transitively imported a command framework, a TUI framework, and a SQLite driver. It is now a provider-neutral evaluation library with eight core packages totaling 5,412 lines of non-test code, twelve forbidden-import guards enforced by a root-level test, 102 test functions, and no provider credentials required to run any of them.
 
 The library's central design principle is structural, not algorithmic: a judge is a measurement instrument, and the relationship between the score it produces and the construct it intends to measure can break, especially under optimization. judgekit does not attempt to make judges correct. It makes the evaluation protocol explicit so that the relationship can be audited. Every report carries the protocol digest and the instance digest it was produced under, and the report itself is sealed with a content-addressed digest. A reader can follow the chain from an abstract construct to a reported number and see every assumption that produced it.
 
+The first implementation pass built the five value-and-execution packages (`spec`, `eval`, `protocol`, `assessment`, `judging`) and the documentation. The second pass built the three packages that sit above the judging path and consume its reports rather than calling providers: `audit` (reliability and bias), `calibration` (agreement with human labels), and `suite` (combining evaluators). Those three were ordered after the value types because a reliability probe or a calibration metric is built on top of reports and gold records, and those had to exist first.
+
 > [!summary]
-> - judgekit is a provider-neutral Go library for evaluating language-model outputs. Core packages (`spec`, `eval`, `protocol`, `assessment`, `judging`) depend only on the standard library and three internal helper packages; a root-level boundary test rejects imports of Glazed, Cobra, Bubble Tea, provider SDKs, and four sibling product modules in every core package.
+> - judgekit is a provider-neutral Go library for evaluating language-model outputs. Core packages (`spec`, `eval`, `protocol`, `assessment`, `judging`, `audit`, `calibration`, `suite`) depend only on the standard library, the three internal helper packages, and `golang.org/x/sync/errgroup` for the suite; a root-level boundary test rejects imports of Glazed, Cobra, Bubble Tea, provider SDKs, and four sibling product modules in every core package.
 > - The inference chain is made of separate, content-addressed documents: a measurement contract defines what is measured, a protocol defines how, an instance defines what is observed, and a sealed report defines what is produced. Each has a semantic digest (canonical JSON, order-independent) and, for loaded files, a byte digest that proves the exact reviewed source.
 > - Support is three-way (`entailed` / `contradicted` / `insufficient`) from the first version. A boolean verdict cannot distinguish contradiction from absent evidence, and those two failures require different interventions. Entailed and contradicted verdicts must cite evidence; only `insufficient` may cite none.
 > - The reference evaluator is a two-stage claim judge: claims are extracted with the evidence hidden, each claim is judged against the evidence, and the contract-defined aggregation produces the report. Structural failures are repaired once by prompt rewriting; semantic failures fail closed at seal time.
-> - 74 tests run with a fake generator and local fixtures; no provider credentials are required. `golangci-lint` reports zero issues and `go test -count=1 ./...` is green, including the boundary test.
+> - Three packages sit above the judging path and consume reports rather than calling providers: `audit` runs a judge over base/variant instances and reports per-construct reliability and bias; `calibration` matches reports to human gold labels and reports extraction recall, confusion, Brier, and ECE; `suite` combines evaluators in an acyclic dependency graph run concurrently. None of the three collapses reports into a single score.
+> - 102 tests run with fake generators and local fixtures; no provider credentials are required. `golangci-lint` reports zero issues and `go test -count=1 ./...` is green across all packages, including the boundary test over all eight core packages.
 
 ## 1. The repository: template to library
 
@@ -69,11 +72,11 @@ abstract construct
   -> evaluation protocol         (protocol)
   -> evaluation instance + evidence (eval)
   -> structured assessment        (assessment)
-  -> statistical audit/calibration (planned: audit, calibration)
+  -> statistical audit/calibration (audit, calibration)
   -> application decision         (outside judgekit)
 ```
 
-The packages map onto that chain by responsibility. `spec` defines what an evaluator measures. `eval` defines what an evaluator observes. `protocol` defines how an evaluator measures. `assessment` defines what an evaluator produces. `judging` runs evaluators. Three internal helper packages — `identifier`, `canonicaljson`, `strictdecode` — provide the primitives the value types depend on.
+The packages map onto that chain by responsibility. `spec` defines what an evaluator measures. `eval` defines what an evaluator observes. `protocol` defines how an evaluator measures. `assessment` defines what an evaluator produces. `judging` runs evaluators. `audit`, `calibration`, and `suite` sit above the judging path and consume reports rather than calling providers. Three internal helper packages — `identifier`, `canonicaljson`, `strictdecode` — provide the primitives the value types depend on.
 
 The dependency direction is constrained so that the value packages do not depend on the execution package, and so that the three bottom-of-the-chain packages are parallel.
 
@@ -87,6 +90,9 @@ flowchart TD
   PROTO["protocol\nmodel + prompts + decoding"]
   ASSESS["assessment\nclaims + verdicts + reports"]
   JUDGE["judging\ninterfaces + claim judge"]
+  AUDIT["audit\nreliability + bias + panels"]
+  CALIB["calibration\ngold + recall + confusion + Brier + ECE"]
+  SUITE["suite\nacyclic evaluator graph"]
   IDENT --> SPEC
   IDENT --> EVAL
   IDENT --> PROTO
@@ -95,17 +101,32 @@ flowchart TD
   CJ --> EVAL
   CJ --> PROTO
   CJ --> ASSESS
+  CJ --> AUDIT
+  CJ --> CALIB
+  CJ --> SUITE
   SD --> JUDGE
   SPEC --> ASSESS
   EVAL --> ASSESS
   EVAL --> JUDGE
   PROTO --> JUDGE
   ASSESS --> JUDGE
+  EVAL --> AUDIT
+  ASSESS --> AUDIT
+  SPEC --> AUDIT
+  JUDGE --> AUDIT
+  SPEC --> CALIB
+  ASSESS --> CALIB
+  EVAL --> SUITE
+  ASSESS --> SUITE
+  JUDGE --> SUITE
   style JUDGE fill:#e6f7ff,stroke:#1890ff
   style ASSESS fill:#fff7e6,stroke:#fa8c16
+  style AUDIT fill:#f6ffed,stroke:#52c41a
+  style CALIB fill:#f6ffed,stroke:#52c41a
+  style SUITE fill:#f6ffed,stroke:#52c41a
 ```
 
-`spec`, `eval`, and `protocol` depend only on the standard library and the internal helpers. `assessment` depends on `spec` and `eval`. `judging` is the only package that depends on all four value packages. Provider adapters, when they are added, will import `judging` and never the reverse.
+`spec`, `eval`, and `protocol` depend only on the standard library and the internal helpers. `assessment` depends on `spec` and `eval`. `judging` is the only value-and-execution package that depends on all four value packages. `audit` depends on `eval`, `assessment`, `spec`, and `judging` (its panels use the `Judge` interface). `calibration` depends on `assessment` and `spec`. `suite` depends on `eval`, `assessment`, and `judging`, plus `golang.org/x/sync/errgroup` for concurrent execution. Provider adapters, when they are added, will import `judging` and never the reverse. The three top packages never call providers; they run a `judging.Judge` or consume reports.
 
 The boundary is enforced by a test at the module root, `boundary_test.go`, which runs `go list -json` over the core packages and rejects any import whose path begins with one of twelve forbidden prefixes.
 
@@ -387,7 +408,203 @@ Caching is reproducibility and cost control, not reliability. A `Cache` stores a
 
 A `FakeGenerator` returns canned responses keyed by step and records every request. It lets the claim judge and the examples run with no provider credentials, and it lets tests assert prompt construction. The end-to-end test feeds two claims, receives one entailed and one contradicted verdict, and asserts faithfulness is `0.5`, relevance is `0.9`, and abstention is `attempted`. The report carries the protocol and instance digests. A second test asserts that a zero-claim answer produces faithfulness `1.0` under the `vacuous_perfect` empty policy. A third test feeds a malformed extract response and asserts it is repaired once. A fourth test feeds an invalid support label and asserts the judge fails closed rather than accepting it.
 
-## 9. The help-host CLI and the documentation
+## 9. audit, calibration, and suite — measuring the judge, not the answer
+
+Three packages sit above the judging path. They consume reports rather than
+calling providers, and none of them collapses reports into a single score.
+Their ordering in the implementation followed the dependency graph: they were
+built after the value types because a reliability probe and a calibration
+metric are built on top of reports and gold records.
+
+### audit — reliability and bias
+
+Reliability is consistency, not correctness. A cached wrong verdict is stable
+but unreliable, so reliability is deliberately separate from caching. The
+`audit` package runs a judge over a base instance and a variant that changes
+only something that should not affect the construct, then compares the two
+reports.
+
+A `Probe` carries a `ProbeKind` (`repeat`, `evidence_order`, `candidate_order`,
+`prompt_paraphrase`, `format_transform`, `cross_judge`), a base and a variant
+instance, and a required `Invariants` list. The invariant list is required
+because a probe that does not state what should not change cannot localize a
+sensitivity it finds. `NewProbeSet` content-addresses a set of probes.
+
+```go
+type Probe struct {
+    ID              string
+    Kind            ProbeKind
+    BaseInstance    eval.Instance
+    VariantInstance eval.Instance
+    Invariants      []string  // required
+}
+
+func Reliability(ctx context.Context, judge judging.Judge, set ProbeSet,
+    protocolDigest string) (ReliabilityReport, error)
+```
+
+`CompareReports` walks the two reports and returns one `Disagreement` per
+construct whose value or label changed and per claim whose support label
+changed. `Disagreement.BaseLabel` and `VariantLabel` are strings, not
+`SupportLabel`, because dimension labels are an open set (an abstention
+dimension carries `"attempted"` or `"abstained"`, which are not support
+labels). The construct-versus-claim distinction is carried by which ID field is
+set.
+
+`Reliability` aggregates per-construct agreement and mean absolute delta
+across a probe set, never one "reliability score". The report carries the
+protocol digest and the probe-set digest and is sealed with its own
+digest. A test feeds a base report with faithfulness `0.5` and a variant with
+`0.9`, plus an entailed-then-contradicted claim flip, and asserts claim-label
+agreement `0`, dimension agreement `0`, and mean absolute delta `0.4`.
+
+A `Panel` runs several judges over one instance and preserves every member
+report plus a pairwise claim-label agreement matrix. Majority vote is an
+aggregation, not independent truth; the panel never collapses reports. The
+agreement matrix reports `0`, not `1`, for a judge pair that shares no claims,
+so it does not over-report agreement for judges that extracted disjoint claim
+sets. This is the implementation of the textbook's "five judges, one error"
+counterexample: judgekit can compute agreement but cannot infer error
+independence without external labels.
+
+```go
+type Panel struct {
+    Judges []judging.Judge
+    Policy AggregationPolicy
+}
+
+func (p Panel) Evaluate(ctx context.Context, inst eval.Instance) (PanelResult, error)
+```
+
+`audit` runs a `judging.Judge` over the base and variant instances; it never
+imports a provider SDK. The boundary test confirms `judging` is its only
+execution dependency.
+
+### calibration — agreement with human labels
+
+`calibration` is the link between judgekit reports and human or objective
+labels. It owns gold records, extraction recall, confusion matrices, and the
+probability-scoring rules.
+
+A `GoldClaim` retains `ReviewerIDs` so inter-rater agreement can be measured.
+`Adjudicated` is a flag, not an erasure: when a disagreement is adjudicated, the
+reviewer list is kept, so the original disagreement that produced the
+adjudication is still visible. Gold sets are content-addressed so a
+calibration report can pin the exact labels it was computed against.
+
+```go
+type GoldClaim struct {
+    InstanceID  string
+    Claim       assessment.Claim
+    Label       assessment.SupportLabel
+    ReviewerIDs []string  // retained even after adjudication
+    Adjudicated bool
+}
+```
+
+The clean separation between extraction recall and confusion is the key
+semantic. `ExtractionRecall` is `matched / len(gold)` over all gold claims: a
+miss is a recall failure. The confusion matrix is built only over matched
+claims: a miss gives no predicted label, so it cannot enter a 2x2. Conflating
+them would double-count misses. `ConfusionFromClaims` builds the matrix with
+entailed as the positive class and non-entailed (contradicted or
+insufficient) as the negative class, and exposes `Sensitivity`,
+`Specificity`, and `FalseSupportRate` (one minus precision).
+
+`BrierScore` and `ExpectedCalibrationError` are the proper scoring rules over
+`(confidence, outcome)` pairs. They apply only when the protocol emits
+confidence probabilities, so they are `*float64` and nil when no confidence is
+present. A 1-5 ordinal score is not a probability; forcing a number would
+imply the protocol is calibrated when it emitted no probabilities at all.
+`Calibrate` matches gold claims to model verdicts per instance, builds the
+confusion matrix over matched claims, computes recall over all gold claims,
+and Brier/ECE over claims with confidence, then seals the report.
+
+```go
+type Report struct {
+    ExtractionRecall float64
+    Sensitivity      float64
+    Specificity      float64
+    FalseSupportRate float64
+    BrierScore       *float64  // nil when no confidence
+    ECE              *float64
+    ByGroup          map[string]SliceReport
+    Digest           string
+}
+
+func Calibrate(in CalibrateInput) (Report, error)
+```
+
+A test pins the missed-claim behavior: a judge that extracts one of two gold
+claims gets recall `0.5`, but its confusion matrix has one true positive and
+no false negatives, so sensitivity is `1.0`. The miss lowered recall; it did
+not enter confusion. Another test confirms Brier and ECE are nil when the
+verdicts carry no confidence.
+
+`calibration` consumes reports and gold records; it does not run judges.
+
+### suite — combining evaluators without collapsing them
+
+A real evaluation often needs more than one judge: a claim extractor feeding a
+support judge, a required-fact verifier, a citation resolver, an abstention
+judge, a style judge. Collapsing them into one output loses the per-evaluator
+protocol identity and the per-evaluator disagreement. `suite` runs them in
+dependency order, lets one evaluator consume another's results, and retains
+every report keyed by evaluator name.
+
+An `Evaluator` declares `Name` and `DependsOn` and implements `Evaluate`, which
+receives the instance and the partial `Results` available so far. A support
+judge may consume a claim extractor's output only when that dependency is
+declared and has already run.
+
+```go
+type Evaluator interface {
+    Name() string
+    DependsOn() []string
+    Evaluate(ctx context.Context, inst eval.Instance, results Results) (assessment.Report, error)
+}
+
+type Suite struct {
+    APIVersion  string
+    Name        string
+    Evaluators  []Evaluator
+    Digest      string
+}
+
+func NewSuite(name string, evaluators []Evaluator) (Suite, error)
+func (s Suite) Run(ctx context.Context, inst eval.Instance) (Results, error)
+```
+
+`Validate` rejects three structural failures before any evaluator runs:
+unknown dependencies (a `DependsOn` name that is not a declared evaluator),
+duplicate evaluator names, and dependency cycles. The cycle check is a DFS
+with white/gray/black coloring that reports the first cycle as a path.
+
+`Run` dispatches evaluators in dependency waves. Each wave finds the
+evaluators whose remaining-dependencies set is empty, dispatches them
+concurrently via `errgroup`, waits for the wave, then removes each completed
+evaluator from every other evaluator's remaining set. A dependent evaluator
+sees a snapshot of `Results` taken at dispatch time, so it has a stable view
+independent of later concurrent writes. Each report retains its own protocol
+digest; the suite does not merge them. `errgroup.WithContext` cancels
+remaining work on the first error, so an evaluator failure fails the whole
+run fast.
+
+The suite digest is a function of the graph structure, not the declaration
+order. `NewSuite` sorts each evaluator's dependency list and digests only the
+dependencies map plus the API version and name, so two suites that describe the
+same evaluator graph in different orders get the same digest. This was a
+correctness fix: the first implementation included an ordered `EvaluatorNames`
+slice, so reordering evaluators changed the digest, and a test failed until the
+slice was dropped.
+
+A `JudgeEvaluator` adapts a plain `judging.Judge` to a dependency-free
+`Evaluator`, so a suite can run a judge without the caller implementing the
+interface by hand. A concurrency test runs two sleeping evaluators and asserts
+the elapsed time is under twice the single delay, proving `errgroup` actually
+overlaps independent evaluators rather than running them sequentially.
+
+## 10. The help-host CLI and the documentation
 
 The documentation is shipped as three Glazed help entries under `pkg/doc/`, embedded into a thin CLI under `cmd/judgekit/`.
 
@@ -413,19 +630,24 @@ A `GLOSSARY.md` at the repository root grounds the measurement-theory terms the 
 
 An `examples/claim-judge/` directory contains a runnable end-to-end example: a `contract.yaml` and an `example_test.go` that loads the contract, builds a protocol and instance, renders the two prompts with a fake generator, runs the judge, and logs the report digest and dimensions. The example's report digest is `sha256:35948305ac8c511e014c579328fac610f58d1dadf430ca3c8cd5c6ce876137d8`.
 
-## 10. Verification, and what is deliberately not done
+## 11. Verification, and what is deliberately not done
 
 The verification is a fresh test run with the cache disabled.
 
 ```text
-GOWORK=off go test -count=1 ./...      12 packages, 74 test functions, green
+GOWORK=off go test -count=1 ./...      15 packages, 102 test functions, green
 GOWORK=off go vet ./...                clean
 gofmt -l ./...                         clean
 golangci-lint run                      0 issues
 docmgr doctor --ticket JUDGEKIT-001    all checks passed
 ```
 
-The boundary test is part of the suite. It runs `go list -json` over `./spec`, `./eval`, `./protocol`, `./assessment`, `./judging`, and `./internal/...`, decodes the package list, and rejects any import that begins with a forbidden prefix. The test fails the build if a core package imports a framework, a provider SDK, or a sibling product.
+The boundary test is part of the suite. It runs `go list -json` over `./spec`,
+`./eval`, `./protocol`, `./assessment`, `./judging`, `./audit`, `./calibration`,
+`./suite`, and `./internal/...`, decodes the package list, and rejects any
+import that begins with a forbidden prefix. The test fails the build if a core
+package imports a framework, a provider SDK, or a sibling product. It was
+extended when each new package was added so the guard never lagged the code.
 
 | Package | Non-test lines | Test file |
 |---|---|---|
@@ -435,32 +657,78 @@ The boundary test is part of the suite. It runs `go list -json` over `./spec`, `
 | `spec` | 726 | yes |
 | `eval` | 509 | yes |
 | `protocol` | 423 | yes |
-| `assessment` | 572 | yes |
+| `assessment` | 579 | yes |
 | `judging` | 898 | yes |
-| **Core total** | **3,128** | |
+| `audit` | 819 | yes |
+| `calibration` | 931 | yes |
+| `suite` | 527 | yes |
+| **Core total** | **5,412** | |
 
-The library deliberately does not do several things, and the reasons are structural.
+The library deliberately does not do several things, and the reasons are
+structural.
 
-It does not make deployment or promotion decisions. A judge report feeds an external gate — ragopt or a product — that must interpret it explicitly. The design document's accepted decision record states this directly: judgekit produces auditable measurement evidence; it does not grant that evidence authority it has not earned. A single `Score()` method that collapsed "measured 0.86" into "deploy" would recreate the ambiguity the library is intended to remove.
+It does not make deployment or promotion decisions. A judge report feeds an
+external gate — ragopt or a product — that must interpret it explicitly. The
+design document's accepted decision record states this directly: judgekit
+produces auditable measurement evidence; it does not grant that evidence
+authority it has not earned. A single `Score()` method that collapsed
+"measured 0.86" into "deploy" would recreate the ambiguity the library is
+intended to remove. The same boundary applies to the three top packages:
+`audit` reports reliability, `calibration` reports agreement with labels, and
+`suite` returns a set of reports; none of them promotes a candidate.
 
-It does not own product prompts, rubrics, tool names, authorization, or case schemas. Those belong to applications. The `ClaimProtocol` interface is where an application renders its prompts; the protocol stores only prompt digests.
+It does not own product prompts, rubrics, tool names, authorization, or case
+schemas. Those belong to applications. The `ClaimProtocol` interface is where an
+application renders its prompts; the protocol stores only prompt digests.
 
-It does not own optimization campaigns, candidate mutation, or promotion policy. Those belong to ragopt. It does not own retrieval, chunks, reranking, or grounded-answer contracts. Those belong to ragkit. It does not store hidden chain-of-thought or treat any model score as ground truth.
+It does not own optimization campaigns, candidate mutation, or promotion
+policy. Those belong to ragopt. It does not own retrieval, chunks, reranking,
+or grounded-answer contracts. Those belong to ragkit. It does not store hidden
+chain-of-thought or treat any model score as ground truth.
 
-It does not yet implement reliability audits, calibration, or evaluator suites. Those are planned in the design document as the `audit`, `calibration`, and `suite` packages. The reason for the ordering is that a reliability probe or a calibration metric is built on the value types — instances, reports, protocols — and the value types had to exist first. The two-stage claim judge is the reference evaluator; the audit and calibration packages consume its reports.
+It does not yet implement the probability-scoring helpers for per-group
+calibration slicing. The `calibration.Report` carries a `ByGroup` field, but
+`Calibrate` does not yet populate it; that requires a grouping key on gold
+records and is the first follow-up. ECE uses equal-width binning and can hide
+within-bin structure, so a reliability-diagram helper alongside ECE is the
+second.
 
-It does not yet run a pilot integration. The design document specifies a CoinVault pilot as Phase 7: port the claim extraction and support path onto judgekit, compare characterization fixtures, and delete the replaced local generic structures. That pilot touches a sibling repository and was deferred; the colleague working on the other repositories owns that surface.
+It does not yet run a pilot integration. The design document specifies a
+CoinVault pilot as Phase 7: port the claim extraction and support path onto
+judgekit, compare characterization fixtures, and delete the replaced local
+generic structures. That pilot touches a sibling repository and was deferred;
+the colleague working on the other repositories owns that surface.
 
-## 11. Open questions and near-term next steps
+## 12. Open questions and near-term next steps
 
-The open questions are about where the boundary between judgekit and its consumers should be drawn more sharply.
+The open questions are about where the boundary between judgekit and its
+consumers should be drawn more sharply.
 
-- Should reliability and calibration be in judgekit, or in a separate package that consumes judgekit reports? The design document places them in judgekit, but they depend only on reports and gold records, not on judging execution. A separate package would make the dependency direction even cleaner.
-- Should provider adapters live in this repository or in separate adapter repositories? The design document defers the decision until two applications use the core interface. The boundary test would need to extend to cover an adapter directory.
-- Should the `MemoryCache` store raw bytes rather than JSON-round-tripping values? The current implementation is correct but wasteful for large raw responses. A production cache should store raw bytes.
-- Should `strictdecode` classify errors via typed errors rather than substring matching on the `json` error message? The current classification is fragile across Go versions.
+- Should provider adapters live in this repository or in separate adapter
+  repositories? The design document defers the decision until two applications
+  use the core interface. The boundary test would need to extend to cover an
+  adapter directory.
+- Should the `MemoryCache` store raw bytes rather than JSON-round-tripping
+  values? The current implementation is correct but wasteful for large raw
+  responses. A production cache should store raw bytes.
+- Should `strictdecode` classify errors via typed errors rather than substring
+  matching on the `json` error message? The current classification is fragile
+  across Go versions.
+- Should `audit`'s `Panel.Evaluate` run judges concurrently rather than
+  sequentially? The v0 implementation is sequential to keep the test double
+  deterministic; a production panel should use `errgroup` like `suite` does.
+- Should `Calibrate` populate `ByGroup` from a grouping key on gold records?
+  The field exists but is not yet filled; per-group calibration across strata
+  (topic, difficulty, evidence kind) is the obvious next step and requires a
+  key.
 
-The near-term next steps follow the design document's phases. Implement the `audit` package: repeat, evidence-order, candidate-order, prompt-paraphrase, and cross-judge probes, with disagreement reports that preserve per-construct and per-probe breakdowns. Implement the `calibration` package: gold records, extraction recall, confusion matrices, Brier score, and expected calibration error. Add fuzz tests for `canonicaljson`, `strictdecode`, and report sealing. Then run the CoinVault pilot, gated by characterization fixtures that capture the current judge's behavior before any code is moved.
+The near-term next steps follow the design document's remaining phases. Add
+fuzz tests for `canonicaljson`, `strictdecode`, the calibration scoring
+functions (Brier/ECE), extraction recall, and report sealing. Add the
+`ByGroup` slicing and a reliability-diagram helper alongside ECE. Then run the
+CoinVault pilot, gated by characterization fixtures that capture the current
+judge's behavior before any code is moved. Optional provider adapters are the
+last design phase, and only after two applications use the core interface.
 
 ## Working rule
 
