@@ -1,0 +1,1283 @@
+{
+  "schema": "https://example.invalid/cam-ir/v0.1",
+  "version": "0.1",
+  "metadata": {
+    "name": "Compositional badge",
+    "description": "Facing, arc-rich engraving, contouring, and explicit peck drilling.",
+    "source": "examples/badge.ts",
+    "revision": "1"
+  },
+  "safety": {
+    "workClearanceZ": 5,
+    "machineSafeZ": -5,
+    "arcTolerance": 0.01,
+    "requireMachineRetractBeforeToolChange": true
+  },
+  "commands": [
+    {
+      "kind": "comment",
+      "text": "All internal coordinates are absolute millimetres in G54"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "machine",
+      "z": -5
+    },
+    {
+      "kind": "select-work-offset",
+      "offset": "G54"
+    },
+    {
+      "kind": "tool-change",
+      "tool": {
+        "number": 1,
+        "name": "3 mm flat end mill",
+        "kind": "flat-end-mill",
+        "diameter": 3
+      }
+    },
+    {
+      "kind": "spindle",
+      "mode": "cw",
+      "speed": 12000
+    },
+    {
+      "kind": "coolant",
+      "mode": "flood"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-xy",
+      "space": "work",
+      "x": -28,
+      "y": -16
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": -16,
+        "z": -0.4
+      },
+      "feed": 180,
+      "intent": "plunge"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": -16,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": -13.866666666666667,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": -13.866666666666667,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": -11.733333333333334,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": -11.733333333333334,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": -9.6,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": -9.6,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": -7.466666666666667,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": -7.466666666666667,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": -5.333333333333334,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": -5.333333333333334,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": -3.1999999999999993,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": -3.1999999999999993,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": -1.0666666666666664,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": -1.0666666666666664,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": 1.0666666666666664,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": 1.0666666666666664,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": 3.1999999999999993,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": 3.1999999999999993,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": 5.333333333333332,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": 5.333333333333332,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": 7.466666666666665,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": 7.466666666666665,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": 9.600000000000001,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": 9.600000000000001,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": 11.733333333333334,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": 11.733333333333334,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": 13.866666666666667,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": 13.866666666666667,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 28,
+        "y": 16,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "link"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -28,
+        "y": 16,
+        "z": -0.4
+      },
+      "feed": 700,
+      "intent": "cut"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-xy",
+      "space": "work",
+      "x": 8,
+      "y": 0
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 8,
+        "y": 0,
+        "z": -0.6
+      },
+      "feed": 150,
+      "intent": "plunge"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": -8,
+        "y": 0,
+        "z": -0.6
+      },
+      "center": {
+        "frame": "work",
+        "x": 0,
+        "y": 0,
+        "z": -0.6
+      },
+      "direction": "ccw",
+      "feed": 450,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": 8,
+        "y": 0,
+        "z": -0.6
+      },
+      "center": {
+        "frame": "work",
+        "x": 0,
+        "y": 0,
+        "z": -0.6
+      },
+      "direction": "ccw",
+      "feed": 450,
+      "intent": "cut"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-xy",
+      "space": "work",
+      "x": 8,
+      "y": 0
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 8,
+        "y": 0,
+        "z": -1.2
+      },
+      "feed": 150,
+      "intent": "plunge"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": -8,
+        "y": 0,
+        "z": -1.2
+      },
+      "center": {
+        "frame": "work",
+        "x": 0,
+        "y": 0,
+        "z": -1.2
+      },
+      "direction": "ccw",
+      "feed": 450,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": 8,
+        "y": 0,
+        "z": -1.2
+      },
+      "center": {
+        "frame": "work",
+        "x": 0,
+        "y": 0,
+        "z": -1.2
+      },
+      "direction": "ccw",
+      "feed": 450,
+      "intent": "cut"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-xy",
+      "space": "work",
+      "x": -27,
+      "y": -18
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -27,
+        "y": -18,
+        "z": -0.75
+      },
+      "feed": 150,
+      "intent": "plunge"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 27,
+        "y": -18,
+        "z": -0.75
+      },
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": 30,
+        "y": -15,
+        "z": -0.75
+      },
+      "center": {
+        "frame": "work",
+        "x": 27,
+        "y": -15,
+        "z": -0.75
+      },
+      "direction": "ccw",
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 30,
+        "y": 15,
+        "z": -0.75
+      },
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": 27,
+        "y": 18,
+        "z": -0.75
+      },
+      "center": {
+        "frame": "work",
+        "x": 27,
+        "y": 15,
+        "z": -0.75
+      },
+      "direction": "ccw",
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -27,
+        "y": 18,
+        "z": -0.75
+      },
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": -30,
+        "y": 15,
+        "z": -0.75
+      },
+      "center": {
+        "frame": "work",
+        "x": -27,
+        "y": 15,
+        "z": -0.75
+      },
+      "direction": "ccw",
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -30,
+        "y": -15,
+        "z": -0.75
+      },
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": -27,
+        "y": -18,
+        "z": -0.75
+      },
+      "center": {
+        "frame": "work",
+        "x": -27,
+        "y": -15,
+        "z": -0.75
+      },
+      "direction": "ccw",
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-xy",
+      "space": "work",
+      "x": -27,
+      "y": -18
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -27,
+        "y": -18,
+        "z": -1.5
+      },
+      "feed": 150,
+      "intent": "plunge"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 27,
+        "y": -18,
+        "z": -1.5
+      },
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": 30,
+        "y": -15,
+        "z": -1.5
+      },
+      "center": {
+        "frame": "work",
+        "x": 27,
+        "y": -15,
+        "z": -1.5
+      },
+      "direction": "ccw",
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 30,
+        "y": 15,
+        "z": -1.5
+      },
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": 27,
+        "y": 18,
+        "z": -1.5
+      },
+      "center": {
+        "frame": "work",
+        "x": 27,
+        "y": 15,
+        "z": -1.5
+      },
+      "direction": "ccw",
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -27,
+        "y": 18,
+        "z": -1.5
+      },
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": -30,
+        "y": 15,
+        "z": -1.5
+      },
+      "center": {
+        "frame": "work",
+        "x": -27,
+        "y": 15,
+        "z": -1.5
+      },
+      "direction": "ccw",
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -30,
+        "y": -15,
+        "z": -1.5
+      },
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": -27,
+        "y": -18,
+        "z": -1.5
+      },
+      "center": {
+        "frame": "work",
+        "x": -27,
+        "y": -15,
+        "z": -1.5
+      },
+      "direction": "ccw",
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-xy",
+      "space": "work",
+      "x": -27,
+      "y": -18
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -27,
+        "y": -18,
+        "z": -2
+      },
+      "feed": 150,
+      "intent": "plunge"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 27,
+        "y": -18,
+        "z": -2
+      },
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": 30,
+        "y": -15,
+        "z": -2
+      },
+      "center": {
+        "frame": "work",
+        "x": 27,
+        "y": -15,
+        "z": -2
+      },
+      "direction": "ccw",
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 30,
+        "y": 15,
+        "z": -2
+      },
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": 27,
+        "y": 18,
+        "z": -2
+      },
+      "center": {
+        "frame": "work",
+        "x": 27,
+        "y": 15,
+        "z": -2
+      },
+      "direction": "ccw",
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -27,
+        "y": 18,
+        "z": -2
+      },
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": -30,
+        "y": 15,
+        "z": -2
+      },
+      "center": {
+        "frame": "work",
+        "x": -27,
+        "y": 15,
+        "z": -2
+      },
+      "direction": "ccw",
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -30,
+        "y": -15,
+        "z": -2
+      },
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "feed-arc",
+      "plane": "XY",
+      "to": {
+        "frame": "work",
+        "x": -27,
+        "y": -18,
+        "z": -2
+      },
+      "center": {
+        "frame": "work",
+        "x": -27,
+        "y": -15,
+        "z": -2
+      },
+      "direction": "ccw",
+      "feed": 500,
+      "intent": "cut"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-z",
+      "space": "machine",
+      "z": -5
+    },
+    {
+      "kind": "coolant",
+      "mode": "off"
+    },
+    {
+      "kind": "spindle",
+      "mode": "off"
+    },
+    {
+      "kind": "tool-change",
+      "tool": {
+        "number": 2,
+        "name": "2 mm drill",
+        "kind": "drill",
+        "diameter": 2
+      }
+    },
+    {
+      "kind": "spindle",
+      "mode": "cw",
+      "speed": 7000
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-xy",
+      "space": "work",
+      "x": -24,
+      "y": -12
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -24,
+        "y": -12,
+        "z": -1
+      },
+      "feed": 120,
+      "intent": "plunge"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -24,
+        "y": -12,
+        "z": -2
+      },
+      "feed": 120,
+      "intent": "plunge"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -24,
+        "y": -12,
+        "z": -3
+      },
+      "feed": 120,
+      "intent": "plunge"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-xy",
+      "space": "work",
+      "x": 24,
+      "y": -12
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 24,
+        "y": -12,
+        "z": -1
+      },
+      "feed": 120,
+      "intent": "plunge"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 24,
+        "y": -12,
+        "z": -2
+      },
+      "feed": 120,
+      "intent": "plunge"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 24,
+        "y": -12,
+        "z": -3
+      },
+      "feed": 120,
+      "intent": "plunge"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-xy",
+      "space": "work",
+      "x": 24,
+      "y": 12
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 24,
+        "y": 12,
+        "z": -1
+      },
+      "feed": 120,
+      "intent": "plunge"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 24,
+        "y": 12,
+        "z": -2
+      },
+      "feed": 120,
+      "intent": "plunge"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": 24,
+        "y": 12,
+        "z": -3
+      },
+      "feed": 120,
+      "intent": "plunge"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-xy",
+      "space": "work",
+      "x": -24,
+      "y": 12
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -24,
+        "y": 12,
+        "z": -1
+      },
+      "feed": 120,
+      "intent": "plunge"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -24,
+        "y": 12,
+        "z": -2
+      },
+      "feed": 120,
+      "intent": "plunge"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "feed-line",
+      "to": {
+        "frame": "work",
+        "x": -24,
+        "y": 12,
+        "z": -3
+      },
+      "feed": 120,
+      "intent": "plunge"
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 1
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-z",
+      "space": "machine",
+      "z": -5
+    },
+    {
+      "kind": "spindle",
+      "mode": "off"
+    },
+    {
+      "kind": "end"
+    }
+  ]
+}

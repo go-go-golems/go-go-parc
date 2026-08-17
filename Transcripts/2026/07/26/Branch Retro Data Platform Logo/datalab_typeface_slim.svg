@@ -1,0 +1,1510 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="1152pt" height="720pt" viewBox="0 0 1152 720" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-07-25T20:23:06.241489</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 720 
+L 1152 720 
+L 1152 0 
+L 0 0 
+z
+" style="fill: #f4f0e8"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 66.816 140.4 
+L 804.096 140.4 
+L 804.096 124.56 
+L 66.816 124.56 
+z
+" clip-path="url(#pe4445b81ca)" style="fill: #11161a; stroke: #11161a; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 829.44 140.4 
+L 866.304 140.4 
+L 866.304 124.56 
+L 829.44 124.56 
+z
+" clip-path="url(#pe4445b81ca)" style="fill: #72a88f; stroke: #72a88f; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 881.28 140.4 
+L 918.144 140.4 
+L 918.144 124.56 
+L 881.28 124.56 
+z
+" clip-path="url(#pe4445b81ca)" style="fill: #8b78b8; stroke: #8b78b8; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 933.12 140.4 
+L 969.984 140.4 
+L 969.984 124.56 
+L 933.12 124.56 
+z
+" clip-path="url(#pe4445b81ca)" style="fill: #e8b33f; stroke: #e8b33f; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 984.96 140.4 
+L 1021.824 140.4 
+L 1021.824 124.56 
+L 984.96 124.56 
+z
+" clip-path="url(#pe4445b81ca)" style="fill: #db5a3b; stroke: #db5a3b; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <!-- DATALAB -->
+    <g style="fill: #11161a" transform="translate(63.36 107.47) scale(0.86 -0.86)">
+     <defs>
+      <path id="NanumSquareR-44" d="M 1971 4448 
+Q 2848 4448 3344 3939 
+Q 3840 3430 3840 2470 
+L 3840 1811 
+Q 3840 851 3344 342 
+Q 2848 -166 1971 -166 
+L 531 -166 
+L 531 4448 
+L 1971 4448 
+z
+M 979 230 
+L 1978 230 
+Q 2285 230 2547 326 
+Q 2810 422 2995 624 
+Q 3181 826 3286 1126 
+Q 3392 1427 3392 1843 
+L 3392 2438 
+Q 3392 2848 3286 3152 
+Q 3181 3456 2995 3657 
+Q 2810 3859 2547 3955 
+Q 2285 4051 1978 4051 
+L 979 4051 
+L 979 230 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-41" d="M 4070 -166 
+L 3590 -166 
+L 3078 1267 
+L 1126 1267 
+L 602 -166 
+L 141 -166 
+L 1856 4448 
+L 2362 4448 
+L 4070 -166 
+z
+M 1267 1658 
+L 2938 1658 
+L 2490 2906 
+Q 2445 3021 2406 3129 
+Q 2368 3238 2323 3369 
+Q 2278 3501 2227 3664 
+Q 2176 3827 2106 4051 
+Q 2042 3827 1990 3664 
+Q 1939 3501 1894 3369 
+Q 1850 3238 1811 3129 
+Q 1773 3021 1728 2906 
+L 1267 1658 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-54" d="M 3526 4448 
+L 3526 4051 
+L 2048 4051 
+L 2048 -166 
+L 1600 -166 
+L 1600 4051 
+L 128 4051 
+L 128 4448 
+L 3526 4448 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-4c" d="M 979 4448 
+L 979 230 
+L 3290 230 
+L 3290 -166 
+L 531 -166 
+L 531 4448 
+L 979 4448 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-42" d="M 531 4448 
+L 2003 4448 
+Q 3469 4448 3469 3322 
+L 3469 3187 
+Q 3469 3034 3430 2890 
+Q 3392 2746 3305 2624 
+Q 3219 2502 3075 2409 
+Q 2931 2317 2726 2266 
+Q 3149 2202 3414 1946 
+Q 3680 1690 3680 1210 
+L 3680 1050 
+Q 3680 480 3318 157 
+Q 2957 -166 2202 -166 
+L 531 -166 
+L 531 4448 
+z
+M 973 230 
+L 2163 230 
+Q 2707 230 2966 438 
+Q 3226 646 3226 1056 
+L 3226 1197 
+Q 3226 1408 3168 1568 
+Q 3110 1728 2969 1837 
+Q 2829 1946 2598 2000 
+Q 2368 2054 2022 2054 
+L 973 2054 
+L 973 230 
+z
+M 973 4058 
+L 973 2432 
+L 2016 2432 
+Q 2496 2432 2758 2598 
+Q 3021 2765 3021 3200 
+L 3021 3315 
+Q 3021 3725 2768 3891 
+Q 2515 4058 1971 4058 
+L 973 4058 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NanumSquareR-44"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(65.174988 0)"/>
+     <use xlink:href="#NanumSquareR-54" transform="translate(125.974976 0)"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(178.074966 0)"/>
+     <use xlink:href="#NanumSquareR-4c" transform="translate(243.874954 0)"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(297.274948 0)"/>
+     <use xlink:href="#NanumSquareR-42" transform="translate(363.074936 0)"/>
+    </g>
+   </g>
+   <g id="text_2">
+    <!-- DATA  •  EXPLORE  •  INSPECT  •  UNDERSTAND -->
+    <g style="fill: #11161a" transform="translate(66.816 178.405) scale(0.17 -0.17)">
+     <defs>
+      <path id="NanumSquareR-20" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-2022" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-45" d="M 3309 4448 
+L 3309 4051 
+L 979 4051 
+L 979 2400 
+L 3174 2400 
+L 3174 2003 
+L 979 2003 
+L 979 230 
+L 3354 230 
+L 3354 -166 
+L 531 -166 
+L 531 4448 
+L 3309 4448 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-58" d="M 2336 2227 
+L 3885 -166 
+L 3334 -166 
+L 2048 1926 
+L 730 -166 
+L 218 -166 
+L 1773 2234 
+L 294 4448 
+L 819 4448 
+L 2074 2515 
+L 3283 4448 
+L 3789 4448 
+L 2336 2227 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-50" d="M 531 4448 
+L 2093 4448 
+Q 2458 4448 2736 4349 
+Q 3014 4250 3200 4074 
+Q 3386 3898 3478 3654 
+Q 3571 3411 3571 3130 
+L 3571 2995 
+Q 3571 2714 3472 2470 
+Q 3373 2227 3184 2044 
+Q 2995 1862 2720 1760 
+Q 2445 1658 2093 1658 
+L 979 1658 
+L 979 -166 
+L 531 -166 
+L 531 4448 
+z
+M 979 4045 
+L 979 2061 
+L 1984 2061 
+Q 2579 2061 2848 2317 
+Q 3117 2573 3117 3008 
+L 3117 3123 
+Q 3117 3533 2857 3789 
+Q 2598 4045 2054 4045 
+L 979 4045 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-4f" d="M 2214 4518 
+Q 2643 4518 2976 4374 
+Q 3309 4230 3539 3961 
+Q 3770 3693 3891 3312 
+Q 4013 2931 4013 2458 
+L 4013 1824 
+Q 4013 1350 3891 969 
+Q 3770 589 3539 320 
+Q 3309 51 2976 -93 
+Q 2643 -237 2214 -237 
+Q 1786 -237 1453 -93 
+Q 1120 51 889 320 
+Q 659 589 537 969 
+Q 416 1350 416 1824 
+L 416 2458 
+Q 416 2931 534 3312 
+Q 653 3693 883 3961 
+Q 1114 4230 1450 4374 
+Q 1786 4518 2214 4518 
+z
+M 2214 166 
+Q 2835 166 3196 598 
+Q 3558 1030 3558 1862 
+L 3558 2419 
+Q 3558 3251 3196 3683 
+Q 2835 4115 2214 4115 
+Q 1594 4115 1232 3683 
+Q 870 3251 870 2419 
+L 870 1862 
+Q 870 1030 1232 598 
+Q 1594 166 2214 166 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-52" d="M 2304 1830 
+Q 2259 1824 2217 1824 
+Q 2176 1824 2131 1824 
+L 979 1824 
+L 979 -166 
+L 531 -166 
+L 531 4448 
+L 2125 4448 
+Q 2470 4448 2739 4355 
+Q 3008 4262 3197 4092 
+Q 3386 3923 3482 3692 
+Q 3578 3462 3578 3194 
+L 3578 3098 
+Q 3578 2675 3354 2371 
+Q 3130 2067 2746 1926 
+L 3674 -166 
+L 3194 -166 
+L 2304 1830 
+z
+M 979 4045 
+L 979 2227 
+L 1990 2227 
+Q 2592 2227 2857 2460 
+Q 3123 2694 3123 3117 
+L 3123 3181 
+Q 3123 3584 2864 3814 
+Q 2605 4045 2061 4045 
+L 979 4045 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-49" d="M 531 4448 
+L 979 4448 
+L 979 -166 
+L 531 -166 
+L 531 4448 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-4e" d="M 531 4448 
+L 1062 4448 
+L 3181 838 
+Q 3238 742 3283 649 
+Q 3328 557 3398 410 
+L 3398 4448 
+L 3827 4448 
+L 3827 -166 
+L 3296 -166 
+L 1171 3456 
+Q 1114 3558 1069 3641 
+Q 1024 3725 960 3872 
+L 960 -166 
+L 531 -166 
+L 531 4448 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-53" d="M 1933 179 
+Q 2202 179 2416 243 
+Q 2630 307 2780 419 
+Q 2931 531 3008 675 
+Q 3085 819 3085 973 
+L 3085 1107 
+Q 3085 1267 3033 1395 
+Q 2982 1523 2848 1628 
+Q 2714 1734 2480 1820 
+Q 2246 1907 1875 1990 
+Q 1472 2080 1200 2198 
+Q 928 2317 765 2467 
+Q 602 2618 534 2800 
+Q 467 2982 467 3200 
+L 467 3347 
+Q 467 3610 579 3824 
+Q 691 4038 892 4192 
+Q 1094 4346 1372 4432 
+Q 1651 4518 1978 4518 
+Q 2445 4518 2777 4406 
+Q 3110 4294 3347 4128 
+L 3136 3763 
+Q 2912 3923 2624 4016 
+Q 2336 4109 1978 4109 
+Q 1766 4109 1574 4057 
+Q 1382 4006 1238 3907 
+Q 1094 3808 1008 3667 
+Q 922 3526 922 3347 
+L 922 3219 
+Q 922 3072 976 2950 
+Q 1030 2829 1155 2733 
+Q 1280 2637 1491 2553 
+Q 1702 2470 2016 2400 
+Q 2464 2298 2758 2179 
+Q 3053 2061 3225 1907 
+Q 3398 1754 3468 1562 
+Q 3539 1370 3539 1120 
+L 3539 973 
+Q 3539 723 3430 505 
+Q 3322 288 3120 121 
+Q 2918 -45 2620 -141 
+Q 2323 -237 1952 -237 
+Q 1491 -237 1091 -99 
+Q 691 38 384 275 
+L 614 653 
+Q 960 403 1289 291 
+Q 1619 179 1933 179 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-43" d="M 2189 4518 
+Q 2650 4518 3005 4400 
+Q 3360 4282 3648 4058 
+L 3418 3706 
+Q 3104 3930 2822 4013 
+Q 2541 4096 2189 4096 
+Q 1869 4096 1622 3977 
+Q 1376 3859 1209 3644 
+Q 1043 3430 956 3132 
+Q 870 2835 870 2470 
+L 870 1882 
+Q 870 1024 1232 608 
+Q 1594 192 2234 192 
+Q 2669 192 2973 329 
+Q 3277 467 3501 666 
+L 3763 314 
+Q 3507 83 3142 -77 
+Q 2778 -237 2227 -237 
+Q 1331 -237 873 320 
+Q 416 877 416 1882 
+L 416 2451 
+Q 416 3437 880 3977 
+Q 1344 4518 2189 4518 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-55" d="M 2150 166 
+Q 2752 166 3049 550 
+Q 3347 934 3347 1798 
+L 3347 4448 
+L 3789 4448 
+L 3789 1632 
+Q 3789 672 3357 217 
+Q 2925 -237 2150 -237 
+Q 1370 -237 941 217 
+Q 512 672 512 1632 
+L 512 4448 
+L 954 4448 
+L 954 1798 
+Q 954 934 1251 550 
+Q 1549 166 2150 166 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NanumSquareR-44"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(65.174988 0)"/>
+     <use xlink:href="#NanumSquareR-54" transform="translate(125.974976 0)"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(178.074966 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(243.874954 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(268.874939 0)"/>
+     <use xlink:href="#NanumSquareR-2022" transform="translate(293.874924 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(384.874908 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(409.874893 0)"/>
+     <use xlink:href="#NanumSquareR-45" transform="translate(434.874878 0)"/>
+     <use xlink:href="#NanumSquareR-58" transform="translate(493.674866 0)"/>
+     <use xlink:href="#NanumSquareR-50" transform="translate(557.774857 0)"/>
+     <use xlink:href="#NanumSquareR-4c" transform="translate(617.574844 0)"/>
+     <use xlink:href="#NanumSquareR-4f" transform="translate(668.974838 0)"/>
+     <use xlink:href="#NanumSquareR-52" transform="translate(738.17482 0)"/>
+     <use xlink:href="#NanumSquareR-45" transform="translate(801.174805 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(859.974792 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(884.974777 0)"/>
+     <use xlink:href="#NanumSquareR-2022" transform="translate(909.974762 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(1000.974747 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(1025.974731 0)"/>
+     <use xlink:href="#NanumSquareR-49" transform="translate(1050.974716 0)"/>
+     <use xlink:href="#NanumSquareR-4e" transform="translate(1074.574707 0)"/>
+     <use xlink:href="#NanumSquareR-53" transform="translate(1142.674698 0)"/>
+     <use xlink:href="#NanumSquareR-50" transform="translate(1203.274689 0)"/>
+     <use xlink:href="#NanumSquareR-45" transform="translate(1263.074677 0)"/>
+     <use xlink:href="#NanumSquareR-43" transform="translate(1321.874664 0)"/>
+     <use xlink:href="#NanumSquareR-54" transform="translate(1384.874649 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(1441.97464 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(1466.974625 0)"/>
+     <use xlink:href="#NanumSquareR-2022" transform="translate(1491.974609 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(1582.974594 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(1607.974579 0)"/>
+     <use xlink:href="#NanumSquareR-55" transform="translate(1632.974564 0)"/>
+     <use xlink:href="#NanumSquareR-4e" transform="translate(1700.174561 0)"/>
+     <use xlink:href="#NanumSquareR-44" transform="translate(1768.274551 0)"/>
+     <use xlink:href="#NanumSquareR-45" transform="translate(1835.074539 0)"/>
+     <use xlink:href="#NanumSquareR-52" transform="translate(1893.874527 0)"/>
+     <use xlink:href="#NanumSquareR-53" transform="translate(1956.874512 0)"/>
+     <use xlink:href="#NanumSquareR-54" transform="translate(2017.474503 0)"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(2069.574493 0)"/>
+     <use xlink:href="#NanumSquareR-4e" transform="translate(2135.374481 0)"/>
+     <use xlink:href="#NanumSquareR-44" transform="translate(2203.474472 0)"/>
+    </g>
+   </g>
+   <g id="text_3">
+    <!-- DATALAB DISPLAY — SLIM -->
+    <g style="fill: #555b60" transform="translate(66.816 219.6) scale(0.13 -0.13)">
+     <defs>
+      <path id="NanumSquareR-59" d="M 2163 1722 
+L 2163 -166 
+L 1715 -166 
+L 1715 1722 
+L 128 4448 
+L 634 4448 
+L 1946 2131 
+L 3226 4448 
+L 3725 4448 
+L 2163 1722 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-2014" d="M 5274 1811 
+L 0 1811 
+L 0 2182 
+L 5274 2182 
+L 5274 1811 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-4d" d="M 1203 3213 
+Q 1165 3296 1133 3357 
+Q 1101 3418 1075 3482 
+Q 1050 3546 1024 3619 
+Q 998 3693 973 3795 
+L 973 -166 
+L 531 -166 
+L 531 4448 
+L 1082 4448 
+L 2643 1069 
+L 4211 4448 
+L 4742 4448 
+L 4742 -166 
+L 4301 -166 
+L 4301 3795 
+Q 4282 3693 4259 3619 
+Q 4237 3546 4211 3482 
+Q 4186 3418 4154 3357 
+Q 4122 3296 4083 3213 
+L 2848 602 
+L 2426 602 
+L 1203 3213 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NanumSquareR-44"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(65.174988 0)"/>
+     <use xlink:href="#NanumSquareR-54" transform="translate(125.974976 0)"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(178.074966 0)"/>
+     <use xlink:href="#NanumSquareR-4c" transform="translate(243.874954 0)"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(297.274948 0)"/>
+     <use xlink:href="#NanumSquareR-42" transform="translate(363.074936 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(424.574921 0)"/>
+     <use xlink:href="#NanumSquareR-44" transform="translate(449.574905 0)"/>
+     <use xlink:href="#NanumSquareR-49" transform="translate(516.374893 0)"/>
+     <use xlink:href="#NanumSquareR-53" transform="translate(539.974884 0)"/>
+     <use xlink:href="#NanumSquareR-50" transform="translate(600.574875 0)"/>
+     <use xlink:href="#NanumSquareR-4c" transform="translate(660.374863 0)"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(713.774857 0)"/>
+     <use xlink:href="#NanumSquareR-59" transform="translate(772.574844 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(832.774841 0)"/>
+     <use xlink:href="#NanumSquareR-2014" transform="translate(857.774826 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(940.17482 0)"/>
+     <use xlink:href="#NanumSquareR-53" transform="translate(965.174805 0)"/>
+     <use xlink:href="#NanumSquareR-4c" transform="translate(1025.774796 0)"/>
+     <use xlink:href="#NanumSquareR-49" transform="translate(1079.174789 0)"/>
+     <use xlink:href="#NanumSquareR-4d" transform="translate(1102.77478 0)"/>
+    </g>
+   </g>
+   <g id="text_4">
+    <!-- A B C D E F G H I J K L M -->
+    <g style="fill: #11161a" transform="translate(66.816 296.33) scale(0.34 -0.34)">
+     <defs>
+      <path id="NanumSquareR-46" d="M 531 -166 
+L 531 4448 
+L 3270 4448 
+L 3270 4051 
+L 979 4051 
+L 979 2285 
+L 3136 2285 
+L 3136 1888 
+L 979 1888 
+L 979 -166 
+L 531 -166 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-47" d="M 2208 4518 
+Q 2694 4518 3052 4400 
+Q 3411 4282 3699 4058 
+L 3469 3706 
+Q 3155 3930 2864 4013 
+Q 2573 4096 2208 4096 
+Q 1875 4096 1625 3977 
+Q 1376 3859 1206 3644 
+Q 1037 3430 953 3132 
+Q 870 2835 870 2470 
+L 870 1882 
+Q 870 192 2298 192 
+Q 2438 192 2588 205 
+Q 2739 218 2883 246 
+Q 3027 275 3155 320 
+Q 3283 365 3379 422 
+L 3379 1882 
+L 2291 1882 
+L 2291 2278 
+L 3814 2278 
+L 3814 173 
+Q 3514 -45 3126 -141 
+Q 2739 -237 2278 -237 
+Q 1325 -237 870 320 
+Q 416 877 416 1882 
+L 416 2451 
+Q 416 3437 873 3977 
+Q 1331 4518 2208 4518 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-48" d="M 3354 2016 
+L 979 2016 
+L 979 -166 
+L 531 -166 
+L 531 4448 
+L 979 4448 
+L 979 2464 
+L 3354 2464 
+L 3354 4448 
+L 3802 4448 
+L 3802 -166 
+L 3354 -166 
+L 3354 2016 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-4a" d="M 1939 4448 
+L 2387 4448 
+L 2387 1056 
+Q 2387 672 2291 422 
+Q 2195 173 2032 25 
+Q 1869 -122 1657 -179 
+Q 1446 -237 1210 -237 
+Q 922 -237 637 -160 
+Q 352 -83 128 115 
+L 346 480 
+Q 550 314 755 250 
+Q 960 186 1184 186 
+Q 1594 186 1766 403 
+Q 1939 621 1939 1101 
+L 1939 4448 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-4b" d="M 1888 2477 
+L 3930 -166 
+L 3354 -166 
+L 1568 2150 
+L 979 1542 
+L 979 -166 
+L 531 -166 
+L 531 4448 
+L 979 4448 
+L 979 2118 
+L 3206 4448 
+L 3808 4448 
+L 1888 2477 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NanumSquareR-41"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(65.799988 0)"/>
+     <use xlink:href="#NanumSquareR-42" transform="translate(90.799973 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(152.299957 0)"/>
+     <use xlink:href="#NanumSquareR-43" transform="translate(177.299942 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(240.299927 0)"/>
+     <use xlink:href="#NanumSquareR-44" transform="translate(265.299911 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(332.099899 0)"/>
+     <use xlink:href="#NanumSquareR-45" transform="translate(357.099884 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(415.899872 0)"/>
+     <use xlink:href="#NanumSquareR-46" transform="translate(440.899857 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(496.999847 0)"/>
+     <use xlink:href="#NanumSquareR-47" transform="translate(521.999832 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(587.599823 0)"/>
+     <use xlink:href="#NanumSquareR-48" transform="translate(612.599808 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(680.299789 0)"/>
+     <use xlink:href="#NanumSquareR-49" transform="translate(705.299774 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(728.899765 0)"/>
+     <use xlink:href="#NanumSquareR-4a" transform="translate(753.89975 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(799.199738 0)"/>
+     <use xlink:href="#NanumSquareR-4b" transform="translate(824.199722 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(888.599716 0)"/>
+     <use xlink:href="#NanumSquareR-4c" transform="translate(913.599701 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(966.999695 0)"/>
+     <use xlink:href="#NanumSquareR-4d" transform="translate(991.99968 0)"/>
+    </g>
+   </g>
+   <g id="text_5">
+    <!-- N O P Q R S T U V W X Y Z -->
+    <g style="fill: #11161a" transform="translate(66.816 382.73) scale(0.34 -0.34)">
+     <defs>
+      <path id="NanumSquareR-51" d="M 2214 4518 
+Q 2643 4518 2976 4374 
+Q 3309 4230 3539 3961 
+Q 3770 3693 3891 3312 
+Q 4013 2931 4013 2458 
+L 4013 1824 
+Q 4013 890 3571 352 
+L 4109 -186 
+L 3821 -486 
+L 3264 70 
+Q 2829 -237 2214 -237 
+Q 1786 -237 1453 -93 
+Q 1120 51 889 320 
+Q 659 589 537 969 
+Q 416 1350 416 1824 
+L 416 2458 
+Q 416 2931 534 3312 
+Q 653 3693 883 3961 
+Q 1114 4230 1450 4374 
+Q 1786 4518 2214 4518 
+z
+M 2214 166 
+Q 2643 166 2950 378 
+L 2355 979 
+L 2643 1280 
+L 3251 672 
+Q 3398 883 3481 1180 
+Q 3565 1478 3565 1862 
+L 3565 2419 
+Q 3565 3245 3197 3680 
+Q 2829 4115 2214 4115 
+Q 1600 4115 1232 3680 
+Q 864 3245 864 2419 
+L 864 1862 
+Q 864 1037 1232 601 
+Q 1600 166 2214 166 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-56" d="M 141 4448 
+L 634 4448 
+L 2054 294 
+L 2061 294 
+L 3482 4448 
+L 3949 4448 
+L 2298 -166 
+L 1786 -166 
+L 141 4448 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-57" d="M 192 4448 
+L 672 4448 
+L 1709 314 
+L 1715 314 
+L 2816 4448 
+L 3322 4448 
+L 4422 314 
+L 4429 314 
+L 5472 4448 
+L 5939 4448 
+L 4666 -166 
+L 4154 -166 
+L 3059 3930 
+L 1965 -166 
+L 1453 -166 
+L 192 4448 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-5a" d="M 3469 4147 
+L 717 218 
+L 3590 218 
+L 3590 -166 
+L 179 -166 
+L 179 186 
+L 2899 4064 
+L 333 4064 
+L 333 4448 
+L 3469 4448 
+L 3469 4147 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NanumSquareR-4e"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(68.099991 0)"/>
+     <use xlink:href="#NanumSquareR-4f" transform="translate(93.099976 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(162.299957 0)"/>
+     <use xlink:href="#NanumSquareR-50" transform="translate(187.299942 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(247.09993 0)"/>
+     <use xlink:href="#NanumSquareR-51" transform="translate(272.099915 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(341.299896 0)"/>
+     <use xlink:href="#NanumSquareR-52" transform="translate(366.299881 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(429.299866 0)"/>
+     <use xlink:href="#NanumSquareR-53" transform="translate(454.29985 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(514.899841 0)"/>
+     <use xlink:href="#NanumSquareR-54" transform="translate(539.899826 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(596.999817 0)"/>
+     <use xlink:href="#NanumSquareR-55" transform="translate(621.999802 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(689.199799 0)"/>
+     <use xlink:href="#NanumSquareR-56" transform="translate(714.199783 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(778.099777 0)"/>
+     <use xlink:href="#NanumSquareR-57" transform="translate(803.099762 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(898.89975 0)"/>
+     <use xlink:href="#NanumSquareR-58" transform="translate(923.899734 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(987.999725 0)"/>
+     <use xlink:href="#NanumSquareR-59" transform="translate(1012.99971 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(1073.199707 0)"/>
+     <use xlink:href="#NanumSquareR-5a" transform="translate(1098.199692 0)"/>
+    </g>
+   </g>
+   <g id="text_6">
+    <!-- 0 1 2 3 4 5 6 7 8 9 -->
+    <g style="fill: #11161a" transform="translate(66.816 477.31) scale(0.38 -0.38)">
+     <defs>
+      <path id="NanumSquareR-30" d="M 3488 1786 
+Q 3488 806 3117 284 
+Q 2746 -237 1914 -237 
+Q 1094 -237 723 288 
+Q 352 813 352 1786 
+L 352 2502 
+Q 352 3469 729 3993 
+Q 1107 4518 1914 4518 
+Q 2733 4518 3110 3996 
+Q 3488 3475 3488 2502 
+L 3488 1786 
+z
+M 3027 2509 
+Q 3027 3366 2748 3740 
+Q 2470 4115 1914 4115 
+Q 1382 4115 1097 3737 
+Q 813 3360 813 2509 
+L 813 1779 
+Q 813 922 1097 544 
+Q 1382 166 1914 166 
+Q 2464 166 2745 540 
+Q 3027 915 3027 1779 
+L 3027 2509 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-31" d="M 1990 -166 
+L 1990 3885 
+L 877 3206 
+L 672 3565 
+L 2099 4448 
+L 2438 4448 
+L 2438 -166 
+L 1990 -166 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-32" d="M 2214 2234 
+Q 2406 2458 2521 2618 
+Q 2637 2778 2697 2902 
+Q 2758 3027 2780 3123 
+Q 2803 3219 2803 3309 
+L 2803 3360 
+Q 2803 3706 2576 3907 
+Q 2349 4109 1926 4109 
+Q 1619 4109 1350 3961 
+Q 1082 3814 858 3411 
+L 499 3635 
+Q 582 3782 704 3939 
+Q 826 4096 998 4224 
+Q 1171 4352 1398 4435 
+Q 1626 4518 1914 4518 
+Q 2221 4518 2470 4435 
+Q 2720 4352 2893 4201 
+Q 3066 4051 3162 3836 
+Q 3258 3622 3258 3366 
+L 3258 3302 
+Q 3258 3117 3194 2941 
+Q 3130 2765 3024 2598 
+Q 2918 2432 2777 2265 
+Q 2637 2099 2490 1926 
+L 1056 243 
+L 3424 243 
+L 3424 -166 
+L 493 -166 
+L 493 218 
+L 2214 2234 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-33" d="M 538 3802 
+Q 621 3942 742 4070 
+Q 864 4198 1027 4297 
+Q 1190 4397 1398 4457 
+Q 1606 4518 1869 4518 
+Q 2182 4518 2435 4435 
+Q 2688 4352 2864 4201 
+Q 3040 4051 3136 3836 
+Q 3232 3622 3232 3366 
+L 3232 3302 
+Q 3232 3168 3193 3017 
+Q 3155 2867 3065 2726 
+Q 2976 2586 2822 2464 
+Q 2669 2342 2438 2266 
+Q 2918 2182 3164 1888 
+Q 3411 1594 3411 1190 
+L 3411 1094 
+Q 3411 845 3328 608 
+Q 3245 371 3062 182 
+Q 2880 -6 2582 -121 
+Q 2285 -237 1862 -237 
+Q 1459 -237 1084 -112 
+Q 710 13 384 275 
+L 608 634 
+Q 947 390 1244 281 
+Q 1542 173 1862 173 
+Q 2163 173 2374 256 
+Q 2586 339 2717 470 
+Q 2848 602 2909 765 
+Q 2970 928 2970 1088 
+L 2970 1171 
+Q 2970 1434 2864 1603 
+Q 2758 1773 2601 1872 
+Q 2445 1971 2256 2009 
+Q 2067 2048 1901 2048 
+L 1382 2048 
+L 1382 2432 
+L 1920 2432 
+Q 2138 2432 2298 2512 
+Q 2458 2592 2563 2720 
+Q 2669 2848 2723 3005 
+Q 2778 3162 2778 3309 
+L 2778 3360 
+Q 2778 3706 2538 3907 
+Q 2298 4109 1875 4109 
+Q 1600 4109 1344 3997 
+Q 1088 3885 890 3571 
+L 538 3802 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-34" d="M 3008 2720 
+L 3008 1267 
+L 3686 1267 
+L 3686 858 
+L 3008 858 
+L 3008 -166 
+L 2560 -166 
+L 2560 858 
+L 250 858 
+L 250 1267 
+L 2490 4448 
+L 3002 4448 
+L 768 1267 
+L 2560 1267 
+L 2560 2720 
+L 3008 2720 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-35" d="M 3040 1222 
+Q 3040 1779 2768 2032 
+Q 2496 2285 1997 2285 
+Q 1702 2285 1472 2176 
+Q 1242 2067 1088 1920 
+L 666 1920 
+L 813 4448 
+L 3187 4448 
+L 3187 4038 
+L 1210 4038 
+L 1139 2362 
+Q 1293 2509 1555 2598 
+Q 1818 2688 2106 2688 
+Q 2445 2688 2704 2576 
+Q 2963 2464 3136 2272 
+Q 3309 2080 3395 1814 
+Q 3482 1549 3482 1242 
+L 3482 1146 
+Q 3482 896 3398 649 
+Q 3315 403 3132 208 
+Q 2950 13 2649 -112 
+Q 2349 -237 1920 -237 
+Q 1446 -237 1088 -99 
+Q 730 38 422 275 
+L 653 640 
+Q 986 384 1290 278 
+Q 1594 173 1920 173 
+Q 2227 173 2441 265 
+Q 2656 358 2790 499 
+Q 2925 640 2982 809 
+Q 3040 979 3040 1139 
+L 3040 1222 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-36" d="M 3091 3840 
+Q 2874 3968 2627 4041 
+Q 2381 4115 2112 4115 
+Q 1786 4115 1562 3984 
+Q 1338 3853 1190 3603 
+Q 1043 3354 966 2992 
+Q 890 2630 864 2170 
+Q 915 2272 1014 2387 
+Q 1114 2502 1258 2598 
+Q 1402 2694 1594 2755 
+Q 1786 2816 2029 2816 
+Q 2323 2816 2588 2720 
+Q 2854 2624 3056 2441 
+Q 3258 2259 3376 1993 
+Q 3494 1728 3494 1389 
+L 3494 1235 
+Q 3494 896 3379 624 
+Q 3264 352 3062 160 
+Q 2861 -32 2582 -134 
+Q 2304 -237 1984 -237 
+Q 1658 -237 1373 -125 
+Q 1088 -13 877 217 
+Q 666 448 544 803 
+Q 422 1158 422 1638 
+L 422 1792 
+Q 422 2534 540 3052 
+Q 659 3571 876 3897 
+Q 1094 4224 1408 4371 
+Q 1722 4518 2118 4518 
+Q 2432 4518 2736 4435 
+Q 3040 4352 3302 4205 
+L 3091 3840 
+z
+M 909 1325 
+Q 909 1062 985 851 
+Q 1062 640 1203 486 
+Q 1344 333 1539 249 
+Q 1734 166 1971 166 
+Q 2208 166 2406 240 
+Q 2605 314 2749 451 
+Q 2893 589 2973 790 
+Q 3053 992 3053 1254 
+L 3053 1350 
+Q 3053 1606 2963 1808 
+Q 2874 2010 2726 2147 
+Q 2579 2285 2384 2355 
+Q 2189 2426 1978 2426 
+Q 1773 2426 1581 2349 
+Q 1389 2272 1241 2137 
+Q 1094 2003 1001 1814 
+Q 909 1626 909 1408 
+L 909 1325 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-37" d="M 1619 -166 
+L 1114 -166 
+L 2989 4038 
+L 397 4038 
+L 397 4448 
+L 3488 4448 
+L 3488 4102 
+L 1619 -166 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-38" d="M 1018 3270 
+Q 1018 3085 1082 2918 
+Q 1146 2752 1264 2630 
+Q 1382 2509 1548 2438 
+Q 1715 2368 1920 2368 
+Q 2125 2368 2291 2438 
+Q 2458 2509 2576 2630 
+Q 2694 2752 2758 2918 
+Q 2822 3085 2822 3270 
+L 2822 3347 
+Q 2822 3706 2576 3914 
+Q 2330 4122 1920 4122 
+Q 1504 4122 1261 3914 
+Q 1018 3706 1018 3347 
+L 1018 3270 
+z
+M 890 1018 
+Q 890 838 960 684 
+Q 1030 531 1164 416 
+Q 1299 301 1488 233 
+Q 1677 166 1920 166 
+Q 2163 166 2355 233 
+Q 2547 301 2678 416 
+Q 2810 531 2880 684 
+Q 2950 838 2950 1018 
+L 2950 1094 
+Q 2950 1299 2873 1465 
+Q 2797 1632 2662 1753 
+Q 2528 1875 2339 1939 
+Q 2150 2003 1920 2003 
+Q 1696 2003 1507 1939 
+Q 1318 1875 1180 1756 
+Q 1043 1638 966 1472 
+Q 890 1306 890 1094 
+L 890 1018 
+z
+M 435 1114 
+Q 435 1498 668 1789 
+Q 902 2080 1280 2195 
+Q 947 2349 764 2624 
+Q 582 2899 582 3264 
+L 582 3366 
+Q 582 3616 681 3827 
+Q 781 4038 960 4192 
+Q 1139 4346 1385 4432 
+Q 1632 4518 1920 4518 
+Q 2208 4518 2454 4432 
+Q 2701 4346 2880 4192 
+Q 3059 4038 3158 3827 
+Q 3258 3616 3258 3366 
+L 3258 3264 
+Q 3258 2899 3075 2624 
+Q 2893 2349 2554 2195 
+Q 2739 2138 2896 2035 
+Q 3053 1933 3165 1789 
+Q 3277 1645 3341 1475 
+Q 3405 1306 3405 1114 
+L 3405 1005 
+Q 3405 730 3299 499 
+Q 3194 269 2998 105 
+Q 2803 -58 2528 -147 
+Q 2253 -237 1920 -237 
+Q 1587 -237 1312 -147 
+Q 1037 -58 841 105 
+Q 646 269 540 499 
+Q 435 730 435 1005 
+L 435 1114 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-39" d="M 736 454 
+Q 954 326 1203 249 
+Q 1453 173 1728 173 
+Q 2080 173 2317 304 
+Q 2554 435 2694 684 
+Q 2835 934 2899 1292 
+Q 2963 1651 2976 2099 
+Q 2925 1997 2829 1881 
+Q 2733 1766 2589 1667 
+Q 2445 1568 2249 1501 
+Q 2054 1434 1811 1434 
+Q 1517 1434 1251 1533 
+Q 986 1632 784 1817 
+Q 582 2003 464 2268 
+Q 346 2534 346 2874 
+L 346 3027 
+Q 346 3366 461 3641 
+Q 576 3917 777 4112 
+Q 979 4307 1257 4412 
+Q 1536 4518 1856 4518 
+Q 2176 4518 2461 4406 
+Q 2746 4294 2957 4060 
+Q 3168 3827 3293 3472 
+Q 3418 3117 3418 2637 
+L 3418 2445 
+Q 3418 1683 3312 1168 
+Q 3206 653 2995 339 
+Q 2784 26 2464 -105 
+Q 2144 -237 1715 -237 
+Q 1402 -237 1107 -153 
+Q 813 -70 550 77 
+L 736 454 
+z
+M 2931 2938 
+Q 2931 3194 2854 3411 
+Q 2778 3629 2637 3785 
+Q 2496 3942 2301 4028 
+Q 2106 4115 1869 4115 
+Q 1632 4115 1433 4038 
+Q 1235 3962 1091 3821 
+Q 947 3680 867 3472 
+Q 787 3264 787 3008 
+L 787 2912 
+Q 787 2650 876 2448 
+Q 966 2246 1113 2108 
+Q 1261 1971 1456 1897 
+Q 1651 1824 1862 1824 
+Q 2061 1824 2256 1901 
+Q 2451 1978 2598 2118 
+Q 2746 2259 2838 2444 
+Q 2931 2630 2931 2854 
+L 2931 2938 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NanumSquareR-30"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(59.999985 0)"/>
+     <use xlink:href="#NanumSquareR-31" transform="translate(84.999969 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(144.999954 0)"/>
+     <use xlink:href="#NanumSquareR-32" transform="translate(169.999939 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(229.999924 0)"/>
+     <use xlink:href="#NanumSquareR-33" transform="translate(254.999908 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(314.999893 0)"/>
+     <use xlink:href="#NanumSquareR-34" transform="translate(339.999878 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(399.999863 0)"/>
+     <use xlink:href="#NanumSquareR-35" transform="translate(424.999847 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(484.999832 0)"/>
+     <use xlink:href="#NanumSquareR-36" transform="translate(509.999817 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(569.999802 0)"/>
+     <use xlink:href="#NanumSquareR-37" transform="translate(594.999786 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(654.999771 0)"/>
+     <use xlink:href="#NanumSquareR-38" transform="translate(679.999756 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(739.999741 0)"/>
+     <use xlink:href="#NanumSquareR-39" transform="translate(764.999725 0)"/>
+    </g>
+   </g>
+   <g id="text_7">
+    <!-- . , : ; ! ? / + − × = ( ) [ ] -->
+    <g style="fill: #11161a" transform="translate(66.816 561.26) scale(0.28 -0.28)">
+     <defs>
+      <path id="NanumSquareR-2e" d="M 461 288 
+L 1107 288 
+L 1107 -352 
+L 461 -352 
+L 461 288 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-2c" d="M 570 320 
+L 1133 320 
+L 672 -1120 
+L 301 -1120 
+L 570 320 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-3a" d="M 653 800 
+L 1299 800 
+L 1299 160 
+L 653 160 
+L 653 800 
+z
+M 653 3629 
+L 1299 3629 
+L 1299 2989 
+L 653 2989 
+L 653 3629 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-3b" d="M 653 3629 
+L 1299 3629 
+L 1299 2989 
+L 653 2989 
+L 653 3629 
+z
+M 762 832 
+L 1325 832 
+L 864 -608 
+L 493 -608 
+L 762 832 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-21" d="M 589 282 
+L 1203 282 
+L 1203 -346 
+L 589 -346 
+L 589 282 
+z
+M 710 947 
+L 634 4570 
+L 1158 4570 
+L 1082 947 
+L 710 947 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-3f" d="M 1203 282 
+L 1818 282 
+L 1818 -346 
+L 1203 -346 
+L 1203 282 
+z
+M 1293 902 
+L 1293 1203 
+Q 1293 1363 1321 1488 
+Q 1350 1613 1424 1734 
+Q 1498 1856 1616 1987 
+Q 1734 2118 1914 2291 
+Q 2029 2400 2134 2502 
+Q 2240 2605 2326 2717 
+Q 2413 2829 2464 2960 
+Q 2515 3091 2515 3258 
+L 2515 3360 
+Q 2515 3706 2281 3907 
+Q 2048 4109 1645 4109 
+Q 1318 4109 1049 3977 
+Q 781 3846 582 3622 
+L 294 3917 
+Q 378 4019 506 4128 
+Q 634 4237 803 4323 
+Q 973 4410 1181 4464 
+Q 1389 4518 1632 4518 
+Q 2272 4518 2624 4204 
+Q 2976 3891 2976 3366 
+L 2976 3258 
+Q 2976 3021 2902 2841 
+Q 2829 2662 2710 2512 
+Q 2592 2362 2445 2227 
+Q 2298 2093 2150 1952 
+Q 2042 1850 1965 1763 
+Q 1888 1677 1833 1590 
+Q 1779 1504 1753 1405 
+Q 1728 1306 1728 1184 
+L 1728 902 
+L 1293 902 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-2f" d="M 2426 4858 
+L 493 -800 
+L 64 -800 
+L 1990 4858 
+L 2426 4858 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-2b" d="M 2131 3635 
+L 2131 2246 
+L 3494 2246 
+L 3494 1837 
+L 2131 1837 
+L 2131 358 
+L 1709 358 
+L 1709 1837 
+L 346 1837 
+L 346 2246 
+L 1709 2246 
+L 1709 3635 
+L 2131 3635 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-2212" d="M 5472 -915 
+L 352 -915 
+L 352 4845 
+L 5472 4845 
+L 5472 -915 
+z
+M 2912 1779 
+L 768 -685 
+L 5056 -685 
+L 2912 1779 
+z
+M 608 -486 
+L 2746 1971 
+L 608 4429 
+L 608 -486 
+z
+M 2906 2157 
+L 5043 4614 
+L 774 4614 
+L 2906 2157 
+z
+M 5216 4435 
+L 3078 1965 
+L 5216 -493 
+L 5216 4435 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-d7" d="M 1645 2054 
+L 474 3302 
+L 749 3578 
+L 1920 2323 
+L 3085 3552 
+L 3373 3264 
+L 2202 2042 
+L 3373 806 
+L 3098 531 
+L 1933 1766 
+L 762 531 
+L 474 819 
+L 1645 2054 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-3d" d="M 474 2931 
+L 3366 2931 
+L 3366 2515 
+L 474 2515 
+L 474 2931 
+z
+M 474 1581 
+L 3366 1581 
+L 3366 1165 
+L 474 1165 
+L 474 1581 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-28" d="M 966 1754 
+Q 966 1024 1158 307 
+Q 1350 -410 1843 -1088 
+L 1434 -1088 
+Q 954 -518 723 205 
+Q 493 928 493 1786 
+L 493 2042 
+Q 493 2899 723 3616 
+Q 954 4333 1434 4902 
+L 1843 4902 
+Q 1370 4262 1168 3555 
+Q 966 2848 966 2074 
+L 966 1754 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-29" d="M 1037 2074 
+Q 1037 2848 835 3555 
+Q 634 4262 160 4902 
+L 570 4902 
+Q 1050 4333 1280 3616 
+Q 1510 2899 1510 2042 
+L 1510 1786 
+Q 1510 928 1280 205 
+Q 1050 -518 570 -1088 
+L 160 -1088 
+Q 653 -410 845 307 
+Q 1037 1024 1037 1754 
+L 1037 2074 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-5b" d="M 2035 -1088 
+L 531 -1088 
+L 531 4902 
+L 2035 4902 
+L 2035 4506 
+L 960 4506 
+L 960 -691 
+L 2035 -691 
+L 2035 -1088 
+z
+" transform="scale(0.015625)"/>
+      <path id="NanumSquareR-5d" d="M 243 -691 
+L 1318 -691 
+L 1318 4506 
+L 243 4506 
+L 243 4902 
+L 1747 4902 
+L 1747 -1088 
+L 243 -1088 
+L 243 -691 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NanumSquareR-2e"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(24.499985 0)"/>
+     <use xlink:href="#NanumSquareR-2c" transform="translate(49.499969 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(73.999954 0)"/>
+     <use xlink:href="#NanumSquareR-3a" transform="translate(98.999939 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(129.499924 0)"/>
+     <use xlink:href="#NanumSquareR-3b" transform="translate(154.499908 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(184.999893 0)"/>
+     <use xlink:href="#NanumSquareR-21" transform="translate(209.999878 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(237.999863 0)"/>
+     <use xlink:href="#NanumSquareR-3f" transform="translate(262.999847 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(314.999832 0)"/>
+     <use xlink:href="#NanumSquareR-2f" transform="translate(339.999817 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(378.899811 0)"/>
+     <use xlink:href="#NanumSquareR-2b" transform="translate(403.899796 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(463.89978 0)"/>
+     <use xlink:href="#NanumSquareR-2212" transform="translate(488.899765 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(579.89975 0)"/>
+     <use xlink:href="#NanumSquareR-d7" transform="translate(604.899734 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(664.899719 0)"/>
+     <use xlink:href="#NanumSquareR-3d" transform="translate(689.899704 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(749.899689 0)"/>
+     <use xlink:href="#NanumSquareR-28" transform="translate(774.899673 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(806.199661 0)"/>
+     <use xlink:href="#NanumSquareR-29" transform="translate(831.199646 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(862.499634 0)"/>
+     <use xlink:href="#NanumSquareR-5b" transform="translate(887.499619 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(923.099609 0)"/>
+     <use xlink:href="#NanumSquareR-5d" transform="translate(948.099594 0)"/>
+    </g>
+   </g>
+   <g id="text_8">
+    <!-- ALL CAPS / GEOMETRIC / BRUTALIST / DISPLAY USE -->
+    <g style="fill: #11161a" transform="translate(66.816 644.4) scale(0.14 -0.14)">
+     <use xlink:href="#NanumSquareR-41"/>
+     <use xlink:href="#NanumSquareR-4c" transform="translate(65.799988 0)"/>
+     <use xlink:href="#NanumSquareR-4c" transform="translate(119.199982 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(172.599976 0)"/>
+     <use xlink:href="#NanumSquareR-43" transform="translate(197.59996 0)"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(260.599945 0)"/>
+     <use xlink:href="#NanumSquareR-50" transform="translate(326.399933 0)"/>
+     <use xlink:href="#NanumSquareR-53" transform="translate(386.199921 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(446.799911 0)"/>
+     <use xlink:href="#NanumSquareR-2f" transform="translate(471.799896 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(510.69989 0)"/>
+     <use xlink:href="#NanumSquareR-47" transform="translate(535.699875 0)"/>
+     <use xlink:href="#NanumSquareR-45" transform="translate(601.299866 0)"/>
+     <use xlink:href="#NanumSquareR-4f" transform="translate(660.099854 0)"/>
+     <use xlink:href="#NanumSquareR-4d" transform="translate(729.299835 0)"/>
+     <use xlink:href="#NanumSquareR-45" transform="translate(811.699829 0)"/>
+     <use xlink:href="#NanumSquareR-54" transform="translate(870.499817 0)"/>
+     <use xlink:href="#NanumSquareR-52" transform="translate(927.599808 0)"/>
+     <use xlink:href="#NanumSquareR-49" transform="translate(990.599792 0)"/>
+     <use xlink:href="#NanumSquareR-43" transform="translate(1014.199783 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(1077.199768 0)"/>
+     <use xlink:href="#NanumSquareR-2f" transform="translate(1102.199753 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(1141.099747 0)"/>
+     <use xlink:href="#NanumSquareR-42" transform="translate(1166.099731 0)"/>
+     <use xlink:href="#NanumSquareR-52" transform="translate(1227.599716 0)"/>
+     <use xlink:href="#NanumSquareR-55" transform="translate(1290.599701 0)"/>
+     <use xlink:href="#NanumSquareR-54" transform="translate(1357.799698 0)"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(1409.899689 0)"/>
+     <use xlink:href="#NanumSquareR-4c" transform="translate(1475.699677 0)"/>
+     <use xlink:href="#NanumSquareR-49" transform="translate(1529.09967 0)"/>
+     <use xlink:href="#NanumSquareR-53" transform="translate(1552.699661 0)"/>
+     <use xlink:href="#NanumSquareR-54" transform="translate(1613.299652 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(1670.399643 0)"/>
+     <use xlink:href="#NanumSquareR-2f" transform="translate(1695.399628 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(1734.299622 0)"/>
+     <use xlink:href="#NanumSquareR-44" transform="translate(1759.299606 0)"/>
+     <use xlink:href="#NanumSquareR-49" transform="translate(1826.099594 0)"/>
+     <use xlink:href="#NanumSquareR-53" transform="translate(1849.699585 0)"/>
+     <use xlink:href="#NanumSquareR-50" transform="translate(1910.299576 0)"/>
+     <use xlink:href="#NanumSquareR-4c" transform="translate(1970.099564 0)"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(2023.499557 0)"/>
+     <use xlink:href="#NanumSquareR-59" transform="translate(2082.299545 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(2142.499542 0)"/>
+     <use xlink:href="#NanumSquareR-55" transform="translate(2167.499527 0)"/>
+     <use xlink:href="#NanumSquareR-53" transform="translate(2234.699524 0)"/>
+     <use xlink:href="#NanumSquareR-45" transform="translate(2295.299515 0)"/>
+    </g>
+   </g>
+   <g id="text_9">
+    <!-- VECTOR GLYPH MASTER -->
+    <g style="fill: #777777" transform="translate(972.003437 684) scale(0.1 -0.1)">
+     <use xlink:href="#NanumSquareR-56"/>
+     <use xlink:href="#NanumSquareR-45" transform="translate(63.899994 0)"/>
+     <use xlink:href="#NanumSquareR-43" transform="translate(122.699982 0)"/>
+     <use xlink:href="#NanumSquareR-54" transform="translate(185.699966 0)"/>
+     <use xlink:href="#NanumSquareR-4f" transform="translate(241.174957 0)"/>
+     <use xlink:href="#NanumSquareR-52" transform="translate(310.374939 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(373.374924 0)"/>
+     <use xlink:href="#NanumSquareR-47" transform="translate(398.374908 0)"/>
+     <use xlink:href="#NanumSquareR-4c" transform="translate(463.974899 0)"/>
+     <use xlink:href="#NanumSquareR-59" transform="translate(508.374893 0)"/>
+     <use xlink:href="#NanumSquareR-50" transform="translate(568.57489 0)"/>
+     <use xlink:href="#NanumSquareR-48" transform="translate(628.374878 0)"/>
+     <use xlink:href="#NanumSquareR-20" transform="translate(696.07486 0)"/>
+     <use xlink:href="#NanumSquareR-4d" transform="translate(721.074844 0)"/>
+     <use xlink:href="#NanumSquareR-41" transform="translate(803.474838 0)"/>
+     <use xlink:href="#NanumSquareR-53" transform="translate(869.274826 0)"/>
+     <use xlink:href="#NanumSquareR-54" transform="translate(929.874817 0)"/>
+     <use xlink:href="#NanumSquareR-45" transform="translate(986.974808 0)"/>
+     <use xlink:href="#NanumSquareR-52" transform="translate(1045.774796 0)"/>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pe4445b81ca">
+   <rect x="0" y="0" width="1152" height="720"/>
+  </clipPath>
+ </defs>
+</svg>

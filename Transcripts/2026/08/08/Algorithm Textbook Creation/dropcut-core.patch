@@ -1,0 +1,1119 @@
+--- src/dropcut-core-baseline.mjs	2026-08-08 11:29:22.946488111 +0000
++++ src/dropcut-core.mjs	2026-08-08 11:36:40.338373435 +0000
+@@ -70,37 +70,56 @@
+ 
+ /* ---------------- STL ---------------- */
+ 
+-function parseSTL(buf) {
+-  if (buf.byteLength >= 84) {
++function parseSTL(input) {
++  let u8;
++  if (input instanceof ArrayBuffer) u8 = new Uint8Array(input);
++  else if (ArrayBuffer.isView(input)) u8 = new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
++  else throw new TypeError("STL input must be an ArrayBuffer or typed array");
++  const buf = u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength);
++  const fail = (msg) => { throw new Error(`Invalid STL: ${msg}`); };
++  if (u8.byteLength >= 84) {
+     const dv = new DataView(buf);
+     const n = dv.getUint32(80, true);
+-    if (84 + n * 50 === buf.byteLength) {
++    const need = 84 + n * 50;
++    if (n > 0 && need <= u8.byteLength) {
+       const T = new Float64Array(n * 9);
+       let o = 84;
+       for (let i = 0; i < n; i++) {
+-        o += 12;
+-        for (let k = 0; k < 9; k++) { T[i * 9 + k] = dv.getFloat32(o, true); o += 4; }
++        o += 12; // normal
++        for (let k = 0; k < 9; k++) {
++          const v = dv.getFloat32(o, true); o += 4;
++          if (!Number.isFinite(v)) fail("non-finite binary coordinate");
++          T[i * 9 + k] = v;
++        }
+         o += 2;
+       }
+       return T;
+     }
+   }
+-  const txt = new TextDecoder().decode(buf);
+-  const re = /vertex\s+([-\d.eE+]+)\s+([-\d.eE+]+)\s+([-\d.eE+]+)/g;
++  const txt = new TextDecoder().decode(u8);
++  const re = /vertex\s+([-+\d.eE]+)\s+([-+\d.eE]+)\s+([-+\d.eE]+)/gi;
+   const v = [];
+   let m;
+-  while ((m = re.exec(txt))) v.push(+m[1], +m[2], +m[3]);
++  while ((m = re.exec(txt))) {
++    const x = Number(m[1]), y = Number(m[2]), z = Number(m[3]);
++    if (![x, y, z].every(Number.isFinite)) fail("non-finite ASCII coordinate");
++    v.push(x, y, z);
++  }
+   const nt = Math.floor(v.length / 9);
+-  if (nt === 0) throw new Error("No triangles found in STL");
++  if (nt === 0) fail("no complete triangles found");
+   return new Float64Array(v.slice(0, nt * 9));
+ }
+ 
+-function buildModel(rawTris, scale, name) {
++function buildModel(rawTris, scale = 1, name = "model") {
++  if (!(rawTris instanceof Float64Array)) rawTris = new Float64Array(rawTris);
++  if (!rawTris.length || rawTris.length % 9 !== 0) throw new Error("Triangle array must contain 9 values per triangle");
++  if (!Number.isFinite(scale) || scale <= 0) throw new Error("Scale must be finite and positive");
+   const n = rawTris.length / 9;
+   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity,
+     minZ = Infinity, maxZ = -Infinity;
+   for (let i = 0; i < rawTris.length; i += 3) {
+     const x = rawTris[i], y = rawTris[i + 1], z = rawTris[i + 2];
++    if (![x, y, z].every(Number.isFinite)) throw new Error("Triangle array contains a non-finite coordinate");
+     if (x < minX) minX = x; if (x > maxX) maxX = x;
+     if (y < minY) minY = y; if (y > maxY) maxY = y;
+     if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+@@ -117,16 +136,17 @@
+     minY: (minY - cy) * scale, maxY: (maxY - cy) * scale,
+     minZ: 0, maxZ: (maxZ - minZ) * scale,
+   };
+-  return { tris: T, nTri: n, bbox, name };
++  return { tris: T, nTri: n, bbox, name: String(name || "model") };
+ }
+ 
+ /* ---------------- spatial hash + exact drop-cutter ---------------- */
+ 
+-function buildGrid(model, R) {
++function buildGrid(model, R = 0) {
+   const { tris: T, nTri, bbox } = model;
+-  const spanX = Math.max(1e-6, bbox.maxX - bbox.minX);
+-  const spanY = Math.max(1e-6, bbox.maxY - bbox.minY);
+-  const cs = Math.max(R, Math.hypot(spanX, spanY) / 256, 0.25);
++  R = Math.max(0, Number(R) || 0);
++  const spanX = Math.max(1e-9, bbox.maxX - bbox.minX);
++  const spanY = Math.max(1e-9, bbox.maxY - bbox.minY);
++  const cs = Math.max(R || 0.25, Math.hypot(spanX, spanY) / 256, 0.25);
+   const nx = Math.max(1, Math.ceil(spanX / cs));
+   const ny = Math.max(1, Math.ceil(spanY / cs));
+   const cells = new Array(nx * ny);
+@@ -138,26 +158,34 @@
+     const y0 = Math.min(T[o + 1], T[o + 4], T[o + 7]);
+     const y1 = Math.max(T[o + 1], T[o + 4], T[o + 7]);
+     triBB[t * 4] = x0; triBB[t * 4 + 1] = x1; triBB[t * 4 + 2] = y0; triBB[t * 4 + 3] = y1;
+-    const i0 = Math.max(0, Math.floor((x0 - bbox.minX) / cs));
+-    const i1 = Math.min(nx - 1, Math.floor((x1 - bbox.minX) / cs));
+-    const j0 = Math.max(0, Math.floor((y0 - bbox.minY) / cs));
+-    const j1 = Math.min(ny - 1, Math.floor((y1 - bbox.minY) / cs));
+-    for (let j = j0; j <= j1; j++)
+-      for (let i = i0; i <= i1; i++) {
+-        const k = j * nx + i;
+-        (cells[k] || (cells[k] = [])).push(t);
+-      }
++    const i0 = Math.max(0, Math.min(nx - 1, Math.floor((x0 - bbox.minX) / cs)));
++    const i1 = Math.max(0, Math.min(nx - 1, Math.floor((x1 - bbox.minX) / cs)));
++    const j0 = Math.max(0, Math.min(ny - 1, Math.floor((y0 - bbox.minY) / cs)));
++    const j1 = Math.max(0, Math.min(ny - 1, Math.floor((y1 - bbox.minY) / cs)));
++    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
++      const k = j * nx + i;
++      (cells[k] || (cells[k] = [])).push(t);
++    }
+   }
+-  return { cs, nx, ny, cells, triBB, minX: bbox.minX, minY: bbox.minY, stamp: new Uint32Array(nTri), qid: 0 };
++  return {
++    cs, nx, ny, cells, triBB, minX: bbox.minX, minY: bbox.minY,
++    maxX: bbox.maxX, maxY: bbox.maxY, stamp: new Uint32Array(nTri), qid: 0,
++  };
++}
++
++function orient2d(ax, ay, bx, by, cx, cy) {
++  return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+ }
+ 
+ function pointInTri(px, py, ax, ay, bx, by, cx, cy) {
+-  const d1 = (px - bx) * (ay - by) - (ax - bx) * (py - by);
+-  const d2 = (px - cx) * (by - cy) - (bx - cx) * (py - cy);
+-  const d3 = (px - ax) * (cy - ay) - (cx - ax) * (py - ay);
+-  const hasNeg = d1 < -1e-9 || d2 < -1e-9 || d3 < -1e-9;
+-  const hasPos = d1 > 1e-9 || d2 > 1e-9 || d3 > 1e-9;
+-  return !(hasNeg && hasPos);
++  const area = orient2d(ax, ay, bx, by, cx, cy);
++  const scale = Math.max(1, Math.abs(ax), Math.abs(ay), Math.abs(bx), Math.abs(by), Math.abs(cx), Math.abs(cy), Math.abs(px), Math.abs(py));
++  const eps = 64 * Number.EPSILON * scale * scale;
++  if (Math.abs(area) <= eps) return false;
++  const s1 = orient2d(ax, ay, bx, by, px, py);
++  const s2 = orient2d(bx, by, cx, cy, px, py);
++  const s3 = orient2d(cx, cy, ax, ay, px, py);
++  return area > 0 ? s1 >= -eps && s2 >= -eps && s3 >= -eps : s1 <= eps && s2 <= eps && s3 <= eps;
+ }
+ 
+ function edgeBall(px, py, R, x1, y1, z1, x2, y2, z2) {
+@@ -187,7 +215,11 @@
+   const { cs, nx, ny, cells, triBB, minX, minY, stamp } = grid;
+ 
+   return function evalTipZ(X, Y) {
++    if (!Number.isFinite(X) || !Number.isFinite(Y)) throw new Error("Non-finite cutter location");
+     let best = isBall ? floorZ + R : floorZ;
++    if (X + R < grid.minX || X - R > grid.maxX || Y + R < grid.minY || Y - R > grid.maxY)
++      return isBall ? best - R : best;
++    if (grid.qid >= 0xfffffffe) { stamp.fill(0); grid.qid = 0; }
+     const qid = ++grid.qid;
+     const i0 = Math.max(0, Math.floor((X - R - minX) / cs));
+     const i1 = Math.min(nx - 1, Math.floor((X + R - minX) / cs));
+@@ -289,41 +321,44 @@
+ 
+ /* ---------------- CL field (sampled cutter-location surface) ---------------- */
+ 
+-async function buildCLField(evalF, x0, x1, y0, y1, gs, onProg, cancelRef) {
++async function buildCLField(evalF, x0, x1, y0, y1, gs, onProg = () => {}, cancelRef = { current: false }) {
++  if (!(x1 > x0 && y1 > y0 && gs > 0)) throw new Error("Invalid CL-field bounds or grid spacing");
+   const nx = Math.max(4, Math.ceil((x1 - x0) / gs));
+   const ny = Math.max(4, Math.ceil((y1 - y0) / gs));
++  const hx = (x1 - x0) / nx, hy = (y1 - y0) / ny;
+   const F = new Float64Array((nx + 1) * (ny + 1));
+   for (let j = 0; j <= ny; j++) {
+-    const y = y0 + j * gs;
+-    for (let i = 0; i <= nx; i++) F[j * (nx + 1) + i] = evalF(x0 + i * gs, y);
+-    if (j % 8 === 7) {
+-      onProg(j / ny);
++    const y = y0 + j * hy;
++    for (let i = 0; i <= nx; i++) F[j * (nx + 1) + i] = evalF(x0 + i * hx, y);
++    if (j % 8 === 7 || j === ny) {
++      onProg(j / Math.max(1, ny));
+       await new Promise((r) => setTimeout(r, 0));
+       if (cancelRef.current) return null;
+     }
+   }
+-  // slope |grad F| per node (central differences)
+-  const G = new Float64Array((nx + 1) * (ny + 1));
+-  for (let j = 0; j <= ny; j++)
+-    for (let i = 0; i <= nx; i++) {
+-      const ip = Math.min(nx, i + 1), im = Math.max(0, i - 1);
+-      const jp = Math.min(ny, j + 1), jm = Math.max(0, j - 1);
+-      const gx = (F[j * (nx + 1) + ip] - F[j * (nx + 1) + im]) / ((ip - im) * gs);
+-      const gy = (F[jp * (nx + 1) + i] - F[jm * (nx + 1) + i]) / ((jp - jm) * gs);
+-      G[j * (nx + 1) + i] = Math.hypot(gx, gy);
+-    }
+-  const fld = { nx, ny, gs, x0, y0, F, G };
++  const GX = new Float64Array(F.length), GY = new Float64Array(F.length), G = new Float64Array(F.length);
++  for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) {
++    const ip = Math.min(nx, i + 1), im = Math.max(0, i - 1);
++    const jp = Math.min(ny, j + 1), jm = Math.max(0, j - 1);
++    const gx = (F[j * (nx + 1) + ip] - F[j * (nx + 1) + im]) / Math.max(1e-30, (ip - im) * hx);
++    const gy = (F[jp * (nx + 1) + i] - F[jm * (nx + 1) + i]) / Math.max(1e-30, (jp - jm) * hy);
++    const k = j * (nx + 1) + i;
++    GX[k] = gx; GY[k] = gy; G[k] = Math.hypot(gx, gy);
++  }
++  const fld = { nx, ny, hx, hy, gs: Math.max(hx, hy), x0, y0, x1, y1, F, GX, GY, G };
+   fld.sampleF = (x, y) => bilin(fld, F, x, y);
+   fld.sampleG = (x, y) => bilin(fld, G, x, y);
++  fld.sampleGX = (x, y) => bilin(fld, GX, x, y);
++  fld.sampleGY = (x, y) => bilin(fld, GY, x, y);
+   return fld;
+ }
+ 
+ function bilin(fld, A, x, y) {
+-  const { nx, ny, gs, x0, y0 } = fld;
+-  let u = (x - x0) / gs, v = (y - y0) / gs;
+-  u = Math.min(nx - 1e-6, Math.max(0, u));
+-  v = Math.min(ny - 1e-6, Math.max(0, v));
+-  const i = Math.floor(u), j = Math.floor(v);
++  const { nx, ny, x0, y0 } = fld;
++  const hx = fld.hx || fld.gs, hy = fld.hy || fld.gs;
++  let u = (x - x0) / hx, v = (y - y0) / hy;
++  u = Math.min(nx, Math.max(0, u)); v = Math.min(ny, Math.max(0, v));
++  const i = Math.min(nx - 1, Math.floor(u)), j = Math.min(ny - 1, Math.floor(v));
+   const fu = u - i, fv = v - j;
+   const a = A[j * (nx + 1) + i], b = A[j * (nx + 1) + i + 1];
+   const c = A[(j + 1) * (nx + 1) + i], d = A[(j + 1) * (nx + 1) + i + 1];
+@@ -332,128 +367,184 @@
+ 
+ /* ---------------- marching squares + chaining ---------------- */
+ 
+-function marchSquares(A, nx, ny, x0, y0, gs, level) {
++function marchSquares(A, nx, ny, x0, y0, hx, level, hy = hx) {
+   const segs = [];
+-  const ip = (va, vb) => va / (va - vb); // va,vb opposite signs
+-  for (let j = 0; j < ny; j++) {
+-    for (let i = 0; i < nx; i++) {
+-      const v00 = A[j * (nx + 1) + i] - level;
+-      const v10 = A[j * (nx + 1) + i + 1] - level;
+-      const v11 = A[(j + 1) * (nx + 1) + i + 1] - level;
+-      const v01 = A[(j + 1) * (nx + 1) + i] - level;
+-      const c = (v00 > 0 ? 1 : 0) | (v10 > 0 ? 2 : 0) | (v11 > 0 ? 4 : 0) | (v01 > 0 ? 8 : 0);
+-      if (c === 0 || c === 15) continue;
+-      const X = (t) => x0 + t * gs, Y = (t) => y0 + t * gs;
+-      // edge points: 0 bottom, 1 right, 2 top, 3 left
+-      const E = [];
+-      E[0] = [X(i + ip(v00, v10)), Y(j)];
+-      E[1] = [X(i + 1), Y(j + ip(v10, v11))];
+-      E[2] = [X(i + ip(v01, v11)), Y(j + 1)];
+-      E[3] = [X(i), Y(j + ip(v00, v01))];
+-      const put = (a, b) => segs.push([E[a][0], E[a][1], E[b][0], E[b][1]]);
+-      switch (c) {
+-        case 1: case 14: put(3, 0); break;
+-        case 2: case 13: put(0, 1); break;
+-        case 3: case 12: put(3, 1); break;
+-        case 4: case 11: put(1, 2); break;
+-        case 6: case 9: put(0, 2); break;
+-        case 7: case 8: put(3, 2); break;
+-        case 5: {
+-          const vc = (v00 + v10 + v11 + v01) / 4;
+-          if (vc > 0) { put(0, 1); put(2, 3); } else { put(3, 0); put(1, 2); }
+-          break;
+-        }
+-        case 10: {
+-          const vc = (v00 + v10 + v11 + v01) / 4;
+-          if (vc > 0) { put(3, 0); put(1, 2); } else { put(0, 1); put(2, 3); }
+-          break;
+-        }
+-        default: break;
+-      }
+-    }
+-  }
+-  // chain segments into polylines
+-  const key = (x, y) => `${Math.round(x * 256)},${Math.round(y * 256)}`;
+-  const ends = new Map(); // key -> [{s, e}] seg index + which end
+-  segs.forEach((sg, si) => {
+-    for (const e of [0, 1]) {
+-      const k = key(sg[e * 2], sg[e * 2 + 1]);
+-      if (!ends.has(k)) ends.set(k, []);
+-      ends.get(k).push({ si, e });
+-    }
+-  });
+-  const used = new Uint8Array(segs.length);
+-  const polys = [];
++  const interp = (va, vb) => {
++    const d = va - vb;
++    return Math.abs(d) < 1e-30 ? 0.5 : Math.min(1, Math.max(0, va / d));
++  };
++  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
++    const v00 = A[j * (nx + 1) + i] - level;
++    const v10 = A[j * (nx + 1) + i + 1] - level;
++    const v11 = A[(j + 1) * (nx + 1) + i + 1] - level;
++    const v01 = A[(j + 1) * (nx + 1) + i] - level;
++    const c = (v00 > 0 ? 1 : 0) | (v10 > 0 ? 2 : 0) | (v11 > 0 ? 4 : 0) | (v01 > 0 ? 8 : 0);
++    if (c === 0 || c === 15) continue;
++    const edge = (e) => {
++      if (e === 0) return [x0 + (i + interp(v00, v10)) * hx, y0 + j * hy];
++      if (e === 1) return [x0 + (i + 1) * hx, y0 + (j + interp(v10, v11)) * hy];
++      if (e === 2) return [x0 + (i + interp(v01, v11)) * hx, y0 + (j + 1) * hy];
++      return [x0 + i * hx, y0 + (j + interp(v00, v01)) * hy];
++    };
++    const put = (a, b) => { const p = edge(a), q = edge(b); segs.push([p[0], p[1], q[0], q[1]]); };
++    switch (c) {
++      case 1: case 14: put(3, 0); break;
++      case 2: case 13: put(0, 1); break;
++      case 3: case 12: put(3, 1); break;
++      case 4: case 11: put(1, 2); break;
++      case 6: case 9: put(0, 2); break;
++      case 7: case 8: put(3, 2); break;
++      case 5: case 10: {
++        const q = v00 * v11 - v10 * v01; // bilinear asymptotic decider
++        if (q > 0 || (Math.abs(q) < 1e-30 && v00 + v10 + v11 + v01 > 0)) { put(0, 1); put(2, 3); }
++        else { put(3, 0); put(1, 2); }
++        break;
++      }
++      default: break;
++    }
++  }
++  const qtol = Math.max(1e-9, 1e-6 * Math.max(Math.abs(hx), Math.abs(hy)));
++  const key = (x, y) => `${Math.round(x / qtol)},${Math.round(y / qtol)}`;
++  const ends = new Map();
++  segs.forEach((sg, si) => { for (const e of [0, 1]) {
++    const k = key(sg[e * 2], sg[e * 2 + 1]);
++    if (!ends.has(k)) ends.set(k, []);
++    ends.get(k).push({ si, e });
++  }});
++  const used = new Uint8Array(segs.length), polys = [];
+   for (let si = 0; si < segs.length; si++) {
+     if (used[si]) continue;
+     used[si] = 1;
+     let pts = [segs[si][0], segs[si][1], segs[si][2], segs[si][3]];
+-    // extend forward from tail, then backward from head
+-    for (const dir of [1, 0]) {
+-      for (;;) {
+-        const n = pts.length / 2;
+-        const hx = dir ? pts[(n - 1) * 2] : pts[0];
+-        const hy = dir ? pts[(n - 1) * 2 + 1] : pts[1];
+-        const cand = (ends.get(key(hx, hy)) || []).find((c) => !used[c.si]);
+-        if (!cand) break;
+-        used[cand.si] = 1;
+-        const sg = segs[cand.si];
+-        const ox = sg[(1 - cand.e) * 2], oy = sg[(1 - cand.e) * 2 + 1];
+-        if (dir) { pts.push(ox, oy); } else { pts = [ox, oy, ...pts]; }
+-      }
++    for (const forward of [true, false]) for (;;) {
++      const n = pts.length / 2;
++      const hx0 = forward ? pts[(n - 1) * 2] : pts[0];
++      const hy0 = forward ? pts[(n - 1) * 2 + 1] : pts[1];
++      const cand = (ends.get(key(hx0, hy0)) || []).find((e) => !used[e.si]);
++      if (!cand) break;
++      used[cand.si] = 1;
++      const sg = segs[cand.si], ox = sg[(1 - cand.e) * 2], oy = sg[(1 - cand.e) * 2 + 1];
++      if (forward) pts.push(ox, oy); else pts = [ox, oy, ...pts];
+     }
+     const n = pts.length / 2;
+-    const closed = key(pts[0], pts[1]) === key(pts[(n - 1) * 2], pts[(n - 1) * 2 + 1]);
++    const closed = n > 2 && key(pts[0], pts[1]) === key(pts[(n - 1) * 2], pts[(n - 1) * 2 + 1]);
+     if (n >= 2) polys.push({ pts, closed });
+   }
+   return polys;
+ }
+ 
+ function splitByMask(poly, keep) {
++  const nAll = poly.pts.length / 2;
++  if (nAll < 2) return [];
++  const n = poly.closed ? nAll - 1 : nAll;
++  const ok = Array.from({ length: n }, (_, i) => !!keep(poly.pts[2 * i], poly.pts[2 * i + 1]));
++  if (!ok.some(Boolean)) return [];
++  if (poly.closed && ok.every(Boolean)) return [{ pts: poly.pts.slice(), closed: true }];
+   const out = [];
+-  const n = poly.pts.length / 2;
+-  let cur = null;
+-  const idx = poly.closed ? n - 1 : n; // skip duplicate closing point
+-  for (let i = 0; i < idx; i++) {
+-    const x = poly.pts[i * 2], y = poly.pts[i * 2 + 1];
+-    if (keep(x, y)) {
+-      if (!cur) cur = [];
+-      cur.push(x, y);
+-    } else if (cur) { out.push(cur); cur = null; }
+-  }
+-  if (cur) out.push(cur);
+-  // whole loop kept -> keep closed
+-  if (out.length === 1 && poly.closed && out[0].length / 2 === idx)
+-    return [{ pts: out[0], closed: true }];
+-  return out.filter((p) => p.length >= 4).map((p) => ({ pts: p, closed: false }));
++  if (poly.closed) {
++    let cut = ok.findIndex((v) => !v);
++    let cur = null;
++    for (let q = 1; q <= n; q++) {
++      const i = (cut + q) % n;
++      if (ok[i]) {
++        if (!cur) cur = [];
++        cur.push(poly.pts[2 * i], poly.pts[2 * i + 1]);
++      } else if (cur) { if (cur.length >= 4) out.push({ pts: cur, closed: false }); cur = null; }
++    }
++    if (cur && cur.length >= 4) out.push({ pts: cur, closed: false });
++  } else {
++    let cur = null;
++    for (let i = 0; i < n; i++) {
++      if (ok[i]) { if (!cur) cur = []; cur.push(poly.pts[2 * i], poly.pts[2 * i + 1]); }
++      else if (cur) { if (cur.length >= 4) out.push({ pts: cur, closed: false }); cur = null; }
++    }
++    if (cur && cur.length >= 4) out.push({ pts: cur, closed: false });
++  }
++  return out;
+ }
+ 
+ /* ---------------- Eikonal fast sweeping (constant scallop, section 8) ---------------- */
+ 
+-function solveEikonal(fRHS, nx, ny, h) {
+-  const N = (nx + 1) * (ny + 1);
+-  const T = new Float64Array(N).fill(1e30);
+-  for (let i = 0; i <= nx; i++) { T[i] = 0; T[ny * (nx + 1) + i] = 0; }
+-  for (let j = 0; j <= ny; j++) { T[j * (nx + 1)] = 0; T[j * (nx + 1) + nx] = 0; }
++function solveEikonal(fRHS, nx, ny, hx, hy = hx, opts = {}) {
++  if (typeof hy === "object") { opts = hy; hy = hx; }
++  hx = Math.max(1e-12, hx); hy = Math.max(1e-12, hy);
++  const N = (nx + 1) * (ny + 1), INF = 1e30;
++  const T = new Float64Array(N).fill(INF), fixed = new Uint8Array(N);
++  const seed = (k, value = 0) => { if (k >= 0 && k < N) { T[k] = value; fixed[k] = 1; } };
++  if (opts.boundary !== false) {
++    for (let i = 0; i <= nx; i++) { seed(i); seed(ny * (nx + 1) + i); }
++    for (let j = 0; j <= ny; j++) { seed(j * (nx + 1)); seed(j * (nx + 1) + nx); }
++  }
++  if (opts.seedMask) for (let k = 0; k < N; k++) if (opts.seedMask[k]) seed(k, opts.seedValues ? opts.seedValues[k] : 0);
++  if (opts.seeds) for (const z of opts.seeds) typeof z === "number" ? seed(z) : seed(z.k, z.value || 0);
++  const rhs = (k) => Math.max(0, typeof fRHS === "number" ? fRHS : fRHS[k]);
+   const upd = (i, j) => {
+     const k = j * (nx + 1) + i;
+-    const a = Math.min(i > 0 ? T[k - 1] : 1e30, i < nx ? T[k + 1] : 1e30);
+-    const b = Math.min(j > 0 ? T[k - (nx + 1)] : 1e30, j < ny ? T[k + (nx + 1)] : 1e30);
+-    const f = fRHS[k] * h;
+-    let t;
+-    if (Math.abs(a - b) >= f) t = Math.min(a, b) + f;
+-    else t = (a + b + Math.sqrt(2 * f * f - (a - b) * (a - b))) / 2;
+-    if (t < T[k]) T[k] = t;
++    if (fixed[k]) return 0;
++    const a = Math.min(i > 0 ? T[k - 1] : INF, i < nx ? T[k + 1] : INF);
++    const b = Math.min(j > 0 ? T[k - (nx + 1)] : INF, j < ny ? T[k + (nx + 1)] : INF);
++    const f = rhs(k);
++    let t = Math.min(a + f * hx, b + f * hy);
++    if (a < INF / 2 && b < INF / 2) {
++      const A = 1 / (hx * hx) + 1 / (hy * hy);
++      const B = -2 * (a / (hx * hx) + b / (hy * hy));
++      const C = a * a / (hx * hx) + b * b / (hy * hy) - f * f;
++      const disc = B * B - 4 * A * C;
++      if (disc >= 0) {
++        const tq = (-B + Math.sqrt(disc)) / (2 * A);
++        if (tq >= Math.max(a, b)) t = Math.min(t, tq);
++      }
++    }
++    if (t + 1e-15 < T[k]) { const d = T[k] - t; T[k] = t; return d; }
++    return 0;
+   };
+-  for (let it = 0; it < 4; it++) {
+-    for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) upd(i, j);
+-    for (let j = 0; j <= ny; j++) for (let i = nx; i >= 0; i--) upd(i, j);
+-    for (let j = ny; j >= 0; j--) for (let i = 0; i <= nx; i++) upd(i, j);
+-    for (let j = ny; j >= 0; j--) for (let i = nx; i >= 0; i--) upd(i, j);
++  const tol = opts.tol ?? 1e-10, maxCycles = opts.maxCycles ?? 128;
++  for (let cyc = 0; cyc < maxCycles; cyc++) {
++    let change = 0;
++    const sweep = (i0, i1, di, j0, j1, dj) => {
++      for (let j = j0; j !== j1; j += dj) for (let i = i0; i !== i1; i += di) change = Math.max(change, upd(i, j));
++    };
++    sweep(0, nx + 1, 1, 0, ny + 1, 1);
++    sweep(nx, -1, -1, 0, ny + 1, 1);
++    sweep(0, nx + 1, 1, ny, -1, -1);
++    sweep(nx, -1, -1, ny, -1, -1);
++    if (change < tol) break;
+   }
+   return T;
+ }
+ 
++class MinHeap {
++  constructor() { this.a = []; }
++  push(d, k) { const a = this.a; let i = a.length; a.push([d, k]); while (i) { const p = (i - 1) >> 1; if (a[p][0] <= d) break; a[i] = a[p]; i = p; } a[i] = [d, k]; }
++  pop() { const a = this.a; if (!a.length) return null; const root = a[0], last = a.pop(); if (a.length) { let i = 0; while (true) { let c = i * 2 + 1; if (c >= a.length) break; if (c + 1 < a.length && a[c + 1][0] < a[c][0]) c++; if (a[c][0] >= last[0]) break; a[i] = a[c]; i = c; } a[i] = last; } return root; }
++  get length() { return this.a.length; }
++}
++
++function solveSurfaceMetricDistance(fld, spacing = 1, opts = {}) {
++  spacing = Math.max(1e-12, spacing);
++  const { nx, ny, F } = fld, hx = fld.hx || fld.gs, hy = fld.hy || fld.gs;
++  const N = (nx + 1) * (ny + 1), D = new Float64Array(N).fill(Infinity), heap = new MinHeap();
++  const addSeed = (k, d = 0) => { if (d < D[k]) { D[k] = d; heap.push(d, k); } };
++  if (opts.boundary !== false) {
++    for (let i = 0; i <= nx; i++) { addSeed(i); addSeed(ny * (nx + 1) + i); }
++    for (let j = 0; j <= ny; j++) { addSeed(j * (nx + 1)); addSeed(j * (nx + 1) + nx); }
++  }
++  if (opts.seeds) for (const z of opts.seeds) typeof z === "number" ? addSeed(z) : addSeed(z.k, z.value || 0);
++  const dirs = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];
++  while (heap.length) {
++    const [d, k] = heap.pop(); if (d !== D[k]) continue;
++    const i = k % (nx + 1), j = Math.floor(k / (nx + 1));
++    for (const [di, dj] of dirs) {
++      const ii = i + di, jj = j + dj; if (ii < 0 || ii > nx || jj < 0 || jj > ny) continue;
++      const q = jj * (nx + 1) + ii;
++      const dx = di * hx, dy = dj * hy, dz = F[q] - F[k];
++      const nd = d + Math.hypot(dx, dy, dz) / spacing;
++      if (nd + 1e-14 < D[q]) { D[q] = nd; heap.push(nd, q); }
++    }
++  }
++  return D;
++}
++
+ /* ================================================================
+    JOB GENERATION
+    move kinds: rapid, plunge, ramp (helix/zigzag entry), cut
+@@ -465,64 +556,63 @@
+   kind === "ramp" ? Math.max(30, feed * 0.5) : feed;
+ 
+ /* --- helix / ramp / plunge entry, validated against evalA --- */
++function pathIsSafe(sx, sy, sz, pts, evalA, sampleStep = 0.25, eps = 1e-6) {
++  let x0 = sx, y0 = sy, z0 = sz;
++  for (let i = 0; i < pts.length; i += 3) {
++    const x1 = pts[i], y1 = pts[i + 1], z1 = pts[i + 2];
++    const len = Math.hypot(x1 - x0, y1 - y0, z1 - z0);
++    const n = Math.max(1, Math.ceil(len / Math.max(0.02, sampleStep)));
++    for (let q = 1; q <= n; q++) {
++      const t = q / n, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t, z = z0 + (z1 - z0) * t;
++      if (evalA(x, y) > z + eps) return false;
++    }
++    x0 = x1; y0 = y1; z0 = z1;
++  }
++  return true;
++}
++
+ function emitEntry(mv, phase, sx, sy, ux, uy, avail, zTop, z, evalA, R, prm) {
+-  const mode = prm.entryMode;
+-  const ang = Math.max(0.5, prm.rampAngle) * Math.PI / 180;
+-  const nxv = -uy, nyv = ux;
++  const mode = prm.entryMode || "auto";
++  const ang = Math.max(0.5, prm.rampAngle || 3) * Math.PI / 180;
++  const nxv = -uy, nyv = ux, checkStep = Math.max(0.05, R / 5);
+   if (mode === "auto") {
+-    // try helix: tool-center orbit of radius rh, fully inside allowed region
+     const rh = Math.max(0.25, R * 0.5);
+     if (avail > 2 * rh + 0.2) {
+       const cx = sx + rh * ux, cy = sy + rh * uy;
+-      let ok = true;
+-      for (let k = 0; k < 12; k++) {
+-        const th = (k / 12) * 2 * Math.PI;
+-        const px = cx - rh * Math.cos(th) * ux + rh * Math.sin(th) * nxv;
+-        const py = cy - rh * Math.cos(th) * uy + rh * Math.sin(th) * nyv;
+-        if (evalA(px, py) > z + 1e-6) { ok = false; break; }
+-      }
+-      if (ok) {
+-        const pitch = rh * Math.tan(ang); // descent per radian
+-        const pts = [];
+-        let th = 0, zc = zTop;
+-        while (zc > z + 1e-9) {
+-          th += Math.PI / 8;
+-          zc = Math.max(z, zTop - th * pitch);
+-          pts.push(cx - rh * Math.cos(th) * ux + rh * Math.sin(th) * nxv,
+-                   cy - rh * Math.cos(th) * uy + rh * Math.sin(th) * nyv, zc);
+-        }
+-        const thEnd = Math.ceil(th / (2 * Math.PI)) * 2 * Math.PI; // flatten the floor, end at start point
+-        while (th < thEnd - 1e-9) {
+-          th = Math.min(thEnd, th + Math.PI / 8);
+-          pts.push(cx - rh * Math.cos(th) * ux + rh * Math.sin(th) * nxv,
+-                   cy - rh * Math.cos(th) * uy + rh * Math.sin(th) * nyv, z);
+-        }
+-        mv("ramp", phase, pts);
+-        return;
++      const pitch = Math.max(1e-6, rh * Math.tan(ang));
++      const pts = [];
++      let th = 0, zc = zTop;
++      while (zc > z + 1e-9 && pts.length < 30000) {
++        th += Math.PI / 12; zc = Math.max(z, zTop - th * pitch);
++        pts.push(cx - rh * Math.cos(th) * ux + rh * Math.sin(th) * nxv,
++          cy - rh * Math.cos(th) * uy + rh * Math.sin(th) * nyv, zc);
++      }
++      const thEnd = Math.ceil(th / (2 * Math.PI)) * 2 * Math.PI;
++      while (th < thEnd - 1e-9) {
++        th = Math.min(thEnd, th + Math.PI / 12);
++        pts.push(cx - rh * Math.cos(th) * ux + rh * Math.sin(th) * nxv,
++          cy - rh * Math.cos(th) * uy + rh * Math.sin(th) * nyv, z);
+       }
++      if (pts.length && pathIsSafe(sx, sy, zTop, pts, evalA, checkStep)) { mv("ramp", phase, pts); return; }
+     }
+   }
+   if (mode === "auto" || mode === "ramp") {
+-    // zig-zag ramp along the first-cut direction, inside the interval
+     const Lr = Math.min(Math.max(2 * R, 2), Math.max(0, avail * 0.9));
+     if (Lr >= 0.8) {
+-      const drop = Lr * Math.tan(ang);
+-      const pts = [];
++      const drop = Math.max(1e-6, Lr * Math.tan(ang)), pts = [];
+       let zc = zTop, atFar = false;
+-      while (zc > z + 1e-9) {
+-        zc = Math.max(z, zc - drop);
+-        atFar = !atFar;
++      while (zc > z + 1e-9 && pts.length < 30000) {
++        zc = Math.max(z, zc - drop); atFar = !atFar;
+         pts.push(sx + (atFar ? Lr * ux : 0), sy + (atFar ? Lr * uy : 0), zc);
+       }
+       if (atFar) pts.push(sx, sy, z);
+-      mv("ramp", phase, pts);
+-      return;
++      if (pathIsSafe(sx, sy, zTop, pts, evalA, checkStep)) { mv("ramp", phase, pts); return; }
+     }
+   }
+   mv("plunge", phase, [sx, sy, z]);
+ }
+ 
+-async function generateJob(model, tool, prm, onProgress, cancelRef) {
++async function generateJob(model, tool, prm, onProgress = () => {}, cancelRef = { current: false }) {
+   const R = tool.diameter / 2;
+   const b = model.bbox;
+   const clearZ = b.maxZ + prm.clearance;
+@@ -558,7 +648,7 @@
+     const span = bHi - bLo;
+     const nRows = Math.max(1, Math.ceil(span / rs));
+     const rstep = span / nRows;
+-    const da = Math.min(Math.max(R / 2, 0.15), 1);
++    const da = Math.min(Math.max(R / 4, 0.08), 0.5);
+ 
+     let curX = null, curY = null;
+ 
+@@ -626,8 +716,10 @@
+           const ivs = byRow.get(j).sort((p, q) => p.a0 - q.a0);
+           const seq = dirFwd ? ivs : [...ivs].reverse();
+           for (const iv of seq) {
+-            const s = dirFwd ? iv.a0 : iv.a1;
+-            const e = dirFwd ? iv.a1 : iv.a0;
++            let s = dirFwd ? iv.a0 : iv.a1;
++            let e = dirFwd ? iv.a1 : iv.a0;
++            const inset = Math.min(0.03, 0.02 * Math.abs(e - s));
++            s += Math.sign(e - s) * inset; e -= Math.sign(e - s) * inset;
+             const [sx, sy] = W(s, bb);
+             const [exW, eyW] = W(e, bb);
+             const ivLen = Math.abs(iv.a1 - iv.a0);
+@@ -698,14 +790,16 @@
+   const finMoves = []; // separate list so all finish cut moves can be arc-fitted
+   const fmv = (kind, arr, ops) => finMoves.push({ kind, phase: "finish", pts: arr.slice(), ops: ops || null });
+ 
+-  function refineLine(x0p, y0p, z0p, x1p, y1p, z1p, depth, out) {
++function refineLine(x0p, y0p, z0p, x1p, y1p, z1p, depth, out) {
+     const len = Math.hypot(x1p - x0p, y1p - y0p);
+     if (depth <= 0 || len < minLen) { out.push(x1p, y1p, z1p); return; }
+-    const xm = (x0p + x1p) / 2, ym = (y0p + y1p) / 2;
+-    const zm = evalF(xm, ym);
+-    if (len > seg0 || Math.abs(zm - (z0p + z1p) / 2) > tol) {
+-      refineLine(x0p, y0p, z0p, xm, ym, zm, depth - 1, out);
+-      refineLine(xm, ym, zm, x1p, y1p, z1p, depth - 1, out);
++    const sample = (t) => evalF(x0p + (x1p - x0p) * t, y0p + (y1p - y0p) * t);
++    const z25 = sample(0.25), z50 = sample(0.5), z75 = sample(0.75);
++    const err = Math.max(Math.abs(z25 - (0.75 * z0p + 0.25 * z1p)), Math.abs(z50 - 0.5 * (z0p + z1p)), Math.abs(z75 - (0.25 * z0p + 0.75 * z1p)));
++    if (len > seg0 || err > tol) {
++      const xm = (x0p + x1p) / 2, ym = (y0p + y1p) / 2;
++      refineLine(x0p, y0p, z0p, xm, ym, z50, depth - 1, out);
++      refineLine(xm, ym, z50, x1p, y1p, z1p, depth - 1, out);
+     } else out.push(x1p, y1p, z1p);
+   }
+ 
+@@ -747,21 +841,23 @@
+     const push = alongX
+       ? (a, bb, z) => { pts.push(a, bb, z); }
+       : (a, bb, z) => { pts.push(bb, a, z); };
+-    function refineA(bF, a0, z0, a1, z1, d) {
++function refineA(bF, a0, z0, a1, z1, d) {
+       const len = Math.abs(a1 - a0);
+       if (d <= 0 || len < minLen) { push(a1, bF, z1); return; }
+-      const am = (a0 + a1) / 2, zm = evalAB(am, bF);
+-      if (len > seg0 || Math.abs(zm - (z0 + z1) / 2) > tol) {
+-        refineA(bF, a0, z0, am, zm, d - 1); refineA(bF, am, zm, a1, z1, d - 1);
+-      } else push(a1, bF, z1);
++      const q1 = a0 + 0.25 * (a1 - a0), am = (a0 + a1) / 2, q3 = a0 + 0.75 * (a1 - a0);
++      const zq1 = evalAB(q1, bF), zm = evalAB(am, bF), zq3 = evalAB(q3, bF);
++      const err = Math.max(Math.abs(zq1 - (0.75*z0+0.25*z1)), Math.abs(zm-(z0+z1)/2), Math.abs(zq3-(0.25*z0+0.75*z1)));
++      if (len > seg0 || err > tol) { refineA(bF, a0, z0, am, zm, d - 1); refineA(bF, am, zm, a1, z1, d - 1); }
++      else push(a1, bF, z1);
+     }
+-    function refineB(aF, b0, z0, b1, z1, d) {
++function refineB(aF, b0, z0, b1, z1, d) {
+       const len = Math.abs(b1 - b0);
+       if (d <= 0 || len < minLen) { push(aF, b1, z1); return; }
+-      const bm = (b0 + b1) / 2, zm = evalAB(aF, bm);
+-      if (len > seg0 || Math.abs(zm - (z0 + z1) / 2) > tol) {
+-        refineB(aF, b0, z0, bm, zm, d - 1); refineB(aF, bm, zm, b1, z1, d - 1);
+-      } else push(aF, b1, z1);
++      const q1 = b0 + 0.25 * (b1 - b0), bm = (b0 + b1) / 2, q3 = b0 + 0.75 * (b1 - b0);
++      const zq1 = evalAB(aF, q1), zm = evalAB(aF, bm), zq3 = evalAB(aF, q3);
++      const err = Math.max(Math.abs(zq1 - (0.75*z0+0.25*z1)), Math.abs(zm-(z0+z1)/2), Math.abs(zq3-(0.25*z0+0.75*z1)));
++      if (len > seg0 || err > tol) { refineB(aF, b0, z0, bm, zm, d - 1); refineB(aF, bm, zm, b1, z1, d - 1); }
++      else push(aF, b1, z1);
+     }
+     let prevB = bLo, prevZ = 0;
+     for (let j = 0; j <= rows; j++) {
+@@ -793,7 +889,10 @@
+     if (strategy === "hybrid") {
+       /* raster on shallow, waterline contours on steep */
+       const tanTh = Math.tan((Math.max(5, prm.steepDeg) * Math.PI) / 180);
+-      const shallow = (x, y) => fld.sampleG(x, y) <= tanTh * 1.15;
++      const isShallow = (x, y) => fld.sampleG(x, y) <= tanTh * 1.15;
++      // Coverage-first repair: the raster remains global. Restricting it to shallow
++      // samples alone can leave uncut islands between discrete waterline levels.
++      const shallow = (_x, _y) => true;
+       const steep = (x, y) => fld.sampleG(x, y) >= tanTh * 0.85;
+ 
+       // 1) shallow raster intervals
+@@ -809,14 +908,14 @@
+         // intervals of shallow along the row
+         const ivs = [];
+         let open = null;
+-        for (let a = aLo; a <= aHi + 1e-9; a += ds) {
++        for (let a = aLo; ; a += ds) {
+           const aa = Math.min(a, aHi);
+           const [wx, wy] = W(aa, bb);
+           const ok = shallow(wx, wy);
+           if (ok && open === null) open = aa;
+           if ((!ok || aa >= aHi) && open !== null) {
+             const end = ok ? aa : aa - ds;
+-            if (end - open > 2 * gs) ivs.push([open, end]);
++            if (end - open > Math.max(0.08, 0.2 * gs)) ivs.push([open, end]);
+             open = null;
+           }
+           if (aa >= aHi) break;
+@@ -845,7 +944,7 @@
+       for (let li = 0; li < nLev; li++) {
+         if (cancelRef.current) return null;
+         const z = zTopWL - li * s0;
+-        const polys = marchSquares(fld.F, fld.nx, fld.ny, fld.x0, fld.y0, fld.gs, z);
++        const polys = marchSquares(fld.F, fld.nx, fld.ny, fld.x0, fld.y0, fld.hx, z, fld.hy);
+         const runs = [];
+         for (const p of polys) runs.push(...splitByMask(p, steep));
+         // nearest-first ordering within the level
+@@ -867,31 +966,44 @@
+           }
+           const n = p.length / 2;
+           if (n < 2) continue;
+-          finLink(p[0], p[1], z);
+-          const out = [];
+-          for (let i = 1; i < n; i++) out.push(p[i * 2], p[i * 2 + 1], z);
+-          if (run.closed) out.push(p[0], p[1], z);
++          const dense = [p[0], p[1]];
++          for (let i = 1; i < n; i++) {
++            const xa = p[(i-1)*2], ya = p[(i-1)*2+1], xb = p[i*2], yb = p[i*2+1];
++            const ns = Math.max(1, Math.ceil(Math.hypot(xb-xa,yb-ya) / Math.max(0.08, 0.45*fld.gs)));
++            for (let q=1;q<=ns;q++) { const t=q/ns; dense.push(xa+(xb-xa)*t, ya+(yb-ya)*t); }
++          }
++          if (run.closed) dense.push(dense[0], dense[1]);
++          let safeZ = z;
++          for (let i=0;i<dense.length;i+=2) safeZ = Math.max(safeZ, evalF(dense[i], dense[i+1]));
++          finLink(dense[0], dense[1], safeZ);
++          const out = []; for (let i=2;i<dense.length;i+=2) out.push(dense[i], dense[i+1], safeZ);
++          if (!out.length) continue;
+           fmv("cut", out);
+           const lx = out[out.length - 3], ly = out[out.length - 2];
+-          cur = { x: lx, y: ly, z };
++          cur = { x: lx, y: ly, z: safeZ };
+           nWL++;
+         }
+         if (li % 3 === 2) { onProgress(0.64 + 0.16 * (li / Math.max(1, nLev))); await new Promise((r) => setTimeout(r, 0)); }
+       }
+-      finDesc = `hybrid: ${nInt} raster spans + ${nWL} waterline contours`;
++      finDesc = `coverage-first hybrid: ${nInt} raster spans + ${nWL} steep waterline contours`;
+     } else {
+-      /* --- constant scallop: |grad T| = sqrt(1+|grad f|^2)/s0 --- */
++      /* --- approximate constant surface spacing; legacy isotropic slope Eikonal retained for comparison --- */
+       const N = (fld.nx + 1) * (fld.ny + 1);
+-      const rhs = new Float64Array(N);
+-      for (let k = 0; k < N; k++) rhs[k] = Math.sqrt(1 + fld.G[k] * fld.G[k]) / s0;
+-      const Tf = solveEikonal(rhs, fld.nx, fld.ny, fld.gs);
++      let Tf;
++      if ((prm.scallopMetric || "surface-graph") === "slope-eikonal") {
++        const rhs = new Float64Array(N);
++        for (let k = 0; k < N; k++) rhs[k] = Math.sqrt(1 + fld.G[k] * fld.G[k]) / s0;
++        Tf = solveEikonal(rhs, fld.nx, fld.ny, fld.hx, fld.hy);
++      } else {
++        Tf = solveSurfaceMetricDistance(fld, s0);
++      }
+       let Tmax = 0;
+       for (let k = 0; k < N; k++) if (Tf[k] < 1e29 && Tf[k] > Tmax) Tmax = Tf[k];
+       const nC = Math.floor(Tmax - 0.4);
+       let nCS = 0;
+       for (let ci = 1; ci <= nC; ci++) {
+         if (cancelRef.current) return null;
+-        const polys = marchSquares(Tf, fld.nx, fld.ny, fld.x0, fld.y0, fld.gs, ci);
++        const polys = marchSquares(Tf, fld.nx, fld.ny, fld.x0, fld.y0, fld.hx, ci, fld.hy);
+         for (const poly of polys) {
+           const n = poly.pts.length / 2;
+           if (n < 4) continue;
+@@ -921,7 +1033,7 @@
+         }
+         if (ci % 4 === 3) { onProgress(0.42 + 0.38 * (ci / nC)); await new Promise((r) => setTimeout(r, 0)); }
+       }
+-      finDesc = `constant scallop: ${nCS} iso-scallop contours`;
++      finDesc = (prm.scallopMetric === "slope-eikonal" ? `constant scallop (slope-eikonal): ${nCS} iso-spacing contours` : `constant scallop (surface-metric): ${nCS} iso-spacing contours`);
+     }
+   }
+ 
+@@ -929,21 +1041,7 @@
+   moves.push(...finMoves);
+ 
+   /* ---------------- arc fitting on finishing cut moves ---------------- */
+-  let arcStats = null;
+-  if (prm.arcFit) {
+-    let nA = 0, nL = 0, raw = 0;
+-    for (const mo of finMoves) {
+-      if (mo.kind !== "cut") continue;
+-      const P = mo.pts instanceof Float32Array ? mo.pts : new Float32Array(mo.pts);
+-      mo.pts = P;
+-      const nP = P.length / 3;
+-      if (nP < 6) continue;
+-      mo.ops = compressCut(P, nP, Math.max(1e-4, prm.arcTol));
+-      raw += nP - 1;
+-      for (const op of mo.ops) op.t === "A" ? nA++ : nL++;
+-    }
+-    if (raw > 0) arcStats = { arcs: nA, lines: nL, raw };
+-  }
++  const arcStats = prm.arcFit ? applyArcFitting(moves, Math.max(1e-4, prm.arcTol)) : null;
+   onProgress(1);
+ 
+   /* ---------------- flatten ---------------- */
+@@ -1091,76 +1189,78 @@
+    G-CODE
+    ================================================================ */
+ 
+-function toGcode(job, tool, prm, modelName) {
+-  const f = (v) => v.toFixed(3);
+-  const L = [];
+-  const feed = Math.round(prm.feed);
+-  const plunge = Math.round(Math.max(30, prm.feed / 3));
+-  const rampF = Math.round(Math.max(30, prm.feed * 0.5));
+-  L.push("%");
+-  L.push(`(DROPCUT - ${modelName})`);
+-  L.push(`(TOOL: ${tool.type.toUpperCase()} D${f(tool.diameter)} MM)`);
+-  if (job.stats.roughLevels)
+-    L.push(`(ROUGHING: ${job.stats.roughLevels} LEVELS, ALLOWANCE ${f(prm.allowance)} MM)`);
+-  L.push(`(FINISH: ${job.stats.finDesc.toUpperCase()})`);
+-  L.push("G21 G90 G94 G17");
+-  L.push(`S${Math.round(prm.rpm)} M3`);
+-  L.push(`G0 Z${f(job.clearZ)}`);
+ 
+-  let curF = null, curPlane = 17;
+-  let cx = null, cy = null, cz = null;
+-  const ensureF = (F) => { if (curF !== F) { L.push(`F${F}`); curF = F; } };
+-  const ensurePlane = (p) => { if (curPlane !== p) { L.push(`G${p}`); curPlane = p; } };
++function applyArcFitting(moves, tol) {
++  let current = null, nA = 0, nL = 0, raw = 0;
++  for (const mo of moves) {
++    const P0 = mo.pts instanceof Float32Array ? mo.pts : new Float32Array(mo.pts);
++    mo.pts = P0;
++    if (mo.kind === "cut" && current && P0.length >= 3) {
++      const same = Math.hypot(P0[0]-current[0], P0[1]-current[1], P0[2]-current[2]) < 1e-8;
++      const P = same ? P0 : new Float32Array([current[0], current[1], current[2], ...P0]);
++      mo.arcPts = P;
++      const n = P.length / 3;
++      if (n >= 2) {
++        mo.ops = n >= 6 ? compressCut(P, n, tol) : Array.from({length:n-1},(_,i)=>({t:"L",i:i+1}));
++        raw += n - 1;
++        for (const op of mo.ops) op.t === "A" ? nA++ : nL++;
++      }
++    }
++    if (P0.length >= 3) current = [P0[P0.length-3], P0[P0.length-2], P0[P0.length-1]];
++  }
++  return raw ? { arcs: nA, lines: nL, raw } : null;
++}
++
++function arcPointAt(start, end, op, t) {
++  let u0, v0, u1, v1, fixed;
++  if (op.plane === 17) { u0=start[0];v0=start[1];u1=end[0];v1=end[1];fixed=start[2]; }
++  else if (op.plane === 18) { u0=start[0];v0=start[2];u1=end[0];v1=end[2];fixed=start[1]; }
++  else { u0=start[1];v0=start[2];u1=end[1];v1=end[2];fixed=start[0]; }
++  const a0=Math.atan2(v0-op.vc,u0-op.uc), a1=Math.atan2(v1-op.vc,u1-op.uc);
++  let da=a1-a0;
++  if (op.pos) while (da<=0) da+=2*Math.PI; else while (da>=0) da-=2*Math.PI;
++  const a=a0+da*t, r=Math.hypot(u0-op.uc,v0-op.vc), u=op.uc+r*Math.cos(a), v=op.vc+r*Math.sin(a);
++  if (op.plane===17) return [u,v,fixed];
++  if (op.plane===18) return [u,fixed,v];
++  return [fixed,u,v];
++}
+ 
++function toGcode(job, tool, prm, modelName) {
++  const f = (v) => { if (!Number.isFinite(v)) throw new Error("Cannot export a non-finite coordinate"); return v.toFixed(3); };
++  const comment = (x) => String(x ?? "").replace(/[()\r\n]/g, " ").replace(/\s+/g, " ").trim();
++  const L = [], feed = Math.round(prm.feed), plunge = Math.round(Math.max(30, prm.feed / 3)), rampF = Math.round(Math.max(30, prm.feed * 0.5));
++  L.push("%", `(DROPCUT - ${comment(modelName)})`, `(TOOL: ${comment(tool.type).toUpperCase()} D${f(tool.diameter)} MM)`);
++  if (job.stats.roughLevels) L.push(`(ROUGHING: ${job.stats.roughLevels} LEVELS, ALLOWANCE ${f(prm.allowance)} MM)`);
++  L.push(`(FINISH: ${comment(job.stats.finDesc).toUpperCase()})`);
++  L.push("G21 G90 G94 G17 G91.1", `S${Math.round(prm.rpm)} M3`, `G0 Z${f(job.clearZ)}`);
++  let curF = null, curPlane = 17, cx = null, cy = null, cz = null;
++  const ensureF = (F) => { if (curF !== F) { L.push(`F${F}`); curF = F; } };
++  const ensurePlane = (q) => { if (curPlane !== q) { L.push(`G${q}`); curPlane = q; } };
+   for (const mo of job.moves) {
+     if (mo.kind === "rapid") {
+       ensurePlane(17);
+-      for (let i = 0; i < mo.pts.length; i += 3) {
+-        cx = mo.pts[i]; cy = mo.pts[i + 1]; cz = mo.pts[i + 2];
+-        L.push(`G0 X${f(cx)} Y${f(cy)} Z${f(cz)}`);
+-      }
++      for (let i=0;i<mo.pts.length;i+=3) { cx=mo.pts[i];cy=mo.pts[i+1];cz=mo.pts[i+2]; L.push(`G0 X${f(cx)} Y${f(cy)} Z${f(cz)}`); }
+     } else if (mo.kind === "plunge" || mo.kind === "ramp") {
+       ensurePlane(17); ensureF(mo.kind === "ramp" ? rampF : plunge);
+-      for (let i = 0; i < mo.pts.length; i += 3) {
+-        cx = mo.pts[i]; cy = mo.pts[i + 1]; cz = mo.pts[i + 2];
+-        L.push(`G1 X${f(cx)} Y${f(cy)} Z${f(cz)}`);
+-      }
++      for (let i=0;i<mo.pts.length;i+=3) { cx=mo.pts[i];cy=mo.pts[i+1];cz=mo.pts[i+2]; L.push(`G1 X${f(cx)} Y${f(cy)} Z${f(cz)}`); }
+     } else if (mo.ops) {
+-      ensureF(feed);
+-      const P = mo.pts;
++      ensureF(feed); const P = mo.arcPts || mo.pts;
++      if (cx === null && P.length >= 3) { cx=P[0];cy=P[1];cz=P[2]; }
+       for (const op of mo.ops) {
+-        const x = P[op.i * 3], y = P[op.i * 3 + 1], z = P[op.i * 3 + 2];
+-        if (op.t === "L") {
+-          ensurePlane(17);
+-          L.push(`G1 X${f(x)} Y${f(y)} Z${f(z)}`);
+-        } else if (op.plane === 18) {
+-          ensurePlane(18);
+-          const g = op.pos ? "G2" : "G3"; // CCW in (x,z) frame = CW seen from +Y
+-          L.push(`${g} X${f(x)} Z${f(z)} I${f(op.uc - cx)} K${f(op.vc - cz)}`);
+-        } else if (op.plane === 19) {
+-          ensurePlane(19);
+-          const g = op.pos ? "G3" : "G2";
+-          L.push(`${g} Y${f(y)} Z${f(z)} J${f(op.uc - cy)} K${f(op.vc - cz)}`);
+-        } else {
+-          ensurePlane(17);
+-          const g = op.pos ? "G3" : "G2"; // CCW in (x,y) frame = CCW seen from +Z
+-          L.push(`${g} X${f(x)} Y${f(y)} I${f(op.uc - cx)} J${f(op.vc - cy)}`);
+-        }
+-        cx = x; cy = y; cz = z;
++        const x=P[op.i*3],y=P[op.i*3+1],z=P[op.i*3+2];
++        if (op.t === "L") { ensurePlane(17); L.push(`G1 X${f(x)} Y${f(y)} Z${f(z)}`); }
++        else if (op.plane === 18) { ensurePlane(18); const g=op.pos?"G2":"G3"; L.push(`${g} X${f(x)} Z${f(z)} I${f(op.uc-cx)} K${f(op.vc-cz)}`); }
++        else if (op.plane === 19) { ensurePlane(19); const g=op.pos?"G3":"G2"; L.push(`${g} Y${f(y)} Z${f(z)} J${f(op.uc-cy)} K${f(op.vc-cz)}`); }
++        else { ensurePlane(17); const g=op.pos?"G3":"G2"; L.push(`${g} X${f(x)} Y${f(y)} I${f(op.uc-cx)} J${f(op.vc-cy)}`); }
++        cx=x;cy=y;cz=z;
+       }
+       ensurePlane(17);
+     } else {
+       ensurePlane(17); ensureF(feed);
+-      for (let i = 0; i < mo.pts.length; i += 3) {
+-        cx = mo.pts[i]; cy = mo.pts[i + 1]; cz = mo.pts[i + 2];
+-        L.push(`G1 X${f(cx)} Y${f(cy)} Z${f(cz)}`);
+-      }
++      for (let i=0;i<mo.pts.length;i+=3) { cx=mo.pts[i];cy=mo.pts[i+1];cz=mo.pts[i+2]; L.push(`G1 X${f(cx)} Y${f(cy)} Z${f(cz)}`); }
+     }
+   }
+-  L.push(`G0 Z${f(job.clearZ)}`);
+-  L.push("M5");
+-  L.push("M30");
+-  L.push("%");
++  L.push(`G0 Z${f(job.clearZ)}`, "M5", "M30", "%");
+   return { text: L.join("\n"), nLines: L.length };
+ }
+ 
+@@ -1168,127 +1268,57 @@
+    DEXEL VERIFICATION — heightmap material removal + deviation
+    ================================================================ */
+ 
+-async function verifyJob(job, model, prm, tool, onProg, cancelRef) {
+-  const b = model.bbox, m = prm.margin;
+-  const x0 = b.minX - m, x1 = b.maxX + m, y0 = b.minY - m, y1 = b.maxY + m;
+-  const vs = Math.max(0.1, Math.min(0.35, Math.max(x1 - x0, y1 - y0) / 240));
+-  const nx = Math.max(4, Math.ceil((x1 - x0) / vs));
+-  const ny = Math.max(4, Math.ceil((y1 - y0) / vs));
+-  const NN = (nx + 1) * (ny + 1);
+-  const H = new Float64Array(NN).fill(b.maxZ);   // machined stock
+-  const Tg = new Float64Array(NN).fill(prm.floorZ); // target surface
+-
+-  // rasterize model triangles into the target field (max-z per node)
+-  const T = model.tris;
+-  for (let t = 0; t < model.nTri; t++) {
+-    const o = t * 9;
+-    const ax = T[o], ay = T[o + 1], az = T[o + 2];
+-    const bx = T[o + 3], by = T[o + 4], bz = T[o + 5];
+-    const cx = T[o + 6], cy = T[o + 7], cz = T[o + 8];
+-    const i0 = Math.max(0, Math.floor((Math.min(ax, bx, cx) - x0) / vs));
+-    const i1 = Math.min(nx, Math.ceil((Math.max(ax, bx, cx) - x0) / vs));
+-    const j0 = Math.max(0, Math.floor((Math.min(ay, by, cy) - y0) / vs));
+-    const j1 = Math.min(ny, Math.ceil((Math.max(ay, by, cy) - y0) / vs));
+-    const ux = bx - ax, uy = by - ay, uz = bz - az;
+-    const vx = cx - ax, vy = cy - ay, vz = cz - az;
+-    const nzc = ux * vy - uy * vx;
+-    if (Math.abs(nzc) < 1e-12) continue;
+-    const nxc = uy * vz - uz * vy, nyc = uz * vx - ux * vz;
+-    const A = -nxc / nzc, B = -nyc / nzc, C = az - A * ax - B * ay;
+-    for (let j = j0; j <= j1; j++) {
+-      const py = y0 + j * vs;
+-      for (let i = i0; i <= i1; i++) {
+-        const px = x0 + i * vs;
+-        if (pointInTri(px, py, ax, ay, bx, by, cx, cy)) {
+-          const z = A * px + B * py + C;
+-          const k = j * (nx + 1) + i;
+-          if (z > Tg[k]) Tg[k] = z;
+-        }
+-      }
+-    }
+-    if (t % 4000 === 3999) {
+-      onProg(0.25 * (t / model.nTri));
+-      await new Promise((r) => setTimeout(r, 0));
+-      if (cancelRef.current) return null;
+-    }
+-  }
+-
+-  // tool footprint offsets (height of cutter surface above tip at radius r)
+-  const R = tool.diameter / 2;
+-  const nR = Math.ceil(R / vs);
+-  const offs = [];
+-  for (let dj = -nR; dj <= nR; dj++)
+-    for (let di = -nR; di <= nR; di++) {
+-      const r = Math.hypot(di, dj) * vs;
+-      if (r <= R) offs.push(di, dj, tool.type === "ball" ? R - Math.sqrt(Math.max(0, R * R - r * r)) : 0);
+-    }
+-
+-  // sweep all cutting moves (plunge, ramp, rough-cut, finish-cut)
+-  const { pos, kinds, nPts } = job;
+-  const ds = vs * 0.6;
+-  for (let i = 1; i < nPts; i++) {
+-    if (kinds[i] === 0) continue;
+-    const xA = pos[(i - 1) * 3], yA = pos[(i - 1) * 3 + 1], zA = pos[(i - 1) * 3 + 2];
+-    const xB = pos[i * 3], yB = pos[i * 3 + 1], zB = pos[i * 3 + 2];
+-    const len = Math.hypot(xB - xA, yB - yA, zB - zA);
+-    const nS = Math.max(1, Math.ceil(len / ds));
+-    for (let k = 0; k <= nS; k++) {
+-      const t = k / nS;
+-      const x = xA + (xB - xA) * t, y = yA + (yB - yA) * t, z = zA + (zB - zA) * t;
+-      const ic = Math.round((x - x0) / vs), jc = Math.round((y - y0) / vs);
+-      for (let oI = 0; oI < offs.length; oI += 3) {
+-        const ii = ic + offs[oI], jj = jc + offs[oI + 1];
+-        if (ii < 0 || ii > nx || jj < 0 || jj > ny) continue;
+-        const kk = jj * (nx + 1) + ii;
+-        const fl = z + offs[oI + 2];
+-        if (fl < H[kk]) H[kk] = fl;
+-      }
+-    }
+-    if (i % 3000 === 2999) {
+-      onProg(0.25 + 0.7 * (i / nPts));
+-      await new Promise((r) => setTimeout(r, 0));
+-      if (cancelRef.current) return null;
+-    }
+-  }
+-
+-  // deviation + stats
+-  const dev = new Float64Array(NN);
+-  let minD = Infinity, maxD = -Infinity, sum2 = 0, nPart = 0, nOK = 0;
+-  const band = prm.scallop + prm.chordTol + 0.05;
+-  for (let k = 0; k < NN; k++) {
+-    const d = H[k] - Tg[k];
+-    dev[k] = d;
+-    if (d < minD) minD = d;
+-    if (d > maxD) maxD = d;
+-    if (Tg[k] > prm.floorZ + 0.05) { sum2 += d * d; nPart++; }
+-    if (d >= -0.02 && d <= band) nOK++;
+-  }
+-  onProg(1);
+-  return {
+-    nx, ny, vs, x0, y0, H, Tg, dev,
+-    stats: {
+-      minDev: minD, maxDev: maxD,
+-      rms: nPart ? Math.sqrt(sum2 / nPart) : 0,
+-      pctOK: (100 * nOK) / NN, band,
+-    },
++async function verifyJob(job, model, prm, tool, onProg = () => {}, cancelRef = { current: false }) {
++  const b=model.bbox,m=prm.margin,x0=b.minX-m,x1=b.maxX+m,y0=b.minY-m,y1=b.maxY+m;
++  const targetStep=Math.max(0.1,Math.min(0.35,Math.max(x1-x0,y1-y0)/240));
++  const nx=Math.max(4,Math.ceil((x1-x0)/targetStep)),ny=Math.max(4,Math.ceil((y1-y0)/targetStep));
++  const hx=(x1-x0)/nx,hy=(y1-y0)/ny,NN=(nx+1)*(ny+1);
++  const H=new Float64Array(NN).fill(b.maxZ),Tg=new Float64Array(NN).fill(prm.floorZ),partMask=new Uint8Array(NN);
++  const epsR=Math.max(1e-9,1e-10*Math.max(1,b.maxX-b.minX,b.maxY-b.minY));
++  const targetEval=makeEvaluator(model,buildGrid(model,epsR),{type:"flat",diameter:2*epsR},prm.floorZ);
++  for(let j=0;j<=ny;j++){
++    const y=y0+j*hy; for(let i=0;i<=nx;i++) Tg[j*(nx+1)+i]=targetEval(x0+i*hx,y);
++    if(j%12===11||j===ny){onProg(0.12*j/Math.max(1,ny));await new Promise(r=>setTimeout(r,0));if(cancelRef.current)return null;}
++  }
++  const T=model.tris;
++  for(let t=0;t<model.nTri;t++){
++    const o=t*9,ax=T[o],ay=T[o+1],bx=T[o+3],by=T[o+4],cx=T[o+6],cy=T[o+7];
++    const i0=Math.max(0,Math.floor((Math.min(ax,bx,cx)-x0)/hx)),i1=Math.min(nx,Math.ceil((Math.max(ax,bx,cx)-x0)/hx));
++    const j0=Math.max(0,Math.floor((Math.min(ay,by,cy)-y0)/hy)),j1=Math.min(ny,Math.ceil((Math.max(ay,by,cy)-y0)/hy));
++    for(let j=j0;j<=j1;j++){const py=y0+j*hy;for(let i=i0;i<=i1;i++){const px=x0+i*hx;if(pointInTri(px,py,ax,ay,bx,by,cx,cy))partMask[j*(nx+1)+i]=1;}}
++  }
++  const R=tool.diameter/2,ds=0.65*Math.min(hx,hy);
++  const stampAt=(x,y,z)=>{
++    const i0=Math.max(0,Math.floor((x-R-x0)/hx)),i1=Math.min(nx,Math.ceil((x+R-x0)/hx));
++    const j0=Math.max(0,Math.floor((y-R-y0)/hy)),j1=Math.min(ny,Math.ceil((y+R-y0)/hy));
++    for(let j=j0;j<=j1;j++){const yy=y0+j*hy,dy=yy-y;for(let i=i0;i<=i1;i++){const xx=x0+i*hx,dx=xx-x,r2=dx*dx+dy*dy;if(r2>R*R+1e-12)continue;const off=tool.type==="ball"?R-Math.sqrt(Math.max(0,R*R-r2)):0;const k=j*(nx+1)+i,fl=z+off;if(fl<H[k])H[k]=fl;}}
+   };
++  const sweepLine=(a,bp)=>{const len=Math.hypot(bp[0]-a[0],bp[1]-a[1],bp[2]-a[2]),n=Math.max(1,Math.ceil(len/ds));for(let q=1;q<=n;q++){const t=q/n;stampAt(a[0]+(bp[0]-a[0])*t,a[1]+(bp[1]-a[1])*t,a[2]+(bp[2]-a[2])*t);}};
++  let cur=null;
++  for(let mi=0;mi<job.moves.length;mi++){
++    const mo=job.moves[mi],P=mo.pts;
++    if(mo.kind==="rapid"){for(let i=0;i<P.length;i+=3)cur=[P[i],P[i+1],P[i+2]];continue;}
++    if(mo.ops&&mo.arcPts){const A=mo.arcPts;if(!cur)cur=[A[0],A[1],A[2]];for(const op of mo.ops){const end=[A[op.i*3],A[op.i*3+1],A[op.i*3+2]];if(op.t==="L")sweepLine(cur,end);else{let u0,v0;if(op.plane===17){u0=cur[0];v0=cur[1];}else if(op.plane===18){u0=cur[0];v0=cur[2];}else{u0=cur[1];v0=cur[2];}const r=Math.hypot(u0-op.uc,v0-op.vc);let a0=Math.atan2(v0-op.vc,u0-op.uc),a1;if(op.plane===17)a1=Math.atan2(end[1]-op.vc,end[0]-op.uc);else if(op.plane===18)a1=Math.atan2(end[2]-op.vc,end[0]-op.uc);else a1=Math.atan2(end[2]-op.vc,end[1]-op.uc);let da=a1-a0;if(op.pos)while(da<=0)da+=2*Math.PI;else while(da>=0)da-=2*Math.PI;const n=Math.max(2,Math.ceil(Math.abs(da)*r/ds));for(let q=1;q<=n;q++){const pt=arcPointAt(cur,end,op,q/n);stampAt(pt[0],pt[1],pt[2]);}}cur=end;}}
++    else{for(let i=0;i<P.length;i+=3){const q=[P[i],P[i+1],P[i+2]];if(cur)sweepLine(cur,q);else stampAt(q[0],q[1],q[2]);cur=q;}}
++    if(mi%30===29||mi===job.moves.length-1){onProg(0.12+0.83*(mi+1)/Math.max(1,job.moves.length));await new Promise(r=>setTimeout(r,0));if(cancelRef.current)return null;}
++  }
++  const dev=new Float64Array(NN);let minD=Infinity,maxD=-Infinity,sum2=0,nPart=0,nOK=0;
++  const nominal=tool.type==="ball"?Math.max(0,prm.scallop):Math.max(0,prm.chordTol);
++  const band=Math.max(nominal,prm.chordTol)+(prm.arcFit?prm.arcTol:0)+0.75*Math.max(hx,hy),gougeTol=Math.max(0.02,0.15*Math.max(hx,hy));
++  for(let k=0;k<NN;k++){const d=H[k]-Tg[k];dev[k]=d;if(!partMask[k])continue;minD=Math.min(minD,d);maxD=Math.max(maxD,d);sum2+=d*d;nPart++;if(d>=-gougeTol&&d<=band)nOK++;}
++  if(!nPart){minD=0;maxD=0;}onProg(1);
++  return{nx,ny,hx,hy,vs:Math.max(hx,hy),x0,y0,H,Tg,dev,partMask,stats:{minDev:minD,maxDev:maxD,rms:nPart?Math.sqrt(sum2/nPart):0,pctOK:nPart?100*nOK/nPart:100,band,gougeTol,nPart}};
+ }
+ 
+-function devColor(d, band) {
+-  if (d < -0.02) {
+-    const t = Math.min(1, (-d - 0.02) / 0.2);
+-    return [0.88, 0.30 - 0.12 * t, 0.24 - 0.08 * t];        // gouge: red
+-  }
+-  if (d <= band) {
+-    const t = Math.max(0, d) / band;
+-    return [0.22 + 0.4 * t, 0.64 - 0.06 * t, 0.44 + 0.28 * t]; // in-tol: green -> teal
+-  }
+-  const t = Math.min(1, (d - band) / 0.5);
+-  return [0.33 - 0.08 * t, 0.5 - 0.05 * t, 0.72 + 0.2 * t];   // excess stock: blue
++function devColor(d, band, gougeTol = 0.02) {
++  if (d < -gougeTol) { const t=Math.min(1,(-d-gougeTol)/0.2); return [0.88,0.30-0.12*t,0.24-0.08*t]; }
++  if (d <= band) { const t=Math.max(0,d)/Math.max(1e-12,band); return [0.22+0.4*t,0.64-0.06*t,0.44+0.28*t]; }
++  const t=Math.min(1,(d-band)/0.5); return [0.33-0.08*t,0.5-0.05*t,0.72+0.2*t];
+ }
+ 
+ export {
+-  PRESETS, heightfieldTris, parseSTL, buildModel, buildGrid, pointInTri, edgeBall,
+-  makeEvaluator, buildCLField, bilin, marchSquares, splitByMask, solveEikonal,
+-  KIND_SPEED, emitEntry, generateJob, compressCut, fitArcsRun, toGcode, verifyJob, devColor
++  PRESETS, heightfieldTris, parseSTL, buildModel, buildGrid, orient2d, pointInTri, edgeBall,
++  makeEvaluator, buildCLField, bilin, marchSquares, splitByMask, solveEikonal, solveSurfaceMetricDistance,
++  KIND_SPEED, pathIsSafe, emitEntry, generateJob, compressCut, fitArcsRun, applyArcFitting, arcPointAt,
++  toGcode, verifyJob, devColor
+ };

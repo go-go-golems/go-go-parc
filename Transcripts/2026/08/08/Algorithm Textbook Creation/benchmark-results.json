@@ -1,0 +1,140 @@
+{
+  "generated_at": "2026-08-08T11:36:41.983Z",
+  "runtime": "v22.16.0",
+  "model": {
+    "name": "three-hills-benchmark",
+    "triangles": 3872,
+    "bbox": {
+      "minX": -12,
+      "maxX": 12,
+      "minY": -12,
+      "maxY": 12,
+      "minZ": 0,
+      "maxZ": 7.465615585624117
+    }
+  },
+  "tool": {
+    "type": "ball",
+    "diameter": 4
+  },
+  "base_parameters": {
+    "strategy": "raster",
+    "scallop": 0.08,
+    "stepoverPct": 40,
+    "chordTol": 0.03,
+    "margin": 1.5,
+    "direction": "X",
+    "steepDeg": 38,
+    "roughOn": false,
+    "stepdown": 1.4,
+    "roughStepPct": 45,
+    "allowance": 0.25,
+    "entryMode": "auto",
+    "rampAngle": 3,
+    "scallopMetric": "surface-graph",
+    "arcFit": true,
+    "arcTol": 0.025,
+    "feed": 750,
+    "clearance": 4,
+    "rpm": 12000,
+    "floorZ": 0
+  },
+  "results": [
+    {
+      "name": "raster",
+      "strategy": "raster",
+      "metric": "surface-graph",
+      "generation_ms": 87.1,
+      "verification_ms": 142.2,
+      "points": 699,
+      "moves": 4,
+      "gcode_lines": 589,
+      "step_mm": 1.12,
+      "cut_length_mm": 796.253,
+      "estimated_time_min": 1.0961,
+      "arcs": 41,
+      "lines_after_fit": 458,
+      "raw_segments": 695,
+      "finish_description": "raster 26 passes @ 1.080",
+      "verification": {
+        "min_dev_mm": -0.0398,
+        "max_dev_mm": 0.32601,
+        "rms_mm": 0.0577,
+        "percent_in_band": 99.03,
+        "band_mm": 0.18938,
+        "gouge_tol_mm": 0.02,
+        "part_samples": 45369
+      }
+    },
+    {
+      "name": "hybrid",
+      "strategy": "hybrid",
+      "metric": "surface-graph",
+      "generation_ms": 202.1,
+      "verification_ms": 130,
+      "points": 1875,
+      "moves": 73,
+      "gcode_lines": 677,
+      "step_mm": 1.12,
+      "cut_length_mm": 1047.321,
+      "estimated_time_min": 1.4932,
+      "arcs": 93,
+      "lines_after_fit": 469,
+      "raw_segments": 1857,
+      "finish_description": "coverage-first hybrid: 26 raster spans + 7 steep waterline contours",
+      "verification": {
+        "min_dev_mm": -0.0398,
+        "max_dev_mm": 0.27624,
+        "rms_mm": 0.05147,
+        "percent_in_band": 99.407,
+        "band_mm": 0.18938,
+        "gouge_tol_mm": 0.02,
+        "part_samples": 45369
+      }
+    },
+    {
+      "name": "surface-graph",
+      "strategy": "scallop",
+      "metric": "surface-graph",
+      "generation_ms": 90.5,
+      "verification_ms": 106.3,
+      "points": 1262,
+      "moves": 28,
+      "gcode_lines": 1275,
+      "step_mm": 1.12,
+      "cut_length_mm": 733.477,
+      "estimated_time_min": 1.0105,
+      "arcs": 0,
+      "lines_after_fit": 1259,
+      "raw_segments": 1259,
+      "finish_description": "constant scallop (surface-metric): 13 iso-spacing contours",
+      "verification": {
+        "min_dev_mm": -0.02848,
+        "max_dev_mm": 0.22976,
+        "rms_mm": 0.05059,
+        "percent_in_band": 99.835,
+        "band_mm": 0.18938,
+        "gouge_tol_mm": 0.02,
+        "part_samples": 45369
+      }
+    },
+    {
+      "name": "slope-eikonal",
+      "strategy": "scallop",
+      "metric": "slope-eikonal",
+      "generation_ms": 81.9,
+      "verification_ms": 0,
+      "points": 1289,
+      "moves": 28,
+      "gcode_lines": 1271,
+      "step_mm": 1.12,
+      "cut_length_mm": 747.416,
+      "estimated_time_min": 1.0291,
+      "arcs": 7,
+      "lines_after_fit": 1248,
+      "raw_segments": 1286,
+      "finish_description": "constant scallop (slope-eikonal): 13 iso-spacing contours",
+      "verification": null
+    }
+  ]
+}

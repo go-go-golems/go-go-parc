@@ -1,0 +1,240 @@
+{
+  "format": "datadrop.plot.document",
+  "version": 2,
+  "id": "plot:1sq9ofqthcy",
+  "name": "Untitled plot",
+  "sourceId": "distribution",
+  "sources": {
+    "distribution": {
+      "id": "distribution",
+      "name": "distribution",
+      "schema": [
+        {
+          "id": "field:1usa6mcvnce",
+          "name": "cohort",
+          "physicalType": "string",
+          "semanticType": "nominal",
+          "nullable": false
+        },
+        {
+          "id": "field:mjbamc7c2h",
+          "name": "measurement",
+          "physicalType": "float64",
+          "semanticType": "quantitative",
+          "nullable": false,
+          "label": "Biomarker",
+          "unit": "ng/mL"
+        }
+      ],
+      "coverage": {
+        "kind": "complete",
+        "rows": 1200,
+        "totalRows": 1200,
+        "hasMore": false
+      }
+    }
+  },
+  "parameters": {},
+  "transforms": [],
+  "mapping": {
+    "x": {
+      "kind": "field",
+      "name": "measurement"
+    },
+    "color": {
+      "kind": "field",
+      "name": "cohort"
+    }
+  },
+  "layers": [
+    {
+      "id": "layer:1",
+      "enabled": true,
+      "inheritMapping": true,
+      "mapping": {},
+      "transforms": [],
+      "stat": {
+        "id": "bin",
+        "options": {
+          "thresholds": 28,
+          "density": false
+        }
+      },
+      "geom": {
+        "id": "bar",
+        "options": {
+          "opacity": 0.78,
+          "strokeWidth": 0.6
+        }
+      },
+      "position": {
+        "id": "identity",
+        "options": {}
+      },
+      "showLegend": "auto",
+      "facetMode": "auto"
+    }
+  ],
+  "scales": {
+    "x": {
+      "type": "linear",
+      "nice": 6
+    },
+    "y": {
+      "type": "linear",
+      "zero": true,
+      "nice": 5
+    },
+    "color": {
+      "type": "categorical",
+      "guide": {
+        "kind": "none"
+      }
+    }
+  },
+  "coordinate": {
+    "kind": "cartesian",
+    "clip": true,
+    "expand": true
+  },
+  "theme": {
+    "name": "professional",
+    "background": "#ffffff",
+    "panelBackground": "#ffffff",
+    "foreground": "#111827",
+    "muted": "#4b5563",
+    "gridMajor": {
+      "color": "#d1d5db",
+      "width": 0.8,
+      "opacity": 0.75
+    },
+    "gridMinor": {
+      "color": "#e5e7eb",
+      "width": 0.5,
+      "opacity": 0.55
+    },
+    "axis": {
+      "color": "#374151",
+      "width": 1
+    },
+    "axisText": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 11,
+      "color": "#374151"
+    },
+    "axisTitle": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 12,
+      "weight": 600,
+      "color": "#111827"
+    },
+    "title": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 18,
+      "weight": 700,
+      "color": "#111827"
+    },
+    "subtitle": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 12,
+      "color": "#4b5563"
+    },
+    "caption": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 10,
+      "color": "#6b7280"
+    },
+    "strip": {
+      "fill": "#f3f4f6",
+      "stroke": "#d1d5db",
+      "strokeWidth": 0.8,
+      "text": {
+        "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "size": 11,
+        "weight": 600,
+        "color": "#111827"
+      }
+    },
+    "legend": {
+      "background": "#ffffff",
+      "border": {
+        "color": "#d1d5db",
+        "width": 0.8
+      },
+      "title": {
+        "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "size": 11,
+        "weight": 600,
+        "color": "#111827"
+      },
+      "label": {
+        "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "size": 10,
+        "color": "#374151"
+      },
+      "swatchSize": 12,
+      "gap": 6
+    },
+    "palette": [
+      "#0072B2",
+      "#D55E00",
+      "#009E73",
+      "#CC79A7",
+      "#E69F00",
+      "#56B4E9",
+      "#F0E442",
+      "#000000",
+      "#6B7280",
+      "#7C3AED"
+    ],
+    "sequential": [
+      "#f7fbff",
+      "#08306b"
+    ],
+    "diverging": [
+      "#2166ac",
+      "#f7f7f7",
+      "#b2182b"
+    ],
+    "pointRadius": 3.5,
+    "lineWidth": 1.8,
+    "barGap": 0.12,
+    "panelPadding": 8,
+    "plotPadding": 12
+  },
+  "layout": {
+    "width": 980,
+    "height": 520,
+    "responsive": false,
+    "legendPosition": "none",
+    "facetGap": 18,
+    "dpi": 96
+  },
+  "labels": {
+    "title": "Biomarker distributions by exposure cohort",
+    "subtitle": "Equal-width bins with a shared horizontal scale",
+    "x": "Biomarker concentration (ng/mL)",
+    "y": "Count"
+  },
+  "interactions": [],
+  "render": {
+    "backend": "svg",
+    "pixelRatio": 1,
+    "vectorMarkLimit": 25000,
+    "rasterizeAbove": 100000,
+    "deterministic": true,
+    "embedMetadata": true
+  },
+  "metadata": {
+    "createdBy": "@datadrop/professional-plotting-suite-reference"
+  },
+  "facet": {
+    "kind": "wrap",
+    "scales": "fixed",
+    "space": "fixed",
+    "dropEmpty": true,
+    "stripPosition": "top",
+    "x": "cohort",
+    "columns": 2
+  }
+}

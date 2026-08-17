@@ -1,0 +1,847 @@
+import { useState, useEffect, useRef, useCallback } from "react";
+
+/* ═══════════════════════════════════════════════════════════════
+   Structural math keyboard v3 — fresh basis
+   The document is an AST. The editor renders the tree directly
+   (WYSIWYG, MathQuill-style). LaTeX / Typst / Unicode are
+   code-generation backends over the same tree.
+   Cursor = path into the tree + offset (a zipper).
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── node builders ── */
+const row = (c = []) => ({ k: "row", c });
+const sym = (t, d, o = {}) => ({ k: "sym", t, d: d ?? t, ...o }); // t=latex, d=display
+const hole = () => ({ k: "hole" });
+const frac = (n = row([hole()]), d = row([hole()])) => ({ k: "frac", num: n, den: d });
+const sqrtN = (rad = row([hole()]), idx = null) => ({ k: "sqrt", rad, ...(idx ? { idx } : {}) });
+const scr = (sup, sub) => ({ k: "scr", ...(sup ? { sup } : {}), ...(sub ? { sub } : {}) });
+const func = (name, cmd, arg = row([hole()])) => ({ k: "func", name, cmd, arg });
+const grp = (l, r, c = row([hole()])) => ({ k: "grp", l, r, c });
+const big = (op, d, lo = row([hole()]), hi = row([hole()])) => ({ k: "big", op, d, lo, hi });
+const acc = (cmd, mark, c = row([hole()])) => ({ k: "acc", cmd, mark, c });
+
+const FIELD_ORDER = { num: 0, den: 1, idx: 0, rad: 1, sup: 0, sub: 1, arg: 0, c: 0, lo: 0, hi: 1 };
+const fieldsOf = (n) =>
+  ({
+    frac: ["num", "den"],
+    sqrt: n.idx ? ["idx", "rad"] : ["rad"],
+    scr: [n.sup && "sup", n.sub && "sub"].filter(Boolean),
+    func: ["arg"],
+    grp: ["c"],
+    big: ["lo", "hi"],
+    acc: ["c"],
+  }[n.k] || []);
+
+const isEmptyRow = (r) => r.c.every((n) => n.k === "hole");
+const isEmptyNode = (n) => fieldsOf(n).length > 0 && fieldsOf(n).every((f) => isEmptyRow(n[f]));
+
+/* ── tree access (immutable) ── */
+const getRow = (root, path) => path.reduce((r, st) => r.c[st.i][st.f], root);
+const setRow = (root, path, nr) => {
+  if (!path.length) return nr;
+  const [st, ...rest] = path;
+  const child = root.c[st.i];
+  return { ...root, c: root.c.map((x, j) => (j === st.i ? { ...child, [st.f]: setRow(child[st.f], rest, nr) } : x)) };
+};
+
+/* ── traversal traces for hole navigation ── */
+const flat = (path) => path.flatMap((st) => [st.i, FIELD_ORDER[st.f]]);
+const cmpTrace = (a, b) => {
+  for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) return a[i] - b[i];
+  return a.length - b.length;
+};
+const collectHoles = (r, path = []) => {
+  const out = [];
+  r.c.forEach((n, i) => {
+    if (n.k === "hole") out.push({ path, i, trace: [...flat(path), i] });
+    fieldsOf(n).forEach((f) => out.push(...collectHoles(n[f], [...path, { i, f }])));
+  });
+  return out;
+};
+const firstHoleInNodes = (nodes) => {
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i];
+    if (n.k === "hole") return { path: [], i };
+    for (const f of fieldsOf(n)) {
+      const sub = firstHoleInNodes(n[f].c);
+      if (sub) return { path: [{ i, f }, ...sub.path], i: sub.i };
+    }
+  }
+  return null;
+};
+
+/* ── code generation backends ── */
+const genRow = (r, g) => r.c.map((n) => g(n)).join("");
+const latexOf = (n) => {
+  switch (n.k) {
+    case "row": return genRow(n, latexOf);
+    case "sym": return n.t;
+    case "hole": return "\\square ";
+    case "frac": return `\\frac{${latexOf(n.num)}}{${latexOf(n.den)}}`;
+    case "sqrt": return n.idx ? `\\sqrt[${latexOf(n.idx)}]{${latexOf(n.rad)}}` : `\\sqrt{${latexOf(n.rad)}}`;
+    case "scr": return (n.sup ? `^{${latexOf(n.sup)}}` : "") + (n.sub ? `_{${latexOf(n.sub)}}` : "");
+    case "func": return `${n.cmd}\\left(${latexOf(n.arg)}\\right)`;
+    case "grp": { const L = { "(": "(", "[": "[", "{": "\\{", "⟨": "\\langle " }[n.l]; const R = { ")": ")", "]": "]", "}": "\\}", "⟩": "\\rangle " }[n.r]; return `\\left${L}${latexOf(n.c)}\\right${R}`; }
+    case "big": return `${n.op}_{${latexOf(n.lo)}}^{${latexOf(n.hi)}}`;
+    case "acc": return `${n.cmd}{${latexOf(n.c)}}`;
+    default: return "";
+  }
+};
+const TYPST = { "\\alpha ": "alpha ", "\\beta ": "beta ", "\\gamma ": "gamma ", "\\delta ": "delta ", "\\varepsilon ": "epsilon ", "\\eta ": "eta ", "\\theta ": "theta ", "\\lambda ": "lambda ", "\\mu ": "mu ", "\\pi ": "pi ", "\\to ": "-> ", "\\mapsto ": "|-> ", "\\Rightarrow ": "=> ", "\\hookrightarrow ": "arrow.r.hook ", "\\twoheadrightarrow ": "arrow.r.twohead ", "\\cong ": "tilde.equiv ", "\\simeq ": "tilde.eq ", "\\dashv ": "tack.l ", "\\circ ": "compose ", "\\otimes ": "times.circle ", "\\oplus ": "plus.circle ", "\\times ": "times ", "\\in ": "in ", "\\subseteq ": "subset.eq ", "\\le ": "<= ", "\\ge ": ">= ", "\\ne ": "!= ", "\\forall ": "forall ", "\\exists ": "exists ", "\\infty ": "oo ", "\\partial ": "diff ", "\\mid ": "| ", "\\cdot ": "dot.op " };
+const typstOf = (n) => {
+  switch (n.k) {
+    case "row": return genRow(n, typstOf);
+    case "sym": return TYPST[n.t] ?? (n.t.startsWith("\\mathcal") || n.t.startsWith("\\mathbb") || n.t.startsWith("\\mathfrak") ? { mathcal: "cal", mathbb: "bb", mathfrak: "frak" }[n.t.match(/\\(\w+)/)[1]] + `(${n.d.normalize ? n.t.match(/\{(.)\}/)?.[1] ?? n.d : n.d})` : n.t.replace(/[\\{}]/g, ""));
+    case "hole": return "square ";
+    case "frac": return `(${typstOf(n.num)})/(${typstOf(n.den)})`;
+    case "sqrt": return n.idx ? `root(${typstOf(n.idx)}, ${typstOf(n.rad)})` : `sqrt(${typstOf(n.rad)})`;
+    case "scr": return (n.sup ? `^(${typstOf(n.sup)})` : "") + (n.sub ? `_(${typstOf(n.sub)})` : "");
+    case "func": return `${n.name}(${typstOf(n.arg)})`;
+    case "grp": return `${n.l === "⟨" ? "angle.l " : n.l}${typstOf(n.c)}${n.r === "⟩" ? "angle.r " : n.r}`;
+    case "big": return `${n.d === "∑" ? "sum" : n.d === "∏" ? "product" : n.d === "∫" ? "integral" : "lim"}_(${typstOf(n.lo)})^(${typstOf(n.hi)}) `;
+    case "acc": return `${{ "\\bar": "macron", "\\hat": "hat", "\\tilde": "tilde" }[n.cmd]}(${typstOf(n.c)})`;
+    default: return "";
+  }
+};
+const SUP = { 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹", "-": "⁻", "+": "⁺", n: "ⁿ", i: "ⁱ", "*": "*" };
+const SUB = { 0: "₀", 1: "₁", 2: "₂", 3: "₃", 4: "₄", 5: "₅", 6: "₆", 7: "₇", 8: "₈", 9: "₉", i: "ᵢ", j: "ⱼ", n: "ₙ", "+": "₊", "-": "₋" };
+const mapAll = (s, m) => { let out = ""; for (const ch of s) { if (!m[ch]) return null; out += m[ch]; } return out; };
+const uniOf = (n) => {
+  switch (n.k) {
+    case "row": return genRow(n, uniOf);
+    case "sym": return n.d;
+    case "hole": return "□";
+    case "frac": { const a = uniOf(n.num), b = uniOf(n.den); return (a.length > 1 ? `(${a})` : a) + "/" + (b.length > 1 ? `(${b})` : b); }
+    case "sqrt": return `√(${uniOf(n.rad)})`;
+    case "scr": { let s = ""; if (n.sup) { const u = mapAll(uniOf(n.sup), SUP); s += u ?? `^(${uniOf(n.sup)})`; } if (n.sub) { const u = mapAll(uniOf(n.sub), SUB); s += u ?? `_(${uniOf(n.sub)})`; } return s; }
+    case "func": return `${n.name}(${uniOf(n.arg)})`;
+    case "grp": return `${n.l}${uniOf(n.c)}${n.r}`;
+    case "big": return `${n.d}[${uniOf(n.lo)}→${uniOf(n.hi)}] `;
+    case "acc": return uniOf(n.c) + n.mark;
+    default: return "";
+  }
+};
+const GEN = { latex: (r) => latexOf(r), typst: (r) => typstOf(r), unicode: (r) => uniOf(r) };
+
+/* ── styled alphabets (𝒜 modifier) ── */
+const EXC = {
+  cal: { B: "ℬ", E: "ℰ", F: "ℱ", H: "ℋ", I: "ℐ", L: "ℒ", M: "ℳ", R: "ℛ", e: "ℯ", g: "ℊ", o: "ℴ" },
+  bb: { C: "ℂ", H: "ℍ", N: "ℕ", P: "ℙ", Q: "ℚ", R: "ℝ", Z: "ℤ" },
+  frak: { C: "ℭ", H: "ℌ", I: "ℑ", R: "ℜ", Z: "ℨ" },
+};
+const BASE = { cal: [0x1d49c, 0x1d4b6], bb: [0x1d538, 0x1d552], frak: [0x1d504, 0x1d51e] };
+const styledChar = (ch, s) => EXC[s][ch] || String.fromCodePoint(BASE[s][ch < "a" ? 0 : 1] + ch.charCodeAt(0) - (ch < "a" ? 65 : 97));
+const styledSym = (ch, s) => {
+  const up = s !== "frak" ? ch.toUpperCase() : ch;
+  return sym(`\\math${s === "bb" ? "bb" : s === "cal" ? "cal" : "frak"}{${up}}`, styledChar(up, s), { up: 1 });
+};
+
+/* ── symbol catalog: [display, latex, aliases, maker?] ── */
+const S = (d, t, a = []) => ({ d, t, a, make: () => [sym(t, d, /^[+\-=<>×∘·]$|^\\(times|circ|cdot|pm|oplus|otimes|to|mapsto|le|ge|ne|in|subseteq|cup|cap|mid|dashv|cong|simeq|equiv|approx|sim|Rightarrow|Leftrightarrow|hookrightarrow|twoheadrightarrow|rightsquigarrow|setminus|wr|rtimes|amalg|coprod)/.test(t) ? { op: 1 } : {})] });
+const T = (d, a, make) => ({ d, t: "", a, make });
+const CATALOG = [
+  S("α", "\\alpha ", []), S("β", "\\beta ", []), S("γ", "\\gamma ", []), S("δ", "\\delta ", []),
+  S("ε", "\\varepsilon ", ["eps", "counit"]), S("η", "\\eta ", ["unit"]), S("θ", "\\theta ", []),
+  S("λ", "\\lambda ", ["lam"]), S("μ", "\\mu ", ["monad"]), S("π", "\\pi ", []), S("σ", "\\sigma ", []),
+  S("ω", "\\omega ", []), S("Δ", "\\Delta ", []), S("Ω", "\\Omega ", []), S("φ", "\\varphi ", ["phi"]),
+  S("→", "\\to ", ["arrow", "rightarrow"]), S("↦", "\\mapsto ", ["maps"]),
+  S("↪", "\\hookrightarrow ", ["mono", "into", "embedding"]), S("↠", "\\twoheadrightarrow ", ["epi", "onto", "surjection"]),
+  S("⇒", "\\Rightarrow ", ["implies", "2cell"]), S("⇔", "\\Leftrightarrow ", ["iff"]),
+  S("⇝", "\\rightsquigarrow ", ["squiggle"]),
+  S("≅", "\\cong ", ["iso", "isomorphic"]), S("≃", "\\simeq ", ["equivalent", "homotopy"]),
+  S("≡", "\\equiv ", ["mod"]), S("≈", "\\approx ", []), S("∼", "\\sim ", ["similar"]),
+  S("⊣", "\\dashv ", ["adjoint", "adjunction"]), S("∘", "\\circ ", ["compose", "composition"]),
+  S("⊗", "\\otimes ", ["tensor"]), S("⊕", "\\oplus ", ["direct sum"]), S("×", "\\times ", ["product", "cross"]),
+  S("∐", "\\coprod ", ["coproduct"]), S("⨿", "\\amalg ", ["disjoint union"]), S("≀", "\\wr ", ["wreath"]),
+  S("⋊", "\\rtimes ", ["semidirect"]), S("·", "\\cdot ", ["dot"]), S("±", "\\pm ", ["plus minus"]),
+  S("∈", "\\in ", ["element"]), S("⊆", "\\subseteq ", ["subset"]), S("∪", "\\cup ", ["union"]),
+  S("∩", "\\cap ", ["intersection"]), S("∖", "\\setminus ", ["difference"]), S("∅", "\\emptyset ", ["empty"]),
+  S("∣", "\\mid ", ["such that", "divides"]), S("∀", "\\forall ", ["all"]), S("∃", "\\exists ", []),
+  S("¬", "\\neg ", ["not"]), S("≤", "\\le ", ["leq"]), S("≥", "\\ge ", ["geq"]), S("≠", "\\ne ", ["neq"]),
+  S("∞", "\\infty ", ["infinity"]), S("∂", "\\partial ", ["boundary"]), S("∇", "\\nabla ", ["grad"]),
+  S("ℓ", "\\ell ", ["script l"]), S("†", "\\dagger ", ["dagger"]),
+  T("▢/▢", ["fraction", "over", "frac"], () => [frac()]),
+  T("√▢", ["root", "sqrt"], () => [sqrtN()]),
+  T("ⁿ√▢", ["nth root"], () => [sqrtN(row([hole()]), row([hole()]))]),
+  T("∑", ["sum"], () => [big("\\sum", "∑")]),
+  T("∏", ["product big"], () => [big("\\prod", "∏")]),
+  T("∫", ["integral"], () => [big("\\int", "∫"), hole(), sym("\\,d", "d", { up: 1 }), hole()]),
+  T("lim", ["limit"], () => [big("\\lim", "lim")]),
+  T("Hom", ["hom set"], () => [func("Hom", "\\operatorname{Hom}", row([hole(), sym(",", ","), hole()])), scr(null, row([hole()]))]),
+  T("⟨▢∣▢⟩", ["generators", "relations", "presentation", "bracket"], () => [grp("⟨", "⟩", row([hole(), sym("\\mid ", "∣", { op: 1 }), hole()]))]),
+  T("x⁻¹", ["inverse", "inv"], () => [scr(row([sym("-"), sym("1")]))]),
+  T("xᵒᵖ", ["opposite", "op"], () => [scr(row([sym("\\mathrm{op}", "op", { up: 1 })]))]),
+  T("x*", ["dual", "star", "adjoint functor"], () => [scr(row([sym("*")]))]),
+  T("x̄", ["closure", "bar", "conjugate"], () => [acc("\\bar", "ˉ")]),
+  T("x̂", ["hat", "completion"], () => [acc("\\hat", "ˆ")]),
+  T("x̃", ["tilde", "lift"], () => [acc("\\tilde", "˜")]),
+];
+const fuzzy = (q, s) => {
+  q = q.toLowerCase(); s = s.toLowerCase();
+  if (s.startsWith(q)) return 100 - s.length;
+  let qi = 0, sc = 0, run = 0;
+  for (let i = 0; i < s.length && qi < q.length; i++) {
+    if (s[i] === q[qi]) { qi++; run++; sc += 2 + run; } else run = 0;
+  }
+  return qi === q.length ? sc - s.length * 0.3 : -1;
+};
+const searchCat = (q) =>
+  !q.trim() ? [] : CATALOG.map((e) => ({ e, sc: Math.max(fuzzy(q, e.d), fuzzy(q, e.t.replace(/[\\ ]/g, "")), ...e.a.map((a) => fuzzy(q, a))) }))
+    .filter((x) => x.sc >= 0).sort((a, b) => b.sc - a.sc).slice(0, 8).map((x) => x.e);
+
+/* ── long-press variants (label → makers) ── */
+const V = (d, t) => ({ d, make: S(d, t).make });
+const VARIANTS = {
+  "→": [V("↪", "\\hookrightarrow "), V("↠", "\\twoheadrightarrow "), V("⇝", "\\rightsquigarrow "), { d: "→ᶠ", make: () => [acc("\\xrightarrow", "→", row([hole()]))] }],
+  "⇒": [V("⇔", "\\Leftrightarrow "), V("⟹", "\\Longrightarrow ")],
+  "≅": [V("≃", "\\simeq "), V("≡", "\\equiv "), V("≈", "\\approx "), V("∼", "\\sim ")],
+  "⊗": [V("⊕", "\\oplus "), V("⋊", "\\rtimes "), V("≀", "\\wr "), V("⨿", "\\amalg ")],
+  "∑": [{ d: "∏", make: () => [big("\\prod", "∏")] }, V("⋃", "\\bigcup "), V("⋂", "\\bigcap "), V("⨁", "\\bigoplus ")],
+  "∫": [V("∮", "\\oint "), V("∬", "\\iint ")],
+  "ε": [V("ϵ", "\\epsilon "), V("φ", "\\varphi ")],
+  "√": [{ d: "ⁿ√▢", make: () => [sqrtN(row([hole()]), row([hole()]))] }],
+  "( )": [{ d: "⟨ ⟩", make: () => [grp("⟨", "⟩")] }, { d: "[ ]", make: () => [grp("[", "]")] }, { d: "{ }", make: () => [grp("{", "}")] }],
+};
+
+/* ── WYSIWYG renderer ── */
+const samePath = (a, b) => a.length === b.length && a.every((s, i) => s.i === b[i].i && s.f === b[i].f);
+
+const Caret = () => <span style={vs.caret} />;
+
+function RowView({ r, path, ctx, scale = 1 }) {
+  const isCur = ctx.active && samePath(ctx.cur.path, path);
+  const caretAt = isCur && ctx.cur.s === ctx.cur.e ? ctx.cur.s : -1;
+  const selR = isCur && ctx.cur.s < ctx.cur.e ? [ctx.cur.s, ctx.cur.e] : null;
+  return (
+    <span
+      style={{ ...vs.row, minWidth: r.c.length ? 0 : 10, minHeight: "1em" }}
+      onClick={(e) => { if (e.target === e.currentTarget) { e.stopPropagation(); ctx.set({ path, s: r.c.length, e: r.c.length }); } }}
+    >
+      {r.c.map((n, i) => {
+        const el = (
+          <NodeView key={i} n={n} idx={i} path={path} ctx={ctx} />
+        );
+        return (
+          <span key={i} style={{ display: "inline-flex", alignItems: "center", background: selR && i >= selR[0] && i < selR[1] ? "rgba(10,132,255,.4)" : "none", borderRadius: 3 }}>
+            {caretAt === i && <Caret />}
+            {el}
+          </span>
+        );
+      })}
+      {caretAt === r.c.length && <Caret />}
+      {!r.c.length && caretAt !== 0 && <span style={vs.emptyRow} />}
+    </span>
+  );
+}
+
+function NodeView({ n, idx, path, ctx }) {
+  const click = (e) => {
+    e.stopPropagation();
+    const after = e.nativeEvent.offsetX > e.currentTarget.offsetWidth / 2;
+    ctx.set({ path, s: idx + (after ? 1 : 0), e: idx + (after ? 1 : 0) });
+  };
+  const sub = (f) => <RowView r={n[f]} path={[...path, { i: idx, f }]} ctx={ctx} />;
+  switch (n.k) {
+    case "sym": {
+      const it = !n.up && /^[a-zA-Z]$/.test(n.d);
+      return <span onClick={click} style={{ ...vs.sym, fontStyle: it ? "italic" : "normal", margin: n.op ? "0 .14em" : 0 }}>{n.d}</span>;
+    }
+    case "hole":
+      return <span onClick={(e) => { e.stopPropagation(); ctx.set({ path, s: idx, e: idx + 1 }); }} style={vs.hole} />;
+    case "frac":
+      return (
+        <span style={vs.frac} onClick={(e) => e.stopPropagation()}>
+          <span style={vs.fracNum}>{sub("num")}</span>
+          <span style={vs.fracDen}>{sub("den")}</span>
+        </span>
+      );
+    case "sqrt":
+      return (
+        <span style={vs.sqrt} onClick={(e) => e.stopPropagation()}>
+          {n.idx && <span style={vs.sqrtIdx}>{sub("idx")}</span>}
+          <span style={vs.radical}>√</span>
+          <span style={vs.radicand}>{sub("rad")}</span>
+        </span>
+      );
+    case "scr":
+      return (
+        <span style={vs.scr} onClick={(e) => e.stopPropagation()}>
+          <span style={{ visibility: n.sup ? "visible" : "hidden" }}>{n.sup ? sub("sup") : <span>&nbsp;</span>}</span>
+          <span style={{ visibility: n.sub ? "visible" : "hidden" }}>{n.sub ? sub("sub") : <span>&nbsp;</span>}</span>
+        </span>
+      );
+    case "func":
+      return (
+        <span style={vs.inline} onClick={(e) => e.stopPropagation()}>
+          <span style={vs.fname}>{n.name}</span>
+          <span style={vs.paren}>(</span>{sub("arg")}<span style={vs.paren}>)</span>
+        </span>
+      );
+    case "grp":
+      return (
+        <span style={vs.inline} onClick={(e) => e.stopPropagation()}>
+          <span style={vs.paren}>{n.l}</span>{sub("c")}<span style={vs.paren}>{n.r}</span>
+        </span>
+      );
+    case "big":
+      return (
+        <span style={vs.big} onClick={(e) => e.stopPropagation()}>
+          <span style={vs.bigLim}>{sub("hi")}</span>
+          <span style={vs.bigOp}>{n.d}</span>
+          <span style={vs.bigLim}>{sub("lo")}</span>
+        </span>
+      );
+    case "acc":
+      return (
+        <span style={vs.acc} onClick={(e) => e.stopPropagation()}>
+          <span style={vs.accMark}>{n.mark}</span>
+          <span>{sub("c")}</span>
+        </span>
+      );
+    default:
+      return null;
+  }
+}
+
+const vs = {
+  row: { display: "inline-flex", alignItems: "center", gap: 0 },
+  emptyRow: { display: "inline-block", width: 10, height: "1em", borderRadius: 3, background: "rgba(255,255,255,.06)" },
+  sym: { cursor: "text", padding: "0 .01em" },
+  hole: { display: "inline-block", width: ".72em", height: ".9em", border: "1.4px dashed #0A84FF", borderRadius: 3, margin: "0 .08em", verticalAlign: "-0.1em", cursor: "pointer", background: "rgba(10,132,255,.12)" },
+  caret: { display: "inline-block", width: 1.6, height: "1.05em", background: "#0A84FF", animation: "blink 1s infinite", verticalAlign: "-0.15em" },
+  frac: { display: "inline-flex", flexDirection: "column", alignItems: "center", verticalAlign: "middle", margin: "0 .1em", fontSize: ".92em" },
+  fracNum: { padding: "0 .25em .08em" },
+  fracDen: { padding: ".08em .25em 0", borderTop: "1.3px solid currentColor" },
+  sqrt: { display: "inline-flex", alignItems: "stretch", margin: "0 .06em" },
+  sqrtIdx: { fontSize: ".6em", alignSelf: "flex-start", marginRight: "-.2em", marginTop: "-.2em" },
+  radical: { fontSize: "1.15em", lineHeight: 1 },
+  radicand: { borderTop: "1.3px solid currentColor", padding: "0 .15em" },
+  scr: { display: "inline-flex", flexDirection: "column", justifyContent: "center", fontSize: ".66em", verticalAlign: "middle", lineHeight: 1.25, margin: "0 .05em" },
+  inline: { display: "inline-flex", alignItems: "center" },
+  fname: { fontStyle: "normal", fontFamily: "Georgia,serif", marginRight: ".05em" },
+  paren: { fontSize: "1.08em", opacity: 0.9, padding: "0 .04em" },
+  big: { display: "inline-flex", flexDirection: "column", alignItems: "center", verticalAlign: "middle", margin: "0 .12em", lineHeight: 1 },
+  bigLim: { fontSize: ".58em" },
+  bigOp: { fontSize: "1.5em", padding: ".04em 0" },
+  acc: { display: "inline-flex", flexDirection: "column", alignItems: "center", lineHeight: 0.8, verticalAlign: "baseline" },
+  accMark: { fontSize: ".85em", height: ".45em" },
+};
+
+/* ═══════════════════════ main component ═══════════════════════ */
+const FN_NAMES = ["f", "g", "h", "sin", "cos", "ln", "exp", "Hom", "colim"];
+const demoLine = () =>
+  row([sym("F", "F"), sym("\\dashv ", "⊣", { op: 1 }), sym("G", "G"), sym(":", ":"), styledSym("c", "cal"), sym("\\rightleftarrows ", "⇄", { op: 1 }), styledSym("d", "cal")]);
+
+export default function MathKeyboardV3() {
+  const [lines, setLines] = useState([demoLine()]);
+  const [cur, setCur] = useState({ line: 0, path: [], s: 7, e: 7 });
+  const [layer, setLayer] = useState("base");
+  const [styleMod, setStyleMod] = useState(null);
+  const [bar, setBar] = useState({ mode: "idle" });
+  const [query, setQuery] = useState("");
+  const [fmt, setFmt] = useState("latex");
+  const [pins, setPins] = useState([{ label: "Hom(□,□)", nodes: CATALOG.find((c) => c.d === "Hom").make() }]);
+  const [recent, setRecent] = useState(["f", "g"]);
+  const [docs, setDocs] = useState(false);
+  const [copied, setCopied] = useState("");
+  const hist = useRef({ undo: [], redo: [] });
+  const timer = useRef(null);
+  const longFired = useRef(false);
+  const loaded = useRef(false);
+
+  /* persistence */
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await window.storage.get("mathkb-v3");
+        if (r?.value) {
+          const d = JSON.parse(r.value);
+          if (d.lines?.length) { setLines(d.lines); setCur({ line: 0, path: [], s: d.lines[0].c.length, e: d.lines[0].c.length }); }
+          if (d.pins) setPins(d.pins);
+        }
+      } catch {}
+      loaded.current = true;
+    })();
+  }, []);
+  useEffect(() => {
+    if (!loaded.current) return;
+    const t = setTimeout(() => {
+      try { window.storage.set("mathkb-v3", JSON.stringify({ lines, pins })); } catch {}
+    }, 800);
+    return () => clearTimeout(t);
+  }, [lines, pins]);
+
+  /* history */
+  const snap = () => JSON.stringify({ lines, cur });
+  const mutate = (nl, nc) => {
+    hist.current.undo.push(snap());
+    if (hist.current.undo.length > 100) hist.current.undo.shift();
+    hist.current.redo = [];
+    setLines(nl); setCur(nc);
+  };
+  const undo = () => { const s = hist.current.undo.pop(); if (!s) return; hist.current.redo.push(snap()); const d = JSON.parse(s); setLines(d.lines); setCur(d.cur); };
+  const redo = () => { const s = hist.current.redo.pop(); if (!s) return; hist.current.undo.push(snap()); const d = JSON.parse(s); setLines(d.lines); setCur(d.cur); };
+
+  const root = lines[cur.line];
+  const curRow = getRow(root, cur.path);
+  const hasSel = cur.s < cur.e;
+
+  /* ── core edits ── */
+  const insertNodes = (nodes) => {
+    const r = curRow;
+    const nr = row([...r.c.slice(0, cur.s), ...nodes, ...r.c.slice(cur.e)]);
+    const nl = lines.map((L, i) => (i === cur.line ? setRow(root, cur.path, nr) : L));
+    const fh = firstHoleInNodes(nodes);
+    let nc;
+    if (fh) {
+      const p0 = fh.path.length ? [{ i: fh.path[0].i + cur.s, f: fh.path[0].f }, ...fh.path.slice(1)] : [];
+      const off = fh.path.length ? fh.i : fh.i + cur.s;
+      nc = { line: cur.line, path: [...cur.path, ...p0], s: off, e: off + 1 };
+    } else nc = { line: cur.line, path: cur.path, s: cur.s + nodes.length, e: cur.s + nodes.length };
+    mutate(nl, nc);
+  };
+
+  const insertSym = (t, d, o) => insertNodes([sym(t, d, o)]);
+  const insertLetter = (ch) => {
+    if (styleMod) { insertNodes([styledSym(ch, styleMod)]); setStyleMod(null); }
+    else insertNodes([sym(ch, ch)]);
+  };
+
+  const attachPostfix = (node, wrapAcc) => {
+    // acc wraps selection / previous node; scr attaches after
+    const r = curRow;
+    if (wrapAcc) {
+      if (hasSel) {
+        const inner = row(r.c.slice(cur.s, cur.e));
+        const nr = row([...r.c.slice(0, cur.s), { ...node, c: inner }, ...r.c.slice(cur.e)]);
+        mutate(lines.map((L, i) => (i === cur.line ? setRow(root, cur.path, nr) : L)), { line: cur.line, path: cur.path, s: cur.s + 1, e: cur.s + 1 });
+      } else insertNodes([node]);
+      return;
+    }
+    if (hasSel) { setCur({ ...cur, s: cur.e }); }
+    const pos = hasSel ? cur.e : cur.s;
+    if (pos === 0) return insertNodes([hole(), node]);
+    const nr = row([...r.c.slice(0, pos), node, ...r.c.slice(pos)]);
+    const fh = firstHoleInNodes([node]);
+    const nl = lines.map((L, i) => (i === cur.line ? setRow(root, cur.path, nr) : L));
+    const nc = fh
+      ? { line: cur.line, path: [...cur.path, { i: pos, f: fh.path[0]?.f ?? fieldsOf(node)[0] }, ...fh.path.slice(1)], s: fh.i, e: fh.i + 1 }
+      : { line: cur.line, path: cur.path, s: pos + 1, e: pos + 1 };
+    mutate(nl, nc);
+  };
+
+  const deleteBackward = () => {
+    const r = curRow;
+    if (hasSel) {
+      const nr = row([...r.c.slice(0, cur.s), ...r.c.slice(cur.e)]);
+      return mutate(lines.map((L, i) => (i === cur.line ? setRow(root, cur.path, nr) : L)), { ...cur, e: cur.s });
+    }
+    if (cur.s > 0) {
+      const prev = r.c[cur.s - 1];
+      if (fieldsOf(prev).length && !isEmptyNode(prev)) {
+        // non-empty structure: step inside its last field (non-destructive)
+        const fs = fieldsOf(prev);
+        const f = fs[fs.length - 1];
+        const len = prev[f].c.length;
+        return setCur({ line: cur.line, path: [...cur.path, { i: cur.s - 1, f }], s: len, e: len });
+      }
+      const nr = row([...r.c.slice(0, cur.s - 1), ...r.c.slice(cur.s)]);
+      return mutate(lines.map((L, i) => (i === cur.line ? setRow(root, cur.path, nr) : L)), { ...cur, s: cur.s - 1, e: cur.s - 1 });
+    }
+    // at row start
+    if (cur.path.length) return moveH(-1);
+    if (isEmptyRow(r) && lines.length > 1) {
+      const nl = lines.filter((_, i) => i !== cur.line);
+      const li = Math.max(0, cur.line - 1);
+      return mutate(nl, { line: li, path: [], s: nl[li].c.length, e: nl[li].c.length });
+    }
+  };
+
+  /* ── navigation ── */
+  const moveH = (d) => {
+    const c = { ...cur };
+    const r = getRow(lines[c.line], c.path);
+    if (hasSel) return setCur({ ...c, s: d < 0 ? c.s : c.e, e: d < 0 ? c.s : c.e });
+    if (d > 0) {
+      if (c.s < r.c.length) {
+        const n = r.c[c.s];
+        const fs = fieldsOf(n);
+        if (fs.length) return setCur({ line: c.line, path: [...c.path, { i: c.s, f: fs[0] }], s: 0, e: 0 });
+        return setCur({ ...c, s: c.s + 1, e: c.s + 1 });
+      }
+      if (c.path.length) {
+        const st = c.path[c.path.length - 1];
+        const pp = c.path.slice(0, -1);
+        const pn = getRow(lines[c.line], pp).c[st.i];
+        const fs = fieldsOf(pn);
+        const fi = fs.indexOf(st.f);
+        if (fi < fs.length - 1) return setCur({ line: c.line, path: [...pp, { i: st.i, f: fs[fi + 1] }], s: 0, e: 0 });
+        return setCur({ line: c.line, path: pp, s: st.i + 1, e: st.i + 1 });
+      }
+      if (c.line < lines.length - 1) return setCur({ line: c.line + 1, path: [], s: 0, e: 0 });
+    } else {
+      if (c.s > 0) {
+        const n = r.c[c.s - 1];
+        const fs = fieldsOf(n);
+        if (fs.length) {
+          const f = fs[fs.length - 1];
+          const len = n[f].c.length;
+          return setCur({ line: c.line, path: [...c.path, { i: c.s - 1, f }], s: len, e: len });
+        }
+        return setCur({ ...c, s: c.s - 1, e: c.s - 1 });
+      }
+      if (c.path.length) {
+        const st = c.path[c.path.length - 1];
+        const pp = c.path.slice(0, -1);
+        const pn = getRow(lines[c.line], pp).c[st.i];
+        const fs = fieldsOf(pn);
+        const fi = fs.indexOf(st.f);
+        if (fi > 0) { const f = fs[fi - 1]; const len = pn[f].c.length; return setCur({ line: c.line, path: [...pp, { i: st.i, f }], s: len, e: len }); }
+        return setCur({ line: c.line, path: pp, s: st.i, e: st.i });
+      }
+      if (c.line > 0) { const pl = lines[c.line - 1]; return setCur({ line: c.line - 1, path: [], s: pl.c.length, e: pl.c.length }); }
+    }
+  };
+
+  const jumpHole = (dir) => {
+    const holes = collectHoles(lines[cur.line]);
+    if (!holes.length) return;
+    const t = [...flat(cur.path), dir > 0 ? cur.e : cur.s];
+    const fwd = holes.filter((h) => cmpTrace(h.trace, t) > 0);
+    const bwd = holes.filter((h) => cmpTrace(h.trace, t) < 0 && !(samePath(h.path, cur.path) && h.i === cur.s && hasSel));
+    const pick = dir > 0 ? (fwd[0] ?? holes[0]) : (bwd[bwd.length - 1] ?? holes[holes.length - 1]);
+    setCur({ line: cur.line, path: pick.path, s: pick.i, e: pick.i + 1 });
+  };
+
+  const growSel = () => {
+    const r = curRow;
+    if (!hasSel) {
+      if (cur.s > 0) return setCur({ ...cur, s: cur.s - 1 });
+      if (r.c.length) return setCur({ ...cur, e: cur.e + 1 });
+      // empty row → select the container
+    }
+    if (hasSel && (cur.s > 0 || cur.e < r.c.length)) return setCur({ ...cur, s: 0, e: r.c.length });
+    if (cur.path.length) {
+      const st = cur.path[cur.path.length - 1];
+      return setCur({ line: cur.line, path: cur.path.slice(0, -1), s: st.i, e: st.i + 1 });
+    }
+  };
+
+  /* ── f() ── */
+  const applyFn = (name) => {
+    const cmd = ["sin", "cos", "tan", "ln", "log", "exp", "det", "lim"].includes(name) ? "\\" + name : `\\operatorname{${name}}`;
+    const arg = hasSel ? row(curRow.c.slice(cur.s, cur.e)) : row([hole()]);
+    const node = func(name, cmd, arg);
+    const r = curRow;
+    const nr = row([...r.c.slice(0, cur.s), node, ...r.c.slice(cur.e)]);
+    const nl = lines.map((L, i) => (i === cur.line ? setRow(root, cur.path, nr) : L));
+    const nc = hasSel
+      ? { line: cur.line, path: cur.path, s: cur.s + 1, e: cur.s + 1 }
+      : { line: cur.line, path: [...cur.path, { i: cur.s, f: "arg" }], s: 0, e: 1 };
+    mutate(nl, nc);
+    setRecent((x) => [name, ...x.filter((y) => y !== name)].slice(0, 6));
+    setBar({ mode: "idle" });
+  };
+
+  /* ── misc ── */
+  const newLine = () => {
+    const nl = [...lines.slice(0, cur.line + 1), row([]), ...lines.slice(cur.line + 1)];
+    mutate(nl, { line: cur.line + 1, path: [], s: 0, e: 0 });
+  };
+  const doCopy = (txt, tag) => {
+    const ta = document.createElement("textarea");
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); document.body.removeChild(ta);
+    setCopied(tag); setTimeout(() => setCopied(""), 1100);
+  };
+  const pinCurrent = () => {
+    const nodes = hasSel ? curRow.c.slice(cur.s, cur.e) : root.c;
+    if (!nodes.length) return;
+    const label = uniOf(row(nodes)).slice(0, 10) || "pin";
+    setPins((p) => [...p, { label, nodes: JSON.parse(JSON.stringify(nodes)) }].slice(-8));
+  };
+
+  const press = (k) => ({
+    onPointerDown: () => {
+      longFired.current = false;
+      const varz = VARIANTS[k.label];
+      if (varz) timer.current = setTimeout(() => { longFired.current = true; setBar({ mode: "variants", of: k.label, list: varz }); }, 380);
+      else if (k.hold) timer.current = setTimeout(() => { longFired.current = true; k.hold(); }, 380);
+    },
+    onPointerUp: () => { clearTimeout(timer.current); if (!longFired.current) k.action(); },
+    onPointerLeave: () => clearTimeout(timer.current),
+  });
+
+  /* ── key defs ── */
+  const K = (label, action, o = {}) => ({ label, action, ...o });
+  const KS = (d, t) => K(d, () => insertSym(t, d, S(d, t).make()[0].op ? { op: 1 } : {}), { op: 1 });
+  const KT = (label, maker, o = {}) => K(label, () => insertNodes(maker()), o);
+
+  const LAYERS = {
+    base: [
+      ["x", "y", "z", "a", "b", "c", "f", "g", "n", "i"].map((ch) => K(ch, () => insertLetter(ch), { letter: 1 })),
+      [K("7", () => insertSym("7", "7")), K("8", () => insertSym("8", "8")), K("9", () => insertSym("9", "9")), KS("+", "+"), KS("−", "-"), KS("=", "="), KT("( )", () => [grp("(", ")")], { op: 1 }), K("f()", () => setBar({ mode: "naming" }), { accent: 1 })],
+      [K("4", () => insertSym("4", "4")), K("5", () => insertSym("5", "5")), K("6", () => insertSym("6", "6")), KS("×", "\\times "), KT("▢/▢", () => [frac()], { op: 1 }), KT("√", () => [sqrtN()], { op: 1 }), K("xⁿ", () => attachPostfix(scr(row([hole()]))), { op: 1 }), K("xᵢ", () => attachPostfix(scr(null, row([hole()]))), { op: 1 })],
+      [K("1", () => insertSym("1", "1")), K("2", () => insertSym("2", "2")), K("3", () => insertSym("3", "3")), K("0", () => insertSym("0", "0")), K(".", () => insertSym(".", ".")), K(",", () => insertSym(",", ",")), K("x²", () => attachPostfix(scr(row([sym("2")]))), { op: 1 }), KS("∞", "\\infty ")],
+    ],
+    sym: [
+      [KS("→", "\\to "), KS("↦", "\\mapsto "), KS("⇒", "\\Rightarrow "), KS("≅", "\\cong "), KS("⊣", "\\dashv "), KT("→ᶠ", () => [acc("\\xrightarrow", "→", row([hole()]))], { op: 1 })],
+      [KS("∘", "\\circ "), KS("⊗", "\\otimes "), KT("∑", () => [big("\\sum", "∑")], { op: 1 }), KT("∫", () => [big("\\int", "∫"), hole(), sym("\\,d", "d", { up: 1 }), hole()], { op: 1 }), KT("lim", () => [big("\\lim", "lim")], { op: 1 }), KS("∂", "\\partial ")],
+      [KS("∈", "\\in "), KS("⊆", "\\subseteq "), KS("≤", "\\le "), KS("≠", "\\ne "), KS("∀", "\\forall "), KS("∃", "\\exists "), KS("∣", "\\mid "), KS("∅", "\\emptyset ")],
+      [K("x⁻¹", () => attachPostfix(scr(row([sym("-"), sym("1")]))), { op: 1 }), K("xᵒᵖ", () => attachPostfix(scr(row([sym("\\mathrm{op}", "op", { up: 1 })]))), { op: 1 }), K("x*", () => attachPostfix(scr(row([sym("*")]))), { op: 1 }), K("x̄", () => attachPostfix(acc("\\bar", "ˉ"), true), { op: 1 }), K("x̂", () => attachPostfix(acc("\\hat", "ˆ"), true), { op: 1 }), K("x̃", () => attachPostfix(acc("\\tilde", "˜"), true), { op: 1 })],
+      [KS("α", "\\alpha "), KS("β", "\\beta "), KS("ε", "\\varepsilon "), KS("η", "\\eta "), KS("θ", "\\theta "), KS("λ", "\\lambda "), KS("μ", "\\mu "), KS("π", "\\pi ")],
+    ],
+  };
+
+  const sysRow = [
+    K(layer === "base" ? "∑αβ" : "123", () => setLayer(layer === "base" ? "sym" : "base"), { sys: 1, w: 1.3 }),
+    K(styleMod ? { cal: "𝒞", bb: "ℤ", frak: "𝔤" }[styleMod] : "𝒜", () => setStyleMod(styleMod === null ? "cal" : styleMod === "cal" ? "bb" : styleMod === "bb" ? "frak" : null), { sys: 1, on: !!styleMod }),
+    K("🔍", () => { setBar({ mode: "search" }); setQuery(""); }, { sys: 1 }),
+    K("↺", undo, { sys: 1 }),
+    K("↻", redo, { sys: 1 }),
+    K("⏎", newLine, { sys: 1 }),
+    K("?", () => setDocs(true), { sys: 1 }),
+  ];
+  const navRow = [
+    K("◀", () => moveH(-1), { nav: 1, hold: growSel }),
+    K("▢ ⇥", () => jumpHole(1), { hero: 1, w: 2.2, hold: () => jumpHole(-1) }),
+    K("▶", () => moveH(1), { nav: 1, hold: growSel }),
+    K("⌫", deleteBackward, { nav: 1 }),
+  ];
+
+  /* ── dynamic docs ── */
+  const curCode = GEN[fmt](root);
+  const DOCS = [
+    { h: "It's a tree, not text", p: "Every formula is a structure: fractions, roots, and scripts are real nodes. Braces can't unbalance, and delete respects structure — ⌫ on a filled fraction steps inside it; on an empty one it removes the whole node.", ex: [{ mk: () => [frac(row([sym("a"), sym("+", "+", { op: 1 }), sym("b")]), row([sym("2")]))], cap: "tap inside, then try ⌫ at the fraction's edge" }] },
+    { h: "Holes & ⇥", p: "Template keys insert ▢ holes and select the first. ▢⇥ hops to the next hole (hold for previous), wrapping around. Typing replaces the selected hole.", ex: [{ mk: () => [big("\\sum", "∑"), frac()], cap: "∑ then a/b: four holes, one ⇥ path through all" }] },
+    { h: "f( ) — wrap or create", p: "Selection → wrapped. No selection → name(▢). Known names set upright; anything else becomes \\operatorname.", ex: [{ mk: () => [func("f", "\\operatorname{f}", row(JSON.parse(JSON.stringify(root.c.length ? root.c : [hole()]))))], cap: "your current line, wrapped live" }] },
+    { h: "Grow the selection", p: "Hold ◀ or ▶: token → whole row → enclosing structure → whole line. Structural selection means wrapping and pinning always grab a well-formed subtree.", ex: [{ mk: () => [frac(row([sym("a"), sym("+", "+", { op: 1 }), sym("b")]), row([sym("c")]))], cap: "hold ▶ inside the numerator and watch it climb" }] },
+    { h: "𝒜 styles the next letter", p: "Tap 𝒜 to cycle script → blackboard → fraktur; the next letter is styled, then the modifier switches off.", ex: [{ mk: () => [styledSym("c", "cal"), sym(",", ","), styledSym("z", "bb"), sym(",", ","), styledSym("g", "frak")], cap: "𝒞, ℤ, 𝔤 — three taps, three alphabets" }] },
+    { h: "Postfix decorations", p: "x⁻¹, xᵒᵖ, x*, bar/hat/tilde act on the selection or the node before the cursor — postfix operators, like in a stack language.", ex: [{ mk: () => [styledSym("c", "cal"), scr(row([sym("\\mathrm{op}", "op", { up: 1 })]))], cap: "𝒜, c, then xᵒᵖ" }] },
+    { h: "Three backends, one tree", p: "The output bar compiles the same tree to LaTeX, Typst (draft), or plain Unicode. Chip labels are the Unicode backend at work.", ex: [{ mk: () => [sym("F", "F"), sym("\\dashv ", "⊣", { op: 1 }), sym("G", "G")], cap: "switch the format toggle and copy each" }] },
+    { h: "Pins, search, worksheet", p: "📌 pins the selection (or line) as a template chip — long-press a chip to remove it. 🔍 finds symbols by meaning (“epi”, “tensor”, “such that”). ⏎ starts a new line; your worksheet and pins persist between sessions.", ex: [{ mk: () => [grp("⟨", "⟩", row([sym("a"), sym("\\mid ", "∣", { op: 1 }), scr(row([sym("a")])), sym("=", "=", { op: 1 }), sym("1")]))], cap: "found via 🔍 “presentation”" }] },
+  ];
+
+  /* ── bar content ── */
+  const barUI = () => {
+    if (bar.mode === "naming")
+      return (<>
+        <span style={st.barLabel}>{hasSel ? "wrap in:" : "function:"}</span>
+        <div style={st.chipRow}>
+          {[...new Set([...recent, ...FN_NAMES])].slice(0, 8).map((n) => (
+            <button key={n} className="mk" style={{ ...st.chip, fontStyle: "italic", fontFamily: "Georgia,serif" }} onClick={() => applyFn(n)}>{n}</button>
+          ))}
+          <button className="mk" style={{ ...st.chip, color: "#FF453A" }} onClick={() => setBar({ mode: "idle" })}>✕</button>
+        </div>
+      </>);
+    if (bar.mode === "variants")
+      return (<>
+        <span style={st.barLabel}>{bar.of} ▸</span>
+        <div style={st.chipRow}>
+          {bar.list.map((v, i) => (
+            <button key={i} className="mk" style={st.chip} onClick={() => { insertNodes(v.make()); setBar({ mode: "idle" }); }}>{v.d}</button>
+          ))}
+          <button className="mk" style={{ ...st.chip, color: "#FF453A" }} onClick={() => setBar({ mode: "idle" })}>✕</button>
+        </div>
+      </>);
+    if (bar.mode === "search") {
+      const hits = searchCat(query);
+      return (<>
+        <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && hits[0]) { insertNodes(hits[0].make()); setBar({ mode: "idle" }); } if (e.key === "Escape") setBar({ mode: "idle" }); }}
+          placeholder="epi · tensor · adjoint · such that" style={st.searchInput} />
+        <div style={st.chipRow}>
+          {hits.map((h, i) => (
+            <button key={i} className="mk" style={st.chip} title={h.a[0] || h.d} onClick={() => { insertNodes(h.make()); setBar({ mode: "idle" }); }}>{h.d}</button>
+          ))}
+          <button className="mk" style={{ ...st.chip, color: "#FF453A" }} onClick={() => setBar({ mode: "idle" })}>✕</button>
+        </div>
+      </>);
+    }
+    return (<>
+      <div style={st.chipRow}>
+        {pins.map((p, i) => (
+          <button key={i} className="mk" style={st.chip}
+            onPointerDown={() => { longFired.current = false; timer.current = setTimeout(() => { longFired.current = true; setPins((x) => x.filter((_, j) => j !== i)); }, 500); }}
+            onPointerUp={() => { clearTimeout(timer.current); if (!longFired.current) insertNodes(JSON.parse(JSON.stringify(p.nodes))); }}
+            onPointerLeave={() => clearTimeout(timer.current)}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+      <button className="mk" style={st.miniBtn} onClick={pinCurrent}>📌</button>
+    </>);
+  };
+
+  const ctxFor = (li) => ({
+    active: li === cur.line,
+    cur,
+    set: (c) => setCur({ line: li, ...c }),
+  });
+
+  return (
+    <div style={st.page}>
+      <style>{`
+        @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+        .mk{transition:filter .06s;user-select:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+        .mk:active{filter:brightness(1.55)}
+        ::placeholder{color:#5A5A5E}
+      `}</style>
+
+      <div style={st.phone}>
+        {/* ── worksheet (the editor IS the document) ── */}
+        <div style={st.doc}>
+          <div style={st.docLabel}>Worksheet · structural editor</div>
+          <div style={st.linesWrap}>
+            {lines.map((L, li) => (
+              <div key={li}
+                onClick={() => { if (li !== cur.line) setCur({ line: li, path: [], s: L.c.length, e: L.c.length }); }}
+                style={{ ...st.lineRow, ...(li === cur.line ? st.lineActive : null) }}>
+                <RowView r={L} path={[]} ctx={ctxFor(li)} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── output bar: three backends over one tree ── */}
+        <div style={st.outBar}>
+          <div style={st.seg}>
+            {["latex", "typst", "unicode"].map((f) => (
+              <button key={f} className="mk" onClick={() => setFmt(f)}
+                style={{ ...st.segBtn, ...(fmt === f ? st.segOn : null) }}>{f === "latex" ? "LaTeX" : f === "typst" ? "Typst" : "Uni"}</button>
+            ))}
+          </div>
+          <code style={st.outCode}>{curCode || "…"}</code>
+          <button className="mk" style={st.miniBtn} onClick={() => doCopy(curCode, "out")}>{copied === "out" ? "✓" : "copy"}</button>
+        </div>
+
+        {/* ── keyboard ── */}
+        <div style={{ ...st.kb, position: "relative" }}>
+          <div style={st.bar}>{barUI()}</div>
+          <div style={{ padding: "2px 3px 0" }}>
+            {LAYERS[layer].map((rw, ri) => (
+              <div key={ri} style={st.row}>
+                {rw.map((k, ki) => (
+                  <button key={ki} className="mk" {...press(k)}
+                    style={{ ...st.key, flex: k.w || 1, ...(k.letter ? st.keyLetter : null), ...(k.op ? st.keyOp : null), ...(k.accent ? st.keyAccent : null) }}>
+                    {k.label}
+                    {VARIANTS[k.label] && <span style={st.varDot} />}
+                  </button>
+                ))}
+              </div>
+            ))}
+            <div style={st.row}>
+              {sysRow.map((k, i) => (
+                <button key={i} className="mk" onClick={k.action}
+                  style={{ ...st.key, flex: k.w || 1, ...st.keySys, ...(k.on ? st.keyOn : null) }}>{k.label}</button>
+              ))}
+            </div>
+            <div style={st.row}>
+              {navRow.map((k, i) => (
+                <button key={i} className="mk" {...press(k)}
+                  style={{ ...st.key, flex: k.w || 1, ...(k.hero ? st.keyHero : st.keyNav) }}>{k.label}</button>
+              ))}
+            </div>
+          </div>
+          <div style={st.homeBar} />
+
+          {/* ── docs overlay ── */}
+          {docs && (
+            <div style={st.docsOverlay}>
+              <div style={st.docsHead}>
+                <span style={{ fontWeight: 600, fontSize: 15 }}>How this keyboard thinks</span>
+                <button className="mk" style={{ ...st.miniBtn, fontSize: 13 }} onClick={() => setDocs(false)}>done</button>
+              </div>
+              <div style={st.docsBody}>
+                {DOCS.map((s, si) => (
+                  <div key={si} style={{ marginTop: 14 }}>
+                    <div style={st.docsH}>{s.h}</div>
+                    <div style={st.docsP}>{s.p}</div>
+                    {s.ex.map((ex, ei) => {
+                      const nodes = ex.mk();
+                      const exLine = row(JSON.parse(JSON.stringify(nodes)));
+                      const code = GEN[fmt](exLine);
+                      const tag = s.h + ei;
+                      return (
+                        <div key={ei} style={st.exCard}>
+                          <div style={st.exMath}>
+                            <RowView r={exLine} path={[]} ctx={{ active: false, cur, set: () => {} }} />
+                          </div>
+                          <div style={st.exCap}>{ex.cap}</div>
+                          <div style={st.exRow}>
+                            <code style={st.exCode}>{code}</code>
+                            <button className="mk" style={st.miniBtn} onClick={() => doCopy(code, tag)}>{copied === tag ? "✓" : "copy"}</button>
+                            <button className="mk" style={{ ...st.miniBtn, color: "#30D158", borderColor: "#30D15833" }}
+                              onClick={() => {
+                                const fresh = JSON.parse(JSON.stringify(nodes));
+                                const nl = [...lines, row(fresh)];
+                                const fh = firstHoleInNodes(fresh);
+                                const nc = fh
+                                  ? { line: nl.length - 1, path: fh.path, s: fh.i, e: fh.i + 1 }
+                                  : { line: nl.length - 1, path: [], s: fresh.length, e: fresh.length };
+                                mutate(nl, nc);
+                                setDocs(false);
+                              }}>try it</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div style={st.hint}>
+        A structure editor in a keyboard: <b>▢⇥</b> next hole (hold: back) · hold <b>◀▶</b> grows the selection structurally · <b>𝒜</b> styles the next letter · <b>⏎</b> new line · output compiles to LaTeX / Typst / Unicode · <b>?</b> for docs
+      </div>
+    </div>
+  );
+}
+
+/* ── chrome styles ── */
+const st = {
+  page: { minHeight: "100vh", background: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 16, fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif" },
+  phone: { width: 394, maxWidth: "100%", borderRadius: 40, overflow: "hidden", border: "1px solid #2C2C2E", boxShadow: "0 30px 80px rgba(0,0,0,.8)", background: "#0A0A0C" },
+  doc: { padding: "22px 16px 8px", minHeight: 120, maxHeight: 190, overflowY: "auto" },
+  docLabel: { color: "#8E8E93", fontSize: 11, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 },
+  linesWrap: { display: "flex", flexDirection: "column", gap: 2 },
+  lineRow: { padding: "6px 10px", borderRadius: 10, color: "#FFF", fontSize: 22, fontFamily: "Georgia,'Times New Roman',serif", overflowX: "auto", whiteSpace: "nowrap", minHeight: 38, display: "flex", alignItems: "center", border: "1px solid transparent" },
+  lineActive: { background: "#141416", border: "1px solid #2C2C2E" },
+  outBar: { display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderTop: "1px solid #1D1D20", background: "#0E0E10" },
+  seg: { display: "flex", background: "#1D1D20", borderRadius: 8, padding: 2, gap: 1 },
+  segBtn: { border: "none", background: "none", color: "#8E8E93", fontSize: 10.5, padding: "4px 8px", borderRadius: 6 },
+  segOn: { background: "#3A3A3C", color: "#FFF" },
+  outCode: { flex: 1, color: "#98D9A8", fontSize: 10.5, fontFamily: "SF Mono,Menlo,monospace", whiteSpace: "nowrap", overflowX: "auto" },
+  miniBtn: { background: "none", border: "1px solid #3A3A3C", color: "#0A84FF", borderRadius: 11, fontSize: 11, padding: "4px 9px", whiteSpace: "nowrap" },
+  kb: { background: "#1D1D20", paddingTop: 5 },
+  bar: { display: "flex", alignItems: "center", gap: 6, padding: "3px 10px 5px", minHeight: 35 },
+  barLabel: { color: "#8E8E93", fontSize: 12, whiteSpace: "nowrap" },
+  chipRow: { display: "flex", gap: 6, overflowX: "auto", flex: 1, alignItems: "center" },
+  chip: { background: "#3A3A3C", color: "#0A84FF", border: "none", borderRadius: 14, padding: "4px 11px", fontSize: 14, whiteSpace: "nowrap" },
+  searchInput: { flex: "0 0 126px", background: "#0E0E10", border: "1px solid #3A3A3C", borderRadius: 9, color: "#FFF", fontSize: 13, padding: "6px 9px", outline: "none" },
+  row: { display: "flex", gap: 5, margin: "0 3px 6px" },
+  key: { flex: 1, height: 38, border: "none", borderRadius: 6, background: "#6B6B6E", color: "#FFF", fontSize: 16, boxShadow: "0 1px 0 #000", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, position: "relative" },
+  keyLetter: { height: 32, fontSize: 15, fontStyle: "italic", fontFamily: "Georgia,serif", background: "#5A5A5E" },
+  keyOp: { background: "#464649", fontSize: 15 },
+  keySys: { background: "#464649", fontSize: 13.5, color: "#EDEDED" },
+  keyOn: { background: "#0A84FF", color: "#FFF" },
+  keyAccent: { background: "#0A84FF", fontStyle: "italic", fontFamily: "Georgia,serif" },
+  varDot: { position: "absolute", top: 4, right: 5, width: 4, height: 4, borderRadius: 2, background: "#0A84FF" },
+  keyNav: { background: "#2C2C2E", color: "#0A84FF", fontSize: 14.5 },
+  keyHero: { background: "#0A84FF", color: "#FFF", fontSize: 15, fontWeight: 600 },
+  homeBar: { width: 130, height: 5, borderRadius: 3, background: "#5A5A5E", margin: "4px auto 8px" },
+  docsOverlay: { position: "absolute", inset: 0, background: "#141416F2", backdropFilter: "blur(8px)", display: "flex", flexDirection: "column", borderRadius: "16px 16px 0 0" },
+  docsHead: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px 8px", color: "#FFF", borderBottom: "1px solid #2C2C2E" },
+  docsBody: { overflowY: "auto", padding: "4px 14px 18px" },
+  docsH: { color: "#0A84FF", fontSize: 12, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 4 },
+  docsP: { color: "#C7C7CC", fontSize: 12.5, lineHeight: 1.5, marginBottom: 8 },
+  exCard: { background: "#0E0E10", border: "1px solid #2C2C2E", borderRadius: 12, marginBottom: 8, overflow: "hidden" },
+  exMath: { padding: "10px 12px 4px", color: "#FFF", fontSize: 19, fontFamily: "Georgia,'Times New Roman',serif", overflowX: "auto", whiteSpace: "nowrap" },
+  exCap: { color: "#8E8E93", fontSize: 11, padding: "0 12px 6px" },
+  exRow: { display: "flex", alignItems: "center", gap: 6, padding: "6px 12px 8px", borderTop: "1px solid #1D1D20" },
+  exCode: { flex: 1, color: "#98D9A8", fontSize: 10.5, fontFamily: "SF Mono,Menlo,monospace", whiteSpace: "nowrap", overflowX: "auto" },
+  hint: { color: "#8E8E93", fontSize: 12.5, maxWidth: 410, lineHeight: 1.6, marginTop: 14, textAlign: "center" },
+};

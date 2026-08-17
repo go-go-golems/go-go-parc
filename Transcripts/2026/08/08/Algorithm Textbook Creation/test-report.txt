@@ -1,0 +1,16 @@
+PASS  STL parser accepts uppercase ASCII and binary trailers
+PASS  model normalization centers XY and raises minimum Z to zero
+PASS  point-in-triangle is orientation independent and rejects degenerate triangles
+PASS  drop-cutter evaluator agrees with dense triangle optimization
+PASS  marching squares uses bilinear asymptotic decider
+PASS  marching squares chains a sampled circle into a closed loop
+PASS  mask splitting joins a run crossing a closed seam
+PASS  fast sweeping solves distance to rectangle boundary
+PASS  surface metric graph distance respects slope anisotropy
+PASS  arc fitting prepends actual current and preserves first segment
+PASS  G18/G19 arc mapping uses positive-axis CNC views
+PASS  all finishing strategies generate finite exportable jobs
+PASS  roughing entries are generated and finite
+PASS  dexel verification reports part-mask statistics
+
+14/14 tests passed in 0.38 s

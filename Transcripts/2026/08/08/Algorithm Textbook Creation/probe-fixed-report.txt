@@ -1,0 +1,36 @@
+raw cut arrays that omit the incoming point (legal internal representation): 46
+arc streams still missing the incoming point after repair: 0
+
+first G-code lines:
+%
+(DROPCUT - probe)
+(TOOL: BALL D3.000 MM)
+(FINISH: COVERAGE-FIRST HYBRID: 20 RASTER SPANS + 5 STEEP WATERLINE CONTOURS)
+G21 G90 G94 G17 G91.1
+S10000 M3
+G0 Z7.904
+G0 X-9.000 Y-9.000 Z7.904
+F200
+G1 X-9.000 Y-9.000 Z0.000
+F600
+G1 X-7.875 Y-9.000 Z0.000
+G1 X-6.750 Y-9.000 Z0.000
+G1 X-5.625 Y-9.000 Z0.000
+G1 X-4.500 Y-9.000 Z0.000
+G1 X-3.375 Y-9.000 Z0.000
+G1 X-2.250 Y-9.000 Z0.000
+G1 X-1.125 Y-9.000 Z0.000
+G1 X0.000 Y-9.000 Z0.000
+G1 X1.125 Y-9.000 Z0.000
+
+closed-seam mask split: [{"pts":[0,1,0,0,1,0],"closed":false}]
+
+verification: {
+  minDev: -0.037415731307754996,
+  maxDev: 0.36437178191926534,
+  rms: 0.06332036359175348,
+  pctOK: 96.40445970448671,
+  band: 0.185,
+  gougeTol: 0.02,
+  nPart: 25921
+}

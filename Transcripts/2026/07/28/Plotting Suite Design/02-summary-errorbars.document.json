@@ -1,0 +1,303 @@
+{
+  "format": "datadrop.plot.document",
+  "version": 2,
+  "id": "plot:s5wbgv2a5d",
+  "name": "Untitled plot",
+  "sourceId": "dose-response",
+  "sources": {
+    "dose-response": {
+      "id": "dose-response",
+      "name": "dose-response",
+      "schema": [
+        {
+          "id": "field:omzjy63ufz",
+          "name": "dose",
+          "physicalType": "string",
+          "semanticType": "ordinal",
+          "nullable": false,
+          "unit": "mg/L",
+          "order": [
+            "0",
+            "5",
+            "10",
+            "20"
+          ]
+        },
+        {
+          "id": "field:tl4x1rshlf",
+          "name": "treatment",
+          "physicalType": "string",
+          "semanticType": "nominal",
+          "nullable": false
+        },
+        {
+          "id": "field:23zk7b3jrjr",
+          "name": "replicate",
+          "physicalType": "int64",
+          "semanticType": "ordinal",
+          "nullable": false
+        },
+        {
+          "id": "field:rzj4wcg1p0",
+          "name": "viability",
+          "physicalType": "float64",
+          "semanticType": "quantitative",
+          "nullable": false,
+          "label": "Cell viability",
+          "unit": "%"
+        }
+      ],
+      "coverage": {
+        "kind": "complete",
+        "rows": 144,
+        "totalRows": 144,
+        "hasMore": false
+      }
+    }
+  },
+  "parameters": {},
+  "transforms": [],
+  "mapping": {
+    "x": {
+      "kind": "field",
+      "name": "dose"
+    },
+    "y": {
+      "kind": "field",
+      "name": "viability"
+    },
+    "color": {
+      "kind": "field",
+      "name": "treatment"
+    },
+    "group": {
+      "kind": "field",
+      "name": "treatment",
+      "semanticType": "nominal"
+    }
+  },
+  "layers": [
+    {
+      "id": "layer:1",
+      "enabled": true,
+      "inheritMapping": true,
+      "mapping": {},
+      "transforms": [],
+      "stat": {
+        "id": "summary",
+        "options": {
+          "operation": "mean",
+          "interval": "ci95",
+          "multiplier": 1
+        }
+      },
+      "geom": {
+        "id": "bar",
+        "options": {
+          "width": 0.82,
+          "opacity": 0.72
+        }
+      },
+      "position": {
+        "id": "dodge",
+        "options": {
+          "width": 0.82,
+          "preserve": "total"
+        }
+      },
+      "showLegend": "auto",
+      "facetMode": "auto",
+      "name": "Mean"
+    },
+    {
+      "id": "layer:2",
+      "enabled": true,
+      "inheritMapping": true,
+      "mapping": {},
+      "transforms": [],
+      "stat": {
+        "id": "summary",
+        "options": {
+          "operation": "mean",
+          "interval": "ci95",
+          "multiplier": 1
+        }
+      },
+      "geom": {
+        "id": "errorbar",
+        "options": {
+          "capWidth": 10,
+          "strokeWidth": 1.5
+        }
+      },
+      "position": {
+        "id": "dodge",
+        "options": {
+          "width": 0.82,
+          "preserve": "total"
+        }
+      },
+      "showLegend": "auto",
+      "facetMode": "auto",
+      "name": "95% CI"
+    }
+  ],
+  "scales": {
+    "y": {
+      "type": "linear",
+      "domain": [
+        0,
+        110
+      ],
+      "guide": {
+        "kind": "axis",
+        "tickCount": 6
+      }
+    },
+    "color": {
+      "type": "categorical",
+      "guide": {
+        "kind": "legend",
+        "title": "Condition"
+      }
+    }
+  },
+  "coordinate": {
+    "kind": "cartesian",
+    "clip": true,
+    "expand": true
+  },
+  "theme": {
+    "name": "professional",
+    "background": "#ffffff",
+    "panelBackground": "#ffffff",
+    "foreground": "#111827",
+    "muted": "#4b5563",
+    "gridMajor": {
+      "color": "#d1d5db",
+      "width": 0.8,
+      "opacity": 0.75
+    },
+    "gridMinor": {
+      "color": "#e5e7eb",
+      "width": 0.5,
+      "opacity": 0.55
+    },
+    "axis": {
+      "color": "#374151",
+      "width": 1
+    },
+    "axisText": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 11,
+      "color": "#374151"
+    },
+    "axisTitle": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 12,
+      "weight": 600,
+      "color": "#111827"
+    },
+    "title": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 18,
+      "weight": 700,
+      "color": "#111827"
+    },
+    "subtitle": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 12,
+      "color": "#4b5563"
+    },
+    "caption": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 10,
+      "color": "#6b7280"
+    },
+    "strip": {
+      "fill": "#f3f4f6",
+      "stroke": "#d1d5db",
+      "strokeWidth": 0.8,
+      "text": {
+        "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "size": 11,
+        "weight": 600,
+        "color": "#111827"
+      }
+    },
+    "legend": {
+      "background": "#ffffff",
+      "border": {
+        "color": "#d1d5db",
+        "width": 0.8
+      },
+      "title": {
+        "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "size": 11,
+        "weight": 600,
+        "color": "#111827"
+      },
+      "label": {
+        "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "size": 10,
+        "color": "#374151"
+      },
+      "swatchSize": 12,
+      "gap": 6
+    },
+    "palette": [
+      "#0072B2",
+      "#D55E00",
+      "#009E73",
+      "#CC79A7",
+      "#E69F00",
+      "#56B4E9",
+      "#F0E442",
+      "#000000",
+      "#6B7280",
+      "#7C3AED"
+    ],
+    "sequential": [
+      "#f7fbff",
+      "#08306b"
+    ],
+    "diverging": [
+      "#2166ac",
+      "#f7f7f7",
+      "#b2182b"
+    ],
+    "pointRadius": 3.5,
+    "lineWidth": 1.8,
+    "barGap": 0.12,
+    "panelPadding": 8,
+    "plotPadding": 12
+  },
+  "layout": {
+    "width": 900,
+    "height": 560,
+    "responsive": false,
+    "legendPosition": "right",
+    "facetGap": 18,
+    "dpi": 96,
+    "legendWidth": 150
+  },
+  "labels": {
+    "title": "Dose-dependent loss of cell viability",
+    "subtitle": "Bars are means; whiskers are normal-approximation 95% confidence intervals",
+    "x": "Dose (mg/L)",
+    "y": "Cell viability (%)",
+    "caption": "n = 18 per dose and condition"
+  },
+  "interactions": [],
+  "render": {
+    "backend": "svg",
+    "pixelRatio": 1,
+    "vectorMarkLimit": 25000,
+    "rasterizeAbove": 100000,
+    "deterministic": true,
+    "embedMetadata": true
+  },
+  "metadata": {
+    "createdBy": "@datadrop/professional-plotting-suite-reference"
+  }
+}

@@ -1,0 +1,348 @@
+
+> pbui-p01-p04-research-capsules@0.1.0 test
+> bash scripts/run-all.sh test
+
+
+==> p01-semantic-identity: test
+
+> @pbui-research/p01-semantic-identity@0.1.0 test
+> npm run build && node --test test/*.test.mjs
+
+
+> @pbui-research/p01-semantic-identity@0.1.0 build
+> rm -rf dist && tsc -p tsconfig.json
+
+TAP version 13
+# Subtest: different representations produce one semantic reference
+ok 1 - different representations produce one semantic reference
+  ---
+  duration_ms: 1.307505
+  type: 'test'
+  ...
+# Subtest: structural equality does not invent domain identity
+ok 2 - structural equality does not invent domain identity
+  ---
+  duration_ms: 0.278873
+  type: 'test'
+  ...
+# Subtest: sort domains prevent accidental key collisions
+ok 3 - sort domains prevent accidental key collisions
+  ---
+  duration_ms: 0.376056
+  type: 'test'
+  ...
+# Subtest: aliases are reflexive, symmetric, transitive, and evidence-bearing
+ok 4 - aliases are reflexive, symmetric, transitive, and evidence-bearing
+  ---
+  duration_ms: 6.133879
+  type: 'test'
+  ...
+# Subtest: canonical representative is deterministic under link order
+ok 5 - canonical representative is deterministic under link order
+  ---
+  duration_ms: 0.412791
+  type: 'test'
+  ...
+# Subtest: removing an alias recomputes the equivalence classes
+ok 6 - removing an alias recomputes the equivalence classes
+  ---
+  duration_ms: 0.213707
+  type: 'test'
+  ...
+# Subtest: snapshot revisions reject stale and conflicting registrations
+ok 7 - snapshot revisions reject stale and conflicting registrations
+  ---
+  duration_ms: 0.394704
+  type: 'test'
+  ...
+# Subtest: alias topology round-trips independently of runtime alias IDs
+ok 8 - alias topology round-trips independently of runtime alias IDs
+  ---
+  duration_ms: 0.282849
+  type: 'test'
+  ...
+# Subtest: equivalence laws hold over a generated finite alias graph
+ok 9 - equivalence laws hold over a generated finite alias graph
+  ---
+  duration_ms: 9.613228
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 67.68996
+
+==> p02-occurrence-lifecycle: test
+
+> @pbui-research/p02-occurrence-lifecycle@0.1.0 test
+> npm run build && node --test test/*.test.mjs
+
+
+> @pbui-research/p02-occurrence-lifecycle@0.1.0 build
+> rm -rf dist && tsc -p tsconfig.json
+
+TAP version 13
+# Subtest: speculative preparation is unobservable until commit
+ok 1 - speculative preparation is unobservable until commit
+  ---
+  duration_ms: 1.002213
+  type: 'test'
+  ...
+# Subtest: committing the same prepared mount is idempotent
+ok 2 - committing the same prepared mount is idempotent
+  ---
+  duration_ms: 0.623368
+  type: 'test'
+  ...
+# Subtest: stale cleanup cannot remove a remounted generation
+ok 3 - stale cleanup cannot remove a remounted generation
+  ---
+  duration_ms: 0.230712
+  type: 'test'
+  ...
+# Subtest: updates replace subject and visibility atomically
+ok 4 - updates replace subject and visibility atomically
+  ---
+  duration_ms: 0.466941
+  type: 'test'
+  ...
+# Subtest: old update leases are rejected after a newer commit
+ok 5 - old update leases are rejected after a newer commit
+  ---
+  duration_ms: 0.453261
+  type: 'test'
+  ...
+# Subtest: multiple visual occurrences can present the same subject
+ok 6 - multiple visual occurrences can present the same subject
+  ---
+  duration_ms: 6.040851
+  type: 'test'
+  ...
+# Subtest: selectable occurrence filtering is surface and reachability aware
+ok 7 - selectable occurrence filtering is surface and reachability aware
+  ---
+  duration_ms: 0.383467
+  type: 'test'
+  ...
+# Subtest: activation evidence expires after update or unmount
+ok 8 - activation evidence expires after update or unmount
+  ---
+  duration_ms: 0.218514
+  type: 'test'
+  ...
+# Subtest: virtualization removes only the occurrence, not the semantic subject
+ok 9 - virtualization removes only the occurrence, not the semantic subject
+  ---
+  duration_ms: 0.316459
+  type: 'test'
+  ...
+# Subtest: commit bridge models render/commit/update/cleanup without React dependencies
+ok 10 - commit bridge models render/commit/update/cleanup without React dependencies
+  ---
+  duration_ms: 0.393773
+  type: 'test'
+  ...
+# Subtest: subscriptions receive coherent snapshots after committed mutations
+ok 11 - subscriptions receive coherent snapshots after committed mutations
+  ---
+  duration_ms: 0.247887
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 58.912188
+
+==> p03-typed-selectors: test
+
+> @pbui-research/p03-typed-selectors@0.1.0 test
+> npm run build && node --test test/*.test.mjs
+
+
+> @pbui-research/p03-typed-selectors@0.1.0 build
+> rm -rf dist && tsc -p tsconfig.json
+
+TAP version 13
+# Subtest: selector returns candidates with unification and predicate evidence
+ok 1 - selector returns candidates with unification and predicate evidence
+  ---
+  duration_ms: 15.106939
+  type: 'test'
+  ...
+# Subtest: compiled and reference evaluators are extensionally equivalent
+ok 2 - compiled and reference evaluators are extensionally equivalent
+  ---
+  duration_ms: 2.222414
+  type: 'test'
+  ...
+# Subtest: dependency analysis is explicit and serializable
+ok 3 - dependency analysis is explicit and serializable
+  ---
+  duration_ms: 1.026299
+  type: 'test'
+  ...
+# Subtest: opaque lambdas retain declared dependencies but downgrade guarantees
+ok 4 - opaque lambdas retain declared dependencies but downgrade guarantees
+  ---
+  duration_ms: 0.379932
+  type: 'test'
+  ...
+# Subtest: forged predicate evidence is rejected
+ok 5 - forged predicate evidence is rejected
+  ---
+  duration_ms: 0.26391
+  type: 'test'
+  ...
+# Subtest: evidence is revision-sensitive
+ok 6 - evidence is revision-sensitive
+  ---
+  duration_ms: 0.347204
+  type: 'test'
+  ...
+# Subtest: rejection explanations distinguish pattern and predicate failures
+ok 7 - rejection explanations distinguish pattern and predicate failures
+  ---
+  duration_ms: 0.201318
+  type: 'test'
+  ...
+# Subtest: syntactic unification computes an idempotent most-general substitution
+ok 8 - syntactic unification computes an idempotent most-general substitution
+  ---
+  duration_ms: 1.809218
+  type: 'test'
+  ...
+# Subtest: repeated variables enforce consistent replacement
+ok 9 - repeated variables enforce consistent replacement
+  ---
+  duration_ms: 0.176831
+  type: 'test'
+  ...
+# Subtest: occurs check rejects infinite terms
+ok 10 - occurs check rejects infinite terms
+  ---
+  duration_ms: 0.235249
+  type: 'test'
+  ...
+# Subtest: symbol clashes reject incompatible constructors
+ok 11 - symbol clashes reject incompatible constructors
+  ---
+  duration_ms: 0.136412
+  type: 'test'
+  ...
+# Subtest: substitution composition matches sequential application
+ok 12 - substitution composition matches sequential application
+  ---
+  duration_ms: 0.284111
+  type: 'test'
+  ...
+# Subtest: a more specific unifier factors through the computed general one
+ok 13 - a more specific unifier factors through the computed general one
+  ---
+  duration_ms: 0.339503
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 69.053037
+
+==> p04-fixed-point-rules: test
+
+> @pbui-research/p04-fixed-point-rules@0.1.0 test
+> npm run build && node --test test/*.test.mjs
+
+
+> @pbui-research/p04-fixed-point-rules@0.1.0 build
+> rm -rf dist && tsc -p tsconfig.json
+
+TAP version 13
+# Subtest: recursive positive rules compute the least transitive closure
+ok 1 - recursive positive rules compute the least transitive closure
+  ---
+  duration_ms: 9.123063
+  type: 'test'
+  ...
+# Subtest: agenda and naive evaluators agree on the positive fragment
+ok 2 - agenda and naive evaluators agree on the positive fragment
+  ---
+  duration_ms: 2.061351
+  type: 'test'
+  ...
+# Subtest: rule and base-fact order do not change the fixed point
+ok 3 - rule and base-fact order do not change the fixed point
+  ---
+  duration_ms: 1.503705
+  type: 'test'
+  ...
+# Subtest: re-evaluating a fixed point as extensional facts is idempotent
+ok 4 - re-evaluating a fixed point as extensional facts is idempotent
+  ---
+  duration_ms: 1.423137
+  type: 'test'
+  ...
+# Subtest: provenance explains and verifies a recursive derivation
+ok 5 - provenance explains and verifies a recursive derivation
+  ---
+  duration_ms: 0.877619
+  type: 'test'
+  ...
+# Subtest: stratified negation derives actions only for non-archived projects
+ok 6 - stratified negation derives actions only for non-archived projects
+  ---
+  duration_ms: 0.27735
+  type: 'test'
+  ...
+# Subtest: recursion through negation is rejected
+ok 7 - recursion through negation is rejected
+  ---
+  duration_ms: 0.421664
+  type: 'test'
+  ...
+# Subtest: unsafe variables and function-generating rules are rejected
+ok 8 - unsafe variables and function-generating rules are rejected
+  ---
+  duration_ms: 0.202379
+  type: 'test'
+  ...
+# Subtest: unification in rule matching respects repeated variables
+ok 9 - unification in rule matching respects repeated variables
+  ---
+  duration_ms: 0.418869
+  type: 'test'
+  ...
+# Subtest: incremental additions match complete recomputation
+ok 10 - incremental additions match complete recomputation
+  ---
+  duration_ms: 1.541342
+  type: 'test'
+  ...
+# Subtest: a PBUI-style rule constellation derives selectable occurrences and actions
+ok 11 - a PBUI-style rule constellation derives selectable occurrences and actions
+  ---
+  duration_ms: 0.49312
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 64.59254

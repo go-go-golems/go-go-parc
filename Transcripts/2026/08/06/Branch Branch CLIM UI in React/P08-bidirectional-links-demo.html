@@ -1,0 +1,2169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<title>P08 · Bidirectional Links and Consistency Restoration</title>
+<style>:root {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  color: #23262b;
+  background: #fff;
+  font-synthesis: none;
+}
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; min-width: 320px; min-height: 100%; }
+body { min-height: 100vh; }
+button, input, select, textarea { font: inherit; }
+button { color: inherit; }
+.app-shell { min-height: 100vh; display: flex; flex-direction: column; background: #fff; }
+.topbar { background: #23262b; color: #fff; padding: 7px 12px; display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.brand { letter-spacing: .28em; font-size: 13px; }
+.product { color: #e0b95c; font-size: 11px; letter-spacing: .11em; margin-left: 14px; }
+.topbar-metrics { display: flex; gap: 13px; align-items: center; font-size: 10px; color: #d9d9d4; flex-wrap: wrap; }
+.tabs { display: flex; gap: 5px; align-items: center; border-bottom: 2px solid #23262b; padding: 6px 9px 0; background: #f1f1ee; overflow-x: auto; }
+.tabs button { border: 2px solid #23262b; border-bottom: 0; background: #fff; padding: 4px 10px; cursor: pointer; white-space: nowrap; font-size: 11px; font-weight: 700; }
+.tabs button.tab-active { background: #fdeec6; transform: translateY(2px); padding-bottom: 6px; }
+.body-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 330px; }
+.main-content { min-width: 0; padding: 10px; overflow: auto; }
+.inspector { border-left: 3px solid #23262b; background: #f1f1ee; padding: 8px; overflow: auto; min-height: 0; }
+.inspector-title { font-weight: 800; letter-spacing: .12em; font-size: 11px; border-bottom: 2px solid #23262b; padding-bottom: 5px; }
+.inspector-summary { display: flex; flex-wrap: wrap; gap: 4px; margin: 7px 0; }
+.inspector-subtitle { margin: 12px 0 4px; color: #6d737b; font-size: 9px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+.link-list { display: grid; gap: 3px; }
+.link-row { width: 100%; display: flex; align-items: center; gap: 6px; border: 1px solid #23262b; background: #fff; padding: 4px 5px; cursor: pointer; text-align: left; }
+.link-row-selected { background: #fdeec6; box-shadow: 2px 2px 0 #23262b; }
+.link-row-main { min-width: 0; flex: 1; display: grid; }
+.link-row-main b { font-size: 10px; overflow: hidden; text-overflow: ellipsis; }
+.link-row-main small { color: #6d737b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.selected-link { border-top: 1px solid #d9d9d4; margin-top: 7px; }
+.small-grid { display: grid; grid-template-columns: 45px 1fr; gap: 3px 6px; font-size: 9px; }
+.small-grid > span { color: #6d737b; text-transform: uppercase; }
+.small-grid code { word-break: break-word; }
+.composer { display: grid; gap: 3px; }
+.section { margin-bottom: 12px; }
+.section-header { display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #23262b; padding-bottom: 4px; margin-bottom: 7px; }
+.section-header h2 { margin: 0; font-size: 11px; letter-spacing: .09em; text-transform: uppercase; }
+.section-header-right { flex: 1; display: flex; justify-content: flex-end; }
+.lead { font-size: 11px; line-height: 1.55; color: #4b5057; margin: 0 0 9px; max-width: 1000px; }
+.button { border: 2px solid #23262b; box-shadow: 2px 2px 0 #23262b; padding: 3px 8px; cursor: pointer; font-size: 10px; font-weight: 800; letter-spacing: .02em; }
+.button:disabled { cursor: not-allowed; opacity: .45; box-shadow: none; }
+.button-danger { background: #fbe9e4 !important; color: #8b2f21; }
+.button-row { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+.link-controls { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.link-controls-compact .tag:nth-child(2) { display: none; }
+.tag { display: inline-block; border: 1px solid #23262b; border-left-width: 5px; background: #fff; padding: 1px 5px; font-size: 9px; white-space: nowrap; }
+.presentation { display: inline-flex; gap: 4px; align-items: flex-start; }
+.presentation-block { display: flex; width: 100%; }
+.presentation-type { flex: none; border-left: 4px solid; border-top: 1px solid #23262b; border-right: 1px solid #23262b; border-bottom: 1px solid #23262b; background: #fff; padding: 1px 4px; font-size: 8px; margin-top: 4px; }
+.object-card { width: 100%; border: 2px solid #23262b; border-left-width: 7px; background: #fff; padding: 7px; box-shadow: 3px 3px 0 #23262b; min-width: 0; }
+.object-title { font-weight: 800; font-size: 12px; line-height: 1.3; }
+.object-subtitle { color: #6d737b; font-size: 9px; margin: 2px 0 7px; }
+.object-pair { display: grid; grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr); align-items: center; gap: 8px; }
+.link-arrow { font-size: 22px; text-align: center; color: #c2503a; font-weight: 800; }
+.field { display: grid; gap: 2px; margin: 5px 0; }
+.field-label { color: #6d737b; font-size: 8px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.field-hint { color: #6d737b; font-size: 8px; }
+.input { width: 100%; border: 1px solid #23262b; background: #fff; padding: 3px 5px; font-size: 10px; min-width: 0; }
+.textarea { resize: vertical; line-height: 1.45; }
+.two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.readout { color: #6d737b; font-size: 9px; margin-top: 3px; }
+.scenario-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; }
+.scenario-main, .scenario-side { min-width: 0; }
+.relation-state { display: grid; gap: 6px; }
+.json { background: #f1f1ee; border: 1px solid #d9d9d4; padding: 6px; overflow: auto; white-space: pre-wrap; word-break: break-word; font-size: 9px; line-height: 1.4; margin: 0; }
+.differences { margin: 3px 0; padding-left: 18px; color: #8b2f21; font-size: 9px; line-height: 1.4; }
+.consistent-note { background: #e7f4ec; border-left: 4px solid #3f9d6b; padding: 4px 6px; font-size: 9px; }
+.experiment-strip { margin-top: 10px; border: 1px solid #23262b; background: #faf7ee; padding: 6px; display: flex; align-items: center; gap: 8px; font-size: 9px; }
+.contact-grid { display: grid; gap: 3px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.contact-choice { display: grid; grid-template-columns: 15px 1fr; grid-template-rows: auto auto; text-align: left; border: 1px solid #d9d9d4; background: #fff; padding: 4px; cursor: pointer; }
+.contact-choice > span { grid-row: 1 / 3; }
+.contact-choice b { font-size: 9px; }
+.contact-choice small { color: #6d737b; font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.contact-choice-selected { background: #fdeec6; border-color: #23262b; }
+.equation { font-size: 18px; text-align: center; padding: 10px; background: #faf7ee; border: 1px solid #23262b; }
+.compact-list { font-size: 9px; line-height: 1.5; padding-left: 18px; }
+.cycle-diagram { display: grid; grid-template-columns: 1fr 45px 1fr; grid-template-rows: auto 45px auto; gap: 6px; max-width: 850px; margin: 15px auto; }
+.cycle-node-a { grid-column: 1; grid-row: 1; }
+.cycle-node-b { grid-column: 3; grid-row: 1; }
+.cycle-node-c { grid-column: 2; grid-row: 3; transform: translateX(-45%); width: 200%; }
+.cycle-edge { display: grid; place-items: center; color: #c2503a; font-size: 20px; font-weight: 800; }
+.cycle-edge-ab { grid-column: 2; grid-row: 1; }
+.cycle-edge-bc { grid-column: 3; grid-row: 2; transform: rotate(55deg); }
+.cycle-edge-ca { grid-column: 1; grid-row: 2; transform: rotate(-55deg); }
+.cycle-buttons { justify-content: center; margin-top: 7px; }
+.composition-flow { display: grid; grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr) 34px minmax(0, 1fr); gap: 6px; align-items: center; }
+.composition-controls { margin-top: 12px; }
+.audit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.audit-card { border: 2px solid #23262b; padding: 6px; background: #fff; }
+.audit-pass { border-left: 7px solid #3f9d6b; }
+.audit-fail { border-left: 7px solid #c2503a; }
+.audit-card header { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-bottom: 4px; }
+.audit-card summary { cursor: pointer; font-size: 9px; padding: 2px 0; }
+.check-pass { color: #3f9d6b; font-weight: 800; }
+.check-fail { color: #c2503a; font-weight: 800; }
+.trace-table-wrap { overflow: auto; border: 1px solid #23262b; }
+.trace-table { border-collapse: collapse; width: 100%; min-width: 900px; font-size: 9px; }
+.trace-table th { position: sticky; top: 0; background: #23262b; color: #fff; text-align: left; padding: 4px; }
+.trace-table td { border-bottom: 1px dotted #d9d9d4; padding: 3px 4px; vertical-align: top; }
+.trace-table code { white-space: pre-wrap; word-break: break-word; }
+.empty { color: #6d737b; font-size: 10px; padding: 5px; }
+.statusbar { background: #23262b; color: #fff; display: flex; gap: 15px; align-items: center; padding: 4px 10px; font-size: 9px; }
+.statusbar b { color: #e0b95c; }
+.statusbar-right { margin-left: auto; color: #aeb2b7; }
+@media (max-width: 1100px) {
+  .body-grid { grid-template-columns: 1fr; }
+  .inspector { border-left: 0; border-top: 3px solid #23262b; max-height: none; }
+  .scenario-grid { grid-template-columns: 1fr; }
+  .scenario-side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+}
+@media (max-width: 760px) {
+  .product { display: block; margin: 3px 0 0; }
+  .object-pair, .composition-flow { grid-template-columns: 1fr; }
+  .link-arrow { transform: rotate(90deg); }
+  .two-columns, .audit-grid, .contact-grid, .scenario-side { grid-template-columns: 1fr; }
+  .cycle-diagram { display: block; }
+  .cycle-node { margin-bottom: 8px; width: auto; transform: none; }
+  .cycle-edge { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>/*
+ * Tiny dependency-free JSX runtime used only to make this research artifact
+ * a single offline HTML file. It deliberately implements the small React
+ * surface used by the lab: function components, createElement, useState,
+ * useMemo, useCallback, useRef, fragments, and a root renderer.
+ *
+ * This is an adapter, not part of the bidirectional-link semantics.
+ */
+(() => {
+  const Fragment = Symbol("Fragment");
+  const instances = new Map();
+  let activeInstance = null;
+  let hookIndex = 0;
+  let rootContainer = null;
+  let rootVNode = null;
+  let rendering = false;
+  let rerenderRequested = false;
+
+  const unitless = new Set([
+    "animationIterationCount", "borderImageOutset", "borderImageSlice",
+    "borderImageWidth", "boxFlex", "boxFlexGroup", "boxOrdinalGroup",
+    "columnCount", "columns", "flex", "flexGrow", "flexPositive",
+    "flexShrink", "flexNegative", "flexOrder", "gridArea", "gridRow",
+    "gridRowEnd", "gridRowSpan", "gridRowStart", "gridColumn",
+    "gridColumnEnd", "gridColumnSpan", "gridColumnStart", "fontWeight",
+    "lineClamp", "lineHeight", "opacity", "order", "orphans",
+    "tabSize", "widows", "zIndex", "zoom"
+  ]);
+
+  function flatten(children, output = []) {
+    for (const child of children) {
+      if (Array.isArray(child)) flatten(child, output);
+      else if (child !== false && child !== true && child !== null && child !== undefined) output.push(child);
+    }
+    return output;
+  }
+
+  function createElement(type, props, ...children) {
+    const normalized = props ? { ...props } : {};
+    const key = normalized.key ?? null;
+    delete normalized.key;
+    normalized.children = flatten(children);
+    return { type, props: normalized, key };
+  }
+
+  function depsEqual(left, right) {
+    if (!left || !right || left.length !== right.length) return false;
+    return left.every((value, index) => Object.is(value, right[index]));
+  }
+
+  function useState(initial) {
+    if (!activeInstance) throw new Error("useState must run in a function component");
+    const instance = activeInstance;
+    const index = hookIndex++;
+    if (!(index in instance.hooks)) {
+      instance.hooks[index] = typeof initial === "function" ? initial() : initial;
+    }
+    const setValue = (next) => {
+      const current = instance.hooks[index];
+      const value = typeof next === "function" ? next(current) : next;
+      if (!Object.is(current, value)) {
+        instance.hooks[index] = value;
+        requestRender();
+      }
+    };
+    return [instance.hooks[index], setValue];
+  }
+
+  function useMemo(factory, deps) {
+    if (!activeInstance) throw new Error("useMemo must run in a function component");
+    const instance = activeInstance;
+    const index = hookIndex++;
+    const previous = instance.hooks[index];
+    if (!previous || !depsEqual(previous.deps, deps)) {
+      instance.hooks[index] = { value: factory(), deps };
+    }
+    return instance.hooks[index].value;
+  }
+
+  function useCallback(callback, deps) {
+    return useMemo(() => callback, deps);
+  }
+
+  function useRef(initialValue) {
+    return useMemo(() => ({ current: initialValue }), []);
+  }
+
+  function requestRender() {
+    if (rendering) {
+      rerenderRequested = true;
+      return;
+    }
+    renderRoot();
+  }
+
+  function childPath(parent, vnode, index) {
+    const identity = vnode && typeof vnode === "object" && vnode.key != null ? `k:${String(vnode.key)}` : `i:${index}`;
+    return `${parent}/${identity}`;
+  }
+
+  function applyStyle(element, style) {
+    if (!style) return;
+    for (const [name, value] of Object.entries(style)) {
+      if (value === null || value === undefined || value === false) continue;
+      element.style[name] = typeof value === "number" && value !== 0 && !unitless.has(name)
+        ? `${value}px`
+        : String(value);
+    }
+  }
+
+  function applyProps(element, props) {
+    const deferred = [];
+    for (const [name, value] of Object.entries(props ?? {})) {
+      if (name === "children" || name === "key" || name === "ref") continue;
+      if (name === "className") {
+        element.setAttribute("class", value ?? "");
+      } else if (name === "style") {
+        applyStyle(element, value);
+      } else if (name.startsWith("on") && typeof value === "function") {
+        let eventName = name.slice(2).toLowerCase();
+        if (name === "onChange") {
+          eventName = element.tagName === "SELECT" ? "change" : "input";
+        }
+        element.addEventListener(eventName, value);
+      } else if (name === "htmlFor") {
+        element.setAttribute("for", value);
+      } else if (name === "value" || name === "checked" || name === "selected") {
+        deferred.push([name, value]);
+      } else if (name === "open" || name === "disabled" || name === "required" || name === "multiple") {
+        element[name] = Boolean(value);
+        if (value) element.setAttribute(name, "");
+      } else if (name === "rows" || name === "cols" || name === "maxLength" || name === "tabIndex") {
+        element[name] = value;
+      } else if (value !== false && value !== null && value !== undefined) {
+        element.setAttribute(name, String(value));
+      }
+    }
+    return deferred;
+  }
+
+  function renderVNode(vnode, path, elements) {
+    if (vnode === null || vnode === undefined || vnode === false || vnode === true) {
+      return document.createTextNode("");
+    }
+    if (typeof vnode === "string" || typeof vnode === "number") {
+      return document.createTextNode(String(vnode));
+    }
+    if (Array.isArray(vnode)) {
+      const fragment = document.createDocumentFragment();
+      vnode.forEach((child, index) => fragment.appendChild(renderVNode(child, childPath(path, child, index), elements)));
+      return fragment;
+    }
+    if (vnode.type === Fragment) {
+      const fragment = document.createDocumentFragment();
+      const children = flatten(vnode.props?.children ?? []);
+      children.forEach((child, index) => fragment.appendChild(renderVNode(child, childPath(path, child, index), elements)));
+      return fragment;
+    }
+    if (typeof vnode.type === "function") {
+      const componentPath = `${path}/c:${vnode.type.name || "anonymous"}`;
+      const instance = instances.get(componentPath) ?? { hooks: [] };
+      instances.set(componentPath, instance);
+      const previousInstance = activeInstance;
+      const previousIndex = hookIndex;
+      activeInstance = instance;
+      hookIndex = 0;
+      let rendered;
+      try {
+        rendered = vnode.type(vnode.props ?? {});
+      } finally {
+        activeInstance = previousInstance;
+        hookIndex = previousIndex;
+      }
+      return renderVNode(rendered, `${componentPath}/render`, elements);
+    }
+    if (typeof vnode.type !== "string") {
+      throw new Error(`Unsupported JSX node type: ${String(vnode.type)}`);
+    }
+
+    const element = document.createElement(vnode.type);
+    element.setAttribute("data-mini-path", path);
+    elements.set(path, element);
+    const deferred = applyProps(element, vnode.props);
+    const children = flatten(vnode.props?.children ?? []);
+    children.forEach((child, index) => element.appendChild(renderVNode(child, childPath(path, child, index), elements)));
+    for (const [name, value] of deferred) {
+      try { element[name] = value ?? ""; } catch { /* ignored for readonly properties */ }
+    }
+    if (typeof vnode.props?.ref === "function") vnode.props.ref(element);
+    else if (vnode.props?.ref && typeof vnode.props.ref === "object") vnode.props.ref.current = element;
+    return element;
+  }
+
+  function renderRoot() {
+    if (!rootContainer || !rootVNode) return;
+    rendering = true;
+    rerenderRequested = false;
+    const active = document.activeElement;
+    const activePath = active?.getAttribute?.("data-mini-path") ?? null;
+    const selection = active && typeof active.selectionStart === "number"
+      ? { start: active.selectionStart, end: active.selectionEnd }
+      : null;
+    const elements = new Map();
+    const next = renderVNode(rootVNode, "root", elements);
+    rootContainer.replaceChildren(next);
+    if (activePath && elements.has(activePath)) {
+      const replacement = elements.get(activePath);
+      replacement.focus?.();
+      if (selection && typeof replacement.setSelectionRange === "function") {
+        try { replacement.setSelectionRange(selection.start, selection.end); } catch { /* unsupported input type */ }
+      }
+    }
+    rendering = false;
+    if (rerenderRequested) renderRoot();
+  }
+
+  const React = {
+    createElement,
+    Fragment,
+    StrictMode: ({ children }) => children,
+    useState,
+    useMemo,
+    useCallback,
+    useRef,
+  };
+
+  const ReactDOM = {
+    createRoot(container) {
+      return {
+        render(vnode) {
+          rootContainer = container;
+          rootVNode = vnode;
+          renderRoot();
+        },
+      };
+    },
+  };
+
+  window.React = React;
+  window.ReactDOM = ReactDOM;
+})();
+</script>
+<script>const { useState, useMemo, useCallback, useRef } = React;
+/* ===== src/core/utils.js ===== */
+const MINUTE = 60_000;
+const HOUR = 60 * MINUTE;
+function clone(value) {
+    return value === undefined ? undefined : structuredClone(value);
+}
+function canonicalize(value) {
+    if (Array.isArray(value))
+        return value.map(canonicalize);
+    if (value && typeof value === "object") {
+        return Object.fromEntries(Object.keys(value)
+            .sort()
+            .map((key) => [key, canonicalize(value[key])]));
+    }
+    return value;
+}
+function stableStringify(value) {
+    return JSON.stringify(canonicalize(value));
+}
+function deepEqual(left, right) {
+    return stableStringify(left) === stableStringify(right);
+}
+function assert(condition, message) {
+    if (!condition)
+        throw new Error(message);
+}
+function uniqueSorted(values) {
+    return [...new Set(values)].sort();
+}
+function setEqual(left, right) {
+    return deepEqual(uniqueSorted(left), uniqueSorted(right));
+}
+function union(left, right) {
+    return uniqueSorted([...left, ...right]);
+}
+function intersection(left, right) {
+    const rights = new Set(right);
+    return uniqueSorted(left.filter((value) => rights.has(value)));
+}
+function difference(left, right) {
+    const rights = new Set(right);
+    return uniqueSorted(left.filter((value) => !rights.has(value)));
+}
+function formatError(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+function stripUndefined(value) {
+    if (Array.isArray(value))
+        return value.map(stripUndefined);
+    if (value && typeof value === "object") {
+        return Object.fromEntries(Object.entries(value)
+            .filter(([, item]) => item !== undefined)
+            .map(([key, item]) => [key, stripUndefined(item)]));
+    }
+    return value;
+}
+function makePrng(seed = 0x5eed1234) {
+    let state = seed >>> 0;
+    return () => {
+        state ^= state << 13;
+        state ^= state >>> 17;
+        state ^= state << 5;
+        return (state >>> 0) / 0x1_0000_0000;
+    };
+}
+/* ===== src/core/endpoints.js ===== */
+function endpointKey(reference) {
+    const suffix = reference.path ? `:${reference.path}` : "";
+    return `${reference.kind}:${reference.id}${suffix}`;
+}
+class EndpointRegistry {
+    constructor() {
+        this.kinds = new Map();
+    }
+    registerKind(definition) {
+        assert(definition?.kind, "Endpoint kind requires a stable kind name.");
+        assert(definition?.sort, `Endpoint kind ${definition.kind} requires a semantic sort.`);
+        assert(typeof definition.read === "function", `Endpoint kind ${definition.kind} requires read(world, ref).`);
+        assert(typeof definition.write === "function", `Endpoint kind ${definition.kind} requires write(world, ref, value).`);
+        assert(!this.kinds.has(definition.kind), `Duplicate endpoint kind: ${definition.kind}`);
+        this.kinds.set(definition.kind, definition);
+        return this;
+    }
+    definition(reference) {
+        const definition = this.kinds.get(reference.kind);
+        assert(definition, `Unknown endpoint kind: ${reference.kind}`);
+        return definition;
+    }
+    sort(reference) {
+        return this.definition(reference).sort;
+    }
+    label(world, reference) {
+        const definition = this.definition(reference);
+        return definition.label ? definition.label(world, reference) : endpointKey(reference);
+    }
+    resources(reference) {
+        const definition = this.definition(reference);
+        const resources = definition.resources ? definition.resources(reference) : [endpointKey(reference)];
+        return [...new Set(resources)];
+    }
+    exists(world, reference) {
+        const definition = this.definition(reference);
+        return definition.exists ? definition.exists(world, reference) : true;
+    }
+    read(world, reference) {
+        assert(this.exists(world, reference), `Endpoint does not exist: ${endpointKey(reference)}`);
+        return clone(this.definition(reference).read(world, reference));
+    }
+    write(world, reference, value) {
+        assert(this.exists(world, reference), `Endpoint does not exist: ${endpointKey(reference)}`);
+        this.definition(reference).write(world, reference, clone(value));
+    }
+    equal(reference, left, right) {
+        const definition = this.definition(reference);
+        return definition.equal ? definition.equal(left, right) : deepEqual(left, right);
+    }
+    describe(world, reference) {
+        return {
+            key: endpointKey(reference),
+            label: this.label(world, reference),
+            sort: this.sort(reference),
+            value: this.read(world, reference),
+        };
+    }
+}
+function byId(collection, id, label) {
+    const value = collection.find((item) => item.id === id);
+    assert(value, `${label} not found: ${id}`);
+    return value;
+}
+function actionItem(world, reference) {
+    const transcript = byId(world.transcripts, reference.id, "Transcript");
+    return byId(transcript.actionItems, reference.path, "Action item");
+}
+function createProductivityEndpointRegistry() {
+    return new EndpointRegistry()
+        .registerKind({
+        kind: "taskFocus",
+        sort: "task-focus",
+        resources: (ref) => [`task:${ref.id}`],
+        exists: (world, ref) => world.tasks.some((task) => task.id === ref.id),
+        label: (world, ref) => `Task focus · ${byId(world.tasks, ref.id, "Task").title}`,
+        read: (world, ref) => {
+            const task = byId(world.tasks, ref.id, "Task");
+            return { title: task.title, due: task.due, project: task.project, status: task.status };
+        },
+        write: (world, ref, value) => {
+            const task = byId(world.tasks, ref.id, "Task");
+            Object.assign(task, {
+                title: value.title,
+                due: value.due,
+                project: value.project,
+                status: value.status,
+            });
+        },
+    })
+        .registerKind({
+        kind: "eventFocus",
+        sort: "event-focus",
+        resources: (ref) => [`event:${ref.id}`],
+        exists: (world, ref) => world.events.some((event) => event.id === ref.id),
+        label: (world, ref) => `Event block · ${byId(world.events, ref.id, "Event").title}`,
+        read: (world, ref) => {
+            const event = byId(world.events, ref.id, "Event");
+            return {
+                title: event.title,
+                start: event.start,
+                end: event.end,
+                kind: event.kind,
+                notes: event.notes,
+            };
+        },
+        write: (world, ref, value) => {
+            const event = byId(world.events, ref.id, "Event");
+            Object.assign(event, {
+                title: value.title,
+                start: value.start,
+                end: value.end,
+                kind: value.kind,
+                notes: value.notes,
+            });
+        },
+    })
+        .registerKind({
+        kind: "taskDue",
+        sort: "instant",
+        resources: (ref) => [`task:${ref.id}`],
+        exists: (world, ref) => world.tasks.some((task) => task.id === ref.id),
+        label: (world, ref) => `Task due · ${byId(world.tasks, ref.id, "Task").title}`,
+        read: (world, ref) => byId(world.tasks, ref.id, "Task").due,
+        write: (world, ref, value) => {
+            byId(world.tasks, ref.id, "Task").due = value;
+        },
+    })
+        .registerKind({
+        kind: "eventStart",
+        sort: "instant",
+        resources: (ref) => [`event:${ref.id}`],
+        exists: (world, ref) => world.events.some((event) => event.id === ref.id),
+        label: (world, ref) => `Event start · ${byId(world.events, ref.id, "Event").title}`,
+        read: (world, ref) => byId(world.events, ref.id, "Event").start,
+        write: (world, ref, value) => {
+            const event = byId(world.events, ref.id, "Event");
+            const duration = Math.max(15 * 60_000, event.end - event.start);
+            event.start = value;
+            event.end = value == null ? value : value + duration;
+        },
+    })
+        .registerKind({
+        kind: "bookingStart",
+        sort: "instant",
+        resources: (ref) => [`booking:${ref.id}`],
+        exists: (world, ref) => world.bookings.some((booking) => booking.id === ref.id),
+        label: (world, ref) => `Booking start · ${byId(world.bookings, ref.id, "Booking").name}`,
+        read: (world, ref) => byId(world.bookings, ref.id, "Booking").start,
+        write: (world, ref, value) => {
+            byId(world.bookings, ref.id, "Booking").start = value;
+        },
+    })
+        .registerKind({
+        kind: "taskTitle",
+        sort: "text",
+        resources: (ref) => [`task:${ref.id}`],
+        exists: (world, ref) => world.tasks.some((task) => task.id === ref.id),
+        label: (world, ref) => `Task title · ${byId(world.tasks, ref.id, "Task").title}`,
+        read: (world, ref) => byId(world.tasks, ref.id, "Task").title,
+        write: (world, ref, value) => {
+            byId(world.tasks, ref.id, "Task").title = String(value);
+        },
+    })
+        .registerKind({
+        kind: "actionItemText",
+        sort: "text",
+        resources: (ref) => [`transcript:${ref.id}`],
+        exists: (world, ref) => {
+            const transcript = world.transcripts.find((item) => item.id === ref.id);
+            return Boolean(transcript?.actionItems.some((item) => item.id === ref.path));
+        },
+        label: (world, ref) => `Action item · ${actionItem(world, ref).text}`,
+        read: (world, ref) => actionItem(world, ref).text,
+        write: (world, ref, value) => {
+            actionItem(world, ref).text = String(value);
+        },
+    })
+        .registerKind({
+        kind: "eventAttendees",
+        sort: "contact-set",
+        resources: (ref) => [`event:${ref.id}`],
+        exists: (world, ref) => world.events.some((event) => event.id === ref.id),
+        label: (world, ref) => `Event attendees · ${byId(world.events, ref.id, "Event").title}`,
+        read: (world, ref) => uniqueSorted(byId(world.events, ref.id, "Event").attendees),
+        write: (world, ref, value) => {
+            byId(world.events, ref.id, "Event").attendees = uniqueSorted(value);
+        },
+    })
+        .registerKind({
+        kind: "transcriptParticipants",
+        sort: "contact-set",
+        resources: (ref) => [`transcript:${ref.id}`],
+        exists: (world, ref) => world.transcripts.some((transcript) => transcript.id === ref.id),
+        label: (world, ref) => `Transcript participants · ${byId(world.transcripts, ref.id, "Transcript").title}`,
+        read: (world, ref) => uniqueSorted(byId(world.transcripts, ref.id, "Transcript").participants),
+        write: (world, ref, value) => {
+            byId(world.transcripts, ref.id, "Transcript").participants = uniqueSorted(value);
+        },
+    })
+        .registerKind({
+        kind: "scalar",
+        sort: "scalar",
+        resources: (ref) => [`scalar:${ref.id}`],
+        exists: (world, ref) => Object.hasOwn(world.scalars, ref.id),
+        label: (_world, ref) => `Scalar · ${ref.id}`,
+        read: (world, ref) => world.scalars[ref.id],
+        write: (world, ref, value) => {
+            world.scalars[ref.id] = value;
+        },
+    });
+}
+/* ===== src/core/relations.js ===== */
+function ok(patch) {
+    return { ok: true, ...patch };
+}
+function failure(reason, details = {}) {
+    return { ok: false, reason, details };
+}
+function check(consistent, differences = []) {
+    return { consistent, differences };
+}
+class RelationRegistry {
+    constructor() {
+        this.specs = new Map();
+    }
+    register(specification) {
+        assert(specification?.id, "Relation specification requires an id.");
+        assert(specification?.leftSort, `${specification.id} requires leftSort.`);
+        assert(specification?.rightSort, `${specification.id} requires rightSort.`);
+        assert(typeof specification.check === "function", `${specification.id} requires check.`);
+        assert(typeof specification.repairFromLeft === "function", `${specification.id} requires repairFromLeft.`);
+        assert(typeof specification.repairFromRight === "function", `${specification.id} requires repairFromRight.`);
+        assert(!this.specs.has(specification.id), `Duplicate relation specification: ${specification.id}`);
+        this.specs.set(specification.id, specification);
+        return this;
+    }
+    get(id) {
+        const specification = this.specs.get(id);
+        assert(specification, `Unknown relation specification: ${id}`);
+        return specification;
+    }
+    list() {
+        return [...this.specs.values()];
+    }
+}
+const equalInstant = {
+    id: "equal-instant",
+    label: "Equal instants",
+    description: "Both endpoints denote the same instant. Repair copies the edited value.",
+    leftSort: "instant",
+    rightSort: "instant",
+    symmetric: true,
+    initialize: () => ({}),
+    check: (left, right) => check(Object.is(left, right), Object.is(left, right) ? [] : ["instants differ"]),
+    repairFromLeft: (left) => ok({ right: left, explanation: "copied the left instant to the right endpoint" }),
+    repairFromRight: (_left, right) => ok({ left: right, explanation: "copied the right instant to the left endpoint" }),
+    merge: (left, right, _complement, baseline) => {
+        if (Object.is(left, right))
+            return ok({ left, right, explanation: "both sides already agree" });
+        if (baseline && Object.is(left, baseline.left))
+            return ok({ left: right, right, explanation: "only the right side differs from baseline" });
+        if (baseline && Object.is(right, baseline.right))
+            return ok({ left, right: left, explanation: "only the left side differs from baseline" });
+        return failure("instant-conflict-has-no-commutative-merge", { left, right });
+    },
+};
+const equalText = {
+    id: "equal-text",
+    label: "Equal text",
+    description: "Both endpoints carry the same text.",
+    leftSort: "text",
+    rightSort: "text",
+    symmetric: true,
+    initialize: () => ({}),
+    check: (left, right) => check(left === right, left === right ? [] : ["text differs"]),
+    repairFromLeft: (left) => ok({ right: left, explanation: "copied left text" }),
+    repairFromRight: (_left, right) => ok({ left: right, explanation: "copied right text" }),
+};
+const equalContactSet = {
+    id: "equal-contact-set",
+    label: "Equal contact sets",
+    description: "The endpoints denote the same mathematical set. Conflict merge is set union.",
+    leftSort: "contact-set",
+    rightSort: "contact-set",
+    symmetric: true,
+    leftEqual: setEqual,
+    rightEqual: setEqual,
+    initialize: () => ({}),
+    check: (left, right) => check(setEqual(left, right), setEqual(left, right) ? [] : ["contact membership differs"]),
+    repairFromLeft: (left) => ok({ right: uniqueSorted(left), explanation: "copied the canonical left contact set" }),
+    repairFromRight: (_left, right) => ok({ left: uniqueSorted(right), explanation: "copied the canonical right contact set" }),
+    merge: (left, right) => {
+        const merged = union(left, right);
+        return ok({ left: merged, right: merged, explanation: "merged both contact sets by commutative set union" });
+    },
+    mergeAlgebra: {
+        name: "finite-set union",
+        combine: union,
+        equal: setEqual,
+    },
+};
+function normalizedFocusTitle(title) {
+    const text = String(title ?? "").trim();
+    return text.startsWith("Focus: ") ? text : `Focus: ${text}`;
+}
+function taskTitleFromEvent(title) {
+    const text = String(title ?? "").trim();
+    return text.startsWith("Focus: ") ? text.slice("Focus: ".length) : text;
+}
+function focusDifferences(left, right, complement) {
+    const differences = [];
+    if (left.due == null)
+        differences.push("task has no due instant");
+    if (!Object.is(left.due, right.start))
+        differences.push("task due and event start differ");
+    const duration = complement?.durationMs ?? Math.max(15 * 60_000, right.end - right.start || HOUR);
+    if (right.end !== right.start + duration)
+        differences.push("event duration differs from the retained complement");
+    if (right.title !== normalizedFocusTitle(left.title))
+        differences.push("event title is not the normalized task title");
+    return differences;
+}
+const taskEventFocus = {
+    id: "task-event-focus",
+    label: "Task ↔ calendar focus block",
+    description: "A partial symmetric transformation. The complement retains event duration while task title/due and event title/start remain synchronized.",
+    leftSort: "task-focus",
+    rightSort: "event-focus",
+    symmetric: false,
+    initialize: (_left, right) => ({
+        durationMs: Math.max(15 * 60_000, Number(right.end) - Number(right.start) || HOUR),
+    }),
+    check: (left, right, complement) => {
+        const differences = focusDifferences(left, right, complement);
+        return check(differences.length === 0, differences);
+    },
+    repairFromLeft: (left, right, complement) => {
+        if (left.due == null)
+            return failure("task-has-no-due-instant");
+        const durationMs = complement?.durationMs ?? Math.max(15 * 60_000, right.end - right.start || HOUR);
+        return ok({
+            right: {
+                ...right,
+                title: normalizedFocusTitle(left.title),
+                start: left.due,
+                end: left.due + durationMs,
+                kind: right.kind || "focus",
+            },
+            complement: { durationMs },
+            explanation: "normalized the event title and moved the retained-duration block to the task due instant",
+        });
+    },
+    repairFromRight: (left, right, complement) => {
+        if (right.start == null || right.end == null || right.end <= right.start) {
+            return failure("event-has-invalid-time-range", { start: right.start, end: right.end });
+        }
+        const durationMs = right.end - right.start;
+        const normalizedTitle = normalizedFocusTitle(taskTitleFromEvent(right.title));
+        return ok({
+            left: {
+                ...left,
+                title: taskTitleFromEvent(right.title),
+                due: right.start,
+            },
+            right: {
+                ...right,
+                title: normalizedTitle,
+            },
+            complement: { durationMs },
+            explanation: "read the event start and normalized title back into the task while retaining the edited event duration",
+        });
+    },
+};
+const equalScalar = {
+    id: "equal-scalar",
+    label: "Equal scalar",
+    description: "A generic equality relation used by the experiment harness.",
+    leftSort: "scalar",
+    rightSort: "scalar",
+    symmetric: true,
+    initialize: () => ({}),
+    check: (left, right) => check(deepEqual(left, right), deepEqual(left, right) ? [] : ["scalar values differ"]),
+    repairFromLeft: (left) => ok({ right: left, explanation: "copied left scalar" }),
+    repairFromRight: (_left, right) => ok({ left: right, explanation: "copied right scalar" }),
+};
+const roundedTemperatureCounterexample = {
+    id: "counterexample-rounded-temperature",
+    label: "Counterexample: rounded temperature",
+    description: "Integer Celsius/Fahrenheit conversion loses information, so a right round trip is not identity.",
+    leftSort: "integer-celsius",
+    rightSort: "integer-fahrenheit",
+    initialize: () => ({}),
+    check: (left, right) => check(Math.round((left * 9) / 5 + 32) === right),
+    repairFromLeft: (left) => ok({ right: Math.round((left * 9) / 5 + 32) }),
+    repairFromRight: (_left, right) => ok({ left: Math.round(((right - 32) * 5) / 9) }),
+};
+const brokenBooleanCounterexample = {
+    id: "counterexample-broken-boolean",
+    label: "Counterexample: non-restoring putback",
+    description: "The right-to-left repair does not establish the declared negation relation.",
+    leftSort: "boolean",
+    rightSort: "boolean",
+    initialize: () => ({}),
+    check: (left, right) => check(right === !left),
+    repairFromLeft: (left) => ok({ right: !left }),
+    repairFromRight: (_left, right) => ok({ left: right }),
+};
+function createProductivityRelationRegistry() {
+    return new RelationRegistry()
+        .register(taskEventFocus)
+        .register(equalInstant)
+        .register(equalText)
+        .register(equalContactSet)
+        .register(equalScalar);
+}
+/* ===== src/core/runtime.js ===== */
+function trace(draft, transaction, type, data = {}) {
+    const event = {
+        seq: ++draft.traceSeq,
+        revision: draft.revision,
+        transaction: transaction.id,
+        type,
+        data: clone(data),
+    };
+    if (draft.traceLimit !== 0) {
+        draft.trace.push(event);
+        if (draft.trace.length > draft.traceLimit) {
+            draft.trace.splice(0, draft.trace.length - draft.traceLimit);
+        }
+    }
+    transaction.events.push(event);
+}
+function commandResult(draft, transaction, result) {
+    draft.lastCommand = { transaction: transaction.id, ...clone(result) };
+}
+function linkById(draft, id) {
+    const link = draft.links.find((item) => item.id === id);
+    assert(link, `Unknown link: ${id}`);
+    return link;
+}
+function sideFor(link, reference) {
+    const key = endpointKey(reference);
+    if (endpointKey(link.left) === key)
+        return "left";
+    if (endpointKey(link.right) === key)
+        return "right";
+    return null;
+}
+function baselineOf(engine, draft, link) {
+    return {
+        left: engine.endpoints.read(draft.world, link.left),
+        right: engine.endpoints.read(draft.world, link.right),
+        complement: clone(link.complement),
+        revision: draft.revision,
+    };
+}
+function checkLink(engine, draft, link) {
+    const specification = engine.relations.get(link.relation);
+    const left = engine.endpoints.read(draft.world, link.left);
+    const right = engine.endpoints.read(draft.world, link.right);
+    return {
+        ...specification.check(left, right, link.complement),
+        left,
+        right,
+    };
+}
+class BidirectionalRuntime {
+    constructor({ endpoints, relations, maxPropagationSteps = 128 }) {
+        this.endpoints = endpoints;
+        this.relations = relations;
+        this.maxPropagationSteps = maxPropagationSteps;
+    }
+    createState(world) {
+        return {
+            world: clone(world),
+            links: [],
+            revision: 0,
+            transactionSeq: 0,
+            traceSeq: 0,
+            traceLimit: 2_000,
+            trace: [],
+            lastTransaction: null,
+            lastCommand: null,
+            metrics: {
+                commands: 0,
+                endpointWrites: 0,
+                relationActivations: 0,
+                conflicts: 0,
+                nonConvergentTransactions: 0,
+            },
+        };
+    }
+    dispatch(state, command) {
+        const draft = clone(state);
+        draft.revision += 1;
+        draft.metrics.commands += 1;
+        const transaction = {
+            id: `tx-${++draft.transactionSeq}`,
+            command: clone(command),
+            events: [],
+            writes: [],
+            relationActivations: 0,
+            converged: true,
+            error: null,
+        };
+        try {
+            trace(draft, transaction, "command", command);
+            switch (command.type) {
+                case "create-link":
+                    this.#createLink(draft, transaction, command);
+                    break;
+                case "remove-link":
+                    this.#removeLink(draft, transaction, command);
+                    break;
+                case "edit-endpoint":
+                    this.#editEndpoint(draft, transaction, command);
+                    break;
+                case "pause-link":
+                    this.#pauseLink(draft, transaction, command);
+                    break;
+                case "resume-link":
+                    this.#resumeLink(draft, transaction, command);
+                    break;
+                case "resolve-conflict":
+                    this.#resolveConflict(draft, transaction, command);
+                    break;
+                case "repair-link":
+                    this.#repairLink(draft, transaction, command);
+                    break;
+                case "clear-trace":
+                    draft.trace = [];
+                    commandResult(draft, transaction, { ok: true });
+                    break;
+                default:
+                    throw new Error(`Unknown command: ${command.type}`);
+            }
+        }
+        catch (error) {
+            transaction.converged = false;
+            transaction.error = formatError(error);
+            commandResult(draft, transaction, { ok: false, reason: transaction.error });
+            trace(draft, transaction, "command-error", { message: transaction.error });
+        }
+        draft.lastTransaction = transaction;
+        return draft;
+    }
+    inspectLink(state, id) {
+        const link = linkById(state, id);
+        return {
+            link: clone(link),
+            check: checkLink(this, state, link),
+            left: this.endpoints.describe(state.world, link.left),
+            right: this.endpoints.describe(state.world, link.right),
+        };
+    }
+    activeLinksAreConsistent(state) {
+        return state.links
+            .filter((link) => link.mode === "active" && link.status !== "error")
+            .every((link) => checkLink(this, state, link).consistent);
+    }
+    #assertCompatible(draft, relationId, left, right) {
+        assert(this.endpoints.exists(draft.world, left), `Left endpoint does not exist: ${endpointKey(left)}`);
+        assert(this.endpoints.exists(draft.world, right), `Right endpoint does not exist: ${endpointKey(right)}`);
+        assert(endpointKey(left) !== endpointKey(right), "A link requires two distinct endpoint occurrences.");
+        const specification = this.relations.get(relationId);
+        const leftSort = this.endpoints.sort(left);
+        const rightSort = this.endpoints.sort(right);
+        assert(leftSort === specification.leftSort, `Left sort mismatch: expected ${specification.leftSort}, got ${leftSort}`);
+        assert(rightSort === specification.rightSort, `Right sort mismatch: expected ${specification.rightSort}, got ${rightSort}`);
+        return specification;
+    }
+    #createLink(draft, transaction, command) {
+        assert(!draft.links.some((link) => link.id === command.id), `Duplicate link id: ${command.id}`);
+        const specification = this.#assertCompatible(draft, command.relation, command.left, command.right);
+        const left = this.endpoints.read(draft.world, command.left);
+        const right = this.endpoints.read(draft.world, command.right);
+        const complement = specification.initialize ? specification.initialize(left, right) : {};
+        const link = {
+            id: command.id,
+            relation: command.relation,
+            left: clone(command.left),
+            right: clone(command.right),
+            complement: clone(complement),
+            mode: "active",
+            status: "initializing",
+            dirty: { left: false, right: false },
+            baseline: null,
+            createdRevision: draft.revision,
+            lastRepair: null,
+            error: null,
+        };
+        draft.links.push(link);
+        const policy = command.policy ?? "require-consistent";
+        let repairResult;
+        if (policy === "require-consistent") {
+            const report = specification.check(left, right, complement);
+            if (!report.consistent) {
+                draft.links = draft.links.filter((item) => item.id !== link.id);
+                commandResult(draft, transaction, { ok: false, reason: "initial-values-inconsistent", differences: report.differences });
+                trace(draft, transaction, "link-rejected", { link: link.id, differences: report.differences });
+                return;
+            }
+        }
+        else if (policy === "prefer-left") {
+            repairResult = specification.repairFromLeft(left, right, complement);
+        }
+        else if (policy === "prefer-right") {
+            repairResult = specification.repairFromRight(left, right, complement);
+        }
+        else if (policy === "merge") {
+            assert(typeof specification.merge === "function", `${specification.id} has no merge operation.`);
+            repairResult = specification.merge(left, right, complement, null);
+        }
+        else {
+            throw new Error(`Unknown creation policy: ${policy}`);
+        }
+        if (repairResult) {
+            if (!repairResult.ok) {
+                draft.links = draft.links.filter((item) => item.id !== link.id);
+                commandResult(draft, transaction, { ok: false, reason: repairResult.reason, details: repairResult.details });
+                trace(draft, transaction, "link-rejected", { link: link.id, reason: repairResult.reason });
+                return;
+            }
+            this.#applyRepairPatch(draft, transaction, link, repairResult, "create-link");
+        }
+        const report = checkLink(this, draft, link);
+        if (!report.consistent) {
+            draft.links = draft.links.filter((item) => item.id !== link.id);
+            commandResult(draft, transaction, { ok: false, reason: "repair-did-not-establish-consistency", differences: report.differences });
+            trace(draft, transaction, "link-rejected", { link: link.id, differences: report.differences });
+            return;
+        }
+        link.status = "consistent";
+        link.baseline = baselineOf(this, draft, link);
+        link.dirty = { left: false, right: false };
+        trace(draft, transaction, "link-created", {
+            link: link.id,
+            relation: link.relation,
+            left: endpointKey(link.left),
+            right: endpointKey(link.right),
+            policy,
+        });
+        commandResult(draft, transaction, { ok: true, link: link.id });
+        this.#propagate(draft, transaction);
+    }
+    #removeLink(draft, transaction, command) {
+        const link = linkById(draft, command.id);
+        const before = {
+            left: this.endpoints.read(draft.world, link.left),
+            right: this.endpoints.read(draft.world, link.right),
+        };
+        draft.links = draft.links.filter((item) => item.id !== command.id);
+        const after = {
+            left: this.endpoints.read(draft.world, link.left),
+            right: this.endpoints.read(draft.world, link.right),
+        };
+        assert(deepEqual(before, after), "Unlinking must preserve endpoint values.");
+        trace(draft, transaction, "link-removed", { link: command.id, valuesPreserved: true });
+        commandResult(draft, transaction, { ok: true, valuesPreserved: true });
+    }
+    #editEndpoint(draft, transaction, command) {
+        this.#write(draft, transaction, command.endpoint, command.value, {
+            cause: "external-edit",
+            actor: command.actor ?? "user",
+            sourceLink: null,
+        });
+        this.#propagate(draft, transaction);
+        commandResult(draft, transaction, { ok: transaction.converged, endpoint: endpointKey(command.endpoint) });
+    }
+    #pauseLink(draft, transaction, command) {
+        const link = linkById(draft, command.id);
+        link.mode = "paused";
+        link.status = checkLink(this, draft, link).consistent ? "paused-clean" : "paused-diverged";
+        trace(draft, transaction, "link-paused", { link: link.id });
+        commandResult(draft, transaction, { ok: true });
+    }
+    #resumeLink(draft, transaction, command) {
+        const link = linkById(draft, command.id);
+        const specification = this.relations.get(link.relation);
+        const report = checkLink(this, draft, link);
+        if (report.consistent) {
+            link.mode = "active";
+            link.status = "consistent";
+            link.dirty = { left: false, right: false };
+            link.baseline = baselineOf(this, draft, link);
+            trace(draft, transaction, "link-resumed", { link: link.id, action: "already-consistent" });
+            commandResult(draft, transaction, { ok: true, action: "already-consistent" });
+            return;
+        }
+        if (link.dirty.left && !link.dirty.right) {
+            link.mode = "active";
+            const result = specification.repairFromLeft(report.left, report.right, link.complement);
+            this.#completeDirectedRepair(draft, transaction, link, result, "left", "resume-left-dirty");
+            return;
+        }
+        if (link.dirty.right && !link.dirty.left) {
+            link.mode = "active";
+            const result = specification.repairFromRight(report.left, report.right, link.complement);
+            this.#completeDirectedRepair(draft, transaction, link, result, "right", "resume-right-dirty");
+            return;
+        }
+        link.mode = "paused";
+        link.status = "conflict";
+        draft.metrics.conflicts += 1;
+        trace(draft, transaction, "link-conflict", {
+            link: link.id,
+            dirty: link.dirty,
+            differences: report.differences,
+        });
+        commandResult(draft, transaction, {
+            ok: false,
+            reason: "both-sides-diverged",
+            link: link.id,
+            differences: report.differences,
+        });
+    }
+    #resolveConflict(draft, transaction, command) {
+        const link = linkById(draft, command.id);
+        const specification = this.relations.get(link.relation);
+        const report = checkLink(this, draft, link);
+        let result;
+        if (command.strategy === "prefer-left") {
+            result = specification.repairFromLeft(report.left, report.right, link.complement);
+        }
+        else if (command.strategy === "prefer-right") {
+            result = specification.repairFromRight(report.left, report.right, link.complement);
+        }
+        else if (command.strategy === "merge") {
+            assert(typeof specification.merge === "function", `${specification.id} has no merge operation.`);
+            result = specification.merge(report.left, report.right, link.complement, link.baseline);
+        }
+        else if (command.strategy === "rollback") {
+            assert(link.baseline, "The link has no last-consistent baseline.");
+            result = {
+                ok: true,
+                left: clone(link.baseline.left),
+                right: clone(link.baseline.right),
+                complement: clone(link.baseline.complement),
+                explanation: "restored the last consistent pair",
+            };
+        }
+        else {
+            throw new Error(`Unknown conflict strategy: ${command.strategy}`);
+        }
+        link.mode = "active";
+        this.#completeDirectedRepair(draft, transaction, link, result, command.strategy, "resolve-conflict");
+    }
+    #repairLink(draft, transaction, command) {
+        const link = linkById(draft, command.id);
+        const specification = this.relations.get(link.relation);
+        const report = checkLink(this, draft, link);
+        const result = command.from === "right"
+            ? specification.repairFromRight(report.left, report.right, link.complement)
+            : specification.repairFromLeft(report.left, report.right, link.complement);
+        link.mode = "active";
+        this.#completeDirectedRepair(draft, transaction, link, result, command.from ?? "left", "manual-repair");
+    }
+    #completeDirectedRepair(draft, transaction, link, result, direction, cause) {
+        if (!result.ok) {
+            link.mode = "paused";
+            link.status = "error";
+            link.error = result.reason;
+            trace(draft, transaction, "repair-failed", { link: link.id, direction, reason: result.reason, details: result.details });
+            commandResult(draft, transaction, { ok: false, reason: result.reason, details: result.details });
+            return;
+        }
+        this.#applyRepairPatch(draft, transaction, link, result, cause);
+        this.#propagate(draft, transaction);
+        const final = checkLink(this, draft, link);
+        if (!final.consistent) {
+            link.mode = "paused";
+            link.status = "error";
+            link.error = "repair-did-not-establish-consistency";
+            commandResult(draft, transaction, { ok: false, reason: link.error, differences: final.differences });
+            return;
+        }
+        link.status = "consistent";
+        link.error = null;
+        link.dirty = { left: false, right: false };
+        link.baseline = baselineOf(this, draft, link);
+        trace(draft, transaction, "link-resolved", { link: link.id, direction, cause });
+        commandResult(draft, transaction, { ok: true, link: link.id, direction });
+    }
+    #applyRepairPatch(draft, transaction, link, result, cause) {
+        if (Object.hasOwn(result, "complement"))
+            link.complement = clone(result.complement);
+        if (Object.hasOwn(result, "left")) {
+            this.#write(draft, transaction, link.left, result.left, {
+                cause,
+                actor: `relation:${link.relation}`,
+                sourceLink: link.id,
+            });
+        }
+        if (Object.hasOwn(result, "right")) {
+            this.#write(draft, transaction, link.right, result.right, {
+                cause,
+                actor: `relation:${link.relation}`,
+                sourceLink: link.id,
+            });
+        }
+        link.lastRepair = {
+            revision: draft.revision,
+            cause,
+            explanation: result.explanation ?? "repair applied",
+        };
+        trace(draft, transaction, "repair-applied", {
+            link: link.id,
+            cause,
+            explanation: link.lastRepair.explanation,
+        });
+    }
+    #write(draft, transaction, reference, value, metadata) {
+        const before = this.endpoints.read(draft.world, reference);
+        if (this.endpoints.equal(reference, before, value))
+            return false;
+        const changedResources = new Set(this.endpoints.resources(reference));
+        const candidateMap = new Map([[endpointKey(reference), clone(reference)]]);
+        for (const link of draft.links) {
+            candidateMap.set(endpointKey(link.left), clone(link.left));
+            candidateMap.set(endpointKey(link.right), clone(link.right));
+        }
+        const affected = [...candidateMap.values()].filter((candidate) => this.endpoints.resources(candidate).some((resource) => changedResources.has(resource)));
+        const observationsBefore = new Map(affected.map((candidate) => [endpointKey(candidate), this.endpoints.read(draft.world, candidate)]));
+        this.endpoints.write(draft.world, reference, value);
+        const after = this.endpoints.read(draft.world, reference);
+        draft.metrics.endpointWrites += 1;
+        transaction.writes.push({ endpoint: endpointKey(reference), before, after, metadata: clone(metadata) });
+        transaction.queue ??= [];
+        for (const candidate of affected) {
+            const key = endpointKey(candidate);
+            const observedBefore = observationsBefore.get(key);
+            const observedAfter = this.endpoints.read(draft.world, candidate);
+            if (this.endpoints.equal(candidate, observedBefore, observedAfter))
+                continue;
+            transaction.queue.push({ endpoint: clone(candidate), metadata: clone(metadata) });
+            if (key !== endpointKey(reference)) {
+                trace(draft, transaction, "overlapping-endpoint-changed", {
+                    writtenEndpoint: endpointKey(reference),
+                    observedEndpoint: key,
+                    before: observedBefore,
+                    after: observedAfter,
+                    resources: this.endpoints.resources(candidate),
+                });
+            }
+        }
+        trace(draft, transaction, "endpoint-written", {
+            endpoint: endpointKey(reference),
+            before,
+            after,
+            metadata,
+        });
+        return true;
+    }
+    #markPausedDirty(draft, transaction, link, side) {
+        link.dirty[side] = true;
+        const report = checkLink(this, draft, link);
+        link.status = report.consistent ? "paused-clean" : "paused-diverged";
+        trace(draft, transaction, "paused-link-dirtied", { link: link.id, side, differences: report.differences });
+    }
+    #propagate(draft, transaction) {
+        transaction.queue ??= [];
+        let steps = 0;
+        while (transaction.queue.length) {
+            const change = transaction.queue.shift();
+            for (const link of draft.links) {
+                const side = sideFor(link, change.endpoint);
+                if (!side)
+                    continue;
+                if (link.mode !== "active" || link.status === "conflict" || link.status === "error") {
+                    this.#markPausedDirty(draft, transaction, link, side);
+                    continue;
+                }
+                steps += 1;
+                transaction.relationActivations += 1;
+                draft.metrics.relationActivations += 1;
+                if (steps > this.maxPropagationSteps) {
+                    transaction.converged = false;
+                    transaction.error = "propagation-step-limit-exceeded";
+                    draft.metrics.nonConvergentTransactions += 1;
+                    link.mode = "paused";
+                    link.status = "error";
+                    link.error = transaction.error;
+                    transaction.queue = [];
+                    trace(draft, transaction, "non-convergent", { link: link.id, steps, limit: this.maxPropagationSteps });
+                    return;
+                }
+                const specification = this.relations.get(link.relation);
+                const report = checkLink(this, draft, link);
+                if (report.consistent) {
+                    link.status = "consistent";
+                    link.baseline = baselineOf(this, draft, link);
+                    link.dirty = { left: false, right: false };
+                    continue;
+                }
+                const result = side === "left"
+                    ? specification.repairFromLeft(report.left, report.right, link.complement)
+                    : specification.repairFromRight(report.left, report.right, link.complement);
+                if (!result.ok) {
+                    link.mode = "paused";
+                    link.status = "error";
+                    link.error = result.reason;
+                    trace(draft, transaction, "repair-failed", { link: link.id, side, reason: result.reason, details: result.details });
+                    continue;
+                }
+                this.#applyRepairPatch(draft, transaction, link, result, `propagate-from-${side}`);
+                const repaired = checkLink(this, draft, link);
+                if (!repaired.consistent) {
+                    link.mode = "paused";
+                    link.status = "error";
+                    link.error = "repair-did-not-establish-consistency";
+                    trace(draft, transaction, "repair-failed", { link: link.id, side, differences: repaired.differences });
+                }
+                else {
+                    link.status = "consistent";
+                    link.error = null;
+                    link.dirty = { left: false, right: false };
+                    link.baseline = baselineOf(this, draft, link);
+                }
+            }
+        }
+    }
+}
+function serializeRuntimeState(state) {
+    return JSON.stringify({
+        format: "p08-bidirectional-links/1",
+        world: state.world,
+        links: state.links,
+        revision: state.revision,
+    }, null, 2);
+}
+function deserializeRuntimeState(serialized) {
+    const decoded = JSON.parse(serialized);
+    assert(decoded.format === "p08-bidirectional-links/1", `Unsupported format: ${decoded.format}`);
+    return decoded;
+}
+/* ===== src/core/laws.js ===== */
+function result(name, passed, details = {}) {
+    return { name, passed, details };
+}
+function applyLeft(specification, sample) {
+    const complement = clone(sample.complement ?? specification.initialize?.(sample.left, sample.right) ?? {});
+    return specification.repairFromLeft(clone(sample.left), clone(sample.right), complement);
+}
+function applyRight(specification, sample) {
+    const complement = clone(sample.complement ?? specification.initialize?.(sample.left, sample.right) ?? {});
+    return specification.repairFromRight(clone(sample.left), clone(sample.right), complement);
+}
+function auditRelation(specification, samples) {
+    const checks = [];
+    const leftEqual = specification.leftEqual ?? deepEqual;
+    const rightEqual = specification.rightEqual ?? deepEqual;
+    for (const [index, sample] of samples.entries()) {
+        const label = sample.label ?? `sample-${index + 1}`;
+        const initialComplement = clone(sample.complement ?? specification.initialize?.(sample.left, sample.right) ?? {});
+        try {
+            const leftRepair = applyLeft(specification, sample);
+            const leftRestores = leftRepair.ok && specification.check(clone(sample.left), clone(Object.hasOwn(leftRepair, "right") ? leftRepair.right : sample.right), clone(Object.hasOwn(leftRepair, "complement") ? leftRepair.complement : initialComplement)).consistent;
+            checks.push(result(`${label}: left repair establishes consistency`, leftRestores, { leftRepair }));
+            if (leftRepair.ok) {
+                const repairedRight = Object.hasOwn(leftRepair, "right") ? leftRepair.right : sample.right;
+                const repairedComplement = Object.hasOwn(leftRepair, "complement") ? leftRepair.complement : initialComplement;
+                const again = specification.repairFromLeft(clone(sample.left), clone(repairedRight), clone(repairedComplement));
+                checks.push(result(`${label}: left repair is idempotent`, again.ok && rightEqual(again.right ?? repairedRight, repairedRight), { first: leftRepair, second: again }));
+                const back = specification.repairFromRight(clone(sample.left), clone(repairedRight), clone(repairedComplement));
+                checks.push(result(`${label}: left→right→left preserves the left value`, back.ok && leftEqual(back.left ?? sample.left, sample.left), { leftRepair, back }));
+            }
+            const rightRepair = applyRight(specification, sample);
+            const resultingLeft = rightRepair.ok && Object.hasOwn(rightRepair, "left") ? rightRepair.left : sample.left;
+            const resultingRight = rightRepair.ok && Object.hasOwn(rightRepair, "right") ? rightRepair.right : sample.right;
+            const resultingComplement = rightRepair.ok && Object.hasOwn(rightRepair, "complement") ? rightRepair.complement : initialComplement;
+            const rightRestores = rightRepair.ok && specification.check(resultingLeft, resultingRight, resultingComplement).consistent;
+            checks.push(result(`${label}: right repair establishes consistency`, rightRestores, { rightRepair }));
+            if (rightRepair.ok) {
+                const again = specification.repairFromRight(clone(resultingLeft), clone(resultingRight), clone(resultingComplement));
+                checks.push(result(`${label}: right repair is idempotent`, again.ok && leftEqual(again.left ?? resultingLeft, resultingLeft) && rightEqual(again.right ?? resultingRight, resultingRight), { first: rightRepair, second: again }));
+                const forth = specification.repairFromLeft(clone(resultingLeft), clone(resultingRight), clone(resultingComplement));
+                checks.push(result(`${label}: right→left→right preserves the normalized right value`, forth.ok && rightEqual(forth.right ?? resultingRight, resultingRight), { rightRepair, forth }));
+            }
+        }
+        catch (error) {
+            checks.push(result(`${label}: audit execution`, false, { error: formatError(error) }));
+        }
+    }
+    if (specification.mergeAlgebra) {
+        const { combine, equal } = specification.mergeAlgebra;
+        const values = samples.flatMap((sample) => [sample.left, sample.right]).slice(0, 3);
+        if (values.length >= 3) {
+            const [a, b, c] = values;
+            checks.push(result("merge algebra: idempotent", equal(combine(a, a), a)));
+            checks.push(result("merge algebra: commutative", equal(combine(a, b), combine(b, a))));
+            checks.push(result("merge algebra: associative", equal(combine(combine(a, b), c), combine(a, combine(b, c)))));
+        }
+    }
+    return {
+        relation: specification.id,
+        passed: checks.every((item) => item.passed),
+        checks,
+    };
+}
+/* ===== src/data.js ===== */
+const TODAY = new Date(2026, 7, 3, 9, 20, 0, 0).getTime();
+const DAY = 24 * HOUR;
+function dayAt(dayOffset, hour, minute = 0) {
+    const date = new Date(TODAY + dayOffset * DAY);
+    date.setHours(hour, minute, 0, 0);
+    return date.getTime();
+}
+const contacts = [
+    { id: "c-me", name: "You", role: "Founder & CEO, Cortex Labs" },
+    { id: "c-sarah", name: "Sarah Chen", role: "Co-founder, Cortex Labs" },
+    { id: "c-marcus", name: "Marcus Reyes", role: "Design lead, Cortex Labs" },
+    { id: "c-priya", name: "Priya Patel", role: "Partner, Reactor Ventures" },
+    { id: "c-michael", name: "Michael Zhou", role: "Partner, Reactor Ventures" },
+    { id: "c-jamie", name: "Jamie Torres", role: "Ops lead, TechFlow" },
+    { id: "c-daniel", name: "Daniel Weiss", role: "CTO, TechFlow" },
+    { id: "c-nikhil", name: "Nikhil Rao", role: "Senior engineer candidate" },
+];
+function createWorld() {
+    return {
+        contacts: structuredClone(contacts),
+        projects: [
+            { id: "p-fundraise", name: "Fundraise · Series A" },
+            { id: "p-cortex-q4", name: "Cortex · Q4 launch" },
+            { id: "p-hiring", name: "Hiring · Q3/Q4" },
+            { id: "p-personal", name: "Personal" },
+        ],
+        tasks: [
+            { id: "tk-4", title: "Draft SOC2 timeline for Daniel", project: "p-cortex-q4", prio: "high", status: "todo", due: dayAt(4, 12), notes: "Real dates, not aspirational ones." },
+            { id: "tk-9", title: "Reply to Nikhil with onboarding plan sketch", project: "p-hiring", prio: "med", status: "todo", due: dayAt(1, 12), notes: "" },
+            { id: "tk-13", title: "Book ferry for Labor Day", project: "p-personal", prio: "med", status: "todo", due: dayAt(2, 18), notes: "Mom is waiting." },
+            { id: "tk-14", title: "Follow-up: TechFlow feature list", project: "p-cortex-q4", prio: "high", status: "waiting", due: null, notes: "Waiting on Jamie to send list." },
+        ],
+        events: [
+            { id: "e-9", title: "TechFlow QBR", kind: "meeting", start: dayAt(1, 14), end: dayAt(1, 15), attendees: ["c-jamie", "c-daniel"], notes: "Come with SOC2 answer and feature-list response." },
+            { id: "e-12", title: "Pre-read: Reactor deck run-through", kind: "focus", start: dayAt(2, 16, 30), end: dayAt(2, 18), attendees: [], notes: "Michael's optional pre-read is at 19:00." },
+            { id: "e-17", title: "Focus: SOC2 timeline (send to Daniel)", kind: "focus", start: dayAt(4, 10), end: dayAt(4, 12), attendees: [], notes: "" },
+            { id: "e-18", title: "Nikhil offer call", kind: "meeting", start: dayAt(4, 13), end: dayAt(4, 13, 30), attendees: ["c-nikhil"], notes: "Verbal offer + round context." },
+        ],
+        bookingLinks: [
+            { id: "lk-30", title: "30-min intro chat", durationM: 30 },
+            { id: "lk-60", title: "60-min product demo", durationM: 60 },
+        ],
+        bookings: [
+            { id: "bk-3", linkId: "lk-60", name: "Priya Sharma", email: "priya@lumina.ai", start: dayAt(2, 13), notes: "Evaluating vendors for an internal eval platform.", status: "pending" },
+            { id: "bk-5", linkId: "lk-30", name: "Casey Ng", email: "casey@sonata.dev", start: dayAt(4, 10), notes: "Question about eval framework licensing.", status: "confirmed" },
+        ],
+        transcripts: [
+            {
+                id: "tr-jamie",
+                title: "Customer call · Jamie Torres (TechFlow)",
+                participants: ["c-me", "c-jamie"],
+                actionItems: [
+                    { id: "ai-1", text: "Get feature list from Jamie (~10 items)", assigned: "c-me", taskId: "tk-14" },
+                    { id: "ai-2", text: "Send Daniel real SOC2 timeline by Friday", assigned: "c-me", taskId: "tk-4" },
+                    { id: "ai-3", text: "Remove beta tag from pricing page", assigned: "c-me", taskId: null },
+                ],
+            },
+            {
+                id: "tr-nikhil",
+                title: "Panel interview · Nikhil Rao",
+                participants: ["c-me", "c-sarah", "c-marcus", "c-nikhil"],
+                actionItems: [
+                    { id: "ai-1", text: "Send Nikhil an onboarding plan sketch", assigned: "c-me", taskId: "tk-9" },
+                ],
+            },
+        ],
+        scalars: {},
+    };
+}
+const refs = {
+    taskEventTask: { kind: "taskFocus", id: "tk-4" },
+    taskEventEvent: { kind: "eventFocus", id: "e-17" },
+    setEvent: { kind: "eventAttendees", id: "e-9" },
+    setTranscript: { kind: "transcriptParticipants", id: "tr-jamie" },
+    cycleTask: { kind: "taskDue", id: "tk-13" },
+    cycleEvent: { kind: "eventStart", id: "e-12" },
+    cycleBooking: { kind: "bookingStart", id: "bk-3" },
+    textActionItem: { kind: "actionItemText", id: "tr-jamie", path: "ai-2" },
+    textTask: { kind: "taskTitle", id: "tk-4" },
+};
+/* ===== src/core/demo.js ===== */
+function createDemoRuntime() {
+    const endpoints = createProductivityEndpointRegistry();
+    const relations = createProductivityRelationRegistry();
+    const engine = new BidirectionalRuntime({ endpoints, relations, maxPropagationSteps: 128 });
+    return { endpoints, relations, engine };
+}
+function createDemoState(engine) {
+    let state = engine.createState(createWorld());
+    state = engine.dispatch(state, {
+        type: "create-link",
+        id: "link-task-event",
+        relation: "task-event-focus",
+        left: refs.taskEventTask,
+        right: refs.taskEventEvent,
+        policy: "prefer-left",
+    });
+    state = engine.dispatch(state, {
+        type: "create-link",
+        id: "link-attendees",
+        relation: "equal-contact-set",
+        left: refs.setEvent,
+        right: refs.setTranscript,
+        policy: "merge",
+    });
+    state = engine.dispatch(state, {
+        type: "create-link",
+        id: "cycle-task-event",
+        relation: "equal-instant",
+        left: refs.cycleTask,
+        right: refs.cycleEvent,
+        policy: "prefer-left",
+    });
+    state = engine.dispatch(state, {
+        type: "create-link",
+        id: "cycle-event-booking",
+        relation: "equal-instant",
+        left: refs.cycleEvent,
+        right: refs.cycleBooking,
+        policy: "prefer-left",
+    });
+    state = engine.dispatch(state, {
+        type: "create-link",
+        id: "cycle-booking-task",
+        relation: "equal-instant",
+        left: refs.cycleBooking,
+        right: refs.cycleTask,
+        policy: "require-consistent",
+    });
+    return state;
+}
+/* ===== src/components/ui.jsx ===== */
+const C = {
+    paper: "#ffffff",
+    pane: "#ffffff",
+    paneAlt: "#f1f1ee",
+    ink: "#23262b",
+    faint: "#6d737b",
+    line: "#d9d9d4",
+    sage: "#7cae9b",
+    blue: "#7aa6c9",
+    rose: "#d59a86",
+    mustard: "#e0b95c",
+    lavender: "#a99fc9",
+    mint: "#8fc7b0",
+    red: "#c2503a",
+    green: "#3f9d6b",
+    sel: "#fdeec6",
+    add: "#e7f4ec",
+    del: "#fbe9e4",
+    warm: "#faf7ee",
+};
+function Presentation({ type, label, children, tone = C.blue, block = false, title }) {
+    const Tag = block ? "div" : "span";
+    return (React.createElement(Tag, { className: `presentation ${block ? "presentation-block" : ""}`, "data-ptype": type, title: title ?? `<${type}> ${label}` },
+        React.createElement("span", { className: "presentation-type", style: { borderColor: tone } }, `<${type}>`),
+        children));
+}
+function Button({ children, onClick, tone = C.paneAlt, disabled = false, danger = false, title }) {
+    return (React.createElement("button", { type: "button", className: `button ${danger ? "button-danger" : ""}`, style: { background: disabled ? C.paneAlt : tone }, onClick: onClick, disabled: disabled, title: title }, children));
+}
+function Tag({ children, tone = C.paneAlt, title }) {
+    return React.createElement("span", { className: "tag", style: { borderLeftColor: tone }, title: title }, children);
+}
+function Section({ title, right, children, className = "" }) {
+    return (React.createElement("section", { className: `section ${className}` },
+        React.createElement("header", { className: "section-header" },
+            React.createElement("h2", null, title),
+            React.createElement("div", { className: "section-header-right" }, right)),
+        children));
+}
+function Field({ label, children, hint }) {
+    return (React.createElement("label", { className: "field" },
+        React.createElement("span", { className: "field-label" }, label),
+        children,
+        hint ? React.createElement("span", { className: "field-hint" }, hint) : null));
+}
+function Input(props) {
+    return React.createElement("input", { className: "input", ...props });
+}
+function Select(props) {
+    return React.createElement("select", { className: "input", ...props });
+}
+function TextArea(props) {
+    return React.createElement("textarea", { className: "input textarea", ...props });
+}
+function StatusPill({ status }) {
+    const tone = status === "consistent" || status === "active"
+        ? C.green
+        : status === "conflict" || status === "error"
+            ? C.red
+            : status?.includes("diverged")
+                ? C.mustard
+                : C.faint;
+    return React.createElement(Tag, { tone: tone }, status);
+}
+function Json({ value, maxHeight = 260 }) {
+    return React.createElement("pre", { className: "json", style: { maxHeight } }, JSON.stringify(value, null, 2));
+}
+function Empty({ children }) {
+    return React.createElement("div", { className: "empty" }, children);
+}
+/* ===== src/components/LinkControls.jsx ===== */
+function LinkControls({ link, relation, dispatch, compact = false }) {
+    if (!link)
+        return null;
+    const paused = link.mode !== "active";
+    const conflict = link.status === "conflict";
+    return (React.createElement("div", { className: `link-controls ${compact ? "link-controls-compact" : ""}` },
+        React.createElement(StatusPill, { status: link.status }),
+        React.createElement(Tag, { tone: C.lavender }, relation.label),
+        paused && !conflict ? (React.createElement(Button, { tone: C.mint, onClick: () => dispatch({ type: "resume-link", id: link.id }) }, "resume")) : !conflict ? (React.createElement(Button, { onClick: () => dispatch({ type: "pause-link", id: link.id }) }, "pause")) : null,
+        conflict ? (React.createElement(React.Fragment, null,
+            React.createElement(Button, { tone: C.blue, onClick: () => dispatch({ type: "resolve-conflict", id: link.id, strategy: "prefer-left" }) }, "prefer left"),
+            React.createElement(Button, { tone: C.rose, onClick: () => dispatch({ type: "resolve-conflict", id: link.id, strategy: "prefer-right" }) }, "prefer right"),
+            typeof relation.merge === "function" ? (React.createElement(Button, { tone: C.mint, onClick: () => dispatch({ type: "resolve-conflict", id: link.id, strategy: "merge" }) }, "merge")) : null,
+            React.createElement(Button, { tone: C.mustard, onClick: () => dispatch({ type: "resolve-conflict", id: link.id, strategy: "rollback" }) }, "rollback"))) : null,
+        React.createElement(Button, { danger: true, onClick: () => dispatch({ type: "remove-link", id: link.id }) }, "unlink")));
+}
+/* ===== src/components/LinkInspector.jsx ===== */
+function endpointCatalog(world) {
+    const entries = [];
+    for (const task of world.tasks) {
+        entries.push({ ref: { kind: "taskFocus", id: task.id }, group: "task", label: `Task focus · ${task.title}` });
+        entries.push({ ref: { kind: "taskDue", id: task.id }, group: "task", label: `Task due · ${task.title}` });
+        entries.push({ ref: { kind: "taskTitle", id: task.id }, group: "task", label: `Task title · ${task.title}` });
+    }
+    for (const event of world.events) {
+        entries.push({ ref: { kind: "eventFocus", id: event.id }, group: "event", label: `Event block · ${event.title}` });
+        entries.push({ ref: { kind: "eventStart", id: event.id }, group: "event", label: `Event start · ${event.title}` });
+        entries.push({ ref: { kind: "eventAttendees", id: event.id }, group: "event", label: `Event attendees · ${event.title}` });
+    }
+    for (const booking of world.bookings) {
+        entries.push({ ref: { kind: "bookingStart", id: booking.id }, group: "booking", label: `Booking start · ${booking.name}` });
+    }
+    for (const transcript of world.transcripts) {
+        entries.push({ ref: { kind: "transcriptParticipants", id: transcript.id }, group: "transcript", label: `Transcript participants · ${transcript.title}` });
+        for (const item of transcript.actionItems) {
+            entries.push({
+                ref: { kind: "actionItemText", id: transcript.id, path: item.id },
+                group: "action item",
+                label: `Action item text · ${item.text}`,
+            });
+        }
+    }
+    return entries;
+}
+function LinkInspector({ state, runtime, dispatch, selected, setSelected }) {
+    const relationList = runtime.relations.list();
+    const catalog = useMemo(() => endpointCatalog(state.world), [state.world]);
+    const [relationId, setRelationId] = useState("equal-text");
+    const relation = runtime.relations.get(relationId);
+    const leftOptions = catalog.filter(({ ref }) => runtime.endpoints.sort(ref) === relation.leftSort);
+    const rightOptions = catalog.filter(({ ref }) => runtime.endpoints.sort(ref) === relation.rightSort);
+    const [leftKey, setLeftKey] = useState(endpointKey(leftOptions[0]?.ref ?? { kind: "", id: "" }));
+    const [rightKey, setRightKey] = useState(endpointKey(rightOptions[0]?.ref ?? { kind: "", id: "" }));
+    const [policy, setPolicy] = useState("prefer-left");
+    const effectiveLeft = leftOptions.find((item) => endpointKey(item.ref) === leftKey) ?? leftOptions[0];
+    const effectiveRight = rightOptions.find((item) => endpointKey(item.ref) === rightKey) ?? rightOptions[0];
+    const selectedLink = state.links.find((link) => link.id === selected) ?? null;
+    const selectedInspection = selectedLink ? runtime.engine.inspectLink(state, selectedLink.id) : null;
+    const chooseRelation = (next) => {
+        const nextRelation = runtime.relations.get(next);
+        const nextLeft = catalog.find(({ ref }) => runtime.endpoints.sort(ref) === nextRelation.leftSort);
+        const nextRight = catalog.find(({ ref }) => runtime.endpoints.sort(ref) === nextRelation.rightSort);
+        setRelationId(next);
+        setLeftKey(nextLeft ? endpointKey(nextLeft.ref) : "");
+        setRightKey(nextRight ? endpointKey(nextRight.ref) : "");
+    };
+    const create = () => {
+        if (!effectiveLeft || !effectiveRight)
+            return;
+        const id = `user-link-${state.transactionSeq + 1}`;
+        dispatch({
+            type: "create-link",
+            id,
+            relation: relationId,
+            left: effectiveLeft.ref,
+            right: effectiveRight.ref,
+            policy,
+        });
+        setSelected(id);
+    };
+    return (React.createElement("aside", { className: "inspector" },
+        React.createElement("div", { className: "inspector-title" }, "LINK RUNTIME"),
+        React.createElement("div", { className: "inspector-summary" },
+            React.createElement(Tag, { tone: C.blue },
+                state.links.length,
+                " links"),
+            React.createElement(Tag, { tone: C.green },
+                "rev ",
+                state.revision),
+            React.createElement(Tag, { tone: C.mustard },
+                state.metrics.endpointWrites,
+                " writes")),
+        React.createElement("div", { className: "inspector-subtitle" }, "active topology"),
+        React.createElement("div", { className: "link-list" },
+            state.links.map((link) => (React.createElement("button", { type: "button", key: link.id, className: `link-row ${selected === link.id ? "link-row-selected" : ""}`, onClick: () => setSelected(link.id) },
+                React.createElement("span", { className: "link-row-main" },
+                    React.createElement("b", null, link.id),
+                    React.createElement("small", null, runtime.relations.get(link.relation).label)),
+                React.createElement(StatusPill, { status: link.status })))),
+            !state.links.length ? React.createElement(Empty, null, "No links.") : null),
+        selectedInspection ? (React.createElement("div", { className: "selected-link" },
+            React.createElement("div", { className: "inspector-subtitle" }, "selected link"),
+            React.createElement("div", { className: "small-grid" },
+                React.createElement("span", null, "left"),
+                React.createElement("code", null, selectedInspection.left.label),
+                React.createElement("span", null, "right"),
+                React.createElement("code", null, selectedInspection.right.label),
+                React.createElement("span", null, "mode"),
+                React.createElement("code", null, selectedInspection.link.mode),
+                React.createElement("span", null, "status"),
+                React.createElement("code", null, selectedInspection.link.status)),
+            selectedInspection.check.differences.length ? (React.createElement("ul", { className: "differences" }, selectedInspection.check.differences.map((difference) => React.createElement("li", { key: difference }, difference)))) : React.createElement("div", { className: "consistent-note" }, "relation currently satisfied"),
+            React.createElement(Json, { value: { complement: selectedInspection.link.complement, baseline: selectedInspection.link.baseline, lastRepair: selectedInspection.link.lastRepair }, maxHeight: 180 }),
+            React.createElement("div", { className: "button-row" },
+                selectedInspection.link.mode === "active" ? (React.createElement(Button, { onClick: () => dispatch({ type: "pause-link", id: selectedInspection.link.id }) }, "pause")) : (React.createElement(Button, { tone: C.mint, onClick: () => dispatch({ type: "resume-link", id: selectedInspection.link.id }) }, "resume")),
+                React.createElement(Button, { danger: true, onClick: () => dispatch({ type: "remove-link", id: selectedInspection.link.id }) }, "unlink")))) : null,
+        React.createElement("div", { className: "inspector-subtitle" }, "compose a link"),
+        React.createElement("div", { className: "composer" },
+            React.createElement(Field, { label: "relationship" },
+                React.createElement(Select, { value: relationId, onChange: (event) => chooseRelation(event.currentTarget.value) }, relationList.map((item) => React.createElement("option", { key: item.id, value: item.id }, item.label)))),
+            React.createElement(Field, { label: `left · ${relation.leftSort}` },
+                React.createElement(Select, { value: effectiveLeft ? endpointKey(effectiveLeft.ref) : "", onChange: (event) => setLeftKey(event.currentTarget.value) }, leftOptions.map((item) => React.createElement("option", { key: endpointKey(item.ref), value: endpointKey(item.ref) }, item.label)))),
+            React.createElement(Field, { label: `right · ${relation.rightSort}` },
+                React.createElement(Select, { value: effectiveRight ? endpointKey(effectiveRight.ref) : "", onChange: (event) => setRightKey(event.currentTarget.value) }, rightOptions.map((item) => React.createElement("option", { key: endpointKey(item.ref), value: endpointKey(item.ref) }, item.label)))),
+            React.createElement(Field, { label: "initial reconciliation" },
+                React.createElement(Select, { value: policy, onChange: (event) => setPolicy(event.currentTarget.value) },
+                    React.createElement("option", { value: "prefer-left" }, "prefer left"),
+                    React.createElement("option", { value: "prefer-right" }, "prefer right"),
+                    React.createElement("option", { value: "require-consistent" }, "require already consistent"),
+                    typeof relation.merge === "function" ? React.createElement("option", { value: "merge" }, "merge") : null)),
+            React.createElement(Button, { tone: C.mint, onClick: create, disabled: !effectiveLeft || !effectiveRight || endpointKey(effectiveLeft.ref) === endpointKey(effectiveRight.ref) }, "create link"))));
+}
+/* ===== src/App.jsx ===== */
+const tabs = [
+    ["structured", "task ↔ event"],
+    ["sets", "set merge"],
+    ["cycle", "cycle"],
+    ["composition", "composition"],
+    ["laws", "law audit"],
+    ["trace", "trace"],
+];
+function byId(collection, id) {
+    return collection.find((item) => item.id === id);
+}
+function toLocalInput(ms) {
+    if (ms == null)
+        return "";
+    const date = new Date(ms);
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+    return local.toISOString().slice(0, 16);
+}
+function fromLocalInput(value) {
+    if (!value)
+        return null;
+    const ms = new Date(value).getTime();
+    return Number.isFinite(ms) ? ms : null;
+}
+function fmtInstant(ms) {
+    if (ms == null)
+        return "none";
+    return new Intl.DateTimeFormat("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    }).format(new Date(ms));
+}
+function linkFor(state, id) {
+    return state.links.find((link) => link.id === id) ?? null;
+}
+function downloadText(name, text) {
+    const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = name;
+    anchor.click();
+    URL.revokeObjectURL(url);
+}
+function ObjectCard({ type, tone, title, subtitle, children }) {
+    return (React.createElement(Presentation, { type: type, label: title, tone: tone, block: true },
+        React.createElement("article", { className: "object-card", style: { borderLeftColor: tone } },
+            React.createElement("div", { className: "object-title" }, title),
+            subtitle ? React.createElement("div", { className: "object-subtitle" }, subtitle) : null,
+            children)));
+}
+function LinkStatePanel({ state, runtime, linkId }) {
+    const link = linkFor(state, linkId);
+    if (!link)
+        return React.createElement(Empty, null, "Link not present.");
+    const inspection = runtime.engine.inspectLink(state, linkId);
+    return (React.createElement("div", { className: "relation-state" },
+        React.createElement("div", { className: "button-row" },
+            React.createElement(StatusPill, { status: link.status }),
+            React.createElement(Tag, { tone: C.lavender }, runtime.relations.get(link.relation).label),
+            React.createElement(Tag, { tone: C.faint }, link.mode)),
+        inspection.check.differences.length ? (React.createElement("ul", { className: "differences" }, inspection.check.differences.map((item) => React.createElement("li", { key: item }, item)))) : React.createElement("div", { className: "consistent-note" }, "The declared consistency relation is satisfied."),
+        React.createElement(Json, { value: { complement: link.complement, dirty: link.dirty, baseline: link.baseline, lastRepair: link.lastRepair }, maxHeight: 190 })));
+}
+function StructuredScenario({ state, runtime, dispatch }) {
+    const task = byId(state.world.tasks, "tk-4");
+    const event = byId(state.world.events, "e-17");
+    const link = linkFor(state, "link-task-event");
+    const relation = runtime.relations.get("task-event-focus");
+    const editTask = (patch) => dispatch({
+        type: "edit-endpoint",
+        endpoint: refs.taskEventTask,
+        value: { ...runtime.endpoints.read(state.world, refs.taskEventTask), ...patch },
+        actor: "task-editor",
+    });
+    const editEvent = (patch) => dispatch({
+        type: "edit-endpoint",
+        endpoint: refs.taskEventEvent,
+        value: { ...runtime.endpoints.read(state.world, refs.taskEventEvent), ...patch },
+        actor: "calendar-editor",
+    });
+    const divergeBoth = () => {
+        if (link?.mode === "active")
+            dispatch({ type: "pause-link", id: link.id });
+        editTask({ title: "Draft a board-ready SOC2 timeline", due: task.due + 2 * HOUR });
+        editEvent({ title: "Customer security response sprint", start: event.start - HOUR, end: event.end + HOUR });
+    };
+    return (React.createElement("div", { className: "scenario-grid" },
+        React.createElement("div", { className: "scenario-main" },
+            React.createElement(Section, { title: "Structured asymmetric representations", right: link ? React.createElement(LinkControls, { link: link, relation: relation, dispatch: dispatch }) : (React.createElement("div", { className: "button-row" },
+                    React.createElement(Button, { tone: C.blue, onClick: () => dispatch({ type: "create-link", id: "link-task-event", relation: "task-event-focus", left: refs.taskEventTask, right: refs.taskEventEvent, policy: "prefer-left" }) }, "link \u00B7 prefer task"),
+                    React.createElement(Button, { tone: C.rose, onClick: () => dispatch({ type: "create-link", id: "link-task-event", relation: "task-event-focus", left: refs.taskEventTask, right: refs.taskEventEvent, policy: "prefer-right" }) }, "link \u00B7 prefer event"))) },
+                React.createElement("p", { className: "lead" }, "The task and event do not have the same representation. The relationship synchronizes task title/due with a normalized calendar block while retaining event duration as a complement."),
+                React.createElement("div", { className: "object-pair" },
+                    React.createElement(ObjectCard, { type: "task", tone: C.mustard, title: task.title, subtitle: `project ${task.project} · ${task.status}` },
+                        React.createElement(Field, { label: "task title" },
+                            React.createElement(Input, { value: task.title, onChange: (event_) => editTask({ title: event_.currentTarget.value }) })),
+                        React.createElement(Field, { label: "due instant" },
+                            React.createElement(Input, { type: "datetime-local", value: toLocalInput(task.due), onChange: (event_) => editTask({ due: fromLocalInput(event_.currentTarget.value) }) })),
+                        React.createElement("div", { className: "readout" }, fmtInstant(task.due))),
+                    React.createElement("div", { className: "link-arrow" }, "\u21C4"),
+                    React.createElement(ObjectCard, { type: "event", tone: C.sage, title: event.title, subtitle: `${event.kind} · ${Math.round((event.end - event.start) / 60_000)} min` },
+                        React.createElement(Field, { label: "event title" },
+                            React.createElement(Input, { value: event.title, onChange: (event_) => editEvent({ title: event_.currentTarget.value }) })),
+                        React.createElement("div", { className: "two-columns" },
+                            React.createElement(Field, { label: "start" },
+                                React.createElement(Input, { type: "datetime-local", value: toLocalInput(event.start), onChange: (event_) => editEvent({ start: fromLocalInput(event_.currentTarget.value) }) })),
+                            React.createElement(Field, { label: "end" },
+                                React.createElement(Input, { type: "datetime-local", value: toLocalInput(event.end), onChange: (event_) => editEvent({ end: fromLocalInput(event_.currentTarget.value) }) }))),
+                        React.createElement(Field, { label: "notes" },
+                            React.createElement(TextArea, { rows: 2, value: event.notes, onChange: (event_) => editEvent({ notes: event_.currentTarget.value }) })))),
+                React.createElement("div", { className: "experiment-strip" },
+                    React.createElement(Button, { tone: C.mustard, disabled: !link, onClick: divergeBoth }, "pause and edit both sides"),
+                    React.createElement("span", null, "Resume after divergence to obtain an explicit conflict rather than silently choosing a winner.")))),
+        React.createElement("aside", { className: "scenario-side" },
+            React.createElement(Section, { title: "relationship state" },
+                React.createElement(LinkStatePanel, { state: state, runtime: runtime, linkId: "link-task-event" })),
+            React.createElement(Section, { title: "declared relation" },
+                React.createElement(Json, { value: {
+                        leftSort: relation.leftSort,
+                        rightSort: relation.rightSort,
+                        consistentWhen: [
+                            "event.start = task.due",
+                            "event.end = event.start + complement.durationMs",
+                            "event.title = normalize(task.title)",
+                        ],
+                        partiality: "left repair fails when task.due is null; right repair fails for invalid event ranges",
+                    } })))));
+}
+function ContactSetEditor({ title, type, tone, values, contacts, onChange }) {
+    const toggle = (id) => onChange(values.includes(id) ? values.filter((value) => value !== id) : uniqueSorted([...values, id]));
+    return (React.createElement(ObjectCard, { type: type, tone: tone, title: title, subtitle: `${values.length} contacts` },
+        React.createElement("div", { className: "contact-grid" }, contacts.map((contact) => {
+            const selected = values.includes(contact.id);
+            return (React.createElement("button", { key: contact.id, type: "button", className: `contact-choice ${selected ? "contact-choice-selected" : ""}`, onClick: () => toggle(contact.id) },
+                React.createElement("span", null, selected ? "✓" : "·"),
+                React.createElement("b", null, contact.name),
+                React.createElement("small", null, contact.role)));
+        }))));
+}
+function SetScenario({ state, runtime, dispatch }) {
+    const link = linkFor(state, "link-attendees");
+    const relation = runtime.relations.get("equal-contact-set");
+    const left = runtime.endpoints.read(state.world, refs.setEvent);
+    const right = runtime.endpoints.read(state.world, refs.setTranscript);
+    const event = byId(state.world.events, "e-9");
+    const transcript = byId(state.world.transcripts, "tr-jamie");
+    const diverge = () => {
+        if (link?.mode === "active")
+            dispatch({ type: "pause-link", id: link.id });
+        dispatch({ type: "edit-endpoint", endpoint: refs.setEvent, value: ["c-jamie", "c-priya"], actor: "calendar-offline" });
+        dispatch({ type: "edit-endpoint", endpoint: refs.setTranscript, value: ["c-me", "c-jamie", "c-marcus"], actor: "transcript-offline" });
+    };
+    return (React.createElement("div", { className: "scenario-grid" },
+        React.createElement("div", { className: "scenario-main" },
+            React.createElement(Section, { title: "Set-valued consistency", right: link ? React.createElement(LinkControls, { link: link, relation: relation, dispatch: dispatch }) : (React.createElement(Button, { tone: C.mint, onClick: () => dispatch({ type: "create-link", id: "link-attendees", relation: "equal-contact-set", left: refs.setEvent, right: refs.setTranscript, policy: "merge" }) }, "link by union")) },
+                React.createElement("p", { className: "lead" }, "Event attendees and transcript participants denote sets. During live operation, an edit is copied. When both replicas diverge while paused, set union is a lawful commutative, associative, and idempotent merge."),
+                React.createElement("div", { className: "object-pair" },
+                    React.createElement(ContactSetEditor, { title: event.title, type: "event-attendees", tone: C.sage, values: left, contacts: state.world.contacts, onChange: (value) => dispatch({ type: "edit-endpoint", endpoint: refs.setEvent, value, actor: "event-attendee-editor" }) }),
+                    React.createElement("div", { className: "link-arrow" }, "\u21C4"),
+                    React.createElement(ContactSetEditor, { title: transcript.title, type: "transcript-participants", tone: C.mint, values: right, contacts: state.world.contacts, onChange: (value) => dispatch({ type: "edit-endpoint", endpoint: refs.setTranscript, value, actor: "transcript-participant-editor" }) })),
+                React.createElement("div", { className: "experiment-strip" },
+                    React.createElement(Button, { tone: C.mustard, disabled: !link, onClick: diverge }, "simulate two offline edits"),
+                    React.createElement("span", null,
+                        "Then resume and choose ",
+                        React.createElement("b", null, "merge"),
+                        " to retain additions from both sides.")))),
+        React.createElement("aside", { className: "scenario-side" },
+            React.createElement(Section, { title: "relationship state" },
+                React.createElement(LinkStatePanel, { state: state, runtime: runtime, linkId: "link-attendees" })),
+            React.createElement(Section, { title: "merge algebra" },
+                React.createElement("div", { className: "equation" }, "A \u2294 B = A \u222A B"),
+                React.createElement("ul", { className: "compact-list" },
+                    React.createElement("li", null, "idempotent: A \u222A A = A"),
+                    React.createElement("li", null, "commutative: A \u222A B = B \u222A A"),
+                    React.createElement("li", null, "associative: (A \u222A B) \u222A C = A \u222A (B \u222A C)"))))));
+}
+function CycleNode({ label, type, tone, value, onChange }) {
+    return (React.createElement(ObjectCard, { type: type, tone: tone, title: label, subtitle: fmtInstant(value) },
+        React.createElement(Input, { type: "datetime-local", value: toLocalInput(value), onChange: (event) => onChange(fromLocalInput(event.currentTarget.value)) })));
+}
+function CycleScenario({ state, runtime, dispatch }) {
+    const taskValue = runtime.endpoints.read(state.world, refs.cycleTask);
+    const eventValue = runtime.endpoints.read(state.world, refs.cycleEvent);
+    const bookingValue = runtime.endpoints.read(state.world, refs.cycleBooking);
+    const ids = ["cycle-task-event", "cycle-event-booking", "cycle-booking-task"];
+    const allEqual = taskValue === eventValue && eventValue === bookingValue;
+    const ensureLink = (id, left, right, policy = "prefer-left") => {
+        if (!linkFor(state, id))
+            dispatch({ type: "create-link", id, relation: "equal-instant", left, right, policy });
+    };
+    return (React.createElement("div", { className: "scenario-grid" },
+        React.createElement("div", { className: "scenario-main" },
+            React.createElement(Section, { title: "Cyclic propagation to quiescence", right: React.createElement("div", { className: "button-row" },
+                    React.createElement(StatusPill, { status: allEqual ? "consistent" : "conflict" }),
+                    React.createElement(Tag, { tone: C.mustard },
+                        state.lastTransaction?.relationActivations ?? 0,
+                        " activations last tx")) },
+                React.createElement("p", { className: "lead" }, "Three equality links form a cycle. A transaction uses a work queue and stops when no endpoint changes. Idempotent repair prevents infinite circulation of the same value."),
+                React.createElement("div", { className: "cycle-diagram" },
+                    React.createElement("div", { className: "cycle-node cycle-node-a" },
+                        React.createElement(CycleNode, { label: "Book ferry task due", type: "task-due", tone: C.mustard, value: taskValue, onChange: (value) => dispatch({ type: "edit-endpoint", endpoint: refs.cycleTask, value, actor: "task" }) })),
+                    React.createElement("div", { className: "cycle-edge cycle-edge-ab" }, "\u2194"),
+                    React.createElement("div", { className: "cycle-node cycle-node-b" },
+                        React.createElement(CycleNode, { label: "Reactor pre-read start", type: "event-start", tone: C.sage, value: eventValue, onChange: (value) => dispatch({ type: "edit-endpoint", endpoint: refs.cycleEvent, value, actor: "event" }) })),
+                    React.createElement("div", { className: "cycle-edge cycle-edge-bc" }, "\u2194"),
+                    React.createElement("div", { className: "cycle-node cycle-node-c" },
+                        React.createElement(CycleNode, { label: "Product demo booking", type: "booking-start", tone: C.rose, value: bookingValue, onChange: (value) => dispatch({ type: "edit-endpoint", endpoint: refs.cycleBooking, value, actor: "booking" }) })),
+                    React.createElement("div", { className: "cycle-edge cycle-edge-ca" }, "\u2194")),
+                React.createElement("div", { className: "button-row cycle-buttons" },
+                    React.createElement(Button, { tone: C.blue, onClick: () => dispatch({ type: "edit-endpoint", endpoint: refs.cycleTask, value: taskValue + 2 * HOUR, actor: "move-task-two-hours" }) }, "move task +2h"),
+                    ids.map((id, index) => {
+                        const link = linkFor(state, id);
+                        const pairs = [
+                            [refs.cycleTask, refs.cycleEvent],
+                            [refs.cycleEvent, refs.cycleBooking],
+                            [refs.cycleBooking, refs.cycleTask],
+                        ];
+                        return link ? (React.createElement(Button, { key: id, danger: true, onClick: () => dispatch({ type: "remove-link", id }) },
+                            "remove edge ",
+                            index + 1)) : (React.createElement(Button, { key: id, tone: C.mint, onClick: () => ensureLink(id, pairs[index][0], pairs[index][1], index === 2 ? "require-consistent" : "prefer-left") },
+                            "restore edge ",
+                            index + 1));
+                    })))),
+        React.createElement("aside", { className: "scenario-side" },
+            React.createElement(Section, { title: "last transaction" },
+                React.createElement(Json, { value: state.lastTransaction ? {
+                        id: state.lastTransaction.id,
+                        command: state.lastTransaction.command,
+                        writes: state.lastTransaction.writes,
+                        relationActivations: state.lastTransaction.relationActivations,
+                        converged: state.lastTransaction.converged,
+                        error: state.lastTransaction.error,
+                    } : null, maxHeight: 440 })))));
+}
+function CompositionScenario({ state, runtime, dispatch }) {
+    const textLink = linkFor(state, "link-action-task-title");
+    const taskEventLink = linkFor(state, "link-task-event");
+    const actionItem = byId(byId(state.world.transcripts, "tr-jamie").actionItems, "ai-2");
+    const task = byId(state.world.tasks, "tk-4");
+    const event = byId(state.world.events, "e-17");
+    return (React.createElement(Section, { title: "Composition across independently declared links", right: React.createElement("div", { className: "button-row" },
+            React.createElement(Tag, { tone: C.red }, "action item"),
+            React.createElement("span", null, "\u2192"),
+            React.createElement(Tag, { tone: C.mustard }, "task"),
+            React.createElement("span", null, "\u2192"),
+            React.createElement(Tag, { tone: C.sage }, "event")) },
+        React.createElement("p", { className: "lead" }, "An equal-text relation can connect a transcript action item to a task title. The pre-existing task\u2194event relation then carries the change into the calendar. Neither relationship knows about the other."),
+        React.createElement("div", { className: "composition-flow" },
+            React.createElement(ObjectCard, { type: "actionitem", tone: C.red, title: "Transcript action item", subtitle: "tr-jamie / ai-2" },
+                React.createElement(TextArea, { rows: 4, value: actionItem.text, onChange: (event_) => dispatch({ type: "edit-endpoint", endpoint: refs.textActionItem, value: event_.currentTarget.value, actor: "transcript" }) })),
+            React.createElement("div", { className: "link-arrow" }, textLink ? "⇄" : "×"),
+            React.createElement(ObjectCard, { type: "task", tone: C.mustard, title: task.title, subtitle: "tk-4" },
+                React.createElement(Input, { value: task.title, onChange: (event_) => dispatch({ type: "edit-endpoint", endpoint: refs.textTask, value: event_.currentTarget.value, actor: "task-title" }) }),
+                React.createElement("div", { className: "readout" },
+                    "due ",
+                    fmtInstant(task.due))),
+            React.createElement("div", { className: "link-arrow" }, taskEventLink ? "⇄" : "×"),
+            React.createElement(ObjectCard, { type: "event", tone: C.sage, title: event.title, subtitle: "e-17" },
+                React.createElement("div", { className: "readout" }, fmtInstant(event.start)),
+                React.createElement("div", { className: "readout" },
+                    "duration ",
+                    Math.round((event.end - event.start) / 60_000),
+                    " min"))),
+        React.createElement("div", { className: "button-row composition-controls" },
+            textLink ? React.createElement(LinkControls, { link: textLink, relation: runtime.relations.get(textLink.relation), dispatch: dispatch, compact: true }) : (React.createElement(Button, { tone: C.mint, onClick: () => dispatch({ type: "create-link", id: "link-action-task-title", relation: "equal-text", left: refs.textActionItem, right: refs.textTask, policy: "prefer-left" }) }, "link action item to task title")),
+            !taskEventLink ? (React.createElement(Button, { tone: C.mint, onClick: () => dispatch({ type: "create-link", id: "link-task-event", relation: "task-event-focus", left: refs.taskEventTask, right: refs.taskEventEvent, policy: "prefer-left" }) }, "restore task\u2194event link")) : null)));
+}
+function LawAudit() {
+    const reports = useMemo(() => [
+        auditRelation(equalInstant, [
+            { label: "different instants", left: 100, right: 200 },
+            { label: "equal instants", left: 300, right: 300 },
+        ]),
+        auditRelation(equalContactSet, [
+            { label: "overlapping sets", left: ["a", "b"], right: ["b", "c"] },
+            { label: "same set, different order", left: ["c", "a"], right: ["a", "c"] },
+        ]),
+        auditRelation(taskEventFocus, [
+            {
+                label: "task and focus block",
+                left: { title: "Write the deck", due: 1_000, project: "p", status: "todo" },
+                right: { title: "Focus: old title", start: 500, end: 4_100, kind: "focus", notes: "" },
+            },
+        ]),
+        auditRelation(roundedTemperatureCounterexample, [
+            { label: "33°F loses a degree on round trip", left: 0, right: 33 },
+        ]),
+        auditRelation(brokenBooleanCounterexample, [
+            { label: "bad right putback", left: false, right: true },
+        ]),
+    ], []);
+    return (React.createElement(Section, { title: "Executable law audit", right: React.createElement(Tag, { tone: reports.every((report) => report.passed) ? C.green : C.mustard },
+            reports.filter((report) => report.passed).length,
+            "/",
+            reports.length,
+            " relation specs pass") },
+        React.createElement("p", { className: "lead" }, "The audit is intentionally capable of failure. A typed API cannot certify arbitrary putback code merely because it has the right function signature. Counterexamples expose lossy round trips and repairs that do not restore consistency."),
+        React.createElement("div", { className: "audit-grid" }, reports.map((report) => (React.createElement("article", { key: report.relation, className: `audit-card ${report.passed ? "audit-pass" : "audit-fail"}` },
+            React.createElement("header", null,
+                React.createElement("b", null, report.relation),
+                React.createElement(StatusPill, { status: report.passed ? "consistent" : "error" })),
+            React.createElement("div", { className: "audit-checks" }, report.checks.map((item) => (React.createElement("details", { key: item.name, open: !item.passed },
+                React.createElement("summary", null,
+                    React.createElement("span", { className: item.passed ? "check-pass" : "check-fail" }, item.passed ? "✓" : "✕"),
+                    " ",
+                    item.name),
+                !item.passed ? React.createElement(Json, { value: item.details, maxHeight: 200 }) : null))))))))));
+}
+function TraceView({ state, dispatch }) {
+    const rows = [...state.trace].reverse();
+    return (React.createElement(Section, { title: `Trace · ${state.trace.length}`, right: React.createElement("div", { className: "button-row" },
+            React.createElement(Button, { onClick: () => downloadText("p08-runtime-state.json", serializeRuntimeState(state)) }, "export state"),
+            React.createElement(Button, { danger: true, onClick: () => dispatch({ type: "clear-trace" }) }, "clear")) },
+        React.createElement("p", { className: "lead" }, "Every command, endpoint write, repair, conflict, and convergence failure is recorded with a revision and transaction identifier."),
+        React.createElement("div", { className: "trace-table-wrap" },
+            React.createElement("table", { className: "trace-table" },
+                React.createElement("thead", null,
+                    React.createElement("tr", null,
+                        React.createElement("th", null, "seq"),
+                        React.createElement("th", null, "rev"),
+                        React.createElement("th", null, "tx"),
+                        React.createElement("th", null, "event"),
+                        React.createElement("th", null, "data"))),
+                React.createElement("tbody", null, rows.map((row) => (React.createElement("tr", { key: row.seq },
+                    React.createElement("td", null, row.seq),
+                    React.createElement("td", null, row.revision),
+                    React.createElement("td", null, row.transaction),
+                    React.createElement("td", null,
+                        React.createElement("b", null, row.type)),
+                    React.createElement("td", null,
+                        React.createElement("code", null, JSON.stringify(row.data)))))))),
+            !rows.length ? React.createElement(Empty, null, "Trace is empty.") : null)));
+}
+function App() {
+    const runtime = useMemo(() => createDemoRuntime(), []);
+    const [state, setState] = useState(() => createDemoState(runtime.engine));
+    const [tab, setTab] = useState("structured");
+    const [selectedLink, setSelectedLink] = useState("link-task-event");
+    const dispatch = useCallback((command) => {
+        setState((current) => runtime.engine.dispatch(current, command));
+    }, [runtime]);
+    const reset = () => {
+        setState(createDemoState(runtime.engine));
+        setSelectedLink("link-task-event");
+    };
+    const content = tab === "structured"
+        ? React.createElement(StructuredScenario, { state: state, runtime: runtime, dispatch: dispatch })
+        : tab === "sets"
+            ? React.createElement(SetScenario, { state: state, runtime: runtime, dispatch: dispatch })
+            : tab === "cycle"
+                ? React.createElement(CycleScenario, { state: state, runtime: runtime, dispatch: dispatch })
+                : tab === "composition"
+                    ? React.createElement(CompositionScenario, { state: state, runtime: runtime, dispatch: dispatch })
+                    : tab === "laws"
+                        ? React.createElement(LawAudit, null)
+                        : React.createElement(TraceView, { state: state, dispatch: dispatch });
+    return (React.createElement("div", { className: "app-shell" },
+        React.createElement("header", { className: "topbar" },
+            React.createElement("div", null,
+                React.createElement("b", { className: "brand" }, "P B U I"),
+                React.createElement("span", { className: "product" }, "P08 \u00B7 BIDIRECTIONAL LINKS & CONSISTENCY RESTORATION")),
+            React.createElement("div", { className: "topbar-metrics" },
+                React.createElement("span", null,
+                    state.links.length,
+                    " links"),
+                React.createElement("span", null,
+                    state.metrics.conflicts,
+                    " conflicts observed"),
+                React.createElement("span", null,
+                    state.metrics.endpointWrites,
+                    " writes"),
+                React.createElement(Button, { tone: C.mustard, onClick: reset }, "reset lab"))),
+        React.createElement("nav", { className: "tabs", "aria-label": "P08 experiments" }, tabs.map(([id, label]) => (React.createElement("button", { type: "button", key: id, className: tab === id ? "tab-active" : "", onClick: () => setTab(id) }, label)))),
+        React.createElement("div", { className: "body-grid" },
+            React.createElement("main", { className: "main-content" }, content),
+            React.createElement(LinkInspector, { state: state, runtime: runtime, dispatch: dispatch, selected: selectedLink, setSelected: setSelectedLink })),
+        React.createElement("footer", { className: "statusbar" },
+            React.createElement("b", null, runtime.engine.activeLinksAreConsistent(state) ? "ACTIVE LINKS CONSISTENT" : "ATTENTION REQUIRED"),
+            React.createElement("span", null, state.lastCommand?.ok === false ? `last command rejected: ${state.lastCommand.reason}` : "edits are transactional and traceable"),
+            React.createElement("span", { className: "statusbar-right" },
+                "revision ",
+                state.revision))));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App, null));
+</script>
+</body>
+</html>

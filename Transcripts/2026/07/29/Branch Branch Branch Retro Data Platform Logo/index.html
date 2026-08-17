@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Hyperslop Systems — slowly eating our owner's lunch." />
+  <title>Hyperslop Systems</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page-shell">
+    <header class="hero" aria-labelledby="site-title">
+      <div class="monogram" aria-hidden="true">HS</div>
+      <h1 id="site-title">Hyperslop Systems</h1>
+      <div class="brand-rule" aria-hidden="true">
+        <span class="green"></span><span class="purple"></span><span class="amber"></span><span class="red"></span>
+      </div>
+      <p class="tagline">slowly eating our owner’s lunch</p>
+    </header>
+
+    <section class="products" aria-label="Products">
+      <article class="product product--green">
+        <div class="icon-frame">
+          <img src="assets/icons/datalab.svg" alt="" />
+        </div>
+        <h2>Datalab</h2>
+        <p>Analyze and visualize data.</p>
+        <span class="status">In development</span>
+      </article>
+
+      <article class="product product--purple">
+        <div class="icon-frame">
+          <img src="assets/icons/agentlogic.svg" alt="" />
+        </div>
+        <h2>Agentlogic</h2>
+        <p>Analyze and visualize agent transcripts.</p>
+        <span class="status">Planned</span>
+      </article>
+
+      <article class="product product--amber">
+        <div class="icon-frame">
+          <img src="assets/icons/powersite.svg" alt="" />
+        </div>
+        <h2>Powersite</h2>
+        <p>Create focused websites for professional applications—logistics, CRM, and more.</p>
+        <span class="status">Planned</span>
+      </article>
+
+      <article class="product product--red">
+        <div class="icon-frame">
+          <img src="assets/icons/hyperlang.svg" alt="" />
+        </div>
+        <h2>Hyperlang</h2>
+        <p>Language design and proof workbench.</p>
+        <span class="status">Research</span>
+      </article>
+    </section>
+
+    <footer>
+      <span>© <span id="year"></span> Hyperslop Systems</span>
+      <span class="footer-note">Independent software experiments.</span>
+    </footer>
+  </main>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

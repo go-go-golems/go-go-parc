@@ -1,0 +1,4 @@
+835da1dca850e201396676b70a07fb3f07b1e0dbc49f2826d48f43fc8e3e01fa  /mnt/data/CNC_CAM_IR_Design_Report.md
+685fae387066f31f6c7db215afb387aec27f50b15348a554c7e134276bbe293e  /mnt/data/CNC_CAM_IR_Design_Report.pdf
+4bf15183f8e40fa1299abe1e960889e730f553f871779480eb0b14556c94505d  /mnt/data/cnc-cam-ir-code.zip
+41db163eedbf0b6d176e1c9d692ebc428cec3b1f1e3f2a2154aaf9b3faafeab2  /mnt/data/cnc-cam-ir-full-bundle.zip

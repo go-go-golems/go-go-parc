@@ -1,0 +1,40 @@
+[
+  {
+    "lawId": "negative-control-get-put",
+    "policyId": "intuitive-toggle-but-unlawful/0.1",
+    "input": {
+      "source": {
+        "rows": [
+          "row-13",
+          "row-11",
+          "row-9"
+        ]
+      },
+      "view": {
+        "selected": false
+      }
+    },
+    "minimizedInput": {
+      "source": {
+        "rows": []
+      },
+      "view": {
+        "selected": false
+      }
+    },
+    "observed": {
+      "evidence": "Incorrectly toggled membership regardless of requested view.",
+      "kind": "updated",
+      "value": {
+        "rows": [
+          "row-7"
+        ]
+      }
+    },
+    "expected": {
+      "sourceEquivalent": true
+    },
+    "shrinkSteps": 1,
+    "explanation": "The seeded toggle implementation violates put(s,get(s))=s because it toggles instead of establishing the requested view."
+  }
+]

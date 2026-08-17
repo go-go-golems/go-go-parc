@@ -1,0 +1,81 @@
+# P06 production source changes relative to P01-P03 implementation snapshot
+
+ADDED    pkg/effectlog/doc.go
+ADDED    pkg/effectlog/id.go
+ADDED    pkg/effectlog/log.go
+ADDED    pkg/effectlog/log_test.go
+MODIFIED pkg/flow/batch.go
+MODIFIED pkg/flow/bulk.go
+ADDED    pkg/flow/p06_semantics_test.go
+MODIFIED pkg/flow/report.go
+MODIFIED pkg/flow/run.go
+ADDED    pkg/flow/semantics.go
+ADDED    pkg/flow/snapshot.go
+MODIFIED pkg/flow/step.go
+ADDED    pkg/flow/trace.go
+ADDED    pkg/flowtest/compare.go
+ADDED    pkg/flowtest/compare_test.go
+ADDED    pkg/flowtest/doc.go
+MODIFIED pkg/rag/embedding/cached.go
+MODIFIED pkg/rag/generation/flow_step.go
+
+# P06 research handoff files
+README.md
+adapter/adapter.go
+adapter/adapter_test.go
+adapter/benchmark_test.go
+adapter/fault_test.go
+api.md
+assets/execution-boundaries.dot
+assets/execution-boundaries.png
+assets/execution-boundaries.svg
+assets/identity-hierarchy.dot
+assets/identity-hierarchy.png
+assets/identity-hierarchy.svg
+assets/locality-boundary.dot
+assets/locality-boundary.png
+assets/locality-boundary.svg
+cmd/p06-artifacts/main.go
+cmd/p06-demo/main.go
+compat/README.md
+compat/src/github.com/go-go-golems/logcopter/pkg/logcopter/logcopter.go
+compat/src/github.com/pkg/errors/errors.go
+compat/src/github.com/stretchr/testify/require/require.go
+compat/src/golang.org/x/sync/errgroup/errgroup.go
+contract-catalog.md
+demo.sh
+design.md
+fixtures/ambiguous-non-idempotent-retry.json
+fixtures/budget-stop.json
+fixtures/captured-retry-sequence.json
+fixtures/corrupt-cache.json
+fixtures/partial-batch-response.json
+fixtures/repeated-display-name.json
+fixtures/reversed-bulk-order.json
+fixtures/semantic-key-payload-collision.json
+fixtures/snapshot-global-barrier.json
+report.md
+results/raw/adapter-build-output.txt
+results/raw/benchmarks.txt
+results/raw/captured-effects.json
+results/raw/demo-output.json
+results/raw/experiment-summary.json
+results/raw/sample-flow-report.json
+results/raw/sample-operation-trace.jsonl
+results/raw/schema-validation.json
+results/raw/test-output.txt
+results/raw/vet-output.txt
+results.json
+schemas/captured-effect-event-v1.schema.json
+schemas/captured-effect-snapshot-v1.schema.json
+schemas/captured-effect-v1.schema.json
+schemas/flow-report-v2.schema.json
+schemas/operation-trace-v1.schema.json
+schemas/p06-fixture-v1.schema.json
+schemas/project-result.schema.json
+scripts/validate_artifacts.py
+standalone/api.go
+standalone/batch.go
+standalone/global.go
+standalone/model.go
+standalone/model_test.go

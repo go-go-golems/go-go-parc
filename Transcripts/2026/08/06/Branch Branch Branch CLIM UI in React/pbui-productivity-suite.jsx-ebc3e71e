@@ -1,0 +1,2704 @@
+import React, { useState, useRef, useEffect, useCallback, useContext, useMemo } from "react";
+
+/* ============================================================
+   PBUI · PERSONAL PRODUCTIVITY SUITE
+   Email · Calendar · Contacts · Tasks · Doodle · Transcripts
+
+   Every object on screen is a typed, LIVE presentation:
+     <message> <thread> <label> <contact> <event> <slot>
+     <task> <project> <transcript> <moment> <actionitem>
+     <link> <booking> <att>
+   plus the shell's own <tile> and <workspace>.
+
+   Left-click a presentation activates it (opens, jumps, etc).
+   Right-click it lists every verb that applies to it.
+   Some verbs need a second object — the shell enters ACCEPT MODE
+   and the correctly-typed presentations start pulsing across
+   every tile and every workspace until you pick one.
+
+   The point:
+     - "Reply to a thread" from Compose accepts a <thread> from
+       Inbox. "Schedule with them" from a Contact accepts a
+       <slot> from the Calendar. "File this action item" from a
+       Transcript accepts a <project> from Projects.
+     - Everything, everywhere, is a first-class object.
+   ============================================================ */
+
+/* ---------------- palette ---------------- */
+const C = {
+  paper: "#ffffff", pane: "#ffffff", paneAlt: "#f1f1ee",
+  ink: "#23262b", faint: "#7b8087", line: "#d9d9d4",
+  sage: "#7cae9b", blue: "#7aa6c9", rose: "#d59a86",
+  mustard: "#e0b95c", lavender: "#a99fc9", mint: "#8fc7b0",
+  red: "#c2503a", green: "#3f9d6b", sel: "#fdeec6",
+  add: "#e7f4ec", del: "#fbe9e4", warm: "#faf7ee",
+};
+
+/* ---------------- primitive helpers ---------------- */
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const kfmt = (n) => (n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + "k" : String(Math.round(n)));
+const pad2 = (n) => (n < 10 ? "0" + n : String(n));
+
+/* dates: everything is minutes-since-epoch or ms. Use a fixed "today" so the demo is stable */
+const TODAY = new Date(2026, 7, 3, 9, 20); // Monday, August 3 2026, 09:20
+const nowMs = () => TODAY.getTime();
+const day = 86400000, hour = 3600000, minute = 60000;
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const startOfDay = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const endOfDay = (t) => startOfDay(t) + day - 1;
+const startOfWeek = (t) => { const d = new Date(startOfDay(t)); d.setDate(d.getDate() - d.getDay()); return d.getTime(); };
+const sameDay = (a, b) => startOfDay(a) === startOfDay(b);
+const fmtTime = (t) => { const d = new Date(t); const h = d.getHours(); const m = d.getMinutes();
+  const h12 = h % 12 === 0 ? 12 : h % 12; return h12 + ":" + pad2(m) + (h >= 12 ? "p" : "a"); };
+const fmtDate = (t) => { const d = new Date(t); return MONTH_NAMES[d.getMonth()] + " " + d.getDate(); };
+const fmtDay = (t) => { const d = new Date(t); return DAY_NAMES[d.getDay()] + " " + MONTH_NAMES[d.getMonth()] + " " + d.getDate(); };
+const fmtRel = (t) => {
+  const diff = t - nowMs();
+  const abs = Math.abs(diff);
+  const s = diff < 0 ? " ago" : diff > 0 ? " from now" : "";
+  if (abs < minute) return "just now";
+  if (abs < hour) return Math.round(abs / minute) + "m" + s;
+  if (abs < day) return Math.round(abs / hour) + "h" + s;
+  if (abs < 7 * day) return Math.round(abs / day) + "d" + s;
+  return fmtDate(t);
+};
+const durText = (ms) => (ms >= hour ? (ms / hour).toFixed(ms % hour === 0 ? 0 : 1) + "h" : Math.round(ms / minute) + "m");
+
+/* ---------------- domain vocabularies ---------------- */
+const LABEL_TONE = {
+  Inbox: C.blue, Sent: C.faint, Drafts: C.mustard, Starred: C.mustard, Important: C.red,
+  Archive: C.faint, Trash: C.faint,
+  Investors: C.red, Team: C.mint, Customers: C.rose, Family: C.lavender,
+  Newsletters: C.faint, Receipts: C.faint, Fundraising: C.red, Hiring: C.sage,
+};
+const PRIO_TONE = { high: C.red, med: C.mustard, low: C.sage, "-": C.line };
+const STATUS_TONE = { todo: C.paneAlt, doing: C.mustard, done: C.sage, blocked: C.red, waiting: C.faint };
+const EV_KIND_TONE = {
+  meeting: C.blue, focus: C.sage, workout: C.mint, personal: C.lavender,
+  travel: C.mustard, interview: C.red, block: C.line, social: C.rose,
+};
+const CONTACT_TAG_TONE = {
+  team: C.mint, investor: C.red, customer: C.rose, family: C.lavender,
+  candidate: C.sage, advisor: C.mustard, mentor: C.blue, vendor: C.faint, personal: C.paneAlt,
+};
+
+let seqc = 1, notec = 1;
+const uid = (p) => (p || "n") + (seqc++);
+
+/* ============================================================
+   PBUI CORE — presentations + accept protocol
+   Every visible object goes through P. P renders a hover doc,
+   opens the right-click verb menu, and cooperates with the shell's
+   ACCEPT mode: when the shell is waiting for a value of a matching
+   type, P pulses and left-click resolves the promise.
+   ============================================================ */
+const UICtx = React.createContext(null);
+const useUI = () => useContext(UICtx);
+const typeMatches = (want, have) =>
+  want === "any" || (Array.isArray(want) ? want.includes(have) : want === have);
+
+function P({ ptype, value, doc, children, block, svg, onActivate, activateDoc, style }) {
+  const ui = useUI();
+  const acceptable = ui.accepting && typeMatches(ui.accepting.ptype, ptype);
+  const Tag = svg ? "g" : block ? "div" : "span";
+  const clickDoc = acceptable ? "L: ACCEPT   R: menu"
+    : onActivate ? "L: " + (activateDoc || "activate") + "   R: menu"
+      : "L/R: menu";
+  return (
+    <Tag
+      className={(svg ? "pres-svg" : "pres") + (acceptable ? " acceptable" : "")}
+      style={style}
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); ui.openMenu(ptype, value, e.clientX, e.clientY); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (acceptable) { e.preventDefault(); ui.accepting.resolve({ ptype, value }); ui.setAccepting(null); }
+        else if (onActivate) onActivate();
+        else ui.openMenu(ptype, value, e.clientX, e.clientY);
+      }}
+      onMouseEnter={() => ui.setMouseDoc((doc || "<" + ptype + "> " + ui.labelFor(ptype, value)) + "   —   " + clickDoc)}
+      onMouseLeave={() => ui.setMouseDoc(null)}
+    >{children}</Tag>
+  );
+}
+
+/* Pres — the default visual for an object re-presented by an app that
+   did not originate it (watchlist, search results, inspector links). */
+function Pres({ ptype, value }) {
+  const ui = useUI();
+  const label = ui.labelFor(ptype, value);
+  const tone = { thread: C.blue, message: C.blue, label: C.mustard, contact: C.lavender,
+    event: C.sage, slot: C.sage, task: C.mustard, project: C.rose, transcript: C.mint,
+    moment: C.mint, actionitem: C.red, link: C.rose, booking: C.rose, att: C.faint }[ptype] || C.paneAlt;
+  return (
+    <P ptype={ptype} value={value}>
+      <span style={{ background: C.pane, border: "1px solid " + C.ink, borderLeft: "4px solid " + tone, padding: "0 5px", fontSize: 11, whiteSpace: "nowrap" }}>{label}</span>
+    </P>
+  );
+}
+
+/* ============================================================
+   SEED DATA — a coherent week in the life of a founder
+   These are the mock records the whole app renders from.
+   The data model is deliberately flat and JSON-ish so the
+   Inspector shows every object as it really is.
+   ============================================================ */
+
+const seedContacts = [
+  { id: "c-sarah", name: "Sarah Chen", email: "sarah@cortexlabs.io", role: "Co-founder, Cortex Labs", tags: ["team"], phone: "+1 415 555 0142", notes: "Talks fast, thinks in systems. Push back on scope creep — she'll listen." },
+  { id: "c-marcus", name: "Marcus Reyes", email: "marcus@cortexlabs.io", role: "Design lead, Cortex Labs", tags: ["team"], phone: "+1 415 555 0187", notes: "Visual thinker. Bring sketches, not paragraphs." },
+  { id: "c-priya", name: "Priya Patel", email: "priya@reactorvc.com", role: "Partner, Reactor Ventures", tags: ["investor"], phone: "+1 650 555 0311", notes: "Reads term sheets like poetry. Prefers Signal for anything sensitive." },
+  { id: "c-michael", name: "Michael Zhou", email: "mzhou@reactorvc.com", role: "Partner, Reactor Ventures", tags: ["investor"], notes: "Priya's partner on the deal. Quiet in meetings, decides afterwards." },
+  { id: "c-alex", name: "Alex Kim", email: "alex@kimbookkeeping.com", role: "Accountant", tags: ["vendor"], notes: "Q3 books were clean. She'll want receipts by the 15th." },
+  { id: "c-dev", name: "Dev Sharma", email: "dev.sharma@woolery.law", role: "Corporate counsel, Woolery & Co", tags: ["vendor"], notes: "Bills in 6-minute increments. Batch questions." },
+  { id: "c-jamie", name: "Jamie Torres", email: "jamie@techflow.co", role: "Ops lead, TechFlow (customer)", tags: ["customer"], notes: "Champion on the TechFlow account. Losing her would be bad." },
+  { id: "c-robin", name: "Robin Nakamura", email: "robin.nakamura@gmail.com", role: "Advisor · ex-Stripe", tags: ["mentor", "advisor"], notes: "Monthly walk-and-talk. Comes prepared with a page of notes." },
+  { id: "c-nikhil", name: "Nikhil Rao", email: "nikhil.rao.dev@gmail.com", role: "Candidate · Sr. Engineer", tags: ["candidate"], notes: "Third interview cleared. Waiting on offer discussion." },
+  { id: "c-lisa", name: "Lisa Park", email: "lisapark@fastmail.com", role: "Candidate · Founding Designer", tags: ["candidate"], notes: "Signed offer — starts Aug 25. Set up laptop, benefits, doc access." },
+  { id: "c-elena", name: "Elena Voss", email: "elena@indexpodcast.fm", role: "Host, The Index Podcast", tags: ["personal"], notes: "" },
+  { id: "c-mom", name: "Mom", email: "linda.family@icloud.com", role: "Family", tags: ["family"], phone: "+1 617 555 0093", notes: "Prefers a phone call to email." },
+  { id: "c-ken", name: "Ken Watanabe", email: "ken@fractionaldesign.co", role: "Contract designer", tags: ["vendor"], notes: "Landing page revamp — invoice pending." },
+  { id: "c-diane", name: "Diane Foster", email: "diane.foster@northgateai.com", role: "Advisor · CEO, NorthGate AI", tags: ["advisor"], notes: "Introduced by Robin. Quarterly office hours." },
+  { id: "c-aisha", name: "Aisha Ibrahim", email: "aisha@meridiantalent.com", role: "Recruiter, Meridian", tags: ["vendor"], notes: "Sourcing for the ML infra role." },
+  { id: "c-daniel", name: "Daniel Weiss", email: "dweiss@techflow.co", role: "CTO, TechFlow (customer)", tags: ["customer"], notes: "Jamie's boss. Technical. Answer his questions precisely." },
+  { id: "c-me", name: "You", email: "me@founder.mail", role: "Founder & CEO, Cortex Labs", tags: [], notes: "This is you." },
+];
+
+const seedLabels = [
+  { id: "l-inbox", name: "Inbox", system: true },
+  { id: "l-sent", name: "Sent", system: true },
+  { id: "l-drafts", name: "Drafts", system: true },
+  { id: "l-starred", name: "Starred", system: true },
+  { id: "l-important", name: "Important", system: true },
+  { id: "l-archive", name: "Archive", system: true },
+  { id: "l-trash", name: "Trash", system: true },
+  { id: "l-fundraising", name: "Fundraising", system: false },
+  { id: "l-hiring", name: "Hiring", system: false },
+  { id: "l-customers", name: "Customers", system: false },
+  { id: "l-team", name: "Team", system: false },
+  { id: "l-family", name: "Family", system: false },
+  { id: "l-newsletters", name: "Newsletters", system: false },
+];
+
+/* -------- email threads --------
+   A thread carries messages in order. Times are relative to TODAY.
+   `labels` are label ids on the whole thread; `read` is per-message.
+*/
+const T = (h) => nowMs() - h * hour;
+const D = (d) => nowMs() - d * day;
+
+const seedThreads = [
+  { id: "t-priya-ts", subject: "Reactor — term sheet draft v3", labels: ["l-inbox", "l-fundraising", "l-important"], starred: true, msgs: [
+    { id: "m1", from: "c-priya", to: ["c-me"], t: D(4) + 3 * hour, read: true, body:
+"Attaching v2 of the term sheet. I softened the liquidation preference language per your call with Michael. Two things still open:\n\n1. Board composition — we'd like one seat, one independent to be mutually agreed.\n2. Option pool — we're modelling 12% pre-money. If your Aug hires close, we can go to 10%.\n\nCoffee this week?\n\n— P" },
+    { id: "m2", from: "c-me", to: ["c-priya"], t: D(3) - 2 * hour, read: true, body:
+"Priya —\n\nRead through. Board comp is fine as proposed. On the option pool: with Lisa signed and Nikhil pending, 10% works — but I want to reserve room for a founding engineer in Q1. Can we agree on a top-up mechanism at Series B?\n\nCoffee yes — Thursday morning?\n\n— A" },
+    { id: "m3", from: "c-priya", to: ["c-me"], t: D(1) - hour, read: false, body:
+"Thursday 9am works. I'll send calendar.\n\nOn the top-up: we can do a good-faith commitment letter, non-binding but clear about intent. Dev can help draft when we're closer to signing.\n\nOne more thing — Michael wants to spend 30 min on the ML infra roadmap. Can you send the latest deck ahead of Thursday?\n\n— P" },
+    { id: "m4", from: "c-priya", to: ["c-me"], cc: ["c-michael"], t: T(2), read: false, body:
+"Following up — deck for Thursday? Michael has time Wed evening if you want a pre-read.\n\n— P" },
+  ] },
+
+  { id: "t-sarah-q4", subject: "Q4 roadmap — a hard conversation", labels: ["l-inbox", "l-team", "l-important"], starred: false, msgs: [
+    { id: "m1", from: "c-sarah", to: ["c-me"], t: D(2) + 2 * hour, read: true, body:
+"I've been sitting with the Q4 doc since Monday and I need to push back on the scope. In order:\n\n- Enterprise SSO is a 6-week project, not a 2-week one, and we've had that argument before.\n- The eval framework isn't shippable without at least one design partner beyond TechFlow. Jamie is great but she's one voice.\n- We can't do both the mobile beta AND the API v2 in the same quarter with the current team, even with Nikhil.\n\nCan we do a 90-minute working session this week and cut? I'd rather ship two things well.\n\n— S" },
+    { id: "m2", from: "c-me", to: ["c-sarah"], t: D(2) + 4 * hour, read: true, body:
+"Agreed on all three. Let's do Wed 2pm — I'll block the room. Come with your two picks; I'll come with mine. Whichever four we agree on go in the plan, the rest slip to Q1 with dates.\n\n— A" },
+    { id: "m3", from: "c-sarah", to: ["c-me"], t: D(1) - 3 * hour, read: true, body:
+"Wed 2pm confirmed. Attaching my 'must-cut' list — read before we meet if you can." },
+    { id: "m4", from: "c-me", to: ["c-sarah"], t: T(20), read: true, body:
+"Read it. Interesting — I agree with the mobile cut but I think we can still ship a smaller SSO (SAML only, skip SCIM). Talk tomorrow.\n\n— A" },
+  ] },
+
+  { id: "t-nikhil-offer", subject: "Re: Cortex — next steps", labels: ["l-inbox", "l-hiring"], starred: true, msgs: [
+    { id: "m1", from: "c-nikhil", to: ["c-me"], t: D(3), read: true, body:
+"Hi — thanks for the panel yesterday, it was a good conversation. I especially liked digging into the eval framework with Sarah.\n\nA few questions before I share anything with my current team:\n\n1. What does the equity refresh look like at year 2?\n2. Is there flexibility on the start date? I'd want to give my current team 4 weeks, not 2.\n3. Can I meet Lisa before signing? You mentioned she's joining as founding designer.\n\nHappy to hop on a quick call.\n\n— N" },
+    { id: "m2", from: "c-me", to: ["c-nikhil"], t: D(2), read: true, body:
+"All fair questions. I'll answer them in order tomorrow AM after I sync with Dev on the refresh policy. On (3): yes, I'll introduce you — Lisa's off next week but back Aug 11.\n\n— A" },
+    { id: "m3", from: "c-nikhil", to: ["c-me"], t: T(14), read: false, body:
+"Sounds great. No rush — I told my current team I'd have a decision by end of month.\n\nOne more small ask: could you share a rough onboarding plan? Even 3 bullets. I like to see how a team thinks about ramp-up." },
+  ] },
+
+  { id: "t-jamie-onboard", subject: "TechFlow — onboarding feedback + a warning", labels: ["l-inbox", "l-customers", "l-important"], starred: false, msgs: [
+    { id: "m1", from: "c-jamie", to: ["c-me"], t: D(1) - 5 * hour, read: false, body:
+"Wanted to send this before our next sync while it's fresh.\n\nWins:\n- The setup wizard is night-and-day better than April.\n- Sarah's docs are excellent, my team actually reads them.\n\nProblems:\n- Daniel (CTO) is now asking real questions about SOC2 timing. Where are you actually?\n- Two of our senior analysts are pushing back on switching from their existing tool. If we can't get them across in 4 weeks, this rollout stalls.\n- Your pricing page still says 'beta' and it makes procurement nervous.\n\nHelp me help you.\n\n— J" },
+    { id: "m2", from: "c-me", to: ["c-jamie"], t: T(19), read: true, body:
+"Jamie — hearing all of this. Ranking: I'll get you a SOC2 timeline by Friday (we're in the audit-prep phase, so real dates, not aspirational ones). Analyst pushback: can you list the two specific features they're missing? I'd rather build the right ones than argue. Pricing page — done today.\n\n— A" },
+    { id: "m3", from: "c-jamie", to: ["c-me"], t: T(6), read: false, body:
+"Sending the feature list separately — probably 10 items, most tiny. Thanks for taking it seriously." },
+  ] },
+
+  { id: "t-dev-sh", subject: "Reactor term sheet — legal review", labels: ["l-inbox", "l-fundraising"], starred: false, msgs: [
+    { id: "m1", from: "c-dev", to: ["c-me"], t: T(30), read: true, body:
+"Reviewed v3. Three flags, none show-stoppers:\n\n(a) The 'protective provisions' list is broader than market — I'd trim two items.\n(b) The founder vesting reset is 12 months of credit. Norm is 24 for a Series A when you've been building 2+ years.\n(c) The anti-dilution is broad-based weighted average, which is fine, but the exception carve-outs are narrow.\n\nCall me when you have 20 minutes — this is easier out loud.\n\n— DS" },
+  ] },
+
+  { id: "t-marcus-ds", subject: "Design system — colour token bikeshed", labels: ["l-inbox", "l-team"], starred: false, msgs: [
+    { id: "m1", from: "c-marcus", to: ["c-me", "c-sarah"], t: T(28), read: true, body:
+"Doing the exercise you asked for. Two options attached — one is warmer (rose/mustard leaning), one cooler (blue/mint). Both work; I lean warmer for the marketing surface, cooler for the app itself.\n\nDecide by Wed and I'll ship the token PR." },
+    { id: "m2", from: "c-sarah", to: ["c-marcus", "c-me"], t: T(24), read: true, body:
+"Warmer for marketing, cooler for app. Ship it." },
+    { id: "m3", from: "c-me", to: ["c-marcus", "c-sarah"], t: T(23), read: true, body: "+1 to Sarah. Ship." },
+  ] },
+
+  { id: "t-mom", subject: "visit next month", labels: ["l-inbox", "l-family"], starred: false, msgs: [
+    { id: "m1", from: "c-mom", to: ["c-me"], t: T(50), read: true, body:
+"Hi honey — checking on Labor Day weekend. Dad wants to see you before your trip to SF. Long weekend, we can do the beach house. Let me know by Wednesday so I can book the ferry.\n\nLove you.\n— Mom" },
+    { id: "m2", from: "c-me", to: ["c-mom"], t: T(46), read: true, body:
+"Mom — sounds great, yes. I'll come Friday afternoon and drive back Monday. Should I bring anything?\n\nLove you.\n— A" },
+  ] },
+
+  { id: "t-elena-pod", subject: "Podcast invitation — The Index", labels: ["l-inbox"], starred: false, msgs: [
+    { id: "m1", from: "c-elena", to: ["c-me"], t: T(70), read: false, body:
+"Hi — I host The Index Podcast (300k downloads/mo, tech founders, medium-depth interviews). Robin Nakamura suggested I reach out.\n\nWe'd love to have you talk about the Cortex thesis and what you've learned about eval frameworks. 45 minutes, remote, edit to about 40.\n\nAre you open in late August or September? Two available time windows below — or grab one that works for you." },
+  ] },
+
+  { id: "t-alex-q3", subject: "Q3 books — ready for your review", labels: ["l-inbox"], starred: false, msgs: [
+    { id: "m1", from: "c-alex", to: ["c-me"], t: T(56), read: false, body:
+"Q3 close is done. Attached: P&L, cash flow, and a reconciliation memo for the three unusual entries (all above board — I've flagged them for your eye anyway).\n\nRunway on current burn: 14 months. If Reactor closes at the discussed size, that goes to 26 months.\n\nBoard package will need a revenue forecast update from Sarah before Sep 15.\n\n— Alex" },
+  ] },
+
+  { id: "t-robin", subject: "walk this week?", labels: ["l-inbox"], starred: false, msgs: [
+    { id: "m1", from: "c-robin", to: ["c-me"], t: T(4), read: false, body:
+"Free Wednesday morning? I want to hear how the term sheet is going, and I've been thinking about your Q4 planning problem — I have an old anecdote from Stripe you might find useful. Usual loop through the park." },
+  ] },
+
+  { id: "t-ken", subject: "Landing page — v2 ready + invoice", labels: ["l-inbox"], starred: false, msgs: [
+    { id: "m1", from: "c-ken", to: ["c-me"], t: D(2), read: true, body:
+"v2 is on staging. Two things to look at: the hero (I made it quieter), and the pricing block (kept the beta tag for now, per Marcus). Attached invoice for phases 1-2." },
+    { id: "m2", from: "c-me", to: ["c-ken"], t: T(45), read: true, body: "Looks great — approved. Alex will pay the invoice within 10 days." },
+  ] },
+
+  { id: "t-diane", subject: "Q3 advisor check-in — reschedule", labels: ["l-inbox"], starred: false, msgs: [
+    { id: "m1", from: "c-diane", to: ["c-me"], t: T(80), read: false, body:
+"Something came up — need to move our Thursday office hours to next week. Grab any 60-min slot that works." },
+  ] },
+
+  { id: "t-aisha", subject: "ML infra role — three new candidates", labels: ["l-inbox", "l-hiring"], starred: false, msgs: [
+    { id: "m1", from: "c-aisha", to: ["c-me"], t: T(9), read: false, body:
+"Three profiles for the ML infra role. Top of my list is Priya S. (ex-Anthropic, coming off a burnout year, sharp). Attached CVs, notes at top of each. Let me know who to move forward.\n\n— A" },
+  ] },
+
+  { id: "t-daniel", subject: "SOC2 timeline — Daniel's ask", labels: ["l-inbox", "l-customers"], starred: false, msgs: [
+    { id: "m1", from: "c-daniel", to: ["c-me"], cc: ["c-jamie"], t: T(38), read: false, body:
+"Jamie mentioned SOC2 is in progress. I need a firm date for Type II — our security team is asking me. If it's after Q1 2027 we may need to escalate to legal on our end. Straightforward answer is best." },
+  ] },
+
+  { id: "t-newsletter-1", subject: "Stratechery — Weekly Article", labels: ["l-inbox", "l-newsletters"], starred: false, msgs: [
+    { id: "m1", from: "c-me", to: ["c-me"], t: T(2), read: false, body: "This week's article on platform bundling. 14-minute read. Preview: 'The interesting thing about the AI incumbents is how quickly they've become platforms...'" },
+  ] },
+
+  { id: "t-mzhou", subject: "quick question on the deck", labels: ["l-inbox", "l-fundraising"], starred: false, msgs: [
+    { id: "m1", from: "c-michael", to: ["c-me"], t: T(1), read: false, body:
+"Slide 14 (the ML infra roadmap) — is that 2-year plan predicated on hiring the ML infra lead, or on training the current team? Trying to understand the risk profile.\n\n— M" },
+  ] },
+];
+
+/* -------- calendar events --------
+   Times: start/end in ms. Attendees: contact ids.
+*/
+const dayAt = (dayOffset, hh, mm) => {
+  const d = new Date(startOfDay(nowMs()) + dayOffset * day);
+  d.setHours(hh, mm || 0, 0, 0);
+  return d.getTime();
+};
+
+const seedEvents = [
+  // Today (Mon)
+  { id: "e-1", title: "Daily standup", kind: "meeting", start: dayAt(0, 9, 30), end: dayAt(0, 9, 45), attendees: ["c-sarah", "c-marcus"], location: "Zoom", notes: "Standard 15. Sarah has an update on Q4 doc revisions." },
+  { id: "e-2", title: "Coffee — Robin", kind: "meeting", start: dayAt(0, 10, 30), end: dayAt(0, 11, 30), attendees: ["c-robin"], location: "The Blue Bottle on Valencia", notes: "Bring the Q4 doc. Ask about Stripe planning anecdote." },
+  { id: "e-3", title: "Focus: rewrite pitch narrative", kind: "focus", start: dayAt(0, 12, 0), end: dayAt(0, 14, 0), attendees: [], notes: "Slides 3-8. No meetings, no Slack." },
+  { id: "e-4", title: "Interview panel debrief · Nikhil", kind: "interview", start: dayAt(0, 15, 0), end: dayAt(0, 15, 30), attendees: ["c-sarah", "c-marcus"], notes: "Decide: offer yes/no, level, comp." },
+  { id: "e-5", title: "Weekly 1:1 with Sarah", kind: "meeting", start: dayAt(0, 16, 30), end: dayAt(0, 17, 30), attendees: ["c-sarah"], notes: "Q4 cut list. Fundraising status update. Nikhil offer." },
+
+  // Tomorrow (Tue)
+  { id: "e-6", title: "Board prep call", kind: "meeting", start: dayAt(1, 8, 30), end: dayAt(1, 9, 30), attendees: ["c-sarah"], location: "Zoom", notes: "Draft the board update memo. Priorities: revenue, hiring, product." },
+  { id: "e-7", title: "Focus: draft SOC2 timeline for Daniel", kind: "focus", start: dayAt(1, 10, 0), end: dayAt(1, 11, 30), attendees: [], notes: "" },
+  { id: "e-8", title: "Lunch — Marcus", kind: "meeting", start: dayAt(1, 12, 30), end: dayAt(1, 13, 30), attendees: ["c-marcus"], location: "Rintaro", notes: "Design system tokens signoff." },
+  { id: "e-9", title: "TechFlow QBR", kind: "meeting", start: dayAt(1, 14, 0), end: dayAt(1, 15, 0), attendees: ["c-jamie", "c-daniel"], location: "Zoom", notes: "Quarterly business review. Come with SOC2 answer and feature list response." },
+  { id: "e-10", title: "Yoga", kind: "workout", start: dayAt(1, 18, 0), end: dayAt(1, 19, 0), attendees: [], notes: "Reformer at Mission Cliffs." },
+
+  // Wed
+  { id: "e-11", title: "Q4 cut session with Sarah", kind: "meeting", start: dayAt(2, 14, 0), end: dayAt(2, 15, 30), attendees: ["c-sarah"], notes: "The hard conversation. See email thread." },
+  { id: "e-12", title: "Pre-read: Reactor deck run-through", kind: "focus", start: dayAt(2, 16, 30), end: dayAt(2, 18, 0), attendees: [], notes: "Michael's optional pre-read is at 19:00." },
+  { id: "e-13", title: "Pre-read with Michael (optional)", kind: "meeting", start: dayAt(2, 19, 0), end: dayAt(2, 19, 30), attendees: ["c-michael"], location: "Zoom", notes: "Only if the deck is ready." },
+
+  // Thu
+  { id: "e-14", title: "Coffee — Priya", kind: "meeting", start: dayAt(3, 9, 0), end: dayAt(3, 10, 0), attendees: ["c-priya"], location: "Sightglass, Mission", notes: "Term sheet walk-through. Bring Dev's flags." },
+  { id: "e-15", title: "Focus: rewrite hiring plan", kind: "focus", start: dayAt(3, 11, 0), end: dayAt(3, 13, 0), attendees: [], notes: "" },
+  { id: "e-16", title: "All-hands", kind: "meeting", start: dayAt(3, 15, 0), end: dayAt(3, 16, 0), attendees: ["c-sarah", "c-marcus"], location: "Office", notes: "Weekly team meeting." },
+
+  // Fri
+  { id: "e-17", title: "Focus: SOC2 timeline (send to Daniel)", kind: "focus", start: dayAt(4, 10, 0), end: dayAt(4, 12, 0), attendees: [], notes: "" },
+  { id: "e-18", title: "Nikhil offer call", kind: "meeting", start: dayAt(4, 13, 0), end: dayAt(4, 13, 30), attendees: ["c-nikhil"], notes: "Verbal offer + a-round context." },
+  { id: "e-19", title: "Wind-down · Long walk", kind: "personal", start: dayAt(4, 17, 0), end: dayAt(4, 18, 30), attendees: [], notes: "Presidio loop." },
+
+  // Weekend
+  { id: "e-20", title: "Farmers' market", kind: "personal", start: dayAt(5, 9, 0), end: dayAt(5, 10, 30), attendees: [], notes: "" },
+
+  // Past week
+  { id: "e-p1", title: "Panel interview — Nikhil", kind: "interview", start: dayAt(-4, 14, 0), end: dayAt(-4, 16, 0), attendees: ["c-nikhil", "c-sarah", "c-marcus"], notes: "System design + culture panel. Detailed notes in the transcript." },
+  { id: "e-p2", title: "Reactor first pitch", kind: "meeting", start: dayAt(-7, 10, 0), end: dayAt(-7, 11, 0), attendees: ["c-priya", "c-michael"], location: "Reactor offices", notes: "Full partner meeting." },
+  { id: "e-p3", title: "Customer interview — Jamie", kind: "meeting", start: dayAt(-3, 13, 0), end: dayAt(-3, 14, 0), attendees: ["c-jamie"], notes: "Onboarding pain-points. Transcript captured." },
+];
+
+/* -------- projects & tasks -------- */
+const seedProjects = [
+  { id: "p-fundraise", name: "Fundraise · Series A", color: C.red, notes: "Reactor lead, closing target Sep 30." },
+  { id: "p-cortex-q4", name: "Cortex · Q4 launch", color: C.blue, notes: "Public GA in November." },
+  { id: "p-hiring", name: "Hiring · Q3/Q4", color: C.sage, notes: "Two engineers + founding designer already signed." },
+  { id: "p-personal", name: "Personal", color: C.lavender, notes: "" },
+];
+
+const seedTasks = [
+  { id: "tk-1", title: "Send Reactor deck to Priya", project: "p-fundraise", prio: "high", status: "doing", due: dayAt(2, 12, 0), notes: "Michael also wants a Wed pre-read." },
+  { id: "tk-2", title: "Answer Michael's slide-14 question", project: "p-fundraise", prio: "high", status: "todo", due: dayAt(0, 17, 0), notes: "" },
+  { id: "tk-3", title: "Review Dev's three term-sheet flags", project: "p-fundraise", prio: "high", status: "todo", due: dayAt(2, 9, 0), notes: "Call Dev — easier out loud." },
+  { id: "tk-4", title: "Draft SOC2 timeline for Daniel", project: "p-cortex-q4", prio: "high", status: "todo", due: dayAt(4, 12, 0), notes: "Real dates, not aspirational ones." },
+  { id: "tk-5", title: "Ship pricing page — remove 'beta' tag", project: "p-cortex-q4", prio: "med", status: "doing", due: dayAt(0, 18, 0), notes: "" },
+  { id: "tk-6", title: "Cut Q4 scope with Sarah", project: "p-cortex-q4", prio: "high", status: "todo", due: dayAt(2, 15, 0), notes: "Wed 2pm session." },
+  { id: "tk-7", title: "Approve Marcus' design tokens PR", project: "p-cortex-q4", prio: "med", status: "todo", due: dayAt(2, 17, 0), notes: "Warmer for marketing, cooler for app." },
+  { id: "tk-8", title: "Confirm Nikhil offer details with Sarah", project: "p-hiring", prio: "high", status: "todo", due: dayAt(0, 16, 0), notes: "Level, comp, equity refresh." },
+  { id: "tk-9", title: "Reply to Nikhil w/ onboarding plan sketch", project: "p-hiring", prio: "med", status: "todo", due: dayAt(1, 12, 0), notes: "" },
+  { id: "tk-10", title: "Review 3 candidates from Aisha", project: "p-hiring", prio: "med", status: "todo", due: dayAt(1, 18, 0), notes: "" },
+  { id: "tk-11", title: "Onboarding kit for Lisa", project: "p-hiring", prio: "med", status: "todo", due: dayAt(15, 17, 0), notes: "Laptop, benefits, docs access, welcome lunch." },
+  { id: "tk-12", title: "Reply to Elena re: podcast", project: "p-personal", prio: "low", status: "todo", due: dayAt(6, 12, 0), notes: "" },
+  { id: "tk-13", title: "Book ferry for Labor Day", project: "p-personal", prio: "med", status: "todo", due: dayAt(2, 18, 0), notes: "Mom is waiting." },
+  { id: "tk-14", title: "Follow-up: TechFlow feature list", project: "p-cortex-q4", prio: "high", status: "waiting", due: null, notes: "Waiting on Jamie to send list." },
+  { id: "tk-15", title: "Pay Ken's invoice", project: "p-cortex-q4", prio: "low", status: "todo", due: dayAt(8, 17, 0), notes: "Alex handles." },
+  { id: "tk-16", title: "Reschedule Diane office hours", project: "p-personal", prio: "low", status: "todo", due: null, notes: "" },
+  { id: "tk-17", title: "Reactor deck: rewrite slides 3-8", project: "p-fundraise", prio: "high", status: "done", due: dayAt(-1, 18, 0), notes: "Done Sunday." },
+  { id: "tk-18", title: "Marcus design system exercise brief", project: "p-cortex-q4", prio: "med", status: "done", due: dayAt(-3, 18, 0), notes: "" },
+  { id: "tk-19", title: "Panel interview Nikhil", project: "p-hiring", prio: "high", status: "done", due: dayAt(-4, 16, 0), notes: "" },
+  { id: "tk-20", title: "Meditate 10min", project: "p-personal", prio: "low", status: "todo", due: dayAt(0, 8, 0), notes: "Recurring." },
+];
+
+/* -------- call transcripts --------
+   Moments carry a timestamp offset (seconds) from the call start,
+   the speaker id, and the utterance. Action items are extracted
+   with a link back to the moment that produced them.
+*/
+const seedTranscripts = [
+  { id: "tr-nikhil", title: "Panel interview · Nikhil Rao", start: dayAt(-4, 14, 0), durationS: 5400, source: "Google Meet",
+    participants: ["c-me", "c-sarah", "c-marcus", "c-nikhil"],
+    summary: "System design (eval framework), coding exercise, and a founder-fit conversation. Strong signal across all three panels. Sarah has one reservation (see moment m-14). Marcus is a strong yes.",
+    moments: [
+      { id: "m-1", t: 30, spk: "c-me", text: "Thanks for making the time, Nikhil. Sarah and Marcus will each take about 40 minutes, then we'll spend the last stretch on questions from your side. Sound good?" },
+      { id: "m-2", t: 46, spk: "c-nikhil", text: "That works. I'd love to ask a few things about the eval framework specifically — I did some homework on your blog posts." },
+      { id: "m-3", t: 320, spk: "c-sarah", text: "So the setup: you're evaluating a model that returns structured outputs, but the schema is loose. The naive thing is to grade on exact match, which underscores everything that's actually correct. How would you structure the eval?" },
+      { id: "m-4", t: 362, spk: "c-nikhil", text: "Right — I'd separate two concerns. First, a structural check: does it parse into the schema at all? That's a hard gate. Then, per-field, use different graders. Enum fields get exact match, free text gets a judge model or a rubric, numeric fields get tolerance windows." },
+      { id: "m-5", t: 611, spk: "c-sarah", text: "How do you keep the judge model honest? What if it's biased toward its own outputs?" },
+      { id: "m-6", t: 640, spk: "c-nikhil", text: "You cross-check with a different family of models. And you keep a golden set that humans have graded, so you can measure judge-model drift. If the judge diverges from humans on the golden set, you've got a problem before you've got a problem." },
+      { id: "m-7", t: 1820, spk: "c-marcus", text: "Different question — Sarah's told you what the tech looks like. What kind of team do you want to work in?" },
+      { id: "m-8", t: 1855, spk: "c-nikhil", text: "Small, high-trust, low-process. I've done both extremes. I want to be able to change my mind out loud and have that be welcome. And I want to write code that ships, not code that sits in review for a week." },
+      { id: "m-9", t: 3010, spk: "c-nikhil", text: "One question from me — what would make this hire a failure, in your view? What are you worried about?" },
+      { id: "m-10", t: 3054, spk: "c-me", text: "Honestly? The main risk is that we're 90% of the way through a hard quarter and I need someone who can carry a workstream without me being in every meeting. If a month in you're waiting for me to prioritise you, we've both failed." },
+      { id: "m-11", t: 4200, spk: "c-nikhil", text: "About the offer — I don't need a full package tomorrow, but a couple of things matter: I want a real onboarding runway, and I want to meet the founding designer before I sign." },
+      { id: "m-12", t: 4260, spk: "c-me", text: "Both fair. Lisa's off next week but back the week of the 11th." },
+      { id: "m-13", t: 5100, spk: "c-sarah", text: "Alright, closing thoughts from us — Marcus?" },
+      { id: "m-14", t: 5110, spk: "c-marcus", text: "Strong yes for me. He asks the questions I want senior people to ask." },
+      { id: "m-15", t: 5140, spk: "c-sarah", text: "I'm a yes with one caveat — I want to see how he handles being wrong in front of the team. The interview surface didn't give me that. Not a blocker, but something to watch in his first month." },
+    ],
+    actionItems: [
+      { id: "ai-1", momentId: "m-11", text: "Send Nikhil an onboarding plan sketch", assigned: "c-me", taskId: "tk-9" },
+      { id: "ai-2", momentId: "m-12", text: "Introduce Nikhil to Lisa week of Aug 11", assigned: "c-me", taskId: null },
+      { id: "ai-3", momentId: "m-15", text: "Design a first-month feedback checkpoint for Nikhil", assigned: "c-sarah", taskId: null },
+    ],
+  },
+
+  { id: "tr-jamie", title: "Customer call · Jamie Torres (TechFlow)", start: dayAt(-3, 13, 0), durationS: 3200, source: "Zoom",
+    participants: ["c-me", "c-jamie"],
+    summary: "Onboarding retrospective. Wins on setup and docs; genuine concerns on SOC2 and analyst adoption. Explicit warning that this rollout has a stall risk if the analyst tool problem isn't solved in 4 weeks.",
+    moments: [
+      { id: "m-1", t: 40, spk: "c-me", text: "How are you actually feeling about the rollout, thirty days in?" },
+      { id: "m-2", t: 55, spk: "c-jamie", text: "Cautiously good. The setup wizard is night-and-day from April — my team stopped complaining, and that's actually the highest compliment I can give a tool." },
+      { id: "m-3", t: 380, spk: "c-jamie", text: "But we've got a problem. Two of my senior analysts are still doing everything in their old tool and haven't moved a single workflow over. If I can't get them across in four weeks, the whole rollout stalls out." },
+      { id: "m-4", t: 420, spk: "c-me", text: "What specifically is missing?" },
+      { id: "m-5", t: 445, spk: "c-jamie", text: "I'll send a full list — probably ten items, most small. But two big ones: they need saved views that are shareable across the team, and they need an audit trail on data changes." },
+      { id: "m-6", t: 1600, spk: "c-jamie", text: "The other thing I want to flag — Daniel is now asking hard questions about SOC2. Not academic, he needs a real date." },
+      { id: "m-7", t: 1638, spk: "c-me", text: "Understood. I'll get you a real timeline by Friday." },
+      { id: "m-8", t: 2400, spk: "c-jamie", text: "Last thing — your pricing page still says beta. It made our procurement flag the contract for extra review. Small thing, but real." },
+    ],
+    actionItems: [
+      { id: "ai-1", momentId: "m-5", text: "Get feature list from Jamie (~10 items)", assigned: "c-me", taskId: "tk-14" },
+      { id: "ai-2", momentId: "m-7", text: "Send Daniel real SOC2 timeline by Friday", assigned: "c-me", taskId: "tk-4" },
+      { id: "ai-3", momentId: "m-8", text: "Remove 'beta' tag from pricing page", assigned: "c-me", taskId: "tk-5" },
+    ],
+  },
+
+  { id: "tr-reactor", title: "Investor call · Priya Patel (Reactor)", start: dayAt(-7, 10, 0), durationS: 2900, source: "Google Meet",
+    participants: ["c-me", "c-priya", "c-michael"],
+    summary: "Full-partner pitch. Priya driving, Michael quiet but pointed on technical risk. Signal was strong — term sheet arrived four days later.",
+    moments: [
+      { id: "m-1", t: 20, spk: "c-priya", text: "Michael and I have both read the memo. Let's start with the two-year picture — what does 'winning' look like for Cortex in 2027?" },
+      { id: "m-2", t: 40, spk: "c-me", text: "Winning is being the reference eval framework for teams shipping serious AI product. Not the biggest, but the one senior engineers reach for by default. That means winning the top ten AI-native companies in the next 18 months." },
+      { id: "m-3", t: 900, spk: "c-michael", text: "The ML infra side of the roadmap. Is that predicated on hiring one senior person, or on training the team you have?" },
+      { id: "m-4", t: 940, spk: "c-me", text: "Both, honestly. The senior hire de-risks the timeline by four to six months. If we don't get her, we ship a smaller v1 and hire junior. But the plan is real either way." },
+      { id: "m-5", t: 1800, spk: "c-priya", text: "Let's talk about the competitive landscape. Anthropic and OpenAI are both moving into evals. How do you not get squeezed?" },
+      { id: "m-6", t: 1830, spk: "c-me", text: "By being the neutral party. They can't credibly evaluate their own models. We can. That's a durable position." },
+    ],
+    actionItems: [
+      { id: "ai-1", momentId: "m-3", text: "Answer Michael's ML infra question in writing", assigned: "c-me", taskId: "tk-2" },
+    ],
+  },
+];
+
+/* -------- doodle-style booking links -------- */
+const seedLinks = [
+  { id: "lk-30", slug: "founder-30", title: "30-min intro chat", durationM: 30, buffer: 10,
+    description: "Book a 30-minute intro conversation. I'm most useful when you have a specific question in mind — put it in the notes field.",
+    availability: { days: [1, 2, 3, 4], windows: [{ h: 10, m: 0, len: 90 }, { h: 14, m: 0, len: 120 }] },
+    active: true, requireApproval: false, url: "https://founder.me/founder-30",
+  },
+  { id: "lk-60", slug: "product-demo", title: "60-min product demo", durationM: 60, buffer: 15,
+    description: "Full product walkthrough with Q&A. Best for teams evaluating Cortex for a real use-case. I'll send a short pre-read questionnaire on booking.",
+    availability: { days: [2, 4], windows: [{ h: 13, m: 0, len: 180 }] },
+    active: true, requireApproval: true, url: "https://founder.me/product-demo",
+  },
+  { id: "lk-coffee", slug: "coffee-founders", title: "Coffee with a founder", durationM: 45, buffer: 15,
+    description: "In-person coffee for other founders (any stage, any market). I answer roughly one of these per week — first-come, first-served.",
+    availability: { days: [5], windows: [{ h: 8, m: 30, len: 180 }] },
+    active: true, requireApproval: false, url: "https://founder.me/coffee-founders",
+  },
+  { id: "lk-office", slug: "office-hours", title: "Portfolio office hours", durationM: 45, buffer: 15,
+    description: "For founders in our advisor network. Password-gated.",
+    availability: { days: [3], windows: [{ h: 11, m: 0, len: 180 }] },
+    active: false, requireApproval: true, url: "https://founder.me/office-hours",
+  },
+];
+
+const seedBookings = [
+  { id: "bk-1", linkId: "lk-30", name: "Yolanda Ross", email: "yolanda@newco.io", start: dayAt(1, 14, 30), notes: "Thinking about an eval framework for our RAG pipeline. Would love your take on where to start.", status: "confirmed" },
+  { id: "bk-2", linkId: "lk-30", name: "Ethan Blake", email: "ethan@drift.dev", start: dayAt(3, 10, 30), notes: "Y-combinator alum — want to compare notes on Series A prep.", status: "confirmed" },
+  { id: "bk-3", linkId: "lk-60", name: "Priya Sharma", email: "priya@lumina.ai", start: dayAt(2, 13, 0), notes: "Evaluating vendors for our internal eval platform. Team of 4 engineers.", status: "pending" },
+  { id: "bk-4", linkId: "lk-coffee", name: "Ravi Krishnan", email: "ravi@k-labs.co", start: dayAt(5, 9, 0), notes: "Early-stage founder, developer tools space.", status: "confirmed" },
+  { id: "bk-5", linkId: "lk-30", name: "Casey Ng", email: "casey@sonata.dev", start: dayAt(4, 10, 0), notes: "Question about eval framework licensing.", status: "confirmed" },
+];
+
+/* ============================================================
+   WORLD — the one mutable source of truth.
+   Apps read state directly and call methods on the world to
+   mutate it. The world logs every mutation to a trace so the
+   Trace app can show the shell's own audit log.
+   ============================================================ */
+class World {
+  constructor() {
+    this.notify = null;
+    this.trace = [];
+
+    this.contacts = seedContacts.map((c) => ({ ...c }));
+    this.labels = seedLabels.map((l) => ({ ...l }));
+    this.threads = seedThreads.map((t) => ({ ...t, msgs: t.msgs.map((m) => ({ ...m })), labels: [...t.labels] }));
+    this.events = seedEvents.map((e) => ({ ...e, attendees: [...e.attendees] }));
+    this.projects = seedProjects.map((p) => ({ ...p }));
+    this.tasks = seedTasks.map((t) => ({ ...t }));
+    this.transcripts = seedTranscripts.map((tr) => ({ ...tr, moments: tr.moments.map((m) => ({ ...m })), actionItems: tr.actionItems.map((a) => ({ ...a })) }));
+    this.links = seedLinks.map((l) => ({ ...l }));
+    this.bookings = seedBookings.map((b) => ({ ...b }));
+
+    this.drafts = [];
+    this.watch = [];
+    this.inspected = { title: "welcome", value: { presentationType: "shell", note: "Right-click any presentation to see its verbs. Left-click to activate." } };
+
+    /* selections — what each app should focus on */
+    this.sel = {
+      label: "l-inbox",
+      thread: this.threads[0].id,
+      message: null,
+      contact: null,
+      event: this.events[0].id,
+      task: null,
+      project: null,
+      transcript: this.transcripts[0].id,
+      moment: null,
+      link: this.links[0].id,
+      calWeek: startOfWeek(nowMs()),
+      calView: "week",
+    };
+  }
+  bump() { this.notify && this.notify(); }
+  log(type, data) { this.trace.push({ seq: seqc++, type, data: data || {}, t: Date.now() }); this.bump(); }
+  inspect(title, value) { this.inspected = { title, value }; this.log("inspected", { title }); }
+  select(kind, value) { this.sel = { ...this.sel, [kind]: value }; this.bump(); }
+
+  /* ---------- lookups ---------- */
+  contact(id) { return this.contacts.find((c) => c.id === id); }
+  contactName(id) { const c = this.contact(id); return c ? c.name : id; }
+  label(id) { return this.labels.find((l) => l.id === id); }
+  thread(id) { return this.threads.find((t) => t.id === id); }
+  event(id) { return this.events.find((e) => e.id === id); }
+  task(id) { return this.tasks.find((t) => t.id === id); }
+  project(id) { return this.projects.find((p) => p.id === id); }
+  transcript(id) { return this.transcripts.find((t) => t.id === id); }
+  link(id) { return this.links.find((l) => l.id === id); }
+  booking(id) { return this.bookings.find((b) => b.id === id); }
+
+  threadFrom(t) { return t.msgs[0] ? t.msgs[0].from : null; }
+  threadLast(t) { return t.msgs[t.msgs.length - 1]; }
+  threadUnread(t) { return t.msgs.filter((m) => !m.read).length; }
+  threadsIn(labelId) { return this.threads.filter((t) => t.labels.includes(labelId) && !t.labels.includes("l-trash")); }
+  unreadIn(labelId) { return this.threadsIn(labelId).reduce((a, t) => a + this.threadUnread(t), 0); }
+
+  /* ---------- email ---------- */
+  markThreadRead(id, read) {
+    const t = this.thread(id); if (!t) return;
+    t.msgs.forEach((m) => { m.read = read !== false; });
+    this.log(read !== false ? "thread_read" : "thread_unread", { thread: id });
+  }
+  toggleStar(id) { const t = this.thread(id); if (!t) return; t.starred = !t.starred;
+    if (t.starred && !t.labels.includes("l-starred")) t.labels.push("l-starred");
+    else if (!t.starred) t.labels = t.labels.filter((l) => l !== "l-starred");
+    this.log("star_toggled", { thread: id, starred: t.starred }); }
+  archiveThread(id) { const t = this.thread(id); if (!t) return; t.labels = t.labels.filter((l) => l !== "l-inbox").concat(t.labels.includes("l-archive") ? [] : ["l-archive"]);
+    this.log("thread_archived", { thread: id }); }
+  trashThread(id) { const t = this.thread(id); if (!t) return; t.labels = ["l-trash"];
+    this.log("thread_trashed", { thread: id }); }
+  addThreadLabel(id, labelId) { const t = this.thread(id); if (!t || t.labels.includes(labelId)) return;
+    t.labels.push(labelId); this.log("thread_labeled", { thread: id, label: labelId }); }
+  removeThreadLabel(id, labelId) { const t = this.thread(id); if (!t) return;
+    t.labels = t.labels.filter((l) => l !== labelId); this.log("thread_unlabeled", { thread: id, label: labelId }); }
+  createLabel(name) { const id = uid("l-"); this.labels.push({ id, name, system: false });
+    this.log("label_created", { name }); return id; }
+  sendReply(threadId, body) {
+    const t = this.thread(threadId); if (!t) return;
+    const to = [this.threadFrom(t)].filter(Boolean);
+    t.msgs.push({ id: uid("m"), from: "c-me", to, t: nowMs(), read: true, body });
+    if (!t.labels.includes("l-sent")) t.labels.push("l-sent");
+    this.log("reply_sent", { thread: threadId, to });
+  }
+  sendNew(to, subject, body, labels) {
+    const id = uid("t-");
+    this.threads.unshift({ id, subject, labels: (labels || []).concat("l-sent"), starred: false,
+      msgs: [{ id: uid("m"), from: "c-me", to, t: nowMs(), read: true, body }] });
+    this.log("email_sent", { to, subject }); return id;
+  }
+  saveDraft(d) {
+    const existing = this.drafts.find((x) => x.id === d.id);
+    if (existing) Object.assign(existing, d, { savedAt: nowMs() });
+    else this.drafts.push({ ...d, id: d.id || uid("d"), savedAt: nowMs() });
+    this.log("draft_saved", { subject: d.subject });
+  }
+  dropDraft(id) { this.drafts = this.drafts.filter((d) => d.id !== id); this.log("draft_discarded", {}); }
+
+  /* ---------- calendar ---------- */
+  createEvent(e) {
+    const id = uid("e-");
+    this.events.push({ id, kind: "meeting", attendees: [], notes: "", location: "", title: "New event", ...e });
+    this.log("event_created", { id, title: e.title }); return id;
+  }
+  updateEvent(id, patch) { const e = this.event(id); if (!e) return; Object.assign(e, patch);
+    this.log("event_updated", { id }); }
+  deleteEvent(id) { this.events = this.events.filter((e) => e.id !== id); this.log("event_deleted", { id }); }
+  addEventAttendee(id, contactId) { const e = this.event(id); if (!e || e.attendees.includes(contactId)) return;
+    e.attendees.push(contactId); this.log("attendee_added", { event: id, contact: contactId }); }
+
+  /* ---------- tasks ---------- */
+  createTask(patch) {
+    const id = uid("tk-");
+    this.tasks.push({ id, prio: "med", status: "todo", due: null, notes: "", project: null, title: "New task", ...patch });
+    this.log("task_created", { id, title: patch.title });
+    return id;
+  }
+  updateTask(id, patch) { const t = this.task(id); if (!t) return; Object.assign(t, patch); this.log("task_updated", { id }); }
+  toggleTask(id) { const t = this.task(id); if (!t) return; t.status = t.status === "done" ? "todo" : "done"; this.log("task_toggled", { id, status: t.status }); }
+  cycleStatus(id) { const t = this.task(id); if (!t) return; const order = ["todo", "doing", "waiting", "done"]; t.status = order[(order.indexOf(t.status) + 1) % order.length]; this.log("task_cycled", { id, status: t.status }); }
+  setTaskProject(id, projectId) { const t = this.task(id); if (!t) return; t.project = projectId; this.log("task_filed", { id, project: projectId }); }
+  deleteTask(id) { this.tasks = this.tasks.filter((t) => t.id !== id); this.log("task_deleted", { id }); }
+  createProject(name) { const id = uid("p-"); this.projects.push({ id, name, color: C.blue, notes: "" }); this.log("project_created", { name }); return id; }
+
+  /* ---------- doodle ---------- */
+  createLink(patch) {
+    const id = uid("lk-");
+    this.links.push({ id, slug: "new-link-" + id, title: "New booking link", durationM: 30, buffer: 10,
+      description: "", availability: { days: [1, 2, 3, 4], windows: [{ h: 10, m: 0, len: 120 }] },
+      active: true, requireApproval: false, url: "https://founder.me/new-link-" + id, ...patch });
+    this.log("link_created", { id }); return id;
+  }
+  updateLink(id, patch) { const l = this.link(id); if (!l) return; Object.assign(l, patch); this.log("link_updated", { id }); }
+  toggleLink(id) { const l = this.link(id); if (!l) return; l.active = !l.active; this.log("link_toggled", { id, active: l.active }); }
+  deleteLink(id) { this.links = this.links.filter((l) => l.id !== id); this.bookings = this.bookings.filter((b) => b.linkId !== id); this.log("link_deleted", { id }); }
+  confirmBooking(id) { const b = this.booking(id); if (!b) return; b.status = "confirmed"; this.log("booking_confirmed", { id }); }
+  declineBooking(id) { const b = this.booking(id); if (!b) return; b.status = "declined"; this.log("booking_declined", { id }); }
+  bookingToEvent(id) {
+    const b = this.booking(id); if (!b) return;
+    const link = this.link(b.linkId);
+    const eid = this.createEvent({
+      title: (link ? link.title + " · " : "") + b.name,
+      kind: "meeting",
+      start: b.start,
+      end: b.start + (link ? link.durationM : 30) * minute,
+      location: "Zoom (auto-generated)",
+      notes: "External booking: " + b.name + " <" + b.email + ">\n\n" + (b.notes || ""),
+    });
+    this.log("booking_to_event", { booking: id, event: eid });
+    return eid;
+  }
+
+  /* ---------- transcripts ---------- */
+  moment(trId, mId) { const tr = this.transcript(trId); return tr && tr.moments.find((m) => m.id === mId); }
+  addActionItem(trId, momentId, text) {
+    const tr = this.transcript(trId); if (!tr) return;
+    const id = uid("ai-"); tr.actionItems.push({ id, momentId, text, assigned: "c-me", taskId: null });
+    this.log("actionitem_added", { transcript: trId, moment: momentId }); return id;
+  }
+  actionItemToTask(trId, aiId, projectId) {
+    const tr = this.transcript(trId); if (!tr) return;
+    const ai = tr.actionItems.find((a) => a.id === aiId); if (!ai) return;
+    const tk = this.createTask({ title: ai.text, project: projectId || null, prio: "med",
+      notes: "From transcript: " + tr.title + " (moment " + ai.momentId + ")" });
+    ai.taskId = tk;
+    this.log("actionitem_promoted", { ai: aiId, task: tk });
+    return tk;
+  }
+  contactFromSpeaker(trId, spk) { return spk; } // speakers are contact ids
+
+  /* ---------- watchlist ---------- */
+  watchAdd(ptype, value) { this.watch.push({ id: notec++, ptype, value }); this.log("watched", { ptype }); }
+  watchRemove(id) { this.watch = this.watch.filter((w) => w.id !== id); this.log("unwatched", {}); }
+
+  /* ---------- search ---------- */
+  search(q) {
+    const s = String(q || "").trim().toLowerCase();
+    if (!s) return { threads: [], contacts: [], events: [], tasks: [], transcripts: [], moments: [] };
+    const contains = (v) => String(v || "").toLowerCase().includes(s);
+    return {
+      threads: this.threads.filter((t) => contains(t.subject) || t.msgs.some((m) => contains(m.body))).slice(0, 20),
+      contacts: this.contacts.filter((c) => contains(c.name) || contains(c.email) || contains(c.role) || contains(c.notes)),
+      events: this.events.filter((e) => contains(e.title) || contains(e.notes) || contains(e.location)),
+      tasks: this.tasks.filter((t) => contains(t.title) || contains(t.notes)),
+      transcripts: this.transcripts.filter((tr) => contains(tr.title) || contains(tr.summary)),
+      moments: this.transcripts.flatMap((tr) => tr.moments.filter((m) => contains(m.text)).slice(0, 6).map((m) => ({ ...m, trId: tr.id, trTitle: tr.title }))).slice(0, 20),
+    };
+  }
+}
+
+/* ============================================================
+   WINDOW MANAGER — split-tree tiling with swap and split-dock.
+   ============================================================ */
+let idc = 1;
+const nid = () => "n" + idc++;
+function updateNode(node, id, fn) {
+  if (node.type === "leaf") return node.id === id ? fn(node) : node;
+  return { ...node, a: updateNode(node.a, id, fn), b: updateNode(node.b, id, fn) };
+}
+function removeLeaf(node, id) {
+  if (node.type === "leaf") return null;
+  if (node.a.type === "leaf" && node.a.id === id) return node.b;
+  if (node.b.type === "leaf" && node.b.id === id) return node.a;
+  return { ...node, a: removeLeaf(node.a, id) || node.a, b: removeLeaf(node.b, id) || node.b };
+}
+function findLeaf(node, id) { return node.type === "leaf" ? (node.id === id ? node : null) : findLeaf(node.a, id) || findLeaf(node.b, id); }
+function countLeaves(node) { return node.type === "leaf" ? 1 : countLeaves(node.a) + countLeaves(node.b); }
+function cloneTree(n) { return n.type === "leaf" ? { ...n } : { ...n, a: cloneTree(n.a), b: cloneTree(n.b) }; }
+const leaf = (app, doc) => ({ type: "leaf", id: nid(), app, doc });
+const split = (dir, a, b, r) => ({ type: dir, id: nid(), a, b, r: r == null ? 0.5 : r });
+
+const SNAPS_R = [0.25, 1 / 3, 0.5, 2 / 3, 0.75], STICK = 0.022;
+
+function WMDivider({ dir, containerRef, onRatio }) {
+  const drag = useRef(null);
+  const start = (e) => { const rect = containerRef.current.getBoundingClientRect(); drag.current = { rect }; e.preventDefault(); };
+  useEffect(() => {
+    const move = (e) => {
+      if (!drag.current) return;
+      const { rect } = drag.current;
+      const r0 = dir === "row" ? (e.clientX - rect.left) / rect.width : (e.clientY - rect.top) / rect.height;
+      let r = clamp(r0, 0.08, 0.92);
+      for (const s of SNAPS_R) if (Math.abs(r - s) < STICK) r = s;
+      onRatio(r);
+    };
+    const up = () => (drag.current = null);
+    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+    return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+  }, [dir, onRatio]);
+  return <div onMouseDown={start} style={{
+    cursor: dir === "row" ? "col-resize" : "row-resize",
+    background: C.ink, flexShrink: 0,
+    ...(dir === "row" ? { width: 4 } : { height: 4 }),
+  }} />;
+}
+
+function NodeView({ node }) { return node.type === "leaf" ? <TileView leafNode={node} /> : <SplitView node={node} />; }
+function SplitView({ node }) {
+  const ref = useRef(null);
+  const ui = useUI();
+  return (
+    <div ref={ref} style={{ flex: 1, display: "flex", flexDirection: node.type === "row" ? "row" : "column", minWidth: 0, minHeight: 0 }}>
+      <div style={{ flex: node.r + " 1 0", display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 }}><NodeView node={node.a} /></div>
+      <WMDivider dir={node.type} containerRef={ref} onRatio={(r) => ui.wm.setRatio(node.id, r)} />
+      <div style={{ flex: (1 - node.r) + " 1 0", display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 }}><NodeView node={node.b} /></div>
+    </div>
+  );
+}
+
+function TBtn({ onClick, children, doc, disabled }) {
+  const ui = useUI();
+  return (
+    <span onMouseEnter={() => ui.setMouseDoc(doc)} onMouseLeave={() => ui.setMouseDoc(null)}
+      onClick={disabled ? undefined : (e) => { e.stopPropagation(); onClick(); }}
+      style={{ cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.35 : 1, border: "1px solid " + C.ink, background: C.paneAlt, padding: "0 5px", fontSize: 10, fontWeight: 700, userSelect: "none", lineHeight: "15px" }}>{children}</span>
+  );
+}
+
+function TileView({ leafNode }) {
+  const ui = useUI(); const app = APPS[leafNode.app]; const Comp = app.comp;
+  const drag = ui.drag;
+  const isTarget = drag && drag.over === leafNode.id && drag.from !== leafNode.id;
+  const zone = isTarget ? drag.zone : null;
+  const zoneRect = zone === "left" ? { left: 0, top: 0, bottom: 0, width: "50%" }
+    : zone === "right" ? { right: 0, top: 0, bottom: 0, width: "50%" }
+      : zone === "top" ? { top: 0, left: 0, right: 0, height: "50%" }
+        : zone === "bottom" ? { bottom: 0, left: 0, right: 0, height: "50%" }
+          : zone === "center" ? { inset: 0 } : null;
+  return (
+    <div ref={(el) => ui.wm.registerRef(leafNode.id, el)} style={{
+      flex: 1, display: "flex", flexDirection: "column", border: "2px solid " + C.ink, background: C.pane,
+      minWidth: 0, minHeight: 0, position: "relative", opacity: drag && drag.from === leafNode.id ? 0.75 : 1,
+    }}>
+      {zoneRect && (
+        <div style={{ position: "absolute", ...zoneRect, zIndex: 5, pointerEvents: "none", background: "rgba(194,80,58,0.16)", border: "3px dashed " + C.red, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ background: C.pane, border: "2px solid " + C.ink, boxShadow: "2px 2px 0 " + C.ink, padding: "1px 8px", fontSize: 10.5, fontWeight: 700 }}>
+            {zone === "center" ? "⇄ swap apps" : "split-dock here"}
+          </span>
+        </div>
+      )}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, background: app.color, borderBottom: "2px solid " + C.ink, padding: "2px 6px", flexShrink: 0 }}>
+        <span onMouseDown={(e) => ui.wm.startDrag(leafNode.id, e)}
+          onMouseEnter={() => ui.setMouseDoc("drag ⠿ — drop on a tile's CENTER to swap apps, or near an EDGE to split-dock there")}
+          onMouseLeave={() => ui.setMouseDoc(null)}
+          style={{ cursor: "grab", fontWeight: 700, userSelect: "none" }}>⠿</span>
+        <P ptype="tile" value={leafNode.id} doc={"tile [" + app.title + "] — split / close / swap"}>
+          <b style={{ fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>{app.title}</b>
+        </P>
+        <span style={{ flex: 1 }} />
+        <select value={leafNode.app} onChange={(e) => ui.wm.setLeafApp(leafNode.id, e.target.value)} onMouseDown={(e) => e.stopPropagation()}
+          style={{ border: "1px solid " + C.ink, background: C.pane, fontSize: 10, padding: "0 2px", fontFamily: "inherit", maxWidth: 140 }}>
+          {Object.entries(APPS).map(([id, a]) => <option key={id} value={id}>{a.title}</option>)}
+        </select>
+        <TBtn doc="split this tile: new tile to the RIGHT" onClick={() => ui.wm.splitLeaf(leafNode.id, "row")}>⬌</TBtn>
+        <TBtn doc="split this tile: new tile BELOW" onClick={() => ui.wm.splitLeaf(leafNode.id, "col")}>⬍</TBtn>
+        <TBtn doc="close this tile (its sibling absorbs the space)" disabled={!ui.wm.canClose} onClick={() => ui.wm.closeLeaf(leafNode.id)}>✕</TBtn>
+      </div>
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}><Comp leafId={leafNode.id} /></div>
+    </div>
+  );
+}
+
+/* ============================================================
+   SHARED UI BITS — buttons, tags, bars, heads, chips
+   ============================================================ */
+const AppBody = ({ children, style }) => (<div style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "6px 8px", ...style }}>{children}</div>);
+const Hint = ({ children }) => <div style={{ color: C.faint, fontSize: 10.5, marginBottom: 6, lineHeight: 1.35 }}>{children}</div>;
+const Row = ({ children, style }) => <div style={{ display: "flex", gap: 5, alignItems: "center", flexWrap: "wrap", ...style }}>{children}</div>;
+function Btn({ onClick, children, tone, disabled, title }) {
+  return (
+    <button title={title} disabled={disabled} onClick={onClick} style={{
+      fontFamily: "inherit", fontSize: 11, fontWeight: 700, letterSpacing: "0.03em",
+      background: disabled ? C.paneAlt : (tone || C.blue), color: C.ink, border: "2px solid " + C.ink,
+      boxShadow: "2px 2px 0 " + C.ink, padding: "2px 9px", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1,
+    }}>{children}</button>
+  );
+}
+function Sel({ value, onChange, options, width }) {
+  return (
+    <select value={value == null ? "" : value} onChange={(e) => onChange(e.target.value)}
+      style={{ border: "1px solid " + C.ink, background: C.pane, fontSize: 10.5, padding: "1px 2px", fontFamily: "inherit", maxWidth: width || 138 }}>
+      {options.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
+    </select>
+  );
+}
+const Tag = ({ tone, children, title, dim }) => (
+  <span title={title} style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + (tone || C.paneAlt), background: dim ? C.paneAlt : C.pane, padding: "0 5px", fontSize: 10, whiteSpace: "nowrap" }}>{children}</span>
+);
+const Bar = ({ frac, tone, h, w }) => (
+  <span style={{ display: "inline-block", width: w || 46, height: h || 7, border: "1px solid " + C.ink, background: C.pane, verticalAlign: "middle" }}>
+    <span style={{ display: "block", width: clamp(frac, 0, 1) * 100 + "%", height: "100%", background: tone || C.blue }} />
+  </span>
+);
+const Head = ({ children, right }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 6, borderBottom: "2px solid " + C.ink, paddingBottom: 3, marginBottom: 6 }}>
+    <b style={{ fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase" }}>{children}</b>
+    <span style={{ flex: 1 }} />{right}
+  </div>
+);
+const Field = ({ label, children }) => (
+  <div style={{ marginBottom: 5 }}>
+    <div style={{ fontSize: 9, color: C.faint, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 1 }}>{label}</div>
+    {children}
+  </div>
+);
+const Input = ({ value, onChange, placeholder, style }) => (
+  <input value={value == null ? "" : value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
+    style={{ border: "1px solid " + C.ink, background: C.pane, fontSize: 11, padding: "2px 5px", fontFamily: "inherit", width: "100%", ...style }} />
+);
+const TextArea = ({ value, onChange, rows, placeholder, style }) => (
+  <textarea value={value == null ? "" : value} onChange={(e) => onChange(e.target.value)} rows={rows || 5} placeholder={placeholder}
+    style={{ border: "1px solid " + C.ink, background: C.pane, fontSize: 11, padding: "3px 5px", fontFamily: "inherit", width: "100%", resize: "vertical", lineHeight: 1.45, ...style }} />
+);
+const JsonView = ({ v, max }) => (
+  <pre style={{ fontSize: 10.5, background: C.paneAlt, border: "1px solid " + C.line, padding: 6, maxHeight: max || 380, overflow: "auto", whiteSpace: "pre-wrap", wordBreak: "break-word", margin: 0, lineHeight: 1.4 }}>
+    {typeof v === "string" ? v : JSON.stringify(v, null, 2)}
+  </pre>
+);
+
+/* ============================================================
+   PRESENTATION CHIPS — the atoms of this suite. Each one is a
+   small visual widget for its ptype; they compose everywhere.
+   ============================================================ */
+function ContactChip({ id, big }) {
+  const w = useUI().world; const c = w.contact(id);
+  if (!c) return <span style={{ color: C.faint }}>?</span>;
+  const tone = c.tags[0] ? CONTACT_TAG_TONE[c.tags[0]] || C.paneAlt : C.paneAlt;
+  return (
+    <P ptype="contact" value={id} onActivate={() => { w.select("contact", id); }} activateDoc="open in contacts"
+      doc={"<contact> " + c.name + " · " + c.role}>
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + tone, background: w.sel.contact === id ? C.sel : C.pane, padding: big ? "1px 7px" : "0 5px", fontSize: big ? 11 : 10, whiteSpace: "nowrap" }}>
+        {c.name}
+      </span>
+    </P>
+  );
+}
+
+function ThreadChip({ id, big }) {
+  const w = useUI().world; const t = w.thread(id);
+  if (!t) return null;
+  const unread = w.threadUnread(t) > 0;
+  return (
+    <P ptype="thread" value={id} onActivate={() => { w.select("thread", id); w.select("label", t.labels.find((l) => l.startsWith("l-inbox")) ? "l-inbox" : t.labels[0] || "l-inbox"); w.markThreadRead(id, true); }}
+      activateDoc="open in inbox"
+      doc={"<thread> " + t.subject + " · " + t.msgs.length + " msg" + (unread ? " · " + w.threadUnread(t) + " unread" : "")}>
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + C.blue, background: w.sel.thread === id ? C.sel : C.pane, padding: big ? "1px 7px" : "0 5px", fontSize: big ? 11 : 10, fontWeight: unread ? 700 : 400, whiteSpace: "nowrap", maxWidth: big ? 280 : 200, overflow: "hidden", textOverflow: "ellipsis", display: "inline-block", verticalAlign: "middle" }}>
+        {t.subject}
+      </span>
+    </P>
+  );
+}
+
+function EventChip({ id, big }) {
+  const w = useUI().world; const e = w.event(id);
+  if (!e) return null;
+  const tone = EV_KIND_TONE[e.kind] || C.paneAlt;
+  return (
+    <P ptype="event" value={id} onActivate={() => { w.select("event", id); }} activateDoc="open in calendar"
+      doc={"<event> " + e.title + " · " + fmtDay(e.start) + " " + fmtTime(e.start)}>
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + tone, background: w.sel.event === id ? C.sel : C.pane, padding: big ? "1px 7px" : "0 5px", fontSize: big ? 11 : 10, whiteSpace: "nowrap" }}>
+        {e.title}
+      </span>
+    </P>
+  );
+}
+
+function TaskChip({ id, big }) {
+  const w = useUI().world; const t = w.task(id);
+  if (!t) return null;
+  const tone = PRIO_TONE[t.prio];
+  const done = t.status === "done";
+  return (
+    <P ptype="task" value={id} onActivate={() => w.select("task", id)} activateDoc="focus in tasks"
+      doc={"<task> " + t.title + " · " + t.prio + " · " + t.status + (t.due ? " · due " + fmtDay(t.due) : "")}>
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + tone, background: w.sel.task === id ? C.sel : C.pane, padding: big ? "1px 7px" : "0 5px", fontSize: big ? 11 : 10, textDecoration: done ? "line-through" : "none", opacity: done ? 0.55 : 1, whiteSpace: "nowrap" }}>
+        {t.title}
+      </span>
+    </P>
+  );
+}
+
+function ProjectChip({ id, big }) {
+  const w = useUI().world; const p = w.project(id);
+  if (!p) return null;
+  return (
+    <P ptype="project" value={id} onActivate={() => w.select("project", id)} activateDoc="focus in projects"
+      doc={"<project> " + p.name}>
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + p.color, background: C.pane, padding: big ? "1px 7px" : "0 5px", fontSize: big ? 11 : 10, whiteSpace: "nowrap" }}>
+        {p.name}
+      </span>
+    </P>
+  );
+}
+
+function LabelChip({ id, big }) {
+  const w = useUI().world; const l = w.label(id);
+  if (!l) return null;
+  const tone = LABEL_TONE[l.name] || C.paneAlt;
+  return (
+    <P ptype="label" value={id} onActivate={() => w.select("label", id)} activateDoc="show its threads in inbox"
+      doc={"<label> " + l.name + " · " + w.threadsIn(id).length + " threads"}>
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + tone, background: w.sel.label === id ? C.sel : C.pane, padding: big ? "1px 7px" : "0 5px", fontSize: big ? 11 : 10, whiteSpace: "nowrap" }}>
+        {l.name}
+      </span>
+    </P>
+  );
+}
+
+function TranscriptChip({ id, big }) {
+  const w = useUI().world; const tr = w.transcript(id);
+  if (!tr) return null;
+  return (
+    <P ptype="transcript" value={id} onActivate={() => w.select("transcript", id)} activateDoc="open in transcript viewer"
+      doc={"<transcript> " + tr.title + " · " + fmtDay(tr.start)}>
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + C.mint, background: w.sel.transcript === id ? C.sel : C.pane, padding: big ? "1px 7px" : "0 5px", fontSize: big ? 11 : 10, whiteSpace: "nowrap" }}>
+        {tr.title}
+      </span>
+    </P>
+  );
+}
+
+function LinkChip({ id, big }) {
+  const w = useUI().world; const l = w.link(id);
+  if (!l) return null;
+  return (
+    <P ptype="link" value={id} onActivate={() => w.select("link", id)} activateDoc="configure"
+      doc={"<link> " + l.title + " · " + l.durationM + "m" + (l.active ? " · active" : " · disabled")}>
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + (l.active ? C.rose : C.line), background: w.sel.link === id ? C.sel : C.pane, padding: big ? "1px 7px" : "0 5px", fontSize: big ? 11 : 10, whiteSpace: "nowrap" }}>
+        {l.title}
+      </span>
+    </P>
+  );
+}
+
+function BookingChip({ id, big }) {
+  const w = useUI().world; const b = w.booking(id);
+  if (!b) return null;
+  const tone = b.status === "confirmed" ? C.sage : b.status === "pending" ? C.mustard : C.line;
+  return (
+    <P ptype="booking" value={id} doc={"<booking> " + b.name + " · " + fmtDay(b.start) + " " + fmtTime(b.start)}>
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + tone, background: C.pane, padding: big ? "1px 7px" : "0 5px", fontSize: big ? 11 : 10, whiteSpace: "nowrap" }}>
+        {b.name}
+      </span>
+    </P>
+  );
+}
+
+function MomentChip({ trId, mId }) {
+  const w = useUI().world; const tr = w.transcript(trId); const m = tr && w.moment(trId, mId);
+  if (!m) return null;
+  const mm = Math.floor(m.t / 60), ss = m.t % 60;
+  return (
+    <P ptype="moment" value={{ trId, mId }} onActivate={() => { w.select("transcript", trId); w.select("moment", mId); }} activateDoc="jump to this moment"
+      doc={"<moment> " + tr.title + " @ " + mm + ":" + pad2(ss)}>
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + C.mint, background: C.pane, padding: "0 5px", fontSize: 10, fontVariantNumeric: "tabular-nums" }}>
+        {mm}:{pad2(ss)}
+      </span>
+    </P>
+  );
+}
+
+function ActionItemChip({ trId, aiId }) {
+  const w = useUI().world; const tr = w.transcript(trId);
+  const ai = tr && tr.actionItems.find((a) => a.id === aiId);
+  if (!ai) return null;
+  return (
+    <P ptype="actionitem" value={{ trId, aiId }} doc={"<actionitem> " + ai.text + (ai.taskId ? " · promoted to task" : " · not yet promoted")}>
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + C.red, background: C.pane, padding: "0 5px", fontSize: 10, whiteSpace: "nowrap", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", display: "inline-block", verticalAlign: "middle" }}>
+        {ai.text}
+      </span>
+    </P>
+  );
+}
+
+/* ============================================================
+   APP · TODAY — the "what to do next" view
+   ============================================================ */
+function TodayApp() {
+  const w = useUI().world;
+  const t0 = startOfDay(nowMs()), t1 = t0 + day;
+  const todaysEvents = w.events.filter((e) => e.start >= t0 && e.start < t1).sort((a, b) => a.start - b.start);
+  const nextEvent = w.events.filter((e) => e.start > nowMs()).sort((a, b) => a.start - b.start)[0];
+  const urgentTasks = w.tasks.filter((t) => t.status !== "done" && t.prio === "high").sort((a, b) => (a.due || 1e15) - (b.due || 1e15)).slice(0, 6);
+  const unreadThreads = w.threadsIn("l-inbox").filter((t) => w.threadUnread(t) > 0).slice(0, 6);
+  const box = (label, value, tone) => (
+    <div style={{ border: "2px solid " + C.ink, boxShadow: "2px 2px 0 " + C.ink, borderLeft: "6px solid " + tone, padding: "3px 7px", minWidth: 84, background: C.pane }}>
+      <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
+      <div style={{ fontSize: 9, color: C.faint, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}</div>
+    </div>
+  );
+  return (
+    <AppBody>
+      <Head right={<span style={{ fontSize: 10, color: C.faint }}>{fmtDay(nowMs())}</span>}>today</Head>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+        {box("unread", w.unreadIn("l-inbox"), C.blue)}
+        {box("today's events", todaysEvents.length, C.sage)}
+        {box("high-prio open", urgentTasks.length, C.red)}
+        {box("bookings pending", w.bookings.filter((b) => b.status === "pending").length, C.mustard)}
+        {box("action items", w.transcripts.reduce((a, t) => a + t.actionItems.filter((x) => !x.taskId).length, 0), C.mint)}
+      </div>
+
+      {nextEvent && (
+        <div style={{ border: "2px solid " + C.ink, borderLeft: "6px solid " + C.red, boxShadow: "3px 3px 0 " + C.ink, padding: "5px 8px", marginBottom: 10, background: C.warm }}>
+          <div style={{ fontSize: 9, color: C.faint, letterSpacing: "0.08em" }}>UP NEXT · {fmtRel(nextEvent.start)}</div>
+          <Row style={{ marginTop: 2 }}>
+            <EventChip id={nextEvent.id} big />
+            <span style={{ fontSize: 10.5 }}>{fmtTime(nextEvent.start)}–{fmtTime(nextEvent.end)}</span>
+            {nextEvent.location && <span style={{ fontSize: 10.5, color: C.faint }}>· {nextEvent.location}</span>}
+          </Row>
+          {!!nextEvent.attendees.length && (
+            <Row style={{ marginTop: 3 }}>
+              <span style={{ fontSize: 9.5, color: C.faint }}>with</span>
+              {nextEvent.attendees.map((a) => <ContactChip key={a} id={a} />)}
+            </Row>
+          )}
+          {nextEvent.notes && <div style={{ fontSize: 10.5, marginTop: 4, lineHeight: 1.45, color: C.ink }}>{nextEvent.notes}</div>}
+        </div>
+      )}
+
+      <Head right={<span style={{ fontSize: 9.5, color: C.faint }}>{todaysEvents.length}</span>}>today's schedule</Head>
+      {!todaysEvents.length && <Hint>no events today.</Hint>}
+      {todaysEvents.map((e) => (
+        <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "2px 0", borderBottom: "1px dotted " + C.line, opacity: e.end < nowMs() ? 0.5 : 1 }}>
+          <span style={{ fontSize: 10.5, color: C.faint, width: 82, fontVariantNumeric: "tabular-nums" }}>{fmtTime(e.start)}–{fmtTime(e.end)}</span>
+          <EventChip id={e.id} />
+          {e.attendees.slice(0, 3).map((a) => <ContactChip key={a} id={a} />)}
+          {e.attendees.length > 3 && <span style={{ fontSize: 9.5, color: C.faint }}>+{e.attendees.length - 3}</span>}
+        </div>
+      ))}
+
+      <Head right={<span style={{ fontSize: 9.5, color: C.faint }}>{urgentTasks.length}</span>} >high priority</Head>
+      {!urgentTasks.length && <Hint>none.</Hint>}
+      {urgentTasks.map((t) => (
+        <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "2px 0", borderBottom: "1px dotted " + C.line }}>
+          <span onClick={() => w.toggleTask(t.id)} style={{ cursor: "pointer", display: "inline-block", width: 12, height: 12, border: "2px solid " + C.ink, background: t.status === "done" ? C.sage : C.pane }} />
+          <TaskChip id={t.id} />
+          {t.project && <ProjectChip id={t.project} />}
+          <span style={{ flex: 1 }} />
+          {t.due && <span style={{ fontSize: 10, color: t.due < nowMs() ? C.red : C.faint }}>{fmtRel(t.due)}</span>}
+        </div>
+      ))}
+
+      <Head right={<span style={{ fontSize: 9.5, color: C.faint }}>{unreadThreads.length} of {w.unreadIn("l-inbox")}</span>}>unread mail</Head>
+      {unreadThreads.map((t) => {
+        const last = w.threadLast(t);
+        return (
+          <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "2px 0", borderBottom: "1px dotted " + C.line }}>
+            <ContactChip id={w.threadFrom(t)} />
+            <ThreadChip id={t.id} />
+            <span style={{ flex: 1 }} />
+            <span style={{ fontSize: 10, color: C.faint }}>{fmtRel(last.t)}</span>
+          </div>
+        );
+      })}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · INBOX — labels + threads
+   ============================================================ */
+function InboxApp() {
+  const ui = useUI(); const w = ui.world;
+  const label = w.sel.label;
+  const threads = w.threadsIn(label).sort((a, b) => w.threadLast(b).t - w.threadLast(a).t);
+  const systemLabels = w.labels.filter((l) => l.system);
+  const custom = w.labels.filter((l) => !l.system);
+  const newLabel = async () => {
+    const name = window.prompt("new label name?");
+    if (name && name.trim()) w.createLabel(name.trim());
+  };
+  return (
+    <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
+      <div style={{ width: 168, borderRight: "2px solid " + C.ink, background: C.paneAlt, overflow: "auto", padding: "5px 6px", flexShrink: 0 }}>
+        <div style={{ fontSize: 9, color: C.faint, letterSpacing: "0.08em", marginBottom: 3 }}>MAIL</div>
+        {systemLabels.map((l) => {
+          const n = w.threadsIn(l.id).length;
+          const u = w.unreadIn(l.id);
+          const sel = w.sel.label === l.id;
+          return (
+            <div key={l.id} onClick={() => w.select("label", l.id)}
+              style={{ cursor: "pointer", padding: "2px 4px", background: sel ? C.sel : "transparent", marginBottom: 1, display: "flex", alignItems: "baseline", gap: 4 }}>
+              <span style={{ display: "inline-block", width: 6, height: 6, background: LABEL_TONE[l.name] || C.paneAlt, border: "1.5px solid " + C.ink, flexShrink: 0 }} />
+              <LabelChip id={l.id} />
+              <span style={{ flex: 1 }} />
+              {u > 0 && <span style={{ fontSize: 9.5, fontWeight: 700, color: C.red }}>{u}</span>}
+              <span style={{ fontSize: 9, color: C.faint }}>{n}</span>
+            </div>
+          );
+        })}
+        <div style={{ fontSize: 9, color: C.faint, letterSpacing: "0.08em", margin: "8px 0 3px" }}>LABELS</div>
+        {custom.map((l) => {
+          const n = w.threadsIn(l.id).length;
+          const u = w.unreadIn(l.id);
+          return (
+            <div key={l.id} onClick={() => w.select("label", l.id)}
+              style={{ cursor: "pointer", padding: "2px 4px", background: w.sel.label === l.id ? C.sel : "transparent", marginBottom: 1, display: "flex", alignItems: "baseline", gap: 4 }}>
+              <span style={{ display: "inline-block", width: 6, height: 6, background: LABEL_TONE[l.name] || C.paneAlt, border: "1.5px solid " + C.ink, flexShrink: 0 }} />
+              <LabelChip id={l.id} />
+              <span style={{ flex: 1 }} />
+              {u > 0 && <span style={{ fontSize: 9.5, fontWeight: 700, color: C.red }}>{u}</span>}
+              <span style={{ fontSize: 9, color: C.faint }}>{n}</span>
+            </div>
+          );
+        })}
+        <div style={{ marginTop: 4 }}><TBtn doc="create a new label" onClick={newLabel}>+ label</TBtn></div>
+      </div>
+      <AppBody>
+        <Head right={<Row>
+          <span style={{ fontSize: 10, color: C.faint }}>{threads.length} threads</span>
+          <TBtn doc="mark every visible thread as read" onClick={() => threads.forEach((t) => w.markThreadRead(t.id, true))}>read all</TBtn>
+        </Row>}>{w.label(label) ? w.label(label).name : "inbox"}</Head>
+        <Hint>right-click a thread to reply, forward, label, archive, or open a compose draft that quotes it.</Hint>
+        {!threads.length && <div style={{ color: C.faint, fontSize: 11 }}>no threads here.</div>}
+        {threads.map((t) => {
+          const last = w.threadLast(t);
+          const from = w.contact(w.threadFrom(t));
+          const unread = w.threadUnread(t) > 0;
+          const preview = String(last.body || "").replace(/\s+/g, " ").slice(0, 90);
+          return (
+            <div key={t.id} onClick={() => { w.select("thread", t.id); w.markThreadRead(t.id, true); }}
+              style={{ display: "flex", flexDirection: "column", gap: 2, padding: "4px 6px", borderBottom: "1px dotted " + C.line, background: w.sel.thread === t.id ? C.sel : "transparent", cursor: "pointer" }}>
+              <Row>
+                <span onClick={(e) => { e.stopPropagation(); w.toggleStar(t.id); }}
+                  style={{ cursor: "pointer", color: t.starred ? C.mustard : C.line, fontWeight: 700 }}>★</span>
+                {from && <ContactChip id={from.id} />}
+                <ThreadChip id={t.id} big />
+                <span style={{ flex: 1 }} />
+                <span style={{ fontSize: 9.5, color: C.faint }}>{t.msgs.length} msg</span>
+                <span style={{ fontSize: 9.5, color: unread ? C.red : C.faint, fontWeight: unread ? 700 : 400 }}>{fmtRel(last.t)}</span>
+              </Row>
+              <Row style={{ gap: 4 }}>
+                <span style={{ fontSize: 10.5, color: C.faint, lineHeight: 1.35 }}>{preview}{last.body.length > 90 ? "…" : ""}</span>
+              </Row>
+              <Row style={{ gap: 3 }}>
+                {t.labels.filter((l) => l !== "l-inbox" && l !== "l-sent").map((l) => <LabelChip key={l} id={l} />)}
+              </Row>
+            </div>
+          );
+        })}
+      </AppBody>
+    </div>
+  );
+}
+
+/* ============================================================
+   APP · THREAD — a single conversation, message by message
+   ============================================================ */
+function ThreadApp() {
+  const ui = useUI(); const w = ui.world;
+  const t = w.thread(w.sel.thread);
+  if (!t) return <AppBody><Hint>no thread selected. Pick one in the inbox.</Hint></AppBody>;
+  const [replyOpen, setReplyOpen] = useState(false);
+  const [replyBody, setReplyBody] = useState("");
+  useEffect(() => { setReplyOpen(false); setReplyBody(""); }, [t.id]);
+  const doSend = () => { if (replyBody.trim()) { w.sendReply(t.id, replyBody.trim()); setReplyOpen(false); setReplyBody(""); } };
+  return (
+    <AppBody>
+      <Head right={<Row>
+        <TBtn doc="star / unstar" onClick={() => w.toggleStar(t.id)}>{t.starred ? "★" : "☆"}</TBtn>
+        <TBtn doc="mark unread" onClick={() => w.markThreadRead(t.id, false)}>◐</TBtn>
+        <TBtn doc="archive" onClick={() => w.archiveThread(t.id)}>archive</TBtn>
+        <TBtn doc="trash" onClick={() => w.trashThread(t.id)}>trash</TBtn>
+      </Row>}>{t.subject}</Head>
+      <Row style={{ marginBottom: 6, gap: 4 }}>
+        {t.labels.map((l) => <LabelChip key={l} id={l} />)}
+        <span style={{ fontSize: 10, color: C.faint }}>· {t.msgs.length} messages</span>
+      </Row>
+      {t.msgs.map((m) => {
+        const from = w.contact(m.from);
+        return (
+          <div key={m.id} style={{ border: "1px solid " + C.line, borderLeft: "4px solid " + (m.from === "c-me" ? C.mint : C.blue), padding: "5px 7px", marginBottom: 6, background: m.from === "c-me" ? "#f6fbf9" : C.pane }}>
+            <Row style={{ marginBottom: 3 }}>
+              {from && <ContactChip id={from.id} />}
+              <span style={{ fontSize: 10, color: C.faint }}>to</span>
+              {m.to && m.to.map((c) => <ContactChip key={c} id={c} />)}
+              {m.cc && !!m.cc.length && <><span style={{ fontSize: 10, color: C.faint }}>cc</span>{m.cc.map((c) => <ContactChip key={c} id={c} />)}</>}
+              <span style={{ flex: 1 }} />
+              <span style={{ fontSize: 9.5, color: C.faint }}>{fmtDay(m.t)} {fmtTime(m.t)}</span>
+            </Row>
+            <div style={{ fontSize: 11, lineHeight: 1.5, whiteSpace: "pre-wrap", color: C.ink }}>{m.body}</div>
+          </div>
+        );
+      })}
+      <Row style={{ marginTop: 8 }}>
+        {!replyOpen && <Btn tone={C.blue} onClick={() => setReplyOpen(true)}>reply</Btn>}
+        {!replyOpen && <Btn tone={C.paneAlt} onClick={() => {
+          const from = w.threadFrom(t);
+          const all = [...new Set([from, ...t.msgs.flatMap((m) => (m.to || []).concat(m.cc || []))])].filter((x) => x && x !== "c-me");
+          w.saveDraft({ to: all, subject: "Re: " + t.subject.replace(/^Re:\s*/i, ""), body: "" });
+        }}>reply-all draft</Btn>}
+        {!replyOpen && <Btn tone={C.paneAlt} onClick={() => w.saveDraft({ subject: "Fwd: " + t.subject.replace(/^Fwd:\s*/i, ""), body: "\n\n----- forwarded -----\n" + t.msgs.map((m) => "From: " + w.contactName(m.from) + "\n" + m.body).join("\n\n") })}>forward</Btn>}
+      </Row>
+      {replyOpen && (
+        <div style={{ marginTop: 6, border: "2px solid " + C.ink, background: C.pane, padding: 6 }}>
+          <Row style={{ marginBottom: 4 }}>
+            <span style={{ fontSize: 10, color: C.faint }}>to</span>
+            <ContactChip id={w.threadFrom(t)} />
+          </Row>
+          <TextArea value={replyBody} onChange={setReplyBody} rows={7} placeholder="write your reply…" />
+          <Row style={{ marginTop: 5 }}>
+            <Btn tone={C.mint} onClick={doSend} disabled={!replyBody.trim()}>send</Btn>
+            <Btn tone={C.paneAlt} onClick={() => { w.saveDraft({ threadId: t.id, subject: "Re: " + t.subject, body: replyBody, to: [w.threadFrom(t)] }); setReplyOpen(false); setReplyBody(""); }}>save draft</Btn>
+            <Btn tone={C.paneAlt} onClick={() => { setReplyOpen(false); setReplyBody(""); }}>discard</Btn>
+            <span style={{ flex: 1 }} />
+            <TBtn doc="convert this thread into a task (accept a project)" onClick={async () => {
+              const r = await ui.accept("project", "FILE UNDER — pick a project for this follow-up task");
+              const pid = r ? r.value : null;
+              w.createTask({ title: "Follow up: " + t.subject, project: pid, prio: "med", notes: "From thread " + t.id });
+            }}>→ task</TBtn>
+          </Row>
+        </div>
+      )}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · COMPOSE — new email; accept contacts for recipients
+   ============================================================ */
+function ComposeApp() {
+  const ui = useUI(); const w = ui.world;
+  const [to, setTo] = useState([]);
+  const [cc, setCc] = useState([]);
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const addTo = async () => { const r = await ui.accept("contact", "PICK A RECIPIENT — accept a <contact> from any tile"); if (r) setTo((xs) => xs.includes(r.value) ? xs : xs.concat(r.value)); };
+  const addCc = async () => { const r = await ui.accept("contact", "PICK A CC — accept a <contact>"); if (r) setCc((xs) => xs.includes(r.value) ? xs : xs.concat(r.value)); };
+  const doSend = () => {
+    if (!to.length || !subject.trim()) return;
+    w.sendNew(to, subject.trim(), body, ["l-sent"]);
+    setTo([]); setCc([]); setSubject(""); setBody("");
+  };
+  return (
+    <AppBody>
+      <Head right={<Row>
+        <Btn tone={C.mint} onClick={doSend} disabled={!to.length || !subject.trim()}>send</Btn>
+        <Btn tone={C.paneAlt} onClick={() => w.saveDraft({ to, cc, subject, body })}>save draft</Btn>
+      </Row>}>compose</Head>
+      <Hint>every <b>contact</b> field accepts a &lt;contact&gt; presentation from anywhere — the contacts tile, an event's attendees, a transcript's speakers. Try it.</Hint>
+      <Field label="to">
+        <Row>
+          {to.map((c) => (<span key={c} style={{ position: "relative" }}>
+            <ContactChip id={c} />
+            <span onClick={() => setTo((xs) => xs.filter((x) => x !== c))} style={{ cursor: "pointer", color: C.red, marginLeft: 3, fontSize: 9 }}>✕</span>
+          </span>))}
+          <TBtn doc="accept a <contact>" onClick={addTo}>+ to</TBtn>
+        </Row>
+      </Field>
+      <Field label="cc">
+        <Row>
+          {cc.map((c) => (<span key={c} style={{ position: "relative" }}>
+            <ContactChip id={c} />
+            <span onClick={() => setCc((xs) => xs.filter((x) => x !== c))} style={{ cursor: "pointer", color: C.red, marginLeft: 3, fontSize: 9 }}>✕</span>
+          </span>))}
+          <TBtn doc="accept a <contact>" onClick={addCc}>+ cc</TBtn>
+        </Row>
+      </Field>
+      <Field label="subject"><Input value={subject} onChange={setSubject} placeholder="subject…" /></Field>
+      <Field label="body">
+        <TextArea value={body} onChange={setBody} rows={16} placeholder="write your message…" />
+      </Field>
+      <Row style={{ marginTop: 4 }}>
+        <TBtn doc="insert a booking link" onClick={async () => {
+          const r = await ui.accept("link", "PICK A BOOKING LINK to insert into this email");
+          if (r) { const l = w.link(r.value); setBody((b) => b + "\n\nYou can grab a time here: " + l.url); }
+        }}>insert link ↗</TBtn>
+        <TBtn doc="attach a transcript summary" onClick={async () => {
+          const r = await ui.accept("transcript", "PICK A TRANSCRIPT — its summary will be pasted into the body");
+          if (r) { const tr = w.transcript(r.value); setBody((b) => b + "\n\n[from " + tr.title + "]\n" + tr.summary); }
+        }}>attach transcript ↗</TBtn>
+      </Row>
+
+      {!!w.drafts.length && (
+        <div style={{ marginTop: 12 }}>
+          <Head>saved drafts</Head>
+          {w.drafts.map((d) => (
+            <div key={d.id} style={{ display: "flex", gap: 5, alignItems: "baseline", padding: "1px 0", borderBottom: "1px dotted " + C.line }}>
+              <span style={{ fontSize: 10.5, fontWeight: 700 }}>{d.subject || "(no subject)"}</span>
+              <span style={{ fontSize: 9.5, color: C.faint }}>{d.to ? d.to.length : 0} recipients</span>
+              <span style={{ flex: 1 }} />
+              <TBtn doc="load into composer" onClick={() => { setTo(d.to || []); setCc(d.cc || []); setSubject(d.subject || ""); setBody(d.body || ""); }}>load</TBtn>
+              <TBtn doc="discard" onClick={() => w.dropDraft(d.id)}>✕</TBtn>
+            </div>
+          ))}
+        </div>
+      )}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · CALENDAR — week / day / agenda views
+   Each event tile is a <event> presentation. Empty timeslots are
+   <slot> presentations — the accept mechanism uses them for
+   "schedule a meeting with this contact".
+   ============================================================ */
+const CAL_HOUR_PX = 30;
+const CAL_START_H = 7, CAL_END_H = 21;
+
+function CalendarApp() {
+  const ui = useUI(); const w = ui.world;
+  const week = w.sel.calWeek;
+  const view = w.sel.calView;
+  const days = Array.from({ length: 7 }, (_, i) => week + i * day);
+  const events = w.events.filter((e) => e.start >= days[0] && e.start < days[6] + day);
+  return (
+    <AppBody style={{ padding: 0 }}>
+      <div style={{ padding: "6px 8px 0" }}>
+        <Row style={{ marginBottom: 5 }}>
+          <TBtn doc="previous week" onClick={() => w.select("calWeek", week - 7 * day)}>◀</TBtn>
+          <TBtn doc="today" onClick={() => w.select("calWeek", startOfWeek(nowMs()))}>today</TBtn>
+          <TBtn doc="next week" onClick={() => w.select("calWeek", week + 7 * day)}>▶</TBtn>
+          <b style={{ fontSize: 11, letterSpacing: "0.05em" }}>
+            {fmtDate(days[0])} – {fmtDate(days[6])}, {new Date(days[0]).getFullYear()}
+          </b>
+          <span style={{ flex: 1 }} />
+          {["week", "day", "agenda"].map((v) => (
+            <span key={v} onClick={() => w.select("calView", v)} style={{ cursor: "pointer" }}>
+              <Tag tone={view === v ? C.mustard : C.paneAlt}>{v}</Tag>
+            </span>
+          ))}
+          <Btn tone={C.mint} onClick={() => {
+            const s = dayAt(0, 10, 0);
+            const id = w.createEvent({ title: "New event", start: s, end: s + hour, kind: "meeting" });
+            w.select("event", id);
+          }}>+ event</Btn>
+        </Row>
+      </div>
+      {view === "week" && <CalendarWeek days={days} events={events} />}
+      {view === "day" && <CalendarWeek days={[days[new Date(nowMs()).getDay()]]} events={events} single />}
+      {view === "agenda" && <CalendarAgenda days={days} events={events} />}
+    </AppBody>
+  );
+}
+
+function CalendarWeek({ days, events, single }) {
+  const ui = useUI(); const w = ui.world;
+  const H = (CAL_END_H - CAL_START_H) * CAL_HOUR_PX;
+  return (
+    <div style={{ padding: "0 8px 8px", overflow: "auto" }}>
+      <div style={{ display: "flex", position: "relative", border: "1px solid " + C.line, background: C.pane }}>
+        <div style={{ width: 40, flexShrink: 0, borderRight: "1px solid " + C.line }}>
+          <div style={{ height: 22, borderBottom: "2px solid " + C.ink, background: C.paneAlt }} />
+          {Array.from({ length: CAL_END_H - CAL_START_H }, (_, i) => (
+            <div key={i} style={{ height: CAL_HOUR_PX, borderBottom: "1px dotted " + C.line, fontSize: 9, color: C.faint, textAlign: "right", paddingRight: 3, paddingTop: 1 }}>
+              {(CAL_START_H + i) % 12 || 12}{CAL_START_H + i >= 12 ? "p" : "a"}
+            </div>
+          ))}
+        </div>
+        {days.map((d) => {
+          const dayEvents = events.filter((e) => sameDay(e.start, d));
+          const isToday = sameDay(d, nowMs());
+          return (
+            <div key={d} style={{ flex: 1, minWidth: single ? 400 : 90, borderRight: "1px solid " + C.line, position: "relative" }}>
+              <div style={{ height: 22, borderBottom: "2px solid " + C.ink, background: isToday ? C.sel : C.paneAlt, fontSize: 10.5, fontWeight: 700, padding: "3px 5px", textAlign: "center", letterSpacing: "0.05em" }}>
+                {DAY_NAMES[new Date(d).getDay()]} {new Date(d).getDate()}
+              </div>
+              <div style={{ position: "relative", height: H }}>
+                {Array.from({ length: CAL_END_H - CAL_START_H }, (_, i) => (
+                  <div key={i} style={{ height: CAL_HOUR_PX, borderBottom: "1px dotted " + C.line }} />
+                ))}
+                {/* current time indicator */}
+                {isToday && (() => {
+                  const now = new Date(nowMs());
+                  const y = ((now.getHours() - CAL_START_H) + now.getMinutes() / 60) * CAL_HOUR_PX;
+                  if (y < 0 || y > H) return null;
+                  return <div style={{ position: "absolute", top: y, left: 0, right: 0, borderTop: "2px solid " + C.red, zIndex: 2 }}><span style={{ background: C.red, color: C.paper, fontSize: 8.5, fontWeight: 700, padding: "0 3px", position: "absolute", top: -8 }}>NOW</span></div>;
+                })()}
+                {/* empty-slot presentations, roughly hourly */}
+                {Array.from({ length: CAL_END_H - CAL_START_H }, (_, i) => {
+                  const start = new Date(d); start.setHours(CAL_START_H + i, 0, 0, 0);
+                  const overlaps = dayEvents.some((e) => e.start < start.getTime() + hour && e.end > start.getTime());
+                  if (overlaps) return null;
+                  return (
+                    <P key={i} ptype="slot" value={start.getTime()}
+                      style={{ position: "absolute", top: i * CAL_HOUR_PX, left: 0, right: 0, height: CAL_HOUR_PX, display: "block" }}
+                      onActivate={() => { const id = w.createEvent({ title: "New event", start: start.getTime(), end: start.getTime() + hour, kind: "meeting" }); w.select("event", id); }}
+                      activateDoc="create event here"
+                      doc={"<slot> " + fmtDay(start.getTime()) + " " + fmtTime(start.getTime())} />
+                  );
+                })}
+                {dayEvents.map((e) => {
+                  const y = ((new Date(e.start).getHours() - CAL_START_H) + new Date(e.start).getMinutes() / 60) * CAL_HOUR_PX;
+                  const h = Math.max(16, ((e.end - e.start) / hour) * CAL_HOUR_PX);
+                  const tone = EV_KIND_TONE[e.kind] || C.paneAlt;
+                  const sel = w.sel.event === e.id;
+                  return (
+                    <P key={e.id} ptype="event" value={e.id}
+                      style={{ position: "absolute", top: y + 1, left: 2, right: 2, height: h - 2, display: "block", zIndex: 3 }}
+                      onActivate={() => w.select("event", e.id)}
+                      activateDoc="open event details"
+                      doc={"<event> " + e.title + " · " + fmtDay(e.start) + " " + fmtTime(e.start) + "–" + fmtTime(e.end)}>
+                      <span style={{ display: "block", height: "100%", background: tone, border: "1.5px solid " + C.ink, boxShadow: sel ? "2px 2px 0 " + C.ink : "none", padding: "2px 4px", fontSize: 10, fontWeight: 700, lineHeight: 1.2, overflow: "hidden", wordBreak: "break-word" }}>
+                        <div style={{ fontSize: 8.5, color: C.ink, opacity: 0.7 }}>{fmtTime(e.start)}</div>
+                        {e.title}
+                      </span>
+                    </P>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CalendarAgenda({ days, events }) {
+  const ui = useUI(); const w = ui.world;
+  return (
+    <div style={{ padding: "0 8px 8px" }}>
+      {days.map((d) => {
+        const dayEvents = events.filter((e) => sameDay(e.start, d)).sort((a, b) => a.start - b.start);
+        const isToday = sameDay(d, nowMs());
+        return (
+          <div key={d} style={{ marginBottom: 6 }}>
+            <div style={{ padding: "3px 5px", background: isToday ? C.sel : C.paneAlt, borderBottom: "1px solid " + C.ink, fontSize: 10.5, fontWeight: 700 }}>
+              {fmtDay(d)} {isToday ? "· TODAY" : ""}
+            </div>
+            {!dayEvents.length && <div style={{ padding: "3px 8px", color: C.faint, fontSize: 10.5 }}>free.</div>}
+            {dayEvents.map((e) => (
+              <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 6px", borderBottom: "1px dotted " + C.line, cursor: "pointer", background: w.sel.event === e.id ? C.sel : "transparent" }}
+                onClick={() => w.select("event", e.id)}>
+                <span style={{ fontSize: 10.5, color: C.faint, width: 84, fontVariantNumeric: "tabular-nums" }}>{fmtTime(e.start)}–{fmtTime(e.end)}</span>
+                <EventChip id={e.id} />
+                {e.attendees.slice(0, 4).map((a) => <ContactChip key={a} id={a} />)}
+                {e.attendees.length > 4 && <span style={{ fontSize: 9.5, color: C.faint }}>+{e.attendees.length - 4}</span>}
+                <span style={{ flex: 1 }} />
+                {e.location && <span style={{ fontSize: 10, color: C.faint }}>{e.location}</span>}
+              </div>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ============================================================
+   APP · EVENT — inspect / edit a single event
+   ============================================================ */
+function EventApp() {
+  const ui = useUI(); const w = ui.world;
+  const e = w.event(w.sel.event);
+  if (!e) return <AppBody><Hint>no event selected. Pick one in the calendar.</Hint></AppBody>;
+  const relatedTranscript = w.transcripts.find((tr) => Math.abs(tr.start - e.start) < 10 * minute && tr.participants.some((p) => e.attendees.includes(p)));
+  const relatedThreads = w.threads.filter((t) => t.msgs.some((m) => e.attendees.includes(m.from)));
+  return (
+    <AppBody>
+      <Head right={<Row>
+        <TBtn doc="delete this event" onClick={() => { if (window.confirm("delete event?")) w.deleteEvent(e.id); }}>delete</TBtn>
+      </Row>}>event</Head>
+      <Field label="title"><Input value={e.title} onChange={(v) => w.updateEvent(e.id, { title: v })} /></Field>
+      <Row style={{ marginBottom: 5, gap: 6 }}>
+        <Field label="kind">
+          <Sel value={e.kind} onChange={(v) => w.updateEvent(e.id, { kind: v })}
+            options={Object.keys(EV_KIND_TONE).map((k) => ({ v: k, l: k }))} />
+        </Field>
+        <Field label="when">
+          <div style={{ fontSize: 11 }}>
+            {fmtDay(e.start)} · {fmtTime(e.start)}–{fmtTime(e.end)} <span style={{ color: C.faint }}>({durText(e.end - e.start)})</span>
+          </div>
+        </Field>
+        <Field label="location"><Input value={e.location || ""} onChange={(v) => w.updateEvent(e.id, { location: v })} placeholder="location or link…" /></Field>
+      </Row>
+      <Field label="attendees">
+        <Row>
+          {e.attendees.map((a) => (
+            <span key={a}>
+              <ContactChip id={a} />
+              <span onClick={() => w.updateEvent(e.id, { attendees: e.attendees.filter((x) => x !== a) })} style={{ cursor: "pointer", color: C.red, marginLeft: 3, fontSize: 9 }}>✕</span>
+            </span>
+          ))}
+          <TBtn doc="accept a <contact> as an attendee" onClick={async () => {
+            const r = await ui.accept("contact", "PICK AN ATTENDEE — accept a <contact>");
+            if (r) w.addEventAttendee(e.id, r.value);
+          }}>+ attendee</TBtn>
+        </Row>
+      </Field>
+      <Field label="notes"><TextArea value={e.notes} onChange={(v) => w.updateEvent(e.id, { notes: v })} rows={5} placeholder="agenda, prep, links…" /></Field>
+
+      {relatedTranscript && (
+        <div style={{ marginTop: 8 }}>
+          <Head>call transcript</Head>
+          <div style={{ display: "flex", gap: 6, padding: 5, border: "1px solid " + C.line, borderLeft: "4px solid " + C.mint, background: C.warm }}>
+            <TranscriptChip id={relatedTranscript.id} big />
+            <span style={{ fontSize: 10.5, color: C.faint }}>{relatedTranscript.moments.length} utterances · {relatedTranscript.actionItems.length} action items</span>
+          </div>
+        </div>
+      )}
+
+      {!!relatedThreads.length && (
+        <div style={{ marginTop: 8 }}>
+          <Head>related mail</Head>
+          {relatedThreads.slice(0, 6).map((t) => (
+            <div key={t.id} style={{ padding: "1px 0", display: "flex", gap: 5 }}>
+              <ContactChip id={w.threadFrom(t)} />
+              <ThreadChip id={t.id} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Row style={{ marginTop: 10 }}>
+        <Btn tone={C.blue} onClick={async () => {
+          const r = await ui.accept("contact", "PICK — send a follow-up email to which attendee?");
+          if (r) w.saveDraft({ to: [r.value], subject: "Re: " + e.title, body: "Following up on " + e.title + "…" });
+        }}>draft follow-up email</Btn>
+        <Btn tone={C.mustard} onClick={() => {
+          w.createTask({ title: "Prep: " + e.title, due: e.start - hour, prio: "med", notes: "Prep for " + fmtDay(e.start) + " " + fmtTime(e.start) });
+        }}>+ prep task</Btn>
+      </Row>
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · CONTACTS — list + search
+   ============================================================ */
+function ContactsApp() {
+  const ui = useUI(); const w = ui.world;
+  const [q, setQ] = useState("");
+  const [tagFilter, setTagFilter] = useState("");
+  const allTags = [...new Set(w.contacts.flatMap((c) => c.tags))];
+  const filtered = w.contacts.filter((c) => {
+    if (c.id === "c-me") return false;
+    if (tagFilter && !c.tags.includes(tagFilter)) return false;
+    if (q) { const s = q.toLowerCase(); if (!(c.name + " " + c.email + " " + (c.role || "") + " " + (c.notes || "")).toLowerCase().includes(s)) return false; }
+    return true;
+  }).sort((a, b) => a.name.localeCompare(b.name));
+  return (
+    <AppBody>
+      <Head right={<Btn tone={C.mint} onClick={() => {
+        const name = window.prompt("name?"); if (!name) return;
+        const email = window.prompt("email?") || "";
+        const id = uid("c-");
+        w.contacts.push({ id, name, email, role: "", tags: ["personal"], notes: "" });
+        w.select("contact", id); w.log("contact_added", { name });
+      }}>+ contact</Btn>}>contacts · {filtered.length}</Head>
+      <Row style={{ marginBottom: 5 }}>
+        <Input value={q} onChange={setQ} placeholder="search…" style={{ maxWidth: 200 }} />
+        <span onClick={() => setTagFilter("")} style={{ cursor: "pointer" }}>
+          <Tag tone={tagFilter === "" ? C.mustard : C.paneAlt}>all</Tag>
+        </span>
+        {allTags.map((t) => (
+          <span key={t} onClick={() => setTagFilter(t)} style={{ cursor: "pointer" }}>
+            <Tag tone={tagFilter === t ? CONTACT_TAG_TONE[t] || C.mustard : C.paneAlt}>{t}</Tag>
+          </span>
+        ))}
+      </Row>
+      {filtered.map((c) => (
+        <div key={c.id} onClick={() => w.select("contact", c.id)}
+          style={{ display: "flex", alignItems: "baseline", gap: 6, padding: "3px 5px", borderBottom: "1px dotted " + C.line, background: w.sel.contact === c.id ? C.sel : "transparent", cursor: "pointer" }}>
+          <ContactChip id={c.id} />
+          <span style={{ fontSize: 10.5, color: C.faint }}>{c.email}</span>
+          <span style={{ flex: 1 }} />
+          <span style={{ fontSize: 10.5, color: C.faint }}>{c.role}</span>
+          {c.tags.map((t) => <Tag key={t} tone={CONTACT_TAG_TONE[t] || C.paneAlt}>{t}</Tag>)}
+        </div>
+      ))}
+      {!filtered.length && <div style={{ color: C.faint, fontSize: 11 }}>no contacts match.</div>}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · CONTACT — one person, everything you know about them
+   ============================================================ */
+function ContactApp() {
+  const ui = useUI(); const w = ui.world;
+  const c = w.contact(w.sel.contact);
+  if (!c) return <AppBody><Hint>no contact selected. Pick one in contacts.</Hint></AppBody>;
+  const threads = w.threads.filter((t) => t.msgs.some((m) => m.from === c.id || (m.to || []).includes(c.id)));
+  const events = w.events.filter((e) => e.attendees.includes(c.id));
+  const transcripts = w.transcripts.filter((tr) => tr.participants.includes(c.id));
+  return (
+    <AppBody>
+      <Head right={<Row>
+        <Btn tone={C.blue} onClick={() => w.saveDraft({ to: [c.id], subject: "", body: "" })}>email</Btn>
+        <Btn tone={C.sage} onClick={async () => {
+          const r = await ui.accept("slot", "PICK A TIME — accept a <slot> in the calendar");
+          if (r) w.createEvent({ title: "Meeting with " + c.name, start: r.value, end: r.value + hour, attendees: [c.id], kind: "meeting" });
+        }}>schedule…</Btn>
+      </Row>}>{c.name}</Head>
+      <div style={{ fontSize: 11, color: C.faint, marginBottom: 5 }}>{c.role}</div>
+      <Row style={{ marginBottom: 4 }}>
+        {c.tags.map((t) => <Tag key={t} tone={CONTACT_TAG_TONE[t] || C.paneAlt}>{t}</Tag>)}
+        <Btn tone={C.paneAlt} onClick={() => {
+          const t = window.prompt("add tag:"); if (t && !c.tags.includes(t)) { c.tags.push(t); w.log("tag_added", { contact: c.id, tag: t }); w.bump(); }
+        }}>+ tag</Btn>
+      </Row>
+      <Field label="email"><Input value={c.email} onChange={(v) => { c.email = v; w.bump(); }} /></Field>
+      <Field label="phone"><Input value={c.phone || ""} onChange={(v) => { c.phone = v; w.bump(); }} /></Field>
+      <Field label="notes"><TextArea value={c.notes} onChange={(v) => { c.notes = v; w.bump(); }} rows={3} placeholder="private notes about this person…" /></Field>
+
+      <Head right={<span style={{ fontSize: 9.5, color: C.faint }}>{threads.length}</span>}>correspondence</Head>
+      {threads.slice(0, 8).map((t) => (
+        <div key={t.id} style={{ padding: "1px 0", display: "flex", gap: 5, alignItems: "baseline" }}>
+          <ThreadChip id={t.id} big />
+          <span style={{ flex: 1 }} />
+          <span style={{ fontSize: 9.5, color: C.faint }}>{fmtRel(w.threadLast(t).t)}</span>
+        </div>
+      ))}
+      {!threads.length && <div style={{ color: C.faint, fontSize: 10.5 }}>no threads.</div>}
+
+      <Head right={<span style={{ fontSize: 9.5, color: C.faint }}>{events.length}</span>}>meetings</Head>
+      {events.slice(0, 8).map((e) => (
+        <div key={e.id} style={{ padding: "1px 0", display: "flex", gap: 5, alignItems: "baseline" }}>
+          <span style={{ fontSize: 10, color: C.faint, width: 82 }}>{fmtDate(e.start)} {fmtTime(e.start)}</span>
+          <EventChip id={e.id} />
+        </div>
+      ))}
+      {!events.length && <div style={{ color: C.faint, fontSize: 10.5 }}>no meetings.</div>}
+
+      {!!transcripts.length && (
+        <>
+          <Head right={<span style={{ fontSize: 9.5, color: C.faint }}>{transcripts.length}</span>}>call transcripts</Head>
+          {transcripts.map((tr) => (
+            <div key={tr.id} style={{ padding: "1px 0", display: "flex", gap: 5, alignItems: "baseline" }}>
+              <TranscriptChip id={tr.id} />
+              <span style={{ fontSize: 10, color: C.faint }}>{durText(tr.durationS * 1000)}</span>
+            </div>
+          ))}
+        </>
+      )}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · TASKS — todos by status, prio, project
+   ============================================================ */
+function TasksApp() {
+  const ui = useUI(); const w = ui.world;
+  const [projectFilter, setProjectFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("open");
+  const filter = (t) => {
+    if (projectFilter && t.project !== projectFilter) return false;
+    if (statusFilter === "open" && t.status === "done") return false;
+    if (statusFilter === "done" && t.status !== "done") return false;
+    if (statusFilter === "today" && (!t.due || !sameDay(t.due, nowMs()))) return false;
+    return true;
+  };
+  const tasks = w.tasks.filter(filter);
+  const byStatus = ["doing", "todo", "waiting", "blocked", "done"].map((s) => ({ s, list: tasks.filter((t) => t.status === s) })).filter((g) => g.list.length);
+  return (
+    <AppBody>
+      <Head right={<Btn tone={C.mint} onClick={async () => {
+        const title = window.prompt("task title?"); if (!title) return;
+        const r = await ui.accept("project", "FILE UNDER — pick a project (Esc to skip)");
+        w.createTask({ title, project: r ? r.value : null });
+      }}>+ task</Btn>}>tasks · {tasks.length}</Head>
+      <Row style={{ marginBottom: 5 }}>
+        {["open", "today", "done", "all"].map((s) => (
+          <span key={s} onClick={() => setStatusFilter(s === "all" ? "" : s)} style={{ cursor: "pointer" }}>
+            <Tag tone={(statusFilter === s || (s === "all" && !statusFilter)) ? C.mustard : C.paneAlt}>{s}</Tag>
+          </span>
+        ))}
+        <span style={{ marginLeft: 10, fontSize: 9, color: C.faint }}>PROJECT:</span>
+        <span onClick={() => setProjectFilter("")} style={{ cursor: "pointer" }}>
+          <Tag tone={!projectFilter ? C.mustard : C.paneAlt}>all</Tag>
+        </span>
+        {w.projects.map((p) => (
+          <span key={p.id} onClick={() => setProjectFilter(p.id)} style={{ cursor: "pointer" }}>
+            <Tag tone={projectFilter === p.id ? p.color : C.paneAlt}>{p.name}</Tag>
+          </span>
+        ))}
+      </Row>
+      {byStatus.map((g) => (
+        <div key={g.s} style={{ marginBottom: 8 }}>
+          <div style={{ fontSize: 9.5, color: C.faint, letterSpacing: "0.08em", textTransform: "uppercase", padding: "4px 0 2px", borderBottom: "1px solid " + C.line, marginBottom: 3 }}>
+            {g.s} · {g.list.length}
+          </div>
+          {g.list.sort((a, b) => (a.due || 1e15) - (b.due || 1e15)).map((t) => (
+            <div key={t.id} onClick={() => w.select("task", t.id)}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "2px 5px", borderBottom: "1px dotted " + C.line, background: w.sel.task === t.id ? C.sel : "transparent", cursor: "pointer" }}>
+              <span onClick={(e) => { e.stopPropagation(); w.toggleTask(t.id); }} style={{ cursor: "pointer", display: "inline-block", width: 12, height: 12, border: "2px solid " + C.ink, background: t.status === "done" ? C.sage : C.pane, flexShrink: 0 }} />
+              <Tag tone={PRIO_TONE[t.prio]}>{t.prio}</Tag>
+              <TaskChip id={t.id} />
+              {t.project && <ProjectChip id={t.project} />}
+              <span style={{ flex: 1 }} />
+              {t.due && <span style={{ fontSize: 10, color: t.due < nowMs() && t.status !== "done" ? C.red : C.faint }}>{fmtRel(t.due)}</span>}
+              <Sel value={t.status} onChange={(v) => w.updateTask(t.id, { status: v })}
+                options={["todo", "doing", "waiting", "blocked", "done"].map((v) => ({ v, l: v }))} width={80} />
+            </div>
+          ))}
+        </div>
+      ))}
+      {!tasks.length && <div style={{ color: C.faint, fontSize: 11 }}>no tasks match.</div>}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · PROJECTS — the higher level containers
+   ============================================================ */
+function ProjectsApp() {
+  const ui = useUI(); const w = ui.world;
+  return (
+    <AppBody>
+      <Head right={<Btn tone={C.mint} onClick={() => {
+        const name = window.prompt("project name?"); if (name) w.createProject(name);
+      }}>+ project</Btn>}>projects · {w.projects.length}</Head>
+      {w.projects.map((p) => {
+        const tasks = w.tasks.filter((t) => t.project === p.id);
+        const done = tasks.filter((t) => t.status === "done").length;
+        const overdue = tasks.filter((t) => t.status !== "done" && t.due && t.due < nowMs()).length;
+        return (
+          <div key={p.id} style={{ border: "2px solid " + C.ink, borderLeft: "6px solid " + p.color, boxShadow: "2px 2px 0 " + C.ink, padding: 6, marginBottom: 8, background: C.pane }}>
+            <Row>
+              <b style={{ fontSize: 12, letterSpacing: "0.03em" }}>{p.name}</b>
+              <span style={{ flex: 1 }} />
+              <Tag tone={C.sage}>{done}/{tasks.length} done</Tag>
+              {!!overdue && <Tag tone={C.red}>{overdue} overdue</Tag>}
+              <Bar frac={tasks.length ? done / tasks.length : 0} tone={p.color} w={70} />
+            </Row>
+            {p.notes && <div style={{ fontSize: 10.5, color: C.faint, marginTop: 2 }}>{p.notes}</div>}
+            <div style={{ marginTop: 4, display: "flex", flexWrap: "wrap", gap: 3 }}>
+              {tasks.filter((t) => t.status !== "done").slice(0, 8).map((t) => <TaskChip key={t.id} id={t.id} />)}
+              {tasks.filter((t) => t.status !== "done").length > 8 && <span style={{ fontSize: 9.5, color: C.faint }}>+ {tasks.filter((t) => t.status !== "done").length - 8} more</span>}
+            </div>
+          </div>
+        );
+      })}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · DOODLE — booking links (Calendly / Doodle-style)
+   List of your bookable links with their configs.
+   ============================================================ */
+function DoodleApp() {
+  const ui = useUI(); const w = ui.world;
+  return (
+    <AppBody>
+      <Head right={<Btn tone={C.mint} onClick={() => { const id = w.createLink({}); w.select("link", id); }}>+ link</Btn>}>booking links</Head>
+      <Hint>share a URL, let anyone book a time. Each link has its own duration, availability, and approval policy.</Hint>
+      {w.links.map((l) => {
+        const bookings = w.bookings.filter((b) => b.linkId === l.id);
+        const pending = bookings.filter((b) => b.status === "pending").length;
+        return (
+          <div key={l.id} onClick={() => w.select("link", l.id)}
+            style={{ border: "2px solid " + C.ink, borderLeft: "6px solid " + (l.active ? C.rose : C.line), boxShadow: "2px 2px 0 " + C.ink, padding: 6, marginBottom: 7, background: w.sel.link === l.id ? C.sel : C.pane, cursor: "pointer" }}>
+            <Row>
+              <LinkChip id={l.id} big />
+              <Tag tone={l.active ? C.sage : C.line}>{l.active ? "active" : "off"}</Tag>
+              <Tag tone={C.blue}>{l.durationM} min</Tag>
+              <Tag tone={C.mustard}>{l.requireApproval ? "approval required" : "auto-confirm"}</Tag>
+              <span style={{ flex: 1 }} />
+              <span style={{ fontSize: 10, color: C.faint }}>{bookings.length} bookings</span>
+              {!!pending && <Tag tone={C.mustard}>{pending} pending</Tag>}
+            </Row>
+            <div style={{ fontSize: 10.5, color: C.faint, marginTop: 3, lineHeight: 1.4 }}>{l.description}</div>
+            <div style={{ fontSize: 10, marginTop: 3 }}>
+              <span style={{ color: C.faint }}>URL: </span>
+              <span style={{ background: C.paneAlt, padding: "0 3px", fontFamily: "inherit" }}>{l.url}</span>
+              <span onClick={(e) => { e.stopPropagation(); navigator.clipboard && navigator.clipboard.writeText(l.url); }} style={{ marginLeft: 5, cursor: "pointer", color: C.blue, textDecoration: "underline" }}>copy</span>
+            </div>
+          </div>
+        );
+      })}
+      {!w.links.length && <div style={{ color: C.faint, fontSize: 11 }}>no links yet.</div>}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · LINK — configure one link + preview + share
+   ============================================================ */
+function LinkApp() {
+  const ui = useUI(); const w = ui.world;
+  const l = w.link(w.sel.link);
+  if (!l) return <AppBody><Hint>no link selected. Pick one in doodle.</Hint></AppBody>;
+  const bookings = w.bookings.filter((b) => b.linkId === l.id);
+  const setDayToggle = (day) => {
+    const days = l.availability.days.includes(day) ? l.availability.days.filter((d) => d !== day) : [...l.availability.days, day].sort();
+    w.updateLink(l.id, { availability: { ...l.availability, days } });
+  };
+  return (
+    <AppBody>
+      <Head right={<Row>
+        <TBtn doc="turn on / off" onClick={() => w.toggleLink(l.id)}>{l.active ? "disable" : "enable"}</TBtn>
+        <TBtn doc="delete this link (and its bookings)" onClick={() => { if (window.confirm("delete link and " + bookings.length + " bookings?")) w.deleteLink(l.id); }}>delete</TBtn>
+      </Row>}>{l.title}</Head>
+
+      <Field label="title"><Input value={l.title} onChange={(v) => w.updateLink(l.id, { title: v })} /></Field>
+      <Field label="slug"><Input value={l.slug} onChange={(v) => w.updateLink(l.id, { slug: v, url: "https://founder.me/" + v })} /></Field>
+      <Field label="description"><TextArea value={l.description} onChange={(v) => w.updateLink(l.id, { description: v })} rows={3} /></Field>
+
+      <Row style={{ marginBottom: 5, gap: 6 }}>
+        <Field label="duration (min)">
+          <Sel value={l.durationM} onChange={(v) => w.updateLink(l.id, { durationM: +v })}
+            options={[15, 30, 45, 60, 90, 120].map((n) => ({ v: n, l: n + " min" }))} width={90} />
+        </Field>
+        <Field label="buffer (min)">
+          <Sel value={l.buffer} onChange={(v) => w.updateLink(l.id, { buffer: +v })}
+            options={[0, 5, 10, 15, 30].map((n) => ({ v: n, l: n + " min" }))} width={90} />
+        </Field>
+        <Field label="approval">
+          <Sel value={l.requireApproval ? "yes" : "no"} onChange={(v) => w.updateLink(l.id, { requireApproval: v === "yes" })}
+            options={[{ v: "no", l: "auto-confirm" }, { v: "yes", l: "require approval" }]} width={140} />
+        </Field>
+      </Row>
+
+      <Field label="available days">
+        <Row>
+          {DAY_NAMES.map((n, i) => (
+            <span key={i} onClick={() => setDayToggle(i)} style={{ cursor: "pointer" }}>
+              <Tag tone={l.availability.days.includes(i) ? C.sage : C.line}>{n}</Tag>
+            </span>
+          ))}
+        </Row>
+      </Field>
+      <Field label="available windows on those days">
+        <div>
+          {l.availability.windows.map((win, i) => (
+            <Row key={i} style={{ marginBottom: 2 }}>
+              <span style={{ fontSize: 10.5 }}>from</span>
+              <Input value={pad2(win.h) + ":" + pad2(win.m || 0)} onChange={(v) => {
+                const [h, m] = v.split(":").map((x) => +x);
+                if (!isNaN(h)) { const wins = [...l.availability.windows]; wins[i] = { ...win, h, m: m || 0 }; w.updateLink(l.id, { availability: { ...l.availability, windows: wins } }); }
+              }} style={{ maxWidth: 60 }} />
+              <span style={{ fontSize: 10.5 }}>for</span>
+              <Input value={win.len} onChange={(v) => {
+                const n = +v; if (!isNaN(n)) { const wins = [...l.availability.windows]; wins[i] = { ...win, len: n }; w.updateLink(l.id, { availability: { ...l.availability, windows: wins } }); }
+              }} style={{ maxWidth: 60 }} />
+              <span style={{ fontSize: 10.5, color: C.faint }}>min</span>
+              <TBtn doc="remove this window" onClick={() => { const wins = l.availability.windows.filter((_, j) => j !== i); w.updateLink(l.id, { availability: { ...l.availability, windows: wins } }); }}>✕</TBtn>
+            </Row>
+          ))}
+          <TBtn doc="add another availability window" onClick={() => w.updateLink(l.id, { availability: { ...l.availability, windows: [...l.availability.windows, { h: 15, m: 0, len: 120 }] } })}>+ window</TBtn>
+        </div>
+      </Field>
+
+      <div style={{ marginTop: 10, border: "2px solid " + C.ink, background: C.warm, padding: 6 }}>
+        <div style={{ fontSize: 9, color: C.faint, letterSpacing: "0.08em", marginBottom: 3 }}>SHARE URL</div>
+        <Row>
+          <span style={{ fontSize: 12, background: C.pane, border: "1px solid " + C.ink, padding: "2px 5px", flex: 1 }}>{l.url}</span>
+          <Btn tone={C.blue} onClick={() => { navigator.clipboard && navigator.clipboard.writeText(l.url); }}>copy</Btn>
+          <Btn tone={C.mint} onClick={async () => {
+            const r = await ui.accept("contact", "PICK — email this link to which contact?");
+            if (r) w.saveDraft({ to: [r.value], subject: "Grab a time with me?", body: "Hi — I'd love to find time to talk. You can grab a slot here:\n\n" + l.url + "\n\nLet me know if none of the times work.\n\n—" });
+          }}>email to…</Btn>
+        </Row>
+      </div>
+
+      <Head right={<span style={{ fontSize: 9.5, color: C.faint }}>{bookings.length}</span>}>bookings on this link</Head>
+      {bookings.length ? bookings.sort((a, b) => a.start - b.start).map((b) => (
+        <div key={b.id} style={{ display: "flex", gap: 6, alignItems: "center", padding: "3px 5px", borderBottom: "1px dotted " + C.line }}>
+          <Tag tone={b.status === "confirmed" ? C.sage : b.status === "pending" ? C.mustard : C.line}>{b.status}</Tag>
+          <BookingChip id={b.id} big />
+          <span style={{ fontSize: 10, color: C.faint }}>{b.email}</span>
+          <span style={{ flex: 1 }} />
+          <span style={{ fontSize: 10.5 }}>{fmtDay(b.start)} {fmtTime(b.start)}</span>
+          {b.status === "pending" && <>
+            <TBtn doc="confirm this booking" onClick={() => w.confirmBooking(b.id)}>confirm</TBtn>
+            <TBtn doc="decline this booking" onClick={() => w.declineBooking(b.id)}>decline</TBtn>
+          </>}
+          <TBtn doc="add to calendar as an event" onClick={() => w.bookingToEvent(b.id)}>→ event</TBtn>
+        </div>
+      )) : <div style={{ color: C.faint, fontSize: 10.5 }}>no bookings yet.</div>}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · BOOKINGS — all bookings across all links
+   ============================================================ */
+function BookingsApp() {
+  const ui = useUI(); const w = ui.world;
+  return (
+    <AppBody>
+      <Head right={<span style={{ fontSize: 10, color: C.faint }}>{w.bookings.length} total</span>}>bookings</Head>
+      <Hint>all upcoming bookings across every link. Confirm / decline / attach to calendar from here.</Hint>
+      {w.bookings.sort((a, b) => a.start - b.start).map((b) => {
+        const link = w.link(b.linkId);
+        return (
+          <div key={b.id} style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + (b.status === "confirmed" ? C.sage : b.status === "pending" ? C.mustard : C.line), padding: 5, marginBottom: 5, background: C.pane }}>
+            <Row>
+              <BookingChip id={b.id} big />
+              <span style={{ fontSize: 10.5, color: C.faint }}>{b.email}</span>
+              <span style={{ flex: 1 }} />
+              {link && <LinkChip id={link.id} />}
+              <span style={{ fontSize: 10.5 }}>{fmtDay(b.start)} {fmtTime(b.start)}</span>
+            </Row>
+            {b.notes && <div style={{ fontSize: 10.5, color: C.ink, marginTop: 3, lineHeight: 1.4 }}>{b.notes}</div>}
+            <Row style={{ marginTop: 4 }}>
+              {b.status === "pending" && <>
+                <Btn tone={C.mint} onClick={() => w.confirmBooking(b.id)}>confirm</Btn>
+                <Btn tone={C.rose} onClick={() => w.declineBooking(b.id)}>decline</Btn>
+              </>}
+              <Btn tone={C.blue} onClick={() => { w.bookingToEvent(b.id); }}>add to calendar</Btn>
+              <Btn tone={C.paneAlt} onClick={() => w.saveDraft({ subject: "Re: " + (link ? link.title : "your booking"), body: "Hi " + b.name.split(" ")[0] + ",\n\n", to: [] })}>email back</Btn>
+            </Row>
+          </div>
+        );
+      })}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · TRANSCRIPTS — list of call transcripts
+   ============================================================ */
+function TranscriptsApp() {
+  const ui = useUI(); const w = ui.world;
+  return (
+    <AppBody>
+      <Head right={<span style={{ fontSize: 10, color: C.faint }}>{w.transcripts.length}</span>}>call transcripts</Head>
+      <Hint>upload transcripts from Zoom, Google Meet, Otter, or paste them in. Each speaker is a &lt;contact&gt;; each utterance is a &lt;moment&gt;.</Hint>
+      {w.transcripts.sort((a, b) => b.start - a.start).map((tr) => (
+        <div key={tr.id} onClick={() => w.select("transcript", tr.id)}
+          style={{ border: "2px solid " + C.ink, borderLeft: "6px solid " + C.mint, boxShadow: "2px 2px 0 " + C.ink, padding: 6, marginBottom: 7, background: w.sel.transcript === tr.id ? C.sel : C.pane, cursor: "pointer" }}>
+          <Row>
+            <TranscriptChip id={tr.id} big />
+            <Tag tone={C.blue}>{tr.source}</Tag>
+            <Tag tone={C.mint}>{durText(tr.durationS * 1000)}</Tag>
+            <Tag tone={C.mustard}>{tr.actionItems.length} action items</Tag>
+            <span style={{ flex: 1 }} />
+            <span style={{ fontSize: 10, color: C.faint }}>{fmtDay(tr.start)}</span>
+          </Row>
+          <Row style={{ marginTop: 3, gap: 3 }}>
+            <span style={{ fontSize: 9.5, color: C.faint }}>with</span>
+            {tr.participants.filter((p) => p !== "c-me").map((p) => <ContactChip key={p} id={p} />)}
+          </Row>
+          <div style={{ fontSize: 10.5, color: C.ink, marginTop: 3, lineHeight: 1.45 }}>{tr.summary}</div>
+        </div>
+      ))}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · TRANSCRIPT — one call, with jump-to-moment
+   ============================================================ */
+function TranscriptApp() {
+  const ui = useUI(); const w = ui.world;
+  const tr = w.transcript(w.sel.transcript);
+  if (!tr) return <AppBody><Hint>no transcript selected. Pick one in transcripts.</Hint></AppBody>;
+  const [q, setQ] = useState("");
+  const [spkFilter, setSpkFilter] = useState("");
+  const moments = tr.moments.filter((m) => {
+    if (spkFilter && m.spk !== spkFilter) return false;
+    if (q && !m.text.toLowerCase().includes(q.toLowerCase())) return false;
+    return true;
+  });
+  const focused = w.sel.moment;
+  const scrollRef = useRef(null);
+  useEffect(() => { if (focused && scrollRef.current) { const el = scrollRef.current.querySelector('[data-moment="' + focused + '"]');
+    if (el) el.scrollIntoView({ block: "center", behavior: "smooth" }); } }, [focused, tr.id]);
+  return (
+    <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
+      <div style={{ width: 220, borderRight: "2px solid " + C.ink, background: C.paneAlt, overflow: "auto", padding: "5px 6px", flexShrink: 0 }}>
+        <div style={{ fontSize: 9, color: C.faint, letterSpacing: "0.08em", marginBottom: 3 }}>PARTICIPANTS</div>
+        <div style={{ marginBottom: 8 }}>
+          {tr.participants.map((p) => {
+            const n = tr.moments.filter((m) => m.spk === p).length;
+            return (
+              <div key={p} onClick={() => setSpkFilter(spkFilter === p ? "" : p)}
+                style={{ padding: "2px 3px", background: spkFilter === p ? C.sel : "transparent", cursor: "pointer", display: "flex", alignItems: "baseline", gap: 4 }}>
+                <ContactChip id={p} />
+                <span style={{ flex: 1 }} />
+                <span style={{ fontSize: 9, color: C.faint }}>{n}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ fontSize: 9, color: C.faint, letterSpacing: "0.08em", marginBottom: 3 }}>ACTION ITEMS</div>
+        {tr.actionItems.map((ai) => (
+          <div key={ai.id} style={{ padding: "3px 4px", borderBottom: "1px dotted " + C.line, marginBottom: 2 }}>
+            <ActionItemChip trId={tr.id} aiId={ai.id} />
+            <Row style={{ marginTop: 2, gap: 3 }}>
+              <MomentChip trId={tr.id} mId={ai.momentId} />
+              <span style={{ fontSize: 9.5, color: C.faint }}>· {w.contactName(ai.assigned)}</span>
+              <span style={{ flex: 1 }} />
+              {ai.taskId ? <Tag tone={C.sage}>task</Tag> : (
+                <TBtn doc="promote to task (accept a project)" onClick={async () => {
+                  const r = await ui.accept("project", "FILE UNDER — pick a project (Esc to skip)");
+                  w.actionItemToTask(tr.id, ai.id, r ? r.value : null);
+                }}>→ task</TBtn>
+              )}
+            </Row>
+          </div>
+        ))}
+        <TBtn doc="add a new action item — pick the moment it came from" onClick={async () => {
+          const r = await ui.accept("moment", "PICK A MOMENT — accept a &lt;moment&gt; in the transcript body");
+          if (!r) return;
+          const text = window.prompt("action item text?"); if (!text) return;
+          w.addActionItem(tr.id, r.value.mId, text);
+        }}>+ action item</TBtn>
+      </div>
+
+      <AppBody>
+        <Head right={<Row>
+          <Tag tone={C.blue}>{tr.source}</Tag>
+          <Tag tone={C.mint}>{durText(tr.durationS * 1000)}</Tag>
+          <TBtn doc="draft a follow-up email that includes the summary" onClick={async () => {
+            const r = await ui.accept("contact", "PICK — email to which participant?");
+            if (r) w.saveDraft({ to: [r.value], subject: "Re: " + tr.title, body: tr.summary + "\n\n—" });
+          }}>→ follow-up</TBtn>
+        </Row>}>{tr.title}</Head>
+
+        <div style={{ fontSize: 10.5, color: C.faint, marginBottom: 5, lineHeight: 1.45 }}>{tr.summary}</div>
+
+        <Row style={{ marginBottom: 5 }}>
+          <Input value={q} onChange={setQ} placeholder="search this transcript…" style={{ maxWidth: 220 }} />
+          {spkFilter && <Tag tone={C.mustard} title="click to clear">only {w.contactName(spkFilter)} <span onClick={() => setSpkFilter("")} style={{ cursor: "pointer" }}>✕</span></Tag>}
+        </Row>
+
+        <div ref={scrollRef} style={{ border: "1px solid " + C.line, background: C.pane, padding: 4, maxHeight: 500, overflow: "auto" }}>
+          {moments.map((m) => {
+            const isMe = m.spk === "c-me";
+            const sel = focused === m.id;
+            const mm = Math.floor(m.t / 60), ss = m.t % 60;
+            return (
+              <div key={m.id} data-moment={m.id}
+                style={{ display: "flex", gap: 6, padding: "4px 5px", borderBottom: "1px dotted " + C.line, background: sel ? C.sel : "transparent" }}>
+                <div style={{ minWidth: 82, flexShrink: 0 }}>
+                  <MomentChip trId={tr.id} mId={m.id} />
+                  <div style={{ marginTop: 2 }}><ContactChip id={m.spk} /></div>
+                </div>
+                <div style={{ fontSize: 11.5, lineHeight: 1.5, flex: 1, color: isMe ? C.ink : C.ink }}>{m.text}</div>
+              </div>
+            );
+          })}
+          {!moments.length && <div style={{ color: C.faint, fontSize: 10.5, padding: 6 }}>no moments match.</div>}
+        </div>
+      </AppBody>
+    </div>
+  );
+}
+
+/* ============================================================
+   APP · SEARCH — cross-cutting global search
+   ============================================================ */
+function SearchApp() {
+  const ui = useUI(); const w = ui.world;
+  const [q, setQ] = useState("");
+  const results = useMemo(() => w.search(q), [q, w.threads, w.contacts, w.events, w.tasks, w.transcripts]);
+  const total = results.threads.length + results.contacts.length + results.events.length + results.tasks.length + results.transcripts.length + results.moments.length;
+  const highlight = (text) => {
+    if (!q) return text;
+    const idx = text.toLowerCase().indexOf(q.toLowerCase());
+    if (idx < 0) return text;
+    return <>{text.slice(0, idx)}<span style={{ background: C.sel, fontWeight: 700 }}>{text.slice(idx, idx + q.length)}</span>{text.slice(idx + q.length)}</>;
+  };
+  return (
+    <AppBody>
+      <Head right={<span style={{ fontSize: 10, color: C.faint }}>{q ? total + " hits" : "type something…"}</span>}>search</Head>
+      <Input value={q} onChange={setQ} placeholder="search email, contacts, events, tasks, transcripts…" />
+      {q && (
+        <>
+          {!!results.threads.length && <>
+            <Head>threads · {results.threads.length}</Head>
+            {results.threads.map((t) => {
+              const preview = t.msgs.map((m) => m.body).join(" ").replace(/\s+/g, " ");
+              const idx = preview.toLowerCase().indexOf(q.toLowerCase());
+              const snip = idx >= 0 ? "…" + preview.slice(Math.max(0, idx - 30), idx + 100) + "…" : preview.slice(0, 100);
+              return (
+                <div key={t.id} style={{ padding: "2px 4px", borderBottom: "1px dotted " + C.line }}>
+                  <Row>
+                    <ContactChip id={w.threadFrom(t)} />
+                    <ThreadChip id={t.id} big />
+                  </Row>
+                  <div style={{ fontSize: 10.5, color: C.faint, lineHeight: 1.4 }}>{highlight(snip)}</div>
+                </div>
+              );
+            })}
+          </>}
+          {!!results.contacts.length && <>
+            <Head>contacts · {results.contacts.length}</Head>
+            {results.contacts.map((c) => (
+              <div key={c.id} style={{ padding: "1px 4px", borderBottom: "1px dotted " + C.line, display: "flex", gap: 5, alignItems: "baseline" }}>
+                <ContactChip id={c.id} />
+                <span style={{ fontSize: 10.5, color: C.faint }}>{highlight(c.role || "")}</span>
+              </div>
+            ))}
+          </>}
+          {!!results.events.length && <>
+            <Head>events · {results.events.length}</Head>
+            {results.events.map((e) => (
+              <div key={e.id} style={{ padding: "1px 4px", borderBottom: "1px dotted " + C.line, display: "flex", gap: 5, alignItems: "baseline" }}>
+                <span style={{ fontSize: 10, color: C.faint, width: 100 }}>{fmtDate(e.start)} {fmtTime(e.start)}</span>
+                <EventChip id={e.id} />
+              </div>
+            ))}
+          </>}
+          {!!results.tasks.length && <>
+            <Head>tasks · {results.tasks.length}</Head>
+            {results.tasks.map((t) => (
+              <div key={t.id} style={{ padding: "1px 4px", borderBottom: "1px dotted " + C.line, display: "flex", gap: 5, alignItems: "baseline" }}>
+                <TaskChip id={t.id} />
+                {t.project && <ProjectChip id={t.project} />}
+              </div>
+            ))}
+          </>}
+          {!!results.transcripts.length && <>
+            <Head>transcripts · {results.transcripts.length}</Head>
+            {results.transcripts.map((tr) => (
+              <div key={tr.id} style={{ padding: "1px 4px", borderBottom: "1px dotted " + C.line }}>
+                <TranscriptChip id={tr.id} big />
+              </div>
+            ))}
+          </>}
+          {!!results.moments.length && <>
+            <Head>utterances · {results.moments.length}</Head>
+            {results.moments.map((m) => (
+              <div key={m.trId + "/" + m.id} style={{ padding: "2px 4px", borderBottom: "1px dotted " + C.line }}>
+                <Row>
+                  <MomentChip trId={m.trId} mId={m.id} />
+                  <ContactChip id={m.spk} />
+                  <span style={{ fontSize: 9.5, color: C.faint }}>{m.trTitle}</span>
+                </Row>
+                <div style={{ fontSize: 10.5, lineHeight: 1.4 }}>{highlight(m.text)}</div>
+              </div>
+            ))}
+          </>}
+          {!total && <div style={{ color: C.faint, fontSize: 11 }}>no hits.</div>}
+        </>
+      )}
+      {!q && <Hint>this searches across email bodies, contact records, event notes, tasks, transcripts, and every utterance in every call.</Hint>}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · INSPECTOR / WATCHLIST / TRACE — shell utilities
+   ============================================================ */
+function InspectorApp() {
+  const w = useUI().world;
+  return (
+    <AppBody>
+      <Head>{w.inspected ? w.inspected.title : "inspector"}</Head>
+      <Hint>“Inspect” from any right-click menu lands here. The value is the object as the shell sees it.</Hint>
+      <JsonView v={w.inspected ? w.inspected.value : {}} max={640} />
+    </AppBody>
+  );
+}
+function WatchlistApp() {
+  const w = useUI().world;
+  return (
+    <AppBody>
+      <Head>watchlist · {w.watch.length}</Head>
+      <Hint>park anything here. Right-click almost any presentation → “Add to watchlist”. Watched objects stay live: a watched &lt;event&gt; still opens; a watched &lt;task&gt; still toggles.</Hint>
+      {w.watch.map((n) => (
+        <div key={n.id} style={{ display: "flex", gap: 6, alignItems: "center", padding: "2px 0", borderBottom: "1px dotted " + C.line }}>
+          <span style={{ fontSize: 9, color: C.faint, width: 62 }}>&lt;{n.ptype}&gt;</span>
+          <Pres ptype={n.ptype} value={n.value} />
+          <span style={{ flex: 1 }} />
+          <TBtn doc="remove from watchlist" onClick={() => w.watchRemove(n.id)}>✕</TBtn>
+        </div>
+      ))}
+      {!w.watch.length && <div style={{ color: C.faint, fontSize: 11 }}>empty.</div>}
+    </AppBody>
+  );
+}
+function TraceApp() {
+  const w = useUI().world;
+  const rows = [...w.trace].reverse().slice(0, 200);
+  return (
+    <AppBody>
+      <Head right={<TBtn doc="clear the trace log" onClick={() => { w.trace = []; w.bump(); }}>clear</TBtn>}>trace · {w.trace.length}</Head>
+      <Hint>every mutation the shell has recorded, newest first. This is the shell's own audit log.</Hint>
+      <table style={{ borderCollapse: "collapse", fontSize: 10, width: "100%" }}>
+        <tbody>
+          {rows.map((t) => (
+            <tr key={t.seq} style={{ borderBottom: "1px dotted " + C.line }}>
+              <td style={{ color: C.faint, padding: "1px 4px", verticalAlign: "top", width: 26 }}>{t.seq}</td>
+              <td style={{ padding: "1px 4px", verticalAlign: "top", width: 130 }}><b>{t.type}</b></td>
+              <td style={{ padding: "1px 4px", color: C.faint }}>{Object.entries(t.data).map(([k, v]) => k + "=" + String(v)).join("  ")}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {!rows.length && <div style={{ color: C.faint, fontSize: 11 }}>nothing yet.</div>}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP · LAUNCHER / HELP
+   ============================================================ */
+function LauncherApp({ leafId }) {
+  const ui = useUI();
+  const groups = [
+    { label: "MAIL", apps: ["today", "inbox", "thread", "compose"] },
+    { label: "CALENDAR", apps: ["calendar", "event"] },
+    { label: "PEOPLE", apps: ["contacts", "contact"] },
+    { label: "WORK", apps: ["tasks", "projects"] },
+    { label: "SCHEDULING", apps: ["doodle", "link", "bookings"] },
+    { label: "CALLS", apps: ["transcripts", "transcript"] },
+    { label: "SHELL", apps: ["search", "inspector", "watch", "trace", "help"] },
+  ];
+  return (
+    <AppBody>
+      <Hint>empty tile — pick an app.</Hint>
+      {groups.map((g) => (
+        <div key={g.label} style={{ marginBottom: 7 }}>
+          <div style={{ fontSize: 9, color: C.faint, letterSpacing: "0.08em", marginBottom: 2 }}>{g.label}</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            {g.apps.map((id) => APPS[id] && (
+              <Btn key={id} tone={APPS[id].color} onClick={() => ui.wm.setLeafApp(leafId, id)}>{APPS[id].title}</Btn>
+            ))}
+          </div>
+        </div>
+      ))}
+    </AppBody>
+  );
+}
+function HelpApp() {
+  return (
+    <AppBody>
+      <Head>a presentation-based productivity suite</Head>
+      <div style={{ fontSize: 11.5, lineHeight: 1.55, marginBottom: 8 }}>
+        <p>This is CLIM / Genera <b>Dynamic Windows</b> for your inbox, calendar, task list, and contacts.
+        Every object on screen — an <b>email</b>, an <b>event</b>, a <b>contact</b>, a <b>task</b>, a <b>booking link</b>, a <b>call transcript</b>, a <b>moment</b> inside a transcript — is a typed, live presentation.</p>
+        <p><b>Left-click</b> a presentation activates it (opens, jumps, focuses).<br />
+        <b>Right-click</b> lists every verb the shell knows for that object type.</p>
+      </div>
+
+      <Head>the ACCEPT mechanism</Head>
+      <div style={{ fontSize: 11.5, lineHeight: 1.55, marginBottom: 8 }}>
+        <p>Some verbs need a second object. When the shell asks for one — "reply-all to a thread", "schedule with a contact", "file this action item under a project" — it enters <b>ACCEPT MODE</b>: a red bar appears, and every presentation of the correct type across every tile and every workspace starts pulsing. Click any one of them and the verb completes.</p>
+        <p>Try it: open <i>Compose</i>, click <i>+ to</i>. Every &lt;contact&gt; in every tile — inbox senders, calendar attendees, transcript speakers — is a valid target.</p>
+      </div>
+
+      <Head>workspaces + tiles</Head>
+      <div style={{ fontSize: 11.5, lineHeight: 1.55, marginBottom: 8 }}>
+        <p>The top bar has <b>WORKSPACES</b>. Each is an independent split-tree of tiles. Add / rename / duplicate / delete workspaces at will. Inside a workspace, drag any tile's ⠿ handle onto another tile's <b>center</b> to swap apps, or near an <b>edge</b> to split-dock.</p>
+      </div>
+
+      <Head>doodle · booking links</Head>
+      <div style={{ fontSize: 11.5, lineHeight: 1.55, marginBottom: 8 }}>
+        <p>Configure a shareable URL with your own duration, buffer, availability, and approval policy. Bookings arrive in the <i>Bookings</i> app; one click adds them to the calendar as an event.</p>
+      </div>
+
+      <Head>call transcripts</Head>
+      <div style={{ fontSize: 11.5, lineHeight: 1.55, marginBottom: 8 }}>
+        <p>Every utterance is a &lt;moment&gt;; every speaker is a &lt;contact&gt;. Action items you extract from a transcript can be promoted to real tasks with one click — you pick which project they go into.</p>
+      </div>
+
+      <Head>the trace</Head>
+      <div style={{ fontSize: 11.5, lineHeight: 1.55, marginBottom: 8 }}>
+        <p>The <i>Trace</i> app shows every mutation the shell has recorded, newest first. This is the shell's own audit log — separate from any single app's history.</p>
+      </div>
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APP REGISTRY
+   ============================================================ */
+const APPS = {
+  launcher: { title: "new tile", color: C.paneAlt, comp: LauncherApp },
+  today: { title: "today", color: C.warm, comp: TodayApp },
+  inbox: { title: "inbox", color: C.blue, comp: InboxApp },
+  thread: { title: "thread", color: C.blue, comp: ThreadApp },
+  compose: { title: "compose", color: C.mint, comp: ComposeApp },
+  calendar: { title: "calendar", color: C.sage, comp: CalendarApp },
+  event: { title: "event", color: C.sage, comp: EventApp },
+  contacts: { title: "contacts", color: C.lavender, comp: ContactsApp },
+  contact: { title: "contact", color: C.lavender, comp: ContactApp },
+  tasks: { title: "tasks", color: C.mustard, comp: TasksApp },
+  projects: { title: "projects", color: C.mustard, comp: ProjectsApp },
+  doodle: { title: "doodle", color: C.rose, comp: DoodleApp },
+  link: { title: "link", color: C.rose, comp: LinkApp },
+  bookings: { title: "bookings", color: C.rose, comp: BookingsApp },
+  transcripts: { title: "transcripts", color: C.mint, comp: TranscriptsApp },
+  transcript: { title: "transcript", color: C.mint, comp: TranscriptApp },
+  search: { title: "search", color: C.sel, comp: SearchApp },
+  inspector: { title: "inspector", color: C.lavender, comp: InspectorApp },
+  watch: { title: "watchlist", color: C.mustard, comp: WatchlistApp },
+  trace: { title: "trace", color: C.paneAlt, comp: TraceApp },
+  help: { title: "about / help", color: C.sel, comp: HelpApp },
+};
+
+/* ============================================================
+   INITIAL WORKSPACES
+   ============================================================ */
+const initialSpaces = () => [
+  { id: nid(), name: "today", tree: split("row",
+      leaf("today"),
+      split("col", leaf("inbox"), leaf("calendar"), 0.5),
+      0.35) },
+  { id: nid(), name: "mail", tree: split("row", leaf("inbox"), leaf("thread"), 0.42) },
+  { id: nid(), name: "compose", tree: split("row", leaf("compose"), split("col", leaf("contacts"), leaf("inbox"), 0.5), 0.55) },
+  { id: nid(), name: "calendar", tree: split("row", leaf("calendar"), leaf("event"), 0.62) },
+  { id: nid(), name: "people", tree: split("row", leaf("contacts"), leaf("contact"), 0.42) },
+  { id: nid(), name: "work", tree: split("row", leaf("tasks"), split("col", leaf("projects"), leaf("today"), 0.5), 0.5) },
+  { id: nid(), name: "doodle", tree: split("row", leaf("doodle"), split("col", leaf("link"), leaf("bookings"), 0.55), 0.32) },
+  { id: nid(), name: "transcripts", tree: split("row", leaf("transcripts"), leaf("transcript"), 0.32) },
+  { id: nid(), name: "search", tree: split("row", leaf("search"), leaf("inspector"), 0.62) },
+  { id: nid(), name: "help", tree: split("row", leaf("help"), split("col", leaf("watch"), leaf("trace"), 0.55), 0.55) },
+];
+
+/* ============================================================
+   MAIN APP — spaces, tiles, menu, accept, drag
+   ============================================================ */
+export default function App() {
+  const [, force] = useState(0);
+  const bump = useCallback(() => force((x) => x + 1), []);
+  const worldRef = useRef(null);
+  if (!worldRef.current) worldRef.current = new World();
+  const world = worldRef.current;
+  world.notify = bump;
+
+  const [spaces, setSpaces] = useState(initialSpaces);
+  const [cur, setCur] = useState(spaces[0].id);
+  const [renaming, setRenaming] = useState(null);
+  const [accepting, setAccepting] = useState(null);
+  const [mouseDoc, setMouseDoc] = useState(null);
+  const [menu, setMenu] = useState(null);
+  const [drag, setDrag] = useState(null);
+  const leafRefs = useRef({});
+
+  const space = spaces.find((s) => s.id === cur) || spaces[0];
+  const tree = space.tree;
+  const patchTree = (fn) => setSpaces((ss) => ss.map((s) => (s.id === cur ? { ...s, tree: fn(s.tree) } : s)));
+
+  const setRatio = (id, r) => patchTree((t) => updateNode(t, id, (n) => ({ ...n, r })));
+  const splitLeaf = (id, dir) => patchTree((t) => updateNode(t, id, (n) => split(dir, { ...n, id: nid() }, leaf("launcher"), 0.5)));
+  const closeLeaf = (id) => {
+    if (countLeaves(tree) < 2) return;
+    patchTree((t) => removeLeaf(t, id) || t);
+  };
+  const setLeafApp = (id, app) => patchTree((t) => updateNode(t, id, (n) => ({ ...n, app })));
+  const swapTiles = (a, b) => patchTree((t) => {
+    const A = findLeaf(t, a), B = findLeaf(t, b);
+    if (!A || !B) return t;
+    const aApp = A.app, bApp = B.app;
+    return updateNode(updateNode(t, a, (n) => ({ ...n, app: bApp })), b, (n) => ({ ...n, app: aApp }));
+  });
+
+  const registerRef = (id, el) => { leafRefs.current[id] = el; };
+  const startDrag = (id, e) => {
+    setDrag({ from: id, x: e.clientX, y: e.clientY, over: null, zone: null });
+  };
+  useEffect(() => {
+    if (!drag) return;
+    const move = (e) => {
+      let over = null, zone = null;
+      for (const [id, el] of Object.entries(leafRefs.current)) {
+        if (!el) continue;
+        const r = el.getBoundingClientRect();
+        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+          over = id;
+          const fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+          if (fx < 0.25) zone = "left"; else if (fx > 0.75) zone = "right";
+          else if (fy < 0.25) zone = "top"; else if (fy > 0.75) zone = "bottom"; else zone = "center";
+          break;
+        }
+      }
+      setDrag((d) => d && { ...d, x: e.clientX, y: e.clientY, over, zone });
+    };
+    const up = (e) => {
+      if (drag && drag.over && drag.over !== drag.from) {
+        if (drag.zone === "center") swapTiles(drag.from, drag.over);
+        else if (drag.zone) {
+          const fromLeaf = findLeaf(tree, drag.from);
+          const app = fromLeaf ? fromLeaf.app : "launcher";
+          const dir = (drag.zone === "left" || drag.zone === "right") ? "row" : "col";
+          const before = (drag.zone === "left" || drag.zone === "top");
+          patchTree((t) => {
+            let t2 = removeLeaf(t, drag.from) || t;
+            return updateNode(t2, drag.over, (n) => {
+              const newLeaf = leaf(app);
+              return split(dir, before ? newLeaf : { ...n, id: nid() }, before ? { ...n, id: nid() } : newLeaf, 0.5);
+            });
+          });
+        }
+      }
+      setDrag(null);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+    return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+  }, [drag, tree, cur]);
+
+  const accept = (ptype, prompt) => new Promise((resolve) => setAccepting({ ptype, prompt, resolve: (r) => { if (r) world.log("accepted", { ptype: r.ptype }); resolve(r); } }));
+  useEffect(() => {
+    const esc = (e) => { if (e.key === "Escape") { setMenu(null); if (accepting) { accepting.resolve(null); setAccepting(null); } } };
+    window.addEventListener("keydown", esc); return () => window.removeEventListener("keydown", esc);
+  }, [accepting]);
+
+  const addSpace = () => { const s = { id: nid(), name: "space " + (spaces.length + 1), tree: leaf("launcher") }; setSpaces((ss) => [...ss, s]); setCur(s.id); world.log("workspace_added", { name: s.name }); };
+  const removeSpace = (id) => { if (spaces.length < 2) return; setSpaces((ss) => ss.filter((s) => s.id !== id)); if (cur === id) setCur(spaces.find((s) => s.id !== id).id); world.log("workspace_removed", {}); };
+  const cloneSpace = (id) => { const s = spaces.find((x) => x.id === id); if (!s) return; const c2 = { id: nid(), name: s.name + "′", tree: cloneTree(s.tree) }; setSpaces((ss) => [...ss, c2]); setCur(c2.id); world.log("workspace_cloned", {}); };
+
+
+  const labelFor = (ptype, value) => {
+    if (ptype === "thread") { const t = world.thread(value); return t ? t.subject : "?"; }
+    if (ptype === "message") return String(value);
+    if (ptype === "label") { const l = world.label(value); return l ? l.name : "?"; }
+    if (ptype === "contact") { const c = world.contact(value); return c ? c.name : "?"; }
+    if (ptype === "event") { const e = world.event(value); return e ? e.title : "?"; }
+    if (ptype === "slot") return "slot " + fmtDay(value) + " " + fmtTime(value);
+    if (ptype === "task") { const t = world.task(value); return t ? t.title : "?"; }
+    if (ptype === "project") { const p = world.project(value); return p ? p.name : "?"; }
+    if (ptype === "transcript") { const t = world.transcript(value); return t ? t.title : "?"; }
+    if (ptype === "moment") { const tr = world.transcript(value.trId); const m = tr && tr.moments.find((x) => x.id === value.mId); return m ? (tr.title + " @" + Math.floor(m.t / 60) + ":" + pad2(m.t % 60)) : "?"; }
+    if (ptype === "actionitem") { const tr = world.transcript(value.trId); const a = tr && tr.actionItems.find((x) => x.id === value.aiId); return a ? a.text.slice(0, 40) : "?"; }
+    if (ptype === "link") { const l = world.link(value); return l ? l.title : "?"; }
+    if (ptype === "booking") { const b = world.booking(value); return b ? b.name : "?"; }
+    if (ptype === "tile") { const l = findLeaf(tree, value); return l ? "[" + APPS[l.app].title + "]" : "(closed)"; }
+    if (ptype === "workspace") { const s = spaces.find((x) => x.id === value); return s ? s.name : "?"; }
+    return String(value);
+  };
+
+  const describe = (ptype, value) => {
+    if (ptype === "thread") { const t = world.thread(value); if (!t) return null;
+      return { presentationType: "thread", subject: t.subject, messages: t.msgs.length, unread: world.threadUnread(t), starred: !!t.starred,
+        labels: t.labels.map((l) => world.label(l) && world.label(l).name).filter(Boolean),
+        participants: [...new Set(t.msgs.flatMap((m) => [m.from].concat(m.to || [])))].map((c) => world.contactName(c)) }; }
+    if (ptype === "contact") { const c = world.contact(value); if (!c) return null;
+      const threads = world.threads.filter((t) => t.msgs.some((m) => m.from === c.id || (m.to || []).includes(c.id))).length;
+      const events = world.events.filter((e) => e.attendees.includes(c.id)).length;
+      return { presentationType: "contact", ...c, correspondence: threads, meetings: events }; }
+    if (ptype === "event") { const e = world.event(value); if (!e) return null;
+      return { presentationType: "event", title: e.title, kind: e.kind, when: fmtDay(e.start) + " " + fmtTime(e.start) + "–" + fmtTime(e.end),
+        duration: durText(e.end - e.start), location: e.location, attendees: e.attendees.map((c) => world.contactName(c)), notes: e.notes }; }
+    if (ptype === "task") { const t = world.task(value); if (!t) return null;
+      return { presentationType: "task", ...t, project: t.project ? world.project(t.project).name : null,
+        due: t.due ? fmtDay(t.due) + " " + fmtTime(t.due) : null, overdue: t.due && t.due < nowMs() && t.status !== "done" }; }
+    if (ptype === "project") { const p = world.project(value); if (!p) return null;
+      const ts = world.tasks.filter((t) => t.project === p.id);
+      return { presentationType: "project", name: p.name, notes: p.notes, tasks: ts.length,
+        done: ts.filter((t) => t.status === "done").length, overdue: ts.filter((t) => t.status !== "done" && t.due && t.due < nowMs()).length }; }
+    if (ptype === "label") { const l = world.label(value); if (!l) return null;
+      return { presentationType: "label", name: l.name, system: !!l.system,
+        threads: world.threadsIn(value).length, unread: world.unreadIn(value) }; }
+    if (ptype === "transcript") { const t = world.transcript(value); if (!t) return null;
+      return { presentationType: "transcript", title: t.title, source: t.source, duration: durText(t.durationS * 1000),
+        participants: t.participants.map((p) => world.contactName(p)), moments: t.moments.length, actionItems: t.actionItems.length,
+        summary: t.summary }; }
+    if (ptype === "moment") { const tr = world.transcript(value.trId); const m = tr && tr.moments.find((x) => x.id === value.mId);
+      if (!m) return null;
+      return { presentationType: "moment", transcript: tr.title, speaker: world.contactName(m.spk), t: Math.floor(m.t / 60) + ":" + pad2(m.t % 60), text: m.text }; }
+    if (ptype === "actionitem") { const tr = world.transcript(value.trId); const a = tr && tr.actionItems.find((x) => x.id === value.aiId);
+      if (!a) return null;
+      return { presentationType: "action item", from: tr.title, text: a.text, assigned: world.contactName(a.assigned), promoted: !!a.taskId }; }
+    if (ptype === "link") { const l = world.link(value); if (!l) return null;
+      return { presentationType: "booking link", ...l, bookings: world.bookings.filter((b) => b.linkId === l.id).length }; }
+    if (ptype === "booking") { const b = world.booking(value); if (!b) return null;
+      return { presentationType: "booking", name: b.name, email: b.email, when: fmtDay(b.start) + " " + fmtTime(b.start), status: b.status, notes: b.notes,
+        link: world.link(b.linkId) ? world.link(b.linkId).title : "?" }; }
+    if (ptype === "slot") return { presentationType: "time slot", when: fmtDay(value) + " " + fmtTime(value) };
+    if (ptype === "tile") { const l = findLeaf(tree, value); return { presentationType: "tile", app: l ? APPS[l.app].title : "(closed)", workspace: space.name }; }
+    if (ptype === "workspace") { const s = spaces.find((x) => x.id === value); return { presentationType: "workspace", name: s && s.name, tiles: s && countLeaves(s.tree) }; }
+    return { presentationType: ptype, value };
+  };
+
+  const actionsFor = (ptype, value) => {
+    const acts = [{ label: "Inspect", run: () => world.inspect("<" + ptype + "> " + labelFor(ptype, value), describe(ptype, value)) }];
+    const push = (label, run) => acts.push({ label, run });
+    if (ptype === "thread") {
+      const t = world.thread(value); if (!t) return acts;
+      push("Open in inbox", () => { world.select("thread", value); world.markThreadRead(value, true); });
+      push(world.threadUnread(t) > 0 ? "Mark read" : "Mark unread", () => world.markThreadRead(value, world.threadUnread(t) === 0));
+      push(t.starred ? "Unstar" : "Star", () => world.toggleStar(value));
+      push("Archive", () => world.archiveThread(value));
+      push("Trash", () => world.trashThread(value));
+      push("Reply-all as draft", () => {
+        const all = [...new Set(t.msgs.flatMap((m) => [m.from].concat(m.to || []).concat(m.cc || [])))].filter((x) => x !== "c-me");
+        world.saveDraft({ threadId: value, to: all, subject: "Re: " + t.subject, body: "" });
+      });
+      push("Add a label…  (accept a <label>)", async () => { const r = await accept("label", "PICK — which label to apply?"); if (r) world.addThreadLabel(value, r.value); });
+      push("Convert to a task…  (accept a <project>)", async () => {
+        const r = await accept("project", "FILE UNDER — pick a project (Esc to skip)");
+        world.createTask({ title: "Follow up: " + t.subject, project: r ? r.value : null, prio: "med", notes: "From thread " + value });
+      });
+      push("Add to watchlist", () => world.watchAdd("thread", value));
+    }
+    if (ptype === "label") {
+      push("Show its threads", () => world.select("label", value));
+      const l = world.label(value);
+      if (l && !l.system) push("Delete label", () => { if (window.confirm("delete label " + l.name + "?")) { world.labels = world.labels.filter((x) => x.id !== value); world.threads.forEach((t) => { t.labels = t.labels.filter((x) => x !== value); }); world.log("label_deleted", { name: l.name }); world.bump(); } });
+    }
+    if (ptype === "contact") {
+      const c = world.contact(value);
+      push("Open contact page", () => world.select("contact", value));
+      push("Draft an email to them", () => world.saveDraft({ to: [value], subject: "", body: "" }));
+      push("Schedule a meeting…  (accept a <slot>)", async () => {
+        const r = await accept("slot", "PICK A TIME — accept an empty <slot> in the calendar");
+        if (r) { const id = world.createEvent({ title: "Meeting with " + c.name, start: r.value, end: r.value + hour, attendees: [value], kind: "meeting" }); world.select("event", id); }
+      });
+      push("Send a booking link…", async () => {
+        const r = await accept("link", "PICK A BOOKING LINK to email them");
+        if (r) { const l = world.link(r.value); world.saveDraft({ to: [value], subject: "Grab a time?", body: "Hi " + c.name.split(" ")[0] + " — feel free to book here: " + l.url }); }
+      });
+      push("Add a task about them", () => world.createTask({ title: "Follow up with " + c.name, prio: "med" }));
+      push("Add to watchlist", () => world.watchAdd("contact", value));
+    }
+    if (ptype === "event") {
+      const e = world.event(value);
+      push("Open event", () => world.select("event", value));
+      push("Add prep task", () => world.createTask({ title: "Prep for " + e.title, due: e.start - hour, prio: "med" }));
+      push("Add an attendee…  (accept a <contact>)", async () => { const r = await accept("contact", "PICK — accept a <contact> to add"); if (r) world.addEventAttendee(value, r.value); });
+      push("Delete event", () => { if (window.confirm("delete event?")) world.deleteEvent(value); });
+      push("Add to watchlist", () => world.watchAdd("event", value));
+    }
+    if (ptype === "slot") {
+      push("Create event here", () => { const id = world.createEvent({ title: "New event", start: value, end: value + hour }); world.select("event", id); });
+    }
+    if (ptype === "task") {
+      const t = world.task(value);
+      push(t.status === "done" ? "Mark undone" : "Mark done", () => world.toggleTask(value));
+      push("Cycle status", () => world.cycleStatus(value));
+      push("Change priority to HIGH", () => world.updateTask(value, { prio: "high" }));
+      push("Change priority to LOW", () => world.updateTask(value, { prio: "low" }));
+      push("File under…  (accept a <project>)", async () => { const r = await accept("project", "FILE UNDER — pick a project"); if (r) world.setTaskProject(value, r.value); });
+      push("Schedule as a calendar block…  (accept a <slot>)", async () => {
+        const r = await accept("slot", "PICK A TIME to block for this task");
+        if (r) world.createEvent({ title: t.title, kind: "focus", start: r.value, end: r.value + hour, notes: "From task " + value });
+      });
+      push("Delete task", () => { if (window.confirm("delete task?")) world.deleteTask(value); });
+      push("Add to watchlist", () => world.watchAdd("task", value));
+    }
+    if (ptype === "project") {
+      push("Focus in projects", () => world.select("project", value));
+      push("Add task to this project", () => { const title = window.prompt("task title?"); if (title) world.createTask({ title, project: value }); });
+      push("Rename", () => { const p = world.project(value); const n = window.prompt("new name?", p.name); if (n) { p.name = n; world.log("project_renamed", { name: n }); world.bump(); } });
+      push("Add to watchlist", () => world.watchAdd("project", value));
+    }
+    if (ptype === "transcript") {
+      const t = world.transcript(value);
+      push("Open in transcript viewer", () => world.select("transcript", value));
+      push("Draft a follow-up email…  (accept a <contact>)", async () => {
+        const r = await accept("contact", "PICK — send follow-up to which participant?");
+        if (r) world.saveDraft({ to: [r.value], subject: "Re: " + t.title, body: t.summary + "\n\n—" });
+      });
+      push("Promote all action items into tasks", () => {
+        t.actionItems.filter((a) => !a.taskId).forEach((a) => world.actionItemToTask(t.id, a.id, null));
+      });
+      push("Add to watchlist", () => world.watchAdd("transcript", value));
+    }
+    if (ptype === "moment") {
+      push("Jump to this moment", () => { world.select("transcript", value.trId); world.select("moment", value.mId); });
+      push("Turn into an action item", () => {
+        const text = window.prompt("action item text?");
+        if (text) world.addActionItem(value.trId, value.mId, text);
+      });
+      push("Add to watchlist", () => world.watchAdd("moment", value));
+    }
+    if (ptype === "actionitem") {
+      const tr = world.transcript(value.trId); const ai = tr && tr.actionItems.find((x) => x.id === value.aiId);
+      if (ai && !ai.taskId) push("Promote to a real task…  (accept a <project>)", async () => {
+        const r = await accept("project", "FILE UNDER — pick a project (Esc to skip)");
+        world.actionItemToTask(value.trId, value.aiId, r ? r.value : null);
+      });
+      if (ai && ai.taskId) push("Jump to the task", () => world.select("task", ai.taskId));
+    }
+    if (ptype === "link") {
+      const l = world.link(value);
+      push("Configure", () => world.select("link", value));
+      push(l.active ? "Disable" : "Enable", () => world.toggleLink(value));
+      push("Copy URL", () => { navigator.clipboard && navigator.clipboard.writeText(l.url); world.log("url_copied", {}); });
+      push("Email this link to…  (accept a <contact>)", async () => {
+        const r = await accept("contact", "PICK — email this link to whom?");
+        if (r) { const c = world.contact(r.value); world.saveDraft({ to: [r.value], subject: "Grab a time?", body: "Hi " + c.name.split(" ")[0] + ",\n\nYou can grab a slot here: " + l.url }); }
+      });
+      push("Delete link", () => { if (window.confirm("delete link and its bookings?")) world.deleteLink(value); });
+    }
+    if (ptype === "booking") {
+      const b = world.booking(value);
+      if (b.status === "pending") push("Confirm", () => world.confirmBooking(value));
+      if (b.status === "pending") push("Decline", () => world.declineBooking(value));
+      push("Add to calendar", () => { const eid = world.bookingToEvent(value); world.select("event", eid); });
+    }
+    if (ptype === "tile") {
+      push("Split ⬌ (new tile right)", () => splitLeaf(value, "row"));
+      push("Split ⬍ (new tile below)", () => splitLeaf(value, "col"));
+      push("Swap app with…  (accept a <tile>)", async () => { const r = await accept("tile", "SWAP — click another TILE's title"); if (r && r.value !== value) swapTiles(value, r.value); });
+      if (countLeaves(tree) > 1) push("Close tile", () => closeLeaf(value));
+    }
+    if (ptype === "workspace") {
+      push("Switch to", () => setCur(value));
+      push("Rename", () => setRenaming(value));
+      push("Duplicate", () => cloneSpace(value));
+      if (spaces.length > 1) push("Delete", () => removeSpace(value));
+    }
+    return acts;
+  };
+
+
+  const ui = {
+    world, accepting, setAccepting, setMouseDoc, accept, labelFor, describe, drag, spaces,
+    openMenu: (ptype, value, x, y) => setMenu({ ptype, value, x, y }),
+    wm: { setRatio, splitLeaf, closeLeaf, setLeafApp, startDrag, registerRef, canClose: countLeaves(tree) > 1 },
+  };
+  const dragSrcLeaf = drag && findLeaf(tree, drag.from);
+
+  return (
+    <UICtx.Provider value={ui}>
+      <div onClick={() => setMenu(null)} style={{ fontFamily: "'IBM Plex Mono', ui-monospace, Menlo, monospace", background: C.paper, color: C.ink, height: "100vh", display: "flex", flexDirection: "column", fontSize: 12 }}>
+        <style>{`
+          .pres { cursor: pointer; }
+          .pres:hover { outline: 1px dotted ${C.ink}; background: ${C.sel}; }
+          .pres.acceptable { outline: 2px solid ${C.red}; background: ${C.sel}; animation: pulse 0.9s infinite; cursor: pointer; }
+          .pres-svg { cursor: pointer; }
+          .pres-svg:hover { filter: drop-shadow(0 0 1.5px ${C.ink}); }
+          .pres-svg.acceptable { filter: drop-shadow(0 0 2.5px ${C.red}); }
+          @keyframes pulse { 50% { outline-color: ${C.mustard}; } }
+          ::-webkit-scrollbar { width: 12px; height: 12px; }
+          ::-webkit-scrollbar-thumb { background: ${C.line}; border: 3px solid ${C.pane}; }
+          ::-webkit-scrollbar-track { background: ${C.pane}; }
+          table th { font-weight: 700; }
+          button, select, input, textarea { font-family: inherit; }
+          @media (prefers-reduced-motion: reduce) { .pres.acceptable { animation: none; } }
+        `}</style>
+
+        <div style={{ background: C.ink, color: C.paper, display: "flex", alignItems: "center", gap: 12, padding: "4px 10px", flexShrink: 0 }}>
+          <b style={{ letterSpacing: "0.26em", fontSize: 12 }}>P B U I</b>
+          <span style={{ color: C.mustard, fontSize: 11, letterSpacing: "0.14em" }}>PERSONAL PRODUCTIVITY SUITE</span>
+          <span style={{ flex: 1 }} />
+          <span style={{ fontSize: 10, color: C.faint }}>{fmtDay(nowMs())} · {fmtTime(nowMs())}</span>
+          <span style={{ fontSize: 10, color: world.unreadIn("l-inbox") ? C.mustard : C.faint }}>{world.unreadIn("l-inbox")} unread</span>
+          <span style={{ fontSize: 10, color: C.faint }}>{world.tasks.filter((t) => t.status !== "done" && t.prio === "high").length} high-prio open</span>
+        </div>
+
+        {accepting && (
+          <div style={{ background: C.red, color: C.paper, padding: "3px 10px", fontWeight: 700, flexShrink: 0 }}>
+            ACCEPTING &lt;{Array.isArray(accepting.ptype) ? accepting.ptype.join("|") : accepting.ptype}&gt; — {accepting.prompt} — works across tiles AND workspaces
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 6, alignItems: "center", padding: "5px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em" }}>WORKSPACES</span>
+          {spaces.map((s) =>
+            renaming === s.id ? (
+              <input key={s.id} autoFocus defaultValue={s.name}
+                onKeyDown={(e) => { if (e.key === "Enter") { const name = e.target.value.trim() || s.name; setSpaces((ss) => ss.map((x) => (x.id === s.id ? { ...x, name } : x))); world.log("workspace_renamed", { name }); setRenaming(null); } if (e.key === "Escape") setRenaming(null); }}
+                onBlur={() => setRenaming(null)}
+                style={{ border: "2px solid " + C.ink, background: C.pane, fontSize: 11, padding: "1px 5px", width: 100 }} />
+            ) : (
+              <P key={s.id} ptype="workspace" value={s.id} onActivate={() => setCur(s.id)} activateDoc="switch to it"
+                doc={"workspace " + s.name + " (" + countLeaves(s.tree) + " tiles)"}>
+                <span style={{ border: "2px solid " + C.ink, background: cur === s.id ? C.sel : C.paneAlt, padding: "1px 9px", fontWeight: cur === s.id ? 700 : 400, cursor: "pointer" }}>{s.name}</span>
+              </P>
+            ))}
+          <Btn tone={C.mint} onClick={addSpace}>+ workspace</Btn>
+        </div>
+
+        <div style={{ flex: 1, display: "flex", padding: 8, minHeight: 0 }}><NodeView node={tree} /></div>
+
+        <div style={{ background: C.ink, color: C.paper, padding: "3px 10px", fontSize: 11, flexShrink: 0, display: "flex", gap: 16 }}>
+          <span style={{ color: C.mustard, fontWeight: 700 }}>{accepting ? "ACCEPT MODE" : drag ? "MOVING APP" : "READY"}</span>
+          <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {mouseDoc || (accepting ? accepting.prompt + "   (Esc: abort)" : "left-click activates · right-click for verbs · drag ⠿ to swap or split tiles · workspaces at the top")}
+          </span>
+          <span style={{ color: C.faint }}>{countLeaves(tree)} tiles</span>
+        </div>
+
+        {drag && dragSrcLeaf && (
+          <div style={{ position: "fixed", left: drag.x + 12, top: drag.y + 12, zIndex: 200, pointerEvents: "none", background: APPS[dragSrcLeaf.app].color, border: "2px solid " + C.ink, boxShadow: "3px 3px 0 " + C.ink, padding: "1px 8px", fontSize: 11, fontWeight: 700 }}>
+            {APPS[dragSrcLeaf.app].title} → {drag.over && drag.over !== drag.from ? (drag.zone === "center" ? "swap apps" : "dock " + ({ left: "⇤", right: "⇥", top: "⤒", bottom: "⤓" }[drag.zone] || "") + " (source closes)") : "drop on a tile · center swaps · edges split"}
+          </div>
+        )}
+
+        {menu && (
+          <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", left: Math.min(menu.x, (typeof window !== "undefined" ? window.innerWidth : 800) - 330), top: Math.min(menu.y, (typeof window !== "undefined" ? window.innerHeight : 600) - 320), zIndex: 100, background: C.pane, border: "2px solid " + C.ink, boxShadow: "4px 4px 0 " + C.ink, minWidth: 270, maxHeight: 320, overflow: "auto" }}>
+            <div style={{ background: C.ink, color: C.paper, padding: "2px 8px", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em" }}>
+              &lt;{menu.ptype}&gt; {labelFor(menu.ptype, menu.value).slice(0, 32)}
+            </div>
+            {actionsFor(menu.ptype, menu.value).map((a, i) => (
+              <div key={i} onClick={() => { setMenu(null); a.run(); }}
+                style={{ padding: "4px 10px", cursor: "pointer", borderTop: i ? "1px dotted " + C.line : "none", fontSize: 11.5 }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = C.sel)} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                {a.label}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </UICtx.Provider>
+  );
+}

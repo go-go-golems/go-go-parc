@@ -1,0 +1,274 @@
+{
+  "format": "datadrop.plot.document",
+  "version": 2,
+  "id": "plot:kyof0srr6r",
+  "name": "Untitled plot",
+  "sourceId": "groups",
+  "sources": {
+    "groups": {
+      "id": "groups",
+      "name": "groups",
+      "schema": [
+        {
+          "id": "field:1uf4v2c9th5",
+          "name": "group",
+          "physicalType": "string",
+          "semanticType": "ordinal",
+          "nullable": false,
+          "order": [
+            "Baseline",
+            "Low",
+            "Medium",
+            "High"
+          ]
+        },
+        {
+          "id": "field:ye1aca7fox",
+          "name": "subject",
+          "physicalType": "int64",
+          "semanticType": "ordinal",
+          "nullable": false,
+          "role": "identifier"
+        },
+        {
+          "id": "field:7e2ycbfoba",
+          "name": "response",
+          "physicalType": "float64",
+          "semanticType": "quantitative",
+          "nullable": false,
+          "unit": "a.u."
+        }
+      ],
+      "coverage": {
+        "kind": "complete",
+        "rows": 169,
+        "totalRows": 169,
+        "hasMore": false
+      }
+    }
+  },
+  "parameters": {},
+  "transforms": [],
+  "mapping": {
+    "x": {
+      "kind": "field",
+      "name": "group"
+    },
+    "y": {
+      "kind": "field",
+      "name": "response"
+    },
+    "color": {
+      "kind": "field",
+      "name": "group"
+    }
+  },
+  "layers": [
+    {
+      "id": "layer:1",
+      "enabled": true,
+      "inheritMapping": true,
+      "mapping": {},
+      "transforms": [],
+      "stat": {
+        "id": "boxplot",
+        "options": {
+          "coefficient": 1.5
+        }
+      },
+      "geom": {
+        "id": "boxplot",
+        "options": {
+          "width": 0.58,
+          "opacity": 0.35,
+          "strokeWidth": 1.4
+        }
+      },
+      "position": {
+        "id": "identity",
+        "options": {}
+      },
+      "showLegend": "auto",
+      "facetMode": "auto",
+      "name": "Distribution summary"
+    },
+    {
+      "id": "layer:2",
+      "enabled": true,
+      "inheritMapping": true,
+      "mapping": {},
+      "transforms": [],
+      "stat": {
+        "id": "identity",
+        "options": {}
+      },
+      "geom": {
+        "id": "point",
+        "options": {
+          "radius": 2.1,
+          "opacity": 0.42,
+          "strokeWidth": 0.4
+        }
+      },
+      "position": {
+        "id": "jitter",
+        "options": {
+          "width": 0.28,
+          "height": 0,
+          "seed": 11
+        }
+      },
+      "showLegend": "auto",
+      "facetMode": "auto",
+      "name": "Subjects"
+    }
+  ],
+  "scales": {
+    "y": {
+      "type": "linear",
+      "nice": 6
+    },
+    "color": {
+      "type": "categorical",
+      "guide": {
+        "kind": "none"
+      }
+    }
+  },
+  "coordinate": {
+    "kind": "cartesian",
+    "clip": true,
+    "expand": true
+  },
+  "theme": {
+    "name": "professional",
+    "background": "#ffffff",
+    "panelBackground": "#ffffff",
+    "foreground": "#111827",
+    "muted": "#4b5563",
+    "gridMajor": {
+      "color": "#d1d5db",
+      "width": 0.8,
+      "opacity": 0.75
+    },
+    "gridMinor": {
+      "color": "#e5e7eb",
+      "width": 0.5,
+      "opacity": 0.55
+    },
+    "axis": {
+      "color": "#374151",
+      "width": 1
+    },
+    "axisText": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 11,
+      "color": "#374151"
+    },
+    "axisTitle": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 12,
+      "weight": 600,
+      "color": "#111827"
+    },
+    "title": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 18,
+      "weight": 700,
+      "color": "#111827"
+    },
+    "subtitle": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 12,
+      "color": "#4b5563"
+    },
+    "caption": {
+      "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "size": 10,
+      "color": "#6b7280"
+    },
+    "strip": {
+      "fill": "#f3f4f6",
+      "stroke": "#d1d5db",
+      "strokeWidth": 0.8,
+      "text": {
+        "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "size": 11,
+        "weight": 600,
+        "color": "#111827"
+      }
+    },
+    "legend": {
+      "background": "#ffffff",
+      "border": {
+        "color": "#d1d5db",
+        "width": 0.8
+      },
+      "title": {
+        "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "size": 11,
+        "weight": 600,
+        "color": "#111827"
+      },
+      "label": {
+        "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "size": 10,
+        "color": "#374151"
+      },
+      "swatchSize": 12,
+      "gap": 6
+    },
+    "palette": [
+      "#0072B2",
+      "#D55E00",
+      "#009E73",
+      "#CC79A7",
+      "#E69F00",
+      "#56B4E9",
+      "#F0E442",
+      "#000000",
+      "#6B7280",
+      "#7C3AED"
+    ],
+    "sequential": [
+      "#f7fbff",
+      "#08306b"
+    ],
+    "diverging": [
+      "#2166ac",
+      "#f7f7f7",
+      "#b2182b"
+    ],
+    "pointRadius": 3.5,
+    "lineWidth": 1.8,
+    "barGap": 0.12,
+    "panelPadding": 8,
+    "plotPadding": 12
+  },
+  "layout": {
+    "width": 900,
+    "height": 560,
+    "responsive": false,
+    "legendPosition": "none",
+    "facetGap": 18,
+    "dpi": 96
+  },
+  "labels": {
+    "title": "Individual responses and robust distribution summaries",
+    "subtitle": "Boxes show quartiles and median; whiskers use 1.5 × IQR",
+    "x": "Exposure group",
+    "y": "Response (a.u.)"
+  },
+  "interactions": [],
+  "render": {
+    "backend": "svg",
+    "pixelRatio": 1,
+    "vectorMarkLimit": 25000,
+    "rasterizeAbove": 100000,
+    "deterministic": true,
+    "embedMetadata": true
+  },
+  "metadata": {
+    "createdBy": "@datadrop/professional-plotting-suite-reference"
+  }
+}

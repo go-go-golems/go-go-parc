@@ -1,0 +1,367 @@
+{
+  "schema_version": "rag-ttc-project-result/v1",
+  "project_code": "P06",
+  "implementation": {
+    "commit": "uncommitted-p06-implementation; see rag-ttc-p06.patch",
+    "go_version": "repository go1.26.5; executed validation harness go1.23.2",
+    "source_snapshot_sha256": "ece5b8c07faaa379e99b82008f7db5c38ee564bc0910d3e0b3f301d51c149c4d",
+    "adapter_mode": "integrated"
+  },
+  "status": "partial",
+  "claims": [
+    {
+      "id": "P06-C01",
+      "statement": "Definition, stage placement, logical operation, retry attempt, physical batch, and display identity are represented separately and repeated display names do not conflate v2 stage records.",
+      "evidence_level": "proved_model",
+      "outcome": "supported",
+      "artifact_refs": [
+        "design.md",
+        "results/raw/sample-flow-report.json",
+        "fixtures/repeated-display-name.json"
+      ]
+    },
+    {
+      "id": "P06-C02",
+      "statement": "For the standalone item-local model, every completion schedule of six distinct inputs restores one semantic output aligned to input order.",
+      "evidence_level": "exhaustive_finite",
+      "outcome": "supported",
+      "artifact_refs": [
+        "results/raw/experiment-summary.json",
+        "standalone/model_test.go"
+      ]
+    },
+    {
+      "id": "P06-C03",
+      "statement": "For an aligned batch operation, every contiguous partition of eight inputs and actual flow batch sizes one through eight agree with per-item execution.",
+      "evidence_level": "exhaustive_finite",
+      "outcome": "supported",
+      "artifact_refs": [
+        "results/raw/experiment-summary.json",
+        "standalone/model_test.go",
+        "adapter/adapter_test.go"
+      ]
+    },
+    {
+      "id": "P06-C04",
+      "statement": "Response cardinality alone is insufficient to prove batch equivalence; a same-length reversed output changes aligned semantics.",
+      "evidence_level": "property_tested",
+      "outcome": "supported",
+      "artifact_refs": [
+        "fixtures/reversed-bulk-order.json",
+        "pkg/flow/p06_semantics_test.go",
+        "adapter/adapter_test.go"
+      ]
+    },
+    {
+      "id": "P06-C05",
+      "statement": "Captured attempts can be replayed in a new run without live work while preserving a transient-failure then success retry sequence.",
+      "evidence_level": "property_tested",
+      "outcome": "supported",
+      "artifact_refs": [
+        "results/raw/captured-effects.json",
+        "fixtures/captured-retry-sequence.json",
+        "pkg/effectlog/log_test.go"
+      ]
+    },
+    {
+      "id": "P06-C06",
+      "statement": "Capture does not make an ambiguous non-idempotent mutation retry-safe; declared non-idempotent operations with multiple attempts are rejected before work.",
+      "evidence_level": "proved_model",
+      "outcome": "supported",
+      "artifact_refs": [
+        "fixtures/ambiguous-non-idempotent-retry.json",
+        "adapter/fault_test.go",
+        "design.md"
+      ]
+    },
+    {
+      "id": "P06-C07",
+      "statement": "A temporal barrier does not provide complete-collection semantics; global top-one requires a snapshot-global operation.",
+      "evidence_level": "property_tested",
+      "outcome": "supported",
+      "artifact_refs": [
+        "fixtures/snapshot-global-barrier.json",
+        "pkg/flow/p06_semantics_test.go"
+      ]
+    },
+    {
+      "id": "P06-C08",
+      "statement": "The selected P06 target packages are race-clean and vet-clean under the offline Go 1.23.2 compatibility harness.",
+      "evidence_level": "empirical",
+      "outcome": "supported",
+      "artifact_refs": [
+        "results/raw/test-output.txt",
+        "results/raw/vet-output.txt"
+      ]
+    },
+    {
+      "id": "P06-C09",
+      "statement": "The complete repository remains compatible under the declared Go 1.26.5 toolchain and real dependency graph.",
+      "evidence_level": "conjectural",
+      "outcome": "not_tested",
+      "artifact_refs": [
+        "report.md"
+      ]
+    }
+  ],
+  "tests": [
+    {
+      "id": "race-target-suite",
+      "status": "pass",
+      "artifact_refs": [
+        "results/raw/test-output.txt"
+      ],
+      "notes": "102 test functions across selected packages; 40 are P06-specific and 62 are pre-existing flow tests."
+    },
+    {
+      "id": "go-vet-target-suite",
+      "status": "pass",
+      "artifact_refs": [
+        "results/raw/vet-output.txt"
+      ]
+    },
+    {
+      "id": "production-adapter-build",
+      "status": "pass",
+      "artifact_refs": [
+        "results/raw/adapter-build-output.txt"
+      ],
+      "notes": "Generation and embedding packages compile in compatibility harness; their tests require newer testing APIs."
+    },
+    {
+      "id": "artifact-schema-validation",
+      "status": "pass",
+      "artifact_refs": [
+        "results/raw/schema-validation.json"
+      ]
+    },
+    {
+      "id": "full-declared-toolchain-suite",
+      "status": "skipped",
+      "notes": "Go 1.26.5 and module downloads were unavailable in the offline environment."
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "all-six-item-completion-schedules",
+      "status": "pass",
+      "seed": null,
+      "artifact_refs": [
+        "results/raw/experiment-summary.json"
+      ],
+      "notes": "720/720 schedules."
+    },
+    {
+      "id": "all-eight-item-contiguous-partitions",
+      "status": "pass",
+      "seed": null,
+      "artifact_refs": [
+        "results/raw/experiment-summary.json"
+      ],
+      "notes": "128/128 partitions."
+    },
+    {
+      "id": "actual-flow-batch-sizes",
+      "status": "pass",
+      "artifact_refs": [
+        "results/raw/experiment-summary.json"
+      ],
+      "notes": "Batch sizes 1 through 8."
+    },
+    {
+      "id": "repeated-display-name",
+      "status": "pass",
+      "artifact_refs": [
+        "results/raw/sample-flow-report.json"
+      ]
+    },
+    {
+      "id": "captured-retry-offline-replay",
+      "status": "pass",
+      "artifact_refs": [
+        "results/raw/captured-effects.json"
+      ]
+    },
+    {
+      "id": "non-idempotent-retry-refusal",
+      "status": "pass",
+      "artifact_refs": [
+        "fixtures/ambiguous-non-idempotent-retry.json"
+      ]
+    },
+    {
+      "id": "snapshot-global-top-one",
+      "status": "pass",
+      "artifact_refs": [
+        "fixtures/snapshot-global-barrier.json"
+      ]
+    },
+    {
+      "id": "reversed-batch-negative-control",
+      "status": "pass",
+      "artifact_refs": [
+        "fixtures/reversed-bulk-order.json"
+      ],
+      "notes": "Harness correctly detects semantic mismatch."
+    }
+  ],
+  "metrics": {
+    "selected_test_functions": 102,
+    "p06_specific_test_functions": 40,
+    "completion_schedule_cases": 720,
+    "contiguous_partition_cases": 128,
+    "actual_flow_batch_sizes": 8,
+    "captured_attempts": 2,
+    "sample_trace_events": 18,
+    "neutral_fixtures": 9,
+    "benchmark_environment": "linux/amd64 AMD EPYC 9V74, Go 1.23.2 compatibility harness",
+    "benchmark_iterations": 50
+  },
+  "counterexamples": [
+    "Two distinct stages with the same display name are conflated by the legacy map-by-name report.",
+    "A same-length reversed bulk response passes cardinality checking but changes item alignment.",
+    "A temporal barrier still invokes an item-local function and cannot implement global top-k.",
+    "A non-idempotent mutation that commits before an ambiguous timeout can be applied twice by retry; capture does not supply exactly-once semantics.",
+    "Reusing one semantic capture key for different payload bytes must fail closed."
+  ],
+  "artifacts": [
+    {
+      "path": "README.md",
+      "role": "handoff overview",
+      "sha256": "bbd0e21fe9865fa1d88e19eef43dbc01ea35177dcd166413414a7e3e7c30b429"
+    },
+    {
+      "path": "design.md",
+      "role": "semantic design",
+      "sha256": "3357699b3ddcce0a2b4e2015cea449975ec1afce7c9bb599f89fad54bb258e64"
+    },
+    {
+      "path": "api.md",
+      "role": "public API guide",
+      "sha256": "776dba4163031f8a13f29d3e12cac46de376fc8d958ed4bfc6656bf9a01d3bc3"
+    },
+    {
+      "path": "contract-catalog.md",
+      "role": "combinator transparency catalog",
+      "sha256": "0c4cc6de095437efeef5188542db4409869cdfe4629ef4e9fdfe81b9ccfd56ee"
+    },
+    {
+      "path": "report.md",
+      "role": "implementation report",
+      "sha256": "c926a28985bac01af791f29e39f351f7093be4efe43c954905a4f599b88fbd16"
+    },
+    {
+      "path": "standalone/api.go",
+      "role": "standalone executable specification",
+      "sha256": "a4c25b9ebbde9ef871250ca6d3275fa0a8a373f2f9ce3734b8900e4390f01688",
+      "schema": "Go source"
+    },
+    {
+      "path": "adapter/adapter.go",
+      "role": "rag-ttc adapter",
+      "sha256": "cfaa3a6164893278efc103589f8ced4077881880ce487f5cdbae19c6d6561c84",
+      "schema": "Go source"
+    },
+    {
+      "path": "results/raw/experiment-summary.json",
+      "role": "primary experiment summary",
+      "sha256": "7a9a8b4417e5ea23fb50d6ec9305d2c0298ed326e52e566b096b4da7b5a1fd54",
+      "schema": "p06-experiment-summary/v1"
+    },
+    {
+      "path": "results/raw/test-output.txt",
+      "role": "race-enabled test evidence",
+      "sha256": "655a4cf755bcbceb3f67dd37adc31525688677d93d5976be8399c6f74e532c38"
+    },
+    {
+      "path": "results/raw/benchmarks.txt",
+      "role": "empirical benchmark evidence",
+      "sha256": "b512560444f3afc6cd7da19c7bec42b43da8f5879018b52629dbcb7f32b2332f"
+    },
+    {
+      "path": "results/raw/captured-effects.json",
+      "role": "offline replay artifact",
+      "sha256": "1d6bc218d88ddacc129d5c4df236761f240474ec8361d6726dfac75741f23984",
+      "schema": "captured-effect-snapshot/v1"
+    },
+    {
+      "path": "results/raw/sample-flow-report.json",
+      "role": "report interchange sample",
+      "sha256": "96f38f57b8e4d1f1f64b9d0d4f4b7e755ebb4964d7086a11fc1a70a5d26b28dc",
+      "schema": "flow-report/v2"
+    },
+    {
+      "path": "results/raw/sample-operation-trace.jsonl",
+      "role": "operation trace sample",
+      "sha256": "e07cbd73a98870b44386ffc7cdfa02ac9e88c6d4cff5c93c4745a53c11672810",
+      "schema": "operation-trace/v1"
+    },
+    {
+      "path": "results/raw/schema-validation.json",
+      "role": "schema validation evidence",
+      "sha256": "43ccea3ffe017c1b72d58738bb095f0a7633836ef4815f17ec63098a66fb9ac4",
+      "schema": "p06-artifact-validation/v1"
+    },
+    {
+      "path": "fixtures/reversed-bulk-order.json",
+      "role": "batch-order counterexample",
+      "sha256": "f84393d38c1eeff9631878e21bf0dcb2393ae83ce2041c8d950148d4667570c9",
+      "schema": "p06-fixture/v1"
+    },
+    {
+      "path": "fixtures/ambiguous-non-idempotent-retry.json",
+      "role": "retry counterexample",
+      "sha256": "672d53e565722167895f27c8d6bd0f62fcb5d0243823d2369193edac59a5ad98",
+      "schema": "p06-fixture/v1"
+    },
+    {
+      "path": "schemas/flow-report-v2.schema.json",
+      "role": "report schema",
+      "sha256": "df08ae355c95a96d7f4ddf7503b90373f6112528a3318bd26720f832788e4dd1",
+      "schema": "JSON Schema 2020-12"
+    },
+    {
+      "path": "demo.sh",
+      "role": "offline reproduction entry point",
+      "sha256": "89b3bb9b5b81d5687f3c5f4cc8a63e0736bc9ef9a16c0ece5ef198ad8ce3728c"
+    },
+    {
+      "path": "results/changed-files.txt",
+      "role": "production and handoff change inventory",
+      "sha256": "238b41b5b431f42b1ff97d544ee94569f27bc87fe57752cc59a734825943c4d7"
+    },
+    {
+      "path": "schemas/captured-effect-event-v1.schema.json",
+      "role": "capture recorder lifecycle event schema",
+      "schema": "JSON Schema 2020-12",
+      "sha256": "fc5eec2cf6396ee552c7f8b021cf13bef2868e3353c1dfaf4ee9f2f5cb0ae7f4"
+    },
+    {
+      "path": "schemas/captured-effect-snapshot-v1.schema.json",
+      "role": "captured effect snapshot schema",
+      "schema": "JSON Schema 2020-12",
+      "sha256": "a9fd8b75c8ab5264791c76ef72a72131ac8de92be08b6a275c84bec9c4c9810b"
+    },
+    {
+      "path": "schemas/captured-effect-v1.schema.json",
+      "role": "captured effect schema",
+      "schema": "JSON Schema 2020-12",
+      "sha256": "61dea95e2503093bf75ceb6d283b13a17528bed07233e050fcd41b2c36b6eccc"
+    },
+    {
+      "path": "schemas/operation-trace-v1.schema.json",
+      "role": "flow operation trace schema",
+      "schema": "JSON Schema 2020-12",
+      "sha256": "ff9346aa343408c39b2a372f378d6e6574714cc43075d9cc7852dcf5b8a4615c"
+    }
+  ],
+  "limitations": [
+    "The repository's declared Go 1.26.5 toolchain and real module graph were unavailable, so the complete suite was not executed.",
+    "Effect and locality contracts are declarations checked by tests and review, not statically proven properties of arbitrary callbacks.",
+    "Generic Bulk cannot detect a same-length provider response permutation without explicit item identities.",
+    "The in-memory effect recorder is a research reference, not a production durable, encrypted, multi-tenant log.",
+    "Captured observations are reproducible but may be stale or factually incorrect.",
+    "Microbenchmarks contain no live provider or network latency and are not capacity estimates."
+  ],
+  "recommendation": "adopt_with_changes"
+}

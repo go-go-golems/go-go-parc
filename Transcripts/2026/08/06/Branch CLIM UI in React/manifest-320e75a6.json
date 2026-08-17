@@ -1,0 +1,129 @@
+{
+  "protocol": "pbui-research/0.1",
+  "artifact": "p08-bidirectional-link-lab",
+  "version": "0.1.0",
+  "project": "P08",
+  "command": [
+    "node",
+    "dist/src/adapter.js"
+  ],
+  "capabilities": [
+    "links.check-policy",
+    "links.propagate",
+    "links.explain-repair",
+    "links.simulate-feedback",
+    "links.run-laws",
+    "links.taxonomy",
+    "bindings.check-link",
+    "bindings.compile",
+    "bindings.edit",
+    "bindings.explain",
+    "identity.compare"
+  ],
+  "deterministicMode": true,
+  "stateModel": "session",
+  "schemas": {
+    "policy": "schemas/policy.schema.json",
+    "repair": "schemas/repair.schema.json",
+    "evidence": "schemas/evidence.schema.json",
+    "filter": "schemas/filter.schema.json"
+  },
+  "guarantees": [
+    {
+      "id": "repair-right-restores-consistency",
+      "level": "property-tested",
+      "fragment": "row selections and supported filter expressions",
+      "evidence": "../results/laws.json",
+      "assumptions": [
+        "finite fixture rows",
+        "opaque predicates are preserved but not evaluated"
+      ]
+    },
+    {
+      "id": "exact-fragment-finite-model",
+      "level": "model-checked",
+      "fragment": "all selections and exact filters over two rows",
+      "evidence": "../results/laws.json",
+      "assumptions": [
+        "bounded two-row abstraction"
+      ]
+    },
+    {
+      "id": "deterministic-scheduler",
+      "level": "example-tested",
+      "fragment": "single-process work queue with explicit edge priorities",
+      "evidence": "../dist/test/policies.test.js",
+      "assumptions": [
+        "no foreign asynchronous callbacks"
+      ]
+    },
+    {
+      "id": "identity-reference-aliasing",
+      "level": "example-tested",
+      "fragment": "single-session shared IdentityCell",
+      "evidence": "../dist/test/policies.test.js",
+      "assumptions": [
+        "P06 owns persistent quotient identity"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "fixture-row-catalogue",
+      "summary": "Row/filter inversion is evaluated against the finite common fixture."
+    },
+    {
+      "id": "foreign-opaque-predicates",
+      "summary": "Opaque filter predicates are preserved but treated as true by the reference evaluator."
+    },
+    {
+      "id": "topology-ownership",
+      "summary": "P06 owns persistent identity classes; P08 exposes only a bounded identity-reference comparison."
+    },
+    {
+      "id": "replication-out-of-scope",
+      "summary": "Replicated merge is classified but not implemented; P12 owns network replication."
+    }
+  ],
+  "normalization": [
+    "Filter conjunctions and disjunctions are flattened and deterministically sorted.",
+    "Row-set equivalence deduplicates and sorts row identifiers.",
+    "Scheduler edges are ordered by priority, edge ID, and target ID.",
+    "Repair choices are ranked by declared score and stable choice ID."
+  ],
+  "limits": {
+    "maxAmbiguityChoices": 12,
+    "defaultFeedbackSteps": 32,
+    "networkReplication": false,
+    "arbitraryFilterEvaluation": false,
+    "persistentBindingCompiler": false
+  },
+  "exports": [
+    {
+      "name": "policy metadata",
+      "classification": "extensional data"
+    },
+    {
+      "name": "filter AST",
+      "classification": "intensional syntax"
+    },
+    {
+      "name": "repair evidence",
+      "classification": "proof evidence"
+    },
+    {
+      "name": "opaque filter predicates",
+      "classification": "opaque callback"
+    },
+    {
+      "name": "IdentityCell",
+      "classification": "mutable resource"
+    },
+    {
+      "name": "scheduler trace",
+      "classification": "event stream"
+    }
+  ],
+  "reliance": "RELIANCE.md",
+  "examples": "examples.jsonl"
+}

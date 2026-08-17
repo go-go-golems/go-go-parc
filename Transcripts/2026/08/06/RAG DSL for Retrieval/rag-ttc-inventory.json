@@ -1,0 +1,964 @@
+[
+  {
+    "package": ".",
+    "files": 1,
+    "tests": 0,
+    "decls": 0,
+    "types": 0,
+    "funcs": 0,
+    "imports": []
+  },
+  {
+    "package": "cmd/generate-sample-data",
+    "files": 1,
+    "tests": 0,
+    "decls": 2,
+    "types": 0,
+    "funcs": 1,
+    "imports": [
+      "pkg/sampledata"
+    ]
+  },
+  {
+    "package": "cmd/luna-throughput-bench",
+    "files": 1,
+    "tests": 0,
+    "decls": 3,
+    "types": 0,
+    "funcs": 2,
+    "imports": [
+      "pkg/execution",
+      "pkg/rag",
+      "pkg/rag/chunking",
+      "pkg/rag/dataset",
+      "pkg/rag/providers/geppetto",
+      "pkg/rag/providers/geppetto/codex",
+      "pkg/rag/representations"
+    ]
+  },
+  {
+    "package": "cmd/rag-ttc",
+    "files": 2,
+    "tests": 1,
+    "decls": 7,
+    "types": 0,
+    "funcs": 3,
+    "imports": [
+      "cmd/rag-ttc/cmds/chat",
+      "cmd/rag-ttc/cmds/chat/tooleval",
+      "cmd/rag-ttc/cmds/corpus",
+      "cmd/rag-ttc/cmds/diagnosticreview",
+      "cmd/rag-ttc/cmds/experiments",
+      "cmd/rag-ttc/cmds/indexes",
+      "cmd/rag-ttc/cmds/knowledge",
+      "cmd/rag-ttc/cmds/queries",
+      "cmd/rag-ttc/cmds/sessions",
+      "cmd/rag-ttc/cmds/workspace"
+    ]
+  },
+  {
+    "package": "cmd/rag-ttc/cmds/chat",
+    "files": 3,
+    "tests": 1,
+    "decls": 19,
+    "types": 3,
+    "funcs": 12,
+    "imports": [
+      "pkg/app/annotation",
+      "pkg/app/chat",
+      "pkg/app/chatui",
+      "pkg/app/chatui/theme",
+      "pkg/app/session",
+      "pkg/rag/answering",
+      "pkg/rag/indexbundle",
+      "pkg/rag/providers/geppetto",
+      "pkg/rag/providers/geppetto/profile"
+    ]
+  },
+  {
+    "package": "cmd/rag-ttc/cmds/chat/tooleval",
+    "files": 3,
+    "tests": 0,
+    "decls": 29,
+    "types": 7,
+    "funcs": 16,
+    "imports": [
+      "cmd/rag-ttc/cmds/experiments/answerquality",
+      "pkg/app/chat",
+      "pkg/app/session",
+      "pkg/rag",
+      "pkg/rag/answering",
+      "pkg/rag/connected",
+      "pkg/rag/dataset",
+      "pkg/rag/indexbundle",
+      "pkg/rag/providers/geppetto",
+      "pkg/rag/providers/geppetto/profile",
+      "pkg/rag/tooleval"
+    ]
+  },
+  {
+    "package": "cmd/rag-ttc/cmds/corpus",
+    "files": 2,
+    "tests": 1,
+    "decls": 41,
+    "types": 6,
+    "funcs": 30,
+    "imports": [
+      "pkg/rag/indexbundle"
+    ]
+  },
+  {
+    "package": "cmd/rag-ttc/cmds/diagnosticreview",
+    "files": 2,
+    "tests": 1,
+    "decls": 25,
+    "types": 7,
+    "funcs": 14,
+    "imports": [
+      "pkg/rag/diagnostic"
+    ]
+  },
+  {
+    "package": "cmd/rag-ttc/cmds/experiments",
+    "files": 1,
+    "tests": 0,
+    "decls": 2,
+    "types": 0,
+    "funcs": 1,
+    "imports": [
+      "cmd/rag-ttc/cmds/experiments/answerquality",
+      "cmd/rag-ttc/cmds/experiments/chunkcompare"
+    ]
+  },
+  {
+    "package": "cmd/rag-ttc/cmds/experiments/answerquality",
+    "files": 19,
+    "tests": 9,
+    "decls": 194,
+    "types": 45,
+    "funcs": 119,
+    "imports": [
+      "cmd/rag-ttc/cmds/experiments/chunkcompare",
+      "internal/fsutil",
+      "pkg/digest",
+      "pkg/execution",
+      "pkg/experiment",
+      "pkg/flow",
+      "pkg/rag",
+      "pkg/rag/answering",
+      "pkg/rag/chunking",
+      "pkg/rag/connected",
+      "pkg/rag/connectedconfig",
+      "pkg/rag/dataset",
+      "pkg/rag/embedding",
+      "pkg/rag/evaluation",
+      "pkg/rag/generation",
+      "pkg/rag/knowledge",
+      "pkg/rag/knowledge/retrieve",
+      "pkg/rag/lexical/bleve",
+      "pkg/rag/providers/geppetto",
+      "pkg/rag/providers/geppetto/profile",
+      "pkg/rag/representations",
+      "pkg/rag/reranking",
+      "pkg/rag/review",
+      "pkg/rag/vector/sqliteexact"
+    ]
+  },
+  {
+    "package": "cmd/rag-ttc/cmds/experiments/chunkcompare",
+    "files": 9,
+    "tests": 2,
+    "decls": 71,
+    "types": 10,
+    "funcs": 47,
+    "imports": [
+      "pkg/experiment",
+      "pkg/flow",
+      "pkg/rag",
+      "pkg/rag/chunking",
+      "pkg/rag/dataset",
+      "pkg/rag/evaluation",
+      "pkg/rag/generation",
+      "pkg/rag/lexical/bleve",
+      "pkg/rag/providers/geppetto",
+      "pkg/rag/providers/geppetto/profile",
+      "pkg/rag/representations"
+    ]
+  },
+  {
+    "package": "cmd/rag-ttc/cmds/indexes",
+    "files": 5,
+    "tests": 2,
+    "decls": 29,
+    "types": 4,
+    "funcs": 19,
+    "imports": [
+      "pkg/flow",
+      "pkg/rag",
+      "pkg/rag/chunking",
+      "pkg/rag/dataset",
+      "pkg/rag/embedding",
+      "pkg/rag/generation",
+      "pkg/rag/indexbundle",
+      "pkg/rag/providers/geppetto",
+      "pkg/rag/providers/geppetto/profile",
+      "pkg/rag/representations"
+    ]
+  },
+  {
+    "package": "cmd/rag-ttc/cmds/knowledge",
+    "files": 6,
+    "tests": 1,
+    "decls": 33,
+    "types": 9,
+    "funcs": 15,
+    "imports": [
+      "pkg/digest",
+      "pkg/experiment",
+      "pkg/flow",
+      "pkg/rag",
+      "pkg/rag/chunking",
+      "pkg/rag/dataset",
+      "pkg/rag/generation",
+      "pkg/rag/knowledge",
+      "pkg/rag/knowledgetools",
+      "pkg/rag/providers/geppetto",
+      "pkg/rag/providers/geppetto/profile"
+    ]
+  },
+  {
+    "package": "cmd/rag-ttc/cmds/queries",
+    "files": 1,
+    "tests": 0,
+    "decls": 17,
+    "types": 5,
+    "funcs": 8,
+    "imports": [
+      "pkg/rag",
+      "pkg/rag/dataset"
+    ]
+  },
+  {
+    "package": "cmd/rag-ttc/cmds/sessions",
+    "files": 2,
+    "tests": 1,
+    "decls": 20,
+    "types": 4,
+    "funcs": 11,
+    "imports": [
+      "pkg/app/session"
+    ]
+  },
+  {
+    "package": "cmd/rag-ttc/cmds/workspace",
+    "files": 9,
+    "tests": 2,
+    "decls": 65,
+    "types": 19,
+    "funcs": 31,
+    "imports": [
+      "pkg/app/chat",
+      "pkg/execution",
+      "pkg/experiment",
+      "pkg/flow",
+      "pkg/rag",
+      "pkg/rag/answering",
+      "pkg/rag/embedding",
+      "pkg/rag/gochunk",
+      "pkg/rag/indexbundle",
+      "pkg/rag/providers/geppetto",
+      "pkg/rag/providers/geppetto/profile",
+      "pkg/rag/retrieval"
+    ]
+  },
+  {
+    "package": "examples/01_chunking",
+    "files": 1,
+    "tests": 0,
+    "decls": 2,
+    "types": 0,
+    "funcs": 1,
+    "imports": [
+      "pkg/rag/chunking",
+      "pkg/sampledata"
+    ]
+  },
+  {
+    "package": "examples/06_end_to_end_experiment",
+    "files": 1,
+    "tests": 0,
+    "decls": 4,
+    "types": 1,
+    "funcs": 2,
+    "imports": [
+      "pkg/experiment",
+      "pkg/rag",
+      "pkg/rag/chunking",
+      "pkg/rag/embedding",
+      "pkg/rag/evaluation",
+      "pkg/rag/generation",
+      "pkg/rag/lexical",
+      "pkg/rag/reranking",
+      "pkg/rag/retrieval",
+      "pkg/rag/vector",
+      "pkg/sampledata"
+    ]
+  },
+  {
+    "package": "internal/fsutil",
+    "files": 3,
+    "tests": 1,
+    "decls": 11,
+    "types": 1,
+    "funcs": 8,
+    "imports": []
+  },
+  {
+    "package": "internal/jsonutil",
+    "files": 3,
+    "tests": 1,
+    "decls": 8,
+    "types": 1,
+    "funcs": 5,
+    "imports": []
+  },
+  {
+    "package": "pkg",
+    "files": 2,
+    "tests": 0,
+    "decls": 3,
+    "types": 0,
+    "funcs": 1,
+    "imports": []
+  },
+  {
+    "package": "pkg/app/annotation",
+    "files": 3,
+    "tests": 1,
+    "decls": 36,
+    "types": 5,
+    "funcs": 25,
+    "imports": []
+  },
+  {
+    "package": "pkg/app/chat",
+    "files": 13,
+    "tests": 5,
+    "decls": 183,
+    "types": 30,
+    "funcs": 128,
+    "imports": [
+      "pkg/app/session",
+      "pkg/digest",
+      "pkg/execution",
+      "pkg/rag",
+      "pkg/rag/agenttrace",
+      "pkg/rag/answering",
+      "pkg/rag/chunking",
+      "pkg/rag/connected",
+      "pkg/rag/embedding",
+      "pkg/rag/generation",
+      "pkg/rag/indexbundle",
+      "pkg/rag/knowledgetools",
+      "pkg/rag/lexical/bleve",
+      "pkg/rag/providers/geppetto",
+      "pkg/rag/reranking",
+      "pkg/rag/toolanswer",
+      "pkg/rag/toolconfig",
+      "pkg/redact"
+    ]
+  },
+  {
+    "package": "pkg/app/chatui",
+    "files": 62,
+    "tests": 23,
+    "decls": 778,
+    "types": 68,
+    "funcs": 616,
+    "imports": [
+      "pkg/app/annotation",
+      "pkg/app/chat",
+      "pkg/app/chatui/render",
+      "pkg/app/chatui/theme",
+      "pkg/app/session",
+      "pkg/execution",
+      "pkg/experiment",
+      "pkg/rag",
+      "pkg/rag/agenttrace",
+      "pkg/rag/answering",
+      "pkg/rag/dataset",
+      "pkg/rag/indexbundle"
+    ]
+  },
+  {
+    "package": "pkg/app/chatui/render",
+    "files": 3,
+    "tests": 1,
+    "decls": 26,
+    "types": 1,
+    "funcs": 20,
+    "imports": []
+  },
+  {
+    "package": "pkg/app/chatui/theme",
+    "files": 4,
+    "tests": 1,
+    "decls": 24,
+    "types": 5,
+    "funcs": 13,
+    "imports": []
+  },
+  {
+    "package": "pkg/app/comment",
+    "files": 2,
+    "tests": 1,
+    "decls": 39,
+    "types": 6,
+    "funcs": 27,
+    "imports": [
+      "pkg/digest"
+    ]
+  },
+  {
+    "package": "pkg/app/judgment",
+    "files": 4,
+    "tests": 2,
+    "decls": 59,
+    "types": 7,
+    "funcs": 45,
+    "imports": [
+      "internal/fsutil",
+      "pkg/digest",
+      "pkg/rag",
+      "pkg/rag/evaluation"
+    ]
+  },
+  {
+    "package": "pkg/app/session",
+    "files": 9,
+    "tests": 3,
+    "decls": 99,
+    "types": 14,
+    "funcs": 68,
+    "imports": [
+      "internal/fsutil",
+      "pkg/digest",
+      "pkg/execution",
+      "pkg/rag",
+      "pkg/rag/agenttrace",
+      "pkg/rag/answering",
+      "pkg/rag/providers/geppetto",
+      "pkg/redact"
+    ]
+  },
+  {
+    "package": "pkg/digest",
+    "files": 5,
+    "tests": 2,
+    "decls": 15,
+    "types": 0,
+    "funcs": 10,
+    "imports": []
+  },
+  {
+    "package": "pkg/execution",
+    "files": 18,
+    "tests": 8,
+    "decls": 103,
+    "types": 22,
+    "funcs": 55,
+    "imports": [
+      "internal/fsutil",
+      "internal/jsonutil",
+      "pkg/digest",
+      "pkg/execution"
+    ]
+  },
+  {
+    "package": "pkg/experiment",
+    "files": 16,
+    "tests": 5,
+    "decls": 72,
+    "types": 12,
+    "funcs": 42,
+    "imports": [
+      "internal/fsutil",
+      "pkg/digest"
+    ]
+  },
+  {
+    "package": "pkg/flow",
+    "files": 16,
+    "tests": 5,
+    "decls": 198,
+    "types": 37,
+    "funcs": 138,
+    "imports": [
+      "pkg/digest",
+      "pkg/execution"
+    ]
+  },
+  {
+    "package": "pkg/rag",
+    "files": 15,
+    "tests": 5,
+    "decls": 61,
+    "types": 28,
+    "funcs": 20,
+    "imports": [
+      "pkg/digest"
+    ]
+  },
+  {
+    "package": "pkg/rag/agenttrace",
+    "files": 1,
+    "tests": 0,
+    "decls": 12,
+    "types": 10,
+    "funcs": 0,
+    "imports": [
+      "pkg/rag",
+      "pkg/rag/answering"
+    ]
+  },
+  {
+    "package": "pkg/rag/answering",
+    "files": 9,
+    "tests": 4,
+    "decls": 92,
+    "types": 24,
+    "funcs": 50,
+    "imports": [
+      "internal/jsonutil",
+      "pkg/rag",
+      "pkg/rag/retrieval"
+    ]
+  },
+  {
+    "package": "pkg/rag/chunking",
+    "files": 9,
+    "tests": 3,
+    "decls": 43,
+    "types": 4,
+    "funcs": 27,
+    "imports": [
+      "pkg/digest",
+      "pkg/rag"
+    ]
+  },
+  {
+    "package": "pkg/rag/connected",
+    "files": 2,
+    "tests": 1,
+    "decls": 28,
+    "types": 4,
+    "funcs": 20,
+    "imports": [
+      "pkg/digest",
+      "pkg/rag",
+      "pkg/rag/answering",
+      "pkg/rag/connectedconfig",
+      "pkg/rag/knowledge",
+      "pkg/rag/knowledge/retrieve",
+      "pkg/rag/retrieval"
+    ]
+  },
+  {
+    "package": "pkg/rag/connectedconfig",
+    "files": 5,
+    "tests": 2,
+    "decls": 64,
+    "types": 23,
+    "funcs": 33,
+    "imports": [
+      "pkg/digest"
+    ]
+  },
+  {
+    "package": "pkg/rag/dataset",
+    "files": 3,
+    "tests": 1,
+    "decls": 10,
+    "types": 1,
+    "funcs": 5,
+    "imports": [
+      "pkg/digest",
+      "pkg/rag"
+    ]
+  },
+  {
+    "package": "pkg/rag/diagnostic",
+    "files": 8,
+    "tests": 2,
+    "decls": 85,
+    "types": 30,
+    "funcs": 41,
+    "imports": [
+      "pkg/rag",
+      "pkg/rag/answering",
+      "pkg/rag/connected",
+      "pkg/rag/tooleval"
+    ]
+  },
+  {
+    "package": "pkg/rag/embedding",
+    "files": 9,
+    "tests": 3,
+    "decls": 62,
+    "types": 15,
+    "funcs": 36,
+    "imports": [
+      "pkg/digest",
+      "pkg/execution",
+      "pkg/flow",
+      "pkg/rag",
+      "pkg/text",
+      "pkg/vector"
+    ]
+  },
+  {
+    "package": "pkg/rag/evaluation",
+    "files": 8,
+    "tests": 3,
+    "decls": 43,
+    "types": 5,
+    "funcs": 29,
+    "imports": [
+      "pkg/rag"
+    ]
+  },
+  {
+    "package": "pkg/rag/generation",
+    "files": 12,
+    "tests": 4,
+    "decls": 90,
+    "types": 18,
+    "funcs": 53,
+    "imports": [
+      "pkg/digest",
+      "pkg/execution",
+      "pkg/flow",
+      "pkg/rag"
+    ]
+  },
+  {
+    "package": "pkg/rag/gochunk",
+    "files": 8,
+    "tests": 2,
+    "decls": 60,
+    "types": 10,
+    "funcs": 39,
+    "imports": [
+      "pkg/digest",
+      "pkg/rag",
+      "pkg/rag/chunking"
+    ]
+  },
+  {
+    "package": "pkg/rag/indexbundle",
+    "files": 12,
+    "tests": 4,
+    "decls": 123,
+    "types": 23,
+    "funcs": 81,
+    "imports": [
+      "internal/fsutil",
+      "pkg/digest",
+      "pkg/rag",
+      "pkg/rag/chunking",
+      "pkg/rag/embedding",
+      "pkg/rag/lexical/bleve",
+      "pkg/rag/vector/sqliteexact"
+    ]
+  },
+  {
+    "package": "pkg/rag/knowledge",
+    "files": 12,
+    "tests": 4,
+    "decls": 141,
+    "types": 39,
+    "funcs": 81,
+    "imports": [
+      "pkg/digest",
+      "pkg/rag",
+      "pkg/rag/chunking",
+      "pkg/rag/dataset",
+      "pkg/rag/representations"
+    ]
+  },
+  {
+    "package": "pkg/rag/knowledge/retrieve",
+    "files": 3,
+    "tests": 1,
+    "decls": 57,
+    "types": 10,
+    "funcs": 35,
+    "imports": [
+      "pkg/rag",
+      "pkg/rag/knowledge"
+    ]
+  },
+  {
+    "package": "pkg/rag/knowledgetools",
+    "files": 2,
+    "tests": 1,
+    "decls": 27,
+    "types": 3,
+    "funcs": 19,
+    "imports": [
+      "pkg/rag/connectedconfig",
+      "pkg/rag/knowledge",
+      "pkg/rag/toolconfig"
+    ]
+  },
+  {
+    "package": "pkg/rag/lexical",
+    "files": 4,
+    "tests": 1,
+    "decls": 13,
+    "types": 2,
+    "funcs": 6,
+    "imports": [
+      "pkg/rag",
+      "pkg/rag/generation",
+      "pkg/text"
+    ]
+  },
+  {
+    "package": "pkg/rag/lexical/bleve",
+    "files": 4,
+    "tests": 1,
+    "decls": 19,
+    "types": 4,
+    "funcs": 9,
+    "imports": [
+      "pkg/rag"
+    ]
+  },
+  {
+    "package": "pkg/rag/providers/geppetto",
+    "files": 8,
+    "tests": 2,
+    "decls": 73,
+    "types": 16,
+    "funcs": 41,
+    "imports": [
+      "pkg/rag",
+      "pkg/vector"
+    ]
+  },
+  {
+    "package": "pkg/rag/providers/geppetto/codex",
+    "files": 4,
+    "tests": 1,
+    "decls": 31,
+    "types": 5,
+    "funcs": 16,
+    "imports": []
+  },
+  {
+    "package": "pkg/rag/providers/geppetto/profile",
+    "files": 2,
+    "tests": 0,
+    "decls": 7,
+    "types": 0,
+    "funcs": 4,
+    "imports": [
+      "pkg/rag/providers/geppetto",
+      "pkg/rag/providers/geppetto/codex"
+    ]
+  },
+  {
+    "package": "pkg/rag/representations",
+    "files": 12,
+    "tests": 5,
+    "decls": 102,
+    "types": 10,
+    "funcs": 71,
+    "imports": [
+      "pkg/digest",
+      "pkg/rag",
+      "pkg/rag/generation"
+    ]
+  },
+  {
+    "package": "pkg/rag/reranking",
+    "files": 5,
+    "tests": 1,
+    "decls": 30,
+    "types": 7,
+    "funcs": 15,
+    "imports": [
+      "pkg/digest",
+      "pkg/execution",
+      "pkg/rag",
+      "pkg/text"
+    ]
+  },
+  {
+    "package": "pkg/rag/retrieval",
+    "files": 4,
+    "tests": 1,
+    "decls": 14,
+    "types": 2,
+    "funcs": 7,
+    "imports": [
+      "pkg/rag"
+    ]
+  },
+  {
+    "package": "pkg/rag/review",
+    "files": 4,
+    "tests": 2,
+    "decls": 40,
+    "types": 11,
+    "funcs": 24,
+    "imports": [
+      "internal/jsonutil",
+      "pkg/digest",
+      "pkg/rag",
+      "pkg/rag/answering"
+    ]
+  },
+  {
+    "package": "pkg/rag/toolanswer",
+    "files": 13,
+    "tests": 5,
+    "decls": 130,
+    "types": 18,
+    "funcs": 93,
+    "imports": [
+      "pkg/digest",
+      "pkg/rag",
+      "pkg/rag/agenttrace",
+      "pkg/rag/answering",
+      "pkg/rag/knowledgetools",
+      "pkg/rag/retrieval",
+      "pkg/rag/toolconfig",
+      "pkg/redact"
+    ]
+  },
+  {
+    "package": "pkg/rag/toolconfig",
+    "files": 5,
+    "tests": 2,
+    "decls": 51,
+    "types": 17,
+    "funcs": 23,
+    "imports": [
+      "pkg/digest"
+    ]
+  },
+  {
+    "package": "pkg/rag/tooleval",
+    "files": 5,
+    "tests": 2,
+    "decls": 25,
+    "types": 6,
+    "funcs": 11,
+    "imports": [
+      "pkg/rag",
+      "pkg/rag/answering",
+      "pkg/rag/connected"
+    ]
+  },
+  {
+    "package": "pkg/rag/vector",
+    "files": 4,
+    "tests": 1,
+    "decls": 15,
+    "types": 2,
+    "funcs": 8,
+    "imports": [
+      "pkg/rag",
+      "pkg/rag/embedding",
+      "pkg/rag/generation",
+      "pkg/vector"
+    ]
+  },
+  {
+    "package": "pkg/rag/vector/sqliteexact",
+    "files": 4,
+    "tests": 1,
+    "decls": 27,
+    "types": 5,
+    "funcs": 17,
+    "imports": [
+      "internal/fsutil",
+      "pkg/rag",
+      "pkg/vector"
+    ]
+  },
+  {
+    "package": "pkg/redact",
+    "files": 2,
+    "tests": 1,
+    "decls": 6,
+    "types": 0,
+    "funcs": 3,
+    "imports": []
+  },
+  {
+    "package": "pkg/sampledata",
+    "files": 4,
+    "tests": 1,
+    "decls": 9,
+    "types": 1,
+    "funcs": 4,
+    "imports": [
+      "pkg/digest",
+      "pkg/rag"
+    ]
+  },
+  {
+    "package": "pkg/text",
+    "files": 4,
+    "tests": 1,
+    "decls": 8,
+    "types": 0,
+    "funcs": 4,
+    "imports": []
+  },
+  {
+    "package": "pkg/ttcrag",
+    "files": 4,
+    "tests": 1,
+    "decls": 32,
+    "types": 10,
+    "funcs": 18,
+    "imports": [
+      "pkg/rag",
+      "pkg/rag/retrieval"
+    ]
+  },
+  {
+    "package": "pkg/vector",
+    "files": 4,
+    "tests": 1,
+    "decls": 12,
+    "types": 0,
+    "funcs": 7,
+    "imports": []
+  },
+  {
+    "package": "scripts/codex-oauth-test",
+    "files": 1,
+    "tests": 0,
+    "decls": 24,
+    "types": 4,
+    "funcs": 18,
+    "imports": []
+  },
+  {
+    "package": "scripts/parc-corpus",
+    "files": 2,
+    "tests": 1,
+    "decls": 25,
+    "types": 3,
+    "funcs": 18,
+    "imports": [
+      "pkg/digest",
+      "pkg/rag"
+    ]
+  }
+]

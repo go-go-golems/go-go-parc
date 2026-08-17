@@ -1,0 +1,348 @@
+{
+  "format": "datadrop.plot.document",
+  "version": 2,
+  "id": "plot:1dwzrz905io",
+  "name": "Kinetic response with model uncertainty",
+  "sourceId": "kinetics",
+  "sources": {
+    "kinetics": {
+      "id": "kinetics",
+      "name": "kinetics",
+      "schema": [
+        {
+          "id": "field:24xdbdsza4z",
+          "name": "time",
+          "physicalType": "int64",
+          "semanticType": "quantitative",
+          "nullable": false,
+          "label": "Reaction time",
+          "unit": "h",
+          "role": "dimension"
+        },
+        {
+          "id": "field:1y1w29p5sbk",
+          "name": "response",
+          "physicalType": "float64",
+          "semanticType": "quantitative",
+          "nullable": false,
+          "label": "Product concentration",
+          "unit": "µmol/L",
+          "role": "measure"
+        },
+        {
+          "id": "field:2af2aj195ei",
+          "name": "treatment",
+          "physicalType": "string",
+          "semanticType": "nominal",
+          "nullable": false,
+          "role": "dimension"
+        },
+        {
+          "id": "field:ywywua36fb",
+          "name": "batch",
+          "physicalType": "string",
+          "semanticType": "nominal",
+          "nullable": false,
+          "role": "dimension"
+        },
+        {
+          "id": "field:1msnic4p78s",
+          "name": "replicate",
+          "physicalType": "int64",
+          "semanticType": "ordinal",
+          "nullable": false,
+          "role": "identifier"
+        }
+      ],
+      "coverage": {
+        "kind": "complete",
+        "rows": 204,
+        "totalRows": 204,
+        "hasMore": false
+      }
+    }
+  },
+  "parameters": {},
+  "transforms": [],
+  "mapping": {
+    "x": {
+      "kind": "field",
+      "name": "time"
+    },
+    "y": {
+      "kind": "field",
+      "name": "response"
+    },
+    "color": {
+      "kind": "field",
+      "name": "treatment"
+    },
+    "group": {
+      "kind": "field",
+      "name": "treatment",
+      "semanticType": "nominal"
+    }
+  },
+  "layers": [
+    {
+      "id": "layer:1",
+      "enabled": true,
+      "inheritMapping": true,
+      "mapping": {},
+      "transforms": [],
+      "stat": {
+        "id": "identity",
+        "options": {}
+      },
+      "geom": {
+        "id": "point",
+        "options": {
+          "radius": 2.2,
+          "opacity": 0.34,
+          "strokeWidth": 0.5
+        }
+      },
+      "position": {
+        "id": "identity",
+        "options": {}
+      },
+      "showLegend": "auto",
+      "facetMode": "auto",
+      "name": "Observed replicates"
+    },
+    {
+      "id": "layer:2",
+      "enabled": true,
+      "inheritMapping": true,
+      "mapping": {},
+      "transforms": [],
+      "stat": {
+        "id": "linearRegression",
+        "options": {
+          "confidence": 0.95,
+          "points": 90,
+          "includeInterval": true
+        }
+      },
+      "geom": {
+        "id": "ribbon",
+        "options": {
+          "opacity": 0.18,
+          "strokeWidth": 0
+        }
+      },
+      "position": {
+        "id": "identity",
+        "options": {}
+      },
+      "showLegend": "auto",
+      "facetMode": "auto",
+      "name": "95% confidence band"
+    },
+    {
+      "id": "layer:3",
+      "enabled": true,
+      "inheritMapping": true,
+      "mapping": {},
+      "transforms": [],
+      "stat": {
+        "id": "linearRegression",
+        "options": {
+          "confidence": 0.95,
+          "points": 90,
+          "includeInterval": true
+        }
+      },
+      "geom": {
+        "id": "line",
+        "options": {
+          "strokeWidth": 2.4
+        }
+      },
+      "position": {
+        "id": "identity",
+        "options": {}
+      },
+      "showLegend": "auto",
+      "facetMode": "auto",
+      "name": "Linear model"
+    }
+  ],
+  "scales": {
+    "x": {
+      "type": "linear",
+      "zero": true,
+      "nice": 6,
+      "guide": {
+        "kind": "axis",
+        "tickCount": 7,
+        "grid": true
+      }
+    },
+    "y": {
+      "type": "linear",
+      "zero": false,
+      "nice": 6,
+      "guide": {
+        "kind": "axis",
+        "tickCount": 6,
+        "grid": true
+      }
+    },
+    "color": {
+      "type": "categorical",
+      "guide": {
+        "kind": "legend",
+        "title": "Treatment"
+      }
+    }
+  },
+  "coordinate": {
+    "kind": "cartesian",
+    "clip": true,
+    "expand": true
+  },
+  "theme": {
+    "name": "publication",
+    "background": "#ffffff",
+    "panelBackground": "#ffffff",
+    "foreground": "#000000",
+    "muted": "#333333",
+    "gridMajor": {
+      "color": "#d9d9d9",
+      "width": 0.6,
+      "opacity": 0.8
+    },
+    "gridMinor": {
+      "color": "#eeeeee",
+      "width": 0.4,
+      "opacity": 0.65
+    },
+    "axis": {
+      "color": "#000000",
+      "width": 1
+    },
+    "axisText": {
+      "family": "Arial, Helvetica, sans-serif",
+      "size": 10,
+      "color": "#000000"
+    },
+    "axisTitle": {
+      "family": "Arial, Helvetica, sans-serif",
+      "size": 11,
+      "weight": 600,
+      "color": "#000000"
+    },
+    "title": {
+      "family": "Arial, Helvetica, sans-serif",
+      "size": 16,
+      "weight": 700,
+      "color": "#000000"
+    },
+    "subtitle": {
+      "family": "Arial, Helvetica, sans-serif",
+      "size": 11,
+      "color": "#222222"
+    },
+    "caption": {
+      "family": "Arial, Helvetica, sans-serif",
+      "size": 9,
+      "color": "#333333"
+    },
+    "strip": {
+      "fill": "#f3f4f6",
+      "stroke": "#d1d5db",
+      "strokeWidth": 0.8,
+      "text": {
+        "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "size": 11,
+        "weight": 600,
+        "color": "#111827"
+      }
+    },
+    "legend": {
+      "background": "#ffffff",
+      "border": {
+        "color": "#d1d5db",
+        "width": 0.8
+      },
+      "title": {
+        "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "size": 11,
+        "weight": 600,
+        "color": "#111827"
+      },
+      "label": {
+        "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "size": 10,
+        "color": "#374151"
+      },
+      "swatchSize": 12,
+      "gap": 6
+    },
+    "palette": [
+      "#0072B2",
+      "#D55E00",
+      "#009E73",
+      "#CC79A7",
+      "#E69F00",
+      "#56B4E9",
+      "#F0E442",
+      "#000000",
+      "#6B7280",
+      "#7C3AED"
+    ],
+    "sequential": [
+      "#f7fbff",
+      "#08306b"
+    ],
+    "diverging": [
+      "#2166ac",
+      "#f7f7f7",
+      "#b2182b"
+    ],
+    "pointRadius": 3.5,
+    "lineWidth": 1.8,
+    "barGap": 0.12,
+    "panelPadding": 8,
+    "plotPadding": 12
+  },
+  "layout": {
+    "width": 1120,
+    "height": 620,
+    "responsive": false,
+    "legendPosition": "right",
+    "facetGap": 18,
+    "dpi": 96,
+    "legendWidth": 150
+  },
+  "labels": {
+    "title": "Catalyst accelerates product formation",
+    "subtitle": "Points show three replicates per time point; bands are model confidence intervals",
+    "x": "Reaction time (h)",
+    "y": "Product concentration (µmol/L)",
+    "caption": "Synthetic demonstration data · ordinary least squares by treatment and batch",
+    "description": "Faceted kinetic measurements with raw observations, fitted lines, and 95 percent confidence bands."
+  },
+  "interactions": [],
+  "render": {
+    "backend": "svg",
+    "pixelRatio": 1,
+    "vectorMarkLimit": 25000,
+    "rasterizeAbove": 100000,
+    "deterministic": true,
+    "embedMetadata": true
+  },
+  "metadata": {
+    "createdBy": "@datadrop/professional-plotting-suite-reference"
+  },
+  "facet": {
+    "kind": "wrap",
+    "scales": "fixed",
+    "space": "fixed",
+    "dropEmpty": true,
+    "stripPosition": "top",
+    "x": "batch",
+    "columns": 2
+  }
+}

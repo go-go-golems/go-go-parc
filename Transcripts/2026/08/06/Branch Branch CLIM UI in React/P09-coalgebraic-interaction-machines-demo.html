@@ -1,0 +1,2727 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<title>P09 · Coalgebraic Interaction Machines</title>
+<style>:root {
+  color-scheme: light;
+  --paper: #ffffff;
+  --pane: #ffffff;
+  --pane-alt: #f1f1ee;
+  --ink: #23262b;
+  --faint: #737980;
+  --line: #d9d9d4;
+  --sage: #7cae9b;
+  --blue: #7aa6c9;
+  --rose: #d59a86;
+  --mustard: #e0b95c;
+  --lavender: #a99fc9;
+  --mint: #8fc7b0;
+  --red: #c2503a;
+  --green: #3f9d6b;
+  --sel: #fdeec6;
+  --warm: #faf7ee;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; min-height: 100%; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+}
+button, select, input, textarea { font: inherit; }
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--mustard);
+  outline-offset: 1px;
+}
+code { font-family: inherit; font-size: 0.94em; }
+
+.app-shell { min-height: 100vh; display: flex; flex-direction: column; }
+.topbar {
+  background: var(--ink);
+  color: var(--paper);
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 14px 20px 12px;
+  border-bottom: 5px solid var(--mustard);
+}
+.topbar h1 { margin: 2px 0 0; font-size: 22px; letter-spacing: 0.04em; }
+.eyebrow { color: var(--mustard); font-weight: 700; letter-spacing: 0.18em; font-size: 10px; }
+.topbar-formula { color: #dedede; font-size: 11px; letter-spacing: 0.03em; text-align: right; }
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 8px 12px 0;
+  border-bottom: 2px solid var(--ink);
+  background: var(--pane-alt);
+}
+.tab {
+  appearance: none;
+  border: 2px solid var(--ink);
+  border-bottom: 0;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 4px 10px 5px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.tab:hover { background: var(--sel); }
+.tab-active { background: var(--mustard); box-shadow: 2px -2px 0 var(--ink); }
+main { flex: 1; padding: 12px; }
+footer {
+  background: var(--ink);
+  color: var(--paper);
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 5px 12px;
+  color: #c9c9c9;
+  font-size: 9.5px;
+}
+
+.page-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr); gap: 12px; align-items: start; }
+.overview-grid { grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr); }
+.parallel-grid, .two-col, .comparison-cards, .graph-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.section {
+  border: 2px solid var(--ink);
+  background: var(--pane);
+  margin-bottom: 12px;
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: 8px;
+  min-width: 0;
+}
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 5px;
+  margin-bottom: 7px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.section-head-spacer, .spacer { flex: 1; }
+.card {
+  border: 1px solid var(--ink);
+  border-left: 6px solid var(--line);
+  background: var(--pane);
+  padding: 7px 8px;
+  margin-bottom: 7px;
+  min-width: 0;
+}
+.card h3 { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+.card p { margin: 3px 0; line-height: 1.48; }
+.row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.toolbar { margin-bottom: 7px; padding: 5px; background: var(--pane-alt); border: 1px solid var(--line); }
+.toolbar label { font-size: 9px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.08em; }
+select, input, textarea {
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  padding: 3px 5px;
+  min-width: 0;
+}
+select { max-width: 290px; }
+.button {
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  padding: 4px 10px;
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.button:hover:not(:disabled) { filter: brightness(1.04); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+.button:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+.button:disabled { cursor: default; opacity: 0.48; box-shadow: none; }
+.button-small { padding: 2px 6px; font-size: 9.5px; box-shadow: 1px 1px 0 var(--ink); }
+.controls-row { margin-top: 7px; }
+.chip {
+  display: inline-block;
+  border: 1px solid var(--ink);
+  border-left: 4px solid var(--line);
+  background: var(--paper);
+  padding: 1px 5px;
+  font-size: 9.5px;
+  white-space: nowrap;
+}
+.muted { color: var(--faint); font-size: 10px; line-height: 1.4; }
+.body-copy { line-height: 1.55; margin: 6px 0; }
+.empty { color: var(--faint); padding: 8px; background: var(--pane-alt); border: 1px dashed var(--line); }
+.formal-block { font-family: Georgia, "Times New Roman", serif; font-size: 13px; }
+.formal-equation { text-align: center; font-size: 20px; margin: 4px 0 10px; }
+.flow-line { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; justify-content: center; padding: 8px; background: var(--warm); border: 1px solid var(--line); }
+.experiment-list { margin: 0; padding-left: 22px; line-height: 1.52; }
+.experiment-list li { margin-bottom: 6px; }
+.law-list { display: grid; gap: 4px; }
+.law-row { display: flex; gap: 7px; align-items: baseline; padding: 4px 6px; border-bottom: 1px dotted var(--line); line-height: 1.4; }
+.law-row span { color: var(--green); font-weight: 800; }
+
+.observation-card { background: var(--warm); }
+.observation-title { margin-bottom: 5px; }
+.prompt { font-family: Georgia, "Times New Roman", serif; font-size: 14px; line-height: 1.42; margin: 4px 0; }
+.expected { display: inline-block; background: var(--sel); border: 1px solid var(--ink); padding: 2px 6px; margin: 3px 0; font-weight: 700; }
+.error-box { border: 2px solid var(--red); background: #fff1ed; padding: 6px; margin: 5px 0; color: #7c2518; }
+.pass-box { border: 2px solid var(--green); background: #edf8f1; padding: 6px; margin: 5px 0; }
+.resolution { background: #edf8f1; border: 1px solid var(--green); padding: 4px 6px; margin-top: 5px; }
+.observation-foot { color: var(--faint); font-size: 9px; overflow-wrap: anywhere; margin-top: 5px; border-top: 1px dotted var(--line); padding-top: 4px; }
+.progress { display: inline-block; width: 90px; height: 9px; border: 1px solid var(--ink); background: var(--paper); }
+.progress-fill { display: block; height: 100%; }
+
+.candidate-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 7px; margin-top: 8px; }
+.candidate { border: 2px solid var(--ink); background: var(--paper); padding: 6px; box-shadow: 2px 2px 0 var(--ink); }
+.candidate:hover { background: var(--sel); }
+.candidate-captured { outline: 3px solid var(--mustard); outline-offset: 2px; }
+.candidate-sort { color: var(--red); font-size: 9px; font-weight: 700; }
+.candidate-label { font-weight: 700; margin: 3px 0; line-height: 1.35; }
+.candidate-meta { color: var(--faint); font-size: 8.5px; margin-bottom: 5px; }
+
+.trace-table-wrap { max-height: 680px; overflow: auto; border: 1px solid var(--line); }
+.trace-table { border-collapse: collapse; width: 100%; font-size: 9px; }
+.trace-table td { border-bottom: 1px dotted var(--line); padding: 2px 4px; vertical-align: top; overflow-wrap: anywhere; }
+.trace-seq { width: 32px; color: var(--faint); text-align: right; }
+.trace-type { width: 165px; font-weight: 700; }
+.json { margin: 0; padding: 7px; border: 1px solid var(--line); background: var(--pane-alt); overflow: auto; white-space: pre-wrap; word-break: break-word; font-size: 9.5px; line-height: 1.42; }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 6px; margin: 6px 0; }
+.metrics .card { display: flex; flex-direction: column; gap: 2px; margin: 0; }
+.metrics b { font-size: 18px; }
+.metrics span { font-size: 8.5px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.06em; }
+.event-list { display: grid; gap: 2px; }
+.event-list .card { margin: 0; }
+.key-value { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px; padding: 2px 0; border-bottom: 1px dotted var(--line); }
+.key-value-key { color: var(--faint); text-transform: uppercase; font-size: 8.5px; letter-spacing: 0.06em; }
+.key-value-value { min-width: 0; overflow-wrap: anywhere; }
+
+.data-table { border-collapse: collapse; width: 100%; font-size: 9.5px; }
+.data-table th { text-align: left; background: var(--ink); color: var(--paper); padding: 3px 5px; }
+.data-table td { padding: 3px 5px; border-bottom: 1px dotted var(--line); vertical-align: top; overflow-wrap: anywhere; }
+.big-status { font-size: 24px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+.graph-grid h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; }
+
+@media (max-width: 1050px) {
+  .page-grid, .overview-grid, .parallel-grid, .graph-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  main { padding: 7px; }
+  .topbar { align-items: flex-start; flex-direction: column; }
+  .topbar-formula { text-align: left; }
+  .two-col, .comparison-cards { grid-template-columns: 1fr; }
+  .tabs { overflow-x: auto; flex-wrap: nowrap; }
+  .tab { white-space: nowrap; }
+  footer { flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>/*
+ * Tiny dependency-free JSX runtime used only to make this research artifact
+ * a single offline HTML file. It deliberately implements the small React
+ * surface used by the lab: function components, createElement, useState,
+ * useMemo, useCallback, useRef, fragments, and a root renderer.
+ *
+ * This is an adapter, not part of the coalgebraic interaction semantics.
+ */
+(() => {
+  const Fragment = Symbol("Fragment");
+  const instances = new Map();
+  let activeInstance = null;
+  let hookIndex = 0;
+  let rootContainer = null;
+  let rootVNode = null;
+  let rendering = false;
+  let rerenderRequested = false;
+
+  const unitless = new Set([
+    "animationIterationCount", "borderImageOutset", "borderImageSlice",
+    "borderImageWidth", "boxFlex", "boxFlexGroup", "boxOrdinalGroup",
+    "columnCount", "columns", "flex", "flexGrow", "flexPositive",
+    "flexShrink", "flexNegative", "flexOrder", "gridArea", "gridRow",
+    "gridRowEnd", "gridRowSpan", "gridRowStart", "gridColumn",
+    "gridColumnEnd", "gridColumnSpan", "gridColumnStart", "fontWeight",
+    "lineClamp", "lineHeight", "opacity", "order", "orphans",
+    "tabSize", "widows", "zIndex", "zoom"
+  ]);
+
+  function flatten(children, output = []) {
+    for (const child of children) {
+      if (Array.isArray(child)) flatten(child, output);
+      else if (child !== false && child !== true && child !== null && child !== undefined) output.push(child);
+    }
+    return output;
+  }
+
+  function createElement(type, props, ...children) {
+    const normalized = props ? { ...props } : {};
+    const key = normalized.key ?? null;
+    delete normalized.key;
+    normalized.children = flatten(children);
+    return { type, props: normalized, key };
+  }
+
+  function depsEqual(left, right) {
+    if (!left || !right || left.length !== right.length) return false;
+    return left.every((value, index) => Object.is(value, right[index]));
+  }
+
+  function useState(initial) {
+    if (!activeInstance) throw new Error("useState must run in a function component");
+    const instance = activeInstance;
+    const index = hookIndex++;
+    if (!(index in instance.hooks)) {
+      instance.hooks[index] = typeof initial === "function" ? initial() : initial;
+    }
+    const setValue = (next) => {
+      const current = instance.hooks[index];
+      const value = typeof next === "function" ? next(current) : next;
+      if (!Object.is(current, value)) {
+        instance.hooks[index] = value;
+        requestRender();
+      }
+    };
+    return [instance.hooks[index], setValue];
+  }
+
+  function useMemo(factory, deps) {
+    if (!activeInstance) throw new Error("useMemo must run in a function component");
+    const instance = activeInstance;
+    const index = hookIndex++;
+    const previous = instance.hooks[index];
+    if (!previous || !depsEqual(previous.deps, deps)) {
+      instance.hooks[index] = { value: factory(), deps };
+    }
+    return instance.hooks[index].value;
+  }
+
+  function useCallback(callback, deps) {
+    return useMemo(() => callback, deps);
+  }
+
+  function useRef(initialValue) {
+    return useMemo(() => ({ current: initialValue }), []);
+  }
+
+  function requestRender() {
+    if (rendering) {
+      rerenderRequested = true;
+      return;
+    }
+    renderRoot();
+  }
+
+  function childPath(parent, vnode, index) {
+    const identity = vnode && typeof vnode === "object" && vnode.key != null ? `k:${String(vnode.key)}` : `i:${index}`;
+    return `${parent}/${identity}`;
+  }
+
+  function applyStyle(element, style) {
+    if (!style) return;
+    for (const [name, value] of Object.entries(style)) {
+      if (value === null || value === undefined || value === false) continue;
+      element.style[name] = typeof value === "number" && value !== 0 && !unitless.has(name)
+        ? `${value}px`
+        : String(value);
+    }
+  }
+
+  function applyProps(element, props) {
+    const deferred = [];
+    for (const [name, value] of Object.entries(props ?? {})) {
+      if (name === "children" || name === "key" || name === "ref") continue;
+      if (name === "className") {
+        element.setAttribute("class", value ?? "");
+      } else if (name === "style") {
+        applyStyle(element, value);
+      } else if (name.startsWith("on") && typeof value === "function") {
+        let eventName = name.slice(2).toLowerCase();
+        if (name === "onChange") {
+          eventName = element.tagName === "SELECT" ? "change" : "input";
+        }
+        element.addEventListener(eventName, value);
+      } else if (name === "htmlFor") {
+        element.setAttribute("for", value);
+      } else if (name === "value" || name === "checked" || name === "selected") {
+        deferred.push([name, value]);
+      } else if (name === "open" || name === "disabled" || name === "required" || name === "multiple") {
+        element[name] = Boolean(value);
+        if (value) element.setAttribute(name, "");
+      } else if (name === "rows" || name === "cols" || name === "maxLength" || name === "tabIndex") {
+        element[name] = value;
+      } else if (value !== false && value !== null && value !== undefined) {
+        element.setAttribute(name, String(value));
+      }
+    }
+    return deferred;
+  }
+
+  function renderVNode(vnode, path, elements) {
+    if (vnode === null || vnode === undefined || vnode === false || vnode === true) {
+      return document.createTextNode("");
+    }
+    if (typeof vnode === "string" || typeof vnode === "number") {
+      return document.createTextNode(String(vnode));
+    }
+    if (Array.isArray(vnode)) {
+      const fragment = document.createDocumentFragment();
+      vnode.forEach((child, index) => fragment.appendChild(renderVNode(child, childPath(path, child, index), elements)));
+      return fragment;
+    }
+    if (vnode.type === Fragment) {
+      const fragment = document.createDocumentFragment();
+      const children = flatten(vnode.props?.children ?? []);
+      children.forEach((child, index) => fragment.appendChild(renderVNode(child, childPath(path, child, index), elements)));
+      return fragment;
+    }
+    if (typeof vnode.type === "function") {
+      const componentPath = `${path}/c:${vnode.type.name || "anonymous"}`;
+      const instance = instances.get(componentPath) ?? { hooks: [] };
+      instances.set(componentPath, instance);
+      const previousInstance = activeInstance;
+      const previousIndex = hookIndex;
+      activeInstance = instance;
+      hookIndex = 0;
+      let rendered;
+      try {
+        rendered = vnode.type(vnode.props ?? {});
+      } finally {
+        activeInstance = previousInstance;
+        hookIndex = previousIndex;
+      }
+      return renderVNode(rendered, `${componentPath}/render`, elements);
+    }
+    if (typeof vnode.type !== "string") {
+      throw new Error(`Unsupported JSX node type: ${String(vnode.type)}`);
+    }
+
+    const element = document.createElement(vnode.type);
+    element.setAttribute("data-mini-path", path);
+    elements.set(path, element);
+    const deferred = applyProps(element, vnode.props);
+    const children = flatten(vnode.props?.children ?? []);
+    children.forEach((child, index) => element.appendChild(renderVNode(child, childPath(path, child, index), elements)));
+    for (const [name, value] of deferred) {
+      try { element[name] = value ?? ""; } catch { /* ignored for readonly properties */ }
+    }
+    if (typeof vnode.props?.ref === "function") vnode.props.ref(element);
+    else if (vnode.props?.ref && typeof vnode.props.ref === "object") vnode.props.ref.current = element;
+    return element;
+  }
+
+  function renderRoot() {
+    if (!rootContainer || !rootVNode) return;
+    rendering = true;
+    rerenderRequested = false;
+    const active = document.activeElement;
+    const activePath = active?.getAttribute?.("data-mini-path") ?? null;
+    const selection = active && typeof active.selectionStart === "number"
+      ? { start: active.selectionStart, end: active.selectionEnd }
+      : null;
+    const elements = new Map();
+    const next = renderVNode(rootVNode, "root", elements);
+    rootContainer.replaceChildren(next);
+    if (activePath && elements.has(activePath)) {
+      const replacement = elements.get(activePath);
+      replacement.focus?.();
+      if (selection && typeof replacement.setSelectionRange === "function") {
+        try { replacement.setSelectionRange(selection.start, selection.end); } catch { /* unsupported input type */ }
+      }
+    }
+    rendering = false;
+    if (rerenderRequested) renderRoot();
+  }
+
+  const React = {
+    createElement,
+    Fragment,
+    StrictMode: ({ children }) => children,
+    useState,
+    useMemo,
+    useCallback,
+    useRef,
+  };
+
+  const ReactDOM = {
+    createRoot(container) {
+      return {
+        render(vnode) {
+          rootContainer = container;
+          rootVNode = vnode;
+          renderRoot();
+        },
+      };
+    },
+  };
+
+  window.React = React;
+  window.ReactDOM = ReactDOM;
+})();
+</script>
+<script>const { useState, useMemo, useCallback, useRef } = React;
+/* ===== src/core/utils.js ===== */
+function deepClone(value) {
+    if (typeof structuredClone === "function")
+        return structuredClone(value);
+    return JSON.parse(JSON.stringify(value));
+}
+function stableStringify(value) {
+    const seen = new WeakSet();
+    const normalize = (input) => {
+        if (input === null || typeof input !== "object")
+            return input;
+        if (seen.has(input))
+            throw new Error("stableStringify does not support cycles");
+        seen.add(input);
+        if (Array.isArray(input)) {
+            const output = input.map(normalize);
+            seen.delete(input);
+            return output;
+        }
+        const output = {};
+        for (const key of Object.keys(input).sort())
+            output[key] = normalize(input[key]);
+        seen.delete(input);
+        return output;
+    };
+    return JSON.stringify(normalize(value));
+}
+function deepEqual(left, right) {
+    return stableStringify(left) === stableStringify(right);
+}
+function assert(condition, message = "assertion failed") {
+    if (!condition)
+        throw new Error(message);
+}
+function unique(values) {
+    return [...new Set(values)];
+}
+function clamp(value, minimum, maximum) {
+    return Math.max(minimum, Math.min(maximum, value));
+}
+function last(values) {
+    return values.length ? values[values.length - 1] : undefined;
+}
+function omit(object, keys) {
+    const rejected = new Set(keys);
+    return Object.fromEntries(Object.entries(object).filter(([key]) => !rejected.has(key)));
+}
+function canonicalState(state) {
+    return stableStringify(state);
+}
+function summarizeValue(value, limit = 120) {
+    const text = typeof value === "string" ? value : stableStringify(value);
+    return text.length > limit ? `${text.slice(0, limit - 1)}…` : text;
+}
+/* ===== src/data.js ===== */
+const C = {
+    paper: "#ffffff",
+    pane: "#ffffff",
+    paneAlt: "#f1f1ee",
+    ink: "#23262b",
+    faint: "#737980",
+    line: "#d9d9d4",
+    sage: "#7cae9b",
+    blue: "#7aa6c9",
+    rose: "#d59a86",
+    mustard: "#e0b95c",
+    lavender: "#a99fc9",
+    mint: "#8fc7b0",
+    red: "#c2503a",
+    green: "#3f9d6b",
+    sel: "#fdeec6",
+    warm: "#faf7ee",
+    violet: "#8e7cc3",
+};
+const minute = 60_000;
+const hour = 60 * minute;
+const day = 24 * hour;
+const TODAY = new Date(2026, 7, 3, 9, 20, 0, 0).getTime();
+function dayAt(offset, hours, minutes = 0) {
+    const date = new Date(TODAY + offset * day);
+    date.setHours(hours, minutes, 0, 0);
+    return date.getTime();
+}
+function fmtDateTime(timestamp) {
+    const date = new Date(timestamp);
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const hours = date.getHours();
+    const hour12 = hours % 12 || 12;
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${days[date.getDay()]} ${months[date.getMonth()]} ${date.getDate()} · ${hour12}:${minutes}${hours >= 12 ? "p" : "a"}`;
+}
+function createDemoWorld() {
+    return {
+        revision: 1,
+        nextEvent: 100,
+        nextTask: 100,
+        contacts: [
+            { id: "c-sarah", name: "Sarah Chen", role: "Co-founder", revision: 1 },
+            { id: "c-marcus", name: "Marcus Reyes", role: "Design lead", revision: 1 },
+            { id: "c-priya", name: "Priya Patel", role: "Investor", revision: 1 },
+            { id: "c-jamie", name: "Jamie Torres", role: "Customer champion", revision: 1 },
+            { id: "c-nikhil", name: "Nikhil Rao", role: "Candidate", revision: 1 },
+            { id: "c-robin", name: "Robin Nakamura", role: "Advisor", revision: 1 },
+        ],
+        projects: [
+            { id: "p-fundraise", name: "Fundraise · Series A", revision: 1 },
+            { id: "p-cortex-q4", name: "Cortex · Q4 launch", revision: 1 },
+            { id: "p-hiring", name: "Hiring · Q3/Q4", revision: 1 },
+            { id: "p-personal", name: "Personal", revision: 1 },
+        ],
+        slots: [
+            { id: "slot-tu-1000", start: dayAt(1, 10), end: dayAt(1, 11), available: true, revision: 1 },
+            { id: "slot-tu-1530", start: dayAt(1, 15, 30), end: dayAt(1, 16, 30), available: true, revision: 1 },
+            { id: "slot-we-0900", start: dayAt(2, 9), end: dayAt(2, 10), available: true, revision: 1 },
+            { id: "slot-we-1300", start: dayAt(2, 13), end: dayAt(2, 14), available: true, revision: 1 },
+            { id: "slot-th-1030", start: dayAt(3, 10, 30), end: dayAt(3, 11, 30), available: true, revision: 1 },
+            { id: "slot-fr-1430", start: dayAt(4, 14, 30), end: dayAt(4, 15, 30), available: true, revision: 1 },
+        ],
+        events: [
+            { id: "e-1", title: "Daily standup", start: dayAt(0, 9, 30), end: dayAt(0, 9, 45), attendees: ["c-sarah", "c-marcus"], revision: 1 },
+            { id: "e-9", title: "TechFlow QBR", start: dayAt(1, 14), end: dayAt(1, 15), attendees: ["c-jamie"], revision: 1 },
+        ],
+        actionItems: [
+            { id: "ai-onboarding", transcriptId: "tr-nikhil", text: "Send Nikhil an onboarding plan sketch", assigned: "c-me", taskId: null, revision: 1 },
+            { id: "ai-soc2", transcriptId: "tr-jamie", text: "Send Daniel a real SOC2 timeline by Friday", assigned: "c-me", taskId: null, revision: 1 },
+            { id: "ai-pricing", transcriptId: "tr-jamie", text: "Remove the beta tag from the pricing page", assigned: "c-me", taskId: "tk-5", revision: 1 },
+        ],
+        tasks: [
+            { id: "tk-4", title: "Draft SOC2 timeline for Daniel", projectId: "p-cortex-q4", status: "todo", revision: 1 },
+            { id: "tk-9", title: "Reply to Nikhil with onboarding plan", projectId: "p-hiring", status: "todo", revision: 1 },
+        ],
+        bookings: [
+            { id: "bk-3", name: "Priya Sharma", email: "priya@lumina.ai", start: dayAt(2, 13), durationMinutes: 60, status: "pending", revision: 1 },
+        ],
+        capabilities: {
+            scheduleEvent: true,
+            promoteActionItem: true,
+            approveBooking: true,
+        },
+        drafts: [],
+        audit: [],
+    };
+}
+/* ===== src/core/product.js ===== */
+function findById(collection, id) {
+    return collection.find((item) => item.id === id) ?? null;
+}
+function occurrenceId(sort, subjectId) {
+    return `occ:${sort}:${subjectId}`;
+}
+function makeOccurrence(sort, entity, label, metadata = {}) {
+    return {
+        occurrenceId: occurrenceId(sort, entity.id),
+        sort,
+        subjectId: entity.id,
+        revision: entity.revision,
+        label,
+        metadata,
+    };
+}
+function listOccurrences(world, sort) {
+    switch (sort) {
+        case "contact":
+            return world.contacts.map((contact) => makeOccurrence("contact", contact, contact.name, { role: contact.role }));
+        case "slot":
+            return world.slots
+                .filter((slot) => slot.available)
+                .map((slot) => makeOccurrence("slot", slot, fmtDateTime(slot.start), { start: slot.start, end: slot.end, available: slot.available }));
+        case "project":
+            return world.projects.map((project) => makeOccurrence("project", project, project.name));
+        case "actionitem":
+            return world.actionItems.map((item) => makeOccurrence("actionitem", item, item.text, { promoted: Boolean(item.taskId) }));
+        case "booking":
+            return world.bookings.map((booking) => makeOccurrence("booking", booking, `${booking.name} · ${fmtDateTime(booking.start)}`, { status: booking.status }));
+        default:
+            return [];
+    }
+}
+function lookupOccurrence(world, token) {
+    if (!token || typeof token !== "object") {
+        return { ok: false, reason: "malformed-occurrence" };
+    }
+    let entity = null;
+    if (token.sort === "contact")
+        entity = findById(world.contacts, token.subjectId);
+    else if (token.sort === "slot")
+        entity = findById(world.slots, token.subjectId);
+    else if (token.sort === "project")
+        entity = findById(world.projects, token.subjectId);
+    else if (token.sort === "actionitem")
+        entity = findById(world.actionItems, token.subjectId);
+    else if (token.sort === "booking")
+        entity = findById(world.bookings, token.subjectId);
+    else
+        return { ok: false, reason: "unknown-sort" };
+    if (!entity)
+        return { ok: false, reason: "missing-subject" };
+    if (entity.revision !== token.revision) {
+        return {
+            ok: false,
+            reason: "stale-occurrence",
+            currentRevision: entity.revision,
+            suppliedRevision: token.revision,
+        };
+    }
+    if (token.sort === "slot" && !entity.available) {
+        return { ok: false, reason: "slot-no-longer-available" };
+    }
+    if (token.sort === "actionitem" && entity.taskId) {
+        return { ok: false, reason: "action-item-already-promoted" };
+    }
+    return { ok: true, value: deepClone(entity) };
+}
+function bumpWorld(world) {
+    world.revision += 1;
+}
+function bumpEntity(entity) {
+    entity.revision = (entity.revision ?? 0) + 1;
+}
+function fail(reason, details = {}) {
+    return { ok: false, reason, details };
+}
+function succeed(world, value, events = []) {
+    return { ok: true, world, value, events };
+}
+/**
+ * Transactional product command interpreter. It always works on a clone and
+ * returns the original world unchanged on failure.
+ */
+function executeProductCommand(inputWorld, command) {
+    const world = deepClone(inputWorld);
+    switch (command.type) {
+        case "create-event-from-contact-slot": {
+            if (!world.capabilities.scheduleEvent)
+                return fail("capability-revoked", { capability: "scheduleEvent" });
+            const contact = findById(world.contacts, command.contactId);
+            const slot = findById(world.slots, command.slotId);
+            if (!contact)
+                return fail("contact-missing");
+            if (!slot)
+                return fail("slot-missing");
+            if (slot.revision !== command.expectedSlotRevision) {
+                return fail("slot-stale-at-commit", {
+                    expected: command.expectedSlotRevision,
+                    actual: slot.revision,
+                });
+            }
+            if (!slot.available)
+                return fail("slot-occupied");
+            const eventId = `e-${world.nextEvent++}`;
+            const event = {
+                id: eventId,
+                title: `Meeting with ${contact.name}`,
+                start: slot.start,
+                end: slot.end,
+                attendees: [contact.id],
+                revision: 1,
+            };
+            world.events.push(event);
+            slot.available = false;
+            bumpEntity(slot);
+            bumpWorld(world);
+            world.audit.push({ type: "event-created", eventId, contactId: contact.id, slotId: slot.id });
+            return succeed(world, { eventId, event }, [{ type: "event-created", eventId }]);
+        }
+        case "promote-action-item": {
+            if (!world.capabilities.promoteActionItem)
+                return fail("capability-revoked", { capability: "promoteActionItem" });
+            const item = findById(world.actionItems, command.actionItemId);
+            const project = command.projectId ? findById(world.projects, command.projectId) : null;
+            if (!item)
+                return fail("action-item-missing");
+            if (item.revision !== command.expectedActionItemRevision) {
+                return fail("action-item-stale-at-commit", {
+                    expected: command.expectedActionItemRevision,
+                    actual: item.revision,
+                });
+            }
+            if (item.taskId)
+                return fail("action-item-already-promoted", { taskId: item.taskId });
+            if (command.projectId && !project)
+                return fail("project-missing");
+            const taskId = `tk-${world.nextTask++}`;
+            const task = {
+                id: taskId,
+                title: item.text,
+                projectId: command.projectId ?? null,
+                status: "todo",
+                revision: 1,
+            };
+            world.tasks.push(task);
+            item.taskId = taskId;
+            bumpEntity(item);
+            bumpWorld(world);
+            world.audit.push({ type: "action-item-promoted", actionItemId: item.id, taskId, projectId: command.projectId ?? null });
+            return succeed(world, { taskId, task }, [{ type: "task-created", taskId }]);
+        }
+        case "approve-booking-to-event": {
+            if (!world.capabilities.approveBooking)
+                return fail("capability-revoked", { capability: "approveBooking" });
+            const booking = findById(world.bookings, command.bookingId);
+            if (!booking)
+                return fail("booking-missing");
+            if (booking.revision !== command.expectedBookingRevision) {
+                return fail("booking-stale-at-commit", {
+                    expected: command.expectedBookingRevision,
+                    actual: booking.revision,
+                });
+            }
+            if (booking.status !== "pending")
+                return fail("booking-not-pending", { status: booking.status });
+            booking.status = "confirmed";
+            bumpEntity(booking);
+            const eventId = `e-${world.nextEvent++}`;
+            const event = {
+                id: eventId,
+                title: `Product demo · ${booking.name}`,
+                start: booking.start,
+                end: booking.start + booking.durationMinutes * 60_000,
+                attendees: [],
+                revision: 1,
+            };
+            world.events.push(event);
+            bumpWorld(world);
+            world.audit.push({ type: "booking-approved", bookingId: booking.id, eventId });
+            return succeed(world, { bookingId: booking.id, eventId, event }, [{ type: "booking-approved", bookingId: booking.id }]);
+        }
+        case "save-compose-draft": {
+            const contactIds = command.contactIds ?? [];
+            if (!contactIds.length)
+                return fail("recipient-required");
+            if (contactIds.some((id) => !findById(world.contacts, id)))
+                return fail("recipient-missing");
+            const draft = {
+                id: `draft-${world.drafts.length + 1}`,
+                to: [...contactIds],
+                subject: command.subject ?? "",
+                body: command.body ?? "",
+            };
+            world.drafts.push(draft);
+            bumpWorld(world);
+            world.audit.push({ type: "draft-saved", draftId: draft.id, recipients: contactIds });
+            return succeed(world, { draft });
+        }
+        // Environment mutations used to test stale observations and authority.
+        case "set-capability": {
+            if (!(command.capability in world.capabilities))
+                return fail("unknown-capability");
+            world.capabilities[command.capability] = Boolean(command.enabled);
+            bumpWorld(world);
+            world.audit.push({ type: "capability-changed", capability: command.capability, enabled: Boolean(command.enabled) });
+            return succeed(world, { capability: command.capability, enabled: Boolean(command.enabled) });
+        }
+        case "occupy-slot": {
+            const slot = findById(world.slots, command.slotId);
+            if (!slot)
+                return fail("slot-missing");
+            if (!slot.available)
+                return fail("slot-already-occupied");
+            slot.available = false;
+            bumpEntity(slot);
+            const eventId = `e-${world.nextEvent++}`;
+            world.events.push({
+                id: eventId,
+                title: command.title ?? "External event",
+                start: slot.start,
+                end: slot.end,
+                attendees: [],
+                revision: 1,
+            });
+            bumpWorld(world);
+            world.audit.push({ type: "slot-occupied-externally", slotId: slot.id, eventId });
+            return succeed(world, { slotId: slot.id, eventId });
+        }
+        case "release-slot": {
+            const slot = findById(world.slots, command.slotId);
+            if (!slot)
+                return fail("slot-missing");
+            slot.available = true;
+            bumpEntity(slot);
+            bumpWorld(world);
+            return succeed(world, { slotId: slot.id });
+        }
+        case "mark-action-item-promoted": {
+            const item = findById(world.actionItems, command.actionItemId);
+            if (!item)
+                return fail("action-item-missing");
+            item.taskId = command.taskId ?? "tk-external";
+            bumpEntity(item);
+            bumpWorld(world);
+            return succeed(world, { actionItemId: item.id, taskId: item.taskId });
+        }
+        case "change-booking-status": {
+            const booking = findById(world.bookings, command.bookingId);
+            if (!booking)
+                return fail("booking-missing");
+            booking.status = command.status;
+            bumpEntity(booking);
+            bumpWorld(world);
+            return succeed(world, { bookingId: booking.id, status: booking.status });
+        }
+        default:
+            return fail("unknown-command", { type: command.type });
+    }
+}
+function describeCommand(command, world) {
+    if (command.type === "create-event-from-contact-slot") {
+        const contact = findById(world.contacts, command.contactId);
+        const slot = findById(world.slots, command.slotId);
+        return `Create a 1h event with ${contact?.name ?? command.contactId} at ${slot ? fmtDateTime(slot.start) : command.slotId}`;
+    }
+    if (command.type === "promote-action-item") {
+        const item = findById(world.actionItems, command.actionItemId);
+        const project = command.projectId ? findById(world.projects, command.projectId) : null;
+        return `Promote “${item?.text ?? command.actionItemId}”${project ? ` into ${project.name}` : " without a project"}`;
+    }
+    if (command.type === "approve-booking-to-event") {
+        const booking = findById(world.bookings, command.bookingId);
+        return `Approve ${booking?.name ?? command.bookingId} and create a ${booking?.durationMinutes ?? 60}m event`;
+    }
+    return command.type;
+}
+function contactName(world, id) {
+    return findById(world.contacts, id)?.name ?? id;
+}
+function projectName(world, id) {
+    return findById(world.projects, id)?.name ?? id;
+}
+function slotLabel(world, id) {
+    const slot = findById(world.slots, id);
+    return slot ? fmtDateTime(slot.start) : id;
+}
+function actionItemLabel(world, id) {
+    return findById(world.actionItems, id)?.text ?? id;
+}
+function bookingLabel(world, id) {
+    const booking = findById(world.bookings, id);
+    return booking ? `${booking.name} · ${fmtDateTime(booking.start)}` : id;
+}
+function availableSlotCount(world) {
+    return world.slots.filter((slot) => slot.available).length;
+}
+function durationHours(start, end) {
+    return (end - start) / hour;
+}
+/* ===== src/core/machine.js ===== */
+function defineMachine(specification) {
+    assert(specification && typeof specification === "object", "machine specification is required");
+    for (const method of ["initial", "observe", "transition"]) {
+        assert(typeof specification[method] === "function", `machine.${method} must be a function`);
+    }
+    assert(typeof specification.id === "string" && specification.id.length > 0, "machine.id is required");
+    return Object.freeze({
+        title: specification.id,
+        eventAlphabet: () => [],
+        publicObservation: (observation) => observation,
+        ...specification,
+    });
+}
+function transitionTo(state, effects = [], note = null) {
+    return { state: deepClone(state), effects: deepClone(effects), note };
+}
+function unchanged(state, note = null) {
+    return transitionTo(state, [], note);
+}
+function resolveEffect(outcome) {
+    return { type: "resolve", outcome: deepClone(outcome) };
+}
+function commandEffect(requestId, command) {
+    return { type: "world-command", requestId, command: deepClone(command) };
+}
+function externalRequestEffect(requestId, request) {
+    return { type: "external-request", requestId, request: deepClone(request) };
+}
+function notificationEffect(level, message) {
+    return { type: "notification", level, message };
+}
+function machineStateTag(state) {
+    return state?.tag ?? state?.kind ?? "unknown";
+}
+function isTerminalObservation(observation) {
+    return Boolean(observation?.terminal);
+}
+function validateTransitionResult(result) {
+    assert(result && typeof result === "object", "transition must return an object");
+    assert(result.state && typeof result.state === "object", "transition result needs state");
+    assert(Array.isArray(result.effects), "transition result effects must be an array");
+    return result;
+}
+/* ===== src/core/runtime.js ===== */
+class WorldStore {
+    constructor(world) {
+        this.initial = deepClone(world);
+        this.current = deepClone(world);
+    }
+}
+function publicObservation(machine, observation) {
+    return machine.publicObservation ? machine.publicObservation(observation) : observation;
+}
+class MachineRuntime {
+    constructor({ machine, input = {}, world, worldStore = null, sessionId = "session-1", commandHandler = executeProductCommand, }) {
+        this.machine = machine;
+        this.input = deepClone(input);
+        this.sessionId = sessionId;
+        this.worldStore = worldStore ?? new WorldStore(world);
+        this.initialWorld = deepClone(this.worldStore.current);
+        this.commandHandler = commandHandler;
+        this.trace = [];
+        this.externalInputs = [];
+        this.pendingRequests = new Map();
+        this.notifications = [];
+        this.resolution = null;
+        this.logicalClock = 0;
+        this.state = machine.initial(this.input, this.context());
+        this.log("session-started", {
+            machineId: machine.id,
+            input: this.input,
+            stateTag: machineStateTag(this.state),
+        });
+        this.logObservation("initial");
+    }
+    get world() {
+        return this.worldStore.current;
+    }
+    context() {
+        // Machines receive a snapshot. The only route to durable mutation is an
+        // emitted command interpreted after the transition returns.
+        const snapshot = deepClone(this.worldStore.current);
+        return Object.freeze({
+            sessionId: this.sessionId,
+            machineId: this.machine.id,
+            world: snapshot,
+            listOccurrences: (sort) => listOccurrences(snapshot, sort),
+            lookupOccurrence: (token) => lookupOccurrence(snapshot, token),
+        });
+    }
+    observe() {
+        return deepClone(this.machine.observe(this.state, this.context()));
+    }
+    log(type, data = {}) {
+        const entry = {
+            seq: ++this.logicalClock,
+            sessionId: this.sessionId,
+            machineId: this.machine.id,
+            type,
+            ...deepClone(data),
+        };
+        this.trace.push(entry);
+        return entry;
+    }
+    logObservation(reason) {
+        const observation = this.observe();
+        this.log("observation", {
+            reason,
+            stateTag: machineStateTag(this.state),
+            observation: publicObservation(this.machine, observation),
+        });
+    }
+    dispatch(event, { source = "external", recordExternal = source === "external" } = {}) {
+        if (recordExternal)
+            this.externalInputs.push({ kind: "event", event: deepClone(event) });
+        this.log("event-received", { source, event });
+        const beforeObservation = this.observe();
+        if (isTerminalObservation(beforeObservation)) {
+            this.log("event-ignored-terminal", {
+                source,
+                event,
+                outcome: beforeObservation.outcome ?? this.resolution,
+            });
+            return { ignored: true, observation: beforeObservation };
+        }
+        const beforeState = deepClone(this.state);
+        const beforeWorld = stableStringify(this.worldStore.current);
+        const result = validateTransitionResult(this.machine.transition(this.state, deepClone(event), this.context()));
+        if (stableStringify(this.worldStore.current) !== beforeWorld) {
+            throw new Error(`Machine ${this.machine.id} mutated the world during transition`);
+        }
+        this.state = deepClone(result.state);
+        this.log("transition", {
+            source,
+            event,
+            from: machineStateTag(beforeState),
+            to: machineStateTag(this.state),
+            note: result.note ?? null,
+            effects: result.effects.map((effect) => effect.type),
+        });
+        for (const effect of result.effects)
+            this.processEffect(effect);
+        this.logObservation(`after:${event.type}`);
+        return { ignored: false, observation: this.observe() };
+    }
+    processEffect(effect) {
+        this.log("effect-emitted", { effect });
+        if (effect.type === "world-command") {
+            this.log("command-started", { requestId: effect.requestId, command: effect.command });
+            const result = this.commandHandler(this.worldStore.current, effect.command);
+            if (result.ok) {
+                this.worldStore.current = deepClone(result.world);
+                this.log("command-succeeded", {
+                    requestId: effect.requestId,
+                    command: effect.command,
+                    value: result.value,
+                    domainEvents: result.events ?? [],
+                    worldRevision: this.worldStore.current.revision,
+                });
+                this.dispatch({
+                    type: "command-succeeded",
+                    requestId: effect.requestId,
+                    value: result.value,
+                }, { source: "internal", recordExternal: false });
+            }
+            else {
+                this.log("command-failed", {
+                    requestId: effect.requestId,
+                    command: effect.command,
+                    reason: result.reason,
+                    details: result.details ?? {},
+                });
+                this.dispatch({
+                    type: "command-failed",
+                    requestId: effect.requestId,
+                    reason: result.reason,
+                    details: result.details ?? {},
+                }, { source: "internal", recordExternal: false });
+            }
+            return;
+        }
+        if (effect.type === "external-request") {
+            this.pendingRequests.set(effect.requestId, deepClone(effect));
+            this.log("external-request-opened", {
+                requestId: effect.requestId,
+                request: effect.request,
+            });
+            return;
+        }
+        if (effect.type === "resolve") {
+            if (this.resolution === null) {
+                this.resolution = deepClone(effect.outcome);
+                this.log("session-resolved", { outcome: this.resolution });
+            }
+            else {
+                this.log("duplicate-resolution-rejected", {
+                    existing: this.resolution,
+                    attempted: effect.outcome,
+                });
+            }
+            return;
+        }
+        if (effect.type === "notification") {
+            this.notifications.push(deepClone(effect));
+            this.log("notification", { level: effect.level, message: effect.message });
+            return;
+        }
+        this.log("unknown-effect", { effect });
+    }
+    deliverExternal(requestId, payload, { recordExternal = true } = {}) {
+        if (recordExternal)
+            this.externalInputs.push({ kind: "deliver", requestId, payload: deepClone(payload) });
+        const request = this.pendingRequests.get(requestId) ?? null;
+        if (request)
+            this.pendingRequests.delete(requestId);
+        this.log(request ? "external-response-delivered" : "unexpected-external-response", {
+            requestId,
+            payload,
+            hadPendingRequest: Boolean(request),
+        });
+        return this.dispatch({ type: "external-response", requestId, payload }, {
+            source: "external-response",
+            recordExternal: false,
+        });
+    }
+    mutateWorld(command, { recordExternal = true } = {}) {
+        if (recordExternal)
+            this.externalInputs.push({ kind: "world", command: deepClone(command) });
+        this.log("environment-command", { command });
+        const result = this.commandHandler(this.worldStore.current, command);
+        if (result.ok) {
+            this.worldStore.current = deepClone(result.world);
+            this.log("environment-command-succeeded", {
+                command,
+                value: result.value,
+                worldRevision: this.worldStore.current.revision,
+            });
+            this.logObservation(`world:${command.type}`);
+        }
+        else {
+            this.log("environment-command-failed", { command, reason: result.reason, details: result.details ?? {} });
+        }
+        return result;
+    }
+    replay({ inputCount = this.externalInputs.length, sessionId = this.sessionId } = {}) {
+        const replayed = new MachineRuntime({
+            machine: this.machine,
+            input: this.input,
+            world: this.initialWorld,
+            sessionId,
+            commandHandler: this.commandHandler,
+        });
+        for (const input of this.externalInputs.slice(0, inputCount)) {
+            if (input.kind === "event")
+                replayed.dispatch(input.event);
+            else if (input.kind === "world")
+                replayed.mutateWorld(input.command);
+            else if (input.kind === "deliver")
+                replayed.deliverExternal(input.requestId, input.payload);
+        }
+        return replayed;
+    }
+    forkAt(inputCount, { sessionId = `${this.sessionId}-fork` } = {}) {
+        return this.replay({ inputCount, sessionId });
+    }
+    deterministicReplayReport() {
+        const replayed = this.replay();
+        return {
+            sameState: deepEqual(this.state, replayed.state),
+            sameWorld: deepEqual(this.worldStore.current, replayed.worldStore.current),
+            sameResolution: deepEqual(this.resolution, replayed.resolution),
+            samePublicObservation: deepEqual(publicObservation(this.machine, this.observe()), publicObservation(replayed.machine, replayed.observe())),
+            externalInputCount: this.externalInputs.length,
+            originalTraceLength: this.trace.length,
+            replayTraceLength: replayed.trace.length,
+        };
+    }
+    serialize() {
+        return {
+            format: "pbui-coalgebraic-session/0.1",
+            machineId: this.machine.id,
+            sessionId: this.sessionId,
+            input: deepClone(this.input),
+            initialWorld: deepClone(this.initialWorld),
+            externalInputs: deepClone(this.externalInputs),
+        };
+    }
+    normalizedTrace() {
+        return this.trace.map(({ seq, ...entry }) => entry);
+    }
+}
+function deserializeRuntime(serialized, catalog, options = {}) {
+    if (!serialized || serialized.format !== "pbui-coalgebraic-session/0.1") {
+        throw new Error("Unsupported serialized session format");
+    }
+    const machine = catalog[serialized.machineId];
+    if (!machine)
+        throw new Error(`Unknown machine ${serialized.machineId}`);
+    const runtime = new MachineRuntime({
+        machine,
+        input: serialized.input,
+        world: serialized.initialWorld,
+        sessionId: options.sessionId ?? serialized.sessionId,
+        commandHandler: options.commandHandler ?? executeProductCommand,
+    });
+    for (const input of serialized.externalInputs) {
+        if (input.kind === "event")
+            runtime.dispatch(input.event);
+        else if (input.kind === "world")
+            runtime.mutateWorld(input.command);
+        else if (input.kind === "deliver")
+            runtime.deliverExternal(input.requestId, input.payload);
+    }
+    return runtime;
+}
+/* ===== src/core/manager.js ===== */
+class InteractionManager {
+    constructor({ world, commandHandler, pointerPolicy = "queue" }) {
+        this.worldStore = new WorldStore(world);
+        this.commandHandler = commandHandler;
+        this.pointerPolicy = pointerPolicy;
+        this.sessions = new Map();
+        this.activeByChannel = new Map();
+        this.queueByChannel = new Map();
+        this.trace = [];
+        this.nextSession = 1;
+        this.seq = 0;
+    }
+    log(type, data = {}) {
+        this.trace.push({ seq: ++this.seq, type, ...deepClone(data) });
+    }
+    start(machine, input = {}, options = {}) {
+        const channel = options.channel ?? "pointer";
+        const policy = options.policy ?? (channel === "pointer" ? this.pointerPolicy : "parallel");
+        const sessionId = options.sessionId ?? `managed-${this.nextSession++}`;
+        const runtime = new MachineRuntime({
+            machine,
+            input,
+            worldStore: this.worldStore,
+            sessionId,
+            commandHandler: this.commandHandler,
+        });
+        const record = { sessionId, channel, status: "active", runtime, policy };
+        this.sessions.set(sessionId, record);
+        const active = this.activeByChannel.get(channel);
+        if (policy === "parallel" || !active) {
+            this.activeByChannel.set(channel, sessionId);
+            this.log("session-activated", { sessionId, channel });
+            return record;
+        }
+        if (policy === "reject") {
+            record.status = "rejected";
+            this.log("session-rejected", { sessionId, channel, owner: active });
+            return record;
+        }
+        if (policy === "cancel-previous") {
+            const previous = this.sessions.get(active);
+            previous?.runtime.dispatch({ type: "cancel" });
+            if (previous)
+                previous.status = "terminal";
+            this.activeByChannel.set(channel, sessionId);
+            this.log("session-replaced", { sessionId, channel, previous: active });
+            return record;
+        }
+        record.status = "queued";
+        const queue = this.queueByChannel.get(channel) ?? [];
+        queue.push(sessionId);
+        this.queueByChannel.set(channel, queue);
+        this.log("session-queued", { sessionId, channel, owner: active, position: queue.length });
+        return record;
+    }
+    active(channel = "pointer") {
+        const id = this.activeByChannel.get(channel);
+        return id ? this.sessions.get(id) ?? null : null;
+    }
+    dispatch(channel, event) {
+        const active = this.active(channel);
+        if (!active || active.status !== "active") {
+            this.log("event-without-owner", { channel, event });
+            return { ignored: true };
+        }
+        const result = active.runtime.dispatch(event);
+        this.log("event-routed", { channel, sessionId: active.sessionId, event });
+        this.settle(active);
+        return result;
+    }
+    deliver(sessionId, requestId, payload) {
+        const record = this.sessions.get(sessionId);
+        if (!record)
+            return { ignored: true };
+        const result = record.runtime.deliverExternal(requestId, payload);
+        this.log("external-response-routed", { sessionId, requestId, payload });
+        this.settle(record);
+        return result;
+    }
+    settle(record) {
+        if (!record.runtime.observe().terminal)
+            return;
+        record.status = "terminal";
+        if (this.activeByChannel.get(record.channel) === record.sessionId) {
+            this.activeByChannel.delete(record.channel);
+            this.promote(record.channel);
+        }
+        this.log("session-terminal", { sessionId: record.sessionId, channel: record.channel, resolution: record.runtime.resolution });
+    }
+    promote(channel) {
+        const queue = this.queueByChannel.get(channel) ?? [];
+        while (queue.length) {
+            const nextId = queue.shift();
+            const next = this.sessions.get(nextId);
+            if (!next || next.status !== "queued")
+                continue;
+            next.status = "active";
+            this.activeByChannel.set(channel, nextId);
+            this.log("session-promoted", { sessionId: nextId, channel });
+            break;
+        }
+        this.queueByChannel.set(channel, queue);
+    }
+    snapshot() {
+        return {
+            activeByChannel: Object.fromEntries(this.activeByChannel),
+            queues: Object.fromEntries([...this.queueByChannel].map(([key, value]) => [key, [...value]])),
+            sessions: [...this.sessions.values()].map((record) => ({
+                sessionId: record.sessionId,
+                machineId: record.runtime.machine.id,
+                channel: record.channel,
+                status: record.status,
+                observation: record.runtime.observe(),
+                resolution: record.runtime.resolution,
+            })),
+            world: deepClone(this.worldStore.current),
+            trace: deepClone(this.trace),
+        };
+    }
+}
+/* ===== src/core/modelcheck.js ===== */
+function emptyModelContext() {
+    return Object.freeze({
+        sessionId: "model",
+        machineId: "model",
+        world: {},
+        listOccurrences: () => [],
+        lookupOccurrence: () => ({ ok: false, reason: "not-modeled" }),
+    });
+}
+function uniqueEvents(events) {
+    const byKey = new Map();
+    for (const event of events)
+        byKey.set(stableStringify(event), event);
+    return [...byKey.values()];
+}
+function normalizedEffects(effects) {
+    return effects.map((effect) => {
+        if (effect.type === "resolve")
+            return { type: effect.type, outcome: effect.outcome };
+        if (effect.type === "notification")
+            return { type: effect.type, level: effect.level, message: effect.message };
+        return effect;
+    });
+}
+function exploreMachine(machine, { input, context = emptyModelContext(), maxStates = 500, } = {}) {
+    const initial = machine.initial(input ?? {}, context);
+    const queue = [initial];
+    const states = new Map([[canonicalState(initial), initial]]);
+    const observations = new Map();
+    const edges = [];
+    const problems = [];
+    while (queue.length) {
+        const state = queue.shift();
+        const stateKey = canonicalState(state);
+        let observation;
+        try {
+            observation = machine.observe(state, context);
+            observations.set(stateKey, observation);
+        }
+        catch (error) {
+            problems.push({ type: "observation-threw", state, error: String(error) });
+            continue;
+        }
+        const events = uniqueEvents(machine.eventAlphabet(state, context) ?? []);
+        for (const event of events) {
+            let left;
+            let right;
+            try {
+                left = validateTransitionResult(machine.transition(state, event, context));
+                right = validateTransitionResult(machine.transition(state, event, context));
+            }
+            catch (error) {
+                problems.push({ type: "transition-threw", state, event, error: String(error) });
+                continue;
+            }
+            if (!deepEqual(left, right)) {
+                problems.push({ type: "nondeterministic-transition", state, event, left, right });
+            }
+            const targetKey = canonicalState(left.state);
+            edges.push({
+                from: stateKey,
+                to: targetKey,
+                event,
+                effects: normalizedEffects(left.effects),
+            });
+            if (!states.has(targetKey)) {
+                if (states.size >= maxStates) {
+                    problems.push({ type: "state-limit", maxStates });
+                    queue.length = 0;
+                    break;
+                }
+                states.set(targetKey, left.state);
+                queue.push(left.state);
+            }
+        }
+    }
+    return {
+        machineId: machine.id,
+        initial: canonicalState(initial),
+        states: [...states.entries()].map(([key, state]) => ({ key, state, observation: observations.get(key) })),
+        edges,
+        problems,
+    };
+}
+function auditFiniteMachine(machine, options = {}) {
+    const graph = exploreMachine(machine, options);
+    const problems = [...graph.problems];
+    let terminalStates = 0;
+    let resolveTransitions = 0;
+    for (const node of graph.states) {
+        const observation = node.observation;
+        if (!observation)
+            continue;
+        const outgoing = graph.edges.filter((edge) => edge.from === node.key);
+        if (isTerminalObservation(observation)) {
+            terminalStates += 1;
+            for (const edge of outgoing) {
+                if (edge.to !== node.key || edge.effects.length > 0) {
+                    problems.push({
+                        type: "terminal-not-absorbing",
+                        state: node.state,
+                        event: edge.event,
+                        target: graph.states.find((candidate) => candidate.key === edge.to)?.state,
+                        effects: edge.effects,
+                    });
+                }
+            }
+        }
+        for (const edge of outgoing) {
+            const resolves = edge.effects.filter((effect) => effect.type === "resolve");
+            if (resolves.length > 1)
+                problems.push({ type: "multiple-resolve-effects", edge });
+            if (resolves.length === 1) {
+                resolveTransitions += 1;
+                const target = graph.states.find((candidate) => candidate.key === edge.to);
+                if (!target?.observation?.terminal)
+                    problems.push({ type: "resolve-without-terminal-target", edge });
+            }
+        }
+    }
+    return {
+        machineId: machine.id,
+        pass: problems.length === 0,
+        stateCount: graph.states.length,
+        edgeCount: graph.edges.length,
+        terminalStates,
+        resolveTransitions,
+        problems,
+        graph,
+    };
+}
+function checkBisimulation(leftMachine, rightMachine, { leftInput, rightInput = leftInput, leftContext = emptyModelContext(), rightContext = emptyModelContext(), maxPairs = 1000, } = {}) {
+    const leftInitial = leftMachine.initial(leftInput ?? {}, leftContext);
+    const rightInitial = rightMachine.initial(rightInput ?? {}, rightContext);
+    const queue = [{ left: leftInitial, right: rightInitial, path: [] }];
+    const visited = new Set();
+    const relation = [];
+    while (queue.length) {
+        const current = queue.shift();
+        const pairKey = `${canonicalState(current.left)}||${canonicalState(current.right)}`;
+        if (visited.has(pairKey))
+            continue;
+        visited.add(pairKey);
+        if (visited.size > maxPairs) {
+            return { pass: false, reason: "pair-limit", relation, counterexample: current.path };
+        }
+        const leftObservation = leftMachine.publicObservation(leftMachine.observe(current.left, leftContext));
+        const rightObservation = rightMachine.publicObservation(rightMachine.observe(current.right, rightContext));
+        relation.push({
+            leftState: current.left,
+            rightState: current.right,
+            observation: leftObservation,
+        });
+        if (!deepEqual(leftObservation, rightObservation)) {
+            return {
+                pass: false,
+                reason: "observation-mismatch",
+                relation,
+                counterexample: current.path,
+                leftState: current.left,
+                rightState: current.right,
+                leftObservation,
+                rightObservation,
+            };
+        }
+        const events = uniqueEvents([
+            ...(leftMachine.eventAlphabet(current.left, leftContext) ?? []),
+            ...(rightMachine.eventAlphabet(current.right, rightContext) ?? []),
+        ]);
+        for (const event of events) {
+            const leftTransition = validateTransitionResult(leftMachine.transition(current.left, event, leftContext));
+            const rightTransition = validateTransitionResult(rightMachine.transition(current.right, event, rightContext));
+            const leftEffects = normalizedEffects(leftTransition.effects);
+            const rightEffects = normalizedEffects(rightTransition.effects);
+            if (!deepEqual(leftEffects, rightEffects)) {
+                return {
+                    pass: false,
+                    reason: "effect-mismatch",
+                    relation,
+                    counterexample: [...current.path, event],
+                    event,
+                    leftEffects,
+                    rightEffects,
+                };
+            }
+            queue.push({
+                left: leftTransition.state,
+                right: rightTransition.state,
+                path: [...current.path, event],
+            });
+        }
+    }
+    return {
+        pass: true,
+        reason: "bisimilar-on-complete-finite-graph",
+        relation,
+        pairCount: relation.length,
+        counterexample: null,
+    };
+}
+function graphRows(graph) {
+    const labels = new Map(graph.states.map((node, index) => [node.key, `q${index}`]));
+    return {
+        states: graph.states.map((node) => ({
+            id: labels.get(node.key),
+            state: node.state,
+            observation: node.observation,
+        })),
+        edges: graph.edges.map((edge) => ({
+            from: labels.get(edge.from),
+            to: labels.get(edge.to),
+            event: edge.event,
+            effects: edge.effects,
+        })),
+    };
+}
+/* ===== src/core/workflows.js ===== */
+function terminalObservation(state, title, outcome) {
+    return {
+        title,
+        phase: state.tag,
+        status: state.tag,
+        prompt: outcome?.message ?? null,
+        expectedSort: null,
+        candidates: [],
+        terminal: true,
+        outcome,
+        error: state.error ?? null,
+        controls: [],
+    };
+}
+function rejectOccurrence(state, reason) {
+    return transitionTo({ ...state, error: reason }, [], reason);
+}
+function verifyOccurrence(ctx, token, expectedSort) {
+    if (!token || token.sort !== expectedSort) {
+        return { ok: false, reason: `expected <${expectedSort}> but received <${token?.sort ?? "unknown"}>` };
+    }
+    const resolved = ctx.lookupOccurrence(token);
+    if (!resolved.ok)
+        return { ok: false, reason: resolved.reason, details: resolved };
+    return resolved;
+}
+const scheduleContactMachine = defineMachine({
+    id: "p09/schedule-contact",
+    title: "Schedule a meeting with a contact",
+    initial(input, ctx) {
+        const contact = ctx.world.contacts.find((item) => item.id === input.contactId);
+        return contact
+            ? { tag: "choosing-slot", contactId: contact.id, error: null, attempt: 1 }
+            : { tag: "failed", error: "contact-missing" };
+    },
+    observe(state, ctx) {
+        if (state.tag === "choosing-slot") {
+            return {
+                title: "Schedule with contact",
+                phase: state.tag,
+                status: "active",
+                prompt: `Pick an open <slot> for ${contactName(ctx.world, state.contactId)}.`,
+                expectedSort: "slot",
+                candidates: ctx.listOccurrences("slot"),
+                terminal: false,
+                error: state.error,
+                controls: ["cancel"],
+                progress: 1 / 3,
+            };
+        }
+        if (state.tag === "confirming") {
+            return {
+                title: "Schedule with contact",
+                phase: state.tag,
+                status: "active",
+                prompt: `Create “Meeting with ${contactName(ctx.world, state.contactId)}” at ${slotLabel(ctx.world, state.slotToken.subjectId)}?`,
+                expectedSort: null,
+                candidates: [],
+                terminal: false,
+                error: state.error,
+                controls: ["confirm", "back", "cancel"],
+                progress: 2 / 3,
+                selection: state.slotToken,
+            };
+        }
+        if (state.tag === "committing") {
+            return {
+                title: "Schedule with contact",
+                phase: state.tag,
+                status: "busy",
+                prompt: "The product command is being checked and committed.",
+                expectedSort: null,
+                candidates: [],
+                terminal: false,
+                error: null,
+                controls: [],
+                progress: 0.9,
+                requestId: state.requestId,
+            };
+        }
+        if (state.tag === "completed") {
+            return terminalObservation(state, "Schedule with contact", {
+                type: "selected",
+                eventId: state.eventId,
+                message: `Created event ${state.eventId}.`,
+            });
+        }
+        if (state.tag === "cancelled") {
+            return terminalObservation(state, "Schedule with contact", {
+                type: "cancelled",
+                message: state.reason ?? "Scheduling was cancelled.",
+            });
+        }
+        return terminalObservation(state, "Schedule with contact", {
+            type: "failed",
+            message: state.error ?? "Scheduling failed.",
+        });
+    },
+    transition(state, event, ctx) {
+        if (["completed", "cancelled", "failed"].includes(state.tag))
+            return unchanged(state, "terminal state is absorbing");
+        if (state.tag === "choosing-slot") {
+            if (event.type === "cancel") {
+                const next = { tag: "cancelled", reason: "User cancelled while choosing a slot." };
+                return transitionTo(next, [resolveEffect({ type: "cancelled", reason: next.reason })]);
+            }
+            if (event.type !== "choose-occurrence")
+                return unchanged(state, "event not enabled in choosing-slot");
+            const verified = verifyOccurrence(ctx, event.occurrence, "slot");
+            if (!verified.ok)
+                return rejectOccurrence(state, verified.reason);
+            return transitionTo({
+                tag: "confirming",
+                contactId: state.contactId,
+                slotToken: event.occurrence,
+                attempt: state.attempt,
+                error: null,
+            });
+        }
+        if (state.tag === "confirming") {
+            if (event.type === "cancel") {
+                const next = { tag: "cancelled", reason: "User cancelled before commit." };
+                return transitionTo(next, [resolveEffect({ type: "cancelled", reason: next.reason })]);
+            }
+            if (event.type === "back") {
+                return transitionTo({
+                    tag: "choosing-slot",
+                    contactId: state.contactId,
+                    error: null,
+                    attempt: state.attempt + 1,
+                });
+            }
+            if (event.type !== "confirm")
+                return unchanged(state, "event not enabled in confirming");
+            const verified = verifyOccurrence(ctx, state.slotToken, "slot");
+            if (!verified.ok) {
+                return transitionTo({
+                    tag: "choosing-slot",
+                    contactId: state.contactId,
+                    attempt: state.attempt + 1,
+                    error: `Selection invalidated before commit: ${verified.reason}`,
+                });
+            }
+            const requestId = `schedule:${state.contactId}:${state.slotToken.subjectId}:${state.attempt}`;
+            return transitionTo({
+                tag: "committing",
+                contactId: state.contactId,
+                slotToken: state.slotToken,
+                requestId,
+                attempt: state.attempt,
+            }, [commandEffect(requestId, {
+                    type: "create-event-from-contact-slot",
+                    contactId: state.contactId,
+                    slotId: state.slotToken.subjectId,
+                    expectedSlotRevision: state.slotToken.revision,
+                })]);
+        }
+        if (state.tag === "committing") {
+            if (event.type === "command-succeeded" && event.requestId === state.requestId) {
+                return transitionTo({ tag: "completed", eventId: event.value.eventId }, [
+                    resolveEffect({ type: "selected", eventId: event.value.eventId }),
+                    notificationEffect("success", "Meeting created."),
+                ]);
+            }
+            if (event.type === "command-failed" && event.requestId === state.requestId) {
+                return transitionTo({ tag: "failed", error: event.reason }, [
+                    resolveEffect({ type: "failed", reason: event.reason }),
+                    notificationEffect("error", `Scheduling failed: ${event.reason}`),
+                ]);
+            }
+            return unchanged(state, "unrelated commit response ignored");
+        }
+        return unchanged(state);
+    },
+});
+const promoteActionItemMachine = defineMachine({
+    id: "p09/promote-action-item",
+    title: "Promote a transcript action item",
+    initial(input, ctx) {
+        const item = ctx.world.actionItems.find((candidate) => candidate.id === input.actionItemId);
+        if (!item)
+            return { tag: "failed", error: "action-item-missing" };
+        if (item.taskId)
+            return { tag: "failed", error: "action-item-already-promoted" };
+        return { tag: "choosing-project", actionItemToken: ctx.listOccurrences("actionitem").find((occ) => occ.subjectId === item.id), error: null, attempt: 1 };
+    },
+    observe(state, ctx) {
+        if (state.tag === "choosing-project") {
+            return {
+                title: "Promote action item",
+                phase: state.tag,
+                status: "active",
+                prompt: `File “${actionItemLabel(ctx.world, state.actionItemToken.subjectId)}” under a <project>, or choose no project.`,
+                expectedSort: "project",
+                candidates: ctx.listOccurrences("project"),
+                terminal: false,
+                error: state.error,
+                controls: ["choose-none", "cancel"],
+                progress: 1 / 3,
+            };
+        }
+        if (state.tag === "confirming") {
+            return {
+                title: "Promote action item",
+                phase: state.tag,
+                status: "active",
+                prompt: state.projectToken
+                    ? `Create a task in ${projectName(ctx.world, state.projectToken.subjectId)}?`
+                    : "Create an unfiled task?",
+                expectedSort: null,
+                candidates: [],
+                terminal: false,
+                error: state.error,
+                controls: ["confirm", "back", "cancel"],
+                progress: 2 / 3,
+            };
+        }
+        if (state.tag === "committing") {
+            return {
+                title: "Promote action item",
+                phase: state.tag,
+                status: "busy",
+                prompt: "Creating the task and linking it to the transcript action item.",
+                expectedSort: null,
+                candidates: [],
+                terminal: false,
+                controls: [],
+                progress: 0.9,
+            };
+        }
+        if (state.tag === "completed") {
+            return terminalObservation(state, "Promote action item", {
+                type: "selected",
+                taskId: state.taskId,
+                message: `Created task ${state.taskId}.`,
+            });
+        }
+        if (state.tag === "cancelled") {
+            return terminalObservation(state, "Promote action item", { type: "cancelled", message: state.reason });
+        }
+        return terminalObservation(state, "Promote action item", { type: "failed", message: state.error });
+    },
+    transition(state, event, ctx) {
+        if (["completed", "cancelled", "failed"].includes(state.tag))
+            return unchanged(state, "terminal state is absorbing");
+        if (state.tag === "choosing-project") {
+            if (event.type === "cancel") {
+                return transitionTo({ tag: "cancelled", reason: "Promotion cancelled." }, [resolveEffect({ type: "cancelled" })]);
+            }
+            if (event.type === "choose-none") {
+                return transitionTo({ ...state, tag: "confirming", projectToken: null, error: null });
+            }
+            if (event.type !== "choose-occurrence")
+                return unchanged(state);
+            const verified = verifyOccurrence(ctx, event.occurrence, "project");
+            if (!verified.ok)
+                return rejectOccurrence(state, verified.reason);
+            return transitionTo({ ...state, tag: "confirming", projectToken: event.occurrence, error: null });
+        }
+        if (state.tag === "confirming") {
+            if (event.type === "cancel")
+                return transitionTo({ tag: "cancelled", reason: "Promotion cancelled." }, [resolveEffect({ type: "cancelled" })]);
+            if (event.type === "back")
+                return transitionTo({ ...state, tag: "choosing-project", error: null });
+            if (event.type !== "confirm")
+                return unchanged(state);
+            const itemCheck = verifyOccurrence(ctx, state.actionItemToken, "actionitem");
+            if (!itemCheck.ok)
+                return transitionTo({ tag: "failed", error: itemCheck.reason }, [resolveEffect({ type: "failed", reason: itemCheck.reason })]);
+            if (state.projectToken) {
+                const projectCheck = verifyOccurrence(ctx, state.projectToken, "project");
+                if (!projectCheck.ok)
+                    return transitionTo({ ...state, tag: "choosing-project", error: projectCheck.reason, projectToken: null });
+            }
+            const requestId = `promote:${state.actionItemToken.subjectId}:${state.attempt}`;
+            return transitionTo({ ...state, tag: "committing", requestId }, [commandEffect(requestId, {
+                    type: "promote-action-item",
+                    actionItemId: state.actionItemToken.subjectId,
+                    expectedActionItemRevision: state.actionItemToken.revision,
+                    projectId: state.projectToken?.subjectId ?? null,
+                })]);
+        }
+        if (state.tag === "committing") {
+            if (event.type === "command-succeeded" && event.requestId === state.requestId) {
+                return transitionTo({ tag: "completed", taskId: event.value.taskId }, [resolveEffect({ type: "selected", taskId: event.value.taskId })]);
+            }
+            if (event.type === "command-failed" && event.requestId === state.requestId) {
+                return transitionTo({ tag: "failed", error: event.reason }, [resolveEffect({ type: "failed", reason: event.reason })]);
+            }
+            return unchanged(state);
+        }
+        return unchanged(state);
+    },
+});
+const bookingApprovalMachine = defineMachine({
+    id: "p09/booking-approval",
+    title: "Approve an external booking",
+    initial(input, ctx) {
+        const booking = ctx.world.bookings.find((candidate) => candidate.id === input.bookingId);
+        if (!booking)
+            return { tag: "failed", error: "booking-missing" };
+        return {
+            tag: "reviewing",
+            bookingToken: ctx.listOccurrences("booking").find((occ) => occ.subjectId === booking.id),
+            attempt: 1,
+        };
+    },
+    observe(state, ctx) {
+        if (state.tag === "reviewing") {
+            return {
+                title: "Booking approval",
+                phase: state.tag,
+                status: "active",
+                prompt: `Request approval for ${bookingLabel(ctx.world, state.bookingToken.subjectId)}?`,
+                expectedSort: null,
+                candidates: [],
+                terminal: false,
+                controls: ["submit", "cancel"],
+                progress: 0.2,
+            };
+        }
+        if (state.tag === "waiting-approval") {
+            return {
+                title: "Booking approval",
+                phase: state.tag,
+                status: "waiting-external",
+                prompt: "Waiting for an external policy service. Cancellation remains available.",
+                expectedSort: null,
+                candidates: [],
+                terminal: false,
+                controls: ["cancel"],
+                requestId: state.requestId,
+                progress: 0.5,
+            };
+        }
+        if (state.tag === "committing") {
+            return {
+                title: "Booking approval",
+                phase: state.tag,
+                status: "busy",
+                prompt: "The approved booking is being committed to the calendar.",
+                expectedSort: null,
+                candidates: [],
+                terminal: false,
+                controls: [],
+                progress: 0.85,
+            };
+        }
+        if (state.tag === "completed")
+            return terminalObservation(state, "Booking approval", { type: "selected", eventId: state.eventId, message: `Booking confirmed as ${state.eventId}.` });
+        if (state.tag === "rejected")
+            return terminalObservation(state, "Booking approval", { type: "rejected", message: state.reason });
+        if (state.tag === "cancelled")
+            return terminalObservation(state, "Booking approval", { type: "cancelled", message: state.reason });
+        return terminalObservation(state, "Booking approval", { type: "failed", message: state.error });
+    },
+    transition(state, event, ctx) {
+        if (["completed", "rejected", "cancelled", "failed"].includes(state.tag))
+            return unchanged(state, "terminal state is absorbing");
+        if (state.tag === "reviewing") {
+            if (event.type === "cancel")
+                return transitionTo({ tag: "cancelled", reason: "Approval was cancelled before submission." }, [resolveEffect({ type: "cancelled" })]);
+            if (event.type !== "submit")
+                return unchanged(state);
+            const bookingCheck = verifyOccurrence(ctx, state.bookingToken, "booking");
+            if (!bookingCheck.ok)
+                return transitionTo({ tag: "failed", error: bookingCheck.reason }, [resolveEffect({ type: "failed", reason: bookingCheck.reason })]);
+            const requestId = `approval:${state.bookingToken.subjectId}:${state.attempt}`;
+            return transitionTo({ ...state, tag: "waiting-approval", requestId }, [externalRequestEffect(requestId, {
+                    type: "approve-booking",
+                    bookingId: state.bookingToken.subjectId,
+                    applicant: bookingCheck.value.email,
+                })]);
+        }
+        if (state.tag === "waiting-approval") {
+            if (event.type === "cancel") {
+                return transitionTo({ tag: "cancelled", reason: "User cancelled while the policy request was in flight." }, [resolveEffect({ type: "cancelled" })]);
+            }
+            if (event.type !== "external-response" || event.requestId !== state.requestId)
+                return unchanged(state, "unrelated external response ignored");
+            if (!event.payload?.approved) {
+                return transitionTo({ tag: "rejected", reason: event.payload?.reason ?? "External policy rejected the booking." }, [resolveEffect({ type: "rejected", reason: event.payload?.reason ?? "rejected" })]);
+            }
+            const requestId = `booking-command:${state.bookingToken.subjectId}:${state.attempt}`;
+            return transitionTo({ ...state, tag: "committing", requestId }, [commandEffect(requestId, {
+                    type: "approve-booking-to-event",
+                    bookingId: state.bookingToken.subjectId,
+                    expectedBookingRevision: state.bookingToken.revision,
+                })]);
+        }
+        if (state.tag === "committing") {
+            if (event.type === "command-succeeded" && event.requestId === state.requestId) {
+                return transitionTo({ tag: "completed", eventId: event.value.eventId }, [resolveEffect({ type: "selected", eventId: event.value.eventId })]);
+            }
+            if (event.type === "command-failed" && event.requestId === state.requestId) {
+                return transitionTo({ tag: "failed", error: event.reason }, [resolveEffect({ type: "failed", reason: event.reason })]);
+            }
+            return unchanged(state);
+        }
+        return unchanged(state);
+    },
+});
+const composeRecipientsMachine = defineMachine({
+    id: "p09/compose-recipients",
+    title: "Collect recipients",
+    initial(input) {
+        return { tag: "collecting", contactIds: [...(input.contactIds ?? [])], error: null };
+    },
+    observe(state, ctx) {
+        if (state.tag === "collecting") {
+            return {
+                title: "Collect recipients",
+                phase: state.tag,
+                status: "active",
+                prompt: "Choose one or more <contact> presentations, then finish.",
+                expectedSort: "contact",
+                candidates: ctx.listOccurrences("contact"),
+                terminal: false,
+                controls: ["finish", "cancel"],
+                selected: state.contactIds.map((id) => ({ id, label: contactName(ctx.world, id) })),
+                error: state.error,
+                progress: state.contactIds.length ? 0.7 : 0.25,
+            };
+        }
+        if (state.tag === "completed")
+            return terminalObservation(state, "Collect recipients", { type: "selected", contactIds: state.contactIds, message: `${state.contactIds.length} recipient(s) selected.` });
+        return terminalObservation(state, "Collect recipients", { type: "cancelled", message: state.reason });
+    },
+    transition(state, event, ctx) {
+        if (state.tag !== "collecting")
+            return unchanged(state, "terminal state is absorbing");
+        if (event.type === "cancel")
+            return transitionTo({ tag: "cancelled", reason: "Recipient selection cancelled." }, [resolveEffect({ type: "cancelled" })]);
+        if (event.type === "finish") {
+            if (!state.contactIds.length)
+                return rejectOccurrence(state, "select at least one contact");
+            return transitionTo({ tag: "completed", contactIds: state.contactIds }, [resolveEffect({ type: "selected", contactIds: state.contactIds })]);
+        }
+        if (event.type !== "choose-occurrence")
+            return unchanged(state);
+        const verified = verifyOccurrence(ctx, event.occurrence, "contact");
+        if (!verified.ok)
+            return rejectOccurrence(state, verified.reason);
+        const contactIds = state.contactIds.includes(event.occurrence.subjectId)
+            ? state.contactIds
+            : [...state.contactIds, event.occurrence.subjectId];
+        return transitionTo({ ...state, contactIds, error: null });
+    },
+});
+// ---------------------------------------------------------------------------
+// Two differently represented but behaviorally equivalent accept machines.
+// These are finite and intentionally independent of the product world so that
+// the bisimulation checker can exhaust their complete state graphs.
+// ---------------------------------------------------------------------------
+const acceptEvents = [
+    { type: "choose", sort: "contact", key: "c-ok", valid: true },
+    { type: "choose", sort: "project", key: "p-wrong", valid: true },
+    { type: "choose", sort: "contact", key: "c-stale", valid: false },
+    { type: "cancel" },
+];
+function publicAcceptObservation(observation) {
+    return {
+        status: observation.status,
+        expectedSort: observation.expectedSort,
+        errorClass: observation.errorClass ?? null,
+        outcome: observation.outcome ?? null,
+    };
+}
+function acceptOutcome(event, expectedSort) {
+    if (event.type === "cancel")
+        return { terminal: true, outcome: { type: "cancelled" } };
+    if (event.type !== "choose")
+        return { terminal: false, errorClass: "unsupported" };
+    if (event.sort !== expectedSort)
+        return { terminal: false, errorClass: "wrong-sort" };
+    if (!event.valid)
+        return { terminal: false, errorClass: "stale" };
+    return { terminal: true, outcome: { type: "selected", sort: event.sort, key: event.key } };
+}
+const acceptOneFlatMachine = defineMachine({
+    id: "p09/accept-one-flat",
+    title: "Flat accept machine",
+    initial(input) {
+        return { tag: "waiting", expectedSort: input.expectedSort, errorClass: null };
+    },
+    observe(state) {
+        if (state.tag === "waiting")
+            return { status: "waiting", expectedSort: state.expectedSort, errorClass: state.errorClass, terminal: false };
+        return { status: "terminal", expectedSort: null, outcome: state.outcome, terminal: true };
+    },
+    transition(state, event) {
+        if (state.tag !== "waiting")
+            return unchanged(state);
+        const result = acceptOutcome(event, state.expectedSort);
+        return result.terminal
+            ? transitionTo({ tag: "terminal", outcome: result.outcome }, [resolveEffect(result.outcome)])
+            : transitionTo({ ...state, errorClass: result.errorClass });
+    },
+    eventAlphabet: () => acceptEvents,
+    publicObservation: publicAcceptObservation,
+});
+const acceptOneFactoredMachine = defineMachine({
+    id: "p09/accept-one-factored",
+    title: "Factored accept machine",
+    initial(input) {
+        return { tag: "open", request: { sort: input.expectedSort }, diagnostic: { issue: null } };
+    },
+    observe(state) {
+        if (state.tag === "open")
+            return { status: "waiting", expectedSort: state.request.sort, errorClass: state.diagnostic.issue, terminal: false };
+        return { status: "terminal", expectedSort: null, outcome: state.result, terminal: true };
+    },
+    transition(state, event) {
+        if (state.tag !== "open")
+            return unchanged(state);
+        const result = acceptOutcome(event, state.request.sort);
+        return result.terminal
+            ? transitionTo({ tag: "closed", result: result.outcome }, [resolveEffect(result.outcome)])
+            : transitionTo({ ...state, diagnostic: { issue: result.errorClass } });
+    },
+    eventAlphabet: () => acceptEvents,
+    publicObservation: publicAcceptObservation,
+});
+const acceptOneBrokenMachine = defineMachine({
+    id: "p09/accept-one-broken",
+    title: "Broken accept machine",
+    initial(input) {
+        return { tag: "waiting", expectedSort: input.expectedSort, errorClass: null };
+    },
+    observe(state) {
+        if (state.tag === "waiting")
+            return { status: "waiting", expectedSort: state.expectedSort, errorClass: state.errorClass, terminal: false };
+        return { status: "terminal", expectedSort: null, outcome: state.outcome, terminal: true };
+    },
+    transition(state, event) {
+        if (state.tag !== "waiting")
+            return unchanged(state);
+        if (event.type === "cancel")
+            return transitionTo({ tag: "terminal", outcome: { type: "cancelled" } }, [resolveEffect({ type: "cancelled" })]);
+        if (event.type === "choose" && event.valid) {
+            // Deliberate bug: it forgets to check event.sort.
+            const outcome = { type: "selected", sort: event.sort, key: event.key };
+            return transitionTo({ tag: "terminal", outcome }, [resolveEffect(outcome)]);
+        }
+        return transitionTo({ ...state, errorClass: "stale" });
+    },
+    eventAlphabet: () => acceptEvents,
+    publicObservation: publicAcceptObservation,
+});
+const MACHINE_CATALOG = Object.freeze({
+    [scheduleContactMachine.id]: scheduleContactMachine,
+    [promoteActionItemMachine.id]: promoteActionItemMachine,
+    [bookingApprovalMachine.id]: bookingApprovalMachine,
+    [composeRecipientsMachine.id]: composeRecipientsMachine,
+    [acceptOneFlatMachine.id]: acceptOneFlatMachine,
+    [acceptOneFactoredMachine.id]: acceptOneFactoredMachine,
+    [acceptOneBrokenMachine.id]: acceptOneBrokenMachine,
+});
+/* ===== src/components/ui.jsx ===== */
+function Button({ children, onClick, tone = C.blue, disabled = false, title = null, small = false }) {
+    return (React.createElement("button", { type: "button", title: title ?? undefined, disabled: disabled, onClick: disabled ? undefined : onClick, className: small ? "button button-small" : "button", style: { background: disabled ? C.paneAlt : tone } }, children));
+}
+function Chip({ children, tone = C.paneAlt, dim = false, title = null }) {
+    return (React.createElement("span", { className: "chip", title: title ?? undefined, style: { borderLeftColor: tone, opacity: dim ? 0.55 : 1 } }, children));
+}
+function Section({ title, right = null, children, className = "" }) {
+    return (React.createElement("section", { className: `section ${className}` },
+        React.createElement("div", { className: "section-head" },
+            React.createElement("strong", null, title),
+            React.createElement("span", { className: "section-head-spacer" }),
+            right),
+        children));
+}
+function Card({ children, tone = C.line, className = "" }) {
+    return React.createElement("div", { className: `card ${className}`, style: { borderLeftColor: tone } }, children);
+}
+function KeyValue({ label, children }) {
+    return (React.createElement("div", { className: "key-value" },
+        React.createElement("span", { className: "key-value-key" }, label),
+        React.createElement("span", { className: "key-value-value" }, children)));
+}
+function Progress({ value, tone = C.sage }) {
+    return (React.createElement("span", { className: "progress" },
+        React.createElement("span", { className: "progress-fill", style: { width: `${Math.max(0, Math.min(1, value ?? 0)) * 100}%`, background: tone } })));
+}
+function JsonBlock({ value, maxHeight = 280 }) {
+    return (React.createElement("pre", { className: "json", style: { maxHeight } }, typeof value === "string" ? value : JSON.stringify(value, null, 2)));
+}
+function CandidateGrid({ candidates, onChoose, capturedId = null, onCapture = null, empty = "No candidates are currently available." }) {
+    if (!candidates?.length)
+        return React.createElement("div", { className: "empty" }, empty);
+    return (React.createElement("div", { className: "candidate-grid" }, candidates.map((candidate) => (React.createElement("div", { key: candidate.occurrenceId, className: `candidate ${capturedId === candidate.occurrenceId ? "candidate-captured" : ""}` },
+        React.createElement("div", { className: "candidate-sort" },
+            "<",
+            candidate.sort,
+            ">"),
+        React.createElement("div", { className: "candidate-label" }, candidate.label),
+        React.createElement("div", { className: "candidate-meta" },
+            "subject ",
+            candidate.subjectId,
+            " \u00B7 rev ",
+            candidate.revision),
+        React.createElement("div", { className: "row" },
+            React.createElement(Button, { small: true, tone: C.mint, onClick: () => onChoose(candidate) }, "choose"),
+            onCapture && React.createElement(Button, { small: true, tone: C.paneAlt, onClick: () => onCapture(candidate) }, "capture token")))))));
+}
+function ObservationPanel({ runtime, compact = false }) {
+    const observation = runtime.observe();
+    const tone = observation.terminal
+        ? observation.outcome?.type === "selected" ? C.green : observation.outcome?.type === "cancelled" ? C.faint : C.red
+        : observation.status === "waiting-external" ? C.lavender
+            : observation.status === "busy" ? C.mustard
+                : C.blue;
+    return (React.createElement(Card, { tone: tone, className: "observation-card" },
+        React.createElement("div", { className: "row observation-title" },
+            React.createElement("strong", null, observation.title),
+            React.createElement(Chip, { tone: tone }, observation.phase),
+            React.createElement(Chip, { tone: C.paneAlt }, observation.status),
+            React.createElement("span", { className: "spacer" }),
+            !compact && React.createElement(Progress, { value: observation.progress ?? (observation.terminal ? 1 : 0), tone: tone })),
+        observation.prompt && React.createElement("div", { className: "prompt" }, observation.prompt),
+        observation.expectedSort && React.createElement("div", { className: "expected" },
+            "input context: <",
+            observation.expectedSort,
+            ">"),
+        observation.error && React.createElement("div", { className: "error-box" }, observation.error),
+        runtime.resolution && React.createElement("div", { className: "resolution" },
+            "resolution: ",
+            summarizeValue(runtime.resolution, 180)),
+        !compact && (React.createElement("div", { className: "observation-foot" },
+            React.createElement("span", null,
+                "state: ",
+                React.createElement("code", null, JSON.stringify(runtime.state)))))));
+}
+function RuntimeTrace({ runtime, limit = 26 }) {
+    const rows = runtime.trace.slice(-limit).reverse();
+    return (React.createElement("div", { className: "trace-table-wrap" },
+        React.createElement("table", { className: "trace-table" },
+            React.createElement("tbody", null, rows.map((entry) => (React.createElement("tr", { key: entry.seq },
+                React.createElement("td", { className: "trace-seq" }, entry.seq),
+                React.createElement("td", { className: "trace-type" }, entry.type),
+                React.createElement("td", null, summarizeValue(Object.fromEntries(Object.entries(entry).filter(([key]) => !["seq", "type", "sessionId", "machineId"].includes(key))), 210))))))),
+        !rows.length && React.createElement("div", { className: "empty" }, "No trace entries.")));
+}
+function WorldSummary({ world }) {
+    return (React.createElement("div", { className: "metrics" },
+        React.createElement(Card, { tone: C.blue },
+            React.createElement("b", null, world.revision),
+            React.createElement("span", null, "world revision")),
+        React.createElement(Card, { tone: C.sage },
+            React.createElement("b", null, world.events.length),
+            React.createElement("span", null, "events")),
+        React.createElement(Card, { tone: C.mustard },
+            React.createElement("b", null, world.tasks.length),
+            React.createElement("span", null, "tasks")),
+        React.createElement(Card, { tone: C.rose },
+            React.createElement("b", null, world.slots.filter((slot) => slot.available).length),
+            React.createElement("span", null, "open slots")),
+        React.createElement(Card, { tone: C.lavender },
+            React.createElement("b", null, world.audit.length),
+            React.createElement("span", null, "domain audit rows"))));
+}
+/* ===== src/App.jsx ===== */
+function useRuntime(factory) {
+    const ref = useRef(null);
+    if (!ref.current)
+        ref.current = factory();
+    const [, setVersion] = useState(0);
+    const refresh = () => setVersion((version) => version + 1);
+    const replace = (runtime) => {
+        ref.current = runtime;
+        refresh();
+    };
+    const reset = () => replace(factory());
+    return { ref, runtime: ref.current, refresh, replace, reset };
+}
+function run(runtimeHook, operation) {
+    operation(runtimeHook.ref.current);
+    runtimeHook.refresh();
+}
+function machineRuntime(machine, input, sessionId) {
+    return new MachineRuntime({ machine, input, world: createDemoWorld(), sessionId });
+}
+function Overview() {
+    return (React.createElement("div", { className: "page-grid overview-grid" },
+        React.createElement("div", null,
+            React.createElement(Section, { title: "The object under study" },
+                React.createElement(Card, { tone: C.blue },
+                    React.createElement("div", { className: "formal-block" },
+                        React.createElement("div", { className: "formal-equation" },
+                            "\u03B3 : S \u2192 O \u00D7 (S \u00D7 E*)",
+                            React.createElement("sup", null, "I")),
+                        React.createElement("p", null,
+                            "A state exposes a current observation and, for each input event, a successor state plus emitted effects. The implementation splits this into a Moore-style ",
+                            React.createElement("code", null, "observe"),
+                            " function and a Mealy-style ",
+                            " ",
+                            React.createElement("code", null, "transition"),
+                            " function."))),
+                React.createElement("div", { className: "two-col" },
+                    React.createElement(Card, { tone: C.sage },
+                        React.createElement("h3", null, "Observation"),
+                        React.createElement("p", null, "Prompt, expected semantic sort, currently acceptable occurrences, status, enabled controls, progress, and terminal outcome.")),
+                    React.createElement(Card, { tone: C.mustard },
+                        React.createElement("h3", null, "Transition"),
+                        React.createElement("p", null, "A pure function of state, event, and a read-only product snapshot. It returns a new state and effect data.")),
+                    React.createElement(Card, { tone: C.lavender },
+                        React.createElement("h3", null, "Interpreter"),
+                        React.createElement("p", null, "The runtime checks product commands, records traces, routes external responses, enforces exactly-once resolution, and supports replay.")),
+                    React.createElement(Card, { tone: C.rose },
+                        React.createElement("h3", null, "Behavioral equality"),
+                        React.createElement("p", null, "A finite bisimulation checker compares two differently represented accept machines through their public observations and effects.")))),
+            React.createElement(Section, { title: "Why this is a PBUI subsystem" },
+                React.createElement("p", { className: "body-copy" }, "The supplied productivity suite already makes every visible object a typed live presentation and uses one global ACCEPT mode. P09 keeps that product behavior but replaces the promise and callback continuation with explicit machine state. Candidate highlighting is an observation of the machine; clicking a presentation is an input event; product mutation is an interpreted effect."),
+                React.createElement("div", { className: "flow-line" },
+                    React.createElement(Chip, { tone: C.blue }, "semantic state"),
+                    React.createElement("span", null, "\u2192"),
+                    React.createElement(Chip, { tone: C.sage }, "observation"),
+                    React.createElement("span", null, "\u2192"),
+                    React.createElement(Chip, { tone: C.mustard }, "React surface"),
+                    React.createElement("span", null, "\u2192"),
+                    React.createElement(Chip, { tone: C.rose }, "event"),
+                    React.createElement("span", null, "\u2192"),
+                    React.createElement(Chip, { tone: C.lavender }, "transition + effects")))),
+        React.createElement("div", null,
+            React.createElement(Section, { title: "Experiments in this artifact" },
+                React.createElement("ol", { className: "experiment-list" },
+                    React.createElement("li", null,
+                        React.createElement("b", null, "Scheduling:"),
+                        " typed occurrence choice, stale tokens, commit-time revalidation, capability revocation, cancellation, and terminal absorption."),
+                    React.createElement("li", null,
+                        React.createElement("b", null, "Promotion:"),
+                        " an action item becomes a task after a project-selection phase."),
+                    React.createElement("li", null,
+                        React.createElement("b", null, "External approval:"),
+                        " a cancellable request remains pending while the machine waits; late responses are ignored after termination."),
+                    React.createElement("li", null,
+                        React.createElement("b", null, "Parallel ownership:"),
+                        " one pointer channel queues interactions while a network channel proceeds independently."),
+                    React.createElement("li", null,
+                        React.createElement("b", null, "Bisimulation:"),
+                        " complete finite-state comparison of two equivalent accept implementations and one deliberately broken implementation."),
+                    React.createElement("li", null,
+                        React.createElement("b", null, "Replay:"),
+                        " deterministic re-execution, rewind, branch, serialization, and trace inspection."))),
+            React.createElement(Section, { title: "Runtime invariants" },
+                React.createElement("div", { className: "law-list" }, [
+                    "A terminal observation is absorbing under every later event.",
+                    "At most one resolve effect is accepted per session.",
+                    "Transitions cannot mutate the durable product world directly.",
+                    "Every world mutation is associated with a command and trace entry.",
+                    "Occurrence revisions are rechecked before selection and before commit.",
+                    "Replay of the same initial world and external inputs reproduces the public result.",
+                ].map((law) => React.createElement("div", { key: law, className: "law-row" },
+                    React.createElement("span", null, "\u2713"),
+                    law)))))));
+}
+function ScheduleLab() {
+    const [contactId, setContactId] = useState("c-sarah");
+    const [captured, setCaptured] = useState(null);
+    const hook = useRuntime(() => machineRuntime(scheduleContactMachine, { contactId }, "schedule-ui"));
+    const runtime = hook.runtime;
+    const observation = runtime.observe();
+    const resetForContact = () => {
+        setCaptured(null);
+        hook.replace(machineRuntime(scheduleContactMachine, { contactId }, "schedule-ui"));
+    };
+    return (React.createElement("div", { className: "page-grid" },
+        React.createElement("div", null,
+            React.createElement(Section, { title: "Schedule with a contact", right: React.createElement(Button, { small: true, tone: C.paneAlt, onClick: resetForContact }, "reset machine") },
+                React.createElement("div", { className: "row toolbar" },
+                    React.createElement("label", null, "contact"),
+                    React.createElement("select", { value: contactId, onChange: (event) => setContactId(event.target.value) }, runtime.world.contacts.map((contact) => React.createElement("option", { key: contact.id, value: contact.id }, contact.name))),
+                    React.createElement(Button, { small: true, tone: runtime.world.capabilities.scheduleEvent ? C.sage : C.red, onClick: () => run(hook, (rt) => rt.mutateWorld({
+                            type: "set-capability",
+                            capability: "scheduleEvent",
+                            enabled: !rt.world.capabilities.scheduleEvent,
+                        })) },
+                        "schedule capability: ",
+                        runtime.world.capabilities.scheduleEvent ? "on" : "off"),
+                    React.createElement(Button, { small: true, tone: C.paneAlt, onClick: () => {
+                            const contact = listOccurrences(runtime.world, "contact")[0];
+                            run(hook, (rt) => rt.dispatch({ type: "choose-occurrence", occurrence: contact }));
+                        } }, "send wrong <contact>")),
+                React.createElement(ObservationPanel, { runtime: runtime }),
+                observation.expectedSort === "slot" && (React.createElement(CandidateGrid, { candidates: observation.candidates, capturedId: captured?.occurrenceId ?? null, onCapture: (candidate) => setCaptured(deepClone(candidate)), onChoose: (candidate) => run(hook, (rt) => rt.dispatch({ type: "choose-occurrence", occurrence: candidate })) })),
+                React.createElement("div", { className: "row controls-row" },
+                    observation.controls?.includes("confirm") && React.createElement(Button, { tone: C.mint, onClick: () => run(hook, (rt) => rt.dispatch({ type: "confirm" })) }, "confirm"),
+                    observation.controls?.includes("back") && React.createElement(Button, { tone: C.paneAlt, onClick: () => run(hook, (rt) => rt.dispatch({ type: "back" })) }, "back"),
+                    observation.controls?.includes("cancel") && React.createElement(Button, { tone: C.rose, onClick: () => run(hook, (rt) => rt.dispatch({ type: "cancel" })) }, "cancel"))),
+            React.createElement(Section, { title: "Stale occurrence experiment", right: captured ? React.createElement(Chip, { tone: C.mustard },
+                    "captured rev ",
+                    captured.revision) : null },
+                React.createElement("p", { className: "body-copy" }, "Capture a slot token, mutate the calendar so that slot receives a new revision, and then dispatch the old token. The machine remains in its input state and reports the stale occurrence rather than converting it into a command."),
+                React.createElement("div", { className: "row" },
+                    React.createElement(Button, { small: true, disabled: !captured, tone: C.red, onClick: () => run(hook, (rt) => rt.mutateWorld({ type: "occupy-slot", slotId: captured.subjectId, title: "Concurrent calendar edit" })) }, "occupy captured slot externally"),
+                    React.createElement(Button, { small: true, disabled: !captured, tone: C.mustard, onClick: () => run(hook, (rt) => rt.dispatch({ type: "choose-occurrence", occurrence: captured })) }, "dispatch captured token"),
+                    React.createElement(Button, { small: true, disabled: !captured, tone: C.paneAlt, onClick: () => setCaptured(null) }, "drop token"))),
+            React.createElement(Section, { title: "Product state after interpreted effects" },
+                React.createElement(WorldSummary, { world: runtime.world }),
+                React.createElement("div", { className: "event-list" }, runtime.world.events.slice(-5).reverse().map((event) => (React.createElement(Card, { key: event.id, tone: event.attendees.length ? C.sage : C.line },
+                    React.createElement("div", { className: "row" },
+                        React.createElement("b", null, event.title),
+                        React.createElement("span", { className: "spacer" }),
+                        React.createElement(Chip, null, event.id)),
+                    React.createElement("div", { className: "muted" },
+                        fmtDateTime(event.start),
+                        " \u00B7 attendees ",
+                        event.attendees.join(", ") || "none"))))))),
+        React.createElement("div", null,
+            React.createElement(Section, { title: "Machine trace", right: React.createElement(Chip, { tone: C.paneAlt },
+                    runtime.trace.length,
+                    " entries") },
+                React.createElement(RuntimeTrace, { runtime: runtime, limit: 42 })))));
+}
+function PromotionLab() {
+    const [actionItemId, setActionItemId] = useState("ai-onboarding");
+    const hook = useRuntime(() => machineRuntime(promoteActionItemMachine, { actionItemId }, "promotion-ui"));
+    const runtime = hook.runtime;
+    const observation = runtime.observe();
+    const item = runtime.world.actionItems.find((candidate) => candidate.id === actionItemId);
+    const reset = () => hook.replace(machineRuntime(promoteActionItemMachine, { actionItemId }, "promotion-ui"));
+    return (React.createElement("div", { className: "page-grid" },
+        React.createElement("div", null,
+            React.createElement(Section, { title: "Transcript action item \u2192 task", right: React.createElement(Button, { small: true, tone: C.paneAlt, onClick: reset }, "reset machine") },
+                React.createElement("div", { className: "row toolbar" },
+                    React.createElement("label", null, "action item"),
+                    React.createElement("select", { value: actionItemId, onChange: (event) => setActionItemId(event.target.value) }, runtime.world.actionItems.map((candidate) => React.createElement("option", { key: candidate.id, value: candidate.id }, candidate.text))),
+                    React.createElement(Button, { small: true, tone: runtime.world.capabilities.promoteActionItem ? C.sage : C.red, onClick: () => run(hook, (rt) => rt.mutateWorld({
+                            type: "set-capability",
+                            capability: "promoteActionItem",
+                            enabled: !rt.world.capabilities.promoteActionItem,
+                        })) },
+                        "promotion capability: ",
+                        runtime.world.capabilities.promoteActionItem ? "on" : "off")),
+                React.createElement(Card, { tone: item?.taskId ? C.sage : C.red },
+                    React.createElement(KeyValue, { label: "action item" }, item?.text ?? "missing"),
+                    React.createElement(KeyValue, { label: "linked task" }, item?.taskId ?? "none"),
+                    React.createElement(KeyValue, { label: "revision" }, item?.revision ?? "-")),
+                React.createElement(ObservationPanel, { runtime: runtime }),
+                observation.expectedSort === "project" && (React.createElement(CandidateGrid, { candidates: observation.candidates, onChoose: (candidate) => run(hook, (rt) => rt.dispatch({ type: "choose-occurrence", occurrence: candidate })) })),
+                React.createElement("div", { className: "row controls-row" },
+                    observation.controls?.includes("choose-none") && React.createElement(Button, { tone: C.paneAlt, onClick: () => run(hook, (rt) => rt.dispatch({ type: "choose-none" })) }, "no project"),
+                    observation.controls?.includes("confirm") && React.createElement(Button, { tone: C.mint, onClick: () => run(hook, (rt) => rt.dispatch({ type: "confirm" })) }, "confirm task creation"),
+                    observation.controls?.includes("back") && React.createElement(Button, { tone: C.paneAlt, onClick: () => run(hook, (rt) => rt.dispatch({ type: "back" })) }, "back"),
+                    observation.controls?.includes("cancel") && React.createElement(Button, { tone: C.rose, onClick: () => run(hook, (rt) => rt.dispatch({ type: "cancel" })) }, "cancel"),
+                    React.createElement(Button, { small: true, tone: C.red, onClick: () => run(hook, (rt) => rt.mutateWorld({ type: "mark-action-item-promoted", actionItemId, taskId: "tk-external" })) }, "promote externally"))),
+            React.createElement(Section, { title: "Tasks" },
+                React.createElement("div", { className: "event-list" }, runtime.world.tasks.slice().reverse().map((task) => (React.createElement(Card, { key: task.id, tone: task.id.startsWith("tk-1") ? C.mustard : C.blue },
+                    React.createElement("div", { className: "row" },
+                        React.createElement("b", null, task.title),
+                        React.createElement("span", { className: "spacer" }),
+                        React.createElement(Chip, null, task.id)),
+                    React.createElement("div", { className: "muted" },
+                        "project ",
+                        task.projectId ?? "none",
+                        " \u00B7 ",
+                        task.status))))))),
+        React.createElement("div", null,
+            React.createElement(Section, { title: "Machine trace" },
+                React.createElement(RuntimeTrace, { runtime: runtime, limit: 48 })))));
+}
+function AsyncApprovalLab() {
+    const hook = useRuntime(() => machineRuntime(bookingApprovalMachine, { bookingId: "bk-3" }, "booking-ui"));
+    const runtime = hook.runtime;
+    const observation = runtime.observe();
+    const pending = [...runtime.pendingRequests.keys()];
+    const knownRequest = pending[0] ?? runtime.trace.find((entry) => entry.type === "external-request-opened")?.requestId ?? null;
+    const booking = runtime.world.bookings.find((candidate) => candidate.id === "bk-3");
+    return (React.createElement("div", { className: "page-grid" },
+        React.createElement("div", null,
+            React.createElement(Section, { title: "Cancellable external approval", right: React.createElement(Button, { small: true, tone: C.paneAlt, onClick: hook.reset }, "reset machine") },
+                React.createElement(Card, { tone: booking.status === "confirmed" ? C.sage : C.mustard },
+                    React.createElement("div", { className: "row" },
+                        React.createElement("b", null, booking.name),
+                        React.createElement("span", { className: "spacer" }),
+                        React.createElement(Chip, { tone: booking.status === "confirmed" ? C.sage : C.mustard }, booking.status)),
+                    React.createElement("div", { className: "muted" },
+                        booking.email,
+                        " \u00B7 ",
+                        fmtDateTime(booking.start),
+                        " \u00B7 rev ",
+                        booking.revision)),
+                React.createElement(ObservationPanel, { runtime: runtime }),
+                React.createElement("div", { className: "row controls-row" },
+                    observation.controls?.includes("submit") && React.createElement(Button, { tone: C.lavender, onClick: () => run(hook, (rt) => rt.dispatch({ type: "submit" })) }, "submit external request"),
+                    observation.controls?.includes("cancel") && React.createElement(Button, { tone: C.rose, onClick: () => run(hook, (rt) => rt.dispatch({ type: "cancel" })) }, "cancel session"),
+                    React.createElement(Button, { small: true, disabled: !knownRequest, tone: C.mint, onClick: () => run(hook, (rt) => rt.deliverExternal(knownRequest, { approved: true })) }, "deliver approved response"),
+                    React.createElement(Button, { small: true, disabled: !knownRequest, tone: C.red, onClick: () => run(hook, (rt) => rt.deliverExternal(knownRequest, { approved: false, reason: "policy denied" })) }, "deliver rejection")),
+                React.createElement("div", { className: "row controls-row" },
+                    React.createElement(Button, { small: true, tone: runtime.world.capabilities.approveBooking ? C.sage : C.red, onClick: () => run(hook, (rt) => rt.mutateWorld({
+                            type: "set-capability",
+                            capability: "approveBooking",
+                            enabled: !rt.world.capabilities.approveBooking,
+                        })) },
+                        "approval capability: ",
+                        runtime.world.capabilities.approveBooking ? "on" : "off"),
+                    React.createElement(Button, { small: true, tone: C.paneAlt, onClick: () => run(hook, (rt) => rt.mutateWorld({ type: "change-booking-status", bookingId: "bk-3", status: "declined" })) }, "change booking externally")),
+                React.createElement("p", { className: "body-copy" }, "Cancel after submission, then deliver the response. The runtime records the response but the terminal machine refuses to transition, so no calendar command is issued.")),
+            React.createElement(Section, { title: "Open external requests" }, pending.length ? pending.map((requestId) => React.createElement(Card, { key: requestId, tone: C.lavender },
+                React.createElement("code", null, requestId))) : React.createElement("div", { className: "empty" }, "No open request."))),
+        React.createElement("div", null,
+            React.createElement(Section, { title: "Machine trace" },
+                React.createElement(RuntimeTrace, { runtime: runtime, limit: 54 })))));
+}
+function ParallelLab() {
+    const managerRef = useRef(null);
+    if (!managerRef.current)
+        managerRef.current = new InteractionManager({ world: createDemoWorld(), commandHandler: executeProductCommand });
+    const [, setVersion] = useState(0);
+    const refresh = () => setVersion((version) => version + 1);
+    const manager = managerRef.current;
+    const snapshot = manager.snapshot();
+    const pointer = manager.active("pointer");
+    const network = manager.active("network");
+    const reset = () => {
+        managerRef.current = new InteractionManager({ world: createDemoWorld(), commandHandler: executeProductCommand });
+        refresh();
+    };
+    const act = (operation) => { operation(managerRef.current); refresh(); };
+    const renderManagedControls = (record, channel) => {
+        if (!record)
+            return React.createElement("div", { className: "empty" }, "No active owner.");
+        const observation = record.runtime.observe();
+        return (React.createElement("div", null,
+            React.createElement(ObservationPanel, { runtime: record.runtime, compact: true }),
+            observation.candidates?.length > 0 && (React.createElement(CandidateGrid, { candidates: observation.candidates, onChoose: (candidate) => act((mgr) => mgr.dispatch(channel, { type: "choose-occurrence", occurrence: candidate })) })),
+            React.createElement("div", { className: "row controls-row" },
+                observation.controls?.includes("finish") && React.createElement(Button, { small: true, tone: C.mint, onClick: () => act((mgr) => mgr.dispatch(channel, { type: "finish" })) }, "finish"),
+                observation.controls?.includes("submit") && React.createElement(Button, { small: true, tone: C.lavender, onClick: () => act((mgr) => mgr.dispatch(channel, { type: "submit" })) }, "submit"),
+                observation.controls?.includes("confirm") && React.createElement(Button, { small: true, tone: C.mint, onClick: () => act((mgr) => mgr.dispatch(channel, { type: "confirm" })) }, "confirm"),
+                observation.controls?.includes("back") && React.createElement(Button, { small: true, tone: C.paneAlt, onClick: () => act((mgr) => mgr.dispatch(channel, { type: "back" })) }, "back"),
+                observation.controls?.includes("cancel") && React.createElement(Button, { small: true, tone: C.rose, onClick: () => act((mgr) => mgr.dispatch(channel, { type: "cancel" })) }, "cancel"))));
+    };
+    return (React.createElement("div", null,
+        React.createElement(Section, { title: "Interaction ownership and composition", right: React.createElement(Button, { small: true, tone: C.paneAlt, onClick: reset }, "reset manager") },
+            React.createElement("p", { className: "body-copy" }, "The pointer channel is exclusive and uses a queue. The network channel can advance independently. This makes ownership, queuing, and cancellation explicit instead of relying on one ambient promise continuation."),
+            React.createElement("div", { className: "row controls-row" },
+                React.createElement(Button, { tone: C.blue, onClick: () => act((mgr) => mgr.start(composeRecipientsMachine, {}, { channel: "pointer" })) }, "start recipient selection"),
+                React.createElement(Button, { tone: C.sage, onClick: () => act((mgr) => mgr.start(scheduleContactMachine, { contactId: "c-sarah" }, { channel: "pointer" })) }, "queue scheduling"),
+                React.createElement(Button, { tone: C.lavender, onClick: () => act((mgr) => mgr.start(bookingApprovalMachine, { bookingId: "bk-3" }, { channel: "network", policy: "parallel" })) }, "start booking approval"))),
+        React.createElement("div", { className: "parallel-grid" },
+            React.createElement(Section, { title: "Pointer channel", right: React.createElement(Chip, { tone: pointer ? C.blue : C.line }, pointer?.sessionId ?? "unowned") }, renderManagedControls(pointer, "pointer")),
+            React.createElement(Section, { title: "Network channel", right: React.createElement(Chip, { tone: network ? C.lavender : C.line }, network?.sessionId ?? "unowned") },
+                renderManagedControls(network, "network"),
+                network && [...network.runtime.pendingRequests.keys()].map((requestId) => (React.createElement("div", { className: "row", key: requestId },
+                    React.createElement(Button, { small: true, tone: C.mint, onClick: () => act((mgr) => mgr.deliver(network.sessionId, requestId, { approved: true })) },
+                        "approve ",
+                        requestId),
+                    React.createElement(Button, { small: true, tone: C.red, onClick: () => act((mgr) => mgr.deliver(network.sessionId, requestId, { approved: false, reason: "denied" })) }, "reject")))))),
+        React.createElement(Section, { title: "Session table" },
+            React.createElement("table", { className: "data-table" },
+                React.createElement("thead", null,
+                    React.createElement("tr", null,
+                        React.createElement("th", null, "session"),
+                        React.createElement("th", null, "machine"),
+                        React.createElement("th", null, "channel"),
+                        React.createElement("th", null, "manager status"),
+                        React.createElement("th", null, "phase"),
+                        React.createElement("th", null, "resolution"))),
+                React.createElement("tbody", null, snapshot.sessions.map((session) => (React.createElement("tr", { key: session.sessionId },
+                    React.createElement("td", null, session.sessionId),
+                    React.createElement("td", null, session.machineId),
+                    React.createElement("td", null, session.channel),
+                    React.createElement("td", null, session.status),
+                    React.createElement("td", null, session.observation.phase),
+                    React.createElement("td", null, summarizeValue(session.resolution ?? "-", 80))))))),
+            !snapshot.sessions.length && React.createElement("div", { className: "empty" }, "Start one or more sessions.")),
+        React.createElement("div", { className: "page-grid" },
+            React.createElement(Section, { title: "Manager trace" },
+                React.createElement(JsonBlock, { value: snapshot.trace.slice(-30).reverse(), maxHeight: 430 })),
+            React.createElement(Section, { title: "Shared world" },
+                React.createElement(WorldSummary, { world: snapshot.world }),
+                React.createElement(JsonBlock, { value: { events: snapshot.world.events.slice(-4), drafts: snapshot.world.drafts, booking: snapshot.world.bookings[0] }, maxHeight: 430 })))));
+}
+const ACCEPT_EVENTS = [
+    { label: "valid <contact>", event: { type: "choose", sort: "contact", key: "c-ok", valid: true }, tone: C.mint },
+    { label: "wrong <project>", event: { type: "choose", sort: "project", key: "p-wrong", valid: true }, tone: C.red },
+    { label: "stale <contact>", event: { type: "choose", sort: "contact", key: "c-stale", valid: false }, tone: C.mustard },
+    { label: "cancel", event: { type: "cancel" }, tone: C.paneAlt },
+];
+function BisimulationLab() {
+    const context = useMemo(() => emptyModelContext(), []);
+    const good = useMemo(() => checkBisimulation(acceptOneFlatMachine, acceptOneFactoredMachine, { leftInput: { expectedSort: "contact" } }), []);
+    const bad = useMemo(() => checkBisimulation(acceptOneFlatMachine, acceptOneBrokenMachine, { leftInput: { expectedSort: "contact" } }), []);
+    const flatAudit = useMemo(() => auditFiniteMachine(acceptOneFlatMachine, { input: { expectedSort: "contact" } }), []);
+    const factoredAudit = useMemo(() => auditFiniteMachine(acceptOneFactoredMachine, { input: { expectedSort: "contact" } }), []);
+    const graph = useMemo(() => graphRows(flatAudit.graph), []);
+    const [pair, setPair] = useState(() => ({
+        left: acceptOneFlatMachine.initial({ expectedSort: "contact" }, context),
+        right: acceptOneFactoredMachine.initial({ expectedSort: "contact" }, context),
+        path: [],
+    }));
+    const send = (event) => {
+        const left = acceptOneFlatMachine.transition(pair.left, event, context).state;
+        const right = acceptOneFactoredMachine.transition(pair.right, event, context).state;
+        setPair({ left, right, path: [...pair.path, event] });
+    };
+    const reset = () => setPair({
+        left: acceptOneFlatMachine.initial({ expectedSort: "contact" }, context),
+        right: acceptOneFactoredMachine.initial({ expectedSort: "contact" }, context),
+        path: [],
+    });
+    const leftObservation = acceptOneFlatMachine.publicObservation(acceptOneFlatMachine.observe(pair.left, context));
+    const rightObservation = acceptOneFactoredMachine.publicObservation(acceptOneFactoredMachine.observe(pair.right, context));
+    const observationsEqual = JSON.stringify(leftObservation) === JSON.stringify(rightObservation);
+    return (React.createElement("div", null,
+        React.createElement("div", { className: "page-grid" },
+            React.createElement(Section, { title: "Complete finite bisimulation check" },
+                React.createElement("div", { className: "comparison-cards" },
+                    React.createElement(Card, { tone: good.pass ? C.green : C.red },
+                        React.createElement("div", { className: "big-status" }, good.pass ? "PASS" : "FAIL"),
+                        React.createElement("b", null, "flat \u2194 factored"),
+                        React.createElement("p", null, good.reason),
+                        React.createElement(Chip, { tone: C.blue },
+                            good.pairCount,
+                            " related state pairs")),
+                    React.createElement(Card, { tone: bad.pass ? C.green : C.red },
+                        React.createElement("div", { className: "big-status" }, bad.pass ? "PASS" : "FAIL"),
+                        React.createElement("b", null, "flat \u2194 deliberately broken"),
+                        React.createElement("p", null, bad.reason),
+                        React.createElement("div", { className: "muted" },
+                            "counterexample: ",
+                            bad.counterexample.map((event) => event.type === "choose" ? `${event.sort}/${event.valid ? "valid" : "stale"}` : event.type).join(" → ")))),
+                React.createElement("p", { className: "body-copy" }, "The two correct machines have different internal state representations. The checker compares only public observations and emitted effects, then recursively relates successors under every event in the finite alphabet.")),
+            React.createElement(Section, { title: "Step the related machines" },
+                React.createElement("div", { className: "row controls-row" },
+                    ACCEPT_EVENTS.map((item) => React.createElement(Button, { key: item.label, small: true, tone: item.tone, onClick: () => send(item.event) }, item.label)),
+                    React.createElement(Button, { small: true, tone: C.paneAlt, onClick: reset }, "reset")),
+                React.createElement("div", { className: "comparison-cards" },
+                    React.createElement(Card, { tone: C.blue },
+                        React.createElement("b", null, "flat state"),
+                        React.createElement(JsonBlock, { value: { state: pair.left, observation: leftObservation }, maxHeight: 220 })),
+                    React.createElement(Card, { tone: C.lavender },
+                        React.createElement("b", null, "factored state"),
+                        React.createElement(JsonBlock, { value: { state: pair.right, observation: rightObservation }, maxHeight: 220 }))),
+                React.createElement("div", { className: observationsEqual ? "pass-box" : "error-box" }, observationsEqual ? "Public observations agree." : "Public observations differ."),
+                React.createElement("div", { className: "muted" },
+                    "path: ",
+                    pair.path.length ? pair.path.map((event) => summarizeValue(event, 60)).join(" → ") : "ε"))),
+        React.createElement(Section, { title: "Finite-state audit and graph" },
+            React.createElement("div", { className: "metrics" },
+                React.createElement(Card, { tone: flatAudit.pass ? C.green : C.red },
+                    React.createElement("b", null, flatAudit.stateCount),
+                    React.createElement("span", null, "flat states")),
+                React.createElement(Card, { tone: C.blue },
+                    React.createElement("b", null, flatAudit.edgeCount),
+                    React.createElement("span", null, "flat edges")),
+                React.createElement(Card, { tone: factoredAudit.pass ? C.green : C.red },
+                    React.createElement("b", null, factoredAudit.stateCount),
+                    React.createElement("span", null, "factored states")),
+                React.createElement(Card, { tone: C.mustard },
+                    React.createElement("b", null, flatAudit.resolveTransitions),
+                    React.createElement("span", null, "resolve transitions"))),
+            React.createElement("div", { className: "graph-grid" },
+                React.createElement("div", null,
+                    React.createElement("h3", null, "States"),
+                    React.createElement("table", { className: "data-table" },
+                        React.createElement("tbody", null, graph.states.map((state) => React.createElement("tr", { key: state.id },
+                            React.createElement("td", null,
+                                React.createElement("b", null, state.id)),
+                            React.createElement("td", null,
+                                React.createElement("code", null, summarizeValue(state.state, 120))),
+                            React.createElement("td", null, state.observation.status)))))),
+                React.createElement("div", null,
+                    React.createElement("h3", null, "Transitions"),
+                    React.createElement("table", { className: "data-table" },
+                        React.createElement("tbody", null, graph.edges.map((edge, index) => React.createElement("tr", { key: index },
+                            React.createElement("td", null,
+                                edge.from,
+                                " \u2192 ",
+                                edge.to),
+                            React.createElement("td", null,
+                                React.createElement("code", null, summarizeValue(edge.event, 110))))))))))));
+}
+function ReplayLab() {
+    const hook = useRuntime(() => machineRuntime(scheduleContactMachine, { contactId: "c-jamie" }, "replay-ui"));
+    const [report, setReport] = useState(null);
+    const runtime = hook.runtime;
+    const install = (next) => {
+        hook.replace(next);
+        setReport(null);
+    };
+    const happy = () => {
+        const next = machineRuntime(scheduleContactMachine, { contactId: "c-jamie" }, "replay-ui");
+        next.dispatch({ type: "choose-occurrence", occurrence: next.observe().candidates[1] });
+        next.dispatch({ type: "confirm" });
+        install(next);
+    };
+    const stale = () => {
+        const next = machineRuntime(scheduleContactMachine, { contactId: "c-jamie" }, "replay-ui");
+        const token = next.observe().candidates[0];
+        next.mutateWorld({ type: "occupy-slot", slotId: token.subjectId, title: "Concurrent branch" });
+        next.dispatch({ type: "choose-occurrence", occurrence: token });
+        install(next);
+    };
+    const rewind = () => {
+        const count = Math.max(0, runtime.externalInputs.length - 1);
+        install(runtime.forkAt(count, { sessionId: "replay-ui" }));
+    };
+    return (React.createElement("div", { className: "page-grid" },
+        React.createElement("div", null,
+            React.createElement(Section, { title: "Deterministic replay and branching", right: React.createElement(Button, { small: true, tone: C.paneAlt, onClick: hook.reset }, "reset") },
+                React.createElement("div", { className: "row controls-row" },
+                    React.createElement(Button, { tone: C.mint, onClick: happy }, "run happy trace"),
+                    React.createElement(Button, { tone: C.mustard, onClick: stale }, "run stale trace"),
+                    React.createElement(Button, { tone: C.blue, onClick: () => setReport(runtime.deterministicReplayReport()) }, "replay and compare"),
+                    React.createElement(Button, { tone: C.paneAlt, disabled: !runtime.externalInputs.length, onClick: rewind }, "rewind one external input"),
+                    React.createElement(Button, { tone: C.rose, onClick: () => run(hook, (rt) => rt.dispatch({ type: "cancel" })) }, "branch with cancel")),
+                React.createElement(ObservationPanel, { runtime: runtime }),
+                report && React.createElement("div", { className: Object.values(report).slice(0, 4).every(Boolean) ? "pass-box" : "error-box" },
+                    React.createElement(JsonBlock, { value: report, maxHeight: 240 }))),
+            React.createElement(Section, { title: "External input log" },
+                React.createElement(JsonBlock, { value: runtime.externalInputs, maxHeight: 340 })),
+            React.createElement(Section, { title: "Portable session description" },
+                React.createElement(JsonBlock, { value: runtime.serialize(), maxHeight: 420 }))),
+        React.createElement("div", null,
+            React.createElement(Section, { title: "Complete runtime trace" },
+                React.createElement(RuntimeTrace, { runtime: runtime, limit: 90 })))));
+}
+const TABS = [
+    ["overview", "overview"],
+    ["schedule", "schedule"],
+    ["promotion", "promotion"],
+    ["async", "async approval"],
+    ["parallel", "parallel sessions"],
+    ["bisimulation", "bisimulation"],
+    ["replay", "trace + replay"],
+];
+function App() {
+    const [tab, setTab] = useState("overview");
+    return (React.createElement("div", { className: "app-shell" },
+        React.createElement("header", { className: "topbar" },
+            React.createElement("div", null,
+                React.createElement("div", { className: "eyebrow" }, "PBUI RESEARCH \u00B7 P09"),
+                React.createElement("h1", null, "Coalgebraic Interaction Machines")),
+            React.createElement("div", { className: "topbar-formula" }, "state \u2192 observation \u00D7 future behavior")),
+        React.createElement("nav", { className: "tabs", "aria-label": "P09 experiments" }, TABS.map(([id, label]) => (React.createElement("button", { key: id, type: "button", className: tab === id ? "tab tab-active" : "tab", onClick: () => setTab(id) }, label)))),
+        React.createElement("main", null,
+            tab === "overview" && React.createElement(Overview, null),
+            tab === "schedule" && React.createElement(ScheduleLab, null),
+            tab === "promotion" && React.createElement(PromotionLab, null),
+            tab === "async" && React.createElement(AsyncApprovalLab, null),
+            tab === "parallel" && React.createElement(ParallelLab, null),
+            tab === "bisimulation" && React.createElement(BisimulationLab, null),
+            tab === "replay" && React.createElement(ReplayLab, null)),
+        React.createElement("footer", null,
+            React.createElement("span", null, "P09 reference implementation"),
+            React.createElement("span", null, "pure transitions \u00B7 explicit observations \u00B7 interpreted effects \u00B7 trace semantics"))));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App, null));
+</script>
+</body>
+</html>
