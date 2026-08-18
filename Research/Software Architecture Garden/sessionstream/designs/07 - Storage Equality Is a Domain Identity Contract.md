@@ -13,6 +13,8 @@ repository_remote: https://github.com/go-go-golems/sessionstream
 source_pull_request: https://github.com/go-go-golems/sessionstream/pull/15
 source_commit: 05028e4c119d2dd74a5738541c531af38df28e36
 source_branch: task/ragkit-coinvault-mysql
+tracking_issue: https://github.com/go-go-golems/sessionstream/issues/18
+architecture_catalog: https://github.com/orgs/go-go-golems/projects/3
 published_note_url: https://parc.yolo.scapegoat.dev/note/research/software-architecture-garden/sessionstream/designs/07-storage-equality-is-a-domain-identity-contract
 repository_note_url: https://github.com/go-go-golems/go-go-parc/blob/main/Research/Software%20Architecture%20Garden/sessionstream/designs/07%20-%20Storage%20Equality%20Is%20a%20Domain%20Identity%20Contract.md
 tags:

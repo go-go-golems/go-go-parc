@@ -13,6 +13,8 @@ repository_remote: https://github.com/go-go-golems/sessionstream
 source_pull_request: https://github.com/go-go-golems/sessionstream/pull/15
 source_commit: 05028e4c119d2dd74a5738541c531af38df28e36
 source_branch: task/ragkit-coinvault-mysql
+tracking_issue: https://github.com/go-go-golems/sessionstream/issues/16
+architecture_catalog: https://github.com/orgs/go-go-golems/projects/3
 published_note_url: https://parc.yolo.scapegoat.dev/note/research/software-architecture-garden/sessionstream/designs/05-volatile-admission-is-not-durable-append
 repository_note_url: https://github.com/go-go-golems/go-go-parc/blob/main/Research/Software%20Architecture%20Garden/sessionstream/designs/05%20-%20Volatile%20Admission%20Is%20Not%20Durable%20Append.md
 tags:
