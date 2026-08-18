@@ -51,6 +51,10 @@ The reasoning behind every entry — what kind of evidence grounds it, and what 
 
 *See* [[#Schema registry]]. (The Garden-wide name for the bounded, deterministic registry that binds symbolic names to concrete schemas and rejects conflicts; sessionstream calls it `SchemaRegistry`.)
 
+### Admission and shutdown share one linearization boundary
+
+A lossless bounded writer serializes successful command admission with `Open → Closing/Failed` under one ownership gate: a racing operation is either admitted before close and owned by the drain, or rejected afterward—never sent after channel closure or stranded between lifecycle states. [Candidate ecosystem pattern / Open correctness obligation] [[Research/Software Architecture Garden/sessionstream/designs/06 - Admission and Shutdown Share One Linearization Boundary|design 06]]. *see also* [[#Bounded asynchronous observer dispatcher]], [[#Volatile admission is not durable append]].
+
 ### Append-only event log and replay
 
 Canonical backend events are durably appended per session and may be folded again to rebuild a view; regrouping a sequential fold may change evaluation strategy but not the result (`fold(S0,xy)=fold(fold(S0,x),y)`). [Established locally] [[Research/Software Architecture Garden/sessionstream/README#1. Session-indexed event words|§1]], [[Research/Software Architecture Garden/sessionstream/README#Maturity assessment|§Maturity]]. ↳ [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo#Pattern 7: Append-Only Events, Pure Reducers, and Observable Idempotence|RAG Pattern 7]]. *see also* [[#Timeline rebuild from event history]], [[#Deterministic replay]], [[#Stable retry identity]].
@@ -83,6 +87,10 @@ A command is a serializable typed intent; the command name alone grants no autho
 
 An open law: every returned entity should satisfy `lastEventOrdinal(x) ≤ snapshotOrdinal`, but the SQLite store currently reads the cursor and entity rows in separate operations rather than one read transaction. [Open correctness obligation] [[Research/Software Architecture Garden/sessionstream/README#Consistent-cut snapshots|§Consistent-cut snapshots]], [[Research/Software Architecture Garden/sessionstream/README#Maturity assessment|§Maturity]]. *see also* [[#Snapshot cut plus live suffix]], [[#Atomic projection progress]], [[#Temporal materialization]].
 
+### Collation is identity semantics
+
+*See* [[#Storage equality is a domain identity contract]]. (Reader-memory phrasing for the law that SQL collation, padding, normalization, and length implement domain identity rather than display policy.)
+
 ### Cross-project comparison
 
 The table mapping sessionstream's invariants to devctl, upwork-tracker, publish-vault, rag-ttc, rag-evaluation-system, go-go-datadrop, and zitadel-go-test, each with a shared invariant and an important difference. [[Research/Software Architecture Garden/sessionstream/README#Cross-project comparison|§Cross-project comparison]]. *see also* [[Research/Software Architecture Garden/sessionstream/README#Candidate ecosystem patterns|§Candidate ecosystem patterns]], [[Research/Software Architecture Garden/sessionstream/README#Correlation with the Pattern Zoos|§Correlation with the Pattern Zoos]].
@@ -92,6 +100,10 @@ The table mapping sessionstream's invariants to devctl, upwork-tracker, publish-
 ### Deterministic replay
 
 An open law: for a fixed initial view, session metadata, schema version, and event prefix, rebuild should produce the same timeline materialization; the burden is identifying every input hidden behind either side (clocks, randomness, networks, mutable globals). [Open correctness obligation] [[Research/Software Architecture Garden/sessionstream/README#Deterministic replay|§Deterministic replay]], [[Research/Software Architecture Garden/sessionstream/README#Maturity assessment|§Maturity]]. *see also* [[#Timeline rebuild from event history]], [[#Append-only event log and replay]], [[#Per-session serializability]].
+
+### Durable prefix before projection progress
+
+*See* [[#Volatile admission is not durable append]]. (The write-side law: a durable projection checkpoint may not outrun the contiguous durable event prefix that justifies it.)
 
 ### Drop accounting
 
@@ -229,9 +241,17 @@ The reconnect contract: a snapshot materializes one event prefix (the cut, decla
 
 An open law: for a subscription cut *n*, every delivered live batch must have ordinal greater than *n*, and every accepted live batch after registration must be represented in the snapshot, delivered exactly once in the suffix, or cause an explicit overflow/reconnect outcome. [Open correctness obligation] [[Research/Software Architecture Garden/sessionstream/README#Snapshot-plus-suffix completeness|§Snapshot-plus-suffix completeness]], [[Research/Software Architecture Garden/sessionstream/README#Maturity assessment|§Maturity]]. *see also* [[#Snapshot cut plus live suffix]], [[#Consistent SQLite snapshot cut]].
 
+### Snapshot ordinals require a transactional read cut
+
+A versioned snapshot is the pair `(declared ordinal, state at that ordinal)` and must read both through one database consistency cut; transport snapshot-before-live ordering cannot repair cursor and rows read from different commits. [Candidate ecosystem pattern / Open correctness obligation] [[Research/Software Architecture Garden/sessionstream/designs/08 - Snapshot Ordinals Require a Transactional Read Cut|design 08]]. *see also* [[#Consistent SQLite snapshot cut]], [[#Snapshot cut plus live suffix]], [[#Temporal materialization]].
+
 ### Stable retry identity
 
 An open law: duplicate delivery of one logical event should not create another accepted event (`accept(e);accept(e) ≡ accept(e)`); today the store enforces this only when the duplicate retains the same ordinal and payload, so bus messages need a stable event identity. [Open correctness obligation / Emergent] [[Research/Software Architecture Garden/sessionstream/README#Stable retry identity|§Stable retry identity]], [[Research/Software Architecture Garden/sessionstream/README#Maturity assessment|§Maturity]]. *see also* [[#Append-only event log and replay]], [[#Sequence coordinate]].
+
+### Storage equality is a domain identity contract
+
+A persistence adapter’s types, collation, padding, normalization, and indexes must preserve the domain’s identifier equivalence relation; opaque session/entity/projector keys should compare exactly unless every backend shares one explicit canonicalization law. [Candidate ecosystem pattern / Open correctness obligation] [[Research/Software Architecture Garden/sessionstream/designs/07 - Storage Equality Is a Domain Identity Contract|design 07]]. *see also* [[#Product decomposition and noninterference]], [[#Scope key]].
 
 ### Stateful event algebras
 
@@ -250,6 +270,10 @@ The coalgebraic view of streaming: a command starts an effectful machine whose o
 ### Temporal materialization
 
 The SQLite store keeps current entities and historical entity versions, so entity lookup is indexed by both semantic key and event cut: `entityAt:(Kind,ID,n)→Entity∪{missing}`; `CreatedOrdinal`, `LastEventOrdinal`, tombstones, and `Snapshot(asOf)` give the materialization temporal semantics. [Established locally] [[Research/Software Architecture Garden/sessionstream/README#5. Temporal materialization|§5]], [[Research/Software Architecture Garden/sessionstream/README#Maturity assessment|§Maturity]]. ↳ [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook#Pattern 11 — Authoritative State, Resolver, and Revision|PBUI Pattern 11]]. *see also* [[#Materialized entity]], [[#Snapshot cut plus live suffix]], [[#Consistent SQLite snapshot cut]].
+
+### Transactional read cut
+
+*See* [[#Snapshot ordinals require a transactional read cut]].
 
 ### Timeline rebuild from event history
 
@@ -279,6 +303,10 @@ The central separation: a UI projection decides what a connected client should o
 
 ## V
 
+### Volatile admission is not durable append
+
+Queue acceptance and durable persistence are different capabilities. A durable projection or snapshot checkpoint must not advance beyond the contiguous durable event prefix; use a distinct acceptance API, queue the complete unit of work, or commit event/materialization/checkpoint atomically. [Candidate ecosystem pattern / Open correctness obligation] [[Research/Software Architecture Garden/sessionstream/designs/05 - Volatile Admission Is Not Durable Append|design 05]]. *see also* [[#Atomic projection progress]], [[#Admission and shutdown share one linearization boundary]], [[#Projection checkpoint]].
+
 ### Verification research, constraining the Go binary
 
 The refinement boundary program: a proved deterministic kernel, a thin Go concurrency shell, versioned model events checked with a PGo/TraceLink-style constrained TLC validator, Gobra ownership verification, optional Goose/Perennial proofs, Gomela/SPIN protocol exploration, deterministic `testing/synctest` shell tests, and correlated `runtime/trace` diagnostics. [[Research/Software Architecture Garden/sessionstream/README#Verification research: constraining the Go executable|§Verification research: constraining the Go executable]]. ↳ [[Research/Software Architecture Garden/sessionstream/designs/research/02 - Constraining the Go Binary - Layered Refinement from Proved Kernels to Executables|research 02]]. *see also* [[#Verification research, proving the dispatcher]], [[#Effect-acknowledged state machines]].
@@ -304,7 +332,10 @@ The concepts above connect to the wider Garden through a small number of load-be
 - **Constraint-first decisions and partial preference** — [[#Schema registry]], [[#Schema-vet]]. ↳ [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo#Pattern 9: Constraint-First Decisions and Partial Preference|RAG Pattern 9]].
 - **Run custody retains configuration, inputs, observations, status, and results under one coordinate** — [[#Scope key]], [[#Temporal materialization]]. ↳ [[Research/Software Architecture Garden/rag-ttc/03 - Reproducible Experiment Custody and Semantic Identity|rag-ttc run custody]].
 - **Append-only evidence, pure reducers, observable idempotence** — [[#Append-only event log and replay]], [[#Timeline rebuild from event history]], [[#Stable retry identity]]. ↳ [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo#Pattern 7: Append-Only Events, Pure Reducers, and Observable Idempotence|RAG Pattern 7]].
-- **Snapshot cut plus live suffix** — [[#Snapshot cut plus live suffix]], [[#Snapshot-plus-suffix completeness]]. ↳ [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo#Pattern 11 — Immutable Release as Synchronization Root|RAG Pattern 11 (analogy, not equivalence)]].
+- **Snapshot cut plus live suffix** — [[#Snapshot cut plus live suffix]], [[#Snapshot-plus-suffix completeness]], [[#Snapshot ordinals require a transactional read cut]]. ↳ [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo#Pattern 11 — Immutable Release as Synchronization Root|RAG Pattern 11 (analogy, not equivalence)]].
+- **Durable source before derived progress** — [[#Volatile admission is not durable append]], [[#Atomic projection progress]].
+- **Linearizable bounded lifecycle** — [[#Admission and shutdown share one linearization boundary]], contrasted with the lossy [[#Bounded asynchronous observer dispatcher]].
+- **Identity equality is adapter behavior** — [[#Storage equality is a domain identity contract]], [[#Product decomposition and noninterference]].
 
 Patterns marked *Candidate ecosystem pattern* ([[#Canonical event, multiple projections]], [[#Command, not authority]], [[#Scope key]], [[#Snapshot cut plus live suffix]], [[#Typed intent, host-owned effect]], [[#Bounded asynchronous observer dispatcher]], [[#Typed transition systems and trace algebra]], [[#Effect-acknowledged state machines]], [[#Observer as diagnostic projection]], [[#Product decomposition and noninterference]]) have structural or single-implementation evidence and remain candidates until an independent implementation confirms them.
 
@@ -312,4 +343,8 @@ Patterns marked *Candidate ecosystem pattern* ([[#Canonical event, multiple proj
 
 - [[Research/Software Architecture Garden/sessionstream/README|sessionstream study]] — the evidence-pinned source this index catalogues.
 - [[Research/Software Architecture Garden/sessionstream/Index of Design Patterns - Rationale|Rationale]] — why each term was chosen and why it belongs.
+- [[Research/Software Architecture Garden/sessionstream/designs/05 - Volatile Admission Is Not Durable Append|Design 05]] — acceptance/durability and durable-prefix custody.
+- [[Research/Software Architecture Garden/sessionstream/designs/06 - Admission and Shutdown Share One Linearization Boundary|Design 06]] — bounded writer linearization and lifecycle.
+- [[Research/Software Architecture Garden/sessionstream/designs/07 - Storage Equality Is a Domain Identity Contract|Design 07]] — exact identity across adapters.
+- [[Research/Software Architecture Garden/sessionstream/designs/08 - Snapshot Ordinals Require a Transactional Read Cut|Design 08]] — coherent database snapshot cuts.
 - [[Research/Software Architecture Garden/README|Software Architecture Garden]] — the Garden root and its maturity vocabulary.

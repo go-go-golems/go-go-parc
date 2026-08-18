@@ -46,7 +46,11 @@ related_notes:
   - "[[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/04 - Observer as Diagnostic Projection and Refinement Boundary]]"
-  - "[[Research/Software Architecture Garden/sessionstream/designs/research/01 - Proving the Bounded Asynchronous Observer Dispatcher]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/05 - Volatile Admission Is Not Durable Append]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/06 - Admission and Shutdown Share One Linearization Boundary]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/07 - Storage Equality Is a Domain Identity Contract]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/08 - Snapshot Ordinals Require a Transactional Read Cut]]"
+  - "[[Research/Software Architecture Garden/sessionstream/designs/research/01 - Proving the Bounded Asynchronous Observer Dispatcher]]"},{
   - "[[Research/Software Architecture Garden/sessionstream/designs/research/02 - Constraining the Go Binary - Layered Refinement from Proved Kernels to Executables]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/research/03 - Continuous and Reproducible Refinement Evidence - Flight Recorders Multi-Dispatcher Harvests and Seeded Schedules]]"
 ---
@@ -66,7 +70,8 @@ This repository is a useful bridge between the [[Transcripts/Research/09 - RAG-M
 > - Bus, Pipeline, Transport, Error, heartbeat, and Systemlab traces share a typed transition-and-trace foundation without sharing one reliability policy; see [[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra|Typed Transition Systems and Trace Algebra]].
 > - Heartbeat and chat startup share an effect-acknowledged state-machine model, but only heartbeat currently has a pure reducer and serialized supervisor; see [[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement|Effect-Acknowledged State Machines and Runtime Refinement]].
 > - The observer is a diagnostic trace projection with a deliberately weaker bounded/lossy delivery contract; its model/interval evidence and refinement obligations are documented in [[Research/Software Architecture Garden/sessionstream/designs/04 - Observer as Diagnostic Projection and Refinement Boundary|Observer as Diagnostic Projection and Refinement Boundary]].
-> - The implementation is strongest at contract separation and reconnect fencing. Per-session serialization, stable redelivery identity, consistent SQLite cuts, and atomic projection progress remain important laws to harden.
+> - PR #15’s persistence review adds four candidate laws: [[Research/Software Architecture Garden/sessionstream/designs/05 - Volatile Admission Is Not Durable Append|volatile admission is not durable append]], [[Research/Software Architecture Garden/sessionstream/designs/06 - Admission and Shutdown Share One Linearization Boundary|admission and shutdown share one linearization boundary]], [[Research/Software Architecture Garden/sessionstream/designs/07 - Storage Equality Is a Domain Identity Contract|storage equality is a domain identity contract]], and [[Research/Software Architecture Garden/sessionstream/designs/08 - Snapshot Ordinals Require a Transactional Read Cut|snapshot ordinals require one transactional read cut]].
+> - The implementation is strongest at contract separation and reconnect fencing. Per-session serialization, stable redelivery identity, exact cross-backend identity, consistent database cuts, atomic projection progress, and async lifecycle soundness remain important laws to harden.
 > - The next production-refinement research project combines bounded flight recording, multi-dispatcher partition validation, and versioned seeded workload plans; see [[Research/Software Architecture Garden/sessionstream/designs/research/03 - Continuous and Reproducible Refinement Evidence - Flight Recorders Multi-Dispatcher Harvests and Seeded Schedules|Continuous and Reproducible Refinement Evidence]].
 
 ## Snapshot identity and evidence
@@ -264,8 +269,11 @@ The RAG entity–derivation–observation pattern is deliberately not claimed. S
 | Session product decomposition | Candidate ecosystem pattern | Routing and persistence are session-indexed; cross-session noninterference deserves explicit tests. |
 | Stable redelivery identity | Emergent | Idempotence is tied to `(SessionId, Ordinal)`; duplicate bus delivery can receive a new ordinal without a stable event ID. |
 | Per-session serial application | Open correctness obligation | Ordinal allocation is serialized, but local projection/application occurs after the ordinal lock is released. |
-| Atomic event/project/checkpoint commit | Open correctness obligation | Event append, entity apply, projection-cursor advance, and fanout are separate boundaries. Replay repairs some failures but the contract is not one transaction. |
-| Consistent SQLite snapshot cut | Open correctness obligation | Snapshot reads the cursor and entities in separate operations rather than one read transaction. |
+| Atomic event/project/checkpoint commit | Open correctness obligation | Event append, entity apply, projection-cursor advance, and fanout are separate boundaries. Replay repairs some failures but the contract is not one transaction. Design 05 states the durable-prefix law. |
+| Volatile admission separated from durable append | Candidate ecosystem pattern / open correctness obligation | PR #15 demonstrates that queue acceptance behind `EventStore.AppendEvent` weakens the source-before-projection invariant. See design 05. |
+| Gate-serialized bounded-writer lifecycle | Candidate ecosystem pattern / open correctness obligation | The proposed protocol has a clean linearization law; PR #15 and its WIP provide FIFO, close-race, and lost-wake counterexamples. See design 06. |
+| Storage equality preserves domain identity | Candidate ecosystem pattern / open correctness obligation | MySQL Unicode CI collation aliases exact session/entity/projector keys; migration and shared identity tests remain open. See design 07. |
+| Consistent transactional snapshot cut | Candidate ecosystem pattern / open correctness obligation | SQLite and MySQL read cursor and entities separately; a transactionally coherent `(ordinal, rows)` pair remains to implement. See design 08. |
 | Production authorization boundary | Intentionally external | WebSocket documentation requires authentication, authorization, origin policy, and rate limiting wrappers. |
 
 ## Laws that should guide hardening
@@ -366,6 +374,22 @@ The design defines commit-before-concurrency, action completion events, lifecycl
 
 [[Research/Software Architecture Garden/sessionstream/designs/04 - Observer as Diagnostic Projection and Refinement Boundary|Observer as Diagnostic Projection and Refinement Boundary]] documents the current WebSocket observer as a diagnostic projection rather than an authority path. It generalizes the bounded asynchronous dispatcher, records its ownership, FIFO, drop, panic, close, drain, and wait laws, and explains the model/interval trace design through labeled transition systems, free-monoid histories, linearizability, happens-before, partial orders, safety/liveness, and concrete-to-abstract refinement.
 
+### Volatile admission is not durable append
+
+[[Research/Software Architecture Garden/sessionstream/designs/05 - Volatile Admission Is Not Durable Append|Volatile Admission Is Not Durable Append]] extracts the PR #15 cross-store law: a durable projection checkpoint must not outrun the contiguous durable event prefix that justifies it. It separates queue acceptance from database durability and compares synchronous append, explicit buffered sinks, whole-pipeline queuing, and atomic projected-event commits.
+
+### Admission and shutdown share one linearization boundary
+
+[[Research/Software Architecture Garden/sessionstream/designs/06 - Admission and Shutdown Share One Linearization Boundary|Admission and Shutdown Share One Linearization Boundary]] specifies a lossless bounded writer as a linearizable concurrent object. One context-aware admission gate serializes successful command admission with close/failure transitions; one private command FIFO supplies backpressure and barriers; one worker establishes a committed-prefix law. The note distinguishes this correctness-critical protocol from design 01’s deliberately lossy diagnostic dispatcher.
+
+### Storage equality is a domain identity contract
+
+[[Research/Software Architecture Garden/sessionstream/designs/07 - Storage Equality Is a Domain Identity Contract|Storage Equality Is a Domain Identity Contract]] treats SQL collation, binary representation, normalization, padding, and length as implementations of the domain’s identity equivalence relation. It uses PR #15’s `utf8mb4_unicode_ci` aliasing of exact session/entity/projector keys and the corresponding Pinocchio finding as evidence for cross-backend identity contract tests and collision-audited migrations.
+
+### Snapshot ordinals require a transactional read cut
+
+[[Research/Software Architecture Garden/sessionstream/designs/08 - Snapshot Ordinals Require a Transactional Read Cut|Snapshot Ordinals Require a Transactional Read Cut]] develops the existing consistent-cut obligation into a concrete database pattern: `(SnapshotOrdinal, Entities)` is one object and must come from one read transaction or version-bounded reconstruction. It keeps the storage cut distinct from the already-tested WebSocket snapshot-before-live transport fence.
+
 ### Verification research: proving the dispatcher
 
 [[Research/Software Architecture Garden/sessionstream/designs/research/01 - Proving the Bounded Asynchronous Observer Dispatcher|Proving the Bounded Asynchronous Observer Dispatcher]] attacks the observer-dispatcher contract with four formal lenses and one executable scaffold: a TLA+ concurrent model (exhaustive check plus a send-after-close counterexample for the racy variant), an Alloy temporal model (which additionally surfaces a post-exit drain violation), mechanized invariant proofs of the transition kernel in both Coq and Lean 4 (arbitrary capacity and run length, axiom-audited), and a Go verification scaffold replaying execution traces through an oracle transliterated from the proved kernel, with deterministic and turnstile tests, a 3.3M-execution fuzz campaign, and five contract-targeted mutations that are all caught. Artifacts live in `designs/research/specs/`.
@@ -384,12 +408,16 @@ The comparison suggests six vocabulary entries worth developing across projects:
 4. **Snapshot Cut plus Live Suffix** — reconnect begins from a coherent prefix and continues with only newer observations.
 5. **Durable Evidence plus Rebuildable Projection** — canonical history survives while read models may be discarded and regenerated.
 6. **Small Schema Admission Kernel** — open producers submit typed values through a deterministic registry and bounded validator.
+7. **Durable Prefix Before Projection Progress** — derived checkpoints never outrun the contiguous durable source history that justifies them.
+8. **Gate-Serialized Admission and Shutdown** — accepted bounded work and lifecycle transition share one linearization boundary.
+9. **Storage Equality as Identity Contract** — every persistence adapter preserves the domain’s equivalence relation and declared length constraints.
+10. **Transactional Snapshot Cut** — a declared revision and represented rows come from one coherent database snapshot.
 
 These names should remain candidates until compared with consumers and additional repositories. The goal is not to make all systems event-sourced. It is to let RAG experiments, semantic UIs, local operators, assistants, and workflow tools share precise laws where they genuinely solve the same problem.
 
 ## Recommended next investigations
 
-1. Add a focused concurrency study for per-session publication, SQLite consistent cuts, and projection/checkpoint atomicity.
+1. Implement and validate designs 05–08: durable source/projection custody, gate-serialized writer lifecycle, exact storage identity, and transactional snapshot cuts.
 2. Compare the Goja module and generated TypeScript declarations against the typed-intent and snapshot-suffix vocabulary above.
 3. Audit Pinocchio and CoinVault as independent consumers: which framework laws do they rely on, bypass, or duplicate?
 4. Compare sessionstream journals directly with devctl run journals and Upwork proposal evidence without flattening raw logs, canonical events, and business evidence into one object.
@@ -413,3 +441,7 @@ These names should remain candidates until compared with consumers and additiona
 - [[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra|Typed Transition Systems and Trace Algebra design]]
 - [[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement|Effect-Acknowledged State Machines and Runtime Refinement design]]
 - [[Research/Software Architecture Garden/sessionstream/designs/04 - Observer as Diagnostic Projection and Refinement Boundary|Observer as Diagnostic Projection and Refinement Boundary design]]
+- [[Research/Software Architecture Garden/sessionstream/designs/05 - Volatile Admission Is Not Durable Append|Volatile Admission Is Not Durable Append]]
+- [[Research/Software Architecture Garden/sessionstream/designs/06 - Admission and Shutdown Share One Linearization Boundary|Admission and Shutdown Share One Linearization Boundary]]
+- [[Research/Software Architecture Garden/sessionstream/designs/07 - Storage Equality Is a Domain Identity Contract|Storage Equality Is a Domain Identity Contract]]
+- [[Research/Software Architecture Garden/sessionstream/designs/08 - Snapshot Ordinals Require a Transactional Read Cut|Snapshot Ordinals Require a Transactional Read Cut]]

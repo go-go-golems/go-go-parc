@@ -387,6 +387,38 @@ Entries are alphabetical to match the index, so a reader can move between the tw
 
 **Belongs because** it connects the substrate to a Garden-wide relation without flattening them; the entry notes it is an *analogue*, preserving the local distinction.
 
+## PR #15 persistence-pattern addendum (2026-08-18)
+
+The MySQL hydration and AsyncEventStore review added four focused designs after this rationale’s original pinned study. They do not replace the earlier open obligations; they turn four obligations into teachable candidate patterns with concrete counterexamples and proposed enforcement shapes.
+
+### Admission and shutdown share one linearization boundary — Pattern (candidate/open)
+> Index entry: [[Index of Design Patterns#Admission and shutdown share one linearization boundary]].
+
+**Chosen because** PR #15 supplied both safety counterexamples (FIFO bypass and send-after-close) and an unpublished liveness counterexample (the rotating `notFull` lost wake). The reusable idea is broader than that file: lossless bounded admission and lifecycle transition must be one concurrent object.
+
+**Belongs because** the existing bounded observer dispatcher has a superficially similar channel shape but a deliberately lossy contract. The new entry prevents reuse-by-shape: diagnostic `TrySubmit` and durable backpressure are not the same pattern.
+
+### Volatile admission is not durable append — Pattern (candidate/open)
+> Index entry: [[Index of Design Patterns#Volatile admission is not durable append]].
+
+**Chosen because** the async decorator returns at in-memory admission while `Hub.projectAndApply` proceeds to durable materialization and checkpoint writes. This exposes the difference between accepted, durable, materialized, and checkpointed histories.
+
+**Belongs because** atomic projection progress was already indexed as an obligation, but the acceptance/durability distinction supplies the missing API and custody vocabulary. The `Durable prefix before projection progress` redirect files the law under the phrase a reader is likely to remember.
+
+### Storage equality is a domain identity contract — Pattern (candidate/open)
+> Index entry: [[Index of Design Patterns#Storage equality is a domain identity contract]].
+
+**Chosen because** `utf8mb4_unicode_ci` makes exact Go/SQLite session, entity, kind, event, and projector keys case/accent-insensitive in MySQL. The same failure appeared in Pinocchio’s turn-store adapter, providing a second concrete occurrence in the same migration stack.
+
+**Belongs because** product decomposition and noninterference depend on storage preserving the scope-key equivalence relation. A session scope is not isolated when the primary key silently aliases another spelling. The `Collation is identity semantics` redirect prevents readers from filing this as mere database tuning.
+
+### Snapshot ordinals require a transactional read cut — Pattern (candidate/open)
+> Index entry: [[Index of Design Patterns#Snapshot ordinals require a transactional read cut]].
+
+**Chosen because** the earlier study named a consistent SQLite cut as open; PR #15 copied the cursor-then-rows shape into a multi-connection MySQL pool, making the concrete interleaving easier to exhibit. The note separates database-cut coherence from the independently established WebSocket snapshot-before-live fence.
+
+**Belongs because** the pair `(SnapshotOrdinal, Entities)` is one versioned value. Without the entry, readers can find the transport fence and mistakenly infer that it repairs database rows from a later commit. The `Transactional read cut` redirect provides the conventional database term.
+
 ## Reader-situation usability test
 
 The test the index guide recommends: invent realistic reader situations and trace each to the entry that serves it. The situations that needed a `See` redirect are exactly the ones where a reader remembers the *idea* but not the study's spelling — which is the case the redirects exist to serve.
