@@ -38,7 +38,6 @@ related_notes:
   - "[[Research/Software Architecture Garden/sessionstream/designs/02 - Typed Transition Systems and Trace Algebra|Typed Transition Systems and Trace Algebra]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/03 - Effect-Acknowledged State Machines and Runtime Refinement|Effect-Acknowledged State Machines and Runtime Refinement]]"
 ---
-
 # Observer as Diagnostic Projection and Refinement Boundary
 
 Sessionstream's WebSocket observer is not a second event store and it is not a generic replacement for the canonical session event path. It is a diagnostic projection of transport execution, delivered through a deliberately weaker asynchronous contract. Producers prepare an immutable `TransportRecord`, attempt bounded admission, and continue without waiting for user callback code. A single worker offers accepted records in FIFO admission order, recovers from observer panics, drains accepted work during graceful shutdown, and exposes an explicit completion boundary.

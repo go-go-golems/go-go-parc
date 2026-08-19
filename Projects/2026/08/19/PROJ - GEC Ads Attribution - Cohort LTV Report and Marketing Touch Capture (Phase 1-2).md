@@ -23,6 +23,7 @@ commits:
   - 63bffa48f test runner + schema fixes
   - e1e762127 phase 1 cohort LTV report
   - 28bc1ef2a phase 2 touch capture + attribution snapshot
+publish: false
 ---
 
 # Google Ads → Order Attribution for goldeneaglecoin.com: Phase 1–2 Implementation Deep Dive
