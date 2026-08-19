@@ -30,6 +30,7 @@ related_files:
   - /home/manuel/workspaces/2026-08-13/ragkit-coinvault-mysql/flowkit/execution/mysql_cache_test.go
 related_notes:
   - "[[Research/Software Architecture Garden/flowkit/README|Architecture Garden — flowkit]]"
+  - "[[Research/2026/08/19/ARTICLE - Flowkit MySQL Cache Testing with Testcontainers]]"
 ---
 
 # Initialization Markers Make Implicit DDL Commits Recoverable
@@ -229,6 +230,10 @@ Do not use it as a replacement for an operational migration system when changes 
 - Should schema verification include engine, charset, indexes, and check constraints?
 - How should a future v1→v2 data migration represent resumable progress?
 - When should library initialization yield to an external migration controller?
+
+## Detailed implementation report
+
+The package-level Testcontainers execution that exposed the registry race, the interrupted-DDL fixture, and the hosted validation sequence are documented in [[Research/2026/08/19/ARTICLE - Flowkit MySQL Cache Testing with Testcontainers|Flowkit MySQL Cache Testing with Testcontainers]].
 
 ## Evidence and references
 

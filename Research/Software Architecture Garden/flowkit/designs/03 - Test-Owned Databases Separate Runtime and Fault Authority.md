@@ -32,6 +32,7 @@ related_files:
   - /home/manuel/workspaces/2026-08-13/ragkit-coinvault-mysql/flowkit/.github/workflows/mysql-integration.yml
 related_notes:
   - "[[Research/Software Architecture Garden/flowkit/README|Architecture Garden — flowkit]]"
+  - "[[Research/2026/08/19/ARTICLE - Flowkit MySQL Cache Testing with Testcontainers]]"
 ---
 
 # Test-Owned Databases Separate Runtime and Fault Authority
@@ -221,6 +222,10 @@ Do not use disposable infrastructure to avoid writing unit tests. Pure key, enve
 - Should app grants exclude `DROP` once migrations are moved out of runtime startup?
 - Can the same split-authority interface cover PostgreSQL, Redis, and object-store tests?
 - How should CI distinguish Docker infrastructure failure from adapter failure?
+
+## Detailed implementation report
+
+The complete Flowkit-specific lifecycle, provisioning code, package `TestMain`, real-engine discoveries, CI policy, security updates, and review procedure are documented in [[Research/2026/08/19/ARTICLE - Flowkit MySQL Cache Testing with Testcontainers|Flowkit MySQL Cache Testing with Testcontainers]].
 
 ## Evidence and references
 

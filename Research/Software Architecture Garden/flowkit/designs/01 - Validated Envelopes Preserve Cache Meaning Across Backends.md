@@ -32,6 +32,7 @@ related_files:
 related_notes:
   - "[[Research/Software Architecture Garden/flowkit/README|Architecture Garden — flowkit]]"
   - "[[Research/Software Architecture Garden/sessionstream/designs/07 - Storage Equality Is a Domain Identity Contract]]"
+  - "[[Research/2026/08/19/ARTICLE - Flowkit MySQL Cache Testing with Testcontainers]]"
 ---
 
 # Validated Envelopes Preserve Cache Meaning Across Backends
@@ -178,6 +179,10 @@ A disposable best-effort memoization map may not need a self-validating envelope
 - Should overwriting one key with a different value be rejected as nondeterminism rather than accepted as refresh?
 - Should schema evolution migrate envelopes, invalidate them, or namespace new tables?
 - Which metrics distinguish miss, corrupt entry, schema mismatch, and decode failure?
+
+## Detailed implementation report
+
+The Testcontainers lifecycle, cross-backend compatibility test, real-engine failure evidence, and complete validation procedure are developed in [[Research/2026/08/19/ARTICLE - Flowkit MySQL Cache Testing with Testcontainers|Flowkit MySQL Cache Testing with Testcontainers]].
 
 ## Evidence and references
 

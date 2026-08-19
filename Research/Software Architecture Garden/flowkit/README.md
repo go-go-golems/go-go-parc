@@ -26,6 +26,7 @@ related_notes:
   - "[[Research/Software Architecture Garden/flowkit/designs/01 - Validated Envelopes Preserve Cache Meaning Across Backends]]"
   - "[[Research/Software Architecture Garden/flowkit/designs/02 - Initialization Markers Make Implicit DDL Commits Recoverable]]"
   - "[[Research/Software Architecture Garden/flowkit/designs/03 - Test-Owned Databases Separate Runtime and Fault Authority]]"
+  - "[[Research/2026/08/19/ARTICLE - Flowkit MySQL Cache Testing with Testcontainers]]"
 ---
 
 # Architecture Garden — flowkit
@@ -95,6 +96,10 @@ Isolation law:
 | Recoverable versioned DDL initialization | Validated locally | interruption-marker retry test, structural v1 verification, advisory-lock serialization |
 | Test-owned split-authority database | Validated locally | Testcontainers MySQL 8.4.8, random database/port, restricted grants, hosted `-count=2` |
 | Batched cache lookup | Open design question | Current `Cache` interface performs one `Load` per key |
+
+## Deep-dive project report
+
+[[Research/2026/08/19/ARTICLE - Flowkit MySQL Cache Testing with Testcontainers|Flowkit MySQL Cache Testing with Testcontainers]] develops the complete implementation path: container lifecycle, readiness, dynamic DSNs, split credentials, package-scoped amortization, real-engine failures, schema recovery, hosted CI, dependency security, and review procedure.
 
 ## Evidence
 
