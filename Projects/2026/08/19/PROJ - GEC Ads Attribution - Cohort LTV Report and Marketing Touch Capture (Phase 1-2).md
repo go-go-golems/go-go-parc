@@ -49,16 +49,16 @@ flowchart LR
     C[(cookie gec_mkt)]
   end
   subgraph PHP["src/ (REST API + models)"]
-    V[VisitRest POST /visit/touch]
+    V["VisitRest POST /visit/touch"]
     VT[(visitor_touches)]
     L[Member::_login]
     CO[CheckoutRest::createOrderFromCart]
     OA[(order_attributions)]
     CR[CampaignReporting::cohortQuery]
-    AR[AdminReportingRest /campaigns/cohorts]
+    AR["AdminReportingRest /campaigns/cohorts"]
   end
   subgraph Admin["sites/gec/adminapp"]
-    P[/reports/cohorts page]
+    P["/reports/cohorts page"]
     O[ManageOrders Channel column]
   end
   H -->|click id / UTM / referrer| V --> VT
