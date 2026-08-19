@@ -16,6 +16,8 @@ repository_branch: main
 repository_commit_date: 2026-07-28T15:57:06+02:00
 repository_worktree: clean
 source_ticket: /home/manuel/code/wesen/claw-stuff/ttmp/2026/08/18/LOCKI-PROXMOX-CRIB-2026-08-18--setup-locki-on-proxmox-crib-node--set-up-locki-ai-sandboxing-on-the-proxmox-crib-node-nested-first-pve-native-port-later
+published_note_url: https://parc.yolo.scapegoat.dev/note/research/software-architecture-garden/locki/readme
+repository_note_url: https://github.com/go-go-golems/go-go-parc/blob/main/Research/Software%20Architecture%20Garden/locki/README.md
 python_package: locki
 python_version: ">=3.11,<3.15"
 tags:
