@@ -13,6 +13,8 @@ repository_remote: https://github.com/go-go-golems/flowkit
 source_pull_request: https://github.com/go-go-golems/flowkit/pull/4
 source_commit: ce40a382cc555cc73487512ee0f8cc21fecc54d4
 source_branch: task/ragkit-coinvault-mysql
+tracking_issue: https://github.com/go-go-golems/flowkit/issues/6
+architecture_catalog: https://github.com/orgs/go-go-golems/projects/3
 published_note_url: https://parc.yolo.scapegoat.dev/note/research/software-architecture-garden/flowkit/designs/02-initialization-markers-make-implicit-ddl-commits-recoverable
 repository_note_url: https://github.com/go-go-golems/go-go-parc/blob/main/Research/Software%20Architecture%20Garden/flowkit/designs/02%20-%20Initialization%20Markers%20Make%20Implicit%20DDL%20Commits%20Recoverable.md
 tags:

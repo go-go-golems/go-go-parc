@@ -13,6 +13,8 @@ repository_remote: https://github.com/go-go-golems/flowkit
 source_pull_request: https://github.com/go-go-golems/flowkit/pull/4
 source_commit: ce40a382cc555cc73487512ee0f8cc21fecc54d4
 source_branch: task/ragkit-coinvault-mysql
+tracking_issue: https://github.com/go-go-golems/flowkit/issues/5
+architecture_catalog: https://github.com/orgs/go-go-golems/projects/3
 published_note_url: https://parc.yolo.scapegoat.dev/note/research/software-architecture-garden/flowkit/designs/01-validated-envelopes-preserve-cache-meaning-across-backends
 repository_note_url: https://github.com/go-go-golems/go-go-parc/blob/main/Research/Software%20Architecture%20Garden/flowkit/designs/01%20-%20Validated%20Envelopes%20Preserve%20Cache%20Meaning%20Across%20Backends.md
 tags:
