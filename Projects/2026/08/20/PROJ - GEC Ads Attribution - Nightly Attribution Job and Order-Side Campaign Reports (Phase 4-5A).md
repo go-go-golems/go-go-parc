@@ -1,7 +1,8 @@
 ---
-title: GEC Ads Attribution - Nightly Attribution Job and Versioned Restatement (Phase 4)
+title: GEC Ads Attribution - Nightly Attribution Job and Order-Side Campaign Reports (Phase 4-5A)
 aliases:
   - GEC Ads Attribution Phase 4
+  - GEC Ads Attribution Phase 5A
   - GEC Nightly Attribution Job
   - runAttribution.php
 tags:
@@ -20,15 +21,16 @@ repo: /home/manuel/workspaces/2026-08-19/add-ad-tracking-gec/goldeneaglecoin.com
 ticket: GEC-ADS-ATTRIBUTION-001
 ---
 
-# GEC Ads Attribution - Nightly Attribution Job and Versioned Restatement (Phase 4)
+# GEC Ads Attribution - Nightly Attribution Job and Order-Side Campaign Reports (Phases 4-5A)
 
-Phase 4 of GEC-ADS-ATTRIBUTION-001 adds the official attribution model to goldeneaglecoin.com: a nightly job that recomputes every order's marketing attribution under a versioned rule set, preserves superseded results in a history table, and corrects facts that were unknowable at checkout time. This report explains why a second attribution pass exists at all, how the versioning scheme keeps reported numbers reproducible, and where the implementation deviates deliberately from the design document. It builds directly on the phase 1–2 report, which covered the cohort LTV report and the touch-capture pipeline; the data model introduced there (`visitor_touches`, `order_attributions`, `attribution_runs`) is assumed known.
+Phase 4 of GEC-ADS-ATTRIBUTION-001 adds the official attribution model to goldeneaglecoin.com: a nightly job that recomputes every order's marketing attribution under a versioned rule set, preserves superseded results in a history table, and corrects facts that were unknowable at checkout time. This report explains why a second attribution pass exists at all, how the versioning scheme keeps reported numbers reproducible, and where the implementation deviates deliberately from the design document. It builds directly on the phase 1–2 report, which covered the cohort LTV report and the touch-capture pipeline; the data model introduced there (`visitor_touches`, `order_attributions`, `attribution_runs`) is assumed known. A same-day continuation, phase 5A, added the campaign reports that need no Google spend data; it is covered in the second part of this note.
 
 > [!summary]
 > - A synchronous checkout snapshot (`v0-checkout`) and a nightly recomputation (`v1`) coexist by design: the snapshot guarantees a row exists, the job guarantees the row is right.
 > - The job is idempotent through semantic change detection: an order whose recomputed attribution equals the stored row is not touched, so history rows are always genuine supersessions.
 > - Cancellations restate `is_first_order` on *sibling* orders that can lie far outside any date window — the scope query has a dedicated branch for this.
 > - One channel classifier serves both the v0 snapshot and the v1 job; `VisitorTouch::channelFor` delegates to it, making divergence structurally impossible.
+> - Phase 5A ships the order-side half of the campaign reports (new-vs-existing per channel, attribution coverage, run log) on its own branch - split from 5B exactly at the boundary between order-side and spend-side factors.
 
 ## Why this phase exists
 
@@ -222,25 +224,112 @@ Three deliberate deltas, each with a reason:
 2. **Richer touch candidates than the pseudocode.** Covered above; the pseudocode's `order_informations.session_id`-only scope would drop cookie-reconstructed guest attributions.
 3. **Campaign-id preservation.** When the rules resolve no campaign id but the stored row has one, the job keeps the stored value. This is a forward seam: the phase 3 importer will enrich rows with campaign ids from click lookups, and the nightly job must not erase that enrichment. The cost is that a stale campaign id can survive a re-run if touch data changes; the trade was taken knowingly and is flagged in the diary for review.
 
+## Phase 5A: order-side campaign reports
+
+Phase 5 of GEC-ADS-ATTRIBUTION-001 delivers the campaign reports the project exists for: cost per acquired customer and return on ad spend, per campaign, per period. Half of those reports require Google spend data that the blocked phase 3 importer will provide. The other half requires only data the pipeline already produces. This report covers that second half — implemented as "phase 5A" on its own branch (`task/campaign-reports-5a`) — and the reasoning behind splitting the phase at exactly this line.
+
+### Why the phase was split
+
+Every metric in the phase 5 design decomposes into two factor sets: order-side facts (which orders were attributed to which channel, whether each was a customer's first, what revenue and profit each carried) and spend-side facts (what each campaign cost, what Google claims it converted). CAC and ROAS need both. But the order-side factors alone already answer questions the business is asking now: which channels bring *new* customers rather than returning ones, whether the capture pipeline deployed in phase 2 is actually covering orders, and whether the nightly job is running. None of that should wait for a credential-approval process at Google whose latency is measured in weeks.
+
+The split line is therefore not arbitrary — it is exactly the boundary between the two factor sets. Everything left of the boundary shipped as 5A; everything touching `google_ads_campaign_daily` waits as 5B.
+
+### The new-vs-existing report
+
+`CampaignReporting::newVsExistingQuery()` produces one row per marketing group of the orders placed in a date range. The grouping dimension is selectable: `channel` (default), `campaign` (`utm_campaign`), or `source` (`utm_source`). The core of the query is a LEFT JOIN from orders to their attributions:
+
+```sql
+SELECT
+  COALESCE(NULLIF(oa.channel, ''), '(none)') _group,
+  COUNT(o.id) orders,
+  COALESCE(SUM(oa.is_first_order = 1), 0) new_orders,
+  COALESCE(SUM(oa.is_first_order = 0), 0) existing_orders,
+  ...
+FROM orders o
+LEFT JOIN order_attributions oa ON oa.order_id = o.id
+WHERE <status / type / placed_at range>
+GROUP BY _group
+```
+
+The LEFT JOIN is the important decision. An INNER JOIN would silently drop every order without an attribution row — all orders placed before the capture pipeline deployed, plus any order entering through a path the pipeline does not cover. A report that under-counts orders without saying so is worse than no report. With the LEFT JOIN, such orders surface as an explicit `(none)` group.
+
+The `(none)` group has deliberately asymmetric semantics: its orders count in `orders` but in neither `new_orders` nor `existing_orders`, because without an attribution row the first-order status is unknown, and assigning unknowns to either side would bias the new-customer share. MySQL's aggregate semantics express this without special-casing: `SUM(oa.is_first_order = 1)` evaluates to NULL for rows where the join found nothing, and `SUM` ignores NULLs. A `COALESCE(..., 0)` wrapper converts the all-NULL group's total from NULL to 0. One expression, three-way semantics: true counts, false does not, absent does not.
+
+The remaining columns split revenue and profit by the same flag (`new_revenue`, `existing_revenue`, `new_profit`, `existing_profit`), count verified orders (hard campaign evidence on the credited touch), and derive `new_order_share` and AOV. When 5B lands, CAC per group is spend divided by `new_orders` — the denominator is already in place.
+
+### The coverage report
+
+`CampaignReporting::coverageQuery()` answers a different question: is the attribution pipeline healthy? It buckets orders by placed-at period (reusing the cohort report's `cohortBucketSql`, so month/quarter/year/ISO-week semantics stay identical across reports) and counts four disjoint-or-overlapping categories per bucket: orders with any attribution row (`attributed_orders`), orders with hard campaign evidence (`verified_orders`), orders attributed to `direct`, and orders with no row at all (`unattributed_orders`), plus the derived `coverage_rate` and `verified_rate` and the revenue carried by verified orders.
+
+The report has an operational purpose beyond analysis. After the production deploy, `coverage_rate` should climb from zero (pre-deploy orders have no rows) toward one within a restatement window, and stay there. A dip is a symptom: the capture endpoint failing, the checkout snapshot throwing, or the nightly job not running. This makes the coverage page the first place to look when campaign numbers seem off — before anyone debugs SQL, the coverage row says whether the underlying data even exists. The design document's full reconciliation report (Google-reported conversions against our verified orders) extends this page in 5B; the order-side half is what can exist today.
+
+### Why the reports do not filter on attribution version
+
+The design document states that reports always filter `attribution_version = current`. The 5A reports deliberately do not, and the reasoning is worth recording because it looks like a deviation but is not.
+
+The live `order_attributions` table is 1:1 with orders: exactly one row per order, whatever version last wrote it. Version plurality exists only across the *history* table, not the live table. A version filter on the live table would therefore not select among competing rows — it would silently drop orders whose row is still `v0-checkout` because they were placed after the last nightly run. Orders placed today would vanish from reports until 01:30 tomorrow. The design's rule targets a future state where reports read reconstructed-as-of-version data; while the live table is the only read source, filtering by version subtracts data without adding reproducibility. When a v2 ever coexists with v1 meaningfully, this decision must be revisited — the diary records it as a review point.
+
+### The REST layer and a silent-failure lesson
+
+Three endpoint families were added to `AdminReportingRest` under the existing `reports` capability: `campaigns/newVsExisting`, `campaigns/reconciliation`, and `campaigns/runs`, each with a `/count` twin. The two SQL-backed endpoints share a `groupedReportRows()` helper that applies the admin table's min/max pagination to the fetched rows and fills `id` from `_group` — the same contract the phase 1 cohorts endpoint established.
+
+The runs endpoint lists `attribution_runs` through the codebase's standard `Search`/`arrayToJSON` convention, and its first version returned rows oldest-first despite requesting `sort=id, order=DESC`. The cause generalizes beyond this endpoint. `SearchHelper::getSortOptions()` throws for any sort key the model does not declare (via a `$sort_options` static or `sort_option_*` methods) — and `MyModel::GetSearchOptions()` wraps both sort and search parsing in a catch block that responds to any exception by discarding *all* accumulated options:
+
+```php
+try {
+    $options = $helper->getSortOptions($sort, $order, $options);
+    $options = $helper->getSearchOptions($search, $options);
+} catch (\Exception $e) {
+    $options = [];
+}
+```
+
+The consequence: a misspelled or undeclared sort parameter does not error, does not log, and does not merely ignore the sort — it also erases every other option built so far and degrades the query to an unpaginated natural-order scan. The fix for the runs endpoint was one `$sort_options` declaration on `AttributionRun`; the lesson, recorded in the diary, is that every list endpoint built on `Search` silently depends on the model declaring its sort vocabulary.
+
+### The capability decision
+
+The design assigns the campaign reports a new `marketing_reports` capability. Implementation revealed what that costs: employee capabilities are not rows in a permissions table but members of a MySQL `SET` column (`members.sql`), so a new capability is an `ALTER TABLE` on the production members table plus changes to the grant UI. That is a schema migration and an access-policy decision, not a report feature. The 5A endpoints and routes therefore reuse the `reports` capability that already guards the sales and cohort reports — consistent with phase 1 — and the `marketing_reports` split is left as an explicit business decision, documented as a design delta rather than silently dropped.
+
+### The admin UI
+
+Two pages were added, both instantiations of the container pattern the cohorts report established (filter card + `useTableCard`-driven table with a totals footer):
+
+| Page | Route | Content |
+|---|---|---|
+| Marketing Channels | `/reports/campaigns` | New-vs-existing table; dimension, order type, timeframe and include-NEW filters; totals footer with recomputed share and AOV |
+| Attribution Coverage | `/reports/attribution` | Coverage table per period, and the nightly job's run log as a second table on the same page |
+
+Two implementation notes. The footer's derived cells are recomputed from the summed columns rather than averaging the row-level rates — the total `new_order_share` is `Σnew / Σorders`, not the mean of per-row shares, which would weight a one-order channel equally with a thousand-order channel. And the run-log row type hit the table component's `BaseRow` constraint, which requires `id: string` even though the JSON carries numeric run ids; the row type declares `string` and the runtime value passes through untouched.
+
+The run log renders `status` with color coding (`ok` green, `error` red, `running` amber) and truncates the stored error to its first line in the column — the full trace stays in the database row.
+
+### Verification
+
+Unit and integration coverage lives in `tests/std/channelReportTest.php` (7 tests, 78 assertions) over a five-order fixture spanning two months: both dimensions, the `(none)` semantics, an SQL-injection attempt through the sort parameter (falls back to the whitelist default), coverage rates, cancelled-order exclusion, and run-log ordering. The full attribution suite across five files now stands at 52 tests / 435 assertions.
+
+Against the live dev database, the browser-test order 10633532 from phase 2 appears exactly as expected: `google_ads / new / verified` in the channel report (with "Include NEW orders" ticked — it is a Bank Wire order still awaiting payment), a 2026-08 coverage row at 100%/100%, and runs 2 and 1 in the log, newest first.
+
 ## Current status
 
 - Phases 1, 2 and 4 are implemented, tested and on PR #982 (branch `task/add-ad-tracking-gec`); phase 4 spans commits `38e240aca` (history table), `2fc006359` (classifier + rules), `357605c4f` (job + CLI + crontab), `c002def3c` (ticket docs).
-- Deploy requires both migrations (`2026-08-19--marketing-attribution.php`, `2026-08-20--attribution-job.php`); the crontab installs through the existing provisioning step. The first production run restates all v0 rows.
+- Phase 5A is implemented and tested on its own branch `task/campaign-reports-5a` (workflow decision: one PR per phase from now on): commits `89d6b24ca` (queries + REST + tests), `f96c4980f` (admin UI), `2c30879ba` (ticket docs). Unpushed pending the PR-base decision (stack on #982 vs. rebase after its merge). Suite total: 52 tests / 435 assertions.
+- Deploy of #982 requires both migrations (`2026-08-19--marketing-attribution.php`, `2026-08-20--attribution-job.php`); the crontab installs through the existing provisioning step. The first production run restates all v0 rows.
 - Phase 3 (Google Ads importer) remains blocked on credentials: developer token, OAuth refresh token under a role account, customer/MCC ids, and the account-level tracking template. The unblocking checklist is in the ticket diary (step 18).
-- Phase 5 (campaign CAC/ROAS reports) needs phase 3's spend data for CAC, but its new-vs-existing and reconciliation queries depend only on data that now exists.
+- Phase 5B (spend joins, CAC/ROAS, Google-side reconciliation, blended CAC) activates when phase 3 delivers `google_ads_campaign_daily`; the 5A queries were shaped so 5B extends them rather than replacing them.
 
 ## Important project docs
 
-- Ticket: `ttmp/2026/08/18/GEC-ADS-ATTRIBUTION-001--google-ads-campaign-to-order-attribution-cac-and-ltv-analysis/` (design doc §14 = this phase; diary steps 18–20; this report as `report/02-…`).
+- Ticket: `ttmp/2026/08/18/GEC-ADS-ATTRIBUTION-001--google-ads-campaign-to-order-attribution-cac-and-ltv-analysis/` (design doc §14 = this phase; diary steps 18–20; this report as `report/02-…`, the phase 5A report as `report/03-…`).
 - Companion note: [[PROJ - GEC Ads Attribution - Cohort LTV Report and Marketing Touch Capture (Phase 1-2)]].
 
 ## Open questions
 
 - Should the promo-channel rule outrank generic `campaign` when both an `AD:` code and non-paid UTMs are present? Current precedence says yes for bare UTMs, no for paid UTMs; marketing may want a different tie-break once real promo campaigns run.
 - Whether `orders(status, updated_at)` needs an index for the cancellation-scope subquery on production volume — deferred until the first production runs produce timing data.
+- Whether a dedicated `marketing_reports` capability is worth a production `ALTER TABLE` on the members SET column, or whether the existing `reports` capability remains the right guard for the campaign pages.
 
 ## Near-term next steps
 
 - Obtain phase 3 credentials (the long pole is Google's Basic-access review for the developer token; the application should be filed before any importer code exists).
-- Phase 5 partial start: new-vs-existing and reconciliation-lite reports over `order_attributions` alone.
-- Wire `Rules::resolveCampaignId` to `google_ads_click_lookups` when phase 3 lands.
+- Decide the 5A PR base (stacked on #982 or rebased after merge), then push and open the PR.
+- Wire `Rules::resolveCampaignId` to `google_ads_click_lookups` when phase 3 lands; extend the coverage page with the Google-side reconciliation columns (5B).
