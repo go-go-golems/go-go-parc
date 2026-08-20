@@ -35,6 +35,7 @@ related_notes:
   - "[[Research/Software Architecture Garden/geppetto/README]]"
   - "[[Research/Software Architecture Garden/sessionstream/README]]"
   - "[[Research/Software Architecture Garden/pinocchio/designs/01 - Immediate-First Ordered Stream Coalescing]]"
+  - "[[Research/Software Architecture Garden/pinocchio/designs/02 - Restart-Safe Aggregate Identity and Disjoint Derived Namespaces]]"
   - "[[Transcripts/Research/09 - RAG-MATHS Pattern Zoo]]"},{
   - "[[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook]]"
 ---
