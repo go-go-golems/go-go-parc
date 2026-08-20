@@ -12,13 +12,18 @@ tags:
   - artifacts
   - go
   - reverse-engineering
-status: active
+status: deprecated
+superseded_by: "[[PROJ - claude.ai Artifact Import to artifacts.yolo - Export Diff, the Push API Provenance Gap, and Syncing the Live Gallery]]"
 type: project
 created: 2026-07-13
 repo: /home/manuel/code/others/llms/pi/nicobailon/surf-cli
 ---
 
 # claude.ai Artifact Archival
+
+> [!warning] Deprecated
+> This report is deprecated. The current state of the claude.ai → artifacts.yolo pipeline — refreshing the export, diffing against the live site, pushing renderable artifacts through the API, and backfilling conversation provenance — is documented in [[PROJ - claude.ai Artifact Import to artifacts.yolo - Export Diff, the Push API Provenance Gap, and Syncing the Live Gallery]].
+> The extraction and reconstruction sections below remain technically accurate for those stages; they are the input to the production sync documented in the new report.
 
 This project builds a pipeline that extracts a claude.ai account's conversations and the code artifacts they produced, reconstructs each artifact's final source from the conversation record, writes everything to local files, and serves the results as a browsable, runnable gallery. It spans two repositories: the browser-automation verbs live in `surf-cli` (`/home/manuel/code/others/llms/pi/nicobailon/surf-cli`), and the local viewer lives in `serve-artifacts` (`/home/manuel/code/wesen/2026-03-29--serve-claude-experiments`).
 
