@@ -296,7 +296,7 @@ At M5’s 400 kHz setting, the final values are:
 
 The early port wrote `0x8B/0x30`. Those values assigned fields to the wrong registers. This invalidated the claim that initialization matched M5 byte-for-byte and may contribute to transport and analog instability.
 
-A later controlled experiment was prepared to run the ESP-IDF `i2c_master` backend at 100 kHz with `IO_CONFIG_1=0x07`, removing the high-speed threshold bit. That experiment had not been built or validated when this report was written and is not treated as evidence.
+A later controlled experiment ran the ESP-IDF `i2c_master` backend at 100 kHz with `IO_CONFIG_1=0x07`, removing the high-speed threshold bit. It produced no tag response and made register readback less reliable, so it was reverted.
 
 ### 5.3 Reader analog configuration
 
@@ -517,12 +517,16 @@ It does not identify the exact ESP-IDF defect. It narrows the failure domain.
 
 ## 10. Current blocker: ESP-IDF I2C reliability
 
-After the official firmware displayed the PICC, the latest ESP-IDF firmware was restored without moving the tag. Its first read produced:
+After the official firmware displayed the PICC, the latest ESP-IDF firmware was restored. Its first read produced an I2C timeout, but the user later discovered that the tag had been removed before this test. The timeout remains valid transport evidence; that particular run is not evidence about NFC reception with a tag present.
 
 ```text
 E (...) i2c.master: I2C transaction timeout detected
 read error: ESP_ERR_INVALID_STATE
 ```
+
+The tag was then replaced at the known working position and ten reads were run on the committed 400 kHz build. None produced an NFC receive IRQ. The same run produced transient invalid readback (`ISO=00 AUX=09`, then `ANT2=00`) among otherwise correct values.
+
+A controlled 100 kHz build with `IO_CONFIG_1=0x07` was then built and flashed. It also produced no receive IRQ and showed worse transport behavior: repeated `ESP_ERR_INVALID_STATE`, Space-B values reading as zero or `CORR=93`, and NRT values intermittently reading as `0x0050` or `0x00D0` instead of `0x0350`. The 100 kHz change was rejected, reverted, and the committed 400 kHz firmware was restored.
 
 Other attempts have produced impossible or transient register values:
 
@@ -544,7 +548,7 @@ The current failure chain is:
 flowchart TD
     A["Official firmware reads PICC"] --> B["Hardware, tag, placement verified"]
     B --> C["Restore ESP-IDF firmware without moving tag"]
-    C --> D["i2c.master timeout / invalid state"]
+    C --> D["Tag-present 400/100 kHz tests show corrupt readback"]
     D --> E["REQA/WUPA sees no stable response"]
     E --> F["nfc-read cannot reach anticollision"]
 
@@ -569,9 +573,7 @@ The device handle was configured at 400 kHz, matching the nominal M5Unit-NFC com
 - official Arduino path: M5 `I2C_Class`, using explicit start/restart/read/write/stop operations;
 - ESP-IDF path: new `driver/i2c_master.h`, using `i2c_master_transmit()` and `i2c_master_transmit_receive()`.
 
-The next controlled experiment is a 100 kHz ESP-IDF device clock with the corresponding ST25R threshold configuration (`IO_CONFIG_1=0x07`). Its purpose is to determine whether the new driver’s timing on this loaded bus is the remaining source of timeouts. That experiment must be built, flashed, and measured before it is accepted.
-
-A second useful experiment is replacing generic repeated-start operations with an explicit transaction sequence that matches M5 `I2C_Class` more closely, while retaining the ESP-IDF framework. Bus recovery and retry behavior should also be logged rather than hidden behind zero-valued diagnostics.
+The 100 kHz experiment disproved the simplest clock-rate explanation and was reverted. The next useful experiment is replacing generic repeated-start operations with an explicit transaction sequence that matches M5 `I2C_Class` more closely, while retaining the ESP-IDF framework. Bus recovery and retry behavior should also be logged rather than hidden behind zero-valued diagnostics.
 
 ## 11. Failure analysis: claims that had to be withdrawn
 
@@ -806,20 +808,19 @@ A build containing `Not support I2C_Class` is not a valid bisect and produces th
 - `nfc-read` has not returned a UID under ESP-IDF.
 - I2C transactions are not stable under the current ESP-IDF new-driver configuration.
 - Anticollision has not been exercised end-to-end with a valid ESP-IDF ATQA.
-- The prepared 100 kHz experiment has not been validated.
+- The 100 kHz experiment failed and was reverted; the transport implementation still requires comparison with M5 `I2C_Class`.
 - No Mooncake/LVGL integration should begin until console UID reading is reliable.
 
 ### Recommended next sequence
 
-1. Build and flash the 100 kHz transport experiment with the matching `IO_CONFIG_1=0x07`.
-2. Keep the NTAG in the exact position proven by official firmware.
-3. Run repeated identity and configuration reads before issuing any NFC command; quantify timeout and corruption rates.
-4. If transport stabilizes, run `nfc-read` and inspect ATQA/FIFO evidence.
-5. If 100 kHz still fails, implement explicit M5-like start/restart/read/write/stop transactions or test the ESP-IDF legacy I2C backend in a controlled branch.
-6. Add bounded, observable bus recovery.
-7. Once ATQA is stable, validate CL1/CL2 selection for the seven-byte NTAG UID.
-8. Correct stale comments and help strings.
-9. Only then integrate the component into a Mooncake application with LVGL UID display.
+1. Keep the NTAG in the exact position proven by official firmware.
+2. Run repeated identity and configuration reads before issuing any NFC command; quantify timeout and corruption rates.
+3. Implement explicit M5-like start/restart/read/write/stop transactions or test the ESP-IDF legacy I2C backend in a controlled branch.
+4. Add bounded, observable bus recovery and preserve original error context.
+5. Once transport is stable, run `nfc-read` and inspect ATQA/FIFO evidence.
+6. Once ATQA is stable, validate CL1/CL2 selection for the seven-byte NTAG UID.
+7. Correct stale comments and help strings.
+8. Only then integrate the component into a Mooncake application with LVGL UID display.
 
 ## 16. Working rules retained from the project
 
