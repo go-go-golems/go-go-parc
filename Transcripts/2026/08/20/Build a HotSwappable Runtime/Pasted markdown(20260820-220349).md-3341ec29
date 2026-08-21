@@ -1,0 +1,1141 @@
+I would make this an **8-lab “paper companion” course**, where students gradually construct a small but real plugin/runtime system. The important pedagogical device would be that every mathematical claim gets three representations:
+
+[
+\text{paper notation}
+\quad\longleftrightarrow\quad
+\text{small executable model}
+\quad\longleftrightarrow\quad
+\text{property/test}
+]
+
+So, for example,
+
+[
+g(f(\gamma)) \simeq \gamma
+]
+
+becomes both an equation they reason about and a property test that generates states, applies an effect, invokes its inverse, and checks recovery.
+
+I would probably use **TypeScript**, because the paper's actual implementation is TypeScript and constructs such as closures, generators, promises, `Map`, `Symbol`, and proxies map unusually cleanly onto the theory. The paper explicitly gives a theory-to-runtime correspondence for `Γ∞`, effect callbacks, coeffect stores, fibers, target views and accumulators. Python + Hypothesis would be my second choice if the primary objective were mathematical accessibility rather than correspondence with Cordis.
+
+# The shape of the course
+
+I'd have each lab contain five parts:
+
+1. **Conceptual warm-up** — a tiny mathematical example students can calculate manually.
+2. **Paper reading** — normally 4–8 pages rather than “read the next 20 pages.”
+3. **Implementation** — add one mechanism to Mini-Cordis.
+4. **Executable theorem** — turn one definition/theorem into tests.
+5. **Counterexample exercise** — deliberately remove an assumption and make the theorem fail.
+
+That fifth part is important. Students understand a theorem much better when they can say *why each hypothesis is there*.
+
+The system at the end would look approximately like this:
+
+```text
+Runtime
+ ├── Context
+ │    ├── services
+ │    ├── commands
+ │    └── event handlers
+ │
+ ├── Components
+ │    ├── requires
+ │    ├── provides
+ │    └── activate(ctx)
+ │
+ └── Fibers
+      ├── target
+      ├── committed dependencies
+      ├── lifecycle state
+      └── accumulated inverses
+```
+
+The capstone could genuinely host dynamically loadable CLI commands or agent tools.
+
+---
+
+# Lab 0 — The mathematical language of the paper
+
+### Goal
+
+Students should be able to read things like
+
+[
+\Gamma\to\Gamma,\qquad
+(f,g),\qquad
+g\circ f=id,\qquad
+\Sigma=(k\:K)\rightharpoonup V\_k
+]
+
+without being slowed down by notation.
+
+I would **not teach category theory broadly here**. Instead:
+
+| Mathematical ideaProgramming interpretation |                                     |
+| ------------------------------------------- | ----------------------------------- |
+| Set/type                                    | possible program values/states      |
+| Function                                    | deterministic computation           |
+| Composition                                 | sequential execution                |
+| Identity                                    | do nothing                          |
+| Monoid                                      | composable operations + identity    |
+| Partial function                            | lookup that may fail                |
+| Relation                                    | predicate relating two states       |
+| Equivalence relation                        | states considered indistinguishable |
+| Directed graph                              | dependency relation                 |
+| DAG/topological order                       | legal dependency ordering           |
+
+### Exercises
+
+Students implement ordinary function composition and test associativity:
+
+```ts
+compose(f, compose(g, h))
+===
+compose(compose(f, g), h)
+```
+
+Then give them several structures and ask which form monoids:
+
+```text
+integers under +
+strings under concatenation
+arrays under concatenation
+state transformations under composition
+integers under subtraction
+```
+
+Have them produce one counterexample for every failed law.
+
+Finally, implement a tiny transition system:
+
+```ts
+type State = ...
+type Transition = (s: State) => State
+```
+
+and draw its state graph.
+
+### Reading
+
+For students whose discrete mathematics is weak, MIT's **Mathematics for Computer Science** is ideal: proof methods, relations, partial orders, directed graphs and state machines are precisely the background this paper needs. ([MIT OpenCourseWare](https://mitocw.ups.edu.ec/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2010/readings/?utm_source=chatgpt.com "Readings | Mathematics for Computer Science | Electrical Engineering and Computer Science | MIT OpenCourseWare"))
+
+For PL notation, selected material from Pierce's **Types and Programming Languages** is better than assigning a category-theory textbook. TAPL explicitly combines mathematical foundations with running implementations and exercises. ([MIT Press](https://mitpress.ublish.com/book/types-and-programming-languages?utm_source=chatgpt.com "Types and Programming Languages | The MIT Press"))
+
+---
+
+# Lab 1 — Effects are transformations, and transformations form a monoid
+
+This begins §3.1.
+
+The paper starts with context transformations
+
+[
+\Gamma\to\Gamma
+]
+
+and observes that they form a monoid under composition. Reversible effects pair a transformation with something that undoes it.
+
+### Build
+
+Start with an immutable context:
+
+```ts
+type Context = {
+  values: Map<string, unknown>
+}
+```
+
+Implement:
+
+```ts
+set(key, value)
+delete(key)
+increment(key)
+append(key, value)
+```
+
+but initially as plain state transformations.
+
+Then introduce:
+
+```ts
+type Inverse<S> = (state: S) => S
+
+type Reversible<S> =
+  (state: S) => [S, Inverse<S>]
+```
+
+### Exercises
+
+**1. State-dependent inverses.**
+
+Make this work:
+
+```ts
+const [s1, undo] = set("x", 42)(s0)
+
+expect(undo(s1)).toEqual(s0)
+```
+
+The inverse should capture the previous value.
+
+This exposes an important point from the paper: the inverse need only be correct at the state where the effect was performed; it need not be a globally defined two-sided inverse.
+
+**2. Twisted composition.**
+
+Implement the equivalent of
+
+# [ (f\_1,g\_1)\circ(f\_2,g\_2)
+
+(f\_1\circ f\_2,g\_2\circ g\_1).
+]
+
+Students should explain why the second component reverses its order.
+
+**3. Prove the monoid laws twice.**
+
+First by hand for arbitrary `f`, `g`, `h`.
+
+Then with property-based tests.
+
+**4. Find a non-revertible effect.**
+
+For example:
+
+```text
+print to terminal
+send network packet
+email somebody
+```
+
+Ask precisely where that effect sits relative to the system boundary.
+
+That anticipates the paper's later distinction between reversible acquisition and irreversible emission.
+
+### Theory reading
+
+Paper §§3.1.1–3.1.2.
+
+Then Wadler's **Monads for Functional Programming**, but with a very constrained question:
+
+> How is sequencing being made explicit, and which part resembles our composition of context transformations?
+
+Wadler develops monads specifically as a way of structuring effects such as state and exceptions. ([Informatics Homepages](https://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf?utm_source=chatgpt.com "Monads for functional programming"))
+
+I would **not** ask students to conclude that the paper's `Reversible` type “is a monad.” That isn't what the paper claims.
+
+---
+
+# Lab 2 — The accumulator: deriving teardown from setup
+
+Now implement the thing that gives the paper much of its practical appeal.
+
+The effect context contains current state plus accumulated recovery:
+
+[
+\partial\Gamma=\Gamma\times(\Gamma\to\Gamma).
+]
+
+The accumulator composes inverses so that recovery returns the context to its starting point.
+
+### Build
+
+```ts
+class Scope<S> {
+  private dispose: (s: S) => S = identity
+
+  effect(effect: Reversible<S>): void
+  recover(): void
+}
+```
+
+Then use it for real operations:
+
+```text
+registerCommand()
+subscribeEvent()
+registerRoute()
+startTimer()
+provideService()
+```
+
+Each should perform an action and return its cleanup.
+
+### Milestone 1
+
+At this point students should have a small library where:
+
+```ts
+scope.registerCommand(...)
+scope.subscribe(...)
+scope.provide(...)
+```
+
+can all be torn down without an explicit plugin-level `deactivate()` implementation.
+
+### Exercises
+
+Give them a plugin:
+
+```text
+register A
+register B
+register C
+```
+
+and ask them to predict teardown order before running it.
+
+Then make one inverse incorrect and have students identify which invariant breaks.
+
+Then ask:
+
+> Why does LIFO work even if A and B don't commute?
+
+That leads directly toward the distinction between **ordinary reversal** and **selective removal**.
+
+---
+
+# Lab 3 — Coeffects: computations can require context too
+
+This is where I'd introduce the effects/coeffects duality.
+
+The paper's concise distinction is excellent:
+
+> effects describe how computation modifies the environment; coeffects describe how it depends on the environment.
+
+Before reading formal coeffects, I would have students compare:
+
+```ts
+State<S, A>  ≈ S -> [S, A]
+Reader<R, A> ≈ R -> A
+```
+
+One says:
+
+> my computation transforms an environment.
+
+The other says:
+
+> my computation requires an environment.
+
+Then explain that the paper takes this broad duality and turns dependencies into runtime objects.
+
+### Build
+
+Implement:
+
+```ts
+type Key<T> = ...
+
+class ServiceContext {
+  get<T>(key: Key<T>): T
+  set<T>(key: Key<T>, value: T): Dispose
+}
+```
+
+The simplified coeffect context is the paper's finite dependent partial map:
+
+[
+\Sigma=(k\:K)\rightharpoonup V\_k.
+]
+
+Then define:
+
+```ts
+type Component = {
+  requires: Set<Key<any>>
+  provides: Set<Key<any>>
+  activate(ctx: Context): ...
+}
+```
+
+and literally implement satisfaction:
+
+[
+\sigma\models d
+\iff
+\forall k\in d,; k\in\operatorname{dom}(\sigma).
+]
+
+### Exercises
+
+Build:
+
+```text
+Database
+   provides db
+
+Repository
+   requires db
+   provides repository
+
+WebAPI
+   requires repository
+```
+
+Students should observe:
+
+```text
+insert WebAPI
+→ nothing
+
+insert Repository
+→ nothing
+
+insert Database
+→ Database
+→ Repository
+→ WebAPI
+```
+
+Then remove `Database`.
+
+Everything should deactivate transitively.
+
+Next:
+
+```text
+A requires b, provides a
+B requires a, provides b
+```
+
+Ask students to explain why neither activates.
+
+The paper later observes that dependency cycles simply leave components inactive and can be detected from declarations alone.
+
+### Theory reading
+
+Paper §§2.2, 3.2.1–3.2.2.
+
+Then Petricek, Orchard & Mycroft's original **Coeffects** paper—not necessarily all of it. Its opening motivation is enough to establish coeffects as analysis of how computations rely on their environment. ([Tomas Petricek](https://tomasp.net/academic/papers/coeffects/?utm_source=chatgpt.com "Coeffects: Unified static analysis of context-dependence - Tomas Petricek"))
+
+For stronger students, read Milewski's comonad material after first understanding `Reader`; otherwise comonads can become an unnecessary conceptual detour.
+
+---
+
+# Lab 4 — Components, fibers, and operational semantics
+
+This is the point where the course changes from “algebra library” into “small runtime.”
+
+The paper's component is:
+
+[
+(d,p,e)
+]
+
+for dependencies, provisions and effect function.
+
+A running instance becomes a **fiber**, which carries its own lifecycle state, accumulator and committed dependency resolution.
+
+### Build
+
+```ts
+class Fiber {
+  component
+  state
+  target
+  committed
+  dispose
+}
+```
+
+Initially use only:
+
+```text
+INACTIVE
+ACTIVE
+```
+
+Implement the paper's conceptual orchestration operations:
+
+```text
+insert
+retire
+remove
+```
+
+and lifecycle operations:
+
+```text
+reload
+unload
+```
+
+### The important exercise: provider identity
+
+Suppose:
+
+```text
+DatabaseV1 provides db
+```
+
+is replaced with:
+
+```text
+DatabaseV2 provides db
+```
+
+and both yield objects that happen to compare equal.
+
+Consumers should still reload.
+
+Students therefore need to record:
+
+```ts
+committed = {
+  db: providerFiberId
+}
+```
+
+rather than merely:
+
+```ts
+dbIsAvailable = true
+```
+
+That reproduces the reason the paper's target view records providers rather than values.
+
+### Theory exercise
+
+Give students one transition rule from the paper and ask them to translate it both directions:
+
+```text
+formal rule → TypeScript guard + mutation
+```
+
+and
+
+```text
+TypeScript implementation → inference rule
+```
+
+This is probably more valuable than having them merely memorize operational-semantics notation.
+
+### Reading
+
+Paper §§4.1–4.2.
+
+For the general PL theory, either:
+
+- Pierce, **TAPL**, especially the operational-semantics/type-system style, ([MIT Press](https://mitpress.ublish.com/book/types-and-programming-languages?utm_source=chatgpt.com "Types and Programming Languages | The MIT Press"))
+- or Harper, **Practical Foundations for Programming Languages**, which is explicitly organized around formulating and analysing PL constructs precisely. ([CMU School of Computer Science](https://www.cs.cmu.edu/~rwh/pfpl/index.html?utm_source=chatgpt.com "Practical Foundations for Programming Languages"))
+
+---
+
+# Lab 5 — Independence, commutation and observational equivalence
+
+I think this would be the intellectual centre of the lab.
+
+First give two operations:
+
+```text
+A: add command "a"
+B: add command "b"
+```
+
+They commute.
+
+Then:
+
+```text
+A: prepend middleware A
+B: prepend middleware B
+```
+
+They don't.
+
+Have students build:
+
+```ts
+commutes(effectA, effectB, initialState)
+```
+
+and then a property-based version.
+
+The paper's independence condition is stronger than simply testing that the two forward functions commute; inverses and their dependence on state matter too.
+
+### Key experiments
+
+**Experiment A: independent effects.**
+
+```text
+load A
+load B
+remove A
+```
+
+must leave exactly B's contribution.
+
+Then:
+
+```text
+load A
+load B
+remove B
+remove A
+```
+
+and:
+
+```text
+load A
+load B
+remove A
+remove B
+```
+
+should reach equivalent states.
+
+**Experiment B: order-sensitive effects.**
+
+Repeat with middleware.
+
+Have students produce the smallest counterexample.
+
+### Observational equivalence
+
+Now introduce generated resource handles.
+
+Suppose:
+
+```text
+initial allocator counter = 100
+
+load plugin → receives handle 100
+unload plugin
+
+allocator counter = 101
+```
+
+Literal state equality has failed.
+
+But perhaps none of the runtime's exposed operations can distinguish the recovered system from its original state.
+
+Define:
+
+```ts
+observe(ctx): ObservableState
+```
+
+and switch from:
+
+```ts
+actual === initial
+```
+
+to:
+
+```ts
+observe(actual) === observe(initial)
+```
+
+The paper explicitly says physical state often cannot literally be restored and therefore reads recovery up to observational equivalence.
+
+### Milestone 2
+
+Students submit a **commutation matrix** for all primitives in their runtime:
+
+| operation Aoperation Bcommute?reason |                      |             |                       |
+| ------------------------------------ | -------------------- | ----------- | --------------------- |
+| command registration                 | distinct command     | yes         | disjoint keys         |
+| command registration                 | same command         | no          | competing binding     |
+| event subscription                   | subscription         | usually yes | set-like              |
+| middleware insertion                 | insertion            | no          | order observable      |
+| timer creation                       | command registration | yes         | disjoint observations |
+
+The paper proves that operations on distinct keys are independent and gives registration versus ordered middleware as representative examples.
+
+This table forces students to think about **interfaces algebraically**.
+
+---
+
+# Lab 6 — Real lifecycles: iteration, asynchrony, failure and guarded withdrawal
+
+Only now would I introduce the four-state lifecycle:
+
+```text
+INACTIVE
+LOADING
+ACTIVE
+UNLOADING
+```
+
+The paper adds these because actual transitions are not necessarily atomic, immediate or infallible.
+
+### Part A: effect iterators
+
+Change:
+
+```ts
+activate(): Dispose
+```
+
+into approximately:
+
+```ts
+async *activate(): AsyncGenerator<Dispose>
+```
+
+A plugin can now:
+
+```ts
+yield registerCommand(...)
+yield subscribeEvent(...)
+yield await openResource(...)
+```
+
+Every yield becomes a rollback boundary.
+
+This maps closely onto the paper's effect iterator, where each iteration yields state, inverse and optional continuation.
+
+### Exercise: interrupt loading
+
+Start loading:
+
+```text
+step 1 ✓
+step 2 ✓
+dependency disappears
+step 3 should not begin
+```
+
+The component should roll back steps 1 and 2.
+
+Then make step 3 already in flight. It must land before rollback.
+
+Students now understand the otherwise rather abstract “inertia” discussion of §4.3.3.
+
+### Part B: failure
+
+Make:
+
+```text
+register route
+open database
+bind port ← fails
+```
+
+The first two effects must be recovered.
+
+The final fiber state should be failed/inactive rather than partially installed.
+
+That directly exercises the paper's failure semantics.
+
+### Part C: safe provider withdrawal
+
+This is the subtle exercise.
+
+Suppose:
+
+```text
+Database
+   ↑
+Repository
+```
+
+The repository's teardown itself does:
+
+```ts
+await ctx.db.flush()
+```
+
+If Database destroys `db` before Repository's teardown, the runtime is wrong.
+
+Students must therefore implement:
+
+```text
+1 provider becomes unavailable to *new* resolution
+2 dependent begins teardown
+3 dependent can still use committed old provider
+4 wait until dependent finishes
+5 provider finally performs its own recovery
+```
+
+That is precisely why the paper separates leaving from unloading and introduces its `relied` guard.
+
+This lab usually produces the “oh, that's what all those lifecycle states are buying us” moment.
+
+---
+
+# Lab 7 — Turn the metatheory into a model checker
+
+I would not ask most students to reproduce all the proofs in §4.4.
+
+Instead, make them **operationalise the statements**.
+
+Take a very small universe:
+
+```text
+≤ 4 fibers
+≤ 4 dependency keys
+≤ 3 operations per component
+```
+
+Enumerate or randomly generate scheduling choices.
+
+Students implement invariant checks after every transition.
+
+### Preservation
+
+Check things like:
+
+```text
+every committed provider exists
+every installed consumer's committed provider remains installed
+providers are unique
+```
+
+This corresponds to the paper's registry well-formedness conditions and preservation theorem.
+
+### Temporal composability
+
+Pick a fiber episode, interleave operations from other fibers, unload it and test:
+
+```text
+final observable state
+==
+state produced by other fibers alone
+```
+
+That's the executable interpretation of recovery exactness.
+
+### Spatial composability
+
+Check:
+
+```text
+consumer begins only if dependencies exist
+
+provider finishes unloading
+only after every committed dependent finishes
+```
+
+Compare failures against Theorem 63.
+
+### Progress
+
+Generate acyclic dependency graphs and check that whenever the system isn't quiescent, *some legal lifecycle move exists*.
+
+Then permit a dependency cycle and find a counterexample.
+
+The paper's progress result depends explicitly on acyclicity and finite/bounded execution.
+
+### Best assignment in the whole course
+
+Give students switches:
+
+```ts
+CHECK_INDEPENDENCE = false
+GUARD_PROVIDER_UNLOAD = false
+USE_PROVIDER_IDENTITY = false
+ROLLBACK_ON_FAILURE = false
+```
+
+Ask the model checker to automatically find the smallest counterexample to each theorem.
+
+That turns assumptions from prose into observable necessity.
+
+For a Python version, Hypothesis's stateful testing is particularly suited to this: it generates sequences of operations and supports invariants checked after every rule. ([Read the Docs](https://app.readthedocs.org/projects/hypothesis-test-zhd/downloads/pdf/build/?utm_source=chatgpt.com "Hypothesis Documentation"))
+
+---
+
+# Lab 8 — Confluence, reconciliation and hot replacement
+
+The final theoretical idea is that dynamic history should eventually disappear.
+
+The paper's confluence statement says, roughly, that after the system settles, its state should be the same as if its eventual active components had simply been assembled from scratch in dependency order.
+
+### Exercise
+
+Begin with the same desired final configuration and perform wildly different histories:
+
+```text
+History A
+load db
+load web
+replace db
+unload web
+reload web
+```
+
+versus:
+
+```text
+History B
+load replacement db
+load web
+```
+
+Once quiescent:
+
+```ts
+observe(A) === observe(B)
+```
+
+should hold under the relevant assumptions.
+
+Then deliberately add a non-independent effect and see the histories diverge.
+
+### Build a tiny reconciler
+
+Give the runtime:
+
+```ts
+reconcile([
+  Database,
+  Repository,
+  WebAPI
+])
+```
+
+Then change the declaration to:
+
+```ts
+reconcile([
+  NewDatabase,
+  Repository,
+  WebAPI,
+  Metrics
+])
+```
+
+The runtime decides what to retire and insert.
+
+This mirrors the paper's observation that the loader can reconcile incrementally because the final quiescent state depends on the final configuration rather than the exact route taken to get there.
+
+### Final capstone
+
+Each team makes the framework useful in one small domain:
+
+```text
+CLI plugin host
+agent tool registry
+HTTP route framework
+chatbot plugin host
+editor-command system
+data-processing pipeline
+```
+
+Required features:
+
+```text
+dynamic insertion/removal
+requires/provides dependencies
+automatic cleanup
+provider replacement
+async loading
+failure rollback
+trace visualisation
+```
+
+And one 3–5 page report explaining three theorems in terms of their implementation.
+
+---
+
+# The theory reading ladder I would use
+
+I would separate resources into **required**, **bridge**, and **deepening** rather than dumping a huge reading list on students.
+
+## Mathematical / CS foundations
+
+**MIT Mathematics for Computer Science** — selected chapters on proofs, relations/partial orders, directed graphs and state machines. This is enough discrete mathematics for almost everything in the calculus. ([MIT OpenCourseWare](https://mitocw.ups.edu.ec/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2010/readings/?utm_source=chatgpt.com "Readings | Mathematics for Computer Science | Electrical Engineering and Computer Science | MIT OpenCourseWare"))
+
+**Pierce, Types and Programming Languages** — use as the primary source for “what is a typing judgment / operational semantics / preservation / progress?” rather than assigning the whole book. Its emphasis is deliberately both theoretical and implementation-driven. ([MIT Press](https://mitpress.ublish.com/book/types-and-programming-languages?utm_source=chatgpt.com "Types and Programming Languages | The MIT Press"))
+
+**Harper, Practical Foundations for Programming Languages** — optional alternative/deepening reference once the students reach §4 and the operational calculus. ([CMU School of Computer Science](https://www.cs.cmu.edu/~rwh/pfpl/index.html?utm_source=chatgpt.com "Practical Foundations for Programming Languages"))
+
+I would probably explain preservation/progress once in a conventional typed lambda calculus *before* asking students to understand why the Cordis paper reuses those names for properties of its lifecycle system.
+
+---
+
+# Effects
+
+Start applied:
+
+**Wadler — “Monads for Functional Programming.”** It gives a programming-centred route from ordinary code to structured effects; no massive CT prerequisite is required. [Monads for Functional Programming](https://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf?utm_source=chatgpt.com) ([Informatics Homepages](https://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf?utm_source=chatgpt.com "Monads for functional programming"))
+
+Then:
+
+**Pretnar — “An Introduction to Algebraic Effects and Handlers.”** This is useful for understanding the paper's discussion of algebraic effects and the distinction between effect operations and their interpretation. [Algebraic Effects and Handlers tutorial](https://www.eff-lang.org/handlers-tutorial.pdf?utm_source=chatgpt.com) ([EFF Lang](https://www.eff-lang.org/handlers-tutorial.pdf?utm_source=chatgpt.com "MFPS 2015
+An Introduction to
+Algebraic Eﬀects and"))
+
+For mathematically ambitious students:
+
+**Moggi — “Notions of Computation and Monads.”** I would make this optional. The original paper is foundational but is much harder to learn from than Wadler. Moggi's publication page provides the original article. ([Dibris](https://person.dibris.unige.it/moggi-eugenio/publications.html?utm_source=chatgpt.com "Eugenio Moggi Publications"))
+
+**Plotkin & Power — “Notions of Computation Determine Monads.”** Particularly useful if you want students to see the algebraic-operation perspective the Cordis paper mentions. ([Informatics Homepages](https://homepages.inf.ed.ac.uk/gdp/publications/Comp_Eff_Monads.pdf?utm_source=chatgpt.com "Notions of Computation Determine Monads"))
+
+---
+
+# Coeffects
+
+The obvious required companion is:
+
+**Petricek, Orchard & Mycroft — “Coeffects: Unified Static Analysis of Context-Dependence.”** [Coeffects paper and slides](https://tomasp.net/academic/papers/coeffects/?utm_source=chatgpt.com) ([Tomas Petricek](https://tomasp.net/academic/papers/coeffects/?utm_source=chatgpt.com "Coeffects: Unified static analysis of context-dependence - Tomas Petricek"))
+
+But I'd tell students explicitly:
+
+> You do not need to master the full graded/comonadic theory to understand Mini-Cordis.
+
+The Cordis paper reviews comonadic and graded coeffects but then reifies the dependency context at runtime.
+
+A useful exercise is simply:
+
+```text
+Effect:
+"What does my computation change?"
+
+Coeffect:
+"What must already be available for my computation to run?"
+```
+
+and have students classify examples.
+
+---
+
+# Category theory → programming
+
+Here I would use **three resources in order**.
+
+### 1. Category Theory Illustrated
+
+For the first two labs, this is good for students intimidated by abstract notation. Its monoid section is highly concrete and exercise-oriented. ([Abuse of Notation](https://abuseofnotation.github.io/category-theory-illustrated/03_monoid/?utm_source=chatgpt.com "Category Theory Illustrated - Monoids"))
+
+### 2. Bartosz Milewski — Category Theory for Programmers
+
+This would be my main CT/programming bridge.
+
+Assign only selected chapters:
+
+```text
+Category: The Essence of Composition
+Types and Functions
+Categories Great and Small
+Kleisli Categories
+Functors
+Natural Transformations
+Monads
+Comonads
+```
+
+The freely available version is based on Milewski's original material and is licensed CC BY-SA. [Category Theory for Programmers source/PDF](https://github.com/hmemcpy/milewski-ctfp-pdf?utm_source=chatgpt.com) ([GitHub](https://github.com/hmemcpy/milewski-ctfp-pdf?utm_source=chatgpt.com "GitHub - hmemcpy/milewski-ctfp-pdf: Bartosz Milewski's 'Category Theory for Programmers' unofficial PDF and LaTeX source · GitHub"))
+
+There is also a Python-oriented adaptation if the cohort isn't comfortable with Haskell. ([june.kim](https://june.kim/reading/category-theory/?utm_source=chatgpt.com "Category Theory for Programmers"))
+
+### 3. Fong & Spivak — Seven Sketches in Compositionality
+
+This isn't specifically a programming book. I'd use it because it teaches **why category theorists care about composition in the first place**.
+
+The opening chapters deliberately build categorical ideas out of applied compositional examples, and the text assumes no prior category theory. ([arXiv](https://arxiv.org/abs/1803.05316?utm_source=chatgpt.com "Seven Sketches in Compositionality: An Invitation to Applied Category Theory"))
+
+MIT's Applied Category Theory course pairs the chapters with lecture material as well. ([TAU OpenCourseWare](https://ocw.tau.edu.ng/courses/mathematics/18-s097-applied-category-theory-january-iap-2019/lecture-videos-and-readings/?utm_source=chatgpt.com "Lecture Videos and Readings | Applied Category Theory | Mathematics | MIT OpenCourseWare"))
+
+I would particularly use it to prevent a common failure mode where students think CT means “functors and monads are strange programming patterns.” The more important idea for this paper is:
+
+> Find the notion of composition; identify the identity; identify which maps preserve the composition; then reason structurally rather than case-by-case.
+
+---
+
+# A category-theory map specifically for this paper
+
+I might actually give students this on one sheet:
+
+| Paper constructMaths lensProgramming lens |                                   |                                                     |
+| ----------------------------------------- | --------------------------------- | --------------------------------------------------- |
+| `Γ → Γ` effects                           | endomorphisms                     | state mutations                                     |
+| composition of effects                    | monoid                            | sequential execution                                |
+| reversed inverse composition              | opposite monoid                   | cleanup stack                                       |
+| `track` preserving composition            | monoid homomorphism               | instrumentation doesn't change sequencing semantics |
+| `EΓ`                                      | state-dependent reversible arrows | operation returns cleanup closure                   |
+| `Σ`                                       | dependent partial map             | typed service registry                              |
+| coeffects                                 | contextual requirements           | dependency injection                                |
+| `≃`                                       | equivalence / quotient            | ignore unobservable representation                  |
+| independent effects                       | commuting morphisms               | can safely reorder/unload independently             |
+| dependency relation                       | partial-order-like structure      | provider graph                                      |
+| trace equivalence                         | commuting independent actions     | scheduler interleavings                             |
+| `Γ∞ = μΓ...`                              | recursive/fixed-point type        | nested contexts                                     |
+| confluence                                | unique normal form                | same final system despite different update history  |
+
+This is, in my view, the correct amount of CT for this particular paper.
+
+---
+
+# Two deeper readings I'd make optional
+
+For students who want to understand **why independence and reversal are mathematically interesting**, the paper's own related-work choices are very good.
+
+**Heunen, Kaarsgaard & Karvonen — “Reversible Effects as Inverse Arrows.”** This is substantially more categorical than the Cordis construction: it studies reversible side effects through dagger/inverse arrows and global reversibility. That contrast is useful because Cordis deliberately asks for much less—local one-sided inverses supplied at runtime. ([arXiv](https://arxiv.org/abs/1805.08605?utm_source=chatgpt.com "Reversible effects as inverse arrows"))
+
+For scheduling/interleavings, introduce **Mazurkiewicz trace theory** conceptually: histories differing only by swapping independent adjacent actions should be considered equivalent. The Cordis paper explicitly connects its independence condition to trace theory in exactly this sense.
+
+You don't need students reading an entire trace-theory monograph. I'd teach the basic idea with strings:
+
+[
+abc \sim bac
+]
+
+whenever `a` and `b` are independent.
+
+That single idea provides a very good conceptual route into the temporal composability and confluence proofs.
+
+---
+
+# What I would assess
+
+I wouldn't grade this primarily by “does their plugin framework work?”
+
+I'd split marks roughly:
+
+| ComponentWeight                              |     |
+| -------------------------------------------- | --- |
+| Runtime implementation                       | 35% |
+| Property/model-based tests                   | 25% |
+| Mathematical explanations                    | 20% |
+| Counterexamples when assumptions are removed | 15% |
+| Final system/demo                            | 5%  |
+
+The counterexamples deserve substantial weight.
+
+For example, a good submission for the independence lab shouldn't merely say:
+
+> “These two effects aren't independent.”
+
+It should produce:
+
+```text
+γ0
+↓ A
+γ1
+↓ B
+γ2
+↓ undo(A)
+γ3
+```
+
+and another execution showing concretely that
+
+[
+\gamma\_3\not\simeq B(\gamma\_0).
+]
+
+That's the bridge between a programmer who has *used* rollback and someone who understands what the theorem is saying.
+
+---
+
+# The milestone structure
+
+I would collapse the eight labs into four major checkpoints:
+
+**Milestone A — Reversible computation.** Students have state transformers, state-dependent inverses, composition and automatic LIFO recovery.
+
+**Milestone B — Dynamic composition.** Students have a typed service context, `requires`/`provides`, fibers, target views and automatic reactive activation/deactivation.
+
+**Milestone C — Safe interleaving.** They have observational equivalence, independence tests, async transitions, failure rollback and dependency-safe withdrawal.
+
+**Milestone D — Metatheoretic runtime.** They have a state-machine/model-testing harness that checks preservation, recovery, ordering, progress and confluence on small generated systems, followed by the useful plugin-host capstone.
+
+The last milestone is the part I'd be most reluctant to omit. It changes the exercise from **“we reimplemented a framework described in a paper”** into **“we used a running system to understand why the definitions and hypotheses in the paper have the shapes they do.”**
+
+If this were a 10–12 week university module, I'd actually spend **about 60% of the contact time on Labs 1–6 and 40% on Labs 7–8**. The early code is straightforward; the real learning happens when students start asking why an accumulator is insufficient for arbitrary interleaving, why committed views must survive teardown, why equality is too strong, why commutation matters, and why acyclicity enters the progress theorem. Those are exactly the places where the paper moves from an interesting plugin design to a piece of programming-languages theory.

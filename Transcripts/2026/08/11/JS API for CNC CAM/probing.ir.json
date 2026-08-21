@@ -1,0 +1,97 @@
+{
+  "schema": "https://example.invalid/cam-ir/v0.1",
+  "version": "0.1",
+  "metadata": {
+    "name": "Two-pass Z probe",
+    "source": "examples/probing.ts"
+  },
+  "safety": {
+    "workClearanceZ": 5,
+    "machineSafeZ": -5,
+    "arcTolerance": 0.01,
+    "requireMachineRetractBeforeToolChange": true
+  },
+  "commands": [
+    {
+      "kind": "rapid-z",
+      "space": "machine",
+      "z": -5
+    },
+    {
+      "kind": "select-work-offset",
+      "offset": "G54"
+    },
+    {
+      "kind": "tool-change",
+      "tool": {
+        "number": 99,
+        "name": "touch probe",
+        "kind": "probe",
+        "diameter": 4
+      }
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-xy",
+      "space": "work",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "kind": "probe",
+      "to": {
+        "frame": "work",
+        "x": 0,
+        "y": 0,
+        "z": -20
+      },
+      "feed": 200,
+      "signal": "contact",
+      "onFailure": "error",
+      "capture": {
+        "kind": "observation-ref",
+        "id": "stock.top.fast",
+        "value": "probe-trip-position"
+      }
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 3
+    },
+    {
+      "kind": "probe",
+      "to": {
+        "frame": "work",
+        "x": 0,
+        "y": 0,
+        "z": -5
+      },
+      "feed": 40,
+      "signal": "contact",
+      "onFailure": "error",
+      "capture": {
+        "kind": "observation-ref",
+        "id": "stock.top.slow",
+        "value": "probe-trip-position"
+      }
+    },
+    {
+      "kind": "rapid-z",
+      "space": "work",
+      "z": 5
+    },
+    {
+      "kind": "rapid-z",
+      "space": "machine",
+      "z": -5
+    },
+    {
+      "kind": "end"
+    }
+  ]
+}

@@ -1,0 +1,751 @@
+The right abstraction is not “offline transaction = weaker online transaction.” It is:
+
+> **A local replica accumulates evidence, claims, rights, and effects under partial knowledge; later replicas exchange monotone information and authoritative services resolve the deliberately non-monotone parts.**
+
+That maps cleanly to a DAG IR.
+
+## 1. The theoretical model
+
+### Partial knowledge → monotonicity
+
+Let the information available at a store be (K). After reconnection it becomes (K'), with:
+
+[
+K \subseteq K'
+]
+
+An offline conclusion is naturally safe when learning more cannot invalidate it:
+
+[
+K \vdash x \implies K' \vdash x
+]
+
+This is the CALM idea: monotone computations admit coordination-free distributed implementations; non-monotone conclusions are where coordination enters. The newer Complete CALM formulation generalizes this from set inclusion to arbitrary refinement orders over outcomes. ([arXiv](https://arxiv.org/abs/1901.01930 "\[1901.01930] Keeping CALM: When Distributed Consistency is Easy"))
+
+For a return:
+
+- `"barcode was scanned"` — monotone fact.
+- `"receipt signature is valid"` — monotone fact.
+- `"customer presented ID X"` — monotone fact.
+- `"this device has already seen return R"` — monotone positive evidence.
+- `"order does not exist"` — **not safe from an offline cache miss**.
+- `"item has never been returned"` — non-monotone without complete/current knowledge.
+- `"remaining refundable amount is $80"` — mutable authoritative state.
+- `"points balance will never become negative"` — global invariant.
+
+So the IR should have **Unknown as a first-class value**. A cache miss must never silently become `false`.
+
+---
+
+### Replicated state → join-semilattices / CRDTs
+
+For information that genuinely can be replicated independently, model state as:
+
+[
+(S,\sqcup)
+]
+
+where merge is associative, commutative, and idempotent.
+
+That is the algebra behind state convergence in CRDTs: replicas may independently receive updates and deterministically converge once they have received the same updates. ([arXiv](https://arxiv.org/abs/1805.06358 "Conflict-free Replicated Data Types (CRDTs)"))
+
+This suggests using things such as:
+
+```
+returnClaims       = grow-only operation set
+loyaltyLedger      = operation set of signed deltas
+seenEvidence       = grow-only map/set
+riskReservations   = bounded/escrow resource
+
+```
+
+rather than trying to merge arbitrary mutable JSON records.
+
+For example, don't replicate:
+
+```
+{ loyaltyPoints: 1350 }
+
+```
+
+using last-write-wins.
+
+Replicate:
+
+```
+[
+  { id: "sale:928",    delta: +500 },
+  { id: "redeem:331",  delta: -200 },
+  { id: "return:xyz",  delta: -100 },
+]
+
+```
+
+with globally unique operation IDs and set-union merge. The balance is a derived fold.
+
+---
+
+### Convergence ≠ invariant preservation
+
+Suppose two disconnected stores both see 1,000 locally cached loyalty points and independently spend 800.
+
+The CRDT can converge perfectly to:
+
+```
+1000 - 800 - 800 = -600
+
+```
+
+Convergence worked. The business invariant failed.
+
+Invariant-confluence tells us when independently valid operations remain valid after merge; when they do not, some form of coordination is fundamentally necessary. ([arXiv](https://arxiv.org/abs/1402.2237 "\[1402.2237] Coordination Avoidance in Database Systems (Extended Version)"))
+
+There is an important escape hatch: **preallocate rights**.
+
+For numeric invariants, bounded-counter work adapts escrow techniques so replicas possess locally consumable rights while preserving the global bound without synchronous coordination. ([arXiv](https://arxiv.org/abs/1503.09052 "\[1503.09052] Extending Eventually Consistent Cloud Databases for Enforcing Numeric Invariants"))
+
+So:
+
+```
+"store may assume arbitrary refund liability"
+    → impossible safely offline
+
+"store #123 owns $2,000 of offline-refund authority"
+    → possible offline
+
+"device may spend whatever loyalty balance its cache reports"
+    → unsafe
+
+"device owns 400 spendable-points rights"
+    → safe
+
+```
+
+---
+
+### Failed speculative work → compensation, not rollback
+
+If the store gives the customer something before authoritative validation, later rejection cannot generally rewind the whole distributed world.
+
+That is exactly the motivation behind Sagas: commit smaller steps and define semantic compensating operations for steps that later have to be undone. ([ACM Digital Library](https://dl.acm.org/doi/10.1145/38714.38742?utm_source=chatgpt.com "Sagas | ACM SIGMOD Record"))
+
+So don't delete:
+
+```
+OfflineReturnAccepted
+
+```
+
+later.
+
+Append:
+
+```
+OfflineReturnClaimed
+ReturnClaimRejected
+ProvisionalCreditRevoked
+LoyaltyAdjustmentCompensated
+
+```
+
+History grows.
+
+---
+
+### Causality ≠ wall-clock ordering
+
+The operation log should carry causal identity/context separately from timestamps. Lamport's foundational model gives distributed events a partial causal ordering rather than assuming one globally meaningful physical-time order. ([Microsoft](https://www.microsoft.com/en-us/research/publication/time-clocks-ordering-events-distributed-system/ "Time, Clocks and the Ordering of Events in a Distributed System - Microsoft Research"))
+
+In practice I'd have every durable operation contain approximately:
+
+```
+{
+  opId,
+  replicaId,
+  replicaSeq,
+  causality,
+  occurredAt,
+  observedAt
+}
+
+```
+
+The **IR DAG** describes computation dependencies.
+
+The **event causal graph** describes distributed execution.
+
+Keep those two concepts separate.
+
+---
+
+# 2. The composable primitives
+
+I'd reduce the entire DSL to about nine concepts:
+
+```
+input       external input
+read        obtain Knowledge<T>
+derive      pure deterministic computation
+check       Knowledge<T> → Verdict
+join        merge knowledge/evidence
+reserve     obtain locally-owned invariant-preserving rights
+decide      convert verdicts into a business disposition
+append      durable monotone fact/op
+effect      externally visible action
+reconcile   later authoritative continuation + compensation
+
+```
+
+With these fundamental values:
+
+```
+type Knowledge<T> =
+  | { kind: "known"; value: T; evidence: Evidence }
+  | { kind: "unknown"; reason: string };
+
+type Verdict =
+  | "pass"
+  | "fail"
+  | "unknown"
+  | "conflict";
+
+type Disposition =
+  | "reject"
+  | "accept"
+  | "provisional";
+
+```
+
+The distinction between `unknown` and `fail` is essential.
+
+---
+
+# 3. What I'd want the JavaScript to look like
+
+```
+const returnFlow = dag("returns.accept", $ => {
+  const request = $.input("request", ReturnRequest);
+
+  // -------------------------
+  // Locally provable facts
+  // -------------------------
+
+  const shape = $.check("valid-request", c => c
+    .rule("returns.request.valid@3")
+    .with(request));
+
+  const receipt = $.check("receipt-authentic", c => c
+    .rule("returns.receipt.signature@2")
+    .with(request.receipt)
+    .unknownIfMissing());
+
+  const itemPolicy = $.check("local-item-policy", c => c
+    .rule("returns.item.local-policy@7")
+    .with(request.item));
+
+  // -------------------------
+  // Partial replicated knowledge
+  // -------------------------
+
+  const order = $.read("order", r => r
+    .key(request.orderId)
+    .fromReplica("orders")
+    .authority("order-service")
+    .offlineAs("unknown"));
+
+  const belongsToOrder = $.check("belongs-to-order", c => c
+    .whenKnown(order)
+    .rule("returns.order.contains-item@4")
+    .with(order, request.item)
+    .otherwiseUnknown("ORDER_NOT_AVAILABLE"));
+
+  // This needs current authoritative state.
+  // A stale cached order must not turn it into PASS.
+  const notAlreadyReturned = $.check("not-already-returned", c => c
+    .whenAuthoritative(order)
+    .rule("returns.not-already-returned@5")
+    .with(order, request.item)
+    .otherwiseUnknown("CURRENT_RETURN_STATE_UNAVAILABLE"));
+
+  // -------------------------
+  // Preserve an offline invariant using rights
+  // -------------------------
+
+  const exposure = $.reserve("offline-refund-exposure", r => r
+    .resource("store.offline-return-usd")
+    .amount(request.refund.amount)
+    .using("bounded-counter")
+    .otherwiseFail("OFFLINE_LIMIT_EXCEEDED"));
+
+  // -------------------------
+  // Policy
+  // -------------------------
+
+  const disposition = $.decide("disposition", d => d
+    .when(x => x.anyFail(
+      shape,
+      receipt,
+      itemPolicy,
+      belongsToOrder,
+      notAlreadyReturned,
+      exposure
+    ), "reject")
+
+    .when(x => x.anyUnknown(
+      belongsToOrder,
+      notAlreadyReturned
+    ), "provisional")
+
+    .otherwise("accept"));
+
+  // -------------------------
+  // Immutable return claim
+  // -------------------------
+
+  const claim = $.append("return-claim", a => a
+    .when(disposition.ne("reject"))
+    .to("returnClaims")
+    .merge("op-set")
+    .id(x => x.uuid())
+    .value(x => ({
+      orderId: request.orderId,
+      item: request.item,
+      requestedRefund: request.refund,
+      disposition,
+      evidence: x.evidenceOf(
+        shape,
+        receipt,
+        itemPolicy,
+        belongsToOrder,
+        notAlreadyReturned,
+        exposure
+      )
+    })));
+
+  // -------------------------
+  // Local consequences
+  // -------------------------
+
+  const loyalty = $.append("loyalty-adjustment", a => a
+    .after(claim)
+    .when(disposition.ne("reject"))
+    .to("loyaltyLedger")
+    .merge("op-set")
+    .id(x => x.key("return", claim.id))
+    .value(x => ({
+      customerId: request.customerId,
+      delta: x.negate(request.pointsEarned),
+      cause: claim.id
+    })));
+
+  const credit = $.effect("issue-refund", e => e
+    .after(claim, exposure)
+    .when(disposition.ne("reject"))
+    .handler("pos.issue-return-credit")
+    .idempotencyKey(claim.id)
+    .with(x => ({
+      claimId: claim.id,
+      amount: request.refund.amount,
+      provisional: disposition.eq("provisional")
+    })));
+
+  // -------------------------
+  // Store-and-forward
+  // -------------------------
+
+  $.forward("reconcile", f => f
+    .after(claim, loyalty, credit)
+    .to("return-service")
+    .message(claim)
+    .untilAcknowledged()
+    .idempotencyKey(claim.id)
+
+    .onAccepted(a => a
+      .append("return-finalized", {
+        claimId: claim.id
+      }))
+
+    .onRejected(r => r
+      .append("return-rejected", x => ({
+        claimId: claim.id,
+        reason: x.remote.reason
+      }))
+
+      .compensate(loyalty, c => c
+        .handler("loyalty.reverse-entry"))
+
+      .compensate(credit, c => c
+        .handler("pos.reverse-provisional-credit")));
+});
+
+export default returnFlow.compile();
+
+```
+
+That's approximately the user-facing API I'd target.
+
+---
+
+# 4. The lambda trick
+
+I would **not serialize JavaScript lambdas into the IR**.
+
+That creates versioning, sandboxing, portability, determinism, inspection, and deployment problems.
+
+The lambdas are builder macros evaluated while constructing the graph:
+
+```
+.value(x => ({
+  customerId: request.customerId,
+  delta: x.negate(request.pointsEarned)
+}))
+
+```
+
+`x` is an expression-building proxy.
+
+So this produces:
+
+```
+{
+  "op": "record",
+  "fields": {
+    "customerId": {
+      "op": "ref",
+      "node": "request",
+      "path": ["customerId"]
+    },
+    "delta": {
+      "op": "negate",
+      "args": [
+        {
+          "op": "ref",
+          "node": "request",
+          "path": ["pointsEarned"]
+        }
+      ]
+    }
+  }
+}
+
+```
+
+Not:
+
+```
+{
+  "javascript": "x => ..."
+}
+
+```
+
+That's an important architectural boundary.
+
+The resulting IR is deterministic, hashable, inspectable, optimizable, testable, versionable, and executable by implementations that aren't JavaScript.
+
+---
+
+# 5. Example compiled DAG IR
+
+Something in this direction:
+
+```
+{
+  "ir": "distributed-flow/v1",
+  "name": "returns.accept",
+  "nodes": [
+    {
+      "id": "request",
+      "op": "input",
+      "schema": "ReturnRequest"
+    },
+    {
+      "id": "order",
+      "op": "read",
+      "replica": "orders",
+      "authority": "order-service",
+      "offline": "unknown"
+    },
+    {
+      "id": "belongs-to-order",
+      "op": "check",
+      "rule": "returns.order.contains-item@4",
+      "requires": "known"
+    },
+    {
+      "id": "not-already-returned",
+      "op": "check",
+      "rule": "returns.not-already-returned@5",
+      "requires": "authoritative"
+    },
+    {
+      "id": "offline-refund-exposure",
+      "op": "reserve",
+      "resource": "store.offline-return-usd",
+      "semantics": "bounded-counter"
+    },
+    {
+      "id": "disposition",
+      "op": "decide"
+    },
+    {
+      "id": "return-claim",
+      "op": "append",
+      "store": "returnClaims",
+      "merge": "op-set"
+    },
+    {
+      "id": "loyalty-adjustment",
+      "op": "append",
+      "store": "loyaltyLedger",
+      "merge": "op-set"
+    },
+    {
+      "id": "issue-refund",
+      "op": "effect",
+      "idempotentBy": "return-claim.id"
+    },
+    {
+      "id": "reconcile",
+      "op": "forward",
+      "destination": "return-service"
+    }
+  ],
+  "edges": [
+    ["request", "order"],
+    ["order", "belongs-to-order"],
+    ["order", "not-already-returned"],
+    ["request", "offline-refund-exposure"],
+    ["belongs-to-order", "disposition"],
+    ["not-already-returned", "disposition"],
+    ["offline-refund-exposure", "disposition"],
+    ["disposition", "return-claim"],
+    ["return-claim", "loyalty-adjustment"],
+    ["return-claim", "issue-refund"],
+    ["return-claim", "reconcile"]
+  ]
+}
+
+```
+
+---
+
+# 6. First-class replication declarations
+
+I'd make replicated state itself part of the same DSL:
+
+```
+const loyaltyLedger = replica("loyaltyLedger", $ => $
+  .operationSet()
+  .identity(e => e.entryId)
+  .merge(m => m.union())
+  .derive("balance", xs =>
+    xs.sum(e => e.delta)
+  ));
+
+```
+
+For spendable points with a nonnegative invariant:
+
+```
+const spendablePoints = replica("spendablePoints", $ => $
+  .boundedCounter()
+  .invariant(x => x.gte(0))
+  .rightsBy("storeId"));
+
+```
+
+And for claims:
+
+```
+const returnClaims = replica("returnClaims", $ => $
+  .operationSet()
+  .identity(x => x.claimId)
+  .merge(m => m.union()));
+
+```
+
+This gives the compiler enough semantic information to distinguish:
+
+```
+mergeable
+locally decidable
+requires rights
+requires authority
+may compensate
+
+```
+
+rather than hiding all those semantics in application handlers.
+
+---
+
+# 7. Static analysis becomes one of the best features
+
+Once those properties exist in the IR, compilation can flag dangerous graphs.
+
+For example:
+
+```
+$.effect("cash-refund", ...)
+
+```
+
+depending on:
+
+```
+notAlreadyReturned : Unknown
+
+```
+
+could fail compilation:
+
+```
+E1042 Non-monotone dependency crosses an irreversible effect.
+
+cash-refund
+└─ disposition
+   └─ not-already-returned
+      └─ requires authoritative current state
+
+Choose one:
+  • require online authority
+  • obtain an offline capability/right
+  • explicitly mark the effect provisional + compensatable
+  • place it behind a bounded risk reservation
+
+```
+
+That is much more valuable than merely having a nice fluent syntax.
+
+---
+
+# 8. The offline-return semantic model
+
+For your specific business case, I would define three outcomes rather than boolean accept/reject:
+
+```
+REJECTED
+ACCEPTED
+PROVISIONALLY_ACCEPTED
+
+```
+
+`PROVISIONALLY_ACCEPTED` means:
+
+> All locally decidable hard constraints passed, the node had sufficient delegated risk/resource rights, and unresolved authoritative predicates have been persisted explicitly for later reconciliation.
+
+The critical word is **explicitly**.
+
+You want an evidence envelope somewhat like:
+
+```
+{
+  claimId,
+  replicaId,
+
+  request: {...},
+
+  evidence: [
+    "item-scanned",
+    "receipt-signature-valid",
+    "associate-authorized",
+    "local-policy-v7-pass"
+  ],
+
+  known: {
+    orderId: "...",
+    sku: "..."
+  },
+
+  unknown: [
+    "order-current-state",
+    "remaining-refundable-quantity",
+    "prior-return-at-other-replica"
+  ],
+
+  rightsConsumed: {
+    offlineRefundUsd: 74.95
+  },
+
+  disposition: "PROVISIONAL"
+}
+
+```
+
+This is effectively a **proof-carrying deferred command**.
+
+---
+
+# 9. Reconnection semantics
+
+After connectivity returns:
+
+```
+             offline
+                │
+                ▼
+        ReturnClaim(opId)
+          /          \
+         /            \
+LoyaltyDelta       RefundEffect
+    │                   │
+    └────────┬──────────┘
+             │
+         durable outbox
+             │
+──────── network partition ────────
+             │
+             ▼
+    authoritative validation
+         /             \
+       PASS            FAIL
+        │                │
+        ▼                ▼
+ ReturnFinalized   ReturnRejected
+                        │
+                ┌───────┴────────┐
+                ▼                ▼
+         LoyaltyInverse    CreditCompensation
+
+```
+
+And every arrow represents another durable idempotent operation.
+
+No destructive rollback.
+
+---
+
+## One caveat worth making explicit
+
+There is no clever CRDT that can guarantee an unknown order hasn't simultaneously been returned at another disconnected location.
+
+That uniqueness constraint is inherently problematic under partition: independently valid decisions can conflict after merge. I-confluence gives the theoretical reason. ([arXiv](https://arxiv.org/abs/1402.2237 "\[1402.2237] Coordination Avoidance in Database Systems (Extended Version)"))
+
+You therefore have only a few honest semantic choices:
+
+1. **Require authority** and refuse that class of offline return.
+2. **Preallocate a capability/right** when feasible.
+3. **Accept provisionally** and compensate/review conflicts later.
+4. **Bound the economic damage** using escrowed store/device risk limits.
+
+For retail offline operation, **3 + 4** is usually the interesting design space.
+
+That gives you a DSL whose fundamental vocabulary is not generic workflow terminology but actual distributed-systems semantics:
+
+```
+known()
+unknown()
+authority()
+merge()
+check()
+reserve()
+decide()
+append()
+effect()
+compensate()
+forward()
+
+```
+
+and, importantly, the compiler can reason about why each node is safe to execute while disconnected.

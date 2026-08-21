@@ -1,0 +1,630 @@
+---
+Title: Embedding Cache S3 Migration Analysis and Implementation Guide
+Ticket: COINVAULT-EMBED-CACHE-S3-001
+Status: review
+Topics:
+    - coinvault
+    - indexing
+    - sqlite
+    - aws
+    - terraform
+    - observability
+    - deployment
+    - rag
+    - performance
+    - infrastructure
+DocType: design-doc
+Intent: long-term
+Owners: []
+RelatedFiles:
+    - Path: abs:///home/manuel/go/pkg/mod/github.com/go-go-golems/flowkit@v0.1.0/execution/cache.go
+      Note: Cache interface, FileCache path layout, and envelope schema.
+    - Path: repo://cmd/coinvault/cmds/knowledge.go
+      Note: Existing knowledge cache-export S3 upload pattern and prefix guard to extend.
+    - Path: repo://internal/knowledgebuild/build.go
+      Note: CoinVault couples FileCache to EFS at the embed-cache directory.
+    - Path: repo://internal/knowledgecacheexport/export.go
+      Note: Existing tar+gzip cache archive shape.
+    - Path: ws://goldeneaglecoin.com/infra/terraform/modules/coinvault-runtime/main.tf
+      Note: Existing cache_export IAM and task definition as the reviewed S3 pattern.
+    - Path: ws://ragkit/rag/embedding/cached_embedder.go
+      Note: CachedEmbedder key construction binds model+text+prefix.
+ExternalSources: []
+Summary: Evidence-backed analysis and design for moving the CoinVault embedding cache from EFS to S3 with an ephemeral local hot layer, removing small-file I/O from the build hot path.
+LastUpdated: 2026-08-13T20:50:00-04:00
+WhatFor: Guide implementation of an S3-backed, content-addressed embedding cache with local-disk read speed during builds and cross-environment reuse.
+WhenToUse: Use before changing the embedding cache backend, the CachedEmbedder construction, or the cache_export Terraform/IAM contract.
+---
+
+
+# Embedding Cache S3 Migration Analysis and Implementation Guide
+
+## Executive summary
+
+The CoinVault embedding cache is a set of small, immutable, content-addressed JSON files — one per embedded text — currently stored on EFS. The development corpus produces 114,106 such files. That shape (many small random reads, write-once, immutable) is the worst case for EFS and the best case for object storage.
+
+The recommended design moves durable cache storage to S3 and uses Fargate ephemeral disk as a hot layer during a build: copy the cache prefix from S3 to local disk at build start, let the build read and write against local disk (NVMe speed), and copy new entries back to S3 at build end. Because every entry is content-addressed and immutable, concurrency is safe and idempotent — no locking, no WAL-on-NFS, no cross-environment duplication.
+
+This is not a new dependency. The Terraform module already provisions an S3-backed cache export task and IAM role with scoped `s3:PutObject`. The migration extends that reviewed pattern from a one-shot frozen snapshot to a live read/write backend.
+
+## Audience and prerequisites
+
+This document is written for an engineer new to CoinVault, RagKit, Flowkit, and ECS. Before implementing it, understand these terms:
+
+- **Embedding cache:** per-text result storage so a re-run avoids repeating provider work.
+- **Content-addressed:** a value's storage path is derived from a hash of its key, so the same input always maps to the same path and the same value.
+- **Flowkit `Cache` interface:** the abstract `Load`/`Store` contract that `CachedEmbedder` depends on.
+- **FileCache:** the current local-filesystem implementation of the `Cache` interface.
+- **Ephemeral storage:** Fargate task-local NVMe disk that does not persist across task runs.
+- **Cache export:** the existing one-shot task that tars the corpus + cache + receipt and uploads a single S3 object.
+- **Bundle:** the immutable schema-v2 retrieval index published under the knowledge root (out of scope for this ticket).
+
+## Problem statement and scope
+
+### Observed problem
+
+The dev indexer build spends most of its wall time in the embedding/staging phase even when every entry is a cache hit, because the cache lives on EFS:
+
+```text
+dev build: 114,106 embeddings, 0 misses, 0 work calls
+wall time dominated by staging/sealing on EFS, not by provider calls
+```
+
+EFS meters read/write throughput per client and charges per-provisioned-throughput; 114k small random file opens incur millisecond-per-open latency. A corpus change forces re-embedding in dev and prod independently because their caches live on separate filesystems.
+
+### Required outcome
+
+- Build-time cache reads hit local disk, not the network.
+- Cache entries survive across task runs.
+- The same text is embedded once and reused across environments.
+- No locking, no SQLite-over-NFS hazards, no concurrency control.
+- No secret values in cache paths, S3 keys, logs, or Terraform state.
+
+### In scope
+
+- The `Cache` interface and `FileCache` implementation in Flowkit.
+- The `CachedEmbedder` construction in CoinVault.
+- The build command's cache directory selection.
+- Terraform/IAM for an S3 cache bucket prefix and task role.
+- Sync-on-start and sync-on-end behavior and telemetry.
+
+### Out of scope
+
+- The immutable bundle (it stays on EFS for serving reads).
+- The embedding provider or vector dimensions.
+- SQLite verifier scratch (handled by COINVAULT-SQLITE-TMP-001).
+- Changing the cache key algorithm or envelope schema.
+
+## Current-state system map
+
+### End-to-end embedding cache flow
+
+```text
+coinvault knowledge build --output /var/lib/coinvault/knowledge
+        |
+        v
+internal/knowledgebuild.buildDocuments
+        | opens execution.NewFileCache(Directory: <output>/embed-cache)
+        v
+embedding.NewCachedEmbedder(provider, {Cache: fileCache, ...})
+        |
+        | for each text in each batch:
+        |   key = NewKey("gec-knowledge-embedding", "v1-<prefix>", {model, text})
+        |   hit? -> load JSON vector from <output>/embed-cache/<digest[:2]>/<digest>.json
+        |   miss? -> provider.Embed, validate, Store JSON vector
+        v
+BuildStream stages + publishes immutable bundle on EFS
+```
+
+### The Flowkit Cache interface
+
+`flowkit/execution/cache.go` defines the abstract contract:
+
+```go
+type Cache interface {
+    Load(context.Context, Key, any) (bool, error)
+    Store(context.Context, Key, any) error
+}
+```
+
+`Key` is `{Step, Version, InputDigest}` where `InputDigest` is a SHA-256 of the JSON-serialized input. `Key.Digest()` produces a stable 64-hex-char fingerprint used as the storage path.
+
+### The FileCache implementation
+
+`flowkit/execution/cache.go` implements `Cache` with one file per entry:
+
+```go
+func (cache *FileCache) path(key Key) (string, error) {
+    keyDigest, err := key.Digest()
+    return filepath.Join(cache.directory, keyDigest[:2], keyDigest+".json"), nil
+}
+```
+
+So the dev corpus becomes **114,106 JSON files** sharded across 256 subdirectories (`00/`…`ff/`). Each file is a validated envelope:
+
+```json
+{
+  "schema_version": "rag-ttc-execution-cache/v1",
+  "key": { "step": "...", "version": "...", "input_digest": "..." },
+  "value_digest": "...",
+  "value": { ... the vector ... }
+}
+```
+
+`Store` writes atomically (temp file + sync + rename). `Load` validates the schema, full key, and value digest, and fails closed on corruption.
+
+### The CachedEmbedder
+
+`ragkit/rag/embedding/cached_embedder.go` wraps a provider and the cache. For each text it builds a key and either loads or computes:
+
+```go
+Key: func(current item) (execution.Key, error) {
+    return execution.NewKey(e.options.Step, e.options.Version, current)
+}
+```
+
+In CoinVault, the step is `"gec-knowledge-embedding"` and the version is `"v1-" + manifest.Embedding.TaskPrefix`, so a raw-v1 vector can never be reused for a prefixed bundle (or vice versa). The `item` is `{Model, Text}`, so the key already binds model + text + prefix.
+
+### CoinVault cache construction
+
+`coinvault/internal/knowledgebuild/build.go:373`:
+
+```go
+cache, cacheErr := execution.NewFileCache(execution.FileCacheOptions{
+    Directory: filepath.Join(options.OutputRoot, "embed-cache"),
+})
+```
+
+`options.OutputRoot` is `/var/lib/coinvault/knowledge` in ECS — on the EFS access point. This is the single line that puts the entire cache on EFS.
+
+### Telemetry and the receipt
+
+The build emits an `EmbeddingReceipt` and EMF metrics so cache behavior is observable:
+
+```go
+type EmbeddingReceipt struct {
+    Provider    string `json:"provider"`
+    Model       string `json:"model"`
+    Dimensions  int    `json:"dimensions"`
+    CacheHits   int64  `json:"cache_hits"`
+    CacheMisses int64  `json:"cache_misses"`
+    CacheWrites int64  `json:"cache_writes"`
+    WorkCalls   int64  `json:"work_calls"`
+}
+```
+
+EMF metrics `EmbeddingCacheHits`, `EmbeddingCacheMisses`, `EmbeddingCacheWrites`, `EmbeddingWorkCalls` are emitted under namespace `CoinVault/KnowledgeBuild` with dimensions `Environment, Component, Phase`. These do not change in this migration; they remain the cache-effectiveness signal.
+
+### Existing S3 plumbing (the pattern to extend)
+
+The Terraform module already provisions a one-shot cache export path. `infra/terraform/modules/coinvault-runtime/main.tf`:
+
+- `aws_iam_role.cache_export` with a task role.
+- `aws_iam_role_policy.cache_export_artifact` granting `s3:PutObject` / `s3:AbortMultipartUpload` to exactly `var.cache_export_artifact_object_arn`.
+- `aws_ecs_task_definition.cache_export` running `knowledge cache-export --root ... --corpus ... --cache embed-cache --artifact-s3-uri ... --allowed-s3-prefix ...`.
+
+The CoinVault command `cmd/coinvault/cmds/knowledge.go:397` streams a tar+gzip archive (corpus + `embed-cache/` + receipt) to S3 via `transfermanager` multipart upload, guarded by `validateCacheExportDestination` so the destination must be a child of the allowed prefix.
+
+This proves three things: (1) S3 access from a task role is already reviewed and scoped, (2) the task already knows how to enumerate the cache directory and stream it, and (3) destination guarding by exact prefix already exists. The migration generalizes these from a write-only snapshot to a read/write backend.
+
+## Gap analysis
+
+### Gap 1: durable cache lives on the wrong storage class
+
+EFS provides POSIX durability for serving reads of the published bundle. The embedding cache does not need POSIX semantics; it needs key→value durability and high-throughput random reads. EFS meters throughput and adds per-open latency; object storage is built for this.
+
+### Gap 2: no cross-environment reuse
+
+Dev and prod have separate EFS filesystems and separate `embed-cache/` directories. An identical text embedded in dev is re-embedded in prod because the two caches never meet. A content-addressed S3 key keyed by `{Step, Version, Model, Text}` is identical across environments, so a shared bucket prefix (e.g. `embed-cache/<env>/` or a single shared prefix) gives one-embedding-per-text.
+
+### Gap 3: build-time reads cross the network on every miss
+
+Even a cache hit on EFS is a network read. A build that reads 114k small files from EFS pays network latency on every open. Local ephemeral disk is NVMe-backed with sub-millisecond opens.
+
+### Gap 4: the cache is tied to the build output root
+
+`filepath.Join(options.OutputRoot, "embed-cache")` couples the cache to the EFS knowledge root. There is no flag or option to point the cache elsewhere, so the build always uses EFS.
+
+## Proposed design
+
+### Design goals
+
+- Local-disk read speed during the build.
+- Durability across task runs without EFS.
+- Cross-environment reuse where the cache identity is identical.
+- Preserve the `Cache` interface and envelope schema (no data migration of existing entries' content, only their storage location).
+- Keep secrets out of cache paths, keys, logs, and Terraform state.
+
+### Target architecture
+
+```text
+Build start:
+  s3 sync s3://<bucket>/<prefix>/ -> /scratch/embed-cache/   (copy-on-start)
+        v
+  execution.NewFileCache(Directory: /scratch/embed-cache/)  (local, NVMe)
+        v
+  CachedEmbedder reads/writes local disk during the whole build
+        v
+Build end:
+  s3 sync /scratch/embed-cache/ -> s3://<bucket>/<prefix>/    (copy-on-end)
+```
+
+The `Cache` interface is unchanged. `FileCache` keeps its local-file implementation. The only change is where `FileCache.Directory` points and who populates/flushes it.
+
+### Key design principle: content-addressing makes this safe
+
+The cache key is `{Step, Version, InputDigest(InputDigest(model+text+prefix))}`. Two facts follow:
+
+1. The same key always produces the same value (provider determinism), so writing the same key twice is idempotent — concurrent or repeated writes cannot corrupt the cache.
+2. The storage path is `prefix/keyDigest.json`, so there is no index to update and no ordering constraint.
+
+This means sync-on-start and sync-on-end can be simple bulk copies. There is no need for a database, locking, or conflict resolution.
+
+### S3 key layout
+
+```text
+s3://coinvault-embed-cache/<environment>/embed-cache/<digest[:2]>/<digest>.json
+```
+
+- `<environment>` is `dev` or `prod`, matching the existing telemetry dimension.
+- The `<digest[:2]>/<digest>.json` layout is identical to `FileCache.path` so a local directory can be rsynced to and from the prefix with path-for-path fidelity.
+- A shared variant (single prefix, no environment segment) is possible later because the key already binds provider+model; the environment segment is a safety/observability boundary, not a correctness one.
+
+### Two implementation strategies
+
+#### Strategy A — sync-then-build (recommended for first implementation)
+
+Keep `FileCache` as the runtime cache. Add a sync step before and after:
+
+```text
+1. mkdir -p /scratch/embed-cache
+2. aws s3 sync s3://bucket/<env>/embed-cache/ /scratch/embed-cache/
+3. build with --embed-cache-dir /scratch/embed-cache
+4. aws s3 sync /scratch/embed-cache/ s3://bucket/<env>/embed-cache/
+```
+
+Pros: no Flowkit/RagKit code change; the `Cache` interface is untouched; works today with the existing `--scratch-dir` pattern as a model.
+Cons: copies the whole prefix even if only a few entries are new; `s3 sync` is a CLI subprocess (or SDK list+copy loop), not in-process.
+
+#### Strategy B — S3-backed Cache implementation (durable, more work)
+
+Implement a new `S3Cache` that satisfies the Flowkit `Cache` interface directly against S3, with an optional local read-through/write-through buffer. `CachedEmbedder` is unchanged; only the `Cache` implementation it receives changes.
+
+Pros: no bulk copy; per-entry lazy fetch; the build only downloads what it misses.
+Cons: new Flowkit code; per-entry S3 GET latency on misses can be higher than a local read; needs a local write buffer for the hot path anyway.
+
+The first implementation should use **Strategy A** because it requires no Flowkit change and reuses the existing `FileCache`. Strategy B is the durable end state once the access pattern and miss-rate are measured; it is a follow-up.
+
+### API proposal: CoinVault
+
+Add a `--embed-cache-dir` flag to the build command (glazed, matching `--scratch-dir`):
+
+```go
+type KnowledgeBuildSettings struct {
+    // existing fields...
+    EmbedCacheDir string `glazed:"embed-cache-dir"`
+}
+```
+
+Default resolution:
+
+```text
+if --embed-cache-dir is non-empty:
+    use it
+else if --embed-cache-s3-uri is non-empty:
+    use <scratch-root>/embed-cache (local) and sync from S3
+else:
+    use <output-root>/embed-cache  (current EFS behavior, for local/CI)
+```
+
+Add `--embed-cache-s3-uri` and `--embed-cache-s3-allowed-prefix` mirroring the cache-export command's `--artifact-s3-uri` / `--allowed-s3-prefix` guarding.
+
+### API proposal: Terraform
+
+Add variables to the module:
+
+```hcl
+variable "embed_cache_s3_uri" {
+  description = "S3 prefix for the durable embedding cache (s3://bucket/<env>/embed-cache/)."
+  type        = string
+  default     = ""
+}
+
+variable "embed_cache_s3_prefix_arn" {
+  description = "Bucket ARN granting s3:GetObject/PutObject/ListBucket to the cache prefix."
+  type        = string
+  default     = ""
+}
+```
+
+Extend the indexer task role policy to allow `s3:GetObject`, `s3:PutObject`, and (for sync) `s3:ListBucket` scoped to the cache prefix. This is a strict superset of the existing `cache_export_artifact` policy, which already grants `s3:PutObject` to one object ARN.
+
+Update the default `indexer_command` to pass `--embed-cache-dir /scratch/embed-cache --embed-cache-s3-uri <prefix>`, where `/scratch` is the ephemeral init-created scratch directory from COINVAULT-SQLITE-TMP-001.
+
+### Sync behavior and the ephemeral layer
+
+The build already needs an ephemeral scratch directory (the verifier relation). The same init-container pattern from COINVAULT-SQLITE-TMP-001 creates `/scratch` owned by UID 10001. The cache lives at `/scratch/embed-cache`:
+
+```text
+init container (root):  mkdir -p /scratch && chown 10001:10001 /scratch && chmod 700 /scratch
+indexer container (10001, dependsOn init):
+  - aws s3 sync s3://bucket/<env>/embed-cache/ /scratch/embed-cache/   (start)
+  - knowledge build ... --embed-cache-dir /scratch/embed-cache ...
+  - aws s3 sync /scratch/embed-cache/ s3://bucket/<env>/embed-cache/   (end)
+```
+
+The sync is bounded: the dev cache is ~2.2 GB / 114k files. `aws s3 sync` with default concurrency completes this in seconds to low minutes; the build's embedding phase is far longer, so sync is not on the critical path for a warm run.
+
+### Pseudocode: build command cache wiring
+
+```go
+func resolveEmbedCacheDir(outputRoot, configured, s3URI string) (string, error) {
+    if dir := strings.TrimSpace(configured); dir != "" {
+        return filepath.Abs(dir)
+    }
+    if strings.TrimSpace(s3URI) != "" {
+        // Use ephemeral local dir; sync populates it.
+        return filepath.Join(scratchRoot, "embed-cache"), nil
+    }
+    // Local/CI fallback: keep current behavior.
+    return filepath.Join(strings.TrimSpace(outputRoot), "embed-cache"), nil
+}
+
+func syncCacheFromS3(ctx context.Context, s3URI, localDir string) error {
+    // List objects under s3URI, GET each to <localDir>/<relativeKey>.
+    // Idempotent; missing prefix is a no-op (cold cache).
+}
+
+func syncCacheToS3(ctx context.Context, localDir, s3URI string) error {
+    // Walk localDir, PUT each file to <s3URI>/<relativeKey>.
+    // Idempotent; overwrites are safe (content-addressed).
+}
+```
+
+### Pseudocode: CachedEmbedder (unchanged)
+
+```go
+// The only change is which Cache implementation is passed in.
+cache := execution.NewFileCache(execution.FileCacheOptions{
+    Directory: resolvedEmbedCacheDir, // now /scratch/embed-cache, not <output>/embed-cache
+})
+cached, _ := embedding.NewCachedEmbedder(provider, embedding.CachedEmbedderOptions{
+    Cache: cache, Workers: ..., Step: "gec-knowledge-embedding", Version: "v1-"+prefix,
+})
+```
+
+## Decision records
+
+### Decision: S3 as durable backing, ephemeral local as hot layer
+
+- **Context:** The cache is many small immutable files; EFS meters throughput and adds latency; local disk is fast but not durable across task runs.
+- **Options considered:** Keep on EFS; S3-backed Cache implementation (Strategy B); sync-then-build (Strategy A).
+- **Decision:** Strategy A first (sync-then-build), Strategy B as a measured follow-up.
+- **Rationale:** A reuses `FileCache` and the existing `Cache` interface with no Flowkit change; it ships the durable benefit (cross-env reuse, no EFS) immediately. B optimizes per-entry fetch but needs a local buffer anyway and adds per-GET latency.
+- **Consequences:** Strategy A copies the whole prefix each run; acceptable for ~2.2 GB. If the cache grows to tens of GB, Strategy B becomes necessary.
+- **Status:** proposed
+
+### Decision: keep the FileCache path layout identical in S3
+
+- **Context:** `FileCache.path` uses `<digest[:2]>/<digest>.json`. S3 keys must mirror this for path-for-path sync.
+- **Options considered:** Re-key for S3 (flat keys, different sharding); mirror the local layout.
+- **Decision:** Mirror the local layout exactly (`<prefix>/<digest[:2]>/<digest>.json`).
+- **Rationale:** `aws s3 sync` (or a list+copy loop) maps local files to S3 objects with no path translation, and back. No migration logic, no key remapping.
+- **Consequences:** S3 object count is high (114k+); this is fine for S3 and avoids translation bugs.
+- **Status:** proposed
+
+### Decision: environment segment in the S3 prefix
+
+- **Context:** Dev and prod share a bucket or use separate buckets.
+- **Options considered:** Single shared prefix (key already binds model+text); environment-segmented prefix.
+- **Decision:** Environment-segmented prefix first (`<env>/embed-cache/`), with a documented path to a shared prefix later.
+- **Rationale:** The environment segment is a safety and observability boundary, not a correctness requirement. It prevents an accidental prod build from reading a dev-curated cache during the migration, while the shared-key property keeps the future cross-env reuse option open.
+- **Consequences:** Cross-env reuse requires a later switch to a shared prefix or a copy step. The key identity already guarantees safety.
+- **Status:** proposed
+
+### Decision: keep the Cache interface and envelope schema unchanged
+
+- **Context:** Existing dev caches on EFS hold valid entries.
+- **Options considered:** Migrate envelope format; keep it.
+- **Decision:** Keep `rag-ttc-execution-cache/v1` and the `{schema_version, key, value_digest, value}` envelope.
+- **Rationale:** The content is identical; only the storage location changes. A first run against an empty S3 prefix is a cold cache that re-embeds; the warm EFS cache can be bulk-uploaded once via the existing `knowledge cache-export` path to seed S3 if desired.
+- **Consequences:** No data-format migration. Seeding S3 from EFS is optional and one-time.
+- **Status:** proposed
+
+## Alternatives considered
+
+### Keep the cache on EFS and provision more throughput
+
+Rejected as the primary fix. It does not solve the small-files latency, does not enable cross-environment reuse, and is the most expensive option per GB. Throughput provisioning is a band-aid for a storage-class mismatch.
+
+### Bundled SQLite cache on EFS
+
+Rejected. Collapsing 114k files into one SQLite file reduces IOPS, but SQLite-over-NFS has known locking and WAL hazards — the same class of problem that caused the original `/tmp` verification failure in COINVAULT-SQLITE-TMP-001. It also reintroduces a writer/reader coordination problem that content-addressed files avoid entirely.
+
+### DynamoDB
+
+Rejected for the value shape. The values are 6–20 KB JSON blobs that S3 handles natively. DynamoDB adds provisioning, item-size limits (400 KB), and per-read cost with no benefit, since the cache is read during builds only — not from the low-latency serving hot path.
+
+### Keep EFS for the cache, S3 only for the bundle export
+
+Rejected. This preserves the build-time bottleneck (the problem this ticket solves). The bundle export already uses S3; the cache is the part that needs to move.
+
+## Phased implementation plan
+
+### Phase 1: CoinVault cache directory flag and local-ephemeral support
+
+Files:
+- `coinvault/internal/knowledgebuild/build.go` — resolve cache directory.
+- `coinvault/cmd/coinvault/cmds/knowledge.go` — `--embed-cache-dir` and `--embed-cache-s3-uri` flags.
+- related tests.
+
+Tasks:
+1. Add `EmbedCacheDir` and `EmbedCacheS3URI` to `KnowledgeBuildSettings` (glazed).
+2. Resolve the cache directory before constructing `FileCache`.
+3. When `EmbedCacheS3URI` is set, ensure the local directory exists (mode 0700) before the build and run the S3 sync hooks.
+4. Keep the current `<output>/embed-cache` fallback for local/CI.
+5. Test: a build with `--embed-cache-dir` writes to that directory, not `<output>/embed-cache`.
+
+### Phase 2: S3 sync helpers
+
+Files:
+- `coinvault/internal/knowledgebuild/cache_sync.go` (new).
+- related tests.
+
+Tasks:
+1. Implement `syncCacheFromS3` (list prefix, GET each object to the matching local path; idempotent; cold prefix is a no-op).
+2. Implement `syncCacheToS3` (walk local dir, PUT each file to the matching S3 key; idempotent overwrite).
+3. Enforce the allowed-prefix guard (reuse `validateCacheExportDestination` logic).
+4. Add telemetry: `EmbedCacheSyncDurationMilliseconds`, `EmbedCacheSyncFiles`, `EmbedCacheSyncBytes`.
+5. Test against a fake S3/localstack or an in-memory interface.
+
+### Phase 3: Terraform and IAM
+
+Files:
+- `infra/terraform/modules/coinvault-runtime/main.tf`
+- `infra/terraform/modules/coinvault-runtime/variables.tf`
+- root tfvars examples.
+
+Tasks:
+1. Add `embed_cache_s3_uri` and `embed_cache_s3_prefix_arn` variables.
+2. Extend the indexer task role policy with `s3:GetObject`, `s3:PutObject` on the prefix ARN and `s3:ListBucket` on the bucket (scoped to the prefix).
+3. Add the S3 bucket/prefix (or accept an existing one) with a lifecycle policy if desired.
+4. Update the default `indexer_command` and the dev/prod tfvars to pass `--embed-cache-dir /scratch/embed-cache --embed-cache-s3-uri <prefix>`.
+5. Validate both roots and plan the dev indexer task definition change.
+
+### Phase 4: ephemeral scratch integration
+
+Files:
+- `infra/terraform/modules/coinvault-runtime/main.tf` — init container + dependsOn.
+- `coinvault` cache wiring (already from Phase 1).
+
+Tasks:
+1. Add an init container (root) that creates and chowns `/scratch`.
+2. Make the indexer depend on the init container.
+3. Point `--scratch-dir` and `--embed-cache-dir` at `/scratch` subdirectories.
+4. Run a cold dev build (empty S3 prefix) and a warm dev build (populated prefix) and record cache hits/misses and sync durations.
+
+### Phase 5: validation and telemetry
+
+Tasks:
+1. Cold build: `EmbeddingCacheMisses == total`, `EmbeddingCacheWrites == total`, sync-on-end uploads all entries.
+2. Warm build: `EmbeddingCacheHits == total`, `EmbeddingCacheMisses == 0`, sync-on-start downloads all, sync-on-end is a no-op or near-no-op.
+3. Cross-env: run a prod build with the same model/prefix and confirm `EmbeddingCacheHits > 0` against a dev-seeded prefix (shared-prefix variant only).
+4. Confirm no secret values appear in S3 keys, logs, or Terraform state.
+5. Add a dashboard widget for cache-effectiveness and sync duration.
+
+## Test strategy
+
+### Unit tests
+
+- `resolveEmbedCacheDir` returns the explicit dir, the ephemeral dir when S3 URI is set, and the output-root fallback otherwise.
+- `syncCacheFromS3` creates a local directory and writes each object to `<localDir>/<relativeKey>`; a missing prefix is a no-op.
+- `syncCacheToS3` PUTs each local file to `<s3URI>/<relativeKey>`; overwrites succeed.
+- The allowed-prefix guard rejects destinations outside the prefix.
+- The `Cache` interface contract still holds: `FileCache` against the resolved directory loads/stores/validates identically.
+
+### Integration tests (localstack or mock S3)
+
+- Cold build against an empty prefix produces all misses and uploads all writes.
+- Warm build against a populated prefix produces all hits and no provider calls.
+- A corrupt S3 object fails closed (the `FileCache.Load` envelope validation already does this).
+- Concurrent sync-on-end of the same prefix from two builds is safe (idempotent overwrite).
+
+### ECS acceptance
+
+| Gate | Expected evidence |
+|---|---|
+| Cold dev build | `EmbeddingCacheMisses == total`, `EmbeddingCacheWrites == total`, sync-on-end uploads |
+| Warm dev build | `EmbeddingCacheHits == total`, `EmbeddingCacheMisses == 0`, provider `WorkCalls == 0` |
+| Sync telemetry | `EmbedCacheSyncDurationMilliseconds` and `EmbedCacheSyncFiles` bounded |
+| No secret leakage | S3 keys, logs, and Terraform state contain no credentials or corpus text |
+
+## Rollout and rollback
+
+### Rollout
+
+1. Merge Phase 1–2; run `GOWORK=off go test ./... -count=1`.
+2. Apply Phase 3 Terraform (IAM + variables); the bucket/prefix can be pre-seeded from the existing EFS cache via `knowledge cache-export` once.
+3. Run a cold dev build to populate S3.
+4. Run a warm dev build to confirm cache hits against S3.
+5. Promote to prod (separate environment segment).
+
+### Rollback
+
+- Revert `indexer_command` to remove `--embed-cache-s3-uri`; the build falls back to `<output>/embed-cache` on EFS.
+- The S3 cache is additive; it does not block rollback. Existing EFS caches remain valid if not deleted.
+- Never delete the S3 prefix as part of rollback; it is durable state.
+
+## Risks and mitigations
+
+### S3 object count
+
+114k+ objects is fine for S3 but can make `s3 sync` (ListBucket) slower. Mitigation: use prefix-scoped ListBucket and parallel GET/PUT; measure sync duration; if it grows, move to Strategy B (per-entry lazy fetch).
+
+### First-run cold cache
+
+A cold run re-embeds everything (provider cost). Mitigation: seed S3 from the existing warm EFS cache using the existing `knowledge cache-export` archive once, unpacked into the prefix. The content is identical; only the storage location changes.
+
+### Cross-environment correctness
+
+The key binds `model + text + prefix`. A model or prefix change correctly invalidates entries. The environment segment is an extra safety boundary; a shared prefix is safe because the key already prevents cross-model reuse.
+
+### Sync-on-end failure
+
+If the task is killed before sync-on-end, new entries are lost. Mitigation: the next run re-embeds only the misses (they are not in the cache, so they are recomputed and re-uploaded). No correctness impact; only a recompute cost for the killed run's new entries.
+
+### EFS remains for the bundle
+
+This ticket does not remove EFS. The published immutable bundle stays on EFS for serving reads. Only the cache moves to S3, removing the build-time small-file bottleneck.
+
+## Open questions
+
+1. Shared bucket with environment-segmented prefixes, or separate buckets per environment?
+2. Should sync-on-end be incremental (only new keys) or full? `s3 sync` is effectively incremental via size/ETag comparison, but a custom loop should PUT only files newer than their S3 counterpart.
+3. Should the serving path ever read the embedding cache? Currently only the build does. Serving uses query-time embeddings, which may benefit from a query cache — a separate concern.
+4. Lifecycle policy on the S3 prefix: expire never (content-addressed entries are always valid) or transition to cheaper storage classes after a threshold?
+
+## Intern implementation checklist
+
+Before opening a pull request, verify every item:
+
+- [ ] You can explain why EFS is the wrong storage class for many small immutable files.
+- [ ] `--embed-cache-dir` resolves to ephemeral local disk when `--embed-cache-s3-uri` is set.
+- [ ] The local `FileCache` layout mirrors the S3 prefix path-for-path.
+- [ ] Sync-on-start and sync-on-end are idempotent and prefix-guarded.
+- [ ] The `Cache` interface and envelope schema are unchanged.
+- [ ] The indexer task role has scoped `s3:GetObject/PutObject/ListBucket` on the prefix.
+- [ ] Telemetry reports sync duration, file count, and cache hits/misses.
+- [ ] No secret values appear in S3 keys, logs, or Terraform state.
+- [ ] `GOWORK=off go test ./... -count=1` passes in CoinVault.
+- [ ] A cold and a warm ECS build confirm the expected hit/miss counts.
+
+## References
+
+### Flowkit
+
+- `flowkit/execution/cache.go` — `Cache` interface, `Key`, `FileCache`, `path`, `Load`, `Store`, envelope schema `rag-ttc-execution-cache/v1`.
+
+### RagKit
+
+- `ragkit/rag/embedding/cached_embedder.go` — `CachedEmbedder`, `CachedEmbedderOptions`, key construction (`NewKey(step, version, {model, text})`).
+
+### CoinVault
+
+- `coinvault/internal/knowledgebuild/build.go:373` — current `NewFileCache` with `<output>/embed-cache`.
+- `coinvault/internal/knowledgebuild/build.go:379` — `NewCachedEmbedder` with `Version: "v1-"+TaskPrefix`.
+- `coinvault/internal/knowledgebuild/build.go:83` — `EmbeddingReceipt` (hits/misses/writes/work calls).
+- `coinvault/internal/knowledgebuild/build_telemetry_sinks.go` — EMF `EmbeddingCacheHits/Misses/Writes` metrics.
+- `coinvault/cmd/coinvault/cmds/knowledge.go:397` — existing `knowledge cache-export` S3 upload pattern and `validateCacheExportDestination` prefix guard.
+- `coinvault/internal/knowledgecacheexport/export.go` — tar+gzip archive of corpus + `embed-cache/` + receipt (the existing S3 export shape).
+
+### Infrastructure
+
+- `infra/terraform/modules/coinvault-runtime/main.tf:259` — `aws_iam_role.cache_export`.
+- `infra/terraform/modules/coinvault-runtime/main.tf:266` — `cache_export_artifact` policy (`s3:PutObject` scoped to one object ARN).
+- `infra/terraform/modules/coinvault-runtime/main.tf:677` — `aws_ecs_task_definition.cache_export` running `knowledge cache-export`.
+- `infra/terraform/modules/coinvault-runtime/variables.tf:231` — existing `enable_cache_export_task` / `cache_export_artifact_s3_uri` variables.
+
+### Related tickets
+
+- `COINVAULT-SQLITE-TMP-001` — ephemeral scratch and the init-container pattern reused here for `/scratch`.

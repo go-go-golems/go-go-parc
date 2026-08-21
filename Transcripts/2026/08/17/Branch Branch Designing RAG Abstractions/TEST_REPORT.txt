@@ -1,0 +1,34 @@
+?   	github.com/go-go-golems/opfield/campaign	[no test files]
+?   	github.com/go-go-golems/opfield/cmd/opfield-demo	[no test files]
+ok  	github.com/go-go-golems/opfield/core	(cached)
+?   	github.com/go-go-golems/opfield/engine	[no test files]
+?   	github.com/go-go-golems/opfield/experiment	[no test files]
+ok  	github.com/go-go-golems/opfield/domain/ragtoy	(cached)
+?   	github.com/go-go-golems/opfield/optic	[no test files]
+ok  	github.com/go-go-golems/opfield/plan	(cached)
+?   	github.com/go-go-golems/opfield/plugin	[no test files]
+ok  	github.com/go-go-golems/opfield/prob	(cached)
+?   	github.com/go-go-golems/opfield/campaign	[no test files]
+?   	github.com/go-go-golems/opfield/cmd/opfield-demo	[no test files]
+ok  	github.com/go-go-golems/opfield/core	1.009s
+?   	github.com/go-go-golems/opfield/engine	[no test files]
+?   	github.com/go-go-golems/opfield/experiment	[no test files]
+?   	github.com/go-go-golems/opfield/optic	[no test files]
+?   	github.com/go-go-golems/opfield/plugin	[no test files]
+ok  	github.com/go-go-golems/opfield/domain/ragtoy	1.010s
+ok  	github.com/go-go-golems/opfield/plan	1.022s
+ok  	github.com/go-go-golems/opfield/prob	1.014s
+
+Demo result:
+{
+  "baseline": "baseline",
+  "winner": "semantic-0.4",
+  "scores": {
+    "baseline": 0.7663333333333333,
+    "semantic-0.0": 0.7177777777777776,
+    "semantic-0.4": 0.7693333333333333,
+    "semantic-1.2": 0.7613333333333333,
+    "semantic-2.0": 0.7533333333333333
+  },
+  "trials": 45
+}

@@ -1,0 +1,68 @@
+# Composable execution validation
+UTC: 2026-08-09T22:29:51Z
+go version go1.23.2 linux/amd64
+
+## gofmt
+PASS: no unformatted Go files
+
+## go vet
+PASS
+
+## ordinary tests
+?   	github.com/go-go-golems/flow/admission	[no test files]
+ok  	github.com/go-go-golems/flow	0.020s
+?   	github.com/go-go-golems/flow/examples/embedding	[no test files]
+ok  	github.com/go-go-golems/flow/cache	0.016s
+ok  	github.com/go-go-golems/ragjobs	0.003s
+?   	github.com/go-go-golems/ragjobs/examples/indexing	[no test files]
+ok  	github.com/go-go-golems/ragjobs/artifactfs	0.007s
+ok  	github.com/go-go-golems/ragjobs/publish	0.007s
+?   	github.com/go-go-golems/ragjobs/storetest	[no test files]
+ok  	github.com/go-go-golems/ragjobs/store/file	0.056s
+ok  	github.com/go-go-golems/ragjobs/store/memory	0.009s
+?   	github.com/go-go-golems/composable-execution-example	[no test files]
+ok  	github.com/go-go-golems/ragjobs/trigger	0.002s
+
+## race tests
+?   	github.com/go-go-golems/flow/admission	[no test files]
+?   	github.com/go-go-golems/flow/examples/embedding	[no test files]
+?   	github.com/go-go-golems/ragjobs/examples/indexing	[no test files]
+ok  	github.com/go-go-golems/flow	1.034s
+ok  	github.com/go-go-golems/flow/cache	1.026s
+ok  	github.com/go-go-golems/ragjobs	1.028s
+ok  	github.com/go-go-golems/ragjobs/artifactfs	1.026s
+?   	github.com/go-go-golems/ragjobs/storetest	[no test files]
+ok  	github.com/go-go-golems/ragjobs/publish	1.018s
+?   	github.com/go-go-golems/composable-execution-example	[no test files]
+ok  	github.com/go-go-golems/ragjobs/store/file	1.108s
+ok  	github.com/go-go-golems/ragjobs/store/memory	1.050s
+ok  	github.com/go-go-golems/ragjobs/trigger	1.015s
+
+## flow demonstration
+calls=30 unique=30 batches=5 attempts=31 failed=0
+
+## ragjobs demonstration
+run=run-41b4cfe6604fd342ceaa64da58f03449 state=succeeded attempts=12 events=38 cost=10
+published=true generation=1 revision=42 target=rag/gate-decision@v1:37aca7af4538faee34fcffc978c6695d64d8afc7db05c1b2074122e508e3c29a
+
+## integration demonstration
+run=run-16ee5c5d1157f0962b79d72a6329d4b3 state=succeeded provider_batches=7 artifact=rag/vector-index@v1:4970561545372d736b9aa674c08bd8118fde40e1d6c369774a9b311e2048f116
+
+## handbook
+Title:           Composable Execution Systems in Go
+Author:          Reference architecture and implementation handbook
+Pages:           65
+Encrypted:       no
+Page size:       612 x 792 pts (letter)
+File size:       1042813 bytes
+PDF: /mnt/data/composable-execution/handbook/Composable_Flow_and_Ragjobs_Handbook.pdf
+Pages: 65
+Encrypted: False
+Openable (PyMuPDF): True
+Likely scanned: False
+XFA present: False
+
+## package extraction verification
+PASS: flow-standalone.zip extracted and `go test ./...` passed
+PASS: ragjobs-standalone.zip extracted and `go test ./...` passed
+PASS: composable-execution-reference.zip extracted and all workspace tests passed

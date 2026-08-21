@@ -1,0 +1,117 @@
+{
+  "title": "Designing Command Languages: Architecture Lessons from Cobra",
+  "edition": "First pedagogical edition",
+  "generated_date": "2026-08-16",
+  "cobra_repository": "spf13/cobra",
+  "cobra_commit": "adbc8813901bba65827259daa8e22ff94ec1f30e",
+  "analysis_method": "Static source, tests, and documentation-generator analysis",
+  "structure": {
+    "main_chapters": 4,
+    "chapter_words": 17652,
+    "definitions": 96,
+    "worked_example_references": 13,
+    "counterexample_references": 17,
+    "exercises": 43,
+    "display_math_blocks": 26,
+    "go_code_blocks": 60,
+    "diagrams": 5,
+    "pdf_pages": 92
+  },
+  "validation": {
+    "structural_validator": "PASS",
+    "pdf_render_review": "PASS: all 92 pages rendered and visually scanned",
+    "pdf_preflight": "PASS: openable, unencrypted, searchable, embedded fonts"
+  },
+  "files": [
+    {
+      "path": "Designing Command Languages - Architecture Lessons from Cobra.md",
+      "bytes": 170207,
+      "sha256": "0456d369a6b2440f6bdfd039e8da361ee7bc7a8ac1770f7f5a219250a54fddd2"
+    },
+    {
+      "path": "Designing Command Languages - Architecture Lessons from Cobra.pdf",
+      "bytes": 574458,
+      "sha256": "58c435ac3756deca60999a7fb196f6d387aaf9500bfad20f8a64104222a6a01a"
+    },
+    {
+      "path": "Editorial Audit.md",
+      "bytes": 7900,
+      "sha256": "487de12dc20ee8ea9ec89c145669b09be50cd4b13c7b2e70e4d840b3df74fc61"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3814,
+      "sha256": "d7c5d8189ade631e76bcdfb3ea4b1a8e3850f1039bb92d32ebb319e74d6d03cf"
+    },
+    {
+      "path": "appendices/Appendix A - Glossary.md",
+      "bytes": 32288,
+      "sha256": "a4c9a3485ac10c418d35ac82ebfeeb98e7af60def455ffa942b99d054924ec8d"
+    },
+    {
+      "path": "appendices/Appendix B - Selected Exercise Solutions.md",
+      "bytes": 11104,
+      "sha256": "da3d8537c9abe7ec289ad9ba04b375239661a5db1bab3e5d58b1e765d14916b5"
+    },
+    {
+      "path": "appendices/Appendix C - Source Map.md",
+      "bytes": 10119,
+      "sha256": "91253de51c4e881ccfbb839e0de954c5060f6b5aa89ab3b634627dc1becb8328"
+    },
+    {
+      "path": "assets/01-multi-projection.png",
+      "bytes": 51681,
+      "sha256": "552f6e34e677961bfdb93883540ca0a22512516116a6711c06481b754b545487"
+    },
+    {
+      "path": "assets/02-pipeline.png",
+      "bytes": 84242,
+      "sha256": "ffa1d26d81f0d9cdaddc5d16b9fb110a54ce06fa079855cc4e18148e91b42d04"
+    },
+    {
+      "path": "assets/03-hooks.png",
+      "bytes": 24245,
+      "sha256": "03b52f814023f8937d74cd0d8d41c11cbf7da4f39e25c46c1f27eca9dabf9304"
+    },
+    {
+      "path": "assets/04-completion.png",
+      "bytes": 46781,
+      "sha256": "c1412702e28ebf18a3bd9e5c8d51bce3fe1d86a53ad67f4894ea4e47ed12ccbc"
+    },
+    {
+      "path": "assets/05-finalization.png",
+      "bytes": 56641,
+      "sha256": "a16a0c07dd2b4c68f776756663871dc228f96b83c1331c3f23bb42dfb2bacb02"
+    },
+    {
+      "path": "chapters/01 - One Model Many Meanings.md",
+      "bytes": 25425,
+      "sha256": "2e391d345ba36ef31a5d7b96df1800983f74c3d654a0255fa9ba3b52fcb662c0"
+    },
+    {
+      "path": "chapters/02 - Interpreting an Invocation.md",
+      "bytes": 33408,
+      "sha256": "82ff522f2e67df0fed07930e0893d0251ee1e7cf2ce80cb6316053c66c6321e2"
+    },
+    {
+      "path": "chapters/03 - Constraints Guidance and Completion.md",
+      "bytes": 33521,
+      "sha256": "8bebd1d0105356fc6d7d516625adec981efb21aff015f10f7192550929d378cd"
+    },
+    {
+      "path": "chapters/04 - Evolution Recovery and Verification.md",
+      "bytes": 34707,
+      "sha256": "060ccaa83eee9695aba8d9d8abb072c99aeb4bc8f4cc91f44cab062ffb2be3bf"
+    },
+    {
+      "path": "scripts/build_book.py",
+      "bytes": 4905,
+      "sha256": "ec3482d9494d844d42cc398d02626b519fff3b86d7875b80f72b357487908b84"
+    },
+    {
+      "path": "scripts/validate_book.py",
+      "bytes": 4220,
+      "sha256": "898340e4f79e2256be2dc7d86ee69cc36df47a68054d8e5cdabe8617909edfb1"
+    }
+  ]
+}
