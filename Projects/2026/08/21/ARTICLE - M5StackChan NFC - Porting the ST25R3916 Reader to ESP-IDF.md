@@ -547,8 +547,8 @@ The current failure chain is:
 ```mermaid
 flowchart TD
     A["Official firmware reads PICC"] --> B["Hardware, tag, placement verified"]
-    B --> C["Restore ESP-IDF firmware without moving tag"]
-    C --> D["Tag-present 400/100 kHz tests show corrupt readback"]
+    B --> C["Restore ESP-IDF, replace tag at proven position"]
+    C --> D["Controlled 400/100 kHz tests show corrupt readback"]
     D --> E["REQA/WUPA sees no stable response"]
     E --> F["nfc-read cannot reach anticollision"]
 
