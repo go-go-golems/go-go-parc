@@ -648,7 +648,66 @@ A phone may energize the field briefly, poll, read enough data to classify the t
 
 MIFARE Classic is a different card architecture from NTAG21x. It uses NFC-A activation but then applies Classic-specific memory organization, authentication, Crypto1 communication, access conditions, and value commands. A shared RF technology does not make command sets interchangeable.
 
-### 12.1 Sector and block organization
+### 12.1 What MIFARE Classic offers compared with NTAG215
+
+The name *MIFARE* requires qualification. It is an NXP product family that includes products with substantially different protocols and security models: MIFARE Classic, MIFARE Ultralight, MIFARE Plus, and MIFARE DESFire are not interchangeable card types. In this project, `nfc-wallet-demo` specifically targets **MIFARE Classic** because Classic defines sectors, Key A/Key B authentication, access-condition bits, and native value-block commands. The physical NTAG215 does not implement those features.
+
+Both NTAG215 and MIFARE Classic begin with NFC-A polling and selection. A reader can therefore obtain ATQA, resolve a UID, and receive SAK from either family through the same activation machinery. Their behavior diverges after selection. NTAG215 exposes the NFC Forum Type 2 command and memory model. MIFARE Classic enters its proprietary authentication and block-command protocol.
+
+| Capability | NTAG215 | MIFARE Classic 1K |
+|---|---|---|
+| Primary design | NFC Forum Type 2 data tag | Sector-oriented contactless memory card |
+| Radio activation | NFC-A at 106 kbit/s | NFC-A at 106 kbit/s |
+| Application memory unit | Four-byte page | Sixteen-byte block |
+| Organization | Contiguous page ranges plus lock/configuration areas | Blocks grouped into independently protected sectors |
+| Ordinary user capacity | 504 bytes reported by the product | Approximately 752 bytes after manufacturer block and sector trailers are excluded |
+| Phone-readable NDEF | Standard and broadly interoperable | Possible only with compatible formatting/software; less universal |
+| Authentication | Optional product password/access configuration | Per-sector Key A and Key B through Crypto1 |
+| Authorization | Page locking and product-specific access controls | Per-block permissions encoded in each sector trailer |
+| Native arithmetic | None; reader modifies ordinary stored bytes | Increment, decrement, restore, and transfer operations |
+| Best use in this project | NDEF, phone interoperability, page reads, Type 2 behavior | Authentication, sector permissions, and value-block experiments |
+
+#### NTAG215 prioritizes NFC Forum interoperability
+
+NTAG215 is designed to expose a Type 2 Tag data area. Once selected, a compatible reader can inspect the capability container, traverse TLVs, parse an NDEF message, and present URI, text, MIME, or external-type records. The memory model is compact: commands address four-byte pages, while a normal `READ` returns a group of pages. This makes NTAG215 appropriate for application links, product metadata, pairing records, small configuration payloads, and repeatable phone tests.
+
+The optional NTAG password and access controls are useful for limiting ordinary read or write operations, but they are not a modern cryptographic application framework. A 32-bit password, lock bits, and configuration pages should be treated as product controls rather than as a high-assurance identity system. A UID is also observable during normal selection and must not be treated as a secret.
+
+#### MIFARE Classic prioritizes independently controlled sectors
+
+MIFARE Classic divides memory into sectors. Every sector ends in a trailer containing Key A, access-condition bytes, and a field that may hold Key B depending on configuration. The access conditions define which authenticated key may read, write, increment, decrement, transfer, or change sector control data. An application can therefore assign different policies to different memory regions instead of applying one page-oriented policy to the full user area.
+
+On a Classic 1K card, the total 1,024-byte address space is not the same as usable application capacity. Sixteen sector trailers consume 256 bytes, and manufacturer block 0 consumes another 16 bytes, leaving approximately 752 bytes in ordinary data blocks. Applications must still reserve blocks for their own structures. Capacity comparisons must use usable data regions rather than the product’s headline memory size.
+
+This sector model is valuable for studying legacy access-control and ticketing designs. It also increases operational risk. Incorrect trailer bytes can prevent future reads or writes, and an assumed default key may not match the actual card. A safe experiment records the UID, keys under test, sector trailer, target block, and complete original bytes before mutation.
+
+#### Classic value blocks provide card-side arithmetic primitives
+
+An NTAG215 can store an integer, but it stores that integer as ordinary application bytes. To change it, the reader reads the bytes, computes a result, writes the updated page or pages, and verifies them.
+
+MIFARE Classic defines a redundant 16-byte value-block representation and commands for increment, decrement, restore, and transfer. The card validates the redundant value/address encoding and applies access conditions to each operation. The arithmetic path is therefore part of the Classic command set rather than an application convention imposed on raw NTAG pages.
+
+These commands are useful for studying counters and stored-value workflows, but the value is not automatically secure merely because the card performs the arithmetic. The surrounding key management, reader trust, transaction design, replay handling, and cryptographic strength determine system security.
+
+#### Phone behavior favors NTAG215 for general experiments
+
+Modern phones are designed to consume NFC Forum NDEF data. A correctly formatted NTAG215 can expose a URL or text message through standard Type 2 behavior, and an NFC utility can inspect both parsed NDEF and raw technology information. This is the most direct path for M5StackChan-to-phone interoperability tests.
+
+MIFARE Classic support varies by phone hardware, operating system, and application API. Even when a device can activate the card, it may not expose Classic authentication or proprietary block commands to ordinary applications. Classic is therefore a poor default choice for a demonstration whose primary acceptance criterion is “an arbitrary phone reads this URL.” It is the correct choice when the acceptance criteria concern sector authentication, access bits, or native value operations.
+
+#### Additional Classic features do not imply stronger modern security
+
+MIFARE Classic has more elaborate authentication and authorization behavior than NTAG215, but its Crypto1 cipher is obsolete and has well-documented practical attacks. Default key `FFFFFFFFFFFF` provides no meaningful secrecy, and replacing the default key does not correct the protocol’s underlying cryptographic weaknesses.
+
+For new applications requiring authenticated files, modern cryptography, diversified keys, and stronger transaction semantics, MIFARE DESFire or another current secure-card platform is the relevant comparison. DESFire uses ISO-DEP and an application/file model; it is not a drop-in replacement for Classic commands or Type 2 pages.
+
+The product-selection rule for this project is therefore precise:
+
+- Choose **NTAG215** to study Type 2 memory, NDEF records, phone interoperability, page operations, and simple lock/password behavior.
+- Choose **MIFARE Classic** to study legacy sector authentication, Key A/Key B, access-condition encoding, and value-block operations.
+- Choose **MIFARE DESFire** to study modern authenticated applications, files, keys, and ISO-DEP/APDU exchanges.
+
+### 12.2 Sector and block organization
 
 MIFARE Classic memory is divided into sectors, and sectors are divided into 16-byte blocks. In the small sectors of a Classic 1K card, each sector has three data blocks and one sector trailer. The trailer stores:
 
@@ -660,7 +719,7 @@ Access bits define which key can read, write, increment, decrement, restore, tra
 
 Block 0 contains manufacturer data and the UID on common Classic cards. It is not a normal application block. Sector trailers and manufacturer blocks must be excluded from generic data-write commands.
 
-### 12.2 Authentication
+### 12.3 Authentication
 
 Before protected block access, the reader authenticates to a sector with Key A or Key B. Factory/default cards often use:
 
@@ -672,7 +731,7 @@ The explorer exposes that default because it matches the official demonstration.
 
 A failed key does not indicate an I²C or RF failure. It is an application/security-layer result. It may also change the card’s active state, so the reader should deactivate or reactivate cleanly before another attempt.
 
-### 12.3 Value-block encoding
+### 12.4 Value-block encoding
 
 A Classic value block stores a signed 32-bit value with redundancy and an address byte with redundancy. The 16 bytes are arranged as:
 
@@ -688,7 +747,7 @@ byte      15: complement of block address repeated
 
 A reader validates all redundant fields before accepting the block as a value block. The structure detects many incomplete or corrupted writes; it does not provide cryptographic authenticity.
 
-### 12.4 Increment, decrement, restore, and transfer
+### 12.5 Increment, decrement, restore, and transfer
 
 Classic value operations use an internal transfer buffer. Conceptually:
 
@@ -707,7 +766,7 @@ TRANSFER:
 
 The separation allows controlled movement and arithmetic under access conditions. Whether a key may execute each operation depends on the sector trailer.
 
-### 12.5 Wallet demonstration safety
+### 12.6 Wallet demonstration safety
 
 The explorer’s wallet demonstration can alter both data and access conditions, then attempt restoration. It requires:
 
