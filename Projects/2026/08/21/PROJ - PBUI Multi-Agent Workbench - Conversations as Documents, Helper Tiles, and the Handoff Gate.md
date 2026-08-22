@@ -24,7 +24,7 @@ repo: /home/manuel/workspaces/2026-08-20/add-pbui-agent/pbui
 
 This note records the third day of work on PBUI: the ticket `PBUI-AGENT-4`, which took a product that could hold exactly one agent conversation and made it hold as many as the user wants. The previous two days built the agent's abilities — [[PROJ - PBUI Generative Tiles - Agent-Written Programs, Generated Actions, and the Reactive Sandbox]] gave it programs, [[PROJ - PBUI Sandbox Devtools - Observing, Driving and Editing Agent-Written Programs]] gave a person the means to watch them run. This day changed the number of agents from one to N and built the five tiles a person needs once that is true.
 
-Five of six phases are done. The report covers what was built, the four assumptions in the existing code that had to be broken to build it, and the six failures that changed the design along the way.
+Five of six phases were done when this note was written. The report covers what was built, the four assumptions in the existing code that had to be broken to build it, and the six failures that changed the design along the way. The sixth phase and the close-out are in [[PROJ - PBUI Multi-Agent Workbench Completed - The Session Index, the Merge, and What the Code Refused]].
 
 > [!summary]
 > - A `<ChatProvider>` **is** a session by construction: one Redux store, one WebSocket manager, one client, one `overlay.sessionId`. Holding several means holding several providers, and a **conversation registry** that owns them outside React.
@@ -64,7 +64,7 @@ The second half of the problem is what a person needs once several agents exist.
 
 ## Current project status
 
-Phases 0 through 4 are built, tested and verified in the browser against the demo product and the Go server. Phase 5 — a server-side session index, the registry's merge against it, and the documentation close-out — is not started.
+Phases 0 through 4 are built, tested and verified in the browser against the demo product and the Go server. Phase 5 — a server-side session index, the registry's merge against it, and the documentation close-out — was built the following day and is recorded in [[PROJ - PBUI Multi-Agent Workbench Completed - The Session Index, the Merge, and What the Code Refused]]; the ticket is complete.
 
 | Phase | What it built | Tests after |
 |---|---|---|
