@@ -13,7 +13,7 @@ tags:
   - freertos
   - embedded
   - debugging
-status: active
+status: complete
 type: project
 created: 2026-08-23
 repo: /home/manuel/code/wesen/go-go-golems/esp32-s3-m5/0118-cores3-qrcode-scanner
@@ -32,7 +32,7 @@ The project began as a small device integration and developed into a study of fo
 > - Commit `38df1be2` replaced caller-owned response pointers with value responses on per-transaction reply queues. Subsequent captures showed one stable boot and no assertion, reboot, abort, or watchdog.
 > - The long no-UART incident was not a baud, pin, power, parser, or current-firmware failure. The scanner had persisted a USB communication mode. Optical triggering still worked, but decoded values and command replies were not routed to TTL serial.
 > - Scanning the official **Serial Communication** programming barcode `21424000` restored UART. The next capture contained firmware `1.0`, raw bytes for `X0052L3WPN`, `emit code`, and `qr_ui: code` in one stable run.
-> - Final startup waits for command readiness, validates UART/light/AUTO ACKs, and deduplicates continuous repeats. A 20-second run received 16 raw frames but emitted one UI result.
+> - Final startup waits for command readiness, validates UART/light/KEY ACKs, and defaults to low-duty KEY mode at 160 MHz. The touchscreen cycles KEY, AUTO, CONT, PULSE, and MOTION; continuous repeats remain deduplicated.
 
 ## 1. What the project is building
 
@@ -90,7 +90,9 @@ Embedded bring-up reports become misleading when implementation state and hardwa
 | Post-refactor scan reaches the UI task | `UART RX chunk`, `emit code`, and `qr_ui: code: X0052L3WPN` in one capture | Proven |
 | Persisted USB mode explains the silent UART | Trigger tests produced optics with zero UART; scanning `21424000` immediately restored replies and scan bytes | Proven by intervention |
 | Scanner firmware version after recovery | `qr firmware=1.0` | Proven |
-| AUTO mode is restored as the default user experience | Firmware `1.0`, four validated configuration ACKs, `ready=1`, automatic repeated raw scans | Proven |
+| AUTO mode remains available and reliable | Firmware `1.0`, validated mode ACK, automatic repeated raw scans | Proven |
+| KEY mode is the thermal-friendly default | 160 MHz boot, `KEY config ... ready=1`, no repeated scan frames during 13-second idle capture | Proven |
+| Runtime mode cycle is accepted by the engine | AUTO, CONT, PULSE, MOTION, and KEY each returned `ack ok`, ending in KEY | Proven |
 | Continuous repeats do not flood UI history | 16 raw chunks produced one `emit code` and one `qr_ui: code` | Proven |
 | Unconfirmed factory reset is blocked | `qr reset` returns a recovery warning and transmits no reset | Proven |
 
@@ -425,6 +427,9 @@ The firmware was built in small commits so each boundary could be examined indep
 | `69f35b58`, `b4d2a493` | Production AUTO startup | Firmware-gated configuration, boot delay/retries, fill and positioning lights, reset guard |
 | `84e62850`, `05a1e910` | Mixed-stream cleanup | UART-mode ACK consumption, delayed ACK matching, continuous-result deduplication |
 | `2a221f97` | Final AUTO evidence | 16 raw repeats, one semantic UI result, and reset-refusal trace |
+| `05461cba` | Thermal-friendly mode UI | KEY default, split trigger/mode touch zones, 160 MHz CPU, brightness 60 |
+| `6c451024` | Printed QR test artifact | Labeled 64–160 px Almanach QR strip |
+| `f800f834` | Ticket closure | Reattach/flash proof, all-mode ACK capture, completed tasks, finalized diary |
 
 The sequence matters because each commit constrains a different failure domain. The scan bytes proved the route and engine output. The crash fix proved task lifetime and startup stability. The minimal probe proved optical triggering. The programming barcode then restored the missing transport dimension and combined all proofs in one final run.
 
@@ -1076,7 +1081,24 @@ The engine repeatedly transmitted `X0052L3WPN` while the symbol remained visible
 
 Deduplication runs after quiet-time framing. Repeated identical results are suppressed while they continue arriving less than one second apart. Updating the last-seen timestamp on each suppressed frame keeps a stationary symbol collapsed indefinitely; removing it for at least one second permits the same value to register again.
 
-AUTO and continuous remain different engine policies, but AUTO now provides the preferred always-ready experience. Hardware trigger remains a deterministic fallback and recovery tool.
+AUTO and continuous remain different engine policies. They provide the preferred high-throughput experience when explicitly selected; hardware-triggered KEY mode is the final low-duty default.
+
+### 22.4 Final thermal and runtime-mode policy
+
+Continuous acquisition improved scan responsiveness but kept the imaging engine active and produced noticeable heat. The final firmware therefore boots into KEY mode after the same firmware, UART, fill-light, and positioning-light checks. KEY mode leaves acquisition idle until a hardware trigger.
+
+The display is divided into two touch zones:
+
+```text
+left half  -> 100 ms active-low hardware TRIG pulse
+right half -> KEY -> AUTO -> CONT -> PULSE -> MOTION -> KEY
+```
+
+The engine ACKed all five mode values in sequence, and the validation ended in KEY. AUTO and CONT are available for throughput; PULSE and MOTION provide intermediate engine policies; KEY provides deterministic low-duty operation.
+
+Host-side heat was reduced independently. The generated ESP-IDF configuration now uses a fixed 160 MHz CPU clock instead of 240 MHz, and LCD brightness was reduced from 80 to 60. The boot trace confirms `cpu freq: 160000000 Hz`. No benchmark in this application required the higher clock: UART, M5GFX redraws, queue handling, and quiet-time framing remained operational.
+
+A 13-second KEY-mode boot capture contained no repeated scanner UART chunks while idle. Actual enclosure temperature was not instrumented, so the report claims reduced activity and lower configured host power, not a measured temperature delta.
 
 ## 23. Operational safety changes implied by the incident
 
@@ -1264,16 +1286,18 @@ Only one process may own the USB Serial/JTAG device during flash, monitor, or sc
 
 The principal bring-up objective is now proven. The recovered scanner sends decoded bytes over G13/G14, the single UART owner receives them, quiet-time framing emits a stable value, the queue copies it safely, and the UI task consumes it. Firmware status replies again decode to `1.0`.
 
-The scanner now boots into ACK-backed AUTO mode, enables decode illumination, continuously receives the visible code, deduplicates repeated frames, and updates the UI once. The reset command is guarded by a recovery-specific confirmation phrase.
+The ticket is complete. The scanner boots at 160 MHz into ACK-backed KEY mode with decode-only illumination, uses left-touch hardware triggering, and cycles all five engine modes from the right touch zone. AUTO/CONT remain available, repeated results are deduplicated, recovery barcode `21424000` is archived, and factory reset is guarded.
 
-The remaining work is refinement:
+Final closure evidence includes:
 
-1. Promote `RECOVERY_REQUIRED` to a formal state shared by LCD and console rather than deriving it from an empty firmware string.
-2. Verify the optional H2 stack again only after preserving the two-layer known-good baseline.
-3. Add component tests for delayed ACKs, stale ACKs, mixed scan bytes, and owner-task response lifetimes.
-4. Validate quiet-time framing with long, fragmented, and binary-adjacent payloads.
-5. Tune the one-second same-code absence threshold with real operator motion.
-6. Compare AUTO and continuous power, thermal, and repeated-output behavior before exposing persistent mode selection.
+- firmware `1.0` and successful KEY startup configuration;
+- no repeated UART scan frames during a 13-second KEY idle capture;
+- ACK success for AUTO, CONT, PULSE, MOTION, and return to KEY;
+- a printed 64–160 px QR-size test strip;
+- clean `docmgr doctor` output;
+- ticket status `complete` with 0 open / 10 done tasks.
+
+Deferred Phase 5 ideas—NVS history, symbology badges, image preview, formal recovery-state modeling, and automated mixed-UART tests—are follow-up projects rather than closure blockers.
 
 ## Related notes
 
@@ -1282,4 +1306,4 @@ The remaining work is refinement:
 - [[PROJ - CoreS3 Magnet Base - 3D Model Search]] — related CoreS3 project context in the vault.
 
 > [!success] End-to-end recovery criterion met
-> The scanner answered with firmware `1.0`, acknowledged UART output, fill light, positioning light, and AUTO mode, delivered repeated raw `X0052L3WPN` frames, emitted one deduplicated `ScanResult`, and reached `qr_ui: code` through the lifetime-safe owner architecture.
+> The scanner answered with firmware `1.0`, validated configuration and all five runtime modes, delivered `X0052L3WPN` through the lifetime-safe UI path, and now returns to a 160 MHz, low-duty KEY-mode default. ESP-62 is closed with all ticket tasks complete.
