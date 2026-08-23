@@ -1,5 +1,5 @@
 ---
-title: "CoreS3 QRCode Scanner: Hardware Bring-Up, UART Framing, and FreeRTOS Ownership"
+title: "CoreS3 QRCode Scanner: Hardware Bring-Up, UART Framing, FreeRTOS Ownership, and Stateful Interface Recovery"
 aliases:
   - CoreS3 QRCode Scanner
   - ESP-62 CoreS3 Module13.2 QRCode
@@ -19,18 +19,19 @@ created: 2026-08-23
 repo: /home/manuel/code/wesen/go-go-golems/esp32-s3-m5/0118-cores3-qrcode-scanner
 ---
 
-# CoreS3 QRCode Scanner: Hardware Bring-Up, UART Framing, and FreeRTOS Ownership
+# CoreS3 QRCode Scanner: Hardware Bring-Up, UART Framing, FreeRTOS Ownership, and Stateful Interface Recovery
 
 The CoreS3 QRCode Scanner is ESP-IDF firmware for an M5Stack CoreS3 connected to a Module13.2 QRCode scanner and, optionally, a stacked Module Gateway H2. The scanner engine performs image capture and barcode decoding. The CoreS3 configures the engine over UART, receives decoded bytes, displays the latest value on its LCD, and exposes a USB Serial/JTAG console for diagnostics and control.
 
-The project began as a small device integration and developed into a study of three embedded-system boundaries: electrical pin ownership in a multi-board stack, framing for an asynchronous byte stream without a reliable delimiter, and object lifetime across FreeRTOS task boundaries. Each boundary produced failures that initially resembled problems in another layer. The useful result is not only a scanner firmware, but a concrete record of how to separate hardware, protocol, and concurrency evidence during device bring-up.
+The project began as a small device integration and developed into a study of four embedded-system boundaries: electrical pin ownership in a multi-board stack, framing for an asynchronous byte stream without a reliable delimiter, object lifetime across FreeRTOS task boundaries, and persistent state inside an independently programmable peripheral. Each boundary produced symptoms that initially implicated another layer. The final recovery is valuable because it shows how to separate host firmware, electrical control, scanner operation, transport selection, and UI delivery with concrete evidence.
 
 > [!summary]
-> - The working three-layer UART route is CoreS3 **TX=G13, RX=G14**, with the QRCode module routed to M5-Bus pins 23/26 and the H2's G13 connection switched to NC. The original G17/G18 route conflicts with the H2's fixed G18 connection.
-> - The M14-Pro engine emitted decoded bytes without `\r\n`; a quiet-time boundary was required. The live capture decoded `X0052L3WPN` and proved the scanner-to-CoreS3 data path.
-> - The first request/response refactor misused FreeRTOS queue-copy semantics, then replaced the lost response with pointers to caller stack state. A timeout deleted the completion semaphore while the UART owner still referenced it, causing a deterministic reboot loop.
-> - Commit `38df1be2` replaced those pointers and semaphores with value responses on per-transaction reply queues. A 28-second hardware capture then showed one boot, a running UI, and no assertion, reboot, abort, or watchdog.
-> - The firmware is stable, but the scanner is currently not decoding after the factory-reset experiments. It powers briefly, its optics turn off, and firmware/raw queries return no bytes. That hardware/protocol state remains open and is not presented here as solved.
+> - The working UART route is CoreS3 **TX=G13, RX=G14**, with the QRCode module routed to M5-Bus pins 23/26. The original G17/G18 route conflicts with the optional H2's fixed G18 connection; the final recovery test removed the H2 entirely.
+> - The M14-Pro engine emitted decoded bytes without `\r\n`; a quiet-time boundary was required. The live capture decoded `X0052L3WPN` and proved raw UART, framing, result-queue, and UI delivery.
+> - The first request/response refactor misunderstood FreeRTOS queue-copy semantics. Its pointer-based repair then deleted a semaphore and invalidated stack storage while the UART owner still referenced both, producing a deterministic reboot loop.
+> - Commit `38df1be2` replaced caller-owned response pointers with value responses on per-transaction reply queues. Subsequent captures showed one stable boot and no assertion, reboot, abort, or watchdog.
+> - The long no-UART incident was not a baud, pin, power, parser, or current-firmware failure. The scanner had persisted a USB communication mode. Optical triggering still worked, but decoded values and command replies were not routed to TTL serial.
+> - Scanning the official **Serial Communication** programming barcode `21424000` restored UART. The next capture contained firmware `1.0`, raw bytes for `X0052L3WPN`, `emit code`, and `qr_ui: code` in one stable run.
 
 ## 1. What the project is building
 
@@ -85,10 +86,12 @@ Embedded bring-up reports become misleading when implementation state and hardwa
 | Quiet-time parser emits a logical result | `qr_module: emit code: X0052L3WPN` | Proven |
 | UI task starts after the ownership refactor | `step: UI started`, `ready -- UI + console started` | Proven |
 | Crashloop is removed | One boot over 28 seconds, no panic/assert/reboot/watchdog | Proven |
-| A post-refactor scan is visibly rendered on the LCD | No single final capture combines stable refactor + `qr_ui: code` + visual confirmation | Not yet re-proven |
-| Scanner currently resumes scanning in AUTO mode | Engine powers briefly, then optics turn off; no status/raw response | Currently failing |
+| Post-refactor scan reaches the UI task | `UART RX chunk`, `emit code`, and `qr_ui: code: X0052L3WPN` in one capture | Proven |
+| Persisted USB mode explains the silent UART | Trigger tests produced optics with zero UART; scanning `21424000` immediately restored replies and scan bytes | Proven by intervention |
+| Scanner firmware version after recovery | `qr firmware=1.0` | Proven |
+| AUTO/continuous mode is restored as the default user experience | User identified it as preferred; final ACK-backed startup configuration remains to be re-enabled | Pending |
 
-The distinction in the final two rows matters. Earlier work proved the physical UART route and decoded-data pump. Later work proved the corrected task-ownership design and stable UI startup. A final hardware run still needs to prove both at the same time.
+The evidence now joins the previously separate proofs. The corrected owner-task architecture receives a real scan, quiet-time framing emits it, and the UI task consumes it. AUTO/continuous startup remains a product-behavior task, not an unresolved transport failure.
 
 ## 3. Physical architecture and power control
 
@@ -130,18 +133,22 @@ The CoreS3 controls scanner power through the PI4IOE5V6408 rather than directly 
 | 0 | `QR_5V_EN` | Drive high to enable scanner power |
 | 4 | `TRIG` | Keep high when idle; active-low for pulse-trigger operation |
 
-The firmware performs the same initialization as the official library:
+The initial firmware enabled output drive before preloading the active-low trigger's idle state. The final implementation uses a stricter ordering, derived from the minimal `0119` probe:
 
 ```cpp
+io.digitalWrite(kChPowerEn, false); // preload engine off
+io.digitalWrite(kChTrig, true);     // preload active-low TRIG idle
 for (uint8_t ch : {kChPowerEn, kChTrig}) {
     io.setDirection(ch, true);
     io.setPullMode(ch, true);
     io.enablePull(ch, true);
     io.setHighImpedance(ch, false);
 }
-setEnable(true);
-vTaskDelay(pdMS_TO_TICKS(300));
+setTriggerLevel(true);              // establish idle before power edge
+io.digitalWrite(kChPowerEn, true);  // power engine last
 ```
+
+The ordering prevents an accidental trigger assertion while scanner power rises. It did not, by itself, repair the later transport outage, but it removes a real electrical ambiguity from startup.
 
 This path was verified independently of scanner UART communication: the expander consistently probes successfully at `0x43`. Therefore, `PI4IOE5V6408 not found` and `scanner does not answer UART` are separate failures and should remain separate in diagnostics.
 
@@ -156,7 +163,7 @@ For CoreS3 plus Module13.2 alone, the obvious UART route is:
 | CoreS3 to scanner | G17 TX | pin 16 | `QR_RX` |
 | Scanner to CoreS3 | G18 RX | pin 15 | `QR_TX` |
 
-This matches the CoreS3 Port-C UART mapping and the original project design. It is also the route still described in `0118-cores3-qrcode-scanner/README.md`, which is now stale for the three-layer configuration.
+This matches the CoreS3 Port-C UART mapping and the original project design. The README now documents G13/G14 as the active route and retains the routing investigation as context for optional H2 integration.
 
 ### 4.2 Why the H2 makes G18 unusable
 
@@ -387,7 +394,7 @@ The UI task is similarly single-owner state. It is the only task that calls `M5.
 - a six-entry history;
 - a dirty flag.
 
-BtnA toggles scanning. BtnB cycles the supported modes, skipping enum value 3. The result queue carries fixed-size `ScanResult` values so scanner data remains valid after the UART owner returns to its loop.
+During recovery, the UI interaction was simplified to match the direct minimal probe: any touchscreen click enqueues a 100 ms active-low hardware-trigger pulse, and no trigger-mode write is coupled to that click. The result queue carries fixed-size `ScanResult` values so scanner data remains valid after the UART owner returns to its loop. AUTO/continuous operation can be restored as ACK-backed startup configuration after UART health is positively established.
 
 ## 8. The implementation sequence
 
@@ -402,8 +409,18 @@ The firmware was built in small commits so each boundary could be examined indep
 | `c0787055` | Live scan framing and first response repair | G13/G14 route, quiet-time emit, but unsafe response pointers |
 | `bc5c7dce` | UART serialization | Startup configuration routed through owner; UI reaches startup |
 | `38df1be2` | Lifetime-safe request/reply | Value reply queues; crashloop removed; raw console owner-mediated |
+| `66ed582d` | Observable diagnostics | Minimal startup and synchronous command results |
+| `8604fd71` | Electrical and baud diagnostics | Output-latch reporting and documented baud sweep |
+| `6e28274c` | Nonblocking UI | Long owner diagnostics no longer freeze touch/display |
+| `888a0f66` | Safe route probe | G13/G14, G17/G18, and G43/G44 tested without H2 control-line risk |
+| `fe21fc26` | Separate minimal probe | One-loop direct expander/UART/TRIG firmware |
+| `766a4451` | Safe trigger sequencing | TRIG preloaded high before scanner power |
+| `ea5d1d42`, `b8c6258b` | Hardware-trigger UI | Full UI matched the minimal probe's touch behavior |
+| `db10cdfd` | Raw receive evidence | Every UART chunk logged before framing |
+| `cea1ad44`, `90d97304` | Recovery UX | LCD preserves an explicit offline state and points to programming barcode `21424000` |
+| `c881fae5` | Final evidence package | Official guide, recovery barcode, console script, diary, and successful trace |
 
-The sequence matters because later fixes do not invalidate earlier hardware evidence. The scan bytes proved the route and engine output. The crash fix proved task lifetime and startup stability. The remaining work is to restore scanner operating state and combine those proofs in one final run.
+The sequence matters because each commit constrains a different failure domain. The scan bytes proved the route and engine output. The crash fix proved task lifetime and startup stability. The minimal probe proved optical triggering. The programming barcode then restored the missing transport dimension and combined all proofs in one final run.
 
 ## 9. Live bring-up: failures and what each one established
 
@@ -666,92 +683,481 @@ various/2026-08-23-owner-mediated-raw-command.txt
 various/2026-08-23-post-raw-start-command.txt
 ```
 
-## 14. The current scanner-state failure
+## 14. The no-UART incident after the crash repair
 
-After the crash repair, the firmware is stable but the scanner is not operating normally. The physical observation is specific: the module powers up, its optical subsystem is active briefly, then it turns off. Setting AUTO mode, enabling the fill light, or sending start-decode does not restore scanning. Status and raw firmware queries return no bytes.
+The stable firmware exposed a new failure. The scanner powered, but status queries returned no bytes. AUTO mode, fill-light commands, stop commands, raw queries, and hardware triggers did not produce UART traffic. Because the scanner had replied on G13/G14 earlier, the failure initially looked like a regression introduced by the concurrency work.
 
-This state appeared after factory-reset experiments. The temporal relationship is relevant but does not prove that factory reset is the cause. The current evidence supports these statements:
+That interpretation was plausible and wrong. The host firmware had become more observable at the same time that the scanner's own persistent state had changed. Reflashing host firmware does not reset configuration stored inside the M14-Pro engine.
 
-- The CoreS3 boots and remains stable.
-- The PI4IOE5V6408 responds, so the I2C control path exists.
-- The firmware drives `QR_5V_EN` high during initialization.
-- UART1 is configured for G13/G14 at 115200 8N1.
-- The engine previously replied and decoded on this physical route.
-- The engine currently does not answer `43 02 C1` and does not remain visibly active in AUTO mode.
+### 14.1 Observable command results
 
-### 14.1 Leading hypotheses
-
-The next investigation should treat these as hypotheses, not conclusions:
-
-1. **Persistent factory-reset state.** Reset may have restored an interface, trigger, protocol, or power-related configuration that differs from the previously working state.
-2. **Startup command failure hidden by `void` APIs.** Mode and light setters currently enqueue commands but do not report `CmdResult`. The console prints `mode set` when the request was submitted, not when the scanner acknowledged it.
-3. **Configuration order.** Startup sends status, fill-light mode, position-light mode, continuous mode, communication mode, and suffix configuration. One command may invalidate or flush traffic needed by a later command.
-4. **Physical route changed during handling.** QRCode DIP positions, H2 DIP positions, or stack contact may no longer match the proven G13/G14 configuration.
-5. **Power-enable or trigger level differs from the intended electrical state.** The expander responds, but its output values have not yet been read back during the failing state.
-6. **The communication-mode command is ineffective in the current interface state.** If the scanner has returned to a USB-oriented output mode, the UART command may not be accepted or the physical DIP may govern access differently.
-
-### 14.2 Minimal next experiment
-
-The next firmware should reduce startup to one controlled sequence rather than send the full configuration set:
-
-```text
-1. Initialize CoreS3 and expander.
-2. Drive QR_5V_EN low for a documented interval.
-3. Drive TRIG high.
-4. Drive QR_5V_EN high.
-5. Wait for scanner boot.
-6. Configure UART1 G13/G14.
-7. Send only 43 02 C1 and capture every received byte.
-8. If responsive, send fill-light always-on and record the exact ACK.
-9. Send AUTO mode and record the exact ACK.
-10. Observe optics and scan bytes before sending suffix or other commands.
-```
-
-Every configuration API should return one of:
+Earlier console commands reported success after placing a request on the owner queue. They did not report whether the scanner acknowledged the command. That distinction is essential for device control. The command path was changed to return:
 
 ```text
 OK
 TIMEOUT
 ACK_MISMATCH
 INVALID
-QUEUE_FULL
-MODULE_NOT_READY
 ```
 
-The console should print that result. `mode set` should mean the scanner acknowledged the exact mode value, not merely that a request entered the queue.
+`sendCmd()` now logs transmitted bytes, waits for the exact defined ACK, and prints received and expected frames on mismatch. Startup was reduced to power initialization, UART initialization, and one firmware query. Duplicate firmware queries and opaque configuration writes were removed.
 
-A second experiment should pulse the hardware trigger through expander channel 4 after confirming the idle-high level. That distinguishes a trigger-mode problem from a nonresponsive engine.
+The resulting evidence was consistent:
 
-## 15. Documentation and implementation debt
+```text
+firmware query: hdr_got=0
+fill light always on: ack timeout, got=0 expected=5
+AUTO mode:           ack timeout, got=0 expected=5
+stop decode:         ack timeout, got=0 expected=5
+```
 
-Several artifacts were written before the H2 route changed and now need alignment:
+`startDecode` could still return `OK`, but this command has no protocol ACK. In that case, `OK` means only that ESP-IDF accepted three bytes for UART transmission. It does not prove that the scanner received or acted on them.
 
-- `0118-cores3-qrcode-scanner/README.md` still documents G17/G18. Current code uses G13/G14.
-- The original design document describes the two-layer route as the final assignment. The later H2 source notes supersede it for the three-layer stack.
-- Setter APIs are `void`, hiding ACK timeout and mismatch results from the UI and console.
-- Startup reads firmware twice: once in `app_main` and once in `QRUI::start`. This is safe after the reply-queue fix but unnecessary. Firmware metadata should be read once or cached.
-- Continuous scans are not deduplicated before entering UI history.
-- The quiet-time threshold requires testing with long and fragmented barcode payloads.
+### 14.2 Electrical-state reporting
 
-These are not reasons to discard the current architecture. They are the next points where evidence and API contracts need to become more precise.
+The PI4IOE5V6408 exposes separate output-latch and input-status registers. `getWriteValue()` reads the output register; `digitalRead()` reads the input-status register. During the investigation, the output latches reported high while the input samples on the same configured output channels reported low.
 
-## 16. Working rules established by the project
+```text
+pwr_wr=1  pwr_pin=0
+trig_wr=1 trig_pin=0
+rx_g14=1
+```
 
-- Assign every physical bus line one electrical owner. A pin map is incomplete unless it distinguishes fixed and disconnectable connections.
-- Preserve USB Serial/JTAG on ESP32-S3 unless the project explicitly replaces the console and flashing workflow.
-- Test protocol layers independently. Raw reply bytes can prove hardware while a high-level status API remains wrong.
-- Treat decoded scan output separately from command replies. They have different framing rules even though they share one UART.
-- A quiet-time parser must receive idle ticks. Checking elapsed time only when new bytes arrive does not complete one-shot records.
-- FreeRTOS queues copy item bytes. Modifying a dequeued struct does not modify the sender's original struct.
-- A copied pointer does not acquire ownership of the referenced object. The referenced lifetime must cover every possible worker access.
-- A timeout followed by deletion is unsafe when the worker can still signal or write through the transaction.
-- Keep one task as the sole UART owner. Console diagnostics, UI actions, and startup configuration all use the same command path.
-- Preserve failing intermediate commits and diary entries. The pointer-based response commit is wrong, but it provides the exact transition from lost response to use-after-free.
-- Distinguish firmware stability from peripheral functionality. The current system is stable while the scanner remains unresponsive.
+The visible scanner power cycle proved that channel 0 was changing the engine state. The input register therefore could not be treated as authoritative output verification for this circuit. Reporting both values prevented the investigation from collapsing into the incorrect statement “scanner power is low.”
 
-## 17. Building and reproducing
+G14 sampled idle-high. That ruled out a scanner TX line permanently shorted low, but it did not prove that the engine was selecting TTL serial or transmitting frames.
 
-The project is pinned to ESP-IDF 5.3.4:
+### 14.3 Baud and route sweeps
+
+The host tested all documented scanner baud rates:
+
+```text
+115200, 9600, 19200, 38400, 57600,
+4800, 2400, 1200, 128000
+```
+
+Every firmware query received zero bytes. The host restored 115200 after the sweep.
+
+A second owner-mediated test moved UART1 across safe QRCode DIP routes:
+
+```text
+G13/G14  M5-Bus pins 23/26
+G17/G18  M5-Bus pins 16/15
+G43/G44  M5-Bus pins 14/13
+```
+
+G6/G7 was intentionally excluded while H2 control-line isolation was uncertain. All tested routes returned zero bytes, and the host restored G13/G14.
+
+These tests were not wasted. They eliminated host baud and pin selection from the active hypothesis set. Their limitation became apparent later: they varied properties of a TTL UART while the scanner was not selecting TTL UART as its communication interface.
+
+## 15. Why the UI appeared frozen
+
+The UI task originally called synchronous scanner operations. A command could wait behind a long baud sweep and then spend additional time waiting for scanner ACK timeouts. The display loop also owns `M5.update()`, so blocking that task delayed both touch processing and redraws.
+
+The solution was to distinguish two API contracts:
+
+- Console diagnostics use synchronous transactions because their output must report the actual scanner result.
+- UI controls enqueue nonblocking requests and return immediately because screen responsiveness must not depend on a peripheral reply.
+
+This distinction is more precise than making every operation asynchronous. Synchronous behavior is useful when a human operator asks whether a command was acknowledged. It is inappropriate in a 30 Hz display loop.
+
+## 16. Testing the exact previously working firmware
+
+The most direct software-regression test was to rebuild and flash commit `c0787055`, the revision that had previously returned firmware `1.0` and decoded `X0052L3WPN`. The build used the same ESP-IDF 5.3.4 toolchain and the same dependency lock versions.
+
+The exact old firmware now failed identically:
+
+```text
+I (...) qr_module: getInfo: enqueue id=0xc1
+W (...) qr_engine: getInfos id=0xc1 hdr_got=0 byte0=0x00
+I (...) qr_module: getInfo: id=0xc1 ok=1 resp_ok=0
+I (...) cores3_qr: module ready, firmware=(no reply)
+```
+
+This A/B test ruled out the current queue architecture, diagnostic logging, and startup simplification as sufficient causes. It did not prove a damaged board. A peripheral's nonvolatile configuration is part of the test state, and that state was not restored by flashing an old host binary.
+
+This point changes how firmware bisects should be interpreted. A host revision is reproducible only if external device state is also reproducible. Relevant state includes interface selection, baud rate, trigger mode, suffix configuration, enabled symbologies, and factory-reset defaults.
+
+## 17. The separate minimal probe
+
+A second project, `0119-cores3-qrcode-minimal-probe`, was created to remove the full application's architecture from the test. It contains one `app_main()` loop and direct calls only:
+
+1. Initialize M5Unified and the LCD.
+2. Construct the PI4IOE5V6408 object at `0x43`.
+3. Preload scanner power low and active-low TRIG high while outputs are high-impedance.
+4. Enable output drive and raise scanner power last.
+5. Wait one second.
+6. Install UART1 at 115200 on G13/G14.
+7. Send one firmware query, `43 02 C1`.
+8. Dump every received byte.
+9. Pulse hardware TRIG when the screen is touched.
+
+The probe deliberately contains no request queues, console, protocol class, factory reset, suffix write, trigger-mode write, lighting write, or output-interface write.
+
+### 17.1 What the minimal probe actually proved
+
+The scanner illuminated when touched. At first, this was described as “it works.” The boot log still contained:
+
+```text
+TX firmware query: 43 02 C1
+firmware query: zero RX bytes
+```
+
+The distinction matters. The probe had demonstrated:
+
+- CoreS3 touch input;
+- expander access;
+- scanner power;
+- physical active-low trigger delivery;
+- optical engine activation.
+
+It had not demonstrated:
+
+- successful symbol decoding;
+- TTL serial output;
+- UART command reception;
+- scan framing;
+- UI result delivery.
+
+The full firmware copied the minimal probe's safe power ordering and hardware-trigger behavior. The scanner still produced no UART bytes. That failure corrected the overbroad interpretation of “works.”
+
+### 17.2 Safe active-low trigger sequencing
+
+The minimal probe did expose a real startup improvement. The old initialization configured output drive before writing the trigger's idle-high latch value. Depending on expander reset state and register ordering, TRIG could be low briefly while scanner power rose.
+
+The corrected invariant is:
+
+```text
+power latch = low
+TRIG latch = high
+configure direction/output drive
+TRIG = high
+power = high
+```
+
+Power-off now removes power while preserving TRIG high. Power-on establishes TRIG high before raising power. This change removes an electrical transient, but the subsequent tests proved it was not the cause of the silent UART.
+
+## 18. Separating optical activation from data transport
+
+The full UI was changed to enqueue the same 100 ms hardware trigger used by the minimal probe. Any screen tap generated the pulse, eliminating virtual-button region ambiguity and bypassing the unacknowledged `startDecode` command.
+
+The scanner light activated, but no decoded value appeared. The UART owner was then instrumented to hexdump every receive chunk before framing. If bytes were present but the UI remained empty, the defect would lie in quiet-time parsing, queue delivery, or rendering. If no chunk appeared, the defect preceded all three.
+
+Two autonomous `esp_console` tests were run while the scanner remained pointed at a code.
+
+First, a 100 ms pulse:
+
+```text
+qr trig pulse
+I (...) qr_module: TRIG pulse: LOW 100ms -> HIGH
+trig-pulse: ok
+```
+
+Second, a five-second active-low hold:
+
+```text
+qr trig low
+I (...) qr_module: TRIG=LOW
+trig-low: ok
+
+... five seconds ...
+
+qr trig high
+I (...) qr_module: TRIG=HIGH
+trig-high: ok
+```
+
+Neither test produced `UART RX chunk`. The user guide states that a trigger-mode decode session continues until a symbol is decoded or the active trigger is removed. Extending the hold from 100 ms to five seconds therefore tested whether the short pulse merely ended acquisition too early. It did not restore transport.
+
+At this point, the evidence was specific:
+
+```text
+power path          working
+hardware trigger    working
+optical activation  working
+host UART RX         silent
+host command ACKs    silent
+```
+
+## 19. The missing state dimension: communication interface
+
+The scanner engine supports several communication interfaces:
+
+| Value | Interface |
+|---:|---|
+| `00` | RS232 / TTL serial |
+| `01` | USB keyboard emulation |
+| `02` | USB virtual serial port |
+| `03` | USB HID-POS |
+| `04` | RS485 |
+
+The configuration PID/FID is `42 40`. A serial-mode write is therefore:
+
+```text
+21 42 40 00
+```
+
+The existence of that command does not guarantee recoverability over UART. If the active scanner interface is USB, the host's TTL UART command may not enter the active control path. The official M5Stack `UsbMode.ino` example explicitly handles this problem. On startup it tells the operator:
+
+> If you are unsure which port was configured on the device before the last power-off, please scan the serial communication configuration code when this message appears; otherwise, the QRCode module may not start correctly.
+
+The same example warns that returning from USB mode requires scanning the Serial Communication configuration code from the user guide.
+
+### 19.1 Two controls with different responsibilities
+
+The Module13.2 has a physical USB/UART selector. The scan engine also stores a communication-interface parameter. These controls must not be conflated.
+
+The physical selector determines how module-level signals are connected. The engine parameter determines which protocol endpoint receives commands and decoded data. A selector in the UART position cannot force an engine configured for USB keyboard output to emit bytes on TTL TX.
+
+This explains the complete symptom set without contradicting earlier evidence:
+
+- 12 V power and expander control remained correct.
+- Hardware TRIG activated the engine.
+- The engine could image and possibly decode the symbol.
+- G14 remained idle-high because the engine was not transmitting TTL serial frames.
+- Every UART baud and route remained silent.
+- Reflashing the exact old host firmware changed nothing because scanner state persisted.
+
+### 19.2 How the state likely changed
+
+The silent state appeared after factory-reset and interface experiments. The strongest operational hypothesis is that a reset or configuration action selected a USB interface. The session did not capture an interface query immediately before and after `32 76 01`, so the report does not claim that factory reset was proven to be the sole cause.
+
+The engineering conclusion does not require that stronger claim. The scanner was in a non-serial state, and scanning the serial programming barcode restored serial operation immediately. Factory reset remains hazardous because it can strand a UART-managed installation in a state that the host cannot repair over its normal transport.
+
+## 20. Programming-barcode recovery
+
+The official ZBarcode user guide contains a **Serial Communication** programming barcode on page 9. Its human-readable configuration value is:
+
+```text
+21424000
+```
+
+The full page and a cropped barcode were archived with the ESP-62 ticket:
+
+```text
+various/2026-08-23-serial-communication-recovery-page.png
+various/2026-08-23-serial-communication-recovery-barcode.png
+```
+
+The programming barcode is processed by the scanner's decoding engine. It does not depend on a working host UART, which breaks the circular dependency: the operator can restore UART without first sending a UART command.
+
+The recovery sequence is:
+
+```text
+1. Supply 12 V and boot the CoreS3 firmware.
+2. Verify that a touch or console trigger activates illumination.
+3. Present the official Serial Communication programming barcode.
+4. Wait for the scanner's success indication.
+5. Present a normal barcode or QR code.
+6. Run `qr status` over the independent USB Serial/JTAG console.
+7. Confirm firmware, raw scan bytes, parser emission, and UI delivery.
+```
+
+## 21. Final end-to-end proof
+
+After the user scanned `21424000`, the same running firmware received the normal code already in view:
+
+```text
+I (...) qr_module: UART RX chunk: 10 bytes
+I (...) qr_module: 58 30 30 35 32 4c 33 57 50 4e |X0052L3WPN|
+I (...) qr_module: emit code: X0052L3WPN
+I (...) qr_ui: code: X0052L3WPN
+```
+
+A subsequent status query produced:
+
+```text
+qr status
+[qr status] probing...
+I (...) qr_engine: 43 02 c1 |C..|
+W (...) qr_engine: getInfos id=0xc1 data_len=3 data_got=3 -> '1.0'
+I (...) qr_engine: 43 02 c5 |C..|
+W (...) qr_engine: getInfos id=0xc5 data_len=0 data_got=0 -> ''
+qr firmware=1.0
+qr serial   =
+```
+
+This trace proves the complete software path:
+
+```mermaid
+sequenceDiagram
+    participant E as M14-Pro engine
+    participant U as UART1 driver
+    participant O as QRModule owner
+    participant P as Quiet-time parser
+    participant Q as ScanResult queue
+    participant UI as QRUI task
+
+    E->>U: 58 30 30 35 32 4C 33 57 50 4E
+    U->>O: UART RX chunk, 10 bytes
+    O->>P: append bytes
+    Note over P: 30 ms without another byte
+    P->>P: emit "X0052L3WPN"
+    P->>Q: ScanResult copied by value
+    Q->>UI: result received
+    UI->>UI: update latest code and history
+```
+
+It also joins evidence that had previously been separate:
+
+| Layer | Final evidence |
+|---|---|
+| Scanner power and trigger | Illumination responds to active-low TRIG |
+| Persisted interface | `21424000` changes subsequent behavior |
+| TTL transport | Ten raw bytes arrive on G14/UART1 |
+| Framing | Quiet-time parser emits exactly one value |
+| RTOS ownership | Owner task remains stable; no direct console/UI UART access |
+| Queue lifetime | `ScanResult` and responses cross by value |
+| UI delivery | `qr_ui: code: X0052L3WPN` |
+| Status protocol | Firmware reply decodes to `1.0` |
+
+## 22. Why AUTO and continuous mode remain a separate product decision
+
+The user reported that AUTO or continuous mode provided the best earlier experience because the scanner remained ready and required no touch. The recovered transport makes that behavior possible again, but the startup policy should be restored carefully.
+
+A robust startup sequence should configure automatic operation only after serial health is proven:
+
+```text
+power scanner with TRIG idle-high
+wait for engine boot
+query firmware 43 02 C1
+if valid 44 reply:
+    set communication interface to serial
+    set fill/position light policy
+    set AUTO or CONTINUOUS mode
+    require exact ACKs
+    report READY
+else:
+    do not claim mode success
+    show 21424000 recovery instruction
+    keep hardware trigger fallback available
+```
+
+AUTO and continuous are not interchangeable:
+
+- **Continuous mode** keeps decode acquisition active according to the engine's continuous policy and can repeat the same symbol frequently.
+- **AUTO mode** uses the engine's automatic detection behavior and may reduce unnecessary repeated acquisition depending on configuration.
+- **Hardware-trigger mode** is a deterministic fallback and recovery tool, not the preferred normal experience for this project.
+
+The UI history will need deduplication or rate limiting when always-on scanning is restored. The observed engine repeated the same ten-byte code at roughly 100 ms intervals in continuous mode. Without policy, six identical values can replace useful history almost immediately.
+
+## 23. Operational safety changes implied by the incident
+
+### 23.1 Guard factory reset
+
+`qr reset` should not remain a casual one-word command. Safer options include:
+
+1. remove it from normal builds;
+2. require a typed confirmation phrase;
+3. print the recovery-barcode path before sending the reset;
+4. require the recovery image to be available to the operator;
+5. immediately test serial health after reset and display a persistent recovery state if it fails.
+
+A command that can disable its own control transport needs an explicit operational contract.
+
+### 23.2 Distinguish readiness states
+
+A single `ready` boolean is insufficient. Useful states are:
+
+```text
+HOST_READY          display, console, queues initialized
+EXPANDER_READY      PI4IOE5V6408 responds
+ENGINE_POWERED      output latch and observed power behavior agree
+UART_RESPONSIVE     valid status frame received
+SCANNER_CONFIGURED  required mode/light ACKs received
+SCAN_ACTIVE         automatic or trigger decode session active
+RESULT_SEEN         decoded bytes reached parser/UI
+RECOVERY_REQUIRED   optics work but serial status remains silent
+```
+
+The LCD can then explain the exact boundary instead of showing `fw=(no reply)` as a generic failure.
+
+### 23.3 Preserve the independent console
+
+USB Serial/JTAG remained operational while the scanner UART was offline. This independent diagnostic channel made it possible to manipulate TRIG, inspect expander state, sweep baud/routes, and capture final evidence. Reusing scanner UART pins for the host console would have eliminated that separation.
+
+### 23.4 Keep the minimal probe small
+
+`0119-cores3-qrcode-minimal-probe` should remain intentionally limited. Its value is that it tests power, active-low trigger, UART installation, raw receive, and LCD output without inheriting the full scanner application's policy. Adding automatic configuration and recovery behavior would reduce its diagnostic independence.
+
+## 24. A disciplined diagnostic method for stateful peripherals
+
+The investigation supports a reusable order for devices that contain their own firmware and nonvolatile configuration.
+
+### Step 1: Enumerate state holders
+
+List every component that can retain state across a host flash:
+
+```text
+host firmware and NVS
+GPIO expander registers until power loss
+scanner nonvolatile configuration
+physical selector position
+DIP routing
+external module firmware
+host serial-driver state
+```
+
+A host Git revision does not identify the complete system state.
+
+### Step 2: Separate control from observation
+
+For each claim, identify an independent observation:
+
+| Claim | Better evidence |
+|---|---|
+| “Power is on” | output latch plus visible power-cycle behavior or voltage measurement |
+| “Command worked” | exact ACK bytes, not queue admission |
+| “Scanner works” | decoded bytes, not illumination alone |
+| “UART works” | raw RX chunk, not successful `uart_write_bytes` |
+| “UI works” | result consumed and rendered, not task creation |
+
+### Step 3: Test one boundary at a time
+
+The effective order in this project was:
+
+```text
+I2C expander
+-> output latch and TRIG behavior
+-> raw UART receive
+-> framed status parser
+-> command ACK propagation
+-> scan-result framing
+-> result queue
+-> UI delivery
+-> persistent interface recovery
+```
+
+### Step 4: Use negative evidence narrowly
+
+A complete baud sweep proves that no tested baud produced bytes on the tested transport. It does not prove that the peripheral selected that transport. A route sweep proves that no tested pin pair produced bytes. It does not prove that the engine's output protocol is serial.
+
+### Step 5: Reproduce with a minimal host
+
+A minimal host removes scheduler and policy variables. Interpret its success criteria explicitly. Optical activation and decoded transport are different milestones.
+
+### Step 6: Search vendor examples for recovery behavior
+
+Protocol tables describe command bytes. Examples often document operational transitions that the table cannot express, such as “scan this programming barcode because the active host interface cannot receive the command needed to change itself.” Both forms of documentation are required.
+
+## 25. Updated working rules
+
+- Treat peripheral nonvolatile configuration as part of the reproducibility envelope.
+- Do not interpret reflashing a known-good host binary as a complete system rollback.
+- Preload active-low control signals to their idle state before enabling output drive or peripheral power.
+- Treat illumination as evidence of power and trigger only; require decoded bytes before claiming scan success.
+- Require exact ACK evidence before claiming a scanner configuration took effect.
+- Keep UI actions nonblocking even when console diagnostics are synchronous.
+- Keep one task as sole UART owner; route raw diagnostics through it.
+- Copy queue requests and responses by value unless a separately proven lifetime protocol exists.
+- Evaluate quiet-time framing during idle reads, not only when new bytes arrive.
+- Preserve an independent host console that does not share peripheral transport pins.
+- Archive vendor programming barcodes required to recover persisted interface state.
+- Guard commands that can disable the transport used to issue subsequent recovery commands.
+
+## 26. Build, recovery, and validation procedure
+
+Build with the pinned toolchain:
 
 ```bash
 cd /home/manuel/code/wesen/go-go-golems/esp32-s3-m5/0118-cores3-qrcode-scanner
@@ -763,84 +1169,79 @@ idf.py -p \
   flash
 ```
 
-Use the ticket monitor helper for bounded captures:
+If the scanner is optically active but `qr status` returns no reply:
 
-```bash
-python3 ../ttmp/2026/08/23/ESP-62-CORES3-QRCODE--*/scripts/03-serial-monitor.py \
-  --port /dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_30:ED:A0:0B:0F:50-if00 \
-  --secs 20 \
-  --out /tmp/cores3-qr.txt
-```
+1. Do not repeat route or baud sweeps until the interface state is checked.
+2. Display `2026-08-23-serial-communication-recovery-barcode.png` on another device or print it.
+3. Trigger the scanner and scan programming barcode `21424000`.
+4. Run `qr status`; require firmware `1.0` or another valid version string.
+5. Trigger a normal code; require `UART RX chunk`, `emit code`, and `qr_ui: code`.
+6. Configure AUTO or continuous mode and require exact ACK output.
 
-Only one process should own the serial device. Stop monitors before flashing and do not run `idf.py monitor` concurrently with a Python capture.
+Only one process may own the USB Serial/JTAG device during flash, monitor, or scripted console work.
 
-Useful console commands are:
+## 27. Evidence and source map
 
-```text
-qr status
-qr raw 43 02 C1
-qr start
-qr stop
-qr mode key|cont|auto|pulse|sense
-qr light off|decode|on
-qr brightness 0-100
-qr beep on|off
-qr reset
-```
-
-Until ACK results are surfaced, configuration-command output confirms submission only.
-
-## 18. Source map
-
-The durable evidence is concentrated in these paths:
-
-### Firmware
+### Main firmware
 
 ```text
-/home/manuel/code/wesen/go-go-golems/esp32-s3-m5/0118-cores3-qrcode-scanner/main/app_main.cpp
-/home/manuel/code/wesen/go-go-golems/esp32-s3-m5/0118-cores3-qrcode-scanner/main/qr_engine.cpp
-/home/manuel/code/wesen/go-go-golems/esp32-s3-m5/0118-cores3-qrcode-scanner/main/qr_module.cpp
-/home/manuel/code/wesen/go-go-golems/esp32-s3-m5/0118-cores3-qrcode-scanner/main/qr_console.cpp
-/home/manuel/code/wesen/go-go-golems/esp32-s3-m5/0118-cores3-qrcode-scanner/main/qr_ui.cpp
+/home/manuel/code/wesen/go-go-golems/esp32-s3-m5/0118-cores3-qrcode-scanner
 ```
 
-### Ticket documents
+### Minimal probe
 
 ```text
-.../design-doc/01-cores3-module13.2-qrcode-scanner-analysis-design-and-implementation-guide.md
+/home/manuel/code/wesen/go-go-golems/esp32-s3-m5/0119-cores3-qrcode-minimal-probe
+```
+
+### Ticket diary and design material
+
+```text
 .../reference/01-diary.md
+.../design-doc/01-cores3-module13.2-qrcode-scanner-analysis-design-and-implementation-guide.md
 .../sources/MANIFEST.md
-.../sources/qr-uart-on-g13-g14-with-h2-uart-mode.md
-.../sources/stack-compat-cores3-qrcode-h2.md
-.../sources/module-gateway-h2-M141-pinmap.md
+.../sources/protocol-pdf/Module13.2-QRCode-Protocol-EN.pdf
+.../sources/protocol-pdf/ZBarcode-Scanner-User-Guide-2.5-EN.pdf
+.../sources/arduino-lib/examples/UsbMode/UsbMode.ino
 ```
 
-### Primary external material saved locally
+### Recovery and final proof
 
 ```text
-.../sources/arduino-lib/src/M5ModuleQRCode.cpp
-.../sources/arduino-lib/src/qrcode_m14.cpp
-.../sources/protocol-pdf/Module13.2-QRCode-Protocol-EN.txt
-.../sources/protocol-pdf/ZBarcode-Scanner-User-Guide-2.5-EN.txt
-.../sources/h2/SCH_Module-Gateway_H2_v0.4.pdf
+.../various/2026-08-23-serial-communication-recovery-page.png
+.../various/2026-08-23-serial-communication-recovery-barcode.png
+.../various/2026-08-23-uart-offline-trigger-pulse.txt
+.../various/2026-08-23-uart-offline-trigger-held-5s.txt
+.../various/2026-08-23-serial-recovery-end-to-end-success.txt
 ```
 
-## 19. Near-term next steps
+### Diagnostic scripts
 
-1. Create a minimal scanner-recovery boot path with no suffix configuration and no duplicate firmware query.
-2. Return and display command ACK results for trigger mode, lights, brightness, stop, and suffix configuration.
-3. Read back or explicitly log PI4IOE5V6408 power-enable and trigger states.
-4. Verify QRCode pin routing remains pin 23/26 and H2 G13 is disconnected.
-5. Perform a controlled scanner power cycle through `QR_5V_EN`, then query firmware before any other command.
-6. Re-establish a responsive engine and capture one final sequence containing `firmware=1.0`, `emit code`, `qr_ui: code`, and visual LCD confirmation.
-7. Update the README and design document to make G13/G14 the documented three-layer route while retaining G17/G18 as the two-layer alternative.
-8. Add scan deduplication and test long payload framing only after the scanner state is recovered.
+```text
+.../scripts/03-serial-monitor.py
+.../scripts/04-console-trigger-hold.py
+```
+
+## 28. Current status and next engineering work
+
+The principal bring-up objective is now proven. The recovered scanner sends decoded bytes over G13/G14, the single UART owner receives them, quiet-time framing emits a stable value, the queue copies it safely, and the UI task consumes it. Firmware status replies again decode to `1.0`.
+
+The next work is product refinement rather than root-cause recovery:
+
+1. Restore ACK-backed AUTO or continuous configuration after a positive boot-time firmware query.
+2. Make always-on scanning the default user experience, with touch trigger retained as fallback.
+3. Deduplicate repeated continuous-mode scans in UI history.
+4. Guard or remove factory reset.
+5. Promote `RECOVERY_REQUIRED` to an explicit LCD/console state.
+6. Verify the optional H2 stack again only after the two-layer scanner remains stable.
+7. Add a test that delays owner handling to protect the value-response lifetime invariant.
+8. Validate quiet-time framing with long, fragmented, and binary-adjacent payloads.
 
 ## Related notes
 
-- [[ARTICLE - QuickJS Wasm on ESP32-P4 - Device Bring-Up and Two WAMR Embedding Crashes]] — another ESP-IDF owner-thread postmortem where execution context and resource ownership determined correctness.
+- [[ARTICLE - QuickJS Wasm on ESP32-P4 - Device Bring-Up and Two WAMR Embedding Crashes]] — another ESP-IDF investigation where execution context and resource ownership determined correctness.
 - [[ARTICLE - ESP32-S3 QuickJS HTTP and Fetch - Owner Tasks Promises and Stored Scripts]] — owner-task patterns for serializing access to stateful embedded runtimes.
 - [[PROJ - CoreS3 Magnet Base - 3D Model Search]] — related CoreS3 project context in the vault.
 
-> [!important]
-> The project is not complete merely because it no longer reboots. Completion requires the scanner to answer configuration queries, decode a code, deliver the result through the stable owner-task architecture, and display it on the CoreS3 LCD in one reproducible hardware run.
+> [!success] End-to-end recovery criterion met
+> The scanner answered with firmware `1.0`, delivered raw `X0052L3WPN` bytes, emitted a quiet-time-framed `ScanResult`, and reached `qr_ui: code` through the lifetime-safe owner architecture. The remaining AUTO/continuous work changes operating policy; it no longer blocks proof of the transport and display pipeline.
