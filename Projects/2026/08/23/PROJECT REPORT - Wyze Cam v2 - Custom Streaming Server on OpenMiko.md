@@ -409,3 +409,117 @@ The default `root/root` was changed to a temporary strong password. The user sho
 ### The buggy bootloader failure mode
 
 The OpenMiko documentation warns that some Wyze Cams have a buggy factory bootloader that will not flash anything. This camera did not exhibit the problem, but the failure mode should be documented in the design document as a risk for any future camera of the same model.
+
+---
+
+## 16. Implementation: Phase 2 and Phase 3 (gostream built, verified, and made persistent)
+
+This section records the work performed after the Phase 0 bring-up described in the earlier sections. It covers the construction of the `gostream` Go server, the V4L2 capture implementation, the RTSP serving via gortsplib, the MJPEG and administrative HTTP endpoints, the failures encountered during live validation, the recovery from an accidental reflash, and the final persistent deployment. It is written as a continuation of the evidence-based narrative established in the earlier sections.
+
+### 16.1 Repository structure
+
+The `gostream` server lives in the project repository at `/home/manuel/code/wesen/2026-08-23--wyze-cam/gostream/`. It is a Go module (`github.com/manuel/gostream`) organized into a command entry point and three internal packages:
+
+```
+gostream/
+├── cmd/gostream/main.go          # config loading, server wiring, signal handling
+├── go.mod
+├── internal/
+│   ├── config/config.go          # JSON config + atomic SIGHUP-reloadable ConfigStore
+│   ├── capture/capture.go        # pure-Go V4L2 read-mode reader + Annex-B NAL/AU splitter
+│   ├── rtsp/rtsp.go              # gortsplib v5 server + lazy H264 stream init
+│   └── http/http.go              # MJPEG multipart + JPEG snapshot + admin /healthz + /reload
+└── gostream                       # the cross-compiled 8.2 MB static MIPS binary
+```
+
+The design follows the architecture proposed in section 7: a capture goroutine reads encoded H.264 from the `/dev/video3` v4l2loopback device (fed by the stock `videocapture` binary) and forwards access units to a gortsplib RTSP server; a second capture goroutine reads JPEG from `/dev/video4` and serves MJPEG over HTTP plus a snapshot endpoint; an administrative HTTP server exposes health and config-reload endpoints.
+
+### 16.2 The go4vl dead end and the pure-Go V4L2 reader
+
+The initial design called for `github.com/vladimirvivien/go4vl` for V4L2 capture. This was Open Question Q3 in the design document. The live build disproved the assumption that go4vl would cross-compile to the MIPS target: `go build GOARCH=mipsle` failed with `FourCCType`, `Capability`, `IOType`, `BufType`, and `Event` undefined in `go4vl@v0.5.0/v4l2`, because those types are platform-specific and absent on MIPS.
+
+The fallback, documented in the design document, was to implement a minimal pure-Go V4L2 reader using `golang.org/x/sys/unix` raw ioctl calls. This required hand-rolling the kernel ABI structs for the 32-bit MIPS target. The first attempt used wrong struct sizes (`Reqbufs=24` instead of 20, `Buffer=80` instead of 68, `Fmt=228` instead of 232, `Cap=104` mismatched), which produced `ENOTTY` on every ioctl because the ioctl numbers are encoded from the struct size via `_IOWR('V', nr, struct)`. The correct sizes, derived from `linux/videodev2.h` and verified with a Go size-test program, are:
+
+- `v4l2_requestbuffers`: 20 bytes (count, type, memory, capabilities: 4×u32; flags: u8; reserved: 3×u8)
+- `v4l2_buffer`: 68 bytes on a 32-bit kernel (5×u32 + timeval{sec,usec int32}=8 + timecode=16 + 6×u32; the union `m` is 4 bytes because `unsigned long` is 4 bytes on 32-bit MIPS)
+- `v4l2_format`: 232 bytes (4-byte type + 200-byte union, padded to the kernel's expected 232)
+- `v4l2_capability`: 104 bytes (16+32+32 + 4×u32 + 3×u32 reserved)
+
+With the correct ABI, `VIDIOC_REQBUFS` and `VIDIOC_QUERYBUF` succeeded, but `VIDIOC_STREAMON` returned `ENOTTY`. The v4l2loopback module on the Ingenic 3.10.14 BSP does not support MMAP streaming; it supports only `read()` mode. A raw `head -c 65536 /dev/video3` confirmed read mode returns data. The capture package therefore tries MMAP streaming first and falls back to `read()` mode if `STREAMON` fails. The read-mode loop reads a fixed 256 KB buffer per `read()` call.
+
+### 16.3 The access-unit splitting discovery
+
+A raw read of `/dev/video3` returned exactly 262,144 bytes (256 KB) regardless of frame size, and inspection of the bytes on the host revealed 1,057 Annex-B start codes in that single read. The v4l2loopback `read()` returns a continuous byte-stream chunk containing multiple H.264 access units, not one frame per read. Forwarding these chunks directly to the RTSP encoder produced a stream that `ffprobe` reported as `h264 1920x1080` but with continuous `non-existing PPS 0 referenced` / `decode_slice_header error` / `no frame!` errors.
+
+The fix was to split each read chunk into individual access units before forwarding. The `splitAccessUnits` function splits the Annex-B byte stream into typed NAL units, then groups them into access units: a new access unit begins at an AUD (NAL type 9), an IDR slice (type 5), or a non-IDR slice (type 1); SPS/PPS/SEI (types 7/8/6) attach to the following slice. Each access unit is emitted as a `Frame` with a wall-clock PTS. This produced a stream that `ffprobe` could decode.
+
+### 16.4 The SPS/PPS and lazy stream initialization breakthrough
+
+Even with access-unit splitting, `ffprobe` still reported `non-existing PPS`. The SDP returned by `DESCRIBE` contained `a=fmtp:96 packetization-mode=1` but no `sprop-parameter-sets`. The cause was that gortsplib builds the SDP from the H264 format at `ServerStream.Initialize()` time, and the code was setting SPS/PPS on the format after initialization, so the SDP never carried them.
+
+Two earlier attempts failed. Prepending SPS/PPS to every access unit caused `runtime: out of memory` because it doubled the NAL count at 25 fps and exhausted the ~17 MB of free RAM. Prepending only on IDR keyframes did not OOM but still left the SDP without `sprop-parameter-sets`, and clients that ignore in-band parameter sets never decoded.
+
+The working solution is lazy stream initialization. The gortsplib server starts listening immediately, but the `publish` goroutine blocks reading from the capture loop until it sees the first SPS (NAL type 7) and PPS (NAL type 8), then creates the H264 format with those parameter sets set, calls `ServerStream.Initialize()` (which now builds an SDP with `sprop-parameter-sets`), and creates the RTP encoder. `OnDescribe` and `OnSetup` return `404 Not Found` until the stream is initialized, so early clients retry. After this change, `DESCRIBE` returned `a=fmtp:96 packetization-mode=1; profile-level-id=42C028; sprop-parameter-sets=Z0LAKJWoHgCJ+WEAAAMAAQAAAwAyBA==,aO48gA==`, and `ffprobe` reported `codec_name=h264 width=1920 height=1080 r_frame_rate=50/1` with no decode errors and exit 0. `ffplay` ran a 35-second soak with no crash and no decode failure.
+
+### 16.5 Phase 3: MJPEG, snapshot, and admin API
+
+The `internal/http` package serves MJPEG over HTTP using the standard library `net/http` package. The `/stream` handler writes a `multipart/x-mixed-replace; boundary=frame` stream, reading JPEG frames from the `/dev/video4` capture loop and flushing after each. The `/snapshot` handler returns the most recent JPEG frame as a single image. The administrative server on port 18081 exposes `/healthz` (JSON with live `rtsp_fps`, `rtsp_frames`, `mjpeg_fps`, `mjpeg_frames`, memory stats, and the Go build target) and `/reload` (POST/PUT to trigger a config reload via the `ConfigStore`).
+
+Live verification confirmed all endpoints. `curl http://192.168.0.55:8080/stream` returned `Content-Type: multipart/x-mixed-replace; boundary=frame` with streaming JPEG frames. `curl http://192.168.0.55:8080/snapshot` returned HTTP 200 with a valid 1920×1080 JPEG (verified by `file`). `curl http://192.168.0.55:18081/healthz` returned `{"rtsp_fps":24.7,"rtsp_frames":645,"goarch":"mipsle","gomips":"softfloat","status":"ok",...}`. Sending `SIGHUP` to the gostream process logged `SIGHUP: reloading config` and `config reloaded` without restarting, and `POST /reload` returned `{"status":"reloaded"}`. The RTSP stream continued to serve correctly after reload.
+
+### 16.6 The reflash and recovery incident
+
+To test persistence across reboot, the camera was rebooted with `echo b > /proc/sysrq-trigger`, an abrupt kernel-level reboot that does not unmount filesystems. The SD card, which still contained `demo.bin` from the initial flash, was left in the camera. OpenMiko's bootloader saw `demo.bin` and reflashed the firmware, resetting the root password to `root/root` and reverting the running state to stock. The abrupt reboot also corrupted the SD card's FAT filesystem, producing `mmcblk0: error -1 sending status command` and `I/O error, dev mmcblk0` in `dmesg`; the card would not mount, and the overlay files were lost. The camera continued to serve the stock stream, but SSH (dropbear) began rejecting connections at the key-exchange identification stage (`kex_exchange_identification: read: Connection reset by peer`) because the device was near the OOM ceiling and dropbear could not fork a session for a new connection.
+
+The root cause of the SSH failure was a deployment-ordering mistake: the 8.2 MB gostream binary was copied to `/tmp` (tmpfs, which is RAM-backed, consuming 8.2 MB of the ~17 MB free), gostream was started on top of the full stock stack (another ~9 MB RSS), and then additional SSH sessions were spawned for a password change and a `killall`. The correct ordering is to kill the stock `v4l2rtspserver`, `mjpg_streamer`, and `micropython` first to free approximately 10 MB, then start gostream. The abrupt reboot was also a mistake; a clean power cycle (unplugging USB power for five seconds) is the safe reboot method on this busybox, which lacks `reboot`, `init 6`, and `halt`.
+
+The recovery was straightforward because all artifacts were committed to git. The SD card was reformatted to FAT32 with the label `OPENMIKO`, the gostream binary was rebuilt from the source, and the overlay was re-staged. The key change to prevent a recurrence was to omit `demo.bin` from the card entirely, so the bootloader never reflashes. The gostream binary was placed at `/sdcard/config/overlay/usr/bin/gostream` and the `S67gostream` init script runs it from that path, so the 8.2 MB binary stays on the SD card's FAT partition and is never copied into the zram rootfs, keeping it out of RAM.
+
+### 16.7 The persistent deployment
+
+The final SD card layout is:
+
+```
+/config/overlay/etc/wpa_supplicant.conf    # yolobolo SSID + password
+/config/overlay/etc/openmiko.conf          # Wyze V2, ENABLE_API=0 (saves ~1 MB RAM), WIFI_MODULE=8189fs
+/config/overlay/etc/gostream.conf          # RTSP :8554 + MJPEG :8080 + admin :18081, both streams
+/config/overlay/etc/init.d/S60camera        # stock v4l2rtspserver line disabled, videocapture kept
+/config/overlay/etc/init.d/S67gostream      # runs /sdcard/config/overlay/usr/bin/gostream
+/config/overlay/etc/init.d/S70mjpg_streamer  # disabled (gostream serves MJPEG)
+/config/overlay/usr/bin/gostream            # 8.2 MB static MIPS binary, run off the card
+```
+
+OpenMiko's `general_init.sh` copies `/sdcard/config/overlay/*` over the rootfs at boot using `install -D`, which sets mode 0755 (executable) regardless of the FAT source's lack of an exec bit. The boot sequence is: `S60camera` loads the sensor/ISP/loopback modules and starts `videocapture` (kept), with the stock `v4l2rtspserver` line commented out by the overlay; `S67gostream` waits for `/dev/video3` to appear, then runs gostream from the SD card; `S70mjpg_streamer` is an empty stub. There is no `demo.bin` on the card, so the bootloader never reflashes.
+
+### 16.8 Final live verification of the persistent deployment
+
+After a clean power cycle with the re-staged card inserted, the camera joined the `yolobolo` WiFi network at `192.168.0.55` within approximately 90 seconds. The gostream ports opened (8554, 8080, 18081) after the capture pipeline initialized. The verification evidence is:
+
+- `ffprobe -rtsp_transport tcp rtsp://192.168.0.55:8554/cam0` reported `codec_name=h264 width=1920 height=1080 r_frame_rate=50/1` with no decode errors and exit 0.
+- `DESCRIBE` returned `Server: gortsplib` and `a=fmtp:96 packetization-mode=1; profile-level-id=42C028; sprop-parameter-sets=Z0LAKJWoHgCJ+WEAAAMAAQAAAwAyBA==,aO48gA==`.
+- `curl http://192.168.0.55:8080/snapshot` returned HTTP 200 with a valid 1920×1080 JPEG (152 KB).
+- `curl http://192.168.0.55:18081/healthz` returned `{"rtsp_fps":24.5,"rtsp_frames":821,"goarch":"mipsle","gomips":"softfloat","status":"ok",...}`.
+- `ps` confirmed gostream is running as `/sdcard/config/overlay/usr/bin/gostream -config /etc/gostream.conf`, the stock `v4l2rtspserver`, `mjpg_streamer`, and `micropython` are not running, and `videocapture` is running.
+- The SD card survived the boot intact: `/dev/mmcblk0p1` is still `vfat` (rw), and the overlay files are present on the card.
+
+### 16.9 Final memory accounting
+
+The per-process RSS on the persistent deployment, sorted by consumption:
+
+| Process | RSS (KB) | Role |
+|---|---|---|
+| gostream | 9,420 | our Go server (RTSP + MJPEG + admin) |
+| videocapture | 3,276 | stock IMP→v4l2loopback bridge (kept) |
+| wpa_supplicant | 1,792 | WiFi |
+| reset_button.sh | 1,416 | OpenMiko reset monitor |
+| lighttpd | 916 | web UI (could disable for ~1 MB) |
+| dropbear | 680 | SSH |
+
+gostream is the single largest consumer at 9.2 MB resident, followed by videocapture at 3.3 MB. The total free RAM is approximately 17 MB (`free` reports 91844 KB total, 16936 KB free after buffers/cache). The stock stack that gostream replaced (`v4l2rtspserver` + `mjpg_streamer` + `micropython`) consumed approximately 13–15 MB combined; gostream at 9.2 MB roughly halves the streaming-server RAM footprint while adding RTSP, MJPEG, snapshot, and an admin API in a single binary.
+
+### 16.10 What is permanent and what remains
+
+The deployment is permanent in the sense that survives a clean power cycle: the overlay is on the SD card, OpenMiko applies it at boot, and gostream starts automatically with no `demo.bin` to trigger a reflash. The gostream source and binary are committed to the project repository.
+
+What remains is not part of the gostream deployment itself but is outstanding from the original design: Phase 4 (USB gadget transport, requiring a kernel rebuild to enable the CDC-ECM gadget stack) and Phase 5 (collapsing `videocapture` into gostream via CGo binding of the IMP SDK). The camera is currently reachable only over WiFi, not over USB. The root password is `root/root` and should be changed. The binary is 8.2 MB; `upx` compression (which could not be installed without a sudo password in this environment) would reduce it to approximately 3 MB.
+
