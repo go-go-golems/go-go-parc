@@ -44,6 +44,7 @@ header-includes:
     \newcommand{\Reach}{\mathsf{Reach}}
 ---
 
+k
 # Executive summary
 
 P06 studies one narrow but foundational problem in a presentation-based user-interface architecture:
