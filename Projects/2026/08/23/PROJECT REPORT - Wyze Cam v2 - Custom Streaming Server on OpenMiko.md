@@ -523,3 +523,47 @@ The deployment is permanent in the sense that survives a clean power cycle: the 
 
 What remains is not part of the gostream deployment itself but is outstanding from the original design: Phase 4 (USB gadget transport, requiring a kernel rebuild to enable the CDC-ECM gadget stack) and Phase 5 (collapsing `videocapture` into gostream via CGo binding of the IMP SDK). The camera is currently reachable only over WiFi, not over USB. The root password is `root/root` and should be changed. The binary is 8.2 MB; `upx` compression (which could not be installed without a sudo password in this environment) would reduce it to approximately 3 MB.
 
+
+### 16.11 Memory-accounting correction: 128 MiB is credible, and the 34 MiB vmalloc block is v4l2loopback
+
+A later audit found that the earlier explanation of `VmallocUsed` was wrong. The 34 MiB `VmallocUsed` value is not primarily an `rmem` mapping and is not evidence that reserved video RAM is counted twice. The live camera's boot log and `/proc/vmallocinfo` allow the memory map to be reconstructed directly.
+
+The physical-memory claim is strongly supported as **128 MiB**, despite OpenMiko's README using the ambiguous spelling "128Mb DDR." The OpenMiko U-Boot board name is `isvp_t20_sfcnor_ddr128M`; the independent YaCAM project explicitly says it is tested on Wyze V2/Pan cameras "with 128MB memory"; and the OpenMiko command line assigns a contiguous 128 MiB physical address range: Linux `mem=96M@0x0`, ISP reservation `ispmem=8M@0x6000000`, and encoder reservation `rmem=24M@0x6800000`. These ranges cover physical addresses 0 through 0x07ffffff exactly: 96 + 8 + 24 = 128 MiB. Independent stock-firmware boot logs use a different split (104 MiB Linux + 8 MiB ISP + 16 MiB rmem) that also sums to 128 MiB. If the device had only 64 MiB, the ISP/video drivers would be accessing nonexistent RAM above 0x03ffffff; this camera is running the 1080p pipeline successfully, so that interpretation is not plausible.
+
+The Linux-managed region accounts exactly. The command line gives Linux 96 MiB = 98,304 KiB. The early boot log reports:
+
+```
+Memory: 91360k/98304k available
+        (3877k kernel code, 6944k reserved, 1205k data, 484k init, 0k highmem)
+```
+
+The arithmetic is exact: 98,304 - 91,360 = 6,944 KiB reserved at that point. Later the kernel reports `Freeing unused kernel memory: 484K`; after that, `/proc/meminfo` reports `MemTotal: 91844 kB`, and 91,360 + 484 = 91,844 KiB exactly. Therefore the apparent gap between 96 MiB and `MemTotal` is not unexplained: it is the 6,944 KiB early reservation minus the 484 KiB init section that was returned to the allocator, leaving 6,460 KiB permanently unavailable.
+
+The 34 MiB runtime `VmallocUsed` value was parsed completely from `/proc/vmallocinfo`: 35,856,384 bytes = 35,016 KiB = 34.20 MiB. Its breakdown is:
+
+| vmalloc category | MiB | Evidence |
+|---|---:|---|
+| v4l2loopback frame buffers | 31.69 | two 15.82 MiB allocations plus two 20 KiB allocations, caller `0xc0508a1c` inside v4l2loopback loaded at `0xc0506000` |
+| kernel module text/data mappings | 1.62 | `module_alloc_update_bounds` entries |
+| rtl8189fs dynamic allocations | 0.44 | `_rtw_zvmalloc [8189fs]` entries |
+| JFFS2 compression workspaces | 0.34 | `jffs2_zlib_init` / `jffs2_lzo_init` |
+| zram metadata/buffer | 0.10 | `disksize_store` |
+| other ioremap/vmalloc | 0.01 | remaining entry |
+
+The two dominant allocations are 16,592,896 bytes each. That value is not coincidental:
+
+```
+1920 * 1080 * 4 bytes/pixel * 2 buffers + 4096-byte page = 16,592,896 bytes
+```
+
+The live module parameter is `max_buffers=2`. The v4l2loopback source computes `imagesize = buffer_size * buffers_number` and allocates it with `vmalloc`; `buffer_size` is `PAGE_ALIGN(pix_format.sizeimage)`. Two full-resolution loopback devices are active (`/dev/video3` H.264 and `/dev/video4` JPEG), so each receives a two-buffer, four-bytes-per-pixel backing allocation of approximately 15.82 MiB. Together they consume approximately 31.65 MiB from **Linux's 96 MiB page pool**. They are kernel allocations and therefore do not appear in `Active(anon)` or process RSS, which is why the earlier user-space-only accounting did not add up.
+
+The corrected physical picture is:
+
+- **128 MiB installed/assumed physical DDR**, supported by board config, address map, independent firmware, and successful use of addresses through 0x07ffffff.
+- **32 MiB excluded from Linux** at boot: 8 MiB `ispmem` + 24 MiB `rmem`.
+- **96 MiB handed to Linux**; 6,944 KiB reserved initially, 484 KiB init returned, yielding `MemTotal=91,844 KiB`.
+- **Approximately 31.7 MiB of that Linux-managed memory is then allocated by v4l2loopback** for two 1080p double-buffered loopback devices. This is the largest hidden runtime allocation and the real explanation for the low headroom.
+- Loaded module images themselves total only 1,638,839 bytes (~1.56 MiB); `8189fs` is the largest at ~1.06 MiB and `tx_isp` is ~0.32 MiB.
+
+This result points to a concrete optimization. Using the one-encoder H.264 configuration and removing `/dev/video4` should eliminate one ~15.82 MiB loopback allocation, at the cost of the direct JPEG/MJPEG endpoint. Reducing `max_buffers` from 2 to 1 could potentially save another ~7.91 MiB per active 1080p device, but double buffering may be required for stable producer/consumer operation and must be validated. Reducing resolution to 1280×720 would reduce each two-buffer allocation from ~15.82 MiB to ~7.03 MiB. The most complete optimization is to bypass v4l2loopback entirely and stream encoded frames from `videocapture` to gostream through a FIFO/socket, recovering the full ~31.7 MiB without changing the IMP hardware pipeline.
