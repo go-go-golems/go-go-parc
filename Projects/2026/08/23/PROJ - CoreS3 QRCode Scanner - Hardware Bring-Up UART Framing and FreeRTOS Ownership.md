@@ -32,6 +32,7 @@ The project began as a small device integration and developed into a study of fo
 > - Commit `38df1be2` replaced caller-owned response pointers with value responses on per-transaction reply queues. Subsequent captures showed one stable boot and no assertion, reboot, abort, or watchdog.
 > - The long no-UART incident was not a baud, pin, power, parser, or current-firmware failure. The scanner had persisted a USB communication mode. Optical triggering still worked, but decoded values and command replies were not routed to TTL serial.
 > - Scanning the official **Serial Communication** programming barcode `21424000` restored UART. The next capture contained firmware `1.0`, raw bytes for `X0052L3WPN`, `emit code`, and `qr_ui: code` in one stable run.
+> - Final startup waits for command readiness, validates UART/light/AUTO ACKs, and deduplicates continuous repeats. A 20-second run received 16 raw frames but emitted one UI result.
 
 ## 1. What the project is building
 
@@ -89,9 +90,11 @@ Embedded bring-up reports become misleading when implementation state and hardwa
 | Post-refactor scan reaches the UI task | `UART RX chunk`, `emit code`, and `qr_ui: code: X0052L3WPN` in one capture | Proven |
 | Persisted USB mode explains the silent UART | Trigger tests produced optics with zero UART; scanning `21424000` immediately restored replies and scan bytes | Proven by intervention |
 | Scanner firmware version after recovery | `qr firmware=1.0` | Proven |
-| AUTO/continuous mode is restored as the default user experience | User identified it as preferred; final ACK-backed startup configuration remains to be re-enabled | Pending |
+| AUTO mode is restored as the default user experience | Firmware `1.0`, four validated configuration ACKs, `ready=1`, automatic repeated raw scans | Proven |
+| Continuous repeats do not flood UI history | 16 raw chunks produced one `emit code` and one `qr_ui: code` | Proven |
+| Unconfirmed factory reset is blocked | `qr reset` returns a recovery warning and transmits no reset | Proven |
 
-The evidence now joins the previously separate proofs. The corrected owner-task architecture receives a real scan, quiet-time framing emits it, and the UI task consumes it. AUTO/continuous startup remains a product-behavior task, not an unresolved transport failure.
+The evidence now joins the previously separate proofs. The corrected owner-task architecture receives real AUTO scans, quiet-time framing emits a semantic result, deduplication suppresses uninterrupted repeats, and the UI task consumes one useful update.
 
 ## 3. Physical architecture and power control
 
@@ -418,7 +421,10 @@ The firmware was built in small commits so each boundary could be examined indep
 | `ea5d1d42`, `b8c6258b` | Hardware-trigger UI | Full UI matched the minimal probe's touch behavior |
 | `db10cdfd` | Raw receive evidence | Every UART chunk logged before framing |
 | `cea1ad44`, `90d97304` | Recovery UX | LCD preserves an explicit offline state and points to programming barcode `21424000` |
-| `c881fae5` | Final evidence package | Official guide, recovery barcode, console script, diary, and successful trace |
+| `c881fae5` | Recovery evidence package | Official guide, recovery barcode, console script, diary, and successful trace |
+| `69f35b58`, `b4d2a493` | Production AUTO startup | Firmware-gated configuration, boot delay/retries, fill and positioning lights, reset guard |
+| `84e62850`, `05a1e910` | Mixed-stream cleanup | UART-mode ACK consumption, delayed ACK matching, continuous-result deduplication |
+| `2a221f97` | Final AUTO evidence | 16 raw repeats, one semantic UI result, and reset-refusal trace |
 
 The sequence matters because each commit constrains a different failure domain. The scan bytes proved the route and engine output. The crash fix proved task lifetime and startup stability. The minimal probe proved optical triggering. The programming barcode then restored the missing transport dimension and combined all proofs in one final run.
 
@@ -1011,49 +1017,78 @@ It also joins evidence that had previously been separate:
 | UI delivery | `qr_ui: code: X0052L3WPN` |
 | Status protocol | Firmware reply decodes to `1.0` |
 
-## 22. Why AUTO and continuous mode remain a separate product decision
+## 22. Restoring AUTO mode as an ACK-backed startup policy
 
-The user reported that AUTO or continuous mode provided the best earlier experience because the scanner remained ready and required no touch. The recovered transport makes that behavior possible again, but the startup policy should be restored carefully.
+The user reported that AUTO or continuous mode provided the best earlier experience because the scanner remained ready and required no touch. AUTO is now the default startup policy, but only after serial health is proven.
 
-A robust startup sequence should configure automatic operation only after serial health is proven:
+The implemented startup sequence is:
 
 ```text
 power scanner with TRIG idle-high
-wait for engine boot
-query firmware 43 02 C1
+wait one second for the engine command parser
+query firmware 43 02 C1 up to three times
 if valid 44 reply:
-    set communication interface to serial
-    set fill/position light policy
-    set AUTO or CONTINUOUS mode
-    require exact ACKs
-    report READY
+    set communication interface to serial; require ACK
+    set fill light on decode; require ACK
+    set positioning light on decode; require ACK
+    set AUTO mode; require ACK
+    report AUTO ready only if all four results are OK
 else:
-    do not claim mode success
     show 21424000 recovery instruction
     keep hardware trigger fallback available
 ```
 
-AUTO and continuous are not interchangeable:
+The one-second delay matters because optical triggering became available before firmware queries were reliable. A one-shot query at approximately 2.3 seconds into host boot timed out, while a later console query returned `1.0`. Matching the minimal probe's delay and adding bounded retries removed that timing dependency.
 
-- **Continuous mode** keeps decode acquisition active according to the engine's continuous policy and can repeat the same symbol frequently.
-- **AUTO mode** uses the engine's automatic detection behavior and may reduce unnecessary repeated acquisition depending on configuration.
-- **Hardware-trigger mode** is a deterministic fallback and recovery tool, not the preferred normal experience for this project.
+The final boot trace records the complete readiness decision:
 
-The UI history will need deduplication or rate limiting when always-on scanning is restored. The observed engine repeated the same ten-byte code at roughly 100 ms intervals in continuous mode. Without policy, six identical values can replace useful history almost immediately.
+```text
+firmware query attempt 1/3: 1.0
+ack ok
+ack ok
+ack ok
+ack ok
+AUTO config: uart=ok fill=ok pos=ok mode=ok ready=1
+qr_ui: start: firmware=1.0 auto_ready=1
+```
+
+### 22.1 The white fill light
+
+The white light is decode illumination. Its earlier absence was not a separate LED problem: startup had skipped `FILL_ON_DECODE` after the early firmware timeout. Once the query succeeded, the fill-light and positioning-light writes both received their configuration ACKs and the user observed substantially more responsive scanning.
+
+### 22.2 Mixed ACK and scan traffic
+
+Firmware 1.0 returns `22 42 40 00 00` after the UART-interface write, although the official Arduino wrapper treats that operation as reply-less. Leaving the ACK unread caused the quiet-time parser to emit binary configuration bytes as a bogus barcode.
+
+A later boot showed another timing case:
+
+```text
+fill command: timeout after 200 ms
+position command receives: 22 62 41 02 00  # delayed fill ACK
+position ACK later reaches scan pump
+```
+
+The command reader now searches incoming bytes for the exact expected ACK for up to 500 ms instead of assuming the next five bytes belong to the latest command. This is necessary because AUTO scan output and command replies share one UART stream.
+
+### 22.3 Continuous-result deduplication
+
+The engine repeatedly transmitted `X0052L3WPN` while the symbol remained visible. The final validation captured 16 raw UART chunks. Transport logging preserved all 16 for diagnostics, while semantic deduplication produced exactly one `emit code` and one UI update.
+
+Deduplication runs after quiet-time framing. Repeated identical results are suppressed while they continue arriving less than one second apart. Updating the last-seen timestamp on each suppressed frame keeps a stationary symbol collapsed indefinitely; removing it for at least one second permits the same value to register again.
+
+AUTO and continuous remain different engine policies, but AUTO now provides the preferred always-ready experience. Hardware trigger remains a deterministic fallback and recovery tool.
 
 ## 23. Operational safety changes implied by the incident
 
 ### 23.1 Guard factory reset
 
-`qr reset` should not remain a casual one-word command. Safer options include:
+`qr reset` is no longer a casual one-word command. The console refuses it unless the operator enters:
 
-1. remove it from normal builds;
-2. require a typed confirmation phrase;
-3. print the recovery-barcode path before sending the reset;
-4. require the recovery image to be available to the operator;
-5. immediately test serial health after reset and display a persistent recovery state if it fails.
+```text
+qr reset CONFIRM-21424000
+```
 
-A command that can disable its own control transport needs an explicit operational contract.
+An unconfirmed invocation prints that factory reset can persist USB mode, names recovery barcode `21424000`, returns an error, and transmits no reset command. The confirmation does not make reset harmless; it establishes that the operator has the transport-recovery mechanism available.
 
 ### 23.2 Distinguish readiness states
 
@@ -1213,6 +1248,9 @@ Only one process may own the USB Serial/JTAG device during flash, monitor, or sc
 .../various/2026-08-23-uart-offline-trigger-pulse.txt
 .../various/2026-08-23-uart-offline-trigger-held-5s.txt
 .../various/2026-08-23-serial-recovery-end-to-end-success.txt
+.../various/2026-08-23-auto-ack-interleaving-failure.txt
+.../various/2026-08-23-final-auto-deduplicated-success.txt
+.../various/2026-08-23-factory-reset-guard.txt
 ```
 
 ### Diagnostic scripts
@@ -1226,16 +1264,16 @@ Only one process may own the USB Serial/JTAG device during flash, monitor, or sc
 
 The principal bring-up objective is now proven. The recovered scanner sends decoded bytes over G13/G14, the single UART owner receives them, quiet-time framing emits a stable value, the queue copies it safely, and the UI task consumes it. Firmware status replies again decode to `1.0`.
 
-The next work is product refinement rather than root-cause recovery:
+The scanner now boots into ACK-backed AUTO mode, enables decode illumination, continuously receives the visible code, deduplicates repeated frames, and updates the UI once. The reset command is guarded by a recovery-specific confirmation phrase.
 
-1. Restore ACK-backed AUTO or continuous configuration after a positive boot-time firmware query.
-2. Make always-on scanning the default user experience, with touch trigger retained as fallback.
-3. Deduplicate repeated continuous-mode scans in UI history.
-4. Guard or remove factory reset.
-5. Promote `RECOVERY_REQUIRED` to an explicit LCD/console state.
-6. Verify the optional H2 stack again only after the two-layer scanner remains stable.
-7. Add a test that delays owner handling to protect the value-response lifetime invariant.
-8. Validate quiet-time framing with long, fragmented, and binary-adjacent payloads.
+The remaining work is refinement:
+
+1. Promote `RECOVERY_REQUIRED` to a formal state shared by LCD and console rather than deriving it from an empty firmware string.
+2. Verify the optional H2 stack again only after preserving the two-layer known-good baseline.
+3. Add component tests for delayed ACKs, stale ACKs, mixed scan bytes, and owner-task response lifetimes.
+4. Validate quiet-time framing with long, fragmented, and binary-adjacent payloads.
+5. Tune the one-second same-code absence threshold with real operator motion.
+6. Compare AUTO and continuous power, thermal, and repeated-output behavior before exposing persistent mode selection.
 
 ## Related notes
 
@@ -1244,4 +1282,4 @@ The next work is product refinement rather than root-cause recovery:
 - [[PROJ - CoreS3 Magnet Base - 3D Model Search]] — related CoreS3 project context in the vault.
 
 > [!success] End-to-end recovery criterion met
-> The scanner answered with firmware `1.0`, delivered raw `X0052L3WPN` bytes, emitted a quiet-time-framed `ScanResult`, and reached `qr_ui: code` through the lifetime-safe owner architecture. The remaining AUTO/continuous work changes operating policy; it no longer blocks proof of the transport and display pipeline.
+> The scanner answered with firmware `1.0`, acknowledged UART output, fill light, positioning light, and AUTO mode, delivered repeated raw `X0052L3WPN` frames, emitted one deduplicated `ScanResult`, and reached `qr_ui: code` through the lifetime-safe owner architecture.
