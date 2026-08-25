@@ -168,3 +168,60 @@ target folder: Projects/2026/08/25/
 article type: article
 diary type:   diary
 ```
+
+## Step 3: Validate and commit the report milestone
+
+The completed article and diary were copied into a new dated vault folder and validated in place. Only the two intended files appeared in `git status`; the vault did not acquire `.obsidian/workspace.json` changes or other generated state. YAML frontmatter parsed successfully, all fenced code blocks were balanced, and Git's whitespace check completed without findings.
+
+The first focused vault commit records the complete technical article and the diary through drafting. A separate diary-only commit will record this commit hash before publication.
+
+### What I did
+
+- Copied the two drafts into `Projects/2026/08/25/`.
+- Counted 4,749 words in the article and 1,331 words in the initial diary.
+- Checked Markdown fences, trailing whitespace, placeholders, and YAML frontmatter.
+- Staged the two exact paths and inspected `git diff --cached --name-status`, `git diff --cached --check`, and `git diff --cached --stat`.
+- Committed the report milestone.
+
+### Why
+
+- Focused staging prevents Obsidian session state or unrelated notes from entering the project-report commit.
+- Recording the report and its authorship diary together preserves the reasoning available at the time of publication.
+
+### What worked
+
+- The staged diff contained exactly 981 inserted lines across the article and diary.
+- The commit completed successfully.
+
+### What didn't work
+
+- The first whitespace check found trailing spaces in two verbatim prompt lines and one extra blank line at the article's end. I corrected these formatting-only issues in the drafts, recopied them, and reran the checks successfully.
+
+### What I learned
+
+- The vault accepts the `article` and `diary` frontmatter types without requiring an update to an index note.
+
+### What was tricky to build
+
+- The user prompt contained visual trailing spaces. Removing those spaces preserved the prompt wording while satisfying repository whitespace checks.
+
+### What warrants a second pair of eyes
+
+- Inspect commit `57a4ce9` and confirm that both Mermaid diagrams render correctly in Obsidian.
+
+### What should be done in the future
+
+- Publish the two focused commits to `origin/main` and record the push result.
+
+### Code review instructions
+
+- Run `git show --stat 57a4ce9`.
+- Review only the two paths under `Projects/2026/08/25/`.
+
+### Technical details
+
+```text
+Commit (report): 57a4ce9 — Document semantic feedback generation project
+Files:           2
+Inserted lines:  981
+```
