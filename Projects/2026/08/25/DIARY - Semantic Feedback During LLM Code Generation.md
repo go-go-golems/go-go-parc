@@ -207,7 +207,7 @@ The first focused vault commit records the complete technical article and the di
 
 ### What warrants a second pair of eyes
 
-- Inspect commit `57a4ce9` and confirm that both Mermaid diagrams render correctly in Obsidian.
+- Inspect commit `b33954c` and confirm that both Mermaid diagrams render correctly in Obsidian.
 
 ### What should be done in the future
 
@@ -215,13 +215,84 @@ The first focused vault commit records the complete technical article and the di
 
 ### Code review instructions
 
-- Run `git show --stat 57a4ce9`.
+- Run `git show --stat b33954c`.
 - Review only the two paths under `Projects/2026/08/25/`.
 
 ### Technical details
 
 ```text
-Commit (report): 57a4ce9 — Document semantic feedback generation project
-Files:           2
-Inserted lines:  981
+Commit before rebase: 57a4ce9 — Document semantic feedback generation project
+Commit after rebase:  b33954c — Document semantic feedback generation project
+Files:                2
+Inserted lines:       981
+```
+
+## Step 4: Integrate the updated remote branch without force
+
+The first push attempt was rejected as a non-fast-forward update. Fetching `origin` showed that the local branch was two commits ahead and 550 commits behind `origin/main`. The local worktree had been clean before integration, so I rebased the two focused report commits onto the updated remote branch rather than forcing the push.
+
+The rebase completed without conflicts and changed the report commit from `57a4ce9` to `b33954c` and the first diary commit from `686389f` to `5bb5af9`. After the rebase, three unrelated transcript paths appeared modified in the worktree. They were not part of either local commit, are excluded from staging, and must remain untouched by this report workflow.
+
+### What I did
+
+- Attempted `git push origin main`.
+- Recorded the exact non-fast-forward rejection.
+- Ran `git fetch origin` and inspected `main...origin/main` with left/right history.
+- Ran `git rebase origin/main`; both commits replayed without conflicts.
+- Inspected the rebased commit range with `git diff origin/main...HEAD --stat` and `--check`.
+- Inspected the unexpected transcript modifications and kept them unstaged.
+
+### Why
+
+- A non-fast-forward push must integrate remote work; force-pushing a shared vault branch would risk discarding 550 remote commits.
+- Exact-path staging allows the diary to be updated without absorbing unrelated worktree state.
+
+### What worked
+
+- Fetch advanced `origin/main` from `8c9acd4` to `55b30c4`.
+- Rebase completed successfully with no merge conflicts.
+- The committed range still contains only the article and diary.
+
+### What didn't work
+
+- The first push failed with:
+
+```text
+! [rejected] main -> main (fetch first)
+error: failed to push some refs to 'github.com:go-go-golems/go-go-parc'
+```
+
+- The updated remote checkout exposed three unrelated transcript modifications in the case-sensitive Git index versus the macOS worktree. This report does not attempt to resolve or discard them.
+
+### What I learned
+
+- The vault receives frequent concurrent updates; publishing work should fetch immediately before the final push.
+- A clean pre-rebase status does not guarantee a clean macOS worktree after checking out hundreds of new paths when the repository contains names that may interact on a case-insensitive filesystem.
+
+### What was tricky to build
+
+- The rebase changed commit hashes already cited by the diary, so the current hashes had to be recorded without erasing the chronological pre-rebase evidence.
+- The unrelated transcript differences are large content substitutions, not whitespace noise, and must not be normalized or committed incidentally.
+
+### What warrants a second pair of eyes
+
+- Independently inspect the vault's transcript filename collisions on macOS. They are outside the semantic-feedback report scope.
+
+### What should be done in the future
+
+- Commit this diary update by exact path, push without force, then record the final remote state.
+
+### Code review instructions
+
+- Review `git diff origin/main...HEAD`; it should contain only the two semantic-feedback note paths.
+- Do not stage the three modified `Transcripts/...` paths.
+
+### Technical details
+
+```text
+remote before fetch: 8c9acd4
+remote after fetch:  55b30c4
+local divergence:    ahead 2, behind 550
+rebased report:      b33954c
+rebased diary:       5bb5af9
 ```
