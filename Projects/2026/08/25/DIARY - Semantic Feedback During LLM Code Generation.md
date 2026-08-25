@@ -296,3 +296,59 @@ local divergence:    ahead 2, behind 550
 rebased report:      b33954c
 rebased diary:       5bb5af9
 ```
+
+## Step 5: Publish the rebased report series
+
+The rebased three-commit series pushed successfully to `origin/main` without force. The remote advanced from `55b30c4` to `f2b5668`. The article, the initial report diary, and the rebase investigation are now available in the shared vault history.
+
+This final entry records the publication result. It is intentionally the only file in the final local commit; the unrelated transcript modifications remain unstaged.
+
+### What I did
+
+- Ran `git push origin main` after the clean rebase and exact-path diary commit.
+- Confirmed the remote fast-forward range reported by Git.
+- Prepared this final diary-only publication record.
+
+### Why
+
+- The diary should distinguish the rejected first attempt from the successful non-force publication.
+- A final exact-path commit preserves that operational evidence without mixing it into the technical article.
+
+### What worked
+
+- Git reported `55b30c4..f2b5668  main -> main`.
+- No force option was used.
+- No unrelated transcript path was staged or committed.
+
+### What didn't work
+
+- N/A after the rebase.
+
+### What I learned
+
+- The safe publication sequence for this active vault is: inspect status, fetch, rebase clean focused commits, inspect the committed range, and push without force.
+
+### What was tricky to build
+
+- Final verification must compare commits with `origin/main` while ignoring unrelated unstaged worktree paths that are outside this task.
+
+### What warrants a second pair of eyes
+
+- Confirm the note appears under `Projects/2026/08/25/` in a synchronized Obsidian client.
+
+### What should be done in the future
+
+- Resolve the three unrelated transcript worktree collisions in a separate, explicitly scoped maintenance task.
+
+### Code review instructions
+
+- Inspect `b33954c`, `5bb5af9`, and `f2b5668`.
+- Verify that the final diary-only commit changes no other path.
+
+### Technical details
+
+```text
+successful push: 55b30c4..f2b5668 main -> main
+force used:      no
+published files: article and companion diary
+```
