@@ -459,3 +459,86 @@ source HEAD:  b668f83 Close paired Qwen evaluation ticket
 target type:  project
 target date:  2026-08-25
 ```
+
+## Step 7: Validate, commit, and publish the complete report
+
+The report and diary update were validated in their final vault paths and
+committed without including the unrelated transcript modifications. The report
+commit then pushed to `origin/main` as a fast-forward update.
+
+This final diary step records the publication evidence. A diary-only commit
+will preserve it after the report itself is already available remotely.
+
+### Prompt Context
+
+**User prompt (verbatim):** (see Step 6)
+
+**Assistant interpretation:** Publish the complete project report with a
+reviewable, focused vault history.
+
+**Inferred user intent:** Make the comprehensive project documentation durable
+and synchronized rather than leaving it only in the local vault.
+
+**Commit (report):** `1c139f6` — "Add complete semantic feedback project report"
+
+### What I did
+
+- Checked Markdown fences, prohibited analogy phrasing, trailing whitespace,
+  placeholders, and Git whitespace rules.
+- Parsed both YAML frontmatter blocks with PyYAML.
+- Verified 45 report headings and balanced fenced blocks.
+- Staged the exact report and diary paths.
+- Inspected cached names, whitespace, and statistics before committing.
+- Pushed `main` from `9ee7ec0` to `1c139f6` without force.
+
+### Why
+
+- Exact-path staging prevents unrelated vault state from entering the report
+  history.
+- The push result belongs in the diary because it is part of the requested
+  delivery outcome.
+
+### What worked
+
+- The committed diff contained 960 inserted lines across two intended files.
+- Git reported `9ee7ec0..1c139f6 main -> main`.
+- The report is now present in local and remote vault history.
+
+### What didn't work
+
+- N/A during validation or publication.
+
+### What I learned
+
+- Fast-forwarding the one inspected remote documentation commit before drafting
+  avoided the rebase problem encountered during the earlier vault publication.
+
+### What was tricky to build
+
+- The vault worktree remains intentionally dirty in three unrelated transcript
+  paths. Every validation and staging command therefore had to target the report
+  and diary explicitly.
+
+### What warrants a second pair of eyes
+
+- Open the report in Obsidian reading view and verify the architecture and
+  sequence diagrams.
+- Confirm internal links resolve to the earlier article and diary.
+
+### What should be done in the future
+
+- N/A for this publication step.
+
+### Code review instructions
+
+- Run `git show --stat 1c139f6` and review the two semantic-feedback note paths.
+- Do not include the modified `Transcripts/` paths in any follow-up commit.
+
+### Technical details
+
+```text
+report commit: 1c139f6
+remote range:  9ee7ec0..1c139f6
+force used:    no
+staged paths:  report and diary only
+```
