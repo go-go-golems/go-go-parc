@@ -17,7 +17,7 @@ source_tickets:
   - OPTKIT-016
   - OPTKIT-017
   - OPTKIT-018
-optkit_head: 2a3bf15ff2108fef8c0a344c36152d587b84365f
+optkit_head: c038e5c451250fa24ae577c25867d0a78dbe6501
 rag_ttc_head: 07e3bbe85fdee46b0d6e98d17e7e94988382ade0
 tags:
   - article
