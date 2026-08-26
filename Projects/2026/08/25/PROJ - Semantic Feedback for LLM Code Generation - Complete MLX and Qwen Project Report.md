@@ -24,9 +24,9 @@ This project implements and evaluates an inference controller that validates cod
 > [!summary]
 > 1. The active text is the authoritative inference state. Parser state, tokenization, generation iterators, and KV caches are derived state that must agree with the text after every edit.
 > 2. The project has demonstrated a complete real-model repair path: detect `foobar(x)`, inject the self-contained `foobar(a, b)` contract, rewind to `foobar(x`, replay the edited prompt, and let Qwen generate a valid second argument.
-> 3. In the first ten paired seeds, all ten baseline/feedback prefixes matched, all six detected wrong-arity calls were repaired, and all six edited contexts passed token-level validation. Four remaining failures came from unsupported `<python>` or `<py>` wrappers.
+> 3. In the first ten paired seeds, six detected wrong-arity calls were repaired and four unsupported wrappers bypassed analysis. After assistant-owned `<code>`, `<python>`, and `<py>` routing was implemented, a second ten-seed acceptance sweep repaired all ten feedback conditions while preserving all paired prefixes and edited-context checks.
 > 4. Tree-sitter now recognizes complete calls and functions even when a later sibling is incomplete. A verified MLX cache strategy can retain an exact token prefix after an edit, and it falls back to full replay whenever token or cache invariants cannot be proven.
-> 5. The next experimental target remains assistant-output-scoped code-region recognition, followed by a multi-task evaluator with baseline-correct fixtures. These changes address the largest unresolved source of missing interventions and make regression measurement possible.
+> 5. Assistant-output routing and task-owned evaluation are now implemented. The next track extends the mechanism to JavaScript through a versioned Python-to-Go sidecar, go-go-goja contract metadata, controlled Goja execution, and a four-condition benchmark designed to measure capability gains rather than only mechanism success.
 
 This note reports the complete project state. The conceptual treatment is in [[ARTICLE - Semantic Feedback During LLM Code Generation - Editable Context Replay with MLX]], and the publication history is in [[DIARY - Semantic Feedback During LLM Code Generation]].
 
@@ -64,7 +64,7 @@ This is not post-processing. It changes the prefix that conditions subsequent in
 
 ## Current project status
 
-The repository is an active research prototype with three completed implementation-and-evaluation milestones.
+The repository is an active research prototype with four completed implementation-and-evaluation milestones and one complete implementation design for the next language track.
 
 `SFB-001` established the live mechanism:
 
@@ -99,7 +99,27 @@ The repository is an active research prototype with three completed implementati
 - verified prefix replay against deterministic full replay with the live Qwen3-4B model;
 - completed a real semantic-feedback repair that reused 140 cached tokens and replayed a 38-token suffix.
 
-The current test suite reports 36 passing tests and one intentional skip. The skip covers the missing-MLX dependency error path and is inactive because MLX-LM is installed. The source tree, SFB-003 ticket, design, diary, live artifacts, and five physical phase slips are committed; the ticket is complete and passes `docmgr doctor`.
+`SFB-004` established assistant-owned routing and generalized evaluation:
+
+- recorded the assistant-generation offset and restricted wrapper scanning to the generated suffix;
+- normalized `<code>`, `<python>`, and `<py>` without losing their original wrapper identity;
+- introduced explicit tool-argument code sources with stable source IDs and absolute trace coordinates;
+- transformed retained tool-source spans after context patches;
+- moved correctness behind `TaskEvaluator`, `EvaluationTask`, `TaskEvaluation`, and named AST checks;
+- added six evaluator fixtures spanning arity, invalid keywords, deprecated APIs, unknown imports, nested calls, and a baseline-friendly control;
+- reran the live seeds 0 through 9 sweep and repaired ten of ten feedback conditions with ten of ten paired prefixes and ten of ten valid edited contexts.
+
+`SFB-005` specifies the JavaScript and go-go-goja track:
+
+- keeps MLX inference and editable-context control in Python;
+- defines a long-lived NDJSON sidecar protocol, `semantic-js/1`;
+- uses Tree-sitter for partial JavaScript, Goja AST analysis for lexical resolution, and structured native-module declarations for API contracts;
+- separates contract facts from Python-side diagnostics and intervention policy;
+- defines fresh restricted Goja runtimes for trusted hidden behavioral fixtures;
+- specifies baseline, upfront-documentation, online-feedback, and post-generation-repair conditions;
+- defines a twelve-task smoke study, a forty-eight-task six-category corpus, conventional JavaScript controls, metrics, artifacts, and phased acceptance criteria.
+
+The current Python test suite reports 47 passing tests and one intentional skip. The skip covers the missing-MLX dependency error path and is inactive because MLX-LM is installed. SFB-001 through SFB-004 are complete implementation tickets. SFB-005 is a complete, validated design ticket and its five-document bundle is published to `/ai/2026/08/25/SFB-005` on reMarkable; the JavaScript sidecar and runtime code have not yet been implemented.
 
 ## Project development sequence
 
@@ -118,6 +138,10 @@ The project progressed through a sequence of claims, each supported or rejected 
 | Tree-sitter recognition | Can a complete semantic subtree survive incomplete trailing output? | Yes. A completed call is emitted beside a later Tree-sitter `ERROR`, with AST parity on complete input. |
 | Verified prefix replay | Can an edit reuse KV state without changing the continuation? | Yes. Reuse requires exact token and layer-offset proofs; the deterministic next token matched full replay. |
 | Integrated optimized repair | Does the optimized path survive the real rewind-and-hint edit? | Yes. It reused 140 tokens, replayed 38, repaired the call, and matched the full-replay final output. |
+| Assistant-owned routing | Can the controller ignore prompt markers while accepting wrapper variants and explicit tool streams? | Yes. The router scopes text scanning to the assistant suffix, normalizes three wrappers, and preserves absolute coordinates for tool arguments. |
+| Generalized evaluation | Can experiments define correctness without hard-coding `compute` and `foobar` into the sweep runner? | Yes. Task evaluators now return named checks, facts, final code, and failure reasons through a shared result contract. |
+| Wrapper-aware acceptance sweep | Do the four former protocol failures become measurable repairs? | Yes. All ten baseline runs remained wrong, all ten feedback runs repaired the call, all prefixes matched through diagnosis, and every edited context was valid. |
+| JavaScript research design | Can the mechanism be extended to a more varied API benchmark without discarding the verified MLX controller? | Yes at the design level. SFB-005 specifies a Go sidecar, contracts, controlled execution, four experimental conditions, and staged acceptance tests; implementation remains future work. |
 
 This sequence matters because prompt changes, parser changes, and context edits affect different parts of the experiment. The final evidence became interpretable only after the replay boundary was verified directly.
 
@@ -139,12 +163,15 @@ sources/semantic-feedback-prototype/
 │   ├── cli.py
 │   ├── code_regions.py
 │   ├── controller.py
+│   ├── evaluation.py
+│   ├── evaluation_fixtures.py
 │   ├── experiments.py
 │   ├── kv_replay.py
 │   ├── mlx_lm_model.py
 │   ├── model.py
 │   ├── policy.py
 │   ├── qwen_sweep.py
+│   ├── task_suite.py
 │   ├── trace.py
 │   ├── types.py
 │   ├── examples/
@@ -164,13 +191,17 @@ sources/semantic-feedback-prototype/
 ├── scripts/
 │   └── verify_kv_prefix_replay.py
 ├── tests/
+│   ├── test_code_regions.py
+│   ├── test_evaluation.py
 │   ├── test_kv_replay.py
+│   ├── test_qwen_sweep.py
 │   └── test_tree_sitter_parser.py
 └── artifacts/
     └── live-qwen/
         ├── kv-prefix-equivalence.json
         ├── phase-4-tree-sitter/
-        └── phase-5-prefix-replay/
+        ├── phase-5-prefix-replay/
+        └── phase-6-7-seeds-0-9/
 ```
 
 Ticket documentation lives under:
@@ -179,7 +210,9 @@ Ticket documentation lives under:
 ttmp/2026/08/25/
 ├── SFB-001--qwen-semantic-feedback-generation-harness/
 ├── SFB-002--paired-qwen-semantic-feedback-evaluation/
-└── SFB-003--tree-sitter-parsing-and-kv-prefix-replay/
+├── SFB-003--tree-sitter-parsing-and-kv-prefix-replay/
+├── SFB-004--assistant-output-routing-and-generalized-evaluation/
+└── SFB-005--javascript-semantic-feedback-harness-with-go-go-goja/
 ```
 
 The `.venv-mlx` environment and Hugging Face model cache remain local and uncommitted.
@@ -375,7 +408,7 @@ The current recognizer ignored them. Baseline and feedback remained identical be
 
 ### Assistant-output-scoped recognition
 
-The next recognizer should record the exact character offset where assistant generation begins and scan only the generated suffix:
+Phase 6 records the exact character offset where assistant generation begins and scans only the generated suffix:
 
 ```python
 assistant_start = len(initial_chat_prompt)
@@ -392,9 +425,30 @@ absolute_regions = [
 ]
 ```
 
-This scope prevents marker text in system instructions or user messages from activating validation. It also permits explicit wrapper aliases without searching the complete conversation. The audit record should retain the accepted wrapper variant and the assistant-generation boundary.
+This scope prevents marker text in system instructions or user messages from activating validation. It also permits explicit wrapper aliases without searching the complete conversation. The audit record retains the accepted wrapper variant, source channel, and assistant-generation boundary.
 
-For structured tool calls, the equivalent design is to parse only the assistant tool-call argument stream. Serialized tool examples in prior messages should not be interpreted as current generated code.
+The implementation resides in `code_regions.py`. `CodeRegionRouter.reset()` receives `assistant_start`; `extract_code_regions()` begins its regular-expression search at that position but returns absolute offsets in the complete active text. Alias wrappers normalize their language to Python while retaining the literal wrapper name:
+
+| Generated wrapper | Normalized language | Recorded wrapper |
+| --- | --- | --- |
+| `<code lang="python">` | `python` | `code` |
+| `<python>` | `python` | `python` |
+| `<py>` | `python` | `py` |
+
+Structured tool calls do not need textual wrappers. A sampling adapter can tag emitted fragments with `semantic_feedback_code_source` metadata containing a channel, source ID, language, and final flag. Consecutive fragments with the same source ID extend one code region. The router rejects non-contiguous fragments, changes of language or channel, writes outside assistant output, and writes after a source is final.
+
+```python
+sample.metadata = {
+    "semantic_feedback_code_source": {
+        "channel": "tool_argument",
+        "source_id": "call-1:code",
+        "language": "python",
+        "final": False,
+    }
+}
+```
+
+This explicit channel contract is stronger than searching serialized tool-call JSON. It treats only the currently generated argument bytes as code and does not reinterpret tool examples from earlier messages. When an intervention changes text before or inside a retained tool region, `CodeRegionRouter.apply_patches()` translates the region's start and end through the same non-overlapping patch sequence. The parser therefore continues to receive absolute half-open character spans in the authoritative trace.
 
 ## Semantic parsing
 
@@ -889,6 +943,276 @@ The result does not establish a general 60% improvement in coding quality. The i
 
 The pairing evidence is strong for the installed software versions. All ten baseline and feedback token streams matched through the first diagnostic. For no-diagnostic pairs, the complete output matched. This confirms that reset-time reseeding produced a controlled comparison.
 
+## Assistant-owned routing and generalized evaluation
+
+Phases 6 and 7 convert two experimental assumptions into explicit interfaces. Phase 6 decides which generated bytes belong to code. Phase 7 decides whether a completed result satisfies its task. These responsibilities must remain separate. Code ownership is a transport and provenance property; task correctness is an evaluation property.
+
+The controller establishes generation ownership before sampling begins:
+
+```python
+assistant_start = len(initial_prompt)
+router.reset(assistant_start=assistant_start)
+trace.record(
+    "generation_scope_established",
+    assistant_start=assistant_start,
+)
+```
+
+Every later text wrapper begins at or after this boundary. Every explicit tool source also begins at or after it. The router returns one ordered collection of `CodeRegion` values regardless of whether the source was XML-like assistant text or a structured tool argument. Downstream parsers do not need to know how the region was transported. They receive its language, content span, closure state, channel, wrapper, and optional source ID.
+
+```mermaid
+flowchart TD
+    Prompt[System and user prompt] --> Boundary[assistant_start]
+    Boundary --> Text[Assistant text suffix]
+    Boundary --> Tool[Explicit tool-argument fragments]
+    Text --> Wrappers[code / python / py scanner]
+    Tool --> Sources[Stable source-id assembler]
+    Wrappers --> Regions[Absolute CodeRegion values]
+    Sources --> Regions
+    Regions --> Parser[Language parser]
+    Parser --> Events[Semantic events]
+```
+
+The absolute-coordinate rule is important because the editable trace stores one string. Parser-local or channel-local positions cannot be applied directly to that string. Text wrappers are found in a suffix, but their match positions are shifted into global coordinates. Tool-source spans are already recorded at append time, then transformed after every accepted patch. This produces one coordinate system for parsing, diagnostics, edits, audit records, and context snapshots.
+
+Phase 7 removes task semantics from `qwen_sweep.py`. The runner now operates on an `EvaluationTask` whose evaluator projects a `ControllerResult` onto a common result schema:
+
+```python
+class TaskEvaluator(Protocol):
+    def evaluate(self, result: ControllerResult) -> TaskEvaluation: ...
+
+@dataclass(frozen=True)
+class TaskEvaluation:
+    success: bool
+    failure_reasons: tuple[str, ...]
+    checks: Mapping[str, bool]
+    final_code: str | None
+    facts: Mapping[str, JsonValue]
+```
+
+The first evaluator extracts the final assistant-owned Python region, checks that it exists and is closed, parses it with the standard Python AST, and runs named predicates. Each predicate has a stable check name and failure reason. The aggregate runner can therefore compare tasks without knowing whether correctness means exact arity, a permitted import set, a nested call structure, or avoidance of a deprecated API.
+
+The built-in fixture suite currently includes six task definitions:
+
+| Fixture | Correctness predicate | Experimental role |
+| --- | --- | --- |
+| `foobar-arity` | `compute` returns `foobar` and every call uses two permitted arguments | Existing repair mechanism. |
+| `invalid-keyword` | `fetch` has the expected total argument count and only `timeout` as a keyword | Keyword-contract evaluator coverage. |
+| `deprecated-api` | `fetch` is present and `legacy_fetch` is absent | Positive and negative call predicates. |
+| `unknown-import` | Imported root modules are a subset of `math` | Import-policy coverage. |
+| `nested-call` | `outer(...)` directly receives an `inner(...)` call | Composition coverage. |
+| `baseline-correct` | The documented `foobar(a, b)` task satisfies the same arity evaluator | Regression-oriented control fixture. |
+
+These fixtures prove the evaluator interface, not complete feedback coverage. The current live Qwen controller still has one active API-arity validator and policy. The other tasks can be evaluated deterministically and can support future validators, but they should not be reported as live semantic repairs until their corresponding diagnostic and edit paths exist.
+
+### The wrapper-aware acceptance sweep
+
+The second live seeds 0 through 9 sweep repeats the original `foobar` experiment after assistant ownership and wrapper aliases were implemented. The model, temperature, seed schedule, maximum steps, Tree-sitter parser, prefix replay strategy, explicit hint policy, and context checkpoints remain controlled.
+
+| Metric | Original sweep | Phase 6–7 acceptance sweep |
+| --- | ---: | ---: |
+| Pairs | 10 | 10 |
+| Matching prefixes through first diagnostic | 10/10 | 10/10 |
+| Baseline successes | 0/10 | 0/10 |
+| Feedback successes | 6/10 | 10/10 |
+| Feedback-only pairs | 6 | 10 |
+| Applied interventions | 6 | 10 |
+| Valid edited contexts | 6/6 | 10/10 |
+| Invalid edited contexts | 0 | 0 |
+| Mean baseline time | 0.566 s | 0.551 s |
+| Mean feedback time | 0.848 s | 0.833 s |
+| Mean baseline steps | 25.7 | 25.7 |
+| Mean feedback steps | 30.2 | 32.2 |
+
+The four former failures now enter validation under their generated `<python>` or `<py>` wrappers. Each baseline still emits a one-argument call. Each feedback run receives the same affirmative contract hint, rewinds to a valid continuation point, and completes a two-argument call. No run required a prefix-replay fallback, and all post-edit tokenizer checkpoints remained valid.
+
+The result closes the protocol defect demonstrated by the first sweep. It does not establish performance across six task categories. The ten pairs still exercise one deliberately information-starved API task, and the baseline-correct regression rate is undefined because this live sample contains no baseline success. The correct claim is narrower: for this task and these seeds, wrapper normalization increased intervention coverage from six to ten without disturbing pre-diagnostic pairing, and all ten reached the intended repair.
+
+## The JavaScript and go-go-goja track
+
+The next research question is whether online semantic feedback improves coding capability across a task distribution rather than one Python API fixture. JavaScript is useful for this study because API usage, CommonJS bindings, options objects, async behavior, return shapes, and controlled execution can be represented in a compact benchmark. The existing `go-go-goja` repository already contains the relevant parser, binding-analysis, native-module metadata, runtime ownership, module-selection, interruption, and cleanup facilities.
+
+SFB-005 is a design and implementation ticket. It does not claim that the JavaScript system exists today. Its purpose is to preserve the verified MLX controller while defining the smallest process boundary that can add richer JavaScript semantics without duplicating Goja knowledge in Python.
+
+### Process architecture
+
+MLX inference remains in Python. JavaScript analysis and trusted benchmark execution run in a long-lived Go sidecar. The processes exchange one NDJSON request and one NDJSON response per line under protocol major version `semantic-js/1`.
+
+```mermaid
+flowchart LR
+    subgraph Python[Python semantic-feedback harness]
+        M[MLX Qwen sampler]
+        T[Editable trace]
+        R[Assistant code router]
+        C[Generation controller]
+        V[Diagnostic validators]
+        P[Feedback policy]
+        E[Task evaluator and sweep]
+    end
+
+    subgraph Go[go-go-goja semantic-js sidecar]
+        TS[Tree-sitter JavaScript]
+        A[Goja AST and binding index]
+        B[CommonJS provenance]
+        K[Normalized API contracts]
+        X[Restricted Goja test runner]
+    end
+
+    M --> T --> R --> C
+    C -->|analyze: revision, digest, source| TS
+    TS --> A --> B --> K
+    K -->|events and contract facts| C
+    C --> V --> P --> T
+    C -->|test: fixture and source| X
+    X -->|structured checks| E
+    E --> M
+```
+
+The boundary assigns each responsibility to the process that already owns the relevant invariants:
+
+| Responsibility | Owner | Reason |
+| --- | --- | --- |
+| Active text, revisions, edits, and tokenization | Python | The current controller and MLX adapter already validate this path. |
+| Partial JavaScript syntax and complete-unit discovery | Go | `go-go-goja` owns its Tree-sitter and Goja analysis facilities. |
+| CommonJS binding provenance | Go | Resolution depends on lexical scopes, native module declarations, and Goja AST structure. |
+| Contract normalization | Go | Structured module metadata is native to `go-go-goja`. |
+| Diagnostic selection and whether to intervene | Python | Baseline and treatment must share analysis while differing only in policy. |
+| Hidden behavioral fixtures | Go | Goja runtime lifecycle and module allowlists already exist there. |
+| Sampling, replay, pairing, metrics, and artifacts | Python | These are established experiment-control responsibilities. |
+
+### Protocol and stale-result safety
+
+An analyze request carries an ID, protocol version, trace revision, region ID, language, UTF-8 source, SHA-256 digest, and contract profile. The response echoes the identity fields and returns deterministic semantic events, byte spans, normalized binding facts, and optional contract facts. A test request adds an entry point, fixture ID, allowed-module profile, and deadline.
+
+```json
+{"protocol":"semantic-js/1","id":"a-0042","op":"analyze","revision":7,
+ "region_id":"assistant:0","language":"javascript",
+ "source_sha256":"...","source":"const x = api.load(2);",
+ "contract_profile":"bench-v1"}
+```
+
+The Python client discards a response if its request ID, revision, region ID, source digest, or protocol major version does not match the outstanding request. This rule prevents a slow analysis of revision 7 from editing revision 8 after the model has sampled more text or after another intervention has rewritten the region.
+
+The sidecar reserves standard output for protocol frames and sends logs to standard error. Requests are correlated by ID, time bounded, and restartable. Unit tests substitute a deterministic fixture process so protocol behavior does not require MLX or a Go build.
+
+### Parsing and coordinate conversion
+
+Tree-sitter handles incomplete JavaScript prefixes. A call or function becomes a candidate event only when its own subtree contains no `ERROR` or `MISSING` descendant and its ending byte lies at or before a recognized semantic boundary. The parser may therefore emit a completed call even while a later sibling remains incomplete.
+
+Sidecar spans are zero-based half-open UTF-8 byte intervals. Python trace spans are zero-based half-open character intervals. The adapter must reject any byte offset that is not a real UTF-8 boundary, convert the local byte span to local character positions, then add the code region's absolute content offset:
+
+```python
+local = utf8_map.byte_span_to_char_span(start_byte, end_byte)
+absolute = SourceSpan(
+    region.content_start + local.start,
+    region.content_start + local.end,
+)
+```
+
+This conversion requires golden tests containing multibyte identifiers and strings. A wrong conversion can delete part of a character, rewind the wrong call, or make audit spans disagree with replay text. Coordinate units therefore belong in the public protocol, not only in implementation comments.
+
+### CommonJS provenance and contracts
+
+JavaScript syntax can prove that `foobar(2)` has one argument. It cannot prove that one argument violates the intended API. That conclusion requires both binding provenance and an authoritative contract.
+
+The first resolver supports a narrow, high-precision set of CommonJS forms:
+
+```javascript
+const api = require("bench");
+api.foobar(2);
+
+const { foobar } = require("bench");
+foobar(2);
+
+const f = api.foobar;
+f(2);
+```
+
+Reassignment, computed properties, dynamic module names, mutation through unknown aliases, and ambiguous shadowing cause the resolver to decline. A missed diagnostic reduces coverage; a guessed diagnostic can corrupt correct code and invalidate the experiment. Precision therefore precedes coverage.
+
+Contracts are normalized from structured `modules.TypeScriptDeclarer` and `spec.Module` data when possible. The first contract model records module and export identity, required and optional parameters, variadic status, literal unions, primitive categories, closed options-object properties, return-shape facts, async markers, source provenance, and unsupported declarations. Raw declaration strings and unresolved overloads remain explicitly unsupported rather than being heuristically interpreted.
+
+Go attaches contract facts to semantic events. Python validators decide whether those facts constitute a high-confidence diagnostic. This preserves the existing three-stage separation:
+
+```text
+analysis fact:  bench.foobar call has one argument; contract requires two
+diagnostic:     wrong_arity, supported by contract bench-v1/foobar
+policy action:  insert one permitted hint and rewind the closing delimiter
+```
+
+### Model-visible feedback
+
+The model does not receive an internal error history after the context is rewritten. A hint such as “fix the missing argument” is therefore incomplete: the edited context does not explain which argument was missing or what API was expected. JavaScript feedback uses affirmative, independently understandable comments:
+
+```javascript
+// hint: foobar(a, b) takes two required arguments.
+foobar(2
+```
+
+The hint is derived from the diagnostic but does not refer to it. It names the API, states one task-public fact, remains syntactically local, and ends at a continuation point where the model can supply content. Hidden test values, expected outputs, and raw stack traces never enter the hint. Each task declares `feedback_permissions`, which enumerate the public contract facts that a policy may reveal.
+
+### Controlled behavioral validation
+
+Static contracts cover arity, export names, options keys, some primitive types, and selected async facts. They do not establish that the program computes the required result. Behavioral fixtures therefore run complete functions or regions in fresh Goja runtimes.
+
+Every test request must:
+
+- construct a new runtime and event loop;
+- enable only task-approved modules;
+- prefer pure modules and in-memory backends;
+- run through `Runtime.Owner.Call()` so Goja work stays on its owner goroutine;
+- enforce a context deadline and interrupt active JavaScript on timeout;
+- bound captured output;
+- return named structured checks;
+- close the runtime on success, failure, timeout, and protocol cancellation.
+
+This is a trusted local benchmark boundary, not a security sandbox for hostile code. A production service would require operating-system isolation, a disposable filesystem, disabled network access, separate credentials, and resource controls beyond Goja interruption.
+
+## Benchmarking capability improvement
+
+The JavaScript benchmark is designed to distinguish mechanism correctness from coding-capability improvement. Each task and seed runs under four information conditions:
+
+| Condition | Initial information | Later action |
+| --- | --- | --- |
+| Baseline | Task prompt only | Analysis records opportunities but applies no edit. |
+| Upfront documentation | All task-public contracts are included before generation | No context edit. |
+| Online feedback | Task prompt only | One relevant permitted fact may be injected after a high-confidence diagnostic. |
+| Post-generation repair | Task prompt only | A separate repair generation receives a permitted fact after final failure. |
+
+The upfront condition measures whether the small model can use the information at all. The post-generation condition tests whether timing and in-stream continuation add value over an ordinary retry. Baseline and online feedback execute the same analysis path so parser overhead does not become a treatment difference.
+
+The full authored corpus contains forty-eight tasks: eight tasks in each of six categories.
+
+1. Arity and optional parameters cover exact arity, optional trailing options, variadic functions, aliases, destructuring, and nested calls.
+2. Module exports and members cover wrong export names, namespace versus destructured access, and invalid member chains.
+3. Options-object contracts cover required and unknown keys, primitive fields, optional fields, and open versus closed objects.
+4. Async and synchronous use covers Promise-returning calls, ordering, synchronous alternatives, and explicitly supported callback distinctions.
+5. Return-shape composition covers arrays, records, strings, booleans, and structured results used by later calls.
+6. Behavioral semantics covers contract-valid programs that still fail hidden examples, including boundary conditions and incorrect composition.
+
+Two tasks per category form a twelve-task smoke suite. Each category also contains baseline-friendly cases where correct generation should trigger no intervention. A later conventional-control layer uses a manageable MultiPL-E JavaScript subset under baseline and analysis-enabled/no-edit conditions. CrossCodeEval-derived TypeScript work remains later because Goja does not execute TypeScript without a separate compilation stage.
+
+The primary outcome is hidden-test pass@1. The experiment also reports paired success delta, conditional repair rate, baseline-correct regression rate, diagnostic precision and recall, intervention yield, repeated-intervention rate, time to detection, rewind and hint token cost, analysis overhead, replay overhead, and edited-context validity. Category-level results prevent easy arity gains from hiding regressions in behavioral tasks.
+
+For every task, seed, model revision, and condition, the harness freezes the rendered prompt digest, resets MLX randomness, preserves sampler settings, and stores complete per-run artifacts before aggregation. Baseline and online token IDs must match through the first online diagnostic. A pair that diverges earlier is invalid for causal repair analysis even if its final outcome appears favorable.
+
+## JavaScript implementation sequence
+
+SFB-005 divides implementation into bounded phases whose acceptance criteria do not depend on later phases:
+
+| Phase | Deliverable | Acceptance boundary |
+| --- | --- | --- |
+| 0 | Golden protocol fixtures, Unicode span maps, contract examples, twelve task definitions, and feedback permissions | No model compute; both languages consume stable fixtures. |
+| 1 | Read-only `semantic-js` sidecar with byte spans and complete call/function events | One thousand sequential analyze requests, partial-source stability, stale-revision rejection, clean protocol output. |
+| 2 | Structured contracts and CommonJS provenance | Supported namespace, destructured, direct-member, and immutable-alias forms resolve; dynamic or reassigned forms decline. |
+| 3 | Python JavaScript adapter, validators, affirmative policy, snapshots, full replay, and verified prefix replay | Deterministic `foobar(2)` repair, prompt-marker isolation, diagnostics-only baseline, valid context checkpoints. |
+| 4 | Fresh restricted Goja behavioral runner | Allowlists, timeouts, cleanup, state isolation, and no hidden-answer leakage. |
+| 5 | Twelve-task four-condition live smoke study | Valid pairing, audited precision, valid edits, enumerated regressions, resumable artifacts. |
+| 6 | Forty-eight-task study | Per-category pass@1, paired outcomes, confidence intervals, failure-class separation, frozen revisions. |
+| 7 | Conventional and later cross-file controls | Measured analysis-only overhead and false positives; no TypeScript execution claim without compilation. |
+
+The recommended first contribution is Phase 1 byte-span support plus a read-only analyze command. It forces protocol identity, coordinate units, complete-unit boundaries, and stdout purity to become executable contracts before model feedback or hidden testing can obscure errors.
+
 ## Mock and unit-test evidence
 
 The deterministic mock remains important because it isolates controller semantics from model behavior. Tests cover:
@@ -919,7 +1243,15 @@ The deterministic mock remains important because it isolates controller semantic
 - fail-closed behavior for non-trimmable and count-mismatched caches;
 - fake-backend reproduction of the yielded-token/cache timing contract;
 - full replay fallback after a cache-layer mismatch;
-- CLI selection of Tree-sitter and verified prefix replay.
+- CLI selection of Tree-sitter and verified prefix replay;
+- assistant-boundary scoping and prompt-marker exclusion;
+- `<code>`, `<python>`, and `<py>` wrapper normalization;
+- explicit tool-argument assembly, finalization, and invalid-fragment rejection;
+- tool-source span translation after context patches;
+- evaluator extraction from the sweep runner;
+- named AST checks for signatures, required calls, forbidden calls, imports, and nested calls;
+- six built-in task fixtures and task-specific failure facts;
+- regression-rate and conditional-repair aggregation.
 
 The current command is:
 
@@ -931,7 +1263,7 @@ cd /Users/manuel/code/wesen/2026-08-25--mlx-inference/sources/semantic-feedback-
 Current result:
 
 ```text
-36 passed, 1 skipped
+47 passed, 1 skipped
 ```
 
 ## Running the project
@@ -990,6 +1322,12 @@ env HF_HOME=.venv-mlx/hf-cache \
 
 The command writes one baseline and one feedback trace per seed plus `summary.json`.
 
+The current wrapper-aware acceptance artifact is:
+
+```text
+artifacts/live-qwen/phase-6-7-seeds-0-9/summary.json
+```
+
 ## Security boundary
 
 Static parsing and API validation do not execute generated code. The optional function-test validator does.
@@ -1005,55 +1343,57 @@ The current project makes no claim that arbitrary model-generated Python can be 
 
 The current implementation has several explicit limits.
 
-1. Code-region recognition scans textual markers and currently accepts only the `<code>` family.
-2. Tree-sitter currently recognizes calls and function definitions. Imports, assignments, tool-call structures, and additional languages do not yet produce semantic events.
+1. Assistant routing accepts three Python wrapper forms and explicit tool-argument metadata, but arbitrary Markdown fences and provider-specific tool protocols require adapter support.
+2. Python Tree-sitter currently recognizes calls and function definitions. Imports and assignments are evaluator-visible through the final AST but do not yet produce online semantic events.
 3. The Tree-sitter adapter uses candidate-local Python AST parsing to preserve event payload parity and rebuilds its tree after an arbitrary context edit. It does not yet apply `TraceEdit` patches incrementally to the prior tree.
 4. The live correctness predicate is specific to `compute(x)` and `foobar(a, b)`.
 5. Prefix replay has one live deterministic next-token equivalence case and one integrated edit trace. It does not yet have a broad insertion/deletion/replacement matrix or full-logit comparison across model versions.
 6. The prefix strategy depends on the yielded-token/cache timing of MLX-LM 0.31.3. Unknown or incompatible cache types fall back to full replay.
-7. The paired sample contains one task, ten seeds, and no baseline-correct outputs.
+7. The live paired samples contain one task, ten seeds each, and no baseline-correct outputs. The generalized fixture suite proves evaluation structure but not live feedback efficacy across its six categories.
 8. Peak-memory telemetry is process-cumulative in the shared-backend sweep.
 9. Executable tests are not safe for hostile code.
 10. Parser and replay timing have not been measured with warm-up, synchronization, repeated edits, and confidence intervals.
+11. The JavaScript/go-go-goja track is a validated design only. No `semantic-js` sidecar, JavaScript parser adapter, contract validator, runner, or JavaScript corpus is implemented in this repository yet.
 
 These limitations define the next experiments. They are not hidden implementation details.
 
 ## Completed roadmap items
 
-The previous version of this report listed Tree-sitter parsing and cache-prefix reuse as items 4 and 5. Both are now implemented and validated:
+The Python track has completed seven ordered capabilities:
 
-- **Item 4 — complete:** incremental Tree-sitter recognition, AST parity, UTF-8 coordinate conversion, and live Qwen integration.
-- **Item 5 — complete:** opt-in verified KV-prefix reuse, fail-closed full replay, deterministic next-token equivalence, and an integrated real repair.
+1. deterministic parse–validate–edit–resume control;
+2. real Qwen3-4B sampling through MLX-LM with correctness-first full replay;
+3. paired baseline/feedback runs with context checkpoints and persisted traces;
+4. error-tolerant Tree-sitter parsing with UTF-8 coordinate conversion;
+5. opt-in verified KV-prefix reuse with fail-closed full replay;
+6. assistant-owned wrapper and structured tool-source routing;
+7. task-owned evaluators, named checks, regression metrics, and a six-fixture evaluation suite.
 
-Items 1 through 3 were not completed as a side effect of that work. They remain necessary experimental infrastructure.
+The mechanism evidence now includes a ten-of-ten wrapper-aware live acceptance sweep. Broader capability evidence remains open because only the API-arity fixture has a live online validator and repair policy.
 
 ## Recommended next phases
 
-### Phase 6 — assistant-output ownership and wrapper protocol
+### Next phase — freeze JavaScript fixtures and protocol
 
-Record the assistant-generation boundary as a first-class context field. Scan only the generated assistant suffix and support explicit `<code>`, `<python>`, and `<py>` aliases. Preserve absolute trace spans by shifting region-local offsets by the assistant boundary. For structured tool calls, route only the current assistant tool-argument channel into code recognition.
+Implement SFB-005 Phase 0 before adding a live Go process. Golden NDJSON fixtures, UTF-8 boundary cases, normalized contract examples, task feedback permissions, and twelve smoke-task definitions should be reviewed by both Python and Go tests. This establishes what each process may assume.
 
-Acceptance requires rerunning seeds 0 through 9 and showing that the four previous wrapper failures reach validation without any prompt-marker false positives. The trace must record the accepted wrapper and source channel.
+### Following phase — read-only JavaScript sidecar
 
-### Phase 7 — evaluator protocol and regression-capable task suite
+Add byte spans to `go-go-goja` Tree-sitter snapshots and implement `semantic-js serve` with analyze requests only. Measure full parse latency at semantic boundaries before introducing incremental tree edits. Keep logs off standard output and reject stale revisions and source digests.
 
-Move the hard-coded `compute`/`foobar` predicate behind a task-evaluator interface. Add fixtures for wrong arity, invalid keyword names, deprecated APIs, unknown imports, nested calls, baseline-correct code, and repeated post-feedback errors.
+### Subsequent phases — contracts, feedback, execution, and studies
 
-This phase should produce paired measurements with both baseline failures and baseline successes. Report repair rate conditional on intervention, overall success, baseline-correct regressions, protocol failures, interventions per task, and edit-context validity.
+Add conservative CommonJS provenance and structured contracts before online JavaScript editing. Integrate affirmative `// hint:` feedback only after deterministic events are stable. Add fresh Goja execution only after hidden/public information boundaries are frozen. Then run the twelve-task smoke study before spending compute on the full forty-eight-task matrix.
 
-### Phase 8 — broader semantic events and documentation retrieval
+### Parallel Python work — broader online validators
 
-Extend Tree-sitter queries and validators to imports, attribute calls, assignments, and tool-call schemas. Replace the in-memory `foobar` fixture with a constrained API fact provider that records package version and documentation source. Render retrieved information as factual context, not executable instructions.
+The generalized evaluator suite should gain corresponding online event and validator paths for invalid keywords, deprecated calls, imports, and nested composition. This work can provide a smaller regression corpus while the JavaScript sidecar is being built.
 
-### Phase 9 — isolated behavioral validation
+### Later systems work — isolation and branching
 
-Define a threat model and move executable tests into a hardened worker with no inherited credentials, disabled network by default, a minimal read-only filesystem, and CPU, memory, process, file-size, and wall-time limits. The current subprocess validator should remain restricted to trusted fixtures until this boundary exists.
+Move hostile-code execution into an operating-system sandbox before treating the harness as a service. Add immutable KV snapshots only when experiments require several candidate continuations or true backtracking. Until then, exact prefix trim-and-replay remains sufficient and easier to verify.
 
-### Phase 10 — branching, snapshots, and policy comparison
-
-Add immutable KV snapshots when the controller begins retaining several candidate continuations or backtracking to an older checkpoint. Compare minimal delimiter rewind, whole-call rewind, statement rewind, constrained resampling, and branch-and-score policies from identical token/cache snapshots.
-
-The immediate recommendation is Phase 6. The ten-seed evidence already identifies wrapper ownership as the dominant failure, and correcting it is necessary before a larger efficacy experiment can distinguish semantic repair failures from code-region routing failures.
+The immediate recommendation is SFB-005 Phase 0 followed by Phase 1. It advances benchmark breadth while keeping model compute, runtime execution, feedback policy, and cache optimization outside the first implementation boundary.
 
 ## Recommended onboarding order
 
@@ -1068,9 +1408,11 @@ A new engineer should read and run the project in this order:
 7. Read `mlx_lm_model.py`, especially `reset()`, `_restart_full()`, `_restart_with_prefix()`, and `inspect_context()`.
 8. Inspect the verified full-replay, Tree-sitter, and prefix-replay traces.
 9. Run the deterministic cache equivalence probe.
-10. Read `qwen_sweep.py` and the seeds 0 through 9 summary.
-11. Compare one successful repair pair and one wrapper-failure pair.
-12. Read all three ticket diaries before changing experimental conditions.
+10. Read `code_regions.py`, then inspect assistant wrapper and explicit tool-source tests.
+11. Read `evaluation.py`, `task_suite.py`, and `qwen_sweep.py` to understand task-owned correctness and aggregation.
+12. Compare the original seeds 0 through 9 summary with the Phase 6–7 wrapper-aware acceptance summary.
+13. Read SFB-005 Sections 7 through 14 before implementing JavaScript analysis or benchmark code.
+14. Read all five ticket diaries before changing experimental conditions.
 
 The representative live artifacts are:
 
@@ -1092,6 +1434,9 @@ KV next-token oracle:
 
 integrated prefix repair:
   artifacts/live-qwen/phase-5-prefix-replay/qwen.json
+
+wrapper-aware acceptance:
+  artifacts/live-qwen/phase-6-7-seeds-0-9/summary.json
 ```
 
 ## Important project documentation
@@ -1105,6 +1450,10 @@ integrated prefix repair:
 - `ttmp/2026/08/25/SFB-002--paired-qwen-semantic-feedback-evaluation/reference/01-paired-evaluation-implementation-diary.md`
 - `ttmp/2026/08/25/SFB-003--tree-sitter-parsing-and-kv-prefix-replay/design-doc/01-phases-4-and-5-implementation-plan.md`
 - `ttmp/2026/08/25/SFB-003--tree-sitter-parsing-and-kv-prefix-replay/reference/01-phases-4-and-5-implementation-diary.md`
+- `ttmp/2026/08/25/SFB-004--assistant-output-routing-and-generalized-evaluation/design-doc/01-phases-6-and-7-design-and-implementation-plan.md`
+- `ttmp/2026/08/25/SFB-004--assistant-output-routing-and-generalized-evaluation/reference/01-implementation-diary.md`
+- `ttmp/2026/08/25/SFB-005--javascript-semantic-feedback-harness-with-go-go-goja/design-doc/01-javascript-semantic-feedback-harness-analysis-design-and-implementation-guide.md`
+- `ttmp/2026/08/25/SFB-005--javascript-semantic-feedback-harness-with-go-go-goja/reference/01-investigation-diary.md`
 
 ## Commit history
 
@@ -1125,6 +1474,15 @@ The main implementation sequence is:
 - `687c9fc` — Add verified MLX KV-prefix replay
 - `194e0da` — Document Phase 5 cache replay results
 - `60f11e5` — Close Tree-sitter and KV replay ticket
+- `98a5dae` — Add assistant-scoped code source routing
+- `b97d8be` — Generalize paired task evaluation
+- `0b7ab6e` — Record assistant routing live sweep
+- `c1fddd5` — Record full routing acceptance sweep
+- `6374d56` — Close routing and evaluation phases
+- `c35ad30` — Create JavaScript semantic feedback design ticket
+- `06652f7` — Design JavaScript semantic feedback harness
+- `b034176` — Document SFB-005 validation and delivery status
+- `91ea426` — Record successful SFB-005 reMarkable upload
 
 ## Project working rules
 
@@ -1142,4 +1500,4 @@ The main implementation sequence is:
 - Preserve complete traces for every published aggregate.
 - Do not execute untrusted generated code without a real isolation boundary.
 
-The project now has evidence that semantic feedback can improve a real model's code within generation, that error-tolerant parsing can surface complete units before the surrounding output is complete, and that verified token-prefix reuse can reduce post-edit prefill work without changing a deterministic continuation. Its next challenge is to make code-region ownership explicit and broaden the evaluation without weakening the correctness guarantees established by full replay, context checkpoints, and cache-offset proofs.
+The project now has evidence that semantic feedback can improve a real model's code within generation, that error-tolerant parsing can surface complete units before the surrounding output is complete, that verified token-prefix reuse can reduce post-edit prefill work without changing a deterministic continuation, and that assistant-owned routing can eliminate protocol misses without breaking causal pairing. Its next challenge is empirical breadth: implement the JavaScript analysis boundary, attach authoritative contracts, run controlled behavioral fixtures, and compare online feedback with baseline, upfront documentation, and post-generation repair without weakening the correctness guarantees established by authoritative text, context checkpoints, and cache-offset proofs.

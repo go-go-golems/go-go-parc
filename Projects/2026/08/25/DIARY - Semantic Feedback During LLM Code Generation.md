@@ -542,3 +542,111 @@ remote range:  9ee7ec0..1c139f6
 force used:    no
 staged paths:  report and diary only
 ```
+
+## Step 8: Amend the complete report through SFB-005
+
+The canonical project report already covered the controller, first MLX repair, paired evaluation, Tree-sitter parsing, and verified KV-prefix replay. The source repository had since completed assistant-owned routing and generalized evaluation in SFB-004, then produced a full JavaScript/go-go-goja design and benchmark plan in SFB-005. I therefore amended the existing project report instead of creating a second note with the same purpose.
+
+The revision preserves the original six-of-ten paired sweep as historical evidence and adds the separate Phase 6–7 ten-of-ten acceptance result. It also distinguishes implemented Python behavior from the proposed JavaScript sidecar so the report does not present a validated design as working runtime code.
+
+### Prompt Context
+
+**User prompt (verbatim):**
+
+> then  write a detailed project report for the obsidian vault as a deep dive technical analysis blog post using a textbook writing style (no analogies, see skill).
+>  Commit and push the bsidian vault when done (go-go-parc vault).
+
+**Assistant interpretation:** Update the canonical entire-project report with all work through SFB-005, maintain the existing textbook structure and no-analogy rule, record the work in the vault diary, and publish only the intended vault files.
+
+**Inferred user intent:** Preserve one current, durable technical account of the whole semantic-feedback program, including both implemented evidence and the next JavaScript benchmark architecture.
+
+### What I did
+
+- Re-read the textbook-authoring, Obsidian vault-writing, Obsidian Markdown, diary, and docmgr workflow requirements.
+- Retried the previously blocked SFB-005 reMarkable bundle and received `OK: uploaded` for `/ai/2026/08/25/SFB-005`.
+- Recorded that delivery in the SFB-005 index, tasks, changelog, and strict investigation diary; validated the ticket and committed source repository commit `91ea426`.
+- Inspected the existing 7,220-word canonical project report and its companion article and diary.
+- Inspected SFB-004 source, design, task evaluators, wrapper router, live acceptance summary, tests, ticket state, and recent Git history.
+- Inspected the 9,395-word SFB-005 architecture and implementation guide, especially its process boundary, protocol, coordinate rules, contracts, execution model, four experimental conditions, corpus, metrics, and phased plan.
+- Ran the complete Python test suite in `sources/semantic-feedback-prototype/.venv-mlx`; it passed with 47 tests and one intentional skip.
+- Amended the report summary, status, development sequence, repository tree, routing section, evidence, limitations, roadmap, onboarding order, ticket references, commit history, and conclusion.
+- Added new textbook sections on assistant-owned routing, task-owned evaluation, the wrapper-aware acceptance sweep, the JavaScript/go-go-goja architecture, protocol safety, coordinate conversion, contract provenance, model-visible hints, controlled execution, benchmark methodology, and implementation phases.
+
+### Why
+
+- The existing `PROJ` note is already the durable entire-project report. Updating it avoids splitting current project truth across two competing notes.
+- Historical and current sweeps answer different questions. The first exposes wrapper misses; the second proves that assistant-scoped aliases close those misses. Both results belong in the report with separate denominators.
+- The JavaScript design is substantial enough to explain in the complete report, but implementation status must remain explicit so planned modules are not confused with committed code.
+
+### What worked
+
+- The reMarkable upload succeeded with the unchanged verified WeasyPrint command, confirming the earlier HTTP 400 condition was external and transient.
+- The current tests reproduced the SFB-004 ticket's 47-pass, one-skip acceptance state.
+- The Phase 6–7 artifact reported ten paired prefixes, ten feedback-only outcomes, ten valid intervention contexts, zero invalid contexts, and a feedback repair rate of 1.0 given intervention.
+- Existing report structure supported a direct extension without rewriting the foundational sections.
+
+### What didn't work
+
+- Attempting to invoke an `apply_patch` executable in the vault failed because that shell command is not installed:
+
+  ```text
+  zsh:1: command not found: apply_patch
+  ```
+
+  I copied the two existing notes to `/tmp`, edited those working copies with the supported patch tool, and will copy the validated results back to their exact vault paths.
+
+- Running the test command from the source repository root failed because the virtual environment is inside the prototype directory:
+
+  ```text
+  zsh:3: no such file or directory: .venv-mlx/bin/python
+  ```
+
+  Running the same command from `sources/semantic-feedback-prototype` succeeded.
+
+- The vault still contains three unrelated modified transcript files. They predate this work and remain outside every validation and staging command.
+
+### What I learned
+
+- The original wrapper problem is now resolved at the correct ownership layer. The evaluator did not need wrapper-specific branches; it only needed the generation boundary and normalized regions.
+- The generalized evaluator suite has broader deterministic coverage than the live online validators. The report must distinguish evaluator capability from intervention capability.
+- The JavaScript track can reuse the verified Python controller if the sidecar returns facts and spans rather than edits. This preserves baseline/treatment symmetry and keeps policy experiments in one process.
+- UTF-8 byte coordinates are part of the sidecar API contract because Tree-sitter and Python string spans use different units.
+
+### What was tricky to build
+
+- The report now spans mechanism, model behavior, parser behavior, cache correctness, experimental causality, source ownership, evaluation semantics, and an unimplemented cross-language design. Each claim needed an explicit implementation-status boundary.
+- Aggregate results required careful denominators. Ten of ten repairs in SFB-004 describe one live task across ten seeds; they do not describe the six deterministic evaluator fixtures or the proposed forty-eight JavaScript tasks.
+- The latest JavaScript section had to be detailed enough for implementation while remaining a project report rather than duplicating the entire SFB-005 intern guide.
+
+### What warrants a second pair of eyes
+
+- Verify that all efficacy statements distinguish the original 6/10 overall result, the original 6/6 conditional repair result, and the later 10/10 wrapper-aware acceptance result.
+- Confirm that the JavaScript sidecar, contract resolver, runtime runner, and corpus are consistently labeled as proposed rather than implemented.
+- Render the new Mermaid diagrams in Obsidian reading view and inspect tables on a narrow pane.
+- Review the CommonJS decline rules and hidden/public information boundary before implementation begins.
+
+### What should be done in the future
+
+- Implement SFB-005 Phase 0 golden fixtures and Phase 1 read-only sidecar before changing live feedback behavior.
+- Add live Python validators corresponding to the generalized invalid-keyword, deprecated-API, import, and nested-call evaluator fixtures.
+- Publish a later empirical addendum after the twelve-task four-condition JavaScript smoke study.
+
+### Code review instructions
+
+- Review the canonical `PROJ` report and this diary step only; do not stage paths under `Transcripts/`.
+- Cross-check the new Phase 6–7 table against `sources/semantic-feedback-prototype/artifacts/live-qwen/phase-6-7-seeds-0-9/summary.json`.
+- Cross-check the JavaScript architecture and phase table against SFB-005 Sections 7 through 14.
+- Run the report quality checks, YAML parse, fenced-block balance, `git diff --check`, and exact-path cached diff before committing.
+
+### Technical details
+
+```text
+source repo:       /Users/manuel/code/wesen/2026-08-25--mlx-inference
+source HEAD:       91ea426 Record successful SFB-005 reMarkable upload
+vault:             /Users/manuel/code/wesen/go-go-golems/go-go-parc
+report baseline:   1,145 lines / 7,220 words
+python tests:      47 passed / 1 skipped
+reMarkable path:   /ai/2026/08/25/SFB-005
+protocol design:   semantic-js/1
+live new evidence: 10 paired seeds / 10 feedback-only repairs
+```
