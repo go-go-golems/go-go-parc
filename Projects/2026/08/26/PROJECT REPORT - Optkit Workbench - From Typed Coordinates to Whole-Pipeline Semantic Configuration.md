@@ -13,8 +13,8 @@ source_tickets:
   - OPTKIT-012
   - OPTKIT-013
   - OPTKIT-014
-optkit_head: d0b694c2d9aaa07ed3a975ac1bc1276698264b65
-rag_ttc_head: 61422e3b10f292bd0231839e46ec8c953c1e7b26
+optkit_head: c11ce40cd81a4fb85d5c24fbd75463db337d82a1
+rag_ttc_head: 9c56a7df614b95bdc754fdcdb944ba9ddf02ec7a
 tags:
   - article
   - project-report
@@ -33,7 +33,7 @@ tags:
 
 The optimization workbench needs one semantic path from an operator's requested coordinate change to a reviewed candidate, an executable configuration, a dependency-aware invalidation plan, and a durable campaign record. Before this work, the repositories already contained the individual mechanisms required for that path: typed Optkit variables, immutable snapshots, canonical patches, candidate records, a twelve-layer RAG graph, strict experiment manifests, a durable campaign runner, read-only specialist projections, and a working numbergame demonstration. The missing property was composition under one explicit contract.
 
-This report covers the program design in OPTKIT-011, architecture closure in OPTKIT-012, the complete generic catalog/binding implementation in OPTKIT-013, and the whole-pipeline RAG configuration work completed so far in OPTKIT-014. At the time of writing, OPTKIT-012 and OPTKIT-013 are closed. OPTKIT-014 phases 1 through 5 are implemented and committed; phase 6 is validating campaign projections, frontend type changes, dependency direction, fresh-store execution, and final closure.
+This report covers the program design in OPTKIT-011, architecture closure in OPTKIT-012, the complete generic catalog/binding implementation in OPTKIT-013, and the whole-pipeline RAG configuration implementation in OPTKIT-014. OPTKIT-012, OPTKIT-013, and OPTKIT-014 are closed. Their production code, migrations, tests, diaries, tasks, work-slip receipts, roadmap state, and docmgr validation are committed.
 
 The central result is precise:
 
@@ -118,7 +118,7 @@ OPTKIT-011 became the umbrella program rather than another implementation ticket
 | --- | --- | --- |
 | OPTKIT-012 | Architecture closure and workbench contracts | Complete |
 | OPTKIT-013 | Generic catalogs, domains, bindings, and candidate intent | Complete |
-| OPTKIT-014 | Whole-pipeline RAG configuration and graph derivation | Phase 6 in progress |
+| OPTKIT-014 | Whole-pipeline RAG configuration and graph derivation | Complete |
 | OPTKIT-015 | Real fusion configuration and first RAG catalog | Designed; implementation pending |
 | OPTKIT-016 | Pure proposal compiler and Glazed CLI | Designed; implementation pending |
 | OPTKIT-017 | Proposal sealing, candidate manifests, campaign persistence | Designed; implementation pending |
@@ -911,7 +911,7 @@ Backend projector tests now verify:
 - every snapshot uses `schema:rag-ttc.pipeline-config/v2`;
 - every snapshot uses `system:rag-ttc-pipeline/v2`.
 
-At report time these final specialist/frontend changes are validated but not yet committed. They belong to the remaining OPTKIT-014 phase-6 closure commit.
+These specialist/frontend changes were committed as RAG-TTC `9c56a7df`. The final ticket guide, diary, logs, work-slip receipts, tasks, and roadmap closure were committed in Optkit as `c11ce40c`.
 
 ## 19. Physical work-slip and documentation discipline
 
@@ -971,6 +971,7 @@ This creates three independent records of progress: Git history, docmgr diary/ch
 | `4b90f21` | Proved catalog/binding path through numbergame |
 | `6567319` | Made bundle event projection exhaustive |
 | `d0b694c` | Closed OPTKIT-013 with diary and validation evidence |
+| `c11ce40` | Closed OPTKIT-014 with guide, diary, CLI/campaign evidence, and all phase-slip receipts |
 
 ### RAG-TTC
 
@@ -980,6 +981,7 @@ This creates three independent records of progress: Git history, docmgr diary/ch
 | `3055aa4` | Derived graphs from pipeline values and locked invalidation behavior |
 | `f1b0759` | Added law-tested aggregate and lifted lenses |
 | `61422e3` | Migrated snapshots, campaigns, manifests, assets, and projections to v2 pipelines |
+| `9c56a7d` | Projected final-result-limit semantics accurately and completed specialist readback tests |
 
 Every RAG-TTC code commit ran the repository pre-commit hook, including golangci-lint, Glazed vet, and the complete Go test suite.
 
@@ -1060,7 +1062,7 @@ This correction matters because OPTKIT-015 will expose `fusion.rrf_k`. Per-retri
 - Specialist frontend typecheck, 45 tests, and production build pass.
 - The dependency scan contains 255 packages and no cycle.
 
-The remaining phase-6 closure work is to run the final complete backend/race/build sweep after the last projection/frontend changes, commit those changes, update OPTKIT-014 diary/tasks/roadmap/changelog, run doctor from the workspace root, print the phase-6 done slip, and audit both repositories for unrelated state.
+Phase 6 then closed successfully. Final backend lint/tests/build, focused race tests, specialist typecheck/tests/build, dependency scan, fresh campaign verification, tasks, relations, changelog, roadmap, and doctor all passed. The phase-6 done slip printed with `ok: true`, `printed: true`, and a two-segment printer response. The only remaining Optkit worktree item is the unrelated pre-existing untracked `numbergame-demo` directory.
 
 ## 23. Schema and identity migration reference
 
@@ -1140,17 +1142,17 @@ This separation is now implementable without inventing a second mutation algebra
 
 ## 25. What comes next
 
-### Finish OPTKIT-014
+### OPTKIT-014 closure result
 
-The immediate remaining steps are mechanical but required:
+The final closure completed every required step:
 
-1. Run final full RAG-TTC tests, race, lint, vet, generation/build checks, and specialist frontend checks after the last projection edits.
-2. Commit the phase-6 specialist/backend validation changes.
-3. Update the OPTKIT-014 guide with actual implementation outcomes and schema IDs.
-4. Append phase-by-phase diary entries with commits, failures, smoke commands, and exact evidence.
-5. Check all implementation tasks, close the ticket, and update the parent roadmap.
-6. Run `docmgr doctor` for OPTKIT-011 through OPTKIT-014 from the workspace root.
-7. Print and retain the OPTKIT-014 phase-6 done slip.
+1. Full RAG-TTC lint, tests, build, focused race checks, and specialist frontend checks passed after the final projection edits.
+2. The specialist/backend changes were committed as `9c56a7df`.
+3. The guide records actual schema IDs, runtime behavior, migration policy, and validation evidence.
+4. The diary contains one strict implementation step per phase with exact commits, failures, smoke commands, and review guidance.
+5. All implementation tasks are checked, the ticket is closed, and the parent roadmap marks OPTKIT-014 complete.
+6. `docmgr doctor` passes for OPTKIT-011 through OPTKIT-014 from the workspace root.
+7. The phase-6 done slip and all prior start/done receipts are retained and committed.
 
 ### OPTKIT-015
 
