@@ -352,3 +352,110 @@ successful push: 55b30c4..f2b5668 main -> main
 force used:      no
 published files: article and companion diary
 ```
+
+## Step 6: Write the complete project report
+
+The earlier vault article documented the architecture and first verified repair
+before the paired evaluation existed. This step creates a new project-oriented
+report covering the complete implementation and evidence history without
+overwriting that conceptual article.
+
+The report follows the project-note structure and textbook writing rules. It
+starts from the inference-state contract, explains each subsystem, reconstructs
+the failed and successful experiments, reports the seeds 0 through 9 results,
+and defines assistant-output-scoped recognition as the next implementation
+boundary.
+
+### Prompt Context
+
+**User prompt (verbatim):**
+
+> write a detailed project report for the obsidian vault as a deep dive technical analysis blog post using a textbook writing style (no analogies, see skill).
+>  Commit and push the bsidian vault when done (go-go-parc vault).
+>
+> About the entire project
+
+**Assistant interpretation:** Create a new comprehensive `PROJ` report in the
+Obsidian vault covering both SFB-001 and SFB-002, preserve existing notes,
+update the project diary, and publish focused commits to `origin/main`.
+
+**Inferred user intent:** Preserve one durable document from which a future
+engineer can understand, run, review, and extend the complete semantic-feedback
+project.
+
+### What I did
+
+- Re-read the vault-writing, textbook-authoring, Obsidian Markdown, diary, and
+  Git hygiene instructions.
+- Inspected the earlier vault article and diary, both ticket workspaces, the
+  final source tree, Git history, and paired summary.
+- Chose a new `PROJ` note rather than modifying the existing `ARTICLE`.
+- Defined the report structure before drafting.
+- Wrote the complete project report with prose, equations, pseudocode, tables,
+  Mermaid diagrams, commands, trace evidence, security limits, onboarding, and
+  next steps.
+- Linked the report to the earlier article and this diary.
+
+### Why
+
+- The prior article predates the paired-seed evidence and is primarily a
+  reusable architecture treatment.
+- A project report needs current status, repository shape, operational commands,
+  empirical results, and a continuation plan in one place.
+- Append-only publication preserves the historical state of the earlier note.
+
+### What worked
+
+- The source repository was clean at `b668f83`.
+- The paired summary supplied exact aggregate and per-seed evidence.
+- The vault was fast-forwarded by one inspected, non-overlapping remote commit
+  before drafting.
+
+### What didn't work
+
+- The vault still contains three unrelated modified transcript paths from the
+  earlier macOS filename-collision checkout. They remain outside this report's
+  staging scope.
+
+### What I learned
+
+- The complete project result is stronger when expressed as two rates: 6/6
+  repair conditional on intervention and 6/10 overall success under the current
+  wrapper protocol.
+- Assistant-output scoping is required before wrapper aliases can be accepted
+  safely.
+
+### What was tricky to build
+
+- The report had to integrate negative experiments without treating every
+  failure as a model failure. Marker collisions, replay cursor placement, and
+  wrapper compliance belong to different system layers.
+- The no-analogy requirement required direct definitions and concrete traces
+  throughout the report.
+
+### What warrants a second pair of eyes
+
+- Review every efficacy statement for the correct denominator.
+- Verify both Mermaid diagrams and display equations in Obsidian reading view.
+- Confirm the assistant-output-scoped proposal preserves absolute edit spans.
+
+### What should be done in the future
+
+- Publish a follow-up project report after the wrapper-protocol experiment and
+  broader task suite are complete.
+
+### Code review instructions
+
+- Review the new `PROJ` note and this appended diary step only.
+- Cross-check its aggregate table against the SFB-002 `summary.json`.
+- Do not stage any path under `Transcripts/`.
+
+### Technical details
+
+```text
+source repo:  /Users/manuel/code/wesen/2026-08-25--mlx-inference
+vault:        /Users/manuel/code/wesen/go-go-golems/go-go-parc
+source HEAD:  b668f83 Close paired Qwen evaluation ticket
+target type:  project
+target date:  2026-08-25
+```
