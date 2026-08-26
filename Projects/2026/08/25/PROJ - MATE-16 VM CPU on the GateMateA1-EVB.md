@@ -36,27 +36,30 @@ The project exists because the difference between these three implementations is
 
 ## Current project status
 
-The repository is at the boundary between Phase 5 and Phase 6 of a seven-phase plan. Phases 0 through 5 are complete and verified in simulation; Phase 6 (FPGA implementation, timing, hardware bring-up, and the engineering report) is the next step.
+The repository has completed Phase 6. The full MATE-16 processor system synthesizes, places, routes, packs, loads, and runs on the GateMateA1-EVB. A bytecode-driven LED blinks on the board, and the blinking is caused by MATE-16 instructions (`lit; out 0x00` toggling `GPIO_OUT` bit 0 in a loop), not by a hardware counter. The board pinout for the onboard UART and the buttons has been researched and verified against the Cologne Chip datasheet. The remaining Phase 6 items are the requirements-verification matrix, the randomized-with-seeds differential campaign, and the full engineering report polish.
 
 What already exists:
 
 - the OSS CAD Suite toolchain at `~/fpga/oss-cad-suite/`, version `20260825`, with all seven required tools verified
-- a Phase 1 blink design that synthesizes, places, routes, packs, loads, and blinks the onboard LED on physical hardware, with a 201.86 MHz timing margin against the 10 MHz constraint
+- a Phase 1 blink design that blinks the onboard LED on hardware, with a 201.86 MHz timing margin
 - the authoritative opcode table `tools/opcodes.py` (28 baseline opcodes, 8 fault codes) consumed by every other tool
-- an executable reference model `tools/model16.py` that implements every opcode, every fault, and the retirement discipline, independent of the RTL
+- an executable reference model `tools/model16.py` implementing every opcode, fault, and the retirement discipline, independent of the RTL
 - the processor core `rtl/mate16_core.sv` implementing all 28 opcodes per the §2.7 FSM, with 44 directed and differential tests showing zero divergence from the model
 - a two-pass assembler `tools/asm16.py` (no `eval`) producing `program.hex/.bin/.lst/.sym.json`, with 52 unit tests
-- the memory and peripheral RTL (`program_rom`, `data_ram`, `io_block`, `uart_tx`) and the integrated `top.sv`
-- 8 system-level tests running assembled bytecode end-to-end, plus example programs `smoke`, `selftest`, `ramtest`, `blink`, `hello`
-- 12 probe and analyzer scripts in the ticket `scripts/` folder that found and now guard the two held-request handshake bugs
+- the memory and peripheral RTL (`program_rom`, `data_ram`, `io_block`, `uart_tx`) and the integrated `top.sv`, with synchronous-read block RAM that infers GateMate BRAM
+- 8 system-level tests running assembled bytecode end-to-end, plus example programs `smoke`, `selftest`, `ramtest`, `blink`, `hello`, and a Morse-code blinker generator
+- a full synthesis + place-and-route + bitstream flow for the processor system: 3,552 LUTs (8.7%), 1,095 FFs, 1 BRAM block, timing PASS at 10 MHz with a 20.63 MHz post-route margin
+- a bytecode-driven LED demonstrated on hardware (acceptance A14), loaded via a unified assemble→simulate→synthesize→place→pack→load harness
+- 14 probe and analyzer scripts in the ticket `scripts/` folder that found, guard, and build the design
+- the board's Rev.C schematic, user manual, and the Cologne Chip datasheet saved to `sources/board/`, with a verified pin reference for the onboard UART (`IO_SA_A6`/`IO_SA_B6` through the RP2040) and the main button (`IO_EA_B7`)
 
 What does not yet exist:
 
 - the requirements-verification matrix, the assertion suite, and the randomized-with-seeds differential campaign
-- clean Yosys/nextpnr synthesis of the full `top.sv` (only the blink has been synthesized so far)
-- timing closure and a resource ledger for the processor system
-- hardware bring-up of the actual processor (a bytecode-driven LED), as distinct from the Phase 1 blink
-- the engineering report
+- an RP2040 firmware build that bridges the onboard UART to USB CDC (the pin side is ready; the firmware side is the open instructor-deferred piece)
+- the buttons wired into `top.sv` with a 2-flop synchronizer (the pin is verified; the RTL change is small and specified by §3.10.1)
+- the final engineering report polish (a draft exists in `mate16/docs/final-report.md`)
+
 
 ## Project shape
 
@@ -344,6 +347,59 @@ The second bug produced `[H, H]` from two `OUT 0x10` bytes that should have prod
 
 Both bugs were localized not by reading waveforms but by pairing a probe that emits structured lines with a Python analyzer that asserts invariants. `04-analyze-probe.py` parses `PROBE`/`MEM` lines and asserts reset-release timing, ROM readiness, and fetch correctness. `05-diff-tb-system.py` compiled three `tb_system` variants to isolate which addition broke the run — it disproved the initial hypothesis that the UART RX block or `$dumpvars` was the culprit. `06-isolate-uart-rx.py` definitively showed the bug was independent of the UART RX block. `09-verify-programs.py` now guards the program acceptance invariants. The 12 scripts are saved to the ticket `scripts/` folder with numerical prefixes preserving investigation order, so a future debugger can replay the investigation. The method turned eyeballing into pass/fail and caught regressions on re-runs.
 
+## FPGA implementation
+
+Phase 6 took the system from a simulation-verified design to a timing-clean bitstream that runs on the board. The work fell into four pieces: making the memories infer block RAM, fixing the synthesis-time multiple-driver conflict, finding and resolving a placement-congestion failure, and demonstrating a bytecode-driven LED.
+
+### From combinational reads to synchronous block RAM
+
+The Phase 5 memories used combinational zero-latency reads. That choice was correct for simulation — it is a valid held-request target and it avoided the spurious-second-ready bug — but it is not what hardware block RAM does. GateMate block RAM is synchronous: the address is registered on one clock edge and the data appears the next. To infer `CC_BRAM` blocks in synthesis, `program_rom` and `data_ram` were rewritten to a registered handshake. On the first cycle of `req`, the target latches `addr_q` (and for the RAM, `we_q` and `wdata_q`) and sets `req_q`. The next cycle it presents `rdata = mem[addr_q]` and asserts `ready = req_q` for a single cycle, then clears `req_q`. `ready` is a single-cycle pulse and `req_q` clears after serving, so a held `req` cannot produce a spurious second ready — the §3.7.1 bug stays fixed under the slower target. The data RAM writes on the latch cycle, giving a write-first read-during-write behavior that is defined and documented. All eight system tests pass with the one-cycle-latency targets.
+
+### The synthesis-time driver conflict
+
+The first full `top.sv` synthesis produced a wall of `Driver-driver conflict` warnings on `pc`, `state`, and `halted_r`. In simulation this is harmless — the last assignment in simulation time wins — but in synthesis it is illegal because two processes drive the same register. The cause was a separate `always_ff` block implementing the watchdog (`FAULT_TIMEOUT`) that assigned `pc`, `state`, and `halted_r` in parallel with the main FSM. The fix was structural: merge the watchdog into the main FSM's `S_DMEM` and `S_IO` branches, so every register has exactly one writer. The `timeout_cnt` resets on a successful `ready` and counts up while waiting; at `TIMEOUT_CYCLES - 1` it faults with `FAULT_TIMEOUT`. With `TIMEOUT_CYCLES = 0` (the baseline default) the watchdog is inert. The merged form synthesized with zero driver conflicts and zero warnings on those signals.
+
+### The placement-congestion failure
+
+The first place-and-route run with a program baked into the ROM did not finish in the expected time. The nextpnr log showed the placer grinding through iterations with `overused=22538` wires — the design was over-congested, not hanging. A resource probe showed the populated 16 KiB ROM had spread to 14,284 LUTs (34% of the FPGA) and the 256-deep operand stack had become 4,416 individual flip-flops. Two distinct causes, both the same root reason: an asynchronous-read memory does not infer block RAM.
+
+The operand and return stacks use asynchronous indexed reads (`tos = stack[sp-1]`) because the textbook's §2.8 teaching implementation does. Yosys cannot map an async-read array to `CC_BRAM`, so the 256×16 and 64×16 stacks became 4,416 DFFs and 4,339 muxes. The 16 KiB initialized ROM, similarly, did not pack cleanly into BRAM and spread across thousands of LUTs. Together they overloaded the 20,480-CPE FPGA's placer.
+
+The fix respected the architecture without changing the ISA contract. `top` gained `ROM_DEPTH`, `RAM_WORDS`, `STACK_DEPTH`, and `RSTACK_DEPTH` parameters. The hardware demonstration build uses `STACK_DEPTH=32`, `RSTACK_DEPTH=16`, `RAM_WORDS=1024`, and `ROM_DEPTH=256` — ample for the demo programs (which are 3–42 bytes) and small enough to place in seconds. The stacks still infer DFFs (an async-read-to-BRAM conversion is a Phase 7 TOS-cache extension, §4.22.1), but 32-deep stacks are 512+256 = 768 DFFs, which fits comfortably. The full 256-deep stacks remain the simulation default and the ISA contract; the parameterized depths are a hardware-fit choice.
+
+### The resource ledger and timing
+
+With the parameterized build, the full MATE-16 system (core + ROM + RAM + io_block + uart_tx + reset_sync) synthesizes and places cleanly.
+
+| Resource | Used | Available | Used % |
+|---|---:|---:|---:|
+| CPE_LUT | 3,552 | 40,960 | 8.7% |
+| CPE_FF | 1,095 | 40,960 | 2.7% |
+| RAM_HALF | 1 | 64 | 1.6% |
+| GPIO | 3 | 162 | 1.9% |
+
+The 10 MHz clock constraint (100 ns period, from `constraints/top.sdc`) is recognized and met. The post-route critical path supports 20.63 MHz — positive slack, roughly a 2x margin. The pins bind as expected: `clk_10m` to `IO_SB_A8`, `user_led` to `IO_SB_B6`, and `uart_tx_pin` auto-placed to `IO_SA_A0` (pending an approved UART pin assignment; see Board pinout research below). The bitstream packs with gmpack to `build/top.bit` (sha256 `e7e1a861…` for the `blink` program). Synthesis takes about 13 seconds and place-and-route about 87 seconds with 8 threads and `--parallel-refine`, both well under a minute-per-stage for a design this size.
+
+### The bytecode-driven LED on hardware
+
+Two designs were demonstrated on the board. The Phase 1 blink proved the toolchain and programming path with a hardware counter. The Phase 6 demonstration is different: the LED is controlled by MATE-16 bytecode. The `blink.asm` program toggles `GPIO_OUT` bit 0 in a loop with a stack-balanced countdown delay (`lit 1; sub; dup; jnz`), so the blinking is caused by the processor fetching and executing `lit` and `out 0x00` instructions, not by a counter. The model confirms it toggles `1, 0, 1, 0…` without faulting; the bitstream loads over the DirtyJTAG bridge; and the onboard LED blinks. This is acceptance test A14 — the demonstration is traceable to bytecode executed by the student-designed processor.
+
+### The unified build-and-load harness
+
+The hardware bring-up is driven by `scripts/11-build-and-run.py`, a single command that takes a `.asm` program and a build-parameter set and runs the whole flow: assemble, model-simulate (asserting the LED behavior), synthesize, place-and-route, pack, and load. Each stage asserts an invariant and reports — the model stage asserts that a blink toggles `1,0,1,0` and does not fault, the synth stage reports cell and BRAM counts, the PnR stage reports the timing margin and resources, and the load stage asserts openFPGALoader exits zero. The harness made delay tuning and the hardware demonstration a single reproducible command. It also served as the regression for the parameterized build: the same program that blinks on hardware passes the model assertion first, so the hardware behavior is anchored to the verified oracle.
+
+### A Morse-code blinker generator
+
+As an exercise in what the processor can do, `scripts/12-gen-morse.py` generates a MATE-16 assembly program that blinks an arbitrary message in International Morse Code. The message is baked as a sequence of `CALL` instructions to `dot`, `dash`, `letter_gap`, and `word_gap` subroutines — the message is the program, since the baseline MATE-16 cannot read program ROM as data. The timing follows the paris standard: a dot is one unit on, a dash is three units on, the inter-element gap is one unit off (built into the element), the inter-letter gap is three units total, and the inter-word gap is seven units total. A unit-delay subroutine and a `delay_units` wrapper implement the timing in terms of a calibrated `UNIT` constant. The default message is the project's mascot line. The generator demonstrates that the 28-opcode ISA and the `CALL`/`RET` return stack are enough to express a real, structured, time-driven program.
+
+## Board pinout research
+
+The textbook intentionally does not hard-code a UART pin or a button pin (§3.11, §3.10.1); it defers those to the instructor because board revisions, bank settings, and classroom adapters differ. To make the hardware bring-up concrete, the board's authoritative sources were downloaded with `defuddle` and `curl` into `sources/board/`: the Olimex GitHub repository README and product page, the onboard-UART forum thread, the Rev.C user manual (PDF and extracted text), the Rev.C schematic (PDF and text), and the Cologne Chip GateMate datasheet (PDF and text). The pin assignments were then verified against the datasheet's package-pin-to-IO-bank table rather than assumed from the schematic.
+
+The key finding is that the board has an **onboard UART through the RP2040** that needs no external wiring. The RP2040's GPIO12 and GPIO13 are wired to two FPGA pins, and the RP2040 can present them as a USB CDC serial port over the same USB-C cable used for programming. The datasheet pinout table confirms the mapping: package pin `R9` is `IO_SA_A6` (the `DBG-UART_TX` net, FPGA transmits to the RP2040) and package pin `T9` is `IO_SA_B6` (the `DBG-UART_RX` net, FPGA receives from the RP2040). So the constraint is `Pin_out uart_tx_pin Loc = IO_SA_A6` and `Pin_in uart_rx_pin Loc = IO_SA_B6`. The one remaining piece is RP2040 firmware that bridges GPIO12/GPIO13 to USB CDC; the stock `pico-dirty-jtag` firmware used for JTAG programming may not do this by default, which is the open instructor-deferred piece.
+
+The main FPGA button (`FPGA_BUT`) is verified at `IO_EA_B7` (package pin `G17`, 1st GPIO east bank signal B7). The board has four buttons on bank EA; the schematic button sheet shows a second button `FPGA_BUT1` near B6/A6. Before wiring, the button active level (push-to-3V3 vs push-to-GND) and the EA bank voltage setting must be confirmed from the schematic. The RTL change is specified by §3.10.1: an asynchronous button input passes through a two-flop synchronizer before it is exposed on `GPIO_IN` (port `0x01`), read with `IN 0x01`. The pin and the synchronizer pattern are ready; the wiring is the remaining small step.
+
 ## Verification strategy
 
 The project defines "done" as a set of claims that can be disproved. A green test count without a requirements map can hide untested behavior. Each requirement maps to at least one test, assertion, review item, or hardware observation. The tests are organized as a pyramid, from fastest and most numerous to slowest and fewest.
@@ -381,24 +437,26 @@ The current state of the requirements-acceptance mapping (§4.19):
 - `ttmp/2026/08/25/MATE16-VM-CPU--.../design-doc/01-mate-16-vm-cpu-implementation-plan-and-phases.md` — the seven-phase plan with decision records and exit criteria
 - `ttmp/2026/08/25/MATE16-VM-CPU--.../reference/01-investigation-diary.md` — the chronological investigation diary (Steps 1-6)
 - `ttmp/2026/08/25/MATE16-VM-CPU--.../playbook/01-install-oss-cad-suite-toolchain.md` — the verified toolchain install procedure
-- `ttmp/2026/08/25/MATE16-VM-CPU--.../scripts/` — 12 probe and analyzer scripts (01-10c)
+- `ttmp/2026/08/25/MATE16-VM-CPU--.../scripts/` — 14 probe, analyzer, and build scripts (01-12)
 - `mate16/Makefile` — `versions`, `test`, `asm`, `sim`, `synth`, `pnr`, `bit`, `load`, `clean`
 - `mate16/build/tool-versions.txt` — the recorded toolchain version manifest
+- `mate16/docs/final-report.md` — the engineering report draft
+- `sources/board/` — the Rev.C schematic, user manual, Cologne Chip datasheet, and verified pin reference
 
 ## Open questions
 
 - Is the board the standard variant or the `-2M` variant with populated FPGA configuration flash? The answer determines whether `openFPGALoader -f` can write persistent configuration.
-- Is an approved UART pin and voltage configuration provided for the course? The UART transmitter is verified in simulation; a physical demonstration requires an instructor-approved pin assignment.
+- The onboard UART pin is verified (`IO_SA_A6`/`IO_SA_B6` through the RP2040), but the RP2040 firmware must bridge GPIO12/GPIO13 to USB CDC for a host to see the bytes. The stock `pico-dirty-jtag` firmware may not do this; a UART-enabled RP2040 build is the remaining piece.
+- The main button is verified at `IO_EA_B7`, but the active level (push-to-3V3 vs push-to-GND) and the EA bank voltage must be confirmed from the schematic before wiring, and a 2-flop synchronizer (§3.10.1) added before exposing on `GPIO_IN`.
 - Should the optional `BREAK` opcode (`0xF0`) be implemented in the baseline, or left illegal until a debug need appears? The default is to leave it illegal.
-- The combinational ROM/RAM reads are a simulation simplification. Phase 6 must replace them with synchronous-read block RAM and a correct registered ready handshake.
+- The hardware build uses reduced stack depths (32/16) because async-read stacks infer DFFs, not BRAM. A Phase 7 TOS-cache extension (§4.22.1) would let the stacks infer BRAM and restore full depth at lower LUT cost.
 
 ## Near-term next steps
 
-- Phase 6: replace the combinational ROM/RAM with synchronous-read block RAM inference and a registered ready handshake that does not produce a spurious second ready; re-run all tests.
-- Phase 6: synthesize the full `top.sv` with Yosys/nextpnr, constrain the 10 MHz clock, and record the resource ledger and timing slack for the processor system (not just the blink).
-- Phase 6: add the requirements-verification matrix, the assertion suite (pointer bounds, request stability, terminal quiescence, retirement discipline), and a randomized-with-seeds differential campaign (§4.7) varying target latency 0-10 cycles.
-- Phase 6: bring up the actual processor on hardware — load the full bitstream and demonstrate a bytecode-driven LED through `GPIO_OUT` bit 0 (acceptance A14), distinct from the Phase 1 blink.
-- Phase 6: write the engineering report (architecture, software, verification, implementation, hardware results, limitations) with a bug diary.
+- Add the requirements-verification matrix, the assertion suite (pointer bounds, request stability, terminal quiescence, retirement discipline), and a randomized-with-seeds differential campaign (§4.7) varying target latency 0-10 cycles.
+- Wire the onboard UART pin (`IO_SA_A6`) and a button (`IO_EA_B7` with a 2-flop synchronizer) into `top.sv` and the CCF; build an RP2040 CDC firmware bridge (or use the UEXT pins with a USB-serial adapter) and demonstrate `hello.asm` over the onboard UART plus a button-LED responder.
+- Add the requirements-verification matrix and the randomized differential campaign to close acceptance A11 (differential) formally with recorded seeds.
+- Polish the engineering report (`mate16/docs/final-report.md`) with the Phase 6 hardware evidence and the bug diary, and demonstrate acceptance A15 (reproducible by another person).
 
 ## Project working rule
 
