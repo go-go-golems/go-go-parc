@@ -13,8 +13,12 @@ source_tickets:
   - OPTKIT-012
   - OPTKIT-013
   - OPTKIT-014
-optkit_head: de05f557ba17accd017e3a4e5821f29364edcd45
-rag_ttc_head: 20266fd2fa03389c5c542f7e6f5745474cca3b28
+  - OPTKIT-015
+  - OPTKIT-016
+  - OPTKIT-017
+  - OPTKIT-018
+optkit_head: 2a3bf15ff2108fef8c0a344c36152d587b84365f
+rag_ttc_head: 07e3bbe85fdee46b0d6e98d17e7e94988382ade0
 tags:
   - article
   - project-report
@@ -33,7 +37,7 @@ tags:
 
 The optimization workbench needs one semantic path from an operator's requested coordinate change to a reviewed candidate, an executable configuration, a dependency-aware invalidation plan, and a durable campaign record. Before this work, the repositories already contained the individual mechanisms required for that path: typed Optkit variables, immutable snapshots, canonical patches, candidate records, a twelve-layer RAG graph, strict experiment manifests, a durable campaign runner, read-only specialist projections, and a working numbergame demonstration. The missing property was composition under one explicit contract.
 
-This report covers the program design in OPTKIT-011, architecture closure in OPTKIT-012, the complete generic catalog/binding implementation in OPTKIT-013, the whole-pipeline RAG configuration implementation in OPTKIT-014, and the first runtime-honest RAG catalog in OPTKIT-015. OPTKIT-012 through OPTKIT-015 are closed. Their production code, migrations, tests, diaries, tasks, evidence scripts, roadmap state, and docmgr validation are committed.
+This report covers the program design in OPTKIT-011 and the completed backend chain from OPTKIT-012 through OPTKIT-018: architecture closure, generic catalogs/bindings, whole-pipeline RAG configuration, runtime-honest RAG variables, pure proposal compilation, canonical sealing/persistence, historical candidate projection, and the authorized workbench command API. OPTKIT-012 through OPTKIT-018 are closed. Their production code, explicit migrations, tests, diaries, tasks, evidence scripts, roadmap state, physical work-slip receipts, and docmgr validation are committed.
 
 The central result is precise:
 
@@ -54,6 +58,9 @@ No browser, manifest, CLI parser, or proposal service needs a separate mutation 
 > - OPTKIT-013 implemented six lossless value kinds, deterministic semantic/full catalog identities, type-erased executable registries, candidate identity v2, and a complete numbergame campaign proof.
 > - OPTKIT-014 now represents every RAG arm as one validated `PipelineConfig`, derives all twelve graph identities from that value, supplies law-tested lifted lenses, stores whole-pipeline snapshots, and rejects manifests that try to author `config + layers` independently.
 > - OPTKIT-015 routes `fusion.rrf_k` into real reciprocal-rank arithmetic, registers the first executable RAG catalog, and freezes pipeline-derived fixture identities with exact score and contribution evidence.
+> - OPTKIT-016 compiles serialized mutations into deterministic, diagnostic-rich, no-write drafts and exposes native catalog/proposal Glazed commands.
+> - OPTKIT-017 advances manifests and campaigns explicitly to v3, seals through `PatchBuilder`, records candidate/snapshot facts idempotently, and proves restart after source-manifest removal.
+> - OPTKIT-018 projects sealed candidate meaning and exposes separately authorized catalog, compile, preview, and seal applications through strict HTTP contracts and a live composed server.
 > - Fresh Go suites, race checks, lint, builds, CLI inspections, a six-episode RAG campaign, physical work-slip receipts, docmgr records, and committed artifacts provide evidence for each completed phase.
 
 ## 1. Why the optimization workbench required new foundations
@@ -121,9 +128,9 @@ OPTKIT-011 became the umbrella program rather than another implementation ticket
 | OPTKIT-013 | Generic catalogs, domains, bindings, and candidate intent | Complete |
 | OPTKIT-014 | Whole-pipeline RAG configuration and graph derivation | Complete |
 | OPTKIT-015 | Real fusion configuration and first RAG catalog | Complete |
-| OPTKIT-016 | Pure proposal compiler and Glazed CLI | Designed; implementation pending |
-| OPTKIT-017 | Proposal sealing, candidate manifests, campaign persistence | Designed; implementation pending |
-| OPTKIT-018 | Candidate projections and workbench command API | Designed; implementation pending |
+| OPTKIT-016 | Pure proposal compiler and Glazed CLI | Complete |
+| OPTKIT-017 | Proposal sealing, candidate manifests, campaign persistence | Complete |
+| OPTKIT-018 | Candidate projections and workbench command API | Complete |
 | OPTKIT-019 | React workbench framework and RRF vertical slice | Designed; implementation pending |
 | OPTKIT-020 | Artifact-valued prompt variable proof | Designed; implementation pending |
 
@@ -817,14 +824,14 @@ layers: ...
 
 Both fail with unknown-field errors. The implementation does not decode and ignore them.
 
-Checked-in assets were renamed and rewritten:
+At OPTKIT-014, checked-in assets advanced to full-arm v2 files. OPTKIT-017 later removed those runtime assets and replaced them explicitly with:
 
 ```text
-semantic-limit-v2.yaml
-semantic-limit-challenger-v2.yaml
+semantic-limit-v3.yaml
+semantic-limit-challenger-v3.yaml
 ```
 
-The prose now describes `final_result_limit` accurately. BM25 and vector top-K remain fixture-owned values.
+The v3 files preserve accurate `final_result_limit` prose while expressing challengers as baseline-relative registered mutations. BM25 and vector top-K remain fixture-owned values.
 
 ## 17. CLI and fresh campaign evidence
 
@@ -975,6 +982,11 @@ This creates three independent records of progress: Git history, docmgr diary/ch
 | `c11ce40` | Closed OPTKIT-014 with guide, diary, CLI/campaign evidence, and all phase-slip receipts |
 | `5c1acb4` | Published the completed OPTKIT-012–014 implementation guide/diary bundles to reMarkable |
 | `de05f55` | Closed OPTKIT-015 with runtime/catalog proof scripts, fixture migration, diary, and implementation delivery |
+| `759ef01`–`b45db55` | Added typed binding failures and pure/verified snapshot derivation for proposal compilation |
+| `0782031` | Closed OPTKIT-016 with compiler/CLI/no-write evidence and all phase receipts |
+| `bde7ed0`–`4d8d93f` | Added pre-seal intent validation, YAML names, and normalized intent identity |
+| `e6277dc` | Closed OPTKIT-017 with sealing/restart proofs and all phase receipts |
+| `02d6f9f`, `2a3bf15` | Closed and finalized OPTKIT-018 API/security evidence and delivery |
 
 ### RAG-TTC
 
@@ -988,6 +1000,11 @@ This creates three independent records of progress: Git history, docmgr diary/ch
 | `d9d6d086` | Routed configured float64 RRF into real fixture fusion and pinned the published Optkit registry API |
 | `5b7ad758` | Registered the first executable retrieval/fusion RAG catalog |
 | `20266fd2` | Advanced the optimization fixture to pipeline-derived v3 identities |
+| `1e926542`–`eaef2024` | Implemented deterministic pure compiler, catalog/proposal CLI, exhaustive diagnostics, and no-write proof |
+| `1e57f539`–`71343d87` | Implemented strict candidate manifests, canonical sealing, campaign spec v3, idempotent facts, and public sealer |
+| `3144759e`–`4c38094a` | Implemented sealed candidate projection, catalog ETags, auth/errors, command applications, strict HTTP, and server composition |
+| `f3d42719` | Published TypeScript workbench handoff contracts |
+| `07e3bbe8` | Redacted sensitive binding diagnostics while preserving stable machine codes |
 
 Every RAG-TTC code commit ran the repository pre-commit hook, including golangci-lint, Glazed vet, and the complete Go test suite.
 
@@ -1081,8 +1098,11 @@ Phase 6 then closed successfully. Final backend lint/tests/build, focused race t
 | Full catalog identity | absent | `schema:optkit.catalog/v1` |
 | RAG system | `system:rag-ttc-retrieval/v1` | `system:rag-ttc-pipeline/v2` |
 | Snapshot config | retrieval-only v1 | `schema:rag-ttc.pipeline-config/v2` |
-| Manifest | `rag-ttc.experiment-manifest/v1` | `rag-ttc.experiment-manifest/v2` |
-| Campaign spec | `schema:rag-ttc.optkit-campaign-spec/v1` | `schema:rag-ttc.optkit-campaign-spec/v2` |
+| Manifest | `rag-ttc.experiment-manifest/v1` | `rag-ttc.experiment-manifest/v3` |
+| Campaign spec | `schema:rag-ttc.optkit-campaign-spec/v1` | `schema:rag-ttc.optkit-campaign-spec/v3` |
+| Candidate draft | absent | `schema:rag-ttc.candidate-draft/v1` |
+| Candidate proposal envelope | absent | `schema:rag-ttc.candidate-proposal/v1` |
+| Workbench HTTP API | absent | `rag-ttc.workbench-api/v1` |
 | Episode work | `schema:rag-ttc.optkit-episode-work/v1` | `schema:rag-ttc.optkit-episode-work/v2` |
 | Trial protocol | `rag-ttc.retrieval/v1` | `rag-ttc.pipeline/v2` |
 | Retrieval limit field | `limit` | `final_result_limit` |
@@ -1091,7 +1111,7 @@ No row in this table has a hidden fallback decoder.
 
 ## 24. The proposal path enabled by this work
 
-OPTKIT-016 and OPTKIT-017 can now implement draft and seal as separate operations.
+OPTKIT-016 and OPTKIT-017 implement draft and seal as separate operations, and OPTKIT-018 exposes those applications through an authorized transport boundary.
 
 ### Pure compilation
 
@@ -1146,7 +1166,7 @@ SealProposal(parent, normalized draft, intent):
 
 This separation is now implementable without inventing a second mutation algebra.
 
-## 25. What comes next
+## 25. Backend completion record and next consumer
 
 ### OPTKIT-014 closure result
 
@@ -1174,13 +1194,71 @@ Every contribution is checked against `weight/(k+rank)`. The fixture order does 
 
 The first catalog has semantic ID `sha256:d3034d1d61cb5da92649bf9d199015e25a6e5223ed50741f594ceba2093730b6` and full ID `sha256:d20f66171bfe0c5ef1a7ba4aade490c1d98b7c4d4d791e52b4b1f2a417c6f6ca`. The frozen optimization fixture advanced to v3 and rejects any graph that differs from a fresh derivation of its embedded pipeline.
 
-### OPTKIT-016 and OPTKIT-017
+### OPTKIT-016: pure proposal compilation
 
-The proposal compiler can then use the generic registry and derived graphs. Sealing can replay normalized values through canonical patch mechanics and persist exact catalog provenance.
+`ProposalCompiler` now receives a verified typed parent and the executable registry. It has no store or journal field. Compilation performs these operations in order:
 
-### OPTKIT-018 through OPTKIT-020
+```text
+validate registry/catalog and parent record/value
+  -> group by variable ID and reject every duplicate occurrence
+  -> sort IDs
+  -> normalize with registered codec/domain
+  -> read canonical before bytes
+  -> apply registered lens in memory
+  -> derive child graph
+  -> compute shared diff and invalidation plan
+  -> derive preview capabilities and sorted diagnostics
+  -> compute semantic draft digest
+```
 
-Historical candidate projections and the authoring command API follow sealing. React can then render generic scalar controls from the catalog, use backend draft diagnostics, and specialize only when a variable benefits from a richer editor. Artifact-valued prompt variables must use the same registry/compiler/sealer path and keep content in sensitivity-labeled artifacts.
+The draft schema is `schema:rag-ttc.candidate-draft/v1`. Digest inputs include parent ID, semantic catalog ID, normalized mutations, child semantic config digest, before/after graph IDs, capability modes/probes, diagnostic machine fields, and sealability. Human messages, capability reasons, request order, and timestamps are excluded.
+
+The compiler returns complete operator diagnostics for empty, unknown, duplicate, malformed, wrong-type, out-of-domain, no-op, application, child, and graph failures. Valid independent mutations remain visible in a partial preview, but any error prevents sealing. Sensitive descriptors suppress raw codec/domain/apply details.
+
+The Glazed CLI exposes current catalog list/show plus proposal compilation from repeated `variable=JSON` assignments or one strict mutation array. Actual JSON retains complete nested domain and draft values. One hundred built-command compilations preserved the exact watched filesystem hash, with no SQLite, artifact, or journal path.
+
+### OPTKIT-017: canonical sealing and campaign custody
+
+Manifest authoring advanced explicitly to `rag-ttc.experiment-manifest/v3`. One complete baseline and baseline-only candidate deltas replace the old full-arm wire shape. V2 assets were removed; there is no fallback decoder or dual `arms + candidates` interpretation.
+
+Sealing distrusts client-computed child fields. It recompiles original mutations, verifies the draft digest, stores the exact catalog, and replays normalized values through `Binding.Assign` and `PatchBuilder`. The durable result verifies child config, snapshot identity, graph, patch ancestry, candidate intent, and semantic catalog provenance.
+
+Campaign spec v3 stores each arm's complete pipeline, snapshot, and frozen graph. Candidate records store parent/treatment IDs, seal-request digest, candidate, patch, catalog/envelope/snapshot refs, canonical mutations, graphs, and invalidation plan. The old parallel graph map was removed.
+
+Each candidate enters the journal in one command-indexed transaction:
+
+```text
+CandidateProposed
+SnapshotMaterialized
+```
+
+The campaign-scoped idempotency key identifies the command; a normalized semantic request digest distinguishes retries from key reuse with changed payload. Exact retries return prior events without advancing the journal. Conflicts and invalid states leave the head unchanged.
+
+A fresh campaign contains 49 events: the prior 47 execution events plus one candidate and one snapshot fact. Verification covers all direct event payloads and nine unique nested refs. An interrupted campaign completes after its only source manifest is deleted. Completed status, verification, resume, cockpit, comparison, candidate intent, mutations, snapshots, and graphs also remain available after deletion.
+
+### OPTKIT-018: historical reads and command applications
+
+Historical comparison now projects candidate intent and mutation labels from the sealed catalog artifact. Candidate absence remains absence. Catalog corruption or lineage mismatch is an error; current registry prose is never used as a fallback.
+
+The separate workbench application owns stored parent/case resolution, policy, current catalog reads, compilation, deterministic preview, principal binding, and sealing. The registered RRF preview executes the actual semantic fixture before and after the draft change and returns internal typed evidence.
+
+The HTTP command boundary is separate from `specialistapi`:
+
+```text
+GET  /api/rag/workbench/v1/catalog
+GET  /api/rag/workbench/v1/catalog/variables/{variable}
+POST /api/rag/workbench/v1/proposals:compile
+POST /api/rag/workbench/v1/previews:run
+POST /api/rag/workbench/v1/proposals:seal
+```
+
+Bearer authentication uses a validated `actor:` principal. Six authorization actions distinguish catalog, compile, preview, seal, and restricted artifact access. Seal binds candidate proposer identity to the principal and accepts one `Idempotency-Key` header. Request JSON is strict, single-valued, and limited to 1 MiB. Typed errors determine status codes; internal causes and sensitive binding values are not emitted.
+
+`campaign serve` mounts the historical GET handler and workbench handler under disjoint prefixes in one standard-library mux. Live evidence proved read-only specialist health, 401 without workbench credentials, catalog reads, compile, actual preview, seal, and byte-equal retry. Sanitized JSON and TypeScript contracts are retained for the PBUI proposal workspace.
+
+### Remaining implementation track
+
+The backend contract chain through OPTKIT-018 is complete. The next implementation consumer is the PBUI track, especially OPTKIT-023's proposal workspace and RRF vertical slice. OPTKIT-020 remains the later asset-valued prompt-coordinate proof. Those consumers must reuse the compiler/sealer/API contracts rather than recreating mutation, identity, authorization, or preview behavior.
 
 ## 26. Review map
 
@@ -1209,7 +1287,16 @@ Runtime and authoring migration
   rag-ttc/pkg/ttc/optkitcampaign/system.go
   rag-ttc/pkg/ttc/optkitcampaign/campaign.go
   rag-ttc/pkg/ttc/experimentworkbench/manifest.go
-  rag-ttc/assets/configs/experiments/optkit-rag/semantic-limit-v2.yaml
+  rag-ttc/assets/configs/experiments/optkit-rag/semantic-limit-v3.yaml
+
+Proposal compile and seal
+  rag-ttc/pkg/ttc/experimentworkbench/proposal.go
+  rag-ttc/pkg/ttc/experimentworkbench/sealing.go
+  rag-ttc/pkg/ttc/experimentworkbench/workbench_service.go
+
+Workbench HTTP
+  rag-ttc/pkg/ttc/workbenchapi/server.go
+  rag-ttc/cmd/rag-ttc/cmds/experiments/optkitrag/serve.go
 
 Projection contract
   rag-ttc/pkg/ttc/specialistapi/types.go
@@ -1226,6 +1313,10 @@ The ticket-level sources are:
   OPTKIT-012--architecture-closure-and-optimization-workbench-contracts/
   OPTKIT-013--optkit-semantic-catalog-and-executable-variable-bindings/
   OPTKIT-014--whole-pipeline-rag-configuration-and-graph-derivation/
+  OPTKIT-015--real-fusion-configuration-and-first-rag-optimization-catalog/
+  OPTKIT-016--proposal-compiler-and-glazed-cli/
+  OPTKIT-017--proposal-sealing-candidate-manifests-and-campaign-persistence/
+  OPTKIT-018--candidate-projections-and-workbench-command-api/
 ```
 
 ## 27. Technical conclusions
@@ -1242,11 +1333,11 @@ The work establishes these rules for the remaining program:
 - A local layer can remain unchanged while its resolved digest changes because an upstream dependency changed.
 - Frozen layers require explicit versioned values.
 - Runtime code rejects semantic coordinates it cannot yet execute rather than accepting and ignoring them.
-- Strict v2 decoders reject stale v1 fields; they do not preserve hidden dual sources.
+- Strict schema decoders reject stale fields; v3 candidate manifests do not preserve a hidden v2 full-arm source.
 - Historical projectors read sealed campaign facts and do not reconstruct identity from current manifests.
 - Physical phase receipts, diaries, tests, and Git commits provide separate evidence channels for substantial implementation work.
 
-These foundations narrow the remaining problem. Proposal compilation is no longer blocked on a metadata model, a type-erasure mechanism, a candidate identity decision, an aggregate RAG value, or graph derivation. The next tickets can operate on explicit production contracts rather than redefining those contracts locally.
+These foundations and backend applications narrow the remaining problem. Proposal compilation, canonical sealing, idempotent campaign custody, candidate projection, authorization, deterministic RRF preview, and strict command transport are implemented production contracts. The remaining UI and asset-coordinate tickets can consume those contracts rather than redefining them locally.
 
 ## Related notes
 
