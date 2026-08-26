@@ -650,3 +650,116 @@ reMarkable path:   /ai/2026/08/25/SFB-005
 protocol design:   semantic-js/1
 live new evidence: 10 paired seeds / 10 feedback-only repairs
 ```
+
+## Step 9: Validate, rebase, and publish the SFB-005 report revision
+
+The amended report and diary passed structural and Git validation, then were committed as one focused milestone. The first push was rejected because two unrelated documentation commits had reached `origin/main` after the initial vault inspection. I fetched and inspected both commits before integrating them; they changed the Corewars and MATE-16 reports and did not overlap the semantic-feedback files.
+
+The vault's three pre-existing transcript modifications exhibit the previously documented macOS checkout behavior: a stash captures them, but the working tree immediately reports the same paths as modified. I preserved a verified backup, temporarily marked only those paths as skip-worktree, rebased the report commit, restored normal tracking, compared the restored worktree diff counts with the backup, deleted the redundant stash, and pushed without force.
+
+### Prompt Context
+
+**User prompt (verbatim):** (see Step 8)
+
+**Assistant interpretation:** Validate and publish the updated canonical project report while preserving unrelated vault work and maintaining an auditable Git history.
+
+**Inferred user intent:** Leave the report available on `origin/main`, keep the vault's unrelated edits intact, and record enough evidence to review the publication procedure.
+
+**Commit (report revision):** `2288ba7` — "Update semantic feedback report through JavaScript design"
+
+### What I did
+
+- Parsed the report and diary YAML frontmatter with PyYAML.
+- Counted balanced Markdown fences: 106 fence lines in the report and 18 in the diary before this publication step.
+- Scanned the report for prohibited analogy and textbook anti-pattern phrases.
+- Ran `git diff --check` and inspected the exact two-file diff, which contained 503 insertions and 37 deletions.
+- Staged only the canonical report and diary paths and confirmed the cached path list before committing.
+- Attempted a normal push; it was rejected because the remote had advanced.
+- Fetched `origin/main`, inspected commits `534a0f5` and `b6b1fda`, and verified that neither changed the semantic-feedback report or diary.
+- Created an exact-path backup stash for the three pre-existing transcript modifications.
+- Temporarily set `skip-worktree` on those same three paths so Git could rebase the non-overlapping report commit.
+- Rebased successfully onto `origin/main`; the report commit changed from `b375055` to `2288ba7`.
+- Removed all three skip-worktree flags and verified that the transcript paths remained modified.
+- Compared worktree and stash `--numstat` output for all three paths; every insertion and deletion count matched.
+- Dropped only the temporary backup stash and pushed `main` from `b6b1fda` to `2288ba7` without force.
+
+### Why
+
+- Frontmatter, fence, whitespace, and exact-path staging checks catch the most common vault publication defects without changing Obsidian state.
+- Inspecting incoming commits before rebasing prevents an automatic integration from concealing overlapping documentation edits.
+- The skip-worktree procedure was bounded to three backed-up, non-overlapping paths and was reversed immediately after rebase.
+- Comparing diff counts before dropping the stash provided concrete evidence that the user's unrelated changes remained present.
+
+### What worked
+
+- Frontmatter parsed and all Markdown fences were balanced.
+- The focused commit contained only the report and diary.
+- The rebase completed without conflict.
+- The transcript worktree diffs after rebase matched the temporary backup exactly:
+
+  ```text
+  108  229   Transcripts/2026/07/28/CHATGPT TRANSCRIPT - ZITADEL Branding Setup.md
+  197  1509  Transcripts/2026/08/06/Branch Branch Branch CLIM UI in React/P06-TYPED-PORTS-BINDING-QUOTIENT-COMPILER.md
+  1993 35    Transcripts/2026/08/13/CHATGPT TRANSCRIPT - DreamCoder Tiling WM.md
+  ```
+
+- The final push reported:
+
+  ```text
+  To github.com:go-go-golems/go-go-parc
+     b6b1fda..2288ba7  main -> main
+  ```
+
+### What didn't work
+
+- The first push failed with the expected non-fast-forward response:
+
+  ```text
+  ! [rejected]        main -> main (fetch first)
+  error: failed to push some refs to 'github.com:go-go-golems/go-go-parc'
+  ```
+
+- `git rebase --autostash origin/main` created and reapplied an autostash but still refused to start because the three transcript paths immediately appeared modified again.
+- The exact-path `git stash push` saved a valid backup but exited with `error: No valid patches in input`; the same transcript paths remained modified in the worktree. This is consistent with the vault's documented macOS filename-collision checkout behavior rather than a missing backup.
+
+### What I learned
+
+- The remote-update conflict was purely temporal and non-overlapping. A normal rebase preserved a linear report history once the persistent transcript status was isolated.
+- `--autostash` cannot make this vault appear clean when checkout itself re-materializes the transcript diffs.
+- Exact-path skip-worktree flags can provide a bounded integration path when the affected files are backed up, verified not to overlap incoming commits, and restored immediately afterward.
+
+### What was tricky to build
+
+- The rebase procedure had to preserve user-owned transcript changes without committing, overwriting, or silently hiding them after completion.
+- The first report commit hash could not be recorded as final because rebase legitimately rewrote the unpushed commit. The diary records both the pre-rebase and final hashes.
+
+### What warrants a second pair of eyes
+
+- Open the report in Obsidian reading view and verify the two new Mermaid diagrams, the expanded comparison tables, and long code blocks.
+- Review `git show --stat 2288ba7` and confirm only the two semantic-feedback paths changed.
+- Confirm the three transcript modifications remain intentional before any future vault-wide commit.
+
+### What should be done in the future
+
+- Avoid vault-wide `git add -A` while the persistent transcript paths remain modified.
+- Resolve the underlying filename/case-collision issue separately if clean rebases need to become routine on this macOS checkout.
+
+### Code review instructions
+
+- Run `git show --stat 2288ba7` and `git show --name-only 2288ba7`.
+- Cross-check the report's live acceptance metrics against the Phase 6–7 summary artifact.
+- Review the report sections “Assistant-owned routing and generalized evaluation,” “The JavaScript and go-go-goja track,” and “Benchmarking capability improvement.”
+- Do not include any path under `Transcripts/` in a semantic-feedback follow-up commit.
+
+### Technical details
+
+```text
+report lines:       1,503
+report words:       10,831
+pre-rebase commit:  b375055
+published commit:   2288ba7
+remote base:        b6b1fda
+force used:         no
+publication range:  b6b1fda..2288ba7
+unrelated edits:    3 transcript paths, restored and uncommitted
+```
