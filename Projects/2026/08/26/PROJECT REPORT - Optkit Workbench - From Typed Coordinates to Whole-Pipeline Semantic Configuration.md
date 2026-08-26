@@ -13,8 +13,8 @@ source_tickets:
   - OPTKIT-012
   - OPTKIT-013
   - OPTKIT-014
-optkit_head: 5c1acb4e2688ee185ea710c20bd30b7d98ea03f7
-rag_ttc_head: 9c56a7df614b95bdc754fdcdb944ba9ddf02ec7a
+optkit_head: de05f557ba17accd017e3a4e5821f29364edcd45
+rag_ttc_head: 20266fd2fa03389c5c542f7e6f5745474cca3b28
 tags:
   - article
   - project-report
@@ -33,7 +33,7 @@ tags:
 
 The optimization workbench needs one semantic path from an operator's requested coordinate change to a reviewed candidate, an executable configuration, a dependency-aware invalidation plan, and a durable campaign record. Before this work, the repositories already contained the individual mechanisms required for that path: typed Optkit variables, immutable snapshots, canonical patches, candidate records, a twelve-layer RAG graph, strict experiment manifests, a durable campaign runner, read-only specialist projections, and a working numbergame demonstration. The missing property was composition under one explicit contract.
 
-This report covers the program design in OPTKIT-011, architecture closure in OPTKIT-012, the complete generic catalog/binding implementation in OPTKIT-013, and the whole-pipeline RAG configuration implementation in OPTKIT-014. OPTKIT-012, OPTKIT-013, and OPTKIT-014 are closed. Their production code, migrations, tests, diaries, tasks, work-slip receipts, roadmap state, and docmgr validation are committed.
+This report covers the program design in OPTKIT-011, architecture closure in OPTKIT-012, the complete generic catalog/binding implementation in OPTKIT-013, the whole-pipeline RAG configuration implementation in OPTKIT-014, and the first runtime-honest RAG catalog in OPTKIT-015. OPTKIT-012 through OPTKIT-015 are closed. Their production code, migrations, tests, diaries, tasks, evidence scripts, roadmap state, and docmgr validation are committed.
 
 The central result is precise:
 
@@ -53,6 +53,7 @@ No browser, manifest, CLI parser, or proposal service needs a separate mutation 
 > - OPTKIT-012 accepted six architecture decisions, locked candidate/catalog identity rules, chose explicit v2 schemas without v1 fallback adapters, and proved generic binding erasure with a compile/runtime experiment.
 > - OPTKIT-013 implemented six lossless value kinds, deterministic semantic/full catalog identities, type-erased executable registries, candidate identity v2, and a complete numbergame campaign proof.
 > - OPTKIT-014 now represents every RAG arm as one validated `PipelineConfig`, derives all twelve graph identities from that value, supplies law-tested lifted lenses, stores whole-pipeline snapshots, and rejects manifests that try to author `config + layers` independently.
+> - OPTKIT-015 routes `fusion.rrf_k` into real reciprocal-rank arithmetic, registers the first executable RAG catalog, and freezes pipeline-derived fixture identities with exact score and contribution evidence.
 > - Fresh Go suites, race checks, lint, builds, CLI inspections, a six-episode RAG campaign, physical work-slip receipts, docmgr records, and committed artifacts provide evidence for each completed phase.
 
 ## 1. Why the optimization workbench required new foundations
@@ -119,7 +120,7 @@ OPTKIT-011 became the umbrella program rather than another implementation ticket
 | OPTKIT-012 | Architecture closure and workbench contracts | Complete |
 | OPTKIT-013 | Generic catalogs, domains, bindings, and candidate intent | Complete |
 | OPTKIT-014 | Whole-pipeline RAG configuration and graph derivation | Complete |
-| OPTKIT-015 | Real fusion configuration and first RAG catalog | Designed; implementation pending |
+| OPTKIT-015 | Real fusion configuration and first RAG catalog | Complete |
 | OPTKIT-016 | Pure proposal compiler and Glazed CLI | Designed; implementation pending |
 | OPTKIT-017 | Proposal sealing, candidate manifests, campaign persistence | Designed; implementation pending |
 | OPTKIT-018 | Candidate projections and workbench command API | Designed; implementation pending |
@@ -605,7 +606,7 @@ type FusionConfig struct {
 }
 ```
 
-Validation rejects zero, negative values, NaN, and infinities. OPTKIT-015 will make non-default values executable in search. Until then, the semantic fixture executor requires `RRFK == 60` and rejects another value rather than recording a semantic value that runtime ignores.
+Validation rejects zero, negative values, NaN, infinities, and values above `1000`. OPTKIT-015 made this coordinate executable: the semantic fixture constructor now requires the pipeline RRF value and supplies it to `SearchConfig`, selected route identity, and the actual `WeightedRRF` call.
 
 ## 12. Graph derivation as the only authoring path
 
@@ -973,6 +974,7 @@ This creates three independent records of progress: Git history, docmgr diary/ch
 | `d0b694c` | Closed OPTKIT-013 with diary and validation evidence |
 | `c11ce40` | Closed OPTKIT-014 with guide, diary, CLI/campaign evidence, and all phase-slip receipts |
 | `5c1acb4` | Published the completed OPTKIT-012–014 implementation guide/diary bundles to reMarkable |
+| `de05f55` | Closed OPTKIT-015 with runtime/catalog proof scripts, fixture migration, diary, and implementation delivery |
 
 ### RAG-TTC
 
@@ -983,6 +985,9 @@ This creates three independent records of progress: Git history, docmgr diary/ch
 | `f1b0759` | Added law-tested aggregate and lifted lenses |
 | `61422e3` | Migrated snapshots, campaigns, manifests, assets, and projections to v2 pipelines |
 | `9c56a7d` | Projected final-result-limit semantics accurately and completed specialist readback tests |
+| `d9d6d086` | Routed configured float64 RRF into real fixture fusion and pinned the published Optkit registry API |
+| `5b7ad758` | Registered the first executable retrieval/fusion RAG catalog |
+| `20266fd2` | Advanced the optimization fixture to pipeline-derived v3 identities |
 
 Every RAG-TTC code commit ran the repository pre-commit hook, including golangci-lint, Glazed vet, and the complete Go test suite.
 
@@ -1027,7 +1032,7 @@ The implementation did not add aliases or new flags to make the smoke script pas
 
 The original manifest prose and specialist widget described `Limit` as a per-retriever candidate limit. Runtime evidence showed that it is the maximum returned result count supplied to `SearchInput`. The field became `FinalResultLimit` / `final_result_limit`, and the checked-in assets now describe it as a post-pipeline result boundary.
 
-This correction matters because OPTKIT-015 will expose `fusion.rrf_k`. Per-retriever top-K and final result truncation produce different graph coordinates and different diagnostic interpretations.
+This correction matters because OPTKIT-015 now exposes `fusion.rrf_k` independently from `retrieval.final_result_limit`. Per-retriever top-K, fusion arithmetic, and final result truncation remain distinct runtime contracts and graph coordinates.
 
 ## 22. Validation state
 
@@ -1156,9 +1161,18 @@ The final closure completed every required step:
 7. The phase-6 done slip and all prior start/done receipts are retained and committed.
 8. Current completed guide/diary PDFs were uploaded separately to `/ai/2026/08/26/OPTKIT-012`, `/OPTKIT-013`, and `/OPTKIT-014`, with explicit success receipts committed in each ticket.
 
-### OPTKIT-015
+### OPTKIT-015 completion
 
-The next semantic coordinate is `fusion.rrf_k`. Current configuration and graph identity already represent it, but the semantic fixture executor rejects values other than `60`. OPTKIT-015 must route `PipelineConfig.Fusion.RRFK` into actual `WeightedRRF` arithmetic, register the RAG variable in the generic catalog, and prove that changing it alters both runtime output and fusion identity.
+`fusion.rrf_k` now reaches actual `WeightedRRF` arithmetic and route identity. The first RAG registry exposes executable `retrieval.final_result_limit` and `fusion.rrf_k` bindings. Deterministic evidence records:
+
+```text
+k=60: chunk-a=0.01639344262295082, chunk-b=0.03252247488101534
+k=20: chunk-a=0.047619047619047616, chunk-b=0.09307359307359307
+```
+
+Every contribution is checked against `weight/(k+rank)`. The fixture order does not flip for this pair, and the report does not claim otherwise. The route policy ID and fusion graph identity change. Final-result-limit tests prove that returned count changes without changing lexical raw, vector raw, or fused candidates.
+
+The first catalog has semantic ID `sha256:d3034d1d61cb5da92649bf9d199015e25a6e5223ed50741f594ceba2093730b6` and full ID `sha256:d20f66171bfe0c5ef1a7ba4aade490c1d98b7c4d4d791e52b4b1f2a417c6f6ca`. The frozen optimization fixture advanced to v3 and rejects any graph that differs from a fresh derivation of its embedded pipeline.
 
 ### OPTKIT-016 and OPTKIT-017
 
