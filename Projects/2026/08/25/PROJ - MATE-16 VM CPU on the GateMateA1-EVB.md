@@ -42,12 +42,12 @@ What already exists:
 
 - the OSS CAD Suite toolchain at `~/fpga/oss-cad-suite/`, version `20260825`, with all seven required tools verified
 - a Phase 1 blink design that blinks the onboard LED on hardware, with a 201.86 MHz timing margin
-- the authoritative opcode table `tools/opcodes.py` (28 baseline opcodes, 8 fault codes) consumed by every other tool
+- the authoritative opcode table `tools/opcodes.py` (29 opcodes: 28 baseline + `LDB` read-ROM extension, 8 fault codes) consumed by every other tool
 - an executable reference model `tools/model16.py` implementing every opcode, fault, and the retirement discipline, independent of the RTL
 - the processor core `rtl/mate16_core.sv` implementing all 28 opcodes per the §2.7 FSM, with 44 directed and differential tests showing zero divergence from the model
 - a two-pass assembler `tools/asm16.py` (no `eval`) producing `program.hex/.bin/.lst/.sym.json`, with 52 unit tests
 - the memory and peripheral RTL (`program_rom`, `data_ram`, `io_block`, `uart_tx`) and the integrated `top.sv`, with synchronous-read block RAM that infers GateMate BRAM
-- 8 system-level tests running assembled bytecode end-to-end, plus example programs `smoke`, `selftest`, `ramtest`, `blink`, `hello`, and a Morse-code blinker generator
+- 8 system-level tests running assembled bytecode end-to-end, plus example programs `smoke`, `selftest`, `ramtest`, `blink`, `hello`, a button-mirror program, a Morse-via-CALL generator, and a Morse-from-ROM program that reads its message and lookup table from ROM as data via `LDB`
 - a full synthesis + place-and-route + bitstream flow for the processor system: 3,552 LUTs (8.7%), 1,095 FFs, 1 BRAM block, timing PASS at 10 MHz with a 20.63 MHz post-route margin
 - a bytecode-driven LED demonstrated on hardware (acceptance A14), loaded via a unified assemble→simulate→synthesize→place→pack→load harness
 - 14 probe, analyzer, and build scripts in the ticket `scripts/` folder that found, guard, and build the design
@@ -219,7 +219,7 @@ Two details are not arbitrary. `SP` is 9 bits, not 8, because an 8-bit count can
 
 ### The authoritative opcode table
 
-The single source of truth for the instruction set is `tools/opcodes.py`. It defines a frozen `Instruction` dataclass and a `Fault` IntEnum, then lists all 28 baseline opcodes in one `_TABLE`. Every other tool — the assembler, the model, the testbench, the future RTL — reads this table rather than carrying its own copy. This removes the failure mode where four hand-copied tables gradually diverge.
+The single source of truth for the instruction set is `tools/opcodes.py`. It defines a frozen `Instruction` dataclass and a `Fault` IntEnum, then lists all 29 opcodes (28 baseline + the `LDB` read-ROM extension) in one `_TABLE`. Every other tool — the assembler, the model, the testbench, the RTL — reads this table rather than carrying its own copy. This removes the failure mode where four hand-copied tables gradually diverge.
 
 | Range | Mnemonics | Count |
 |---|---|---:|
@@ -255,7 +255,7 @@ The core uses three request/ready interfaces: program memory, data memory, and I
 
 ## The processor core
 
-`rtl/mate16_core.sv` is a multi-cycle processor implementing all 28 baseline opcodes. It follows the §2.10 interface exactly: three held-request buses, the architectural status outputs (`halted`, `faulted`, `fault_code`, `fault_pc`), and debug visibility (`debug_pc`, `debug_ir`, `debug_sp`, `debug_state`). The design separates datapath and control even within one module, as the course text recommends.
+`rtl/mate16_core.sv` is a multi-cycle processor implementing all 29 opcodes (28 baseline + `LDB`). It follows the §2.10 interface exactly: three held-request buses, the architectural status outputs (`halted`, `faulted`, `fault_code`, `fault_pc`), and debug visibility (`debug_pc`, `debug_ir`, `debug_sp`, `debug_state`). The design separates datapath and control even within one module, as the course text recommends.
 
 ### The control state machine
 
@@ -393,6 +393,16 @@ The hardware bring-up is driven by `scripts/11-build-and-run.py`, a single comma
 ### A Morse-code blinker generator
 
 As an exercise in what the processor can do, `scripts/12-gen-morse.py` generates a MATE-16 assembly program that blinks an arbitrary message in International Morse Code. The message is baked as a sequence of `CALL` instructions to `dot`, `dash`, `letter_gap`, and `word_gap` subroutines — the message is the program, since the baseline MATE-16 cannot read program ROM as data. The timing follows the paris standard: a dot is one unit on, a dash is three units on, the inter-element gap is one unit off (built into the element), the inter-letter gap is three units total, and the inter-word gap is seven units total. A unit-delay subroutine and a `delay_units` wrapper implement the timing in terms of a calibrated `UNIT` constant. The default message is the project's mascot line. The generator demonstrates that the 28-opcode ISA and the `CALL`/`RET` return stack are enough to express a real, structured, time-driven program.
+
+### The LDB extension: reading ROM as data
+
+The baseline MATE-16 has no instruction to read program memory as data — the program counter is the only thing that addresses ROM, and only for instruction fetch. This is a deliberate choice (§2.5 separate interfaces) but it forces the Morse-via-CALL approach above: the message is the program. To let a program read strings and tables from ROM, a single additive opcode was added: `LDB` (`0x22`), with stack effect `( addr -- byte )`. It reads one byte from program memory at `addr`, pushes it zero-extended, and replaces `addr` (SP unchanged, like `LOAD`). A bus error preserves the stack (peek, not pop).
+
+The change is small and additive — one opcode, one new FSM state `S_PMEM_RD`, mirrored in the model and the assembler (which picks it up automatically from `opcodes.py`). The separate-bus contract is unchanged for every other instruction; `LDB` simply drives the existing `pmem` bus with the operand address instead of `pc`. The opcode count is now 29 (28 baseline + `LDB`). A directed RTL differential test confirms the RTL reads the same byte as the model.
+
+### Morse from ROM: strings as data
+
+With `LDB`, `scripts/13-gen-morse-rom.py` generates a program that stores the message and a 2-byte-per-ASCII Morse lookup table as **data in program ROM** and reads them with `LDB`. The `main` loop `LDB`s each message character, emits it over UART (`OUT 0x10`), looks up its Morse pattern via `LDB` into the table, and blinks it with the `dot`/`dash` subroutines. The message and the table are real data — change the `MSG:` bytes and the same program blinks a different message with zero code changes. The model confirms the program emits the exact message `LUNAROUTE ROCKS! DOWN WITH HUMANS!` over UART and toggles GPIO in the Morse pattern without faulting; the 494-byte program fits a 1024-byte ROM. This is the demonstration that the processor can read strings from memory and act on them — the question that motivated the `LDB` extension.
 
 ## Board pinout research
 
