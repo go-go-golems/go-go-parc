@@ -1,0 +1,534 @@
+From 7065d6728d748e0587df18f1272b6cf3b453ee19 Mon Sep 17 00:00:00 2001
+From: Manuel Odendahl <wesen@ruinwesen.com>
+Date: Tue, 25 Aug 2026 23:43:52 -0400
+Subject: [PATCH] Amend semantic feedback project report
+
+---
+ ... - Complete MLX and Qwen Project Report.md | 354 ++++++++++++++++--
+ 1 file changed, 325 insertions(+), 29 deletions(-)
+
+diff --git a/Projects/2026/08/25/PROJ - Semantic Feedback for LLM Code Generation - Complete MLX and Qwen Project Report.md b/Projects/2026/08/25/PROJ - Semantic Feedback for LLM Code Generation - Complete MLX and Qwen Project Report.md
+index e92a525..37c1a13 100644
+--- a/Projects/2026/08/25/PROJ - Semantic Feedback for LLM Code Generation - Complete MLX and Qwen Project Report.md	
++++ b/Projects/2026/08/25/PROJ - Semantic Feedback for LLM Code Generation - Complete MLX and Qwen Project Report.md	
+@@ -26,7 +26,7 @@ This project implements and evaluates an inference controller that validates cod
+ > 2. The project has demonstrated a complete real-model repair path: detect `foobar(x)`, inject the self-contained `foobar(a, b)` contract, rewind to `foobar(x`, replay the edited prompt, and let Qwen generate a valid second argument.
+ > 3. In the first ten paired seeds, six detected wrong-arity calls were repaired and four unsupported wrappers bypassed analysis. After assistant-owned `<code>`, `<python>`, and `<py>` routing was implemented, a second ten-seed acceptance sweep repaired all ten feedback conditions while preserving all paired prefixes and edited-context checks.
+ > 4. Tree-sitter now recognizes complete calls and functions even when a later sibling is incomplete. A verified MLX cache strategy can retain an exact token prefix after an edit, and it falls back to full replay whenever token or cache invariants cannot be proven.
+-> 5. Assistant-output routing and task-owned evaluation are now implemented. The next track extends the mechanism to JavaScript through a versioned Python-to-Go sidecar, go-go-goja contract metadata, controlled Goja execution, and a four-condition benchmark designed to measure capability gains rather than only mechanism success.
++> 5. The JavaScript track has completed Phases 0 through 3: frozen cross-language fixtures, a long-lived Go analysis sidecar, conservative CommonJS contract provenance, Python integration, and deterministic online feedback. Phase 4 now has a detailed design for restricted Goja execution; its runtime implementation remains the next engineering boundary.
+ 
+ This note reports the complete project state. The conceptual treatment is in [[ARTICLE - Semantic Feedback During LLM Code Generation - Editable Context Replay with MLX]], and the publication history is in [[DIARY - Semantic Feedback During LLM Code Generation]].
+ 
+@@ -64,7 +64,7 @@ This is not post-processing. It changes the prefix that conditions subsequent in
+ 
+ ## Current project status
+ 
+-The repository is an active research prototype with four completed implementation-and-evaluation milestones and one complete implementation design for the next language track.
++The repository is an active research prototype with four completed Python implementation-and-evaluation milestones, four completed JavaScript harness phases numbered 0 through 3, and a completed detailed design for the JavaScript behavioral runner in Phase 4.
+ 
+ `SFB-001` established the live mechanism:
+ 
+@@ -109,17 +109,17 @@ The repository is an active research prototype with four completed implementatio
+ - added six evaluator fixtures spanning arity, invalid keywords, deprecated APIs, unknown imports, nested calls, and a baseline-friendly control;
+ - reran the live seeds 0 through 9 sweep and repaired ten of ten feedback conditions with ten of ten paired prefixes and ten of ten valid edited contexts.
+ 
+-`SFB-005` specifies the JavaScript and go-go-goja track:
++`SFB-005` now implements the static-analysis and online-feedback portion of the JavaScript and go-go-goja track:
+ 
+-- keeps MLX inference and editable-context control in Python;
+-- defines a long-lived NDJSON sidecar protocol, `semantic-js/1`;
+-- uses Tree-sitter for partial JavaScript, Goja AST analysis for lexical resolution, and structured native-module declarations for API contracts;
+-- separates contract facts from Python-side diagnostics and intervention policy;
+-- defines fresh restricted Goja runtimes for trusted hidden behavioral fixtures;
+-- specifies baseline, upfront-documentation, online-feedback, and post-generation-repair conditions;
+-- defines a twelve-task smoke study, a forty-eight-task six-category corpus, conventional JavaScript controls, metrics, artifacts, and phased acceptance criteria.
++- Phase 0 froze `semantic-js/1` request and response fixtures, UTF-8 span cases, normalized contracts, feedback permissions, and twelve smoke tasks across six categories;
++- Phase 1 added the long-lived `semantic-js serve` command, Tree-sitter complete-unit recognition, byte spans, deterministic response ordering, a one-thousand-request longevity test, and a Python sidecar client and parser adapter;
++- Phase 2 added structured contracts and a conservative CommonJS provenance resolver for namespace, destructured, direct-member, and immutable-alias forms, while declining dynamic and reassigned forms;
++- Phase 3 connected JavaScript events to Python validation and policy, inserted affirmative self-contained `// hint:` comments, preserved assistant-output scoping, recorded context checkpoints, and produced deterministic baseline and feedback artifacts;
++- Phase 3 also added a live MLX replay verifier that compares exact token-prefix cache reuse with fresh replay at the intervention boundary;
++- Phase 4 has a detailed implementation design for fresh restricted Goja runtimes, explicit module allowlists, synchronous interruption, Promise settlement, output bounds, state isolation, and hidden-information controls;
++- the four-condition study remains defined as baseline, upfront documentation, online feedback, and post-generation repair.
+ 
+-The current Python test suite reports 47 passing tests and one intentional skip. The skip covers the missing-MLX dependency error path and is inactive because MLX-LM is installed. SFB-001 through SFB-004 are complete implementation tickets. SFB-005 is a complete, validated design ticket and its five-document bundle is published to `/ai/2026/08/25/SFB-005` on reMarkable; the JavaScript sidecar and runtime code have not yet been implemented.
++The complete Python suite passes with one intentional missing-MLX skip, and the relevant Go protocol, parser, provenance, and sidecar tests pass in the linked go-go-goja worktree. SFB-001 through SFB-004 are complete implementation tickets. SFB-005 Phases 0 through 3 are committed in both repositories. Phase 4 is designed but not yet implemented, and Phase 5 remains the first live twelve-task, four-condition study.
+ 
+ ## Project development sequence
+ 
+@@ -141,7 +141,12 @@ The project progressed through a sequence of claims, each supported or rejected
+ | Assistant-owned routing | Can the controller ignore prompt markers while accepting wrapper variants and explicit tool streams? | Yes. The router scopes text scanning to the assistant suffix, normalizes three wrappers, and preserves absolute coordinates for tool arguments. |
+ | Generalized evaluation | Can experiments define correctness without hard-coding `compute` and `foobar` into the sweep runner? | Yes. Task evaluators now return named checks, facts, final code, and failure reasons through a shared result contract. |
+ | Wrapper-aware acceptance sweep | Do the four former protocol failures become measurable repairs? | Yes. All ten baseline runs remained wrong, all ten feedback runs repaired the call, all prefixes matched through diagnosis, and every edited context was valid. |
+-| JavaScript research design | Can the mechanism be extended to a more varied API benchmark without discarding the verified MLX controller? | Yes at the design level. SFB-005 specifies a Go sidecar, contracts, controlled execution, four experimental conditions, and staged acceptance tests; implementation remains future work. |
++| JavaScript Phase 0 | Can Python and Go share stable protocol, coordinate, contract, and task fixtures before runtime integration? | Yes. Both implementations consume `semantic-js/1` fixtures, UTF-8 cases, contract examples, permissions, and the twelve-task smoke schema. |
++| JavaScript Phase 1 | Can a long-lived Go process recognize complete JavaScript calls and functions in partial source without corrupting NDJSON output? | Yes. The sidecar emits deterministic byte-spanned events, survives one thousand sequential requests, and is consumed by the Python client and parser adapter. |
++| JavaScript Phase 2 | Can API identity be established conservatively across common CommonJS binding forms? | Yes for the supported namespace, destructured, direct-member, and immutable-alias forms. Dynamic names, ambiguous shadowing, computed access, and reassignment decline instead of guessing. |
++| JavaScript Phase 3 | Can the existing editable-context controller repair a JavaScript API misuse without treating prompt examples as assistant code? | Yes. The deterministic feedback trace transforms `foobar(2)` into an open `foobar(2` continuation preceded by an affirmative contract hint; the baseline receives identical analysis but no edit. |
++| JavaScript MLX replay check | Does the Phase 3 insertion and rewind admit verified token-prefix reuse on Qwen3-4B? | Yes under the recorded numerical tolerance. Cache trim and fresh-prefix construction were exactly equal, the next-token argmax matched, and the full distribution comparison remained within the declared tolerance. |
++| JavaScript Phase 4 design | What must be true before generated JavaScript can run as a hidden behavioral fixture? | Every request receives a fresh runtime, both implicit default-module sources are disabled, modules are explicitly allowlisted, synchronous loops are interruptible, Promises are polled through runtime ownership, outputs are bounded, and responses reveal checks rather than hidden values. |
+ 
+ This sequence matters because prompt changes, parser changes, and context edits affect different parts of the experiment. The final evidence became interpretable only after the replay boundary was verified directly.
+ 
+@@ -166,6 +171,7 @@ sources/semantic-feedback-prototype/
+ │   ├── evaluation.py
+ │   ├── evaluation_fixtures.py
+ │   ├── experiments.py
++│   ├── javascript_task_suite.py
+ │   ├── kv_replay.py
+ │   ├── mlx_lm_model.py
+ │   ├── model.py
+@@ -176,27 +182,42 @@ sources/semantic-feedback-prototype/
+ │   ├── types.py
+ │   ├── examples/
+ │   │   ├── common.py
++│   │   ├── javascript_demo.py
+ │   │   ├── mlx_qwen.py
+ │   │   ├── python_demo.py
+ │   │   └── toy_demo.py
+ │   ├── parsers/
+ │   │   ├── base.py
++│   │   ├── javascript_goja.py
+ │   │   ├── python_ast.py
+ │   │   ├── python_tree_sitter.py
+ │   │   └── toy.py
++│   ├── sidecars/
++│   │   ├── javascript.py
++│   │   └── protocol.py
+ │   └── validators/
+ │       ├── api.py
+ │       ├── base.py
+-│       └── function_tests.py
++│       ├── function_tests.py
++│       └── javascript_api.py
+ ├── scripts/
+-│   └── verify_kv_prefix_replay.py
++│   ├── verify_kv_prefix_replay.py
++│   └── verify_mlx_replay.py
+ ├── tests/
+ │   ├── test_code_regions.py
+ │   ├── test_evaluation.py
++│   ├── test_javascript_api_validator.py
++│   ├── test_javascript_feedback_loop.py
++│   ├── test_javascript_parser.py
++│   ├── test_javascript_sidecar.py
++│   ├── test_javascript_task_suite.py
+ │   ├── test_kv_replay.py
+ │   ├── test_qwen_sweep.py
++│   ├── test_semantic_js_protocol.py
+ │   └── test_tree_sitter_parser.py
+ └── artifacts/
++    ├── javascript-phase3-baseline/
++    ├── javascript-phase3-feedback/
+     └── live-qwen/
+         ├── kv-prefix-equivalence.json
+         ├── phase-4-tree-sitter/
+@@ -204,6 +225,23 @@ sources/semantic-feedback-prototype/
+         └── phase-6-7-seeds-0-9/
+ ```
+ 
++The Go implementation is developed in a linked worktree so the experiment can pin an exact go-go-goja revision without copying parser or runtime internals into Python:
++
++```text
++sources/go-go-goja-semantic-js/
++├── cmd/semantic-js/
++└── pkg/semanticfeedback/
++    ├── analyzer.go
++    ├── contracts.go
++    ├── protocol.go
++    ├── provenance.go
++    ├── server.go
++    ├── *_test.go
++    └── testdata/protocol/
++```
++
++The worktree branch contains the Go commits for Phases 0 through 3. The Python repository contains the client, controller integration, tests, artifacts, ticket documentation, and experiment history. This division keeps Goja runtime ownership and JavaScript semantic knowledge in the Go repository while preserving MLX generation control in Python.
++
+ Ticket documentation lives under:
+ 
+ ```text
+@@ -1211,7 +1249,171 @@ SFB-005 divides implementation into bounded phases whose acceptance criteria do
+ | 6 | Forty-eight-task study | Per-category pass@1, paired outcomes, confidence intervals, failure-class separation, frozen revisions. |
+ | 7 | Conventional and later cross-file controls | Measured analysis-only overhead and false positives; no TypeScript execution claim without compilation. |
+ 
+-The recommended first contribution is Phase 1 byte-span support plus a read-only analyze command. It forces protocol identity, coordinate units, complete-unit boundaries, and stdout purity to become executable contracts before model feedback or hidden testing can obscure errors.
++Phases 0 through 3 now satisfy their acceptance boundaries. The active contribution boundary is Phase 4: restricted Goja execution must be implemented and validated before the Phase 5 live smoke study begins.
++
++## Implemented JavaScript system: Phases 0 through 3
++
++The implemented JavaScript path is a distributed analysis loop. Python owns inference, mutable text, revision numbers, diagnostics, edits, replay, and experiment artifacts. Go owns JavaScript parsing, binding provenance, and normalized contract attachment. The design does not ask Python to reconstruct Goja's lexical or module semantics, and it does not ask Go to mutate the model context.
++
++```mermaid
++sequenceDiagram
++    participant M as Model or deterministic generator
++    participant C as Python controller
++    participant R as Assistant code router
++    participant S as semantic-js sidecar
++    participant A as Tree-sitter and provenance analyzer
++    participant V as Python validator and policy
++    participant K as MLX replay verifier
++
++    M->>C: append assistant fragment
++    C->>R: scan generated suffix only
++    R-->>C: JavaScript region and absolute span
++    C->>S: analyze revision, digest, region, UTF-8 source
++    S->>A: parse complete units and resolve bindings
++    A-->>S: byte-spanned events and contract facts
++    S-->>C: semantic-js/1 response
++    C->>C: verify ID, revision, region, digest, protocol
++    C->>V: validate supported contract facts
++    V-->>C: optional diagnostic and atomic patches
++    C->>C: insert affirmative hint and rewind delimiter
++    C->>K: verify edited-context replay when using MLX
++    C->>M: continue from authoritative edited text
++```
++
++### Phase 0: frozen boundary data
++
++Phase 0 made protocol shape an executable contract before a subprocess existed. The fixtures specify request identity, operation names, revisions, region IDs, source digests, UTF-8 source, coordinate units, event ordering, binding facts, contract facts, and structured errors. The task catalog contains twelve smoke tasks, two in each benchmark category, with explicit public facts and feedback permissions.
++
++This work prevents the benchmark policy from learning hidden test data. A task may permit a hint such as “`foobar(a, b)` takes two required arguments,” while withholding expected return values and hidden examples. The same distinction is used later by the behavioral runner: public contracts may enter the model context; hidden checks may only affect aggregate success and structured, non-leaking controller decisions.
++
++### Phase 1: read-only analysis sidecar
++
++The Go sidecar reads one JSON request per input line and writes one JSON response per output line. Standard output is protocol-only. Logs are directed to standard error. The process remains alive across requests so parser startup, module metadata, and protocol setup are not repeatedly paid, while each request retains explicit identity fields.
++
++The Python client treats the response as stale unless all correlation fields match:
++
++```python
++def accept_response(request, response):
++    return (
++        response.protocol == "semantic-js/1"
++        and response.id == request.id
++        and response.revision == request.revision
++        and response.region_id == request.region_id
++        and response.source_sha256 == request.source_sha256
++    )
++```
++
++Tree-sitter reports UTF-8 byte offsets. The editable trace uses Python character offsets. The parser adapter therefore validates byte boundaries, converts each local byte span to a character span, then adds the assistant region's absolute content offset. Unicode fixture cases verify this conversion rather than assuming ASCII.
++
++One protocol defect was found during integration. Successful analysis with no events was encoded as an omitted `events` field because the Go response used `omitempty`. Python correctly required an explicit array. The Go implementation now emits `"events": []`. This is an important wire invariant: an empty result is data, not an absent or unknown result.
++
++### Phase 2: binding provenance and authoritative contracts
++
++The analyzer distinguishes syntax from API identity. A call with one argument is only an arity fact. It becomes an API misuse only when the callee resolves to a declared export with an authoritative contract. Phase 2 implements a conservative CommonJS resolver for the benchmark's supported forms:
++
++```javascript
++const bench = require("bench");
++bench.foobar(2);
++
++const { foobar } = require("bench");
++foobar(2);
++
++const alias = bench.foobar;
++alias(2);
++```
++
++The resolver declines dynamic module names, computed properties, reassigned aliases, unsupported mutation, and ambiguous shadowing. This is deliberate. A false negative reduces intervention coverage and remains measurable. A false positive can alter correct code, leak irrelevant information, and invalidate the paired experiment.
++
++Contract facts travel with the semantic event. Python does not scrape a documentation string. It receives a normalized export identity, required and optional parameter data, variadic status, supported type facts, and provenance. The validator then produces a diagnostic only for a supported, high-confidence mismatch.
++
++### Phase 3: online JavaScript feedback
++
++Phase 3 connected the Go analyzer to the existing controller. The router scans only text generated after `assistant_start`, so a user prompt may quote `<code lang="javascript">foobar(2)</code>` without activating the parser. Once the assistant opens its own JavaScript region, the controller sends revisions to the sidecar and maps accepted events back into the editable trace.
++
++The deterministic treatment trace generated:
++
++```javascript
++const { foobar } = require("bench");
++// hint: API contract: foobar(a, b). Provide a value for each required parameter. Behavior: Return a + b.
++const result = foobar(2, 3);
++```
++
++The corresponding baseline generated `const result = foobar(2);`. It still ran the same parser and validator path; policy application alone was disabled. This is necessary for a meaningful treatment comparison because analysis latency and recognition behavior otherwise differ between conditions.
++
++The hint does not state that an earlier attempt had a missing argument. After the rewind, that error history is absent from the model-visible context. The inserted text is therefore affirmative and self-contained: it names the API, provides the permitted signature and behavior, and leaves the cursor at a syntactically valid continuation point.
++
++### MLX replay validation for the JavaScript edit
++
++The Phase 3 verifier exercises the actual Qwen3-4B tokenizer, model, and MLX prompt-cache representation at the deterministic edit boundary. It compares three constructions:
++
++1. trim the cache produced for the old context and evaluate the edited suffix;
++2. create a fresh cache for the same retained prefix and evaluate the same suffix;
++3. evaluate the full edited context without prefix reuse.
++
++The recorded token plan is:
++
++| Quantity | Tokens |
++| --- | ---: |
++| Old context | 26 |
++| Edited context | 53 |
++| Exact matching prefix | 18 |
++| Reused prefix | 18 |
++| Trimmed old suffix | 8 |
++| Recomputed edited suffix | 35 |
++
++The trimmed-cache and fresh-prefix split produced a maximum logit difference of exactly `0.0`. The prefix-replay and one-chunk full-replay paths selected the same next-token argmax, token ID `522`. Their maximum absolute logit difference was `0.375`, mean absolute difference was `0.03369140625`, maximum probability difference was `0.0234375`, and total variation distance was `0.0245361328125`.
++
++The acceptance bound was declared as `atol=0.5` and `rtol=0.01`, and the result passed. A strict `1e-4` comparison failed and was retained as evidence rather than hidden. The exact equality between trimmed-cache and fresh-prefix split localizes the larger numerical difference to MLX evaluation shape between split prefill and one-chunk prefill, not to incorrect cache trimming. The result supports continuation equivalence at the recorded boundary; it is not a universal floating-point identity claim.
++
++## Phase 4 restricted Goja behavioral execution design
++
++Phase 4 adds hidden behavioral validation without allowing execution state to leak across candidates. The design is complete, but implementation begins only after this report amendment. Its central invariant is one fresh runtime per test request.
++
++```mermaid
++flowchart TD
++    Req[Test request] --> Lookup[Load fixture and module profile]
++    Lookup --> Factory[Build restrictive runtime factory]
++    Factory --> Runtime[Create fresh Runtime and owner loop]
++    Runtime --> Modules[Register only explicit bench and fixture modules]
++    Modules --> Eval[Evaluate candidate source]
++    Eval --> Call[Resolve and call entry point]
++    Call --> Promise{Promise returned?}
++    Promise -->|no| Checks[Run named hidden checks]
++    Promise -->|yes| Poll[Poll state through Runtime.Owner.Call]
++    Poll --> Checks
++    Checks --> Reply[Return booleans and safe messages]
++    Req --> Watchdog[Deadline watchdog]
++    Watchdog -->|expired| Interrupt[VM.Interrupt]
++    Interrupt --> Reply
++    Reply --> Close[Close runtime on every path]
++```
++
++The go-go-goja engine has two sources of implicit modules. A restricted runner must disable both:
++
++```go
++engine.WithImplicitDefaultRegistryModules(false)
++engine.WithDataOnlyDefaultRegistryModules(false)
++```
++
++The runner then applies an explicit registry allowlist and registers only fixture-owned native modules such as `bench` and a deterministic in-memory `fetch` substitute. Network access is not required for the smoke study and is therefore not exposed.
++
++Runtime ownership is also part of correctness. JavaScript evaluation and Promise inspection occur through `Runtime.Owner.Call()` on the runtime owner goroutine. A caller context deadline alone cannot stop a synchronous infinite loop already executing inside Goja. A watchdog must invoke `rt.VM.Interrupt(...)`, wait for the active owner callback to return, and clear the interrupt only after that callback has ended. Promise-returning entry points are polled through owner calls using the same lifecycle pattern already established in `pkg/jsverbs/runtime.go`.
++
++The response exposes named checks, pass booleans, safe messages, duration, and an error category. It does not expose hidden inputs, expected values, raw stack traces containing fixture data, or unrestricted captured output. This remains a trusted local benchmark runner, not a hostile-code security sandbox.
++
++The implementation acceptance tests are:
++
++- no state survives from one request to the next;
++- a permitted module loads and an unlisted module fails closed;
++- both implicit default-module sources remain disabled;
++- synchronous infinite loops terminate through Goja interruption;
++- fulfilled and rejected Promises settle within the deadline;
++- stdout and stderr capture are bounded;
++- runtime closure occurs after pass, failure, syntax error, timeout, and cancellation;
++- protocol responses contain no hidden fixture values;
++- Python maps structured test results into task evaluation without bypassing existing trace and artifact rules.
++
++Phase 4 is therefore an execution-boundary implementation, not a benchmark run. Phase 5 consumes this boundary in the twelve-task, four-condition smoke study.
+ 
+ ## Mock and unit-test evidence
+ 
+@@ -1253,17 +1455,32 @@ The deterministic mock remains important because it isolates controller semantic
+ - six built-in task fixtures and task-specific failure facts;
+ - regression-rate and conditional-repair aggregation.
+ 
+-The current command is:
++The default Python verification command is:
+ 
+ ```bash
+ cd /Users/manuel/code/wesen/2026-08-25--mlx-inference/sources/semantic-feedback-prototype
+ .venv-mlx/bin/python -m pytest -q -ra
+ ```
+ 
+-Current result:
++Current default result, without configuring the real Go sidecar binary, is:
++
++```text
++61 passed, 3 skipped
++```
++
++Two skips are integration cases guarded by `SEMANTIC_JS_BINARY`; the third verifies the installed-MLX branch without loading model weights during the ordinary unit suite. With the Go binary configured, the two JavaScript integration cases execute instead of skipping. The collected suite contains 64 tests.
++
++The current Go verification command and result are:
++
++```bash
++cd /Users/manuel/code/wesen/2026-08-25--mlx-inference/sources/go-go-goja-semantic-js
++env GOCACHE=/private/tmp/sfb005-go-build \
++  go test ./cmd/semantic-js ./pkg/semanticfeedback
++```
+ 
+ ```text
+-47 passed, 1 skipped
++?  github.com/go-go-golems/go-go-goja/cmd/semantic-js  [no test files]
++ok github.com/go-go-golems/go-go-goja/pkg/semanticfeedback
+ ```
+ 
+ ## Running the project
+@@ -1306,6 +1523,35 @@ env HF_HOME=.venv-mlx/hf-cache \
+ 
+ The command exits unsuccessfully if the greedy prefix and full-replay token IDs differ.
+ 
++### Deterministic JavaScript feedback demonstration
++
++Build or locate the Go sidecar, then run the same analysis path under feedback and baseline policy:
++
++```bash
++cd /Users/manuel/code/wesen/2026-08-25--mlx-inference/sources/semantic-feedback-prototype
++
++SEMANTIC_JS_BINARY=../go-go-goja-semantic-js/semantic-js \
++  PYTHONPATH=src .venv-mlx/bin/python -m semantic_feedback.cli javascript \
++  --json-dir artifacts/javascript-phase3-feedback
++
++SEMANTIC_JS_BINARY=../go-go-goja-semantic-js/semantic-js \
++  PYTHONPATH=src .venv-mlx/bin/python -m semantic_feedback.cli javascript \
++  --no-feedback \
++  --json-dir artifacts/javascript-phase3-baseline
++```
++
++The feedback artifact must contain one intervention and a repaired two-argument call. The baseline artifact must contain no intervention and the original one-argument call.
++
++### JavaScript MLX replay verifier
++
++```bash
++env HF_HOME=.venv-mlx/hf-cache \
++  .venv-mlx/bin/python scripts/verify_mlx_replay.py \
++  --output artifacts/javascript-phase3-feedback/replay-equivalence.json
++```
++
++The verifier checks the exact token plan, cache sizes, trim-versus-fresh split equality, next-token argmax equality, and declared distribution tolerances. The JSON artifact retains the numerical evidence.
++
+ ### Paired sweep
+ 
+ ```bash
+@@ -1353,7 +1599,12 @@ The current implementation has several explicit limits.
+ 8. Peak-memory telemetry is process-cumulative in the shared-backend sweep.
+ 9. Executable tests are not safe for hostile code.
+ 10. Parser and replay timing have not been measured with warm-up, synchronization, repeated edits, and confidence intervals.
+-11. The JavaScript/go-go-goja track is a validated design only. No `semantic-js` sidecar, JavaScript parser adapter, contract validator, runner, or JavaScript corpus is implemented in this repository yet.
++11. The JavaScript analyzer reparses the active region at semantic boundaries. It does not yet apply incremental Tree-sitter edits across arbitrary controller rewrites.
++12. CommonJS provenance is intentionally narrow. Dynamic `require`, computed members, reassigned aliases, ambiguous shadowing, and unsupported mutation decline instead of producing contract-backed diagnostics.
++13. The current JavaScript online policy repairs the controlled wrong-arity case. The twelve-task schema is implemented, but its other task categories do not yet have complete online diagnostic and edit policies.
++14. The long-lived Python sidecar client uses request timeouts and lifecycle cleanup, but continuous high-volume standard-error drainage and process supervision require further hardening.
++15. The JavaScript replay verifier establishes one intervention boundary on Qwen3-4B. The accepted distribution tolerance reflects MLX split-prefill numerical variation; it is not a proof that logits are bitwise identical across all edits or model versions.
++16. Restricted Goja behavioral execution is designed but not implemented. Until Phase 4 lands, the harness cannot claim live hidden behavioral results for the twelve-task JavaScript smoke suite.
+ 
+ These limitations define the next experiments. They are not hidden implementation details.
+ 
+@@ -1371,19 +1622,30 @@ The Python track has completed seven ordered capabilities:
+ 
+ The mechanism evidence now includes a ten-of-ten wrapper-aware live acceptance sweep. Broader capability evidence remains open because only the API-arity fixture has a live online validator and repair policy.
+ 
++The JavaScript track has completed four ordered phases, numbered 0 through 3:
++
++1. frozen versioned protocol, Unicode coordinate, contract, permission, and twelve-task fixtures;
++2. long-lived read-only Go analysis plus Python sidecar and parser integration;
++3. conservative CommonJS provenance with normalized authoritative contract facts;
++4. assistant-scoped JavaScript validation, affirmative online feedback, persisted treatment and baseline traces, and an MLX replay-equivalence artifact.
++
++The next capability is Phase 4 restricted behavioral execution. The live capability study is Phase 5 and must not be reported before the runner, fixtures, and hidden-information audit pass.
++
+ ## Recommended next phases
+ 
+-### Next phase — freeze JavaScript fixtures and protocol
++### Next phase — implement restricted Goja behavioral execution
++
++Implement SFB-005 Phase 4 from `design-doc/02-phase-4-restricted-goja-behavioral-execution-design.md`. Begin with fixture lookup, explicit module profiles, and a fresh runtime per request. Disable both implicit default-module paths before adding benchmark modules. Add synchronous interruption and cleanup tests before Promise handling, then return only structured, non-leaking checks through the existing `test` operation.
+ 
+-Implement SFB-005 Phase 0 before adding a live Go process. Golden NDJSON fixtures, UTF-8 boundary cases, normalized contract examples, task feedback permissions, and twelve smoke-task definitions should be reviewed by both Python and Go tests. This establishes what each process may assume.
++### Following phase — run the twelve-task four-condition smoke study
+ 
+-### Following phase — read-only JavaScript sidecar
++Phase 5 should execute the frozen twelve-task catalog under baseline, upfront documentation, online feedback, and post-generation repair. Pair seeds from identical initial random state, preserve prompt and source digests, require token-prefix equality through the first diagnostic, record every intervention and context checkpoint, and enumerate baseline-correct regressions rather than reporting only aggregate gains.
+ 
+-Add byte spans to `go-go-goja` Tree-sitter snapshots and implement `semantic-js serve` with analyze requests only. Measure full parse latency at semantic boundaries before introducing incremental tree edits. Keep logs off standard output and reject stale revisions and source digests.
++The smoke study must report per-category pass@1, paired deltas, conditional repair rate, diagnostic precision, intervention yield, repeated interventions, test timeouts, analysis overhead, replay cost, and hidden-information audit results. Failures should be separated into generation protocol, parser coverage, provenance decline, diagnostic error, policy error, replay invalidity, runtime failure, and behavioral-test failure.
+ 
+-### Subsequent phases — contracts, feedback, execution, and studies
++### Subsequent phases — expand only after smoke acceptance
+ 
+-Add conservative CommonJS provenance and structured contracts before online JavaScript editing. Integrate affirmative `// hint:` feedback only after deterministic events are stable. Add fresh Goja execution only after hidden/public information boundaries are frozen. Then run the twelve-task smoke study before spending compute on the full forty-eight-task matrix.
++Phase 6 expands to forty-eight tasks with confidence intervals and frozen revisions. Phase 7 adds conventional JavaScript controls and later cross-file experiments. TypeScript execution remains out of scope until a separately verified compilation stage exists.
+ 
+ ### Parallel Python work — broader online validators
+ 
+@@ -1393,7 +1655,7 @@ The generalized evaluator suite should gain corresponding online event and valid
+ 
+ Move hostile-code execution into an operating-system sandbox before treating the harness as a service. Add immutable KV snapshots only when experiments require several candidate continuations or true backtracking. Until then, exact prefix trim-and-replay remains sufficient and easier to verify.
+ 
+-The immediate recommendation is SFB-005 Phase 0 followed by Phase 1. It advances benchmark breadth while keeping model compute, runtime execution, feedback policy, and cache optimization outside the first implementation boundary.
++The immediate recommendation is to implement Phase 4 exactly at the designed execution boundary, then run Phase 5 without changing the frozen task definitions, feedback permissions, parser protocol, or treatment conditions during data collection.
+ 
+ ## Recommended onboarding order
+ 
+@@ -1411,8 +1673,12 @@ A new engineer should read and run the project in this order:
+ 10. Read `code_regions.py`, then inspect assistant wrapper and explicit tool-source tests.
+ 11. Read `evaluation.py`, `task_suite.py`, and `qwen_sweep.py` to understand task-owned correctness and aggregation.
+ 12. Compare the original seeds 0 through 9 summary with the Phase 6–7 wrapper-aware acceptance summary.
+-13. Read SFB-005 Sections 7 through 14 before implementing JavaScript analysis or benchmark code.
+-14. Read all five ticket diaries before changing experimental conditions.
++13. Read the SFB-005 primary design and Phase 0 through 3 diary entries, then run the deterministic JavaScript baseline and feedback artifacts.
++14. Read `sidecars/protocol.py`, `sidecars/javascript.py`, `parsers/javascript_goja.py`, `validators/javascript_api.py`, and `javascript_task_suite.py` in that order.
++15. In the Go worktree, read `pkg/semanticfeedback/protocol.go`, `analyzer.go`, `provenance.go`, `contracts.go`, and `server.go`, then their tests.
++16. Inspect `artifacts/javascript-phase3-feedback/replay-equivalence.json`, including the retained nonzero split-versus-one-chunk differences.
++17. Read `design-doc/02-phase-4-restricted-goja-behavioral-execution-design.md` before adding any code-execution path.
++18. Read all ticket diaries before changing task prompts, feedback permissions, model settings, or pairing rules.
+ 
+ The representative live artifacts are:
+ 
+@@ -1437,6 +1703,15 @@ integrated prefix repair:
+ 
+ wrapper-aware acceptance:
+   artifacts/live-qwen/phase-6-7-seeds-0-9/summary.json
++
++JavaScript baseline:
++  artifacts/javascript-phase3-baseline/javascript.json
++
++JavaScript online feedback:
++  artifacts/javascript-phase3-feedback/javascript.json
++
++JavaScript MLX replay evidence:
++  artifacts/javascript-phase3-feedback/replay-equivalence.json
+ ```
+ 
+ ## Important project documentation
+@@ -1453,6 +1728,7 @@ wrapper-aware acceptance:
+ - `ttmp/2026/08/25/SFB-004--assistant-output-routing-and-generalized-evaluation/design-doc/01-phases-6-and-7-design-and-implementation-plan.md`
+ - `ttmp/2026/08/25/SFB-004--assistant-output-routing-and-generalized-evaluation/reference/01-implementation-diary.md`
+ - `ttmp/2026/08/25/SFB-005--javascript-semantic-feedback-harness-with-go-go-goja/design-doc/01-javascript-semantic-feedback-harness-analysis-design-and-implementation-guide.md`
++- `ttmp/2026/08/25/SFB-005--javascript-semantic-feedback-harness-with-go-go-goja/design-doc/02-phase-4-restricted-goja-behavioral-execution-design.md`
+ - `ttmp/2026/08/25/SFB-005--javascript-semantic-feedback-harness-with-go-go-goja/reference/01-investigation-diary.md`
+ 
+ ## Commit history
+@@ -1483,6 +1759,21 @@ The main implementation sequence is:
+ - `06652f7` — Design JavaScript semantic feedback harness
+ - `b034176` — Document SFB-005 validation and delivery status
+ - `91ea426` — Record successful SFB-005 reMarkable upload
++- `e8a5e40` — Freeze JavaScript sidecar protocol fixtures
++- `14fd8d3` — Record SFB-005 Phase 0 in the implementation diary
++- `ee44a11` — Add JavaScript sidecar client and parser adapter
++- `b91d1d6` — Record SFB-005 Phase 1 in the implementation diary
++- `c03798c` — Validate resolved JavaScript API contracts
++- `4a6860e` — Record SFB-005 Phase 2 in the implementation diary
++- `46a1086` — Integrate online JavaScript semantic feedback
++- `79e0ba4` — Record SFB-005 Phase 3 in the implementation diary
++
++The linked go-go-goja worktree contains the corresponding implementation commits:
++
++- `844b23e4` — Freeze `semantic-js/1` protocol contracts
++- `f3780960` — Add the read-only JavaScript sidecar
++- `b74283cb` — Resolve CommonJS API contracts
++- `7b93ad4d` — Encode successful empty event arrays explicitly
+ 
+ ## Project working rules
+ 
+@@ -1495,9 +1786,14 @@ The main implementation sequence is:
+ - Leave at least one edited-context token outside a reused cache so next-token logits are recomputed.
+ - Treat MLX-LM yield/cache timing as a versioned compatibility contract.
+ - Scope code recognition to generated assistant content.
++- Treat an empty semantic result as an explicit `events: []` protocol value.
++- Decline unresolved API provenance instead of inferring a contract from syntax alone.
++- Derive hints from diagnostics, but write them as self-contained affirmative facts that remain meaningful after rewind.
++- Never place hidden fixture inputs, expected values, or raw execution details into model-visible context.
++- Construct a fresh Goja runtime for every behavioral request and disable implicit module defaults before applying an allowlist.
+ - Count final semantic outcomes, not interventions.
+ - Report conditional repair rates and overall protocol rates separately.
+ - Preserve complete traces for every published aggregate.
+ - Do not execute untrusted generated code without a real isolation boundary.
+ 
+-The project now has evidence that semantic feedback can improve a real model's code within generation, that error-tolerant parsing can surface complete units before the surrounding output is complete, that verified token-prefix reuse can reduce post-edit prefill work without changing a deterministic continuation, and that assistant-owned routing can eliminate protocol misses without breaking causal pairing. Its next challenge is empirical breadth: implement the JavaScript analysis boundary, attach authoritative contracts, run controlled behavioral fixtures, and compare online feedback with baseline, upfront documentation, and post-generation repair without weakening the correctness guarantees established by authoritative text, context checkpoints, and cache-offset proofs.
++The project now has evidence that semantic feedback can improve a real model's code within generation, that error-tolerant parsing can surface complete units before the surrounding output is complete, that verified token-prefix reuse can reduce post-edit prefill work without changing a deterministic continuation, and that assistant-owned routing can eliminate protocol misses without breaking causal pairing. The JavaScript track now adds a working cross-language analysis boundary, conservative API provenance, affirmative online feedback, deterministic baseline and treatment traces, and measured Qwen3-4B replay behavior. Its next challenge is empirical breadth: implement the restricted Goja runner, audit hidden-information boundaries, and run the twelve-task four-condition Phase 5 study without changing the correctness guarantees established by authoritative text, protocol identity, context checkpoints, and cache-offset proofs.
+-- 
+2.55.0
+

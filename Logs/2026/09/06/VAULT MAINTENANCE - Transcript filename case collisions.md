@@ -22,3 +22,9 @@ Active exact vault wikilinks were updated in the career inventory, thesis/PDF in
 | `Transcripts/2026/08/13/CHATGPT TRANSCRIPT - DreamCoder Tiling WM.md` | `Transcripts/2026/08/13/CHATGPT TRANSCRIPT - DreamCoder Tiling WM - Session 194502.md` | `07e1381de4f3d5b5bd6b46eaee89ce584e5f8c90` |
 
 Remote base: `f53dab25ac1a53144b8655e7a4ffcd4488e63360`. Original local tip: `7065d6728d748e0587df18f1272b6cf3b453ee19`. No transcript content was merged or deleted.
+
+## Replaying the local semantic-feedback amendment
+
+The local amendment `7065d67` described JavaScript Phases 0-3 and the planned Phase 4 runner. Current remote main already contains that implementation discussion plus completed Phases 4-5 and measured study results. Reapplying the older status text produced 15 content conflicts and would regress the newer report. The current remote report was therefore retained byte-for-byte. The complete original local commit, including author metadata and its patch, is preserved in [_assets/semantic-feedback-local-7065d67.patch](_assets/semantic-feedback-local-7065d67.patch). The original local branch tip is also retained under a backup ref before synchronizing the primary checkout.
+
+The isolated no-checkout clone initially needed an explicit `checkout-index --all --force` to materialize its already populated index before patch application. That recovery affected only the temporary checkout. The primary vault files were not used as scratch merge inputs.
