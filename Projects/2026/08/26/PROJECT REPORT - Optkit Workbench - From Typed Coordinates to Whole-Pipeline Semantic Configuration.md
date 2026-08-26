@@ -13,7 +13,7 @@ source_tickets:
   - OPTKIT-012
   - OPTKIT-013
   - OPTKIT-014
-optkit_head: c11ce40cd81a4fb85d5c24fbd75463db337d82a1
+optkit_head: 5c1acb4e2688ee185ea710c20bd30b7d98ea03f7
 rag_ttc_head: 9c56a7df614b95bdc754fdcdb944ba9ddf02ec7a
 tags:
   - article
@@ -935,7 +935,7 @@ printed: true
 status_code: 200
 ```
 
-OPTKIT-012 printed five start/done pairs. OPTKIT-013 printed six start/done pairs. OPTKIT-014 has printed the plan, starts for phases 1 through 6, and done slips through phase 5. The phase-6 done slip is intentionally withheld until final backend/frontend validation, docmgr closure, Git status audit, and commit evidence are complete.
+OPTKIT-012 printed five start/done pairs. OPTKIT-013 and OPTKIT-014 each printed six start/done pairs. Every ticket now has its plan plus all required phase-start and phase-done receipts committed; all 37 print logs report `printed: true`.
 
 The diaries preserve:
 
@@ -972,6 +972,7 @@ This creates three independent records of progress: Git history, docmgr diary/ch
 | `6567319` | Made bundle event projection exhaustive |
 | `d0b694c` | Closed OPTKIT-013 with diary and validation evidence |
 | `c11ce40` | Closed OPTKIT-014 with guide, diary, CLI/campaign evidence, and all phase-slip receipts |
+| `5c1acb4` | Published the completed OPTKIT-012–014 implementation guide/diary bundles to reMarkable |
 
 ### RAG-TTC
 
@@ -1153,6 +1154,7 @@ The final closure completed every required step:
 5. All implementation tasks are checked, the ticket is closed, and the parent roadmap marks OPTKIT-014 complete.
 6. `docmgr doctor` passes for OPTKIT-011 through OPTKIT-014 from the workspace root.
 7. The phase-6 done slip and all prior start/done receipts are retained and committed.
+8. Current completed guide/diary PDFs were uploaded separately to `/ai/2026/08/26/OPTKIT-012`, `/OPTKIT-013`, and `/OPTKIT-014`, with explicit success receipts committed in each ticket.
 
 ### OPTKIT-015
 
