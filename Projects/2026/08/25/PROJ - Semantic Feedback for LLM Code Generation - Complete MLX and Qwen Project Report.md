@@ -26,7 +26,7 @@ This project implements and evaluates an inference controller that validates cod
 > 2. The project has demonstrated a complete real-model repair path: detect `foobar(x)`, inject the self-contained `foobar(a, b)` contract, rewind to `foobar(x`, replay the edited prompt, and let Qwen generate a valid second argument.
 > 3. In the first ten paired seeds, six detected wrong-arity calls were repaired and four unsupported wrappers bypassed analysis. After assistant-owned `<code>`, `<python>`, and `<py>` routing was implemented, a second ten-seed acceptance sweep repaired all ten feedback conditions while preserving all paired prefixes and edited-context checks.
 > 4. Tree-sitter now recognizes complete calls and functions even when a later sibling is incomplete. A verified MLX cache strategy can retain an exact token prefix after an edit, and it falls back to full replay whenever token or cache invariants cannot be proven.
-> 5. The JavaScript track has completed Phases 0 through 3: frozen cross-language fixtures, a long-lived Go analysis sidecar, conservative CommonJS contract provenance, Python integration, and deterministic online feedback. Phase 4 now has a detailed design for restricted Goja execution; its runtime implementation remains the next engineering boundary.
+> 5. The JavaScript track has completed Phases 0 through 5. A fresh restricted Goja runner now executes hidden fixtures, and the first twelve-task, four-condition Qwen3-4B study produced baseline 6/12, upfront documentation 9/12, online feedback 6/12, and post-generation repair 6/12. The three online interventions produced no task-level conversions, which identifies the rewind policy as the next experimental variable.
 
 This note reports the complete project state. The conceptual treatment is in [[ARTICLE - Semantic Feedback During LLM Code Generation - Editable Context Replay with MLX]], and the publication history is in [[DIARY - Semantic Feedback During LLM Code Generation]].
 
@@ -116,10 +116,11 @@ The repository is an active research prototype with four completed Python implem
 - Phase 2 added structured contracts and a conservative CommonJS provenance resolver for namespace, destructured, direct-member, and immutable-alias forms, while declining dynamic and reassigned forms;
 - Phase 3 connected JavaScript events to Python validation and policy, inserted affirmative self-contained `// hint:` comments, preserved assistant-output scoping, recorded context checkpoints, and produced deterministic baseline and feedback artifacts;
 - Phase 3 also added a live MLX replay verifier that compares exact token-prefix cache reuse with fresh replay at the intervention boundary;
-- Phase 4 has a detailed implementation design for fresh restricted Goja runtimes, explicit module allowlists, synchronous interruption, Promise settlement, output bounds, state isolation, and hidden-information controls;
-- the four-condition study remains defined as baseline, upfront documentation, online feedback, and post-generation repair.
+- Phase 4 implements fresh restricted Goja runtimes, explicit module profiles, synchronous interruption, Promise settlement, state isolation, safe structured checks, and Python `test` operation integration;
+- Phase 5 implements and runs the four-condition study as baseline, upfront documentation, online feedback, and post-generation repair;
+- the seed-0 matrix contains forty-eight live Qwen3-4B runs, with all twelve baseline/online streams matching through their first diagnostic.
 
-The complete Python suite passes with one intentional missing-MLX skip, and the relevant Go protocol, parser, provenance, and sidecar tests pass in the linked go-go-goja worktree. SFB-001 through SFB-004 are complete implementation tickets. SFB-005 Phases 0 through 3 are committed in both repositories. Phase 4 is designed but not yet implemented, and Phase 5 remains the first live twelve-task, four-condition study.
+The complete Python suite passes against the real sidecar with one intentional MLX weight-loading skip. Go regressions pass across semantic feedback, engine construction, runtime ownership, Promise handling, and the sidecar command. SFB-001 through SFB-004 are complete implementation tickets. SFB-005 Phases 0 through 5 are committed; Phase 6 remains the forty-eight-task expansion.
 
 ## Project development sequence
 
@@ -1365,9 +1366,9 @@ The trimmed-cache and fresh-prefix split produced a maximum logit difference of 
 
 The acceptance bound was declared as `atol=0.5` and `rtol=0.01`, and the result passed. A strict `1e-4` comparison failed and was retained as evidence rather than hidden. The exact equality between trimmed-cache and fresh-prefix split localizes the larger numerical difference to MLX evaluation shape between split prefill and one-chunk prefill, not to incorrect cache trimming. The result supports continuation equivalence at the recorded boundary; it is not a universal floating-point identity claim.
 
-## Phase 4 restricted Goja behavioral execution design
+## Phase 4 restricted Goja behavioral execution
 
-Phase 4 adds hidden behavioral validation without allowing execution state to leak across candidates. The design is complete, but implementation begins only after this report amendment. Its central invariant is one fresh runtime per test request.
+Phase 4 adds hidden behavioral validation without allowing execution state to leak across candidates. The implementation follows the earlier design and creates one fresh runtime per test request.
 
 ```mermaid
 flowchart TD
@@ -1413,7 +1414,26 @@ The implementation acceptance tests are:
 - protocol responses contain no hidden fixture values;
 - Python maps structured test results into task evaluation without bypassing existing trace and artifact rules.
 
-Phase 4 is therefore an execution-boundary implementation, not a benchmark run. Phase 5 consumes this boundary in the twelve-task, four-condition smoke study.
+Focused tests verify fresh state, denied unlisted modules, synchronous-loop interruption, fulfilled Promise settlement, and absence of hidden actual values in responses. The broader Go engine, runtime-owner, and Promise suites pass. A real Python integration test sends `op: "test"` through the long-lived sidecar and receives passing zero-boundary checks.
+
+Phase 4 is therefore an execution-boundary implementation, not itself a capability claim. Phase 5 consumes this boundary in the twelve-task, four-condition smoke study.
+
+## Phase 5 JavaScript capability smoke study
+
+The seed-0 study ran forty-eight live Qwen3-4B generations: twelve tasks under baseline, upfront documentation, online feedback, and post-generation repair. Every generation produced an assistant-owned JavaScript region and every candidate was evaluated through the restricted runner.
+
+| Condition | Passed | Total | Interventions |
+|---|---:|---:|---:|
+| Baseline | 6 | 12 | 0 |
+| Upfront documentation | 9 | 12 | 0 |
+| Online feedback | 6 | 12 | 3 |
+| Post-generation repair | 6 | 12 | 0 |
+
+Upfront documentation converted three baseline failures: required options, asynchronous fetch, and YAML return-shape use. This proves that the model can apply additional public API facts on this matrix. Online feedback detected three contract-backed arity errors but converted none into a passing task. Two options edits left the cursor after a completed object literal without an argument separator, and Qwen produced invalid syntax. The composition edit repaired arity but produced `x.add(...)` calls on a number, so behavior remained invalid.
+
+All twelve baseline/online token streams matched through the first diagnostic. Pairs without a diagnostic matched completely. Post-generation repair gained the required-options task but regressed the path-extension task, leaving its aggregate unchanged. One upfront timer task timed out; the other forty-seven behavioral evaluations did not.
+
+The study is a single-seed smoke result, not a population estimate. Its strongest implication is experimental: information availability matters, but delimiter-only rewind is not a sufficient online action for the observed JavaScript failures. The committed result must remain unchanged while argument-scaffolding and positional-role policy variants are tested on additional seeds.
 
 ## Mock and unit-test evidence
 
@@ -1604,7 +1624,10 @@ The current implementation has several explicit limits.
 13. The current JavaScript online policy repairs the controlled wrong-arity case. The twelve-task schema is implemented, but its other task categories do not yet have complete online diagnostic and edit policies.
 14. The long-lived Python sidecar client uses request timeouts and lifecycle cleanup, but continuous high-volume standard-error drainage and process supervision require further hardening.
 15. The JavaScript replay verifier establishes one intervention boundary on Qwen3-4B. The accepted distribution tolerance reflects MLX split-prefill numerical variation; it is not a proof that logits are bitwise identical across all edits or model versions.
-16. Restricted Goja behavioral execution is designed but not implemented. Until Phase 4 lands, the harness cannot claim live hidden behavioral results for the twelve-task JavaScript smoke suite.
+16. Restricted Goja execution is trusted local infrastructure, not an operating-system sandbox. Rejected and permanently pending Promise cases and bounded console capture need additional coverage.
+17. The Phase 5 result contains one seed. Its pass rates are descriptive and cannot support a general capability estimate.
+18. Online JavaScript feedback currently diagnoses mainly resolved arity errors. It does not yet provide complete online policies for export, options-key, async, return-shape, or behavioral failures.
+19. The delimiter-only rewind policy converted zero of three seed-0 interventions into task success; two edits produced invalid syntax and one repaired arity without repairing behavior.
 
 These limitations define the next experiments. They are not hidden implementation details.
 
@@ -1629,19 +1652,15 @@ The JavaScript track has completed four ordered phases, numbered 0 through 3:
 3. conservative CommonJS provenance with normalized authoritative contract facts;
 4. assistant-scoped JavaScript validation, affirmative online feedback, persisted treatment and baseline traces, and an MLX replay-equivalence artifact.
 
-The next capability is Phase 4 restricted behavioral execution. The live capability study is Phase 5 and must not be reported before the runner, fixtures, and hidden-information audit pass.
+The JavaScript track has now completed restricted behavioral execution and its first live smoke matrix. The next capability is a pre-registered policy-variant and multi-seed experiment on the same twelve tasks. Phase 6 expansion should wait until that experiment resolves delimiter-only rewind, argument scaffolding, and timer behavior.
 
 ## Recommended next phases
 
-### Next phase — implement restricted Goja behavioral execution
+### Next phase — pre-register policy variants and additional seeds
 
-Implement SFB-005 Phase 4 from `design-doc/02-phase-4-restricted-goja-behavioral-execution-design.md`. Begin with fixture lookup, explicit module profiles, and a fresh runtime per request. Disable both implicit default-module paths before adding benchmark modules. Add synchronous interruption and cleanup tests before Promise handling, then return only structured, non-leaking checks through the existing `test` operation.
+Preserve the committed seed-0 matrix. Compare delimiter-only rewind with explicit `, ` scaffolding and, for object-first mistakes, a positional-role edit that places the task's public `name` argument before the existing options object. Keep tasks, public facts, model revision, seed schedule, and evaluation fixtures fixed across variants.
 
-### Following phase — run the twelve-task four-condition smoke study
-
-Phase 5 should execute the frozen twelve-task catalog under baseline, upfront documentation, online feedback, and post-generation repair. Pair seeds from identical initial random state, preserve prompt and source digests, require token-prefix equality through the first diagnostic, record every intervention and context checkpoint, and enumerate baseline-correct regressions rather than reporting only aggregate gains.
-
-The smoke study must report per-category pass@1, paired deltas, conditional repair rate, diagnostic precision, intervention yield, repeated interventions, test timeouts, analysis overhead, replay cost, and hidden-information audit results. Failures should be separated into generation protocol, parser coverage, provenance decline, diagnostic error, policy error, replay invalidity, runtime failure, and behavioral-test failure.
+Audit the timer Promise timeout and add rejected and permanently pending Promise tests before treating runtime timeout rate as a model metric. Report diagnostic-property repair separately from full task success.
 
 ### Subsequent phases — expand only after smoke acceptance
 
@@ -1655,7 +1674,7 @@ The generalized evaluator suite should gain corresponding online event and valid
 
 Move hostile-code execution into an operating-system sandbox before treating the harness as a service. Add immutable KV snapshots only when experiments require several candidate continuations or true backtracking. Until then, exact prefix trim-and-replay remains sufficient and easier to verify.
 
-The immediate recommendation is to implement Phase 4 exactly at the designed execution boundary, then run Phase 5 without changing the frozen task definitions, feedback permissions, parser protocol, or treatment conditions during data collection.
+The immediate recommendation is to run the registered policy-variant experiment on several seeds before expanding the corpus. The seed-0 evidence shows that the model can use upfront facts, while the current online cursor action does not reliably convert those facts into a valid continuation.
 
 ## Recommended onboarding order
 
@@ -1729,6 +1748,7 @@ JavaScript MLX replay evidence:
 - `ttmp/2026/08/25/SFB-004--assistant-output-routing-and-generalized-evaluation/reference/01-implementation-diary.md`
 - `ttmp/2026/08/25/SFB-005--javascript-semantic-feedback-harness-with-go-go-goja/design-doc/01-javascript-semantic-feedback-harness-analysis-design-and-implementation-guide.md`
 - `ttmp/2026/08/25/SFB-005--javascript-semantic-feedback-harness-with-go-go-goja/design-doc/02-phase-4-restricted-goja-behavioral-execution-design.md`
+- `ttmp/2026/08/25/SFB-005--javascript-semantic-feedback-harness-with-go-go-goja/analysis/01-phase-5-seed-0-javascript-smoke-study-results.md`
 - `ttmp/2026/08/25/SFB-005--javascript-semantic-feedback-harness-with-go-go-goja/reference/01-investigation-diary.md`
 
 ## Commit history
@@ -1767,6 +1787,12 @@ The main implementation sequence is:
 - `4a6860e` — Record SFB-005 Phase 2 in the implementation diary
 - `46a1086` — Integrate online JavaScript semantic feedback
 - `79e0ba4` — Record SFB-005 Phase 3 in the implementation diary
+- `58a3ae8` — Design restricted Goja behavioral execution
+- `7852a47` — Integrate the Goja behavioral test protocol
+- `c52d9fc` — Record SFB-005 Phase 4 in the implementation diary
+- `7980e40` — Add the JavaScript four-condition smoke runner
+- `72c1a0b` — Record the JavaScript Phase 5 smoke study
+- `1407a2e` — Record SFB-005 Phase 5 in the implementation diary
 
 The linked go-go-goja worktree contains the corresponding implementation commits:
 
@@ -1774,6 +1800,8 @@ The linked go-go-goja worktree contains the corresponding implementation commits
 - `f3780960` — Add the read-only JavaScript sidecar
 - `b74283cb` — Resolve CommonJS API contracts
 - `7b93ad4d` — Encode successful empty event arrays explicitly
+- `7b2531ad` — Add the restricted behavioral runner
+- `4a5ab1f1` — Align smoke fixture module behavior
 
 ## Project working rules
 
@@ -1796,4 +1824,4 @@ The linked go-go-goja worktree contains the corresponding implementation commits
 - Preserve complete traces for every published aggregate.
 - Do not execute untrusted generated code without a real isolation boundary.
 
-The project now has evidence that semantic feedback can improve a real model's code within generation, that error-tolerant parsing can surface complete units before the surrounding output is complete, that verified token-prefix reuse can reduce post-edit prefill work without changing a deterministic continuation, and that assistant-owned routing can eliminate protocol misses without breaking causal pairing. The JavaScript track now adds a working cross-language analysis boundary, conservative API provenance, affirmative online feedback, deterministic baseline and treatment traces, and measured Qwen3-4B replay behavior. Its next challenge is empirical breadth: implement the restricted Goja runner, audit hidden-information boundaries, and run the twelve-task four-condition Phase 5 study without changing the correctness guarantees established by authoritative text, protocol identity, context checkpoints, and cache-offset proofs.
+The project now has evidence that semantic feedback can improve a real model's code within generation, that error-tolerant parsing can surface complete units before the surrounding output is complete, that verified token-prefix reuse can reduce post-edit prefill work without changing a deterministic continuation, and that assistant-owned routing can eliminate protocol misses without breaking causal pairing. The JavaScript track adds a working cross-language analyzer, conservative API provenance, a fresh restricted behavioral runner, and a forty-eight-run capability matrix. That matrix supplies both positive and negative evidence: upfront information improved seed-0 pass@1 from six to nine tasks, while three online interventions produced no task-level conversions. The next challenge is therefore controlled policy improvement, especially continuation scaffolding and broader diagnostic coverage, before empirical breadth is increased.
