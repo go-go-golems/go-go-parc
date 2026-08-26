@@ -13,6 +13,7 @@ tags:
 status: active
 type: project
 created: 2026-08-25
+updated: 2026-08-25
 repo: /Users/manuel/code/wesen/2026-08-25--mlx-inference
 ---
 
@@ -24,7 +25,8 @@ This project implements and evaluates an inference controller that validates cod
 > 1. The active text is the authoritative inference state. Parser state, tokenization, generation iterators, and KV caches are derived state that must agree with the text after every edit.
 > 2. The project has demonstrated a complete real-model repair path: detect `foobar(x)`, inject the self-contained `foobar(a, b)` contract, rewind to `foobar(x`, replay the edited prompt, and let Qwen generate a valid second argument.
 > 3. In the first ten paired seeds, all ten baseline/feedback prefixes matched, all six detected wrong-arity calls were repaired, and all six edited contexts passed token-level validation. Four remaining failures came from unsupported `<python>` or `<py>` wrappers.
-> 4. The next implementation target is assistant-output-scoped code-region recognition so wrapper aliases can be accepted without scanning marker text from system or user messages.
+> 4. Tree-sitter now recognizes complete calls and functions even when a later sibling is incomplete. A verified MLX cache strategy can retain an exact token prefix after an edit, and it falls back to full replay whenever token or cache invariants cannot be proven.
+> 5. The next experimental target remains assistant-output-scoped code-region recognition, followed by a multi-task evaluator with baseline-correct fixtures. These changes address the largest unresolved source of missing interventions and make regression measurement possible.
 
 This note reports the complete project state. The conceptual treatment is in [[ARTICLE - Semantic Feedback During LLM Code Generation - Editable Context Replay with MLX]], and the publication history is in [[DIARY - Semantic Feedback During LLM Code Generation]].
 
@@ -62,7 +64,7 @@ This is not post-processing. It changes the prefix that conditions subsequent in
 
 ## Current project status
 
-The repository is an active research prototype with two completed implementation-and-evaluation milestones.
+The repository is an active research prototype with three completed implementation-and-evaluation milestones.
 
 `SFB-001` established the live mechanism:
 
@@ -84,7 +86,20 @@ The repository is an active research prototype with two completed implementation
 - observed six repairs in six triggered feedback conditions;
 - identified wrapper compliance as the dominant remaining failure.
 
-The current test suite reports 24 passing tests and one intentional skip. The skip covers the missing-MLX dependency error path and is inactive because MLX-LM is installed.
+`SFB-003` established error-tolerant parsing and cache-aware replay:
+
+- added `TreeSitterPythonIncrementalParser` behind the existing event interface;
+- reused syntax trees during append-only streaming and rebuilt state after rewrites;
+- proved event parity with the AST parser on complete Python;
+- recognized complete calls before an unrelated incomplete suffix;
+- converted Tree-sitter UTF-8 byte offsets into trace character offsets;
+- exposed `--parser ast|tree-sitter` in both single runs and paired sweeps;
+- made the MLX prompt cache explicit and exposed `--replay-strategy full|prefix`;
+- required an exact token longest common prefix and identical cache-layer sizes before reuse;
+- verified prefix replay against deterministic full replay with the live Qwen3-4B model;
+- completed a real semantic-feedback repair that reused 140 cached tokens and replayed a 38-token suffix.
+
+The current test suite reports 36 passing tests and one intentional skip. The skip covers the missing-MLX dependency error path and is inactive because MLX-LM is installed. The source tree, SFB-003 ticket, design, diary, live artifacts, and five physical phase slips are committed; the ticket is complete and passes `docmgr doctor`.
 
 ## Project development sequence
 
@@ -100,6 +115,9 @@ The project progressed through a sequence of claims, each supported or rejected 
 | Exact rewind | Does deleting `)\n` place the cursor correctly? | Yes. Qwen generated `, 42)` and produced valid code. |
 | Paired sweep | Is the repair repeatable across controlled seeds? | Six of six triggered feedback runs repaired; all pairing and context checks passed. |
 | Protocol analysis | What prevents the other seeds from reaching validation? | Unsupported `<python>` and `<py>` wrappers bypass the current recognizer. |
+| Tree-sitter recognition | Can a complete semantic subtree survive incomplete trailing output? | Yes. A completed call is emitted beside a later Tree-sitter `ERROR`, with AST parity on complete input. |
+| Verified prefix replay | Can an edit reuse KV state without changing the continuation? | Yes. Reuse requires exact token and layer-offset proofs; the deterministic next token matched full replay. |
+| Integrated optimized repair | Does the optimized path survive the real rewind-and-hint edit? | Yes. It reused 140 tokens, replayed 38, repaired the call, and matched the full-replay final output. |
 
 This sequence matters because prompt changes, parser changes, and context edits affect different parts of the experiment. The final evidence became interpretable only after the replay boundary was verified directly.
 
@@ -122,6 +140,7 @@ sources/semantic-feedback-prototype/
 │   ├── code_regions.py
 │   ├── controller.py
 │   ├── experiments.py
+│   ├── kv_replay.py
 │   ├── mlx_lm_model.py
 │   ├── model.py
 │   ├── policy.py
@@ -136,14 +155,22 @@ sources/semantic-feedback-prototype/
 │   ├── parsers/
 │   │   ├── base.py
 │   │   ├── python_ast.py
+│   │   ├── python_tree_sitter.py
 │   │   └── toy.py
 │   └── validators/
 │       ├── api.py
 │       ├── base.py
 │       └── function_tests.py
+├── scripts/
+│   └── verify_kv_prefix_replay.py
 ├── tests/
+│   ├── test_kv_replay.py
+│   └── test_tree_sitter_parser.py
 └── artifacts/
     └── live-qwen/
+        ├── kv-prefix-equivalence.json
+        ├── phase-4-tree-sitter/
+        └── phase-5-prefix-replay/
 ```
 
 Ticket documentation lives under:
@@ -151,7 +178,8 @@ Ticket documentation lives under:
 ```text
 ttmp/2026/08/25/
 ├── SFB-001--qwen-semantic-feedback-generation-harness/
-└── SFB-002--paired-qwen-semantic-feedback-evaluation/
+├── SFB-002--paired-qwen-semantic-feedback-evaluation/
+└── SFB-003--tree-sitter-parsing-and-kv-prefix-replay/
 ```
 
 The `.venv-mlx` environment and Hugging Face model cache remain local and uncommitted.
@@ -211,13 +239,19 @@ flowchart TD
     Pipeline -->|Diagnostic| Policy[Intervention policy]
     Policy -->|decline| Model
     Policy -->|TraceEdit| Trace
-    Trace --> Reset[Invalidate parser and model-derived state]
-    Reset --> Checkpoint[Context checkpoint]
+    Trace --> Reset[Reset parser-derived state]
+    Reset --> Replay{Verified cache prefix?}
+    Replay -->|yes| Prefix[Trim KV and replay suffix]
+    Replay -->|no| Full[Fresh cache and full replay]
+    Prefix --> Checkpoint[Context checkpoint]
+    Full --> Checkpoint
     Checkpoint --> Model
     Trace --> Audit[Append-only records]
 
     style Trace fill:#e8f4ff,stroke:#246
     style Policy fill:#fff4dd,stroke:#864
+    style Prefix fill:#e8ffe8,stroke:#286
+    style Full fill:#ffe8e8,stroke:#822
     style Checkpoint fill:#e8ffe8,stroke:#286
     style Audit fill:#f2e8ff,stroke:#628
 ```
@@ -231,7 +265,7 @@ The controller owns ordering. Each component owns a narrower contract:
 | Semantic parser | Emit completed calls and functions | How to repair them |
 | Validator | Produce structured facts about violations | How the context should be edited |
 | Intervention policy | Convert supported diagnostics into bounded edits | Whether parser spans remain valid afterward |
-| Model adapter | Sample and rebuild inference state | What semantic rule caused an edit |
+| Model adapter | Sample and either rebuild or provably trim inference state | What semantic rule caused an edit |
 | Sweep evaluator | Measure final output and paired behavior | How a live run should intervene |
 
 Keeping diagnostics separate from edit policy makes baseline measurement possible. The baseline records the same parser and validator behavior but sets the policy intervention budget to zero.
@@ -364,7 +398,40 @@ For structured tool calls, the equivalent design is to parse only the assistant 
 
 ## Semantic parsing
 
-`PythonAstIncrementalParser` currently reparses each recognized Python region with `ast.parse(source, mode="exec")`. It emits no event while parsing fails. When the region becomes syntactically valid, it walks the tree and emits completed calls and functions.
+The project now has two Python parsers behind `IncrementalSemanticParser`. `PythonAstIncrementalParser` remains the dependency-free reference. It reparses each recognized Python region with `ast.parse(source, mode="exec")` and emits no event while the complete region fails to parse. `TreeSitterPythonIncrementalParser` is the error-tolerant streaming implementation selected with `--parser tree-sitter`.
+
+The Tree-sitter adapter keeps a prior UTF-8 source buffer and syntax tree for each code region. If the next observation appends bytes to the previous source, it describes that insertion to the old tree and supplies the edited tree to the next parse:
+
+```python
+old_end = len(previous_source)
+old_tree.edit(
+    start_byte=old_end,
+    old_end_byte=old_end,
+    new_end_byte=len(new_source),
+    start_point=end_point(previous_source),
+    old_end_point=end_point(previous_source),
+    new_end_point=end_point(new_source),
+)
+new_tree = parser.parse(new_source, old_tree)
+```
+
+A controller rewrite invalidates this append proof. The parser discards its region trees and performs a full parse on the edited source. Syntax-tree reuse is therefore an optimization over observations, not an independent source of truth.
+
+```mermaid
+flowchart LR
+    Observe[New region text] --> Append{Old bytes are prefix?}
+    Append -->|yes| Edit[Apply append edit to old tree]
+    Edit --> Reparse[Parse with edited old tree]
+    Append -->|no| Fresh[Parse without old tree]
+    Reparse --> Walk[Walk call and function nodes]
+    Fresh --> Walk
+    Walk --> Complete{No ERROR or MISSING descendant?}
+    Complete -->|yes| Event[Build SemanticEvent]
+    Complete -->|no| Wait[Wait for more tokens]
+
+    style Event fill:#e8ffe8,stroke:#286
+    style Wait fill:#fff4dd,stroke:#864
+```
 
 A `call_complete` event includes:
 
@@ -380,7 +447,18 @@ A `function_complete` event includes the function name, parameters, full span, a
 
 Streaming introduces a completion ambiguity. Python accepts a bare `return` as a complete statement, but the model may be about to emit `return expression`. The parser delays function completion until a physical line terminator arrives or the code region closes. This prevents executable tests from running against a transient prefix.
 
-The current AST parser is conservative. A syntax error anywhere in the region suppresses all events, even when an earlier subtree is complete. Tree-sitter is planned behind the same parser interface. Its implementation must address UTF-8 byte offsets explicitly because the current `SourceSpan` contract uses Python character offsets.
+The AST parser remains conservative: a syntax error anywhere in the region suppresses all events. Tree-sitter separates complete siblings from an incomplete tail. Given:
+
+```python
+foobar(1)
+unfinished(
+```
+
+the AST backend emits no event because the module is invalid. Tree-sitter represents the first line as a complete `call` and the second as an `ERROR`; the adapter emits `foobar(1)` immediately.
+
+Tree-sitter node coordinates are UTF-8 byte offsets, while `SourceSpan` uses Python character offsets. The adapter converts every candidate boundary before building events. A test places the non-ASCII string `"λ"` before a call and verifies that the emitted span extracts the exact call, including both parenthesis offsets.
+
+Candidate-local `ast.parse` remains responsible for constructing the established semantic payload after Tree-sitter proves structural completeness. This hybrid decision isolates the new behavior—error-tolerant recognition and incremental tree reuse—from changes to validator inputs. Complete-program projection tests require the two parsers to produce identical kinds, spans, source text, and stable semantic fields.
 
 ## Validation
 
@@ -452,7 +530,10 @@ The hint is informed by the diagnostic but does not require access to deleted hi
 
 `MlxLmSamplingModel` wraps MLX-LM's `stream_generate()` interface. Imports and weight loading are lazy so mock tests remain independent of MLX and Apple Silicon.
 
-During append-only generation, the adapter retains one MLX iterator and tracks the token IDs used to build the active stream. When the controller edits context, `on_context_edited()` discards that iterator and immediately creates a replacement iterator from the complete edited prompt.
+During append-only generation, the adapter retains one MLX iterator, an explicit prompt cache, and the token IDs used to build the active stream. Context edits support two strategies:
+
+- `full` creates a fresh prompt cache and evaluates the complete edited token sequence. It remains the default correctness reference.
+- `prefix` proves that a prefix of the live cache represents the same token IDs as the edited context, trims invalidated state, and evaluates only the new suffix. It is opt-in and falls back to `full` on any failed invariant.
 
 ```text
 append-only text
@@ -460,12 +541,90 @@ append-only text
 
 TraceEdit
     -> encode complete edited prompt
-    -> discard old stream and cache
-    -> create replacement stream
-    -> prefill on next sample
+    -> synchronize outstanding MLX work
+    -> compare old and new token IDs
+    -> verify all cache-layer sizes
+    -> either trim/replay suffix or create a fresh cache
 ```
 
-This full-replay strategy is slower than cache-prefix reuse. It is the correctness reference because deleted tokens cannot remain in the replacement cache.
+The installed Qwen3-4B model creates 36 ordinary `KVCache` layers. All 36 expose the same token count and support trimming. The optimizer does not assume those facts for other models: it queries them at each edit boundary.
+
+### The yielded-token cache invariant
+
+Cache reuse depends on the exact timing of MLX-LM 0.31.3. Its generation loop first evaluates the prompt and samples token `y`. Before yielding `y`, it calls the model on `y` to precompute the following candidate. At the yield boundary, the cache includes the prompt and `y`; the precomputed following token is not yet in the cache.
+
+```text
+model(prompt, cache)  -> sample y
+model(y, cache)       -> sample next_y
+yield y
+
+cache at yield = prompt tokens + y
+```
+
+The controller then appends the yielded token. The active token IDs and cache offsets therefore describe the same sequence. `mx.synchronize()` is still required before offsets are read or trimmed because MLX evaluates the precomputation asynchronously.
+
+This is a version-sensitive contract. A future MLX-LM upgrade must rerun the equivalence probe before prefix reuse is accepted.
+
+### Exact token-prefix planning
+
+Decoded text is not sufficient for reuse. An insertion near punctuation can change tokenizer merges before the character edit position. The planner compares token IDs directly:
+
+```python
+matched = longest_common_prefix(old_token_ids, new_token_ids)
+reused = min(matched, len(new_token_ids) - 1)
+trimmed = len(old_token_ids) - reused
+suffix = new_token_ids[reused:]
+```
+
+The `len(new)-1` bound is required even when the complete new sequence is an old prefix. KV state for all new tokens does not include stored next-token logits. At least one token must pass through the model to reconstruct those logits through the normal generation path.
+
+The reuse proof requires every condition below:
+
+1. A live prompt cache exists.
+2. Every layer is trimmable.
+3. Every layer reports the same size.
+4. That size equals the old active token count.
+5. The old and edited sequences share at least one token that can be retained.
+6. Every layer reports the planned retained size after trimming.
+
+Failure creates a fresh cache and records a stable reason such as `cache_not_trimmable`, `cache_token_count_mismatch`, or `cache_trim_mismatch`. The old cache is never trusted after a failed in-place trim.
+
+```mermaid
+flowchart TD
+    Edit[Edited active text] --> Encode[Encode edited text]
+    Encode --> Sync[Synchronize MLX]
+    Sync --> Counts{Layer sizes agree with old token count?}
+    Counts -->|no| Full[Fresh cache + full replay]
+    Counts -->|yes| LCP[Compute exact token LCP]
+    LCP --> Trim[Trim every layer]
+    Trim --> Verify{Trim count and new sizes exact?}
+    Verify -->|no| Full
+    Verify -->|yes| Suffix[Replay edited suffix]
+    Full --> Continue[Continue generation]
+    Suffix --> Continue
+
+    style Full fill:#ffe8e8,stroke:#822
+    style Suffix fill:#e8ffe8,stroke:#286
+```
+
+### Replay telemetry
+
+Context checkpoints and subsequent sample metadata record:
+
+```text
+requested_strategy
+used_strategy
+fallback_reason
+old_token_count
+new_token_count
+matched_prefix_tokens
+reused_tokens
+trimmed_tokens
+recomputed_suffix_tokens
+cache_layer_sizes
+```
+
+Raw tensors remain excluded. Token IDs, cache lengths, replay decisions, and decoded context provide the reviewable proof without adding large numerical arrays to traces.
 
 The paired-sweep implementation adds one more lifecycle rule: `reset()` reseeds MLX at the start of every independent controller session. Context edits do not reseed. This produces identical baseline and feedback prefixes for the same seed while preserving stochastic continuity after an intervention.
 
@@ -513,6 +672,8 @@ When context capture is enabled, the controller records checkpoints when a code 
 - encode/decode round-trip equality;
 - equality with the token sequence queued in the MLX stream;
 - replay-generation counter;
+- replay strategy, prefix counts, trim counts, suffix counts, and fallback reason;
+- one size entry per prompt-cache layer;
 - recognized code-region bounds.
 
 The verified repair checkpoint reported:
@@ -527,7 +688,7 @@ replay_generation:             2
 open Python region:            true
 ```
 
-Raw KV tensors were not recorded. They are large numerical arrays and do not directly reveal a retained newline, surviving delimiter, or tokenization mismatch. Future cache optimization should record cache sequence lengths and offsets, but text and token IDs remain the reviewable contract.
+Raw KV tensors were not recorded. They are large numerical arrays and do not directly reveal a retained newline, surviving delimiter, or tokenization mismatch. SFB-003 added the useful cache facts—layer sequence lengths, exact prefix counts, trim counts, and suffix counts—while retaining text and token IDs as the reviewable contract.
 
 ## The first verified real-model repair
 
@@ -577,6 +738,77 @@ sequenceDiagram
 ```
 
 This trace proved mechanism feasibility. It did not by itself measure reliability.
+
+## Tree-sitter and cache-replay evidence
+
+SFB-003 evaluated the parser and cache changes separately before combining them. This ordering matters. Parser acceptance is tested against semantic-event parity; cache acceptance is tested against full-replay continuation equivalence. A successful final program is not enough to prove either internal property.
+
+### Phase 4 live Tree-sitter repair
+
+The live Phase 4 run used Qwen3-4B, seed 0, temperature 0.7, explicit hints, context checkpoints, and `--parser tree-sitter`. It completed in 37 controller steps with one diagnostic and one intervention. Tree-sitter emitted the invalid `foobar(x)` call, then the repaired `foobar(x, 42)` call, then the complete function. Both context checkpoints passed encode/decode and active-stream token comparison.
+
+This run demonstrated that the new parser works in the existing controller without changing validator or policy behavior. Its final code was the same verified repair shown above.
+
+### Phase 5 deterministic replay oracle
+
+The live oracle probe constructs an old model context, inserts a factual API hint into the text, and asks two adapters for one greedy continuation token:
+
+1. the prefix adapter trims and reuses the old prompt cache;
+2. the full adapter evaluates the complete edited context in a fresh cache.
+
+Both adapters share immutable model weights and use temperature zero. The result was:
+
+| Property | Result |
+| --- | ---: |
+| Old active tokens | 31 |
+| Edited-context tokens | 45 |
+| Exact matching prefix | 29 |
+| Reused cache tokens | 29 |
+| Trimmed old tokens | 2 |
+| Recomputed suffix tokens | 16 |
+| Prefix next token | `12669` (`python`) |
+| Full-replay next token | `12669` (`python`) |
+| Token equality | true |
+
+The probe recorded 0.175 seconds for prefix replay and 0.215 seconds for full replay. These are single observations used for correctness diagnostics, not a performance benchmark.
+
+### Phase 5 integrated semantic repair
+
+The integrated run enabled both `--parser tree-sitter` and `--replay-strategy prefix`. Qwen again generated `foobar(x)`. The intervention inserted the self-contained contract and removed `)\n`. At that edit boundary:
+
+```text
+old active token count:        145
+new edited token count:        178
+exact matching prefix:         140
+trimmed old cache tokens:        5
+reused cache tokens:           140
+recomputed suffix tokens:       38
+fallback reason:              none
+```
+
+Every one of the 36 cache layers reported size 140 after trimming. The edited text round-tripped through the tokenizer, matched the stream token IDs, and resumed with the expected argument continuation. The final output was byte-for-byte identical to the earlier full-replay seed-0 artifact.
+
+The optimized call processed 38 edited-context tokens instead of 178, a 78.7% reduction in post-edit prefill tokens for this fixture. This metric describes model input work at one edit boundary. It does not establish an end-to-end latency distribution.
+
+### Why direct trimming was sufficient
+
+The project had considered taking a KV snapshot when `<code>` opens. A snapshot is not required for the current single-branch repair. The live cache is already aligned with the active yielded-token sequence at every controller boundary, so the exact old/new prefix can be retained directly.
+
+Snapshots become necessary when the controller retains multiple candidate branches, backtracks to an older checkpoint after further generation, or compares several interventions from the same prefix. Those operations need immutable historical states; the current controller needs only the most recent active state.
+
+### Phase records and physical work slips
+
+SFB-003 maintained a strict implementation diary and separate code/documentation commits at each phase boundary. The Almanach thermal printer produced five monochrome work slips from tracked YAML layouts:
+
+| Slip | Rendered size | Result |
+| --- | ---: | --- |
+| Overall SFB-003 work order | 384 × 950 | Printed, two segments |
+| Phase 4 start | 384 × 877 | Printed, two segments |
+| Phase 4 done | 384 × 689 | Printed |
+| Phase 5 start | 384 × 834 | Printed, two segments |
+| Phase 5 done | 384 × 653 | Printed |
+
+The first overall print attempt failed before paper output because its `did.data.items` field used objects instead of the DSL's required string array. The layout was corrected, the exact renderer error was recorded in the diary, and all five requested slips then printed successfully. Ticket closure occurred only after the final printer acknowledgement, full tests, `git diff --check`, and `docmgr doctor` passed.
 
 ## Paired evaluation harness
 
@@ -679,6 +911,15 @@ The deterministic mock remains important because it isolates controller semantic
 - paired repair classification;
 - artifact persistence;
 - empty seed rejection.
+- Tree-sitter parity with AST events on complete Python;
+- recognition of a completed call before an incomplete trailing expression;
+- Unicode byte-to-character source-span conversion;
+- Tree-sitter append reuse, rewrite invalidation, and reset;
+- exact token-prefix planning and the required one-token replay suffix;
+- fail-closed behavior for non-trimmable and count-mismatched caches;
+- fake-backend reproduction of the yielded-token/cache timing contract;
+- full replay fallback after a cache-layer mismatch;
+- CLI selection of Tree-sitter and verified prefix replay.
 
 The current command is:
 
@@ -690,7 +931,7 @@ cd /Users/manuel/code/wesen/2026-08-25--mlx-inference/sources/semantic-feedback-
 Current result:
 
 ```text
-24 passed, 1 skipped
+36 passed, 1 skipped
 ```
 
 ## Running the project
@@ -711,12 +952,27 @@ env HF_HOME=.venv-mlx/hf-cache \
   --model mlx-community/Qwen3-4B-4bit \
   --seed 7 \
   --temperature 0.7 \
+  --parser tree-sitter \
+  --replay-strategy prefix \
   --explicit-hints \
   --capture-context-snapshots \
   --json-dir artifacts/live-qwen/manual-run
 ```
 
 Add `--no-feedback` for a diagnostics-only baseline.
+
+Use `--parser ast` to retain the reference parser and `--replay-strategy full` to retain the reference replay path. Both are defaults unless explicitly changed.
+
+### Deterministic cache equivalence probe
+
+```bash
+env HF_HOME=.venv-mlx/hf-cache \
+  PYTHONPATH=src \
+  .venv-mlx/bin/python scripts/verify_kv_prefix_replay.py \
+  --output artifacts/live-qwen/kv-prefix-equivalence.json
+```
+
+The command exits unsuccessfully if the greedy prefix and full-replay token IDs differ.
 
 ### Paired sweep
 
@@ -727,6 +983,8 @@ env HF_HOME=.venv-mlx/hf-cache \
   --runs 10 \
   --temperature 0.7 \
   --max-steps 512 \
+  --parser tree-sitter \
+  --replay-strategy prefix \
   --json-dir artifacts/live-qwen/paired-sweep-seeds-0-9
 ```
 
@@ -748,41 +1006,54 @@ The current project makes no claim that arbitrary model-generated Python can be 
 The current implementation has several explicit limits.
 
 1. Code-region recognition scans textual markers and currently accepts only the `<code>` family.
-2. The Python AST parser reparses complete regions and emits nothing while any syntax error remains.
-3. The live correctness predicate is specific to `compute(x)` and `foobar(a, b)`.
-4. Full prompt replay adds latency proportional to prompt length after each intervention.
-5. The paired sample contains one task, ten seeds, and no baseline-correct outputs.
-6. Peak-memory telemetry is process-cumulative in the shared-backend sweep.
-7. Executable tests are not safe for hostile code.
-8. The project has not measured token-level logits equivalence for cache-prefix reuse.
+2. Tree-sitter currently recognizes calls and function definitions. Imports, assignments, tool-call structures, and additional languages do not yet produce semantic events.
+3. The Tree-sitter adapter uses candidate-local Python AST parsing to preserve event payload parity and rebuilds its tree after an arbitrary context edit. It does not yet apply `TraceEdit` patches incrementally to the prior tree.
+4. The live correctness predicate is specific to `compute(x)` and `foobar(a, b)`.
+5. Prefix replay has one live deterministic next-token equivalence case and one integrated edit trace. It does not yet have a broad insertion/deletion/replacement matrix or full-logit comparison across model versions.
+6. The prefix strategy depends on the yielded-token/cache timing of MLX-LM 0.31.3. Unknown or incompatible cache types fall back to full replay.
+7. The paired sample contains one task, ten seeds, and no baseline-correct outputs.
+8. Peak-memory telemetry is process-cumulative in the shared-backend sweep.
+9. Executable tests are not safe for hostile code.
+10. Parser and replay timing have not been measured with warm-up, synchronization, repeated edits, and confidence intervals.
 
 These limitations define the next experiments. They are not hidden implementation details.
 
-## Near-term next steps
+## Completed roadmap items
 
-### 1. Assistant-output-scoped wrapper recognition
+The previous version of this report listed Tree-sitter parsing and cache-prefix reuse as items 4 and 5. Both are now implemented and validated:
 
-Record the assistant generation boundary, scan only the generated suffix, and support explicit `<code>`, `<python>`, and `<py>` aliases. Re-run seeds 0 through 9. The expected question is whether the four protocol failures reach validation without false-positive regions.
+- **Item 4 — complete:** incremental Tree-sitter recognition, AST parity, UTF-8 coordinate conversion, and live Qwen integration.
+- **Item 5 — complete:** opt-in verified KV-prefix reuse, fail-closed full replay, deterministic next-token equivalence, and an integrated real repair.
 
-### 2. Task-specific evaluator interface
+Items 1 through 3 were not completed as a side effect of that work. They remain necessary experimental infrastructure.
 
-Move the hard-coded `compute`/`foobar` final predicate behind an evaluator protocol. This permits multiple API tasks, function tests, and syntax-only tasks in one sweep without weakening metric definitions.
+## Recommended next phases
 
-### 3. Baseline-correct fixtures
+### Phase 6 — assistant-output ownership and wrapper protocol
 
-Add tasks where a model can naturally generate correct code without feedback. Paired regression measurement needs baseline successes in its denominator.
+Record the assistant-generation boundary as a first-class context field. Scan only the generated assistant suffix and support explicit `<code>`, `<python>`, and `<py>` aliases. Preserve absolute trace spans by shifting region-local offsets by the assistant boundary. For structured tool calls, route only the current assistant tool-argument channel into code recognition.
 
-### 4. Tree-sitter parser
+Acceptance requires rerunning seeds 0 through 9 and showing that the four previous wrapper failures reach validation without any prompt-marker false positives. The trace must record the accepted wrapper and source channel.
 
-Implement incremental, error-tolerant parsing behind `IncrementalSemanticParser`. Preserve AST parity tests and add a tested UTF-8 byte-to-character mapper.
+### Phase 7 — evaluator protocol and regression-capable task suite
 
-### 5. Cache-prefix reuse
+Move the hard-coded `compute`/`foobar` predicate behind a task-evaluator interface. Add fixtures for wrong arity, invalid keyword names, deprecated APIs, unknown imports, nested calls, baseline-correct code, and repeated post-feedback errors.
 
-Retokenize old and edited prompts, compute their longest common token prefix, truncate compatible cache state, replay only the new suffix, and compare the result against full replay. Fall back to full replay on any mismatch.
+This phase should produce paired measurements with both baseline failures and baseline successes. Report repair rate conditional on intervention, overall success, baseline-correct regressions, protocol failures, interventions per task, and edit-context validity.
 
-### 6. Isolated executable validation
+### Phase 8 — broader semantic events and documentation retrieval
 
-Define the threat model before expanding behavioral tests. Isolation is a separate subsystem, not a flag added to the current subprocess runner.
+Extend Tree-sitter queries and validators to imports, attribute calls, assignments, and tool-call schemas. Replace the in-memory `foobar` fixture with a constrained API fact provider that records package version and documentation source. Render retrieved information as factual context, not executable instructions.
+
+### Phase 9 — isolated behavioral validation
+
+Define a threat model and move executable tests into a hardened worker with no inherited credentials, disabled network by default, a minimal read-only filesystem, and CPU, memory, process, file-size, and wall-time limits. The current subprocess validator should remain restricted to trusted fixtures until this boundary exists.
+
+### Phase 10 — branching, snapshots, and policy comparison
+
+Add immutable KV snapshots when the controller begins retaining several candidate continuations or backtracking to an older checkpoint. Compare minimal delimiter rewind, whole-call rewind, statement rewind, constrained resampling, and branch-and-score policies from identical token/cache snapshots.
+
+The immediate recommendation is Phase 6. The ten-seed evidence already identifies wrapper ownership as the dominant failure, and correcting it is necessary before a larger efficacy experiment can distinguish semantic repair failures from code-region routing failures.
 
 ## Recommended onboarding order
 
@@ -791,13 +1062,15 @@ A new engineer should read and run the project in this order:
 1. Read `types.py` to understand spans, diagnostics, and edits.
 2. Read `trace.py` and its tests to understand authoritative text and audit history.
 3. Read `controller.py` to understand ordering and invalidation.
-4. Read `python_ast.py`, `api.py`, and `policy.py` together.
+4. Read `python_ast.py`, `python_tree_sitter.py`, `api.py`, and `policy.py` together.
 5. Run the mock demonstrations and end-to-end tests.
-6. Read `mlx_lm_model.py`, especially `reset()`, `_restart()`, and `inspect_context()`.
-7. Inspect the verified single-run trace.
-8. Read `qwen_sweep.py` and the seeds 0 through 9 summary.
-9. Compare one successful repair pair and one wrapper-failure pair.
-10. Read both ticket diaries before changing experimental conditions.
+6. Read `kv_replay.py` and its tests to understand exact-token prefix planning and fail-closed cases.
+7. Read `mlx_lm_model.py`, especially `reset()`, `_restart_full()`, `_restart_with_prefix()`, and `inspect_context()`.
+8. Inspect the verified full-replay, Tree-sitter, and prefix-replay traces.
+9. Run the deterministic cache equivalence probe.
+10. Read `qwen_sweep.py` and the seeds 0 through 9 summary.
+11. Compare one successful repair pair and one wrapper-failure pair.
+12. Read all three ticket diaries before changing experimental conditions.
 
 The representative live artifacts are:
 
@@ -810,6 +1083,15 @@ wrapper failure:
 
 aggregate:
   artifacts/live-qwen/paired-sweep-seeds-0-9/summary.json
+
+Tree-sitter live repair:
+  artifacts/live-qwen/phase-4-tree-sitter/qwen.json
+
+KV next-token oracle:
+  artifacts/live-qwen/kv-prefix-equivalence.json
+
+integrated prefix repair:
+  artifacts/live-qwen/phase-5-prefix-replay/qwen.json
 ```
 
 ## Important project documentation
@@ -821,6 +1103,8 @@ aggregate:
 - `ttmp/2026/08/25/SFB-002--paired-qwen-semantic-feedback-evaluation/design-doc/01-paired-qwen-semantic-feedback-experiment-design.md`
 - `ttmp/2026/08/25/SFB-002--paired-qwen-semantic-feedback-evaluation/analysis/01-seeds-0-through-9-paired-sweep-results.md`
 - `ttmp/2026/08/25/SFB-002--paired-qwen-semantic-feedback-evaluation/reference/01-paired-evaluation-implementation-diary.md`
+- `ttmp/2026/08/25/SFB-003--tree-sitter-parsing-and-kv-prefix-replay/design-doc/01-phases-4-and-5-implementation-plan.md`
+- `ttmp/2026/08/25/SFB-003--tree-sitter-parsing-and-kv-prefix-replay/reference/01-phases-4-and-5-implementation-diary.md`
 
 ## Commit history
 
@@ -836,6 +1120,11 @@ The main implementation sequence is:
 - `e90b026` — Measure paired Qwen feedback outcomes
 - `53ba597` — Analyze paired Qwen feedback sweep
 - `b668f83` — Close paired Qwen evaluation ticket
+- `a2dc8f1` — Add incremental Tree-sitter parser
+- `4e53163` — Document Phase 4 parser implementation
+- `687c9fc` — Add verified MLX KV-prefix replay
+- `194e0da` — Document Phase 5 cache replay results
+- `60f11e5` — Close Tree-sitter and KV replay ticket
 
 ## Project working rules
 
@@ -844,10 +1133,13 @@ The main implementation sequence is:
 - Injected text must be understandable from the post-edit context alone.
 - Validate exact cursor placement before changing prompt wording or sampling constraints.
 - Use full replay as the reference for every cache optimization.
+- Reuse cache state only when exact token identity and every layer offset are proven.
+- Leave at least one edited-context token outside a reused cache so next-token logits are recomputed.
+- Treat MLX-LM yield/cache timing as a versioned compatibility contract.
 - Scope code recognition to generated assistant content.
 - Count final semantic outcomes, not interventions.
 - Report conditional repair rates and overall protocol rates separately.
 - Preserve complete traces for every published aggregate.
 - Do not execute untrusted generated code without a real isolation boundary.
 
-The project now has evidence that semantic feedback can improve a real model's code within generation. Its next challenge is to make code-region ownership explicit and broaden the evaluation without weakening the correctness guarantees established by full replay and context checkpoints.
+The project now has evidence that semantic feedback can improve a real model's code within generation, that error-tolerant parsing can surface complete units before the surrounding output is complete, and that verified token-prefix reuse can reduce post-edit prefill work without changing a deterministic continuation. Its next challenge is to make code-region ownership explicit and broaden the evaluation without weakening the correctness guarantees established by full replay, context checkpoints, and cache-offset proofs.
