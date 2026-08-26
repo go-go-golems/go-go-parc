@@ -22,6 +22,8 @@ implementation_commits:
   - 95b1d96 phase 5: unblock HVT build (default-switch fix) + certs dir + gitignore duniverse
   - 4196764 phase 5: HVT build unblocked (default-switch + lockfile + duniverse) + boot functor
   - 45f446d docs: handoff document + updated tasks/changelog/diary for Phase 5
+  - cc79ed3 phase 5: fix cohttp_server functor arg → HVT image builds (dist/mirage-lambda-control.hvt)
+  - c309ca0 docs: update HANDOFF/tasks/diary/changelog — HVT image builds, boot pending TAP
 design_doc: ttmp/2026/08/25/MIRAGE-LAMBDA--mirage-lambda-service-js-faas-from-mirageos-unikernels/design-doc/01-implementation-plan-and-phase-map.md
 source_guide: mirage_lambda_service_implementation_guide.md
 handoff: HANDOFF.md
@@ -34,14 +36,14 @@ related_vault_notes:
 
 This report picks up where the earlier Mirage Lambda deep dive left off. The earlier report covered Phases 0–3: the pure common library, the three-layer QuickJS OCaml/C wrapper, the Promise bridge, and the worker dispatch loop, all proven on Unix. This report covers what came next: the single-appliance control plane that turns the engine into a deployable service (Phase 4), the missing-symbol audit and dedicated Mirage switch that close the unikernel-portability question (Phase 0 HVT), and the Mirage control-plane unikernel that ports the service plane to Solo5 HVT (Phase 5).
 
-The main result is that a developer can now bundle a JavaScript module, deploy it through a CLI to a running control plane, move an alias to the new revision, and invoke it synchronously or asynchronously — the full §38.2 demonstration on Unix. The unikernel port is one functor signature away from booting on HVT: the toolchain, lockfile, duniverse, and cross-compile all work, and the remaining work is a single functor-arg type fix in the unikernel, not an environment problem.
+The main result is that a developer can now bundle a JavaScript module, deploy it through a CLI to a running control plane, move an alias to the new revision, and invoke it synchronously or asynchronously — the full §38.2 demonstration on Unix. The unikernel port now cross-compiles to a valid Solo5 HVT image: the toolchain, lockfile, duniverse, and cross-compile all work, and a single-token functor-arg fix resolved the last type mismatch. The only remaining gate to a running unikernel is a host-level TAP network device, which is an environment permission, not a code problem.
 
 > [!summary]
 > Phases 4–5 took the engine from "runs on Unix" to "serves an API on Unix" and then to "configures and cross-compiles for HVT."
 > 1. Phase 4 adds an HTTP control plane (artifact store, registry with CAS aliases, admission, scheduler, worker pool) and a developer CLI; the §38.2 end-to-end demo (deploy → alias → sync/async invoke) passes on Unix.
 > 2. The §34.3 missing-symbol audit against the ocaml-solo5 freestanding target found that no engine patch is needed: excluding `quickjs-libc.c` removes POSIX, compiling out `CONFIG_ATOMICS` removes pthread, and wall-time is shimmed through the §21.4 platform boundary.
 > 3. The Phase 5 HVT build was blocked on an opam-monorepo behavior, not a code error: the lockfile solver reads the default switch, not `OPAMSWITCH`. Setting the dedicated switch as default unblocked the lockfile (92 entries), the duniverse pull (91 repos), and the solo5 cross-compile.
-> 4. The remaining gate is a functor signature: the `cohttp_server` device passes `Cohttp_mirage.Server.Make(Conduit)` whose `listen` carries a `unit -> int` port-thunk that the unikernel's functor arg type does not capture. Fixing that produces the HVT image and closes the last §34.2 probe step.
+> 4. The last code gate is resolved: the `cohttp_server` device passes `Cohttp_mirage.Server.Make(Conduit)` whose `listen` carries a `unit -> int` port-thunk, and `Conduit_mirage.server` needs a plain `int`; evaluating the thunk (`\`TCP (port ())`) makes the HVT image build. The only remaining gate to a running unikernel is a host TAP device (a `CAP_NET_ADMIN` permission), not code.
 
 ## From engine to service: Phase 4
 
@@ -106,7 +108,7 @@ The second decision is `CONFIG_ATOMICS`. The engine's `pthread_mutex` and `pthre
 
 Two symbol classes remain and are handled by the platform boundary, not the engine. `gettimeofday` and `localtime_r` belong to the optional wall-time path and the Date intrinsic. The Date intrinsic is already excluded (the build does not call `JS_AddIntrinsicDate`), and wall time is a separate capability the worker may not be granted — the §21.4 platform boundary function `mlqjs_wall_time_ms` returns 0 when wall time is not granted, so the engine never sees real wall time through the standard built-ins. The math symbols (`ceil`, `sqrt`, `exp`, etc.) link through the target math library in the Solo5 sysroot; the memory and string symbols (`memcpy`, `malloc`, `snprintf`) are supplied by ocaml-solo5's nolibc.
 
-The audit's conclusion is a table of decisions, not a patch. The engine core is portable to Solo5 HVT with two build flags (`-DCONFIG_STACK_CHECK` without `-DCONFIG_ATOMICS`) and the existing platform boundary. The remaining gate is the HVT boot itself, which confirms the math library and floating-point environment at runtime.
+The audit's conclusion is a table of decisions, not a patch. The engine core is portable to Solo5 HVT with two build flags (`-DCONFIG_STACK_CHECK` without `-DCONFIG_ATOMICS`) and the existing platform boundary. The remaining gate was the HVT boot itself, which confirms the math library and floating-point environment at runtime; the image now builds, and the boot awaits only a host TAP device.
 
 ## The HVT toolchain: a behavior, not a bug
 
@@ -120,13 +122,17 @@ The fix is one command: `opam switch set mirage-lambda`, which sets the default 
 
 One more Makefile wrinkle is worth recording. The `mirage configure`-generated `repo-add` recipe adds the dune-universe repository under the name `opam-overlays`, but opam-monorepo's `is_duniverse_repo` checks for the exact name `dune-universe` (it compares `OpamUrl.to_string repo.repo_url` against the literal string `git+https://github.com/dune-universe/opam-overlays.git`, and the repository must be registered under that name). After every `mirage configure`, the Makefile needs a `sed` patch to rename the repository from `opam-overlays` to `dune-universe`. It is a one-liner, but it is the kind of detail that costs an hour if you do not know it.
 
-## The unikernel: one functor signature away
+## The unikernel: from a type error to a built HVT image
 
 With the toolchain unblocked, the Mirage unikernel configures cleanly. The `config.ml` declares the device composition: a network stack, a read-only certificate KV, a read/write state KV, and a Cohttp server over the stack. The `unikernel.ml` implements the boot functor with structured logging and a `/healthz` endpoint. `mirage configure -t hvt` type-checks the composition and generates the build files.
 
-The build reaches the final unikernel-functor type-check and stops. The `cohttp_server` device passes `Cohttp_mirage.Server.Make(Conduit)` as the `Http` argument to the unikernel functor. That module's `listen` function has type `Conduit_mirage.server -> t -> unit Lwt.t`, but the conduit produced by `conduit_direct ~tls:false stack` represents the TCP port as a `unit -> int` runtime-arg thunk, so the generated `main.ml` expects `[> `TCP of unit -> int ] -> t -> unit Lwt.t`. The unikernel's functor argument type, `Cohttp_mirage.Server.S`, does not include `listen` or `make`, so the wiring does not type-check.
+The build initially stopped at the final unikernel-functor type-check. The `cohttp_server` device passes `Cohttp_mirage.Server.Make(Conduit)` as the `Http` argument to the unikernel functor. That module's `listen` function has type `Conduit_mirage.server -> t -> unit Lwt.t`. The value mirage wires into `start` is `listen` partially applied to the conduit, so the unikernel must call it as `http <server> <httpd>`, where `<server>` is a `Conduit_mirage.server`. That type is `[ `TCP of int | `TLS of Tls.Config.server * server | `Vchan of ... ]` — the `TCP` variant carries a plain listening port as an `int`.
 
-This is the only remaining obstacle to the HVT image, and it is a functor signature, not an environment problem. Two approaches resolve it. The first is to widen the functor argument type to the result signature of `Cohttp_mirage.Server.Make(Conduit)` — a module type that includes `listen` and `make` with the `unit -> int` port-thunk. The second is to follow the pattern in the vendored `ocaml-tls` example (`duniverse/ocaml-tls/mirage/example2/unikernel.ml`): do not take `Http` as a functor argument at all, take the conduit or flow, and construct `Cohttp_mirage.Server.Make` inside the unikernel, then call `Http.listen` with the conduit server and the httpd. Either path produces `dist/mirage-lambda-control.hvt`, and `solo5-hvt` boots it — closing §34.2 step 10, the only open probe gate.
+The unikernel reads the port from a command-line argument registered through `Mirage_runtime.register_arg`, which returns `int runtime_arg`, an alias for `unit -> int` — a thunk, not a plain integer. Passing `` `TCP port `` therefore produced `` `TCP of unit -> int ``, which the type system rejected against `` `TCP of int ``. The error message reported the mismatch as a functor-signature difference (`` [> `TCP of unit -> int ] `` versus `Conduit_mirage.server`), which obscured the one-token cause.
+
+The fix is to evaluate the thunk before constructing the variant: `` `TCP (port ()) ``. That single change makes `make build` produce `dist/mirage-lambda-control.hvt` — 13,955,336 bytes of statically-linked, freestanding ELF, with a solo5 manifest that declares exactly one device, a `NET_BASIC` interface named `service`. `solo5-elftool query-manifest` confirms the image is a valid solo5 HVT binary. The build reproduces cleanly from `dune build --profile release --root . ./dist` under the mirage-lambda switch.
+
+The only remaining gate to a running unikernel is the boot itself. `solo5-hvt` attaches the unikernel's declared `NET_BASIC` device to a host TAP interface, and creating a TAP interface requires `CAP_NET_ADMIN` (or `sudo`). The development machine used here lacks that permission non-interactively, so the boot was not executed in this session. This is an environment gate, not a code gate: the image exists, the manifest is valid, and the boot command is `solo5-hvt --net:service=tap100 dist/mirage-lambda-control.hvt --port=8080` once a TAP device exists.
 
 ## A state-KV simplification and its deferral
 
@@ -134,7 +140,7 @@ The Phase 5 boot proof uses the in-memory KV (`kv_rw_mem`) for the state store r
 
 ## What ships, and what is handed off
 
-At the handoff point, the repository has 25 commits, 31 passing tests, two opam switches, a vendored and integrity-pinned QuickJS, a Unix control plane and CLI with a working end-to-end demonstration, a Mirage unikernel that configures and cross-compiles, and a single functor signature standing between the current state and a booting HVT image. The handoff document at the repository root (`HANDOFF.md`) records the precise remaining error, the two fix options, the two-switch build, five environment gotchas that each cost real time, and a first-day checklist. The next engineer starts at the functor signature and ends at a solo5 boot prompt.
+At the handoff point, the repository has 28 commits, 31 passing tests, two opam switches, a vendored and integrity-pinned QuickJS, a Unix control plane and CLI with a working end-to-end demonstration, and a Mirage unikernel that configures, cross-compiles, and produces a valid HVT image. The handoff document at the repository root (`HANDOFF.md`) records the image-builds state, the precise remaining boot command (create a TAP device with root, run `solo5-hvt --net:service=tap100 dist/mirage-lambda-control.hvt --port=8080`, curl `/healthz`), the two-switch build, five environment gotchas that each cost real time, and a first-day checklist. The next engineer starts at a TAP device and ends at a `/healthz` response — the last open §34.2 probe step.
 
 ## Related work in the vault
 
