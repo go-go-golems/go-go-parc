@@ -22,15 +22,15 @@ repo: /home/manuel/code/wesen/2026-08-27--screen-mov-recording
 
 # snipmov: Building a Screen Recorder, and a Catalogue of Its Defects
 
-This report covers the complete construction of `snipmov`, a Linux tool that records a rectangular screen region and delivers it as a shareable clip. It was designed and built in one session across two tickets: `SCREENCAST-001` produced the recorder, and `SCREENCAST-002` added a post-capture export menu and a preset system. The result is 8,325 lines of Go, of which 2,124 are tests, across twelve packages, with seven third-party dependencies and exactly two hard runtime requirements — `ffmpeg` and an X11 display.
+This report covers the complete construction of `snipmov`, a Linux tool that records a rectangular screen region and delivers it as a shareable clip. It was designed and built in one session across two tickets: `SCREENCAST-001` produced the recorder, and `SCREENCAST-002` added a post-capture export menu and a preset system. The result is 8,897 lines of Go, of which 2,277 are tests, across twelve packages, with seven third-party dependencies and exactly two hard runtime requirements — `ffmpeg` and an X11 display.
 
-The technically interesting parts are documented in [[PROJECT REPORT - snipmov - Compositing a Selection Overlay Without a Compositor]], which covers the X11 acquisition model, the selection overlay, container finalization, and the GIF palette measurement. This report does not repeat them. It covers what that one could not: the second half of the system — deferred encoding, presets, the menu, and the clipboard — and then does something the first report only gestured at, which is to treat the project's eighteen defects as data and ask what they have in common.
+The technically interesting parts are documented in [[PROJECT REPORT - snipmov - Compositing a Selection Overlay Without a Compositor]], which covers the X11 acquisition model, the selection overlay, container finalization, and the GIF palette measurement. This report does not repeat them. It covers what that one could not: the second half of the system — deferred encoding, presets, the menu, and the clipboard — and then does something the first report only gestured at, which is to treat the project's nineteen defects as data and ask what they have in common.
 
 The answer to that question is the most transferable thing the project produced. **The overwhelming majority of defects were not logic errors. They were cases of the program communicating something untrue** — a filename that claimed a format it did not carry, a flag documented in help text that did nothing, a checkbox that could not affect anything, a `--dry-run` line that could not be run. A design document specifies behaviour and interfaces; it has no vocabulary for the gap between what a program does and what it implies. That gap is closed only by using the program and looking at its output.
 
 > [!summary]
 > - **Design-first paid, and its limits were visible.** Twenty-five of twenty-six acceptance checks passed on their first execution against a 1,328-line specification written before any code. Every defect that survived was in the category the specification could not describe.
-> - **Twelve of eighteen defects were miscommunications rather than miscomputations.** The program computed correctly and then said something false about the result. This class is invisible to unit tests, which assert on values rather than on what a user is told.
+> - **Twelve of nineteen defects were miscommunications rather than miscomputations.** The program computed correctly and then said something false about the result. Four more were races, two were my own misdiagnoses, and exactly *one* was an ordinary coding mistake. This class is invisible to unit tests, which assert on values rather than on what a user is told.
 > - **Documenting a trap does not prevent it.** The rule "every icon must be drawn, never typed" was written up after `U+25B6` rendered as a missing-glyph box — and the next renderer shipped `U+23CE`, which rendered as a missing-glyph box. Only a check prevented the third occurrence.
 > - **Two misdiagnoses came from experiments that varied two things at once.** WebP appearing not to animate from `x11grab` was actually a static capture; four flag combinations agreed with a theory that was not there because every trial changed the source as well as the flag.
 > - **The clipboard question could not be reasoned about, only measured.** An X selection owner serves one target set at a time, and which one an application reads is a property of that application. Three defaults were wrong before a five-minute test with a purpose-built tool produced the right one.
@@ -59,14 +59,14 @@ Complete and verified. The source is at `/home/manuel/code/wesen/2026-08-27--scr
 
 | Measure | Value |
 |---|---:|
-| Go source | 8,325 lines |
-| of which tests | 2,124 lines |
+| Go source | 8,897 lines |
+| of which tests | 2,277 lines |
 | Package test suites | 12, all passing under `-race` |
-| Acceptance checks (`05-definition-of-done.sh`) | 35/35 |
+| Acceptance checks (`05-definition-of-done.sh`) | 44/44 |
 | Selector harness under Xvfb | 14/14 |
 | Menu harness under Xvfb | 12/12 |
-| Design documentation | 9,133 lines across two tickets |
-| Commits | 47 |
+| Design documentation | 9,280 lines across two tickets |
+| Commits | 50 |
 | Hard runtime dependencies | 2 (`ffmpeg`, an X11 display) |
 
 Two documentation packages are on the reMarkable at `/ai/2026/08/27/SCREENCAST-001` and `/ai/2026/08/27/SCREENCAST-002`, each comprising an analysis, an architecture specification, an intern implementation guide, and a chronological diary.
@@ -253,9 +253,59 @@ about to be captured, which also confirms *where* the recording will land. It
 takes no keyboard or pointer grab, so the user can arrange whatever they are
 about to demonstrate while it counts.
 
+**A recording in progress was also completely invisible.** There is no window,
+and the keyboard is deliberately not grabbed during capture, so nothing on
+screen distinguished "recording" from "the keybind did nothing". A badge now
+shows a blinking dot, the elapsed time, and how to stop.
+
+Its placement is the load-bearing decision. The badge must not go inside the
+capture region, because everything in that rectangle is recorded, so the
+placement searches the four corners for one clear of the region — and shows
+**nothing at all** when the whole screen is being captured, since a status badge
+burned into every frame is worse than no badge. That search is a pure function
+and is tested against a region over the bottom-right, one covering both right
+corners, one across the bottom, and a full-screen capture.
+
+It opens its own X connection rather than sharing the caller's. It updates while
+the main goroutine is blocked in `waitForStop`, and an `xgb.Conn` is not safe
+for concurrent use; sharing would have worked that day and become a latent race
+the moment anything else touched X during a capture.
+
+The stop hint cannot be derived — the tool has no way to know which key the
+window manager was configured to run it from — so it is configurable, with a
+generic default. Hard-coding a guess would be confidently wrong on most
+machines.
+
 The general point is that **every component here had passing tests, and the
 composition of them had never been executed.** Press, press, press was not a
 sequence any check performed until someone asked how to use the tool.
+
+## Reusing the encoders on files that already exist
+
+Two verbs were added late, in response to use rather than to a plan:
+
+```bash
+snipmov convert clip.mp4 clip.gif           # format from the output extension
+snipmov convert clip.mp4 --preset tiny-gif  # identical to recording with it
+snipmov clip clip.mp4 --as gif              # convert, then put on the clipboard
+```
+
+Both route through the same `export.Encode` the recording fan-out uses, and
+that is the whole design decision. A `convert` verb with its own encoding path
+would eventually produce different output from the recorder for the same
+parameters, and in the GIF case the divergence would be invisible: the naive
+path produces a *smaller* file, so nobody checking file sizes would notice
+their converted clips were worse than their recorded ones.
+
+Both also build a `preset.Preset` from their flags rather than a second options
+struct. `convert --preset tiny-gif` is therefore byte-identical to recording
+with that preset, and an invalid parameter combination is rejected when the
+preset is validated rather than by ffmpeg several seconds later.
+
+`clip --as` writes its converted copy to the scratch directory rather than a
+temporary file deleted on exit, for the same reason the menu's export path does:
+the clipboard holds a `file://` URI served on demand, so the file must outlive
+the process.
 
 ## The clipboard, and the limits of reasoning
 
@@ -284,9 +334,9 @@ The remaining correct fix is a clipboard owner that advertises several targets a
 
 ## The defects, treated as data
 
-Eighteen defects were found and fixed. Categorising them is more informative than listing them.
+Nineteen defects were found and fixed. Categorising them is more informative than listing them.
 
-### Category one: the program said something untrue (twelve of eighteen)
+### Category one: the program said something untrue (twelve of nineteen)
 
 None of these is a logic error. In each case the computation was correct and the communication was not.
 
@@ -309,7 +359,7 @@ The pattern is that a specification describes *behaviour and interfaces*. It has
 
 The two mechanisms that actually caught them are worth naming. A **checkpoint command producing human-readable output** — `snipmov _preencode` — found the table-destroying error while every concurrency test passed. And the **acceptance script**, an executable form of the definition of done, found the exit-code and dependency-ordering defects.
 
-### Category two: races and orderings (four of eighteen)
+### Category two: races and orderings (four of nineteen)
 
 | Defect | Mechanism |
 |---|---|
@@ -322,7 +372,29 @@ The duration race is the most instructive. It failed reliably at 320×240 and pa
 
 The fix was structural rather than narrow. The tempting patch — make `Stop` tolerate an already-exited process — narrows the window without closing it and would have made the bug rarer and much harder to find. Recognising that the real problem was *two independent timers for one deadline* took longer and is the only fix that removes the race.
 
-### Category three: misdiagnoses (two)
+### Category three: one plain coding error
+
+Exactly one defect in the project was an ordinary mistake with no communication
+or timing component: defining `--preset` on the new `convert` command when
+`addRecordFlags` already defined it.
+
+```
+panic: convert flag redefined: preset
+```
+
+What makes it worth listing is the blast radius. Cobra validates the command
+tree at *construction*, so the panic took down every subcommand — `--help`,
+`preset list`, all of it — not just `convert`. A test exercising only the new
+command would have missed how bad it was.
+
+It also nearly escaped notice. The first test run reported `exit=2` for four
+error cases, which reads as correct rejection — and Go panics also exit 2. Two
+different meanings for one code, distinguishable only by reading stderr.
+
+The cheap general lesson: **`snipmov --help` is a full command-tree smoke
+test**, covering a failure mode no unit test in this project would have caught.
+
+### Category four: misdiagnoses (two)
 
 Both came from experiments that varied two things at once.
 
@@ -378,6 +450,10 @@ The window centres on the screen rather than on the output holding the pointer, 
 
 `MaxFrames = 60` at 12 fps gives five seconds of preview, so a 30-second capture previews only its first sixth with no indication that it is truncated.
 
+`clip --as` names its scratch copy after the input's base name, so converting `a/clip.mp4` and then `b/clip.mp4` overwrites the first result — which may still be on someone's clipboard. The copies should carry unique names.
+
+`convert` refuses to overwrite its input by comparing absolute paths, which misses two different paths resolving to the same file through a symlink.
+
 The man page at `docs/snipmov.1.scd` has never been rendered, because `scdoc` is not installed on the development machine.
 
 ## Project working rule
@@ -404,6 +480,8 @@ Measure the claim before writing it down; validate everything you can before ask
 - `snipmov region` — select a rectangle, print `WxH+X+Y`, and exit, so one selection can drive several commands.
 - `snipmov preset list` / `preset init` — inspect the presets in effect; write the built-ins into the config to edit.
 - `snipmov config init` / `path` / `show` — a commented config file with every key at its built-in default.
+- `snipmov convert INPUT [OUTPUT]` — convert an existing clip between formats, using the same encoders recording does. Format from the output extension, `--format`, or `--preset`.
+- `snipmov clip FILE [--as FORMAT]` — put a file on the clipboard, converting it first if asked.
 - `snipmov clip FILE --try-all` — determine which X selection target a given application accepts.
 - `snipmov doctor` — report the display, `ffmpeg`, the optional helpers, the config path and the remembered region.
 - `snipmov stop`, `--dry-run`, `-v` — stop a running recording; print the shell-quoted ffmpeg command lines; raise the log level.
