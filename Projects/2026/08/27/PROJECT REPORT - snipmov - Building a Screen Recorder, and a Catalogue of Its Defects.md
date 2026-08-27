@@ -22,15 +22,15 @@ repo: /home/manuel/code/wesen/2026-08-27--screen-mov-recording
 
 # snipmov: Building a Screen Recorder, and a Catalogue of Its Defects
 
-This report covers the complete construction of `snipmov`, a Linux tool that records a rectangular screen region and delivers it as a shareable clip. It was designed and built in one session across two tickets: `SCREENCAST-001` produced the recorder, and `SCREENCAST-002` added a post-capture export menu and a preset system. The result is 8,087 lines of Go, of which 2,124 are tests, across twelve packages, with seven third-party dependencies and exactly two hard runtime requirements — `ffmpeg` and an X11 display.
+This report covers the complete construction of `snipmov`, a Linux tool that records a rectangular screen region and delivers it as a shareable clip. It was designed and built in one session across two tickets: `SCREENCAST-001` produced the recorder, and `SCREENCAST-002` added a post-capture export menu and a preset system. The result is 8,325 lines of Go, of which 2,124 are tests, across twelve packages, with seven third-party dependencies and exactly two hard runtime requirements — `ffmpeg` and an X11 display.
 
-The technically interesting parts are documented in [[PROJECT REPORT - snipmov - Compositing a Selection Overlay Without a Compositor]], which covers the X11 acquisition model, the selection overlay, container finalization, and the GIF palette measurement. This report does not repeat them. It covers what that one could not: the second half of the system — deferred encoding, presets, the menu, and the clipboard — and then does something the first report only gestured at, which is to treat the project's fifteen defects as data and ask what they have in common.
+The technically interesting parts are documented in [[PROJECT REPORT - snipmov - Compositing a Selection Overlay Without a Compositor]], which covers the X11 acquisition model, the selection overlay, container finalization, and the GIF palette measurement. This report does not repeat them. It covers what that one could not: the second half of the system — deferred encoding, presets, the menu, and the clipboard — and then does something the first report only gestured at, which is to treat the project's eighteen defects as data and ask what they have in common.
 
 The answer to that question is the most transferable thing the project produced. **The overwhelming majority of defects were not logic errors. They were cases of the program communicating something untrue** — a filename that claimed a format it did not carry, a flag documented in help text that did nothing, a checkbox that could not affect anything, a `--dry-run` line that could not be run. A design document specifies behaviour and interfaces; it has no vocabulary for the gap between what a program does and what it implies. That gap is closed only by using the program and looking at its output.
 
 > [!summary]
 > - **Design-first paid, and its limits were visible.** Twenty-five of twenty-six acceptance checks passed on their first execution against a 1,328-line specification written before any code. Every defect that survived was in the category the specification could not describe.
-> - **Eleven of fifteen defects were miscommunications rather than miscomputations.** The program computed correctly and then said something false about the result. This class is invisible to unit tests, which assert on values rather than on what a user is told.
+> - **Twelve of eighteen defects were miscommunications rather than miscomputations.** The program computed correctly and then said something false about the result. This class is invisible to unit tests, which assert on values rather than on what a user is told.
 > - **Documenting a trap does not prevent it.** The rule "every icon must be drawn, never typed" was written up after `U+25B6` rendered as a missing-glyph box — and the next renderer shipped `U+23CE`, which rendered as a missing-glyph box. Only a check prevented the third occurrence.
 > - **Two misdiagnoses came from experiments that varied two things at once.** WebP appearing not to animate from `x11grab` was actually a static capture; four flag combinations agreed with a theory that was not there because every trial changed the source as well as the flag.
 > - **The clipboard question could not be reasoned about, only measured.** An X selection owner serves one target set at a time, and which one an application reads is a property of that application. Three defaults were wrong before a five-minute test with a purpose-built tool produced the right one.
@@ -59,14 +59,14 @@ Complete and verified. The source is at `/home/manuel/code/wesen/2026-08-27--scr
 
 | Measure | Value |
 |---|---:|
-| Go source | 8,087 lines |
+| Go source | 8,325 lines |
 | of which tests | 2,124 lines |
 | Package test suites | 12, all passing under `-race` |
 | Acceptance checks (`05-definition-of-done.sh`) | 35/35 |
 | Selector harness under Xvfb | 14/14 |
-| Menu harness under Xvfb | 10/10 |
-| Design documentation | 8,992 lines across two tickets |
-| Commits | 45 |
+| Menu harness under Xvfb | 12/12 |
+| Design documentation | 9,133 lines across two tickets |
+| Commits | 47 |
 | Hard runtime dependencies | 2 (`ffmpeg`, an X11 display) |
 
 Two documentation packages are on the reMarkable at `/ai/2026/08/27/SCREENCAST-001` and `/ai/2026/08/27/SCREENCAST-002`, each comprising an analysis, an architecture specification, an intern implementation guide, and a chronological diary.
@@ -219,6 +219,44 @@ The grid matters because a single tall strip hits driver limits: 60 frames at 36
 
 Selecting a ready row switches the preview to **that preset's actual encoded output**. This is the single most valuable behaviour in the menu, and it follows directly from the first ticket's central finding: the naive GIF path produced a file 40% smaller while retaining 91 of the source frame's 12,069 colours, at SSIM 0.757 against the two-pass pipeline's 0.999. Palette damage is invisible in file-size terms. Showing the real encoded result at the moment of choice makes it visible before the user commits.
 
+## The keybind as the entire interface
+
+The tool is invoked from a window manager binding, and the workflow it was
+designed for is one key pressed repeatedly:
+
+| Press | While | Does |
+|---|---|---|
+| 1st | idle | select a region and start recording |
+| 2nd | recording | stop, and open the export menu |
+| 3rd | menu open | dismiss, discarding the clip |
+
+Verifying that composition — rather than its components — found two defects on
+the primary path, neither of which any existing test could see.
+
+**`RunMenu` held no single-instance lock**, so a second press could not stop the
+recording. A `--menu` capture started without `--duration` can *only* be stopped
+that way, so the workflow was not merely degraded but impossible; the first
+attempt to test it hung until killed.
+
+**Adding the lock broke it differently.** The stopping press sends `SIGINT`,
+which cancelled the context the fan-out and the menu were also using — so the
+recording stopped and the menu was dismissed in the same instant, and the user
+pressed stop and received nothing. The capture and the menu need separate signal
+contexts. That also settles what a further press means with the menu open,
+where there is no recording to stop: it dismisses.
+
+**`--delay` existed but was invisible.** It was a `time.After` and a log line
+nobody reads. A pre-roll the user cannot see is indistinguishable from the tool
+being slow to start: they press the keybind, nothing happens, and they either
+wait uncertainly or press again. It now draws a countdown badge over the region
+about to be captured, which also confirms *where* the recording will land. It
+takes no keyboard or pointer grab, so the user can arrange whatever they are
+about to demonstrate while it counts.
+
+The general point is that **every component here had passing tests, and the
+composition of them had never been executed.** Press, press, press was not a
+sequence any check performed until someone asked how to use the tool.
+
 ## The clipboard, and the limits of reasoning
 
 The clipboard produced three consecutive wrong answers and is the clearest example in the project of a question that cannot be reasoned about.
@@ -246,9 +284,9 @@ The remaining correct fix is a clipboard owner that advertises several targets a
 
 ## The defects, treated as data
 
-Fifteen defects were found and fixed. Categorising them is more informative than listing them.
+Eighteen defects were found and fixed. Categorising them is more informative than listing them.
 
-### Category one: the program said something untrue (eleven of fifteen)
+### Category one: the program said something untrue (twelve of eighteen)
 
 None of these is a logic error. In each case the computation was correct and the communication was not.
 
@@ -265,18 +303,20 @@ None of these is a logic error. In each case the computation was correct and the
 | `Result.Err` in a table row | Multi-line ffmpeg stderr destroyed the layout |
 | Clipboard offered a file URI | Claimed to be pasteable into applications that ignore that target |
 | Window height fixed at four rows | Would have clipped a user's list of eight presets |
+| `--delay` with no visible feedback | A pre-roll nobody can see is indistinguishable from the tool being slow to start |
 
 The pattern is that a specification describes *behaviour and interfaces*. It has no vocabulary for the difference between what a program does and what a user is entitled to conclude from what they are shown. Unit tests inherit that blindness, because they assert on returned values rather than on rendered output. Every one of these was found either by looking at output or by a user trying to use the result.
 
 The two mechanisms that actually caught them are worth naming. A **checkpoint command producing human-readable output** — `snipmov _preencode` — found the table-destroying error while every concurrency test passed. And the **acceptance script**, an executable form of the definition of done, found the exit-code and dependency-ordering defects.
 
-### Category two: races and orderings (three of fifteen)
+### Category two: races and orderings (four of eighteen)
 
 | Defect | Mechanism |
 |---|---|
 | Duration race | Both ffmpeg's `-t` and our timer owned the same deadline; our `q` aborted container finalization |
 | Clipboard stdin race | `cmd.Stdin` as a `strings.Reader` is copied on a goroutine only `Wait` covers, and we deliberately never `Wait` |
 | Concurrent `--dry-run` | Both took the single-instance lock; the loser decided it was the second keybind press and exited silently |
+| The stop press dismissed the menu | The capture and the menu shared one signal context, so the press that stopped the recording cancelled the encodes and discarded the clip in the same instant |
 
 The duration race is the most instructive. It failed reliably at 320×240 and passed reliably at 640×480, because winning depended on how long finalization took, which depended on how much data there was. It had presumably existed since the first ticket; a preset setting 12 fps merely shifted the timing enough to lose consistently. **A latent race becomes a reliable bug when an unrelated feature perturbs the timing**, which is the argument for stress loops rather than single checks in the acceptance script.
 
@@ -320,7 +360,11 @@ The correct response is not more care. `MissingGlyphs` now uses `sfnt.GlyphIndex
 
 **Read an error for what it implies about state, not for its line number.** A LaTeX failure pointed at line 6591 of a generated file that does not exist on disk. What located the bug was the shape of the message: prose with backslash-escaped spaces means LaTeX believed it was inside a verbatim block, and prose is never verbatim, so a code span had opened where none was intended — an inline triple-backtick in a document about code fences.
 
-**Tests measure representations, and get them wrong.** Three times in this project a test failed before the code was at fault, and all three were about how a value is represented rather than what it is: counting bytes where runes were meant, forgetting that a drop shadow is legitimate ink, and ANSI colour codes defeating a numeric extraction from a log line.
+**Tests measure the wrong thing, and it is worth counting how.** Four times in this project a test failed before the code was at fault. Three were about how a value is *represented* rather than what it is: counting bytes where runes were meant, forgetting that a drop shadow is legitimate ink, and ANSI colour codes defeating a numeric extraction from a log line.
+
+The fourth was structural and more instructive. A check for "a further keypress dismisses the menu" reported the wrong result four times running, and each fix exposed a different fault beneath: no timeout on a `wait` for a recording that runs to a ten-minute safety cap; using a real capture as the stop signal, which starts *its own* ten-minute recording when the lock is already gone; inferring dismissal from the **absence of output**, which conflates it with a failed grab, a dead display or a crash; and finally the actual cause — the *preceding* check armed `( sleep 6; xdotool key 1 ) &`, and when its own menu finished first that keypress landed in the next test's menu and exported instead of dismissing.
+
+**A keypress armed on a timer fires whenever it likes.** Both checks now wait for evidence — a specific line appearing in the log — before acting, and every fixed sleep that gated an action was replaced. Synchronising a test on a clock rather than on a signal produces cross-test interference that looks exactly like a product bug, which is why it took four attempts to stop blaming the code.
 
 ## Open questions
 
@@ -328,7 +372,7 @@ The multi-target clipboard owner is the largest outstanding item. Owning the CLI
 
 The preview decodes synchronously on the UI goroutine, costing roughly 200 ms. That is acceptable before the first plausible keystroke, but the same call runs on selection change, so arrowing quickly between presets will stutter. It should decode in the background and swap when ready, with a cache keyed by path.
 
-What a second invocation of the keybind should mean while the menu is open is unresolved: there is no recording to stop. `RunMenu` currently does not take the single-instance lock at all, so two menus can be open simultaneously.
+The countdown could draw the region outline as well as the number, which would make `--last` unambiguous without a full selection overlay. `--delay` is currently only useful in combination with a selection step; making it work with `--last` alone would allow a "record that same area in five seconds" binding.
 
 The window centres on the screen rather than on the output holding the pointer, so on a multi-head setup it appears on the wrong monitor. RandR supplies the necessary rectangles.
 
@@ -353,7 +397,8 @@ Measure the claim before writing it down; validate everything you can before ask
 ## Current user-facing commands
 
 - `snipmov` — dim the screen, drag a rectangle, record until the keybind is pressed again.
-- `snipmov --menu` — record, then choose the format from a menu of presets with measured sizes and a looping preview of the actual encoded output.
+- `snipmov --menu` — record, then choose the format from a menu of presets with measured sizes and a looping preview of the actual encoded output. Bound to a key, one press starts, the next stops and opens the menu, and a further press dismisses it.
+- `snipmov --menu --delay 3` — the same, with a visible countdown drawn over the region before recording begins.
 - `snipmov --preset tiny-gif -d 8` — no menu; capture straight to the final encoder, since the format is known in advance.
 - `snipmov --last`, `--window`, `--full`, `--region X,Y,W,H` — the non-interactive equivalents of every interactive step.
 - `snipmov region` — select a rectangle, print `WxH+X+Y`, and exit, so one selection can drive several commands.
