@@ -469,6 +469,10 @@ Whether the frozen selection overlay confuses users has not been observed. One p
 
 Measure the claim before writing it down, and validate everything you can before asking the user to act. The two conclusions that most shaped this tool — that `-select_region` exists and is insufficient, and that dithering harms screen-content GIFs — were both produced by running a command rather than recalling a fact, and both reversed a decision that had already been drafted. The defects that survived the design were all cases of the program implying something untrue, which is a category no specification catches and only use reveals.
 
+## Related notes
+
+- [[PROJECT REPORT - snipmov - Building a Screen Recorder, and a Catalogue of Its Defects]] covers the complete project, including the export menu, the preset system, the clipboard investigation, and an analysis of all fifteen defects by category.
+
 ## Important project docs
 
 - Ticket index: `ttmp/2026/08/27/SCREENCAST-001--snipmov-minimal-screen-region-movie-gif-recorder-for-linux/index.md`
