@@ -29,7 +29,7 @@ The project was executed design-first: a complete analysis, architecture specifi
 > - **The naive GIF conversion is smaller than the two-pass palette pipeline because it is destructive.** Measured on live screen content: `ffmpeg -i in.mp4 out.gif` produced a file 40 percent smaller at SSIM 0.757, retaining 91 distinct colors where the source frame had 12,069. The two-pass pipeline scored 0.999 and retained 254. Selecting a GIF encoder on file size alone selects the wrong one.
 > - **Dithering makes screen-content GIFs both larger and less accurate.** The measured comparison is 55,411 bytes at SSIM 0.999 without dithering against 61,081 bytes at 0.9988 with `sierra2_4a`. Dithering injects high-frequency noise, and GIF's LZW compression depends on runs of identical palette indices along a scanline. The conventional recommendation is correct for photographic content and wrong for the only content this tool records.
 > - **Terminating `ffmpeg` with `SIGKILL` produces an MP4 with frames and no index.** The `moov` atom is written when the muxer is flushed at end of stream. The resulting file has a plausible size and timestamp and will not open in any player. The tool escalates through three stages — write `q` to stdin, then `SIGINT`, then `SIGKILL` — and reports a possibly-truncated file rather than claiming success when it reaches the third.
-> - **Three of the four implementation defects were not logic errors.** Each was the program telling the user something that was not quite true: a temporary filename that defeated `ffmpeg`'s muxer selection, a `--dry-run` line that could not be pasted into a shell, and a flag validated only after the recording was over. This is a category a design document is structurally unable to catch.
+> - **Four of the five implementation defects were not logic errors.** Each was the program telling the user something that was not quite true: a temporary filename that defeated `ffmpeg`'s muxer selection, a `--dry-run` line that could not be pasted into a shell, a flag validated only after the recording was over, and a documentation command that silently changed behavior. This is a category a design document is structurally unable to catch.
 
 ## Why this project exists
 
@@ -61,7 +61,7 @@ The tool is implemented, tested, and verified. The source lives at the repositor
 |---|---|---|
 | `go test ./...` | 8 packages; no display or `ffmpeg` required | all passing |
 | `scripts/04-selector-xvfb-test.sh` | X11 selector driven by synthetic pointer events under `Xvfb` | 14/14 |
-| `scripts/05-definition-of-done.sh` | Acceptance criteria from the implementation guide, against the real binary | 26/26 |
+| `scripts/05-definition-of-done.sh` | Acceptance criteria from the implementation guide, against the real binary | 28/28 |
 
 The design package lives in docmgr ticket `SCREENCAST-001` under `ttmp/2026/08/27/SCREENCAST-001--snipmov-minimal-screen-region-movie-gif-recorder-for-linux`: an environment survey, a problem-space analysis, an architecture specification, an intern implementation guide, and a 1,899-line diary, totaling approximately 5,500 lines. The full bundle is on the reMarkable at `/ai/2026/08/27/SCREENCAST-001`.
 
@@ -371,7 +371,7 @@ Most of the tool is testable without a display, and the parts that are not were 
 | `config` | One test per precedence boundary | Defaults < TOML < environment < flags |
 | `record.Session` | Shell-script stubs standing in for `ffmpeg` | All three shutdown stages, without corrupting real media |
 | `x11` / selector | `Xvfb` plus `xdotool`-synthesized pointer events | 14 checks including grab reliability and overlay teardown |
-| End to end | `scripts/05-definition-of-done.sh` | 26 acceptance checks against the real binary |
+| End to end | `scripts/05-definition-of-done.sh` | 28 acceptance checks against the real binary |
 
 Two of these deserve elaboration.
 
@@ -406,9 +406,9 @@ The last row tests a specific failure that would otherwise be invisible: if the 
 
 A methodological note from building that check: the first version captured near-black frames and appeared to show a leak. It did not. `xsetroot -solid` and `display -window root` both fail to paint an `Xvfb` root when no window manager exists to trigger the expose, so the baseline was black as well. A negative result requires a positive control; mapping a real window made the comparison meaningful.
 
-## The four defects, and the category they share
+## The five defects, and the category they share
 
-Twenty-five of twenty-six acceptance checks passed on their first run. The four defects found during implementation are more informative than the successes.
+Twenty-five of twenty-six acceptance checks passed on their first run. The defects found during implementation are more informative than the successes.
 
 1. **The temporary filename defeated `ffmpeg`'s muxer selection.** The intermediate was named `clip.mp4.part`, and every capture failed with `Unable to choose an output format for 'clip.mp4.part'; use a standard extension for the filename or specify the format manually.` `ffmpeg` selects its muxer from the output filename, so the extension must come last. The intermediate is now `.clip.snipmov-part.mp4` — extension preserved, dot-prefixed so a crashed run leaves a hidden file rather than something resembling a finished clip, and still in the destination directory so the final move remains a same-filesystem rename.
 
@@ -418,7 +418,9 @@ Twenty-five of twenty-six acceptance checks passed on their first run. The four 
 
 4. **A missing `ffmpeg` exited 4 instead of 3, and was detected too late.** `ffmpeg.Locate()` was called only inside `Session.Start`, so its failure surfaced as a capture error. The exit code was the lesser problem: the check ran *after* the interactive selection, so a user without `ffmpeg` was asked to drag a rectangle for a run that could not succeed. `Locate` now runs at the top of `app.Run`, before the X connection.
 
-Defects 1, 2, and 4 — and arguably 3 — share a category. None is a logic error. In each case the program computed correctly and then communicated something to the user that was not quite true: a filename that claimed a format it did not convey, a printed command that claimed to be runnable, a flag accepted that would later be rejected, a dependency assumed that was not present. A design document specifies behavior and interfaces; it has no vocabulary for the gap between what a program does and what it implies. That gap is found only by using the program.
+5. **A config-file default overrode an explicit command-line filename.** This one surfaced after the tool was otherwise finished, when a `config init` subcommand was added to make the configuration discoverable. The generated file sets every key to its built-in default and should therefore change nothing — but with `format = "mp4"` present, `-o clip.gif` produced an MP4 under a `.gif` name. The design document had already stated the correct rule; the implementation honored it against the *built-in* default and not against the config file, which was added two milestones later. Nothing failed at the time, because no test covered the interaction of a layer that did not yet exist. The general rule: **a new precedence layer requires a test against every layer it now sits between, not only against the one above it.**
+
+Defects 1, 2, 4, and 5 — and arguably 3 — share a category. None is a logic error. In each case the program computed correctly and then communicated something to the user that was not quite true: a filename that claimed a format it did not convey, a printed command that claimed to be runnable, a flag accepted that would later be rejected, a dependency assumed that was not present. A design document specifies behavior and interfaces; it has no vocabulary for the gap between what a program does and what it implies. That gap is found only by using the program.
 
 The generalizable rule extracted from defects 3 and 4 is stated once and applied in both places: **validate everything that can be validated before asking the user to do something.**
 
@@ -433,6 +435,8 @@ Prototype code was written and tested before being embedded in the guide. The `g
 The diary was written at each phase boundary rather than reconstructed at the end. Exact error text, exact measurements, and exact commands were recorded while they were still exact. Reconstruction produces approximations, and approximations are what make a diary worthless six months later.
 
 ## Failure modes worth carrying to other projects
+
+**A command whose purpose is documentation must have no side effects.** Running `config init` to read the schema would, before defect 5 was fixed, have silently changed what `-o clip.gif` produced. The test that caught it compared the generated `ffmpeg` command line with and without the file, across four invocations — the actual contract. An earlier version compared resolved option structs and reported four differences that do not exist, because a zero frame rate is a sentinel meaning "use the format default" and is therefore equivalent to the template's explicit 25 without being equal to it. The temptation at that point is to add field exclusions until the test passes, producing an assertion weaker than its name claims. Testing the observable output instead of the intermediate state avoids that.
 
 **A warning that still produces output is more dangerous than an error.** Rendering the design package to PDF emitted `Missing character: There is no ┌ (U+250C) in font [lmmono10-regular]` and produced a valid PDF anyway. Uploading without checking would have shipped a document whose every diagram was blank, reported as a success. The guard script now treats pandoc's *Missing character* warnings as failures.
 
@@ -457,6 +461,7 @@ Whether the frozen selection overlay confuses users has not been observed. One p
 - Render and proofread the man page. `docs/snipmov.1.scd` has never been passed through `scdoc`; the EXIT STATUS section uses scdoc's table syntax and is the most likely thing to be wrong.
 - Time the client-side darken on the 2880×1920 panel with `snipmov -v` and implement the stipple fallback if it exceeds 80 milliseconds.
 - Wire both harness scripts into a `make check` target and a CI workflow. They require `Xvfb`, `xdotool`, `xmessage`, `ffmpeg`, and ImageMagick, all available in standard runner images.
+- Make the config template test fail when a field exists in `config.File` but has no template entry, via reflection over the TOML tags. The template is a Go string constant and can otherwise drift from the defaults it claims to document.
 - Add a test for the `--max-length` safety cap. The path where a capture is stopped by the cap and then still encodes correctly is currently unexercised.
 - Re-run the encoder benchmark against a fixed synthetic source rather than the live screen, so the absolute numbers become reproducible and regression-testable.
 
@@ -485,4 +490,5 @@ Measure the claim before writing it down, and validate everything you can before
 - `snipmov region`: select a rectangle, print it as `WxH+X+Y`, and exit, so one selection can drive several commands.
 - `snipmov stop`: stop the running recording.
 - `snipmov doctor`: report the display, `ffmpeg`, the optional helpers, the config path, and the remembered region.
+- `snipmov config init`: write a fully commented configuration file with every key set to its built-in default, so it changes nothing until edited and doubles as the schema. `config path` and `config show` cover the other two things people want from it.
 - `snipmov ... --dry-run`: print the shell-quoted `ffmpeg` command lines and exit.
