@@ -19,7 +19,7 @@ repo: /home/manuel/code/wesen/2026-08-25--vm-cpu-gatemate
 
 # MATE-16 VM CPU on the GateMateA1-EVB
 
-This project builds a bytecode virtual machine directly in FPGA logic on the Olimex GateMateA1-EVB. The target architecture is a stack-oriented teaching processor called MATE-16, specified by a course text kept in the repository at `sources/Building_a_VM_CPU_on_the_Olimex_GateMateA1-EVB.md`. The project uses only open-source tools: Yosys for synthesis, nextpnr-himbaechel for place and route, gmpack for bitstream construction, and openFPGALoader for board configuration. The project is at the end of Phase 5: the toolchain is installed, a blink design blinks on hardware, the instruction set contract and an executable reference model exist, the processor core passes 44 directed and differential tests against the model, a two-pass assembler emits golden byte vectors, and the full system runs assembled bytecode end-to-end in simulation with the `selftest` program reaching the `0x600D` signature and `hello` emitting "Hi" over a simulated UART. The next phase is FPGA implementation of the full `top` and hardware bring-up of the actual processor.
+This project builds a bytecode virtual machine directly in FPGA logic on the Olimex GateMateA1-EVB. The target architecture is a stack-oriented teaching processor called MATE-16, specified by a course text kept in the repository at `sources/Building_a_VM_CPU_on_the_Olimex_GateMateA1-EVB.md`. The project uses only open-source tools: Yosys for synthesis, nextpnr-himbaechel for place and route, gmpack for bitstream construction, and openFPGALoader for board configuration. The full MATE-16 system runs on the board: a bytecode-driven LED blinks, the onboard UART carries bytes to the host over `/dev/ttyACM0` (verified end-to-end with `hello.asm` emitting "Hi"), and a Morse-from-ROM program reads a message and lookup table from ROM as data via the `LDB` extension and blinks plus serial-emits it. The remaining Phase 6 items are the requirements-verification matrix and the randomized-with-seeds differential campaign.
 
 > [!summary]
 > The project has four identities that determine how work proceeds:
@@ -36,7 +36,7 @@ The project exists because the difference between these three implementations is
 
 ## Current project status
 
-The repository has completed Phase 6. The full MATE-16 processor system synthesizes, places, routes, packs, loads, and runs on the GateMateA1-EVB. A bytecode-driven LED blinks on the board, and the blinking is caused by MATE-16 instructions (`lit; out 0x00` toggling `GPIO_OUT` bit 0 in a loop), not by a hardware counter. The board pinout for the onboard UART and the buttons has been researched and verified against the Cologne Chip datasheet. The remaining Phase 6 items are the requirements-verification matrix, the randomized-with-seeds differential campaign, and the full engineering report polish.
+The repository has completed Phase 6 and confirmed the serial interface end-to-end on hardware. The full MATE-16 processor system synthesizes, places, routes, packs, loads, and runs on the GateMateA1-EVB. A bytecode-driven LED blinks on the board, and the blinking is caused by MATE-16 instructions (`lit; out 0x00` toggling `GPIO_OUT` bit 0 in a loop), not by a hardware counter. The onboard UART works on the host: `hello.asm` emits "Hi" and the bytes arrive on `/dev/ttyACM0` at 115200 8-N-1 through the DirtyJTAG CDC bridge — no custom RP2040 firmware needed. The board pinout for the onboard UART and the button has been researched and verified against the Cologne Chip datasheet and the litex-boards platform file. The remaining Phase 6 items are the requirements-verification matrix and the randomized-with-seeds differential campaign.
 
 What already exists:
 
@@ -51,16 +51,21 @@ What already exists:
 - a full synthesis + place-and-route + bitstream flow for the processor system: 3,552 LUTs (8.7%), 1,095 FFs, 1 BRAM block, timing PASS at 10 MHz with a 20.63 MHz post-route margin
 - a bytecode-driven LED demonstrated on hardware (acceptance A14), loaded via a unified assemble→simulate→synthesize→place→pack→load harness
 - 14 probe, analyzer, and build scripts in the ticket `scripts/` folder that found, guard, and build the design
-- the board's Rev.C schematic (PDF, extracted text, and the clean KiCad `.kicad_sch`), user manual, and the Cologne Chip datasheet saved to `sources/board/`, with a verified pin reference for the onboard UART (`IO_SA_A6`/`IO_SA_B6` through the RP2040) and the user button (FPGA_BUT1 silkscreen → net `FPGA_BUT` → `IO_EA_B3`, active-low)
+- the board's Rev.C schematic (PDF, extracted text, and the clean KiCad `.kicad_sch`), user manual, the Cologne Chip datasheet, and the litex-boards platform file saved to `sources/board/`, with a verified pin reference for the onboard UART (`IO_SA_B6`/`IO_SA_A6` through the RP2040, confirmed end-to-end on `/dev/ttyACM0`) and the user button (FPGA_BUT1 silkscreen → `IO_SB_B7`, active-low)
 - the user button and onboard UART pins wired into `top.sv` with a 2-flop synchronizer (§3.10.1) and an active-low inversion, a `button.asm` mirror program, and button system tests
 - a detailed intern onboarding guide (design-doc 02) covering the whole system, uploaded to reMarkable
 
 What does not yet exist:
 
 - the requirements-verification matrix, the assertion suite, and the randomized-with-seeds differential campaign
-- an RP2040 firmware build that bridges the onboard UART to USB CDC (the pin side is wired and constrained; the firmware side is the open instructor-deferred piece)
-- hardware confirmation that the button mirror behaves correctly on the board (the pin and polarity are corrected to `IO_EA_B3` active-low, but the on-board observation is not yet confirmed — see "Button pin correction" below)
+- hardware confirmation that the button mirror behaves correctly on the board (the pin is corrected to `IO_SB_B7` active-low per the litex-boards platform file, but the on-board observation is not yet confirmed)
 - the final engineering report polish (a draft exists in `mate16/docs/final-report.md`)
+
+What has been confirmed on hardware (no longer open):
+
+- the onboard UART works end-to-end: `hello.asm` emits "Hi" and the bytes arrive on `/dev/ttyACM0` at 115200 8-N-1 through the DirtyJTAG CDC bridge — no custom RP2040 firmware needed (the DirtyJTAG build already exposes the CDC interfaces alongside JTAG)
+- a bytecode-driven LED blinks on the board (acceptance A14)
+- the full system fits in ~9% of the CCGM1A1 and meets the 10 MHz timing with a 22 MHz margin
 
 
 ## Project shape
@@ -408,13 +413,13 @@ With `LDB`, `scripts/13-gen-morse-rom.py` generates a program that stores the me
 
 The textbook intentionally does not hard-code a UART pin or a button pin (§3.11, §3.10.1); it defers those to the instructor because board revisions, bank settings, and classroom adapters differ. To make the hardware bring-up concrete, the board's authoritative sources were downloaded with `defuddle` and `curl` into `sources/board/`: the Olimex GitHub repository README and product page, the onboard-UART forum thread, the Rev.C user manual (PDF and extracted text), the Rev.C schematic (PDF and text), and the Cologne Chip GateMate datasheet (PDF and text). The pin assignments were then verified against the datasheet's package-pin-to-IO-bank table rather than assumed from the schematic.
 
-The key finding is that the board has an **onboard UART through the RP2040** that needs no external wiring. The RP2040's GPIO12 and GPIO13 are wired to two FPGA pins, and the RP2040 can present them as a USB CDC serial port over the same USB-C cable used for programming. The datasheet pinout table confirms the mapping: package pin `R9` is `IO_SA_A6` (the `DBG-UART_TX` net, FPGA transmits to the RP2040) and package pin `T9` is `IO_SA_B6` (the `DBG-UART_RX` net, FPGA receives from the RP2040). So the constraint is `Pin_out uart_tx_pin Loc = IO_SA_A6` and `Pin_in uart_rx_pin Loc = IO_SA_B6`. The one remaining piece is RP2040 firmware that bridges GPIO12/GPIO13 to USB CDC; the stock `pico-dirty-jtag` firmware used for JTAG programming may not do this by default, which is the open instructor-deferred piece.
+The key finding is that the board has an **onboard UART through the RP2040** that needs no external wiring. The RP2040's GPIO12 and GPIO13 are wired to two FPGA pins, and the RP2040 presents them as a USB CDC serial port over the same USB-C cable used for programming. The authoritative pin map is the litex-boards `olimex_gatemate_a1_evb.py` platform file (saved to `sources/board/`), which names tx/rx from the host perspective: `uart_tx_pin` = `IO_SA_B6` (FPGA transmits) and `uart_rx_pin` = `IO_SA_A6` (FPGA receives). LiteX also confirms `user_led_n=IO_SB_B6` and `clk0=IO_SB_A8`, which match the working Phase 1 pins, so the source is trustworthy. **The serial interface is confirmed end-to-end on the host:** `hello.asm` emits "Hi" and the bytes arrive on `/dev/ttyACM0` at 115200 8-N-1 through the DirtyJTAG CDC bridge — the DirtyJTAG firmware already exposes the CDC interfaces alongside JTAG, so no custom RP2040 firmware is needed and there is no risk to FPGA comms (JTAG and UART are separate CDC interfaces on separate pins). The experiment is automated by `scripts/14-find-uart.py`.
 
-The user button (silkscreen **FPGA_BUT1**, next to the reset buttons FPGA_RST1/RP_RST1/RP_BOOT1) connects via net `FPGA_BUT` to FPGA pin **`IO_EA_B3`** (package K15, 1st GPIO east bank signal B3). The board has four buttons; the other three are resets. The button is **active-low** (push-to-GND with a pull-up and a 100nF debounce capacitor C89): pressed reads 0, released reads 1. The RTL inverts after the 2-flop synchronizer so `GPIO_IN` bit 0 is 1 when pressed. A program reads it with `IN 0x01`.
+The user button (silkscreen **FPGA_BUT1**, next to the reset buttons FPGA_RST1/RP_RST1/RP_BOOT1) is wired to FPGA pin **`IO_SB_B7`** (the litex-boards `user_btn_n` mapping, active-low). The board has four buttons; the other three are resets. The button is **active-low** (push-to-GND with a pull-up): pressed reads 0, released reads 1. The RTL inverts after the 2-flop synchronizer so `GPIO_IN` bit 0 is 1 when pressed. A program reads it with `IN 0x01`.
 
 ### Button pin correction
 
-The first wiring attempt used `IO_EA_B7`, which is a *different* net, not the button. The layout-extracted PDF text jumbled the schematic columns and mis-assigned the pin. The correction came from the clean KiCad schematic file (`GateMateA1-EVB_Rev_C.kicad_sch`, which is plain text): the `FPGA_BUT` label sits at the button's y-coordinate (271.78), with an `EA_B3` label at the same y to its left. The lesson is narrow and worth recording: a layout-extracted PDF is not a reliable pin-assignment source; the KiCad `.kicad_sch` is. The CCF now reads `Pin_in "fpga_but" Loc = "IO_EA_B3"`, and `top.sv` inverts (`but_sync = ~but_sync_raw`). The corrected bitstream is loaded; the on-board observation (LED mirrors the button) is the remaining confirmation.
+The button pin took three attempts. The first used `IO_EA_B7` (guessed from the jumbled layout-extracted PDF text). The second used `IO_EA_B3` (mis-traced from the KiCad schematic — the `FPGA_BUT` net label shared a y-coordinate with an unrelated `EA_B3` label). The correct pin, `IO_SB_B7`, came from the user and was confirmed by the litex-boards platform file, which cross-validates against the working LED and clock pins. The lesson is narrow and worth recording: a layout-extracted PDF and even clean KiCad-by-coordinate tracing are error-prone; a published platform file that already maps the board resources is the reliable source. The CCF now reads `Pin_in "fpga_but" Loc = "IO_SB_B7"`, and `top.sv` inverts (`but_sync = ~but_sync_raw`).
 
 ### The intern onboarding guide
 
@@ -451,8 +456,8 @@ The current state of the requirements-acceptance mapping (§4.19):
 | A10 | I/O suite | GPIO + UART byte in `test_sys_gpio_out`, `test_sys_uart_byte` |
 | A11 | Differential | 44 RTL tests show zero model/RTL divergence |
 | A12 | System self-test | `selftest` reaches `0x600D` |
-| A13 | Timing | Phase 1 blink 201.86 MHz; processor timing pending Phase 6 |
-| A14 | Hardware LED | Phase 1 blink blinks; bytecode-driven LED pending Phase 6 |
+| A13 | Timing | Phase 1 blink 201.86 MHz; full system 22.05 MHz (8.7% LUTs) — PASS |
+| A14 | Hardware LED | bytecode-driven LED blinks on the board ✓; button mirror pending confirmation |
 | A15 | Reproduction | README + Makefile + version manifest in place |
 
 ## Important project docs
@@ -460,26 +465,26 @@ The current state of the requirements-acceptance mapping (§4.19):
 - `/home/manuel/code/wesen/2026-08-25--vm-cpu-gatemate/sources/Building_a_VM_CPU_on_the_Olimex_GateMateA1-EVB.md` — the course text, the single source of truth for the architecture
 - `ttmp/2026/08/25/MATE16-VM-CPU--.../design-doc/01-mate-16-vm-cpu-implementation-plan-and-phases.md` — the seven-phase plan with decision records and exit criteria
 - `ttmp/2026/08/25/MATE16-VM-CPU--.../design-doc/02-mate-16-system-intern-onboarding-guide.md` — the intern onboarding guide (also on reMarkable)
-- `ttmp/2026/08/25/MATE16-VM-CPU--.../reference/01-investigation-diary.md` — the chronological investigation diary (Steps 1-8)
+- `ttmp/2026/08/25/MATE16-VM-CPU--.../reference/01-investigation-diary.md` — the chronological investigation diary (Steps 1-9)
 - `ttmp/2026/08/25/MATE16-VM-CPU--.../playbook/01-install-oss-cad-suite-toolchain.md` — the verified toolchain install procedure
-- `ttmp/2026/08/25/MATE16-VM-CPU--.../scripts/` — 14 probe, analyzer, and build scripts (01-12)
+- `ttmp/2026/08/25/MATE16-VM-CPU--.../scripts/` — 14 probe, analyzer, build, and UART-finder scripts (01-14)
 - `mate16/Makefile` — `versions`, `test`, `asm`, `sim`, `synth`, `pnr`, `bit`, `load`, `clean`
 - `mate16/build/tool-versions.txt` — the recorded toolchain version manifest
 - `mate16/docs/final-report.md` — the engineering report draft
-- `sources/board/` — the Rev.C schematic (PDF, text, KiCad `.kicad_sch`), user manual, Cologne Chip datasheet, and verified pin reference
+- `mate16/README.md` — the project README (quick-start, ISA, verification, hardware, pins)
+- `sources/board/` — the Rev.C schematic (PDF, text, KiCad `.kicad_sch`), user manual, Cologne Chip datasheet, litex-boards platform file, and verified pin reference
 
 ## Open questions
 
-- Is the board the standard variant or the `-2M` variant with populated FPGA configuration flash? The answer determines whether `openFPGALoader -f` can write persistent configuration.
-- The onboard UART pins are wired and constrained (`IO_SA_A6`/`IO_SA_B6` through the RP2040), but the RP2040 firmware must bridge GPIO12/GPIO13 to USB CDC for a host to see the bytes. The stock `pico-dirty-jtag` firmware may not do this; a UART-enabled RP2040 build (or the UEXT pins with a USB-serial adapter) is the remaining piece.
-- The user button pin is corrected to `IO_EA_B3` (active-low, inverted in RTL) and the bitstream is loaded, but the on-board observation is not yet confirmed — pressing FPGA_BUT1 should light the LED. If it does not, the next debug step is to confirm the EA bank voltage and re-trace the button net from the KiCad schematic with the user.
+- Is the board the standard variant or the `-2M` variant with populated FPGA configuration flash? The answer determines whether `openFPGALoader -f` can write persistent configuration (the bitstream is volatile by default).
+- The user button pin is corrected to `IO_SB_B7` (active-low, inverted in RTL) and the bitstream is loaded, but the on-board observation is not yet confirmed — pressing FPGA_BUT1 should light the LED.
 - Should the optional `BREAK` opcode (`0xF0`) be implemented in the baseline, or left illegal until a debug need appears? The default is to leave it illegal.
 - The hardware build uses reduced stack depths (32/16) because async-read stacks infer DFFs, not BRAM. A Phase 7 TOS-cache extension (§4.22.1) would let the stacks infer BRAM and restore full depth at lower LUT cost.
 
 ## Near-term next steps
 
-- Confirm the button mirror on hardware (press FPGA_BUT1 → LED lights); if it does not, re-trace the button net from the KiCad schematic and confirm the EA bank voltage.
-- Build/flash an RP2040 CDC firmware bridge (or use UEXT + a USB-serial adapter) and demonstrate `hello.asm` over the onboard UART.
+- Confirm the button mirror on hardware (press FPGA_BUT1 → LED lights); the pin is now `IO_SB_B7` (LiteX-verified, active-low).
+- Watch the Morse-from-ROM message stream on `/dev/ttyACM0` while the LED blinks the Morse (the onboard UART is confirmed end-to-end).
 - Add the requirements-verification matrix, the assertion suite (pointer bounds, request stability, terminal quiescence, retirement discipline), and a randomized-with-seeds differential campaign (§4.7) varying target latency 0-10 cycles, to close acceptance A11 (differential) formally with recorded seeds.
 - Polish the engineering report (`mate16/docs/final-report.md`) with the Phase 6 hardware evidence and the bug diary, and demonstrate acceptance A15 (reproducible by another person).
 
