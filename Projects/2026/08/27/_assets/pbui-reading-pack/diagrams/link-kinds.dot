@@ -1,0 +1,25 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="white", pad=0.2, nodesep=0.55, ranksep=0.55, fontname="DejaVu Sans"];
+  node [shape=box, style="filled", color="#23262b", penwidth=1.5, fontname="DejaVu Sans", fontsize=10, margin="0.13,0.08"];
+  edge [penwidth=2, arrowsize=0.75, fontname="DejaVu Sans", fontsize=9];
+  subgraph cluster_follow {
+    label="Directed follow"; color="#d9d9d4"; style="rounded";
+    a [label="A.order\nsource binding", fillcolor="#e7f4ec"];
+    b [label="B.order\nFollow(A.order)", fillcolor="#fbe9e4"];
+    a -> b [label="  ->  ", color="#c2503a"];
+  }
+  subgraph cluster_identity {
+    label="Shared identity"; color="#d9d9d4"; style="rounded";
+    p [label="P.selection", fillcolor="#e9e5f5"];
+    q [label="Q.selection", fillcolor="#e9e5f5"];
+    cell [shape=ellipse, label="binding class sigma\none resource", fillcolor="#fdeec6"];
+    p -> cell [dir=none, label="q(p)", color="#a99fc9"];
+    q -> cell [dir=none, label="q(q)", color="#a99fc9"];
+  }
+  subgraph cluster_derived {
+    label="Derived relation"; color="#d9d9d4"; style="rounded";
+    o [label="order context alpha", fillcolor="#e4f0f7"];
+    u [label="author context beta\nDerived(alpha, order.author)", fillcolor="#edf3e8"];
+    o -> u [label="order.author", color="#3f9d6b", style="dashed"];
+  }
+}

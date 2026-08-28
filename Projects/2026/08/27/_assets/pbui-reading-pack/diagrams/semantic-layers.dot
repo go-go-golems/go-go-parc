@@ -1,0 +1,22 @@
+digraph G {
+  graph [rankdir=TB, bgcolor="white", pad=0.2, nodesep=0.35, ranksep=0.45, fontname="DejaVu Sans"];
+  node [shape=box, style="filled", color="#23262b", penwidth=1.6, fontname="DejaVu Sans", fontsize=11, margin="0.15,0.09"];
+  edge [color="#596068", penwidth=1.4, arrowsize=0.7, fontname="DejaVu Sans", fontsize=9];
+
+  user [label="User gesture\n(click, menu, drag, accept)", fillcolor="#fdeec6"];
+  present [label="Presentation layer\ntyped reference + object menu", fillcolor="#e7f4ec"];
+  action [label="Action-selection kernel\nintent, applicability, ambiguity, verb", fillcolor="#e9e5f5"];
+  route [label="Target / placement resolver\nexisting input, context group, or new tile", fillcolor="#fbe9e4"];
+  binding [label="Binding graph\nAmbient | Constant | Follow | Alias | Derived | Hold", fillcolor="#e4f0f7"];
+  runtime [label="Runtime resources\ncontext cells, quotient classes, reactive projections", fillcolor="#edf3e8"];
+  domain [label="Product-owned domain state and effect boundary", fillcolor="#f1f1ee"];
+
+  user -> present;
+  present -> action [label="semantic subject"];
+  action -> route [label="show / connect / place intent"];
+  route -> binding [label="committed binding edit"];
+  binding -> runtime [label="compile / evaluate"];
+  runtime -> domain [label="read / write through contracts"];
+  domain -> runtime [label="revisioned updates"];
+  runtime -> present [label="rendered projections", constraint=false];
+}

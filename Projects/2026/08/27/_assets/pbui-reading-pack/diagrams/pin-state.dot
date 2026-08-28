@@ -1,0 +1,12 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="white", pad=0.2, nodesep=0.6, ranksep=0.5, fontname="DejaVu Sans"];
+  node [shape=box, style="rounded,filled", color="#23262b", penwidth=1.6, fontname="DejaVu Sans", fontsize=11, margin="0.18,0.1"];
+  edge [color="#596068", penwidth=1.5, arrowsize=0.75, fontname="DejaVu Sans", fontsize=9];
+  follow [label="Follow(source)\nvalue tracks source", fillcolor="#e4f0f7"];
+  hold [label="Hold(value, resume=Follow(source))\nvalue frozen; provenance retained", fillcolor="#fdeec6"];
+  fixed [label="Constant(value)\nno suspended source", fillcolor="#f1f1ee"];
+  follow -> hold [label="Pin: capture current value"];
+  hold -> follow [label="Resume: restore binding and catch up"];
+  hold -> fixed [label="Detach permanently"];
+  fixed -> follow [label="Follow source..."];
+}
