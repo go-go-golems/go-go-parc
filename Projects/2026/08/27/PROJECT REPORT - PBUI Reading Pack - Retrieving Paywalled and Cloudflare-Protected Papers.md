@@ -42,6 +42,9 @@ The retrieved reading pack and the original research report are mirrored into th
 - `_assets/pbui-reading-pack/papers/ISSUES.md` — the 9 entries with no open-access copy and the suggested follow-ups.
 - `_assets/pbui-reading-pack/papers/paper-index.md` — the grouped reading guide explaining how each source contributes to the report.
 
+> [!tip] Download links for the PDFs
+> The published-site file browser indexes only Markdown notes, so these PDFs are hidden in the tree. Explicit per-paper download links (with title, year, venue, and a `/vault-assets/` URL that serves `application/pdf`) are in [[PROJECT REPORT - PBUI Linked Tiles - Interaction Models, Formal Semantics, and an Architecture for Routing, Binding, and Coordination#Download the report and the retrieved papers]].
+
 The same set is also uploaded to the reMarkable cloud at `/ai/2026/08/27/PAPERS-DL` (the 32 papers plus the research report PDF, via `remarquee cloud put`).
 
 ## The problem this work addresses

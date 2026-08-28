@@ -30,6 +30,108 @@ This is the original PBUI linked-tiles research report that is the subject of th
 
 ---
 
+## Download the report and the retrieved papers
+
+The file browser on the published site indexes only notes (Markdown). The PDFs below are served as vault assets and are not listed in the tree, so this section gives explicit download links. Each link resolves to a `application/pdf` byte stream under `/vault-assets/`; right-click → Save Link As… to download, or open in a new tab to read in the browser.
+
+> [!note] Why these are not in the file browser
+> publish-vault's loader (`pkg/vault/vault.go`) indexes only `.md` files, so PDFs never enter the file tree or note index. The `/vault-assets/` handler (`pkg/server/server.go`) serves any non-`.md`, non-ignored file from the vault root by vault-relative path, which is how these PDFs are reachable even though they are hidden in the file browser.
+
+### The report
+
+- **[Linked Tiles in Presentation-Based User Interfaces — full report PDF (1252 KB)](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/linked-tiles-research-report.pdf)** — the rendered research report this note reproduces in Markdown.
+
+- [Report source Markdown (`linked-tiles-research-report.md`)](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/linked-tiles-research-report.md) — the editable source, with figures under `diagrams/` and `screenshots/`.
+
+
+### Retrieved open-access papers (32)
+
+Personal-research-use copies retrieved by the methods in [[PROJECT REPORT - PBUI Reading Pack - Retrieving Paywalled and Cloudflare-Protected Papers]]. Reuse rights remain those of each source publisher/author.
+
+
+#### Coordinated and multiple views
+
+| key | year | title | venue | PDF |
+|-----|------|-------|-------|-----|
+| `ahlberg1994visual` | 1994 | Visual Information Seeking: Tight Coupling of Dynamic Query Filters with Starfield Displays | Proceedings of the SIGCHI Conference on Human Factors in Computing Systems | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/ahlberg1994visual.pdf) |
+| `baldonado2000guidelines` | 2000 | Guidelines for Using Multiple Views in Information Visualization | Proceedings of the Working Conference on Advanced Visual Interfaces | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/baldonado2000guidelines.pdf) |
+| `boukhelifa2003coordination` | 2003 | A Coordination Model for Exploratory Multi-View Visualization | Proceedings of the International Conference on Coordinated and Multiple Views in Exploratory Visualization | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/boukhelifa2003coordination.pdf) |
+| `cockburn2009review` | 2009 | A Review of Overview+Detail, Zooming, and Focus+Context Interfaces | ACM Computing Surveys | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/cockburn2009review.pdf) |
+| `heer2012dynamics` | 2012 | Interactive Dynamics for Visual Analysis | Communications of the ACM | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/heer2012dynamics.pdf) |
+| `heer2024mosaic` | 2024 | Mosaic: An Architecture for Scalable and Interoperable Data Views | IEEE Transactions on Visualization and Computer Graphics | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/heer2024mosaic.pdf) |
+| `north1997taxonomy` | 1997 | A Taxonomy of Multiple Window Coordinations | Department of Computer Science, University of Maryland | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/north1997taxonomy.pdf) |
+| `north2000snap` | 2000 | Snap-Together Visualization: A User Interface for Coordinating Visualizations via Relational Schemata | Proceedings of the Working Conference on Advanced Visual Interfaces | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/north2000snap.pdf) |
+| `roberts2007cmv` | 2007 | State of the Art: Coordinated and Multiple Views in Exploratory Visualization | Proceedings of the International Conference on Coordinated and Multiple Views in Exploratory Visualization | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/roberts2007cmv.pdf) |
+
+#### Direct manipulation and interaction instruments
+
+| key | year | title | venue | PDF |
+|-----|------|-------|-------|-----|
+| `beaudouinlafon2000instrumental` | 2000 | Instrumental Interaction: An Interaction Model for Designing Post-WIMP User Interfaces | Proceedings of the SIGCHI Conference on Human Factors in Computing Systems | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/beaudouinlafon2000instrumental.pdf) |
+| `beaudouinlafon2000reification` | 2000 | Reification, Polymorphism and Reuse: Three Principles for Designing Visual Interfaces | Proceedings of the Working Conference on Advanced Visual Interfaces | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/beaudouinlafon2000reification.pdf) |
+| `hutchins1986direct` | 1986 | Direct Manipulation Interfaces | User Centered System Design: New Perspectives on Human-Computer Interaction | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/hutchins1986direct.pdf) |
+| `shneiderman1983direct` | 1983 | Direct Manipulation: A Step Beyond Programming Languages | Computer | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/shneiderman1983direct.pdf) |
+
+#### Bidirectional transformations, identity, and update
+
+| key | year | title | venue | PDF |
+|-----|------|-------|-------|-----|
+| `bohannon2006relational` | 2006 | Relational Lenses: A Language for Updatable Views | Proceedings of the Twenty-Fifth ACM SIGMOD-SIGACT-SIGART Symposium on Principles of Database Systems | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/bohannon2006relational.pdf) |
+| `czarnecki2009bx` | 2009 | Bidirectional Transformations: A Cross-Discipline Perspective | Theory and Practice of Model Transformations | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/czarnecki2009bx.pdf) |
+| `foster2005lenses` | 2005 | Combinators for Bidirectional Tree Transformations: A Linguistic Approach to the View-Update Problem | Proceedings of the 32nd ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/foster2005lenses.pdf) |
+| `tarjan1975unionfind` | 1975 | Efficiency of a Good But Not Linear Set Union Algorithm | Journal of the ACM | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/tarjan1975unionfind.pdf) |
+
+#### Constraint and propagator models
+
+| key | year | title | venue | PDF |
+|-----|------|-------|-------|-----|
+| `borning1981thinglab` | 1981 | The Programming Language Aspects of ThingLab, a Constraint-Oriented Simulation Laboratory | ACM Transactions on Programming Languages and Systems | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/borning1981thinglab.pdf) |
+
+#### Declarative interaction and reactive dataflow
+
+| key | year | title | venue | PDF |
+|-----|------|-------|-------|-----|
+| `elliott1997fran` | 1997 | Functional Reactive Animation | Proceedings of the Second ACM SIGPLAN International Conference on Functional Programming | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/elliott1997fran.pdf) |
+| `johnston2004dataflow` | 2004 | Advances in Dataflow Programming Languages | ACM Computing Surveys | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/johnston2004dataflow.pdf) |
+| `lee1995dataflow` | 1995 | Dataflow Process Networks | Proceedings of the IEEE | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/lee1995dataflow.pdf) |
+| `maier2010observer` | 2010 | Deprecating the Observer Pattern | EPFL | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/maier2010observer.pdf) |
+| `satyanarayan2014declarative` | 2014 | Declarative Interaction Design for Data Visualization | Proceedings of the 27th Annual ACM Symposium on User Interface Software and Technology | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/satyanarayan2014declarative.pdf) |
+| `satyanarayan2016reactive` | 2016 | Reactive Vega: A Streaming Dataflow Architecture for Declarative Interactive Visualization | IEEE Transactions on Visualization and Computer Graphics | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/satyanarayan2016reactive.pdf) |
+| `satyanarayan2017vegalite` | 2017 | Vega-Lite: A Grammar of Interactive Graphics | IEEE Transactions on Visualization and Computer Graphics | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/satyanarayan2017vegalite.pdf) |
+
+#### Window/workspace organization
+
+| key | year | title | venue | PDF |
+|-----|------|-------|-------|-----|
+| `henderson1986rooms` | 1986 | Rooms: The Use of Multiple Virtual Workspaces to Reduce Space Contention in a Window-Based Graphical User Interface | ACM Transactions on Graphics | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/henderson1986rooms.pdf) |
+| `kandogan1997elastic` | 1997 | Elastic Windows: Evaluation of Multi-Window Operations | Proceedings of the SIGCHI Conference on Human Factors in Computing Systems | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/kandogan1997elastic.pdf) |
+| `robertson2000taskgallery` | 2000 | The Task Gallery: A 3D Window Manager | Proceedings of the SIGCHI Conference on Human Factors in Computing Systems | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/robertson2000taskgallery.pdf) |
+
+#### Visual notation and cognitive analysis
+
+| key | year | title | venue | PDF |
+|-----|------|-------|-------|-----|
+| `larkin1987diagram` | 1987 | Why a Diagram Is (Sometimes) Worth Ten Thousand Words | Cognitive Science | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/larkin1987diagram.pdf) |
+
+#### PBUI and presentation-based interaction
+
+| key | year | title | venue | PDF |
+|-----|------|-------|-------|-----|
+| `moore2008clim` | 2008 | An Implementation of CLIM Presentation Types | Journal of Universal Computer Science | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/moore2008clim.pdf) |
+| `rao1991clim` | 1991 | A Guided Tour of the Common Lisp Interface Manager | Lisp Pointers | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/rao1991clim.pdf) |
+
+#### Recent formal and architectural work
+
+| key | year | title | venue | PDF |
+|-----|------|-------|-------|-----|
+| `petrlikova2026vega` | 2026 | Formal Semantics and Type System for Vega Data Transformations | arXiv preprint arXiv:2606.15013 | [PDF](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/petrlikova2026vega.pdf) |
+
+### Supporting context
+
+- [papers/ISSUES.md — the 9 papers with no open-access copy and follow-ups](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/ISSUES.md) (served as a vault asset; not in the note tree because it lives under `_assets/`).
+- [papers/paper-index.md — grouped reading guide for every cited source](https://parc.yolo.scapegoat.dev/vault-assets/Projects/2026/08/27/_assets/pbui-reading-pack/papers/paper-index.md).
+
+---
 
 # Abstract
 
