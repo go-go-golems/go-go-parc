@@ -186,17 +186,17 @@ Disruption is reported with four numbers — tiles moved, total displacement (pe
 2. **Policy gating.** A profile (CAREFUL / BALANCED / TIDY / ANYTHING) declares which tiers are allowed and what budgets apply. Out-of-policy proposals stay visible, greyed, with the reason attached ("outside policy: rebuilds the layout") — hiding them would make the system's restraint unexplainable.
 3. **One recommendation.** Among in-policy proposals achieving the slate's minimum violation count, the lowest `polScore = w_move·disp/1000 + w_struct·tier + w_aspect·ln(worstAspect) + 12·viol` wins the PICK badge. The measured tier entering the score directly is what lets CAREFUL prefer a mediocre weight repair over an excellent restructuring without any strategy knowing that policies exist.
 
-![[pbui-rebalance-broken-story.png]]
+![[pbui-rebalance/pbui-rebalance-broken-story.png]]
 
 The dialog itself (Mod+Shift+K; the second entry in a shortcut route table whose header comment had explicitly reserved space for it) renders the slate as tier-ordered cards. Each card carries an SVG thumbnail: identity hues per tile — derived with `color-mix` from the family's design tokens, because the package forbids color literals — a danger stroke on still-violating tiles, and dashed ghost rectangles with trail lines from where the four biggest movers sit today to where the proposal puts them. Applying goes through the workbench's `plan`/`applyPlan`: the verb batch is preflighted against a shadow store, committed atomically, and refused cleanly if the document changed underneath. A plain click on a card applies it and closes the dialog; Shift+click applies but keeps the dialog open, which is the path that arms the single-level Undo.
 
-![[pbui-rebalance-after-apply.png]]
+![[pbui-rebalance/pbui-rebalance-after-apply.png]]
 
 ### Structural repair and the WorkspaceSetTree mutation
 
 Structurally infeasible layouts need tree changes, and two engines provide them. RESHAPE is a greedy hill-climb over local mutations — transpose, rotate, reverse, adjacent swap, and regroup, which wraps k consecutive children of a split in a perpendicular sub-split and is the move that converts an impossible strip into a feasible grid. Every candidate is settled with a PROJECT pass before scoring, so topologies are compared on their merits rather than on unsettled weights; this is the single most consequential detail in the search. REBUILD generates a fresh target shape (grid, master, columns, dwindle) over placeholder slots and seats the existing tiles by a minimum-cost assignment (the O(n³) Hungarian algorithm over center distance plus a size term), so windows land near where they were even though every rectangle changed.
 
-![[pbui-rebalance-lab-skinnycol.png]]
+![[pbui-rebalance/pbui-rebalance-lab-skinnycol.png]]
 
 Applying a structural result required the project's one protocol change. The mutation vocabulary had no way to replace a workspace's tree wholesale, and expressing an arbitrary restructure as a sequence of dock/swap verbs would put tree-edit-distance complexity in the least testable place. The new mutation is small:
 
@@ -209,7 +209,7 @@ message WorkspaceSetTree {
 
 It is implemented with matching semantics in the TypeScript applier (`apply.ts`) and the Go applier (`pkg/workbench/mutation.go`), and two new fixtures joined the shared parity corpus that both test suites execute. Emission back to the protocol (`emitBinary`) preserves tile identity — leaf placements keep their ids and view references, because tiers, thumbnails, and focus restoration all key on them — while minting fresh split ids and computing each chain ratio in pixel space, clamped to the `[0.05, 0.95]` band the Go server's validator enforces.
 
-![[pbui-rebalance-lab-reshaped.png]]
+![[pbui-rebalance/pbui-rebalance-lab-reshaped.png]]
 
 The screenshot pair above shows the canonical structural case: a column of six tiles whose propagated requirement (490×1010) exceeds the workspace, every weight strategy honestly reporting "6 bad," and RESHAPE's accepted regroup taking the layout to zero violations in one move.
 
@@ -226,7 +226,7 @@ interface RebalanceConfigStore {
 
 The default implementation keeps the config inside the workbench document itself, as a `DocumentPayload` (`id: rebalance-config`, `format: pbui.rebalance-config`) written with the existing `documentPut` mutation — so it serializes, restores, and syncs wherever the document does, with no second persistence mechanism. A ready-made localStorage store (per-browser, cross-tab through the `storage` event) ships as the alternative, and a product with its own settings backend implements the two methods. The settings tile is a factory, `createRebalanceSettingsApp({ store })`, and the dialog accepts the same store as a prop; a test proves a custom in-memory store serves both while the document stays untouched. Profile switches deliberately preserve the constraint fields — the pixel floors describe the screen and the user's eyes, not a repair posture.
 
-![[pbui-rebalance-settings.png]]
+![[pbui-rebalance/pbui-rebalance-settings.png]]
 
 ### The gesture grammar: replace and placement mode
 
@@ -234,7 +234,7 @@ Two follow-up features extended the drop-zone system into a consistent spatial g
 
 The second: choosing an application in the global Ctrl+K launcher no longer places it at a guessed spot. The launcher closes and the choice is carried — the chrome's new `startTileCarry` publishes through the same module-level drag state under a sentinel id, so every tile's overlay machinery worked unchanged. Edges dock the new tile before or after the target (the protocol's `PlacementPosition.BEFORE` gained its first caller), the center splits the target's longer rendered side, and Alt means "show it in this tile instead" — the in-place replace that keeps the tile's identity. The committing click is intercepted in the capture phase, making the workspace a pure aiming surface for exactly one click; Enter takes the old default spot, preserving the fully keyboard-driven flow; Escape cancels; a refused drop (a target too small to split) re-arms the carry rather than silently ending the mode.
 
-![[pbui-rebalance-placement-mode.png]]
+![[pbui-rebalance/pbui-rebalance-placement-mode.png]]
 
 ```mermaid
 flowchart LR
@@ -250,7 +250,7 @@ flowchart LR
 
 The grammar that results is uniform: the same five zones, the same overlays, the same Alt meaning across both modes — a drag moves what exists, a carry places what was chosen, and Alt always means "take over that tile."
 
-![[pbui-rebalance-demo-app.png]]
+![[pbui-rebalance/pbui-rebalance-demo-app.png]]
 
 ### A failure mode worth recording: the divider-thickness bug
 
