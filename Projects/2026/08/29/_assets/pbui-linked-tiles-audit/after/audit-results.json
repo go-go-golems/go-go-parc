@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-08-29T16:22:50.637Z",
+  "method": "Playwright real pointer/keyboard interactions; fresh browser context and fresh page per scenario",
+  "total": 17,
+  "passed": 17,
+  "failed": 0,
+  "results": [
+    {"id":"index-links","status":"pass","evidence":"11 approach/integration links return HTTP 200"},
+    {"id":"01-drag-follow","status":"pass","evidence":{"binding":"→ α","detail":"#1037","event":"route"}},
+    {"id":"02-modifier-hold","status":"pass","evidence":{"binding":"HOLD #1037 · resume α","event":"pin"}},
+    {"id":"02-modifier-alias","status":"pass","evidence":{"binding":"≡ σ · shared #1042","event":"identity"}},
+    {"id":"02-modifier-derived","status":"pass","evidence":{"binding":"ρ order.author","event":"derive"}},
+    {"id":"03-popover-follow","status":"pass","evidence":"anchored, closed after choice, workspace still clickable"},
+    {"id":"03-popover-spawn","status":"pass","evidence":{"before":3,"after":4,"event":"spawn"}},
+    {"id":"04-drop-zone-spawn","status":"pass","evidence":{"before":3,"after":4,"event":"spawn"}},
+    {"id":"05-pie-hold","status":"pass","evidence":{"binding":"HOLD #1042 · resume α"}},
+    {"id":"05-pie-spawn","status":"pass","evidence":{"before":3,"after":4,"event":"spawn"}},
+    {"id":"06-palette-derived","status":"pass","evidence":{"binding":"ρ order.items · β","body":"Mechanical keyboard; Keycap set"}},
+    {"id":"07-hold-longpress","status":"pass","evidence":{"held":"HOLD #1042 · resume α","resumed":"→ α"}},
+    {"id":"08-ambient-pin","status":"pass","evidence":{"binding":"HOLD #1037 · resume α","detail":"#1037"}},
+    {"id":"09-wire-edit-hold","status":"pass","evidence":{"binding":"HOLD #1042 · resume α"}},
+    {"id":"09-wire-edit-derived","status":"pass","evidence":{"binding":"ρ order.author","event":"derive"}},
+    {"id":"10-unlink-policies","status":"pass","evidence":{"copy":"#1037/#1037","history":"#1037/#1057","reset":"#1042/#1051"}},
+    {"id":"combined-three-layers","status":"pass","evidence":{"ambientHeld":"HOLD #1037","dragHeld":"HOLD #1042","tiles":"4→5","authorBinding":"ρ order.author · β"}}
+  ]
+}

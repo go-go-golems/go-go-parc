@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-08-29T16:13:37.803Z",
+  "method": "Playwright real pointer/keyboard interactions in a fresh browser context",
+  "total": 17,
+  "passed": 7,
+  "failed": 10,
+  "results": [
+    {"id":"index-links","status":"pass"},
+    {"id":"01-drag-follow","status":"pass","evidence":{"binding":"→ α","detail":"#1037","event":"route"}},
+    {"id":"02-modifier-hold","status":"pass","evidence":{"binding":"HOLD #1037 · resume α","event":"pin"}},
+    {"id":"02-modifier-alias","status":"fail","error":"identity commit is not visible on the target port","evidence":{"event":"identity","binding":"HOLD #1042 · resume α"}},
+    {"id":"02-modifier-derived","status":"fail","error":"Derived commit is not visible on the target port","evidence":{"event":"derive","binding":"→ α"}},
+    {"id":"03-popover-follow","status":"pass"},
+    {"id":"03-popover-spawn","status":"fail","error":"spawn emitted a trace but did not create a tile","evidence":{"before":3,"after":3,"event":"spawn"}},
+    {"id":"04-drop-zone-spawn","status":"fail","error":"drop-zone spawn did not create a tile","evidence":{"before":3,"after":3,"event":"spawn"}},
+    {"id":"05-pie-hold","status":"pass","evidence":{"binding":"HOLD #1042 · resume α"}},
+    {"id":"05-pie-spawn","status":"fail","error":"pie Spawn emitted a trace but did not create a tile","evidence":{"before":3,"after":3,"event":"spawn"}},
+    {"id":"06-palette-derived","status":"fail","error":"clicking nested port content opened then immediately closed the palette"},
+    {"id":"07-hold-longpress","status":"pass","evidence":{"held":"HOLD #1042 · resume α","resumed":"→ α"}},
+    {"id":"08-ambient-pin","status":"fail","error":"pin froze fallback alpha instead of displayed hovered order","evidence":{"binding":"HOLD #1042 · resume α","detail":"#1042"}},
+    {"id":"09-wire-edit-hold","status":"pass","evidence":{"binding":"HOLD #1042 · resume α"}},
+    {"id":"09-wire-edit-derived","status":"fail","error":"trace says derive but port remains Follow","evidence":{"binding":"→ α","event":"derive"}},
+    {"id":"10-unlink-policies","status":"fail","error":"copy, history, and reset produced identical visible results","evidence":{"copy":"#1042/#1051","history":"#1042/#1051","reset":"#1042/#1051"}},
+    {"id":"combined-three-layers","status":"fail","error":"combined ambient pin froze the wrong order","evidence":{"binding":"HOLD #1042 · resume α"}}
+  ]
+}
