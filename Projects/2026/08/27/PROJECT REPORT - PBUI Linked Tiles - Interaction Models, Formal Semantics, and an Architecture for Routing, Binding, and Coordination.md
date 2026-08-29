@@ -2759,10 +2759,25 @@ linked-tiles-research-bundle/
     linked-tiles-research-report.md
     linked-tiles-research-report.pdf
   toy/
-    index.html
+    index.html            # full multi-tile model (overview/wiring/routing/conflict)
     styles.css
     app.js
     README.md
+    lib/                  # shared binding-model core (core.js) + base visuals (core.css)
+    approaches/            # one page per interaction pattern + combined group + index
+      index.html
+      08-ambient.html
+      01-drag-follow.html
+      02-modifiers.html
+      04-drop-zones.html
+      07-hold-longpress.html
+      09-wire-edit.html
+      10-unlink.html
+      03-popover.html
+      05-pie.html
+      06-palette.html
+      combined.html
+    screenshots/          # report screenshots for each approach page
   screenshots/
     01-overview.png
     02-wiring.png
@@ -2789,6 +2804,76 @@ linked-tiles-research-bundle/
 ```
 
 The toy needs only a static HTTP server. The report PDF is built with Pandoc and XeLaTeX using the included bibliography.
+
+# Appendix E. Interaction-approach prototypes and screenshots
+
+This appendix documents the executable per-pattern prototype pages built from the interaction analysis in the companion design guide (`ttmp/2026/08/28/PBUI-LINK-UI--pbui-linked-tiles-linking-interaction-design-and-implementation-guide/`). Each pattern is a single dependency-free HTML/CSS/JS page that mutates one shared binding model (`toy/lib/core.js`) — gestures are many; the binding model is one. The pages are grouped by the three-layer build order: **Substrate** (the always-on floor) → **Gesture surface** (the modal-killer) → **Pointer surface** (the accessibility mirror). All pages were verified in a browser via synthesized drag/drop/click/contextmenu/keyboard events; all 12 serve HTTP 200.
+
+The index page below links to every approach page and groups them by layer.
+
+![Index of all ten interaction-approach pages grouped by the three-layer build order (Substrate / Gesture / Pointer) with friction cost and build status per approach.](_assets/pbui-linked-tiles-approaches/index.png){width=100%}
+
+## E.1 Layer 1 — Substrate: Ambient attention following
+
+**Pattern 8.** Zero gestures. The detail is bound to `Ambient(workspace.order)` and shows whatever order row the cursor is over; a single pin freezes it into `Hold(#id, resume=Follow(α))` and resume returns to ambient. This is the floor: shipping it alone is a usable product, and it is what makes every other link feel optional.
+
+![Ambient substrate: the detail tracks the cursor over the order rows with no link drawn (mode readout AMBIENT · TRACKING).](_assets/pbui-linked-tiles-approaches/08-ambient-tracking.png){width=100%}
+
+![Pinning freezes the order under the cursor into Hold(#1037, resume=α); the suspended source is retained so unpin catches up.](_assets/pbui-linked-tiles-approaches/08-ambient-held.png){width=100%}
+
+![Resume returns the detail to ambient attention following; the dot indicates the cursor is tracking again.](_assets/pbui-linked-tiles-approaches/08-ambient-resumed.png){width=100%}
+
+## E.2 Layer 2 — Gesture surface: the modal-killer
+
+**Pattern 1 — Drag-to-link (Follow).** One gesture, zero choices. Drag the output port onto the detail's input port; the gesture *is* the `Follow(α)` binding. A rubber-band wire shows the link forming live.
+
+![Pattern 1: drag the output port onto the detail input; plain drop commits Follow(α) with a live rubber-band wire and badge.](_assets/pbui-linked-tiles-approaches/01-drag-follow.png){width=100%}
+
+**Pattern 2 — Modifier keys at drop time.** The same drag, but the modifier held at drop picks the binding term: none = `Follow`, Shift = `Hold`, Cmd/Ctrl = `Alias`, D = `Derived`. The badge and legend update live as keys change mid-drag.
+
+![Pattern 2: modifier keys select the binding term at drop; a live legend and badge show the current term as keys change mid-drag.](_assets/pbui-linked-tiles-approaches/02-modifiers.png){width=100%}
+
+**Pattern 4 — Drop-zones for spawn placement.** While dragging, ghosted strips appear on the right and bottom of every tile; drop on a strip to spawn a new Order Detail there. Placement is a spatial gesture; the binding term is still chosen by modifiers.
+
+![Pattern 4: ghosted right/bottom drop-zones on every tile while a drag is active; drop on a strip spawns a new detail at that placement.](_assets/pbui-linked-tiles-approaches/04-drop-zones.png){width=100%}
+
+**Pattern 6 — Relation command palette (Derived).** The one term that needs a relation id cannot be gestured — it must be searchable. Filter-as-you-type; Enter commits `Derived(α, relation-id)` or `Ambient(key)`. A fixed menu is an anti-pattern; this is the only scalable form.
+
+![Pattern 6: the relation command palette filters as you type; Enter commits Derived(α, relation) — the only scalable form for the Derived term.](_assets/pbui-linked-tiles-approaches/06-palette.png){width=100%}
+
+**Pattern 7 — Hold via long-press on the wire.** Long-press (450ms) the `Follow` wire to freeze it into `Hold(#id, resume=…)`; tap to resume. Provenance is visible, so the user trusts unpin will catch up.
+
+![Pattern 7: long-pressing the Follow wire shows a 'holding…' indicator before freezing into Hold; the wire becomes the handle for pin/resume.](_assets/pbui-linked-tiles-approaches/07-hold-longpress.png){width=100%}
+
+**Pattern 9 — Wire as the editable object.** Click a wire to select it; an inline editor at the midpoint switches Follow/Hold/Derived in place. Re-binding is the most common correction; fixing it at the connection beats re-opening a resolver.
+
+![Pattern 9: clicking the wire opens an inline editor at the midpoint to switch the binding term (Follow/Hold/Derived) in place; Delete unlinks.](_assets/pbui-linked-tiles-approaches/09-wire-edit.png){width=100%}
+
+**Pattern 10 — Unlink with split-init policy.** Unlinking an identity edge does not silently choose a value: it offers the split-initialization policy at the moment of unlinking — `copy current`, `restore private history`, or `reset`. Reversibility makes complex modes safe to try.
+
+![Pattern 10: the unlink split-init policy popover (copy current / restore private history / reset) appears at the moment of unlinking an identity edge.](_assets/pbui-linked-tiles-approaches/10-unlink-popover.png){width=100%}
+
+## E.3 Layer 3 — Pointer surface: the accessibility mirror
+
+**Pattern 3 — Anchored popover (not centered modal).** Click a port → a popover anchored to that port, not a full-screen overlay. The four resolver dispositions become compact rows attached to the port; the workspace stays visible and clickable behind it. Escape, click-away, or re-clicking the verb closes it and it stays closed — `render()` never reopens it.
+
+![Pattern 3: the routing popover anchors to the output port (not the screen center); the workspace stays interactive behind it; render() never reopens it.](_assets/pbui-linked-tiles-approaches/03-popover.png){width=100%}
+
+**Pattern 5 — Pie / radial menu on right-click.** Right-click a port or wire → a 6-slice radial menu: Follow, Hold, Derive…, ≡ Identity, Spawn here, Unlink. Each slice previews the resulting binding term; every mode is one flick away.
+
+![Pattern 5: a 6-slice radial pie menu on right-click; every mode is equidistant — one flick, one selection.](_assets/pbui-linked-tiles-approaches/05-pie.png){width=100%}
+
+## E.4 Combined group — all three layers on one workspace
+
+The integration page proves the three layers compose on the same binding model without conflict: a Substrate Ambient inspector (hover to follow, pin to freeze), a Gesture surface (drag with Shift=Hold / drop on a right/bottom strip = spawn), and a Pointer surface (right-click the port or wire for a pie; click the author input for the relation palette). All mutations route through one binding model — no parallel logic.
+
+![Combined group: Substrate (ambient hover/pin) + Gesture (drag + Shift + drop-zones) + Pointer (right-click pie + relation palette) on one workspace, composing on one binding model.](_assets/pbui-linked-tiles-approaches/combined.png){width=100%}
+
+## E.5 Implementation notes
+
+- The binding model lives in `toy/lib/core.js` (mutations: `emitAlpha`/`emitGamma`/`route`/`pinToggle`/`merge`/`commitDerived`/`unlink`; render helpers; wire geometry; a small `relations` registry for the Derived palette). Each page creates its own `state` via `PBUI.makeState()` and owns its own `render()`; gestures call the core mutations, never duplicating binding logic.
+- Key correctness fixes found during verification: hover paint must be incremental (rebuilding `innerHTML` on every `mouseenter` detaches rows and breaks hover); pin must freeze the order currently displayed (moving the pointer to the pin button fires `mouseleave` on the hovered row before the click runs, so the page passes `detailOrder()` not `state.hoveredOrder`); resume must restore the pre-pin source mode (`suspendedMode`), not always `follow`; SVG wires need an invisible hit-path (`pointer-events:auto`, transparent stroke width 16) recreated each render to remain clickable.
+- The toy commits (local repo, no remote) are `6d25862` (P1 substrate+core), `baa9080` (P2 gesture core), `e9cf266` (P3 gesture safety), `e0dd6f6` (P4 pointer surface), `c83d38b` (P5 combined+index).
 
 \newpage
 
