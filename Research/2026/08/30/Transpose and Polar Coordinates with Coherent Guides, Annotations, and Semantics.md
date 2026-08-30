@@ -389,15 +389,15 @@ At HSPLOT-009 closure, 21 test files and 125 tests passed. The final HSPLOT-005�
 
 The polar Storybook proof used a `500×500` SVG. Browser inspection found 15 mark paths from 15 ordinary stacked bars, four radial grid paths, finite inspected numeric attributes, a rectangular external legend, visible angular and radial labels, and an accessible description that announced polar coordinates with x as angle.
 
-![[/home/manuel/workspaces/2026-08-24/use-optkit/plot/ttmp/2026/08/29/HSPLOT-009--transpose-and-polar-coordinate-systems/reference/screenshots/polar-stacked-bars.png|600]]
+![[assets/hsplot-polar-stacked-bars.png|600]]
 
 The transpose proof retained temporal x meaning on the vertical display axis and quantitative y meaning on the horizontal display axis. Labels remained “Observed at” and “Response (ms),” and the treatment legend remained external.
 
-![[/home/manuel/workspaces/2026-08-24/use-optkit/plot/ttmp/2026/08/29/HSPLOT-009--transpose-and-polar-coordinate-systems/reference/screenshots/transposed-points.png|600]]
+![[assets/hsplot-transposed-points.png|600]]
 
 The configured-guide proof from HSPLOT-008 demonstrates the prerequisite behavior: top and right axes, explicit grid lines, horizontal legend, threshold rule, region, and text annotation are planned before rendering.
 
-![[/home/manuel/workspaces/2026-08-24/use-optkit/plot/ttmp/2026/08/29/HSPLOT-008--configured-guides-and-annotation-components/reference/screenshots/configured-guides-and-annotations.png|600]]
+![[assets/hsplot-configured-guides-and-annotations.png|600]]
 
 Absolute-path embeds may not render on another machine; the source paths remain useful as provenance, and the screenshots should be copied into a vault attachment directory if the note is to be distributed.
 
