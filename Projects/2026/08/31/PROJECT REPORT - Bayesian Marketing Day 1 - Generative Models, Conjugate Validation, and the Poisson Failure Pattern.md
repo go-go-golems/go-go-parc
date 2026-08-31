@@ -86,11 +86,25 @@ The customer-base audit (the Fader/Hardie/Ross discipline) produces the statisti
 
 The decile decomposition shows that order frequency, not order size or margin quality, separates valuable customers: across contribution deciles, mean orders rise from 1.05 to 7.97 while mean margin stays in a narrow 0.38–0.46 band. These audit statistics later become posterior predictive targets — the same functions are computed on every replicated dataset and compared against the observed values with two-sided tail areas.
 
+![](_assets/bayes-day1-audit_orders_dist.png)
+
+The figure above is the whole day in one picture: observed counts (heavy zero spike at 49.5%, one-order shoulder at 22.8%, tail to 39 orders) against each fitted model's predictive distribution.
+
+![](_assets/bayes-day1-audit_concentration.png)
+
+![](_assets/bayes-day1-audit_revenue_dist.png)
+
 ## 3. Guided Lab 1: a one-parameter model with a known answer
 
 The business question is narrow: among customers who bought at least once, what proportion buy again within the measurement window? The estimand is a population proportion, modeled as $Y \mid p \sim \mathrm{Binomial}(1010, p)$ with $p \sim \mathrm{Beta}(3, 7)$. The prior is worth 8 pseudo-observations with 2 successes; with 1,010 real observations, the likelihood dominates by roughly 125:1 in information weight. Prior sensitivity across Beta(1,1), Beta(2,2), and Beta(3,7) moves the posterior mean only between 0.546 and 0.548 — a property of the sample size, not of the method.
 
 Why fit a model with a closed-form posterior in PyMC at all? Because the closed form becomes a unit test for the entire sampling pipeline. The conjugate posterior is $\mathrm{Beta}(3 + 554,\, 7 + 1010 - 554) = \mathrm{Beta}(557, 463)$, computed independently with `scipy.stats.beta`. The MCMC fit (4 chains × 2,000 draws, R-hat 1.00, bulk ESS 3,234, zero divergences) produced a posterior mean of 0.54591 against the analytic 0.54608 — a difference of 1.6e-4, within one Monte Carlo standard error of the mean (2.8e-4). The HDI endpoints agree to six parts in ten thousand. When a later model has no closed form, the pipeline carrying it has already been validated against one that does.
+
+![](_assets/bayes-day1-lab1_posterior.png)
+
+![](_assets/bayes-day1-lab1_prior_predictive.png)
+
+![](_assets/bayes-day1-lab1_prior_sensitivity.png)
 
 The business reading: posterior median 0.546, 90% HDI [0.520, 0.571], and $P(p > 0.40 \mid D) = 1.000$. The repeat rate is decisively above the 40% threshold — and the model says nothing about which customers repeat, when, or why, because the estimand was defined as a single proportion. That limitation is the cost of the reduction, and it is stated rather than hidden.
 
@@ -115,13 +129,25 @@ The Poisson column is a clean sweep of failures, and each failure is the varianc
 
 The NB column reproduces the core marginal (zero rate tail 0.42, q95 tail 1.0) and leaves an honest residue: it under-predicts one-order customers, marginal variance, and the extreme maximum. The reason is structural. The truth is a mixture of Negative Binomials — each customer has a different $\mu_i$ — and a two-parameter marginal must split the difference between the zero spike and the tail, leaving both the middle and the extreme slightly light.
 
+![](_assets/bayes-day1-project1_ppc_bands.png)
+
+![](_assets/bayes-day1-project1_poisson_rootogram.png)
+
+![](_assets/bayes-day1-project1_negative_binomial_rootogram.png)
+
+![](_assets/bayes-day1-project1_stat_tail_areas.png)
+
 **Predictive comparison.** PSIS-LOO with stacking weights: ELPD −3,187.8 (NB) against −4,285.7 (Poisson), difference 1,097.8 with DSE 129.8, stacking weights 0.94/0.06, all Pareto-k below 0.17. The NB wins decisively — but the *reason* it wins is that its generative variance structure reproduces the count behavior the audit specified. The LOO table is supporting evidence, not the argument.
+
+![](_assets/bayes-day1-project1_compare.png)
 
 ## 5. Marginal dispersion is not conditional dispersion
 
 The instructor truth allows one check no participant data can: the fitted φ against the dispersion actually used in generation. The generator's conditional dispersion is 1.6. The pooled NB's posterior φ is 0.521 with 90% interval [0.476, 0.569] — nowhere near covering 1.6.
 
 The gap is the lesson. The pooled model must absorb *two* variance sources into one parameter: the within-customer Gamma noise (governed by the true 1.6) and the between-customer spread of $\mu_i$ (governed by the log-rate SD of 1.0). Solving $\mu + \mu^2/\phi = \operatorname{Var}(Y)$ for the observed moments gives φ ≈ 0.38; the likelihood fit lands at 0.52 by balancing the whole probability mass function rather than the variance alone. A model with customer-level parameters is required to estimate the conditional dispersion — which is precisely what Day 2's hierarchy provides.
+
+![](_assets/bayes-day1-project1_phi_recovery.png)
 
 ## 6. Engineering: the pipeline and its three API breaks
 

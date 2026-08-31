@@ -49,9 +49,13 @@ The §21 generator produces a customer-month panel: 120 customers × 12 months =
 
 The audit records the baseline: mean 0.433 orders per customer-month, month-level variance-to-mean 2.21, 19 customers with zero annual orders, annual totals averaging 5.19 with variance 36.2, top decile holding 38.2% of orders. And the decisive number: the correlation between each customer's first-six-month and last-six-month totals is **0.661**. Customers are persistent, and a model that treats the panel as 1,440 exchangeable draws can match every marginal statistic while producing zero persistence. That contrast is the day's destination, and the split-half correlation is how it is measured.
 
+![](_assets/bayes-day2-panel_audit.png)
+
 ## 3. Two models, one funnel avoided
 
 Model H0 is the pooled Negative Binomial with panel regressors. Model H1 adds the customer effects. H1 is fitted in non-centered form — $u_i = \sigma_u z_i$ with $z_i \sim N(0,1)$ — because the centered form creates a funnel when the data might say σ_u is small: the $u_i$ collapse toward zero and NUTS diverges. With twelve observations per customer, that is exactly the regime. Non-centering plus `target_accept=0.92` produced zero divergences on the first run, at 1,052 minimum bulk ESS across 125 sampled parameters and 125 seconds of wall time. The prior on σ_u (HalfNormal(0.8)) centers near the truth deliberately; this is RAM §5.1's point that the hierarchy *is* the prior over a high-dimensional parameter space, and its form matters.
+
+![](_assets/bayes-day2-dag_h1.png)
 
 ```mermaid
 flowchart TD
@@ -82,6 +86,10 @@ The heterogeneity scale is the population-level result: posterior median 0.99, 9
 
 Individual recovery is where partial pooling becomes visible. The correlation between posterior means and true effects is 0.834, and the 90% HDIs cover the true effects for 95% of customers. The mechanism is quantified two ways. First, by information level: mean absolute error against truth is 0.47 for customers with at most two active months versus 0.25 for customers with five or more. Second, by compression: the SD of posterior means (0.83) is smaller than the SD of truths (0.93) — the posterior means are shrunk toward the population, by design, in proportion to how little each customer's own data says. This is not bias to be corrected. It is uncertainty-aware borrowing of information, and the amount of pooling was learned from the data through the posterior of σ_u rather than tuned by hand.
 
+![](_assets/bayes-day2-sigma_recovery.png)
+
+![](_assets/bayes-day2-shrinkage.png)
+
 ## 5. The decisive check: persistence
 
 The business question is not "what is the average rate" but "do customers differ persistently." The split-half correlation measures it directly, and the posterior predictive battery settles the contest:
@@ -96,9 +104,15 @@ The business question is not "what is the average rate" but "do customers differ
 
 H0 fails every concentration statistic — a single rate surface cannot manufacture zero-order customers or heavy tails — and produces persistence-free replicates: each replicated panel is an exchangeable scramble of its own month-level model. H1 reproduces all five statistics with the observed values inside its replicate bands. PSIS-LOO agrees (ELPD −1,099.7 vs −1,209.7, difference 110.0 with DSE 15.0, stacking weight 0.99 for H1; one H1 observation at Pareto-k = 0.70, flagged but not alarming). As on Day 1, the LOO number is supporting evidence; the reason H1 wins is that its generative structure reproduces the persistence the business asked about, and the split-half statistic is where that is measured.
 
+![](_assets/bayes-day2-split_half_ppc.png)
+
+![](_assets/bayes-day2-annual_ppc.png)
+
 ## 6. A known customer versus a new one
 
 The hierarchy supports two distinct predictive tasks, and conflating them understates uncertainty. For an observed customer, next month's predictive distribution uses that customer's posterior effect draws — parameter uncertainty is small because the customer is learned. For a new customer, there is no individual posterior: each draw pulls a fresh effect from the population, so the predictive distribution adds *population* uncertainty on top. In rate terms, the SD of a typical learned customer's rate draws is a fraction of the posterior σ_u, while a new customer's rate distribution is the population itself. The classic error is to set $u = 0$ for the new customer and report the population mean prediction as though it were the predictive distribution.
+
+![](_assets/bayes-day2-prediction.png)
 
 One trap surfaced here and is worth preserving: the heaviest observed customer's predictive interval (width 7 at a mean of 2.31 orders) is *wider* than a new customer's (width 2) — not because of parameter uncertainty, but because the rate itself is high and counts are noisy at high rates. The "new-customer interval is wider" claim is true relative to a *typical* well-observed customer (whose rate is learned tightly), and the assertion in the pipeline was corrected to compare against exactly that reference. Aleatoric width at high rates and epistemic width about who arrives are different phenomena; the pipeline now names them separately.
 
@@ -107,6 +121,8 @@ One trap surfaced here and is worth preserving: the heaviest observed customer's
 The random-slope model adds customer-specific promotion effects, $\beta_{p,i} = \mu_p + \sigma_p z_{p,i}$. The population result is solid: $\mu_p = 0.362$ with 90% HDI [0.18, 0.54] against a true 0.35, and $P(\mu_p > 0 \mid D) = 0.9993$ — within the simulation's randomized assignment, promotion raises order rates. The heterogeneity estimate $\sigma_p = 0.119$ [0.012, 0.351] covers the true 0.18 but reaches almost to zero.
 
 The individual level is the caution, and it is quantified rather than asserted: posterior mean rate ratios correlate 0.095 with the true ones. With twelve observations per customer at 35% treated, the data identify the population of responses but not whose response differs. An instructive middle finding: 69% of customers have individual rate-ratio HDIs excluding 1.0 — shrinkage toward the strong population mean makes individual posteriors *collectively* informative — while those same posteriors do not *separate* customers from one another. The operational conclusion is written into the report's limitations: no customer-level promotion targeting claims from this data. More customers would not replace more repeated observations per customer.
+
+![](_assets/bayes-day2-promo_response.png)
 
 ## 8. Engineering notes
 
