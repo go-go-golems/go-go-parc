@@ -103,6 +103,8 @@ Per-feature individual recovery, posterior means against truth: price magnitude 
 
 The conditional checks separate mechanisms that overall shares cannot. Zone-*match* choice probability is reproduced almost exactly (observed 0.277, replicates 0.276), but zone-*miss* is under-predicted (observed 0.086 against replicate bands 0.037–0.058): the models know compatibility helps but under-learn how much incompatibility hurts. The price-level curve shows both models under-responding at the extremes: at $44 the observed choice probability is 0.599 against replicate means near 0.37. Heterogeneous price sensitivity is exactly what a near-homogeneous response function under-represents. Overall, Compact Evergreen's 42.3% observed share sits above both replicate bands (≈32%), and the outside option is over-predicted (18% versus 13%) — the residual is the type mixture that normal random effects average away. PSIS-LOO prefers C1 decisively (ELPD −2,190 versus −2,270, difference 80 with DSE 12, stacking weight 1.0), but the PPCs remain the honest ledger: neither model is fully adequate, and the residuals point at the mixture.
 
+![](_assets/bayes-day3-compare.png)
+
 ## 7. Willingness to pay, from joint draws
 
 For feature f, willingness to pay per posterior draw is $10 \cdot \beta_f / \lambda$ — computed draw-wise, never as a ratio of posterior means. Two facts make the joint posterior the only correct source: the expectation of a ratio is not the ratio of the expectations, and the ratio's tails are governed by the denominator's lower tail (draws where λ is small produce extreme WTP). Only the draw-wise distribution shows that behavior.
