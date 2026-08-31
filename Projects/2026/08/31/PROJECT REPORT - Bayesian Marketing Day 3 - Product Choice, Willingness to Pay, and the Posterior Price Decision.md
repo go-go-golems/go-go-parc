@@ -40,6 +40,8 @@ Each of 1,800 tasks (300 customers × 6 tasks) shows four synthetic tree product
 
 The audit records the mechanisms before any model runs: the outside option wins 13.2% of tasks; Compact Evergreen leads at 42.3% and Premium Specimen trails at 1.2%; 87.5% of chosen products are zone-compatible for their customer; chosen products' displayed prices average $58 against $78 for unchosen. Zone compatibility and price are visible in the raw conditional frequencies.
 
+![](_assets/bayes-day3-type_shares.png)
+
 The prior predictive check asks what the model believes before conditioning. The answer is not subtle:
 
 ![](_assets/bayes-day3-shares.png)
@@ -89,7 +91,9 @@ Task 3 asks which averages are meaningful and which mask structure. The answer h
 
 Model C1 gives every customer a price magnitude and four nonprice preferences, non-centered, drawn from estimated population distributions. Its first fit, at the handout's settings (tune 2,000, `target_accept` 0.95), produced 24 divergences — and the pipeline's §11.6 assertion gate refused to let it through. The cause is visible in the posterior: several heterogeneity scales concentrate near zero (σ_privacy 0.19, σ_log_price 0.22), and near-zero scales create funnel geometry even in non-centered form.
 
-The §C.5 repair ladder prescribes reparameterization before tuning. The model was already non-centered with regularizing priors, so the correct action was the ladder's final step: raise `target_accept` (0.95 → 0.98 → 0.99) and extend tuning (2,000 → 4,000). The second fit reached zero divergences but R-hat 1.024 with bulk ESS 219 on σ_log_price — caught again. The third fit passed every gate: zero divergences, R-hat 1.007, bulk ESS 779, 952 seconds. Two lessons are worth keeping. First, assertion gates that fail loudly are cheaper than diagnostics read after the fact. Second, the funnel's root cause is substantive: the privacy preference is a bimodal mixture with separation ≈ 1.35 that a normal random effect cannot represent, so chains fight over how small σ should be — the sampler difficulty is a model-misspecification signal, not merely a numerical one.
+The §C.5 repair ladder prescribes reparameterization before tuning. The model was already non-centered with regularizing priors, so the correct action was the ladder's final step: raise `target_accept` (0.95 → 0.98 → 0.99) and extend tuning (2,000 → 4,000). The second fit reached zero divergences but R-hat 1.024 with bulk ESS 219 on σ_log_price — caught again. The third fit passed every gate: zero divergences, R-hat 1.007, bulk ESS 779, 952 seconds.
+
+![](_assets/bayes-day3-c1_trace.png) Two lessons are worth keeping. First, assertion gates that fail loudly are cheaper than diagnostics read after the fact. Second, the funnel's root cause is substantive: the privacy preference is a bimodal mixture with separation ≈ 1.35 that a normal random effect cannot represent, so chains fight over how small σ should be — the sampler difficulty is a model-misspecification signal, not merely a numerical one.
 
 ## 5. Recovery: population levels confounded, individuals partial
 
