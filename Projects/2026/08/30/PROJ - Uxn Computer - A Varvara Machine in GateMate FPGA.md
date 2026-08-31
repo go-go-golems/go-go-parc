@@ -474,15 +474,18 @@ python3 ttmp/2026/08/30/UXN-GM-001-*/scripts/02-rtl-difftest.py --n 25 --seed 1
 
 ## Open questions
 
-- The screen vector (60 Hz vsync event) dispatch does not yet produce framebuffer output in the machine-level bounce test; the event path is under investigation with the archived debug testbenches.
-- Whether timing closes after adding the VGA output pins, given the 11.1 MHz estimate against the 10 MHz clock.
+- ~~The screen vector (60 Hz vsync event) dispatch does not yet produce framebuffer output~~ — fixed: the PLL sim model must oscillate before locking, and the vsync CDC needed a toggle synchronizer (a 40 ns pixel-domain pulse cannot be sampled by the 100 ns system clock); the bounce demo now moves 1 px per frame at 60 Hz.
+- Timing closure at 10 MHz on the routed design (utilization is 66% after the sequential-peek area campaign; routing was stopped at user request mid-convergence and must be re-run, ~4–6 h).
 - Full-screen fill operations cost three cycles per pixel, which will not sustain 60 Hz for programs that repaint the whole screen every frame.
+
+See the follow-up report for the area optimization campaign:
+`Projects/2026/08/31/PROJECT REPORT - Uxn Computer - Fitting a Stack Machine into a GateMate - The Area Optimization Campaign.md`.
 
 ## Near-term next steps
 
-- Resolve the screen-vector event dispatch and land the `bounce.tal` machine test.
-- Board integration: `top.sv`, pin constraints for the PS/2 and VGA connectors, synthesis, place-and-route, bitstream, and on-board bring-up of the demo roms.
-- If area or timing gets tight, the two prepared mitigations are a sequential divider and a reduced-port stack read path.
+- Re-run `make pnr` to routing completion, check Fmax against 10 MHz, and build the bitstream.
+- Board integration bring-up: `top.sv`, pin constraints, and the Makefile are committed; remaining is gmpack, openFPGALoader, and running the demo roms on the board.
+- If area or timing gets tight, the prepared mitigations are a sequential divider and block-RAM stacks.
 
 ## Project working rule
 
