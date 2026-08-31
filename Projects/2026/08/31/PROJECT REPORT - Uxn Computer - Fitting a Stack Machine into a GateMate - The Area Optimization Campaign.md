@@ -174,16 +174,18 @@ Two further area-related bugs were found and fixed while getting the first synth
 
 ## What remains open
 
-- The 66% design is still routing at the time of this writing; router2 needs on the order of an hour at this density. Timing closure at 10 MHz is expected but not yet measured (the pre-refactor estimate was 11.1 MHz Fmax).
+- The routing run was stopped at user request at router2 iteration 88 (overuse 4,223, still declining monotonically, no architecture failures, ~2.4 min/iteration). Placement at 66% is proven; routing convergence was demonstrated for 88 iterations but not waited out. A resume run (`make pnr ROM=hello`) needs roughly one hour of synthesis plus four to six hours of routing.
+- Timing closure at 10 MHz is therefore still unmeasured; the pre-refactor estimate was 11.1 MHz Fmax, and the refactor removed the widest operand muxes from the critical paths, so the margin is expected to have improved. Documented fallbacks if it fails: register the RAM read path; the sequential divider (~600 LUTs off the widest arithmetic path); as a last resort, halve the system clock and UART baud.
 - Two block RAMs remain free; if area pressure returns, the stacks can move to block RAM (2 × 256×8) to reclaim the 4,096 flip-flops and the last read muxes.
 - The sequential peek machine makes the CPU ~30% slower per instruction. If a workload ever needs the throughput back, the operand registers could be widened into a two-byte read (one port, 16-bit word) for the common short-mode case.
+- Board bring-up (gmpack bitstream, openFPGALoader via the RP2040 DirtyJTAG bridge, demo roms hello/echo/keys/draw/bounce) is the next session's first task after routing completes.
 
 ## How to reproduce the measurements
 
 ```bash
 source ~/fpga/oss-cad-suite/environment
-make synth ROM=hello        # ~12 min; stat in build/yosys.log
-make pnr ROM=hello          # router2; utilization in build/nextpnr.log
+make synth ROM=hello        # ~1 h; stat in build/yosys.log
+make pnr ROM=hello          # router2, 4-6 h at 66% density; utilization in build/nextpnr.log
 python3 ttmp/2026/08/30/UXN-GM-001-*/scripts/02-rtl-difftest.py --n 100 --seed 7
 python3 -m pytest uxn/sim -q   # 58 tests, ~18 min
 ```
