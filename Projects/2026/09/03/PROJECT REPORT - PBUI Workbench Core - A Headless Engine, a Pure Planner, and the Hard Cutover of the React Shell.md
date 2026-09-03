@@ -6,6 +6,8 @@ aliases:
   - pbui workbench hard cutover
   - view.show planner
   - workbench execute gateway
+  - connectDocumentSource
+  - workbench document sources
 tags:
   - project-report
   - pbui
@@ -16,9 +18,11 @@ tags:
   - refactoring
   - migration
   - protobuf
-status: in-progress
+  - release
+status: complete
 type: project-report
 created: 2026-09-03
+updated: 2026-09-03
 repo: /home/manuel/workspaces/2026-09-01/add-plot-editor/pbui
 branch: task/consolidate-pbui-kernel
 source_ticket: PBUI-WORKBENCH-CORE-1
@@ -35,7 +39,7 @@ related_vault_notes:
 
 # PBUI Workbench Core: A Headless Engine, a Pure Planner, and the Hard Cutover of the React Shell
 
-This report describes the implementation of PBUI-WORKBENCH-CORE-1, the ticket that split the pbui workbench into a React-free engine package (`@hyperslop-systems/workbench-core`) and a thin React shell (`@hyperslop-systems/pbui-workbench`), on 2026-09-03. It covers the defects the old workbench had and the evidence for each, the domain model the new engine is built on, the four-layer architecture and the first-version simplifications chosen against the ideal design, the engine's modules with excerpts from the code that landed, the shell cutover, the verification strategy, the decisions and deviations recorded while building, and what is still open. The purpose is to let an engineer who has not read the ticket understand the system well enough to extend it, and to record why each boundary sits where it does.
+This report describes the implementation of PBUI-WORKBENCH-CORE-1, the ticket that split the pbui workbench into a React-free engine package (`@hyperslop-systems/workbench-core`) and a thin React shell (`@hyperslop-systems/pbui-workbench`), on 2026-09-03. It covers the defects the old workbench had and the evidence for each, the domain model the new engine is built on, the four-layer architecture and the first-version simplifications chosen against the ideal design, the engine's modules with excerpts from the code that landed, the shell cutover, the migration of every consumer inside and outside the repository and the document-source facility that migration produced, the release audit with its performance baselines and version bumps, the verification strategy, the decisions and deviations recorded while building, and what is still open. The purpose is to let an engineer who has not read the ticket understand the system well enough to extend it, and to record why each boundary sits where it does.
 
 The reader is assumed to know the earlier workbench reports: the shell over a protocol document ([[PROJ - PBUI Workbench Tiles - A Reusable Server-less Shell and the Chat Agent on Tiles]]), logical views with linked placements ([[PROJECT REPORT - PBUI Application Views - Logical Views, Linked Placements, and the Launcher Foundation]]), the rebalance engine ([[PROJ - PBUI Rebalance - Layout Repair, Proposal Slates, and Placement Gestures]]), and the link kernel ([[PROJECT REPORT - PBUI Linked Tiles - Landing the Binding Algebra in the pbui Workbench]]). This ticket did not change what those systems decide. It changed where the deciding code lives, what it is allowed to touch while deciding, and through which door its decisions reach the document.
 
@@ -43,11 +47,13 @@ The reader is assumed to know the earlier workbench reports: the shell over a pr
 > - Planning is now pure. The old `plan()` created a shadow store but handed the live link runtime to the handlers, so previewing an identity merge incremented the runtime revision and created a class `σ1` without a commit. The ticket's probe recorded that defect; the inverted probe now passes against `core.preview`.
 > - There is one semantic door. `core.execute(command, { geometry })` captures state, plans against immutable values, checks one coarse revision, applies the whole mutation batch, validates, appends links maintenance, installs once, and only then runs the planned runtime effects. Raw batches, restore, reset, and sync adoption go through the same gateway.
 > - Every "put this application or view somewhere" verb of the old 1,407-line `verbs.ts` is one `view.show` command whose identity axis (`resolveView`) and spatial axis (`resolvePlacement`) are resolved independently and joined by `materialize`. Geometry reaches the planner as a measured value, never as a DOM.
-> - Phases 0–7 are committed (`9822ba8` through `580f1a9`); the 44 Phase 0 goldens replay through the core with three deliberate differences; the rebalance preservation law has a property test; sync preserves whole batches. Phases 8 (consumer migration, deletion audit) and 9 (release audit) are not done, and the in-repo consumers do not compile at the current commit.
+> - Phases 0–9 are committed (`9822ba8` through `83074c5`); the 44 Phase 0 goldens replay through the core with three deliberate differences; the rebalance preservation law has a property test; sync preserves whole batches.
+> - Phase 8 moved the five in-repo consumers and four external products (hyperblog, agentlogic, turboproof, rag-ttc) onto the core and the command vocabulary, and rewrote the chat agent's workbench tools on that vocabulary with `view.show.replace` as the confirm-gated policy key. Because the core validates bindings as the Go host does, every product's habit of binding host-owned ids surfaced as `unknown_document`; the answer is `connectDocumentSource`, which mirrors a host-owned resource set into the document as stub documents, and the `openBindings` manifest flag.
+> - Phase 9 ran the whole-workspace audit (13 typechecks, 1,454 tests in 10 suites, 12 builds, 5 Storybooks, protocol parity, Go tests), a browser smoke, and performance baselines (index build 0.014 ms, a plan under a millisecond, a plan-and-commit pair about 2 ms, the rebalance slate about 16 ms at 12 tiles), wrote `MIGRATION.md`, and set the versions: protocol 0.5.0, core 0.1.0, shell 0.5.0, pbui 0.11.0. The publish to the registry is deferred to the user.
 
 ## 1. Project status
 
-The work lives on the pbui branch `task/consolidate-pbui-kernel`. The ticket workspace is at `/home/manuel/workspaces/2026-09-01/add-plot-editor/pbui/ttmp/2026/09/03/PBUI-WORKBENCH-CORE-1--hard-cutover-consolidation-of-the-workbench-into-a-reusable-composable-core/`; the design guide is `design-doc/01-intern-guide-to-the-pbui-workbench-core-consolidation-and-hard-cutover.md` (§§6–15 the ideal design, §16 the chosen implementation, §17 the phases, §18 the deletion list), the scope record is `design-doc/02-version-one-simplification-decisions.md`, and the diary `reference/01-investigation-diary.md` has fourteen steps: five of research and design, then one per implementation phase.
+The work lives on the pbui branch `task/consolidate-pbui-kernel`. The ticket workspace is at `/home/manuel/workspaces/2026-09-01/add-plot-editor/pbui/ttmp/2026/09/03/PBUI-WORKBENCH-CORE-1--hard-cutover-consolidation-of-the-workbench-into-a-reusable-composable-core/`; the design guide is `design-doc/01-intern-guide-to-the-pbui-workbench-core-consolidation-and-hard-cutover.md` (§§6–15 the ideal design, §16 the chosen implementation, §17 the phases, §18 the deletion list), the scope record is `design-doc/02-version-one-simplification-decisions.md`, a post-implementation review is `design-doc/03-post-implementation-architecture-and-code-review.md`, and the diary `reference/01-investigation-diary.md` has eighteen entries numbered 1–17: five of research and design, one per implementation phase, and the review, which shares the number 16 with the external half of Phase 8.
 
 | Phase | Deliverable | Code commit |
 |---|---|---|
@@ -59,22 +65,24 @@ The work lives on the pbui branch `task/consolidate-pbui-kernel`. The ticket wor
 | 5 | Rebalance engine moved to `workbench-core/rebalance` with the preservation law and a property test; `measureGeometry` and the shell-local store | `f909b1e` |
 | 6 | React shell over the core; old assembly, store, verbs, link handlers deleted; describe, persistence, sync moved to the core; READMEs | `4fa53f1` |
 | 7 | Batch-preserving sync outbox | `580f1a9` |
-| 8 | Consumer migration and deletion of legacy symbols | not started |
-| 9 | Release audit, browser smokes, versions | not started |
+| 8 | In-repo consumers (sandbox, plotscript, ecommerce, chat, chat demo) on the core; `connectDocumentSource` and `openBindings`; the agent's workbench tools on the command vocabulary; four external consumers migrated in parallel; `conversationDocuments` option | `cc19b38`, `d2a182c`, `7fdbe1e` |
+| 9 | Whole-workspace audit, bundle fence, browser smoke, performance baselines, `MIGRATION.md`, versions | `83074c5` |
 
-Each code commit is paired with a docs commit that adds the diary step and the changelog entry (`75c0fe3`, `69ee5d8`, `429f550`, `1fd7259`, `b2f19d3`, `65023ae`, `5370102`, `1515592`); the ticket documents themselves were first committed as `e9ce3ed`.
+Each code commit is paired with a docs commit that adds the diary step and the changelog entry (`75c0fe3`, `69ee5d8`, `429f550`, `1fd7259`, `b2f19d3`, `65023ae`, `5370102`, `1515592`, `27a9f50`, `d4b4f6a`, `c8ab012`; `9eb57f7` added the document sources to the package READMEs and the inventory); the ticket documents themselves were first committed as `e9ce3ed`.
 
-The test picture at `580f1a9`, as recorded in the diary and the changelog:
+The test picture at `83074c5`, as recorded in the diary and the changelog:
 
 | Package | Baseline at `04d1d7c6` | Now |
 |---|---|---|
 | `workbench-protocol` | 3 files, 48 tests | 40 tests (the eight configured-client tests were deleted with `createWorkbenchClient`) |
-| `workbench-core` | did not exist | 25 test files; 171 tests after Phase 6 plus the 13 sync tests of Phase 7 |
+| `workbench-core` | did not exist | 26 test files; 189 tests (171 after Phase 6, the 13 sync tests of Phase 7, the 5 document-source tests of Phase 8) |
 | `pbui-workbench` | 31 files, 281 tests | 22 files, 114 tests (the engine tests, the goldens, and the rebalance suites moved to the core) |
 
-The size picture: the old `verbs.ts` was 1,407 lines and the root barrel 188 lines with 64 `export` statements; the shell's production source was about 10,001 lines. Now the core's production source is 5,898 lines (which includes the rebalance engine that moved in) and the shell's is 4,391. Phase 6 alone was 93 files changed, 2,000 insertions and 7,026 deletions.
+The consumer suites at the same commit: pbui-chat 241 and its demo 13, pbui-sandbox 224, pbui-ecommerce 35, pbui-plotscript 32, pbui-editor 12, datalab 13, and the root pbui package 554; the ten suites `pnpm -r test` runs total 1,454 tests. Outside the repository: hyperblog 29, agentlogic 128, turboproof 129, rag-ttc 167.
 
-The in-repo consumers (pbui-chat, pbui-sandbox, pbui-ecommerce, pbui-plotscript, pbui-editor) do not compile against the new shell at this commit; the diary says so explicitly at Step 13, and the root `pnpm -r typecheck` is red until Phase 8 lands. This report describes the packages as they stand, not a released state.
+The size picture: the old `verbs.ts` was 1,407 lines and the root barrel 188 lines with 64 `export` statements; the shell's production source was about 10,001 lines. Now the core's production source is 5,898 lines (which includes the rebalance engine that moved in) and the shell's is 4,391. Phase 6 alone was 93 files changed, 2,000 insertions and 7,026 deletions. Phase 8 added the 79-line `sources.ts` and the `openBindings` field to the core and changed no shell source; its in-repo commit `cc19b38` was 77 files, 1,381 insertions and 965 deletions across the consumers.
+
+The in-repo consumers (pbui-chat, pbui-sandbox, pbui-ecommerce, pbui-plotscript, pbui-editor) did not compile against the new shell at `580f1a9`; the diary says so explicitly at Step 13, and the root `pnpm -r typecheck` was red until Phase 8 landed at `cc19b38`. At `83074c5` the whole workspace typechecks, tests, and builds (§10), the four external consumers are migrated on their own branches (§9.7), and the package versions are set for a release. The one step not taken is the publish to the registry, which the user performs (§11).
 
 ## 2. The problem
 
@@ -108,7 +116,7 @@ F1 is the one that was proven rather than argued, and it deserves a closer look 
 
 `documentUnchanged` is true: the shadow store protected the document. `runtimeRevisionAfter` is 2 where it began at 1, and a class `σ1` exists: the live runtime changed under a call whose documented contract was "preflight without touching the real workbench". A mounted tile reading its class cell would have seen a merge nobody committed, and a later failure would have left the effect behind. The probe had to run under Vitest rather than `tsx` because importing the old package graph reached CSS-bearing React modules even for a headless operation, which is itself a small demonstration of F13.
 
-The other structural fact worth stating up front is scope. A workspace scan found importing files in five repositories (pbui 87, rag-ttc 45, agentlogic 10, turboproof 9, hyperblog 7), including a Redux adapter in turboproof and a server-backed product in rag-ttc. A hard cutover of the public API is therefore a cross-repository event, and the inventory that fixes who imports what (`reference/02-consumer-inventory-and-public-surface.md`) was produced in Phase 0 so Phase 8 can migrate against a list rather than a search.
+The other structural fact worth stating up front is scope. A workspace scan found importing files in five repositories (pbui 87, rag-ttc 45, agentlogic 10, turboproof 9, hyperblog 7), including a Redux adapter in turboproof and a server-backed product in rag-ttc. A hard cutover of the public API is therefore a cross-repository event, and the inventory that fixes who imports what (`reference/02-consumer-inventory-and-public-surface.md`) was produced in Phase 0 so Phase 8 could migrate against a list rather than a search (§9).
 
 ## 3. The domain model
 
@@ -232,7 +240,7 @@ export function defineAppManifest(input: WorkbenchAppManifestInput): WorkbenchAp
 }
 ```
 
-The two axes replace the old `singleton` and `duplicable` booleans, whose negations had to be read together to know what a bare split would do. `"one"` is what the Go host enforces as `duplicate_singleton`; `"link"` means a duplicate places the same view again; `"clone"` mints an independent view with the same bindings. The contradiction `one` + `clone` fails construction rather than being resolved silently at split time. Document-bound behaviour is derived from ports: `isDocBound(app)` is true when a port declares `documentSlot`, and `documentSlots(app)` lists those port names in declaration order, which is the key set of `view.documents`. `createManifestCatalog` takes an explicit list and refuses a duplicate id.
+The two axes replace the old `singleton` and `duplicable` booleans, whose negations had to be read together to know what a bare split would do. `"one"` is what the Go host enforces as `duplicate_singleton`; `"link"` means a duplicate places the same view again; `"clone"` mints an independent view with the same bindings. The contradiction `one` + `clone` fails construction rather than being resolved silently at split time. Document-bound behaviour is derived from ports: `isDocBound(app)` is true when a port declares `documentSlot`, and `documentSlots(app)` lists those port names in declaration order, which is the key set of `view.documents`. `createManifestCatalog` takes an explicit list and refuses a duplicate id. Phase 8 added a third field to the manifest, `openBindings` (default `false`), which the excerpt above predates; §9.4 describes it.
 
 ### 5.2 The structural index and the on-demand queries
 
@@ -264,11 +272,11 @@ One detail from the diary matters for correctness: `viewsByAppId` is built from 
 The codes and paths are the host's, so a refusal reads the same whichever side produced it:
 
 ```ts
-if (!slots.has(slot)) report("unknown_binding", bindingPath, `application "${app.id}" does not define binding "${slot}"`);
+if (!slots.has(slot) && !app.openBindings) report("unknown_binding", bindingPath, `application "${app.id}" does not define binding "${slot}"`);
 if (!doc.documents[documentId]) report("unknown_document", bindingPath, `document "${documentId}" does not exist`);
 ```
 
-with `bindingPath` of the form `views["v-1"].documents["slot"]` and tree paths of the form `workspaces[0].tree.split.a.leaf.viewId`. One difference the diary flags for reviewers: the TypeScript validator collects every diagnostic while Go returns the first, so the first entry of the list is the one to compare with a Go refusal.
+with `bindingPath` of the form `views["v-1"].documents["slot"]` and tree paths of the form `workspaces[0].tree.split.a.leaf.viewId`. The `!app.openBindings` clause is Phase 8's (§9.4); until then the condition was `!slots.has(slot)` alone. One difference the diary flags for reviewers: the TypeScript validator collects every diagnostic while Go returns the first, so the first entry of the list is the one to compare with a Go refusal.
 
 `document.ts` builds layouts through the protocol rather than by hand: `layout(spec)` issues a `viewCreate` per tile and a `workspaceCreate` with a tree assembled from the protocol's own `leafNode`/`splitNode`, then applies them with the shared applier, so whatever the builder accepts is exactly what a server running `pkg/workbench` accepts. `parseWorkbenchDocument(json, { apps })` returns `{ ok: true, document } | { ok: false, diagnostics }` and never throws, because persistence reads it on every load and a corrupt entry must fall back to a default layout while telling the caller why.
 
@@ -620,6 +628,8 @@ The purity probe was inverted rather than deleted. `execute.test.ts` builds the 
 
 The remaining core tests cover the index against slow reference traversals (`graph.test.ts`), the on-demand queries, every validation code, the layout builders and parse, policy compilation, the binding policies, the constructor's atomicity and post-commit isolation, geometry fallbacks, commands, and describe and persistence (ported from the shell). The shell's 114 tests are the old Surface, Launcher, WorkspaceStrip, placement, rebalance, link, connect, derive, identity, and show tests, ported to the new API with the same DOM assertions.
 
+Phases 8 and 9 added to this picture without changing any of it: the five document-source cases of `sources.test.ts` (§9.3), the agent-tool tests ported to the command vocabulary (§9.5), the seven executable probes of the post-implementation review (§9.6), the four consumer suites (§9.7), and the baseline script (§10.2). The whole-workspace run that Phase 9 recorded is in §10.1.
+
 ## 8. Decisions and deviations recorded in the diary
 
 The diary records each place where the implementation had to decide something the guide left open, or where the new behaviour deliberately differs from the old.
@@ -634,7 +644,7 @@ The diary records each place where the implementation had to decide something th
 
 **The empty-pane fill is generalized** (Step 10). The old code filled an empty pane only from `placeAt(center)`; `resolvePlacement` applies the rule to any `split` request with neither edge nor axis, including `openView … at center`. Flagged for a second pair of eyes.
 
-**The initial document is validated at construction** (Step 9). A stored layout naming an application that is no longer registered used to render an empty tile; it now throws `WorkbenchDiagnosticError` from `createWorkbenchCore`. The door that falls back instead is `readWorkbenchSnapshot({ apps })`, so products must pass their manifests to it in Phase 8.
+**The initial document is validated at construction** (Step 9). A stored layout naming an application that is no longer registered used to render an empty tile; it now throws `WorkbenchDiagnosticError` from `createWorkbenchCore`. The door that falls back instead is `readWorkbenchSnapshot({ apps })`, and every migrated product now passes its manifests to it (§9).
 
 **`followTheCrowd` fills every declared slot** (Step 9), including a slot the caller left out of a non-empty request, where the old `BindingConfig` used a non-empty request verbatim. For a single-slot app it reproduces the old golden exactly; the multi-slot case is a deliberate change with no golden.
 
@@ -648,19 +658,279 @@ The diary records each place where the implementation had to decide something th
 
 **Smaller items**: `perform` returns true for an ambiguous show because the chooser opened, matching the old boolean, and agents should read `execute`'s result instead; `createWorkbenchShell` throws when the core has no links collaborator while `createWorkbench` always installs one; a dependant package resolves `workbench-protocol` and `workbench-core` through their built `dist/`, so the rule for the ticket was to rebuild them before testing a dependant; `slate.perf.test.ts` is a wall-clock guard that failed once under parallel load in three separate phases and passed alone each time.
 
+**Binding validation was not relaxed for the consumers** (Step 15). When the core's `unknown_document` and `unknown_binding` refusals surfaced in every product, the options were to weaken the TypeScript validator, to move the host-owned resources into the workbench document, or to give each resource a stand-in document. The first reopens the parity gap F8 closes; the second contradicts AGENT-3's D5, which keeps the program library outside the workbench document; the third is `connectDocumentSource` (§9.3).
+
+**Stub deletion is deferred, not forced** (Step 15). The applier refuses `documentDelete` of a bound document (`document_in_use`), so a source that drops a resource while a view still binds it leaves the stub; the sync that runs on the closing commit removes it. The alternative, closing the view on the source's behalf, would let a host registry rearrange the screen.
+
+**`openBindings` is a permission, not a slot** (Steps 15–16). It waives `unknown_binding` for an application and nothing else; `unknown_document` still applies. It was accepted as the smallest change that lets a program name its own bindings, with the recorded caveat that it conflates a resource-owned binding with an optional contextual one and has no Go counterpart.
+
+**Conversation stubs are configurable or off** (Step 16). `createPbuiChat` writes `chat.conversation` stubs by default; a product whose host validates document formats passes its own `format`, and a product with its own reconciler passes `false`. The option removes a second writer rather than ordering two (§9.7).
+
+**Property and fuzz tests were recorded as absent, not written** (Step 17). The guide lists them for the audit; `fast-check` is not a dependency and no such suite exists; the audit says so rather than adding one under a release phase.
+
+**The publish is the user's** (Step 17). It is outward-facing, and the external consumers' lockfiles and embedded bundles wait on it by their own convention; Phase 9 set the versions and stopped there.
+
 The guide's §23 open questions were settled at Step 6: persistence and sync as `/persistence` and `/sync` subpaths; effects as the two-member `LocalEffect` union; the collaborator's method set as listed in §5.6; selected-workspace persistence as an explicit envelope field; headless axis `"row"`; no-op success as `{ ok: true, changed: false }`; imported orphans accepted.
 
-## 9. What remains
+## 9. Phase 8: every consumer on the core, and documents for what tiles bind
 
-Phases 8 and 9 are open, and the current commit is not a releasable state.
+Phase 8 had two halves, recorded as diary Steps 15 and 16 (the second entry with that number). The in-repo half (`cc19b38`, lockfile `d2a182c`) moved pbui-sandbox, pbui-plotscript, pbui-ecommerce, pbui-chat, and the chat demo onto `createWorkbench`, `defineWorkbenchApp`, and the command vocabulary. The external half (`7fdbe1e` in pbui; one or two commits in each consumer) moved hyperblog, agentlogic, turboproof, and rag-ttc. Nothing further was deleted from the shell, because Phase 6 had already deleted the old assembly, store, verbs, and link handlers; the consumers were the last holders of `defineApp`, `wb.verbs.*`, `wb.store`, `describeWorkbench(wb)`, and the `tile.*` verb kinds, and the deletion the guide's §18 lists became complete when the last of those call sites changed. No compatibility alias was introduced at any point.
 
-Phase 8 migrates consumers in the guide's order and then deletes the §18 symbols. In the repository: pbui-workbench's own stories and tests are done; pbui-chat (22 importing files; it uses `plan()` for atomic multi-verb agent tools, `describeWorkbench`, `readWorkbenchSnapshot`, `workbench.mutate` in the demo NotesApp), pbui-sandbox, pbui-ecommerce (26 files; `createWorkbench` with `links` deps, `workbench.perform`, `useDocument`, the presentation fragment), pbui-plotscript (12 files; `parseDocument`, `workbench.mutate` for `documentPut`), and pbui-editor (comments only) do not compile at `580f1a9`. Outside the repository: rag-ttc (45 files, `link:` to this checkout), agentlogic (10, packed tarball, sync via the old subpath), hyperblog (4, `link:`), and turboproof (7, a Redux `WorkbenchStore` adapter). Specific migration items the diary names: products must call `readWorkbenchSnapshot({ apps })` to keep the fall-back behaviour for retired applications; products that used `onDropped(mutations, reason)` move to the entry-based signature; turboproof's Redux slice can no longer be the document's source of truth without a host port the guide defers, so that consumer needs a decision. Datalab is frozen (PBUI-DATALAB-1) and out of scope.
+### 9.1 The in-repo conversion
 
-Phase 9 is the audit: all package and consumer suites, Go tests and `make protocol-check`, property and fuzz runs, a bundle-boundary check that the core contains no React or DOM, the migration note, performance baselines for index build, plan, commit, link snapshot, and rebalance slate, and the release of protocol, core, and shell in dependency order. READMEs for both packages already exist from Phase 6.
+Each package was converted mechanically and then run against the core. The mechanical part was one manifest/presentation split per application (line-wise converters keyed on the indented fields of the old `defineApp` objects were reliable where a regex over the whole object was not, diary Step 15) and one `commands.*` builder per verb call. The mapping used throughout is the one §5.4 froze for `view.show`, extended to the placement and session verbs: `tile.split{dir}` → `placement.duplicate{axis}`; `tile.split{appId}` → `view.show{application, split{target}}`; `tile.close` → `placement.close`; `tile.activate` → `session.activatePlacement`; `tile.replace` → `view.show{…, replace{target}}`; `tile.link` → `view.show{existing, split}`; `split.resize` → `placement.resize`; `app.place` and `view.open` → `view.show{application, auto}`; `view.setTitle` and `view.rebind` → `view.configure`; `view.goTo` → `view.show{existing, navigate}`; `workspace.select` → `session.selectWorkspace`.
 
-Follow-ups recorded outside the phase plan: a React-free pbui link-kernel entry so the core can drop React from devDependencies; wiring the `contracts/workbench/v1/{valid,invalid}` fixtures into a core parity test once the catalog shape for fixtures is decided; and a generic module abstraction only after a second subsystem demonstrates the links collaborator's lifecycle.
+Per package:
 
-## 10. How to read the code
+- pbui-sandbox: `createScriptApp` and the devtools apps became `defineWorkbenchApp` pairs; the tiles execute `commands.open("script", …)`; the `script` manifest declares `openBindings: true`; a new `connect.ts` mirrors the program library into the document (§9.3); `@bufbuild/protobuf` and workbench-core became dependencies.
+- pbui-plotscript: apps converted; `connectPlotScriptDocuments(core, host)` takes the core and writes through `core.apply`; tests, stories, and the demo use `parseWorkbenchDocument` and `wb.core`.
+- pbui-ecommerce: the seven apps converted line-wise; `createShop` takes `WorkbenchApp[]` and returns a `WorkbenchShell`; the presentation environment's `links` is the shell (`linkSnapshot()`, `links.deps`, `links.sourceOf`); the demo restores through `parseWorkbenchDocument(stored, { apps: createManifestCatalog(manifestsOf(shop.apps)) })`.
+- pbui-chat: `createChatApps` and `createConversationApps` converted; `createPbuiChat` holds a `WorkbenchShell`, opens widget tiles with `commands.open("widget", …)` after putting a `chat.widget` stub, and `attachWorkbench` connects the conversation registry as a document source; `conversations/verbs.ts` executes `commands.open("chat", …)`; `sandboxTools` reads `wb.describe`; the agent's workbench tools were rewritten (§9.5).
+- The chat demo: `workbench.ts` builds one apps array, restores with `readWorkbenchSnapshot(key, { migrate, apps })`, passes `initialSession`, connects the world (`shop.product`, `shop.category`, `shop.metal`, `shop.order`) and the program library as document sources before `bootstrapConversations`, and persists with `createLocalPersistence(workbench.core, …)`; `pbui/verbs.ts` carries zod schemas for the command kinds plus `launcher.open{from?}` and `launcher.close`; `chat.ts` routes the command kinds through `wb.perform`; the action rules emit literal `view.show` and `session.selectWorkspace` objects, because the demo's `Verb` union is zod-inferred and the wide `WorkbenchCommand` type of `commands.*` is not assignable to it; `pkg/chatserver/demo/vocabulary.json` was regenerated with `pnpm vocab`, which first crashed on a stale `pbui-chat/dist` still importing `defineApp` and needed the package rebuilt.
+
+Two smaller repairs travelled with the commit. The refusal shape of `execute` and `preview` carries `index` and `command` for a batch (the position and the command that was refused), and the refusal goldens were updated for them. And `packages/pbui-chat/test/grid-columns.test.ts`, failing since PBUI-LINK-1, passes because three module stylesheets (CoordinationInspector `.app` and `.pad`, PortRail `.column`, SourceTile `.code`) now state `grid-template-columns: minmax(0, 1fr)`.
+
+The fence test of §5.8 flagged `sources.ts` for a parameter named `document`, and the parameter was renamed `doc` as everywhere else in the core.
+
+### 9.2 The finding: every product binds an id the workbench does not own
+
+The runs, not the conversion, were the work. The core validates every `view.documents` binding against the document store with the Go validator's rule (§5.3): `unknown_binding` when the slot is not declared by the manifest, `unknown_document` when the id is not a key of `document.documents`. The old store never noticed, because its validation ran without a catalog. Under the core, `sandbox_open` with `{ product: "2049" }` was refused twice in the sandbox tools' test harness: first `unknown_document` (the harness's world is a resolver, not a store) and then `unknown_binding` (the harness's `script` manifest declared no such slot). Both refusals were the rule working.
+
+The diary states the result as a modelling gap: every product in the repository binds at least one host-owned id — conversations and widgets in pbui-chat, programs in pbui-sandbox, products in both demos. Three answers were possible. Relaxing the rule in TypeScript would have reopened the parity gap that F8 and the guide's §13.1 close. Moving the resources into the workbench document would have contradicted AGENT-3's decision D5, which keeps the program library separate from the workbench document. The third, chosen, is a document that stands for the resource: it carries the resource's identity and optionally a small body, never a copy of the resource, and the host remains the resource's home.
+
+### 9.3 `connectDocumentSource`
+
+`sources.ts` (79 lines) defines a source and a connector:
+
+```ts
+export interface DocumentSource {
+  /** The format every stub this source contributes carries; the connector removes only stubs of this format. */
+  readonly format: string;
+  /** Default 1. */
+  readonly schemaVersion?: number;
+  /** The resources that exist right now. A body is written once, when the stub is created. */
+  list(): readonly { id: string; body?: JsonObject }[];
+  /** Fires when membership may have changed; omit for a source that never changes. */
+  subscribe?(listener: () => void): () => void;
+}
+```
+
+`documentSourceMutations(doc, source)` computes the batch that brings the document's stubs in line with the source: a `documentPut` of a stub (`{ id, format, schemaVersion, body }`) for every listed resource that has no document of that id, and a `documentDelete` for every document of the source's format that is neither listed nor bound by a view. The bound set is read from `view.documents` across all views:
+
+```ts
+const bound = new Set(Object.values(doc.views).flatMap((view) => Object.values(view.documents)));
+for (const [id, payload] of Object.entries(doc.documents)) {
+  if (payload.format !== source.format || present.has(id) || bound.has(id)) continue;
+  out.push(create(MutationSchema, { body: { case: "documentDelete", value: { documentId: id } } }));
+}
+```
+
+The bound check exists because the protocol applier refuses a `documentDelete` of a bound document (`document_in_use`). A source that drops a resource while a tile still shows it must therefore leave the stub in place; the stub is removed by the next sync after the view is gone. The format check makes the connector's deletions specific to its own stubs: a document of another format is never touched, whatever its id.
+
+```ts
+export function connectDocumentSource(core: WorkbenchCore, source: DocumentSource): () => void {
+  const sync = () => {
+    const mutations = documentSourceMutations(core.getState().document, source);
+    if (mutations.length > 0) core.apply(mutations);
+  };
+  sync();
+  const unsubscribeSource = source.subscribe?.(sync) ?? (() => undefined);
+  const unsubscribeCore = core.subscribe(sync);
+  return () => { unsubscribeSource(); unsubscribeCore(); };
+}
+```
+
+The sync runs once on connect, again on every change the source reports, and again on every change of the core's state, so a document that arrives without stubs (a restore, a reset, a sync adoption) receives them, and a stub whose last binding was just closed is removed on the closing commit's notification. The connector writes through `core.apply`, so the batch passes validation and links maintenance like any raw batch (§5.7). What stops the core subscription from feeding itself is that a sync computing no mutations applies nothing.
+
+`sources.test.ts` has five cases: a stub for every listed resource and deletion of unlisted, unbound stubs of the source's own format; a view binding a mirrored resource, with the stub kept while the view binds it; re-sync after the core's document is replaced under the connector; nothing of another format touched and nothing applied when in step; and an application with open bindings binding slots its manifest does not declare.
+
+The stub formats in use are `sandbox.program` (body `{ title }`), `chat.conversation`, `chat.widget`, `shop.product` (body `{ name }`), `shop.category`, `shop.metal`, and `shop.order`. pbui-sandbox's `connect.ts` is the pattern a product follows:
+
+```ts
+export const PROGRAM_DOCUMENT_FORMAT = "sandbox.program";
+
+export function programDocumentSource(library: ProgramLibrary): DocumentSource {
+  return {
+    format: PROGRAM_DOCUMENT_FORMAT,
+    list: () => Object.values(library.getState().programs).map((program) => ({ id: program.id, body: { title: program.title } })),
+    subscribe: (listener) => library.subscribe(listener),
+  };
+}
+
+export function connectProgramLibrary(core: WorkbenchCore, library: ProgramLibrary): () => void {
+  return connectDocumentSource(core, programDocumentSource(library));
+}
+```
+
+pbui-chat's `connectWorkbench(next)` in `createPbuiChat.tsx` disconnects the previous source, records the shell, and, unless the product opted out (§9.7), connects a source over the conversation registry with `list: () => conversations.all().map((snapshot) => ({ id: snapshot.id }))` and the registry's own `subscribe`; the source is disconnected on detach. Widget stubs are written by "Open in tile" and never removed, since a widget that left the timeline is what the tile's empty state reports; the document grows by one small stub per opened widget. A layout stored before this change carries bindings without stubs and is discarded once by `readWorkbenchSnapshot` with `apps`; the product falls back to its default layout, and from then on the stubs persist with the document.
+
+### 9.4 `openBindings`
+
+The sandbox's `script` application binds the `program` slot its manifest declares and, in addition, whatever bindings the program itself names; no manifest can enumerate those. Phase 8 added a boolean to the manifest:
+
+```ts
+/**
+ * The application accepts bindings beyond its declared document slots.
+ * For a host whose bindings are declared by the bound resource rather than
+ * the manifest — the sandbox's `script` application, whose programs each
+ * name their own — so `unknown_binding` is not reported for its views.
+ * Every bound document must still exist. Default false.
+ */
+readonly openBindings: boolean;
+```
+
+`defineAppManifest` normalizes it to `false`. It is consulted in exactly two places. `validation.ts` skips `unknown_binding` for such an application's views (the line quoted in §5.3), and `resolveInitialDocuments` in `binding.ts` skips the undeclared-slot refusal before a view exists:
+
+```ts
+const unknown = app.openBindings ? [] : Object.keys(requested).filter((key) => !slots.includes(key));
+```
+
+`unknown_document` is not relaxed: every bound document must exist, which is why the sandbox needs the program source of §9.3 as well as the flag. The flag has no Go counterpart; `pkg/workbench`'s `ApplicationDescriptor.DocumentBindings` would still refuse a `script` view with a `product` binding if the chat server validated the demo's document against a catalog, which today it does not. The post-implementation review (§9.6) observed that the flag stands for two different missing concepts, an optional contextual binding and a resource-owned binding, and should not be the final model; agentlogic's use of it (§9.7) is the first instance of the former.
+
+### 9.5 The agent's workbench tools on the command vocabulary
+
+`packages/pbui-chat/src/tools/workbenchTools.ts` (866 lines) is the product's only path from the model to the layout, and the rewrite had to keep each of its guarantees (revision check, per-verb policy, trace through the effect gateway, atomic batches, limits) while changing vocabulary. The policy is keyed by command kind, with one key that is not a kind:
+
+```ts
+export const DEFAULT_POLICY: WorkbenchPolicy = {
+  "session.activatePlacement": "allow",
+  "session.selectWorkspace": "allow",
+  "placement.duplicate": "allow",
+  "placement.swap": "allow",
+  "placement.dock": "allow",
+  "placement.resize": "allow",
+  "view.configure": "allow",
+  "workspace.create": "allow",
+  "workspace.rename": "allow",
+  "workspace.clone": "allow",
+  "workspace.rebalance": "allow",
+  "view.show": "allow",
+  "view.show.replace": "confirm",
+  "placement.close": "confirm",
+  "placement.replaceWith": "confirm",
+  "workspace.delete": "confirm",
+  "document.delete": "confirm",
+};
+
+export function policyKindOf(command: WorkbenchCommand): string {
+  if (command.kind === "view.show" && command.placement.kind === "replace") return "view.show.replace";
+  return command.kind;
+}
+```
+
+The old policy gated `tile.replace` only. `view.show` with a `replace` placement is that verb under the new name, since it changes what someone may be reading, so it has its own key; `view.show` in its open, link, and navigate forms is allowed without confirmation. The gated surface is therefore the same as before under new names. `document.delete` is reachable only through the raw tool.
+
+The perform tool runs four checks before anything is planned. `isWorkbenchCommand` refuses an incomplete command. A kind matching `launcher.*`, `rebalance.*`, `link.mode.*`, `relation.palette.*`, or `show.chooser.*` is refused with "is not something the assistant may do", because the dialogs are the human's and an agent opening one takes the keyboard. `verbProblem(command, wb)` checks each command's targets against `wb.describe` and the core state (an unknown placement, view, workspace, or split is named in the sentence) and its feasibility against `wb.measure()` with `canSplitPlacement` and `splitRatioBounds` over `wb.core.policy.split`, so a `placement.duplicate` on a tile too narrow to split side by side is refused with that sentence rather than with the planner's code; for a `view.show` it reads one level into `view` and `placement` (`existing` view id, application id, `replace` target, `split` target and edge or axis, `auto` neighbour). A denied policy kind is reported last. A batch with any error is rejected whole with a per-verb result list.
+
+The batch that passes is previewed with `wb.preview(verbs)`, the advisory preflight of S2, and refused early with the index and sentence of the failing command. The accepted batch is handed to the effect gateway with `policy: "confirm"` when any verb's policy kind is gated, and the gateway's `perform` re-checks `wb.core.getState().revision` against the revision captured before the preview and executes with `wb.execute(verbs)`, which plans afresh inside the core's gateway:
+
+```ts
+async perform() {
+  if (wb.core.getState().revision !== baseRevision) {
+    return { outcome: "rejected:workbench changed while awaiting approval; call workbench_describe again" };
+  }
+  const executed = wb.execute(verbs);
+  if (!executed.ok) return { outcome: `rejected:the workbench refused the atomic batch: ${executed.because}` };
+  return { outcome: "performed", afterRevision: await workbenchRevision(wb) } as const;
+},
+```
+
+The stale check that used to compare document identity (F4) compares the core's revision. The raw tool applies through `wb.apply` under the same guard, `validateLayout` uses `layoutFits(spec, wb.measure(), wb.core.policy.split)`, `workbenchVerbTargetIds` reads the ids one level into `view` and `placement` for the trace, and `WORKBENCH_COMMAND_KINDS` replaces `WORKBENCH_VERB_KINDS`. The tests carried over almost verbatim once the harness performed through `wb.perform`: stale revision, deny, the confirmation ledger, limits, and atomic batches are vocabulary-independent, and the harness gained a `withProduct` seed because the core validates the `sku` binding. The first rewrite aborted on its own leftover check, which matched comment lines mentioning `wb.verbs.*` and the tool's `input.verbs` field; the check was narrowed to code lines and the old symbols.
+
+### 9.6 The post-implementation review
+
+Between the two halves of Phase 8 an independent review of the Phase 0–8 code was written (the diary's first Step 16; `design-doc/03-post-implementation-architecture-and-code-review.md`, with `scripts/04-implementation-review-probes.test.ts`). It concluded that the protocol/core/shell split should be retained and recorded nineteen prioritized findings, seven of them reproduced by executable probes rather than argued from the source: the exposed protobuf document and index maps can be mutated by a caller, so the single gateway is not enforced by types; `preview` and `execute` mint different ids for the same command (`n-00000009-0000` against `n-00000012-0000`); an exception thrown by a subscriber or by a post-commit hook escapes after the revision has advanced; a document source removing a resource that is still bound, followed by the closing of the view, produces a nested `documentDelete` receipt before the outer close receipt (revisions `[4, 3]`), which an outbox would send in the wrong order; a replace of an application on a pane drops the requested title; and sync bootstrap against a missing server row with a queued local batch drops the batch once. The review also noted that a source-clean package is not a dependency-clean one, since the core reaches React transitively through the pbui root entry (§8). Its recommendation was to fix the transaction, source, and sync findings before a package release. The Phase 9 commit does not address them; they are carried in §11.
+
+### 9.7 The external half: four products from one brief
+
+The four consumers outside the repository were migrated in parallel by four agents working from one brief: the new API on a page, the in-repo migrations as worked examples, the hard-cutover rules, and the finding of §9.2 in one line ("The core refuses a view whose `documents` binding names a document not in `document.documents` (`unknown_document`), or a slot the manifest does not declare (`unknown_binding`, unless `openBindings`)."). All four typecheck, test, and build on the new core and shell; each is committed on its repository's `task/add-plot-editor` branch and none is pushed, by the consumers' convention that a lockfile and an embedded bundle are committed only once the packages are on the registry. Every agent found and followed the same two local conventions: a local-only `pnpm-workspace.yaml` with tarball overrides, and a lockfile that deliberately lags unpublished versions.
+
+| Consumer | Commit | Decisions | Tests |
+|---|---|---|---|
+| hyperblog (`ui/`, `link:` overrides) | `6358676` | apps as `defineWorkbenchApp` with document slots mirroring `pkg/workbenchapp/catalog.go`; `splitPolicy` → `policy.duplicate` with the launcher as the empty-placement application; the old no-op `binding: { source: "post" }` dropped for the default `bindRequestedOnly`; the corpus mirrored as `hyperblog.post` and `hyperblog.term` document sources through a React-context ref; stored workspace → `initialSession` | 29 |
+| agentlogic (`ui/`, registry pins with local tarballs) | `e3b69e0` | `toApp` / `defineWorkbenchApp`; `policy.duplicate: { app: launcher }`; `followTheCrowd({ isBindable, unbound })` over the `transcript` slot in place of the old `binding` option; the transcript binding declared through `openBindings` rather than a slot, because a declared slot makes an application doc-bound and `defaultLauncherRows` hides doc-bound applications; hand-rolled localStorage → `readWorkbenchSnapshot` and `createLocalPersistence` with a migration folding the old workspace-pointer key; no document source, since transcripts arrive by `documentPut`; the root pbui package repacked because the earlier tarball lacked the port helpers the core imports | 128 (+1 skipped) |
+| turboproof (`ui/`, registry pins with local tarballs) | `68ed102` | the Redux mirror of the old store deleted; the core is the document's home (`useDocument` / `useCoreState` in React, `core.getState()` outside, `apply` / `execute` for writes); Redux keeps `fileSync` and a new `syncStatus { phase }` slice; sync rebuilt on `workbench-core/sync` with `onInvalid: "isolate"` and a 400 ms flush; manifests with `documentSlotPort("source")` except the three applications that bind nothing; `followTheCrowd` over lean sources; the pbui runtime migrated to `createPbui({ presentation, contextFor })` along the way, because the new packages need post-KERNEL pbui at runtime | 129 |
+| rag-ttc (`apps/workbench/web`, `link:` overrides already pointing at this checkout) | `bdfb04f`, `50db0fc` | apps, workbench, sync adoption through `parseWorkbenchDocument` and `core.replaceDocument`, persistence, agent vocabulary regenerated with the command kinds; `conversationDocuments: false` | 167 |
+
+The turboproof row settles the question the guide deferred: the Redux slice is no longer the document's source of truth, the core is, and no host port was needed. The brief is what made four independent migrations converge on the same three decisions: manifest slots mirroring the Go catalogs, `followTheCrowd` replacing the old `binding` option, and the launcher as the duplicate application. agentlogic's `pnpm install` reused stale extractions of same-named tarballs and needed `--force`; nothing else failed.
+
+One decision reached back into pbui. `attachWorkbench` mirrored conversations as `chat.conversation` stubs with no way to choose the format or to opt out; rag-ttc's Go host refuses documents of a format it does not know, and rag-ttc already reconciles conversation documents itself with richer bodies, so for a while two writers asserted the same documents, each re-running on the other's commit. Both stopped when nothing differed, so the pair converged, but the fixed format was wrong for the host, and rag-ttc had installed a double write to survive it. Commit `7fdbe1e` adds `conversationDocuments?: { format: string } | false` to `createPbuiChat`'s options and exports the two format constants: a product with a strict host passes its own format; a product with its own reconciler passes `false` and no source is connected. rag-ttc opted out and the double write is gone.
+
+Three of the four products needed no document source, because their bindings were already `documentPut` documents; hyperblog's corpus became one in a few lines. hyperblog and agentlogic discard a stored layout from the previous build once (`unknown_document`, since no stubs were stored) and fall back to their seeds. None of the four ran a browser smoke; Phase 9 ran one on the shop demo. datalab-ui was not migrated: it is frozen under PBUI-DATALAB-1 and out of scope.
+
+## 10. Phase 9: the release audit, baselines, and versions
+
+Phase 9 (`83074c5`; docs `c8ab012`) is the audit the guide's §17 asks for before a publish. Everything that can be run without publishing was run, and the audit had been running in the background since the in-repo half of Phase 8 closed, so the phase mostly read results. The publish itself is left to the user.
+
+### 10.1 The audit
+
+| Check | Result |
+|---|---|
+| `pnpm -r typecheck` | 13 projects, clean |
+| `pnpm -r test` | 10 suites, 1,454 tests: protocol 40, pbui 554, core 189, shell 114, ecommerce 35, editor 12, sandbox 224, chat 241, plotscript 32, datalab 13 |
+| `pnpm -r build` | 12 builds |
+| Storybook builds | workbench, chat, sandbox, ecommerce, plotscript |
+| `make protocol-check` | buf lint, regeneration, no diff |
+| Go | `GOWORK=off go test ./pkg/workbench/... ./pkg/workbenchapi/...` passes; with the workspace file, `go.work` refuses the sibling modules' Go versions (`module . listed in go.work file requires go >= 1.26.6, but go.work lists go 1.26`), an environment matter rather than a code one |
+| Consumer suites | hyperblog 29, agentlogic 128, turboproof 129, rag-ttc 167 |
+| Bundle fence | `packages/workbench-core/dist/*.js` import only `@bufbuild/protobuf`, `@hyperslop-systems/workbench-protocol`, `@hyperslop-systems/workbench-protocol/client`, and `@hyperslop-systems/pbui` (for `definePorts` and `documentSlotsOf`); no `react`, `window`, or `document.body` in the output; the source fence test of §5.8 stays |
+| Browser smoke | the ecommerce demo served from its `dist` with `vite preview`: the seeded workspace renders three tiles, the tile object menu opens, "Split beside" produces a nested pair, zero console warnings or errors |
+
+The guide also lists property and fuzz runs. None exist in the repository (`fast-check` is not a dependency); the goldens, the purity probe, and the rebalance law's generated trees are the closest things, and the diary records the absence rather than adding a suite in the audit phase.
+
+### 10.2 Baselines
+
+`scripts/05-perf-baselines.test.ts` builds a 12-tile workspace over three manifests (`orders` with an `out` port, `detail` with an `in` port and a `product` slot, `notes` with none), follows every `orders` tile's port to every `detail` tile's port (20 links), and measures medians of 25 runs after a warm-up (5 for the slate). It writes `05-perf-baselines.output.txt` beside itself rather than asserting, so the numbers are archived with the ticket as a baseline, not a guard. Node v24.18.0:
+
+| Operation | Median | Min | Max |
+|---|---|---|---|
+| `buildWorkbenchIndex` (12 tiles) | 0.014 ms | 0.012 | 0.018 |
+| `preview placement.duplicate` (plan only) | 0.849 ms | 0.544 | 1.037 |
+| `preview view.show auto` (plan only) | 0.030 ms | 0.015 | 0.086 |
+| `execute duplicate + close` (plan + commit ×2) | 2.056 ms | 1.175 | 5.252 |
+| `links.snapshot` (12 tiles) | 0.000 ms | 0.000 | 0.009 |
+| `buildSlate` anything profile (12 tiles, n=5) | 15.602 ms | 13.819 | 18.802 |
+
+Two readings follow. The index build and the link snapshot are effectively free at this size, which is the measurement the §5.2 decision not to maintain the index incrementally was waiting for. A `placement.duplicate` preview costs about thirty times a `view.show auto` preview, because a duplicate consults geometry for the longer axis and runs the split feasibility check; both remain under a millisecond. The slate, which runs every generator, the relax gradient, and the cubic assignment, sits at the same order as the Phase 6 wall-clock guard's laboratory number (the guard's bound is 50 ms; the review measured it at 36.7 ms in isolation and saw it exceed the bound twice under parallel load).
+
+One correction in the script: `import.meta.url` under the ticket's Vitest config is not a `file:` URL, so the output path is built from `__dirname`. The script's number was also moved from `04-` to `05-` because the review's probes had taken `04-`.
+
+### 10.3 The migration note
+
+`packages/pbui-workbench/MIGRATION.md` is the consumer-facing statement of the cutover, titled for pbui-workbench 0.5 and workbench-core 0.1. It is organized as: dependencies (add `workbench-core`; keep `workbench-protocol` minus `createWorkbenchClient`; release order protocol → core → shell); applications (`defineApp` and `createAppRegistry` → `defineWorkbenchApp({ manifest, presentation })`, with `viewCardinality: "one"` for the old `singleton: true`, `duplicatePlacement: "link"` where a split used to link, and `openBindings` for an application whose bindings are declared by what it binds); building the workbench (`createWorkbench` returns a `WorkbenchShell` whose members are listed; `workbench.store` is gone in favour of `core.getState()` and `core.subscribe`); verbs become commands (a before/after table of every verb and the result shapes of `execute` and `preview`, and the list of shell actions dispatched with `dispatch` or `perform`); persistence and sync (`readWorkbenchSnapshot(KEY, { migrate, apps })`, `createLocalPersistence(workbench.core, …)`, the batch-shaped outbox with `onDropped(entries, reason)`); bindings are validated (the two codes, the discard rule of `readWorkbenchSnapshot`, and a `connectDocumentSource` example); and object menus (`createWorkbenchPresentationFragment`, `workbenchTileContributions`, `tileRefOf`, `TileRef` unchanged in name, their rules binding commands).
+
+### 10.4 Versions
+
+| Package | Before | After |
+|---|---|---|
+| `@hyperslop-systems/workbench-protocol` | 0.4.1 | 0.5.0 |
+| `@hyperslop-systems/workbench-core` | — | 0.1.0 |
+| `@hyperslop-systems/pbui-workbench` | 0.4.0 | 0.5.0 |
+| `@hyperslop-systems/pbui` | 0.10.0 | 0.11.0 |
+
+The root package's bump answers a finding from the external migration: `@hyperslop-systems/pbui` was still 0.10.0 while its API was post-KERNEL-1..4, two consumers had to repack it, and turboproof's `0.10.0` pin named two incompatible things. All internal dependencies are `workspace:^`, so nothing else moved and the lockfile did not change.
+
+The publish order is pbui 0.11.0 first, since the core depends on it, then protocol 0.5.0, core 0.1.0, and shell 0.5.0. After that the consumers commit their lockfiles and embedded bundles.
+
+## 11. What remains
+
+The ticket's ten phases are complete and the tasks file marks each done; the branch is not yet published.
+
+The publish. Nothing inside the repository depends on it, but the four external consumers do: agentlogic and turboproof pin registry versions with local tarball overrides and commit neither the lockfile nor the embedded bundle until the packages are on the registry; hyperblog and rag-ttc use `link:` overrides to this checkout. The order is pbui 0.11.0, protocol 0.5.0, core 0.1.0, shell 0.5.0; the four consumer branches, none of them pushed, are then finished with their lockfiles and pushed.
+
+Follow-ups recorded in Steps 15–17:
+
+- Mirror `openBindings` into the Go `ApplicationDescriptor` and the protocol fixtures, before any server validates a sandbox-bearing document against a catalog.
+- An optional document slot that does not make an application doc-bound; agentlogic's transcript binding has no exact spelling today and uses `openBindings` as a wider permission than it needs.
+- A pure `ports` subpath on `@hyperslop-systems/pbui`, so the core's runtime dependency on the package's root entry (which also exports React components) can be narrowed. The Phase 6 follow-up of a React-free link-kernel entry, which would let the core drop React from its devDependencies, is the same item seen from the other side.
+- turboproof's sync no longer coalesces consecutive per-keystroke `documentPut` batches of one document; each keystroke queues a one-mutation batch and the debounce bundles them into one request. The agent chose not to add a coalescer because a put held outside the outbox could be lost on a concurrent adoption. To be examined when the editor is used against a live host.
+- Widget stubs in pbui-chat are never removed; the document grows by one small stub per opened widget.
+- The findings of the post-implementation review (§9.6): mutable exposed state, preview/execute id drift, subscriber and post-commit exception escape, source receipt order under a nested delete, the dropped replace title, and the sync bootstrap drop. The review classifies the transaction, source, and sync items as pre-release; the Phase 9 commit did not address them.
+- `adopt` rebasing without the conflict rule (§5.10), flagged for review in Phase 7 and unchanged since.
+- The two carried from Phase 6: wiring the `contracts/workbench/v1/{valid,invalid}` fixtures into a core parity test once the catalog shape for fixtures is decided, and a generic module abstraction only after a second subsystem demonstrates the links collaborator's lifecycle.
+- Property and fuzz tests, which the guide lists and the repository does not have.
+
+## 12. How to read the code
 
 For a new engineer, the guide's §20.1 says to start with behaviour, not folders, and the shortest path through the new code follows that.
 
@@ -674,12 +944,15 @@ For a new engineer, the guide's §20.1 says to start with behaviour, not folders
 8. `geometry.ts` with `geometry.test.ts`, and `packages/pbui-workbench/src/geometry.ts` for the measuring side.
 9. `packages/pbui-workbench/src/createWorkbenchShell.tsx`, then `shellState.ts`, `components/Tile/Tile.tsx`, and `components/Launcher/Launcher.tsx`: how a gesture becomes a command and how a result becomes focus or a chooser.
 10. `sync/index.ts` with `sync/sync.test.ts`: the outbox as batches, the rebase, and the conflict rule.
+11. `sources.ts` with `sources.test.ts`, then `packages/pbui-sandbox/src/connect.ts` and `connectWorkbench` in `packages/pbui-chat/src/createPbuiChat.tsx`: what a document source is, why the validator needs one, and how a product connects one.
+12. `packages/pbui-chat/src/tools/workbenchTools.ts` (`DEFAULT_POLICY`, `policyKindOf`, `verbProblem`, the perform tool) with its test: an agent on the command vocabulary, and the preview-then-execute sequence inside the effect gateway.
+13. `packages/pbui-workbench/MIGRATION.md`, then one external consumer commit (hyperblog `6358676` is the smallest), starting at its workbench module and its test.
 
-Three rules to carry while changing anything: a planner reads `PlanWorld` and returns data, and if a change needs a store, a DOM, or a runtime write during planning it is in the wrong place; every durable change reaches the document through `prepare` and `install`, and a new door is a bug; a shell dialog or mode is a `WorkbenchShellAction`, and if it appears in `WorkbenchCommand` the plan algebra has become narrower than the command algebra again.
+Three rules to carry while changing anything: a planner reads `PlanWorld` and returns data, and if a change needs a store, a DOM, or a runtime write during planning it is in the wrong place; every durable change reaches the document through `prepare` and `install`, and a new door is a bug; a shell dialog or mode is a `WorkbenchShellAction`, and if it appears in `WorkbenchCommand` the plan algebra has become narrower than the command algebra again. A fourth from Phase 8: a tile that binds an id the workbench does not own needs a document source for it, and a validator relaxed to admit the id is the wrong fix.
 
-## 11. Conclusion
+## 13. Conclusion
 
-The ticket's stated destination was not a larger `createWorkbench` but a smaller set of boundaries whose composition is explicit and whose correctness can be tested independently. The evidence that the boundaries hold is not the line count but three tests that could not have been written before: a preview of an identity merge that leaves the runtime revision where it was, a close command and a raw close batch that commit byte-identical batches, and a generated-tree property that every rebalance proposal preserves the placement→view map. The consumer migration that makes this a release is the work that remains.
+The ticket's stated destination was not a larger `createWorkbench` but a smaller set of boundaries whose composition is explicit and whose correctness can be tested independently. The evidence that the boundaries hold is not the line count but three tests that could not have been written before: a preview of an identity merge that leaves the runtime revision where it was, a close command and a raw close batch that commit byte-identical batches, and a generated-tree property that every rebalance proposal preserves the placement→view map. The consumer migration is done, inside the repository and in the four products outside it, and it produced one addition the design had not foreseen: a document source, because a validator that keeps the host's rules exposes every binding to an id the workbench does not own. The audit is green, the baselines are recorded, and the versions are set; the publish is the step that remains.
 
 ## Related notes
 
