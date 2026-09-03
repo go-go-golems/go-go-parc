@@ -1,5 +1,5 @@
 ---
-title: "TTC Customer Clustering — Order-Grain Segmentation and the Shiny Explorer"
+title: TTC Customer Clustering — Order-Grain Segmentation and the Shiny Explorer
 aliases:
   - TTC Customer Clustering
   - thetreecenter.com segmentation
@@ -13,6 +13,7 @@ status: active
 type: project
 created: 2026-09-03
 repo: /home/manuel/code/gec/2026-09-03--marketing-analysis
+publish: false
 ---
 
 # TTC Customer Clustering
