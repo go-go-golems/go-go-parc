@@ -930,6 +930,8 @@ Follow-ups recorded in Steps 15–17:
 - The two carried from Phase 6: wiring the `contracts/workbench/v1/{valid,invalid}` fixtures into a core parity test once the catalog shape for fixtures is decided, and a generic module abstraction only after a second subsystem demonstrates the links collaborator's lifecycle.
 - Property and fuzz tests, which the guide lists and the repository does not have.
 
+Continued in [[PROJECT REPORT - PBUI Workbench Stabilization - Safe Publication, a Proven Headless Boundary, and Binding Semantics Shared with Go]], which describes the stabilization program (design doc 04, phases S0–S7) that addressed the review findings of §9.6, the React-free link-kernel entry, the optional context binding, and the fixture parity test listed above, and which supersedes this section's list of follow-ups.
+
 ## 12. How to read the code
 
 For a new engineer, the guide's §20.1 says to start with behaviour, not folders, and the shortest path through the new code follows that.
