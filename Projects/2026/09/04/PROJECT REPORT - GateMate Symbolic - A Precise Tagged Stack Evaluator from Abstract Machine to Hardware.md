@@ -352,6 +352,18 @@ stty -F /dev/ttyACM0 115200 raw -echo && cat /dev/ttyACM0
 - **Fault-record contract.** `rdepth` appears in the `FINAL` line but not in `FAULT` trace records; if later laboratories need fault-time continuation state, the record format is the place to add it.
 - **Laboratories 2–5.** The book's ladder continues with rollback constraint solving (checkpoints, trails), elastic dataflow, lazy graph reduction, and a relational query engine, each reusing this machine's substrate: the value word, the trace contract, the elastic output path, and the verification loop.
 
+## Related playbooks
+
+The durable methods from this project are written up as Research playbooks, each generalizing one layer of the work beyond this repository:
+
+- [[ARTICLE - Playbook - Differential Verification with a Frozen Trace Contract]] — the model-first verification method: one ISA table, one executable model, one frozen trace line format, directed and random differential testing.
+- [[ARTICLE - Playbook - A Two-Entry Top Cache over Block RAM]] — the Split-Lifetime Frame implementation: the invariant, the algorithms, and the failure modes.
+- [[ARTICLE - Playbook - The yosys and iverilog SystemVerilog Subset]] — the portable SV subset and the scripted-patch verification rule.
+- [[ARTICLE - Playbook - Race-Free Testbench Monitors and the Ready-Valid Boundary]] — monitor sampling discipline and the acceptance-versus-transmission lesson.
+- [[ARTICLE - Playbook - GateMate Board Evidence Workflow]] — concurrent UART capture, LED polarity, budget reading, and restart semantics.
+
+Repo-local pragmatic playbooks for working in `symbolic_eval/` live in `symbolic_eval/playbooks/` (`PB-01` adding an opcode, `PB-02` debugging a trace mismatch, `PB-03` adding a fault code, `PB-04` board workflow, `PB-05` RTL portability rules).
+
 ## Sources
 
 - Book (primary source, imported into the ticket): `ttmp/2026/09/04/GATEMATE-SYMBOLIC-001--*/sources/Composable_Hardware_Patterns_for_Symbolic_Computers.md` — Laboratory 1 at lines 4211–4569; pattern contract ch. 3; commitment levels ch. 4; GateMate substrate and budgets ch. 6; `symbolic_types_pkg` and `rv_reg` in Part III.
