@@ -186,6 +186,10 @@ Every page of one thread shares one cache entry; `merge` deduplicates by post id
 
 ![A thread detail page with 50 posts loaded and a centered "Load more posts (50 loaded)" button below the post stream](_assets/a5-thread-pagination.png)
 
+After two clicks the stream holds all 105 posts and the button is gone, because the final page arrived short:
+
+![The same thread after two load-more clicks: 105 posts in the stream, no load-more button below](_assets/a5-thread-loaded-all.png)
+
 The live verification seeded a 105-post thread through the API and drove the UI: 50 posts render initially with the button, the first click loads to 100, the second to 105, and the button disappears because the final page came in short.
 
 One pre-existing edge was documented rather than fixed, because fixing it changes store semantics and this was a UI item: the store's cursor is `created_at > cursor_created_at`, while the ordering tie-breaks on id — two posts sharing a nanosecond timestamp could skip one. Nanosecond timestamps make the collision rare; the correct fix is a tuple-comparison cursor (`(created_at, id) > (cursor_time, cursor_id)`), and it is now written down where the next store change will find it.
