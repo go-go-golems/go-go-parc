@@ -387,5 +387,7 @@ Open items, none of them blocking:
 
 ## Related notes
 
-- [[PROJ - PBUI Workbench Core]] and the earlier PBUI kernel notes, for the link kernel that badges, ports and wires read from.
+- [[PROJ - PBUI - Presentation-Based UIs in TypeScript and React]], the project note for the library this report consolidates.
+- [[PROJ - PBUI and Datalab UI - Completed Frontend Package Refactor]], the refactor that produced the package layout audited here.
+- [[PROJ - PBUI Documentation - Structure, Method, and Handoff]], for where the design documents cited above sit in the repo's documentation method.
 - [[ARTICLE - Playbook - Self-Contained Go Wasm and JavaScript Browser Applications]], for the vault's article style this report follows.
