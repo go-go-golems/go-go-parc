@@ -724,6 +724,8 @@ The program's eight phases are complete and the tasks file marks each done; the 
 - A decision, per source format, on whether the `$source` field is acceptable to the Go document validator of each host it crosses (§9.9's inventory: `sandbox.program`, `chat.conversation`, `chat.widget`, the shop formats, and product-specific reference formats).
 - The items the sibling report carried that this program did not take up: turboproof's per-keystroke `documentPut` batches, the never-removed widget stubs in pbui-chat, a generic module abstraction after a second subsystem demonstrates the collaborator's lifecycle, and property and fuzz tests.
 
+Continued in [[PROJECT REPORT - PBUI Datalab on Workbench Core - Goldens First, One Coordinated Cutover, and a Product Layer Kept Above the Engine]]: the first consumer to depend on all three tracks at once. PBUI-DATALAB-WORKBENCH-1 (same day, same branch) deleted Datalab UI's 1,162-line Redux layout slice and made the core the only owner of its workspaces, views, placements, and trees, keeping stages, the analytical world, the launcher, bundles, and the work-stage remote policy in a product layer above the engine; its identity-only document source, its strict `unknown_document` refusals in tests, and its hydrate-before-validate load order are this program's §6 and §9.7 in use.
+
 ## 10. How to read the code
 
 The shortest path through the stabilized code, in the order the design's §15 recommends for review.
