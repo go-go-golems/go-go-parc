@@ -1,0 +1,108 @@
+{
+  "report_date": "2026-09-05",
+  "source_commit": "1b75e54c14d79a5168cff06b368a1afbec75a39b",
+  "source_repo": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5",
+  "ticket_path": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/09/04/PBUI-HANDHELD-1--conceptual-port-of-pbui-to-an-embedded-esp32-p4-handheld-core-engines-and-keyboard-navigation",
+  "figures": [
+    {
+      "asset": "pbui-handheld-04-acquisition.png",
+      "source_png": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/09/04/PBUI-HANDHELD-1--conceptual-port-of-pbui-to-an-embedded-esp32-p4-handheld-core-engines-and-keyboard-navigation/sources/screenshots/04-explicit-acquisition-selection.png",
+      "source_metadata": {
+        "implementation_commit": "b23bcef",
+        "image": "04-explicit-acquisition-selection.png",
+        "raw_render": "04-explicit-acquisition-selection.ppm",
+        "description": "Host keyboard pin acquisition after two Tab selections: session.ts memory is explicit, overriding the nominated first memory. Not physical-device evidence. Long labels and selected footer clip to 40 columns.",
+        "generator": "0104-esp32-p4-pbui-handheld/host/tests/shell.cpp",
+        "command": "0104-esp32-p4-pbui-handheld/host/validate.sh",
+        "rgb565_fnv1a64": "15456467874569852979",
+        "sha256": {
+          "04-explicit-acquisition-selection.png": "697d77fd9299ad3bc8d76bee9f1bce4936eb80164768b33084c66b32718f201e",
+          "04-explicit-acquisition-selection.ppm": "03248de2909ecf9587922aa6142bbffc764d7ac7b54c76b622ea837125ffd607"
+        }
+      },
+      "sha256": "697d77fd9299ad3bc8d76bee9f1bce4936eb80164768b33084c66b32718f201e"
+    },
+    {
+      "asset": "pbui-handheld-16-hints.png",
+      "source_png": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/09/04/PBUI-HANDHELD-1--conceptual-port-of-pbui-to-an-embedded-esp32-p4-handheld-core-engines-and-keyboard-navigation/sources/screenshots/16-frozen-visible-target-hints.png",
+      "source_metadata": {
+        "implementation_commit": "7adb00f",
+        "image": "16-frozen-visible-target-hints.png",
+        "raw_render": "16-frozen-visible-target-hints.ppm",
+        "description": "Sixteen home-row hint labels in a frozen synthetic dense projection through the real host shell. Selection focuses without executing; stale projection and failed-paint behavior tested. NOT second-product or physical LCD evidence.",
+        "generator": "0104-esp32-p4-pbui-handheld/host/tests/hints.cpp",
+        "command": "0104-esp32-p4-pbui-handheld/host/validate.sh",
+        "rgb565_fnv1a64": "2734831453067779743",
+        "sha256": {
+          "16-frozen-visible-target-hints.png": "54a21f8719695f0bdb16cda6e1557efdebcdd17dc2ae7bcf7c08cbbc0e86a7d9",
+          "16-frozen-visible-target-hints.ppm": "b921ac34142c61f6e016162312c63c9d5da4fa59d68d5cde0ecea28de56b5038"
+        }
+      },
+      "sha256": "54a21f8719695f0bdb16cda6e1557efdebcdd17dc2ae7bcf7c08cbbc0e86a7d9"
+    },
+    {
+      "asset": "pbui-handheld-18-peek.png",
+      "source_png": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/09/04/PBUI-HANDHELD-1--conceptual-port-of-pbui-to-an-embedded-esp32-p4-handheld-core-engines-and-keyboard-navigation/sources/screenshots/18-source-owned-held-peek.png",
+      "source_metadata": {
+        "implementation_commit": "933ea6a",
+        "image": "18-source-owned-held-peek.png",
+        "raw_render": "18-source-owned-held-peek.ppm",
+        "description": "Actual demo file inspector projected as a held read-only peek. Zero occurrence bindings, no open action or deck view push. Existing ASCII question-mark substitutions remain visible; not a full legibility audit or physical LCD evidence.",
+        "generator": "0104-esp32-p4-pbui-handheld/host/tests/peek.cpp",
+        "command": "0104-esp32-p4-pbui-handheld/host/validate.sh",
+        "rgb565_fnv1a64": "15105952583923554717",
+        "sha256": {
+          "18-source-owned-held-peek.png": "178ce5984f8bbb889fd6ea767d08fb310c8d955988ef5a5de3f48b86c0444b70",
+          "18-source-owned-held-peek.ppm": "0da3ac5543a202bf50dfea857f30348dfd517c37f9b52162d8aee9d3b0df132d"
+        }
+      },
+      "sha256": "178ce5984f8bbb889fd6ea767d08fb310c8d955988ef5a5de3f48b86c0444b70"
+    },
+    {
+      "asset": "pbui-handheld-19-manual-return.png",
+      "source_png": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/09/04/PBUI-HANDHELD-1--conceptual-port-of-pbui-to-an-embedded-esp32-p4-handheld-core-engines-and-keyboard-navigation/sources/screenshots/19-card-cycle-restored-reading.png",
+      "source_metadata": {
+        "implementation_commit": "1057991",
+        "image": "19-card-cycle-restored-reading.png",
+        "raw_render": "19-card-cycle-restored-reading.ppm",
+        "description": "Synthetic long card restored after direct card cycling. Same pixels as Screenshot 14, with distinct navigation/identity provenance. Not independent-product or physical LCD evidence.",
+        "generator": "0104-esp32-p4-pbui-handheld/host/tests/card_cycle.cpp",
+        "command": "0104-esp32-p4-pbui-handheld/host/validate.sh",
+        "rgb565_fnv1a64": "12040756686646822599",
+        "sha256": {
+          "19-card-cycle-restored-reading.png": "c69f5b0d9c14ea0f932d2b46d372812376be74dc0f3dd98a9234d27b7755264e",
+          "19-card-cycle-restored-reading.ppm": "442ecf2188fe1cac898585b4d82cde659cc110e34f126db01187cac62983f1d7"
+        }
+      },
+      "sha256": "c69f5b0d9c14ea0f932d2b46d372812376be74dc0f3dd98a9234d27b7755264e"
+    },
+    {
+      "asset": "pbui-handheld-21-overview-vitals.png",
+      "source_png": "/tmp/pbui-overview-vitals.png",
+      "generator": "0104-esp32-p4-pbui-handheld/host/tests/vitals.cpp",
+      "commit": "1b75e54",
+      "rgb565_fnv1a64": "13490708498914687573",
+      "sha256": "03c6dc912de5802276d7e29e5744295be5a52102b676a12bc03a13d962c9e1db",
+      "note": "Latest rendered image was not yet archived as numbered ticket evidence when report preparation began."
+    }
+  ],
+  "validation": {
+    "Debug": {
+      "tests": 41,
+      "failures": 0,
+      "output_sha256": "470c9c89858396a6b27d82f72fb6dd12bdb98c595ed0dc84f2051795d5204ca1",
+      "command": "ctest --test-dir /tmp/pbui-native-validation/Debug --output-on-failure",
+      "output_asset": "pbui-handheld-debug-ctest.txt"
+    },
+    "Release": {
+      "tests": 41,
+      "failures": 0,
+      "output_sha256": "93e7835fc66c424117b71dc701fdf98b7ab778523d5b4604a7e91eca5f35e091",
+      "command": "ctest --test-dir /tmp/pbui-native-validation/Release --output-on-failure",
+      "output_asset": "pbui-handheld-release-ctest.txt"
+    }
+  },
+  "hardware_accessed": false,
+  "inventory": "pbui-handheld-resource-inventory.json",
+  "bookkeeping_caveat": "Committed ticket evidence is current through Step 46; code and temporary validation artifacts include Step 47 vitals. This report does not silently finalize firmware ticket bookkeeping."
+}

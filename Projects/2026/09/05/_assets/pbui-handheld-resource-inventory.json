@@ -1,0 +1,1576 @@
+{
+  "cxx_profile": [
+    "-std=gnu++20",
+    "-std=gnu++2b",
+    "-fno-exceptions",
+    "-fno-rtti",
+    "-Werror",
+    "-fstack-usage",
+    "-std=c++20"
+  ],
+  "source_commit": "1b75e54c14d79a5168cff06b368a1afbec75a39b",
+  "source_sha256": {
+    "0104-esp32-p4-pbui-handheld/.clang-format": "889de0c77a6ce473d981be32315a12752c0d7e4f59e40a9fc2e4b7a5fb410e02",
+    "0104-esp32-p4-pbui-handheld/CMakeLists.txt": "2ac711a32efeebb80ca76cfeb28bebd7dbbc7c690a640f520f39b0650a249955",
+    "0104-esp32-p4-pbui-handheld/README.md": "b24b232aa19d8fc5a8015a14c0958bc7a7eca9f84987bb02165f32677d47eea8",
+    "0104-esp32-p4-pbui-handheld/dependencies.lock": "1cfddc3aacbd427b5fc1458edb32d6885855dae974d93cf18f598d0e73c59884",
+    "0104-esp32-p4-pbui-handheld/host/CMakeLists.txt": "9092fe2b7ce0a2aaf91046ac796013ada3d172740e46bb34ec332215ac8743f1",
+    "0104-esp32-p4-pbui-handheld/host/fixtures/newtile-memory.json": "754d48e599905f4325b211d563ea279dbcdcbfdbd9cdf342e01e298edffd839f",
+    "0104-esp32-p4-pbui-handheld/host/fixtures/newtile-memory.keys": "710cbbc7335373ccc721e59b756ca7a9d48c26132fe23a52e2139612ab8de905",
+    "0104-esp32-p4-pbui-handheld/host/fixtures/prototype-fixture.json": "cc7ddb0a9f7ad14a810c35bcfca9cb8049d24f5c4327633ba77c7583e1e2f545",
+    "0104-esp32-p4-pbui-handheld/host/fixtures/prototype-fold-oracle.json": "284a96b2e786ef3605442b7a065e1837b99a7eafe3f14c14eab4ef70beddc0a8",
+    "0104-esp32-p4-pbui-handheld/host/fixtures/repeat-task.keys": "2f9f898567676311f0815614f01f8a8902a6f7c839a5cbf5ea9d4aa532ca5b47",
+    "0104-esp32-p4-pbui-handheld/host/main.cpp": "b0a50bc3d0a2a03e70049237dc5a88a864b284979d27a106cc51d33291c686f8",
+    "0104-esp32-p4-pbui-handheld/host/tests/acceptance.cpp": "09553f47a6dc70c1512e456e9ac32b0be666a07133bfc08b46a52f9f28388978",
+    "0104-esp32-p4-pbui-handheld/host/tests/acquisition.cpp": "509e87fa6aa254b424056a4609541ccca98d0f1f2684ccd6ec8fa5069f7697b5",
+    "0104-esp32-p4-pbui-handheld/host/tests/actions.cpp": "f5cf5d9219ebb62c274e04006e66185f919be86733c324f89a2421e26f6423df",
+    "0104-esp32-p4-pbui-handheld/host/tests/allocations.cpp": "faac8c05a2d82340e3f549e9de05108fac359ac64f97051adc0db43b11402ad9",
+    "0104-esp32-p4-pbui-handheld/host/tests/card_cycle.cpp": "0caeb266c1e1d91282b3f98c02a958c09957249ac593e5551b660682be936fc7",
+    "0104-esp32-p4-pbui-handheld/host/tests/check.hpp": "4cd98d4ff8bbbe329d8ee38353a1974899fb98137e8604e8a2f4b6ad14df0ca5",
+    "0104-esp32-p4-pbui-handheld/host/tests/command_owner.cpp": "5152d985703167e98464d32e751965a72c653cb4b08a4d3e841f593105046deb",
+    "0104-esp32-p4-pbui-handheld/host/tests/commands.cpp": "740add5f50738f4d2c5c5cef901bf910b9d1638c2c3440c862393c9b2ea2d2ca",
+    "0104-esp32-p4-pbui-handheld/host/tests/compare_fold.py": "50b20857a3d9d1117b91b2c7916bfda63c0cd5275f403b2e8f27284f69747b4d",
+    "0104-esp32-p4-pbui-handheld/host/tests/console.py": "3c1d940d5e1956211dbdb6439aa633a161c33123b8ce5c1dea19ef89c0bdd2a0",
+    "0104-esp32-p4-pbui-handheld/host/tests/console_frame.cpp": "060b278c7e76af7c83ff9a86f9f49aa0758c01f4e175b35842e52fadc5c29026",
+    "0104-esp32-p4-pbui-handheld/host/tests/console_line.cpp": "b34005449e3df044fd65042f6ab251e532f782d8d5a17a8bf31c15d30a85095c",
+    "0104-esp32-p4-pbui-handheld/host/tests/contracts.cpp": "9da9acf812324118ccedc268980e237edd05cde307e0918779f3b5fa79eb047d",
+    "0104-esp32-p4-pbui-handheld/host/tests/deck.cpp": "18fcabecc932a63dad1d56709d92e6f349c96f34af504990116b8aa016b76627",
+    "0104-esp32-p4-pbui-handheld/host/tests/defaults.cpp": "03f0772b6614888d558b8ef5a38db8ac77e37180f3791b94ee4b2310d3a8dad4",
+    "0104-esp32-p4-pbui-handheld/host/tests/demo.cpp": "502dbc2d4043895814f9bc5fe2a7444bd4b36070f1525842ae0e4ca97e18f007",
+    "0104-esp32-p4-pbui-handheld/host/tests/domain.cpp": "bc6c663260b49db43b7dc513cb3f887ac8451b59e3d9564a098c46ece683e806",
+    "0104-esp32-p4-pbui-handheld/host/tests/heap_metrics.cpp": "d94871bd8c55fdf5323127c244660c98aefc166fb69c68a4250b448cdf6d6663",
+    "0104-esp32-p4-pbui-handheld/host/tests/heap_metrics.py": "857d35403720b120ad3ccc93a8c12a342973dfd54b76a85432e052e160cfbdb0",
+    "0104-esp32-p4-pbui-handheld/host/tests/hints.cpp": "72e7831bf303509aca727b3c88425c80f7b2f4f2a4ca21d8a889fe464c7e8cb3",
+    "0104-esp32-p4-pbui-handheld/host/tests/image.hpp": "fb9892f00a8f96e46e22d4dc452bbcb8ebdd9ea998d30ba2507931cc3cb8d07c",
+    "0104-esp32-p4-pbui-handheld/host/tests/input.cpp": "5141d0f9df9c795454cabdd0c90da1c3e9869dde5d2d3e81ed85b8f8ccc11d8b",
+    "0104-esp32-p4-pbui-handheld/host/tests/keyboard_channel.cpp": "a23541b70a977eef6e77c84d9c0d2f87ebeb4c7e149a97b059c35fd749c95ac7",
+    "0104-esp32-p4-pbui-handheld/host/tests/keyboard_pump.cpp": "d4d22c0566447c3889db8b61e89d0ff2dd8db6f9f5f050eb835bb38f108fc857",
+    "0104-esp32-p4-pbui-handheld/host/tests/latency.cpp": "447ee102c9948c43fd5cc5007ebdab7077f0fca0f8cc7378c8353e9842dce21f",
+    "0104-esp32-p4-pbui-handheld/host/tests/long_document.hpp": "666a0d2143285076d578b4066e2829d35f5197c5c8182238a8ca2eb28d97b118",
+    "0104-esp32-p4-pbui-handheld/host/tests/manual_scroll.cpp": "91ee9940168275bd7ca9d835a2601f093de9d8928ebd5b3d559d22ffff8998f1",
+    "0104-esp32-p4-pbui-handheld/host/tests/model.cpp": "11b88cf4685364fe14b856d13958e77803d8bb28a80bda608ad0c3e622984e66",
+    "0104-esp32-p4-pbui-handheld/host/tests/notification_drain.cpp": "b4003c7b823d681e05dd664ea1a070b14671628cc834f6f855d8fa5d2a8f7515",
+    "0104-esp32-p4-pbui-handheld/host/tests/overview.cpp": "b45772fbcab68a599e39087ea151d3d5e37a30023818d066f653c955f95c44c2",
+    "0104-esp32-p4-pbui-handheld/host/tests/peek.cpp": "53325bb5aa71c3826da0586ca054525965bc1f09a8610afe928e1e0a845cdb75",
+    "0104-esp32-p4-pbui-handheld/host/tests/presentation.cpp": "52671759f67a4af0ba9ef60601d35bf094c16379508a0e99d8068365c3c623af",
+    "0104-esp32-p4-pbui-handheld/host/tests/raster.cpp": "61bd7b5e965b76733da3634ae894053f13a100ff05856573f9a65bbaa6254276",
+    "0104-esp32-p4-pbui-handheld/host/tests/read_pages.cpp": "f38853b6a139aad0f4a93fb323119f65c4dcc2110ac6d36ee8c34567f15c082c",
+    "0104-esp32-p4-pbui-handheld/host/tests/rows.cpp": "225b612cd90fd1c6194a6d44a32095e0515d8335066faef88d64fb891770be28",
+    "0104-esp32-p4-pbui-handheld/host/tests/search.cpp": "aee748df3b54b7c3c985f45cdb0c334c0fe91b95f500d49be48eb573ab06c057",
+    "0104-esp32-p4-pbui-handheld/host/tests/selection.cpp": "3d5453de811af2fcc87424439b98f36afc17cf5b314d6bf121ec32c9fdcbeda6",
+    "0104-esp32-p4-pbui-handheld/host/tests/session.cpp": "0fbc4d8b1a48434e1faeb502941c3e20646ed2a0c25c999ffbe0302f23cfcd89",
+    "0104-esp32-p4-pbui-handheld/host/tests/shell.cpp": "d0cf55b319e0863c37bef4ecc936e59ba322dda3dab4a0555d43215eae0674d4",
+    "0104-esp32-p4-pbui-handheld/host/tests/shortcuts.cpp": "5c0760adf94ceb8024a9463542ef235d1e51c245d7bedf9fb9d440693ac6c522",
+    "0104-esp32-p4-pbui-handheld/host/tests/transport.cpp": "e741a7536f557ed1730abc2cbc4f9df5cf9913bc99eaa6b6bcb2b0e5f82f0a89",
+    "0104-esp32-p4-pbui-handheld/host/tests/type_cycle.cpp": "5ed49016551b52018497c2dd04db5e73e33a704c5bac9ba1f60e482b2122cb65",
+    "0104-esp32-p4-pbui-handheld/host/tests/views.cpp": "c32f88c5361d2c979d2b93e15664f975fc896091079151b2aa571d9b9bac5547",
+    "0104-esp32-p4-pbui-handheld/host/tests/vitals.cpp": "23cacaefc9aeecc5be6f20f3489cee3ab500dcb524b2614102ccab61611881fc",
+    "0104-esp32-p4-pbui-handheld/host/tests/vitals.mjs": "f556a1700637f60c78445fa098dc7fa5de60cc40a64fd86d12170f73bdacb4dc",
+    "0104-esp32-p4-pbui-handheld/host/validate.sh": "3a4435f747b4cd650c6c6c1556312941172261b95bc68e476f5860e9ee1cb19b",
+    "0104-esp32-p4-pbui-handheld/main/CMakeLists.txt": "2caa224ae20a9a65170cd0b7d43e1088f0b0546b3132ac1a1423e06978cbd070",
+    "0104-esp32-p4-pbui-handheld/main/app_main.cpp": "184f8e33b5c84456d5ceaf4319e459e06ce56272350869c06d98832810414c95",
+    "0104-esp32-p4-pbui-handheld/main/idf_component.yml": "18dce2fdc562b31c2d6ea308bed6990901a0a03a6af2c14b4bb39212f481076d",
+    "0104-esp32-p4-pbui-handheld/main/keyboard_runtime.hpp": "1b3ba691dc8691e2563349d05e36ae781bcb9866d3a398e4848e614d6e22a646",
+    "0104-esp32-p4-pbui-handheld/partitions.csv": "de92e257825a26e119e7b32e008415aacea4ff252389c2b401057872f7b187dd",
+    "0104-esp32-p4-pbui-handheld/platform/keyboard_pump.hpp": "4d286ad051e91798129ed91996c20a97c4836c7d41cff2c4ca2634187b24d8b1",
+    "0104-esp32-p4-pbui-handheld/platform/picocalc_input.hpp": "a84ceea14bf7bcd664497477f6676efcd76ed9767a1062cff16a62bff659d1b9",
+    "0104-esp32-p4-pbui-handheld/sdkconfig.defaults": "7d4173c5cc6ed6dfc05ad4eb8c5c7802afbf91dc44dc59c52ac5b9843b3adf24",
+    "0104-esp32-p4-pbui-handheld/tools/inspect_build.py": "e712ca9a137ec6f52c0b4fbef07b6079490df7d9118737387b4dc6e27ee2bfec",
+    "components/pbui_core/CMakeLists.txt": "0cce4c0d4ba09edaf759d5f92322aa0325eae4c8f07adff9ce207c3e7024dd14",
+    "components/pbui_core/include/pbui/acceptance.hpp": "7b4acaca206976040c44441b15424be2ae0232d270f13ca905d95b6ca8d4aaa1",
+    "components/pbui_core/include/pbui/acquisition.hpp": "1728aabac64ed874b10f5a2e0e6b393aa2d6fcbbbd5495d83beb62523b99c1a9",
+    "components/pbui_core/include/pbui/actions.hpp": "b77f5c8aac80f97ce16fec71ad9ac54b3dc82d7d11827cdfde81cc1146adacc5",
+    "components/pbui_core/include/pbui/commands.hpp": "14755945c24e501abd7f176c5b6e6db90a419f3aa01acab95a3e46c85134a4b0",
+    "components/pbui_core/include/pbui/contracts.hpp": "bd80c480b964eb2c13eba0e2908911d9916be62a96c1f0197caa8ca6a73a3ed5",
+    "components/pbui_core/include/pbui/model.hpp": "8d1e112fe05f2b0c1a551081155929b8b51da4e8afc9494b3b824fb60b652d63",
+    "components/pbui_core/include/pbui/selection.hpp": "cf72f6359cf97b50e797882a1bacf96dc8b11ae5a043c8c2e2a1aaecb8cf0b0b",
+    "components/pbui_core/include/pbui/type_graph.hpp": "ba2a31ba2fc851281f7a15b7cc23d86ac3bb4e923c02d8ddf15afb0071531024",
+    "components/pbui_core/include/pbui/validation.hpp": "77fefa693fcfcd95f7de57495cb6de6400008385e81bf4ab7ac5edee363bbe7f",
+    "components/pbui_demo/CMakeLists.txt": "82df06fff50920b2a72c9d99a1a5dba200f59e6ae3d5b354cad44dea19fae8df",
+    "components/pbui_demo/include/pbui/demo_domain.hpp": "45de79bd21a3a3e419efde30fa89426263be2199d5562c62e2764c48561b5fb8",
+    "components/pbui_demo/include/pbui/demo_fixture.hpp": "8b0841a6b1c0229359b000d29a56abd06f6b1e178e02f729073a3b22aa655854",
+    "components/pbui_demo/include/pbui/demo_fold.hpp": "fe12f4316a5707ca1b741c4eb3f04e09c07f6d6d4ecd09d18c4c058a77421945",
+    "components/pbui_demo/include/pbui/demo_presentation.hpp": "116b8a6029efdad85c6e5f424b380516349689aa814959d8f3c5c7de82f8ee5c",
+    "components/pbui_demo/include/pbui/demo_types.hpp": "691d8bbaddeb220485c0a77890352565a4bf45e642b43628f9f459fb460644f3",
+    "components/pbui_demo/include/pbui/demo_views.hpp": "85466b560eb01564a07d701af4ccbac7b7afee12a26d14928ebce18bc2ad07b3",
+    "components/pbui_demo/include/pbui/demo_vitals.hpp": "37f67cb707ee2e5a9f321e66c8352e900a762b50407ee4d92b2d5d1350e9bc14",
+    "components/pbui_demo/tools/export_prototype.mjs": "8bdf9750ab5f173d4198324b94c672ce01e752171ab00d5285dc4d5a0dac8c65",
+    "components/pbui_demo/tools/generate_fixture.py": "714fe92f95271f55562fb6734daf00bca2a7709d14320653dbb2e8c7e35f0c5b",
+    "components/pbui_handheld/CMakeLists.txt": "567cc7e5957e3d08652d3adf0de2cd823e4c1a752bc1356102f4f022de392543",
+    "components/pbui_handheld/include/pbui/affordances.hpp": "fe800168b9e4e70d954c00f22e2433961f8256d3f06edc7caadfa1b927532e30",
+    "components/pbui_handheld/include/pbui/command_owner.hpp": "a230bd05988dd2100d6c5e70a602f47bb476a8a85eae12c9c013258b7001dc40",
+    "components/pbui_handheld/include/pbui/console.hpp": "b5b5363dcf85b5c85c45c2e97323676ba80a88f9f7ce9ee75a344ab3182db3fc",
+    "components/pbui_handheld/include/pbui/console_line.hpp": "40785af9762632029463088fa71ea82d723c514ba830e9db1e5800a498c8e294",
+    "components/pbui_handheld/include/pbui/controls.hpp": "71959d5f3499886799876223f4bd3f22a7c341f7bde6fe09658fef5ea5ed548e",
+    "components/pbui_handheld/include/pbui/deck.hpp": "9f21b1d6505aac3dcf69afe635e975be60bc90e045bfcf8f2a2d32e21b6d978f",
+    "components/pbui_handheld/include/pbui/hints.hpp": "34e426f4509ee078c95d8ccbb0088e88ca1348a921f605f3eaa09596d930e811",
+    "components/pbui_handheld/include/pbui/input.hpp": "6fc297d127cb209ed1789b52d0aa2a18d992fbe4c33f3d1461ed983fd765c0fa",
+    "components/pbui_handheld/include/pbui/keyboard_channel.hpp": "48e52e00bbfbd8fbcb5cf13bbf7bdb82408f7160f1d5e2b2e1f23d1d1185f85c",
+    "components/pbui_handheld/include/pbui/latency.hpp": "6b30843c03332fea74f56cea7f39ec2a36a057c31fe35bb47c6dc29b17786576",
+    "components/pbui_handheld/include/pbui/notification_drain.hpp": "c71eada31a4c5828207fc96fedf8f3457d66709ce248236ffb33b6a2efbce6eb",
+    "components/pbui_handheld/include/pbui/page_navigation.hpp": "f67424056f5104692ad555e37ff95cbdb256586f4ba6377dba4c9d8a08f05a84",
+    "components/pbui_handheld/include/pbui/session.hpp": "0f1ae6f1872b00f709bab66bdd0b948b8816983a0e610c07445af6b03b79e17e",
+    "components/pbui_handheld/include/pbui/shell.hpp": "821c9f8199fa2e51d85b422280f90d7468d0cc07f61fbc3c1b8ab233d0bf2a55",
+    "components/pbui_handheld/include/pbui/transport.hpp": "57031dc94c8ec65522f0c49def9504b13b0b3c3b9f11f97ddd84fbf72da8f3ad",
+    "components/pbui_handheld/include/pbui/type_cycle.hpp": "57754dbb2c849812e500a627061104e47b420afce3082b3378fa0c519ff19ecc",
+    "components/pbui_rows/CMakeLists.txt": "d9826f94c4bfc464135d01a65a6bbaf86e83c29558dcde02cb884950517c750b",
+    "components/pbui_rows/FONT-LICENSE.txt": "e81d9dced49fea2a7d576cbea283873de58563c5d488f954deb282843c3ea79c",
+    "components/pbui_rows/include/pbui/font.hpp": "349fcd40e475b913d17ebd5842acf9e1818870ac2cfd2d2840fc8797e513aab9",
+    "components/pbui_rows/include/pbui/raster.hpp": "3c4953ae511a701f03ad651d42679d4f47b1fa96d214b926495178dccca3bb27",
+    "components/pbui_rows/include/pbui/rows.hpp": "650b9efc486222bfccc3384168a7288607b2df0ab215385f3b17bd6566d22c1e",
+    "components/pbui_rows/tools/generate_font.py": "12743e8f18c3fa8214a7fb136effcc9dc589c271a02cefe07c54aa843428561e",
+    "components/picocalc_keyboard/CMakeLists.txt": "f7e703f850da06add40d0fddfd56dcd95de319bea29bab684e8c212cee72808c",
+    "components/picocalc_keyboard/README.md": "cff601a628bc5b7d6eff8b19ff7f28a959797fa51473f895e456bf1ba22d0291",
+    "components/picocalc_keyboard/include/picocalc_keyboard.h": "2e5b84feeb81a4ad2b5fce66e27d3cae1396866fb168d36d19817ba143582240",
+    "components/picocalc_keyboard/picocalc_keyboard.c": "b1a4bdac6d5ca2990a486020ebe277a06dd8c2d1595e52524fbc87b9ffa3daae",
+    "components/picocalc_lcd/CMakeLists.txt": "aca1e4be88e415be9b1be453bb9ebc0f29949c327018eea542e61e7846547aba",
+    "components/picocalc_lcd/README.md": "8b2e9342365617f2ce1e932620d3a1c237f000b1ff9c31d7acfd0593a4d0be26",
+    "components/picocalc_lcd/include/picocalc_lcd.h": "51ab94d25aa1559f85b6996e2c11fd6c9d8bf92dd380a0e27d39f0479900d0b4",
+    "components/picocalc_lcd/picocalc_lcd.c": "47186fafddb07a96613a1c44eed65f2fa0a00765ef4f183fc6669302a1fc02e2"
+  },
+  "project_version": "1b75e54-dirty",
+  "target": "esp32p4",
+  "evidence": "offline ESP-IDF compiler/linker artifacts; NOT physical measurements",
+  "machine": "EM_RISCV",
+  "sha256": {
+    "pbui_handheld.elf": "9feb8deed812ab1860d4d9cbcdb578b893333547ccf9d876769e272c1bb4cd6c",
+    "pbui_handheld.bin": "cd1a86887193d2fa5fba48d90ee804d9dabde729476151ec7dc185082f301ab9",
+    "app_main.cpp.su": "8bdd356ac6a02ba274cec4a373e5b351948f45c8e8b23427c1819ea5702a4dbc"
+  },
+  "binary_bytes": 462176,
+  "layouts_bytes": {
+    "KeyboardChannel<128>": 4128,
+    "Facts": 12600,
+    "Domain": 14440,
+    "Presentation": 7416,
+    "Shell<pbui::demo::Presentation, pbui::demo::Domain>": 37652,
+    "KeyboardRuntime": 10648,
+    "Application": 77504
+  },
+  "function_stack_usage": [
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:258:27:static pbui::Result<pbui::demo::Domain> pbui::demo::Domain::create(int)",
+      "bytes": 41504,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/app_main.cpp:90:17:void app_main()",
+      "bytes": 29568,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:40:22:pbui::Result<pbui::demo::Facts> pbui::demo::fold(int, const Overrides&)",
+      "bytes": 25920,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:124:33:static pbui::Result<pbui::demo::Presentation> pbui::demo::Presentation::create()",
+      "bytes": 25424,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/session.hpp:51:28:static pbui::Result<pbui::Session<TrayCapacity, HistoryCapacity> > pbui::Session<TrayCapacity, HistoryCapacity>::create(pbui::AppId) [with unsigned int TrayCapacity = 16; unsigned int HistoryCapacity = 16]",
+      "bytes": 21872,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:373:40:pbui::Result<bool> pbui::Shell<Product, Domain>::paint(const Sink&) [with Sink = {anonymous}::Application::paint()::<lambda(std::size_t, std::span<const pbui::Cell>)>; Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 16608,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:281:18:pbui::Result<bool> pbui::demo::Domain::mutate(pbui::demo::Mutation, pbui::Reference)",
+      "bytes": 14672,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:270:18:pbui::Result<bool> pbui::demo::Domain::seek(int)",
+      "bytes": 12720,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_rows/include/pbui/rows.hpp:62:33:pbui::Result<pbui::InteractionFrame> pbui::layout_rows(std::span<const LogicalRow>, Viewport, FrameId, std::string_view, std::string_view, std::string_view, std::string_view, bool, bool)",
+      "bytes": 10944,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/commands.hpp:52:38:static pbui::Result<pbui::CommandVocabulary<Capacity> > pbui::CommandVocabulary<Capacity>::compile(std::span<const pbui::CommandDeclaration>, const pbui::TypeGraph<Types>&, std::span<const pbui::Id<pbui::ActionTag> >, std::size_t) [with unsigned int Types = 16; unsigned int Capacity = 32]",
+      "bytes": 8176,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/model.hpp:42:40:static pbui::Result<pbui::Model<Types, Rules, Nodes, Scopes, Children, Relations> > pbui::Model<Types, Rules, Nodes, Scopes, Children, Relations>::compile(const pbui::Declaration&) [with unsigned int Types = 16; unsigned int Rules = 32; unsigned int Nodes = 32; unsigned int Scopes = 4; unsigned int Children = 32; unsigned int Relations = 4]",
+      "bytes": 7744,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/deck.hpp:33:25:static pbui::Result<pbui::Deck<Capacity, Depth> > pbui::Deck<Capacity, Depth>::create(pbui::AppId) [with unsigned int Capacity = 8; unsigned int Depth = 8]",
+      "bytes": 7376,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:411:35:pbui::Result<pbui::ActionAffordances<32> > pbui::demo::Presentation::menu(const pbui::demo::Domain&, const pbui::Session<>&, pbui::Reference, pbui::ContextAnchor) const",
+      "bytes": 7360,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:750:18:pbui::Result<bool> pbui::Shell<Product, Domain>::handle_input(const pbui::KeyEvent&) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 6912,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/hints.hpp:12:33:static pbui::Result<pbui::HintSnapshot> pbui::HintSnapshot::capture(pbui::ViewId, pbui::Viewport, std::span<const pbui::LogicalRow>)",
+      "bytes": 5520,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/actions.hpp:50:36:pbui::Result<pbui::ActionResolution<Capacity> > pbui::resolve_actions(const TypeGraph<Types>&, std::span<const ActionRule>, const ActionQuery&, const Evaluate&) [with unsigned int Capacity = 32; unsigned int Types = 16; Evaluate = demo::Presentation::resolve(const pbui::demo::Domain&, const pbui::Session<>&, const pbui::ActionQuery&) const::<lambda(uint32_t)>]",
+      "bytes": 3776,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/actions.hpp:50:36:pbui::Result<pbui::ActionResolution<Capacity> > pbui::resolve_actions(const TypeGraph<Types>&, std::span<const ActionRule>, const ActionQuery&, const Evaluate&) [with unsigned int Capacity = 32; unsigned int Types = 16; Evaluate = demo::Presentation::execute(pbui::CommandId, const pbui::ActionTicket&, std::span<const pbui::Reference>, pbui::demo::Domain&, pbui::Session<>&, pbui::RepeatPolicy) const::<lambda(uint32_t)>]",
+      "bytes": 3776,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:315:26:pbui::Result<pbui::demo::Catalog<128> > pbui::demo::Presentation::catalog(const pbui::SlotSpec&, const pbui::demo::Domain&, const pbui::Session<>&) const",
+      "bytes": 3440,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/acceptance.hpp:54:30:pbui::Result<pbui::Acceptance<Capacity> > pbui::resolve_acceptance(const TypeGraph<Types>&, std::span<const Relation>, std::span<const Id<TypeTag> >, Reference, std::span<const Id<ScopeTag> >, const Evaluate&, const Execute&, const Filter&, const Live&) [with unsigned int Capacity = 32; unsigned int Types = 16; Evaluate = demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(uint32_t)>; Execute = demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(RelationId, Reference)>; Filter = demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(Reference)>; Live = demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(Reference)>]",
+      "bytes": 2400,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/console.hpp:70:14:pbui::Result<bool> pbui::inspect_request(RequestKind, const Product&, const Domain&, const Session&, const Shell&, PlatformMetrics) [with Product = demo::Presentation; Domain = demo::Domain; Session = Session<>; Shell = Shell<demo::Presentation, demo::Domain>]",
+      "bytes": 2112,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:38:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::dispatch(const pbui::CommandSpec&, std::span<const pbui::Reference>, pbui::ContextAnchor, pbui::RepeatPolicy) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 2032,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:443:23:pbui::Result<pbui::Id<pbui::CommandTag> > pbui::demo::Presentation::primary(const pbui::demo::Domain&, const pbui::Session<>&, const pbui::ActionQuery&) const",
+      "bytes": 1952,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/actions.hpp:114:14:pbui::Result<Verb> pbui::evaluate_fresh(const TypeGraph<Types>&, std::span<const ActionRule>, const ActionTicket&, const ActionQuery&, const Evaluate&, const Bind&, const Live&) [with Verb = demo::Seed; unsigned int Capacity = 32; unsigned int Types = 16; Evaluate = demo::Presentation::execute(pbui::CommandId, const pbui::ActionTicket&, std::span<const pbui::Reference>, pbui::demo::Domain&, pbui::Session<>&, pbui::RepeatPolicy) const::<lambda(uint32_t)>; Bind = demo::Presentation::execute(pbui::CommandId, const pbui::ActionTicket&, std::span<const pbui::Reference>, pbui::demo::Domain&, pbui::Session<>&, pbui::RepeatPolicy) const::<lambda(RuleId)>; Live = demo::Presentation::execute(pbui::CommandId, const pbui::ActionTicket&, std::span<const pbui::Reference>, pbui::demo::Domain&, pbui::Session<>&, pbui::RepeatPolicy) const::<lambda(Reference)>]",
+      "bytes": 1904,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/commands.hpp:170:18:pbui::command_offered<Shell<demo::Presentation, demo::Domain>::discover()::<lambda(const ActionQuery&)> >(const CommandSpec&, std::span<const ActionQuery>, std::optional<ActionQuery>, std::optional<ActionQuery>, const Shell<demo::Presentation, demo::Domain>::discover()::<lambda(const ActionQuery&)>&)::<lambda(pbui::ActionQuery)>",
+      "bytes": 1888,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:493:18:pbui::Result<bool> pbui::demo::Presentation::execute(pbui::CommandId, const pbui::ActionTicket&, std::span<const pbui::Reference>, pbui::demo::Domain&, pbui::Session<>&, pbui::RepeatPolicy) const",
+      "bytes": 1824,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/type_graph.hpp:22:44:static pbui::Result<pbui::TypeGraph<Capacity> > pbui::TypeGraph<Capacity>::compile(std::span<const pbui::TypeDefinition>, std::span<const pbui::ParentEdge>) [with unsigned int Capacity = 16]",
+      "bytes": 1744,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:117:27:pbui::Result<pbui::demo::Catalog<Capacity> > pbui::demo::catalog(const Facts&, std::span<const pbui::Id<pbui::TypeTag> >) [with unsigned int Capacity = 64]",
+      "bytes": 1616,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:394:34:pbui::Result<pbui::ActionResolution<32> > pbui::demo::Presentation::resolve(const pbui::demo::Domain&, const pbui::Session<>&, const pbui::ActionQuery&) const",
+      "bytes": 1264,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/app_main.cpp:78:18:pbui::Result<bool> {anonymous}::Application::request(std::string_view, pbui::FrameId)",
+      "bytes": 1216,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_views.hpp:168:28:pbui::Result<unsigned int> pbui::demo::project(const Domain&, const pbui::DeckView&, std::span<pbui::LogicalRow, 4294967295>)",
+      "bytes": 1168,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:170:18:pbui::Result<bool> pbui::Shell<Product, Domain>::discover() [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 1136,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/acquisition.hpp:70:33:pbui::AcceptEffects pbui::Acquisition<Capacity>::offer(pbui::RequestId, pbui::FrameId, pbui::Reference, const pbui::Acceptance<Capacity>&) [with unsigned int Capacity = 32]",
+      "bytes": 1088,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:64:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::apply(const pbui::AcceptEffects&) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 1056,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:231:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::offer(pbui::RequestId, pbui::FrameId, pbui::FrameId, pbui::Reference) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 912,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:116:25:pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::nominate(Acquiring&, const pbui::SlotSpec&)::<lambda(pbui::Reference)>",
+      "bytes": 720,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/transport.hpp:12:31:pbui::Result<pbui::ConsoleRequest> pbui::parse_request(std::string_view)",
+      "bytes": 672,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:230:25:pbui::Result<unsigned int> pbui::demo::Presentation::overview(const pbui::demo::Domain&, const pbui::Session<>&, pbui::ViewId, pbui::ContextAnchor, std::span<pbui::LogicalRow, 4294967295>) const",
+      "bytes": 672,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_views.hpp:74:28:pbui::Result<unsigned int> pbui::demo::describe(const Facts&, pbui::Reference, pbui::ViewId, std::span<pbui::LogicalRow, 4294967295>)",
+      "bytes": 624,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:193:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::begin(pbui::CommandId, pbui::ContextAnchor) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 608,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/affordances.hpp:45:27:pbui::Result<pbui::LogicalRow> pbui::action_row(const ActionAffordance&)",
+      "bytes": 592,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/deck.hpp:51:34:pbui::Result<pbui::Id<pbui::CardTag> > pbui::Deck<Capacity, Depth>::add(pbui::AppId) [with unsigned int Capacity = 8; unsigned int Depth = 8]",
+      "bytes": 560,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:280:28:pbui::Result<pbui::OwnedText<128> > pbui::demo::Presentation::label(const pbui::demo::Domain&, const pbui::Session<>&, pbui::Reference) const",
+      "bytes": 544,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:71:31:pbui::Result<pbui::OwnedText<128> > pbui::demo::label(const Facts&, pbui::Reference)",
+      "bytes": 512,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_views.hpp:20:10:void pbui::demo::RowWriter::line(std::string_view, std::optional<pbui::Reference>, uint32_t, uint16_t, uint16_t)",
+      "bytes": 448,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:50:20:pbui::demo::fold(int, const Overrides&)::<lambda(std::string_view, std::string_view, std::string_view, double, bool, std::string_view, std::string_view)>",
+      "bytes": 416,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/commands.hpp:132:23:pbui::Result<pbui::Id<pbui::CommandTag> > pbui::CommandEditor::select(const pbui::CommandVocabulary<N>&, std::span<const pbui::Id<pbui::CommandTag> >, bool) [with unsigned int N = 32]",
+      "bytes": 416,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:238:18:pbui::Result<bool> pbui::Shell<Product, Domain>::add(pbui::Reference, uint32_t) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 416,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:220:18:pbui::Result<bool> pbui::Shell<Product, Domain>::history_reference(pbui::Reference, pbui::ContextAnchor, std::string_view) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 400,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:255:25:pbui::Result<unsigned int> pbui::demo::Presentation::project(const pbui::demo::Domain&, const pbui::Session<>&, const pbui::DeckView&, std::span<pbui::LogicalRow, 4294967295>) const",
+      "bytes": 384,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:272:18:pbui::Result<bool> pbui::Shell<Product, Domain>::select(const pbui::Occurrence&) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 384,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:467:28:pbui::Result<pbui::Acceptance<32> > pbui::demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const",
+      "bytes": 304,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:61:27:pbui::demo::fold(int, const Overrides&)::<lambda(const pbui::demo::Memory&)>",
+      "bytes": 304,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/validation.hpp:10:14:pbui::Result<bool> pbui::validate_conditions(std::span<const Condition>, std::span<const long unsigned int>, Symbols) [with unsigned int Capacity = 32]",
+      "bytes": 272,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_vitals.hpp:7:30:pbui::Result<pbui::OwnedText<64> > pbui::demo::app_vitals(const Facts&, uint64_t, pbui::AppId)",
+      "bytes": 256,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/session.hpp:75:18:pbui::Result<bool> pbui::Session<TrayCapacity, HistoryCapacity>::yank(pbui::Reference, pbui::ContextAnchor, std::string_view) [with unsigned int TrayCapacity = 16; unsigned int HistoryCapacity = 16]",
+      "bytes": 256,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/selection.hpp:79:19:pbui::Result<std::variant<pbui::Match, pbui::Rejection> > pbui::match_selector(const TypeGraph<N>&, const Selector&, TypeId, std::span<const Id<ScopeTag> >, const Evaluate&) [with unsigned int N = 16; Evaluate = resolve_actions<32, 16, demo::Presentation::resolve(const pbui::demo::Domain&, const pbui::Session<>&, const pbui::ActionQuery&) const::<lambda(uint32_t)> >(const TypeGraph<16>&, std::span<const ActionRule>, const ActionQuery&, const demo::Presentation::resolve(const pbui::demo::Domain&, const pbui::Session<>&, const pbui::ActionQuery&) const::<lambda(uint32_t)>&)::<lambda()>]",
+      "bytes": 256,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/selection.hpp:79:19:pbui::Result<std::variant<pbui::Match, pbui::Rejection> > pbui::match_selector(const TypeGraph<N>&, const Selector&, TypeId, std::span<const Id<ScopeTag> >, const Evaluate&) [with unsigned int N = 16; Evaluate = resolve_actions<32, 16, demo::Presentation::execute(pbui::CommandId, const pbui::ActionTicket&, std::span<const pbui::Reference>, pbui::demo::Domain&, pbui::Session<>&, pbui::RepeatPolicy) const::<lambda(uint32_t)> >(const TypeGraph<16>&, std::span<const ActionRule>, const ActionQuery&, const demo::Presentation::execute(pbui::CommandId, const pbui::ActionTicket&, std::span<const pbui::Reference>, pbui::demo::Domain&, pbui::Session<>&, pbui::RepeatPolicy) const::<lambda(uint32_t)>&)::<lambda()>]",
+      "bytes": 256,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/acquisition.hpp:63:33:pbui::AcceptEffects pbui::Acquisition<Capacity>::begin(pbui::AcceptRequest) [with unsigned int Capacity = 32]",
+      "bytes": 256,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:115:18:pbui::Result<bool> pbui::Shell<Product, Domain>::nominate(Acquiring&, const pbui::SlotSpec&) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 256,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:200:18:pbui::Result<bool> pbui::Shell<Product, Domain>::text_row(std::string_view) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 240,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/selection.hpp:79:19:pbui::Result<std::variant<pbui::Match, pbui::Rejection> > pbui::match_selector(const TypeGraph<N>&, const Selector&, TypeId, std::span<const Id<ScopeTag> >, const Evaluate&) [with unsigned int N = 16; Evaluate = resolve_acceptance<32, 16, demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(uint32_t)>, demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(RelationId, Reference)>, demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(Reference)>, demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(Reference)> >(const TypeGraph<16>&, std::span<const Relation>, std::span<const Id<TypeTag> >, Reference, std::span<const Id<ScopeTag> >, const demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(uint32_t)>&, const demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(RelationId, Reference)>&, const demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(Reference)>&, const demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(Reference)>&)::<lambda()>]",
+      "bytes": 240,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:125:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::repeat(std::optional<pbui::Occurrence>, pbui::FrameId) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 240,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:360:26:pbui::Result<pbui::Availability> pbui::demo::Presentation::availability(uint32_t, const pbui::demo::Domain&, const pbui::Session<>&, const pbui::ActionQuery&) const",
+      "bytes": 224,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_views.hpp:44:10:void pbui::demo::RowWriter::object(const pbui::demo::Facts&, pbui::Reference, uint32_t)",
+      "bytes": 224,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:262:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::cancel() [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 208,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:255:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::escape() [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 208,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:248:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::choose(pbui::RequestId, pbui::FrameId, pbui::ChoiceId) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 208,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_views.hpp:60:35:) [with Args = {unsigned int, unsigned int, const char*}]",
+      "bytes": 192,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_views.hpp:60:35:) [with Args = {double, const char*}]",
+      "bytes": 192,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_views.hpp:60:35:) [with Args = {int, unsigned int, long unsigned int, unsigned int}]",
+      "bytes": 192,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_views.hpp:60:35:) [with Args = {double, unsigned int}]",
+      "bytes": 192,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_views.hpp:60:35:) [with Args = {long unsigned int, unsigned int}]",
+      "bytes": 192,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_views.hpp:60:35:) [with Args = {unsigned int}]",
+      "bytes": 192,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:209:18:pbui::Result<bool> pbui::Shell<Product, Domain>::type_row(const pbui::TypeKey&, bool) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 192,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:23:6:bool pbui::demo::concatenate(pbui::OwnedText<N>&, std::string_view, std::string_view) [with unsigned int N = 128]",
+      "bytes": 192,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:28:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::dispatch_subject(pbui::CommandId, pbui::Reference, pbui::ContextAnchor, pbui::Invocation) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 192,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:334:18:pbui::Result<bool> pbui::Shell<Product, Domain>::input_lost(std::optional<pbui::InputSource>) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 176,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:131:41:pbui::Result<std::optional<pbui::Reference> > pbui::demo::current_segment(const Facts&, pbui::Reference)",
+      "bytes": 176,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/contracts.hpp:91:24:bool pbui::OwnedText<Capacity>::assign(std::string_view) [with unsigned int Capacity = 128]",
+      "bytes": 160,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/../platform/keyboard_pump.hpp:27:18:pbui::Result<bool> pbui::KeyboardPump<Driver>::step(pbui::FrameId) [with Driver = PicoKeyboardDriver]",
+      "bytes": 160,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:98:10:bool pbui::Shell<Product, Domain>::matches(pbui::Reference, std::string_view, std::string_view) const [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 160,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/commands.hpp:167:14:pbui::Result<bool> pbui::command_offered(const CommandSpec&, std::span<const ActionQuery>, std::optional<ActionQuery>, std::optional<ActionQuery>, const Resolve&) [with Resolve = Shell<demo::Presentation, demo::Domain>::discover()::<lambda(const ActionQuery&)>]",
+      "bytes": 160,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/acquisition.hpp:110:33:pbui::AcceptEffects pbui::Acquisition<Capacity>::settle(pbui::RequestId, pbui::OperationId, const pbui::Result<pbui::Reference>&) [with unsigned int Capacity = 32]",
+      "bytes": 160,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:23:6:bool pbui::demo::concatenate(pbui::OwnedText<N>&, std::string_view, std::string_view) [with unsigned int N = 96]",
+      "bytes": 160,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/transport.hpp:89:14:pbui::Result<bool> pbui::deliver_input(const ConsoleRequest&, Shell&, const Paint&, FrameId) [with Shell = Shell<demo::Presentation, demo::Domain>; Paint = {anonymous}::Application::request(std::string_view, pbui::FrameId)::<lambda()>]",
+      "bytes": 160,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:242:19:pbui::demo::Overrides pbui::demo::Domain::OwnedOverrides::view() const",
+      "bytes": 144,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/affordances.hpp:59:25:std::string_view pbui::error_text(Error)",
+      "bytes": 144,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/acceptance.hpp:35:14:pbui::Result<bool> pbui::catalog_source_type(const TypeGraph<N>&, std::span<const Relation>, TypeId, std::span<const Id<TypeTag> >) [with unsigned int Types = 16]",
+      "bytes": 144,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:174:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::activate(pbui::Reference, pbui::ContextAnchor, pbui::FrameId) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 144,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:220:23:pbui::Result<pbui::Reference> pbui::demo::Presentation::receiver(const pbui::CommandSpec&, std::span<const pbui::Reference>, const pbui::Session<>&) const",
+      "bytes": 128,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/contracts.hpp:91:24:bool pbui::OwnedText<Capacity>::assign(std::string_view) [with unsigned int Capacity = 96]",
+      "bytes": 128,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:475:13:pbui::demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(uint32_t)>",
+      "bytes": 128,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:99:23:pbui::Result<pbui::Id<pbui::CommandTag> > pbui::demo::Presentation::shortcut(char, const pbui::demo::Domain&, const pbui::Session<>&, pbui::Reference) const",
+      "bytes": 128,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/validation.hpp:16:18:pbui::validate_conditions<32>(std::span<const Condition>, std::span<const long unsigned int>, Symbols)::<lambda(auto:34&&, uint32_t, unsigned int)> [with auto:34 = pbui::validate_conditions<32>(std::span<const Condition>, std::span<const long unsigned int>, Symbols)::<lambda(auto:34&&, uint32_t, unsigned int)>&]",
+      "bytes": 128,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:743:18:pbui::Result<bool> pbui::Shell<Product, Domain>::focus_occurrence(pbui::OccurrenceKey) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 128,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/acquisition.hpp:104:33:pbui::AcceptEffects pbui::Acquisition<Capacity>::abort() [with unsigned int Capacity = 32]",
+      "bytes": 128,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/acquisition.hpp:94:33:pbui::AcceptEffects pbui::Acquisition<Capacity>::escape(pbui::RequestId) [with unsigned int Capacity = 32]",
+      "bytes": 128,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/acquisition.hpp:53:19:pbui::AcceptEffects pbui::Acquisition<Capacity>::attempt(pbui::AcceptRequest, pbui::Reference, pbui::AcceptanceOption, bool) [with unsigned int Capacity = 32]",
+      "bytes": 128,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/model.hpp:131:53:pbui::Result<std::span<const pbui::Relation> > pbui::Model<Types, Rules, Nodes, Scopes, Children, Relations>::relations(std::span<pbui::Relation>) const [with unsigned int Types = 16; unsigned int Rules = 32; unsigned int Nodes = 32; unsigned int Scopes = 4; unsigned int Children = 32; unsigned int Relations = 4]",
+      "bytes": 112,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/selection.hpp:27:22:pbui::Result<pbui::Availability> pbui::evaluate_condition(std::span<const Condition>, std::span<const long unsigned int>, uint32_t, ConditionContext, const Predicate&, unsigned int) [with Predicate = demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(uint32_t)>::<lambda(uint32_t)>]",
+      "bytes": 112,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/deck.hpp:121:34:pbui::Result<pbui::Id<pbui::ViewTag> > pbui::Deck<Capacity, Depth>::inspect(pbui::Reference) [with unsigned int Capacity = 8; unsigned int Depth = 8]",
+      "bytes": 112,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:160:29:pbui::Result<pbui::Availability> pbui::demo::can_mutate(const Facts&, Mutation, pbui::Reference)",
+      "bytes": 112,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/hints.hpp:30:10:bool pbui::HintSnapshot::matches(pbui::ViewId, pbui::Viewport, std::span<const pbui::LogicalRow>) const",
+      "bytes": 112,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:308:22:std::string_view pbui::Shell<Product, Domain>::mode_name() const [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 112,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:257:10:void pbui::Shell<Product, Domain>::drain(std::optional<Overview>) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 112,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/acquisition.hpp:86:33:pbui::AcceptEffects pbui::Acquisition<Capacity>::choose(pbui::RequestId, pbui::FrameId, pbui::ChoiceId) [with unsigned int Capacity = 32]",
+      "bytes": 112,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/app_main.cpp:59:21:pbui::PlatformMetrics {anonymous}::Application::memory()",
+      "bytes": 96,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/console.hpp:36:13:void pbui::print_distribution(const LatencyDistribution&)",
+      "bytes": 96,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/commands.hpp:119:24:bool pbui::CommandEditor::append(char)",
+      "bytes": 96,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/contracts.hpp:91:24:bool pbui::OwnedText<Capacity>::assign(std::string_view) [with unsigned int Capacity = 64]",
+      "bytes": 96,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/model.hpp:124:55:pbui::Result<std::span<const pbui::ActionRule> > pbui::Model<Types, Rules, Nodes, Scopes, Children, Relations>::rules(std::span<pbui::ActionRule>) const [with unsigned int Types = 16; unsigned int Rules = 32; unsigned int Nodes = 32; unsigned int Scopes = 4; unsigned int Children = 32; unsigned int Relations = 4]",
+      "bytes": 96,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/keyboard_channel.hpp:39:18:pbui::Result<bool> pbui::KeyboardChannel<Capacity>::publish(pbui::KeyEvent, uint64_t) [with unsigned int Capacity = 128]",
+      "bytes": 96,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/model.hpp:58:22:pbui::Model<16, 32, 32, 4, 32, 4>::compile(const pbui::Declaration&)::<lambda(const pbui::Selector&)>",
+      "bytes": 96,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:328:24:pbui::demo::Presentation::catalog(const pbui::SlotSpec&, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(pbui::Reference)>",
+      "bytes": 96,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/input.hpp:67:18:pbui::Result<bool> pbui::KeyGate::receive(const pbui::KeyEvent&, bool)",
+      "bytes": 80,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/../platform/picocalc_input.hpp:7:40:pbui::Result<std::optional<pbui::KeyEvent> > pbui::decode_picocalc(uint8_t, uint8_t, FrameId)",
+      "bytes": 80,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/affordances.hpp:17:21:pbui::Result<bool> pbui::validate_type_keys(std::span<const TypeKey>)",
+      "bytes": 80,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/page_navigation.hpp:15:35:std::optional<unsigned int> pbui::read_page_top(Key, std::size_t, std::size_t)",
+      "bytes": 80,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:38:30:const pbui::demo::ContextSegment* pbui::demo::context(const Facts&, std::string_view)",
+      "bytes": 80,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:225:14:bool pbui::demo::Domain::ToggleSet::set(std::string_view, bool)",
+      "bytes": 80,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:225:27:pbui::Result<pbui::OwnedText<64> > pbui::demo::Presentation::vitals(const pbui::demo::Domain&, const pbui::Session<>&, pbui::AppId) const",
+      "bytes": 80,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_rows/include/pbui/rows.hpp:130:39:pbui::Result<bool> pbui::FramePublisher::paint(const pbui::InteractionFrame&, const Sink&) [with Sink = {anonymous}::Application::paint()::<lambda(std::size_t, std::span<const pbui::Cell>)>]",
+      "bytes": 80,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/deck.hpp:152:34:pbui::Result<pbui::Id<pbui::ViewTag> > pbui::Deck<Capacity, Depth>::restore(const pbui::ReturnPoint&) [with unsigned int Capacity = 8; unsigned int Depth = 8]",
+      "bytes": 80,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/acceptance.hpp:110:19:pbui::Result<pbui::Reference> pbui::revalidate_option(const Acceptance<Capacity>&, const AcceptanceOption&, bool) [with unsigned int Capacity = 32]",
+      "bytes": 80,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:23:6:bool pbui::demo::concatenate(pbui::OwnedText<N>&, std::string_view, std::string_view) [with unsigned int N = 24]",
+      "bytes": 80,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_views.hpp:52:10:void pbui::demo::RowWriter::named(const pbui::demo::Facts&, pbui::TypeId, std::string_view, uint32_t)",
+      "bytes": 80,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:184:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::shortcut(char, pbui::Reference, pbui::ContextAnchor, pbui::FrameId) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 80,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/notification_drain.hpp:15:19:pbui::NotificationDrain pbui::drain_notifications(const Count&, const Pop&, const Fault&) [with unsigned int Capacity = 16; Count = app_main()::<lambda()>; Pop = app_main()::<lambda()>; Fault = app_main()::<lambda(const uart_event_t&)>]",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_rows/include/pbui/rows.hpp:146:38:pbui::Result<pbui::Occurrence> pbui::FramePublisher::select(pbui::FrameId, char) const",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/commands.hpp:126:10:void pbui::CommandEditor::backspace()",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/session.hpp:129:18:pbui::Result<bool> pbui::Session<TrayCapacity, HistoryCapacity>::record_success(pbui::SuccessfulCommand) [with unsigned int TrayCapacity = 16; unsigned int HistoryCapacity = 16]",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/session.hpp:105:18:pbui::Result<bool> pbui::Session<TrayCapacity, HistoryCapacity>::drop(pbui::Reference) [with unsigned int TrayCapacity = 16; unsigned int HistoryCapacity = 16]",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:9:13:bool pbui::demo::contains(std::span<const std::basic_string_view<char> >, std::string_view)",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:14:26:pbui::Result<pbui::Reference> pbui::demo::reference(pbui::TypeId, std::string_view)",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/string_view:387:7:constexpr bool std::basic_string_view<_CharT, _Traits>::starts_with(std::basic_string_view<_CharT, _Traits>) const [with _CharT = char; _Traits = std::char_traits<char>]",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/type_graph.hpp:69:41:pbui::Result<short unsigned int> pbui::TypeGraph<Capacity>::distance(pbui::TypeId, pbui::TypeId) const [with unsigned int Capacity = 16]",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/acceptance.hpp:24:6:bool pbui::reaches_any(const TypeGraph<N>&, TypeId, std::span<const Id<TypeTag> >) [with unsigned int Types = 16]",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/session.hpp:99:18:pbui::Result<bool> pbui::Session<TrayCapacity, HistoryCapacity>::select_tray(pbui::Reference) [with unsigned int TrayCapacity = 16; unsigned int HistoryCapacity = 16]",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/bits/invoke.h:60:5:) [with _Res = void; _Fn = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::handle_input(const pbui::KeyEvent&)::<lambda(auto:36)>; _Args = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray&}]",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/bits/invoke.h:60:5:) [with _Res = void; _Fn = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::handle_input(const pbui::KeyEvent&)::<lambda(auto:36)>; _Args = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview&}]",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/bits/invoke.h:60:5:) [with _Res = void; _Fn = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::handle_input(const pbui::KeyEvent&)::<lambda(auto:37)>; _Args = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray&}]",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/bits/invoke.h:60:5:) [with _Res = void; _Fn = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::handle_input(const pbui::KeyEvent&)::<lambda(auto:37)>; _Args = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview&}]",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:167:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::invoke_menu(pbui::CommandId, pbui::Reference, pbui::ContextAnchor, pbui::FrameId) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:210:28:pbui::Result<pbui::OwnedText<128> > pbui::demo::Presentation::title(const pbui::demo::Domain&, const pbui::Session<>&, const pbui::DeckView&) const",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/transport.hpp:97:16:pbui::deliver_input<Shell<demo::Presentation, demo::Domain>, {anonymous}::Application::request(std::string_view, pbui::FrameId)::<lambda()> >(const ConsoleRequest&, Shell<demo::Presentation, demo::Domain>&, const {anonymous}::Application::request(std::string_view, pbui::FrameId)::<lambda()>&, FrameId)::<lambda(pbui::KeyEvent, bool)>",
+      "bytes": 64,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/input.hpp:39:39:static std::optional<unsigned int> pbui::KeyGate::index(const pbui::KeyEvent&)",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/input.hpp:56:18:pbui::Result<bool> pbui::KeyGate::input_lost(std::optional<pbui::InputSource>)",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/commands.hpp:153:26:pbui::Result<pbui::Reference> pbui::command_receiver(const CommandSpec&, std::span<const Reference>, std::optional<Reference>, std::optional<Reference>)",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/validation.hpp:57:21:pbui::Result<bool> pbui::validate_scope_stack(std::span<const Id<ScopeTag> >, std::span<const Id<ScopeTag> >)",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:65:13:bool pbui::demo::known(pbui::Reference, const pbui::Session<>&)",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:80:13:bool pbui::demo::context_live(pbui::ContextAnchor, const pbui::Session<>&)",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_rows/include/pbui/raster.hpp:8:21:pbui::Result<bool> pbui::raster_row(std::span<const Cell>, std::span<short unsigned int>)",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/app_main.cpp:41:35:{anonymous}::Application::paint()::<lambda(std::size_t, std::span<const pbui::Cell>)>",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/type_cycle.hpp:6:37:std::optional<pbui::OccurrenceKey> pbui::next_type_occurrence(std::span<const LogicalRow>, std::optional<OccurrenceKey>, TypeId)",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/contracts.hpp:91:24:bool pbui::OwnedText<Capacity>::assign(std::string_view) [with unsigned int Capacity = 32]",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/contracts.hpp:91:24:bool pbui::OwnedText<Capacity>::assign(std::string_view) [with unsigned int Capacity = 24]",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/contracts.hpp:83:38:std::span<const T> pbui::CheckedBuffer<T>::values() const [with T = pbui::LogicalRow]",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/deck.hpp:82:32:pbui::Result<bool> pbui::Deck<Capacity, Depth>::close(pbui::CardId) [with unsigned int Capacity = 8; unsigned int Depth = 8]",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:20:20:const pbui::demo::Edit* pbui::demo::edit(const Facts&, std::string_view)",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:32:22:const pbui::demo::Memory* pbui::demo::memory(const Facts&, std::string_view)",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:26:20:const pbui::demo::Task* pbui::demo::task(const Facts&, std::string_view)",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_domain.hpp:44:13:bool pbui::demo::present(const Facts&, const Entity&)",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/actions.hpp:95:14:pbui::Result<Verb> pbui::bind_selected(const ActionResolution<Capacity>&, RuleId, const Bind&) [with Verb = demo::Seed; unsigned int Capacity = 32; Bind = demo::Presentation::execute(pbui::CommandId, const pbui::ActionTicket&, std::span<const pbui::Reference>, pbui::demo::Domain&, pbui::Session<>&, pbui::RepeatPolicy) const::<lambda(RuleId)>]",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/console.hpp:55:37:pbui::Result<bool> pbui::print_frame(const Shell&) [with Shell = Shell<demo::Presentation, demo::Domain>]",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/deck.hpp:44:34:pbui::Result<pbui::Id<pbui::ViewTag> > pbui::Deck<Capacity, Depth>::allocate_surface() [with unsigned int Capacity = 8; unsigned int Depth = 8]",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/deck.hpp:133:32:pbui::Result<bool> pbui::Deck<Capacity, Depth>::back() [with unsigned int Capacity = 8; unsigned int Depth = 8]",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:19:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::invocation_ready(pbui::FrameId) const [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/app_main.cpp:37:18:pbui::Result<bool> {anonymous}::Application::paint()",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:364:18:pbui::Result<bool> pbui::Shell<Product, Domain>::input(const pbui::KeyEvent&) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 48,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/app_main.cpp:149:13:app_main()::<lambda()>",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/contracts.hpp:63:44:pbui::Result<long unsigned int> pbui::next_generation(uint32_t)",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/keyboard_runtime.hpp:11:24:pbui::KeyboardRead PicoKeyboardDriver::poll()",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/string_view:334:7:constexpr std::basic_string_view<_CharT, _Traits> std::basic_string_view<_CharT, _Traits>::substr(size_type, size_type) const [with _CharT = char; _Traits = std::char_traits<char>]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:530:13:pbui::demo::Presentation::execute(pbui::CommandId, const pbui::ActionTicket&, std::span<const pbui::Reference>, pbui::demo::Domain&, pbui::Session<>&, pbui::RepeatPolicy) const::<lambda(pbui::RuleId)>",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_views.hpp:69:25:pbui::Result<unsigned int> pbui::demo::RowWriter::result() const",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/session.hpp:62:10:bool pbui::Session<TrayCapacity, HistoryCapacity>::contains(pbui::Reference) const [with unsigned int TrayCapacity = 16; unsigned int HistoryCapacity = 16]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:488:13:pbui::demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(pbui::Reference)>",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:485:13:pbui::demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(pbui::Reference)>",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:531:13:pbui::demo::Presentation::execute(pbui::CommandId, const pbui::ActionTicket&, std::span<const pbui::Reference>, pbui::demo::Domain&, pbui::Session<>&, pbui::RepeatPolicy) const::<lambda(pbui::Reference)>",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/commands.hpp:107:24:const pbui::CommandSpec* pbui::CommandVocabulary<Capacity>::find(pbui::CommandId) const [with unsigned int Capacity = 32]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/session.hpp:126:10:bool pbui::Session<TrayCapacity, HistoryCapacity>::can_record_success() const [with unsigned int TrayCapacity = 16; unsigned int HistoryCapacity = 16]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/deck.hpp:74:32:pbui::Result<bool> pbui::Deck<Capacity, Depth>::select(pbui::CardId) [with unsigned int Capacity = 8; unsigned int Depth = 8]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/keyboard_channel.hpp:63:36:std::optional<pbui::KeyboardMessage> pbui::KeyboardChannel<Capacity>::take() [with unsigned int Capacity = 128]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:353:18:pbui::Result<bool> pbui::Shell<Product, Domain>::input_restored(pbui::InputSource) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/console_line.hpp:59:22:std::string_view pbui::ObservedConsoleLine<Capacity>::line() const [with unsigned int Capacity = 256]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/keyboard_channel.hpp:32:18:pbui::Result<bool> pbui::KeyboardChannel<Capacity>::restored() [with unsigned int Capacity = 128]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/string_view:343:7:constexpr int std::basic_string_view<_CharT, _Traits>::compare(std::basic_string_view<_CharT, _Traits>) const [with _CharT = char; _Traits = std::char_traits<char>]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/string_view:397:7:constexpr bool std::basic_string_view<_CharT, _Traits>::starts_with(const _CharT*) const [with _CharT = char; _Traits = std::char_traits<char>]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/model.hpp:91:30:pbui::Model<16, 32, 32, 4, 32, 4>::compile(const pbui::Declaration&)::<lambda(auto:35&&, uint32_t)> [with auto:35 = pbui::Model<16, 32, 32, 4, 32, 4>::compile(const pbui::Declaration&)::<lambda(auto:35&&, uint32_t)>&]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/bits/move.h:213:5:constexpr std::_Require<std::__not_<std::__is_tuple_like<_Tp> >, std::is_move_constructible<_Tp>, std::is_move_assignable<_Tp> > std::swap(_Tp&, _Tp&) [with _Tp = pbui::AcceptanceOption]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/command_owner.hpp:119:18:pbui::Result<bool> pbui::CommandOwner<Product, Domain>::published(pbui::FrameId) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/deck.hpp:140:32:pbui::Result<bool> pbui::Deck<Capacity, Depth>::set_viewport(pbui::ViewId, pbui::Viewport) [with unsigned int Capacity = 8; unsigned int Depth = 8]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/keyboard_runtime.hpp:38:17:static void KeyboardRuntime::run(void*)",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/type_graph.hpp:16:46:std::optional<unsigned int> pbui::TypeGraph<Capacity>::index(pbui::TypeId) const [with unsigned int Capacity = 16]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/model.hpp:109:33:pbui::Model<16, 32, 32, 4, 32, 4>::compile(const pbui::Declaration&)::<lambda(const pbui::Selector&)>",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/deck.hpp:67:32:pbui::Result<bool> pbui::Deck<Capacity, Depth>::cycle(bool) [with unsigned int Capacity = 8; unsigned int Depth = 8]",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:480:13:pbui::demo::Presentation::accept(const pbui::SlotSpec&, pbui::Reference, const pbui::demo::Domain&, const pbui::Session<>&) const::<lambda(pbui::RelationId, pbui::Reference)>",
+      "bytes": 32,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1352:3:void std::__throw_bad_variant_access(bool)",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/latency.hpp:47:34:std::optional<long long unsigned int> pbui::LatencyDistribution::percentile_upper(unsigned int) const",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/bits/string_view.tcc:80:5:constexpr std::basic_string_view<_CharT, _Traits>::size_type std::basic_string_view<_CharT, _Traits>::find(_CharT, size_type) const [with _CharT = char; _Traits = std::char_traits<char>]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/actions.hpp:34:12:int pbui::compare_rank(const Match&, const Match&)",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/console.hpp:12:5:pbui::ConsoleOutputLock::ConsoleOutputLock()",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/console.hpp:13:5:pbui::ConsoleOutputLock::~ConsoleOutputLock()",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/console.hpp:30:13:void pbui::print_optional_us(std::optional<long long unsigned int>)",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/console.hpp:143:13:void pbui::acknowledge(uint64_t, const Result<bool>&, uint32_t)",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:33:20:std::size_t pbui::demo::utf16_length(std::string_view)",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_rows/include/pbui/rows.hpp:48:13:void pbui::text_cells(std::span<Cell>, std::string_view, uint16_t, uint16_t)",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:1241:5:constexpr std::__optional_ne_t<_Tp, _Up> std::operator!=(const optional<_Tp>&, const optional<_Up>&) [with _Tp = pbui::Occurrence; _Up = pbui::Occurrence]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/keyboard_channel.hpp:20:45:constexpr pbui::KeyboardChannel<>::KeyboardChannel()",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/keyboard_runtime.hpp:24:8:constexpr KeyboardRuntime::KeyboardRuntime()",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:16:6:bool pbui::demo::append(std::array<_Tp, _Nm>&, std::size_t&, T) [with T = Memory; unsigned int N = 16]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:16:6:bool pbui::demo::append(std::array<_Tp, _Nm>&, std::size_t&, T) [with T = ContextSegment; unsigned int N = 64]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:16:6:bool pbui::demo::append(std::array<_Tp, _Nm>&, std::size_t&, T) [with T = Edit; unsigned int N = 16]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:16:6:bool pbui::demo::append(std::array<_Tp, _Nm>&, std::size_t&, T) [with T = Churn; unsigned int N = 16]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:16:6:bool pbui::demo::append(std::array<_Tp, _Nm>&, std::size_t&, T) [with T = std::basic_string_view<char>; unsigned int N = 32]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_rows/include/pbui/rows.hpp:124:7:constexpr pbui::FramePublisher::FramePublisher()",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:304:5:pbui::Shell<Product, Domain>::Shell(Product&, Domain&, pbui::Session<>&) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/app_main.cpp:32:5:{anonymous}::Application::Application(const pbui::demo::Presentation&, const pbui::demo::Domain&, const pbui::Session<>&)",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:407:75:pbui::demo::Presentation::resolve(const pbui::demo::Domain&, const pbui::Session<>&, const pbui::ActionQuery&) const::<lambda(uint32_t)>",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_presentation.hpp:529:13:pbui::demo::Presentation::execute(pbui::CommandId, const pbui::ActionTicket&, std::span<const pbui::Reference>, pbui::demo::Domain&, pbui::Session<>&, pbui::RepeatPolicy) const::<lambda(uint32_t)>",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:1283:5:constexpr std::compare_three_way_result_t<_Tp, _Up> std::operator<=>(const optional<_Tp>&, const optional<_Up>&) [with _Tp = pbui::Id<pbui::RelationTag>; _Up = pbui::Id<pbui::RelationTag>]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1712:5:>&) [with unsigned int _Np = 0; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Browse, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/session.hpp:48:14:pbui::Session<TrayCapacity, HistoryCapacity>::Session(pbui::Deck<>) [with unsigned int TrayCapacity = 16; unsigned int HistoryCapacity = 16]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/console_line.hpp:54:22:pbui::ConsoleLineEvent pbui::ObservedConsoleLine<Capacity>::feed(char, pbui::FrameId) [with unsigned int Capacity = 256]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/../platform/keyboard_pump.hpp:18:10:void pbui::KeyboardPump<Driver>::failed() [with Driver = PicoKeyboardDriver]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:82:17:static bool pbui::Shell<Product, Domain>::contains_text(std::string_view, std::string_view) [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:307:31:std::optional<pbui::Occurrence> pbui::Shell<Product, Domain>::focus() const [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Browse, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Browse, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:187:56:pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::discover()::<lambda(const pbui::ActionQuery&)>",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:844:2:constexpr std::enable_if_t<((bool)__and_v<std::__not_<std::is_same<std::optional<_Tp>, typename std::remove_cv<typename std::remove_reference<_Iter>::type>::type> >, std::__not_<std::__and_<std::is_scalar<_Tp>, std::is_same<_Tp, typename std::decay<_Up>::type> > >, std::is_constructible<_Tp, _Up>, std::is_assignable<_Tp&, _Up> >), std::optional<_Tp>&> std::optional<_Tp>::operator=(_Up&&) [with _Up = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray&; _Tp = std::variant<pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview>]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:844:2:constexpr std::enable_if_t<((bool)__and_v<std::__not_<std::is_same<std::optional<_Tp>, typename std::remove_cv<typename std::remove_reference<_Iter>::type>::type> >, std::__not_<std::__and_<std::is_scalar<_Tp>, std::is_same<_Tp, typename std::decay<_Up>::type> > >, std::is_constructible<_Tp, _Up>, std::is_assignable<_Tp&, _Up> >), std::optional<_Tp>&> std::optional<_Tp>::operator=(_Up&&) [with _Up = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview&; _Tp = std::variant<pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview>]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1712:5:>&) [with unsigned int _Np = 0; _Types = {pbui::AcceptIdle, pbui::AcceptPending, pbui::AcceptChoosing<32>, pbui::AcceptAttempt}]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1757:5:) [with _Result_type = __detail::__variant::__deduce_visit_result<void>; _Visitor = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::handle_input(const pbui::KeyEvent&)::<lambda(auto:36)>; _Variants = {variant<pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview>&}]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1757:5:) [with _Result_type = __detail::__variant::__deduce_visit_result<void>; _Visitor = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::handle_input(const pbui::KeyEvent&)::<lambda(auto:37)>; _Variants = {variant<pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview>&}]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/bits/stl_algobase.h:448:2:static constexpr _Up* std::__copy_move<_IsMove, true, std::random_access_iterator_tag>::__copy_m(_Tp*, _Tp*, _Up*) [with _Tp = const char; _Up = char; bool _IsMove = false]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::AcceptAttempt&; _Types = {pbui::AcceptIdle, pbui::AcceptPending, pbui::AcceptChoosing<32>, pbui::AcceptAttempt}]",
+      "bytes": 16,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/app_main.cpp:155:13:app_main()::<lambda(const uart_event_t&)>",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/0104-esp32-p4-pbui-handheld/main/keyboard_runtime.hpp:33:17:static void KeyboardRuntime::increment(std::atomic<long unsigned int>&)",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/latency.hpp:19:10:bool pbui::LatencyDistribution::observe(uint64_t, uint64_t)",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:1283:5:constexpr std::compare_three_way_result_t<_Tp, _Up> std::operator<=>(const optional<_Tp>&, const optional<_Up>&) [with _Tp = unsigned int; _Up = unsigned int]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/session.hpp:20:32:pbui::Result<pbui::HistorySequence> pbui::next_history_sequence(HistorySequence)",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/controls.hpp:51:16:pbui::Control pbui::control_for(const KeyEvent&)",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_rows/include/pbui/rows.hpp:10:10:constexpr bool pbui::Occurrence::operator==(const pbui::Occurrence&) const",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/hints.hpp:44:31:std::optional<pbui::Occurrence> pbui::HintSnapshot::choose(char) const",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/type_cycle.hpp:15:17:pbui::next_type_occurrence(std::span<const LogicalRow>, std::optional<OccurrenceKey>, TypeId)::<lambda(std::size_t, std::size_t)>",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:16:6:bool pbui::demo::append(std::array<_Tp, _Nm>&, std::size_t&, T) [with T = Task; unsigned int N = 16]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:16:6:bool pbui::demo::append(std::array<_Tp, _Nm>&, std::size_t&, T) [with T = const Event*; unsigned int N = 16]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:16:6:bool pbui::demo::append(std::array<_Tp, _Nm>&, std::size_t&, T) [with T = Overrides::TaskStatus; unsigned int N = 16]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:844:2:constexpr std::enable_if_t<((bool)__and_v<std::__not_<std::is_same<std::optional<_Tp>, typename std::remove_cv<typename std::remove_reference<_Iter>::type>::type> >, std::__not_<std::__and_<std::is_scalar<_Tp>, std::is_same<_Tp, typename std::decay<_Up>::type> > >, std::is_constructible<_Tp, _Up>, std::is_assignable<_Tp&, _Up> >), std::optional<_Tp>&> std::optional<_Tp>::operator=(_Up&&) [with _Up = pbui::Occurrence; _Tp = pbui::Occurrence]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/contracts.hpp:77:24:bool pbui::CheckedBuffer<T>::try_push(T) [with T = pbui::LogicalRow]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:844:2:constexpr std::enable_if_t<((bool)__and_v<std::__not_<std::is_same<std::optional<_Tp>, typename std::remove_cv<typename std::remove_reference<_Iter>::type>::type> >, std::__not_<std::__and_<std::is_scalar<_Tp>, std::is_same<_Tp, typename std::decay<_Up>::type> > >, std::is_constructible<_Tp, _Up>, std::is_assignable<_Tp&, _Up> >), std::optional<_Tp>&> std::optional<_Tp>::operator=(_Up&&) [with _Up = pbui::SlotSpec&; _Tp = pbui::SlotSpec]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:16:6:bool pbui::demo::append(std::array<_Tp, _Nm>&, std::size_t&, T) [with T = pbui::Reference; unsigned int N = 128]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/contracts.hpp:32:10:constexpr auto pbui::Id<Tag>::operator<=>(const pbui::Id<Tag>&) const [with Tag = pbui::RelationTag]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:1241:5:constexpr std::__optional_ne_t<_Tp, _Up> std::operator!=(const optional<_Tp>&, const optional<_Up>&) [with _Tp = pbui::OccurrenceKey; _Up = pbui::OccurrenceKey]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:1360:5:constexpr std::__optional_eq_t<_Tp, _Up> std::operator==(const optional<_Tp>&, const _Up&) [with _Tp = pbui::Reference; _Up = pbui::Reference]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:1372:5:constexpr std::__optional_ne_t<_Tp, _Up> std::operator!=(const optional<_Tp>&, const _Up&) [with _Tp = pbui::Reference; _Up = pbui::Reference]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/bits/string_view.tcc:116:5:constexpr std::basic_string_view<_CharT, _Traits>::size_type std::basic_string_view<_CharT, _Traits>::rfind(_CharT, size_type) const [with _CharT = char; _Traits = std::char_traits<char>]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_demo/include/pbui/demo_fold.hpp:16:6:bool pbui::demo::append(std::array<_Tp, _Nm>&, std::size_t&, T) [with T = pbui::Reference; unsigned int N = 64]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:844:2:constexpr std::enable_if_t<((bool)__and_v<std::__not_<std::is_same<std::optional<_Tp>, typename std::remove_cv<typename std::remove_reference<_Iter>::type>::type> >, std::__not_<std::__and_<std::is_scalar<_Tp>, std::is_same<_Tp, typename std::decay<_Up>::type> > >, std::is_constructible<_Tp, _Up>, std::is_assignable<_Tp&, _Up> >), std::optional<_Tp>&> std::optional<_Tp>::operator=(_Up&&) [with _Up = pbui::TrayEntry&; _Tp = pbui::RememberedReference]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray&; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Browse, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:1232:5:constexpr std::__optional_eq_t<_Tp, _Up> std::operator==(const optional<_Tp>&, const optional<_Up>&) [with _Tp = pbui::OccurrenceKey; _Up = pbui::OccurrenceKey]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/console_line.hpp:20:22:pbui::ConsoleLineEvent pbui::ConsoleLine<Capacity>::feed(char) [with unsigned int Capacity = 256]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/keyboard_channel.hpp:28:10:void pbui::KeyboardChannel<Capacity>::lost() [with unsigned int Capacity = 128]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/bits/stl_algobase.h:1190:2:static constexpr bool std::__equal<_BoolType>::equal(_II1, _II1, _II2) [with _II1 = const pbui::Cell*; _II2 = const pbui::Cell*; bool _BoolType = false]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_handheld/include/pbui/shell.hpp:248:31:std::optional<pbui::Occurrence> pbui::Shell<Product, Domain>::focused() const [with Product = pbui::demo::Presentation; Domain = pbui::demo::Domain]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview&; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Browse, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring&; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Browse, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Browse, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Browse, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Browse, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Browse, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Browse, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray&; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview&; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Browse, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:844:2:constexpr std::enable_if_t<((bool)__and_v<std::__not_<std::is_same<std::optional<_Tp>, typename std::remove_cv<typename std::remove_reference<_Iter>::type>::type> >, std::__not_<std::__and_<std::is_scalar<_Tp>, std::is_same<_Tp, typename std::decay<_Up>::type> > >, std::is_constructible<_Tp, _Up>, std::is_assignable<_Tp&, _Up> >), std::optional<_Tp>&> std::optional<_Tp>::operator=(_Up&&) [with _Up = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview&; _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing; _Types = {pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Browse, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Editing, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Acquiring, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Menu, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::ReadOnlyPage, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Tray, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Search, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Hints, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::TypeCycle, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Peek, pbui::Shell<pbui::demo::Presentation, pbui::demo::Domain>::Overview}]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:1366:5:constexpr std::__optional_eq_t<_Up, _Tp> std::operator==(const _Up&, const optional<_Tp>&) [with _Tp = pbui::Reference; _Up = pbui::Reference]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:844:2:constexpr std::enable_if_t<((bool)__and_v<std::__not_<std::is_same<std::optional<_Tp>, typename std::remove_cv<typename std::remove_reference<_Iter>::type>::type> >, std::__not_<std::__and_<std::is_scalar<_Tp>, std::is_same<_Tp, typename std::decay<_Up>::type> > >, std::is_constructible<_Tp, _Up>, std::is_assignable<_Tp&, _Up> >), std::optional<_Tp>&> std::optional<_Tp>::operator=(_Up&&) [with _Up = pbui::ReturnPoint; _Tp = pbui::ReturnPoint]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/components/pbui_core/include/pbui/acceptance.hpp:16:10:constexpr bool pbui::AcceptanceOption::operator==(const pbui::AcceptanceOption&) const",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::AcceptPending; _Types = {pbui::AcceptIdle, pbui::AcceptPending, pbui::AcceptChoosing<32>, pbui::AcceptAttempt}]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/optional:844:2:constexpr std::enable_if_t<((bool)__and_v<std::__not_<std::is_same<std::optional<_Tp>, typename std::remove_cv<typename std::remove_reference<_Iter>::type>::type> >, std::__not_<std::__and_<std::is_scalar<_Tp>, std::is_same<_Tp, typename std::decay<_Up>::type> > >, std::is_constructible<_Tp, _Up>, std::is_assignable<_Tp&, _Up> >), std::optional<_Tp>&> std::optional<_Tp>::operator=(_Up&&) [with _Up = pbui::AcceptTerminal; _Tp = pbui::AcceptTerminal]",
+      "bytes": 0,
+      "qualifier": "static"
+    },
+    {
+      "function": "/home/manuel/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/riscv32-esp-elf/include/c++/14.2.0/variant:1495:2:constexpr std::enable_if_t<((bool)((__exactly_once<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type> > && is_constructible_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>, _Tp>) && is_assignable_v<std::variant<_Types>::__accepted_type<_Tp&&, typename std::enable_if<__not_self<_Tp&&>, void>::type>&, _Tp>)), std::variant<_Types>&> std::variant<_Types>::operator=(_Tp&&) [with _Tp = pbui::AcceptChoosing<32>&; _Types = {pbui::AcceptIdle, pbui::AcceptPending, pbui::AcceptChoosing<32>, pbui::AcceptAttempt}]",
+      "bytes": 0,
+      "qualifier": "static"
+    }
+  ],
+  "limitations": [
+    "Per-function stack figures are NOT additive whole-program bounds.",
+    "SDK/library callees, interrupts and physical high-water/heap/latency qualification remain."
+  ]
+}
