@@ -1,0 +1,52 @@
+{
+  "date": "2026-09-05",
+  "source_commit": "1b75e54c14d79a5168cff06b368a1afbec75a39b",
+  "source_repo": "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5",
+  "source_sha256": {
+    "components/pbui_rows/include/pbui/rows.hpp": "650b9efc486222bfccc3384168a7288607b2df0ab215385f3b17bd6566d22c1e",
+    "components/pbui_handheld/include/pbui/input.hpp": "6fc297d127cb209ed1789b52d0aa2a18d992fbe4c33f3d1461ed983fd765c0fa",
+    "components/pbui_handheld/include/pbui/keyboard_channel.hpp": "48e52e00bbfbd8fbcb5cf13bbf7bdb82408f7160f1d5e2b2e1f23d1d1185f85c",
+    "components/pbui_handheld/include/pbui/console_line.hpp": "40785af9762632029463088fa71ea82d723c514ba830e9db1e5800a498c8e294",
+    "components/pbui_handheld/include/pbui/transport.hpp": "57031dc94c8ec65522f0c49def9504b13b0b3c3b9f11f97ddd84fbf72da8f3ad",
+    "components/pbui_handheld/include/pbui/command_owner.hpp": "a230bd05988dd2100d6c5e70a602f47bb476a8a85eae12c9c013258b7001dc40",
+    "components/pbui_handheld/include/pbui/shell.hpp": "821c9f8199fa2e51d85b422280f90d7468d0cc07f61fbc3c1b8ab233d0bf2a55",
+    "components/pbui_handheld/include/pbui/hints.hpp": "34e426f4509ee078c95d8ccbb0088e88ca1348a921f605f3eaa09596d930e811",
+    "components/pbui_handheld/include/pbui/type_cycle.hpp": "57754dbb2c849812e500a627061104e47b420afce3082b3378fa0c519ff19ecc",
+    "components/pbui_handheld/include/pbui/deck.hpp": "9f21b1d6505aac3dcf69afe635e975be60bc90e045bfcf8f2a2d32e21b6d978f",
+    "components/pbui_handheld/include/pbui/session.hpp": "0f1ae6f1872b00f709bab66bdd0b948b8816983a0e610c07445af6b03b79e17e",
+    "components/pbui_core/include/pbui/actions.hpp": "b77f5c8aac80f97ce16fec71ad9ac54b3dc82d7d11827cdfde81cc1146adacc5",
+    "components/pbui_core/include/pbui/acceptance.hpp": "7b4acaca206976040c44441b15424be2ae0232d270f13ca905d95b6ca8d4aaa1",
+    "components/pbui_core/include/pbui/acquisition.hpp": "1728aabac64ed874b10f5a2e0e6b393aa2d6fcbbbd5495d83beb62523b99c1a9",
+    "components/pbui_core/include/pbui/selection.hpp": "cf72f6359cf97b50e797882a1bacf96dc8b11ae5a043c8c2e2a1aaecb8cf0b0b",
+    "0104-esp32-p4-pbui-handheld/platform/keyboard_pump.hpp": "4d286ad051e91798129ed91996c20a97c4836c7d41cff2c4ca2634187b24d8b1",
+    "0104-esp32-p4-pbui-handheld/main/app_main.cpp": "184f8e33b5c84456d5ceaf4319e459e06ce56272350869c06d98832810414c95",
+    "0104-esp32-p4-pbui-handheld/main/keyboard_runtime.hpp": "1b3ba691dc8691e2563349d05e36ae781bcb9866d3a398e4848e614d6e22a646"
+  },
+  "reports": [
+    "ARTICLE - PBUI Handheld 1 - Published Frames and Input Freshness.md",
+    "ARTICLE - PBUI Handheld 2 - Keyboard Acquisition and Recovery.md",
+    "ARTICLE - PBUI Handheld 3 - Native Action Resolution and Acceptance.md",
+    "ARTICLE - PBUI Handheld 4 - Command Ownership and Argument Acquisition.md",
+    "ARTICLE - PBUI Handheld 5 - Focus Reading Position and Transient Modes.md"
+  ],
+  "validation": {
+    "debug": {
+      "command": "ctest --test-dir /tmp/pbui-native-validation/Debug --output-on-failure",
+      "tests": 41,
+      "failures": 0,
+      "output_asset": "pbui-subsystems-debug-ctest.txt",
+      "sha256": "4ad29c40c195795c6808c3578d1be5afa4a3f4b1927a54e10bf8d4867eed2874"
+    },
+    "release": {
+      "command": "ctest --test-dir /tmp/pbui-native-validation/Release --output-on-failure",
+      "tests": 41,
+      "failures": 0,
+      "output_asset": "pbui-subsystems-release-ctest.txt",
+      "sha256": "08c544c9e1778cfeb5b312a9e139d23c15773fd5412a145a65c8a53b73a09d23"
+    }
+  },
+  "hardware_accessed": false,
+  "screenshots": "Reuses historical images retained in pbui-handheld-report-evidence.json; no new screenshot capture claimed.",
+  "scope": "Fresh CTest reruns on existing Debug/Release builds; no new target build or TSAN run for this report series. Source files listed above checked byte-for-byte against source_commit.",
+  "desktop_render": "Not verified; prior Obsidian CLI vault discovery timed out. Local link/image/source checks passed."
+}

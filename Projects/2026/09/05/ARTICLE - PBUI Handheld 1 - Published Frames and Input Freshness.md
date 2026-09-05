@@ -19,7 +19,7 @@ The PBUI handheld makes that relationship explicit with an `InteractionFrame`. L
 > [!summary]
 > A frame is a positional interpretation, not merely an image. Publication follows completed painting, freshness is checked separately from object liveness, and release cleanup remains possible when positive input is unavailable.
 
-This article explains the implementation at `1b75e54`. All 41 host checks passed in Debug and Release again during preparation of this series; the retained logs are in `_assets/pbui-subsystems-debug-ctest.txt` and `_assets/pbui-subsystems-release-ctest.txt`. No physical display qualification is implied.
+This article explains the implementation at `1b75e54`. All 41 host checks passed in Debug and Release again during preparation of this series; the retained logs are in [Debug results](_assets/pbui-subsystems-debug-ctest.txt) and [Release results](_assets/pbui-subsystems-release-ctest.txt). The [series evidence manifest](_assets/pbui-subsystems-evidence.json) records source hashes, commands, report names, and verification limits. No physical display qualification is implied.
 
 ## 1. Three distinct kinds of state
 
