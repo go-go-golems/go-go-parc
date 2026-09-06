@@ -1,0 +1,386 @@
+[
+  {
+    "span": 0,
+    "episode_id": "dv-008b5e55af631629",
+    "split": "train",
+    "reviewer": "codex-assistant-RGB-and-overlay-correspondence-review-v1",
+    "entity": "visible-physical-actor",
+    "note": "Same physical actor across six consecutive RGB frames; shadows/reflections/portraits are not additional actors.",
+    "assignments": [
+      {
+        "frame_id": "522cabc9be243f4ecef8cfe8",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-008b5e55af631629:s0:c0:t1"
+      },
+      {
+        "frame_id": "cf7f3d82333d88bed91d4fc8",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-008b5e55af631629:s0:c0:t1"
+      },
+      {
+        "frame_id": "39fb3abce4f152be01f4d32d",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-008b5e55af631629:s0:c0:t1"
+      },
+      {
+        "frame_id": "4b224e900937e7746af5a437",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-008b5e55af631629:s0:c0:t1"
+      },
+      {
+        "frame_id": "53d2805edfe3411f8aaa124f",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-008b5e55af631629:s0:c0:t1"
+      },
+      {
+        "frame_id": "49008d3432b73a5dc1c0eb0d",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-008b5e55af631629:s0:c0:t1"
+      }
+    ],
+    "unmatched_observed_person_tracks": 0,
+    "metrics": {
+      "visible_rows": 6,
+      "matched_rows": 6,
+      "id_switches": 0,
+      "fragmentations": 0,
+      "visible_coverage": 1.0
+    }
+  },
+  {
+    "span": 1,
+    "episode_id": "dv-13cb7ede57cfce80",
+    "split": "development",
+    "reviewer": "codex-assistant-RGB-and-overlay-correspondence-review-v1",
+    "entity": "visible-physical-actor",
+    "note": "Same physical actor across six consecutive RGB frames; shadows/reflections/portraits are not additional actors.",
+    "assignments": [
+      {
+        "frame_id": "9944c501290da2f2572d377c",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-13cb7ede57cfce80:s0:c0:t3"
+      },
+      {
+        "frame_id": "812e0ffefef2118035ed480a",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-13cb7ede57cfce80:s0:c0:t3"
+      },
+      {
+        "frame_id": "1b01c7b1f1e37b1022d883a1",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-13cb7ede57cfce80:s0:c0:t3"
+      },
+      {
+        "frame_id": "7572ec66b5f6e1fdac3bba21",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-13cb7ede57cfce80:s0:c0:t3"
+      },
+      {
+        "frame_id": "be4d6a5ddac3bb1c391c8955",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-13cb7ede57cfce80:s0:c0:t3"
+      },
+      {
+        "frame_id": "44fdc6cb00c6a85e6b3f13b5",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-13cb7ede57cfce80:s0:c0:t3"
+      }
+    ],
+    "unmatched_observed_person_tracks": 6,
+    "metrics": {
+      "visible_rows": 6,
+      "matched_rows": 6,
+      "id_switches": 0,
+      "fragmentations": 0,
+      "visible_coverage": 1.0
+    }
+  },
+  {
+    "span": 2,
+    "episode_id": "dv-5379eae9425594a5",
+    "split": "development",
+    "reviewer": "codex-assistant-RGB-and-overlay-correspondence-review-v1",
+    "entity": "visible-physical-actor",
+    "note": "Same physical actor across six consecutive RGB frames; shadows/reflections/portraits are not additional actors.",
+    "assignments": [
+      {
+        "frame_id": "1820a34e84aecee4b89a17b3",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-5379eae9425594a5:s0:c0:t3"
+      },
+      {
+        "frame_id": "b433559fd0e8ac72569a99e2",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-5379eae9425594a5:s0:c0:t3"
+      },
+      {
+        "frame_id": "a7922e8e48f422668922a9f6",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-5379eae9425594a5:s0:c0:t3"
+      },
+      {
+        "frame_id": "7567921a45a0de8590160fb4",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-5379eae9425594a5:s0:c0:t3"
+      },
+      {
+        "frame_id": "7fc422b1dd610c4db0f745c4",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-5379eae9425594a5:s0:c0:t3"
+      },
+      {
+        "frame_id": "3ffdb7763ba7ffddc3c2764a",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-5379eae9425594a5:s0:c0:t3"
+      }
+    ],
+    "unmatched_observed_person_tracks": 0,
+    "metrics": {
+      "visible_rows": 6,
+      "matched_rows": 6,
+      "id_switches": 0,
+      "fragmentations": 0,
+      "visible_coverage": 1.0
+    }
+  },
+  {
+    "span": 3,
+    "episode_id": "dv-633a68f3856a13b9",
+    "split": "train",
+    "reviewer": "codex-assistant-RGB-and-overlay-correspondence-review-v1",
+    "entity": "visible-physical-actor",
+    "note": "Same physical actor across six consecutive RGB frames; shadows/reflections/portraits are not additional actors.",
+    "assignments": [
+      {
+        "frame_id": "1e5f6c2f2627244160d68dd6",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-633a68f3856a13b9:s0:c0:t2"
+      },
+      {
+        "frame_id": "c149273f4314129c174bb0f4",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-633a68f3856a13b9:s0:c0:t2"
+      },
+      {
+        "frame_id": "1fd285bb4d16e6ad401f6c3c",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-633a68f3856a13b9:s0:c0:t2"
+      },
+      {
+        "frame_id": "f75f0a86f1eb574ae55fcec7",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-633a68f3856a13b9:s0:c0:t2"
+      },
+      {
+        "frame_id": "b76c7fcc78a19a9f85d5113f",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-633a68f3856a13b9:s0:c0:t2"
+      },
+      {
+        "frame_id": "ede119bd5cd1724bcd321bd8",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-633a68f3856a13b9:s0:c0:t2"
+      }
+    ],
+    "unmatched_observed_person_tracks": 1,
+    "metrics": {
+      "visible_rows": 6,
+      "matched_rows": 6,
+      "id_switches": 0,
+      "fragmentations": 0,
+      "visible_coverage": 1.0
+    }
+  },
+  {
+    "span": 4,
+    "episode_id": "dv-673fa0ed90d3c06a",
+    "split": "test",
+    "reviewer": "codex-assistant-RGB-and-overlay-correspondence-review-v1",
+    "entity": "visible-physical-actor",
+    "note": "Actor not visually observable in bed span; do not infer absence or location from simulator.",
+    "assignments": [
+      {
+        "frame_id": "701d4ca7f2f5478f37f28ab5",
+        "visible": false,
+        "observed_track_id": null
+      },
+      {
+        "frame_id": "c19688d45715cb1a760d6a32",
+        "visible": false,
+        "observed_track_id": null
+      },
+      {
+        "frame_id": "63f6b961879fd27173ca2615",
+        "visible": false,
+        "observed_track_id": null
+      },
+      {
+        "frame_id": "47eaab1980240b4aa329ef2b",
+        "visible": false,
+        "observed_track_id": null
+      },
+      {
+        "frame_id": "7712886242cd675b703dfc4c",
+        "visible": false,
+        "observed_track_id": null
+      },
+      {
+        "frame_id": "7e9f64b97e3067c1a6dc4b84",
+        "visible": false,
+        "observed_track_id": null
+      }
+    ],
+    "unmatched_observed_person_tracks": 0,
+    "metrics": {
+      "visible_rows": 0,
+      "matched_rows": 0,
+      "id_switches": 0,
+      "fragmentations": 0,
+      "visible_coverage": null
+    }
+  },
+  {
+    "span": 5,
+    "episode_id": "dv-af669d3e3a486780",
+    "split": "test",
+    "reviewer": "codex-assistant-RGB-and-overlay-correspondence-review-v1",
+    "entity": "visible-physical-actor",
+    "note": "Same physical actor across six consecutive RGB frames; shadows/reflections/portraits are not additional actors.",
+    "assignments": [
+      {
+        "frame_id": "e90e2c4e8230e4ee24cb739a",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-af669d3e3a486780:s0:c0:t1"
+      },
+      {
+        "frame_id": "ff77395883b41fbc488343ca",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-af669d3e3a486780:s0:c0:t1"
+      },
+      {
+        "frame_id": "4f40b5bf5084ffbb5bc5bb1f",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-af669d3e3a486780:s0:c0:t1"
+      },
+      {
+        "frame_id": "50aac07519fdcf14e0c4d1b2",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-af669d3e3a486780:s0:c0:t1"
+      },
+      {
+        "frame_id": "f610ac4f3a0667a0d33b0c42",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-af669d3e3a486780:s0:c0:t1"
+      },
+      {
+        "frame_id": "8f7b49fa0abc8d8f3ae395fe",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-af669d3e3a486780:s0:c0:t1"
+      }
+    ],
+    "unmatched_observed_person_tracks": 0,
+    "metrics": {
+      "visible_rows": 6,
+      "matched_rows": 6,
+      "id_switches": 0,
+      "fragmentations": 0,
+      "visible_coverage": 1.0
+    }
+  },
+  {
+    "span": 6,
+    "episode_id": "dv-b78c9de6650abd04",
+    "split": "development",
+    "reviewer": "codex-assistant-RGB-and-overlay-correspondence-review-v1",
+    "entity": "visible-physical-actor",
+    "note": "Same physical actor across six consecutive RGB frames; shadows/reflections/portraits are not additional actors.",
+    "assignments": [
+      {
+        "frame_id": "d6ea56b47d0717899a81b574",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-b78c9de6650abd04:s0:c0:t5"
+      },
+      {
+        "frame_id": "7e4caaea547d2798f273cc19",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-b78c9de6650abd04:s0:c0:t5"
+      },
+      {
+        "frame_id": "f215adbe8f553af53e6b2de1",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-b78c9de6650abd04:s0:c0:t5"
+      },
+      {
+        "frame_id": "f4648cfe8de67a2a12d16598",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-b78c9de6650abd04:s0:c0:t5"
+      },
+      {
+        "frame_id": "4c093cb251d7b35bddfeef92",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-b78c9de6650abd04:s0:c0:t5"
+      },
+      {
+        "frame_id": "e4a8455a6e307c0f78b19b18",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-b78c9de6650abd04:s0:c0:t5"
+      }
+    ],
+    "unmatched_observed_person_tracks": 0,
+    "metrics": {
+      "visible_rows": 6,
+      "matched_rows": 6,
+      "id_switches": 0,
+      "fragmentations": 0,
+      "visible_coverage": 1.0
+    }
+  },
+  {
+    "span": 7,
+    "episode_id": "dv-b80308c130c7003b",
+    "split": "train",
+    "reviewer": "codex-assistant-RGB-and-overlay-correspondence-review-v1",
+    "entity": "visible-physical-actor",
+    "note": "Same physical actor across six consecutive RGB frames; shadows/reflections/portraits are not additional actors.",
+    "assignments": [
+      {
+        "frame_id": "b9668606fb46e2e622408607",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-b80308c130c7003b:s0:c0:t1"
+      },
+      {
+        "frame_id": "9f5b4aaa50d25ce8a561e753",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-b80308c130c7003b:s0:c0:t1"
+      },
+      {
+        "frame_id": "d629216283295b34ba8acbf7",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-b80308c130c7003b:s0:c0:t1"
+      },
+      {
+        "frame_id": "4e1bc59b57fade6d18432b8b",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-b80308c130c7003b:s0:c0:t1"
+      },
+      {
+        "frame_id": "f1a4ff297dc23eae6942a098",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-b80308c130c7003b:s0:c0:t1"
+      },
+      {
+        "frame_id": "c3998bc2a84bb66efdf67e48",
+        "visible": true,
+        "observed_track_id": "b4c508901276:dv-b80308c130c7003b:s0:c0:t1"
+      }
+    ],
+    "unmatched_observed_person_tracks": 0,
+    "metrics": {
+      "visible_rows": 6,
+      "matched_rows": 6,
+      "id_switches": 0,
+      "fragmentations": 0,
+      "visible_coverage": 1.0
+    }
+  }
+]

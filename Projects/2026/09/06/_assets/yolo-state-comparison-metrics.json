@@ -1,0 +1,1404 @@
+{
+  "run_id": "3af75af8067ce6ff770831c4bd61555a8390f91259e6c635af8b6979ac80fed7",
+  "policy": {
+    "requested_class": {
+      "fridge": "refrigerator",
+      "microwave": "microwave"
+    },
+    "binding": "exactly-one-accepted-requested-class-box-per-frame",
+    "crop_kind": "target",
+    "score_floor": 0.25,
+    "fusion": "FC=unit(mean(unit-full,unit-crop)); FCH/FCW=joint-images-and-hint",
+    "hints": "Predicted objects: {classes}. These are machine estimates.",
+    "wrong_hints": "Predicted objects: bicycle, dog. These are machine estimates.",
+    "missing_crop": "C unavailable; FC uses full frame; FCH/FCW keep full frame and explicit detector hint",
+    "budgets": {
+      "F": 76800,
+      "C": 76800,
+      "FC": 153600,
+      "FCH": 153600,
+      "FCW": 153600,
+      "H": 0
+    },
+    "test_reuse": "Previously inspected test partition; exploratory follow-up, not a fresh untouched benchmark."
+  },
+  "limitations": [
+    "Same test scenes previously inspected; exploratory follow-up, not a new blind test.",
+    "One apartment per split and only two open development/test frames.",
+    "C-only coverage differs; compare correct/all-known and missing counts, not conditional F1 alone.",
+    "Correct detector hints contain false predictions as well as true objects.",
+    "No generative verifier quality claim; these are frozen embedding baselines."
+  ],
+  "sample_sha256": "cc5571e0e6d75a35bd694158dc8de243897948d88ac9636d8852020694e3fbae",
+  "label_sha256": "04444f0f3666371fb3505e274fea6e08a501e121bfbef984fa7ddf87a280a6bf",
+  "conditions": {
+    "F__text_margin": {
+      "status": "evaluated",
+      "producer_id": "527cc2ccd29aa45d995985931346dd0603b84a60ce75760781d9888adf3b5c5d",
+      "metrics": {
+        "train": {
+          "n": 96,
+          "known": 95,
+          "unknown": 1,
+          "evidence_available": 96,
+          "missing_evidence": 0,
+          "answered": 96,
+          "coverage": 1.0,
+          "known_answered": 95,
+          "known_errors": 37,
+          "known_selective_risk": 0.3894736842105263,
+          "known_correct_over_all_known": 0.6105263157894737,
+          "unknown_false_certainty": 1,
+          "available_visible_confusion_before_abstention": {
+            "tn": 56,
+            "fp": 0,
+            "fn": 37,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 0.4246194139793747
+        },
+        "development": {
+          "n": 24,
+          "known": 24,
+          "unknown": 0,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 24,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": {
+          "n": 24,
+          "known": 17,
+          "unknown": 7,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 17,
+          "known_errors": 2,
+          "known_selective_risk": 0.11764705882352941,
+          "known_correct_over_all_known": 0.8823529411764706,
+          "unknown_false_certainty": 7,
+          "available_visible_confusion_before_abstention": {
+            "tn": 15,
+            "fp": 0,
+            "fn": 2,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.46875
+        }
+      },
+      "common_crop_subset": {
+        "train": {
+          "n": 46,
+          "known": 46,
+          "unknown": 0,
+          "evidence_available": 46,
+          "missing_evidence": 0,
+          "answered": 46,
+          "coverage": 1.0,
+          "known_answered": 46,
+          "known_errors": 12,
+          "known_selective_risk": 0.2608695652173913,
+          "known_correct_over_all_known": 0.7391304347826086,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 34,
+            "fp": 0,
+            "fn": 12,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.425
+        },
+        "development": {
+          "n": 23,
+          "known": 23,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 0,
+          "answered": 23,
+          "coverage": 1.0,
+          "known_answered": 23,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": null
+      }
+    },
+    "F__linear_head": {
+      "status": "evaluated",
+      "producer_id": "33947f27de2e876e771df85ec5089d092a2c93b7b9e07ce49c2c96c7b502a0f6",
+      "metrics": {
+        "train": {
+          "n": 96,
+          "known": 95,
+          "unknown": 1,
+          "evidence_available": 96,
+          "missing_evidence": 0,
+          "answered": 96,
+          "coverage": 1.0,
+          "known_answered": 95,
+          "known_errors": 39,
+          "known_selective_risk": 0.4105263157894737,
+          "known_correct_over_all_known": 0.5894736842105263,
+          "unknown_false_certainty": 1,
+          "available_visible_confusion_before_abstention": {
+            "tn": 56,
+            "fp": 0,
+            "fn": 39,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.3708609271523179
+        },
+        "development": {
+          "n": 24,
+          "known": 24,
+          "unknown": 0,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 24,
+          "known_errors": 2,
+          "known_selective_risk": 0.08333333333333333,
+          "known_correct_over_all_known": 0.9166666666666666,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 21,
+            "fp": 1,
+            "fn": 1,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 0.7272727272727273
+        },
+        "test": {
+          "n": 24,
+          "known": 17,
+          "unknown": 7,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 17,
+          "known_errors": 7,
+          "known_selective_risk": 0.4117647058823529,
+          "known_correct_over_all_known": 0.5882352941176471,
+          "unknown_false_certainty": 7,
+          "available_visible_confusion_before_abstention": {
+            "tn": 9,
+            "fp": 6,
+            "fn": 1,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 0.4711111111111111
+        }
+      },
+      "common_crop_subset": {
+        "train": {
+          "n": 46,
+          "known": 46,
+          "unknown": 0,
+          "evidence_available": 46,
+          "missing_evidence": 0,
+          "answered": 46,
+          "coverage": 1.0,
+          "known_answered": 46,
+          "known_errors": 12,
+          "known_selective_risk": 0.2608695652173913,
+          "known_correct_over_all_known": 0.7391304347826086,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 34,
+            "fp": 0,
+            "fn": 12,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.425
+        },
+        "development": {
+          "n": 23,
+          "known": 23,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 0,
+          "answered": 23,
+          "coverage": 1.0,
+          "known_answered": 23,
+          "known_errors": 2,
+          "known_selective_risk": 0.08695652173913043,
+          "known_correct_over_all_known": 0.9130434782608695,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 21,
+            "fp": 1,
+            "fn": 1,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.4772727272727273
+        },
+        "test": null
+      }
+    },
+    "C__text_margin": {
+      "status": "evaluated",
+      "producer_id": "f95875603f36c4eba293545798f8e6d8349afb051280030f209f91d1d9ccef83",
+      "metrics": {
+        "train": {
+          "n": 96,
+          "known": 95,
+          "unknown": 1,
+          "evidence_available": 46,
+          "missing_evidence": 50,
+          "answered": 46,
+          "coverage": 0.4791666666666667,
+          "known_answered": 46,
+          "known_errors": 12,
+          "known_selective_risk": 0.2608695652173913,
+          "known_correct_over_all_known": 0.35789473684210527,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 34,
+            "fp": 0,
+            "fn": 12,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.425
+        },
+        "development": {
+          "n": 24,
+          "known": 24,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 1,
+          "answered": 23,
+          "coverage": 0.9583333333333334,
+          "known_answered": 23,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 0.9583333333333334,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": {
+          "n": 24,
+          "known": 17,
+          "unknown": 7,
+          "evidence_available": 0,
+          "missing_evidence": 24,
+          "answered": 0,
+          "coverage": 0.0,
+          "known_answered": 0,
+          "known_errors": 0,
+          "known_selective_risk": null,
+          "known_correct_over_all_known": 0.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 0,
+            "fp": 0,
+            "fn": 0,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": null
+        }
+      },
+      "common_crop_subset": {
+        "train": {
+          "n": 46,
+          "known": 46,
+          "unknown": 0,
+          "evidence_available": 46,
+          "missing_evidence": 0,
+          "answered": 46,
+          "coverage": 1.0,
+          "known_answered": 46,
+          "known_errors": 12,
+          "known_selective_risk": 0.2608695652173913,
+          "known_correct_over_all_known": 0.7391304347826086,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 34,
+            "fp": 0,
+            "fn": 12,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.425
+        },
+        "development": {
+          "n": 23,
+          "known": 23,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 0,
+          "answered": 23,
+          "coverage": 1.0,
+          "known_answered": 23,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": null
+      }
+    },
+    "C__linear_head": {
+      "status": "evaluated",
+      "producer_id": "e4f61f57393354b2b4a2dd7b89b96efe61d5329ecc3978952d3a43405524b6ca",
+      "metrics": {
+        "train": {
+          "n": 96,
+          "known": 95,
+          "unknown": 1,
+          "evidence_available": 46,
+          "missing_evidence": 50,
+          "answered": 46,
+          "coverage": 0.4791666666666667,
+          "known_answered": 46,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 0.4842105263157895,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 34,
+            "fp": 0,
+            "fn": 0,
+            "tp": 12
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "development": {
+          "n": 24,
+          "known": 24,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 1,
+          "answered": 23,
+          "coverage": 0.9583333333333334,
+          "known_answered": 23,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 0.9583333333333334,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": {
+          "n": 24,
+          "known": 17,
+          "unknown": 7,
+          "evidence_available": 0,
+          "missing_evidence": 24,
+          "answered": 0,
+          "coverage": 0.0,
+          "known_answered": 0,
+          "known_errors": 0,
+          "known_selective_risk": null,
+          "known_correct_over_all_known": 0.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 0,
+            "fp": 0,
+            "fn": 0,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": null
+        }
+      },
+      "common_crop_subset": {
+        "train": {
+          "n": 46,
+          "known": 46,
+          "unknown": 0,
+          "evidence_available": 46,
+          "missing_evidence": 0,
+          "answered": 46,
+          "coverage": 1.0,
+          "known_answered": 46,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 34,
+            "fp": 0,
+            "fn": 0,
+            "tp": 12
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "development": {
+          "n": 23,
+          "known": 23,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 0,
+          "answered": 23,
+          "coverage": 1.0,
+          "known_answered": 23,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": null
+      }
+    },
+    "FC__text_margin": {
+      "status": "evaluated",
+      "producer_id": "31167f0c03920fd28ad19cf55d8b5c5aa19086f87f4344b2c29944652bb36122",
+      "metrics": {
+        "train": {
+          "n": 96,
+          "known": 95,
+          "unknown": 1,
+          "evidence_available": 96,
+          "missing_evidence": 0,
+          "answered": 96,
+          "coverage": 1.0,
+          "known_answered": 95,
+          "known_errors": 37,
+          "known_selective_risk": 0.3894736842105263,
+          "known_correct_over_all_known": 0.6105263157894737,
+          "unknown_false_certainty": 1,
+          "available_visible_confusion_before_abstention": {
+            "tn": 56,
+            "fp": 0,
+            "fn": 37,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 0.4246194139793747
+        },
+        "development": {
+          "n": 24,
+          "known": 24,
+          "unknown": 0,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 24,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": {
+          "n": 24,
+          "known": 17,
+          "unknown": 7,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 17,
+          "known_errors": 2,
+          "known_selective_risk": 0.11764705882352941,
+          "known_correct_over_all_known": 0.8823529411764706,
+          "unknown_false_certainty": 7,
+          "available_visible_confusion_before_abstention": {
+            "tn": 15,
+            "fp": 0,
+            "fn": 2,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.46875
+        }
+      },
+      "common_crop_subset": {
+        "train": {
+          "n": 46,
+          "known": 46,
+          "unknown": 0,
+          "evidence_available": 46,
+          "missing_evidence": 0,
+          "answered": 46,
+          "coverage": 1.0,
+          "known_answered": 46,
+          "known_errors": 12,
+          "known_selective_risk": 0.2608695652173913,
+          "known_correct_over_all_known": 0.7391304347826086,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 34,
+            "fp": 0,
+            "fn": 12,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.425
+        },
+        "development": {
+          "n": 23,
+          "known": 23,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 0,
+          "answered": 23,
+          "coverage": 1.0,
+          "known_answered": 23,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": null
+      }
+    },
+    "FC__linear_head": {
+      "status": "evaluated",
+      "producer_id": "8d9b94b52c2a3a4e6714beb48965789eb1865564926a0fcca7fac969264eeac3",
+      "metrics": {
+        "train": {
+          "n": 96,
+          "known": 95,
+          "unknown": 1,
+          "evidence_available": 96,
+          "missing_evidence": 0,
+          "answered": 96,
+          "coverage": 1.0,
+          "known_answered": 95,
+          "known_errors": 39,
+          "known_selective_risk": 0.4105263157894737,
+          "known_correct_over_all_known": 0.5894736842105263,
+          "unknown_false_certainty": 1,
+          "available_visible_confusion_before_abstention": {
+            "tn": 56,
+            "fp": 0,
+            "fn": 39,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.3708609271523179
+        },
+        "development": {
+          "n": 24,
+          "known": 24,
+          "unknown": 0,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 24,
+          "known_errors": 1,
+          "known_selective_risk": 0.041666666666666664,
+          "known_correct_over_all_known": 0.9583333333333334,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 21,
+            "fp": 1,
+            "fn": 0,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 0.8883720930232558
+        },
+        "test": {
+          "n": 24,
+          "known": 17,
+          "unknown": 7,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 17,
+          "known_errors": 14,
+          "known_selective_risk": 0.8235294117647058,
+          "known_correct_over_all_known": 0.17647058823529413,
+          "unknown_false_certainty": 7,
+          "available_visible_confusion_before_abstention": {
+            "tn": 1,
+            "fp": 14,
+            "fn": 0,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 0.1736111111111111
+        }
+      },
+      "common_crop_subset": {
+        "train": {
+          "n": 46,
+          "known": 46,
+          "unknown": 0,
+          "evidence_available": 46,
+          "missing_evidence": 0,
+          "answered": 46,
+          "coverage": 1.0,
+          "known_answered": 46,
+          "known_errors": 12,
+          "known_selective_risk": 0.2608695652173913,
+          "known_correct_over_all_known": 0.7391304347826086,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 34,
+            "fp": 0,
+            "fn": 12,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.425
+        },
+        "development": {
+          "n": 23,
+          "known": 23,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 0,
+          "answered": 23,
+          "coverage": 1.0,
+          "known_answered": 23,
+          "known_errors": 1,
+          "known_selective_risk": 0.043478260869565216,
+          "known_correct_over_all_known": 0.9565217391304348,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 21,
+            "fp": 1,
+            "fn": 0,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 0.821705426356589
+        },
+        "test": null
+      }
+    },
+    "FCH__text_margin": {
+      "status": "evaluated",
+      "producer_id": "d180c55d8a8f2e5672ae1556a6a98c5a720e022d007886253dc1326ff401625d",
+      "metrics": {
+        "train": {
+          "n": 96,
+          "known": 95,
+          "unknown": 1,
+          "evidence_available": 96,
+          "missing_evidence": 0,
+          "answered": 96,
+          "coverage": 1.0,
+          "known_answered": 95,
+          "known_errors": 37,
+          "known_selective_risk": 0.3894736842105263,
+          "known_correct_over_all_known": 0.6105263157894737,
+          "unknown_false_certainty": 1,
+          "available_visible_confusion_before_abstention": {
+            "tn": 56,
+            "fp": 0,
+            "fn": 37,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 0.4246194139793747
+        },
+        "development": {
+          "n": 24,
+          "known": 24,
+          "unknown": 0,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 24,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": {
+          "n": 24,
+          "known": 17,
+          "unknown": 7,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 17,
+          "known_errors": 2,
+          "known_selective_risk": 0.11764705882352941,
+          "known_correct_over_all_known": 0.8823529411764706,
+          "unknown_false_certainty": 7,
+          "available_visible_confusion_before_abstention": {
+            "tn": 15,
+            "fp": 0,
+            "fn": 2,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.46875
+        }
+      },
+      "common_crop_subset": {
+        "train": {
+          "n": 46,
+          "known": 46,
+          "unknown": 0,
+          "evidence_available": 46,
+          "missing_evidence": 0,
+          "answered": 46,
+          "coverage": 1.0,
+          "known_answered": 46,
+          "known_errors": 12,
+          "known_selective_risk": 0.2608695652173913,
+          "known_correct_over_all_known": 0.7391304347826086,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 34,
+            "fp": 0,
+            "fn": 12,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.425
+        },
+        "development": {
+          "n": 23,
+          "known": 23,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 0,
+          "answered": 23,
+          "coverage": 1.0,
+          "known_answered": 23,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": null
+      }
+    },
+    "FCH__linear_head": {
+      "status": "evaluated",
+      "producer_id": "d39fa8e6753317e16e147f088a3cdfa33027d7863882dc3452e56fa4ad023c10",
+      "metrics": {
+        "train": {
+          "n": 96,
+          "known": 95,
+          "unknown": 1,
+          "evidence_available": 96,
+          "missing_evidence": 0,
+          "answered": 96,
+          "coverage": 1.0,
+          "known_answered": 95,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 1,
+          "available_visible_confusion_before_abstention": {
+            "tn": 56,
+            "fp": 0,
+            "fn": 0,
+            "tp": 39
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "development": {
+          "n": 24,
+          "known": 24,
+          "unknown": 0,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 24,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": {
+          "n": 24,
+          "known": 17,
+          "unknown": 7,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 17,
+          "known_errors": 14,
+          "known_selective_risk": 0.8235294117647058,
+          "known_correct_over_all_known": 0.17647058823529413,
+          "unknown_false_certainty": 7,
+          "available_visible_confusion_before_abstention": {
+            "tn": 1,
+            "fp": 14,
+            "fn": 0,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 0.1736111111111111
+        }
+      },
+      "common_crop_subset": {
+        "train": {
+          "n": 46,
+          "known": 46,
+          "unknown": 0,
+          "evidence_available": 46,
+          "missing_evidence": 0,
+          "answered": 46,
+          "coverage": 1.0,
+          "known_answered": 46,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 34,
+            "fp": 0,
+            "fn": 0,
+            "tp": 12
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "development": {
+          "n": 23,
+          "known": 23,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 0,
+          "answered": 23,
+          "coverage": 1.0,
+          "known_answered": 23,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": null
+      }
+    },
+    "FCW__text_margin": {
+      "status": "evaluated",
+      "producer_id": "e16805951e508a68d681748d51bf073c2f4db61fa24dbaa483383ba49533ff99",
+      "metrics": {
+        "train": {
+          "n": 96,
+          "known": 95,
+          "unknown": 1,
+          "evidence_available": 96,
+          "missing_evidence": 0,
+          "answered": 96,
+          "coverage": 1.0,
+          "known_answered": 95,
+          "known_errors": 37,
+          "known_selective_risk": 0.3894736842105263,
+          "known_correct_over_all_known": 0.6105263157894737,
+          "unknown_false_certainty": 1,
+          "available_visible_confusion_before_abstention": {
+            "tn": 56,
+            "fp": 0,
+            "fn": 37,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 0.4246194139793747
+        },
+        "development": {
+          "n": 24,
+          "known": 24,
+          "unknown": 0,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 24,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": {
+          "n": 24,
+          "known": 17,
+          "unknown": 7,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 17,
+          "known_errors": 2,
+          "known_selective_risk": 0.11764705882352941,
+          "known_correct_over_all_known": 0.8823529411764706,
+          "unknown_false_certainty": 7,
+          "available_visible_confusion_before_abstention": {
+            "tn": 15,
+            "fp": 0,
+            "fn": 2,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.46875
+        }
+      },
+      "common_crop_subset": {
+        "train": {
+          "n": 46,
+          "known": 46,
+          "unknown": 0,
+          "evidence_available": 46,
+          "missing_evidence": 0,
+          "answered": 46,
+          "coverage": 1.0,
+          "known_answered": 46,
+          "known_errors": 12,
+          "known_selective_risk": 0.2608695652173913,
+          "known_correct_over_all_known": 0.7391304347826086,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 34,
+            "fp": 0,
+            "fn": 12,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.425
+        },
+        "development": {
+          "n": 23,
+          "known": 23,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 0,
+          "answered": 23,
+          "coverage": 1.0,
+          "known_answered": 23,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": null
+      }
+    },
+    "FCW__linear_head": {
+      "status": "evaluated",
+      "producer_id": "05f8e368caf51afc9b934cb5182e508eaa91d4a0141e78ac775d775110c1b745",
+      "metrics": {
+        "train": {
+          "n": 96,
+          "known": 95,
+          "unknown": 1,
+          "evidence_available": 96,
+          "missing_evidence": 0,
+          "answered": 96,
+          "coverage": 1.0,
+          "known_answered": 95,
+          "known_errors": 36,
+          "known_selective_risk": 0.37894736842105264,
+          "known_correct_over_all_known": 0.6210526315789474,
+          "unknown_false_certainty": 1,
+          "available_visible_confusion_before_abstention": {
+            "tn": 56,
+            "fp": 0,
+            "fn": 36,
+            "tp": 3
+          },
+          "available_visible_macro_f1_before_abstention": 0.4498069498069498
+        },
+        "development": {
+          "n": 24,
+          "known": 24,
+          "unknown": 0,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 24,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": {
+          "n": 24,
+          "known": 17,
+          "unknown": 7,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 24,
+          "coverage": 1.0,
+          "known_answered": 17,
+          "known_errors": 15,
+          "known_selective_risk": 0.8823529411764706,
+          "known_correct_over_all_known": 0.11764705882352941,
+          "unknown_false_certainty": 7,
+          "available_visible_confusion_before_abstention": {
+            "tn": 0,
+            "fp": 15,
+            "fn": 0,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 0.10526315789473684
+        }
+      },
+      "common_crop_subset": {
+        "train": {
+          "n": 46,
+          "known": 46,
+          "unknown": 0,
+          "evidence_available": 46,
+          "missing_evidence": 0,
+          "answered": 46,
+          "coverage": 1.0,
+          "known_answered": 46,
+          "known_errors": 11,
+          "known_selective_risk": 0.2391304347826087,
+          "known_correct_over_all_known": 0.7608695652173914,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 34,
+            "fp": 0,
+            "fn": 11,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 0.50730282375852
+        },
+        "development": {
+          "n": 23,
+          "known": 23,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 0,
+          "answered": 23,
+          "coverage": 1.0,
+          "known_answered": 23,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 1.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 22,
+            "fp": 0,
+            "fn": 0,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 1.0
+        },
+        "test": null
+      }
+    },
+    "H__text_margin": {
+      "status": "evaluated",
+      "producer_id": "80c9f022236952ca712c3ae5e540331802410c4a469f9c8f0309a2ce9134332b",
+      "metrics": {
+        "train": {
+          "n": 96,
+          "known": 95,
+          "unknown": 1,
+          "evidence_available": 96,
+          "missing_evidence": 0,
+          "answered": 4,
+          "coverage": 0.041666666666666664,
+          "known_answered": 4,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 0.042105263157894736,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 50,
+            "fp": 6,
+            "fn": 26,
+            "tp": 13
+          },
+          "available_visible_macro_f1_before_abstention": 0.6029258098223615
+        },
+        "development": {
+          "n": 24,
+          "known": 24,
+          "unknown": 0,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 9,
+          "coverage": 0.375,
+          "known_answered": 9,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 0.375,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 17,
+            "fp": 5,
+            "fn": 1,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 0.55
+        },
+        "test": {
+          "n": 24,
+          "known": 17,
+          "unknown": 7,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 1,
+          "coverage": 0.041666666666666664,
+          "known_answered": 1,
+          "known_errors": 1,
+          "known_selective_risk": 1.0,
+          "known_correct_over_all_known": 0.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 6,
+            "fp": 9,
+            "fn": 2,
+            "tp": 0
+          },
+          "available_visible_macro_f1_before_abstention": 0.2608695652173913
+        }
+      },
+      "common_crop_subset": {
+        "train": {
+          "n": 46,
+          "known": 46,
+          "unknown": 0,
+          "evidence_available": 46,
+          "missing_evidence": 0,
+          "answered": 4,
+          "coverage": 0.08695652173913043,
+          "known_answered": 4,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 0.08695652173913043,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 30,
+            "fp": 4,
+            "fn": 5,
+            "tp": 7
+          },
+          "available_visible_macro_f1_before_abstention": 0.7391304347826086
+        },
+        "development": {
+          "n": 23,
+          "known": 23,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 0,
+          "answered": 9,
+          "coverage": 0.391304347826087,
+          "known_answered": 9,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 0.391304347826087,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 17,
+            "fp": 5,
+            "fn": 0,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 0.5787545787545787
+        },
+        "test": null
+      }
+    },
+    "H__linear_head": {
+      "status": "evaluated",
+      "producer_id": "ed0f95cef854643136a7736d658f062968e14575b5a51fa3c4476ce76b6471e5",
+      "metrics": {
+        "train": {
+          "n": 96,
+          "known": 95,
+          "unknown": 1,
+          "evidence_available": 96,
+          "missing_evidence": 0,
+          "answered": 11,
+          "coverage": 0.11458333333333333,
+          "known_answered": 11,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 0.11578947368421053,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 38,
+            "fp": 18,
+            "fn": 0,
+            "tp": 39
+          },
+          "available_visible_macro_f1_before_abstention": 0.8105053191489362
+        },
+        "development": {
+          "n": 24,
+          "known": 24,
+          "unknown": 0,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 0,
+          "coverage": 0.0,
+          "known_answered": 0,
+          "known_errors": 0,
+          "known_selective_risk": null,
+          "known_correct_over_all_known": 0.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 16,
+            "fp": 6,
+            "fn": 1,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 0.5213675213675213
+        },
+        "test": {
+          "n": 24,
+          "known": 17,
+          "unknown": 7,
+          "evidence_available": 24,
+          "missing_evidence": 0,
+          "answered": 5,
+          "coverage": 0.20833333333333334,
+          "known_answered": 5,
+          "known_errors": 5,
+          "known_selective_risk": 1.0,
+          "known_correct_over_all_known": 0.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 0,
+            "fp": 15,
+            "fn": 0,
+            "tp": 2
+          },
+          "available_visible_macro_f1_before_abstention": 0.10526315789473684
+        }
+      },
+      "common_crop_subset": {
+        "train": {
+          "n": 46,
+          "known": 46,
+          "unknown": 0,
+          "evidence_available": 46,
+          "missing_evidence": 0,
+          "answered": 2,
+          "coverage": 0.043478260869565216,
+          "known_answered": 2,
+          "known_errors": 0,
+          "known_selective_risk": 0.0,
+          "known_correct_over_all_known": 0.043478260869565216,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 23,
+            "fp": 11,
+            "fn": 0,
+            "tp": 12
+          },
+          "available_visible_macro_f1_before_abstention": 0.7463659147869675
+        },
+        "development": {
+          "n": 23,
+          "known": 23,
+          "unknown": 0,
+          "evidence_available": 23,
+          "missing_evidence": 0,
+          "answered": 0,
+          "coverage": 0.0,
+          "known_answered": 0,
+          "known_errors": 0,
+          "known_selective_risk": null,
+          "known_correct_over_all_known": 0.0,
+          "unknown_false_certainty": 0,
+          "available_visible_confusion_before_abstention": {
+            "tn": 16,
+            "fp": 6,
+            "fn": 0,
+            "tp": 1
+          },
+          "available_visible_macro_f1_before_abstention": 0.5460526315789473
+        },
+        "test": null
+      }
+    }
+  }
+}

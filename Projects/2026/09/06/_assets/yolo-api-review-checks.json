@@ -1,0 +1,74 @@
+[
+  {
+    "url": "http://127.0.0.1:8773/v1/perception/run",
+    "expected": 200,
+    "actual": 200,
+    "bytes": 7491
+  },
+  {
+    "url": "http://127.0.0.1:8773/v1/perception/episodes/dv-008b5e55af631629",
+    "expected": 200,
+    "actual": 200,
+    "bytes": 449589
+  },
+  {
+    "url": "http://127.0.0.1:8773/v1/perception/episodes/dv-008b5e55af631629/video",
+    "expected": 206,
+    "actual": 206,
+    "bytes": 100
+  },
+  {
+    "url": "http://127.0.0.1:8773/v1/perception/episodes/dv-008b5e55af631629/frame/0",
+    "expected": 200,
+    "actual": 200,
+    "bytes": 278642
+  },
+  {
+    "url": "http://127.0.0.1:8773/v1/perception/episodes/dv-008b5e55af631629/frame/-1",
+    "expected": 404,
+    "actual": 404,
+    "bytes": 26
+  },
+  {
+    "url": "http://127.0.0.1:8773/v1/perception/episodes/unknown",
+    "expected": 404,
+    "actual": 404,
+    "bytes": 28
+  },
+  {
+    "url": "http://127.0.0.1:8773/v1/perception/episodes/dv-008b5e55af631629/crop/710b92e303f40329eb5b1df9",
+    "expected": 200,
+    "actual": 200,
+    "bytes": 62209
+  },
+  {
+    "url": "http://127.0.0.1:8773/v1/perception/episodes/dv-008b5e55af631629/crop/unknown",
+    "expected": 404,
+    "actual": 404,
+    "bytes": 25
+  },
+  {
+    "url": "http://127.0.0.1:8774/v1/regions/run",
+    "expected": 200,
+    "actual": 200,
+    "bytes": 1970107
+  },
+  {
+    "url": "http://127.0.0.1:8774/v1/regions/evidence/7f1ae70888f44c1635be/crop",
+    "expected": 404,
+    "actual": 404,
+    "bytes": 38
+  },
+  {
+    "url": "http://127.0.0.1:8774/v1/regions/evidence/5334b8cb3384c60aba0f/crop",
+    "expected": 200,
+    "actual": 200,
+    "bytes": 81861
+  },
+  {
+    "url": "http://127.0.0.1:8774/v1/regions/evidence/unknown/image",
+    "expected": 404,
+    "actual": 404,
+    "bytes": 29
+  }
+]
