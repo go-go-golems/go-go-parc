@@ -1,0 +1,2 @@
+cross_pool original_id=1 replacement_id=1 accepted_done=1
+missing_close_ack returned_closed=1 session_aborted=1

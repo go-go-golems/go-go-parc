@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 490" role="img" aria-labelledby="title desc">
+<title id="title">Measured copy and move batch durations</title>
+<desc id="desc">Five batches of one thousand host round trips per size and mode. Dots are observed batches; connected squares are medians. Debug build, not ESP32 timing.</desc>
+<rect width="760" height="490" fill="#ffffff"/>
+<g font-family="sans-serif" fill="#172033">
+<text x="70" y="30" font-size="20">Local owner handoff versus explicit copying</text>
+<text x="70" y="53" font-size="13">Elapsed milliseconds per 1,000 completed host round trips</text>
+<path d="M70 370.0 H710" stroke="#dbe1e8"/>
+<text x="55" y="375.0" text-anchor="end" font-size="13">0</text>
+<path d="M70 314.0 H710" stroke="#dbe1e8"/>
+<text x="55" y="319.0" text-anchor="end" font-size="13">10</text>
+<path d="M70 258.0 H710" stroke="#dbe1e8"/>
+<text x="55" y="263.0" text-anchor="end" font-size="13">20</text>
+<path d="M70 202.0 H710" stroke="#dbe1e8"/>
+<text x="55" y="207.0" text-anchor="end" font-size="13">30</text>
+<path d="M70 146.0 H710" stroke="#dbe1e8"/>
+<text x="55" y="151.0" text-anchor="end" font-size="13">40</text>
+<path d="M70 90.0 H710" stroke="#dbe1e8"/>
+<text x="55" y="95.0" text-anchor="end" font-size="13">50</text>
+<text x="170" y="397" text-anchor="middle" font-size="14">16 bytes</text>
+<text x="390" y="397" text-anchor="middle" font-size="14">64 bytes</text>
+<text x="610" y="397" text-anchor="middle" font-size="14">128 bytes</text>
+<circle cx="145" cy="322.473" r="3" fill="#1764a8" opacity="0.65"/>
+<circle cx="150" cy="324.287" r="3" fill="#1764a8" opacity="0.65"/>
+<circle cx="155" cy="322.602" r="3" fill="#1764a8" opacity="0.65"/>
+<circle cx="160" cy="323.962" r="3" fill="#1764a8" opacity="0.65"/>
+<circle cx="165" cy="324.002" r="3" fill="#1764a8" opacity="0.65"/>
+<rect x="151" y="319.962" width="8" height="8" fill="#1764a8"/>
+<text x="155" y="309.962" text-anchor="middle" font-size="12" fill="#1764a8">8.221</text>
+<circle cx="365" cy="286.941" r="3" fill="#1764a8" opacity="0.65"/>
+<circle cx="370" cy="282.226" r="3" fill="#1764a8" opacity="0.65"/>
+<circle cx="375" cy="286.403" r="3" fill="#1764a8" opacity="0.65"/>
+<circle cx="380" cy="282.562" r="3" fill="#1764a8" opacity="0.65"/>
+<circle cx="385" cy="286.493" r="3" fill="#1764a8" opacity="0.65"/>
+<rect x="371" y="282.403" width="8" height="8" fill="#1764a8"/>
+<text x="375" y="272.403" text-anchor="middle" font-size="12" fill="#1764a8">14.928</text>
+<circle cx="585" cy="238.764" r="3" fill="#1764a8" opacity="0.65"/>
+<circle cx="590" cy="240.578" r="3" fill="#1764a8" opacity="0.65"/>
+<circle cx="595" cy="239.582" r="3" fill="#1764a8" opacity="0.65"/>
+<circle cx="600" cy="242.034" r="3" fill="#1764a8" opacity="0.65"/>
+<circle cx="605" cy="240.203" r="3" fill="#1764a8" opacity="0.65"/>
+<rect x="591" y="236.203" width="8" height="8" fill="#1764a8"/>
+<text x="595" y="226.203" text-anchor="middle" font-size="12" fill="#1764a8">23.178</text>
+<polyline points="155,323.962 375,286.403 595,240.203" fill="none" stroke="#1764a8" stroke-width="1.5"/>
+<circle cx="175" cy="310.567" r="3" fill="#bb4d17" opacity="0.65"/>
+<circle cx="180" cy="310.405" r="3" fill="#bb4d17" opacity="0.65"/>
+<circle cx="185" cy="307.493" r="3" fill="#bb4d17" opacity="0.65"/>
+<circle cx="190" cy="310.959" r="3" fill="#bb4d17" opacity="0.65"/>
+<circle cx="195" cy="311.256" r="3" fill="#bb4d17" opacity="0.65"/>
+<rect x="181" y="306.567" width="8" height="8" fill="#bb4d17"/>
+<text x="185" y="296.567" text-anchor="middle" font-size="12" fill="#bb4d17">10.613</text>
+<circle cx="395" cy="237.269" r="3" fill="#bb4d17" opacity="0.65"/>
+<circle cx="400" cy="232.654" r="3" fill="#bb4d17" opacity="0.65"/>
+<circle cx="405" cy="234.564" r="3" fill="#bb4d17" opacity="0.65"/>
+<circle cx="410" cy="238.585" r="3" fill="#bb4d17" opacity="0.65"/>
+<circle cx="415" cy="237.235" r="3" fill="#bb4d17" opacity="0.65"/>
+<rect x="401" y="233.235" width="8" height="8" fill="#bb4d17"/>
+<text x="405" y="223.235" text-anchor="middle" font-size="12" fill="#bb4d17">23.708</text>
+<circle cx="615" cy="141.766" r="3" fill="#bb4d17" opacity="0.65"/>
+<circle cx="620" cy="144.488" r="3" fill="#bb4d17" opacity="0.65"/>
+<circle cx="625" cy="141.638" r="3" fill="#bb4d17" opacity="0.65"/>
+<circle cx="630" cy="142.881" r="3" fill="#bb4d17" opacity="0.65"/>
+<circle cx="635" cy="142.248" r="3" fill="#bb4d17" opacity="0.65"/>
+<rect x="621" y="138.248" width="8" height="8" fill="#bb4d17"/>
+<text x="625" y="128.248" text-anchor="middle" font-size="12" fill="#bb4d17">40.670</text>
+<polyline points="185,310.567 405,237.235 625,142.248" fill="none" stroke="#bb4d17" stroke-width="1.5"/>
+<text x="90" y="432" font-size="14" fill="#1764a8">Move: no payload handoff copies</text>
+<text x="390" y="432" font-size="14" fill="#bb4d17">Copy: two copies per round trip</text>
+<text x="70" y="458" font-size="12">Dots: five measured batches. Squares and labels: medians. No latency percentiles implied.</text>
+<text x="70" y="477" font-size="12">GNU C++ 13.3 Debug; uncontrolled affinity; move always precedes copy; no separate warmup.</text>
+</g></svg>
