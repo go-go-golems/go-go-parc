@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "port": 56893,
+  "scene_nodes": 454,
+  "script": [
+    "<char0> [Walk] <sofa> (375)",
+    "<char0> [Sit] <sofa> (375)"
+  ],
+  "render_message": {
+    "0": {
+      "message": "Success"
+    }
+  },
+  "app": "/Users/manuel/code/wesen/2026-09-06--vision/output/virtualhome-install/simulator/Modified_Camera_Build_2023_0404_Mac.app",
+  "rgb_frames": 61,
+  "graph_frames": 61,
+  "video": "aist-smoke.mp4",
+  "graph_encoding": "utf-8-sig"
+}
