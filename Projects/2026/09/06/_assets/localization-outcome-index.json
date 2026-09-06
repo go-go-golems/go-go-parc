@@ -1,0 +1,295 @@
+[
+  {
+    "title": "Train accepted detector",
+    "source": {
+      "sample_id": "32b949b927976f14871a6f02",
+      "aliases": [
+        {
+          "id": "5334b8cb3384c60aba0f",
+          "kind": "state"
+        }
+      ],
+      "episode_id": "dv-008b5e55af631629",
+      "entity_id": "dv-008b5e55af631629:object-308",
+      "image_sha256": "a7658dc2ef282d5182b92a3b9f6f97f13376117200bc5443e8647615498b4a1d",
+      "video_sha256": "8904f52d4bb49201e035497573315211640e54a0b4c0161135f5a5382569484b",
+      "frame_index": 41,
+      "pts_us": 4100000,
+      "split": "train",
+      "F": {
+        "image": "output/state-workbench/review-v2/5334b8cb3384c60aba0f.png",
+        "image_sha256": "a7658dc2ef282d5182b92a3b9f6f97f13376117200bc5443e8647615498b4a1d",
+        "evidence_id": "32b949b927976f14871a6f02"
+      },
+      "D": {
+        "evidence_id": "c435f45a50d0fbfc7a63e836",
+        "image": "output/localization-v1/crops-v1/c435f45a50d0fbfc7a63e836.png",
+        "image_sha256": "214eb1c1b3efc0370a7f02d55221f2cbc9479bf052887f54df3b2898afc62ed8",
+        "source_rect": [
+          157,
+          0,
+          445,
+          480
+        ],
+        "detection_ids": [
+          "beb2592c4980e65e390bd237"
+        ],
+        "oracle_assisted": false
+      },
+      "O": {
+        "evidence_id": "3a393d73bc19f19db6b51bbc",
+        "image": "output/localization-v1/crops-v1/3a393d73bc19f19db6b51bbc.png",
+        "image_sha256": "d221824479a8132d87e83c2ac48d75246f87f4add3b0e19877e50742a4fa2243",
+        "source_rect": [
+          160,
+          0,
+          447,
+          480
+        ],
+        "detection_ids": [],
+        "oracle_assisted": true
+      },
+      "detector_usable_candidates": 1,
+      "detector_status": "unique",
+      "oracle_status": "reviewed"
+    },
+    "state_label": {
+      "sample_id": "5334b8cb3384c60aba0f",
+      "entity_id": "dv-008b5e55af631629:object-308",
+      "property": "door_open",
+      "value": true,
+      "observability": "visible",
+      "reviewer": "codex-assistant-single-rgb-review",
+      "revision": "rgb-v2-r1",
+      "provenance": "reviewed_rgb",
+      "rationale": "Door projects away from appliance and/or interior opening is visible; ajar counts open."
+    },
+    "sheet": "outcome-00.jpg"
+  },
+  {
+    "title": "Development accepted detector",
+    "source": {
+      "sample_id": "4e27c53c195306dcabdd374b",
+      "aliases": [
+        {
+          "id": "979332678203cc020cdb",
+          "kind": "state"
+        }
+      ],
+      "episode_id": "dv-22a313084fd800ca",
+      "entity_id": "dv-22a313084fd800ca:object-155",
+      "image_sha256": "4cd6a973882d733d6637e9f91dcdefc99f76ffa72edf596d3ea59b16e10f72f0",
+      "video_sha256": "d09c5eed426d487f22a2cddaac499d91574449fcb2099674b5e20953f14a90d0",
+      "frame_index": 0,
+      "pts_us": 0,
+      "split": "development",
+      "F": {
+        "image": "output/state-workbench/review-v2/979332678203cc020cdb.png",
+        "image_sha256": "4cd6a973882d733d6637e9f91dcdefc99f76ffa72edf596d3ea59b16e10f72f0",
+        "evidence_id": "4e27c53c195306dcabdd374b"
+      },
+      "D": {
+        "evidence_id": "97d8f9ac57d7f45f3a48f185",
+        "image": "output/localization-v1/crops-v1/97d8f9ac57d7f45f3a48f185.png",
+        "image_sha256": "9a833e4ac466e7d2bc38541f47e3f2a4db10f24c77b6a5878c984aa0b7a393a5",
+        "source_rect": [
+          198,
+          0,
+          427,
+          480
+        ],
+        "detection_ids": [
+          "35d00a17298e0b34dbe953d4"
+        ],
+        "oracle_assisted": false
+      },
+      "O": {
+        "evidence_id": "843c196bd3101c08fd31b088",
+        "image": "output/localization-v1/crops-v1/843c196bd3101c08fd31b088.png",
+        "image_sha256": "3b88b1f4d8ba9f2127e3b1962b003f939b654c0f60934da470a38f37e9158163",
+        "source_rect": [
+          193,
+          0,
+          432,
+          480
+        ],
+        "detection_ids": [],
+        "oracle_assisted": true
+      },
+      "detector_usable_candidates": 1,
+      "detector_status": "unique",
+      "oracle_status": "reviewed"
+    },
+    "state_label": {
+      "sample_id": "979332678203cc020cdb",
+      "entity_id": "dv-22a313084fd800ca:object-155",
+      "property": "door_open",
+      "value": false,
+      "observability": "visible",
+      "reviewer": "codex-assistant-single-rgb-review",
+      "revision": "rgb-v2-r1",
+      "provenance": "reviewed_rgb",
+      "rationale": "Door panel appears seated against the appliance; no visible opening."
+    },
+    "sheet": "outcome-01.jpg"
+  },
+  {
+    "title": "Test known open",
+    "source": {
+      "sample_id": "ea2dcc6c9bc681384e0da4f5",
+      "aliases": [
+        {
+          "id": "d8b07f0b431364d449be",
+          "kind": "state"
+        }
+      ],
+      "episode_id": "dv-af669d3e3a486780",
+      "entity_id": "dv-af669d3e3a486780:object-174",
+      "image_sha256": "ca0cd5d1467cbcdbff147590ecca3901da1cd4fdaee4d88c0fed07226760e625",
+      "video_sha256": "ba4187971be31f11df1f0ce257c5759037a0170342fcd5f1e0f0fd81dba6517d",
+      "frame_index": 58,
+      "pts_us": 5800000,
+      "split": "test",
+      "F": {
+        "image": "output/state-workbench/review-v2/d8b07f0b431364d449be.png",
+        "image_sha256": "ca0cd5d1467cbcdbff147590ecca3901da1cd4fdaee4d88c0fed07226760e625",
+        "evidence_id": "ea2dcc6c9bc681384e0da4f5"
+      },
+      "D": null,
+      "O": {
+        "evidence_id": "3087dbe75cc19d089d2964ed",
+        "image": "output/localization-v1/crops-v1/3087dbe75cc19d089d2964ed.png",
+        "image_sha256": "ea092470ad06c7299257f94ea3721d22f6dbab01a3cc8a35a8d2437959561735",
+        "source_rect": [
+          224,
+          176,
+          391,
+          271
+        ],
+        "detection_ids": [],
+        "oracle_assisted": true
+      },
+      "detector_usable_candidates": 0,
+      "detector_status": "missing",
+      "oracle_status": "reviewed"
+    },
+    "state_label": {
+      "sample_id": "d8b07f0b431364d449be",
+      "entity_id": "dv-af669d3e3a486780:object-174",
+      "property": "door_open",
+      "value": true,
+      "observability": "visible",
+      "reviewer": "codex-assistant-single-rgb-review",
+      "revision": "rgb-v2-r1",
+      "provenance": "reviewed_rgb",
+      "rationale": "Door projects away from appliance and/or interior opening is visible; ajar counts open."
+    },
+    "sheet": "outcome-02.jpg"
+  },
+  {
+    "title": "Test unknown",
+    "source": {
+      "sample_id": "a363454de88fb5a3eaa54131",
+      "aliases": [
+        {
+          "id": "6841f9b19a46a0b2fbcf",
+          "kind": "state"
+        }
+      ],
+      "episode_id": "dv-af669d3e3a486780",
+      "entity_id": "dv-af669d3e3a486780:object-174",
+      "image_sha256": "3311f024048ee8c0fc535e4380fc7a2f54ab0535ce8fdd39a9b8d63df83d657a",
+      "video_sha256": "ba4187971be31f11df1f0ce257c5759037a0170342fcd5f1e0f0fd81dba6517d",
+      "frame_index": 43,
+      "pts_us": 4300000,
+      "split": "test",
+      "F": {
+        "image": "output/state-workbench/review-v2/6841f9b19a46a0b2fbcf.png",
+        "image_sha256": "3311f024048ee8c0fc535e4380fc7a2f54ab0535ce8fdd39a9b8d63df83d657a",
+        "evidence_id": "a363454de88fb5a3eaa54131"
+      },
+      "D": null,
+      "O": {
+        "evidence_id": "e115d75b285ed81a87f0e58f",
+        "image": "output/localization-v1/crops-v1/e115d75b285ed81a87f0e58f.png",
+        "image_sha256": "91cc392d0bd4cc766fb7b719316173a9f18486b9859990d86e776759ace35f36",
+        "source_rect": [
+          263,
+          176,
+          383,
+          271
+        ],
+        "detection_ids": [],
+        "oracle_assisted": true
+      },
+      "detector_usable_candidates": 0,
+      "detector_status": "missing",
+      "oracle_status": "reviewed"
+    },
+    "state_label": {
+      "sample_id": "6841f9b19a46a0b2fbcf",
+      "entity_id": "dv-af669d3e3a486780:object-174",
+      "property": "door_open",
+      "value": null,
+      "observability": "ambiguous",
+      "reviewer": "codex-assistant-single-rgb-review",
+      "revision": "rgb-v2-r1",
+      "provenance": "reviewed_rgb",
+      "rationale": "Visible hand/edge and partial motion do not establish the door angle reliably."
+    },
+    "sheet": "outcome-03.jpg"
+  },
+  {
+    "title": "Oracle head error",
+    "source": {
+      "sample_id": "6a32a0db3b675000dddf892d",
+      "aliases": [
+        {
+          "id": "3b2d8850f23d8ee56164",
+          "kind": "state"
+        }
+      ],
+      "episode_id": "dv-af669d3e3a486780",
+      "entity_id": "dv-af669d3e3a486780:object-174",
+      "image_sha256": "0f6b52fddf16550634142a30cc933d34394d8db6dfcee3f022c02f2cfc7f91f2",
+      "video_sha256": "ba4187971be31f11df1f0ce257c5759037a0170342fcd5f1e0f0fd81dba6517d",
+      "frame_index": 72,
+      "pts_us": 7200000,
+      "split": "test",
+      "F": {
+        "image": "output/state-workbench/review-v2/3b2d8850f23d8ee56164.png",
+        "image_sha256": "0f6b52fddf16550634142a30cc933d34394d8db6dfcee3f022c02f2cfc7f91f2",
+        "evidence_id": "6a32a0db3b675000dddf892d"
+      },
+      "D": null,
+      "O": {
+        "evidence_id": "a83975f2d316268bd0ec5ae9",
+        "image": "output/localization-v1/crops-v1/a83975f2d316268bd0ec5ae9.png",
+        "image_sha256": "23483fbef51daa7436d2d627f57e853a8105344c6e3dfc7a0833849fee1e8dad",
+        "source_rect": [
+          246,
+          176,
+          387,
+          271
+        ],
+        "detection_ids": [],
+        "oracle_assisted": true
+      },
+      "detector_usable_candidates": 0,
+      "detector_status": "missing",
+      "oracle_status": "reviewed"
+    },
+    "state_label": {
+      "sample_id": "3b2d8850f23d8ee56164",
+      "entity_id": "dv-af669d3e3a486780:object-174",
+      "property": "door_open",
+      "value": true,
+      "observability": "visible",
+      "reviewer": "codex-assistant-single-rgb-review",
+      "revision": "rgb-v2-r1",
+      "provenance": "reviewed_rgb",
+      "rationale": "Door projects away from appliance and/or interior opening is visible; ajar counts open."
+    },
+    "sheet": "outcome-04.jpg"
+  }
+]
