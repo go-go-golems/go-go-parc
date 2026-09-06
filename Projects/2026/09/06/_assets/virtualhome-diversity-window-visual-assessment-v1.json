@@ -1,0 +1,1205 @@
+[
+  {
+    "episode_id": "win-0e79fdb12c0b4428",
+    "video_sha256": "9808c92151632a29c517379d62199585e2e3ae0e4a674f3a15f026bd180ee25d",
+    "parent_episode_id": "dv-7726ded72630455a",
+    "parent_video_sha256": "aa6bd524dce1067c56b8fb7f07de7ea057d6e82e2b2da79deff3d995a7d3f7da",
+    "scene": 0,
+    "family": "door",
+    "view": "left",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      32,
+      42,
+      51
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-door.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-3d522537dd3c30dd",
+    "video_sha256": "47340e79dad92a13dca9f413629aa596fad511b75c3bc83c6ea64eb7e075b329",
+    "parent_episode_id": "dv-008b5e55af631629",
+    "parent_video_sha256": "8904f52d4bb49201e035497573315211640e54a0b4c0161135f5a5382569484b",
+    "scene": 0,
+    "family": "door",
+    "view": "right",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      33,
+      43,
+      52
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-door.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-293e5af5bf065ba3",
+    "video_sha256": "19d2224f811a40dd65c88c8acbf5cf589aad90b1469f7117e4bb5550d27c1fda",
+    "parent_episode_id": "dv-03c8a2dbcd624cf8",
+    "parent_video_sha256": "c3e10bf591f4f229260f0606b9ab42c2d6c96fd6c5ee2adad89b5a6e2ac08349",
+    "scene": 0,
+    "family": "door",
+    "view": "left",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      16,
+      26,
+      35
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-door.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-6f593d6fb91f075d",
+    "video_sha256": "2ed70c07c704429d33cd83a2063a3335456d04d25cc5853e8035aaed3baf4f15",
+    "parent_episode_id": "dv-fff8ee5abe309115",
+    "parent_video_sha256": "dd43d48a0404c071622e3f44d378b646cc3e9a0cbd80718ef028d530fa9a08d0",
+    "scene": 0,
+    "family": "door",
+    "view": "right",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      16,
+      26,
+      35
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-door.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-cfdf7b1e4cf348c4",
+    "video_sha256": "20c734ddb3f3de73542634a4c1c14af4498b8a8f12171ba0dce78ac61670270e",
+    "parent_episode_id": "dv-633a68f3856a13b9",
+    "parent_video_sha256": "1412921ec137f82433053f4023485178c05307c6b7c968a4c19f1123145c104b",
+    "scene": 0,
+    "family": "pickup",
+    "view": "left",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      33,
+      43,
+      52
+    ],
+    "review_status": "weak_only_small_prop_or_hand_occluded",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Small prop; do not infer precise holding/release state from these samples."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-pickup.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-9c89056d0ecfcdcc",
+    "video_sha256": "b7ead9c007f4013d6fc28048ec44e2edf9fa75646d92d8604df8b318ce8751fd",
+    "parent_episode_id": "dv-b1efcf310ae19cba",
+    "parent_video_sha256": "e9be4a76c5755e35aa70a670f3fe0a5916a3be21c2151d171788baa68ad4c931",
+    "scene": 0,
+    "family": "pickup",
+    "view": "right",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      33,
+      43,
+      52
+    ],
+    "review_status": "weak_only_small_prop_or_hand_occluded",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Small prop; do not infer precise holding/release state from these samples."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-pickup.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-8d6f74f87dd2b568",
+    "video_sha256": "a4e6b6e4710403c2a3514dafa94697c00665c40e80d6f77dbdbf0e85da0b6894",
+    "parent_episode_id": "dv-aba99ff2507b387b",
+    "parent_video_sha256": "e26f3d4cd85b67d9a3a941310c7c27c8c32607596c9d118db0361cbb360d8bea",
+    "scene": 0,
+    "family": "pickup",
+    "view": "left",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      17,
+      27,
+      36
+    ],
+    "review_status": "weak_only_small_prop_or_hand_occluded",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Small prop; do not infer precise holding/release state from these samples.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-pickup.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-be85702ca39bfcb7",
+    "video_sha256": "f91da755dda724db9efd42217350af5e870a86ad3804490540ecd298852c315d",
+    "parent_episode_id": "dv-d80899a6d1c3e22d",
+    "parent_video_sha256": "416220c6593bdbda36f6eef4c2d13906e6034a172c1714f9bc7e8825a202bf18",
+    "scene": 0,
+    "family": "pickup",
+    "view": "right",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      17,
+      27,
+      36
+    ],
+    "review_status": "weak_only_small_prop_or_hand_occluded",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Small prop; do not infer precise holding/release state from these samples.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-pickup.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-244c49a7bdbd7fc8",
+    "video_sha256": "b5e2ac90cd0fe0dee899fe1ec1f33941fa8e1febf2b1de204f4305a35be6bc9d",
+    "parent_episode_id": "dv-b80308c130c7003b",
+    "parent_video_sha256": "2cf15dc7b558905d058860f88819297bcabfba0a2b67e566d91fe7c989199b19",
+    "scene": 0,
+    "family": "posture",
+    "view": "left",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      52,
+      62,
+      71
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-posture.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-0ee7918fadf5d452",
+    "video_sha256": "434085fd43c796d03f1afd6d6ba2a561d04227c8f34b8794deff819558284d42",
+    "parent_episode_id": "dv-f5d425826f4d5906",
+    "parent_video_sha256": "8b8f0a299fbdcd92d94e0268d917555e7df266b3aaf3a9c3ba1e832e3f886b82",
+    "scene": 0,
+    "family": "posture",
+    "view": "right",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      71,
+      81,
+      90
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-posture.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-04c56ccf5f213743",
+    "video_sha256": "0a5bd99aaf5fef7c66882a2584a31698e2709dedd52987cc6ed6fda1538b757e",
+    "parent_episode_id": "dv-eb0235d532ad4d48",
+    "parent_video_sha256": "3655d3789a6c054914afacb55513249fa251572ef731cacbb5ab2b38da55772c",
+    "scene": 0,
+    "family": "posture",
+    "view": "left",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      20,
+      30,
+      39
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-posture.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-4fd957c997fe19f6",
+    "video_sha256": "b84e579174fbd8ff8eb88c583995881d231d1aea1dc289ab7eb6d58a972f6de9",
+    "parent_episode_id": "dv-e5c2b1dcdfa21734",
+    "parent_video_sha256": "3b2c5d2621db4ec9a087f61f0546ad739cd537e6487499d99675159b82eda4c2",
+    "scene": 0,
+    "family": "posture",
+    "view": "right",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      7,
+      17,
+      26
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-posture.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-c62205765324719e",
+    "video_sha256": "6d7a8a5f9d3cbc006bff4e7eb80f2c9aa16d91147aecda9b9fbc4a8d88652bde",
+    "parent_episode_id": "dv-358dc094893009b1",
+    "parent_video_sha256": "f08ce8f42cc41774068f247c2f3a36782aa440f1371913c3beca9fbf81bcde1a",
+    "scene": 0,
+    "family": "switch",
+    "view": "left",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      44,
+      54,
+      63
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Reaching/bending is visible; this is not a calibrated ON/OFF visual-state label."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-switch.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-7ad0ead80b760cb6",
+    "video_sha256": "2e1bae53dcb33e51e2412880ba684de71a5f8274c13143a69b7a440d367532b5",
+    "parent_episode_id": "dv-9532099dbadcd75d",
+    "parent_video_sha256": "67e14afab0d0faf90a8542670d363603d378c761fb746262cdf0ef1dc4542fdd",
+    "scene": 0,
+    "family": "switch",
+    "view": "right",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      42,
+      52,
+      61
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Reaching/bending is visible; this is not a calibrated ON/OFF visual-state label.",
+      "Device state or contact point is substantially occluded."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-switch.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-7e87d9051b484876",
+    "video_sha256": "f59a1c4342cb9539d76427ea48ab901ae179ea431e919eacfec56dd4a642457e",
+    "parent_episode_id": "dv-c7e56b90919ec5e9",
+    "parent_video_sha256": "93811a9deb53067863a3830d5bc5e3adbb1b0865ef2ac10dfa268cafd8ec33b6",
+    "scene": 0,
+    "family": "switch",
+    "view": "left",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      15,
+      25,
+      34
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Reaching/bending is visible; this is not a calibrated ON/OFF visual-state label.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-switch.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-95d07469dc9c85c4",
+    "video_sha256": "211b02cf04edc9e167c24936ec93ca776e6496f2d51a91cdcfc8c831ebaef993",
+    "parent_episode_id": "dv-6fea637dec78c527",
+    "parent_video_sha256": "7b229b47e9611fa4dbfe7effe0cc223ccdbba5481950b886ec0bc20656da09ff",
+    "scene": 0,
+    "family": "switch",
+    "view": "right",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      25,
+      35,
+      44
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Reaching/bending is visible; this is not a calibrated ON/OFF visual-state label.",
+      "Device state or contact point is substantially occluded.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-0-switch.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-3f3c5cbada8ead3d",
+    "video_sha256": "5a9b434fc35de6f4186c522c3698e383f1edf0ec6ba636533c2e0335f90dbf1a",
+    "parent_episode_id": "dv-ddf28e0a6b4c30db",
+    "parent_video_sha256": "226fad642f895adfbed0ad1684190700f6fdfc4608230ef7716f4e0d314d2a04",
+    "scene": 1,
+    "family": "door",
+    "view": "left",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      47,
+      57,
+      66
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-door.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-70721b08b68ffa35",
+    "video_sha256": "78a674adf31255e16a7ccbed131ea52c17f9bc7ad3da9ff4e5b596ebcf699b06",
+    "parent_episode_id": "dv-b78c9de6650abd04",
+    "parent_video_sha256": "927d8e1d7c6fd2652d6340c606ec62558cc7673978eee38b1a47cbf9cc19c16f",
+    "scene": 1,
+    "family": "door",
+    "view": "right",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      49,
+      59,
+      68
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-door.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-9c824479daf2b1a7",
+    "video_sha256": "de37999f7cb788de9fdc3c5f0101333a98c82b787b0c81a9ec950380c23d64ba",
+    "parent_episode_id": "dv-bc11642e2c451020",
+    "parent_video_sha256": "48963af88b16d2560a262e1f73e7c8a58ac868807d187ffc5db8f91a7b4786e8",
+    "scene": 1,
+    "family": "door",
+    "view": "left",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      16,
+      26,
+      35
+    ],
+    "review_status": "exclude_visual_benchmark_rendering_artifact",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Brief near-camera actor clipping/floating-hand appearance in selected control window.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-door.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-e051fe34e73f3176",
+    "video_sha256": "f49b0b400a489543331502041b3ceb57a2824b6335724f3c563497e4989e4079",
+    "parent_episode_id": "dv-22a313084fd800ca",
+    "parent_video_sha256": "d09c5eed426d487f22a2cddaac499d91574449fcb2099674b5e20953f14a90d0",
+    "scene": 1,
+    "family": "door",
+    "view": "right",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      16,
+      26,
+      35
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-door.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-9ac12bfdef1ec673",
+    "video_sha256": "7991b78bc9c0ef52cff020ca2d9407541b696fe5ce6c1e76ebe3f966658350df",
+    "parent_episode_id": "dv-122c74a567057f0f",
+    "parent_video_sha256": "c5a9c97d169248b7bb4eb104ca6894b11124454ab750988129e1478856167aa1",
+    "scene": 1,
+    "family": "pickup",
+    "view": "left",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      32,
+      42,
+      51
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Small prop; do not infer precise holding/release state from these samples."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-pickup.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-a26974fd502ac572",
+    "video_sha256": "371dc6e319dd55323ecdb4a597049db3dd1a28f7ade9cfe14bc6cafbbbdb560a",
+    "parent_episode_id": "dv-5379eae9425594a5",
+    "parent_video_sha256": "018b15364b51396f5724bb3bd6f62de68f273143c48ac02bffa419993985019d",
+    "scene": 1,
+    "family": "pickup",
+    "view": "right",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      32,
+      42,
+      51
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Small prop; do not infer precise holding/release state from these samples.",
+      "Table or actor partially occludes the hand."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-pickup.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-7f02c7ecc387f09c",
+    "video_sha256": "3820746719b2e1b9eeb0aeed043b533e5eb701a4b3779790869296d7fc9090f2",
+    "parent_episode_id": "dv-45da8586a3af922f",
+    "parent_video_sha256": "a7cf8a1b3c679a8c376f9ff711aedfa19ce5dd67a98a68783efb88313386ead7",
+    "scene": 1,
+    "family": "pickup",
+    "view": "left",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      16,
+      26,
+      35
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Small prop; do not infer precise holding/release state from these samples.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-pickup.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-0513b9de245299b4",
+    "video_sha256": "2e2696aed647162c9ce0a00cd4a0123cb3431bef26256e1cc2070799326196f5",
+    "parent_episode_id": "dv-db61cca74410ddf2",
+    "parent_video_sha256": "fb6e0ce31a62bc8eee514a9bc10dbf3ae19ec8635b2860873f49cce30802424f",
+    "scene": 1,
+    "family": "pickup",
+    "view": "right",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      16,
+      26,
+      35
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Small prop; do not infer precise holding/release state from these samples.",
+      "Table or actor partially occludes the hand.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-pickup.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-0b8cfe0c27dd3dce",
+    "video_sha256": "5fe2fc0bfb7a78835342795b0aa45af962ac1f437618801edf3b9ee7dcd313a7",
+    "parent_episode_id": "dv-b860109d640354aa",
+    "parent_video_sha256": "48675861d2a6ed287e1f230991c2c1cc00f7d34bf957c7f16f351b288cd54f13",
+    "scene": 1,
+    "family": "posture",
+    "view": "left",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      110,
+      120,
+      129
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-posture.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-49acc384c78e8da1",
+    "video_sha256": "e86577bf114a5629266d1886ab71b5b7e37ec022ebaba06e7c816aa8a8bd7dbf",
+    "parent_episode_id": "dv-d6ae3400348a5fe9",
+    "parent_video_sha256": "5e164d9d412687ec2ee7c1c58ec2ad7685e681edb49c3a47e68cb35e99b1d33f",
+    "scene": 1,
+    "family": "posture",
+    "view": "right",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      110,
+      120,
+      129
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-posture.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-c0b43d068bfc27a4",
+    "video_sha256": "8e9389ab0935b6ddffddd4dd65c2947df31da6468eca2311d0953c79570d8c6a",
+    "parent_episode_id": "dv-95aec2ab68fe8b3f",
+    "parent_video_sha256": "721c99f5da9307c98f1a7eabbfe1459b4faedca37d6f8718db8f11d3c0939494",
+    "scene": 1,
+    "family": "posture",
+    "view": "left",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      32,
+      42,
+      51
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-posture.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-e92ceec774d1a571",
+    "video_sha256": "e6300b6f9662d5f6772adb1295004fea846694b43f99bf9ca4ec653ef2ef52a1",
+    "parent_episode_id": "dv-9af260e7361427f8",
+    "parent_video_sha256": "f59491ba5c108aff7d89b7942f2385708ccc290de1b9451c12e745175b8989ae",
+    "scene": 1,
+    "family": "posture",
+    "view": "right",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      32,
+      42,
+      51
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-posture.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-f0b201b870979998",
+    "video_sha256": "e469e103705eeeac34c8dd4f3c08ffa54a2fce2795fd59a4db990b7f04e6e80a",
+    "parent_episode_id": "dv-13cb7ede57cfce80",
+    "parent_video_sha256": "96777d7c3b629ecc90489e8460ae492be9423511d58eea3b5c66e5274d13ef7e",
+    "scene": 1,
+    "family": "switch",
+    "view": "left",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      31,
+      41,
+      50
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Reaching/bending is visible; this is not a calibrated ON/OFF visual-state label."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-switch.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-e91c9d1eb4cb5637",
+    "video_sha256": "7cbbc4cc94097878e9c2d6d60ced6a214d2d41b25fdef8436afadeb949a86ad0",
+    "parent_episode_id": "dv-2ce2e6667c4b4d0a",
+    "parent_video_sha256": "e41c927e64f9e5a2f52c0ffc2e0745788e685b464e96e7f1df48ea0bd59f7d75",
+    "scene": 1,
+    "family": "switch",
+    "view": "right",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      31,
+      41,
+      50
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Reaching/bending is visible; this is not a calibrated ON/OFF visual-state label."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-switch.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-2b9bc08a928dc03b",
+    "video_sha256": "8b18870c277543dc274e7763fad3f3e32167a4d25c8b7a4a2c8b9359f582f1e9",
+    "parent_episode_id": "dv-e550b7433f56e095",
+    "parent_video_sha256": "9cbac6b08a478d89554303ae3d4289e7b9c474ba80d9030ffe87d9b9ba26a7de",
+    "scene": 1,
+    "family": "switch",
+    "view": "left",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      13,
+      23,
+      32
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Reaching/bending is visible; this is not a calibrated ON/OFF visual-state label.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-switch.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-20eb52cc9cc6b74c",
+    "video_sha256": "97fe025d170bfd534b6ab40bf98f196ea0b71da75d21ff4553567e2c208ac5b9",
+    "parent_episode_id": "dv-b3ef7418c7ea12ca",
+    "parent_video_sha256": "ba8637053b0364554b048558dc6a3375536a488e72a455f532269235010b2cb3",
+    "scene": 1,
+    "family": "switch",
+    "view": "right",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      13,
+      23,
+      32
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Reaching/bending is visible; this is not a calibrated ON/OFF visual-state label.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-1-switch.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-3f519a61a28194b5",
+    "video_sha256": "e17b2c733d77ef561a043c160b58b7bfe2b66e6aa63bf4d70fe70417f6bebd58",
+    "parent_episode_id": "dv-e1975790e6ee831e",
+    "parent_video_sha256": "1a70bad31d795885847baf94423c108b5957fad2567c7dd5869aa80d9dcea4ca",
+    "scene": 2,
+    "family": "door",
+    "view": "left",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      36,
+      46,
+      55
+    ],
+    "review_status": "weak_only_door_occluded",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Parent CLOSE action has no visually confirmed closure; exclude CLOSE from visual closure evaluation."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-door.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-5d058195ccc87de5",
+    "video_sha256": "4a9546d58706585ddb429ad0fdd6940f8112d6e7d6947118e7cab36afbca96d7",
+    "parent_episode_id": "dv-af669d3e3a486780",
+    "parent_video_sha256": "ba4187971be31f11df1f0ce257c5759037a0170342fcd5f1e0f0fd81dba6517d",
+    "scene": 2,
+    "family": "door",
+    "view": "right",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      36,
+      46,
+      55
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Parent CLOSE action has no visually confirmed closure; exclude CLOSE from visual closure evaluation."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-door.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-38186725a9bc962c",
+    "video_sha256": "a25d580b94c8e95404444bbb96aa0e18b51110b9d78e1b65fc0483a36503edff",
+    "parent_episode_id": "dv-e2244cb1a1000aeb",
+    "parent_video_sha256": "1fbd5e71f6853da6f1db0ef4bf6e930c65b0dd69627571ada462aaa59747d625",
+    "scene": 2,
+    "family": "door",
+    "view": "left",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      19,
+      29,
+      38
+    ],
+    "review_status": "weak_only_door_occluded",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Parent CLOSE action has no visually confirmed closure; exclude CLOSE from visual closure evaluation.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-door.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-34544e8fd6b7c245",
+    "video_sha256": "87aa7794804afdda9810513c12ff2b5b17c0310576f54949ecbd320f34d5dcbd",
+    "parent_episode_id": "dv-d6a1fa73f031c686",
+    "parent_video_sha256": "6767224ac7249441acf0814e61fbcd31263e3a89a09c4dbc418ac1b6fa885c0a",
+    "scene": 2,
+    "family": "door",
+    "view": "right",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      19,
+      29,
+      38
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Parent CLOSE action has no visually confirmed closure; exclude CLOSE from visual closure evaluation.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-door.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-08f9488b8aa8443e",
+    "video_sha256": "ad2f071e0da0521974b6c9fd25c3a143f623b7332945584b5cdc2aa06ba6ee3d",
+    "parent_episode_id": "dv-8e6a48b09752b418",
+    "parent_video_sha256": "f42fad1913a1aed1199133bf1b335a9b2bfaa5d6ab00fea0fc416774b9cb43c7",
+    "scene": 2,
+    "family": "pickup",
+    "view": "left",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      46,
+      56,
+      65
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Small prop; do not infer precise holding/release state from these samples."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-pickup.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-ebbe5332c1738374",
+    "video_sha256": "65559b34f3d73442372c873f213bc5813b5e0c4e2e3834ffdd2dd9e07b2daa77",
+    "parent_episode_id": "dv-fecbdda0db4c76e8",
+    "parent_video_sha256": "474c10adfcce78bdce582d7aa3a71f7b7878f5f0e5472a92e076f71ad7da6525",
+    "scene": 2,
+    "family": "pickup",
+    "view": "right",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      46,
+      56,
+      65
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Small prop; do not infer precise holding/release state from these samples.",
+      "Table or actor partially occludes the hand."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-pickup.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-5744a8d068058b2e",
+    "video_sha256": "a78c4718510e73ee4f01e5c2e507724effdf55aa49961be06f1cdc9036d84566",
+    "parent_episode_id": "dv-f7cede1845e1a269",
+    "parent_video_sha256": "f8d943faff97b5b6290fe49d203ae566397a354b0be871f44f3fa47a426da51a",
+    "scene": 2,
+    "family": "pickup",
+    "view": "left",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      29,
+      39,
+      48
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Small prop; do not infer precise holding/release state from these samples.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-pickup.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-c5fcf68536723904",
+    "video_sha256": "7e9c097f34593374f9b7cb774b7483f4502e967d4d6564fb4607f13eb4272062",
+    "parent_episode_id": "dv-376c125d220757af",
+    "parent_video_sha256": "aeb709f8032ad5cdd00706fcd819256641b3bc8f35d2c608bce4377680a3e025",
+    "scene": 2,
+    "family": "pickup",
+    "view": "right",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      29,
+      39,
+      48
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Small prop; do not infer precise holding/release state from these samples.",
+      "Table or actor partially occludes the hand.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-pickup.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-207e53aacaf6ec10",
+    "video_sha256": "5cbc7949e72ce35289474663be02a5f608bbb3ef8b38ccabb7d7b5c4f09d41b8",
+    "parent_episode_id": "dv-673fa0ed90d3c06a",
+    "parent_video_sha256": "9b8c137fb3b8fa01e80d6bb7d6702a46b4450cb7f7c6a6701282a584ca7c99c3",
+    "scene": 2,
+    "family": "posture",
+    "view": "left",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      112,
+      122,
+      131
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-posture.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-48b39c01ee28708e",
+    "video_sha256": "c8546dee2c0a55d86818a2b9c0797d049d98d8e182e64c780fe7a925aba1615a",
+    "parent_episode_id": "dv-8a5eba2e07a4edba",
+    "parent_video_sha256": "274b5301b6d4d754c66f1d367e5dabbd380934af1455459367cd9a7bc761b4a1",
+    "scene": 2,
+    "family": "posture",
+    "view": "right",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      116,
+      126,
+      135
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-posture.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-42531390545db83e",
+    "video_sha256": "9bb5c9469d40d58b0f96b5071a735664848aa94dc857e59de311000ec74e4622",
+    "parent_episode_id": "dv-6f33962e0342c613",
+    "parent_video_sha256": "109994e6ccc20428b4324364d73828e58c21e007f4a0af41744e211423c86aeb",
+    "scene": 2,
+    "family": "posture",
+    "view": "left",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      87,
+      97,
+      106
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-posture.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-acdfec40e6ebd4a4",
+    "video_sha256": "20e392510d107e6aa3a9aea9e3d0e18d9bc6a3d3097a0129044455ba783319ca",
+    "parent_episode_id": "dv-ff4785cf119ae5ba",
+    "parent_video_sha256": "450f95a597d428b0696895e0e902f7b818b324ef51c15f79b2c2efc1e06e62f7",
+    "scene": 2,
+    "family": "posture",
+    "view": "right",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      87,
+      97,
+      106
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-posture.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-a0aba9adc8241b79",
+    "video_sha256": "ebf82fd704dad108f332f4c789aab40c0782bfd78173a7f99f8a24444a362c38",
+    "parent_episode_id": "dv-077a07eb73fdb91b",
+    "parent_video_sha256": "2019ec628d27d1e1198d14e0f0947aed884471ced35c930573b790a7dbdd5452",
+    "scene": 2,
+    "family": "switch",
+    "view": "left",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      129,
+      139,
+      148
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Reaching/bending is visible; this is not a calibrated ON/OFF visual-state label.",
+      "Device state or contact point is substantially occluded."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-switch.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-1380d64a95cd8aeb",
+    "video_sha256": "abddf896b0dbae2d9476a9edf965dddb7e6e22de76018f0fa172dd19327d04ae",
+    "parent_episode_id": "dv-e8d0b4406873fe07",
+    "parent_video_sha256": "c326c1c2b1b3b2fd7cbca0cafba40b1c5417822e14025037e98bd7d35033618d",
+    "scene": 2,
+    "family": "switch",
+    "view": "right",
+    "condition": "interaction",
+    "sampled_source_frames": [
+      134,
+      144,
+      153
+    ],
+    "review_status": "sampled_coarse_interaction_visible",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Reaching/bending is visible; this is not a calibrated ON/OFF visual-state label."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-switch.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-2c6fd8fa85abe1d1",
+    "video_sha256": "574a41247f946ae9773064fa61300c760a39ea6b16981fdce8faccd02486bacc",
+    "parent_episode_id": "dv-3c3db1d86ae390f6",
+    "parent_video_sha256": "b170e8ef1fbba597503d5ae3c2fa892a21356b13e47a50fb895c10500741da3f",
+    "scene": 2,
+    "family": "switch",
+    "view": "left",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      102,
+      112,
+      121
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Reaching/bending is visible; this is not a calibrated ON/OFF visual-state label.",
+      "Device state or contact point is substantially occluded.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-switch.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "win-d1b47e4f554dad38",
+    "video_sha256": "7842763248865fb0675650ba764331409847cd13f3f57f04a5392da88e5231fe",
+    "parent_episode_id": "dv-9c5102996f0a4ad9",
+    "parent_video_sha256": "2f4556b12fa8ad568bd5e2deb44f0116e131cb298d4541e72640bb62a10d1d11",
+    "scene": 2,
+    "family": "switch",
+    "view": "right",
+    "condition": "approach_only",
+    "sampled_source_frames": [
+      101,
+      111,
+      120
+    ],
+    "review_status": "sampled_approach_no_target_interaction",
+    "reviewer": "Codex assistant, single reviewer",
+    "review_revision": "window-visual-review-2026-09-06-v1",
+    "notes": [
+      "Reaching/bending is visible; this is not a calibrated ON/OFF visual-state label.",
+      "Absence of interaction is supported by the program and sampled frames; not exhaustive independent visual adjudication."
+    ],
+    "precise_boundary_supervision_allowed": false,
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_sheet": "screenshots/windows-scene-2-switch.jpg",
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  }
+]

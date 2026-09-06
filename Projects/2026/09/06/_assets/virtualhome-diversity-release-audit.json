@@ -1,0 +1,74 @@
+{
+  "all_window_durations_identical": true,
+  "combined_release_warning": "Do not combine v1 evaluation with v2 training as an unseen-apartment test: v1 is entirely scene 0.",
+  "config_hashes": [
+    "bcaf67d7cccf3e8e810890ad33becc207d7d067e8e3346fe540ff80908d83196"
+  ],
+  "duration_only_baseline": {
+    "fitted_on": "train only; maximize accuracy; lowest threshold breaks ties",
+    "predict_interaction_if": "duration >= threshold",
+    "results": {
+      "development": {
+        "accuracy": 1.0,
+        "correct": 16,
+        "total": 16
+      },
+      "test": {
+        "accuracy": 0.75,
+        "correct": 12,
+        "total": 16
+      },
+      "train": {
+        "accuracy": 1.0,
+        "correct": 16,
+        "total": 16
+      }
+    },
+    "threshold_seconds": 5.7
+  },
+  "equal_duration_majority_baseline_accuracy": 0.5,
+  "failed_attempts": [
+    {
+      "attempt": "episodes/dv-673fa0ed90d3c06a/attempt-0001",
+      "error": "RuntimeError: Actor placed in wrong room"
+    }
+  ],
+  "installation_variants": 1,
+  "model_input_keys": [
+    "episode_id",
+    "split",
+    "split_group",
+    "video",
+    "video_sha256"
+  ],
+  "parent_window_split_violations": 0,
+  "producer_runner_sha256_counts": {
+    "5a571c3c0049121f40cf40242e1df1ee115948f4859f5feb05ecc35fb7385866": 8,
+    "e35ccbc32bb96209a8c0325a2354ae47fec64879f691224afc4cbb9d7d47ec9d": 40
+  },
+  "release_files_sha256": {
+    "audit.json": "c429e4bab1e6b086c0b29f5a25416b8cf3783cb5b04f662bfe4d850cf48cad2a",
+    "calibration-assessment-v1.json": "787132853529c0eb87bb90d0d8c5513648c0a1dccbd4a84fc434ae4fcfd7264d",
+    "config.json": "f710189e0f16c083105e29bd71f20cc113bd1ed1260d18a00e9c2f1074a86f2d",
+    "inputs.jsonl": "343eb9f41fddd59ce8b6bde1b3dc518c62c7b496a4e6fa95cac497043f9069a9",
+    "labels.jsonl": "ec96e16ecae0fc949aad7d245ddb6b73811e672028e37737d5584bb412487b60",
+    "windows-v1/inputs.jsonl": "a65aa41228892f26e678132283fb794215a4bd49f87f852873f7d4df13081ac7",
+    "windows-v1/labels.jsonl": "bd8eafe9d30613abaad7cb156440ff94f3d72d2c59619f04c4b7fa6d0d14eae8",
+    "windows-v1/spec.json": "21bc26807fd4f5c33a03b38ef4bc7b2a504297c1605eee8f82dffedca6371124",
+    "windows-v1/visual-assessment-v1.json": "dcae2b7e962acf9ce536e49f0bc136a81a085b6c61d245b1c6a9d2a45a62304a"
+  },
+  "source_duration_s": 368.2,
+  "source_episodes": 48,
+  "source_frames": 3682,
+  "split_counts": {
+    "development": 16,
+    "test": 16,
+    "train": 16
+  },
+  "v1_inputs_unchanged": true,
+  "v1_videos_unchanged": 24,
+  "window_cross_split_exact_duplicates": 0,
+  "window_duration_s": 2.0,
+  "window_total_duration_s": 96.0,
+  "windows": 48
+}

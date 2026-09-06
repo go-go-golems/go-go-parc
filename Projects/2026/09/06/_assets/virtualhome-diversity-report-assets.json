@@ -1,0 +1,56 @@
+{
+  "source_repo": "/Users/manuel/code/wesen/2026-09-06--vision",
+  "source_evidence_revision": "dc17758",
+  "assets": [
+    {
+      "file": "virtualhome-diversity-release-test-apartment-browser.png",
+      "source_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various/screenshots/release-test-apartment-browser.png",
+      "sha256": "15bb89fb87e24ec0fb2d1ac843b65c7736064de5ad5eae9902d32f291c492104"
+    },
+    {
+      "file": "virtualhome-diversity-probe-gallery-browser.png",
+      "source_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various/screenshots/probe-gallery-browser.png",
+      "sha256": "22d58ad734eb64400ce51cea2ad1eeb76df5d3f045b0aa2d1bd0f0d1e514aa87"
+    },
+    {
+      "file": "virtualhome-diversity-windows-scene-0-switch.jpg",
+      "source_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various/screenshots/windows-scene-0-switch.jpg",
+      "sha256": "cbd72ee3280683f8997ed08597221874bd78975bb2ac299f972e79a5b79335f9"
+    },
+    {
+      "file": "virtualhome-diversity-windows-scene-2-pickup.jpg",
+      "source_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various/screenshots/windows-scene-2-pickup.jpg",
+      "sha256": "98e47429ab7390c160402ebe5cf2a9183d3cf4ff6eb71ae44d34cf9f2c75773e"
+    },
+    {
+      "file": "virtualhome-diversity-windows-scene-2-posture.jpg",
+      "source_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various/screenshots/windows-scene-2-posture.jpg",
+      "sha256": "60107c353512dfe7a6dcb8daa89c500d25bf2d0ec0a5eaced4e7c686468ff508"
+    },
+    {
+      "file": "virtualhome-diversity-calibration-native-0-left.png",
+      "source_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various/screenshots/calibration-native-0-left.png",
+      "sha256": "985684749c0866ed3af6fa15ef033cc561c8856bf9b13234a4985d8e0d0093fc"
+    },
+    {
+      "file": "virtualhome-diversity-release-calibration-browser.png",
+      "source_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various/screenshots/release-calibration-browser.png",
+      "sha256": "3b7b35a326fd967bc99dbb0836d623d0ee08524a89b859931fffb4ddeb95fe2c"
+    },
+    {
+      "file": "virtualhome-diversity-release-audit.json",
+      "source_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various/release-audit.json",
+      "sha256": "391f6dc637e8165b139283cc0affb1b78e97ec124ed5f7f106391f579b4ea998"
+    },
+    {
+      "file": "virtualhome-diversity-calibration-assessment-v1.json",
+      "source_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various/calibration-assessment-v1.json",
+      "sha256": "787132853529c0eb87bb90d0d8c5513648c0a1dccbd4a84fc434ae4fcfd7264d"
+    },
+    {
+      "file": "virtualhome-diversity-window-visual-assessment-v1.json",
+      "source_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various/window-visual-assessment-v1.json",
+      "sha256": "dcae2b7e962acf9ce536e49f0bc136a81a085b6c61d245b1c6a9d2a45a62304a"
+    }
+  ]
+}

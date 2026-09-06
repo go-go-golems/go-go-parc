@@ -1,0 +1,290 @@
+[
+  {
+    "episode_id": "dv-008b5e55af631629",
+    "video_sha256": "8904f52d4bb49201e035497573315211640e54a0b4c0161135f5a5382569484b",
+    "scene": 0,
+    "view": "right",
+    "reviewer": "Codex assistant; single reviewer; no independent human adjudication",
+    "review_revision": "rgb-review-2026-09-06-v1",
+    "scope": "these exact six recordings, pinned simulator build and fixed cameras only",
+    "native_evidence": "screenshots/calibration-native-0-right.png",
+    "action_strip": "screenshots/calibration-scene-0-right.jpg",
+    "events": [
+      {
+        "action": "OPEN",
+        "raw_action_start": 35,
+        "raw_action_end": 51,
+        "reviewed_frame_bracket": [
+          38,
+          44
+        ],
+        "reviewed_seconds_bracket": [
+          3.8,
+          4.4
+        ],
+        "graph_transition_frame": null,
+        "graph_offset_estimable": false,
+        "coarse_visual_transition_observed": true,
+        "precise_boundary_supervision_allowed": false,
+        "note": "Conservative sampled RGB state-change bracket; full action strip and native endpoint images inspected."
+      },
+      {
+        "action": "CLOSE",
+        "raw_action_start": 53,
+        "raw_action_end": 69,
+        "reviewed_frame_bracket": [
+          62,
+          68
+        ],
+        "reviewed_seconds_bracket": [
+          6.2,
+          6.8
+        ],
+        "graph_transition_frame": null,
+        "graph_offset_estimable": false,
+        "coarse_visual_transition_observed": true,
+        "precise_boundary_supervision_allowed": false,
+        "note": "Conservative sampled RGB state-change bracket; full action strip and native endpoint images inspected."
+      }
+    ],
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "dv-7726ded72630455a",
+    "video_sha256": "aa6bd524dce1067c56b8fb7f07de7ea057d6e82e2b2da79deff3d995a7d3f7da",
+    "scene": 0,
+    "view": "left",
+    "reviewer": "Codex assistant; single reviewer; no independent human adjudication",
+    "review_revision": "rgb-review-2026-09-06-v1",
+    "scope": "these exact six recordings, pinned simulator build and fixed cameras only",
+    "native_evidence": "screenshots/calibration-native-0-left.png",
+    "action_strip": "screenshots/calibration-scene-0-left.jpg",
+    "events": [
+      {
+        "action": "OPEN",
+        "raw_action_start": 34,
+        "raw_action_end": 50,
+        "reviewed_frame_bracket": [
+          38,
+          44
+        ],
+        "reviewed_seconds_bracket": [
+          3.8,
+          4.4
+        ],
+        "graph_transition_frame": null,
+        "graph_offset_estimable": false,
+        "coarse_visual_transition_observed": true,
+        "precise_boundary_supervision_allowed": false,
+        "note": "Conservative sampled RGB state-change bracket; full action strip and native endpoint images inspected."
+      },
+      {
+        "action": "CLOSE",
+        "raw_action_start": 52,
+        "raw_action_end": 68,
+        "reviewed_frame_bracket": [
+          60,
+          67
+        ],
+        "reviewed_seconds_bracket": [
+          6.0,
+          6.7
+        ],
+        "graph_transition_frame": null,
+        "graph_offset_estimable": false,
+        "coarse_visual_transition_observed": true,
+        "precise_boundary_supervision_allowed": false,
+        "note": "Conservative sampled RGB state-change bracket; full action strip and native endpoint images inspected."
+      }
+    ],
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "dv-af669d3e3a486780",
+    "video_sha256": "ba4187971be31f11df1f0ce257c5759037a0170342fcd5f1e0f0fd81dba6517d",
+    "scene": 2,
+    "view": "right",
+    "reviewer": "Codex assistant; single reviewer; no independent human adjudication",
+    "review_revision": "rgb-review-2026-09-06-v1",
+    "scope": "these exact six recordings, pinned simulator build and fixed cameras only",
+    "native_evidence": "screenshots/calibration-native-2-right.png",
+    "action_strip": "screenshots/calibration-scene-2-right.jpg",
+    "events": [
+      {
+        "action": "OPEN",
+        "raw_action_start": 38,
+        "raw_action_end": 54,
+        "reviewed_frame_bracket": [
+          40,
+          48
+        ],
+        "reviewed_seconds_bracket": [
+          4.0,
+          4.8
+        ],
+        "graph_transition_frame": null,
+        "graph_offset_estimable": false,
+        "coarse_visual_transition_observed": true,
+        "precise_boundary_supervision_allowed": false,
+        "note": "Conservative sampled RGB state-change bracket; full action strip and native endpoint images inspected."
+      },
+      {
+        "action": "CLOSE",
+        "raw_action_start": 56,
+        "raw_action_end": 72,
+        "reviewed_frame_bracket": null,
+        "reviewed_seconds_bracket": null,
+        "graph_transition_frame": null,
+        "graph_offset_estimable": false,
+        "coarse_visual_transition_observed": false,
+        "precise_boundary_supervision_allowed": false,
+        "note": "No visible return to closed; microwave door remains open after exported CLOSE. Exclude from visually verified closing labels."
+      }
+    ],
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "dv-b78c9de6650abd04",
+    "video_sha256": "927d8e1d7c6fd2652d6340c606ec62558cc7673978eee38b1a47cbf9cc19c16f",
+    "scene": 1,
+    "view": "right",
+    "reviewer": "Codex assistant; single reviewer; no independent human adjudication",
+    "review_revision": "rgb-review-2026-09-06-v1",
+    "scope": "these exact six recordings, pinned simulator build and fixed cameras only",
+    "native_evidence": "screenshots/calibration-native-1-right.png",
+    "action_strip": "screenshots/calibration-scene-1-right.jpg",
+    "events": [
+      {
+        "action": "OPEN",
+        "raw_action_start": 51,
+        "raw_action_end": 67,
+        "reviewed_frame_bracket": [
+          55,
+          62
+        ],
+        "reviewed_seconds_bracket": [
+          5.5,
+          6.2
+        ],
+        "graph_transition_frame": null,
+        "graph_offset_estimable": false,
+        "coarse_visual_transition_observed": true,
+        "precise_boundary_supervision_allowed": false,
+        "note": "Conservative sampled RGB state-change bracket; full action strip and native endpoint images inspected."
+      },
+      {
+        "action": "CLOSE",
+        "raw_action_start": 69,
+        "raw_action_end": 85,
+        "reviewed_frame_bracket": [
+          76,
+          84
+        ],
+        "reviewed_seconds_bracket": [
+          7.6,
+          8.4
+        ],
+        "graph_transition_frame": null,
+        "graph_offset_estimable": false,
+        "coarse_visual_transition_observed": true,
+        "precise_boundary_supervision_allowed": false,
+        "note": "Conservative sampled RGB state-change bracket; full action strip and native endpoint images inspected."
+      }
+    ],
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "dv-ddf28e0a6b4c30db",
+    "video_sha256": "226fad642f895adfbed0ad1684190700f6fdfc4608230ef7716f4e0d314d2a04",
+    "scene": 1,
+    "view": "left",
+    "reviewer": "Codex assistant; single reviewer; no independent human adjudication",
+    "review_revision": "rgb-review-2026-09-06-v1",
+    "scope": "these exact six recordings, pinned simulator build and fixed cameras only",
+    "native_evidence": "screenshots/calibration-native-1-left.png",
+    "action_strip": "screenshots/calibration-scene-1-left.jpg",
+    "events": [
+      {
+        "action": "OPEN",
+        "raw_action_start": 49,
+        "raw_action_end": 65,
+        "reviewed_frame_bracket": [
+          52,
+          56
+        ],
+        "reviewed_seconds_bracket": [
+          5.2,
+          5.6
+        ],
+        "graph_transition_frame": null,
+        "graph_offset_estimable": false,
+        "coarse_visual_transition_observed": true,
+        "precise_boundary_supervision_allowed": false,
+        "note": "Conservative sampled RGB state-change bracket; full action strip and native endpoint images inspected."
+      },
+      {
+        "action": "CLOSE",
+        "raw_action_start": 67,
+        "raw_action_end": 83,
+        "reviewed_frame_bracket": [
+          75,
+          82
+        ],
+        "reviewed_seconds_bracket": [
+          7.5,
+          8.2
+        ],
+        "graph_transition_frame": null,
+        "graph_offset_estimable": false,
+        "coarse_visual_transition_observed": true,
+        "precise_boundary_supervision_allowed": false,
+        "note": "Conservative sampled RGB state-change bracket; full action strip and native endpoint images inspected."
+      }
+    ],
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  },
+  {
+    "episode_id": "dv-e1975790e6ee831e",
+    "video_sha256": "1a70bad31d795885847baf94423c108b5957fad2567c7dd5869aa80d9dcea4ca",
+    "scene": 2,
+    "view": "left",
+    "reviewer": "Codex assistant; single reviewer; no independent human adjudication",
+    "review_revision": "rgb-review-2026-09-06-v1",
+    "scope": "these exact six recordings, pinned simulator build and fixed cameras only",
+    "native_evidence": "screenshots/calibration-native-2-left.png",
+    "action_strip": "screenshots/calibration-scene-2-left.jpg",
+    "events": [
+      {
+        "action": "OPEN",
+        "raw_action_start": 38,
+        "raw_action_end": 54,
+        "reviewed_frame_bracket": null,
+        "reviewed_seconds_bracket": null,
+        "graph_transition_frame": null,
+        "graph_offset_estimable": false,
+        "coarse_visual_transition_observed": false,
+        "precise_boundary_supervision_allowed": false,
+        "note": "Actor occludes the door; cannot establish reliable opening bounds from this view."
+      },
+      {
+        "action": "CLOSE",
+        "raw_action_start": 56,
+        "raw_action_end": 72,
+        "reviewed_frame_bracket": null,
+        "reviewed_seconds_bracket": null,
+        "graph_transition_frame": null,
+        "graph_offset_estimable": false,
+        "coarse_visual_transition_observed": false,
+        "precise_boundary_supervision_allowed": false,
+        "note": "No visible return to closed; microwave door remains open after exported CLOSE. Exclude from visually verified closing labels."
+      }
+    ],
+    "dense_visual_state_supervision_allowed": false,
+    "evidence_base_repo_relative": "ttmp/2026/09/06/VIDEO-CORPUS-001--virtualhome-corpus-expansion-and-label-calibration/various"
+  }
+]
