@@ -47,18 +47,18 @@ The language deliberately has a small type vocabulary: `Int`, `Bool`, `ListInt`,
 The system has three executable interpretations of a program. The AST reference evaluator establishes source-level behavior using host data structures. The Go machine executes the packed artifact using explicit heap and stack limits. The FPGA executes the same artifact through synchronous memories and a hardware controller. Agreement is checked at semantic observation boundaries; the Go and RTL machines are not cycle-identical.
 
 ```mermaid
-flowchart TD
-  S[Source text] --> P[Lexer and parser]
-  P --> C[Type and lexical checker]
-  C --> R[AST reference evaluator]
-  C --> A[Compiler and immutable artifact]
-  A --> G[Finite Go machine]
-  A --> U[UART loader and client]
-  U --> F[GateMate FPGA machine]
-  G --> H[Go session and HTTP API]
+graph TD
+  S["Source text"] --> P["Lexer and parser"]
+  P --> C["Type and lexical checker"]
+  C --> R["AST reference evaluator"]
+  C --> A["Compiler and immutable artifact"]
+  A --> G["Finite Go machine"]
+  A --> U["UART loader and client"]
+  U --> F["GateMate FPGA machine"]
+  G --> H["Go session and HTTP API"]
   F --> U
   U --> H
-  H --> I[React source and machine inspector]
+  H --> I["React source and machine inspector"]
 ```
 
 This separation answers different correctness questions. The reference evaluator asks what a well-typed expression means under lazy evaluation. The packed machine asks whether that meaning survives explicit allocation, finite references, and continuation frames. The RTL adds memory latency, protocol sequencing, and physical resource constraints. A successful source result alone cannot establish all three properties.
@@ -148,11 +148,11 @@ This representation also separates a binding from the value it may eventually pr
 A suspended computation has three relevant states: unevaluated, currently evaluating, and evaluated. LFL1 represents them as `THUNK`, `BLACKHOLE`, and `IND`. Before entering a thunk body, the machine reserves an update continuation and replaces the thunk with a blackhole. When the body returns, that continuation rewrites the owned blackhole into an indirection to the returned value.
 
 ```mermaid
-flowchart LR
-  T[THUNK: code and environment] -->|claim and push UPDATE| B[BLACKHOLE]
-  B -->|body returns a value reference| I[IND: result reference]
-  B -->|recursive demand while evaluating| E[Cycle error]
-  E -->|unwind pending updates| I
+graph LR
+  T["THUNK: code and environment"] -->|"claim and push UPDATE"| B["BLACKHOLE"]
+  B -->|"body returns a value reference"| I["IND: result reference"]
+  B -->|"recursive demand while evaluating"| E["Cycle error"]
+  E -->|"unwind pending updates"| I
 ```
 
 The ordering is a correctness condition. If the machine marked a thunk before ensuring that it could push the update frame, stack exhaustion could leave a blackhole without a continuation capable of completing it. The implementation prepares the continuation before claiming the cell.
