@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="480" viewBox="0 0 1000 480" role="img">
+<rect width="100%" height="100%" fill="white"/>
+<title>Real LoRa RPC: forty normal calls</title>
+<text x="35" y="32" text-anchor="start" font-family="sans-serif" font-size="23" fill="#142536">Real LoRa RPC: forty normal calls</text>
+<text x="35" y="57" text-anchor="start" font-family="sans-serif" font-size="13" fill="#34495e">915 MHz / nominal BW500 / 0 dBm. Each point is one completed first-attempt call.</text>
+<line x1="75" y1="365.0" x2="480" y2="365.0" stroke="#d9e0e5" stroke-dasharray=""/>
+<text x="65" y="369.0" text-anchor="end" font-family="sans-serif" font-size="12" fill="#34495e">0</text>
+<line x1="75" y1="301.25" x2="480" y2="301.25" stroke="#d9e0e5" stroke-dasharray=""/>
+<text x="65" y="305.25" text-anchor="end" font-family="sans-serif" font-size="12" fill="#34495e">100</text>
+<line x1="75" y1="237.5" x2="480" y2="237.5" stroke="#d9e0e5" stroke-dasharray=""/>
+<text x="65" y="241.5" text-anchor="end" font-family="sans-serif" font-size="12" fill="#34495e">200</text>
+<line x1="75" y1="173.75" x2="480" y2="173.75" stroke="#d9e0e5" stroke-dasharray=""/>
+<text x="65" y="177.75" text-anchor="end" font-family="sans-serif" font-size="12" fill="#34495e">300</text>
+<line x1="75" y1="110.0" x2="480" y2="110.0" stroke="#d9e0e5" stroke-dasharray=""/>
+<text x="65" y="114.0" text-anchor="end" font-family="sans-serif" font-size="12" fill="#34495e">400</text>
+<text x="75" y="93" text-anchor="start" font-family="sans-serif" font-size="17" fill="#34495e">SF7: 20 calls</text>
+<text x="75" y="390" text-anchor="start" font-family="sans-serif" font-size="11" fill="#34495e">Call within profile: A to B first 10; B to A next 10</text>
+<circle cx="85.12" cy="262.32" r="4.5" fill="#087f8c"/>
+<circle cx="105.38" cy="236.27" r="4.5" fill="#087f8c"/>
+<circle cx="125.62" cy="231.68" r="4.5" fill="#087f8c"/>
+<circle cx="145.88" cy="236.25" r="4.5" fill="#087f8c"/>
+<circle cx="166.12" cy="230.51" r="4.5" fill="#087f8c"/>
+<circle cx="186.38" cy="227.22" r="4.5" fill="#087f8c"/>
+<circle cx="206.62" cy="226.68" r="4.5" fill="#087f8c"/>
+<circle cx="226.88" cy="225.40" r="4.5" fill="#087f8c"/>
+<circle cx="247.12" cy="220.88" r="4.5" fill="#087f8c"/>
+<circle cx="267.38" cy="228.56" r="4.5" fill="#087f8c"/>
+<circle cx="287.62" cy="140.61" r="4.5" fill="#a43f7b"/>
+<circle cx="307.88" cy="230.54" r="4.5" fill="#a43f7b"/>
+<circle cx="328.12" cy="216.38" r="4.5" fill="#a43f7b"/>
+<circle cx="348.38" cy="227.95" r="4.5" fill="#a43f7b"/>
+<circle cx="368.62" cy="217.74" r="4.5" fill="#a43f7b"/>
+<circle cx="388.88" cy="225.34" r="4.5" fill="#a43f7b"/>
+<circle cx="409.12" cy="215.16" r="4.5" fill="#a43f7b"/>
+<circle cx="429.38" cy="227.99" r="4.5" fill="#a43f7b"/>
+<circle cx="449.62" cy="214.46" r="4.5" fill="#a43f7b"/>
+<circle cx="469.88" cy="226.68" r="4.5" fill="#a43f7b"/>
+<line x1="75" y1="226.94905625" x2="480" y2="226.94905625" stroke="#566573" stroke-dasharray="5 4"/>
+<text x="480" y="414" text-anchor="end" font-family="sans-serif" font-size="13" fill="#34495e">Median 216.6 ms</text>
+<line x1="555" y1="365.0" x2="960" y2="365.0" stroke="#d9e0e5" stroke-dasharray=""/>
+<text x="545" y="369.0" text-anchor="end" font-family="sans-serif" font-size="12" fill="#34495e">0</text>
+<line x1="555" y1="301.25" x2="960" y2="301.25" stroke="#d9e0e5" stroke-dasharray=""/>
+<text x="545" y="305.25" text-anchor="end" font-family="sans-serif" font-size="12" fill="#34495e">100</text>
+<line x1="555" y1="237.5" x2="960" y2="237.5" stroke="#d9e0e5" stroke-dasharray=""/>
+<text x="545" y="241.5" text-anchor="end" font-family="sans-serif" font-size="12" fill="#34495e">200</text>
+<line x1="555" y1="173.75" x2="960" y2="173.75" stroke="#d9e0e5" stroke-dasharray=""/>
+<text x="545" y="177.75" text-anchor="end" font-family="sans-serif" font-size="12" fill="#34495e">300</text>
+<line x1="555" y1="110.0" x2="960" y2="110.0" stroke="#d9e0e5" stroke-dasharray=""/>
+<text x="545" y="114.0" text-anchor="end" font-family="sans-serif" font-size="12" fill="#34495e">400</text>
+<text x="555" y="93" text-anchor="start" font-family="sans-serif" font-size="17" fill="#34495e">SF9: 20 calls</text>
+<text x="555" y="390" text-anchor="start" font-family="sans-serif" font-size="11" fill="#34495e">Call within profile: A to B first 10; B to A next 10</text>
+<circle cx="565.12" cy="169.87" r="4.5" fill="#087f8c"/>
+<circle cx="585.38" cy="194.82" r="4.5" fill="#087f8c"/>
+<circle cx="605.62" cy="190.92" r="4.5" fill="#087f8c"/>
+<circle cx="625.88" cy="194.12" r="4.5" fill="#087f8c"/>
+<circle cx="646.12" cy="194.84" r="4.5" fill="#087f8c"/>
+<circle cx="666.38" cy="190.92" r="4.5" fill="#087f8c"/>
+<circle cx="686.62" cy="194.13" r="4.5" fill="#087f8c"/>
+<circle cx="706.88" cy="194.84" r="4.5" fill="#087f8c"/>
+<circle cx="727.12" cy="190.88" r="4.5" fill="#087f8c"/>
+<circle cx="747.38" cy="194.17" r="4.5" fill="#087f8c"/>
+<circle cx="767.62" cy="125.32" r="4.5" fill="#a43f7b"/>
+<circle cx="787.88" cy="189.70" r="4.5" fill="#a43f7b"/>
+<circle cx="808.12" cy="191.56" r="4.5" fill="#a43f7b"/>
+<circle cx="828.38" cy="194.79" r="4.5" fill="#a43f7b"/>
+<circle cx="848.62" cy="189.69" r="4.5" fill="#a43f7b"/>
+<circle cx="868.88" cy="191.55" r="4.5" fill="#a43f7b"/>
+<circle cx="889.12" cy="194.76" r="4.5" fill="#a43f7b"/>
+<circle cx="909.38" cy="194.84" r="4.5" fill="#a43f7b"/>
+<circle cx="929.62" cy="191.55" r="4.5" fill="#a43f7b"/>
+<circle cx="949.88" cy="194.76" r="4.5" fill="#a43f7b"/>
+<line x1="555" y1="192.83929999999998" x2="960" y2="192.83929999999998" stroke="#566573" stroke-dasharray="5 4"/>
+<text x="960" y="414" text-anchor="end" font-family="sans-serif" font-size="13" fill="#34495e">Median 270.1 ms</text>
+<text x="35" y="440" text-anchor="start" font-family="sans-serif" font-size="13" fill="#34495e">Vertical axis: call latency (ms), including pacing, turnaround, FIFO work and scheduling.</text>
+<text x="35" y="461" text-anchor="start" font-family="sans-serif" font-size="12" fill="#34495e">This is an ordered bench sample, not a population latency distribution or pure RF airtime.</text>
+</svg>
