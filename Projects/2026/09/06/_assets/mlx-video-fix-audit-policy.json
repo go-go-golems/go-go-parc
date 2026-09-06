@@ -1,0 +1,26 @@
+{
+  "scope": "Eight development fixtures; implementation parity, not corpus retrieval quality",
+  "fp32": {
+    "embedding_min_cosine": 0.99999,
+    "embedding_max_abs": 0.0001,
+    "intermediate_max_abs": 0.01,
+    "positions_exact": true,
+    "rationale": "Same weights and packed inputs warrant strict agreement. FP32 parallel reduction order is not bit-identical. A 1e-4 unit-coordinate bound and 0.99999 cosine leave margin over historical six-case 1e-6-scale differences; 0.01 absolute on unnormalized activations accommodates accumulation at much larger scales. Every visual/deepstack/pooled tensor is checked. These are regression limits, not a semantic-quality claim."
+  },
+  "bf16": {
+    "embedding_min_cosine": 0.995,
+    "embedding_max_abs": 0.02,
+    "rationale": "BF16 has approximately 0.008 relative spacing, and output normalization itself is BF16. This is an exploratory numerical bound only; production integration initially selects the strict FP32 reference path."
+  },
+  "quantization": {
+    "acceptance": "measurement-only; no quantized native-video rollout",
+    "rationale": "Compare controlled same-source affine 4-bit group64 with FP32 separately from the community artifact. Report query rankings and pairwise score drift; this small fixture set cannot justify corpus retrieval acceptance."
+  },
+  "preprocessing": {
+    "acceptance": "integration uses the exact pinned official processor contract audited against Torch",
+    "rationale": "Token boundaries, timestamps and resize kernels differ; do not use an embedding tolerance to excuse different preprocessing. MLX processor inputs are diagnostic variants only. Single/odd clips explicitly repeat the final frame and its timestamp."
+  },
+  "performance": {
+    "rationale": "Report materialized load, first per-shape call and three warm calls; no claim of cold filesystem cache. Intermediate feature extraction is outside latency timing. MLX allocator peak and process high-water RSS include diagnostics and are reported as process-wide peaks, not per-request increments."
+  }
+}

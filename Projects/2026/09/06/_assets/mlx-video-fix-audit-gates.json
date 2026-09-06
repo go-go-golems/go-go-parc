@@ -1,0 +1,184 @@
+{
+  "created_at": "2026-09-06T20:14:00.483863+00:00",
+  "fp32_gates": {
+    "text": true,
+    "image": true,
+    "video": true,
+    "black": true,
+    "reverse": true,
+    "video1": true,
+    "video3": true,
+    "mixed": true
+  },
+  "fp32_passed": true,
+  "rankings": {
+    "torch": {
+      "scores": {
+        "image": 0.4929558380370419,
+        "video": 0.5959015560813835,
+        "black": 0.33411907539436225,
+        "reverse": 0.5800561462278441,
+        "video1": 0.4999237808882425,
+        "video3": 0.5914460654548614,
+        "mixed": 0.5478463406541131
+      },
+      "order": [
+        "video",
+        "video3",
+        "reverse",
+        "mixed",
+        "video1",
+        "image",
+        "black"
+      ]
+    },
+    "mlx": {
+      "scores": {
+        "image": 0.49295752532709447,
+        "video": 0.5958996743832218,
+        "black": 0.33412065688310877,
+        "reverse": 0.5800570752267133,
+        "video1": 0.4999248586122728,
+        "video3": 0.5914448198397875,
+        "mixed": 0.5478475164458088
+      },
+      "order": [
+        "video",
+        "video3",
+        "reverse",
+        "mixed",
+        "video1",
+        "image",
+        "black"
+      ]
+    },
+    "bf16": {
+      "scores": {
+        "image": 0.4970559419080397,
+        "video": 0.5961844009505957,
+        "black": 0.3289643904598326,
+        "reverse": 0.5776228985713032,
+        "video1": 0.50326694208003,
+        "video3": 0.589831651843668,
+        "mixed": 0.5536916508139331
+      },
+      "order": [
+        "video",
+        "video3",
+        "reverse",
+        "mixed",
+        "video1",
+        "image",
+        "black"
+      ]
+    },
+    "quant": {
+      "scores": {
+        "image": 0.3309457778022906,
+        "video": 0.32725747068582745,
+        "black": 0.2972398387720009,
+        "reverse": 0.344499178737213,
+        "video1": 0.28472984201098794,
+        "video3": 0.3248108825646051,
+        "mixed": 0.3157786963218854
+      },
+      "order": [
+        "reverse",
+        "image",
+        "video",
+        "video3",
+        "mixed",
+        "black",
+        "video1"
+      ]
+    },
+    "community": {
+      "scores": {
+        "image": 0.5450021598607466,
+        "video": 0.5673579393255443,
+        "black": 0.30739311467723984,
+        "reverse": 0.5694923324462107,
+        "video1": 0.42446374367194745,
+        "video3": 0.5826837929140162,
+        "mixed": 0.4820680142949279
+      },
+      "order": [
+        "video3",
+        "reverse",
+        "video",
+        "image",
+        "mixed",
+        "video1",
+        "black"
+      ]
+    }
+  },
+  "interventions": {
+    "torch": {
+      "original_black_cosine": 0.4292358816484993,
+      "original_reverse_cosine": 0.969835225884731
+    },
+    "mlx": {
+      "original_black_cosine": 0.42923387942648195,
+      "original_reverse_cosine": 0.9698360334494598
+    },
+    "bf16": {
+      "original_black_cosine": 0.4234706488111801,
+      "original_reverse_cosine": 0.9709461213513977
+    },
+    "quant": {
+      "original_black_cosine": 0.5151253266055376,
+      "original_reverse_cosine": 0.984508993071662
+    },
+    "community": {
+      "original_black_cosine": 0.35084858408779873,
+      "original_reverse_cosine": 0.9682631782827591
+    }
+  },
+  "performance": {
+    "torch": {
+      "load_materialized_seconds": 5.435413000173867,
+      "video_first_seconds": 1.1753561249934137,
+      "video_warm_median_seconds": 1.1852765418589115,
+      "rss_peak_bytes": 13153140736,
+      "mlx_peak_bytes": 0
+    },
+    "mlx": {
+      "load_materialized_seconds": 4.197330542141572,
+      "video_first_seconds": 0.35552724986337125,
+      "video_warm_median_seconds": 0.20140020782127976,
+      "rss_peak_bytes": 5019467776,
+      "mlx_peak_bytes": 9545377900
+    },
+    "bf16": {
+      "load_materialized_seconds": 2.996081583900377,
+      "video_first_seconds": 0.19617120898328722,
+      "video_warm_median_seconds": 0.19587929104454815,
+      "rss_peak_bytes": 4798939136,
+      "mlx_peak_bytes": 5654719676
+    },
+    "quant": {
+      "load_materialized_seconds": 2.894306499976665,
+      "video_first_seconds": 0.217173958895728,
+      "video_warm_median_seconds": 0.21460766601376235,
+      "rss_peak_bytes": 4809785344,
+      "mlx_peak_bytes": 2397339480
+    },
+    "community": {
+      "load_materialized_seconds": 2.478147624991834,
+      "video_first_seconds": 0.21929491683840752,
+      "video_warm_median_seconds": 0.21453658398240805,
+      "rss_peak_bytes": 2349858816,
+      "mlx_peak_bytes": 3181587644
+    }
+  },
+  "native_rollout_precision": "FP32 only",
+  "quantized_rollout_accepted": false,
+  "policy": "audit-policy.json",
+  "limitations": [
+    "Eight development fixtures, one text query; not a retrieval benchmark.",
+    "First per-shape inference is not cold filesystem cache.",
+    "RSS and MLX peaks include untimed diagnostics.",
+    "Community checkpoint differences cannot all be attributed to quantization."
+  ]
+}

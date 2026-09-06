@@ -1,0 +1,115 @@
+{
+  "created_at": "2026-09-06T20:25:00.492354+00:00",
+  "load_materialized_seconds": 6.562371416017413,
+  "cold_first_inference_including_processor_seconds": 2.5784861659631133,
+  "warm_including_processor_seconds": [
+    0.37128991703502834,
+    0.3180085418280214,
+    0.34909079200588167
+  ],
+  "fixture_max_abs": 0.0,
+  "mixed_order_reference_max_abs": {
+    "text": 2.9802322387695312e-08,
+    "video1": 0.0,
+    "video3": 0.0
+  },
+  "space_id": "2610572d944abb10b0366c2b00aaf87e701b6f6bb6656b022eca66dd230edecd",
+  "build": {
+    "index_id": "6d2ae9027288a7a1f84bd905b497ee76ec8d49c6275826288e28532529f8ee93",
+    "manifest": "output/mlx-video-fix/workbench-native-smoke/indices/6d2ae9027288a7a1f84bd905b497ee76ec8d49c6275826288e28532529f8ee93/manifest.json",
+    "chunks": 9,
+    "fresh_clips": 9,
+    "reused_clips": 0,
+    "elapsed_seconds": 3.8872398750390857,
+    "feature_bytes": 73856
+  },
+  "reuse": {
+    "index_id": "6d2ae9027288a7a1f84bd905b497ee76ec8d49c6275826288e28532529f8ee93",
+    "manifest": "output/mlx-video-fix/workbench-native-smoke/indices/6d2ae9027288a7a1f84bd905b497ee76ec8d49c6275826288e28532529f8ee93/manifest.json",
+    "chunks": 9,
+    "fresh_clips": 0,
+    "reused_clips": 9,
+    "elapsed_seconds": 0.020852666115388274,
+    "feature_bytes": 73856
+  },
+  "hits": [
+    {
+      "chunk_id": "c79e0e4b0110e33f708c61ee1f186eca5be92e1df22a8d65c94a1d0a485d003c",
+      "end_us": 4000000,
+      "episode_id": "ep-368d6331fc690a2c",
+      "origin_us": 0,
+      "selected_pts_us": [
+        2000000,
+        2500000,
+        3000000,
+        3500000
+      ],
+      "selected_raw_pts": [
+        20480,
+        25600,
+        30720,
+        35840
+      ],
+      "split": "development",
+      "split_group": "g03",
+      "start_us": 2000000,
+      "time_base": "1/10240",
+      "video_sha256": "55bcaa21bd8690859fc0880b27bcb698a9a034f1c34141ab460d39d7f4895f33",
+      "score": 0.5990618467330933,
+      "rank": 1
+    },
+    {
+      "chunk_id": "5fd9e4772391b79550b7abbdb7cf5573c1e91b2b8be6fe7ec4c98e078ad5f007",
+      "end_us": 12000000,
+      "episode_id": "ep-368d6331fc690a2c",
+      "origin_us": 0,
+      "selected_pts_us": [
+        10000000,
+        10500000,
+        11000000,
+        11500000
+      ],
+      "selected_raw_pts": [
+        102400,
+        107520,
+        112640,
+        117760
+      ],
+      "split": "development",
+      "split_group": "g03",
+      "start_us": 10000000,
+      "time_base": "1/10240",
+      "video_sha256": "55bcaa21bd8690859fc0880b27bcb698a9a034f1c34141ab460d39d7f4895f33",
+      "score": 0.5564728379249573,
+      "rank": 2
+    },
+    {
+      "chunk_id": "2508d37af9736a05355ae999f5e7996d14e7ef74431ea28883baa319d6ffe6cd",
+      "end_us": 10000000,
+      "episode_id": "ep-368d6331fc690a2c",
+      "origin_us": 0,
+      "selected_pts_us": [
+        8000000,
+        8500000,
+        9000000,
+        9500000
+      ],
+      "selected_raw_pts": [
+        81920,
+        87040,
+        92160,
+        97280
+      ],
+      "split": "development",
+      "split_group": "g03",
+      "start_us": 8000000,
+      "time_base": "1/10240",
+      "video_sha256": "55bcaa21bd8690859fc0880b27bcb698a9a034f1c34141ab460d39d7f4895f33",
+      "score": 0.5543380975723267,
+      "rank": 3
+    }
+  ],
+  "mlx_peak_bytes": 9539472908,
+  "rss_peak_bytes": 4842110976,
+  "scope": "Fresh process, warm filesystem cache; one development episode, separate output root; peaks include subset build."
+}
