@@ -1,0 +1,194 @@
+{
+  "kind": "physical-keyboard-capture",
+  "rpc_armed": true,
+  "started_at": 1788735427.237589,
+  "completed": true,
+  "initial": {
+    "A": {
+      "board": "A",
+      "armed": "0",
+      "busy": "0",
+      "fault": "0",
+      "sf": "9",
+      "tx": "60",
+      "rx": "60",
+      "recoveries": "0",
+      "bad_rx": "0",
+      "irq": "120",
+      "node": "1",
+      "epoch": "17",
+      "bound": "1",
+      "completed": "30",
+      "ok": "27",
+      "unknown": "2",
+      "commits": "29",
+      "cache": "4",
+      "dropped": "6",
+      "peer": "2",
+      "peer_epoch": "21",
+      "grant": "1369833473",
+      "rejected": "0",
+      "led": "1",
+      "pool_live": "0",
+      "allocations": "60",
+      "releases": "60",
+      "heap": "224888"
+    },
+    "B": {
+      "board": "B",
+      "armed": "0",
+      "busy": "0",
+      "fault": "0",
+      "sf": "9",
+      "tx": "60",
+      "rx": "60",
+      "recoveries": "0",
+      "bad_rx": "0",
+      "irq": "120",
+      "node": "2",
+      "epoch": "21",
+      "bound": "1",
+      "completed": "29",
+      "ok": "27",
+      "unknown": "2",
+      "commits": "29",
+      "cache": "4",
+      "dropped": "6",
+      "peer": "1",
+      "peer_epoch": "17",
+      "grant": "1369833473",
+      "rejected": "0",
+      "led": "1",
+      "pool_live": "0",
+      "allocations": "60",
+      "releases": "60",
+      "heap": "224296"
+    }
+  },
+  "keys": {
+    "A": [
+      {
+        "source": "physical",
+        "raw": "145",
+        "pos": "31",
+        "key": "115",
+        "pressed": "1",
+        "at_us": "315646386"
+      },
+      {
+        "source": "physical",
+        "raw": "17",
+        "pos": "31",
+        "key": "115",
+        "pressed": "0",
+        "at_us": "320473088"
+      }
+    ],
+    "B": [
+      {
+        "source": "physical",
+        "raw": "145",
+        "pos": "31",
+        "key": "115",
+        "pressed": "1",
+        "at_us": "300459981"
+      },
+      {
+        "source": "physical",
+        "raw": "17",
+        "pos": "31",
+        "key": "115",
+        "pressed": "0",
+        "at_us": "303995247"
+      },
+      {
+        "source": "physical",
+        "raw": "145",
+        "pos": "31",
+        "key": "115",
+        "pressed": "1",
+        "at_us": "312241979"
+      },
+      {
+        "source": "physical",
+        "raw": "17",
+        "pos": "31",
+        "key": "115",
+        "pressed": "0",
+        "at_us": "317491981"
+      }
+    ]
+  },
+  "results": {
+    "A": [
+      "RPC RESULT id=31 outcome=1 attempts=1 elapsed_us=161221 driver_busy=0 service=1 body=0C000000A8FFFFFF"
+    ],
+    "B": [
+      "RPC RESULT id=30 outcome=1 attempts=1 elapsed_us=171552 driver_busy=0 service=1 body=0C000000A8FFFFFF",
+      "RPC RESULT id=31 outcome=1 attempts=1 elapsed_us=161536 driver_busy=0 service=1 body=0D000000A9FFFFFF"
+    ]
+  },
+  "final": {
+    "A": {
+      "board": "A",
+      "armed": "1",
+      "busy": "0",
+      "fault": "0",
+      "sf": "7",
+      "tx": "63",
+      "rx": "63",
+      "recoveries": "0",
+      "bad_rx": "1",
+      "irq": "127",
+      "node": "1",
+      "epoch": "17",
+      "bound": "1",
+      "completed": "31",
+      "ok": "28",
+      "unknown": "2",
+      "commits": "31",
+      "cache": "4",
+      "dropped": "6",
+      "peer": "2",
+      "peer_epoch": "21",
+      "grant": "1369833473",
+      "rejected": "0",
+      "led": "1",
+      "pool_live": "0",
+      "allocations": "63",
+      "releases": "63",
+      "heap": "224888"
+    },
+    "B": {
+      "board": "B",
+      "armed": "1",
+      "busy": "0",
+      "fault": "0",
+      "sf": "7",
+      "tx": "63",
+      "rx": "63",
+      "recoveries": "0",
+      "bad_rx": "0",
+      "irq": "126",
+      "node": "2",
+      "epoch": "21",
+      "bound": "1",
+      "completed": "31",
+      "ok": "29",
+      "unknown": "2",
+      "commits": "30",
+      "cache": "4",
+      "dropped": "6",
+      "peer": "1",
+      "peer_epoch": "17",
+      "grant": "1369833473",
+      "rejected": "0",
+      "led": "1",
+      "pool_live": "0",
+      "allocations": "63",
+      "releases": "63",
+      "heap": "224296"
+    }
+  },
+  "ended_at": 1788735715.8018067
+}

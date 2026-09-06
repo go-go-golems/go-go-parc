@@ -1,0 +1,26 @@
+LIVE STATUS board=B armed=0 busy=0 fault=0 sf=9 tx=60 rx=60 recoveries=0 bad_rx=0 irq=120 node=2 epoch=21 bound=1 completed=29 ok=27 unknown=2 commits=29 cache=4 dropped=6 peer=1 peer_epoch=17 grant=1369833473 rejected=0 led=1 pool_live=0 allocations=60 releases=60 heap=224296
+LIVE STATUS board=B armed=0 busy=0 fault=0 sf=9 tx=60 rx=60 recoveries=0 bad_rx=0 irq=120 node=2 epoch=21 bound=1 completed=29 ok=27 unknown=2 commits=29 cache=4 dropped=6 peer=1 peer_epoch=17 grant=1369833473 rejected=0 led=1 pool_live=0 allocations=60 releases=60 heap=224296
+LIVE ARM ok=1 sf=7 hz=915000000 bw=500000 dbm=0
+UI KEY source=physical raw=145 pos=31 key=115 pressed=1 at_us=300459981
+RPC START code=0 id=30 service=1 deadline_ms=8000
+LIVE TX START accepted=1 request=30 call=1
+PHY TIMING sf=7 bytes=44 expected_us=23104 edge_us=23708
+LIVE TX DONE owner_released=1
+LIVE RX bytes=52 rssi=-29 snr_quarters=48 data=525301020001010001000200110000000000000015000000000000001E0000000100A65101000000080000000C000000A8FFFFFF
+RPC RESULT id=30 outcome=1 attempts=1 elapsed_us=171552 driver_busy=0 service=1 body=0C000000A8FFFFFF
+UI KEY source=physical raw=17 pos=31 key=115 pressed=0 at_us=303995247
+LIVE RX bytes=44 rssi=-37 snr_quarters=52 data=525301010001010001000200110000000000000015000000000000001F0000000100A6510100000000000000
+RPC SERVER id=31 admission=1 commits=30 cache=4
+LIVE TX START accepted=1 request=0 call=0
+PHY TIMING sf=7 bytes=52 expected_us=25664 edge_us=26268
+LIVE TX DONE owner_released=1
+UI KEY source=physical raw=145 pos=31 key=115 pressed=1 at_us=312241979
+RPC START code=0 id=31 service=1 deadline_ms=8000
+LIVE TX START accepted=1 request=31 call=1
+PHY TIMING sf=7 bytes=44 expected_us=23104 edge_us=23708
+LIVE TX DONE owner_released=1
+LIVE RX bytes=52 rssi=-29 snr_quarters=50 data=525301020001010001000200110000000000000015000000000000001F0000000100A65101000000080000000D000000A9FFFFFF
+RPC RESULT id=31 outcome=1 attempts=1 elapsed_us=161536 driver_busy=0 service=1 body=0D000000A9FFFFFF
+UI KEY source=physical raw=17 pos=31 key=115 pressed=0 at_us=317491981
+LIVE STATUS board=B armed=1 busy=0 fault=0 sf=7 tx=63 rx=63 recoveries=0 bad_rx=0 irq=126 node=2 epoch=21 bound=1 completed=31 ok=29 unknown=2 commits=30 cache=4 dropped=6 peer=1 peer_epoch=17 grant=1369833473 rejected=0 led=1 pool_live=0 allocations=63 releases=63 heap=224296
+LIVE STOP ok=1

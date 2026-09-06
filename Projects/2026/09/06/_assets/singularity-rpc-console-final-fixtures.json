@@ -1,0 +1,292 @@
+{
+  "kind": "synthetic-renderer-fixtures-NOT-physical-fault-evidence",
+  "A": {
+    "frames": [
+      {
+        "mode": 0,
+        "name": "dashboard",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 1,
+        "name": "history",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 2,
+        "name": "outcome",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 3,
+        "name": "times",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 4,
+        "name": "reply",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 5,
+        "name": "identity",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 6,
+        "name": "radio-fault",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 7,
+        "name": "keyboard-fault",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 8,
+        "name": "unbound",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 9,
+        "name": "unknown-led",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 10,
+        "name": "last-rx",
+        "metadata_bytes": 4136
+      }
+    ],
+    "before": {
+      "board": "A",
+      "armed": "0",
+      "busy": "0",
+      "fault": "0",
+      "sf": "7",
+      "tx": "0",
+      "rx": "0",
+      "recoveries": "0",
+      "bad_rx": "0",
+      "irq": "0",
+      "node": "1",
+      "epoch": "16",
+      "bound": "0",
+      "completed": "0",
+      "ok": "0",
+      "unknown": "0",
+      "commits": "0",
+      "cache": "0",
+      "dropped": "0",
+      "peer": "0",
+      "peer_epoch": "0",
+      "grant": "0",
+      "rejected": "0",
+      "led": "0",
+      "pool_live": "0",
+      "allocations": "0",
+      "releases": "0",
+      "heap": "224888"
+    },
+    "after": {
+      "board": "A",
+      "armed": "0",
+      "busy": "0",
+      "fault": "0",
+      "sf": "7",
+      "tx": "0",
+      "rx": "0",
+      "recoveries": "0",
+      "bad_rx": "0",
+      "irq": "0",
+      "node": "1",
+      "epoch": "16",
+      "bound": "0",
+      "completed": "0",
+      "ok": "0",
+      "unknown": "0",
+      "commits": "0",
+      "cache": "0",
+      "dropped": "0",
+      "peer": "0",
+      "peer_epoch": "0",
+      "grant": "0",
+      "rejected": "0",
+      "led": "0",
+      "pool_live": "0",
+      "allocations": "0",
+      "releases": "0",
+      "heap": "224888"
+    },
+    "ui": {
+      "page": "0",
+      "detail": "0",
+      "history": "0",
+      "active": "0",
+      "sensor_known": "0",
+      "sensor": "0",
+      "led_known": "0",
+      "led": "0",
+      "led_uncertain": "0",
+      "lab": "0",
+      "confirm_arm": "0",
+      "confirm_lab": "0",
+      "profile": "7",
+      "deadline_ms": "8000",
+      "seq_left": "0",
+      "seq_done": "0",
+      "drops": "0",
+      "suppress": "0",
+      "seq_skipped": "0",
+      "seq_rejected": "0",
+      "render_max_us": "31094",
+      "keyboard_max_us": "1197",
+      "latched": "0"
+    }
+  },
+  "B": {
+    "frames": [
+      {
+        "mode": 0,
+        "name": "dashboard",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 1,
+        "name": "history",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 2,
+        "name": "outcome",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 3,
+        "name": "times",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 4,
+        "name": "reply",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 5,
+        "name": "identity",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 6,
+        "name": "radio-fault",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 7,
+        "name": "keyboard-fault",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 8,
+        "name": "unbound",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 9,
+        "name": "unknown-led",
+        "metadata_bytes": 4136
+      },
+      {
+        "mode": 10,
+        "name": "last-rx",
+        "metadata_bytes": 4136
+      }
+    ],
+    "before": {
+      "board": "B",
+      "armed": "0",
+      "busy": "0",
+      "fault": "0",
+      "sf": "7",
+      "tx": "0",
+      "rx": "0",
+      "recoveries": "0",
+      "bad_rx": "0",
+      "irq": "0",
+      "node": "2",
+      "epoch": "19",
+      "bound": "0",
+      "completed": "0",
+      "ok": "0",
+      "unknown": "0",
+      "commits": "0",
+      "cache": "0",
+      "dropped": "0",
+      "peer": "0",
+      "peer_epoch": "0",
+      "grant": "0",
+      "rejected": "0",
+      "led": "0",
+      "pool_live": "0",
+      "allocations": "0",
+      "releases": "0",
+      "heap": "224736"
+    },
+    "after": {
+      "board": "B",
+      "armed": "0",
+      "busy": "0",
+      "fault": "0",
+      "sf": "7",
+      "tx": "0",
+      "rx": "0",
+      "recoveries": "0",
+      "bad_rx": "0",
+      "irq": "0",
+      "node": "2",
+      "epoch": "19",
+      "bound": "0",
+      "completed": "0",
+      "ok": "0",
+      "unknown": "0",
+      "commits": "0",
+      "cache": "0",
+      "dropped": "0",
+      "peer": "0",
+      "peer_epoch": "0",
+      "grant": "0",
+      "rejected": "0",
+      "led": "0",
+      "pool_live": "0",
+      "allocations": "0",
+      "releases": "0",
+      "heap": "224736"
+    },
+    "ui": {
+      "page": "0",
+      "detail": "0",
+      "history": "0",
+      "active": "0",
+      "sensor_known": "0",
+      "sensor": "0",
+      "led_known": "0",
+      "led": "0",
+      "led_uncertain": "0",
+      "lab": "0",
+      "confirm_arm": "0",
+      "confirm_lab": "0",
+      "profile": "7",
+      "deadline_ms": "8000",
+      "seq_left": "0",
+      "seq_done": "0",
+      "drops": "0",
+      "suppress": "0",
+      "seq_skipped": "0",
+      "seq_rejected": "0",
+      "render_max_us": "31079",
+      "keyboard_max_us": "1196",
+      "latched": "0"
+    }
+  },
+  "passed": true
+}

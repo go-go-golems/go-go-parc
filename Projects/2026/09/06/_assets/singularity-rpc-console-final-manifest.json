@@ -1,0 +1,324 @@
+{
+  "singularity-rpc-console-final-source-console.hpp": {
+    "sha256": "54ce8d4315430a001d7c1513e20bdb8c34c2ed6b1c598bc9212691b01ad3c4d4",
+    "source": "4a2b46079d644fd7fd86e36eaded0afa7d0cc77c:labs/singularity-rpc/core/include/srpc/console.hpp"
+  },
+  "singularity-rpc-console-final-source-console_fixture.hpp": {
+    "sha256": "76e8d1e895f19744c9b82560f681047afe19c0319c8a977e438f2dc9fc0d3184",
+    "source": "4a2b46079d644fd7fd86e36eaded0afa7d0cc77c:labs/singularity-rpc/core/include/srpc/console_fixture.hpp"
+  },
+  "singularity-rpc-console-final-source-client.hpp": {
+    "sha256": "f93efd6c2e45224e4f6990f4e65c3e9923d6106f7134f4d8762e3edc7253815a",
+    "source": "4a2b46079d644fd7fd86e36eaded0afa7d0cc77c:labs/singularity-rpc/core/include/srpc/client.hpp"
+  },
+  "singularity-rpc-console-final-source-server.hpp": {
+    "sha256": "b31dd8ff9ccdf84f4a9109c80cb6dd75fc33da70d0c2a3f50541588c397cadf1",
+    "source": "4a2b46079d644fd7fd86e36eaded0afa7d0cc77c:labs/singularity-rpc/core/include/srpc/server.hpp"
+  },
+  "singularity-rpc-console-final-source-codec.hpp": {
+    "sha256": "0fb7221576ce947f04ee092a6bc93e125a34b8197b7489623cc46506db0f46f2",
+    "source": "4a2b46079d644fd7fd86e36eaded0afa7d0cc77c:labs/singularity-rpc/core/include/srpc/codec.hpp"
+  },
+  "singularity-rpc-console-final-source-keyboard.hpp": {
+    "sha256": "49fe483f7d93184fb252110a6b46c0c1c3345d81edbca65426862aa94c593354",
+    "source": "4a2b46079d644fd7fd86e36eaded0afa7d0cc77c:labs/singularity-rpc/core/include/srpc/keyboard.hpp"
+  },
+  "singularity-rpc-console-final-source-live_bench.hpp": {
+    "sha256": "a8e936dad100cdb253136bebadc6a0790ea84beb2ac84db0f34847085efa7555",
+    "source": "4a2b46079d644fd7fd86e36eaded0afa7d0cc77c:labs/singularity-rpc/firmware/main/live_bench.hpp"
+  },
+  "singularity-rpc-console-final-source-status_screen.hpp": {
+    "sha256": "31aa62c9e24225567e7800eeb565e76fb2221729927a0a3ed7d218e841286635",
+    "source": "4a2b46079d644fd7fd86e36eaded0afa7d0cc77c:labs/singularity-rpc/firmware/main/status_screen.hpp"
+  },
+  "singularity-rpc-console-final-source-packet_radio.hpp": {
+    "sha256": "4552e44078c880a1b46a4f5842aa3b493e80e86295a7020e039d9fda8c2376e1",
+    "source": "4a2b46079d644fd7fd86e36eaded0afa7d0cc77c:labs/singularity-rpc/firmware/main/packet_radio.hpp"
+  },
+  "singularity-rpc-console-final-view-A-activity.png": {
+    "sha256": "2c64b92769999ee2fa8b9eacaae0bac0bad01b7a284264635c6d44ec523cc9da",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/A-activity.png"
+  },
+  "singularity-rpc-console-final-view-A-call-details.png": {
+    "sha256": "f3702e3290bb787ae2767ce7e9728124ca5cd0c4f2a8b522b60aae7236862c38",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/A-call-details.png"
+  },
+  "singularity-rpc-console-final-view-A-call-reply.png": {
+    "sha256": "0843c1a0eaf606530daedb986edd1f40d36c6157d75e7e72293f166d400e1991",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/A-call-reply.png"
+  },
+  "singularity-rpc-console-final-view-A-call-times.png": {
+    "sha256": "276c60e945c95d168fe29cf0c2f5f6983ce5021dc404a9ffaa3c216f7d8b8d42",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/A-call-times.png"
+  },
+  "singularity-rpc-console-final-view-A-dashboard.png": {
+    "sha256": "05fffab92976e3d78d72c31638fbcd0db4a49803bfc3b09e5aed28ce3333c861",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/A-dashboard.png"
+  },
+  "singularity-rpc-console-final-view-A-health-details.png": {
+    "sha256": "51f227047b76e8c14cb6ae5384fd007db586abc3ca87f6910438e3e5ee37ec03",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/A-health-details.png"
+  },
+  "singularity-rpc-console-final-view-A-identity.png": {
+    "sha256": "ee8504bc6b655a60019de1efa565915797e395b9d02ffe69a60bc2ae22fd2c42",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/A-identity.png"
+  },
+  "singularity-rpc-console-final-view-A-last-rx.png": {
+    "sha256": "64d13b20972bf7e60f6c59f87828611428a897787ef26458bbaefdf114b30b14",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/A-last-rx.png"
+  },
+  "singularity-rpc-console-final-view-A-led-details.png": {
+    "sha256": "5c94705b66d6a387380f93d5ecbb1a8e02fb9337148f24bf2e5d863e8b4f71d0",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/A-led-details.png"
+  },
+  "singularity-rpc-console-final-view-A-sensor-details.png": {
+    "sha256": "81c81a5b8aef3751bfb82a8f6ecb3e30cc78340e348a5ae639d9d96a1d143867",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/A-sensor-details.png"
+  },
+  "singularity-rpc-console-final-view-A-setup.png": {
+    "sha256": "0dbd57da941ba8aef3a4aba40329d9c97077afe962ddd4edee78b71356b6f667",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/A-setup.png"
+  },
+  "singularity-rpc-console-final-view-B-activity.png": {
+    "sha256": "76075dc7681a49952809d0d8a32d071a6073240629cbb89c7542426f98e9008a",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/B-activity.png"
+  },
+  "singularity-rpc-console-final-view-B-call-details.png": {
+    "sha256": "cb9776aeceadb7013bb3e6e94d9457c156d0dca24981c8612e21137c742f12ae",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/B-call-details.png"
+  },
+  "singularity-rpc-console-final-view-B-call-reply.png": {
+    "sha256": "84753fdc1ed03d5a7fc3080edb03c6eab58a937ee33f0aef609fb39acc61eb63",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/B-call-reply.png"
+  },
+  "singularity-rpc-console-final-view-B-call-times.png": {
+    "sha256": "db742fe18a07891cfa6a98876ea88812e57b62bc06901c448366c28ce4694754",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/B-call-times.png"
+  },
+  "singularity-rpc-console-final-view-B-dashboard.png": {
+    "sha256": "e74405aeb7d05755ed943473087a4174e04a052224b17e90eb07794e1624843e",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/B-dashboard.png"
+  },
+  "singularity-rpc-console-final-view-B-health-details.png": {
+    "sha256": "a6023e65126f70be3106b79a6b6fe35c2427a76892c41e348f6c915ed1289d39",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/B-health-details.png"
+  },
+  "singularity-rpc-console-final-view-B-identity.png": {
+    "sha256": "f471238b5e999adf72e537dcfcc0fb387b61a3353f911eb7ef4ea614b2425ad3",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/B-identity.png"
+  },
+  "singularity-rpc-console-final-view-B-last-rx.png": {
+    "sha256": "f636ad6893588aa39e9e2ccafdaf17db29542e4d2ce1321c5e90d39223230001",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/B-last-rx.png"
+  },
+  "singularity-rpc-console-final-view-B-led-details.png": {
+    "sha256": "cacbd9872f248cb22b6bd8e999168d909af2acaab7665c9ed3b1a027389b382c",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/B-led-details.png"
+  },
+  "singularity-rpc-console-final-view-B-sensor-details.png": {
+    "sha256": "32332d9aaca0668655b895349763e9805e8045dc29b34e1f555d515fac7fcdc6",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/B-sensor-details.png"
+  },
+  "singularity-rpc-console-final-view-B-setup.png": {
+    "sha256": "a3dac2ccd4dce05c7355d39c715c88005eb2f7eb597345e0ce73d59fad8cc6eb",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/91-p5-final-views/B-setup.png"
+  },
+  "singularity-rpc-console-final-owner-A-armed-allowance.png": {
+    "sha256": "be6487c971f4a53f87154315525fbe46ed28837c49a0e6f1dac96de0b454f08c",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/88-p5-live-ownership/A-armed-allowance.png"
+  },
+  "singularity-rpc-console-final-owner-A-requested-unconfirmed.png": {
+    "sha256": "570c568782ad1ad9ffdd8d666be452e713f6a94dea169281a184f988ac46dc7f",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/88-p5-live-ownership/A-requested-unconfirmed.png"
+  },
+  "singularity-rpc-console-final-owner-A-stopped-call-resolving.png": {
+    "sha256": "8723c7b5233c0649a4880ed578c55eb887264f641fe7ee02467a57354746438f",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/88-p5-live-ownership/A-stopped-call-resolving.png"
+  },
+  "singularity-rpc-console-final-owner-A-unknown-owner-busy.png": {
+    "sha256": "dd56e89684da624a9da5fe0599d1b3ea10abf4b3d18da8fbb5df639adae1ad63",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/88-p5-live-ownership/A-unknown-owner-busy.png"
+  },
+  "singularity-rpc-console-final-owner-B-armed-allowance.png": {
+    "sha256": "9cef0e477f9b0f1448d61e8636bed71129c9ef194db96f41523dcda484868d3d",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/88-p5-live-ownership/B-armed-allowance.png"
+  },
+  "singularity-rpc-console-final-owner-B-requested-unconfirmed.png": {
+    "sha256": "bbd139aacc859f67e5dda5aa020ed3533dfec9a3c06b025c1bfcd9f690d6ab5f",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/88-p5-live-ownership/B-requested-unconfirmed.png"
+  },
+  "singularity-rpc-console-final-owner-B-stopped-call-resolving.png": {
+    "sha256": "5c4d58b510f575c985b97c075d9753c118ad2900f156eb47fcbf6473902cf2b8",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/88-p5-live-ownership/B-stopped-call-resolving.png"
+  },
+  "singularity-rpc-console-final-owner-B-unknown-owner-busy.png": {
+    "sha256": "53744a53047afc2b07045d1b2ade0d2f4bdee83b792b16e0808cea97550b9695",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/88-p5-live-ownership/B-unknown-owner-busy.png"
+  },
+  "singularity-rpc-console-final-fixture-A-SYNTHETIC-dashboard.png": {
+    "sha256": "f80f214d9a7cd7811bfa2f6ed73b2f3fcbbb5df91e602570659e5f054a2e5096",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/A-SYNTHETIC-dashboard.png"
+  },
+  "singularity-rpc-console-final-fixture-A-SYNTHETIC-history.png": {
+    "sha256": "73517360cf8bac9143478eeea193a2c36c4bfdcb41387d4e34bb0a0c3d1756fc",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/A-SYNTHETIC-history.png"
+  },
+  "singularity-rpc-console-final-fixture-A-SYNTHETIC-identity.png": {
+    "sha256": "964e9a882f95d973b3c31655ab9c265b51f66a4543ac628aa2618dedb1c69572",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/A-SYNTHETIC-identity.png"
+  },
+  "singularity-rpc-console-final-fixture-A-SYNTHETIC-keyboard-fault.png": {
+    "sha256": "fec120b41ea5a6c82d965f4c97c5d90abded1042500de672aa4c1f389fd5e813",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/A-SYNTHETIC-keyboard-fault.png"
+  },
+  "singularity-rpc-console-final-fixture-A-SYNTHETIC-last-rx.png": {
+    "sha256": "28dcc737498457456b0f3f957cd89eadb34d110da7dfe40cd4047de68609e8f9",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/A-SYNTHETIC-last-rx.png"
+  },
+  "singularity-rpc-console-final-fixture-A-SYNTHETIC-outcome.png": {
+    "sha256": "ba6a718404bd8f54d8d45f258b83595e6ba7700c31beb3f6c40ba90fb13bf13f",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/A-SYNTHETIC-outcome.png"
+  },
+  "singularity-rpc-console-final-fixture-A-SYNTHETIC-radio-fault.png": {
+    "sha256": "8683cc3a9454475b410293c380868f9999ba3d4800d6ed91fbd5ecece0d21e79",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/A-SYNTHETIC-radio-fault.png"
+  },
+  "singularity-rpc-console-final-fixture-A-SYNTHETIC-reply.png": {
+    "sha256": "df1d5087615b467080b7df20d364a5ec86cf58ce25d06e2bee37f503d2c8d8b6",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/A-SYNTHETIC-reply.png"
+  },
+  "singularity-rpc-console-final-fixture-A-SYNTHETIC-times.png": {
+    "sha256": "f5b8cbf1386f85044abdd61f1e61d7eac2b6937cb6fdabe410d7d29780d5b7b3",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/A-SYNTHETIC-times.png"
+  },
+  "singularity-rpc-console-final-fixture-A-SYNTHETIC-unbound.png": {
+    "sha256": "242878cacb18fb7ece3e4e41e3aacebfbc365bc93298bcd3101c09d1bddef7d1",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/A-SYNTHETIC-unbound.png"
+  },
+  "singularity-rpc-console-final-fixture-A-SYNTHETIC-unknown-led.png": {
+    "sha256": "0bd5bc1d6be91a79ccda64dd2a6ae74380479bf82d3990390a96ef9002a5c733",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/A-SYNTHETIC-unknown-led.png"
+  },
+  "singularity-rpc-console-final-fixture-B-SYNTHETIC-dashboard.png": {
+    "sha256": "f80f214d9a7cd7811bfa2f6ed73b2f3fcbbb5df91e602570659e5f054a2e5096",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/B-SYNTHETIC-dashboard.png"
+  },
+  "singularity-rpc-console-final-fixture-B-SYNTHETIC-history.png": {
+    "sha256": "73517360cf8bac9143478eeea193a2c36c4bfdcb41387d4e34bb0a0c3d1756fc",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/B-SYNTHETIC-history.png"
+  },
+  "singularity-rpc-console-final-fixture-B-SYNTHETIC-identity.png": {
+    "sha256": "964e9a882f95d973b3c31655ab9c265b51f66a4543ac628aa2618dedb1c69572",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/B-SYNTHETIC-identity.png"
+  },
+  "singularity-rpc-console-final-fixture-B-SYNTHETIC-keyboard-fault.png": {
+    "sha256": "fec120b41ea5a6c82d965f4c97c5d90abded1042500de672aa4c1f389fd5e813",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/B-SYNTHETIC-keyboard-fault.png"
+  },
+  "singularity-rpc-console-final-fixture-B-SYNTHETIC-last-rx.png": {
+    "sha256": "28dcc737498457456b0f3f957cd89eadb34d110da7dfe40cd4047de68609e8f9",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/B-SYNTHETIC-last-rx.png"
+  },
+  "singularity-rpc-console-final-fixture-B-SYNTHETIC-outcome.png": {
+    "sha256": "ba6a718404bd8f54d8d45f258b83595e6ba7700c31beb3f6c40ba90fb13bf13f",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/B-SYNTHETIC-outcome.png"
+  },
+  "singularity-rpc-console-final-fixture-B-SYNTHETIC-radio-fault.png": {
+    "sha256": "8683cc3a9454475b410293c380868f9999ba3d4800d6ed91fbd5ecece0d21e79",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/B-SYNTHETIC-radio-fault.png"
+  },
+  "singularity-rpc-console-final-fixture-B-SYNTHETIC-reply.png": {
+    "sha256": "df1d5087615b467080b7df20d364a5ec86cf58ce25d06e2bee37f503d2c8d8b6",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/B-SYNTHETIC-reply.png"
+  },
+  "singularity-rpc-console-final-fixture-B-SYNTHETIC-times.png": {
+    "sha256": "f5b8cbf1386f85044abdd61f1e61d7eac2b6937cb6fdabe410d7d29780d5b7b3",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/B-SYNTHETIC-times.png"
+  },
+  "singularity-rpc-console-final-fixture-B-SYNTHETIC-unbound.png": {
+    "sha256": "242878cacb18fb7ece3e4e41e3aacebfbc365bc93298bcd3101c09d1bddef7d1",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/B-SYNTHETIC-unbound.png"
+  },
+  "singularity-rpc-console-final-fixture-B-SYNTHETIC-unknown-led.png": {
+    "sha256": "0bd5bc1d6be91a79ccda64dd2a6ae74380479bf82d3990390a96ef9002a5c733",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/B-SYNTHETIC-unknown-led.png"
+  },
+  "singularity-rpc-console-final-provenance.json": {
+    "sha256": "99a3fce8c85b50b66954a6de5a9e5ed2d2675ce952d3ec031b52b44fe00a23f9",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/93-p5-provenance.json"
+  },
+  "singularity-rpc-console-final-faults.json": {
+    "sha256": "abe82886865cadd314914ac35b143b20fdeed26745810939ab206e4d48274ed1",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/89-p5-final-physical-faults/results.json"
+  },
+  "singularity-rpc-console-final-normal-calls.json": {
+    "sha256": "3f397c942cbc2757888142cc426f709cec2630f87351f7c2b9184622d8e281c6",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/90-p5-final-console-rpc/results.json"
+  },
+  "singularity-rpc-console-final-readback.json": {
+    "sha256": "6abfbe0bddcf97904571bebbea96be9718f7096c8af9f02ff750f56666053a0b",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/90-p5-final-console-rpc/console-results.json"
+  },
+  "singularity-rpc-console-final-fixtures.json": {
+    "sha256": "94a0dbd2c744e532055f90582111482f78093eafea94d69f31853dca701c9e51",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/85-p5-extreme-fixtures/fixtures.json"
+  },
+  "singularity-rpc-console-final-ownership.json": {
+    "sha256": "9c49bde5132b746cdb10105508a434a09be1d7b9ec4aa2b3fc2433a2c2bd120b",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/88-p5-live-ownership/live-ownership.json"
+  },
+  "singularity-rpc-console-final-holds.json": {
+    "sha256": "6cb44e405484d61550d2255e2d808429db196a310593b487245051ff182cbbc7",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/94-p5-operator-long-hold/capture.json"
+  },
+  "singularity-rpc-console-final-hold-A.txt": {
+    "sha256": "b184171fd699db4c4e740a7681744f0ff27e00cf8d963ad2d6519fc4ddb308ca",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/94-p5-operator-long-hold/A.txt"
+  },
+  "singularity-rpc-console-final-hold-B.txt": {
+    "sha256": "b2866165bccf6547d856e1f5d625c4fac50c51db4ba1db9cb5c1fba9f7a55614",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/analysis/94-p5-operator-long-hold/B.txt"
+  },
+  "singularity-rpc-console-final-overview.png": {
+    "sha256": "c7b2e4b0048e4e1611e6205cf034c66d0c469e84e2d021d8e00e6c2c7ee400ad",
+    "source": "ImageMagick montage of preserved source frames",
+    "inputs": [
+      "singularity-rpc-console-final-view-A-dashboard.png",
+      "singularity-rpc-console-final-view-B-led-details.png",
+      "singularity-rpc-console-final-view-A-activity.png",
+      "singularity-rpc-console-final-view-B-last-rx.png"
+    ]
+  },
+  "singularity-rpc-console-final-ownership-montage.png": {
+    "sha256": "46f7355348049fa395e2809622625ce2b2a362b7f9161d8ac90cdec34afe80ca",
+    "source": "ImageMagick montage of preserved source frames",
+    "inputs": [
+      "singularity-rpc-console-final-owner-A-armed-allowance.png",
+      "singularity-rpc-console-final-owner-A-requested-unconfirmed.png",
+      "singularity-rpc-console-final-owner-A-stopped-call-resolving.png",
+      "singularity-rpc-console-final-owner-A-unknown-owner-busy.png",
+      "singularity-rpc-console-final-owner-B-armed-allowance.png",
+      "singularity-rpc-console-final-owner-B-requested-unconfirmed.png",
+      "singularity-rpc-console-final-owner-B-stopped-call-resolving.png",
+      "singularity-rpc-console-final-owner-B-unknown-owner-busy.png"
+    ]
+  },
+  "singularity-rpc-console-final-fixture-montage.png": {
+    "sha256": "ca108d581ab5043cf01bab2f93f8f6ce479b1a0a697e63683360037309dfce61",
+    "source": "ImageMagick montage of preserved source frames",
+    "inputs": [
+      "singularity-rpc-console-final-fixture-A-SYNTHETIC-identity.png",
+      "singularity-rpc-console-final-fixture-A-SYNTHETIC-last-rx.png",
+      "singularity-rpc-console-final-fixture-B-SYNTHETIC-radio-fault.png",
+      "singularity-rpc-console-final-fixture-B-SYNTHETIC-keyboard-fault.png"
+    ]
+  },
+  "singularity-rpc-console-final-evidence.json": {
+    "sha256": "ca7ed0570fbf1ca215de0ab90765281b0ea58510867b071b8b6e2d1a899c03de",
+    "source": "retained provenance and operator acceptance"
+  },
+  "singularity-rpc-console-final-figures.py": {
+    "sha256": "7ad56b63959e43112044d5e3b06dea69514d1782fabbaaee08815dfbe44033a7",
+    "source": "ttmp/2026/09/06/SINGULARITY-RPC-UI--interactive-cardputer-rpc-console/scripts/13-rebuild-final-figures.py"
+  }
+}

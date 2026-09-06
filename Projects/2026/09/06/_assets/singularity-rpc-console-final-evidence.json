@@ -1,0 +1,9 @@
+{
+  "source_revision": "4a2b46079d644fd7fd86e36eaded0afa7d0cc77c",
+  "image_sha256": "7c6d2b302698cfdab24c2b8f9d26ebbfc0a05d3d6dbcd95ac6741c8a7b7185cf",
+  "image_bytes": 421424,
+  "matched_source_inputs": 64,
+  "operator_readability_accepted": true,
+  "p5_done_acknowledgement": "2026-09-06T23:23:29Z",
+  "scope": "Accepted experimental console, not production authentication/RF compliance"
+}
