@@ -1,0 +1,216 @@
+{
+  "kind": "source-rendered reference images, not hardware captures",
+  "native_size": [
+    240,
+    135
+  ],
+  "export_scale": 4,
+  "scaling": "nearest-neighbor",
+  "m5gfx_version": "0.2.27",
+  "explicit_palette_equivalence_checked": true,
+  "source_sha256": "a72230214ad9d87d4830c482ed098a0ea0bbc56677866e6ca319663f8961ed9b",
+  "identity_source_sha256": "e7cbbeacae542cac20d2dcb484bfccc298146499ee2a78b0f1b41564d1ce784b",
+  "font2_advance_widths": {
+    "SINGULARITY RPC": "109",
+    "RPC READY / SERVING": "141",
+    "USB: ARM TO TEST": "119",
+    "RADIO FAULT": "81",
+    "A": "8",
+    "B": "8"
+  },
+  "raster_colors": {
+    "disarmed-a": {
+      "background_rgb": [
+        8,
+        16,
+        33
+      ],
+      "header_rgb": [
+        33,
+        170,
+        214
+      ],
+      "bar_right_rgb": [
+        49,
+        109,
+        156
+      ],
+      "badge_rgb": [
+        49,
+        203,
+        239
+      ]
+    },
+    "fault-a": {
+      "background_rgb": [
+        8,
+        16,
+        33
+      ],
+      "header_rgb": [
+        33,
+        170,
+        214
+      ],
+      "bar_right_rgb": [
+        49,
+        109,
+        156
+      ],
+      "badge_rgb": [
+        49,
+        203,
+        239
+      ]
+    },
+    "live-b": {
+      "background_rgb": [
+        8,
+        16,
+        33
+      ],
+      "header_rgb": [
+        33,
+        170,
+        214
+      ],
+      "bar_right_rgb": [
+        49,
+        109,
+        156
+      ],
+      "badge_rgb": [
+        206,
+        138,
+        255
+      ]
+    },
+    "sim-pass": {
+      "background_rgb": [
+        8,
+        16,
+        33
+      ],
+      "header_rgb": [
+        33,
+        170,
+        214
+      ],
+      "bar_right_rgb": [
+        49,
+        203,
+        239
+      ],
+      "badge_rgb": [
+        49,
+        203,
+        239
+      ]
+    },
+    "startup": {
+      "background_rgb": [
+        8,
+        16,
+        33
+      ],
+      "header_rgb": [
+        33,
+        170,
+        214
+      ],
+      "bar_right_rgb": [
+        49,
+        109,
+        156
+      ],
+      "badge_rgb": [
+        49,
+        203,
+        239
+      ]
+    },
+    "unknown": {
+      "background_rgb": [
+        8,
+        16,
+        33
+      ],
+      "header_rgb": [
+        33,
+        170,
+        214
+      ],
+      "bar_right_rgb": [
+        49,
+        109,
+        156
+      ],
+      "badge_rgb": [
+        255,
+        203,
+        82
+      ]
+    },
+    "waiting-a": {
+      "background_rgb": [
+        8,
+        16,
+        33
+      ],
+      "header_rgb": [
+        33,
+        170,
+        214
+      ],
+      "bar_right_rgb": [
+        49,
+        109,
+        156
+      ],
+      "badge_rgb": [
+        49,
+        203,
+        239
+      ]
+    }
+  },
+  "compile_command": [
+    "g++",
+    "-std=c++17",
+    "-O2",
+    "-ffunction-sections",
+    "-fdata-sections",
+    "-I<M5GFX_SRC>",
+    "<TEMP>/render.cpp",
+    "<M5GFX_SRC>/lgfx/v1/LGFXBase.cpp",
+    "<M5GFX_SRC>/lgfx/v1/LGFX_Sprite.cpp",
+    "<M5GFX_SRC>/lgfx/v1/lgfx_fonts.cpp",
+    "<M5GFX_SRC>/lgfx/v1/misc/pixelcopy.cpp",
+    "<M5GFX_SRC>/lgfx/v1/misc/SpriteBuffer.cpp",
+    "<M5GFX_SRC>/lgfx/v1/misc/DividedFrameBuffer.cpp",
+    "<M5GFX_SRC>/lgfx/v1/misc/common_function.cpp",
+    "<M5GFX_SRC>/lgfx/v1/platforms/sdl/common.cpp",
+    "-Wl,--gc-sections",
+    "-pthread",
+    "-I/usr/include/SDL2",
+    "-D_REENTRANT",
+    "-lSDL2",
+    "-o",
+    "<TEMP>/render"
+  ],
+  "compiled_library_sources_sha256": {
+    "lgfx/v1/LGFXBase.cpp": "c9bff4ce17f1e2127bf708ad6ebc9d10b4ac7bfed557340811cfea61769f9918",
+    "lgfx/v1/LGFX_Sprite.cpp": "e928796c594638f9fa073cd46594340a0650e095a880300ed09363b17e5c13d5",
+    "lgfx/v1/lgfx_fonts.cpp": "e62da213635d8c295a00eb3146190099113225cd660469318f83ae4c2ae290b4",
+    "lgfx/v1/misc/pixelcopy.cpp": "e2055c83d1ad38bf66708d2159df26eb95be3b843f98b9447dcaae7203ff04f7",
+    "lgfx/v1/misc/SpriteBuffer.cpp": "ff05316c7703520a19feacd11fc850dec8f4cfa123082ce0ff5ff38899fccbd3",
+    "lgfx/v1/misc/DividedFrameBuffer.cpp": "54dd2ddc2a43dd04481d5f9b48bf8dcc3c090e520ce74982cfe2274b263b2464",
+    "lgfx/v1/misc/common_function.cpp": "7909f30e675ff30b208d79b7d0e9d64bcc7a6b38711f2499ef37d25b152148fc",
+    "lgfx/v1/platforms/sdl/common.cpp": "69b00f891e0b3075e4bed553e4b9ecbdf4647978ee4b76403edd4558c3bfcac8"
+  },
+  "font_headers_sha256": {
+    "lgfx/Fonts/glcdfont.h": "f11beeaa06b8eb7605e9192636bbe6f9f810f7281aa24406f26109a7011e9ceb",
+    "lgfx/Fonts/Font16.h": "da5a3842c8a2c017925fa5bad9b2b7ad7ceaf887dfd818db749411d6ababd874"
+  },
+  "component_manifest_sha256": "1681a68db8b2ecff85220a8f9863b9933d11a1399fba708e77e00e962374622d"
+}

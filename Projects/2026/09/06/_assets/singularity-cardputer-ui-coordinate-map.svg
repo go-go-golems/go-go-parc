@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1280" height="640" viewBox="0 0 1280 640">
+<rect width="1280" height="640" fill="#ffffff"/>
+<g font-family="sans-serif" fill="#172b42">
+<text x="35" y="35" font-size="24">Cardputer dashboard: device-pixel coordinate map</text>
+<image xlink:href="data:image/png;base64,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" x="60" y="90" width="720" height="405"/>
+<text x="60" y="78" text-anchor="middle" font-size="12">0</text>
+<text x="240" y="78" text-anchor="middle" font-size="12">60</text>
+<text x="420" y="78" text-anchor="middle" font-size="12">120</text>
+<text x="600" y="78" text-anchor="middle" font-size="12">180</text>
+<text x="777" y="78" text-anchor="middle" font-size="12">239</text>
+<text x="50" y="94" text-anchor="end" font-size="12">0</text>
+<text x="50" y="163" text-anchor="end" font-size="12">23</text>
+<text x="50" y="214" text-anchor="end" font-size="12">40</text>
+<text x="50" y="250" text-anchor="end" font-size="12">52</text>
+<text x="50" y="313" text-anchor="end" font-size="12">73</text>
+<text x="50" y="349" text-anchor="end" font-size="12">85</text>
+<text x="50" y="379" text-anchor="end" font-size="12">95</text>
+<text x="50" y="418" text-anchor="end" font-size="12">108</text>
+<text x="50" y="460" text-anchor="end" font-size="12">122</text>
+<text x="50" y="496" text-anchor="end" font-size="12">134</text>
+<path d="M784 126 H808" stroke="#70859b"/>
+<text x="820" y="131" font-size="14">Header: (0,0), 240 x 23; badge: (207,2), 28 x 19</text>
+<path d="M784 180 H808" stroke="#70859b"/>
+<text x="820" y="185" font-size="14">MAC: (7,27); radio badge: (158,27)</text>
+<path d="M784 219 H808" stroke="#70859b"/>
+<text x="820" y="224" font-size="14">Mode: (7,40); RF state: (162,40)</text>
+<path d="M784 267 H808" stroke="#70859b"/>
+<text x="820" y="272" font-size="14">Stage: (7,52), Font2 / 16-pixel line height</text>
+<path d="M784 321 H808" stroke="#70859b"/>
+<text x="820" y="326" font-size="14">Call count: (7,73), Font0 / 6-pixel advance</text>
+<path d="M784 351 H808" stroke="#70859b"/>
+<text x="820" y="356" font-size="14">Progress: (7,85), width 226, height 4</text>
+<path d="M784 384 H808" stroke="#70859b"/>
+<text x="820" y="389" font-size="14">Results: (7,95) and (117,95)</text>
+<path d="M784 423 H808" stroke="#70859b"/>
+<text x="820" y="428" font-size="14">Identity / service counters: (7,108)</text>
+<path d="M784 465 H808" stroke="#70859b"/>
+<text x="820" y="470" font-size="14">Peer observation: (7,122)</text>
+<text x="60" y="550" font-size="17">Native canvas: 240 x 135. Diagram enlarged 3x; coordinates remain native pixels.</text>
+<text x="60" y="583" font-size="15">Source-rendered reference, not a physical board capture. Fixed origins; no responsive layout.</text>
+</g></svg>
