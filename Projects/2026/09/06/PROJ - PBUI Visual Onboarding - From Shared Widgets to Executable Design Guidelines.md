@@ -13,6 +13,8 @@ tags:
 status: implemented
 type: project
 created: 2026-09-06
+updated: 2026-09-06
+follow_up_ticket: PBUI-STYLE-002
 project_date: 2026-09-01
 repo: /home/manuel/workspaces/2026-09-01/add-plot-editor/pbui
 ticket: PBUI-VISUAL-1
@@ -25,7 +27,9 @@ A design system becomes useful to a new developer when it explains which compone
 The work followed the TTC SQL interface refactor. That feature had been adapted to Turboproof and Datalab references by adopting PBUI controls, syntax-aware editing, tokenized table geometry and Storybook fixtures. The implementation succeeded, but it also showed how much a new developer had to infer from source and historical reports. The resulting documentation audit is recorded in [[PROJ - TTC SQL UI Refactor - Matching PBUI Through Components Tokens and Visual Evidence]]. This report describes the subsequent implementation: current guides, reconciled existing documentation, a native workbench example, automated checks and ticket-owned visual evidence.
 
 > [!summary]
-> PBUI now has a single visual-onboarding entry point, four connected guides, revised application/package guidance and a compiled nine-story example. The example uses shared widgets and the native shell rather than copied chrome. Tests cover documentation targets and basic interaction; browser review caught and corrected a real theme-wrapper layout defect. Eleven original screenshots remain in PBUI-VISUAL-1, with selected copies embedded here.
+> **Original onboarding checkpoint:** PBUI has a single visual-onboarding entry point, four connected guides, revised application/package guidance and a compiled nine-story example. The example uses shared widgets and the native shell rather than copied chrome. Tests cover documentation targets and basic interaction; browser review caught and corrected a real theme-wrapper layout defect. Eleven original screenshots remain in PBUI-VISUAL-1, with selected copies embedded here.
+>
+> **Styling follow-up, completed September 6 locally / September 7 UTC:** PBUI-STYLE-002 applied those contracts to inspectors, sandbox devtools, chat references/cards, operational tiles and select controls. All three phases are committed locally, with 2,479 passing tests, browser acceptance, 35 ticket-owned captures and seven verified physical print receipts. Sections 12–17 describe this implementation; the earlier account remains historical.
 
 ## 1. Define the contracts that produce a consistent interface
 
@@ -298,7 +302,7 @@ The implementation repository is `/home/manuel/workspaces/2026-09-01/add-plot-ed
 - **`f450189`** — current onboarding documentation, reconciled guides/READMEs, compiled example, tests and screenshots.
 - **`bdc2dca`** — diary validation, ticket-owned capture catalogue metadata and related-file cleanup.
 
-Those application-repository commits were not pushed as part of this documentation task. The publication requested here is this new go-go-parc report and its self-contained images. Earlier parc reports remain unchanged.
+Those application-repository commits were not pushed as part of the original documentation task. They were subsequently pushed at the user's request: the remote branch was verified at `bdc2dca` during this update. The newer styling checkpoints in section 17 remain local. This report and its self-contained images are published separately through go-go-parc.
 
 For review, follow this order:
 
@@ -328,3 +332,137 @@ The completed onboarding path deliberately begins without domain ports, a produc
 Other useful follow-ups are a clean published workbench consumer check, broader portal-theme coverage, and additional browser/accessibility regression tests. Existing product-specific styling compromises, including the SQL feature’s combined stylesheet and older RAG-specific status/detail wrappers, were not changed by this documentation work. Their existence does not invalidate the shared guidance; it prevents the guidance from presenting every existing consumer as a perfect template.
 
 The durable result is a concrete adoption sequence: load the documented styles, inherit semantic defaults, select widgets whose behavior fits, separate controllers from panels, give those panels bounded hosts, expose meaningful states, and verify both gestures and geometry. The compiled example and ticket evidence make that sequence inspectable. Future developers can now begin with the current contract rather than reconstructing it from several applications and historical notes.
+
+## 12. Follow-up: apply the guidelines to existing PBUI components
+
+The onboarding work established an adoption procedure. PBUI-STYLE-002 tested that procedure against existing components whose visual recipes had diverged or whose behavior at small widths was insufficiently exercised. The scope was specific: coordination and sandbox inspectors, neighboring REPL/timeline tools, chat object references, generated notices, proposal/tool cards, operational panels and select controls. This was not a replacement of the underlying application runtimes.
+
+The work followed three implementation phases. P1 addressed inspector/devtool density and bounded controls. P2 addressed shared reference bodies, card composition and severity. P3 addressed operational rows and select consistency, followed by cross-package acceptance. The overall plan and each phase's START/DONE were physically printed; receipts are retained independently from the generated layouts. A detailed diary records both the implementation and a session interruption during validation.
+
+The important methodological change was to promote candidates into confirmed defects only after examining their rendered behavior. A literal font size or local grid is a reason to investigate, not proof that a component is wrong. Narrow synthetic fixtures supplied stronger evidence: several operational rows exceeded their available width, and the REPL's textarea exceeded its own container despite using a shared component.
+
+## 13. Inspector density and the shared textarea boundary
+
+CoordinationInspector already used TileHeader and AppBody, but its internal tables maintained separate 12px/11px typography, literal gaps and locally mixed border colours. The pass moved those regions onto the shared small/tiny scale, SectionLabel headings and hair/grid border roles. Fixed-layout tables wrap long labels within their allocated columns. The native link facts and visible show-wiring action remain intact, with new tests covering the linked and empty states.
+
+Sandbox InspectorTile now delegates its scrolling content to AppBody. Its tree rows use the shared square radius and a neutral edge for the current cross-view hover target. That target is not a persisted selection: hovering an outline node highlights the corresponding rendered node in the program tile. Using the durable selection treatment would misstate the interaction. Timeline and REPL separators now use the internal-grid border role.
+
+The first narrow captures exposed a separate shared-control defect. TextArea declared `width: 100%` without `box-sizing: border-box`. Its declared width therefore described the content box; padding and borders were added outside that width. The escaping textarea created horizontal scrolling in the REPL, even though the REPL's own flex layout had zero minimum dimensions.
+
+![Intermediate failure: narrow devtools before the rebuilt textarea correction](_assets/pbui-style002-devtools-narrow-before-textarea-fix.png)
+
+The correction belongs in TextArea, not in a parent rule that hides overflow:
+
+```css
+.root {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+```
+
+A first downstream Storybook rebuild still displayed the defect. Sandbox consumed core's built distribution rather than the edited source file, so rebuilding sandbox alone did not include the correction. Rebuilding core first, then sandbox, changed the narrow REPL from 278px client width / 284px scroll width to 278/278. Its final height and scroll height also matched at 318px.
+
+![Corrected narrow devtools, after firing the running Counter's increment action](_assets/pbui-style002-devtools-narrow.png)
+
+The Counter increment in this capture is a real operation in the local synthetic eval-engine fixture. It establishes that the style pass did not replace the program with a static drawing. It does not establish anything about a production program or backend. The final coordination fixture similarly measured 275×454px with matching scroll dimensions after the shared dependencies were rebuilt.
+
+## 14. Reference bodies, interactive cards and severity
+
+A reference wrapper owns more than its visual body. Chat's RefPresentation lifts the wire reference into the product presentation system, supplies documentation, and records focus for subsequent message context. Replacing the entire wrapper to obtain a Chip would discard those responsibilities. Replacing every child with ObjectChip would introduce a different problem: arbitrary JSX and block content are not ordinary object labels.
+
+The implementation changes only the default inline body. Its control flow is equivalent to:
+
+```tsx
+if (!block && children == null) {
+  return <ObjectChip {...forwardedPresentationProps} badge={badge}>
+    {chat.labelFor(reference)}
+  </ObjectChip>;
+}
+return <Presentation {...forwardedPresentationProps} block={block}>
+  {children ?? chat.labelFor(reference)}
+</Presentation>;
+```
+
+Both branches remain inside the original focus-capture wrapper. The forwarded props retain the converted reference, documentation, class, activation and test identifier. Supplying the existing wire label as ObjectChip text preserves chat's label resolution while allowing the product presentation to own its tone. Composer, watchlist and widget reference collections now use this path instead of independently reconstructing a Chip and its tone. A badge preserves their type metadata.
+
+Regression tests establish that pointer focus and keyboard focus still update the chat store, click and Enter each invoke the host activation once, and custom inline/block bodies remain unchanged. This is a stronger adoption criterion than checking that a screenshot contains a small bordered label.
+
+ProposalCard now composes one Surface, a Toolbar header and KeyValueList facts. Its previous extra wrapper and private definition-list recipe were removed. ToolCard also uses Surface and Toolbar. A proposal remains an interactive group with controlled decision callbacks; it was deliberately not converted into a Callout merely to reuse a similar border. Live-region semantics would be a behavioral change unrelated to its visual appearance.
+
+![Narrow proposal with a long receipt and an exact decimal string](_assets/pbui-style002-proposal-narrow.png)
+
+The proposal tests preserve the exact display string `9007199254740993.00`, verify both approve and reject callbacks, and confirm that an already-decided card disables both buttons with their existing reasons. A browser click on the seeded pending proposal also produced the disabled approved state. These checks concern the controlled UI, not backend approval authorization.
+
+Generated sandbox notices contained a semantic defect: both warning and danger mapped to the shared warning Callout. Danger now retains its danger variant and `role="alert"`. The boundary still translates the sandbox wire vocabulary into core vocabulary; it does not make the two schemas identical.
+
+| Sandbox value | Core variant | Rendered role |
+|---|---|---|
+| omitted or `neutral` | `info` | `status` |
+| `positive` | `ok` | `status` |
+| `warning` | `warning` | `status` |
+| `danger` | `danger` | `alert` |
+
+![Generated notice matrix: neutral, positive, warning and danger](_assets/pbui-style002-generated-severities.png)
+
+The first fixture incorrectly supplied core's `info` as a wire value. Typecheck rejected it. The fixture was corrected to `neutral`; the public wire contract was not widened to accommodate a test mistake.
+
+## 15. Dense operational rows must preserve field identity
+
+The operational baseline used 280px outer frames with real seeded chat stores and local debug events. Long identifiers were intentional. They made intrinsic-size constraints visible rather than allowing short demonstration labels to conceal them.
+
+| Region | Baseline client / scroll width | Final narrow client / scroll width |
+|---|---:|---:|
+| Trace row | 278 / 376px | 278 / 278px |
+| Runs row | 270 / 378px | 270 / 270px |
+| Events row | 270 / 687px | 270 / 270px |
+| Tools row | 270 / 460px | 270 / 270px |
+
+These are measurements of the deliberately awkward rows, not a claim that every baseline row overflowed. The final browser script checks both seeded rows in each panel at wide and narrow widths.
+
+![Trace baseline: narrow geometry and a missing target disturb the row layout](_assets/pbui-style002-trace-narrow-before.png)
+
+TracePanel had an additional structural problem. Its target child was conditional, but the row relied on implicit grid placement. When no target existed, subsequent children occupied different columns. The fix introduces stable named areas and an explicit no-target cell. Missing data now changes the cell's content, not the identity of neighboring fields.
+
+Below a 420px container width, the trace moves to a compact arrangement. A rejected row gets a full-width explanation instead of forcing the reason into a narrow ellipsis. The query responds to the tile's width rather than the overall browser viewport. Ordering and limit behavior are unchanged and tested.
+
+![Corrected trace: stable field placement and the full rejection explanation](_assets/pbui-style002-trace-narrow-after.png)
+
+Runs and tools use two-line metadata layouts. The Runs implementation had already intended two lines, but a spanning numbers cell displaced the duration into another row; explicit placement restores the intended relationship. Tool names and errors can wrap, while status and duration keep their own positions. Events also allow long identifiers to wrap. Metadata intentionally kept as an ellipsis retains its full title and underlying reference behavior.
+
+The browser acceptance did more than measure boxes. It filtered ToolsTile to failed calls, opened the native input/result disclosure, and verified the exact string `9007199254740993.00` inside it. This guards against a visually tidy change that silently drops detail or transforms values.
+
+## 16. Match control appearance without replacing native interaction
+
+SelectInput's framed variant and the global unclassed-select skin previously used different geometry. The global skin had a custom chevron and reserved padding; the component used a different framed recipe. The pass centralizes the chevron image and line height in shared tokens and gives the framed control matching padding, border and focus treatment.
+
+The explicit `native` variant still uses platform chrome. Both variants remain actual SELECT elements; no custom popup, option-navigation state machine or keyboard implementation was introduced. A disabled background shorthand was changed to background-color so disabling a framed select does not erase its arrow image.
+
+![Global, framed, native and disabled-framed select variants](_assets/pbui-style002-select-after.png)
+
+In the Linux Chromium fixture, global and framed controls both measured 62×18.796875px, with identical padding, background image and appearance. Native intentionally differed. ArrowDown followed by Enter selected `writer` in the controlled framed example. Under emulated forced-colors, both skinned controls switched to `appearance: auto` and removed the custom image, restoring the platform arrow.
+
+The image token is not automatically recoloured by CSS text ink. A product with a custom pane palette can override `--pbui-select-chevron`. This is an explicit theming boundary, not a claim that one successful palette test certifies every theme or operating system.
+
+## 17. Completed checkpoints, evidence and remaining limits
+
+The styling implementation is complete in PBUI-STYLE-002:
+
+- **`cf4cf5a`** — inspector density, devtool boundaries and shared TextArea sizing.
+- **`5e4970e`** — ObjectChip adoption, shared card composition and semantic notices.
+- **`46e3a30`** — bounded operational rows and framed-select parity.
+- **`509bce4`** — final diary, validation logs, capture catalogue, evidence audit and physical receipts.
+
+The ticket lives at:
+
+`ttmp/2026/09/06/PBUI-STYLE-002--align-inspector-chat-and-generated-widgets-with-pbui-visual-contracts/`
+
+Root typecheck and **870 tests in 52 files** passed. Ten workspace suites passed another **1,609 tests**, including 605 Datalab, 249 chat, 229 sandbox and 139 workbench tests. The combined count is **2,479**; it is not a count of browser assertions or Go tests. Recursive workspace typechecks and production builds passed, as did core/chat/sandbox/workbench Storybook builds. A separate nine-test documentation guard rerun validated the updated guide links.
+
+The ticket's browser script is `scripts/01-browser-acceptance.js`. It verifies two rows per operational fixture at each width, filtered tool disclosure, exact input text, native keyboard selection, forced-colors fallback, and final coordination/REPL bounds. The capture catalogue script records 35 original PNGs with source-state labels, dimensions, hashes and loopback story URLs. Its timestamps are filesystem-mtime proxies, not embedded immutable provenance. All seven figures added in this report update are byte-identical copies of selected ticket originals; the earlier seven onboarding images remain unchanged.
+
+A final evidence audit verified **35 capture hashes, seven successful physical print receipts and 92 local Markdown targets**. Each print receipt records HTTP 200, actual printing and printer acknowledgment. The final P3 DONE receipt is timestamped **2026-09-07T01:50:51Z**. All ticket tasks are checked, its status is complete, and docmgr doctor passes for this new ticket. These results are separate from the older PBUI-VISUAL-1 filename warnings described above.
+
+The remaining limitations are explicit. Browser acceptance is local Chromium/Linux with synthetic data and emulated forced-colors, not Safari coverage, native Windows high-contrast certification, complete accessibility testing, backend authorization or a clean published-consumer installation. The static chat fixtures attempt session-metadata PATCH requests and receive 501; auto-connect disabled does not mean network-silent. Favicon 404s and large-chunk warnings in the demo builds remain documented rather than suppressed.
+
+The new styling commits have not been pushed; the remote PBUI branch was verified at `bdc2dca`. Publishing this updated vault report does not publish those source commits. The next useful engineering work is therefore separate from this completed pass: broaden browser/portal-theme coverage, isolate metadata persistence when network-silent stories are required, and validate a fresh published consumer. The implemented changes already demonstrate the main principle: adopt shared behavior and visual contracts together, then verify their actual geometry under constrained inputs.
