@@ -16,6 +16,7 @@ project_date: 2026-09-01
 repo: /home/manuel/workspaces/2026-09-01/add-plot-editor/rag-ttc
 related_repo: /home/manuel/workspaces/2026-09-01/add-plot-editor/pbui
 ticket: TTC-SQL-001
+publish: false
 ---
 
 # Matching PBUI Through Components, Tokens and Visual Evidence

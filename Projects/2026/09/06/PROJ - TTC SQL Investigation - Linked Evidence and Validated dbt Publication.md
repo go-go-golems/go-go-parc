@@ -14,6 +14,7 @@ created: 2026-09-06
 project_date: 2026-09-01
 repo: /home/manuel/workspaces/2026-09-01/add-plot-editor/rag-ttc
 ticket: TTC-SQL-001
+publish: false
 ---
 
 # TTC SQL Investigation: Linked Evidence and Validated dbt Publication

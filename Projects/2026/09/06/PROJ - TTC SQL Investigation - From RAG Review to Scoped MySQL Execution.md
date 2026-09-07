@@ -19,6 +19,7 @@ related_repositories:
   - /home/manuel/code/gec/coinvault
   - /home/manuel/workspaces/2026-09-01/add-plot-editor/pbui
 implementation_checkpoint: P0–P3 complete; P4 not started
+publish: false
 ---
 
 # TTC SQL Investigation: From RAG Review to Scoped MySQL Execution
