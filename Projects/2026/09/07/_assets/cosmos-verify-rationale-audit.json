@@ -1,0 +1,673 @@
+{
+  "reviewer": "assistant visual audit",
+  "scope": "Final rationale only; classifications are manually assigned after reading each response against RGB evidence.",
+  "complete": true,
+  "rows": [
+    {
+      "index": 0,
+      "case_id": "dv-dad43880b6994056-0",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the supplied frame. Red refrigerator: both door panels are seated; upper front face and frame relationship are inspectable.",
+      "rationale": "The refrigerator door is visibly seated against its frame with no visible gap or displacement, indicating it is closed.",
+      "result_sha256": "24ecfeed6757a9ed1ffed7ed136db16599880dc7786292fb3b97cde722d93adf"
+    },
+    {
+      "index": 1,
+      "case_id": "dv-dad43880b6994056-14",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the supplied frame. Red refrigerator: both door panels are seated; upper front face and frame relationship are inspectable.",
+      "rationale": "The refrigerator door is visibly seated against its frame with no visible gap or displacement, indicating it is closed.",
+      "result_sha256": "86fc0ad3fd0101e4c78f0d6af4b137011de4da884a5ee25b0b9bd03c1c852b7f"
+    },
+    {
+      "index": 2,
+      "case_id": "dv-dad43880b6994056-28",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the supplied frame. Red refrigerator: both door panels are seated; upper front face and frame relationship are inspectable. Actor overlaps part of the appliance, but the upper door remains sufficiently visible.",
+      "rationale": "The red fridge's door is visibly seated against its frame with no visible gap or displacement, indicating it is closed.",
+      "result_sha256": "e275ef87692c82cc03a378c3c77fe428fa0aea9d35d6c3787af352852441f9c6"
+    },
+    {
+      "index": 3,
+      "case_id": "dv-dad43880b6994056-38",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the supplied frame. Red refrigerator: both door panels are seated; upper front face and frame relationship are inspectable. Actor overlaps part of the appliance, but the upper door remains sufficiently visible.",
+      "rationale": "The red fridge's door is visibly seated against its frame with no visible gap or displacement, indicating it is closed.",
+      "result_sha256": "c1de47b5c9098c8f63057b191b79df3dfc90176569aa9b5d26797d5be3431292"
+    },
+    {
+      "index": 4,
+      "case_id": "dv-dad43880b6994056-46",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the supplied frame. Red refrigerator: upper door is displaced from its frame; interior opening is visible. The oblique door panel partly covers the cavity, but the opening and displacement are still visible.",
+      "rationale": "The red fridge door is visibly ajar, with a clear gap between the door and the fridge body, exposing the interior opening.",
+      "result_sha256": "b569d1562ef51afb1c7d694ae804fede8216ece26ff0f79e693b43acc0ed8b66"
+    },
+    {
+      "index": 5,
+      "case_id": "dv-dad43880b6994056-49",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the supplied frame. Red refrigerator: upper door is displaced from its frame; interior opening is visible.",
+      "rationale": "The fridge door is visibly displaced from its frame, creating a clear gap that exposes the interior of the fridge.",
+      "result_sha256": "40f3cbdaab3c18a1211ac54d3987ecd3c0c76e4ae0b719a4ada737cfa0081abc"
+    },
+    {
+      "index": 6,
+      "case_id": "dv-dad43880b6994056-52",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the supplied frame. Red refrigerator: upper door is displaced from its frame; interior opening is visible.",
+      "rationale": "The fridge door is visibly displaced from its frame, creating a clear gap that exposes the interior of the fridge.",
+      "result_sha256": "6487059c83129b38a7147df800cd3f55a705c54a56cfc5c9d9ec21457c9e9cc8"
+    },
+    {
+      "index": 7,
+      "case_id": "dv-dad43880b6994056-55",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the supplied frame. Red refrigerator: upper door is displaced from its frame; interior opening is visible.",
+      "rationale": "The fridge door is visibly displaced from its frame, creating a clear gap that exposes the interior of the fridge.",
+      "result_sha256": "b15b2e0f34bc323d3e39788629e4daafe19e009710619db744ca05554cfacc8a"
+    },
+    {
+      "index": 8,
+      "case_id": "dv-50acf4cb570d5c06-10",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the supplied frame. Black refrigerator seen obliquely: the right-facing front panels remain seated against the body; side/front geometry must not be mistaken for an open door.",
+      "rationale": "The fridge door is visibly seated against its frame, with no visible gap or displacement indicating it is open.",
+      "result_sha256": "94148666d7f0522ca66a98c142554635ab49b753806e9c62925ecdba928767d2"
+    },
+    {
+      "index": 9,
+      "case_id": "dv-50acf4cb570d5c06-20",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the supplied frame. Black refrigerator seen obliquely: the right-facing front panels remain seated against the body; side/front geometry must not be mistaken for an open door. Actor is beside or partly overlapping the refrigerator; sufficient front-panel boundary remains inspectable.",
+      "rationale": "The fridge door is visible and seated against its frame, with no visible gap or displacement indicating it is open.",
+      "result_sha256": "48df9ad69ebcf2b76d76173267ddb6b0a4c650fd35b9672b657a055da605b4ce"
+    },
+    {
+      "index": 10,
+      "case_id": "dv-50acf4cb570d5c06-27",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the supplied frame. Black refrigerator seen obliquely: the right-facing front panels remain seated against the body; side/front geometry must not be mistaken for an open door. Actor is beside or partly overlapping the refrigerator; sufficient front-panel boundary remains inspectable.",
+      "rationale": "The fridge door is visibly seated against its frame, with no visible gap or displacement indicating it is open.",
+      "result_sha256": "97ead8d0e59c82defd07297bada2c3dd07ac36fca5295b30d53a665e98855211"
+    },
+    {
+      "index": 11,
+      "case_id": "dv-50acf4cb570d5c06-37",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The rationale describes inspectable door geometry consistent with the source image. Black refrigerator seen obliquely: the right-facing front panels remain seated against the body; side/front geometry must not be mistaken for an open door. Actor is beside or partly overlapping the refrigerator; sufficient front-panel boundary remains inspectable.",
+      "rationale": "The fridge door is visibly seated against its frame with no visible gap or displacement, indicating it is closed.",
+      "result_sha256": "dd40a6bebbedc0d76fada05851afaa6ee57ed13e05ffd0f003a19c7c28f62f40"
+    },
+    {
+      "index": 12,
+      "case_id": "dv-50acf4cb570d5c06-47",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The rationale describes inspectable door geometry consistent with the source image. Black refrigerator seen obliquely: the right-facing front panels remain seated against the body; side/front geometry must not be mistaken for an open door. Actor is beside or partly overlapping the refrigerator; sufficient front-panel boundary remains inspectable.",
+      "rationale": "The fridge door is visibly seated against its frame with no visible gap or displacement, indicating it is closed.",
+      "result_sha256": "d27171e4fa090aeb9a5c611850cf578f6bdf0941e71ecf40eef1277a3f6e8dcb"
+    },
+    {
+      "index": 13,
+      "case_id": "dv-d065ae4a05eb0978-0",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The rationale describes inspectable door geometry consistent with the source image. Front-facing microwave: dark window and white door boundary are visible and seated.",
+      "rationale": "The microwave door is visibly seated against its frame, with no visible gap or displacement indicating it is open.",
+      "result_sha256": "96f3e0c0b31cf2cd80a8967ef0c66b496157441f475f772193c15951afb532b9"
+    },
+    {
+      "index": 14,
+      "case_id": "dv-d065ae4a05eb0978-8",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The rationale describes inspectable door geometry consistent with the source image. Front-facing microwave: dark window and white door boundary are visible and seated.",
+      "rationale": "The microwave door is visibly seated against its frame, with no visible gap or displacement indicating it is open.",
+      "result_sha256": "fc57f9d6738ab4445f1027ea81448817684aa61d8b4a761f89353187c405d5dc"
+    },
+    {
+      "index": 15,
+      "case_id": "dv-d065ae4a05eb0978-16",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The rationale describes inspectable door geometry consistent with the source image. Front-facing microwave: dark window and white door boundary are visible and seated.",
+      "rationale": "The microwave door is visibly seated against its frame, with no visible gap or displacement indicating it is open.",
+      "result_sha256": "137af0be003d3c5c2336e78cdd0e6042c20c8c93c81fd0742dc31a46c1648941"
+    },
+    {
+      "index": 16,
+      "case_id": "dv-d065ae4a05eb0978-22",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The rationale describes inspectable door geometry consistent with the source image. Front-facing microwave: dark window and white door boundary are visible and seated.",
+      "rationale": "The microwave door is visibly seated against its frame, with no visible gap or displacement indicating it is open.",
+      "result_sha256": "4cb697c5b5797c666dd0e0a47688a045c28c1af71460a5b9b8417830209bd116"
+    },
+    {
+      "index": 17,
+      "case_id": "dv-d065ae4a05eb0978-30",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "unsupported",
+      "note": "The decisive claim of a visibly seated door is not established through the actor occlusion. Actor blocks most of the microwave door surface; exposed appliance edges do not establish its door state.",
+      "rationale": "The microwave door is visible and seated against its frame, with no visible gap or displacement indicating it is open.",
+      "result_sha256": "636cc288880ceb73e4fc5377d50ee53773ce546fc9ac1a7258585fd8fa9fda49"
+    },
+    {
+      "index": 18,
+      "case_id": "dv-d065ae4a05eb0978-38",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "unsupported",
+      "note": "The decisive claim of a visibly seated door is not established through the actor occlusion. Actor blocks most of the microwave door surface; exposed appliance edges do not establish its door state.",
+      "rationale": "The microwave is visible on the countertop, and its door is seated against its frame with no visible gap or displacement, indicating it is closed.",
+      "result_sha256": "b4b900ad279cf5da9d72e60825da588d4c92aae647afe9bd294f52b3c19f1370"
+    },
+    {
+      "index": 19,
+      "case_id": "dv-d3ba7e1944d989fd-7",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The rationale describes inspectable door geometry consistent with the source image. Red refrigerator: visible upper door surface is seated against its frame.",
+      "rationale": "The refrigerator door is visibly seated against its frame with no visible gap or displacement, indicating it is closed.",
+      "result_sha256": "6bfa808c00062f61ceb27fdef62588a8700c20221c120d909b8d6f698b7cadae"
+    },
+    {
+      "index": 20,
+      "case_id": "dv-d3ba7e1944d989fd-14",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The rationale describes inspectable door geometry consistent with the source image. Red refrigerator: visible upper door surface is seated against its frame.",
+      "rationale": "The refrigerator door is visibly seated against its frame with no visible gap or displacement, indicating it is closed.",
+      "result_sha256": "380d2683231a55b83a0f78b0cb974be700191dbf21826c21890bc9e813e0047a"
+    },
+    {
+      "index": 21,
+      "case_id": "dv-d3ba7e1944d989fd-20",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The rationale describes inspectable door geometry consistent with the source image. Red refrigerator: visible upper door surface is seated against its frame. Floating hands are a simulator rendering artifact; they do not establish an action or a door opening.",
+      "rationale": "The red fridge's door is visibly seated against its frame with no visible gap or displacement, indicating it is closed.",
+      "result_sha256": "83506eca55750f1a884244d7fc315140bad8fcfbadb2b027f9407c97bb7dfc54"
+    },
+    {
+      "index": 22,
+      "case_id": "dv-d3ba7e1944d989fd-27",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The rationale describes inspectable door geometry consistent with the source image. Red refrigerator: visible upper door surface is seated against its frame. Actor partly overlaps the lower/left area; enough upper door and boundary remain visible.",
+      "rationale": "The red fridge's door is visibly seated against its frame with no visible gap or displacement, indicating it is closed.",
+      "result_sha256": "60d3f47257ce3e4967528cc837c261a94c17988584656edc5f1d8f7e3ccdf770"
+    },
+    {
+      "index": 23,
+      "case_id": "dv-d3ba7e1944d989fd-34",
+      "profile_id": "qwen-D-G-3407",
+      "rating": "supported",
+      "note": "The rationale describes inspectable door geometry consistent with the source image. Red refrigerator: visible upper door surface is seated against its frame. Actor partly overlaps the lower/left area; enough upper door and boundary remain visible.",
+      "rationale": "The red fridge's door is visibly seated against its frame with no visible gap or displacement, indicating it is closed.",
+      "result_sha256": "f2f19f31d584d2d0ccb8280fded6269ae98fc63cb3523426ad5cc61d59424cfd"
+    },
+    {
+      "index": 24,
+      "case_id": "dv-dad43880b6994056-0",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes inspectable door geometry consistent with the supplied frame. Red refrigerator: both door panels are seated; upper front face and frame relationship are inspectable.",
+      "rationale": "The red refrigerator has two doors, both of which are visibly closed and aligned with their respective frames, showing no gaps or signs of being opened.",
+      "result_sha256": "628d1b523123af24232d9a3e8166180728fea36b0d03d929d856f6c8442ce07a"
+    },
+    {
+      "index": 25,
+      "case_id": "dv-dad43880b6994056-14",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes inspectable door geometry consistent with the supplied frame. Red refrigerator: both door panels are seated; upper front face and frame relationship are inspectable.",
+      "rationale": "The red refrigerator has two doors, both of which are visibly closed and aligned with their respective frames, showing no gaps or signs of being open.",
+      "result_sha256": "449d9d3ae64b77b67e9963c13d8b0df351ec69fb2ca4ea119f575b43d5f47566"
+    },
+    {
+      "index": 26,
+      "case_id": "dv-dad43880b6994056-28",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "mixed",
+      "note": "Closed state is supported, but the refrigerator has two door sections rather than the claimed single door.",
+      "rationale": "The red refrigerator has a single door that is visibly closed, with no indication of an open gap or displacement.",
+      "result_sha256": "9214f06e21b5fe960895dc8161cf6443e0ad5e3347731103aa27681ccbeb2420"
+    },
+    {
+      "index": 27,
+      "case_id": "dv-dad43880b6994056-38",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "mixed",
+      "note": "Closed state is supported by the exposed upper panel, but the actor does overlap part of the door, contrary to the unqualified no-blocking claim.",
+      "rationale": "The red refrigerator has a closed door with no visible gap or displacement, and the person standing in front of it does not block the door.",
+      "result_sha256": "993b8ccd46609d2498b270f68263e5a23492eb46ab2d8619de2de2f29d5e5e5a"
+    },
+    {
+      "index": 28,
+      "case_id": "dv-dad43880b6994056-46",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes inspectable door geometry consistent with the supplied frame. Red refrigerator: upper door is displaced from its frame; interior opening is visible. The oblique door panel partly covers the cavity, but the opening and displacement are still visible.",
+      "rationale": "The red refrigerator door is visibly open, with a clear gap exposing the interior space behind it.",
+      "result_sha256": "f45e29fc2d28ce565443d02f1fa706c085636c23d5aac33ca9f5e3627a4edb2a"
+    },
+    {
+      "index": 29,
+      "case_id": "dv-dad43880b6994056-49",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "mixed",
+      "note": "The open door and shelves are visible; the additional claim of stored contents is not established by the visibly empty cavity.",
+      "rationale": "The red refrigerator door is visibly open, revealing the interior shelves and contents, with the door hinged on the right side and swung outward.",
+      "result_sha256": "721de9a663eac85941442610017ff0ead424c0905a20bc0704f00603310bfc2d"
+    },
+    {
+      "index": 30,
+      "case_id": "dv-dad43880b6994056-52",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "mixed",
+      "note": "The open door and shelves are visible; identifiable stored contents are not established by this image.",
+      "rationale": "The red refrigerator door is visibly open, revealing the interior shelves and contents, with the door hinged on the right side and swung outward.",
+      "result_sha256": "88469557738959d97c95e66933bcb480e2d4596f4ead584a4602da56c4957931"
+    },
+    {
+      "index": 31,
+      "case_id": "dv-dad43880b6994056-55",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes inspectable door geometry consistent with the supplied frame. Red refrigerator: upper door is displaced from its frame; interior opening is visible.",
+      "rationale": "The red refrigerator door is visibly open, with its interior exposed and the door hinged away from the main body of the appliance.",
+      "result_sha256": "f0fed31bfa9088345180adb46b9254bb3decba0550f2449ff293c63d86e29eb8"
+    },
+    {
+      "index": 32,
+      "case_id": "dv-50acf4cb570d5c06-10",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes inspectable door geometry consistent with the supplied frame. Black refrigerator seen obliquely: the right-facing front panels remain seated against the body; side/front geometry must not be mistaken for an open door.",
+      "rationale": "The refrigerator door is visibly closed, with no indication of an open gap or displacement, and it is fully seated against its frame.",
+      "result_sha256": "7236cf534c84fa9f170743cdac3ab2101c57d1cf2f08d671a8f3a43738d7e894"
+    },
+    {
+      "index": 33,
+      "case_id": "dv-50acf4cb570d5c06-20",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes inspectable door geometry consistent with the supplied frame. Black refrigerator seen obliquely: the right-facing front panels remain seated against the body; side/front geometry must not be mistaken for an open door. Actor is beside or partly overlapping the refrigerator; sufficient front-panel boundary remains inspectable.",
+      "rationale": "The refrigerator door is visible and appears to be closed, with no indication of an open gap or displacement.",
+      "result_sha256": "934fcd16793560d2b4a5692336138efd4da45851ab7229c0b945d72466dcb471"
+    },
+    {
+      "index": 34,
+      "case_id": "dv-50acf4cb570d5c06-27",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes inspectable door geometry consistent with the supplied frame. Black refrigerator seen obliquely: the right-facing front panels remain seated against the body; side/front geometry must not be mistaken for an open door. Actor is beside or partly overlapping the refrigerator; sufficient front-panel boundary remains inspectable.",
+      "rationale": "The refrigerator door is visibly closed, with no indication of an open gap or displacement, and the person in the scene does not block the door.",
+      "result_sha256": "6fb0b20a56444407df06833963edd5a2de05ba08cdac50fab0352b078ea997ba"
+    },
+    {
+      "index": 35,
+      "case_id": "dv-50acf4cb570d5c06-37",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes inspectable door geometry consistent with the supplied frame. Black refrigerator seen obliquely: the right-facing front panels remain seated against the body; side/front geometry must not be mistaken for an open door. Actor is beside or partly overlapping the refrigerator; sufficient front-panel boundary remains inspectable.",
+      "rationale": "The refrigerator door is visible and appears to be closed, with no indication of an open gap or displacement.",
+      "result_sha256": "4b630e14ae07a7a212283ce358a05c126db3182f82720c461761b8ae81716ded"
+    },
+    {
+      "index": 36,
+      "case_id": "dv-50acf4cb570d5c06-47",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes inspectable door geometry consistent with the supplied frame. Black refrigerator seen obliquely: the right-facing front panels remain seated against the body; side/front geometry must not be mistaken for an open door. Actor is beside or partly overlapping the refrigerator; sufficient front-panel boundary remains inspectable.",
+      "rationale": "The refrigerator door is visible and appears to be closed, with no indication of an open gap or displacement.",
+      "result_sha256": "a5d72aebe556cf3fc2c82db24c819dfac16833bbb23e920cf64d53a1dbe2a902"
+    },
+    {
+      "index": 37,
+      "case_id": "dv-d065ae4a05eb0978-0",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes inspectable door geometry consistent with the supplied frame. Front-facing microwave: dark window and white door boundary are visible and seated.",
+      "rationale": "The microwave door is visibly closed, with no indication of an open gap or displacement; it sits flush against the appliance\u2019s frame.",
+      "result_sha256": "511885b925a6a6753108951285abae153ad9d6ece99c14b0c828fe648f72c657"
+    },
+    {
+      "index": 38,
+      "case_id": "dv-d065ae4a05eb0978-8",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the source image. Front-facing microwave: dark window and white door boundary are visible and seated.",
+      "rationale": "The microwave door is visibly closed, with no indication of an open gap or displacement; it sits flush against the appliance\u2019s frame.",
+      "result_sha256": "28f8e5c691f5869489636c22f2bf1357b0dda1c1e946f6edea8f698c5d8e6b94"
+    },
+    {
+      "index": 39,
+      "case_id": "dv-d065ae4a05eb0978-16",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the source image. Front-facing microwave: dark window and white door boundary are visible and seated.",
+      "rationale": "The microwave door is visibly closed, with no indication of an open gap or displacement; it sits flush against the appliance\u2019s frame.",
+      "result_sha256": "bb99b34d0a45d6c637e82b066b4c37299baba3cb426df399fa8d60c373ec9289"
+    },
+    {
+      "index": 40,
+      "case_id": "dv-d065ae4a05eb0978-22",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the source image. Front-facing microwave: dark window and white door boundary are visible and seated.",
+      "rationale": "The microwave door is visibly closed, with no indication of an open gap or displacement; it sits flush against the appliance\u2019s frame.",
+      "result_sha256": "e739c8bb4f80d0dda884186f6b122d29aafe2bd584a3902546afdd86cb649afd"
+    },
+    {
+      "index": 41,
+      "case_id": "dv-d065ae4a05eb0978-30",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "unsupported",
+      "note": "The actor blocks the state-bearing microwave door surface; the decisive claim of a visible closed door is not established.",
+      "rationale": "The microwave door is visible and appears to be closed, with no indication of an open gap or displacement.",
+      "result_sha256": "0442180020de3e17c36388ec5fbd22e934f32bd440e6464f6fe90fb9b9a124c3"
+    },
+    {
+      "index": 42,
+      "case_id": "dv-d065ae4a05eb0978-38",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "unsupported",
+      "note": "The actor blocks the state-bearing microwave door surface; the decisive claim of a visible closed door is not established.",
+      "rationale": "The microwave door is visible and appears to be closed, with no indication of an open gap or displacement.",
+      "result_sha256": "7a40473d3445101872e934eabb6b1d81f7d65f9dffd9b872c2f6f382e9f777d7"
+    },
+    {
+      "index": 43,
+      "case_id": "dv-d3ba7e1944d989fd-7",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the source image. Red refrigerator: visible upper door surface is seated against its frame.",
+      "rationale": "The red refrigerator has two doors, both of which are visibly closed and aligned with their respective frames, showing no gaps or signs of being opened.",
+      "result_sha256": "b7d12822cb9000dcd5b72fea6de69ea4dda24b650d0901b2ef67f718d284f90c"
+    },
+    {
+      "index": 44,
+      "case_id": "dv-d3ba7e1944d989fd-14",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the source image. Red refrigerator: visible upper door surface is seated against its frame.",
+      "rationale": "The red refrigerator has two doors, both of which are visibly closed and aligned with their respective frames, showing no gaps or signs of being open.",
+      "result_sha256": "96b9d1bffe2eded5ddb064f2a3eab363066265caf87746e02db6c9044a345970"
+    },
+    {
+      "index": 45,
+      "case_id": "dv-d3ba7e1944d989fd-20",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the source image. Red refrigerator: visible upper door surface is seated against its frame. Floating hands are a simulator rendering artifact; they do not establish an action or a door opening.",
+      "rationale": "The red refrigerator has two doors, both of which are visibly closed and aligned with their respective frames, showing no gaps or signs of being opened.",
+      "result_sha256": "2b406405cb5fce4539e6ef00953c687860a4331685519a7e5c24f08db7c4b74d"
+    },
+    {
+      "index": 46,
+      "case_id": "dv-d3ba7e1944d989fd-27",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the source image. Red refrigerator: visible upper door surface is seated against its frame. Actor partly overlaps the lower/left area; enough upper door and boundary remain visible.",
+      "rationale": "The red refrigerator has a smooth, unbroken surface with no visible gaps or openings, indicating that its door is closed.",
+      "result_sha256": "e18bee2dcd6376b5b9ce9d429b1e9d776880b03500593a93e92e34c2f58ef702"
+    },
+    {
+      "index": 47,
+      "case_id": "dv-d3ba7e1944d989fd-34",
+      "profile_id": "cosmos-D-G-1234",
+      "rating": "supported",
+      "note": "The final rationale describes visible door geometry consistent with the source image. Red refrigerator: visible upper door surface is seated against its frame. Actor partly overlaps the lower/left area; enough upper door and boundary remain visible.",
+      "rationale": "The red refrigerator has a smooth, unbroken surface with no visible gaps or openings, indicating that its door is closed.",
+      "result_sha256": "686dc1f9c009e6e1a5c48bc73868730c174e3bed0780a229884189a7842e4063"
+    },
+    {
+      "index": 48,
+      "case_id": "dv-dad43880b6994056-0",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "supported",
+      "note": "The visible seated doors and handles support the state description. Generic use of video or image description is treated as imprecise input naming; this response makes no concrete motion/history claim. Absence of a gap is corroborated by inspectable seated geometry in this frame.",
+      "rationale": "The red refrigerator has two doors with horizontal handles, but the video does not show any open doors or gaps indicating an open state. The doors are part of the fridge's structure and appear closed based on the provided details.",
+      "result_sha256": "b4255a23ee44f6d311cddc966aed6795e7a6e798aad5747b17145126d9ebc3a6"
+    },
+    {
+      "index": 49,
+      "case_id": "dv-dad43880b6994056-14",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "supported",
+      "note": "The visible seated doors and handles support the state description. Generic use of video or image description is treated as imprecise input naming; this response makes no concrete motion/history claim. Absence of a gap is corroborated by inspectable seated geometry in this frame.",
+      "rationale": "The red refrigerator has two doors with horizontal handles, but the video does not show any open doors or gaps indicating an open state. The doors are part of the fridge's structure and appear closed based on the provided details.",
+      "result_sha256": "e099c1bd20a8a9aa4185c6d731e65a2f3e3ad7b0a8f7226a6e459a4fffdd5f76"
+    },
+    {
+      "index": 50,
+      "case_id": "dv-dad43880b6994056-28",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "unsupported",
+      "note": "The actor partially overlaps the fridge, but the exposed upper door and frame establish closure. The decisive claim that obstruction prevents state inspection overstates the occlusion.",
+      "rationale": "The person is standing in front of the refrigerator, facing away from the camera, which blocks the view of the door. The refrigerator's door is not shown as open, and no visible gap or displaced door is observed. The handle is present but does not indicate the door's state due to the person's obstruction.",
+      "result_sha256": "a4868d7aadf02f88c07d4b8bdb32f58dc3ccec77d7907ff81d5353b5936f15f3"
+    },
+    {
+      "index": 51,
+      "case_id": "dv-dad43880b6994056-38",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "unsupported",
+      "note": "The actor covers part of the door; the remaining upper surface and right boundary still establish a seated closed door. The claimed lack of visible closed-state evidence is contradicted by the frame.",
+      "rationale": "The person is standing in front of the fridge, but their body blocks the view of the door, and there is no visible indication of the door being open or closed.",
+      "result_sha256": "f30f3ad7fdfc018d52caa4b641c51dc79d80b12f18dfa71a244f47ff8a9908a3"
+    },
+    {
+      "index": 52,
+      "case_id": "dv-dad43880b6994056-46",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "supported",
+      "note": "The upper door is visibly displaced with an exposed opening; the hand position near the door is also visible. No movement history is needed.",
+      "rationale": "The red refrigerator is explicitly shown as having an open door, and the agent's hand is positioned near it, indicating interaction with the open door.",
+      "result_sha256": "91af1cdbec620d4492dac01da0186df63863ab64daaee2ea2b376c787f2b4814"
+    },
+    {
+      "index": 53,
+      "case_id": "dv-dad43880b6994056-49",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "supported",
+      "note": "The displaced upper door exposes interior shelves, directly supporting open state.",
+      "rationale": "The red refrigerator in the image has its door open, exposing the interior shelves, which directly indicates the door is not closed.",
+      "result_sha256": "6f32050f33aecc04fe40195b927871b31740782f045740cfb2bd25a9fe4ae3b8"
+    },
+    {
+      "index": 54,
+      "case_id": "dv-dad43880b6994056-52",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "supported",
+      "note": "The displaced upper door exposes interior shelves, directly supporting open state.",
+      "rationale": "The red refrigerator in the image has its door open, revealing the interior shelves, which directly indicates the door is not closed.",
+      "result_sha256": "6474d5df6ff6e903f1e2da57a76dd6e45ff0f40abd5e935f47e612949866d335"
+    },
+    {
+      "index": 55,
+      "case_id": "dv-dad43880b6994056-55",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "mixed",
+      "note": "Open state is directly visible, but the hand is at the door edge/handle rather than visibly inside the refrigerator cavity.",
+      "rationale": "The red refrigerator in the image has its door open, and the person's hand is visible inside, confirming the door is not closed.",
+      "result_sha256": "fc00007e70e789d703e8d9d7ecaadb20b1f0be14a00cd1db121102c6173546f7"
+    },
+    {
+      "index": 56,
+      "case_id": "dv-50acf4cb570d5c06-10",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "mixed",
+      "note": "Closed doors and handles are inspectable, but no supplied text explicitly states their state; the rationale attributes a state assertion to the input.",
+      "rationale": "The refrigerator doors are explicitly stated as closed, with no indication of an open door or gap. The silver handles are visible but do not suggest the doors are ajar or being opened.",
+      "result_sha256": "b374370d5010ac52dd5f8038aa6d9b7a7aedd8aa1b5c527597d6d2e14d0e973d"
+    },
+    {
+      "index": 57,
+      "case_id": "dv-50acf4cb570d5c06-20",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "mixed",
+      "note": "The appliance and person positions are visible, but placement against a wall and actor orientation do not justify the closed-state conclusion.",
+      "rationale": "The refrigerator in the image is shown as having two doors, but there is no indication of an open door. The person is facing away from the camera, and the fridge is positioned against the wall, suggesting it is closed.",
+      "result_sha256": "4431a8f8f8e6b9c285c6b40d20153ac8d96f966baee20d120cad39521fe2d0ac"
+    },
+    {
+      "index": 58,
+      "case_id": "dv-50acf4cb570d5c06-27",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "supported",
+      "note": "Two seated black door panels and silver handles are visible, consistent with the closed-state claim.",
+      "rationale": "The black refrigerator in the image has two closed doors with silver handles, and there is no visible gap or indication that the door is open.",
+      "result_sha256": "74bb1fb56129b827d12d669ba728b5163998c3f0fe6a87ba65094aecfca14ab9"
+    },
+    {
+      "index": 59,
+      "case_id": "dv-50acf4cb570d5c06-37",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "supported",
+      "note": "The visible seated doors and handles support the state description. Generic use of video or image description is treated as imprecise input naming; this response makes no concrete motion/history claim. Absence of a gap is corroborated by inspectable seated geometry in this frame.",
+      "rationale": "The refrigerator doors are explicitly shown as closed with silver handles, and there is no indication of an open door or gap in the image description.",
+      "result_sha256": "ffa9245d9c49bf1fd1ea36210cab4a845575391def13044def92024cb5ca6bb9"
+    },
+    {
+      "index": 60,
+      "case_id": "dv-50acf4cb570d5c06-47",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "supported",
+      "note": "The visible seated doors and handles support the state description. Generic use of video or image description is treated as imprecise input naming; this response makes no concrete motion/history claim. Absence of a gap is corroborated by inspectable seated geometry in this frame.",
+      "rationale": "The black refrigerator has two doors with silver handles, and the video shows they are closed. No indication of an open door or gap is present in the scene.",
+      "result_sha256": "baa4d026c2885693e2675142dcf48add452e4d7b8c208b8951f659c293d632be"
+    },
+    {
+      "index": 61,
+      "case_id": "dv-d065ae4a05eb0978-0",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "mixed",
+      "note": "The counter location and plate are visible, but a plate resting on the exterior surface does not establish the state of the front door.",
+      "rationale": "The microwave is positioned on the countertop with a plate on top, and there is no indication of an open door or items inside the microwave. The door appears to be closed as the plate is resting on the exterior surface.",
+      "result_sha256": "c3e9a3aa0d0310c96c75e54a2cdb9c14ec3a03272f0bf9a89ffd8c3ef746b0fd"
+    },
+    {
+      "index": 62,
+      "case_id": "dv-d065ae4a05eb0978-8",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "mixed",
+      "note": "The plate on top is visible; it does not indicate whether the front door is open or closed. The correct label has an unjustified stated connection.",
+      "rationale": "The microwave is positioned on the countertop with a plate of food on top, indicating the door is closed as there is no visible gap or open state shown.",
+      "result_sha256": "b3752184f089d735404ea8b1f17785fb339512f02b2dd86616d0a436a7ca1579"
+    },
+    {
+      "index": 63,
+      "case_id": "dv-d065ae4a05eb0978-16",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "mixed",
+      "note": "The plate and appliance placement are visible, but plate placement and lack of observed interaction do not establish door state from this image.",
+      "rationale": "The microwave is positioned on the countertop with a plate on top, and there is no indication of the door being open or any interaction with the door in the provided details. The door is likely closed as the plate is placed externally on the appliance.",
+      "result_sha256": "f3e592de7b46528b804f71c6da3b40a185be6692d3f291af6b890dbac5bf0adf"
+    },
+    {
+      "index": 64,
+      "case_id": "dv-d065ae4a05eb0978-22",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "unsupported",
+      "note": "The central physical claim is false: a plate can remain on top of this appliance while its front door opens. No video or action history was supplied to support the additional claim.",
+      "rationale": "The microwave has a plate of food on top of it, which would not be possible if the door were open. The video does not show the door being open or any interaction with the microwave that would suggest the door is open.",
+      "result_sha256": "137673818bd1507245bd982f3734c9f6df8295feb2ecb1f22aa4a706e7976457"
+    },
+    {
+      "index": 65,
+      "case_id": "dv-d065ae4a05eb0978-30",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "unsupported",
+      "note": "The door is actor-occluded and no supplied text states it is closed. The claimed explicit state and continuing lack of interaction are invented evidence.",
+      "rationale": "The microwave is positioned on the countertop to the left of the sink, and its door is explicitly stated as closed. There is no indication of the door being opened or any interaction with it by the agent, confirming the door remains closed.",
+      "result_sha256": "ec0d705adda9f9aa8c7de0ae6702d800bb32f9b2b02239343ceeaf6e91d51139"
+    },
+    {
+      "index": 66,
+      "case_id": "dv-d065ae4a05eb0978-38",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "unsupported",
+      "note": "The door is actor-occluded; no supplied text states its state and this single image cannot establish absence of prior interaction.",
+      "rationale": "The microwave is positioned on the countertop to the left of the sink, and its door is explicitly stated as closed. There is no indication of the door being opened or any interaction with it by the agent.",
+      "result_sha256": "01466fab00e8d483a21005a99c6f61c593e93f04bf732f62cb121cd73a2b9dbc"
+    },
+    {
+      "index": 67,
+      "case_id": "dv-d3ba7e1944d989fd-7",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "supported",
+      "note": "The visible seated doors and handles support the state description. Generic use of video or image description is treated as imprecise input naming; this response makes no concrete motion/history claim. Absence of a gap is corroborated by inspectable seated geometry in this frame.",
+      "rationale": "The red refrigerator has two doors with horizontal handles, but the video does not show any open doors or gaps, indicating they are closed.",
+      "result_sha256": "4a6e693b576a12b17f2fb67dd87ab332fd4d20cee4c093ededbe529528c62f75"
+    },
+    {
+      "index": 68,
+      "case_id": "dv-d3ba7e1944d989fd-14",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "supported",
+      "note": "The two door sections, horizontal handles, and closed geometry are inspectable. Generic use of the word video is treated as imprecise input naming, not an additional temporal claim.",
+      "rationale": "The red refrigerator has two doors with horizontal handles, but the video does not show any open doors or gaps between them. The doors are part of the fridge's structure and appear closed based on the provided details.",
+      "result_sha256": "035e2ab5a446dc6b329ac117f03948181526fcf8d0de59eb20ff73a91ecca780"
+    },
+    {
+      "index": 69,
+      "case_id": "dv-d3ba7e1944d989fd-20",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "mixed",
+      "note": "Door geometry and handles support closure, but a single image does not establish the claimed absence of interaction or opening history.",
+      "rationale": "The red refrigerator in the image has two doors, each with a horizontal handle, and the video shows they are closed. There is no indication of the door being opened or any interaction with it in the provided context.",
+      "result_sha256": "ee005b720873f12bfc99d4605efff813a1a128e3f8e748acf91f56f89df4416c"
+    },
+    {
+      "index": 70,
+      "case_id": "dv-d3ba7e1944d989fd-27",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "mixed",
+      "note": "The closed surface and partial actor overlap are visible, but the horizontal handle is on the left area of the front rather than the claimed right side.",
+      "rationale": "The red refrigerator has a smooth surface and a handle on the right side, but there is no visible gap or indication that the door is open. The person partially blocks the view, but the fridge itself is not shown as having an open door.",
+      "result_sha256": "49ce97dca2a46aa66d0906b1c3c3c1b418307ab017d5f4ec6d2bcf1cae682253"
+    },
+    {
+      "index": 71,
+      "case_id": "dv-d3ba7e1944d989fd-34",
+      "profile_id": "cosmos-R-G-1234",
+      "rating": "mixed",
+      "note": "The door is visibly seated, but the rationale incorrectly locates the horizontal handle on the right side.",
+      "rationale": "The red refrigerator in the image has a closed door, as indicated by the smooth surface and handle on the right side without any visible gap or open state.",
+      "result_sha256": "c1934b462aecb624c54042d08efa8bae7d93f19f8d7e15f3ff168b2f95119d82"
+    }
+  ],
+  "rubric_note": "Classifications concern material visual and causal claims. Generic naming of the supplied frame as video or image description alone is not penalized; explicit invented state assertions, action history, incorrect object details, and invalid physical inferences are assessed separately.",
+  "protocol_sha256": "629d7769ee9f47cf4cc0634d90e94daa3492f98b034a8b7745742953a208ace3",
+  "summary": {
+    "cosmos-D-G-1234": {
+      "supported": 18,
+      "mixed": 4,
+      "unsupported": 2
+    },
+    "cosmos-R-G-1234": {
+      "supported": 10,
+      "unsupported": 5,
+      "mixed": 9
+    },
+    "qwen-D-G-3407": {
+      "supported": 22,
+      "unsupported": 2
+    }
+  }
+}
