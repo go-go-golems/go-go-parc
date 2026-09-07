@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:4786/",
+  "server_started_from": "/tmp",
+  "backend": "embedded serviceweb binary; actual Go compiler API",
+  "observed_checks": {
+    "accepted_branch_source_sha256": "8f0fe1a44d9d5a3bc552bbe743466c999c138c797a9def7c63dfbc8bb9343141",
+    "rejected_branch_source_sha256": "7b3eaee920b5cd4fceb91ea42b64d2952f77fd62e7d874349e6071fd972028c9",
+    "branch_mutation_diagnostic": "E_JOIN",
+    "branch_join_owner_states": {"0": ["D"], "3": ["U", "D"], "5": ["U", "D"]},
+    "immutable_baseline_comparison": true,
+    "baseline_native_lines": 47,
+    "rejected_native_output_absent": true,
+    "edited_source_with_unicode_comment": "// café 🧭\nuse sensor;\nfn f(own ready: Ready) -> Unit { close(move ready); close(move ready); return; }",
+    "unicode_diagnostic_span": {"Start": 84, "End": 94},
+    "unicode_related_span": {"Start": 65, "End": 75},
+    "both_editor_selections": "move ready",
+    "stale_result_banner": true,
+    "stale_pinning_disabled": true,
+    "delayed_actual_compiler_response_remained_stale_after_edit": true,
+    "startup_wiring_generated": true,
+    "undeclared_startup_endpoint_diagnostic": "E_PLAN_ENDPOINT",
+    "actual_embedded_implementation_view": true,
+    "narrow_viewport_width": 430,
+    "narrow_document_width": 415,
+    "final_browser_errors": [],
+    "final_graph_max_transition_label_width": 65.03125,
+    "final_graph_label_gap": 103
+  },
+  "screenshots": ["47-p6-sensor-cfg.png", "48-p6-ownership.png", "49-p6-comparison.png", "50-p6-startup.png", "51-p6-implementation.png", "52-p6-stale-response.png", "53-p6-narrow-layout.png", "55-p6-final-cfg.png"],
+  "caveats": [
+    "These are observed browser interactions, not an exhaustive accessibility or concurrency test suite.",
+    "The delayed-response check delayed an actual compiler response, not a mocked acceptance result.",
+    "Screenshot 55 supersedes the narrower transition-label spacing visible in screenshot 47.",
+    "The browser does not execute native output or access RF hardware."
+  ]
+}

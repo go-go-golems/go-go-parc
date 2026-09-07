@@ -1,0 +1,7 @@
+// Rejected: the second close uses an already-consumed endpoint.
+use sensor;
+fn broken(own ready: Ready) -> Unit {
+    close(move ready);
+    close(move ready);
+    return;
+}

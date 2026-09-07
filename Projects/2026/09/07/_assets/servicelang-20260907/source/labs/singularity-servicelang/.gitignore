@@ -1,0 +1,8 @@
+/web/node_modules/
+/web/dist/
+/compiler/internal/webui/assets/
+/compiler/internal/webui/presets/
+/compiler/internal/webui/runtime/
+# This is source, not a build-* artifact directory.
+!/compiler/cmd/build-web/
+!/compiler/cmd/build-web/main.go

@@ -1,0 +1,11 @@
+{
+  "abi": 1,
+  "instances": [
+    {"name": "radio-a", "protocol": "SensorRPC", "role": "client"},
+    {"name": "radio-b", "protocol": "SensorRPC", "role": "client"}
+  ],
+  "components": [
+    {"name": "sensor-b", "endpoint": "radio-b", "begin": "begin", "poll": "tick", "authorities": ["sensor", "output"], "general_slots": 0},
+    {"name": "sensor-a", "endpoint": "radio-a", "begin": "begin", "poll": "tick", "authorities": ["sensor", "output"], "general_slots": 0}
+  ]
+}

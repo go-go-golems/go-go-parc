@@ -1,0 +1,467 @@
+{
+  "source_commit": "68176433ae6bbe892252d858c664cc18e5b136a0",
+  "files": [
+    {
+      "asset": "source/labs/singularity-local/core/include/sl/mailbox.hpp",
+      "original": "labs/singularity-local/core/include/sl/mailbox.hpp",
+      "sha256": "87b8927761fca24ce356cb64babf4fd1b13979246ac025ebf0dc9eeece4d8988",
+      "bytes": 4436
+    },
+    {
+      "asset": "source/labs/singularity-local/core/include/sl/platform.hpp",
+      "original": "labs/singularity-local/core/include/sl/platform.hpp",
+      "sha256": "21e19cf7e43be3c74fb345356af1faec9fee11fa4912541aab95214e1f3b3da5",
+      "bytes": 3368
+    },
+    {
+      "asset": "source/labs/singularity-local/core/include/sl/pool.hpp",
+      "original": "labs/singularity-local/core/include/sl/pool.hpp",
+      "sha256": "60424966689f0005d25ba57ecbcdbcc150389b38934505315b381d2c727da6a0",
+      "bytes": 6320
+    },
+    {
+      "asset": "source/labs/singularity-local/core/include/sl/protocol.hpp",
+      "original": "labs/singularity-local/core/include/sl/protocol.hpp",
+      "sha256": "8ed93f040c5061c8a84d2108fa6c77d9699695aca8f0d25d770634d03bbc9b8a",
+      "bytes": 13092
+    },
+    {
+      "asset": "source/labs/singularity-rpc/core/include/srpc/airtime.hpp",
+      "original": "labs/singularity-rpc/core/include/srpc/airtime.hpp",
+      "sha256": "a9d9961a64d374cf79d9ed632d01ad73379d2998ac6e15d4e939cac2e7ded634",
+      "bytes": 1961
+    },
+    {
+      "asset": "source/labs/singularity-rpc/core/include/srpc/client.hpp",
+      "original": "labs/singularity-rpc/core/include/srpc/client.hpp",
+      "sha256": "f93efd6c2e45224e4f6990f4e65c3e9923d6106f7134f4d8762e3edc7253815a",
+      "bytes": 8870
+    },
+    {
+      "asset": "source/labs/singularity-rpc/core/include/srpc/codec.hpp",
+      "original": "labs/singularity-rpc/core/include/srpc/codec.hpp",
+      "sha256": "0fb7221576ce947f04ee092a6bc93e125a34b8197b7489623cc46506db0f46f2",
+      "bytes": 5010
+    },
+    {
+      "asset": "source/labs/singularity-rpc/core/include/srpc/console.hpp",
+      "original": "labs/singularity-rpc/core/include/srpc/console.hpp",
+      "sha256": "54ce8d4315430a001d7c1513e20bdb8c34c2ed6b1c598bc9212691b01ad3c4d4",
+      "bytes": 12850
+    },
+    {
+      "asset": "source/labs/singularity-rpc/core/include/srpc/console_fixture.hpp",
+      "original": "labs/singularity-rpc/core/include/srpc/console_fixture.hpp",
+      "sha256": "76e8d1e895f19744c9b82560f681047afe19c0319c8a977e438f2dc9fc0d3184",
+      "bytes": 3554
+    },
+    {
+      "asset": "source/labs/singularity-rpc/core/include/srpc/identity.hpp",
+      "original": "labs/singularity-rpc/core/include/srpc/identity.hpp",
+      "sha256": "a6134fd0f580d734712289157f97166bbe4bc0d7c5a647e35d47cec6b7b198a8",
+      "bytes": 2514
+    },
+    {
+      "asset": "source/labs/singularity-rpc/core/include/srpc/keyboard.hpp",
+      "original": "labs/singularity-rpc/core/include/srpc/keyboard.hpp",
+      "sha256": "49fe483f7d93184fb252110a6b46c0c1c3345d81edbca65426862aa94c593354",
+      "bytes": 1621
+    },
+    {
+      "asset": "source/labs/singularity-rpc/core/include/srpc/radio.hpp",
+      "original": "labs/singularity-rpc/core/include/srpc/radio.hpp",
+      "sha256": "87146bc0075539ae27fd5b6e890bf8f33567b08e92cb12e06e321388ceffb361",
+      "bytes": 2377
+    },
+    {
+      "asset": "source/labs/singularity-rpc/core/include/srpc/radio_profile.hpp",
+      "original": "labs/singularity-rpc/core/include/srpc/radio_profile.hpp",
+      "sha256": "c9d380a710cf96db01f9a48fe6af794dc63794376ddf20c2a2bf3ea21a6e47e4",
+      "bytes": 2329
+    },
+    {
+      "asset": "source/labs/singularity-rpc/core/include/srpc/radio_status.hpp",
+      "original": "labs/singularity-rpc/core/include/srpc/radio_status.hpp",
+      "sha256": "3a4a10d766d8de1959e26535687e9c0be1890c0d33e1b9b2d4036370a3042652",
+      "bytes": 842
+    },
+    {
+      "asset": "source/labs/singularity-rpc/core/include/srpc/server.hpp",
+      "original": "labs/singularity-rpc/core/include/srpc/server.hpp",
+      "sha256": "b31dd8ff9ccdf84f4a9109c80cb6dd75fc33da70d0c2a3f50541588c397cadf1",
+      "bytes": 4636
+    },
+    {
+      "asset": "source/labs/singularity-rpc/core/include/srpc/simulation.hpp",
+      "original": "labs/singularity-rpc/core/include/srpc/simulation.hpp",
+      "sha256": "22d2afb4cf994383d57e3451e6ad7a99a968951b67ad1f82898bf57844dfb1e6",
+      "bytes": 11489
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/.gitignore",
+      "original": "labs/singularity-servicelang/.gitignore",
+      "sha256": "caf5179882dd369dc16fcb32d9f431b66908731080ee99538b707b930593a26c",
+      "bytes": 242
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/Makefile",
+      "original": "labs/singularity-servicelang/Makefile",
+      "sha256": "9f4c05c87bbbbee9a188ab0bf65b1414f2f676a08b36a2d46f8f5541712f01ef",
+      "bytes": 923
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/README.md",
+      "original": "labs/singularity-servicelang/README.md",
+      "sha256": "cf29d50ee8c63399cf9ba5cc04833354d13b8adb45fc8eeab2d274a19bd68ce8",
+      "bytes": 10253
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/SPEC.md",
+      "original": "labs/singularity-servicelang/SPEC.md",
+      "sha256": "ace9da194a1e560ba1af225c118acd594cb4539d73161920f00935769e1e58ff",
+      "bytes": 9057
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/cmd/build-web/main.go",
+      "original": "labs/singularity-servicelang/compiler/cmd/build-web/main.go",
+      "sha256": "85a01b57f3c43e29c1ff637bd0d0ba70b27f407ca079f2c0e606c76427b0399c",
+      "bytes": 1086
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/cmd/servicec/main.go",
+      "original": "labs/singularity-servicelang/compiler/cmd/servicec/main.go",
+      "sha256": "838ca21d9314bc125320f2d95fea33062f63ccc262298ebc70498b934f758639",
+      "bytes": 2805
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/cmd/servicec/main_test.go",
+      "original": "labs/singularity-servicelang/compiler/cmd/servicec/main_test.go",
+      "sha256": "d42cf354e987679aabd817bfe5fd0c618ac92398a1af9ee21220166eda827906",
+      "bytes": 2718
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/cmd/serviceweb/main.go",
+      "original": "labs/singularity-servicelang/compiler/cmd/serviceweb/main.go",
+      "sha256": "b2e50fc1eadeea4391d9c7d48317ffc732d6ac7e82a37693c35ac5c362ff76cb",
+      "bytes": 965
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/go.mod",
+      "original": "labs/singularity-servicelang/compiler/go.mod",
+      "sha256": "ed2860cedc75799eb5f31df07f7730dd891a22340ef464b67fd692dc9da7a805",
+      "bytes": 30
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/compiler/check.go",
+      "original": "labs/singularity-servicelang/compiler/internal/compiler/check.go",
+      "sha256": "5a3cbdbe43891535938936dbe718b792d90794813cdbb8c72ffb301f6e59d3fd",
+      "bytes": 5711
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/compiler/cpp.go",
+      "original": "labs/singularity-servicelang/compiler/internal/compiler/cpp.go",
+      "sha256": "3fcca1df5b88911e173863181dba7292e505e6d597f65643a7f4baafb173e495",
+      "bytes": 7855
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/compiler/cpp_test.go",
+      "original": "labs/singularity-servicelang/compiler/internal/compiler/cpp_test.go",
+      "sha256": "14abbb5fab779232ec21eb4b977e9bebc254600859a0aef7bf069bf53faaece8",
+      "bytes": 3085
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/compiler/frontend_test.go",
+      "original": "labs/singularity-servicelang/compiler/internal/compiler/frontend_test.go",
+      "sha256": "d0cd89c37f7eacdbfd148e062e0015a1db9360280d5c647fe4ecaa698fe86a0b",
+      "bytes": 1532
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/compiler/inspect.go",
+      "original": "labs/singularity-servicelang/compiler/internal/compiler/inspect.go",
+      "sha256": "5a43224faedbce11a3862b2643e826cc5c2a46d1dff02b3e3ddfe73dcd6d3bd1",
+      "bytes": 4289
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/compiler/inspect_test.go",
+      "original": "labs/singularity-servicelang/compiler/internal/compiler/inspect_test.go",
+      "sha256": "0645ec22cfb8e8a998c9565b1cdf676b3d71ac2de0487d90de7f65b1a023c359",
+      "bytes": 949
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/compiler/lower.go",
+      "original": "labs/singularity-servicelang/compiler/internal/compiler/lower.go",
+      "sha256": "acddd40886c9b6edb7b16c99bc7bfe96f99c55e27c833e34ac83719db3f8621f",
+      "bytes": 9514
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/compiler/ownership_test.go",
+      "original": "labs/singularity-servicelang/compiler/internal/compiler/ownership_test.go",
+      "sha256": "956cd43dd2a72297854e2ce4cc959287dfc5eeda93fe87c39705823fba4550e3",
+      "bytes": 3825
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/compiler/plan.go",
+      "original": "labs/singularity-servicelang/compiler/internal/compiler/plan.go",
+      "sha256": "d67cf69e9659680e343dd36892c70ff098045432890e194b89e7b42864c8e992",
+      "bytes": 7720
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/compiler/plan_test.go",
+      "original": "labs/singularity-servicelang/compiler/internal/compiler/plan_test.go",
+      "sha256": "72084b61a8d0be833a0721bd1c12861d2d51cd6bb070f8a4a5f3e773434e90ee",
+      "bytes": 3037
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/compiler/protocol_test.go",
+      "original": "labs/singularity-servicelang/compiler/internal/compiler/protocol_test.go",
+      "sha256": "bc790084ce0834f72b51cdeebace4288e485eb11e9c80b485c4d3e194c932c92",
+      "bytes": 903
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/compiler/syntax.go",
+      "original": "labs/singularity-servicelang/compiler/internal/compiler/syntax.go",
+      "sha256": "4fda03c9bdbe19fd724689eef632babbd69a859564c59e3653867e1aa443ebdd",
+      "bytes": 7569
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/compiler/types.go",
+      "original": "labs/singularity-servicelang/compiler/internal/compiler/types.go",
+      "sha256": "762584ee2eedd6ec5df32a4371fadaf0c8ff7d4c0940e4ed72978dd432eb7282",
+      "bytes": 3938
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/webui/generate.go",
+      "original": "labs/singularity-servicelang/compiler/internal/webui/generate.go",
+      "sha256": "bc407bcb50fb93ba47b1e9920b9a9f2041d6140c17e4c680621f77231820710c",
+      "bytes": 137
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/webui/server.go",
+      "original": "labs/singularity-servicelang/compiler/internal/webui/server.go",
+      "sha256": "025bb0157bd02862a59f4dff8cd395846149439dcb1cb70e3f57c5204cce24c7",
+      "bytes": 5551
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/compiler/internal/webui/server_test.go",
+      "original": "labs/singularity-servicelang/compiler/internal/webui/server_test.go",
+      "sha256": "585387f4a596b851abd08ef55aaa5adb1fc27eca92177791c3a6a3c617e16a08",
+      "bytes": 1754
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/examples/branch.svc",
+      "original": "labs/singularity-servicelang/examples/branch.svc",
+      "sha256": "8f0fe1a44d9d5a3bc552bbe743466c999c138c797a9def7c63dfbc8bb9343141",
+      "bytes": 169
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/examples/double-move.invalid.svc",
+      "original": "labs/singularity-servicelang/examples/double-move.invalid.svc",
+      "sha256": "a78e0c163cca809a7466dbec0814069ff199178d0a4d7090e6b31ab056442e78",
+      "bytes": 175
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/examples/ownership.svc",
+      "original": "labs/singularity-servicelang/examples/ownership.svc",
+      "sha256": "1e69c9b74a3fe517ad12b2dd2240fbf7c879a21ca23e297a78a74622c1d4e9eb",
+      "bytes": 396
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/examples/sensor.plan.json",
+      "original": "labs/singularity-servicelang/examples/sensor.plan.json",
+      "sha256": "d6af8641faa9ed75a8b369e490e7f3c2e178e384230e83acbae5e8f4bb23eb58",
+      "bytes": 474
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/examples/sensor.svc",
+      "original": "labs/singularity-servicelang/examples/sensor.svc",
+      "sha256": "67c20815453fcaf89e9e4f6f1dd53268417ab4230a868908f30572de1d9d01b5",
+      "bytes": 833
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/host/application.cpp",
+      "original": "labs/singularity-servicelang/host/application.cpp",
+      "sha256": "8afce97209e50190868c6f6f3c25ffb1a03cb380984a1f830ab6426a575ee88d",
+      "bytes": 2554
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/host/simulation.cpp",
+      "original": "labs/singularity-servicelang/host/simulation.cpp",
+      "sha256": "d4674da4c5a6511899660996247e573ff959adbe5a8ace0e137f8c10e047aa00",
+      "bytes": 7202
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/runtime/svc_component.hpp",
+      "original": "labs/singularity-servicelang/runtime/svc_component.hpp",
+      "sha256": "4b4cba6ff37e067bc8d0e346d234ca2937c32b0cad83e5fb38786b024f6e1de9",
+      "bytes": 5608
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/runtime/svc_runtime.hpp",
+      "original": "labs/singularity-servicelang/runtime/svc_runtime.hpp",
+      "sha256": "6291bb9c3752521a47b77cc9669d9a9a64f28c1119fcd32213b27521fea2ba41",
+      "bytes": 5555
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/scripts/run-simulation.sh",
+      "original": "labs/singularity-servicelang/scripts/run-simulation.sh",
+      "sha256": "6a416df5958b3d8276e8cae9b0de5e06cfdb81c76ac94507106827a6dbbaa822",
+      "bytes": 732
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/web/index.html",
+      "original": "labs/singularity-servicelang/web/index.html",
+      "sha256": "5777b161365e3eecbb74786bb5dbfec1b8688401c8e15fd438d55ed24a5c5a8a",
+      "bytes": 361
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/web/package.json",
+      "original": "labs/singularity-servicelang/web/package.json",
+      "sha256": "957a1b4450863754c2a7badf943e7846f12e8cc9d8f3960b6dac3352c121a59f",
+      "bytes": 1034
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/web/pnpm-lock.yaml",
+      "original": "labs/singularity-servicelang/web/pnpm-lock.yaml",
+      "sha256": "17e4078d8d4787e38c762da38b302ba921bf0cbbdd250def971b3600478874b2",
+      "bytes": 33470
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/web/public/favicon.svg",
+      "original": "labs/singularity-servicelang/web/public/favicon.svg",
+      "sha256": "2fca478a85885725b5b14610d717ace883b32bc6b8cd1b196e1473c8e59ac99b",
+      "bytes": 211
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/web/src/App.tsx",
+      "original": "labs/singularity-servicelang/web/src/App.tsx",
+      "sha256": "dccd54b06fd36dac8b3e2fd4d76f503f2858160515a325dc3c3c93ba7f7ba320",
+      "bytes": 22169
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/web/src/CodeEditor.tsx",
+      "original": "labs/singularity-servicelang/web/src/CodeEditor.tsx",
+      "sha256": "bad54c0e249031fcd55d8143f4483a1307a7b82b9f6ed11bb7408329926e246e",
+      "bytes": 3584
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/web/src/Graph.tsx",
+      "original": "labs/singularity-servicelang/web/src/Graph.tsx",
+      "sha256": "09fa8829cbc757604a8a3552495a7dc25acdd8e810f9e6da3bed009e0a1b42b5",
+      "bytes": 3380
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/web/src/main.tsx",
+      "original": "labs/singularity-servicelang/web/src/main.tsx",
+      "sha256": "c461ef6bd2202b517676e245998758dc7164f01ca8cb6fdd2878d6d032e09ac0",
+      "bytes": 356
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/web/src/store.ts",
+      "original": "labs/singularity-servicelang/web/src/store.ts",
+      "sha256": "7742de35294f7bf37a5abea6b87c812bbeee1d71b22d5703ba489f847a212627",
+      "bytes": 3341
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/web/src/style.css",
+      "original": "labs/singularity-servicelang/web/src/style.css",
+      "sha256": "4a0b3e30fabb22db73f691956df109de6c665df7c191ac7652a55b6a7cf92493",
+      "bytes": 8770
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/web/src/types.ts",
+      "original": "labs/singularity-servicelang/web/src/types.ts",
+      "sha256": "2b3d5eadd9781b9f77b51b9bb6d9adf542b362e4e23b190f24071b9f0a6a5fc2",
+      "bytes": 1646
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/web/tsconfig.json",
+      "original": "labs/singularity-servicelang/web/tsconfig.json",
+      "sha256": "1714b4515bbaca39797a654211996f348b6dfa33ea97f74d9551e64ea7f14f8e",
+      "bytes": 359
+    },
+    {
+      "asset": "source/labs/singularity-servicelang/web/vite.config.ts",
+      "original": "labs/singularity-servicelang/web/vite.config.ts",
+      "sha256": "e00b6124f6ccc3468c38722e24050e5a20ae9cda4d6924b3c338bc9bcd9b2fdb",
+      "bytes": 193
+    },
+    {
+      "asset": "evidence/48-p6-ownership.png",
+      "original": "ttmp/2026/09/06/SINGULARITY-SERVICELANG--servicelang-ownership-and-protocol-checked-compiler-to-c/analysis/48-p6-ownership.png",
+      "sha256": "e0400428e9110fbb77f0cd5149c8759f0d6de091639c31fb0bfc41c5d3d97ca0",
+      "bytes": 210598
+    },
+    {
+      "asset": "evidence/49-p6-comparison.png",
+      "original": "ttmp/2026/09/06/SINGULARITY-SERVICELANG--servicelang-ownership-and-protocol-checked-compiler-to-c/analysis/49-p6-comparison.png",
+      "sha256": "5e76dc68030ca3d84889110546b3dddcb10e09ceacf6c949f4c2b82df53835c2",
+      "bytes": 236741
+    },
+    {
+      "asset": "evidence/50-p6-startup.png",
+      "original": "ttmp/2026/09/06/SINGULARITY-SERVICELANG--servicelang-ownership-and-protocol-checked-compiler-to-c/analysis/50-p6-startup.png",
+      "sha256": "486e14b67dbaea223340a6bdef3e534f8e10f6f066a5c170d0d456d949af621f",
+      "bytes": 288682
+    },
+    {
+      "asset": "evidence/51-p6-implementation.png",
+      "original": "ttmp/2026/09/06/SINGULARITY-SERVICELANG--servicelang-ownership-and-protocol-checked-compiler-to-c/analysis/51-p6-implementation.png",
+      "sha256": "aba24c2d7a1bbef083700a73b71dfff40a2b6593330286bad14b8159858e1ea7",
+      "bytes": 321363
+    },
+    {
+      "asset": "evidence/52-p6-stale-response.png",
+      "original": "ttmp/2026/09/06/SINGULARITY-SERVICELANG--servicelang-ownership-and-protocol-checked-compiler-to-c/analysis/52-p6-stale-response.png",
+      "sha256": "5685ffe73144092942c81e6b1ba0aafc07702e8a0ca02efc507257bfdd377fed",
+      "bytes": 226922
+    },
+    {
+      "asset": "evidence/53-p6-narrow-layout.png",
+      "original": "ttmp/2026/09/06/SINGULARITY-SERVICELANG--servicelang-ownership-and-protocol-checked-compiler-to-c/analysis/53-p6-narrow-layout.png",
+      "sha256": "69bf8618acac1f10dc6546bf4ac2256e60c4c464603d9c88ba15d2cfeb4b2de0",
+      "bytes": 84159
+    },
+    {
+      "asset": "evidence/55-p6-final-cfg.png",
+      "original": "ttmp/2026/09/06/SINGULARITY-SERVICELANG--servicelang-ownership-and-protocol-checked-compiler-to-c/analysis/55-p6-final-cfg.png",
+      "sha256": "eb9974fc27ad0edaee2e2808fef52845d3ae8749261ddb73b321885f7a033908",
+      "bytes": 290522
+    },
+    {
+      "asset": "evidence/25-p4-simulation.txt",
+      "original": "ttmp/2026/09/06/SINGULARITY-SERVICELANG--servicelang-ownership-and-protocol-checked-compiler-to-c/analysis/25-p4-simulation.txt",
+      "sha256": "5ae11a98a9fd1367dbad59e59d61dd4407323128310f73e6af485c5e853c7081",
+      "bytes": 1085
+    },
+    {
+      "asset": "evidence/29-branch-ir.json",
+      "original": "ttmp/2026/09/06/SINGULARITY-SERVICELANG--servicelang-ownership-and-protocol-checked-compiler-to-c/analysis/29-branch-ir.json",
+      "sha256": "2274db30d05dd449c67c69836eddbc6dacdf298b5576ce2371c827af59f03e1b",
+      "bytes": 10317
+    },
+    {
+      "asset": "evidence/54-final-local-ci.txt",
+      "original": "ttmp/2026/09/06/SINGULARITY-SERVICELANG--servicelang-ownership-and-protocol-checked-compiler-to-c/analysis/54-final-local-ci.txt",
+      "sha256": "9fc950a866d0cf06978777d13ac16f0bee12ce448d331bfe6f6bf08757efd580",
+      "bytes": 3339
+    },
+    {
+      "asset": "evidence/56-p6-browser-evidence.json",
+      "original": "ttmp/2026/09/06/SINGULARITY-SERVICELANG--servicelang-ownership-and-protocol-checked-compiler-to-c/analysis/56-p6-browser-evidence.json",
+      "sha256": "8657398558dceb57b196727fac8021002c6445e3392e1da784e6204296f4835a",
+      "bytes": 2025
+    },
+    {
+      "asset": "evidence/59-decimal-literal-regression.txt",
+      "original": "ttmp/2026/09/06/SINGULARITY-SERVICELANG--servicelang-ownership-and-protocol-checked-compiler-to-c/analysis/59-decimal-literal-regression.txt",
+      "sha256": "97b55453c77399c528f40fcdb94eb70db84b0a9cc00f88fcf0d9f71b4a34589d",
+      "bytes": 1103
+    },
+    {
+      "asset": "source-manifest.json",
+      "original": "ttmp/2026/09/06/SINGULARITY-SERVICELANG--servicelang-ownership-and-protocol-checked-compiler-to-c/sources/source-manifest.json",
+      "sha256": "297bc0a8c38a7aeff2cc4452be1f6dc1c617025a4291de8f47812a1c1edcbbda",
+      "bytes": 3333
+    }
+  ]
+}

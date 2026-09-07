@@ -1,0 +1,11 @@
+make: Entering directory '/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/labs/singularity-servicelang'
+mkdir -p "build"
+cd compiler && go build -o "/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/labs/singularity-servicelang/build/servicec" ./cmd/servicec
+bash scripts/run-simulation.sh "build"
+PARITY success outcome=1 attempts=1 completed_us=195073 retained_tx=0 reusable=1 steps=3 cleanup=0 audit=PASS
+PARITY no-permission outcome=3 attempts=0 completed_us=8000000 retained_tx=0 reusable=1 steps=1 cleanup=0 audit=PASS
+PARITY lost-replies outcome=4 attempts=3 completed_us=6277248 retained_tx=0 reusable=1 steps=9 cleanup=0 audit=PASS
+PARITY retained-tx outcome=4 attempts=1 completed_us=1000 retained_tx=1 reusable=1 steps=1 cleanup=3 audit=PASS
+ENDPOINT rejected_retains_ready=PASS invalidation_notsent_lost=PASS invalidation_unknown_lost=PASS stale_ready_unavailable=PASS
+ARTIFACTS build/simulation-fEWpLg
+make: Leaving directory '/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/labs/singularity-servicelang'

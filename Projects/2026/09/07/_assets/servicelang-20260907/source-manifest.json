@@ -1,0 +1,68 @@
+{
+  "recorded_at": "2026-09-07T00:45:49.773971+00:00",
+  "web_extraction": "defuddle parse URL --md -o PATH",
+  "version_notes": {
+    "Wadler": "Repository cites ICFP 2012; body is an expanded December 2013 JFP-submission manuscript",
+    "Harper": "Abbreviated online second edition with corrections, not full printed textbook",
+    "Moller_Schwartzbach": "Preserved notes dated August 29, 2026",
+    "Leroy": "Author manuscript with older copyright placeholder; published CACM citation is 2009"
+  },
+  "files": {
+    "singularity-rethinking-the-software-stack-2007.pdf": {
+      "source": "https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/osr2007_rethinkingsoftwarestack.pdf",
+      "sha256": "1da2c58082d7b28544086636e50e7d1d1a449f3556ba8e351d81ac1370f3b8a2"
+    },
+    "singularity-rethinking-the-software-stack-2007.txt": {
+      "source": "Derived with pdftotext -layout from the adjacent PDF",
+      "sha256": "c6c2a646f52fda3c0ad18644589aa8193b249a5d1cfc0a171ae4a2dd6b17e7c9"
+    },
+    "rust-borrow-check.md": {
+      "source": "https://rustc-dev-guide.rust-lang.org/borrow-check.html",
+      "sha256": "fad62fa0961d104c1488e095ede7fb8b70288b4d5d341714d0512993c4de8312"
+    },
+    "rust-mir-dataflow.md": {
+      "source": "https://rustc-dev-guide.rust-lang.org/mir/dataflow.html",
+      "sha256": "ff266736774fc56fcbf43c7145cd9e167e973ef1792cecf33d1881ed2da96bbc"
+    },
+    "resolving-and-binding.md": {
+      "source": "https://craftinginterpreters.com/resolving-and-binding.html",
+      "sha256": "542e37b04af4cecf4e54c80325958218b8887f7142c9616cb8a6dc7b1800e7ab"
+    },
+    "harper-pfpl-index.md": {
+      "source": "https://www.cs.cmu.edu/~rwh/pfpl/index.html",
+      "sha256": "c7e8d8899ca7620aad00b0a70dcad0c47901406e550962985bb87fec826ae977"
+    },
+    "harper-pfpl-abbreviated.pdf": {
+      "source": "https://www.cs.cmu.edu/~rwh/pfpl/abbrev.pdf",
+      "sha256": "82aeead40e7d2160500c8f25612d4ec120c27454ae57619285345bae464ae94d"
+    },
+    "static-program-analysis.pdf": {
+      "source": "https://cs.au.dk/~amoeller/spa/spa.pdf",
+      "sha256": "d1337e03ef48335db0fc8405b9dc8c7d58608d301ae5def08f75b5d50ed30286"
+    },
+    "wadler-propositions-as-sessions.pdf": {
+      "source": "https://www.pure.ed.ac.uk/ws/portalfiles/portal/18383989/Wadler_2012_Propositions_as_Sessions.pdf",
+      "sha256": "663ef287ba4d97c0788a83bc0021487716eaaf8cbe731ae6068006656c3b08c9"
+    },
+    "leroy-compcert-cacm.pdf": {
+      "source": "https://xavierleroy.org/publi/compcert-CACM.pdf",
+      "sha256": "5cfa2447db8dfa4400a43bb7e41e16f4787bf614e72bf0ffbf82f75d6824a137"
+    },
+    "harper-pfpl-abbreviated.txt": {
+      "source": "pdftotext -layout of adjacent PDF",
+      "sha256": "9f493937732970e883e3a9b3d67472942aa78495983aaf03f074978c304e5358"
+    },
+    "static-program-analysis.txt": {
+      "source": "pdftotext -layout of adjacent PDF",
+      "sha256": "b8287c73eb97d05bc1de69d380c66b336af83fb1f48a8f2d251d99b4f42bfb83"
+    },
+    "wadler-propositions-as-sessions.txt": {
+      "source": "pdftotext -layout of adjacent PDF",
+      "sha256": "ce8d3d87912b97cc5542912aa802d6062a448ad183dba0cfd453a3143aac1a68"
+    },
+    "leroy-compcert-cacm.txt": {
+      "source": "pdftotext -layout of adjacent PDF",
+      "sha256": "3d74e2fdc1ee3c55fd3cec8435664348e203e3145614defc3c06e59d533c7ed9"
+    }
+  }
+}

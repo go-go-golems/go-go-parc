@@ -1,0 +1,522 @@
+{
+  "Functions": [
+    {
+      "Name": "close_branch",
+      "Result": "Unit",
+      "Slots": [
+        {
+          "Name": "ready",
+          "Type": "Ready",
+          "Span": {
+            "Start": 32,
+            "End": 37
+          },
+          "Parameter": true,
+          "Temporary": false
+        },
+        {
+          "Name": "flag",
+          "Type": "Bool",
+          "Span": {
+            "Start": 46,
+            "End": 50
+          },
+          "Parameter": true,
+          "Temporary": false
+        },
+        {
+          "Name": "",
+          "Type": "Bool",
+          "Span": {
+            "Start": 75,
+            "End": 79
+          },
+          "Parameter": false,
+          "Temporary": true
+        },
+        {
+          "Name": "",
+          "Type": "Ready",
+          "Span": {
+            "Start": 96,
+            "End": 106
+          },
+          "Parameter": false,
+          "Temporary": true
+        },
+        {
+          "Name": "",
+          "Type": "Unit",
+          "Span": {
+            "Start": 90,
+            "End": 107
+          },
+          "Parameter": false,
+          "Temporary": true
+        },
+        {
+          "Name": "",
+          "Type": "Ready",
+          "Span": {
+            "Start": 136,
+            "End": 146
+          },
+          "Parameter": false,
+          "Temporary": true
+        },
+        {
+          "Name": "",
+          "Type": "Unit",
+          "Span": {
+            "Start": 130,
+            "End": 147
+          },
+          "Parameter": false,
+          "Temporary": true
+        },
+        {
+          "Name": "",
+          "Type": "Unit",
+          "Span": {
+            "Start": 0,
+            "End": 0
+          },
+          "Parameter": false,
+          "Temporary": true
+        }
+      ],
+      "Blocks": [
+        {
+          "Ops": [
+            {
+              "Kind": "copy",
+              "Name": "",
+              "Dest": 2,
+              "Args": [
+                1
+              ],
+              "Span": {
+                "Start": 75,
+                "End": 79
+              }
+            }
+          ],
+          "End": {
+            "Kind": "branch",
+            "Value": 2,
+            "Edges": [
+              {
+                "Target": 1,
+                "Variant": "",
+                "Bindings": null
+              },
+              {
+                "Target": 2,
+                "Variant": "",
+                "Bindings": null
+              }
+            ],
+            "Span": {
+              "Start": 72,
+              "End": 74
+            }
+          }
+        },
+        {
+          "Ops": [
+            {
+              "Kind": "move",
+              "Name": "",
+              "Dest": 3,
+              "Args": [
+                0
+              ],
+              "Span": {
+                "Start": 96,
+                "End": 106
+              }
+            },
+            {
+              "Kind": "call",
+              "Name": "close",
+              "Dest": 4,
+              "Args": [
+                3
+              ],
+              "Span": {
+                "Start": 90,
+                "End": 107
+              }
+            }
+          ],
+          "End": {
+            "Kind": "jump",
+            "Value": 0,
+            "Edges": [
+              {
+                "Target": 3,
+                "Variant": "",
+                "Bindings": null
+              }
+            ],
+            "Span": {
+              "Start": 72,
+              "End": 74
+            }
+          }
+        },
+        {
+          "Ops": [
+            {
+              "Kind": "move",
+              "Name": "",
+              "Dest": 5,
+              "Args": [
+                0
+              ],
+              "Span": {
+                "Start": 136,
+                "End": 146
+              }
+            },
+            {
+              "Kind": "call",
+              "Name": "close",
+              "Dest": 6,
+              "Args": [
+                5
+              ],
+              "Span": {
+                "Start": 130,
+                "End": 147
+              }
+            }
+          ],
+          "End": {
+            "Kind": "jump",
+            "Value": 0,
+            "Edges": [
+              {
+                "Target": 3,
+                "Variant": "",
+                "Bindings": null
+              }
+            ],
+            "Span": {
+              "Start": 72,
+              "End": 74
+            }
+          }
+        },
+        {
+          "Ops": [
+            {
+              "Kind": "unit",
+              "Name": "",
+              "Dest": 7,
+              "Args": null,
+              "Span": {
+                "Start": 0,
+                "End": 0
+              }
+            }
+          ],
+          "End": {
+            "Kind": "return",
+            "Value": 7,
+            "Edges": null,
+            "Span": {
+              "Start": 159,
+              "End": 165
+            }
+          }
+        }
+      ],
+      "Params": [
+        0,
+        1
+      ],
+      "Calls": null,
+      "Span": {
+        "Start": 12,
+        "End": 27
+      }
+    }
+  ],
+  "Signatures": {
+    "Again": {
+      "Args": [
+        "Pending"
+      ],
+      "Read": null,
+      "Result": "Step",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "AllocFailed": {
+      "Args": [
+        "I32"
+      ],
+      "Read": null,
+      "Result": "Allocation",
+      "Capability": "memory",
+      "Constructor": true,
+      "User": false
+    },
+    "Allocated": {
+      "Args": [
+        "Buffer"
+      ],
+      "Read": null,
+      "Result": "Allocation",
+      "Capability": "memory",
+      "Constructor": true,
+      "User": false
+    },
+    "Complete": {
+      "Args": [
+        "CallResult",
+        "Continuation"
+      ],
+      "Read": null,
+      "Result": "PollResult",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "Finished": {
+      "Args": [
+        "Continuation"
+      ],
+      "Read": null,
+      "Result": "Step",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "Lost": {
+      "Args": [
+        "I32"
+      ],
+      "Read": null,
+      "Result": "Continuation",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "NotSent": {
+      "Args": null,
+      "Read": null,
+      "Result": "CallResult",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "Number": {
+      "Args": [
+        "I32"
+      ],
+      "Read": null,
+      "Result": "Arithmetic",
+      "Capability": "",
+      "Constructor": true,
+      "User": false
+    },
+    "Ok": {
+      "Args": [
+        "Sample"
+      ],
+      "Read": null,
+      "Result": "CallResult",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "Overflow": {
+      "Args": null,
+      "Read": null,
+      "Result": "Arithmetic",
+      "Capability": "",
+      "Constructor": true,
+      "User": false
+    },
+    "Rejected": {
+      "Args": [
+        "Ready",
+        "I32"
+      ],
+      "Read": null,
+      "Result": "StartResult",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "RemoteError": {
+      "Args": [
+        "I32"
+      ],
+      "Read": null,
+      "Result": "CallResult",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "Reusable": {
+      "Args": [
+        "Ready"
+      ],
+      "Read": null,
+      "Result": "Continuation",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "RuntimeFault": {
+      "Args": [
+        "I32"
+      ],
+      "Read": null,
+      "Result": "CallResult",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "Started": {
+      "Args": [
+        "Pending"
+      ],
+      "Read": null,
+      "Result": "StartResult",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "Unavailable": {
+      "Args": [
+        "I32"
+      ],
+      "Read": null,
+      "Result": "StartResult",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "Unknown": {
+      "Args": null,
+      "Read": null,
+      "Result": "CallResult",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "Waiting": {
+      "Args": [
+        "Pending"
+      ],
+      "Read": null,
+      "Result": "PollResult",
+      "Capability": "sensor",
+      "Constructor": true,
+      "User": false
+    },
+    "add": {
+      "Args": [
+        "I32",
+        "I32"
+      ],
+      "Read": null,
+      "Result": "Arithmetic",
+      "Capability": "",
+      "Constructor": false,
+      "User": false
+    },
+    "allocate": {
+      "Args": [
+        "I32"
+      ],
+      "Read": null,
+      "Result": "Allocation",
+      "Capability": "memory",
+      "Constructor": false,
+      "User": false
+    },
+    "close": {
+      "Args": [
+        "Ready"
+      ],
+      "Read": null,
+      "Result": "Unit",
+      "Capability": "sensor",
+      "Constructor": false,
+      "User": false
+    },
+    "close_branch": {
+      "Args": [
+        "Ready",
+        "Bool"
+      ],
+      "Read": null,
+      "Result": "Unit",
+      "Capability": "",
+      "Constructor": false,
+      "User": true
+    },
+    "length": {
+      "Args": [
+        "Buffer"
+      ],
+      "Read": {
+        "0": true
+      },
+      "Result": "I32",
+      "Capability": "memory",
+      "Constructor": false,
+      "User": false
+    },
+    "observe": {
+      "Args": [
+        "I32",
+        "I32"
+      ],
+      "Read": null,
+      "Result": "Unit",
+      "Capability": "output",
+      "Constructor": false,
+      "User": false
+    },
+    "release": {
+      "Args": [
+        "Buffer"
+      ],
+      "Read": null,
+      "Result": "Unit",
+      "Capability": "memory",
+      "Constructor": false,
+      "User": false
+    },
+    "rpc_poll": {
+      "Args": [
+        "Pending",
+        "Time"
+      ],
+      "Read": null,
+      "Result": "PollResult",
+      "Capability": "sensor",
+      "Constructor": false,
+      "User": false
+    },
+    "rpc_start": {
+      "Args": [
+        "Ready",
+        "Time",
+        "I32"
+      ],
+      "Read": null,
+      "Result": "StartResult",
+      "Capability": "sensor",
+      "Constructor": false,
+      "User": false
+    }
+  }
+}

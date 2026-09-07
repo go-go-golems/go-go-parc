@@ -1,0 +1,26 @@
+use sensor;
+use output;
+
+fn begin(own ready: Ready, now: Time) -> StartResult {
+    return rpc_start(move ready, now, 8000);
+}
+
+fn begin_for(own ready: Ready, now: Time, milliseconds: I32) -> StartResult {
+    return rpc_start(move ready, now, milliseconds);
+}
+
+fn tick(own pending: Pending, now: Time) -> Step {
+    match rpc_poll(move pending, now) {
+        Waiting(next) => { return Again(move next); }
+        Complete(result, continuation) => {
+            match result {
+                Ok(sample) => { observe(1, sample.value); }
+                RemoteError(error) => { observe(2, error); }
+                NotSent => { observe(3, 0); }
+                Unknown => { observe(4, 0); }
+                RuntimeFault(fault) => { observe(5, fault); }
+            }
+            return Finished(move continuation);
+        }
+    }
+}

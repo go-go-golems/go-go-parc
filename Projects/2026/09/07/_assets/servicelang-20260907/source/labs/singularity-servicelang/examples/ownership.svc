@@ -1,0 +1,19 @@
+use memory;
+
+fn buffer_size() -> I32 {
+    match allocate(8) {
+        Allocated(buffer) => {
+            let size = length(buffer);
+            release(move buffer);
+            return size;
+        }
+        AllocFailed(error) => { return -1; }
+    }
+}
+
+fn checked_sum(a: I32, b: I32) -> I32 {
+    match add(a, b) {
+        Number(n) => { return n; }
+        Overflow => { return -1; }
+    }
+}

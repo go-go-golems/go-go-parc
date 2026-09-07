@@ -1,0 +1,9 @@
+use sensor;
+fn close_branch(own ready: Ready, flag: Bool) -> Unit {
+    if flag {
+        close(move ready);
+    } else {
+        close(move ready);
+    }
+    return;
+}

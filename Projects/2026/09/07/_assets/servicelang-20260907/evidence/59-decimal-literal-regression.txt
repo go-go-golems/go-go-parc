@@ -1,0 +1,28 @@
+=== RUN   TestGeneratedOwnershipCPP
+--- PASS: TestGeneratedOwnershipCPP (0.59s)
+=== RUN   TestFrontend
+=== RUN   TestFrontend/values_and_branches
+=== RUN   TestFrontend/unknown_local
+=== RUN   TestFrontend/value_type
+=== RUN   TestFrontend/integer_bound
+=== RUN   TestFrontend/shadowing
+=== RUN   TestFrontend/capability
+=== RUN   TestFrontend/recursion
+=== RUN   TestFrontend/nonexhaustive
+=== RUN   TestFrontend/unsupported
+=== RUN   TestFrontend/missing_return
+--- PASS: TestFrontend (0.00s)
+    --- PASS: TestFrontend/values_and_branches (0.00s)
+    --- PASS: TestFrontend/unknown_local (0.00s)
+    --- PASS: TestFrontend/value_type (0.00s)
+    --- PASS: TestFrontend/integer_bound (0.00s)
+    --- PASS: TestFrontend/shadowing (0.00s)
+    --- PASS: TestFrontend/capability (0.00s)
+    --- PASS: TestFrontend/recursion (0.00s)
+    --- PASS: TestFrontend/nonexhaustive (0.00s)
+    --- PASS: TestFrontend/unsupported (0.00s)
+    --- PASS: TestFrontend/missing_return (0.00s)
+=== RUN   TestInspectionUsesChecker
+--- PASS: TestInspectionUsesChecker (0.00s)
+PASS
+ok  	servicelang/internal/compiler	0.589s
