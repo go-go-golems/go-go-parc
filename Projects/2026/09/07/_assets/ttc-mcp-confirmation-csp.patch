@@ -1,0 +1,34 @@
+diff --git a/tadmin/plugin/src/API/MCPIdentity.php b/tadmin/plugin/src/API/MCPIdentity.php
+index 08a04d137..9be334917 100644
+--- a/tadmin/plugin/src/API/MCPIdentity.php
++++ b/tadmin/plugin/src/API/MCPIdentity.php
+@@ -87,6 +87,14 @@ final class MCPIdentity
+                 'response' => 403,
+             ]);
+         }
++        // The document containing the form governs its entire redirect chain.
++        // Set this on GET as well as POST, after validating the exact callback.
++        $origin = 'https://' . parse_url($callback, PHP_URL_HOST);
++        $port = parse_url($callback, PHP_URL_PORT);
++        if (is_int($port)) {
++            $origin .= ':' . $port;
++        }
++        header("Content-Security-Policy: default-src 'none'; form-action 'self' " . $origin . "; frame-ancestors 'none'");
+         $nonceAction = 'ttc_mcp_' . hash('sha256', $transaction . $callback);
+         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
+             header('Content-Type: text/html; charset=UTF-8');
+@@ -110,14 +118,6 @@ final class MCPIdentity
+                 'response' => 503,
+             ]);
+         }
+-        // A POST redirect is governed by form-action in browsers. Permit only
+-        // the origin of the already-validated operator callback.
+-        $origin = 'https://' . parse_url($callback, PHP_URL_HOST);
+-        $port = parse_url($callback, PHP_URL_PORT);
+-        if (is_int($port)) {
+-            $origin .= ':' . $port;
+-        }
+-        header("Content-Security-Policy: default-src 'none'; form-action 'self' " . $origin . "; frame-ancestors 'none'");
+         // Callback was compared byte-for-byte with the operator-configured URL.
+         wp_redirect(add_query_arg([
+             'transaction' => $transaction,
