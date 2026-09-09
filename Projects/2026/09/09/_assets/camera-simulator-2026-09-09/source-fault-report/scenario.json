@@ -1,0 +1,102 @@
+{
+  "camera_count": 1,
+  "camera_overrides": [],
+  "clock_mode": "normal",
+  "duration_s": 12,
+  "expected": {
+    "profile": "source-faults",
+    "require_generator_healthy": true,
+    "require_real_models": false
+  },
+  "faults": [
+    {
+      "duration_s": 1,
+      "fault_id": "pause-sub",
+      "parameters": {
+        "keep_rtcp": true
+      },
+      "start_s": 1,
+      "target": {
+        "backend_target_id": null,
+        "camera_ids": [
+          "cam_01"
+        ],
+        "stream_ids": [
+          "sub"
+        ]
+      },
+      "type": "pause_media"
+    },
+    {
+      "duration_s": 1,
+      "fault_id": "omit-access-units",
+      "parameters": {
+        "every_n": 1
+      },
+      "start_s": 3,
+      "target": {
+        "backend_target_id": null,
+        "camera_ids": [
+          "cam_01"
+        ],
+        "stream_ids": [
+          "sub"
+        ]
+      },
+      "type": "drop_access_units"
+    },
+    {
+      "duration_s": 1,
+      "fault_id": "lose-packets",
+      "parameters": {
+        "burst_packets": 3,
+        "probability": 1
+      },
+      "start_s": 5,
+      "target": {
+        "backend_target_id": null,
+        "camera_ids": [
+          "cam_01"
+        ],
+        "stream_ids": [
+          "sub"
+        ]
+      },
+      "type": "drop_rtp_packets"
+    },
+    {
+      "duration_s": 2,
+      "fault_id": "suppress-reports",
+      "parameters": {},
+      "start_s": 7,
+      "target": {
+        "backend_target_id": null,
+        "camera_ids": [
+          "cam_01"
+        ],
+        "stream_ids": [
+          "sub"
+        ]
+      },
+      "type": "drop_rtcp"
+    }
+  ],
+  "fixture_id": "calibration-v1",
+  "main_profile": "main_1080p15",
+  "name": "source-faults",
+  "phase_mode": "aligned",
+  "safety": {
+    "allow_backend_faults": false,
+    "allowed_target_ids": [
+      "local-test"
+    ],
+    "max_artifact_gib": 1,
+    "require_isolated_network": false
+  },
+  "schema_version": "1.0",
+  "seed": 1701,
+  "start_delay_s": 2,
+  "sub_profile": "sub_360p10",
+  "transport": "tcp",
+  "workloads": []
+}

@@ -1,0 +1,10 @@
+=== RUN   TestExportNeverOverwritesAndPublishesCompleteBundle
+--- PASS: TestExportNeverOverwritesAndPublishesCompleteBundle (0.06s)
+=== RUN   TestIntegrityFailureCreatesNoDestination
+--- PASS: TestIntegrityFailureCreatesNoDestination (0.00s)
+PASS
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/evidence	1.090s
+=== RUN   TestEvidenceRequiresAuthenticationOwnershipAndTerminalState
+--- PASS: TestEvidenceRequiresAuthenticationOwnershipAndTerminalState (0.05s)
+PASS
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/api	1.074s

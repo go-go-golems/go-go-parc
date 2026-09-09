@@ -1,0 +1,185 @@
+{
+  "version": "local-evidence/1",
+  "acceptance_conclusion": "inconclusive",
+  "run": {
+    "run_id": "run_3770618611ef8c2403925976",
+    "state": "completed",
+    "scenario_name": "source-faults",
+    "scenario_hash": "sha256:059ac7126af96c0e93dbce12fa04724e52a4024fd929e43908d2274558f6a92a",
+    "target_id": "local-test",
+    "created_at_us": "1788926873434979",
+    "started_at_us": "1788926875438283",
+    "ended_at_us": "1788926887447474",
+    "elapsed_s": 12.009263785,
+    "camera_count": 1,
+    "generator_health": "unknown",
+    "report_url": null,
+    "error": null
+  },
+  "scenario": {
+    "camera_count": 1,
+    "camera_overrides": [],
+    "clock_mode": "normal",
+    "duration_s": 12,
+    "expected": {
+      "profile": "source-faults",
+      "require_generator_healthy": true,
+      "require_real_models": false
+    },
+    "faults": [
+      {
+        "duration_s": 1,
+        "fault_id": "pause-sub",
+        "parameters": {
+          "keep_rtcp": true
+        },
+        "start_s": 1,
+        "target": {
+          "backend_target_id": null,
+          "camera_ids": [
+            "cam_01"
+          ],
+          "stream_ids": [
+            "sub"
+          ]
+        },
+        "type": "pause_media"
+      },
+      {
+        "duration_s": 1,
+        "fault_id": "omit-access-units",
+        "parameters": {
+          "every_n": 1
+        },
+        "start_s": 3,
+        "target": {
+          "backend_target_id": null,
+          "camera_ids": [
+            "cam_01"
+          ],
+          "stream_ids": [
+            "sub"
+          ]
+        },
+        "type": "drop_access_units"
+      },
+      {
+        "duration_s": 1,
+        "fault_id": "lose-packets",
+        "parameters": {
+          "burst_packets": 3,
+          "probability": 1
+        },
+        "start_s": 5,
+        "target": {
+          "backend_target_id": null,
+          "camera_ids": [
+            "cam_01"
+          ],
+          "stream_ids": [
+            "sub"
+          ]
+        },
+        "type": "drop_rtp_packets"
+      },
+      {
+        "duration_s": 2,
+        "fault_id": "suppress-reports",
+        "parameters": {},
+        "start_s": 7,
+        "target": {
+          "backend_target_id": null,
+          "camera_ids": [
+            "cam_01"
+          ],
+          "stream_ids": [
+            "sub"
+          ]
+        },
+        "type": "drop_rtcp"
+      }
+    ],
+    "fixture_id": "calibration-v1",
+    "main_profile": "main_1080p15",
+    "name": "source-faults",
+    "phase_mode": "aligned",
+    "safety": {
+      "allow_backend_faults": false,
+      "allowed_target_ids": [
+        "local-test"
+      ],
+      "max_artifact_gib": 1,
+      "require_isolated_network": false
+    },
+    "schema_version": "1.0",
+    "seed": 1701,
+    "start_delay_s": 2,
+    "sub_profile": "sub_360p10",
+    "transport": "tcp",
+    "workloads": []
+  },
+  "process_epochs": [
+    {
+      "identity": {
+        "pid": 1611449,
+        "start_ticks": "146254154",
+        "boot_id": "918284d1-56de-4643-9404-4bd3aabb456b",
+        "pid_namespace": "pid:[4026531836]",
+        "executable_sha256": "7e75e65837121cde71f89ae7bc37f47d426a5d9857d05853f8502c8176138c2d"
+      },
+      "sample": {
+        "camera_id": "cam_01",
+        "pid": 1611449,
+        "observed_at_us": "1788926887444015",
+        "profiles": [
+          {
+            "stream_id": "main",
+            "epoch_start_frame": 0,
+            "scheduled": 181,
+            "sent": 124,
+            "no_reader": 57,
+            "skipped": 0,
+            "payload_bytes": 194390,
+            "rtp_packets": 189,
+            "rtcp_reports": 12,
+            "max_lateness_ns": 1094066,
+            "readers": 0,
+            "reader_write_failures": 0,
+            "fault_paused_access_units": 0,
+            "fault_dropped_access_units": 0,
+            "fault_dropped_rtp_packets": 0,
+            "fault_dropped_rtcp_reports": 0
+          },
+          {
+            "stream_id": "sub",
+            "epoch_start_frame": 0,
+            "scheduled": 121,
+            "sent": 0,
+            "no_reader": 91,
+            "skipped": 0,
+            "payload_bytes": 72017,
+            "rtp_packets": 115,
+            "rtcp_reports": 10,
+            "max_lateness_ns": 1095375,
+            "readers": 0,
+            "reader_write_failures": 0,
+            "fault_paused_access_units": 10,
+            "fault_dropped_access_units": 20,
+            "fault_dropped_rtp_packets": 12,
+            "fault_dropped_rtcp_reports": 2
+          }
+        ],
+        "final": true,
+        "exit_error": ""
+      }
+    }
+  ],
+  "missing_current_observations": [],
+  "limitations": [
+    "Local source observations only; no receiver or backend delivery measurement.",
+    "No complete CPU/RSS/queue/network saturation or generator-health qualification.",
+    "Backend, real-model and browser environment are unverified.",
+    "Epoch counters can overlap; they are not blindly summed into whole-run totals.",
+    "This local evidence document is not a canonical RunReport or acceptance verdict."
+  ]
+}

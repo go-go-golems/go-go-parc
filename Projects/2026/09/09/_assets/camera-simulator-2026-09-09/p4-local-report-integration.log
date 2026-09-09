@@ -1,0 +1,9 @@
+{
+  "run_id": "run_3770618611ef8c2403925976",
+  "execution": "completed",
+  "independent_main_decode": "passed",
+  "four_source_effects_observed": true,
+  "report_export_exit": 6,
+  "acceptance": "inconclusive",
+  "bundle": "/home/manuel/code/wesen/2026-09-07--streaming-system/ttmp/2026/09/08/CAMSIM-001--implement-camera-simulator-and-reproducible-load-laboratory/artifacts/source-fault-report"
+}

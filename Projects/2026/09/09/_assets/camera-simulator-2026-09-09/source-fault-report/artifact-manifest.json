@@ -1,0 +1,22 @@
+{
+  "version": "local-evidence/1",
+  "run_id": "run_3770618611ef8c2403925976",
+  "acceptance": "inconclusive",
+  "artifacts": [
+    {
+      "path": "evidence.json",
+      "sha256": "887409f041a11cfac9742ca1cac3c69cb8d259b5e6032c1af8478b6460743c5c",
+      "bytes": 5023
+    },
+    {
+      "path": "scenario.json",
+      "sha256": "7b0d590071187b401c964e8d8ef31c42e3501df6f7910361814d29e942a64936",
+      "bytes": 2039
+    },
+    {
+      "path": "report.md",
+      "sha256": "21401749428938a56f21c446c56e3e88913619b6719de4958ce22f4d7a2f5a72",
+      "bytes": 1846
+    }
+  ]
+}

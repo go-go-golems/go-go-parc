@@ -1,0 +1,209 @@
+python3 ../video_platform_v1/contracts/validate_contracts.py
+{
+  "status": "pass",
+  "checks": [
+    "nvr.openapi.json: local references, unique operation IDs, path parameters, response shapes; 49 operations, 93 JSON schemas",
+    "simulator.openapi.json: local references, unique operation IDs, path parameters, response shapes; 21 operations, 62 JSON schemas",
+    "scenario.schema.json: Draft 2020-12 meta-schema and local references",
+    "websocket.schema.json: Draft 2020-12 meta-schema and local references",
+    "Example camera-create.json matches CameraCreate",
+    "Example camera-policy.json matches CameraPolicy",
+    "Example deployment-catalog.json matches ConfigurationCatalog",
+    "Example timeline-query.json matches TimelineQuery",
+    "Example playback-create.json matches PlaybackCreate",
+    "Example live-redacted-create.json matches LiveCreate",
+    "Example reason-job.json matches ReasonRequest",
+    "Example browser-telemetry.json matches BrowserTelemetry",
+    "Example baseline-16.yaml: scenario schema and elapsed-time bounds",
+    "Example faults-source-16.yaml: scenario schema and elapsed-time bounds",
+    "Example load-staircase-16.yaml: scenario schema and elapsed-time bounds",
+    "Example ws-event.json: WebSocket union",
+    "Example ws-subscribe.json: WebSocket union",
+    "Histogram example: monotone cumulative buckets, terminal +Inf/count, scalar exclusion",
+    "Negative schema checks: unknown write field, unsupported view, excessive V1 scenario camera count rejected",
+    "01_video_backend_spec.md: local links, citation labels, fenced code",
+    "02_web_ui_spec.md: local links, citation labels, fenced code",
+    "03_camera_simulator_spec.md: local links, citation labels, fenced code",
+    "media.proto and timeline.proto: protoc compilation to descriptor set"
+  ],
+  "protobuf_compile": "pass",
+  "limitations": [
+    "Not a full OpenAPI conformance-validator run; operation structure, references, JSON schemas, and examples were checked.",
+    "No backend/frontend/simulator implementation was built or run.",
+    "No DGX Spark, model compatibility, throughput, browser synchronization, or privacy effectiveness tests were executed."
+  ]
+}
+go test -race ./... -count=1
+?   	github.com/wesen/video-observatory/camera-simulator/cmd/fixturebuild	[no test files]
+?   	github.com/wesen/video-observatory/camera-simulator/cmd/simcam	[no test files]
+ok  	github.com/wesen/video-observatory/camera-simulator/cmd/simctl	1.235s
+ok  	github.com/wesen/video-observatory/camera-simulator/cmd/simd	1.027s
+ok  	github.com/wesen/video-observatory/camera-simulator/contracts	1.011s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/api	1.268s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/clock	1.038s
+?   	github.com/wesen/video-observatory/camera-simulator/internal/controltypes	[no test files]
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/coordinator	1.118s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/fixture	1.044s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/integration	1.010s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/rtsp	1.029s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/runstore	1.179s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/scenario	1.208s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/sourcefault	1.079s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/worker	1.034s
+go build ./...
+go vet ./...
+internal/rtsp/server.go:258:21: github.com/wesen/video-observatory/camera-simulator/internal/controltypes.ProfileStats struct literal uses unkeyed fields
+make: *** [Makefile:4: check] Error 1
+python3 ../video_platform_v1/contracts/validate_contracts.py
+{
+  "status": "pass",
+  "checks": [
+    "nvr.openapi.json: local references, unique operation IDs, path parameters, response shapes; 49 operations, 93 JSON schemas",
+    "simulator.openapi.json: local references, unique operation IDs, path parameters, response shapes; 21 operations, 62 JSON schemas",
+    "scenario.schema.json: Draft 2020-12 meta-schema and local references",
+    "websocket.schema.json: Draft 2020-12 meta-schema and local references",
+    "Example camera-create.json matches CameraCreate",
+    "Example camera-policy.json matches CameraPolicy",
+    "Example deployment-catalog.json matches ConfigurationCatalog",
+    "Example timeline-query.json matches TimelineQuery",
+    "Example playback-create.json matches PlaybackCreate",
+    "Example live-redacted-create.json matches LiveCreate",
+    "Example reason-job.json matches ReasonRequest",
+    "Example browser-telemetry.json matches BrowserTelemetry",
+    "Example baseline-16.yaml: scenario schema and elapsed-time bounds",
+    "Example faults-source-16.yaml: scenario schema and elapsed-time bounds",
+    "Example load-staircase-16.yaml: scenario schema and elapsed-time bounds",
+    "Example ws-event.json: WebSocket union",
+    "Example ws-subscribe.json: WebSocket union",
+    "Histogram example: monotone cumulative buckets, terminal +Inf/count, scalar exclusion",
+    "Negative schema checks: unknown write field, unsupported view, excessive V1 scenario camera count rejected",
+    "01_video_backend_spec.md: local links, citation labels, fenced code",
+    "02_web_ui_spec.md: local links, citation labels, fenced code",
+    "03_camera_simulator_spec.md: local links, citation labels, fenced code",
+    "media.proto and timeline.proto: protoc compilation to descriptor set"
+  ],
+  "protobuf_compile": "pass",
+  "limitations": [
+    "Not a full OpenAPI conformance-validator run; operation structure, references, JSON schemas, and examples were checked.",
+    "No backend/frontend/simulator implementation was built or run.",
+    "No DGX Spark, model compatibility, throughput, browser synchronization, or privacy effectiveness tests were executed."
+  ]
+}
+go test -race ./... -count=1
+?   	github.com/wesen/video-observatory/camera-simulator/cmd/fixturebuild	[no test files]
+?   	github.com/wesen/video-observatory/camera-simulator/cmd/simcam	[no test files]
+ok  	github.com/wesen/video-observatory/camera-simulator/cmd/simctl	1.363s
+ok  	github.com/wesen/video-observatory/camera-simulator/cmd/simd	1.038s
+ok  	github.com/wesen/video-observatory/camera-simulator/contracts	1.012s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/api	1.380s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/clock	1.039s
+?   	github.com/wesen/video-observatory/camera-simulator/internal/controltypes	[no test files]
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/coordinator	1.147s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/fixture	1.056s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/integration	1.009s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/rtsp	1.028s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/runstore	1.185s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/scenario	1.180s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/sourcefault	1.072s
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/worker	1.028s
+go build ./...
+go vet ./...
+SIM_CONFORMANCE=1 go test -race -p 1 ./internal/fixture ./internal/rtsp ./internal/integration ./internal/worker ./internal/coordinator ./internal/api ./cmd/simd -count=1 -v
+=== RUN   TestBuildCalibration
+--- PASS: TestBuildCalibration (2.20s)
+=== RUN   TestRejectUnsafeBuilderInput
+--- PASS: TestRejectUnsafeBuilderInput (0.00s)
+=== RUN   TestIndexRoundTripAndValidation
+--- PASS: TestIndexRoundTripAndValidation (0.00s)
+=== RUN   TestRejectHostileIndex
+--- PASS: TestRejectHostileIndex (0.00s)
+=== RUN   TestAVCC
+--- PASS: TestAVCC (0.00s)
+=== RUN   TestMarkerRoundTripAndCorruption
+--- PASS: TestMarkerRoundTripAndCorruption (0.02s)
+=== RUN   FuzzNALUs
+=== RUN   FuzzNALUs/seed#0
+--- PASS: FuzzNALUs (0.00s)
+    --- PASS: FuzzNALUs/seed#0 (0.00s)
+PASS
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/fixture	3.233s
+=== RUN   TestReaderAdmissionAndTeardown
+--- PASS: TestReaderAdmissionAndTeardown (2.84s)
+=== RUN   TestIndependentWireSourceFaultsAndRecovery
+    fault_test.go:144: raw wire verified pause with RTCP, AU loss without sequence loss, packet sequence gaps, RTCP-only suppression, sibling decode and post-fault decode
+--- PASS: TestIndependentWireSourceFaultsAndRecovery (16.37s)
+=== RUN   TestNTP
+--- PASS: TestNTP (0.00s)
+=== RUN   TestIndependentFFmpegMainSub
+RTSP conformance snapshots: [{StreamID:main Scheduled:74 Sent:63 NoReader:11 Skipped:0 PayloadBytes:82176 RTPPackets:80 RTCPReports:5 MaxLatenessNS:1249553 Readers:0 ReaderWriteFailures:0 PausedAUs:0 DroppedAUs:0 DroppedPackets:0 DroppedReports:0} {StreamID:sub Scheduled:49 Sent:46 NoReader:3 Skipped:0 PayloadBytes:39381 RTPPackets:62 RTCPReports:5 MaxLatenessNS:1088216 Readers:0 ReaderWriteFailures:0 PausedAUs:0 DroppedAUs:0 DroppedPackets:0 DroppedReports:0}]
+--- PASS: TestIndependentFFmpegMainSub (6.93s)
+=== RUN   TestAbandonedReaderDoesNotBlockSiblingProfile
+    slow_reader_test.go:115: abandoned main reader evicted once; producer bounded and independent sub decode continued
+--- PASS: TestAbandonedReaderDoesNotBlockSiblingProfile (5.40s)
+=== RUN   TestIndependentWireClockMapping
+--- PASS: TestIndependentWireClockMapping (4.33s)
+PASS
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/rtsp	36.909s
+=== RUN   TestSixteenProcessesAndCrashIsolation
+    process_test.go:149: verified 16 independent PIDs sharing one monotonic/UTC anchor and 32 decoded endpoints; cam_08 kill left cam_01/cam_16 playable
+--- PASS: TestSixteenProcessesAndCrashIsolation (13.91s)
+PASS
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/integration	14.927s
+=== RUN   TestLeaseParentHelper
+--- PASS: TestLeaseParentHelper (0.00s)
+=== RUN   TestRecoveryRequiresExactIdentityAndUsesPidfd
+--- PASS: TestRecoveryRequiresExactIdentityAndUsesPidfd (0.00s)
+=== RUN   TestBoundedDiagnostics
+--- PASS: TestBoundedDiagnostics (0.00s)
+=== RUN   TestRejectUnsafeSupervisorConfig
+--- PASS: TestRejectUnsafeSupervisorConfig (0.00s)
+=== RUN   TestSupervisorRestartsPreserveOwnershipAndAnchor
+=== RUN   TestSupervisorRestartsPreserveOwnershipAndAnchor/closed-gate-opens-no-fixture
+=== RUN   TestSupervisorRestartsPreserveOwnershipAndAnchor/ownership-write-failure-keeps-gate-closed
+=== RUN   TestSupervisorRestartsPreserveOwnershipAndAnchor/parent-SIGKILL-revokes-worker-lease
+    lease_test.go:148: SIGKILL of the real supervisor parent revoked stdin lease; exact orphan worker exited and was reaped without signalling it
+=== NAME  TestSupervisorRestartsPreserveOwnershipAndAnchor
+    supervisor_test.go:151: restart preserved camera endpoint and shared anchor; siblings survived; restart limit and idempotent stop verified
+--- PASS: TestSupervisorRestartsPreserveOwnershipAndAnchor (6.23s)
+    --- PASS: TestSupervisorRestartsPreserveOwnershipAndAnchor/closed-gate-opens-no-fixture (0.01s)
+    --- PASS: TestSupervisorRestartsPreserveOwnershipAndAnchor/ownership-write-failure-keeps-gate-closed (0.00s)
+    --- PASS: TestSupervisorRestartsPreserveOwnershipAndAnchor/parent-SIGKILL-revokes-worker-lease (0.03s)
+PASS
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/worker	7.263s
+=== RUN   TestRealAsyncLifecycleAdmissionAndCancellation
+    manager_test.go:178: explicit UTC start overrode relative delay and completed after real decode; replay after the start deadline, exclusive admission, overrides and cancellation verified
+--- PASS: TestRealAsyncLifecycleAdmissionAndCancellation (15.57s)
+=== RUN   TestStopReapsOwnedWorkersWhenPersistenceUnavailable
+    persistence_failure_test.go:86: unavailable persistence did not prevent exact owned-worker reaping; failures remained observable and unresolved state blocked restart
+--- PASS: TestStopReapsOwnedWorkersWhenPersistenceUnavailable (3.24s)
+=== RUN   TestStartupRefusesInterruptedSlotAcrossOperators
+=== RUN   TestStartupRefusesInterruptedSlotAcrossOperators/operator
+=== RUN   TestStartupRefusesInterruptedSlotAcrossOperators/previous-operator
+--- PASS: TestStartupRefusesInterruptedSlotAcrossOperators (0.01s)
+    --- PASS: TestStartupRefusesInterruptedSlotAcrossOperators/operator (0.00s)
+    --- PASS: TestStartupRefusesInterruptedSlotAcrossOperators/previous-operator (0.00s)
+=== RUN   TestDistantScheduleWaitsWithoutLaunchingAndCanCancel
+--- PASS: TestDistantScheduleWaitsWithoutLaunchingAndCanCancel (0.04s)
+PASS
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/coordinator	19.880s
+=== RUN   TestImplementedResponsesMatchCanonicalSchemas
+--- PASS: TestImplementedResponsesMatchCanonicalSchemas (0.07s)
+=== RUN   TestRunPagesStableBoundedAndAuthenticated
+--- PASS: TestRunPagesStableBoundedAndAuthenticated (0.12s)
+=== RUN   TestHTTPRunLifecycleWithRealWorker
+    run_integration_test.go:190: real CLI start/status/stop and authenticated HTTP replay/conflict/status checks executed and cleaned up a real owned worker
+--- PASS: TestHTTPRunLifecycleWithRealWorker (6.06s)
+=== RUN   TestAuthenticationAndProblemResponses
+--- PASS: TestAuthenticationAndProblemResponses (0.01s)
+=== RUN   TestCapabilitiesAndStructuralFailure
+--- PASS: TestCapabilitiesAndStructuralFailure (0.00s)
+=== RUN   TestConfigurationSnapshotAndHealth
+--- PASS: TestConfigurationSnapshotAndHealth (0.00s)
+PASS
+ok  	github.com/wesen/video-observatory/camera-simulator/internal/api	7.287s
+=== RUN   TestDaemonSignalCleanupAndDurableReplay
+    lifecycle_test.go:288: daemon SIGKILL revoked worker lease; persisted ownership was reconciled on real daemon restart and original request replayed as interrupted
+    lifecycle_test.go:289: real daemon SIGTERM reaped its worker, persisted cancellation and released state; restarted daemon replayed the original run
+--- PASS: TestDaemonSignalCleanupAndDurableReplay (4.71s)
+PASS
+ok  	github.com/wesen/video-observatory/camera-simulator/cmd/simd	5.737s
