@@ -1,0 +1,9 @@
+test_bounded_geometry (test_timeline.TimelineTests.test_bounded_geometry) ... ok
+test_cancel_does_not_restore_request_identity (test_timeline.TimelineTests.test_cancel_does_not_restore_request_identity) ... ok
+test_grid_and_lod (test_timeline.TimelineTests.test_grid_and_lod) ... ok
+test_round_trip_and_anchor (test_timeline.TimelineTests.test_round_trip_and_anchor) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.069s
+
+OK

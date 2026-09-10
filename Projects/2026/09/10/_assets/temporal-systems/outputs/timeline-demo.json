@@ -1,0 +1,61 @@
+{
+  "kind": "educational-model",
+  "zoom_domain": [
+    1788955170000000,
+    1788955230000000
+  ],
+  "zoom_tiles": [
+    27952424,
+    27952425
+  ],
+  "pan_domain": [
+    1788955164000000,
+    1788955224000000
+  ],
+  "cancel_domain": [
+    1788955170000000,
+    1788955230000000
+  ],
+  "late_completion_eligible": false,
+  "numeric_level": 8,
+  "image_level": 11,
+  "rows": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "numeric_tiles_per_row": [
+    109186,
+    109187,
+    109188,
+    109189,
+    109190,
+    109191
+  ],
+  "instances": 8100,
+  "four_float32_equivalent_bytes": 129600,
+  "actual_python_memory_measured": false,
+  "first_rectangles": [
+    [
+      0,
+      0.0,
+      1.037037037037037,
+      134
+    ],
+    [
+      0,
+      1.037037037037037,
+      2.074074074074074,
+      135
+    ],
+    [
+      0,
+      2.074074074074074,
+      3.111111111111111,
+      136
+    ]
+  ]
+}
