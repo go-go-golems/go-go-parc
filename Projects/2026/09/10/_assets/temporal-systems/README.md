@@ -24,3 +24,11 @@ The example checks a 512-reference limit, a 50,000-candidate instance limit and 
 The generic scenario advances in 20 ms steps for fourteen seconds, with zero additional observation delay, requested seek delays of 0/80/120/40 ms and 200 ms initial decode readiness after seek application. Completions are polled on subsequent ticks, so zero delay becomes 20 ms. One processor stalls, one resets its timestamp epoch, and one has a two-second gap. Every processor ends visible, but the stalled processor's maximum observed error is 450 ms; final state must not hide that excursion.
 
 The model enforces its cover predicate every tick; the product's reveal tolerance is not a continuous invariant. It is not a browser decoder, physical capture model, authorization state machine or arbitrary-delay stability proof. The separate moving-target experiment intentionally assumes 120 ms seek application and 200 ms subsequent decode latency. Under those assumptions, progressing behind cover changes first-frame lag from 320 to 120 ms. Other latency/capacity assumptions can fail to converge.
+
+## Mergeable summaries
+
+`python3 summaries.py` emits the sample/duration weighting examples, Decimal variance comparison, exact-median counterexample, canonical sparse hierarchy and disjoint coverage partition. `outputs/summaries-demo.json` and `outputs/summaries-tests.log` retain outputs. The shared suite now has thirteen tests, including 300 seeded partition/dropout cases and mixed-scale/large-offset checks.
+
+The stable pairwise variance accumulator is an educational extension absent from the product pyramid. Merges require disjoint observations and unique `(UTC, identity)` ordering keys; the fixed-size summary cannot detect arbitrary duplicates. Missing points are empty leaves, not valid zeros, and no continuous coverage is inferred from sample spacing. Coverage intervals are separately supplied, nonoverlapping evidence.
+
+The eight `1e12 + i/8` values produce centered M2 0.65625 in three tested reduction shapes and the Decimal reference; the naive squared-sum difference produces zero. This selected result is not a promise of exact binary64 behavior on arbitrary inputs. The balanced reducer materializes its input (O(n) storage); sparse retained hierarchies use O(depth * K) worst-case work/storage, with 4096 initial buckets and depth 16 admitted.

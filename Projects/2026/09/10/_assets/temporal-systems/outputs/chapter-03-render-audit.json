@@ -1,0 +1,48 @@
+{
+  "notes": [
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Engineering Temporal Systems - 01 - Multiresolution Visualization.md",
+      "html": "/tmp/textbook-review/ARTICLE - Engineering Temporal Systems - 01 - Multiresolution Visualization.html",
+      "words": 3443,
+      "diagrams": 2,
+      "math_elements": 66,
+      "status": "reviewed",
+      "render": {
+        "diagrams": 2,
+        "math": 66,
+        "images": true
+      }
+    },
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Engineering Temporal Systems - 02 - Temporal Coordination.md",
+      "html": "/tmp/textbook-review/ARTICLE - Engineering Temporal Systems - 02 - Temporal Coordination.html",
+      "words": 3155,
+      "diagrams": 2,
+      "math_elements": 43,
+      "status": "reviewed",
+      "render": {
+        "diagrams": 2,
+        "math": 43,
+        "images": true
+      }
+    },
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Engineering Temporal Systems - 03 - Mergeable Summaries.md",
+      "html": "/tmp/textbook-review/ARTICLE - Engineering Temporal Systems - 03 - Mergeable Summaries.html",
+      "words": 3010,
+      "diagrams": 1,
+      "math_elements": 61,
+      "status": "reviewed",
+      "render": {
+        "diagrams": 1,
+        "math": 61,
+        "images": true
+      }
+    }
+  ],
+  "environment": {
+    "browser": "151.0.7922.34",
+    "mermaid": "11.12.0",
+    "headless": true
+  }
+}

@@ -17,7 +17,7 @@ This special feature develops reusable mathematical and engineering techniques f
 
 1. [[ARTICLE - Engineering Temporal Systems - 01 - Multiresolution Visualization]] — display resolution, integer coordinates, canonical grids, bounded geometry and asynchronous replacement.
 2. [[ARTICLE - Engineering Temporal Systems - 02 - Temporal Coordination]] — general clock mathematics, bounded feedback and an executed four-processor simulation.
-3. Mergeable Summaries — aggregation algebra, missing data and stable variance. Writing remains in progress.
+3. [[ARTICLE - Engineering Temporal Systems - 03 - Mergeable Summaries]] — aggregation algebra, missing data, stable variance and tested partition invariants.
 4. Bounded Asynchronous Systems — publication eligibility, ownership and measurement. Writing remains in progress.
 5. From UTC to a Decodable Frame — indexing and decode dependencies. Writing remains in progress.
 6. Streaming an Archive Through the Browser — HLS, fragmented MP4 and MSE. Writing remains in progress.
