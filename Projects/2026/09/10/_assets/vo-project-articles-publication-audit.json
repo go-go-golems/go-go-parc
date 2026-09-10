@@ -1,0 +1,213 @@
+{
+  "source_commit": "ee51ca7b3091d96f9428199412038c1285099085",
+  "notes": [
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Video Observatory - Building a Synthetic Lab That Exercises the Real Product.md",
+      "words": 3607,
+      "headings": [
+        "1. Replace the data source, not the client implementation",
+        "2. Make workload identity reproducible",
+        "3. Generate resources that perform the work under investigation",
+        "4. Bound the generator so it does not dominate without explanation",
+        "5. Throttle one workload, not each connection independently",
+        "6. Specify which cache is cold",
+        "7. Collect bounded measurements with explicit units and cohorts",
+        "8. Read the fifteen-minute campaign as an experiment, not a score",
+        "9. Smooth animation can accompany missing evidence",
+        "10. Four-video work changed scheduling, but the cause remains unisolated",
+        "11. The diagnostic interface can change visibility",
+        "12. What this lab qualifies—and what it does not",
+        "Reproduce the experiment",
+        "Source and evidence guide",
+        "Continue the series"
+      ],
+      "mermaid_diagrams": 1,
+      "html": "/tmp/vo-article-review/0.html",
+      "sha256": "19a53715ea4fa0409cc7059ffb9a96064f28d716832192d83bc0352e64539d8a",
+      "render": {
+        "diagrams": 1,
+        "math": 3,
+        "images": [
+          {
+            "ok": true,
+            "width": 1600
+          },
+          {
+            "ok": true,
+            "width": 1600
+          }
+        ],
+        "title": "Building a Synthetic Lab That Exercises the Real\nProduct"
+      }
+    },
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Video Observatory - Preserving Meaning While Aggregating Millions of Observations.md",
+      "words": 2817,
+      "headings": [
+        "1. Define what the dataset actually contains",
+        "2. Derive the quantities a parent summary needs",
+        "3. Build a globally aligned pyramid",
+        "4. Fine buckets are not continuous measurements",
+        "5. Encode validity independently of numeric storage",
+        "6. Coverage has more than one meaning",
+        "7. Validate before and after protobuf decoding",
+        "8. Make independent track selection semantically independent",
+        "9. Valid data still needs the right authority and lifetime",
+        "10. Verify aggregation against the source, not another aggregate",
+        "Source and evidence guide",
+        "Continue the series"
+      ],
+      "mermaid_diagrams": 1,
+      "html": "/tmp/vo-article-review/1.html",
+      "sha256": "22c452785f8f6763d3e1e7fdb5ef4464a2761f4f39b806ab487e499ebb5ebdf6",
+      "render": {
+        "diagrams": 1,
+        "math": 18,
+        "images": [
+          {
+            "ok": true,
+            "width": 1600
+          }
+        ],
+        "title": "Preserving Meaning While Aggregating Millions of\nObservations"
+      }
+    },
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Video Observatory - Scrolling Through a Day of Video Without Loading a Day of Video.md",
+      "words": 2581,
+      "headings": [
+        "1. Begin with the amount of information, not the rendering API",
+        "2. Keep absolute time out of floating-point drawing coordinates",
+        "3. Derive resource resolution from display resolution",
+        "4. Separate immediate interaction from React publication",
+        "5. Virtualize rows without changing the coordinate system",
+        "6. Cancellation reduces work; identity checks establish correctness",
+        "7. Give each expensive representation a budget",
+        "8. What the measurements establish",
+        "Source and evidence guide",
+        "Continue the series"
+      ],
+      "mermaid_diagrams": 1,
+      "html": "/tmp/vo-article-review/2.html",
+      "sha256": "fa0cb10a8b056fc6c64ae9386625283a214f1685e28bcfe7be0902f89c0cfe46",
+      "render": {
+        "diagrams": 1,
+        "math": 15,
+        "images": [
+          {
+            "ok": true,
+            "width": 1600
+          }
+        ],
+        "title": "Scrolling Through a Day of Video Without Loading a Day\nof Video"
+      }
+    },
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Video Observatory - Synchronizing Four Video Players Against One UTC Clock.md",
+      "words": 2801,
+      "headings": [
+        "1. Distinguish the clocks before trying to synchronize them",
+        "2. Sessions are bounded authorization and resource lifetimes",
+        "3. Turn an index into explicit media grants",
+        "4. Map time locally, not with one offset for the whole session",
+        "5. Advance UTC independently of the cameras",
+        "6. Coordinate seeks without waiting forever",
+        "7. Treat frame presentation as a separate state",
+        "8. Correct drift without making every discrepancy a seek",
+        "9. The moving-target seek defect",
+        "10. Gaps and visibility are normal states",
+        "Source and evidence guide",
+        "Continue the series"
+      ],
+      "mermaid_diagrams": 1,
+      "html": "/tmp/vo-article-review/3.html",
+      "sha256": "80fb33d13e7371b36b53ff9c15eca7e2da4843f4c4bb8a3aafe5e9f87578775e",
+      "render": {
+        "diagrams": 1,
+        "math": 7,
+        "images": [
+          {
+            "ok": true,
+            "width": 1600
+          },
+          {
+            "ok": true,
+            "width": 1600
+          }
+        ],
+        "title": "Synchronizing Four Video Players Against One UTC\nClock"
+      }
+    },
+    {
+      "file": "Projects/2026/09/10/PROJ - Video Observatory - Technical Deep Dive Series.md",
+      "words": 558,
+      "headings": [
+        "Read the articles",
+        "Project and evidence provenance",
+        "Reading the limits correctly"
+      ],
+      "mermaid_diagrams": 0,
+      "html": "/tmp/vo-article-review/4.html",
+      "sha256": "7a4711d850375a34ac9b1e74eb1739235d6c27c24cad9913449ce806bc8072c0",
+      "render": {
+        "diagrams": 0,
+        "math": 0,
+        "images": [],
+        "title": "Video Observatory — Technical Deep Dive Series"
+      }
+    }
+  ],
+  "assets": [
+    {
+      "file": "Projects/2026/09/10/_assets/vo-deep-dive-campaign.json",
+      "source": "ttmp/2026/09/09/WEBUI-LAB-001--prototype-synthetic-24-hour-video-timeline-and-browser-load-lab/sources/p5-campaign.json",
+      "sha256": "ba5be79af609487729b323e1d77ada4447fa8c89af19672709774d3e993d18ad"
+    },
+    {
+      "file": "Projects/2026/09/10/_assets/vo-deep-dive-p4-final-4-distinct-players.png",
+      "source": "ttmp/2026/09/09/WEBUI-LAB-001--prototype-synthetic-24-hour-video-timeline-and-browser-load-lab/sources/p4-final-4-distinct-players.png",
+      "sha256": "a05fcc03d29a72df6eb8c0e554e81f4f4aa026a40e5156361d8647fa0bd00459"
+    },
+    {
+      "file": "Projects/2026/09/10/_assets/vo-deep-dive-p4-final-four-player-gap.png",
+      "source": "ttmp/2026/09/09/WEBUI-LAB-001--prototype-synthetic-24-hour-video-timeline-and-browser-load-lab/sources/p4-final-four-player-gap.png",
+      "sha256": "46c0132353e7d979be87221c1f2bf10b3495d93f9d9df7847f0c328071a8679f"
+    },
+    {
+      "file": "Projects/2026/09/10/_assets/vo-deep-dive-p5-cold-day.png",
+      "source": "ttmp/2026/09/09/WEBUI-LAB-001--prototype-synthetic-24-hour-video-timeline-and-browser-load-lab/sources/p5-cold-day.png",
+      "sha256": "5e0397338bc38b064523b3de308860ad49a734f972bf9af42f569a1ebbf073ac"
+    },
+    {
+      "file": "Projects/2026/09/10/_assets/vo-deep-dive-p5-error-state.png",
+      "source": "ttmp/2026/09/09/WEBUI-LAB-001--prototype-synthetic-24-hour-video-timeline-and-browser-load-lab/sources/p5-error-state.png",
+      "sha256": "08be49e4479f6e30e01d01863e867bee1e54e2ef2d70543e0fe8f6ac738ebc6c"
+    },
+    {
+      "file": "Projects/2026/09/10/_assets/vo-deep-dive-p5-pan-2.png",
+      "source": "ttmp/2026/09/09/WEBUI-LAB-001--prototype-synthetic-24-hour-video-timeline-and-browser-load-lab/sources/p5-pan-2.png",
+      "sha256": "f0ee69a79a512c9731f140c33bb8b37bdf801496c2a519ad44418217ce347eca"
+    },
+    {
+      "file": "Projects/2026/09/10/_assets/vo-deep-dive-p5-textured-four-video.png",
+      "source": "ttmp/2026/09/09/WEBUI-LAB-001--prototype-synthetic-24-hour-video-timeline-and-browser-load-lab/sources/p5-textured-four-video.png",
+      "sha256": "5f5d2fef5ae0ed31a389a84b1995c20ce1adade9bf9ce8c12daa13c3c994da46"
+    },
+    {
+      "file": "Projects/2026/09/10/_assets/vo-deep-dive-validation.log",
+      "source": "ttmp/2026/09/09/WEBUI-LAB-001--prototype-synthetic-24-hour-video-timeline-and-browser-load-lab/sources/p4-recovery-final-validation.log",
+      "sha256": "018eeac984f215158aa694e2d389aff05ee3856f8fd09ef4a9e4e47ebf40d6f8"
+    }
+  ],
+  "validation_policy": "Documentation-only: vault has no tracked package.json, Makefile, AGENTS.md or CI validation workflow. Existing application validation is retained evidence; application tests/builds not rerun. PyYAML, internal link/asset checks, Pandoc HTML+MathML, and isolated Chromium/Mermaid rendering validate publication artifacts.",
+  "evidence_checks": [
+    "60 original exports; 907110 ms; no campaign page errors",
+    "same-domain settling claims recomputed from three exports",
+    "all copied primary assets byte-identical to source",
+    "all internal wikilinks uniquely resolve; all relative assets exist",
+    "all four requested article topics covered by recorded heading maps",
+    "reviewed source distinguishes optional LOD hysteresis, batch numeric delivery, conditional policy check, sample coverage, fragment PDT mapping, RVFC fallback, reveal versus ongoing drift policy, and transport error-body exceptions",
+    "No analogies or invented trace results found in editorial review; worked examples explicitly identified"
+  ],
+  "render_validation": "Passed isolated headless Chromium; all Mermaid 11.12.0 diagrams rendered, image loads checked, native MathML inspected. No user tabs used."
+}
