@@ -32,3 +32,11 @@ The model enforces its cover predicate every tick; the product's reveal toleranc
 The stable pairwise variance accumulator is an educational extension absent from the product pyramid. Merges require disjoint observations and unique `(UTC, identity)` ordering keys; the fixed-size summary cannot detect arbitrary duplicates. Missing points are empty leaves, not valid zeros, and no continuous coverage is inferred from sample spacing. Coverage intervals are separately supplied, nonoverlapping evidence.
 
 The eight `1e12 + i/8` values produce centered M2 0.65625 in three tested reduction shapes and the Decimal reference; the naive squared-sum difference produces zero. This selected result is not a promise of exact binary64 behavior on arbitrary inputs. The balanced reducer materializes its input (O(n) storage); sparse retained hierarchies use O(depth * K) worst-case work/storage, with 4096 initial buckets and depth 16 admitted.
+
+## Bounded asynchronous scheduler
+
+`python3 scheduler.py` emits useful/blocked workloads and the percentile counterexample. `outputs/scheduler-demo.json` and `outputs/scheduler-tests.log` retain results. Eighteen shared tests now pass, including twenty seeded scheduler interleaving runs and independent generation/revision/authority invalidations.
+
+Defaults: two active jobs, one per key, four waiting jobs, 8192 logical owned body bytes, 1024 bytes/second shared refill and 512-byte burst credit. The event clock admits 256 pending callbacks, diagnostic traces retain 256 entries, and completion latency retains 64 values. Bodies retain their full reservation until finish/abort, not just until byte submission. Downstream cache/render ownership and physical memory are not modeled.
+
+Both six-second experiments run 61 pumps. The useful run publishes four 1024-byte bodies with completion p95 3550 ms; the blocked run publishes none and has no latency observations. Explicit terminal cleanup leaves zero owned bytes in both. Pinned-cache tests refuse eviction until lease release. The library assumes trusted finite configuration/metadata, not hostile-input protocol parsing, and makes no starvation-freedom or wire-throughput claim.

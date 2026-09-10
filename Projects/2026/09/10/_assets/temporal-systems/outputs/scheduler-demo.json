@@ -1,0 +1,206 @@
+{
+  "useful": {
+    "kind": "educational-useful",
+    "before_cleanup": {
+      "counters": {
+        "admitted": 4,
+        "bytes_submitted": 4096,
+        "disposed": 4,
+        "completed": 4,
+        "published": 4
+      },
+      "owned": 0,
+      "latency_p95_ms": 3550,
+      "pump_callbacks": 61,
+      "high_water_owned": 4096
+    },
+    "after_cleanup_owned": 0,
+    "terminal_counters": {
+      "admitted": 4,
+      "bytes_submitted": 4096,
+      "disposed": 4,
+      "completed": 4,
+      "published": 4
+    },
+    "trace": [
+      {
+        "p_ms": 0,
+        "kind": "admitted",
+        "identity": 1,
+        "size": 1024
+      },
+      {
+        "p_ms": 0,
+        "kind": "admitted",
+        "identity": 2,
+        "size": 1024
+      },
+      {
+        "p_ms": 0,
+        "kind": "admitted",
+        "identity": 3,
+        "size": 1024
+      },
+      {
+        "p_ms": 0,
+        "kind": "admitted",
+        "identity": 4,
+        "size": 1024
+      },
+      {
+        "p_ms": 0,
+        "kind": "started",
+        "identity": 1
+      },
+      {
+        "p_ms": 0,
+        "kind": "started",
+        "identity": 2
+      },
+      {
+        "p_ms": 1500,
+        "kind": "body-submitted",
+        "identity": 2,
+        "owned": 4096
+      },
+      {
+        "p_ms": 1500,
+        "kind": "body-submitted",
+        "identity": 1,
+        "owned": 4096
+      },
+      {
+        "p_ms": 1550,
+        "kind": "published",
+        "identity": 1,
+        "owned": 3072
+      },
+      {
+        "p_ms": 1550,
+        "kind": "published",
+        "identity": 2,
+        "owned": 2048
+      },
+      {
+        "p_ms": 1600,
+        "kind": "started",
+        "identity": 3
+      },
+      {
+        "p_ms": 1600,
+        "kind": "started",
+        "identity": 4
+      },
+      {
+        "p_ms": 3400,
+        "kind": "body-submitted",
+        "identity": 3,
+        "owned": 2048
+      },
+      {
+        "p_ms": 3450,
+        "kind": "published",
+        "identity": 3,
+        "owned": 1024
+      },
+      {
+        "p_ms": 3500,
+        "kind": "body-submitted",
+        "identity": 4,
+        "owned": 1024
+      },
+      {
+        "p_ms": 3550,
+        "kind": "published",
+        "identity": 4,
+        "owned": 0
+      }
+    ]
+  },
+  "starved": {
+    "kind": "educational-starved",
+    "before_cleanup": {
+      "counters": {
+        "admitted": 4
+      },
+      "owned": 4096,
+      "latency_p95_ms": null,
+      "pump_callbacks": 61,
+      "high_water_owned": 4096
+    },
+    "after_cleanup_owned": 0,
+    "terminal_counters": {
+      "admitted": 4,
+      "disposed": 4,
+      "aborted": 4
+    },
+    "trace": [
+      {
+        "p_ms": 0,
+        "kind": "admitted",
+        "identity": 1,
+        "size": 1024
+      },
+      {
+        "p_ms": 0,
+        "kind": "admitted",
+        "identity": 2,
+        "size": 1024
+      },
+      {
+        "p_ms": 0,
+        "kind": "admitted",
+        "identity": 3,
+        "size": 1024
+      },
+      {
+        "p_ms": 0,
+        "kind": "admitted",
+        "identity": 4,
+        "size": 1024
+      },
+      {
+        "p_ms": 0,
+        "kind": "started",
+        "identity": 1
+      },
+      {
+        "p_ms": 0,
+        "kind": "started",
+        "identity": 2
+      },
+      {
+        "p_ms": 6050,
+        "kind": "aborted",
+        "identity": 1,
+        "owned": 3072
+      },
+      {
+        "p_ms": 6050,
+        "kind": "aborted",
+        "identity": 2,
+        "owned": 2048
+      },
+      {
+        "p_ms": 6050,
+        "kind": "aborted",
+        "identity": 3,
+        "owned": 1024
+      },
+      {
+        "p_ms": 6050,
+        "kind": "aborted",
+        "identity": 4,
+        "owned": 0
+      }
+    ]
+  },
+  "percentiles": {
+    "window_p95": [
+      0,
+      100
+    ],
+    "average_p95": 50,
+    "combined_p95": 100
+  }
+}
