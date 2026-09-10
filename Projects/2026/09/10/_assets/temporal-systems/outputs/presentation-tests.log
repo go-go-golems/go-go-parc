@@ -1,0 +1,35 @@
+test_gap_reset_selection (test_archive_index.ArchiveTests.test_gap_reset_selection) ... ok
+test_generated_media_evidence (test_archive_index.ArchiveTests.test_generated_media_evidence) ... ok
+test_invalid_index (test_archive_index.ArchiveTests.test_invalid_index) ... ok
+test_barrier_generation_and_deadline (test_clocks.ClockTests.test_barrier_generation_and_deadline) ... ok
+test_controller_boundaries (test_clocks.ClockTests.test_controller_boundaries) ... ok
+test_mapping_gap_reset_and_ticks (test_clocks.ClockTests.test_mapping_gap_reset_and_ticks) ... ok
+test_master_continuity (test_clocks.ClockTests.test_master_continuity) ... ok
+test_recovery_and_four_processors (test_clocks.ClockTests.test_recovery_and_four_processors) ... ok
+test_continuity (test_historical.HistoricalTests.test_continuity) ... ok
+test_full_archive_scenario (test_historical.HistoricalTests.test_full_archive_scenario) ... ok
+test_session_window_and_late_readiness (test_historical.HistoricalTests.test_session_window_and_late_readiness) ... ok
+test_bounded_permutations_and_admission (test_presentation.PresentationTests.test_bounded_permutations_and_admission) ... ok
+test_every_identity_and_evidence_predicate (test_presentation.PresentationTests.test_every_identity_and_evidence_predicate) ... ok
+test_gap_unmapped_failure_and_pure_transition (test_presentation.PresentationTests.test_gap_unmapped_failure_and_pure_transition) ... ok
+test_named_races_and_release_ledger (test_presentation.PresentationTests.test_named_races_and_release_ledger) ... ok
+test_old_seek_same_target_and_visibility_round_trip (test_presentation.PresentationTests.test_old_seek_same_target_and_visibility_round_trip) ... ok
+test_renewal_expiry_replacement_and_idempotent_close (test_presentation.PresentationTests.test_renewal_expiry_replacement_and_idempotent_close) ... ok
+test_admission_finish_and_stale (test_scheduler.SchedulerTests.test_admission_finish_and_stale) ... ok
+test_backpressure_and_token_bound (test_scheduler.SchedulerTests.test_backpressure_and_token_bound) ... ok
+test_cache_pins_and_clock_order (test_scheduler.SchedulerTests.test_cache_pins_and_clock_order) ... ok
+test_seeded_terminal_ownership (test_scheduler.SchedulerTests.test_seeded_terminal_ownership) ... ok
+test_useful_work_and_percentiles (test_scheduler.SchedulerTests.test_useful_work_and_percentiles) ... ok
+test_alignment_and_coverage (test_summaries.SummaryTests.test_alignment_and_coverage) ... ok
+test_empty_zero_and_ties (test_summaries.SummaryTests.test_empty_zero_and_ties) ... ok
+test_large_offset_quantiles_and_weights (test_summaries.SummaryTests.test_large_offset_quantiles_and_weights) ... ok
+test_partition_tree_properties (test_summaries.SummaryTests.test_partition_tree_properties) ... ok
+test_bounded_geometry (test_timeline.TimelineTests.test_bounded_geometry) ... ok
+test_cancel_does_not_restore_request_identity (test_timeline.TimelineTests.test_cancel_does_not_restore_request_identity) ... ok
+test_grid_and_lod (test_timeline.TimelineTests.test_grid_and_lod) ... ok
+test_round_trip_and_anchor (test_timeline.TimelineTests.test_round_trip_and_anchor) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 0.445s
+
+OK

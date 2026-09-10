@@ -56,3 +56,11 @@ The shared suite now has 21 tests and uses retained real-media evidence. Regener
 The scenario opens four cameras, releases a two-second barrier with one camera late, encounters a camera-specific gap, commits two in-window seeks, pauses/resumes at 2x, reopens outside the admitted window and closes. It creates/releases two sessions, reuses one twice, rejects sixteen stale reports and performs one hard drift correction. Observation delay is explicitly paired with the master sampled at the observation time.
 
 Indexes use fictional media names/lengths; they are not generated-file evidence. Observations are continuous modeled playback positions, not decoded frame timestamps. `visible` is a policy flag, not compositor evidence. The model continuously reevaluates its tolerance, unlike the product's reveal-only gate. The separate archive-coordinate moving-target traces reuse Chapter 2's selected delay model and do not constitute an additional browser measurement.
+
+## Presentation eligibility and lifetimes
+
+`python3 presentation.py` emits two required races and a 120-permutation result. `outputs/presentation-demo.json` and `outputs/presentation-tests.log` retain the evidence. Current full suite: **30 tests**; smaller counts above describe earlier chapter milestones.
+
+The immutable transition function consumes trusted model events and emits effects. The executor reuses `EventClock`, tracks four logical resources per session, and delays disposal by two model milliseconds. Both close and revoke invalidate eligibility before disposal; old callbacks at 11 ms are rejected while all four resources remain owned, then each resource is released once. The scenario drains obsolete expiry timers too, leaving no events.
+
+This is not a browser decoder or production security service. `open` is trusted completed admission, frame metadata is injected, visibility is explicit, and expiry uses an exact model clock. The strict frame-callback evidence policy and independent document visibility are stronger than the product's fallback/IntersectionObserver-only component path. Resource/event limits reject excess fixture input before committing a transition; production revocation needs independently available control/cleanup capacity.

@@ -1,0 +1,803 @@
+{
+  "kind": "educational-presentation-policy",
+  "races": {
+    "seek-after-close": {
+      "state": {
+        "phase": "closed",
+        "session": "",
+        "lifetime": 1,
+        "authority": 0,
+        "generation": 2,
+        "visibility": 0,
+        "media": "camera-1/epoch-0",
+        "deadline": 100,
+        "target": 1000000,
+        "onscreen": true,
+        "document_visible": true,
+        "buffered": false,
+        "seek_done": false,
+        "accepted": null,
+        "revealed": false,
+        "resources": []
+      },
+      "owned": [],
+      "pending_events": 0,
+      "release_counts": {
+        "1/session": 1,
+        "1/request": 1,
+        "1/decoder": 1,
+        "1/buffer": 1
+      },
+      "trace": [
+        {
+          "ms": 0,
+          "input": {
+            "kind": "open",
+            "token": null,
+            "session": "S1",
+            "media": "camera-1/epoch-0",
+            "utc": 1000000,
+            "deadline": 100,
+            "value": true,
+            "mapped": true,
+            "ready": true,
+            "seeking": false,
+            "evidence": "frame-callback"
+          },
+          "state": {
+            "phase": "loading",
+            "session": "S1",
+            "lifetime": 1,
+            "authority": 0,
+            "generation": 1,
+            "visibility": 0,
+            "media": "camera-1/epoch-0",
+            "deadline": 100,
+            "target": 1000000,
+            "onscreen": true,
+            "document_visible": true,
+            "buffered": false,
+            "seek_done": false,
+            "accepted": null,
+            "revealed": false,
+            "resources": [
+              "1/session",
+              "1/request",
+              "1/decoder",
+              "1/buffer"
+            ]
+          },
+          "effects": [
+            [
+              "acquire",
+              "1/session"
+            ],
+            [
+              "acquire",
+              "1/request"
+            ],
+            [
+              "acquire",
+              "1/decoder"
+            ],
+            [
+              "acquire",
+              "1/buffer"
+            ],
+            [
+              "fetch-start",
+              "S1"
+            ]
+          ],
+          "owned": [
+            "1/buffer",
+            "1/decoder",
+            "1/request",
+            "1/session"
+          ]
+        },
+        {
+          "ms": 10,
+          "input": {
+            "kind": "close",
+            "token": null,
+            "session": "",
+            "media": "camera-1/epoch-0",
+            "utc": null,
+            "deadline": 0,
+            "value": true,
+            "mapped": true,
+            "ready": true,
+            "seeking": false,
+            "evidence": "frame-callback"
+          },
+          "state": {
+            "phase": "closed",
+            "session": "",
+            "lifetime": 1,
+            "authority": 0,
+            "generation": 2,
+            "visibility": 0,
+            "media": "camera-1/epoch-0",
+            "deadline": 100,
+            "target": 1000000,
+            "onscreen": true,
+            "document_visible": true,
+            "buffered": false,
+            "seek_done": false,
+            "accepted": null,
+            "revealed": false,
+            "resources": []
+          },
+          "effects": [
+            [
+              "conceal",
+              "closed"
+            ],
+            [
+              "cancel",
+              "S1"
+            ],
+            [
+              "release",
+              "1/session"
+            ],
+            [
+              "release",
+              "1/request"
+            ],
+            [
+              "release",
+              "1/decoder"
+            ],
+            [
+              "release",
+              "1/buffer"
+            ]
+          ],
+          "owned": [
+            "1/buffer",
+            "1/decoder",
+            "1/request",
+            "1/session"
+          ]
+        },
+        {
+          "ms": 11,
+          "input": {
+            "kind": "seeked",
+            "token": {
+              "session": "S1",
+              "lifetime": 1,
+              "authority": 0,
+              "generation": 1,
+              "visibility": 0,
+              "media": "camera-1/epoch-0"
+            },
+            "session": "",
+            "media": "camera-1/epoch-0",
+            "utc": null,
+            "deadline": 0,
+            "value": true,
+            "mapped": true,
+            "ready": true,
+            "seeking": false,
+            "evidence": "frame-callback"
+          },
+          "state": {
+            "phase": "closed",
+            "session": "",
+            "lifetime": 1,
+            "authority": 0,
+            "generation": 2,
+            "visibility": 0,
+            "media": "camera-1/epoch-0",
+            "deadline": 100,
+            "target": 1000000,
+            "onscreen": true,
+            "document_visible": true,
+            "buffered": false,
+            "seek_done": false,
+            "accepted": null,
+            "revealed": false,
+            "resources": []
+          },
+          "effects": [
+            [
+              "reject",
+              "no live session"
+            ]
+          ],
+          "owned": [
+            "1/buffer",
+            "1/decoder",
+            "1/request",
+            "1/session"
+          ]
+        },
+        {
+          "ms": 11,
+          "input": {
+            "kind": "frame",
+            "token": {
+              "session": "S1",
+              "lifetime": 1,
+              "authority": 0,
+              "generation": 1,
+              "visibility": 0,
+              "media": "camera-1/epoch-0"
+            },
+            "session": "",
+            "media": "camera-1/epoch-0",
+            "utc": 1000000,
+            "deadline": 0,
+            "value": true,
+            "mapped": true,
+            "ready": true,
+            "seeking": false,
+            "evidence": "frame-callback"
+          },
+          "state": {
+            "phase": "closed",
+            "session": "",
+            "lifetime": 1,
+            "authority": 0,
+            "generation": 2,
+            "visibility": 0,
+            "media": "camera-1/epoch-0",
+            "deadline": 100,
+            "target": 1000000,
+            "onscreen": true,
+            "document_visible": true,
+            "buffered": false,
+            "seek_done": false,
+            "accepted": null,
+            "revealed": false,
+            "resources": []
+          },
+          "effects": [
+            [
+              "reject",
+              "no live session"
+            ]
+          ],
+          "owned": [
+            "1/buffer",
+            "1/decoder",
+            "1/request",
+            "1/session"
+          ]
+        },
+        {
+          "ms": 12,
+          "disposed": "1/session",
+          "owned": [
+            "1/buffer",
+            "1/decoder",
+            "1/request"
+          ]
+        },
+        {
+          "ms": 12,
+          "disposed": "1/request",
+          "owned": [
+            "1/buffer",
+            "1/decoder"
+          ]
+        },
+        {
+          "ms": 12,
+          "disposed": "1/decoder",
+          "owned": [
+            "1/buffer"
+          ]
+        },
+        {
+          "ms": 12,
+          "disposed": "1/buffer",
+          "owned": []
+        },
+        {
+          "ms": 100,
+          "input": {
+            "kind": "tick",
+            "token": null,
+            "session": "",
+            "media": "camera-1/epoch-0",
+            "utc": null,
+            "deadline": 0,
+            "value": true,
+            "mapped": true,
+            "ready": true,
+            "seeking": false,
+            "evidence": "frame-callback"
+          },
+          "state": {
+            "phase": "closed",
+            "session": "",
+            "lifetime": 1,
+            "authority": 0,
+            "generation": 2,
+            "visibility": 0,
+            "media": "camera-1/epoch-0",
+            "deadline": 100,
+            "target": 1000000,
+            "onscreen": true,
+            "document_visible": true,
+            "buffered": false,
+            "seek_done": false,
+            "accepted": null,
+            "revealed": false,
+            "resources": []
+          },
+          "effects": [],
+          "owned": []
+        }
+      ]
+    },
+    "buffered-at-revocation": {
+      "state": {
+        "phase": "revoked",
+        "session": "",
+        "lifetime": 1,
+        "authority": 1,
+        "generation": 2,
+        "visibility": 0,
+        "media": "camera-1/epoch-0",
+        "deadline": 100,
+        "target": 1000000,
+        "onscreen": true,
+        "document_visible": true,
+        "buffered": false,
+        "seek_done": false,
+        "accepted": null,
+        "revealed": false,
+        "resources": []
+      },
+      "owned": [],
+      "pending_events": 0,
+      "release_counts": {
+        "1/session": 1,
+        "1/request": 1,
+        "1/decoder": 1,
+        "1/buffer": 1
+      },
+      "trace": [
+        {
+          "ms": 0,
+          "input": {
+            "kind": "open",
+            "token": null,
+            "session": "S1",
+            "media": "camera-1/epoch-0",
+            "utc": 1000000,
+            "deadline": 100,
+            "value": true,
+            "mapped": true,
+            "ready": true,
+            "seeking": false,
+            "evidence": "frame-callback"
+          },
+          "state": {
+            "phase": "loading",
+            "session": "S1",
+            "lifetime": 1,
+            "authority": 0,
+            "generation": 1,
+            "visibility": 0,
+            "media": "camera-1/epoch-0",
+            "deadline": 100,
+            "target": 1000000,
+            "onscreen": true,
+            "document_visible": true,
+            "buffered": false,
+            "seek_done": false,
+            "accepted": null,
+            "revealed": false,
+            "resources": [
+              "1/session",
+              "1/request",
+              "1/decoder",
+              "1/buffer"
+            ]
+          },
+          "effects": [
+            [
+              "acquire",
+              "1/session"
+            ],
+            [
+              "acquire",
+              "1/request"
+            ],
+            [
+              "acquire",
+              "1/decoder"
+            ],
+            [
+              "acquire",
+              "1/buffer"
+            ],
+            [
+              "fetch-start",
+              "S1"
+            ]
+          ],
+          "owned": [
+            "1/buffer",
+            "1/decoder",
+            "1/request",
+            "1/session"
+          ]
+        },
+        {
+          "ms": 0,
+          "input": {
+            "kind": "buffer",
+            "token": {
+              "session": "S1",
+              "lifetime": 1,
+              "authority": 0,
+              "generation": 1,
+              "visibility": 0,
+              "media": "camera-1/epoch-0"
+            },
+            "session": "",
+            "media": "camera-1/epoch-0",
+            "utc": null,
+            "deadline": 0,
+            "value": true,
+            "mapped": true,
+            "ready": true,
+            "seeking": false,
+            "evidence": "frame-callback"
+          },
+          "state": {
+            "phase": "loading",
+            "session": "S1",
+            "lifetime": 1,
+            "authority": 0,
+            "generation": 1,
+            "visibility": 0,
+            "media": "camera-1/epoch-0",
+            "deadline": 100,
+            "target": 1000000,
+            "onscreen": true,
+            "document_visible": true,
+            "buffered": true,
+            "seek_done": false,
+            "accepted": null,
+            "revealed": false,
+            "resources": [
+              "1/session",
+              "1/request",
+              "1/decoder",
+              "1/buffer"
+            ]
+          },
+          "effects": [
+            [
+              "buffered",
+              "S1"
+            ]
+          ],
+          "owned": [
+            "1/buffer",
+            "1/decoder",
+            "1/request",
+            "1/session"
+          ]
+        },
+        {
+          "ms": 0,
+          "input": {
+            "kind": "seeked",
+            "token": {
+              "session": "S1",
+              "lifetime": 1,
+              "authority": 0,
+              "generation": 1,
+              "visibility": 0,
+              "media": "camera-1/epoch-0"
+            },
+            "session": "",
+            "media": "camera-1/epoch-0",
+            "utc": null,
+            "deadline": 0,
+            "value": true,
+            "mapped": true,
+            "ready": true,
+            "seeking": false,
+            "evidence": "frame-callback"
+          },
+          "state": {
+            "phase": "loading",
+            "session": "S1",
+            "lifetime": 1,
+            "authority": 0,
+            "generation": 1,
+            "visibility": 0,
+            "media": "camera-1/epoch-0",
+            "deadline": 100,
+            "target": 1000000,
+            "onscreen": true,
+            "document_visible": true,
+            "buffered": true,
+            "seek_done": true,
+            "accepted": null,
+            "revealed": false,
+            "resources": [
+              "1/session",
+              "1/request",
+              "1/decoder",
+              "1/buffer"
+            ]
+          },
+          "effects": [
+            [
+              "seek-completed",
+              "S1"
+            ]
+          ],
+          "owned": [
+            "1/buffer",
+            "1/decoder",
+            "1/request",
+            "1/session"
+          ]
+        },
+        {
+          "ms": 0,
+          "input": {
+            "kind": "frame",
+            "token": {
+              "session": "S1",
+              "lifetime": 1,
+              "authority": 0,
+              "generation": 1,
+              "visibility": 0,
+              "media": "camera-1/epoch-0"
+            },
+            "session": "",
+            "media": "camera-1/epoch-0",
+            "utc": 1000000,
+            "deadline": 0,
+            "value": true,
+            "mapped": true,
+            "ready": true,
+            "seeking": false,
+            "evidence": "frame-callback"
+          },
+          "state": {
+            "phase": "admitted",
+            "session": "S1",
+            "lifetime": 1,
+            "authority": 0,
+            "generation": 1,
+            "visibility": 0,
+            "media": "camera-1/epoch-0",
+            "deadline": 100,
+            "target": 1000000,
+            "onscreen": true,
+            "document_visible": true,
+            "buffered": true,
+            "seek_done": true,
+            "accepted": 1000000,
+            "revealed": true,
+            "resources": [
+              "1/session",
+              "1/request",
+              "1/decoder",
+              "1/buffer"
+            ]
+          },
+          "effects": [
+            [
+              "reveal",
+              "1000000"
+            ]
+          ],
+          "owned": [
+            "1/buffer",
+            "1/decoder",
+            "1/request",
+            "1/session"
+          ]
+        },
+        {
+          "ms": 10,
+          "input": {
+            "kind": "revoke",
+            "token": null,
+            "session": "",
+            "media": "camera-1/epoch-0",
+            "utc": null,
+            "deadline": 0,
+            "value": true,
+            "mapped": true,
+            "ready": true,
+            "seeking": false,
+            "evidence": "frame-callback"
+          },
+          "state": {
+            "phase": "revoked",
+            "session": "",
+            "lifetime": 1,
+            "authority": 1,
+            "generation": 2,
+            "visibility": 0,
+            "media": "camera-1/epoch-0",
+            "deadline": 100,
+            "target": 1000000,
+            "onscreen": true,
+            "document_visible": true,
+            "buffered": false,
+            "seek_done": false,
+            "accepted": null,
+            "revealed": false,
+            "resources": []
+          },
+          "effects": [
+            [
+              "revoke-grants",
+              "0"
+            ],
+            [
+              "conceal",
+              "revoked"
+            ],
+            [
+              "cancel",
+              "S1"
+            ],
+            [
+              "release",
+              "1/session"
+            ],
+            [
+              "release",
+              "1/request"
+            ],
+            [
+              "release",
+              "1/decoder"
+            ],
+            [
+              "release",
+              "1/buffer"
+            ]
+          ],
+          "owned": [
+            "1/buffer",
+            "1/decoder",
+            "1/request",
+            "1/session"
+          ]
+        },
+        {
+          "ms": 11,
+          "input": {
+            "kind": "frame",
+            "token": {
+              "session": "S1",
+              "lifetime": 1,
+              "authority": 0,
+              "generation": 1,
+              "visibility": 0,
+              "media": "camera-1/epoch-0"
+            },
+            "session": "",
+            "media": "camera-1/epoch-0",
+            "utc": 1000000,
+            "deadline": 0,
+            "value": true,
+            "mapped": true,
+            "ready": true,
+            "seeking": false,
+            "evidence": "frame-callback"
+          },
+          "state": {
+            "phase": "revoked",
+            "session": "",
+            "lifetime": 1,
+            "authority": 1,
+            "generation": 2,
+            "visibility": 0,
+            "media": "camera-1/epoch-0",
+            "deadline": 100,
+            "target": 1000000,
+            "onscreen": true,
+            "document_visible": true,
+            "buffered": false,
+            "seek_done": false,
+            "accepted": null,
+            "revealed": false,
+            "resources": []
+          },
+          "effects": [
+            [
+              "reject",
+              "no live session"
+            ]
+          ],
+          "owned": [
+            "1/buffer",
+            "1/decoder",
+            "1/request",
+            "1/session"
+          ]
+        },
+        {
+          "ms": 12,
+          "disposed": "1/session",
+          "owned": [
+            "1/buffer",
+            "1/decoder",
+            "1/request"
+          ]
+        },
+        {
+          "ms": 12,
+          "disposed": "1/request",
+          "owned": [
+            "1/buffer",
+            "1/decoder"
+          ]
+        },
+        {
+          "ms": 12,
+          "disposed": "1/decoder",
+          "owned": [
+            "1/buffer"
+          ]
+        },
+        {
+          "ms": 12,
+          "disposed": "1/buffer",
+          "owned": []
+        },
+        {
+          "ms": 100,
+          "input": {
+            "kind": "tick",
+            "token": null,
+            "session": "",
+            "media": "camera-1/epoch-0",
+            "utc": null,
+            "deadline": 0,
+            "value": true,
+            "mapped": true,
+            "ready": true,
+            "seeking": false,
+            "evidence": "frame-callback"
+          },
+          "state": {
+            "phase": "revoked",
+            "session": "",
+            "lifetime": 1,
+            "authority": 1,
+            "generation": 2,
+            "visibility": 0,
+            "media": "camera-1/epoch-0",
+            "deadline": 100,
+            "target": 1000000,
+            "onscreen": true,
+            "document_visible": true,
+            "buffered": false,
+            "seek_done": false,
+            "accepted": null,
+            "revealed": false,
+            "resources": []
+          },
+          "effects": [],
+          "owned": []
+        }
+      ]
+    }
+  },
+  "permutation_check": {
+    "permutations": 120,
+    "invariant_violations": 0,
+    "scope": "five events at ms 10, insertion order; not a proof for arbitrary executions"
+  }
+}

@@ -22,12 +22,12 @@ This special feature develops reusable mathematical and engineering techniques f
 5. [[ARTICLE - Engineering Temporal Systems - 05 - Indexing Historical Video]] — sample-aware plans, real PTS/DTS evidence and verified non-keyframe decoding.
 6. [[ARTICLE - Engineering Temporal Systems - 06 - HLS fMP4 and MSE]] — actual fragment delivery, explicit timestamp mapping, observed browser frames and cleanup.
 7. [[ARTICLE - Engineering Temporal Systems - 07 - Coordinating Historical Playback]] — session-window reuse/reopening, delayed reports, camera-specific gaps and tested archive coordination.
-8. When Is a Frame Safe to Show? — state machines, authorization and resource lifetimes. Writing remains in progress.
+8. [[ARTICLE - Engineering Temporal Systems - 08 - Safe Frame Presentation]] — frame evidence, authority and visibility lifetimes, deterministic closure/revocation races.
 
 The historical-media sequence answers four distinct questions: which recording contains the target, how its bytes reach the decoder, which time playback should follow, and when a frame is eligible to appear.
 
 ## Reproducible examples and evidence
 
-The [example README](_assets/temporal-systems/README.md) documents executable modules, commands and limits. The timeline model and its tests are available now. This series is not yet complete; missing chapters are listed as writing work rather than linked to nonexistent notes.
+The [example README](_assets/temporal-systems/README.md) documents executable modules, commands and limits. All eight chapters and their examples are written. The shared suite has 30 tests, including 120 bounded presentation-event permutations. Final contract-wide publication and cross-chapter review remain in progress; chapter existence alone is not the completion criterion.
 
 UTC values use integer microseconds; local media time uses seconds; encoded timestamps use an explicit timescale. Intervals are half-open. Simulation outputs, retained browser observations, allocation estimates and physical capture synchronization are different evidence categories throughout the series.
