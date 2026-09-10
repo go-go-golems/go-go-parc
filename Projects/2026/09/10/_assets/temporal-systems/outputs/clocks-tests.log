@@ -1,0 +1,14 @@
+test_barrier_generation_and_deadline (test_clocks.ClockTests.test_barrier_generation_and_deadline) ... ok
+test_controller_boundaries (test_clocks.ClockTests.test_controller_boundaries) ... ok
+test_mapping_gap_reset_and_ticks (test_clocks.ClockTests.test_mapping_gap_reset_and_ticks) ... ok
+test_master_continuity (test_clocks.ClockTests.test_master_continuity) ... ok
+test_recovery_and_four_processors (test_clocks.ClockTests.test_recovery_and_four_processors) ... ok
+test_bounded_geometry (test_timeline.TimelineTests.test_bounded_geometry) ... ok
+test_cancel_does_not_restore_request_identity (test_timeline.TimelineTests.test_cancel_does_not_restore_request_identity) ... ok
+test_grid_and_lod (test_timeline.TimelineTests.test_grid_and_lod) ... ok
+test_round_trip_and_anchor (test_timeline.TimelineTests.test_round_trip_and_anchor) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.084s
+
+OK
