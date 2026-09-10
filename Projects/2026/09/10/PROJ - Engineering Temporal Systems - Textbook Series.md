@@ -19,7 +19,7 @@ This special feature develops reusable mathematical and engineering techniques f
 2. [[ARTICLE - Engineering Temporal Systems - 02 - Temporal Coordination]] — general clock mathematics, bounded feedback and an executed four-processor simulation.
 3. [[ARTICLE - Engineering Temporal Systems - 03 - Mergeable Summaries]] — aggregation algebra, missing data, stable variance and tested partition invariants.
 4. [[ARTICLE - Engineering Temporal Systems - 04 - Bounded Asynchronous Systems]] — publication eligibility, ownership, bounded scheduling and a useful-versus-blocked experiment.
-5. From UTC to a Decodable Frame — indexing and decode dependencies. Writing remains in progress.
+5. [[ARTICLE - Engineering Temporal Systems - 05 - Indexing Historical Video]] — sample-aware plans, real PTS/DTS evidence and verified non-keyframe decoding.
 6. Streaming an Archive Through the Browser — HLS, fragmented MP4 and MSE. Writing remains in progress.
 7. Coordinating Historical Playback — apply the clock foundation to archive sessions. Writing remains in progress.
 8. When Is a Frame Safe to Show? — state machines, authorization and resource lifetimes. Writing remains in progress.

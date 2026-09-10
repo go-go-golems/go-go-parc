@@ -1,0 +1,54 @@
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/tmp/temporal-media-05h4kpa3/decode.mp4':
+  Metadata:
+    major_brand     : iso5
+    minor_version   : 512
+    compatible_brands: iso5iso6mp41
+    encoder         : Lavf60.16.100
+  Duration: 00:00:04.00, start: 2.200000, bitrate: 42 kb/s
+  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 160x90 [SAR 1:1 DAR 16:9], 40 kb/s, 10 fps, 10 tbr, 10240 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libx264
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> png (native))
+Press [q] to stop, [?] for help
+[Parsed_showinfo_1 @ 0x5fd07961dd00] config in time_base: 1/10240, frame_rate: 10/1
+[Parsed_showinfo_1 @ 0x5fd07961dd00] config out time_base: 0/0, frame_rate: 0/0
+[Parsed_showinfo_1 @ 0x5fd07961dd00] n:   0 pts:  30720 pts_time:3       duration:   1024 duration_time:0.1     fmt:yuv420p cl:left sar:1/1 s:160x90 i:P iskey:0 type:B checksum:712C186F plane_checksum:[15F5E809 90EF321D 6D89FE2B] mean:[113 131 127] stdev:[60.2 65.8 69.2]
+[Parsed_showinfo_1 @ 0x5fd07961dd00] color_range:unknown color_space:unknown color_primaries:unknown color_trc:unknown
+Output #0, image2, to '/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/09/10/_assets/temporal-systems/outputs/media/b-frames/selected-frame.png':
+  Metadata:
+    major_brand     : iso5
+    minor_version   : 512
+    compatible_brands: iso5iso6mp41
+    encoder         : Lavf60.16.100
+  Stream #0:0(und): Video: png, rgb24(pc, gbr/unknown/unknown, progressive), 160x90 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 10 fps, 10 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 png
+[image2 @ 0x5fd078e4f400] The specified filename '/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/09/10/_assets/temporal-systems/outputs/media/b-frames/selected-frame.png' does not contain an image sequence pattern or a pattern is invalid.
+[image2 @ 0x5fd078e4f400] Use a pattern such as %03d for an image sequence or use the -update option (with -frames:v 1 if needed) to write a single image.
+[Parsed_showinfo_1 @ 0x5fd07961dd00] n:   1 pts:  31744 pts_time:3.1     duration:   1024 duration_time:0.1     fmt:yuv420p cl:left sar:1/1 s:160x90 i:P iskey:0 type:P checksum:3AEFFA7D plane_checksum:[D08FFC29 F7111511 81FFE934] mean:[114 129 126] stdev:[60.8 66.8 70.0]
+[Parsed_showinfo_1 @ 0x5fd07961dd00] color_range:unknown color_space:unknown color_primaries:unknown color_trc:unknown
+[Parsed_showinfo_1 @ 0x5fd07961dd00] n:   2 pts:  32768 pts_time:3.2     duration:   1024 duration_time:0.1     fmt:yuv420p cl:left sar:1/1 s:160x90 i:P iskey:0 type:B checksum:2487DAB7 plane_checksum:[24FF0330 F26EF5B8 2BC5E1C0] mean:[114 127 125] stdev:[61.1 67.6 70.9]
+[Parsed_showinfo_1 @ 0x5fd07961dd00] color_range:unknown color_space:unknown color_primaries:unknown color_trc:unknown
+[Parsed_showinfo_1 @ 0x5fd07961dd00] n:   3 pts:  33792 pts_time:3.3     duration:   1024 duration_time:0.1     fmt:yuv420p cl:left sar:1/1 s:160x90 i:P iskey:0 type:B checksum:FD28C50F plane_checksum:[5AEEC14B F372025D D4F80167] mean:[113 128 128] stdev:[60.8 67.1 70.4]
+[Parsed_showinfo_1 @ 0x5fd07961dd00] color_range:unknown color_space:unknown color_primaries:unknown color_trc:unknown
+[Parsed_showinfo_1 @ 0x5fd07961dd00] n:   4 pts:  34816 pts_time:3.4     duration:   1024 duration_time:0.1     fmt:yuv420p cl:left sar:1/1 s:160x90 i:P iskey:0 type:P checksum:EEEEDDD0 plane_checksum:[2BADA075 905E1931 F9E8242A] mean:[112 129 130] stdev:[60.4 66.6 69.5]
+[Parsed_showinfo_1 @ 0x5fd07961dd00] color_range:unknown color_space:unknown color_primaries:unknown color_trc:unknown
+[Parsed_showinfo_1 @ 0x5fd07961dd00] n:   5 pts:  35840 pts_time:3.5     duration:   1024 duration_time:0.1     fmt:yuv420p cl:left sar:1/1 s:160x90 i:P iskey:0 type:B checksum:F91DF650 plane_checksum:[04228095 8BEA3703 6EF83EB8] mean:[111 131 132] stdev:[59.5 65.3 68.0]
+[Parsed_showinfo_1 @ 0x5fd07961dd00] color_range:unknown color_space:unknown color_primaries:unknown color_trc:unknown
+[Parsed_showinfo_1 @ 0x5fd07961dd00] n:   6 pts:  36864 pts_time:3.6     duration:   1024 duration_time:0.1     fmt:yuv420p cl:left sar:1/1 s:160x90 i:P iskey:0 type:B checksum:BEA30153 plane_checksum:[00EE6527 8D174F26 59654CF7] mean:[111 133 133] stdev:[58.6 64.0 66.3]
+[Parsed_showinfo_1 @ 0x5fd07961dd00] color_range:unknown color_space:unknown color_primaries:unknown color_trc:unknown
+[Parsed_showinfo_1 @ 0x5fd07961dd00] n:   7 pts:  37888 pts_time:3.7     duration:   1024 duration_time:0.1     fmt:yuv420p cl:left sar:1/1 s:160x90 i:P iskey:0 type:P checksum:EB25FA7D plane_checksum:[FF6241EC 061A7A4E 1DD03E43] mean:[110 136 132] stdev:[57.2 61.2 63.6]
+[Parsed_showinfo_1 @ 0x5fd07961dd00] color_range:unknown color_space:unknown color_primaries:unknown color_trc:unknown
+[Parsed_showinfo_1 @ 0x5fd07961dd00] n:   8 pts:  38912 pts_time:3.8     duration:   1024 duration_time:0.1     fmt:yuv420p cl:left sar:1/1 s:160x90 i:P iskey:0 type:B checksum:E78EF753 plane_checksum:[F0426AB8 C3E13FF9 3A2A4CA2] mean:[111 132 133] stdev:[58.6 63.7 65.8]
+[Parsed_showinfo_1 @ 0x5fd07961dd00] color_range:unknown color_space:unknown color_primaries:unknown color_trc:unknown
+[Parsed_showinfo_1 @ 0x5fd07961dd00] n:   9 pts:  39936 pts_time:3.9     duration:   1024 duration_time:0.1     fmt:yuv420p cl:left sar:1/1 s:160x90 i:P iskey:0 type:B checksum:97DCE3B6 plane_checksum:[E3067D90 FC381AD6 00154B50] mean:[111 129 133] stdev:[59.5 65.2 67.2]
+[Parsed_showinfo_1 @ 0x5fd07961dd00] color_range:unknown color_space:unknown color_primaries:unknown color_trc:unknown
+[Parsed_showinfo_1 @ 0x5fd07961dd00] n:  10 pts:  40960 pts_time:4       duration:   1024 duration_time:0.1     fmt:yuv420p cl:left sar:1/1 s:160x90 i:P iskey:0 type:P checksum:EF94C24F plane_checksum:[C8CE89EF 0399F79B 1E3040B6] mean:[112 127 132] stdev:[60.2 66.0 69.4]
+[Parsed_showinfo_1 @ 0x5fd07961dd00] color_range:unknown color_space:unknown color_primaries:unknown color_trc:unknown
+[out#0/image2 @ 0x5fd078dd92c0] video:15kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.00 bitrate=N/A speed=   0x

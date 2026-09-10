@@ -1,0 +1,347 @@
+{
+  "configurations": {
+    "cac506b96292870e2f767d5eb768b50ccf985037a6c2c5547c44945ab16d98f0": {
+      "asset": "init.mp4",
+      "range_start": 0,
+      "range_length": 825
+    }
+  },
+  "segments": [
+    {
+      "asset": "fragment-00.m4s",
+      "size": 17873,
+      "epoch": "continuous",
+      "configuration": "cac506b96292870e2f767d5eb768b50ccf985037a6c2c5547c44945ab16d98f0",
+      "start_us": 1788912000000000,
+      "end_us": 1788912002000000,
+      "pts_anchor": 2048,
+      "timescale": 10240,
+      "samples": [
+        {
+          "pts": 2048,
+          "dts": 0,
+          "key": true
+        },
+        {
+          "pts": 5120,
+          "dts": 1024,
+          "key": false
+        },
+        {
+          "pts": 3072,
+          "dts": 2048,
+          "key": false
+        },
+        {
+          "pts": 4096,
+          "dts": 3072,
+          "key": false
+        },
+        {
+          "pts": 8192,
+          "dts": 4096,
+          "key": false
+        },
+        {
+          "pts": 6144,
+          "dts": 5120,
+          "key": false
+        },
+        {
+          "pts": 7168,
+          "dts": 6144,
+          "key": false
+        },
+        {
+          "pts": 11264,
+          "dts": 7168,
+          "key": false
+        },
+        {
+          "pts": 9216,
+          "dts": 8192,
+          "key": false
+        },
+        {
+          "pts": 10240,
+          "dts": 9216,
+          "key": false
+        },
+        {
+          "pts": 14336,
+          "dts": 10240,
+          "key": false
+        },
+        {
+          "pts": 12288,
+          "dts": 11264,
+          "key": false
+        },
+        {
+          "pts": 13312,
+          "dts": 12288,
+          "key": false
+        },
+        {
+          "pts": 17408,
+          "dts": 13312,
+          "key": false
+        },
+        {
+          "pts": 15360,
+          "dts": 14336,
+          "key": false
+        },
+        {
+          "pts": 16384,
+          "dts": 15360,
+          "key": false
+        },
+        {
+          "pts": 20480,
+          "dts": 16384,
+          "key": false
+        },
+        {
+          "pts": 18432,
+          "dts": 17408,
+          "key": false
+        },
+        {
+          "pts": 19456,
+          "dts": 18432,
+          "key": false
+        },
+        {
+          "pts": 21504,
+          "dts": 19456,
+          "key": false
+        }
+      ]
+    },
+    {
+      "asset": "fragment-01.m4s",
+      "size": 20379,
+      "epoch": "continuous",
+      "configuration": "cac506b96292870e2f767d5eb768b50ccf985037a6c2c5547c44945ab16d98f0",
+      "start_us": 1788912002000000,
+      "end_us": 1788912004000000,
+      "pts_anchor": 22528,
+      "timescale": 10240,
+      "samples": [
+        {
+          "pts": 22528,
+          "dts": 20480,
+          "key": true
+        },
+        {
+          "pts": 25600,
+          "dts": 21504,
+          "key": false
+        },
+        {
+          "pts": 23552,
+          "dts": 22528,
+          "key": false
+        },
+        {
+          "pts": 24576,
+          "dts": 23552,
+          "key": false
+        },
+        {
+          "pts": 28672,
+          "dts": 24576,
+          "key": false
+        },
+        {
+          "pts": 26624,
+          "dts": 25600,
+          "key": false
+        },
+        {
+          "pts": 27648,
+          "dts": 26624,
+          "key": false
+        },
+        {
+          "pts": 31744,
+          "dts": 27648,
+          "key": false
+        },
+        {
+          "pts": 29696,
+          "dts": 28672,
+          "key": false
+        },
+        {
+          "pts": 30720,
+          "dts": 29696,
+          "key": false
+        },
+        {
+          "pts": 34816,
+          "dts": 30720,
+          "key": false
+        },
+        {
+          "pts": 32768,
+          "dts": 31744,
+          "key": false
+        },
+        {
+          "pts": 33792,
+          "dts": 32768,
+          "key": false
+        },
+        {
+          "pts": 37888,
+          "dts": 33792,
+          "key": false
+        },
+        {
+          "pts": 35840,
+          "dts": 34816,
+          "key": false
+        },
+        {
+          "pts": 36864,
+          "dts": 35840,
+          "key": false
+        },
+        {
+          "pts": 40960,
+          "dts": 36864,
+          "key": false
+        },
+        {
+          "pts": 38912,
+          "dts": 37888,
+          "key": false
+        },
+        {
+          "pts": 39936,
+          "dts": 38912,
+          "key": false
+        },
+        {
+          "pts": 41984,
+          "dts": 39936,
+          "key": false
+        }
+      ]
+    },
+    {
+      "asset": "fragment-02.m4s",
+      "size": 18952,
+      "epoch": "continuous",
+      "configuration": "cac506b96292870e2f767d5eb768b50ccf985037a6c2c5547c44945ab16d98f0",
+      "start_us": 1788912004000000,
+      "end_us": 1788912006000000,
+      "pts_anchor": 43008,
+      "timescale": 10240,
+      "samples": [
+        {
+          "pts": 43008,
+          "dts": 40960,
+          "key": true
+        },
+        {
+          "pts": 46080,
+          "dts": 41984,
+          "key": false
+        },
+        {
+          "pts": 44032,
+          "dts": 43008,
+          "key": false
+        },
+        {
+          "pts": 45056,
+          "dts": 44032,
+          "key": false
+        },
+        {
+          "pts": 49152,
+          "dts": 45056,
+          "key": false
+        },
+        {
+          "pts": 47104,
+          "dts": 46080,
+          "key": false
+        },
+        {
+          "pts": 48128,
+          "dts": 47104,
+          "key": false
+        },
+        {
+          "pts": 52224,
+          "dts": 48128,
+          "key": false
+        },
+        {
+          "pts": 50176,
+          "dts": 49152,
+          "key": false
+        },
+        {
+          "pts": 51200,
+          "dts": 50176,
+          "key": false
+        },
+        {
+          "pts": 55296,
+          "dts": 51200,
+          "key": false
+        },
+        {
+          "pts": 53248,
+          "dts": 52224,
+          "key": false
+        },
+        {
+          "pts": 54272,
+          "dts": 53248,
+          "key": false
+        },
+        {
+          "pts": 58368,
+          "dts": 54272,
+          "key": false
+        },
+        {
+          "pts": 56320,
+          "dts": 55296,
+          "key": false
+        },
+        {
+          "pts": 57344,
+          "dts": 56320,
+          "key": false
+        },
+        {
+          "pts": 61440,
+          "dts": 57344,
+          "key": false
+        },
+        {
+          "pts": 59392,
+          "dts": 58368,
+          "key": false
+        },
+        {
+          "pts": 60416,
+          "dts": 59392,
+          "key": false
+        },
+        {
+          "pts": 62464,
+          "dts": 60416,
+          "key": false
+        }
+      ]
+    }
+  ]
+}

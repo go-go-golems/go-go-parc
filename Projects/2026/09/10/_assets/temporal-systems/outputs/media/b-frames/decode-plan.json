@@ -1,0 +1,31 @@
+{
+  "status": "ready",
+  "target_us": 1788912002750000,
+  "epoch": "continuous",
+  "configuration": "cac506b96292870e2f767d5eb768b50ccf985037a6c2c5547c44945ab16d98f0",
+  "initialization": {
+    "asset": "init.mp4",
+    "range_start": 0,
+    "range_length": 825
+  },
+  "media": [
+    {
+      "asset": "fragment-01.m4s",
+      "range_start": 0,
+      "range_length": 20379
+    }
+  ],
+  "decode_start_dts": 20480,
+  "decode_start_pts": 22528,
+  "timescale": 10240,
+  "selected_pts": 30720,
+  "selected_utc_us": 1788912002800000,
+  "discard_before_us": 1788912002750000,
+  "discarded_frame_count": 8,
+  "range_semantics": "whole-fragment; initialization precedes media",
+  "observed_first_retained_pts": 30720,
+  "observed_first_retained_pts_seconds": 3.0,
+  "observed_first_retained_utc_us": 1788912002800000,
+  "b_frame_count": 36,
+  "reordered_packet_count": 60
+}
