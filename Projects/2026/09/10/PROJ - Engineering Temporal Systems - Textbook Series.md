@@ -3,7 +3,7 @@ title: Engineering Temporal Systems — Textbook Series
 created: 2026-09-07
 written: 2026-09-10
 type: project
-status: in-progress
+status: reviewed
 tags: [engineering-temporal-systems, textbook, video-observatory]
 repo: /home/manuel/code/wesen/2026-09-07--streaming-system
 source_commit: ee51ca7b3091d96f9428199412038c1285099085
@@ -28,6 +28,6 @@ The historical-media sequence answers four distinct questions: which recording c
 
 ## Reproducible examples and evidence
 
-The [example README](_assets/temporal-systems/README.md) documents executable modules, commands and limits. All eight chapters and their examples are written. The shared suite has 30 tests, including 120 bounded presentation-event permutations. Final contract-wide publication and cross-chapter review remain in progress; chapter existence alone is not the completion criterion.
+The [example README](_assets/temporal-systems/README.md) documents executable modules, commands and limits. All eight chapters and their examples are written. The shared suite has 30 tests, including 120 bounded presentation-event permutations. The full feature has been reviewed against its writing contract, including preserved reports, executable evidence and rendered diagrams. The ticket's `sources/textbook-final-contract-audit.md` records the requirement map and publication receipts; chapter existence alone was not used as the completion criterion.
 
 UTC values use integer microseconds; local media time uses seconds; encoded timestamps use an explicit timescale. Intervals are half-open. Simulation outputs, retained browser observations, allocation estimates and physical capture synchronization are different evidence categories throughout the series.

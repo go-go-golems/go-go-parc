@@ -147,7 +147,7 @@ At 1.05× against a 1× master, an ideal trailing player closes fifty millisecon
 The deadband avoids continually correcting small errors and quantization fluctuations. The sustained-error timer prevents one transient large observation from immediately provoking a seek. It resets when error returns within 200 milliseconds or the mapping becomes unknown. A hard seek itself has delay, so an implementation also needs in-flight request ownership: repeatedly launching corrections while an earlier one is pending can increase disruption rather than reduce error.
 
 ```mermaid
-flowchart LR
+flowchart TD
   M[Mapped observation and observation time] --> E[Compare against matching master instant]
   E --> C[Deadband and sustained-error policy]
   C --> P[Rate or seek request]
