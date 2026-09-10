@@ -21,7 +21,7 @@ This special feature develops reusable mathematical and engineering techniques f
 4. [[ARTICLE - Engineering Temporal Systems - 04 - Bounded Asynchronous Systems]] — publication eligibility, ownership, bounded scheduling and a useful-versus-blocked experiment.
 5. [[ARTICLE - Engineering Temporal Systems - 05 - Indexing Historical Video]] — sample-aware plans, real PTS/DTS evidence and verified non-keyframe decoding.
 6. [[ARTICLE - Engineering Temporal Systems - 06 - HLS fMP4 and MSE]] — actual fragment delivery, explicit timestamp mapping, observed browser frames and cleanup.
-7. Coordinating Historical Playback — apply the clock foundation to archive sessions. Writing remains in progress.
+7. [[ARTICLE - Engineering Temporal Systems - 07 - Coordinating Historical Playback]] — session-window reuse/reopening, delayed reports, camera-specific gaps and tested archive coordination.
 8. When Is a Frame Safe to Show? — state machines, authorization and resource lifetimes. Writing remains in progress.
 
 The historical-media sequence answers four distinct questions: which recording contains the target, how its bytes reach the decoder, which time playback should follow, and when a frame is eligible to appear.

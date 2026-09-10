@@ -48,3 +48,11 @@ Both six-second experiments run 61 pumps. The useful run publishes four 1024-byt
 `archive_index.py` resolves a target at UTC anchor +2.75 s into init plus a whole second-fragment range, decodes from that fragment's independent start and discards eight preceding frames. Both variants retain source frame 28 at UTC +2.8 s. Actual retained PTS differs (2.8 s versus 3.0 s) because the reordered fixture has a 0.2-second presentation offset. Probe frame metadata shows 36 B pictures in the reordered clip; 60 packets with PTS != DTS is a different count.
 
 The shared suite now has 21 tests and uses retained real-media evidence. Regenerate media before running those tests if assets are absent. `outputs/archive-tests.log`, packet/frame JSON, decode logs, plans and PNGs retain the verification. Plans use whole-fragment byte ranges; packet positions refer to temporary init+fragment files and are not arbitrary payload grants. This is a bounded closed-GOP educational index, not an authorization server or the product's fragment/PDT client.
+
+## Applied historical coordination
+
+`python3 historical.py` emits a distinct archive/session scenario and writes `outputs/historical-availability.svg` from its model indexes. It reuses the clock/controller/barrier, bounded event queue and archive resolver rather than duplicating them. The shared suite now has 24 tests; retained output/log are `historical-demo.json` and `historical-tests.log`.
+
+The scenario opens four cameras, releases a two-second barrier with one camera late, encounters a camera-specific gap, commits two in-window seeks, pauses/resumes at 2x, reopens outside the admitted window and closes. It creates/releases two sessions, reuses one twice, rejects sixteen stale reports and performs one hard drift correction. Observation delay is explicitly paired with the master sampled at the observation time.
+
+Indexes use fictional media names/lengths; they are not generated-file evidence. Observations are continuous modeled playback positions, not decoded frame timestamps. `visible` is a policy flag, not compositor evidence. The model continuously reevaluates its tolerance, unlike the product's reveal-only gate. The separate archive-coordinate moving-target traces reuse Chapter 2's selected delay model and do not constitute an additional browser measurement.

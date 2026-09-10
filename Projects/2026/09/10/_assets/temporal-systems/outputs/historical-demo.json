@@ -1,0 +1,1675 @@
+{
+  "kind": "educational-historical-session-simulation",
+  "step_ms": 100,
+  "observations": "continuous modeled positions, not decoded frames; visible is a policy flag",
+  "index_assets": "model identifiers and lengths, not real-media evidence",
+  "stats": {
+    "created": 2,
+    "released": 2,
+    "reused": 2,
+    "stale_reports": 16,
+    "hard_seeks": 1,
+    "deadline_releases": 1
+  },
+  "trace": [
+    {
+      "p_ms": 0,
+      "kind": "session-open",
+      "id": 1,
+      "start": 1788912000000000,
+      "end": 1788912012000000
+    },
+    {
+      "p_ms": 0,
+      "kind": "seek",
+      "target_us": 1788912000000000,
+      "generation": 1
+    },
+    {
+      "p_ms": 40,
+      "kind": "ready",
+      "camera": 1,
+      "generation": 1,
+      "epoch": "camera-1-epoch-0"
+    },
+    {
+      "p_ms": 100,
+      "kind": "ready",
+      "camera": 4,
+      "generation": 1,
+      "epoch": "camera-4-epoch-0"
+    },
+    {
+      "p_ms": 200,
+      "kind": "ready",
+      "camera": 3,
+      "generation": 1,
+      "epoch": "camera-3-epoch-0"
+    },
+    {
+      "p_ms": 500,
+      "kind": "checkpoint",
+      "master_us": 1788912000000000,
+      "generation": 1,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912000000000,
+          "epoch": "camera-1-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": null,
+          "epoch": null,
+          "visible": false,
+          "pending": true,
+          "rate": 1.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912000000000,
+          "epoch": "camera-3-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912000000000,
+          "epoch": "camera-4-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 1000,
+      "kind": "checkpoint",
+      "master_us": 1788912000000000,
+      "generation": 1,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912000000000,
+          "epoch": "camera-1-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": null,
+          "epoch": null,
+          "visible": false,
+          "pending": true,
+          "rate": 1.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912000000000,
+          "epoch": "camera-3-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912000000000,
+          "epoch": "camera-4-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 1000,
+      "kind": "observation",
+      "camera": 1,
+      "observed_at": 1000,
+      "utc": 1788912000000000,
+      "target_at_observation": 1788912000000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 1000,
+      "kind": "observation",
+      "camera": 3,
+      "observed_at": 1000,
+      "utc": 1788912000000000,
+      "target_at_observation": 1788912000000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 1000,
+      "kind": "observation",
+      "camera": 4,
+      "observed_at": 1000,
+      "utc": 1788912000000000,
+      "target_at_observation": 1788912000000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 1500,
+      "kind": "checkpoint",
+      "master_us": 1788912000000000,
+      "generation": 1,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912000000000,
+          "epoch": "camera-1-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": null,
+          "epoch": null,
+          "visible": false,
+          "pending": true,
+          "rate": 1.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912000000000,
+          "epoch": "camera-3-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912000000000,
+          "epoch": "camera-4-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 2000,
+      "kind": "barrier-release",
+      "generation": 1,
+      "reason": "deadline",
+      "ready": [
+        1,
+        3,
+        4
+      ],
+      "missing": [
+        2
+      ]
+    },
+    {
+      "p_ms": 2000,
+      "kind": "checkpoint",
+      "master_us": 1788912000000000,
+      "generation": 1,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912000000000,
+          "epoch": "camera-1-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": null,
+          "epoch": null,
+          "visible": false,
+          "pending": true,
+          "rate": 1.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912000000000,
+          "epoch": "camera-3-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912000000000,
+          "epoch": "camera-4-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 2000,
+      "kind": "observation",
+      "camera": 1,
+      "observed_at": 2000,
+      "utc": 1788912000000000,
+      "target_at_observation": 1788912000000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 2000,
+      "kind": "observation",
+      "camera": 3,
+      "observed_at": 2000,
+      "utc": 1788912000000000,
+      "target_at_observation": 1788912000000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 2000,
+      "kind": "observation",
+      "camera": 4,
+      "observed_at": 2000,
+      "utc": 1788912000000000,
+      "target_at_observation": 1788912000000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 2500,
+      "kind": "checkpoint",
+      "master_us": 1788912000500000,
+      "generation": 1,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912000500000,
+          "epoch": "camera-1-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": null,
+          "epoch": null,
+          "visible": false,
+          "pending": true,
+          "rate": 1.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912000500000,
+          "epoch": "camera-3-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912000500000,
+          "epoch": "camera-4-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 2600,
+      "kind": "ready",
+      "camera": 2,
+      "generation": 1,
+      "epoch": "camera-2-epoch-0"
+    },
+    {
+      "p_ms": 3000,
+      "kind": "checkpoint",
+      "master_us": 1788912001000000,
+      "generation": 1,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912001000000,
+          "epoch": "camera-1-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912000300000,
+          "epoch": "camera-2-epoch-0",
+          "visible": false,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912001000000,
+          "epoch": "camera-3-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912001000000,
+          "epoch": "camera-4-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 3000,
+      "kind": "observation",
+      "camera": 1,
+      "observed_at": 3000,
+      "utc": 1788912001000000,
+      "target_at_observation": 1788912001000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 3000,
+      "kind": "observation",
+      "camera": 2,
+      "observed_at": 3000,
+      "utc": 1788912000300000,
+      "target_at_observation": 1788912001000000,
+      "drift_ms": -700.0,
+      "action": "wait"
+    },
+    {
+      "p_ms": 3000,
+      "kind": "observation",
+      "camera": 3,
+      "observed_at": 3000,
+      "utc": 1788912001000000,
+      "target_at_observation": 1788912001000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 3000,
+      "kind": "observation",
+      "camera": 4,
+      "observed_at": 3000,
+      "utc": 1788912001000000,
+      "target_at_observation": 1788912001000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 3100,
+      "kind": "observation",
+      "camera": 2,
+      "observed_at": 3100,
+      "utc": 1788912000300000,
+      "target_at_observation": 1788912001100000,
+      "drift_ms": -800.0,
+      "action": "seek"
+    },
+    {
+      "p_ms": 3180,
+      "kind": "ready",
+      "camera": 2,
+      "generation": 1,
+      "epoch": "camera-2-epoch-0"
+    },
+    {
+      "p_ms": 3500,
+      "kind": "checkpoint",
+      "master_us": 1788912001500000,
+      "generation": 1,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912001500000,
+          "epoch": "camera-1-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912001310000,
+          "epoch": "camera-2-epoch-0",
+          "visible": false,
+          "pending": false,
+          "rate": 1.05
+        },
+        {
+          "camera": 3,
+          "utc": 1788912001500000,
+          "epoch": "camera-3-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912001500000,
+          "epoch": "camera-4-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 4000,
+      "kind": "checkpoint",
+      "master_us": 1788912002000000,
+      "generation": 1,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912002000000,
+          "epoch": "camera-1-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912001835000,
+          "epoch": "camera-2-epoch-0",
+          "visible": false,
+          "pending": false,
+          "rate": 1.05
+        },
+        {
+          "camera": 3,
+          "utc": 1788912002000000,
+          "epoch": "camera-3-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912002000000,
+          "epoch": "camera-4-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 4000,
+      "kind": "observation",
+      "camera": 1,
+      "observed_at": 4000,
+      "utc": 1788912002000000,
+      "target_at_observation": 1788912002000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 4000,
+      "kind": "observation",
+      "camera": 2,
+      "observed_at": 4000,
+      "utc": 1788912001835000,
+      "target_at_observation": 1788912002000000,
+      "drift_ms": -165.0,
+      "action": "rate"
+    },
+    {
+      "p_ms": 4000,
+      "kind": "observation",
+      "camera": 4,
+      "observed_at": 4000,
+      "utc": 1788912002000000,
+      "target_at_observation": 1788912002000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 4500,
+      "kind": "checkpoint",
+      "master_us": 1788912002500000,
+      "generation": 1,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912002500000,
+          "epoch": "camera-1-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912002360000,
+          "epoch": "camera-2-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.05
+        },
+        {
+          "camera": 3,
+          "utc": 1788912002500000,
+          "epoch": "camera-3-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912002500000,
+          "epoch": "camera-4-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 5000,
+      "kind": "checkpoint",
+      "master_us": 1788912003000000,
+      "generation": 1,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912003000000,
+          "epoch": "camera-1-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912002885000,
+          "epoch": "camera-2-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.05
+        },
+        {
+          "camera": 3,
+          "utc": 1788912003000000,
+          "epoch": "camera-3-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912003000000,
+          "epoch": "camera-4-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 5000,
+      "kind": "observation",
+      "camera": 3,
+      "observed_at": 4800,
+      "utc": 1788912002800000,
+      "target_at_observation": 1788912002800000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 5000,
+      "kind": "observation",
+      "camera": 1,
+      "observed_at": 5000,
+      "utc": 1788912003000000,
+      "target_at_observation": 1788912003000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 5000,
+      "kind": "observation",
+      "camera": 2,
+      "observed_at": 5000,
+      "utc": 1788912002885000,
+      "target_at_observation": 1788912003000000,
+      "drift_ms": -115.0,
+      "action": "rate"
+    },
+    {
+      "p_ms": 5000,
+      "kind": "observation",
+      "camera": 4,
+      "observed_at": 5000,
+      "utc": 1788912003000000,
+      "target_at_observation": 1788912003000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 5500,
+      "kind": "checkpoint",
+      "master_us": 1788912003500000,
+      "generation": 1,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912003500000,
+          "epoch": "camera-1-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912003410000,
+          "epoch": "camera-2-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.05
+        },
+        {
+          "camera": 3,
+          "utc": 1788912003500000,
+          "epoch": "camera-3-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912003500000,
+          "epoch": "camera-4-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 6000,
+      "kind": "gap",
+      "camera": 4,
+      "target_us": 1788912004000000
+    },
+    {
+      "p_ms": 6000,
+      "kind": "checkpoint",
+      "master_us": 1788912004000000,
+      "generation": 1,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912004000000,
+          "epoch": "camera-1-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912003935000,
+          "epoch": "camera-2-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.05
+        },
+        {
+          "camera": 3,
+          "utc": 1788912004000000,
+          "epoch": "camera-3-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": null,
+          "epoch": null,
+          "visible": false,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 6000,
+      "kind": "observation",
+      "camera": 3,
+      "observed_at": 5800,
+      "utc": 1788912003800000,
+      "target_at_observation": 1788912003800000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 6000,
+      "kind": "observation",
+      "camera": 1,
+      "observed_at": 6000,
+      "utc": 1788912004000000,
+      "target_at_observation": 1788912004000000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 6000,
+      "kind": "observation",
+      "camera": 2,
+      "observed_at": 6000,
+      "utc": 1788912003935000,
+      "target_at_observation": 1788912004000000,
+      "drift_ms": -65.0,
+      "action": "rate"
+    },
+    {
+      "p_ms": 6500,
+      "kind": "checkpoint",
+      "master_us": 1788912004500000,
+      "generation": 1,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912004500000,
+          "epoch": "camera-1-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912004450000,
+          "epoch": "camera-2-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912004500000,
+          "epoch": "camera-3-epoch-0",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": null,
+          "epoch": null,
+          "visible": false,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 6500,
+      "kind": "session-reuse",
+      "id": 1
+    },
+    {
+      "p_ms": 6500,
+      "kind": "seek",
+      "target_us": 1788912006500000,
+      "generation": 2
+    },
+    {
+      "p_ms": 6540,
+      "kind": "ready",
+      "camera": 1,
+      "generation": 2,
+      "epoch": "camera-1-epoch-1"
+    },
+    {
+      "p_ms": 6550,
+      "kind": "session-reuse",
+      "id": 1
+    },
+    {
+      "p_ms": 6550,
+      "kind": "seek",
+      "target_us": 1788912006700000,
+      "generation": 3
+    },
+    {
+      "p_ms": 6590,
+      "kind": "ready",
+      "camera": 1,
+      "generation": 3,
+      "epoch": "camera-1-epoch-1"
+    },
+    {
+      "p_ms": 6630,
+      "kind": "ready",
+      "camera": 4,
+      "generation": 3,
+      "epoch": "camera-4-epoch-1"
+    },
+    {
+      "p_ms": 6670,
+      "kind": "ready",
+      "camera": 3,
+      "generation": 3,
+      "epoch": "camera-3-epoch-1"
+    },
+    {
+      "p_ms": 6710,
+      "kind": "ready",
+      "camera": 2,
+      "generation": 3,
+      "epoch": "camera-2-epoch-1"
+    },
+    {
+      "p_ms": 6800,
+      "kind": "barrier-release",
+      "generation": 3,
+      "reason": "ready",
+      "ready": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "missing": []
+    },
+    {
+      "p_ms": 7000,
+      "kind": "checkpoint",
+      "master_us": 1788912006900000,
+      "generation": 3,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912006900000,
+          "epoch": "camera-1-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912006900000,
+          "epoch": "camera-2-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912006900000,
+          "epoch": "camera-3-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912006900000,
+          "epoch": "camera-4-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 7000,
+      "kind": "observation",
+      "camera": 3,
+      "observed_at": 6800,
+      "utc": 1788912006700000,
+      "target_at_observation": 1788912006700000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 7000,
+      "kind": "observation",
+      "camera": 1,
+      "observed_at": 7000,
+      "utc": 1788912006900000,
+      "target_at_observation": 1788912006900000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 7000,
+      "kind": "observation",
+      "camera": 2,
+      "observed_at": 7000,
+      "utc": 1788912006900000,
+      "target_at_observation": 1788912006900000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 7000,
+      "kind": "observation",
+      "camera": 4,
+      "observed_at": 7000,
+      "utc": 1788912006900000,
+      "target_at_observation": 1788912006900000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 7500,
+      "kind": "checkpoint",
+      "master_us": 1788912007400000,
+      "generation": 3,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912007400000,
+          "epoch": "camera-1-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912007400000,
+          "epoch": "camera-2-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912007400000,
+          "epoch": "camera-3-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912007400000,
+          "epoch": "camera-4-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 7600,
+      "kind": "clock-change",
+      "utc": 1788912007500000,
+      "rate": 1.0,
+      "running": false
+    },
+    {
+      "p_ms": 8000,
+      "kind": "checkpoint",
+      "master_us": 1788912007500000,
+      "generation": 3,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912007500000,
+          "epoch": "camera-1-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912007500000,
+          "epoch": "camera-2-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912007500000,
+          "epoch": "camera-3-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912007500000,
+          "epoch": "camera-4-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 1.0
+        }
+      ]
+    },
+    {
+      "p_ms": 8000,
+      "kind": "clock-change",
+      "utc": 1788912007500000,
+      "rate": 2.0,
+      "running": true
+    },
+    {
+      "p_ms": 8000,
+      "kind": "observation",
+      "camera": 3,
+      "observed_at": 7800,
+      "utc": 1788912007500000,
+      "target_at_observation": 1788912007500000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 8000,
+      "kind": "observation",
+      "camera": 1,
+      "observed_at": 8000,
+      "utc": 1788912007500000,
+      "target_at_observation": 1788912007500000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 8000,
+      "kind": "observation",
+      "camera": 2,
+      "observed_at": 8000,
+      "utc": 1788912007500000,
+      "target_at_observation": 1788912007500000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 8000,
+      "kind": "observation",
+      "camera": 3,
+      "observed_at": 8000,
+      "utc": 1788912007500000,
+      "target_at_observation": 1788912007500000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 8000,
+      "kind": "observation",
+      "camera": 4,
+      "observed_at": 8000,
+      "utc": 1788912007500000,
+      "target_at_observation": 1788912007500000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 8500,
+      "kind": "checkpoint",
+      "master_us": 1788912008500000,
+      "generation": 3,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912008500000,
+          "epoch": "camera-1-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912008500000,
+          "epoch": "camera-2-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912008500000,
+          "epoch": "camera-3-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912008500000,
+          "epoch": "camera-4-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        }
+      ]
+    },
+    {
+      "p_ms": 9000,
+      "kind": "checkpoint",
+      "master_us": 1788912009500000,
+      "generation": 3,
+      "session": 1,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912009500000,
+          "epoch": "camera-1-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912009500000,
+          "epoch": "camera-2-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912009500000,
+          "epoch": "camera-3-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912009500000,
+          "epoch": "camera-4-epoch-1",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        }
+      ]
+    },
+    {
+      "p_ms": 9000,
+      "kind": "session-open",
+      "id": 2,
+      "start": 1788912020000000,
+      "end": 1788912032000000
+    },
+    {
+      "p_ms": 9000,
+      "kind": "seek",
+      "target_us": 1788912020000000,
+      "generation": 4
+    },
+    {
+      "p_ms": 9040,
+      "kind": "ready",
+      "camera": 1,
+      "generation": 4,
+      "epoch": "camera-1-epoch-3"
+    },
+    {
+      "p_ms": 9080,
+      "kind": "ready",
+      "camera": 4,
+      "generation": 4,
+      "epoch": "camera-4-epoch-3"
+    },
+    {
+      "p_ms": 9120,
+      "kind": "ready",
+      "camera": 3,
+      "generation": 4,
+      "epoch": "camera-3-epoch-3"
+    },
+    {
+      "p_ms": 9160,
+      "kind": "ready",
+      "camera": 2,
+      "generation": 4,
+      "epoch": "camera-2-epoch-3"
+    },
+    {
+      "p_ms": 9200,
+      "kind": "barrier-release",
+      "generation": 4,
+      "reason": "ready",
+      "ready": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "missing": []
+    },
+    {
+      "p_ms": 9500,
+      "kind": "checkpoint",
+      "master_us": 1788912020600000,
+      "generation": 4,
+      "session": 2,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912020600000,
+          "epoch": "camera-1-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912020600000,
+          "epoch": "camera-2-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912020600000,
+          "epoch": "camera-3-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912020600000,
+          "epoch": "camera-4-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        }
+      ]
+    },
+    {
+      "p_ms": 10000,
+      "kind": "checkpoint",
+      "master_us": 1788912021600000,
+      "generation": 4,
+      "session": 2,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912021600000,
+          "epoch": "camera-1-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912021600000,
+          "epoch": "camera-2-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912021600000,
+          "epoch": "camera-3-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912021600000,
+          "epoch": "camera-4-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        }
+      ]
+    },
+    {
+      "p_ms": 10000,
+      "kind": "observation",
+      "camera": 1,
+      "observed_at": 10000,
+      "utc": 1788912021600000,
+      "target_at_observation": 1788912021600000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 10000,
+      "kind": "observation",
+      "camera": 2,
+      "observed_at": 10000,
+      "utc": 1788912021600000,
+      "target_at_observation": 1788912021600000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 10000,
+      "kind": "observation",
+      "camera": 3,
+      "observed_at": 10000,
+      "utc": 1788912021600000,
+      "target_at_observation": 1788912021600000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 10000,
+      "kind": "observation",
+      "camera": 4,
+      "observed_at": 10000,
+      "utc": 1788912021600000,
+      "target_at_observation": 1788912021600000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 10500,
+      "kind": "checkpoint",
+      "master_us": 1788912022600000,
+      "generation": 4,
+      "session": 2,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912022600000,
+          "epoch": "camera-1-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912022600000,
+          "epoch": "camera-2-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912022600000,
+          "epoch": "camera-3-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912022600000,
+          "epoch": "camera-4-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        }
+      ]
+    },
+    {
+      "p_ms": 11000,
+      "kind": "checkpoint",
+      "master_us": 1788912023600000,
+      "generation": 4,
+      "session": 2,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912023600000,
+          "epoch": "camera-1-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912023600000,
+          "epoch": "camera-2-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912023600000,
+          "epoch": "camera-3-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912023600000,
+          "epoch": "camera-4-epoch-3",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        }
+      ]
+    },
+    {
+      "p_ms": 11000,
+      "kind": "observation",
+      "camera": 1,
+      "observed_at": 11000,
+      "utc": 1788912023600000,
+      "target_at_observation": 1788912023600000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 11000,
+      "kind": "observation",
+      "camera": 2,
+      "observed_at": 11000,
+      "utc": 1788912023600000,
+      "target_at_observation": 1788912023600000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 11000,
+      "kind": "observation",
+      "camera": 3,
+      "observed_at": 11000,
+      "utc": 1788912023600000,
+      "target_at_observation": 1788912023600000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 11000,
+      "kind": "observation",
+      "camera": 4,
+      "observed_at": 11000,
+      "utc": 1788912023600000,
+      "target_at_observation": 1788912023600000,
+      "drift_ms": 0.0,
+      "action": "normal"
+    },
+    {
+      "p_ms": 11500,
+      "kind": "checkpoint",
+      "master_us": 1788912024600000,
+      "generation": 4,
+      "session": 2,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912024600000,
+          "epoch": "camera-1-epoch-4",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912024600000,
+          "epoch": "camera-2-epoch-4",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912024600000,
+          "epoch": "camera-3-epoch-4",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912024600000,
+          "epoch": "camera-4-epoch-4",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        }
+      ]
+    },
+    {
+      "p_ms": 12000,
+      "kind": "checkpoint",
+      "master_us": 1788912025600000,
+      "generation": 4,
+      "session": 2,
+      "players": [
+        {
+          "camera": 1,
+          "utc": 1788912025600000,
+          "epoch": "camera-1-epoch-4",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 2,
+          "utc": 1788912025600000,
+          "epoch": "camera-2-epoch-4",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 3,
+          "utc": 1788912025600000,
+          "epoch": "camera-3-epoch-4",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        },
+        {
+          "camera": 4,
+          "utc": 1788912025600000,
+          "epoch": "camera-4-epoch-4",
+          "visible": true,
+          "pending": false,
+          "rate": 2.0
+        }
+      ]
+    },
+    {
+      "p_ms": 12000,
+      "kind": "closed"
+    }
+  ],
+  "remaining_events": 0,
+  "archive_recovery": {
+    "paused": [
+      {
+        "attempt": 1,
+        "request_ms": 0,
+        "decoded_ms": 320,
+        "frame_ms": 0,
+        "drift_ms": -320,
+        "visible": false,
+        "camera": 2,
+        "session": "recovery-model",
+        "requested_utc": 1788912000000000,
+        "observed_utc": 1788912000000000,
+        "state": "covered-retry"
+      },
+      {
+        "attempt": 2,
+        "request_ms": 320,
+        "decoded_ms": 640,
+        "frame_ms": 320,
+        "drift_ms": -320,
+        "visible": false,
+        "camera": 2,
+        "session": "recovery-model",
+        "requested_utc": 1788912000320000,
+        "observed_utc": 1788912000320000,
+        "state": "covered-retry"
+      },
+      {
+        "attempt": 3,
+        "request_ms": 640,
+        "decoded_ms": 960,
+        "frame_ms": 640,
+        "drift_ms": -320,
+        "visible": false,
+        "camera": 2,
+        "session": "recovery-model",
+        "requested_utc": 1788912000640000,
+        "observed_utc": 1788912000640000,
+        "state": "covered-retry"
+      },
+      {
+        "attempt": 4,
+        "request_ms": 960,
+        "decoded_ms": 1280,
+        "frame_ms": 960,
+        "drift_ms": -320,
+        "visible": false,
+        "camera": 2,
+        "session": "recovery-model",
+        "requested_utc": 1788912000960000,
+        "observed_utc": 1788912000960000,
+        "state": "covered-retry"
+      },
+      {
+        "attempt": 5,
+        "request_ms": 1280,
+        "decoded_ms": 1600,
+        "frame_ms": 1280,
+        "drift_ms": -320,
+        "visible": false,
+        "camera": 2,
+        "session": "recovery-model",
+        "requested_utc": 1788912001280000,
+        "observed_utc": 1788912001280000,
+        "state": "covered-retry"
+      }
+    ],
+    "concealed-progress": [
+      {
+        "attempt": 1,
+        "request_ms": 0,
+        "decoded_ms": 320,
+        "frame_ms": 200,
+        "drift_ms": -120,
+        "visible": true,
+        "camera": 2,
+        "session": "recovery-model",
+        "requested_utc": 1788912000000000,
+        "observed_utc": 1788912000200000,
+        "state": "visible"
+      }
+    ]
+  }
+}

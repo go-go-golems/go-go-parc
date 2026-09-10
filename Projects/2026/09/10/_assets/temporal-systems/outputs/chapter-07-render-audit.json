@@ -1,0 +1,100 @@
+{
+  "notes": [
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Engineering Temporal Systems - 01 - Multiresolution Visualization.md",
+      "html": "/tmp/textbook-review/ARTICLE - Engineering Temporal Systems - 01 - Multiresolution Visualization.html",
+      "words": 3443,
+      "diagrams": 2,
+      "math_elements": 66,
+      "status": "reviewed",
+      "render": {
+        "diagrams": 2,
+        "math": 66,
+        "images": true
+      }
+    },
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Engineering Temporal Systems - 02 - Temporal Coordination.md",
+      "html": "/tmp/textbook-review/ARTICLE - Engineering Temporal Systems - 02 - Temporal Coordination.html",
+      "words": 3155,
+      "diagrams": 2,
+      "math_elements": 43,
+      "status": "reviewed",
+      "render": {
+        "diagrams": 2,
+        "math": 43,
+        "images": true
+      }
+    },
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Engineering Temporal Systems - 03 - Mergeable Summaries.md",
+      "html": "/tmp/textbook-review/ARTICLE - Engineering Temporal Systems - 03 - Mergeable Summaries.html",
+      "words": 3010,
+      "diagrams": 1,
+      "math_elements": 61,
+      "status": "reviewed",
+      "render": {
+        "diagrams": 1,
+        "math": 61,
+        "images": true
+      }
+    },
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Engineering Temporal Systems - 04 - Bounded Asynchronous Systems.md",
+      "html": "/tmp/textbook-review/ARTICLE - Engineering Temporal Systems - 04 - Bounded Asynchronous Systems.html",
+      "words": 3141,
+      "diagrams": 1,
+      "math_elements": 21,
+      "status": "reviewed",
+      "render": {
+        "diagrams": 1,
+        "math": 21,
+        "images": true
+      }
+    },
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Engineering Temporal Systems - 05 - Indexing Historical Video.md",
+      "html": "/tmp/textbook-review/ARTICLE - Engineering Temporal Systems - 05 - Indexing Historical Video.html",
+      "words": 2757,
+      "diagrams": 1,
+      "math_elements": 7,
+      "status": "reviewed",
+      "render": {
+        "diagrams": 1,
+        "math": 7,
+        "images": true
+      }
+    },
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Engineering Temporal Systems - 06 - HLS fMP4 and MSE.md",
+      "html": "/tmp/textbook-review/ARTICLE - Engineering Temporal Systems - 06 - HLS fMP4 and MSE.html",
+      "words": 2953,
+      "diagrams": 1,
+      "math_elements": 6,
+      "status": "reviewed",
+      "render": {
+        "diagrams": 1,
+        "math": 6,
+        "images": true
+      }
+    },
+    {
+      "file": "Projects/2026/09/10/ARTICLE - Engineering Temporal Systems - 07 - Coordinating Historical Playback.md",
+      "html": "/tmp/textbook-review/ARTICLE - Engineering Temporal Systems - 07 - Coordinating Historical Playback.html",
+      "words": 2859,
+      "diagrams": 1,
+      "math_elements": 10,
+      "status": "reviewed",
+      "render": {
+        "diagrams": 1,
+        "math": 10,
+        "images": true
+      }
+    }
+  ],
+  "environment": {
+    "browser": "151.0.7922.34",
+    "mermaid": "11.12.0",
+    "headless": true
+  }
+}
