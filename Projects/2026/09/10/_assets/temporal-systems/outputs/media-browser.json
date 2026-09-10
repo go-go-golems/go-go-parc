@@ -1,0 +1,482 @@
+{
+  "kind": "executed-browser-MSE",
+  "codec": "avc1.64000a",
+  "buffered": [
+    [
+      0,
+      2
+    ],
+    [
+      4,
+      8
+    ]
+  ],
+  "first": {
+    "mediaTime": 0.8,
+    "presentedFrames": 2
+  },
+  "after": {
+    "mediaTime": 4.8,
+    "presentedFrames": 3
+  },
+  "trace": [
+    {
+      "kind": "fetched",
+      "url": "/presentation.m3u8",
+      "bytes": 379,
+      "sha256": "135cdfedfe92ce8c506f36f083e5f53c6f6f24a2ecbf4e38b2b134e593010b42"
+    },
+    {
+      "kind": "fetched",
+      "url": "/init.mp4",
+      "bytes": 812,
+      "sha256": "2c5f9c9c1915efcebac0140d0e96082e9dac7ce16bc255ba0b054b16c9c9517c"
+    },
+    {
+      "kind": "sourceopen",
+      "mime": "video/mp4; codecs=\"avc1.64000a\""
+    },
+    {
+      "kind": "append",
+      "label": "initialization",
+      "offset": 0,
+      "bytes": 812
+    },
+    {
+      "kind": "updateend",
+      "label": "initialization",
+      "ranges": []
+    },
+    {
+      "kind": "fetched",
+      "url": "/fragment-00.m4s",
+      "bytes": 18940,
+      "sha256": "29f5f211ea1799abeee6448fd5592dcaff5b79afeb93a13cebefdec08f65a58a"
+    },
+    {
+      "kind": "append",
+      "label": "fragment-00.m4s",
+      "offset": 0,
+      "bytes": 18940
+    },
+    {
+      "kind": "updateend",
+      "label": "fragment-00.m4s",
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "kind": "fetched",
+      "url": "/fragment-01.m4s",
+      "bytes": 21450,
+      "sha256": "a758ed83abaea9d86071819db7b222966e4996ffa5ffcd0574b35bd43654f75f"
+    },
+    {
+      "kind": "append",
+      "label": "fragment-01.m4s",
+      "offset": 2,
+      "bytes": 21450
+    },
+    {
+      "kind": "updateend",
+      "label": "fragment-01.m4s",
+      "ranges": [
+        [
+          0,
+          2
+        ],
+        [
+          4,
+          6
+        ]
+      ]
+    },
+    {
+      "kind": "fetched",
+      "url": "/fragment-02.m4s",
+      "bytes": 20452,
+      "sha256": "a62b062e597be3b7c5fc0896c75a1a4b1a55890c4763e27fec5bbba366a69ee8"
+    },
+    {
+      "kind": "append",
+      "label": "fragment-02.m4s",
+      "offset": 2,
+      "bytes": 20452
+    },
+    {
+      "kind": "updateend",
+      "label": "fragment-02.m4s",
+      "ranges": [
+        [
+          0,
+          2
+        ],
+        [
+          4,
+          8
+        ]
+      ]
+    },
+    {
+      "kind": "seeked",
+      "target": 0.8,
+      "currentTime": 0.8
+    },
+    {
+      "kind": "frame",
+      "target": 0.8,
+      "mediaTime": 0.8,
+      "presentedFrames": 2
+    },
+    {
+      "kind": "gap-rejected",
+      "target": 3
+    },
+    {
+      "kind": "seeked",
+      "target": 4.8,
+      "currentTime": 4.8
+    },
+    {
+      "kind": "frame",
+      "target": 4.8,
+      "mediaTime": 4.8,
+      "presentedFrames": 3
+    },
+    {
+      "kind": "removed",
+      "ranges": [
+        [
+          4,
+          8
+        ]
+      ]
+    },
+    {
+      "kind": "endOfStream"
+    },
+    {
+      "kind": "cleanup",
+      "videoElements": 0,
+      "mediaState": "closed",
+      "sourceBuffers": 0
+    }
+  ],
+  "browser": "151.0.7922.34",
+  "requests": [
+    {
+      "url": "/",
+      "status": 200,
+      "bytes": 5016
+    },
+    {
+      "url": "/presentation.m3u8",
+      "status": 200,
+      "bytes": 379
+    },
+    {
+      "url": "/index.json",
+      "status": 200,
+      "bytes": 6705
+    },
+    {
+      "url": "/init.mp4",
+      "status": 200,
+      "bytes": 812
+    },
+    {
+      "url": "/fragment-00.m4s",
+      "status": 200,
+      "bytes": 18940
+    },
+    {
+      "url": "/fragment-01.m4s",
+      "status": 200,
+      "bytes": 21450
+    },
+    {
+      "url": "/fragment-02.m4s",
+      "status": 200,
+      "bytes": 20452
+    }
+  ],
+  "boxes": {
+    "/init.mp4": [
+      {
+        "type": "ftyp",
+        "offset": 0,
+        "size": 28
+      },
+      {
+        "type": "moov",
+        "offset": 28,
+        "size": 784,
+        "children": [
+          {
+            "type": "mvhd",
+            "offset": 0,
+            "size": 108
+          },
+          {
+            "type": "trak",
+            "offset": 108,
+            "size": 530,
+            "children": [
+              {
+                "type": "tkhd",
+                "offset": 0,
+                "size": 92
+              },
+              {
+                "type": "edts",
+                "offset": 92,
+                "size": 36
+              },
+              {
+                "type": "mdia",
+                "offset": 128,
+                "size": 394,
+                "children": [
+                  {
+                    "type": "mdhd",
+                    "offset": 0,
+                    "size": 32
+                  },
+                  {
+                    "type": "hdlr",
+                    "offset": 32,
+                    "size": 45
+                  },
+                  {
+                    "type": "minf",
+                    "offset": 77,
+                    "size": 309,
+                    "children": [
+                      {
+                        "type": "vmhd",
+                        "offset": 0,
+                        "size": 20
+                      },
+                      {
+                        "type": "dinf",
+                        "offset": 20,
+                        "size": 36
+                      },
+                      {
+                        "type": "stbl",
+                        "offset": 56,
+                        "size": 245,
+                        "children": [
+                          {
+                            "type": "stsd",
+                            "offset": 0,
+                            "size": 169
+                          },
+                          {
+                            "type": "stts",
+                            "offset": 169,
+                            "size": 16
+                          },
+                          {
+                            "type": "stsc",
+                            "offset": 185,
+                            "size": 16
+                          },
+                          {
+                            "type": "stsz",
+                            "offset": 201,
+                            "size": 20
+                          },
+                          {
+                            "type": "stco",
+                            "offset": 221,
+                            "size": 16
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "mvex",
+            "offset": 638,
+            "size": 40,
+            "children": [
+              {
+                "type": "trex",
+                "offset": 0,
+                "size": 32
+              }
+            ]
+          },
+          {
+            "type": "udta",
+            "offset": 678,
+            "size": 98
+          }
+        ]
+      }
+    ],
+    "/fragment-00.m4s": [
+      {
+        "type": "styp",
+        "offset": 0,
+        "size": 24
+      },
+      {
+        "type": "sidx",
+        "offset": 24,
+        "size": 52
+      },
+      {
+        "type": "moof",
+        "offset": 76,
+        "size": 184,
+        "children": [
+          {
+            "type": "mfhd",
+            "offset": 0,
+            "size": 16
+          },
+          {
+            "type": "traf",
+            "offset": 16,
+            "size": 160,
+            "children": [
+              {
+                "type": "tfhd",
+                "offset": 0,
+                "size": 28
+              },
+              {
+                "type": "tfdt",
+                "offset": 28,
+                "size": 20
+              },
+              {
+                "type": "trun",
+                "offset": 48,
+                "size": 104
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "mdat",
+        "offset": 260,
+        "size": 18680
+      }
+    ],
+    "/fragment-01.m4s": [
+      {
+        "type": "styp",
+        "offset": 0,
+        "size": 24
+      },
+      {
+        "type": "sidx",
+        "offset": 24,
+        "size": 52
+      },
+      {
+        "type": "moof",
+        "offset": 76,
+        "size": 184,
+        "children": [
+          {
+            "type": "mfhd",
+            "offset": 0,
+            "size": 16
+          },
+          {
+            "type": "traf",
+            "offset": 16,
+            "size": 160,
+            "children": [
+              {
+                "type": "tfhd",
+                "offset": 0,
+                "size": 28
+              },
+              {
+                "type": "tfdt",
+                "offset": 28,
+                "size": 20
+              },
+              {
+                "type": "trun",
+                "offset": 48,
+                "size": 104
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "mdat",
+        "offset": 260,
+        "size": 21190
+      }
+    ],
+    "/fragment-02.m4s": [
+      {
+        "type": "styp",
+        "offset": 0,
+        "size": 24
+      },
+      {
+        "type": "sidx",
+        "offset": 24,
+        "size": 52
+      },
+      {
+        "type": "moof",
+        "offset": 76,
+        "size": 184,
+        "children": [
+          {
+            "type": "mfhd",
+            "offset": 0,
+            "size": 16
+          },
+          {
+            "type": "traf",
+            "offset": 16,
+            "size": 160,
+            "children": [
+              {
+                "type": "tfhd",
+                "offset": 0,
+                "size": 28
+              },
+              {
+                "type": "tfdt",
+                "offset": 28,
+                "size": 20
+              },
+              {
+                "type": "trun",
+                "offset": 48,
+                "size": 104
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "mdat",
+        "offset": 260,
+        "size": 20192
+      }
+    ]
+  },
+  "box_walker_tests": "two malformed-size inputs rejected"
+}
