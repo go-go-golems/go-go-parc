@@ -1,0 +1,38 @@
+{
+  "browser": "151.0.7922.34",
+  "mermaid_bundle_sha256": "07e37dfa97b337ccc85365d57eddf99b9706f09db3b59b260d0333b23b343c4b",
+  "renderer_sha256": "03c7277f31f9641a30a93870cbdb58f8650a6fe7ef333b90e0baf85f4fb72fe6",
+  "figures": [
+    {
+      "name": "figure-1",
+      "source_sha256": "61548d2b02e2bb02a718b480e67afcf962b555a44466c725eb31408b2a3676d9",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 733.46875,
+        "height": 1294.984375
+      }
+    },
+    {
+      "name": "figure-2",
+      "source_sha256": "bad1fd1c5cb428fa62e560bab9493692ed9dedb58b98cb7bd15c2f290fda6e10",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 714.03125,
+        "height": 614
+      }
+    },
+    {
+      "name": "figure-3",
+      "source_sha256": "6ad946db42c1177b46d4fafc3acdda767435057c7765624a30663848952bf04a",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 716,
+        "height": 1100.296875
+      }
+    }
+  ],
+  "note": "Rendering success is not visual review; review each PNG separately."
+}

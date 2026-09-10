@@ -1,0 +1,152 @@
+{
+  "date": "2026-09-10",
+  "source_revisions": {
+    "/home/manuel/code/wesen/go-go-golems/docmgr": "1d3df1ee96c7e763f9b92f8bd873012fa5dae36f",
+    "/home/manuel/.pi/agent/skills": "62d63d3ecbc04751085393d089e9a00b80dd4f26"
+  },
+  "scope": "Retained project evidence, not a new test campaign or efficiency benchmark. Selected manifest fields are identified by the source paths and original file hashes.",
+  "snapshots": [
+    {
+      "source": "/home/manuel/code/wesen/go-go-golems/docmgr/ttmp/2026/09/10/DOCMGR-FRICTION-001--reduce-documentation-workflow-friction-with-deterministic-writes-and-coherent-milestones/sources/write-reproduction.json",
+      "sha256": "d43fb4c14f5080cb77af09e55c00243db5e5a32b37b00824232f8129acf8454a",
+      "data": {
+        "body_leading_newlines_after_round_trips": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "changelog": "# Changelog\n\n\n## 2026-09-10\n\nFixture milestone\n\n",
+        "changelog_trailing_newlines": 2
+      }
+    },
+    {
+      "source": "/home/manuel/code/wesen/go-go-golems/docmgr/ttmp/2026/09/10/DOCMGR-FRICTION-001--reduce-documentation-workflow-friction-with-deterministic-writes-and-coherent-milestones/sources/close-reproduction.json",
+      "sha256": "b507dcbcffb1090a7c4f36ffb8a53d36b8082c19da0d725eb58d8c27acfbb854",
+      "data": {
+        "binary_sha256": "e23407e984ae570b0706d142ab245eaa1f55878d01181d7d45bfa0db25bf43ae",
+        "results": [
+          {
+            "ticket": "REPEAT-PROBE",
+            "first": {
+              "args": [
+                "ticket",
+                "close",
+                "--ticket",
+                "REPEAT-PROBE"
+              ],
+              "exit": 0,
+              "stdout": "Ticket REPEAT-PROBE closed successfully.\nChanges: Status: active \u2192 complete, Changelog updated, LastUpdated refreshed\nChangelog: /tmp/docmgr-close-probe-xg8xa7fn/ttmp/2026/09/10/REPEAT-PROBE--repeat-probe/changelog.md\n",
+              "stderr": ""
+            },
+            "status_after": "complete",
+            "second": {
+              "args": [
+                "ticket",
+                "close",
+                "--ticket",
+                "REPEAT-PROBE"
+              ],
+              "exit": 0,
+              "stdout": "Ticket REPEAT-PROBE closed successfully.\nChanges: Changelog updated, LastUpdated refreshed\nChangelog: /tmp/docmgr-close-probe-xg8xa7fn/ttmp/2026/09/10/REPEAT-PROBE--repeat-probe/changelog.md\n",
+              "stderr": ""
+            },
+            "index_bytes_changed_again": true,
+            "closing_entries": 2,
+            "trailing_newlines": 2
+          },
+          {
+            "ticket": "FAIL-PROBE",
+            "first": {
+              "args": [
+                "ticket",
+                "close",
+                "--ticket",
+                "FAIL-PROBE"
+              ],
+              "exit": 1,
+              "stdout": "",
+              "stderr": "Error: failed to open changelog: open /tmp/docmgr-close-probe-xg8xa7fn/ttmp/2026/09/10/FAIL-PROBE--fail-probe/changelog.md: is a directory\n"
+            },
+            "status_after": "complete"
+          }
+        ]
+      }
+    },
+    {
+      "source": "/home/manuel/code/wesen/go-go-golems/docmgr/ttmp/2026/09/10/DOCMGR-FRICTION-001--reduce-documentation-workflow-friction-with-deterministic-writes-and-coherent-milestones/sources/implementation-validation.json",
+      "sha256": "8a7bafde25ac244e30d82b77d40682c43ba71640912bdac2dfa2186a685ea314",
+      "data": {
+        "code_revision": "1d0710df1b0052a29ea267ca716736edf6b43988",
+        "checks": {
+          "full_go_tests_and_aggregate_lint": "passed in final code commit hook; includes pinned Glazed analyzer",
+          "tagged_tests": "go test -tags sqlite_fts5 ./...: passed",
+          "race_tests": "go test -race ./internal/operations ./pkg/commands ./internal/httpapi: passed",
+          "static_and_build": "go vet ./... and go build ./...: passed",
+          "logcopter": "make logcopter-check: passed",
+          "cli": "pinned binary smoke: passed",
+          "scenarios": "pinned binary repository scenario suite: passed at integration checkpoint 1516abc; later resume follow-up covered by focused tests and fresh CLI smoke",
+          "frontend": "pnpm exec tsc -b and targeted ESLint: passed",
+          "security": "govulncheck: zero reachable findings; one imported-package and five module advisories remain without reachable calls"
+        },
+        "limits": [
+          "cooperative locks, not atomic multi-file visibility",
+          "process-crash recovery, not power-loss durability",
+          "uncooperative editor races remain outside contract",
+          "global installed binary not replaced; no push or new upload requested"
+        ]
+      }
+    },
+    {
+      "source": "/home/manuel/.pi/agent/skills/ttmp/2026/09/10/SKILLS-FRICTION-001--make-skills-phase-aware-proportional-and-consistent-across-long-sessions/sources/implementation-validation.json",
+      "sha256": "07b5b30c8b2d9c6451058d8c772ad9b4a7031db1c694da8fcb972c3b2c391412",
+      "data": {
+        "code_revision": "acb733865aee2d5c706b0f4dfa350524ad3ce9f4",
+        "checks": {
+          "tests": "10 passed",
+          "owned_skill_conventions": "passed",
+          "preexisting_modified_files": "SHA256 unchanged; shared diary inode preserved"
+        },
+        "remaining": {
+          "vewh": "requires equivalent real post-adoption sessions; no synthetic fixture proves agent time/token savings"
+        }
+      }
+    },
+    {
+      "source": "/home/manuel/code/wesen/go-go-golems/docmgr/ttmp/2026/09/10/DOCMGR-FRICTION-001--reduce-documentation-workflow-friction-with-deterministic-writes-and-coherent-milestones/sources/local-installation.json",
+      "sha256": "0e513f76b43e51216f342174aab9d25596afbf9a8ad8d9f031a045f51de803bc",
+      "data": {
+        "installed_path": "/home/manuel/.local/bin/docmgr",
+        "backup_path": "/tmp/docmgr-before-friction-install",
+        "source_revision": "e607822dd2bd45c33da8547140c3822125ace108",
+        "source_dirty_at_build": false,
+        "go_version": "go1.26.6",
+        "build_tags": [
+          "sqlite_fts5",
+          "embed"
+        ],
+        "sha256": "449999482b7fbe9f1bc265a341b7e956bf4f699da50ede6a2aea73b76f462766",
+        "validation": {
+          "make build-embed": "passed; Dagger/pnpm UI build included",
+          "installed_binary_cli_smoke": "passed",
+          "installed_resume": "passed",
+          "go test -tags sqlite_fts5,embed ./internal/web ./internal/httpapi": "passed",
+          "ci_pinned_golangci_lint_v2.12.2": "passed",
+          "ci_gosec_command": "passed"
+        },
+        "pr_preflight": {
+          "docmgr_origin_main": "710f31384d2d3242bfb84bf37cd06d2868a63bd3",
+          "docmgr_ahead_before_installation_note": 9,
+          "docmgr_behind": 0,
+          "skills_origin_main": "a6d2f00958837ec657542bc988721e1891252d6a",
+          "skills_ahead": 4,
+          "skills_behind": 0,
+          "diff_hygiene": "both committed PR diffs pass git diff --check",
+          "recommendation": "ready to open one PR per repository; remote PR checks still required",
+          "remaining_nonblocking_followup": "equivalent real post-adoption skills sessions (vewh)",
+          "pushed_or_opened": false
+        }
+      }
+    }
+  ]
+}

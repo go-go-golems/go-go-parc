@@ -1,0 +1,26 @@
+{
+  "article": "ARTICLE - Docmgr and Agent Skills - Recoverable Documentation and Proportional Validation.md",
+  "article_sha256": "729a455d7e3c27c9634e21249e3f3aaa2a65d568950286ffe73a14d8ac50bb94",
+  "approximate_words": 5382,
+  "checks": [
+    "YAML frontmatter parsed",
+    "Code fences balanced",
+    "Internal wikilink target exists",
+    "Pandoc HTML conversion passed; HTMLParser confirms three tables and three diagram images",
+    "All three Mermaid diagrams rendered and visually inspected",
+    "Figure 2 narrowed for readability; unchanged figure 1/3 PNG hashes verified"
+  ],
+  "review_scope": "Current article and figures only; retained implementation results were read, not rerun as a new software test campaign.",
+  "validation_correction": "Initial literal html.count('<img ') assertion raised AssertionError because Pandoc put attributes on the following line. HTMLParser confirms all three images; no article correction was needed.",
+  "assets_sha256": {
+    "evidence.json": "f5d155051b7a2cda13775f340f4c56477952acbb8c1acd9a635f4909f5782d3b",
+    "figure-1.png": "11872b87bd24740919a1acd6ac7617642333a19a7049048b2ee534537cb50872",
+    "figure-1.svg": "520418c7aa49ffdee04b6cddde6e8c111bf9a400f003163a416de623ae569af2",
+    "figure-2.png": "555b90647e0b3f83a5eafa7895d9dfa8c0a565ec87efc2e8abde5901fa78435d",
+    "figure-2.svg": "e3cc60830370d2a4b0c14a118d1567db95251c8c3b88c496018f3bf3d63f4ef8",
+    "figure-3.png": "cd8dd2871d31694babb6b7249a6330981d387049af0f784c8930797d05fa8e6c",
+    "figure-3.svg": "04fa39eb7ab89f5bc65359b97cf6a8f4d624237aa15b11daa3d2c72ad91ad96d",
+    "render-diagrams.cjs": "03c7277f31f9641a30a93870cbdb58f8650a6fe7ef333b90e0baf85f4fb72fe6",
+    "render.json": "c054d0ceba7009b83f04d644785a4b546b45fdadaf9a450c4ade96a87cd11148"
+  }
+}
