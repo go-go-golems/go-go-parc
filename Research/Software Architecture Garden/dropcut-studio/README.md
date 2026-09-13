@@ -92,6 +92,10 @@ requires neither a message broker nor a lossless journal. Earlier entries remain
 historical analyses, not a claim that old grant/dead-man proposals are current
 stock-firmware capabilities or current P3 requirements.
 
+### Controller ownership and evidence separation added 2026-09-13
+
+- [[Research/Software Architecture Garden/dropcut-studio/designs/09 - Single-Owner CNC Controller - Worker Ownership Separate from Operation Evidence|09 — Single-Owner CNC Controller: Worker Ownership Separate from Operation Evidence]] — the actual controller architecture, two identified command/review slots, concrete evidence checks, cancellation/reconciliation behavior and a deliberate complexity budget. Implemented cleanup at `da0d33d`; broader P3 and production cutover remain incomplete.
+
 ## Proposals
 
 - [[Research/Software Architecture Garden/dropcut-studio/proposals/01-z1-communication-api-design-and-implementation-guide|01 — Z1 Communication API: Design and Implementation Guide (Intern Edition)]] — a concrete `pkg/z1session` API design realizing designs 01–04 above.
