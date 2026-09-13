@@ -554,10 +554,10 @@
 >
 > sudo chown $USER frp.bin
 >
-> LAST\_BYTE=$(xxd -p -l 1 -s -1 frp.bin)
+> `LAST\_BYTE=$(xxd -p -l 1 -s -1 frp.bin)
 > if [[ "\$LAST\_BYTE" == "00" ]]; then
 > printf '\x01' | dd of=frp.bin bs=1 seek=\$((\$(stat -c%s frp.bin) - 1)) conv=notrunc
-> fi
+> fi`
 >
 > # Write FRP
 >
@@ -863,10 +863,10 @@
 >
 > sudo chown \$USER frp.bin
 >
-> LAST\_BYTE=\$(xxd -p -l 1 -s -1 frp.bin)
+> `LAST\_BYTE=\$(xxd -p -l 1 -s -1 frp.bin)
 > if [[ "\$LAST\_BYTE" == "00" ]]; then
 > printf '\x01' | dd of=frp.bin bs=1 seek=$(($(stat -c%s frp.bin) - 1)) conv=notrunc
-> fi
+> fi`
 >
 > # Write FRP
 >
@@ -1269,10 +1269,10 @@
 >
 > sudo chown $USER frp.bin
 >
-> LAST\_BYTE=$(xxd -p -l 1 -s -1 frp.bin)
+> `LAST\_BYTE=$(xxd -p -l 1 -s -1 frp.bin)
 > if [[ "\$LAST\_BYTE" == "00" ]]; then
 > printf '\x01' | dd of=frp.bin bs=1 seek=\$((\$(stat -c%s frp.bin) - 1)) conv=notrunc
-> fi
+> fi`
 >
 > # Write FRP
 >
@@ -1296,10 +1296,10 @@
 > fastboot flash system system.img
 > fastboot reboot
 > mtkclient on  main is 📦 v2.0.0 via 🐍 v3.13.2
-> ❯ LAST\_BYTE=\$(xxd -p -l 1 -s -1 frp.bin)
+> `❯ LAST\_BYTE=\$(xxd -p -l 1 -s -1 frp.bin)
 > if [[ "\$LAST\_BYTE" == "00" ]]; then
 > printf '\x01' | dd of=frp.bin bs=1 seek=\$((\$(stat -c%s frp.bin) - 1)) conv=notrunc
-> fi
+> fi`
 > 1+0 records in
 > 1+0 records out
 > 1 byte copied, 8.9455e-05 s, 11.2 kB/s
@@ -1683,10 +1683,10 @@
 >
 > sudo chown \$USER frp.bin
 >
-> LAST\_BYTE=\$(xxd -p -l 1 -s -1 frp.bin)
+> `LAST\_BYTE=\$(xxd -p -l 1 -s -1 frp.bin)
 > if [[ "\$LAST\_BYTE" == "00" ]]; then
 > printf '\x01' | dd of=frp.bin bs=1 seek=$(($(stat -c%s frp.bin) - 1)) conv=notrunc
-> fi
+> fi`
 >
 > # Write FRP
 >
@@ -1712,10 +1712,10 @@
 > r1\_escape on  main via 🐍 v3.13.2
 > ❯ cd mtkclient
 > mtkclient on  main is 📦 v2.0.0 via 🐍 v3.13.2
-> ❯ LAST\_BYTE=\$(xxd -p -l 1 -s -1 frp.bin)
+> `❯ LAST\_BYTE=\$(xxd -p -l 1 -s -1 frp.bin)
 > if [[ "\$LAST\_BYTE" == "00" ]]; then
 > printf '\x01' | dd of=frp.bin bs=1 seek=$(($(stat -c%s frp.bin) - 1)) conv=notrunc
-> fi
+> fi`
 > mtkclient on  main is 📦 v2.0.0 via 🐍 v3.13.2
 > ❯  python3 mtk w frp frp.bin
 > MTK Flash/Exploit Client Public V2.0.0 Beta (c) B.Kerler 2018-2023

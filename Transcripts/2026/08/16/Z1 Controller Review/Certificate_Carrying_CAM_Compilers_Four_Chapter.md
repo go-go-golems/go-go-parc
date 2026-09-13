@@ -74,7 +74,9 @@ header-includes:
     \newtcolorbox{workedexample}{breakable,colback=black!2,colframe=black!45,title=Worked example,fonttitle=\bfseries}
 ---
 
+```latex
 \frontmatter
+```
 
 # Preface {-}
 
@@ -161,7 +163,9 @@ Before continuing, keep four questions visible:
 
 Every major design decision in the book answers one of these questions.
 
+```latex
 \mainmatter
+```
 
 # Meaning Before Motion: What a CAM Compiler Is
 
@@ -360,9 +364,11 @@ There is no `G0`, `G17`, or `I/J/K` in this language. Those are controller encod
 
 #### A first design rule
 
+```latex
 \begin{designrule}
 Define correctness at the highest semantic level that expresses the operator's intent, then carry that meaning through explicit refinement relations. Never use textual similarity to stand in for physical equivalence.
 \end{designrule}
+```
 
 #### Worked example: a rectangular pocket
 
@@ -534,9 +540,11 @@ The finishing operation uses the nominal target and a much smaller tolerance lay
 
 #### Design rules
 
+```latex
 \begin{designrule}
 Represent manufacturing operations as predicates or relations over physical outcomes. Treat strategy output as a witness to those predicates. Keep required removal, forbidden removal, and permitted removal as separate claims.
 \end{designrule}
+```
 
 #### Exercises
 
@@ -918,9 +926,11 @@ For interval boxes and pure translations, this reduces to interval addition. For
 
 #### Design rules
 
+```latex
 \begin{designrule}
 Make units, frames, and tool-assembly identity explicit in the IR. Treat frame transforms and tool dimensions as assumptions with uncertainty, not as unexamined scalar constants.
 \end{designrule}
+```
 
 #### Exercises
 
@@ -1271,9 +1281,11 @@ The arc pass can emit a witness containing $R$, total sweep, segment count, and 
 
 #### Design rules
 
+```latex
 \begin{designrule}
 Every approximation must declare its metric, direction, bound, assumptions, and artifact scope. A checker that cannot prove the bound must return inconclusive rather than upgrading sampled evidence into a guarantee.
 \end{designrule}
+```
 
 #### Exercises
 
@@ -1548,9 +1560,11 @@ The AST contains no closure that can later inspect the host environment. It can 
 
 #### Design rules
 
+```latex
 \begin{designrule}
 Use JavaScript to construct an inert, immutable, content-addressed AST. Do not make the JavaScript realm, closures, mutable objects, or ambient globals part of the CAM semantics.
 \end{designrule}
+```
 
 #### Exercises
 
@@ -1932,9 +1946,11 @@ A checker given the start point verifies:
 
 #### Design rules
 
+```latex
 \begin{designrule}
 Use path composition to enforce endpoint discipline, but do not confuse numerical proximity with equality or structural continuity with machining safety. Make every repair an explicit, semantically classified operation.
 \end{designrule}
+```
 
 #### Exercises
 
@@ -5179,9 +5195,11 @@ A job was certified under work transform $T_0$ with uncertainty set $\Xi$. Befor
 
 #### Design rules
 
+```latex
 \begin{warningbox}
 A certificate is valid only for the exact artifact and assumption set named by its claims. Live machine identity, tools, frames, setup, and controller state are inputs to execution, not incidental operator details.
 \end{warningbox}
+```
 
 #### Exercises
 
@@ -6768,7 +6786,9 @@ Toolpath strategy generation, visualization, editor logic, search heuristics, an
 5. Choose one Dropcut/Z1 defect and redesign the relevant representation, checker, and tests so the defect class becomes difficult to reintroduce.
 
 
+```latex
 \appendix
+```
 
 # Mathematical and Notational Reference
 
@@ -8192,15 +8212,21 @@ Read the intent and path material in Chapters 1 and 2, the planning/linking and 
 | 11 | Chapter 4: optimization | Add precedence-aware sequencing and a checked linker. |
 | 12 | Chapter 4: integration | Run the complete dry-run and attended air-cut acceptance ladder. |
 
+```latex
 \backmatter
+```
 
 # References {-}
 
+```latex
 \markboth{References}{References}
+```
 
 The bracketed identifiers in the text refer to the entries below. DOI links name the version of record when available; institutional pages are used for standards and technical reports.
 
+```latex
 \markboth{References}{References}
+```
 
 The bracketed identifiers in the text refer to the entries below. DOI links name the version of record when available; institutional pages are used for standards and technical reports.
 
@@ -8292,7 +8318,9 @@ The bracketed identifiers in the text refer to the entries below. DOI links name
 
 # Source Snapshot and Reproducibility Notes {-}
 
+```latex
 \markboth{Source Snapshot and Reproducibility Notes}{Source Snapshot and Reproducibility Notes}
+```
 
 The implementation-specific case study is based on the supplied `dropcut-studio.zip` snapshot and the public repository branch `task/cnc-control-dropcut` near commit `e82bed1e5a00f38f4441e6ea13e1265edc775928`, inspected in August 2026. The case study is not a statement about later revisions. Where firmware behavior is discussed, the reviewed source evidence used the Makera stock Carvera firmware repository at commit `1683b6fb5c7ec1d341c476c6fdb2a22f7a26220e` and explicitly distinguished stock behavior from community-firmware changes.
 

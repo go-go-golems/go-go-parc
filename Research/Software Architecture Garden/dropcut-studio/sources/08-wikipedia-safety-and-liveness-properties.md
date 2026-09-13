@@ -68,7 +68,7 @@ this inference about the irremediability of *bad things* to be the defining char
 ${\displaystyle SP}$ to be a safety property. Formalizing this in predicate logic gives a formal 
 definition for ${\displaystyle SP}$ being a safety property.[^5]
 
-${\displaystyle \forall \sigma \in S^{\omega }:\sigma \notin SP\implies (\exists \beta \leq \sigma$
+${\displaystyle \forall \sigma \in S^{\omega }:\sigma \notin SP\implies (\exists \beta \leq \sigma )}$
 
 This formal definition for safety properties implies that if an execution ${\displaystyle \sigma }$ 
 satisfies a safety property ${\displaystyle SP}$ then every prefix of ${\displaystyle \sigma }$ 

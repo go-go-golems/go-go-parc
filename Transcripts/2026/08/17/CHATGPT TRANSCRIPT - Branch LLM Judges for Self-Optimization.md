@@ -1081,7 +1081,7 @@ Judge outputs create rewards or preferences used to update model parameters:
 
 $$
 \theta^*=\arg\max_\theta
-\E_{x\sim D,\,y\sim\pi_\theta}
+\mathbb{E}_{x\sim D,\,y\sim\pi_\theta}
 [r_\phi(x,y)]
 -\beta\,\mathcal{R}(\pi_\theta,\pi_{\mathrm{ref}}).
 $$
@@ -1125,7 +1125,7 @@ These interventions differ in reversibility. Selection and prompt changes can be
 Let $\omega\in\Omega$ denote a system configuration. It may include prompts, weights, retrieval parameters, model choices, or control logic. The true deployment objective is
 
 $$
-U(\omega)=\E_{x\sim P_{\mathrm{deploy}}}
+U(\omega)=\mathbb{E}_{x\sim P_{\mathrm{deploy}}}
 [u(x,F_\omega(x))].
 $$
 
@@ -1209,7 +1209,7 @@ If the same judge defines both losses, correlated misspecification can survive b
 The scalar objective
 
 $$
-\max_\omega \E[J_\phi]
+\max_\omega \mathbb{E}[J_\phi]
 $$
 
 is rarely adequate. A more realistic formulation is
@@ -1217,7 +1217,7 @@ is rarely adequate. A more realistic formulation is
 $$
 \begin{aligned}
 \max_\omega \quad &
-\E[Q(\omega)]-\lambda_C\E[C(\omega)]-\lambda_L\E[L(\omega)]\\
+\mathbb{E}[Q(\omega)]-\lambda_C\mathbb{E}[C(\omega)]-\lambda_L\mathbb{E}[L(\omega)]\\
 \text{subject to}\quad &
 P(F_k(\omega)=1)\le \delta_k,
 \quad k=1,\ldots,K,
@@ -1230,7 +1230,7 @@ Risk-sensitive alternatives optimize a lower quantile or conditional value at ri
 
 $$
 \operatorname{CVaR}_\alpha(Z_\omega)
-=\E[Z_\omega\mid Z_\omega\ge \operatorname{VaR}_\alpha(Z_\omega)].
+=\mathbb{E}[Z_\omega\mid Z_\omega\ge \operatorname{VaR}_\alpha(Z_\omega)].
 $$
 
 This discourages configurations with good averages but catastrophic tails.
@@ -1519,7 +1519,7 @@ Let $u(x,\tau)$ be true system utility. The ideal problem is
 
 $$
 \max_\Omega
-\E_{x\sim P_{\mathrm{deploy}},\tau\sim F_\Omega(\cdot\mid x)}
+\mathbb{E}_{x\sim P_{\mathrm{deploy}},\tau\sim F_\Omega(\cdot\mid x)}
 [u(x,\tau)]
 $$
 
@@ -1563,7 +1563,7 @@ When evidence is graded, normalized discounted cumulative gain or graded recall 
 $$
 \operatorname{AllRecall}@k
 =\frac1n\sum_i
-\ind[G(x_i)\subseteq D_k(x_i)].
+\mathbb{I}[G(x_i)\subseteq D_k(x_i)].
 $$
 
 A retriever can have high average recall while frequently missing one decisive hop.
@@ -1604,9 +1604,9 @@ A counterfactual utility estimate is
 
 $$
 \Delta U(d)
-=\E[J(y\mid c\cup\{d\})]
+=\mathbb{E}[J(y\mid c\cup\{d\})]
 -
-\E[J(y\mid c\setminus\{d\})].
+\mathbb{E}[J(y\mid c\setminus\{d\})].
 $$
 
 This quantity is reader-dependent. A passage useful to one generator may confuse another.
@@ -1628,14 +1628,14 @@ Let $S_{j\ell}\in\{-1,0,1\}$ indicate whether evidence span $e_\ell$ contradicts
 
 $$
 \operatorname{Supported}(h_j)
-=\ind[\max_\ell S_{j\ell}=1],
+=\mathbb{I}[\max_\ell S_{j\ell}=1],
 $$
 
 and
 
 $$
 \operatorname{Contradicted}(h_j)
-=\ind[\min_\ell S_{j\ell}=-1].
+=\mathbb{I}[\min_\ell S_{j\ell}=-1].
 $$
 
 Weighted support is
@@ -1653,7 +1653,7 @@ Let $R(x)=\{r_1,\ldots,r_P\}$ be required answer elements. Completeness is
 
 $$
 \operatorname{Completeness}(y)
-=\frac{\sum_p v_p\ind[y\text{ satisfies }r_p]}{\sum_p v_p}.
+=\frac{\sum_p v_p\mathbb{I}[y\text{ satisfies }r_p]}{\sum_p v_p}.
 $$
 
 Requirements may come from a reference, independently derived evidence map, user instruction, or domain schema. A complete answer can still be wrong; a faithful answer can be incomplete.
@@ -1671,8 +1671,8 @@ A citation-link support indicator is
 
 $$
 C_{j\ell}=
-\ind[e_\ell\in A_j]
-\ind[e_\ell\text{ entails }h_j].
+\mathbb{I}[e_\ell\in A_j]
+\mathbb{I}[e_\ell\text{ entails }h_j].
 $$
 
 Then weighted citation precision is
@@ -2314,7 +2314,7 @@ bash -lc cat > /mnt/data/_work/llm_judge_textbook/references.bib <<'EOF'
 }
 
 @misc{coman2025ragferee,
-  author = {Coman, Andrei C. and Sorodoc, Ionut-Teodor and Ribeiro, Leonardo F. R. and Byrne, Bill and Henderson, James and de Gispert, Adri{ E0}},
+  author = {Coman, Andrei C. and Sorodoc, Ionut-Teodor and Ribeiro, Leonardo F. R. and Byrne, Bill and Henderson, James and de Gispert, Adri{\`a}},
   title = {{RAGferee}: Building Contextual Reward Models for Retrieval-Augmented Generation},
   year = {2025},
   note = {arXiv:2509.26011},

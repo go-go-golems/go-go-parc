@@ -47,7 +47,9 @@ header-includes:
     \titleformat{\chapter}[display]{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{14pt}{\Huge}
 ---
 
+```latex
 \frontmatter
+```
 
 # Preface {-}
 
@@ -188,7 +190,9 @@ examples/chatdemo/chat.go
 proto/sessionstream/v1/transport.proto
 ```
 
+```latex
 \mainmatter
+```
 
 # Mathematical Universes and Engineering Boundaries
 
@@ -4147,7 +4151,9 @@ A successful capstone report should contain:
 
 **20.6 [capstone].** Implement the two-command checker above for a reduced SessionStream trace format.
 
+```latex
 \appendix
+```
 
 # Proof and Modeling Patterns
 
@@ -4816,7 +4822,9 @@ These are optional extensions rather than sources for the chapter sequence.
 
 This book is a newly written study aid. It is not an edition, abridgment, or substitute for Goldblatt's text. The source book remains necessary for its historical argument, detailed logical development, and original exercise sequence. The cohomology chapters are supplemental and should not be attributed to Goldblatt.
 
+```latex
 \backmatter
+```
 
 # Closing Perspective {-}
 

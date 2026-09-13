@@ -28,11 +28,35 @@ header-includes:
   - \input{/mnt/data/infinite_spine_thesis/header.tex}
 ---
 
+\newenvironment{proof}{\par\noindent\textit{Proof.}\ }{\hfill$\square$\par}
+\newenvironment{theorem}[1][]{\par\noindent\textbf{Theorem#1.}\ \itshape}{\par}
+\newenvironment{lemma}[1][]{\par\noindent\textbf{Lemma#1.}\ \itshape}{\par}
+\newenvironment{corollary}[1][]{\par\noindent\textbf{Corollary#1.}\ \itshape}{\par}
+\newenvironment{proposition}[1][]{\par\noindent\textbf{Proposition#1.}\ \itshape}{\par}
+\newenvironment{assumption}[1][]{\par\noindent\textbf{Assumption#1.}\ }{\par}
+\newenvironment{warning}[1][]{\par\noindent\textbf{Warning.}\ }{\par}
+\newcommand{\Local}{\mathsf{Local}}
+\newcommand{\Predom}{\mathsf{Predom}}
+\newcommand{\Seg}{\mathsf{Seg}}
+\newcommand{\Rezk}{\mathsf{Rezk}}
+\newcommand{\Sep}{\mathsf{Sep}}
+\newcommand{\CC}{\mathsf{CC}}
+\newcommand{\colim}{\mathop{\mathrm{colim}}\limits}
+\newcommand{\liminv}{\mathop{\mathrm{liminv}}\limits}
+\newcommand{\Map}{\mathsf{Map}}
+\newcommand{\id}{\mathrm{id}}
+
+
+```latex
 \frontmatter
+```
 
 # Status, scope, and integrity statement {-}
 
+```latex
 \statusbox{\textbf{Research status.} This is a thesis-style research manuscript, not a degree submission, not a peer-reviewed paper, and not a machine-checked formalization. It does \emph{not} claim a complete proof of Xue's Conjecture 6.20. It gives paper-level proofs of substantial consequences of the conjecture's hypothesis, reduces the unresolved part to one precise orthogonality question, proves several conditional versions, and records failed approaches and a concrete formalization programme. All claims labelled ``proved in this manuscript'' remain subject to expert review and mechanization.}
+```
+
 
 The problem addressed here was proposed by Runze Xue in *Topology in Synthetic Domain Theory and its Formalisation in Agda* (2026). In Xue's notation, the conjecture says that a type right-orthogonal to the inclusion of the infinite spine into the final lifting coalgebra is a synthetic predomain. The source itself cautions that the conjecture may be false and expects, more conservatively, that the hypothesis should at least imply Segal completeness and chain completeness.
 
@@ -118,7 +142,10 @@ No proof is found that arbitrary \(j\)-local types are observationally separated
 
 # Contributions at a glance {-}
 
+```latex
 \resultbox{\textbf{Headline result.} Subject to the shape and colimit assumptions stated in Chapter 4, the hypothesis of Xue's Conjecture 6.20 already implies all finite Segal conditions and \(\omega\)-chain completeness. After a cofinality argument, the only genuinely unresolved property is \(\mathbb I\)-separation.}
+```
+
 
 | Question | Status reached here |
 |---|---|
@@ -136,7 +163,9 @@ No proof is found that arbitrary \(j\)-local types are observationally separated
 
 The conjecture, definitions of the directed shapes, and the associated Cubical Agda development are due to Runze Xue. The broader orthogonality/repleteness viewpoint comes from synthetic domain theory, particularly work of Reus and Streicher, van Oosten and Simpson, and Sterling and Ye. The synthetic-category-theoretic reading of Segal and Rezk conditions follows Riehl--Shulman and related work. Any new argument in this manuscript should be read as a proposed proof for checking, not as an established result attributable to those authors.
 
+```latex
 \mainmatter
+```
 
 # Introduction
 
@@ -145,12 +174,16 @@ The conjecture, definitions of the directed shapes, and the associated Cubical A
 The relevant map factors through the initial lifting algebra:
 
 \[
+
+```latex
 \begin{tikzcd}[column sep=large]
 \Lambda_\omega \arrow[r,"k",hook]
   & \Delta^\omega \simeq \omega
     \arrow[r,"c",hook]
   & \Delta^\infty \simeq \overline\omega .
 \end{tikzcd}
+```
+
 \]
 
 The first map freely supplies all finite composites to an infinite string of composable directed edges. The second adjoins the limit point of an \(\omega\)-chain. Their composite is
@@ -655,7 +688,7 @@ Under Assumptions \ref{ass:finite} and \ref{ass:clamp}, every finite spine inclu
 
 \begin{proof}
 The required diagram is
-\[
+\begin{verbatim}
 \begin{tikzcd}[column sep=huge,row sep=large]
 \Lambda_n \arrow[r,"u_n"] \arrow[d,"j_n"']
   & \Lambda_\omega \arrow[r,"q_n"] \arrow[d,"j"]
@@ -664,7 +697,7 @@ The required diagram is
   & \Delta^\infty \arrow[r,"p_n"']
   & \Delta^n .
 \end{tikzcd}
-\]
+\end{verbatim}
 The left and right squares commute by the compatibility equations above. The horizontal composites are identities by clamping after inclusion and truncation after zero padding. Therefore the left-hand arrow is an arrow retract of the middle arrow.
 \end{proof}
 
@@ -744,6 +777,8 @@ For any \(A\), the mapping types are therefore limits:
 Naturality identifies the restriction map \(k^*\) with the limit of the finite restriction maps:
 
 \[
+
+```latex
 \begin{tikzcd}[column sep=huge]
 A^{\Delta^\omega} \arrow[r,"k^*"] \arrow[d,"\simeq"']
   & A^{\Lambda_\omega} \arrow[d,"\simeq"]\\
@@ -751,6 +786,8 @@ A^{\Delta^\omega} \arrow[r,"k^*"] \arrow[d,"\simeq"']
   \arrow[r,"\liminv_n j_n^*"']
   & \liminv_n A^{\Lambda_n}.
 \end{tikzcd}
+```
+
 \]
 
 A limit of a natural family of equivalences is an equivalence. This can be proved internally by taking the limit of the inverse natural transformation, or externally by the closure of equivalences under limits.
@@ -876,7 +913,10 @@ Equivalently,
 The equivalence between \(2\) and \(3\) follows from the same colimit argument and the fact that each \(j_n\) is an arrow retract of \(k\) as well as of \(j\), using the analogous prefix/retraction diagram with \(\Delta^\omega\) in place of \(\Delta^\infty\).
 \end{proof}
 
+```latex
 \resultbox{\textbf{Interpretation.} The map \(j\) does not hide a mysterious third completion operation. Its local objects are exactly the objects with all finite Segal fillers and with continuous \(\omega\)-chain extension. Any proof of path thinness must therefore show that, in the intended ambient theory, these two forms of completeness jointly imply separation.}
+```
+
 
 ## Relation to the ordinary Segal condition
 
@@ -1091,7 +1131,10 @@ If the displayed implication holds, a \(j\)-local \(A\) is Segal by Corollary \r
 Conversely, if Conjecture 6.20 holds, every \(j\)-local type is a synthetic predomain and therefore \(\mathbb I\)-separated by definition.
 \end{proof}
 
+```latex
 \resultbox{\textbf{Reduced conjecture.} The unresolved mathematical question is not whether the infinite spine encodes finite composition or countable convergence; it does. The question is whether those two completion properties force the endpoint map \(A^{\mathbb I}\to A\times A\) to be an embedding for every local type.}
+```
+
 
 # Localization-theoretic formulation
 
@@ -1249,7 +1292,10 @@ By Proposition \ref{prop:double-dual-predom}, \(D(A)\) is a synthetic predomain 
 The \(j\)-locality of \(A\) gives Segal completeness by Corollary \ref{cor:segal} and chain completeness by Theorem \ref{thm:chain-complete}. Separation plus \(j\)-locality gives Rezk completeness by Corollary \ref{cor:sep-rezk}. Therefore \(A\) satisfies all four predomain conditions.
 \end{proof}
 
+```latex
 \resultbox{\textbf{Conditional full result.} Xue's conjecture is valid for every \(j\)-local type whose points are separated by maps into the interval. This includes any case where the evaluation map into the observational double dual is known to be monic.}
+```
+
 
 ## Relation to spatiality and repleteness
 
@@ -1315,11 +1361,15 @@ A single infinite linear chain can compose arrows and take a limit, but the data
 The reduced problem can be written as the lifting statement
 
 \[
+
+```latex
 \begin{tikzcd}[column sep=large,row sep=large]
 \mathbb I_{\parallel} \arrow[r,"{(p,q)}"] \arrow[d,"\rho"']
   & A\\
 \mathbb I \arrow[ur,dashed,"p=q"'] &
 \end{tikzcd}
+```
+
 \]
 
 for every \(j\)-local \(A\). There is no direct map of this square into the defining \(j\)-lifting square known here.
@@ -2093,9 +2143,14 @@ The unrestricted separation implication is where this manuscript stops. The line
 
 The most informative next calculations are now concrete: formalize the finite retracts and colimit comparison, then compute the $j$-local reflection of the walking parallel pair or prove that open observations separate every $j$-local type. Either result would materially advance the conjecture.
 
+```latex
 \statusbox{\textbf{Final status.} The full conjecture is neither proved nor disproved. The manuscript supplies a proposed paper-level proof of the Segal and chain-complete consequences, reduces the remaining theorem to $\mathbb I$-separation, proves the observationally separated case, and identifies precise formal and model-theoretic next steps.}
+```
 
+
+```latex
 \appendix
+```
 
 # Expanded categorical proofs
 
@@ -2104,12 +2159,16 @@ The most informative next calculations are now concrete: formalize the finite re
 Let $f:X\to Y$ and $g:X'\to Y'$. Suppose there are commutative squares
 
 $$
+
+```latex
 \begin{tikzcd}[column sep=large]
 X \arrow[r,"u"] \arrow[d,"f"'] & X' \arrow[d,"g"]
 & X' \arrow[r,"q"] \arrow[d,"g"'] & X \arrow[d,"f"]\\
 Y \arrow[r,"e"'] & Y'
 & Y' \arrow[r,"p"'] & Y
 \end{tikzcd}
+```
+
 $$
 
 with $q\circ u=\id_X$ and $p\circ e=\id_Y$. For a target $A$, precomposition reverses the diagram. Define

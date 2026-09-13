@@ -1,4 +1,4 @@
-$\begingroup$
+`$\begingroup$`
 
 I don't understand why I need a salt for Argon2 if Argon2 is only needed as a KDF for a password which is then called 
 AES. At the end neither the password nor a password hash is stored. Only the data which was encrypted with the KDF key. 
@@ -21,7 +21,7 @@ follows:
 The problem: with an increasing number of files, the number of calls to the KDF increases and the performance suffers 
 drastically. A single salt would make this much easier.
 
- $\endgroup$ 1 $\begingroup$
+ `$\endgroup$` 1 `$\begingroup$`
 
 For any sort of password-based key derivation function or password hash, you need the salt to prevent guessing the same 
 password across many different users or accounts. In the typical case, verifying the password is by comparing the 
@@ -49,7 +49,7 @@ answered Dec 9, 2022 at 23:18
 
 3,584 8 silver badges12 bronze badges
 
- $\endgroup$
+ `$\endgroup$`
 
 Start asking to get answers
 

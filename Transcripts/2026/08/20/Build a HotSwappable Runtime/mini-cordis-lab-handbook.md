@@ -20,11 +20,15 @@ toc-depth: 2
 secnumdepth: 3
 ---
 
+```latex
 \frontmatter
+```
 
 # Preface {-}
 
+```latex
 \markboth{Preface}{Preface}
+```
 
 Modern software increasingly needs to add, remove, replace, and reconfigure components while the process remains alive. A plugin may register commands, start timers, provide a database service, subscribe to events, and create child components. Removing the plugin safely means withdrawing all of those effects without disturbing unrelated components. Replacing a service safely also means noticing which consumers depend on it, deactivating those consumers in the right order, and reactivating them against the replacement.
 
@@ -177,7 +181,9 @@ A counterexample is not a failed implementation. In this course it is evidence t
 
 # Development Environment {-}
 
+```latex
 \markboth{Development Environment}{Development Environment}
+```
 
 The reference language is TypeScript. It is a good fit because closures represent captured inverses, `Map` and `Set` model finite contexts, discriminated unions model lifecycle states, async generators model effect iterators, promises model in-flight work, and property-testing libraries are readily available.
 
@@ -250,8 +256,13 @@ The word **effect** is overloaded in computing. In this handbook:
 - an *external emission* such as sending a message may not be revertible at all;
 - an *effect system* is the wider PL concept discussed in the reading notes.
 
+```latex
 \mainmatter
+```
+
+```latex
 \setcounter{chapter}{-1}
+```
 
 # Lab 0: Reading Programs as Mathematics
 
@@ -2744,7 +2755,9 @@ Submit:
 
 # Optional Studio 3A: Isolation, Interception, and Derived Contexts {-}
 
+```latex
 \markboth{Optional Studio 3A}{Optional Studio 3A}
+```
 
 This studio extends Lab 3 with the two mechanisms from the paper's Section 3.2.3. Complete it when the course needs multi-tenant contexts, tests with local service substitutions, or policy metadata applied without editing components.
 
@@ -7321,7 +7334,9 @@ v0.8 loader
 ```
 
 
+```latex
 \appendix
+```
 
 # Notation and Glossary
 
@@ -7717,11 +7732,15 @@ For difficult notation, make a three-column note:
 | $f\circ g\simeq g\circ f$ | operations reorder safely | run both orders |
 | $\neg\operatorname{quiet}(\gamma)$ | lifecycle mismatch exists | some enabled rule must exist |
 
+```latex
 \backmatter
+```
 
 # Closing Perspective {-}
 
+```latex
 \markboth{Closing Perspective}{Closing Perspective}
+```
 
 The central lesson of the labs is not that every side effect can be undone. It is that a useful class of dynamic systems becomes tractable when three design choices are made explicit.
 

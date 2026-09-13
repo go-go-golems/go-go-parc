@@ -11429,7 +11429,7 @@ bash -lc grep -n '^## 3\.' /mnt/data/work/handbook/chapters/04-lab3.md
 bash -lc python /home/oai/skills/pdfs/scripts/pdf_inspect.py /mnt/data/work/handbook/build/mini-cordis-lab-handbook.pdf > /mnt/data/work/handbook/build/pdf-inspect.txt && cat /mnt/data/work/handbook/build/pdf-inspect.txt && echo '--- preflight ---' && python /home/oai/skills/pdfs/scripts/pdf_preflight.py /mnt/data/work/handbook/build/mini-cordis-lab-handbook.pdf > /mnt/data/work/handbook/build/pdf-preflight.txt && cat /mnt/data/work/handbook/build/pdf-preflight.txt && echo '--- extracted text anomalies ---' && python - <<'PY'
 from pathlib import Path
 s=Path('/tmp/handbook.txt').read_text(errors='replace')
-for token in ['�','□',' ']:
+for token in ['�','□','\x00']:
     print(repr(token),s.count(token))
 print('empty pages', [i+1 for i,p in enumerate(s.split('\f')) if not p.strip()][:20])
 PY

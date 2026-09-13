@@ -6,3016 +6,3020 @@
 ---
 
 > Building y own frontend for lean using this react app presentation based ui (Common Lisp Clim) import React, { useState, useRef, useEffect, useCallback, useContext, useMemo } from "react";
->
-> /* ============================================================
->    PBUI SHELL — PROOF ASSISTANT WORKBENCH
->    A CLIM / Genera "Dynamic Windows" view onto a proof development.
->
->    There is a real proof assistant under this file. A dependently
->    typed kernel with predicative sorts Type0 : Type1 : Type2,
->    capture-avoiding substitution, weak head normalisation with
->    beta/delta/iota, definitional equality, and bidirectional type
->    inference. Two inductive families — nat and eq — with their
->    eliminators. A tactic engine that builds proof terms with holes:
->    intro, intros, simpl, unfold, reflexivity, symmetry, assumption,
->    exact, apply (first-order unification), rewrite (first-order
->    matching, both directions, via eq_rect), induction, admit.
->    Eight theorems, proved for real, checked for real.
->
->    The shape of the thing: a compiler pipeline is a line, but a
->    proof is a TREE. A tactic consumes one goal and produces zero
->    or more. So the transport scrubs a traversal of that tree, and
->    the tree itself is a tile you can navigate.
->
->    What a proof assistant has that a compiler does not is a TRUST
->    BOUNDARY. Tactics are untrusted heuristics; the kernel is the
->    only thing that decides. Switch on the unsound rewrite and the
->    tactics still close every goal — and the kernel still throws
->    the proof out. That gap is the reason the boundary exists, and
->    this shell is built to show it.
->
->    Every visible object is a typed presentation:
->      <theorem> <tactic> <goal> <hyp> <term> <const> <axiom>
->      <rule> <script> plus <dataset> <field> <doc> <datum> and
->      the shell's own <tile> and <workspace>.
->    ============================================================ */
->
-> const C = {
->   paper: "#ffffff", pane: "#ffffff", paneAlt: "#f1f1ee",
->   ink: "#23262b", faint: "#7b8087", line: "#d9d9d4",
->   sage: "#7cae9b", blue: "#7aa6c9", rose: "#d59a86",
->   mustard: "#e0b95c", lavender: "#a99fc9", mint: "#8fc7b0",
->   red: "#c2503a", green: "#3f9d6b", sel: "#fdeec6",
->   add: "#e7f4ec", del: "#fbe9e4", addInk: "#2e7d51", delInk: "#b8452c",
-> };
-> const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-> const fmt = (v, d = 2) => {
->   if (typeof v !== "number") return String(v);
->   if (Number.isInteger(v) && Math.abs(v) < 1e7) return String(v);
->   return Math.abs(v) >= 100 ? v.toFixed(0) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(d);
-> };
-> const kfmt = (n) => (Math.abs(n) >= 1000 ? (n / 1000).toFixed(Math.abs(n) >= 10000 ? 0 : 1) + "k" : String(Math.round(n)));
-> const pct = (a, b) => (b ? ((a / b) * 100).toFixed(0) + "%" : "—");
-> const CAT_TONES = ["#7aa6c9", "#c2503a", "#e0b95c", "#7cae9b", "#a99fc9", "#d59a86", "#8fc7b0", "#8892a8"];
-> const TYPE_LABEL = { q: "quant", n: "nominal", t: "ordinal" };
-> const TYPE_TONE = { q: "#7aa6c9", n: "#e0b95c", t: "#7cae9b" };
->
-> /* what each tactic is actually doing to the proof term — the meaning layer */
-> const TAC = {
->   intro: { tone: C.blue, blurb: "moves a binder above the line; the term grows a lambda" },
->   intros: { tone: C.blue, blurb: "moves binders above the line; the term grows lambdas" },
->   simpl: { tone: C.faint, blurb: "reduces where a constructor is exposed, then refolds — the term does not change at all" },
->   unfold: { tone: C.faint, blurb: "replaces a constant by its definition; a conversion, not a real step" },
->   reflexivity: { tone: C.sage, blurb: "closes the goal because both sides share a normal form" },
->   symmetry: { tone: C.mint, blurb: "swaps the sides of an equation using eq_sym" },
->   assumption: { tone: C.sage, blurb: "closes the goal with a hypothesis already in the context" },
->   exact: { tone: C.sage, blurb: "supplies the proof term directly; type-checked on the spot" },
->   apply: { tone: C.mustard, blurb: "unifies a lemma's conclusion with the goal and leaves its premises open" },
->   rewrite: { tone: C.rose, blurb: "transports the goal along an equation — this is eq_rect, and it needs eq_sym one way round" },
->   induction: { tone: C.lavender, blurb: "builds a nat_rect application; the branch point of the proof tree" },
->   admit: { tone: C.red, blurb: "closes the goal with an axiom, and taints everything downstream" },
-> };
-> const tacTone = (t) => (TAC[t] ? TAC[t].tone : C.paneAlt);
-> const tacBlurb = (t) => (TAC[t] ? TAC[t].blurb : "an unrecognised tactic");
-> const tacName = (line) => String(line || "").trim().split(/\s+/)[0];
-> const KIND_TONE = { ind: C.sage, ctor: C.mint, rec: C.lavender, def: C.blue, thm: C.mustard, axiom: C.red, hypothesis: C.blue };
->
-> /* ============================================================
->    THE KERNEL
->    terms -> kernel (whnf / defeq / infer) -> tactics -> scripts
->    Two inductive families (nat, eq) with hardcoded eliminators.
->    Predicative sorts Type0 : Type1 : Type2.
->    ============================================================ */
->
-> /* ---------------- terms ---------------- */
-> const V = (n) => ({ k: "var", n });
-> const K = (n) => ({ k: "const", n });
-> const AP = (f, ...as) => as.reduce((g, a) => ({ k: "app", f: g, a }), f);
-> const LAM = (x, ty, b) => ({ k: "lam", x, ty, b });
-> const PI = (x, ty, b) => ({ k: "pi", x, ty, b });
-> const AR = (a, b) => PI("_", a, b);
-> const SORT = (i) => ({ k: "sort", i });
-> const META = (id) => ({ k: "meta", id });
-> const T0 = SORT(0);
->
-> const NAT = K("nat"), O = K("O"), SUCC = (t) => AP(K("S"), t);
-> const num = (n) => (n === 0 ? O : SUCC(num(n - 1)));
-> const EQ = (A, a, b) => AP(K("eq"), A, a, b);
-> const NEQ = (a, b) => EQ(NAT, a, b);
-> const PLUS = (a, b) => AP(K("plus"), a, b);
-> const MULT = (a, b) => AP(K("mult"), a, b);
->
-> function freeIn(x, t) {
->   switch (t.k) {
->     case "var": return t.n === x;
->     case "const": case "sort": case "meta": return false;
->     case "app": return freeIn(x, t.f) || freeIn(x, t.a);
->     case "lam": case "pi": return freeIn(x, t.ty) || (t.x !== x && freeIn(x, t.b));
->   }
->   return false;
-> }
-> function subst(t, x, v) {
->   switch (t.k) {
->     case "var": return t.n === x ? v : t;
->     case "const": case "sort": case "meta": return t;
->     case "app": return { k: "app", f: subst(t.f, x, v), a: subst(t.a, x, v) };
->     case "lam": case "pi": {
->       const ty = subst(t.ty, x, v);
->       if (t.x === x) return { ...t, ty };
->       if (freeIn(t.x, v)) { let y = t.x; while (freeIn(y, v) || freeIn(y, t.b)) y += "'";
->         return { ...t, x: y, ty, b: subst(subst(t.b, t.x, V(y)), x, v) }; }
->       return { ...t, ty, b: subst(t.b, x, v) };
->     }
->   }
->   return t;
-> }
-> function alphaEq(a, b) {
->   if (a.k !== b.k) return false;
->   switch (a.k) {
->     case "var": return a.n === b.n;
->     case "const": return a.n === b.n;
->     case "sort": return a.i === b.i;
->     case "meta": return a.id === b.id;
->     case "app": return alphaEq(a.f, b.f) && alphaEq(a.a, b.a);
->     case "lam": case "pi": {
->       if (!alphaEq(a.ty, b.ty)) return false;
->       if (a.x === b.x) return alphaEq(a.b, b.b);
->       let y = a.x; while (freeIn(y, a.b) || freeIn(y, b.b)) y += "'";
->       return alphaEq(subst(a.b, a.x, V(y)), subst(b.b, b.x, V(y)));
->     }
->   }
->   return false;
-> }
-> const spine = (t) => { const as = []; while (t.k === "app") { as.unshift(t.a); t = t.f; } return { head: t, args: as }; };
-> const size = (t) => t.k === "app" ? 1 + size(t.f) + size(t.a) : (t.k === "lam" || t.k === "pi") ? 1 + size(t.ty) + size(t.b) : 1;
-> const depthOf = (t) => t.k === "app" ? 1 + Math.max(depthOf(t.f), depthOf(t.a)) : (t.k === "lam" || t.k === "pi") ? 1 + Math.max(depthOf(t.ty), depthOf(t.b)) : 1;
-> function constsIn(t, out) {
->   out = out || new Set();
->   if (t.k === "const") out.add(t.n);
->   else if (t.k === "app") { constsIn(t.f, out); constsIn(t.a, out); }
->   else if (t.k === "lam" || t.k === "pi") { constsIn(t.ty, out); constsIn(t.b, out); }
->   return out;
-> }
->
-> /* ---------------- environment ---------------- */
-> function baseEnv() {
->   const E = new Map();
->   const add = (e) => E.set(e.name, e);
->   add({ name: "nat", kind: "ind", ty: T0, note: "the natural numbers" });
->   add({ name: "O", kind: "ctor", ty: NAT, of: "nat" });
->   add({ name: "S", kind: "ctor", ty: AR(NAT, NAT), of: "nat" });
->   add({ name: "nat_rect", kind: "rec", of: "nat",
->     ty: PI("P", AR(NAT, T0), AR(AP(V("P"), O),
->         AR(PI("n", NAT, AR(AP(V("P"), V("n")), AP(V("P"), SUCC(V("n"))))),
->            PI("n", NAT, AP(V("P"), V("n")))))) });
->   add({ name: "eq", kind: "ind", ty: PI("A", T0, AR(V("A"), AR(V("A"), T0))), note: "propositional equality" });
->   add({ name: "refl", kind: "ctor", of: "eq", ty: PI("A", T0, PI("x", V("A"), EQ(V("A"), V("x"), V("x")))) });
->   add({ name: "eq_rect", kind: "rec", of: "eq",
->     ty: PI("A", T0, PI("x", V("A"), PI("P", AR(V("A"), T0),
->         AR(AP(V("P"), V("x")), PI("y", V("A"), AR(EQ(V("A"), V("x"), V("y")), AP(V("P"), V("y")))))))) });
->   add({ name: "plus", kind: "def", ty: AR(NAT, AR(NAT, NAT)), recArg: 0, note: "addition by recursion on the first argument",
->     body: LAM("n", NAT, LAM("m", NAT, AP(K("nat_rect"), LAM("_", NAT, NAT), V("m"),
->       LAM("k", NAT, LAM("ih", NAT, SUCC(V("ih")))), V("n")))) });
->   add({ name: "mult", kind: "def", ty: AR(NAT, AR(NAT, NAT)), recArg: 0, note: "multiplication by recursion on the first argument",
->     body: LAM("n", NAT, LAM("m", NAT, AP(K("nat_rect"), LAM("_", NAT, NAT), O,
->       LAM("k", NAT, LAM("ih", NAT, PLUS(V("m"), V("ih")))), V("n")))) });
->   add({ name: "eq_sym", kind: "def", note: "prelude lemma, proved by hand with eq_rect",
->     ty: PI("A", T0, PI("x", V("A"), PI("y", V("A"), AR(EQ(V("A"), V("x"), V("y")), EQ(V("A"), V("y"), V("x")))))),
->     body: LAM("A", T0, LAM("x", V("A"), LAM("y", V("A"), LAM("h", EQ(V("A"), V("x"), V("y")),
->       AP(K("eq_rect"), V("A"), V("x"), LAM("z", V("A"), EQ(V("A"), V("z"), V("x"))),
->          AP(K("refl"), V("A"), V("x")), V("y"), V("h")))))) });
->   add({ name: "admitted", kind: "axiom", ty: PI("P", T0, V("P")), note: "the escape hatch an Admitted proof leaves behind" });
->   return E;
-> }
->
-> /* ---------------- reduction ---------------- */
-> function whnf(env, t, st) {
->   for (let guard = 0; guard < 10000; guard++) {
->     const { head, args } = spine(t);
->     if (head.k === "lam" && args.length) {
->       if (st) st.beta++;
->       t = AP(subst(head.b, head.x, args[0]), ...args.slice(1)); continue;
->     }
->     if (head.k === "const") {
->       const e = env.get(head.n);
->       if (e && e.kind === "def" && e.body) { if (st) st.delta++; t = AP(e.body, ...args); continue; }
->       if (head.n === "nat_rect" && args.length >= 4) {
->         const n = whnf(env, args[3], st), sp = spine(n);
->         if (sp.head.k === "const" && sp.head.n === "O") { if (st) st.iota++; t = AP(args[1], ...args.slice(4)); continue; }
->         if (sp.head.k === "const" && sp.head.n === "S" && sp.args.length === 1) {
->           if (st) st.iota++;
->           t = AP(args[2], sp.args[0], AP(K("nat_rect"), args[0], args[1], args[2], sp.args[0]), ...args.slice(4)); continue;
->         }
->       }
->       if (head.n === "eq_rect" && args.length >= 6) {
->         const e2 = whnf(env, args[5], st), sp = spine(e2);
->         if (sp.head.k === "const" && sp.head.n === "refl") { if (st) st.iota++; t = AP(args[3], ...args.slice(6)); continue; }
->       }
->     }
->     return t;
->   }
->   return t;
-> }
-> /* refolding: after reduction, put `nat_rect ...` back into `plus`/`mult` the way simpl does */
-> function defPattern(env, name) {
->   const e = env.get(name);
->   if (!e || e.kind !== "def" || !e.body) return null;
->   let b = e.body; const vars = [];
->   while (b.k === "lam") { vars.push(b.x); b = b.b; }
->   if (b.k !== "app") return null;
->   let pat = b; const metas = new Set();
->   vars.forEach((v, i) => { metas.add("\$" + i); pat = subst(pat, v, META("\$" + i)); });
->   return { name, pat, metas, arity: vars.length };
-> }
-> function refold(env, t) {
->   const pats = [...env.values()].filter((e) => e.kind === "def" && e.recArg !== undefined).map((e) => defPattern(env, e.name)).filter(Boolean);
->   const go = (t) => {
->     if (t.k === "app") t = { k: "app", f: go(t.f), a: go(t.a) };
->     else if (t.k === "lam" || t.k === "pi") t = { ...t, ty: go(t.ty), b: go(t.b) };
->     for (const p of pats) {
->       const asg = {};
->       if (fomatch(p.pat, t, p.metas, asg)) {
->         const args = []; let ok = true;
->         for (let i = 0; i < p.arity; i++) { if (!asg["\$" + i]) { ok = false; break; } args.push(asg["\$" + i]); }
->         if (ok) return AP(K(p.name), ...args);
->       }
->     }
->     return t;
->   };
->   return go(t);
-> }
-> /* simpl: reduce only where it exposes a constructor, then refold — the way `simpl` behaves */
-> function simplify(env, t) {
->   const go = (t) => {
->     if (t.k === "app") {
->       const { head, args } = spine(t);
->       const as = args.map(go);
->       if (head.k === "const") {
->         const e = env.get(head.n);
->         if (e && e.kind === "def" && e.recArg !== undefined && as.length > e.recArg) {
->           const r = whnf(env, as[e.recArg]), sp = spine(r);
->           if (sp.head.k === "const" && (sp.head.n === "O" || sp.head.n === "S")) return go(whnf(env, AP(head, ...as)));
->         }
->         if (head.n === "nat_rect" || head.n === "eq_rect") {
->           const one = whnf(env, AP(head, ...as));
->           if (!alphaEq(one, AP(head, ...as))) return go(one);
->         }
->       }
->       return AP(go(head), ...as);
->     }
->     if (t.k === "lam" || t.k === "pi") return { ...t, ty: go(t.ty), b: go(t.b) };
->     return t;
->   };
->   return refold(env, go(t));
-> }
-> function defeq(env, a, b, st) {
->   if (st) st.conv++;
->   if (alphaEq(a, b)) return true;
->   const A = whnf(env, a, st), B = whnf(env, b, st);
->   if (A.k !== B.k) return false;
->   switch (A.k) {
->     case "var": return A.n === B.n;
->     case "const": return A.n === B.n;
->     case "sort": return A.i === B.i;
->     case "meta": return A.id === B.id;
->     case "app": {
->       const sa = spine(A), sb = spine(B);
->       if (sa.args.length !== sb.args.length) return false;
->       if (!defeq(env, sa.head, sb.head, st)) return false;
->       return sa.args.every((x, i) => defeq(env, x, sb.args[i], st));
->     }
->     case "lam": case "pi": {
->       if (!defeq(env, A.ty, B.ty, st)) return false;
->       let y = A.x; while (freeIn(y, A.b) || freeIn(y, B.b)) y += "'";
->       return defeq(env, subst(A.b, A.x, V(y)), subst(B.b, B.x, V(y)), st);
->     }
->   }
->   return false;
-> }
->
-> /* ---------------- the kernel ---------------- */
-> class TypeError2 extends Error {}
-> function infer(env, ctx, t, st, metaTy) {
->   st = st || { rules: {}, beta: 0, delta: 0, iota: 0, conv: 0 };
->   const bump = (r) => (st.rules[r] = (st.rules[r] || 0) + 1);
->   const look = (n) => { for (let i = ctx.length - 1; i >= 0; i--) if (ctx[i].name === n) return ctx[i].ty; return null; };
->   switch (t.k) {
->     case "var": { bump("var"); const ty = look(t.n); if (!ty) throw new TypeError2("unbound variable " + t.n); return ty; }
->     case "const": { bump("const"); const e = env.get(t.n); if (!e) throw new TypeError2("unknown constant " + t.n); return e.ty; }
->     case "sort": bump("sort"); return SORT(t.i + 1);
->     case "meta": { bump("meta"); if (!metaTy) throw new TypeError2("proof is not finished: " + t.id + " is still open"); return metaTy(t.id, ctx); }
->     case "app": {
->       bump("app");
->       const tf = whnf(env, infer(env, ctx, t.f, st, metaTy), st);
->       if (tf.k !== "pi") throw new TypeError2("this is applied to an argument but its type is not a function type");
->       const ta = infer(env, ctx, t.a, st, metaTy);
->       if (!defeq(env, ta, tf.ty, st)) throw new TypeError2("argument type mismatch: expected " + pp(tf.ty) + ", got " + pp(ta));
->       return subst(tf.b, tf.x, t.a);
->     }
->     case "lam": {
->       bump("lam");
->       sortOf(env, ctx, t.ty, st, metaTy);
->       const tb = infer(env, ctx.concat([{ name: t.x, ty: t.ty }]), t.b, st, metaTy);
->       return PI(t.x, t.ty, tb);
->     }
->     case "pi": {
->       bump("pi");
->       const i = sortOf(env, ctx, t.ty, st, metaTy);
->       const j = sortOf(env, ctx.concat([{ name: t.x, ty: t.ty }]), t.b, st, metaTy);
->       return SORT(Math.max(i, j));
->     }
->   }
->   throw new TypeError2("cannot infer");
-> }
-> function sortOf(env, ctx, t, st, metaTy) {
->   const s = whnf(env, infer(env, ctx, t, st, metaTy), st);
->   if (s.k !== "sort") throw new TypeError2(pp(t) + " should be a type but its type is " + pp(s));
->   return s.i;
-> }
-> function check(env, ctx, t, ty, st, metaTy) {
->   const got = infer(env, ctx, t, st, metaTy);
->   if (!defeq(env, got, ty, st)) throw new TypeError2("type mismatch\\n  expected: " + pp(ty) + "\\n  inferred: " + pp(got));
->   return true;
-> }
->
-> /* ---------------- printing ---------------- */
-> function natLit(t) { let n = 0, x = t; for (;;) { if (x.k === "const" && x.n === "O") return n; if (x.k === "app" && x.f.k === "const" && x.f.n === "S") { n++; x = x.a; continue; } return null; } }
-> function pp(t, prec) {
->   prec = prec || 0;
->   const wrap = (p, s) => (p < prec ? "(" + s + ")" : s);
->   const lit = natLit(t); if (lit !== null && lit <= 8) return String(lit);
->   switch (t.k) {
->     case "var": return t.n;
->     case "const": return t.n;
->     case "meta": return t.id;
->     case "sort": return "Type" + t.i;
->     case "app": {
->       const { head, args } = spine(t);
->       if (head.k === "const") {
->         if (head.n === "eq" && args.length === 3) return wrap(1, pp(args[1], 2) + " = " + pp(args[2], 2));
->         if (head.n === "plus" && args.length === 2) return wrap(2, pp(args[0], 3) + " + " + pp(args[1], 3));
->         if (head.n === "mult" && args.length === 2) return wrap(3, pp(args[0], 4) + " * " + pp(args[1], 4));
->       }
->       return wrap(4, [pp(head, 5)].concat(args.map((a) => pp(a, 5))).join(" "));
->     }
->     case "lam": return wrap(0, "fun " + t.x + " : " + pp(t.ty, 1) + " => " + pp(t.b, 0));
->     case "pi": return t.x === "_" || !freeIn(t.x, t.b)
->       ? wrap(1, pp(t.ty, 2) + " -> " + pp(t.b, 1))
->       : wrap(0, "forall " + t.x + " : " + pp(t.ty, 1) + ", " + pp(t.b, 0));
->   }
->   return "?";
-> }
->
-> /* ---------------- matching & unification ---------------- */
-> function fomatch(pat, t, metas, asg) {
->   if (pat.k === "meta" && metas.has(pat.id)) {
->     if (asg[pat.id]) return alphaEq(asg[pat.id], t);
->     asg[pat.id] = t; return true;
->   }
->   if (pat.k !== t.k) return false;
->   switch (pat.k) {
->     case "var": return pat.n === t.n;
->     case "const": return pat.n === t.n;
->     case "sort": return pat.i === t.i;
->     case "meta": return pat.id === t.id;
->     case "app": return fomatch(pat.f, t.f, metas, asg) && fomatch(pat.a, t.a, metas, asg);
->     case "lam": case "pi": return fomatch(pat.ty, t.ty, metas, asg) && fomatch(pat.b, subst(t.b, t.x, V(pat.x)), metas, asg);
->   }
->   return false;
-> }
-> function findMatch(t, pat, metas) {
->   const asg = {};
->   if (fomatch(pat, t, metas, asg)) return { at: t, asg };
->   if (t.k === "app") return findMatch(t.f, pat, metas) || findMatch(t.a, pat, metas);
->   if (t.k === "lam" || t.k === "pi") return findMatch(t.ty, pat, metas) || findMatch(t.b, pat, metas);
->   return null;
-> }
-> function replaceAll(t, from, to) {
->   if (alphaEq(t, from)) return to;
->   if (t.k === "app") return { k: "app", f: replaceAll(t.f, from, to), a: replaceAll(t.a, from, to) };
->   if (t.k === "lam" || t.k === "pi") return { ...t, ty: replaceAll(t.ty, from, to), b: replaceAll(t.b, from, to) };
->   return t;
-> }
-> const instMeta = (t, asg) => {
->   if (t.k === "meta" && asg[t.id]) return instMeta(asg[t.id], asg);
->   if (t.k === "app") return { k: "app", f: instMeta(t.f, asg), a: instMeta(t.a, asg) };
->   if (t.k === "lam" || t.k === "pi") return { ...t, ty: instMeta(t.ty, asg), b: instMeta(t.b, asg) };
->   return t;
-> };
-> function unify(env, a, b, metas, asg) {
->   a = instMeta(a, asg); b = instMeta(b, asg);
->   if (a.k === "meta" && metas.has(a.id)) { asg[a.id] = b; return true; }
->   if (b.k === "meta" && metas.has(b.id)) { asg[b.id] = a; return true; }
->   if (a.k !== b.k) return defeq(env, a, b);
->   switch (a.k) {
->     case "var": return a.n === b.n;
->     case "const": return a.n === b.n;
->     case "sort": return a.i === b.i;
->     case "app": return unify(env, a.f, b.f, metas, asg) && unify(env, a.a, b.a, metas, asg);
->     case "lam": case "pi": return unify(env, a.ty, b.ty, metas, asg) && unify(env, a.b, subst(b.b, b.x, V(a.x)), metas, asg);
->   }
->   return defeq(env, a, b);
-> }
->
-> /* ============================================================
->    TACTICS AND THE DEVELOPMENT
->    ============================================================ */
->
-> /* ---------------- tiny term parser (for exact / apply arguments) ---------------- */
-> function parseTerm(src, ctx, env) {
->   const toks = src.match(/[A-Za-z_][A-Za-z0-9_']*|\d+|$|$/g) || [];
->   let i = 0;
->   const atom = () => {
->     const t = toks[i];
->     if (t === "(") { i++; const e = expr(); if (toks[i] === ")") i++; return e; }
->     i++;
->     if (/^\d+\$/.test(t)) return num(+t);
->     if (ctx.some((c) => c.name === t)) return V(t);
->     if (env.has(t)) return K(t);
->     throw new Error("unknown identifier " + t);
->   };
->   const expr = () => { let e = atom(); while (i < toks.length && toks[i] !== ")") e = { k: "app", f: e, a: atom() }; return e; };
->   const e = expr();
->   if (i < toks.length) throw new Error("trailing input in term");
->   return e;
-> }
-> /* ---------------- tactic parser ---------------- */
-> function parseTac(s) {
->   const t = s.trim().replace(/\.\$/, "");
->   const w = t.split(/\s+/);
->   const c = w[0];
->   if (c === "intro") return { t: "intro", names: w.slice(1) };
->   if (c === "intros") return { t: "intros", names: w.slice(1) };
->   if (c === "exact") return { t: "exact", arg: w.slice(1).join(" ") };
->   if (c === "apply") return { t: "apply", arg: w.slice(1).join(" ") };
->   if (c === "rewrite") {
->     const dir = w[1] === "<-" ? "<-" : "->";
->     return { t: "rewrite", dir, arg: w.slice(w[1] === "<-" || w[1] === "->" ? 2 : 1).join(" ") };
->   }
->   if (c === "induction") return { t: "induction", arg: w[1] };
->   if (c === "unfold") return { t: "unfold", arg: w[1] };
->   if (c === "simpl") return { t: "simpl" };
->   if (c === "reflexivity") return { t: "reflexivity" };
->   if (c === "symmetry") return { t: "symmetry" };
->   if (c === "assumption") return { t: "assumption" };
->   if (c === "admit") return { t: "admit" };
->   throw new Error("unknown tactic '" + c + "'");
-> }
->
-> /* ---------------- proof state ---------------- */
-> let gc = 0;
-> const newGoalId = () => "?g" + ++gc;
-> const cloneGoal = (g) => ({ id: g.id, ctx: g.ctx.slice(), target: g.target });
-> const cloneState = (s) => ({ goals: s.goals.map(cloneGoal), assign: { ...s.assign }, root: s.root });
-> function initState(ty) { const id = newGoalId(); return { goals: [{ id, ctx: [], target: ty }], assign: {}, root: id }; }
-> const lookupHyp = (g, n) => g.ctx.find((c) => c.name === n);
-> function typeOfName(env, g, n) {
->   const h = lookupHyp(g, n); if (h) return { term: V(n), ty: h.ty, where: "hypothesis" };
->   const e = env.get(n); if (e) return { term: K(n), ty: e.ty, where: e.kind };
->   throw new Error("no hypothesis or lemma called " + n);
-> }
->
-> /* peel a Pi type into fresh metavariables */
-> function peel(env, ty, mk) {
->   const metas = new Set(), types = {}, order = [];
->   let t = ty;
->   for (let i = 0; i < 20; i++) {
->     const w = whnf(env, t);
->     if (w.k !== "pi") break;
->     const id = mk();
->     metas.add(id); types[id] = w.ty; order.push(id);
->     t = subst(w.b, w.x, META(id));
->   }
->   return { concl: t, metas, types, order };
-> }
->
-> /* ---------------- tactics ---------------- */
-> function applyTactic(env, state, tac, opts) {
->   opts = opts || {};
->   if (!state.goals.length) throw new Error("no goals left");
->   const g = state.goals[0], rest = state.goals.slice(1);
->   const produced = [], assign = { ...state.assign };
->   const mkGoal = (ctx, target) => { const ng = { id: newGoalId(), ctx, target }; produced.push(ng); return ng; };
->   let refine = null, note = "";
->
->   const finish = () => {
->     assign[g.id] = refine;
->     return { state: { goals: produced.concat(rest), assign, root: state.root },
->       info: { consumed: g, produced: produced.map(cloneGoal), refine, note } };
->   };
->
->   if (tac.t === "intro" || tac.t === "intros") {
->     let ctx = g.ctx.slice(), target = g.target, names = tac.names.slice(), binders = [];
->     const want = tac.t === "intro" ? Math.max(1, names.length) : (names.length || 99);
->     for (let i = 0; i < want; i++) {
->       const w = whnf(env, target);
->       if (w.k !== "pi") { if (i === 0) throw new Error("the goal is not a product, so there is nothing to introduce"); break; }
->       const nm = names[i] || (w.x === "_" ? "H" + (ctx.length + 1) : w.x);
->       binders.push({ name: nm, ty: w.ty });
->       ctx = ctx.concat([{ name: nm, ty: w.ty }]);
->       target = subst(w.b, w.x, V(nm));
->     }
->     const ng = mkGoal(ctx, target);
->     refine = binders.reduceRight((acc, b) => LAM(b.name, b.ty, acc), META(ng.id));
->     note = "moved " + binders.map((b) => b.name).join(", ") + " above the line";
->     return finish();
->   }
->   if (tac.t === "simpl") {
->     const t2 = simplify(env, g.target);
->     if (alphaEq(t2, g.target)) note = "nothing reduced — no recursive call has a constructor in its recursive argument yet";
->     else note = "unfolded and refolded: " + pp(g.target) + "  ⟶  " + pp(t2);
->     const ng = mkGoal(g.ctx, t2);
->     refine = META(ng.id);            /* conversion: the term is unchanged, only the goal's presentation */
->     return finish();
->   }
->   if (tac.t === "unfold") {
->     const e = env.get(tac.arg);
->     if (!e || !e.body) throw new Error(tac.arg + " has no definition to unfold");
->     const t2 = (function go(t) {
->       if (t.k === "const" && t.n === tac.arg) return e.body;
->       if (t.k === "app") return { k: "app", f: go(t.f), a: go(t.a) };
->       if (t.k === "lam" || t.k === "pi") return { ...t, ty: go(t.ty), b: go(t.b) };
->       return t;
->     })(g.target);
->     const ng = mkGoal(g.ctx, t2);
->     refine = META(ng.id); note = "replaced " + tac.arg + " by its definition";
->     return finish();
->   }
->   if (tac.t === "reflexivity") {
->     const w = whnf(env, g.target), sp = spine(w);
->     if (!(sp.head.k === "const" && sp.head.n === "eq" && sp.args.length === 3)) throw new Error("the goal is not an equation");
->     const [A, a, b] = sp.args;
->     if (!defeq(env, a, b)) throw new Error("the two sides are not definitionally equal:\\n  " + pp(a) + "\\n  " + pp(b));
->     refine = AP(K("refl"), A, a);
->     note = pp(a) + " and " + pp(b) + " share a normal form";
->     return finish();
->   }
->   if (tac.t === "assumption") {
->     const h = g.ctx.find((c) => defeq(env, c.ty, g.target));
->     if (!h) throw new Error("no hypothesis matches the goal");
->     refine = V(h.name); note = "closed by " + h.name;
->     return finish();
->   }
->   if (tac.t === "exact") {
->     const e = parseTerm(tac.arg, g.ctx, env);
->     check(env, g.ctx, e, g.target);
->     refine = e; note = "supplied the term directly";
->     return finish();
->   }
->   if (tac.t === "symmetry") {
->     const w = whnf(env, g.target), sp = spine(w);
->     if (!(sp.head.k === "const" && sp.head.n === "eq")) throw new Error("the goal is not an equation");
->     const [A, a, b] = sp.args;
->     const ng = mkGoal(g.ctx, EQ(A, b, a));
->     refine = AP(K("eq_sym"), A, b, a, META(ng.id));
->     note = "swapped the two sides using eq_sym";
->     return finish();
->   }
->   if (tac.t === "apply") {
->     const { term, ty } = typeOfName(env, g, tac.arg);
->     let mc = 0;
->     const pk = peel(env, ty, () => "?a" + tac.arg + "_" + ++mc);
->     const asg = {};
->     if (!unify(env, pk.concl, g.target, pk.metas, asg)) throw new Error("cannot unify\\n  " + pp(pk.concl) + "\nwith the goal\\n  " + pp(g.target));
->     const args = pk.order.map((id) => {
->       if (asg[id]) return instMeta(META(id), asg);
->       const ng = mkGoal(g.ctx, instMeta(pk.types[id], asg));
->       return META(ng.id);
->     });
->     refine = AP(term, ...args);
->     note = "unified the conclusion of " + tac.arg + "; " + pk.order.filter((id) => asg[id]).length + " of " + pk.order.length + " arguments determined by unification";
->     return finish();
->   }
->   if (tac.t === "rewrite") {
->     const { term, ty } = typeOfName(env, g, tac.arg);
->     let mc = 0;
->     const pk = peel(env, ty, () => "?r" + tac.arg + "_" + ++mc);
->     const sp = spine(whnf(env, pk.concl));
->     if (!(sp.head.k === "const" && sp.head.n === "eq" && sp.args.length === 3)) throw new Error(tac.arg + " is not an equation");
->     const [A, lhs, rhs] = sp.args;
->     const pat = tac.dir === "->" ? lhs : rhs, other = tac.dir === "->" ? rhs : lhs;
->     if (pat.k === "meta" && pk.metas.has(pat.id)) throw new Error("the side being rewritten is a bare variable, so it would match everything");
->     const m = findMatch(g.target, pat, pk.metas);
->     if (!m) throw new Error("nothing in the goal matches " + pp(pat) + "\ngoal: " + pp(g.target));
->     const inst = instMeta(pat, m.asg), otherI = instMeta(other, m.asg), AI = instMeta(A, m.asg);
->     const hI = AP(term, ...pk.order.map((id) => instMeta(META(id), m.asg)));
->     let z = "z"; while (freeIn(z, g.target)) z += "'";
->     const abstracted = replaceAll(g.target, inst, V(z));
->     const motive = LAM(z, AI, abstracted);
->     const newTarget = subst(abstracted, z, otherI);
->     const ng = mkGoal(g.ctx, newTarget);
->     const lhsI = instMeta(lhs, m.asg), rhsI = instMeta(rhs, m.asg);
->     if (tac.dir === "->") {
->       const sym = opts.unsoundRewrite ? hI : AP(K("eq_sym"), AI, lhsI, rhsI, hI);
->       refine = AP(K("eq_rect"), AI, otherI, motive, META(ng.id), inst, sym);
->     } else {
->       refine = AP(K("eq_rect"), AI, otherI, motive, META(ng.id), inst, hI);
->     }
->     const occ = (function count(t) { return alphaEq(t, inst) ? 1 : t.k === "app" ? count(t.f) + count(t.a) : (t.k === "lam" || t.k === "pi") ? count(t.ty) + count(t.b) : 0; })(g.target);
->     note = "rewrote " + occ + " occurrence" + (occ === 1 ? "" : "s") + " of " + pp(inst) + " into " + pp(otherI);
->     return finish();
->   }
->   if (tac.t === "induction") {
->     const x = tac.arg;
->     const idx = g.ctx.findIndex((c) => c.name === x);
->     if (idx < 0) throw new Error(x + " is not in the context");
->     if (!defeq(env, g.ctx[idx].ty, NAT)) throw new Error(x + " is not a natural number");
->     const dependents = g.ctx.slice(idx + 1).filter((c) => freeIn(x, c.ty));
->     if (dependents.length) throw new Error("cannot induct: " + dependents.map((d) => d.name).join(", ") + " mention " + x + " and would need generalising first");
->     const rest2 = g.ctx.filter((c) => c.name !== x);
->     const motive = LAM(x, NAT, g.target);
->     const base = mkGoal(rest2, subst(g.target, x, O));
->     const ihName = "IH" + x;
->     const step = mkGoal(rest2.concat([{ name: x, ty: NAT }, { name: ihName, ty: g.target }]), subst(g.target, x, SUCC(V(x))));
->     refine = AP(K("nat_rect"), motive, META(base.id), LAM(x, NAT, LAM(ihName, g.target, META(step.id))), V(x));
->     note = "two goals: " + x + " = 0, and " + x + " = S " + x + " with " + ihName + " available";
->     return finish();
->   }
->   if (tac.t === "admit") {
->     refine = AP(K("admitted"), g.target);
->     note = "closed by the admitted axiom — this proof is no longer trustworthy";
->     return finish();
->   }
->   throw new Error("unimplemented tactic " + tac.t);
-> }
->
-> /* ---------------- running a script ---------------- */
-> function runScript(env, spec, opts) {
->   opts = opts || {};
->   const off = (opts.disabled || new Set());
->   let st = initState(spec.ty);
->   const steps = [{ i: 0, tac: "(statement)", state: cloneState(st), ok: true, note: "the goal as written", produced: [cloneGoal(st.goals[0])], consumed: null }];
->   let failed = null;
->   spec.script.forEach((line, i) => {
->     if (failed) { steps.push({ i: i + 1, tac: line, skipped: true, ok: false, state: cloneState(st) }); return; }
->     if (off.has(spec.name + ":" + i)) { steps.push({ i: i + 1, tac: line, disabled: true, ok: true, state: cloneState(st), note: "switched off — the proof runs on without it" }); return; }
->     const t0 = Date.now();
->     try {
->       const parsed = parseTac(line);
->       const r = applyTactic(env, st, parsed, opts);
->       st = r.state;
->       steps.push({ i: i + 1, tac: line, parsed, ok: true, ms: Date.now() - t0, state: cloneState(st),
->         consumed: r.info.consumed, produced: r.info.produced, refine: r.info.refine, note: r.info.note });
->     } catch (e) {
->       failed = { at: i + 1, msg: String(e.message || e) };
->       steps.push({ i: i + 1, tac: line, ok: false, ms: Date.now() - t0, state: cloneState(st), err: String(e.message || e) });
->     }
->   });
->   const closed = !failed && st.goals.length === 0;
->   let term = null, kernel = { ok: false, msg: "the proof is not finished" }, kstats = null;
->   if (closed) {
->     term = instMeta(META(st.root), st.assign);
->     kstats = { rules: {}, beta: 0, delta: 0, iota: 0, conv: 0 };
->     const t0 = Date.now();
->     try { check(env, [], term, spec.ty, kstats); kernel = { ok: true, msg: "the kernel accepts this term against the stated type" }; }
->     catch (e) { kernel = { ok: false, msg: String(e.message || e) }; }
->     kstats.ms = Date.now() - t0;
->   }
->   return { name: spec.name, spec, steps, state: st, closed, failed, term, kernel, kstats,
->     openGoals: st.goals.length, admitted: term ? constsIn(term).has("admitted") : false };
-> }
-> /* per-tactic kernel check: the refinement, in the goal it acted on, against that goal's type */
-> function checkStep(env, step) {
->   if (!step.refine || !step.consumed) return null;
->   const tys = {}; (step.produced || []).forEach((g) => (tys[g.id] = g.target));
->   const st = { rules: {}, beta: 0, delta: 0, iota: 0, conv: 0 };
->   try {
->     check(env, step.consumed.ctx, step.refine, step.consumed.target, st, (id) => {
->       if (!tys[id]) throw new TypeError2("unknown hole " + id);
->       return tys[id];
->     });
->     return { ok: true, st };
->   } catch (e) { return { ok: false, err: String(e.message || e), st }; }
-> }
->
-> /* ---------------- the development ---------------- */
-> const DEV = [
->   { name: "plus_O_n", ty: PI("n", NAT, NEQ(PLUS(O, V("n")), V("n"))),
->     blurb: "0 + n = n holds by computation alone", script: ["intro n", "reflexivity"] },
->   { name: "plus_n_O", ty: PI("n", NAT, NEQ(PLUS(V("n"), O), V("n"))),
->     blurb: "n + 0 = n does not — plus recurses on its first argument, so this one needs induction",
->     script: ["intro n", "induction n", "reflexivity", "simpl", "rewrite IHn", "reflexivity"] },
->   { name: "plus_n_Sm", ty: PI("n", NAT, PI("m", NAT, NEQ(SUCC(PLUS(V("n"), V("m"))), PLUS(V("n"), SUCC(V("m")))))),
->     blurb: "pushing a successor across a sum", script: ["intros n m", "induction n", "reflexivity", "simpl", "rewrite IHn", "reflexivity"] },
->   { name: "plus_comm", ty: PI("n", NAT, PI("m", NAT, NEQ(PLUS(V("n"), V("m")), PLUS(V("m"), V("n"))))),
->     blurb: "commutativity — the first proof here that rests on two earlier lemmas",
->     script: ["intros n m", "induction n", "simpl", "rewrite plus_n_O", "reflexivity", "simpl", "rewrite IHn", "rewrite plus_n_Sm", "reflexivity"] },
->   { name: "plus_assoc", ty: PI("a", NAT, PI("b", NAT, PI("c", NAT, NEQ(PLUS(PLUS(V("a"), V("b")), V("c")), PLUS(V("a"), PLUS(V("b"), V("c"))))))),
->     blurb: "associativity, by induction on the leftmost summand",
->     script: ["intros a b c", "induction a", "reflexivity", "simpl", "rewrite IHa", "reflexivity"] },
->   { name: "plus_two_comm", ty: PI("n", NAT, NEQ(PLUS(V("n"), num(2)), PLUS(num(2), V("n")))),
->     blurb: "a one-line corollary — unification finds both arguments", script: ["intro n", "apply plus_comm"] },
->   { name: "mult_comm", ty: PI("n", NAT, PI("m", NAT, NEQ(MULT(V("n"), V("m")), MULT(V("m"), V("n"))))),
->     blurb: "left unproved on purpose: watch what it does to everything downstream", script: ["intros n m", "admit"] },
->   { name: "mult_two_comm", ty: PI("n", NAT, NEQ(MULT(V("n"), num(2)), MULT(num(2), V("n")))),
->     blurb: "proved honestly, but from an admitted lemma", script: ["intro n", "apply mult_comm"] },
-> ];
->
-> function buildDevelopment(opts) {
->   opts = opts || {};
->   const env = baseEnv();
->   const runs = [];
->   DEV.forEach((spec0) => {
->     const over = (opts.scripts || {})[spec0.name];
->     const spec = over ? { ...spec0, script: over } : spec0;
->     if ((opts.revoked || new Set()).has(spec.name)) { runs.push({ name: spec.name, spec, revoked: true, steps: [], closed: false, openGoals: 0 }); return; }
->     const r = runScript(env, spec, opts);
->     runs.push(r);
->     env.set(spec.name, { name: spec.name, kind: "thm", ty: spec.ty, body: r.term, script: spec.script,
->       proved: r.closed && r.kernel.ok, admitted: r.admitted, blurb: spec.blurb });
->   });
->   return { env, runs };
-> }
->
-> /* ============================================================
->    ANALYSES OVER THE DEVELOPMENT
->    ============================================================ */
->
-> /* Print Assumptions: transitively, what does this proof actually rest on? */
-> function assumptions(env, name, seen) {
->   seen = seen || new Set();
->   const out = { axioms: new Set(), unproved: new Set(), thms: new Set(), defs: new Set(), kernel: new Set(), missing: new Set() };
->   const merge = (o) => Object.keys(out).forEach((k) => o[k].forEach((x) => out[k].add(x)));
->   const walk = (n) => {
->     if (seen.has(n)) return; seen.add(n);
->     const e = env.get(n);
->     if (!e) { out.missing.add(n); return; }
->     if (e.kind === "axiom") { out.axioms.add(n); return; }
->     if (e.kind === "ind" || e.kind === "ctor" || e.kind === "rec") { out.kernel.add(n); return; }
->     if (e.kind === "thm") { out.thms.add(n); if (e.proved === false) out.unproved.add(n); }
->     if (e.kind === "def") out.defs.add(n);
->     if (e.body) constsIn(e.body).forEach(walk);
->   };
->   const root = env.get(name);
->   if (root && root.body) constsIn(root.body).forEach(walk);
->   else if (root && root.proved === false) out.unproved.add(name);
->   return { ...out, closed: out.axioms.size === 0 && out.unproved.size === 0 && out.missing.size === 0 };
-> }
-> /* direct uses, for the dependency graph */
-> function directDeps(env, name) {
->   const e = env.get(name);
->   if (!e || !e.body) return [];
->   return [...constsIn(e.body)].filter((c) => { const x = env.get(c); return x && (x.kind === "thm" || (x.kind === "def" && c !== name)); });
-> }
-> /* counterfactual: take a lemma away and rebuild the whole development */
-> function revokeImpact(name, opts) {
->   const base = buildDevelopment(opts);
->   const alt = buildDevelopment({ ...opts, revoked: new Set([name]) });
->   const rows = DEV.filter((d) => d.name !== name).map((d) => {
->     const b = base.runs.find((r) => r.name === d.name), a = alt.runs.find((r) => r.name === d.name);
->     const wasOk = b && b.closed && b.kernel && b.kernel.ok;
->     const nowOk = a && a.closed && a.kernel && a.kernel.ok;
->     const tainted = nowOk && assumptions(alt.env, d.name).unproved.size > 0;
->     return { name: d.name, wasOk, nowOk, tainted, at: a && a.failed ? a.failed.at : null, why: a && a.failed ? a.failed.msg.split("\\n")[0] : null };
->   });
->   return { name, rows, broke: rows.filter((r) => r.wasOk && !r.nowOk), tainted: rows.filter((r) => r.tainted) };
-> }
-> /* real delta debugging over the tactic script */
-> function minimizeScript(spec, envBefore, opts) {
->   const ok = (script) => {
->     try {
->       const r = runScript(envBefore, { ...spec, script }, opts);
->       return r.closed && r.kernel.ok && !r.admitted;
->     } catch (e) { return false; }
->   };
->   if (!ok(spec.script)) return { ok: false, note: "this proof does not currently close with an accepted term, so there is nothing to minimise", script: spec.script };
->   let cur = spec.script.slice(); const dropped = [];
->   let again = true, guard = 0;
->   while (again && guard++ < 50) {
->     again = false;
->     for (let i = 0; i < cur.length; i++) {
->       const cand = cur.slice(0, i).concat(cur.slice(i + 1));
->       if (ok(cand)) { dropped.push(cur[i]); cur = cand; again = true; break; }
->     }
->   }
->   return { ok: true, script: cur, dropped, from: spec.script.length, to: cur.length };
-> }
-> /* which lemmas in the environment could close, or make progress on, this goal */
-> function searchApplicable(env, goal, limit) {
->   const out = [];
->   for (const [name, e] of env) {
->     if (!(e.kind === "thm" || e.kind === "def" || e.kind === "ctor")) continue;
->     if (e.kind === "def" && !e.ty) continue;
->     let mc = 0;
->     let pk;
->     try { pk = peel(env, e.ty, () => "?s" + ++mc); } catch (x) { continue; }
->     const asg = {};
->     let hit = false;
->     try { hit = unify(env, pk.concl, goal.target, pk.metas, asg); } catch (x) { hit = false; }
->     if (hit) {
->       const unsolved = pk.order.filter((id) => !asg[id]);
->       out.push({ name, kind: e.kind, ty: e.ty, args: pk.order.length, unsolved: unsolved.length,
->         inst: pk.order.map((id) => (asg[id] ? pp(instMeta(META(id), asg)) : "?")) });
->     }
->   }
->   /* hypotheses too */
->   goal.ctx.forEach((h) => {
->     const asg = {};
->     if (defeq(env, h.ty, goal.target)) out.push({ name: h.name, kind: "hypothesis", ty: h.ty, args: 0, unsolved: 0, inst: [] });
->   });
->   return out.slice(0, limit || 20);
-> }
-> /* rewriting opportunities: which equations match somewhere in the goal */
-> function searchRewrites(env, goal) {
->   const out = [];
->   const cands = [...goal.ctx.map((h) => ({ name: h.name, ty: h.ty, kind: "hypothesis" }))]
->     .concat([...env].filter(([n, e]) => e.kind === "thm" && e.ty).map(([n, e]) => ({ name: n, ty: e.ty, kind: "lemma" })));
->   cands.forEach((c) => {
->     let mc = 0, pk;
->     try { pk = peel(env, c.ty, () => "?w" + ++mc); } catch (x) { return; }
->     const sp = spine(whnf(env, pk.concl));
->     if (!(sp.head.k === "const" && sp.head.n === "eq" && sp.args.length === 3)) return;
->     ["->", "<-"].forEach((dir) => {
->       const pat = dir === "->" ? sp.args[1] : sp.args[2];
->       if (pat.k === "meta" && pk.metas.has(pat.id)) return;   /* a bare variable matches everything — useless */
->       const m = findMatch(goal.target, pat, pk.metas);
->       if (m) out.push({ name: c.name, kind: c.kind, dir, at: pp(instMeta(pat, m.asg)),
->         to: pp(instMeta(dir === "->" ? sp.args[2] : sp.args[1], m.asg)) });
->     });
->   });
->   return out;
-> }
-> /* find the first tactic whose refinement the kernel rejects, by halving */
-> function bisectSteps(env, run) {
->   const steps = run.steps.filter((s) => s.refine);
->   const checks = steps.map((s) => ({ i: s.i, tac: s.tac, res: checkStep(env, s) }));
->   const bad = checks.filter((c) => c.res && !c.res.ok);
->   if (!bad.length) return { clean: true, probes: [], checks };
->   let lo = -1, hi = checks.length - 1, probes = [];
->   while (hi - lo > 1) {
->     const mid = (lo + hi) >> 1;
->     const anyBad = checks.slice(0, mid + 1).some((c) => c.res && !c.res.ok);
->     probes.push({ lo, hi, mid, tac: checks[mid].tac, ok: !anyBad });
->     if (anyBad) hi = mid; else lo = mid;
->   }
->   return { clean: false, probes, culprit: checks[hi], checks };
-> }
->
-> /* ============================================================
->    TIDY DATASETS — the development measuring itself
->    ============================================================ */
-> function buildDatasets(D, focus) {
->   const F = (name, type) => ({ name, type });
->   const tactics = [];
->   D.runs.forEach((r) => (r.steps || []).forEach((s) => {
->     if (!s.i) return;
->     const before = s.consumed ? 1 : 0;
->     tactics.push({ theorem: r.name, i: s.i, tactic: s.tac, head: tacName(s.tac),
->       produced: (s.produced || []).length, refine_size: s.refine ? size(s.refine) : 0,
->       ms: +(s.ms || 0).toFixed(2), ok: s.ok ? "yes" : "no", disabled: s.disabled ? "yes" : "no",
->       goals_after: s.state ? s.state.goals.length : 0 });
->   }));
->   const theorems = D.runs.map((r) => {
->     const a = r.revoked ? null : assumptions(D.env, r.name);
->     return { name: r.name, tactics: (r.spec.script || []).length, closed: r.closed ? "yes" : "no",
->       kernel: r.kernel && r.kernel.ok ? "accepts" : "rejects", term_size: r.term ? size(r.term) : 0,
->       term_depth: r.term ? depthOf(r.term) : 0, lemmas_used: a ? a.thms.size : 0,
->       axioms: a ? a.axioms.size : 0, admitted: r.admitted ? "yes" : "no",
->       check_ms: r.kstats ? +(r.kstats.ms || 0).toFixed(2) : 0,
->       conversions: r.kstats ? r.kstats.conv : 0, beta: r.kstats ? r.kstats.beta : 0,
->       delta: r.kstats ? r.kstats.delta : 0, iota: r.kstats ? r.kstats.iota : 0 };
->   });
->   const goals = [];
->   D.runs.forEach((r) => (r.steps || []).forEach((s) => (s.produced || []).forEach((g) => goals.push({
->     theorem: r.name, id: g.id, step: s.i, hyps: g.ctx.length, target_size: size(g.target),
->     target_depth: depthOf(g.target), opened_by: s.tac === "(statement)" ? "—" : tacName(s.tac) }))));
->   const lemmas = [...D.env.values()].map((e) => {
->     const uses = e.body ? directDeps(D.env, e.name) : [];
->     const usedBy = [...D.env.values()].filter((x) => x.body && directDeps(D.env, x.name).includes(e.name)).map((x) => x.name);
->     return { name: e.name, kind: e.kind, size: e.body ? size(e.body) : 0, type_size: size(e.ty),
->       uses: uses.length, used_by: usedBy.length, proved: e.kind === "thm" ? (e.proved ? "yes" : "no") : "—" };
->   });
->   const focusRun = D.runs.find((r) => r.name === focus);
->   const rules = focusRun && focusRun.kstats
->     ? Object.entries(focusRun.kstats.rules).map(([rule, count]) => ({ rule, count, theorem: focus }))
->     : [];
->   return {
->     tactics: { id: "tactics", note: "one row per tactic invocation across the whole development", rows: tactics,
->       fields: [F("theorem", "n"), F("i", "t"), F("tactic", "n"), F("head", "n"), F("produced", "q"), F("refine_size", "q"), F("ms", "q"), F("ok", "n"), F("disabled", "n"), F("goals_after", "q")] },
->     theorems: { id: "theorems", note: "one row per theorem, with what the kernel had to do to accept it", rows: theorems,
->       fields: [F("name", "n"), F("tactics", "q"), F("closed", "n"), F("kernel", "n"), F("term_size", "q"), F("term_depth", "q"), F("lemmas_used", "q"), F("axioms", "q"), F("admitted", "n"), F("check_ms", "q"), F("conversions", "q"), F("beta", "q"), F("delta", "q"), F("iota", "q")] },
->     goals: { id: "goals", note: "every goal the development ever opened", rows: goals,
->       fields: [F("theorem", "n"), F("id", "n"), F("step", "t"), F("hyps", "q"), F("target_size", "q"), F("target_depth", "q"), F("opened_by", "n")] },
->     library: { id: "library", note: "the environment: inductives, constructors, eliminators, definitions, theorems, axioms", rows: lemmas,
->       fields: [F("name", "n"), F("kind", "n"), F("size", "q"), F("type_size", "q"), F("uses", "q"), F("used_by", "q"), F("proved", "n")] },
->     rules: { id: "rules", note: "inference rules the kernel applied while checking the focused theorem", rows: rules,
->       fields: [F("rule", "n"), F("count", "q"), F("theorem", "n")] },
->   };
-> }
->
-> /* ---------------- grammar of graphics ---------------- */
-> let stepc = 0;
-> const mkStep = (kind, cfg) => ({ id: "gs" + ++stepc, kind, on: true, ...cfg });
-> const AGGS = ["mean", "sum", "min", "max", "count"];
-> const FOPS = ["=", "≠", ">", "<"];
-> const DOPS = ["+", "-", "*", "/"];
-> const applyAgg = (fn, vals) => {
->   const n = vals.filter((v) => typeof v === "number" && isFinite(v));
->   if (fn === "count") return vals.length;
->   if (!n.length) return 0;
->   if (fn === "sum") return n.reduce((a, b) => a + b, 0);
->   if (fn === "mean") return n.reduce((a, b) => a + b, 0) / n.length;
->   if (fn === "min") return Math.min(...n);
->   return Math.max(...n);
-> };
-> const aggName = (fn, field) => (fn === "count" ? "count" : fn + "_" + field);
-> const stepLabel = (s) =>
->   s.kind === "filter" ? `filter ${s.field} ${s.op} ${JSON.stringify(s.value)}`
->   : s.kind === "derive" ? `derive ${s.as} = ${s.a} ${s.op} ${s.b}`
->   : s.kind === "summarize" ? `group by ${s.by} · ${s.fn}(${s.field})`
->   : s.kind === "sort" ? `sort ${s.field} ${s.dir}`
->   : `limit ${s.n}`;
->
-> function schemaAfter(DS, dsId, steps, upto) {
->   const d = DS[dsId]; if (!d) return [];
->   let f = d.fields.slice();
->   (steps || []).slice(0, upto === undefined ? undefined : upto).forEach((s) => {
->     if (!s.on) return;
->     if (s.kind === "derive") f = f.concat([{ name: s.as, type: "q" }]);
->     if (s.kind === "summarize") {
->       const by = f.find((x) => x.name === s.by) || { name: s.by, type: "n" };
->       f = [by, { name: aggName(s.fn, s.field), type: "q" }];
->     }
->   });
->   const seen = new Set();
->   return f.filter((x) => (seen.has(x.name) ? false : (seen.add(x.name), true)));
-> }
-> function evaluate(DS, dsId, steps) {
->   const d = DS[dsId]; if (!d) return { rows: [], fields: [] };
->   let rows = d.rows.map((r) => ({ ...r }));
->   (steps || []).forEach((s) => {
->     if (!s.on) return;
->     if (s.kind === "filter") {
->       rows = rows.filter((r) => {
->         const a = r[s.field], b = s.value;
->         if (s.op === "=") return String(a) === String(b);
->         if (s.op === "≠") return String(a) !== String(b);
->         const na = +a, nb = +b;
->         return s.op === ">" ? na > nb : na < nb;
->       });
->     } else if (s.kind === "derive") {
->       rows = rows.map((r) => {
->         const a = +r[s.a], b = isNaN(+s.b) ? +r[s.b] : +s.b;
->         const v = s.op === "+" ? a + b : s.op === "-" ? a - b : s.op === "*" ? a * b : b ? a / b : 0;
->         return { ...r, [s.as]: isFinite(v) ? v : 0 };
->       });
->     } else if (s.kind === "summarize") {
->       const g = new Map();
->       rows.forEach((r) => { const k = String(r[s.by]); if (!g.has(k)) g.set(k, []); g.get(k).push(r); });
->       rows = [...g.entries()].map(([k, rs]) => ({ [s.by]: rs[0][s.by], [aggName(s.fn, s.field)]: applyAgg(s.fn, rs.map((r) => r[s.field])) }));
->     } else if (s.kind === "sort") {
->       rows = rows.slice().sort((x, y) => {
->         const a = x[s.field], b = y[s.field], n = typeof a === "number" && typeof b === "number";
->         const c = n ? a - b : String(a).localeCompare(String(b));
->         return s.dir === "desc" ? -c : c;
->       });
->     } else if (s.kind === "limit") rows = rows.slice(0, Math.max(1, +s.n || 10));
->   });
->   return { rows, fields: schemaAfter(DS, dsId, steps) };
-> }
-> function niceTicks(lo, hi, n) {
->   if (!isFinite(lo) || !isFinite(hi)) return [0, 1];
->   if (lo === hi) { lo -= 1; hi += 1; }
->   const raw = (hi - lo) / Math.max(1, n), mag = Math.pow(10, Math.floor(Math.log10(raw)));
->   const norm = raw / mag, step = (norm >= 5 ? 10 : norm >= 2 ? 5 : norm >= 1 ? 2 : 1) * mag;
->   const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(10));
->   return out;
-> }
-> function buildPlot(DS, chart, W, H) {
->   const { rows, fields } = evaluate(DS, chart.datasetId, chart.steps);
->   const ft = (n) => (fields.find((f) => f.name === n) || {}).type;
->   const m = chart.map, geom = chart.geom;
->   const pad = { l: 54, r: 10, t: 10, b: 34 };
->   const iw = Math.max(20, W - pad.l - pad.r), ih = Math.max(20, H - pad.t - pad.b);
->   if (!m.x || !m.y || !rows.length) return { empty: true, rows, fields };
->   const xt = ft(m.x), yt = ft(m.y);
->   const xs = rows.map((r) => r[m.x]), ys = rows.map((r) => +r[m.y]).filter((v) => isFinite(v));
->   const cats = xt === "q" ? null : [...new Set(xs.map(String))];
->   const xlo = cats ? 0 : Math.min(...xs.map(Number)), xhi = cats ? 1 : Math.max(...xs.map(Number));
->   const ylo = Math.min(0, ...ys), yhi = Math.max(...ys, 1);
->   const xScale = (v) => cats ? pad.l + (cats.indexOf(String(v)) + 0.5) * (iw / cats.length) : pad.l + ((Number(v) - xlo) / (xhi - xlo || 1)) * iw;
->   const yScale = (v) => pad.t + ih - ((v - ylo) / (yhi - ylo || 1)) * ih;
->   const colorField = m.color;
->   const ccats = colorField ? [...new Set(rows.map((r) => String(r[colorField])))] : [];
->   const colorOf = (r) => (colorField ? CAT_TONES[ccats.indexOf(String(r[colorField])) % CAT_TONES.length] : C.blue);
->   const bw = cats ? Math.max(3, (iw / cats.length) * 0.68) : Math.max(3, iw / Math.max(rows.length, 1) * 0.6);
->   const marks = rows.map((r, i) => ({
->     row: r, i, x: xScale(r[m.x]), y: yScale(+r[m.y]), y0: yScale(ylo), color: colorOf(r), bw,
->     label: String(r[m.x]), val: +r[m.y],
->   }));
->   return { rows, fields, marks, pad, iw, ih, xlo, xhi, ylo, yhi, cats, ccats, colorField, geom, xt, yt,
->     yticks: niceTicks(ylo, yhi, 4), xticks: cats ? null : niceTicks(xlo, xhi, 4), xScale, yScale };
-> }
->
-> /* ============================================================
->    PBUI CORE — presentations + accept
->    ============================================================ */
-> const UICtx = React.createContext(null);
-> const useUI = () => useContext(UICtx);
-> const typeMatches = (want, have) => want === "any" || (Array.isArray(want) ? want.includes(have) : want === have);
->
-> function P({ ptype, value, doc, children, block, svg, onActivate, activateDoc, style, hot }) {
->   const ui = useUI();
->   const acceptable = ui.accepting && typeMatches(ui.accepting.ptype, ptype);
->   const Tag = svg ? "g" : block ? "div" : "span";
->   const clickDoc = acceptable ? "L: ACCEPT   R: menu" : onActivate ? "L: " + (activateDoc || "activate") + "   R: menu" : "L/R: menu";
->   return (
->     <Tag
->       className={(svg ? "pres-svg" : "pres") + (acceptable ? " acceptable" : "") + (hot ? " hot" : "")}
->       style={style}
->       onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); ui.openMenu(ptype, value, e.clientX, e.clientY); }}
->       onClick={(e) => {
->         e.stopPropagation();
->         if (acceptable) { e.preventDefault(); ui.accepting.resolve({ ptype, value }); ui.setAccepting(null); }
->         else if (onActivate) onActivate();
->         else ui.openMenu(ptype, value, e.clientX, e.clientY);
->       }}
->       onMouseEnter={() => ui.setMouseDoc((doc || "<" + ptype + "> " + ui.labelFor(ptype, value)) + "   —   " + clickDoc)}
->       onMouseLeave={() => ui.setMouseDoc(null)}
->     >{children}</Tag>
->   );
-> }
-> function Pres({ ptype, value }) {
->   const ui = useUI();
->   const label = ui.labelFor(ptype, value);
->   const tone = { theorem: C.mustard, tactic: C.rose, goal: C.sage, hyp: C.blue, term: C.blue, const: C.lavender,
->     axiom: C.red, rule: C.mint, script: C.rose, dep: C.mustard, sort: C.faint,
->     field: C.blue, dataset: C.sage, doc: C.red, datum: C.mustard, cat: C.mustard, chart: C.mustard }[ptype] || C.paneAlt;
->   return (
->     <P ptype={ptype} value={value}>
->       <span style={{ background: C.pane, border: "1px solid " + C.ink, borderLeft: "4px solid " + tone, padding: "0 5px", fontSize: 11, whiteSpace: "nowrap" }}>{label}</span>
->     </P>
->   );
-> }
->
-> /* ============================================================
->    WORLD
->    ============================================================ */
-> const DOC_NAMES = ["α", "β", "γ", "δ", "ε", "ζ"];
-> const DEFAULT_CHARTS = {
->   theorems: { datasetId: "theorems", geom: "bar", map: { x: "name", y: "term_size", color: "kernel", facet: null },
->     steps: [mkStep("sort", { field: "term_size", dir: "desc" })] },
->   tactics: { datasetId: "tactics", geom: "bar", map: { x: "head", y: "count", color: "head", facet: null },
->     steps: [mkStep("summarize", { by: "head", fn: "count", field: "head" }), mkStep("sort", { field: "count", dir: "desc" })] },
->   goals: { datasetId: "goals", geom: "point", map: { x: "hyps", y: "target_size", color: "theorem", facet: null }, steps: [] },
->   library: { datasetId: "library", geom: "bar", map: { x: "name", y: "size", color: "kind", facet: null },
->     steps: [mkStep("filter", { field: "size", op: ">", value: "0" }), mkStep("sort", { field: "size", dir: "desc" })] },
->   rules: { datasetId: "rules", geom: "bar", map: { x: "rule", y: "count", color: "rule", facet: null },
->     steps: [mkStep("sort", { field: "count", dir: "desc" })] },
-> };
-> const cloneChart = (c) => JSON.parse(JSON.stringify(c));
-> const defaultChart = (id) => cloneChart(DEFAULT_CHARTS[id] || DEFAULT_CHARTS.theorems);
-> let idc = 0;
-> const nid = () => "n" + idc++;
->
-> class World {
->   constructor() {
->     this.revoked = new Set();
->     this.disabled = new Set();
->     this.unsound = false;
->     this.scripts = {};
->     this.thm = "plus_n_O";
->     this.cursor = 0;
->     this.playing = false; this.speed = 4;
->     this.sel = { goal: null, hyp: null, const: null, term: null, step: null };
->     this.watch = []; this.trace = []; this.seq = 0; this.inspected = null;
->     this.notify = () => {};
->     this.docs = [{ id: nid(), name: DOC_NAMES[0], chart: defaultChart("theorems") }];
->     this.activeId = this.docs[0].id;
->     this.snaps = [];
->     this.rebuild(true);
->   }
->   bump() { this.notify(); }
->   log(type, data) { this.trace.push({ seq: ++this.seq, type, data: data || {} }); }
->   opts() { return { revoked: this.revoked, disabled: this.disabled, unsoundRewrite: this.unsound, scripts: this.scripts }; }
->   rebuild(reset) {
->     const t0 = Date.now();
->     this.D = buildDevelopment(this.opts());
->     this.buildMs = Date.now() - t0;
->     this._ds = null; this._as = {};
->     if (reset || this.cursor > this.lastStep()) this.cursor = this.lastStep();
->   }
->   runs() { return this.D.runs; }
->   run(name) { return this.D.runs.find((r) => r.name === (name || this.thm)) || this.D.runs[0]; }
->   steps() { const r = this.run(); return r.steps || []; }
->   lastStep() { return Math.max(0, this.steps().length - 1); }
->   step() { return this.steps()[clamp(this.cursor, 0, this.lastStep())] || { i: 0, tac: "(statement)", state: { goals: [] } }; }
->   state() { return this.step().state || { goals: [] }; }
->   goals() { return this.state().goals || []; }
->   focusGoal() { const gs = this.goals(); return gs.find((g) => g.id === this.sel.goal) || gs[0] || null; }
->   ds() { if (!this._ds) this._ds = buildDatasets(this.D, this.thm); return this._ds; }
->   assumptionsOf(n) { if (!this._as[n]) this._as[n] = assumptions(this.D.env, n); return this._as[n]; }
->   scriptOf(name) { name = name || this.thm; return this.scripts[name] || (DEV.find((d) => d.name === name) || {}).script || []; }
->
->   setThm(n) { this.thm = n; this.cursor = this.lastStep(); this.sel = { ...this.sel, goal: null, step: null }; this.log("focus_theorem", { name: n }); this.bump(); }
->   setCursor(i) { this.cursor = clamp(i, 0, this.lastStep()); this.bump(); }
->   play() { this.playing = !this.playing; if (this.playing && this.cursor >= this.lastStep()) this.cursor = 0; this.bump(); }
->   tick() { if (this.cursor >= this.lastStep()) this.playing = false; else this.cursor++; this.bump(); }
->   reset() { this.setCursor(0); }
->   end() { this.setCursor(this.lastStep()); }
->
->   toggleTactic(name, idx) {
->     const k = name + ":" + idx;
->     if (this.disabled.has(k)) this.disabled.delete(k); else this.disabled.add(k);
->     this.log(this.disabled.has(k) ? "tactic_disabled" : "tactic_restored", { at: k });
->     this.rebuild(false); this.bump();
->   }
->   clearDisabled() { this.disabled = new Set(); this.rebuild(false); this.log("tactics_restored", {}); this.bump(); }
->   toggleRevoke(n) {
->     if (this.revoked.has(n)) this.revoked.delete(n); else this.revoked.add(n);
->     this.log(this.revoked.has(n) ? "lemma_revoked" : "lemma_restored", { name: n });
->     this.rebuild(true); this.bump();
->   }
->   clearRevoked() { this.revoked = new Set(); this.rebuild(true); this.log("lemmas_restored", {}); this.bump(); }
->   setUnsound(v) { this.unsound = v; this.rebuild(false); this.log("unsound_rewrite", { on: v }); this.bump(); }
->   setScript(name, lines) {
->     this.scripts[name] = lines;
->     this.disabled = new Set([...this.disabled].filter((k) => !k.startsWith(name + ":")));
->     this.rebuild(true); this.log("script_edited", { name, lines: lines.length }); this.bump();
->   }
->   resetScript(name) { delete this.scripts[name]; this.rebuild(true); this.log("script_reset", { name }); this.bump(); }
->
->   select(k, v) { this.sel = { ...this.sel, [k]: v }; this.bump(); }
->   gotoStep(name, i) { this.thm = name; this.cursor = clamp(i, 0, this.lastStep()); this.bump(); }
->   inspect(title, value) { this.inspected = { title, value }; this.log("inspect", { title }); this.bump(); }
->   watchAdd(ptype, value) { this.watch.push({ id: nid(), ptype, value }); this.log("watch_add", { ptype }); this.bump(); }
->   watchRemove(id) { this.watch = this.watch.filter((w) => w.id !== id); this.bump(); }
->
->   doc(id) { return this.docs.find((d) => d.id === id) || this.active(); }
->   active() { return this.docs.find((d) => d.id === this.activeId) || this.docs[0]; }
->   setActive(id) { this.activeId = id; this.bump(); }
->   newDoc(dsId) { const d = { id: nid(), name: DOC_NAMES[this.docs.length % DOC_NAMES.length], chart: defaultChart(dsId) }; this.docs.push(d); this.activeId = d.id; this.bump(); return d; }
->   dupDoc(id) { const s = this.doc(id); const d = { id: nid(), name: DOC_NAMES[this.docs.length % DOC_NAMES.length], chart: cloneChart(s.chart) }; this.docs.push(d); this.activeId = d.id; this.bump(); }
->   deleteDoc(id) { if (this.docs.length < 2) return; this.docs = this.docs.filter((d) => d.id !== id); if (this.activeId === id) this.activeId = this.docs[0].id; this.bump(); }
->   setDataset(id, dsId) { this.doc(id).chart = defaultChart(dsId); this.log("dataset_set", { dataset: dsId }); this.bump(); }
->   setGeom(id, g) { this.doc(id).chart.geom = g; this.bump(); }
->   setMapping(id, slot, f) { this.doc(id).chart.map[slot] = f; this.log("encode", { slot, field: f }); this.bump(); }
->   addStep(id, s) { this.doc(id).chart.steps.push(s); this.log("step_added", { step: stepLabel(s) }); this.bump(); }
->   removeStep(id, sid) { const d = this.doc(id); d.chart.steps = d.chart.steps.filter((s) => s.id !== sid); this.bump(); }
->   toggleStep(id, sid) { const s = this.doc(id).chart.steps.find((x) => x.id === sid); if (s) s.on = !s.on; this.bump(); }
->   moveStep(id, sid, d) { const st = this.doc(id).chart.steps, i = st.findIndex((x) => x.id === sid), j = i + d;
->     if (i < 0 || j < 0 || j >= st.length) return; const t = st[i]; st[i] = st[j]; st[j] = t; this.bump(); }
->   docOfStep(sid) { return this.docs.find((d) => d.chart.steps.some((s) => s.id === sid)); }
->   filterToCat(id, field, value, keep) { this.addStep(id, mkStep("filter", { field, op: keep ? "=" : "≠", value: String(value) })); }
->   snapshot(id) { const d = this.doc(id); this.snaps.push({ id: nid(), name: d.name + "@" + this.thm, chart: cloneChart(d.chart), at: this.thm }); this.log("snapshot", {}); this.bump(); }
->   restoreSnap(sid, into) { const s = this.snaps.find((x) => x.id === sid); if (s) { this.doc(into).chart = cloneChart(s.chart); this.bump(); } }
->   deleteSnap(sid) { this.snaps = this.snaps.filter((s) => s.id !== sid); this.bump(); }
-> }
->
-> /* ============================================================
->    WINDOW MANAGER — split tree + workspaces
->    ============================================================ */
-> const DOC_APPS = ["chart", "gogtable", "gogpipe", "encode"];
-> const leaf = (app, doc) => ({ id: nid(), type: "leaf", app, doc: doc || null });
-> const split = (dir, a, b, ratio = 0.5) => ({ id: nid(), type: "split", dir, a, b, ratio });
-> function updateNode(node, id, fn) {
->   if (node.id === id) return fn(node);
->   if (node.type === "split") { const a = updateNode(node.a, id, fn), b = updateNode(node.b, id, fn); return a === node.a && b === node.b ? node : { ...node, a, b }; }
->   return node;
-> }
-> function removeLeaf(node, id) {
->   if (node.type === "leaf") return node;
->   if (node.a.type === "leaf" && node.a.id === id) return node.b;
->   if (node.b.type === "leaf" && node.b.id === id) return node.a;
->   return { ...node, a: removeLeaf(node.a, id), b: removeLeaf(node.b, id) };
-> }
-> const findLeaf = (n, id) => (n.type === "leaf" ? (n.id === id ? n : null) : findLeaf(n.a, id) || findLeaf(n.b, id));
-> const countLeaves = (n) => (n.type === "leaf" ? 1 : countLeaves(n.a) + countLeaves(n.b));
-> const cloneTree = (n) => (n.type === "leaf" ? { ...n, id: nid() } : { ...n, id: nid(), a: cloneTree(n.a), b: cloneTree(n.b) });
-> const SNAPS_R = [0.25, 1 / 3, 0.5, 2 / 3, 0.75], STICK = 0.022;
-> const snapFrac = (f) => { for (const s of SNAPS_R) if (Math.abs(f - s) < STICK) return { f: s, snapped: true }; return { f, snapped: false }; };
->
-> function WMDivider({ dir, containerRef, onRatio }) {
->   const [drag, setDrag] = useState(false);
->   const [snap, setSnap] = useState(false);
->   useEffect(() => {
->     if (!drag) return;
->     const move = (e) => {
->       const el = containerRef.current; if (!el) return;
->       const r = el.getBoundingClientRect();
->       const raw = dir === "row" ? (e.clientX - r.left) / r.width : (e.clientY - r.top) / r.height;
->       const s = snapFrac(clamp(raw, 0.12, 0.88));
->       setSnap(s.snapped); onRatio(s.f);
->     };
->     const up = () => { setDrag(false); setSnap(false); document.body.style.userSelect = ""; };
->     window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
->     return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
->   }, [drag, dir, containerRef, onRatio]);
->   return (
->     <div onMouseDown={(e) => { e.preventDefault(); document.body.style.userSelect = "none"; setDrag(true); }}
->       style={{ flex: "0 0 5px", cursor: dir === "row" ? "col-resize" : "row-resize", background: snap ? C.red : drag ? C.mustard : C.paneAlt, borderLeft: "1px solid " + C.ink, borderRight: "1px solid " + C.ink }} />
->   );
-> }
-> function NodeView({ node }) { return node.type === "leaf" ? <TileView leafNode={node} /> : <SplitView node={node} />; }
-> function SplitView({ node }) {
->   const ui = useUI(); const ref = useRef(null);
->   const setR = useCallback((r) => ui.wm.setRatio(node.id, r), [ui, node.id]);
->   return (
->     <div ref={ref} style={{ flex: 1, display: "flex", flexDirection: node.dir === "row" ? "row" : "column", minWidth: 0, minHeight: 0 }}>
->       <div style={{ flex: node.ratio, display: "flex", minWidth: 0, minHeight: 0 }}><NodeView node={node.a} /></div>
->       <WMDivider dir={node.dir} containerRef={ref} onRatio={setR} />
->       <div style={{ flex: 1 - node.ratio, display: "flex", minWidth: 0, minHeight: 0 }}><NodeView node={node.b} /></div>
->     </div>
->   );
-> }
-> function TBtn({ onClick, children, doc, disabled, tone }) {
->   const ui = useUI();
->   return (
->     <span onMouseEnter={() => ui.setMouseDoc(doc)} onMouseLeave={() => ui.setMouseDoc(null)}
->       onClick={disabled ? undefined : (e) => { e.stopPropagation(); onClick(); }}
->       style={{ cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.35 : 1, border: "1px solid " + C.ink, background: tone || C.paneAlt, padding: "0 5px", fontSize: 10, fontWeight: 700, userSelect: "none", lineHeight: "15px", whiteSpace: "nowrap" }}>{children}</span>
->   );
-> }
-> function TileView({ leafNode }) {
->   const ui = useUI(); const app = APPS[leafNode.app]; const Comp = app.comp; const drag = ui.drag;
->   const docBound = DOC_APPS.includes(leafNode.app);
->   const boundDoc = docBound ? ui.world.doc(leafNode.doc) : null;
->   const isTarget = drag && drag.over === leafNode.id && drag.from !== leafNode.id;
->   const zone = isTarget ? drag.zone : null;
->   const zoneRect = zone === "left" ? { left: 0, top: 0, bottom: 0, width: "50%" }
->     : zone === "right" ? { right: 0, top: 0, bottom: 0, width: "50%" }
->     : zone === "top" ? { top: 0, left: 0, right: 0, height: "50%" }
->     : zone === "bottom" ? { bottom: 0, left: 0, right: 0, height: "50%" }
->     : zone === "center" ? { inset: 0 } : null;
->   return (
->     <div ref={(el) => ui.wm.registerRef(leafNode.id, el)} style={{
->       flex: 1, display: "flex", flexDirection: "column", border: "2px solid " + C.ink, background: C.pane,
->       minWidth: 0, minHeight: 0, position: "relative", opacity: drag && drag.from === leafNode.id ? 0.75 : 1 }}>
->       {zoneRect && (
->         <div style={{ position: "absolute", ...zoneRect, zIndex: 5, pointerEvents: "none", background: "rgba(194,80,58,0.16)", border: "3px dashed " + C.red, display: "flex", alignItems: "center", justifyContent: "center" }}>
->           <span style={{ background: C.pane, border: "2px solid " + C.ink, boxShadow: "2px 2px 0 " + C.ink, padding: "1px 8px", fontSize: 10.5, fontWeight: 700 }}>{zone === "center" ? "⇄ swap apps" : "split-dock here"}</span>
->         </div>
->       )}
->       <div style={{ display: "flex", alignItems: "center", gap: 6, background: app.color, borderBottom: "2px solid " + C.ink, padding: "2px 6px", flexShrink: 0 }}>
->         <span onMouseDown={(e) => ui.wm.startDrag(leafNode.id, e)}
->           onMouseEnter={() => ui.setMouseDoc("drag ⠿ — drop on a tile's CENTRE to swap apps, or near an EDGE to split-dock")} onMouseLeave={() => ui.setMouseDoc(null)}
->           style={{ cursor: "grab", fontWeight: 700, userSelect: "none" }}>⠿</span>
->         <P ptype="tile" value={leafNode.id} doc={"tile [" + app.title + (boundDoc ? " · " + boundDoc.name : "") + "] — split / close / swap"}>
->           <b style={{ fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>{app.title}{boundDoc ? " · " + boundDoc.name : ""}</b>
->         </P>
->         <span style={{ flex: 1 }} />
->         <select value={leafNode.app} onChange={(e) => ui.wm.setLeafApp(leafNode.id, e.target.value)} onMouseDown={(e) => e.stopPropagation()}
->           style={{ border: "1px solid " + C.ink, background: C.pane, fontSize: 10, padding: "0 2px", fontFamily: "inherit", maxWidth: 116 }}>
->           {Object.entries(APPS).map(([id, a]) => <option key={id} value={id}>{a.title}</option>)}
->         </select>
->         <TBtn doc="split this tile: new tile to the RIGHT" onClick={() => ui.wm.splitLeaf(leafNode.id, "row")}>⬌</TBtn>
->         <TBtn doc="split this tile: new tile BELOW" onClick={() => ui.wm.splitLeaf(leafNode.id, "col")}>⬍</TBtn>
->         <TBtn doc="close this tile (its sibling absorbs the space)" disabled={!ui.wm.canClose} onClick={() => ui.wm.closeLeaf(leafNode.id)}>✕</TBtn>
->       </div>
->       <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}><Comp leafId={leafNode.id} docId={boundDoc ? boundDoc.id : null} /></div>
->     </div>
->   );
-> }
->
-> /* ============================================================
->    SHARED UI
->    ============================================================ */
-> const AppBody = ({ children, style }) => (<div style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "6px 8px", ...style }}>{children}</div>);
-> const Hint = ({ children }) => <div style={{ color: C.faint, fontSize: 10.5, marginBottom: 6, lineHeight: 1.35 }}>{children}</div>;
-> const Row = ({ children, style }) => <div style={{ display: "flex", gap: 5, alignItems: "center", flexWrap: "wrap", ...style }}>{children}</div>;
-> function Btn({ onClick, children, tone, disabled, title }) {
->   return (
->     <span title={title} onClick={disabled ? undefined : (e) => { e.stopPropagation(); onClick(); }}
->       style={{ cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.4 : 1, border: "2px solid " + C.ink, boxShadow: "2px 2px 0 " + C.ink,
->         background: tone || C.paneAlt, padding: "1px 7px", fontSize: 10.5, fontWeight: 700, userSelect: "none", whiteSpace: "nowrap", display: "inline-block" }}>{children}</span>
->   );
-> }
-> function Sel({ value, onChange, options, width }) {
->   return (
->     <select value={value} onChange={(e) => onChange(e.target.value)}
->       style={{ border: "1px solid " + C.ink, background: C.pane, fontSize: 10.5, padding: "0 2px", fontFamily: "inherit", maxWidth: width || 150 }}>
->       {options.map((o) => <option key={typeof o === "string" ? o : o.v} value={typeof o === "string" ? o : o.v}>{typeof o === "string" ? o : o.l}</option>)}
->     </select>
->   );
-> }
-> const Num = ({ value, onChange, width }) => (
->   <input value={value} onChange={(e) => onChange(e.target.value)} style={{ border: "1px solid " + C.ink, background: C.pane, fontSize: 10.5, width: width || 54, padding: "0 3px", fontFamily: "inherit" }} />
-> );
-> const Tag = ({ tone, children, title, dim }) => (
->   <span title={title} style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + (tone || C.paneAlt), background: dim ? C.paneAlt : C.pane, padding: "0 5px", fontSize: 10, whiteSpace: "nowrap" }}>{children}</span>
-> );
-> const Bar = ({ frac, tone, h }) => (
->   <span style={{ display: "inline-block", height: h || 9, flex: 1, border: "1px solid " + C.ink, background: C.pane, minWidth: 20 }}>
->     <span style={{ display: "block", height: "100%", width: clamp(frac, 0, 1) * 100 + "%", background: tone || C.blue }} />
->   </span>
-> );
-> const Head = ({ children, right }) => (
->   <div style={{ display: "flex", alignItems: "center", gap: 6, borderBottom: "2px solid " + C.ink, marginBottom: 5, paddingBottom: 2 }}>
->     <b style={{ fontSize: 10.5, letterSpacing: "0.09em", textTransform: "uppercase" }}>{children}</b>
->     <span style={{ flex: 1 }} />{right}
->   </div>
-> );
-> const JsonView = ({ v, max }) => (
->   <pre style={{ margin: 0, fontSize: 10.5, lineHeight: 1.45, whiteSpace: "pre-wrap", wordBreak: "break-word", maxHeight: max || 400, overflow: "auto" }}>
->     {JSON.stringify(v, (k, x) => (typeof x === "bigint" ? String(x) : x), 2)}
->   </pre>
-> );
->
-> /* ---- presentation chips ---- */
-> function ThmChip({ name, big }) {
->   const ui = useUI(); const w = ui.world;
->   const r = w.run(name);
->   const bad = r && (r.revoked || !r.closed || (r.kernel && !r.kernel.ok));
->   const tone = r && r.revoked ? C.line : bad ? C.red : r && r.admitted ? C.mustard : C.sage;
->   return (
->     <P ptype="theorem" value={name} doc={"<theorem> " + name + " — focus it, revoke it, print its assumptions"}
->       onActivate={() => w.setThm(name)} activateDoc="focus the whole shell on it">
->       <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + tone, background: w.thm === name ? C.sel : C.pane,
->         padding: big ? "0 6px" : "0 4px", fontSize: big ? 11 : 10, whiteSpace: "nowrap",
->         textDecoration: r && r.revoked ? "line-through" : "none" }}>{name}</span>
->     </P>
->   );
-> }
-> function TacChip({ name, idx, thm }) {
->   const ui = useUI(); const w = ui.world;
->   const off = w.disabled.has((thm || w.thm) + ":" + idx);
->   const head = tacName(name);
->   return (
->     <P ptype="tactic" value={{ thm: thm || w.thm, i: idx }} doc={"<tactic> " + name + " — " + tacBlurb(head)}
->       onActivate={() => w.gotoStep(thm || w.thm, idx + 1)} activateDoc="scrub the proof to just after it">
->       <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + tacTone(head), background: C.pane,
->         padding: "0 4px", fontSize: 10, whiteSpace: "nowrap", textDecoration: off ? "line-through" : "none", opacity: off ? 0.5 : 1 }}>{name}</span>
->     </P>
->   );
-> }
-> function ConstChip({ name, big }) {
->   const ui = useUI(); const w = ui.world; const e = w.D.env.get(name);
->   return (
->     <P ptype="const" value={name} doc={"<const> " + name + (e ? " : " + pp(e.ty) : " (revoked)") + " — inspect, unfold, print assumptions"}
->       onActivate={() => w.select("const", w.sel.const === name ? null : name)} activateDoc="select it">
->       <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + (KIND_TONE[e ? e.kind : "axiom"] || C.faint),
->         background: w.sel.const === name ? C.sel : C.pane, padding: big ? "0 6px" : "0 4px", fontSize: big ? 11 : 10, whiteSpace: "nowrap" }}>{name}</span>
->     </P>
->   );
-> }
-> function GoalChip({ g, n }) {
->   const ui = useUI(); const w = ui.world;
->   const on = w.sel.goal === g.id;
->   return (
->     <P ptype="goal" value={g.id} doc={"<goal> " + g.id + " · " + g.ctx.length + " hypotheses ⊢ " + pp(g.target)}
->       onActivate={() => w.select("goal", on ? null : g.id)} activateDoc="focus it">
->       <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + C.sage, background: on ? C.sel : C.pane, padding: "0 4px", fontSize: 10 }}>
->         {n !== undefined ? "goal " + n : g.id}
->       </span>
->     </P>
->   );
-> }
-> /* a term, rendered so that its head constant is itself a presentation */
-> function TermView({ t, big, hl }) {
->   const ui = useUI(); const w = ui.world;
->   const s = pp(t);
->   const parts = s.split(/([A-Za-z_][A-Za-z0-9_']*)/g);
->   return (
->     <P ptype="term" value={t} doc={"<term> " + s + " — normalise, unfold, send to the reduction tile"}>
->       <span style={{ fontSize: big ? 12.5 : 11.5, lineHeight: 1.5, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
->         {parts.map((p, i) => {
->           if (!/^[A-Za-z_]/.test(p)) return <span key={i}>{p}</span>;
->           const e = w.D.env.get(p);
->           if (!e) return <span key={i} style={{ background: hl === p ? C.sel : "transparent" }}>{p}</span>;
->           return <span key={i} style={{ color: KIND_TONE[e.kind] === C.faint ? C.ink : C.ink, borderBottom: "1px dotted " + (KIND_TONE[e.kind] || C.faint), background: hl === p ? C.sel : "transparent" }}>{p}</span>;
->         })}
->       </span>
->     </P>
->   );
-> }
-> function FieldChip({ name, type, doc }) {
->   return (
->     <P ptype="field" value={name} doc={doc || "<field> " + name + " (" + TYPE_LABEL[type] + ") — map to an encoding slot, filter, group"}>
->       <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + (TYPE_TONE[type] || C.faint), background: C.pane, padding: "0 4px", fontSize: 10.5, whiteSpace: "nowrap" }}>{name}</span>
->     </P>
->   );
-> }
-> function DatasetChip({ id, big }) {
->   const ui = useUI(); const d = ui.world.ds()[id];
->   return (
->     <P ptype="dataset" value={id} doc={"<dataset> " + id + " — " + (d ? d.note : "")}>
->       <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + C.sage, background: C.pane, padding: big ? "0 6px" : "0 4px", fontSize: big ? 11 : 10.5, fontWeight: big ? 700 : 400 }}>{id}</span>
->     </P>
->   );
-> }
-> function DocChip({ id, big }) {
->   const ui = useUI(); const w = ui.world; const d = w.doc(id); const act = w.activeId === id;
->   return (
->     <P ptype="doc" value={id} doc={"<doc> chart document " + d.name + (act ? " (ACTIVE)" : "") + " — activate, snapshot, duplicate"}
->       onActivate={() => w.setActive(id)} activateDoc="make it the active chart">
->       <span style={{ border: "2px solid " + C.ink, background: act ? C.sel : C.pane, padding: big ? "0 7px" : "0 5px", fontSize: big ? 12 : 11, fontWeight: 700 }}>{d.name}</span>
->     </P>
->   );
-> }
-> function DocBar({ docId, leafId }) {
->   const ui = useUI(); const w = ui.world;
->   return (
->     <div style={{ display: "flex", gap: 4, alignItems: "center", padding: "3px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
->       <span style={{ fontSize: 9.5, color: C.faint, letterSpacing: "0.08em" }}>DOC</span>
->       {w.docs.map((d) => (
->         <span key={d.id} onClick={() => ui.wm.setLeafDoc(leafId, d.id)} style={{ cursor: "pointer", opacity: d.id === docId ? 1 : 0.5 }}>
->           <DocChip id={d.id} big={d.id === docId} />
->         </span>
->       ))}
->       <TBtn doc="new chart document from this one's dataset" onClick={() => { const d = w.newDoc(w.doc(docId).chart.datasetId); ui.wm.setLeafDoc(leafId, d.id); }}>+</TBtn>
->       <span style={{ flex: 1 }} />
->       <TBtn doc="freeze the current spec as a snapshot" onClick={() => w.snapshot(docId)}>⚑ snap</TBtn>
->     </div>
->   );
-> }
->
-> /* ============================================================
->    APPS · the proof itself
->    ============================================================ */
-> const statusOf = (r) => r.revoked ? { t: "revoked", tone: C.line } : !r.closed ? { t: "open", tone: C.red }
->   : !(r.kernel && r.kernel.ok) ? { t: "kernel rejects", tone: C.red } : r.admitted ? { t: "admitted", tone: C.mustard } : { t: "proved", tone: C.sage };
->
-> function OverviewApp() {
->   const ui = useUI(); const w = ui.world;
->   const runs = w.runs();
->   const proved = runs.filter((r) => r.closed && r.kernel && r.kernel.ok && !r.admitted).length;
->   const rejected = runs.filter((r) => r.closed && r.kernel && !r.kernel.ok).length;
->   const open = runs.filter((r) => !r.closed && !r.revoked).length;
->   const tainted = runs.filter((r) => !r.revoked && w.assumptionsOf(r.name).axioms.size).length;
->   const box = (label, value, tone, doc) => (
->     <div title={doc} style={{ border: "2px solid " + C.ink, boxShadow: "2px 2px 0 " + C.ink, borderLeft: "6px solid " + tone, padding: "3px 7px", minWidth: 78, background: C.pane }}>
->       <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
->       <div style={{ fontSize: 9, color: C.faint, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}</div>
->     </div>
->   );
->   return (
->     <AppBody>
->       <Head right={<span style={{ fontSize: 10, color: C.faint }}>{w.buildMs}ms to check the development</span>}>
->         <P ptype="development" value="dev" doc="<development> the whole library — inspect it, clear every counterfactual">
->           <span style={{ borderBottom: "1px dotted " + C.faint }}>development</span></P>
->       </Head>
->       <Row style={{ marginBottom: 8 }}>
->         {box("proved", proved, C.sage, "closed, kernel-accepted, no axioms")}
->         {box("rejected", rejected, rejected ? C.red : C.faint, "the tactics closed the goals but the kernel threw the term out")}
->         {box("open", open, open ? C.red : C.faint, "a tactic failed and the proof stopped")}
->         {box("on axioms", tainted, tainted ? C.mustard : C.faint, "rests on an axiom, transitively — including admitted")}
->         {box("revoked", w.revoked.size, w.revoked.size ? C.red : C.faint, "lemmas you took away")}
->         {box("tactics off", w.disabled.size, w.disabled.size ? C.red : C.faint, "tactics you switched off")}
->       </Row>
->       {(rejected > 0) && (
->         <div style={{ border: "2px solid " + C.ink, borderLeft: "6px solid " + C.red, background: "#fdf3f0", padding: "5px 8px", marginBottom: 8, fontSize: 10.5, lineHeight: 1.45, boxShadow: "2px 2px 0 " + C.ink }}>
->           <b>{rejected} proof{rejected === 1 ? "" : "s"} closed every goal and the kernel still refused the term.</b> That is the whole reason
->           the kernel is separate from the tactics: a tactic that builds the wrong term cannot talk its way past it. The verify and bisect tiles
->           find the exact tactic responsible.
->         </div>
->       )}
->       <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 10.5 }}>
->         <thead><tr style={{ borderBottom: "2px solid " + C.ink }}>
->           {["theorem", "statement", "status", "tactics", "term", "rests on"].map((h) => <th key={h} style={{ textAlign: "left", padding: "1px 3px", fontSize: 9, color: C.faint, letterSpacing: "0.06em" }}>{h}</th>)}
->         </tr></thead>
->         <tbody>
->           {runs.map((r) => {
->             const s = statusOf(r);
->             const a = r.revoked ? null : w.assumptionsOf(r.name);
->             return (
->               <tr key={r.name} style={{ borderBottom: "1px dotted " + C.line, background: w.thm === r.name ? C.sel : "transparent" }}>
->                 <td style={{ padding: "1px 3px" }}><ThmChip name={r.name} /></td>
->                 <td style={{ padding: "1px 3px", color: C.faint, maxWidth: 210 }}>{pp(r.spec.ty)}</td>
->                 <td style={{ padding: "1px 3px" }}><Tag tone={s.tone}>{s.t}</Tag></td>
->                 <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{(r.spec.script || []).length}</td>
->                 <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums", color: C.faint }}>{r.term ? size(r.term) : "—"}</td>
->                 <td style={{ padding: "1px 3px", fontSize: 9.5, color: a && a.axioms.size ? C.red : C.faint }}>
->                   {!a ? "—" : a.axioms.size ? [...a.axioms].join(", ") : a.unproved.size ? "unproved: " + [...a.unproved].join(", ") : "nothing but the kernel"}
->                 </td>
->               </tr>
->             );
->           })}
->         </tbody>
->       </table>
->       <div style={{ marginTop: 9 }}>
->         <Head>the trust boundary</Head>
->         <div style={{ fontSize: 10.5, lineHeight: 1.5 }}>
->           Everything above the line is untrusted: the tactic engine, unification, matching, the goal display. Only three things decide whether a
->           proof is real — the typing rules, definitional equality, and the axioms in the environment. Every theorem here was re-checked from its
->           finished proof term with the tactics out of the room.
->         </div>
->       </div>
->     </AppBody>
->   );
-> }
->
-> function ScriptApp() {
->   const ui = useUI(); const w = ui.world; const r = w.run();
->   const [edit, setEdit] = useState(false);
->   const [draft, setDraft] = useState("");
->   const script = w.scriptOf();
->   const steps = w.steps();
->   return (
->     <>
->       <div style={{ display: "flex", gap: 4, alignItems: "center", padding: "4px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
->         {w.runs().map((x) => <ThmChip key={x.name} name={x.name} big={x.name === w.thm} />)}
->       </div>
->       <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "4px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
->         <TBtn doc="edit this tactic script — the development re-checks on apply" onClick={() => { setDraft(script.join("\\n")); setEdit(!edit); }}>{edit ? "cancel" : "edit script"}</TBtn>
->         {edit && <TBtn tone={C.sage} doc="re-run the proof from this script" onClick={() => { w.setScript(w.thm, draft.split("\\n").map((s) => s.trim()).filter(Boolean)); setEdit(false); }}>apply</TBtn>}
->         {w.scripts[w.thm] && <TBtn doc="back to the original script" onClick={() => w.resetScript(w.thm)}>revert</TBtn>}
->         {!!w.disabled.size && <TBtn doc="switch every disabled tactic back on" onClick={() => w.clearDisabled()}>restore all</TBtn>}
->         <span style={{ flex: 1 }} />
->         <Tag tone={statusOf(r).tone}>{statusOf(r).t}</Tag>
->       </div>
->       <AppBody>
->         <div style={{ fontSize: 11, marginBottom: 6, color: C.faint }}>{r.spec.blurb}</div>
->         <div style={{ border: "1px solid " + C.line, padding: "2px 5px", marginBottom: 7, background: C.paneAlt }}>
->           <span style={{ fontSize: 9.5, color: C.faint }}>Theorem </span><b style={{ fontSize: 11 }}>{r.name}</b>
->           <span style={{ fontSize: 9.5, color: C.faint }}> : </span><TermView t={r.spec.ty} />
->         </div>
->         {edit ? (
->           <textarea value={draft} onChange={(e) => setDraft(e.target.value)} spellCheck={false}
->             style={{ width: "100%", height: 170, border: "2px solid " + C.ink, background: C.pane, fontFamily: "inherit", fontSize: 11.5, lineHeight: 1.6, padding: 5 }} />
->         ) : (
->           <div>
->             {script.map((line, i) => {
->               const st = steps[i + 1];
->               const on = w.cursor === i + 1;
->               const off = w.disabled.has(w.thm + ":" + i);
->               const bad = st && !st.ok && !st.skipped;
->               return (
->                 <div key={i}>
->                   <div onClick={() => w.setCursor(i + 1)} style={{ display: "flex", gap: 5, alignItems: "center", cursor: "pointer",
->                     background: on ? C.sel : bad ? "#fdf3f0" : "transparent", padding: "1px 2px", borderLeft: "3px solid " + (on ? C.red : "transparent") }}>
->                     <span style={{ width: 16, color: C.faint, fontSize: 9.5, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{i + 1}</span>
->                     <TacChip name={line} idx={i} />
->                     <span style={{ flex: 1 }} />
->                     {st && st.produced && st.produced.length > 1 && <Tag tone={C.lavender}>{st.produced.length} goals</Tag>}
->                     {st && st.state && <span style={{ fontSize: 9, color: C.faint }}>{st.state.goals.length} left</span>}
->                     {bad && <Tag tone={C.red}>fails</Tag>}
->                     <TBtn doc={off ? "switch this tactic back on" : "switch this tactic off and re-run the proof without it"} onClick={() => w.toggleTactic(w.thm, i)}>{off ? "○" : "●"}</TBtn>
->                   </div>
->                   {on && st && (
->                     <div style={{ fontSize: 10, color: bad ? C.red : C.faint, paddingLeft: 24, lineHeight: 1.4, marginBottom: 3 }}>
->                       {st.err ? st.err.split("\\n").map((l, j) => <div key={j}>{l}</div>) : st.note || tacBlurb(tacName(line))}
->                     </div>
->                   )}
->                 </div>
->               );
->             })}
->             {r.failed && <div style={{ marginTop: 6, border: "2px solid " + C.ink, borderLeft: "6px solid " + C.red, background: "#fdf3f0", padding: "4px 7px", fontSize: 10.5, lineHeight: 1.45 }}>
->               the proof stops at tactic {r.failed.at}. Everything after it never ran.
->             </div>}
->             {r.closed && <div style={{ marginTop: 6, fontSize: 10.5 }}>
->               <Tag tone={r.kernel.ok ? C.sage : C.red}>{r.kernel.ok ? "Qed — kernel accepted" : "kernel REJECTED the finished term"}</Tag>
->             </div>}
->           </div>
->         )}
->       </AppBody>
->     </>
->   );
-> }
->
-> function GoalsApp() {
->   const ui = useUI(); const w = ui.world;
->   const st = w.step(); const goals = w.goals();
->   const prev = w.steps()[w.cursor - 1];
->   const prevGoal = prev && prev.state && prev.state.goals[0];
->   const focus = w.focusGoal();
->   const newHyps = new Set();
->   if (focus && prevGoal) { const old = new Set(prevGoal.ctx.map((c) => c.name + ":" + pp(c.ty))); focus.ctx.forEach((c) => { if (!old.has(c.name + ":" + pp(c.ty))) newHyps.add(c.name); }); }
->   const changed = focus && prevGoal && !alphaEq(focus.target, prevGoal.target);
->   return (
->     <>
->       <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "4px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
->         <ThmChip name={w.thm} big />
->         <Tag tone={goals.length ? C.mustard : C.sage}>{goals.length ? goals.length + " goal" + (goals.length === 1 ? "" : "s") : "no goals left"}</Tag>
->         <span style={{ fontSize: 10, color: C.faint }}>after {st.i === 0 ? "the statement" : "`" + st.tac + "`"}</span>
->       </div>
->       <AppBody>
->         {!goals.length && (
->           <div style={{ fontSize: 11, lineHeight: 1.5, border: "1px solid " + C.ink, borderLeft: "4px solid " + C.sage, padding: "5px 7px" }}>
->             every goal is closed. The proof term is complete — the kernel tile says whether it survives type checking.
->           </div>
->         )}
->         {goals.map((g, gi) => {
->           const on = focus && g.id === focus.id;
->           return (
->             <div key={g.id} style={{ marginBottom: 8, border: on ? "2px solid " + C.ink : "1px solid " + C.line, boxShadow: on ? "2px 2px 0 " + C.ink : "none", padding: "4px 7px", background: C.pane }}>
->               <Row style={{ marginBottom: 3 }}>
->                 <GoalChip g={g} n={gi + 1} />
->                 <span style={{ fontSize: 9.5, color: C.faint }}>{g.ctx.length} hypotheses</span>
->                 {gi === 0 && <Tag tone={C.mustard}>in focus — tactics act here</Tag>}
->               </Row>
->               {g.ctx.map((h) => (
->                 <div key={h.name} style={{ fontSize: 11.5, lineHeight: 1.5, background: newHyps.has(h.name) && on ? C.add : "transparent" }}>
->                   <P ptype="hyp" value={{ goal: g.id, name: h.name }} doc={"<hyp> " + h.name + " : " + pp(h.ty) + " — rewrite with it, apply it, use it to close the goal"}>
->                     <b style={{ borderBottom: "1px dotted " + C.faint }}>{h.name}</b>
->                   </P>
->                   <span style={{ color: C.faint }}> : </span><TermView t={h.ty} />
->                 </div>
->               ))}
->               <div style={{ borderTop: "1px solid " + C.ink, margin: "3px 0", height: 0 }} />
->               <div style={{ background: changed && on ? C.add : "transparent" }}><TermView t={g.target} big /></div>
->             </div>
->           );
->         })}
->         {prevGoal && focus && (changed || newHyps.size) && (
->           <div style={{ fontSize: 10, color: C.faint, lineHeight: 1.45 }}>
->             {newHyps.size ? "new above the line: " + [...newHyps].join(", ") + ". " : ""}
->             {changed ? "the goal itself changed — was " + pp(prevGoal.target) : ""}
->           </div>
->         )}
->       </AppBody>
->     </>
->   );
-> }
->
-> /* the proof tree — a tactic consumes one goal and produces several */
-> function proofTree(run) {
->   const nodes = new Map();
->   (run.steps || []).forEach((s) => {
->     if (!s.i) { (s.produced || []).forEach((g) => nodes.set(g.id, { id: g.id, goal: g, parent: null, children: [], step: 0 })); return; }
->     if (s.disabled || !s.ok || !s.consumed) return;
->     const p = nodes.get(s.consumed.id);
->     if (p) { p.closedBy = s.tac; p.closedAt = s.i; }
->     (s.produced || []).forEach((g) => {
->       nodes.set(g.id, { id: g.id, goal: g, parent: s.consumed.id, children: [], step: s.i, tactic: s.tac });
->       if (p) p.children.push(g.id);
->     });
->   });
->   return nodes;
-> }
-> function GoalTreeApp() {
->   const ui = useUI(); const w = ui.world; const r = w.run();
->   const nodes = useMemo(() => proofTree(r), [r]);
->   const roots = [...nodes.values()].filter((n) => !n.parent);
->   const depth = (n) => { let d = 0, x = n; while (x.parent && nodes.get(x.parent)) { d++; x = nodes.get(x.parent); } return d; };
->   const leaves = [];
->   const order = [];
->   (function dfs(id) { const n = nodes.get(id); if (!n) return; order.push(id); if (!n.children.length) leaves.push(id); n.children.forEach(dfs); })(roots[0] && roots[0].id);
->   const xs = {}; let li = 0;
->   const assign = (id) => { const n = nodes.get(id); if (!n) return 0;
->     if (!n.children.length) { xs[id] = li++; return xs[id]; }
->     const cs = n.children.map(assign); xs[id] = cs.reduce((a, b) => a + b, 0) / cs.length; return xs[id]; };
->   if (roots[0]) assign(roots[0].id);
->   const maxD = Math.max(1, ...order.map((id) => depth(nodes.get(id))));
->   const W = Math.max(200, (li || 1) * 96), H = 30 + (maxD + 1) * 54;
->   const px = (id) => 42 + xs[id] * 96, py = (id) => 18 + depth(nodes.get(id)) * 54;
->   const cur = w.step();
->   const live = new Set((cur.state ? cur.state.goals : []).map((g) => g.id));
->   return (
->     <>
->       <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "4px 8px 0", flexShrink: 0 }}>
->         <ThmChip name={w.thm} big />
->         <span style={{ fontSize: 10, color: C.faint }}>{order.length} goals over the whole proof · {leaves.length} leaves</span>
->       </div>
->       <AppBody>
->         <Hint>each node is a goal, each edge the tactic that produced it. <b>induction</b> is where the proof stops being a line. Filled nodes are open at the transport's current position.</Hint>
->         <svg viewBox={"0 0 " + W + " " + H} style={{ width: "100%", maxHeight: H * 2.2, display: "block" }}>
->           {order.map((id) => { const n = nodes.get(id); if (!n.parent || !nodes.get(n.parent)) return null;
->             const x1 = px(n.parent), y1 = py(n.parent) + 11, x2 = px(id), y2 = py(id) - 11;
->             return (<g key={"e" + id}>
->               <path d={`M${x1} ${y1} C ${x1} ${y1 + 18}, ${x2} ${y2 - 18}, ${x2} ${y2}`} fill="none" stroke={C.ink} strokeWidth={1.1} />
->               <text x={(x1 + x2) / 2 + 3} y={(y1 + y2) / 2 + 3} fontSize={7.5} fill={C.faint} fontFamily="inherit" textAnchor="middle">{tacName(n.tactic)}</text>
->             </g>); })}
->           {order.map((id) => { const n = nodes.get(id); const open = live.has(id);
->             return (
->               <P key={id} ptype="goal" value={id} svg doc={"<goal> " + id + " — " + n.goal.ctx.length + " hypotheses ⊢ " + pp(n.goal.target) + (n.closedBy ? "   closed by " + n.closedBy : "   still open")}
->                 onActivate={() => { w.select("goal", id); if (n.closedAt) w.setCursor(n.closedAt); }} activateDoc="scrub to where it was closed">
->                 <g>
->                   <rect x={px(id) - 40} y={py(id) - 11} width={80} height={22} rx={0}
->                     fill={open ? C.sel : n.closedBy ? C.pane : C.paneAlt} stroke={C.ink} strokeWidth={open ? 2.4 : 1.4} />
->                   <text x={px(id)} y={py(id) - 1} textAnchor="middle" fontSize={7.5} fill={C.ink} fontFamily="inherit">
->                     {pp(n.goal.target).slice(0, 17)}
->                   </text>
->                   <text x={px(id)} y={py(id) + 7} textAnchor="middle" fontSize={6.5} fill={C.faint} fontFamily="inherit">
->                     {n.goal.ctx.length} hyp · {n.closedBy ? tacName(n.closedBy) : "open"}
->                   </text>
->                 </g>
->               </P>
->             ); })}
->         </svg>
->       </AppBody>
->     </>
->   );
-> }
->
-> /* ============================================================
->    APPS · the term, the kernel, the library
->    ============================================================ */
-> /* one reduction step, leftmost-outermost — for the reduction tile */
-> function step1(env, t) {
->   const { head, args } = spine(t);
->   if (head.k === "lam" && args.length) return { t: AP(subst(head.b, head.x, args[0]), ...args.slice(1)), rule: "β", note: "applied a lambda to its argument" };
->   if (head.k === "const") {
->     const e = env.get(head.n);
->     if (head.n === "nat_rect" && args.length >= 4) {
->       const sp = spine(whnf(env, args[3]));
->       if (sp.head.k === "const" && sp.head.n === "O") return { t: AP(args[1], ...args.slice(4)), rule: "ι", note: "nat_rect on O takes the base branch" };
->       if (sp.head.k === "const" && sp.head.n === "S") return { t: AP(args[2], sp.args[0], AP(K("nat_rect"), args[0], args[1], args[2], sp.args[0]), ...args.slice(4)), rule: "ι", note: "nat_rect on S n takes the step branch and recurses" };
->     }
->     if (head.n === "eq_rect" && args.length >= 6) {
->       const sp = spine(whnf(env, args[5]));
->       if (sp.head.k === "const" && sp.head.n === "refl") return { t: AP(args[3], ...args.slice(6)), rule: "ι", note: "eq_rect on refl returns its argument unchanged" };
->     }
->     if (e && e.kind === "def" && e.body) return { t: AP(e.body, ...args), rule: "δ", note: "unfolded " + head.n };
->   }
->   for (let i = 0; i < args.length; i++) {
->     const r = step1(env, args[i]);
->     if (r) { const as = args.slice(); as[i] = r.t; return { t: AP(head, ...as), rule: r.rule, note: r.note }; }
->   }
->   if (t.k === "lam" || t.k === "pi") { const r = step1(env, t.b); if (r) return { t: { ...t, b: r.t }, rule: r.rule, note: r.note }; }
->   return null;
-> }
->
-> function StepApp() {
->   const ui = useUI(); const w = ui.world;
->   const st = w.step(); const r = w.run();
->   const chk = st.refine ? checkStep(w.D.env, st) : null;
->   const level = (label, tone, body, note) => (
->     <div key={label} style={{ display: "flex", gap: 6, marginBottom: 4, borderBottom: "1px dotted " + C.line, paddingBottom: 3 }}>
->       <div style={{ width: 54, flexShrink: 0 }}>
->         <Tag tone={tone}>{label}</Tag>
->         {note && <div style={{ fontSize: 8.5, color: C.faint, marginTop: 2, lineHeight: 1.2 }}>{note}</div>}
->       </div>
->       <div style={{ flex: 1, minWidth: 0, fontSize: 10.5, lineHeight: 1.45 }}>{body}</div>
->     </div>
->   );
->   if (!st.i) return <AppBody><Hint>this is the statement, before any tactic has run. Step the transport forward and this tile shows what each tactic did — the goal it consumed, the piece of proof term it wrote, and whether the kernel accepts that piece on its own.</Hint></AppBody>;
->   return (
->     <>
->       <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "4px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
->         <Tag tone={tacTone(tacName(st.tac))}>tactic {st.i}</Tag>
->         <b style={{ fontSize: 11 }}>{st.tac}</b>
->         {st.disabled && <Tag tone={C.red}>switched off</Tag>}
->         {chk && <Tag tone={chk.ok ? C.sage : C.red}>{chk.ok ? "kernel accepts this step" : "kernel rejects this step"}</Tag>}
->       </div>
->       <AppBody>
->         {level("tactic", tacTone(tacName(st.tac)), <><b>{st.tac}</b><div style={{ color: C.faint, marginTop: 1 }}>{tacBlurb(tacName(st.tac))}</div></>, "what you wrote")}
->         {st.err && level("error", C.red, <span style={{ color: C.red, whiteSpace: "pre-wrap" }}>{st.err}</span>, "it failed")}
->         {st.consumed && level("goal in", C.sage, <>
->           {st.consumed.ctx.map((h) => <div key={h.name}><b>{h.name}</b><span style={{ color: C.faint }}> : </span>{pp(h.ty)}</div>)}
->           <div style={{ borderTop: "1px solid " + C.ink, margin: "2px 0" }} />
->           <TermView t={st.consumed.target} />
->         </>, "consumed")}
->         {st.note && level("effect", C.faint, st.note, "in words")}
->         {st.refine && level("term", C.blue, <TermView t={st.refine} />, "written into the proof")}
->         {!!(st.produced || []).length && level("goals out", C.mustard, st.produced.map((g, i) => (
->           <div key={g.id} style={{ marginBottom: 2 }}>
->             <GoalChip g={g} n={i + 1} /> <span style={{ color: C.faint }}>{g.ctx.length} hyp ⊢ </span>{pp(g.target)}
->           </div>
->         )), "produced")}
->         {chk && level("kernel", chk.ok ? C.sage : C.red,
->           chk.ok
->             ? <>this refinement type-checks in the context of the goal it acted on, with each hole standing for the goal it opened.
->                 <div style={{ color: C.faint, marginTop: 2 }}>{Object.entries(chk.st.rules).map(([k, v]) => k + " " + v).join(" · ")} · {chk.st.conv} conversion checks</div></>
->             : <span style={{ color: C.red, whiteSpace: "pre-wrap" }}>{chk.err}</span>,
->           "checked alone")}
->         {!chk && !st.err && level("kernel", C.faint, "this tactic only changed how the goal is presented — it wrote nothing into the term, so there is nothing to check.", "conversion")}
->       </AppBody>
->     </>
->   );
-> }
->
-> function TermApp() {
->   const ui = useUI(); const w = ui.world; const r = w.run();
->   const [mode, setMode] = useState("final");
->   const partial = (() => { const s = w.step(); if (!s.state) return null; return instMeta(META(s.state.root), s.state.assign); })();
->   const t = mode === "final" ? r.term : partial;
->   return (
->     <>
->       <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "4px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
->         <TBtn tone={mode === "final" ? C.sel : C.paneAlt} doc="the finished proof term" onClick={() => setMode("final")}>final</TBtn>
->         <TBtn tone={mode === "partial" ? C.sel : C.paneAlt} doc="the term as it stands at the transport's position, holes and all" onClick={() => setMode("partial")}>at cursor</TBtn>
->         <span style={{ flex: 1 }} />
->         {t && <span style={{ fontSize: 10, color: C.faint }}>{size(t)} nodes · depth {depthOf(t)}</span>}
->       </div>
->       <AppBody>
->         <Hint>a tactic script is a program that writes this. Tactics are convenience; this term is the proof, and it is what the kernel reads.</Hint>
->         {!t && <div style={{ fontSize: 10.5, color: C.faint }}>the proof is not finished, so there is no complete term yet.</div>}
->         {t && <div style={{ border: "1px solid " + C.line, padding: "5px 7px", background: C.pane }}><TermView t={t} big hl={w.sel.const} /></div>}
->         {t && (
->           <div style={{ marginTop: 9 }}>
->             <Head>constants it mentions</Head>
->             <Row>{[...constsIn(t)].map((c) => <ConstChip key={c} name={c} />)}</Row>
->           </div>
->         )}
->         {mode === "partial" && <div style={{ marginTop: 8, fontSize: 10, color: C.faint, lineHeight: 1.45 }}>
->           each <b>?g</b> is a hole waiting for a goal to be closed. Scrub the transport and watch them get filled in.
->         </div>}
->       </AppBody>
->     </>
->   );
-> }
->
-> function KernelApp() {
->   const ui = useUI(); const w = ui.world; const r = w.run();
->   const ks = r.kstats;
->   const rules = ks ? Object.entries(ks.rules).sort((a, b) => b[1] - a[1]) : [];
->   const max = Math.max(1, ...rules.map((x) => x[1]));
->   return (
->     <AppBody>
->       <Head right={<ThmChip name={w.thm} />}>the kernel</Head>
->       <div style={{ border: "2px solid " + C.ink, borderLeft: "6px solid " + (r.kernel && r.kernel.ok ? C.sage : C.red), boxShadow: "2px 2px 0 " + C.ink,
->         background: r.kernel && r.kernel.ok ? "#f4faf6" : "#fdf3f0", padding: "5px 8px", marginBottom: 9, fontSize: 10.5, lineHeight: 1.45 }}>
->         <b>{r.kernel && r.kernel.ok ? "accepted" : "rejected"}</b>
->         <div style={{ whiteSpace: "pre-wrap", marginTop: 2 }}>{r.kernel ? r.kernel.msg : "the proof never finished, so nothing was submitted"}</div>
->       </div>
->       {ks && (
->         <>
->           <Head>inference rules applied</Head>
->           <div style={{ marginBottom: 9 }}>
->             {rules.map(([k, v]) => (
->               <div key={k} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 2 }}>
->                 <span style={{ width: 54 }}><P ptype="rule" value={k} doc={"<rule> the " + k + " typing rule"}><Tag tone={C.mint}>{k}</Tag></P></span>
->                 <Bar frac={v / max} tone={C.mint} />
->                 <span style={{ fontSize: 9.5, color: C.faint, width: 34, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{v}</span>
->               </div>
->             ))}
->           </div>
->           <Head>reductions performed while checking</Head>
->           <Row style={{ marginBottom: 9 }}>
->             <Tag tone={C.blue}>β {ks.beta}</Tag><Tag tone={C.lavender}>δ {ks.delta}</Tag><Tag tone={C.mustard}>ι {ks.iota}</Tag>
->             <Tag tone={C.rose}>{ks.conv} conversion checks</Tag><Tag tone={C.faint}>{ks.ms}ms</Tag>
->           </Row>
->         </>
->       )}
->       <Head>what is actually trusted</Head>
->       <div style={{ fontSize: 10.5, lineHeight: 1.55 }}>
->         <div style={{ marginBottom: 4 }}><b>Trusted:</b> the typing rules, weak head normalisation, definitional equality, and every axiom in the
->         environment. About three hundred lines. That is the whole of what has to be right.</div>
->         <div style={{ marginBottom: 4 }}><b>Not trusted:</b> every tactic, unification, first-order matching, the goal display, this entire shell.
->         A tactic that produces a wrong term does not produce a wrong theorem — it produces a rejected one.</div>
->         <div style={{ color: C.faint }}>The sorts are predicative: Type0 : Type1 : Type2, with the product rule taking the maximum. Two inductive
->         families are built in — nat and eq — with their eliminators given as constants and their ι-rules built into normalisation, rather than a
->         general scheme for declaring new inductive types.</div>
->       </div>
->     </AppBody>
->   );
-> }
->
-> function ReduceApp() {
->   const ui = useUI(); const w = ui.world;
->   const g = w.focusGoal();
->   const seed = w.sel.term || (g ? g.target : null);
->   const [chain, setChain] = useState([]);
->   const [base, setBase] = useState(null);
->   const cur = chain.length ? chain[chain.length - 1].t : (base || seed);
->   useEffect(() => { setChain([]); setBase(seed); }, [seed && pp(seed)]);
->   const doStep = () => { const r = step1(w.D.env, cur); if (r) setChain(chain.concat([r])); };
->   const doAll = () => { let t = cur, out = chain.slice(); for (let i = 0; i < 60; i++) { const r = step1(w.D.env, t); if (!r) break; out.push(r); t = r.t; } setChain(out); };
->   return (
->     <AppBody>
->       <Head right={<Row>
->         <TBtn doc="contract the leftmost outermost redex once" onClick={doStep}>one step</TBtn>
->         <TBtn doc="reduce to normal form" onClick={doAll}>normalise</TBtn>
->         <TBtn doc="apply simpl, which refolds definitions afterwards" onClick={() => setChain(chain.concat([{ t: simplify(w.D.env, cur), rule: "simpl", note: "reduce where a constructor is exposed, then refold" }]))}>simpl</TBtn>
->         <TBtn doc="start again from the goal" onClick={() => { setChain([]); setBase(seed); }}>reset</TBtn>
->       </Row>}>reduction</Head>
->       <Hint>this is the machinery behind <b>reflexivity</b>: two sides are equal when they reduce to the same normal form. β applies a lambda, δ unfolds a definition, ι fires an eliminator on a constructor.</Hint>
->       {!seed && <div style={{ fontSize: 10.5, color: C.faint }}>no goal in focus.</div>}
->       {seed && (
->         <>
->           <div style={{ border: "1px solid " + C.line, padding: "3px 6px", marginBottom: 3, background: C.paneAlt }}><TermView t={base || seed} /></div>
->           {chain.map((r, i) => (
->             <div key={i} style={{ display: "flex", gap: 6, marginBottom: 2 }}>
->               <span style={{ width: 26, flexShrink: 0 }}><Tag tone={r.rule === "β" ? C.blue : r.rule === "δ" ? C.lavender : r.rule === "ι" ? C.mustard : C.faint}>{r.rule}</Tag></span>
->               <span style={{ flex: 1, minWidth: 0 }}>
->                 <TermView t={r.t} />
->                 <div style={{ fontSize: 9, color: C.faint }}>{r.note}</div>
->               </span>
->             </div>
->           ))}
->           {chain.length > 0 && !step1(w.D.env, cur) && <div style={{ marginTop: 4 }}><Tag tone={C.sage}>normal form — nothing left to contract</Tag></div>}
->         </>
->       )}
->     </AppBody>
->   );
-> }
->
-> function LibraryApp() {
->   const ui = useUI(); const w = ui.world;
->   const groups = [["ind", "inductive families"], ["ctor", "constructors"], ["rec", "eliminators"], ["def", "definitions"], ["thm", "theorems"], ["axiom", "axioms"]];
->   return (
->     <AppBody>
->       <Head right={<span style={{ fontSize: 10, color: C.faint }}>{w.D.env.size} constants</span>}>environment</Head>
->       {groups.map(([kind, label]) => {
->         const items = [...w.D.env.values()].filter((e) => e.kind === kind);
->         if (!items.length) return null;
->         return (
->           <div key={kind} style={{ marginBottom: 8 }}>
->             <div style={{ fontSize: 9.5, color: C.faint, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 2 }}>{label}</div>
->             {items.map((e) => (
->               <div key={e.name} style={{ marginBottom: 2, fontSize: 10.5, lineHeight: 1.45 }}>
->                 <Row>
->                   <ConstChip name={e.name} big />
->                   <span style={{ color: C.faint }}>:</span>
->                   <span style={{ flex: 1, minWidth: 0 }}><TermView t={e.ty} /></span>
->                   {e.kind === "thm" && <Tag tone={e.proved ? (e.admitted ? C.mustard : C.sage) : C.red}>{e.proved ? (e.admitted ? "admitted" : "proved") : "not proved"}</Tag>}
->                   {e.kind === "axiom" && <Tag tone={C.red}>assumed</Tag>}
->                 </Row>
->                 {e.note && <div style={{ fontSize: 9.5, color: C.faint, paddingLeft: 4 }}>{e.note}</div>}
->               </div>
->             ))}
->           </div>
->         );
->       })}
->       {!!w.revoked.size && (
->         <div style={{ marginTop: 6 }}>
->           <Head>revoked</Head>
->           <Row>{[...w.revoked].map((n) => <span key={n}><Tag tone={C.red}>{n}</Tag></span>)}</Row>
->           <div style={{ marginTop: 4 }}><Btn tone={C.mint} onClick={() => w.clearRevoked()}>put them all back</Btn></div>
->         </div>
->       )}
->     </AppBody>
->   );
-> }
->
-> function DepsApp() {
->   const ui = useUI(); const w = ui.world;
->   const a = w.assumptionsOf(w.thm);
->   const names = [...w.D.env.values()].filter((e) => e.kind === "thm" || (e.kind === "def" && e.name === "eq_sym") || e.kind === "axiom").map((e) => e.name);
->   const edges = [];
->   names.forEach((n) => directDeps(w.D.env, n).forEach((d) => { if (names.includes(d)) edges.push([n, d]); }));
->   [...w.D.env.values()].forEach((e) => { if (e.kind === "thm" && e.body && constsIn(e.body).has("admitted")) edges.push([e.name, "admitted"]); });
->   const lvl = {}; names.forEach((n) => (lvl[n] = 0));
->   for (let it = 0; it < 8; it++) edges.forEach(([a2, b]) => { if (lvl[a2] <= lvl[b]) lvl[a2] = lvl[b] + 1; });
->   const byLvl = {}; names.forEach((n) => (byLvl[lvl[n]] = (byLvl[lvl[n]] || []).concat([n])));
->   const W = 300, rowH = 44;
->   const pos = {}; Object.entries(byLvl).forEach(([l, ns]) => ns.forEach((n, i) => (pos[n] = { x: (W / (ns.length + 1)) * (i + 1), y: 18 + (Math.max(...Object.keys(byLvl).map(Number)) - +l) * rowH })));
->   const H = 30 + (Math.max(...Object.keys(byLvl).map(Number)) + 1) * rowH;
->   const reach = new Set([w.thm]); for (let i = 0; i < 6; i++) edges.forEach(([a2, b]) => { if (reach.has(a2)) reach.add(b); });
->   return (
->     <AppBody>
->       <Head right={<ThmChip name={w.thm} />}>what this proof rests on</Head>
->       <svg viewBox={"0 0 " + W + " " + H} style={{ width: "100%", maxHeight: H * 2, display: "block", marginBottom: 6 }}>
->         {edges.map(([a2, b], i) => { const p = pos[a2], q = pos[b]; if (!p || !q) return null;
->           const on = reach.has(a2) && reach.has(b);
->           return <path key={i} d={`M${p.x} ${p.y + 9} C ${p.x} ${p.y + 22}, ${q.x} ${q.y - 22}, ${q.x} ${q.y - 9}`} fill="none"
->             stroke={on ? C.ink : C.line} strokeWidth={on ? 1.5 : 1} />; })}
->         {names.map((n) => { const p = pos[n]; if (!p) return null;
->           const e = w.D.env.get(n); const on = reach.has(n);
->           return (
->             <P key={n} ptype="const" value={n} svg doc={"<const> " + n + " — " + (e ? e.kind : "?") + (reach.has(n) ? "; " + w.thm + " depends on it" : "")}
->               onActivate={() => (e && e.kind === "thm" ? w.setThm(n) : w.select("const", n))} activateDoc="focus it">
->               <g>
->                 <rect x={p.x - 44} y={p.y - 9} width={88} height={18} fill={n === w.thm ? C.sel : on ? C.pane : C.paneAlt}
->                   stroke={e && e.kind === "axiom" ? C.red : C.ink} strokeWidth={n === w.thm ? 2.4 : 1.3} strokeDasharray={e && e.kind === "axiom" ? "3 2" : "none"} />
->                 <text x={p.x} y={p.y + 3} textAnchor="middle" fontSize={7.5} fill={on ? C.ink : C.faint} fontFamily="inherit">{n}</text>
->               </g>
->             </P>
->           ); })}
->       </svg>
->       <Head>print assumptions</Head>
->       <div style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + (a.closed ? C.sage : C.red), padding: "4px 7px", fontSize: 10.5, lineHeight: 1.5, background: C.pane }}>
->         {a.closed
->           ? <><b>Closed under the global context.</b> This proof uses nothing but the typing rules, the two inductive families and their eliminators, and lemmas that are themselves closed.</>
->           : <>
->               <b>Not closed.</b>
->               {!!a.axioms.size && <div>axioms: {[...a.axioms].map((x) => <span key={x} style={{ marginRight: 4 }}><P ptype="axiom" value={x} doc={"<axiom> " + x + " — assumed, never proved"}><Tag tone={C.red}>{x}</Tag></P></span>)}</div>}
->               {!!a.unproved.size && <div>lemmas whose own proofs did not survive: {[...a.unproved].map((x) => <span key={x} style={{ marginRight: 4 }}><ThmChip name={x} /></span>)}</div>}
->               {!!a.missing.size && <div>revoked and now missing: {[...a.missing].join(", ")}</div>}
->             </>}
->       </div>
->       <div style={{ marginTop: 7, fontSize: 10.5 }}>
->         <div>lemmas used, transitively: {a.thms.size ? [...a.thms].map((x) => <span key={x} style={{ marginRight: 3 }}><ThmChip name={x} /></span>) : <span style={{ color: C.faint }}>none</span>}</div>
->         <div style={{ marginTop: 3 }}>definitions: {[...a.defs].map((x) => <span key={x} style={{ marginRight: 3 }}><ConstChip name={x} /></span>)}</div>
->         <div style={{ marginTop: 3, color: C.faint }}>kernel primitives: {[...a.kernel].join(", ")}</div>
->       </div>
->     </AppBody>
->   );
-> }
->
-> function RevokeApp() {
->   const ui = useUI(); const w = ui.world;
->   const [pick, setPick] = useState(null);
->   const impact = useMemo(() => (pick ? revokeImpact(pick, { disabled: w.disabled, unsoundRewrite: w.unsound, scripts: w.scripts }) : null), [pick, w.disabled.size, w.unsound, w.D]);
->   const candidates = DEV.map((d) => d.name).concat(["eq_sym"]);
->   return (
->     <AppBody>
->       <Head right={w.revoked.size ? <TBtn doc="put every revoked lemma back" onClick={() => w.clearRevoked()}>restore all</TBtn> : null}>revocation</Head>
->       <Hint>take a lemma out of the library and the whole development is re-checked without it. Some proofs fail outright at a named tactic; others still close but now rest on something that is no longer proved.</Hint>
->       <Row style={{ marginBottom: 8 }}>
->         {candidates.map((n) => (
->           <span key={n} onClick={() => setPick(n)} style={{ cursor: "pointer" }}>
->             <span style={{ border: "2px solid " + C.ink, boxShadow: pick === n ? "2px 2px 0 " + C.ink : "none",
->               background: w.revoked.has(n) ? C.del : pick === n ? C.sel : C.paneAlt, padding: "1px 6px", fontSize: 10.5, fontWeight: 700 }}>{n}</span>
->           </span>
->         ))}
->       </Row>
->       {!pick && <div style={{ fontSize: 10.5, color: C.faint }}>pick a lemma to see what would fall.</div>}
->       {impact && (
->         <>
->           <Row style={{ marginBottom: 5 }}>
->             <b style={{ fontSize: 11 }}>if {pick} were not available</b>
->             <Btn tone={w.revoked.has(pick) ? C.mint : C.rose} onClick={() => w.toggleRevoke(pick)}>{w.revoked.has(pick) ? "put it back" : "actually revoke it"}</Btn>
->           </Row>
->           <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 10.5 }}>
->             <tbody>
->               {impact.rows.map((row) => (
->                 <tr key={row.name} style={{ borderBottom: "1px dotted " + C.line }}>
->                   <td style={{ padding: "1px 3px" }}><ThmChip name={row.name} /></td>
->                   <td style={{ padding: "1px 3px" }}>
->                     {row.wasOk && !row.nowOk ? <Tag tone={C.red}>breaks at tactic {row.at}</Tag>
->                       : row.tainted ? <Tag tone={C.mustard}>closes, but on an unproved lemma</Tag>
->                       : <span style={{ color: C.faint }}>unaffected</span>}
->                   </td>
->                   <td style={{ padding: "1px 3px", color: C.faint, fontSize: 9.5 }}>{row.why || ""}</td>
->                 </tr>
->               ))}
->             </tbody>
->           </table>
->           <div style={{ marginTop: 6, fontSize: 10.5, lineHeight: 1.45 }}>
->             {impact.broke.length
->               ? <>{impact.broke.length} proof{impact.broke.length === 1 ? "" : "s"} stop{impact.broke.length === 1 ? "s" : ""} outright{impact.tainted.length ? ", and " + impact.tainted.length + " more end up resting on something unproved" : ""}.</>
->               : <>nothing depends on it — this lemma is dead weight in the library.</>}
->           </div>
->         </>
->       )}
->     </AppBody>
->   );
-> }
->
-> function SearchApp() {
->   const ui = useUI(); const w = ui.world;
->   const g = w.focusGoal();
->   const applies = useMemo(() => (g ? searchApplicable(w.D.env, g) : []), [g && g.id, w.D]);
->   const rews = useMemo(() => (g ? searchRewrites(w.D.env, g) : []), [g && g.id, w.D]);
->   const insert = (line) => {
->     const s = w.scriptOf().slice();
->     s.splice(w.cursor, 0, line);
->     w.setScript(w.thm, s); w.setCursor(w.cursor + 1);
->   };
->   return (
->     <AppBody>
->       <Head right={g ? <GoalChip g={g} /> : null}>what fits here</Head>
->       {!g && <Hint>no open goal at this position.</Hint>}
->       {g && (
->         <>
->           <div style={{ border: "1px solid " + C.line, padding: "3px 6px", marginBottom: 7, background: C.paneAlt }}>
->             {g.ctx.map((h) => <div key={h.name} style={{ fontSize: 10.5 }}><b>{h.name}</b> : {pp(h.ty)}</div>)}
->             <div style={{ borderTop: "1px solid " + C.ink, margin: "2px 0" }} />
->             <TermView t={g.target} />
->           </div>
->           <Head right={<span style={{ fontSize: 10, color: C.faint }}>{applies.length}</span>}>apply</Head>
->           {!applies.length && <div style={{ fontSize: 10.5, color: C.faint, marginBottom: 7 }}>nothing in the library unifies with this goal.</div>}
->           {applies.map((s) => (
->             <div key={s.name + s.kind} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 2 }}>
->               <span style={{ width: 106 }}>{s.kind === "hypothesis" ? <Tag tone={C.blue}>{s.name}</Tag> : <ConstChip name={s.name} />}</span>
->               <span style={{ fontSize: 9.5, color: s.unsolved ? C.mustard : C.addInk, width: 88 }}>{s.unsolved ? "leaves " + s.unsolved + " goal" + (s.unsolved === 1 ? "" : "s") : "closes it"}</span>
->               <span style={{ flex: 1, fontSize: 9.5, color: C.faint, minWidth: 0 }}>{s.inst.filter((x) => x !== "?").join(", ")}</span>
->               <TBtn doc={"insert `apply " + s.name + "` at the cursor and re-run"} onClick={() => insert("apply " + s.name)}>insert</TBtn>
->             </div>
->           ))}
->           <div style={{ height: 8 }} />
->           <Head right={<span style={{ fontSize: 10, color: C.faint }}>{rews.length}</span>}>rewrite</Head>
->           {!rews.length && <div style={{ fontSize: 10.5, color: C.faint }}>no equation in scope matches anything in the goal.</div>}
->           {rews.map((s, i) => (
->             <div key={i} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 2 }}>
->               <span style={{ width: 106 }}>{s.kind === "hypothesis" ? <Tag tone={C.blue}>{s.name}</Tag> : <ConstChip name={s.name} />}</span>
->               <span style={{ width: 20, fontSize: 9.5, color: C.faint }}>{s.dir}</span>
->               <span style={{ flex: 1, fontSize: 10, minWidth: 0 }}>{s.at} <span style={{ color: C.faint }}>⟶</span> {s.to}</span>
->               <TBtn doc={"insert this rewrite at the cursor and re-run"} onClick={() => insert("rewrite " + (s.dir === "<-" ? "<- " : "") + s.name)}>insert</TBtn>
->             </div>
->           ))}
->           <div style={{ marginTop: 8, fontSize: 10, color: C.faint, lineHeight: 1.45 }}>
->             every row here was produced by actually running unification or first-order matching against this goal — not by keyword search.
->           </div>
->         </>
->       )}
->     </AppBody>
->   );
-> }
->
-> /* ============================================================
->    APPS · verification
->    ============================================================ */
-> function VerifyApp() {
->   const ui = useUI(); const w = ui.world; const r = w.run();
->   const checks = useMemo(() => (r.steps || []).filter((s) => s.refine).map((s) => ({ s, res: checkStep(w.D.env, s) })), [r, w.D]);
->   const bad = checks.filter((c) => c.res && !c.res.ok);
->   return (
->     <AppBody>
->       <Head right={<Row><Tag tone={r.kernel && r.kernel.ok ? C.sage : C.red}>{r.kernel && r.kernel.ok ? "term accepted" : "term rejected"}</Tag><ThmChip name={w.thm} /></Row>}>
->         per-tactic checking
->       </Head>
->       <Hint>each tactic's contribution is type-checked on its own, in the context of the goal it acted on, with every hole standing for the goal it opened. A tactic can close a goal and still be writing nonsense.</Hint>
->       <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 10.5, marginBottom: 9 }}>
->         <tbody>
->           {checks.map(({ s, res }) => (
->             <tr key={s.i} onClick={() => w.setCursor(s.i)} style={{ borderBottom: "1px dotted " + C.line, cursor: "pointer", background: w.cursor === s.i ? C.sel : "transparent" }}>
->               <td style={{ width: 20, color: C.faint, fontVariantNumeric: "tabular-nums" }}>{s.i}</td>
->               <td style={{ padding: "1px 3px" }}><TacChip name={s.tac} idx={s.i - 1} /></td>
->               <td style={{ width: 74, textAlign: "right", fontWeight: 700, color: res.ok ? C.addInk : C.red }}>{res.ok ? "accepted" : "REJECTED"}</td>
->               <td style={{ width: 88, textAlign: "right", color: C.faint, fontSize: 9.5 }}>{res.ok ? res.st.conv + " conversions" : ""}</td>
->             </tr>
->           ))}
->         </tbody>
->       </table>
->       {!!bad.length && (
->         <div style={{ border: "2px solid " + C.ink, borderLeft: "6px solid " + C.red, boxShadow: "2px 2px 0 " + C.ink, background: "#fdf3f0", padding: "5px 8px", fontSize: 10.5, lineHeight: 1.45, marginBottom: 9 }}>
->           <b>tactic {bad[0].s.i}, `{bad[0].s.tac}`, wrote a term the kernel will not take.</b>
->           <pre style={{ margin: "3px 0 0", fontSize: 10.5, whiteSpace: "pre-wrap" }}>{bad[0].res.err}</pre>
->           <Row style={{ marginTop: 5 }}>
->             <Btn tone={C.mustard} onClick={() => w.setCursor(bad[0].s.i)}>scrub to it</Btn>
->             <Btn tone={C.paneAlt} onClick={() => w.setUnsound(false)} disabled={!w.unsound}>switch the unsound rewrite off</Btn>
->           </Row>
->         </div>
->       )}
->       {!bad.length && r.closed && (
->         <div style={{ fontSize: 10.5, lineHeight: 1.5, border: "1px solid " + C.ink, borderLeft: "4px solid " + C.sage, padding: "4px 7px" }}>
->           every tactic's contribution checks out on its own, and the assembled term checks out as a whole. Those are two different claims and the
->           shell makes both — a proof can be locally sound at every step and still fail to assemble.
->         </div>
->       )}
->       <div style={{ marginTop: 9 }}>
->         <Head>the whole development</Head>
->         <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 10.5 }}>
->           <tbody>
->             {w.runs().map((x) => {
->               const s = statusOf(x);
->               return (
->                 <tr key={x.name} style={{ borderBottom: "1px dotted " + C.line }}>
->                   <td style={{ padding: "1px 3px" }}><ThmChip name={x.name} /></td>
->                   <td style={{ padding: "1px 3px" }}><Tag tone={s.tone}>{s.t}</Tag></td>
->                   <td style={{ color: C.faint, fontSize: 9.5 }}>{x.kernel && !x.kernel.ok ? x.kernel.msg.split("\\n")[0] : x.failed ? "stopped at tactic " + x.failed.at : ""}</td>
->                 </tr>
->               );
->             })}
->           </tbody>
->         </table>
->       </div>
->     </AppBody>
->   );
-> }
->
-> function BisectApp() {
->   const ui = useUI(); const w = ui.world; const r = w.run();
->   const B = useMemo(() => bisectSteps(w.D.env, r), [r, w.D]);
->   const [min, setMin] = useState(null);
->   const [busy, setBusy] = useState(false);
->   const runMin = () => {
->     setBusy(true);
->     setTimeout(() => {
->       const D2 = buildDevelopment({ ...w.opts(), scripts: { ...w.scripts } });
->       const envBefore = baseEnv();
->       DEV.every((d) => {
->         if (d.name === w.thm) return false;
->         const rr = runScript(envBefore, (w.scripts[d.name] ? { ...d, script: w.scripts[d.name] } : d), w.opts());
->         envBefore.set(d.name, { name: d.name, kind: "thm", ty: d.ty, body: rr.term, proved: rr.closed && rr.kernel.ok, admitted: rr.admitted });
->         return true;
->       });
->       const spec = w.scripts[w.thm] ? { ...DEV.find((d) => d.name === w.thm), script: w.scripts[w.thm] } : DEV.find((d) => d.name === w.thm);
->       setMin(minimizeScript(spec, envBefore, w.opts()));
->       setBusy(false);
->     }, 10);
->   };
->   return (
->     <AppBody>
->       <Head right={<TBtn tone={w.unsound ? C.red : C.paneAlt} doc="make rewrite -> forget the eq_sym it needs; tactics keep succeeding, the kernel stops agreeing" onClick={() => w.setUnsound(!w.unsound)}>{w.unsound ? "unsound rewrite: ON" : "make rewrite unsound"}</TBtn>}>
->         bisection
->       </Head>
->       <Hint>halving over the tactic list, re-checking each prefix with the kernel. Every probe is a real type check.</Hint>
->       {B.clean ? (
->         <div style={{ fontSize: 10.5, lineHeight: 1.5, border: "1px solid " + C.ink, borderLeft: "4px solid " + C.sage, padding: "4px 7px", marginBottom: 9 }}>
->           every tactic in this proof writes a term the kernel accepts. Switch on the unsound rewrite above and this tile will find the first one that does not.
->         </div>
->       ) : (
->         <>
->           <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 10.5, marginBottom: 6 }}>
->             <tbody>
->               {B.probes.map((p, i) => (
->                 <tr key={i} style={{ borderBottom: "1px dotted " + C.line }}>
->                   <td style={{ color: C.faint, width: 66, fontVariantNumeric: "tabular-nums" }}>{p.lo + 1}..{p.hi + 1}</td>
->                   <td style={{ width: 24, textAlign: "center", color: C.faint }}>→</td>
->                   <td style={{ padding: "1px 3px" }}><TacChip name={p.tac} idx={p.mid} /></td>
->                   <td style={{ width: 96, textAlign: "right", fontWeight: 700, color: p.ok ? C.addInk : C.red }}>{p.ok ? "prefix clean" : "already broken"}</td>
->                 </tr>
->               ))}
->             </tbody>
->           </table>
->           <div style={{ border: "2px solid " + C.ink, borderLeft: "6px solid " + C.red, boxShadow: "2px 2px 0 " + C.ink, padding: "5px 7px", fontSize: 10.5, lineHeight: 1.45, marginBottom: 9 }}>
->             <Row style={{ marginBottom: 3 }}><b>culprit</b><TacChip name={B.culprit.tac} idx={B.culprit.i - 1} /><Tag tone={C.red}>tactic {B.culprit.i}</Tag></Row>
->             <pre style={{ margin: 0, whiteSpace: "pre-wrap", fontSize: 10.5 }}>{B.culprit.res.err}</pre>
->             <Row style={{ marginTop: 5 }}>
->               <Btn tone={C.mustard} onClick={() => w.setCursor(B.culprit.i)}>scrub to it</Btn>
->               <Btn tone={C.paneAlt} onClick={() => w.toggleTactic(w.thm, B.culprit.i - 1)}>switch that tactic off</Btn>
->             </Row>
->           </div>
->         </>
->       )}
->       <Head right={<TBtn doc="drop tactics one at a time, keeping only those the proof cannot do without" onClick={runMin} disabled={busy}>{busy ? "reducing…" : "minimise"}</TBtn>}>script minimisation</Head>
->       <Hint>real delta debugging: each candidate script is re-run and re-checked by the kernel, and kept only if the proof still closes.</Hint>
->       {!min && <div style={{ fontSize: 10.5, color: C.faint }}>press minimise.</div>}
->       {min && !min.ok && <div style={{ fontSize: 10.5, color: C.faint }}>{min.note}</div>}
->       {min && min.ok && (
->         <>
->           <div style={{ fontSize: 10.5, marginBottom: 4 }}>{min.from} → <b>{min.to}</b> tactics{min.dropped.length ? "" : " — already minimal"}</div>
->           {min.dropped.map((d, i) => <div key={i} style={{ fontSize: 10, color: C.faint }}>· dropped <b>{d}</b>, and the proof still closed</div>)}
->           {!!min.dropped.length && (
->             <>
->               <pre style={{ margin: "5px 0 0", border: "2px solid " + C.ink, background: C.pane, padding: 6, fontSize: 10.5, lineHeight: 1.5 }}>{min.script.join("\\n")}</pre>
->               <Row style={{ marginTop: 5 }}><Btn tone={C.mustard} onClick={() => w.setScript(w.thm, min.script)}>use the shorter script</Btn></Row>
->             </>
->           )}
->         </>
->       )}
->     </AppBody>
->   );
-> }
->
-> /* ============================================================
->    APPS · grammar of graphics over the development's own numbers
->    ============================================================ */
-> function StepEditor({ s, schema, docId }) {
->   const ui = useUI(); const w = ui.world;
->   const names = schema.map((f) => f.name);
->   const set = (k, v) => { s[k] = v; w.bump(); };
->   return (
->     <div style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + (s.on ? C.blue : C.line), padding: "2px 5px", marginBottom: 3, background: s.on ? C.pane : C.paneAlt }}>
->       <Row>
->         <P ptype="step2" value={s.id} doc={"<step2> " + stepLabel(s) + " — disable, reorder, remove"}>
->           <b style={{ fontSize: 10, letterSpacing: "0.05em", borderBottom: "1px dotted " + C.faint }}>{s.kind}</b>
->         </P>
->         <span style={{ flex: 1 }} />
->         <TBtn doc={s.on ? "disable but keep in the chain" : "enable"} onClick={() => w.toggleStep(docId, s.id)}>{s.on ? "●" : "○"}</TBtn>
->         <TBtn doc="move earlier" onClick={() => w.moveStep(docId, s.id, -1)}>↑</TBtn>
->         <TBtn doc="move later" onClick={() => w.moveStep(docId, s.id, 1)}>↓</TBtn>
->         <TBtn doc="remove" onClick={() => w.removeStep(docId, s.id)}>✕</TBtn>
->       </Row>
->       <Row style={{ marginTop: 2 }}>
->         {s.kind === "filter" && <>
->           <Sel value={s.field} onChange={(v) => set("field", v)} options={names} />
->           <Sel value={s.op} onChange={(v) => set("op", v)} options={FOPS} width={44} />
->           <Num value={s.value} onChange={(v) => set("value", v)} />
->         </>}
->         {s.kind === "derive" && <>
->           <Num value={s.as} onChange={(v) => set("as", v)} width={62} />
->           <span style={{ color: C.faint }}>=</span>
->           <Sel value={s.a} onChange={(v) => set("a", v)} options={names} />
->           <Sel value={s.op} onChange={(v) => set("op", v)} options={DOPS} width={40} />
->           <Num value={s.b} onChange={(v) => set("b", v)} />
->         </>}
->         {s.kind === "summarize" && <>
->           <span style={{ color: C.faint, fontSize: 10 }}>by</span>
->           <Sel value={s.by} onChange={(v) => set("by", v)} options={names} />
->           <Sel value={s.fn} onChange={(v) => set("fn", v)} options={AGGS} width={62} />
->           <Sel value={s.field} onChange={(v) => set("field", v)} options={names} />
->         </>}
->         {s.kind === "sort" && <>
->           <Sel value={s.field} onChange={(v) => set("field", v)} options={names} />
->           <Sel value={s.dir} onChange={(v) => set("dir", v)} options={["asc", "desc"]} width={56} />
->         </>}
->         {s.kind === "limit" && <Num value={s.n} onChange={(v) => set("n", v)} width={44} />}
->       </Row>
->     </div>
->   );
-> }
-> function GogPipeApp({ leafId, docId }) {
->   const ui = useUI(); const w = ui.world; const DS = w.ds(); const d = w.doc(docId);
->   const chart = d.chart;
->   const schemaAt = (i) => schemaAfter(DS, chart.datasetId, chart.steps, i);
->   const out = evaluate(DS, chart.datasetId, chart.steps);
->   return (
->     <>
->       <DocBar docId={d.id} leafId={leafId} />
->       <AppBody>
->         <Head right={<span style={{ fontSize: 10, color: C.faint }}>{out.rows.length} rows out</span>}>source</Head>
->         <Row style={{ marginBottom: 6 }}>
->           {Object.keys(DS).map((k) => (
->             <span key={k} onClick={() => w.setDataset(d.id, k)} style={{ cursor: "pointer", opacity: chart.datasetId === k ? 1 : 0.55 }}>
->               <DatasetChip id={k} big={chart.datasetId === k} />
->             </span>
->           ))}
->         </Row>
->         <div style={{ fontSize: 10, color: C.faint, marginBottom: 6 }}>{DS[chart.datasetId] && DS[chart.datasetId].note} · {DS[chart.datasetId] && DS[chart.datasetId].rows.length} rows</div>
->         <Head>transform</Head>
->         {chart.steps.map((s, i) => <StepEditor key={s.id} s={s} schema={schemaAt(i)} docId={d.id} />)}
->         <Row style={{ marginTop: 4 }}>
->           {["filter", "derive", "summarize", "sort", "limit"].map((k) => {
->             const sc = schemaAfter(DS, chart.datasetId, chart.steps);
->             const q = (sc.find((f) => f.type === "q") || sc[0] || { name: "x" }).name;
->             const nom = (sc.find((f) => f.type === "n") || sc[0] || { name: "x" }).name;
->             const cfg = k === "filter" ? { field: nom, op: "=", value: "" }
->               : k === "derive" ? { as: "derived", a: q, op: "*", b: "1" }
->               : k === "summarize" ? { by: nom, fn: "sum", field: q }
->               : k === "sort" ? { field: q, dir: "desc" } : { n: 10 };
->             return <Btn key={k} tone={C.paneAlt} onClick={() => w.addStep(d.id, mkStep(k, cfg))}>+ {k}</Btn>;
->           })}
->         </Row>
->         <div style={{ marginTop: 8 }}>
->           <Head>schema out</Head>
->           <Row>{out.fields.map((f) => <FieldChip key={f.name} name={f.name} type={f.type} />)}</Row>
->         </div>
->       </AppBody>
->     </>
->   );
-> }
-> function EncodeApp({ leafId, docId }) {
->   const ui = useUI(); const w = ui.world; const DS = w.ds(); const d = w.doc(docId);
->   const schema = schemaAfter(DS, d.chart.datasetId, d.chart.steps);
->   const SLOTS = ["x", "y", "color", "facet"];
->   return (
->     <>
->       <DocBar docId={d.id} leafId={leafId} />
->       <AppBody>
->         <Head>geometry</Head>
->         <Row style={{ marginBottom: 8 }}>
->           {["bar", "point", "line", "area"].map((g) => (
->             <P key={g} ptype="geom" value={g} doc={"<geom> " + g} onActivate={() => w.setGeom(d.id, g)} activateDoc="use it">
->               <span style={{ border: "2px solid " + C.ink, boxShadow: "2px 2px 0 " + C.ink, background: d.chart.geom === g ? C.sel : C.paneAlt, padding: "1px 8px", fontSize: 10.5, fontWeight: 700 }}>{g}</span>
->             </P>
->           ))}
->         </Row>
->         <Head>channels</Head>
->         {SLOTS.map((s) => (
->           <div key={s} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 3 }}>
->             <span style={{ width: 42, fontSize: 10, color: C.faint, letterSpacing: "0.06em" }}>{s}</span>
->             <Sel value={d.chart.map[s] || ""} onChange={(v) => w.setMapping(d.id, s, v || null)} options={[{ v: "", l: "— none —" }].concat(schema.map((f) => ({ v: f.name, l: f.name + " · " + TYPE_LABEL[f.type] })))} width={190} />
->             {d.chart.map[s] && <FieldChip name={d.chart.map[s]} type={(schema.find((f) => f.name === d.chart.map[s]) || {}).type} />}
->           </div>
->         ))}
->         <div style={{ marginTop: 9 }}>
->           <Head>fields available</Head>
->           <Row>{schema.map((f) => <FieldChip key={f.name} name={f.name} type={f.type} />)}</Row>
->           <Hint>right-click any field — here or in any other tile — to map it to a channel, filter on it, or group by it.</Hint>
->         </div>
->       </AppBody>
->     </>
->   );
-> }
-> function useSize(ref) {
->   const [s, setS] = useState({ w: 320, h: 200 });
->   useEffect(() => {
->     const el = ref.current; if (!el) return;
->     const ro = new ResizeObserver(() => setS({ w: el.clientWidth, h: el.clientHeight }));
->     ro.observe(el); setS({ w: el.clientWidth, h: el.clientHeight });
->     return () => ro.disconnect();
->   }, [ref]);
->   return s;
-> }
-> function ChartApp({ leafId, docId }) {
->   const ui = useUI(); const w = ui.world; const DS = w.ds(); const d = w.doc(docId);
->   const ref = useRef(null); const { w: W, h: H } = useSize(ref);
->   const p = buildPlot(DS, d.chart, Math.max(180, W - 4), Math.max(120, H - 4));
->   return (
->     <>
->       <DocBar docId={d.id} leafId={leafId} />
->       <div ref={ref} style={{ flex: 1, minHeight: 0, padding: 2 }}>
->         {p.empty ? <div style={{ fontSize: 10.5, color: C.faint, padding: 8 }}>map a field to x and y in the encoding tile.</div> : (
->           <svg width="100%" height="100%" viewBox={"0 0 " + Math.max(180, W - 4) + " " + Math.max(120, H - 4)}>
->             {p.yticks.map((t, i) => (
->               <g key={i}>
->                 <line x1={p.pad.l} x2={p.pad.l + p.iw} y1={p.yScale(t)} y2={p.yScale(t)} stroke={C.line} strokeWidth={1} />
->                 <text x={p.pad.l - 4} y={p.yScale(t) + 3} textAnchor="end" fontSize={8.5} fill={C.faint} fontFamily="inherit">{fmt(t)}</text>
->               </g>
->             ))}
->             <line x1={p.pad.l} x2={p.pad.l} y1={p.pad.t} y2={p.pad.t + p.ih} stroke={C.ink} strokeWidth={1.5} />
->             <line x1={p.pad.l} x2={p.pad.l + p.iw} y1={p.pad.t + p.ih} y2={p.pad.t + p.ih} stroke={C.ink} strokeWidth={1.5} />
->             {p.marks.map((m, i) => {
->               const doc = "<datum> " + Object.entries(m.row).slice(0, 3).map(([k, v]) => k + "=" + fmt(v)).join(" ");
->               if (p.geom === "bar") return (
->                 <P key={i} ptype="datum" value={{ row: m.row, docId: d.id }} svg doc={doc}>
->                   <rect x={m.x - m.bw / 2} y={Math.min(m.y, m.y0)} width={m.bw} height={Math.max(1.5, Math.abs(m.y0 - m.y))} fill={m.color} stroke={C.ink} strokeWidth={1} />
->                 </P>
->               );
->               return (
->                 <P key={i} ptype="datum" value={{ row: m.row, docId: d.id }} svg doc={doc}>
->                   <circle cx={m.x} cy={m.y} r={3.4} fill={m.color} stroke={C.ink} strokeWidth={1} />
->                 </P>
->               );
->             })}
->             {p.geom === "line" && <polyline points={p.marks.map((m) => m.x + "," + m.y).join(" ")} fill="none" stroke={C.ink} strokeWidth={1.4} />}
->             {p.cats && p.cats.map((c, i) => (
->               <P key={c} ptype="cat" value={{ field: d.chart.map.x, value: c, docId: d.id }} svg doc={"<cat> " + d.chart.map.x + " = " + c}>
->                 <text x={p.pad.l + (i + 0.5) * (p.iw / p.cats.length)} y={p.pad.t + p.ih + 12} textAnchor="middle" fontSize={8} fill={C.ink} fontFamily="inherit"
->                   transform={p.cats.length > 6 ? `rotate(-32 ${p.pad.l + (i + 0.5) * (p.iw / p.cats.length)} ${p.pad.t + p.ih + 12})` : undefined}>
->                   {String(c).length > 13 ? String(c).slice(0, 12) + "…" : c}
->                 </text>
->               </P>
->             ))}
->             <text x={p.pad.l} y={10} fontSize={8.5} fill={C.faint} fontFamily="inherit">{d.chart.map.y} by {d.chart.map.x}</text>
->           </svg>
->         )}
->       </div>
->     </>
->   );
-> }
-> function GogTableApp({ leafId, docId }) {
->   const ui = useUI(); const w = ui.world; const DS = w.ds(); const d = w.doc(docId);
->   const { rows, fields } = evaluate(DS, d.chart.datasetId, d.chart.steps);
->   const [n, setN] = useState(40);
->   return (
->     <>
->       <DocBar docId={d.id} leafId={leafId} />
->       <AppBody>
->         <table style={{ borderCollapse: "collapse", fontSize: 10, width: "100%" }}>
->           <thead>
->             <tr style={{ borderBottom: "2px solid " + C.ink }}>
->               {fields.map((f) => <th key={f.name} style={{ textAlign: "left", padding: "1px 4px" }}><FieldChip name={f.name} type={f.type} /></th>)}
->             </tr>
->           </thead>
->           <tbody>
->             {rows.slice(0, n).map((r, i) => (
->               <tr key={i} style={{ borderBottom: "1px dotted " + C.line }}>
->                 {fields.map((f) => (
->                   <td key={f.name} style={{ padding: "1px 4px", fontVariantNumeric: "tabular-nums" }}>
->                     <P ptype="datum" value={{ row: r, docId: d.id }} doc={"<datum> " + f.name + " = " + fmt(r[f.name])}>
->                       <span>{fmt(r[f.name])}</span>
->                     </P>
->                   </td>
->                 ))}
->               </tr>
->             ))}
->           </tbody>
->         </table>
->         {rows.length > n && <div style={{ marginTop: 4 }}><Btn tone={C.paneAlt} onClick={() => setN(n + 60)}>{rows.length - n} more rows</Btn></div>}
->         {!rows.length && <div style={{ fontSize: 10.5, color: C.faint }}>the transform produced no rows.</div>}
->       </AppBody>
->     </>
->   );
-> }
-> function SnapsApp() {
->   const ui = useUI(); const w = ui.world;
->   return (
->     <AppBody>
->       <Head right={<span style={{ fontSize: 10, color: C.faint }}>{w.snaps.length}</span>}>snapshots</Head>
->       <Hint>a snapshot freezes a chart spec together with the theorem that was in focus when you took it.</Hint>
->       {w.snaps.map((s) => (
->         <div key={s.id} style={{ display: "flex", gap: 6, alignItems: "center", borderBottom: "1px dotted " + C.line, padding: "2px 0" }}>
->           <P ptype="chart" value={s.id} doc={"<chart> snapshot " + s.name}>
->             <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + C.mustard, padding: "0 5px", fontSize: 10.5 }}>{s.name}</span>
->           </P>
->           <span style={{ fontSize: 9.5, color: C.faint }}>taken at {s.at}</span>
->           <span style={{ flex: 1 }} />
->           <TBtn doc="load it into the active chart document" onClick={() => w.restoreSnap(s.id, w.activeId)}>restore</TBtn>
->           <TBtn doc="delete" onClick={() => w.deleteSnap(s.id)}>✕</TBtn>
->         </div>
->       ))}
->       {!w.snaps.length && <div style={{ fontSize: 10.5, color: C.faint }}>none yet — press ⚑ snap in any chart tile.</div>}
->     </AppBody>
->   );
-> }
->
-> /* ---- shell apps ---- */
-> function InspectorApp() {
->   const w = useUI().world;
->   return (
->     <AppBody>
->       <Head>{w.inspected ? w.inspected.title : "inspector"}</Head>
->       <Hint>“Inspect” from any object menu lands here, as a plain readable description of the real object.</Hint>
->       <JsonView v={w.inspected ? w.inspected.value : {}} max={700} />
->     </AppBody>
->   );
-> }
-> function WatchApp() {
->   const w = useUI().world;
->   return (
->     <AppBody>
->       <Head>watchlist · {w.watch.length}</Head>
->       <Hint>objects parked from any tile. They stay live: a watched &lt;rewrite&gt; still suppresses, a watched &lt;pass&gt; still rewinds.</Hint>
->       {w.watch.map((n) => (
->         <div key={n.id} style={{ display: "flex", gap: 6, alignItems: "center", padding: "2px 0" }}>
->           <span style={{ fontSize: 9, color: C.faint, width: 68 }}>&lt;{n.ptype}&gt;</span>
->           <Pres ptype={n.ptype} value={n.value} />
->           <span style={{ flex: 1 }} />
->           <TBtn doc="remove" onClick={() => w.watchRemove(n.id)}>✕</TBtn>
->         </div>
->       ))}
->       {!w.watch.length && <div style={{ fontSize: 10.5, color: C.faint }}>empty — right-click almost anything and choose “add to watchlist”.</div>}
->     </AppBody>
->   );
-> }
-> function TraceApp() {
->   const w = useUI().world;
->   const rows = [...w.trace].reverse().slice(0, 240);
->   return (
->     <AppBody>
->       <Head right={<TBtn doc="clear" onClick={() => { w.trace = []; w.bump(); }}>clear</TBtn>}>trace · {w.trace.length}</Head>
->       <Hint>every command the shell executed, newest first.</Hint>
->       <table style={{ borderCollapse: "collapse", fontSize: 10, width: "100%" }}>
->         <tbody>
->           {rows.map((t) => (
->             <tr key={t.seq} style={{ borderBottom: "1px dotted " + C.line }}>
->               <td style={{ color: C.faint, padding: "1px 4px", verticalAlign: "top", width: 26 }}>{t.seq}</td>
->               <td style={{ padding: "1px 4px", verticalAlign: "top", width: 126 }}><b>{t.type}</b></td>
->               <td style={{ padding: "1px 4px", color: C.faint, wordBreak: "break-all" }}>{Object.entries(t.data).map(([k, v]) => k + "=" + String(v)).join("  ")}</td>
->             </tr>
->           ))}
->         </tbody>
->       </table>
->       {!rows.length && <div style={{ fontSize: 10.5, color: C.faint }}>nothing yet.</div>}
->     </AppBody>
->   );
-> }
-> function LauncherApp({ leafId }) {
->   const ui = useUI();
->   return (
->     <AppBody>
->       <Hint>empty tile — choose an application. chart / table / pipeline / encoding tiles bind to a chart DOCUMENT; the rest are shared views of the one development.</Hint>
->       <Row>
->         {Object.entries(APPS).filter(([id]) => id !== "launcher").map(([id, a]) => (
->           <Btn key={id} tone={a.color} onClick={() => ui.wm.setLeafApp(leafId, id)}>{a.title}</Btn>
->         ))}
->       </Row>
->     </AppBody>
->   );
-> }
->
-> function HelpApp() {
->   const ui = useUI();
->   const Go = ({ name }) => <b onClick={() => ui.goSpace(name)} style={{ cursor: "pointer", borderBottom: "1px dotted " + C.ink }}>{name}</b>;
->   const S = ({ t, children }) => (<><Head>{t}</Head><div style={{ fontSize: 10.5, lineHeight: 1.55, marginBottom: 9 }}>{children}</div></>);
->   return (
->     <AppBody>
->       <Head>proof assistant workbench</Head>
->       <div style={{ fontSize: 10.5, lineHeight: 1.55, marginBottom: 9 }}>
->         There is a real proof assistant under this shell. A dependently typed kernel — capture-avoiding substitution, β/δ/ι normalisation,
->         definitional equality, bidirectional inference, predicative sorts. Two inductive families, nat and eq, with their eliminators. A tactic
->         engine that builds proof terms with holes. Eight theorems about addition and multiplication, proved for real and checked for real. Edit
->         any tactic script in <Go name="prove" /> and the whole library re-checks.
->       </div>
->       <S t="a proof is a tree, not a line">
->         A compiler pipeline is a sequence, so scrubbing it is simple. A tactic consumes one goal and produces zero or more, so a proof branches —
->         <b> induction</b> is where it happens. The transport scrubs a traversal of that tree; <Go name="tree" /> shows the tree itself, and clicking a
->         node scrubs to the moment that goal was closed.
->       </S>
->       <S t="the trust boundary is the whole point">
->         Tactics are untrusted. The kernel is the only thing that decides. Press <b>make rewrite unsound</b> in <Go name="verify" /> — it makes
->         <b> rewrite -&gt;</b> forget the <b>eq_sym</b> that makes the direction come out right. Every tactic still succeeds. Every goal still closes.
->         The kernel still throws four proofs out, and bisection finds the exact tactic in three probes, with the real type error.
->       </S>
->       <S t="three counterfactuals">
->         <b>Switch off a tactic</b> in the script tile and the proof re-runs without it — some are load-bearing and some are not, and the difference
->         is not obvious by eye. <b>Revoke a lemma</b> in <Go name="revoke" /> and the whole development is re-checked without it: some proofs stop at
->         a named tactic, others still close but now rest on something unproved. <b>Edit a script</b> and everything downstream re-checks.
->       </S>
->       <S t="what a proof rests on">
->         <Go name="library" /> walks the finished proof term transitively and reports what it actually depends on. <b>mult_comm</b> is admitted on
->         purpose, and <b>mult_two_comm</b> is proved honestly from it — so it inherits the taint. That is what Print Assumptions is for.
->       </S>
->       <S t="reduction is not a metaphor here">
->         <b>reflexivity</b> closes a goal when both sides share a normal form. The reduction tile contracts one redex at a time and names the rule:
->         β applies a lambda, δ unfolds a definition, ι fires an eliminator on a constructor. <b>0 + n</b> reduces to <b>n</b>; <b>n + 0</b> gets
->         stuck, which is exactly why one of these needs induction and the other does not.
->       </S>
->       <S t="what is modelled">
->         The universe hierarchy is three levels with no cumulativity and no universe polymorphism. Inductive families are not user-declarable: nat
->         and eq are built in, with their ι-rules written into the normaliser rather than derived from a general scheme. There is no unifier for
->         higher-order patterns — <b>apply</b> and <b>rewrite</b> use first-order unification and first-order matching. Everything else, including
->         every type-checking judgement reported anywhere in this shell, is really being computed.
->       </S>
->       <S t="presentations">
->         Every visible object is typed. Left-click activates, right-click opens its verbs, hovering documents it on the bottom line. When a command
->         needs an argument, every object of that type anywhere in the shell — including in workspaces you are not looking at — becomes a click target.
->       </S>
->     </AppBody>
->   );
-> }
->
-> const APPS = {
->   launcher: { title: "new tile", color: C.paneAlt, comp: LauncherApp },
->   overview: { title: "development", color: C.sel, comp: OverviewApp },
->   script: { title: "tactic script", color: C.rose, comp: ScriptApp },
->   goals: { title: "proof state", color: C.sage, comp: GoalsApp },
->   step: { title: "what the tactic did", color: C.blue, comp: StepApp },
->   goaltree: { title: "proof tree", color: C.lavender, comp: GoalTreeApp },
->   term: { title: "proof term", color: C.blue, comp: TermApp },
->   kernel: { title: "kernel", color: C.mint, comp: KernelApp },
->   reduce: { title: "reduction", color: C.mustard, comp: ReduceApp },
->   library: { title: "environment", color: C.mint, comp: LibraryApp },
->   deps: { title: "assumptions", color: C.mustard, comp: DepsApp },
->   revoke: { title: "revocation", color: C.red, comp: RevokeApp },
->   search: { title: "what fits here", color: C.mustard, comp: SearchApp },
->   verify: { title: "checking", color: C.red, comp: VerifyApp },
->   bisect: { title: "bisect & minimise", color: C.red, comp: BisectApp },
->   gogpipe: { title: "data pipeline", color: C.blue, comp: GogPipeApp },
->   encode: { title: "encoding", color: C.mustard, comp: EncodeApp },
->   chart: { title: "chart", color: C.rose, comp: ChartApp },
->   gogtable: { title: "table", color: C.mint, comp: GogTableApp },
->   snaps: { title: "snapshots", color: C.lavender, comp: SnapsApp },
->   inspector: { title: "inspector", color: C.lavender, comp: InspectorApp },
->   watch: { title: "watchlist", color: C.mustard, comp: WatchApp },
->   trace: { title: "trace", color: C.sage, comp: TraceApp },
->   help: { title: "about / help", color: C.sel, comp: HelpApp },
-> };
->
-> function Ribbon() {
->   const ui = useUI(); const w = ui.world; const steps = w.steps();
->   return (
->     <div style={{ display: "flex", alignItems: "stretch", height: 26, border: "2px solid " + C.ink, background: C.pane, flex: 1, minWidth: 0, overflow: "hidden" }}>
->       {steps.map((s) => {
->         const past = s.i <= w.cursor;
->         const head = s.i ? tacName(s.tac) : "start";
->         const n = (s.produced || []).length;
->         return (
->           <div key={s.i} onClick={() => w.setCursor(s.i)}
->             onMouseEnter={() => ui.setMouseDoc("tactic " + s.i + " · " + s.tac + (s.disabled ? " (switched off)" : "") + " · " + (s.state ? s.state.goals.length : 0) + " goals after   —   L: scrub the whole shell here")}
->             onMouseLeave={() => ui.setMouseDoc(null)} title={s.tac}
->             style={{ flex: Math.max(1, 1 + n * 0.4), minWidth: 8, cursor: "pointer", position: "relative",
->               background: s.disabled ? C.paneAlt : !s.ok ? C.red : past ? (tacTone(head) || C.paneAlt) : C.paneAlt, opacity: past ? 1 : 0.4,
->               borderRight: "1px solid " + (past ? "rgba(35,38,43,0.3)" : C.line),
->               outline: s.i === w.cursor ? "2px solid " + C.red : "none", outlineOffset: -2, zIndex: s.i === w.cursor ? 2 : 1,
->               display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
->             <span style={{ fontSize: 8.5, color: C.ink, whiteSpace: "nowrap", opacity: 0.85, textDecoration: s.disabled ? "line-through" : "none" }}>{head.slice(0, 9)}</span>
->           </div>
->         );
->       })}
->     </div>
->   );
-> }
-> function Transport() {
->   const ui = useUI(); const w = ui.world; const r = w.run();
->   return (
->     <div style={{ display: "flex", gap: 6, alignItems: "center", padding: "4px 8px 0", flexShrink: 0 }}>
->       <TBtn doc="back to the statement" onClick={() => w.reset()}>⏮</TBtn>
->       <TBtn doc="one tactic back (←)" onClick={() => w.setCursor(w.cursor - 1)}>◀</TBtn>
->       <span onClick={() => w.play()} onMouseEnter={() => ui.setMouseDoc("play / pause the proof (space)")} onMouseLeave={() => ui.setMouseDoc(null)}
->         style={{ cursor: "pointer", border: "2px solid " + C.ink, background: w.playing ? C.red : C.sage, color: w.playing ? C.paper : C.ink, padding: "0 9px", fontSize: 11, fontWeight: 700, boxShadow: "2px 2px 0 " + C.ink }}>
->         {w.playing ? "❚❚ pause" : "▶ play"}
->       </span>
->       <TBtn doc="one tactic forward (→)" onClick={() => w.setCursor(w.cursor + 1)}>▶</TBtn>
->       <TBtn doc="jump to Qed" onClick={() => w.end()}>⏭</TBtn>
->       <select value={w.speed} onChange={(e) => { w.speed = +e.target.value; w.bump(); }} title="playback speed"
->         style={{ border: "1px solid " + C.ink, background: C.pane, fontSize: 10, padding: "0 2px", fontFamily: "inherit" }}>
->         {[1, 2, 4, 8].map((s) => <option key={s} value={s}>{s}×</option>)}
->       </select>
->       <Ribbon />
->       <span style={{ fontSize: 10, color: C.faint, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{w.cursor}/{w.lastStep()}</span>
->       <span style={{ fontSize: 10, whiteSpace: "nowrap", color: w.goals().length ? C.faint : C.addInk }}>
->         {w.goals().length ? w.goals().length + " goal" + (w.goals().length === 1 ? "" : "s") : "no goals"}
->       </span>
->     </div>
->   );
-> }
->
-> const initialSpaces = (w) => {
->   const dA = w.docs[0].id;
->   return [
->     { id: nid(), name: "overview", tree: split("row", leaf("overview"), split("col", leaf("library"), leaf("deps"), 0.5), 0.5) },
->     { id: nid(), name: "prove", tree: split("row", leaf("script"), split("row", leaf("goals"), leaf("step"), 0.5), 0.3) },
->     { id: nid(), name: "tree", tree: split("row", leaf("goaltree"), leaf("goals"), 0.55) },
->     { id: nid(), name: "term", tree: split("row", leaf("term"), leaf("kernel"), 0.5) },
->     { id: nid(), name: "reduce", tree: split("row", leaf("reduce"), leaf("goals"), 0.56) },
->     { id: nid(), name: "library", tree: split("row", leaf("library"), leaf("deps"), 0.5) },
->     { id: nid(), name: "revoke", tree: split("row", leaf("revoke"), leaf("deps"), 0.55) },
->     { id: nid(), name: "search", tree: split("row", leaf("search"), split("col", leaf("goals"), leaf("script"), 0.5), 0.52) },
->     { id: nid(), name: "verify", tree: split("row", leaf("verify"), leaf("bisect"), 0.48) },
->     { id: nid(), name: "metrics", tree: split("row", split("col", leaf("gogpipe", dA), leaf("encode", dA), 0.56), split("col", leaf("chart", dA), leaf("gogtable", dA), 0.56), 0.42) },
->     { id: nid(), name: "help", tree: split("row", leaf("help"), split("col", leaf("inspector"), leaf("watch"), 0.56), 0.54) },
->   ];
-> };
->
-> export default function App() {
->   const [, force] = useState(0);
->   const bump = useCallback(() => force((x) => x + 1), []);
->   const worldRef = useRef(null);
->   if (!worldRef.current) worldRef.current = new World();
->   const world = worldRef.current;
->   useEffect(() => { world.notify = bump; }, [bump, world]);
->
->   const [spaces, setSpaces] = useState(() => initialSpaces(world));
->   const [cur, setCur] = useState(() => spaces[0].id);
->   const [renaming, setRenaming] = useState(null);
->   const [menu, setMenu] = useState(null);
->   const [accepting, setAccepting] = useState(null);
->   const [mouseDoc, setMouseDoc] = useState(null);
->   const [drag, setDrag] = useState(null);
->   const dragRef = useRef(null); dragRef.current = drag;
->   const leafRefs = useRef({});
->   const space = spaces.find((s) => s.id === cur) || spaces[0];
->   const tree = space.tree;
->
->   useEffect(() => {
->     if (!world.playing) return;
->     const iv = setInterval(() => world.tick(), Math.max(140, 1000 / world.speed));
->     return () => clearInterval(iv);
->   }, [world.playing, world.speed, world]);
->   useEffect(() => {
->     const key = (e) => {
->       const tag = (e.target && e.target.tagName) || "";
->       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
->       if (e.key === " ") { e.preventDefault(); world.play(); }
->       else if (e.key === "ArrowRight") { e.preventDefault(); world.setCursor(world.cursor + 1); }
->       else if (e.key === "ArrowLeft") { e.preventDefault(); world.setCursor(world.cursor - 1); }
->       else if (e.key === "Home") world.reset();
->       else if (e.key === "End") world.end();
->     };
->     window.addEventListener("keydown", key);
->     return () => window.removeEventListener("keydown", key);
->   }, [world]);
->
->   const mutateTree = (fn) => setSpaces((ss) => ss.map((s) => (s.id === space.id ? { ...s, tree: fn(s.tree) } : s)));
->   const setRatio = (id, r) => mutateTree((t) => updateNode(t, id, (n) => ({ ...n, ratio: r })));
->   const splitLeaf = (id, dir) => { mutateTree((t) => updateNode(t, id, (n) => split(dir, n, leaf("launcher"), 0.5))); world.log("split_tile", { dir }); };
->   const closeLeaf = (id) => { mutateTree((t) => removeLeaf(t, id)); world.log("close_tile", {}); };
->   const setLeafApp = (id, app) => { mutateTree((t) => updateNode(t, id, (n) => ({ ...n, app, doc: DOC_APPS.includes(app) ? (n.doc || world.activeId) : n.doc }))); world.log("app_changed", { app: APPS[app].title }); };
->   const setLeafDoc = (id, docId) => { mutateTree((t) => updateNode(t, id, (n) => ({ ...n, doc: docId }))); world.bump(); };
->   const swapTiles = (a, b) => {
->     mutateTree((t) => { const la = findLeaf(t, a), lb = findLeaf(t, b); if (!la || !lb) return t;
->       return updateNode(updateNode(t, a, (n) => ({ ...n, app: lb.app, doc: lb.doc })), b, (n) => ({ ...n, app: la.app, doc: la.doc })); });
->     world.log("swap_tiles", {});
->   };
->   const moveSplit = (fromId, targetId, zone) => {
->     mutateTree((t) => {
->       if (fromId === targetId) return t;
->       const src = findLeaf(t, fromId); if (!src || !findLeaf(t, targetId)) return t;
->       const t2 = removeLeaf(t, fromId); if (findLeaf(t2, fromId)) return t;
->       const dir = zone === "left" || zone === "right" ? "row" : "col";
->       const before = zone === "left" || zone === "top";
->       return updateNode(t2, targetId, (n) => (before ? split(dir, src, n) : split(dir, n, src)));
->     });
->     world.log("move_split", { zone });
->   };
->   const registerRef = useCallback((id, el) => { if (el) leafRefs.current[id] = el; else delete leafRefs.current[id]; }, []);
->   const zoneFor = (r, x, y) => {
->     const dl = x - r.left, dr = r.right - x, dt = y - r.top, db = r.bottom - y;
->     const band = Math.min(Math.min(r.width, r.height) * 0.3, 110);
->     const m = Math.min(dl, dr, dt, db);
->     if (m > band) return "center"; if (m === dl) return "left"; if (m === dr) return "right"; if (m === dt) return "top"; return "bottom";
->   };
->   const hitLeaf = (x, y) => {
->     for (const [id, el] of Object.entries(leafRefs.current)) {
->       if (!el || !el.isConnected) continue;
->       const r = el.getBoundingClientRect();
->       if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return { id, zone: zoneFor(r, x, y) };
->     }
->     return null;
->   };
->   const startDrag = (leafId, e) => { e.preventDefault(); document.body.style.userSelect = "none"; setDrag({ from: leafId, x: e.clientX, y: e.clientY, over: null, zone: null }); };
->   useEffect(() => {
->     if (!drag) return;
->     const move = (e) => setDrag((d) => { if (!d) return d; const h = hitLeaf(e.clientX, e.clientY); return { ...d, x: e.clientX, y: e.clientY, over: h && h.id, zone: h && h.zone }; });
->     const up = () => { const d = dragRef.current; document.body.style.userSelect = ""; if (d && d.over && d.over !== d.from) { if (d.zone === "center") swapTiles(d.from, d.over); else moveSplit(d.from, d.over, d.zone); } setDrag(null); };
->     window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
->     return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
->     // eslint-disable-next-line react-hooks/exhaustive-deps
->   }, [!!drag]);
->
->   const addSpace = () => { const s = { id: nid(), name: "ws-" + (spaces.length + 1), tree: leaf("launcher") }; setSpaces((ss) => [...ss, s]); setCur(s.id); };
->   const removeSpace = (id) => { if (spaces.length < 2) return; setSpaces((ss) => ss.filter((s) => s.id !== id)); if (cur === id) setCur(spaces.find((s) => s.id !== id).id); };
->   const cloneSpace = (id) => { const s = spaces.find((x) => x.id === id); if (!s) return; const c2 = { id: nid(), name: s.name + "′", tree: cloneTree(s.tree) }; setSpaces((ss) => [...ss, c2]); setCur(c2.id); };
->   const accept = (ptype, prompt) => new Promise((resolve) => setAccepting({ ptype, prompt, resolve: (r) => { if (r) world.log("accepted", { ptype: r.ptype }); resolve(r); } }));
->   useEffect(() => { const esc = (e) => { if (e.key === "Escape") { setMenu(null); if (accepting) { accepting.resolve(null); setAccepting(null); } } }; window.addEventListener("keydown", esc); return () => window.removeEventListener("keydown", esc); }, [accepting]);
->
->   const insertTactic = (line, at) => {
->     const s = world.scriptOf().slice();
->     s.splice(at === undefined ? world.cursor : at, 0, line);
->     world.setScript(world.thm, s);
->   };
->   const findGoal = (id) => { for (const st of world.steps()) { const g = (st.state && st.state.goals || []).find((x) => x.id === id); if (g) return g; } return null; };
->
->   const labelFor = (ptype, value) => {
->     if (ptype === "theorem") return String(value);
->     if (ptype === "tactic") return value && value.thm ? world.scriptOf(value.thm)[value.i] || "(gone)" : String(value);
->     if (ptype === "goal") { const g = findGoal(value); return g ? pp(g.target).slice(0, 30) : String(value); }
->     if (ptype === "hyp") return value ? value.name : "?";
->     if (ptype === "term") return pp(value).slice(0, 34);
->     if (ptype === "const" || ptype === "axiom" || ptype === "rule") return String(value);
->     if (ptype === "development") return "the whole library";
->     if (ptype === "doc") { const d = world.docs.find((x) => x.id === value); return d ? d.name : "?"; }
->     if (ptype === "datum") { const r = (value && value.row) || {}; return Object.keys(r).slice(0, 2).map((k) => k + "=" + fmt(r[k])).join(" "); }
->     if (ptype === "cat") return value ? value.field + "=" + value.value : "?";
->     if (ptype === "chart") { const s = world.snaps.find((x) => x.id === value); return s ? s.name : "(deleted)"; }
->     if (ptype === "tile") { const l = findLeaf(tree, value); return l ? "[" + APPS[l.app].title + "]" : "(closed)"; }
->     if (ptype === "workspace") { const s = spaces.find((x) => x.id === value); return s ? s.name : "?"; }
->     if (ptype === "step2") { const s = world.docs.flatMap((d) => d.chart.steps).find((x) => x.id === value); return s ? stepLabel(s) : "(removed)"; }
->     return String(value);
->   };
->   const describe = (ptype, value) => {
->     if (ptype === "theorem") {
->       const r = world.run(value), a = r.revoked ? null : world.assumptionsOf(value);
->       return { presentationType: "theorem", name: value, statement: pp(r.spec.ty), blurb: r.spec.blurb,
->         status: statusOf(r).t, tactics: r.spec.script, goals_left: r.openGoals,
->         proof_term: r.term ? pp(r.term) : null, term_size: r.term ? size(r.term) : 0, term_depth: r.term ? depthOf(r.term) : 0,
->         kernel: r.kernel && r.kernel.msg, rests_on: a ? { axioms: [...a.axioms], lemmas: [...a.thms], definitions: [...a.defs], closed: a.closed } : null };
->     }
->     if (ptype === "tactic") {
->       const st = world.run(value.thm).steps[value.i + 1] || {};
->       return { presentationType: "tactic", theorem: value.thm, position: value.i + 1, text: world.scriptOf(value.thm)[value.i],
->         does: tacBlurb(tacName(world.scriptOf(value.thm)[value.i])), ok: st.ok, note: st.note, error: st.err,
->         consumed: st.consumed ? { hypotheses: st.consumed.ctx.map((c) => c.name + " : " + pp(c.ty)), goal: pp(st.consumed.target) } : null,
->         produced: (st.produced || []).map((g) => pp(g.target)), wrote: st.refine ? pp(st.refine) : "nothing — it was a conversion",
->         disabled: world.disabled.has(value.thm + ":" + value.i) };
->     }
->     if (ptype === "goal") { const g = findGoal(value); return g ? { presentationType: "goal", id: value,
->       hypotheses: g.ctx.map((c) => c.name + " : " + pp(c.ty)), target: pp(g.target), size: size(g.target), depth: depthOf(g.target) } : null; }
->     if (ptype === "hyp") { const g = findGoal(value.goal); const h = g && g.ctx.find((c) => c.name === value.name);
->       return h ? { presentationType: "hypothesis", name: h.name, type: pp(h.ty), in_goal: value.goal } : null; }
->     if (ptype === "term") return { presentationType: "term", printed: pp(value), size: size(value), depth: depthOf(value),
->       normal_form: pp(simplify(world.D.env, value)), constants: [...constsIn(value)] };
->     if (ptype === "const" || ptype === "axiom") { const e = world.D.env.get(value);
->       return e ? { presentationType: e.kind, name: value, type: pp(e.ty), note: e.note,
->         definition: e.body ? pp(e.body) : null, size: e.body ? size(e.body) : 0,
->         used_by: [...world.D.env.values()].filter((x) => x.body && directDeps(world.D.env, x.name).includes(value)).map((x) => x.name) } : { presentationType: "revoked", name: value }; }
->     if (ptype === "rule") return { presentationType: "typing rule", name: value,
->       applications_in_this_proof: (world.run().kstats || { rules: {} }).rules[value] || 0 };
->     if (ptype === "development") return { presentationType: "development", theorems: world.runs().length,
->       proved: world.runs().filter((r) => r.closed && r.kernel && r.kernel.ok).length,
->       revoked: [...world.revoked], tactics_disabled: [...world.disabled], unsound_rewrite: world.unsound,
->       edited_scripts: Object.keys(world.scripts) };
->     if (ptype === "dataset") { const d = world.ds()[value]; return d ? { presentationType: "dataset", name: value, note: d.note, rows: d.rows.length, fields: d.fields.map((f) => f.name + ":" + f.type) } : null; }
->     if (ptype === "field") { const DS = world.ds(); return { presentationType: "field", name: value, in_datasets: Object.keys(DS).filter((k) => DS[k].fields.some((f) => f.name === value)) }; }
->     if (ptype === "doc") { const d = world.docs.find((x) => x.id === value); return d ? { presentationType: "chart document", name: d.name, spec: d.chart } : null; }
->     if (ptype === "datum") return { presentationType: "datum", ...(value && value.row) };
->     if (ptype === "tile") { const l = findLeaf(tree, value); return { presentationType: "tile", app: l ? APPS[l.app].title : "(closed)", workspace: space.name }; }
->     if (ptype === "workspace") { const s = spaces.find((x) => x.id === value); return { presentationType: "workspace", name: s && s.name, tiles: s && countLeaves(s.tree) }; }
->     return { presentationType: ptype, value: String(value) };
->   };
->
->   const actionsFor = (ptype, value) => {
->     const acts = [{ label: "Inspect", run: () => world.inspect("<" + ptype + "> " + labelFor(ptype, value), describe(ptype, value)) }];
->     const push = (label, run) => acts.push({ label, run });
->     const act = world.active();
->     if (ptype === "theorem") {
->       const r = world.run(value);
->       push("Focus the shell on it", () => world.setThm(value));
->       push(world.revoked.has(value) ? "Put it back in the library" : "Revoke it and re-check everything", () => world.toggleRevoke(value));
->       push("Print its assumptions", () => world.inspect("assumptions of " + value, (() => { const a = world.assumptionsOf(value);
->         return { closed: a.closed, axioms: [...a.axioms], unproved_lemmas: [...a.unproved], lemmas: [...a.thms], definitions: [...a.defs], kernel: [...a.kernel] }; })()));
->       if (r.term) push("Show its proof term", () => world.inspect("proof term of " + value, { term: pp(r.term), nodes: size(r.term), depth: depthOf(r.term) }));
->       push("Chart term size across the library", () => { world.setDataset(act.id, "theorems"); world.setGeom(act.id, "bar"); world.setMapping(act.id, "x", "name"); world.setMapping(act.id, "y", "term_size"); });
->       push("Add to watchlist", () => world.watchAdd("theorem", value));
->     }
->     if (ptype === "tactic") {
->       const k = value.thm + ":" + value.i;
->       push("Scrub to just after it", () => world.gotoStep(value.thm, value.i + 1));
->       push(world.disabled.has(k) ? "Switch it back on" : "Switch it off and re-run the proof", () => world.toggleTactic(value.thm, value.i));
->       push("Delete it from the script", () => { const s = world.scriptOf(value.thm).slice(); s.splice(value.i, 1); world.setScript(value.thm, s); });
->       push("Duplicate it", () => { const s = world.scriptOf(value.thm).slice(); s.splice(value.i, 0, s[value.i]); world.setScript(value.thm, s); });
->       push("Chart which tactics this library leans on", () => { world.setDataset(act.id, "tactics"); world.setGeom(act.id, "bar"); world.setMapping(act.id, "x", "head"); world.setMapping(act.id, "y", "count"); });
->       push("Add to watchlist", () => world.watchAdd("tactic", value));
->     }
->     if (ptype === "goal") {
->       push("Focus it", () => world.select("goal", value));
->       push("Send its statement to the reduction tile", () => { const g = findGoal(value); if (g) world.select("term", g.target); });
->       push("Close it with…  (accept a lemma)", async () => { const r = await accept("const", "APPLY — click any constant in the library or a term (Esc cancels)"); if (r) insertTactic("apply " + r.value); });
->       push("Add to watchlist", () => world.watchAdd("goal", value));
->     }
->     if (ptype === "hyp") {
->       push("Rewrite the goal with it", () => insertTactic("rewrite " + value.name));
->       push("Rewrite the goal backwards with it", () => insertTactic("rewrite <- " + value.name));
->       push("Apply it", () => insertTactic("apply " + value.name));
->       push("Close the goal with it", () => insertTactic("assumption"));
->       push("Send its type to the reduction tile", () => { const g = findGoal(value.goal); const h = g && g.ctx.find((c) => c.name === value.name); if (h) world.select("term", h.ty); });
->     }
->     if (ptype === "term") {
->       push("Send it to the reduction tile", () => world.select("term", value));
->       push("Show its normal form", () => world.inspect("normal form", { before: pp(value), after: pp(simplify(world.D.env, value)) }));
->       push("Add to watchlist", () => world.watchAdd("term", value));
->     }
->     if (ptype === "const" || ptype === "axiom") {
->       const e = world.D.env.get(value);
->       push("Select it", () => world.select("const", value));
->       if (e && e.kind === "thm") push("Focus that theorem", () => world.setThm(value));
->       if (e && e.body) push("Unfold it in the goal", () => insertTactic("unfold " + value));
->       push("Rewrite with it", () => insertTactic("rewrite " + value));
->       push("Apply it", () => insertTactic("apply " + value));
->       if (e && (e.kind === "thm" || e.kind === "def")) push(world.revoked.has(value) ? "Put it back" : "Revoke it and re-check everything", () => world.toggleRevoke(value));
->       push("Add to watchlist", () => world.watchAdd("const", value));
->     }
->     if (ptype === "development") {
->       push("Clear every revocation", () => world.clearRevoked());
->       push("Switch every tactic back on", () => world.clearDisabled());
->       push(world.unsound ? "Make rewrite sound again" : "Make rewrite unsound and watch the kernel catch it", () => world.setUnsound(!world.unsound));
->       push("Revoke a lemma…  (accept a constant)", async () => { const r = await accept("const", "REVOKE — click any constant in the library (Esc cancels)"); if (r) world.toggleRevoke(r.value); });
->     }
->     if (ptype === "dataset") {
->       push("Use as source of chart " + act.name, () => world.setDataset(act.id, value));
->       push("New chart document from it", () => world.newDoc(value));
->     }
->     if (ptype === "field") {
->       const DS = world.ds();
->       const schema = schemaAfter(DS, act.chart.datasetId, act.chart.steps);
->       const f = schema.find((x) => x.name === value);
->       ["x", "y", "color", "facet"].forEach((slot) => push("Map to " + slot + "  (chart " + act.name + ")", () => world.setMapping(act.id, slot, value)));
->       push("Filter on this field", () => world.addStep(act.id, mkStep("filter", { field: value, op: f && f.type === "q" ? ">" : "=", value: "" })));
->       if (f && f.type !== "q") push("Group by + count", () => world.addStep(act.id, mkStep("summarize", { by: value, fn: "count", field: value })));
->       push("Sort by it (desc)", () => world.addStep(act.id, mkStep("sort", { field: value, dir: "desc" })));
->     }
->     if (ptype === "geom") push("Use this geometry", () => world.setGeom(act.id, value));
->     if (ptype === "doc") {
->       const d = world.docs.find((x) => x.id === value);
->       if (d) { if (world.activeId !== d.id) push("Make it the ACTIVE chart", () => world.setActive(d.id));
->         push("⚑ Snapshot it", () => world.snapshot(d.id)); push("Duplicate", () => world.dupDoc(d.id));
->         if (world.docs.length > 1) push("Delete", () => world.deleteDoc(d.id)); }
->     }
->     if (ptype === "step2") {
->       const sd = world.docOfStep(value); const s = sd && sd.chart.steps.find((x) => x.id === value);
->       if (s) { push(s.on ? "Disable (keep in chain)" : "Enable", () => world.toggleStep(sd.id, value));
->         push("Move up ↑", () => world.moveStep(sd.id, value, -1)); push("Move down ↓", () => world.moveStep(sd.id, value, 1));
->         push("Remove", () => world.removeStep(sd.id, value)); }
->     }
->     if (ptype === "datum") {
->       const dd = world.doc(value && value.docId); const row = (value && value.row) || {};
->       Object.keys(row).slice(0, 3).forEach((k) => {
->         if (typeof row[k] === "number") return;
->         push("Keep only " + k + " = " + row[k], () => world.filterToCat(dd.id, k, row[k], true));
->         push("Exclude " + k + " = " + row[k], () => world.filterToCat(dd.id, k, row[k], false));
->       });
->       if (row.theorem) push("Focus " + row.theorem, () => world.setThm(row.theorem));
->       if (row.name && world.runs().some((r) => r.name === row.name)) push("Focus " + row.name, () => world.setThm(row.name));
->     }
->     if (ptype === "cat") {
->       const dd = world.doc(value && value.docId);
->       push("Keep only " + value.field + " = " + value.value, () => world.filterToCat(dd.id, value.field, value.value, true));
->       push("Exclude it", () => world.filterToCat(dd.id, value.field, value.value, false));
->       push("Colour by " + value.field, () => world.setMapping(dd.id, "color", value.field));
->     }
->     if (ptype === "chart") { push("Restore into the active document", () => world.restoreSnap(value, world.activeId)); push("Delete snapshot", () => world.deleteSnap(value)); }
->     if (ptype === "tile") {
->       push("Split ⬌ (new tile right)", () => splitLeaf(value, "row"));
->       push("Split ⬍ (new tile below)", () => splitLeaf(value, "col"));
->       push("Swap app with…  (accept a tile)", async () => { const r = await accept("tile", "SWAP — click another TILE's title (Esc cancels)"); if (r && r.value !== value) swapTiles(value, r.value); });
->       if (tree.type !== "leaf") push("Close tile", () => closeLeaf(value));
->     }
->     if (ptype === "workspace") {
->       push("Switch to", () => setCur(value)); push("Rename", () => setRenaming(value));
->       push("Duplicate", () => cloneSpace(value));
->       if (spaces.length > 1) push("Delete", () => removeSpace(value));
->     }
->     return acts;
->   };
->
->   const goSpace = (name) => { const s = spaces.find((x) => x.name === name); if (s) setCur(s.id); };
->   const ui = {
->     world, accepting, setAccepting, setMouseDoc, accept, labelFor, describe, drag, spaces, goSpace,
->     openMenu: (ptype, value, x, y) => setMenu({ ptype, value, x, y }),
->     wm: { setRatio, splitLeaf, closeLeaf, setLeafApp, setLeafDoc, startDrag, registerRef, canClose: tree.type !== "leaf" },
->   };
->   const runs = world.runs();
->   const okCount = runs.filter((r) => r.closed && r.kernel && r.kernel.ok).length;
->   const rejCount = runs.filter((r) => r.closed && r.kernel && !r.kernel.ok).length;
->
->   return (
->     <UICtx.Provider value={ui}>
->       <div onClick={() => setMenu(null)} style={{ fontFamily: "'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace", background: C.paper, color: C.ink, height: "100vh", display: "flex", flexDirection: "column", fontSize: 12 }}>
->         <style>{`
->           .pres { cursor: pointer; }
->           .pres:hover { outline: 1px dotted ${C.ink}; background: ${C.sel}; }
->           .pres.acceptable { outline: 2px solid ${C.red}; background: ${C.sel}; animation: pulse 0.9s infinite; cursor: pointer; }
->           .pres-svg { cursor: pointer; }
->           .pres-svg:hover { filter: drop-shadow(0 0 1.5px ${C.ink}); }
->           .pres-svg.acceptable { filter: drop-shadow(0 0 2.5px ${C.red}); }
->           @keyframes pulse { 50% { outline-color: ${C.mustard}; } }
->           ::-webkit-scrollbar { width: 12px; height: 12px; }
->           ::-webkit-scrollbar-thumb { background: ${C.line}; border: 3px solid ${C.pane}; }
->           ::-webkit-scrollbar-track { background: ${C.pane}; }
->           table th { font-weight: 700; }
->           button, select, input, textarea { font-family: inherit; }
->           @media (prefers-reduced-motion: reduce) { .pres.acceptable { animation: none; } }
->         `}</style>
->
->         <div style={{ background: C.ink, color: C.paper, display: "flex", alignItems: "center", gap: 12, padding: "4px 10px", flexShrink: 0, flexWrap: "wrap" }}>
->           <b style={{ letterSpacing: "0.26em", fontSize: 12 }}>P B U I</b>
->           <span style={{ color: C.mustard, fontSize: 11, letterSpacing: "0.14em" }}>PROOF ASSISTANT WORKBENCH</span>
->           <span style={{ flex: 1 }} />
->           <P ptype="development" value="dev" doc="<development> the whole library — revoke a lemma, clear counterfactuals, make rewrite unsound">
->             <span style={{ color: C.paper, fontSize: 10.5, borderBottom: "1px dotted " + C.faint }}>{world.thm} · {okCount}/{runs.length} accepted</span>
->           </P>
->           {!!rejCount && <span style={{ fontSize: 10, color: C.red, fontWeight: 700 }}>{rejCount} REJECTED BY KERNEL</span>}
->           {!!world.revoked.size && <span style={{ fontSize: 10, color: C.rose }}>{world.revoked.size} revoked</span>}
->           {!!world.disabled.size && <span style={{ fontSize: 10, color: C.rose }}>{world.disabled.size} tactic off</span>}
->           {world.unsound && <span style={{ fontSize: 10, color: C.red, fontWeight: 700 }}>UNSOUND REWRITE</span>}
->         </div>
->
->         <Transport />
->
->         {accepting && (
->           <div style={{ background: C.red, color: C.paper, padding: "2px 10px", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.04em", flexShrink: 0 }}>
->             ACCEPTING &lt;{Array.isArray(accepting.ptype) ? accepting.ptype.join("|") : accepting.ptype}&gt; — {accepting.prompt} — works across tiles AND workspaces
->           </div>
->         )}
->
->         <div style={{ flex: 1, display: "flex", minHeight: 0, padding: 6, gap: 6 }}>
->           <NodeView node={tree} />
->         </div>
->
->         <div style={{ borderTop: "2px solid " + C.ink, background: C.paneAlt, flexShrink: 0 }}>
->           <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 8px", flexWrap: "wrap" }}>
->             <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em" }}>WORKSPACES</span>
->             {spaces.map((s) => (
->               renaming === s.id ? (
->                 <input key={s.id} autoFocus defaultValue={s.name} onBlur={() => setRenaming(null)}
->                   onKeyDown={(e) => { if (e.key === "Enter") { const name = e.target.value.trim() || s.name; setSpaces((ss) => ss.map((x) => (x.id === s.id ? { ...x, name } : x))); setRenaming(null); } }}
->                   style={{ width: 76, border: "1px solid " + C.ink, fontFamily: "inherit", fontSize: 10.5 }} />
->               ) : (
->                 <P key={s.id} ptype="workspace" value={s.id} onActivate={() => setCur(s.id)} activateDoc="switch to it" doc={"workspace " + s.name + " (" + countLeaves(s.tree) + " tiles)"}>
->                   <span style={{ border: "2px solid " + C.ink, background: s.id === cur ? C.sel : C.pane, padding: "0 7px", fontSize: 10.5, fontWeight: s.id === cur ? 700 : 400, boxShadow: s.id === cur ? "2px 2px 0 " + C.ink : "none" }}>{s.name}</span>
->                 </P>
->               )
->             ))}
->             <TBtn tone={C.mint} doc="add an empty workspace" onClick={addSpace}>+</TBtn>
->           </div>
->           <div style={{ borderTop: "1px solid " + C.line, background: C.pane, padding: "2px 9px", fontSize: 10.5, color: mouseDoc ? C.ink : C.faint, minHeight: 17, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
->             {mouseDoc || (accepting ? accepting.prompt + "   (Esc aborts)" : "space plays · ←/→ step through the tactics · right-click any object for its verbs · new here? open the help workspace")}
->           </div>
->         </div>
->
->         {menu && (
->           <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", left: Math.min(menu.x, window.innerWidth - 320), top: Math.min(menu.y, window.innerHeight - 260),
->             background: C.pane, border: "2px solid " + C.ink, boxShadow: "4px 4px 0 " + C.ink, zIndex: 60, minWidth: 262, maxWidth: 340, maxHeight: 350, overflow: "auto" }}>
->             <div style={{ background: C.ink, color: C.paper, padding: "2px 8px", fontSize: 10.5, fontWeight: 700 }}>
->               &lt;{menu.ptype}&gt; {labelFor(menu.ptype, menu.value)}
->             </div>
->             {actionsFor(menu.ptype, menu.value).map((a, i) => (
->               <div key={i} onClick={() => { setMenu(null); a.run(); }}
->                 onMouseEnter={(e) => (e.currentTarget.style.background = C.sel)} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
->                 style={{ padding: "2px 9px", fontSize: 10.5, cursor: "pointer", borderTop: i ? "1px dotted " + C.line : "none" }}>{a.label}</div>
->             ))}
->           </div>
->         )}
->       </div>
->     </UICtx.Provider>
->   );
-> }
+
+```js
+
+/* ============================================================
+   PBUI SHELL — PROOF ASSISTANT WORKBENCH
+   A CLIM / Genera "Dynamic Windows" view onto a proof development.
+
+   There is a real proof assistant under this file. A dependently
+   typed kernel with predicative sorts Type0 : Type1 : Type2,
+   capture-avoiding substitution, weak head normalisation with
+   beta/delta/iota, definitional equality, and bidirectional type
+   inference. Two inductive families — nat and eq — with their
+   eliminators. A tactic engine that builds proof terms with holes:
+   intro, intros, simpl, unfold, reflexivity, symmetry, assumption,
+   exact, apply (first-order unification), rewrite (first-order
+   matching, both directions, via eq_rect), induction, admit.
+   Eight theorems, proved for real, checked for real.
+
+   The shape of the thing: a compiler pipeline is a line, but a
+   proof is a TREE. A tactic consumes one goal and produces zero
+   or more. So the transport scrubs a traversal of that tree, and
+   the tree itself is a tile you can navigate.
+
+   What a proof assistant has that a compiler does not is a TRUST
+   BOUNDARY. Tactics are untrusted heuristics; the kernel is the
+   only thing that decides. Switch on the unsound rewrite and the
+   tactics still close every goal — and the kernel still throws
+   the proof out. That gap is the reason the boundary exists, and
+   this shell is built to show it.
+
+   Every visible object is a typed presentation:
+     <theorem> <tactic> <goal> <hyp> <term> <const> <axiom>
+     <rule> <script> plus <dataset> <field> <doc> <datum> and
+     the shell's own <tile> and <workspace>.
+   ============================================================ */
+
+const C = {
+  paper: "#ffffff", pane: "#ffffff", paneAlt: "#f1f1ee",
+  ink: "#23262b", faint: "#7b8087", line: "#d9d9d4",
+  sage: "#7cae9b", blue: "#7aa6c9", rose: "#d59a86",
+  mustard: "#e0b95c", lavender: "#a99fc9", mint: "#8fc7b0",
+  red: "#c2503a", green: "#3f9d6b", sel: "#fdeec6",
+  add: "#e7f4ec", del: "#fbe9e4", addInk: "#2e7d51", delInk: "#b8452c",
+};
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const fmt = (v, d = 2) => {
+  if (typeof v !== "number") return String(v);
+  if (Number.isInteger(v) && Math.abs(v) < 1e7) return String(v);
+  return Math.abs(v) >= 100 ? v.toFixed(0) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(d);
+};
+const kfmt = (n) => (Math.abs(n) >= 1000 ? (n / 1000).toFixed(Math.abs(n) >= 10000 ? 0 : 1) + "k" : String(Math.round(n)));
+const pct = (a, b) => (b ? ((a / b) * 100).toFixed(0) + "%" : "—");
+const CAT_TONES = ["#7aa6c9", "#c2503a", "#e0b95c", "#7cae9b", "#a99fc9", "#d59a86", "#8fc7b0", "#8892a8"];
+const TYPE_LABEL = { q: "quant", n: "nominal", t: "ordinal" };
+const TYPE_TONE = { q: "#7aa6c9", n: "#e0b95c", t: "#7cae9b" };
+
+/* what each tactic is actually doing to the proof term — the meaning layer */
+const TAC = {
+  intro: { tone: C.blue, blurb: "moves a binder above the line; the term grows a lambda" },
+  intros: { tone: C.blue, blurb: "moves binders above the line; the term grows lambdas" },
+  simpl: { tone: C.faint, blurb: "reduces where a constructor is exposed, then refolds — the term does not change at all" },
+  unfold: { tone: C.faint, blurb: "replaces a constant by its definition; a conversion, not a real step" },
+  reflexivity: { tone: C.sage, blurb: "closes the goal because both sides share a normal form" },
+  symmetry: { tone: C.mint, blurb: "swaps the sides of an equation using eq_sym" },
+  assumption: { tone: C.sage, blurb: "closes the goal with a hypothesis already in the context" },
+  exact: { tone: C.sage, blurb: "supplies the proof term directly; type-checked on the spot" },
+  apply: { tone: C.mustard, blurb: "unifies a lemma's conclusion with the goal and leaves its premises open" },
+  rewrite: { tone: C.rose, blurb: "transports the goal along an equation — this is eq_rect, and it needs eq_sym one way round" },
+  induction: { tone: C.lavender, blurb: "builds a nat_rect application; the branch point of the proof tree" },
+  admit: { tone: C.red, blurb: "closes the goal with an axiom, and taints everything downstream" },
+};
+const tacTone = (t) => (TAC[t] ? TAC[t].tone : C.paneAlt);
+const tacBlurb = (t) => (TAC[t] ? TAC[t].blurb : "an unrecognised tactic");
+const tacName = (line) => String(line || "").trim().split(/\s+/)[0];
+const KIND_TONE = { ind: C.sage, ctor: C.mint, rec: C.lavender, def: C.blue, thm: C.mustard, axiom: C.red, hypothesis: C.blue };
+
+/* ============================================================
+   THE KERNEL
+   terms -> kernel (whnf / defeq / infer) -> tactics -> scripts
+   Two inductive families (nat, eq) with hardcoded eliminators.
+   Predicative sorts Type0 : Type1 : Type2.
+   ============================================================ */
+
+/* ---------------- terms ---------------- */
+const V = (n) => ({ k: "var", n });
+const K = (n) => ({ k: "const", n });
+const AP = (f, ...as) => as.reduce((g, a) => ({ k: "app", f: g, a }), f);
+const LAM = (x, ty, b) => ({ k: "lam", x, ty, b });
+const PI = (x, ty, b) => ({ k: "pi", x, ty, b });
+const AR = (a, b) => PI("_", a, b);
+const SORT = (i) => ({ k: "sort", i });
+const META = (id) => ({ k: "meta", id });
+const T0 = SORT(0);
+
+const NAT = K("nat"), O = K("O"), SUCC = (t) => AP(K("S"), t);
+const num = (n) => (n === 0 ? O : SUCC(num(n - 1)));
+const EQ = (A, a, b) => AP(K("eq"), A, a, b);
+const NEQ = (a, b) => EQ(NAT, a, b);
+const PLUS = (a, b) => AP(K("plus"), a, b);
+const MULT = (a, b) => AP(K("mult"), a, b);
+
+function freeIn(x, t) {
+  switch (t.k) {
+    case "var": return t.n === x;
+    case "const": case "sort": case "meta": return false;
+    case "app": return freeIn(x, t.f) || freeIn(x, t.a);
+    case "lam": case "pi": return freeIn(x, t.ty) || (t.x !== x && freeIn(x, t.b));
+  }
+  return false;
+}
+function subst(t, x, v) {
+  switch (t.k) {
+    case "var": return t.n === x ? v : t;
+    case "const": case "sort": case "meta": return t;
+    case "app": return { k: "app", f: subst(t.f, x, v), a: subst(t.a, x, v) };
+    case "lam": case "pi": {
+      const ty = subst(t.ty, x, v);
+      if (t.x === x) return { ...t, ty };
+      if (freeIn(t.x, v)) { let y = t.x; while (freeIn(y, v) || freeIn(y, t.b)) y += "'";
+        return { ...t, x: y, ty, b: subst(subst(t.b, t.x, V(y)), x, v) }; }
+      return { ...t, ty, b: subst(t.b, x, v) };
+    }
+  }
+  return t;
+}
+function alphaEq(a, b) {
+  if (a.k !== b.k) return false;
+  switch (a.k) {
+    case "var": return a.n === b.n;
+    case "const": return a.n === b.n;
+    case "sort": return a.i === b.i;
+    case "meta": return a.id === b.id;
+    case "app": return alphaEq(a.f, b.f) && alphaEq(a.a, b.a);
+    case "lam": case "pi": {
+      if (!alphaEq(a.ty, b.ty)) return false;
+      if (a.x === b.x) return alphaEq(a.b, b.b);
+      let y = a.x; while (freeIn(y, a.b) || freeIn(y, b.b)) y += "'";
+      return alphaEq(subst(a.b, a.x, V(y)), subst(b.b, b.x, V(y)));
+    }
+  }
+  return false;
+}
+const spine = (t) => { const as = []; while (t.k === "app") { as.unshift(t.a); t = t.f; } return { head: t, args: as }; };
+const size = (t) => t.k === "app" ? 1 + size(t.f) + size(t.a) : (t.k === "lam" || t.k === "pi") ? 1 + size(t.ty) + size(t.b) : 1;
+const depthOf = (t) => t.k === "app" ? 1 + Math.max(depthOf(t.f), depthOf(t.a)) : (t.k === "lam" || t.k === "pi") ? 1 + Math.max(depthOf(t.ty), depthOf(t.b)) : 1;
+function constsIn(t, out) {
+  out = out || new Set();
+  if (t.k === "const") out.add(t.n);
+  else if (t.k === "app") { constsIn(t.f, out); constsIn(t.a, out); }
+  else if (t.k === "lam" || t.k === "pi") { constsIn(t.ty, out); constsIn(t.b, out); }
+  return out;
+}
+
+/* ---------------- environment ---------------- */
+function baseEnv() {
+  const E = new Map();
+  const add = (e) => E.set(e.name, e);
+  add({ name: "nat", kind: "ind", ty: T0, note: "the natural numbers" });
+  add({ name: "O", kind: "ctor", ty: NAT, of: "nat" });
+  add({ name: "S", kind: "ctor", ty: AR(NAT, NAT), of: "nat" });
+  add({ name: "nat_rect", kind: "rec", of: "nat",
+    ty: PI("P", AR(NAT, T0), AR(AP(V("P"), O),
+        AR(PI("n", NAT, AR(AP(V("P"), V("n")), AP(V("P"), SUCC(V("n"))))),
+           PI("n", NAT, AP(V("P"), V("n")))))) });
+  add({ name: "eq", kind: "ind", ty: PI("A", T0, AR(V("A"), AR(V("A"), T0))), note: "propositional equality" });
+  add({ name: "refl", kind: "ctor", of: "eq", ty: PI("A", T0, PI("x", V("A"), EQ(V("A"), V("x"), V("x")))) });
+  add({ name: "eq_rect", kind: "rec", of: "eq",
+    ty: PI("A", T0, PI("x", V("A"), PI("P", AR(V("A"), T0),
+        AR(AP(V("P"), V("x")), PI("y", V("A"), AR(EQ(V("A"), V("x"), V("y")), AP(V("P"), V("y")))))))) });
+  add({ name: "plus", kind: "def", ty: AR(NAT, AR(NAT, NAT)), recArg: 0, note: "addition by recursion on the first argument",
+    body: LAM("n", NAT, LAM("m", NAT, AP(K("nat_rect"), LAM("_", NAT, NAT), V("m"),
+      LAM("k", NAT, LAM("ih", NAT, SUCC(V("ih")))), V("n")))) });
+  add({ name: "mult", kind: "def", ty: AR(NAT, AR(NAT, NAT)), recArg: 0, note: "multiplication by recursion on the first argument",
+    body: LAM("n", NAT, LAM("m", NAT, AP(K("nat_rect"), LAM("_", NAT, NAT), O,
+      LAM("k", NAT, LAM("ih", NAT, PLUS(V("m"), V("ih")))), V("n")))) });
+  add({ name: "eq_sym", kind: "def", note: "prelude lemma, proved by hand with eq_rect",
+    ty: PI("A", T0, PI("x", V("A"), PI("y", V("A"), AR(EQ(V("A"), V("x"), V("y")), EQ(V("A"), V("y"), V("x")))))),
+    body: LAM("A", T0, LAM("x", V("A"), LAM("y", V("A"), LAM("h", EQ(V("A"), V("x"), V("y")),
+      AP(K("eq_rect"), V("A"), V("x"), LAM("z", V("A"), EQ(V("A"), V("z"), V("x"))),
+         AP(K("refl"), V("A"), V("x")), V("y"), V("h")))))) });
+  add({ name: "admitted", kind: "axiom", ty: PI("P", T0, V("P")), note: "the escape hatch an Admitted proof leaves behind" });
+  return E;
+}
+
+/* ---------------- reduction ---------------- */
+function whnf(env, t, st) {
+  for (let guard = 0; guard < 10000; guard++) {
+    const { head, args } = spine(t);
+    if (head.k === "lam" && args.length) {
+      if (st) st.beta++;
+      t = AP(subst(head.b, head.x, args[0]), ...args.slice(1)); continue;
+    }
+    if (head.k === "const") {
+      const e = env.get(head.n);
+      if (e && e.kind === "def" && e.body) { if (st) st.delta++; t = AP(e.body, ...args); continue; }
+      if (head.n === "nat_rect" && args.length >= 4) {
+        const n = whnf(env, args[3], st), sp = spine(n);
+        if (sp.head.k === "const" && sp.head.n === "O") { if (st) st.iota++; t = AP(args[1], ...args.slice(4)); continue; }
+        if (sp.head.k === "const" && sp.head.n === "S" && sp.args.length === 1) {
+          if (st) st.iota++;
+          t = AP(args[2], sp.args[0], AP(K("nat_rect"), args[0], args[1], args[2], sp.args[0]), ...args.slice(4)); continue;
+        }
+      }
+      if (head.n === "eq_rect" && args.length >= 6) {
+        const e2 = whnf(env, args[5], st), sp = spine(e2);
+        if (sp.head.k === "const" && sp.head.n === "refl") { if (st) st.iota++; t = AP(args[3], ...args.slice(6)); continue; }
+      }
+    }
+    return t;
+  }
+  return t;
+}
+/* refolding: after reduction, put `nat_rect ...` back into `plus`/`mult` the way simpl does */
+function defPattern(env, name) {
+  const e = env.get(name);
+  if (!e || e.kind !== "def" || !e.body) return null;
+  let b = e.body; const vars = [];
+  while (b.k === "lam") { vars.push(b.x); b = b.b; }
+  if (b.k !== "app") return null;
+  let pat = b; const metas = new Set();
+  vars.forEach((v, i) => { metas.add("\$" + i); pat = subst(pat, v, META("\$" + i)); });
+  return { name, pat, metas, arity: vars.length };
+}
+function refold(env, t) {
+  const pats = [...env.values()].filter((e) => e.kind === "def" && e.recArg !== undefined).map((e) => defPattern(env, e.name)).filter(Boolean);
+  const go = (t) => {
+    if (t.k === "app") t = { k: "app", f: go(t.f), a: go(t.a) };
+    else if (t.k === "lam" || t.k === "pi") t = { ...t, ty: go(t.ty), b: go(t.b) };
+    for (const p of pats) {
+      const asg = {};
+      if (fomatch(p.pat, t, p.metas, asg)) {
+        const args = []; let ok = true;
+        for (let i = 0; i < p.arity; i++) { if (!asg["\$" + i]) { ok = false; break; } args.push(asg["\$" + i]); }
+        if (ok) return AP(K(p.name), ...args);
+      }
+    }
+    return t;
+  };
+  return go(t);
+}
+/* simpl: reduce only where it exposes a constructor, then refold — the way `simpl` behaves */
+function simplify(env, t) {
+  const go = (t) => {
+    if (t.k === "app") {
+      const { head, args } = spine(t);
+      const as = args.map(go);
+      if (head.k === "const") {
+        const e = env.get(head.n);
+        if (e && e.kind === "def" && e.recArg !== undefined && as.length > e.recArg) {
+          const r = whnf(env, as[e.recArg]), sp = spine(r);
+          if (sp.head.k === "const" && (sp.head.n === "O" || sp.head.n === "S")) return go(whnf(env, AP(head, ...as)));
+        }
+        if (head.n === "nat_rect" || head.n === "eq_rect") {
+          const one = whnf(env, AP(head, ...as));
+          if (!alphaEq(one, AP(head, ...as))) return go(one);
+        }
+      }
+      return AP(go(head), ...as);
+    }
+    if (t.k === "lam" || t.k === "pi") return { ...t, ty: go(t.ty), b: go(t.b) };
+    return t;
+  };
+  return refold(env, go(t));
+}
+function defeq(env, a, b, st) {
+  if (st) st.conv++;
+  if (alphaEq(a, b)) return true;
+  const A = whnf(env, a, st), B = whnf(env, b, st);
+  if (A.k !== B.k) return false;
+  switch (A.k) {
+    case "var": return A.n === B.n;
+    case "const": return A.n === B.n;
+    case "sort": return A.i === B.i;
+    case "meta": return A.id === B.id;
+    case "app": {
+      const sa = spine(A), sb = spine(B);
+      if (sa.args.length !== sb.args.length) return false;
+      if (!defeq(env, sa.head, sb.head, st)) return false;
+      return sa.args.every((x, i) => defeq(env, x, sb.args[i], st));
+    }
+    case "lam": case "pi": {
+      if (!defeq(env, A.ty, B.ty, st)) return false;
+      let y = A.x; while (freeIn(y, A.b) || freeIn(y, B.b)) y += "'";
+      return defeq(env, subst(A.b, A.x, V(y)), subst(B.b, B.x, V(y)), st);
+    }
+  }
+  return false;
+}
+
+/* ---------------- the kernel ---------------- */
+class TypeError2 extends Error {}
+function infer(env, ctx, t, st, metaTy) {
+  st = st || { rules: {}, beta: 0, delta: 0, iota: 0, conv: 0 };
+  const bump = (r) => (st.rules[r] = (st.rules[r] || 0) + 1);
+  const look = (n) => { for (let i = ctx.length - 1; i >= 0; i--) if (ctx[i].name === n) return ctx[i].ty; return null; };
+  switch (t.k) {
+    case "var": { bump("var"); const ty = look(t.n); if (!ty) throw new TypeError2("unbound variable " + t.n); return ty; }
+    case "const": { bump("const"); const e = env.get(t.n); if (!e) throw new TypeError2("unknown constant " + t.n); return e.ty; }
+    case "sort": bump("sort"); return SORT(t.i + 1);
+    case "meta": { bump("meta"); if (!metaTy) throw new TypeError2("proof is not finished: " + t.id + " is still open"); return metaTy(t.id, ctx); }
+    case "app": {
+      bump("app");
+      const tf = whnf(env, infer(env, ctx, t.f, st, metaTy), st);
+      if (tf.k !== "pi") throw new TypeError2("this is applied to an argument but its type is not a function type");
+      const ta = infer(env, ctx, t.a, st, metaTy);
+      if (!defeq(env, ta, tf.ty, st)) throw new TypeError2("argument type mismatch: expected " + pp(tf.ty) + ", got " + pp(ta));
+      return subst(tf.b, tf.x, t.a);
+    }
+    case "lam": {
+      bump("lam");
+      sortOf(env, ctx, t.ty, st, metaTy);
+      const tb = infer(env, ctx.concat([{ name: t.x, ty: t.ty }]), t.b, st, metaTy);
+      return PI(t.x, t.ty, tb);
+    }
+    case "pi": {
+      bump("pi");
+      const i = sortOf(env, ctx, t.ty, st, metaTy);
+      const j = sortOf(env, ctx.concat([{ name: t.x, ty: t.ty }]), t.b, st, metaTy);
+      return SORT(Math.max(i, j));
+    }
+  }
+  throw new TypeError2("cannot infer");
+}
+function sortOf(env, ctx, t, st, metaTy) {
+  const s = whnf(env, infer(env, ctx, t, st, metaTy), st);
+  if (s.k !== "sort") throw new TypeError2(pp(t) + " should be a type but its type is " + pp(s));
+  return s.i;
+}
+function check(env, ctx, t, ty, st, metaTy) {
+  const got = infer(env, ctx, t, st, metaTy);
+  if (!defeq(env, got, ty, st)) throw new TypeError2("type mismatch\\n  expected: " + pp(ty) + "\\n  inferred: " + pp(got));
+  return true;
+}
+
+/* ---------------- printing ---------------- */
+function natLit(t) { let n = 0, x = t; for (;;) { if (x.k === "const" && x.n === "O") return n; if (x.k === "app" && x.f.k === "const" && x.f.n === "S") { n++; x = x.a; continue; } return null; } }
+function pp(t, prec) {
+  prec = prec || 0;
+  const wrap = (p, s) => (p < prec ? "(" + s + ")" : s);
+  const lit = natLit(t); if (lit !== null && lit <= 8) return String(lit);
+  switch (t.k) {
+    case "var": return t.n;
+    case "const": return t.n;
+    case "meta": return t.id;
+    case "sort": return "Type" + t.i;
+    case "app": {
+      const { head, args } = spine(t);
+      if (head.k === "const") {
+        if (head.n === "eq" && args.length === 3) return wrap(1, pp(args[1], 2) + " = " + pp(args[2], 2));
+        if (head.n === "plus" && args.length === 2) return wrap(2, pp(args[0], 3) + " + " + pp(args[1], 3));
+        if (head.n === "mult" && args.length === 2) return wrap(3, pp(args[0], 4) + " * " + pp(args[1], 4));
+      }
+      return wrap(4, [pp(head, 5)].concat(args.map((a) => pp(a, 5))).join(" "));
+    }
+    case "lam": return wrap(0, "fun " + t.x + " : " + pp(t.ty, 1) + " => " + pp(t.b, 0));
+    case "pi": return t.x === "_" || !freeIn(t.x, t.b)
+      ? wrap(1, pp(t.ty, 2) + " -> " + pp(t.b, 1))
+      : wrap(0, "forall " + t.x + " : " + pp(t.ty, 1) + ", " + pp(t.b, 0));
+  }
+  return "?";
+}
+
+/* ---------------- matching & unification ---------------- */
+function fomatch(pat, t, metas, asg) {
+  if (pat.k === "meta" && metas.has(pat.id)) {
+    if (asg[pat.id]) return alphaEq(asg[pat.id], t);
+    asg[pat.id] = t; return true;
+  }
+  if (pat.k !== t.k) return false;
+  switch (pat.k) {
+    case "var": return pat.n === t.n;
+    case "const": return pat.n === t.n;
+    case "sort": return pat.i === t.i;
+    case "meta": return pat.id === t.id;
+    case "app": return fomatch(pat.f, t.f, metas, asg) && fomatch(pat.a, t.a, metas, asg);
+    case "lam": case "pi": return fomatch(pat.ty, t.ty, metas, asg) && fomatch(pat.b, subst(t.b, t.x, V(pat.x)), metas, asg);
+  }
+  return false;
+}
+function findMatch(t, pat, metas) {
+  const asg = {};
+  if (fomatch(pat, t, metas, asg)) return { at: t, asg };
+  if (t.k === "app") return findMatch(t.f, pat, metas) || findMatch(t.a, pat, metas);
+  if (t.k === "lam" || t.k === "pi") return findMatch(t.ty, pat, metas) || findMatch(t.b, pat, metas);
+  return null;
+}
+function replaceAll(t, from, to) {
+  if (alphaEq(t, from)) return to;
+  if (t.k === "app") return { k: "app", f: replaceAll(t.f, from, to), a: replaceAll(t.a, from, to) };
+  if (t.k === "lam" || t.k === "pi") return { ...t, ty: replaceAll(t.ty, from, to), b: replaceAll(t.b, from, to) };
+  return t;
+}
+const instMeta = (t, asg) => {
+  if (t.k === "meta" && asg[t.id]) return instMeta(asg[t.id], asg);
+  if (t.k === "app") return { k: "app", f: instMeta(t.f, asg), a: instMeta(t.a, asg) };
+  if (t.k === "lam" || t.k === "pi") return { ...t, ty: instMeta(t.ty, asg), b: instMeta(t.b, asg) };
+  return t;
+};
+function unify(env, a, b, metas, asg) {
+  a = instMeta(a, asg); b = instMeta(b, asg);
+  if (a.k === "meta" && metas.has(a.id)) { asg[a.id] = b; return true; }
+  if (b.k === "meta" && metas.has(b.id)) { asg[b.id] = a; return true; }
+  if (a.k !== b.k) return defeq(env, a, b);
+  switch (a.k) {
+    case "var": return a.n === b.n;
+    case "const": return a.n === b.n;
+    case "sort": return a.i === b.i;
+    case "app": return unify(env, a.f, b.f, metas, asg) && unify(env, a.a, b.a, metas, asg);
+    case "lam": case "pi": return unify(env, a.ty, b.ty, metas, asg) && unify(env, a.b, subst(b.b, b.x, V(a.x)), metas, asg);
+  }
+  return defeq(env, a, b);
+}
+
+/* ============================================================
+   TACTICS AND THE DEVELOPMENT
+   ============================================================ */
+
+/* ---------------- tiny term parser (for exact / apply arguments) ---------------- */
+function parseTerm(src, ctx, env) {
+  const toks = src.match(/[A-Za-z_][A-Za-z0-9_']*|\d+|$|$/g) || [];
+  let i = 0;
+  const atom = () => {
+    const t = toks[i];
+    if (t === "(") { i++; const e = expr(); if (toks[i] === ")") i++; return e; }
+    i++;
+    if (/^\d+\$/.test(t)) return num(+t);
+    if (ctx.some((c) => c.name === t)) return V(t);
+    if (env.has(t)) return K(t);
+    throw new Error("unknown identifier " + t);
+  };
+  const expr = () => { let e = atom(); while (i < toks.length && toks[i] !== ")") e = { k: "app", f: e, a: atom() }; return e; };
+  const e = expr();
+  if (i < toks.length) throw new Error("trailing input in term");
+  return e;
+}
+/* ---------------- tactic parser ---------------- */
+function parseTac(s) {
+  const t = s.trim().replace(/\.\$/, "");
+  const w = t.split(/\s+/);
+  const c = w[0];
+  if (c === "intro") return { t: "intro", names: w.slice(1) };
+  if (c === "intros") return { t: "intros", names: w.slice(1) };
+  if (c === "exact") return { t: "exact", arg: w.slice(1).join(" ") };
+  if (c === "apply") return { t: "apply", arg: w.slice(1).join(" ") };
+  if (c === "rewrite") {
+    const dir = w[1] === "<-" ? "<-" : "->";
+    return { t: "rewrite", dir, arg: w.slice(w[1] === "<-" || w[1] === "->" ? 2 : 1).join(" ") };
+  }
+  if (c === "induction") return { t: "induction", arg: w[1] };
+  if (c === "unfold") return { t: "unfold", arg: w[1] };
+  if (c === "simpl") return { t: "simpl" };
+  if (c === "reflexivity") return { t: "reflexivity" };
+  if (c === "symmetry") return { t: "symmetry" };
+  if (c === "assumption") return { t: "assumption" };
+  if (c === "admit") return { t: "admit" };
+  throw new Error("unknown tactic '" + c + "'");
+}
+
+/* ---------------- proof state ---------------- */
+let gc = 0;
+const newGoalId = () => "?g" + ++gc;
+const cloneGoal = (g) => ({ id: g.id, ctx: g.ctx.slice(), target: g.target });
+const cloneState = (s) => ({ goals: s.goals.map(cloneGoal), assign: { ...s.assign }, root: s.root });
+function initState(ty) { const id = newGoalId(); return { goals: [{ id, ctx: [], target: ty }], assign: {}, root: id }; }
+const lookupHyp = (g, n) => g.ctx.find((c) => c.name === n);
+function typeOfName(env, g, n) {
+  const h = lookupHyp(g, n); if (h) return { term: V(n), ty: h.ty, where: "hypothesis" };
+  const e = env.get(n); if (e) return { term: K(n), ty: e.ty, where: e.kind };
+  throw new Error("no hypothesis or lemma called " + n);
+}
+
+/* peel a Pi type into fresh metavariables */
+function peel(env, ty, mk) {
+  const metas = new Set(), types = {}, order = [];
+  let t = ty;
+  for (let i = 0; i < 20; i++) {
+    const w = whnf(env, t);
+    if (w.k !== "pi") break;
+    const id = mk();
+    metas.add(id); types[id] = w.ty; order.push(id);
+    t = subst(w.b, w.x, META(id));
+  }
+  return { concl: t, metas, types, order };
+}
+
+/* ---------------- tactics ---------------- */
+function applyTactic(env, state, tac, opts) {
+  opts = opts || {};
+  if (!state.goals.length) throw new Error("no goals left");
+  const g = state.goals[0], rest = state.goals.slice(1);
+  const produced = [], assign = { ...state.assign };
+  const mkGoal = (ctx, target) => { const ng = { id: newGoalId(), ctx, target }; produced.push(ng); return ng; };
+  let refine = null, note = "";
+
+  const finish = () => {
+    assign[g.id] = refine;
+    return { state: { goals: produced.concat(rest), assign, root: state.root },
+      info: { consumed: g, produced: produced.map(cloneGoal), refine, note } };
+  };
+
+  if (tac.t === "intro" || tac.t === "intros") {
+    let ctx = g.ctx.slice(), target = g.target, names = tac.names.slice(), binders = [];
+    const want = tac.t === "intro" ? Math.max(1, names.length) : (names.length || 99);
+    for (let i = 0; i < want; i++) {
+      const w = whnf(env, target);
+      if (w.k !== "pi") { if (i === 0) throw new Error("the goal is not a product, so there is nothing to introduce"); break; }
+      const nm = names[i] || (w.x === "_" ? "H" + (ctx.length + 1) : w.x);
+      binders.push({ name: nm, ty: w.ty });
+      ctx = ctx.concat([{ name: nm, ty: w.ty }]);
+      target = subst(w.b, w.x, V(nm));
+    }
+    const ng = mkGoal(ctx, target);
+    refine = binders.reduceRight((acc, b) => LAM(b.name, b.ty, acc), META(ng.id));
+    note = "moved " + binders.map((b) => b.name).join(", ") + " above the line";
+    return finish();
+  }
+  if (tac.t === "simpl") {
+    const t2 = simplify(env, g.target);
+    if (alphaEq(t2, g.target)) note = "nothing reduced — no recursive call has a constructor in its recursive argument yet";
+    else note = "unfolded and refolded: " + pp(g.target) + "  ⟶  " + pp(t2);
+    const ng = mkGoal(g.ctx, t2);
+    refine = META(ng.id);            /* conversion: the term is unchanged, only the goal's presentation */
+    return finish();
+  }
+  if (tac.t === "unfold") {
+    const e = env.get(tac.arg);
+    if (!e || !e.body) throw new Error(tac.arg + " has no definition to unfold");
+    const t2 = (function go(t) {
+      if (t.k === "const" && t.n === tac.arg) return e.body;
+      if (t.k === "app") return { k: "app", f: go(t.f), a: go(t.a) };
+      if (t.k === "lam" || t.k === "pi") return { ...t, ty: go(t.ty), b: go(t.b) };
+      return t;
+    })(g.target);
+    const ng = mkGoal(g.ctx, t2);
+    refine = META(ng.id); note = "replaced " + tac.arg + " by its definition";
+    return finish();
+  }
+  if (tac.t === "reflexivity") {
+    const w = whnf(env, g.target), sp = spine(w);
+    if (!(sp.head.k === "const" && sp.head.n === "eq" && sp.args.length === 3)) throw new Error("the goal is not an equation");
+    const [A, a, b] = sp.args;
+    if (!defeq(env, a, b)) throw new Error("the two sides are not definitionally equal:\\n  " + pp(a) + "\\n  " + pp(b));
+    refine = AP(K("refl"), A, a);
+    note = pp(a) + " and " + pp(b) + " share a normal form";
+    return finish();
+  }
+  if (tac.t === "assumption") {
+    const h = g.ctx.find((c) => defeq(env, c.ty, g.target));
+    if (!h) throw new Error("no hypothesis matches the goal");
+    refine = V(h.name); note = "closed by " + h.name;
+    return finish();
+  }
+  if (tac.t === "exact") {
+    const e = parseTerm(tac.arg, g.ctx, env);
+    check(env, g.ctx, e, g.target);
+    refine = e; note = "supplied the term directly";
+    return finish();
+  }
+  if (tac.t === "symmetry") {
+    const w = whnf(env, g.target), sp = spine(w);
+    if (!(sp.head.k === "const" && sp.head.n === "eq")) throw new Error("the goal is not an equation");
+    const [A, a, b] = sp.args;
+    const ng = mkGoal(g.ctx, EQ(A, b, a));
+    refine = AP(K("eq_sym"), A, b, a, META(ng.id));
+    note = "swapped the two sides using eq_sym";
+    return finish();
+  }
+  if (tac.t === "apply") {
+    const { term, ty } = typeOfName(env, g, tac.arg);
+    let mc = 0;
+    const pk = peel(env, ty, () => "?a" + tac.arg + "_" + ++mc);
+    const asg = {};
+    if (!unify(env, pk.concl, g.target, pk.metas, asg)) throw new Error("cannot unify\\n  " + pp(pk.concl) + "\nwith the goal\\n  " + pp(g.target));
+    const args = pk.order.map((id) => {
+      if (asg[id]) return instMeta(META(id), asg);
+      const ng = mkGoal(g.ctx, instMeta(pk.types[id], asg));
+      return META(ng.id);
+    });
+    refine = AP(term, ...args);
+    note = "unified the conclusion of " + tac.arg + "; " + pk.order.filter((id) => asg[id]).length + " of " + pk.order.length + " arguments determined by unification";
+    return finish();
+  }
+  if (tac.t === "rewrite") {
+    const { term, ty } = typeOfName(env, g, tac.arg);
+    let mc = 0;
+    const pk = peel(env, ty, () => "?r" + tac.arg + "_" + ++mc);
+    const sp = spine(whnf(env, pk.concl));
+    if (!(sp.head.k === "const" && sp.head.n === "eq" && sp.args.length === 3)) throw new Error(tac.arg + " is not an equation");
+    const [A, lhs, rhs] = sp.args;
+    const pat = tac.dir === "->" ? lhs : rhs, other = tac.dir === "->" ? rhs : lhs;
+    if (pat.k === "meta" && pk.metas.has(pat.id)) throw new Error("the side being rewritten is a bare variable, so it would match everything");
+    const m = findMatch(g.target, pat, pk.metas);
+    if (!m) throw new Error("nothing in the goal matches " + pp(pat) + "\ngoal: " + pp(g.target));
+    const inst = instMeta(pat, m.asg), otherI = instMeta(other, m.asg), AI = instMeta(A, m.asg);
+    const hI = AP(term, ...pk.order.map((id) => instMeta(META(id), m.asg)));
+    let z = "z"; while (freeIn(z, g.target)) z += "'";
+    const abstracted = replaceAll(g.target, inst, V(z));
+    const motive = LAM(z, AI, abstracted);
+    const newTarget = subst(abstracted, z, otherI);
+    const ng = mkGoal(g.ctx, newTarget);
+    const lhsI = instMeta(lhs, m.asg), rhsI = instMeta(rhs, m.asg);
+    if (tac.dir === "->") {
+      const sym = opts.unsoundRewrite ? hI : AP(K("eq_sym"), AI, lhsI, rhsI, hI);
+      refine = AP(K("eq_rect"), AI, otherI, motive, META(ng.id), inst, sym);
+    } else {
+      refine = AP(K("eq_rect"), AI, otherI, motive, META(ng.id), inst, hI);
+    }
+    const occ = (function count(t) { return alphaEq(t, inst) ? 1 : t.k === "app" ? count(t.f) + count(t.a) : (t.k === "lam" || t.k === "pi") ? count(t.ty) + count(t.b) : 0; })(g.target);
+    note = "rewrote " + occ + " occurrence" + (occ === 1 ? "" : "s") + " of " + pp(inst) + " into " + pp(otherI);
+    return finish();
+  }
+  if (tac.t === "induction") {
+    const x = tac.arg;
+    const idx = g.ctx.findIndex((c) => c.name === x);
+    if (idx < 0) throw new Error(x + " is not in the context");
+    if (!defeq(env, g.ctx[idx].ty, NAT)) throw new Error(x + " is not a natural number");
+    const dependents = g.ctx.slice(idx + 1).filter((c) => freeIn(x, c.ty));
+    if (dependents.length) throw new Error("cannot induct: " + dependents.map((d) => d.name).join(", ") + " mention " + x + " and would need generalising first");
+    const rest2 = g.ctx.filter((c) => c.name !== x);
+    const motive = LAM(x, NAT, g.target);
+    const base = mkGoal(rest2, subst(g.target, x, O));
+    const ihName = "IH" + x;
+    const step = mkGoal(rest2.concat([{ name: x, ty: NAT }, { name: ihName, ty: g.target }]), subst(g.target, x, SUCC(V(x))));
+    refine = AP(K("nat_rect"), motive, META(base.id), LAM(x, NAT, LAM(ihName, g.target, META(step.id))), V(x));
+    note = "two goals: " + x + " = 0, and " + x + " = S " + x + " with " + ihName + " available";
+    return finish();
+  }
+  if (tac.t === "admit") {
+    refine = AP(K("admitted"), g.target);
+    note = "closed by the admitted axiom — this proof is no longer trustworthy";
+    return finish();
+  }
+  throw new Error("unimplemented tactic " + tac.t);
+}
+
+/* ---------------- running a script ---------------- */
+function runScript(env, spec, opts) {
+  opts = opts || {};
+  const off = (opts.disabled || new Set());
+  let st = initState(spec.ty);
+  const steps = [{ i: 0, tac: "(statement)", state: cloneState(st), ok: true, note: "the goal as written", produced: [cloneGoal(st.goals[0])], consumed: null }];
+  let failed = null;
+  spec.script.forEach((line, i) => {
+    if (failed) { steps.push({ i: i + 1, tac: line, skipped: true, ok: false, state: cloneState(st) }); return; }
+    if (off.has(spec.name + ":" + i)) { steps.push({ i: i + 1, tac: line, disabled: true, ok: true, state: cloneState(st), note: "switched off — the proof runs on without it" }); return; }
+    const t0 = Date.now();
+    try {
+      const parsed = parseTac(line);
+      const r = applyTactic(env, st, parsed, opts);
+      st = r.state;
+      steps.push({ i: i + 1, tac: line, parsed, ok: true, ms: Date.now() - t0, state: cloneState(st),
+        consumed: r.info.consumed, produced: r.info.produced, refine: r.info.refine, note: r.info.note });
+    } catch (e) {
+      failed = { at: i + 1, msg: String(e.message || e) };
+      steps.push({ i: i + 1, tac: line, ok: false, ms: Date.now() - t0, state: cloneState(st), err: String(e.message || e) });
+    }
+  });
+  const closed = !failed && st.goals.length === 0;
+  let term = null, kernel = { ok: false, msg: "the proof is not finished" }, kstats = null;
+  if (closed) {
+    term = instMeta(META(st.root), st.assign);
+    kstats = { rules: {}, beta: 0, delta: 0, iota: 0, conv: 0 };
+    const t0 = Date.now();
+    try { check(env, [], term, spec.ty, kstats); kernel = { ok: true, msg: "the kernel accepts this term against the stated type" }; }
+    catch (e) { kernel = { ok: false, msg: String(e.message || e) }; }
+    kstats.ms = Date.now() - t0;
+  }
+  return { name: spec.name, spec, steps, state: st, closed, failed, term, kernel, kstats,
+    openGoals: st.goals.length, admitted: term ? constsIn(term).has("admitted") : false };
+}
+/* per-tactic kernel check: the refinement, in the goal it acted on, against that goal's type */
+function checkStep(env, step) {
+  if (!step.refine || !step.consumed) return null;
+  const tys = {}; (step.produced || []).forEach((g) => (tys[g.id] = g.target));
+  const st = { rules: {}, beta: 0, delta: 0, iota: 0, conv: 0 };
+  try {
+    check(env, step.consumed.ctx, step.refine, step.consumed.target, st, (id) => {
+      if (!tys[id]) throw new TypeError2("unknown hole " + id);
+      return tys[id];
+    });
+    return { ok: true, st };
+  } catch (e) { return { ok: false, err: String(e.message || e), st }; }
+}
+
+/* ---------------- the development ---------------- */
+const DEV = [
+  { name: "plus_O_n", ty: PI("n", NAT, NEQ(PLUS(O, V("n")), V("n"))),
+    blurb: "0 + n = n holds by computation alone", script: ["intro n", "reflexivity"] },
+  { name: "plus_n_O", ty: PI("n", NAT, NEQ(PLUS(V("n"), O), V("n"))),
+    blurb: "n + 0 = n does not — plus recurses on its first argument, so this one needs induction",
+    script: ["intro n", "induction n", "reflexivity", "simpl", "rewrite IHn", "reflexivity"] },
+  { name: "plus_n_Sm", ty: PI("n", NAT, PI("m", NAT, NEQ(SUCC(PLUS(V("n"), V("m"))), PLUS(V("n"), SUCC(V("m")))))),
+    blurb: "pushing a successor across a sum", script: ["intros n m", "induction n", "reflexivity", "simpl", "rewrite IHn", "reflexivity"] },
+  { name: "plus_comm", ty: PI("n", NAT, PI("m", NAT, NEQ(PLUS(V("n"), V("m")), PLUS(V("m"), V("n"))))),
+    blurb: "commutativity — the first proof here that rests on two earlier lemmas",
+    script: ["intros n m", "induction n", "simpl", "rewrite plus_n_O", "reflexivity", "simpl", "rewrite IHn", "rewrite plus_n_Sm", "reflexivity"] },
+  { name: "plus_assoc", ty: PI("a", NAT, PI("b", NAT, PI("c", NAT, NEQ(PLUS(PLUS(V("a"), V("b")), V("c")), PLUS(V("a"), PLUS(V("b"), V("c"))))))),
+    blurb: "associativity, by induction on the leftmost summand",
+    script: ["intros a b c", "induction a", "reflexivity", "simpl", "rewrite IHa", "reflexivity"] },
+  { name: "plus_two_comm", ty: PI("n", NAT, NEQ(PLUS(V("n"), num(2)), PLUS(num(2), V("n")))),
+    blurb: "a one-line corollary — unification finds both arguments", script: ["intro n", "apply plus_comm"] },
+  { name: "mult_comm", ty: PI("n", NAT, PI("m", NAT, NEQ(MULT(V("n"), V("m")), MULT(V("m"), V("n"))))),
+    blurb: "left unproved on purpose: watch what it does to everything downstream", script: ["intros n m", "admit"] },
+  { name: "mult_two_comm", ty: PI("n", NAT, NEQ(MULT(V("n"), num(2)), MULT(num(2), V("n")))),
+    blurb: "proved honestly, but from an admitted lemma", script: ["intro n", "apply mult_comm"] },
+];
+
+function buildDevelopment(opts) {
+  opts = opts || {};
+  const env = baseEnv();
+  const runs = [];
+  DEV.forEach((spec0) => {
+    const over = (opts.scripts || {})[spec0.name];
+    const spec = over ? { ...spec0, script: over } : spec0;
+    if ((opts.revoked || new Set()).has(spec.name)) { runs.push({ name: spec.name, spec, revoked: true, steps: [], closed: false, openGoals: 0 }); return; }
+    const r = runScript(env, spec, opts);
+    runs.push(r);
+    env.set(spec.name, { name: spec.name, kind: "thm", ty: spec.ty, body: r.term, script: spec.script,
+      proved: r.closed && r.kernel.ok, admitted: r.admitted, blurb: spec.blurb });
+  });
+  return { env, runs };
+}
+
+/* ============================================================
+   ANALYSES OVER THE DEVELOPMENT
+   ============================================================ */
+
+/* Print Assumptions: transitively, what does this proof actually rest on? */
+function assumptions(env, name, seen) {
+  seen = seen || new Set();
+  const out = { axioms: new Set(), unproved: new Set(), thms: new Set(), defs: new Set(), kernel: new Set(), missing: new Set() };
+  const merge = (o) => Object.keys(out).forEach((k) => o[k].forEach((x) => out[k].add(x)));
+  const walk = (n) => {
+    if (seen.has(n)) return; seen.add(n);
+    const e = env.get(n);
+    if (!e) { out.missing.add(n); return; }
+    if (e.kind === "axiom") { out.axioms.add(n); return; }
+    if (e.kind === "ind" || e.kind === "ctor" || e.kind === "rec") { out.kernel.add(n); return; }
+    if (e.kind === "thm") { out.thms.add(n); if (e.proved === false) out.unproved.add(n); }
+    if (e.kind === "def") out.defs.add(n);
+    if (e.body) constsIn(e.body).forEach(walk);
+  };
+  const root = env.get(name);
+  if (root && root.body) constsIn(root.body).forEach(walk);
+  else if (root && root.proved === false) out.unproved.add(name);
+  return { ...out, closed: out.axioms.size === 0 && out.unproved.size === 0 && out.missing.size === 0 };
+}
+/* direct uses, for the dependency graph */
+function directDeps(env, name) {
+  const e = env.get(name);
+  if (!e || !e.body) return [];
+  return [...constsIn(e.body)].filter((c) => { const x = env.get(c); return x && (x.kind === "thm" || (x.kind === "def" && c !== name)); });
+}
+/* counterfactual: take a lemma away and rebuild the whole development */
+function revokeImpact(name, opts) {
+  const base = buildDevelopment(opts);
+  const alt = buildDevelopment({ ...opts, revoked: new Set([name]) });
+  const rows = DEV.filter((d) => d.name !== name).map((d) => {
+    const b = base.runs.find((r) => r.name === d.name), a = alt.runs.find((r) => r.name === d.name);
+    const wasOk = b && b.closed && b.kernel && b.kernel.ok;
+    const nowOk = a && a.closed && a.kernel && a.kernel.ok;
+    const tainted = nowOk && assumptions(alt.env, d.name).unproved.size > 0;
+    return { name: d.name, wasOk, nowOk, tainted, at: a && a.failed ? a.failed.at : null, why: a && a.failed ? a.failed.msg.split("\\n")[0] : null };
+  });
+  return { name, rows, broke: rows.filter((r) => r.wasOk && !r.nowOk), tainted: rows.filter((r) => r.tainted) };
+}
+/* real delta debugging over the tactic script */
+function minimizeScript(spec, envBefore, opts) {
+  const ok = (script) => {
+    try {
+      const r = runScript(envBefore, { ...spec, script }, opts);
+      return r.closed && r.kernel.ok && !r.admitted;
+    } catch (e) { return false; }
+  };
+  if (!ok(spec.script)) return { ok: false, note: "this proof does not currently close with an accepted term, so there is nothing to minimise", script: spec.script };
+  let cur = spec.script.slice(); const dropped = [];
+  let again = true, guard = 0;
+  while (again && guard++ < 50) {
+    again = false;
+    for (let i = 0; i < cur.length; i++) {
+      const cand = cur.slice(0, i).concat(cur.slice(i + 1));
+      if (ok(cand)) { dropped.push(cur[i]); cur = cand; again = true; break; }
+    }
+  }
+  return { ok: true, script: cur, dropped, from: spec.script.length, to: cur.length };
+}
+/* which lemmas in the environment could close, or make progress on, this goal */
+function searchApplicable(env, goal, limit) {
+  const out = [];
+  for (const [name, e] of env) {
+    if (!(e.kind === "thm" || e.kind === "def" || e.kind === "ctor")) continue;
+    if (e.kind === "def" && !e.ty) continue;
+    let mc = 0;
+    let pk;
+    try { pk = peel(env, e.ty, () => "?s" + ++mc); } catch (x) { continue; }
+    const asg = {};
+    let hit = false;
+    try { hit = unify(env, pk.concl, goal.target, pk.metas, asg); } catch (x) { hit = false; }
+    if (hit) {
+      const unsolved = pk.order.filter((id) => !asg[id]);
+      out.push({ name, kind: e.kind, ty: e.ty, args: pk.order.length, unsolved: unsolved.length,
+        inst: pk.order.map((id) => (asg[id] ? pp(instMeta(META(id), asg)) : "?")) });
+    }
+  }
+  /* hypotheses too */
+  goal.ctx.forEach((h) => {
+    const asg = {};
+    if (defeq(env, h.ty, goal.target)) out.push({ name: h.name, kind: "hypothesis", ty: h.ty, args: 0, unsolved: 0, inst: [] });
+  });
+  return out.slice(0, limit || 20);
+}
+/* rewriting opportunities: which equations match somewhere in the goal */
+function searchRewrites(env, goal) {
+  const out = [];
+  const cands = [...goal.ctx.map((h) => ({ name: h.name, ty: h.ty, kind: "hypothesis" }))]
+    .concat([...env].filter(([n, e]) => e.kind === "thm" && e.ty).map(([n, e]) => ({ name: n, ty: e.ty, kind: "lemma" })));
+  cands.forEach((c) => {
+    let mc = 0, pk;
+    try { pk = peel(env, c.ty, () => "?w" + ++mc); } catch (x) { return; }
+    const sp = spine(whnf(env, pk.concl));
+    if (!(sp.head.k === "const" && sp.head.n === "eq" && sp.args.length === 3)) return;
+    ["->", "<-"].forEach((dir) => {
+      const pat = dir === "->" ? sp.args[1] : sp.args[2];
+      if (pat.k === "meta" && pk.metas.has(pat.id)) return;   /* a bare variable matches everything — useless */
+      const m = findMatch(goal.target, pat, pk.metas);
+      if (m) out.push({ name: c.name, kind: c.kind, dir, at: pp(instMeta(pat, m.asg)),
+        to: pp(instMeta(dir === "->" ? sp.args[2] : sp.args[1], m.asg)) });
+    });
+  });
+  return out;
+}
+/* find the first tactic whose refinement the kernel rejects, by halving */
+function bisectSteps(env, run) {
+  const steps = run.steps.filter((s) => s.refine);
+  const checks = steps.map((s) => ({ i: s.i, tac: s.tac, res: checkStep(env, s) }));
+  const bad = checks.filter((c) => c.res && !c.res.ok);
+  if (!bad.length) return { clean: true, probes: [], checks };
+  let lo = -1, hi = checks.length - 1, probes = [];
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    const anyBad = checks.slice(0, mid + 1).some((c) => c.res && !c.res.ok);
+    probes.push({ lo, hi, mid, tac: checks[mid].tac, ok: !anyBad });
+    if (anyBad) hi = mid; else lo = mid;
+  }
+  return { clean: false, probes, culprit: checks[hi], checks };
+}
+
+/* ============================================================
+   TIDY DATASETS — the development measuring itself
+   ============================================================ */
+function buildDatasets(D, focus) {
+  const F = (name, type) => ({ name, type });
+  const tactics = [];
+  D.runs.forEach((r) => (r.steps || []).forEach((s) => {
+    if (!s.i) return;
+    const before = s.consumed ? 1 : 0;
+    tactics.push({ theorem: r.name, i: s.i, tactic: s.tac, head: tacName(s.tac),
+      produced: (s.produced || []).length, refine_size: s.refine ? size(s.refine) : 0,
+      ms: +(s.ms || 0).toFixed(2), ok: s.ok ? "yes" : "no", disabled: s.disabled ? "yes" : "no",
+      goals_after: s.state ? s.state.goals.length : 0 });
+  }));
+  const theorems = D.runs.map((r) => {
+    const a = r.revoked ? null : assumptions(D.env, r.name);
+    return { name: r.name, tactics: (r.spec.script || []).length, closed: r.closed ? "yes" : "no",
+      kernel: r.kernel && r.kernel.ok ? "accepts" : "rejects", term_size: r.term ? size(r.term) : 0,
+      term_depth: r.term ? depthOf(r.term) : 0, lemmas_used: a ? a.thms.size : 0,
+      axioms: a ? a.axioms.size : 0, admitted: r.admitted ? "yes" : "no",
+      check_ms: r.kstats ? +(r.kstats.ms || 0).toFixed(2) : 0,
+      conversions: r.kstats ? r.kstats.conv : 0, beta: r.kstats ? r.kstats.beta : 0,
+      delta: r.kstats ? r.kstats.delta : 0, iota: r.kstats ? r.kstats.iota : 0 };
+  });
+  const goals = [];
+  D.runs.forEach((r) => (r.steps || []).forEach((s) => (s.produced || []).forEach((g) => goals.push({
+    theorem: r.name, id: g.id, step: s.i, hyps: g.ctx.length, target_size: size(g.target),
+    target_depth: depthOf(g.target), opened_by: s.tac === "(statement)" ? "—" : tacName(s.tac) }))));
+  const lemmas = [...D.env.values()].map((e) => {
+    const uses = e.body ? directDeps(D.env, e.name) : [];
+    const usedBy = [...D.env.values()].filter((x) => x.body && directDeps(D.env, x.name).includes(e.name)).map((x) => x.name);
+    return { name: e.name, kind: e.kind, size: e.body ? size(e.body) : 0, type_size: size(e.ty),
+      uses: uses.length, used_by: usedBy.length, proved: e.kind === "thm" ? (e.proved ? "yes" : "no") : "—" };
+  });
+  const focusRun = D.runs.find((r) => r.name === focus);
+  const rules = focusRun && focusRun.kstats
+    ? Object.entries(focusRun.kstats.rules).map(([rule, count]) => ({ rule, count, theorem: focus }))
+    : [];
+  return {
+    tactics: { id: "tactics", note: "one row per tactic invocation across the whole development", rows: tactics,
+      fields: [F("theorem", "n"), F("i", "t"), F("tactic", "n"), F("head", "n"), F("produced", "q"), F("refine_size", "q"), F("ms", "q"), F("ok", "n"), F("disabled", "n"), F("goals_after", "q")] },
+    theorems: { id: "theorems", note: "one row per theorem, with what the kernel had to do to accept it", rows: theorems,
+      fields: [F("name", "n"), F("tactics", "q"), F("closed", "n"), F("kernel", "n"), F("term_size", "q"), F("term_depth", "q"), F("lemmas_used", "q"), F("axioms", "q"), F("admitted", "n"), F("check_ms", "q"), F("conversions", "q"), F("beta", "q"), F("delta", "q"), F("iota", "q")] },
+    goals: { id: "goals", note: "every goal the development ever opened", rows: goals,
+      fields: [F("theorem", "n"), F("id", "n"), F("step", "t"), F("hyps", "q"), F("target_size", "q"), F("target_depth", "q"), F("opened_by", "n")] },
+    library: { id: "library", note: "the environment: inductives, constructors, eliminators, definitions, theorems, axioms", rows: lemmas,
+      fields: [F("name", "n"), F("kind", "n"), F("size", "q"), F("type_size", "q"), F("uses", "q"), F("used_by", "q"), F("proved", "n")] },
+    rules: { id: "rules", note: "inference rules the kernel applied while checking the focused theorem", rows: rules,
+      fields: [F("rule", "n"), F("count", "q"), F("theorem", "n")] },
+  };
+}
+
+/* ---------------- grammar of graphics ---------------- */
+let stepc = 0;
+const mkStep = (kind, cfg) => ({ id: "gs" + ++stepc, kind, on: true, ...cfg });
+const AGGS = ["mean", "sum", "min", "max", "count"];
+const FOPS = ["=", "≠", ">", "<"];
+const DOPS = ["+", "-", "*", "/"];
+const applyAgg = (fn, vals) => {
+  const n = vals.filter((v) => typeof v === "number" && isFinite(v));
+  if (fn === "count") return vals.length;
+  if (!n.length) return 0;
+  if (fn === "sum") return n.reduce((a, b) => a + b, 0);
+  if (fn === "mean") return n.reduce((a, b) => a + b, 0) / n.length;
+  if (fn === "min") return Math.min(...n);
+  return Math.max(...n);
+};
+const aggName = (fn, field) => (fn === "count" ? "count" : fn + "_" + field);
+const stepLabel = (s) =>
+  s.kind === "filter" ? `filter ${s.field} ${s.op} ${JSON.stringify(s.value)}`
+  : s.kind === "derive" ? `derive ${s.as} = ${s.a} ${s.op} ${s.b}`
+  : s.kind === "summarize" ? `group by ${s.by} · ${s.fn}(${s.field})`
+  : s.kind === "sort" ? `sort ${s.field} ${s.dir}`
+  : `limit ${s.n}`;
+
+function schemaAfter(DS, dsId, steps, upto) {
+  const d = DS[dsId]; if (!d) return [];
+  let f = d.fields.slice();
+  (steps || []).slice(0, upto === undefined ? undefined : upto).forEach((s) => {
+    if (!s.on) return;
+    if (s.kind === "derive") f = f.concat([{ name: s.as, type: "q" }]);
+    if (s.kind === "summarize") {
+      const by = f.find((x) => x.name === s.by) || { name: s.by, type: "n" };
+      f = [by, { name: aggName(s.fn, s.field), type: "q" }];
+    }
+  });
+  const seen = new Set();
+  return f.filter((x) => (seen.has(x.name) ? false : (seen.add(x.name), true)));
+}
+function evaluate(DS, dsId, steps) {
+  const d = DS[dsId]; if (!d) return { rows: [], fields: [] };
+  let rows = d.rows.map((r) => ({ ...r }));
+  (steps || []).forEach((s) => {
+    if (!s.on) return;
+    if (s.kind === "filter") {
+      rows = rows.filter((r) => {
+        const a = r[s.field], b = s.value;
+        if (s.op === "=") return String(a) === String(b);
+        if (s.op === "≠") return String(a) !== String(b);
+        const na = +a, nb = +b;
+        return s.op === ">" ? na > nb : na < nb;
+      });
+    } else if (s.kind === "derive") {
+      rows = rows.map((r) => {
+        const a = +r[s.a], b = isNaN(+s.b) ? +r[s.b] : +s.b;
+        const v = s.op === "+" ? a + b : s.op === "-" ? a - b : s.op === "*" ? a * b : b ? a / b : 0;
+        return { ...r, [s.as]: isFinite(v) ? v : 0 };
+      });
+    } else if (s.kind === "summarize") {
+      const g = new Map();
+      rows.forEach((r) => { const k = String(r[s.by]); if (!g.has(k)) g.set(k, []); g.get(k).push(r); });
+      rows = [...g.entries()].map(([k, rs]) => ({ [s.by]: rs[0][s.by], [aggName(s.fn, s.field)]: applyAgg(s.fn, rs.map((r) => r[s.field])) }));
+    } else if (s.kind === "sort") {
+      rows = rows.slice().sort((x, y) => {
+        const a = x[s.field], b = y[s.field], n = typeof a === "number" && typeof b === "number";
+        const c = n ? a - b : String(a).localeCompare(String(b));
+        return s.dir === "desc" ? -c : c;
+      });
+    } else if (s.kind === "limit") rows = rows.slice(0, Math.max(1, +s.n || 10));
+  });
+  return { rows, fields: schemaAfter(DS, dsId, steps) };
+}
+function niceTicks(lo, hi, n) {
+  if (!isFinite(lo) || !isFinite(hi)) return [0, 1];
+  if (lo === hi) { lo -= 1; hi += 1; }
+  const raw = (hi - lo) / Math.max(1, n), mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw / mag, step = (norm >= 5 ? 10 : norm >= 2 ? 5 : norm >= 1 ? 2 : 1) * mag;
+  const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(10));
+  return out;
+}
+function buildPlot(DS, chart, W, H) {
+  const { rows, fields } = evaluate(DS, chart.datasetId, chart.steps);
+  const ft = (n) => (fields.find((f) => f.name === n) || {}).type;
+  const m = chart.map, geom = chart.geom;
+  const pad = { l: 54, r: 10, t: 10, b: 34 };
+  const iw = Math.max(20, W - pad.l - pad.r), ih = Math.max(20, H - pad.t - pad.b);
+  if (!m.x || !m.y || !rows.length) return { empty: true, rows, fields };
+  const xt = ft(m.x), yt = ft(m.y);
+  const xs = rows.map((r) => r[m.x]), ys = rows.map((r) => +r[m.y]).filter((v) => isFinite(v));
+  const cats = xt === "q" ? null : [...new Set(xs.map(String))];
+  const xlo = cats ? 0 : Math.min(...xs.map(Number)), xhi = cats ? 1 : Math.max(...xs.map(Number));
+  const ylo = Math.min(0, ...ys), yhi = Math.max(...ys, 1);
+  const xScale = (v) => cats ? pad.l + (cats.indexOf(String(v)) + 0.5) * (iw / cats.length) : pad.l + ((Number(v) - xlo) / (xhi - xlo || 1)) * iw;
+  const yScale = (v) => pad.t + ih - ((v - ylo) / (yhi - ylo || 1)) * ih;
+  const colorField = m.color;
+  const ccats = colorField ? [...new Set(rows.map((r) => String(r[colorField])))] : [];
+  const colorOf = (r) => (colorField ? CAT_TONES[ccats.indexOf(String(r[colorField])) % CAT_TONES.length] : C.blue);
+  const bw = cats ? Math.max(3, (iw / cats.length) * 0.68) : Math.max(3, iw / Math.max(rows.length, 1) * 0.6);
+  const marks = rows.map((r, i) => ({
+    row: r, i, x: xScale(r[m.x]), y: yScale(+r[m.y]), y0: yScale(ylo), color: colorOf(r), bw,
+    label: String(r[m.x]), val: +r[m.y],
+  }));
+  return { rows, fields, marks, pad, iw, ih, xlo, xhi, ylo, yhi, cats, ccats, colorField, geom, xt, yt,
+    yticks: niceTicks(ylo, yhi, 4), xticks: cats ? null : niceTicks(xlo, xhi, 4), xScale, yScale };
+}
+
+/* ============================================================
+   PBUI CORE — presentations + accept
+   ============================================================ */
+const UICtx = React.createContext(null);
+const useUI = () => useContext(UICtx);
+const typeMatches = (want, have) => want === "any" || (Array.isArray(want) ? want.includes(have) : want === have);
+
+function P({ ptype, value, doc, children, block, svg, onActivate, activateDoc, style, hot }) {
+  const ui = useUI();
+  const acceptable = ui.accepting && typeMatches(ui.accepting.ptype, ptype);
+  const Tag = svg ? "g" : block ? "div" : "span";
+  const clickDoc = acceptable ? "L: ACCEPT   R: menu" : onActivate ? "L: " + (activateDoc || "activate") + "   R: menu" : "L/R: menu";
+  return (
+    <Tag
+      className={(svg ? "pres-svg" : "pres") + (acceptable ? " acceptable" : "") + (hot ? " hot" : "")}
+      style={style}
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); ui.openMenu(ptype, value, e.clientX, e.clientY); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (acceptable) { e.preventDefault(); ui.accepting.resolve({ ptype, value }); ui.setAccepting(null); }
+        else if (onActivate) onActivate();
+        else ui.openMenu(ptype, value, e.clientX, e.clientY);
+      }}
+      onMouseEnter={() => ui.setMouseDoc((doc || "<" + ptype + "> " + ui.labelFor(ptype, value)) + "   —   " + clickDoc)}
+      onMouseLeave={() => ui.setMouseDoc(null)}
+    >{children}</Tag>
+  );
+}
+function Pres({ ptype, value }) {
+  const ui = useUI();
+  const label = ui.labelFor(ptype, value);
+  const tone = { theorem: C.mustard, tactic: C.rose, goal: C.sage, hyp: C.blue, term: C.blue, const: C.lavender,
+    axiom: C.red, rule: C.mint, script: C.rose, dep: C.mustard, sort: C.faint,
+    field: C.blue, dataset: C.sage, doc: C.red, datum: C.mustard, cat: C.mustard, chart: C.mustard }[ptype] || C.paneAlt;
+  return (
+    <P ptype={ptype} value={value}>
+      <span style={{ background: C.pane, border: "1px solid " + C.ink, borderLeft: "4px solid " + tone, padding: "0 5px", fontSize: 11, whiteSpace: "nowrap" }}>{label}</span>
+    </P>
+  );
+}
+
+/* ============================================================
+   WORLD
+   ============================================================ */
+const DOC_NAMES = ["α", "β", "γ", "δ", "ε", "ζ"];
+const DEFAULT_CHARTS = {
+  theorems: { datasetId: "theorems", geom: "bar", map: { x: "name", y: "term_size", color: "kernel", facet: null },
+    steps: [mkStep("sort", { field: "term_size", dir: "desc" })] },
+  tactics: { datasetId: "tactics", geom: "bar", map: { x: "head", y: "count", color: "head", facet: null },
+    steps: [mkStep("summarize", { by: "head", fn: "count", field: "head" }), mkStep("sort", { field: "count", dir: "desc" })] },
+  goals: { datasetId: "goals", geom: "point", map: { x: "hyps", y: "target_size", color: "theorem", facet: null }, steps: [] },
+  library: { datasetId: "library", geom: "bar", map: { x: "name", y: "size", color: "kind", facet: null },
+    steps: [mkStep("filter", { field: "size", op: ">", value: "0" }), mkStep("sort", { field: "size", dir: "desc" })] },
+  rules: { datasetId: "rules", geom: "bar", map: { x: "rule", y: "count", color: "rule", facet: null },
+    steps: [mkStep("sort", { field: "count", dir: "desc" })] },
+};
+const cloneChart = (c) => JSON.parse(JSON.stringify(c));
+const defaultChart = (id) => cloneChart(DEFAULT_CHARTS[id] || DEFAULT_CHARTS.theorems);
+let idc = 0;
+const nid = () => "n" + idc++;
+
+class World {
+  constructor() {
+    this.revoked = new Set();
+    this.disabled = new Set();
+    this.unsound = false;
+    this.scripts = {};
+    this.thm = "plus_n_O";
+    this.cursor = 0;
+    this.playing = false; this.speed = 4;
+    this.sel = { goal: null, hyp: null, const: null, term: null, step: null };
+    this.watch = []; this.trace = []; this.seq = 0; this.inspected = null;
+    this.notify = () => {};
+    this.docs = [{ id: nid(), name: DOC_NAMES[0], chart: defaultChart("theorems") }];
+    this.activeId = this.docs[0].id;
+    this.snaps = [];
+    this.rebuild(true);
+  }
+  bump() { this.notify(); }
+  log(type, data) { this.trace.push({ seq: ++this.seq, type, data: data || {} }); }
+  opts() { return { revoked: this.revoked, disabled: this.disabled, unsoundRewrite: this.unsound, scripts: this.scripts }; }
+  rebuild(reset) {
+    const t0 = Date.now();
+    this.D = buildDevelopment(this.opts());
+    this.buildMs = Date.now() - t0;
+    this._ds = null; this._as = {};
+    if (reset || this.cursor > this.lastStep()) this.cursor = this.lastStep();
+  }
+  runs() { return this.D.runs; }
+  run(name) { return this.D.runs.find((r) => r.name === (name || this.thm)) || this.D.runs[0]; }
+  steps() { const r = this.run(); return r.steps || []; }
+  lastStep() { return Math.max(0, this.steps().length - 1); }
+  step() { return this.steps()[clamp(this.cursor, 0, this.lastStep())] || { i: 0, tac: "(statement)", state: { goals: [] } }; }
+  state() { return this.step().state || { goals: [] }; }
+  goals() { return this.state().goals || []; }
+  focusGoal() { const gs = this.goals(); return gs.find((g) => g.id === this.sel.goal) || gs[0] || null; }
+  ds() { if (!this._ds) this._ds = buildDatasets(this.D, this.thm); return this._ds; }
+  assumptionsOf(n) { if (!this._as[n]) this._as[n] = assumptions(this.D.env, n); return this._as[n]; }
+  scriptOf(name) { name = name || this.thm; return this.scripts[name] || (DEV.find((d) => d.name === name) || {}).script || []; }
+
+  setThm(n) { this.thm = n; this.cursor = this.lastStep(); this.sel = { ...this.sel, goal: null, step: null }; this.log("focus_theorem", { name: n }); this.bump(); }
+  setCursor(i) { this.cursor = clamp(i, 0, this.lastStep()); this.bump(); }
+  play() { this.playing = !this.playing; if (this.playing && this.cursor >= this.lastStep()) this.cursor = 0; this.bump(); }
+  tick() { if (this.cursor >= this.lastStep()) this.playing = false; else this.cursor++; this.bump(); }
+  reset() { this.setCursor(0); }
+  end() { this.setCursor(this.lastStep()); }
+
+  toggleTactic(name, idx) {
+    const k = name + ":" + idx;
+    if (this.disabled.has(k)) this.disabled.delete(k); else this.disabled.add(k);
+    this.log(this.disabled.has(k) ? "tactic_disabled" : "tactic_restored", { at: k });
+    this.rebuild(false); this.bump();
+  }
+  clearDisabled() { this.disabled = new Set(); this.rebuild(false); this.log("tactics_restored", {}); this.bump(); }
+  toggleRevoke(n) {
+    if (this.revoked.has(n)) this.revoked.delete(n); else this.revoked.add(n);
+    this.log(this.revoked.has(n) ? "lemma_revoked" : "lemma_restored", { name: n });
+    this.rebuild(true); this.bump();
+  }
+  clearRevoked() { this.revoked = new Set(); this.rebuild(true); this.log("lemmas_restored", {}); this.bump(); }
+  setUnsound(v) { this.unsound = v; this.rebuild(false); this.log("unsound_rewrite", { on: v }); this.bump(); }
+  setScript(name, lines) {
+    this.scripts[name] = lines;
+    this.disabled = new Set([...this.disabled].filter((k) => !k.startsWith(name + ":")));
+    this.rebuild(true); this.log("script_edited", { name, lines: lines.length }); this.bump();
+  }
+  resetScript(name) { delete this.scripts[name]; this.rebuild(true); this.log("script_reset", { name }); this.bump(); }
+
+  select(k, v) { this.sel = { ...this.sel, [k]: v }; this.bump(); }
+  gotoStep(name, i) { this.thm = name; this.cursor = clamp(i, 0, this.lastStep()); this.bump(); }
+  inspect(title, value) { this.inspected = { title, value }; this.log("inspect", { title }); this.bump(); }
+  watchAdd(ptype, value) { this.watch.push({ id: nid(), ptype, value }); this.log("watch_add", { ptype }); this.bump(); }
+  watchRemove(id) { this.watch = this.watch.filter((w) => w.id !== id); this.bump(); }
+
+  doc(id) { return this.docs.find((d) => d.id === id) || this.active(); }
+  active() { return this.docs.find((d) => d.id === this.activeId) || this.docs[0]; }
+  setActive(id) { this.activeId = id; this.bump(); }
+  newDoc(dsId) { const d = { id: nid(), name: DOC_NAMES[this.docs.length % DOC_NAMES.length], chart: defaultChart(dsId) }; this.docs.push(d); this.activeId = d.id; this.bump(); return d; }
+  dupDoc(id) { const s = this.doc(id); const d = { id: nid(), name: DOC_NAMES[this.docs.length % DOC_NAMES.length], chart: cloneChart(s.chart) }; this.docs.push(d); this.activeId = d.id; this.bump(); }
+  deleteDoc(id) { if (this.docs.length < 2) return; this.docs = this.docs.filter((d) => d.id !== id); if (this.activeId === id) this.activeId = this.docs[0].id; this.bump(); }
+  setDataset(id, dsId) { this.doc(id).chart = defaultChart(dsId); this.log("dataset_set", { dataset: dsId }); this.bump(); }
+  setGeom(id, g) { this.doc(id).chart.geom = g; this.bump(); }
+  setMapping(id, slot, f) { this.doc(id).chart.map[slot] = f; this.log("encode", { slot, field: f }); this.bump(); }
+  addStep(id, s) { this.doc(id).chart.steps.push(s); this.log("step_added", { step: stepLabel(s) }); this.bump(); }
+  removeStep(id, sid) { const d = this.doc(id); d.chart.steps = d.chart.steps.filter((s) => s.id !== sid); this.bump(); }
+  toggleStep(id, sid) { const s = this.doc(id).chart.steps.find((x) => x.id === sid); if (s) s.on = !s.on; this.bump(); }
+  moveStep(id, sid, d) { const st = this.doc(id).chart.steps, i = st.findIndex((x) => x.id === sid), j = i + d;
+    if (i < 0 || j < 0 || j >= st.length) return; const t = st[i]; st[i] = st[j]; st[j] = t; this.bump(); }
+  docOfStep(sid) { return this.docs.find((d) => d.chart.steps.some((s) => s.id === sid)); }
+  filterToCat(id, field, value, keep) { this.addStep(id, mkStep("filter", { field, op: keep ? "=" : "≠", value: String(value) })); }
+  snapshot(id) { const d = this.doc(id); this.snaps.push({ id: nid(), name: d.name + "@" + this.thm, chart: cloneChart(d.chart), at: this.thm }); this.log("snapshot", {}); this.bump(); }
+  restoreSnap(sid, into) { const s = this.snaps.find((x) => x.id === sid); if (s) { this.doc(into).chart = cloneChart(s.chart); this.bump(); } }
+  deleteSnap(sid) { this.snaps = this.snaps.filter((s) => s.id !== sid); this.bump(); }
+}
+
+/* ============================================================
+   WINDOW MANAGER — split tree + workspaces
+   ============================================================ */
+const DOC_APPS = ["chart", "gogtable", "gogpipe", "encode"];
+const leaf = (app, doc) => ({ id: nid(), type: "leaf", app, doc: doc || null });
+const split = (dir, a, b, ratio = 0.5) => ({ id: nid(), type: "split", dir, a, b, ratio });
+function updateNode(node, id, fn) {
+  if (node.id === id) return fn(node);
+  if (node.type === "split") { const a = updateNode(node.a, id, fn), b = updateNode(node.b, id, fn); return a === node.a && b === node.b ? node : { ...node, a, b }; }
+  return node;
+}
+function removeLeaf(node, id) {
+  if (node.type === "leaf") return node;
+  if (node.a.type === "leaf" && node.a.id === id) return node.b;
+  if (node.b.type === "leaf" && node.b.id === id) return node.a;
+  return { ...node, a: removeLeaf(node.a, id), b: removeLeaf(node.b, id) };
+}
+const findLeaf = (n, id) => (n.type === "leaf" ? (n.id === id ? n : null) : findLeaf(n.a, id) || findLeaf(n.b, id));
+const countLeaves = (n) => (n.type === "leaf" ? 1 : countLeaves(n.a) + countLeaves(n.b));
+const cloneTree = (n) => (n.type === "leaf" ? { ...n, id: nid() } : { ...n, id: nid(), a: cloneTree(n.a), b: cloneTree(n.b) });
+const SNAPS_R = [0.25, 1 / 3, 0.5, 2 / 3, 0.75], STICK = 0.022;
+const snapFrac = (f) => { for (const s of SNAPS_R) if (Math.abs(f - s) < STICK) return { f: s, snapped: true }; return { f, snapped: false }; };
+
+function WMDivider({ dir, containerRef, onRatio }) {
+  const [drag, setDrag] = useState(false);
+  const [snap, setSnap] = useState(false);
+  useEffect(() => {
+    if (!drag) return;
+    const move = (e) => {
+      const el = containerRef.current; if (!el) return;
+      const r = el.getBoundingClientRect();
+      const raw = dir === "row" ? (e.clientX - r.left) / r.width : (e.clientY - r.top) / r.height;
+      const s = snapFrac(clamp(raw, 0.12, 0.88));
+      setSnap(s.snapped); onRatio(s.f);
+    };
+    const up = () => { setDrag(false); setSnap(false); document.body.style.userSelect = ""; };
+    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+    return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+  }, [drag, dir, containerRef, onRatio]);
+  return (
+    <div onMouseDown={(e) => { e.preventDefault(); document.body.style.userSelect = "none"; setDrag(true); }}
+      style={{ flex: "0 0 5px", cursor: dir === "row" ? "col-resize" : "row-resize", background: snap ? C.red : drag ? C.mustard : C.paneAlt, borderLeft: "1px solid " + C.ink, borderRight: "1px solid " + C.ink }} />
+  );
+}
+function NodeView({ node }) { return node.type === "leaf" ? <TileView leafNode={node} /> : <SplitView node={node} />; }
+function SplitView({ node }) {
+  const ui = useUI(); const ref = useRef(null);
+  const setR = useCallback((r) => ui.wm.setRatio(node.id, r), [ui, node.id]);
+  return (
+    <div ref={ref} style={{ flex: 1, display: "flex", flexDirection: node.dir === "row" ? "row" : "column", minWidth: 0, minHeight: 0 }}>
+      <div style={{ flex: node.ratio, display: "flex", minWidth: 0, minHeight: 0 }}><NodeView node={node.a} /></div>
+      <WMDivider dir={node.dir} containerRef={ref} onRatio={setR} />
+      <div style={{ flex: 1 - node.ratio, display: "flex", minWidth: 0, minHeight: 0 }}><NodeView node={node.b} /></div>
+    </div>
+  );
+}
+function TBtn({ onClick, children, doc, disabled, tone }) {
+  const ui = useUI();
+  return (
+    <span onMouseEnter={() => ui.setMouseDoc(doc)} onMouseLeave={() => ui.setMouseDoc(null)}
+      onClick={disabled ? undefined : (e) => { e.stopPropagation(); onClick(); }}
+      style={{ cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.35 : 1, border: "1px solid " + C.ink, background: tone || C.paneAlt, padding: "0 5px", fontSize: 10, fontWeight: 700, userSelect: "none", lineHeight: "15px", whiteSpace: "nowrap" }}>{children}</span>
+  );
+}
+function TileView({ leafNode }) {
+  const ui = useUI(); const app = APPS[leafNode.app]; const Comp = app.comp; const drag = ui.drag;
+  const docBound = DOC_APPS.includes(leafNode.app);
+  const boundDoc = docBound ? ui.world.doc(leafNode.doc) : null;
+  const isTarget = drag && drag.over === leafNode.id && drag.from !== leafNode.id;
+  const zone = isTarget ? drag.zone : null;
+  const zoneRect = zone === "left" ? { left: 0, top: 0, bottom: 0, width: "50%" }
+    : zone === "right" ? { right: 0, top: 0, bottom: 0, width: "50%" }
+    : zone === "top" ? { top: 0, left: 0, right: 0, height: "50%" }
+    : zone === "bottom" ? { bottom: 0, left: 0, right: 0, height: "50%" }
+    : zone === "center" ? { inset: 0 } : null;
+  return (
+    <div ref={(el) => ui.wm.registerRef(leafNode.id, el)} style={{
+      flex: 1, display: "flex", flexDirection: "column", border: "2px solid " + C.ink, background: C.pane,
+      minWidth: 0, minHeight: 0, position: "relative", opacity: drag && drag.from === leafNode.id ? 0.75 : 1 }}>
+      {zoneRect && (
+        <div style={{ position: "absolute", ...zoneRect, zIndex: 5, pointerEvents: "none", background: "rgba(194,80,58,0.16)", border: "3px dashed " + C.red, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ background: C.pane, border: "2px solid " + C.ink, boxShadow: "2px 2px 0 " + C.ink, padding: "1px 8px", fontSize: 10.5, fontWeight: 700 }}>{zone === "center" ? "⇄ swap apps" : "split-dock here"}</span>
+        </div>
+      )}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, background: app.color, borderBottom: "2px solid " + C.ink, padding: "2px 6px", flexShrink: 0 }}>
+        <span onMouseDown={(e) => ui.wm.startDrag(leafNode.id, e)}
+          onMouseEnter={() => ui.setMouseDoc("drag ⠿ — drop on a tile's CENTRE to swap apps, or near an EDGE to split-dock")} onMouseLeave={() => ui.setMouseDoc(null)}
+          style={{ cursor: "grab", fontWeight: 700, userSelect: "none" }}>⠿</span>
+        <P ptype="tile" value={leafNode.id} doc={"tile [" + app.title + (boundDoc ? " · " + boundDoc.name : "") + "] — split / close / swap"}>
+          <b style={{ fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>{app.title}{boundDoc ? " · " + boundDoc.name : ""}</b>
+        </P>
+        <span style={{ flex: 1 }} />
+        <select value={leafNode.app} onChange={(e) => ui.wm.setLeafApp(leafNode.id, e.target.value)} onMouseDown={(e) => e.stopPropagation()}
+          style={{ border: "1px solid " + C.ink, background: C.pane, fontSize: 10, padding: "0 2px", fontFamily: "inherit", maxWidth: 116 }}>
+          {Object.entries(APPS).map(([id, a]) => <option key={id} value={id}>{a.title}</option>)}
+        </select>
+        <TBtn doc="split this tile: new tile to the RIGHT" onClick={() => ui.wm.splitLeaf(leafNode.id, "row")}>⬌</TBtn>
+        <TBtn doc="split this tile: new tile BELOW" onClick={() => ui.wm.splitLeaf(leafNode.id, "col")}>⬍</TBtn>
+        <TBtn doc="close this tile (its sibling absorbs the space)" disabled={!ui.wm.canClose} onClick={() => ui.wm.closeLeaf(leafNode.id)}>✕</TBtn>
+      </div>
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}><Comp leafId={leafNode.id} docId={boundDoc ? boundDoc.id : null} /></div>
+    </div>
+  );
+}
+
+/* ============================================================
+   SHARED UI
+   ============================================================ */
+const AppBody = ({ children, style }) => (<div style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "6px 8px", ...style }}>{children}</div>);
+const Hint = ({ children }) => <div style={{ color: C.faint, fontSize: 10.5, marginBottom: 6, lineHeight: 1.35 }}>{children}</div>;
+const Row = ({ children, style }) => <div style={{ display: "flex", gap: 5, alignItems: "center", flexWrap: "wrap", ...style }}>{children}</div>;
+function Btn({ onClick, children, tone, disabled, title }) {
+  return (
+    <span title={title} onClick={disabled ? undefined : (e) => { e.stopPropagation(); onClick(); }}
+      style={{ cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.4 : 1, border: "2px solid " + C.ink, boxShadow: "2px 2px 0 " + C.ink,
+        background: tone || C.paneAlt, padding: "1px 7px", fontSize: 10.5, fontWeight: 700, userSelect: "none", whiteSpace: "nowrap", display: "inline-block" }}>{children}</span>
+  );
+}
+function Sel({ value, onChange, options, width }) {
+  return (
+    <select value={value} onChange={(e) => onChange(e.target.value)}
+      style={{ border: "1px solid " + C.ink, background: C.pane, fontSize: 10.5, padding: "0 2px", fontFamily: "inherit", maxWidth: width || 150 }}>
+      {options.map((o) => <option key={typeof o === "string" ? o : o.v} value={typeof o === "string" ? o : o.v}>{typeof o === "string" ? o : o.l}</option>)}
+    </select>
+  );
+}
+const Num = ({ value, onChange, width }) => (
+  <input value={value} onChange={(e) => onChange(e.target.value)} style={{ border: "1px solid " + C.ink, background: C.pane, fontSize: 10.5, width: width || 54, padding: "0 3px", fontFamily: "inherit" }} />
+);
+const Tag = ({ tone, children, title, dim }) => (
+  <span title={title} style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + (tone || C.paneAlt), background: dim ? C.paneAlt : C.pane, padding: "0 5px", fontSize: 10, whiteSpace: "nowrap" }}>{children}</span>
+);
+const Bar = ({ frac, tone, h }) => (
+  <span style={{ display: "inline-block", height: h || 9, flex: 1, border: "1px solid " + C.ink, background: C.pane, minWidth: 20 }}>
+    <span style={{ display: "block", height: "100%", width: clamp(frac, 0, 1) * 100 + "%", background: tone || C.blue }} />
+  </span>
+);
+const Head = ({ children, right }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 6, borderBottom: "2px solid " + C.ink, marginBottom: 5, paddingBottom: 2 }}>
+    <b style={{ fontSize: 10.5, letterSpacing: "0.09em", textTransform: "uppercase" }}>{children}</b>
+    <span style={{ flex: 1 }} />{right}
+  </div>
+);
+const JsonView = ({ v, max }) => (
+  <pre style={{ margin: 0, fontSize: 10.5, lineHeight: 1.45, whiteSpace: "pre-wrap", wordBreak: "break-word", maxHeight: max || 400, overflow: "auto" }}>
+    {JSON.stringify(v, (k, x) => (typeof x === "bigint" ? String(x) : x), 2)}
+  </pre>
+);
+
+/* ---- presentation chips ---- */
+function ThmChip({ name, big }) {
+  const ui = useUI(); const w = ui.world;
+  const r = w.run(name);
+  const bad = r && (r.revoked || !r.closed || (r.kernel && !r.kernel.ok));
+  const tone = r && r.revoked ? C.line : bad ? C.red : r && r.admitted ? C.mustard : C.sage;
+  return (
+    <P ptype="theorem" value={name} doc={"<theorem> " + name + " — focus it, revoke it, print its assumptions"}
+      onActivate={() => w.setThm(name)} activateDoc="focus the whole shell on it">
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + tone, background: w.thm === name ? C.sel : C.pane,
+        padding: big ? "0 6px" : "0 4px", fontSize: big ? 11 : 10, whiteSpace: "nowrap",
+        textDecoration: r && r.revoked ? "line-through" : "none" }}>{name}</span>
+    </P>
+  );
+}
+function TacChip({ name, idx, thm }) {
+  const ui = useUI(); const w = ui.world;
+  const off = w.disabled.has((thm || w.thm) + ":" + idx);
+  const head = tacName(name);
+  return (
+    <P ptype="tactic" value={{ thm: thm || w.thm, i: idx }} doc={"<tactic> " + name + " — " + tacBlurb(head)}
+      onActivate={() => w.gotoStep(thm || w.thm, idx + 1)} activateDoc="scrub the proof to just after it">
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + tacTone(head), background: C.pane,
+        padding: "0 4px", fontSize: 10, whiteSpace: "nowrap", textDecoration: off ? "line-through" : "none", opacity: off ? 0.5 : 1 }}>{name}</span>
+    </P>
+  );
+}
+function ConstChip({ name, big }) {
+  const ui = useUI(); const w = ui.world; const e = w.D.env.get(name);
+  return (
+    <P ptype="const" value={name} doc={"<const> " + name + (e ? " : " + pp(e.ty) : " (revoked)") + " — inspect, unfold, print assumptions"}
+      onActivate={() => w.select("const", w.sel.const === name ? null : name)} activateDoc="select it">
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + (KIND_TONE[e ? e.kind : "axiom"] || C.faint),
+        background: w.sel.const === name ? C.sel : C.pane, padding: big ? "0 6px" : "0 4px", fontSize: big ? 11 : 10, whiteSpace: "nowrap" }}>{name}</span>
+    </P>
+  );
+}
+function GoalChip({ g, n }) {
+  const ui = useUI(); const w = ui.world;
+  const on = w.sel.goal === g.id;
+  return (
+    <P ptype="goal" value={g.id} doc={"<goal> " + g.id + " · " + g.ctx.length + " hypotheses ⊢ " + pp(g.target)}
+      onActivate={() => w.select("goal", on ? null : g.id)} activateDoc="focus it">
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + C.sage, background: on ? C.sel : C.pane, padding: "0 4px", fontSize: 10 }}>
+        {n !== undefined ? "goal " + n : g.id}
+      </span>
+    </P>
+  );
+}
+/* a term, rendered so that its head constant is itself a presentation */
+function TermView({ t, big, hl }) {
+  const ui = useUI(); const w = ui.world;
+  const s = pp(t);
+  const parts = s.split(/([A-Za-z_][A-Za-z0-9_']*)/g);
+  return (
+    <P ptype="term" value={t} doc={"<term> " + s + " — normalise, unfold, send to the reduction tile"}>
+      <span style={{ fontSize: big ? 12.5 : 11.5, lineHeight: 1.5, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+        {parts.map((p, i) => {
+          if (!/^[A-Za-z_]/.test(p)) return <span key={i}>{p}</span>;
+          const e = w.D.env.get(p);
+          if (!e) return <span key={i} style={{ background: hl === p ? C.sel : "transparent" }}>{p}</span>;
+          return <span key={i} style={{ color: KIND_TONE[e.kind] === C.faint ? C.ink : C.ink, borderBottom: "1px dotted " + (KIND_TONE[e.kind] || C.faint), background: hl === p ? C.sel : "transparent" }}>{p}</span>;
+        })}
+      </span>
+    </P>
+  );
+}
+function FieldChip({ name, type, doc }) {
+  return (
+    <P ptype="field" value={name} doc={doc || "<field> " + name + " (" + TYPE_LABEL[type] + ") — map to an encoding slot, filter, group"}>
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + (TYPE_TONE[type] || C.faint), background: C.pane, padding: "0 4px", fontSize: 10.5, whiteSpace: "nowrap" }}>{name}</span>
+    </P>
+  );
+}
+function DatasetChip({ id, big }) {
+  const ui = useUI(); const d = ui.world.ds()[id];
+  return (
+    <P ptype="dataset" value={id} doc={"<dataset> " + id + " — " + (d ? d.note : "")}>
+      <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + C.sage, background: C.pane, padding: big ? "0 6px" : "0 4px", fontSize: big ? 11 : 10.5, fontWeight: big ? 700 : 400 }}>{id}</span>
+    </P>
+  );
+}
+function DocChip({ id, big }) {
+  const ui = useUI(); const w = ui.world; const d = w.doc(id); const act = w.activeId === id;
+  return (
+    <P ptype="doc" value={id} doc={"<doc> chart document " + d.name + (act ? " (ACTIVE)" : "") + " — activate, snapshot, duplicate"}
+      onActivate={() => w.setActive(id)} activateDoc="make it the active chart">
+      <span style={{ border: "2px solid " + C.ink, background: act ? C.sel : C.pane, padding: big ? "0 7px" : "0 5px", fontSize: big ? 12 : 11, fontWeight: 700 }}>{d.name}</span>
+    </P>
+  );
+}
+function DocBar({ docId, leafId }) {
+  const ui = useUI(); const w = ui.world;
+  return (
+    <div style={{ display: "flex", gap: 4, alignItems: "center", padding: "3px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
+      <span style={{ fontSize: 9.5, color: C.faint, letterSpacing: "0.08em" }}>DOC</span>
+      {w.docs.map((d) => (
+        <span key={d.id} onClick={() => ui.wm.setLeafDoc(leafId, d.id)} style={{ cursor: "pointer", opacity: d.id === docId ? 1 : 0.5 }}>
+          <DocChip id={d.id} big={d.id === docId} />
+        </span>
+      ))}
+      <TBtn doc="new chart document from this one's dataset" onClick={() => { const d = w.newDoc(w.doc(docId).chart.datasetId); ui.wm.setLeafDoc(leafId, d.id); }}>+</TBtn>
+      <span style={{ flex: 1 }} />
+      <TBtn doc="freeze the current spec as a snapshot" onClick={() => w.snapshot(docId)}>⚑ snap</TBtn>
+    </div>
+  );
+}
+
+/* ============================================================
+   APPS · the proof itself
+   ============================================================ */
+const statusOf = (r) => r.revoked ? { t: "revoked", tone: C.line } : !r.closed ? { t: "open", tone: C.red }
+  : !(r.kernel && r.kernel.ok) ? { t: "kernel rejects", tone: C.red } : r.admitted ? { t: "admitted", tone: C.mustard } : { t: "proved", tone: C.sage };
+
+function OverviewApp() {
+  const ui = useUI(); const w = ui.world;
+  const runs = w.runs();
+  const proved = runs.filter((r) => r.closed && r.kernel && r.kernel.ok && !r.admitted).length;
+  const rejected = runs.filter((r) => r.closed && r.kernel && !r.kernel.ok).length;
+  const open = runs.filter((r) => !r.closed && !r.revoked).length;
+  const tainted = runs.filter((r) => !r.revoked && w.assumptionsOf(r.name).axioms.size).length;
+  const box = (label, value, tone, doc) => (
+    <div title={doc} style={{ border: "2px solid " + C.ink, boxShadow: "2px 2px 0 " + C.ink, borderLeft: "6px solid " + tone, padding: "3px 7px", minWidth: 78, background: C.pane }}>
+      <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
+      <div style={{ fontSize: 9, color: C.faint, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}</div>
+    </div>
+  );
+  return (
+    <AppBody>
+      <Head right={<span style={{ fontSize: 10, color: C.faint }}>{w.buildMs}ms to check the development</span>}>
+        <P ptype="development" value="dev" doc="<development> the whole library — inspect it, clear every counterfactual">
+          <span style={{ borderBottom: "1px dotted " + C.faint }}>development</span></P>
+      </Head>
+      <Row style={{ marginBottom: 8 }}>
+        {box("proved", proved, C.sage, "closed, kernel-accepted, no axioms")}
+        {box("rejected", rejected, rejected ? C.red : C.faint, "the tactics closed the goals but the kernel threw the term out")}
+        {box("open", open, open ? C.red : C.faint, "a tactic failed and the proof stopped")}
+        {box("on axioms", tainted, tainted ? C.mustard : C.faint, "rests on an axiom, transitively — including admitted")}
+        {box("revoked", w.revoked.size, w.revoked.size ? C.red : C.faint, "lemmas you took away")}
+        {box("tactics off", w.disabled.size, w.disabled.size ? C.red : C.faint, "tactics you switched off")}
+      </Row>
+      {(rejected > 0) && (
+        <div style={{ border: "2px solid " + C.ink, borderLeft: "6px solid " + C.red, background: "#fdf3f0", padding: "5px 8px", marginBottom: 8, fontSize: 10.5, lineHeight: 1.45, boxShadow: "2px 2px 0 " + C.ink }}>
+          <b>{rejected} proof{rejected === 1 ? "" : "s"} closed every goal and the kernel still refused the term.</b> That is the whole reason
+          the kernel is separate from the tactics: a tactic that builds the wrong term cannot talk its way past it. The verify and bisect tiles
+          find the exact tactic responsible.
+        </div>
+      )}
+      <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 10.5 }}>
+        <thead><tr style={{ borderBottom: "2px solid " + C.ink }}>
+          {["theorem", "statement", "status", "tactics", "term", "rests on"].map((h) => <th key={h} style={{ textAlign: "left", padding: "1px 3px", fontSize: 9, color: C.faint, letterSpacing: "0.06em" }}>{h}</th>)}
+        </tr></thead>
+        <tbody>
+          {runs.map((r) => {
+            const s = statusOf(r);
+            const a = r.revoked ? null : w.assumptionsOf(r.name);
+            return (
+              <tr key={r.name} style={{ borderBottom: "1px dotted " + C.line, background: w.thm === r.name ? C.sel : "transparent" }}>
+                <td style={{ padding: "1px 3px" }}><ThmChip name={r.name} /></td>
+                <td style={{ padding: "1px 3px", color: C.faint, maxWidth: 210 }}>{pp(r.spec.ty)}</td>
+                <td style={{ padding: "1px 3px" }}><Tag tone={s.tone}>{s.t}</Tag></td>
+                <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{(r.spec.script || []).length}</td>
+                <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums", color: C.faint }}>{r.term ? size(r.term) : "—"}</td>
+                <td style={{ padding: "1px 3px", fontSize: 9.5, color: a && a.axioms.size ? C.red : C.faint }}>
+                  {!a ? "—" : a.axioms.size ? [...a.axioms].join(", ") : a.unproved.size ? "unproved: " + [...a.unproved].join(", ") : "nothing but the kernel"}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      <div style={{ marginTop: 9 }}>
+        <Head>the trust boundary</Head>
+        <div style={{ fontSize: 10.5, lineHeight: 1.5 }}>
+          Everything above the line is untrusted: the tactic engine, unification, matching, the goal display. Only three things decide whether a
+          proof is real — the typing rules, definitional equality, and the axioms in the environment. Every theorem here was re-checked from its
+          finished proof term with the tactics out of the room.
+        </div>
+      </div>
+    </AppBody>
+  );
+}
+
+function ScriptApp() {
+  const ui = useUI(); const w = ui.world; const r = w.run();
+  const [edit, setEdit] = useState(false);
+  const [draft, setDraft] = useState("");
+  const script = w.scriptOf();
+  const steps = w.steps();
+  return (
+    <>
+      <div style={{ display: "flex", gap: 4, alignItems: "center", padding: "4px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
+        {w.runs().map((x) => <ThmChip key={x.name} name={x.name} big={x.name === w.thm} />)}
+      </div>
+      <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "4px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
+        <TBtn doc="edit this tactic script — the development re-checks on apply" onClick={() => { setDraft(script.join("\\n")); setEdit(!edit); }}>{edit ? "cancel" : "edit script"}</TBtn>
+        {edit && <TBtn tone={C.sage} doc="re-run the proof from this script" onClick={() => { w.setScript(w.thm, draft.split("\\n").map((s) => s.trim()).filter(Boolean)); setEdit(false); }}>apply</TBtn>}
+        {w.scripts[w.thm] && <TBtn doc="back to the original script" onClick={() => w.resetScript(w.thm)}>revert</TBtn>}
+        {!!w.disabled.size && <TBtn doc="switch every disabled tactic back on" onClick={() => w.clearDisabled()}>restore all</TBtn>}
+        <span style={{ flex: 1 }} />
+        <Tag tone={statusOf(r).tone}>{statusOf(r).t}</Tag>
+      </div>
+      <AppBody>
+        <div style={{ fontSize: 11, marginBottom: 6, color: C.faint }}>{r.spec.blurb}</div>
+        <div style={{ border: "1px solid " + C.line, padding: "2px 5px", marginBottom: 7, background: C.paneAlt }}>
+          <span style={{ fontSize: 9.5, color: C.faint }}>Theorem </span><b style={{ fontSize: 11 }}>{r.name}</b>
+          <span style={{ fontSize: 9.5, color: C.faint }}> : </span><TermView t={r.spec.ty} />
+        </div>
+        {edit ? (
+          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} spellCheck={false}
+            style={{ width: "100%", height: 170, border: "2px solid " + C.ink, background: C.pane, fontFamily: "inherit", fontSize: 11.5, lineHeight: 1.6, padding: 5 }} />
+        ) : (
+          <div>
+            {script.map((line, i) => {
+              const st = steps[i + 1];
+              const on = w.cursor === i + 1;
+              const off = w.disabled.has(w.thm + ":" + i);
+              const bad = st && !st.ok && !st.skipped;
+              return (
+                <div key={i}>
+                  <div onClick={() => w.setCursor(i + 1)} style={{ display: "flex", gap: 5, alignItems: "center", cursor: "pointer",
+                    background: on ? C.sel : bad ? "#fdf3f0" : "transparent", padding: "1px 2px", borderLeft: "3px solid " + (on ? C.red : "transparent") }}>
+                    <span style={{ width: 16, color: C.faint, fontSize: 9.5, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{i + 1}</span>
+                    <TacChip name={line} idx={i} />
+                    <span style={{ flex: 1 }} />
+                    {st && st.produced && st.produced.length > 1 && <Tag tone={C.lavender}>{st.produced.length} goals</Tag>}
+                    {st && st.state && <span style={{ fontSize: 9, color: C.faint }}>{st.state.goals.length} left</span>}
+                    {bad && <Tag tone={C.red}>fails</Tag>}
+                    <TBtn doc={off ? "switch this tactic back on" : "switch this tactic off and re-run the proof without it"} onClick={() => w.toggleTactic(w.thm, i)}>{off ? "○" : "●"}</TBtn>
+                  </div>
+                  {on && st && (
+                    <div style={{ fontSize: 10, color: bad ? C.red : C.faint, paddingLeft: 24, lineHeight: 1.4, marginBottom: 3 }}>
+                      {st.err ? st.err.split("\\n").map((l, j) => <div key={j}>{l}</div>) : st.note || tacBlurb(tacName(line))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {r.failed && <div style={{ marginTop: 6, border: "2px solid " + C.ink, borderLeft: "6px solid " + C.red, background: "#fdf3f0", padding: "4px 7px", fontSize: 10.5, lineHeight: 1.45 }}>
+              the proof stops at tactic {r.failed.at}. Everything after it never ran.
+            </div>}
+            {r.closed && <div style={{ marginTop: 6, fontSize: 10.5 }}>
+              <Tag tone={r.kernel.ok ? C.sage : C.red}>{r.kernel.ok ? "Qed — kernel accepted" : "kernel REJECTED the finished term"}</Tag>
+            </div>}
+          </div>
+        )}
+      </AppBody>
+    </>
+  );
+}
+
+function GoalsApp() {
+  const ui = useUI(); const w = ui.world;
+  const st = w.step(); const goals = w.goals();
+  const prev = w.steps()[w.cursor - 1];
+  const prevGoal = prev && prev.state && prev.state.goals[0];
+  const focus = w.focusGoal();
+  const newHyps = new Set();
+  if (focus && prevGoal) { const old = new Set(prevGoal.ctx.map((c) => c.name + ":" + pp(c.ty))); focus.ctx.forEach((c) => { if (!old.has(c.name + ":" + pp(c.ty))) newHyps.add(c.name); }); }
+  const changed = focus && prevGoal && !alphaEq(focus.target, prevGoal.target);
+  return (
+    <>
+      <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "4px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
+        <ThmChip name={w.thm} big />
+        <Tag tone={goals.length ? C.mustard : C.sage}>{goals.length ? goals.length + " goal" + (goals.length === 1 ? "" : "s") : "no goals left"}</Tag>
+        <span style={{ fontSize: 10, color: C.faint }}>after {st.i === 0 ? "the statement" : "`" + st.tac + "`"}</span>
+      </div>
+      <AppBody>
+        {!goals.length && (
+          <div style={{ fontSize: 11, lineHeight: 1.5, border: "1px solid " + C.ink, borderLeft: "4px solid " + C.sage, padding: "5px 7px" }}>
+            every goal is closed. The proof term is complete — the kernel tile says whether it survives type checking.
+          </div>
+        )}
+        {goals.map((g, gi) => {
+          const on = focus && g.id === focus.id;
+          return (
+            <div key={g.id} style={{ marginBottom: 8, border: on ? "2px solid " + C.ink : "1px solid " + C.line, boxShadow: on ? "2px 2px 0 " + C.ink : "none", padding: "4px 7px", background: C.pane }}>
+              <Row style={{ marginBottom: 3 }}>
+                <GoalChip g={g} n={gi + 1} />
+                <span style={{ fontSize: 9.5, color: C.faint }}>{g.ctx.length} hypotheses</span>
+                {gi === 0 && <Tag tone={C.mustard}>in focus — tactics act here</Tag>}
+              </Row>
+              {g.ctx.map((h) => (
+                <div key={h.name} style={{ fontSize: 11.5, lineHeight: 1.5, background: newHyps.has(h.name) && on ? C.add : "transparent" }}>
+                  <P ptype="hyp" value={{ goal: g.id, name: h.name }} doc={"<hyp> " + h.name + " : " + pp(h.ty) + " — rewrite with it, apply it, use it to close the goal"}>
+                    <b style={{ borderBottom: "1px dotted " + C.faint }}>{h.name}</b>
+                  </P>
+                  <span style={{ color: C.faint }}> : </span><TermView t={h.ty} />
+                </div>
+              ))}
+              <div style={{ borderTop: "1px solid " + C.ink, margin: "3px 0", height: 0 }} />
+              <div style={{ background: changed && on ? C.add : "transparent" }}><TermView t={g.target} big /></div>
+            </div>
+          );
+        })}
+        {prevGoal && focus && (changed || newHyps.size) && (
+          <div style={{ fontSize: 10, color: C.faint, lineHeight: 1.45 }}>
+            {newHyps.size ? "new above the line: " + [...newHyps].join(", ") + ". " : ""}
+            {changed ? "the goal itself changed — was " + pp(prevGoal.target) : ""}
+          </div>
+        )}
+      </AppBody>
+    </>
+  );
+}
+
+/* the proof tree — a tactic consumes one goal and produces several */
+function proofTree(run) {
+  const nodes = new Map();
+  (run.steps || []).forEach((s) => {
+    if (!s.i) { (s.produced || []).forEach((g) => nodes.set(g.id, { id: g.id, goal: g, parent: null, children: [], step: 0 })); return; }
+    if (s.disabled || !s.ok || !s.consumed) return;
+    const p = nodes.get(s.consumed.id);
+    if (p) { p.closedBy = s.tac; p.closedAt = s.i; }
+    (s.produced || []).forEach((g) => {
+      nodes.set(g.id, { id: g.id, goal: g, parent: s.consumed.id, children: [], step: s.i, tactic: s.tac });
+      if (p) p.children.push(g.id);
+    });
+  });
+  return nodes;
+}
+function GoalTreeApp() {
+  const ui = useUI(); const w = ui.world; const r = w.run();
+  const nodes = useMemo(() => proofTree(r), [r]);
+  const roots = [...nodes.values()].filter((n) => !n.parent);
+  const depth = (n) => { let d = 0, x = n; while (x.parent && nodes.get(x.parent)) { d++; x = nodes.get(x.parent); } return d; };
+  const leaves = [];
+  const order = [];
+  (function dfs(id) { const n = nodes.get(id); if (!n) return; order.push(id); if (!n.children.length) leaves.push(id); n.children.forEach(dfs); })(roots[0] && roots[0].id);
+  const xs = {}; let li = 0;
+  const assign = (id) => { const n = nodes.get(id); if (!n) return 0;
+    if (!n.children.length) { xs[id] = li++; return xs[id]; }
+    const cs = n.children.map(assign); xs[id] = cs.reduce((a, b) => a + b, 0) / cs.length; return xs[id]; };
+  if (roots[0]) assign(roots[0].id);
+  const maxD = Math.max(1, ...order.map((id) => depth(nodes.get(id))));
+  const W = Math.max(200, (li || 1) * 96), H = 30 + (maxD + 1) * 54;
+  const px = (id) => 42 + xs[id] * 96, py = (id) => 18 + depth(nodes.get(id)) * 54;
+  const cur = w.step();
+  const live = new Set((cur.state ? cur.state.goals : []).map((g) => g.id));
+  return (
+    <>
+      <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "4px 8px 0", flexShrink: 0 }}>
+        <ThmChip name={w.thm} big />
+        <span style={{ fontSize: 10, color: C.faint }}>{order.length} goals over the whole proof · {leaves.length} leaves</span>
+      </div>
+      <AppBody>
+        <Hint>each node is a goal, each edge the tactic that produced it. <b>induction</b> is where the proof stops being a line. Filled nodes are open at the transport's current position.</Hint>
+        <svg viewBox={"0 0 " + W + " " + H} style={{ width: "100%", maxHeight: H * 2.2, display: "block" }}>
+          {order.map((id) => { const n = nodes.get(id); if (!n.parent || !nodes.get(n.parent)) return null;
+            const x1 = px(n.parent), y1 = py(n.parent) + 11, x2 = px(id), y2 = py(id) - 11;
+            return (<g key={"e" + id}>
+              <path d={`M${x1} ${y1} C ${x1} ${y1 + 18}, ${x2} ${y2 - 18}, ${x2} ${y2}`} fill="none" stroke={C.ink} strokeWidth={1.1} />
+              <text x={(x1 + x2) / 2 + 3} y={(y1 + y2) / 2 + 3} fontSize={7.5} fill={C.faint} fontFamily="inherit" textAnchor="middle">{tacName(n.tactic)}</text>
+            </g>); })}
+          {order.map((id) => { const n = nodes.get(id); const open = live.has(id);
+            return (
+              <P key={id} ptype="goal" value={id} svg doc={"<goal> " + id + " — " + n.goal.ctx.length + " hypotheses ⊢ " + pp(n.goal.target) + (n.closedBy ? "   closed by " + n.closedBy : "   still open")}
+                onActivate={() => { w.select("goal", id); if (n.closedAt) w.setCursor(n.closedAt); }} activateDoc="scrub to where it was closed">
+                <g>
+                  <rect x={px(id) - 40} y={py(id) - 11} width={80} height={22} rx={0}
+                    fill={open ? C.sel : n.closedBy ? C.pane : C.paneAlt} stroke={C.ink} strokeWidth={open ? 2.4 : 1.4} />
+                  <text x={px(id)} y={py(id) - 1} textAnchor="middle" fontSize={7.5} fill={C.ink} fontFamily="inherit">
+                    {pp(n.goal.target).slice(0, 17)}
+                  </text>
+                  <text x={px(id)} y={py(id) + 7} textAnchor="middle" fontSize={6.5} fill={C.faint} fontFamily="inherit">
+                    {n.goal.ctx.length} hyp · {n.closedBy ? tacName(n.closedBy) : "open"}
+                  </text>
+                </g>
+              </P>
+            ); })}
+        </svg>
+      </AppBody>
+    </>
+  );
+}
+
+/* ============================================================
+   APPS · the term, the kernel, the library
+   ============================================================ */
+/* one reduction step, leftmost-outermost — for the reduction tile */
+function step1(env, t) {
+  const { head, args } = spine(t);
+  if (head.k === "lam" && args.length) return { t: AP(subst(head.b, head.x, args[0]), ...args.slice(1)), rule: "β", note: "applied a lambda to its argument" };
+  if (head.k === "const") {
+    const e = env.get(head.n);
+    if (head.n === "nat_rect" && args.length >= 4) {
+      const sp = spine(whnf(env, args[3]));
+      if (sp.head.k === "const" && sp.head.n === "O") return { t: AP(args[1], ...args.slice(4)), rule: "ι", note: "nat_rect on O takes the base branch" };
+      if (sp.head.k === "const" && sp.head.n === "S") return { t: AP(args[2], sp.args[0], AP(K("nat_rect"), args[0], args[1], args[2], sp.args[0]), ...args.slice(4)), rule: "ι", note: "nat_rect on S n takes the step branch and recurses" };
+    }
+    if (head.n === "eq_rect" && args.length >= 6) {
+      const sp = spine(whnf(env, args[5]));
+      if (sp.head.k === "const" && sp.head.n === "refl") return { t: AP(args[3], ...args.slice(6)), rule: "ι", note: "eq_rect on refl returns its argument unchanged" };
+    }
+    if (e && e.kind === "def" && e.body) return { t: AP(e.body, ...args), rule: "δ", note: "unfolded " + head.n };
+  }
+  for (let i = 0; i < args.length; i++) {
+    const r = step1(env, args[i]);
+    if (r) { const as = args.slice(); as[i] = r.t; return { t: AP(head, ...as), rule: r.rule, note: r.note }; }
+  }
+  if (t.k === "lam" || t.k === "pi") { const r = step1(env, t.b); if (r) return { t: { ...t, b: r.t }, rule: r.rule, note: r.note }; }
+  return null;
+}
+
+function StepApp() {
+  const ui = useUI(); const w = ui.world;
+  const st = w.step(); const r = w.run();
+  const chk = st.refine ? checkStep(w.D.env, st) : null;
+  const level = (label, tone, body, note) => (
+    <div key={label} style={{ display: "flex", gap: 6, marginBottom: 4, borderBottom: "1px dotted " + C.line, paddingBottom: 3 }}>
+      <div style={{ width: 54, flexShrink: 0 }}>
+        <Tag tone={tone}>{label}</Tag>
+        {note && <div style={{ fontSize: 8.5, color: C.faint, marginTop: 2, lineHeight: 1.2 }}>{note}</div>}
+      </div>
+      <div style={{ flex: 1, minWidth: 0, fontSize: 10.5, lineHeight: 1.45 }}>{body}</div>
+    </div>
+  );
+  if (!st.i) return <AppBody><Hint>this is the statement, before any tactic has run. Step the transport forward and this tile shows what each tactic did — the goal it consumed, the piece of proof term it wrote, and whether the kernel accepts that piece on its own.</Hint></AppBody>;
+  return (
+    <>
+      <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "4px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
+        <Tag tone={tacTone(tacName(st.tac))}>tactic {st.i}</Tag>
+        <b style={{ fontSize: 11 }}>{st.tac}</b>
+        {st.disabled && <Tag tone={C.red}>switched off</Tag>}
+        {chk && <Tag tone={chk.ok ? C.sage : C.red}>{chk.ok ? "kernel accepts this step" : "kernel rejects this step"}</Tag>}
+      </div>
+      <AppBody>
+        {level("tactic", tacTone(tacName(st.tac)), <><b>{st.tac}</b><div style={{ color: C.faint, marginTop: 1 }}>{tacBlurb(tacName(st.tac))}</div></>, "what you wrote")}
+        {st.err && level("error", C.red, <span style={{ color: C.red, whiteSpace: "pre-wrap" }}>{st.err}</span>, "it failed")}
+        {st.consumed && level("goal in", C.sage, <>
+          {st.consumed.ctx.map((h) => <div key={h.name}><b>{h.name}</b><span style={{ color: C.faint }}> : </span>{pp(h.ty)}</div>)}
+          <div style={{ borderTop: "1px solid " + C.ink, margin: "2px 0" }} />
+          <TermView t={st.consumed.target} />
+        </>, "consumed")}
+        {st.note && level("effect", C.faint, st.note, "in words")}
+        {st.refine && level("term", C.blue, <TermView t={st.refine} />, "written into the proof")}
+        {!!(st.produced || []).length && level("goals out", C.mustard, st.produced.map((g, i) => (
+          <div key={g.id} style={{ marginBottom: 2 }}>
+            <GoalChip g={g} n={i + 1} /> <span style={{ color: C.faint }}>{g.ctx.length} hyp ⊢ </span>{pp(g.target)}
+          </div>
+        )), "produced")}
+        {chk && level("kernel", chk.ok ? C.sage : C.red,
+          chk.ok
+            ? <>this refinement type-checks in the context of the goal it acted on, with each hole standing for the goal it opened.
+                <div style={{ color: C.faint, marginTop: 2 }}>{Object.entries(chk.st.rules).map(([k, v]) => k + " " + v).join(" · ")} · {chk.st.conv} conversion checks</div></>
+            : <span style={{ color: C.red, whiteSpace: "pre-wrap" }}>{chk.err}</span>,
+          "checked alone")}
+        {!chk && !st.err && level("kernel", C.faint, "this tactic only changed how the goal is presented — it wrote nothing into the term, so there is nothing to check.", "conversion")}
+      </AppBody>
+    </>
+  );
+}
+
+function TermApp() {
+  const ui = useUI(); const w = ui.world; const r = w.run();
+  const [mode, setMode] = useState("final");
+  const partial = (() => { const s = w.step(); if (!s.state) return null; return instMeta(META(s.state.root), s.state.assign); })();
+  const t = mode === "final" ? r.term : partial;
+  return (
+    <>
+      <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "4px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
+        <TBtn tone={mode === "final" ? C.sel : C.paneAlt} doc="the finished proof term" onClick={() => setMode("final")}>final</TBtn>
+        <TBtn tone={mode === "partial" ? C.sel : C.paneAlt} doc="the term as it stands at the transport's position, holes and all" onClick={() => setMode("partial")}>at cursor</TBtn>
+        <span style={{ flex: 1 }} />
+        {t && <span style={{ fontSize: 10, color: C.faint }}>{size(t)} nodes · depth {depthOf(t)}</span>}
+      </div>
+      <AppBody>
+        <Hint>a tactic script is a program that writes this. Tactics are convenience; this term is the proof, and it is what the kernel reads.</Hint>
+        {!t && <div style={{ fontSize: 10.5, color: C.faint }}>the proof is not finished, so there is no complete term yet.</div>}
+        {t && <div style={{ border: "1px solid " + C.line, padding: "5px 7px", background: C.pane }}><TermView t={t} big hl={w.sel.const} /></div>}
+        {t && (
+          <div style={{ marginTop: 9 }}>
+            <Head>constants it mentions</Head>
+            <Row>{[...constsIn(t)].map((c) => <ConstChip key={c} name={c} />)}</Row>
+          </div>
+        )}
+        {mode === "partial" && <div style={{ marginTop: 8, fontSize: 10, color: C.faint, lineHeight: 1.45 }}>
+          each <b>?g</b> is a hole waiting for a goal to be closed. Scrub the transport and watch them get filled in.
+        </div>}
+      </AppBody>
+    </>
+  );
+}
+
+function KernelApp() {
+  const ui = useUI(); const w = ui.world; const r = w.run();
+  const ks = r.kstats;
+  const rules = ks ? Object.entries(ks.rules).sort((a, b) => b[1] - a[1]) : [];
+  const max = Math.max(1, ...rules.map((x) => x[1]));
+  return (
+    <AppBody>
+      <Head right={<ThmChip name={w.thm} />}>the kernel</Head>
+      <div style={{ border: "2px solid " + C.ink, borderLeft: "6px solid " + (r.kernel && r.kernel.ok ? C.sage : C.red), boxShadow: "2px 2px 0 " + C.ink,
+        background: r.kernel && r.kernel.ok ? "#f4faf6" : "#fdf3f0", padding: "5px 8px", marginBottom: 9, fontSize: 10.5, lineHeight: 1.45 }}>
+        <b>{r.kernel && r.kernel.ok ? "accepted" : "rejected"}</b>
+        <div style={{ whiteSpace: "pre-wrap", marginTop: 2 }}>{r.kernel ? r.kernel.msg : "the proof never finished, so nothing was submitted"}</div>
+      </div>
+      {ks && (
+        <>
+          <Head>inference rules applied</Head>
+          <div style={{ marginBottom: 9 }}>
+            {rules.map(([k, v]) => (
+              <div key={k} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 2 }}>
+                <span style={{ width: 54 }}><P ptype="rule" value={k} doc={"<rule> the " + k + " typing rule"}><Tag tone={C.mint}>{k}</Tag></P></span>
+                <Bar frac={v / max} tone={C.mint} />
+                <span style={{ fontSize: 9.5, color: C.faint, width: 34, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{v}</span>
+              </div>
+            ))}
+          </div>
+          <Head>reductions performed while checking</Head>
+          <Row style={{ marginBottom: 9 }}>
+            <Tag tone={C.blue}>β {ks.beta}</Tag><Tag tone={C.lavender}>δ {ks.delta}</Tag><Tag tone={C.mustard}>ι {ks.iota}</Tag>
+            <Tag tone={C.rose}>{ks.conv} conversion checks</Tag><Tag tone={C.faint}>{ks.ms}ms</Tag>
+          </Row>
+        </>
+      )}
+      <Head>what is actually trusted</Head>
+      <div style={{ fontSize: 10.5, lineHeight: 1.55 }}>
+        <div style={{ marginBottom: 4 }}><b>Trusted:</b> the typing rules, weak head normalisation, definitional equality, and every axiom in the
+        environment. About three hundred lines. That is the whole of what has to be right.</div>
+        <div style={{ marginBottom: 4 }}><b>Not trusted:</b> every tactic, unification, first-order matching, the goal display, this entire shell.
+        A tactic that produces a wrong term does not produce a wrong theorem — it produces a rejected one.</div>
+        <div style={{ color: C.faint }}>The sorts are predicative: Type0 : Type1 : Type2, with the product rule taking the maximum. Two inductive
+        families are built in — nat and eq — with their eliminators given as constants and their ι-rules built into normalisation, rather than a
+        general scheme for declaring new inductive types.</div>
+      </div>
+    </AppBody>
+  );
+}
+
+function ReduceApp() {
+  const ui = useUI(); const w = ui.world;
+  const g = w.focusGoal();
+  const seed = w.sel.term || (g ? g.target : null);
+  const [chain, setChain] = useState([]);
+  const [base, setBase] = useState(null);
+  const cur = chain.length ? chain[chain.length - 1].t : (base || seed);
+  useEffect(() => { setChain([]); setBase(seed); }, [seed && pp(seed)]);
+  const doStep = () => { const r = step1(w.D.env, cur); if (r) setChain(chain.concat([r])); };
+  const doAll = () => { let t = cur, out = chain.slice(); for (let i = 0; i < 60; i++) { const r = step1(w.D.env, t); if (!r) break; out.push(r); t = r.t; } setChain(out); };
+  return (
+    <AppBody>
+      <Head right={<Row>
+        <TBtn doc="contract the leftmost outermost redex once" onClick={doStep}>one step</TBtn>
+        <TBtn doc="reduce to normal form" onClick={doAll}>normalise</TBtn>
+        <TBtn doc="apply simpl, which refolds definitions afterwards" onClick={() => setChain(chain.concat([{ t: simplify(w.D.env, cur), rule: "simpl", note: "reduce where a constructor is exposed, then refold" }]))}>simpl</TBtn>
+        <TBtn doc="start again from the goal" onClick={() => { setChain([]); setBase(seed); }}>reset</TBtn>
+      </Row>}>reduction</Head>
+      <Hint>this is the machinery behind <b>reflexivity</b>: two sides are equal when they reduce to the same normal form. β applies a lambda, δ unfolds a definition, ι fires an eliminator on a constructor.</Hint>
+      {!seed && <div style={{ fontSize: 10.5, color: C.faint }}>no goal in focus.</div>}
+      {seed && (
+        <>
+          <div style={{ border: "1px solid " + C.line, padding: "3px 6px", marginBottom: 3, background: C.paneAlt }}><TermView t={base || seed} /></div>
+          {chain.map((r, i) => (
+            <div key={i} style={{ display: "flex", gap: 6, marginBottom: 2 }}>
+              <span style={{ width: 26, flexShrink: 0 }}><Tag tone={r.rule === "β" ? C.blue : r.rule === "δ" ? C.lavender : r.rule === "ι" ? C.mustard : C.faint}>{r.rule}</Tag></span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <TermView t={r.t} />
+                <div style={{ fontSize: 9, color: C.faint }}>{r.note}</div>
+              </span>
+            </div>
+          ))}
+          {chain.length > 0 && !step1(w.D.env, cur) && <div style={{ marginTop: 4 }}><Tag tone={C.sage}>normal form — nothing left to contract</Tag></div>}
+        </>
+      )}
+    </AppBody>
+  );
+}
+
+function LibraryApp() {
+  const ui = useUI(); const w = ui.world;
+  const groups = [["ind", "inductive families"], ["ctor", "constructors"], ["rec", "eliminators"], ["def", "definitions"], ["thm", "theorems"], ["axiom", "axioms"]];
+  return (
+    <AppBody>
+      <Head right={<span style={{ fontSize: 10, color: C.faint }}>{w.D.env.size} constants</span>}>environment</Head>
+      {groups.map(([kind, label]) => {
+        const items = [...w.D.env.values()].filter((e) => e.kind === kind);
+        if (!items.length) return null;
+        return (
+          <div key={kind} style={{ marginBottom: 8 }}>
+            <div style={{ fontSize: 9.5, color: C.faint, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 2 }}>{label}</div>
+            {items.map((e) => (
+              <div key={e.name} style={{ marginBottom: 2, fontSize: 10.5, lineHeight: 1.45 }}>
+                <Row>
+                  <ConstChip name={e.name} big />
+                  <span style={{ color: C.faint }}>:</span>
+                  <span style={{ flex: 1, minWidth: 0 }}><TermView t={e.ty} /></span>
+                  {e.kind === "thm" && <Tag tone={e.proved ? (e.admitted ? C.mustard : C.sage) : C.red}>{e.proved ? (e.admitted ? "admitted" : "proved") : "not proved"}</Tag>}
+                  {e.kind === "axiom" && <Tag tone={C.red}>assumed</Tag>}
+                </Row>
+                {e.note && <div style={{ fontSize: 9.5, color: C.faint, paddingLeft: 4 }}>{e.note}</div>}
+              </div>
+            ))}
+          </div>
+        );
+      })}
+      {!!w.revoked.size && (
+        <div style={{ marginTop: 6 }}>
+          <Head>revoked</Head>
+          <Row>{[...w.revoked].map((n) => <span key={n}><Tag tone={C.red}>{n}</Tag></span>)}</Row>
+          <div style={{ marginTop: 4 }}><Btn tone={C.mint} onClick={() => w.clearRevoked()}>put them all back</Btn></div>
+        </div>
+      )}
+    </AppBody>
+  );
+}
+
+function DepsApp() {
+  const ui = useUI(); const w = ui.world;
+  const a = w.assumptionsOf(w.thm);
+  const names = [...w.D.env.values()].filter((e) => e.kind === "thm" || (e.kind === "def" && e.name === "eq_sym") || e.kind === "axiom").map((e) => e.name);
+  const edges = [];
+  names.forEach((n) => directDeps(w.D.env, n).forEach((d) => { if (names.includes(d)) edges.push([n, d]); }));
+  [...w.D.env.values()].forEach((e) => { if (e.kind === "thm" && e.body && constsIn(e.body).has("admitted")) edges.push([e.name, "admitted"]); });
+  const lvl = {}; names.forEach((n) => (lvl[n] = 0));
+  for (let it = 0; it < 8; it++) edges.forEach(([a2, b]) => { if (lvl[a2] <= lvl[b]) lvl[a2] = lvl[b] + 1; });
+  const byLvl = {}; names.forEach((n) => (byLvl[lvl[n]] = (byLvl[lvl[n]] || []).concat([n])));
+  const W = 300, rowH = 44;
+  const pos = {}; Object.entries(byLvl).forEach(([l, ns]) => ns.forEach((n, i) => (pos[n] = { x: (W / (ns.length + 1)) * (i + 1), y: 18 + (Math.max(...Object.keys(byLvl).map(Number)) - +l) * rowH })));
+  const H = 30 + (Math.max(...Object.keys(byLvl).map(Number)) + 1) * rowH;
+  const reach = new Set([w.thm]); for (let i = 0; i < 6; i++) edges.forEach(([a2, b]) => { if (reach.has(a2)) reach.add(b); });
+  return (
+    <AppBody>
+      <Head right={<ThmChip name={w.thm} />}>what this proof rests on</Head>
+      <svg viewBox={"0 0 " + W + " " + H} style={{ width: "100%", maxHeight: H * 2, display: "block", marginBottom: 6 }}>
+        {edges.map(([a2, b], i) => { const p = pos[a2], q = pos[b]; if (!p || !q) return null;
+          const on = reach.has(a2) && reach.has(b);
+          return <path key={i} d={`M${p.x} ${p.y + 9} C ${p.x} ${p.y + 22}, ${q.x} ${q.y - 22}, ${q.x} ${q.y - 9}`} fill="none"
+            stroke={on ? C.ink : C.line} strokeWidth={on ? 1.5 : 1} />; })}
+        {names.map((n) => { const p = pos[n]; if (!p) return null;
+          const e = w.D.env.get(n); const on = reach.has(n);
+          return (
+            <P key={n} ptype="const" value={n} svg doc={"<const> " + n + " — " + (e ? e.kind : "?") + (reach.has(n) ? "; " + w.thm + " depends on it" : "")}
+              onActivate={() => (e && e.kind === "thm" ? w.setThm(n) : w.select("const", n))} activateDoc="focus it">
+              <g>
+                <rect x={p.x - 44} y={p.y - 9} width={88} height={18} fill={n === w.thm ? C.sel : on ? C.pane : C.paneAlt}
+                  stroke={e && e.kind === "axiom" ? C.red : C.ink} strokeWidth={n === w.thm ? 2.4 : 1.3} strokeDasharray={e && e.kind === "axiom" ? "3 2" : "none"} />
+                <text x={p.x} y={p.y + 3} textAnchor="middle" fontSize={7.5} fill={on ? C.ink : C.faint} fontFamily="inherit">{n}</text>
+              </g>
+            </P>
+          ); })}
+      </svg>
+      <Head>print assumptions</Head>
+      <div style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + (a.closed ? C.sage : C.red), padding: "4px 7px", fontSize: 10.5, lineHeight: 1.5, background: C.pane }}>
+        {a.closed
+          ? <><b>Closed under the global context.</b> This proof uses nothing but the typing rules, the two inductive families and their eliminators, and lemmas that are themselves closed.</>
+          : <>
+              <b>Not closed.</b>
+              {!!a.axioms.size && <div>axioms: {[...a.axioms].map((x) => <span key={x} style={{ marginRight: 4 }}><P ptype="axiom" value={x} doc={"<axiom> " + x + " — assumed, never proved"}><Tag tone={C.red}>{x}</Tag></P></span>)}</div>}
+              {!!a.unproved.size && <div>lemmas whose own proofs did not survive: {[...a.unproved].map((x) => <span key={x} style={{ marginRight: 4 }}><ThmChip name={x} /></span>)}</div>}
+              {!!a.missing.size && <div>revoked and now missing: {[...a.missing].join(", ")}</div>}
+            </>}
+      </div>
+      <div style={{ marginTop: 7, fontSize: 10.5 }}>
+        <div>lemmas used, transitively: {a.thms.size ? [...a.thms].map((x) => <span key={x} style={{ marginRight: 3 }}><ThmChip name={x} /></span>) : <span style={{ color: C.faint }}>none</span>}</div>
+        <div style={{ marginTop: 3 }}>definitions: {[...a.defs].map((x) => <span key={x} style={{ marginRight: 3 }}><ConstChip name={x} /></span>)}</div>
+        <div style={{ marginTop: 3, color: C.faint }}>kernel primitives: {[...a.kernel].join(", ")}</div>
+      </div>
+    </AppBody>
+  );
+}
+
+function RevokeApp() {
+  const ui = useUI(); const w = ui.world;
+  const [pick, setPick] = useState(null);
+  const impact = useMemo(() => (pick ? revokeImpact(pick, { disabled: w.disabled, unsoundRewrite: w.unsound, scripts: w.scripts }) : null), [pick, w.disabled.size, w.unsound, w.D]);
+  const candidates = DEV.map((d) => d.name).concat(["eq_sym"]);
+  return (
+    <AppBody>
+      <Head right={w.revoked.size ? <TBtn doc="put every revoked lemma back" onClick={() => w.clearRevoked()}>restore all</TBtn> : null}>revocation</Head>
+      <Hint>take a lemma out of the library and the whole development is re-checked without it. Some proofs fail outright at a named tactic; others still close but now rest on something that is no longer proved.</Hint>
+      <Row style={{ marginBottom: 8 }}>
+        {candidates.map((n) => (
+          <span key={n} onClick={() => setPick(n)} style={{ cursor: "pointer" }}>
+            <span style={{ border: "2px solid " + C.ink, boxShadow: pick === n ? "2px 2px 0 " + C.ink : "none",
+              background: w.revoked.has(n) ? C.del : pick === n ? C.sel : C.paneAlt, padding: "1px 6px", fontSize: 10.5, fontWeight: 700 }}>{n}</span>
+          </span>
+        ))}
+      </Row>
+      {!pick && <div style={{ fontSize: 10.5, color: C.faint }}>pick a lemma to see what would fall.</div>}
+      {impact && (
+        <>
+          <Row style={{ marginBottom: 5 }}>
+            <b style={{ fontSize: 11 }}>if {pick} were not available</b>
+            <Btn tone={w.revoked.has(pick) ? C.mint : C.rose} onClick={() => w.toggleRevoke(pick)}>{w.revoked.has(pick) ? "put it back" : "actually revoke it"}</Btn>
+          </Row>
+          <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 10.5 }}>
+            <tbody>
+              {impact.rows.map((row) => (
+                <tr key={row.name} style={{ borderBottom: "1px dotted " + C.line }}>
+                  <td style={{ padding: "1px 3px" }}><ThmChip name={row.name} /></td>
+                  <td style={{ padding: "1px 3px" }}>
+                    {row.wasOk && !row.nowOk ? <Tag tone={C.red}>breaks at tactic {row.at}</Tag>
+                      : row.tainted ? <Tag tone={C.mustard}>closes, but on an unproved lemma</Tag>
+                      : <span style={{ color: C.faint }}>unaffected</span>}
+                  </td>
+                  <td style={{ padding: "1px 3px", color: C.faint, fontSize: 9.5 }}>{row.why || ""}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ marginTop: 6, fontSize: 10.5, lineHeight: 1.45 }}>
+            {impact.broke.length
+              ? <>{impact.broke.length} proof{impact.broke.length === 1 ? "" : "s"} stop{impact.broke.length === 1 ? "s" : ""} outright{impact.tainted.length ? ", and " + impact.tainted.length + " more end up resting on something unproved" : ""}.</>
+              : <>nothing depends on it — this lemma is dead weight in the library.</>}
+          </div>
+        </>
+      )}
+    </AppBody>
+  );
+}
+
+function SearchApp() {
+  const ui = useUI(); const w = ui.world;
+  const g = w.focusGoal();
+  const applies = useMemo(() => (g ? searchApplicable(w.D.env, g) : []), [g && g.id, w.D]);
+  const rews = useMemo(() => (g ? searchRewrites(w.D.env, g) : []), [g && g.id, w.D]);
+  const insert = (line) => {
+    const s = w.scriptOf().slice();
+    s.splice(w.cursor, 0, line);
+    w.setScript(w.thm, s); w.setCursor(w.cursor + 1);
+  };
+  return (
+    <AppBody>
+      <Head right={g ? <GoalChip g={g} /> : null}>what fits here</Head>
+      {!g && <Hint>no open goal at this position.</Hint>}
+      {g && (
+        <>
+          <div style={{ border: "1px solid " + C.line, padding: "3px 6px", marginBottom: 7, background: C.paneAlt }}>
+            {g.ctx.map((h) => <div key={h.name} style={{ fontSize: 10.5 }}><b>{h.name}</b> : {pp(h.ty)}</div>)}
+            <div style={{ borderTop: "1px solid " + C.ink, margin: "2px 0" }} />
+            <TermView t={g.target} />
+          </div>
+          <Head right={<span style={{ fontSize: 10, color: C.faint }}>{applies.length}</span>}>apply</Head>
+          {!applies.length && <div style={{ fontSize: 10.5, color: C.faint, marginBottom: 7 }}>nothing in the library unifies with this goal.</div>}
+          {applies.map((s) => (
+            <div key={s.name + s.kind} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 2 }}>
+              <span style={{ width: 106 }}>{s.kind === "hypothesis" ? <Tag tone={C.blue}>{s.name}</Tag> : <ConstChip name={s.name} />}</span>
+              <span style={{ fontSize: 9.5, color: s.unsolved ? C.mustard : C.addInk, width: 88 }}>{s.unsolved ? "leaves " + s.unsolved + " goal" + (s.unsolved === 1 ? "" : "s") : "closes it"}</span>
+              <span style={{ flex: 1, fontSize: 9.5, color: C.faint, minWidth: 0 }}>{s.inst.filter((x) => x !== "?").join(", ")}</span>
+              <TBtn doc={"insert `apply " + s.name + "` at the cursor and re-run"} onClick={() => insert("apply " + s.name)}>insert</TBtn>
+            </div>
+          ))}
+          <div style={{ height: 8 }} />
+          <Head right={<span style={{ fontSize: 10, color: C.faint }}>{rews.length}</span>}>rewrite</Head>
+          {!rews.length && <div style={{ fontSize: 10.5, color: C.faint }}>no equation in scope matches anything in the goal.</div>}
+          {rews.map((s, i) => (
+            <div key={i} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 2 }}>
+              <span style={{ width: 106 }}>{s.kind === "hypothesis" ? <Tag tone={C.blue}>{s.name}</Tag> : <ConstChip name={s.name} />}</span>
+              <span style={{ width: 20, fontSize: 9.5, color: C.faint }}>{s.dir}</span>
+              <span style={{ flex: 1, fontSize: 10, minWidth: 0 }}>{s.at} <span style={{ color: C.faint }}>⟶</span> {s.to}</span>
+              <TBtn doc={"insert this rewrite at the cursor and re-run"} onClick={() => insert("rewrite " + (s.dir === "<-" ? "<- " : "") + s.name)}>insert</TBtn>
+            </div>
+          ))}
+          <div style={{ marginTop: 8, fontSize: 10, color: C.faint, lineHeight: 1.45 }}>
+            every row here was produced by actually running unification or first-order matching against this goal — not by keyword search.
+          </div>
+        </>
+      )}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APPS · verification
+   ============================================================ */
+function VerifyApp() {
+  const ui = useUI(); const w = ui.world; const r = w.run();
+  const checks = useMemo(() => (r.steps || []).filter((s) => s.refine).map((s) => ({ s, res: checkStep(w.D.env, s) })), [r, w.D]);
+  const bad = checks.filter((c) => c.res && !c.res.ok);
+  return (
+    <AppBody>
+      <Head right={<Row><Tag tone={r.kernel && r.kernel.ok ? C.sage : C.red}>{r.kernel && r.kernel.ok ? "term accepted" : "term rejected"}</Tag><ThmChip name={w.thm} /></Row>}>
+        per-tactic checking
+      </Head>
+      <Hint>each tactic's contribution is type-checked on its own, in the context of the goal it acted on, with every hole standing for the goal it opened. A tactic can close a goal and still be writing nonsense.</Hint>
+      <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 10.5, marginBottom: 9 }}>
+        <tbody>
+          {checks.map(({ s, res }) => (
+            <tr key={s.i} onClick={() => w.setCursor(s.i)} style={{ borderBottom: "1px dotted " + C.line, cursor: "pointer", background: w.cursor === s.i ? C.sel : "transparent" }}>
+              <td style={{ width: 20, color: C.faint, fontVariantNumeric: "tabular-nums" }}>{s.i}</td>
+              <td style={{ padding: "1px 3px" }}><TacChip name={s.tac} idx={s.i - 1} /></td>
+              <td style={{ width: 74, textAlign: "right", fontWeight: 700, color: res.ok ? C.addInk : C.red }}>{res.ok ? "accepted" : "REJECTED"}</td>
+              <td style={{ width: 88, textAlign: "right", color: C.faint, fontSize: 9.5 }}>{res.ok ? res.st.conv + " conversions" : ""}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {!!bad.length && (
+        <div style={{ border: "2px solid " + C.ink, borderLeft: "6px solid " + C.red, boxShadow: "2px 2px 0 " + C.ink, background: "#fdf3f0", padding: "5px 8px", fontSize: 10.5, lineHeight: 1.45, marginBottom: 9 }}>
+          <b>tactic {bad[0].s.i}, `{bad[0].s.tac}`, wrote a term the kernel will not take.</b>
+          <pre style={{ margin: "3px 0 0", fontSize: 10.5, whiteSpace: "pre-wrap" }}>{bad[0].res.err}</pre>
+          <Row style={{ marginTop: 5 }}>
+            <Btn tone={C.mustard} onClick={() => w.setCursor(bad[0].s.i)}>scrub to it</Btn>
+            <Btn tone={C.paneAlt} onClick={() => w.setUnsound(false)} disabled={!w.unsound}>switch the unsound rewrite off</Btn>
+          </Row>
+        </div>
+      )}
+      {!bad.length && r.closed && (
+        <div style={{ fontSize: 10.5, lineHeight: 1.5, border: "1px solid " + C.ink, borderLeft: "4px solid " + C.sage, padding: "4px 7px" }}>
+          every tactic's contribution checks out on its own, and the assembled term checks out as a whole. Those are two different claims and the
+          shell makes both — a proof can be locally sound at every step and still fail to assemble.
+        </div>
+      )}
+      <div style={{ marginTop: 9 }}>
+        <Head>the whole development</Head>
+        <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 10.5 }}>
+          <tbody>
+            {w.runs().map((x) => {
+              const s = statusOf(x);
+              return (
+                <tr key={x.name} style={{ borderBottom: "1px dotted " + C.line }}>
+                  <td style={{ padding: "1px 3px" }}><ThmChip name={x.name} /></td>
+                  <td style={{ padding: "1px 3px" }}><Tag tone={s.tone}>{s.t}</Tag></td>
+                  <td style={{ color: C.faint, fontSize: 9.5 }}>{x.kernel && !x.kernel.ok ? x.kernel.msg.split("\\n")[0] : x.failed ? "stopped at tactic " + x.failed.at : ""}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </AppBody>
+  );
+}
+
+function BisectApp() {
+  const ui = useUI(); const w = ui.world; const r = w.run();
+  const B = useMemo(() => bisectSteps(w.D.env, r), [r, w.D]);
+  const [min, setMin] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const runMin = () => {
+    setBusy(true);
+    setTimeout(() => {
+      const D2 = buildDevelopment({ ...w.opts(), scripts: { ...w.scripts } });
+      const envBefore = baseEnv();
+      DEV.every((d) => {
+        if (d.name === w.thm) return false;
+        const rr = runScript(envBefore, (w.scripts[d.name] ? { ...d, script: w.scripts[d.name] } : d), w.opts());
+        envBefore.set(d.name, { name: d.name, kind: "thm", ty: d.ty, body: rr.term, proved: rr.closed && rr.kernel.ok, admitted: rr.admitted });
+        return true;
+      });
+      const spec = w.scripts[w.thm] ? { ...DEV.find((d) => d.name === w.thm), script: w.scripts[w.thm] } : DEV.find((d) => d.name === w.thm);
+      setMin(minimizeScript(spec, envBefore, w.opts()));
+      setBusy(false);
+    }, 10);
+  };
+  return (
+    <AppBody>
+      <Head right={<TBtn tone={w.unsound ? C.red : C.paneAlt} doc="make rewrite -> forget the eq_sym it needs; tactics keep succeeding, the kernel stops agreeing" onClick={() => w.setUnsound(!w.unsound)}>{w.unsound ? "unsound rewrite: ON" : "make rewrite unsound"}</TBtn>}>
+        bisection
+      </Head>
+      <Hint>halving over the tactic list, re-checking each prefix with the kernel. Every probe is a real type check.</Hint>
+      {B.clean ? (
+        <div style={{ fontSize: 10.5, lineHeight: 1.5, border: "1px solid " + C.ink, borderLeft: "4px solid " + C.sage, padding: "4px 7px", marginBottom: 9 }}>
+          every tactic in this proof writes a term the kernel accepts. Switch on the unsound rewrite above and this tile will find the first one that does not.
+        </div>
+      ) : (
+        <>
+          <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 10.5, marginBottom: 6 }}>
+            <tbody>
+              {B.probes.map((p, i) => (
+                <tr key={i} style={{ borderBottom: "1px dotted " + C.line }}>
+                  <td style={{ color: C.faint, width: 66, fontVariantNumeric: "tabular-nums" }}>{p.lo + 1}..{p.hi + 1}</td>
+                  <td style={{ width: 24, textAlign: "center", color: C.faint }}>→</td>
+                  <td style={{ padding: "1px 3px" }}><TacChip name={p.tac} idx={p.mid} /></td>
+                  <td style={{ width: 96, textAlign: "right", fontWeight: 700, color: p.ok ? C.addInk : C.red }}>{p.ok ? "prefix clean" : "already broken"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ border: "2px solid " + C.ink, borderLeft: "6px solid " + C.red, boxShadow: "2px 2px 0 " + C.ink, padding: "5px 7px", fontSize: 10.5, lineHeight: 1.45, marginBottom: 9 }}>
+            <Row style={{ marginBottom: 3 }}><b>culprit</b><TacChip name={B.culprit.tac} idx={B.culprit.i - 1} /><Tag tone={C.red}>tactic {B.culprit.i}</Tag></Row>
+            <pre style={{ margin: 0, whiteSpace: "pre-wrap", fontSize: 10.5 }}>{B.culprit.res.err}</pre>
+            <Row style={{ marginTop: 5 }}>
+              <Btn tone={C.mustard} onClick={() => w.setCursor(B.culprit.i)}>scrub to it</Btn>
+              <Btn tone={C.paneAlt} onClick={() => w.toggleTactic(w.thm, B.culprit.i - 1)}>switch that tactic off</Btn>
+            </Row>
+          </div>
+        </>
+      )}
+      <Head right={<TBtn doc="drop tactics one at a time, keeping only those the proof cannot do without" onClick={runMin} disabled={busy}>{busy ? "reducing…" : "minimise"}</TBtn>}>script minimisation</Head>
+      <Hint>real delta debugging: each candidate script is re-run and re-checked by the kernel, and kept only if the proof still closes.</Hint>
+      {!min && <div style={{ fontSize: 10.5, color: C.faint }}>press minimise.</div>}
+      {min && !min.ok && <div style={{ fontSize: 10.5, color: C.faint }}>{min.note}</div>}
+      {min && min.ok && (
+        <>
+          <div style={{ fontSize: 10.5, marginBottom: 4 }}>{min.from} → <b>{min.to}</b> tactics{min.dropped.length ? "" : " — already minimal"}</div>
+          {min.dropped.map((d, i) => <div key={i} style={{ fontSize: 10, color: C.faint }}>· dropped <b>{d}</b>, and the proof still closed</div>)}
+          {!!min.dropped.length && (
+            <>
+              <pre style={{ margin: "5px 0 0", border: "2px solid " + C.ink, background: C.pane, padding: 6, fontSize: 10.5, lineHeight: 1.5 }}>{min.script.join("\\n")}</pre>
+              <Row style={{ marginTop: 5 }}><Btn tone={C.mustard} onClick={() => w.setScript(w.thm, min.script)}>use the shorter script</Btn></Row>
+            </>
+          )}
+        </>
+      )}
+    </AppBody>
+  );
+}
+
+/* ============================================================
+   APPS · grammar of graphics over the development's own numbers
+   ============================================================ */
+function StepEditor({ s, schema, docId }) {
+  const ui = useUI(); const w = ui.world;
+  const names = schema.map((f) => f.name);
+  const set = (k, v) => { s[k] = v; w.bump(); };
+  return (
+    <div style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + (s.on ? C.blue : C.line), padding: "2px 5px", marginBottom: 3, background: s.on ? C.pane : C.paneAlt }}>
+      <Row>
+        <P ptype="step2" value={s.id} doc={"<step2> " + stepLabel(s) + " — disable, reorder, remove"}>
+          <b style={{ fontSize: 10, letterSpacing: "0.05em", borderBottom: "1px dotted " + C.faint }}>{s.kind}</b>
+        </P>
+        <span style={{ flex: 1 }} />
+        <TBtn doc={s.on ? "disable but keep in the chain" : "enable"} onClick={() => w.toggleStep(docId, s.id)}>{s.on ? "●" : "○"}</TBtn>
+        <TBtn doc="move earlier" onClick={() => w.moveStep(docId, s.id, -1)}>↑</TBtn>
+        <TBtn doc="move later" onClick={() => w.moveStep(docId, s.id, 1)}>↓</TBtn>
+        <TBtn doc="remove" onClick={() => w.removeStep(docId, s.id)}>✕</TBtn>
+      </Row>
+      <Row style={{ marginTop: 2 }}>
+        {s.kind === "filter" && <>
+          <Sel value={s.field} onChange={(v) => set("field", v)} options={names} />
+          <Sel value={s.op} onChange={(v) => set("op", v)} options={FOPS} width={44} />
+          <Num value={s.value} onChange={(v) => set("value", v)} />
+        </>}
+        {s.kind === "derive" && <>
+          <Num value={s.as} onChange={(v) => set("as", v)} width={62} />
+          <span style={{ color: C.faint }}>=</span>
+          <Sel value={s.a} onChange={(v) => set("a", v)} options={names} />
+          <Sel value={s.op} onChange={(v) => set("op", v)} options={DOPS} width={40} />
+          <Num value={s.b} onChange={(v) => set("b", v)} />
+        </>}
+        {s.kind === "summarize" && <>
+          <span style={{ color: C.faint, fontSize: 10 }}>by</span>
+          <Sel value={s.by} onChange={(v) => set("by", v)} options={names} />
+          <Sel value={s.fn} onChange={(v) => set("fn", v)} options={AGGS} width={62} />
+          <Sel value={s.field} onChange={(v) => set("field", v)} options={names} />
+        </>}
+        {s.kind === "sort" && <>
+          <Sel value={s.field} onChange={(v) => set("field", v)} options={names} />
+          <Sel value={s.dir} onChange={(v) => set("dir", v)} options={["asc", "desc"]} width={56} />
+        </>}
+        {s.kind === "limit" && <Num value={s.n} onChange={(v) => set("n", v)} width={44} />}
+      </Row>
+    </div>
+  );
+}
+function GogPipeApp({ leafId, docId }) {
+  const ui = useUI(); const w = ui.world; const DS = w.ds(); const d = w.doc(docId);
+  const chart = d.chart;
+  const schemaAt = (i) => schemaAfter(DS, chart.datasetId, chart.steps, i);
+  const out = evaluate(DS, chart.datasetId, chart.steps);
+  return (
+    <>
+      <DocBar docId={d.id} leafId={leafId} />
+      <AppBody>
+        <Head right={<span style={{ fontSize: 10, color: C.faint }}>{out.rows.length} rows out</span>}>source</Head>
+        <Row style={{ marginBottom: 6 }}>
+          {Object.keys(DS).map((k) => (
+            <span key={k} onClick={() => w.setDataset(d.id, k)} style={{ cursor: "pointer", opacity: chart.datasetId === k ? 1 : 0.55 }}>
+              <DatasetChip id={k} big={chart.datasetId === k} />
+            </span>
+          ))}
+        </Row>
+        <div style={{ fontSize: 10, color: C.faint, marginBottom: 6 }}>{DS[chart.datasetId] && DS[chart.datasetId].note} · {DS[chart.datasetId] && DS[chart.datasetId].rows.length} rows</div>
+        <Head>transform</Head>
+        {chart.steps.map((s, i) => <StepEditor key={s.id} s={s} schema={schemaAt(i)} docId={d.id} />)}
+        <Row style={{ marginTop: 4 }}>
+          {["filter", "derive", "summarize", "sort", "limit"].map((k) => {
+            const sc = schemaAfter(DS, chart.datasetId, chart.steps);
+            const q = (sc.find((f) => f.type === "q") || sc[0] || { name: "x" }).name;
+            const nom = (sc.find((f) => f.type === "n") || sc[0] || { name: "x" }).name;
+            const cfg = k === "filter" ? { field: nom, op: "=", value: "" }
+              : k === "derive" ? { as: "derived", a: q, op: "*", b: "1" }
+              : k === "summarize" ? { by: nom, fn: "sum", field: q }
+              : k === "sort" ? { field: q, dir: "desc" } : { n: 10 };
+            return <Btn key={k} tone={C.paneAlt} onClick={() => w.addStep(d.id, mkStep(k, cfg))}>+ {k}</Btn>;
+          })}
+        </Row>
+        <div style={{ marginTop: 8 }}>
+          <Head>schema out</Head>
+          <Row>{out.fields.map((f) => <FieldChip key={f.name} name={f.name} type={f.type} />)}</Row>
+        </div>
+      </AppBody>
+    </>
+  );
+}
+function EncodeApp({ leafId, docId }) {
+  const ui = useUI(); const w = ui.world; const DS = w.ds(); const d = w.doc(docId);
+  const schema = schemaAfter(DS, d.chart.datasetId, d.chart.steps);
+  const SLOTS = ["x", "y", "color", "facet"];
+  return (
+    <>
+      <DocBar docId={d.id} leafId={leafId} />
+      <AppBody>
+        <Head>geometry</Head>
+        <Row style={{ marginBottom: 8 }}>
+          {["bar", "point", "line", "area"].map((g) => (
+            <P key={g} ptype="geom" value={g} doc={"<geom> " + g} onActivate={() => w.setGeom(d.id, g)} activateDoc="use it">
+              <span style={{ border: "2px solid " + C.ink, boxShadow: "2px 2px 0 " + C.ink, background: d.chart.geom === g ? C.sel : C.paneAlt, padding: "1px 8px", fontSize: 10.5, fontWeight: 700 }}>{g}</span>
+            </P>
+          ))}
+        </Row>
+        <Head>channels</Head>
+        {SLOTS.map((s) => (
+          <div key={s} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 3 }}>
+            <span style={{ width: 42, fontSize: 10, color: C.faint, letterSpacing: "0.06em" }}>{s}</span>
+            <Sel value={d.chart.map[s] || ""} onChange={(v) => w.setMapping(d.id, s, v || null)} options={[{ v: "", l: "— none —" }].concat(schema.map((f) => ({ v: f.name, l: f.name + " · " + TYPE_LABEL[f.type] })))} width={190} />
+            {d.chart.map[s] && <FieldChip name={d.chart.map[s]} type={(schema.find((f) => f.name === d.chart.map[s]) || {}).type} />}
+          </div>
+        ))}
+        <div style={{ marginTop: 9 }}>
+          <Head>fields available</Head>
+          <Row>{schema.map((f) => <FieldChip key={f.name} name={f.name} type={f.type} />)}</Row>
+          <Hint>right-click any field — here or in any other tile — to map it to a channel, filter on it, or group by it.</Hint>
+        </div>
+      </AppBody>
+    </>
+  );
+}
+function useSize(ref) {
+  const [s, setS] = useState({ w: 320, h: 200 });
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const ro = new ResizeObserver(() => setS({ w: el.clientWidth, h: el.clientHeight }));
+    ro.observe(el); setS({ w: el.clientWidth, h: el.clientHeight });
+    return () => ro.disconnect();
+  }, [ref]);
+  return s;
+}
+function ChartApp({ leafId, docId }) {
+  const ui = useUI(); const w = ui.world; const DS = w.ds(); const d = w.doc(docId);
+  const ref = useRef(null); const { w: W, h: H } = useSize(ref);
+  const p = buildPlot(DS, d.chart, Math.max(180, W - 4), Math.max(120, H - 4));
+  return (
+    <>
+      <DocBar docId={d.id} leafId={leafId} />
+      <div ref={ref} style={{ flex: 1, minHeight: 0, padding: 2 }}>
+        {p.empty ? <div style={{ fontSize: 10.5, color: C.faint, padding: 8 }}>map a field to x and y in the encoding tile.</div> : (
+          <svg width="100%" height="100%" viewBox={"0 0 " + Math.max(180, W - 4) + " " + Math.max(120, H - 4)}>
+            {p.yticks.map((t, i) => (
+              <g key={i}>
+                <line x1={p.pad.l} x2={p.pad.l + p.iw} y1={p.yScale(t)} y2={p.yScale(t)} stroke={C.line} strokeWidth={1} />
+                <text x={p.pad.l - 4} y={p.yScale(t) + 3} textAnchor="end" fontSize={8.5} fill={C.faint} fontFamily="inherit">{fmt(t)}</text>
+              </g>
+            ))}
+            <line x1={p.pad.l} x2={p.pad.l} y1={p.pad.t} y2={p.pad.t + p.ih} stroke={C.ink} strokeWidth={1.5} />
+            <line x1={p.pad.l} x2={p.pad.l + p.iw} y1={p.pad.t + p.ih} y2={p.pad.t + p.ih} stroke={C.ink} strokeWidth={1.5} />
+            {p.marks.map((m, i) => {
+              const doc = "<datum> " + Object.entries(m.row).slice(0, 3).map(([k, v]) => k + "=" + fmt(v)).join(" ");
+              if (p.geom === "bar") return (
+                <P key={i} ptype="datum" value={{ row: m.row, docId: d.id }} svg doc={doc}>
+                  <rect x={m.x - m.bw / 2} y={Math.min(m.y, m.y0)} width={m.bw} height={Math.max(1.5, Math.abs(m.y0 - m.y))} fill={m.color} stroke={C.ink} strokeWidth={1} />
+                </P>
+              );
+              return (
+                <P key={i} ptype="datum" value={{ row: m.row, docId: d.id }} svg doc={doc}>
+                  <circle cx={m.x} cy={m.y} r={3.4} fill={m.color} stroke={C.ink} strokeWidth={1} />
+                </P>
+              );
+            })}
+            {p.geom === "line" && <polyline points={p.marks.map((m) => m.x + "," + m.y).join(" ")} fill="none" stroke={C.ink} strokeWidth={1.4} />}
+            {p.cats && p.cats.map((c, i) => (
+              <P key={c} ptype="cat" value={{ field: d.chart.map.x, value: c, docId: d.id }} svg doc={"<cat> " + d.chart.map.x + " = " + c}>
+                <text x={p.pad.l + (i + 0.5) * (p.iw / p.cats.length)} y={p.pad.t + p.ih + 12} textAnchor="middle" fontSize={8} fill={C.ink} fontFamily="inherit"
+                  transform={p.cats.length > 6 ? `rotate(-32 ${p.pad.l + (i + 0.5) * (p.iw / p.cats.length)} ${p.pad.t + p.ih + 12})` : undefined}>
+                  {String(c).length > 13 ? String(c).slice(0, 12) + "…" : c}
+                </text>
+              </P>
+            ))}
+            <text x={p.pad.l} y={10} fontSize={8.5} fill={C.faint} fontFamily="inherit">{d.chart.map.y} by {d.chart.map.x}</text>
+          </svg>
+        )}
+      </div>
+    </>
+  );
+}
+function GogTableApp({ leafId, docId }) {
+  const ui = useUI(); const w = ui.world; const DS = w.ds(); const d = w.doc(docId);
+  const { rows, fields } = evaluate(DS, d.chart.datasetId, d.chart.steps);
+  const [n, setN] = useState(40);
+  return (
+    <>
+      <DocBar docId={d.id} leafId={leafId} />
+      <AppBody>
+        <table style={{ borderCollapse: "collapse", fontSize: 10, width: "100%" }}>
+          <thead>
+            <tr style={{ borderBottom: "2px solid " + C.ink }}>
+              {fields.map((f) => <th key={f.name} style={{ textAlign: "left", padding: "1px 4px" }}><FieldChip name={f.name} type={f.type} /></th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.slice(0, n).map((r, i) => (
+              <tr key={i} style={{ borderBottom: "1px dotted " + C.line }}>
+                {fields.map((f) => (
+                  <td key={f.name} style={{ padding: "1px 4px", fontVariantNumeric: "tabular-nums" }}>
+                    <P ptype="datum" value={{ row: r, docId: d.id }} doc={"<datum> " + f.name + " = " + fmt(r[f.name])}>
+                      <span>{fmt(r[f.name])}</span>
+                    </P>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {rows.length > n && <div style={{ marginTop: 4 }}><Btn tone={C.paneAlt} onClick={() => setN(n + 60)}>{rows.length - n} more rows</Btn></div>}
+        {!rows.length && <div style={{ fontSize: 10.5, color: C.faint }}>the transform produced no rows.</div>}
+      </AppBody>
+    </>
+  );
+}
+function SnapsApp() {
+  const ui = useUI(); const w = ui.world;
+  return (
+    <AppBody>
+      <Head right={<span style={{ fontSize: 10, color: C.faint }}>{w.snaps.length}</span>}>snapshots</Head>
+      <Hint>a snapshot freezes a chart spec together with the theorem that was in focus when you took it.</Hint>
+      {w.snaps.map((s) => (
+        <div key={s.id} style={{ display: "flex", gap: 6, alignItems: "center", borderBottom: "1px dotted " + C.line, padding: "2px 0" }}>
+          <P ptype="chart" value={s.id} doc={"<chart> snapshot " + s.name}>
+            <span style={{ border: "1px solid " + C.ink, borderLeft: "4px solid " + C.mustard, padding: "0 5px", fontSize: 10.5 }}>{s.name}</span>
+          </P>
+          <span style={{ fontSize: 9.5, color: C.faint }}>taken at {s.at}</span>
+          <span style={{ flex: 1 }} />
+          <TBtn doc="load it into the active chart document" onClick={() => w.restoreSnap(s.id, w.activeId)}>restore</TBtn>
+          <TBtn doc="delete" onClick={() => w.deleteSnap(s.id)}>✕</TBtn>
+        </div>
+      ))}
+      {!w.snaps.length && <div style={{ fontSize: 10.5, color: C.faint }}>none yet — press ⚑ snap in any chart tile.</div>}
+    </AppBody>
+  );
+}
+
+/* ---- shell apps ---- */
+function InspectorApp() {
+  const w = useUI().world;
+  return (
+    <AppBody>
+      <Head>{w.inspected ? w.inspected.title : "inspector"}</Head>
+      <Hint>“Inspect” from any object menu lands here, as a plain readable description of the real object.</Hint>
+      <JsonView v={w.inspected ? w.inspected.value : {}} max={700} />
+    </AppBody>
+  );
+}
+function WatchApp() {
+  const w = useUI().world;
+  return (
+    <AppBody>
+      <Head>watchlist · {w.watch.length}</Head>
+      <Hint>objects parked from any tile. They stay live: a watched &lt;rewrite&gt; still suppresses, a watched &lt;pass&gt; still rewinds.</Hint>
+      {w.watch.map((n) => (
+        <div key={n.id} style={{ display: "flex", gap: 6, alignItems: "center", padding: "2px 0" }}>
+          <span style={{ fontSize: 9, color: C.faint, width: 68 }}>&lt;{n.ptype}&gt;</span>
+          <Pres ptype={n.ptype} value={n.value} />
+          <span style={{ flex: 1 }} />
+          <TBtn doc="remove" onClick={() => w.watchRemove(n.id)}>✕</TBtn>
+        </div>
+      ))}
+      {!w.watch.length && <div style={{ fontSize: 10.5, color: C.faint }}>empty — right-click almost anything and choose “add to watchlist”.</div>}
+    </AppBody>
+  );
+}
+function TraceApp() {
+  const w = useUI().world;
+  const rows = [...w.trace].reverse().slice(0, 240);
+  return (
+    <AppBody>
+      <Head right={<TBtn doc="clear" onClick={() => { w.trace = []; w.bump(); }}>clear</TBtn>}>trace · {w.trace.length}</Head>
+      <Hint>every command the shell executed, newest first.</Hint>
+      <table style={{ borderCollapse: "collapse", fontSize: 10, width: "100%" }}>
+        <tbody>
+          {rows.map((t) => (
+            <tr key={t.seq} style={{ borderBottom: "1px dotted " + C.line }}>
+              <td style={{ color: C.faint, padding: "1px 4px", verticalAlign: "top", width: 26 }}>{t.seq}</td>
+              <td style={{ padding: "1px 4px", verticalAlign: "top", width: 126 }}><b>{t.type}</b></td>
+              <td style={{ padding: "1px 4px", color: C.faint, wordBreak: "break-all" }}>{Object.entries(t.data).map(([k, v]) => k + "=" + String(v)).join("  ")}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {!rows.length && <div style={{ fontSize: 10.5, color: C.faint }}>nothing yet.</div>}
+    </AppBody>
+  );
+}
+function LauncherApp({ leafId }) {
+  const ui = useUI();
+  return (
+    <AppBody>
+      <Hint>empty tile — choose an application. chart / table / pipeline / encoding tiles bind to a chart DOCUMENT; the rest are shared views of the one development.</Hint>
+      <Row>
+        {Object.entries(APPS).filter(([id]) => id !== "launcher").map(([id, a]) => (
+          <Btn key={id} tone={a.color} onClick={() => ui.wm.setLeafApp(leafId, id)}>{a.title}</Btn>
+        ))}
+      </Row>
+    </AppBody>
+  );
+}
+
+function HelpApp() {
+  const ui = useUI();
+  const Go = ({ name }) => <b onClick={() => ui.goSpace(name)} style={{ cursor: "pointer", borderBottom: "1px dotted " + C.ink }}>{name}</b>;
+  const S = ({ t, children }) => (<><Head>{t}</Head><div style={{ fontSize: 10.5, lineHeight: 1.55, marginBottom: 9 }}>{children}</div></>);
+  return (
+    <AppBody>
+      <Head>proof assistant workbench</Head>
+      <div style={{ fontSize: 10.5, lineHeight: 1.55, marginBottom: 9 }}>
+        There is a real proof assistant under this shell. A dependently typed kernel — capture-avoiding substitution, β/δ/ι normalisation,
+        definitional equality, bidirectional inference, predicative sorts. Two inductive families, nat and eq, with their eliminators. A tactic
+        engine that builds proof terms with holes. Eight theorems about addition and multiplication, proved for real and checked for real. Edit
+        any tactic script in <Go name="prove" /> and the whole library re-checks.
+      </div>
+      <S t="a proof is a tree, not a line">
+        A compiler pipeline is a sequence, so scrubbing it is simple. A tactic consumes one goal and produces zero or more, so a proof branches —
+        <b> induction</b> is where it happens. The transport scrubs a traversal of that tree; <Go name="tree" /> shows the tree itself, and clicking a
+        node scrubs to the moment that goal was closed.
+      </S>
+      <S t="the trust boundary is the whole point">
+        Tactics are untrusted. The kernel is the only thing that decides. Press <b>make rewrite unsound</b> in <Go name="verify" /> — it makes
+        <b> rewrite -&gt;</b> forget the <b>eq_sym</b> that makes the direction come out right. Every tactic still succeeds. Every goal still closes.
+        The kernel still throws four proofs out, and bisection finds the exact tactic in three probes, with the real type error.
+      </S>
+      <S t="three counterfactuals">
+        <b>Switch off a tactic</b> in the script tile and the proof re-runs without it — some are load-bearing and some are not, and the difference
+        is not obvious by eye. <b>Revoke a lemma</b> in <Go name="revoke" /> and the whole development is re-checked without it: some proofs stop at
+        a named tactic, others still close but now rest on something unproved. <b>Edit a script</b> and everything downstream re-checks.
+      </S>
+      <S t="what a proof rests on">
+        <Go name="library" /> walks the finished proof term transitively and reports what it actually depends on. <b>mult_comm</b> is admitted on
+        purpose, and <b>mult_two_comm</b> is proved honestly from it — so it inherits the taint. That is what Print Assumptions is for.
+      </S>
+      <S t="reduction is not a metaphor here">
+        <b>reflexivity</b> closes a goal when both sides share a normal form. The reduction tile contracts one redex at a time and names the rule:
+        β applies a lambda, δ unfolds a definition, ι fires an eliminator on a constructor. <b>0 + n</b> reduces to <b>n</b>; <b>n + 0</b> gets
+        stuck, which is exactly why one of these needs induction and the other does not.
+      </S>
+      <S t="what is modelled">
+        The universe hierarchy is three levels with no cumulativity and no universe polymorphism. Inductive families are not user-declarable: nat
+        and eq are built in, with their ι-rules written into the normaliser rather than derived from a general scheme. There is no unifier for
+        higher-order patterns — <b>apply</b> and <b>rewrite</b> use first-order unification and first-order matching. Everything else, including
+        every type-checking judgement reported anywhere in this shell, is really being computed.
+      </S>
+      <S t="presentations">
+        Every visible object is typed. Left-click activates, right-click opens its verbs, hovering documents it on the bottom line. When a command
+        needs an argument, every object of that type anywhere in the shell — including in workspaces you are not looking at — becomes a click target.
+      </S>
+    </AppBody>
+  );
+}
+
+const APPS = {
+  launcher: { title: "new tile", color: C.paneAlt, comp: LauncherApp },
+  overview: { title: "development", color: C.sel, comp: OverviewApp },
+  script: { title: "tactic script", color: C.rose, comp: ScriptApp },
+  goals: { title: "proof state", color: C.sage, comp: GoalsApp },
+  step: { title: "what the tactic did", color: C.blue, comp: StepApp },
+  goaltree: { title: "proof tree", color: C.lavender, comp: GoalTreeApp },
+  term: { title: "proof term", color: C.blue, comp: TermApp },
+  kernel: { title: "kernel", color: C.mint, comp: KernelApp },
+  reduce: { title: "reduction", color: C.mustard, comp: ReduceApp },
+  library: { title: "environment", color: C.mint, comp: LibraryApp },
+  deps: { title: "assumptions", color: C.mustard, comp: DepsApp },
+  revoke: { title: "revocation", color: C.red, comp: RevokeApp },
+  search: { title: "what fits here", color: C.mustard, comp: SearchApp },
+  verify: { title: "checking", color: C.red, comp: VerifyApp },
+  bisect: { title: "bisect & minimise", color: C.red, comp: BisectApp },
+  gogpipe: { title: "data pipeline", color: C.blue, comp: GogPipeApp },
+  encode: { title: "encoding", color: C.mustard, comp: EncodeApp },
+  chart: { title: "chart", color: C.rose, comp: ChartApp },
+  gogtable: { title: "table", color: C.mint, comp: GogTableApp },
+  snaps: { title: "snapshots", color: C.lavender, comp: SnapsApp },
+  inspector: { title: "inspector", color: C.lavender, comp: InspectorApp },
+  watch: { title: "watchlist", color: C.mustard, comp: WatchApp },
+  trace: { title: "trace", color: C.sage, comp: TraceApp },
+  help: { title: "about / help", color: C.sel, comp: HelpApp },
+};
+
+function Ribbon() {
+  const ui = useUI(); const w = ui.world; const steps = w.steps();
+  return (
+    <div style={{ display: "flex", alignItems: "stretch", height: 26, border: "2px solid " + C.ink, background: C.pane, flex: 1, minWidth: 0, overflow: "hidden" }}>
+      {steps.map((s) => {
+        const past = s.i <= w.cursor;
+        const head = s.i ? tacName(s.tac) : "start";
+        const n = (s.produced || []).length;
+        return (
+          <div key={s.i} onClick={() => w.setCursor(s.i)}
+            onMouseEnter={() => ui.setMouseDoc("tactic " + s.i + " · " + s.tac + (s.disabled ? " (switched off)" : "") + " · " + (s.state ? s.state.goals.length : 0) + " goals after   —   L: scrub the whole shell here")}
+            onMouseLeave={() => ui.setMouseDoc(null)} title={s.tac}
+            style={{ flex: Math.max(1, 1 + n * 0.4), minWidth: 8, cursor: "pointer", position: "relative",
+              background: s.disabled ? C.paneAlt : !s.ok ? C.red : past ? (tacTone(head) || C.paneAlt) : C.paneAlt, opacity: past ? 1 : 0.4,
+              borderRight: "1px solid " + (past ? "rgba(35,38,43,0.3)" : C.line),
+              outline: s.i === w.cursor ? "2px solid " + C.red : "none", outlineOffset: -2, zIndex: s.i === w.cursor ? 2 : 1,
+              display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            <span style={{ fontSize: 8.5, color: C.ink, whiteSpace: "nowrap", opacity: 0.85, textDecoration: s.disabled ? "line-through" : "none" }}>{head.slice(0, 9)}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+function Transport() {
+  const ui = useUI(); const w = ui.world; const r = w.run();
+  return (
+    <div style={{ display: "flex", gap: 6, alignItems: "center", padding: "4px 8px 0", flexShrink: 0 }}>
+      <TBtn doc="back to the statement" onClick={() => w.reset()}>⏮</TBtn>
+      <TBtn doc="one tactic back (←)" onClick={() => w.setCursor(w.cursor - 1)}>◀</TBtn>
+      <span onClick={() => w.play()} onMouseEnter={() => ui.setMouseDoc("play / pause the proof (space)")} onMouseLeave={() => ui.setMouseDoc(null)}
+        style={{ cursor: "pointer", border: "2px solid " + C.ink, background: w.playing ? C.red : C.sage, color: w.playing ? C.paper : C.ink, padding: "0 9px", fontSize: 11, fontWeight: 700, boxShadow: "2px 2px 0 " + C.ink }}>
+        {w.playing ? "❚❚ pause" : "▶ play"}
+      </span>
+      <TBtn doc="one tactic forward (→)" onClick={() => w.setCursor(w.cursor + 1)}>▶</TBtn>
+      <TBtn doc="jump to Qed" onClick={() => w.end()}>⏭</TBtn>
+      <select value={w.speed} onChange={(e) => { w.speed = +e.target.value; w.bump(); }} title="playback speed"
+        style={{ border: "1px solid " + C.ink, background: C.pane, fontSize: 10, padding: "0 2px", fontFamily: "inherit" }}>
+        {[1, 2, 4, 8].map((s) => <option key={s} value={s}>{s}×</option>)}
+      </select>
+      <Ribbon />
+      <span style={{ fontSize: 10, color: C.faint, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{w.cursor}/{w.lastStep()}</span>
+      <span style={{ fontSize: 10, whiteSpace: "nowrap", color: w.goals().length ? C.faint : C.addInk }}>
+        {w.goals().length ? w.goals().length + " goal" + (w.goals().length === 1 ? "" : "s") : "no goals"}
+      </span>
+    </div>
+  );
+}
+
+const initialSpaces = (w) => {
+  const dA = w.docs[0].id;
+  return [
+    { id: nid(), name: "overview", tree: split("row", leaf("overview"), split("col", leaf("library"), leaf("deps"), 0.5), 0.5) },
+    { id: nid(), name: "prove", tree: split("row", leaf("script"), split("row", leaf("goals"), leaf("step"), 0.5), 0.3) },
+    { id: nid(), name: "tree", tree: split("row", leaf("goaltree"), leaf("goals"), 0.55) },
+    { id: nid(), name: "term", tree: split("row", leaf("term"), leaf("kernel"), 0.5) },
+    { id: nid(), name: "reduce", tree: split("row", leaf("reduce"), leaf("goals"), 0.56) },
+    { id: nid(), name: "library", tree: split("row", leaf("library"), leaf("deps"), 0.5) },
+    { id: nid(), name: "revoke", tree: split("row", leaf("revoke"), leaf("deps"), 0.55) },
+    { id: nid(), name: "search", tree: split("row", leaf("search"), split("col", leaf("goals"), leaf("script"), 0.5), 0.52) },
+    { id: nid(), name: "verify", tree: split("row", leaf("verify"), leaf("bisect"), 0.48) },
+    { id: nid(), name: "metrics", tree: split("row", split("col", leaf("gogpipe", dA), leaf("encode", dA), 0.56), split("col", leaf("chart", dA), leaf("gogtable", dA), 0.56), 0.42) },
+    { id: nid(), name: "help", tree: split("row", leaf("help"), split("col", leaf("inspector"), leaf("watch"), 0.56), 0.54) },
+  ];
+};
+
+export default function App() {
+  const [, force] = useState(0);
+  const bump = useCallback(() => force((x) => x + 1), []);
+  const worldRef = useRef(null);
+  if (!worldRef.current) worldRef.current = new World();
+  const world = worldRef.current;
+  useEffect(() => { world.notify = bump; }, [bump, world]);
+
+  const [spaces, setSpaces] = useState(() => initialSpaces(world));
+  const [cur, setCur] = useState(() => spaces[0].id);
+  const [renaming, setRenaming] = useState(null);
+  const [menu, setMenu] = useState(null);
+  const [accepting, setAccepting] = useState(null);
+  const [mouseDoc, setMouseDoc] = useState(null);
+  const [drag, setDrag] = useState(null);
+  const dragRef = useRef(null); dragRef.current = drag;
+  const leafRefs = useRef({});
+  const space = spaces.find((s) => s.id === cur) || spaces[0];
+  const tree = space.tree;
+
+  useEffect(() => {
+    if (!world.playing) return;
+    const iv = setInterval(() => world.tick(), Math.max(140, 1000 / world.speed));
+    return () => clearInterval(iv);
+  }, [world.playing, world.speed, world]);
+  useEffect(() => {
+    const key = (e) => {
+      const tag = (e.target && e.target.tagName) || "";
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.key === " ") { e.preventDefault(); world.play(); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); world.setCursor(world.cursor + 1); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); world.setCursor(world.cursor - 1); }
+      else if (e.key === "Home") world.reset();
+      else if (e.key === "End") world.end();
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [world]);
+
+  const mutateTree = (fn) => setSpaces((ss) => ss.map((s) => (s.id === space.id ? { ...s, tree: fn(s.tree) } : s)));
+  const setRatio = (id, r) => mutateTree((t) => updateNode(t, id, (n) => ({ ...n, ratio: r })));
+  const splitLeaf = (id, dir) => { mutateTree((t) => updateNode(t, id, (n) => split(dir, n, leaf("launcher"), 0.5))); world.log("split_tile", { dir }); };
+  const closeLeaf = (id) => { mutateTree((t) => removeLeaf(t, id)); world.log("close_tile", {}); };
+  const setLeafApp = (id, app) => { mutateTree((t) => updateNode(t, id, (n) => ({ ...n, app, doc: DOC_APPS.includes(app) ? (n.doc || world.activeId) : n.doc }))); world.log("app_changed", { app: APPS[app].title }); };
+  const setLeafDoc = (id, docId) => { mutateTree((t) => updateNode(t, id, (n) => ({ ...n, doc: docId }))); world.bump(); };
+  const swapTiles = (a, b) => {
+    mutateTree((t) => { const la = findLeaf(t, a), lb = findLeaf(t, b); if (!la || !lb) return t;
+      return updateNode(updateNode(t, a, (n) => ({ ...n, app: lb.app, doc: lb.doc })), b, (n) => ({ ...n, app: la.app, doc: la.doc })); });
+    world.log("swap_tiles", {});
+  };
+  const moveSplit = (fromId, targetId, zone) => {
+    mutateTree((t) => {
+      if (fromId === targetId) return t;
+      const src = findLeaf(t, fromId); if (!src || !findLeaf(t, targetId)) return t;
+      const t2 = removeLeaf(t, fromId); if (findLeaf(t2, fromId)) return t;
+      const dir = zone === "left" || zone === "right" ? "row" : "col";
+      const before = zone === "left" || zone === "top";
+      return updateNode(t2, targetId, (n) => (before ? split(dir, src, n) : split(dir, n, src)));
+    });
+    world.log("move_split", { zone });
+  };
+  const registerRef = useCallback((id, el) => { if (el) leafRefs.current[id] = el; else delete leafRefs.current[id]; }, []);
+  const zoneFor = (r, x, y) => {
+    const dl = x - r.left, dr = r.right - x, dt = y - r.top, db = r.bottom - y;
+    const band = Math.min(Math.min(r.width, r.height) * 0.3, 110);
+    const m = Math.min(dl, dr, dt, db);
+    if (m > band) return "center"; if (m === dl) return "left"; if (m === dr) return "right"; if (m === dt) return "top"; return "bottom";
+  };
+  const hitLeaf = (x, y) => {
+    for (const [id, el] of Object.entries(leafRefs.current)) {
+      if (!el || !el.isConnected) continue;
+      const r = el.getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return { id, zone: zoneFor(r, x, y) };
+    }
+    return null;
+  };
+  const startDrag = (leafId, e) => { e.preventDefault(); document.body.style.userSelect = "none"; setDrag({ from: leafId, x: e.clientX, y: e.clientY, over: null, zone: null }); };
+  useEffect(() => {
+    if (!drag) return;
+    const move = (e) => setDrag((d) => { if (!d) return d; const h = hitLeaf(e.clientX, e.clientY); return { ...d, x: e.clientX, y: e.clientY, over: h && h.id, zone: h && h.zone }; });
+    const up = () => { const d = dragRef.current; document.body.style.userSelect = ""; if (d && d.over && d.over !== d.from) { if (d.zone === "center") swapTiles(d.from, d.over); else moveSplit(d.from, d.over, d.zone); } setDrag(null); };
+    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+    return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!drag]);
+
+  const addSpace = () => { const s = { id: nid(), name: "ws-" + (spaces.length + 1), tree: leaf("launcher") }; setSpaces((ss) => [...ss, s]); setCur(s.id); };
+  const removeSpace = (id) => { if (spaces.length < 2) return; setSpaces((ss) => ss.filter((s) => s.id !== id)); if (cur === id) setCur(spaces.find((s) => s.id !== id).id); };
+  const cloneSpace = (id) => { const s = spaces.find((x) => x.id === id); if (!s) return; const c2 = { id: nid(), name: s.name + "′", tree: cloneTree(s.tree) }; setSpaces((ss) => [...ss, c2]); setCur(c2.id); };
+  const accept = (ptype, prompt) => new Promise((resolve) => setAccepting({ ptype, prompt, resolve: (r) => { if (r) world.log("accepted", { ptype: r.ptype }); resolve(r); } }));
+  useEffect(() => { const esc = (e) => { if (e.key === "Escape") { setMenu(null); if (accepting) { accepting.resolve(null); setAccepting(null); } } }; window.addEventListener("keydown", esc); return () => window.removeEventListener("keydown", esc); }, [accepting]);
+
+  const insertTactic = (line, at) => {
+    const s = world.scriptOf().slice();
+    s.splice(at === undefined ? world.cursor : at, 0, line);
+    world.setScript(world.thm, s);
+  };
+  const findGoal = (id) => { for (const st of world.steps()) { const g = (st.state && st.state.goals || []).find((x) => x.id === id); if (g) return g; } return null; };
+
+  const labelFor = (ptype, value) => {
+    if (ptype === "theorem") return String(value);
+    if (ptype === "tactic") return value && value.thm ? world.scriptOf(value.thm)[value.i] || "(gone)" : String(value);
+    if (ptype === "goal") { const g = findGoal(value); return g ? pp(g.target).slice(0, 30) : String(value); }
+    if (ptype === "hyp") return value ? value.name : "?";
+    if (ptype === "term") return pp(value).slice(0, 34);
+    if (ptype === "const" || ptype === "axiom" || ptype === "rule") return String(value);
+    if (ptype === "development") return "the whole library";
+    if (ptype === "doc") { const d = world.docs.find((x) => x.id === value); return d ? d.name : "?"; }
+    if (ptype === "datum") { const r = (value && value.row) || {}; return Object.keys(r).slice(0, 2).map((k) => k + "=" + fmt(r[k])).join(" "); }
+    if (ptype === "cat") return value ? value.field + "=" + value.value : "?";
+    if (ptype === "chart") { const s = world.snaps.find((x) => x.id === value); return s ? s.name : "(deleted)"; }
+    if (ptype === "tile") { const l = findLeaf(tree, value); return l ? "[" + APPS[l.app].title + "]" : "(closed)"; }
+    if (ptype === "workspace") { const s = spaces.find((x) => x.id === value); return s ? s.name : "?"; }
+    if (ptype === "step2") { const s = world.docs.flatMap((d) => d.chart.steps).find((x) => x.id === value); return s ? stepLabel(s) : "(removed)"; }
+    return String(value);
+  };
+  const describe = (ptype, value) => {
+    if (ptype === "theorem") {
+      const r = world.run(value), a = r.revoked ? null : world.assumptionsOf(value);
+      return { presentationType: "theorem", name: value, statement: pp(r.spec.ty), blurb: r.spec.blurb,
+        status: statusOf(r).t, tactics: r.spec.script, goals_left: r.openGoals,
+        proof_term: r.term ? pp(r.term) : null, term_size: r.term ? size(r.term) : 0, term_depth: r.term ? depthOf(r.term) : 0,
+        kernel: r.kernel && r.kernel.msg, rests_on: a ? { axioms: [...a.axioms], lemmas: [...a.thms], definitions: [...a.defs], closed: a.closed } : null };
+    }
+    if (ptype === "tactic") {
+      const st = world.run(value.thm).steps[value.i + 1] || {};
+      return { presentationType: "tactic", theorem: value.thm, position: value.i + 1, text: world.scriptOf(value.thm)[value.i],
+        does: tacBlurb(tacName(world.scriptOf(value.thm)[value.i])), ok: st.ok, note: st.note, error: st.err,
+        consumed: st.consumed ? { hypotheses: st.consumed.ctx.map((c) => c.name + " : " + pp(c.ty)), goal: pp(st.consumed.target) } : null,
+        produced: (st.produced || []).map((g) => pp(g.target)), wrote: st.refine ? pp(st.refine) : "nothing — it was a conversion",
+        disabled: world.disabled.has(value.thm + ":" + value.i) };
+    }
+    if (ptype === "goal") { const g = findGoal(value); return g ? { presentationType: "goal", id: value,
+      hypotheses: g.ctx.map((c) => c.name + " : " + pp(c.ty)), target: pp(g.target), size: size(g.target), depth: depthOf(g.target) } : null; }
+    if (ptype === "hyp") { const g = findGoal(value.goal); const h = g && g.ctx.find((c) => c.name === value.name);
+      return h ? { presentationType: "hypothesis", name: h.name, type: pp(h.ty), in_goal: value.goal } : null; }
+    if (ptype === "term") return { presentationType: "term", printed: pp(value), size: size(value), depth: depthOf(value),
+      normal_form: pp(simplify(world.D.env, value)), constants: [...constsIn(value)] };
+    if (ptype === "const" || ptype === "axiom") { const e = world.D.env.get(value);
+      return e ? { presentationType: e.kind, name: value, type: pp(e.ty), note: e.note,
+        definition: e.body ? pp(e.body) : null, size: e.body ? size(e.body) : 0,
+        used_by: [...world.D.env.values()].filter((x) => x.body && directDeps(world.D.env, x.name).includes(value)).map((x) => x.name) } : { presentationType: "revoked", name: value }; }
+    if (ptype === "rule") return { presentationType: "typing rule", name: value,
+      applications_in_this_proof: (world.run().kstats || { rules: {} }).rules[value] || 0 };
+    if (ptype === "development") return { presentationType: "development", theorems: world.runs().length,
+      proved: world.runs().filter((r) => r.closed && r.kernel && r.kernel.ok).length,
+      revoked: [...world.revoked], tactics_disabled: [...world.disabled], unsound_rewrite: world.unsound,
+      edited_scripts: Object.keys(world.scripts) };
+    if (ptype === "dataset") { const d = world.ds()[value]; return d ? { presentationType: "dataset", name: value, note: d.note, rows: d.rows.length, fields: d.fields.map((f) => f.name + ":" + f.type) } : null; }
+    if (ptype === "field") { const DS = world.ds(); return { presentationType: "field", name: value, in_datasets: Object.keys(DS).filter((k) => DS[k].fields.some((f) => f.name === value)) }; }
+    if (ptype === "doc") { const d = world.docs.find((x) => x.id === value); return d ? { presentationType: "chart document", name: d.name, spec: d.chart } : null; }
+    if (ptype === "datum") return { presentationType: "datum", ...(value && value.row) };
+    if (ptype === "tile") { const l = findLeaf(tree, value); return { presentationType: "tile", app: l ? APPS[l.app].title : "(closed)", workspace: space.name }; }
+    if (ptype === "workspace") { const s = spaces.find((x) => x.id === value); return { presentationType: "workspace", name: s && s.name, tiles: s && countLeaves(s.tree) }; }
+    return { presentationType: ptype, value: String(value) };
+  };
+
+  const actionsFor = (ptype, value) => {
+    const acts = [{ label: "Inspect", run: () => world.inspect("<" + ptype + "> " + labelFor(ptype, value), describe(ptype, value)) }];
+    const push = (label, run) => acts.push({ label, run });
+    const act = world.active();
+    if (ptype === "theorem") {
+      const r = world.run(value);
+      push("Focus the shell on it", () => world.setThm(value));
+      push(world.revoked.has(value) ? "Put it back in the library" : "Revoke it and re-check everything", () => world.toggleRevoke(value));
+      push("Print its assumptions", () => world.inspect("assumptions of " + value, (() => { const a = world.assumptionsOf(value);
+        return { closed: a.closed, axioms: [...a.axioms], unproved_lemmas: [...a.unproved], lemmas: [...a.thms], definitions: [...a.defs], kernel: [...a.kernel] }; })()));
+      if (r.term) push("Show its proof term", () => world.inspect("proof term of " + value, { term: pp(r.term), nodes: size(r.term), depth: depthOf(r.term) }));
+      push("Chart term size across the library", () => { world.setDataset(act.id, "theorems"); world.setGeom(act.id, "bar"); world.setMapping(act.id, "x", "name"); world.setMapping(act.id, "y", "term_size"); });
+      push("Add to watchlist", () => world.watchAdd("theorem", value));
+    }
+    if (ptype === "tactic") {
+      const k = value.thm + ":" + value.i;
+      push("Scrub to just after it", () => world.gotoStep(value.thm, value.i + 1));
+      push(world.disabled.has(k) ? "Switch it back on" : "Switch it off and re-run the proof", () => world.toggleTactic(value.thm, value.i));
+      push("Delete it from the script", () => { const s = world.scriptOf(value.thm).slice(); s.splice(value.i, 1); world.setScript(value.thm, s); });
+      push("Duplicate it", () => { const s = world.scriptOf(value.thm).slice(); s.splice(value.i, 0, s[value.i]); world.setScript(value.thm, s); });
+      push("Chart which tactics this library leans on", () => { world.setDataset(act.id, "tactics"); world.setGeom(act.id, "bar"); world.setMapping(act.id, "x", "head"); world.setMapping(act.id, "y", "count"); });
+      push("Add to watchlist", () => world.watchAdd("tactic", value));
+    }
+    if (ptype === "goal") {
+      push("Focus it", () => world.select("goal", value));
+      push("Send its statement to the reduction tile", () => { const g = findGoal(value); if (g) world.select("term", g.target); });
+      push("Close it with…  (accept a lemma)", async () => { const r = await accept("const", "APPLY — click any constant in the library or a term (Esc cancels)"); if (r) insertTactic("apply " + r.value); });
+      push("Add to watchlist", () => world.watchAdd("goal", value));
+    }
+    if (ptype === "hyp") {
+      push("Rewrite the goal with it", () => insertTactic("rewrite " + value.name));
+      push("Rewrite the goal backwards with it", () => insertTactic("rewrite <- " + value.name));
+      push("Apply it", () => insertTactic("apply " + value.name));
+      push("Close the goal with it", () => insertTactic("assumption"));
+      push("Send its type to the reduction tile", () => { const g = findGoal(value.goal); const h = g && g.ctx.find((c) => c.name === value.name); if (h) world.select("term", h.ty); });
+    }
+    if (ptype === "term") {
+      push("Send it to the reduction tile", () => world.select("term", value));
+      push("Show its normal form", () => world.inspect("normal form", { before: pp(value), after: pp(simplify(world.D.env, value)) }));
+      push("Add to watchlist", () => world.watchAdd("term", value));
+    }
+    if (ptype === "const" || ptype === "axiom") {
+      const e = world.D.env.get(value);
+      push("Select it", () => world.select("const", value));
+      if (e && e.kind === "thm") push("Focus that theorem", () => world.setThm(value));
+      if (e && e.body) push("Unfold it in the goal", () => insertTactic("unfold " + value));
+      push("Rewrite with it", () => insertTactic("rewrite " + value));
+      push("Apply it", () => insertTactic("apply " + value));
+      if (e && (e.kind === "thm" || e.kind === "def")) push(world.revoked.has(value) ? "Put it back" : "Revoke it and re-check everything", () => world.toggleRevoke(value));
+      push("Add to watchlist", () => world.watchAdd("const", value));
+    }
+    if (ptype === "development") {
+      push("Clear every revocation", () => world.clearRevoked());
+      push("Switch every tactic back on", () => world.clearDisabled());
+      push(world.unsound ? "Make rewrite sound again" : "Make rewrite unsound and watch the kernel catch it", () => world.setUnsound(!world.unsound));
+      push("Revoke a lemma…  (accept a constant)", async () => { const r = await accept("const", "REVOKE — click any constant in the library (Esc cancels)"); if (r) world.toggleRevoke(r.value); });
+    }
+    if (ptype === "dataset") {
+      push("Use as source of chart " + act.name, () => world.setDataset(act.id, value));
+      push("New chart document from it", () => world.newDoc(value));
+    }
+    if (ptype === "field") {
+      const DS = world.ds();
+      const schema = schemaAfter(DS, act.chart.datasetId, act.chart.steps);
+      const f = schema.find((x) => x.name === value);
+      ["x", "y", "color", "facet"].forEach((slot) => push("Map to " + slot + "  (chart " + act.name + ")", () => world.setMapping(act.id, slot, value)));
+      push("Filter on this field", () => world.addStep(act.id, mkStep("filter", { field: value, op: f && f.type === "q" ? ">" : "=", value: "" })));
+      if (f && f.type !== "q") push("Group by + count", () => world.addStep(act.id, mkStep("summarize", { by: value, fn: "count", field: value })));
+      push("Sort by it (desc)", () => world.addStep(act.id, mkStep("sort", { field: value, dir: "desc" })));
+    }
+    if (ptype === "geom") push("Use this geometry", () => world.setGeom(act.id, value));
+    if (ptype === "doc") {
+      const d = world.docs.find((x) => x.id === value);
+      if (d) { if (world.activeId !== d.id) push("Make it the ACTIVE chart", () => world.setActive(d.id));
+        push("⚑ Snapshot it", () => world.snapshot(d.id)); push("Duplicate", () => world.dupDoc(d.id));
+        if (world.docs.length > 1) push("Delete", () => world.deleteDoc(d.id)); }
+    }
+    if (ptype === "step2") {
+      const sd = world.docOfStep(value); const s = sd && sd.chart.steps.find((x) => x.id === value);
+      if (s) { push(s.on ? "Disable (keep in chain)" : "Enable", () => world.toggleStep(sd.id, value));
+        push("Move up ↑", () => world.moveStep(sd.id, value, -1)); push("Move down ↓", () => world.moveStep(sd.id, value, 1));
+        push("Remove", () => world.removeStep(sd.id, value)); }
+    }
+    if (ptype === "datum") {
+      const dd = world.doc(value && value.docId); const row = (value && value.row) || {};
+      Object.keys(row).slice(0, 3).forEach((k) => {
+        if (typeof row[k] === "number") return;
+        push("Keep only " + k + " = " + row[k], () => world.filterToCat(dd.id, k, row[k], true));
+        push("Exclude " + k + " = " + row[k], () => world.filterToCat(dd.id, k, row[k], false));
+      });
+      if (row.theorem) push("Focus " + row.theorem, () => world.setThm(row.theorem));
+      if (row.name && world.runs().some((r) => r.name === row.name)) push("Focus " + row.name, () => world.setThm(row.name));
+    }
+    if (ptype === "cat") {
+      const dd = world.doc(value && value.docId);
+      push("Keep only " + value.field + " = " + value.value, () => world.filterToCat(dd.id, value.field, value.value, true));
+      push("Exclude it", () => world.filterToCat(dd.id, value.field, value.value, false));
+      push("Colour by " + value.field, () => world.setMapping(dd.id, "color", value.field));
+    }
+    if (ptype === "chart") { push("Restore into the active document", () => world.restoreSnap(value, world.activeId)); push("Delete snapshot", () => world.deleteSnap(value)); }
+    if (ptype === "tile") {
+      push("Split ⬌ (new tile right)", () => splitLeaf(value, "row"));
+      push("Split ⬍ (new tile below)", () => splitLeaf(value, "col"));
+      push("Swap app with…  (accept a tile)", async () => { const r = await accept("tile", "SWAP — click another TILE's title (Esc cancels)"); if (r && r.value !== value) swapTiles(value, r.value); });
+      if (tree.type !== "leaf") push("Close tile", () => closeLeaf(value));
+    }
+    if (ptype === "workspace") {
+      push("Switch to", () => setCur(value)); push("Rename", () => setRenaming(value));
+      push("Duplicate", () => cloneSpace(value));
+      if (spaces.length > 1) push("Delete", () => removeSpace(value));
+    }
+    return acts;
+  };
+
+  const goSpace = (name) => { const s = spaces.find((x) => x.name === name); if (s) setCur(s.id); };
+  const ui = {
+    world, accepting, setAccepting, setMouseDoc, accept, labelFor, describe, drag, spaces, goSpace,
+    openMenu: (ptype, value, x, y) => setMenu({ ptype, value, x, y }),
+    wm: { setRatio, splitLeaf, closeLeaf, setLeafApp, setLeafDoc, startDrag, registerRef, canClose: tree.type !== "leaf" },
+  };
+  const runs = world.runs();
+  const okCount = runs.filter((r) => r.closed && r.kernel && r.kernel.ok).length;
+  const rejCount = runs.filter((r) => r.closed && r.kernel && !r.kernel.ok).length;
+
+  return (
+    <UICtx.Provider value={ui}>
+      <div onClick={() => setMenu(null)} style={{ fontFamily: "'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace", background: C.paper, color: C.ink, height: "100vh", display: "flex", flexDirection: "column", fontSize: 12 }}>
+        <style>{`
+          .pres { cursor: pointer; }
+          .pres:hover { outline: 1px dotted ${C.ink}; background: ${C.sel}; }
+          .pres.acceptable { outline: 2px solid ${C.red}; background: ${C.sel}; animation: pulse 0.9s infinite; cursor: pointer; }
+          .pres-svg { cursor: pointer; }
+          .pres-svg:hover { filter: drop-shadow(0 0 1.5px ${C.ink}); }
+          .pres-svg.acceptable { filter: drop-shadow(0 0 2.5px ${C.red}); }
+          @keyframes pulse { 50% { outline-color: ${C.mustard}; } }
+          ::-webkit-scrollbar { width: 12px; height: 12px; }
+          ::-webkit-scrollbar-thumb { background: ${C.line}; border: 3px solid ${C.pane}; }
+          ::-webkit-scrollbar-track { background: ${C.pane}; }
+          table th { font-weight: 700; }
+          button, select, input, textarea { font-family: inherit; }
+          @media (prefers-reduced-motion: reduce) { .pres.acceptable { animation: none; } }
+        `}</style>
+
+        <div style={{ background: C.ink, color: C.paper, display: "flex", alignItems: "center", gap: 12, padding: "4px 10px", flexShrink: 0, flexWrap: "wrap" }}>
+          <b style={{ letterSpacing: "0.26em", fontSize: 12 }}>P B U I</b>
+          <span style={{ color: C.mustard, fontSize: 11, letterSpacing: "0.14em" }}>PROOF ASSISTANT WORKBENCH</span>
+          <span style={{ flex: 1 }} />
+          <P ptype="development" value="dev" doc="<development> the whole library — revoke a lemma, clear counterfactuals, make rewrite unsound">
+            <span style={{ color: C.paper, fontSize: 10.5, borderBottom: "1px dotted " + C.faint }}>{world.thm} · {okCount}/{runs.length} accepted</span>
+          </P>
+          {!!rejCount && <span style={{ fontSize: 10, color: C.red, fontWeight: 700 }}>{rejCount} REJECTED BY KERNEL</span>}
+          {!!world.revoked.size && <span style={{ fontSize: 10, color: C.rose }}>{world.revoked.size} revoked</span>}
+          {!!world.disabled.size && <span style={{ fontSize: 10, color: C.rose }}>{world.disabled.size} tactic off</span>}
+          {world.unsound && <span style={{ fontSize: 10, color: C.red, fontWeight: 700 }}>UNSOUND REWRITE</span>}
+        </div>
+
+        <Transport />
+
+        {accepting && (
+          <div style={{ background: C.red, color: C.paper, padding: "2px 10px", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.04em", flexShrink: 0 }}>
+            ACCEPTING &lt;{Array.isArray(accepting.ptype) ? accepting.ptype.join("|") : accepting.ptype}&gt; — {accepting.prompt} — works across tiles AND workspaces
+          </div>
+        )}
+
+        <div style={{ flex: 1, display: "flex", minHeight: 0, padding: 6, gap: 6 }}>
+          <NodeView node={tree} />
+        </div>
+
+        <div style={{ borderTop: "2px solid " + C.ink, background: C.paneAlt, flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 8px", flexWrap: "wrap" }}>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em" }}>WORKSPACES</span>
+            {spaces.map((s) => (
+              renaming === s.id ? (
+                <input key={s.id} autoFocus defaultValue={s.name} onBlur={() => setRenaming(null)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { const name = e.target.value.trim() || s.name; setSpaces((ss) => ss.map((x) => (x.id === s.id ? { ...x, name } : x))); setRenaming(null); } }}
+                  style={{ width: 76, border: "1px solid " + C.ink, fontFamily: "inherit", fontSize: 10.5 }} />
+              ) : (
+                <P key={s.id} ptype="workspace" value={s.id} onActivate={() => setCur(s.id)} activateDoc="switch to it" doc={"workspace " + s.name + " (" + countLeaves(s.tree) + " tiles)"}>
+                  <span style={{ border: "2px solid " + C.ink, background: s.id === cur ? C.sel : C.pane, padding: "0 7px", fontSize: 10.5, fontWeight: s.id === cur ? 700 : 400, boxShadow: s.id === cur ? "2px 2px 0 " + C.ink : "none" }}>{s.name}</span>
+                </P>
+              )
+            ))}
+            <TBtn tone={C.mint} doc="add an empty workspace" onClick={addSpace}>+</TBtn>
+          </div>
+          <div style={{ borderTop: "1px solid " + C.line, background: C.pane, padding: "2px 9px", fontSize: 10.5, color: mouseDoc ? C.ink : C.faint, minHeight: 17, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {mouseDoc || (accepting ? accepting.prompt + "   (Esc aborts)" : "space plays · ←/→ step through the tactics · right-click any object for its verbs · new here? open the help workspace")}
+          </div>
+        </div>
+
+        {menu && (
+          <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", left: Math.min(menu.x, window.innerWidth - 320), top: Math.min(menu.y, window.innerHeight - 260),
+            background: C.pane, border: "2px solid " + C.ink, boxShadow: "4px 4px 0 " + C.ink, zIndex: 60, minWidth: 262, maxWidth: 340, maxHeight: 350, overflow: "auto" }}>
+            <div style={{ background: C.ink, color: C.paper, padding: "2px 8px", fontSize: 10.5, fontWeight: 700 }}>
+              &lt;{menu.ptype}&gt; {labelFor(menu.ptype, menu.value)}
+            </div>
+            {actionsFor(menu.ptype, menu.value).map((a, i) => (
+              <div key={i} onClick={() => { setMenu(null); a.run(); }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = C.sel)} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                style={{ padding: "2px 9px", fontSize: 10.5, cursor: "pointer", borderTop: i ? "1px dotted " + C.line : "none" }}>{a.label}</div>
+            ))}
+          </div>
+        )}
+      </div>
+    </UICtx.Provider>
+  );
+}
+```
+
 
 <details><summary>💭 Thinking</summary>
 

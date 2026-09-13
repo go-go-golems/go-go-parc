@@ -231,8 +231,8 @@ string-encoding for each type that MUST be supported by all implementations.
     [identified as noncharacters by Unicode](http://www.unicode.org/faq/private_use.html#noncharacters).
   - code points identifying Surrogates, U+D800-U+DBFF and U+DC00-U+DFFF, both
     ranges inclusive, unless used properly in pairs. Thus (in JSON notation)
-    "\uDEAD" is invalid because it is an unpaired surrogate, while
-    "\uD800\uDEAD" would be legal.
+    `"\uDEAD"` is invalid because it is an unpaired surrogate, while
+    `"\uD800\uDEAD"` would be legal.
 - `Binary` - Sequence of bytes.
   - String encoding: Base64 encoding per
     [RFC4648](https://tools.ietf.org/html/rfc4648).

@@ -1530,7 +1530,7 @@ Suppose a denotational model claims:
 $$
 \llbracket p;q\rrbracket
 =
-\llbracket p\rrbracket \bind (\lambda\_.\llbracket q\rrbracket)
+\llbracket p\rrbracket \mathbin{>\!\!>\!\!=} (\lambda\_.\llbracket q\rrbracket)
 $$
 
 or that two handlers commute. The workbench can search concrete executions for counterexamples to the proposed equality under a selected observation algebra.

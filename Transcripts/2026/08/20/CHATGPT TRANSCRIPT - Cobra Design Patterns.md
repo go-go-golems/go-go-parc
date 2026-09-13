@@ -468,7 +468,9 @@ header-includes:
     \setcounter{secnumdepth}{3}
 ---
 
+```latex
 \frontmatter
+```
 
 # Preface {-}
 
@@ -556,7 +558,9 @@ $$
 
 says whether a command node has an executable handler.
 
+```latex
 \mainmatter
+```
 
 # The Command Tree as an Executable Language
 
@@ -1515,6 +1519,8 @@ The observation set may include returned error type, output bytes, selected comm
 **Exercise 6.** One mapping is route/usage errors to exit code 2, domain failures to 1, and cancellation to 130. `main` calls the executor, inspects the tagged error, prints through the command's error stream, and returns the selected code to the only process-level `os.Exit` call.
 
 **Exercise 8.** The command consumes `forge exec` as framework syntax. Because flag parsing is disabled, the residual word beginning after `exec` is passed unchanged to the handler. The conventional `--` can be handled by the wrapper to separate wrapper options from child argv.
+
+```
 EOF
 wc -w /mnt/data/cobra_textbook/Executable_Command_Languages.md
 ```
@@ -1527,7 +1533,7 @@ The structural pass is complete around one running CLI. Revisions now distinguis
 
 </details>
 
-```unknown
+````unknown
 bash -lc python - <<'PY'
 from pathlib import Path
 src=Path('/mnt/data/cobra_textbook/Executable_Command_Languages.md').read_text()
@@ -1621,7 +1627,7 @@ print('top-level',re.findall(r'^# (.+)$',text,re.M))
 print('pdf bytes',Path('/mnt/data/Executable_Command_Languages.pdf').stat().st_size)
 PY
 ls -lh /mnt/data/Executable_Command_Languages.*
-```
+````
 
 <details><summary>💭 Thinking</summary>
 

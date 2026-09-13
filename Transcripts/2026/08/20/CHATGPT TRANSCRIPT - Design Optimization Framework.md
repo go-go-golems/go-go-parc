@@ -13170,11 +13170,11 @@ A simplified one-turn system is:
 
 \[
 X
-\xrightsquigarrow{K_{route}}
+\rightsquigarrow{K_{route}}
 A
-\xrightsquigarrow{K_{tool}}
+\rightsquigarrow{K_{tool}}
 O
-\xrightsquigarrow{K_{answer}}
+\rightsquigarrow{K_{answer}}
 Y.
 \]
 
@@ -13188,9 +13188,9 @@ A multi-turn agent repeatedly composes its policy with an environment kernel:
 
 \[
 h_t
-\xrightsquigarrow{\pi_\theta}
+\rightsquigarrow{\pi_\theta}
 a_t
-\xrightsquigarrow{P_{env}}
+\rightsquigarrow{P_{env}}
 o_{t+1}
 \longrightarrow h_{t+1}.
 \]

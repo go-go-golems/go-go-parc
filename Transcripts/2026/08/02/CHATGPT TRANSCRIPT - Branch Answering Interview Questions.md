@@ -525,7 +525,7 @@ from textwrap import dedent
 out = Path("/mnt/data")
 out.mkdir(exist_ok=True)
 
-article1 = dedent(r'''
+`article1 = dedent(r'''`
 # The Right Abstraction Is a Better Prompt
 
 ## Abstract mathematics as a compression format for programming with LLMs
@@ -920,9 +920,9 @@ No `PriceTransformationPipelineManager`. No architecture astronautics. No hoping
 The right abstraction did not make the model smarter.
 
 It made the next transformation smaller.
-''').strip() + "\n"
+`''').strip() + "\n"`
 
-article2 = dedent(r'''
+`article2 = dedent(r'''`
 # I Failed Calculus. LLMs Taught Me Math Anyway
 
 ## Using language models to move between examples, code, notation and proofs
@@ -1300,9 +1300,9 @@ The quality of the result depends on the representations we choose and the trans
 The machine did not make me good at calculation.
 
 It gave me a way to keep changing the representation until calculation stopped being the interesting part.
-''').strip() + "\n"
+`''').strip() + "\n"`
 
-notebook = dedent(r'''
+`notebook = dedent(r'''`
 # Research and Editing Notebook
 
 ## For “The Right Abstraction Is a Better Prompt” and “I Failed Calculus. LLMs Taught Me Math Anyway”
@@ -1845,7 +1845,7 @@ That would make the method replayable and align it with the blog’s benchmark/d
 - Sania Sinha, Tanawan Premsri, and Parisa Kordjamshidi. [“A Survey on Compositional Learning of AI Models.”](https://arxiv.org/abs/2406.08787)
 - Jannik Brinkmann et al. [“Large Language Models Share Representations of Latent Grammatical Concepts Across Typologically Diverse Languages.”](https://arxiv.org/abs/2501.06346)
 - [“Concepts as a Design Axis for Large Language Models.”](https://arxiv.org/html/2607.26825v2)
-''').strip() + "\n"
+`''').strip() + "\n"`
 
 # Run and record the deterministic validation mentioned in the notebook.
 import random

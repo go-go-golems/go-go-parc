@@ -1661,7 +1661,6 @@ A computation specification can return both postconditions and resource constrai
 \[
   \mathrm{WP}_r(Y)
   = (Y\to\mathrm{Prop})\to X\to\mathrm{Prop}
-
 a
 \]
 

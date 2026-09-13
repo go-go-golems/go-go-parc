@@ -62,7 +62,9 @@ header-includes:
     \newcommand{\term}[1]{\textbf{#1}}
 ---
 
+```latex
 \frontmatter
+```
 
 # Preface {-}
 
@@ -110,7 +112,9 @@ This is deliberately simple enough to draw and calculate by hand. It is still ri
 
 A reader building software should implement the running example after each chapter. A reader studying the theory can work the mathematical exercises without a machine. Actual cutting should begin only after independent dry-run, simulation, air-cut, and machine-specific safety procedures. The examples are architectural and pedagogical; they are not a substitute for manufacturer instructions, workholding judgment, feeds-and-speeds validation, or operator supervision.
 
+```latex
 \mainmatter
+```
 
 # What Are We Compiling?
 
@@ -4004,11 +4008,15 @@ Trustworthy CAM compilation is a chain of explicit propositions.
 39. Implement a state-epoch preflight/start handshake and write concurrency tests that attempt stale authorization.
 40. Produce a machine-readable and human-readable assurance report for the recurring job. Each human statement must be traceable to a checked claim ID.
 
+```latex
 \backmatter
+```
 
 # Glossary {-}
 
+```latex
 \markboth{GLOSSARY}{GLOSSARY}
+```
 
 **Abstract domain.** A mathematical domain whose values conservatively represent sets of concrete values or states. Intervals, position boxes, sets of modal states, and tool sets are examples.
 
@@ -4166,7 +4174,9 @@ Trustworthy CAM compilation is a chain of explicit propositions.
 
 # Selected Exercise Solutions {-}
 
+```latex
 \markboth{SELECTED EXERCISE SOLUTIONS}{SELECTED EXERCISE SOLUTIONS}
+```
 
 The solutions are deliberately concise. They show the shape of a correct argument, not the only acceptable formulation.
 
@@ -4297,7 +4307,9 @@ The lower bound is 5.2 mm before additional uncertainty.
 
 # Design Checklists {-}
 
+```latex
 \markboth{DESIGN CHECKLISTS}{DESIGN CHECKLISTS}
+```
 
 ## Language and IR checklist {-}
 
@@ -4343,7 +4355,9 @@ The lower bound is 5.2 mm before additional uncertainty.
 
 # Further Reading and References {-}
 
+```latex
 \markboth{FURTHER READING AND REFERENCES}{FURTHER READING AND REFERENCES}
+```
 
 The sources below are selected to form a coherent study path. NIST's machining reports ground the target domain. The semantics and compiler papers introduce the proof vocabulary. The geometry and optimization papers provide the numerical and planning foundations.
 

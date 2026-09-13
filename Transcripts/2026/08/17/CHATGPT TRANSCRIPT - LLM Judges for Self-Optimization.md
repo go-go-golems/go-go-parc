@@ -738,7 +738,7 @@ D_{t+1}
 \operatorname{Filter}
 \left(
 \operatorname{GeneratePairs}(J_{\phi_t})
-ight),
+\right),
 $$
 
 $$

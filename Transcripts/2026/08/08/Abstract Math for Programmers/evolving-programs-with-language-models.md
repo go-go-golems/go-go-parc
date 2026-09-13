@@ -57,7 +57,9 @@ header-includes:
     \newtcolorbox{engineeringbox}{colback=BookGray,colframe=black!65,title=Engineering rule,breakable}
 ---
 
+```latex
 \frontmatter
+```
 
 # Preface {-}
 
@@ -155,7 +157,9 @@ The practical conclusion is direct:
 | $V$ | Verifier/evaluator |
 | $J$ | Judge, often noisy or learned |
 
+```latex
 \mainmatter
+```
 
 # From Prompt Tuning to Program Evolution
 
@@ -4924,7 +4928,10 @@ The model suggests an engineering constitution:
 9. **Design.** Specify a judge-rotation protocol resistant to adaptive overfitting.
 10. **Synthesis.** Apply the complete framework to a system of your choice and identify every object, morphism, effect, grade, contract, path, refinement, coalgebra state, and evidence type.
 
+```latex
 \appendix
+```
+
 
 # Mathematical Cheat Sheet
 
@@ -5314,7 +5321,7 @@ These laws fail if `put` modifies unrelated fields, normalizes nondeterministica
 
 Suppose
 
-\$$
+$$
  v\circ f=f'\circ u
 $$
 
@@ -5330,13 +5337,13 @@ $$
  w\circ g\circ f
  =g'\circ v\circ f
  =g'\circ f'\circ u.
-$\$
+$$
 
 Thus the horizontally composed square commutes. Exact equality is crucial; empirical "improvement" labels do not support this derivation.
 
 ## Chapter 11, Exercise 9: finite penalties do not enforce hard constraints
 
-Let objective be \$Q(h)-M\cdot\mathbf{1}[\neg C(h)]\$ for finite penalty \$M$. If $Q\$ is unbounded, choose a violating candidate with \$Q(h)>M+Q(h_c)\$ for every admissible incumbent \$h_c\$. The violating candidate wins. A hard filter or infinite/lexicographic priority is required.
+Let objective be `\$Q(h)-M\cdot\mathbf{1}[\neg C(h)]\$` for finite penalty `\$M$`. If `$Q\$` is unbounded, choose a violating candidate `\$Q(h)>M+Q(h_c)\$` for every admissible incumbent `\$h_c\$`. The violating candidate wins. A hard filter or infinite/lexicographic priority is required.
 
 ## Chapter 12, Exercise 5: expected router cost
 
@@ -5344,17 +5351,17 @@ Let deterministic branch cost \$c_e$, model branch cost $c_h$, and model-branch 
 
 $$
   \mathbb{E}[C]=(1-q)c_e+qc_h.
-$\$
+$$
 
 If routing itself costs \$c_r$, add it:
 
 $$
   c_r+(1-q)c_e+qc_h.
-$\$
+$$
 
-Worst-case cost is \$c_r+\max(c_e,c_h)\$ when exactly one branch executes.
+Worst-case cost is `\$c_r+\max(c_e,c_h)\$` when exactly one branch executes.
 
-## Chapter 13, Exercise 2: \$A\to(B\to A)$
+## Chapter 13, Exercise 2: `\$A\to(B\to A)$`
 
 A term is
 
@@ -5775,11 +5782,18 @@ The proof proceeds by induction on the typed architecture term, assuming each pr
 **Weakest precondition.** The least condition on inputs sufficient to establish a postcondition after a computation.
 
 **Winner's curse.** Optimism in the estimated quality of a candidate selected as the maximum among many noisy estimates.
+
+```latex
 \backmatter
+```
+
 
 # Sources and Further Reading {-}
 
+```latex
 \markboth{Sources and Further Reading}{Sources and Further Reading}
+```
+
 
 ## How to use this guide {-}
 

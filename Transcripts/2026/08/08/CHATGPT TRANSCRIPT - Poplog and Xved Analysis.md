@@ -915,7 +915,7 @@ The focused prototype will demonstrate active mixed-content documents, typed com
 
 </details>
 
-```unknown
+````unknown
 bash -lc cat > /tmp/build_poplog_mvp.py <<'PY'
 from pathlib import Path
 from textwrap import dedent
@@ -5103,7 +5103,7 @@ PY
 python3 /tmp/build_poplog_mvp.py
 find /mnt/data/poplog-modern-mvp -type f | sort | sed -n '1,120p'
 
-```
+````
 
 <details><summary>💭 Thinking</summary>
 

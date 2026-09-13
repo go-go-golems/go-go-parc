@@ -2103,7 +2103,7 @@ npm test
 
 </details>
 
-```unknown
+````unknown
 bash -lc set -euo pipefail
 ROOT=/mnt/data/cnc-cam-ir
 cat > "$ROOT/examples/probe-program.ts" <<'EOF'
@@ -2335,7 +2335,7 @@ npm test
 node dist/examples/probe.js > artifacts/gcode/probe-example.nc
 head -60 artifacts/gcode/probe-example.nc
 
-```
+````
 
 The core is now a phase-indexed free-category Plan with canonical commands and operational semantics. Tests validate category laws, safety, arcs, probing dialects, and staged single-axis rapids.
 

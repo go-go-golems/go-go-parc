@@ -53,7 +53,9 @@ header-includes:
   - \setlength{\parindent}{0pt}
 ---
 
+```latex
 \frontmatter
+```
 
 # Preface {-}
 
@@ -139,7 +141,9 @@ $$
 
 Unless stated otherwise, distances are in millimetres, feed rates are in millimetres per minute, and angles are in radians inside formulas.
 
+```latex
 \mainmatter
+```
 
 # The CAM Problem as a Geometric Pipeline
 
@@ -2833,7 +2837,9 @@ A future test harness could compare rendered pixels with a tolerance, while reta
 4. In the metric scene, identify a direction with minimal surface stretch.
 5. Increase dexel spacing and document the first visible aliasing artifact.
 
+```latex
 \appendix
+```
 
 # Reference Pseudocode
 
@@ -3279,7 +3285,9 @@ assuming counterclockwise direction in G17.
 | G-code | `toGcode` |
 | Verification | `verifyJob`, `devColor` |
 
+```latex
 \backmatter
+```
 
 # References {-}
 

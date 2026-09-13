@@ -54,7 +54,9 @@ header-includes:
     \setcounter{tocdepth}{2}
 ---
 
+```latex
 \frontmatter
+```
 
 # Preface {-}
 
@@ -108,7 +110,9 @@ Lengths are expressed internally in millimetres. A point is written $p=(x,y,z)^F
 
 A statement labeled **Definition** introduces terminology used later. A **Worked example** carries out a calculation or design step. A **Counterexample** demonstrates a failure of an appealing but invalid rule. A **Fundamental idea** callout expands a prerequisite that readers from another discipline may not know. A **Design consequence** turns theory into an engineering rule.
 
+```latex
 \mainmatter
+```
 
 # Meaning Before Syntax
 
@@ -4231,7 +4235,9 @@ Choose one green status in a hypothetical UI. Rewrite it as a complete sentence 
 
 34. Specify a complete certificate-carrying compilation and execution flow for the running pocket. Your answer must include the IR artifacts, pass relations, geometric claims, assumptions, checker identities, final-byte hash, controller state machine, and operator-facing policy result. Identify at least three points where the correct result may be `inconclusive` rather than accepted or refuted.
 
+```latex
 \appendix
+```
 
 # Mathematical Toolkit for the Main Text
 
@@ -5539,7 +5545,9 @@ The answer should not replace these objects with one `safe` boolean.
 
 **Work coordinate system.** A frame relating part-program coordinates to the machine frame; it is a runtime-critical geometric assumption.
 
+```latex
 \backmatter
+```
 
 # References {-}
 

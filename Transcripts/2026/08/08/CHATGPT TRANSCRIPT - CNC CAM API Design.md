@@ -2404,7 +2404,7 @@ $$
 g \star f
 =
 a\mapsto
-f(a)\bind g.
+f(a)\mathbin{>\!\!>\!\!=} g.
 $$
 
 Now:
@@ -3103,7 +3103,7 @@ $$
 and:
 
 $$
-\bind.
+\mathbin{>\!\!>\!\!=}.
 $$
 
 From that monad, you construct a category:
@@ -3864,7 +3864,7 @@ With additive resource use:
 
 $$
 M_r(A)
-\bind
+\mathbin{>\!\!>\!\!=}
 (A\to M_s(B))
 :
 M_{r+s}(B).

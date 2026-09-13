@@ -10234,6 +10234,7 @@ The project may accurately describe its core as **machine-verified** only when:
 Until then, the accurate description is:
 
 > The design is formally specified, supported by hand proofs and executable law tests, with explicit trusted contracts.
+```bash
 EOF
 
 python - <<'PY'

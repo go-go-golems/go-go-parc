@@ -74,7 +74,9 @@ header-includes:
     \newtcolorbox{workedexample}{breakable,colback=black!2,colframe=black!45,title=Worked example,fonttitle=\bfseries}
 ---
 
+```latex
 \frontmatter
+```
 
 # Preface {-}
 
@@ -123,9 +125,13 @@ For a fast architectural path, read Chapters 1, 2, 6, 8, 14, 27, 29, 37, and 40.
 - `machine state` includes physical, controller, modal, coordinate, and process state unless narrowed explicitly.
 - Lengths are in millimeters and angles are in radians unless a type or unit annotation says otherwise.
 
+```latex
 \mainmatter
+```
 
+```latex
 \part{Part I - Reframing CAM as Compilation}
+```
 
 # The Cyber-Physical Compiler
 
@@ -241,9 +247,11 @@ There is no `G0`, `G17`, or `I/J/K` in this language. Those are controller encod
 
 ## A first design rule
 
+```latex
 \begin{designrule}
 Define correctness at the highest semantic level that expresses the operator's intent, then carry that meaning through explicit refinement relations. Never use textual similarity to stand in for physical equivalence.
 \end{designrule}
+```
 
 ## Worked example: a rectangular pocket
 
@@ -414,9 +422,11 @@ The finishing operation uses the nominal target and a much smaller tolerance lay
 
 ## Design rules
 
+```latex
 \begin{designrule}
 Represent manufacturing operations as predicates or relations over physical outcomes. Treat strategy output as a witness to those predicates. Keep required removal, forbidden removal, and permitted removal as separate claims.
 \end{designrule}
+```
 
 ## Exercises
 
@@ -746,9 +756,11 @@ For interval boxes and pure translations, this reduces to interval addition. For
 
 ## Design rules
 
+```latex
 \begin{designrule}
 Make units, frames, and tool-assembly identity explicit in the IR. Treat frame transforms and tool dimensions as assumptions with uncertainty, not as unexamined scalar constants.
 \end{designrule}
+```
 
 ## Exercises
 
@@ -1034,9 +1046,11 @@ The arc pass can emit a witness containing $R$, total sweep, segment count, and 
 
 ## Design rules
 
+```latex
 \begin{designrule}
 Every approximation must declare its metric, direction, bound, assumptions, and artifact scope. A checker that cannot prove the bound must return inconclusive rather than upgrading sampled evidence into a guarantee.
 \end{designrule}
+```
 
 ## Exercises
 
@@ -1048,7 +1062,9 @@ Every approximation must declare its metric, direction, bound, assumptions, and 
 6. Design a result type that separates refuted, inconclusive, and not checked.
 7. Give an example where an under-approximation is unsafe for collision checking.
 
+```latex
 \part{Part II - Language and Intermediate Representation Design}
+```
 
 # JavaScript as a Staged Macro Language
 
@@ -1209,9 +1225,11 @@ The AST contains no closure that can later inspect the host environment. It can 
 
 ## Design rules
 
+```latex
 \begin{designrule}
 Use JavaScript to construct an inert, immutable, content-addressed AST. Do not make the JavaScript realm, closures, mutable objects, or ambient globals part of the CAM semantics.
 \end{designrule}
+```
 
 ## Exercises
 
@@ -1549,9 +1567,11 @@ A checker given the start point verifies:
 
 ## Design rules
 
+```latex
 \begin{designrule}
 Use path composition to enforce endpoint discipline, but do not confuse numerical proximity with equality or structural continuity with machining safety. Make every repair an explicit, semantically classified operation.
 \end{designrule}
+```
 
 ## Exercises
 
@@ -2119,7 +2139,9 @@ Each call has an explicit input and output. There is no hidden global “current
 6. Write five algebraic or metamorphic properties for the API.
 7. Explain why plugin version identity belongs in provenance.
 
+```latex
 \part{Part III - Compiler Passes and Correctness}
+```
 
 # Pass Contracts and Translation Validation
 
@@ -3090,7 +3112,9 @@ A polyline fitting pass proposes an arc over points $p_i$. Its witness includes 
 5. Define an optimality gap.
 6. Propose a pass order and justify two ordering constraints.
 
+```latex
 \part{Part IV - Assertions, Invariants, and Certificates}
+```
 
 # Contracts, Hoare Logic, and Weakest Preconditions
 
@@ -4253,9 +4277,11 @@ A job was certified under work transform $T_0$ with uncertainty set $\Xi$. Befor
 
 ## Design rules
 
+```latex
 \begin{warningbox}
 A certificate is valid only for the exact artifact and assumption set named by its claims. Live machine identity, tools, frames, setup, and controller state are inputs to execution, not incidental operator details.
 \end{warningbox}
+```
 
 ## Exercises
 
@@ -4266,7 +4292,9 @@ A certificate is valid only for the exact artifact and assumption set named by i
 5. Design a degradation policy for an unknown tool measurement.
 6. Explain how a changed WCS invalidates geometric certificates.
 
+```latex
 \part{Part V - Operations Research for CAM}
+```
 
 # Feasibility Before Optimality
 
@@ -4776,7 +4804,9 @@ Candidate A takes 1.2 seconds with certified clearance 0.15 mm. Candidate B take
 5. Define clearance margin as an optimization objective.
 6. Propose a sensitivity report for a finishing operation.
 
+```latex
 \part{Part VI - Implementation and the Dropcut/Z1 Case Study}
+```
 
 # Package Architecture for a TypeScript CAM Compiler
 
@@ -5658,7 +5688,9 @@ The result is not a claim that software can eliminate physical uncertainty. It i
 5. Explain why optimization maturity is deliberately last.
 6. Write a one-page assurance case for an attended air cut.
 
+```latex
 \appendix
+```
 
 # Notation and Mathematical Reference
 
@@ -7369,11 +7401,15 @@ The architecture leaves several substantive research problems open:
 7. Small proof formats for geometric certificates; compact proof representation and checking remain important engineering concerns [R41].
 8. Runtime monitors that combine discrete protocol assurance with bounded stopping dynamics and sensor uncertainty.
 
+```latex
 \backmatter
+```
 
 # References {-}
 
+```latex
 \markboth{References}{References}
+```
 
 The bracketed identifiers in the text refer to the entries below. DOI links name the version of record when available; institutional pages are used for standards and technical reports.
 
@@ -7465,7 +7501,9 @@ The bracketed identifiers in the text refer to the entries below. DOI links name
 
 # Source Snapshot and Reproducibility Notes {-}
 
+```latex
 \markboth{Source Snapshot and Reproducibility Notes}{Source Snapshot and Reproducibility Notes}
+```
 
 The implementation-specific case study is based on the supplied `dropcut-studio.zip` snapshot and the public repository branch `task/cnc-control-dropcut` near commit `e82bed1e5a00f38f4441e6ea13e1265edc775928`, inspected in August 2026. The case study is not a statement about later revisions. Where firmware behavior is discussed, the reviewed source evidence used the Makera stock Carvera firmware repository at commit `1683b6fb5c7ec1d341c476c6fdb2a22f7a26220e` and explicitly distinguished stock behavior from community-firmware changes.
 

@@ -6060,6 +6060,7 @@ The architecture looks like a plugin system while operationally behaving like a 
 Design a dynamically loaded task package format using OCI images or signed directories. Preserve bundle identity, catalog validation, module capability declarations, and registry generation semantics without loading arbitrary Go plugins.
 
 ---
+```python
 '''
 book.write_text(dedent(text).lstrip(), encoding='utf-8')
 print(book)
@@ -6699,6 +6700,7 @@ The principle is not “store nothing.” It is “store each class of data in a
 Create a data-classification matrix for public, internal, confidential, secret, and regulated task data. Assign each field in `Attempt`, `ExternalOperation`, `ArtifactRef`, and `ObservationSet` to a class and retention policy.
 
 ---
+```python
 '''
 with book.open('a',encoding='utf-8') as f:f.write('\n'+dedent(text).lstrip())
 print(len(book.read_text().splitlines()),'lines')
@@ -7460,6 +7462,7 @@ Costs include maintaining a taxonomy and mapping low-level errors.
 - message becomes the real machine-readable field again.
 
 ---
+```python
 '''
 with book.open('a',encoding='utf-8') as f:f.write('\n'+dedent(text).lstrip())
 print(len(book.read_text().splitlines()),'lines')
@@ -8016,6 +8019,7 @@ If a system cannot explain what happens after a crash between every two steps, i
 Workflow V3 contains more machinery than many products need. That machinery captures real design knowledge. The task is not to copy it wholesale. The task is to extract the invariants, preserve the patterns, and simplify the product surface.
 
 ---
+```python
 '''
 with book.open('a',encoding='utf-8') as f:f.write('\n'+dedent(text).lstrip())
 print(len(book.read_text().splitlines()),'lines')

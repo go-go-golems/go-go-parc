@@ -60,9 +60,9 @@ P_{\tau}
 \xrightarrow{q_{\tau}}
 Q_{\tau}
 \xrightarrow{v_{\tau}}
-\Resource(\tau)
+\mathsf{Resource}(\tau)
 \xrightarrow{\pi_p}
-\Widget.
+\mathsf{Widget}.
 $$
 
 Here:
@@ -187,7 +187,7 @@ A visual placement may render a component instance, but placement identity and c
 A port occurrence is addressed by a component and a local port name:
 
 $$
-p=(c,n)\in\Addr.
+p=(c,n)\in\mathsf{Addr}.
 $$
 
 In TypeScript:
@@ -471,19 +471,22 @@ $$
 The commuting diagram is:
 
 $$
-\begin{tikzcd}[column sep=large,row sep=large]
-E_{\tau} \arrow[r,shift left=0.7ex,"s"] \arrow[r,shift right=0.7ex,"t"']
-& P_{\tau} \arrow[r,"q_{\tau}"] \arrow[dr,"g"']
-& Q_{\tau} \arrow[d,dashed,"\bar g"] \\
-& & X
-\end{tikzcd}
+\begin{array}{ccccc}
+E_{\tau} &
+\overset{s}{\underset{t}{\rightrightarrows}} &
+P_{\tau} &
+\xrightarrow{\;q_{\tau}\;} &
+Q_{\tau} \\
+& & \overset{g}{\searrow} & & \downarrow \bar g \\
+& & & & X
+\end{array}
 $$
 
 This property is more useful than the phrase “connected components” alone. It establishes the canonical interface through which every link-respecting renderer, allocator, serializer, or instrumentation layer may operate.
 
-\begin{tcolorbox}[colback=green!3!white,colframe=green!40!black,title={Factorization theorem}]
-For a finite identity-link graph, any port-level interpretation constant on generated equivalence classes factors uniquely through the compiled binding quotient.
-\end{tcolorbox}
+\begin{quote}
+\textbf{Factorization theorem.} For a finite identity-link graph, any port-level interpretation constant on generated equivalence classes factors uniquely through the compiled binding quotient.
+\end{quote}
 
 ## A finite executable witness
 
@@ -641,9 +644,9 @@ $$
 
 The quotient is then a compilation of equality constraints rather than literal pointer aliasing.
 
-\begin{tcolorbox}[colback=orange!4!white,colframe=orange!55!black,title={Do not overclaim}]
-The coequalizer explains the canonical identification of interface names. It does not prove that arbitrary component code cannot maintain unsynchronized shadow state. The runtime invariant depends on all reads and writes passing through the generated projection.
-\end{tcolorbox}
+\begin{quote}
+\textbf{Do not overclaim.} The coequalizer explains the canonical identification of interface names. It does not prove that arbitrary component code cannot maintain unsynchronized shadow state. The runtime invariant depends on all reads and writes passing through the generated projection.
+\end{quote}
 
 # Compatible global states and pullbacks
 

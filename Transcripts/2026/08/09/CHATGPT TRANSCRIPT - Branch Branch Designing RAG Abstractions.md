@@ -6070,6 +6070,7 @@ go run ./cmd/opfield-demo -out ./demo-out
 ```
 
 The code is intentionally compact. It is an executable semantic specimen, not a production framework.
+```bash
 EOF
 
 gofmt -w /mnt/data/opfield

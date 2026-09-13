@@ -7089,7 +7089,7 @@ This design prevents survivorship bias where a candidate appears strong because 
 
 ## 46.10 Gate monotonicity
 
-A lexicographic gate sequence evaluates $g_1,0,0,g_n$ and returns on first fail or indeterminate. If a new hard gate is prepended, a previously ineligible candidate cannot become eligible. If a stricter version of an earlier predicate replaces it, later favorable metrics cannot compensate.
+A lexicographic gate sequence evaluates $g_1,\ldots,g_n$ and returns on first fail or indeterminate. If a new hard gate is prepended, a previously ineligible candidate cannot become eligible. If a stricter version of an earlier predicate replaces it, later favorable metrics cannot compensate.
 
 This monotonicity is desirable for security and integrity policy. It differs from weighted scoring, where adding a penalty can be offset by unrelated gains.
 

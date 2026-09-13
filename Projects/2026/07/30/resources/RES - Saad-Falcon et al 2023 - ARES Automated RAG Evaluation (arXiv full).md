@@ -131,7 +131,7 @@ Using the validation subsets for each KILT and SuperGLUE dataset, we create nine
 To calculate the correlation between the correct ranking and the ARES ranking, we use the Kendall rank correlation coefficient or Kendall’s $	au$:
 
 $$
-{	au=rac{(\#\,	ext{of concordant pairs})\
+{\tau=\frac{(\#\,	ext{of concordant pairs})\
 -(\#\,	ext{of discordant pairs})}{\#\,	ext{ of pairs total}}}
 $$
 
@@ -215,19 +215,19 @@ For our loss function used in LLM judge training, we selected cross-entropy loss
 
 For the NQ, HotpotQA, MultiRC, and ReCoRD datasets, we use 8 few-shot examples with the following prompt to score context relevance:
 
-- Given the following question and document, you must analyze the provided document and determine whether it is sufficient for answering the question. In your evaluation, you should consider the content of the document and how it relates to the provided question. Output your final verdict by strictly following this format: "$$$$Yes$$$$" if the document is sufficient and "$$$$No$$$$" if the document provided is not sufficient. Do not provide any additional explanation for your decision.
+- Given the following question and document, you must analyze the provided document and determine whether it is sufficient for answering the question. In your evaluation, you should consider the content of the document and how it relates to the provided question. Output your final verdict by strictly following this format: "`\$\$\$\$Yes\$\$\$\$`" if the document is sufficient and "`\$\$\$\$No\$\$\$\$`" if the document provided is not sufficient. Do not provide any additional explanation for your decision.
 	Question: <few-shot example here>
 	Document: <few-shot example here>
 
 For FEVER, we use the following prompt to score context relevance:
 
-- You are an expert fact-checking agent. Given the following statement and document, you must analyze the provided document and determine whether it is sufficient for determining the statement’s factuality. In your evaluation, you should consider the content of the document and how it relates to the provided statement’s factuality. Output your final verdict by strictly following this format: "$$$$Yes$$$$" if the document is sufficient and "$$$$No$$$$" if the document is not sufficient. Do not provide any additional explanation for your decision.
+- You are an expert fact-checking agent. Given the following statement and document, you must analyze the provided document and determine whether it is sufficient for determining the statement’s factuality. In your evaluation, you should consider the content of the document and how it relates to the provided statement’s factuality. Output your final verdict by strictly following this format: "`\$\$\$\$Yes\$\$\$\$`" if the document is sufficient and "`\$\$\$\$No\$\$\$\$`" if the document is not sufficient. Do not provide any additional explanation for your decision.
 	Statement: <few-shot example here>
 	Document: <few-shot example here>
 
 For WoW, we use the following prompt to score context relevance:
 
-- You are an expert dialogue agent. Given the following dialogue and document, you must analyze the provided document and determine whether it is relevant for responding to the dialogue. In your evaluation, you should consider the content of the document and how it relates to the provided dialogue. Output your final verdict by strictly following this format: "$$$$Yes$$$$" if the document is relevant and "$$$$No$$$$" if the document provided is not relevant. Do not provide any additional explanation for your decision.
+- You are an expert dialogue agent. Given the following dialogue and document, you must analyze the provided document and determine whether it is relevant for responding to the dialogue. In your evaluation, you should consider the content of the document and how it relates to the provided dialogue. Output your final verdict by strictly following this format: "`\$\$\$\$Yes\$\$\$\$`" if the document is relevant and "`\$\$\$\$No\$\$\$\$`" if the document provided is not relevant. Do not provide any additional explanation for your decision.
 	Dialogue: <few-shot example here>
 	Document: <few-shot example here>
 
@@ -235,7 +235,7 @@ For WoW, we use the following prompt to score context relevance:
 
 For the NQ, HotpotQA, MultiRC, and ReCoRD datasets, we use 8 few-shot examples with the following prompt to score answer faithfulness:
 
-- Given the following question, document, and answer, you must analyze the provided answer and determine whether it is faithful to the contents of the document. The answer must not offer new information beyond the context provided in the document. The answer also must not contradict information provided in the document. Output your final verdict by strictly following this format: "$$$$Yes$$$$" if the answer is faithful to the document and "$$$$No$$$$" if the answer is not faithful to the document. Do not provide any additional explanation for your decision.
+- Given the following question, document, and answer, you must analyze the provided answer and determine whether it is faithful to the contents of the document. The answer must not offer new information beyond the context provided in the document. The answer also must not contradict information provided in the document. Output your final verdict by strictly following this format: "`\$\$\$\$Yes\$\$\$\$`" if the answer is faithful to the document and "`\$\$\$\$No\$\$\$\$`" if the answer is not faithful to the document. Do not provide any additional explanation for your decision.
 	Question: <few-shot example here>
 	Document: <few-shot example here>
 	Answer: <few-shot example here>
@@ -246,7 +246,7 @@ For FEVER, we change the word "question" in the prompt to "statement". For WoW, 
 
 For the NQ, HotpotQA, MultiRC, and ReCoRD datasets, we use 8 few-shot examples with the following prompt to score answer relevance:
 
-- Given the following question, document, and answer, you must analyze the provided answer and document before determining whether the answer is relevant for the provided question. In your evaluation, you should consider whether the answer addresses all aspects of the question and provides only correct information from the document for answering the question. Output your final verdict by strictly following this format: "$$$$Yes$$$$" if the answer is relevant for the given question and "$$$$No$$$$" if the answer is not relevant for the given question. Do not provide any additional explanation for your decision.
+- Given the following question, document, and answer, you must analyze the provided answer and document before determining whether the answer is relevant for the provided question. In your evaluation, you should consider whether the answer addresses all aspects of the question and provides only correct information from the document for answering the question. Output your final verdict by strictly following this format: "`\$\$\$\$Yes\$\$\$\$`" if the answer is relevant for the given question and "`\$\$\$\$No\$\$\$\$`" if the answer is not relevant for the given question. Do not provide any additional explanation for your decision.
 	Question: <few-shot example here>
 	Document: <few-shot example here>
 	Answer: <few-shot example here>

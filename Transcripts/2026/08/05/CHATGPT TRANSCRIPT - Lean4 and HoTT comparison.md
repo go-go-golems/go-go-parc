@@ -4474,7 +4474,7 @@ A kernel implementation should aim for a theorem such as:
 
 \[
   \mathsf{check}(\Gamma,t,A)=\mathsf{success}
-  \;\Rightarrow\;
+  \;\Rightarrow\;
   \Gamma \vdash t:A.
 \]
 
@@ -6167,7 +6167,7 @@ $$
   \eta : I \Rightarrow J
 $$
 
-assigns a function $eta_A : I(A) \to J(A)$ to every object $A$ so that every schema arrow commutes:
+assigns a function $\eta_A : I(A) \to J(A)$ to every object $A$ so that every schema arrow commutes:
 
 $$
   J(f)(\eta_A(x)) = \eta_B(I(f)(x)).

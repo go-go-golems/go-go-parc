@@ -571,6 +571,7 @@ These are not defects claimed against Cobra. They are design obligations exposed
 - [Source Map](<Source Map.md>) — pinned commit, blob hashes, and code/test hotspots.
 - [GitHub Issue Draft](<GitHub Issue Draft.md>) — issue-ready catalog summary; no issue was opened.
 - [Validation](<VALIDATION.md>) — generated structural and link-check report.
+```bash
 '''
 write('README.md', README)
 
@@ -3644,6 +3645,7 @@ dot -Tpng -Gdpi=180 assets/03_execution_pipeline.dot \
 ```
 
 The checked-in PDF is the reviewed reading edition. Rebuilding with different versions of Pandoc, LibreOffice, fonts, or Graphviz may produce pagination or line-breaking differences.
+```bash
 EOF
 
 rm -rf bundle
