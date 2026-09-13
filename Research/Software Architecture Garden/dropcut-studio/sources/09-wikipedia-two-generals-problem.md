@@ -1,5 +1,4 @@
-![](https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Two_Generals%27_Problem.svg/330px-Two_
-Generals%27_Problem.svg.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail)
+*(image unavailable: Two Generals' Problem diagram)*
 
 Positions of the armies. Armies A1 and A2 cannot see one another directly, so need to communicate 
 by messengers, but their messengers may be captured by army B.

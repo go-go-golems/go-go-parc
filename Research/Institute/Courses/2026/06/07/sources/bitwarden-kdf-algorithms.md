@@ -100,11 +100,7 @@ highly recommended.
 To update your KDF algorithm:
 
 1. In the web app, go to **Settings** → **Security**.
-2. Select **Keys**:
-	![Encryption key 
-settings](https://bitwarden.com/assets/wdv28A2B5yaUswQcFvT9j/ef47b457ed64f67ee84b4289ad3477a4/2026-03-06_08-57-10.png?w=
-400&fm=avif)
-	Encryption key settings
+2. Select **Keys**: *Encryption key settings (image unavailable)*
 3. From the **Algorithm** dropdown menu, select **PBKDF2 SHA-256** or **Argon2id**.
 4. (Optional) Update the additional settings that appear.
 5. Select **Update encryption settings**.

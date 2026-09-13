@@ -2743,9 +2743,11 @@ The AST contains no closure that can later inspect the host environment. It can 
 
 ## 7.8 Design rules
 
+```latex
 \begin{designrule}
 Use JavaScript to construct an inert, immutable, content-addressed AST. Do not make the JavaScript realm, closures, mutable objects, or ambient globals part of the CAM semantics.
 \end{designrule}
+```
 
 ## 7.9 Exercises
 
@@ -3083,9 +3085,11 @@ A checker given the start point verifies:
 
 ## 9.8 Design rules
 
+```latex
 \begin{designrule}
 Use path composition to enforce endpoint discipline, but do not confuse numerical proximity with equality or structural continuity with machining safety. Make every repair an explicit, semantically classified operation.
 \end{designrule}
+```
 
 ## 9.9 Exercises
 
@@ -4830,9 +4834,11 @@ A job was certified under work transform $T_0$ with uncertainty set $\Xi$. Befor
 
 ## 30.9 Design rules
 
+```latex
 \begin{warningbox}
 A certificate is valid only for the exact artifact and assumption set named by its claims. Live machine identity, tools, frames, setup, and controller state are inputs to execution, not incidental operator details.
 \end{warningbox}
+```
 
 ## 30.10 Exercises
 

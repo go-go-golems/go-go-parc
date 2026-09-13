@@ -1782,9 +1782,11 @@ This picture is not yet a topological space. It is a declaration of **joint obse
 
 That distinction matters. Pairwise agreement does not automatically supply a jointly atomic observation. A database transaction, an integration test, or a trace record containing several facts can act like a higher-dimensional witness that fills a boundary.
 
+```latex
 \begin{mentalmodel}
 The topological-looking shape belongs to the pattern of information overlap. Vertices are contexts. Edges are pairwise overlaps. Higher-dimensional simplices represent genuine multiway overlap or joint validation. A hole is a boundary of comparisons for which no higher-order witness has been supplied.
 \end{mentalmodel}
+```
 
 ### 1.4 State space versus observation space
 
@@ -1956,9 +1958,11 @@ models the observable client result.
 
 Be cautious: a projection from event history to timeline state is only an arrow if it is actually a function in your category. Hidden clocks, randomness, external calls, mutable configuration, or nondeterministic map iteration can make the apparent arrow ill-defined.
 
+```latex
 \begin{cautionbox}
 Category theory does not make an operation deterministic. It forces you to decide whether determinism is part of the equality notion for arrows. If the same input can yield observably different outputs, either enrich the input object with the missing coordinates or work in a category designed for effects or relations.
 \end{cautionbox}
+```
 
 ### Exercises
 
@@ -2053,9 +2057,11 @@ In `Set`, the limit can be understood as the set of all tuples of local values s
 
 That sentence is one of the main bridges in this book:
 
+```latex
 \begin{mentalmodel}
 A limit is the space of globally compatible assignments to a diagram of partial views. A global section of a presheaf or sheaf will later be another instance of this idea.
 \end{mentalmodel}
+```
 
 ### 3.5 A SessionStream compatibility diagram
 
@@ -4470,7 +4476,9 @@ Study these topics after completing the capstone:
 - geometric logic and classifying topoi for portable specifications;
 - formal refinement, model checking, and event-sourced system verification.
 
+```latex
 \backmatter
+```
 
 # Closing Perspective {-}
 
@@ -5492,7 +5500,7 @@ PY
 
 </details>
 
-```unknown
+````unknown
 bash -lc cat > /mnt/data/work_v2/pedagogy_pass.py <<'PY'
 from pathlib import Path
 import re
@@ -6060,7 +6068,7 @@ python /mnt/data/work_v2/pedagogy_pass.py
 wc -l -w -c /mnt/data/work_v2/second-draft.md
 grep -n '^# ' /mnt/data/work_v2/second-draft.md
 grep -nE '^> \*\*Definition' /mnt/data/work_v2/second-draft.md | tail -20
-```
+````
 
 The student audit is complete, with prerequisites defined before use and cohomological obstructions separated from simpler failures. I’m fixing final PDF navigation and boundary artifacts before preflight.
 
