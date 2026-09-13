@@ -42,6 +42,7 @@ Read the garden in order for the architectural narrative:
 
 ## Deep dives and implementation history
 
+- [[PROJECT REPORT - devctl - Transactional Lifecycles, Process Ownership, and Executable Provenance]] — detailed analysis of staged lifecycle transactions, bounded plugin shutdown, immutable native executable identity, truthful state projections, catalog provenance, and command namespace policy.
 - [[PROJECT REPORT - devctl - Durable Operator State, Structured Logs, and Robust Dynamic Commands]] — durable operator and dynamic-command implementation report.
 - [[ARTICLE - devctl Service Lifecycle Controls - Start Stop Restart and the Midstream Redesign]] — lifecycle control evolution.
 - [[ARTICLE - devctl Service Restart - Replanning Service Specs Without Persisting Secrets]] — safe restart replanning.
