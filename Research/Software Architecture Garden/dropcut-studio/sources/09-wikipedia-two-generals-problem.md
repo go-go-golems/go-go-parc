@@ -21,7 +21,7 @@ Protocol"), where it shows that TCP cannot guarantee state consistency between e
 this is the case), though it applies to any type of two-party communication where failures of 
 communication are possible. A key concept in [epistemic 
 logic](https://en.wikipedia.org/wiki/Epistemic_logic "Epistemic logic"), this problem highlights 
-the importance of [common knowledge](https://en.wikipedia.org/wiki/Common_knowledge_\(logic\) 
+the importance of [common knowledge](https://en.wikipedia.org/wiki/Common_knowledge_$logic$ 
 "Common knowledge (logic)"). Some authors also refer to this as the **Two Generals' Paradox**, the 
 **Two Armies Problem**, or the **Coordinated Attack Problem**.[^2] [^3] The Two Generals' Problem 
 was the first computer communication problem to be proven to be unsolvable.[^4] An important 
@@ -35,7 +35,7 @@ Two [armies](https://en.wikipedia.org/wiki/Army "Army"), each led by a different
 [general](https://en.wikipedia.org/wiki/General "General"), are preparing to attack a fortified 
 city. The armies are encamped near the city, each in its own valley. A third valley separates the 
 two hills, and the only way for the two generals to communicate is by sending 
-[messengers](https://en.wikipedia.org/wiki/Runner_\(war\) "Runner (war)") through the valley. 
+[messengers](https://en.wikipedia.org/wiki/Runner_$war$ "Runner (war)") through the valley. 
 Unfortunately, the valley is occupied by the city's defenders and there is a chance that any given 
 messenger sent through the valley will be captured.[^5]
 
@@ -44,10 +44,10 @@ attack. It is required that the two generals have their armies attack the city s
 succeed, lest the lone attacker army die trying. They must thus communicate with each other to 
 decide on a time to attack and to agree to attack at that time, and each general must know that the 
 other general knows that they have agreed to the attack plan. Because [acknowledgement of message 
-receipt](https://en.wikipedia.org/wiki/Acknowledgement_\(data_networks\) "Acknowledgement (data 
+receipt](https://en.wikipedia.org/wiki/Acknowledgement_$data_networks$ "Acknowledgement (data 
 networks)") can be lost as easily as the original message, a potentially infinite series of 
 messages is required to come to 
-[consensus](https://en.wikipedia.org/wiki/Consensus_\(computer_science\) "Consensus (computer 
+[consensus](https://en.wikipedia.org/wiki/Consensus_$computer_science$ "Consensus (computer 
 science)").[^6]
 
 The thought experiment involves considering how they might go about coming to a consensus. In its 
@@ -97,7 +97,7 @@ protocol leads one general to attack and the other not to attack—contradicting
 that the protocol was a solution to the problem.
 
 A non-deterministic protocol with a potentially variable message count can be compared to an 
-edge-labeled finite [tree](https://en.wikipedia.org/wiki/Tree_\(graph_theory\) "Tree (graph 
+edge-labeled finite [tree](https://en.wikipedia.org/wiki/Tree_$graph_theory$ "Tree (graph 
 theory)"), where each node in the tree represents an explored example up to a specified point. A 
 protocol that terminates before sending any messages is represented by a tree containing only a 
 root node. The edges from a node to each child are labeled with the messages sent in order to reach 
@@ -149,7 +149,7 @@ Communications",[^8] where it is described starting on page 73 in the context of
 between two groups of gangsters.
 
 This problem was given the name the *Two Generals Paradox* by [Jim 
-Gray](https://en.wikipedia.org/wiki/Jim_Gray_\(computer_scientist\) "Jim Gray (computer 
+Gray](https://en.wikipedia.org/wiki/Jim_Gray_$computer_scientist$ "Jim Gray (computer 
 scientist)") [^9] in 1978 in "Notes on Data Base Operating Systems" [^10] starting on page 465. 
 This reference is widely given as a source for the definition of the problem and the impossibility 
 proof, though both were published previously as mentioned above.
@@ -163,9 +163,9 @@ Transactions on Programming Languages and Systems*: 382–401.
 [^2]: Gmytrasiewicz, Piotr J.; Edmund H. Durfee (1992). ["Decision-Theoretic Recursive Modeling and 
 the Coordinated Attack Problem"](http://dl.acm.org/citation.cfm?id=139492.139503). *Artificial 
 Intelligence Planning Systems*. San Francisco: Morgan Kaufmann Publishers. pp. 88–95. 
-[doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi 
+[doi](https://en.wikipedia.org/wiki/Doi_$identifier$ "Doi 
 (identifier)"):[10.1016/B978-0-08-049944-4.50016-1](https://doi.org/10.1016%2FB978-0-08-049944-4.500
-16-1). [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") 
+16-1). [ISBN](https://en.wikipedia.org/wiki/ISBN_$identifier$ "ISBN (identifier)") 
 [9780080499444](https://en.wikipedia.org/wiki/Special:BookSources/9780080499444 
 "Special:BookSources/9780080499444"). Retrieved 27 December 2013.
 
@@ -192,9 +192,9 @@ February 2024.
 
 [^8]: Akkoyunlu, E. A.; Ekanadham, K.; Huber, R. V. (1975). [*Some constraints and trade-offs in 
 the design of network communications*](https://dl.acm.org/doi/pdf/10.1145/800213.806523). 
-Portal.acm.org. pp. 67–74. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi 
+Portal.acm.org. pp. 67–74. [doi](https://en.wikipedia.org/wiki/Doi_$identifier$ "Doi 
 (identifier)"):[10.1145/800213.806523](https://doi.org/10.1145%2F800213.806523). 
-[S2CID](https://en.wikipedia.org/wiki/S2CID_\(identifier\) "S2CID (identifier)") 
+[S2CID](https://en.wikipedia.org/wiki/S2CID_$identifier$ "S2CID (identifier)") 
 [788091](https://api.semanticscholar.org/CorpusID:788091). Retrieved 2010-03-19.
 
 [^9]: ["Jim Gray Summary Home 
@@ -202,11 +202,11 @@ Page"](http://research.microsoft.com/~Gray/JimGrayHomePageSummary.htm). Research
 2004-05-03. Retrieved 2010-03-19.
 
 [^10]: R. Bayer, R. M. Graham, and G. Seegmüller (1978). *Operating Systems*. Springer-Verlag. pp. 
-393–481. [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") 
+393–481. [ISBN](https://en.wikipedia.org/wiki/ISBN_$identifier$ "ISBN (identifier)") 
 [0-387-09812-7](https://en.wikipedia.org/wiki/Special:BookSources/0-387-09812-7 
 "Special:BookSources/0-387-09812-7"). Online version: [*Notes on Data Base Operating 
 Systems*](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=723863). Portal.acm.org. 
-January 1978. pp. 393–481. [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN 
+January 1978. pp. 393–481. [ISBN](https://en.wikipedia.org/wiki/ISBN_$identifier$ "ISBN 
 (identifier)") 
 [978-3-540-08755-7](https://en.wikipedia.org/wiki/Special:BookSources/978-3-540-08755-7 
 "Special:BookSources/978-3-540-08755-7"). Retrieved 2010-03-19.

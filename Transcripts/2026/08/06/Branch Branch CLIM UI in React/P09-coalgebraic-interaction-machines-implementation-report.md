@@ -133,27 +133,27 @@ The source remains unchanged under `reference/pbui-productivity-suite.jsx`. P09 
 
 ## 3.1 A deterministic machine with observations and effects
 
-For input events in a set \(I\), observations in \(O\), effects in \(E\), and machine states in \(S\), the design can be presented as a coalgebra of the shape
+For input events in a set $I$, observations in $O$, effects in $E$, and machine states in $S$, the design can be presented as a coalgebra of the shape
 
-\[
+$$
 \gamma : S \longrightarrow O \times (S \times E^*)^I.
-\]
+$$
 
 Given a state, the machine exposes a current observation and, for every input event, a successor state with a finite sequence of effects.
 
 The implementation splits this curried form into two functions:
 
-\[
+$$
 \mathsf{observe} : S \times W \longrightarrow O
-\]
+$$
 
 and
 
-\[
+$$
 \mathsf{transition} : S \times I \times W \longrightarrow S \times E^*,
-\]
+$$
 
-where \(W\) is a read-only product snapshot. This resembles the familiar distinction between a Moore observation and a Mealy transition.
+where $W$ is a read-only product snapshot. This resembles the familiar distinction between a Moore observation and a Mealy transition.
 
 The JavaScript interface is:
 
@@ -174,18 +174,18 @@ The optional event alphabet is used only for finite exploration. The optional pu
 
 The machine state alone is not the complete application system. The executable runtime contains:
 
-\[
+$$
 R = S \times W \times P \times Q \times T \times \mathsf{Option}(A),
-\]
+$$
 
 where:
 
-- \(S\) is the current machine state;
-- \(W\) is product state;
-- \(P\) is the map of pending external requests;
-- \(Q\) is the sequence of portable external inputs;
-- \(T\) is the logical trace;
-- \(A\) is a terminal resolution value.
+- $S$ is the current machine state;
+- $W$ is product state;
+- $P$ is the map of pending external requests;
+- $Q$ is the sequence of portable external inputs;
+- $T$ is the logical trace;
+- $A$ is a terminal resolution value.
 
 The runtime itself can therefore be viewed as a larger transition system. P09 keeps the smaller machine definition independent because it is the intended authoring and comparison unit.
 
@@ -302,10 +302,10 @@ A terminal observation has `terminal: true`. The reference runtime checks this b
 
 For the finite accept machines, terminal absorption is also checked directly against every event in the declared alphabet:
 
-\[
+$$
 \forall s \in \mathsf{Terminal},\;\forall i \in I,
 \quad \delta(s,i)=(s,[]).
-\]
+$$
 
 This two-level treatment is deliberate. The runtime protects a session even if a custom machine omits the absorbing case, while audited machine specifications remain independently well behaved.
 
@@ -338,43 +338,43 @@ external response delivery
 
 Deterministic command interpretation then regenerates internal command responses and traces. The replay claim is conditional:
 
-\[
+$$
 \mathsf{Replay}(W_0,Q)=R
-\]
+$$
 
-only when the machine functions and effect handlers are deterministic for \(W_0\) and \(Q\).
+only when the machine functions and effect handlers are deterministic for $W_0$ and $Q$.
 
 ## 3.8 Bisimulation
 
 Two machines may use different state representations while exposing the same behavior. P09 checks a strong deterministic bisimulation over a finite event alphabet.
 
-A relation \(\mathcal{R}\subseteq S_1\times S_2\) is accepted when related states have equal public observations and, for every event, emit equal normalized effects and transition to another related pair.
+A relation $\mathcal{R}\subseteq S_1\times S_2$ is accepted when related states have equal public observations and, for every event, emit equal normalized effects and transition to another related pair.
 
-For related \((s_1,s_2)\):
+For related $(s_1,s_2)$:
 
-\[
+$$
 \mathsf{publicObserve}_1(s_1)=\mathsf{publicObserve}_2(s_2),
-\]
+$$
 
-and for every \(i\in I\):
+and for every $i\in I$:
 
-\[
+$$
 \delta_1(s_1,i)=(s_1',e_1),
 \quad
 \delta_2(s_2,i)=(s_2',e_2),
-\]
+$$
 
 with
 
-\[
+$$
 e_1=e_2
 \quad\text{and}\quad
 (s_1',s_2')\in\mathcal{R}.
-\]
+$$
 
 The checker performs breadth-first exploration of reachable state pairs. If observations or effects diverge, it returns the event path leading to the mismatch.
 
-This is not weak bisimulation. It does not hide internal \(\tau\)-steps, compare nondeterministic branching, or reason about infinite data-dependent state spaces.
+This is not weak bisimulation. It does not hide internal $\tau$-steps, compare nondeterministic branching, or reason about infinite data-dependent state spaces.
 
 ## 3.9 Composition and channels
 
@@ -613,9 +613,9 @@ The **Trace + replay** tab can run a successful or stale scheduling trace. `repl
 
 For every runtime transition, durable product state before and after calling the machine transition must be equal:
 
-\[
+$$
 W_{\mathrm{before}} = W_{\mathrm{after-transition-call}}.
-\]
+$$
 
 Only an interpreted world-command effect may replace the durable world.
 
@@ -625,9 +625,9 @@ The runtime enforces this by giving the machine a clone and comparing the durabl
 
 For each session trace:
 
-\[
+$$
 \#\{t\in T\mid t.\mathsf{type}=\mathsf{session-resolved}\}\le 1.
-\]
+$$
 
 The runtime stores the first outcome and traces attempted duplicates. The finite machine audit additionally rejects a transition containing multiple resolve effects.
 
@@ -635,20 +635,20 @@ The runtime stores the first outcome and traces attempted duplicates. The finite
 
 For audited finite machines:
 
-\[
+$$
 \mathsf{terminal}(s) \Rightarrow
 \forall i\in I,\;\delta(s,i)=(s,[]).
-\]
+$$
 
 For every runtime, terminal observations prevent the machine transition from being invoked again.
 
 ## 6.4 Typed and fresh occurrence acceptance
 
-For a machine expecting sort \(T\), an occurrence token is accepted only if:
+For a machine expecting sort $T$, an occurrence token is accepted only if:
 
-\[
+$$
 \mathsf{token.sort}=T,
-\]
+$$
 
 its subject exists, its revision equals the current subject revision, and its domain-specific availability predicate holds.
 

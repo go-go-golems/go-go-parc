@@ -1605,8 +1605,8 @@ Transient code can be disposable while state remains inspectable. Persist only s
   "schema": "schema://dev.go-go.commit-compare/state/1",
   "revision": 14,
   "value": {
-    "left": {"$ref": "object://git.commit/abc123"},
-    "right": {"$ref": "object://git.commit/def456"},
+    "left": {"\$ref": "object://git.commit/abc123"},
+    "right": {"\$ref": "object://git.commit/def456"},
     "mode": "files"
   },
   "updatedAt": "2026-07-22T15:04:32Z",
@@ -3314,8 +3314,8 @@ The PBUI v2 envelope can use CloudEvents-like fields while preserving local term
   "tenant": "session://local-user",
   "seq": 99102,
   "data": {
-    "previous": {"$ref": "object://wm.window/n41"},
-    "current": {"$ref": "object://wm.window/n42"},
+    "previous": {"\$ref": "object://wm.window/n41"},
+    "current": {"\$ref": "object://wm.window/n42"},
     "workspace": "workspace://dev",
     "reason": "navigation.right"
   }

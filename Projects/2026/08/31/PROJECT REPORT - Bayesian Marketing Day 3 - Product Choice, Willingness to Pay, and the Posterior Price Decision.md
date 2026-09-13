@@ -32,11 +32,11 @@ This report is the complete technical account of Day 3 (ticket `day3-lab3-proj3`
 > - The hierarchical model (300 customers × 5 random-coefficient blocks) required the §C.5 repair ladder: 24 divergences at the handout's settings, R-hat 1.024 at `target_accept` 0.98, clean only at 0.99 with tune 4,000 — the funnel lives at near-zero heterogeneity scales, and the bimodal privacy preference mixture is beyond what normal random effects can represent.
 > - Individual recovery is partial by design: price magnitude correlates 0.63 and type-driven ornamental preference 0.55 with truth; privacy recovers 0.42 with compression 0.06 (the mixture averages away); six choices per customer do not identify a preference vector.
 > - Willingness to pay, computed draw-wise (never as a ratio of posterior means), came out wide and asymmetric: zone compatibility $78 [68, 92], privacy suitability $62 — levels confounded with the choice set, ratios more defensible than levels.
-> - The price decision: cut the Premium Specimen from $109 to $74, expected profit +$5.6k, P(beats current) = 0.99, the 5th-percentile profit at $74 exceeds the *expected* profit at $109, and both models put the optimum at exactly $74.
+> - The price decision: cut the Premium Specimen from $109 to $74, expected profit +\$5.6k, P(beats current) = 0.99, the 5th-percentile profit at \$74 exceeds the *expected* profit at \$109, and both models put the optimum at exactly \$74.
 
 ## 1. The choice problem, and what the prior believes
 
-Each of 1,800 tasks (300 customers × 6 tasks) shows four synthetic tree products — Fast Privacy Evergreen ($69), Compact Evergreen ($54), Flowering Ornamental ($64), Premium Specimen Tree ($109) — with displayed prices randomized ±$10, and records one choice among the four products and an outside option. Hidden from the analyst, each customer has a type (casual 55%, privacy 25%, ornamental 20%) driving preference mixtures: privacy types weight privacy features at mean 1.55 versus 0.20 for others, ornamental types weight flowering appeal at 1.30 versus 0.10, and every customer carries an idiosyncratic lognormal price magnitude (center 0.75 per $10), a size taste, and a strong zone-compatibility preference (center 1.60). All inside products share a +4.1 utility constant.
+Each of 1,800 tasks (300 customers × 6 tasks) shows four synthetic tree products — Fast Privacy Evergreen ($69), Compact Evergreen ($54), Flowering Ornamental ($64), Premium Specimen Tree ($109) — with displayed prices randomized ±\$10, and records one choice among the four products and an outside option. Hidden from the analyst, each customer has a type (casual 55%, privacy 25%, ornamental 20%) driving preference mixtures: privacy types weight privacy features at mean 1.55 versus 0.20 for others, ornamental types weight flowering appeal at 1.30 versus 0.10, and every customer carries an idiosyncratic lognormal price magnitude (center 0.75 per \$10), a size taste, and a strong zone-compatibility preference (center 1.60). All inside products share a +4.1 utility constant.
 
 The audit records the mechanisms before any model runs: the outside option wins 13.2% of tasks; Compact Evergreen leads at 42.3% and Premium Specimen trails at 1.2%; 87.5% of chosen products are zone-compatible for their customer; chosen products' displayed prices average $58 against $78 for unchosen. Zone compatibility and price are visible in the raw conditional frequencies.
 
@@ -69,7 +69,7 @@ flowchart TD
     style C1 fill:#f0f0f0
 ```
 
-The design array has shape (1,800, 5, 5). The alternative axis must match the integer choice labels exactly — the workshop's Hint 1 warns that a silent ordering error produces a well-sampled, meaningless model. The pipeline enforces the gate with assertions: the shape, the label range, and — decisively — that the outside option's row is all-zero. One design property dominates everything downstream: the four inside products have *fixed* profiles, so cross-product feature differences are perfectly collinear with product identity. Only the ±$10 price noise varies within product.
+The design array has shape (1,800, 5, 5). The alternative axis must match the integer choice labels exactly — the workshop's Hint 1 warns that a silent ordering error produces a well-sampled, meaningless model. The pipeline enforces the gate with assertions: the shape, the label range, and — decisively — that the outside option's row is all-zero. One design property dominates everything downstream: the four inside products have *fixed* profiles, so cross-product feature differences are perfectly collinear with product identity. Only the ±\$10 price noise varies within product.
 
 ## 3. The homogeneous model: coefficients as choice-set quantities
 
@@ -77,7 +77,7 @@ Model C0 fits one preference vector for the population, with the price coefficie
 
 | Coefficient | Posterior [90% HDI] | Generator center |
 |---|---|---:|
-| price magnitude (per $10) | 0.282 [0.233, 0.331] | 0.77 |
+| price magnitude (per \$10) | 0.282 [0.233, 0.331] | 0.77 |
 | privacy | 1.760 [1.406, 2.126] | 0.54 |
 | ornamental | 1.126 [0.846, 1.411] | 0.34 |
 | size index | −1.705 [−2.366, −1.065] | +0.55 |
@@ -105,17 +105,17 @@ Per-feature individual recovery, posterior means against truth: price magnitude 
 
 ![](_assets/bayes-day3-price_zone_ppc.png)
 
-The conditional checks separate mechanisms that overall shares cannot. Zone-*match* choice probability is reproduced almost exactly (observed 0.277, replicates 0.276), but zone-*miss* is under-predicted (observed 0.086 against replicate bands 0.037–0.058): the models know compatibility helps but under-learn how much incompatibility hurts. The price-level curve shows both models under-responding at the extremes: at $44 the observed choice probability is 0.599 against replicate means near 0.37. Heterogeneous price sensitivity is exactly what a near-homogeneous response function under-represents. Overall, Compact Evergreen's 42.3% observed share sits above both replicate bands (≈32%), and the outside option is over-predicted (18% versus 13%) — the residual is the type mixture that normal random effects average away. PSIS-LOO prefers C1 decisively (ELPD −2,190 versus −2,270, difference 80 with DSE 12, stacking weight 1.0), but the PPCs remain the honest ledger: neither model is fully adequate, and the residuals point at the mixture.
+The conditional checks separate mechanisms that overall shares cannot. Zone-*match* choice probability is reproduced almost exactly (observed 0.277, replicates 0.276), but zone-*miss* is under-predicted (observed 0.086 against replicate bands 0.037–0.058): the models know compatibility helps but under-learn how much incompatibility hurts. The price-level curve shows both models under-responding at the extremes: at \$44 the observed choice probability is 0.599 against replicate means near 0.37. Heterogeneous price sensitivity is exactly what a near-homogeneous response function under-represents. Overall, Compact Evergreen's 42.3% observed share sits above both replicate bands (≈32%), and the outside option is over-predicted (18% versus 13%) — the residual is the type mixture that normal random effects average away. PSIS-LOO prefers C1 decisively (ELPD −2,190 versus −2,270, difference 80 with DSE 12, stacking weight 1.0), but the PPCs remain the honest ledger: neither model is fully adequate, and the residuals point at the mixture.
 
 ![](_assets/bayes-day3-compare.png)
 
 ## 7. Willingness to pay, from joint draws
 
-For feature f, willingness to pay per posterior draw is $10 \cdot \beta_f / \lambda$ — computed draw-wise, never as a ratio of posterior means. Two facts make the joint posterior the only correct source: the expectation of a ratio is not the ratio of the expectations, and the ratio's tails are governed by the denominator's lower tail (draws where λ is small produce extreme WTP). Only the draw-wise distribution shows that behavior.
+For feature f, willingness to pay per posterior draw is \$10 \cdot \beta_f / \lambda\$ — computed draw-wise, never as a ratio of posterior means. Two facts make the joint posterior the only correct source: the expectation of a ratio is not the ratio of the expectations, and the ratio's tails are governed by the denominator's lower tail (draws where λ is small produce extreme WTP). Only the draw-wise distribution shows that behavior.
 
 ![](_assets/bayes-day3-wtp.png)
 
-The distributions are wide and asymmetric: zone compatibility $78.33 [67.69, 92.41], privacy suitability $62.46 [46.65, 82.51], ornamental appeal $39.81, and a size-index increase −$60.56 — the confounded sign from Section 3 carried into dollars. The interpretable reading is comparative: the constant-absorption confounding multiplies all coefficients by a common factor that partially cancels in β_f/λ, so *ratios* between features are more defensible than levels. The levels are dollar scalings of preference *within this four-product set with its inside constant*, not absolute valuations — RAM Chapter 11's caveat (WTP is a monetary scaling of preference, not automatically a market price) applies with extra force. The C1 cross-check (population mean zone WTP $87 [74, 107]; individual medians spanning $45–$105) confirms the magnitude class rather than the exact number.
+The distributions are wide and asymmetric: zone compatibility \$78.33 [67.69, 92.41], privacy suitability $62.46 [46.65, 82.51], ornamental appeal $39.81, and a size-index increase −\$60.56 — the confounded sign from Section 3 carried into dollars. The interpretable reading is comparative: the constant-absorption confounding multiplies all coefficients by a common factor that partially cancels in β_f/λ, so *ratios* between features are more defensible than levels. The levels are dollar scalings of preference *within this four-product set with its inside constant*, not absolute valuations — RAM Chapter 11's caveat (WTP is a monetary scaling of preference, not automatically a market price) applies with extra force. The C1 cross-check (population mean zone WTP \$87 [74, 107]; individual medians spanning $45–$105) confirms the magnitude class rather than the exact number.
 
 ## 8. The price decision
 
@@ -125,10 +125,10 @@ The simulation rebuilds the design with the Premium Specimen at each candidate p
 
 | Quantity | C1 | C0 |
 |---|---:|---:|
-| Profit-maximizing price | **$74** | $74 |
-| Expected profit at optimum | $22,998 | $22,745 |
-| 90% profit interval at optimum | [$17,575, $29,410] | [$17,237, $28,474] |
-| Expected profit at current $109 | $17,431 | $17,617 |
+| Profit-maximizing price | **$74** | \$74 |
+| Expected profit at optimum | \$22,998 | \$22,745 |
+| 90% profit interval at optimum | [\$17,575, $29,410] | [$17,237, \$28,474] |
+| Expected profit at current \$109 | $17,431 | $17,617 |
 | P(optimum beats current) | 0.992 | 0.998 |
 
 The recommendation is to cut the Premium Specimen from $109 to $74. The decision-theory content is in the downside comparison, not the argmax: the 5th-percentile profit at $74 ($17.6k) exceeds the *expected* profit at the current price ($17.4k). And the robustness argument is structural rather than statistical: the two models disagree about shares, about recovery, and about heterogeneity scales — and agree about the optimum to the dollar. When the fit layer is known-imperfect in specific ways and the decision layer is invariant across those imperfections, the recommendation stands on the invariance, not on either model's adequacy.

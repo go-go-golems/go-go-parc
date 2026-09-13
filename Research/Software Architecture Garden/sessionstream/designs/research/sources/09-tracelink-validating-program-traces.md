@@ -56,7 +56,7 @@ Figure 1: Trace validation as a search for paths in the state space.
 
 [^11]: H. Howard, E. Ashton, A. Chamayou, M. A. Kuppe, and N. Crooks. Towards smart casual verification of the Confidential Consortium Framework’s distributed protocols. In preparation, 2024.
 
-[^12]: Y. Howard, S. Gruner, A. Gravell, C. Ferreira, and J. C. Augusto. Model-based trace-checking. arXiv:1111.2825 \[cs\], Nov. 2011.
+[^12]: Y. Howard, S. Gruner, A. Gravell, C. Ferreira, and J. C. Augusto. Model-based trace-checking. arXiv:1111.2825 $$cs$$, Nov. 2011.
 
 [^13]: I. Konnov, M. Kuppe, and S. Merz. Specification and verification with the TLA <sup>+</sup> trifecta: TLC, Apalache, and TLAPS. In T. Margaria and B. Steffen, editors, Leveraging Applications of Formal Methods, Verification and Validation. Verification Principles, volume 13701, pages 88–105. Springer, 2022.
 

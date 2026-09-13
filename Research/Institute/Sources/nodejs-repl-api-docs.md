@@ -512,7 +512,7 @@ Goodbye!
 copy
 ```
 
-#### replServer.displayPrompt(\[preserveCursor\])
+#### replServer.displayPrompt($$preserveCursor$$)
 
 - `preserveCursor` [`<boolean>`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#boolean_type)
 
@@ -559,7 +559,7 @@ npx codemod@latest @nodejs/repl-builtin-modules
 copy
 ```
 
-### repl.start(\[options\])
+### repl.start($$options$$)
 
 - `options` [`<Object>`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) | [`<string>`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type)
 	- `prompt` [`<string>`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) The input prompt to display. **Default:** `'> '` (with a trailing space).

@@ -49,20 +49,20 @@ Suppose I assert:
 
 **“There exists an x such that P(x).”**
 
-Classically, a proof may establish that such an \(x\) must exist without giving you one.
+Classically, a proof may establish that such an $x$ must exist without giving you one.
 
 For the constructive/intuitionistic interpretation, establishing existence means something much stronger:
 
-**Give me an \(x\), and give me the construction demonstrating \(P(x)\).**
+**Give me an $x$, and give me the construction demonstrating $P(x)$.**
 
 Likewise:
 
-- \(A \land B\): construct evidence for **both** A and B.
-- \(A \lor B\): construct evidence for A **or** construct evidence for B, and indicate which.
-- \(A \rightarrow B\): possess a method that turns any construction of A into a construction of B.
-- \(\exists x\,P(x)\): produce an \(x\) together with evidence for \(P(x)\).
+- $A \land B$: construct evidence for **both** A and B.
+- $A \lor B$: construct evidence for A **or** construct evidence for B, and indicate which.
+- $A \rightarrow B$: possess a method that turns any construction of A into a construction of B.
+- $\exists x\,P(x)$: produce an $x$ together with evidence for $P(x)$.
 
-This is the later **Brouwer–Heyting–Kolmogorov interpretation**. It is why intuitionistic logic does not accept unrestricted \(A\lor\neg A\), the law of excluded middle: unless you can actually construct one side, merely saying “one of them must be true” does not supply the demanded mathematical knowledge. citeturn836865search2
+This is the later **Brouwer–Heyting–Kolmogorov interpretation**. It is why intuitionistic logic does not accept unrestricted $A\lor\neg A$, the law of excluded middle: unless you can actually construct one side, merely saying “one of them must be true” does not supply the demanded mathematical knowledge. citeturn836865search2
 
 And here programming suddenly appears.
 
@@ -72,45 +72,45 @@ And here programming suddenly appears.
 
 Under the later **Curry–Howard correspondence**:
 
-\[
+$$
 \text{proposition} \quad\leftrightarrow\quad \text{type}
-\]
+$$
 
-\[
+$$
 \text{proof} \quad\leftrightarrow\quad \text{program}
-\]
+$$
 
 And logical constructions line up remarkably well with programming constructs:
 
-\[
+$$
 A\land B \quad\leftrightarrow\quad A\times B
-\]
+$$
 
 a pair;
 
-\[
+$$
 A\lor B \quad\leftrightarrow\quad A+B
-\]
+$$
 
 a tagged alternative;
 
-\[
+$$
 A\rightarrow B \quad\leftrightarrow\quad A\to B
-\]
+$$
 
 a function;
 
-\[
+$$
 \exists x:A.\,P(x)
-\]
+$$
 
-corresponds roughly to a dependent pair containing **a value \(x\)** and **evidence that it satisfies \(P\)**. citeturn176003search1turn176003search8
+corresponds roughly to a dependent pair containing **a value $x$** and **evidence that it satisfies $P$**. citeturn176003search1turn176003search8
 
 So consider:
 
-\[
+$$
 A\rightarrow B
-\]
+$$
 
 In ordinary classical language you might hear this as:
 
@@ -195,7 +195,7 @@ Creativity becomes search through a pre-existing possibility space.
 
 Something comes into existence through an unfolding activity.
 
-At stage \(t_0\), there isn't yet a completed object.
+At stage $t_0$, there isn't yet a completed object.
 
 You make a move.
 
@@ -207,13 +207,13 @@ Those possibilities were conditioned by what you just created.
 
 So:
 
-\[
+$$
 S_0
 \rightarrow S_1
 \rightarrow S_2
 \rightarrow S_3
 \rightarrow\cdots
-\]
+$$
 
 The final object wasn't necessarily sitting there fully determined before the process began.
 
@@ -266,9 +266,9 @@ Context continually modifies the construction.
 
 So one can generalize the intuitionistic insight:
 
-\[
+$$
 \boxed{\text{Meaning is not merely represented; meaning is constructed.}}
-\]
+$$
 
 That's not literally Brouwer's theory of natural-language semantics—I'm extending the idea—but it is a productive philosophical extension.
 
@@ -282,13 +282,13 @@ Programming language gives instructions whose structures can actually be **execu
 
 You could therefore imagine a spectrum:
 
-\[
+$$
 \text{natural language}
 \longrightarrow
 \text{mathematical language}
 \longrightarrow
 \text{programming language}
-\]
+$$
 
 with increasing constraints on permissible reconstruction.
 
@@ -298,7 +298,7 @@ with increasing constraints on permissible reconstruction.
 
 I think the connection you're noticing can be condensed into this:
 
-\[
+$$
 \boxed{
 \text{meaning}
 \quad
@@ -306,7 +306,7 @@ I think the connection you're noticing can be condensed into this:
 \quad
 \text{program}
 }
-\]
+$$
 
 All three can be viewed not merely as static representations but as **things you know through being able to perform a construction**.
 
@@ -341,9 +341,9 @@ Here are the main applications.
 
 For example,
 
-\[
+$$
 A \rightarrow B
-\]
+$$
 
 becomes a function type:
 
@@ -351,13 +351,13 @@ becomes a function type:
 A -> B
 ```
 
-To prove \(A \to B\), you literally construct something that accepts an `A` and returns a `B`.
+To prove $A \to B$, you literally construct something that accepts an `A` and returns a `B`.
 
 Similarly, conjunction:
 
-\[
+$$
 A \land B
-\]
+$$
 
 becomes a pair:
 
@@ -367,9 +367,9 @@ becomes a pair:
 
 and disjunction:
 
-\[
+$$
 A \lor B
-\]
+$$
 
 becomes a tagged choice such as:
 
@@ -422,17 +422,17 @@ Dimension mismatch becomes a type error rather than a runtime bug.
 
 Suppose you prove:
 
-\[
+$$
 \forall n,\; n + 0 = n
-\]
+$$
 
 You don't merely tell the system, “trust me.” You construct a proof term that the kernel can check.
 
 More interestingly, you can specify:
 
-\[
+$$
 \forall n,\exists p,\; p > n
-\]
+$$
 
 A constructive proof cannot merely establish abstractly that such a `p` exists. It effectively needs a method for producing one.
 
@@ -448,9 +448,9 @@ This leads directly to the next application.
 
 4. **Extracting programs from proofs.** Suppose you constructively prove:
 
-\[
+$$
 \forall x:A,\exists y:B,\;P(x,y)
-\]
+$$
 
 Constructively, that proof contains enough information to take an arbitrary `x` and produce a corresponding `y`.
 
@@ -488,11 +488,11 @@ Examples include verified cryptographic implementations, operating-system compon
 
 One famous idea is a **verified compiler**. Instead of merely testing that the compiler usually preserves program behavior, you prove something like:
 
-\[
+$$
 \text{behavior(source)}
 =
 \text{behavior(compiled(source))}
-\]
+$$
 
 The proof accompanies the implementation.
 
@@ -512,9 +512,9 @@ Constructive type theories often care much more strongly about whether a constru
 
 A total function
 
-\[
+$$
 A\rightarrow B
-\]
+$$
 
 really means:
 
@@ -530,9 +530,9 @@ This makes types correspond much more closely to mathematical propositions.
 
 7. **Avoiding hidden nonconstructive assumptions.** Consider classical logic's:
 
-\[
+$$
 P\lor\neg P.
-\]
+$$
 
 Classically, every proposition is either true or false.
 
@@ -558,9 +558,9 @@ For arbitrary propositions, you may have no algorithm capable of deciding which.
 
 So intuitionistic logic exposes an important programming distinction:
 
-\[
+$$
 \boxed{\text{truth} \neq \text{decidability}}
-\]
+$$
 
 A statement can have a definite mathematical status without there necessarily being a program that determines that status.
 
@@ -615,9 +615,9 @@ The important distinction, though, is between **intuitionistic logic** and **Bro
 
 Applied to programming, that suggests an interesting design principle:
 
-\[
+$$
 \boxed{\text{Don't ask only what a representation says. Ask what operations it enables you to perform.}}
-\]
+$$
 
 A type is not merely a label. A proof isn't merely a sentence. An interface isn't merely documentation. Each specifies a space of **possible constructions**.
 

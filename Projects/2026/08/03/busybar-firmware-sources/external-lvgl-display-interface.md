@@ -8,7 +8,7 @@ type: source
 
 Original ticket source file: `external-lvgl-display-interface.md`.
 
-[\[中文\]](https://lvgl.100ask.net/v9.2/porting/display.html)
+[$$中文$$](https://lvgl.100ask.net/v9.2/porting/display.html)
 
 ## Display interface
 

@@ -65,33 +65,33 @@ The internal logic of a topos generally has **generalized truth values** rather 
 
 For code reasoning, a stage could contain:
 
-\[
+$$
 c=(\text{repository version},\text{assumptions},\text{tests},
 \text{dependencies},\text{tools},\text{resource budget}).
-\]
+$$
 
-Let \(C\) be a category of such contexts and work in a presheaf topos
+Let $C$ be a category of such contexts and work in a presheaf topos
 
-\[
+$$
 \mathcal E=\mathbf{Set}^{C^{op}}.
-\]
+$$
 
-For a claim \(P\), such as “this function preserves sortedness,” define an evidence presheaf
+For a claim $P$, such as “this function preserves sortedness,” define an evidence presheaf
 
-\[
+$$
 \operatorname{Ev}_P(c)
-   =\{\text{certificates for \(P\) accepted in context \(c\)}\}.
-\]
+   =\{\text{certificates for $P$ accepted in context $c$}\}.
+$$
 
-The truth value of \(P\) at \(c\) can then be represented by the collection of refinements
+The truth value of $P$ at $c$ can then be represented by the collection of refinements
 
-\[
+$$
 \llbracket P\rrbracket_c
  =
  \{\,f:c'\to c\mid \operatorname{Ev}_P(c')\neq\varnothing\,\}.
-\]
+$$
 
-This is a generalized truth value: it says **under which refinements, added assumptions, or stronger verification environments the claim becomes established**. It is not a number such as \(0.83\).
+This is a generalized truth value: it says **under which refinements, added assumptions, or stronger verification environments the claim becomes established**. It is not a number such as $0.83$.
 
 This is particularly useful for modular software. A property may be proved separately over modules, configurations, or dependency versions, and compatible local evidence may sometimes be glued into global evidence.
 
@@ -103,28 +103,28 @@ In realizability, a proposition is associated with computational objects that re
 
 You could write
 
-\[
+$$
 M,r\Vdash P
-\]
+$$
 
 to mean:
 
-> Agent \(M\), using resource budget \(r\), can produce an admissible realizer or certificate for \(P\).
+> Agent $M$, using resource budget $r$, can produce an admissible realizer or certificate for $P$.
 
-Here \(M\) should probably not be the bare neural network. It should be the composite system
+Here $M$ should probably not be the bare neural network. It should be the composite system
 
-\[
+$$
 M=\text{LLM}+\text{prompting strategy}+\text{tools}+\text{retrieval}
 +\text{candidate checker}.
-\]
+$$
 
 This gives **model-relative provability**, not absolute truth.
 
-If \(M\preceq N\) means that \(N\) can simulate all the verification abilities of \(M\), then one might have
+If $M\preceq N$ means that $N$ can simulate all the verification abilities of $M$, then one might have
 
-\[
+$$
 M\Vdash P\quad\Longrightarrow\quad N\Vdash P.
-\]
+$$
 
 Lawvere–Tierney topologies and related modalities are relevant here because, in effective-topos settings, they can represent changes in available computational oracles and corresponding changes in truth values. citeturn559202view2turn378400academia41
 
@@ -132,26 +132,26 @@ That analogy should not be pushed too literally: an arbitrary LLM upgrade is unl
 
 ## Where probability enters
 
-The subobject classifier \(\Omega\) of a topos should generally **not** be interpreted as a space of probabilities. A sieve or local truth value records *where and under what refinements* something holds. A probability records uncertainty under a distribution.
+The subobject classifier $\Omega$ of a topos should generally **not** be interpreted as a space of probabilities. A sieve or local truth value records *where and under what refinements* something holds. A probability records uncertainty under a distribution.
 
-To add actual probabilistic uncertainty, place a probability or valuation monad \(\mathcal D\) on the relevant category, or use a Markov category. Probability monads and Markov categories provide categorical models of stochastic maps, distributions, conditioning, and compositional probabilistic processes. citeturn746924search2turn559202view3
+To add actual probabilistic uncertainty, place a probability or valuation monad $\mathcal D$ on the relevant category, or use a Markov category. Probability monads and Markov categories provide categorical models of stochastic maps, distributions, conditioning, and compositional probabilistic processes. citeturn746924search2turn559202view3
 
 The LLM could then be represented as a stochastic map
 
-\[
+$$
 L_M :
 \operatorname{Context}
 \longrightarrow
 \mathcal D(\operatorname{Claim}\times\operatorname{CandidateEvidence}).
-\]
+$$
 
 A belief judgment might be
 
-\[
+$$
 B^{M}_{[\ell,u]}P,
-\]
+$$
 
-meaning that, under a specified calibration distribution and context, the estimated probability that \(P\) is semantically correct lies in \([\ell,u]\).
+meaning that, under a specified calibration distribution and context, the estimated probability that $P$ is semantically correct lies in $[\ell,u]$.
 
 Intervals are preferable to bare point estimates because model uncertainty, distribution shift, and verifier error are rarely known precisely. Partial Markov categories are also relevant: they combine probabilistic behavior with partiality, failure, constraints, and Bayesian updating. citeturn559202view5
 
@@ -159,56 +159,56 @@ Intervals are preferable to bare point estimates because model uncertainty, dist
 
 I would keep at least four modalities separate:
 
-\[
+$$
 \begin{aligned}
 \Diamond_{M,r}P
-&:\quad \text{\(M\) can produce candidate evidence for \(P\) within \(r\)},\\
+&:\quad \text{$M$ can produce candidate evidence for $P$ within $r$},\\
 B^M_{[\ell,u]}P
-&:\quad \text{\(M\)'s calibrated belief in \(P\) lies in \([\ell,u]\)},\\
+&:\quad \text{$M$'s calibrated belief in $P$ lies in $[\ell,u]$},\\
 T_S P
-&:\quad \text{\(P\) has survived test/analysis suite \(S\)},\\
+&:\quad \text{$P$ has survived test/analysis suite $S$},\\
 \Box_V P
-&:\quad \text{trusted verifier \(V\) has certified \(P\)}.
+&:\quad \text{trusted verifier $V$ has certified $P$}.
 \end{aligned}
-\]
+$$
 
 They should obey very different rules:
 
-\[
+$$
 \Box_V P\Rightarrow P
-\]
+$$
 
-is valid only when there is a metatheoretic soundness theorem for \(V\).
+is valid only when there is a metatheoretic soundness theorem for $V$.
 
 But neither
 
-\[
+$$
 \Diamond_{M,r}P\Rightarrow P
-\]
+$$
 
 nor
 
-\[
+$$
 B^M_{0.99}P\Rightarrow P
-\]
+$$
 
 is valid.
 
 For a sound verifier, one should have something like
 
-\[
+$$
 \Box_V(P\to Q)\land\Box_VP\Rightarrow\Box_VQ.
-\]
+$$
 
 There is no equally simple rule for probabilistic belief. From
 
-\[
+$$
 B_\alpha P
 \quad\text{and}\quad
 B_\beta(P\to Q)
-\]
+$$
 
-one cannot derive a particular probability for \(Q\) without assumptions about dependence and calibration.
+one cannot derive a particular probability for $Q$ without assumptions about dependence and calibration.
 
 Graded modal type theories provide existing machinery for attaching ordered or algebraic grades to judgments and tracking quantitative properties compositionally. citeturn559202view4turn746924search19 Grades could represent resource budgets, verification depth, coverage, or empirically calibrated reliability—although probability grades require more care than ordinary resource grades.
 
@@ -218,25 +218,25 @@ Graded modal type theories provide existing machinery for attaching ordered or a
 
 That means raw test success should not directly inhabit the topos’s object of truth values. Instead, it should be represented as an **observation**:
 
-\[
+$$
 \operatorname{Passed}(P,S),
-\]
+$$
 
 while the stronger proposition
 
-\[
+$$
 \operatorname{Certified}_V(P)
-\]
+$$
 
-is persistent when \(V\) is sound.
+is persistent when $V$ is sound.
 
 The probabilistic layer can update after new observations:
 
-\[
+$$
 B^M(P\mid S)
 \quad\leadsto\quad
 B^M(P\mid S+\text{new evidence}).
-\]
+$$
 
 This separation is essential for modeling defeasible reasoning.
 
@@ -244,7 +244,7 @@ This separation is essential for modeling defeasible reasoning.
 
 The most coherent foundation would be:
 
-\[
+$$
 \boxed{
 \text{sheaf/presheaf semantics for context}
 +
@@ -254,17 +254,17 @@ The most coherent foundation would be:
 +
 \text{Markov/probability structure for belief}
 }
-\]
+$$
 
 with a hard boundary between:
 
-\[
+$$
 \text{candidate evidence}
 \;<\;
 \text{empirically supported assertion}
 \;<\;
 \text{machine-checked certificate}.
-\]
+$$
 
 For implementation, a graded indexed modal logic would probably be simpler than constructing a full topos immediately. The topos would serve as its denotational semantics and explain locality, refinement, modularity, and agent-relative evidence.
 

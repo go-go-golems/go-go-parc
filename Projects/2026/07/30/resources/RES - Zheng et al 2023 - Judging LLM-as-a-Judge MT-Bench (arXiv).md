@@ -16,16 +16,16 @@ type: resource
 | Comments: |
 | --- |
 | Subjects: | Computation and Language (cs.CL); Artificial Intelligence (cs.AI) |
-| Cite as: | [arXiv:2306.05685](https://arxiv.org/abs/2306.05685) \[cs.CL\] |
-|  | (or [arXiv:2306.05685v4](https://arxiv.org/abs/2306.05685v4) \[cs.CL\] for this version) |
+| Cite as: | [arXiv:2306.05685](https://arxiv.org/abs/2306.05685) $$cs.CL$$ |
+|  | (or [arXiv:2306.05685v4](https://arxiv.org/abs/2306.05685v4) $$cs.CL$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.2306.05685](https://doi.org/10.48550/arXiv.2306.05685) |
 
 ## Submission history
 
-From: Lianmin Zheng \[[view email](https://arxiv.org/show-email/a5abb353/2306.05685)\]  
-**[\[v1\]](https://arxiv.org/abs/2306.05685v1)** Fri, 9 Jun 2023 05:55:52 UTC (1,667 KB)  
-**[\[v2\]](https://arxiv.org/abs/2306.05685v2)** Wed, 12 Jul 2023 01:42:26 UTC (1,708 KB)  
-**[\[v3\]](https://arxiv.org/abs/2306.05685v3)** Sun, 15 Oct 2023 06:42:51 UTC (1,914 KB)  
-**\[v4\]** Sun, 24 Dec 2023 02:01:34 UTC (1,711 KB)
+From: Lianmin Zheng $$[view email](https://arxiv.org/show-email/a5abb353/2306.05685)$$  
+**[$$v1$$](https://arxiv.org/abs/2306.05685v1)** Fri, 9 Jun 2023 05:55:52 UTC (1,667 KB)  
+**[$$v2$$](https://arxiv.org/abs/2306.05685v2)** Wed, 12 Jul 2023 01:42:26 UTC (1,708 KB)  
+**[$$v3$$](https://arxiv.org/abs/2306.05685v3)** Sun, 15 Oct 2023 06:42:51 UTC (1,914 KB)  
+**$$v4$$** Sun, 24 Dec 2023 02:01:34 UTC (1,711 KB)
 
 [Which authors of this paper are endorsers?](https://arxiv.org/auth/show-endorsers/2306.05685) | Disable MathJax ([What is MathJax?](https://info.arxiv.org/help/mathjax.html))

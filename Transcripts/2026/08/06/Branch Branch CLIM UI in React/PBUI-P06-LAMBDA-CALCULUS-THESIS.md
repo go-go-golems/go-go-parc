@@ -33,13 +33,13 @@ This thesis studies the relationship between the lambda calculus and a typed pre
 
 At the syntactic level, a typed port is closely related to a free variable declaration. An open component is a term in a typing context. A directional connection is naturally modeled by typed substitution or `let`-binding. An action that awaits a second object is a partially applied function, while an active selection request is a typed continuation or algebraic effect. A registry of operations indexed by presentation type is related to dictionary passing and existential packaging of typed values.
 
-Identity linking, however, is not ordinary beta reduction. Linking two ports asserts that two local interface occurrences refer to one binding or location. If the set of local port occurrences is \(P\), the declared links determine parallel endpoint maps \(s,t:E\rightrightarrows P\), and the compiler forms a quotient
+Identity linking, however, is not ordinary beta reduction. Linking two ports asserts that two local interface occurrences refer to one binding or location. If the set of local port occurrences is $P$, the declared links determine parallel endpoint maps $s,t:E\rightrightarrows P$, and the compiler forms a quotient
 
-\[
+$$
 q:P\longrightarrow Q=\operatorname{coeq}(s,t).
-\]
+$$
 
-The quotient acts on *names or interface occurrences*. Semantically, environments vary contravariantly: a value assignment on binding classes, \(V^Q\), induces a compatible assignment on local ports, \(V^P\), by precomposition with \(q\). Thus a coequalizer on syntax corresponds to an equalizer-like subspace of environments. In the simply typed lambda calculus this is the semantic shape of contraction or aliasing: two variable occurrences are supplied from one source. In a stateful language, the stronger interpretation is that the ports share a location of type `Ref A`, not merely equal values of type `A`.
+The quotient acts on *names or interface occurrences*. Semantically, environments vary contravariantly: a value assignment on binding classes, $V^Q$, induces a compatible assignment on local ports, $V^P$, by precomposition with $q$. Thus a coequalizer on syntax corresponds to an equalizer-like subspace of environments. In the simply typed lambda calculus this is the semantic shape of contraction or aliasing: two variable occurrences are supplied from one source. In a stateful language, the stronger interpretation is that the ports share a location of type `Ref A`, not merely equal values of type `A`.
 
 This distinction clarifies several design questions. A quotient determines topology but not conflict resolution. Linking two live cells with different values requires an explicit effectful merge policy. Unlinking is not an inverse quotient or inverse substitution; it requires retained provenance and a policy for initializing newly separated resources. Full widget renderings generally do not factor through the quotient because a chart and a pipeline may render the same binding differently. What factors canonically is the shared resource, binding identity, or binding-level observation. Local rendering remains an occurrence-indexed interpretation of that resource.
 
@@ -66,12 +66,12 @@ This thesis makes the following architectural and semantic contributions.
 
 - It gives a precise correspondence between **open typed components** and lambda terms in context.
 - It separates **directional connection as substitution** from **identity linking as contraction or aliasing**.
-- It derives the semantic map from a port quotient \(q:P\to Q\) to compatible environments \(V^Q\to V^P\).
+- It derives the semantic map from a port quotient $q:P\to Q$ to compatible environments $V^Q\to V^P$.
 - It explains why P06 should quotient **port occurrences**, while maintaining persistent binding identities outside union-find representatives.
 - It corrects the over-strong claim that linked ports must render the same widget. Linked ports share a resource; their local renderings may remain intentionally different.
 - It relates selection and accept mode to typed continuations, partial application, evaluation contexts, and algebraic effects.
 - It places read/write modes, authority, multiplicity, and update algebra in the landscape of refinement, linear, capability, and session typing.
-- It proposes a compact **PBUI lambda calculus**, called \(\lambda_{\mathrm{PB}}\), with values, computations, ports, references, links, and observations.
+- It proposes a compact **PBUI lambda calculus**, called $\lambda_{\mathrm{PB}}$, with values, computations, ports, references, links, and observations.
 - It states a theorem catalogue for type safety, quotient coherence, factorization, link-order invariance, alpha-renaming, contextual equivalence, and optimized-compiler refinement.
 - It gives a staged mechanization and implementation plan connecting Lean specifications to a TypeScript reference interpreter and optimized binding compiler.
 
@@ -81,22 +81,22 @@ The core notation is summarized below.
 
 | Notation | Meaning |
 |---|---|
-| \(A,B,C\) | semantic or programming-language types |
-| \(x,y,z\) | lambda-bound variables |
-| \(p,r\) | local typed port occurrences |
-| \(P_\tau\) | port occurrences in contract fiber \(\tau\) |
-| \(E_\tau\) | identity-link declarations in contract fiber \(\tau\) |
-| \(s,t:E_\tau\rightrightarrows P_\tau\) | source and target endpoint maps |
-| \(q_\tau:P_\tau\to Q_\tau\) | quotient projection to binding classes |
-| \(\Gamma\) | typing context or open component boundary |
-| \(\rho\) | environment assigning meanings to variables or ports |
-| \(\sigma\) | store assigning values to runtime locations |
-| \(\ell\) | runtime location or resource identifier |
-| \(M[N/x]\) | capture-avoiding substitution |
-| \(\llbracket M\rrbracket\) | denotation of term or component \(M\) |
-| \(M\Downarrow V\) | big-step evaluation |
-| \(M\to M'\) | small-step transition |
-| \(\simeq_{ctx}\) | contextual equivalence |
+| $A,B,C$ | semantic or programming-language types |
+| $x,y,z$ | lambda-bound variables |
+| $p,r$ | local typed port occurrences |
+| $P_\tau$ | port occurrences in contract fiber $\tau$ |
+| $E_\tau$ | identity-link declarations in contract fiber $\tau$ |
+| $s,t:E_\tau\rightrightarrows P_\tau$ | source and target endpoint maps |
+| $q_\tau:P_\tau\to Q_\tau$ | quotient projection to binding classes |
+| $\Gamma$ | typing context or open component boundary |
+| $\rho$ | environment assigning meanings to variables or ports |
+| $\sigma$ | store assigning values to runtime locations |
+| $\ell$ | runtime location or resource identifier |
+| $M[N/x]$ | capture-avoiding substitution |
+| $\llbracket M\rrbracket$ | denotation of term or component $M$ |
+| $M\Downarrow V$ | big-step evaluation |
+| $M\to M'$ | small-step transition |
+| $\simeq_{ctx}$ | contextual equivalence |
 
 Readers mainly interested in API design can read Chapters 1, 5-10, 17, and 22-24. Readers interested in formal semantics should additionally read Chapters 2-4, 11-16, and 19-21. Chapter 25 gives a compact research agenda.
 
@@ -118,15 +118,15 @@ The key abstraction is therefore not merely a React component:
 
 It is a judgment that one rendered occurrence offers a value under a semantic type:
 
-\[
+$$
 \textsf{occurrence } o \textsf{ presents } v:A.
-\]
+$$
 
 When a command needs a second object, the shell enters a mode that can be read informally as:
 
-\[
+$$
 \textsf{choose a currently presented inhabitant of } A.
-\]
+$$
 
 This already places the architecture near typed lambda calculus. A pending action has a missing typed argument; visible presentations are candidate values; acceptance supplies one value; and the action continues.
 
@@ -190,37 +190,37 @@ The qualification “effectful, resource-aware” is essential. Pure lambda subs
 
 The untyped lambda calculus has three constructors:
 
-\[
+$$
 M,N ::= x \mid \lambda x.M \mid M\;N.
-\]
+$$
 
 A variable stands for an input supplied by an environment. An abstraction packages a term while binding one variable. Application supplies an argument to a function. Church used lambda-definability as part of a formal account of effective calculability; later programming-language work turned the calculus into a core language for higher-order computation (Church 1936).
 
 The principal computation rule is beta reduction:
 
-\[
+$$
 (\lambda x.M)\;N \to_\beta M[N/x].
-\]
+$$
 
-Here \(M[N/x]\) means capture-avoiding substitution of \(N\) for free occurrences of \(x\) in \(M\).
+Here $M[N/x]$ means capture-avoiding substitution of $N$ for free occurrences of $x$ in $M$.
 
 Two additional equality principles matter throughout this thesis.
 
 **Alpha equivalence** treats bound-variable names as irrelevant:
 
-\[
+$$
 \lambda x.M \equiv_\alpha \lambda y.M[y/x]
-\]
+$$
 
 when the renaming avoids capture.
 
 **Eta equivalence** expresses extensionality:
 
-\[
+$$
 \lambda x.f\;x \equiv_\eta f
-\]
+$$
 
-when \(x\) is not free in \(f\).
+when $x$ is not free in $f$.
 
 These three equalities anticipate three PBUI concerns:
 
@@ -232,11 +232,11 @@ These three equalities anticipate three PBUI concerns:
 
 A term is **closed** when it has no free variables. Otherwise it is open. For example:
 
-\[
+$$
 x\;y
-\]
+$$
 
-is open in \(x\) and \(y\). A component whose document and filter ports have not yet been connected is likewise open. Its meaning depends on an environment that supplies these inputs.
+is open in $x$ and $y$. A component whose document and filter ports have not yet been connected is likewise open. Its meaning depends on an environment that supplies these inputs.
 
 This is the first exact structural correspondence:
 
@@ -255,40 +255,40 @@ The correspondence becomes precise only after types are added.
 
 Types are generated from base types and function types:
 
-\[
+$$
 A,B ::= \iota \mid A\to B.
-\]
+$$
 
 A typing context is a finite list of variable declarations:
 
-\[
+$$
 \Gamma = x_1:A_1,\ldots,x_n:A_n.
-\]
+$$
 
 A typing judgment
 
-\[
+$$
 \Gamma\vdash M:A
-\]
+$$
 
-states that term \(M\) has type \(A\) when its free variables are supplied according to \(\Gamma\).
+states that term $M$ has type $A$ when its free variables are supplied according to $\Gamma$.
 
 The core rules are:
 
-\[
+$$
 \frac{x:A\in\Gamma}{\Gamma\vdash x:A}
 \qquad
 \frac{\Gamma,x:A\vdash M:B}{\Gamma\vdash \lambda x.M:A\to B}
 \qquad
 \frac{\Gamma\vdash M:A\to B\quad\Gamma\vdash N:A}{\Gamma\vdash M\;N:B}.
-\]
+$$
 
 The substitution lemma is the central compositional theorem:
 
-\[
+$$
 \frac{\Gamma,x:A\vdash M:B\qquad\Gamma\vdash N:A}
      {\Gamma\vdash M[N/x]:B}.
-\]
+$$
 
 P06's contract compatibility check is an enriched form of the premise that the supplied argument and receiving variable agree on type.
 
@@ -298,29 +298,29 @@ Real component interfaces need more than function types.
 
 Products describe simultaneous inputs:
 
-\[
+$$
 A\times B.
-\]
+$$
 
 Sums describe tagged alternatives such as events:
 
-\[
+$$
 A+B.
-\]
+$$
 
 Existential types package values whose exact type is hidden but accompanied by operations or a runtime witness:
 
-\[
+$$
 \exists A.\;\textsf{TypeRep}(A)\times A.
-\]
+$$
 
-This is close to a heterogeneous presentation reference: “there exists a presentation type \(A\), together with its type token and value.” A TypeScript discriminated union is a finite, first-order approximation to this existential packaging.
+This is close to a heterogeneous presentation reference: “there exists a presentation type $A$, together with its type token and value.” A TypeScript discriminated union is a finite, first-order approximation to this existential packaging.
 
 Mutable binding resources require a reference type:
 
-\[
+$$
 \operatorname{Ref} A.
-\]
+$$
 
 A port carrying `DocumentId` is not automatically a reference. P06's projected binding resource behaves more like a value of `Ref DocumentId`: it can be read, written, observed, and shared by multiple local endpoints.
 
@@ -334,10 +334,10 @@ Ordinary simply typed lambda calculus uses a cartesian context discipline. Varia
 
 Contraction is especially important:
 
-\[
+$$
 \frac{\Gamma,x:A,y:A\vdash M:B}
      {\Gamma,z:A\vdash M[z/x,z/y]:B}.
-\]
+$$
 
 This rule identifies two input positions with one supplied value. An identity link between two read-only value ports has exactly this static shape. For shared mutable resources, contraction must be interpreted as aliasing one reference, not copying its current contents.
 
@@ -359,24 +359,24 @@ The lambda calculus primarily organizes the core language. A React callback is a
 
 Operational semantics specifies how configurations step:
 
-\[
+$$
 \langle M,\sigma\rangle\to\langle M',\sigma'\rangle.
-\]
+$$
 
 For PBUI, a configuration includes more than a term:
 
-\[
+$$
 \langle C,G,Q,\sigma,I,O\rangle,
-\]
+$$
 
 where:
 
-- \(C\) is component-local state;
-- \(G\) is the durable port/link graph;
-- \(Q\) is the compiled binding plan;
-- \(\sigma\) maps binding resources to current values;
-- \(I\) is the active interaction machine;
-- \(O\) is mounted occurrence state.
+- $C$ is component-local state;
+- $G$ is the durable port/link graph;
+- $Q$ is the compiled binding plan;
+- $\sigma$ maps binding resources to current values;
+- $I$ is the active interaction machine;
+- $O$ is mounted occurrence state.
 
 A user event, command, or external response produces the next configuration and possibly effects.
 
@@ -384,43 +384,43 @@ A user event, command, or external response produces the next configuration and 
 
 Denotational semantics assigns mathematical meanings compositionally. In the simply typed lambda calculus, a context
 
-\[
+$$
 x_1:A_1,\ldots,x_n:A_n
-\]
+$$
 
 is interpreted as a product:
 
-\[
+$$
 \llbracket\Gamma\rrbracket
 =
 \llbracket A_1\rrbracket\times\cdots\times\llbracket A_n\rrbracket.
-\]
+$$
 
 A term is interpreted as a morphism:
 
-\[
+$$
 \llbracket\Gamma\vdash M:B\rrbracket:
 \llbracket\Gamma\rrbracket\longrightarrow\llbracket B\rrbracket.
-\]
+$$
 
 Cartesian closed categories provide the products and exponentials needed to interpret products and function types. Conversely, the typed lambda calculus presents a free cartesian closed category modulo its equations; this is the Curry-Howard-Lambek connection developed in categorical logic (Lambek 1985).
 
-For effectful PBUI computations, the codomain is not simply \(B\). A monadic account uses:
+For effectful PBUI computations, the codomain is not simply $B$. A monadic account uses:
 
-\[
+$$
 \llbracket\Gamma\vdash M:B\rrbracket:
 \llbracket\Gamma\rrbracket\to T\llbracket B\rrbracket,
-\]
+$$
 
-where \(T\) accounts for state, exceptions, nondeterminism, asynchronous requests, or another effect (Moggi 1991).
+where $T$ accounts for state, exceptions, nondeterminism, asynchronous requests, or another effect (Moggi 1991).
 
 ## Contextual equivalence
 
 Two implementations are interchangeable when no permitted context can distinguish them:
 
-\[
+$$
 M\simeq_{ctx}N.
-\]
+$$
 
 This is stronger and more relevant than object equality. A reference graph compiler and a union-find compiler may allocate different internal representatives, yet be contextually equivalent if every public query, projection, trace, and persistence operation produces the same observable result up to permitted renaming.
 
@@ -439,9 +439,9 @@ A port declaration has at least two identities:
 
 Two occurrences may share a contract without being connected. This is analogous to two variables with the same type:
 
-\[
+$$
 x:A,\;y:A.
-\]
+$$
 
 Their shared type does not make them the same variable. Likewise, the following ports are compatible candidates for linking but remain distinct before a link is declared:
 
@@ -452,60 +452,60 @@ pipeline.document : PrimaryDocumentCell
 
 A component boundary is therefore a typed context:
 
-\[
+$$
 \Gamma_C = p_1:\tau_1,\ldots,p_n:\tau_n.
-\]
+$$
 
-The contract \(\tau\) is richer than an ordinary payload type. A useful P06 contract can be written as a tuple:
+The contract $\tau$ is richer than an ordinary payload type. A useful P06 contract can be written as a tuple:
 
-\[
+$$
 \tau=
 (A,m,a,k,u,l),
-\]
+$$
 
 where:
 
-- \(A\) is the payload sort;
-- \(m\) is a temporal or read/write mode;
-- \(a\) is an authority domain;
-- \(k\) is multiplicity;
-- \(u\) is an update algebra;
-- \(l\) is lifetime.
+- $A$ is the payload sort;
+- $m$ is a temporal or read/write mode;
+- $a$ is an authority domain;
+- $k$ is multiplicity;
+- $u$ is an update algebra;
+- $l$ is lifetime.
 
 The type checker for identity linking should compare the entire contract, or apply an explicitly declared compatibility relation. Equal JavaScript representations are insufficient. Two strings can represent a primary document, an event name, a derived document, or an authorization token.
 
 ## Open components as judgments
 
-An open component with input boundary \(\Gamma\), local state \(S\), outputs \(\Delta\), and observations \(O\) can be idealized as a judgment:
+An open component with input boundary $\Gamma$, local state $S$, outputs $\Delta$, and observations $O$ can be idealized as a judgment:
 
-\[
+$$
 \Gamma\mid S\vdash C:\Delta\;!\;O.
-\]
+$$
 
 A simpler functional view is:
 
-\[
+$$
 C:\llbracket\Gamma\rrbracket\times S
 \longrightarrow
 T(\llbracket\Delta\rrbracket\times S\times O),
-\]
+$$
 
-where \(T\) represents effects. The component is “open” because its denotation awaits an environment for \(\Gamma\).
+where $T$ represents effects. The component is “open” because its denotation awaits an environment for $\Gamma$.
 
 For a pure chart view:
 
-\[
+$$
 \textsf{document}:D,
 \textsf{spec}:S
 \vdash
 \textsf{renderChart}:W,
-\]
+$$
 
-where \(D\) is a document identifier, \(S\) is a chart specification, and \(W\) is a widget description. In lambda notation:
+where $D$ is a document identifier, $S$ is a chart specification, and $W$ is a widget description. In lambda notation:
 
-\[
+$$
 \lambda d:D.\lambda s:S.\;\textsf{chartWidget}(d,s).
-\]
+$$
 
 The React component is one interpreter of this open term. The binding compiler supplies part of the environment.
 
@@ -526,10 +526,10 @@ const documentPort = port<DocumentId>({
 
 A context formation judgment might be:
 
-\[
+$$
 \frac{\Gamma\ \textsf{well formed}\qquad \tau\ \textsf{well formed}\qquad p\notin\operatorname{dom}(\Gamma)}
      {\Gamma,p:\tau\ \textsf{well formed}}.
-\]
+$$
 
 The condition that names are fresh is not semantically deep, but it prevents accidental capture or collision. Persistent IDs can later be alpha-renamed during import, provided all incidence relations are preserved.
 
@@ -537,9 +537,9 @@ The condition that names are fresh is not semantically deep, but it prevents acc
 
 A runtime registry often stores ports of many types in one collection. In type theory this is naturally existential:
 
-\[
+$$
 \exists \tau.\;\textsf{PortId}\times\textsf{Contract}(\tau)\times\textsf{PortState}(\tau).
-\]
+$$
 
 In TypeScript, a generic existential is commonly encoded by a discriminated union, a GADT-like interface, or a type token paired with an unknown value and checked eliminators:
 
@@ -573,9 +573,9 @@ type PresentationReference<Values> = {
 
 is a finite sum:
 
-\[
+$$
 \sum_{K\in\operatorname{keys}(Values)} Values(K).
-\]
+$$
 
 Each constructor carries both a type tag and a value. Selection is pattern matching over the sum. A future open-world system can replace the closed key union with first-class sort witnesses and existential packaging, preserving the same logical shape.
 
@@ -585,21 +585,21 @@ Each constructor carries both a type tag and a value. Selection is pattern match
 
 Suppose a pipeline output computes a document:
 
-\[
+$$
 \Gamma\vdash N:D.
-\]
+$$
 
 A chart expects a document:
 
-\[
+$$
 \Gamma,d:D\vdash M:W.
-\]
+$$
 
 Connecting the output to the chart input is typed substitution:
 
-\[
+$$
 \Gamma\vdash M[N/d]:W.
-\]
+$$
 
 At an API level:
 
@@ -623,9 +623,9 @@ workspace.connect({
 
 In lambda notation:
 
-\[
+$$
 \lambda r:\textsf{RowSet}.\;\textsf{selectedRowsToFilter}(r).
-\]
+$$
 
 This is directional composition. It does not assert that `selectedRows` and `filter` are the same interface object.
 
@@ -633,35 +633,35 @@ This is directional composition. It does not assert that `selectedRows` and `fil
 
 A component graph can be rendered as nested `let` bindings:
 
-\[
+$$
 \begin{aligned}
 &\textsf{let } d = \textsf{pipelineResult}(source)\textsf{ in}\\
 &\textsf{let } w = \textsf{chart}(d,spec)\textsf{ in}\\
 &\textsf{display}(w).
 \end{aligned}
-\]
+$$
 
 The beta law explains why an intermediate wire can be eliminated extensionally:
 
-\[
+$$
 \textsf{let }x=N\textsf{ in }M
 \equiv
 M[N/x].
-\]
+$$
 
 An implementation may retain the wire for debugging, scheduling, incremental invalidation, or provenance. The equational semantics says that the retained wire should not change pure results.
 
 ## Typed adapters and coercion coherence
 
-A system with automatic presentation translators resembles a language with implicit coercions. If there are multiple paths from \(A\) to \(B\), the elaborator must answer whether they are coherent:
+A system with automatic presentation translators resembles a language with implicit coercions. If there are multiple paths from $A$ to $B$, the elaborator must answer whether they are coherent:
 
-\[
+$$
 f:A\to C,\quad g:C\to B,
 \qquad
 h:A\to B.
-\]
+$$
 
-Should \(g\circ f\) equal \(h\)? If not, choosing a shortest or highest-priority path is an operational policy, not a proof of semantic equivalence.
+Should $g\circ f$ equal $h$? If not, choosing a shortest or highest-priority path is an operational policy, not a proof of semantic equivalence.
 
 P06 avoids much of this ambiguity by making identity links strict and transformed connections explicit. That is a good lambda-calculus discipline: application requires an exact argument type unless a coercion term is inserted visibly by elaboration.
 
@@ -669,17 +669,17 @@ P06 avoids much of this ambiguity by making identity links strict and transforme
 
 A lambda term is tree-shaped syntax, but component graphs may share subcomputations or contain feedback. A naive substitution-based compiler can duplicate a source term at each use:
 
-\[
+$$
 M[N/x]
-\]
+$$
 
-may contain several copies of \(N\). A graph compiler instead introduces a shared node:
+may contain several copies of $N$. A graph compiler instead introduces a shared node:
 
-\[
+$$
 \textsf{let }x=N\textsf{ in }M.
-\]
+$$
 
-For pure values, the difference is operational. For effects or mutable references, it is semantic. Evaluating \(N\) once and sharing its result differs from evaluating it twice. P06's persistent binding resources therefore align more closely with explicit `let`, heaps, and call-by-need graph semantics than with textual substitution alone.
+For pure values, the difference is operational. For effects or mutable references, it is semantic. Evaluating $N$ once and sharing its result differs from evaluating it twice. P06's persistent binding resources therefore align more closely with explicit `let`, heaps, and call-by-need graph semantics than with textual substitution alone.
 
 # Identity linking is contraction and aliasing
 
@@ -687,60 +687,60 @@ For pure values, the difference is operational. For effects or mutable reference
 
 Suppose a chart and pipeline each expect a primary document:
 
-\[
+$$
 \Gamma,
  c:D,
  p:D
 \vdash
 M:W.
-\]
+$$
 
-Linking the two value ports to one source \(d:D\) gives:
+Linking the two value ports to one source $d:D$ gives:
 
-\[
+$$
 \Gamma,d:D
 \vdash
 M[d/c,d/p]:W.
-\]
+$$
 
 This is contraction. Two variable positions are supplied by one variable.
 
 A typed identity link can therefore be elaborated to a substitution:
 
-\[
+$$
 \theta = [d/c,d/p].
-\]
+$$
 
-The linked component is \(M\theta\).
+The linked component is $M\theta$.
 
 ## Equal values versus one location
 
-For live read-write ports, the relevant type is not merely \(D\) but \(\operatorname{Ref}D\):
+For live read-write ports, the relevant type is not merely $D$ but $\operatorname{Ref}D$:
 
-\[
+$$
 \Gamma,
  c:\operatorname{Ref}D,
  p:\operatorname{Ref}D
 \vdash M:W.
-\]
+$$
 
-Linking supplies the same location \(\ell\):
+Linking supplies the same location $\ell$:
 
-\[
+$$
 M[\ell/c,\ell/p].
-\]
+$$
 
 This creates aliasing:
 
-\[
+$$
 c=p=\ell.
-\]
+$$
 
 It is stronger than the invariant that reads happen to return equal values:
 
-\[
+$$
 !c=!p.
-\]
+$$
 
 Two distinct references can contain equal document IDs now and diverge after a write. One shared reference cannot diverge if all reads and writes go through that reference.
 
@@ -752,11 +752,11 @@ local port occurrence -> binding class -> runtime location -> current value
 
 or mathematically:
 
-\[
+$$
 P_\tau\xrightarrow{q_\tau}Q_\tau
 \xrightarrow{\ell_\tau}L_\tau
 \xrightarrow{\sigma}V_\tau.
-\]
+$$
 
 ## Controlled contraction
 
@@ -770,15 +770,15 @@ Ordinary lambda calculus allows unrestricted contraction. A port system should n
 
 The contract's mode, multiplicity, authority domain, and update algebra determine whether contraction is admissible. A richer typing judgment can track a structural mode:
 
-\[
+$$
 p:!A
-\]
+$$
 
 for duplicable values, versus
 
-\[
+$$
 p:A
-\]
+$$
 
 for linear resources. Girard's linear logic and later linear type systems make this distinction explicit. P06 need not expose linear-logic syntax to users, but its compiler should embody the same resource discipline.
 
@@ -799,37 +799,37 @@ Confusing them causes predictable errors. A derived pipeline output should not b
 
 ## Generating equations
 
-Fix one compatible contract fiber \(\tau\). Let \(P_\tau\) be its local port occurrences and \(E_\tau\) its declared identity links. Each link has two endpoints:
+Fix one compatible contract fiber $\tau$. Let $P_\tau$ be its local port occurrences and $E_\tau$ its declared identity links. Each link has two endpoints:
 
-\[
+$$
 s,t:E_\tau\rightrightarrows P_\tau.
-\]
+$$
 
-The compiler forms the smallest equivalence relation \(\sim\) containing
+The compiler forms the smallest equivalence relation $\sim$ containing
 
-\[
+$$
 s(e)\sim t(e)
 \qquad
 \textsf{for every }e\in E_\tau.
-\]
+$$
 
 The set of binding classes is:
 
-\[
+$$
 Q_\tau=P_\tau/{\sim}.
-\]
+$$
 
 The projection
 
-\[
+$$
 q_\tau:P_\tau\to Q_\tau
-\]
+$$
 
 is a coequalizer in the category of sets:
 
-\[
+$$
 q_\tau\circ s=q_\tau\circ t.
-\]
+$$
 
 This is the formal statement that each declared pair receives the same binding identity.
 
@@ -837,29 +837,29 @@ This is the formal statement that each declared pair receives the same binding i
 
 Suppose an interpretation
 
-\[
+$$
 g:P_\tau\to X
-\]
+$$
 
 already respects every link:
 
-\[
+$$
 g(s(e))=g(t(e))
 \qquad
 \textsf{for all }e.
-\]
+$$
 
 Then there is a unique map
 
-\[
+$$
 \bar g:Q_\tau\to X
-\]
+$$
 
 such that:
 
-\[
+$$
 g=\bar g\circ q_\tau.
-\]
+$$
 
 This is not an ornamental theorem. It identifies the class of valid downstream interpreters. A persistence encoder, resource allocator, binding inspector, or authorization summary that treats linked ports identically can be implemented once per binding class.
 
@@ -885,37 +885,37 @@ pipeline.document  -> document node in pipeline header
 
 Therefore a map
 
-\[
+$$
 \textsf{render}:P_\tau\to\textsf{Widget}
-\]
+$$
 
 need not satisfy
 
-\[
+$$
 \textsf{render}(p)=\textsf{render}(r)
-\]
+$$
 
-for linked ports. It should not be forced to factor through \(Q_\tau\).
+for linked ports. It should not be forced to factor through $Q_\tau$.
 
 What does factor is the shared resource or binding-level observation:
 
-\[
+$$
 \textsf{resource}:P_\tau\to L_\tau,
-\]
+$$
 
 with
 
-\[
+$$
 \textsf{resource}=\bar\ell\circ q_\tau.
-\]
+$$
 
 Local rendering then depends on both the occurrence and the resource:
 
-\[
+$$
 \textsf{widget}(p)
 =
 \textsf{render}_p(\bar\ell(q_\tau(p))).
-\]
+$$
 
 Equivalently, rendering is a dependent family indexed by occurrences. A canonical binding-inspector widget may factor through the quotient, but ordinary component UI remains occurrence-specific.
 
@@ -927,7 +927,7 @@ Union-find efficiently computes equivalence classes under link insertion. Its ro
 
 P06 should therefore distinguish:
 
-- the extensional class \([p]\in Q_\tau\);
+- the extensional class $[p]\in Q_\tau$;
 - an internal union-find representative;
 - a stable external `BindingId` assigned by persistence policy.
 
@@ -935,33 +935,33 @@ Two compiler runs may produce different roots but isomorphic quotient plans. The
 
 ## Quotienting syntax, restricting models
 
-The quotient acts covariantly on port names, but environments vary contravariantly. Let \(V_\tau\) be the set of possible port values. An environment for local ports is:
+The quotient acts covariantly on port names, but environments vary contravariantly. Let $V_\tau$ be the set of possible port values. An environment for local ports is:
 
-\[
+$$
 \rho\in V_\tau^{P_\tau}.
-\]
+$$
 
 An environment for binding classes is:
 
-\[
+$$
 \bar\rho\in V_\tau^{Q_\tau}.
-\]
+$$
 
-Precomposition with \(q_\tau\) gives:
+Precomposition with $q_\tau$ gives:
 
-\[
+$$
 q_\tau^*:V_\tau^{Q_\tau}\to V_\tau^{P_\tau},
 \qquad
 q_\tau^*(\bar\rho)=\bar\rho\circ q_\tau.
-\]
+$$
 
 Its image is exactly the compatible local environments:
 
-\[
+$$
 \operatorname{im}(q_\tau^*)
 =
 \{\rho\mid \rho(s(e))=\rho(t(e))\textsf{ for all }e\}.
-\]
+$$
 
 Thus the coequalizer of syntax induces an equalizer-like constraint on semantic assignments. This contravariance is one of the deepest links between P06 and lambda-calculus semantics.
 
@@ -971,37 +971,37 @@ Thus the coequalizer of syntax induces an equalizer-like constraint on semantic 
 
 Consider a component term:
 
-\[
+$$
 x:D,y:D\vdash M:W.
-\]
+$$
 
 The unlinked semantic environment object is:
 
-\[
+$$
 D\times D.
-\]
+$$
 
-Linking \(x\) and \(y\) produces one binding variable:
+Linking $x$ and $y$ produces one binding variable:
 
-\[
+$$
 z:D\vdash M[z/x,z/y]:W.
-\]
+$$
 
 Semantically, the new term is obtained by composing with the diagonal:
 
-\[
+$$
 \Delta_D:D\to D\times D,
 \qquad
 \Delta_D(d)=(d,d).
-\]
+$$
 
 Therefore:
 
-\[
+$$
 \llbracket M[z/x,z/y]\rrbracket
 =
 \llbracket M\rrbracket\circ\Delta_D.
-\]
+$$
 
 The port quotient is visible syntactically as one equivalence class. In the model, it becomes a diagonal supplying one semantic value to two input positions.
 
@@ -1009,37 +1009,37 @@ The port quotient is visible syntactically as one equivalence class. In the mode
 
 For a finite family of ports, a quotient map
 
-\[
+$$
 q:P\to Q
-\]
+$$
 
 induces:
 
-\[
+$$
 \Delta_q:V^Q\to V^P,
 \qquad
 \Delta_q(\rho)=\rho\circ q.
-\]
+$$
 
 This map duplicates the value of each binding class into every local occurrence belonging to that class.
 
-For stateful resources, replace \(V\) by a location space \(L\):
+For stateful resources, replace $V$ by a location space $L$:
 
-\[
+$$
 \Delta_q:L^Q\to L^P.
-\]
+$$
 
 All occurrences in one class receive the same location. The store then maps locations to values:
 
-\[
+$$
 \sigma:L\to V.
-\]
+$$
 
 The observed local values are:
 
-\[
+$$
 P\xrightarrow{q}Q\xrightarrow{\ell}L\xrightarrow{\sigma}V.
-\]
+$$
 
 ## Structural substitution
 
@@ -1047,23 +1047,23 @@ A substitution between contexts can be seen as a tuple of terms, one for each ta
 
 If
 
-\[
+$$
 \Gamma_P=(p:P\mid p\in P)
-\]
+$$
 
 and
 
-\[
+$$
 \Gamma_Q=(b:V\mid b\in Q),
-\]
+$$
 
 then the quotient substitution is:
 
-\[
+$$
 \theta_q(p)=q(p).
-\]
+$$
 
-Applying \(\theta_q\) to a component term closes the distinctions erased by the link relation.
+Applying $\theta_q$ to a component term closes the distinctions erased by the link relation.
 
 This is the sense in which the P06 compiler is a **substitution compiler**. It does not merely group IDs; it elaborates an open component context into a smaller context plus an explicit structural substitution.
 
@@ -1071,11 +1071,11 @@ This is the sense in which the P06 compiler is a **substitution compiler**. It d
 
 Cartesian contexts support diagonals and projections:
 
-\[
+$$
 \Delta_A:A\to A\times A,
 \qquad
 !_A:A\to 1.
-\]
+$$
 
 These interpret contraction and weakening. An identity-link compiler selectively introduces diagonals according to explicit wiring rather than permitting every component to duplicate every resource indiscriminately.
 
@@ -1099,23 +1099,23 @@ This is alpha equivalence at the graph level.
 
 A renaming
 
-\[
+$$
 \pi:P\to P'
-\]
+$$
 
 is semantics-preserving when it is bijective within the relevant namespace and transports links and declarations:
 
-\[
+$$
 (p,r)\in E
 \quad\Longleftrightarrow\quad
 (\pi(p),\pi(r))\in E'.
-\]
+$$
 
 The quotient classes are then isomorphic:
 
-\[
+$$
 P/{\sim_E}\cong P'/{\sim_{E'}}.
-\]
+$$
 
 ## Hygienic composition
 
@@ -1154,15 +1154,15 @@ P06's open, dynamically edited graph favors unique atoms plus readable labels. A
 
 Suppose a component abstraction exposes an input:
 
-\[
+$$
 C=\lambda d:D.\;M.
-\]
+$$
 
-Supplying a document source \(N:D\) gives:
+Supplying a document source $N:D$ gives:
 
-\[
+$$
 C\;N\to_\beta M[N/d].
-\]
+$$
 
 At the component graph level, beta reduction says that an explicit application node and an inlined connection have the same pure meaning. The runtime may retain the connection for scheduling and provenance, but it should preserve denotation.
 
@@ -1170,9 +1170,9 @@ At the component graph level, beta reduction says that an explicit application n
 
 A component that only forwards an input to another component is extensionally redundant:
 
-\[
+$$
 \lambda x.\;f\;x\equiv_\eta f.
-\]
+$$
 
 A PBUI example is an adapter tile whose only behavior is to expose the same read-only document port under another local name. If the adapter adds no logging, authority boundary, timing, caching, or rendering, eta suggests it can be erased.
 
@@ -1182,29 +1182,29 @@ The side conditions matter. A wrapper that records trace entries, changes lifeti
 
 A component with several inputs can be curried:
 
-\[
+$$
 A\times B\to C
-\]
+$$
 
 or:
 
-\[
+$$
 A\to(B\to C).
-\]
+$$
 
 A port schema is usually product-like because all ports are named and available simultaneously. Actions are often curried because partial application corresponds naturally to interaction:
 
-\[
+$$
 \textsf{scheduleWith}:
 \textsf{Contact}	o\textsf{Slot}	o\textsf{Command}.
-\]
+$$
 
 Right-clicking a contact partially applies the first argument:
 
-\[
+$$
 \textsf{scheduleWith}(c):
 \textsf{Slot}	o\textsf{Command}.
-\]
+$$
 
 The shell then enters accept mode for a `Slot`. Selecting a slot completes the application.
 
@@ -1229,23 +1229,23 @@ The supplied PBUI foundation makes a strong interaction claim: an action may beg
 
 For example:
 
-\[
+$$
 \textsf{fileActionItem}:
 \textsf{ActionItem}	o\textsf{Project}	o\textsf{Command}.
-\]
+$$
 
-After the user invokes the action on \(a:\textsf{ActionItem}\), the shell holds:
+After the user invokes the action on $a:\textsf{ActionItem}$, the shell holds:
 
-\[
+$$
 \textsf{fileActionItem}\;a:
 \textsf{Project}	o\textsf{Command}.
-\]
+$$
 
-The next click supplies a project \(p\), producing:
+The next click supplies a project $p$, producing:
 
-\[
+$$
 \textsf{fileActionItem}\;a\;p.
-\]
+$$
 
 The same pattern describes scheduling a contact in a calendar slot, labeling a thread, or attaching a transcript to a message.
 
@@ -1264,11 +1264,11 @@ interface PendingAccept<A, R> {
 
 The continuation has type:
 
-\[
+$$
 k:A\to R.
-\]
+$$
 
-A visible occurrence offering \(v:A\) is acceptable when it satisfies the query. Clicking it applies \(k\) to \(v\). Escape invokes the abort continuation.
+A visible occurrence offering $v:A$ is acceptable when it satisfies the query. Clicking it applies $k$ to $v$. Escape invokes the abort continuation.
 
 This yields a more precise account than “global mode.” The shell stores a typed continuation and an extensional description of values that may be supplied to it.
 
@@ -1276,21 +1276,21 @@ This yields a more precise account than “global mode.” The shell stores a ty
 
 An evaluation context is a term with one hole:
 
-\[
+$$
 E[-].
-\]
+$$
 
-If the system is waiting for a value of type \(A\), the interaction state can be regarded as a typed hole:
+If the system is waiting for a value of type $A$, the interaction state can be regarded as a typed hole:
 
-\[
+$$
 E[-]:A\Rightarrow R.
-\]
+$$
 
-Selecting \(v:A\) fills the hole:
+Selecting $v:A$ fills the hole:
 
-\[
+$$
 E[v].
-\]
+$$
 
 This viewpoint is useful for composition. A multi-step workflow contains nested or sequenced holes. It also clarifies why the active context should own cancellation and resolution: only the context that introduced the hole may fill or discard it.
 
@@ -1319,9 +1319,9 @@ The system need not expose continuation operators publicly. The semantic model m
 
 A raw value is sometimes insufficient. The action may need evidence that the selected object satisfied the exact query and revision:
 
-\[
+$$
 \Sigma(v:A).\;\textsf{Satisfies}(v,q,r).
-\]
+$$
 
 This is a dependent pair: a value plus a proof or checkable certificate. The command kernel can validate the evidence or recheck the condition if the world has changed.
 
@@ -1344,17 +1344,17 @@ The lambda-calculus connection here is Curry-Howard-like: the selected value inh
 
 An action such as “Inspect” applies to many presentation types. Its idealized type is:
 
-\[
+$$
 \forall A.\;\textsf{Subject}\;A\to\textsf{Command}.
-\]
+$$
 
 True parametricity would prevent the implementation from treating contacts, events, and tasks differently unless type-specific structure is passed explicitly. In practice, inspection requires a descriptor or schema dictionary:
 
-\[
+$$
 \forall A.\;\textsf{Descriptor}\;A
 \to\textsf{Subject}\;A
 \to\textsf{Command}.
-\]
+$$
 
 This is dictionary passing, the semantic pattern behind type classes and many generic registries.
 
@@ -1388,13 +1388,13 @@ TypeScript's structural type system and escape hatches do not enforce full param
 
 A menu containing actions for subjects of different types can be packaged existentially:
 
-\[
+$$
 \exists A.\;\textsf{Subject}\;A
 \times
 \textsf{ActionSet}\;A.
-\]
+$$
 
-Opening the package reveals a type witness, subject, and actions that agree on \(A\). This is safer than storing an untyped object and a list of callbacks that perform unchecked casts.
+Opening the package reveals a type witness, subject, and actions that agree on $A$. This is safer than storing an untyped object and a list of callbacks that perform unchecked casts.
 
 ## Type inference and principal contracts
 
@@ -1402,13 +1402,13 @@ Milner's work on polymorphic type inference showed how a language can infer prin
 
 A connection can generate constraints:
 
-\[
+$$
 A_{out}=A_{in},
 \qquad
 m_{out}\preceq m_{in},
 \qquad
 a_{out}\models a_{in},
-\]
+$$
 
 along with multiplicity and lifetime conditions. Some fields admit equality; others admit subtyping, capability entailment, or protocol compatibility. The compiler should report the solved substitution and remaining obligations rather than collapsing everything into one Boolean `compatible` result.
 
@@ -1418,57 +1418,57 @@ along with multiplicity and lifetime conditions. Some fields admit equality; oth
 
 Consider two independent document ports:
 
-\[
+$$
 c:\operatorname{Ref}D,
 \qquad
 p:\operatorname{Ref}D.
-\]
+$$
 
 Suppose both currently contain `doc-A`. Pure value semantics sees equality:
 
-\[
+$$
 !c=!p=\textsf{doc-A}.
-\]
+$$
 
-Yet a write to \(c\) need not affect \(p\). P06's identity link is intended to change that future behavior. Therefore its meaning concerns locations and transitions, not just current values.
+Yet a write to $c$ need not affect $p$. P06's identity link is intended to change that future behavior. Therefore its meaning concerns locations and transitions, not just current values.
 
 ## Explicit store semantics
 
 A stateful expression can be evaluated with a store:
 
-\[
+$$
 \langle M,\sigma\rangle\Downarrow\langle V,\sigma'\rangle.
-\]
+$$
 
 The store maps locations to values:
 
-\[
+$$
 \sigma:L\rightharpoonup V.
-\]
+$$
 
 Operations include:
 
-\[
+$$
 \textsf{read}:\operatorname{Ref}A\to A
-\]
+$$
 
 and:
 
-\[
+$$
 \textsf{write}:\operatorname{Ref}A\to A\to 1.
-\]
+$$
 
 After quotient compilation, local ports project to locations:
 
-\[
+$$
 \pi:P\to L.
-\]
+$$
 
 The link-coherence invariant is:
 
-\[
+$$
 p\sim r\Longrightarrow\pi(p)=\pi(r).
-\]
+$$
 
 It follows that all reads and writes through linked projections address the same store location.
 
@@ -1476,15 +1476,15 @@ It follows that all reads and writes through linked projections address the same
 
 State can be encoded using a monad:
 
-\[
+$$
 T A = S\to(A\times S).
-\]
+$$
 
-A binding operation such as `set` has a denotation in \(T1\). A composed component has type:
+A binding operation such as `set` has a denotation in $T1$. A composed component has type:
 
-\[
+$$
 \llbracket\Gamma\rrbracket\to T\llbracket O\rrbracket.
-\]
+$$
 
 Moggi's computational lambda calculus separates pure values from computations through such monadic structure (Moggi 1991). For PBUI, this separation prevents a port value from being confused with an operation that reads or mutates a port.
 
@@ -1514,9 +1514,9 @@ Logical relations for local state are relevant because clients can observe behav
 
 Creating an unlinked binding allocates a fresh location:
 
-\[
+$$
 \textsf{newRef}:A\to T(\operatorname{Ref}A).
-\]
+$$
 
 Freshness is observable only through future behavior, not through a printable pointer. Two fresh cells initialized to the same value remain distinct. Import, duplicate, and unlink operations must specify whether they allocate fresh locations or preserve aliases.
 
@@ -1550,13 +1550,13 @@ The indirection ensures that updates or computations are shared. The comparison 
 
 Suppose a document computation feeds three views. Textual substitution can produce three copies:
 
-\[
+$$
 M[N/x,N/y,N/z].
-\]
+$$
 
-A graph representation retains one node for \(N\) and three edges to it. P06's quotient graph similarly retains many port occurrences pointing to one resource.
+A graph representation retains one node for $N$ and three edges to it. P06's quotient graph similarly retains many port occurrences pointing to one resource.
 
-The graph distinction becomes semantically observable when \(N\) is effectful or expensive. Therefore a component compiler should specify whether a directional connection passes:
+The graph distinction becomes semantically observable when $N$ is effectful or expensive. Therefore a component compiler should specify whether a directional connection passes:
 
 - a value;
 - a thunk;
@@ -1588,17 +1588,17 @@ The surface API often obscures this distinction because JavaScript methods can p
 
 ## A CBPV-inspired port model
 
-Let \(A\) be a value type. A read operation can return a computation \(F A\), while a subscription can expose a thunked ongoing computation. A simplified signature is:
+Let $A$ be a value type. A read operation can return a computation $F A$, while a subscription can expose a thunked ongoing computation. A simplified signature is:
 
-\[
+$$
 \begin{aligned}
 \textsf{get}&:\textsf{Binding}\;A\to F A,\\
 \textsf{set}&:\textsf{Binding}\;A\to A\to F 1,\\
 \textsf{watch}&:\textsf{Binding}\;A\to F(\textsf{Stream}\;A).
 \end{aligned}
-\]
+$$
 
-A read-only snapshot port might carry \(A\). A live cell port carries `Binding A`. A derived stream port carries `Stream A`. The contract can distinguish these at the type level rather than through metadata strings.
+A read-only snapshot port might carry $A$. A live cell port carries `Binding A`. A derived stream port carries `Stream A`. The contract can distinguish these at the type level rather than through metadata strings.
 
 ## Why this improves compiler reasoning
 
@@ -1617,9 +1617,9 @@ A CBPV-style intermediate representation is therefore a plausible core language 
 
 A component not currently mounted may still have semantic state. Its rendering computation can be thunked:
 
-\[
+$$
 U(F\;\textsf{Widget}).
-\]
+$$
 
 Mounting forces it. Virtualization can discard the rendered occurrence while retaining subject and binding values. This separation helps avoid treating React mount state as domain existence.
 
@@ -1629,23 +1629,23 @@ Mounting forces it. Virtualization can discard the rendered occurrence while ret
 
 Suppose two independent resources hold:
 
-\[
+$$
 \sigma(\ell_c)=\textsf{doc-A},
 \qquad
 \sigma(\ell_p)=\textsf{doc-B}.
-\]
+$$
 
 Adding a link says that the corresponding ports will have one future binding class. It does not determine whether the merged resource should contain `doc-A`, `doc-B`, a conflict, or another value.
 
 A merge policy is an explicit computation:
 
-\[
+$$
 \textsf{merge}:A\times A\to T A.
-\]
+$$
 
 Examples include:
 
-\[
+$$
 \textsf{requireEqual},
 \quad
 \textsf{preferLeft},
@@ -1655,7 +1655,7 @@ Examples include:
 \textsf{join},
 \quad
 \textsf{askUser}.
-\]
+$$
 
 Only `join` under a declared semilattice can be expected to be associative, commutative, and idempotent. Source preference is intentionally ordered.
 
@@ -1677,17 +1677,17 @@ This is an effectful command, not a pure quotient computation. Its pure portion 
 
 Neither substitution nor quotienting is generally invertible. From
 
-\[
+$$
 M[N/x]
-\]
+$$
 
-one cannot in general reconstruct the original \(M\) and \(N\). Likewise, after two resources have been merged and updated, the quotient does not remember their previous independent values.
+one cannot in general reconstruct the original $M$ and $N$. Likewise, after two resources have been merged and updated, the quotient does not remember their previous independent values.
 
 An unlink policy is therefore:
 
-\[
+$$
 \textsf{split}:A\times\textsf{History}\to T(A\times A).
-\]
+$$
 
 Possible policies include:
 
@@ -1773,17 +1773,17 @@ A lambda term is often studied through reduction toward a value or normal form. 
 
 A deterministic Moore-style machine can be represented as:
 
-\[
+$$
 \gamma:S\to O\times S^I,
-\]
+$$
 
-where \(S\) is state, \(O\) is current observation, and \(I\) is input. Given a state, the coalgebra reveals what the user currently sees and how every possible input selects a successor state.
+where $S$ is state, $O$ is current observation, and $I$ is input. Given a state, the coalgebra reveals what the user currently sees and how every possible input selects a successor state.
 
 For an effect-emitting Mealy-style machine:
 
-\[
+$$
 \gamma:S\to(O\times E\times S)^I.
-\]
+$$
 
 This is a better semantic form for ongoing interaction than an ordinary terminating lambda term.
 
@@ -1791,11 +1791,11 @@ This is a better semantic form for ongoing interaction than an ordinary terminat
 
 Coalgebra does not replace lambda calculus. The transition and observation functions are lambda-definable functions:
 
-\[
+$$
 \textsf{observe}:S\to O,
 \qquad
 \textsf{step}:S\to I\to(E\times S).
-\]
+$$
 
 The lambda calculus organizes higher-order composition, while coalgebra organizes potentially unbounded behavior.
 
@@ -1811,7 +1811,7 @@ coinductive behavior:
 
 ## Bisimulation and compiler replacement
 
-Two machines can be behaviorally equivalent even when their states differ. A relation \(R\subseteq S_1\times S_2\) is a bisimulation when related states have matching observations and corresponding inputs lead to related successor states.
+Two machines can be behaviorally equivalent even when their states differ. A relation $R\subseteq S_1\times S_2$ is a bisimulation when related states have matching observations and corresponding inputs lead to related successor states.
 
 P06 has an obvious candidate:
 
@@ -1845,15 +1845,15 @@ The invariant “resolve at most once” is a transition-system property. It is 
 
 Interaction Trees represent recursive effectful programs as coinductive trees of visible events and continuations. They support interpreters and equivalence through weak bisimulation. A PBUI workflow language can use the same separation:
 
-\[
+$$
 \textsf{Ret}(v),
 \quad
 \textsf{Tau}(t),
 \quad
 \textsf{Vis}(e,k).
-\]
+$$
 
-The lambda-calculus part appears in the continuation \(k\), while the coinductive tree accounts for unbounded interaction. This is especially suitable for mechanizing cancellation, asynchronous tasks, and trace refinement.
+The lambda-calculus part appears in the continuation $k$, while the coinductive tree accounts for unbounded interaction. This is especially suitable for mechanizing cancellation, asynchronous tasks, and trace refinement.
 
 # Incremental and differential lambda calculus
 
@@ -1871,29 +1871,29 @@ A naive implementation recomputes all classes, selectors, actions, and widgets. 
 
 ## Derivatives of programs
 
-Incremental lambda calculus equips each type \(A\) with a notion of change \(\Delta A\) and an update operation:
+Incremental lambda calculus equips each type $A$ with a notion of change $\Delta A$ and an update operation:
 
-\[
+$$
 \oplus_A:A\times\Delta A\to A.
-\]
+$$
 
 For a function
 
-\[
+$$
 f:A\to B,
-\]
+$$
 
 its derivative has a form such as:
 
-\[
+$$
 Df:A\to\Delta A\to\Delta B
-\]
+$$
 
 and satisfies the correctness law:
 
-\[
+$$
 f(a\oplus da)=f(a)\oplus Df(a)(da).
-\]
+$$
 
 Cai, Giarrusso, Rendel, and Ostermann give a static transformation for higher-order languages and prove correctness for families of simply typed lambda calculi (Cai et al. 2014).
 
@@ -1901,24 +1901,24 @@ Cai, Giarrusso, Rendel, and Ostermann give a static transformation for higher-or
 
 Let:
 
-\[
+$$
 \textsf{compile}:G\to Q
-\]
+$$
 
-map a port/link graph to a quotient plan. A graph edit \(dG\) should yield a plan edit:
+map a port/link graph to a quotient plan. A graph edit $dG$ should yield a plan edit:
 
-\[
+$$
 D\textsf{compile}:G\to\Delta G\to\Delta Q.
-\]
+$$
 
 Correctness requires:
 
-\[
+$$
 \textsf{compile}(G\oplus dG)
 =
 \textsf{compile}(G)\oplus
 D\textsf{compile}(G)(dG).
-\]
+$$
 
 For link insertion, union-find approximates this derivative efficiently. For deletion, the derivative is more complex because a connected component may split. The system may recompute the affected component while still satisfying the same semantic law.
 
@@ -1926,9 +1926,9 @@ For link insertion, union-find approximates this derivative efficiently. For del
 
 Let:
 
-\[
+$$
 \textsf{observe}:Q\times\sigma\times O_{mount}	o U
-\]
+$$
 
 produce UI observations. Changes to one binding value should update only subscribers to its class. Changes to topology should invalidate only affected projections and their observations.
 
@@ -1956,12 +1956,12 @@ Normalization-by-evaluation and partial evaluation offer conceptual tools for pr
 
 Simply typed lambda calculus with products corresponds to cartesian closed categories. Types are objects, terms in context are morphisms, product types interpret contexts, and function types are exponentials.
 
-A pure open component with inputs \(\Gamma\) and output \(A\) denotes:
+A pure open component with inputs $\Gamma$ and output $A$ denotes:
 
-\[
+$$
 \llbracket C\rrbracket:
 \llbracket\Gamma\rrbracket\to\llbracket A\rrbracket.
-\]
+$$
 
 Sequential connection is composition. Parallel composition uses products. Abstraction and application use the exponential adjunction.
 
@@ -1971,9 +1971,9 @@ This gives a strong semantic nucleus for component APIs.
 
 A component can have multiple named inputs and outputs and can be composed by wiring a shared boundary. Open-system formalisms represent such systems as cospans:
 
-\[
+$$
 L(I)\longrightarrow C\longleftarrow L(O).
-\]
+$$
 
 Composing two open systems along a matching boundary uses a pushout. Structured cospans provide a categorical framework for systems with typed interfaces and compositional wiring (Baez and Courser 2020).
 
@@ -1999,15 +1999,15 @@ For immutable information, a special commutative Frobenius structure can model u
 
 In concrete categories, a pushout of
 
-\[
+$$
 X\xleftarrow{f}B\xrightarrow{g}Y
-\]
+$$
 
-can often be formed by taking the coproduct \(X+Y\) and quotienting by equations:
+can often be formed by taking the coproduct $X+Y$ and quotienting by equations:
 
-\[
+$$
 \iota_X(f(b))\sim\iota_Y(g(b)).
-\]
+$$
 
 Thus coequalizers appear naturally in whole-component composition as well as in local port identification. The P06 quotient compiler can be regarded as one layer of a broader structured-cospan compiler.
 
@@ -2015,15 +2015,15 @@ Thus coequalizers appear naturally in whole-component composition as well as in 
 
 A recurring categorical subtlety is variance. Gluing syntax by a colimit can correspond to compatible models described by a limit. The port quotient example made this concrete:
 
-\[
+$$
 P\to Q
-\]
+$$
 
 induces:
 
-\[
+$$
 V^Q\to V^P.
-\]
+$$
 
 The global binding environments form the compatible subspace of local assignments. This is why the paper's use of both coequalizers and pullbacks is not redundant: one acts on interface presentation, the other characterizes agreeing semantic states.
 
@@ -2046,23 +2046,23 @@ A PBUI compiler can assign each port capability a structural discipline.
 
 A cell can be decomposed into capabilities:
 
-\[
+$$
 \textsf{Read}\;A,
 \qquad
 \textsf{Write}\;A.
-\]
+$$
 
 Read capability may be duplicable:
 
-\[
+$$
 !\textsf{Read}\;A.
-\]
+$$
 
 An exclusive writer may be linear:
 
-\[
+$$
 \textsf{Write}\;A.
-\]
+$$
 
 A shared writer is safe only with an arbitration or merge protocol. The P06 `mode` field can be elaborated into these capability types rather than remaining a string checked by ad hoc conditionals.
 
@@ -2070,13 +2070,13 @@ A shared writer is safe only with an arbitration or merge protocol. The P06 `mod
 
 A port with multiplicity `one`, `optional`, or `many` corresponds to different type constructors:
 
-\[
+$$
 A,
 \qquad
 1+A,
 \qquad
 \operatorname{List}A.
-\]
+$$
 
 Identity linking should preserve the intended multiplicity semantics. Identifying an optional port with a required port may require a proof that the source is always present, not merely matching payload types.
 
@@ -2084,12 +2084,12 @@ Identity linking should preserve the intended multiplicity semantics. Identifyin
 
 Some ports are not state cells. An event source and event sink communicate through a protocol. Session types describe sequences of sends, receives, choices, and termination. A selection workflow might have a protocol:
 
-\[
+$$
 \oplus\{
 \textsf{select}:A.\textsf{done},
 \textsf{cancel}:\textsf{done}
 \}.
-\]
+$$
 
 A remote link transaction may follow:
 
@@ -2108,18 +2108,18 @@ Capabilities can be modeled as values that authorize operations. A one-use autho
 
 The type of a privileged command can require evidence:
 
-\[
+$$
 \textsf{LinkPorts}:
 \textsf{CanLink}(p,q)
 \multimap
 \textsf{Command}.
-\]
+$$
 
 The UI may derive provisional evidence for display, but the command kernel must validate current authority at execution time.
 
 # Part V - A core calculus for PBUI and P06 {-}
 
-# The calculus \(\lambda_{\mathrm{PB}}\)
+# The calculus $\lambda_{\mathrm{PB}}$
 
 ## Purpose and scope
 
@@ -2140,11 +2140,11 @@ The calculus intentionally excludes CSS, layout geometry, and React reconciliati
 
 ## Types
 
-Let \(S\) range over semantic subject sorts and \(\tau\) over complete port contracts.
+Let $S$ range over semantic subject sorts and $\tau$ over complete port contracts.
 
 Value types are:
 
-\[
+$$
 \begin{aligned}
 A,B ::={}& 1
 \mid \textsf{Bool}
@@ -2158,35 +2158,35 @@ A,B ::={}& 1
 \mid A+B
 \mid A\to C.
 \end{aligned}
-\]
+$$
 
 Computation types are:
 
-\[
+$$
 C ::= F A.
-\]
+$$
 
 The notation follows the call-by-push-value distinction: values can be passed and stored; computations may read state, emit effects, or fail.
 
 A complete contract can be represented abstractly as:
 
-\[
+$$
 \tau=\textsf{Cell}(A,m,a,k,u,l)
-\]
+$$
 
 or:
 
-\[
+$$
 \tau=\textsf{Stream}(A,dir,a,k,l).
-\]
+$$
 
-Cell and stream ports are different protocol families and cannot be identity-linked merely because their payload type \(A\) agrees.
+Cell and stream ports are different protocol families and cannot be identity-linked merely because their payload type $A$ agrees.
 
 ## Values and computations
 
 Values include:
 
-\[
+$$
 \begin{aligned}
 V ::={}& x
 \mid ()
@@ -2198,11 +2198,11 @@ V ::={}& x
 \mid \textsf{port}(c,n)
 \mid \textsf{binding}(b).
 \end{aligned}
-\]
+$$
 
 Computations include:
 
-\[
+$$
 \begin{aligned}
 M,N ::={}& \textsf{return}\;V
 \mid V\;W
@@ -2215,49 +2215,49 @@ M,N ::={}& \textsf{return}\;V
 \mid \textsf{unlink}\;e\;\nu
 \mid \textsf{observe}\;o.
 \end{aligned}
-\]
+$$
 
-Here \(\mu\) is a merge-policy value and \(\nu\) an unlink-policy value.
+Here $\mu$ is a merge-policy value and $\nu$ an unlink-policy value.
 
 ## Typing rules for state
 
 Representative rules are:
 
-\[
+$$
 \frac{\Gamma\vdash r:\textsf{Ref}\;A}
      {\Gamma\vdash\textsf{get}\;r:F A}
-\]
+$$
 
 and:
 
-\[
+$$
 \frac{\Gamma\vdash r:\textsf{Ref}\;A
       \qquad
       \Gamma\vdash v:A}
      {\Gamma\vdash\textsf{set}\;r\;v:F1}.
-\]
+$$
 
 A binding projection is typed by the compiled plan:
 
-\[
+$$
 \frac{G\vdash p:\textsf{Port}\;\tau
       \qquad
       \textsf{compile}(G)=Q}
      {Q\vdash\textsf{project}(p):\textsf{Binding}\;\tau}.
-\]
+$$
 
 The runtime can expose a reference from the binding:
 
-\[
+$$
 \frac{Q\vdash b:\textsf{Binding}(\textsf{Cell}(A,\ldots))}
      {Q\vdash\textsf{resource}(b):\textsf{Ref}\;A}.
-\]
+$$
 
 ## Typing identity links
 
-Let \(\tau\equiv_{id}\tau'\) mean that the two contracts are identity-compatible. The rule is:
+Let $\tau\equiv_{id}\tau'$ mean that the two contracts are identity-compatible. The rule is:
 
-\[
+$$
 \frac{
   G\vdash p:\textsf{Port}\;\tau
   \qquad
@@ -2271,7 +2271,7 @@ Let \(\tau\equiv_{id}\tau'\) mean that the two contracts are identity-compatible
   \textsf{link}\;p\;r\;\mu:
   F\textsf{LinkResult}
 }.
-\]
+$$
 
 The judgment prevents cross-contract identity links. A transformed connection has a different rule requiring a function or process from the source protocol to the target protocol.
 
@@ -2279,45 +2279,45 @@ The judgment prevents cross-contract identity links. A transformed connection ha
 
 A query carries its result sort:
 
-\[
+$$
 q:\textsf{Query}\;A.
-\]
+$$
 
 The selection operation has type:
 
-\[
+$$
 \frac{\Gamma\vdash q:\textsf{Query}\;A}
      {\Gamma\vdash\textsf{select}\;q:F(1+A)}.
-\]
+$$
 
 The sum represents cancellation or successful selection. A proof-relevant variant returns:
 
-\[
+$$
 F(1+\Sigma(v:A).\textsf{Evidence}(q,v)).
-\]
+$$
 
 ## Component judgments
 
 A component declaration is typed as:
 
-\[
+$$
 \Gamma_{in};\Sigma_{local}
 \vdash
 C:
 F(\Gamma_{out}\times O).
-\]
+$$
 
-The boundary contexts contain port values or capabilities, while \(\Sigma_{local}\) contains component-private state references. Composition supplies or links entries in \(\Gamma_{in}\) and routes entries from \(\Gamma_{out}\).
+The boundary contexts contain port values or capabilities, while $\Sigma_{local}$ contains component-private state references. Composition supplies or links entries in $\Gamma_{in}$ and routes entries from $\Gamma_{out}$.
 
 ## Occurrences
 
 A mounted occurrence is not a value constructor for the domain subject. It is an observation fact:
 
-\[
+$$
 \textsf{Presents}(o,s:S,\varphi),
-\]
+$$
 
-where \(\varphi\) records surface metadata such as visibility and reachability. Registering and unregistering occurrences are effects on the observation database. Selection queries range over these facts.
+where $\varphi$ records surface metadata such as visibility and reachability. Registering and unregistering occurrences are effects on the observation database. Selection queries range over these facts.
 
 This separation means that unmounting a widget removes one occurrence without destroying its subject, component state, or binding.
 
@@ -2327,36 +2327,36 @@ This separation means that unmounting a widget removes one occurrence without de
 
 A source graph is:
 
-\[
+$$
 G=(P,E,\kappa,\iota),
-\]
+$$
 
 where:
 
-- \(P\) is a finite set of port occurrences;
-- \(E\) is a finite set of explicit link declarations;
-- \(\kappa:P\to\textsf{Contract}\) assigns contracts;
-- \(\iota:P\to\textsf{InitialProposal}\) records current resource proposals.
+- $P$ is a finite set of port occurrences;
+- $E$ is a finite set of explicit link declarations;
+- $\kappa:P\to\textsf{Contract}$ assigns contracts;
+- $\iota:P\to\textsf{InitialProposal}$ records current resource proposals.
 
-Each link \(e\in E\) has endpoints \(s(e),t(e)\in P\), a merge policy, provenance, and authorization evidence.
+Each link $e\in E$ has endpoints $s(e),t(e)\in P$, a merge policy, provenance, and authorization evidence.
 
 ## Compile function
 
 The pure compiler performs:
 
-\[
+$$
 \textsf{compile}:G\to\textsf{Result}(Q,D),
-\]
+$$
 
-where \(Q\) is a semantic plan and \(D\) diagnostics.
+where $Q$ is a semantic plan and $D$ diagnostics.
 
-For every contract fiber \(\tau\), it:
+For every contract fiber $\tau$, it:
 
 1. validates that each link remains within the fiber;
 2. computes the equivalence closure generated by its links;
 3. canonicalizes member sets for comparison;
 4. matches new classes against prior persistent identities when recompiling;
-5. emits a projection map \(q_\tau:P_\tau\to Q_\tau\);
+5. emits a projection map $q_\tau:P_\tau\to Q_\tau$;
 6. reports merges and splits requiring runtime policy.
 
 The compiler does not mutate resources.
@@ -2365,103 +2365,103 @@ The compiler does not mutate resources.
 
 A runtime plan is:
 
-\[
+$$
 R=(Q,q,b,\ell,\sigma),
-\]
+$$
 
 where:
 
-- \(Q\) is the family of binding classes;
-- \(q\) maps local ports to classes;
-- \(b\) assigns stable external binding IDs;
-- \(\ell\) assigns runtime locations;
-- \(\sigma\) stores current values.
+- $Q$ is the family of binding classes;
+- $q$ maps local ports to classes;
+- $b$ assigns stable external binding IDs;
+- $\ell$ assigns runtime locations;
+- $\sigma$ stores current values.
 
 A projection is derived:
 
-\[
+$$
 \pi(p)=\ell(q(p)).
-\]
+$$
 
 ## Reading and writing
 
 The read transition is:
 
-\[
+$$
 \frac{\pi(p)=\ell\qquad\sigma(\ell)=v}
 {\langle\textsf{getPort}\;p,R\rangle
  \to
  \langle\textsf{return}\;v,R\rangle}.
-\]
+$$
 
 The write transition is:
 
-\[
+$$
 \frac{\pi(p)=\ell\qquad\textsf{CanWrite}(p,v,R)}
 {\langle\textsf{setPort}\;p\;v,R\rangle
  \to
  \langle(),R[\sigma(\ell):=v]\rangle}.
-\]
+$$
 
-If \(q(p)=q(r)\), both operations address the same location.
+If $q(p)=q(r)$, both operations address the same location.
 
 ## Link transition
 
 A successful link command is a transaction:
 
-\[
+$$
 \langle\textsf{link}\;p\;r\;\mu,R\rangle
 \to
 \langle\textsf{linked}\;b,R'\rangle.
-\]
+$$
 
 The premises include:
 
-\[
+$$
 \kappa(p)\equiv_{id}\kappa(r),
-\]
+$$
 
 current authorization, a successfully compiled candidate graph, and successful merge-policy evaluation.
 
 If the merge policy fails, the source graph and resource state remain unchanged:
 
-\[
+$$
 \langle\textsf{link}\;p\;r\;\mu,R\rangle
 \to
 \langle\textsf{conflict},R\rangle.
-\]
+$$
 
 This atomicity rule is essential. A half-committed quotient would expose ports as linked while retaining incompatible resources.
 
 ## Unlink transition
 
-Removing an explicit edge \(e\) yields a new source graph \(G-e\). The compiler recomputes affected components. If one old binding class splits into \(Q_1,\ldots,Q_n\), the unlink policy initializes a resource for each class.
+Removing an explicit edge $e$ yields a new source graph $G-e$. The compiler recomputes affected components. If one old binding class splits into $Q_1,\ldots,Q_n$, the unlink policy initializes a resource for each class.
 
-For `copy-current`, if the old value is \(v\), then:
+For `copy-current`, if the old value is $v$, then:
 
-\[
+$$
 \sigma'(\ell_i)=v
 \qquad
 \textsf{for each new class }Q_i.
-\]
+$$
 
 Other classes and resources remain unchanged.
 
 ## Selection transition
 
-When the interaction machine is waiting on query \(q:A\), activating occurrence \(o\) succeeds only when the semantic runtime derives:
+When the interaction machine is waiting on query $q:A$, activating occurrence $o$ succeeds only when the semantic runtime derives:
 
-\[
+$$
 \textsf{Accepts}(q,o,v,evidence).
-\]
+$$
 
 The transition resumes the stored continuation:
 
-\[
+$$
 \langle\textsf{Selecting}(q,k),\textsf{Activate}(o)\rangle
 \to
 \langle k(v,evidence),\textsf{Idle}\rangle.
-\]
+$$
 
 A second activation cannot reuse the consumed continuation.
 
@@ -2469,11 +2469,11 @@ A second activation cannot reuse the consumed continuation.
 
 ## Contract-fiber preservation
 
-**Theorem 1 - Fiber preservation.** If `compile(G)` succeeds and \(q(p)=q(r)\), then:
+**Theorem 1 - Fiber preservation.** If `compile(G)` succeeds and $q(p)=q(r)$, then:
 
-\[
+$$
 \kappa(p)\equiv_{id}\kappa(r).
-\]
+$$
 
 **Proof idea.** Every generating edge is checked for identity compatibility. The relation is closed by reflexivity, symmetry, and transitivity. Identity compatibility must itself be an equivalence relation, or the compiler must normalize contracts to a canonical identity fiber before computing closure.
 
@@ -2483,55 +2483,55 @@ This theorem prevents a quotient class from containing a document cell and a row
 
 **Theorem 2 - Quotient soundness.** Every declared link is identified:
 
-\[
+$$
 q(s(e))=q(t(e)).
-\]
+$$
 
-**Theorem 3 - Quotient completeness.** If \(q(p)=q(r)\), there is a finite path of declared links connecting \(p\) and \(r\), modulo symmetry.
+**Theorem 3 - Quotient completeness.** If $q(p)=q(r)$, there is a finite path of declared links connecting $p$ and $r$, modulo symmetry.
 
 For a graph-traversal compiler, completeness follows from connected-component construction. For union-find, it follows from correspondence between union operations and the generated equivalence closure.
 
 ## Projection coherence
 
-**Theorem 4 - Linked projection coherence.** If \(q(p)=q(r)\), then:
+**Theorem 4 - Linked projection coherence.** If $q(p)=q(r)$, then:
 
-\[
+$$
 \pi(p)=\pi(r).
-\]
+$$
 
-Consequently, for every reachable store \(\sigma\):
+Consequently, for every reachable store $\sigma$:
 
-\[
+$$
 \textsf{read}(p,\sigma)=\textsf{read}(r,\sigma).
-\]
+$$
 
-**Proof.** By definition \(\pi=\ell\circ q\). Apply congruence of \(\ell\) to equality of quotient classes.
+**Proof.** By definition $\pi=\ell\circ q$. Apply congruence of $\ell$ to equality of quotient classes.
 
 This theorem is stronger than testing synchronized dropdown values after one event. It states that aliasing is structural for every reachable state, provided all access passes through projections.
 
 ## Universal factorization
 
-**Theorem 5 - Factorization.** Let \(g:P_\tau\to X\) respect every generated link. There exists a unique \(\bar g:Q_\tau\to X\) such that:
+**Theorem 5 - Factorization.** Let $g:P_\tau\to X$ respect every generated link. There exists a unique $\bar g:Q_\tau\to X$ such that:
 
-\[
+$$
 g=\bar g\circ q_\tau.
-\]
+$$
 
 This is the coequalizer universal property. In a finite implementation:
 
-\[
+$$
 \bar g([p])=g(p)
-\]
+$$
 
-is well defined because \(g\) is constant on classes.
+is well defined because $g$ is constant on classes.
 
 ## Alpha-invariance
 
-**Theorem 6 - Alpha-invariance.** Let \(\pi:P\cong P'\) be a contract-preserving renaming that transports links. Then compiled plans are isomorphic:
+**Theorem 6 - Alpha-invariance.** Let $\pi:P\cong P'$ be a contract-preserving renaming that transports links. Then compiled plans are isomorphic:
 
-\[
+$$
 \textsf{compile}(\pi G)\cong\pi(\textsf{compile}(G)).
-\]
+$$
 
 Public observations that do not intentionally expose generated names are equal under this isomorphism.
 
@@ -2539,27 +2539,27 @@ The proof establishes that semantic classes depend on incidence and contracts, n
 
 ## Link-order invariance
 
-**Theorem 7 - Link-order invariance.** Reordering the declarations in \(E\) does not change the quotient relation:
+**Theorem 7 - Link-order invariance.** Reordering the declarations in $E$ does not change the quotient relation:
 
-\[
+$$
 P/{\sim_E}
 \cong
 P/{\sim_{\operatorname{perm}(E)}}.
-\]
+$$
 
 Internal union-find representatives and birth ordinals may differ. The canonical semantic plan, after sorting class members and abstracting generated IDs, must agree.
 
 ## Compiler refinement
 
-Let \(C_{ref}\) be the graph-traversal compiler and \(C_{opt}\) the union-find compiler.
+Let $C_{ref}$ be the graph-traversal compiler and $C_{opt}$ the union-find compiler.
 
-**Theorem 8 - Extensional compiler equivalence.** For every well-formed finite graph \(G\):
+**Theorem 8 - Extensional compiler equivalence.** For every well-formed finite graph $G$:
 
-\[
+$$
 \operatorname{canon}(C_{ref}(G))
 =
 \operatorname{canon}(C_{opt}(G)).
-\]
+$$
 
 A production proof may be replaced initially by differential property testing over generated graphs, while a formal proof establishes the underlying union-find invariant.
 
@@ -2599,17 +2599,17 @@ The theorem fails if the adapter logs, caches observably, changes scheduling, al
 
 Type preservation proves that a well-typed transition remains well typed. It does not prove that two implementations of `Binding<A>` behave alike, that persistent IDs remain abstract, or that an optimized compiler preserves observations.
 
-Logical relations interpret each type as a relation between implementations. For a base value type \(A\), the relation may be semantic equality. For function types:
+Logical relations interpret each type as a relation between implementations. For a base value type $A$, the relation may be semantic equality. For function types:
 
-\[
+$$
 f\;R_{A\to B}\;g
-\]
+$$
 
 when related inputs produce related computations. For bindings:
 
-\[
+$$
 b_1\;R_{\textsf{Binding}A}\;b_2
-\]
+$$
 
 when their permitted sequences of reads, writes, subscriptions, links, and unlinks produce related observations.
 
@@ -2629,13 +2629,13 @@ This is the right framework for proving that two internal resource implementatio
 
 ## Parametric binding clients
 
-A client polymorphic in \(A\):
+A client polymorphic in $A$:
 
-\[
+$$
 \forall A.\;\textsf{Binding}\;A\to F\;\textsf{Bool}
-\]
+$$
 
-cannot manufacture or compare values of \(A\) without additional operations. It can observe binding identity only if the API exposes it. Parametricity therefore informs API minimality: exposing raw value representation or unstable resource IDs destroys useful free theorems.
+cannot manufacture or compare values of $A$ without additional operations. It can observe binding identity only if the API exposes it. Parametricity therefore informs API minimality: exposing raw value representation or unstable resource IDs destroys useful free theorems.
 
 ## Proof by structural induction
 
@@ -2835,7 +2835,7 @@ interface BindingCell<A> {
 }
 ```
 
-This mirrors the lambda-calculus distinction among a value \(A\), a reference `Ref A`, and an effectful computation returning \(A\).
+This mirrors the lambda-calculus distinction among a value $A$, a reference `Ref A`, and an effectful computation returning $A$.
 
 ## Open components as typed functions
 
@@ -2862,11 +2862,11 @@ interface OpenComponent<Inputs, Outputs, State, Observation> {
 
 The denotational reading is:
 
-\[
+$$
 \textsf{Inputs}\times\textsf{State}
 \to
 T(\textsf{Outputs}\times\textsf{State}\times\textsf{Observation}).
-\]
+$$
 
 A React component consumes `Observation` and emits commands. It does not own the semantic boundary.
 
@@ -2886,9 +2886,9 @@ connect({
 
 Type:
 
-\[
+$$
 (A\to B)\to\textsf{Output}\;A\to\textsf{Input}\;B\to\textsf{Wire}.
-\]
+$$
 
 ### Directional effectful process
 
@@ -2902,9 +2902,9 @@ route({
 
 Type:
 
-\[
+$$
 (A\to F B)\to\textsf{StreamOut}\;A\to\textsf{StreamIn}\;B\to\textsf{Process}.
-\]
+$$
 
 ### Identity link
 
@@ -2918,7 +2918,7 @@ identify({
 
 Type:
 
-\[
+$$
 \textsf{IdentityCompatible}(\tau,\tau)
 \Rightarrow
 \textsf{CellPort}\;\tau
@@ -2926,7 +2926,7 @@ Type:
 \textsf{CellPort}\;\tau
 \to
 F\textsf{LinkResult}.
-\]
+$$
 
 The identity operation is not represented as `map: x => x`; it changes alias topology and persistent state.
 
@@ -3024,57 +3024,57 @@ The compiler reports which theorems and optimizations no longer apply. A host-la
 
 Let the chart and pipeline have local document cells:
 
-\[
+$$
 \Gamma_C=c:\operatorname{Ref}D,
 \qquad
 \Gamma_P=p:\operatorname{Ref}D.
-\]
+$$
 
 Their observations are:
 
-\[
+$$
 \textsf{chartObs}:\operatorname{Ref}D\times S_C\to F O_C
-\]
+$$
 
 and:
 
-\[
+$$
 \textsf{pipelineObs}:\operatorname{Ref}D\times S_P\to F O_P.
-\]
+$$
 
 Before linking, environments assign independent locations:
 
-\[
+$$
 \rho(c)=\ell_c,
 \qquad
 \rho(p)=\ell_p.
-\]
+$$
 
 ## Link compilation
 
 The user declares:
 
-\[
+$$
 c\sim p.
-\]
+$$
 
 The quotient has one class:
 
-\[
+$$
 [c]=[p]=b.
-\]
+$$
 
 The compiled environment uses one location:
 
-\[
+$$
 \bar\rho(b)=\ell_b.
-\]
+$$
 
 Precomposition supplies:
 
-\[
+$$
 \rho'(c)=\rho'(p)=\ell_b.
-\]
+$$
 
 This is context contraction plus reference aliasing.
 
@@ -3082,41 +3082,41 @@ This is context contraction plus reference aliasing.
 
 If:
 
-\[
+$$
 \sigma(\ell_c)=\textsf{doc-A},
 \qquad
 \sigma(\ell_p)=\textsf{doc-B},
-\]
+$$
 
 then the link declaration alone is underdetermined. A source-preference gesture may choose:
 
-\[
+$$
 \mu(\textsf{doc-A},\textsf{doc-B})=\textsf{doc-A}.
-\]
+$$
 
-The runtime creates or reuses \(\ell_b\), stores `doc-A`, then commits the new projection map.
+The runtime creates or reuses $\ell_b$, stores `doc-A`, then commits the new projection map.
 
 ## Distinct widgets, shared resource
 
 The chart renders:
 
-\[
+$$
 \textsf{renderChartDocument}(\ell_b),
-\]
+$$
 
 while the pipeline renders:
 
-\[
+$$
 \textsf{renderPipelineDocument}(\ell_b).
-\]
+$$
 
 The widgets need not be equal. The invariant is:
 
-\[
+$$
 \textsf{resourceOf}(c)=\textsf{resourceOf}(p)=\ell_b.
-\]
+$$
 
-A write from either widget changes \(\sigma(\ell_b)\), causing both observations to update.
+A write from either widget changes $\sigma(\ell_b)$, causing both observations to update.
 
 ## Multiple placements
 
@@ -3135,11 +3135,11 @@ This decomposition prevents tile duplication from accidentally changing link top
 
 ## Unlink
 
-Removing the only link edge splits the class into \([c]\) and \([p]\). Under `copy-current`, both new resources receive the current value:
+Removing the only link edge splits the class into $[c]$ and $[p]$. Under `copy-current`, both new resources receive the current value:
 
-\[
+$$
 \sigma'(\ell_c')=\sigma'(\ell_p')=\sigma(\ell_b).
-\]
+$$
 
 Future writes diverge. This is not inverse beta reduction or inverse quotienting; it is a stateful graph-edit command with a specified initialization policy.
 
@@ -3149,16 +3149,16 @@ Future writes diverge. This is not inverse beta reduction or inverse quotienting
 
 The action has type:
 
-\[
+$$
 \textsf{schedule}:
 \textsf{Contact}	o\textsf{Slot}	o F\textsf{Event}.
-\]
+$$
 
 A contact occurrence supplies the first argument. The pending workflow is:
 
-\[
+$$
 \lambda s:\textsf{Slot}.\;\textsf{schedule}\;contact\;s.
-\]
+$$
 
 The shell's query locates mounted slot occurrences. Clicking one resumes the continuation.
 
@@ -3166,10 +3166,10 @@ The shell's query locates mounted slot occurrences. Clicking one resumes the con
 
 The action:
 
-\[
+$$
 \textsf{fileTask}:
 \textsf{Task}	o\textsf{Project}	o F1
-\]
+$$
 
 shows how presentation-based selection and port binding share a lambda foundation without being the same subsystem.
 
@@ -3182,9 +3182,9 @@ The first is episodic function application. The second is durable context transf
 
 A project card and project-ID token may represent the same semantic entity under different presentation sorts. A translator:
 
-\[
+$$
 \textsf{ProjectId}\rightharpoonup\textsf{Project}
-\]
+$$
 
 can let the token satisfy a query for a project. This is a partial coercion inserted before application. It should not make the two presentation sorts definitionally equal.
 
@@ -3192,9 +3192,9 @@ can let the token satisfy a query for a project. This is a partial coercion inse
 
 The action:
 
-\[
+$$
 \forall A.\;\textsf{Descriptor}\;A\to A\to F\textsf{Inspection}
-\]
+$$
 
 shows dictionary-passing polymorphism. The descriptor determines label, description, identity, and safe observation. Parametricity suggests that the generic infrastructure should not inspect arbitrary runtime fields outside the dictionary.
 
@@ -3242,7 +3242,7 @@ React reconciliation keys, DOM node identity, semantic subject identity, occurre
 
 ## A typed elaborator
 
-Develop a surface DSL for component ports and compile it to \(\lambda_{\mathrm{PB}}\). The elaborator should emit:
+Develop a surface DSL for component ports and compile it to $\lambda_{\mathrm{PB}}$. The elaborator should emit:
 
 - explicit value/computation distinctions;
 - contract witnesses;
@@ -3299,11 +3299,11 @@ This would validate representation independence for the runtime boundary.
 
 Define changes for graphs and plans, then derive or verify an update function satisfying:
 
-\[
+$$
 \textsf{compile}(G\oplus dG)
 =
 \textsf{compile}(G)\oplus D\textsf{compile}(G)(dG).
-\]
+$$
 
 Start with link insertion and value updates; treat deletion with affected-component recomputation.
 
@@ -3337,15 +3337,15 @@ Measure discoverability, error rate, time to completion, understanding of shared
 
 A lambda abstraction can contain free variables. A runtime closure packages executable code with an environment that supplies those variables. At a conceptual level:
 
-\[
+$$
 \textsf{Closure}(A,B)
 \cong
 \exists E.\;E\times(E\times A\to B).
-\]
+$$
 
 The existential type hides the concrete environment representation. The closure contains:
 
-- an environment value of some hidden type \(E\);
+- an environment value of some hidden type $E$;
 - a code pointer expecting that environment and the explicit argument.
 
 Closure conversion transforms higher-order lambda terms into this explicit representation. The connection to open PBUI components is direct. A component definition is code parameterized by a port environment; a compiled component instance packages that code with projections for its currently bound ports.
@@ -3364,21 +3364,21 @@ The `BoundEnvironment` is not incidental dependency injection. It is the closure
 
 Before compilation, a component has a symbolic context:
 
-\[
+$$
 \Gamma=p_1:\tau_1,\ldots,p_n:\tau_n.
-\]
+$$
 
 The quotient compiler and resource allocator construct an environment:
 
-\[
+$$
 \rho:\Gamma\to\textsf{Resources}.
-\]
+$$
 
 A compiled component is:
 
-\[
+$$
 (C,\rho).
-\]
+$$
 
 When the user links or unlinks ports, the component code need not change. The environment changes. This suggests a clean runtime operation:
 
@@ -3395,11 +3395,11 @@ Rebinding should preserve component-local state unless the contract or product p
 
 Two component closures may contain references to the same binding resource in their environments:
 
-\[
+$$
 \rho_C(c)=\ell_b,
 \qquad
 \rho_P(p)=\ell_b.
-\]
+$$
 
 This is ordinary closure-environment sharing. The quotient compiler constructs the alias relation before closure installation. In JavaScript, both closures may capture the same signal object. In a Redux implementation, both may capture projections to one store path. The semantic requirement is representation-independent.
 
@@ -3431,11 +3431,11 @@ Some calculi represent substitution as syntax rather than a meta-operation. A te
 
 Instead of immediately rewriting every component declaration, retain:
 
-\[
+$$
 C[\theta_q],
-\]
+$$
 
-where \(\theta_q\) is the quotient-induced substitution. Composition of wiring plans then becomes substitution composition. This representation supports:
+where $\theta_q$ is the quotient-induced substitution. Composition of wiring plans then becomes substitution composition. This representation supports:
 
 - incremental updates;
 - source-level explanations;
@@ -3458,17 +3458,17 @@ A lambda calculus is not only a grammar of terms. It is commonly considered modu
 
 This is already quotient-based mathematics:
 
-\[
+$$
 \textsf{Terms}(\Gamma,A)/{\equiv_{\beta\eta}}.
-\]
+$$
 
 The quotient identifies different syntactic expressions that the theory declares semantically equal.
 
 P06 introduces another family of equations, not between arbitrary program terms but between interface occurrences:
 
-\[
+$$
 p=r.
-\]
+$$
 
 The binding compiler forms the congruence or equivalence closure generated by these equations. The general pattern is the same:
 
@@ -3484,11 +3484,11 @@ Before identity links, the port context is free: each port occurrence is an inde
 
 Adding links presents a new theory:
 
-\[
+$$
 \mathcal T_E
 =
 \mathcal T_P/(s(e)=t(e))_{e\in E}.
-\]
+$$
 
 Models of the quotient theory are precisely models of the original theory that satisfy the added equations. For value environments, this means assignments constant on link classes. For resource environments, it means the linked generators denote the same location.
 
@@ -3498,9 +3498,9 @@ This formulation explains the relationship between quotient syntax and compatibl
 
 At the set level, endpoint maps are:
 
-\[
+$$
 E\rightrightarrows P.
-\]
+$$
 
 At a typed-context level, links exist only within contract fibers. The appropriate construction is therefore a coproduct of fiberwise coequalizers or a coequalizer in a slice/indexed category that preserves contract labels.
 
@@ -3520,15 +3520,15 @@ The type-theoretic organization and the efficient implementation agree.
 
 The compiler's public semantics may quotient plans by generated-ID renaming:
 
-\[
+$$
 Q_1\approx_\alpha Q_2.
-\]
+$$
 
 It may also quotient adapter implementations by contextual equivalence:
 
-\[
+$$
 A_1\simeq_{ctx}A_2.
-\]
+$$
 
 These are different equations at different layers:
 
@@ -3569,11 +3569,11 @@ implies equal current values, not one resource. The domain equation belongs to t
 
 Under the Curry-Howard correspondence, propositions are read as types and proofs as programs. A proposition that a user may link two ports can be represented as a type:
 
-\[
+$$
 \textsf{CanLink}(u,p,q,r).
-\]
+$$
 
-An inhabitant carries evidence that, at revision \(r\):
+An inhabitant carries evidence that, at revision $r$:
 
 - the ports exist;
 - their contracts are compatible;
@@ -3582,14 +3582,14 @@ An inhabitant carries evidence that, at revision \(r\):
 
 The link command can require this evidence:
 
-\[
+$$
 \textsf{link}:
 \textsf{CanLink}(u,p,q,r)
 \to
 \textsf{MergePolicy}\;p\;q
 \to
 F\textsf{LinkResult}.
-\]
+$$
 
 ## Evidence is not merely a Boolean
 
@@ -3612,7 +3612,7 @@ This supports explanation, auditing, and stale-check detection. The evidence nee
 
 Capability evidence has constructors corresponding to introduction rules. For example:
 
-\[
+$$
 \frac{
 \textsf{Compatible}(p,q)
 \quad
@@ -3624,23 +3624,23 @@ Capability evidence has constructors corresponding to introduction rules. For ex
 }{
 \textsf{CanLink}(u,p,q)
 }.
-\]
+$$
 
 The command interpreter eliminates the evidence by checking its fields and using it to authorize the operation.
 
 ## Refinement types for selection
 
-A selection query can be read as a predicate \(P:A\to\textsf{Prop}\). A successful result has a refinement type:
+A selection query can be read as a predicate $P:A\to\textsf{Prop}$. A successful result has a refinement type:
 
-\[
+$$
 \{x:A\mid P(x)\}.
-\]
+$$
 
 In dependent-pair notation:
 
-\[
+$$
 \Sigma(x:A).P(x).
-\]
+$$
 
 This is the formal version of “a selected project together with evidence that it is active, owned by the current user, mounted, and reachable.”
 
@@ -3696,9 +3696,9 @@ The useful property is stratified:
 
 A fixed-point operator has type:
 
-\[
+$$
 \textsf{fix}:(A\to A)\to A.
-\]
+$$
 
 It destroys strong normalization but permits recursive components and workflows. The architecture should keep recursive definitions reified and classified where termination or productivity matters.
 
@@ -3706,15 +3706,15 @@ It destroys strong normalization but permits recursive components and workflows.
 
 Trees, streams, and component graphs use recursive types:
 
-\[
+$$
 \mu X.FX
-\]
+$$
 
 for inductive structures, and:
 
-\[
+$$
 \nu X.FX
-\]
+$$
 
 for coinductive behavior. A layout split tree is inductive; an event stream is coinductive. Conflating them leads to awkward APIs.
 
@@ -3824,9 +3824,9 @@ This layered account gives P06 a firmer foundation than either callback-oriented
 
 | PBUI/P06 construct | Lambda-calculus or semantic counterpart | Qualification |
 |---|---|---|
-| presentation value | typed value \(v:A\) | exact at semantic layer |
-| presentation occurrence | observation offering \(v:A\) | occurrence is not the value |
-| type-indexed descriptor | dictionary for \(A\) | runtime type witness required |
+| presentation value | typed value $v:A$ | exact at semantic layer |
+| presentation occurrence | observation offering $v:A$ | occurrence is not the value |
+| type-indexed descriptor | dictionary for $A$ | runtime type witness required |
 | generic inspect | polymorphic function with dictionary | parametric only if representation hidden |
 | pending action | partially applied function | exact for missing arguments |
 | accept mode | typed continuation/effect/evaluation context | cancellation adds sum/effect |

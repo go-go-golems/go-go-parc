@@ -20,15 +20,15 @@ Authors:[Michael Günther](https://arxiv.org/search/cs?searchtype=author&query=G
 | Subjects: | Computation and Language (cs.CL); Information Retrieval (cs.IR) |
 | MSC classes: | 68T50 |
 | ACM classes: | I.2.7 |
-| Cite as: | [arXiv:2409.04701](https://arxiv.org/abs/2409.04701) \[cs.CL\] |
-|  | (or [arXiv:2409.04701v3](https://arxiv.org/abs/2409.04701v3) \[cs.CL\] for this version) |
+| Cite as: | [arXiv:2409.04701](https://arxiv.org/abs/2409.04701) $$cs.CL$$ |
+|  | (or [arXiv:2409.04701v3](https://arxiv.org/abs/2409.04701v3) $$cs.CL$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.2409.04701](https://doi.org/10.48550/arXiv.2409.04701) |
 
 ## Submission history
 
-From: Han Xiao \[[view email](https://arxiv.org/show-email/082aa2e9/2409.04701)\]  
-**[\[v1\]](https://arxiv.org/abs/2409.04701v1)** Sat, 7 Sep 2024 03:54:46 UTC (268 KB)  
-**[\[v2\]](https://arxiv.org/abs/2409.04701v2)** Wed, 2 Oct 2024 15:07:09 UTC (273 KB)  
-**\[v3\]** Mon, 7 Jul 2025 17:49:51 UTC (203 KB)
+From: Han Xiao $$[view email](https://arxiv.org/show-email/082aa2e9/2409.04701)$$  
+**[$$v1$$](https://arxiv.org/abs/2409.04701v1)** Sat, 7 Sep 2024 03:54:46 UTC (268 KB)  
+**[$$v2$$](https://arxiv.org/abs/2409.04701v2)** Wed, 2 Oct 2024 15:07:09 UTC (273 KB)  
+**$$v3$$** Mon, 7 Jul 2025 17:49:51 UTC (203 KB)
 
 [Which authors of this paper are endorsers?](https://arxiv.org/auth/show-endorsers/2409.04701) | Disable MathJax ([What is MathJax?](https://info.arxiv.org/help/mathjax.html))

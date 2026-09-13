@@ -75,11 +75,11 @@ Cancellation has a related subtlety. Canceling a pan restores the old domain and
 
 The application represents signed Unix microseconds as `bigint` internally and decimal strings in HTTP JSON. `parseTimeUs` validates the string and signed int64 range. This keeps the full declared wire domain intact. Current-era epoch microseconds still fit within JavaScript's safe integer range; the reason for bigint is the int64 contract and exact arithmetic, not a claim that every present-day timestamp already exceeds that range.
 
-For a viewport \([s,e)\), a time \(t\), and width \(W\), the horizontal transform is:
+For a viewport $[s,e)$, a time $t$, and width $W$, the horizontal transform is:
 
-\[
+$$
 x = \frac{t-s}{e-s}W.
-\]
+$$
 
 The implementation subtracts bigint timestamps first, then converts the bounded differences to numbers for pixel calculations. It does not convert the complete epoch to floating point before subtraction. The inverse transform rounds a relative pixel-derived offset to microseconds and adds it to the bigint origin.
 
@@ -87,11 +87,11 @@ The domain is half-open: an event exactly at `endUs` belongs to the next interva
 
 ## 3. A timeline is a multiresolution representation, not continuous playback
 
-The numeric grid starts with 64-second tiles containing 256 buckets. The base bucket width is therefore 250 milliseconds. At level \(L\), the tile span is:
+The numeric grid starts with 64-second tiles containing 256 buckets. The base bucket width is therefore 250 milliseconds. At level $L$, the tile span is:
 
-\[
+$$
 T_L = 64\cdot 2^L\text{ seconds}.
-\]
+$$
 
 Thumbnail tiles have 32 slots, giving a base slot interval of two seconds on the same base span. The implementation chooses numeric and thumbnail levels from seconds per pixel, with different density targets. Numeric information can use subpixel-scale buckets; thumbnails need enough horizontal space to remain useful images. A hysteresis band retains the previous level around a threshold instead of repeatedly changing resource requests during small zoom movements.
 
@@ -212,11 +212,11 @@ These paths are implemented, but the short browser fixture is not a thirty-minut
 
 A video element reports seconds on its media timeline. The application needs canonical UTC. The tempting formula, `UTC = currentTime + oneStartOffset`, is invalid when media time is discontinuous or when separate UTC recording intervals are adjacent in the player timeline.
 
-For a mapping entry with media start \(m_0\) and UTC start \(u_0\), local conversion is:
+For a mapping entry with media start $m_0$ and UTC start $u_0$, local conversion is:
 
-\[
+$$
 u(m) = u_0 + \operatorname{round}((m-m_0)10^6).
-\]
+$$
 
 This conversion is valid only inside that entry's admitted media interval. `MediaTimeMap` binds fragment media timing and program-date-time to the authorized server index. Entries retain source epoch and UTC/media bounds. Unknown intervals and declared gaps return no mapping; the implementation does not extrapolate across them.
 
@@ -233,11 +233,11 @@ Media time 4 seconds maps to UTC base plus 10 seconds, not base plus 4. A reques
 
 The master clock anchors bigint UTC to monotonic browser time:
 
-\[
+$$
 u_{master}(p)=u_{anchor}+\operatorname{round}((p-p_{anchor})1000r),
-\]
+$$
 
-where \(p\) is `performance.now()` in milliseconds and \(r\) is playback rate. Pause, seek, and rate changes reset the anchors atomically. A stalled camera therefore cannot implicitly pause or redefine time for every other player.
+where $p$ is `performance.now()` in milliseconds and $r$ is playback rate. Pause, seek, and rate changes reset the anchors atomically. A stalled camera therefore cannot implicitly pause or redefine time for every other player.
 
 Every 100 milliseconds, a player's mapped timing is compared with the master. Drift up to 50 milliseconds leaves the requested rate unchanged. Between 50 and 200 milliseconds, the implementation permits a five-percent nudge at 1×. Drift above 200 milliseconds must persist for 500 milliseconds before hard correction. Nudges are not enabled at the other selectable rates by this implementation.
 
@@ -280,7 +280,7 @@ Offscreen players pause playback and media loading independently of the master c
 
 The initial telemetry slice connects validated manifest latency and supported long-task durations. It does not yet instrument every required render, data, and player metric. Unobserved quantities remain absent rather than being emitted as zero.
 
-`BrowserTelemetry` aggregates counts, sums, minima, maxima, and cumulative histogram buckets. If raw bin counts are \(b_i\), cumulative bucket count \(c_i\) is \(\sum_{j\leq i}b_j\). The final bucket has a null upper bound representing positive infinity, and its cumulative count equals the metric count. These properties allow server-side aggregation across compatible intervals without attempting to average percentiles.
+`BrowserTelemetry` aggregates counts, sums, minima, maxima, and cumulative histogram buckets. If raw bin counts are $b_i$, cumulative bucket count $c_i$ is $\sum_{j\leq i}b_j$. The final bucket has a null upper bound representing positive infinity, and its cumulative count equals the metric count. These properties allow server-side aggregation across compatible intervals without attempting to average percentiles.
 
 The unit fixture observes 10, 100, 200, and 1000 milliseconds. Its histogram has count 4, sum 1310, min 10, max 1000, and cumulative count 2 at the 100-millisecond boundary. Nonfinite values and accidental epoch-sized timing inputs are rejected.
 

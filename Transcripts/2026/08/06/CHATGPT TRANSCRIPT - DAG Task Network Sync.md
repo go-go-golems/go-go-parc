@@ -1395,16 +1395,16 @@ Python 3.10+ is required. Runtime dependencies: none.
 ```bash
 dag-sync --db work.sqlite3 init
 
-EPIC=$(dag-sync --db work.sqlite3 add "Authentication" --kind group)
-SPEC=$(dag-sync --db work.sqlite3 add "Write API contract" --parent "$EPIC" --priority 100)
-API=$(dag-sync --db work.sqlite3 add "Implement API" --parent "$EPIC" --priority 80)
-UI=$(dag-sync --db work.sqlite3 add "Implement UI" --parent "$EPIC" --priority 70)
-TEST=$(dag-sync --db work.sqlite3 add "Integration tests" --parent "$EPIC" --priority 60)
+EPIC=\$(dag-sync --db work.sqlite3 add "Authentication" --kind group)
+SPEC=\$(dag-sync --db work.sqlite3 add "Write API contract" --parent "\$EPIC" --priority 100)
+API=\$(dag-sync --db work.sqlite3 add "Implement API" --parent "\$EPIC" --priority 80)
+UI=\$(dag-sync --db work.sqlite3 add "Implement UI" --parent "\$EPIC" --priority 70)
+TEST=\$(dag-sync --db work.sqlite3 add "Integration tests" --parent "\$EPIC" --priority 60)
 
-dag-sync --db work.sqlite3 depend "$API" "$SPEC"
-dag-sync --db work.sqlite3 depend "$UI" "$SPEC"
-dag-sync --db work.sqlite3 depend "$TEST" "$API"
-dag-sync --db work.sqlite3 depend "$TEST" "$UI"
+dag-sync --db work.sqlite3 depend "\$API" "\$SPEC"
+dag-sync --db work.sqlite3 depend "\$UI" "\$SPEC"
+dag-sync --db work.sqlite3 depend "\$TEST" "\$API"
+dag-sync --db work.sqlite3 depend "\$TEST" "$UI"
 
 dag-sync --db work.sqlite3 tree
 dag-sync --db work.sqlite3 ready
@@ -1418,21 +1418,21 @@ Each agent repeatedly claims one task. Claims are serialized with `BEGIN IMMEDIA
 
 ```bash
 AGENT="backend-agent-1"
-TASK=$(dag-sync --db work.sqlite3 claim --agent "$AGENT" --lease 900)
+TASK=\$(dag-sync --db work.sqlite3 claim --agent "\$AGENT" --lease 900)
 
 # Exit code 3 means no task is currently ready.
-[ -n "$TASK" ] || exit 0
+[ -n "\$TASK" ] || exit 0
 
-dag-sync --db work.sqlite3 start "$TASK" --agent "$AGENT"
+dag-sync --db work.sqlite3 start "\$TASK" --agent "\$AGENT"
 
 # While work is running, extend the lease periodically.
-dag-sync --db work.sqlite3 heartbeat "$TASK" --agent "$AGENT" --lease 900
+dag-sync --db work.sqlite3 heartbeat "\$TASK" --agent "\$AGENT" --lease 900
 
 # On success:
-dag-sync --db work.sqlite3 complete "$TASK" --agent "$AGENT" --result 'commit=abc123'
+dag-sync --db work.sqlite3 complete "\$TASK" --agent "\$AGENT" --result 'commit=abc123'
 
 # On a retryable failure:
-# dag-sync --db work.sqlite3 fail "$TASK" --agent "$AGENT" --error 'tests timed out' --retry
+# dag-sync --db work.sqlite3 fail "\$TASK" --agent "$AGENT" --error 'tests timed out' --retry
 ```
 
 For automation, use `claim --json`, parse the returned task object, and treat exit status `3` as an idle queue.

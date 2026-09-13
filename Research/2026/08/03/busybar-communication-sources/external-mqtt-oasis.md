@@ -55,26 +55,26 @@ Technical Committee:
 
 Chairs:
 
-Richard Coppen ([\[email
-protected\]](https://docs.oasis-open.org/cdn-cgi/l/email-protection#7714180707121937021c591e151a5914181a)),
+Richard Coppen ([$$email
+protected$$](https://docs.oasis-open.org/cdn-cgi/l/email-protection#7714180707121937021c591e151a5914181a)),
 [IBM](http://www.ibm.com/)
 
 Editors:
 
-Andrew Banks ([\[email
-protected\]](https://docs.oasis-open.org/cdn-cgi/l/email-protection#43222d273126341c21222d28300336286d2a212e6d202c2e)),
+Andrew Banks ([$$email
+protected$$](https://docs.oasis-open.org/cdn-cgi/l/email-protection#43222d273126341c21222d28300336286d2a212e6d202c2e)),
 [IBM](http://www.ibm.com/)
 
-Ed Briggs ([\[email
-protected\]](https://docs.oasis-open.org/cdn-cgi/l/email-protection#53363731213a343420133e3a30213c203c35277d303c3e)),
+Ed Briggs ([$$email
+protected$$](https://docs.oasis-open.org/cdn-cgi/l/email-protection#53363731213a343420133e3a30213c203c35277d303c3e)),
 [Microsoft](http://www.microsoft.com/)
 
-Ken Borgendale ([\[email
-protected\]](https://docs.oasis-open.org/cdn-cgi/l/email-protection#701b07123005035e19121d5e131f1d)),
+Ken Borgendale ([$$email
+protected$$](https://docs.oasis-open.org/cdn-cgi/l/email-protection#701b07123005035e19121d5e131f1d)),
 [IBM](http://www.ibm.com/)
 
-Rahul Gupta ([\[email
-protected\]](https://docs.oasis-open.org/cdn-cgi/l/email-protection#5c2e3d342930723b292c283d1c292f72353e31723f3331)),
+Rahul Gupta ([$$email
+protected$$](https://docs.oasis-open.org/cdn-cgi/l/email-protection#5c2e3d342930723b292c283d1c292f72353e31723f3331)),
 [IBM](http://www.ibm.com/)
 
 Related work:
@@ -144,7 +144,7 @@ Citation format:
 
 When referencing this specification the following citation format should be used:
 
-\[mqtt-v5.0\]
+$$mqtt-v5.0$$
 
 *MQTT Version 5.0*. Edited by Andrew Banks, Ed Briggs, Ken Borgendale, and Rahul Gupta. 07 March 2019. OASIS Standard.
 [https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html](https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.
@@ -3121,12 +3121,12 @@ Followed by the Four Byte Integer representing the Message Expiry Interval.
 
 If present, the Four Byte value is the lifetime of the Application Message in seconds. If the Message Expiry Interval
 has passed and the Server has not managed to start onward delivery to a matching subscriber, then it MUST delete the
-copy of the message for that subscriber \[MQTT-3.3.2-5\].
+copy of the message for that subscriber $$MQTT-3.3.2-5$$.
 
 If absent, the Application Message does not expire.
 
 The PUBLISH packet sent to a Client by the Server MUST contain a Message Expiry Interval set to the received value
-minus the time that the Application Message has been waiting in the Server \[MQTT-3.3.2-6\]. Refer to [section
+minus the time that the Application Message has been waiting in the Server $$MQTT-3.3.2-6$$. Refer to [section
 4.1](#_Session_State) for details and limitations of stored state.
 
 ##### 3.3.2.3.4 Topic Alias
@@ -3152,18 +3152,18 @@ A sender can modify the Topic Alias mapping by sending another PUBLISH in the sa
 Topic Alias value and a different non-zero length Topic Name.
 
 Topic Alias mappings exist only within a Network Connection and last only for the lifetime of that Network Connection.
-A receiver MUST NOT carry forward any Topic Alias mappings from one Network Connection to another \[MQTT-3.3.2-7\].
+A receiver MUST NOT carry forward any Topic Alias mappings from one Network Connection to another $$MQTT-3.3.2-7$$.
 
 A Topic Alias of 0 is not permitted. A sender MUST NOT send a PUBLISH packet containing a Topic Alias which has the
-value 0 \[MQTT-3.3.2-8\].
+value 0 $$MQTT-3.3.2-8$$.
 
 A Client MUST NOT send a PUBLISH packet with a Topic Alias greater than the Topic Alias Maximum value returned by the
-Server in the CONNACK packet \[MQTT-3.3.2-9\]. A Client MUST accept all Topic Alias values greater than 0 and less than
-or equal to the Topic Alias Maximum value that it sent in the CONNECT packet \[MQTT-3.3.2-10\].
+Server in the CONNACK packet $$MQTT-3.3.2-9$$. A Client MUST accept all Topic Alias values greater than 0 and less than
+or equal to the Topic Alias Maximum value that it sent in the CONNECT packet $$MQTT-3.3.2-10$$.
 
 A Server MUST NOT send a PUBLISH packet with a Topic Alias greater than the Topic Alias Maximum value sent by the
-Client in the CONNECT packet \[MQTT-3.3.2-11\]. A Server MUST accept all Topic Alias values greater than 0 and less
-than or equal to the Topic Alias Maximum value that it returned in the CONNACK packet \[MQTT-3.3.2-12\].
+Client in the CONNECT packet $$MQTT-3.3.2-11$$. A Server MUST accept all Topic Alias values greater than 0 and less
+than or equal to the Topic Alias Maximum value that it returned in the CONNACK packet $$MQTT-3.3.2-12$$.
 
 The Topic Alias mappings used by the Client and Server are independent from each other. Thus, when a Client sends a
 PUBLISH containing a Topic Alias value of 1 to a Server and the Server sends a PUBLISH with a Topic Alias value of 1 to
@@ -3174,14 +3174,14 @@ that Client they will in general be referring to different Topics.
 **8 (0x08) Byte**, Identifier of the Response Topic.
 
 Followed by a UTF-8 Encoded String which is used as the Topic Name for a response message. The Response Topic MUST be a
-UTF-8 Encoded String as defined in [section 1.5.4](#_UTF-8_Encoded_String) \[MQTT-3.3.2-13\]. The Response Topic MUST
-NOT contain wildcard characters \[MQTT-3.3.2-14\]. It is a Protocol Error to include the Response Topic more than once.
+UTF-8 Encoded String as defined in [section 1.5.4](#_UTF-8_Encoded_String) $$MQTT-3.3.2-13$$. The Response Topic MUST
+NOT contain wildcard characters $$MQTT-3.3.2-14$$. It is a Protocol Error to include the Response Topic more than once.
 The presence of a Response Topic identifies the Message as a Request.
 
 Refer to [section 4.10](#_Request_/_Response) for more information about Request / Response.
 
 The Server MUST send the Response Topic unaltered to all subscribers receiving the Application Message
-\[MQTT-3.3.2-15\].
+$$MQTT-3.3.2-15$$.
 
 **Non-normative comment:**
 
@@ -3198,7 +3198,7 @@ the Response Message is for when it is received. It is a Protocol Error to inclu
 the Correlation Data is not present, the Requester does not require any correlation data.
 
 The Server MUST send the Correlation Data unaltered to all subscribers receiving the Application Message
-\[MQTT-3.3.2-16\]. The value of the Correlation Data only has meaning to the sender of the Request Message and receiver
+$$MQTT-3.3.2-16$$. The value of the Correlation Data only has meaning to the sender of the Request Message and receiver
 of the Response Message.
 
 **Non-normative comment**
@@ -3222,8 +3222,8 @@ Followed by a UTF-8 String Pair. The User Property is allowed to appear multiple
 value pairs. The same name is allowed to appear more than once.
 
 The Server MUST send all User Properties unaltered in a PUBLISH packet when forwarding the Application Message to a
-Client \[MQTT-3.3.2-17\]. The Server MUST maintain the order of User Properties when forwarding the Application Message
-\[MQTT-3.3.2-18\].
+Client $$MQTT-3.3.2-17$$. The Server MUST maintain the order of User Properties when forwarding the Application Message
+$$MQTT-3.3.2-18$$.
 
 **Non-normative comment**
 
@@ -3245,12 +3245,12 @@ match to more than one subscription, in this case their order is not significant
 **3 (0x03)** Identifier of the Content Type.
 
 Followed by a UTF-8 Encoded String describing the content of the Application Message. The Content Type MUST be a UTF-8
-Encoded String as defined in [section 1.5.4](#_UTF-8_Encoded_String) \[MQTT-3.3.2-19\].
+Encoded String as defined in [section 1.5.4](#_UTF-8_Encoded_String) $$MQTT-3.3.2-19$$.
 
 It is a Protocol Error to include the Content Type more than once. The value of the Content Type is defined by the
 sending and receiving application.
 
-A Server MUST send the Content Type unaltered to all subscribers receiving the Application Message \[MQTT-3.3.2-20\].
+A Server MUST send the Content Type unaltered to all subscribers receiving the Application Message $$MQTT-3.3.2-20$$.
 
 **Non-normative comment**
 
@@ -3314,7 +3314,7 @@ Remaining Length field that is in the Fixed Header. It is valid for a PUBLISH pa
 ### 3.3.4 PUBLISH Actions
 
 The receiver of a PUBLISH Packet MUST respond with the packet as determined by the QoS in the PUBLISH Packet
-\[MQTT-3.3.4-1\].
+$$MQTT-3.3.4-1$$.
 
 Table 3‑3 Expected PUBLISH packet response
 
@@ -3332,7 +3332,7 @@ PUBLISH packet includes the Subscription Identifier carried in the SUBSCRIBE pac
 
 When Clients make subscriptions with Topic Filters that include wildcards, it is possible for a Client’s
 subscriptions to overlap so that a published message might match multiple filters. In this case the Server MUST deliver
-the message to the Client respecting the maximum QoS of all the matching subscriptions \[MQTT-3.3.4-2\]. In addition,
+the message to the Client respecting the maximum QoS of all the matching subscriptions $$MQTT-3.3.4-2$$. In addition,
 the Server MAY deliver further copies of the message, one for each additional matching subscription and respecting the
 subscription’s QoS in each case.
 
@@ -3341,11 +3341,11 @@ than Maximum QoS, it uses a DISCONNECT packet with Reason Code 0x9B (QoS not sup
 4.13](#S4_13_Errors) Handling errors.
 
 If the Client specified a Subscription Identifier for any of the overlapping subscriptions the Server MUST send those
-Subscription Identifiers in the message which is published as the result of the subscriptions \[MQTT-3.3.4-3\]. If the
+Subscription Identifiers in the message which is published as the result of the subscriptions $$MQTT-3.3.4-3$$. If the
 Server sends a single copy of the message it MUST include in the PUBLISH packet the Subscription Identifiers for all
-matching subscriptions which have a Subscription Identifiers, their order is not significant \[MQTT-3.3.4-4\]. If the
+matching subscriptions which have a Subscription Identifiers, their order is not significant $$MQTT-3.3.4-4$$. If the
 Server sends multiple PUBLISH packets it MUST send, in each of them, the Subscription Identifier of the matching
-subscription if it has a Subscription Identifier \[MQTT-3.3.4-5\].
+subscription if it has a Subscription Identifier $$MQTT-3.3.4-5$$.
 
 It is possible that the Client made several subscriptions which match a publication and that it used the same
 identifier for more than one of them. In this case the PUBLISH packet will carry multiple identical Subscription
@@ -3353,7 +3353,7 @@ Identifiers.
 
 It is a Protocol Error for a PUBLISH packet to contain any Subscription Identifier other than those received in
 SUBSCRIBE packet which caused it to flow. A PUBLISH packet sent from a Client to a Server MUST NOT contain a
-Subscription Identifier \[MQTT-3.3.4-6\].
+Subscription Identifier $$MQTT-3.3.4-6$$.
 
 If the subscription was shared, then only the Subscription Identifiers that were present in the SUBSCRIBE packet from
 the Client which is receiving the message are returned in the PUBLISH packet.
@@ -3389,13 +3389,13 @@ not support properties or other features provided by this specification, some in
 can be lost, and applications which depend on this information might not work correctly.
 
 The Client MUST NOT send more than Receive Maximum QoS 1 and QoS 2 PUBLISH packets for which it has not received
-PUBACK, PUBCOMP, or PUBREC with a Reason Code of 128 or greater from the Server \[MQTT-3.3.4-7\]. If it receives more
+PUBACK, PUBCOMP, or PUBREC with a Reason Code of 128 or greater from the Server $$MQTT-3.3.4-7$$. If it receives more
 than Receive Maximum QoS 1 and QoS 2 PUBLISH packets where it has not sent a PUBACK or PUBCOMP in response, the Server
 uses a DISCONNECT packet with Reason Code 0x93 (Receive Maximum exceeded) as described in [section 4.13](#S4_13_Errors)
 Handling errors. Refer to [section 4.9](#_Flow_Control) for more information about flow control.
 
 The Client MUST NOT delay the sending of any packets other than PUBLISH packets due to having sent Receive Maximum
-PUBLISH packets without receiving acknowledgements for them \[MQTT-3.3.4-8\]. The value of Receive Maximum applies only
+PUBLISH packets without receiving acknowledgements for them $$MQTT-3.3.4-8$$. The value of Receive Maximum applies only
 to the current Network Connection.
 
 **Non-normative comment**
@@ -3414,13 +3414,13 @@ If the Client sends QoS 1 or QoS 2 PUBLISH packets before it has received a CONN
 because it has sent more than Receive Maximum publications.
 
 The Server MUST NOT send more than Receive Maximum QoS 1 and QoS 2 PUBLISH packets for which it has not received
-PUBACK, PUBCOMP, or PUBREC with a Reason Code of 128 or greater from the Client \[MQTT-3.3.4-9\]. If it receives more
+PUBACK, PUBCOMP, or PUBREC with a Reason Code of 128 or greater from the Client $$MQTT-3.3.4-9$$. If it receives more
 than Receive Maximum QoS 1 and QoS 2 PUBLISH packets where it has not sent a PUBACK or PUBCOMP in response, the Client
 uses DISCONNECT with Reason Code 0x93 (Receive Maximum exceeded) as described in [section 4.13](#S4_13_Errors) Handling
 errors. Refer to [section 4.9](#_Flow_Control) for more information about flow control.
 
 The Server MUST NOT delay the sending of any packets other than PUBLISH packets due to having sent Receive Maximum
-PUBLISH packets without receiving acknowledgements for them \[MQTT-3.3.4-10\].
+PUBLISH packets without receiving acknowledgements for them $$MQTT-3.3.4-10$$.
 
 **Non-normative comment**
 
@@ -3498,7 +3498,7 @@ the Session State between the Client and Server. |
 | 151 | 0x97 | Quota exceeded | An implementation or administrative imposed limit has been exceeded. |
 | 153 | 0x99 | Payload format invalid | The payload format does not match the specified Payload Format Indicator. |
 
-The Client or Server sending the PUBACK packet MUST use one of the PUBACK Reason Codes \[MQTT-3.4.2-1\]. The Reason
+The Client or Server sending the PUBACK packet MUST use one of the PUBACK Reason Codes $$MQTT-3.4.2-1$$. The Reason
 Code and Property Length can be omitted if the Reason Code is 0x00 (Success) and there are no Properties. In this case
 the PUBACK has a Remaining Length of 2.
 
@@ -3517,7 +3517,7 @@ Followed by the UTF-8 Encoded String representing the reason associated with thi
 human readable string designed for diagnostics and is not intended to be parsed by the receiver.
 
 The sender uses this value to give additional information to the receiver. The sender MUST NOT send this property if it
-would increase the size of the PUBACK packet beyond the Maximum Packet Size specified by the receiver \[MQTT-3.4.2-2\].
+would increase the size of the PUBACK packet beyond the Maximum Packet Size specified by the receiver $$MQTT-3.4.2-2$$.
 It is a Protocol Error to include the Reason String more than once.
 
 ##### 3.4.2.2.3 User Property
@@ -3526,7 +3526,7 @@ It is a Protocol Error to include the Reason String more than once.
 
 Followed by UTF-8 String Pair. This property can be used to provide additional diagnostic or other information. The
 sender MUST NOT send this property if it would increase the size of the PUBACK packet beyond the Maximum Packet Size
-specified by the receiver \[MQTT-3.4.2-3\]. The User Property is allowed to appear multiple times to represent multiple
+specified by the receiver $$MQTT-3.4.2-3$$. The User Property is allowed to appear multiple times to represent multiple
 name, value pairs. The same name is allowed to appear more than once.
 
 ### 3.4.3 PUBACK Payload
@@ -3604,7 +3604,7 @@ the Session State between the Client and Server. |
 | 153 | 0x99 | Payload format invalid | The payload format does not match the one specified in the Payload Format
 Indicator. |
 
-The Client or Server sending the PUBREC packet MUST use one of the PUBREC Reason Code values. \[MQTT-3.5.2-1\]. The
+The Client or Server sending the PUBREC packet MUST use one of the PUBREC Reason Code values. $$MQTT-3.5.2-1$$. The
 Reason Code and Property Length can be omitted if the Reason Code is 0x00 (Success) and there are no Properties. In
 this case the PUBREC has a Remaining Length of 2.
 
@@ -3623,7 +3623,7 @@ Followed by the UTF-8 Encoded String representing the reason associated with thi
 readable, designed for diagnostics and SHOULD NOT be parsed by the receiver.
 
 The sender uses this value to give additional information to the receiver. The sender MUST NOT send this property if it
-would increase the size of the PUBREC packet beyond the Maximum Packet Size specified by the receiver \[MQTT-3.5.2-2\].
+would increase the size of the PUBREC packet beyond the Maximum Packet Size specified by the receiver $$MQTT-3.5.2-2$$.
 It is a Protocol Error to include the Reason String more than once.
 
 ##### 3.5.2.2.3 User Property
@@ -3632,7 +3632,7 @@ It is a Protocol Error to include the Reason String more than once.
 
 Followed by UTF-8 String Pair. This property can be used to provide additional diagnostic or other information. The
 sender MUST NOT send this property if it would increase the size of the PUBREC packet beyond the Maximum Packet Size
-specified by the receiver \[MQTT-3.5.2-3\]. The User Property is allowed to appear multiple times to represent multiple
+specified by the receiver $$MQTT-3.5.2-3$$. The User Property is allowed to appear multiple times to represent multiple
 name, value pairs. The same name is allowed to appear more than once.
 
 ### 3.5.3 PUBREC Payload
@@ -3665,7 +3665,7 @@ align="center">0</p></td></tr><tr><td width="107"><p>byte 2</p></td><td width="5
 align="center">Remaining Length</p></td></tr></tbody></table>
 
 Bits 3,2,1 and 0 of the Fixed Header in the PUBREL packet are reserved and MUST be set to 0,0,1 and 0 respectively. The
-Server MUST treat any other value as malformed and close the Network Connection \[MQTT-3.6.1-1\].
+Server MUST treat any other value as malformed and close the Network Connection $$MQTT-3.6.1-1$$.
 
 **Remaining Length field**
 
@@ -3702,7 +3702,7 @@ Table 3‑6 - PUBREL Reason Codes
 | 146 | 0x92 | Packet Identifier not found | The Packet Identifier is not known. This is not an error during recovery,
 but at other times indicates a mismatch between the Session State on the Client and Server. |
 
-The Client or Server sending the PUBREL packet MUST use one of the PUBREL Reason Code values \[MQTT-3.6.2-1\]. The
+The Client or Server sending the PUBREL packet MUST use one of the PUBREL Reason Code values $$MQTT-3.6.2-1$$. The
 Reason Code and Property Length can be omitted if the Reason Code is 0x00 (Success) and there are no Properties. In
 this case the PUBREL has a Remaining Length of 2.
 
@@ -3721,7 +3721,7 @@ Followed by the UTF-8 Encoded String representing the reason associated with thi
 readable, designed for diagnostics and SHOULD NOT be parsed by the receiver.
 
 The sender uses this value to give additional information to the receiver. The sender MUST NOT send this Property if it
-would increase the size of the PUBREL packet beyond the Maximum Packet Size specified by the receiver \[MQTT-3.6.2-2\].
+would increase the size of the PUBREL packet beyond the Maximum Packet Size specified by the receiver $$MQTT-3.6.2-2$$.
 It is a Protocol Error to include the Reason String more than once.
 
 ##### 3.6.2.2.3 User Property
@@ -3730,7 +3730,7 @@ It is a Protocol Error to include the Reason String more than once.
 
 Followed by UTF-8 String Pair. This property can be used to provide additional diagnostic or other information for the
 PUBREL. The sender MUST NOT send this property if it would increase the size of the PUBREL packet beyond the Maximum
-Packet Size specified by the receiver \[MQTT-3.6.2-3\]. The User Property is allowed to appear multiple times to
+Packet Size specified by the receiver $$MQTT-3.6.2-3$$. The User Property is allowed to appear multiple times to
 represent multiple name, value pairs. The same name is allowed to appear more than once.
 
 ### 3.6.3 PUBREL Payload
@@ -3797,7 +3797,7 @@ Table 3‑7 – PUBCOMP Reason Codes
 | 146 | 0x92 | Packet Identifier not found | The Packet Identifier is not known. This is not an error during recovery,
 but at other times indicates a mismatch between the Session State on the Client and Server. |
 
-The Client or Server sending the PUBCOMP packet MUST use one of the PUBCOMP Reason Code values \[MQTT-3.7.2-1\]. The
+The Client or Server sending the PUBCOMP packet MUST use one of the PUBCOMP Reason Code values $$MQTT-3.7.2-1$$. The
 Reason Code and Property Length can be omitted if the Reason Code is 0x00 (Success) and there are no Properties. In
 this case the PUBCOMP has a Remaining Length of 2.
 
@@ -3817,7 +3817,7 @@ human readable string designed for diagnostics and SHOULD NOT be parsed by the r
 
 The sender uses this value to give additional information to the receiver. The sender MUST NOT send this Property if it
 would increase the size of the PUBCOMP packet beyond the Maximum Packet Size specified by the receiver
-\[MQTT-3.7.2-2\]. It is a Protocol Error to include the Reason String more than once.
+$$MQTT-3.7.2-2$$. It is a Protocol Error to include the Reason String more than once.
 
 ##### 3.7.2.2.3 User Property
 
@@ -3825,7 +3825,7 @@ would increase the size of the PUBCOMP packet beyond the Maximum Packet Size spe
 
 Followed by UTF-8 String Pair. This property can be used to provide additional diagnostic or other information. The
 sender MUST NOT send this property if it would increase the size of the PUBCOMP packet beyond the Maximum Packet Size
-specified by the receiver \[MQTT-3.7.2-3\]. The User Property is allowed to appear multiple times to represent multiple
+specified by the receiver $$MQTT-3.7.2-3$$. The User Property is allowed to appear multiple times to represent multiple
 name, value pairs. The same name is allowed to appear more than once.
 
 ### 3.7.3 PUBCOMP Payload
@@ -3861,7 +3861,7 @@ align="center">0</p></td></tr><tr><td width="106"><p>byte 2</p></td><td width="5
 align="center">Remaining Length</p></td></tr></tbody></table>
 
 Bits 3,2,1 and 0 of the Fixed Header of the SUBSCRIBE packet are reserved and MUST be set to 0,0,1 and 0 respectively.
-The Server MUST treat any other value as malformed and close the Network Connection \[MQTT-3.8.1-1\].
+The Server MUST treat any other value as malformed and close the Network Connection $$MQTT-3.8.1-1$$.
 
 **Remaining Length field**
 
@@ -3935,10 +3935,10 @@ Server. The meaning of these properties is not defined by this specification.
 ### 3.8.3 SUBSCRIBE Payload
 
 The Payload of a SUBSCRIBE packet contains a list of Topic Filters indicating the Topics to which the Client wants to
-subscribe. The Topic Filters MUST be a UTF-8 Encoded String \[MQTT-3.8.3-1\]. Each Topic Filter is followed by a
+subscribe. The Topic Filters MUST be a UTF-8 Encoded String $$MQTT-3.8.3-1$$. Each Topic Filter is followed by a
 Subscription Options byte.
 
-The Payload MUST contain at least one Topic Filter and Subscription Options pair \[MQTT-3.8.3-2\]. A SUBSCRIBE packet
+The Payload MUST contain at least one Topic Filter and Subscription Options pair $$MQTT-3.8.3-2$$. A SUBSCRIBE packet
 with no Payload is a Protocol Error. Refer to [section 4.13](#S4_13_Errors) for information about handling errors.
 
 #### 3.8.3.1 Subscription Options
@@ -3947,8 +3947,8 @@ Bits 0 and 1 of the Subscription Options represent Maximum QoS field. This gives
 Server can send Application Messages to the Client. It is a Protocol Error if the Maximum QoS field has the value 3.
 
 Bit 2 of the Subscription Options represents the No Local option. If the value is 1, Application Messages MUST NOT be
-forwarded to a connection with a ClientID equal to the ClientID of the publishing connection \[MQTT-3.8.3-3\]. It is a
-Protocol Error to set the No Local bit to 1 on a Shared Subscription \[MQTT-3.8.3-4\].
+forwarded to a connection with a ClientID equal to the ClientID of the publishing connection $$MQTT-3.8.3-3$$. It is a
+Protocol Error to set the No Local bit to 1 on a Shared Subscription $$MQTT-3.8.3-4$$.
 
 Bit 3 of the Subscription Options represents the Retain As Published option. If 1, Application Messages forwarded using
 this subscription keep the RETAIN flag they were published with. If 0, Application Messages forwarded using this
@@ -3969,7 +3969,7 @@ same. The values are:
 It is a Protocol Error to send a Retain Handling value of 3.
 
 Bits 6 and 7 of the Subscription Options byte are reserved for future use. The Server MUST treat a SUBSCRIBE packet as
-malformed if any of Reserved bits in the Payload are non-zero \[MQTT-3.8.3-5\].
+malformed if any of Reserved bits in the Payload are non-zero $$MQTT-3.8.3-5$$.
 
 **Non-normative comment**
 
@@ -4083,18 +4083,18 @@ align="center">0</p></td></tr></tbody></table>
 ### 3.8.4 SUBSCRIBE Actions
 
 When the Server receives a SUBSCRIBE packet from a Client, the Server MUST respond with a SUBACK packet
-\[MQTT-3.8.4-1\]. The SUBACK packet MUST have the same Packet Identifier as the SUBSCRIBE packet that it is
-acknowledging \[MQTT-3.8.4-2\].
+$$MQTT-3.8.4-1$$. The SUBACK packet MUST have the same Packet Identifier as the SUBSCRIBE packet that it is
+acknowledging $$MQTT-3.8.4-2$$.
 
 The Server is permitted to start sending PUBLISH packets matching the Subscription before the Server sends the SUBACK
 packet.
 
 If a Server receives a SUBSCRIBE packet containing a Topic Filter that is identical to a Non‑shared Subscription’s
 Topic Filter for the current Session, then it MUST replace that existing Subscription with a new Subscription
-\[MQTT-3.8.4-3\]. The Topic Filter in the new Subscription will be identical to that in the previous Subscription,
+$$MQTT-3.8.4-3$$. The Topic Filter in the new Subscription will be identical to that in the previous Subscription,
 although its Subscription Options could be different. If the Retain Handling option is 0, any existing retained
 messages matching the Topic Filter MUST be re-sent, but Applicaton Messages MUST NOT be lost due to replacing the
-Subscription \[MQTT-3.8.4-4\].
+Subscription $$MQTT-3.8.4-4$$.
 
 If a Server receives a Non‑shared Topic Filter that is not identical to any Topic Filter for the current Session, a
 new Non-shared Subscription is created. If the Retain Handling option is not 2, all matching retained messages are sent
@@ -4111,13 +4111,13 @@ Refer to [section 4.8](#_Shared_Subscriptions) for more details on Shared Subscr
 
 If a Server receives a SUBSCRIBE packet that contains multiple Topic Filters it MUST handle that packet as if it had
 received a sequence of multiple SUBSCRIBE packets, except that it combines their responses into a single SUBACK
-response \[MQTT-3.8.4-5\].
+response $$MQTT-3.8.4-5$$.
 
 The SUBACK packet sent by the Server to the Client MUST contain a Reason Code for each Topic Filter/Subscription Option
-pair \[MQTT-3.8.4-6\]. This Reason Code MUST either show the maximum QoS that was granted for that Subscription or
-indicate that the subscription failed \[MQTT-3.8.4-7\]. The Server might grant a lower Maximum QoS than the subscriber
+pair $$MQTT-3.8.4-6$$. This Reason Code MUST either show the maximum QoS that was granted for that Subscription or
+indicate that the subscription failed $$MQTT-3.8.4-7$$. The Server might grant a lower Maximum QoS than the subscriber
 requested. The QoS of Application Messages sent in response to a Subscription MUST be the minimum of the QoS of the
-originally published message and the Maximum QoS granted by the Server \[MQTT-3.8.4-8\]. The server is permitted to
+originally published message and the Maximum QoS granted by the Server $$MQTT-3.8.4-8$$. The server is permitted to
 send duplicate copies of a message to a subscriber in the case where the original message was published with QoS 1 and
 the maximum QoS granted was QoS 0.
 
@@ -4232,7 +4232,7 @@ Followed by the UTF-8 Encoded String representing the reason associated with thi
 human readable string designed for diagnostics and SHOULD NOT be parsed by the Client.
 
 The Server uses this value to give additional information to the Client. The Server MUST NOT send this Property if it
-would increase the size of the SUBACK packet beyond the Maximum Packet Size specified by the Client \[MQTT-3.9.2-1\].
+would increase the size of the SUBACK packet beyond the Maximum Packet Size specified by the Client $$MQTT-3.9.2-1$$.
 It is a Protocol Error to include the Reason String more than once.
 
 ##### 3.9.2.1.3 User Property
@@ -4241,7 +4241,7 @@ It is a Protocol Error to include the Reason String more than once.
 
 Followed by UTF-8 String Pair. This property can be used to provide additional diagnostic or other information. The
 Server MUST NOT send this property if it would increase the size of the SUBACK packet beyond the Maximum Packet Size
-specified by Client \[MQTT-3.9.2-2\]. The User Property is allowed to appear multiple times to represent multiple name,
+specified by Client $$MQTT-3.9.2-2$$. The User Property is allowed to appear multiple times to represent multiple name,
 value pairs. The same name is allowed to appear more than once.
 
 Figure 3‑23 SUBACK packet Variable Header
@@ -4258,7 +4258,7 @@ align="center"><b>1</b></p></td><td width="58"><p align="center"><b>0</b></p></t
 
 The Payload contains a list of Reason Codes. Each Reason Code corresponds to a Topic Filter in the SUBSCRIBE packet
 being acknowledged. The order of Reason Codes in the SUBACK packet MUST match the order of Topic Filters in the
-SUBSCRIBE packet \[MQTT-3.9.3-1\].
+SUBSCRIBE packet $$MQTT-3.9.3-1$$.
 
 Table 3‑8 - Subscribe Reason Codes
 
@@ -4283,7 +4283,7 @@ subscription is not accepted. |
 subscription is not accepted. |
 
 The Server sending a SUBACK packet MUST use one of the Subscribe Reason Codes for each Topic Filter received
-\[MQTT-3.9.3-2\].
+$$MQTT-3.9.3-2$$.
 
 **Non-normative comment**
 
@@ -4312,7 +4312,7 @@ align="center">0</p></td></tr><tr><td width="91"><p>byte 2</p></td><td width="54
 align="center">Remaining Length</p></td></tr></tbody></table>
 
 Bits 3,2,1 and 0 of the Fixed Header of the UNSUBSCRIBE packet are reserved and MUST be set to 0,0,1 and 0
-respectively. The Server MUST treat any other value as malformed and close the Network Connection \[MQTT-3.10.1-1\].
+respectively. The Server MUST treat any other value as malformed and close the Network Connection $$MQTT-3.10.1-1$$.
 
 **Remaining Length field**
 
@@ -4347,10 +4347,10 @@ Server. The meaning of these properties is not defined by this specification.
 ### 3.10.3 UNSUBSCRIBE Payload
 
 The Payload for the UNSUBSCRIBE packet contains the list of Topic Filters that the Client wishes to unsubscribe from.
-The Topic Filters in an UNSUBSCRIBE packet MUST be UTF-8 Encoded Strings \[MQTT-3.10.3-1\] as defined in [section
+The Topic Filters in an UNSUBSCRIBE packet MUST be UTF-8 Encoded Strings $$MQTT-3.10.3-1$$ as defined in [section
 1.5.4](#_UTF-8_Encoded_String), packed contiguously.
 
-The Payload of an UNSUBSCRIBE packet MUST contain at least one Topic Filter \[MQTT-3.10.3-2\]. An UNSUBSCRIBE packet
+The Payload of an UNSUBSCRIBE packet MUST contain at least one Topic Filter $$MQTT-3.10.3-2$$. An UNSUBSCRIBE packet
 with no Payload is a Protocol Error. Refer to [section 4.13](#S4_13_Errors) for information about handling errors.
 
 **Non-normative example**
@@ -4411,22 +4411,22 @@ align="center">0</p></td></tr></tbody></table>
 
 The Topic Filters (whether they contain wildcards or not) supplied in an UNSUBSCRIBE packet MUST be compared
 character-by-character with the current set of Topic Filters held by the Server for the Client. If any filter matches
-exactly then its owning Subscription MUST be deleted \[MQTT-3.10.4-1\], otherwise no additional processing occurs.
+exactly then its owning Subscription MUST be deleted $$MQTT-3.10.4-1$$, otherwise no additional processing occurs.
 
 When a Server receives UNSUBSCRIBE:
 
-- It MUST stop adding any new messages which match the Topic Filters, for delivery to the Client \[MQTT-3.10.4-2\].
+- It MUST stop adding any new messages which match the Topic Filters, for delivery to the Client $$MQTT-3.10.4-2$$.
 - It MUST complete the delivery of any QoS 1 or QoS 2 messages which match the Topic Filters and it has started to send
-to the Client \[MQTT-3.10.4-3\].
+to the Client $$MQTT-3.10.4-3$$.
 - It MAY continue to deliver any existing messages buffered for delivery to the Client.
 
-The Server MUST respond to an UNSUBSCRIBE request by sending an UNSUBACK packet \[MQTT-3.10.4-4\]. The UNSUBACK packet
+The Server MUST respond to an UNSUBSCRIBE request by sending an UNSUBACK packet $$MQTT-3.10.4-4$$. The UNSUBACK packet
 MUST have the same Packet Identifier as the UNSUBSCRIBE packet. Even where no Topic Subscriptions are deleted, the
-Server MUST respond with an UNSUBACK \[MQTT-3.10.4-5\].
+Server MUST respond with an UNSUBACK $$MQTT-3.10.4-5$$.
 
 If a Server receives an UNSUBSCRIBE packet that contains multiple Topic Filters, it MUST process that packet as if it
 had received a sequence of multiple UNSUBSCRIBE packets, except that it sends just one UNSUBACK response
-\[MQTT-3.10.4-6\].
+$$MQTT-3.10.4-6$$.
 
 If a Topic Filter represents a Shared Subscription, this Session is detached from the Shared Subscription. If this
 Session was the only Session that the Shared Subscription was associated with, the Shared Subscription is deleted.
@@ -4488,7 +4488,7 @@ human readable string designed for diagnostics and SHOULD NOT be parsed by the C
 
 The Server uses this value to give additional information to the Client. The Server MUST NOT send this Property if it
 would increase the size of the UNSUBACK packet beyond the Maximum Packet Size specified by the Client
-\[MQTT-3.11.2-1\]. It is a Protocol Error to include the Reason String more than once.
+$$MQTT-3.11.2-1$$. It is a Protocol Error to include the Reason String more than once.
 
 ##### 3.11.2.1.3 User Property
 
@@ -4496,17 +4496,17 @@ would increase the size of the UNSUBACK packet beyond the Maximum Packet Size sp
 
 Followed by UTF-8 String Pair. This property can be used to provide additional diagnostic or other information. The
 Server MUST NOT send this property if it would increase the size of the UNSUBACK packet beyond the Maximum Packet Size
-specified by the Client \[MQTT-3.11.2-2\]. The User Property is allowed to appear multiple times to represent multiple
+specified by the Client $$MQTT-3.11.2-2$$. The User Property is allowed to appear multiple times to represent multiple
 name, value pairs. The same name is allowed to appear more than once.
 
 ### 3.11.3 UNSUBACK Payload
 
 The Payload contains a list of Reason Codes. Each Reason Code corresponds to a Topic Filter in the UNSUBSCRIBE packet
 being acknowledged. The order of Reason Codes in the UNSUBACK packet MUST match the order of Topic Filters in the
-UNSUBSCRIBE packet \[MQTT-3.11.3-1\].
+UNSUBSCRIBE packet $$MQTT-3.11.3-1$$.
 
 The values for the one byte unsigned Unsubscribe Reason Codes are shown below. The Server sending an UNSUBACK packet
-MUST use one of the Unsubscribe Reason Code values for each Topic Filter received \[MQTT-3.11.3-2\].
+MUST use one of the Unsubscribe Reason Code values for each Topic Filter received $$MQTT-3.11.3-2$$.
 
 Table 3‑9 - Unsubscribe Reason Codes
 
@@ -4569,7 +4569,7 @@ The PINGREQ packet has no Payload.
 
 ### 3.12.4 PINGREQ Actions
 
-The Server MUST send a PINGRESP packet in response to a PINGREQ packet \[MQTT-3.12.4-1\].
+The Server MUST send a PINGRESP packet in response to a PINGREQ packet $$MQTT-3.12.4-1$$.
 
 ## 3.13 PINGRESP – PING response
 
@@ -4619,7 +4619,7 @@ Connection. If the Network Connection is closed without the Client first sending
 3.1.2.5](#_Toc479576982) for further details.
 
 A Server MUST NOT send a DISCONNECT until after it has sent a CONNACK with Reason Code of less than 0x80
-\[MQTT-3.14.0-1\].
+$$MQTT-3.14.0-1$$.
 
 ### 3.14.1 DISCONNECT Fixed Header
 
@@ -4639,7 +4639,7 @@ align="center">0</p></td></tr><tr><td width="97"><p>byte 2</p></td><td width="54
 align="center">Remaining Length</p></td></tr></tbody></table>
 
 The Client or Server MUST validate that reserved bits are set to 0. If they are not zero it sends a DISCONNECT packet
-with a Reason code of 0x81 (Malformed Packet) as described in [section 4.13](#S4_13_Errors) \[MQTT-3.14.1-1\].
+with a Reason code of 0x81 (Malformed Packet) as described in [section 4.13](#S4_13_Errors) $$MQTT-3.14.1-1$$.
 
 **Remaining Length field**
 
@@ -4708,7 +4708,7 @@ the subscription is not accepted. |
 | 162 | 0xA2 | Wildcard Subscriptions not supported | Server | The Server does not support Wildcard Subscriptions; the
 subscription is not accepted. |
 
-The Client or Server sending the DISCONNECT packet MUST use one of the DISCONNECT Reason Code values \[MQTT-3.14.2-1\].
+The Client or Server sending the DISCONNECT packet MUST use one of the DISCONNECT Reason Code values $$MQTT-3.14.2-1$$.
 The Reason Code and Property Length can be omitted if the Reason Code is 0x00 (Normal disconnecton) and there are no
 Properties. In this case the DISCONNECT has a Remaining Length of 0.
 
@@ -4738,7 +4738,7 @@ include the Session Expiry Interval more than once.
 
 If the Session Expiry Interval is absent, the Session Expiry Interval in the CONNECT packet is used.
 
-The Session Expiry Interval MUST NOT be sent on a DISCONNECT by the Server \[MQTT-3.14.2-2\].
+The Session Expiry Interval MUST NOT be sent on a DISCONNECT by the Server $$MQTT-3.14.2-2$$.
 
 If the Session Expiry Interval in the CONNECT packet was zero, then it is a Protocol Error to set a non-zero Session
 Expiry Interval in the DISCONNECT packet sent by the Client. If such a non-zero Session Expiry Interval is received by
@@ -4753,7 +4753,7 @@ Followed by the UTF-8 Encoded String representing the reason for the disconnect.
 designed for diagnostics and SHOULD NOT be parsed by the receiver.
 
 The sender MUST NOT send this Property if it would increase the size of the DISCONNECT packet beyond the Maximum Packet
-Size specified by the receiver \[MQTT-3.14.2-3\]. It is a Protocol Error to include the Reason String more than once.
+Size specified by the receiver $$MQTT-3.14.2-3$$. It is a Protocol Error to include the Reason String more than once.
 
 ##### 3.14.2.2.4 User Property
 
@@ -4761,7 +4761,7 @@ Size specified by the receiver \[MQTT-3.14.2-3\]. It is a Protocol Error to incl
 
 Followed by UTF-8 String Pair. This property may be used to provide additional diagnostic or other information. The
 sender MUST NOT send this property if it would increase the size of the DISCONNECT packet beyond the Maximum Packet
-Size specified by the receiver \[MQTT-3.14.2-4\]. The User Property is allowed to appear multiple times to represent
+Size specified by the receiver $$MQTT-3.14.2-4$$. The User Property is allowed to appear multiple times to represent
 multiple name, value pairs. The same name is allowed to appear more than once.
 
 ##### 3.14.2.2.5 Server Reference
@@ -4828,12 +4828,12 @@ The DISCONNECT packet has no Payload.
 
 After sending a DISCONNECT packet the sender:
 
-- MUST NOT send any more MQTT Control Packets on that Network Connection \[MQTT-3.14.4-1\].
-- MUST close the Network Connection \[MQTT-3.14.4-2\].
+- MUST NOT send any more MQTT Control Packets on that Network Connection $$MQTT-3.14.4-1$$.
+- MUST close the Network Connection $$MQTT-3.14.4-2$$.
 
 On receipt of DISCONNECT with a Reason Code of 0x00 (Success) the Server:
 
-- MUST discard any Will Message associated with the current Connection without publishing it \[MQTT-3.14.4-3\], as
+- MUST discard any Will Message associated with the current Connection without publishing it $$MQTT-3.14.4-3$$, as
 described in [section 3.1.2.5](#_Toc479576982).
 
 On receipt of DISCONNECT, the receiver:
@@ -4864,7 +4864,7 @@ align="center">0</p></td></tr><tr><td width="97"><p>byte 2</p></td><td width="54
 align="center">Remaining Length</p></td></tr></tbody></table>
 
 Bits 3,2,1 and 0 of the Fixed Header of the AUTH packet are reserved and MUST all be set to 0. The Client or Server
-MUST treat any other value as malformed and close the Network Connection \[MQTT-3.15.1-1\].
+MUST treat any other value as malformed and close the Network Connection $$MQTT-3.15.1-1$$.
 
 **Remaining Length field**
 
@@ -4879,7 +4879,7 @@ Properties. The rules for encoding Properties are described in [section 2.2.2](#
 
 Byte 0 in the Variable Header is the Authenticate Reason Code. The values for the one byte unsigned Authenticate Reason
 Code field are shown below. The sender of the AUTH Packet MUST use one of the Authenticate Reason Codes
-\[MQTT-3.15.2-1\].
+$$MQTT-3.15.2-1$$.
 
 Table 3‑11 Authenticate Reason Codes
 
@@ -4922,7 +4922,7 @@ Followed by the UTF-8 Encoded String representing the reason for the disconnect.
 designed for diagnostics and SHOULD NOT be parsed by the receiver.
 
 The sender MUST NOT send this property if it would increase the size of the AUTH packet beyond the Maximum Packet Size
-specified by the receiver \[MQTT-3.15.2-2\]. It is a Protocol Error to include the Reason String more than once.
+specified by the receiver $$MQTT-3.15.2-2$$. It is a Protocol Error to include the Reason String more than once.
 
 ##### 3.15.2.2.5 User Property
 
@@ -4930,7 +4930,7 @@ specified by the receiver \[MQTT-3.15.2-2\]. It is a Protocol Error to include t
 
 Followed by UTF-8 String Pair. This property may be used to provide additional diagnostic or other information. The
 sender MUST NOT send this property if it would increase the size of the AUTH packet beyond the Maximum Packet Size
-specified by the receiver \[MQTT-3.15.2-3\]. The User Property is allowed to appear multiple times to represent
+specified by the receiver $$MQTT-3.15.2-3$$. The User Property is allowed to appear multiple times to represent
 multiple name, value pairs. The same name is allowed to appear more than once.
 
 ### 3.15.3 AUTH Payload
@@ -4980,9 +4980,9 @@ ending.
 
 ### 4.1.1 Storing Session State
 
-The Client and Server MUST NOT discard the Session State while the Network Connection is open \[MQTT-4.1.0-1\]. The
+The Client and Server MUST NOT discard the Session State while the Network Connection is open $$MQTT-4.1.0-1$$. The
 Server MUST discard the Session State when the Network Connection is closed and the Session Expiry Interval has passed
-\[MQTT-4.1.0-2\].
+$$MQTT-4.1.0-2$$.
 
 **Non-normative comment**
 
@@ -5011,16 +5011,16 @@ Client or Server MAY support any of the transport protocols listed here, or any 
 requirements of this [section](#_Network_Connections).
 
 A Client or Server MUST support the use of one or more underlying transport protocols that provide an ordered,
-lossless, stream of bytes from the Client to Server and Server to Client \[MQTT-4.2-1\].
+lossless, stream of bytes from the Client to Server and Server to Client $$MQTT-4.2-1$$.
 
 **Non-normative comment**
 
-TCP/IP as defined in [\[RFC0793\]](#RFC793) can be used for MQTT v5.0. The following transport protocols are also
+TCP/IP as defined in [$$RFC0793$$](#RFC793) can be used for MQTT v5.0. The following transport protocols are also
 suitable:
 
-· TLS [\[RFC5246\]](#RFC5246)
+· TLS [$$RFC5246$$](#RFC5246)
 
-· WebSocket [\[RFC6455\]](#RFC6455)
+· WebSocket [$$RFC6455$$](#RFC6455)
 
 **Non-normative comment**
 
@@ -5048,7 +5048,7 @@ and no retry is performed by the sender. The message arrives at the receiver eit
 
 In the QoS 0 delivery protocol, the sender
 
-· MUST send a PUBLISH packet with QoS 0 and DUP flag set to 0 \[MQTT-4.3.1-1\].
+· MUST send a PUBLISH packet with QoS 0 and DUP flag set to 0 $$MQTT-4.3.1-1$$.
 
 In the QoS 0 delivery protocol, the receiver
 
@@ -5070,12 +5070,12 @@ provides more information about Packet Identifiers.
 
 In the QoS 1 delivery protocol, the sender
 
-· MUST assign an unused Packet Identifier each time it has a new Application Message to publish \[MQTT-4.3.2-1\].
+· MUST assign an unused Packet Identifier each time it has a new Application Message to publish $$MQTT-4.3.2-1$$.
 
-· MUST send a PUBLISH packet containing this Packet Identifier with QoS 1 and DUP flag set to 0 \[MQTT-4.3.2-2\].
+· MUST send a PUBLISH packet containing this Packet Identifier with QoS 1 and DUP flag set to 0 $$MQTT-4.3.2-2$$.
 
 · MUST treat the PUBLISH packet as “unacknowledged” until it has received the corresponding PUBACK packet from the
-receiver. Refer to [section 4.4](#_Message_delivery_retry) for a discussion of unacknowledged messages \[MQTT-4.3.2-3\].
+receiver. Refer to [section 4.4](#_Message_delivery_retry) for a discussion of unacknowledged messages $$MQTT-4.3.2-3$$.
 
 The Packet Identifier becomes available for reuse once the sender has received the PUBACK packet.
 
@@ -5085,9 +5085,9 @@ to receive acknowledgements.
 In the QoS 1 delivery protocol, the receiver
 
 - MUST respond with a PUBACK packet containing the Packet Identifier from the incoming PUBLISH packet, having accepted
-ownership of the Application Message \[MQTT-4.3.2-4\].
+ownership of the Application Message $$MQTT-4.3.2-4$$.
 - After it has sent a PUBACK packet the receiver MUST treat any incoming PUBLISH packet that contains the same Packet
-Identifier as being a new Application Message, irrespective of the setting of its DUP flag \[MQTT-4.3.2-5\].
+Identifier as being a new Application Message, irrespective of the setting of its DUP flag $$MQTT-4.3.2-5$$.
 
 Figure 4.2 – QoS 1 protocol flow diagram, non-normative example
 
@@ -5113,16 +5113,16 @@ acknowledgement process.
 
 In the QoS 2 delivery protocol, the sender:
 
-- MUST assign an unused Packet Identifier when it has a new Application Message to publish \[MQTT-4.3.3-1\].
-- MUST send a PUBLISH packet containing this Packet Identifier with QoS 2 and DUP flag set to 0 \[MQTT-4.3.3-2\].
+- MUST assign an unused Packet Identifier when it has a new Application Message to publish $$MQTT-4.3.3-1$$.
+- MUST send a PUBLISH packet containing this Packet Identifier with QoS 2 and DUP flag set to 0 $$MQTT-4.3.3-2$$.
 - MUST treat the PUBLISH packet as “unacknowledged” until it has received the corresponding PUBREC packet from the
-receiver \[MQTT-4.3.3-3\]. Refer to [section 4.4](#_Figure_4.3_–) for a discussion of unacknowledged messages.
+receiver $$MQTT-4.3.3-3$$. Refer to [section 4.4](#_Figure_4.3_–) for a discussion of unacknowledged messages.
 - MUST send a PUBREL packet when it receives a PUBREC packet from the receiver with a Reason Code value less than 0x80.
-This PUBREL packet MUST contain the same Packet Identifier as the original PUBLISH packet \[MQTT-4.3.3-4\].
+This PUBREL packet MUST contain the same Packet Identifier as the original PUBLISH packet $$MQTT-4.3.3-4$$.
 - MUST treat the PUBREL packet as “unacknowledged” until it has received the corresponding PUBCOMP packet from the
-receiver \[MQTT-4.3.3-5\].
-- MUST NOT re-send the PUBLISH once it has sent the corresponding PUBREL packet \[MQTT-4.3.3-6\].
-- MUST NOT apply Message expiry if a PUBLISH packet has been sent \[MQTT-4.3.3-7\].
+receiver $$MQTT-4.3.3-5$$.
+- MUST NOT re-send the PUBLISH once it has sent the corresponding PUBREL packet $$MQTT-4.3.3-6$$.
+- MUST NOT apply Message expiry if a PUBLISH packet has been sent $$MQTT-4.3.3-7$$.
 
 The Packet Identifier becomes available for reuse once the sender has received the PUBCOMP packet or a PUBREC with a
 Reason Code of 0x80 or greater.
@@ -5133,27 +5133,27 @@ to receive acknowledgements, subject to flow control as described in [section 4.
 In the QoS 2 delivery protocol, the receiver:
 
 - MUST respond with a PUBREC containing the Packet Identifier from the incoming PUBLISH packet, having accepted
-ownership of the Application Message \[MQTT-4.3.3-8\].
+ownership of the Application Message $$MQTT-4.3.3-8$$.
 - If it has sent a PUBREC with a Reason Code of 0x80 or greater, the receiver MUST treat any subsequent PUBLISH packet
-that contains that Packet Identifier as being a new Application Message \[MQTT-4.3.3-9\].
+that contains that Packet Identifier as being a new Application Message $$MQTT-4.3.3-9$$.
 - Until it has received the corresponding PUBREL packet, the receiver MUST acknowledge any subsequent PUBLISH packet
 with the same Packet Identifier by sending a PUBREC. It MUST NOT cause duplicate messages to be delivered to any onward
-recipients in this case \[MQTT-4.3.3-10\].
+recipients in this case $$MQTT-4.3.3-10$$.
 - MUST respond to a PUBREL packet by sending a PUBCOMP packet containing the same Packet Identifier as the PUBREL
-\[MQTT-4.3.3-11\].
+$$MQTT-4.3.3-11$$.
 - After it has sent a PUBCOMP, the receiver MUST treat any subsequent PUBLISH packet that contains that Packet
-Identifier as being a new Application Message \[MQTT-4.3.3-12\].
-- MUST continue the QoS 2 acknowledgement sequence even if it has applied message expiry \[MQTT-4.3.3-13\].
+Identifier as being a new Application Message $$MQTT-4.3.3-12$$.
+- MUST continue the QoS 2 acknowledgement sequence even if it has applied message expiry $$MQTT-4.3.3-13$$.
 
 ## 4.4 Message delivery retry
 
 When a Client reconnects with Clean Start set to 0 and a session is present, both the Client and Server MUST resend any
 unacknowledged PUBLISH packets (where QoS > 0) and PUBREL packets using their original Packet Identifiers. This is the
 only circumstance where a Client or Server is REQUIRED to resend messages. Clients and Servers MUST NOT resend messages
-at any other time \[MQTT-4.4.0-1\].
+at any other time $$MQTT-4.4.0-1$$.
 
 If PUBACK or PUBREC is received containing a Reason Code of 0x80 or greater the corresponding PUBLISH packet is treated
-as acknowledged, and MUST NOT be retransmitted \[MQTT-4.4.0-2\].
+as acknowledged, and MUST NOT be retransmitted $$MQTT-4.4.0-2$$.
 
 Figure 4.3 – QoS 2 protocol flow diagram, non-normative example
 
@@ -5182,13 +5182,13 @@ failure using the appropriate Reason Code in the PUBREC.
 ## 4.5 Message receipt
 
 When a Server takes ownership of an incoming Application Message it MUST add it to the Session State for those Clients
-that have matching Subscriptions \[MQTT-4.5.0-1\]. Matching rules are defined in [section 4.7.](#_Topic_Names_and)
+that have matching Subscriptions $$MQTT-4.5.0-1$$. Matching rules are defined in [section 4.7.](#_Topic_Names_and)
 
 Under normal circumstances Clients receive messages in response to Subscriptions they have created. A Client could also
 receive messages that do not match any of its explicit Subscriptions. This can happen if the Server automatically
 assigned a subscription to the Client. A Client could also receive messages while an UNSUBSCRIBE operation is in
 progress. The Client MUST acknowledge any Publish packet it receives according to the applicable QoS rules regardless
-of whether it elects to process the Application Message that it contains \[MQTT-4.5.0-2\].
+of whether it elects to process the Application Message that it contains $$MQTT-4.5.0-2$$.
 
 ## 4.6 Message ordering
 
@@ -5196,21 +5196,21 @@ The following these rules apply to the Client when implementing the protocol flo
 4.3.](#_Quality_of_Service)
 
 - When the Client re-sends any PUBLISH packets, it MUST re-send them in the order in which the original PUBLISH packets
-were sent (this applies to QoS 1 and QoS 2 messages) \[MQTT-4.6.0-1\]
+were sent (this applies to QoS 1 and QoS 2 messages) $$MQTT-4.6.0-1$$
 - The Client MUST send PUBACK packets in the order in which the corresponding PUBLISH packets were received (QoS 1
-messages) \[MQTT-4.6.0-2\]
+messages) $$MQTT-4.6.0-2$$
 - The Client MUST send PUBREC packets in the order in which the corresponding PUBLISH packets were received (QoS 2
-messages) \[MQTT-4.6.0-3\]
+messages) $$MQTT-4.6.0-3$$
 - The Client MUST send PUBREL packets in the order in which the corresponding PUBREC packets were received (QoS 2
-messages) \[MQTT-4.6.0-4\]
+messages) $$MQTT-4.6.0-4$$
 
 An Ordered Topic is a Topic where the Client can be certain that the Application Messages in that Topic from the same
 Client and at the same QoS are received are in the order they were published. When a Server processes a message that
 has been published to an Ordered Topic, it MUST send PUBLISH packets to consumers (for the same Topic and QoS) in the
-order that they were received from any given Client \[MQTT-4.6.0-5\]. This is addition to the rules listed above.
+order that they were received from any given Client $$MQTT-4.6.0-5$$. This is addition to the rules listed above.
 
 By default, a Server MUST treat every Topic as an Ordered Topic when it is forwarding messages on Non‑shared
-Subscriptions. \[MQTT-4.6.0-6\]. A Server MAY provide an administrative or other mechanism to allow one or more Topics
+Subscriptions. $$MQTT-4.6.0-6$$. A Server MAY provide an administrative or other mechanism to allow one or more Topics
 to not be treated as an Ordered Topic.
 
 **Non-normative comment**
@@ -5236,7 +5236,7 @@ into multiple “topic levels”.
 A subscription’s Topic Filter can contain special wildcard characters, which allow a Client to subscribe to multiple
 topics at once.
 
-The wildcard characters can be used in Topic Filters, but MUST NOT be used within a Topic Name \[MQTT-4.7.0-1\].
+The wildcard characters can be used in Topic Filters, but MUST NOT be used within a Topic Name $$MQTT-4.7.0-1$$.
 
 #### 4.7.1.1 Topic level separator
 
@@ -5250,7 +5250,7 @@ in a Topic Filter or Topic Name. Adjacent Topic level separators indicate a zero
 The number sign (‘#’ U+0023) is a wildcard character that matches any number of levels within a topic. The
 multi-level wildcard represents the parent and any number of child levels. The multi-level wildcard character MUST be
 specified either on its own or following a topic level separator. In either case it MUST be the last character
-specified in the Topic Filter \[MQTT-4.7.1-1\].
+specified in the Topic Filter $$MQTT-4.7.1-1$$.
 
 **Non-normative comment**
 
@@ -5280,7 +5280,7 @@ Topic Names:
 The plus sign (‘+’ U+002B) is a wildcard character that matches only one topic level.
 
 The single-level wildcard can be used at any level in the Topic Filter, including first and last levels. Where it is
-used, it MUST occupy an entire level of the filter \[MQTT-4.7.1-2\]. It can be used at more than one level in the Topic
+used, it MUST occupy an entire level of the filter $$MQTT-4.7.1-2$$. It can be used at more than one level in the Topic
 Filter and can be used in conjunction with the multi-level wildcard.
 
 **Non-normative comment**
@@ -5299,36 +5299,36 @@ does not match “sport” but it does match “sport/”.
 
 · “/finance” matches “+/+” and “/+”, but not “+”
 
-### 4.7.2 Topics beginning with $
+### 4.7.2 Topics beginning with \$
 
-The Server MUST NOT match Topic Filters starting with a wildcard character (# or +) with Topic Names beginning with a $
-character \[MQTT-4.7.2-1\]. The Server SHOULD prevent Clients from using such Topic Names to exchange messages with
-other Clients. Server implementations MAY use Topic Names that start with a leading $ character for other purposes.
-
-**Non-normative comment**
-
-· $SYS/ has been widely adopted as a prefix to topics that contain Server-specific information or control APIs
-
-· Applications cannot use a topic with a leading $ character for their own purposes
+The Server MUST NOT match Topic Filters starting with a wildcard character (# or +) with Topic Names beginning with a \$
+character $$MQTT-4.7.2-1$$. The Server SHOULD prevent Clients from using such Topic Names to exchange messages with
+other Clients. Server implementations MAY use Topic Names that start with a leading \$ character for other purposes.
 
 **Non-normative comment**
 
-· A subscription to “#” will not receive any messages published to a topic beginning with a $
+· \$SYS/ has been widely adopted as a prefix to topics that contain Server-specific information or control APIs
 
-· A subscription to “+/monitor/Clients” will not receive any messages published to “$SYS/monitor/Clients”
+· Applications cannot use a topic with a leading \$ character for their own purposes
 
-· A subscription to “$SYS/#” will receive messages published to topics beginning with “$SYS/”
+**Non-normative comment**
 
-· A subscription to “$SYS/monitor/+” will receive messages published to “$SYS/monitor/Clients”
+· A subscription to “#” will not receive any messages published to a topic beginning with a \$
 
-· For a Client to receive messages from topics that begin with $SYS/ and from topics that don’t begin with a $, it
-has to subscribe to both “#” and “$SYS/#”
+· A subscription to “+/monitor/Clients” will not receive any messages published to “\$SYS/monitor/Clients”
+
+· A subscription to “\$SYS/#” will receive messages published to topics beginning with “\$SYS/”
+
+· A subscription to “\$SYS/monitor/+” will receive messages published to “\$SYS/monitor/Clients”
+
+· For a Client to receive messages from topics that begin with \$SYS/ and from topics that don’t begin with a \$, it
+has to subscribe to both “#” and “\$SYS/#”
 
 ### 4.7.3 Topic semantic and usage
 
 The following rules apply to Topic Names and Topic Filters:
 
-· All Topic Names and Topic Filters MUST be at least one character long \[MQTT-4.7.3-1\]
+· All Topic Names and Topic Filters MUST be at least one character long $$MQTT-4.7.3-1$$
 
 · Topic Names and Topic Filters are case sensitive
 
@@ -5338,17 +5338,17 @@ The following rules apply to Topic Names and Topic Filters:
 
 · A Topic Name or Topic Filter consisting only of the ‘/’ character is valid
 
-· Topic Names and Topic Filters MUST NOT include the null character (Unicode U+0000) [\[Unicode\]](#Unicode)
-\[MQTT-4.7.3-2\]
+· Topic Names and Topic Filters MUST NOT include the null character (Unicode U+0000) [$$Unicode$$](#Unicode)
+$$MQTT-4.7.3-2$$
 
 · Topic Names and Topic Filters are UTF-8 Encoded Strings; they MUST NOT encode to more than 65,535 bytes
-\[MQTT-4.7.3-3\]. Refer to [section 1.5.4](#_UTF-8_Encoded_String).
+$$MQTT-4.7.3-3$$. Refer to [section 1.5.4](#_UTF-8_Encoded_String).
 
 There is no limit to the number of levels in a Topic Name or Topic Filter, other than that imposed by the overall
 length of a UTF-8 Encoded String.
 
 When it performs subscription matching the Server MUST NOT perform any normalization of Topic Names or Topic Filters,
-or any modification or substitution of unrecognized characters \[MQTT-4.7.3-4\]. Each non-wildcarded level in the Topic
+or any modification or substitution of unrecognized characters $$MQTT-4.7.3-4$$. Each non-wildcarded level in the Topic
 Filter has to match the corresponding level in the Topic Name character for character for the match to succeed.
 
 **Non-normative comment**
@@ -5413,9 +5413,9 @@ subscription. Refer to [section 4.7](#_Topic_Names_and).
 
 ·
 
-A Shared Subscription's Topic Filter MUST start with $share/ and MUST contain a ShareName that is at least one
-character long \[MQTT-4.8.2-1\]. The ShareName MUST NOT contain the characters "/", "+" or "#", but MUST be followed by
-a "/" character. This "/" character MUST be followed by a Topic Filter \[MQTT-4.8.2-2\] as described in [section
+A Shared Subscription's Topic Filter MUST start with \$share/ and MUST contain a ShareName that is at least one
+character long \$$MQTT-4.8.2-1$\$. The ShareName MUST NOT contain the characters "/", "+" or "#", but MUST be followed by
+a "/" character. This "/" character MUST be followed by a Topic Filter \$$MQTT-4.8.2-2$\$ as described in [section
 4.7](#_Topic_Names_and).
 
 **Non-normative comment**
@@ -5427,18 +5427,18 @@ are sharing the subscription.
 
 Examples:
 
-· Shared subscriptions "$share/consumer1/sport/tennis/+" and "$share/consumer2/sport/tennis/+" are distinct shared
+· Shared subscriptions "\$share/consumer1/sport/tennis/+" and "\$share/consumer2/sport/tennis/+" are distinct shared
 subscriptions and so can be associated with different groups of Sessions. Both of them match the same topics as a
 non-shared subscription to sport/tennis/+.
 
 If a message were to be published that matches sport/tennis/+ then a copy would be sent to exactly one of the Sessions
-subscribed to $share/consumer1/sport/tennis/+, a separate copy of the message would be sent to exactly one of the
-Sessions subscribed to $share/consumer2/sport/tennis/+ and further copies would be sent to any Clients with non-shared
+subscribed to \$share/consumer1/sport/tennis/+, a separate copy of the message would be sent to exactly one of the
+Sessions subscribed to \$share/consumer2/sport/tennis/+ and further copies would be sent to any Clients with non-shared
 subscriptions to sport/tennis/+
 
-· Shared subscription "$share/consumer1//finance" matches the same topics as a non-shared subscription to /finance.
+· Shared subscription "\$share/consumer1//finance" matches the same topics as a non-shared subscription to /finance.
 
-Note that "$share/consumer1//finance" and "$share/consumer1/sport/tennis/+" are distinct shared subscriptions, even
+Note that "\$share/consumer1//finance" and "\$share/consumer1/sport/tennis/+" are distinct shared subscriptions, even
 though they have the same ShareName. While they might be related in some way, no specific relationship between them is
 implied by them having the same ShareName.
 
@@ -5446,7 +5446,7 @@ A Shared Subscription is created by using a Shared Subscription Topic Filter in 
 one Session subscribes to a particular Shared Subscription, the shared subscription behaves like a non-shared
 subscription, except that:
 
-· The $share and {ShareName} portions of the Topic Filter are not taken into account when matching against
+· The \$share and {ShareName} portions of the Topic Filter are not taken into account when matching against
 publications.
 
 · No Retained Messages are sent to the Session when it first subscribes. It will be sent other matching messages as
@@ -5474,13 +5474,13 @@ on a message by message basis, which Session to use and what criteria it uses to
 · Different subscribing Clients are permitted to ask for different Requested QoS levels in their SUBSCRIBE packets.
 The Server decides which Maximum QoS to grant to each Client, and it is permitted to grant different Maximum QoS levels
 to different subscribers. When sending an Application Message to a Client, the Server MUST respect the granted QoS for
-the Client's subscription \[MQTT-4.8.2-3\], in the same that it does when sending a message to a ‑Subscriber.
+the Client's subscription \$$MQTT-4.8.2-3$\$, in the same that it does when sending a message to a ‑Subscriber.
 
 · If the Server is in the process of sending a QoS 2 message to its chosen subscribing Client and the connection to
 the Client breaks before delivery is complete, the Server MUST complete the delivery of the message to that Client when
-it reconnects \[MQTT-4.8.2-4\] as described in [section 4.3.3](#_QoS_2:_Exactly). If the Client's Session terminates
+it reconnects \$$MQTT-4.8.2-4$\$ as described in [section 4.3.3](#_QoS_2:_Exactly). If the Client's Session terminates
 before the Client reconnects, the Server MUST NOT send the Application Message to any other subscribed Client
-\[MQTT-4.8.2-5\].
+\$$MQTT-4.8.2-5$\$.
 
 · If the Server is in the process of sending a QoS 1 message to its chosen subscribing Client and the connection to
 that Client breaks before the Server has received an acknowledgement from the Client, the Server MAY wait for the
@@ -5491,7 +5491,7 @@ Client.
 
 · If a Client responds with a PUBACK or PUBREC containing a Reason Code of 0x80 or greater to a PUBLISH packet from
 the Server, the Server MUST discard the Application Message and not attempt to send it to any other Subscriber
-\[MQTT-4.8.2-6\].
+\$$MQTT-4.8.2-6$\$.
 
 · A Client is permitted to submit a second SUBSCRIBE request to a Shared Subscription on a Session that's already
 subscribed to that Shared Subscription. For example, it might do this to change the Requested QoS for its subscription
@@ -5515,12 +5515,12 @@ receiving an PUBACK (for QoS 1) or PUBCOMP (for QoS 2). The PUBACK and PUBCOMP r
 described below.
 
 The Client or Server MUST set its initial send quota to a non-zero value not exceeding the Receive Maximum
-\[MQTT-4.9.0-1\].
+\$$MQTT-4.9.0-1$\$.
 
 Each time the Client or Server sends a PUBLISH packet at QoS > 0, it decrements the send quota. If the send quota
-reaches zero, the Client or Server MUST NOT send any more PUBLISH packets with QoS > 0 \[MQTT-4.9.0-2\]. It MAY
+reaches zero, the Client or Server MUST NOT send any more PUBLISH packets with QoS > 0 \$$MQTT-4.9.0-2$\$. It MAY
 continue to send PUBLISH packets with QoS 0, or it MAY choose to suspend sending these as well. The Client and Server
-MUST continue to process and respond to all other MQTT Control Packets even if the quota is zero \[MQTT-4.9.0-3\].
+MUST continue to process and respond to all other MQTT Control Packets even if the quota is zero \$$MQTT-4.9.0-3$\$.
 
 The send quota is incremented by 1:
 
@@ -5638,15 +5638,15 @@ format of references is not specified here.
 **Non-normative comment**
 
 It is recommended that each reference consists of a name optionally followed by a colon and a port number. If the name
-contains a colon the name string can be enclosed within square brackets (“\[“ and ‘\]”). A name enclosed by
+contains a colon the name string can be enclosed within square brackets (“\$\$“ and ‘\$\$”). A name enclosed by
 square brackets cannot contain the right square bracket (“\]”) character. This is used to represent an IPv6 literal
 address which uses colon separators. This is a simplified version of an URI authority as described in
-[\[RFC3986\]](#RFC3986).
+[\$$RFC3986$\$](#RFC3986).
 
 **Non-normative comment**
 
-The name within a Server Reference commonly represents a host name, DNS name [\[RFC1035\]](#RFC1035), SRV name
-[\[RFC2782\]](#RFC2782), or literal IP address. The value following the colon separator is commonly a port number in
+The name within a Server Reference commonly represents a host name, DNS name [\$$RFC1035$\$](#RFC1035), SRV name
+[\$$RFC2782$\$](#RFC2782), or literal IP address. The value following the colon separator is commonly a port number in
 decimal. This is not needed where the port information comes from the name resolution (such as with SRV) or is
 defaulted.
 
@@ -5662,7 +5662,7 @@ myserver.xyz.org
 
 myserver.xyz.org:8883
 
-10.10.151.22:8883 \[fe80::9610:3eff:fe1c\]:1883
+10.10.151.22:8883 \$$fe80::9610:3eff:fe1c$\$:1883
 
 The Server is allowed to not ever send a Server Reference, and the Client is allowed to ignore a Server Reference. This
 feature can be used to allow for load balancing, Server relocation, and Client provisioning to a Server.
@@ -5680,7 +5680,7 @@ packets.
 To begin an enhanced authentication, the Client includes an Authentication Method in the CONNECT packet. This specifies
 the authentication method to use. If the Server does not support the Authentication Method supplied by the Client, it
 MAY send a CONNACK with a Reason Code of 0x8C (Bad authentication method) or 0x87 (Not Authorized) as described in
-[section 4.13](#S4_13_Errors) and MUST close the Network Connection \[MQTT-4.12.0-1\].
+[section 4.13](#S4_13_Errors) and MUST close the Network Connection \$$MQTT-4.12.0-1$\$.
 
 The Authentication Method is an agreement between the Client and Server about the meaning of the data sent in the
 Authentication Data and any of the other fields in CONNECT, and the exchanges and processing needed by the Client and
@@ -5696,11 +5696,11 @@ include an Authentication Data property in the CONNECT packet. This property can
 by the Authentication Method. The contents of the Authentication Data are defined by the authentication method.
 
 If the Server requires additional information to complete the authentication, it can send an AUTH packet to the Client.
-This packet MUST contain a Reason Code of 0x18 (Continue authentication) \[MQTT-4.12.0-2\]. If the authentication
+This packet MUST contain a Reason Code of 0x18 (Continue authentication) \$$MQTT-4.12.0-2$\$. If the authentication
 method requires the Server to send authentication data to the Client, it is sent in the Authentication Data.
 
 The Client responds to an AUTH packet from the Server by sending a further AUTH packet. This packet MUST contain a
-Reason Code of 0x18 (Continue authentication) \[MQTT-4.12.0-3\]. If the authentication method requires the Client to
+Reason Code of 0x18 (Continue authentication) \$$MQTT-4.12.0-3$\$. If the authentication method requires the Client to
 send authentication data for the Server, it is sent in the Authentication Data.
 
 The Client and Server exchange AUTH packets as needed until the Server accepts the authentication by sending a CONNACK
@@ -5709,16 +5709,16 @@ the Authentication Data.
 
 The Client can close the connection at any point in this process. It MAY send a DISCONNECT packet before doing so. The
 Server can reject the authentication at any point in this process. It MAY send a CONNACK with a Reason Code of 0x80 or
-above as described in [section 4.13](#S4_13_Errors), and MUST close the Network Connection \[MQTT-4.12.0-4\].
+above as described in [section 4.13](#S4_13_Errors), and MUST close the Network Connection \$$MQTT-4.12.0-4$\$.
 
 If the initial CONNECT packet included an Authentication Method property then all AUTH packets, and any successful
 CONNACK packet MUST include an Authentication Method Property with the same value as in the CONNECT packet
-\[MQTT-4.12.0-5\].
+\$$MQTT-4.12.0-5$\$.
 
 The implementation of enhanced authentication is OPTIONAL for both Clients and Servers. If the Client does not include
 an Authentication Method in the CONNECT, the Server MUST NOT send an AUTH packet, and it MUST NOT send an
-Authentication Method in the CONNACK packet \[MQTT-4.12.0-6\]. If the Client does not include an Authentication Method
-in the CONNECT, the Client MUST NOT send an AUTH packet to the Server \[MQTT-4.12.0-7\].
+Authentication Method in the CONNACK packet \$$MQTT-4.12.0-6$\$. If the Client does not include an Authentication Method
+in the CONNECT, the Client MUST NOT send an AUTH packet to the Server \$$MQTT-4.12.0-7$\$.
 
 If the Client does not include an Authentication Method in the CONNECT packet, the Server SHOULD authenticate using
 some or all of the information in the CONNECT packet, TLS session, and Network Connection.
@@ -5752,7 +5752,7 @@ some or all of the information in the CONNECT packet, TLS session, and Network C
 If the Client supplied an Authentication Method in the CONNECT packet it can initiate a re-authentication at any time
 after receiving a CONNACK. It does this by sending an AUTH packet with a Reason Code of 0x19 (Re-authentication). The
 Client MUST set the Authentication Method to the same value as the Authentication Method originally used to
-authenticate the Network Connection \[MQTT-4.12.1-1\]. If the authentication method requires Client data first, this
+authenticate the Network Connection \$$MQTT-4.12.1-1$\$. If the authentication method requires Client data first, this
 AUTH packet contains the first piece of authentication data as the Authentication Data.
 
 The Server responds to this re-authentication request by sending an AUTH packet to the Client with a Reason Code of
@@ -5762,7 +5762,7 @@ sending an AUTH packet with a Reason Code of 0x18 (Continue authentication). Thi
 authentication until the re-authentication is complete or the re-authentication fails.
 
 If the re-authentication fails, the Client or Server SHOULD send DISCONNECT with an appropriate Reason Code as
-described in [section 4.13](#S4_13_Errors), and MUST close the Network Connection \[MQTT-4.12.1-2\].
+described in [section 4.13](#S4_13_Errors), and MUST close the Network Connection \$$MQTT-4.12.1-2$\$.
 
 During this re-authentication sequence, the flow of other packets between the Client and Server can continue using the
 previous authentication.
@@ -5823,7 +5823,7 @@ Packet) or 0x82 (Protocol Error) unless a more specific Reason Code has been def
 Reason Code](#_Disconnect_Reason_Code).
 
 When a Server detects a Malformed Packet or Protocol Error, and a Reason Code is given in the specification, it MUST
-close the Network Connection \[MQTT-4.13.1-1\]. In the case of an error in a CONNECT packet it MAY send a CONNACK
+close the Network Connection \$$MQTT-4.13.1-1$\$. In the case of an error in a CONNECT packet it MAY send a CONNACK
 packet containing the Reason Code, before closing the Network Connection. In the case of an error in any other packet
 it SHOULD send a DISCONNECT packet containing the Reason Code before closing the Network Connection. Use Reason Code
 0x81 (Malformed Packet) or 0x82 (Protocol Error) unless a more specific Reason Code has been defined in [section
@@ -5845,7 +5845,7 @@ or other Packets flowing on the same Session.
 
 The CONNACK and DISCONNECT packets allow a Reason Code of 0x80 or greater to indicate that the Network Connection will
 be closed. If a Reason Code of 0x80 or greater is specified, then the Network Connection MUST be closed whether or not
-the CONNACK or DISCONNECT is sent \[MQTT-4.13.2-1\]. Sending of one of these Reason Codes does not have consequence for
+the CONNACK or DISCONNECT is sent \$$MQTT-4.13.2-1$\$. Sending of one of these Reason Codes does not have consequence for
 any other Session.
 
 If the Control Packet contains multiple errors the receiver of the Packet can validate the Packet in any order and take
@@ -5866,7 +5866,7 @@ MQTT Implementations will likely need to keep pace with an evolving security lan
 This Chapter provides general implementation guidance so as not to restrict choices available and is therefore
 non-normative. This should not detract from its importance.
 
-It is strongly recommended that Server implementations that offer TLS [\[RFC5246\]](#RFC5246) should use TCP port 8883
+It is strongly recommended that Server implementations that offer TLS [\$$RFC5246$\$](#RFC5246) should use TCP port 8883
 (IANA service name: secure-mqtt).
 
 There are a number of threats that solution providers should consider. For example:
@@ -5887,27 +5887,27 @@ to provide mechanisms for:
 - Privacy of MQTT Control Packets and application data contained therein
 
 In addition to technical security issues there could also be geographic (e.g. U.S.-EU Privacy Shield Framework
-[\[USEUPRIVSH\]](#USEUPRIVSH)), industry specific (e.g. PCI DSS [\[PCIDSS\]](#PCIDSS)) and regulatory considerations
-(e.g. Sarbanes-Oxley [\[SARBANES\]](#SARBANES)).
+[\$$USEUPRIVSH$\$](#USEUPRIVSH)), industry specific (e.g. PCI DSS [\$$PCIDSS$\$](#PCIDSS)) and regulatory considerations
+(e.g. Sarbanes-Oxley [\$$SARBANES$\$](#SARBANES)).
 
 ## 5.2 MQTT solutions: security and certification
 
 An implementation might want to provide conformance with specific industry security standards such as NIST Cyber
-Security Framework [\[NISTCSF\]](#NISTCSF), PCI-DSS [\[PCIDSS\]](#PCIDSS)), FIPS-140-2 [\[FIPS1402\]](#FIPS1402) and
-NSA Suite B [\[NSAB\]](#NSAB).
+Security Framework [\$$NISTCSF$\$](#NISTCSF), PCI-DSS [\$$PCIDSS$\$](#PCIDSS)), FIPS-140-2 [\$$FIPS1402$\$](#FIPS1402) and
+NSA Suite B [\$$NSAB$\$](#NSAB).
 
-Guidance on using MQTT within the NIST Cyber Security Framework [\[NISTCSF\]](#NISTCSF) can be found in the MQTT
+Guidance on using MQTT within the NIST Cyber Security Framework [\$$NISTCSF$\$](#NISTCSF) can be found in the MQTT
 supplemental publication, MQTT and the NIST Framework for Improving Critical Infrastructure Cybersecurity
-[\[MQTTNIST\]](#MQTTNIST). The use of industry proven, independently verified and certified technologies will he lp
+[\$$MQTTNIST$\$](#MQTTNIST). The use of industry proven, independently verified and certified technologies will he lp
 meet compliance requirements.
 
 ## 5.3 Lightweight crytography and constrained devices
 
-Advanced Encryption Standard [\[AES\]](#AES) is the most widely adopted encryption algorithm. There is hardware support
+Advanced Encryption Standard [\$$AES$\$](#AES) is the most widely adopted encryption algorithm. There is hardware support
 for AES in many processors, but not commonly for embedded processors. The encryption algorithm ChaCha20
-\[[CHACHA20](#CHACHA20)\] encrypts and decrypts much faster in software, but is not as widely available as AES.
+\$\$[CHACHA20](#CHACHA20)\$\$ encrypts and decrypts much faster in software, but is not as widely available as AES.
 
-ISO 29192 [\[ISO29192\]](#ISO29192) makes recommendations for cryptographic primitives specifically tuned to perform on
+ISO 29192 [\$$ISO29192$\$](#ISO29192) makes recommendations for cryptographic primitives specifically tuned to perform on
 constrained “low end” devices.
 
 ## 5.4 Implementation notes
@@ -5921,7 +5921,7 @@ An implementation might want to achieve some, or all, of the following:
 
 The CONNECT packet contains User Name and Password fields. Implementations can choose how to make use of the content of
 these fields. They may provide their own authentication mechanism, use an external authentication system such as LDAP
-[\[RFC4511\]](#RFC4511) or OAuth [\[RFC6749\]](#RFC6749) tokens, or leverage operating system authentication mechanisms.
+[\$$RFC4511$\$](#RFC4511) or OAuth [\$$RFC6749$\$](#RFC6749) tokens, or leverage operating system authentication mechanisms.
 
 MQTT v5.0 provides an enhanced authentication mechanism as described in [section 4.12](#_Enhanced_authentication).
 Using this requires support for it in both the Client and Server.
@@ -5933,7 +5933,7 @@ authentication data should be aware this can give rise to Man-in-the-Middle and 
 A Virtual Private Network (VPN) between the Clients and Servers can provide confidence that data is only being received
 from authorized Clients.
 
-Where TLS [\[RFC5246\]](#RFC5246) is used, TLS Certificates sent from the Client can be used by the Server to
+Where TLS [\$$RFC5246$\$](#RFC5246) is used, TLS Certificates sent from the Client can be used by the Server to
 authenticate the Client.
 
 An implementation might allow for authentication where the credentials are sent in an Application Message from the
@@ -5961,9 +5961,9 @@ access to Topic Filters that have broad scope, such as the # Topic Filter.
 The MQTT protocol is not trust symmetrical. When using basic authentication, there is no mechanism for the Client to
 authenticate the Server. Some forms of extended authentication do allow for mutual authentication.
 
-Where TLS [\[RFC5246\]](#RFC5246) is used, TLS Certificates sent from the Server can be used by the Client to
+Where TLS [\$$RFC5246$\$](#RFC5246) is used, TLS Certificates sent from the Server can be used by the Client to
 authenticate the Server. Implementations providing MQTT service for multiple hostnames from a single IP address should
-be aware of the Server Name Indication extension to TLS defined in section 3 of [\[RFC6066\]](#RFC6066).This allows a
+be aware of the Server Name Indication extension to TLS defined in section 3 of [\$$RFC6066$\$](#RFC6066).This allows a
 Client to tell the Server the hostname of the Server it is trying to connect to.
 
 An implementation might allow for authentication where the credentials are sent in an Application Message from the
@@ -5978,14 +5978,14 @@ A VPN between Clients and Servers can provide confidence that Clients are connec
 Applications can independently include hash values in their Application Messages. This can provide integrity of the
 contents of Publish packets across the network and at rest.
 
-TLS [\[RFC5246\]](#RFC5246) provides hash algorithms to verify the integrity of data sent over the network.
+TLS [\$$RFC5246$\$](#RFC5246) provides hash algorithms to verify the integrity of data sent over the network.
 
 The use of VPNs to connect Clients and Servers can provide integrity of data across the section of the network covered
 by a VPN.
 
 ### 5.4.5 Privacy of Application Messages and MQTT Control Packets
 
-TLS [\[RFC5246\]](#RFC5246) can provide encryption of data sent over the network. There are valid TLS cipher suites
+TLS [\$$RFC5246$\$](#RFC5246) can provide encryption of data sent over the network. There are valid TLS cipher suites
 that include a NULL encryption algorithm that does not encrypt data. To ensure privacy Clients and Servers should avoid
 these cipher suites.
 
@@ -6005,17 +6005,17 @@ Application designers might need to consider appropriate strategies to achieve e
 
 ### 5.4.7 Detecting compromise of Clients and Servers
 
-Client and Server implementations using TLS [\[RFC5246\]](#RFC5246) should provide capabilities to ensure that any TLS
+Client and Server implementations using TLS [\$$RFC5246$\$](#RFC5246) should provide capabilities to ensure that any TLS
 certificates provided when initiating a TLS connection are associated with the hostname of the Client connecting or
 Server being connected to.
 
 Client and Server implementations using TLS can choose to provide capabilities to check Certificate Revocation Lists
-(CRLs [\[RFC5280\]](#RFC5280)) and Online Certificate Status Protocol (OSCP) [\[RFC6960\]](#RFC6960) to prevent revoked
+(CRLs [\$$RFC5280$\$](#RFC5280)) and Online Certificate Status Protocol (OSCP) [\$$RFC6960$\$](#RFC6960) to prevent revoked
 certificates from being used.
 
 Physical deployments might combine tamper-proof hardware with the transmission of specific data in Application
 Messages. For example, a meter might have an embedded GPS to ensure it is not used in an unauthorized location.
-[\[IEEE8021AR\]](#IEEE8021AR) is a standard for implementing mechanisms to authenticate a device’s identity using a
+[\$$IEEE8021AR$\$](#IEEE8021AR) is a standard for implementing mechanisms to authenticate a device’s identity using a
 cryptographically bound identifier.
 
 ### 5.4.8 Detecting abnormal behaviors
@@ -6119,14 +6119,14 @@ long as it continues the protocol.
 ### 5.4.10 Other security considerations
 
 If Client or Server TLS certificates are lost or it is considered that they might be compromised they should be revoked
-(utilizing CRLs [\[RFC5280\]](#RFC5280) and/or OSCP [\[RFC6960\]](#RFC6960)).
+(utilizing CRLs [\$$RFC5280$\$](#RFC5280) and/or OSCP [\$$RFC6960$\$](#RFC6960)).
 
 Client or Server authentication credentials, such as User Name and Password, that are lost or considered compromised
 should be revoked and/or reissued.
 
 In the case of long lasting connections:
 
-· Client and Server implementations using TLS [\[RFC5246\]](#RFC5246) should allow for session renegotiation to
+· Client and Server implementations using TLS [\$$RFC5246$\$](#RFC5246) should allow for session renegotiation to
 establish new cryptographic parameters (replace session keys, change cipher suites, change authentication credentials).
 
 · Servers may close the Network Connection of Clients and require them to re-authenticate with new credentials.
@@ -6134,8 +6134,8 @@ establish new cryptographic parameters (replace session keys, change cipher suit
 · Servers may require their Client to reauthenticate periodically using the mechanism described in [section
 4.12.1](#_Re-authentication).
 
-Constrained devices and Clients on constrained networks can make use of TLS [\[RFC5246\]](#RFC5246) session resumption,
-in order to reduce the costs of reconnecting TLS [\[RFC5246\]](#RFC5246) sessions.
+Constrained devices and Clients on constrained networks can make use of TLS [\$$RFC5246$\$](#RFC5246) session resumption,
+in order to reduce the costs of reconnecting TLS [\$$RFC5246$\$](#RFC5246) sessions.
 
 Clients connected to a Server have a transitive trust relationship with other Clients connected to the same Server and
 who have authority to publish data on the same topics.
@@ -6143,7 +6143,7 @@ who have authority to publish data on the same topics.
 ### 5.4.11 Use of SOCKS
 
 Implementations of Clients should be aware that some environments will require the use of SOCKSv5
-[\[RFC1928\]](#RFC1928) proxies to make outbound Network Connections. Some MQTT implementations could make use of
+[\$$RFC1928$\$](#RFC1928) proxies to make outbound Network Connections. Some MQTT implementations could make use of
 alternative secured tunnels (e.g. SSH) through the use of SOCKS. Where implementations choose to use SOCKS, they should
 support both anonymous and User Name, Password authenticating SOCKS proxies. In the latter case, implementations should
 be aware that SOCKS authentication might occur in plain-text and so should avoid using the same credentials for
@@ -6167,9 +6167,9 @@ has security controls e.g., VPNs or physically secure network.
 #### 5.4.12.3 Secured transport profile
 
 When using the secured transport profile, the MQTT protocol runs over a physical or virtual network and using TLS
-[\[RFC5246\]](#RFC5246) which provides authentication, integrity and privacy.
+[\$$RFC5246$\$](#RFC5246) which provides authentication, integrity and privacy.
 
-TLS [\[RFC5246\]](#RFC5246) Client authentication can be used in addition to – or in place of – MQTT Client
+TLS [\$$RFC5246$\$](#RFC5246) Client authentication can be used in addition to – or in place of – MQTT Client
 authentication as provided by the User Name and Password fields.
 
 #### 5.4.12.4 Industry specific security profiles
@@ -6178,29 +6178,29 @@ It is anticipated that the MQTT protocol will be designed into industry specific
 threat model and the specific security mechanisms to be used to address these threats. Recommendations for specific
 security mechanisms will often be taken from existing works including:
 
-[\[NISTCSF\]](#NISTCSF) NIST Cyber Security Framework
+[\$$NISTCSF$\$](#NISTCSF) NIST Cyber Security Framework
 
-[\[NIST7628\]](#NIST7628) NISTIR 7628 Guidelines for Smart Grid Cyber Security
+[\$$NIST7628$\$](#NIST7628) NISTIR 7628 Guidelines for Smart Grid Cyber Security
 
-[\[FIPS1402\]](#FIPS1402) Security Requirements for Cryptographic Modules (FIPS PUB 140-2)
+[\$$FIPS1402$\$](#FIPS1402) Security Requirements for Cryptographic Modules (FIPS PUB 140-2)
 
-[\[PCIDSS\]](#PCIDSS) PCI-DSS Payment Card Industry Data Security Standard
+[\$$PCIDSS$\$](#PCIDSS) PCI-DSS Payment Card Industry Data Security Standard
 
-[\[NSAB\]](#NSAB) NSA Suite B Cryptography
+[\$$NSAB$\$](#NSAB) NSA Suite B Cryptography
 
 ## 6 Using WebSocket as a network transport
 
-If MQTT is transported over a WebSocket [\[RFC6455\]](#RFC6455) connection, the following conditions apply:
+If MQTT is transported over a WebSocket [\$$RFC6455$\$](#RFC6455) connection, the following conditions apply:
 
 · MQTT Control Packets MUST be sent in WebSocket binary data frames. If any other type of data frame is received the
-recipient MUST close the Network Connection \[MQTT-6.0.0-1\].
+recipient MUST close the Network Connection \$$MQTT-6.0.0-1$\$.
 
 · A single WebSocket data frame can contain multiple or partial MQTT Control Packets. The receiver MUST NOT assume
-that MQTT Control Packets are aligned on WebSocket frame boundaries \[MQTT-6.0.0-2\].
+that MQTT Control Packets are aligned on WebSocket frame boundaries \$$MQTT-6.0.0-2$\$.
 
-· The Client MUST include “mqtt” in the list of WebSocket Sub Protocols it offers \[MQTT-6.0.0-3\].
+· The Client MUST include “mqtt” in the list of WebSocket Sub Protocols it offers \$$MQTT-6.0.0-3$\$.
 
-· The WebSocket Subprotocol name selected and returned by the Server MUST be “mqtt” \[MQTT-6.0.0-4\].
+· The WebSocket Subprotocol name selected and returned by the Server MUST be “mqtt” \$$MQTT-6.0.0-4$\$.
 
 · The WebSocket URI used to connect the Client and Server has no impact on the MQTT protocol.
 
@@ -6342,491 +6342,491 @@ contributions are gratefully acknowledged:
 · Stehan Vaillant (Cumulocity)
 
 For a list of those who contributed to earlier versions of MQTT refer to Appendix A in the MQTT v3.1.1 specification
-**\[MQTTV311****\]**.
+**\$$MQTTV311****$\$**.
 
 This Appendix is non-normative and is provided as a convenient summary of the numbered conformance statements found in
 the main body of this document. Refer to [Chapter 7](#_Conformance) for a definitive list of conformance requirements.
 
 | **Normative Statement Number** | **Normative Statement** |
 | --- | --- |
-| \[MQTT-1.5.4-1\] | The character data in a UTF-8 Encoded String MUST be well-formed UTF-8 as defined by the Unicode
-specification \[Unicode\] and restated in RFC 3629 \[RFC3629\]. In particular, the character data MUST NOT include
+| \$$MQTT-1.5.4-1$\$ | The character data in a UTF-8 Encoded String MUST be well-formed UTF-8 as defined by the Unicode
+specification \$$Unicode$\$ and restated in RFC 3629 \$$RFC3629$\$. In particular, the character data MUST NOT include
 encodings of code points between U+D800 and U+DFFF. |
-| \[MQTT-1.5.4-2\] | A UTF-8 Encoded String MUST NOT include an encoding of the null character U+0000. |
-| \[MQTT-1.5.4-3\] | A UTF-8 encoded sequence 0xEF 0xBB 0xBF is always interpreted as U+FEFF ("ZERO WIDTH NO-BREAK
+| \$$MQTT-1.5.4-2$\$ | A UTF-8 Encoded String MUST NOT include an encoding of the null character U+0000. |
+| \$$MQTT-1.5.4-3$\$ | A UTF-8 encoded sequence 0xEF 0xBB 0xBF is always interpreted as U+FEFF ("ZERO WIDTH NO-BREAK
 SPACE") wherever it appears in a string and MUST NOT be skipped over or stripped off by a packet receiver. |
-| \[MQTT-1.5.5-1\] | The encoded value MUST use the minimum number of bytes necessary to represent the value. |
-| \[MQTT-1.5.7-1\] | Both strings MUST comply with the requirements for UTF-8 Encoded Strings. |
-| \[MQTT-2.1.3-1\] | Where a flag bit is marked as “Reserved” it is reserved for future use and MUST be set to the
+| \$$MQTT-1.5.5-1$\$ | The encoded value MUST use the minimum number of bytes necessary to represent the value. |
+| \$$MQTT-1.5.7-1$\$ | Both strings MUST comply with the requirements for UTF-8 Encoded Strings. |
+| \$$MQTT-2.1.3-1$\$ | Where a flag bit is marked as “Reserved” it is reserved for future use and MUST be set to the
 value listed. |
-| \[MQTT-2.2.1-2\] | A PUBLISH packet MUST NOT contain a Packet Identifier if its QoS value is set to 0. |
-| \[MQTT-2.2.1-3\] | Each time a Client sends a new SUBSCRIBE, UNSUBSCRIBE,or PUBLISH (where QoS > 0) MQTT Control
+| \$$MQTT-2.2.1-2$\$ | A PUBLISH packet MUST NOT contain a Packet Identifier if its QoS value is set to 0. |
+| \$$MQTT-2.2.1-3$\$ | Each time a Client sends a new SUBSCRIBE, UNSUBSCRIBE,or PUBLISH (where QoS > 0) MQTT Control
 Packet it MUST assign it a non-zero Packet Identifier that is currently unused. |
-| \[MQTT-2.2.1-4\] | Each time a Server sends a new PUBLISH (with QoS > 0) MQTT Control Packet it MUST assign it a non
+| \$$MQTT-2.2.1-4$\$ | Each time a Server sends a new PUBLISH (with QoS > 0) MQTT Control Packet it MUST assign it a non
 zero Packet Identifier that is currently unused. |
-| \[MQTT-2.2.1-5\] | A PUBACK, PUBREC, PUBREL, or PUBCOMP packet MUST contain the same Packet Identifier as the PUBLISH
+| \$$MQTT-2.2.1-5$\$ | A PUBACK, PUBREC, PUBREL, or PUBCOMP packet MUST contain the same Packet Identifier as the PUBLISH
 packet that was originally sent. |
-| \[MQTT-2.2.1-6\] | A SUBACK and UNSUBACK MUST contain the Packet Identifier that was used in the corresponding
+| \$$MQTT-2.2.1-6$\$ | A SUBACK and UNSUBACK MUST contain the Packet Identifier that was used in the corresponding
 SUBSCRIBE and UNSUBSCRIBE packet respectively. |
-| \[MQTT-2.2.2-1\] | If there are no properties, this MUST be indicated by including a Property Length of zero. |
-| \[MQTT-3.1.0-1\] | After a Network Connection is established by a Client to a Server, the first packet sent from the
+| \$$MQTT-2.2.2-1$\$ | If there are no properties, this MUST be indicated by including a Property Length of zero. |
+| \$$MQTT-3.1.0-1$\$ | After a Network Connection is established by a Client to a Server, the first packet sent from the
 Client to the Server MUST be a CONNECT packet. |
-| \[MQTT-3.1.0-2\] | The Server MUST process a second CONNECT packet sent from a Client as a Protocol Error and close
+| \$$MQTT-3.1.0-2$\$ | The Server MUST process a second CONNECT packet sent from a Client as a Protocol Error and close
 the Network Connection. |
-| \[MQTT-3.1.2-1\] | The protocol name MUST be the UTF-8 String "MQTT". If the Server does not want to accept the
+| \$$MQTT-3.1.2-1$\$ | The protocol name MUST be the UTF-8 String "MQTT". If the Server does not want to accept the
 CONNECT, and wishes to reveal that it is an MQTT Server it MAY send a CONNACK packet with Reason Code of 0x84
 (Unsupported Protocol Version), and then it MUST close the Network Connection. |
-| \[MQTT-3.1.2-2\] | If the Protocol Version is not 5 and the Server does not want to accept the CONNECT packet, the
+| \$$MQTT-3.1.2-2$\$ | If the Protocol Version is not 5 and the Server does not want to accept the CONNECT packet, the
 Server MAY send a CONNACK packet with Reason Code 0x84 (Unsupported Protocol Version) and then MUST close the Network
 Connection |
-| \[MQTT-3.1.2-3\] | The Server MUST validate that the reserved flag in the CONNECT packet is set to 0. |
-| \[MQTT-3.1.2-4\] | If a CONNECT packet is received with Clean Start is set to 1, the Client and Server MUST discard
+| \$$MQTT-3.1.2-3$\$ | The Server MUST validate that the reserved flag in the CONNECT packet is set to 0. |
+| \$$MQTT-3.1.2-4$\$ | If a CONNECT packet is received with Clean Start is set to 1, the Client and Server MUST discard
 any existing Session and start a new Session. |
-| \[MQTT-3.1.2-5\] | If a CONNECT packet is received with Clean Start set to 0 and there is a Session associated with
+| \$$MQTT-3.1.2-5$\$ | If a CONNECT packet is received with Clean Start set to 0 and there is a Session associated with
 the Client Identifier, the Server MUST resume communications with the Client based on state from the existing Session. |
-| \[MQTT-3.1.2-6\] | If a CONNECT packet is received with Clean Start set to 0 and there is no Session associated with
+| \$$MQTT-3.1.2-6$\$ | If a CONNECT packet is received with Clean Start set to 0 and there is no Session associated with
 the Client Identifier, the Server MUST create a new Session. |
-| \[MQTT-3.1.2-7\] | If the Will Flag is set to 1 this indicates that, a Will Message MUST be stored on the Server and
+| \$$MQTT-3.1.2-7$\$ | If the Will Flag is set to 1 this indicates that, a Will Message MUST be stored on the Server and
 associated with the Session. |
-| \[MQTT-3.1.2-8\] | The Will Message MUST be published after the Network Connection is subsequently closed and either
+| \$$MQTT-3.1.2-8$\$ | The Will Message MUST be published after the Network Connection is subsequently closed and either
 the Will Delay Interval has elapsed or the Session ends, unless the Will Message has been deleted by the Server on
 receipt of a DISCONNECT packet with Reason Code 0x00 (Normal disconnection) or a new Network Connection for the
 ClientID is opened before the Will Delay Interval has elapsed. |
-| \[MQTT-3.1.2-9\] | If the Will Flag is set to 1, the Will QoS and Will Retain fields in the Connect Flags will be
+| \$$MQTT-3.1.2-9$\$ | If the Will Flag is set to 1, the Will QoS and Will Retain fields in the Connect Flags will be
 used by the Server, and the Will Properties, Will Topic and Will Message fields MUST be present in the Payload. |
-| \[MQTT-3.1.2-10\] | The Will Message MUST be removed from the stored Session State in the Server once it has been
+| \$$MQTT-3.1.2-10$\$ | The Will Message MUST be removed from the stored Session State in the Server once it has been
 published or the Server has received a DISCONNECT packet with a Reason Code of 0x00 (Normal disconnection) from the
 Client. |
-| \[MQTT-3.1.2-11\] | If the Will Flag is set to 0, then the Will QoS MUST be set to 0 (0x00). |
-| \[MQTT-3.1.2-12\] | If the Will Flag is set to 1, the value of Will QoS can be 0 (0x00), 1 (0x01), or 2 (0x02). |
-| \[MQTT-3.1.2-13\] | If the Will Flag is set to 0, then Will Retain MUST be set to 0. |
-| \[MQTT-3.1.2-14\] | If the Will Flag is set to 1 and Will Retain is set to 0, the Server MUST publish the Will
+| \$$MQTT-3.1.2-11$\$ | If the Will Flag is set to 0, then the Will QoS MUST be set to 0 (0x00). |
+| \$$MQTT-3.1.2-12$\$ | If the Will Flag is set to 1, the value of Will QoS can be 0 (0x00), 1 (0x01), or 2 (0x02). |
+| \$$MQTT-3.1.2-13$\$ | If the Will Flag is set to 0, then Will Retain MUST be set to 0. |
+| \$$MQTT-3.1.2-14$\$ | If the Will Flag is set to 1 and Will Retain is set to 0, the Server MUST publish the Will
 Message as a non-retained message. |
-| \[MQTT-3.1.2-15\] | If the Will Flag is set to 1 and Will Retain is set to 1, the Server MUST publish the Will
+| \$$MQTT-3.1.2-15$\$ | If the Will Flag is set to 1 and Will Retain is set to 1, the Server MUST publish the Will
 Message as a retained message. |
-| \[MQTT-3.1.2-16\] | If the User Name Flag is set to 0, a User Name MUST NOT be present in the Payload. |
-| \[MQTT-3.1.2-17\] | If the User Name Flag is set to 1, a User Name MUST be present in the Payload. |
-| \[MQTT-3.1.2-18\] | If the Password Flag is set to 0, a Password MUST NOT be present in the Payload. |
-| \[MQTT-3.1.2-19\] | If the Password Flag is set to 1, a Password MUST be present in the Payload. |
-| \[MQTT-3.1.2-20\] | If Keep Alive is non-zero and in the absence of sending any other MQTT Control Packets, the
+| \$$MQTT-3.1.2-16$\$ | If the User Name Flag is set to 0, a User Name MUST NOT be present in the Payload. |
+| \$$MQTT-3.1.2-17$\$ | If the User Name Flag is set to 1, a User Name MUST be present in the Payload. |
+| \$$MQTT-3.1.2-18$\$ | If the Password Flag is set to 0, a Password MUST NOT be present in the Payload. |
+| \$$MQTT-3.1.2-19$\$ | If the Password Flag is set to 1, a Password MUST be present in the Payload. |
+| \$$MQTT-3.1.2-20$\$ | If Keep Alive is non-zero and in the absence of sending any other MQTT Control Packets, the
 Client MUST send a PINGREQ packet. |
-| \[MQTT-3.1.2-21\] | If the Server returns a Server Keep Alive on the CONNACK packet, the Client MUST use that value
+| \$$MQTT-3.1.2-21$\$ | If the Server returns a Server Keep Alive on the CONNACK packet, the Client MUST use that value
 instead of the value it sent as the Keep Alive. |
-| \[MQTT-3.1.2-22\] | If the Keep Alive value is non-zero and the Server does not receive an MQTT Control Packet from
+| \$$MQTT-3.1.2-22$\$ | If the Keep Alive value is non-zero and the Server does not receive an MQTT Control Packet from
 the Client within one and a half times the Keep Alive time period, it MUST close the Network Connection to the Client
 as if the network had failed. |
-| \[MQTT-3.1.2-23\] | The Client and Server MUST store the Session State after the Network Connection is closed if the
+| \$$MQTT-3.1.2-23$\$ | The Client and Server MUST store the Session State after the Network Connection is closed if the
 Session Expiry Interval is greater than 0. |
-| \[MQTT-3.1.2-24\] | The Server MUST NOT send packets exceeding Maximum Packet Size to the Client. |
-| \[MQTT-3.1.2-25\] | Where a Packet is too large to send, the Server MUST discard it without sending it and then
+| \$$MQTT-3.1.2-24$\$ | The Server MUST NOT send packets exceeding Maximum Packet Size to the Client. |
+| \$$MQTT-3.1.2-25$\$ | Where a Packet is too large to send, the Server MUST discard it without sending it and then
 behave as if it had completed sending that Application Message. |
-| \[MQTT-3.1.2-26\] | The Server MUST NOT send a Topic Alias in a PUBLISH packet to the Client greater than Topic Alias
+| \$$MQTT-3.1.2-26$\$ | The Server MUST NOT send a Topic Alias in a PUBLISH packet to the Client greater than Topic Alias
 Maximum. |
-| \[MQTT-3.1.2-27\] | If Topic Alias Maximum is absent or zero, the Server MUST NOT send any Topic Aliases to the. |
-| \[MQTT-3.1.2-28\] | A value of 0 indicates that the Server MUST NOT return Response Information. |
-| \[MQTT-3.1.2-29\] | If the value of Request Problem Information is 0, the Server MAY return a Reason String or User
+| \$$MQTT-3.1.2-27$\$ | If Topic Alias Maximum is absent or zero, the Server MUST NOT send any Topic Aliases to the. |
+| \$$MQTT-3.1.2-28$\$ | A value of 0 indicates that the Server MUST NOT return Response Information. |
+| \$$MQTT-3.1.2-29$\$ | If the value of Request Problem Information is 0, the Server MAY return a Reason String or User
 Properties on a CONNACK or DISCONNECT packet, but MUST NOT send a Reason String or User Properties on any packet other
 than PUBLISH, CONNACK, or DISCONNECT. |
-| \[MQTT-3.1.2-30\] | If a Client sets an Authentication Method in the CONNECT, the Client MUST NOT send any packets
+| \$$MQTT-3.1.2-30$\$ | If a Client sets an Authentication Method in the CONNECT, the Client MUST NOT send any packets
 other than AUTH or DISCONNECT packets until it has received a CONNACK packet. |
-| \[MQTT-3.1.3-1\] | The Payload of the CONNECT packet contains one or more length-prefixed fields, whose presence is
+| \$$MQTT-3.1.3-1$\$ | The Payload of the CONNECT packet contains one or more length-prefixed fields, whose presence is
 determined by the flags in the Variable Header. These fields, if present, MUST appear in the order Client Identifier,
 Will Topic, Will Message, User Name, Password. |
-| \[MQTT-3.1.3-2\] | The ClientID MUST be used by Clients and by Servers to identify state that they hold relating to
+| \$$MQTT-3.1.3-2$\$ | The ClientID MUST be used by Clients and by Servers to identify state that they hold relating to
 this MQTT Session between the Client and the Server. |
-| \[MQTT-3.1.3-3\] | The ClientID MUST be present and is the first field in the CONNECT packet Payload. |
-| \[MQTT-3.1.3-4\] | The ClientID MUST be a UTF-8 Encoded String. |
-| \[MQTT-3.1.3-5\] | The Server MUST allow ClientID’s which are between 1 and 23 UTF-8 encoded bytes in length, and
+| \$$MQTT-3.1.3-3$\$ | The ClientID MUST be present and is the first field in the CONNECT packet Payload. |
+| \$$MQTT-3.1.3-4$\$ | The ClientID MUST be a UTF-8 Encoded String. |
+| \$$MQTT-3.1.3-5$\$ | The Server MUST allow ClientID’s which are between 1 and 23 UTF-8 encoded bytes in length, and
 that contain only the characters   "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ". |
-| \[MQTT-3.1.3-6\] | A Server MAY allow a Client to supply a ClientID that has a length of zero bytes, however if it
+| \$$MQTT-3.1.3-6$\$ | A Server MAY allow a Client to supply a ClientID that has a length of zero bytes, however if it
 does so the Server MUST treat this as a special case and assign a unique ClientID to that Client. |
-| \[MQTT-3.1.3-7\] | It MUST then process the CONNECT packet as if the Client had provided that unique ClientID, and
+| \$$MQTT-3.1.3-7$\$ | It MUST then process the CONNECT packet as if the Client had provided that unique ClientID, and
 MUST return the Assigned Client Identifier in the CONNACK packet. |
-| \[MQTT-3.1.3-8\] | If the Server rejects the ClientID it MAY respond to the CONNECT packet with a CONNACK using
+| \$$MQTT-3.1.3-8$\$ | If the Server rejects the ClientID it MAY respond to the CONNECT packet with a CONNACK using
 Reason Code 0x85 (Client Identifier not valid) as described in section 4.13 Handling errors, and then it MUST close the
 Network Connection. |
-| \[MQTT-3.1.3-9\] | If a new Network Connection to this Session is made before the Will Delay Interval has passed, the
+| \$$MQTT-3.1.3-9$\$ | If a new Network Connection to this Session is made before the Will Delay Interval has passed, the
 Server MUST NOT send the Will Message. |
-| \[MQTT-3.1.3-10\] | The Server MUST maintain the order of User Properties when forwarding the Application Message. |
-| \[MQTT-3.1.3-11\] | The Will Topic MUST be a UTF-8 Encoded String. |
-| \[MQTT-3.1.3-12\] | If the User Name Flag is set to 1, the User Name is the next field in the Payload. The User Name
+| \$$MQTT-3.1.3-10$\$ | The Server MUST maintain the order of User Properties when forwarding the Application Message. |
+| \$$MQTT-3.1.3-11$\$ | The Will Topic MUST be a UTF-8 Encoded String. |
+| \$$MQTT-3.1.3-12$\$ | If the User Name Flag is set to 1, the User Name is the next field in the Payload. The User Name
 MUST be a UTF-8 Encoded String. |
-| \[MQTT-3.1.4-1\] | The Server MUST validate that the CONNECT packet matches the format described in section 3.1 and
+| \$$MQTT-3.1.4-1$\$ | The Server MUST validate that the CONNECT packet matches the format described in section 3.1 and
 close the Network Connection if it does not match. |
-| \[MQTT-3.1.4-2\] | The Server MAY check that the contents of the CONNECT packet meet any further restrictions and
+| \$$MQTT-3.1.4-2$\$ | The Server MAY check that the contents of the CONNECT packet meet any further restrictions and
 SHOULD perform authentication and authorization checks. If any of these checks fail, it MUST close the Network
 Connection. |
-| \[MQTT-3.1.4-3\] | If the ClientID represents a Client already connected to the Server, the Server sends a DISCONNECT
+| \$$MQTT-3.1.4-3$\$ | If the ClientID represents a Client already connected to the Server, the Server sends a DISCONNECT
 packet to the existing Client with Reason Code of 0x8E (Session taken over) as described in section 4.13 and MUST close
 the Network Connection of the existing Client. |
-| \[MQTT-3.1.4-4\] | The Server MUST perform the processing of Clean Start. |
-| \[MQTT-3.1.4-5\] | The Server MUST acknowledge the CONNECT packet with a CONNACK packet containing a 0x00 (Success)
+| \$$MQTT-3.1.4-4$\$ | The Server MUST perform the processing of Clean Start. |
+| \$$MQTT-3.1.4-5$\$ | The Server MUST acknowledge the CONNECT packet with a CONNACK packet containing a 0x00 (Success)
 Reason Code. |
-| \[MQTT-3.1.4-6\] | If the Server rejects the CONNECT, it MUST NOT process any data sent by the Client after the
+| \$$MQTT-3.1.4-6$\$ | If the Server rejects the CONNECT, it MUST NOT process any data sent by the Client after the
 CONNECT packet except AUTH packets. |
-| \[MQTT-3.2.0-1\] | The Server MUST send a CONNACK with a 0x00 (Success) Reason Code before sending any Packet other
+| \$$MQTT-3.2.0-1$\$ | The Server MUST send a CONNACK with a 0x00 (Success) Reason Code before sending any Packet other
 than AUTH. |
-| \[MQTT-3.2.0-2\] | The Server MUST NOT send more than one CONNACK in a Network Connection. |
-| \[MQTT-3.2.2-1\] | Byte 1 is the "Connect Acknowledge Flags". Bits 7-1 are reserved and MUST be set to 0. |
-| \[MQTT-3.2.2-2\] | If the Server accepts a connection with Clean Start set to 1, the Server MUST set Session Present
+| \$$MQTT-3.2.0-2$\$ | The Server MUST NOT send more than one CONNACK in a Network Connection. |
+| \$$MQTT-3.2.2-1$\$ | Byte 1 is the "Connect Acknowledge Flags". Bits 7-1 are reserved and MUST be set to 0. |
+| \$$MQTT-3.2.2-2$\$ | If the Server accepts a connection with Clean Start set to 1, the Server MUST set Session Present
 to 0 in the CONNACK packet in addition to setting a 0x00 (Success) Reason Code in the CONNACK packet. |
-| \[MQTT-3.2.2-3\] | If the Server accepts a connection with Clean Start set to 0 and the Server has Session State for
+| \$$MQTT-3.2.2-3$\$ | If the Server accepts a connection with Clean Start set to 0 and the Server has Session State for
 the ClientID, it MUST set Session Present to 1 in the CONNACK packet, otherwise it MUST set Session Present to 0 in the
 CONNACK packet. In both cases it MUST set a 0x00 (Success) Reason Code in the CONNACK packet. |
-| \[MQTT-3.2.2-4\] | If the Client does not have Session State and receives Session Present set to 1 it MUST close the
+| \$$MQTT-3.2.2-4$\$ | If the Client does not have Session State and receives Session Present set to 1 it MUST close the
 Network Connection. |
-| \[MQTT-3.2.2-5\] | If the Client does have Session State and receives Session Present set to 0 it MUST discard its
+| \$$MQTT-3.2.2-5$\$ | If the Client does have Session State and receives Session Present set to 0 it MUST discard its
 Session State if it continues with the Network Connection. |
-| \[MQTT-3.2.2-6\] | If a Server sends a CONNACK packet containing a non-zero Reason Code it MUST set Session Present
+| \$$MQTT-3.2.2-6$\$ | If a Server sends a CONNACK packet containing a non-zero Reason Code it MUST set Session Present
 to 0. |
-| \[MQTT-3.2.2-7\] | If a Server sends a CONNACK packet containing a Reason code of 0x80 or greater it MUST then close
+| \$$MQTT-3.2.2-7$\$ | If a Server sends a CONNACK packet containing a Reason code of 0x80 or greater it MUST then close
 the Network Connection. |
-| \[MQTT-3.2.2-8\] | The Server sending the CONNACK packet MUST use one of the Connect Reason Code values. |
-| \[MQTT-3.2.2-9\] | If a Server does not support QoS 1 or QoS 2 PUBLISH packets it MUST send a Maximum QoS in the
+| \$$MQTT-3.2.2-8$\$ | The Server sending the CONNACK packet MUST use one of the Connect Reason Code values. |
+| \$$MQTT-3.2.2-9$\$ | If a Server does not support QoS 1 or QoS 2 PUBLISH packets it MUST send a Maximum QoS in the
 CONNACK packet specifying the highest QoS it supports. |
-| \[MQTT-3.2.2-10\] | A Server that does not support QoS 1 or QoS 2 PUBLISH packets MUST still accept SUBSCRIBE packets
+| \$$MQTT-3.2.2-10$\$ | A Server that does not support QoS 1 or QoS 2 PUBLISH packets MUST still accept SUBSCRIBE packets
 containing a Requested QoS of 0, 1 or 2. |
-| \[MQTT-3.2.2-11\] | If a Client receives a Maximum QoS from a Server, it MUST NOT send PUBLISH packets at a QoS level
+| \$$MQTT-3.2.2-11$\$ | If a Client receives a Maximum QoS from a Server, it MUST NOT send PUBLISH packets at a QoS level
 exceeding the Maximum QoS level specified. |
-| \[MQTT-3.2.2-12\] | If a Server receives a CONNECT packet containing a Will QoS that exceeds its capabilities, it
+| \$$MQTT-3.2.2-12$\$ | If a Server receives a CONNECT packet containing a Will QoS that exceeds its capabilities, it
 MUST reject the connection. It SHOULD use a CONNACK packet with Reason Code 0x9B (QoS not supported) as described in
 section 4.13 Handling errors, and MUST close the Network Connection. |
-| \[MQTT-3.2.2-13\] | If a Server receives a CONNECT packet containing a Will Message with the Will Retain 1, and it
+| \$$MQTT-3.2.2-13$\$ | If a Server receives a CONNECT packet containing a Will Message with the Will Retain 1, and it
 does not support retained messages, the Server MUST reject the connection request. It SHOULD send CONNACK with Reason
 Code 0x9A (Retain not supported) and then it MUST close the Network Connection. |
-| \[MQTT-3.2.2-14\] | A Client receiving Retain Available set to 0 from the Server MUST NOT send a PUBLISH packet with
+| \$$MQTT-3.2.2-14$\$ | A Client receiving Retain Available set to 0 from the Server MUST NOT send a PUBLISH packet with
 the RETAIN flag set to 1. |
-| \[MQTT-3.2.2-15\] | The Client MUST NOT send packets exceeding Maximum Packet Size to the Server. |
-| \[MQTT-3.2.2-16\] | If the Client connects using a zero length Client Identifier, the Server MUST respond with a
+| \$$MQTT-3.2.2-15$\$ | The Client MUST NOT send packets exceeding Maximum Packet Size to the Server. |
+| \$$MQTT-3.2.2-16$\$ | If the Client connects using a zero length Client Identifier, the Server MUST respond with a
 CONNACK containing an Assigned Client Identifier. The Assigned Client Identifier MUST be a new Client Identifier not
 used by any other Session currently in the Server. |
-| \[MQTT-3.2.2-17\] | The Client MUST NOT send a Topic Alias in a PUBLISH packet to the Server greater than this value.
+| \$$MQTT-3.2.2-17$\$ | The Client MUST NOT send a Topic Alias in a PUBLISH packet to the Server greater than this value.
 |
-| \[MQTT-3.2.2-18\] | Topic Alias Maximum is absent, the Client MUST NOT send any Topic Aliases on to the Server. |
-| \[MQTT-3.2.2-19\] | The Server MUST NOT send this property if it would increase the size of the CONNACK packet beyond
+| \$$MQTT-3.2.2-18$\$ | Topic Alias Maximum is absent, the Client MUST NOT send any Topic Aliases on to the Server. |
+| \$$MQTT-3.2.2-19$\$ | The Server MUST NOT send this property if it would increase the size of the CONNACK packet beyond
 the Maximum Packet Size specified by the Client. |
-| \[MQTT-3.2.2-20\] | The Server MUST NOT send this property if it would increase the size of the CONNACK packet beyond
+| \$$MQTT-3.2.2-20$\$ | The Server MUST NOT send this property if it would increase the size of the CONNACK packet beyond
 the Maximum Packet Size specified by the Client. |
-| \[MQTT-3.2.2-21\] | If the Server sends a Server Keep Alive on the CONNACK packet, the Client MUST use this value
+| \$$MQTT-3.2.2-21$\$ | If the Server sends a Server Keep Alive on the CONNACK packet, the Client MUST use this value
 instead of the Keep Alive value the Client sent on CONNECT. |
-| \[MQTT-3.2.2-22\] | If the Server does not send the Server Keep Alive, the Server MUST use the Keep Alive value set
+| \$$MQTT-3.2.2-22$\$ | If the Server does not send the Server Keep Alive, the Server MUST use the Keep Alive value set
 by the Client on CONNECT. |
-| \[MQTT-3.3.1-1\] | The DUP flag MUST be set to 1 by the Client or Server when it attempts to re-deliver a PUBLISH
+| \$$MQTT-3.3.1-1$\$ | The DUP flag MUST be set to 1 by the Client or Server when it attempts to re-deliver a PUBLISH
 packet. |
-| \[MQTT-3.3.1-2\] | The DUP flag MUST be set to 0 for all QoS 0 messages. |
-| \[MQTT-3.3.1-3\] | The DUP flag in the outgoing PUBLISH packet is set independently to the incoming PUBLISH packet,
+| \$$MQTT-3.3.1-2$\$ | The DUP flag MUST be set to 0 for all QoS 0 messages. |
+| \$$MQTT-3.3.1-3$\$ | The DUP flag in the outgoing PUBLISH packet is set independently to the incoming PUBLISH packet,
 its value MUST be determined solely by whether the outgoing PUBLISH packet is a retransmission. |
-| \[MQTT-3.3.1-4\] | A PUBLISH Packet MUST NOT have both QoS bits set to 1. |
-| \[MQTT-3.3.1-5\] | If the RETAIN flag is set to 1 in a PUBLISH packet sent by a Client to a Server, the Server MUST
+| \$$MQTT-3.3.1-4$\$ | A PUBLISH Packet MUST NOT have both QoS bits set to 1. |
+| \$$MQTT-3.3.1-5$\$ | If the RETAIN flag is set to 1 in a PUBLISH packet sent by a Client to a Server, the Server MUST
 replace any existing retained message for this topic and store the Application Message. |
-| \[MQTT-3.3.1-6\] | If the Payload contains zero bytes it is processed normally by the Server but any retained message
+| \$$MQTT-3.3.1-6$\$ | If the Payload contains zero bytes it is processed normally by the Server but any retained message
 with the same topic name MUST be removed and any future subscribers for the topic will not receive a retained message. |
-| \[MQTT-3.3.1-7\] | A retained message with a Payload containing zero bytes MUST NOT be stored as a retained message
+| \$$MQTT-3.3.1-7$\$ | A retained message with a Payload containing zero bytes MUST NOT be stored as a retained message
 on the Server. |
-| \[MQTT-3.3.1-8\] | If the RETAIN flag is 0 in a PUBLISH packet sent by a Client to a Server, the Server MUST NOT
+| \$$MQTT-3.3.1-8$\$ | If the RETAIN flag is 0 in a PUBLISH packet sent by a Client to a Server, the Server MUST NOT
 store the message as a retained message and MUST NOT remove or replace any existing retained message. |
-| \[MQTT-3.3.1-9\] | If Retain Handling is set to 0 the Server MUST send the retained messages matching the Topic
+| \$$MQTT-3.3.1-9$\$ | If Retain Handling is set to 0 the Server MUST send the retained messages matching the Topic
 Filter of the subscription to the Client. |
-| \[MQTT-3.3.1-10\] | If Retain Handling is set to 1 then if the subscription did already exist, the Server MUST send
+| \$$MQTT-3.3.1-10$\$ | If Retain Handling is set to 1 then if the subscription did already exist, the Server MUST send
 all retained message matching the Topic Filter of the subscription to the Client, and if the subscription did not
 exist, the Server MUST NOT send the retained messages. |
-| \[MQTT-3.3.1-11\] | If Retain Handling is set to 2, the Server MUST NOT send the retained |
-| \[MQTT-3.3.1-12\] | If the value of Retain As Published subscription option is set to 0, the Server MUST set the
+| \$$MQTT-3.3.1-11$\$ | If Retain Handling is set to 2, the Server MUST NOT send the retained |
+| \$$MQTT-3.3.1-12$\$ | If the value of Retain As Published subscription option is set to 0, the Server MUST set the
 RETAIN flag to 0 when forwarding an Application Message regardless of how the RETAIN flag was set in the received
 PUBLISH packet. |
-| \[MQTT-3.3.1-13\] | If the value of Retain As Published subscription option is set to 1, the Server MUST set the
+| \$$MQTT-3.3.1-13$\$ | If the value of Retain As Published subscription option is set to 1, the Server MUST set the
 RETAIN flag equal to the RETAIN flag in the received PUBLISH packet. |
-| \[MQTT-3.3.2-1\] | The Topic Name MUST be present as the first field in the PUBLISH packet Variable Header. It MUST
+| \$$MQTT-3.3.2-1$\$ | The Topic Name MUST be present as the first field in the PUBLISH packet Variable Header. It MUST
 be a UTF-8 Encoded String. |
-| \[MQTT-3.3.2-2\] | The Topic Name in the PUBLISH packet MUST NOT contain wildcard characters. |
-| \[MQTT-3.3.2-3\] | The Topic Name in a PUBLISH packet sent by a Server to a subscribing Client MUST match the
+| \$$MQTT-3.3.2-2$\$ | The Topic Name in the PUBLISH packet MUST NOT contain wildcard characters. |
+| \$$MQTT-3.3.2-3$\$ | The Topic Name in a PUBLISH packet sent by a Server to a subscribing Client MUST match the
 Subscription’s Topic Filter. |
-| \[MQTT-3.3.2-4\] | A Server MUST send the Payload Format Indicator unaltered to all subscribers receiving the
+| \$$MQTT-3.3.2-4$\$ | A Server MUST send the Payload Format Indicator unaltered to all subscribers receiving the
 message. |
-| \[MQTT-3.3.2-5\] | If the Message Expiry Interval has passed and the Server has not managed to start onward delivery
+| \$$MQTT-3.3.2-5$\$ | If the Message Expiry Interval has passed and the Server has not managed to start onward delivery
 to a matching subscriber, then it MUST delete the copy of the message for that subscriber. |
-| \[MQTT-3.3.2-6\] | The PUBLISH packet sent to a Client by the Server MUST contain a Message Expiry Interval set to
+| \$$MQTT-3.3.2-6$\$ | The PUBLISH packet sent to a Client by the Server MUST contain a Message Expiry Interval set to
 the received value minus the time that the message has been waiting in the Server. |
-| \[MQTT-3.3.2-7\] | A receiver MUST NOT carry forward any Topic Alias mappings from one Network Connection to another.
+| \$$MQTT-3.3.2-7$\$ | A receiver MUST NOT carry forward any Topic Alias mappings from one Network Connection to another.
 |
-| \[MQTT-3.3.2-8\] | A sender MUST NOT send a PUBLISH packet containing a Topic Alias which has the value 0. |
-| \[MQTT-3.3.2-9\] | A Client MUST NOT send a PUBLISH packet with a Topic Alias greater than the Topic Alias Maximum
+| \$$MQTT-3.3.2-8$\$ | A sender MUST NOT send a PUBLISH packet containing a Topic Alias which has the value 0. |
+| \$$MQTT-3.3.2-9$\$ | A Client MUST NOT send a PUBLISH packet with a Topic Alias greater than the Topic Alias Maximum
 value returned by the Server in the CONNACK packet. |
-| \[MQTT-3.3.2-10\] | A Client MUST accept all Topic Alias values greater than 0 and less than or equal to the Topic
+| \$$MQTT-3.3.2-10$\$ | A Client MUST accept all Topic Alias values greater than 0 and less than or equal to the Topic
 Alias Maximum value that it sent in the CONNECT packet. |
-| \[MQTT-3.3.2-11\] | A Server MUST NOT send a PUBLISH packet with a Topic Alias greater than the Topic Alias Maximum
+| \$$MQTT-3.3.2-11$\$ | A Server MUST NOT send a PUBLISH packet with a Topic Alias greater than the Topic Alias Maximum
 value sent by the Client in the CONNECT packet. |
-| \[MQTT-3.3.2-12\] | A Server MUST accept all Topic Alias values greater than 0 and less than or equal to the Topic
+| \$$MQTT-3.3.2-12$\$ | A Server MUST accept all Topic Alias values greater than 0 and less than or equal to the Topic
 Alias Maximum value that it returned in the CONNACK packet. |
-| \[MQTT-3.3.2-13\] | The Response Topic MUST be a UTF-8 Encoded String. |
-| \[MQTT-3.3.2-14\] | The Response Topic MUST NOT contain wildcard characters. |
-| \[MQTT-3.3.2-15\] | The Server MUST send the Response Topic unaltered to all subscribers receiving the Application
+| \$$MQTT-3.3.2-13$\$ | The Response Topic MUST be a UTF-8 Encoded String. |
+| \$$MQTT-3.3.2-14$\$ | The Response Topic MUST NOT contain wildcard characters. |
+| \$$MQTT-3.3.2-15$\$ | The Server MUST send the Response Topic unaltered to all subscribers receiving the Application
 Message. |
-| \[MQTT-3.3.2-16\] | The Server MUST send the Correlation Data unaltered to all subscribers receiving the Application
+| \$$MQTT-3.3.2-16$\$ | The Server MUST send the Correlation Data unaltered to all subscribers receiving the Application
 Message. |
-| \[MQTT-3.3.2-17\] | The Server MUST send all User Properties unaltered in a PUBLISH packet when forwarding the
+| \$$MQTT-3.3.2-17$\$ | The Server MUST send all User Properties unaltered in a PUBLISH packet when forwarding the
 Application Message to a Client. |
-| \[MQTT-3.3.2-18\] | The Server MUST maintain the order of User Properties when forwarding the Application Message. |
-| \[MQTT-3.3.2-19\] | The Content Type MUST be a UTF-8 Encoded String. |
-| \[MQTT-3.3.2-20\] | A Server MUST send the Content Type unaltered to all subscribers receiving the Application
+| \$$MQTT-3.3.2-18$\$ | The Server MUST maintain the order of User Properties when forwarding the Application Message. |
+| \$$MQTT-3.3.2-19$\$ | The Content Type MUST be a UTF-8 Encoded String. |
+| \$$MQTT-3.3.2-20$\$ | A Server MUST send the Content Type unaltered to all subscribers receiving the Application
 Message. |
-| \[MQTT-3.3.4-1\] | The receiver of a PUBLISH Packet MUST respond with the packet as determined by the QoS in the
+| \$$MQTT-3.3.4-1$\$ | The receiver of a PUBLISH Packet MUST respond with the packet as determined by the QoS in the
 PUBLISH Packet. |
-| \[MQTT-3.3.4-2\] | In this case the Server MUST deliver the message to the Client respecting the maximum QoS of all
+| \$$MQTT-3.3.4-2$\$ | In this case the Server MUST deliver the message to the Client respecting the maximum QoS of all
 the matching subscriptions. |
-| \[MQTT-3.3.4-3\] | If the Client specified a Subscription Identifier for any of the overlapping subscriptions the
+| \$$MQTT-3.3.4-3$\$ | If the Client specified a Subscription Identifier for any of the overlapping subscriptions the
 Server MUST send those Subscription Identifiers in the message which is published as the result of the subscriptions. |
-| \[MQTT-3.3.4-4\] | If the Server sends a single copy of the message it MUST include in the PUBLISH packet the
+| \$$MQTT-3.3.4-4$\$ | If the Server sends a single copy of the message it MUST include in the PUBLISH packet the
 Subscription Identifiers for all matching subscriptions which have a Subscription Identifiers, their order is not
 significant. |
-| \[MQTT-3.3.4-5\] | If the Server sends multiple PUBLISH packets it MUST send, in each of them, the Subscription
+| \$$MQTT-3.3.4-5$\$ | If the Server sends multiple PUBLISH packets it MUST send, in each of them, the Subscription
 Identifier of the matching subscription if it has a Subscription Identifier. |
-| \[MQTT-3.3.4-6\] | A PUBLISH packet sent from a Client to a Server MUST NOT contain a Subscription Identifier. |
-| \[MQTT-3.3.4-7\] | The Client MUST NOT send more than Receive Maximum QoS 1 and QoS 2 PUBLISH packets for which it
+| \$$MQTT-3.3.4-6$\$ | A PUBLISH packet sent from a Client to a Server MUST NOT contain a Subscription Identifier. |
+| \$$MQTT-3.3.4-7$\$ | The Client MUST NOT send more than Receive Maximum QoS 1 and QoS 2 PUBLISH packets for which it
 has not received PUBACK, PUBCOMP, or PUBREC with a Reason Code of 128 or greater from the Server. |
-| \[MQTT-3.3.4-8\] | The Client MUST NOT delay the sending of any packets other than PUBLISH packets due to having sent
+| \$$MQTT-3.3.4-8$\$ | The Client MUST NOT delay the sending of any packets other than PUBLISH packets due to having sent
 Receive Maximum PUBLISH packets without receiving acknowledgements for them. |
-| \[MQTT-3.3.4-9\] | The Server MUST NOT send more than Receive Maximum QoS 1 and QoS 2 PUBLISH packets for which it
+| \$$MQTT-3.3.4-9$\$ | The Server MUST NOT send more than Receive Maximum QoS 1 and QoS 2 PUBLISH packets for which it
 has not received PUBACK, PUBCOMP, or PUBREC with a Reason Code of 128 or greater from the Client. |
-| \[MQTT-3.3.4-10\] | The Server MUST NOT delay the sending of any packets other than PUBLISH packets due to having
+| \$$MQTT-3.3.4-10$\$ | The Server MUST NOT delay the sending of any packets other than PUBLISH packets due to having
 sent Receive Maximum PUBLISH packets without receiving acknowledgements for them. |
-| \[MQTT-3.4.2-1\] | The Client or Server sending the PUBACK packet MUST use one of the PUBACK Reason Codes. |
-| \[MQTT-3.4.2-2\] | The sender MUST NOT send this property if it would increase the size of the PUBACK packet beyond
+| \$$MQTT-3.4.2-1$\$ | The Client or Server sending the PUBACK packet MUST use one of the PUBACK Reason Codes. |
+| \$$MQTT-3.4.2-2$\$ | The sender MUST NOT send this property if it would increase the size of the PUBACK packet beyond
 the Maximum Packet Size specified by the receiver. |
-| \[MQTT-3.4.2-3\] | The sender MUST NOT send this property if it would increase the size of the PUBACK packet beyond
+| \$$MQTT-3.4.2-3$\$ | The sender MUST NOT send this property if it would increase the size of the PUBACK packet beyond
 the Maximum Packet Size specified by the receiver. |
-| \[MQTT-3.5.2-1\] | The Client or Server sending the PUBREC packet MUST use one of the PUBREC Reason Codes. |
-| \[MQTT-3.5.2-2\] | The sender MUST NOT send this property if it would increase the size of the PUBREC packet beyond
+| \$$MQTT-3.5.2-1$\$ | The Client or Server sending the PUBREC packet MUST use one of the PUBREC Reason Codes. |
+| \$$MQTT-3.5.2-2$\$ | The sender MUST NOT send this property if it would increase the size of the PUBREC packet beyond
 the Maximum Packet Size specified by the receiver. |
-| \[MQTT-3.5.2-3\] | The sender MUST NOT send this property if it would increase the size of the PUBREC packet beyond
+| \$$MQTT-3.5.2-3$\$ | The sender MUST NOT send this property if it would increase the size of the PUBREC packet beyond
 the Maximum Packet Size specified by the receiver. |
-| \[MQTT-3.6.1-1\] | Bits 3,2,1 and 0 of the Fixed Header in the PUBREL packet are reserved and MUST be set to 0,0,1
+| \$$MQTT-3.6.1-1$\$ | Bits 3,2,1 and 0 of the Fixed Header in the PUBREL packet are reserved and MUST be set to 0,0,1
 and 0 respectively. The Server MUST treat any other value as malformed and close the Network Connection. |
-| \[MQTT-3.6.2-1\] | The Client or Server sending the PUBREL packet MUST use one of the PUBREL Reason Codes. |
-| \[MQTT-3.6.2-2\] | The sender MUST NOT send this Property if it would increase the size of the PUBREL packet beyond
+| \$$MQTT-3.6.2-1$\$ | The Client or Server sending the PUBREL packet MUST use one of the PUBREL Reason Codes. |
+| \$$MQTT-3.6.2-2$\$ | The sender MUST NOT send this Property if it would increase the size of the PUBREL packet beyond
 the Maximum Packet Size specified by the receiver. |
-| \[MQTT-3.6.2-3\] | The sender MUST NOT send this property if it would increase the size of the PUBREL packet beyond
+| \$$MQTT-3.6.2-3$\$ | The sender MUST NOT send this property if it would increase the size of the PUBREL packet beyond
 the Maximum Packet Size specified by the receiver. |
-| \[MQTT-3.7.2-1\] | The Client or Server sending the PUBCOMP packets MUST use one of the PUBCOMP Reason Codes. |
-| \[MQTT-3.7.2-2\] | The sender MUST NOT use this Property if it would increase the size of the PUBCOMP packet beyond
+| \$$MQTT-3.7.2-1$\$ | The Client or Server sending the PUBCOMP packets MUST use one of the PUBCOMP Reason Codes. |
+| \$$MQTT-3.7.2-2$\$ | The sender MUST NOT use this Property if it would increase the size of the PUBCOMP packet beyond
 the Maximum Packet Size specified by the receiver. |
-| \[MQTT-3.7.2-3\] | The sender MUST NOT send this property if it would increase the size of the PUBCOMP packet beyond
+| \$$MQTT-3.7.2-3$\$ | The sender MUST NOT send this property if it would increase the size of the PUBCOMP packet beyond
 the Maximum Packet Size specified by receiver. |
-| \[MQTT-3.8.1-1\] | Bits 3,2,1 and 0 of the Fixed Header of the SUBSCRIBE packet are reserved and MUST be set to 0,0,1
+| \$$MQTT-3.8.1-1$\$ | Bits 3,2,1 and 0 of the Fixed Header of the SUBSCRIBE packet are reserved and MUST be set to 0,0,1
 and 0 respectively. The Server MUST treat any other value as malformed and close the Network Connection |
-| \[MQTT-3.8.3-1\] | The Topic Filters MUST be a UTF-8 Encoded String. |
-| \[MQTT-3.8.3-2\] | The Payload MUST contain at least one Topic Filter and Subscription Options pair. |
-| \[MQTT-3.8.3-3\] | Bit 2 of the Subscription Options represents the No Local option. If the value is 1, Application
+| \$$MQTT-3.8.3-1$\$ | The Topic Filters MUST be a UTF-8 Encoded String. |
+| \$$MQTT-3.8.3-2$\$ | The Payload MUST contain at least one Topic Filter and Subscription Options pair. |
+| \$$MQTT-3.8.3-3$\$ | Bit 2 of the Subscription Options represents the No Local option. If the value is 1, Application
 Messages MUST NOT be forwarded to a connection with a ClientID equal to the ClientID of the publishing connection. |
-| \[MQTT-3.8.3-4\] | It is a Protocol Error to set the No Local bit to 1 on a Shared Subscription. |
-| \[MQTT-3.8.3-5\] | The Server MUST treat a SUBSCRIBE packet as malformed if any of Reserved bits in the Payload are
+| \$$MQTT-3.8.3-4$\$ | It is a Protocol Error to set the No Local bit to 1 on a Shared Subscription. |
+| \$$MQTT-3.8.3-5$\$ | The Server MUST treat a SUBSCRIBE packet as malformed if any of Reserved bits in the Payload are
 non-zero. |
-| \[MQTT-3.8.4-1\] | When the Server receives a SUBSCRIBE packet from a Client, the Server MUST respond with a SUBACK
+| \$$MQTT-3.8.4-1$\$ | When the Server receives a SUBSCRIBE packet from a Client, the Server MUST respond with a SUBACK
 packet. |
-| \[MQTT-3.8.4-2\] | The SUBACK packet MUST have the same Packet Identifier as the SUBSCRIBE packet that it is
+| \$$MQTT-3.8.4-2$\$ | The SUBACK packet MUST have the same Packet Identifier as the SUBSCRIBE packet that it is
 acknowledging. |
-| \[MQTT-3.8.4-3\] | If a Server receives a SUBSCRIBE packet containing a Topic Filter that is identical to a
+| \$$MQTT-3.8.4-3$\$ | If a Server receives a SUBSCRIBE packet containing a Topic Filter that is identical to a
 Non‑shared Subscription’s Topic Filter for the current Session then it MUST replace that existing Subscription with
 a new Subscription. |
-| \[MQTT-3.8.4-4\] | If the Retain Handling option is 0, any existing retained messages matching the Topic Filter MUST
+| \$$MQTT-3.8.4-4$\$ | If the Retain Handling option is 0, any existing retained messages matching the Topic Filter MUST
 be re-sent, but Application Messages MUST NOT be lost due to replacing the Subscription. |
-| \[MQTT-3.8.4-5\] | If a Server receives a SUBSCRIBE packet that contains multiple Topic Filters it MUST handle that
+| \$$MQTT-3.8.4-5$\$ | If a Server receives a SUBSCRIBE packet that contains multiple Topic Filters it MUST handle that
 packet as if it had received a sequence of multiple SUBSCRIBE packets, except that it combines their responses into a
 single SUBACK response. |
-| \[MQTT-3.8.4-6\] | The SUBACK packet sent by the Server to the Client MUST contain a Reason Code for each Topic
+| \$$MQTT-3.8.4-6$\$ | The SUBACK packet sent by the Server to the Client MUST contain a Reason Code for each Topic
 Filter/Subscription Option pair. |
-| \[MQTT-3.8.4-7\] | This Reason Code MUST either show the maximum QoS that was granted for that Subscription or
+| \$$MQTT-3.8.4-7$\$ | This Reason Code MUST either show the maximum QoS that was granted for that Subscription or
 indicate that the subscription failed. |
-| \[MQTT-3.8.4-8\] | The QoS of Payload Messages sent in response to a Subscription MUST be the minimum of the QoS of
+| \$$MQTT-3.8.4-8$\$ | The QoS of Payload Messages sent in response to a Subscription MUST be the minimum of the QoS of
 the originally published message and the Maximum QoS granted by the Server. |
-| \[MQTT-3.9.2-1\] | The Server MUST NOT send this Property if it would increase the size of the SUBACK packet beyond
+| \$$MQTT-3.9.2-1$\$ | The Server MUST NOT send this Property if it would increase the size of the SUBACK packet beyond
 the Maximum Packet Size specified by the Client. |
-| \[MQTT-3.9.2-2\] | The Server MUST NOT send this property if it would increase the size of the SUBACK packet beyond
+| \$$MQTT-3.9.2-2$\$ | The Server MUST NOT send this property if it would increase the size of the SUBACK packet beyond
 the Maximum Packet Size specified by the Client. |
-| \[MQTT-3.9.3-1\] | The order of Reason Codes in the SUBACK packet MUST match the order of Topic Filters in the
+| \$$MQTT-3.9.3-1$\$ | The order of Reason Codes in the SUBACK packet MUST match the order of Topic Filters in the
 SUBSCRIBE packet. |
-| \[MQTT-3.9.3-2\] | The Server sending the SUBACK packet MUST send one of the Subscribe Reason Code values for each
+| \$$MQTT-3.9.3-2$\$ | The Server sending the SUBACK packet MUST send one of the Subscribe Reason Code values for each
 Topic Filter received. |
-| \[MQTT-3.10.1-1\] | Bits 3,2,1 and 0 of the Fixed Header of the UNSUBSCRIBE packet are reserved and MUST be set to
+| \$$MQTT-3.10.1-1$\$ | Bits 3,2,1 and 0 of the Fixed Header of the UNSUBSCRIBE packet are reserved and MUST be set to
 0,0,1 and 0 respectively. The Server MUST treat any other value as malformed and close the Network Connection |
-| \[MQTT-3.10.3-1\] | The Topic Filters in an UNSUBSCRIBE packet MUST be UTF-8 Encoded Strings. |
-| \[MQTT-3.10.3-2\] | The Payload of an UNSUBSCRIBE packet MUST contain at least one Topic Filter. |
-| \[MQTT-3.10.4-1\] | The Topic Filters (whether they contain wildcards or not) supplied in an UNSUBSCRIBE packet MUST
+| \$$MQTT-3.10.3-1$\$ | The Topic Filters in an UNSUBSCRIBE packet MUST be UTF-8 Encoded Strings. |
+| \$$MQTT-3.10.3-2$\$ | The Payload of an UNSUBSCRIBE packet MUST contain at least one Topic Filter. |
+| \$$MQTT-3.10.4-1$\$ | The Topic Filters (whether they contain wildcards or not) supplied in an UNSUBSCRIBE packet MUST
 be compared character-by-character with the current set of Topic Filters held by the Server for the Client. If any
 filter matches exactly then its owning Subscription MUST be deleted. |
-| \[MQTT-3.10.4-2\] | When a Server receives UNSUBSCRIBE It MUST stop adding any new messages which match the Topic
+| \$$MQTT-3.10.4-2$\$ | When a Server receives UNSUBSCRIBE It MUST stop adding any new messages which match the Topic
 Filters, for delivery to the Client. |
-| \[MQTT-3.10.4-3\] | When a Server receives UNSUBSCRIBE It MUST complete the delivery of any QoS 1 or QoS 2 messages
+| \$$MQTT-3.10.4-3$\$ | When a Server receives UNSUBSCRIBE It MUST complete the delivery of any QoS 1 or QoS 2 messages
 which match the Topic Filters and it has started to send to the Client. |
-| \[MQTT-3.10.4-4\] | The Server MUST respond to an UNSUBSCRIBE request by sending an UNSUBACK packet. |
-| \[MQTT-3.10.4-5\] | The UNSUBACK packet MUST have the same Packet Identifier as the UNSUBSCRIBE packet. Even where no
+| \$$MQTT-3.10.4-4$\$ | The Server MUST respond to an UNSUBSCRIBE request by sending an UNSUBACK packet. |
+| \$$MQTT-3.10.4-5$\$ | The UNSUBACK packet MUST have the same Packet Identifier as the UNSUBSCRIBE packet. Even where no
 Topic Subscriptions are deleted, the Server MUST respond with an UNSUBACK. |
-| \[MQTT-3.10.4-6\] | If a Server receives an UNSUBSCRIBE packet that contains multiple Topic Filters, it MUST process
+| \$$MQTT-3.10.4-6$\$ | If a Server receives an UNSUBSCRIBE packet that contains multiple Topic Filters, it MUST process
 that packet as if it had received a sequence of multiple UNSUBSCRIBE packets, except that it sends just one UNSUBACK
 response. |
-| \[MQTT-3.11.2-1\] | The Server MUST NOT send this Property if it would increase the size of the UNSUBACK packet
+| \$$MQTT-3.11.2-1$\$ | The Server MUST NOT send this Property if it would increase the size of the UNSUBACK packet
 beyond the Maximum Packet Size specified by the Client. |
-| \[MQTT-3.11.2-2\] | The Server MUST NOT send this property if it would increase the size of the UNSUBACK packet
+| \$$MQTT-3.11.2-2$\$ | The Server MUST NOT send this property if it would increase the size of the UNSUBACK packet
 beyond the Maximum Packet Size specified by the receiver. |
-| \[MQTT-3.11.3-1\] | The order of Reason Codes in the UNSUBACK packet MUST match the order of Topic Filters in the
+| \$$MQTT-3.11.3-1$\$ | The order of Reason Codes in the UNSUBACK packet MUST match the order of Topic Filters in the
 UNSUBSCRIBE packet. |
-| \[MQTT-3.11.3-2\] | The Server sending the UNSUBACK packet MUST use one of the UNSUBSCRIBE Reason Code values for
+| \$$MQTT-3.11.3-2$\$ | The Server sending the UNSUBACK packet MUST use one of the UNSUBSCRIBE Reason Code values for
 each Topic Filter received. |
-| \[MQTT-3.12.4-1\] | The Server MUST send a PINGRESP packet in response to a PINGREQ packet. |
-| \[MQTT-3.14.0-1\] | A Server MUST NOT send a DISCONNECT until after it has sent a CONNACK with Reason Code of less
+| \$$MQTT-3.12.4-1$\$ | The Server MUST send a PINGRESP packet in response to a PINGREQ packet. |
+| \$$MQTT-3.14.0-1$\$ | A Server MUST NOT send a DISCONNECT until after it has sent a CONNACK with Reason Code of less
 than 0x80. |
-| \[MQTT-3.14.1-1\] | The Client or Server MUST validate that reserved bits are set to 0. If they are not zero it sends
+| \$$MQTT-3.14.1-1$\$ | The Client or Server MUST validate that reserved bits are set to 0. If they are not zero it sends
 a DISCONNECT packet with a Reason code of 0x81 (Malformed Packet). |
-| \[MQTT-3.14.2-1\] | The Client or Server sending the DISCONNECT packet MUST use one of the DISCONNECT Reason Codes. |
-| \[MQTT-3.14.2-2\] | The Session Expiry Interval MUST NOT be sent on a DISCONNECT by the Server. |
-| \[MQTT-3.14.2-3\] | The sender MUST NOT use this Property if it would increase the size of the DISCONNECT packet
+| \$$MQTT-3.14.2-1$\$ | The Client or Server sending the DISCONNECT packet MUST use one of the DISCONNECT Reason Codes. |
+| \$$MQTT-3.14.2-2$\$ | The Session Expiry Interval MUST NOT be sent on a DISCONNECT by the Server. |
+| \$$MQTT-3.14.2-3$\$ | The sender MUST NOT use this Property if it would increase the size of the DISCONNECT packet
 beyond the Maximum Packet Size specified by the receiver. |
-| \[MQTT-3.14.2-4\] | The sender MUST NOT send this property if it would increase the size of the DISCONNECT packet
+| \$$MQTT-3.14.2-4$\$ | The sender MUST NOT send this property if it would increase the size of the DISCONNECT packet
 beyond the Maximum Packet Size specified by the receiver. |
-| \[MQTT-3.14.4-1\] | After sending a DISCONNECT packet the sender MUST NOT send any more MQTT Control Packets on that
+| \$$MQTT-3.14.4-1$\$ | After sending a DISCONNECT packet the sender MUST NOT send any more MQTT Control Packets on that
 Network Connection. |
-| \[MQTT-3.14.4-2\] | After sending a DISCONNECT packet the sender MUST close the Network Connection. |
-| \[MQTT-3.14.4-3\] | On receipt of DISCONNECT with a Reason Code of 0x00 (Success) the Server MUST discard any Will
+| \$$MQTT-3.14.4-2$\$ | After sending a DISCONNECT packet the sender MUST close the Network Connection. |
+| \$$MQTT-3.14.4-3$\$ | On receipt of DISCONNECT with a Reason Code of 0x00 (Success) the Server MUST discard any Will
 Message associated with the current Connection without publishing it. |
-| \[MQTT-3.15.1-1\] | Bits 3,2,1 and 0 of the Fixed Header of the AUTH packet are reserved and MUST all be set to 0.
+| \$$MQTT-3.15.1-1$\$ | Bits 3,2,1 and 0 of the Fixed Header of the AUTH packet are reserved and MUST all be set to 0.
 The Client or Server MUST treat any other value as malformed and close the Network Connection. |
-| \[MQTT-3.15.2-1\] | The sender of the AUTH Packet MUST use one of the Authenticate Reason Codes. |
-| \[MQTT-3.15.2-2\] | The sender MUST NOT send this property if it would increase the size of the AUTH packet beyond
+| \$$MQTT-3.15.2-1$\$ | The sender of the AUTH Packet MUST use one of the Authenticate Reason Codes. |
+| \$$MQTT-3.15.2-2$\$ | The sender MUST NOT send this property if it would increase the size of the AUTH packet beyond
 the Maximum Packet Size specified by the receiver |
-| \[MQTT-3.15.2-3\] | The sender MUST NOT send this property if it would increase the size of the AUTH packet beyond
+| \$$MQTT-3.15.2-3$\$ | The sender MUST NOT send this property if it would increase the size of the AUTH packet beyond
 the Maximum Packet Size specified by the receiver. |
-| \[MQTT-4.1.0-1\] | The Client and Server MUST NOT discard the Session State while the Network Connection is open. |
-| \[MQTT-4.2.0-1\] | A Client or Server MUST support the use of one or more underlying transport protocols that provide
+| \$$MQTT-4.1.0-1$\$ | The Client and Server MUST NOT discard the Session State while the Network Connection is open. |
+| \$$MQTT-4.2.0-1$\$ | A Client or Server MUST support the use of one or more underlying transport protocols that provide
 an ordered, lossless, stream of bytes from the Client to Server and Server to Client. |
-| \[MQTT-4.1.0-2\] | The Server MUST discard the Session State when the Network Connection is closed and the Session
+| \$$MQTT-4.1.0-2$\$ | The Server MUST discard the Session State when the Network Connection is closed and the Session
 Expiry Interval has passed. |
-| \[MQTT-4.3.1-1\] | In the QoS 0 delivery protocol, the sender MUST send a PUBLISH packet with QoS 0 and DUP flag set
+| \$$MQTT-4.3.1-1$\$ | In the QoS 0 delivery protocol, the sender MUST send a PUBLISH packet with QoS 0 and DUP flag set
 to 0. |
-| \[MQTT-4.3.2-1\] | In the QoS 1 delivery protocol, the sender MUST assign an unused Packet Identifier each time it
+| \$$MQTT-4.3.2-1$\$ | In the QoS 1 delivery protocol, the sender MUST assign an unused Packet Identifier each time it
 has a new Application Message to publish. |
-| \[MQTT-4.3.2-2\] | In the QoS 1 delivery protocol, the sender MUST send a PUBLISH packet containing this Packet
+| \$$MQTT-4.3.2-2$\$ | In the QoS 1 delivery protocol, the sender MUST send a PUBLISH packet containing this Packet
 Identifier with QoS 1 and DUP flag set to 0. |
-| \[MQTT-4.3.2-3\] | In the QoS 1 delivery protocol, the sender MUST treat the PUBLISH packet as “unacknowledged”
+| \$$MQTT-4.3.2-3$\$ | In the QoS 1 delivery protocol, the sender MUST treat the PUBLISH packet as “unacknowledged”
 until it has received the corresponding PUBACK packet from the receiver. |
-| \[MQTT-4.3.2-4\] | In the QoS 1 delivery protocol, the receiver MUST respond with a PUBACK packet containing the
+| \$$MQTT-4.3.2-4$\$ | In the QoS 1 delivery protocol, the receiver MUST respond with a PUBACK packet containing the
 Packet Identifier from the incoming PUBLISH packet, having accepted ownership of the Application Message. |
-| \[MQTT-4.3.2-5\] | In the QoS 1 delivery protocol, the receiver after it has sent a PUBACK packet the receiver MUST
+| \$$MQTT-4.3.2-5$\$ | In the QoS 1 delivery protocol, the receiver after it has sent a PUBACK packet the receiver MUST
 treat any incoming PUBLISH packet that contains the same Packet Identifier as being a new Application Message,
 irrespective of the setting of its DUP flag. |
-| \[MQTT-4.3.3-1\] | In the QoS 2 delivery protocol, the sender MUST assign an unused Packet Identifier when it has a
+| \$$MQTT-4.3.3-1$\$ | In the QoS 2 delivery protocol, the sender MUST assign an unused Packet Identifier when it has a
 new Application Message to publish. |
-| \[MQTT-4.3.3-2\] | In the QoS 2 delivery protocol, the sender MUST send a PUBLISH packet containing this Packet
+| \$$MQTT-4.3.3-2$\$ | In the QoS 2 delivery protocol, the sender MUST send a PUBLISH packet containing this Packet
 Identifier with QoS 2 and DUP flag set to 0. |
-| \[MQTT-4.3.3-3\] | In the QoS 2 delivery protocol, the sender MUST treat the PUBLISH packet as “unacknowledged”
+| \$$MQTT-4.3.3-3$\$ | In the QoS 2 delivery protocol, the sender MUST treat the PUBLISH packet as “unacknowledged”
 until it has received the corresponding PUBREC packet from the receiver. |
-| \[MQTT-4.3.3-4\] | In the QoS 2 delivery protocol, the sender MUST send a PUBREL packet when it receives a PUBREC
+| \$$MQTT-4.3.3-4$\$ | In the QoS 2 delivery protocol, the sender MUST send a PUBREL packet when it receives a PUBREC
 packet from the receiver with a Reason Code value less than 0x80. This PUBREL packet MUST contain the same Packet
 Identifier as the original PUBLISH packet. |
-| \[MQTT-4.3.3-5\] | In the QoS 2 delivery protocol, the sender MUST treat the PUBREL packet as “unacknowledged”
+| \$$MQTT-4.3.3-5$\$ | In the QoS 2 delivery protocol, the sender MUST treat the PUBREL packet as “unacknowledged”
 until it has received the corresponding PUBCOMP packet from the receiver. |
-| \[MQTT-4.3.3-6\] | In the QoS 2 delivery protocol, the sender MUST NOT re-send the PUBLISH once it has sent the
+| \$$MQTT-4.3.3-6$\$ | In the QoS 2 delivery protocol, the sender MUST NOT re-send the PUBLISH once it has sent the
 corresponding PUBREL packet. |
-| \[MQTT-4.3.3-7\] | In the QoS 2 delivery protocol, the sender MUST NOT apply Application Message expiry if a PUBLISH
+| \$$MQTT-4.3.3-7$\$ | In the QoS 2 delivery protocol, the sender MUST NOT apply Application Message expiry if a PUBLISH
 packet has been sent. |
-| \[MQTT-4.3.3-8\] | In the QoS 2 delivery protocol, the receiver MUST respond with a PUBREC containing the Packet
+| \$$MQTT-4.3.3-8$\$ | In the QoS 2 delivery protocol, the receiver MUST respond with a PUBREC containing the Packet
 Identifier from the incoming PUBLISH packet, having accepted ownership of the Application Message. |
-| \[MQTT-4.3.3-9\] | In the QoS 2 delivery protocol, the receiver if it has sent a PUBREC with a Reason Code of 0x80 or
+| \$$MQTT-4.3.3-9$\$ | In the QoS 2 delivery protocol, the receiver if it has sent a PUBREC with a Reason Code of 0x80 or
 greater, the receiver MUST treat any subsequent PUBLISH packet that contains that Packet Identifier as being a new
 Application Message. |
-| \[MQTT-4.3.3-10\] | In the QoS 2 delivery protocol, the receiver until it has received the corresponding PUBREL
+| \$$MQTT-4.3.3-10$\$ | In the QoS 2 delivery protocol, the receiver until it has received the corresponding PUBREL
 packet, the receiver MUST acknowledge any subsequent PUBLISH packet with the same Packet Identifier by sending a
 PUBREC. It MUST NOT cause duplicate messages to be delivered to any onward recipients in this case. |
-| \[MQTT-4.3.3-11\] | In the QoS 2 delivery protocol, the receiver MUST respond to a PUBREL packet by sending a PUBCOMP
+| \$$MQTT-4.3.3-11$\$ | In the QoS 2 delivery protocol, the receiver MUST respond to a PUBREL packet by sending a PUBCOMP
 packet containing the same Packet Identifier as the PUBREL. |
-| \[MQTT-4.3.3-12\] | In the QoS 2 delivery protocol, the receiver After it has sent a PUBCOMP, the receiver MUST treat
+| \$$MQTT-4.3.3-12$\$ | In the QoS 2 delivery protocol, the receiver After it has sent a PUBCOMP, the receiver MUST treat
 any subsequent PUBLISH packet that contains that Packet Identifier as being a new Application Message. |
-| \[MQTT-4.3.3-13\] | In the QoS 2 delivery protocol, the receiver MUST continue the QoS 2 acknowledgement sequence
+| \$$MQTT-4.3.3-13$\$ | In the QoS 2 delivery protocol, the receiver MUST continue the QoS 2 acknowledgement sequence
 even if it has applied Application Message expiry. |
-| \[MQTT-4.4.0-1\] | When a Client reconnects with Clean Start set to 0 and a session is present, both the Client and
+| \$$MQTT-4.4.0-1$\$ | When a Client reconnects with Clean Start set to 0 and a session is present, both the Client and
 Server MUST resend any unacknowledged PUBLISH packets (where QoS > 0) and PUBREL packets using their original Packet
 Identifiers. This is the only circumstance where a Client or Server is REQUIRED to resend messages. Clients and Servers
 MUST NOT resend messages at any other time. |
-| \[MQTT-4.4.0-2\] | If PUBACK or PUBREC is received containing a Reason Code of 0x80 or greater the corresponding
+| \$$MQTT-4.4.0-2$\$ | If PUBACK or PUBREC is received containing a Reason Code of 0x80 or greater the corresponding
 PUBLISH packet is treated as acknowledged, and MUST NOT be retransmitted. |
-| \[MQTT-4.5.0-1\] | When a Server takes ownership of an incoming Application Message it MUST add it to the Session
+| \$$MQTT-4.5.0-1$\$ | When a Server takes ownership of an incoming Application Message it MUST add it to the Session
 State for those Clients that have matching Subscriptions. |
-| \[MQTT-4.5.0-2\] | The Client MUST acknowledge any Publish packet it receives according to the applicable QoS rules
+| \$$MQTT-4.5.0-2$\$ | The Client MUST acknowledge any Publish packet it receives according to the applicable QoS rules
 regardless of whether it elects to process the Application Message that it contains. |
-| \[MQTT-4.6.0-1\] | When the Client re-sends any PUBLISH packets, it MUST re-send them in the order in which the
+| \$$MQTT-4.6.0-1$\$ | When the Client re-sends any PUBLISH packets, it MUST re-send them in the order in which the
 original PUBLISH packets were sent (this applies to QoS 1 and QoS 2 messages). |
-| \[MQTT-4.6.0-2\] | The Client MUST send PUBACK packets in the order in which the corresponding PUBLISH packets were
+| \$$MQTT-4.6.0-2$\$ | The Client MUST send PUBACK packets in the order in which the corresponding PUBLISH packets were
 received (QoS 1 messages). |
-| \[MQTT-4.6.0-3\] | The Client MUST send PUBREC packets in the order in which the corresponding PUBLISH packets were
+| \$$MQTT-4.6.0-3$\$ | The Client MUST send PUBREC packets in the order in which the corresponding PUBLISH packets were
 received (QoS 2 messages). |
-| \[MQTT-4.6.0-4\] | The Client MUST send PUBREL packets in the order in which the corresponding PUBREC packets were
+| \$$MQTT-4.6.0-4$\$ | The Client MUST send PUBREL packets in the order in which the corresponding PUBREC packets were
 received (QoS 2 messages). |
-| \[MQTT-4.6.0-5\] | When a Server processes a message that has been published to an Ordered Topic, it MUST send
+| \$$MQTT-4.6.0-5$\$ | When a Server processes a message that has been published to an Ordered Topic, it MUST send
 PUBLISH packets to consumers (for the same Topic and QoS) in the order that they were received from any given Client. |
-| \[MQTT-4.6.0-6\] | A Server MUST treat every, Topic as an Ordered Topic when it is forwarding messages on
+| \$$MQTT-4.6.0-6$\$ | A Server MUST treat every, Topic as an Ordered Topic when it is forwarding messages on
 Non‑shared Subscriptions. |
-| \[MQTT-4.7.0-1\] | The wildcard characters can be used in Topic Filters, but MUST NOT be used within a Topic Name. |
-| \[MQTT-4.7.1-1\] | The multi-level wildcard character MUST be specified either on its own or following a topic level
+| \$$MQTT-4.7.0-1$\$ | The wildcard characters can be used in Topic Filters, but MUST NOT be used within a Topic Name. |
+| \$$MQTT-4.7.1-1$\$ | The multi-level wildcard character MUST be specified either on its own or following a topic level
 separator. In either case it MUST be the last character specified in the Topic Filter. |
-| \[MQTT-4.7.1-2\] | The single-level wildcard can be used at any level in the Topic Filter, including first and last
+| \$$MQTT-4.7.1-2$\$ | The single-level wildcard can be used at any level in the Topic Filter, including first and last
 levels. Where it is used, it MUST occupy an entire level of the filter. |
-| \[MQTT-4.7.2-1\] | The Server MUST NOT match Topic Filters starting with a wildcard character (# or +) with Topic
-Names beginning with a $ character. |
-| \[MQTT-4.7.3-1\] | All Topic Names and Topic Filters MUST be at least one character long. |
-| \[MQTT-4.7.3-2\] | Topic Names and Topic Filters MUST NOT include the null character (Unicode U+0000). |
-| \[MQTT-4.7.3-3\] | Topic Names and Topic Filters are UTF-8 Encoded Strings; they MUST NOT encode to more than 65,535
+| \$$MQTT-4.7.2-1$\$ | The Server MUST NOT match Topic Filters starting with a wildcard character (# or +) with Topic
+Names beginning with a \$ character. |
+| $$MQTT-4.7.3-1$$ | All Topic Names and Topic Filters MUST be at least one character long. |
+| $$MQTT-4.7.3-2$$ | Topic Names and Topic Filters MUST NOT include the null character (Unicode U+0000). |
+| $$MQTT-4.7.3-3$$ | Topic Names and Topic Filters are UTF-8 Encoded Strings; they MUST NOT encode to more than 65,535
 bytes. |
-| \[MQTT-4.7.3-4\] | When it performs subscription matching the Server MUST NOT perform any normalization of Topic
+| $$MQTT-4.7.3-4$$ | When it performs subscription matching the Server MUST NOT perform any normalization of Topic
 Names or Topic Filters, or any modification or substitution of unrecognized characters. |
-| \[MQTT-4.8.2-1\] | A Shared Subscription's Topic Filter MUST start with $share/ and MUST contain a ShareName that is
+| $$MQTT-4.8.2-1$$ | A Shared Subscription's Topic Filter MUST start with \$share/ and MUST contain a ShareName that is
 at least one character long. |
-| \[MQTT-4.8.2-2\] | The ShareName MUST NOT contain the characters "/", "+" or "#", but MUST be followed by a "/"
+| \$$MQTT-4.8.2-2$\$ | The ShareName MUST NOT contain the characters "/", "+" or "#", but MUST be followed by a "/"
 character. This "/" character MUST be followed by a Topic Filter. |
-| \[MQTT-4.8.2-3\] | The Server MUST respect the granted QoS for the Clients subscription. |
-| \[MQTT-4.8.2-4\] | The Server MUST complete the delivery of the message to that Client when it reconnects. |
-| \[MQTT-4.8.2-5\] | If the Clients Session terminates before the Client reconnects, the Server MUST NOT send the
+| \$$MQTT-4.8.2-3$\$ | The Server MUST respect the granted QoS for the Clients subscription. |
+| \$$MQTT-4.8.2-4$\$ | The Server MUST complete the delivery of the message to that Client when it reconnects. |
+| \$$MQTT-4.8.2-5$\$ | If the Clients Session terminates before the Client reconnects, the Server MUST NOT send the
 Application Message to any other subscribed Client. |
-| \[MQTT-4.8.2-6\] | If a Client responds with a PUBACK or PUBREC containing a Reason Code of 0x80 or greater to a
+| \$$MQTT-4.8.2-6$\$ | If a Client responds with a PUBACK or PUBREC containing a Reason Code of 0x80 or greater to a
 PUBLISH packet from the Server, the Server MUST discard the Application Message and not attempt to send it to any other
 Subscriber. |
-| \[MQTT-4.9.0-1\] | The Client or Server MUST set its initial send quota to a non-zero value not exceeding the Receive
+| \$$MQTT-4.9.0-1$\$ | The Client or Server MUST set its initial send quota to a non-zero value not exceeding the Receive
 Maximum. |
-| \[MQTT-4.9.0-2\] | Each time the Client or Server sends a PUBLISH packet at QoS > 0, it decrements the send quota. If
+| \$$MQTT-4.9.0-2$\$ | Each time the Client or Server sends a PUBLISH packet at QoS > 0, it decrements the send quota. If
 the send quota reaches zero, the Client or Server MUST NOT send any more PUBLISH packets with QoS > 0. |
-| \[MQTT-4.9.0-3\] | The Client and Server MUST continue to process and respond to all other MQTT Control Packets even
+| \$$MQTT-4.9.0-3$\$ | The Client and Server MUST continue to process and respond to all other MQTT Control Packets even
 if the quota is zero. |
-| \[MQTT-4.12.0-1\] | If the Server does not support the Authentication Method supplied by the Client, it MAY send a
+| \$$MQTT-4.12.0-1$\$ | If the Server does not support the Authentication Method supplied by the Client, it MAY send a
 CONNACK with a Reason Code of 0x8C (Bad authentication method) or 0x87 (Not Authorized) as described in section 4.13
 and MUST close the Network Connection. |
-| \[MQTT-4.12.0-2\] | If the Server requires additional information to complete the authorization, it can send an AUTH
+| \$$MQTT-4.12.0-2$\$ | If the Server requires additional information to complete the authorization, it can send an AUTH
 packet to the Client. This packet MUST contain a Reason Code of 0x18 (Continue authentication). |
-| \[MQTT-4.12.0-3\] | The Client responds to an AUTH packet from the Server by sending a further AUTH packet. This
+| \$$MQTT-4.12.0-3$\$ | The Client responds to an AUTH packet from the Server by sending a further AUTH packet. This
 packet MUST contain a Reason Code of 0x18 (Continue authentication). |
-| \[MQTT-4.12.0-4\] | The Server can reject the authentication at any point in this process. It MAY send a CONNACK with
+| \$$MQTT-4.12.0-4$\$ | The Server can reject the authentication at any point in this process. It MAY send a CONNACK with
 a Reason Code of 0x80 or above as described in section 4.13, and MUST close the Network Connection. |
-| \[MQTT-4.12.0-5\] | If the initial CONNECT packet included an Authentication Method property then all AUTH packets,
+| \$$MQTT-4.12.0-5$\$ | If the initial CONNECT packet included an Authentication Method property then all AUTH packets,
 and any successful CONNACK packet MUST include an Authentication Method Property with the same value as in the CONNECT
 packet. |
-| \[MQTT-4.12.0-6\] | If the Client does not include an Authentication Method in the CONNECT, the Server MUST NOT send
+| \$$MQTT-4.12.0-6$\$ | If the Client does not include an Authentication Method in the CONNECT, the Server MUST NOT send
 an AUTH packet, and it MUST NOT send an Authentication Method in the CONNACK packet. |
-| \[MQTT-4.12.0-7\] | If the Client does not include an Authentication Method in the CONNECT, the Client MUST NOT send
+| \$$MQTT-4.12.0-7$\$ | If the Client does not include an Authentication Method in the CONNECT, the Client MUST NOT send
 an AUTH packet to the Server. |
-| \[MQTT-4.12.1-1\] | If the Client supplied an Authentication Method in the CONNECT packet it can initiate a
+| \$$MQTT-4.12.1-1$\$ | If the Client supplied an Authentication Method in the CONNECT packet it can initiate a
 re-authentication at any time after receiving a CONNACK. It does this by sending an AUTH packet with a Reason Code of
 0x19 (Re-authentication). The Client MUST set the Authentication Method to the same value as the Authentication Method
 originally used to authenticate the Network Connection. |
-| \[MQTT-4.12.1-2\] | If the re-authentication fails, the Client or Server SHOULD send DISCONNECT with an appropriate
+| \$$MQTT-4.12.1-2$\$ | If the re-authentication fails, the Client or Server SHOULD send DISCONNECT with an appropriate
 Reason Code and MUST close the Network Connection. |
-| \[MQTT-4.13.1-1\] | When a Server detects a Malformed Packet or Protocol Error, and a Reason Code is given in the
+| \$$MQTT-4.13.1-1$\$ | When a Server detects a Malformed Packet or Protocol Error, and a Reason Code is given in the
 specification, it MUST close the Network Connection. |
-| \[MQTT-4.13.2-1\] | The CONNACK and DISCONNECT packets allow a Reason Code of 0x80 or greater to indicate that the
+| \$$MQTT-4.13.2-1$\$ | The CONNACK and DISCONNECT packets allow a Reason Code of 0x80 or greater to indicate that the
 Network Connection will be closed. If a Reason Code of 0x80 or greater is specified, then the Network Connection MUST
 be closed whether or not the CONNACK or DISCONNECT is sent. |
-| \[MQTT-6.0.0-1\] | MQTT Control Packets MUST be sent in WebSocket binary data frames. If any other type of data frame
+| \$$MQTT-6.0.0-1$\$ | MQTT Control Packets MUST be sent in WebSocket binary data frames. If any other type of data frame
 is received the recipient MUST close the Network Connection. |
-| \[MQTT-6.0.0-2\] | A single WebSocket data frame can contain multiple or partial MQTT Control Packets. The receiver
+| \$$MQTT-6.0.0-2$\$ | A single WebSocket data frame can contain multiple or partial MQTT Control Packets. The receiver
 MUST NOT assume that MQTT Control Packets are aligned on WebSocket frame boundaries. |
-| \[MQTT-6.0.0-3\] | The Client MUST include “mqtt” in the list of WebSocket Sub Protocols it offers. |
-| \[MQTT-6.0.0-4\] | The WebSocket Subprotocol name selected and returned by the Server MUST be “mqtt”. |
+| \$$MQTT-6.0.0-3$\$ | The Client MUST include “mqtt” in the list of WebSocket Sub Protocols it offers. |
+| \$$MQTT-6.0.0-4$$ | The WebSocket Subprotocol name selected and returned by the Server MUST be “mqtt”. |
 
 The following new features are added to MQTT v5.0
 

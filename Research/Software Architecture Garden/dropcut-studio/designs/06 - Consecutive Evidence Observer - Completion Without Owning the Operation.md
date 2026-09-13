@@ -89,12 +89,12 @@ The classifier belongs to the domain. The observer knows nothing about RPM, mach
 
 Let `N` be the required count and `c` the current count. While the observer is awaiting completion, each classified sample transforms its state as follows:
 
-\[
+$$
 c' = \begin{cases}
 c + 1 & \text{if Match} \\
 0 & \text{if Pending}
 \end{cases}
-\]
+$$
 
 A match that makes `c' ≥ N` produces `Confirmed`. An invalid classification produces `Unavailable`. Both decisions are terminal.
 

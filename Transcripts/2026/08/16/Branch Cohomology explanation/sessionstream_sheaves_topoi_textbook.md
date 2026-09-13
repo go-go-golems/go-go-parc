@@ -92,9 +92,9 @@ Client command -> Hub -> backend Event -----------------------+
 
 The mathematical theme is that no component sees "the whole execution" in the same representation. The event log, projection view, materialized entities, snapshot, WebSocket buffer, transport trace, and client state are overlapping local descriptions. The recurring question is:
 
-\[
+$$
 \text{When do compatible local descriptions determine one coherent global execution?}
-\]
+$$
 
 That is the local-to-global problem. Presheaves organize the local descriptions and their restrictions. Sheaves specify when compatible descriptions glue. Topos theory studies a universe of such varying descriptions and its internal logic. Cohomology can sometimes detect residual inconsistency around loops of overlap.
 
@@ -115,20 +115,20 @@ Goldblatt's older terminology occasionally uses **stack** for a presheaf-like co
 
 ## Notation used from the beginning {.unnumbered}
 
-A session is written \(s\). Event ordinals are \(m,n,k\in\mathbb N\). The event prefix through ordinal \(n\) is \(E_s^{\le n}\). A timeline state reconstructed through \(n\) is \(T_s(n)\). A snapshot with cut \(n\) is \(S_s(n)\). Live UI events with ordinals strictly after \(n\) and at most \(m\) are \(U_s(n,m]\). A client state after applying a snapshot and suffix is \(C_s(m)\).
+A session is written $s$. Event ordinals are $m,n,k\in\mathbb N$. The event prefix through ordinal $n$ is $E_s^{\le n}$. A timeline state reconstructed through $n$ is $T_s(n)$. A snapshot with cut $n$ is $S_s(n)$. Live UI events with ordinals strictly after $n$ and at most $m$ are $U_s(n,m]$. A client state after applying a snapshot and suffix is $C_s(m)$.
 
-Composition is written right-to-left: \(g\circ f\) means first \(f\), then \(g\). An identity arrow on \(A\) is \(1_A\). The opposite category is \(\mathcal C^{op}\). The category of presheaves on \(\mathcal C\) is
+Composition is written right-to-left: $g\circ f$ means first $f$, then $g$. An identity arrow on $A$ is $1_A$. The opposite category is $\mathcal C^{op}$. The category of presheaves on $\mathcal C$ is
 
-\[
+$$
 \widehat{\mathcal C}=\mathbf{Set}^{\mathcal C^{op}}.
-\]
+$$
 
-A restriction from a larger context \(U\) to a smaller context \(V\subseteq U\) is written
+A restriction from a larger context $U$ to a smaller context $V\subseteq U$ is written
 
-\[
+$$
 \rho^U_V:\mathcal F(U)\to\mathcal F(V),
 \qquad s\mapsto s|_V.
-\]
+$$
 
 # Part I - Universal Structure {.unnumbered}
 
@@ -148,22 +148,22 @@ Goldblatt's Chapter 3 develops this move as "arrows instead of membership." Here
 
 ## A first category of typed transformations
 
-A category \(\mathcal C\) consists of:
+A category $\mathcal C$ consists of:
 
-- objects \(A,B,C,\ldots\),
-- arrows \(f:A\to B\),
-- a composite \(g\circ f:A\to C\) whenever \(f:A\to B\) and \(g:B\to C\),
-- an identity \(1_A:A\to A\) for every object,
+- objects $A,B,C,\ldots$,
+- arrows $f:A\to B$,
+- a composite $g\circ f:A\to C$ whenever $f:A\to B$ and $g:B\to C$,
+- an identity $1_A:A\to A$ for every object,
 
 subject to associativity and identity laws:
 
-\[
+$$
 (h\circ g)\circ f=h\circ(g\circ f),
-\]
+$$
 
-\[
+$$
 1_B\circ f=f=f\circ1_A.
-\]
+$$
 
 A concrete SessionStream-flavored category might have **data types** as objects and total, deterministic, schema-respecting transformations as arrows:
 
@@ -195,11 +195,11 @@ WireFact ------------------------> WireFrame
 
 The square commutes if
 
-\[
+$$
 \operatorname{normalize}\circ\operatorname{encodeDirect}
 =
 \operatorname{encodeUI}\circ\operatorname{project}.
-\]
+$$
 
 This equation is stronger than "both paths usually look similar." It is a testable contract. It can fail because one path drops an ordinal, uses another schema version, or treats tombstones differently.
 
@@ -207,7 +207,7 @@ SessionStream is full of candidate commuting diagrams:
 
 - append then query versus extend an in-memory prefix;
 - replay then project versus incrementally project;
-- snapshot at \(n\) then restrict to \(m<n\) versus snapshot directly at \(m\);
+- snapshot at $n$ then restrict to $m<n$ versus snapshot directly at $m$;
 - encode then decode versus identity;
 - migrate then project versus project then migrate the view;
 - buffer live events during hydration then flush versus process the same ordered suffix after an instantaneous snapshot.
@@ -232,7 +232,7 @@ In a category of runtime states and legal transitions:
 
 In a category of information contexts:
 
-- "timeline state for session \(s\) through ordinal \(n\)" is an object;
+- "timeline state for session $s$ through ordinal $n$" is an object;
 - restriction to an earlier prefix is an arrow;
 - a presheaf will assign a set of possible observations to each context.
 
@@ -240,29 +240,29 @@ All three models can be useful. Trouble starts when a proof silently moves betwe
 
 ## Monic, epic, and isomorphic software maps
 
-An arrow \(f:A\to B\) is **monic** if it is left-cancellable:
+An arrow $f:A\to B$ is **monic** if it is left-cancellable:
 
-\[
+$$
 f\circ g=f\circ h\implies g=h.
-\]
+$$
 
 In `Set`, this is exactly injectivity. A monic encoder preserves enough distinction that two inputs cannot become equal after encoding. A schema adapter that erases an event's stable identity is generally not monic.
 
-An arrow \(f:A\to B\) is **epic** if it is right-cancellable:
+An arrow $f:A\to B$ is **epic** if it is right-cancellable:
 
-\[
+$$
 g\circ f=h\circ f\implies g=h.
-\]
+$$
 
 In `Set`, this is surjectivity. Outside `Set`, epic need not mean surjective on underlying values.
 
-An arrow \(f:A\to B\) is an **isomorphism** if there is \(f^{-1}:B\to A\) with
+An arrow $f:A\to B$ is an **isomorphism** if there is $f^{-1}:B\to A$ with
 
-\[
+$$
 f^{-1}\circ f=1_A,
 \qquad
 f\circ f^{-1}=1_B.
-\]
+$$
 
 A JSON representation and a protobuf representation are isomorphic only relative to a domain where encode/decode are total and preserve all distinctions. Unknown fields, normalization, default elision, integer precision, and schema evolution can destroy isomorphism.
 
@@ -285,11 +285,11 @@ replayedSnapshot == originalSnapshot  // byte-for-byte
 
 but something like
 
-\[
+$$
 \operatorname{normalize}(\operatorname{replay}(E_s^{\le n}))
 =
 \operatorname{normalize}(S_s(n)).
-\]
+$$
 
 The normalization arrow identifies irrelevant representation choices. Choosing that arrow is part of the specification.
 
@@ -299,9 +299,9 @@ The current `Event` type contains no independent logical event identifier beyond
 
 Suppose a producer retries one logical fact. Consider the map
 
-\[
+$$
 q:\text{DeliveryAttempt}\to\text{StoredEvent}
-\]
+$$
 
 that assigns a new ordinal to each accepted delivery. If two attempts for the same logical fact receive different ordinals, then a downstream observer cannot infer from stored event equality that the attempts were the same fact. The problem is not yet cohomology. The coordinate system may simply omit a stable `EventId`.
 
@@ -358,7 +358,7 @@ The candidate whole is not chosen because its fields look convenient. It is char
 
 ## Terminal objects: the context that carries no choice
 
-An object \(1\) is terminal if every object \(A\) has exactly one arrow \(!:A\to1\).
+An object $1$ is terminal if every object $A$ has exactly one arrow $!:A\to1$.
 
 In `Set`, any singleton is terminal. In a category of typed records and field projections, an empty record can act terminal: every record has one projection that forgets everything.
 
@@ -369,31 +369,31 @@ For software reasoning, a terminal object often represents:
 - the empty context,
 - the unique trivial invariant.
 
-A global element of \(A\) is an arrow \(1\to A\). This reframes "pick a value of \(A\)" as "map the context with one possible state into \(A\)." Later, a global section of a presheaf or sheaf will also be an arrow from a terminal object.
+A global element of $A$ is an arrow $1\to A$. This reframes "pick a value of $A$" as "map the context with one possible state into $A$." Later, a global section of a presheaf or sheaf will also be an arrow from a terminal object.
 
 ## Products: independent observations held together
 
-A product of \(A\) and \(B\) is an object \(A\times B\) with projections
+A product of $A$ and $B$ is an object $A\times B$ with projections
 
-\[
+$$
 \pi_A:A\times B\to A,
 \qquad
 \pi_B:A\times B\to B,
-\]
+$$
 
-such that for every pair \(f:X\to A\), \(g:X\to B\), there is a unique arrow
+such that for every pair $f:X\to A$, $g:X\to B$, there is a unique arrow
 
-\[
+$$
 \langle f,g\rangle:X\to A\times B
-\]
+$$
 
 with
 
-\[
+$$
 \pi_A\circ\langle f,g\rangle=f,
 \qquad
 \pi_B\circ\langle f,g\rangle=g.
-\]
+$$
 
 The product is not merely "a struct with two fields." The universal property says that providing one arrow into the product is equivalent to providing one arrow into each factor.
 
@@ -410,19 +410,19 @@ This record is a `Set`-product if all pairs are allowed. The moment we require `
 
 ## Equalizers: the subspace where two computations agree
 
-Given parallel arrows \(f,g:A\to B\), an equalizer is an arrow \(e:E\to A\) satisfying
+Given parallel arrows $f,g:A\to B$, an equalizer is an arrow $e:E\to A$ satisfying
 
-\[
+$$
 f\circ e=g\circ e,
-\]
+$$
 
-and universal among arrows into \(A\) with that property.
+and universal among arrows into $A$ with that property.
 
 In `Set`,
 
-\[
+$$
 E=\{a\in A\mid f(a)=g(a)\}.
-\]
+$$
 
 An equalizer is therefore a canonical type of values on which two interpretations agree.
 
@@ -435,15 +435,15 @@ SessionStream examples include:
 
 Suppose
 
-\[
+$$
 \operatorname{Inc},\operatorname{Replay}:\text{Trace}\to\text{TimelineState}.
-\]
+$$
 
-Then the equalizer \(E\hookrightarrow\text{Trace}\) is the space of traces satisfying deterministic replay equivalence. A test suite samples this equalizer; a proof attempts to characterize all of it.
+Then the equalizer $E\hookrightarrow\text{Trace}$ is the space of traces satisfying deterministic replay equivalence. A test suite samples this equalizer; a proof attempts to characterize all of it.
 
 ## Pullbacks: joining observations through shared meaning
 
-Given \(f:A\to C\) and \(g:B\to C\), a pullback is an object \(A\times_C B\) with arrows to \(A\) and \(B\) whose composites into \(C\) agree, universal among all such consistent pairs.
+Given $f:A\to C$ and $g:B\to C$, a pullback is an object $A\times_C B$ with arrows to $A$ and $B$ whose composites into $C$ agree, universal among all such consistent pairs.
 
 ```text
 A x_C B  --------> B
@@ -456,43 +456,43 @@ A x_C B  --------> B
 
 In `Set`,
 
-\[
+$$
 A\times_C B=\{(a,b)\in A\times B\mid f(a)=g(b)\}.
-\]
+$$
 
-This is a typed join. The shared object \(C\) says what the join key means.
+This is a typed join. The shared object $C$ says what the join key means.
 
 ### A SessionStream pullback
 
 Let:
 
-- \(A\) be persisted timeline entity versions;
-- \(B\) be a declared snapshot cut;
-- \(C\) be the ordinal domain;
-- \(f(a)=a.\text{LastEventOrdinal}\);
-- \(g(b)=b.\text{SnapshotOrdinal}\).
+- $A$ be persisted timeline entity versions;
+- $B$ be a declared snapshot cut;
+- $C$ be the ordinal domain;
+- $f(a)=a.\text{LastEventOrdinal}$;
+- $g(b)=b.\text{SnapshotOrdinal}$.
 
 An equality pullback would select versions exactly at the cut. Snapshot validity usually needs an inequality rather than equality, so define a relation object
 
-\[
+$$
 R=\{(x,n)\mid x\le n\}
-\]
+$$
 
-with projections to ordinals. Then a valid entity/cut pair is a pullback through \(R\). This illustrates a practical point: universal constructions become expressive when you model the invariant as an object and arrows, not when you force every condition into equality prematurely.
+with projections to ordinals. Then a valid entity/cut pair is a pullback through $R$. This illustrates a practical point: universal constructions become expressive when you model the invariant as an object and arrows, not when you force every condition into equality prematurely.
 
 A second pullback occurs during subscription authorization. A requested session and an authorization claim must map to the same tenant or principal boundary before hydration begins.
 
 ## Consistent snapshots as a limiting cone
 
-For a fixed session \(s\), imagine a diagram containing:
+For a fixed session $s$, imagine a diagram containing:
 
-- event prefix \(E_s^{\le n}\),
-- timeline materialization \(T_s(n)\),
-- snapshot cut \(n\),
+- event prefix $E_s^{\le n}$,
+- timeline materialization $T_s(n)$,
+- snapshot cut $n$,
 - entity version metadata,
 - projection cursor.
 
-A candidate snapshot state \(X\) maps to each component:
+A candidate snapshot state $X$ maps to each component:
 
 ```text
                          X
@@ -503,17 +503,17 @@ A candidate snapshot state \(X\) maps to each component:
 
 The maps must satisfy compatibility equations, for example:
 
-\[
+$$
 \operatorname{fold}(E_s^{\le n})=T_s(n),
-\]
+$$
 
-\[
+$$
 \max_{x\in T_s(n)}x.\operatorname{LastEventOrdinal}\le n,
-\]
+$$
 
-\[
+$$
 \operatorname{ProjectionCursor}(s)\ge n
-\]
+$$
 
 under whichever cursor semantics are chosen.
 
@@ -530,9 +530,9 @@ An API often returns a record that happens to contain several fields. A universa
 
 For example, suppose `Snapshot` contains `SessionId`, `SnapshotOrdinal`, and `Entities`. Is every combination legal? No. The session IDs must align; entity ordinals must respect the cut; payload schemas must match entity kinds; tombstones may be excluded. A mathematically honest snapshot type is therefore not the raw product
 
-\[
+$$
 \text{SessionId}\times\text{Ordinal}\times\operatorname{List}(\text{Entity}),
-\]
+$$
 
 but a subobject selected by invariants, perhaps represented as an equalizer or pullback.
 
@@ -544,19 +544,19 @@ The current hub processing path can append an event, obtain a view, run UI and t
 
 Let
 
-\[
+$$
 A=\text{event appended},
 \quad
 M=\text{materialization applied},
 \quad
 P=\text{projection cursor advanced}.
-\]
+$$
 
 The advertised progress claim may be:
 
-\[
+$$
 P(n)\Rightarrow A(n)\land M(n).
-\]
+$$
 
 If `Apply` commits but cursor advancement fails, the local observations may be
 
@@ -598,33 +598,33 @@ Study Goldblatt Sections 3.5-3.13 in parallel: initial and terminal objects, pro
 
 Products, equalizers, pullbacks, and terminal objects initially look unrelated. The definition of a limit reveals that each is the same construction applied to a different diagram shape.
 
-Let \(J\) be a small category that describes a shape, and let
+Let $J$ be a small category that describes a shape, and let
 
-\[
+$$
 D:J\to\mathcal C
-\]
+$$
 
-be a diagram in \(\mathcal C\). A **cone** from an object \(X\) to \(D\) consists of one arrow
+be a diagram in $\mathcal C$. A **cone** from an object $X$ to $D$ consists of one arrow
 
-\[
+$$
 \lambda_j:X\to D(j)
-\]
+$$
 
-for every object \(j\) of \(J\), such that every diagram arrow \(u:i\to j\) satisfies
+for every object $j$ of $J$, such that every diagram arrow $u:i\to j$ satisfies
 
-\[
+$$
 D(u)\circ\lambda_i=\lambda_j.
-\]
+$$
 
-The cone's legs are a compatible family of observations of \(X\).
+The cone's legs are a compatible family of observations of $X$.
 
-A **limit cone** \((L,\pi_j)\) is terminal among cones to \(D\): for every cone \((X,\lambda_j)\), there is exactly one arrow \(u:X\to L\) such that
+A **limit cone** $(L,\pi_j)$ is terminal among cones to $D$: for every cone $(X,\lambda_j)$, there is exactly one arrow $u:X\to L$ such that
 
-\[
+$$
 \pi_j\circ u=\lambda_j
-\]
+$$
 
-for all \(j\).
+for all $j$.
 
 ```text
                          X
@@ -637,37 +637,37 @@ for all \(j\).
                          D
 ```
 
-This is a universal-property statement. It says that \(L\) represents the operation "give a compatible cone over \(D\)." The limit is unique up to a unique isomorphism respecting all projections.
+This is a universal-property statement. It says that $L$ represents the operation "give a compatible cone over $D$." The limit is unique up to a unique isomorphism respecting all projections.
 
 ## Recovering familiar limits from shapes
 
-Different choices of \(J\) produce familiar objects.
+Different choices of $J$ produce familiar objects.
 
 | Diagram shape | Limit |
 |---|---|
 | Empty diagram | Terminal object |
 | Two unrelated objects | Product |
-| Parallel arrows \(A\rightrightarrows B\) | Equalizer |
-| Cospan \(A\to C\leftarrow B\) | Pullback |
+| Parallel arrows $A\rightrightarrows B$ | Equalizer |
+| Cospan $A\to C\leftarrow B$ | Pullback |
 | Chain of prefix contexts | Inverse limit, when it exists |
 
 The empty diagram has no compatibility equations. Every object supplies one empty cone. A terminal object is therefore a universal empty cone.
 
 For two unrelated objects, a cone is exactly a pair of arrows. The universal cone is their product.
 
-For parallel arrows \(f,g:A\to B\), a cone consists of an arrow \(x:X\to A\) for which \(f\circ x=g\circ x\). The universal such cone is the equalizer.
+For parallel arrows $f,g:A\to B$, a cone consists of an arrow $x:X\to A$ for which $f\circ x=g\circ x$. The universal such cone is the equalizer.
 
-For a cospan \(A\to C\leftarrow B\), a cone is a pair of observations with equal images in \(C\). The universal cone is the pullback.
+For a cospan $A\to C\leftarrow B$, a cone is a pair of observations with equal images in $C$. The universal cone is the pullback.
 
 This unification is not merely terminological. Once a theorem is proved for all limits, it automatically applies to products, equalizers, pullbacks, and any more elaborate limit.
 
 ## Limits in a poset: greatest coherent lower bounds
 
-A preorder can be regarded as a category: there is one arrow \(p\to q\) exactly when \(p\le q\). A cone to a diagram is then a lower bound. A limit is a greatest lower bound.
+A preorder can be regarded as a category: there is one arrow $p\to q$ exactly when $p\le q$. A cone to a diagram is then a lower bound. A limit is a greatest lower bound.
 
 This is valuable for software because many engineering domains carry information orders.
 
-Let \(x\le y\) mean "\(x\) contains no more information than \(y\)." Then the meet \(x\wedge y\) is the greatest observation contained in both. It can represent:
+Let $x\le y$ mean "$x$ contains no more information than $y$." Then the meet $x\wedge y$ is the greatest observation contained in both. It can represent:
 
 - the common fields of two schemas;
 - the shared prefix of two traces;
@@ -675,7 +675,7 @@ Let \(x\le y\) mean "\(x\) contains no more information than \(y\)." Then the me
 - the overlap context of two services;
 - the greatest snapshot cut known safe by two replicas.
 
-Be explicit about the order. If \(x\le y\) instead means "\(x\) is at least as refined as \(y\)," then meets and joins exchange their intuitive roles. Many apparent category-theory paradoxes in software models are order-orientation errors.
+Be explicit about the order. If $x\le y$ instead means "$x$ is at least as refined as $y$," then meets and joins exchange their intuitive roles. Many apparent category-theory paradoxes in software models are order-orientation errors.
 
 ## Completeness is a capability, not a default
 
@@ -698,7 +698,7 @@ A database transaction, a materialized view, or a typed aggregate may realize th
 
 ## Colimits: universal assembly from pieces
 
-Reverse every arrow in the definition of a limit. A **cocone** from \(D\) to \(X\) has arrows \(D(j)\to X\) compatible with the diagram. A **colimit** is initial among cocones.
+Reverse every arrow in the definition of a limit. A **cocone** from $D$ to $X$ has arrows $D(j)\to X$ compatible with the diagram. A **colimit** is initial among cocones.
 
 > **Mental image.** A limit finds a universal coherent viewpoint *into* many observations. A colimit finds a universal assembled target *out of* many pieces.
 
@@ -709,13 +709,13 @@ Familiar colimits include:
 | Empty diagram | Initial object |
 | Two unrelated objects | Coproduct |
 | Parallel arrows | Coequalizer |
-| Span \(A\leftarrow C\to B\) | Pushout |
+| Span $A\leftarrow C\to B$ | Pushout |
 
 Limits are often associated with constraints and matching. Colimits are often associated with generation, union, quotienting, and attachment. This slogan is useful but not a definition.
 
 ## Coproducts and typed event alternatives
 
-In `Set`, the coproduct \(A+B\) is a disjoint union. Its injections remember whether a value came from \(A\) or \(B\). A Go sum type emulation with a tagged union attempts to realize this:
+In `Set`, the coproduct $A+B$ is a disjoint union. Its injections remember whether a value came from $A$ or $B$. A Go sum type emulation with a tagged union attempts to realize this:
 
 ```go
 type ClientFrame struct {
@@ -728,25 +728,25 @@ type ClientFrame struct {
 
 A well-formed protobuf `oneof` is closer to a coproduct than a struct that permits several alternatives simultaneously. The coproduct universal property says that defining a consumer
 
-\[
+$$
 [A\xrightarrow{f}X,\;B\xrightarrow{g}X]
-\]
+$$
 
-is equivalent to defining one function \([f,g]:A+B\to X\) by cases.
+is equivalent to defining one function $[f,g]:A+B\to X$ by cases.
 
 SessionStream's logical names and concrete protobuf payloads also resemble a large indexed sum. The schema registry controls which injection corresponds to each name. Top-level arbitrary maps weaken this structure because they blur the disjoint alternatives into an undifferentiated payload space.
 
 ## Coequalizers and semantic quotienting
 
-Given \(f,g:A\rightrightarrows B\), a coequalizer \(q:B\to Q\) satisfies
+Given $f,g:A\rightrightarrows B$, a coequalizer $q:B\to Q$ satisfies
 
-\[
+$$
 q\circ f=q\circ g
-\]
+$$
 
-and is universal among arrows that identify the outputs of \(f\) and \(g\).
+and is universal among arrows that identify the outputs of $f$ and $g$.
 
-In `Set`, a coequalizer forms a quotient of \(B\) by the smallest equivalence relation needed to identify \(f(a)\) with \(g(a)\).
+In `Set`, a coequalizer forms a quotient of $B$ by the smallest equivalence relation needed to identify $f(a)$ with $g(a)$.
 
 Software examples:
 
@@ -758,11 +758,11 @@ Software examples:
 
 Quotienting is dangerous when the equivalence relation is implicit. If two deliveries are identified only by `(SessionId, Ordinal)`, a retry that receives a fresh ordinal escapes the quotient. If two payloads are identified by lossy normalization, distinct domain facts may collapse.
 
-The universal property forces the policy into view: every downstream map out of \(Q\) must respect the identification.
+The universal property forces the policy into view: every downstream map out of $Q$ must respect the identification.
 
 ## Pushouts and integration boundaries
 
-A pushout of a span \(A\leftarrow C\to B\) joins \(A\) and \(B\) while identifying the copies of the shared interface \(C\).
+A pushout of a span $A\leftarrow C\to B$ joins $A$ and $B$ while identifying the copies of the shared interface $C$.
 
 ```text
 C --------> B
@@ -836,51 +836,51 @@ Goldblatt Sections 3.11-3.15 introduce limits, colimits, pullbacks, pushouts, an
 
 We now define a compact semantic model that will be reused throughout the book. It is intentionally cleaner than the code. Its purpose is to state invariants precisely enough that the code can be compared with them.
 
-Fix a session \(s\). Let the canonical backend events be
+Fix a session $s$. Let the canonical backend events be
 
-\[
+$$
 E_s=(e_1,e_2,\ldots),
-\]
+$$
 
-where event \(e_n\) has ordinal \(n\) in the simplest model. The prefix through \(n\) is
+where event $e_n$ has ordinal $n$ in the simplest model. The prefix through $n$ is
 
-\[
+$$
 E_s^{\le n}=(e_1,\ldots,e_n).
-\]
+$$
 
 Let a deterministic timeline projection fold be
 
-\[
+$$
 \operatorname{fold}_T:T_0\times E_s^{\le n}\to T_s(n),
-\]
+$$
 
 or recursively
 
-\[
+$$
 T_s(0)=T_0,
 \qquad
 T_s(n+1)=\operatorname{step}_T(T_s(n),e_{n+1}).
-\]
+$$
 
 Let the UI projection emit a finite sequence for each event:
 
-\[
+$$
 \operatorname{ui}(T_s(n-1),e_n)=u_n^1,\ldots,u_n^{k_n}.
-\]
+$$
 
 A snapshot is
 
-\[
+$$
 S_s(n)=(s,n,\operatorname{entities}(T_s(n))).
-\]
+$$
 
 A client has a reducer
 
-\[
+$$
 \operatorname{applySnap}:C\times S\to C,
 \qquad
 \operatorname{applyUI}:C\times U\to C.
-\]
+$$
 
 This model already exposes several choices that the implementation cannot decide for us:
 
@@ -912,43 +912,43 @@ These surfaces are already a family of overlapping views. They are not merely la
 
 The word "cursor" is dangerously overloaded. Distinguish at least:
 
-\[
+$$
 O_E(s)=\text{highest canonical event ordinal persisted},
-\]
+$$
 
-\[
+$$
 O_T(s)=\text{highest event promised materialized by timeline projection},
-\]
+$$
 
-\[
+$$
 O_S(s)=\text{snapshot cut returned to a client},
-\]
+$$
 
-\[
+$$
 O_X(x)=\text{last event ordinal represented by entity }x,
-\]
+$$
 
-\[
+$$
 O_U(u)=\text{backend event ordinal associated with a UI batch},
-\]
+$$
 
-\[
+$$
 O_C(c)=\text{highest ordinal the client claims incorporated}.
-\]
+$$
 
 These values may be equal in a healthy, synchronous run. They are not the same concept. Their semantic types should be thought of as distinct even if Go represents all of them as `uint64`.
 
 A first invariant family is:
 
-\[
+$$
 O_X(x)\le O_S(snap)
-\]
+$$
 
-for every entity \(x\) in `snap`, and
+for every entity $x$ in `snap`, and
 
-\[
+$$
 O_T(s)\le O_E(s).
-\]
+$$
 
 A stronger contract may require equality at specific boundaries. A weaker eventually consistent contract may permit lag. The category model must encode which inequalities are allowed.
 
@@ -956,25 +956,25 @@ A stronger contract may require equality at specific boundaries. A weaker eventu
 
 SessionStream's schema registry maps logical names to concrete protobuf prototypes. A type-valid event satisfies
 
-\[
+$$
 \operatorname{descriptor}(e.\text{Payload})
 =
 \operatorname{registeredDescriptor}(e.\text{Name}).
-\]
+$$
 
 A timeline entity similarly satisfies a kind/payload compatibility relation.
 
 These conditions define subobjects of the raw record products. For example, let
 
-\[
+$$
 R_E=\text{Name}\times\text{ProtoMessage}\times\text{SessionId}\times\text{Ordinal}.
-\]
+$$
 
 The semantic event object is the subobject
 
-\[
+$$
 E\hookrightarrow R_E
-\]
+$$
 
 whose points obey registration, nonempty-session, nonnil-payload, and ordinal constraints.
 
@@ -994,11 +994,11 @@ Timeline T(n) -----project/apply e_(n+1)-----> Timeline T(n+1)
 
 The square commutes when incremental processing agrees with replay:
 
-\[
+$$
 \operatorname{fold}_T(E_s^{\le n+1})
 =
 \operatorname{step}_T(\operatorname{fold}_T(E_s^{\le n}),e_{n+1}).
-\]
+$$
 
 This equation appears trivial because the right side resembles a recursive definition. In the implementation it can fail if projection code reads hidden mutable state, wall-clock time, randomness, network results, unversioned schemas, or a current view inconsistent with the event prefix.
 
@@ -1008,23 +1008,23 @@ If `time.Now()` affects a timeline entity, time is a missing coordinate. Either 
 
 ## Snapshot soundness and completeness
 
-A snapshot at cut \(n\) should satisfy at least two different properties.
+A snapshot at cut $n$ should satisfy at least two different properties.
 
 **Soundness:** nothing in the snapshot claims information from after the cut.
 
-\[
+$$
 \forall x\in S_s(n).\operatorname{Entities},
 \quad
 O_X(x)\le n.
-\]
+$$
 
-**Completeness:** the snapshot contains exactly the durable entities specified by the timeline fold through the cut, modulo the chosen observational equivalence \(\cong_T\).
+**Completeness:** the snapshot contains exactly the durable entities specified by the timeline fold through the cut, modulo the chosen observational equivalence $\cong_T$.
 
-\[
+$$
 \operatorname{decodeSnapshot}(S_s(n))
 \cong_T
 T_s(n).
-\]
+$$
 
 Soundness without completeness permits missing entities. Completeness without soundness is ill-typed because the alleged cut is wrong. Testing only the maximum entity ordinal checks part of soundness but not completeness.
 
@@ -1032,13 +1032,13 @@ The SQLite store's version table makes historical `asOf` snapshots conceptually 
 
 ## Snapshot-before-live as a gluing protocol
 
-Suppose subscription begins while the system is at ordinal \(m\). Snapshot loading returns a cut \(n\le m\). Live UI batches may arrive during the load.
+Suppose subscription begins while the system is at ordinal $m$. Snapshot loading returns a cut $n\le m$. Live UI batches may arrive during the load.
 
 The desired client-visible sequence is:
 
-\[
+$$
 S_s(n),\quad U_s(n,m],\quad U_s(m,\ldots).
-\]
+$$
 
 The protocol must prevent:
 
@@ -1052,16 +1052,16 @@ The current WebSocket implementation creates a hydrating subscription before sna
 
 The fundamental equation is app-specific. If UI events update a client reducer, write
 
-\[
+$$
 \operatorname{ApplyUI}^*(
   \operatorname{ApplySnapshot}(C_0,S_s(n)),
   U_s(n,m]
 )
 \cong_C
 C_s(m).
-\]
+$$
 
-Do not replace \(\cong_C\) by equality until client observational equivalence is defined.
+Do not replace $\cong_C$ by equality until client observational equivalence is defined.
 
 ## The boundary object at the cut
 
@@ -1069,9 +1069,9 @@ Ordinary sheaf gluing relies on overlaps. Snapshot `[0,n]` and a strict suffix `
 
 Introduce a boundary context
 
-\[
+$$
 B_s(n)=(s,n,\text{schema versions},\text{projection semantics}).
-\]
+$$
 
 Both snapshot and suffix restrict to this boundary:
 
@@ -1085,17 +1085,17 @@ This additional object is important. Without it, "snapshot plus live" is only te
 
 ## Projection progress as a visibility invariant
 
-Let `Applied(n)` mean timeline state through \(n\) is durable, and `Advanced(n)` mean the projection cursor reports \(n\). A strong progress invariant is
+Let `Applied(n)` mean timeline state through $n$ is durable, and `Advanced(n)` mean the projection cursor reports $n$. A strong progress invariant is
 
-\[
+$$
 \operatorname{Advanced}(n)\Rightarrow\operatorname{Applied}(n).
-\]
+$$
 
 For exact progress:
 
-\[
+$$
 O_T(s)=\max\{n\mid\operatorname{Applied}(n)\}.
-\]
+$$
 
 If cursor advancement and entity application are separate commits, there can be windows in which the tuple of local states does not lie in the exact-progress subobject. That may be acceptable if recovery semantics are documented. The mistake is to expose a cursor whose public meaning is stronger than its transaction boundary supports.
 
@@ -1107,15 +1107,15 @@ The heartbeat state machine has phases including booting, idle, writing, awaitin
 
 The proposition produced is not
 
-\[
+$$
 \text{remote process has crashed}.
-\]
+$$
 
 It is
 
-\[
+$$
 \text{under this timeout and observation history, the connection is suspected}.
-\]
+$$
 
 This distinction will become central in local truth. The detector's state is a section over an observation interval. A longer or differently instrumented context may support a different proposition. Silence is local evidence, not omniscient truth.
 
@@ -1144,7 +1144,7 @@ Each row suggests a diagram, a test harness, and eventually a presheaf of local 
 
 **E4.4 - Hydration trace (two stars).** Construct a concrete interleaving in which events 41, 42, and 43 are published while a snapshot is loading. Trace the buffer and show the output for snapshot cuts 41, 42, and 43.
 
-**E4.5 - Boundary (two stars).** Expand \(B_s(n)\) into a record of every semantic assumption needed to glue snapshot and live suffix. Which assumptions are currently implicit?
+**E4.5 - Boundary (two stars).** Expand $B_s(n)$ into a record of every semantic assumption needed to glue snapshot and live suffix. Which assumptions are currently implicit?
 
 **E4.6 - Error policy (two stars).** Give distinct names and types to a "materialized cursor" and a "processed-or-skipped cursor." Show how conflating them can produce a false commuting diagram.
 
@@ -1174,20 +1174,20 @@ Do not mention implementation packages until the final paragraph.
 
 Programmers often hear "a functor is a map" and immediately label every transformation a functor. That loses the substance of the definition.
 
-A functor \(F:\mathcal C\to\mathcal D\) maps:
+A functor $F:\mathcal C\to\mathcal D$ maps:
 
-- every object \(A\) of \(\mathcal C\) to an object \(F(A)\) of \(\mathcal D\);
-- every arrow \(f:A\to B\) to an arrow \(F(f):F(A)\to F(B)\);
+- every object $A$ of $\mathcal C$ to an object $F(A)$ of $\mathcal D$;
+- every arrow $f:A\to B$ to an arrow $F(f):F(A)\to F(B)$;
 
 while preserving identities and composition:
 
-\[
+$$
 F(1_A)=1_{F(A)},
-\]
+$$
 
-\[
+$$
 F(g\circ f)=F(g)\circ F(f).
-\]
+$$
 
 A SessionStream `TimelineProjection` function receives an event, session, and current view and returns entities. By itself, that function does not yet map the objects and arrows of a declared source category to those of a target category. It may participate in a functorial construction, but the categories and laws must first be supplied.
 
@@ -1195,60 +1195,60 @@ This chapter builds one honest construction.
 
 ## The prefix category of a session
 
-Fix a session \(s\) with a canonical ordered event history. Define a category \(\mathbf{Prefix}_s\):
+Fix a session $s$ with a canonical ordered event history. Define a category $\mathbf{Prefix}_s$:
 
-- objects are event cuts \(0,1,2,\ldots\);
-- there is a unique arrow \(m\to n\) when \(m\le n\);
-- composition is transitivity of \(\le\);
+- objects are event cuts $0,1,2,\ldots$;
+- there is a unique arrow $m\to n$ when $m\le n$;
+- composition is transitivity of $\le$;
 - identities are reflexivity.
 
-The arrow \(m\to n\) can be read as the suffix
+The arrow $m\to n$ can be read as the suffix
 
-\[
+$$
 E_s(m,n]=(e_{m+1},\ldots,e_n).
-\]
+$$
 
-Now define a category \(\mathbf{Timeline}_s\):
+Now define a category $\mathbf{Timeline}_s$:
 
 - objects are valid timeline states;
-- an arrow \(T\to T'\) is an allowed deterministic transition induced by a canonical suffix;
+- an arrow $T\to T'$ is an allowed deterministic transition induced by a canonical suffix;
 - composition is sequential suffix application;
 - identity is application of the empty suffix.
 
 A deterministic, replayable projection determines a functor
 
-\[
+$$
 P_T:\mathbf{Prefix}_s\to\mathbf{Timeline}_s
-\]
+$$
 
 by
 
-\[
+$$
 P_T(n)=T_s(n)
-\]
+$$
 
 and
 
-\[
+$$
 P_T(m\to n)=\operatorname{applySuffix}_{m,n}:T_s(m)\to T_s(n).
-\]
+$$
 
 The functor laws become concrete replay laws.
 
 Identity preservation:
 
-\[
+$$
 \operatorname{applySuffix}_{n,n}=1_{T_s(n)}.
-\]
+$$
 
-Composition preservation, for \(\ell\le m\le n\):
+Composition preservation, for $\ell\le m\le n$:
 
-\[
+$$
 \operatorname{applySuffix}_{\ell,n}
 =
 \operatorname{applySuffix}_{m,n}\circ
 \operatorname{applySuffix}_{\ell,m}.
-\]
+$$
 
 This is not decorative abstraction. It says that batching boundaries do not change semantics.
 
@@ -1258,17 +1258,17 @@ A stream processor may receive events one at a time, in batches, or after reconn
 
 For
 
-\[
+$$
 0=n_0<n_1<\cdots<n_k=n,
-\]
+$$
 
 we require
 
-\[
+$$
 P_T(0\to n)
 =
 P_T(n_{k-1}\to n_k)\circ\cdots\circ P_T(n_0\to n_1).
-\]
+$$
 
 Call this **chunking invariance**.
 
@@ -1285,7 +1285,7 @@ Chunking invariance is an excellent property-test target. Generate a canonical e
 
 ## Functors between schema categories
 
-Consider a category \(\mathbf{Schema}\):
+Consider a category $\mathbf{Schema}$:
 
 - objects are concrete message schemas;
 - arrows are total migrations preserving declared semantics;
@@ -1311,11 +1311,11 @@ A forgetful functor removes structure while preserving the underlying arrows tha
 
 Examples:
 
-- typed protobuf messages \(\to\) byte strings;
-- timeline entities \(\to\) `(kind,id,ordinal)` metadata;
-- authenticated subscriptions \(\to\) raw session subscriptions;
-- heartbeat machine states \(\to\) phase labels;
-- ordered event histories \(\to\) multisets of event names.
+- typed protobuf messages $\to$ byte strings;
+- timeline entities $\to$ `(kind,id,ordinal)` metadata;
+- authenticated subscriptions $\to$ raw session subscriptions;
+- heartbeat machine states $\to$ phase labels;
+- ordered event histories $\to$ multisets of event names.
 
 The final example is usually not acceptable for SessionStream invariants because it forgets order. But it is still a possible functor into a category where arrows preserve only multiset inclusion.
 
@@ -1338,21 +1338,21 @@ For an API SDK, fullness can be undesirable. The target language can express man
 
 The prefix-functor model treats complete suffix applications as arrows. At the single-event level, a projection is often better described as an **action**.
 
-Let \(M\) be the monoid of event sequences under concatenation, with empty sequence \(\epsilon\). A deterministic reducer gives a monoid homomorphism
+Let $M$ be the monoid of event sequences under concatenation, with empty sequence $\epsilon$. A deterministic reducer gives a monoid homomorphism
 
-\[
+$$
 \alpha:M\to\operatorname{End}(T),
-\]
+$$
 
-where \(\operatorname{End}(T)\) is the monoid of endomorphisms on timeline state. The laws are
+where $\operatorname{End}(T)$ is the monoid of endomorphisms on timeline state. The laws are
 
-\[
+$$
 \alpha(\epsilon)=1_T,
-\]
+$$
 
-\[
+$$
 \alpha(xy)=\alpha(y)\circ\alpha(x)
-\]
+$$
 
 under right-to-left composition convention.
 
@@ -1368,11 +1368,11 @@ Choose the model that matches the proof.
 
 ## Contravariant functors as observation
 
-A covariant functor follows arrows forward. A **contravariant functor** \(F:\mathcal C^{op}\to\mathcal D\) reverses them. Given \(f:A\to B\), it produces
+A covariant functor follows arrows forward. A **contravariant functor** $F:\mathcal C^{op}\to\mathcal D$ reverses them. Given $f:A\to B$, it produces
 
-\[
+$$
 F(f):F(B)\to F(A).
-\]
+$$
 
 Observation is often contravariant. An inclusion of a smaller context into a larger one produces restriction from data on the larger context to data on the smaller.
 
@@ -1391,28 +1391,28 @@ This reversal is the source of much of the local-to-global geometry.
 
 The SQLite entity-version store supports snapshots `asOf` a cut. Under suitable consistency assumptions, define
 
-\[
+$$
 H_s:\mathbf{Prefix}_s^{op}\to\mathbf{Set}
-\]
+$$
 
-where \(H_s(n)\) is the set of possible snapshot states through \(n\), and an arrow \(m\to n\) in `Prefix` with \(m\le n\) induces restriction
+where $H_s(n)$ is the set of possible snapshot states through $n$, and an arrow $m\to n$ in `Prefix` with $m\le n$ induces restriction
 
-\[
+$$
 H_s(n)\to H_s(m)
-\]
+$$
 
-by selecting entity versions as of \(m\).
+by selecting entity versions as of $m$.
 
 To be functorial, temporal restriction must satisfy:
 
-\[
+$$
 \rho^n_n=1,
-\]
+$$
 
-\[
+$$
 \rho^m_\ell\circ\rho^n_m=\rho^n_\ell
 \qquad(\ell\le m\le n).
-\]
+$$
 
 A store that keeps only current rows may not implement this restriction. The semantic history may still define a presheaf, but the deployed persistence interface would not expose it. This difference between **semantic functor** and **implemented functor** will recur.
 
@@ -1442,23 +1442,23 @@ Goldblatt Chapter 9 introduces covariant and contravariant functors after much o
 
 ## Comparing whole translations at once
 
-Suppose \(F,G:\mathcal C\to\mathcal D\) are two functors. A natural transformation
+Suppose $F,G:\mathcal C\to\mathcal D$ are two functors. A natural transformation
 
-\[
+$$
 \eta:F\Rightarrow G
-\]
+$$
 
-assigns to every object \(A\) an arrow
+assigns to every object $A$ an arrow
 
-\[
+$$
 \eta_A:F(A)\to G(A)
-\]
+$$
 
-such that every arrow \(f:A\to B\) in \(\mathcal C\) makes the naturality square commute:
+such that every arrow $f:A\to B$ in $\mathcal C$ makes the naturality square commute:
 
-\[
+$$
 G(f)\circ\eta_A=\eta_B\circ F(f).
-\]
+$$
 
 ```text
 F(A) --------eta_A--------> G(A)
@@ -1474,24 +1474,24 @@ A natural transformation is not just a collection of per-type adapters. It is a 
 
 ## Projection-version migration
 
-Let \(P_1,P_2:\mathbf{Prefix}_s\to\mathbf{Timeline}\) be two timeline projection versions. A migration family
+Let $P_1,P_2:\mathbf{Prefix}_s\to\mathbf{Timeline}$ be two timeline projection versions. A migration family
 
-\[
+$$
 \eta_n:P_1(n)\to P_2(n)
-\]
+$$
 
-is natural when, for every \(m\le n\),
+is natural when, for every $m\le n$,
 
-\[
+$$
 P_2(m\to n)\circ\eta_m
 =
 \eta_n\circ P_1(m\to n).
-\]
+$$
 
 This equation compares two upgrade strategies:
 
-1. migrate the old state at cut \(m\), then process new events with version 2;
-2. process the suffix with version 1, then migrate the resulting state at cut \(n\).
+1. migrate the old state at cut $m$, then process new events with version 2;
+2. process the suffix with version 1, then migrate the resulting state at cut $n$.
 
 If the square commutes, rolling migration can happen at arbitrary cuts without changing semantics. If it does not, a full rebuild may be required.
 
@@ -1499,7 +1499,7 @@ The naturality test is stronger than comparing migration of one final snapshot. 
 
 ## Schema evolution and event migrations
 
-Let \(E_1,E_2\) be functors assigning versioned event representations to contexts, and let \(T_1,T_2\) be corresponding timeline functors. There may be an event migration \(\mu:E_1\Rightarrow E_2\) and a state migration \(\eta:T_1\Rightarrow T_2\).
+Let $E_1,E_2$ be functors assigning versioned event representations to contexts, and let $T_1,T_2$ be corresponding timeline functors. There may be an event migration $\mu:E_1\Rightarrow E_2$ and a state migration $\eta:T_1\Rightarrow T_2$.
 
 A projection compatibility condition becomes a larger commuting diagram:
 
@@ -1513,11 +1513,11 @@ new events ------new projection------> new timeline
 
 The exact categorical setting may involve functor composition rather than one square, but the engineering requirement is clear:
 
-\[
+$$
 \operatorname{projectNew}\circ\operatorname{migrateEvents}
 \cong
 \operatorname{migrateState}\circ\operatorname{projectOld}.
-\]
+$$
 
 When this fails, the mismatch should be explicit. Perhaps the new projection intentionally derives information unavailable in old events. Then no natural migration can reconstruct it without another data source.
 
@@ -1525,11 +1525,11 @@ When this fails, the mismatch should be explicit. Perhaps the new projection int
 
 SessionStream transport observers record stages such as subscription, snapshot loading, buffering, sending, heartbeat events, and errors. Instrumentation is intended not to alter protocol behavior.
 
-Model an uninstrumented execution functor \(F\) and an instrumented execution functor \(G\) whose states include an observation log. The forgetful component
+Model an uninstrumented execution functor $F$ and an instrumented execution functor $G$ whose states include an observation log. The forgetful component
 
-\[
+$$
 \eta_A:G(A)\to F(A)
-\]
+$$
 
 removes observations. Naturality requires that forgetting observations after an instrumented transition equals performing the uninstrumented transition after forgetting them.
 
@@ -1547,7 +1547,7 @@ A callback that blocks a critical path, mutates shared protocol state, or change
 
 ## Natural isomorphism and representation independence
 
-A natural transformation \(\eta:F\Rightarrow G\) is a **natural isomorphism** if every component \(\eta_A\) is an isomorphism. Then \(F\) and \(G\) are the same translation up to a coherent representation change.
+A natural transformation $\eta:F\Rightarrow G$ is a **natural isomorphism** if every component $\eta_A$ is an isomorphism. Then $F$ and $G$ are the same translation up to a coherent representation change.
 
 This is a strong formulation of representation independence.
 
@@ -1577,11 +1577,11 @@ For example, if a UI migration preserves semantics only after all events through
 
 ## The functor category
 
-For categories \(\mathcal C\) and \(\mathcal D\), functors \(\mathcal C\to\mathcal D\) can themselves be objects of a category
+For categories $\mathcal C$ and $\mathcal D$, functors $\mathcal C\to\mathcal D$ can themselves be objects of a category
 
-\[
+$$
 \mathcal D^{\mathcal C},
-\]
+$$
 
 whose arrows are natural transformations.
 
@@ -1589,11 +1589,11 @@ This is a major conceptual step. Whole implementations become points in a design
 
 For SessionStream, one might define a category whose objects are lawful timeline projection functors and whose arrows are natural migrations. Composition of migrations is componentwise:
 
-\[
+$$
 (\theta\circ\eta)_A=\theta_A\circ\eta_A.
-\]
+$$
 
-Identity migration is the family of identity arrows. The category laws follow from those in \(\mathcal D\).
+Identity migration is the family of identity arrows. The category laws follow from those in $\mathcal D$.
 
 This perspective supports questions such as:
 
@@ -1606,14 +1606,14 @@ This perspective supports questions such as:
 
 Define two functors from a category of execution intervals to client states:
 
-- \(L\): observe the client continuously through live UI events;
-- \(H\): disconnect, hydrate from a snapshot at some cut, then consume the surviving suffix.
+- $L$: observe the client continuously through live UI events;
+- $H$: disconnect, hydrate from a snapshot at some cut, then consume the surviving suffix.
 
 A family of comparison maps
 
-\[
+$$
 \eta_I:H(I)\to L(I)
-\]
+$$
 
 normalizes the hydrated client state to the continuously live representation.
 
@@ -1627,7 +1627,7 @@ hydrated at I -------compare------> live at I
 hydrated at J -------compare------> live at J
 ```
 
-If every \(\eta_I\) is an isomorphism, reconnect is transparent at all cuts. In practice the live UI path may contain ephemeral animations or progress signals intentionally absent from snapshots. Then the comparison might target a quotient of client states that forgets ephemeral details.
+If every $\eta_I$ is an isomorphism, reconnect is transparent at all cuts. In practice the live UI path may contain ephemeral animations or progress signals intentionally absent from snapshots. Then the comparison might target a quotient of client states that forgets ephemeral details.
 
 The lesson is to pick the codomain where the desired naturality is actually true.
 
@@ -1641,7 +1641,7 @@ The lesson is to pick the codomain where the desired naturality is actually true
 
 **E6.4 - Client paths (two stars).** Define an equivalence relation that forgets ephemeral UI details. Determine whether hydration and continuous-live paths become naturally isomorphic after quotienting.
 
-**E6.5 - Testing (two stars).** Generate random cut pairs \(m\le n\) and test a migration naturality square. Explain how to avoid sharing implementation code between the two paths.
+**E6.5 - Testing (two stars).** Generate random cut pairs $m\le n$ and test a migration naturality square. Explain how to avoid sharing implementation code between the two paths.
 
 **E6.6 - Composition (two stars).** Given migrations v1 -> v2 and v2 -> v3, prove their componentwise composite is natural. Translate the proof into a test strategy.
 
@@ -1659,53 +1659,53 @@ Read Goldblatt Section 9.2 on natural transformations and equivalence of categor
 
 An adjunction relates functors
 
-\[
+$$
 F:\mathcal C\rightleftarrows\mathcal D:G
-\]
+$$
 
 through a natural bijection
 
-\[
+$$
 \mathcal D(F(A),B)
 \cong
 \mathcal C(A,G(B)).
-\]
+$$
 
 We write
 
-\[
+$$
 F\dashv G
-\]
+$$
 
-and say \(F\) is left adjoint to \(G\), while \(G\) is right adjoint to \(F\).
+and say $F$ is left adjoint to $G$, while $G$ is right adjoint to $F$.
 
 A left adjoint typically builds the freest object satisfying a structural requirement. A right adjoint typically extracts or organizes all compatible observations. These are tendencies, not definitions.
 
-The bijection says that an arrow out of the constructed object \(F(A)\) is the same data as an arrow from \(A\) into the underlying object \(G(B)\), naturally in both variables.
+The bijection says that an arrow out of the constructed object $F(A)$ is the same data as an arrow from $A$ into the underlying object $G(B)$, naturally in both variables.
 
 ## Free monoids and event histories
 
 The standard software-relevant example is the free-monoid adjunction.
 
-Let \(U:\mathbf{Mon}\to\mathbf{Set}\) forget monoid structure. Let \(L:\mathbf{Set}\to\mathbf{Mon}\) send a set \(E\) to the monoid \(E^*\) of finite lists under concatenation.
+Let $U:\mathbf{Mon}\to\mathbf{Set}$ forget monoid structure. Let $L:\mathbf{Set}\to\mathbf{Mon}$ send a set $E$ to the monoid $E^*$ of finite lists under concatenation.
 
 Then
 
-\[
+$$
 L\dashv U
-\]
+$$
 
 because monoid homomorphisms
 
-\[
+$$
 E^*\to M
-\]
+$$
 
 correspond naturally to ordinary functions
 
-\[
+$$
 E\to U(M).
-\]
+$$
 
 A function telling how each individual event acts on a state extends uniquely to an action of every finite event history, provided composition is monoidal.
 
@@ -1717,20 +1717,20 @@ For SessionStream, event histories are not literally the free monoid on untyped 
 
 Every adjunction has a unit
 
-\[
+$$
 \eta:1_{\mathcal C}\Rightarrow G F
-\]
+$$
 
 and counit
 
-\[
+$$
 \varepsilon:F G\Rightarrow1_{\mathcal D}.
-\]
+$$
 
 For the free-monoid adjunction:
 
-- \(\eta_E:E\to U(E^*)\) sends a generator to its singleton list;
-- \(\varepsilon_M:(U(M))^*\to M\) multiplies a list of monoid elements.
+- $\eta_E:E\to U(E^*)$ sends a generator to its singleton list;
+- $\varepsilon_M:(U(M))^*\to M$ multiplies a list of monoid elements.
 
 They satisfy the triangle identities, which express that freely adding structure and then interpreting it behaves coherently.
 
@@ -1740,17 +1740,17 @@ A software developer should look for these concrete maps. If an alleged adjuncti
 
 Let each canonical event determine an endomorphism of timeline state:
 
-\[
+$$
 \phi:E\to\operatorname{End}(T).
-\]
+$$
 
-By freeness, \(\phi\) extends uniquely to a monoid homomorphism
+By freeness, $\phi$ extends uniquely to a monoid homomorphism
 
-\[
+$$
 \overline\phi:E^*\to\operatorname{End}(T).
-\]
+$$
 
-Then replay is evaluation of \(\overline\phi\) on a history.
+Then replay is evaluation of $\overline\phi$ on a history.
 
 This yields two useful proof obligations:
 
@@ -1761,20 +1761,20 @@ Hidden inputs violate the first obligation because the event no longer determine
 
 ## Reflection: repairing an object into a subcategory
 
-Suppose \(\mathcal A\) is a full subcategory of \(\mathcal C\), with inclusion
+Suppose $\mathcal A$ is a full subcategory of $\mathcal C$, with inclusion
 
-\[
+$$
 I:\mathcal A\hookrightarrow\mathcal C.
-\]
+$$
 
-If \(I\) has a left adjoint
+If $I$ has a left adjoint
 
-\[
+$$
 R:\mathcal C\to\mathcal A,
 \qquad R\dashv I,
-\]
+$$
 
-then \(\mathcal A\) is reflective and \(R\) is a **reflection**. It sends an arbitrary object to a universal corrected object in \(\mathcal A\).
+then $\mathcal A$ is reflective and $R$ is a **reflection**. It sends an arbitrary object to a universal corrected object in $\mathcal A$.
 
 Software analogies include:
 
@@ -1790,23 +1790,23 @@ A validator that merely rejects invalid input is not a reflection. A repair is r
 
 ## Sheafification preview
 
-Later we will define a category of presheaves \(\mathbf{PSh}(\mathcal C)\) and its full subcategory of sheaves \(\mathbf{Sh}(\mathcal C,J)\). Under a Grothendieck topology \(J\), the inclusion
+Later we will define a category of presheaves $\mathbf{PSh}(\mathcal C)$ and its full subcategory of sheaves $\mathbf{Sh}(\mathcal C,J)$. Under a Grothendieck topology $J$, the inclusion
 
-\[
+$$
 I:\mathbf{Sh}(\mathcal C,J)\hookrightarrow\mathbf{PSh}(\mathcal C)
-\]
+$$
 
 has a left adjoint
 
-\[
+$$
 a:\mathbf{PSh}(\mathcal C)\to\mathbf{Sh}(\mathcal C,J).
-\]
+$$
 
 The unit
 
-\[
+$$
 \eta_F:F\to I(aF)
-\]
+$$
 
 maps local data into its sheafified form.
 
@@ -1831,9 +1831,9 @@ A geometric morphism between topoi is organized around an inverse-image functor 
 
 An encoder/decoder pair is often described as an adjunction without justification. A round-trip law
 
-\[
+$$
 \operatorname{decode}\circ\operatorname{encode}=1
-\]
+$$
 
 describes a retraction or isomorphism candidate, not an adjunction by itself.
 
@@ -1845,23 +1845,23 @@ Use the word precisely. Adjunction is powerful because it packages a universal o
 
 In posets, an adjunction is a Galois connection:
 
-\[
+$$
 F(p)\le q
 \quad\Longleftrightarrow\quad
 p\le G(q).
-\]
+$$
 
 This can model information and requirements.
 
-Let \(P\) be a poset of parameter sets ordered by inclusion, and \(I\) a poset of decidable invariants ordered by implication or information content. A closure operation sends supplied parameters to all facts derivable from them. Another operation sends an invariant to the weakest required information.
+Let $P$ be a poset of parameter sets ordered by inclusion, and $I$ a poset of decidable invariants ordered by implication or information content. A closure operation sends supplied parameters to all facts derivable from them. Another operation sends an invariant to the weakest required information.
 
 Under favorable conditions these form an adjunction:
 
-\[
+$$
 \operatorname{derive}(P)\models I
 \quad\Longleftrightarrow\quad
 P\supseteq\operatorname{requirements}(I).
-\]
+$$
 
 Database functional-dependency closure is often a more direct tool than sheaf cohomology for the question "are these REST parameters enough?" The adjunction/Galois-connection view clarifies why: one side generates consequences, the other extracts requirements.
 
@@ -1906,22 +1906,22 @@ A context answers:
 
 A useful first SessionStream context is
 
-\[
+$$
 U=(s,I,K),
-\]
+$$
 
 where:
 
-- \(s\) is a session;
-- \(I\subseteq\mathbb N\) is an ordinal region, often a prefix or interval;
-- \(K\subseteq\{E,T,S,U,W,C,O\}\) is a set of visible lenses:
-  - \(E\): canonical event log;
-  - \(T\): timeline materialization;
-  - \(S\): snapshot representation;
-  - \(U\): projected UI batches;
-  - \(W\): WebSocket subscription state and buffer;
-  - \(C\): client state;
-  - \(O\): observer/trace records.
+- $s$ is a session;
+- $I\subseteq\mathbb N$ is an ordinal region, often a prefix or interval;
+- $K\subseteq\{E,T,S,U,W,C,O\}$ is a set of visible lenses:
+  - $E$: canonical event log;
+  - $T$: timeline materialization;
+  - $S$: snapshot representation;
+  - $U$: projected UI batches;
+  - $W$: WebSocket subscription state and buffer;
+  - $C$: client state;
+  - $O$: observer/trace records.
 
 The context can be refined later with schema, tenant, replica, and policy coordinates.
 
@@ -1929,37 +1929,37 @@ The context can be refined later with schema, tenant, replica, and policy coordi
 
 Write
 
-\[
+$$
 V\subseteq U
-\]
+$$
 
-when \(V\) asks a smaller question than \(U\). For the simple tuple model this means:
+when $V$ asks a smaller question than $U$. For the simple tuple model this means:
 
 - the session agrees;
-- \(I_V\subseteq I_U\);
-- \(K_V\subseteq K_U\).
+- $I_V\subseteq I_U$;
+- $K_V\subseteq K_U$.
 
 There is one arrow
 
-\[
+$$
 V\hookrightarrow U
-\]
+$$
 
 for every such inclusion. This makes the contexts a poset category.
 
 Examples:
 
-\[
+$$
 (s,[0,40],\{E\})
 \hookrightarrow
 (s,[0,50],\{E,T,S\}),
-\]
+$$
 
-\[
+$$
 (s,[0,50],\{S\})
 \hookrightarrow
 (s,[0,50],\{E,T,S,U,W,C\}).
-\]
+$$
 
 The arrow points from the smaller region to the larger region, matching the category of open sets in topology. Data will restrict in the opposite direction.
 
@@ -1969,11 +1969,11 @@ The set of ordinals supports more than one useful topology or context order.
 
 ### Prefix geometry
 
-Contexts are prefixes \([0,n]\), ordered by inclusion. This models accumulated history. Every two prefixes are comparable, so the base is a chain. Chains have no interesting overlap loops by themselves.
+Contexts are prefixes $[0,n]$, ordered by inclusion. This models accumulated history. Every two prefixes are comparable, so the base is a chain. Chains have no interesting overlap loops by themselves.
 
 ### Interval geometry
 
-Contexts are intervals \([m,n]\), with inclusions. Overlaps can form richer patterns. This is useful for trace windows, batch processing, and local replay proofs.
+Contexts are intervals $[m,n]$, with inclusions. Overlaps can form richer patterns. This is useful for trace windows, batch processing, and local replay proofs.
 
 ### Causal geometry
 
@@ -2001,18 +2001,18 @@ The multidimensional shape in this book primarily comes from these products and 
 
 Suppose the whole execution context is
 
-\[
+$$
 X=(s,[0,100],\{E,T,S,U,W,C,O\}).
-\]
+$$
 
 Subcontexts include:
 
-- database-only history \((s,[0,100],\{E,T,S\})\);
-- connection hydration window \((s,[75,100],\{S,U,W,C\})\);
-- heartbeat trace \((s,[90,100],\{W,O\})\);
-- event-prefix replay context \((s,[0,80],\{E,T\})\).
+- database-only history $(s,[0,100],\{E,T,S\})$;
+- connection hydration window $(s,[75,100],\{S,U,W,C\})$;
+- heartbeat trace $(s,[90,100],\{W,O\})$;
+- event-prefix replay context $(s,[0,80],\{E,T\})$.
 
-An architecture does not need a component that literally stores \(X\). The maximal context can be an ideal semantic object used to ask whether the local views admit one coherent completion.
+An architecture does not need a component that literally stores $X$. The maximal context can be an ideal semantic object used to ask whether the local views admit one coherent completion.
 
 This distinction is essential. A global section can represent a logically coherent execution even when no single process observes it atomically. Conversely, every process can hold locally valid state while no global section exists.
 
@@ -2020,27 +2020,27 @@ This distinction is essential. A global section can represent a logically cohere
 
 The overlap of two contexts is their meet when it exists:
 
-\[
+$$
 U\cap V=(s,I_U\cap I_V,K_U\cap K_V).
-\]
+$$
 
 The overlap contains exactly the questions both contexts can answer.
 
 For example:
 
-\[
+$$
 U=(s,[0,50],\{E,T\}),
-\]
+$$
 
-\[
+$$
 V=(s,[40,70],\{T,S\}),
-\]
+$$
 
 then
 
-\[
+$$
 U\cap V=(s,[40,50],\{T\}).
-\]
+$$
 
 Compatibility on this overlap means that both views induce the same timeline information over ordinals 40 through 50.
 
@@ -2048,7 +2048,7 @@ If the lens intersection is empty, the contexts may still share session/cut/sche
 
 ## Covers
 
-A family of subcontexts \(\{U_i\hookrightarrow U\}\) **covers** \(U\) when it collectively counts as enough local observation for the intended semantics.
+A family of subcontexts $\{U_i\hookrightarrow U\}$ **covers** $U$ when it collectively counts as enough local observation for the intended semantics.
 
 In an ordinary topological space, open sets cover when their union is the region. In software, "enough" may depend on policy:
 
@@ -2077,17 +2077,17 @@ Changing the topology can turn the same presheaf into a sheaf or a nonsheaf. Thi
 
 For serious SessionStream work, use something like
 
-\[
+$$
 U=(s,I,K,v,p,r),
-\]
+$$
 
 where:
 
-- \(v\) is a vector of schema/protocol versions;
-- \(p\) is a policy set: ordering, retry, error, and consistency semantics;
-- \(r\) is a replica/deployment region.
+- $v$ is a vector of schema/protocol versions;
+- $p$ is a policy set: ordering, retry, error, and consistency semantics;
+- $r$ is a replica/deployment region.
 
-An inclusion \(V\hookrightarrow U\) then needs explicit variance rules. For example:
+An inclusion $V\hookrightarrow U$ then needs explicit variance rules. For example:
 
 - time and lens coordinates grow by inclusion;
 - version may map by a migration rather than inclusion;
@@ -2149,48 +2149,48 @@ Do not visualize a presheaf yet. Visualize only the base:
 
 ## Definition from the software operation
 
-Suppose every context \(U\) has a set \(\mathcal F(U)\) of possible observations, configurations, or local states. Whenever \(V\hookrightarrow U\), data on \(U\) can be restricted to data on \(V\):
+Suppose every context $U$ has a set $\mathcal F(U)$ of possible observations, configurations, or local states. Whenever $V\hookrightarrow U$, data on $U$ can be restricted to data on $V$:
 
-\[
+$$
 \rho^U_V:\mathcal F(U)\to\mathcal F(V).
-\]
+$$
 
 The operations must satisfy:
 
-\[
+$$
 \rho^U_U=1_{\mathcal F(U)},
-\]
+$$
 
-\[
+$$
 \rho^V_W\circ\rho^U_V=\rho^U_W
 \qquad(W\subseteq V\subseteq U).
-\]
+$$
 
-> **Definition.** A presheaf of sets on a category \(\mathcal C\) is a functor
+> **Definition.** A presheaf of sets on a category $\mathcal C$ is a functor
 >
-> \[
+> $$
 > \mathcal F:\mathcal C^{op}\to\mathbf{Set}.
-> \]
+> $$
 
 The first law says restricting to the same context does nothing. The second says forgetting in stages equals forgetting directly.
 
 A member
 
-\[
+$$
 s\in\mathcal F(U)
-\]
+$$
 
-is a **section over \(U\)**. Its restriction to \(V\) is \(s|_V\).
+is a **section over $U$**. Its restriction to $V$ is $s|_V$.
 
 ## The presheaf of parameter assignments
 
-Let the base category be finite sets of parameter names ordered by inclusion. For a parameter set \(U\), define
+Let the base category be finite sets of parameter names ordered by inclusion. For a parameter set $U$, define
 
-\[
+$$
 \mathcal A(U)=\{\text{well-typed assignments to every parameter in }U\}.
-\]
+$$
 
-If \(V\subseteq U\), restriction drops the fields not in \(V\).
+If $V\subseteq U$, restriction drops the fields not in $V$.
 
 This is the simplest software presheaf. The functor laws are ordinary record projection laws.
 
@@ -2216,11 +2216,11 @@ A global assignment is a value for every parameter in the maximal context. Local
 
 Now impose local constraints. Define
 
-\[
+$$
 \mathcal V(U)=\{a\in\mathcal A(U)\mid a\text{ satisfies all constraints visible in }U\}.
-\]
+$$
 
-For \(\mathcal V\) to be a presheaf, validity must be preserved by restriction. This is not automatic.
+For $\mathcal V$ to be a presheaf, validity must be preserved by restriction. This is not automatic.
 
 Suppose a full record must satisfy `amount = price * quantity`. If a smaller context retains `amount` but forgets `price` and `quantity`, what does "valid" mean there? Possible choices:
 
@@ -2235,19 +2235,19 @@ The local-to-global approach forces this ambiguity into the open.
 
 ## Fibres and parameter sufficiency
 
-Let \(X\) be the maximal semantic parameter context and \(P\subseteq X\) the supplied API parameters. Restriction gives
+Let $X$ be the maximal semantic parameter context and $P\subseteq X$ the supplied API parameters. Restriction gives
 
-\[
+$$
 r_P:\mathcal V(X)\to\mathcal V(P).
-\]
+$$
 
-For a payload \(p\in\mathcal V(P)\), its fibre is
+For a payload $p\in\mathcal V(P)$, its fibre is
 
-\[
+$$
 r_P^{-1}(p)
 =
 \{x\in\mathcal V(X)\mid x|_P=p\}.
-\]
+$$
 
 Interpretation:
 
@@ -2255,18 +2255,18 @@ Interpretation:
 - singleton fibre: the payload determines one global state;
 - multiple-element fibre: the payload is underdetermined.
 
-For a particular invariant \(I:\mathcal V(X)\to Q\), parameters are sufficient to decide \(I\) at payload \(p\) when
+For a particular invariant $I:\mathcal V(X)\to Q$, parameters are sufficient to decide $I$ at payload $p$ when
 
-\[
+$$
 I(x)=I(y)
 \quad\text{for all }x,y\in r_P^{-1}(p).
-\]
+$$
 
 This is the precise presheaf/fibre version of the original API question. It is often more useful than cohomology.
 
 ## The event-history presheaf
 
-Let contexts be ordinal intervals. Define \(\mathcal E(I)\) to be the set of all valid event assignments on interval \(I\). A section chooses an event for each ordinal in the interval, respecting session and schema constraints. Restriction truncates the assignment to a subinterval.
+Let contexts be ordinal intervals. Define $\mathcal E(I)$ to be the set of all valid event assignments on interval $I$. A section chooses an event for each ordinal in the interval, respecting session and schema constraints. Restriction truncates the assignment to a subinterval.
 
 This is a presheaf because restricting a function by domain satisfies identity and composition.
 
@@ -2276,19 +2276,19 @@ The presheaf of **possible** histories is more informative than the single actua
 
 ## The snapshot-history presheaf
 
-For prefix context \([0,n]\), define
+For prefix context $[0,n]$, define
 
-\[
+$$
 \mathcal S(n)=\{\text{sound and complete snapshots as of }n\}.
-\]
+$$
 
-For \(m\le n\), temporal restriction should produce
+For $m\le n$, temporal restriction should produce
 
-\[
+$$
 \rho^n_m:\mathcal S(n)\to\mathcal S(m).
-\]
+$$
 
-How can a snapshot at \(n\) be restricted to \(m\)? A current-state snapshot alone may not contain enough history. The operation can instead use:
+How can a snapshot at $n$ be restricted to $m$? A current-state snapshot alone may not contain enough history. The operation can instead use:
 
 - canonical event replay;
 - a versioned entity store;
@@ -2296,46 +2296,46 @@ How can a snapshot at \(n\) be restricted to \(m\)? A current-state snapshot alo
 - persistent data structures;
 - a proof-carrying snapshot that retains history.
 
-Thus \(\mathcal S\) may exist semantically but not be computed from the raw `Snapshot` value. Presheaf structure can reveal a missing API capability.
+Thus $\mathcal S$ may exist semantically but not be computed from the raw `Snapshot` value. Presheaf structure can reveal a missing API capability.
 
 The SQLite store's entity-version table and `asOf` query are close to implementing this temporal restriction. A current-row-only store would not.
 
 ## The presheaf of trace observations
 
-For a context \(U\) consisting of a set of transport stages and time interval, let
+For a context $U$ consisting of a set of transport stages and time interval, let
 
-\[
+$$
 \mathcal O(U)=\{\text{observer traces visible in }U\}.
-\]
+$$
 
 Restriction drops records outside the interval or stage set. This can be a presheaf even when the observer is best-effort, provided sections represent what was recorded rather than the complete protocol truth.
 
 Do not conflate:
 
-\[
+$$
 \mathcal O(U)=\text{observed records}
-\]
+$$
 
 with
 
-\[
+$$
 \mathcal P(U)=\text{actual protocol transitions}.
-\]
+$$
 
 There may be a natural transformation
 
-\[
+$$
 \mathcal P\Rightarrow\mathcal O
-\]
+$$
 
 that forgets unobserved details, but dropped observer records mean it is not generally injective.
 
 ## The presheaf of local invariants
 
-Let \(\mathcal F\) be a presheaf of states. A property \(P\) defines a subpresheaf \(\mathcal P\hookrightarrow\mathcal F\) when:
+Let $\mathcal F$ be a presheaf of states. A property $P$ defines a subpresheaf $\mathcal P\hookrightarrow\mathcal F$ when:
 
-- \(\mathcal P(U)\subseteq\mathcal F(U)\) for every context;
-- if \(s\in\mathcal P(U)\), then \(s|_V\in\mathcal P(V)\) for every \(V\subseteq U\).
+- $\mathcal P(U)\subseteq\mathcal F(U)$ for every context;
+- if $s\in\mathcal P(U)$, then $s|_V\in\mathcal P(V)$ for every $V\subseteq U$.
 
 That is, truth of the property is stable under restriction.
 
@@ -2350,19 +2350,19 @@ This stability requirement anticipates the internal logic of a topos. Not every 
 
 ## Compatible families
 
-Let \(\{U_i\to U\}\) be a cover. A family
+Let $\{U_i\to U\}$ be a cover. A family
 
-\[
+$$
 s_i\in\mathcal F(U_i)
-\]
+$$
 
-is **compatible** or **matching** when for every pair \(i,j\), the restrictions agree on the overlap:
+is **compatible** or **matching** when for every pair $i,j$, the restrictions agree on the overlap:
 
-\[
+$$
 s_i|_{U_i\cap U_j}
 =
 s_j|_{U_i\cap U_j}.
-\]
+$$
 
 Compatibility is pairwise equality after forgetting to shared information.
 
@@ -2372,15 +2372,15 @@ In a database analogy, every pairwise join may be nonempty while the full multiw
 
 ## Global sections and completions
 
-If \(X\) is a maximal context, a global section is simply an element of \(\mathcal F(X)\). Categorically, it is a natural transformation from the terminal presheaf \(1\) to \(\mathcal F\).
+If $X$ is a maximal context, a global section is simply an element of $\mathcal F(X)$. Categorically, it is a natural transformation from the terminal presheaf $1$ to $\mathcal F$.
 
-Given local sections \(s_i\), a global completion is \(s\in\mathcal F(X)\) such that
+Given local sections $s_i$, a global completion is $s\in\mathcal F(X)$ such that
 
-\[
+$$
 s|_{U_i}=s_i
-\]
+$$
 
-for every \(i\).
+for every $i$.
 
 There may be:
 
@@ -2393,16 +2393,16 @@ This four-way distinction is more informative than a Boolean "consistent/inconsi
 
 ## Separated presheaves
 
-A presheaf is **separated** for a coverage when two sections over \(U\) that agree on every member of a cover must be equal.
+A presheaf is **separated** for a coverage when two sections over $U$ that agree on every member of a cover must be equal.
 
 Formally, if
 
-\[
+$$
 s|_{U_i}=t|_{U_i}
 \quad\text{for all }i,
-\]
+$$
 
-then \(s=t\).
+then $s=t$.
 
 Separatedness is the uniqueness half of the sheaf condition.
 
@@ -2456,56 +2456,56 @@ Goldblatt's explicit functor language appears in Chapter 9, while his sheaf deve
 
 Goldblatt introduces bundles before sheaves: start with many sets indexed by a base, place each set over its index, take their disjoint union, and obtain a projection to the base. This gives a visual object before restriction maps and gluing become abstract.
 
-Let \(B\) be a set of base points. For each \(b\in B\), let \(E_b\) be a set, with fibres made disjoint by tagging if necessary. Define the total space
+Let $B$ be a set of base points. For each $b\in B$, let $E_b$ be a set, with fibres made disjoint by tagging if necessary. Define the total space
 
-\[
+$$
 E=\coprod_{b\in B}E_b
-\]
+$$
 
 and projection
 
-\[
+$$
 p:E\to B,
 \qquad p(e)=b\text{ when }e\in E_b.
-\]
+$$
 
 Then
 
-\[
+$$
 E_b=p^{-1}(b)
-\]
+$$
 
-is the **fibre** or **stalk** over \(b\). An element of a fibre is a **germ** at \(b\) in Goldblatt's introductory terminology.
+is the **fibre** or **stalk** over $b$. An element of a fibre is a **germ** at $b$ in Goldblatt's introductory terminology.
 
 A section is a map
 
-\[
+$$
 s:B\to E
-\]
+$$
 
 with
 
-\[
+$$
 p\circ s=1_B.
-\]
+$$
 
 It chooses one element in every fibre.
 
 ## A SessionStream bundle over sessions
 
-Take the base to be active session IDs. Over session \(s\), place the set of valid timeline states:
+Take the base to be active session IDs. Over session $s$, place the set of valid timeline states:
 
-\[
+$$
 E_s=\{\text{valid timeline states for }s\}.
-\]
+$$
 
 The total space consists of pairs
 
-\[
+$$
 (s,T)
-\]
+$$
 
-with projection \(p(s,T)=s\).
+with projection $p(s,T)=s$.
 
 A section chooses one valid timeline state for every session. A running hydration store is an implementation of part of such a section, assuming it has one current materialization per session.
 
@@ -2522,23 +2522,23 @@ If tenant policy couples sessions, an arbitrary choice of one state per fibre ma
 
 Use a richer base
 
-\[
+$$
 B=\{(s,n)\mid s\text{ a session}, n\text{ an ordinal cut}\}.
-\]
+$$
 
-The fibre over \((s,n)\) can be:
+The fibre over $(s,n)$ can be:
 
-\[
+$$
 E_{(s,n)}=\mathcal S_s(n),
-\]
+$$
 
 the set of sound and complete snapshots at that cut.
 
 A section over a subset of the base chooses one snapshot for each session-cut pair. A deterministic replay semantics may produce a distinguished section
 
-\[
+$$
 (s,n)\mapsto S_s(n).
-\]
+$$
 
 Temporal restriction relates fibres over different cuts. The bundle alone only places sets over points; a presheaf additionally supplies the maps between them.
 
@@ -2546,19 +2546,19 @@ Temporal restriction relates fibres over different cuts. The bundle alone only p
 
 Let a base point be
 
-\[
+$$
 b=(s,n,K),
-\]
+$$
 
-an exact session, cut, and observer lens. The fibre \(E_b\) contains every locally valid observation in that context.
+an exact session, cut, and observer lens. The fibre $E_b$ contains every locally valid observation in that context.
 
 Examples:
 
-- over \((s,n,\{E\})\): valid event prefixes;
-- over \((s,n,\{T\})\): valid timeline views;
-- over \((s,n,\{S\})\): snapshots;
-- over \((s,n,\{W\})\): WebSocket subscription states;
-- over \((s,n,\{E,T,S\})\): compatible triples.
+- over $(s,n,\{E\})$: valid event prefixes;
+- over $(s,n,\{T\})$: valid timeline views;
+- over $(s,n,\{S\})$: snapshots;
+- over $(s,n,\{W\})$: WebSocket subscription states;
+- over $(s,n,\{E,T,S\})$: compatible triples.
 
 Moving across the observer dimension changes the fibre type. Restriction maps transport germs from richer fibres to poorer ones.
 
@@ -2579,7 +2579,7 @@ This is the multidimensional picture:
 
 ## Local sections
 
-In topology, a section need not be defined on the entire base. A **local section** over a region \(U\subseteq B\) chooses a germ in every fibre over \(U\), continuously or compatibly according to the structure.
+In topology, a section need not be defined on the entire base. A **local section** over a region $U\subseteq B$ chooses a germ in every fibre over $U$, continuously or compatibly according to the structure.
 
 Software examples:
 
@@ -2593,11 +2593,11 @@ Local sections are first-class objects. Sheaf theory is not a method for pretend
 
 ## Germs as local behavior near a point
 
-In modern sheaf theory, the stalk \(\mathcal F_x\) at a topological point \(x\) is built from sections on neighborhoods of \(x\), identifying sections that agree on some smaller neighborhood. A germ records behavior "near \(x\)" without remembering the entire neighborhood.
+In modern sheaf theory, the stalk $\mathcal F_x$ at a topological point $x$ is built from sections on neighborhoods of $x$, identifying sections that agree on some smaller neighborhood. A germ records behavior "near $x$" without remembering the entire neighborhood.
 
-For an ordinal-time model, a point might be a cut \(n\). A germ could represent projection behavior in some interval around \(n\), modulo agreement on a smaller interval.
+For an ordinal-time model, a point might be a cut $n$. A germ could represent projection behavior in some interval around $n$, modulo agreement on a smaller interval.
 
-For a SessionStream transition, two implementations define the same germ at \(n\) if they agree on sufficiently local traces around that cut, even if they differ elsewhere.
+For a SessionStream transition, two implementations define the same germ at $n$ if they agree on sufficiently local traces around that cut, even if they differ elsewhere.
 
 This can formalize local bug signatures:
 
@@ -2609,7 +2609,7 @@ Stalks deliberately forget global context. Cohomology and global sections study 
 
 ## Display spaces and the "shape above the base"
 
-Under suitable conditions, a sheaf can be represented by an étale or display space \(p:E\to B\) whose local sections recover the sheaf. The total space may have many sheets over the same base region.
+Under suitable conditions, a sheaf can be represented by an étale or display space $p:E\to B$ whose local sections recover the sheaf. The total space may have many sheets over the same base region.
 
 For software intuition, imagine all valid local states floating above each context. Restriction and local continuity connect nearby possibilities. A global section is a path or surface selecting compatible possibilities everywhere.
 
@@ -2639,7 +2639,7 @@ A plain bundle allows arbitrary independent choices. A sheaf-like model adds ove
 
 This is a useful general software pattern:
 
-\[
+$$
 \text{interfaces as base points},
 \quad
 \text{implementations as fibres},
@@ -2647,17 +2647,17 @@ This is a useful general software pattern:
 \text{wiring as a section},
 \quad
 \text{integration laws as gluing constraints}.
-\]
+$$
 
 ## Sections as generalized elements
 
-In a category with terminal object \(1\), an element of \(A\) is an arrow
+In a category with terminal object $1$, an element of $A$ is an arrow
 
-\[
+$$
 1\to A.
-\]
+$$
 
-For a bundle \(p:E\to B\), a section is an arrow in the slice category \(\mathbf{Set}/B\) from the terminal object \(1_B:B\to B\) to \(p:E\to B\).
+For a bundle $p:E\to B$, a section is an arrow in the slice category $\mathbf{Set}/B$ from the terminal object $1_B:B\to B$ to $p:E\to B$.
 
 This unifies three ideas:
 
@@ -2693,26 +2693,26 @@ Read Goldblatt Section 4.5 through his construction of bundles, fibres, total sp
 
 A presheaf knows how to restrict. It does not promise that compatible local sections come from a global section.
 
-Let \(\{U_i\to U\}\) be a cover and let
+Let $\{U_i\to U\}$ be a cover and let
 
-\[
+$$
 s_i\in\mathcal F(U_i)
-\]
+$$
 
 be a matching family:
 
-\[
+$$
 s_i|_{U_i\cap U_j}=s_j|_{U_i\cap U_j}
 \quad\text{for all }i,j.
-\]
+$$
 
-> **Definition.** A presheaf \(\mathcal F\) is a sheaf when every matching family has a unique amalgamation \(s\in\mathcal F(U)\) satisfying
+> **Definition.** A presheaf $\mathcal F$ is a sheaf when every matching family has a unique amalgamation $s\in\mathcal F(U)$ satisfying
 >
-> \[
+> $$
 > s|_{U_i}=s_i
-> \]
+> $$
 >
-> for every \(i\).
+> for every $i$.
 
 The axiom has two independent parts:
 
@@ -2723,15 +2723,15 @@ A sheaf has exactly one.
 
 ## The event-interval sheaf
 
-Let \(\mathcal E(I)\) be valid event assignments on ordinal interval \(I\), with restriction by truncation. Suppose intervals \(I_i\) cover \(I\), and local histories agree on every overlap.
+Let $\mathcal E(I)$ be valid event assignments on ordinal interval $I$, with restriction by truncation. Suppose intervals $I_i$ cover $I$, and local histories agree on every overlap.
 
-Define the global history pointwise: for ordinal \(n\in I\), choose any \(I_i\) containing \(n\) and set
+Define the global history pointwise: for ordinal $n\in I$, choose any $I_i$ containing $n$ and set
 
-\[
+$$
 e(n)=e_i(n).
-\]
+$$
 
-Overlap agreement makes this well-defined. The resulting history restricts to every \(e_i\), and it is unique because every ordinal lies in some cover member.
+Overlap agreement makes this well-defined. The resulting history restricts to every $e_i$, and it is unique because every ordinal lies in some cover member.
 
 Thus event assignments form a sheaf under ordinary interval coverage, provided "valid" constraints are local and preserved by union.
 
@@ -2741,12 +2741,12 @@ The failure tells us the invariant is not local with respect to those intervals.
 
 ## Snapshot and suffix as a sheaf-like cover
 
-Define a whole reconnect context \(R_s(m)\) and two covering contexts:
+Define a whole reconnect context $R_s(m)$ and two covering contexts:
 
-- prefix snapshot context \(P_s(n)\);
-- live suffix context \(L_s(n,m)\).
+- prefix snapshot context $P_s(n)$;
+- live suffix context $L_s(n,m)$.
 
-Their pullback/overlap is the boundary context \(B_s(n)\).
+Their pullback/overlap is the boundary context $B_s(n)$.
 
 ```text
 B_s(n) ------------> L_s(n,m)
@@ -2756,7 +2756,7 @@ B_s(n) ------------> L_s(n,m)
 P_s(n) ------------> R_s(m)
 ```
 
-A section on \(P_s(n)\) contains:
+A section on $P_s(n)$ contains:
 
 - snapshot state;
 - session ID;
@@ -2764,7 +2764,7 @@ A section on \(P_s(n)\) contains:
 - schema/reducer version;
 - evidence or assumption that the snapshot represents the prefix.
 
-A section on \(L_s(n,m)\) contains:
+A section on $L_s(n,m)$ contains:
 
 - ordered live UI batches;
 - session ID;
@@ -2773,7 +2773,7 @@ A section on \(L_s(n,m)\) contains:
 
 They match when their boundary restrictions agree.
 
-A glued section on \(R_s(m)\) is a reconstructed client execution. The sheaf claim is:
+A glued section on $R_s(m)$ is a reconstructed client execution. The sheaf claim is:
 
 > Every compatible snapshot and live suffix determine one client execution, up to the declared client-state equivalence.
 
@@ -2820,7 +2820,7 @@ Snapshot payloads and live UI payloads use versions with no common migration at 
 
 ### Temporal gap
 
-The snapshot ends at \(n\), but the earliest available suffix begins at \(n+2\).
+The snapshot ends at $n$, but the earliest available suffix begins at $n+2$.
 
 ### Nonassociative reducer
 
@@ -2848,9 +2848,9 @@ For a relational schema, local tables or projections can be treated as sections 
 
 The sheaf condition resembles a lossless-join property:
 
-\[
+$$
 R=\mathop{\bowtie}_{i} \pi_{U_i}(R)
-\]
+$$
 
 for the relevant relation and cover.
 
@@ -2865,15 +2865,15 @@ SessionStream snapshot construction is similar: entity-version rows are local fa
 
 ## A sheaf of deterministic projection behavior
 
-Let \(\mathcal P(I)\) be projection behaviors over event interval \(I\): functions taking an allowed boundary state to an output state and trace. Restriction to a subinterval should extract local behavior.
+Let $\mathcal P(I)$ be projection behaviors over event interval $I$: functions taking an allowed boundary state to an output state and trace. Restriction to a subinterval should extract local behavior.
 
 If local projection behaviors agree on overlaps and compose associatively, they may glue to behavior over the union. This sheaf captures modular replay reasoning.
 
 However, extracting a subinterval behavior from a stateful fold may require boundary states. Therefore sections should include input/output interfaces:
 
-\[
+$$
 s_I:T_{\min I-1}\to T_{\max I}.
-\]
+$$
 
 Compatibility on adjacent intervals requires the output boundary of one to match the input boundary of the next. This is closer to a category of processes or a cosheaf of composed transitions than an ordinary set-valued sheaf. The example shows why choosing sections correctly matters.
 
@@ -2912,9 +2912,9 @@ You can have:
 
 Always state:
 
-\[
+$$
 (\text{base category},\text{coverage},\text{section type},\text{restriction maps},\text{equality}).
-\]
+$$
 
 Only then ask whether it is a sheaf.
 
@@ -2946,15 +2946,15 @@ Goldblatt Section 4.5 introduces sheaves through bundles and local sections; Cha
 
 Classical sheaves live on open sets of a topological space. Software contexts may not arise from literal point sets, and coverage may depend on structured families rather than union of regions.
 
-A **site** consists of a category \(\mathcal C\) together with a Grothendieck topology \(J\), or equivalently in many practical presentations a pretopology of covering families.
+A **site** consists of a category $\mathcal C$ together with a Grothendieck topology $J$, or equivalently in many practical presentations a pretopology of covering families.
 
-A covering family of an object \(U\) is a collection
+A covering family of an object $U$ is a collection
 
-\[
+$$
 \{U_i\to U\}
-\]
+$$
 
-declared sufficient to reconstruct local data on \(U\).
+declared sufficient to reconstruct local data on $U$.
 
 The coverage must behave coherently under identity, pullback, and refinement.
 
@@ -2964,25 +2964,25 @@ A common pretopology formulation requires:
 
 ### Identity
 
-The singleton family \(\{1_U:U\to U\}\) covers \(U\).
+The singleton family $\{1_U:U\to U\}$ covers $U$.
 
 Engineering reading: observing the whole context is enough to observe the whole context.
 
 ### Stability under pullback
 
-If \(\{U_i\to U\}\) covers \(U\) and \(V\to U\) is another context map, then the pulled-back family
+If $\{U_i\to U\}$ covers $U$ and $V\to U$ is another context map, then the pulled-back family
 
-\[
+$$
 \{V\times_U U_i\to V\}
-\]
+$$
 
-covers \(V\).
+covers $V$.
 
 Engineering reading: a valid observation plan remains valid when restricted to a subsystem, tenant, interval, or schema slice.
 
 ### Transitivity
 
-If \(\{U_i\to U\}\) covers \(U\), and each \(U_i\) is covered by \(\{V_{ij}\to U_i\}\), then the composite family \(\{V_{ij}\to U\}\) covers \(U\).
+If $\{U_i\to U\}$ covers $U$, and each $U_i$ is covered by $\{V_{ij}\to U_i\}$, then the composite family $\{V_{ij}\to U\}$ covers $U$.
 
 Engineering reading: replacing every local observer by a sufficient local implementation still yields sufficient global coverage.
 
@@ -3006,9 +3006,9 @@ The event-assignment presheaf is a sheaf on this site. A projection-behavior pre
 
 For reconnect, declare
 
-\[
+$$
 \{P_s(n)\to R_s(m),\ L_s(n,m)\to R_s(m)\}
-\]
+$$
 
 a cover only when the live section includes a reliable base-cut reference and all required suffix batches are available.
 
@@ -3035,15 +3035,15 @@ This site makes architecture assumptions explicit. If best-effort observations a
 
 ## Quorum coverage
 
-Let an object represent a replicated value across \(N\) replicas. Declare any quorum of size \(q\) to cover the replica set.
+Let an object represent a replicated value across $N$ replicas. Declare any quorum of size $q$ to cover the replica set.
 
 A sheaf for this coverage would say compatible quorum observations glue uniquely to a global value. This requires intersection properties and value/version rules.
 
 For majorities, any two quorums intersect when
 
-\[
+$$
 2q>N.
-\]
+$$
 
 But intersection alone does not guarantee compatibility: replicas may hold concurrent versions. Sections need version vectors, ballots, or another consistency witness. The topology says which families count as enough; the sheaf says whether the data and protocol make them sufficient.
 
@@ -3064,21 +3064,21 @@ A dangerous design declares unauthorized data part of an overlap implicitly. A s
 
 ## Coverage for REST parameter sufficiency
 
-Let objects be semantic parameter sets. A family \(\{P_i\subseteq X\}\) covers \(X\) when the selected parameter groups collectively determine the required invariant under declared functional dependencies.
+Let objects be semantic parameter sets. A family $\{P_i\subseteq X\}$ covers $X$ when the selected parameter groups collectively determine the required invariant under declared functional dependencies.
 
-For a transaction invariant \(I\), define a coverage \(J_I\) rather than one universal topology. A family covers when
+For a transaction invariant $I$, define a coverage $J_I$ rather than one universal topology. A family covers when
 
-\[
+$$
 \bigcup_i P_i
-\]
+$$
 
-has closure containing every attribute needed to decide \(I\).
+has closure containing every attribute needed to decide $I$.
 
 The assignment presheaf is a sheaf for ordinary union covers. The presheaf of **valid transaction states** may fail to be a sheaf if local constraints do not capture a global constraint. That failure pinpoints information or coordination missing from the API surface.
 
 ## Sieves
 
-A **sieve** \(S\) on \(U\) is a collection of arrows into \(U\) closed under precomposition. If \(V\to U\) belongs to the sieve and \(W\to V\), then \(W\to U\) also belongs.
+A **sieve** $S$ on $U$ is a collection of arrows into $U$ closed under precomposition. If $V\to U$ belongs to the sieve and $W\to V$, then $W\to U$ also belongs.
 
 In a context poset, a sieve is a downward-closed family of subcontexts.
 
@@ -3092,13 +3092,13 @@ Sieves become the truth values of a presheaf topos in Chapter 14.
 
 ## Sheafification
 
-Given a presheaf \(F\) that does not glue, sheafification constructs an associated sheaf \(aF\) and a natural map
+Given a presheaf $F$ that does not glue, sheafification constructs an associated sheaf $aF$ and a natural map
 
-\[
+$$
 \eta_F:F\to aF
-\]
+$$
 
-universal among maps from \(F\) to sheaves.
+universal among maps from $F$ to sheaves.
 
 A useful informal two-stage picture for set-valued presheaves is:
 
@@ -3107,7 +3107,7 @@ A useful informal two-stage picture for set-valued presheaves is:
 
 Repeating the completion/identification process yields a sheaf under standard conditions.
 
-The unit \(\eta_F\) can:
+The unit $\eta_F$ can:
 
 - identify globally distinct sections that are locally indistinguishable;
 - add global sections represented only by compatible local data;
@@ -3169,20 +3169,20 @@ Read Goldblatt Chapter 14, Sections 14.1-14.4 for restrictions, compatibility, s
 
 ## From one presheaf to all presheaves
 
-Fix a small context category \(\mathcal C\). The presheaves on \(\mathcal C\), together with natural transformations, form a category
+Fix a small context category $\mathcal C$. The presheaves on $\mathcal C$, together with natural transformations, form a category
 
-\[
+$$
 \widehat{\mathcal C}=\mathbf{Set}^{\mathcal C^{op}}.
-\]
+$$
 
-An object of \(\widehat{\mathcal C}\) is a type whose values vary by context and restrict lawfully. An arrow is a context-uniform transformation: a natural transformation.
+An object of $\widehat{\mathcal C}$ is a type whose values vary by context and restrict lawfully. An arrow is a context-uniform transformation: a natural transformation.
 
 This category is not just a container of examples. It has the structural features of a universe of sets:
 
 - finite limits;
 - finite colimits and, in fact, all small limits and colimits;
 - exponentials, or internal function spaces;
-- a subobject classifier \(\Omega\);
+- a subobject classifier $\Omega$;
 - an internal intuitionistic logic.
 
 A category with finite limits, exponentials, and a subobject classifier is an **elementary topos**. A category equivalent to sheaves on a site is a **Grothendieck topos**. Every presheaf category on a small category is a Grothendieck topos and therefore an elementary topos.
@@ -3195,31 +3195,31 @@ In the ordinary Go universe, a type has one global set of possible values. In a 
 
 Possible objects include:
 
-\[
+$$
 \mathsf{Events}(U)=\text{valid event histories visible in }U,
-\]
+$$
 
-\[
+$$
 \mathsf{Timeline}(U)=\text{valid timeline observations visible in }U,
-\]
+$$
 
-\[
+$$
 \mathsf{Snapshot}(U)=\text{snapshot information visible in }U,
-\]
+$$
 
-\[
+$$
 \mathsf{Client}(U)=\text{client states possible in }U,
-\]
+$$
 
-\[
+$$
 \mathsf{InvariantWitness}(U)=\text{proof objects available in }U.
-\]
+$$
 
 A projection becomes a natural transformation such as
 
-\[
+$$
 P:\mathsf{Events}\Rightarrow\mathsf{Timeline}
-\]
+$$
 
 when it commutes with every context restriction.
 
@@ -3233,33 +3233,33 @@ Events(V) --------P_V--------> Timeline(V)
 
 Naturality says projecting a rich context and then forgetting equals forgetting the events first and projecting locally.
 
-This may fail for a projection that needs information absent from \(V\). That failure is not a technical nuisance: it says the proposed transformation is not internal to the chosen context universe.
+This may fail for a projection that needs information absent from $V$. That failure is not a technical nuisance: it says the proposed transformation is not internal to the chosen context universe.
 
 ## Limits and colimits are computed contextwise
 
 In a presheaf category, limits and colimits are computed pointwise.
 
-For presheaves \(F,G\), the product has
+For presheaves $F,G$, the product has
 
-\[
+$$
 (F\times G)(U)=F(U)\times G(U),
-\]
+$$
 
 with restriction performed componentwise.
 
 The terminal presheaf has
 
-\[
+$$
 1(U)=\{*\}
-\]
+$$
 
-for every \(U\).
+for every $U$.
 
-The equalizer of \(\alpha,\beta:F\Rightarrow G\) has
+The equalizer of $\alpha,\beta:F\Rightarrow G$ has
 
-\[
+$$
 E(U)=\{x\in F(U)\mid \alpha_U(x)=\beta_U(x)\}.
-\]
+$$
 
 Coproducts and coequalizers are also formed contextwise, with the resulting restriction maps inherited naturally.
 
@@ -3267,77 +3267,77 @@ This is powerful for software modeling. Once event, snapshot, and client observa
 
 ## Why exponentials matter
 
-A topos has an exponential \(G^F\), an internal object of maps from \(F\) to \(G\), characterized by
+A topos has an exponential $G^F$, an internal object of maps from $F$ to $G$, characterized by
 
-\[
+$$
 \operatorname{Hom}(H\times F,G)
 \cong
 \operatorname{Hom}(H,G^F)
-\]
+$$
 
-naturally in \(H\).
+naturally in $H$.
 
-In `Set`, \(G^F\) is the set of all functions \(F\to G\). In a presheaf category, the exponential at context \(U\) is not generally just the set of pointwise functions \(F(U)\to G(U)\). A local function must behave naturally under every subcontext of \(U\).
+In `Set`, $G^F$ is the set of all functions $F\to G$. In a presheaf category, the exponential at context $U$ is not generally just the set of pointwise functions $F(U)\to G(U)$. A local function must behave naturally under every subcontext of $U$.
 
 One useful formula is
 
-\[
+$$
 (G^F)(U)
 \cong
 \operatorname{Nat}(yU\times F,G),
-\]
+$$
 
-where \(yU=\mathcal C(-,U)\) is the representable presheaf at \(U\).
+where $yU=\mathcal C(-,U)$ is the representable presheaf at $U$.
 
 Software interpretation:
 
-> A function available at context \(U\) is a family of operations valid not only on current values, but on all ways the context can be restricted, with coherent behavior across those restrictions.
+> A function available at context $U$ is a family of operations valid not only on current values, but on all ways the context can be restricted, with coherent behavior across those restrictions.
 
 This is much closer to a lawful component or generic handler than an arbitrary callback stored in a field.
 
 ## Representable presheaves and probing a context
 
-For an object \(U\in\mathcal C\), define the representable presheaf
+For an object $U\in\mathcal C$, define the representable presheaf
 
-\[
+$$
 yU(V)=\mathcal C(V,U).
-\]
+$$
 
-Its elements at \(V\) are the ways \(V\) maps into \(U\), usually the ways \(V\) sits as a subcontext of \(U\).
+Its elements at $V$ are the ways $V$ maps into $U$, usually the ways $V$ sits as a subcontext of $U$.
 
 The Yoneda lemma states
 
-\[
+$$
 \operatorname{Nat}(yU,F)\cong F(U).
-\]
+$$
 
-An element of \(F(U)\) is therefore equivalent to a natural way of responding to every probe \(V\to U\).
+An element of $F(U)$ is therefore equivalent to a natural way of responding to every probe $V\to U$.
 
 This gives a categorical version of interface-based observation:
 
-- the context \(U\) is known through all maps into it;
-- a section over \(U\) is known through all its restrictions;
+- the context $U$ is known through all maps into it;
+- a section over $U$ is known through all its restrictions;
 - equality of sections can be tested by their natural behavior under probes.
 
 For SessionStream, a snapshot section over a reconnect context is not merely a struct. Via Yoneda, it is equivalent to a coherent response to every subcontext query supported by the model.
 
 ## Subobjects as context-stable predicates
 
-A subobject \(P\hookrightarrow F\) selects a subset
+A subobject $P\hookrightarrow F$ selects a subset
 
-\[
+$$
 P(U)\subseteq F(U)
-\]
+$$
 
 at every context, stable under restriction.
 
 Thus a predicate internal to the presheaf topos must be hereditary:
 
-\[
+$$
 x\in P(U)
 \implies
 x|_V\in P(V).
-\]
+$$
 
 Examples:
 
@@ -3360,10 +3360,10 @@ The word comes historically from categories of sheaves, but an elementary topos 
 
 To claim that a software model forms a topos, you need an actual category with the required structure. The easiest rigorous route is:
 
-1. define a small context category \(\mathcal C\);
-2. take the presheaf category \(\widehat{\mathcal C}\), which is a topos;
-3. choose a Grothendieck topology \(J\);
-4. take the sheaf topos \(\mathbf{Sh}(\mathcal C,J)\).
+1. define a small context category $\mathcal C$;
+2. take the presheaf category $\widehat{\mathcal C}$, which is a topos;
+3. choose a Grothendieck topology $J$;
+4. take the sheaf topos $\mathbf{Sh}(\mathcal C,J)$.
 
 Your particular event, snapshot, or configuration presheaf is then an object *inside* that topos. SessionStream itself is not automatically a topos.
 
@@ -3421,27 +3421,27 @@ Goldblatt Chapter 4 defines elementary topoi through finite-limit structure, exp
 
 ## Characteristic functions in `Set`
 
-For a subset \(A\subseteq X\), the characteristic function
+For a subset $A\subseteq X$, the characteristic function
 
-\[
+$$
 \chi_A:X\to\{0,1\}
-\]
+$$
 
-sends members of \(A\) to `1` and nonmembers to `0`. The subset is recovered as the pullback of `true:{*}->{0,1}` along \(\chi_A\).
+sends members of $A$ to `1` and nonmembers to `0`. The subset is recovered as the pullback of `true:{*}->{0,1}` along $\chi_A$.
 
-A subobject classifier in a category is an object \(\Omega\) with an arrow
+A subobject classifier in a category is an object $\Omega$ with an arrow
 
-\[
+$$
 \mathsf{true}:1\to\Omega
-\]
+$$
 
-such that every monomorphism \(m:A\hookrightarrow X\) is, up to isomorphism, the pullback of `true` along a unique characteristic arrow
+such that every monomorphism $m:A\hookrightarrow X$ is, up to isomorphism, the pullback of `true` along a unique characteristic arrow
 
-\[
+$$
 \chi_m:X\to\Omega.
-\]
+$$
 
-In `Set`, \(\Omega=\{0,1\}\). In a presheaf topos, truth values are richer.
+In `Set`, $\Omega=\{0,1\}$. In a presheaf topos, truth values are richer.
 
 ## Why two truth values are insufficient locally
 
@@ -3455,81 +3455,81 @@ At a rich database context, the event log, entity versions, and cursor may be av
 
 A contextual truth value should record **where** the proposition holds under restriction, not only global yes/no.
 
-For an element \(x\in F(U)\) and subpresheaf \(P\hookrightarrow F\), its characteristic truth value at \(U\) is the set of arrows \(f:V\to U\) such that
+For an element $x\in F(U)$ and subpresheaf $P\hookrightarrow F$, its characteristic truth value at $U$ is the set of arrows $f:V\to U$ such that
 
-\[
+$$
 F(f)(x)\in P(V).
-\]
+$$
 
-That set is closed under further restriction, so it is a sieve on \(U\).
+That set is closed under further restriction, so it is a sieve on $U$.
 
 ## The subobject classifier of a presheaf topos
 
 For a presheaf category, define
 
-\[
+$$
 \Omega(U)=\{\text{sieves on }U\}.
-\]
+$$
 
-If \(f:V\to U\), restriction
+If $f:V\to U$, restriction
 
-\[
+$$
 \Omega(U)\to\Omega(V)
-\]
+$$
 
-pulls a sieve back along \(f\): keep the arrows into \(V\) whose composite into \(U\) lies in the original sieve.
+pulls a sieve back along $f$: keep the arrows into $V$ whose composite into $U$ lies in the original sieve.
 
-The maximal sieve containing every arrow into \(U\) is `true` at \(U\). The empty sieve is `false`.
+The maximal sieve containing every arrow into $U$ is `true` at $U$. The empty sieve is `false`.
 
-A truth value therefore has many possible intermediate states: the proposition may hold on some stable family of subcontexts without holding on all of \(U\).
+A truth value therefore has many possible intermediate states: the proposition may hold on some stable family of subcontexts without holding on all of $U$.
 
 ## A three-context chain
 
 Let
 
-\[
+$$
 U_0\subseteq U_1\subseteq U_2.
-\]
+$$
 
-The sieves on \(U_2\) are downward-closed collections of subcontexts. In the simple chain they are:
+The sieves on $U_2$ are downward-closed collections of subcontexts. In the simple chain they are:
 
-\[
+$$
 \varnothing,
-\]
+$$
 
-\[
+$$
 \{U_0\},
-\]
+$$
 
-\[
+$$
 \{U_0,U_1\},
-\]
+$$
 
-\[
+$$
 \{U_0,U_1,U_2\}.
-\]
+$$
 
-So \(\Omega(U_2)\) has four truth values, not two.
+So $\Omega(U_2)$ has four truth values, not two.
 
-Suppose `SnapshotSound` holds after restricting to client-visible fields \(U_0\) only vacuously, holds genuinely at store view \(U_1\), but fails at full concurrency context \(U_2\) because a race is visible. Depending on how the predicate is defined, its truth sieve might be \(\{U_0,U_1\}\).
+Suppose `SnapshotSound` holds after restricting to client-visible fields $U_0$ only vacuously, holds genuinely at store view $U_1$, but fails at full concurrency context $U_2$ because a race is visible. Depending on how the predicate is defined, its truth sieve might be $\{U_0,U_1\}$.
 
 Be careful with vacuity: a predicate that cannot be expressed after restriction should not automatically be marked true. The subpresheaf must encode what counts as evidence at each context.
 
 ## Characteristic arrows as invariant classifiers
 
-Let \(\mathsf{ValidSnapshot}\hookrightarrow\mathsf{Snapshot}\) be a subpresheaf. The characteristic arrow
+Let $\mathsf{ValidSnapshot}\hookrightarrow\mathsf{Snapshot}$ be a subpresheaf. The characteristic arrow
 
-\[
+$$
 \chi:\mathsf{Snapshot}\to\Omega
-\]
+$$
 
-assigns to every snapshot section \(x\in\mathsf{Snapshot}(U)\) the sieve
+assigns to every snapshot section $x\in\mathsf{Snapshot}(U)$ the sieve
 
-\[
+$$
 \chi_U(x)
 =
 \{f:V\to U\mid x|_V\text{ is valid in }V\}.
-\]
+$$
 
 This is a richer diagnostic than a Boolean validator:
 
@@ -3548,14 +3548,14 @@ The subobjects of an object in a topos form a Heyting algebra. At a fixed contex
 
 - conjunction is intersection;
 - disjunction is generated union, which for sieves is ordinary union;
-- implication \(S\Rightarrow T\) contains those arrows \(f:V\to U\) such that every further restriction belonging to \(S\) also belongs to \(T\);
-- negation is \(S\Rightarrow\varnothing\).
+- implication $S\Rightarrow T$ contains those arrows $f:V\to U$ such that every further restriction belonging to $S$ also belongs to $T$;
+- negation is $S\Rightarrow\varnothing$.
 
 Unlike Boolean algebra, it need not be true that
 
-\[
+$$
 S\cup\neg S=\top.
-\]
+$$
 
 There can be contexts where neither a proposition nor its negation is established.
 
@@ -3565,7 +3565,7 @@ This is not fuzzy probability. Truth values are structured regions of validity o
 
 ### Entity exists
 
-At context \(U\), a timeline entity may exist on some subcontexts but not others because earlier cuts precede its creation or later cuts contain a tombstone. The truth value records the cuts on which existence is stable.
+At context $U$, a timeline entity may exist on some subcontexts but not others because earlier cuts precede its creation or later cuts contain a tombstone. The truth value records the cuts on which existence is stable.
 
 ### Snapshot is fresh
 
@@ -3610,13 +3610,13 @@ Topos logic supports this distinction more naturally than global Booleans.
 
 **E14.2 - Sieves (one star).** List every sieve on a four-element chain. Identify top and bottom.
 
-**E14.3 - Characteristic sieve (two stars).** For a finite snapshot presheaf and validity subpresheaf, compute \(\chi_U(x)\) for several sections.
+**E14.3 - Characteristic sieve (two stars).** For a finite snapshot presheaf and validity subpresheaf, compute $\chi_U(x)$ for several sections.
 
 **E14.4 - Implication (two stars).** Compute the Heyting implication of two sieves on a small branching context poset.
 
-**E14.5 - Excluded middle (two stars).** Find a sieve \(S\) for which \(S\cup\neg S\ne\top\). Explain the corresponding software uncertainty.
+**E14.5 - Excluded middle (two stars).** Find a sieve $S$ for which $S\cup\neg S\ne\top$. Explain the corresponding software uncertainty.
 
-**E14.6 - Evidence (two stars).** Design a presheaf of snapshot-coherence witnesses and a natural map to \(\Omega\).
+**E14.6 - Evidence (two stars).** Design a presheaf of snapshot-coherence witnesses and a natural map to $\Omega$.
 
 **E14.7 - Tooling (three stars).** Design an invariant checker that returns a maximal supporting sieve rather than a Boolean. How would the UI display it?
 
@@ -3630,11 +3630,11 @@ Goldblatt Sections 4.1-4.3 motivate subobjects and subobject classifiers. Chapte
 
 For a sheaf or presheaf topos, write
 
-\[
+$$
 U\Vdash\varphi
-\]
+$$
 
-and read: "context \(U\) forces \(\varphi\)," or "\(\varphi\) holds locally over \(U\)."
+and read: "context $U$ forces $\varphi$," or "$\varphi$ holds locally over $U$."
 
 This is not an additional runtime command. It is the external description of the internal logic of the topos.
 
@@ -3647,25 +3647,25 @@ The exact clauses depend on variance and the site. The following intuition is re
 
 ## Equality
 
-For sections \(x,y\in F(U)\),
+For sections $x,y\in F(U)$,
 
-\[
+$$
 U\Vdash x=y
-\]
+$$
 
-when they are equal as sections over \(U\). In a sheaf, equality can be checked locally:
+when they are equal as sections over $U$. In a sheaf, equality can be checked locally:
 
-\[
+$$
 U\Vdash x=y
-\]
+$$
 
-if there is a cover \(\{U_i\to U\}\) such that
+if there is a cover $\{U_i\to U\}$ such that
 
-\[
+$$
 U_i\Vdash x|_{U_i}=y|_{U_i}
-\]
+$$
 
-for every \(i\).
+for every $i$.
 
 This is the logical form of separatedness and gluing.
 
@@ -3675,35 +3675,35 @@ For SessionStream, normalized snapshots may be equal locally on every entity-kin
 
 Conjunction is direct:
 
-\[
+$$
 U\Vdash\varphi\land\psi
-\]
+$$
 
-when both \(U\Vdash\varphi\) and \(U\Vdash\psi\).
+when both $U\Vdash\varphi$ and $U\Vdash\psi$.
 
 Implication is hereditary:
 
-\[
+$$
 U\Vdash\varphi\Rightarrow\psi
-\]
+$$
 
-when for every context map \(V\to U\),
+when for every context map $V\to U$,
 
-\[
+$$
 V\Vdash\varphi|_V
 \quad\Longrightarrow\quad
 V\Vdash\psi|_V.
-\]
+$$
 
 A strong invariant implication must survive all local restrictions.
 
 Example:
 
-\[
+$$
 \text{ProjectionCursor}=n
 \Rightarrow
 \text{MaterializedThrough}=n.
-\]
+$$
 
 To force this implication at a broad context, every subcontext capable of witnessing the premise must also witness the conclusion. If some observer sees the cursor but cannot see materialization evidence, the proposition may need a proof-carrying cursor or a different context design.
 
@@ -3711,11 +3711,11 @@ To force this implication at a broad context, every subcontext capable of witnes
 
 In sheaf semantics,
 
-\[
+$$
 U\Vdash\varphi\lor\psi
-\]
+$$
 
-can hold when \(U\) has a cover \(\{U_i\to U\}\) such that each \(U_i\) forces one of the disjuncts, without one disjunct holding uniformly over all of \(U\).
+can hold when $U$ has a cover $\{U_i\to U\}$ such that each $U_i$ forces one of the disjuncts, without one disjunct holding uniformly over all of $U$.
 
 Example: an event payload may be decoded by schema version 1 on one region and version 2 on another, with the regions covering the trace. Locally, every event is v1-decodable or v2-decodable, even if neither decoder works globally.
 
@@ -3725,17 +3725,17 @@ This differs from returning one global tagged union value. Local disjunction can
 
 The clause for
 
-\[
+$$
 U\Vdash\exists x:F.\varphi(x)
-\]
+$$
 
-allows a cover \(\{U_i\to U\}\) and local sections \(x_i\in F(U_i)\) such that
+allows a cover $\{U_i\to U\}$ and local sections $x_i\in F(U_i)$ such that
 
-\[
+$$
 U_i\Vdash\varphi(x_i)
-\]
+$$
 
-for every \(i\). The witnesses need not begin as one global section.
+for every $i$. The witnesses need not begin as one global section.
 
 Example: "there exists a decoder for every event in this trace" may be forced because each schema region has a local decoder. A global decoder object exists only if those local decoders glue coherently.
 
@@ -3745,11 +3745,11 @@ This is a constructive reading of existence: provide witnesses, at least locally
 
 A universal statement
 
-\[
+$$
 U\Vdash\forall x:F.\varphi(x)
-\]
+$$
 
-requires \(\varphi\) to hold for every restriction \(V\to U\) and every section \(x\in F(V)\).
+requires $\varphi$ to hold for every restriction $V\to U$ and every section $x\in F(V)$.
 
 For an invariant such as
 
@@ -3775,23 +3775,23 @@ At an awaiting context, the system has:
 
 After the current-generation deadline, the machine enters `suspected` and closes the connection. The forced proposition is approximately:
 
-\[
+$$
 U\Vdash\operatorname{SuspectedUnder}(\Delta,\text{trace}).
-\]
+$$
 
 It does not force
 
-\[
+$$
 U\Vdash\operatorname{RemoteCrashed}.
-\]
+$$
 
 A delayed network, paused browser event loop, or scheduling stall can produce the same local section.
 
 Nor does the earlier awaiting context force the negation of crash. Therefore the law
 
-\[
+$$
 \operatorname{RemoteCrashed}\lor\neg\operatorname{RemoteCrashed}
-\]
+$$
 
 may not be locally justified by available evidence, even though classical meta-logic says one physical situation obtains.
 
@@ -3801,13 +3801,13 @@ Topos logic models evidence and local determination, not metaphysical indetermin
 
 Consider
 
-\[
+$$
 \varphi(S)=\text{"snapshot }S\text{ is complete through its cut"}.
-\]
+$$
 
-At a snapshot-only client context, \(\varphi\) may not be forced because completeness depends on the canonical event prefix or materialization witness. At a store context containing entity versions and projection cursor, it may be forced. At a full concurrent context, it may fail if cut and rows were not read coherently.
+At a snapshot-only client context, $\varphi$ may not be forced because completeness depends on the canonical event prefix or materialization witness. At a store context containing entity versions and projection cursor, it may be forced. At a full concurrent context, it may fail if cut and rows were not read coherently.
 
-A proof-carrying snapshot can move evidence into the client context. Then restriction retains enough structure for \(\varphi\) to remain true.
+A proof-carrying snapshot can move evidence into the client context. Then restriction retains enough structure for $\varphi$ to remain true.
 
 This is a design consequence of internal logic:
 
@@ -3819,11 +3819,11 @@ An entity created at ordinal 10 and tombstoned at ordinal 20 has context-depende
 
 For prefix cuts:
 
-\[
+$$
 [0,n]\Vdash\operatorname{Exists}(x)
-\]
+$$
 
-for \(10\le n<20\), but not after the tombstone under current-state semantics. If historical existence is the predicate, it remains true after 20. The context and predicate determine the logic.
+for $10\le n<20$, but not after the tombstone under current-state semantics. If historical existence is the predicate, it remains true after 20. The context and predicate determine the logic.
 
 This is a simple example of why "exists" is not one global Boolean in a temporal presheaf.
 
@@ -3870,23 +3870,23 @@ A functor between two context categories induces translations between their pres
 
 A geometric morphism
 
-\[
+$$
 f:\mathcal E\to\mathcal F
-\]
+$$
 
 consists of an adjoint pair
 
-\[
+$$
 f^*:\mathcal F\rightleftarrows\mathcal E:f_*
-\]
+$$
 
 with
 
-\[
+$$
 f^*\dashv f_*
-\]
+$$
 
-and \(f^*\) preserving finite limits. The functor \(f^*\) is called inverse image; \(f_*\) is direct image.
+and $f^*$ preserving finite limits. The functor $f^*$ is called inverse image; $f_*$ is direct image.
 
 The naming follows sheaves on spaces: a continuous map pulls sheaves back and pushes them forward.
 
@@ -3896,25 +3896,25 @@ Why finite-limit preservation? Finite limits express products, equalizers, pullb
 
 Let
 
-\[
+$$
 u:\mathcal C\to\mathcal D
-\]
+$$
 
 be a functor between context categories. Precomposition gives
 
-\[
+$$
 u^*:\widehat{\mathcal D}\to\widehat{\mathcal C},
 \qquad
 u^*(F)=F\circ u^{op}.
-\]
+$$
 
-This operation views a \(\mathcal D\)-varying type through the contexts available in \(\mathcal C\). It preserves all pointwise limits and colimits.
+This operation views a $\mathcal D$-varying type through the contexts available in $\mathcal C$. It preserves all pointwise limits and colimits.
 
 Under standard smallness conditions, it has both a left and right Kan-extension adjoint:
 
-\[
+$$
 \operatorname{Lan}_{u^{op}}\dashv u^*\dashv\operatorname{Ran}_{u^{op}}.
-\]
+$$
 
 For software intuition:
 
@@ -3922,21 +3922,21 @@ For software intuition:
 - left Kan extension freely aggregates or extends data to the larger context system;
 - right Kan extension collects all compatible ways data could be seen from the larger system.
 
-Do not use Kan extension vocabulary without specifying \(u\) and the universal property.
+Do not use Kan extension vocabulary without specifying $u$ and the universal property.
 
 ## Client view as a change of base
 
-Let \(\mathcal C_{full}\) contain event log, timeline, snapshot, WebSocket, and client contexts. Let \(\mathcal C_{client}\) contain only client-visible contexts. The inclusion
+Let $\mathcal C_{full}$ contain event log, timeline, snapshot, WebSocket, and client contexts. Let $\mathcal C_{client}$ contain only client-visible contexts. The inclusion
 
-\[
+$$
 i:\mathcal C_{client}\hookrightarrow\mathcal C_{full}
-\]
+$$
 
 induces restriction
 
-\[
+$$
 i^*:\widehat{\mathcal C_{full}}\to\widehat{\mathcal C_{client}}.
-\]
+$$
 
 This forgets server-only contexts while retaining how objects behave on client contexts.
 
@@ -3952,11 +3952,11 @@ These two questions correspond roughly to inference versus free completion. They
 
 ## Schema-version change of base
 
-Let \(\mathcal C_1\) and \(\mathcal C_2\) be context categories for schema versions. A migration functor
+Let $\mathcal C_1$ and $\mathcal C_2$ be context categories for schema versions. A migration functor
 
-\[
+$$
 u:\mathcal C_1\to\mathcal C_2
-\]
+$$
 
 maps old contexts to their new interpretations.
 
@@ -3985,17 +3985,17 @@ For example, the pullback expressing "frame payload type agrees with logical nam
 
 ## Sheafification and inclusion
 
-For a site \((\mathcal C,J)\), the inclusion
+For a site $(\mathcal C,J)$, the inclusion
 
-\[
+$$
 i_*:\mathbf{Sh}(\mathcal C,J)\hookrightarrow\widehat{\mathcal C}
-\]
+$$
 
 has a left adjoint sheafification
 
-\[
+$$
 i^*=a:\widehat{\mathcal C}\to\mathbf{Sh}(\mathcal C,J).
-\]
+$$
 
 Sheafification is left exact, so this adjunction defines a geometric morphism from the sheaf topos into the presheaf topos.
 
@@ -4063,15 +4063,15 @@ Goldblatt Chapters 15 and 16 develop adjunctions, preservation, geometric morphi
 
 Let
 
-\[
+$$
 \mathcal U=\{U_i\to X\}_{i\in I}
-\]
+$$
 
 be a cover. Its **nerve** is a simplicial object recording which finite intersections are nonempty or otherwise admissible.
 
-- one vertex for each \(U_i\);
-- one edge for each nonempty pairwise overlap \(U_i\cap U_j\);
-- one filled triangle for each nonempty triple overlap \(U_i\cap U_j\cap U_k\);
+- one vertex for each $U_i$;
+- one edge for each nonempty pairwise overlap $U_i\cap U_j$;
+- one filled triangle for each nonempty triple overlap $U_i\cap U_j\cap U_k$;
 - one tetrahedron for each nonempty four-way overlap;
 - and so on.
 
@@ -4110,33 +4110,33 @@ This is a modeling statement, not an assertion that a SQL transaction is literal
 
 Consider five contexts:
 
-\[
+$$
 E=\text{event log and event cursor},
-\]
+$$
 
-\[
+$$
 T=\text{timeline materialization and projection cursor},
-\]
+$$
 
-\[
+$$
 S=\text{snapshot and entity metadata},
-\]
+$$
 
-\[
+$$
 W=\text{WebSocket hydration buffer and sent frames},
-\]
+$$
 
-\[
+$$
 C=\text{client reducer state}.
-\]
+$$
 
 Possible overlaps:
 
-- \(E\cap T\): event/session/ordinal relation used by projection;
-- \(T\cap S\): materialized entities and snapshot cut;
-- \(S\cap W\): snapshot frame and hydration boundary;
-- \(W\cap C\): delivered frames and client application;
-- \(C\cap E\): client acknowledgments or trace digests related to canonical events.
+- $E\cap T$: event/session/ordinal relation used by projection;
+- $T\cap S$: materialized entities and snapshot cut;
+- $S\cap W$: snapshot frame and hydration boundary;
+- $W\cap C$: delivered frames and client application;
+- $C\cap E$: client acknowledgments or trace digests related to canonical events.
 
 These edges form a loop:
 
@@ -4156,8 +4156,8 @@ E -> T -> S -> W -> C -> E.
 
 Whether the nerve contains filling faces depends on available joint contexts:
 
-- a database transaction may jointly observe \(E,T,S\);
-- a transport trace may jointly observe \(S,W,C\);
+- a database transaction may jointly observe $E,T,S$;
+- a transport trace may jointly observe $S,W,C$;
 - an end-to-end test may observe all five;
 - best-effort observers may not count as reliable intersections.
 
@@ -4167,17 +4167,17 @@ The shape is therefore architecture plus evidence policy.
 
 The simple nerve records only whether intersections exist. The **Cech nerve** retains the intersections themselves:
 
-\[
+$$
 \coprod_i U_i,
-\]
+$$
 
-\[
+$$
 \coprod_{i,j}U_i\times_X U_j,
-\]
+$$
 
-\[
+$$
 \coprod_{i,j,k}U_i\times_X U_j\times_X U_k,
-\]
+$$
 
 and higher iterated pullbacks.
 
@@ -4193,21 +4193,21 @@ For software work, annotate every simplex with:
 
 ## The nerve of a temporal cover
 
-Cover interval \([0,100]\) by
+Cover interval $[0,100]$ by
 
-\[
+$$
 U_0=[0,60],
 \quad
 U_1=[40,90],
 \quad
 U_2=[80,100].
-\]
+$$
 
 Then:
 
-- \(U_0\cap U_1=[40,60]\) is nonempty;
-- \(U_1\cap U_2=[80,90]\) is nonempty;
-- \(U_0\cap U_2=\varnothing\);
+- $U_0\cap U_1=[40,60]$ is nonempty;
+- $U_1\cap U_2=[80,90]$ is nonempty;
+- $U_0\cap U_2=\varnothing$;
 - no triple intersection exists.
 
 The nerve is a path of two edges, with no loop.
@@ -4245,7 +4245,7 @@ Add an end-to-end test that:
 3. reads a snapshot at the reported cut;
 4. compares event, materialization, and cut in one trace.
 
-This joint witness supports adding the filled triangle \((E,T,S)\) to the nerve.
+This joint witness supports adding the filled triangle $(E,T,S)$ to the nerve.
 
 Higher-dimensional simplices are therefore a useful inventory of **which combinations are jointly witnessed**, not merely which components communicate.
 
@@ -4289,12 +4289,12 @@ Goldblatt supplies the categorical and sheaf-theoretic preparation, but introduc
 
 A set-valued sheaf lets us ask whether local sections match and glue. Cohomology requires additional algebra so that differences can be added, subtracted, and quotiented.
 
-Let \(\mathcal A\) be a sheaf or presheaf of abelian groups. For each context \(U\), \(\mathcal A(U)\) is an abelian group, and every restriction map is a group homomorphism.
+Let $\mathcal A$ be a sheaf or presheaf of abelian groups. For each context $U$, $\mathcal A(U)$ is an abelian group, and every restriction map is a group homomorphism.
 
 Examples of coefficient data:
 
 - integer cursor offsets;
-- parity bits in \(\mathbb F_2\);
+- parity bits in $\mathbb F_2$;
 - real-valued clock skews;
 - vectors of counters;
 - additive resource discrepancies;
@@ -4304,25 +4304,25 @@ Arbitrary events, protobuf messages, or state machines are not abelian groups. C
 
 ## Cochains on a cover
 
-For an ordered cover \(\mathcal U=\{U_i\}\), define the Cech cochain groups
+For an ordered cover $\mathcal U=\{U_i\}$, define the Cech cochain groups
 
-\[
+$$
 C^0(\mathcal U,\mathcal A)
 =
 \prod_i\mathcal A(U_i),
-\]
+$$
 
-\[
+$$
 C^1(\mathcal U,\mathcal A)
 =
 \prod_{i<j}\mathcal A(U_i\cap U_j),
-\]
+$$
 
-\[
+$$
 C^2(\mathcal U,\mathcal A)
 =
 \prod_{i<j<k}\mathcal A(U_i\cap U_j\cap U_k),
-\]
+$$
 
 and so on, omitting empty intersections.
 
@@ -4336,43 +4336,43 @@ Cochains need not be consistent. They are raw assignments by dimension.
 
 ## The first coboundary
 
-For \(x=(x_i)\in C^0\), define
+For $x=(x_i)\in C^0$, define
 
-\[
+$$
 (\delta^0x)_{ij}
 =
  x_j|_{U_i\cap U_j}
 -
  x_i|_{U_i\cap U_j}.
-\]
+$$
 
 This is the edge discrepancy between local values after both are restricted to the overlap.
 
 If
 
-\[
+$$
 \delta^0x=0,
-\]
+$$
 
 then the local sections form a matching family.
 
 For a sheaf, such a family glues uniquely. Therefore
 
-\[
+$$
 H^0(X,\mathcal A)
 \cong
 \Gamma(X,\mathcal A),
-\]
+$$
 
 the group of global sections, under suitable Cech hypotheses.
 
-This makes \(H^0\) immediately understandable: globally consistent additive assignments.
+This makes $H^0$ immediately understandable: globally consistent additive assignments.
 
 ## The second coboundary
 
-For a 1-cochain \(a=(a_{ij})\), define on triple overlaps
+For a 1-cochain $a=(a_{ij})$, define on triple overlaps
 
-\[
+$$
 (\delta^1a)_{ijk}
 =
  a_{jk}|_{ijk}
@@ -4380,15 +4380,15 @@ For a 1-cochain \(a=(a_{ij})\), define on triple overlaps
  a_{ik}|_{ijk}
 +
  a_{ij}|_{ijk}.
-\]
+$$
 
 The alternating signs compare the edge discrepancies around a triangle.
 
 A central identity is
 
-\[
+$$
 \delta^1\circ\delta^0=0.
-\]
+$$
 
 Differences derived from vertex values always sum to zero around every filled triangle. Algebraically, every term cancels. Geometrically, the boundary of a boundary is zero.
 
@@ -4396,29 +4396,29 @@ Higher coboundaries continue with alternating restrictions.
 
 ## Cocycles and coboundaries
 
-A 1-cochain \(a\) is a **cocycle** if
+A 1-cochain $a$ is a **cocycle** if
 
-\[
+$$
 \delta^1a=0.
-\]
+$$
 
 It is a **coboundary** if
 
-\[
+$$
 a=\delta^0x
-\]
+$$
 
-for some 0-cochain \(x\).
+for some 0-cochain $x$.
 
-Every coboundary is a cocycle because \(\delta^1\delta^0=0\).
+Every coboundary is a cocycle because $\delta^1\delta^0=0$.
 
 The first cohomology group is
 
-\[
+$$
 H^1(\mathcal U,\mathcal A)
 =
 \frac{\ker\delta^1}{\operatorname{im}\delta^0}.
-\]
+$$
 
 Read this as:
 
@@ -4430,9 +4430,9 @@ A nonzero class is a pattern consistent on every filled triangle but not globall
 
 This distinction is essential.
 
-A sheaf already guarantees that matching 0-cochains glue. Nonzero \(H^1\) does not mean the sheaf fails to be a sheaf.
+A sheaf already guarantees that matching 0-cochains glue. Nonzero $H^1$ does not mean the sheaf fails to be a sheaf.
 
-Instead, \(H^1\) can measure obstructions to solving a related global problem, such as:
+Instead, $H^1$ can measure obstructions to solving a related global problem, such as:
 
 - trivializing local transition functions;
 - finding global potentials for local differences;
@@ -4444,17 +4444,17 @@ Sheaf cohomology can be defined as derived functors of global sections. Cech coh
 
 ## Constant coefficients on a graph
 
-Let the nerve be a graph and let \(\mathcal A=\underline{\mathbb Z}\) have constant integer values and identity restrictions.
+Let the nerve be a graph and let $\mathcal A=\underline{\mathbb Z}$ have constant integer values and identity restrictions.
 
-A 0-cochain assigns an integer \(x_i\) to each vertex. The edge coboundary is
+A 0-cochain assigns an integer $x_i$ to each vertex. The edge coboundary is
 
-\[
+$$
 (\delta^0x)_{ij}=x_j-x_i.
-\]
+$$
 
-A 1-cochain assigns an integer offset \(a_{ij}\) to each oriented edge.
+A 1-cochain assigns an integer offset $a_{ij}$ to each oriented edge.
 
-If the graph has no filled triangles, \(C^2=0\), so every 1-cochain is a cocycle. It is a coboundary exactly when all cycle sums vanish.
+If the graph has no filled triangles, $C^2=0$, so every 1-cochain is a cocycle. It is a coboundary exactly when all cycle sums vanish.
 
 This is the mathematics of global coordinate alignment.
 
@@ -4462,21 +4462,21 @@ This is the mathematics of global coordinate alignment.
 
 Orient a square
 
-\[
+$$
 A\to B\to C\to D\to A.
-\]
+$$
 
 Then
 
-\[
+$$
 C^0\cong\mathbb Z^4,
 \qquad
 C^1\cong\mathbb Z^4.
-\]
+$$
 
 The coboundary matrix is
 
-\[
+$$
 \delta^0=
 \begin{bmatrix}
 -1& 1& 0& 0\\
@@ -4484,27 +4484,27 @@ The coboundary matrix is
  0& 0&-1& 1\\
  1& 0& 0&-1
 \end{bmatrix}.
-\]
+$$
 
-For vertex coordinates \(x=(x_A,x_B,x_C,x_D)^T\), the edge offsets are \(\delta^0x\).
+For vertex coordinates $x=(x_A,x_B,x_C,x_D)^T$, the edge offsets are $\delta^0x$.
 
 Every coboundary satisfies
 
-\[
+$$
 a_{AB}+a_{BC}+a_{CD}+a_{DA}=0.
-\]
+$$
 
 The cochain
 
-\[
+$$
 a=(0,0,0,1)
-\]
+$$
 
-has cycle sum 1 and cannot equal \(\delta^0x\). It represents a nonzero class in
+has cycle sum 1 and cannot equal $\delta^0x$. It represents a nonzero class in
 
-\[
+$$
 H^1\cong\mathbb Z.
-\]
+$$
 
 The generator records one unit of circulation around the hole.
 
@@ -4514,23 +4514,23 @@ Take three vertices with all three edges.
 
 If there is no 2-simplex, the triangular boundary has
 
-\[
+$$
 H^1\cong\mathbb Z.
-\]
+$$
 
-If a triple intersection fills the triangle, \(C^2\cong\mathbb Z\) and
+If a triple intersection fills the triangle, $C^2\cong\mathbb Z$ and
 
-\[
+$$
 \delta^1(a_{01},a_{12},a_{02})
 =
  a_{12}-a_{02}+a_{01}.
-\]
+$$
 
 The cocycle condition forces the triangle sum to vanish. Every such cocycle is a vertex coboundary, so
 
-\[
+$$
 H^1=0
-\]
+$$
 
 for the filled triangle.
 
@@ -4561,32 +4561,32 @@ For example:
 
 Then
 
-\[
+$$
 (\delta^0x)_e
 =
 \rho_{head,e}(x_{head})-
 ho_{tail,e}(x_{tail}).
-\]
+$$
 
-The kernel of \(\delta^0\) is the space of globally consistent local measurements. Higher cohomology reflects both topology and the restriction maps.
+The kernel of $\delta^0$ is the space of globally consistent local measurements. Higher cohomology reflects both topology and the restriction maps.
 
 This is closer to the intended SessionStream application than a constant sheaf.
 
 ## Exercises
 
-**E18.1 - Cochains (one star).** For a path of three vertices, write \(C^0\), \(C^1\), and the coboundary matrix.
+**E18.1 - Cochains (one star).** For a path of three vertices, write $C^0$, $C^1$, and the coboundary matrix.
 
-**E18.2 - Delta squared (one star).** Expand \(\delta^1\delta^0x\) on a triple overlap and show every term cancels.
+**E18.2 - Delta squared (one star).** Expand $\delta^1\delta^0x$ on a triple overlap and show every term cancels.
 
-**E18.3 - Square (one star).** Solve \(\delta^0x=a\) for several edge-offset vectors. Verify that a solution exists exactly when the cycle sum is zero.
+**E18.3 - Square (one star).** Solve $\delta^0x=a$ for several edge-offset vectors. Verify that a solution exists exactly when the cycle sum is zero.
 
-**E18.4 - Triangle (two stars).** Compute \(H^1\) of the triangle boundary and the filled triangle over \(\mathbb R\) using matrix ranks.
+**E18.4 - Triangle (two stars).** Compute $H^1$ of the triangle boundary and the filled triangle over $\mathbb R$ using matrix ranks.
 
-**E18.5 - Parity coefficients (two stars).** Repeat the square calculation over \(\mathbb F_2\). Interpret nonzero circulation as duplicate/missing parity.
+**E18.5 - Parity coefficients (two stars).** Repeat the square calculation over $\mathbb F_2$. Interpret nonzero circulation as duplicate/missing parity.
 
 **E18.6 - Nonconstant restrictions (two stars).** Define vertex and edge vector spaces for event and timeline cursors. Write the sheaf coboundary matrix.
 
-**E18.7 - Concept (three stars).** Explain why nonzero \(H^1\) is not evidence that the coefficient sheaf violates the sheaf axiom.
+**E18.7 - Concept (three stars).** Explain why nonzero $H^1$ is not evidence that the coefficient sheaf violates the sheaf axiom.
 
 **E18.8 - Code (three stars).** Implement cochain matrices and compute kernels/images over rational numbers or a finite field. Test path, cycle, and filled-triangle complexes.
 
@@ -4604,7 +4604,7 @@ This is a narrower and more computable question than "is SessionStream correct?"
 
 Define vertices:
 
-\[
+$$
 E=\text{event store},
 \quad
 T=\text{timeline projection},
@@ -4614,9 +4614,9 @@ S=\text{snapshot},
 W=\text{WebSocket delivery},
 \quad
 C=\text{client application}.
-\]
+$$
 
-At each vertex, choose a local integer coordinate \(x_i\). This may be:
+At each vertex, choose a local integer coordinate $x_i$. This may be:
 
 - event cursor;
 - projection cursor;
@@ -4628,19 +4628,19 @@ Before calculating, specify their meanings. If one cursor means "last included" 
 
 ## Edge offsets
 
-For an oriented overlap \(i\to j\), define an observed or contractual offset
+For an oriented overlap $i\to j$, define an observed or contractual offset
 
-\[
+$$
 a_{ij}=x_j-x_i.
-\]
+$$
 
 Examples:
 
-- timeline cursor equals event cursor: \(a_{ET}=0\);
-- snapshot cut equals timeline cursor: \(a_{TS}=0\);
-- first live event is strictly after snapshot cut: if the local coordinate is first-delivered ordinal, \(a_{SW}=1\) under dense ordinals;
-- client applied ordinal equals delivered ordinal: \(a_{WC}=0\);
-- client acknowledgment equals event cursor: \(a_{CE}=0\).
+- timeline cursor equals event cursor: $a_{ET}=0$;
+- snapshot cut equals timeline cursor: $a_{TS}=0$;
+- first live event is strictly after snapshot cut: if the local coordinate is first-delivered ordinal, $a_{SW}=1$ under dense ordinals;
+- client applied ordinal equals delivered ordinal: $a_{WC}=0$;
+- client acknowledgment equals event cursor: $a_{CE}=0$.
 
 Already there is a semantic issue. `first live ordinal = snapshot cut + 1` assumes dense ordinals. Current ordinal assignment can derive values from Redis-style stream IDs, so ordinals may be strictly increasing but not consecutive. The correct edge relation may be order-based rather than a fixed integer offset.
 
@@ -4650,7 +4650,7 @@ This is a useful failure of the model: choose coefficients and equations that ma
 
 For a simplified dense-ordinal lab, suppose the edge conventions are:
 
-\[
+$$
 a_{ET}=0,
 \quad
 a_{TS}=0,
@@ -4660,13 +4660,13 @@ a_{SW}=1,
 a_{WC}=0,
 \quad
 a_{CE}=0.
-\]
+$$
 
 The circulation around the loop is
 
-\[
+$$
 0+0+1+0+0=1.
-\]
+$$
 
 No vertex coordinates can realize all these equations simultaneously if every edge is interpreted as a difference between the same kind of coordinate.
 
@@ -4684,17 +4684,17 @@ Then edge maps become typed transformations rather than contradictory equalities
 
 ## A more honest order-valued model
 
-If ordinals are only strictly increasing, use an ordered set rather than the additive group \(\mathbb Z\). Relations include
+If ordinals are only strictly increasing, use an ordered set rather than the additive group $\mathbb Z$. Relations include
 
-\[
+$$
 O_S < O_U
-\]
+$$
 
-for delivered events after a snapshot, not \(O_U-O_S=1\).
+for delivered events after a snapshot, not $O_U-O_S=1$.
 
 Ordinary abelian cohomology no longer applies directly. Options include:
 
-- map order relations to slack variables in \(\mathbb Z_{\ge0}\);
+- map order relations to slack variables in $\mathbb Z_{\ge0}$;
 - analyze exact equalities only and keep inequalities in a constraint solver;
 - use sheaves of posets or categories and nonabelian obstruction methods;
 - linearize around an expected relation for diagnostics.
@@ -4705,72 +4705,72 @@ This illustrates the correct workflow: presheaf/sheaf modeling first, cohomology
 
 Let each vertex carry a vector space of local measurements.
 
-Example over \(\mathbb R\):
+Example over $\mathbb R$:
 
-\[
+$$
 F(E)=\mathbb R^2
 \quad\text{with }(eventCursor,streamDerivedOrdinal),
-\]
+$$
 
-\[
+$$
 F(T)=\mathbb R^2
 \quad\text{with }(projectionCursor,maxEntityOrdinal),
-\]
+$$
 
-\[
+$$
 F(S)=\mathbb R^2
 \quad\text{with }(snapshotOrdinal,maxSnapshotEntityOrdinal),
-\]
+$$
 
-\[
+$$
 F(W)=\mathbb R^2
 \quad\text{with }(snapshotSentOrdinal,lastUIOrdinal),
-\]
+$$
 
-\[
+$$
 F(C)=\mathbb R^2
 \quad\text{with }(snapshotAppliedOrdinal,lastUIAppliedOrdinal).
-\]
+$$
 
 Each edge stalk contains the shared coordinate to be compared. Restriction maps extract the relevant component. For example:
 
-\[
+$$
 \rho_{T,TS}(p,m)=p,
 \qquad
 \rho_{S,TS}(s,m)=s.
-\]
+$$
 
 The degree-zero coboundary stacks all edge residuals. Its kernel is the vector space of measurements satisfying every equality constraint.
 
-This calculation is often useful even before \(H^1\):
+This calculation is often useful even before $H^1$:
 
-\[
+$$
 H^0=\ker\delta^0
-\]
+$$
 
 is the global consistency space.
 
 ## Adding higher-order witnesses
 
-Suppose event store, timeline store, and snapshot are jointly read in one transaction. Add a 2-simplex \((E,T,S)\). Its face restriction maps require edge discrepancies to satisfy a triangle condition.
+Suppose event store, timeline store, and snapshot are jointly read in one transaction. Add a 2-simplex $(E,T,S)$. Its face restriction maps require edge discrepancies to satisfy a triangle condition.
 
-Suppose snapshot, WebSocket server, and client are jointly traced with reliable acknowledgments. Add \((S,W,C)\).
+Suppose snapshot, WebSocket server, and client are jointly traced with reliable acknowledgments. Add $(S,W,C)$.
 
 These faces reduce which edge discrepancy patterns qualify as cocycles. A residual that was invisible to pairwise checks may be exposed by the 2-simplex.
 
-An end-to-end test covering \((E,T,S,W,C)\) can add higher-dimensional structure, but only if its observations are trustworthy and semantically joint.
+An end-to-end test covering $(E,T,S,W,C)$ can add higher-dimensional structure, but only if its observations are trustworthy and semantically joint.
 
-## Duplicate parity over \(\mathbb F_2\)
+## Duplicate parity over $\mathbb F_2$
 
 Take coefficients in
 
-\[
+$$
 \mathbb F_2=\{0,1\}
-\]
+$$
 
 and record whether each boundary believes an event was applied an even or odd number of times.
 
-An edge value 1 indicates a parity disagreement. Around a cycle, a nonzero \(H^1\) class can represent duplicate/missing parity that cannot be assigned to one local component by vertex corrections.
+An edge value 1 indicates a parity disagreement. Around a cycle, a nonzero $H^1$ class can represent duplicate/missing parity that cannot be assigned to one local component by vertex corrections.
 
 This is a coarse diagnostic. It cannot distinguish one duplicate from three, nor identify the event without richer coefficients. But finite-field calculations are robust and easy to automate.
 
@@ -4778,7 +4778,7 @@ This is a coarse diagnostic. It cannot distinguish one duplicate from three, nor
 
 A cryptographic digest is not naturally additive, but one can use:
 
-- XOR digests in a vector space over \(\mathbb F_2\);
+- XOR digests in a vector space over $\mathbb F_2$;
 - polynomial rolling hashes in a finite field;
 - count vectors by event kind;
 - sketches with additive merge laws.
@@ -4807,10 +4807,10 @@ For one recorded session:
 
 1. Extract local measurement vectors at each context.
 2. Build restriction matrices for every edge.
-3. Assemble \(\delta^0\).
-4. Compute the residual \(r=\delta^0x\).
-5. If solving for latent corrected coordinates, solve \(\delta^0x\approx b\).
-6. Build \(\delta^1\) from reliable 2-simplices.
+3. Assemble $\delta^0$.
+4. Compute the residual $r=\delta^0x$.
+5. If solving for latent corrected coordinates, solve $\delta^0x\approx b$.
+6. Build $\delta^1$ from reliable 2-simplices.
 7. Check whether observed edge transitions are cocycles.
 8. Reduce cocycles modulo coboundaries to obtain classes.
 9. Map each class to a supporting cycle in the nerve.
@@ -4859,11 +4859,11 @@ For exact integer or finite-field work, do not use floating-point rank. Use rati
 
 **E19.3 - Typed repair (two stars).** Replace an off-by-one contradiction by distinct ordinal types and explicit conversion arrows.
 
-**E19.4 - Cellular sheaf (two stars).** Define vertex/edge stalks and restrictions for event, timeline, and snapshot measurements. Write \(\delta^0\).
+**E19.4 - Cellular sheaf (two stars).** Define vertex/edge stalks and restrictions for event, timeline, and snapshot measurements. Write $\delta^0$.
 
 **E19.5 - Higher witness (two stars).** Add the `(E,T,S)` transaction face and calculate the new cocycle equation.
 
-**E19.6 - Parity (two stars).** Design an \(\mathbb F_2\)-valued duplicate diagnostic. State what false negatives it permits.
+**E19.6 - Parity (two stars).** Design an $\mathbb F_2$-valued duplicate diagnostic. State what false negatives it permits.
 
 **E19.7 - Trace implementation (three stars).** Ingest observer records and store snapshots for one session, construct the complex, and report residuals with supporting cycles.
 
@@ -4897,13 +4897,13 @@ hydration is consistent
 
 Better:
 
-\[
+$$
 \operatorname{ApplyUI}^*(
 \operatorname{ApplySnapshot}(C_0,S_s(n)),
 U_s(n,m]
 )
 \cong_C C_s(m).
-\]
+$$
 
 Specify equality, time boundary, failure policy, and admissible executions.
 
@@ -5150,7 +5150,7 @@ Convert SessionStream observer records and snapshots into sections with provenan
 
 ### Phase E - Cursor complex
 
-Build a cellular sheaf of ordinal measurements. Compute \(H^0\) consistency and \(H^1\) circulation over selected cycles.
+Build a cellular sheaf of ordinal measurements. Compute $H^0$ consistency and $H^1$ circulation over selected cycles.
 
 ### Phase F - Higher witnesses
 
@@ -5192,7 +5192,7 @@ Expose the audit as a test helper or CLI. Keep it advisory until its context mod
 
 The conceptual ladder is now:
 
-\[
+$$
 \boxed{
 \begin{array}{l}
 \textbf{Category:}\ \text{declare objects, arrows, composition, and equations.}\\[3pt]
@@ -5205,7 +5205,7 @@ The conceptual ladder is now:
 \textbf{Sieve/local truth:}\ \text{record where a proposition is supported.}\\[3pt]
 \textbf{Cohomology:}\ \text{measure selected global obstructions in algebraic local data.}
 \end{array}}
-\]
+$$
 
 For SessionStream, the durable intuition is:
 
@@ -5216,7 +5216,7 @@ For SessionStream, the durable intuition is:
 - transaction and replay invariants define global-section constraints;
 - missing event identity is a missing coordinate or quotient problem;
 - local truth distinguishes evidence from omniscient claims;
-- nonzero \(H^1\) can reveal irreducible circulation in a chosen additive consistency model.
+- nonzero $H^1$ can reveal irreducible circulation in a chosen additive consistency model.
 
 The mathematics becomes useful when each noun is accompanied by its actual objects, arrows, restriction maps, coverage, and equations.
 
@@ -5232,7 +5232,7 @@ The mathematics becomes useful when each noun is accompanied by its actual objec
 
 **E20.5 - Sieve-valued report.** Return the maximal contexts supporting each invariant.
 
-**E20.6 - Cohomology engine.** Compute \(H^0\) and \(H^1\) over finite fields for a cellular cursor sheaf.
+**E20.6 - Cohomology engine.** Compute $H^0$ and $H^1$ over finite fields for a cellular cursor sheaf.
 
 **E20.7 - Higher-order test inventory.** List every 2-simplex and 3-simplex justified by current transactions or end-to-end tests. Identify missing faces.
 
@@ -5311,9 +5311,9 @@ For software, the word “natural” should be read as **uniformly compatible wi
 
 A presheaf is a functor
 
-\[
+$$
 \mathcal F:\mathcal C^{op}\to\mathbf{Set}
-\]
+$$
 
 or into another coefficient category.
 
@@ -5350,15 +5350,15 @@ Cohomology does not automatically certify arbitrary transactional correctness. I
 
 Let `X` be the full semantic state, `P` the visible parameter context, and
 
-\[
+$$
 r_P:\mathcal F(X)\to\mathcal F(P)
-\]
+$$
 
 the restriction map. For a supplied request `p`, its completion fibre is
 
-\[
+$$
 r_P^{-1}(p).
-\]
+$$
 
 The engineering classifications are:
 
@@ -5435,19 +5435,19 @@ For event folding, the identity law is the empty suffix law and the composition 
 
 For `η:F⇒G`, draw one square for an arbitrary arrow `f:A→B`:
 
-\[
+$$
 \begin{array}{ccc}
 F(A)&\xrightarrow{\eta_A}&G(A)\\
 F(f)\downarrow&&\downarrow G(f)\\
 F(B)&\xrightarrow{\eta_B}&G(B).
 \end{array}
-\]
+$$
 
 Then prove
 
-\[
+$$
 G(f)\circ\eta_A=\eta_B\circ F(f).
-\]
+$$
 
 In a context category, `f` often represents restriction. The square asks whether translating first and then forgetting gives the same result as forgetting first and translating in the smaller context.
 
@@ -5455,15 +5455,15 @@ In a context category, `f` often represents restriction. The square asks whether
 
 For every context `U`, verify
 
-\[
+$$
 \rho^U_U=1_{\mathcal F(U)}.
-\]
+$$
 
 For `W⊆V⊆U`, verify
 
-\[
+$$
 \rho^V_W\circ\rho^U_V=\rho^U_W.
-\]
+$$
 
 Test these laws with generated chains of contexts. Include awkward cases: deleted/tombstoned entities, empty prefixes, schema-version boundaries, and contexts with missing observer evidence.
 
@@ -5483,10 +5483,10 @@ The sheaf condition demands a singleton for every matching family over every acc
 
 A predicate `P_U⊆F(U)` defines a subpresheaf when validity is stable under restriction:
 
-\[
+$$
 x\in P_U\Longrightarrow x|_V\in P_V
 \quad\text{for every }V\to U.
-\]
+$$
 
 This is an excellent design filter. A property such as “contains the globally latest event” usually fails under restriction. A property such as “every entity ordinal is at most the declared cut” is often stable under temporal truncation, provided restriction also removes later entities correctly.
 
@@ -5500,9 +5500,9 @@ Choose orientations for all edges and faces.
 4. Compute `ker(D₁)` and `im(D₀)`.
 5. Compute
 
-\[
+$$
 \dim H^1=\dim\ker D_1-\operatorname{rank}D_0.
-\]
+$$
 
 For a graph with no filled faces, `D₁=0`, so every edge assignment is a cocycle. A connected tree has `H¹=0`. A connected graph with `e-v+1` independent cycles has that many dimensions of `H¹` for constant field coefficients. Filling a triangle adds a face equation and may kill the corresponding cycle class.
 
@@ -5888,35 +5888,35 @@ Let `f:A→B` be an isomorphism with inverse `f^{-1}:B→A`.
 
 To prove `f` is monic, suppose `g,h:X→A` and
 
-\[
+$$
 f\circ g=f\circ h.
-\]
+$$
 
 Compose both sides on the left with `f^{-1}`:
 
-\[
+$$
 f^{-1}\circ f\circ g=f^{-1}\circ f\circ h.
-\]
+$$
 
 By associativity and the inverse law,
 
-\[
+$$
 1_A\circ g=1_A\circ h,
-\]
+$$
 
 so `g=h`.
 
 To prove `f` is epic, suppose `g,h:B→Y` and
 
-\[
+$$
 g\circ f=h\circ f.
-\]
+$$
 
 Compose both sides on the right with `f^{-1}`:
 
-\[
+$$
 g\circ f\circ f^{-1}=h\circ f\circ f^{-1}.
-\]
+$$
 
 Therefore `g=h`. Thus every isomorphism is both monic and epic. The converse is not valid in every category.
 
@@ -5926,43 +5926,43 @@ Let `(P,p_1,p_2)` and `(Q,q_1,q_2)` both be products of `A` and `B`.
 
 Because `P` is a product and `Q` has arrows `q_1:Q→A`, `q_2:Q→B`, there is a unique
 
-\[
+$$
 u:Q\to P
-\]
+$$
 
 such that
 
-\[
+$$
 p_1u=q_1,
 \qquad
 p_2u=q_2.
-\]
+$$
 
 Similarly, because `Q` is a product, there is a unique
 
-\[
+$$
 v:P\to Q
-\]
+$$
 
 with
 
-\[
+$$
 q_1v=p_1,
 \qquad
 q_2v=p_2.
-\]
+$$
 
 Now
 
-\[
+$$
 p_1(uv)=(p_1u)v=q_1v=p_1,
-\]
+$$
 
 and similarly `p_2(uv)=p_2`. Both `uv:P→P` and `1_P:P→P` have the same composites with both product projections. By the uniqueness clause for `P`,
 
-\[
+$$
 uv=1_P.
-\]
+$$
 
 The dual calculation gives `vu=1_Q`. Hence `u` and `v` are inverse isomorphisms. Their equations with the projections also make the isomorphism unique.
 
@@ -5984,11 +5984,11 @@ Each coordinate can be a valid `uint64`. The event store may legitimately contai
 
 The inconsistency is the simultaneous claim that an entity updated by event `43` belongs to the snapshot representing the materialized prefix through `42`. Snapshot soundness requires
 
-\[
+$$
 \operatorname{LastEventOrdinal}(x)
 \le
 \operatorname{SnapshotOrdinal}.
-\]
+$$
 
 Here `43≤42` is false. The product of the local value sets contains this tuple, but the subobject of coherent cuts does not.
 
@@ -5996,11 +5996,11 @@ Here `43≤42` is false. The product of the local value sets contains this tuple
 
 Order histories by prefix:
 
-\[
+$$
 h\le k
 \quad\Longleftrightarrow\quad
 h\text{ is a prefix of }k.
-\]
+$$
 
 Let
 
@@ -6011,9 +6011,9 @@ k = [a,b,c,e]
 
 Their common lower bounds are the prefixes of `[a,b,c]`. The greatest such lower bound is
 
-\[
+$$
 h\wedge k=[a,b,c].
-\]
+$$
 
 A join would be a least history extending both `h` and `k`. In an ordinary linear event history, no sequence can have both `[a,b,c,d]` and `[a,b,c,e]` as prefixes when `d≠e`. Therefore no join exists.
 
@@ -6067,9 +6067,9 @@ Snapshot(through 43)
 
 The critical equation is not “send every buffered batch.” It is
 
-\[
+$$
 \text{send exactly batches with ordinal}>n,
-\]
+$$
 
 where `n` is the cut certified by the snapshot. Registering hydration before the load prevents events published during the load from falling into the gap between snapshot and live subscription.
 
@@ -6128,9 +6128,9 @@ applyBatch(applyBatch([], [a]), [b]) = [[a],[b]].
 
 Thus
 
-\[
+$$
 R([a,b])\ne R([b])\circ R([a]).
-\]
+$$
 
 The failed law is preservation of composition/concatenation. Batch boundaries are semantically observable but were omitted from the generator history. There are two possible repairs:
 
@@ -6141,12 +6141,12 @@ The failed law is preservation of composition/concatenation. Batch boundaries ar
 
 For a fixed, nonmutating database with complete immutable entity versions, the intended historical semantics is
 
-\[
+$$
 \operatorname{restrict}_{m}\bigl(\operatorname{Snapshot}(n)\bigr)
 =
 \operatorname{Snapshot}(m)
 \qquad(m\le n).
-\]
+$$
 
 The current SQLite `Snapshot(ctx,sid,asOf)` path for `asOf>0` chooses the latest version of each entity whose version ordinal is at most the chosen cut. Under the following assumptions, the law is plausible and directly testable:
 
@@ -6188,21 +6188,21 @@ The first path may contain both `item` and `v2:item`, while the second contains 
 
 Let
 
-\[
+$$
 \eta:F\Rightarrow G,
 \qquad
 \theta:G\Rightarrow H
-\]
+$$
 
 be natural transformations. Define their componentwise composite by
 
-\[
+$$
 (\theta\eta)_A=\theta_A\circ\eta_A.
-\]
+$$
 
 For any `f:A→B`,
 
-\[
+$$
 \begin{aligned}
 H(f)\circ(\theta_A\circ\eta_A)
 &=(H(f)\circ\theta_A)\circ\eta_A\\
@@ -6211,7 +6211,7 @@ H(f)\circ(\theta_A\circ\eta_A)
 &=\theta_B\circ(\eta_B\circ F(f))\\
 &=(\theta_B\circ\eta_B)\circ F(f).
 \end{aligned}
-\]
+$$
 
 The second and fourth equalities use naturality of `θ` and `η`. Hence the composite is natural.
 
@@ -6221,28 +6221,28 @@ A test suite should check random context arrows for v1-to-v2 and v2-to-v3 separa
 
 Let `T` be the timeline-state set and suppose every event `e∈E` determines an endomorphism
 
-\[
+$$
 a(e):T\to T.
-\]
+$$
 
 Define the action of a word recursively:
 
-\[
+$$
 \widehat a([])=1_T,
-\]
+$$
 
-\[
+$$
 \widehat a([e_1,\ldots,e_n])
 =a(e_n)\circ\cdots\circ a(e_1).
-\]
+$$
 
 Then
 
-\[
+$$
 \widehat a(u\mathbin{++}v)
 =
 \widehat a(v)\circ\widehat a(u),
-\]
+$$
 
 with the direction determined by the convention that the first event is applied first. The empty word law follows immediately. Uniqueness follows by induction: any monoid action agreeing with `a` on singleton words must agree on every concatenation of singletons.
 
@@ -6250,45 +6250,45 @@ with the direction determined by the convention that the first event is applied 
 
 For the free-monoid adjunction
 
-\[
+$$
 F:\mathbf{Set}\rightleftarrows\mathbf{Mon}:U,
-\]
+$$
 
 `F(X)=X^*`, the set of finite words on `X`, and `U` forgets multiplication.
 
 The unit is
 
-\[
+$$
 \eta_X:X\to UFX,
 \qquad
 x\mapsto[x].
-\]
+$$
 
 The counit is
 
-\[
+$$
 \varepsilon_M:FUM\to M,
-\]
+$$
 
 which multiplies a word of elements of `M`.
 
 Check the triangle identity
 
-\[
+$$
 \varepsilon_{FX}\circ F(\eta_X)=1_{FX}.
-\]
+$$
 
 For a word `[x_1,\ldots,x_n]`, `F(η_X)` produces the word of singleton words
 
-\[
+$$
 [[x_1],\ldots,[x_n]].
-\]
+$$
 
 The counit in the free monoid concatenates those words, returning
 
-\[
+$$
 [x_1,\ldots,x_n].
-\]
+$$
 
 Thus the composite is the identity.
 
@@ -6302,9 +6302,9 @@ entity.CreatedAt = time.Now()
 
 Two executions can have the same initial state and identical recorded event word `w` but run at different wall-clock times. Their outputs differ. Therefore there is no well-defined function
 
-\[
+$$
 E^*\to\operatorname{End}(T)
-\]
+$$
 
 that explains the implementation: the result is not determined by the event word.
 
@@ -6321,25 +6321,25 @@ For replayable event sourcing, recording the fact is usually the cleanest repair
 
 Fix a schema version `v`. Define a context as
 
-\[
+$$
 U=(s,n,O,v),
-\]
+$$
 
 where `s` is a session, `n` a cut, and `O` a finite set of observers or visible dimensions.
 
 Define
 
-\[
+$$
 (s,m,P,v)\le(s,n,O,v)
-\]
+$$
 
 exactly when
 
-\[
+$$
 m\le n
 \qquad\text{and}\qquad
 P\subseteq O.
-\]
+$$
 
 Contexts with different sessions or schema versions are incomparable in this simple model.
 
@@ -6349,9 +6349,9 @@ Contexts with different sessions or schema versions are incomparable in this sim
 
 Turn the poset into a category by placing one arrow `V→U` exactly when `V≤U`. A presheaf is contravariant, so this arrow induces restriction
 
-\[
+$$
 \mathcal F(U)\to\mathcal F(V):
-\]
+$$
 
 forget observers and truncate from `n` to `m`.
 
@@ -6361,31 +6361,31 @@ A richer model can add schema-migration arrows instead of making versions incomp
 
 Let the base category be finite parameter contexts ordered by inclusion. For a field set `U`, let
 
-\[
+$$
 \mathcal F(U)=\prod_{p\in U}\operatorname{Value}(p),
-\]
+$$
 
 the set of typed assignments to the fields in `U`.
 
 For `V⊆U`, define
 
-\[
+$$
 \rho^U_V:\mathcal F(U)\to\mathcal F(V)
-\]
+$$
 
 by dropping fields outside `V`.
 
 Identity holds because dropping no fields changes nothing:
 
-\[
+$$
 \rho^U_U=1_{\mathcal F(U)}.
-\]
+$$
 
 For `W⊆V⊆U`, dropping from `U` to `V` and then to `W` has the same result as dropping directly to `W`:
 
-\[
+$$
 \rho^V_W\rho^U_V=\rho^U_W.
-\]
+$$
 
 Therefore `F` is a presheaf of parameter assignments.
 
@@ -6407,9 +6407,9 @@ p = (orderId="o7", amount=30)
 
 with invariant
 
-\[
+$$
 I(x):\quad amount=price\cdot quantity.
-\]
+$$
 
 Let `r_P` forget all full-state fields except the supplied parameters. If the database permits two completions,
 
@@ -6434,25 +6434,25 @@ Thus singleton fibres imply full determination, but invariant sufficiency only r
 
 Let global assignments be triples `(A,B,C)∈F_2^3` constrained by
 
-\[
+$$
 A+B+C=1\pmod2.
-\]
+$$
 
 Take local contexts `AB`, `BC`, and `AC`. Choose sections
 
-\[
+$$
 s_{AB}=(0,0),
 \qquad
 s_{BC}=(0,0),
 \qquad
 s_{AC}=(0,0).
-\]
+$$
 
 They agree on every one-variable overlap: all assign `0` to the shared variable. Their set-theoretic union is the unique assignment
 
-\[
+$$
 (A,B,C)=(0,0,0).
-\]
+$$
 
 But this assignment violates the global constraint because `0+0+0≠1` in `F_2`. Therefore the matching family has no global section in the presheaf of *globally admissible* assignments.
 
@@ -6467,33 +6467,33 @@ Local overlap agreement alone does not guarantee global admissibility unless the
 
 An object of the slice category `Set/B` is a function
 
-\[
+$$
 p:E\to B.
-\]
+$$
 
 Think of `E` as a total space of local values and `B` as the base of contexts. The fibre over `b∈B` is
 
-\[
+$$
 E_b=p^{-1}(b).
-\]
+$$
 
 A section of `p` is a function
 
-\[
+$$
 s:B\to E
-\]
+$$
 
 such that
 
-\[
+$$
 p\circ s=1_B.
-\]
+$$
 
 For every `b`, this equation says
 
-\[
+$$
 p(s(b))=b,
-\]
+$$
 
 so `s` selects one value in the correct fibre over each base point.
 
@@ -6503,39 +6503,39 @@ For SessionStream, let `B` be session-cut pairs and let `E` contain tagged snaps
 
 Fix a linearly ordered set of event ordinals and a set `E` of event values. Let the base regions be finite intervals. Define
 
-\[
+$$
 \mathcal F(I)=E^I,
-\]
+$$
 
 the set of event assignments on interval `I`. Restriction is ordinary function restriction.
 
 Take a cover `{I_k}` of an interval `I` and a matching family
 
-\[
+$$
 s_k:I_k\to E
-\]
+$$
 
 such that
 
-\[
+$$
 s_i|_{I_i\cap I_j}=s_j|_{I_i\cap I_j}
-\]
+$$
 
 for all `i,j`.
 
 Define `s:I→E` by choosing any `k` with `n∈I_k` and setting
 
-\[
+$$
 s(n)=s_k(n).
-\]
+$$
 
 This is well-defined because if `n` lies in two cover members, matching says both values agree. It restricts to each `s_k`, so an amalgamation exists.
 
 If `t:I→E` is another amalgamation, every `n∈I` lies in some `I_k`, and
 
-\[
+$$
 t(n)=t|_{I_k}(n)=s_k(n)=s(n).
-\]
+$$
 
 Thus `t=s`; the amalgamation is unique. Therefore `F` is a sheaf for interval-union covers.
 
@@ -6555,9 +6555,9 @@ Let the snapshot section `s_P` represent durable client state through cut `n`, a
 
 Construct
 
-\[
+$$
 s=\operatorname{foldClient}(s_P,s_F).
-\]
+$$
 
 By construction, restricting `s` to the past region returns the snapshot state. Restricting its transition trace to `(n,m]` returns exactly the suffix. The shared boundary is `B_s(n)`, and both local sections agree there by assumptions 1-3. Therefore `s` is an amalgamation.
 
@@ -6571,26 +6571,26 @@ Uniqueness fails if the reducer contains hidden inputs or if two event orders ar
 
 Let objects be intervals and arrows be inclusions. Declare `{I_k→I}` covering when
 
-\[
+$$
 I=\bigcup_k I_k.
-\]
+$$
 
 **Identity.** The singleton family `{I→I}` covers because its union is `I`.
 
 **Pullback stability.** Given `J→I`, the pullback of `I_k→I` along `J→I` is `J∩I_k→J`. Since
 
-\[
+$$
 J=J\cap I=J\cap\bigcup_k I_k=\bigcup_k(J\cap I_k),
-\]
+$$
 
 the pulled-back family covers `J`.
 
 **Transitivity.** Suppose `{I_k→I}` covers `I`, and each `{I_{k\ell}→I_k}` covers `I_k`. Then
 
-\[
+$$
 I=\bigcup_k I_k
  =\bigcup_k\bigcup_\ell I_{k\ell},
-\]
+$$
 
 so the composite family covers `I`.
 
@@ -6602,11 +6602,11 @@ Let a base category contain `U_1→U`, `U_2→U`, and their overlap, with `{U_1,
 
 Define a presheaf by
 
-\[
+$$
 F(U)=\{0,1\},
 \qquad
 F(U_1)=F(U_2)=\{*\},
-\]
+$$
 
 and let both restriction maps send `0` and `1` to `*`.
 
@@ -6620,15 +6620,15 @@ Finer topologies impose more local-to-global equations and generally have fewer 
 
 Let `E` be an event-evidence presheaf and `T` a timeline-state presheaf on the same base category. Define
 
-\[
+$$
 (E\times T)(U)=E(U)\times T(U).
-\]
+$$
 
 For `f:V→U`, define restriction by
 
-\[
+$$
 (E\times T)(f)(e,t)=\bigl(E(f)(e),T(f)(t)\bigr).
-\]
+$$
 
 Identity and composition hold componentwise because they hold for `E` and `T`.
 
@@ -6638,26 +6638,26 @@ A section over `U` is merely a pair `(eventEvidence,timelineState)`. It is not a
 
 Let `P` be a history presheaf and `T` a timeline-state presheaf. Suppose two natural transformations
 
-\[
+$$
 \alpha,\beta:P\Rightarrow T
-\]
+$$
 
 compute timeline state by incremental projection and replay.
 
 Define
 
-\[
+$$
 A(U)=\{x\in P(U)\mid \alpha_U(x)=\beta_U(x)\}.
-\]
+$$
 
 For `f:V→U` and `x∈A(U)`, naturality gives
 
-\[
+$$
 \alpha_V(P(f)x)
 =T(f)(\alpha_Ux)
 =T(f)(\beta_Ux)
 =\beta_V(P(f)x).
-\]
+$$
 
 Therefore the restriction `P(f)x` lies in `A(V)`. The inclusion `A→P` is the equalizer of `α` and `β` in the presheaf category, computed context by context.
 
@@ -6665,35 +6665,35 @@ Therefore the restriction `P(f)x` lies in `A(V)`. The inclusion `A→P` is the e
 
 Let
 
-\[
+$$
 0<1<2<3
-\]
+$$
 
 be a context chain, with one arrow `i→j` whenever `i≤j`. A sieve on the top object `3` is a set of arrows into `3` closed under precomposition. It is therefore determined by a downward-closed set of domains.
 
 The sieves are:
 
-\[
+$$
 \varnothing,
-\]
+$$
 
-\[
+$$
 \{0\to3\},
-\]
+$$
 
-\[
+$$
 \{0\to3,1\to3\},
-\]
+$$
 
-\[
+$$
 \{0\to3,1\to3,2\to3\},
-\]
+$$
 
 and
 
-\[
+$$
 \{0\to3,1\to3,2\to3,1_3\}.
-\]
+$$
 
 The first is bottom and the last is top. At object `k`, the same pattern gives the empty sieve plus every initial segment of the arrows with domains at most `k`.
 
@@ -6705,15 +6705,15 @@ Take a branching poset with a top context `U` and two incomparable refinements `
 
 Let
 
-\[
+$$
 S=\{A\to U\}.
-\]
+$$
 
 This is a sieve. Its intuitionistic negation consists of arrows whose every further refinement avoids `S`. The arrow `B→U` lies in the negation of `S`, while `A→U` and `1_U` do not. Hence
 
-\[
+$$
 S\cup\lnot S=\{A\to U,B\to U\},
-\]
+$$
 
 which is not the top sieve because it omits `1_U`.
 
@@ -6745,9 +6745,9 @@ Let `U` be the context containing:
 
 Consider the proposition
 
-\[
+$$
 P=\text{“the remote process has crashed.”}
-\]
+$$
 
 `U` does not force `P`: a delayed network, paused browser event loop, or scheduler stall is compatible with the same evidence.
 
@@ -6755,9 +6755,9 @@ P=\text{“the remote process has crashed.”}
 
 What `U` can force is the weaker, operational proposition
 
-\[
+$$
 \text{“the connection is suspected by the configured detector.”}
-\]
+$$
 
 This example is not philosophical ornament. It prevents monitoring software from silently upgrading a local timeout judgment into an unsupported global fact.
 
@@ -6765,33 +6765,33 @@ This example is not philosophical ornament. It prevents monitoring software from
 
 Let
 
-\[
+$$
 a:\widehat{\mathcal C}\to\operatorname{Sh}(\mathcal C,J)
-\]
+$$
 
 be sheafification and
 
-\[
+$$
 i:\operatorname{Sh}(\mathcal C,J)\hookrightarrow\widehat{\mathcal C}
-\]
+$$
 
 be inclusion. There is an adjunction
 
-\[
+$$
 a\dashv i.
-\]
+$$
 
 For a Grothendieck topology, sheafification preserves finite limits. Therefore `a` is left exact.
 
 A geometric morphism `f:E→F` consists of an inverse-image functor
 
-\[
+$$
 f^*:F\to E
-\]
+$$
 
 that is left exact and left adjoint to a direct-image functor `f_*`. Taking
 
-\[
+$$
 E=\operatorname{Sh}(\mathcal C,J),
 \qquad
 F=\widehat{\mathcal C},
@@ -6799,7 +6799,7 @@ F=\widehat{\mathcal C},
 f^*=a,
 \qquad
 f_*=i,
-\]
+$$
 
 gives a geometric morphism from the sheaf topos into the presheaf topos.
 
@@ -6813,13 +6813,13 @@ Let the cover members be `U_0,U_1,U_2`.
 
 Suppose
 
-\[
+$$
 U_0\cap U_1\ne\varnothing,
 \qquad
 U_1\cap U_2\ne\varnothing,
 \qquad
 U_0\cap U_2=\varnothing.
-\]
+$$
 
 The nerve has vertices `0,1,2` and edges `01,12`. It is a path.
 
@@ -6827,9 +6827,9 @@ The nerve has vertices `0,1,2` and edges `01,12`. It is a path.
 
 Suppose every pair intersects but
 
-\[
+$$
 U_0\cap U_1\cap U_2=\varnothing.
-\]
+$$
 
 The nerve has all three edges but no 2-simplex. Its geometric realization is a loop.
 
@@ -6849,27 +6849,27 @@ Orient the path as
 
 Over a field `k`,
 
-\[
+$$
 C^0=k^3,
 \qquad
 C^1=k^2.
-\]
+$$
 
 For a vertex assignment `x=(x_0,x_1,x_2)`,
 
-\[
+$$
 \delta^0x=(x_1-x_0,x_2-x_1).
-\]
+$$
 
 With column vectors, the coboundary matrix is
 
-\[
+$$
 D_0=
 \begin{bmatrix}
 -1&1&0\\
 0&-1&1
 \end{bmatrix}.
-\]
+$$
 
 There are no 2-simplices, so `C^2=0`. The kernel of `D_0` consists of constant assignments, giving one-dimensional `H^0`. Since the graph is a tree, every edge assignment is a coboundary and `H^1=0`.
 
@@ -6877,26 +6877,26 @@ There are no 2-simplices, so `C^2=0`. The kernel of `D_0` consists of constant a
 
 For an oriented triple `0<1<2`, let
 
-\[
+$$
 (\delta^0x)_{ij}=x_j-x_i.
-\]
+$$
 
 Then
 
-\[
+$$
 \begin{aligned}
 (\delta^1\delta^0x)_{012}
 &=(\delta^0x)_{12}-(\delta^0x)_{02}+(\delta^0x)_{01}\\
 &=(x_2-x_1)-(x_2-x_0)+(x_1-x_0)\\
 &=0.
 \end{aligned}
-\]
+$$
 
 Every vertex term occurs twice with opposite signs. This is the concrete form of
 
-\[
+$$
 \delta^1\delta^0=0.
-\]
+$$
 
 Therefore every coboundary is automatically a cocycle, making the quotient `ker(delta^1)/im(delta^0)` well-defined.
 
@@ -6910,13 +6910,13 @@ Orient the cycle
 
 and let edge offsets be
 
-\[
+$$
 a=(a_{01},a_{12},a_{23},a_{30}).
-\]
+$$
 
 We seek vertex coordinates satisfying
 
-\[
+$$
 a_{01}=x_1-x_0,
 \quad
 a_{12}=x_2-x_1,
@@ -6924,27 +6924,27 @@ a_{12}=x_2-x_1,
 a_{23}=x_3-x_2,
 \quad
 a_{30}=x_0-x_3.
-\]
+$$
 
 Set `x_0=0`. Then the first three equations force
 
-\[
+$$
 x_1=a_{01},
-\]
+$$
 
-\[
+$$
 x_2=a_{01}+a_{12},
-\]
+$$
 
-\[
+$$
 x_3=a_{01}+a_{12}+a_{23}.
-\]
+$$
 
 The last equation holds exactly when
 
-\[
+$$
 a_{01}+a_{12}+a_{23}+a_{30}=0.
-\]
+$$
 
 Examples:
 
@@ -6961,23 +6961,23 @@ Work over `R`.
 
 There are three vertices and three edges, with no 2-simplex:
 
-\[
+$$
 \dim C^0=3,
 \qquad
 \dim C^1=3.
-\]
+$$
 
 For a connected graph, `rank D_0=2`. Since `D_1` is absent, every 1-cochain is a cocycle:
 
-\[
+$$
 \dim\ker D_1=3.
-\]
+$$
 
 Therefore
 
-\[
+$$
 \dim H^1=3-2=1.
-\]
+$$
 
 A representative is unit circulation around the boundary.
 
@@ -6985,15 +6985,15 @@ A representative is unit circulation around the boundary.
 
 Now add one face, so `C^2=R`. The face coboundary has rank `1`, hence
 
-\[
+$$
 \dim\ker D_1=3-1=2.
-\]
+$$
 
 But `im D_0` also has dimension `2`, and it lies in `ker D_1`. Therefore
 
-\[
+$$
 H^1=0.
-\]
+$$
 
 The added face equation kills the independent circulation. In architecture terms, a reliable three-way witness can remove a pairwise-consistency degree of freedom, provided the chosen coefficients and restrictions correctly model the witness.
 
@@ -7013,13 +7013,13 @@ It does **not** mean “the presheaf forgot to satisfy the sheaf condition,” a
 
 Let the oriented offsets around a five-context loop be
 
-\[
+$$
 (0,1,0,-1,0).
-\]
+$$
 
 Their sum is `0`, so a global coordinate exists. Set `x_0=10`; integration gives
 
-\[
+$$
 x_1=10,
 \quad
 x_2=11,
@@ -7027,7 +7027,7 @@ x_2=11,
 x_3=11,
 \quad
 x_4=10,
-\]
+$$
 
 and the final edge returns to `x_0=10`.
 
@@ -7037,9 +7037,9 @@ If the last offset is changed to `1`, the cycle sum becomes `1`. No assignment o
 
 Suppose one subsystem reports the last included event and another reports the next event to consume. Treating both as `uint64 cursor` creates the false equation
 
-\[
+$$
 \text{includedThrough}=\text{nextToConsume}.
-\]
+$$
 
 Introduce distinct types:
 
@@ -7070,13 +7070,13 @@ This is an important negative result: some “cohomological obstruction” candi
 
 We audit the claim:
 
-\[
+$$
 \forall x\in\operatorname{Entities}(S),
 \quad
 x.\operatorname{LastEventOrdinal}
 \le
 S.\operatorname{SnapshotOrdinal}.
-\]
+$$
 
 This is **soundness only**. It does not claim that every event through the cut is reflected, nor that the snapshot is fresh relative to the event store.
 
@@ -7132,9 +7132,9 @@ At the inspected repository snapshot, `Apply` writes entity versions and advance
 
 A useful residual is
 
-\[
+$$
 r_x=\max(0,x.\operatorname{LastEventOrdinal}-S.\operatorname{SnapshotOrdinal}).
-\]
+$$
 
 All residuals zero are equivalent to this soundness inequality. They say nothing about missing rows or replay completeness, so higher machinery is unnecessary for the basic check.
 

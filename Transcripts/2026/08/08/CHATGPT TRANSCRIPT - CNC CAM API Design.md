@@ -306,21 +306,21 @@ There are three particularly useful mathematical models here.
 
 A solid is conceptually a subset
 
-\[
+$$
 S \subseteq \mathbb R^3.
-\]
+$$
 
 A tool is another solid
 
-\[
+$$
 T \subseteq \mathbb R^3.
-\]
+$$
 
 A coordinate frame transformation is an element of the rigid-motion group
 
-\[
+$$
 SE(3).
-\]
+$$
 
 For a simple 3-axis mill, much of the time we only need translations plus a fixed orientation, but designing around `SE(3)` means 4/5-axis machining doesn't require replacing the entire abstraction later.
 
@@ -360,31 +360,31 @@ This is one of the category-theory ideas that is genuinely useful rather than de
 
 A path has a start pose and an end pose:
 
-\[
+$$
 p : A \to B.
-\]
+$$
 
 Another path might be
 
-\[
+$$
 q : B \to C.
-\]
+$$
 
 Then composition is possible:
 
-\[
+$$
 q \circ p : A \to C.
-\]
+$$
 
 But this:
 
-\[
+$$
 A\to B
 \qquad
 D\to E
-\]
+$$
 
-cannot be composed unless \(B=D\).
+cannot be composed unless $B=D$.
 
 That is exactly the invariant we want for toolpaths.
 
@@ -428,11 +428,11 @@ concat(
 
 Composition is associative:
 
-\[
+$$
 (r\circ q)\circ p
 =
 r\circ(q\circ p)
-\]
+$$
 
 and the zero-length stationary path serves as the identity.
 
@@ -532,68 +532,68 @@ The high-level program asked for **safe traversal**, not for the byte sequence `
 
 This gives us an exceptionally clean definition of what machining means.
 
-Let the cutter occupy solid \(T\).
+Let the cutter occupy solid $T$.
 
 Let its trajectory be
 
-\[
+$$
 \gamma : [0,1]\rightarrow SE(3).
-\]
+$$
 
 The swept cutter volume is:
 
-\[
+$$
 \operatorname{Sweep}(T,\gamma)
 =
 \bigcup_{t\in[0,1]}
 \gamma(t)T.
-\]
+$$
 
-If the current stock is \(S\), executing a cutting motion gives:
+If the current stock is $S$, executing a cutting motion gives:
 
-\[
+$$
 S'
 =
 S\setminus\operatorname{Sweep}(T,\gamma).
-\]
+$$
 
 That is the denotational meaning of a cutting operation.
 
 A rapid move has:
 
-\[
+$$
 S'=S.
-\]
+$$
 
 A finish operation doesn't fundamentally mean "lots of G1 instructions."
 
 It means:
 
-\[
+$$
 S
 \longmapsto
 S\setminus V
-\]
+$$
 
-for some generated swept volume \(V\).
+for some generated swept volume $V$.
 
 This gives us a much stronger basis for verification.
 
 ### Gouging
 
-Let \(P\) be material that must remain in the final part.
+Let $P$ be material that must remain in the final part.
 
 A no-gouge condition is essentially:
 
-\[
+$$
 \operatorname{Sweep}(T,\gamma)
 \cap
 P_{\mathrm{protected}}
 =
 \varnothing.
-\]
+$$
 
-With an allowance \(a\), the protected region changes accordingly.
+With an allowance $a$, the protected region changes accordingly.
 
 Your drop-cutter evaluator can therefore be seen as a specialized solver for finding cutter poses whose swept cutter geometry remains outside the protected part.
 
@@ -619,14 +619,14 @@ interface MachineState {
 
 Executing a command has semantics approximately:
 
-\[
+$$
 \llbracket c\rrbracket :
 \Sigma
 \rightarrow
 \operatorname{Result}(\Sigma\times Trace,\ Error)
-\]
+$$
 
-where \(\Sigma\) is the complete machining state.
+where $\Sigma$ is the complete machining state.
 
 So:
 
@@ -657,13 +657,13 @@ seq(a, b, c)
 
 the semantics are:
 
-\[
+$$
 \llbracket c\rrbracket
 \mathbin{>=>}
 \llbracket b\rrbracket
 \mathbin{>=>}
 \llbracket a\rrbracket.
-\]
+$$
 
 If `b` fails its precondition, `c` cannot execute.
 
@@ -1175,17 +1175,17 @@ transform(partToMachine, partP)
 
 Coordinate transformations are morphisms:
 
-\[
+$$
 T_{AB}:A\rightarrow B
-\]
+$$
 
 with composition:
 
-\[
+$$
 T_{BC}\circ T_{AB}
 :
 A\rightarrow C.
-\]
+$$
 
 Rigid frame transformations form a groupoid: every coordinate transformation has an inverse.
 
@@ -1255,11 +1255,11 @@ PiecewiseCurve
 
 with a postcondition:
 
-\[
+$$
 d_H(P,C)\leq\epsilon
-\]
+$$
 
-where \(d_H\) is some chosen geometric deviation metric and \(\epsilon\) is the requested fitting tolerance.
+where $d_H$ is some chosen geometric deviation metric and $\epsilon$ is the requested fitting tolerance.
 
 Then:
 
@@ -1297,18 +1297,18 @@ Canonical program P
 
 with:
 
-\[
+$$
 \operatorname{Semantics}_{machine}(P)
 \approx_\epsilon
 \operatorname{Semantics}_{controller}
 (
 \operatorname{post}(P)
 ).
-\]
+$$
 
 In other words, compiling shouldn't materially change what the tool does.
 
-The \(\epsilon\) is important because linearization and arc fitting introduce finite geometric tolerances.
+The $\epsilon$ is important because linearization and arc fitting introduce finite geometric tolerances.
 
 Every lowering pass could therefore carry a **certificate/budget**:
 
@@ -1339,43 +1339,43 @@ This is an excellent place for formal semantics to directly improve practical CA
 
 We can write many CAM guarantees as predicates.
 
-For a program \(P\):
+For a program $P$:
 
-\[
+$$
 \operatorname{WithinTravel}(P)
-\]
+$$
 
-\[
+$$
 \operatorname{NoFixtureCollision}(P)
-\]
+$$
 
-\[
+$$
 \operatorname{NoGouge}(P)
-\]
+$$
 
-\[
+$$
 \operatorname{ToolCompatible}(P)
-\]
+$$
 
-\[
+$$
 \operatorname{FeedWithinLimits}(P)
-\]
+$$
 
-\[
+$$
 \operatorname{SpindleWithinLimits}(P)
-\]
+$$
 
-\[
+$$
 \operatorname{Continuous}(P)
-\]
+$$
 
 and:
 
-\[
+$$
 \operatorname{Safe}(P)
 =
 \bigwedge_i P_i.
-\]
+$$
 
 The validator then returns:
 
@@ -1457,61 +1457,61 @@ For the core IR, I'd actually write down a small-step semantics in the design do
 
 Suppose:
 
-\[
+$$
 \sigma =
 (p,t,s,c,w,S)
-\]
+$$
 
 contains pose, tool, spindle, coolant, work coordinate system, and stock.
 
 A spindle transition could be:
 
-\[
+$$
 \frac
 {r\in Machine.spindleRange}
 {\langle SpindleCW(r),\sigma\rangle
 \rightarrow
 \sigma[s:=CW(r)]}
-\]
+$$
 
 A tool change might require:
 
-\[
+$$
 s=OFF.
-\]
+$$
 
 So:
 
-\[
+$$
 \frac
 {\sigma.spindle=OFF}
 {\langle ToolChange(T),\sigma\rangle
 \rightarrow
 \sigma[tool:=T]}
-\]
+$$
 
 A cutting operation might require:
 
-\[
+$$
 tool\neq\varnothing
-\]
+$$
 
 and:
 
-\[
+$$
 feed>0.
-\]
+$$
 
 Then:
 
-\[
+$$
 \langle Cut(\gamma),\sigma\rangle
 \rightarrow
 \sigma[
 pose:=\gamma(1),
 stock:=stock\setminus Sweep(tool,\gamma)
 ].
-\]
+$$
 
 This gives the IR an actual specification independent of any implementation.
 
@@ -1948,29 +1948,29 @@ Separating them is probably the single largest architectural improvement availab
 
 Once toolpaths have semantics, we can define optimization as:
 
-\[
+$$
 \min_P
 \quad
 C(P)
-\]
+$$
 
 subject to:
 
-\[
+$$
 \llbracket P\rrbracket
 \models
 Specification
-\]
+$$
 
 and:
 
-\[
+$$
 Safe(P).
-\]
+$$
 
 The cost could be:
 
-\[
+$$
 C(P)
 =
 \alpha\,time(P)
@@ -1980,7 +1980,7 @@ C(P)
 \gamma\,retracts(P)
 +
 \delta\,jerk(P).
-\]
+$$
 
 Then nearest-neighbor contour ordering, feed optimization, stay-down links, retract minimization, entry selection, etc. become genuine optimization passes under safety constraints.
 
@@ -2195,9 +2195,9 @@ A **Kleisli category** is what you get when ordinary function composition is no 
 
 For the CAM system, it is useful because a machining command is not really:
 
-\[
+$$
 \text{MachineState} \to \text{MachineState}
-\]
+$$
 
 It can also fail, produce measurements, emit a trace, update stock, and so on.
 
@@ -2205,21 +2205,21 @@ It can also fail, produce measurements, emit a trace, update stock, and so on.
 
 Suppose we have:
 
-\[
+$$
 f:A\to B
-\]
+$$
 
 and
 
-\[
+$$
 g:B\to C.
-\]
+$$
 
 We compose them normally:
 
-\[
+$$
 g\circ f:A\to C.
-\]
+$$
 
 In JavaScript:
 
@@ -2240,15 +2240,15 @@ Suppose `f` can fail.
 
 Instead of:
 
-\[
+$$
 f:A\to B
-\]
+$$
 
 we now have:
 
-\[
+$$
 f:A\to Result<B>.
-\]
+$$
 
 For example:
 
@@ -2277,27 +2277,27 @@ function checkRPM(tool) {
 
 has type roughly:
 
-\[
+$$
 Tool\to Result<RPM>.
-\]
+$$
 
 You can't just write mathematical composition:
 
-\[
+$$
 checkRPM\circ selectTool
-\]
+$$
 
 because `selectTool` produces:
 
-\[
+$$
 Result<Tool>
-\]
+$$
 
 while `checkRPM` expects:
 
-\[
+$$
 Tool.
-\]
+$$
 
 There is an extra wrapper.
 
@@ -2305,55 +2305,55 @@ There is an extra wrapper.
 
 # 3. Kleisli composition solves exactly this
 
-A monad \(M\) gives us computations shaped like:
+A monad $M$ gives us computations shaped like:
 
-\[
+$$
 A\to M(B).
-\]
+$$
 
 A **Kleisli arrow**
 
-\[
+$$
 A \rightsquigarrow B
-\]
+$$
 
 is simply an ordinary function:
 
-\[
+$$
 A\to M(B).
-\]
+$$
 
 The funny arrow is useful notation:
 
-\[
+$$
 A \rightsquigarrow B
 \quad := \quad
 A\to M(B).
-\]
+$$
 
 So for `Result`:
 
-\[
+$$
 ToolId\rightsquigarrow Tool
-\]
+$$
 
 actually means:
 
-\[
+$$
 ToolId\to Result<Tool>.
-\]
+$$
 
 And:
 
-\[
+$$
 Tool\rightsquigarrow RPM
-\]
+$$
 
 means:
 
-\[
+$$
 Tool\to Result<RPM>.
-\]
+$$
 
 The Kleisli category tells us how to compose these anyway.
 
@@ -2363,22 +2363,22 @@ The Kleisli category tells us how to compose these anyway.
 
 Suppose:
 
-\[
+$$
 f:A\to M(B)
-\]
+$$
 
 and:
 
-\[
+$$
 g:B\to M(C).
-\]
+$$
 
 The monad supplies an operation usually called `bind`:
 
-\[
+$$
 M(B)\times(B\to M(C))
 \to M(C).
-\]
+$$
 
 For `Result`, `bind` means approximately:
 
@@ -2400,30 +2400,30 @@ const composeK = (f, g) =>
 
 Mathematically:
 
-\[
+$$
 g \star f
 =
 a\mapsto
 f(a)\bind g.
-\]
+$$
 
 Now:
 
-\[
+$$
 A\rightsquigarrow B
-\]
+$$
 
 and:
 
-\[
+$$
 B\rightsquigarrow C
-\]
+$$
 
 compose into:
 
-\[
+$$
 A\rightsquigarrow C.
-\]
+$$
 
 That's the central idea.
 
@@ -2435,23 +2435,23 @@ Because these effectful computations still satisfy the category laws.
 
 We have objects:
 
-\[
+$$
 A,B,C,\ldots
-\]
+$$
 
 and morphisms:
 
-\[
+$$
 A\to M(B).
-\]
+$$
 
 There is an identity Kleisli arrow:
 
-\[
+$$
 \eta_A:A\to M(A)
-\]
+$$
 
-where \(\eta\), often called `pure` or `return`, simply puts a value into the effect:
+where $\eta$, often called `pure` or `return`, simply puts a value into the effect:
 
 ```js
 const pure = x => ({
@@ -2466,23 +2466,23 @@ The monad laws guarantee:
 
 ### Left identity
 
-\[
+$$
 f\star \eta=f
-\]
+$$
 
 ### Right identity
 
-\[
+$$
 \eta\star f=f
-\]
+$$
 
 ### Associativity
 
-\[
+$$
 h\star(g\star f)
 =
 (h\star g)\star f.
-\]
+$$
 
 So effectful programs can be composed with the same algebraic predictability as ordinary functions.
 
@@ -2569,11 +2569,11 @@ These aren't ordinary state-transforming functions.
 
 They are:
 
-\[
+$$
 State
 \to
 Result(A\times State).
-\]
+$$
 
 This combines two effects:
 
@@ -2629,7 +2629,7 @@ const program =
 
 Conceptually:
 
-\[
+$$
 ToolChange
 \star
 StartSpindle
@@ -2637,7 +2637,7 @@ StartSpindle
 CutTo(p_1)
 \star
 CutTo(p_2).
-\]
+$$
 
 You don't manually write:
 
@@ -2657,47 +2657,47 @@ The composition operator handles that plumbing.
 
 Ignore failure for a moment.
 
-A stateful computation returning a value \(A\) has the shape:
+A stateful computation returning a value $A$ has the shape:
 
-\[
+$$
 State\to(A\times State).
-\]
+$$
 
 Call that:
 
-\[
+$$
 StateM(A).
-\]
+$$
 
 So:
 
-\[
+$$
 StateM(A)
 =
 State\to(A\times State).
-\]
+$$
 
 Then a Kleisli arrow:
 
-\[
+$$
 X\rightsquigarrow Y
-\]
+$$
 
 is:
 
-\[
+$$
 X\to StateM(Y).
-\]
+$$
 
 Expanding it:
 
-\[
+$$
 X
 \to
 \big(
 State\to(Y\times State)
 \big).
-\]
+$$
 
 That's why monads can initially look unnecessarily abstract: the notation hides a fairly ugly function type.
 
@@ -2718,9 +2718,9 @@ const getPosition = state => [
 
 Its semantic type is:
 
-\[
+$$
 State\to(Point\times State).
-\]
+$$
 
 A probe might be even more interesting:
 
@@ -2808,9 +2808,9 @@ Promise<A>
 
 also gives rise to a Kleisli category where arrows look like:
 
-\[
+$$
 A\to Promise<B>.
-\]
+$$
 
 ---
 
@@ -2863,19 +2863,19 @@ Suppose every operation should produce a physical trace.
 
 Instead of:
 
-\[
+$$
 State\to Result(A\times State)
-\]
+$$
 
 we might have:
 
-\[
+$$
 State
 \to
 Result(
 A\times State\times Trace
 ).
-\]
+$$
 
 A move could produce:
 
@@ -2896,9 +2896,9 @@ A move could produce:
 
 Sequential composition combines traces:
 
-\[
+$$
 Trace_1 \mathbin{+\!\!+} Trace_2.
-\]
+$$
 
 This is analogous to the **Writer monad**.
 
@@ -2920,7 +2920,7 @@ without individual commands having to know how an entire program is assembled.
 
 For CAM, our state can be richer:
 
-\[
+$$
 \Sigma =
 (
 pose,
@@ -2929,21 +2929,21 @@ spindle,
 fixture,
 stock
 ).
-\]
+$$
 
 Then a `cut` morphism changes:
 
-\[
+$$
 stock
-\]
+$$
 
 according to:
 
-\[
+$$
 S'
 =
 S\setminus Sweep(T,\gamma).
-\]
+$$
 
 So operationally:
 
@@ -2953,9 +2953,9 @@ Cut(path)
 
 acts like:
 
-\[
+$$
 \Sigma\to Result(\Sigma\times Trace).
-\]
+$$
 
 And semantically it might:
 
@@ -2982,21 +2982,21 @@ A --f--> B --g--> C
 
 Functions:
 
-\[
+$$
 f:A\to B
-\]
+$$
 
-\[
+$$
 g:B\to C
-\]
+$$
 
 Composition:
 
-\[
+$$
 A\xrightarrow{g\circ f}C.
-\]
+$$
 
-Kleisli category for \(M\):
+Kleisli category for $M$:
 
 ```text
 A --f--> M<B>
@@ -3008,13 +3008,13 @@ A --f--> M<B>
 
 where:
 
-\[
+$$
 f:A\to M(B)
-\]
+$$
 
-\[
+$$
 g:B\to M(C).
-\]
+$$
 
 But in the **Kleisli category**, we draw these simply as:
 
@@ -3022,7 +3022,7 @@ But in the **Kleisli category**, we draw these simply as:
 A --f--> B --g--> C
 ```
 
-because the \(M\) is understood.
+because the $M$ is understood.
 
 That's the trick.
 
@@ -3048,7 +3048,7 @@ Surface syntax makes it look like method chaining.
 
 But semantically it can mean composition of arrows:
 
-\[
+$$
 \Sigma
 \rightsquigarrow
 \Sigma
@@ -3056,7 +3056,7 @@ But semantically it can mean composition of arrows:
 \Sigma
 \rightsquigarrow
 \cdots
-\]
+$$
 
 where the hidden effect contains:
 
@@ -3070,9 +3070,9 @@ possibly measurements
 
 So the program gets a very useful law:
 
-\[
+$$
 (P;Q);R=P;(Q;R).
-\]
+$$
 
 That means we can safely regroup programs:
 
@@ -3094,40 +3094,40 @@ That associativity is what makes large programs hierarchically composable.
 
 The **Kleisli category is not the monad**.
 
-The monad \(M\) gives you machinery like:
+The monad $M$ gives you machinery like:
 
-\[
+$$
 \eta
-\]
+$$
 
 and:
 
-\[
+$$
 \bind.
-\]
+$$
 
 From that monad, you construct a category:
 
-\[
+$$
 Kl(M)
-\]
+$$
 
 called its **Kleisli category**.
 
 Its:
 
-- objects are the same underlying types \(A,B,C,\ldots\);
-- arrows \(A\to B\) are functions \(A\to M(B)\);
+- objects are the same underlying types $A,B,C,\ldots$;
+- arrows $A\to B$ are functions $A\to M(B)$;
 - identities use `pure`;
 - composition uses `bind`.
 
 So:
 
-\[
+$$
 Monad
 \quad\Longrightarrow\quad
 Kleisli\ Category.
-\]
+$$
 
 ---
 
@@ -3156,21 +3156,21 @@ The “budget pattern” I keep using is not one named design pattern with a sin
 
 In its simplest form:
 
-\[
+$$
 \text{computation} : (x,B) \mapsto (y,B')
-\]
+$$
 
 with an invariant such as
 
-\[
+$$
 B' \le B
-\]
+$$
 
 for a remaining-resource budget, or equivalently
 
-\[
+$$
 \operatorname{cost}(P)\le B.
-\]
+$$
 
 That simple idea connects to several fairly deep areas of mathematics and theoretical computer science.
 
@@ -3178,59 +3178,59 @@ That simple idea connects to several fairly deep areas of mathematics and theore
 
 Suppose a RAG pipeline has:
 
-\[
+$$
 B_{\text{tokens}}=20\,000.
-\]
+$$
 
 Retrieval spends 8,000 tokens, reranking spends 2,000, and generation gets what remains:
 
-\[
+$$
 20\,000-8\,000-2\,000=10\,000.
-\]
+$$
 
 You can model a stage as:
 
-\[
+$$
 f:A\times B\to C\times B.
-\]
+$$
 
 For example:
 
-\[
+$$
 Retrieve :
 Query\times TokenBudget
 \to
 Documents\times TokenBudget.
-\]
+$$
 
 Then:
 
-\[
+$$
 Rerank :
 Documents\times TokenBudget
 \to
 Documents'\times TokenBudget.
-\]
+$$
 
 The important property is compositionality.
 
 If
 
-\[
+$$
 cost(f)=a
-\]
+$$
 
 and
 
-\[
+$$
 cost(g)=b,
-\]
+$$
 
 then sequential execution has:
 
-\[
+$$
 cost(g\circ f)=a+b.
-\]
+$$
 
 That tiny equation is the seed from which much of the theory grows.
 
@@ -3287,41 +3287,41 @@ I often move between these two presentations.
 
 ### Remaining budget
 
-Start with \(B\) and consume it:
+Start with $B$ and consume it:
 
-\[
+$$
 B' = B-c.
-\]
+$$
 
 Require:
 
-\[
+$$
 c\le B.
-\]
+$$
 
 ### Accumulated cost
 
 Start with zero and accumulate:
 
-\[
+$$
 C'=C+c.
-\]
+$$
 
 Require at the end:
 
-\[
+$$
 C\le B.
-\]
+$$
 
 They are dual views of the same thing.
 
 For program composition, accumulated cost is often mathematically cleaner:
 
-\[
+$$
 cost(P;Q)
 =
 cost(P)+cost(Q).
-\]
+$$
 
 For an API, remaining resources can be more intuitive.
 
@@ -3333,39 +3333,39 @@ This is perhaps the most fundamental mathematical connection.
 
 A **monoid** consists of:
 
-- a set \(M\);
-- an associative operation \(\otimes\);
-- an identity element \(e\).
+- a set $M$;
+- an associative operation $\otimes$;
+- an identity element $e$.
 
 For ordinary additive budgets:
 
-\[
+$$
 M=\mathbb R_{\ge0},
-\]
+$$
 
-\[
+$$
 a\otimes b=a+b,
-\]
+$$
 
-\[
+$$
 e=0.
-\]
+$$
 
 So costs compose:
 
-\[
+$$
 cost(P;Q)
 =
 cost(P)\otimes cost(Q).
-\]
+$$
 
 Associativity:
 
-\[
+$$
 (a+b)+c
 =
 a+(b+c)
-\]
+$$
 
 means that regrouping a pipeline doesn't alter its total cost.
 
@@ -3381,7 +3381,7 @@ A realistic RAG budget isn't one number.
 
 It might be:
 
-\[
+$$
 B=
 (
 tokens,
@@ -3389,29 +3389,29 @@ latency,
 money,
 retrievals
 ).
-\]
+$$
 
 For example:
 
-\[
+$$
 B=(20000,2s,\$0.05,5).
-\]
+$$
 
 Composition is componentwise:
 
-\[
+$$
 (a_1,a_2,a_3,a_4)
 +
 (b_1,b_2,b_3,b_4)
 =
 (a_1+b_1,\ldots,a_4+b_4).
-\]
+$$
 
 So the resource algebra is the product monoid:
 
-\[
+$$
 \mathbb R_{\ge0}^4.
-\]
+$$
 
 That sounds abstract, but it gives a very practical design rule:
 
@@ -3429,23 +3429,23 @@ Suppose each approximation pass has a worst-case geometric deviation.
 
 Pass A guarantees:
 
-\[
+$$
 \epsilon_A=0.01\text{ mm}.
-\]
+$$
 
 Pass B guarantees:
 
-\[
+$$
 \epsilon_B=0.02\text{ mm}.
-\]
+$$
 
 A conservative bound may be:
 
-\[
+$$
 \epsilon_{\text{total}}
 \le
 \epsilon_A+\epsilon_B.
-\]
+$$
 
 So addition works.
 
@@ -3453,27 +3453,27 @@ But other quantities compose differently.
 
 For example, if we're tracking maximum memory usage for sequential phases, we might use:
 
-\[
+$$
 M(P;Q)
 =
 \max(M(P),M(Q))
-\]
+$$
 
 rather than addition.
 
 Now our monoid is:
 
-\[
+$$
 (\mathbb R_{\ge0},\max,0).
-\]
+$$
 
 For probabilities, independent success probabilities might multiply:
 
-\[
+$$
 p_{\text{combined}}
 =
 p_1p_2.
-\]
+$$
 
 For reliability risks, we may use other operations again.
 
@@ -3489,39 +3489,39 @@ It's:
 
 Programming-language theory has a long tradition of giving programs semantics beyond simply:
 
-\[
+$$
 \llbracket P\rrbracket = \text{value}.
-\]
+$$
 
 We can instead define:
 
-\[
+$$
 \llbracket P\rrbracket
 =
 (value,cost).
-\]
+$$
 
 A simple operational semantics might have transitions:
 
-\[
+$$
 \langle e,\sigma\rangle
 \xrightarrow{c}
 \langle e',\sigma'\rangle.
-\]
+$$
 
-The label \(c\) records resource use.
+The label $c$ records resource use.
 
 For example:
 
-\[
+$$
 \langle Retrieve(q),\sigma\rangle
 \xrightarrow{3721\ tokens}
 \langle docs,\sigma'\rangle.
-\]
+$$
 
 Along a trace,
 
-\[
+$$
 e_0
 \xrightarrow{c_1}
 e_1
@@ -3529,15 +3529,15 @@ e_1
 \cdots
 \xrightarrow{c_n}
 e_n,
-\]
+$$
 
 the total cost is:
 
-\[
+$$
 C
 =
 c_1\otimes c_2\otimes\cdots\otimes c_n.
-\]
+$$
 
 This is commonly called some variety of **cost semantics**, **resource semantics**, or **instrumented semantics**.
 
@@ -3549,29 +3549,29 @@ Classical complexity theory is essentially a particular use of resource accounti
 
 We ask:
 
-\[
+$$
 T(n)
-\]
+$$
 
 for time and
 
-\[
+$$
 S(n)
-\]
+$$
 
 for space.
 
 A program is acceptable if:
 
-\[
+$$
 T(n)\in O(n\log n)
-\]
+$$
 
 or:
 
-\[
+$$
 S(n)\le B.
-\]
+$$
 
 The budget pattern differs mostly in scale and purpose.
 
@@ -3593,13 +3593,13 @@ This is one of the deepest connections.
 
 Suppose an individual operation sometimes costs a lot, but across many operations the average is bounded.
 
-For dynamic arrays, most appends cost \(O(1)\), occasionally an append causes resizing and costs \(O(n)\).
+For dynamic arrays, most appends cost $O(1)$, occasionally an append causes resizing and costs $O(n)$.
 
 Amortized analysis assigns **credits** or **potential** so that cheap operations save enough budget to pay for expensive future operations.
 
 The potential method defines:
 
-\[
+$$
 \hat c_i
 =
 c_i
@@ -3607,23 +3607,23 @@ c_i
 \Phi(D_i)
 -
 \Phi(D_{i-1}).
-\]
+$$
 
 Where:
 
-- \(c_i\) is actual cost;
-- \(\Phi\) is stored potential;
-- \(\hat c_i\) is amortized cost.
+- $c_i$ is actual cost;
+- $\Phi$ is stored potential;
+- $\hat c_i$ is amortized cost.
 
 Then:
 
-\[
+$$
 \sum_i c_i
 \le
 \sum_i \hat c_i
 +
 \Phi(D_0).
-\]
+$$
 
 This is extremely close to a computational budget.
 
@@ -3648,9 +3648,9 @@ Rather than spending the whole budget greedily at the beginning.
 
 Ordinary classical logic permits assumptions to be reused freely:
 
-\[
+$$
 A\vdash A\land A
-\]
+$$
 
 in effect allowing duplication.
 
@@ -3658,11 +3658,11 @@ Linear logic, introduced by Jean-Yves Girard, treats assumptions as resources.
 
 Having:
 
-\[
+$$
 A
-\]
+$$
 
-means you possess one instance of \(A\), and using it consumes it unless duplication is explicitly allowed.
+means you possess one instance of $A$, and using it consumes it unless duplication is explicitly allowed.
 
 The slogan is:
 
@@ -3672,25 +3672,25 @@ That maps very naturally onto budgets.
 
 If you have:
 
-\[
+$$
 10\,000\ Tokens
-\]
+$$
 
 you cannot implicitly duplicate that assumption into:
 
-\[
+$$
 10\,000\ Tokens
 \otimes
 10\,000\ Tokens.
-\]
+$$
 
 You must split it:
 
-\[
+$$
 10\,000
 =
 6\,000+4\,000.
-\]
+$$
 
 This is the conceptual basis for many resource-aware type systems.
 
@@ -3739,9 +3739,9 @@ quantitative type systems can annotate **how many times** something may be used.
 
 Conceptually:
 
-\[
+$$
 x :_{3} A
-\]
+$$
 
 might mean:
 
@@ -3749,19 +3749,19 @@ might mean:
 
 Or a typing judgment may carry resource information:
 
-\[
+$$
 \Gamma
 \vdash^{r}
 e:A
-\]
+$$
 
 meaning:
 
-> expression \(e\) has type \(A\) and requires resource \(r\).
+> expression $e$ has type $A$ and requires resource $r$.
 
 Then application might combine costs:
 
-\[
+$$
 \frac
 {\Gamma\vdash^{r}f:A\to B
 \qquad
@@ -3769,7 +3769,7 @@ Then application might combine costs:
 {\Gamma+\Delta
 \vdash^{r+s}
 f(x):B}.
-\]
+$$
 
 That is basically a static budget system.
 
@@ -3779,34 +3779,34 @@ That is basically a static budget system.
 
 With dependent types you can go even further:
 
-\[
+$$
 Program(B)
-\]
+$$
 
 could mean:
 
-> a program statically known to require at most budget \(B\).
+> a program statically known to require at most budget $B$.
 
 Then a combinator could have a type like:
 
-\[
+$$
 compose:
 Program(a)
 \to
 Program(b)
 \to
 Program(a+b).
-\]
+$$
 
 Or, for CAM:
 
-\[
+$$
 ArcFit(\epsilon_1)
 \to
 Linearize(\epsilon_2)
 \to
 Program(\epsilon_1+\epsilon_2).
-\]
+$$
 
 This is what I was implicitly gesturing toward when I suggested an error budget for the CAM compiler.
 
@@ -3820,27 +3820,27 @@ This connects directly to the Kleisli discussion.
 
 An ordinary monad says:
 
-\[
+$$
 M(A)
-\]
+$$
 
 meaning:
 
-> a computation producing \(A\) with some effect.
+> a computation producing $A$ with some effect.
 
 A **graded monad** refines this to:
 
-\[
+$$
 M_r(A)
-\]
+$$
 
-where \(r\) describes the effect.
+where $r$ describes the effect.
 
 For example:
 
-\[
+$$
 M_{1000}(Document[])
-\]
+$$
 
 might mean:
 
@@ -3848,50 +3848,50 @@ might mean:
 
 Composition follows the grade algebra:
 
-\[
+$$
 M_r(A)
 \quad\text{and}\quad
 A\to M_s(B)
-\]
+$$
 
 produce:
 
-\[
+$$
 M_{r\otimes s}(B).
-\]
+$$
 
 With additive resource use:
 
-\[
+$$
 M_r(A)
 \bind
 (A\to M_s(B))
 :
 M_{r+s}(B).
-\]
+$$
 
 That is precisely a mathematical version of budget propagation through a pipeline.
 
 So a RAG pipeline could conceptually have:
 
-\[
+$$
 Retrieve:
 Query\to M_{5000}(Docs)
-\]
+$$
 
-\[
+$$
 Rerank:
 Docs\to M_{2000}(Docs)
-\]
+$$
 
-\[
+$$
 Generate:
 Docs\to M_{8000}(Answer).
-\]
+$$
 
 Therefore:
 
-\[
+$$
 Generate
 \star
 Rerank
@@ -3901,7 +3901,7 @@ Retrieve
 Query
 \to
 M_{15000}(Answer).
-\]
+$$
 
 That is a very clean formalization.
 
@@ -3922,13 +3922,13 @@ They differ in exactly what information the index records.
 
 For instance, an indexed state computation might track:
 
-\[
+$$
 M_{S_0,S_1}(A)
-\]
+$$
 
 meaning:
 
-> a computation starting in state type \(S_0\), ending in state type \(S_1\), and returning \(A\).
+> a computation starting in state type $S_0$, ending in state type $S_1$, and returning $A$.
 
 That could express CNC facts such as:
 
@@ -3955,49 +3955,49 @@ So typestate and resource budgets can coexist.
 
 A budget isn't only an algebra. It usually comes with an ordering:
 
-\[
+$$
 a\le b.
-\]
+$$
 
 For example:
 
-\[
+$$
 7312\le 8000.
-\]
+$$
 
 So a useful budget structure is often an **ordered monoid**:
 
-\[
+$$
 (M,\otimes,e,\le).
-\]
+$$
 
 We want composition to respect ordering:
 
-\[
+$$
 a\le b
 \implies
 a\otimes c
 \le
 b\otimes c.
-\]
+$$
 
 Then we can reason:
 
-\[
+$$
 cost(P)\le B_P,
-\]
+$$
 
-\[
+$$
 cost(Q)\le B_Q
-\]
+$$
 
 implies:
 
-\[
+$$
 cost(P;Q)
 \le
 B_P\otimes B_Q.
-\]
+$$
 
 This monotonicity is one reason the abstraction composes so well.
 
@@ -4017,40 +4017,40 @@ if (condition) {
 
 Sequential composition normally adds costs:
 
-\[
+$$
 cost(A;B)=cost(A)+cost(B).
-\]
+$$
 
 But branching is different.
 
 For a worst-case analysis:
 
-\[
+$$
 cost(A\text{ or }B)
 =
 \max(cost(A),cost(B)).
-\]
+$$
 
 Now we have two operations:
 
-\[
+$$
 \otimes = +
-\]
+$$
 
 for sequence, and:
 
-\[
+$$
 \oplus = \max
-\]
+$$
 
 for alternatives.
 
 This forms a structure closely related to the **tropical semiring**:
 
-\[
+$$
 (\mathbb R_{\ge0}\cup\{-\infty\},
 \max,+).
-\]
+$$
 
 This is not merely mathematical decoration.
 
@@ -4069,13 +4069,13 @@ generate
 
 has cost:
 
-\[
+$$
 R
 +
 \max(Cheap,Expensive)
 +
 G.
-\]
+$$
 
 ---
 
@@ -4090,15 +4090,15 @@ For path lengths:
 
 So:
 
-\[
+$$
 \otimes=+
-\]
+$$
 
 and:
 
-\[
+$$
 \oplus=\min.
-\]
+$$
 
 This is exactly a budget problem:
 
@@ -4121,15 +4121,15 @@ with costs attached to each edge.
 
 Then find:
 
-\[
+$$
 \arg\max_P Utility(P)
-\]
+$$
 
 subject to:
 
-\[
+$$
 Cost(P)\le B.
-\]
+$$
 
 ---
 
@@ -4139,65 +4139,65 @@ This is perhaps the broadest mathematical interpretation.
 
 We frequently want:
 
-\[
+$$
 \max_x U(x)
-\]
+$$
 
 subject to:
 
-\[
+$$
 C(x)\le B.
-\]
+$$
 
 For RAG:
 
-\[
+$$
 \max
 \quad
 AnswerQuality
-\]
+$$
 
 subject to:
 
-\[
+$$
 Tokens\le 20000,
-\]
+$$
 
-\[
+$$
 Latency\le 2s,
-\]
+$$
 
-\[
+$$
 Cost\le \$0.05.
-\]
+$$
 
 This is classic constrained optimization.
 
 We can introduce Lagrange multipliers:
 
-\[
+$$
 \mathcal L(x,\lambda)
 =
 U(x)
 -
 \lambda(C(x)-B).
-\]
+$$
 
 Now instead of a rigid constraint, we attach a shadow price to resource usage.
 
 This interpretation is useful when deciding whether another retrieval step is worthwhile:
 
-\[
+$$
 \frac{\Delta Quality}
 {\Delta Tokens}
-\]
+$$
 
 or:
 
-\[
+$$
 \frac{\Delta Quality}
 {\Delta Latency}.
-\]
+$$
 
 Stop when marginal benefit no longer justifies marginal cost.
 
@@ -4207,28 +4207,28 @@ Stop when marginal benefit no longer justifies marginal cost.
 
 Suppose retrieved chunks have:
 
-\[
+$$
 (value_i,cost_i).
-\]
+$$
 
 You want the subset:
 
-\[
+$$
 S
-\]
+$$
 
 maximizing:
 
-\[
+$$
 \sum_{i\in S} value_i
-\]
+$$
 
 subject to:
 
-\[
+$$
 \sum_{i\in S} tokens_i
 \le B.
-\]
+$$
 
 That is essentially the **knapsack problem**.
 
@@ -4248,31 +4248,31 @@ A high-scoring 5,000-token passage might be worse than five 800-token passages t
 
 A token budget makes context a limited-capacity communication channel.
 
-Suppose retrieved evidence \(D\) contains information about answer \(Y\).
+Suppose retrieved evidence $D$ contains information about answer $Y$.
 
 Ideally, we want to maximize something related to:
 
-\[
+$$
 I(D;Y),
-\]
+$$
 
 mutual information, while respecting:
 
-\[
+$$
 length(D)\le B.
-\]
+$$
 
 This leads to interpretations resembling the **information bottleneck**:
 
-\[
+$$
 \max I(Z;Y)
 -
 \beta I(Z;X).
-\]
+$$
 
 Very loosely:
 
-> Compress the available information \(X\) into a limited representation \(Z\), preserving what matters for \(Y\).
+> Compress the available information $X$ into a limited representation $Z$, preserving what matters for $Y$.
 
 That is exactly what good RAG context construction tries to do.
 
@@ -4290,45 +4290,45 @@ The CAM example is another branch of the same family.
 
 Suppose an answer involves approximations:
 
-\[
+$$
 x
 \xrightarrow{f}
 \tilde y
 \xrightarrow{g}
 \tilde z.
-\]
+$$
 
 If:
 
-\[
+$$
 \|f(x)-\tilde f(x)\|
 \le\epsilon_f
-\]
+$$
 
 and:
 
-\[
+$$
 \|g(y)-\tilde g(y)\|
 \le\epsilon_g,
-\]
+$$
 
 we want a bound on final error.
 
-If \(g\) is Lipschitz with constant \(L_g\):
+If $g$ is Lipschitz with constant $L_g$:
 
-\[
+$$
 \|g(a)-g(b)\|
 \le
 L_g\|a-b\|,
-\]
+$$
 
 then:
 
-\[
+$$
 \epsilon_{total}
 \le
 L_g\epsilon_f+\epsilon_g.
-\]
+$$
 
 This is an **error budget**.
 
@@ -4344,21 +4344,21 @@ That leads directly to condition numbers and numerical stability.
 
 Suppose:
 
-\[
+$$
 y=f(x).
-\]
+$$
 
 A perturbation:
 
-\[
+$$
 x+\delta x
-\]
+$$
 
 may cause:
 
-\[
+$$
 f(x+\delta x)-f(x).
-\]
+$$
 
 The condition number measures how strongly errors get amplified.
 
@@ -4373,7 +4373,7 @@ sampling error
 
 the proper error budget might be:
 
-\[
+$$
 \epsilon_{out}
 \le
 L_4(
@@ -4381,7 +4381,7 @@ L_4(
   L_2\epsilon_1+\epsilon_2
  )+\epsilon_3
 )+\epsilon_4.
-\]
+$$
 
 The simple sum I gave earlier is a conservative special case.
 
@@ -4393,35 +4393,35 @@ This is standard numerical-analysis reasoning applied as an API architecture.
 
 In program verification, we often reason with invariants:
 
-\[
+$$
 ResourceUsed\le B.
-\]
+$$
 
 Hoare logic could express:
 
-\[
+$$
 \{budget=b\}
 \ P\
 \{budget\ge b-c\}.
-\]
+$$
 
 For example:
 
-\[
+$$
 \{tokens=10000\}
 Retrieve
 \{tokens\ge5000\}.
-\]
+$$
 
 Then sequential composition uses the Hoare sequencing rule:
 
-\[
+$$
 \frac
 {\{P\}C_1\{Q\}
 \qquad
 \{Q\}C_2\{R\}}
 {\{P\}C_1;C_2\{R\}}.
-\]
+$$
 
 This gives a formal basis for budget-preserving pipelines.
 
@@ -4433,27 +4433,27 @@ There are entire families of **resource-aware logics** extending this idea.
 
 Separation logic is usually associated with memory:
 
-\[
+$$
 P*Q
-\]
+$$
 
-means roughly that \(P\) and \(Q\) hold over disjoint pieces of state.
+means roughly that $P$ and $Q$ hold over disjoint pieces of state.
 
 The resource interpretation is more general.
 
 You can think of:
 
-\[
+$$
 Budget(6000)
 *
 Budget(4000)
-\]
+$$
 
 as decomposing:
 
-\[
+$$
 Budget(10000).
-\]
+$$
 
 Then one subsystem owns one portion and another subsystem owns the other.
 
@@ -4510,23 +4510,23 @@ Do not let every layer retry independently without bounds.
 
 Use:
 
-\[
+$$
 retryCount\le B.
-\]
+$$
 
 ### Error budgets
 
 Site reliability engineering uses an availability objective such as:
 
-\[
+$$
 99.9\%.
-\]
+$$
 
 That means permitted unavailability is:
 
-\[
+$$
 0.1\%.
-\]
+$$
 
 The permitted failure amount is literally called an **error budget**.
 
@@ -4540,30 +4540,30 @@ The engineering usage and the mathematical resource interpretation reinforce eac
 
 Control systems work repeatedly under constraints:
 
-\[
+$$
 x_{t+1}
 =
 f(x_t,u_t)
-\]
+$$
 
 with:
 
-\[
+$$
 u_t\in U
-\]
+$$
 
 and perhaps:
 
-\[
+$$
 x_t\in X.
-\]
+$$
 
 Model predictive control solves:
 
-\[
+$$
 \min_{u_0,\ldots,u_n}
 \sum_t cost(x_t,u_t)
-\]
+$$
 
 subject to resource and state constraints.
 
@@ -4586,33 +4586,33 @@ This is more sophisticated than greedily spending whatever remains.
 
 Suppose several independent operations can fail with probabilities:
 
-\[
+$$
 p_1,p_2,\ldots.
-\]
+$$
 
 You might require:
 
-\[
+$$
 P(failure)\le\epsilon.
-\]
+$$
 
-Then \(\epsilon\) is a **risk budget**.
+Then $\epsilon$ is a **risk budget**.
 
 For small independent probabilities, the union bound gives:
 
-\[
+$$
 P\left(\bigcup_i Failure_i\right)
 \le
 \sum_i p_i.
-\]
+$$
 
 Therefore you can allocate:
 
-\[
+$$
 \epsilon
 =
 \epsilon_1+\epsilon_2+\cdots+\epsilon_n.
-\]
+$$
 
 Again:
 
@@ -4626,27 +4626,27 @@ This same pattern appears extensively in differential privacy.
 
 A mechanism can be:
 
-\[
+$$
 (\epsilon,\delta)\text{-differentially private}.
-\]
+$$
 
 Running multiple mechanisms consumes privacy budget.
 
 A basic composition theorem gives roughly:
 
-\[
+$$
 \epsilon_{total}
 =
 \sum_i\epsilon_i
-\]
+$$
 
 and:
 
-\[
+$$
 \delta_{total}
 =
 \sum_i\delta_i.
-\]
+$$
 
 So you literally have a mathematical **privacy budget** that computations consume.
 
@@ -4660,7 +4660,7 @@ This is perhaps one of the cleanest examples of the general budget pattern becom
 
 RAG has an unusually large number of scarce resources:
 
-\[
+$$
 B=
 (
 context,
@@ -4671,7 +4671,7 @@ attention,
 evidence,
 uncertainty
 ).
-\]
+$$
 
 If you don't make these explicit, each component optimizes itself locally:
 
@@ -4693,15 +4693,15 @@ The result is globally poor.
 
 Budgeting turns the design problem into:
 
-\[
+$$
 \max Quality(P)
-\]
+$$
 
 subject to:
 
-\[
+$$
 Cost(P)\preceq Budget.
-\]
+$$
 
 That gives the whole pipeline a shared notion of scarcity.
 
@@ -4750,9 +4750,9 @@ evaluate(expr, fuel)
 
 Each reduction step consumes one unit:
 
-\[
+$$
 fuel' = fuel-1.
-\]
+$$
 
 At zero:
 
@@ -4764,12 +4764,12 @@ This is useful for making potentially nonterminating computations total.
 
 For example:
 
-\[
+$$
 eval:
 Expr\times\mathbb N
 \to
 Result<Value,OutOfFuel>.
-\]
+$$
 
 Proof assistants often use related techniques when unrestricted recursion would otherwise cause termination problems.
 
@@ -4789,9 +4789,9 @@ I find it useful to distinguish these.
 
 A **bound** is mathematical:
 
-\[
+$$
 cost(P)\le B.
-\]
+$$
 
 A **quota** is a policy:
 
@@ -4815,9 +4815,9 @@ There are two distinct approaches.
 
 Prove before execution:
 
-\[
+$$
 cost(P)\le B.
-\]
+$$
 
 For example:
 
@@ -4853,9 +4853,9 @@ dynamic actual consumption
 
 A **hard budget** is an invariant:
 
-\[
+$$
 C\le B.
-\]
+$$
 
 Violation means stop.
 
@@ -4870,9 +4870,9 @@ safety tolerance
 
 A **soft budget** is an optimization target:
 
-\[
+$$
 C\approx B.
-\]
+$$
 
 You may exceed it if utility warrants it.
 
@@ -4888,20 +4888,20 @@ These lead to different algorithms.
 
 Hard constraints naturally yield:
 
-\[
+$$
 \max U(x)
 \quad
 \text{s.t. }C(x)\le B.
-\]
+$$
 
 Soft ones often become penalty terms:
 
-\[
+$$
 \max
 \left[
 U(x)-\lambda C(x)
 \right].
-\]
+$$
 
 ---
 
@@ -4909,13 +4909,13 @@ U(x)-\lambda C(x)
 
 Suppose:
 
-\[
+$$
 B_{job}=100.
-\]
+$$
 
 We split:
 
-\[
+$$
 B_{job}
 =
 B_{rough}
@@ -4923,11 +4923,11 @@ B_{rough}
 B_{finish}
 +
 B_{verify}.
-\]
+$$
 
 Then:
 
-\[
+$$
 B_{finish}
 =
 B_{sampling}
@@ -4935,7 +4935,7 @@ B_{sampling}
 B_{pathgen}
 +
 B_{arcfit}.
-\]
+$$
 
 This forms a resource tree:
 
@@ -4963,31 +4963,31 @@ That makes local reasoning possible.
 
 Since we've been talking category theory, here is the compact formulation.
 
-Suppose programs form a category \(\mathcal C\).
+Suppose programs form a category $\mathcal C$.
 
-Let resource costs live in a monoidal category \((R,\otimes,I)\).
+Let resource costs live in a monoidal category $(R,\otimes,I)$.
 
 A compositional cost semantics behaves like a monoidal mapping:
 
-\[
+$$
 Cost(P;Q)
 =
 Cost(P)\otimes Cost(Q).
-\]
+$$
 
 So there is a structure-preserving map from program composition to resource composition:
 
-\[
+$$
 \mathcal C
 \longrightarrow
 R.
-\]
+$$
 
 For simple scalar costs:
 
-\[
+$$
 R=(\mathbb R_{\ge0},+,0).
-\]
+$$
 
 Conceptually:
 
@@ -5011,59 +5011,59 @@ Combine this with our previous conversation.
 
 Instead of:
 
-\[
+$$
 A\rightsquigarrow B
-\]
+$$
 
 represent a computation as:
 
-\[
+$$
 A\rightsquigarrow_r B.
-\]
+$$
 
-The \(r\) says what resource/effect it consumes.
+The $r$ says what resource/effect it consumes.
 
 Then:
 
-\[
+$$
 A
 \rightsquigarrow_r
 B
-\]
+$$
 
 and:
 
-\[
+$$
 B
 \rightsquigarrow_s
 C
-\]
+$$
 
 compose as:
 
-\[
+$$
 A
 \rightsquigarrow_{r\otimes s}
 C.
-\]
+$$
 
 For additive budgets:
 
-\[
+$$
 A
 \rightsquigarrow_r
 B
 \rightsquigarrow_s
 C
-\]
+$$
 
 becomes:
 
-\[
+$$
 A
 \rightsquigarrow_{r+s}
 C.
-\]
+$$
 
 That's the categorical core of the pattern.
 
@@ -5091,20 +5091,20 @@ controller quantization
 
 A conservative compiler certificate could carry:
 
-\[
+$$
 \epsilon
 \le
 \epsilon_1+
 \epsilon_2+
 \epsilon_3+
 \epsilon_4.
-\]
+$$
 
 Thus:
 
-\[
+$$
 \epsilon\le0.021\text{ mm}.
-\]
+$$
 
 Each compiler pass has something like:
 
@@ -5214,13 +5214,13 @@ The same pattern has emerged repeatedly:
 
 They are all manifestations of roughly the same abstraction:
 
-\[
+$$
 \boxed{
 \text{Make scarce quantities explicit,
 give them a composition law,
 and require global bounds.}
 }
-\]
+$$
 
 The especially important theoretical step is realizing that the “budget” doesn't have to be a number. It can be **any ordered algebra of resources whose composition mirrors the composition of computations**.
 

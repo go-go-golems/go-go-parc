@@ -256,7 +256,7 @@ The official distribution channel. Users install with one click, and Chrome hand
 **Steps:**
 
 1. Go to [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole/)
-2. Pay the $5 one-time registration fee
+2. Pay the \$5 one-time registration fee
 3. Click "New item" → upload a `.zip` (not `.crx`)
 4. Fill in description, screenshots, category, and privacy policy
 5. Submit for review (typically 1-3 business days)
@@ -265,7 +265,7 @@ The official distribution channel. Users install with one click, and Chrome hand
 
 **Pros:** One-click install for users; automatic updates; discoverability.
 
-**Cons:** Review process; $5 fee; must comply with Store policies; cannot use certain APIs (some are restricted to Store-distributed extensions).
+**Cons:** Review process; \$5 fee; must comply with Store policies; cannot use certain APIs (some are restricted to Store-distributed extensions).
 
 ---
 

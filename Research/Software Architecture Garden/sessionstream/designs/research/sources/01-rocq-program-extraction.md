@@ -83,7 +83,7 @@ Changed in version 8.11: Before using any of the commands or options described i
 
 Require Extraction.
 
-\[Loading ML file extraction\_plugin.cmxs (using legacy method)... done\]
+$$Loading ML file extraction\_plugin.cmxs (using legacy method)... done$$
 
 ## Generating ML Code
 
@@ -209,7 +209,7 @@ For the [constants](https://rocq-prover.org/doc/v8.20/refman/language/core/defin
 
 The following command provides some extra manual control on the code elimination performed during extraction, in a way which is independent but complementary to the main elimination principles of extraction (logical parts and types).
 
-*Command* Extraction Implicit [qualid](https://rocq-prover.org/doc/v8.20/refman/language/core/modules.html#grammar-token-qualid) \[ [ident](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-ident) [integer](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-integer) \* \] [¶](#coq:cmd.Extraction-Implicit "Permalink to this definition")
+*Command* Extraction Implicit [qualid](https://rocq-prover.org/doc/v8.20/refman/language/core/modules.html#grammar-token-qualid) $$ [ident](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-ident) [integer](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-integer) \* $$ [¶](#coq:cmd.Extraction-Implicit "Permalink to this definition")
 
 Declares some arguments of [`qualid`](https://rocq-prover.org/doc/v8.20/refman/language/core/modules.html#grammar-token-qualid) as implicit, meaning that they are useless in extracted code. The extracted code will omit these arguments. Here [`qualid`](https://rocq-prover.org/doc/v8.20/refman/language/core/modules.html#grammar-token-qualid) can be any function or inductive constructor, and the [`ident`](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-ident) s are the names of the useless arguments. Arguments can can also be identified positionally by [`integer`](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-integer) s starting from 1.
 
@@ -278,7 +278,7 @@ If an informative axiom has not been realized before an extraction, a warning is
 
 The system also provides a mechanism to specify ML terms for inductive types and constructors. For instance, the user may want to use the ML native boolean type instead of the Coq one. The syntax is the following:
 
-*Command* Extract Inductive [qualid](https://rocq-prover.org/doc/v8.20/refman/language/core/modules.html#grammar-token-qualid) => [ident](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-ident) [string](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-string) \[ [ident](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-ident) [string](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-string) \* \] [string <sub>match</sub>](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-string)?[¶](#coq:cmd.Extract-Inductive "Permalink to this definition")
+*Command* Extract Inductive [qualid](https://rocq-prover.org/doc/v8.20/refman/language/core/modules.html#grammar-token-qualid) => [ident](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-ident) [string](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-string) $$ [ident](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-ident) [string](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-string) \* $$ [string <sub>match</sub>](https://rocq-prover.org/doc/v8.20/refman/language/core/basic.html#grammar-token-string)?[¶](#coq:cmd.Extract-Inductive "Permalink to this definition")
 
 Give an ML extraction for the given inductive type. You must specify extractions for the type itself (the initial `ident​string`) and all its constructors (the `[ ident​string* ]`). In this form, the ML extraction must be an ML inductive datatype, and the native pattern matching of the language will be used.
 
@@ -297,22 +297,22 @@ Indicates how to perform pattern matching over this inductive type. In this form
 
 Typical examples are the following:
 
-Extract Inductive unit => "unit" \[ "()" \].
+Extract Inductive unit => "unit" $$ "()" $$.
 
-Extract Inductive bool => "bool" \[ "true" "false" \].
+Extract Inductive bool => "bool" $$ "true" "false" $$.
 
-Extract Inductive sumbool => "bool" \[ "true" "false" \].
+Extract Inductive sumbool => "bool" $$ "true" "false" $$.
 
 > [!note] Note
 > When extracting to OCaml, if an inductive constructor or type has arity 2 and the corresponding string is enclosed by parentheses, and the string meets OCaml's lexical criteria for an infix symbol, then the rest of the string is used as an infix constructor or type.
 
-Extract Inductive list => "list" \[ "\[\]" "(::)" \].
+Extract Inductive list => "list" $$ "$$$$" "(::)" $$.
 
-Extract Inductive prod => "(\*)" \[ "(,)" \].
+Extract Inductive prod => "(\*)" $$ "(,)" $$.
 
 As an example of translation to a non-inductive datatype, let's turn `nat` into OCaml `int` (see caveat above):
 
-Extract Inductive nat => int \[ "0" "succ" \] "(fun fO fS n -> if n=0 then fO () else fS (n-1))".
+Extract Inductive nat => int $$ "0" "succ" $$ "(fun fO fS n -> if n=0 then fO () else fS (n-1))".
 
 ### Generating FFI Code
 
@@ -333,7 +333,7 @@ Require Extraction.
 
 Require Coq.extraction.ExtrOcamlNatInt.
 
-\[Loading ML file ring\_plugin.cmxs (using legacy method)... done\]
+$$Loading ML file ring\_plugin.cmxs (using legacy method)... done$$
 
 Axiom f: nat -> nat -> nat.
 
@@ -478,7 +478,7 @@ which corresponds to the definition of an ML dynamic type. In OCaml, we must cas
 
 Even with those unsafe castings, you should never get error like `segmentation fault`. In fact even if your program may seem ill-typed to the OCaml type checker, it can't go wrong: it comes from a Coq well-typed terms, so for example inductive types will always have the correct number of arguments, etc. Of course, when launching manually some extracted function, you should apply it to arguments of the right shape (from the Coq point-of-view).
 
-More details about the correctness of the extracted programs can be found in [\[Let02\]](https://rocq-prover.org/doc/v8.20/refman/zebibliography.html#let02).
+More details about the correctness of the extracted programs can be found in [$$Let02$$](https://rocq-prover.org/doc/v8.20/refman/zebibliography.html#let02).
 
 We have to say, though, that in most "realistic" programs, these problems do not occur. For example all the programs of Coq library are accepted by the OCaml type checker without any `Obj.magic` (see examples below).
 
@@ -573,4 +573,4 @@ Several of the Coq Users' Contributions use extraction to produce certified prog
 > - `search-trees`: [https://github.com/coq-contribs/search-trees](https://github.com/coq-contribs/search-trees)
 > - `stalmarck`: [https://github.com/coq-contribs/stalmarck](https://github.com/coq-contribs/stalmarck)
 
-Note that `continuations` and `multiplier` are a bit particular. They are examples of developments where `Obj.magic` is needed. This is probably due to a heavy use of impredicativity. After compilation, those two examples run nonetheless, thanks to the correction of the extraction [\[Let02\]](https://rocq-prover.org/doc/v8.20/refman/zebibliography.html#let02).
+Note that `continuations` and `multiplier` are a bit particular. They are examples of developments where `Obj.magic` is needed. This is probably due to a heavy use of impredicativity. After compilation, those two examples run nonetheless, thanks to the correction of the extraction [$$Let02$$](https://rocq-prover.org/doc/v8.20/refman/zebibliography.html#let02).

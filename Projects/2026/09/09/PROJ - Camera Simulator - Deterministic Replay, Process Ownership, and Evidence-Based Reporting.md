@@ -148,7 +148,7 @@ If these coordinates are collapsed into one variable, a clock fault can accident
 
 ### 4.1 Rational deadlines avoid accumulated rounding error
 
-For frame rate \(p/q\), the deadline of frame \(n\), relative to the run anchor, is:
+For frame rate $p/q$, the deadline of frame $n$, relative to the run anchor, is:
 
 $$
 d_n = \left\lfloor\frac{nq\cdot 10^9}{p}\right\rfloor
@@ -157,7 +157,7 @@ $$
 
 At 15 fps, the first deadlines are 0, 66,666,666, 133,333,333, and 200,000,000 ns. They are derived independently from the index. Repeatedly adding a rounded interval would accumulate the rounding error. Rounding 1/15 second to 67 ms is especially damaging: the 333⅓ μs error per frame adds up to roughly 432 seconds across the nominal 1,296,000 frame intervals of a day. This is an arithmetic illustration, not a measured drift result from this implementation.
 
-`Grid.DeadlineNS` uses checked multiplication and division. `Grid.IndexAt` implements the inverse of the **floored** deadline, not an approximate floating-point inverse. For elapsed integer nanoseconds \(t\):
+`Grid.DeadlineNS` uses checked multiplication and division. `Grid.IndexAt` implements the inverse of the **floored** deadline, not an approximate floating-point inverse. For elapsed integer nanoseconds $t$:
 
 $$
 \left\lfloor\frac{nq\cdot 10^9}{p}\right\rfloor\le t
@@ -168,7 +168,7 @@ The code uses that strict inequality to calculate the last eligible frame withou
 
 ### 4.2 Content phase and clock drift are different operations
 
-Let \(e\) be elapsed nanoseconds, \(\phi\) the content phase in microseconds, and \(L\) the fixture duration in microseconds. The selected content coordinate is:
+Let $e$ be elapsed nanoseconds, $\phi$ the content phase in microseconds, and $L$ the fixture duration in microseconds. The selected content coordinate is:
 
 $$
 c(e) = \left(\left\lfloor e/1000\right\rfloor + \phi\right) \bmod L.
@@ -176,7 +176,7 @@ $$
 
 The loop index is the corresponding integer quotient. Applying a phase changes the selected imagery without changing the monotonic send deadline.
 
-For source-clock drift \(\rho\), expressed in parts per billion, the mapper approximately adds \(e\rho/10^9\) nanoseconds before converting to UTC microseconds. An explicit offset is then added to the wall-time label. RTP time has its own drift parameter in the clock package and is computed modulo \(2^{32}\). The current RTSP configuration supplies its configured drift to both source and RTP mapping; this is not a claim that every scheduled clock-fault domain from the specification is implemented.
+For source-clock drift $\rho$, expressed in parts per billion, the mapper approximately adds $e\rho/10^9$ nanoseconds before converting to UTC microseconds. An explicit offset is then added to the wall-time label. RTP time has its own drift parameter in the clock package and is computed modulo $2^{32}$. The current RTSP configuration supplies its configured drift to both source and RTP mapping; this is not a claim that every scheduled clock-fault domain from the specification is implemented.
 
 An offset of +30 seconds should change the advertised source time, not delay every packet by 30 seconds. Independent wire tests exercise a +30-second offset and +500 ppm drift. They test the protocol mapping rather than trusting a log message that merely repeats the requested parameters.
 

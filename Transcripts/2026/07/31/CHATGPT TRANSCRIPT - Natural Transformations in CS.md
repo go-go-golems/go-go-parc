@@ -13,7 +13,7 @@ I’ll build this as a short learning path: intuition first, then CS examples, t
 
 **Clarifying the concept**
 
-I’m framing a natural transformation as a uniform adapter between container shapes, using the equation \(Gf \circ \eta_A=\eta_B\circ Ff\). I’ll explain why uniformity matters, then give approachable examples such as `Maybe` to lists.
+I’m framing a natural transformation as a uniform adapter between container shapes, using the equation $Gf \circ \eta_A=\eta_B\circ Ff$. I’ll explain why uniformity matters, then give approachable examples such as `Maybe` to lists.
 
 **Clarified the concept**
 
@@ -845,40 +845,40 @@ or, conceptually:
 
 **Checking naturality**
 
-I’m testing the equation \(G(f)\circ\alpha_c=\alpha_d\circ F(f)\). Since mapping preserves tree shape, sorting or balancing by values generally fails for arbitrary \(f\). A shape-only conversion can be natural; order-preserving maps may rescue sorting in a restricted setting.
+I’m testing the equation $G(f)\circ\alpha_c=\alpha_d\circ F(f)$. Since mapping preserves tree shape, sorting or balancing by values generally fails for arbitrary $f$. A shape-only conversion can be natural; order-preserving maps may rescue sorting in a restricted setting.
 
 **Checked naturality**
 
 **Refining the criterion**
 
-Your equation is right: \(G(f)(\alpha_c(xs))=\alpha_d(F(f)(xs))\). The important correction is that sorting usually fails for arbitrary \(f\), while a conversion based only on list positions or length remains natural because mapping preserves structure.
+Your equation is right: $G(f)(\alpha_c(xs))=\alpha_d(F(f)(xs))$. The important correction is that sorting usually fails for arbitrary $f$, while a conversion based only on list positions or length remains natural because mapping preserves structure.
 
 **Refined the criterion**
 
 </details>
 
-You are very close. The square says that for any types \(c,d\), any function
+You are very close. The square says that for any types $c,d$, any function
 
-\[
+$$
 f:c\to d,
-\]
+$$
 
-and any \(xs:F(c)\),
+and any $xs:F(c)$,
 
-\[
+$$
 G(f)(\alpha_c(xs))
 =
 \alpha_d(F(f)(xs)).
-\]
+$$
 
 With your choices:
 
-- \(c=\texttt{Int}\)
-- \(d=\texttt{String}\)
-- \(F=\texttt{List}\)
-- \(G=\texttt{Tree}\)
-- \(F(f)=\texttt{mapList}(f)\)
-- \(G(f)=\texttt{mapTree}(f)\)
+- $c=\texttt{Int}$
+- $d=\texttt{String}$
+- $F=\texttt{List}$
+- $G=\texttt{Tree}$
+- $F(f)=\texttt{mapList}(f)$
+- $G(f)=\texttt{mapTree}(f)$
 
 the law becomes:
 
@@ -906,7 +906,7 @@ List<Int>
 
 ## The important correction: sorting is generally not natural
 
-Suppose \(\alpha\) sorts the list before creating the tree. Take:
+Suppose $\alpha$ sorts the list before creating the tree. Take:
 
 ```text
 xs = [1, 2]
@@ -939,7 +939,7 @@ Tree("z", "a") != Tree("a", "z")
 
 Therefore, sorting-based conversion is not a natural transformation between ordinary `List` and `Tree` functors.
 
-The problem is that an arbitrary function \(f\) does not have to preserve ordering.
+The problem is that an arbitrary function $f$ does not have to preserve ordering.
 
 ## A natural list-to-tree conversion
 
@@ -979,7 +979,7 @@ and:
 alpha_B([f(a), f(b), f(c)])
 ```
 
-produce exactly the same tree shape, with corresponding values transformed by \(f\).
+produce exactly the same tree shape, with corresponding values transformed by $f$.
 
 A balanced conversion based on list length would also work:
 
@@ -996,7 +996,7 @@ It is slightly stronger than saying that “mapping over the tree preserves stru
 
 The naturality requirement says:
 
-> The structure chosen by \(\alpha\) must be compatible with mapping.
+> The structure chosen by $\alpha$ must be compatible with mapping.
 
 For ordinary types and arbitrary functions, this usually means that the tree’s shape cannot depend on properties of the payload values. It can depend on:
 

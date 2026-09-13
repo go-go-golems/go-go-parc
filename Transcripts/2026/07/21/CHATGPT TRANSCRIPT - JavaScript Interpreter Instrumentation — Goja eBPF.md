@@ -977,32 +977,32 @@ The proposed goja system would add something distinct: **verified, dynamically a
 
 A small-step operational semantics normally has configurations such as
 
-\[
+$$
 C = \langle e,\rho,\sigma,\kappa,J,H\rangle
-\]
+$$
 
 where:
 
-- \(e\) is the current expression or instruction;
-- \(\rho\) is the lexical environment;
-- \(\sigma\) is the store or heap;
-- \(\kappa\) is the continuation or call stack;
-- \(J\) is the job or asynchronous-work state;
-- \(H\) is the host environment.
+- $e$ is the current expression or instruction;
+- $\rho$ is the lexical environment;
+- $\sigma$ is the store or heap;
+- $\kappa$ is the continuation or call stack;
+- $J$ is the job or asynchronous-work state;
+- $H$ is the host environment.
 
 The uninstrumented semantics is a relation
 
-\[
+$$
 C \longrightarrow C'
-\]
+$$
 
 The probe architecture should turn this into a **labelled transition system**:
 
-\[
+$$
 C \xrightarrow{\ell} C'
-\]
+$$
 
-where \(\ell\) is either an internal event \(\tau\), or a semantic event such as:
+where $\ell$ is either an internal event $\tau$, or a semantic event such as:
 
 ```text
 CallBefore
@@ -1034,20 +1034,20 @@ Goja already has the concrete material needed for this mapping: its VM tracks th
 
 A verified probe can be modeled as a state machine
 
-\[
+$$
 \delta : M \times E \times O \rightarrow M \times A
-\]
+$$
 
 where:
 
-- \(M\) is probe state;
-- \(E\) is the semantic event;
-- \(O\) is a bounded observation projected from the VM state;
-- \(A\) is an action such as `continue`, `violation`, or, in an explicitly privileged mode, `intervene`.
+- $M$ is probe state;
+- $E$ is the semantic event;
+- $O$ is a bounded observation projected from the VM state;
+- $A$ is an action such as `continue`, `violation`, or, in an explicitly privileged mode, `intervene`.
 
 The instrumented semantics is the product of the program machine and the monitor:
 
-\[
+$$
 \frac{
  C \xrightarrow{e/o} C'
  \qquad
@@ -1055,13 +1055,13 @@ The instrumented semantics is the product of the program machine and the monitor
 }{
  (C,m)\Longrightarrow(C',m')
 }
-\]
+$$
 
 Internal transitions leave the monitor unchanged:
 
-\[
+$$
 \frac{C\xrightarrow{\tau}C'}{(C,m)\Longrightarrow(C',m)}
-\]
+$$
 
 This standard product construction gives a clear basis for runtime invariants, temporal properties, typestate, protocol monitoring, and trace collection. Monitoring-oriented programming already synthesizes monitors from formal specifications and integrates them at selected program locations; parametric monitoring additionally gives a semantics for slicing one event stream into per-object or per-transaction traces. citeturn880375search0turn880375search3turn880375search5
 
@@ -1071,12 +1071,12 @@ A publication-quality implementation should distinguish several independent theo
 
 | Obligation | Representative statement | What it establishes |
 |---|---|---|
-| **Erasure or transparency** | \(\mathsf{erase}(\mathsf{run}_{probe}(p,m))=\mathsf{run}(p)\) | Read-only probes do not alter JavaScript behavior. |
+| **Erasure or transparency** | $\mathsf{erase}(\mathsf{run}_{probe}(p,m))=\mathsf{run}(p)$ | Read-only probes do not alter JavaScript behavior. |
 | **Event adequacy** | Every emitted event corresponds to a defined source-semantic transition or macro-transition. | The trace means what its schema claims. |
 | **Trace completeness** | Every selected semantic transition emits exactly the required event. | Monitors cannot silently miss relevant behavior. |
 | **Monitor compilation** | A compiled monitor rejects exactly the bad prefixes described by its source property. | The probe compiler implements the specification logic correctly. |
 | **Probe safety** | Verified probes terminate within a bound, access only typed observations, and cannot re-enter or corrupt the VM. | Attaching a probe is operationally safe. |
-| **VM/source refinement** | \(\mu(\mathsf{trace}_{VM}(\mathsf{compile}(p)))\in\mathsf{Traces}_{source}(p)\) | The implementation trace refines the formal JavaScript semantics. |
+| **VM/source refinement** | $\mu(\mathsf{trace}_{VM}(\mathsf{compile}(p)))\in\mathsf{Traces}_{source}(p)$ | The implementation trace refines the formal JavaScript semantics. |
 
 The erasure theorem is the semantic analogue of “disabled or observing probes are transparent.” Depending on whether event production introduces extra administrative steps, the appropriate relation will usually be a simulation or weak bisimulation rather than literal step-for-step equality.
 
@@ -1100,23 +1100,23 @@ That separation is especially important for academic claims. “The monitor was 
 
 A simple stateful denotation might map a program to a result and store:
 
-\[
+$$
 \llbracket p\rrbracket : \Sigma \rightarrow \mathsf{Outcome}\times\Sigma
-\]
+$$
 
 Instrumentation enriches that denotation with events:
 
-\[
+$$
 \llbracket p\rrbracket_E :
 \Sigma \rightarrow \mathsf{Trace}(E)\times\mathsf{Outcome}\times\Sigma
-\]
+$$
 
 For JavaScript, a finite trace is insufficient because of divergence, asynchronous interaction, host effects, and potentially nondeterministic scheduling. A more useful model is coinductive:
 
-\[
+$$
 \llbracket p\rrbracket :
 \Sigma \rightarrow \mathsf{ITree}\ E\ (\mathsf{Outcome}\times\Sigma)
-\]
+$$
 
 Interaction trees represent recursive, effectful computations as trees of uninterpreted events and continuations. Event handlers subsequently assign meanings to those events, while weak bisimulation supports reasoning that ignores internal administrative steps. They were explicitly designed to combine executability, compositional semantics, testing, and mechanized proof. citeturn561141academia36turn561141search1
 
@@ -1137,15 +1137,15 @@ JavaScript execution denotation
 
 A handler interprets semantic events in some target domain:
 
-\[
+$$
 h : E \rightarrow M
-\]
+$$
 
 More accurately, for a stateful monitor:
 
-\[
+$$
 h : E \rightarrow \mathsf{State}\ M
-\]
+$$
 
 Different handlers give different meanings to the same execution:
 
@@ -1161,9 +1161,9 @@ This is closely related to the algebraic-effects view in which computations are 
 
 A substantial theoretical advantage follows: probes can compose by taking products of their interpretation domains.
 
-\[
+$$
 h_1 \times h_2 : E \rightarrow M_1\times M_2
-\]
+$$
 
 Thus one execution can simultaneously compute:
 
@@ -1177,13 +1177,13 @@ without giving each analysis a separate ad hoc instrumentation mechanism.
 
 Many metrics are monoid homomorphisms over traces:
 
-\[
+$$
 f(\epsilon)=1_M
-\]
+$$
 
-\[
+$$
 f(t_1\cdot t_2)=f(t_1)\otimes f(t_2)
-\]
+$$
 
 Examples include:
 
@@ -1229,11 +1229,11 @@ A normal caller may be unable to distinguish them. A probe that sees function en
 
 Therefore:
 
-\[
+$$
 p \approx_{\mathrm{JS}} q
 \quad\not\Rightarrow\quad
 p \approx_{\mathrm{probe}} q
-\]
+$$
 
 The event alphabet itself defines an observer and therefore defines an observational theory.
 
@@ -1318,17 +1318,17 @@ The probe architecture is a natural substrate for hybrid verification.
 
 Suppose a source contract generates obligations
 
-\[
+$$
 \Phi=\{\phi_1,\ldots,\phi_n\}
-\]
+$$
 
 A static analyzer partitions them into:
 
-\[
+$$
 \Phi_{\mathrm{proved}}
 \quad\cup\quad
 \Phi_{\mathrm{residual}}
-\]
+$$
 
 The proved obligations disappear from runtime instrumentation. The residual obligations compile to probes at precise semantic sites.
 
@@ -1366,15 +1366,15 @@ This can also support counterexample-guided refinement. A static false positive 
 
 A runtime monitor naturally checks a property
 
-\[
+$$
 P\subseteq E^\ast
-\]
+$$
 
 or, for infinite behavior,
 
-\[
+$$
 P\subseteq E^\omega
-\]
+$$
 
 Safety violations are particularly suitable because a violation has a finite bad prefix. The probe can preserve that prefix as a compact counterexample.
 
@@ -1527,11 +1527,11 @@ The concrete interpreter becomes one source of event trees against which these d
 
 Suppose a denotational model claims:
 
-\[
+$$
 \llbracket p;q\rrbracket
 =
 \llbracket p\rrbracket \bind (\lambda\_.\llbracket q\rrbracket)
-\]
+$$
 
 or that two handlers commute. The workbench can search concrete executions for counterexamples to the proposed equality under a selected observation algebra.
 
@@ -1560,11 +1560,11 @@ This can lead to full-abstraction, adequacy, and representation-independence res
 
 Assign a symbolic cost to semantic events:
 
-\[
+$$
 \mathsf{cost}(\mathsf{Call})=c_c,\qquad
 \mathsf{cost}(\mathsf{Read})=c_r,\qquad
 \mathsf{cost}(\mathsf{Allocate})=c_a
-\]
+$$
 
 The denotation computes an abstract resource polynomial or weighted trace. Actual goja measurements can then calibrate or validate the model.
 
@@ -1653,9 +1653,9 @@ The witness should be bounded and avoid serializing the entire heap. Depending o
 
 An independent checker could verify:
 
-\[
+$$
 C_i \xrightarrow{\ell_i} C_{i+1}
-\]
+$$
 
 for each recorded transition or for larger certified macro-steps.
 

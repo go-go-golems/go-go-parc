@@ -626,8 +626,8 @@ An authorized OpenAI campaign selected one real TTC document, which produced
 - one generation worker;
 - embedding batch size 10;
 - fresh caches;
-- a $0.25 estimated-cost ceiling;
-- a conservative preflight estimate of $0.01111.
+- a \$0.25 estimated-cost ceiling;
+- a conservative preflight estimate of \$0.01111.
 
 The first attempt made two generation calls and failed on the second item
 because the response included an unsupported `notes` field. Strict decoding

@@ -40,69 +40,69 @@ I’m organizing concrete research-shaped problems: commutativity for probabilis
 Yes. There are several genuine **category theory × programming-languages problems** where the desired output is essentially “prove theorem X” rather than build another library.
 
 1. **Is the valuations monad on `DCPO` commutative?**  
-   Let \(V\) be the probabilistic valuations monad on directed-complete partial orders. The problem is to prove or disprove the appropriate categorical Fubini law, roughly
-   \[
+   Let $V$ be the probabilistic valuations monad on directed-complete partial orders. The problem is to prove or disprove the appropriate categorical Fubini law, roughly
+   $$
    \int_X\int_Y f(x,y)\,d\nu(y)\,d\mu(x)
    =
    \int_Y\int_X f(x,y)\,d\mu(x)\,d\nu(y).
-   \]
+   $$
    This matters because commutative monads give a clean semantics in which independent probabilistic computations can be reordered. Recent work still describes commutativity of the ordinary valuations monad on all `DCPO`s as open. citeturn768994search32  
    **Difficulty:** very high. **Flavor:** domain theory + probability + monads.
 
 2. **Prove a general full-abstraction theorem for higher-order bialgebraic semantics.**  
    A 2026 categorical semantics framework gives adequate denotational models for higher-order languages. In first-order bialgebraic semantics, preservation of weak pullbacks gives a general route to full abstraction; the authors explicitly leave the corresponding higher-order theorem for future work. citeturn591760search5  
    A clean research question is:
-   \[
+   $$
    \text{What categorical hypotheses on }B
    \implies
    \text{denotational equality}=\text{contextual/bisimulation equality}?
-   \]
+   $$
    **Difficulty:** high, but unusually well-specified. **Flavor:** coalgebras + operational semantics + lambda calculus.
 
 3. **Develop nondeterministic iteration categorically without assuming coproducts.**  
    Current categorical accounts of iteration/tests use coproducts in an essential way. Goncharov et al. explicitly say that finding the appropriate general definition without coproducts remains open. citeturn824438search12  
-   You would want to propose an abstract structure \(C\) carrying an iteration operator
-   \[
+   You would want to propose an abstract structure $C$ carrying an iteration operator
+   $$
    (-)^* : C(X,X)\to C(X,X)
-   \]
-   with suitable Conway/Kleene-style laws, then prove representation or completeness results without relying on \(X+Y\).  
+   $$
+   with suitable Conway/Kleene-style laws, then prove representation or completeness results without relying on $X+Y$.  
    **Difficulty:** medium-high. **Flavor:** categorical algebra + semantics of loops/nondeterminism.
 
 4. **Make HoTT “eat itself.”**  
-   Ordinary categories are insufficient for modelling dependent type theory internally once identity proofs themselves have higher structure. The goal is an internal theory of \(\infty\)-categories / \(\infty\)-categories-with-families strong enough to represent the syntax and semantics of the ambient type theory. A 2025 paper still notes that defining the needed internal type of \(\infty\)-categories remains open. citeturn824438search1  
-   One especially concrete subproblem from earlier work is to prove **initiality of the internal syntax** as an \(\infty\)-CwF; this was left conjectural. citeturn824438academia40  
+   Ordinary categories are insufficient for modelling dependent type theory internally once identity proofs themselves have higher structure. The goal is an internal theory of $\infty$-categories / $\infty$-categories-with-families strong enough to represent the syntax and semantics of the ambient type theory. A 2025 paper still notes that defining the needed internal type of $\infty$-categories remains open. citeturn824438search1  
+   One especially concrete subproblem from earlier work is to prove **initiality of the internal syntax** as an $\infty$-CwF; this was left conjectural. citeturn824438academia40  
    **Difficulty:** extreme. **Flavor:** higher category theory + HoTT + proof assistants.
 
-5. **Find general conditions guaranteeing normalization and coherence for \(\infty\)-type theories.**  
+5. **Find general conditions guaranteeing normalization and coherence for $\infty$-type theories.**  
    Uemura developed normalization/coherence machinery for higher-dimensional type theories, but explicitly left finding a satisfactory general sufficient condition as future work. citeturn768994search13  
    The dream theorem looks something like:
-   \[
+   $$
    T\text{ satisfies categorical properties }P_1,\dots,P_n
    \quad\Longrightarrow\quad
    T\text{ has normalization + coherence}.
-   \]
+   $$
    This is interesting programmatically because normalization underlies type checking, definitional equality, and implementation of proof assistants.  
    **Difficulty:** extreme. **Flavor:** categorical proof theory + higher categories.
 
 6. **Extend complete categorical semantics of effect handlers.**  
    Kura's 2026 work gives sound-and-complete categorical semantics for a particular equational theory of algebraic effect handlers, including models beyond the usual free-monad semantics. citeturn676497academia40 A strong next theorem would be to get similarly sharp completeness results for **higher-order, scoped, parameterized, or concurrent handlers**. Higher-order effect handlers now have sophisticated categorical/calculus formulations, making this a fairly concrete frontier rather than a vague suggestion. citeturn933887search17  
    For example:
-   \[
+   $$
    M\models t=u
    \quad\Longleftrightarrow\quad
    \text{the handler calculus proves }t=u
-   \]
-   for every model \(M\) in the right categorical class.  
+   $$
+   for every model $M$ in the right categorical class.  
    **Difficulty:** medium-high to high. **Flavor:** monads + algebraic theories + practical PL effects.
 
 7. **Categorify compiler correctness for higher-order languages.**  
    Higher-order GSOS gives categorical descriptions of operational semantics using higher-order analogues of distributive laws. Earlier work explicitly proposed developing a notion of morphism between these laws so that a compiler itself could become a categorical morphism whose laws imply semantic preservation. citeturn591760search7  
    The theorem you would ultimately want is something like
-   \[
+   $$
    \llbracket\mathrm{compile}(p)\rrbracket_T
    =
    F(\llbracket p\rrbracket_S)
-   \]
+   $$
    **by abstract categorical reasoning**, rather than proving compiler correctness independently for every source language.  
    **Difficulty:** high. **Flavor:** category theory + compiler verification.
 
@@ -159,22 +159,22 @@ There are some good ones at the category-theory/programming boundary, although t
 
 1. **Commutativity of the Jones–Plotkin valuation monad.**  
    Let
-   \[
+   $$
    V:\mathbf{DCPO}\to\mathbf{DCPO}
-   \]
+   $$
    be the monad of continuous valuations used to model probabilistic computation.
 
    The conjecture-shaped question is simply:
-   \[
+   $$
    \boxed{V\text{ is a commutative monad.}}
-   \]
+   $$
 
-   Equivalently, prove a Fubini theorem saying that for suitable valuations \(\mu,\nu\),
-   \[
+   Equivalently, prove a Fubini theorem saying that for suitable valuations $\mu,\nu$,
+   $$
    \int_X\!\int_Y f(x,y)\,d\nu\,d\mu
    =
    \int_Y\!\int_X f(x,y)\,d\mu\,d\nu.
-   \]
+   $$
 
    This has been open since the original probabilistic-powerdomain work of the late 1980s; modern work constructs smaller commutative submonads because the full statement remains unresolved. citeturn500563search6turn500563search5
 
@@ -182,9 +182,9 @@ There are some good ones at the category-theory/programming boundary, although t
 
 2. **Cubical conservativity conjecture.**  
    Roughly:
-   \[
+   $$
    \boxed{\text{Cubical type theory is conservative over ordinary HoTT.}}
-   \]
+   $$
 
    In other words, if you use the extra interval/cubical machinery that makes univalence computational and prove a statement expressible in ordinary HoTT, you should not thereby acquire genuinely new ordinary-HoTT theorems.
 
@@ -193,19 +193,19 @@ There are some good ones at the category-theory/programming boundary, although t
    This one connects **category theory + dependent types + Agda/Lean-style proof assistants** extremely directly.
 
 3. **Voevodsky's Initiality Conjecture.**  
-   Given a dependent type theory \(T\), construct its syntactic model
-   \[
+   Given a dependent type theory $T$, construct its syntactic model
+   $$
    \mathcal S_T.
-   \]
+   $$
    The desired theorem is essentially
-   \[
+   $$
    \boxed{\mathcal S_T\text{ is initial in the appropriate category of models of }T.}
-   \]
+   $$
 
-   Meaning: for every semantic model \(M\), there is a unique structure-preserving interpretation
-   \[
+   Meaning: for every semantic model $M$, there is a unique structure-preserving interpretation
+   $$
    \mathcal S_T\longrightarrow M.
-   \]
+   $$
 
    It sounds almost tautological, but making “the appropriate category of models” and the uniqueness/coherence precise for serious dependent type theories is subtle. Many instances and related conjectures have been proved, but the general initiality program is still active; even 2026 work explicitly situates new results in Voevodsky's Initiality Conjecture project. citeturn716138academia12turn724346search1
 
@@ -213,9 +213,9 @@ There are some good ones at the category-theory/programming boundary, although t
    Individually, higher-order **may testing**, **must testing**, and **probabilistic testing** can be semidecidable. The difficult combined question asks whether analogous testing remains semidecidable when a language simultaneously has nondeterministic and probabilistic choice.
 
    Schematically:
-   \[
+   $$
    \boxed{\text{may/must probabilistic testing is semidecidable}}
-   \]
+   $$
    for the appropriate higher-order mixed language.
 
    Escardó's original work established the separate cases and made progress on the combined setting. Recent categorical/domain-theoretic work still refers to the mixed version as Escardó's conjecture and proves related special cases for probabilistic concurrency. citeturn194112search22turn340999search0
@@ -228,9 +228,9 @@ So if you're looking for something analogous to an undergraduate being told:
 
 then **#1 is especially close to that format**:
 
-\[
+$$
 \boxed{\textbf{Conjecture: The continuous valuation monad }V\textbf{ on DCPO is commutative.}}
-\]
+$$
 
 It has a tiny statement, a very concrete programming interpretation (“does order of independent probabilistic effects matter?”), and a nontrivial category-theoretic formulation.
 
@@ -307,41 +307,41 @@ Here’s a stricter list. These are statements you can reasonably write as **“
 
 1. **Synthetic predomain orthogonality conjecture — very attractive “prove/disprove” problem.**  
    For the synthetic-domain-theory notions in Xue's 2026 work:
-   \[
+   $$
    \boxed{
    A\text{ is a synthetic predomain}
    \iff
    A\perp(\Lambda_\omega\hookrightarrow\bar\omega).
    }
-   \]
+   $$
    This is literally Conjecture 6.20. The author explicitly says it **may be false**, so constructing a counterexample is a legitimate solution. Much of the surrounding development is already formalized in Cubical Agda. citeturn903661search0
 
    **Prerequisites:** category/type theory, domain theory, some HoTT.  
    **Why I like it:** narrow statement, brand-new, formalization exists nearby.
 
 2. **Adequacy of recursive higher-order effect handlers.**  
-   Yang defines a realizability model of the calculus \(rF^\omega_{ha}\), which has higher-order handlers and general recursion. Conjecture E.4 says, essentially,
-   \[
+   Yang defines a realizability model of the calculus $rF^\omega_{ha}$, which has higher-order handlers and general recursion. Conjecture E.4 says, essentially,
+   $$
    \boxed{
    \llbracket c\rrbracket=\texttt{true}
    \Longrightarrow
    c=\texttt{val true},
    }
-   \]
+   $$
    and similarly for false, for closed Boolean programs. The paper even suggests a prospective proof technique: synthetic Tait computability inside the effective topos. citeturn903661search1
 
    **Prerequisites:** lambda calculus, monads, realizability/topos theory.  
    **Scale:** plausible PhD-paper problem rather than a lifetime problem.
 
 3. **Full abstraction for nonlinear stabilizer quantum programs.**  
-   Booth and Comfort's Conjecture 72 is extremely clean. For well-formed programs \(c,d\) of NLSPL:
-   \[
+   Booth and Comfort's Conjecture 72 is extremely clean. For well-formed programs $c,d$ of NLSPL:
+   $$
    \boxed{
    c\approx_{\mathrm{obs}}d
    \iff
    \llbracket c\rrbracket=\llbracket d\rrbracket .
    }
-   \]
+   $$
    Here observational equivalence means that the programs permit exactly the same possible quantum-measurement outcomes, while the denotations live in a category of relations built from stabilizer quantum mechanics. citeturn818590search0
 
    **Prerequisites:** symmetric monoidal categories, linear algebra/quantum information, semantics.  
@@ -351,13 +351,13 @@ Here’s a stricter list. These are statements you can reasonably write as **“
    Najmaei, van der Weide, Ahrens and North construct *comprehension category type theory* (CCTT), prove its categorical semantics sound, and conjecture that the syntax is complete for the intended comprehension-category semantics. citeturn935448search3
 
    Schematically:
-   \[
+   $$
    \boxed{
    \Gamma\models_{\text{all CCTT models}}J
    \Longrightarrow
    \Gamma\vdash_{\mathrm{CCTT}}J.
    }
-   \]
+   $$
 
    This is very category-theoretic and very PL-theoretic: comprehension categories are categorical models of dependent types, while CCTT also incorporates type morphisms/coercive subtyping. citeturn935448search0
 
@@ -366,11 +366,11 @@ Here’s a stricter list. These are statements you can reasonably write as **“
 
 5. **Higher container model is 2-coherent.**  
    Chen states:
-   \[
+   $$
    \boxed{
    \text{The Altenkirch–Kaposi higher container model is a 2-coherent wild CwF.}
    }
-   \]
+   $$
    More concretely, you have to construct the required triangle/pentagon coherences, type coherences and coherences for context extension. citeturn392898search1
 
    **Prerequisites:** categories with families, dependent types, higher categorical coherence.  
@@ -378,9 +378,9 @@ Here’s a stricter list. These are statements you can reasonably write as **“
 
 6. **Soundness/model-existence conjecture for univalent reference types.**  
    Sterling, Gratzer and Birkedal's Conjecture 4.1 asks for a nontrivial model of guarded HoTT in guarded cubical assemblies containing a particular small, set-reflective guarded Martin-Löf subuniverse:
-   \[
+   $$
    \boxed{\text{such a model exists}.}
-   \]
+   $$
    Establishing it would substantiate their denotational semantics of higher-order mutable references, including equations expressing permutation of allocations and representation independence. citeturn903661search2
 
    **Prerequisites:** toposes, cubical/guarded type theory, denotational semantics.  
@@ -388,11 +388,11 @@ Here’s a stricter list. These are statements you can reasonably write as **“
 
 7. **Uniqueness of the untyped locally final higher-order coalgebra.**  
    A 2026 categorical framework constructs a locally final coalgebra used for an adequate semantics of untyped higher-order combinatory logic, but its general theorem does not establish uniqueness in the untyped case. The authors explicitly conjecture:
-   \[
+   $$
    \boxed{
    \text{the locally final coalgebra is unique up to isomorphism}.
    }
-   \]
+   $$
    citeturn935448search1
 
    **Prerequisites:** coalgebras, enriched/metric categorical fixed points, operational semantics.  
@@ -400,9 +400,9 @@ Here’s a stricter list. These are statements you can reasonably write as **“
 
 8. **Escardó's mixed probabilistic/nondeterministic semidecidability conjecture.**  
    Roughly, when computation has **both probability and nondeterminism**, the appropriate may/must probabilistic testing properties should remain semidecidable:
-   \[
+   $$
    \boxed{\text{may/must probabilistic testing is semidecidable}.}
-   \]
+   $$
    A 2025 result on mixed powerdomains proves a related adequacy/semidecidability result for probabilistic concurrency and explicitly identifies it with progress toward Escardó's conjecture. citeturn882915search1turn935448academia5
 
    **Prerequisites:** domain theory, powerdomains, probability, computability.  
@@ -410,11 +410,11 @@ Here’s a stricter list. These are statements you can reasonably write as **“
 
 9. **Cubical conservativity / Morita-equivalence conjecture.**  
    Kraus states it explicitly as Conjecture 6.1 in July 2026:
-   \[
+   $$
    \boxed{
    \text{internal theorems provable in cubical type theory are provable in book HoTT}.
    }
-   \]
+   $$
    More structurally, the relevant cubical and traditional formulations of HoTT should be conservative/Morita-equivalent in the appropriate sense. citeturn882915search3
 
    This asks whether the computational machinery behind things such as Cubical Agda gives a better *implementation* of univalence without secretly giving additional ordinary mathematical theorems. The 2026 paper proves partial machinery and proposes a route toward the conjecture. citeturn882915search2
@@ -424,19 +424,19 @@ Here’s a stricter list. These are statements you can reasonably write as **“
 
 10. **The probabilistic powerdomain monad is commutative.**  
    The classic one:
-   \[
+   $$
    \boxed{
    V:\mathbf{DCPO}\to\mathbf{DCPO}
    \text{ is a commutative monad}.
    }
-   \]
+   $$
    This amounts to proving the Fubini equation
-   \[
+   $$
    \int_X\!\int_Y\chi_U(x,y)\,d\nu(y)d\xi(x)
    =
    \int_Y\!\int_X\chi_U(x,y)\,d\xi(x)d\nu(y)
-   \]
-   for arbitrary dcpos \(X,Y\), Scott-open \(U\subseteq X\times Y\), and continuous valuations \(\xi,\nu\). A 2026 paper still describes this as open since the probabilistic powerdomain's discovery. citeturn658257search0 Earlier categorical work likewise records that commutativity on all of `DCPO` has been open since 1989. citeturn658257search1
+   $$
+   for arbitrary dcpos $X,Y$, Scott-open $U\subseteq X\times Y$, and continuous valuations $\xi,\nu$. A 2026 paper still describes this as open since the probabilistic powerdomain's discovery. citeturn658257search0 Earlier categorical work likewise records that commutativity on all of `DCPO` has been open since 1989. citeturn658257search1
 
    **Prerequisites:** domain theory at research level, categorical monads, measure/valuation theory.  
    **Scale:** potentially brutal. The statement is much easier to understand than to attack.
@@ -678,7 +678,7 @@ bash -lc cat /home/oai/skills/pdfs/SKILL.md
 {"search_query":[{"q":"Reus Streicher synthetic domain theory orthogonality complete objects predomains PDF"},{"q":"van Oosten Simpson axioms counterexamples synthetic domain theory complete objects orthogonality"},{"q":"\"well-complete\" objects synthetic domain theory orthogonal omega bar omega"},{"q":"\"L-complete\" synthetic domain theory orthogonality"}],"response_length":"long"}
 ```
 
-A possible counterexample emerges for higher untruncated types in simplicial spaces; I’m checking whether the formal statement restricts \(A\) to sets, which could exclude it.
+A possible counterexample emerges for higher untruncated types in simplicial spaces; I’m checking whether the formal statement restricts $A$ to sets, which could exclude it.
 
 <details><summary>💭 Thinking</summary>
 
@@ -1575,50 +1575,50 @@ The full conjecture is **neither proved nor disproved**.
 
 The strongest result developed in the manuscript is a paper-level argument—under explicitly listed shape, colimit, and coherence assumptions—that
 
-\[
+$$
 A\perp\bigl(\Lambda_\omega\hookrightarrow\Delta^\infty\bigr)
-\]
+$$
 
 implies:
 
 - locality for every finite spine inclusion, hence the finite Segal conditions;
-- \(\omega\)-chain completeness;
+- $\omega$-chain completeness;
 - and, more precisely,
-  \[
+  $$
   A\perp j
   \quad\Longleftrightarrow\quad
   \text{finite-spine locality}
   \;\land\;
-  \text{\(\omega\)-chain completeness}.
-  \]
+  \text{$\omega$-chain completeness}.
+  $$
 
 The point where the attempted proof stops is **separation of parallel paths**. After the other deductions, the remaining question is reduced to
 
-\[
+$$
 \boxed{
 A\perp j
 \quad\Longrightarrow\quad
 A\perp\rho
 }
-\]
+$$
 
 where
 
-\[
+$$
 \rho:\mathbb I_{\parallel}\longrightarrow\mathbb I
-\]
+$$
 
-collapses the walking parallel pair to a single directed edge. Equivalently: does infinite-spine locality necessarily force \(\mathbb I\)-separation?
+collapses the walking parallel pair to a single directed edge. Equivalently: does infinite-spine locality necessarily force $\mathbb I$-separation?
 
 No valid proof of that implication was found. No validated counterexample was found either.
 
-The manuscript also proves a conditional version: the conjecture follows for \(j\)-local objects whose open observations separate points, via the evaluation map
+The manuscript also proves a conditional version: the conjecture follows for $j$-local objects whose open observations separate points, via the evaluation map
 
-\[
+$$
 A\longrightarrow \mathbb I^{\mathbb I^A}.
-\]
+$$
 
-It identifies the most useful next targets as mechanizing the retract and colimit arguments, computing the \(j\)-local reflection of the walking parallel pair, and searching for proof-relevant \(j\)-local objects in realizability or classifying-topos models.
+It identifies the most useful next targets as mechanizing the retract and colimit arguments, computing the $j$-local reflection of the walking parallel pair, and searching for proof-relevant $j$-local objects in realizability or classifying-topos models.
 
 ## Files
 

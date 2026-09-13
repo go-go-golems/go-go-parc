@@ -17,13 +17,13 @@ Authors:[Arjun Panickssery](https://arxiv.org/search/cs?searchtype=author&query=
 
 | Subjects: | Computation and Language (cs.CL); Artificial Intelligence (cs.AI) |
 | --- | --- |
-| Cite as: | [arXiv:2404.13076](https://arxiv.org/abs/2404.13076) \[cs.CL\] |
-|  | (or [arXiv:2404.13076v1](https://arxiv.org/abs/2404.13076v1) \[cs.CL\] for this version) |
+| Cite as: | [arXiv:2404.13076](https://arxiv.org/abs/2404.13076) $$cs.CL$$ |
+|  | (or [arXiv:2404.13076v1](https://arxiv.org/abs/2404.13076v1) $$cs.CL$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.2404.13076](https://doi.org/10.48550/arXiv.2404.13076) |
 
 ## Submission history
 
-From: Shi Feng \[[view email](https://arxiv.org/show-email/fa3016da/2404.13076)\]  
-**\[v1\]** Mon, 15 Apr 2024 16:49:59 UTC (1,509 KB)
+From: Shi Feng $$[view email](https://arxiv.org/show-email/fa3016da/2404.13076)$$  
+**$$v1$$** Mon, 15 Apr 2024 16:49:59 UTC (1,509 KB)
 
 [Which authors of this paper are endorsers?](https://arxiv.org/auth/show-endorsers/2404.13076) | Disable MathJax ([What is MathJax?](https://info.arxiv.org/help/mathjax.html))

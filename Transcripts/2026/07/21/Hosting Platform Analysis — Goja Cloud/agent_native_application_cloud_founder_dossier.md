@@ -89,7 +89,7 @@ The technology and demo quality can support a strong seed narrative. The financi
 - With ten or more paid design partners, active production applications, and evidence of repeated module use, a conventional **seed round** is credible.
 - With repeatable studio acquisition, meaningful monthly recurring revenue, and expanding app counts per customer, the company can argue for an infrastructure-style seed premium.
 
-Carta's July 2026 software benchmark reports a median seed round of $4.1 million at a $24.3 million valuation with 18% dilution.[^S8] That is useful context, not a pricing entitlement. The recommended planning range is:
+Carta's July 2026 software benchmark reports a median seed round of \$4.1 million at a \$24.3 million valuation with 18% dilution.[^S8] That is useful context, not a pricing entitlement. The recommended planning range is:
 
 | Financing plan | Raise | Intended runway | Appropriate when |
 |---|---:|---:|---|
@@ -97,7 +97,7 @@ Carta's July 2026 software benchmark reports a median seed round of $4.1 million
 | Institutional seed | $3M–$4.5M | 18–24 months | Paid design partners and initial repeatability exist |
 | Infrastructure seed | $5M–$8M | 24 months | Strong usage, clear module economics, and unusually strong investor demand exist |
 
-The default recommendation is to prepare for a $3.5 million seed but begin investor conversations only after a focused design-partner sprint creates external proof.
+The default recommendation is to prepare for a \$3.5 million seed but begin investor conversations only after a focused design-partner sprint creates external proof.
 
 ## The recommended team decision
 
@@ -127,7 +127,7 @@ The strongest near-term milestone is not another subsystem. It is proving that a
 
 ## 1. The company that should exist
 
-Software creation is moving from manual implementation toward intent-driven generation. The change is visible in consumer-facing app builders, coding agents, internal enterprise tools, and production deployment platforms. Replit reported more than 50 million users, usage across 85% of the Fortune 500, and a $400 million financing at a $9 billion valuation in March 2026.[^S1] Lovable raised $330 million at a $6.6 billion valuation in December 2025.[^S3] Vercel reported more than four million v0 users when it repositioned the product around production applications in February 2026.[^S5]
+Software creation is moving from manual implementation toward intent-driven generation. The change is visible in consumer-facing app builders, coding agents, internal enterprise tools, and production deployment platforms. Replit reported more than 50 million users, usage across 85% of the Fortune 500, and a \$400 million financing at a \$9 billion valuation in March 2026.[^S1] Lovable raised \$330 million at a $6.6 billion valuation in December 2025.[^S3] Vercel reported more than four million v0 users when it repositioned the product around production applications in February 2026.[^S5]
 
 Those facts establish demand. They do not establish that the problem is solved.
 
@@ -282,9 +282,9 @@ The timing argument has four parts.
 
 ### 4.1 Application generation has become a mass-market behavior
 
-Replit's 2026 financing announcement describes users ranging from children and teachers to employees creating legal assistants and sales leaderboards, with more than 50 million users overall.[^S1] Lovable describes its mission as enabling the 99% who cannot code to build production software, and its funding trajectory reflects investor conviction in that behavior.[^S3] Wix acquired Base44 for approximately $80 million in 2025 to expand into natural-language software creation.[^S7]
+Replit's 2026 financing announcement describes users ranging from children and teachers to employees creating legal assistants and sales leaderboards, with more than 50 million users overall.[^S1] Lovable describes its mission as enabling the 99% who cannot code to build production software, and its funding trajectory reflects investor conviction in that behavior.[^S3] Wix acquired Base44 for approximately \$80 million in 2025 to expand into natural-language software creation.[^S7]
 
-The market no longer needs to be convinced that people will ask AI to build applications. Vercel reported in April 2026 that more than 30% of deployments on its platform were initiated by coding agents, up roughly tenfold over six months.[^S17] Wix reported in March 2026 that Base44 had reached $100 million in annual recurring revenue approximately one year after founding.[^S18] These figures do not guarantee that a new entrant will win. They show that agent-driven creation and operation are becoming normal software behavior rather than a novelty.
+The market no longer needs to be convinced that people will ask AI to build applications. Vercel reported in April 2026 that more than 30% of deployments on its platform were initiated by coding agents, up roughly tenfold over six months.[^S17] Wix reported in March 2026 that Base44 had reached \$100 million in annual recurring revenue approximately one year after founding.[^S18] These figures do not guarantee that a new entrant will win. They show that agent-driven creation and operation are becoming normal software behavior rather than a novelty.
 
 ### 4.2 The prototype-to-production gap is now visible
 
@@ -571,7 +571,7 @@ The first investor question will be: why is this not Replit, Lovable, v0, Base44
 
 A weak answer lists technical implementation differences. A strong answer begins by conceding the market reality.
 
-AI application creation has become one of the fastest-growing software categories. Replit announced that annualized revenue increased from $2.8 million to $150 million in less than a year before its September 2025 financing, then raised $400 million at a $9 billion valuation in March 2026.[^S1][^S2] Lovable raised $330 million at a $6.6 billion valuation after previously raising $200 million at $1.8 billion.[^S3] Vercel transformed v0 from a component generator into a full-stack production product and explicitly positioned enterprise security and production integration as central requirements.[^S5] Wix acquired Base44 to make natural-language application creation a major product pillar.[^S7]
+AI application creation has become one of the fastest-growing software categories. Replit announced that annualized revenue increased from $2.8 million to $150 million in less than a year before its September 2025 financing, then raised \$400 million at a \$9 billion valuation in March 2026.[^S1][^S2] Lovable raised \$330 million at a \$6.6 billion valuation after previously raising $200 million at $1.8 billion.[^S3] Vercel transformed v0 from a component generator into a full-stack production product and explicitly positioned enterprise security and production integration as central requirements.[^S5] Wix acquired Base44 to make natural-language application creation a major product pillar.[^S7]
 
 This evidence has two implications.
 
@@ -659,7 +659,7 @@ A mature intent-level UI system can become a durable distribution and quality ad
 
 A module ecosystem creates two-sided value. Builders get capabilities. Module providers get distribution and a billing surface. Application users create usage. The platform becomes the trusted policy and metering layer.
 
-Shopify's app ecosystem shows that platform-managed installation, billing, extensions, and distribution can support substantial developer economics; Shopify currently takes no revenue share on the first $1 million in lifetime app revenue and 15% above that for most developers.[^S11] The exact terms are not a template to copy, but the strategic pattern is relevant.
+Shopify's app ecosystem shows that platform-managed installation, billing, extensions, and distribution can support substantial developer economics; Shopify currently takes no revenue share on the first \$1 million in lifetime app revenue and 15% above that for most developers.[^S11] The exact terms are not a template to copy, but the strategic pattern is relevant.
 
 ### 13.6 Trust and governance
 
@@ -789,15 +789,15 @@ The studio is not the final customer definition. It is the first efficient distr
 
 ## 17. Bottom-up market model
 
-Do not lead the pitch with a generic “low-code market will be $X billion” slide. Bottom-up economics are more credible.
+Do not lead the pitch with a generic “low-code market will be \$X billion” slide. Bottom-up economics are more credible.
 
 ### 17.1 Studio platform opportunity
 
 Illustrative assumptions:
 
 - 10,000 serious studios, agencies, and automation consultancies in reachable markets.
-- Average platform revenue of $500 per month.
-- Average runtime and module revenue of $500 per month across their client apps.
+- Average platform revenue of \$500 per month.
+- Average runtime and module revenue of \$500 per month across their client apps.
 
 ```text
 10,000 customers × $1,000 monthly total revenue
@@ -852,7 +852,7 @@ Marketplace revenue appears only after the platform has meaningful distribution.
 
 ### 17.5 The combined ambition
 
-These models show several independent paths to a $100 million-plus revenue company. The pitch should not add every scenario into a fictional trillion-dollar TAM. It should show that the initial wedge is large enough and that the platform has credible expansion surfaces.
+These models show several independent paths to a \$100 million-plus revenue company. The pitch should not add every scenario into a fictional trillion-dollar TAM. It should show that the initial wedge is large enough and that the platform has credible expansion surfaces.
 
 
 # Part IV. Business Models and Pricing
@@ -863,7 +863,7 @@ The platform can generate revenue through several models. Each aligns with a dif
 
 ### 18.1 Builder subscription
 
-The customer pays for the ability to create, collaborate, review, and manage applications. This model is predictable and easy to understand. It resembles current app-builder subscriptions, which range from entry-level plans around $20 per month to professional plans around $100 per month on Replit.[^S9]
+The customer pays for the ability to create, collaborate, review, and manage applications. This model is predictable and easy to understand. It resembles current app-builder subscriptions, which range from entry-level plans around \$20 per month to professional plans around \$100 per month on Replit.[^S9]
 
 ### 18.2 Generation usage
 
@@ -961,11 +961,11 @@ The following packaging is a starting hypothesis, not a launch announcement.
 
 | Plan | Price hypothesis | Customer | Included value |
 |---|---:|---|---|
-| Free | $0 | Personal exploration and shared micro-apps | One public or private app, limited generation, platform domain, core modules, strict quotas |
+| Free | \$0 | Personal exploration and shared micro-apps | One public or private app, limited generation, platform domain, core modules, strict quotas |
 | Creator | $25/month | Individual professional builder | Five apps, custom domains, more generation, core runtime allowance, basic support |
 | Pro | $99/month | Serious builder or small team | Twenty apps, collaboration, private apps, environments, release approvals, longer history |
 | Studio | $399/month | Agency, studio, consultant | Client workspaces, 100 apps, white-label controls, pooled credits, team roles, priority support |
-| Business | $1,000–$3,000/month | Larger studio or operating company | Higher limits, audit retention, advanced modules, service guarantees, migration support |
+| Business | $1,000–\$3,000/month | Larger studio or operating company | Higher limits, audit retention, advanced modules, service guarantees, migration support |
 | Enterprise | Custom | Large organization or platform | SSO, private networking, dedicated resources, data residency, private modules, premium support |
 
 ### 20.1 Application charges
@@ -974,7 +974,7 @@ A production app can include a base platform charge:
 
 | App class | Base fee hypothesis | Intended use |
 |---|---:|---|
-| Ephemeral shared app | Free or $1–$5 active month | Polls, events, temporary coordination |
+| Ephemeral shared app | Free or \$1–$5 active month | Polls, events, temporary coordination |
 | Personal persistent app | Included or $5/month | Private productivity and household tools |
 | Professional app | $15–$50/month | Custom domain, backups, auth, production support |
 | Business-critical app | $100+/month | Higher availability, audit, advanced modules, support |
@@ -1030,8 +1030,8 @@ A module can use:
 | Commerce | $49/app/month | Orders or GMV overage |
 | Managed identity | $20/app/month | Monthly active users above allowance |
 | Workflow | $25/app/month | Executions and durable wait time |
-| Documents | $15/app/month | Documents generated and stored |
-| Premium database | $25/app/month | Storage, backups, connections |
+| Documents | \$15/app/month | Documents generated and stored |
+| Premium database | \$25/app/month | Storage, backups, connections |
 
 The platform should test willingness to pay before implementing elaborate pricing. A module with strong adoption but weak willingness to pay may belong in a higher plan rather than as a separate SKU.
 
@@ -1096,7 +1096,7 @@ The marketplace must provide more than listing and billing. It should own:
 
 A simple launch model:
 
-- 0% on the first $25,000 in lifetime module revenue to encourage experimentation.
+- 0% on the first \$25,000 in lifetime module revenue to encourage experimentation.
 - 15% on software module and template revenue after the threshold.
 - 10% on referred expert services where the platform handles discovery and payment.
 - Negotiated economics for strategic infrastructure providers.
@@ -1111,10 +1111,10 @@ Services can accelerate the company if they are structured as product discovery.
 
 | Offer | Price hypothesis | Duration | Output |
 |---|---:|---:|---|
-| Application discovery sprint | $2,500–$5,000 | 1 week | Scope, workflow model, prototype plan, fixed build quote |
+| Application discovery sprint | \$2,500–$5,000 | 1 week | Scope, workflow model, prototype plan, fixed build quote |
 | Professional app launch | $7,500–$25,000 | 2–6 weeks | Production application, data setup, domain, training |
-| Vertical pack implementation | $5,000–$15,000 | 1–3 weeks | Configured reusable solution with minor extensions |
-| Enterprise pilot | $25,000–$100,000 | 6–12 weeks | Governed environment, integrations, security review, pilot apps |
+| Vertical pack implementation | $5,000–\$15,000 | 1–3 weeks | Configured reusable solution with minor extensions |
+| Enterprise pilot | \$25,000–\$100,000 | 6–12 weeks | Governed environment, integrations, security review, pilot apps |
 
 ### 23.2 Productization discipline
 
@@ -1212,12 +1212,12 @@ These are operating models, not forecasts.
 | Metric | Assumption |
 |---|---:|
 | Paid design partners | 25 |
-| Average initial project revenue | $12,000 |
-| Services revenue | $300,000 |
+| Average initial project revenue | \$12,000 |
+| Services revenue | \$300,000 |
 | Active production apps at year end | 100 |
-| Average platform/runtime/module revenue per app | $75/month |
-| Exit app MRR | $7,500 |
-| Studio subscriptions at year end | 20 × $399 |
+| Average platform/runtime/module revenue per app | \$75/month |
+| Exit app MRR | \$7,500 |
+| Studio subscriptions at year end | 20 × \$399 |
 | Exit studio MRR | $7,980 |
 | Total exit MRR | ~$15,500 |
 
@@ -1229,7 +1229,7 @@ The primary outcome is not revenue scale. It is evidence of repeated application
 |---|---:|---:|
 | 250 Studio accounts | $399/month | $1.20M |
 | 2,500 professional apps | $30/month base | $0.90M |
-| Premium modules | $35/app average on 60% attach | $0.63M |
+| Premium modules | \$35/app average on 60% attach | \$0.63M |
 | 20 Business accounts | $2,000/month | $0.48M |
 | Marketplace take-rate revenue | — | $0.30M |
 | Total | — | **$3.51M ARR** |
@@ -1240,7 +1240,7 @@ The primary outcome is not revenue scale. It is evidence of repeated application
 |---|---:|---:|
 | 2,000 Studio/Pro accounts | $250 blended/month | $6.0M |
 | 25,000 production apps | $25/month base | $7.5M |
-| Premium modules | $40/app average on 70% attach | $8.4M |
+| Premium modules | \$40/app average on 70% attach | \$8.4M |
 | 100 enterprise customers | $150,000 ACV | $15.0M |
 | Marketplace take-rate revenue | — | $5.0M |
 | Total | — | **$41.9M ARR** |
@@ -1758,13 +1758,13 @@ Use this decision table:
 | Excellent prototype and demos, no paid users | Pre-seed / formation round |
 | 3–10 paid pilots, early live apps | Seed, with honest early-traction framing |
 | 10–30 paying customers, recurring revenue, repeated modules | Strong seed |
-| Repeatable channel, $50k+ MRR, expansion evidence | Large seed or early Series A discussion |
+| Repeatable channel, \$50k+ MRR, expansion evidence | Large seed or early Series A discussion |
 
 ## 35. Financing scenarios
 
 ### 35.1 Lean pre-seed
 
-**Raise:** $1.5M–$2.5M  
+**Raise:** \$1.5M–\$2.5M  
 **Runway:** 15–18 months  
 **Team:** Founders plus two to three hires  
 **Purpose:** Find the wedge, ship design partners, harden the runtime, establish pricing.
@@ -1782,7 +1782,7 @@ Risks:
 
 ### 35.2 Institutional seed
 
-**Raise:** $3M–$4.5M  
+**Raise:** \$3M–\$4.5M  
 **Runway:** 18–24 months  
 **Team:** Founders plus five to seven hires  
 **Purpose:** Build the studio product, deliver core module catalog, operate production apps, prove recurring revenue.
@@ -1791,14 +1791,14 @@ This is the recommended default if the team enters the process with paid design 
 
 ### 35.3 Infrastructure seed
 
-**Raise:** $5M–$8M  
+**Raise:** \$5M–\$8M  
 **Runway:** 24 months  
 **Team:** Founders plus eight to twelve hires  
 **Purpose:** Build isolated multi-tenant execution, broader modules, enterprise governance, and aggressive distribution.
 
-Carta reported that AI infrastructure seed rounds had a median of $13 million at a $66 million post-money valuation in its May 2026 analysis.[^S10] That data reflects a concentrated and exceptional category. Do not anchor to it unless investors independently classify the company that way and the customer proof supports it.
+Carta reported that AI infrastructure seed rounds had a median of \$13 million at a \$66 million post-money valuation in its May 2026 analysis.[^S10] That data reflects a concentrated and exceptional category. Do not anchor to it unless investors independently classify the company that way and the customer proof supports it.
 
-### 35.4 Recommended use of $3.5 million
+### 35.4 Recommended use of \$3.5 million
 
 Illustrative budget over twenty months:
 
@@ -1806,12 +1806,12 @@ Illustrative budget over twenty months:
 |---|---:|---|
 | Founder salaries and benefits | $480,000 | Sustainable full-time commitment |
 | Engineering hires | $1,150,000 | Runtime/security, modules, frontend/product |
-| GTM and customer success | $420,000 | Founding commercial hire, design-partner delivery |
-| Cloud and model cost | $350,000 | Build, preview, worker, logging, inference |
+| GTM and customer success | \$420,000 | Founding commercial hire, design-partner delivery |
+| Cloud and model cost | \$350,000 | Build, preview, worker, logging, inference |
 | Security, legal, insurance | $250,000 | Company, IP, privacy, contracts, reviews |
 | Design, research, events | $150,000 | User research, partner program, launch |
-| Contingency | $700,000 | Hiring variance and runway protection |
-| Total | **$3,500,000** | — |
+| Contingency | \$700,000 | Hiring variance and runway protection |
+| Total | **\$3,500,000** | — |
 
 The contingency is intentionally large because infrastructure cost and hiring timelines are uncertain.
 
@@ -3236,14 +3236,14 @@ Early employees should be comfortable crossing boundaries. Useful signals includ
 
 ### 52.5 Seed headcount and burn
 
-An institutional seed plan of $3.5 million should not assume immediate hiring to twenty people. A disciplined plan might reach eight to twelve full-time employees over eighteen months, depending on revenue and geography.
+An institutional seed plan of \$3.5 million should not assume immediate hiring to twenty people. A disciplined plan might reach eight to twelve full-time employees over eighteen months, depending on revenue and geography.
 
 Illustrative fully loaded annual costs:
 
 | Role group | Approximate annual cash cost per person |
 |---|---:|
-| Senior engineering in high-cost U.S. market | $220K–$320K |
-| Senior engineering in distributed European market | $140K–$230K |
+| Senior engineering in high-cost U.S. market | \$220K–\$320K |
+| Senior engineering in distributed European market | \$140K–$230K |
 | Design/product | $150K–$250K |
 | Customer engineering | $140K–$230K |
 | Early GTM | $160K–$280K including variable compensation |
@@ -4252,21 +4252,21 @@ Illustrative only:
 | Monthly revenue per studio | $1,789 |
 | Annualized revenue per studio | $21,468 |
 
-At one hundred similar studios, annualized revenue would be approximately $2.15 million before implementation, enterprise, or marketplace revenue. The critical assumptions are active app count, module attach rate, churn, and support cost.
+At one hundred similar studios, annualized revenue would be approximately \$2.15 million before implementation, enterprise, or marketplace revenue. The critical assumptions are active app count, module attach rate, churn, and support cost.
 
 ## B.11 Example direct-business cohort
 
 | Variable | Value |
 |---|---:|
-| Business platform plan | $149/month |
+| Business platform plan | \$149/month |
 | Active applications | 2 |
 | Included one app; second app | $49/month |
 | Premium modules | $150/month |
 | Usage overage | $30/month |
 | Monthly recurring revenue | $378 |
-| Annualized revenue | $4,536 |
+| Annualized revenue | \$4,536 |
 
-A thousand customers at this profile represent roughly $4.5 million in annual recurring revenue. Customer acquisition and onboarding determine whether the model is attractive.
+A thousand customers at this profile represent roughly \$4.5 million in annual recurring revenue. Customer acquisition and onboarding determine whether the model is attractive.
 
 ## B.12 Financing model
 
@@ -4294,7 +4294,7 @@ new investor ownership
   = new capital / post-money valuation
 ```
 
-A $3.5 million round at a $20 million post-money valuation implies 17.5% new investor ownership before considering option-pool changes or other securities. SAFE conversion, pre-money versus post-money option pool treatment, and multiple instruments can materially change founder ownership. Use a cap-table model and counsel.
+A \$3.5 million round at a \$20 million post-money valuation implies 17.5% new investor ownership before considering option-pool changes or other securities. SAFE conversion, pre-money versus post-money option pool treatment, and multiple instruments can materially change founder ownership. Use a cap-table model and counsel.
 
 ## B.14 Metrics definitions
 
@@ -4440,7 +4440,7 @@ A founder relationship should be examined before it is romanticized. These quest
 92. Would each founder accept an early acquisition? Under what conditions?
 93. Is remaining independent a goal or an option?
 94. How should a life-changing acquisition offer be evaluated?
-95. What if the company becomes a strong $20 million revenue business but not a venture-scale outcome?
+95. What if the company becomes a strong \$20 million revenue business but not a venture-scale outcome?
 96. What if the platform thesis works but the initial product does not?
 97. What if one founder wants to continue and another wants to stop?
 98. How should founder performance be evaluated?
@@ -4448,11 +4448,11 @@ A founder relationship should be examined before it is romanticized. These quest
 100. After answering these questions, what remains difficult to say directly?
 
 
-[^S1]: Replit, “The Future is Actually Very Human: Replit raises $400 million at a $9 billion valuation,” March 11, 2026, https://replit.com/blog/replit-raises-400-million-dollars. The announcement states more than 50 million users and use by people at 85% of the Fortune 500.
+[^S1]: Replit, “The Future is Actually Very Human: Replit raises \$400 million at a \$9 billion valuation,” March 11, 2026, https://replit.com/blog/replit-raises-400-million-dollars. The announcement states more than 50 million users and use by people at 85% of the Fortune 500.
 
-[^S2]: Replit, “Replit Closes $250 Million in Funding to Build on Customer Momentum,” September 10, 2025, https://replit.com/news/funding-announcement-series-c. The announcement reports annualized revenue growth from $2.8 million to $150 million in less than a year.
+[^S2]: Replit, “Replit Closes \$250 Million in Funding to Build on Customer Momentum,” September 10, 2025, https://replit.com/news/funding-announcement-series-c. The announcement reports annualized revenue growth from $2.8 million to $150 million in less than a year.
 
-[^S3]: Lovable, “Lovable raises $330M to power the age of the builder,” December 18, 2025, https://lovable.dev/blog/series-b. The announcement reports a $6.6 billion valuation.
+[^S3]: Lovable, “Lovable raises \$330M to power the age of the builder,” December 18, 2025, https://lovable.dev/blog/series-b. The announcement reports a \$6.6 billion valuation.
 
 [^S4]: Lovable, “Lovable MCP: Build apps from any AI agent,” accessed July 20, 2026, https://lovable.dev/mcp. The page describes project creation, code inspection, database work, and deployment through agent-callable tools.
 
@@ -4460,15 +4460,15 @@ A founder relationship should be examined before it is romanticized. These quest
 
 [^S6]: Vercel, “new.website joins forces with v0,” March 23, 2026, https://vercel.com/blog/new-website-joins-forces-with-v0. The announcement emphasizes built-in forms, databases, SEO, and content primitives that reduce prompting.
 
-[^S7]: Wix, “Wix Further Expands into Vibe Coding with Acquisition of Base44,” June 18, 2025, https://www.wix.com/press-room/home/post/wix-further-expands-into-vibe-coding-with-acquisition-of-base44-a-hyper-growth-startup-that-simplif. Wix disclosed approximately $80 million of initial consideration plus performance-based earn-outs.
+[^S7]: Wix, “Wix Further Expands into Vibe Coding with Acquisition of Base44,” June 18, 2025, https://www.wix.com/press-room/home/post/wix-further-expands-into-vibe-coding-with-acquisition-of-base44-a-hyper-growth-startup-that-simplif. Wix disclosed approximately \$80 million of initial consideration plus performance-based earn-outs.
 
-[^S8]: Carta, Peter Walker, “VC Startup Fundraising Benchmarks From 1000 Rounds,” July 10, 2026, https://carta.com/data/linkedin-vc-fundraising-benchmarks-2026/. The software-only six-month sample reports a $4.1 million median seed raise, $24.3 million median valuation, and 18% median dilution.
+[^S8]: Carta, Peter Walker, “VC Startup Fundraising Benchmarks From 1000 Rounds,” July 10, 2026, https://carta.com/data/linkedin-vc-fundraising-benchmarks-2026/. The software-only six-month sample reports a \$4.1 million median seed raise, \$24.3 million median valuation, and 18% median dilution.
 
-[^S9]: Replit, “Replit Pro Is Here — and Core Now Offers Even Better Value,” February 24, 2026, https://replit.com/blog/pro-plan. The announcement lists Core at $20 per month and Pro starting at $100 per month.
+[^S9]: Replit, “Replit Pro Is Here — and Core Now Offers Even Better Value,” February 24, 2026, https://replit.com/blog/pro-plan. The announcement lists Core at \$20 per month and Pro starting at \$100 per month.
 
-[^S10]: Carta, Peter Walker, “The AI Infra trade,” May 22, 2026, https://carta.com/data/newsletter-the-ai-infra-trade/. Carta reports a $13 million median seed round and $66 million median post-money valuation for AI infrastructure startups in its analysis.
+[^S10]: Carta, Peter Walker, “The AI Infra trade,” May 22, 2026, https://carta.com/data/newsletter-the-ai-infra-trade/. Carta reports a \$13 million median seed round and \$66 million median post-money valuation for AI infrastructure startups in its analysis.
 
-[^S11]: Shopify, “Update to Shopify’s app developer revenue share,” April 24, 2025, https://shopify.dev/changelog/update-to-shopifys-app-developer-revenue-share. The current structure exempts the first $1 million of lifetime gross app revenue and applies 15% above that for most eligible developers.
+[^S11]: Shopify, “Update to Shopify’s app developer revenue share,” April 24, 2025, https://shopify.dev/changelog/update-to-shopifys-app-developer-revenue-share. The current structure exempts the first \$1 million of lifetime gross app revenue and applies 15% above that for most eligible developers.
 
 [^S12]: Stripe, “Advanced usage-based billing,” accessed July 20, 2026, https://docs.stripe.com/billing/subscriptions/usage-based/advanced/compare, and “Usage-based billing,” https://docs.stripe.com/billing/subscriptions/usage-based. Stripe documents recurring fees, usage meters, credits, flat-fee-plus-overage, and hybrid pricing structures.
 
@@ -4482,11 +4482,11 @@ A founder relationship should be examined before it is romanticized. These quest
 
 [^S17]: Vercel, Tom Occhino, “Agentic Infrastructure,” April 9, 2026, https://vercel.com/blog/agentic-infrastructure. Vercel reports that more than 30% of deployments were initiated by coding agents and that the share had risen approximately 1,000% over six months.
 
-[^S18]: Wix, “Wix Reports Fourth Quarter and Full Year 2025 Results,” March 4, 2026, https://www.wix.com/press-room/home/post/wix-reports-fourth-quarter-and-full-year-2025-results. Wix reports Base44 reaching $100 million of ARR approximately one year after founding.
+[^S18]: Wix, “Wix Reports Fourth Quarter and Full Year 2025 Results,” March 4, 2026, https://www.wix.com/press-room/home/post/wix-reports-fourth-quarter-and-full-year-2025-results. Wix reports Base44 reaching \$100 million of ARR approximately one year after founding.
 
 [^S19]: Lovable, “Your Lovable app now works inside ChatGPT and Claude,” July 15, 2026, https://lovable.dev/blog/agent-integrations. The announcement describes hosted MCP servers for published Lovable applications with OAuth and access controls.
 
-[^S20]: South Park Commons, homepage and program description, accessed July 20, 2026, https://www.southparkcommons.com/. SPC describes a residency and funding from $1 million to $10 million for venture-scale companies.
+[^S20]: South Park Commons, homepage and program description, accessed July 20, 2026, https://www.southparkcommons.com/. SPC describes a residency and funding from \$1 million to $10 million for venture-scale companies.
 
 [^S21]: Entrepreneurs First, “Found, don't follow,” accessed July 20, 2026, https://www.joinef.com/. EF describes backing individuals, helping them test and find cofounders, and supporting company creation before a fixed team exists.
 

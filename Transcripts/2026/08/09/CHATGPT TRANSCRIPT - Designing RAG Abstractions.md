@@ -4942,7 +4942,7 @@ Activation and release leases form the synchronization protocol between corpus m
 
 This produces a sharper production abstraction:
 
-\[
+$$
 \text{source world}
 \rightarrow
 \text{maintained release}
@@ -4950,7 +4950,7 @@ This produces a sharper production abstraction:
 \text{release-pinned interpretation}
 \rightarrow
 \text{replayable user projection}.
-\]
+$$
 
 ## RAG retrieval optimization
 
@@ -5016,19 +5016,19 @@ The source protocol includes:
 
 Indexing is then incremental view maintenance. The proposed initial production structure is:
 
-\[
+$$
 V_t = B_\tau \oplus \Delta_{\tau,t},
-\]
+$$
 
-where \(B_\tau\) is an immutable base release and \(\Delta_{\tau,t}\) is an ordered collection of additions, replacements, and tombstones. Compaction produces a new base without changing declared query behavior.
+where $B_\tau$ is an immutable base release and $\Delta_{\tau,t}$ is an ordered collection of additions, replacements, and tombstones. Compaction produces a new base without changing declared query behavior.
 
 A clean full rebuild at the same source barrier is the correctness oracle:
 
-\[
+$$
 \operatorname{maintain}(B,\Delta)
 \;\simeq\;
 \operatorname{rebuild}(S \oplus \Delta).
-\]
+$$
 
 The equivalence is exact for deterministic backends and tolerance-relative for approximate indexes.
 
@@ -5086,11 +5086,11 @@ The proposed stream protocol uses:
 
 Its principal law is snapshot-plus-suffix equivalence:
 
-\[
+$$
 \operatorname{reduce}(S_n,e_{n+1},\ldots,e_m)
 =
 \operatorname{reduce}(e_1,\ldots,e_m).
-\]
+$$
 
 Duplicate append patches and lower-version entity updates are semantic violations rather than incidental UI bugs.
 
@@ -8145,22 +8145,22 @@ The volume contains approximately **27,700 words, 52 numbered chapters, seven pa
 
 The central object is an **optimization field**
 
-\[
+$$
 \operatorname{Opt}:\mathcal A^{op}\longrightarrow \mathbf{Cat},
-\]
+$$
 
 where:
 
-- \(\mathcal A\) is a category of RAG architectures and architecture mappings;
-- each fiber \(\operatorname{Opt}(A)\) contains behavior-complete release specifications for architecture \(A\);
+- $\mathcal A$ is a category of RAG architectures and architecture mappings;
+- each fiber $\operatorname{Opt}(A)$ contains behavior-complete release specifications for architecture $A$;
 - morphisms are typed, validated intervention paths rather than arbitrary before-and-after configurations;
 - reindexing transports specifications, intervention support, observations, and obligations between architectures.
 
-For a fixed baseline \(\theta_0\), the candidate space is the coslice category
+For a fixed baseline $\theta_0$, the candidate space is the coslice category
 
-\[
+$$
 (\theta_0\downarrow \operatorname{Opt}(A)).
-\]
+$$
 
 A candidate therefore retains both its endpoint and its causal path. Two candidates that produce the same final specification can remain distinct when they used different interventions, assumptions, builds, evidence, or audit histories.
 
@@ -8172,14 +8172,14 @@ The construction integrates several structures that play different roles rather 
 
 A production RAG release is interpreted as an open, stateful, stochastic, parameterized transducer:
 
-\[
+$$
 T_\theta:
 S\otimes X
 \longrightarrow
 \mathcal D(S\otimes Y\otimes \operatorname{Tr}),
-\]
+$$
 
-where \(S\) is runtime state, \(X\) contains requests and controlled context, \(Y\) contains outcomes, and \(\operatorname{Tr}\) preserves the operational observations relevant to the optimization claim.
+where $S$ is runtime state, $X$ contains requests and controlled context, $Y$ contains outcomes, and $\operatorname{Tr}$ preserves the operational observations relevant to the optimization claim.
 
 Parameterized composition accumulates the local parameter objects of indexing, retrieval, ranking, context construction, generation, agents, validation, serving, and presentation. It does not flatten them into one untyped dictionary.
 
@@ -8201,19 +8201,19 @@ Sequential composition preserves the ordered intervention path. Certified parall
 
 Change actions provide the discrete analogue of differentiation:
 
-\[
+$$
 f(a\oplus \delta a)
 =
 f(a)\oplus Df(a,\delta a).
-\]
+$$
 
-For RAG, \(Df\) need not be numerical. It may produce an artifact delta, a rebuild plan, an invalidation set, or a required evaluation set.
+For RAG, $Df$ need not be numerical. It may produce an artifact delta, a rebuild plan, an invalidation set, or a required evaluation set.
 
 A dependency graph supplies a conservative support abstraction. The downstream closure
 
-\[
+$$
 \operatorname{cl}_A(\operatorname{supp}(i))
-\]
+$$
 
 determines which artifacts, runtime stages, observations, and evaluators may have changed. Artifact reuse is then justified by support disjointness and equality of external experiment identities, not merely by matching file bytes.
 
@@ -8221,17 +8221,17 @@ determines which artifacts, runtime stages, observations, and evaluators may hav
 
 Interventions are graded in a finite join-semilattice containing concerns such as:
 
-\[
+$$
 \{\text{operational},\text{approximation},\text{relevance},
 \text{knowledge},\text{policy/security},
 \text{interaction},\text{presentation}\}.
-\]
+$$
 
 Composition joins effect grades. A monotone doctrine
 
-\[
+$$
 \operatorname{Req}:E\longrightarrow O
-\]
+$$
 
 maps effects to minimum evidence obligations. Consequently, composing a more consequential intervention cannot reduce the evidence required for promotion.
 
@@ -8241,11 +8241,11 @@ Evaluation is treated as a statistical experiment generated by a release under a
 
 Pairing copies deterministic experimental context into both arms before stochastic execution. It does not copy a realized random output or merely reuse a nominal integer seed.
 
-Multi-fidelity evaluation is modeled through comparison of experiments. A low-fidelity experiment \(L\) is genuinely a garbling of a higher-fidelity experiment \(H\) only when a channel \(G\) exists such that
+Multi-fidelity evaluation is modeled through comparison of experiments. A low-fidelity experiment $L$ is genuinely a garbling of a higher-fidelity experiment $H$ only when a channel $G$ exists such that
 
-\[
+$$
 L=G\circ H.
-\]
+$$
 
 Where that witness is unavailable, the implementation records a weaker empirical calibration claim rather than asserting a Blackwell order.
 
@@ -8273,9 +8273,9 @@ The theoretical synthesis draws on Markov categories, parameterized maps and len
 
 Optimization is modeled as a cybernetic controller interacting with a RAG plant through observations and actions:
 
-\[
+$$
 \Gamma:C\otimes O\longrightarrow\mathcal D(C\otimes A).
-\]
+$$
 
 Campaign execution has a small-step transition semantics over immutable events such as:
 

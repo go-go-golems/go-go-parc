@@ -38,9 +38,9 @@ Its semantic spine is a typed, serializable world model:
 3. A **positive rule theory** derives facts such as eligibility, available actions, ownership, compatibility, conversion paths, and affected views.
 4. The derived world is the least fixed point
 
-   \[
+   $$
    C_\Gamma(I) = \mu X.\; I \cup T_\Gamma(X).
-   \]
+   $$
 
 5. Open components are assembled as a wiring diagram. Its mathematical semantics may be a colimit or structured-cospan composition, while the implementation stores a normalized incidence graph.
 6. Commands transform the base instance through typed graph rewrites and emit algebraic effects.
@@ -49,35 +49,35 @@ Its semantic spine is a typed, serializable world model:
 
 The fixed-point construction can be linked directly to categorical structure. Under suitable conditions, saturation is a closure operator and a reflector:
 
-\[
+$$
 C_\Gamma \dashv J : \mathbf{Sat}_\Gamma \hookrightarrow \mathbf{Inst}_\Sigma,
-\]
+$$
 
 where `Inst` is the category of typed instances and `Sat` is the full subcategory of instances closed under the rule theory. Because a reflector is a left adjoint, it preserves colimits. This yields a precise version of the desired slogan:
 
 > **Compose raw components by a colimit, then apply semantic closure.**
 
-For a diagram \(D\) of already saturated components, the composed saturated system is, when the stated assumptions hold,
+For a diagram $D$ of already saturated components, the composed saturated system is, when the stated assumptions hold,
 
-\[
+$$
 \operatorname{colim}_{\mathbf{Sat}_\Gamma} D
 \;\cong\;
 C_\Gamma\!\left(
   \operatorname{colim}_{\mathbf{Inst}_\Sigma} JD
 \right).
-\]
+$$
 
 This is not decorative category theory. It gives a concrete modularity criterion: plugin union, workspace assembly, and link-group formation can be separated from the rules that derive what becomes selectable and actionable after composition.
 
 Transfinite induction also has a legitimate, but bounded, role. For a monotone operator on a complete lattice, one may define an ordinal-indexed chain
 
-\[
+$$
 X_0=\bot,\qquad
 X_{\alpha+1}=F(X_\alpha),\qquad
 X_\lambda=\bigvee_{\beta<\lambda}X_\beta.
-\]
+$$
 
-It supports existence proofs, free constructions, and invariant proofs at limit stages. It should not become a browser algorithm. A finite UI world with a positive finite rule program reaches its least fixed point after finitely many fact additions. An \(\omega\)-continuous domain can use ordinary Kleene iteration. Infinite-height analyses may require worklists, widening, or domain-specific solvers. Arbitrary JavaScript callbacks do not become monotone or provable by being placed behind a TypeScript method named `prove`.
+It supports existence proofs, free constructions, and invariant proofs at limit stages. It should not become a browser algorithm. A finite UI world with a positive finite rule program reaches its least fixed point after finitely many fact additions. An $\omega$-continuous domain can use ordinary Kleene iteration. Infinite-height analyses may require worklists, widening, or domain-specific solvers. Arbitrary JavaScript callbacks do not become monotone or provable by being placed behind a TypeScript method named `prove`.
 
 The recommended API therefore has two explicit tiers:
 
@@ -550,8 +550,8 @@ Recursive derivation systems are interpreted as least or greatest fixed points. 
 
 Transfinite induction is appropriate when a construction is indexed by all ordinals until it stabilizes. The proof has three cases:
 
-- a base case at \(0\);
-- a successor case from \(\alpha\) to \(\alpha+1\);
+- a base case at $0$;
+- a successor case from $\alpha$ to $\alpha+1$;
 - a limit case proving the property is preserved by the colimit or supremum of all earlier stages.
 
 This can justify:
@@ -613,25 +613,25 @@ This section introduces the structures used later. It is intentionally concrete.
 
 ## 6.1 Posets and lattices
 
-A **partial order** is a set equipped with a relation \(\leq\) that is reflexive, antisymmetric, and transitive.
+A **partial order** is a set equipped with a relation $\leq$ that is reflexive, antisymmetric, and transitive.
 
 A common UI example is a set of known facts ordered by inclusion:
 
-\[
+$$
 F_1 \leq F_2 \quad\text{when}\quad F_1 \subseteq F_2.
-\]
+$$
 
-A **join** \(x\vee y\) is the least value above both \(x\) and \(y\). For fact sets, it is union.
+A **join** $x\vee y$ is the least value above both $x$ and $y$. For fact sets, it is union.
 
 A **complete lattice** has joins and meets for every subset, including infinite ones. A power set ordered by inclusion is a complete lattice.
 
 ## 6.2 Monotone functions
 
-A function \(f:L\to L\) is monotone when
+A function $f:L\to L$ is monotone when
 
-\[
+$$
 x\leq y \implies f(x)\leq f(y).
-\]
+$$
 
 For facts, this says that supplying more input facts cannot make the operator derive fewer facts.
 
@@ -639,7 +639,7 @@ Positive Datalog-style rules are monotone. A rule based on the absence of a fact
 
 ## 6.3 Fixed points
 
-A fixed point of \(f\) is an \(x\) such that \(f(x)=x\).
+A fixed point of $f$ is an $x$ such that $f(x)=x$.
 
 The least fixed point is the smallest stable result. It is the natural meaning of recursive positive rules: derive only facts forced by the base data and rules.
 
@@ -656,9 +656,9 @@ The least fixed point contains exactly the reachable subtype pairs, not arbitrar
 
 When the domain and operator satisfy the required continuity assumptions, the least fixed point can be obtained by iteration from the least element:
 
-\[
+$$
 \bot,\; f(\bot),\; f^2(\bot),\ldots
-\]
+$$
 
 For a finite set of possible facts, a worklist reaches stability after finitely many new facts.
 
@@ -666,20 +666,20 @@ For a finite set of possible facts, a worklist reaches stability after finitely 
 
 Ordinals extend finite counting with ordered limit stages. At a successor stage, apply the operator. At a limit stage, take the supremum of all previous stages.
 
-For an inflationary monotone operator \(F\), or for the standard chain generated from bottom, define:
+For an inflationary monotone operator $F$, or for the standard chain generated from bottom, define:
 
-\[
+$$
 X_0=\bot,
-\]
+$$
 
-\[
+$$
 X_{\alpha+1}=F(X_\alpha),
-\]
+$$
 
-\[
+$$
 X_\lambda=\bigvee_{\beta<\lambda}X_\beta
 \quad\text{for a limit ordinal }\lambda.
-\]
+$$
 
 Because a set-sized lattice cannot contain a strictly increasing chain longer than its cardinality permits, the chain eventually stabilizes. The first stage at which it stabilizes is a closure ordinal.
 
@@ -707,7 +707,7 @@ A **pushout** glues two objects along a shared interface:
       P
 ```
 
-The pushout \(P\) is the most general object containing \(X\) and \(Y\) while identifying the images of \(B\).
+The pushout $P$ is the most general object containing $X$ and $Y$ while identifying the images of $B$.
 
 A **colimit** generalizes coproducts and pushouts to arbitrary diagrams.
 
@@ -720,13 +720,13 @@ For UI architecture, legitimate uses include:
 
 ## 6.8 Initial algebras
 
-For an endofunctor \(F\), an \(F\)-algebra is a map
+For an endofunctor $F$, an $F$-algebra is a map
 
-\[
+$$
 F(A)\to A.
-\]
+$$
 
-An **initial** \(F\)-algebra is the canonical object generated by the constructors described by \(F\). It supports induction and a unique fold into every other \(F\)-algebra.
+An **initial** $F$-algebra is the canonical object generated by the constructors described by $F$. It supports induction and a unique fold into every other $F$-algebra.
 
 Abstract syntax trees are the standard programming example. If a query language has constructors for conjunction, existential quantification, relation lookup, and equality, its syntax is an inductively generated algebraic data type.
 
@@ -757,11 +757,11 @@ The same program can be interpreted by:
 
 ## 6.10 Final coalgebras and coinduction
 
-An \(F\)-coalgebra has a map
+An $F$-coalgebra has a map
 
-\[
+$$
 A\to F(A).
-\]
+$$
 
 Coalgebras model systems by their observations and possible next states. A UI session is ongoing behavior, not merely finite syntax.
 
@@ -769,7 +769,7 @@ Coinduction proves two systems behaviorally equivalent by exhibiting a bisimulat
 
 ## 6.11 Adjunctions and reflections
 
-An adjunction \(L\dashv R\) expresses a best correspondence between arrows out of \(L(A)\) and arrows into \(R(B)\).
+An adjunction $L\dashv R$ expresses a best correspondence between arrows out of $L(A)$ and arrows into $R(B)$.
 
 A **reflection** is an adjunction where a full subcategory is included into a larger category and every object has a best approximation inside the subcategory.
 
@@ -791,7 +791,7 @@ The implementation need not expose the word “presheaf” to application develo
 
 ## 6.13 Lenses
 
-A basic asymmetric lens from source \(S\) to view \(V\) has:
+A basic asymmetric lens from source $S$ to view $V$ has:
 
 ```text
 get : S → V
@@ -810,9 +810,9 @@ These laws are relevant when a pipeline editor, encoding editor, or form edits o
 
 A typed graph rewrite identifies a pattern, preserves part of it, removes part of it, and creates a replacement. Double-pushout rewriting represents a rule as a span
 
-\[
+$$
 L \leftarrow K \rightarrow R.
-\]
+$$
 
 Applied to a matching subgraph, it produces a new graph while making deletion and preservation explicit.
 
@@ -1016,17 +1016,17 @@ derives(sourceEntity, targetType, targetEntity, evidence, cost)
 
 ## 8.2 Least-fixed-point semantics
 
-Let \(I\) be the base facts and \(T_\Gamma\) the immediate-consequence operator for rule theory \(\Gamma\). Define:
+Let $I$ be the base facts and $T_\Gamma$ the immediate-consequence operator for rule theory $\Gamma$. Define:
 
-\[
+$$
 F_I(X)=I\cup T_\Gamma(X).
-\]
+$$
 
-For positive rules, \(F_I\) is monotone. Its least fixed point is the intended derived world:
+For positive rules, $F_I$ is monotone. Its least fixed point is the intended derived world:
 
-\[
+$$
 C_\Gamma(I)=\mu F_I.
-\]
+$$
 
 This gives a stable semantic meaning independent of evaluation order.
 
@@ -1078,7 +1078,7 @@ These do not invalidate the approach, but they must be modeled correctly.
 
 ### Snapshot transitions
 
-Base-world deletion is a transition from \(I\) to \(I'\). Each snapshot is saturated independently. The rule engine may incrementally propagate negative deltas, but the denotational semantics remains `closure of the current base world`.
+Base-world deletion is a transition from $I$ to $I'$. Each snapshot is saturated independently. The rule engine may incrementally propagate negative deltas, but the denotational semantics remains `closure of the current base world`.
 
 ### Stratified negation
 
@@ -1194,11 +1194,11 @@ The `analysis` ports can be connected to one junction. The `selection` ports may
 
 A structured cospan has the form
 
-\[
+$$
 L(a)\longrightarrow x\longleftarrow L(b),
-\]
+$$
 
-where \(a\) and \(b\) are boundary objects and \(x\) is the internal system. Under suitable finite-colimit and adjoint assumptions, structured cospans compose by pushout and form a symmetric monoidal structure.
+where $a$ and $b$ are boundary objects and $x$ is the internal system. Under suitable finite-colimit and adjoint assumptions, structured cospans compose by pushout and form a symmetric monoidal structure.
 
 For a UI component:
 
@@ -1371,9 +1371,9 @@ Ordinary typed graphs are special cases of this construction. The benefit is a m
 
 A schema mapping can induce canonical migrations often written as:
 
-- \(\Delta\): pull data back along a schema map;
-- \(\Sigma\): left-adjoint migration, often merging or freely extending;
-- \(\Pi\): right-adjoint migration, often matching or aggregating compatible structure.
+- $\Delta$: pull data back along a schema map;
+- $\Sigma$: left-adjoint migration, often merging or freely extending;
+- $\Pi$: right-adjoint migration, often matching or aggregating compatible structure.
 
 For PBUI, this could support:
 
@@ -1653,31 +1653,31 @@ For proof and tooling, the implementation should not merely claim lawfulness. A 
 
 ## 12.3 Standard laws
 
-For source \(s\) and views \(v,v'\):
+For source $s$ and views $v,v'$:
 
 ### GetPut
 
-\[
+$$
 \operatorname{put}(s,\operatorname{get}(s))=s.
-\]
+$$
 
 A no-op edit does not rewrite IDs or erase hidden information.
 
 ### PutGet
 
-\[
+$$
 \operatorname{get}(\operatorname{put}(s,v))=v.
-\]
+$$
 
 The requested view edit is observable after update.
 
 ### PutPut
 
-\[
+$$
 \operatorname{put}(\operatorname{put}(s,v),v')
 =
 \operatorname{put}(s,v').
-\]
+$$
 
 The last update determines the current view.
 
@@ -1794,21 +1794,21 @@ This addresses questions that static schemas, fixed points, and graph rewrites d
 
 A simplified deterministic system can be represented as:
 
-\[
+$$
 \delta : S \times E \to O \times S,
-\]
+$$
 
 where:
 
-- \(S\) is state;
-- \(E\) is an event or command;
-- \(O\) is an observation, result, or emitted effect.
+- $S$ is state;
+- $E$ is an event or command;
+- $O$ is an observation, result, or emitted effect.
 
 Equivalently, curry it into a coalgebra:
 
-\[
+$$
 S \to (O\times S)^E.
-\]
+$$
 
 Nondeterminism, failure, asynchronous effects, and probability lead to richer behavioral functors.
 
@@ -1959,13 +1959,13 @@ Recomputing every query from scratch on each render is not viable at scale.
 
 ## 14.2 Incremental view maintenance
 
-Let a query be \(Q(I)\). Given an input change \(\Delta I\), an incremental evaluator computes \(\Delta Q\) such that:
+Let a query be $Q(I)$. Given an input change $\Delta I$, an incremental evaluator computes $\Delta Q$ such that:
 
-\[
+$$
 Q(I\oplus\Delta I)
 =
 Q(I)\oplus\Delta Q(I,\Delta I).
-\]
+$$
 
 The correctness criterion is equality with from-scratch recomputation.
 
@@ -2068,9 +2068,9 @@ This becomes important if workspaces, links, selections, pipelines, and presenta
 
 A state-based CRDT uses a partial order and a join operation. Replicas merge by least upper bound:
 
-\[
+$$
 s_{merged}=s_1\vee s_2.
-\]
+$$
 
 Updates are inflationary, and merge is associative, commutative, and idempotent. Under the CRDT assumptions, replicas converge.
 
@@ -2211,11 +2211,11 @@ ensures Q(state, parameters, nextState)
 
 The runtime checks `requires`. The verifier attempts to establish:
 
-\[
+$$
 Invariant(s)\land P(s,p)\land R(s,p,s')
 \implies
 Invariant(s')\land Q(s,p,s').
-\]
+$$
 
 The status can be:
 
@@ -2539,28 +2539,28 @@ Ordinary maps, arrays, sets, and indexes can implement the finite runtime.
 
 This section gives a more precise candidate semantics. It is intentionally abstract enough to support several implementations.
 
-## 19.1 Schema \(\Sigma\)
+## 19.1 Schema $\Sigma$
 
-Let \(\Sigma\) be a finite typed schema. It contains sorts such as:
+Let $\Sigma$ be a finite typed schema. It contains sorts such as:
 
-\[
+$$
 \begin{aligned}
 &\mathsf{Entity},\mathsf{Occurrence},\mathsf{PType},\mathsf{Context},\\
 &\mathsf{Component},\mathsf{Port},\mathsf{Protocol},\mathsf{Junction},\\
 &\mathsf{Command},\mathsf{CommandInstance},\mathsf{Actor},\mathsf{Capability},\\
 &\mathsf{Workspace},\mathsf{Surface},\mathsf{Effect},\mathsf{Event}.
 \end{aligned}
-\]
+$$
 
 Product schemas extend `Entity` with sorts such as:
 
-\[
+$$
 \mathsf{GraphicDocument},\mathsf{Field},\mathsf{PipelineStep},\mathsf{Source},\mathsf{SelectionSet}.
-\]
+$$
 
 The schema declares relations including:
 
-\[
+$$
 \begin{aligned}
 &\mathsf{denotes}:\mathsf{Occurrence}\times\mathsf{Entity},\\
 &\mathsf{presentedAs}:\mathsf{Occurrence}\times\mathsf{PType},\\
@@ -2574,13 +2574,13 @@ The schema declares relations including:
 &\mathsf{carries}:\mathsf{Junction}\times\mathsf{Entity},\\
 &\mathsf{holds}:\mathsf{Actor}\times\mathsf{Capability}.
 \end{aligned}
-\]
+$$
 
 A concrete implementation may represent functional relations as fields and many-to-many relations as indexed tables. The formal model treats them uniformly enough for query and migration semantics.
 
 ## 19.2 Base instances
 
-A base instance \(I\in\mathbf{Inst}_\Sigma\) assigns finite sets and relations satisfying schema-level constraints.
+A base instance $I\in\mathbf{Inst}_\Sigma$ assigns finite sets and relations satisfying schema-level constraints.
 
 Base facts are those directly authored or observed:
 
@@ -2593,9 +2593,9 @@ Base facts are those directly authored or observed:
 
 ## 19.3 Derived relations
 
-Let \(\Gamma\) be a typed rule theory. Its relation symbols are divided into:
+Let $\Gamma$ be a typed rule theory. Its relation symbols are divided into:
 
-- extensional relations, supplied by \(I\);
+- extensional relations, supplied by $I$;
 - intensional relations, derived by rules.
 
 Representative intensional relations are:
@@ -2613,21 +2613,21 @@ invalid(entity, diagnostic)
 
 ## 19.4 The immediate-consequence operator
 
-Given a candidate fact set \(X\), \(T_\Gamma(X)\) contains the heads of all rule instances whose premises hold in \(X\).
+Given a candidate fact set $X$, $T_\Gamma(X)$ contains the heads of all rule instances whose premises hold in $X$.
 
-The inflationary closure operator for base instance \(I\) is:
+The inflationary closure operator for base instance $I$ is:
 
-\[
+$$
 F_I(X)=I\cup X\cup T_\Gamma(X).
-\]
+$$
 
-Including \(X\) makes inflationarity explicit. For positive rules, \(F_I\) is monotone.
+Including $X$ makes inflationarity explicit. For positive rules, $F_I$ is monotone.
 
 The saturated world is:
 
-\[
+$$
 C_\Gamma(I)=\mu F_I.
-\]
+$$
 
 ## 19.5 Judgments and evidence
 
@@ -2756,40 +2756,40 @@ The most important categorical connection in the proposal is between fixed-point
 
 ## 20.1 Saturated instances
 
-Call an instance \(S\) **\(\Gamma\)-saturated** when applying the rule closure adds no new facts:
+Call an instance $S$ **$\Gamma$-saturated** when applying the rule closure adds no new facts:
 
-\[
+$$
 C_\Gamma(S)=S.
-\]
+$$
 
-Let \(\mathbf{Sat}_\Gamma\) be the full subcategory of saturated instances inside \(\mathbf{Inst}_\Sigma\).
+Let $\mathbf{Sat}_\Gamma$ be the full subcategory of saturated instances inside $\mathbf{Inst}_\Sigma$.
 
 ## 20.2 Least saturated extension
 
-For every base instance \(I\), suppose \(C_\Gamma(I)\) is:
+For every base instance $I$, suppose $C_\Gamma(I)$ is:
 
 1. saturated;
 2. equipped with an inclusion or structure-preserving map
-   \(\eta_I:I\to C_\Gamma(I)\);
-3. least among saturated extensions of \(I\).
+   $\eta_I:I\to C_\Gamma(I)$;
+3. least among saturated extensions of $I$.
 
-“Least” means that for any saturated \(S\) and map \(f:I\to S\), there is a unique compatible map
+“Least” means that for any saturated $S$ and map $f:I\to S$, there is a unique compatible map
 
-\[
+$$
 \bar f:C_\Gamma(I)\to S
-\]
+$$
 
 such that
 
-\[
+$$
 \bar f\circ\eta_I=f.
-\]
+$$
 
 Under these conditions, closure is left adjoint to inclusion:
 
-\[
+$$
 C_\Gamma \dashv J.
-\]
+$$
 
 ## 20.3 Closure operator laws
 
@@ -2797,38 +2797,38 @@ On a poset of fact sets, the same structure appears as a closure operator:
 
 ### Extensive
 
-\[
+$$
 I\le C_\Gamma(I).
-\]
+$$
 
 ### Monotone
 
-\[
+$$
 I\le I'\implies C_\Gamma(I)\le C_\Gamma(I').
-\]
+$$
 
 ### Idempotent
 
-\[
+$$
 C_\Gamma(C_\Gamma(I))=C_\Gamma(I).
-\]
+$$
 
 These laws are directly testable in finite instances and provable for the kernel’s positive rule semantics.
 
 ## 20.4 Colimit preservation
 
-Left adjoints preserve colimits. Therefore, for a diagram \(D:K\to\mathbf{Sat}_\Gamma\), its colimit in saturated models can be computed by:
+Left adjoints preserve colimits. Therefore, for a diagram $D:K\to\mathbf{Sat}_\Gamma$, its colimit in saturated models can be computed by:
 
-1. forget saturation and form the raw colimit in \(\mathbf{Inst}_\Sigma\);
-2. close the result under \(\Gamma\).
+1. forget saturation and form the raw colimit in $\mathbf{Inst}_\Sigma$;
+2. close the result under $\Gamma$.
 
 Formally:
 
-\[
+$$
 \operatorname{colim}_{\mathbf{Sat}_\Gamma}D
 \cong
 C_\Gamma\left(\operatorname{colim}_{\mathbf{Inst}_\Sigma}JD\right).
-\]
+$$
 
 ## 20.5 Meaning for plugins
 
@@ -2904,33 +2904,33 @@ The user explicitly raised transfinite induction and fixed-point iteration. This
 
 ## 21.1 General monotone fixed points
 
-Let \(L\) be a complete lattice and \(F:L\to L\) monotone. Knaster–Tarski guarantees a complete lattice of fixed points, including a least fixed point.
+Let $L$ be a complete lattice and $F:L\to L$ monotone. Knaster–Tarski guarantees a complete lattice of fixed points, including a least fixed point.
 
 An ordinal chain can be defined by:
 
-\[
+$$
 X_0=\bot,
-\]
+$$
 
-\[
+$$
 X_{\alpha+1}=F(X_\alpha),
-\]
+$$
 
-\[
+$$
 X_\lambda=\bigvee_{\beta<\lambda}X_\beta.
-\]
+$$
 
-Because \(\bot\le F(\bot)\) and \(F\) is monotone, the chain is ascending. It eventually reaches a stationary stage in a set-sized lattice.
+Because $\bot\le F(\bot)$ and $F$ is monotone, the chain is ascending. It eventually reaches a stationary stage in a set-sized lattice.
 
 ## 21.2 Invariant proof by transfinite induction
 
-Suppose property \(P\) satisfies:
+Suppose property $P$ satisfies:
 
-1. **Base:** \(P(\bot)\).
-2. **Successor preservation:** \(P(X)\Rightarrow P(F(X))\).
-3. **Limit closure:** for every ascending chain whose elements satisfy \(P\), the supremum also satisfies \(P\).
+1. **Base:** $P(\bot)$.
+2. **Successor preservation:** $P(X)\Rightarrow P(F(X))$.
+3. **Limit closure:** for every ascending chain whose elements satisfy $P$, the supremum also satisfies $P$.
 
-Then every stage \(X_\alpha\) satisfies \(P\), including the stabilized least fixed point.
+Then every stage $X_\alpha$ satisfies $P$, including the stabilized least fixed point.
 
 For OPK, a candidate invariant might be:
 
@@ -2943,11 +2943,11 @@ In the finite engine, ordinary induction over worklist additions is enough. The 
 
 ## 21.3 Initial-algebra chains
 
-For an endofunctor \(F\), the initial chain begins:
+For an endofunctor $F$, the initial chain begins:
 
-\[
+$$
 0\to F0\to F^2 0\to F^3 0\to\cdots
-\]
+$$
 
 At a limit ordinal, take the colimit of the previous stages. Under appropriate preservation or accessibility assumptions, the chain stabilizes and yields an initial algebra.
 
@@ -2959,15 +2959,15 @@ This is relevant to:
 - open-ended term constructors;
 - free completion of partial schemas.
 
-For ordinary finite algebraic data types, the construction stabilizes in the familiar finite-tree union at \(\omega\). Transfinite machinery becomes relevant for more general functors and equations.
+For ordinary finite algebraic data types, the construction stabilizes in the familiar finite-tree union at $\omega$. Transfinite machinery becomes relevant for more general functors and equations.
 
 ## 21.4 Limit stages are colimits
 
 The requested connection between transfinite induction and colimits is exact:
 
-\[
+$$
 X_\lambda=\operatorname{colim}_{\beta<\lambda}X_\beta.
-\]
+$$
 
 To continue a structure through the limit stage, the relevant functor must preserve the colimit or satisfy another theorem providing the needed comparison map.
 
@@ -2996,16 +2996,16 @@ Implementation:
 - worklist or semi-naive iteration;
 - guaranteed finite termination.
 
-### \(\omega\)-continuous domain
+### $\omega$-continuous domain
 
 Conditions:
 
 - complete partial order;
-- operator preserves suprema of increasing \(\omega\)-chains.
+- operator preserves suprema of increasing $\omega$-chains.
 
 Implementation:
 
-- ordinary Kleene iteration may converge at \(\omega\);
+- ordinary Kleene iteration may converge at $\omega$;
 - practical evaluation still needs finite approximations or a symbolic solver.
 
 ### Infinite-height abstract domain
@@ -3074,7 +3074,7 @@ This section develops the composition model in product terms.
 
 ## 22.1 The category must be chosen
 
-A useful choice is a category of finite typed attributed graphs or finite instances over schema \(\Sigma\), with structure-preserving maps.
+A useful choice is a category of finite typed attributed graphs or finite instances over schema $\Sigma$, with structure-preserving maps.
 
 Attributes such as labels and geometry require a disciplined treatment. Common options are:
 
@@ -3086,11 +3086,11 @@ The last option is simplest for React geometry.
 
 ## 22.2 Components as open instances
 
-A component instance \(X\) has a boundary \(B_X\) containing its exposed ports and a map:
+A component instance $X$ has a boundary $B_X$ containing its exposed ports and a map:
 
-\[
+$$
 L(B_X)\to X.
-\]
+$$
 
 A complete open component may be represented by a structured cospan when inputs and outputs are separated, or by a typed open hypergraph when a more symmetric connection model is desired.
 
@@ -3528,31 +3528,31 @@ The clean-slate architecture does not need a descriptor object to be the unit of
 
 Representative judgments are:
 
-\[
+$$
 \mathsf{Denotes}(o,e)
-\]
+$$
 
-\[
+$$
 \mathsf{PresentedAs}(o,t)
-\]
+$$
 
-\[
+$$
 \mathsf{VisibleIn}(o,s)
-\]
+$$
 
-\[
+$$
 \mathsf{Eligible}(q,o,e)
-\]
+$$
 
-\[
+$$
 \mathsf{Offers}(o,c)
-\]
+$$
 
-\[
+$$
 \mathsf{Converts}(e,t,e',w)
-\]
+$$
 
-where \(w\) is a witness containing cost and provenance.
+where $w$ is a witness containing cost and provenance.
 
 ## 24.2 Rendering is one projection
 
@@ -3793,7 +3793,7 @@ Commands that may be retried should carry idempotency keys. Analysis execution c
 
 ## 25.9 Stale evidence
 
-An offer derived at revision \(r\) may no longer be valid at revision \(r+1\). The executor rechecks:
+An offer derived at revision $r$ may no longer be valid at revision $r+1$. The executor rechecks:
 
 - referenced entities still exist;
 - precondition still holds;
@@ -3865,17 +3865,17 @@ GraphicDocument → Source reference
 
 ## 26.3 Path composition
 
-If \(e_1:x\to y\) has cost \(c_1\) and \(e_2:y\to z\) has cost \(c_2\), the composite has cost:
+If $e_1:x\to y$ has cost $c_1$ and $e_2:y\to z$ has cost $c_2$, the composite has cost:
 
-\[
+$$
 c_1+c_2.
-\]
+$$
 
 Alternative paths choose the minimum cost:
 
-\[
+$$
 \min(c_a,c_b).
-\]
+$$
 
 This is evaluation in the tropical or min-plus semiring.
 
@@ -4207,11 +4207,11 @@ The update direction is product semantics, not something React can infer from th
 
 A simple lens from source type `S` to view type `A` consists of operations usually written:
 
-\[
+$$
 \operatorname{get}:S\to A,
 \qquad
 \operatorname{put}:S\times A\to S.
-\]
+$$
 
 The familiar laws are:
 
@@ -4219,27 +4219,27 @@ The familiar laws are:
 
 Writing back the value just read changes nothing observably:
 
-\[
+$$
 \operatorname{put}(s,\operatorname{get}(s))=s.
-\]
+$$
 
 ### Put–Get
 
 After writing a view value, reading returns that value:
 
-\[
+$$
 \operatorname{get}(\operatorname{put}(s,a))=a.
-\]
+$$
 
 ### Put–Put
 
 Only the most recent write matters:
 
-\[
+$$
 \operatorname{put}(\operatorname{put}(s,a_1),a_2)
 =
 \operatorname{put}(s,a_2).
-\]
+$$
 
 These laws are valuable because they rule out surprising editors. They also compose: lawful lenses can be combined to obtain lawful access to nested state.
 
@@ -4282,11 +4282,11 @@ This preserves one transition path for pointer actions, keyboard actions, automa
 
 Suppose `normalize : A -> A` puts a requested value into canonical form. A normalizing lens can satisfy:
 
-\[
+$$
 \operatorname{get}(\operatorname{apply}(s,\operatorname{propose}(s,a)))
 =
 \operatorname{normalize}(a).
-\]
+$$
 
 The corresponding laws become observational rather than literal:
 
@@ -4419,9 +4419,9 @@ This representation is serializable, auditable, and suitable for conflict analys
 
 Replacing a whole editor model is inefficient and can erase concurrent changes. A delta lens maps a view-level edit to a source-level delta:
 
-\[
+$$
 \delta A \longrightarrow \delta S.
-\]
+$$
 
 For example:
 
@@ -4759,9 +4759,9 @@ It does not automatically solve merge conflicts or guarantee that old commands r
 
 A component runtime can be regarded as a coalgebra whose observations and next states are determined by inputs:
 
-\[
+$$
 c : S \to O \times S^{I}
-\]
+$$
 
 or by a more suitable effectful functor. This perspective is useful for **behavioral equivalence**. Two implementations are equivalent when no allowed interaction trace can distinguish their observable behavior, even if their internal caches differ.
 
@@ -5421,11 +5421,11 @@ The principal runtime theorem target is:
 
 Formally, for base state `I`, delta `δ`, batch closure `C`, and incremental maintenance `inc`:
 
-\[
+$$
 \operatorname{apply}\big(C(I),\operatorname{inc}(I,\delta)\big)
 \cong
 C\big(\operatorname{apply}(I,\delta)\big).
-\]
+$$
 
 The isomorphism permits implementation-specific fact IDs and cache structure but must preserve public relations, chosen ordering policy, and evidence semantics.
 
@@ -6397,9 +6397,9 @@ This theorem is straightforward precisely because arbitrary JavaScript cannot ap
 
 **Statement.** For base instances `I <= J`, the immediate-consequence operator satisfies:
 
-\[
+$$
 T_\Gamma(I)\le T_\Gamma(J).
-\]
+$$
 
 **Assumptions.** Rules use positive relational premises and monotone foreign oracles over stated orders. No hidden negation, revocation read, or side effect participates.
 
@@ -6411,9 +6411,9 @@ T_\Gamma(I)\le T_\Gamma(J).
 
 **Statement.** The closure operator
 
-\[
+$$
 C_\Gamma(I)=\mu X.\;I\cup T_\Gamma(X)
-\]
+$$
 
 exists.
 
@@ -6453,21 +6453,21 @@ For each fixed theory `Γ`, closure should satisfy:
 
 ### Extensive
 
-\[
+$$
 I\le C_\Gamma(I).
-\]
+$$
 
 ### Monotone
 
-\[
+$$
 I\le J\Rightarrow C_\Gamma(I)\le C_\Gamma(J).
-\]
+$$
 
 ### Idempotent
 
-\[
+$$
 C_\Gamma(C_\Gamma(I))=C_\Gamma(I).
-\]
+$$
 
 **Method.** Standard least-fixed-point reasoning, subject to the chosen instance order and operator definition.
 
@@ -6494,11 +6494,11 @@ These laws justify treating saturation as a closure operator.
 
 **Statement.** If `CΓ` is a left adjoint reflector, it preserves colimits that exist in the raw instance category:
 
-\[
+$$
 C_\Gamma(\operatorname{colim}D)
 \cong
 \operatorname{colim}(C_\Gamma D).
-\]
+$$
 
 For a diagram already in saturated models, compute its colimit by taking the raw colimit and closing it.
 
@@ -6518,11 +6518,11 @@ For a diagram already in saturated models, compute its colimit by taking the raw
 
 For each command rewrite `r` and invariant `P`:
 
-\[
+$$
 P(W)\land \operatorname{pre}_r(W)
 \Rightarrow
 P(r(W)).
-\]
+$$
 
 Examples:
 
@@ -7540,7 +7540,7 @@ The collection of all base facts for one world snapshot, organized according to 
 The reference meaning obtained by evaluating a query or rule theory from a complete input snapshot. An incremental implementation is correct when its maintained result is observationally equivalent to this batch result after the same updates.
 
 **Closure operator**  
-An operation \(C\) on an ordered collection satisfying three laws: extensivity \(X \le C(X)\), monotonicity \(X \le Y \Rightarrow C(X) \le C(Y)\), and idempotence \(C(C(X)) = C(X)\). Semantic saturation under positive rules is intended to form such an operator.
+An operation $C$ on an ordered collection satisfying three laws: extensivity $X \le C(X)$, monotonicity $X \le Y \Rightarrow C(X) \le C(Y)$, and idempotence $C(C(X)) = C(X)$. Semantic saturation under positive rules is intended to form such an operator.
 
 **Conservative extension**  
 An extension of a vocabulary or rule theory that does not change the truths expressible in the old vocabulary for old inputs, except where the extension explicitly declares an override. This is a desirable plugin property, not something TypeScript guarantees automatically.
@@ -7558,13 +7558,13 @@ The semantic entity or value to which a presentation occurrence refers. A DOM el
 Machine-readable support for a judgment. Evidence can include a rule proof tree, conversion path, permission decision, field-contract match, capability token, or foreign-function assumption. It should be sufficient to explain or audit a result at the level promised by the API.
 
 **Fixed point**  
-A value \(X\) satisfying \(F(X)=X\). A least fixed point is the smallest such value in the relevant order. Positive recursive rules are normally interpreted by their least fixed point so that only finitely or inductively justified conclusions are admitted.
+A value $X$ satisfying $F(X)=X$. A least fixed point is the smallest such value in the relevant order. Positive recursive rules are normally interpreted by their least fixed point so that only finitely or inductively justified conclusions are admitted.
 
 **Goal**  
 A declarative request for evidence. An input context is represented as a goal such as “find an occurrence denoting a field owned by this document and satisfying this policy,” rather than solely as an imperative callback.
 
 **Judgment**  
-A proposition evaluated within a world and context, usually with evidence. Examples are “occurrence \(o\) satisfies input goal \(g\)” and “actor \(a\) may execute command \(c\) against entity \(x\).”
+A proposition evaluated within a world and context, usually with evidence. Examples are “occurrence $o$ satisfies input goal $g$” and “actor $a$ may execute command $c$ against entity $x$.”
 
 **Monotone**  
 Preserving an information order: adding input information cannot retract an already produced result. Monotonicity is relative to a stated order; it is not synonymous with purity, determinism, or mathematical elegance.
@@ -7591,7 +7591,7 @@ The semantic value carried by a junction and observed through connected ports. I
 A proof principle over ordinals with successor and limit cases. In this architecture it is useful for metatheoretic closure and free-construction arguments. It is not a proposal to represent arbitrary ordinals in React state.
 
 **Transfinite iteration**  
-An ordinal-indexed construction with joins at limit ordinals. It can establish convergence for monotone constructions beyond finite or \(\omega\)-stage iteration. Runtime engines should use finite worklists, incremental maintenance, or domain-specific solvers whenever the active model is finite.
+An ordinal-indexed construction with joins at limit ordinals. It can establish convergence for monotone constructions beyond finite or $\omega$-stage iteration. Runtime engines should use finite worklists, incremental maintenance, or domain-specific solvers whenever the active model is finite.
 
 **Widening and narrowing**  
 Abstract-interpretation techniques for accelerating convergence in infinite-height domains. Widening deliberately over-approximates to force convergence; narrowing may then regain precision. These operations require domain-specific soundness arguments and should not be inserted into ordinary UI rule evaluation by default.
@@ -7599,13 +7599,13 @@ Abstract-interpretation techniques for accelerating convergence in infinite-heig
 ## 37.2 Categorical and compositional terms
 
 **Algebra**  
-For an endofunctor \(F\), an \(F\)-algebra is an object \(A\) with a structure map \(F(A)\to A\). In software terms it can interpret one layer of syntax or operations into a carrier.
+For an endofunctor $F$, an $F$-algebra is an object $A$ with a structure map $F(A)\to A$. In software terms it can interpret one layer of syntax or operations into a carrier.
 
 **Initial algebra**  
 An algebra from which there is a unique algebra homomorphism to every other algebra of the same signature. Initiality supports structural recursion and induction over freely generated syntax.
 
 **Coalgebra**  
-For an endofunctor \(F\), an \(F\)-coalgebra is an object \(X\) with a behavior map \(X\to F(X)\). Coalgebras model state-based systems by describing observable output and possible next behavior.
+For an endofunctor $F$, an $F$-coalgebra is an object $X$ with a behavior map $X\to F(X)$. Coalgebras model state-based systems by describing observable output and possible next behavior.
 
 **Colimit**  
 A universal way to assemble a diagram by identifying the parts specified by its arrows. Coproducts and pushouts are common colimits. In OPK, colimits provide a semantics for composing open components and identifying compatible boundaries; the runtime may store an equivalent normalized graph rather than an explicit quotient object.
@@ -7614,7 +7614,7 @@ A universal way to assemble a diagram by identifying the parts specified by its 
 An open application module with internal state, declared ports, required capabilities, projections, and command handlers. A component is not identical to a React component, although a React subtree may render one.
 
 **Cospan**  
-A diagram \(A\to X\leftarrow B\), often read as an open system \(X\) with input and output interfaces \(A\) and \(B\). Structured cospans enrich this pattern so the interfaces and apex inhabit related categories with useful composition.
+A diagram $A\to X\leftarrow B$, often read as an open system $X$ with input and output interfaces $A$ and $B$. Structured cospans enrich this pattern so the interfaces and apex inhabit related categories with useful composition.
 
 **Functor**  
 A mapping between categories that preserves identities and composition. In this study, interpreters and schema migrations are candidates for functorial treatment only when their source and target categories and preservation laws are specified.
@@ -7887,11 +7887,11 @@ This representation creates one inspectable dependency graph for behavior that i
 
 The core semantic equation should be:
 
-\[
+$$
 C_\Gamma(I)=\mu X.\; I\cup T_\Gamma(X).
-\]
+$$
 
-For the initial implementation, \(I\) is finite, the rule vocabulary is finite, and recursive rules are positive. The reference interpreter can therefore compute closure with a straightforward worklist. The production interpreter may use indexes, semi-naive evaluation, demand-driven materialization, and deltas.
+For the initial implementation, $I$ is finite, the rule vocabulary is finite, and recursive rules are positive. The reference interpreter can therefore compute closure with a straightforward worklist. The production interpreter may use indexes, semi-naive evaluation, demand-driven materialization, and deltas.
 
 The critical engineering theorem is not merely “the worklist terminates.” It is:
 
@@ -7905,15 +7905,15 @@ Where the system later admits stratified negation, aggregation, weighted search,
 
 The categorical target worth formalizing is:
 
-\[
+$$
 C_\Gamma \dashv J : \mathbf{Sat}_\Gamma \hookrightarrow \mathbf{Inst}_\Sigma.
-\]
+$$
 
 The work required to justify this statement is concrete:
 
-- define the schema \(\Sigma\);
+- define the schema $\Sigma$;
 - define instances and instance morphisms;
-- define the positive theory \(\Gamma\);
+- define the positive theory $\Gamma$;
 - show that closure is functorial;
 - show extensivity, monotonicity, and idempotence;
 - identify saturated instances;
@@ -7921,13 +7921,13 @@ The work required to justify this statement is concrete:
 
 Once this is done, preservation of colimits follows from left-adjointness. For a diagram of open components, the semantic composition law becomes:
 
-\[
+$$
 \operatorname{colim}_{\mathbf{Sat}_\Gamma} D
 \cong
 C_\Gamma\!\left(
   \operatorname{colim}_{\mathbf{Inst}_\Sigma} JD
 \right).
-\]
+$$
 
 That result would justify a modular implementation discipline:
 

@@ -1334,7 +1334,7 @@ This construction requires a map
   \ell:\Delta^\infty\to\mathbb I
 \]
 
-that is \(0\) on every finite vertex \(v_n\) but \(1\) at \(v_\infty\). Then \(p\circ\ell\) and \(q\circ\ell\) would be the desired extensions. But \(\ell\) is a discontinuous ``jump at infinity.'' Chain completeness of \(\mathbb I\) is precisely the assertion that a map out of \(\Delta^\omega\) has only its continuous extension; the constant-zero chain must extend constantly. Therefore the needed \(\ell\) is unavailable in the intended models.
+that is \(0\) on every finite vertex \(v_n\) but \(1\) at \(v_\infty\). Then \(p\circ\ell\) and \(q\circ\ell\) would be the desired extensions. But \(\ell\) is a discontinuous ``jump at infinity.'' Chain completeness of $\mathbb I$ is precisely the assertion that a map out of $\Delta^\omega$ has only its continuous extension; the constant-zero chain must extend constantly. Therefore the needed $\ell$ is unavailable in the intended models.
 
 The failure is instructive. The most direct uniqueness proof for parallel paths would rely on a noncontinuous test that synthetic domain theory is designed to exclude.
 
@@ -1342,39 +1342,39 @@ The failure is instructive. The most direct uniqueness proof for parallel paths 
 
 For finite spine inclusions, clamping and truncation produced an arrow retract. An analogous retraction would require maps
 
-\[
+$$
   \mathbb I_{\parallel}\rightleftarrows\Lambda_\omega,
   \qquad
   \mathbb I\rightleftarrows\Delta^\infty
-\]
+$$
 
-that preserve the two parallel branches through the inclusion. A linear spine has no place to store two noncomposable edges with the same endpoints. Any map into the spine must either identify the branches or place them at different positions, which changes their endpoints. The arrow-retract method therefore cannot transfer locality to \(\rho\) in the same elementary way.
+that preserve the two parallel branches through the inclusion. A linear spine has no place to store two noncomposable edges with the same endpoints. Any map into the spine must either identify the branches or place them at different positions, which changes their endpoints. The arrow-retract method therefore cannot transfer locality to $\rho$ in the same elementary way.
 
-This is not a proof that no more elaborate arrow retract exists in the ambient homotopy theory. It is a proof that the straightforward vertex-and-edge construction used for \(j_n\) cannot work.
+This is not a proof that no more elaborate arrow retract exists in the ambient homotopy theory. It is a proof that the straightforward vertex-and-edge construction used for $j_n$ cannot work.
 
 ## Why a codiagonal construction stalls
 
-Another standard localization technique is to obtain a quotient map as the codiagonal of a pushout of a generating cofibration. Doubling a simplex along its spine creates two top-dimensional fillers sharing the same boundary. One might hope to retract the resulting codiagonal onto \(\rho\).
+Another standard localization technique is to obtain a quotient map as the codiagonal of a pushout of a generating cofibration. Doubling a simplex along its spine creates two top-dimensional fillers sharing the same boundary. One might hope to retract the resulting codiagonal onto $\rho$.
 
-At dimension two, however, the two candidate triangle retractions must agree on the shared spine. To send their diagonals to distinct parallel copies of \(\mathbb I\), they would need incompatible behavior on that common boundary. No coherent retraction was found. Higher dimensions reproduce the same mismatch: the generator controls alternative *fillers* for one composable boundary, while \(\rho\) controls alternative *one-dimensional arrows* with common endpoints.
+At dimension two, however, the two candidate triangle retractions must agree on the shared spine. To send their diagonals to distinct parallel copies of $\mathbb I$, they would need incompatible behavior on that common boundary. No coherent retraction was found. Higher dimensions reproduce the same mismatch: the generator controls alternative *fillers* for one composable boundary, while $\rho$ controls alternative *one-dimensional arrows* with common endpoints.
 
 This failed construction should be formalized before being treated as definitive. A sophisticated anodyne or join construction could circumvent the naive retraction.
 
 ## Why higher groupoids are not immediate counterexamples
 
-A nontrivial groupoid would be an obvious object with Segal composition and nontrivial isomorphisms. But Xue explicitly restricts to h-set types for simplicity. Ordinary equality therefore has no higher loops, and a proposed counterexample must use multiple directed maps \(\mathbb I\to A\), not homotopical identity paths of \(A\).
+A nontrivial groupoid would be an obvious object with Segal composition and nontrivial isomorphisms. But Xue explicitly restricts to h-set types for simplicity. Ordinary equality therefore has no higher loops, and a proposed counterexample must use multiple directed maps $\mathbb I\to A$, not homotopical identity paths of $A$.
 
-Moreover, \(j\)-locality includes chain continuity, which fails in the ordinary simplicial nerve model with the naive infinite ordinal: a constant chain can jump to a new object at the limit. Thus the nerve of an arbitrary category cannot be imported as a counterexample without first verifying all SDT interval and continuity axioms.
+Moreover, $j$-locality includes chain continuity, which fails in the ordinary simplicial nerve model with the naive infinite ordinal: a constant chain can jump to a new object at the limit. Thus the nerve of an arbitrary category cannot be imported as a counterexample without first verifying all SDT interval and continuity axioms.
 
 ## What would count as a complete solution
 
-A complete positive solution must provide a valid derivation of \(\rho\)-locality for arbitrary \(j\)-local types, with all universe and shape assumptions stated and preferably formalized.
+A complete positive solution must provide a valid derivation of $\rho$-locality for arbitrary $j$-local types, with all universe and shape assumptions stated and preferably formalized.
 
 A complete negative solution must provide:
 
 1. a model of the relevant ambient axioms, including the interval principles used by Xue;
-2. a type \(A\) in that model with \(A\perp j\); and
-3. two distinct parallel directed paths in \(A\), or another explicit failure of predomain structure.
+2. a type $A$ in that model with $A\perp j$; and
+3. two distinct parallel directed paths in $A$, or another explicit failure of predomain structure.
 
 An object that is merely Segal and chain-complete in an unrelated category is not enough. The ambient model is part of the claim.
 
@@ -1382,11 +1382,11 @@ An object that is merely Segal and chain-complete in an unrelated category is no
 
 ## Attempt 1: derive both factors from the composite directly
 
-**Idea.** Since \(j=c\circ k\), try to use two-out-of-three to infer both \(k\)- and \(c\)-locality from \(j\)-locality.
+**Idea.** Since $j=c\circ k$, try to use two-out-of-three to infer both $k$- and $c$-locality from $j$-locality.
 
 **Failure.** Two-out-of-three requires one factor in addition to the composite. A composite equivalence does not make either factor an equivalence in general.
 
-**Repair.** The finite-arrow-retract theorem proves each finite component of \(k\) local; the colimit theorem then proves \(k\)-locality. Only after that does two-out-of-three give \(c\)-locality. This repaired attempt becomes Chapters 5--7.
+**Repair.** The finite-arrow-retract theorem proves each finite component of $k$ local; the colimit theorem then proves $k$-locality. Only after that does two-out-of-three give $c$-locality. This repaired attempt becomes Chapters 5--7.
 
 ## Attempt 2: use a jump at infinity
 
@@ -1398,35 +1398,35 @@ An object that is merely Segal and chain-complete in an unrelated category is no
 
 ## Attempt 3: alternate the parallel paths
 
-**Idea.** Put \(p,q,p,q,\ldots\) on successive edges and compare even and odd cofinal subsequences.
+**Idea.** Put $p,q,p,q,\ldots$ on successive edges and compare even and odd cofinal subsequences.
 
-**Failure.** Parallel paths \(p,q:x\to y\) are not composable. The target of \(p\) is not the source of \(q\).
+**Failure.** Parallel paths $p,q:x\to y$ are not composable. The target of $p$ is not the source of $q$.
 
-**Repair in a special case.** If a return path \(r:y\to x\) is available and separation identifies composites appropriately, alternating paths prove antisymmetry. This becomes Theorem \ref{thm:cofinal-antisym}. It does not prove separation itself.
+**Repair in a special case.** If a return path $r:y\to x$ is available and separation identifies composites appropriately, alternating paths prove antisymmetry. This becomes Theorem \ref{thm:cofinal-antisym}. It does not prove separation itself.
 
 ## Attempt 4: prove Rezk before separation
 
-**Idea.** Apply the alternating-chain argument to an isomorphism \(p:x\to y\), \(q:y\to x\), where composites are identities by definition.
+**Idea.** Apply the alternating-chain argument to an isomorphism $p:x\to y$, $q:y\to x$, where composites are identities by definition.
 
 **Partial success.** Even and odd cofinal subsequences force equality of the endpoint objects, provided the shape calculations are accepted.
 
 **Failure.** Full Rezk completeness also rules out nontrivial automorphism data over an equality. Without thin hom-types, endpoint equality alone does not identify the isomorphism with the identity. The argument therefore proves only a skeletal/antisymmetry component, not the complete Rezk lifting property.
 
-**Repair.** Once \(\mathbb I\)-separation is assumed, automorphism ambiguity disappears and the argument proves Rezk completeness.
+**Repair.** Once $\mathbb I$-separation is assumed, automorphism ambiguity disappears and the argument proves Rezk completeness.
 
 ## Attempt 5: inherit all locality through a subobject
 
-**Idea.** Embed \(A\) into \(D(A)\), a predomain, and claim every predomain property is inherited by subobjects.
+**Idea.** Embed $A$ into $D(A)$, a predomain, and claim every predomain property is inherited by subobjects.
 
 **Failure.** Right lifting properties are generally not inherited by subobjects because fillers constructed in the ambient object may leave the subobject.
 
-**Repair.** Use only the special fact that \(\mathbb I\)-separation is uniqueness of parallel paths. An embedding reflects pointwise equality, so this one property is inherited. Segal and chain completeness come independently from \(j\)-locality. Rezk follows from separation plus the cofinal argument.
+**Repair.** Use only the special fact that $\mathbb I$-separation is uniqueness of parallel paths. An embedding reflects pointwise equality, so this one property is inherited. Segal and chain completeness come independently from $j$-locality. Rezk follows from separation plus the cofinal argument.
 
 ## Attempt 6: use ordinary category nerves as counterexamples
 
 **Idea.** The nerve of a category is local for finite spine inclusions and can have parallel arrows.
 
-**Failure.** The map \(j\) includes a limit point. In the ordinary nerve of \(\omega+1\), a constant chain can admit many noncontinuous cocone extensions. Hence ordinary nerves are generally not \(j\)-local. The naive simplicial model also fails the intended chain-completeness axiom for the interval.
+**Failure.** The map $j$ includes a limit point. In the ordinary nerve of $\omega+1$, a constant chain can admit many noncontinuous cocone extensions. Hence ordinary nerves are generally not $j$-local. The naive simplicial model also fails the intended chain-completeness axiom for the interval.
 
 **Lesson.** Any counterexample must live in a model where all definable maps obey the intended continuity, not merely in a Segal model.
 
@@ -1440,15 +1440,15 @@ Four diagnostic environments are useful.
 
 ## Ordinary sets with a two-point interval
 
-Take \(\mathbb I=\{0<1\}\) in ordinary Set and define directed paths as arbitrary functions \(\mathbb I\to A\). Then a path is simply an ordered pair of points, and every two points are connected by exactly one function with those endpoints. This makes every type path-thin, but it fails the intended interval theory: not every endomap \(\mathbb I\to\mathbb I\) is monotone, and the Phoa interpolation principle fails because the endpoint values \((1,0)\) occur.
+Take $\mathbb I=\{0<1\}$ in ordinary Set and define directed paths as arbitrary functions $\mathbb I\to A$. Then a path is simply an ordered pair of points, and every two points are connected by exactly one function with those endpoints. This makes every type path-thin, but it fails the intended interval theory: not every endomap $\mathbb I\to\mathbb I$ is monotone, and the Phoa interpolation principle fails because the endpoint values $(1,0)$ occur.
 
 This environment is therefore too classical and too discontinuous. It should not be used to validate the conjecture. It does show why the interval axioms matter: they remove functions that reverse information order.
 
 ## Ordinary simplicial nerves
 
-Let \(\mathbb I=\Delta^1\) in simplicial sets. Finite spine locality characterizes nerves of categories, so parallel arrows and nontrivial isomorphisms are abundant. This appears at first to refute the conjecture.
+Let $\mathbb I=\Delta^1$ in simplicial sets. Finite spine locality characterizes nerves of categories, so parallel arrows and nontrivial isomorphisms are abundant. This appears at first to refute the conjecture.
 
-The infinite map changes the conclusion. If \(\Delta^\infty\) is the nerve of \(\omega+1\), a map from it into a category nerve is an arbitrary functor \(\omega+1\to C\). Restricting to \(\omega\) forgets the endpoint and its cocone. Even the constant chain at \(x\) can be extended using any arrow \(x\to y\). Hence a nerve local for this infinite inclusion would have no nonidentity outgoing arrows. More importantly, the interval itself admits a jump from finite \(0\)'s to \(1\) at infinity, so it is not chain complete in the SDT sense.
+The infinite map changes the conclusion. If $\Delta^\infty$ is the nerve of $\omega+1$, a map from it into a category nerve is an arbitrary functor $\omega+1\to C$. Restricting to $\omega$ forgets the endpoint and its cocone. Even the constant chain at $x$ can be extended using any arrow $x\to y$. Hence a nerve local for this infinite inclusion would have no nonidentity outgoing arrows. More importantly, the interval itself admits a jump from finite $0$'s to $1$ at infinity, so it is not chain complete in the SDT sense.
 
 Thus the ordinary simplicial model separates the two ingredients sharply:
 
@@ -1459,21 +1459,21 @@ It does not decide whether chain continuity also kills parallel arrows in a genu
 
 ## Posetal domain models
 
-In a conventional category of dcpos with the Sierpinski dcpo as interval, a Scott-continuous map \(\mathbb I\to A\) is determined by an ordered pair \(x\le y\). Parallel paths are automatically equal. In such a setting \(\mathbb I\)-separation is built in, so the reduced conjecture holds trivially.
+In a conventional category of dcpos with the Sierpinski dcpo as interval, a Scott-continuous map $\mathbb I\to A$ is determined by an ordered pair $x\le y$. Parallel paths are automatically equal. In such a setting $\mathbb I$-separation is built in, so the reduced conjecture holds trivially.
 
 This is a valuable soundness check for the positive direction, but it cannot detect the difficult case. Xue's type-theoretic setting deliberately allows general types whose directed path spaces need not be propositions.
 
 ## Spatial and replete classifying-topos models
 
-Sterling and Ye construct broad classes of higher sheaf models from distributive-lattice classifiers. In their framework, spectra and spatial \(\mathbb I\)-algebras are replete. Under finite quasi-coherence assumptions they are synthetic posets; under the countable assumptions the interval is chain complete, so these objects are predomain-like as well.
+Sterling and Ye construct broad classes of higher sheaf models from distributive-lattice classifiers. In their framework, spectra and spatial $\mathbb I$-algebras are replete. Under finite quasi-coherence assumptions they are synthetic posets; under the countable assumptions the interval is chain complete, so these objects are predomain-like as well.
 
-For this spatial/replete region, the conjecture is safe: any \(j\)-locality needed is only one among many inherited locality properties. The unresolved region consists of arbitrary objects that are \(j\)-local but not known to be spatial, sober, or replete.
+For this spatial/replete region, the conjecture is safe: any $j$-locality needed is only one among many inherited locality properties. The unresolved region consists of arbitrary objects that are $j$-local but not known to be spatial, sober, or replete.
 
 This suggests a model-theoretic attack:
 
 1. work in a classifying topos satisfying the interval and countable quasi-coherence axioms;
-2. construct the internal \(j\)-localization;
-3. determine whether every local object is replete or at least \(\mathbb I\)-separated;
+2. construct the internal $j$-localization;
+3. determine whether every local object is replete or at least $\mathbb I$-separated;
 4. if not, extract a concrete nonspatial local object.
 
 The source theorem that spectra and spatial algebras are synthetic posets cannot simply be extended to all objects without an additional argument. Doing so would assume the missing conclusion.
@@ -1498,7 +1498,7 @@ These results do not directly settle Xue's directed-path conjecture, whose shape
 
 ## The walking parallel pair itself
 
-The smallest visibly non-separated type is \(\mathbb I_{\parallel}\), obtained by gluing two intervals along their endpoints. Its two canonical paths are distinct unless the pushout degenerates. It has no intended nontrivial composable chain beyond one transition, so one might hope that every countable chain is eventually stationary and therefore convergent.
+The smallest visibly non-separated type is $\mathbb I_{\parallel}$, obtained by gluing two intervals along their endpoints. Its two canonical paths are distinct unless the pushout degenerates. It has no intended nontrivial composable chain beyond one transition, so one might hope that every countable chain is eventually stationary and therefore convergent.
 
 This intuition is insufficient for three reasons.
 
@@ -1508,69 +1508,69 @@ Second, choosing which parallel branch occurs at the transition can require data
 
 Third, the raw pushout need not be Segal: even compositions with identities require unique simplex fillers, and these fillers are not automatically present merely because the underlying directed graph has no long paths.
 
-Consequently, no claim is made here that \(\mathbb I_{\parallel}\perp j\). It is a test object, not a counterexample.
+Consequently, no claim is made here that $\mathbb I_{\parallel}\perp j$. It is a test object, not a counterexample.
 
 ## The free Segal and chain completion
 
-A better candidate is obtained in stages. Start with the walking parallel pair, freely impose finite Segal fillers, then freely impose \(c\)-locality. By Theorem \ref{thm:decomposition}, the result should be the \(j\)-local reflection when these localizations exist and commute appropriately.
+A better candidate is obtained in stages. Start with the walking parallel pair, freely impose finite Segal fillers, then freely impose $c$-locality. By Theorem \ref{thm:decomposition}, the result should be the $j$-local reflection when these localizations exist and commute appropriately.
 
 Denote the result schematically by
 
-\[
+$$
   A_{\parallel}:=L_cL_{\mathrm{Seg}}(\mathbb I_{\parallel}).
-\]
+$$
 
 There are two possibilities:
 
 - the localization identifies the parallel generators, supporting the conjecture;
 - the generators survive, yielding a universal counterexample.
 
-The construction resembles the free \(\omega\)-complete category on a parallel pair, but ordinary categorical intuition is unreliable because the synthetic continuity of the interval constrains the completion.
+The construction resembles the free $\omega$-complete category on a parallel pair, but ordinary categorical intuition is unreliable because the synthetic continuity of the interval constrains the completion.
 
 ## A finite acyclic category intuition
 
-Consider the ordinary category with two objects \(x,y\), two arrows \(p,q:x\to y\), and no other nonidentity arrows. Every infinite composable chain is eventually stationary. If continuous extension only records eventual behavior, it would seem that the nerve should be chain complete while retaining \(p\ne q\).
+Consider the ordinary category with two objects $x,y$, two arrows $p,q:x\to y$, and no other nonidentity arrows. Every infinite composable chain is eventually stationary. If continuous extension only records eventual behavior, it would seem that the nerve should be chain complete while retaining $p\ne q$.
 
-The obstruction is the constant chain at \(x\). In an ordinary \(\omega+1\) nerve it can jump to \(y\) through either \(p\) or \(q\), so uniqueness fails. A genuine SDT model should exclude such jumps. Whether it still admits an internal realization of the finite category with the desired path object is unclear.
+The obstruction is the constant chain at $x$. In an ordinary $\omega+1$ nerve it can jump to $y$ through either $p$ or $q$, so uniqueness fails. A genuine SDT model should exclude such jumps. Whether it still admits an internal realization of the finite category with the desired path object is unclear.
 
 This intuition suggests where a countermodel might live: a topology should enforce continuity of object-valued chains while retaining proof-relevant one-step transition data. Presheaves or sheaves enriched over a domain-like base are natural places to search.
 
 ## Nonspatial local objects
 
-The conditional theorem shows that any counterexample must fail observational separation. Therefore its distinct parallel paths cannot be detected strongly enough by maps into \(\mathbb I\). In particular, a counterexample must lie outside the well-behaved spatial/replete fragment unless observational separation and spatiality diverge in the model.
+The conditional theorem shows that any counterexample must fail observational separation. Therefore its distinct parallel paths cannot be detected strongly enough by maps into $\mathbb I$. In particular, a counterexample must lie outside the well-behaved spatial/replete fragment unless observational separation and spatiality diverge in the model.
 
 This gives a practical filter:
 
-\[
+$$
   \text{counterexample}
   \Rightarrow
-  \text{\(j\)-local, non-\(\mathbb I\)-separated, non-observationally-separated}.
-\]
+  \text{$j$-local, non-$\mathbb I$-separated, non-observationally-separated}.
+$$
 
-Searching among powers of \(\mathbb I\), spectra, or spatial algebras cannot succeed because those objects are already synthetic posets.
+Searching among powers of $\mathbb I$, spectra, or spatial algebras cannot succeed because those objects are already synthetic posets.
 
 ## Quotients invisible to observations
 
-A generic way to destroy observational separation is to construct distinct points or paths that all maps to \(\mathbb I\) identify. In topos language these may arise from dense quotients, non-sober spaces, or objects outside the reflective hull generated by \(\mathbb I\).
+A generic way to destroy observational separation is to construct distinct points or paths that all maps to $\mathbb I$ identify. In topos language these may arise from dense quotients, non-sober spaces, or objects outside the reflective hull generated by $\mathbb I$.
 
 One candidate pattern is:
 
-1. take a replete predomain \(P\);
+1. take a replete predomain $P$;
 2. form an internal relation that duplicates one directed path without changing any interval-valued observation;
 3. quotient or glue so that the duplicate paths remain distinct internally;
-4. test whether \(j\)-locality survives.
+4. test whether $j$-locality survives.
 
 The final step is difficult because local objects are closed under limits, not arbitrary colimits or quotients. The quotient is likely to leave the local class, which is why the free local reflection is the correct follow-up.
 
 ## Model-theoretic counterexample criterion
 
-A model \(\mathcal E\) refutes the conjecture precisely when the internal map \(\rho\) is not a \(j\)-local equivalence. Externally, this means there exists a \(j\)-local object \(A\in\mathcal E\) for which
+A model $\mathcal E$ refutes the conjecture precisely when the internal map $\rho$ is not a $j$-local equivalence. Externally, this means there exists a $j$-local object $A\in\mathcal E$ for which
 
-\[
+$$
   \mathcal E(\mathbb I,A)
   \longrightarrow
   \mathcal E(\mathbb I_{\parallel},A)
-\]
+$$
 
 is not an isomorphism, with the internal statement interpreted in all contexts. An external global pair of paths is sufficient but not necessary; failure may appear only after pulling back to a context.
 
@@ -1580,11 +1580,11 @@ This contextual point matters for proof assistants. Testing only closed terms ma
 
 ## Xue's transfinite Phoa programme
 
-Xue develops finite dual simplices and spines, establishes higher Phoa principles, constructs the initial and final lifting (co)algebras as \(\Delta^\omega\) and \(\Delta^\infty\), and defines the infinite spine \(\Lambda_\omega\). Evaluation on vertices identifies maps from \(\Delta^\omega\) and from \(\Lambda_\omega\) into the interval with appropriate infinite simplices. These results motivate the sobriomorphism
+Xue develops finite dual simplices and spines, establishes higher Phoa principles, constructs the initial and final lifting (co)algebras as $\Delta^\omega$ and $\Delta^\infty$, and defines the infinite spine $\Lambda_\omega$. Evaluation on vertices identifies maps from $\Delta^\omega$ and from $\Lambda_\omega$ into the interval with appropriate infinite simplices. These results motivate the sobriomorphism
 
-\[
+$$
   \Lambda_\omega\trianglelefteq\Delta^\omega
-\]
+$$
 
 and the completeness conjecture.
 
@@ -1600,7 +1600,7 @@ The distinction between local for one generator and replete for the entire inter
 
 Van Oosten and Simpson compare axiom systems and construct realizability and Grothendieck-topos models separating completeness principles. Their results demonstrate that SDT closure properties can be independent and that the exact definition of the initial lifting algebra matters. This manuscript uses those results as methodological caution, not as a direct counterexample.
 
-A productive next step is to translate \(j\), \(\rho\), and Xue's interval axioms into their model frameworks and ask whether known complete-but-not-replete objects are \(j\)-local and non-separated.
+A productive next step is to translate $j$, $\rho$, and Xue's interval axioms into their model frameworks and ask whether known complete-but-not-replete objects are $j$-local and non-separated.
 
 ## Sterling--Ye classifying topoi
 
@@ -1616,13 +1616,13 @@ Their Theorem 9.13, that spectra and spatial algebras are synthetic posets under
 
 ## Riehl--Shulman synthetic categories
 
-Riehl and Shulman develop a directed type theory in which Segal and Rezk conditions express synthetic \(\infty\)-categorical structure. The finite spine maps used here belong to that general synthetic-category-theoretic vocabulary. The conjecture can therefore be understood as asking whether a specific countable completeness generator collapses a synthetic category to a synthetic poset.
+Riehl and Shulman develop a directed type theory in which Segal and Rezk conditions express synthetic $\infty$-categorical structure. The finite spine maps used here belong to that general synthetic-category-theoretic vocabulary. The conjecture can therefore be understood as asking whether a specific countable completeness generator collapses a synthetic category to a synthetic poset.
 
-The reduction to \(\rho\)-locality makes the categorical content transparent: the missing step is not composition but local thinness.
+The reduction to $\rho$-locality makes the categorical content transparent: the missing step is not composition but local thinness.
 
 ## Proof assistants
 
-Xue's main constructions are formalized in Cubical Agda. Cubical Agda supplies higher inductive types, path types, and computational univalence, but directed paths are encoded using a separate synthetic interval inside the theory. Rzk, by contrast, is designed for synthetic \(\infty\)-category theory and may express simplices and directed extension types more natively. A split formalization is plausible:
+Xue's main constructions are formalized in Cubical Agda. Cubical Agda supplies higher inductive types, path types, and computational univalence, but directed paths are encoded using a separate synthetic interval inside the theory. Rzk, by contrast, is designed for synthetic $\infty$-category theory and may express simplices and directed extension types more natively. A split formalization is plausible:
 
 - Cubical Agda to reuse the existing interval, lattice, and transfinite Phoa development;
 - Rzk to verify the abstract shape/retract/cofinality lemmas;
@@ -1638,8 +1638,8 @@ The proposed formal development should have five layers.
 
 1. **Abstract orthogonality.** Definitions and closure lemmas for local types, arrow retracts, composites, products, and diagram limits.
 2. **Finite and infinite shapes.** Prefix, clamp, padding, truncation, and colimit comparison maps.
-3. **Main decomposition.** Formal proofs of finite locality, \(k\)-locality, and \(c\)-locality.
-4. **Cofinal subsequences.** Even/odd maps of \(\Delta^\infty\) and the antisymmetry theorem under separation.
+3. **Main decomposition.** Formal proofs of finite locality, $k$-locality, and $c$-locality.
+4. **Cofinal subsequences.** Even/odd maps of $\Delta^\infty$ and the antisymmetry theorem under separation.
 5. **Reduced conjecture interface.** The walking-parallel-pair map and equivalent formulations of the remaining problem.
 
 The first and third layers are largely ordinary homotopy type theory. The second and fourth depend on the exact directed-shape implementation. The fifth should remain abstract so that different model constructions can instantiate it.
@@ -1930,7 +1930,7 @@ This organization makes the mathematical status visible in the codebase. All pro
 
 In Rzk, extension types can state locality directly. The finite-spine retract and even/odd maps may be shorter because simplices, horns, and directed homs are native. A possible workflow is:
 
-1. define \(\Lambda_\omega\), \(\Delta^\omega\), and \(\Delta^\infty\) as external higher inductive shapes or imported axioms;
+1. define $\Lambda_\omega$, $\Delta^\omega$, and $\Delta^\infty$ as external higher inductive shapes or imported axioms;
 2. prove the arrow-retract theorem using extension-type equivalences;
 3. prove the decomposition abstractly;
 4. export the result as a theorem schema applicable to Xue's Cubical Agda model.
@@ -1957,19 +1957,19 @@ The first phase is finite and should be attempted before searching for a counter
 
 This is the lowest-risk contribution. It should settle whether any overlooked orientation or constructor issue invalidates Theorem \ref{thm:finite-retract}. Expected output:
 
-\[
+$$
   \forall n,\quad j_n\text{ is an arrow retract of }j.
-\]
+$$
 
 Even if the full conjecture fails, this theorem remains useful.
 
 ### Task 2: formalize the colimit comparison
 
-Prove that the HIT \(\Lambda_\omega\) is the sequential colimit of finite spines in the exact source development, and that \(k\) is the induced colimit map. Expected output:
+Prove that the HIT $\Lambda_\omega$ is the sequential colimit of finite spines in the exact source development, and that $k$ is the induced colimit map. Expected output:
 
-\[
+$$
   A\perp j\Rightarrow A\perp k.
-\]
+$$
 
 This is the most important unverified coherence point in the manuscript.
 
@@ -1987,50 +1987,50 @@ Define even and odd sequence maps, prove they fix the limit vertex, and check th
 
 Try to prove
 
-\[
+$$
   A\perp j\Rightarrow\eta_A\text{ is an embedding}.
-\]
+$$
 
-A possible strategy is contraposition. Given \(a\ne b\), construct an observation \(A\to\mathbb I\) distinguishing them by using the local extension operator to close a finite separating predicate under composition and chain limits. The obstacle is that the ambient theory may not provide any initial finite separating predicate.
+A possible strategy is contraposition. Given $a\ne b$, construct an observation $A\to\mathbb I$ distinguishing them by using the local extension operator to close a finite separating predicate under composition and chain limits. The obstacle is that the ambient theory may not provide any initial finite separating predicate.
 
 A weaker target is enough:
 
-\[
+$$
   A\perp j\Rightarrow A\hookrightarrow P
-\]
+$$
 
-for some synthetic poset \(P\), not necessarily the full double dual.
+for some synthetic poset $P$, not necessarily the full double dual.
 
 ### Route B: compute the local reflection of the parallel pair
 
-Construct \(L_j(\mathbb I_{\parallel})\) by a small-object or higher-inductive localization and inspect whether the two generators become equal. The localization can be staged using Theorem \ref{thm:decomposition}:
+Construct $L_j(\mathbb I_{\parallel})$ by a small-object or higher-inductive localization and inspect whether the two generators become equal. The localization can be staged using Theorem \ref{thm:decomposition}:
 
 1. free finite Segal completion;
-2. free \(\omega\)-chain completion.
+2. free $\omega$-chain completion.
 
 If neither stage identifies the generators and the composite remains non-separated, the result is a canonical counterexample.
 
 ### Route C: saturation proof
 
-Show that \(\rho\) lies in the \(j\)-local-equivalence class. Candidate operations include pushouts, retracts, transfinite composition, joins, diagonals, and pullback-stable closure. The naive codiagonal attempt failed, but a join theorem might turn linear convergence into path uniqueness.
+Show that $\rho$ lies in the $j$-local-equivalence class. Candidate operations include pushouts, retracts, transfinite composition, joins, diagonals, and pullback-stable closure. The naive codiagonal attempt failed, but a join theorem might turn linear convergence into path uniqueness.
 
 A successful proof must specify which localization theorem is used and verify its hypotheses in the nonclassical type theory.
 
 ### Route D: encode parallel paths as limits in a path object
 
-Because powers preserve \(j\)-locality, \(A^{\mathbb I}\) is \(j\)-local whenever \(A\) is. Parallel paths \(p,q\) are points in one endpoint fiber
+Because powers preserve $j$-locality, $A^{\mathbb I}$ is $j$-local whenever $A$ is. Parallel paths $p,q$ are points in one endpoint fiber
 
-\[
+$$
   F_{x,y}:=\{r:A^{\mathbb I}\mid r(0)=x,r(1)=y\}.
-\]
+$$
 
-If this fiber were closed under the relevant local structure and if \(p,q\) could be connected by an alternating or approximation chain inside it, chain uniqueness might imply equality. The missing ingredient is a canonical directed path between arbitrary parallel paths. A construction based on whiskering, connections, or a cubical interpolation operation should be investigated.
+If this fiber were closed under the relevant local structure and if $p,q$ could be connected by an alternating or approximation chain inside it, chain uniqueness might imply equality. The missing ingredient is a canonical directed path between arbitrary parallel paths. A construction based on whiskering, connections, or a cubical interpolation operation should be investigated.
 
 ## Phase III: search for models
 
 ### Route E: classifying-topos computation
 
-In a distributive-lattice classifying topos satisfying countable quasi-coherence, determine the internal local operator generated by \(j\). Ask whether its sheaves are all \(\mathbb I\)-separated. Because both \(j\) and \(\rho\) are built from countably/finitely presented shapes, the question may translate to an algebraic statement about a limit diagram of presented \(\mathbb I\)-algebras.
+In a distributive-lattice classifying topos satisfying countable quasi-coherence, determine the internal local operator generated by $j$. Ask whether its sheaves are all $\mathbb I$-separated. Because both $j$ and $\rho$ are built from countably/finitely presented shapes, the question may translate to an algebraic statement about a limit diagram of presented $\mathbb I$-algebras.
 
 This is likely the most promising model-independent route because Sterling--Ye already translate many orthogonality conditions into algebraic limits.
 
@@ -2039,10 +2039,10 @@ This is likely the most promising model-independent route because Sterling--Ye a
 Translate the directed interval and shape maps into modified realizability and effective-topos models. Search among known complete-but-not-replete objects. A candidate must be checked against:
 
 - Phoa/interpolation axioms;
-- existence and identification of \(\omega,\overline\omega\);
-- chain completeness of \(\mathbb I\);
+- existence and identification of $\omega,\overline\omega$;
+- chain completeness of $\mathbb I$;
 - the h-set convention;
-- failure of \(\mathbb I\)-separation.
+- failure of $\mathbb I$-separation.
 
 A model satisfying only older SDT axioms but not Xue's transfinite shape assumptions would not settle the conjecture as stated.
 
@@ -2056,7 +2056,7 @@ This route targets the intuitive gap directly but requires substantial model bui
 
 Any future paper should distinguish the following possible outcomes.
 
-1. **Full positive theorem:** \(j\)-locality implies separation under exactly Xue's axioms.
+1. **Full positive theorem:** $j$-locality implies separation under exactly Xue's axioms.
 2. **Conditional theorem:** the implication requires spatiality, repleteness, choice, or an additional interval axiom.
 3. **Independence:** models of the base axioms exist on both sides.
 4. **Counterexample:** a specific model and local non-separated object refute the unrestricted statement.
@@ -2069,31 +2069,31 @@ Xue's Conjecture 6.20 asks whether one countable orthogonality condition charact
 
 The infinite spine inclusion factors into finite categorical completion and chain convergence. That factorization can be upgraded from intuition to an exact theorem. Finite spine inclusions are arrow retracts of the infinite inclusion, so every local type has coherent finite composition. Sequential colimit universal properties then produce locality for the initial infinite simplex, and two-out-of-three produces chain completeness. Under the stated shape assumptions,
 
-\[
+$$
   A\perp j
   \quad\Longleftrightarrow\quad
   \left(\forall n,\ A\perp j_n\right)
   \wedge
   A\perp(\Delta^\omega\hookrightarrow\Delta^\infty).
-\]
+$$
 
 This resolves the part Xue explicitly expected might be reachable.
 
 The remaining properties are not equally mysterious. Once parallel paths are unique, an even/odd cofinal-subsequence argument forces antisymmetry and, in the h-set setting, Rezk completeness. Therefore the full conjecture is equivalent to one separation implication:
 
-\[
+$$
   A\perp(\Lambda_\omega\hookrightarrow\Delta^\infty)
   \quad\Longrightarrow\quad
   A\perp(\mathbb I_{\parallel}\to\mathbb I).
-\]
+$$
 
 The conjecture holds for observationally separated local types, because they embed into a double-dual observational algebra that is already a synthetic predomain. This includes the broad spatial/replete region of existing classifying-topos models.
 
 The unrestricted separation implication is where this manuscript stops. The linear generator does not directly encode two parallel noncomposable paths; constant-chain and codiagonal arguments fail for identifiable reasons; and ordinary category nerves do not satisfy the required chain continuity. No counterexample meeting all ambient axioms was found.
 
-The most informative next calculations are now concrete: formalize the finite retracts and colimit comparison, then compute the \(j\)-local reflection of the walking parallel pair or prove that open observations separate every \(j\)-local type. Either result would materially advance the conjecture.
+The most informative next calculations are now concrete: formalize the finite retracts and colimit comparison, then compute the $j$-local reflection of the walking parallel pair or prove that open observations separate every $j$-local type. Either result would materially advance the conjecture.
 
-\statusbox{\textbf{Final status.} The full conjecture is neither proved nor disproved. The manuscript supplies a proposed paper-level proof of the Segal and chain-complete consequences, reduces the remaining theorem to \(\mathbb I\)-separation, proves the observationally separated case, and identifies precise formal and model-theoretic next steps.}
+\statusbox{\textbf{Final status.} The full conjecture is neither proved nor disproved. The manuscript supplies a proposed paper-level proof of the Segal and chain-complete consequences, reduces the remaining theorem to $\mathbb I$-separation, proves the observationally separated case, and identifies precise formal and model-theoretic next steps.}
 
 \appendix
 
@@ -2101,55 +2101,55 @@ The most informative next calculations are now concrete: formalize the finite re
 
 ## Retracts of local equivalences
 
-Let \(f:X\to Y\) and \(g:X'\to Y'\). Suppose there are commutative squares
+Let $f:X\to Y$ and $g:X'\to Y'$. Suppose there are commutative squares
 
-\[
+$$
 \begin{tikzcd}[column sep=large]
 X \arrow[r,"u"] \arrow[d,"f"'] & X' \arrow[d,"g"]
 & X' \arrow[r,"q"] \arrow[d,"g"'] & X \arrow[d,"f"]\\
 Y \arrow[r,"e"'] & Y'
 & Y' \arrow[r,"p"'] & Y
 \end{tikzcd}
-\]
+$$
 
-with \(q\circ u=\id_X\) and \(p\circ e=\id_Y\). For a target \(A\), precomposition reverses the diagram. Define
+with $q\circ u=\id_X$ and $p\circ e=\id_Y$. For a target $A$, precomposition reverses the diagram. Define
 
-\[
+$$
 \begin{aligned}
   U_X &: A^X\to A^{X'}, & U_X(h)&=h\circ q,\\
   Q_X &: A^{X'}\to A^X, & Q_X(h')&=h'\circ u,\\
   U_Y &: A^Y\to A^{Y'}, & U_Y(k)&=k\circ p,\\
   Q_Y &: A^{Y'}\to A^Y, & Q_Y(k')&=k'\circ e.
 \end{aligned}
-\]
+$$
 
-Then \(Q_XU_X=\id\) and \(Q_YU_Y=\id\), and the restriction square commutes. Thus \(f^*\) is a retract of \(g^*\) in the arrow category. If \(g^*\) has inverse \(r\), an inverse for \(f^*\) can be written explicitly as
+Then $Q_XU_X=\id$ and $Q_YU_Y=\id$, and the restriction square commutes. Thus $f^*$ is a retract of $g^*$ in the arrow category. If $g^*$ has inverse $r$, an inverse for $f^*$ can be written explicitly as
 
-\[
+$$
   A^X\xrightarrow{U_X}A^{X'}
   \xrightarrow{r}A^{Y'}
   \xrightarrow{Q_Y}A^Y.
-\]
+$$
 
 The two inverse laws follow from the square equations and retract equations. This explicit formula may be easier to formalize than invoking a general categorical lemma.
 
 ## Limit of a natural family of equivalences
 
-Let \(F,G:\mathbb N^{op}\to\mathcal U\) be diagrams and \(\alpha:F\Rightarrow G\) a natural transformation whose components are equivalences. Choose componentwise inverses \(\beta_n\). Naturality of \(\alpha\) implies naturality of \(\beta\): for each transition map, cancel \(\alpha\) on both sides. Therefore \(\beta\) induces a map on limits inverse to the map induced by \(\alpha\).
+Let $F,G:\mathbb N^{op}\to\mathcal U$ be diagrams and $\alpha:F\Rightarrow G$ a natural transformation whose components are equivalences. Choose componentwise inverses $\beta_n$. Naturality of $\alpha$ implies naturality of $\beta$: for each transition map, cancel $\alpha$ on both sides. Therefore $\beta$ induces a map on limits inverse to the map induced by $\alpha$.
 
-In type theory, a limit element is a compatible family \((x_n)_n\). The induced map sends it to \((\alpha_nx_n)_n\), and the inverse sends \((y_n)_n\) to \((\beta_ny_n)_n\). Compatibility follows from naturality. The inverse equations are pointwise.
+In type theory, a limit element is a compatible family $(x_n)_n$. The induced map sends it to $(\alpha_nx_n)_n$, and the inverse sends $(y_n)_n$ to $(\beta_ny_n)_n$. Compatibility follows from naturality. The inverse equations are pointwise.
 
 Applied to
 
-\[
+$$
   F_n=A^{\Delta^n},
   \qquad
   G_n=A^{\Lambda_n},
   \qquad
   \alpha_n=j_n^*,
-\]
+$$
 
-this supplies the inverse of \(k^*\).
+this supplies the inverse of $k^*$.
 
 ## Decomposition without chosen inverses
 
@@ -2159,7 +2159,7 @@ If operational extension functions are wanted, they can be extracted canonically
 
 ## Predomains imply infinite-spine locality
 
-Assume \(A\) is Segal. Standard Segal induction decomposes \(\Delta^n\) into a sequence of \(2\)-simplices glued along edges, or equivalently decomposes the spine inclusion \(j_n\) into pushouts and composites of \(j_2\). Locality is stable under those operations, so \(A\perp j_n\) for every \(n\). The colimit argument gives \(A\perp k\). If \(A\) is chain complete, \(A\perp c\), and composite locality gives \(A\perp j\).
+Assume $A$ is Segal. Standard Segal induction decomposes $\Delta^n$ into a sequence of $2$-simplices glued along edges, or equivalently decomposes the spine inclusion $j_n$ into pushouts and composites of $j_2$. Locality is stable under those operations, so $A\perp j_n$ for every $n$. The colimit argument gives $A\perp k$. If $A$ is chain complete, $A\perp c$, and composite locality gives $A\perp j$.
 
 This proof uses only the Segal and chain-complete components; Rezk completeness and separation are irrelevant to the necessary direction.
 
@@ -2167,69 +2167,69 @@ This proof uses only the Segal and chain-complete components; Rezk completeness 
 
 ## Shape calculations
 
-Write a point of \(\Delta^\infty\) as a descending sequence \(s=(s_0,s_1,\ldots)\). Define
+Write a point of $\Delta^\infty$ as a descending sequence $s=(s_0,s_1,\ldots)$. Define
 
-\[
+$$
   \epsilon(s)_{2n}=s_n,
   \qquad
   \epsilon(s)_{2n+1}=s_n,
-\]
+$$
 
 and
 
-\[
+$$
   \omicron(s)_0=1,
   \quad
   \omicron(s)_{2n+1}=s_n,
   \quad
   \omicron(s)_{2n+2}=s_n.
-\]
+$$
 
-For \(\epsilon\), descendingness follows from
+For $\epsilon$, descendingness follows from
 
-\[
+$$
   s_n\ge s_n\ge s_{n+1}.
-\]
+$$
 
-For \(\omicron\), it follows from
+For $\omicron$, it follows from
 
-\[
+$$
   1\ge s_0\ge s_0\ge s_1\ge s_1\ge\cdots.
-\]
+$$
 
-The finite vertex \(v_m\) has coordinates \(1\) for indices below \(m\) and \(0\) thereafter. Duplicating each coordinate gives exactly \(2m\) initial ones; prefixing a one and duplicating gives \(2m+1\). The all-ones sequence is fixed.
+The finite vertex $v_m$ has coordinates $1$ for indices below $m$ and $0$ thereafter. Duplicating each coordinate gives exactly $2m$ initial ones; prefixing a one and duplicating gives $2m+1$. The all-ones sequence is fixed.
 
 ## Restriction to the spine
 
-Let \(\bar a:\Delta^\infty\to A\) extend an alternating chain. The composite \(\bar a\circ\epsilon\circ j\) traverses, on its \(n\)-th edge, the image under \(\bar a\) of the long edge from \(v_{2n}\) to \(v_{2n+2}\) selected by \(\epsilon\). In a Segal type this long edge is the composite of the adjacent edges. Because the adjacent edges are \(p\) and \(q\), it is \(q\circ p\).
+Let $\bar a:\Delta^\infty\to A$ extend an alternating chain. The composite $\bar a\circ\epsilon\circ j$ traverses, on its $n$-th edge, the image under $\bar a$ of the long edge from $v_{2n}$ to $v_{2n+2}$ selected by $\epsilon$. In a Segal type this long edge is the composite of the adjacent edges. Because the adjacent edges are $p$ and $q$, it is $q\circ p$.
 
-There is a formal subtlety: the map \(\epsilon\) sends a one-dimensional edge of the spine into a path in the infinite simplex whose coordinate formula may not be definitionally the canonical diagonal of the corresponding \(2\)-simplex. The required equality follows from locality for \(j_2\): both paths are fillers of the same two-edge spine and therefore agree in \(A\) after applying \(\bar a\). This should be an explicit lemma in a formalization.
+There is a formal subtlety: the map $\epsilon$ sends a one-dimensional edge of the spine into a path in the infinite simplex whose coordinate formula may not be definitionally the canonical diagonal of the corresponding $2$-simplex. The required equality follows from locality for $j_2$: both paths are fillers of the same two-edge spine and therefore agree in $A$ after applying $\bar a$. This should be an explicit lemma in a formalization.
 
-The same reasoning applies to \(\omicron\), yielding \(p\circ q\).
+The same reasoning applies to $\omicron$, yielding $p\circ q$.
 
 ## Uniqueness at the limit
 
-If the even restriction is the constant identity chain at \(x\), both
+If the even restriction is the constant identity chain at $x$, both
 
-\[
+$$
   \bar a\circ\epsilon
   \quad\text{and}\quad
   \operatorname{const}_x
-\]
+$$
 
-are maps \(\Delta^\infty\to A\) with the same restriction to \(\Lambda_\omega\). Since \(j^*\) is an embedding---indeed an equivalence---they are equal. Evaluating at \(v_\infty\) gives
+are maps $\Delta^\infty\to A$ with the same restriction to $\Lambda_\omega$. Since $j^*$ is an embedding---indeed an equivalence---they are equal. Evaluating at $v_\infty$ gives
 
-\[
+$$
   \bar a(v_\infty)
   =\bar a(\epsilon(v_\infty))
   =x.
-\]
+$$
 
-The odd equation gives the same limit equal to \(y\).
+The odd equation gives the same limit equal to $y$.
 
 ## Dependence on separation
 
-For arbitrary paths \(p:x\to y\) and \(q:y\to x\), the even subsequence has transition \(q\circ p\), not necessarily identity. Separation makes all endomorphisms of a point equal to the identity because the hom-type \(x\rightsquigarrow x\) is a proposition and contains \(\id_x\). This is the only use of separation in the antisymmetry proof.
+For arbitrary paths $p:x\to y$ and $q:y\to x$, the even subsequence has transition $q\circ p$, not necessarily identity. Separation makes all endomorphisms of a point equal to the identity because the hom-type $x\rightsquigarrow x$ is a proposition and contains $\id_x$. This is the only use of separation in the antisymmetry proof.
 
 # A decision tree for the remaining conjecture
 
@@ -2238,7 +2238,7 @@ The following decision tree can guide further work.
 1. **Can the shape package be formalized?**
    - No: repair the statement or identify a mismatch in Xue's constructions.
    - Yes: the Segal/chain-complete theorem is established.
-2. **Does \(L_j(\rho)\) exist in the chosen model?**
+2. **Does $L_j(\rho)$ exist in the chosen model?**
    - No: use an orthogonality-class argument without reflection.
    - Yes: compute whether it is an equivalence.
 3. **If it is an equivalence in spatial/classifying models, is the proof model-independent?**
@@ -2254,13 +2254,13 @@ The following decision tree can guide further work.
 
 ## On notation
 
-Xue uses two omega-like symbols for the initial lifting algebra and final lifting coalgebra. To avoid font ambiguity, this manuscript writes \(\omega\simeq\Delta^\omega\) and \(\overline\omega\simeq\Delta^\infty\). The infinite-spine conjecture is therefore written
+Xue uses two omega-like symbols for the initial lifting algebra and final lifting coalgebra. To avoid font ambiguity, this manuscript writes $\omega\simeq\Delta^\omega$ and $\overline\omega\simeq\Delta^\infty$. The infinite-spine conjecture is therefore written
 
-\[
+$$
   \Lambda_\omega\hookrightarrow\overline\omega.
-\]
+$$
 
-Some source text extractions render both objects as \(\omega\); readers should consult the typeset source.
+Some source text extractions render both objects as $\omega$; readers should consult the typeset source.
 
 ## On the date and version of the conjecture
 

@@ -365,7 +365,7 @@ static void mqtt_mqtt_msg_mg_event_handler(
 
     FURI_LOG_T(
         TAG,
-        "MQTT MSG QOS%u %.*s :\r\n%.*s",
+        "MQTT MSG QOS%u %.*s :\\r\\n%.*s",
         message->qos,
         message->topic.len,
         message->topic.buf,

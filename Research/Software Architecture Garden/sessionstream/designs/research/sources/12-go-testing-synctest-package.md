@@ -162,7 +162,7 @@ func TestContextWithTimeout(t *testing.T) {
 
 #### Example: HTTP 100 Continue
 
-This example demonstrates testing \[http.Transport\]'s 100 Continue handling.
+This example demonstrates testing $$http.Transport$$'s 100 Continue handling.
 
 An HTTP client sending a request can include an "Expect: 100-continue" header to tell the server that the client has additional data to send. The server may then respond with an 100 Continue information response to request the data, or some other status to tell the client the data is not needed. For example, a client uploading a large file might use this feature to confirm that the server is willing to accept the file before sending it.
 

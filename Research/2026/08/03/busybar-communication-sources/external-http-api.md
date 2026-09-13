@@ -28,7 +28,7 @@ response an http request url consists of base url, which depends on how busy bar
 identifies the type of request to busy bar all available endpoints are listed in the http api reference base url the
 base url for http api requests depends on how your busy bar is connected via usb use http //10 0 4 20/api http //10 0 4
 20/api as the base url via wi fi (lan) use the ip address assigned by your wi fi router, for example, xx xx xx xx/api
-to view the current ip address on your busy bar, go to settings → wi fi → \\\[your wi fi ap name\] → view ip
+to view the current ip address on your busy bar, go to settings → wi fi → \\$$your wi fi ap name$$ → view ip
 address via internet use https //api busy app/busybar https //api busy app/busybar as the base url connecting via wi fi
 (lan) or the internet requires authentication for details, see the authentication docid\\ h4whpextnlyjsr9plxsar section
 below wi fi access \\<font color="#2b7eff"> ou need to enable wi fi access \\</font> wi fi (lan) connections to busy
@@ -45,10 +45,10 @@ authentication is not used over usb you can send any http api requests to the de
 without authentication via wi fi http api requests over wi fi (lan) are authenticated using a password that is
 configured in the local web interface when wi fi access is enabled learn more about enabling wi fi access in the wi fi
 access docid\\ h4whpextnlyjsr9plxsar section every http request sent to the device via wi fi must include this password
-in the x api token header see examples below curl x get \\\\ "http //\\\[busy bar ip address\]/api/status" \\\\ h
-"accept application/json" \\\\ h 'x api token \\<your password>'const response = await fetch("http //\\\[busy bar ip
-address\]/api/status", { headers { "accept" "application/json", "x api token" \\<your password>, }, }); import requests
-response = requests get( "http //\\\[busy bar ip address\]/api/status", headers={ "accept" "application/json", "x api
+in the x api token header see examples below curl x get \\\\ "http //\\$$busy bar ip address$$/api/status" \\\\ h
+"accept application/json" \\\\ h 'x api token \\<your password>'const response = await fetch("http //\\$$busy bar ip
+address$$/api/status", { headers { "accept" "application/json", "x api token" \\<your password>, }, }); import requests
+response = requests get( "http //\\$$busy bar ip address$$/api/status", headers={ "accept" "application/json", "x api
 token" \\<your password>, }, ) via internet internet authentication is performed using an api token, which is generated
 in your busy account after you connect your busy bar to the account learn more about managing api tokens docid
 3auwybgy9fgu b8dnfm4h every http request sent to the device must include this api token in the authorization header

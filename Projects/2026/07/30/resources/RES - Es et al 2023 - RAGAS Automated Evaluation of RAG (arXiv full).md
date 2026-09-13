@@ -53,45 +53,45 @@ We now explain how these three quality aspects can be measured in a fully automa
 We say that the answer $a_{s}(q)$ is faithful to the context $c(q)$ if the claims that are made in the answer can be inferred from the context. To estimate faithfulness, we first use an LLM to extract a set of statements, $S(a_{s}(q))$. The aim of this step is to decompose longer sentences into shorter and more focused assertions. We use the following prompt for this step <sup>3</sup>:
 
 > Given a question and answer, create one or more statements from each sentence in the given answer.  
-> question: \[question\]  
-> answer: \[answer\]
+> question: $$question$$  
+> answer: $$answer$$
 
-where \[question\] and \[answer\] refer to the given question and answer. For each statement $s_{i}$ in $S$, the LLM determines if $s_{i}$ can be inferred from $c(q)$ using a verification function $v(s_{i},c(q))$. This verification step is carried out using the following prompt:
+where $$question$$ and $$answer$$ refer to the given question and answer. For each statement $s_{i}$ in $S$, the LLM determines if $s_{i}$ can be inferred from $c(q)$ using a verification function $v(s_{i},c(q))$. This verification step is carried out using the following prompt:
 
 > Consider the given context and following statements, then determine whether they are supported by the information present in the context. Provide a brief explanation for each statement before arriving at the verdict (Yes/No). Provide a final verdict for each statement in order at the end in the given format. Do not deviate from the specified format.  
-> statement: \[statement 1\]  
+> statement: $$statement 1$$  
 > …  
-> statement: \[statement $n$\]
+> statement: $$statement $n$$\$
 
-The final faithfulness score, $F$, is then computed as $F=rac{|V|}{|S|}$, where $|V|$ is the number of statements that were supported according to the LLM and $|S|$ is the total number of statements.
+The final faithfulness score, \$F\$, is then computed as \$F=rac{|V|}{|S|}$, where $|V|\$ is the number of statements that were supported according to the LLM and \$|S|\$ is the total number of statements.
 
 ### Answer relevance
 
-We say that the answer $a_{s}(q)$ is relevant if it directly addresses the question in an appropriate way. In particular, our assessment of answer relevance does not take into account factuality, but penalises cases where the answer is incomplete or where it contains redundant information. To estimate answer relevance, for the given answer $a_{s}(q)$, we prompt the LLM to generate $n$ potential questions $q_{i}$ based on $a_{s}(q)$, as follows:
+We say that the answer \$a_{s}(q)\$ is relevant if it directly addresses the question in an appropriate way. In particular, our assessment of answer relevance does not take into account factuality, but penalises cases where the answer is incomplete or where it contains redundant information. To estimate answer relevance, for the given answer \$a_{s}(q)\$, we prompt the LLM to generate \$n$ potential questions $q_{i}$ based on $a_{s}(q)\$, as follows:
 
 > Generate a question for the given answer.  
-> answer: \[answer\]
+> answer: \$$answer$\$
 
-We then obtain embeddings for all questions using the text-embedding-ada-002 model, available from the OpenAI API. For each $q_{i}$, we calculate the similarity $	ext{sim}(q,q_{i})$ with the original question $q$, as the cosine between the corresponding embeddings. The answer relevance score, AR, for question $q$ is then computed as:
+We then obtain embeddings for all questions using the text-embedding-ada-002 model, available from the OpenAI API. For each \$q_{i}\$, we calculate the similarity \$	ext{sim}(q,q_{i})\$ with the original question \$q\$, as the cosine between the corresponding embeddings. The answer relevance score, AR, for question \$q\$ is then computed as:
 
-$$
+\$$
 	ext{AR}=rac{1}{n}\sum_{i=1}^{n}	ext{sim}(q,q_{i})
-$$
+$\$
 
 This metric evaluates how closely the generated answer aligns with the initial question or instruction.
 
 ### Context relevance
 
-The context $c(q)$ is considered relevant to the extent that it exclusively contains information that is needed to answer the question. In particular, this metric aims to penalise the inclusion of redundant information. To estimate context relevance, given a question $q$ and its context $c(q)$, the LLM extracts a subset of sentences, $S_{ext}$, from $c(q)$ that are crucial to answer $q$, using the following prompt:
+The context \$c(q)\$ is considered relevant to the extent that it exclusively contains information that is needed to answer the question. In particular, this metric aims to penalise the inclusion of redundant information. To estimate context relevance, given a question \$q\$ and its context \$c(q)\$, the LLM extracts a subset of sentences, \$S_{ext}$, from $c(q)\$ that are crucial to answer \$q\$, using the following prompt:
 
 > Please extract relevant sentences from the provided context that can potentially help answer the following question. If no relevant sentences are found, or if you believe the question cannot be answered from the given context, return the phrase "Insufficient Information". While extracting candidate sentences you’re not allowed to make any changes to sentences from given context.
 
 The context relevance score is then computed as:
 
-$$
+\$\$
 	ext{CR}=rac{	ext{number of extracted sentences}}{	ext{total number of %
 sentences in }c(q)}
-$$
+\$\$
 
 ## 4 The WikiEval Dataset
 
@@ -109,8 +109,8 @@ To evaluate the proposed framework, we ideally need examples of question-context
 We also used ChatGPT to answer the generated question, when given the corresponding introductory section as context, using the following prompt:
 
 > Answer the question using the information from the given context.  
-> question: \[question\]  
-> context: \[context\]
+> question: \$$question$$  
+> context: $$context$\$
 
 All questions were annotated along the three considered quality dimensions by two annotators. Both annotators were fluent in English and were given clear instructions about the meaning of the three considered quality dimensions. For faithfulness and context relevance, the two annotators agreed in around 95% of cases. For answer relevance, they agreed in around 90% of the cases. Disagreements were resolved after a discussion between the annotators.
 
@@ -123,7 +123,7 @@ To obtain human judgements about faithfulness, we first used ChatGPT to answer t
 We first used ChatGPT to obtain candidate answers with lower answer relevance, using the following prompt:
 
 > Answer the given question in an incomplete manner.  
-> question: \[question\]
+> question: \$$question$\$
 
 We then asked human annotators to compare this answer, and indicate which of the two answers had the highest answer relevance.
 
@@ -147,15 +147,15 @@ To put the results in context, we compare our proposed metrics (shown as Ragas i
 
 > Faithfulness measures the information consistency of the answer against the given context. Any claims that are made in the answer that cannot be deduced from context should be penalized.  
 > Given an answer and context, assign a score for faithfulness in the range 0-10.  
-> context: \[context\]  
-> answer: \[answer\]
+> context: \$$context$$  
+> answer: $$answer$\$
 
 Ties, where the same score is assigned by the LLM to both answer candidates, were broken randomly. The second baseline, shown as *GPT Ranking*, instead asks ChatGPT to select the preferred answer/context. In this case, the prompt again includes a definition of the considered quality metric. For instance, for evaluating answer relevance, we used the following prompt:
 
 > Answer Relevancy measures the degree to which a response directly addresses and is appropriate for a given question. It penalizes the present of redundant information or incomplete answers given a question. Given an question and answer, rank each answer based on Answer Relevancy.  
-> question: \[question\]  
-> answer 1: \[answer 1\]  
-> answer 2: \[answer 2\]
+> question: \$$question$$  
+> answer 1: $$answer 1$$  
+> answer 2: $$answer 2$$
 
 The results in Table 1 show that our proposed metrics are much closer aligned with the human judgements than the predictions from the two baselines. For faithfulness, the Ragas prediction are in general highly accurate. For answer relevance, the agreement is lower, but this is largely due to the fact that the differences between the two candidate answers are often very subtle. We found context relevance to be the hardest quality dimension to evaluate. In particular, we observed that ChatGPT often struggles with the task of selecting the sentences from the context that are crucial, especially for longer contexts.
 

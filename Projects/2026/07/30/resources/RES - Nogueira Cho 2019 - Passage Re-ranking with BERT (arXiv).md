@@ -17,17 +17,17 @@ Authors:[Rodrigo Nogueira](https://arxiv.org/search/cs?searchtype=author&query=N
 
 | Subjects: | Information Retrieval (cs.IR); Computation and Language (cs.CL); Machine Learning (cs.LG) |
 | --- | --- |
-| Cite as: | [arXiv:1901.04085](https://arxiv.org/abs/1901.04085) \[cs.IR\] |
-|  | (or [arXiv:1901.04085v5](https://arxiv.org/abs/1901.04085v5) \[cs.IR\] for this version) |
+| Cite as: | [arXiv:1901.04085](https://arxiv.org/abs/1901.04085) $$cs.IR$$ |
+|  | (or [arXiv:1901.04085v5](https://arxiv.org/abs/1901.04085v5) $$cs.IR$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.1901.04085](https://doi.org/10.48550/arXiv.1901.04085) |
 
 ## Submission history
 
-From: Rodrigo Nogueira \[[view email](https://arxiv.org/show-email/01a77003/1901.04085)\]  
-**[\[v1\]](https://arxiv.org/abs/1901.04085v1)** Sun, 13 Jan 2019 23:27:58 UTC (26 KB)  
-**[\[v2\]](https://arxiv.org/abs/1901.04085v2)** Tue, 15 Jan 2019 14:05:34 UTC (26 KB)  
-**[\[v3\]](https://arxiv.org/abs/1901.04085v3)** Wed, 30 Jan 2019 02:25:25 UTC (36 KB)  
-**[\[v4\]](https://arxiv.org/abs/1901.04085v4)** Mon, 18 Feb 2019 22:04:21 UTC (37 KB)  
-**\[v5\]** Tue, 14 Apr 2020 14:57:40 UTC (38 KB)
+From: Rodrigo Nogueira $$[view email](https://arxiv.org/show-email/01a77003/1901.04085)$$  
+**[$$v1$$](https://arxiv.org/abs/1901.04085v1)** Sun, 13 Jan 2019 23:27:58 UTC (26 KB)  
+**[$$v2$$](https://arxiv.org/abs/1901.04085v2)** Tue, 15 Jan 2019 14:05:34 UTC (26 KB)  
+**[$$v3$$](https://arxiv.org/abs/1901.04085v3)** Wed, 30 Jan 2019 02:25:25 UTC (36 KB)  
+**[$$v4$$](https://arxiv.org/abs/1901.04085v4)** Mon, 18 Feb 2019 22:04:21 UTC (37 KB)  
+**$$v5$$** Tue, 14 Apr 2020 14:57:40 UTC (38 KB)
 
 [Which authors of this paper are endorsers?](https://arxiv.org/auth/show-endorsers/1901.04085) | Disable MathJax ([What is MathJax?](https://info.arxiv.org/help/mathjax.html))

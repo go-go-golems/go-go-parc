@@ -264,13 +264,13 @@ The active text is mutable. It represents the exact prefix from which the model 
 
 The audit record is append-only. It retains every sampled fragment, semantic event, diagnostic, edit, checkpoint, and stop decision, including content later removed from the active text.
 
-Let the active text at revision \(r\) be \(T_r\). A generated fragment \(s\) creates:
+Let the active text at revision $r$ be $T_r$. A generated fragment $s$ creates:
 
 $$
 T_{r+1} = T_r \mathbin{\|} s
 $$
 
-An intervention contains non-overlapping patches \(P = \{p_1, \ldots, p_n\}\):
+An intervention contains non-overlapping patches $P = \{p_1, \ldots, p_n\}$:
 
 $$
 T_{r+1} = \operatorname{apply}(T_r, P)

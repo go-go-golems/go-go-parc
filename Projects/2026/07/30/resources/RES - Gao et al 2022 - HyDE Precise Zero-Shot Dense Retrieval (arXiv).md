@@ -17,13 +17,13 @@ Authors:[Luyu Gao](https://arxiv.org/search/cs?searchtype=author&query=Gao,+L), 
 
 | Subjects: | Information Retrieval (cs.IR); Computation and Language (cs.CL) |
 | --- | --- |
-| Cite as: | [arXiv:2212.10496](https://arxiv.org/abs/2212.10496) \[cs.IR\] |
-|  | (or [arXiv:2212.10496v1](https://arxiv.org/abs/2212.10496v1) \[cs.IR\] for this version) |
+| Cite as: | [arXiv:2212.10496](https://arxiv.org/abs/2212.10496) $$cs.IR$$ |
+|  | (or [arXiv:2212.10496v1](https://arxiv.org/abs/2212.10496v1) $$cs.IR$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.2212.10496](https://doi.org/10.48550/arXiv.2212.10496) |
 
 ## Submission history
 
-From: Luyu Gao \[[view email](https://arxiv.org/show-email/3a236f9f/2212.10496)\]  
-**\[v1\]** Tue, 20 Dec 2022 18:09:52 UTC (7,003 KB)
+From: Luyu Gao $$[view email](https://arxiv.org/show-email/3a236f9f/2212.10496)$$  
+**$$v1$$** Tue, 20 Dec 2022 18:09:52 UTC (7,003 KB)
 
 [Which authors of this paper are endorsers?](https://arxiv.org/auth/show-endorsers/2212.10496) | Disable MathJax ([What is MathJax?](https://info.arxiv.org/help/mathjax.html))

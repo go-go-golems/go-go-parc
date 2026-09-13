@@ -38,10 +38,10 @@ Core topics associated with Sontag’s systems-theory work:
 
 | Topic | Role |
 |---|---|
-| **Control systems** | Systems of the form \(\dot{x}=f(x,u)\), where inputs \(u\) steer state \(x\). |
+| **Control systems** | Systems of the form $\dot{x}=f(x,u)$, where inputs $u$ steer state $x$. |
 | **Controllability / reachability** | Whether one can drive the system from one state to another. |
 | **Observability** | Whether internal state can be inferred from outputs. |
-| **Feedback stabilization** | Designing \(u=k(x)\) so a desired equilibrium becomes stable. |
+| **Feedback stabilization** | Designing $u=k(x)$ so a desired equilibrium becomes stable. |
 | **Control-Lyapunov functions** | Lyapunov methods for constructive nonlinear feedback. |
 | **Input-to-state stability, ISS** | A major nonlinear stability framework introduced by Sontag; it formalizes how bounded or decaying inputs affect state behavior. citeturn620734search4turn620734search16 |
 | **Systems biology** | Later work applies control/dynamical-systems tools to molecular biology, synthetic biology, cancer, and immunology. Northeastern lists his research focus as feedback control theory, systems biology, cancer, and biomedicine. citeturn811575search1 |
@@ -66,9 +66,9 @@ Springer, 1998, *Texts in Applied Mathematics*, Vol. 26. Springer lists the auth
 
 This is the canonical text for the **behavioral approach** to mathematical systems theory. Instead of starting with the standard input/state/output form,
 
-\[
+$$
 \dot{x}=Ax+Bu,\qquad y=Cx+Du,
-\]
+$$
 
 Willems’ behavioral view treats a system as a **set of trajectories** satisfying laws or constraints. In this view, variables are not automatically divided into “inputs” and “outputs”; that distinction can be imposed later when useful. The University of Twente summary describes the book as covering modeling, analysis, and control of **linear time-invariant systems**, with systems viewed as dynamical relations between **manifest** and **latent** variables. citeturn917704search6
 
@@ -76,10 +76,10 @@ Core ideas:
 
 | Concept | Meaning |
 |---|---|
-| **Behavior** \(\mathcal{B}\) | The set of all signal trajectories compatible with the system laws. |
+| **Behavior** $\mathcal{B}$ | The set of all signal trajectories compatible with the system laws. |
 | **Manifest variables** | Variables externally visible in the model. |
 | **Latent variables** | Auxiliary/internal variables, such as states. |
-| **Kernel representation** | A system described by differential equations such as \(R(d/dt)w=0\). |
+| **Kernel representation** | A system described by differential equations such as $R(d/dt)w=0$. |
 | **Controllability** | Ability to concatenate or patch compatible trajectories. |
 | **Autonomy** | Behavior determined by its own laws, without free external variables. |
 | **Elimination** | Removing latent variables to obtain equations only in manifest variables. |
@@ -111,41 +111,41 @@ It seems the user is asking about Hopf algebra in the context of systems theory,
 
 A **Hopf algebra** is an algebraic structure that combines:
 
-\[
+$$
 \text{multiplication} \quad+\quad \text{comultiplication} \quad+\quad \text{inverse-like operation}.
-\]
+$$
 
-Formally, over a field \(k\), a Hopf algebra \(H\) has:
+Formally, over a field $k$, a Hopf algebra $H$ has:
 
-\[
+$$
 m:H\otimes H\to H
-\]
+$$
 
 multiplication,
 
-\[
+$$
 \eta:k\to H
-\]
+$$
 
 unit,
 
-\[
+$$
 \Delta:H\to H\otimes H
-\]
+$$
 
 comultiplication,
 
-\[
+$$
 \epsilon:H\to k
-\]
+$$
 
 counit,
 
 and an **antipode**
 
-\[
+$$
 S:H\to H,
-\]
+$$
 
 which behaves like a generalized inverse.
 
@@ -160,29 +160,29 @@ The defining intuition is:
 
 In Sweedler notation, the coproduct is written
 
-\[
+$$
 \Delta(h)=\sum h_{(1)}\otimes h_{(2)}.
-\]
+$$
 
 The antipode satisfies
 
-\[
+$$
 \sum S(h_{(1)})h_{(2)}=\epsilon(h)1
-\]
+$$
 
 and
 
-\[
+$$
 \sum h_{(1)}S(h_{(2)})=\epsilon(h)1.
-\]
+$$
 
 ### Basic examples
 
 | Example | Hopf structure |
 |---|---|
-| Group algebra \(kG\) | \(\Delta(g)=g\otimes g\), \(S(g)=g^{-1}\) |
-| Universal enveloping algebra \(U(\mathfrak g)\) | Encodes Lie algebra structure |
-| Polynomial algebra \(k[x]\) | Often \(\Delta(x)=x\otimes 1+1\otimes x\) |
+| Group algebra $kG$ | $\Delta(g)=g\otimes g$, $S(g)=g^{-1}$ |
+| Universal enveloping algebra $U(\mathfrak g)$ | Encodes Lie algebra structure |
+| Polynomial algebra $k[x]$ | Often $\Delta(x)=x\otimes 1+1\otimes x$ |
 | Shuffle algebra | Important in iterated integrals and control |
 | Connes–Kreimer algebra | Rooted trees, renormalization, numerical analysis |
 
@@ -203,9 +203,9 @@ Important links:
 
 For nonlinear control, the relevant bridge is often:
 
-\[
+$$
 \text{inputs} \rightarrow \text{iterated integrals} \rightarrow \text{formal power series} \rightarrow \text{shuffle Hopf algebra}.
-\]
+$$
 
 This connects to **Chen–Fliess series**, which represent certain nonlinear input-output systems using noncommutative formal power series.
 
@@ -224,29 +224,29 @@ They are central in the algebraic approach to nonlinear systems, Chen–Fliess s
 
 A usual setup:
 
-\[
+$$
 X=\{x_0,x_1,\dots,x_m\}
-\]
+$$
 
-is an alphabet. The free monoid \(X^\ast\) consists of all finite words in those letters:
+is an alphabet. The free monoid $X^\ast$ consists of all finite words in those letters:
 
-\[
+$$
 \emptyset,\ x_0,\ x_1,\ x_0x_1,\ x_1x_0x_0,\dots
-\]
+$$
 
-A **formal power series** over \(X\) is
+A **formal power series** over $X$ is
 
-\[
+$$
 c=\sum_{\eta\in X^\ast} (c,\eta)\eta,
-\]
+$$
 
-where each word \(\eta\) has a coefficient \((c,\eta)\).
+where each word $\eta$ has a coefficient $(c,\eta)$.
 
 The key point: the symbols do **not** have to commute. So usually
 
-\[
+$$
 x_0x_1 \neq x_1x_0.
-\]
+$$
 
 That matters because in nonlinear input-output systems, the order of inputs matters.
 
@@ -254,54 +254,54 @@ That matters because in nonlinear input-output systems, the order of inputs matt
 
 For a nonlinear control system
 
-\[
+$$
 \dot z = g_0(z)+\sum_{i=1}^m g_i(z)u_i,
 \qquad y=h(z),
-\]
+$$
 
 the input-output map can often be represented as a **Chen–Fliess series**:
 
-\[
+$$
 y(t)=\sum_{\eta\in X^\ast} (c,\eta) E_\eta[u](t).
-\]
+$$
 
 Here:
 
 | Object | Meaning |
 |---|---|
-| \(c\) | Noncommutative formal power series |
-| \(\eta\) | Word over the alphabet \(X\) |
-| \((c,\eta)\) | Coefficient encoding system dynamics |
-| \(E_\eta[u]\) | Iterated integral of the input |
-| \(y(t)\) | System output |
+| $c$ | Noncommutative formal power series |
+| $\eta$ | Word over the alphabet $X$ |
+| $(c,\eta)$ | Coefficient encoding system dynamics |
+| $E_\eta[u]$ | Iterated integral of the input |
+| $y(t)$ | System output |
 
 The iterated integrals are defined recursively:
 
-\[
+$$
 E_{\emptyset}[u](t)=1,
-\]
+$$
 
-\[
+$$
 E_{x_i\eta}[u](t)=\int_0^t u_i(\tau)E_\eta[u](\tau)\,d\tau.
-\]
+$$
 
-Usually \(x_0\) corresponds to the drift term, with \(u_0=1\).
+Usually $x_0$ corresponds to the drift term, with $u_0=1$.
 
 ### Why Hopf algebras enter
 
 Formal power series interact naturally with the **shuffle product**:
 
-\[
+$$
 E_\eta[u](t)E_\xi[u](t)
 =
 \sum_{\zeta\in \eta \shuffle \xi} E_\zeta[u](t).
-\]
+$$
 
 This creates a Hopf algebra structure.
 
 So the chain is:
 
-\[
+$$
 \text{nonlinear system}
 \rightarrow
 \text{iterated integrals}
@@ -309,21 +309,21 @@ So the chain is:
 \text{formal power series}
 \rightarrow
 \text{shuffle Hopf algebra}.
-\]
+$$
 
 ### Minimal example
 
 Take alphabet
 
-\[
+$$
 X=\{x_0,x_1\}.
-\]
+$$
 
 A formal series might be
 
-\[
+$$
 c = 3\emptyset + 2x_1 - 5x_0x_1 + 7x_1x_0x_1+\cdots.
-\]
+$$
 
 This is not a polynomial, because it can contain infinitely many words. It is “formal” because convergence is not always the first issue; algebraic manipulation comes first.
 
@@ -370,7 +370,7 @@ Core thesis:
 
 This fits well after your previous chain:
 
-\[
+$$
 \text{systems theory}
 \rightarrow
 \text{formal power series}
@@ -378,9 +378,9 @@ This fits well after your previous chain:
 \text{Hopf algebra}
 \rightarrow
 \text{mathematical intuition}
-\]
+$$
 
-Bessis himself is not just a popularizer. His research background is in **group theory, braid groups, complex reflection groups, hyperplane arrangements, and noncrossing partitions**. His 2015 *Annals of Mathematics* paper **“Finite complex reflection arrangements are \(K(\pi,1)\)”** concerns braid groups, complex reflection groups, and hyperplane arrangements. citeturn189359search2 He also wrote **“The dual braid monoid”**, published in *Annales scientifiques de l’École Normale Supérieure* in 2003. citeturn189359search11
+Bessis himself is not just a popularizer. His research background is in **group theory, braid groups, complex reflection groups, hyperplane arrangements, and noncrossing partitions**. His 2015 *Annals of Mathematics* paper **“Finite complex reflection arrangements are $K(\pi,1)$”** concerns braid groups, complex reflection groups, and hyperplane arrangements. citeturn189359search2 He also wrote **“The dual braid monoid”**, published in *Annales scientifiques de l’École Normale Supérieure* in 2003. citeturn189359search11
 
 A compact reading of Bessis:
 
@@ -506,7 +506,7 @@ I don’t find evidence of a **direct Ringer–Raginsky collaboration specifical
 
 The conceptual bridge looks like this:
 
-\[
+$$
 \text{HoTT / dependent type theory}
 \rightarrow
 \text{proof assistants}
@@ -514,7 +514,7 @@ The conceptual bridge looks like this:
 \text{formal verification}
 \rightarrow
 \text{certified control systems}
-\]
+$$
 
 Talia Ringer’s side is **proof engineering and dependent type theory**. Her page describes current work on proof assistants, proof repair, machine learning for proofs, and verified systems. citeturn199257view1 Her paper **“Proof Repair across Type Equivalences”** implements transport across type equivalences in Coq, which is very close in spirit to the HoTT/univalence idea that equivalent structures can be systematically transported across. citeturn381695view1 A later Ringer-related paper, **“Proof Repair across Quotient Type Equivalences,”** explicitly discusses quotient type equivalences, Coq setoids, and Cubical Agda, where quotient types and univalent ideas are more native. citeturn381695view2
 
@@ -522,19 +522,19 @@ Raginsky’s side is **control, dynamical systems, information theory, and learn
 
 So the synthesis is not:
 
-\[
+$$
 \text{Ringer + Raginsky} = \text{HoTT control theory paper}
-\]
+$$
 
 but more plausibly:
 
-\[
+$$
 \text{Ringer: formal proof / type equivalence}
 +
 \text{Raginsky: control / dynamics / learning}
 \Rightarrow
 \text{future-style certified dynamical systems}
-\]
+$$
 
 ### Where HoTT helps control theory
 
@@ -553,11 +553,11 @@ That matters for control theory because control uses many equivalent representat
 
 A certified controller might be represented as:
 
-\[
+$$
 \Sigma(K : \text{Controller}).\ \text{Stable}(G,K)
-\]
+$$
 
-meaning: “a controller \(K\), together with a proof that \(K\) stabilizes plant \(G\).”
+meaning: “a controller $K$, together with a proof that $K$ stabilizes plant $G$.”
 
 ### Existing formal-control precedent
 
@@ -601,7 +601,7 @@ Good core books/resources:
 
 My suggested order:
 
-\[
+$$
 \textit{The Little Typer}
 \rightarrow
 \textit{Type Theory and Formal Proof}
@@ -609,15 +609,15 @@ My suggested order:
 \textit{Rijke}
 \rightarrow
 \textit{The HoTT Book}
-\]
+$$
 
 For a mathematically mature reader, skip straight to:
 
-\[
+$$
 \textit{Rijke}
 \rightarrow
 \textit{The HoTT Book}
-\]
+$$
 
 The **Rijke book** is the best starting point if you want to actually learn HoTT. The **HoTT Book** is the standard reference. The others are supporting material.
 

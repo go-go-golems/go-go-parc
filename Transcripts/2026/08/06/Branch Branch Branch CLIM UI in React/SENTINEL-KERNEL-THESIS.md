@@ -158,15 +158,15 @@ const makeViewId = () => `V-${++viewSeq}`;
 
 at lines `100-101`. `SplitPlacement` invokes `makeView` inside `applyCommand` (`409-413`). Thus the nominal reducer is not a function
 
-\[
+$$
 \delta:S\times C\to S,
-\]
+$$
 
-because output also depends on ambient module state \(g\):
+because output also depends on ambient module state $g$:
 
-\[
+$$
 \delta:S\times C\times G\to S.
-\]
+$$
 
 Two calls with structurally equal states and commands can allocate different IDs. Replay after process restart cannot be justified solely by the event log. Tests can interfere through import order.
 
@@ -273,24 +273,24 @@ The reimplementation omits the window-resize subsystem because the request was t
 
 `connectedPorts` loops over all links for every queue element. Compatibility, group naming, writes, hover tracing, and status rendering repeatedly call it. The same connected component may be rediscovered many times per pointer movement.
 
-For \(n=|P|\) ports and \(m=|E|\) edges, the scan-based traversal is approximately \(O(nm)\) in the worst case because each visited vertex scans every edge. A page with \(k\) port badges can multiply the cost during rendering. The replacement pays \(O((n+m)\alpha(n))\) to rebuild all components using disjoint-set union and then answers class lookup in expected \(O(1)\) through a map. Tarjan's analysis provides the classic near-linear amortized bounds for union-find with rank and path compression [Tarjan 1975].
+For $n=|P|$ ports and $m=|E|$ edges, the scan-based traversal is approximately $O(nm)$ in the worst case because each visited vertex scans every edge. A page with $k$ port badges can multiply the cost during rendering. The replacement pays $O((n+m)\alpha(n))$ to rebuild all components using disjoint-set union and then answers class lookup in expected $O(1)$ through a map. Tarjan's analysis provides the classic near-linear amortized bounds for union-find with rank and path compression [Tarjan 1975].
 
 ### 3.13 Critical defect: no whole-state invariant gate
 
 The original reducer has local checks but no definition of a valid global state. It can accept stale link endpoints, duplicated edges, orphan values, unplaced views, schema-mismatched ports, or class divergence. A robust kernel must define validity separately from individual commands:
 
-\[
+$$
 \operatorname{Valid}:S\to\{\mathsf{true},\mathsf{false}\}.
-\]
+$$
 
 Every accepted transition must satisfy:
 
-\[
+$$
 \operatorname{Valid}(s)\land
 \delta(s,c)=s'
 \Longrightarrow
 \operatorname{Valid}(s').
-\]
+$$
 
 The replacement checks the incoming state, constructs a candidate, validates the complete candidate, and publishes only if the predicate holds.
 
@@ -341,16 +341,16 @@ A cross-interaction system needs several identity domains.
 
 A subject is a pair:
 
-\[
+$$
 \operatorname{SubjectRef}=\operatorname{SubjectType}\times\operatorname{Key}.
-\]
+$$
 
 For Sentinel, subject types include order, customer, card, device, IP, and view. Two references denote the same subject when both fields agree. This is semantic equality, not JavaScript object identity:
 
-\[
+$$
 (t_1,k_1)\equiv(t_2,k_2)
 \iff t_1=t_2\land k_1=k_2.
-\]
+$$
 
 This distinction appears in the test that attempts to rewrite a pivot cell with a freshly allocated `{type: "card", key: "K-4411"}`. The command is rejected as already current even though the object reference differs.
 
@@ -366,10 +366,10 @@ A placement is a visual occurrence of a view within a workspace area. Closing a 
 
 A port is one named boundary occurrence owned by one view:
 
-\[
+$$
 p=(\operatorname{owner},\operatorname{name},\operatorname{sort},
 \operatorname{protocol},\operatorname{mode}).
-\]
+$$
 
 `V-3/focus-order` and `V-1/focus-order` have the same schema but distinct local identity until linked.
 
@@ -419,7 +419,7 @@ export function portsForView(view: ViewState): readonly PortState[] {
 
 A link is well typed only when endpoint sorts and protocols match. In judgment form:
 
-\[
+$$
 \frac{
 \Gamma\vdash p:\operatorname{Port}(A,\pi,m_p)
 \qquad
@@ -429,7 +429,7 @@ A link is well typed only when endpoint sorts and protocols match. In judgment f
 }{
 \Gamma\vdash p\equiv q\;\mathsf{linkable}
 }.
-\]
+$$
 
 The current equality-cell protocol allows read-write peers and rejects the same endpoint, endpoints owned by the same component instance, different sorts, different protocols, and endpoints already in one quotient class. Future protocols may distinguish event streams, directed mappings, commands, constraints, or monotone knowledge cells. Those should not be disguised as equality links.
 
@@ -440,47 +440,47 @@ Structured-cospan research treats open systems through explicit input and output
 
 ## 7. Links as generators of an equivalence relation
 
-Let \(P\) be the finite set of ports. Let \(E\) be the finite set of link edges. Each edge has two endpoint maps:
+Let $P$ be the finite set of ports. Let $E$ be the finite set of link edges. Each edge has two endpoint maps:
 
-\[
+$$
 s,t:E\rightrightarrows P.
-\]
+$$
 
-The link graph generates the least equivalence relation \(\sim_E\) satisfying:
+The link graph generates the least equivalence relation $\sim_E$ satisfying:
 
-\[
+$$
 \forall e\in E,\quad s(e)\sim_E t(e).
-\]
+$$
 
-For an undirected equality-link protocol, \(\sim_E\) is graph connectivity. Reflexivity, symmetry, and transitivity are not optional implementation details; they define the meaning of a shared binding.
+For an undirected equality-link protocol, $\sim_E$ is graph connectivity. Reflexivity, symmetry, and transitivity are not optional implementation details; they define the meaning of a shared binding.
 
 The quotient set is:
 
-\[
+$$
 Q=P/{\sim_E}.
-\]
+$$
 
 The quotient map
 
-\[
+$$
 q:P\to Q
-\]
+$$
 
 sends each local port to its binding class.
 
 ### 7.1 Coequalizer interpretation
 
-The map \(q\) coequalizes the endpoint maps:
+The map $q$ coequalizes the endpoint maps:
 
-\[
+$$
 q\circ s=q\circ t.
-\]
+$$
 
-That is, each edge's endpoints receive the same global binding identity. More importantly, if another interpretation \(f:P\to X\) treats every linked pair equally, then there is a unique map \(\bar f:Q\to X\) such that:
+That is, each edge's endpoints receive the same global binding identity. More importantly, if another interpretation $f:P\to X$ treats every linked pair equally, then there is a unique map $\bar f:Q\to X$ such that:
 
-\[
+$$
 f=\bar f\circ q.
-\]
+$$
 
 This universal property explains why downstream code should consume binding classes instead of repeatedly traversing raw edges. Any link-respecting observation factors through the quotient.
 
@@ -504,7 +504,7 @@ The implementation does not persist the union-find parent forest. It persists th
 
 ### 7.3 Proposition: insertion-order independence
 
-**Proposition 1.** For a fixed port set \(P\) and edge set \(E\), the equivalence classes produced by union operations are independent of the order in which edges are processed.
+**Proposition 1.** For a fixed port set $P$ and edge set $E$, the equivalence classes produced by union operations are independent of the order in which edges are processed.
 
 **Proof sketch.** Each union operation adds one equation to the generated equivalence closure. The least equivalence relation containing a set of pairs depends on the set, not its enumeration. Union-find representatives may differ internally, but grouping by connectivity and canonical sorting produces the same member sets. ∎
 
@@ -512,7 +512,7 @@ The implementation does not persist the union-find parent forest. It persists th
 
 ### 7.4 Proposition: alternate paths preserve identification
 
-**Proposition 2.** Removing an edge \(e\) does not separate ports \(p,q\) if a path from \(p\) to \(q\) remains in \(E\setminus\{e\}\).
+**Proposition 2.** Removing an edge $e$ does not separate ports $p,q$ if a path from $p$ to $q$ remains in $E\setminus\{e\}$.
 
 This is a basic graph-connectivity result. It matters operationally because “unlink this edge” is not equivalent to “separate these two ports.” The test suite adds an alternate edge, removes the original bridge, and confirms the class does not split.
 
@@ -520,15 +520,15 @@ This is a basic graph-connectivity result. It matters operationally because “u
 
 The quotient describes topology. A separate value function supplies state:
 
-\[
+$$
 v:Q\to V.
-\]
+$$
 
-For a port \(p\), reading is:
+For a port $p$, reading is:
 
-\[
+$$
 \operatorname{read}(p)=v(q(p)).
-\]
+$$
 
 The implementation materializes a binding cell:
 
@@ -548,54 +548,54 @@ This normalization removes the need for propagation. A write to any member updat
 
 ### 8.1 Proposition: linked-port coherence
 
-**Proposition 3.** If \(p\sim_E q\), then `read(p) = read(q)`.
+**Proposition 3.** If $p\sim_E q$, then `read(p) = read(q)`.
 
-**Proof.** Since \(p\sim_E q\), the quotient map gives \(q(p)=q(q)\). Applying the function \(v\) to equal arguments yields \(v(q(p))=v(q(q))\). ∎
+**Proof.** Since $p\sim_E q$, the quotient map gives $q(p)=q(q)$. Applying the function $v$ to equal arguments yields $v(q(p))=v(q(q))$. ∎
 
 This proposition is true by representation, not by a convention that commands must copy values correctly.
 
 ### 8.2 Proposition: write coherence
 
-Define a write to port \(p\) with value \(x\) as replacing \(v(q(p))\) by \(x\). For every \(r\sim_E p\):
+Define a write to port $p$ with value $x$ as replacing $v(q(p))$ by $x$. For every $r\sim_E p$:
 
-\[
+$$
 \operatorname{read}_{\operatorname{write}(p,x)}(r)=x.
-\]
+$$
 
-The implementation reports this as an audit note: “wrote one quotient cell shared by \(n\) port(s).” Figure 4 shows the user-visible consequence.
+The implementation reports this as an audit note: “wrote one quotient cell shared by $n$ port(s).” Figure 4 shows the user-visible consequence.
 
 ![Cross-view focus propagation by one binding-cell update.](figures/02-linked-focus-propagation.png){#fig:focus-propagation width=100%}
 
 
 ### 8.3 Value typing
 
-Each binding class has one sort because all linked endpoints are compatible. Let \(\llbracket A\rrbracket_S\) be the valid runtime values of sort \(A\) in domain state \(S\). A well-formed binding requires:
+Each binding class has one sort because all linked endpoints are compatible. Let $\llbracket A\rrbracket_S$ be the valid runtime values of sort $A$ in domain state $S$. A well-formed binding requires:
 
-\[
+$$
 v(B)\in\llbracket \operatorname{sort}(B)\rrbracket_S.
-\]
+$$
 
 For `order-id`:
 
-\[
+$$
 \llbracket\operatorname{order-id}\rrbracket_S
 =
 \{\mathsf{null}\}\cup\operatorname{dom}(S.\operatorname{orders}).
-\]
+$$
 
 For `subject-ref`, validity requires a recognized subject type and an existing referent in the corresponding domain table.
 
 ### 8.4 Reconciliation is not topology
 
-Before linking, two classes \(B_s\) and \(B_t\) may carry values \(x\) and \(y\). Adding an edge determines the new member set but does not mathematically imply a value. The command must supply an algebra or policy:
+Before linking, two classes $B_s$ and $B_t$ may carry values $x$ and $y$. Adding an edge determines the new member set but does not mathematically imply a value. The command must supply an algebra or policy:
 
-\[
+$$
 \rho:V\times V\to V+\operatorname{Conflict}.
-\]
+$$
 
 The implemented policies are:
 
-\[
+$$
 \begin{aligned}
 \rho_{source}(x,y)&=x,\\
 \rho_{target}(x,y)&=y,\\
@@ -605,7 +605,7 @@ x & x\equiv y,\\
 \operatorname{Conflict}(x,y)&\text{otherwise.}
 \end{cases}
 \end{aligned}
-\]
+$$
 
 `require-equal` demonstrates why this is a transaction. The candidate edge is created only in an uncommitted state. If reconciliation fails, the old graph and revision are returned unchanged.
 
@@ -613,11 +613,11 @@ x & x\equiv y,\\
 
 Removing one edge can leave a class connected or split it into several components. The quotient alone cannot tell which edge to remove; therefore explicit edge provenance is retained.
 
-When a class \(B\) with value \(x\) splits into \(B_1,\ldots,B_k\), the replacement initializes:
+When a class $B$ with value $x$ splits into $B_1,\ldots,B_k$, the replacement initializes:
 
-\[
+$$
 \forall i,\quad v'(B_i)=x.
-\]
+$$
 
 Thus unlinking changes future coupling but not current observations.
 
@@ -631,14 +631,14 @@ After the split, classes are independently writable. A test isolates the inspect
 
 The durable kernel is a transition function:
 
-\[
+$$
 \delta:S\times C\to
 \operatorname{Accepted}(S',F,N)
 +
 \operatorname{Rejected}(r,I).
-\]
+$$
 
-Here \(F\) is a finite list of effects, \(N\) audit notes, \(r\) a reason, and \(I\) optional invariant issues.
+Here $F$ is a finite list of effects, $N$ audit notes, $r$ a reason, and $I$ optional invariant issues.
 
 A command follows the pipeline shown in Figure 5.
 
@@ -662,18 +662,18 @@ An accepted transition:
 
 A rejected transition returns the exact previous state object. It does not increment counters or revisions, install partial edges, or run effects. This gives the atomicity law:
 
-\[
+$$
 \delta(s,c)=\operatorname{Rejected}(-)
 \Longrightarrow s_{after}=s.
-\]
+$$
 
 ### 9.3 Determinism
 
 For explicit state and command data:
 
-\[
+$$
 \forall s,c,\quad \delta(s,c)=\delta(s,c).
-\]
+$$
 
 The expression is logically trivial but operationally meaningful: there are no clock reads, random IDs, module counters, DOM queries, or ambient engines in `applyCommand`. Effects are descriptions, not executions.
 
@@ -722,12 +722,12 @@ Algebraic-effect research provides a more general account in which effectful pro
 
 The kernel checks the incoming state with `assertValidState` and checks every candidate before returning `accepted`. Therefore, assuming `validateState` itself is correct:
 
-\[
+$$
 \operatorname{Valid}(s)\land
 \delta(s,c)=\operatorname{Accepted}(s')
 \Longrightarrow
 \operatorname{Valid}(s').
-\]
+$$
 
 This is an executable preservation theorem schema, not a mechanized proof of each command branch. Tests corrupt an index deliberately and verify that the checker identifies both the local mismatch and missing target binding.
 
@@ -1102,11 +1102,11 @@ This scenario tests the most important replacement claim: there is no propagatio
 
 The “ISOLATE INSPECTOR” scenario removes edge `L-1`. In the star-shaped initial focus graph, that edge is a bridge for the inspector, so the quotient splits into:
 
-\[
+$$
 \{V1,V2,V4\}
 \qquad\text{and}\qquad
 \{V3\}.
-\]
+$$
 
 Both classes retain `ORD-1048`. Clicking the isolated inspector port starts a serializable compatible-port selection. Focus ports in other classes are highlighted; pivot ports are visibly rejected because their sort differs.
 
@@ -1286,15 +1286,15 @@ The browser output is stored at [`docs/e2e-results.txt`](e2e-results.txt).
 
 ## 24. Complexity analysis
 
-Let \(n=|P|\), \(m=|E|\), and \(b=|Q|\).
+Let $n=|P|$, $m=|E|$, and $b=|Q|$.
 
 ### 24.1 Topology rebuild
 
-Union-find initialization is \(O(n)\). Processing links is \(O(m\alpha(n))\) amortized. Grouping ports is \(O(n\alpha(n))\). The implementation then scans edges for each component to collect `edgeIds`, which can reach \(O(bm)\). At the current scale this is immaterial; a production compiler should index edges by root in one pass, reducing the complete rebuild to near \(O((n+m)\alpha(n))\).
+Union-find initialization is $O(n)$. Processing links is $O(m\alpha(n))$ amortized. Grouping ports is $O(n\alpha(n))$. The implementation then scans edges for each component to collect `edgeIds`, which can reach $O(bm)$. At the current scale this is immaterial; a production compiler should index edges by root in one pass, reducing the complete rebuild to near $O((n+m)\alpha(n))$.
 
 ### 24.2 Read and write
 
-`portBinding[portId]` and `bindings[bindingId]` are object-map lookups. Reads are expected \(O(1)\). Writes clone the binding map and one cell; with plain JavaScript objects, copying the top-level map is \(O(b)\). A persistent hash trie or localized mutable transaction could reduce this while preserving snapshot semantics.
+`portBinding[portId]` and `bindings[bindingId]` are object-map lookups. Reads are expected $O(1)$. Writes clone the binding map and one cell; with plain JavaScript objects, copying the top-level map is $O(b)$. A persistent hash trie or localized mutable transaction could reduce this while preserving snapshot semantics.
 
 ### 24.3 Link and unlink
 
@@ -1464,21 +1464,21 @@ A design that says “use a colimit for shared state” without these qualificat
 
 Quotients answer the name-identification question. Compatible state spaces often have a limit shape.
 
-Suppose chart state \(S_C\) and pipeline state \(S_P\) each expose a document observation:
+Suppose chart state $S_C$ and pipeline state $S_P$ each expose a document observation:
 
-\[
+$$
 f:S_C\to D,
 \qquad
 g:S_P\to D.
-\]
+$$
 
 The pairs that already agree form the pullback:
 
-\[
+$$
 S_C\times_D S_P
 =
 \{(c,p)\mid f(c)=g(p)\}.
-\]
+$$
 
 This does not define how to repair a disagreeing pair. It describes the consistent subspace.
 
@@ -1492,15 +1492,15 @@ There are two broad implementation strategies.
 
 ### 29.2 Lens laws
 
-A lens from source \(S\) to view \(A\) has `get` and `put` operations. Classical laws include:
+A lens from source $S$ to view $A$ has `get` and `put` operations. Classical laws include:
 
-\[
+$$
 \begin{aligned}
 \operatorname{get}(\operatorname{put}(s,a))&=a &&\text{(Put-Get)},\\
 \operatorname{put}(s,\operatorname{get}(s))&=s &&\text{(Get-Put)},\\
 \operatorname{put}(\operatorname{put}(s,a),b)&=\operatorname{put}(s,b) &&\text{(Put-Put)}.
 \end{aligned}
-\]
+$$
 
 Bidirectional-transformation research develops combinators satisfying such well-behavedness conditions [Foster et al. 2007]. Lenses are suitable for connecting a port to a nested component-state location or translating between representations. They are not a replacement for the link graph: a multi-party dynamic network can have cycles, concurrent writers, and topology changes outside the classical one-source/one-view lens setting.
 
@@ -1559,11 +1559,11 @@ Long-running workflows, streams, and event loops may not terminate. Interaction 
 
 A future correctness goal for a React adapter is trace refinement:
 
-\[
+$$
 \operatorname{Traces}(H_{React}(p))
 \subseteq
 \operatorname{Traces}(H_{Spec}(p)).
-\]
+$$
 
 The browser may introduce rendering and scheduling steps, but every semantic selection, cancellation, and command must be allowed by the reference handler.
 
@@ -1594,20 +1594,20 @@ ReachableTarget(context, port)
 
 For positive rules over a finite active domain, an immediate-consequence operator
 
-\[
+$$
 T:\mathcal P(F)\to\mathcal P(F)
-\]
+$$
 
-is monotone. The intended facts are the least fixed point \(\mu T\). Tarski established that monotone endofunctions on complete lattices have a complete lattice of fixed points [Tarski 1955].
+is monotone. The intended facts are the least fixed point $\mu T$. Tarski established that monotone endofunctions on complete lattices have a complete lattice of fixed points [Tarski 1955].
 
 ### 31.2 Finite runtime convergence
 
 If only finitely many ground facts can exist and rules only add facts, ascending iteration stabilizes in finitely many strict additions:
 
-\[
+$$
 \varnothing\subseteq T(\varnothing)
 \subseteq T^2(\varnothing)\subseteq\cdots.
-\]
+$$
 
 A worklist or semi-naive evaluator is sufficient. This is the practical target for subtype closure, link reachability, action inheritance, and mounted-candidate queries.
 
@@ -1615,27 +1615,27 @@ A worklist or semi-naive evaluator is sufficient. This is the practical target f
 
 For a general monotone operator on a complete lattice, one may define ordinal approximants:
 
-\[
+$$
 X_0=\bot,
 \qquad
 X_{\alpha+1}=T(X_\alpha),
 \qquad
 X_\lambda=\bigvee_{\beta<\lambda}X_\beta.
-\]
+$$
 
-A transfinite induction proof of an invariant \(I(X_\alpha)\) has base, successor, and limit obligations. This is a legitimate proof technique for general fixed-point semantics. It does not justify ordinal counters in JavaScript.
+A transfinite induction proof of an invariant $I(X_\alpha)$ has base, successor, and limit obligations. This is a legitimate proof technique for general fixed-point semantics. It does not justify ordinal counters in JavaScript.
 
 For Sentinel's current finite ports and edges, connectivity terminates through ordinary finite algorithms. Transfinite reasoning belongs in the general semantics of an extensible recursive rule language, not the link-button event handler.
 
 ### 31.4 Fixed-point induction for safety
 
-If a rule system's operator is monotone, a property \(P\) containing the base facts and closed under one consequence step contains the least fixed point:
+If a rule system's operator is monotone, a property $P$ containing the base facts and closed under one consequence step contains the least fixed point:
 
-\[
+$$
 T(P)\subseteq P
 \Longrightarrow
 \mu T\subseteq P.
-\]
+$$
 
 This is a natural route to proving that every derived action carries a valid capability premise or that every accepted target has compatible sort evidence.
 
@@ -1645,17 +1645,17 @@ The artifact rebuilds derived structures directly. A platform-scale PBUI should 
 
 ### 32.1 Change equation
 
-For query \(q\), world \(W\), and change \(\Delta W\), an incremental implementation should satisfy:
+For query $q$, world $W$, and change $\Delta W$, an incremental implementation should satisfy:
 
-\[
+$$
 \operatorname{eval}(q,W\oplus\Delta W)
 =
 \operatorname{eval}(q,W)
 \oplus
 \operatorname{update}(q,W,\Delta W).
-\]
+$$
 
-The operator \(\oplus\) depends on the result domain. Sets use insertions/removals; maps use keyed patches; lattice facts use joins.
+The operator $\oplus$ depends on the result domain. Sets use insertions/removals; maps use keyed patches; lattice facts use joins.
 
 Differential dataflow generalizes incremental computation to iterative operators and changing inputs [McSherry et al. 2013]. It is relevant if action applicability, link reachability, and cross-view queries become one recursive derived database.
 
@@ -1752,11 +1752,11 @@ Candidate theorems are listed in Chapter 34. The TypeScript implementation can i
 
 The most valuable mechanized theorem is not “the CSS is correct.” It is that optimized and adapter layers refine the semantic core:
 
-\[
+$$
 \operatorname{observe}(\operatorname{Impl}(s,c))
 =
 \operatorname{observe}(\operatorname{Spec}(s,c)).
-\]
+$$
 
 The observation function can ignore caches, generated IDs, and rendering-only fields while preserving domain, topology, values, command outcomes, and effects.
 

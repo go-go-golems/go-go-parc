@@ -45,14 +45,14 @@ Consider the monoid
 
 The forgetful functor
 
-\[
+$$
 U : \mathbf{Mon} \to \mathbf{Set}
-\]
+$$
 
 maps
 
-- the monoid \((\Sigma^*, \cdot, \varepsilon)\)
-- to the underlying set \(\Sigma^*\).
+- the monoid $(\Sigma^*, \cdot, \varepsilon)$
+- to the underlying set $\Sigma^*$.
 
 It forgets
 
@@ -91,9 +91,9 @@ and keeps only the graph structure.
 
 A graph
 
-\[
+$$
 (V,E)
-\]
+$$
 
 has
 
@@ -124,9 +124,9 @@ Every category has
 
 A forgetful functor
 
-\[
+$$
 \mathbf{Cat} \to \mathbf{Graph}
-\]
+$$
 
 keeps
 
@@ -147,21 +147,21 @@ This example is important because the **free category** construction is left adj
 
 Natural numbers form a semiring
 
-\[
+$$
 (\mathbb N,+,\times).
-\]
+$$
 
 A forgetful functor
 
-\[
+$$
 \mathbf{SemiRing}\to\mathbf{Mon}
-\]
+$$
 
 may keep only the additive monoid
 
-\[
+$$
 (\mathbb N,+,0)
-\]
+$$
 
 and forget multiplication.
 

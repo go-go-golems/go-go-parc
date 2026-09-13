@@ -12,7 +12,7 @@
 
 **Explaining the adjunction**
 
-I’m relating monotone maps \(R(C)\to P\) to functors \(C\to I(P)\). Since \(I(P)\) has at most one arrow between objects, a functor is exactly an object map preserving reachability—precisely a monotone map.
+I’m relating monotone maps $R(C)\to P$ to functors $C\to I(P)$. Since $I(P)$ has at most one arrow between objects, a functor is exactly an object map preserving reachability—precisely a monotone map.
 
 **Explained the adjunction**
 
@@ -20,113 +20,113 @@ I’m relating monotone maps \(R(C)\to P\) to functors \(C\to I(P)\). Since \(I(
 
 Let
 
-\[
+$$
 R:\mathbf{Cat}\to \mathbf{Preord}
-\]
+$$
 
-be the **preorder reflection**. For a category \(\mathcal C\),
+be the **preorder reflection**. For a category $\mathcal C$,
 
-\[
+$$
 \operatorname{Ob}(R\mathcal C)=\operatorname{Ob}(\mathcal C),
 \qquad
 x\leq y \iff \operatorname{Hom}_{\mathcal C}(x,y)\neq\varnothing .
-\]
+$$
 
 Also let
 
-\[
+$$
 I:\mathbf{Preord}\to\mathbf{Cat}
-\]
+$$
 
-regard a preorder \(P\) as a **thin category**: there is exactly one morphism \(p\to q\) when \(p\le q\), and none otherwise.
+regard a preorder $P$ as a **thin category**: there is exactly one morphism $p\to q$ when $p\le q$, and none otherwise.
 
 The claim is
 
-\[
+$$
 R\dashv I.
-\]
+$$
 
-This means that for every category \(\mathcal C\) and every preorder \(P\), there is a natural bijection
+This means that for every category $\mathcal C$ and every preorder $P$, there is a natural bijection
 
-\[
+$$
 \mathbf{Preord}(R\mathcal C,P)
 \cong
 \mathbf{Cat}(\mathcal C,I(P)).
-\]
+$$
 
 ### Why the two sides are the same
 
 A monotone map
 
-\[
+$$
 u:R\mathcal C\to P
-\]
+$$
 
 is a function on objects such that
 
-\[
+$$
 \operatorname{Hom}_{\mathcal C}(x,y)\neq\varnothing
 \quad\Longrightarrow\quad
 u(x)\le u(y).
-\]
+$$
 
 But this is exactly the condition needed to define a functor
 
-\[
+$$
 F:\mathcal C\to I(P).
-\]
+$$
 
-Indeed, whenever \(f:x\to y\) is a morphism of \(\mathcal C\), monotonicity gives
+Indeed, whenever $f:x\to y$ is a morphism of $\mathcal C$, monotonicity gives
 
-\[
+$$
 u(x)\le u(y),
-\]
+$$
 
-so there is a morphism \(u(x)\to u(y)\) in \(I(P)\). Since \(I(P)\) is thin, that morphism is unique. Therefore the action of \(F\) on morphisms is forced.
+so there is a morphism $u(x)\to u(y)$ in $I(P)$. Since $I(P)$ is thin, that morphism is unique. Therefore the action of $F$ on morphisms is forced.
 
 Conversely, given a functor
 
-\[
+$$
 F:\mathcal C\to I(P),
-\]
+$$
 
-suppose \(x\le y\) in \(R\mathcal C\). Then some morphism \(x\to y\) exists in \(\mathcal C\). Applying \(F\) produces a morphism
+suppose $x\le y$ in $R\mathcal C$. Then some morphism $x\to y$ exists in $\mathcal C$. Applying $F$ produces a morphism
 
-\[
+$$
 F(x)\to F(y)
-\]
+$$
 
-in \(I(P)\), which means
+in $I(P)$, which means
 
-\[
+$$
 F(x)\le F(y).
-\]
+$$
 
-Thus the object function of \(F\) is a monotone map \(R\mathcal C\to P\).
+Thus the object function of $F$ is a monotone map $R\mathcal C\to P$.
 
 ### Universal-property formulation
 
 There is a canonical functor
 
-\[
+$$
 \eta_{\mathcal C}:\mathcal C\to I(R\mathcal C)
-\]
+$$
 
-that is the identity on objects and sends every morphism \(x\to y\) to the unique morphism \(x\to y\) in the thin category \(I(R\mathcal C)\).
+that is the identity on objects and sends every morphism $x\to y$ to the unique morphism $x\to y$ in the thin category $I(R\mathcal C)$.
 
-Every functor from \(\mathcal C\) into a preorder-category factors uniquely through this map:
+Every functor from $\mathcal C$ into a preorder-category factors uniquely through this map:
 
-\[
+$$
 \begin{array}{ccc}
 \mathcal C & \xrightarrow{F} & I(P)\\
 \downarrow{\eta_{\mathcal C}} & \nearrow_{\!I(u)} &\\
 I(R\mathcal C)&&
 \end{array}
-\]
+$$
 
-The reason is that a preorder-category cannot distinguish two parallel morphisms. It only records whether a morphism exists at all. Therefore \(R\mathcal C\) retains exactly the information that any functor from \(\mathcal C\) into a preorder can observe.
+The reason is that a preorder-category cannot distinguish two parallel morphisms. It only records whether a morphism exists at all. Therefore $R\mathcal C$ retains exactly the information that any functor from $\mathcal C$ into a preorder can observe.
 
-That universal factorization is precisely the statement that preorder reflection is left adjoint to the inclusion \(I\), or equivalently that considering a preorder as a category is right adjoint to preorder reflection.
+That universal factorization is precisely the statement that preorder reflection is left adjoint to the inclusion $I$, or equivalently that considering a preorder as a category is right adjoint to preorder reflection.
 
 
 ---
@@ -153,59 +153,59 @@ An **adjunction** says that two apparently different kinds of mapping problem en
 
 For functors
 
-\[
+$$
 L:\mathcal C\to\mathcal D,
 \qquad
 R:\mathcal D\to\mathcal C,
-\]
+$$
 
-we say \(L\) is left adjoint to \(R\), written
+we say $L$ is left adjoint to $R$, written
 
-\[
+$$
 L\dashv R,
-\]
+$$
 
 when there is a natural correspondence
 
-\[
+$$
 \operatorname{Hom}_{\mathcal D}(L X,Y)
 \;\cong\;
 \operatorname{Hom}_{\mathcal C}(X,R Y).
-\]
+$$
 
 Thus, giving a map
 
-\[
+$$
 LX\to Y
-\]
+$$
 
 is equivalent to giving a map
 
-\[
+$$
 X\to RY.
-\]
+$$
 
-The correspondence must be **natural**: it must commute with ordinary composition rather than being an unrelated bijection chosen separately for every \(X\) and \(Y\).
+The correspondence must be **natural**: it must commute with ordinary composition rather than being an unrelated bijection chosen separately for every $X$ and $Y$.
 
 ## Adjoints are not inverses
 
 An inverse would say
 
-\[
+$$
 RLX\cong X,\qquad LRY\cong Y.
-\]
+$$
 
 An adjunction only provides canonical maps
 
-\[
+$$
 \eta_X:X\to RLX
-\]
+$$
 
 and
 
-\[
+$$
 \varepsilon_Y:LRY\to Y,
-\]
+$$
 
 called the **unit** and **counit**.
 
@@ -222,29 +222,29 @@ That is a tendency, not the definition.
 
 # 1. Currying
 
-Fix a type or set \(A\). Consider
+Fix a type or set $A$. Consider
 
-\[
+$$
 L(X)=A\times X,
 \qquad
 R(Y)=Y^A,
-\]
+$$
 
-where \(Y^A\) is the set of functions \(A\to Y\).
+where $Y^A$ is the set of functions $A\to Y$.
 
 Then
 
-\[
+$$
 A\times -\;\dashv\;(-)^A
-\]
+$$
 
 because
 
-\[
+$$
 \operatorname{Hom}(A\times X,Y)
 \cong
 \operatorname{Hom}(X,Y^A).
-\]
+$$
 
 In programming terms, these are the same function represented in uncurried and curried form:
 
@@ -290,43 +290,43 @@ This is the standard type-theoretic example, but the same pattern appears in les
 
 Let
 
-\[
+$$
 F:\mathbf{Set}\to\mathbf{Monoid}
-\]
+$$
 
-send a set \(X\) to the free monoid of finite lists of elements of \(X\):
+send a set $X$ to the free monoid of finite lists of elements of $X$:
 
-\[
+$$
 F(X)=\operatorname{List}(X).
-\]
+$$
 
 The monoid operation is concatenation, and the identity is the empty list.
 
 Let
 
-\[
+$$
 U:\mathbf{Monoid}\to\mathbf{Set}
-\]
+$$
 
 forget the multiplication and retain only the underlying set.
 
 Then
 
-\[
+$$
 F\dashv U.
-\]
+$$
 
 Explicitly,
 
-\[
+$$
 \operatorname{MonoidHom}(\operatorname{List}(X),M)
 \cong
 \operatorname{Function}(X,U(M)).
-\]
+$$
 
 This has a direct programming meaning.
 
-Suppose \(X\) is a set of primitive instructions and \(M\) is some target system in which instructions can be composed. To define an interpreter for arbitrary programs represented as lists, it is enough to define the meaning of each primitive instruction.
+Suppose $X$ is a set of primitive instructions and $M$ is some target system in which instructions can be composed. To define an interpreter for arbitrary programs represented as lists, it is enough to define the meaning of each primitive instruction.
 
 For example:
 
@@ -355,17 +355,17 @@ The adjunction says more than “a fold exists.” It says there is a **unique m
 
 The unit is
 
-\[
+$$
 x\mapsto[x],
-\]
+$$
 
 which embeds a primitive command as a one-command program.
 
 The counit takes a list of elements of a monoid and multiplies them:
 
-\[
+$$
 [m_1,\ldots,m_n]\mapsto m_1\cdots m_n.
-\]
+$$
 
 This free/forgetful pattern appears in:
 
@@ -381,81 +381,81 @@ This free/forgetful pattern appears in:
 
 This is the example related to the page in the image.
 
-Represent a control-flow graph as a category \(\mathcal C\):
+Represent a control-flow graph as a category $\mathcal C$:
 
 - objects are basic blocks or program states;
 - morphisms are execution paths;
 - composition concatenates paths.
 
-There may be many morphisms \(x\to y\), corresponding to different paths from \(x\) to \(y\).
+There may be many morphisms $x\to y$, corresponding to different paths from $x$ to $y$.
 
 Now form the **reachability preorder**
 
-\[
+$$
 \operatorname{Ref}(\mathcal C)
-\]
+$$
 
 by declaring
 
-\[
+$$
 x\le y
 \quad\Longleftrightarrow\quad
 \text{there exists at least one path }x\to y.
-\]
+$$
 
-This forgets which path reaches \(y\), how many paths there are, and what intermediate states they traverse.
+This forgets which path reaches $y$, how many paths there are, and what intermediate states they traverse.
 
-Conversely, any preorder \(P\) can be viewed as a category \(\operatorname{Inc}(P)\) with at most one arrow between any two objects:
+Conversely, any preorder $P$ can be viewed as a category $\operatorname{Inc}(P)$ with at most one arrow between any two objects:
 
-\[
+$$
 p\to q
 \quad\Longleftrightarrow\quad
 p\le q.
-\]
+$$
 
 Then
 
-\[
+$$
 \operatorname{Ref}\dashv\operatorname{Inc}.
-\]
+$$
 
 The adjunction says
 
-\[
+$$
 \operatorname{Preord}(\operatorname{Ref}(\mathcal C),P)
 \cong
 \operatorname{Cat}(\mathcal C,\operatorname{Inc}(P)).
-\]
+$$
 
 ## Programming interpretation
 
-Suppose \(P\) is a preorder of security levels, program phases, or abstract states.
+Suppose $P$ is a preorder of security levels, program phases, or abstract states.
 
 A functor
 
-\[
+$$
 F:\mathcal C\to \operatorname{Inc}(P)
-\]
+$$
 
-assigns an abstract value \(F(x)\) to every program state while respecting execution paths:
+assigns an abstract value $F(x)$ to every program state while respecting execution paths:
 
-\[
+$$
 x\to y
 \quad\Longrightarrow\quad
 F(x)\le F(y).
-\]
+$$
 
 Because the target is a preorder, it cannot distinguish two different execution paths with the same endpoints. It only observes whether reachability exists.
 
 Therefore such an analysis factors uniquely through the reachability preorder:
 
-\[
+$$
 \mathcal C
 \longrightarrow
 \operatorname{Inc}(\operatorname{Ref}(\mathcal C))
 \longrightarrow
 \operatorname{Inc}(P).
-\]
+$$
 
 The preorder reflection is the exact amount of control-flow information visible to any preorder-valued analysis.
 
@@ -467,77 +467,77 @@ Adjunctions between preorders are often called **Galois connections**.
 
 For preorders, the hom-set definition becomes particularly simple:
 
-\[
+$$
 L\dashv R
 \quad\Longleftrightarrow\quad
 L(x)\le y \iff x\le R(y).
-\]
+$$
 
 This is central in compiler static analysis.
 
 Suppose the concrete domain consists of sets of possible integer values:
 
-\[
+$$
 \mathcal C=\mathcal P(\mathbb Z),
-\]
+$$
 
 ordered by inclusion.
 
 The abstract domain consists of integer intervals:
 
-\[
+$$
 [l,u],
-\]
+$$
 
 also ordered by inclusion of the sets they represent. Include empty and unbounded intervals as needed.
 
 Define the abstraction function
 
-\[
+$$
 \alpha(S)=\text{the smallest interval containing }S
-\]
+$$
 
 and the concretization function
 
-\[
+$$
 \gamma([l,u])
 =
 \{n\in\mathbb Z\mid l\le n\le u\}.
-\]
+$$
 
 Then
 
-\[
+$$
 \alpha\dashv\gamma,
-\]
+$$
 
 because
 
-\[
+$$
 \alpha(S)\subseteq I
 \quad\Longleftrightarrow\quad
 S\subseteq\gamma(I).
-\]
+$$
 
 For example,
 
-\[
+$$
 S=\{2,5,9\}
-\]
+$$
 
 is abstracted to
 
-\[
+$$
 \alpha(S)=[2,9].
-\]
+$$
 
-Why is this adjunction useful? Any sound interval approximation \(I\) must contain every value in \(S\). The adjunction guarantees that \([2,9]\) is the **least** such interval:
+Why is this adjunction useful? Any sound interval approximation $I$ must contain every value in $S$. The adjunction guarantees that $[2,9]$ is the **least** such interval:
 
-\[
+$$
 S\subseteq\gamma(I)
 \quad\Longrightarrow\quad
 [2,9]\subseteq I.
-\]
+$$
 
 So abstraction is not an arbitrary guess. It is the best sound approximation available in the chosen abstract domain.
 
@@ -556,23 +556,23 @@ This pattern appears in:
 
 Suppose
 
-\[
+$$
 f:E\to D
-\]
+$$
 
 maps each employee to their department.
 
 A predicate on employees can be represented by a subset
 
-\[
+$$
 X\subseteq E,
-\]
+$$
 
 and a predicate on departments by a subset
 
-\[
+$$
 Y\subseteq D.
-\]
+$$
 
 There are three important operations.
 
@@ -580,25 +580,25 @@ There are three important operations.
 
 Define
 
-\[
+$$
 f^{-1}(Y)
 =
 \{e\in E\mid f(e)\in Y\}.
-\]
+$$
 
-For example, if \(Y\) is “engineering departments,” then \(f^{-1}(Y)\) is “employees who work in engineering.”
+For example, if $Y$ is “engineering departments,” then $f^{-1}(Y)$ is “employees who work in engineering.”
 
 ## Existential image
 
 Define
 
-\[
+$$
 \exists_f(X)
 =
 \{d\in D\mid
 \text{some employee in }d\text{ belongs to }X
 \}.
-\]
+$$
 
 In SQL-like language:
 
@@ -615,13 +615,13 @@ HAVING EXISTS (
 
 Define
 
-\[
+$$
 \forall_f(X)
 =
 \{d\in D\mid
 \text{every employee in }d\text{ belongs to }X
 \}.
-\]
+$$
 
 This can be implemented as the absence of a counterexample:
 
@@ -638,25 +638,25 @@ WHERE NOT EXISTS (
 
 These operations satisfy two adjunctions:
 
-\[
+$$
 \exists_f\dashv f^{-1}\dashv\forall_f.
-\]
+$$
 
 Explicitly,
 
-\[
+$$
 \exists_f(X)\subseteq Y
 \quad\Longleftrightarrow\quad
 X\subseteq f^{-1}(Y),
-\]
+$$
 
 and
 
-\[
+$$
 f^{-1}(Y)\subseteq X
 \quad\Longleftrightarrow\quad
 Y\subseteq\forall_f(X).
-\]
+$$
 
 This explains why existential and universal quantification naturally occur on opposite sides of predicate substitution.
 
@@ -668,37 +668,37 @@ It is an example involving categories of predicates and queries, not merely type
 
 A more categorical database model treats:
 
-- a database schema as a category \(S\);
-- a database instance as a functor \(S\to\mathbf{Set}\);
-- a schema translation as a functor \(F:S\to T\).
+- a database schema as a category $S$;
+- a database instance as a functor $S\to\mathbf{Set}$;
+- a schema translation as a functor $F:S\to T$.
 
-Given a \(T\)-database, it can be restricted to an \(S\)-database by precomposition:
+Given a $T$-database, it can be restricted to an $S$-database by precomposition:
 
-\[
+$$
 \Delta_F:[T,\mathbf{Set}]
 \to
 [S,\mathbf{Set}],
 \qquad
 I\mapsto I\circ F.
-\]
+$$
 
 This restriction operation usually has both adjoints:
 
-\[
+$$
 \Sigma_F\dashv\Delta_F\dashv\Pi_F.
-\]
+$$
 
 Here:
 
-- \(\Sigma_F\) is a left Kan extension, behaving like existential migration, unioning, or freely combining data;
-- \(\Delta_F\) reinterprets data through the schema map;
-- \(\Pi_F\) is a right Kan extension, behaving like universal migration or collecting compatible tuples.
+- $\Sigma_F$ is a left Kan extension, behaving like existential migration, unioning, or freely combining data;
+- $\Delta_F$ reinterprets data through the schema map;
+- $\Pi_F$ is a right Kan extension, behaving like universal migration or collecting compatible tuples.
 
 The same three-part pattern appeared above:
 
-\[
+$$
 \exists_f\dashv f^{-1}\dashv\forall_f.
-\]
+$$
 
 The powerset example is effectively the predicate-level version of this database migration structure.
 
@@ -710,7 +710,7 @@ The examples look different, but each adjunction states that one construction so
 
 | Setting | Left adjoint | Right adjoint | Meaning |
 |---|---|---|---|
-| Functions | \(A\times-\) | \((-)^A\) | Uncurried versus curried functions |
+| Functions | $A\times-$ | $(-)^A$ | Uncurried versus curried functions |
 | Syntax/algebra | Free monoid | Forgetful functor | Interpret primitives, then uniquely extend |
 | Program graphs | Reachability reflection | Include preorders as categories | Forget path identity, retain existence |
 | Static analysis | Abstraction | Concretization | Best sound approximation |
@@ -727,11 +727,11 @@ A practical way to recognize an adjunction is to look for language such as:
 
 Those are common manifestations of the same structure:
 
-\[
+$$
 \operatorname{Hom}(LX,Y)
 \cong
 \operatorname{Hom}(X,RY).
-\]
+$$
 
 
 ---
@@ -753,7 +753,7 @@ display(img.crop((560,500,1050,950)).resize((980,900)))
 
 **Evaluating the proof**
 
-I’m checking the induction carefully: the left-side argument is essentially valid, though it should state that every morphism is a finite composite of \(s\). The right-side argument appears incomplete, so the grade should reflect a substantial omission.
+I’m checking the induction carefully: the left-side argument is essentially valid, though it should state that every morphism is a finite composite of $s$. The right-side argument appears incomplete, so the grade should reflect a substantial omission.
 
 **Evaluated the proof**
 
@@ -771,7 +771,7 @@ display(img2.resize((768,1024)))
 
 **Completing the grading**
 
-I’m assigning about 5/10: the left-side proof is mostly correct but could clarify the induction, while the right-side argument is essentially missing. A complete answer should exhibit a noninvertible morphism, such as \(s^2\).
+I’m assigning about 5/10: the left-side proof is mostly correct but could clarify the induction, while the right-side argument is essentially missing. A complete answer should exhibit a noninvertible morphism, such as $s^2$.
 
 **Completed the grading**
 
@@ -783,43 +783,43 @@ I’m assigning about 5/10: the left-side proof is mostly correct but could clar
 
 Your induction argument is essentially correct. You correctly observe that:
 
-\[
+$$
 \operatorname{id}_z^{-1}=\operatorname{id}_z,
 \qquad
 s^{-1}=s
-\]
+$$
 
-because \(s\circ s=\operatorname{id}_z\). You then correctly show that, when \(f\) is invertible, \(f\circ s\) has inverse \(s\circ f^{-1}\):
+because $s\circ s=\operatorname{id}_z$. You then correctly show that, when $f$ is invertible, $f\circ s$ has inverse $s\circ f^{-1}$:
 
-\[
+$$
 (s\circ f^{-1})(f\circ s)
 =s\circ(f^{-1}f)\circ s
 =s\circ s
 =\operatorname{id}_z,
-\]
+$$
 
 and
 
-\[
+$$
 (f\circ s)(s\circ f^{-1})
 =f\circ(s\circ s)\circ f^{-1}
 =f\circ f^{-1}
 =\operatorname{id}_z.
-\]
+$$
 
 The missing sentence is:
 
-> Every morphism is a finite composite of copies of \(s\), so induction on the length of that composite covers every morphism.
+> Every morphism is a finite composite of copies of $s$, so induction on the length of that composite covers every morphism.
 
-There is also a substantially shorter proof. Since \(s^2=\operatorname{id}_z\),
+There is also a substantially shorter proof. Since $s^2=\operatorname{id}_z$,
 
-\[
+$$
 s^{2n}=\operatorname{id}_z,
 \qquad
 s^{2n+1}=s.
-\]
+$$
 
-Thus the only morphisms are \(\operatorname{id}_z\) and \(s\), and both are invertible. This is the cyclic group \(\mathbb Z/2\mathbb Z\).
+Thus the only morphisms are $\operatorname{id}_z$ and $s$, and both are invertible. This is the cyclic group $\mathbb Z/2\mathbb Z$.
 
 ### Right-hand category: 0.5/5
 
@@ -827,47 +827,47 @@ You identified that you need to show some morphism is not invertible, but the pr
 
 Here the relation is
 
-\[
+$$
 s^4=s^2.
-\]
+$$
 
 Every sufficiently long power reduces by two:
 
-\[
+$$
 s^n=s^{n-2}\qquad(n\ge 4).
-\]
+$$
 
 Consequently, the morphisms have representatives
 
-\[
+$$
 \operatorname{id}_z,\quad s,\quad s^2,\quad s^3.
-\]
+$$
 
-Now test every possible inverse for \(s\):
+Now test every possible inverse for $s$:
 
-\[
+$$
 \begin{aligned}
 s\operatorname{id}_z&=s,\\
 s\cdot s&=s^2,\\
 s\cdot s^2&=s^3,\\
 s\cdot s^3&=s^4=s^2.
 \end{aligned}
-\]
+$$
 
-None of these is \(\operatorname{id}_z\). Therefore \(s\) has no inverse, so this one-object category is not a group.
+None of these is $\operatorname{id}_z$. Therefore $s$ has no inverse, so this one-object category is not a group.
 
-You must not cancel \(s^2\) from
+You must not cancel $s^2$ from
 
-\[
+$$
 s^4=s^2
-\]
+$$
 
-to conclude \(s^2=\operatorname{id}_z\), because cancellation is only justified after invertibility has been established.
+to conclude $s^2=\operatorname{id}_z$, because cancellation is only justified after invertibility has been established.
 
 A polished complete answer would be:
 
-> In the left category, \(s^2=\operatorname{id}_z\), so every power of \(s\) is either \(\operatorname{id}_z\) or \(s\). Both are invertible, with \(s^{-1}=s\), so it is a group.  
-> In the right category, \(s^4=s^2\), so every morphism is represented by \(\operatorname{id}_z,s,s^2,\) or \(s^3\). Multiplying \(s\) by any of these never gives \(\operatorname{id}_z\). Hence \(s\) is not invertible, and the category is not a group.
+> In the left category, $s^2=\operatorname{id}_z$, so every power of $s$ is either $\operatorname{id}_z$ or $s$. Both are invertible, with $s^{-1}=s$, so it is a group.  
+> In the right category, $s^4=s^2$, so every morphism is represented by $\operatorname{id}_z,s,s^2,$ or $s^3$. Multiplying $s$ by any of these never gives $\operatorname{id}_z$. Hence $s$ is not invertible, and the category is not a group.
 
 
 ---
@@ -899,32 +899,32 @@ crop2.save('/mnt/data/crop_relation2.png')
 
 **Assessing the counterexample**
 
-I’m distinguishing between naming \(s\) and proving it works. \(s\) is the right witness, but a rigorous answer should briefly show that no power of \(s\) acts as its inverse; otherwise, it may receive only partial credit.
+I’m distinguishing between naming $s$ and proving it works. $s$ is the right witness, but a rigorous answer should briefly show that no power of $s$ acts as its inverse; otherwise, it may receive only partial credit.
 
 **Assessed the counterexample**
 
 </details>
 
-\(s\) is the correct counterexample. But merely writing “counterexample: \(s\)” does not yet show that it is a counterexample—you must verify that \(s\) has no inverse.
+$s$ is the correct counterexample. But merely writing “counterexample: $s$” does not yet show that it is a counterexample—you must verify that $s$ has no inverse.
 
 One additional line would make the argument complete:
 
-\[
+$$
 \operatorname{Hom}(z,z)=\{\operatorname{id}_z,s,s^2,s^3\},
-\]
+$$
 
 and
 
-\[
+$$
 s\operatorname{id}_z=s,\qquad
 s^2,\qquad
 s^3,\qquad
 s^4=s^2.
-\]
+$$
 
-None equals \(\operatorname{id}_z\), so no morphism is an inverse of \(s\). Therefore the category is not a group.
+None equals $\operatorname{id}_z$, so no morphism is an inverse of $s$. Therefore the category is not a group.
 
-So your idea was right, and my previous \(0.5/5\) for that portion was too harsh. I would give substantial partial credit—perhaps **1.5–2/5**—but a full proof needs the verification above.
+So your idea was right, and my previous $0.5/5$ for that portion was too harsh. I would give substantial partial credit—perhaps **1.5–2/5**—but a full proof needs the verification above.
 
 
 ---
@@ -953,7 +953,7 @@ It is analogous to a finitely presented group or monoid.
 
 For example,
 
-\[
+$$
 \mathcal C=
 \left\langle
 z;\;
@@ -961,73 +961,73 @@ s:z\to z
 \;\middle|\;
 s\circ s=\operatorname{id}_z
 \right\rangle
-\]
+$$
 
 means:
 
-- there is one object \(z\);
-- there is one generating morphism \(s:z\to z\);
-- the equation \(s^2=\operatorname{id}_z\) is imposed.
+- there is one object $z$;
+- there is one generating morphism $s:z\to z$;
+- the equation $s^2=\operatorname{id}_z$ is imposed.
 
 Before imposing the equation, the generated paths are
 
-\[
+$$
 \operatorname{id}_z,\ s,\ s^2,\ s^3,\ldots
-\]
+$$
 
-After imposing \(s^2=\operatorname{id}_z\), additional equations follow:
+After imposing $s^2=\operatorname{id}_z$, additional equations follow:
 
-\[
+$$
 s^3=s,\qquad s^4=\operatorname{id}_z,\qquad \ldots
-\]
+$$
 
 Thus this category has only two morphisms:
 
-\[
+$$
 \operatorname{Hom}(z,z)=\{\operatorname{id}_z,s\}.
-\]
+$$
 
 ## Formal construction
 
-Start with a finite directed graph \(G\):
+Start with a finite directed graph $G$:
 
 - vertices are generating objects;
 - edges are generating morphisms.
 
-Form the **free category** \(F(G)\):
+Form the **free category** $F(G)$:
 
-- objects are the vertices of \(G\);
+- objects are the vertices of $G$;
 - morphisms are finite directed paths;
 - composition is concatenation of paths;
-- the empty path at \(x\) is \(\operatorname{id}_x\).
+- the empty path at $x$ is $\operatorname{id}_x$.
 
 Then choose finitely many equations
 
-\[
+$$
 p_i=q_i
-\]
+$$
 
-where \(p_i\) and \(q_i\) are parallel paths: they have the same source and target.
+where $p_i$ and $q_i$ are parallel paths: they have the same source and target.
 
 The presented category is
 
-\[
+$$
 \mathcal C=F(G)/{\sim},
-\]
+$$
 
-where \(\sim\) is the smallest equivalence relation containing the stated equations and compatible with composition.
+where $\sim$ is the smallest equivalence relation containing the stated equations and compatible with composition.
 
 Compatibility with composition means that from
 
-\[
+$$
 p=q
-\]
+$$
 
 you must also conclude
 
-\[
+$$
 r\circ p\circ t=r\circ q\circ t
-\]
+$$
 
 whenever those composites make sense. This is why one stated relation can imply many additional equations.
 
@@ -1037,39 +1037,39 @@ A finitely presented category can have infinitely many morphisms.
 
 For example,
 
-\[
+$$
 \left\langle
 z;\;s:z\to z
 \;\middle|\;
 \text{no relations}
 \right\rangle
-\]
+$$
 
 is finitely presented: it has one object, one generating morphism, and zero relations. But its morphisms are
 
-\[
+$$
 \operatorname{id}_z,s,s^2,s^3,\ldots,
-\]
+$$
 
 so it is infinite.
 
 Conversely, the presentation
 
-\[
+$$
 \left\langle
 z;\;s:z\to z
 \;\middle|\;
 s^4=s^2
 \right\rangle
-\]
+$$
 
 has the four morphisms represented by
 
-\[
+$$
 \operatorname{id}_z,\quad s,\quad s^2,\quad s^3,
-\]
+$$
 
-because every higher power reduces using \(s^n=s^{n-2}\) for \(n\ge 4\).
+because every higher power reduces using $s^n=s^{n-2}$ for $n\ge 4$.
 
 ## Universal property
 
@@ -1077,35 +1077,35 @@ A presentation gives a convenient way to define functors out of the category.
 
 To define
 
-\[
+$$
 F:\mathcal C\to\mathcal D,
-\]
+$$
 
 it is enough to:
 
-- choose an object \(F(x)\) for each generating object \(x\);
-- choose a morphism \(F(f)\) for each generating morphism \(f\);
+- choose an object $F(x)$ for each generating object $x$;
+- choose a morphism $F(f)$ for each generating morphism $f$;
 - verify that the chosen morphisms satisfy all the stated equations.
 
 The assignment then extends uniquely to a functor.
 
 For instance, a functor from
 
-\[
+$$
 \left\langle z;s\mid s^2=\operatorname{id}_z\right\rangle
-\]
+$$
 
-to \(\mathcal D\) is exactly the choice of an object \(d\in\mathcal D\) and an endomorphism
+to $\mathcal D$ is exactly the choice of an object $d\in\mathcal D$ and an endomorphism
 
-\[
+$$
 t:d\to d
-\]
+$$
 
 such that
 
-\[
+$$
 t^2=\operatorname{id}_d.
-\]
+$$
 
 So a finite presentation is a finite piece of syntax specifying a category, even when the resulting category itself is infinite.
 

@@ -27,11 +27,11 @@ Your answer is **essentially correct**.
 
 The key correction: for Exercise 6, **one composite is not enough** in a general category. To prove an isomorphism, you need both
 
-\[
+$$
 k\circ h = id_{a\times b}
 \qquad\text{and}\qquad
 h\circ k = id_{b\times a}.
-\]
+$$
 
 You may prove one and say “similarly” for the other, but do not say only one direction is needed.
 
@@ -39,85 +39,85 @@ A clean write-up would be:
 
 Let
 
-\[
+$$
 p_a:a\times b\to a,\qquad p_b:a\times b\to b
-\]
+$$
 
 be the projections, and let
 
-\[
+$$
 q_b:b\times a\to b,\qquad q_a:b\times a\to a
-\]
+$$
 
 be the projections.
 
-By the universal property of \(b\times a\), there is a unique map
+By the universal property of $b\times a$, there is a unique map
 
-\[
+$$
 h:a\times b\to b\times a
-\]
+$$
 
 such that
 
-\[
+$$
 q_bh=p_b,\qquad q_ah=p_a.
-\]
+$$
 
-By the universal property of \(a\times b\), there is a unique map
+By the universal property of $a\times b$, there is a unique map
 
-\[
+$$
 k:b\times a\to a\times b
-\]
+$$
 
 such that
 
-\[
+$$
 p_ak=q_a,\qquad p_bk=q_b.
-\]
+$$
 
-Now check the composite \(k h:a\times b\to a\times b\):
+Now check the composite $k h:a\times b\to a\times b$:
 
-\[
+$$
 p_a(kh)=(p_ak)h=q_ah=p_a,
-\]
+$$
 
 and
 
-\[
+$$
 p_b(kh)=(p_bk)h=q_bh=p_b.
-\]
+$$
 
-So \(kh\) has the same composites with the projections as \(id_{a\times b}\). By uniqueness in the product universal property,
+So $kh$ has the same composites with the projections as $id_{a\times b}$. By uniqueness in the product universal property,
 
-\[
+$$
 kh=id_{a\times b}.
-\]
+$$
 
 Similarly,
 
-\[
+$$
 q_b(hk)=q_b,\qquad q_a(hk)=q_a,
-\]
+$$
 
 so
 
-\[
+$$
 hk=id_{b\times a}.
-\]
+$$
 
 Therefore
 
-\[
+$$
 a\times b\cong b\times a.
-\]
+$$
 
 For Exercise 5, your answer is correct:
 
-\[
+$$
 id_a\times id_b=id_{a\times b},
-\]
+$$
 
-because both maps \(a\times b\to a\times b\) have the same composites with the two projections.
+because both maps $a\times b\to a\times b$ have the same composites with the two projections.
 
-Your smaller diagram is enough. The main thing is to label the projections by their **codomain**, like \(p_a,p_b,q_b,q_a\), because using only \(\pi_1,\pi_2\) gets confusing when switching from \(a\times b\) to \(b\times a\).
+Your smaller diagram is enough. The main thing is to label the projections by their **codomain**, like $p_a,p_b,q_b,q_a$, because using only $\pi_1,\pi_2$ gets confusing when switching from $a\times b$ to $b\times a$.
 

@@ -170,21 +170,21 @@ Classical universal-approximation theory explains MLPs reasonably well when the 
 
 ### The measure-theoretic viewpoint
 
-For tokens \(x_1,\ldots,x_n\), represent the context by the empirical probability measure
+For tokens $x_1,\ldots,x_n$, represent the context by the empirical probability measure
 
-\[
+$$
 \mu_n=\frac1n\sum_{i=1}^{n}\delta_{x_i}.
-\]
+$$
 
 Instead of treating a prompt merely as one long vector, the theory treats it as a probability distribution over token representations.
 
 An in-context operation can then be written schematically as
 
-\[
+$$
 (x,\mu)\longmapsto F(x,\mu),
-\]
+$$
 
-where \(x\) is the token being updated and \(\mu\) describes its context.
+where $x$ is the token being updated and $\mu$ describes its context.
 
 The relevant continuity is measured using a **Wasserstein distance** between token distributions. This gives a single framework covering finite sequences, sequences of different lengths, and limiting distributions containing infinitely many tokens.
 
@@ -205,15 +205,15 @@ Thus the theoretical power of attention is not tied to a predetermined context l
 
 An MLP can construct complicated nonlinear functions of an individual token, but it cannot by itself aggregate information from the context. Attention supplies operations resembling integrals against the contextual distribution:
 
-\[
+$$
 x\longmapsto
 \frac{\int e^{\langle Qx,Ky\rangle}Vy\,d\mu(y)}
      {\int e^{\langle Qx,Ky\rangle}\,d\mu(y)}.
-\]
+$$
 
 By composing these contextual aggregation operations with tokenwise MLPs, a transformer can construct increasingly general functions of both a token and its surrounding distribution.
 
-The proof strategy is therefore different from a standard MLP proof: it must establish approximation in an **infinite-dimensional space of probability measures**, not merely in \(\mathbb R^d\).
+The proof strategy is therefore different from a standard MLP proof: it must establish approximation in an **infinite-dimensional space of probability measures**, not merely in $\mathbb R^d$.
 
 ### Important limitation
 
@@ -227,17 +227,17 @@ The proof strategy is therefore different from a standard MLP proof: it must est
 
 Expressivity only establishes that suitable transformer parameters **exist**. Optimization, sample complexity, robustness and generalization are separate problems.
 
-Peyré’s related analysis also shows why stability is nontrivial: the Lipschitz constant of self-attention can grow approximately as \(\sqrt n\) with sequence length in one regime, although a sequence-length-independent mean-field regime emerges for sufficiently large contexts. citeturn175097academia19
+Peyré’s related analysis also shows why stability is nontrivial: the Lipschitz constant of self-attention can grow approximately as $\sqrt n$ with sequence length in one regime, although a sequence-length-independent mean-field regime emerges for sufficiently large contexts. citeturn175097academia19
 
 ### Bottom line
 
 The lecture’s main conceptual move is:
 
-\[
+$$
 \text{variable-length token sequence}
 \quad\longrightarrow\quad
 \text{probability distribution of tokens}.
-\]
+$$
 
 That transformation lets transformer expressivity be studied using Wasserstein geometry and infinite-dimensional approximation theory. It provides a rigorous explanation of why attention can implement highly general context-dependent operations, while leaving open whether those operations can be learned efficiently or reliably in real LLMs. The official recording is available on the Carmin/IHES page. citeturn694179view0
 
@@ -298,17 +298,17 @@ The system does not store every sentence, image, or chess position. It discovers
 
 He introduces three principal objects.
 
-### Signal flows: \(\mathrm{SIG}\)
+### Signal flows: $\mathrm{SIG}$
 
 A signal flow may consist of text, speech, images, motion, tactile information, or synchronized combinations of modalities. The important point is that the learner initially receives signals, not ready-made objects, meanings, grammatical rules, or concepts. citeturn149615view1
 
-### The understanding network: \(\mathrm{NET}\)
+### The understanding network: $\mathrm{NET}$
 
 From the signal flow, the learner constructs a multiscale, multilayer, “colored” network:
 
-\[
+$$
 \mathrm{SIG}\longrightarrow \mathrm{NET}.
-\]
+$$
 
 A modernized interpretation is:
 
@@ -319,24 +319,24 @@ A modernized interpretation is:
 
 The network is created by suppressing redundancy, identifying recurring structures, and grouping similar signals. It is dynamic: perception activates it, responses are generated from it, and learning continually modifies it. citeturn149615view1turn411876view3
 
-### The learning operation: \(L\)
+### The learning operation: $L$
 
 Gromov wants a general learning rule of the form
 
-\[
+$$
 \mathrm{NET}_{t+1}
    =L(\mathrm{NET}_t,\mathrm{SIG}_t).
-\]
+$$
 
 The learner begins with a relatively small “baby” network and repeatedly updates it through exposure to signals. He proposes defining understanding as a **quasi-stationary state**: the network has become sufficiently organized that ordinary new signals refine it without radically reorganizing it. citeturn411876view1
 
 That is one of the paper’s most important distinctions:
 
-\[
+$$
 \text{simple learning rules}
 \quad\not\Rightarrow\quad
 \text{simple learned representation}.
-\]
+$$
 
 A short algorithm may produce an enormously complicated network, just as simple dynamical laws can generate extremely intricate trajectories.
 
@@ -386,15 +386,15 @@ Classification, clustering, summarization, quotienting, and generalization all r
 
 Examples include:
 
-\[
+$$
 \text{individual cat}\rightarrow\text{cat}\rightarrow\text{animal},
-\]
+$$
 
 or
 
-\[
+$$
 \text{long text}\rightarrow\text{summary}.
-\]
+$$
 
 Understanding therefore involves compression, but not arbitrary compression. The reduced representation must preserve relations important for prediction, reconstruction, action, or further reasoning. citeturn149615view2turn441816view0
 
@@ -406,9 +406,9 @@ The meaning of a signal cannot generally be assigned independently of its surrou
 
 Gromov adopts a version of the **distributional hypothesis**:
 
-\[
+$$
 \text{the meaning of a unit is determined by its functional relations}.
-\]
+$$
 
 In his network vocabulary, meanings are something like types or “colors” attached to similarity and functional links. A word does not possess meaning as an isolated object; its meaning comes from its position in a relational system. citeturn149615view2turn441816view0
 
@@ -425,15 +425,15 @@ Near the end of the draft, Gromov describes predictive competence as one compone
 
 He also proposes a reverse map:
 
-\[
+$$
 \mathrm{NET}\longrightarrow\mathrm{SIG}.
-\]
+$$
 
 The network formed from language must itself generate language. Speech or text production can be viewed as movement through a network of learned rules and relationships. He therefore sees perception and generation as dual processes:
 
-\[
+$$
 \mathrm{SIG}\rightleftarrows\mathrm{NET}.
-\]
+$$
 
 This is strikingly close to the encoder–generative-model distinction, although Gromov does not specify a neural implementation. citeturn812588view7turn441816view0
 
@@ -454,7 +454,7 @@ This resembles Gromov’s program in several respects:
 
 Multimodal systems also move toward Gromov’s broader proposal by learning joint relationships between language and images rather than treating language as an isolated signal flow. CLIP, for example, learns a shared image–text representation through correspondence between paired signals. citeturn481232search1turn481232search3
 
-But Gromov’s \(\mathrm{NET}\) should not be identified literally with a transformer. An LLM’s knowledge is distributed across parameters and context-dependent activations, not stored as an explicit graph with interpretable nodes and typed edges. His network is an abstract target description of cognitive organization, not an architecture specification.
+But Gromov’s $\mathrm{NET}$ should not be identified literally with a transformer. An LLM’s knowledge is distributed across parameters and context-dependent activations, not stored as an explicit graph with interpretable nodes and typed edges. His network is an abstract target description of cognitive organization, not an architecture specification.
 
 ## What the paper gets right
 
@@ -486,12 +486,12 @@ Finally, his biological and evolutionary discussions contain broad conjectures a
 
 The paper’s most useful formulation is:
 
-\[
+$$
 \boxed{
 \text{Understanding is a stable, multiscale relational model
 constructed from signal flows by universal learning rules.}
 }
-\]
+$$
 
 It is a strong conceptual blueprint but not a finished theory. Modern LLMs provide evidence that several ingredients—distributional learning, contextual representation, prediction, compression, and general-purpose generation—are remarkably powerful. They do **not** establish that these ingredients alone satisfy Gromov’s larger conception of understanding, especially where grounding, causal structure, self-modeling, and reliable abstraction are concerned.
 

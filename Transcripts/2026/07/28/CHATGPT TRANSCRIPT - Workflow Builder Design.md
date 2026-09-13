@@ -288,7 +288,7 @@ bash -lc wc -l -w -c /mnt/data/scraper_workflow_framework_design.md && sed -n '1
 from pathlib import Path
 p = Path("/mnt/data/scraper_workflow_framework_design.md")
 s = p.read_text(encoding="utf-8")
-needle = "---\n\n## How to read this document"
+needle = "---\\n\\n## How to read this document"
 toc = """---
 
 ## Contents

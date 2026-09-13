@@ -81,7 +81,7 @@ bash -lc pdftotext -layout /mnt/data/fermat_spirals.pdf /mnt/data/fermat_spirals
 
 **Clarifying the geometry**
 
-I’m distinguishing a true Fermat curve, \(r=a\sqrt{\theta}\), from the paper’s Fermat-style path. The method uses evenly spaced inward offsets, then connects alternating contours into one spiral-like route.
+I’m distinguishing a true Fermat curve, $r=a\sqrt{\theta}$, from the paper’s Fermat-style path. The method uses evenly spaced inward offsets, then connects alternating contours into one spiral-like route.
 
 **Clarified the geometry**
 
@@ -237,23 +237,23 @@ You do not need much classical geometry. You mainly need four ideas.
 
 | Term | Plain meaning | CNC analogy |
 |---|---|---|
-| Region \(R\) | The area that must be filled | Pocket or machining boundary |
-| Boundary \(\partial R\) | The outline and hole outlines | Part contour |
-| Distance field \(D_R\) | Distance from every interior point to the nearest boundary | A map of how far you are from the wall |
+| Region $R$ | The area that must be filled | Pocket or machining boundary |
+| Boundary $\partial R$ | The outline and hole outlines | Part contour |
+| Distance field $D_R$ | Distance from every interior point to the nearest boundary | A map of how far you are from the wall |
 | Iso-contour | All points with the same distance value | An inward offset curve |
 
 ## The distance field
 
-For every point \(p=(x,y)\) inside the shape, define:
+For every point $p=(x,y)$ inside the shape, define:
 
-\[
+$$
 D_R(p)=\min_{q\in\partial R}\|p-q\|
-\]
+$$
 
 This says:
 
-1. Consider every point \(q\) on the boundary.
-2. Measure the Euclidean distance from \(p\) to \(q\).
+1. Consider every point $q$ on the boundary.
+2. Measure the Euclidean distance from $p$ to $q$.
 3. Keep the shortest one.
 
 Imagine turning the shape into terrain:
@@ -266,21 +266,21 @@ Imagine turning the shape into terrain:
 
 An iso-contour is a horizontal contour line on this imaginary terrain:
 
-\[
+$$
 c(d)=\{p\in R:D_R(p)=d\}
-\]
+$$
 
-So \(c(2\text{ mm})\) is the curve consisting of all points exactly 2 mm from the nearest boundary.
+So $c(2\text{ mm})$ is the curve consisting of all points exactly 2 mm from the nearest boundary.
 
 In CAM terms, these are essentially successive inward offsets.
 
 The paper uses offsets located at approximately
 
-\[
+$$
 d_i=\left(i-\frac12\right)w
-\]
+$$
 
-where \(w\) is the desired fill width or path spacing. The first centerline is therefore half a bead width from the boundary, then the others occur one width apart. citeturn312811search0
+where $w$ is the desired fill width or path spacing. The first centerline is therefore half a bead width from the boundary, then the others occur one width apart. citeturn312811search0
 
 ---
 
@@ -290,18 +290,18 @@ A normal curve is one-dimensional, so mathematically it has no area. Fabrication
 
 You can think of it as sweeping a disk along the path:
 
-\[
+$$
 \text{covered area}\approx P\oplus B_{w/2}
-\]
+$$
 
 In plain language:
 
-- \(P\) is the centerline.
-- \(B_{w/2}\) is a disk with radius half the extrusion width.
-- Move that disk along \(P\).
+- $P$ is the centerline.
+- $B_{w/2}$ is a disk with radius half the extrusion width.
+- Move that disk along $P$.
 - The swept area should approximately equal the required region.
 
-For milling, replace \(w/2\) with the effective cutter radius when considering swept cutter area, while treating stepover separately.
+For milling, replace $w/2$ with the effective cutter radius when considering swept cutter area, while treating stepover separately.
 
 This is also why uniform spacing matters. If two passes are too close, their swept areas overlap excessively. If they are too far apart, a gap remains.
 
@@ -362,20 +362,20 @@ A useful mental model is:
 
 In polar coordinates, a point is represented by:
 
-- \(r\): distance from the origin.
-- \(\theta\): angle around the origin.
+- $r$: distance from the origin.
+- $\theta$: angle around the origin.
 
 A classical Fermat spiral satisfies:
 
-\[
+$$
 r^2=a^2\theta
-\]
+$$
 
 or equivalently:
 
-\[
+$$
 r=\pm a\sqrt{\theta}
-\]
+$$
 
 The positive and negative signs give two interleaving branches. citeturn425488search0turn425488search2
 
@@ -430,16 +430,16 @@ That means the algorithm can enter a pocket from a parent path, fill the entire 
 
 Suppose a simple pocket has offset rings:
 
-\[
+$$
 C_0,C_1,C_2,C_3,C_4,C_5
-\]
+$$
 
 A practical way to understand the two arms is:
 
-- The inward arm uses approximately \(C_0,C_2,C_4\).
-- The outward arm uses approximately \(C_5,C_3,C_1\), in reverse order.
+- The inward arm uses approximately $C_0,C_2,C_4$.
+- The outward arm uses approximately $C_5,C_3,C_1$, in reverse order.
 - They join near the center.
-- The start on \(C_0\) and exit on \(C_1\) can be placed near each other.
+- The start on $C_0$ and exit on $C_1$ can be placed near each other.
 
 ```text
 Start
@@ -461,14 +461,14 @@ A simplified independent Python implementation makes this interpretation explici
 
 # 5. How the individual offset rings are connected
 
-Assume we already have an ordinary spiral path \(\pi\) through a spirallable pocket.
+Assume we already have an ordinary spiral path $\pi$ through a spirallable pocket.
 
-For a point \(p\) on one turn, the distance-field gradient points approximately perpendicular to the local offset contour and inward toward the next turn.
+For a point $p$ on one turn, the distance-field gradient points approximately perpendicular to the local offset contour and inward toward the next turn.
 
 The paper defines two conceptual links:
 
-- \(I(p)\): the point where an inward gradient trace reaches the next inner part of the spiral.
-- \(O(p)\): the corresponding outward link.
+- $I(p)$: the point where an inward gradient trace reaches the next inner part of the spiral.
+- $O(p)$: the corresponding outward link.
 
 These are essentially cross-links between adjacent turns.
 
@@ -509,9 +509,9 @@ C0 — C1 — C2
 
 Here:
 
-- \(C_0\) is the outer contour.
-- \(C_2\) reaches a branching area.
-- \(C_{3a}\) and \(C_{3b}\) belong to different pockets.
+- $C_0$ is the outer contour.
+- $C_2$ reaches a branching area.
+- $C_{3a}$ and $C_{3b}$ belong to different pockets.
 
 The paper represents this using a **spiral-contour tree**.
 
@@ -519,30 +519,30 @@ The paper represents this using a **spiral-contour tree**.
 
 Every individual contour is a node:
 
-\[
+$$
 c_{i,j}
-\]
+$$
 
 where:
 
-- \(i\) is the offset-depth level.
-- \(j\) distinguishes disconnected contours at the same depth.
+- $i$ is the offset-depth level.
+- $j$ distinguishes disconnected contours at the same depth.
 
 For example:
 
-\[
+$$
 c_{4,1},\quad c_{4,2},\quad c_{4,3}
-\]
+$$
 
 are three separate loops at the fourth offset level.
 
 ## Candidate edges
 
-Edges are considered between contours on neighboring depth levels, such as \(c_{i,j}\) and \(c_{i+1,j'}\).
+Edges are considered between contours on neighboring depth levels, such as $c_{i,j}$ and $c_{i+1,j'}$.
 
 The formal candidate region is:
 
-\[
+$$
 O_{i,j,j'}
 =
 \left\{
@@ -552,7 +552,7 @@ d(p,c_{i+1,j'})
 d(p,c_{i+1,k})
 \text{ for }k\ne j'
 \right\}
-\]
+$$
 
 This looks worse than it is. It means:
 
@@ -648,7 +648,7 @@ parent contour ───── A     B ───── parent contour
                       spiral
 ```
 
-The parent contour is cut near points \(A\) and \(B\). The child spiral is inserted between them:
+The parent contour is cut near points $A$ and $B$. The child spiral is inserted between them:
 
 ```text
 parent before A
@@ -683,7 +683,7 @@ The final result is analogous to a depth-first traversal of a tree, except that 
 
 # 9. Why the raw result is not yet machine-quality
 
-After rerouting, the path is continuous in the \(C^0\) sense:
+After rerouting, the path is continuous in the $C^0$ sense:
 
 - Consecutive pieces meet at the same coordinate.
 - There is no positional gap.
@@ -721,35 +721,35 @@ Therefore the paper performs a post-optimization.
 
 Let the raw path be sampled into points:
 
-\[
+$$
 p_1^0,p_2^0,\ldots,p_N^0
-\]
+$$
 
 The optimized points are:
 
-\[
+$$
 p_1,p_2,\ldots,p_N
-\]
+$$
 
 The objective is approximately:
 
-\[
+$$
 E(P)
 =
 E_{\text{stay}}
 +\alpha E_{\text{smooth}}
 +\beta E_{\text{spacing}}
-\]
+$$
 
 Each term has a specific job.
 
 ## A. Stay near the original path
 
-\[
+$$
 E_{\text{stay}}
 =
 \sum_i\|p_i-p_i^0\|^2
-\]
+$$
 
 This penalizes large movement.
 
@@ -765,24 +765,24 @@ A common discrete smoothness term compares a point with an average of its neighb
 
 For uniformly spaced samples, a simple form would be:
 
-\[
+$$
 \|p_i-2p_{i+1}+p_{i+2}\|^2
-\]
+$$
 
 If three points lie on a straight line at even spacing, this is zero.
 
 The paper uses a chord-length-weighted version:
 
-\[
+$$
 E_{\text{smooth}}
 =
 \sum_i
 \left\|
 (1-u_i)p_i+u_i p_{i+2}-p_{i+1}
 \right\|^2
-\]
+$$
 
-where \(u_i\) compensates for nonuniform point spacing.
+where $u_i$ compensates for nonuniform point spacing.
 
 This is a discrete one-dimensional Laplacian. In physical terms, it behaves like bending a flexible strip so abrupt changes are reduced.
 
@@ -790,20 +790,20 @@ This is a discrete one-dimensional Laplacian. In physical terms, it behaves like
 
 ## C. Maintain the desired spacing
 
-For each point \(p_i\), find a nearest point \(f_i\) on a neighboring portion of the path.
+For each point $p_i$, find a nearest point $f_i$ on a neighboring portion of the path.
 
 Then penalize:
 
-\[
+$$
 E_{\text{spacing}}
 \approx
 \sum_i
 \left(\|p_i-f_i\|-w\right)^2
-\]
+$$
 
-- If the neighboring strand is closer than \(w\), the term pushes them apart.
-- If it is farther than \(w\), the term pulls them together.
-- If it is exactly \(w\), that contribution is zero.
+- If the neighboring strand is closer than $w$, the term pushes them apart.
+- If it is farther than $w$, the term pulls them together.
+- If it is exactly $w$, that contribution is zero.
 
 Finding the correct “neighboring strand” is not trivial. The nearest point must not simply be the preceding or following point along the toolpath; it must be a point on an adjacent physical pass.
 
@@ -915,7 +915,7 @@ Consider:
      \__________/       \__________/
 ```
 
-Let the spacing be \(w=5\) mm.
+Let the spacing be $w=5$ mm.
 
 ## Offset levels
 
@@ -958,11 +958,11 @@ L3 R3
 
 ## Local spirals
 
-The left chain \(L2-L3-\cdots\) becomes one Fermat spiral.
+The left chain $L2-L3-\cdots$ becomes one Fermat spiral.
 
-The right chain \(R2-R3-\cdots\) becomes another.
+The right chain $R2-R3-\cdots$ becomes another.
 
-Each spiral starts and exits near the location where its lobe meets the parent contour \(C1\).
+Each spiral starts and exits near the location where its lobe meets the parent contour $C1$.
 
 ## Global path
 
@@ -1071,21 +1071,21 @@ It does not by itself solve the complete manufacturing process.
 
 Given path points:
 
-\[
+$$
 P_0,P_1,\ldots,P_N
-\]
+$$
 
 each segment has length:
 
-\[
+$$
 L_i=\|P_{i+1}-P_i\|
-\]
+$$
 
 Extrusion can be accumulated proportionally:
 
-\[
+$$
 \Delta E_i=kL_i
-\]
+$$
 
 producing commands conceptually like:
 
@@ -1150,7 +1150,7 @@ Smoothing a path near a concave or convex corner can pull it away from the corne
 
 ## The initial path is only position-continuous
 
-The rerouted result joins geometrically, but does not automatically have matched tangents or continuous curvature. Post-optimization reduces visible corners but does not turn the path into an exact analytic spline with guaranteed \(G^2\) continuity.
+The rerouted result joins geometrically, but does not automatically have matched tangents or continuous curvature. Post-optimization reduces visible corners but does not turn the path into an exact analytic spline with guaranteed $G^2$ continuity.
 
 ## It is contour-biased
 
@@ -1164,7 +1164,7 @@ Real inputs contain:
 - Self-intersections.
 - Nearly coincident edges.
 - Slivers.
-- Features narrower than \(w\).
+- Features narrower than $w$.
 - Holes that disappear or merge.
 - Multiple disconnected islands.
 

@@ -5302,7 +5302,7 @@ Add any fixed setup and teardown grades separately. If early termination is poss
 
 ## Chapter 9, Exercise 1: record-field lens laws
 
-For a record $s$ with field $a$, let `get(s)=s.a` and `put(s,a')` copy $s$ with field $a'`.
+For a record $s$ with field $a$, let `get(s)=s.a` and `put(s,a')` copy $s$ with field \$a'`.
 
 1. Get-put: `put(s, get(s)) = s`.
 2. Put-get: `get(put(s,a')) = a'`.
@@ -5314,7 +5314,7 @@ These laws fail if `put` modifies unrelated fields, normalizes nondeterministica
 
 Suppose
 
-$$
+\$$
  v\circ f=f'\circ u
 $$
 
@@ -5330,31 +5330,31 @@ $$
  w\circ g\circ f
  =g'\circ v\circ f
  =g'\circ f'\circ u.
-$$
+$\$
 
 Thus the horizontally composed square commutes. Exact equality is crucial; empirical "improvement" labels do not support this derivation.
 
 ## Chapter 11, Exercise 9: finite penalties do not enforce hard constraints
 
-Let objective be $Q(h)-M\cdot\mathbf{1}[\neg C(h)]$ for finite penalty $M$. If $Q$ is unbounded, choose a violating candidate with $Q(h)>M+Q(h_c)$ for every admissible incumbent $h_c$. The violating candidate wins. A hard filter or infinite/lexicographic priority is required.
+Let objective be \$Q(h)-M\cdot\mathbf{1}[\neg C(h)]\$ for finite penalty \$M$. If $Q\$ is unbounded, choose a violating candidate with \$Q(h)>M+Q(h_c)\$ for every admissible incumbent \$h_c\$. The violating candidate wins. A hard filter or infinite/lexicographic priority is required.
 
 ## Chapter 12, Exercise 5: expected router cost
 
-Let deterministic branch cost $c_e$, model branch cost $c_h$, and model-branch probability $q$. Then
+Let deterministic branch cost \$c_e$, model branch cost $c_h$, and model-branch probability $q$. Then
 
 $$
   \mathbb{E}[C]=(1-q)c_e+qc_h.
-$$
+$\$
 
-If routing itself costs $c_r$, add it:
+If routing itself costs \$c_r$, add it:
 
 $$
   c_r+(1-q)c_e+qc_h.
-$$
+$\$
 
-Worst-case cost is $c_r+\max(c_e,c_h)$ when exactly one branch executes.
+Worst-case cost is \$c_r+\max(c_e,c_h)\$ when exactly one branch executes.
 
-## Chapter 13, Exercise 2: $A\to(B\to A)$
+## Chapter 13, Exercise 2: \$A\to(B\to A)$
 
 A term is
 

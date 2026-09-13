@@ -179,7 +179,7 @@ This creates a complete replay trail: a future agent (or human) can re-execute a
 
 ## The selective embedding design
 
-The most technically interesting part of the project is the embedding strategy. The naive approach — embed all 33,000 messages — would cost about $59 in embedding fees and produce a noisy index where newsletters drown out personal correspondence. The selective approach costs $0.75 total (embeddings + LLM transforms) and produces a better index.
+The most technically interesting part of the project is the embedding strategy. The naive approach — embed all 33,000 messages — would cost about \$59 in embedding fees and produce a noisy index where newsletters drown out personal correspondence. The selective approach costs \$0.75 total (embeddings + LLM transforms) and produces a better index.
 
 ### Five embedding layers
 

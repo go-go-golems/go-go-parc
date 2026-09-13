@@ -1161,7 +1161,7 @@ useBonus.set(true); // Now bonus is 999!`
     
     function log(msg) {
       logs.push(msg);
-      output.innerHTML = logs.join('\n');
+      output.innerHTML = logs.join('\\n');
       output.scrollTop = output.scrollHeight;
     }
     

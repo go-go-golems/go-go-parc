@@ -92,15 +92,15 @@ The pattern does not require one output renderer or one storage engine. It requi
 
 Let source positions be partitioned by one parser-owned context function:
 
-\[
+$$
 C : \{0,\ldots,|S|-1\} \to \{\text{prose},\text{code},\text{frontmatter},\text{math},\text{raw HTML},\ldots\}.
-\]
+$$
 
-For transform \(T_f\) that owns feature \(f\), positions protected from \(f\) must remain unchanged:
+For transform $T_f$ that owns feature $f$, positions protected from $f$ must remain unchanged:
 
-\[
+$$
 C(i) \in P_f \implies T_f(S)[i] = S[i]
-\]
+$$
 
 modulo an explicit source map when earlier transformations change offsets.
 
@@ -134,11 +134,11 @@ type LinkOccurrence struct {
 }
 ```
 
-For an ordered occurrence sequence \(O=[o_1,\ldots,o_n]\), graph projection is a later function:
+For an ordered occurrence sequence $O=[o_1,\ldots,o_n]$, graph projection is a later function:
 
-\[
+$$
 E = \operatorname{unique}\{(source,\operatorname{resolve}(o.Ref)) \mid o \in O,\ o\text{ contributes an edge}\}.
-\]
+$$
 
 The equivalence relation for graph edges is not the equivalence relation for occurrences. Two headings may become one backlink edge while remaining two API occurrences. A link and an embed may share a target while requiring different rendering and lifecycle behavior.
 
@@ -167,14 +167,14 @@ Use occurrence preservation when one parse feeds several products: rendering, gr
 
 Reference resolution maps a normalized key to a candidate set:
 
-\[
+$$
 R(k)=
 \begin{cases}
 \text{Unresolved} & |C(k)|=0\\
 \text{Resolved}(c) & C(k)=\{c\}\\
 \text{Ambiguous}(C(k)) & |C(k)|>1.
 \end{cases}
-\]
+$$
 
 A single-value `map[key]candidate` cannot represent this function. It must discard candidates or hide them behind an insertion-order policy.
 
@@ -215,17 +215,17 @@ This law also appears in devctl's dynamic command resolution: provider qualifica
 
 The intended composition is:
 
-\[
+$$
 \operatorname{HTML} = \operatorname{Render}(\operatorname{Resolve}(\operatorname{Parse}(S), I)).
-\]
+$$
 
 The current pipeline often approximates:
 
-\[
+$$
 \operatorname{HTML} = T_n(\cdots T_2(T_1(\operatorname{Render}(\operatorname{Rewrite}(S))))),
-\]
+$$
 
-where `Rewrite` injects placeholder HTML and each \(T_i\) recovers one field with a regex. Attributes such as `data-target`, `data-heading`, `data-raw`, and `data-alias` form an undocumented internal protocol whose validity depends on exact tag and attribute order.
+where `Rewrite` injects placeholder HTML and each $T_i$ recovers one field with a regex. Attributes such as `data-target`, `data-heading`, `data-raw`, and `data-alias` form an undocumented internal protocol whose validity depends on exact tag and attribute order.
 
 ### Concrete evidence
 

@@ -37,12 +37,12 @@ static bool api_display_draw_parse_text_element(
     bool result = false;
     do {
         canvas_element->type = CanvasElementTypeText;
-        canvas_element->text.text_str = mg_json_get_str(json_element, "$.text");
+        canvas_element->text.text_str = mg_json_get_str(json_element, "\$.text");
         if(!canvas_element->text.text_str) break;
 
         canvas_element->text.color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
 
-        char* font_name = mg_json_get_str(json_element, "$.font");
+        char* font_name = mg_json_get_str(json_element, "\$.font");
         if(!font_name) break;
 
         static const char* const font_names[] = {
@@ -81,7 +81,7 @@ static bool api_display_draw_parse_text_element(
         canvas_element->text.font_path = strdup(font_path);
         free(font_name);
 
-        char* color_hex = mg_json_get_str(json_element, "$.color");
+        char* color_hex = mg_json_get_str(json_element, "\$.color");
         if(color_hex) {
             bool color_parsed = color_parse_hexa_string(color_hex, &canvas_element->text.color);
             free(color_hex);
@@ -89,22 +89,22 @@ static bool api_display_draw_parse_text_element(
         }
 
         double number;
-        if(mg_json_get_num(json_element, "$.width", &number)) {
+        if(mg_json_get_num(json_element, "\$.width", &number)) {
             if(number < __DBL_EPSILON__) break; // <= 0
             canvas_element->text.width = (size_t)number;
         }
 
-        if(mg_json_get_num(json_element, "$.scroll_rate", &number)) {
+        if(mg_json_get_num(json_element, "\$.scroll_rate", &number)) {
             if(number < -__DBL_EPSILON__) break; // < 0
             canvas_element->text.scroll_rate_cpm = (size_t)number;
         }
 
-        if(mg_json_get_num(json_element, "$.scroll_start_delay", &number)) {
+        if(mg_json_get_num(json_element, "\$.scroll_start_delay", &number)) {
             if(number < -__DBL_EPSILON__) break; // < 0
             canvas_element->text.scroll_start_delay = (size_t)number;
         }
 
-        if(mg_json_get_num(json_element, "$.scroll_repeat_delay", &number)) {
+        if(mg_json_get_num(json_element, "\$.scroll_repeat_delay", &number)) {
             if(number < -__DBL_EPSILON__) break; // < 0
             canvas_element->text.scroll_repeat_delay = (size_t)number;
         }
@@ -127,7 +127,7 @@ static bool api_display_draw_parse_countdown_element(
         canvas_element->type = CanvasElementTypeCountdown;
         canvas_element->countdown.color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
 
-        char* color_hex = mg_json_get_str(json_element, "$.color");
+        char* color_hex = mg_json_get_str(json_element, "\$.color");
         if(color_hex) {
             bool color_parsed =
                 color_parse_hexa_string(color_hex, &canvas_element->countdown.color);
@@ -137,12 +137,12 @@ static bool api_display_draw_parse_countdown_element(
 
         // numeric representation in string: JS and mg_json have precision issues
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER
-        char* timestamp_str = mg_json_get_str(json_element, "$.timestamp");
+        char* timestamp_str = mg_json_get_str(json_element, "\$.timestamp");
         if(!timestamp_str) break;
         canvas_element->countdown.timestamp = atoll(timestamp_str);
         free(timestamp_str);
 
-        char* direction_str = mg_json_get_str(json_element, "$.direction");
+        char* direction_str = mg_json_get_str(json_element, "\$.direction");
         if(!direction_str) break;
         static const char* const direction_lut[CountdownDirectionMAX] = {
             [CountdownDirectionTimeLeft] = "time_left",
@@ -154,7 +154,7 @@ static bool api_display_draw_parse_countdown_element(
         if(direction_temp >= CountdownDirectionMAX) break;
         canvas_element->countdown.direction = direction_temp;
 
-        char* hours_str = mg_json_get_str(json_element, "$.show_hours");
+        char* hours_str = mg_json_get_str(json_element, "\$.show_hours");
         if(!hours_str) break;
         static const char* const hours_lut[CountdownShowHourMAX] = {
             [CountdownShowHourWhenNonZero] = "when_non_zero",
@@ -180,8 +180,8 @@ static bool api_display_draw_parse_image_path(
 
     bool result = false;
 
-    char* uploaded = mg_json_get_str(json_element, "$.path");
-    char* stock = mg_json_get_str(json_element, "$.stock_path");
+    char* uploaded = mg_json_get_str(json_element, "\$.path");
+    char* stock = mg_json_get_str(json_element, "\$.stock_path");
 
     do {
         if(uploaded && stock) break;
@@ -255,7 +255,7 @@ static bool api_display_draw_parse_image_element(
     do {
         canvas_element->type = CanvasElementTypeImage;
 
-        long opacity = mg_json_get_long(json_element, "$.opacity", 100);
+        long opacity = mg_json_get_long(json_element, "\$.opacity", 100);
         if(opacity < 0 || opacity > 100) break;
         canvas_element->image.opacity = opacity * 255 / 100;
 
@@ -296,7 +296,7 @@ static bool api_display_draw_parse_anim_player_element(
         bool json_bool;
         char* json_str;
 
-        if((json_str = mg_json_get_str(json_element, "$.section"))) {
+        if((json_str = mg_json_get_str(json_element, "\$.section"))) {
             canvas_element->anim_player.section = furi_string_alloc_set_str(json_str);
             free(json_str);
         } else {
@@ -306,14 +306,14 @@ static bool api_display_draw_parse_anim_player_element(
 
         canvas_element->anim_player.flags = AnimFilePlayFlagNone;
 
-        if(mg_json_get_bool(json_element, "$.loop", &json_bool)) {
+        if(mg_json_get_bool(json_element, "\$.loop", &json_bool)) {
             if(json_bool) canvas_element->anim_player.flags |= AnimFilePlayFlagLoop;
         }
-        if(mg_json_get_bool(json_element, "$.await_previous_end", &json_bool)) {
+        if(mg_json_get_bool(json_element, "\$.await_previous_end", &json_bool)) {
             if(json_bool) canvas_element->anim_player.flags |= AnimFilePlayFlagFinishCurrent;
         }
 
-        long opacity = mg_json_get_long(json_element, "$.opacity", 100);
+        long opacity = mg_json_get_long(json_element, "\$.opacity", 100);
         if(opacity < 0 || opacity > 100) break;
         canvas_element->anim_player.opacity = opacity * 255 / 100;
 
@@ -328,7 +328,7 @@ static bool
     bool result = false;
 
     do {
-        char* fill_type = mg_json_get_str(json_element, "$.fill");
+        char* fill_type = mg_json_get_str(json_element, "\$.fill");
         size_t fill = RectangleFillNone;
         if(fill_type) {
             static const char* const fill_types[] = {
@@ -346,13 +346,13 @@ static bool
             (Color)COLOR_MAKE_HEXA(0xFFFFFFFF), (Color)COLOR_MAKE_HEXA(0x00000000)};
         bool color_parsed[2] = {false, false};
 
-        char* color_hex = mg_json_get_str(json_element, "$.fill_colors[0]");
+        char* color_hex = mg_json_get_str(json_element, "\$.fill_colors[0]");
         if(color_hex) {
             color_parsed[0] = color_parse_hexa_string(color_hex, &fill_color[0]);
             free(color_hex);
             if(!color_parsed[0]) break;
         }
-        color_hex = mg_json_get_str(json_element, "$.fill_colors[1]");
+        color_hex = mg_json_get_str(json_element, "\$.fill_colors[1]");
         if(color_hex) {
             color_parsed[1] = color_parse_hexa_string(color_hex, &fill_color[1]);
             free(color_hex);
@@ -381,12 +381,12 @@ static bool
     bool result = false;
 
     do {
-        long border_width = mg_json_get_long(json_element, "$.border_width", 1);
-        long radius = mg_json_get_long(json_element, "$.radius", 0);
+        long border_width = mg_json_get_long(json_element, "\$.border_width", 1);
+        long radius = mg_json_get_long(json_element, "\$.radius", 0);
         if(border_width < 0 || radius < 0) break;
 
         Color border_color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
-        char* color_hex = mg_json_get_str(json_element, "$.border_color");
+        char* color_hex = mg_json_get_str(json_element, "\$.border_color");
         if(color_hex) {
             bool color_parsed = color_parse_hexa_string(color_hex, &border_color);
             free(color_hex);
@@ -414,8 +414,8 @@ static bool api_display_draw_parse_rectangle_element(
     do {
         canvas_element->type = CanvasElementTypeRectangle;
 
-        long width = mg_json_get_long(json_element, "$.width", -1);
-        long height = mg_json_get_long(json_element, "$.height", -1);
+        long width = mg_json_get_long(json_element, "\$.width", -1);
+        long height = mg_json_get_long(json_element, "\$.height", -1);
         if(width <= 0 || height <= 0) {
             break;
         }
@@ -457,13 +457,13 @@ static bool api_display_draw_parse_element(
     CanvasElement* canvas_element = CanvasElementsArray_push_new(elements_array);
 
     do {
-        canvas_element->id = mg_json_get_str(element, "$.id");
+        canvas_element->id = mg_json_get_str(element, "\$.id");
         if(!canvas_element->id) break;
 
-        int32_t temp_val = mg_json_get_long(element, "$.timeout", -1);
+        int32_t temp_val = mg_json_get_long(element, "\$.timeout", -1);
         canvas_element->timeout = (temp_val > 0) ? temp_val : 0;
 
-        char* disp_until = mg_json_get_str(element, "$.display_until");
+        char* disp_until = mg_json_get_str(element, "\$.display_until");
         if(disp_until) {
             canvas_element->display_until = atoll(disp_until);
             free(disp_until);
@@ -471,10 +471,10 @@ static bool api_display_draw_parse_element(
 
         if((canvas_element->timeout > 0) && (canvas_element->display_until > 0)) break;
 
-        canvas_element->x = mg_json_get_long(element, "$.x", 0);
-        canvas_element->y = mg_json_get_long(element, "$.y", 0);
+        canvas_element->x = mg_json_get_long(element, "\$.x", 0);
+        canvas_element->y = mg_json_get_long(element, "\$.y", 0);
 
-        char* alignment = mg_json_get_str(element, "$.align");
+        char* alignment = mg_json_get_str(element, "\$.align");
         if(alignment) {
             static const char* const alignments[AlignMax] = {
                 [AlignTopLeft] = "top_left",
@@ -496,7 +496,7 @@ static bool api_display_draw_parse_element(
         }
 
         canvas_element->display = GuiDisplayIdFront;
-        char* display_id_str = mg_json_get_str(element, "$.display");
+        char* display_id_str = mg_json_get_str(element, "\$.display");
         if(display_id_str) {
             if(strcmp(display_id_str, "front") == 0) {
                 canvas_element->display = GuiDisplayIdFront;
@@ -509,7 +509,7 @@ static bool api_display_draw_parse_element(
             free(display_id_str);
         }
 
-        element_type = mg_json_get_str(element, "$.type");
+        element_type = mg_json_get_str(element, "\$.type");
         if(!element_type) break;
 
         static const ApiDisplayElementTypeAssoc element_parsers[] = {
@@ -605,13 +605,13 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
     FuriString* error = furi_string_alloc();
 
     do {
-        app_name = mg_json_get_str(msg->body, "$.application_name");
+        app_name = mg_json_get_str(msg->body, "\$.application_name");
         if(!app_name) {
             MG_REPLY_ERROR(conn, 400, "Missing application_name");
             break;
         }
 
-        if(mg_json_get_num(msg->body, "$.priority", &json_num)) {
+        if(mg_json_get_num(msg->body, "\$.priority", &json_num)) {
             priority = json_num;
         }
         if(priority <= 0) {
@@ -625,7 +625,7 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
 
         bool blink_led = false;
         Color led_color;
-        char* led_color_hex = mg_json_get_str(msg->body, "$.led_notification_color");
+        char* led_color_hex = mg_json_get_str(msg->body, "\$.led_notification_color");
         if(led_color_hex) {
             bool color_parsed = color_parse_hexa_string(led_color_hex, &led_color);
             free(led_color_hex);
@@ -637,7 +637,7 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
             }
         }
 
-        struct mg_str elements_obj = mg_json_get_tok(msg->body, "$.elements");
+        struct mg_str elements_obj = mg_json_get_tok(msg->body, "\$.elements");
         if(!elements_obj.buf || elements_obj.len < 2 || elements_obj.buf[0] != '[') {
             MG_REPLY_ERROR(conn, 400, "Missing or invalid elements array");
             break;
@@ -742,7 +742,7 @@ static void api_display_get_brightness(struct mg_connection* conn, struct mg_htt
         furi_string_cat_printf(json_str, "\"value\":\"%hhu\"", state.brightness_setting);
     }
 
-    MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
+    MG_REPLY_OK_BODY(conn, "{%s}\\n", furi_string_get_cstr(json_str));
     furi_string_free(json_str);
 }
 

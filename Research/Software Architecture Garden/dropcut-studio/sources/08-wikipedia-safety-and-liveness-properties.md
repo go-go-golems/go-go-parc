@@ -43,7 +43,7 @@ state does not satisfy the required postcondition;
 statements within a [critical section](https://en.wikipedia.org/wiki/Critical_section "Critical 
 section");
 - An execution of two concurrent processes where each process is waiting for another to change 
-state (known as [deadlock](https://en.wikipedia.org/wiki/Deadlock_\(computer_science\) "Deadlock 
+state (known as [deadlock](https://en.wikipedia.org/wiki/Deadlock_$computer_science$ "Deadlock 
 (computer science)")).
 
 An execution of a program can be described formally by giving the infinite sequence of program 
@@ -92,7 +92,7 @@ Producing an answer within a specified real-time bound is a safety property rath
 property. This is because a discrete *bad thing* is being proscribed: a partial execution that 
 reaches a state where the answer still has not been produced and the value of the clock (a state 
 variable) violates the bound. Deadlock freedom is a safety property: the "bad thing" is a 
-[deadlock](https://en.wikipedia.org/wiki/Deadlock_\(computer_science\) "Deadlock (computer 
+[deadlock](https://en.wikipedia.org/wiki/Deadlock_$computer_science$ "Deadlock (computer 
 science)") (which is discrete).
 
 Most of the time, knowing that a program eventually does some "good thing" is not satisfactory; we 
@@ -140,7 +140,7 @@ sets](https://en.wikipedia.org/wiki/Dense_set "Dense set") in a natural
 gave a [Büchi automaton](https://en.wikipedia.org/wiki/B%C3%BCchi_automaton "Büchi automaton") 
 characterization for the formal definitions of safety properties and liveness properties but used 
 these automata formulations to show that verification of safety properties would require an 
-[invariant](https://en.wikipedia.org/wiki/Invariant_\(mathematics\)#Invariants_in_computer_science 
+[invariant](https://en.wikipedia.org/wiki/Invariant_$mathematics$#Invariants_in_computer_science 
 "Invariant (mathematics)") and verification of liveness properties would require a 
 [well-foundedness argument](https://en.wikipedia.org/wiki/Well-founded_relation "Well-founded 
 relation"). The correspondence between the kind of property (safety vs liveness) with kind of proof 
@@ -154,16 +154,16 @@ property to be proved dictated the type of proof that is required.
 1977). "Proving the correctness of multiprocess programs". *[IEEE Transactions on Software 
 Engineering](https://en.wikipedia.org/wiki/IEEE_Transactions_on_Software_Engineering "IEEE 
 Transactions on Software Engineering")*. **SE-3** (2): 125–143. 
-[doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi 
+[doi](https://en.wikipedia.org/wiki/Doi_$identifier$ "Doi 
 (identifier)"):[10.1109/TSE.1977.229904](https://doi.org/10.1109%2FTSE.1977.229904). 
-[S2CID](https://en.wikipedia.org/wiki/S2CID_\(identifier\) "S2CID (identifier)") 
+[S2CID](https://en.wikipedia.org/wiki/S2CID_$identifier$ "S2CID (identifier)") 
 [9985552](https://api.semanticscholar.org/CorpusID:9985552).
 
 [^2]: Manna, Zohar; Pnueli, Amir (September 1974). "Axiomatic approach to total correctness of 
 programs". *[Acta Informatica](https://en.wikipedia.org/wiki/Acta_Informatica "Acta Informatica")*. 
-**3** (3): 243–263. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi 
+**3** (3): 243–263. [doi](https://en.wikipedia.org/wiki/Doi_$identifier$ "Doi 
 (identifier)"):[10.1007/BF00288637](https://doi.org/10.1007%2FBF00288637). 
-[S2CID](https://en.wikipedia.org/wiki/S2CID_\(identifier\) "S2CID (identifier)") 
+[S2CID](https://en.wikipedia.org/wiki/S2CID_$identifier$ "S2CID (identifier)") 
 [2988073](https://api.semanticscholar.org/CorpusID:2988073).
 
 [^3]: i.e. it has finite duration
@@ -172,24 +172,24 @@ programs". *[Acta Informatica](https://en.wikipedia.org/wiki/Acta_Informatica "A
 Lamport"); Mullery, Geoff P. (3 April 1984). "Basic concepts". *Distributed Systems: Methods and 
 Tools for Specification, An Advanced Course*. Lecture Notes in Computer Science. Vol. 190. Munich, 
 Germany: [Springer Verlag](https://en.wikipedia.org/wiki/Springer_Verlag "Springer Verlag"). pp. 
-7–43. [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") 
+7–43. [ISBN](https://en.wikipedia.org/wiki/ISBN_$identifier$ "ISBN (identifier)") 
 [3-540-15216-4](https://en.wikipedia.org/wiki/Special:BookSources/3-540-15216-4 
 "Special:BookSources/3-540-15216-4").
 
 [^5]: Alpern, Bowen; [Schneider, Fred B.](https://en.wikipedia.org/wiki/Fred_B._Schneider "Fred B. 
 Schneider") (1985). "Defining liveness". *[Information Processing 
 Letters](https://en.wikipedia.org/wiki/Information_Processing_Letters "Information Processing 
-Letters")*. **21** (4): 181–185. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi 
+Letters")*. **21** (4): 181–185. [doi](https://en.wikipedia.org/wiki/Doi_$identifier$ "Doi 
 (identifier)"):[10.1016/0020-0190(85)90056-0](https://doi.org/10.1016%2F0020-0190%2885%2990056-0).
 
 [^6]: Alpern, Bowen; [Schneider, Fred B.](https://en.wikipedia.org/wiki/Fred_B._Schneider "Fred B. 
 Schneider") (1987). "Recognizing safety and liveness". *[Distributed 
-Computing](https://en.wikipedia.org/wiki/Distributed_Computing_\(journal\) "Distributed Computing 
-(journal)")*. **2** (3): 117–126. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi 
+Computing](https://en.wikipedia.org/wiki/Distributed_Computing_$journal$ "Distributed Computing 
+(journal)")*. **2** (3): 117–126. [doi](https://en.wikipedia.org/wiki/Doi_$identifier$ "Doi 
 (identifier)"):[10.1007/BF01782772](https://doi.org/10.1007%2FBF01782772). 
-[hdl](https://en.wikipedia.org/wiki/Hdl_\(identifier\) "Hdl 
+[hdl](https://en.wikipedia.org/wiki/Hdl_$identifier$ "Hdl 
 (identifier)"):[1813/6567](https://hdl.handle.net/1813%2F6567). 
-[S2CID](https://en.wikipedia.org/wiki/S2CID_\(identifier\) "S2CID (identifier)") 
+[S2CID](https://en.wikipedia.org/wiki/S2CID_$identifier$ "S2CID (identifier)") 
 [9717112](https://api.semanticscholar.org/CorpusID:9717112).
 
 [^7]: The paper [^5] received the [2018 Dijkstra 
@@ -206,25 +206,25 @@ ${\displaystyle S^{\omega }}$ the set of infinite sequences of program states.
 Lamport"); Mullery, Geoff P. (3 April 1984). "Basic concepts". *Distributed Systems: Methods and 
 Tools for Specification, An Advanced Course*. Lecture Notes in Computer Science. Vol. 190. Munich, 
 Germany: [Springer Verlag](https://en.wikipedia.org/wiki/Springer_Verlag "Springer Verlag"). pp. 
-7–43. [ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") 
+7–43. [ISBN](https://en.wikipedia.org/wiki/ISBN_$identifier$ "ISBN (identifier)") 
 [3-540-15216-4](https://en.wikipedia.org/wiki/Special:BookSources/3-540-15216-4 
 "Special:BookSources/3-540-15216-4").
 
 [^10]: Alpern, Bowen; Demers, Alan J.; [Schneider, Fred 
 B.](https://en.wikipedia.org/wiki/Fred_B._Schneider "Fred B. Schneider") (November 1986). "Safety 
 without stuttering". *Information Processing Letters*. **23** (4): 177–180. 
-[doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi 
+[doi](https://en.wikipedia.org/wiki/Doi_$identifier$ "Doi 
 (identifier)"):[10.1016/0020-0190(86)90132-8](https://doi.org/10.1016%2F0020-0190%2886%2990132-8). 
-[hdl](https://en.wikipedia.org/wiki/Hdl_\(identifier\) "Hdl 
+[hdl](https://en.wikipedia.org/wiki/Hdl_$identifier$ "Hdl 
 (identifier)"):[1813/6548](https://hdl.handle.net/1813%2F6548).
 
 [^11]: Private communication from Plotkin to Schneider.
 
 [^12]: Alpern, Bowen; [Schneider, Fred B.](https://en.wikipedia.org/wiki/Fred_B._Schneider "Fred B. 
 Schneider") (1987). "Recognizing safety and liveness". *Distributed Computing*. **2** (3): 
-117–126. [doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi 
+117–126. [doi](https://en.wikipedia.org/wiki/Doi_$identifier$ "Doi 
 (identifier)"):[10.1007/BF01782772](https://doi.org/10.1007%2FBF01782772). 
-[hdl](https://en.wikipedia.org/wiki/Hdl_\(identifier\) "Hdl 
+[hdl](https://en.wikipedia.org/wiki/Hdl_$identifier$ "Hdl 
 (identifier)"):[1813/6567](https://hdl.handle.net/1813%2F6567). 
-[S2CID](https://en.wikipedia.org/wiki/S2CID_\(identifier\) "S2CID (identifier)") 
+[S2CID](https://en.wikipedia.org/wiki/S2CID_$identifier$ "S2CID (identifier)") 
 [9717112](https://api.semanticscholar.org/CorpusID:9717112).

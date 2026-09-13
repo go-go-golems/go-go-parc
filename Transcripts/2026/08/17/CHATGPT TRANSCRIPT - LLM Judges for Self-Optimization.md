@@ -5121,14 +5121,14 @@ A context builder that drops metadata destroys information needed for temporal c
 
 ```text
 Query x:
-  "I had one $40 dinner on each day of a two-day domestic trip.
+  "I had one \$40 dinner on each day of a two-day domestic trip.
    Can I claim both without receipts?"
 
 Rewrite q:
   "Northstar domestic meal reimbursement daily limit"
 
 Retrieved D:
-  D1: domestic meals capped at $75 per calendar day
+  D1: domestic meals capped at \$75 per calendar day
   D2: international meal cap
   D3: travel booking procedure
 

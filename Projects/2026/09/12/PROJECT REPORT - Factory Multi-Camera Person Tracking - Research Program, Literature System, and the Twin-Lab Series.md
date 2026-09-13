@@ -99,11 +99,11 @@ Twelve books and surveys were downloaded into `/home/manuel/Books/`, every one a
 
 Every book mentioned anywhere in the four reports carries both an Amazon and an eBay price. The program distilled to a three-item purchase list, selected for contribution per dollar rather than completeness:
 
-- *Network Flows* (Ahuja, Magnanti, Orlin, 1993) — the min-cost-flow engine of L3; used copies at $10–35 on eBay.
-- *Assignment Problems* (Burkard, Dell'Amico, Martello, SIAM 2012) — the Hungarian and auction algorithms at full depth, multi-index assignment for joint multi-camera association; $44 new on eBay.
-- *Design and Analysis of Modern Tracking Systems* (Blackman & Popoli, 1999) — the only book-level doctrine of appearance-free multi-sensor track association; $180 used on eBay, or interlibrary loan.
+- *Network Flows* (Ahuja, Magnanti, Orlin, 1993) — the min-cost-flow engine of L3; used copies at \$10–35 on eBay.
+- *Assignment Problems* (Burkard, Dell'Amico, Martello, SIAM 2012) — the Hungarian and auction algorithms at full depth, multi-index assignment for joint multi-camera association; \$44 new on eBay.
+- *Design and Analysis of Modern Tracking Systems* (Blackman & Popoli, 1999) — the only book-level doctrine of appearance-free multi-sensor track association; \$180 used on eBay, or interlibrary loan.
 
-Two purchases were displaced entirely by free editions: the duality theory behind the Hungarian optimality certificate is covered completely by the free Boyd & Vandenberghe PDF, and graph search by the free LaValle PDF. The remaining notable deals on record: Bishop's *PRML* international edition at $19.99 used, Law's *Simulation Modeling and Analysis* 5th edition at $22.95, and Ma et al.'s *An Invitation to 3-D Vision* at $43.57 used.
+Two purchases were displaced entirely by free editions: the duality theory behind the Hungarian optimality certificate is covered completely by the free Boyd & Vandenberghe PDF, and graph search by the free LaValle PDF. The remaining notable deals on record: Bishop's *PRML* international edition at \$19.99 used, Law's *Simulation Modeling and Analysis* 5th edition at \$22.95, and Ma et al.'s *An Invitation to 3-D Vision* at \$43.57 used.
 
 ### 3.4 What no book covers
 

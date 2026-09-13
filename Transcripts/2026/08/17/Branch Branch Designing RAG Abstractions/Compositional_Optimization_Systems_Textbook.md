@@ -93,23 +93,23 @@ That is exactly the question category theory asks.
 
 ### Definition 1.1 — Category
 
-A **category** \(\mathcal C\) consists of:
+A **category** $\mathcal C$ consists of:
 
-1. a collection of **objects** \(A,B,C,\ldots\);
-2. for each pair of objects \(A,B\), a collection of **morphisms** \(f:A\to B\);
-3. for composable morphisms \(f:A\to B\) and \(g:B\to C\), a composite
-   \[
+1. a collection of **objects** $A,B,C,\ldots$;
+2. for each pair of objects $A,B$, a collection of **morphisms** $f:A\to B$;
+3. for composable morphisms $f:A\to B$ and $g:B\to C$, a composite
+   $$
    g\circ f:A\to C;
-   \]
-4. for every object \(A\), an identity morphism \(\mathrm{id}_A:A\to A\);
+   $$
+4. for every object $A$, an identity morphism $\mathrm{id}_A:A\to A$;
 5. the laws
-   \[
+   $$
    h\circ(g\circ f)=(h\circ g)\circ f
-   \]
+   $$
    and
-   \[
+   $$
    \mathrm{id}_B\circ f=f=f\circ\mathrm{id}_A.
-   \]
+   $$
 
 The first law is **associativity**; the second is the **identity law**.
 
@@ -121,39 +121,39 @@ The definition is abstract because the words “object” and “morphism” are
 
 Let:
 
-- \(Q\) be the type of normalized queries;
-- \(C\) be the type of candidate rankings;
-- \(E\) be the type of ranked evidence.
+- $Q$ be the type of normalized queries;
+- $C$ be the type of candidate rankings;
+- $E$ be the type of ranked evidence.
 
 Define
 
-\[
+$$
 \mathsf{retrieve}:Q\to C
-\]
+$$
 
 and
 
-\[
+$$
 \mathsf{rerank}:C\to E.
-\]
+$$
 
 Then the query-stage pipeline is simply
 
-\[
+$$
 \mathsf{rerank}\circ\mathsf{retrieve}:Q\to E.
-\]
+$$
 
-The type \(C\) is not decoration. It is the boundary that tells us whether the stages can be composed. If a new reranker expects hydrated text but retrieval produces only document IDs, then its domain is not \(C\) but some other object \(H\). A hydration morphism
+The type $C$ is not decoration. It is the boundary that tells us whether the stages can be composed. If a new reranker expects hydrated text but retrieval produces only document IDs, then its domain is not $C$ but some other object $H$. A hydration morphism
 
-\[
+$$
 \mathsf{hydrate}:C\to H
-\]
+$$
 
 must appear explicitly. The correct plan becomes
 
-\[
+$$
 \mathsf{rerank}\circ\mathsf{hydrate}\circ\mathsf{retrieve}.
-\]
+$$
 
 This simple type distinction already has a security consequence. If authorization must occur before source text leaves the machine, then the plan must contain an authorization stage before `hydrate` or before any remote reranker. A raw callback chain can hide this ordering; a typed composition makes it inspectable.
 
@@ -161,9 +161,9 @@ This simple type distinction already has a security consequence. If authorizatio
 
 Associativity says that the following two groupings have the same meaning:
 
-\[
+$$
 (h\circ g)\circ f=h\circ(g\circ f).
-\]
+$$
 
 In code, this means a pipeline can be packaged into subpipelines without changing semantics. We can define
 
@@ -191,7 +191,7 @@ The category-theoretic lesson is not “never use maps.” It is that a composit
 
 ### Exercises 1.1
 
-1. Let \(f:A\to B\), \(g:B\to C\), and \(h:C\to D\). Write the types of \(g\circ f\), \(h\circ g\), and \(h\circ g\circ f\). Explain why the last expression is unambiguous.
+1. Let $f:A\to B$, $g:B\to C$, and $h:C\to D$. Write the types of $g\circ f$, $h\circ g$, and $h\circ g\circ f$. Explain why the last expression is unambiguous.
 2. Model a compiler pipeline `parse -> typecheck -> optimize -> codegen` as a category of typed stages. What are plausible objects between stages?
 3. In a RAG system, a remote reranker expects `[]HydratedChunk`. Retrieval produces `[]HitID`. Authorization consumes `Subject × []HitID` and produces `[]AuthorizedHitID`. Draw a valid typed pipeline that guarantees authorization before hydration.
 4. Construct one example of a `map[string]any` pipeline that type-checks at the host-language level but is semantically nonsensical.
@@ -208,82 +208,82 @@ We therefore need a second operation: composition **side by side**.
 
 > **Fundamentals: why the word “monoidal”?** A **monoid** is a set equipped with an associative binary operation and an identity element. Integers under addition form a monoid: `(a+b)+c=a+(b+c)` and `0+a=a`. A monoidal category categorifies this pattern: the binary operation acts on objects and morphisms, and the unit is an object rather than an element. The associativity and unit laws hold through coherent structural isomorphisms rather than literal equality in the most general presentation.
 
-A **monoidal category** is a category \(\mathcal C\) equipped with:
+A **monoidal category** is a category $\mathcal C$ equipped with:
 
-- a binary operation on objects \(A\otimes B\), called the **tensor product**;
+- a binary operation on objects $A\otimes B$, called the **tensor product**;
 - a corresponding operation on morphisms
-  \[
+  $$
   f\otimes g:A\otimes C\to B\otimes D
-  \]
-  whenever \(f:A\to B\) and \(g:C\to D\);
-- a distinguished **unit object** \(I\);
+  $$
+  whenever $f:A\to B$ and $g:C\to D$;
+- a distinguished **unit object** $I$;
 - coherent associativity and unit isomorphisms.
 
 A **symmetric monoidal category** additionally has a symmetry
 
-\[
+$$
 \sigma_{A,B}:A\otimes B\to B\otimes A
-\]
+$$
 
 satisfying coherence laws.
 
-For software architecture, \(\otimes\) means “place these interfaces or computations side by side.” It does **not** automatically mean “run them concurrently”; concurrency is one possible interpreter. The syntax records independence, and an execution interpreter may exploit it.
+For software architecture, $\otimes$ means “place these interfaces or computations side by side.” It does **not** automatically mean “run them concurrently”; concurrency is one possible interpreter. The syntax records independence, and an execution interpreter may exploit it.
 
 ### Worked example 1.2 — Lexical and vector retrieval
 
 Let
 
-\[
+$$
 L:Q\to R_L
-\]
+$$
 
 and
 
-\[
+$$
 V:Q\to R_V.
-\]
+$$
 
 To feed the same query to both branches we need a copying operation
 
-\[
+$$
 \Delta_Q:Q\to Q\otimes Q.
-\]
+$$
 
 Then the combined channel computation is
 
-\[
+$$
 (L\otimes V)\circ\Delta_Q:Q\to R_L\otimes R_V.
-\]
+$$
 
 Finally a fusion operation
 
-\[
+$$
 F:R_L\otimes R_V\to R
-\]
+$$
 
 gives
 
-\[
+$$
 F\circ(L\otimes V)\circ\Delta_Q:Q\to R.
-\]
+$$
 
 ![Hybrid retrieval as explicit copying followed by parallel channel composition.](figures/03_tensor_parallel.png){width=82%}
 
-The explicit copy may look pedantic when \(Q\) is an immutable Go value. It becomes crucial when we move to probability and effects. Copying a realized sample is different from sampling twice. Copying a capability token may be illegal. Copying a large artifact has different operational meaning from passing two references. A general monoidal core does not assume copying for free.
+The explicit copy may look pedantic when $Q$ is an immutable Go value. It becomes crucial when we move to probability and effects. Copying a realized sample is different from sampling twice. Copying a capability token may be illegal. Copying a large artifact has different operational meaning from passing two references. A general monoidal core does not assume copying for free.
 
 ### Definition 1.3 — Cartesian category
 
 A category is **cartesian** when the monoidal product is a categorical product. Informally, this gives canonical operations
 
-\[
+$$
 \Delta_A:A\to A\times A
-\]
+$$
 
 for copying and
 
-\[
+$$
 !_A:A\to 1
-\]
+$$
 
 for discarding.
 
@@ -334,23 +334,23 @@ For a free monoidal category generated by a set of primitive operations, well-ty
 
 Consider lexical and vector retrieval in parallel, followed by fusion. Suppose estimated costs are:
 
-\[
+$$
 C_L=(4\text{ ms}, 2\text{ work units}),\quad
 C_V=(9\text{ ms}, 5\text{ work units}),\quad
 C_F=(1\text{ ms},1\text{ work unit}).
-\]
+$$
 
 If the first coordinate is critical-path latency and the second is total work, a tensor interpreter can combine branches as
 
-\[
+$$
 C_{L\otimes V}=(\max(4,9),2+5)=(9,7).
-\]
+$$
 
 Sequential fusion then yields
 
-\[
+$$
 C=(9+1,7+1)=(10,8).
-\]
+$$
 
 The same syntax can be interpreted into actual execution, where the branches run concurrently; into resource planning, where network permits are checked; or into provenance, where their result identities are recorded separately.
 
@@ -410,13 +410,13 @@ This is the universal property that makes multiple interpretations principled ra
 
 ### Definition 1.6 — Functor, operational reading
 
-A **functor** \(F:\mathcal C\to\mathcal D\) maps objects and morphisms from one category to another while preserving identities and composition:
+A **functor** $F:\mathcal C\to\mathcal D$ maps objects and morphisms from one category to another while preserving identities and composition:
 
-\[
+$$
 F(\mathrm{id}_A)=\mathrm{id}_{F(A)},
 \qquad
 F(g\circ f)=F(g)\circ F(f).
-\]
+$$
 
 A monoidal functor additionally preserves tensor structure up to the required coherence.
 
@@ -428,9 +428,9 @@ In our design, the source category is often the free category of plans. An execu
 
 Let
 
-\[
+$$
 p=\mathsf{measure}\circ\mathsf{retrieve}\circ\mathsf{index}\circ\mathsf{chunk}.
-\]
+$$
 
 **Execution interpretation.** Map each generator to an actual Go implementation. The result runs the pipeline.
 
@@ -528,7 +528,7 @@ If copying a stochastic morphism were indistinguishable from tensoring it with i
 
 A **deterministic morphism** maps each input to exactly one output. A **stochastic morphism** maps each input to a probability distribution over outputs.
 
-In finite form, a stochastic morphism \(K:X\to Y\) is a Markov kernel assigning to every \(x\in X\) a distribution \(K(\cdot\mid x)\) over \(Y\).
+In finite form, a stochastic morphism $K:X\to Y$ is a Markov kernel assigning to every $x\in X$ a distribution $K(\cdot\mid x)$ over $Y$.
 
 We develop this fully in Chapter 3. For now, the important lesson is architectural: explicit copy and discard operations make the transition from deterministic to stochastic interpretation possible without changing the plan language completely.
 
@@ -536,7 +536,7 @@ We develop this fully in Chapter 3. For now, the important lesson is architectur
 
 ### Exercises 1.5
 
-1. Let \(K\) be a fair coin kernel from the unit object to `{H,T}`. Compare the joint distribution of `(X,X)` when one sample is copied with the distribution of `(X_1,X_2)` when the kernel runs independently twice.
+1. Let $K$ be a fair coin kernel from the unit object to `{H,T}`. Compare the joint distribution of `(X,X)` when one sample is copied with the distribution of `(X_1,X_2)` when the kernel runs independently twice.
 2. Which of `FileHandle`, `Digest`, `HTTPResponse`, and `RandomSample` would you be comfortable copying freely? Explain operational versus semantic copying.
 
 ## 1.6 Parameterized morphisms: an optimizer studies a family of programs
@@ -547,45 +547,45 @@ A fixed retrieval function is not yet an optimization problem. Optimization begi
 
 For example:
 
-\[
+$$
 \mathsf{retrieve}_{w,k}:Q\to R
-\]
+$$
 
-may depend on vector weight \(w\) and candidate depth \(k\). The software system therefore needs to represent a **family of morphisms** indexed by parameters.
+may depend on vector weight $w$ and candidate depth $k$. The software system therefore needs to represent a **family of morphisms** indexed by parameters.
 
 ### Definition 1.8 — Parameterized morphism
 
-Given a monoidal category \(\mathcal C\), a parameterized morphism from \(A\) to \(B\) with parameter object \(P\) is an ordinary morphism
+Given a monoidal category $\mathcal C$, a parameterized morphism from $A$ to $B$ with parameter object $P$ is an ordinary morphism
 
-\[
+$$
 f:P\otimes A\to B.
-\]
+$$
 
 We write this suggestively as
 
-\[
+$$
 f_p:A\to B.
-\]
+$$
 
-The parameter is still an explicit input. The notation merely emphasizes that optimization often holds \(p\) fixed while evaluating many \(a\)'s.
+The parameter is still an explicit input. The notation merely emphasizes that optimization often holds $p$ fixed while evaluating many $a$'s.
 
 The **Para construction** packages such parameterized morphisms into a category. Composition pairs parameter spaces. If
 
-\[
+$$
 f:P\otimes A\to B
-\]
+$$
 
 and
 
-\[
+$$
 g:Q\otimes B\to C,
-\]
+$$
 
-then their parameterized composite has parameter space \(P\otimes Q\):
+then their parameterized composite has parameter space $P\otimes Q$:
 
-\[
+$$
 (Q\otimes P)\otimes A\to C,
-\]
+$$
 
 up to the symmetry and associativity of the monoidal category.
 
@@ -595,21 +595,21 @@ up to the symmetry and associativity of the monoidal category.
 
 Let
 
-\[
+$$
 \mathsf{chunk}:P_C\otimes D\to C
-\]
+$$
 
 and
 
-\[
+$$
 \mathsf{retrieve}:P_R\otimes(C\otimes Q)\to H.
-\]
+$$
 
 The composite system depends on both parameter objects:
 
-\[
+$$
 (P_C\otimes P_R)\otimes(D\otimes Q)\to H.
-\]
+$$
 
 A concrete `ReleaseSpec` can be interpreted as an element of the composite parameter space:
 
@@ -642,15 +642,15 @@ func Compose[P, Q, A, B, C any](
 
 A reparameterization
 
-\[
+$$
 r:R\to P
-\]
+$$
 
-turns \(f:P\otimes A\to B\) into a family indexed by \(R\):
+turns $f:P\otimes A\to B$ into a family indexed by $R$:
 
-\[
+$$
 f\circ(r\otimes\mathrm{id}_A):R\otimes A\to B.
-\]
+$$
 
 This will matter when a product-level configuration compiles into the lower-level parameters of multiple plugins.
 
@@ -685,19 +685,19 @@ A category of parameterized computations still does not describe optimization. W
 
 An **optimization field** is a tuple of interacting structures
 
-\[
+$$
 \mathfrak F=(\mathcal C,\mathcal P,\mathcal I,\mathcal W,\mathcal E,\mathcal M,\mathcal D),
-\]
+$$
 
 where:
 
-- \(\mathcal C\) is a category or typed algebra of composable computations;
-- \(\mathcal P\) is the family of parameter spaces attached to computations;
-- \(\mathcal I\) is a collection of legal interventions on those parameters;
-- \(\mathcal W\) is a workload space: cases, tasks, traffic, simulations, or scenarios;
-- \(\mathcal E\) is an evaluation semantics, often stochastic;
-- \(\mathcal M\) is a measurement structure extracting comparable observations;
-- \(\mathcal D\) is a decision policy or algebra determining eligibility and preference.
+- $\mathcal C$ is a category or typed algebra of composable computations;
+- $\mathcal P$ is the family of parameter spaces attached to computations;
+- $\mathcal I$ is a collection of legal interventions on those parameters;
+- $\mathcal W$ is a workload space: cases, tasks, traffic, simulations, or scenarios;
+- $\mathcal E$ is an evaluation semantics, often stochastic;
+- $\mathcal M$ is a measurement structure extracting comparable observations;
+- $\mathcal D$ is a decision policy or algebra determining eligibility and preference.
 
 A **campaign** is an execution inside an optimization field with a baseline, proposal strategy, budget, accumulated evidence, and termination rule.
 
@@ -707,13 +707,13 @@ This definition is intentionally broader than “hyperparameter optimization.”
 
 For one retrieval-optimization campaign:
 
-- \(\mathcal C\): typed indexing and query plans;
-- \(\mathcal P\): chunking, representation, embedding, index, fusion, reranking, context, agent settings;
-- \(\mathcal I\): lawful changes such as “replace vector weight” or “swap chunker spec”;
-- \(\mathcal W\): labeled retrieval cases plus answer/session scenarios;
-- \(\mathcal E\): exact retrieval plus stochastic model calls;
-- \(\mathcal M\): recall, MRR, nDCG, grounding, latency, cost, disclosure events;
-- \(\mathcal D\): ordered gates—security, integrity, quality non-regression, target improvement, cost.
+- $\mathcal C$: typed indexing and query plans;
+- $\mathcal P$: chunking, representation, embedding, index, fusion, reranking, context, agent settings;
+- $\mathcal I$: lawful changes such as “replace vector weight” or “swap chunker spec”;
+- $\mathcal W$: labeled retrieval cases plus answer/session scenarios;
+- $\mathcal E$: exact retrieval plus stochastic model calls;
+- $\mathcal M$: recall, MRR, nDCG, grounding, latency, cost, disclosure events;
+- $\mathcal D$: ordered gates—security, integrity, quality non-regression, target improvement, cost.
 
 Notice that Bayesian optimization, grid search, evolutionary search, or an LLM proposer is not present in the definition. Those are **proposal strategies** inside the field. This separation is important: the semantics of what counts as a legal, reproducible, comparable experiment should not depend on the algorithm that proposes candidates.
 
@@ -721,9 +721,9 @@ Notice that Bayesian optimization, grid search, evolutionary search, or an LLM p
 
 A **proposal strategy** is a rule that maps current campaign state to one or more legal interventions:
 
-\[
+$$
 \pi:S\to\mathcal I^*.
-\]
+$$
 
 The strategy may be deterministic, randomized, learned, human-directed, or LLM-driven. It does not define the field’s legality or decision policy.
 
@@ -735,9 +735,9 @@ A composable field constrains the optimizer: it proposes through legal intervent
 
 ### Exercises 1.7
 
-1. Define an optimization field for compiler flag tuning. Identify each component of \(\mathfrak F\).
+1. Define an optimization field for compiler flag tuning. Identify each component of $\mathfrak F$.
 2. Define one for database query-plan selection.
-3. In a RAG field, where should the LLM judge live: \(\mathcal E\), \(\mathcal M\), \(\mathcal D\), or the proposal strategy? Argue for a decomposition rather than a single answer.
+3. In a RAG field, where should the LLM judge live: $\mathcal E$, $\mathcal M$, $\mathcal D$, or the proposal strategy? Argue for a decomposition rather than a single answer.
 4. Explain why `grid search` and `Bayesian optimization` are not adequate top-level domain abstractions for a reusable architecture.
 
 ## 1.8 Chapter synthesis: the first architectural kernel
@@ -780,7 +780,7 @@ This smallness is deliberate. The next chapter asks how domain-specific changes 
 
 ### Motivation
 
-Chapter 1 gave us parameterized morphisms. A system can depend on a parameter object \(P\), and composed systems accumulate parameter spaces. But an optimizer does not merely *read* parameters. It changes them.
+Chapter 1 gave us parameterized morphisms. A system can depend on a parameter object $P$, and composed systems accumulate parameter spaces. But an optimizer does not merely *read* parameters. It changes them.
 
 That apparently small step introduces a new correctness problem. Suppose a RAG release specification is:
 
@@ -810,37 +810,37 @@ That is the role of lenses and, more generally, optics.
 
 ### Definition 2.1 — Lens
 
-For ordinary sets or typed values, a **lens** from a structure \(S\) to a focus \(A\) consists of two operations:
+For ordinary sets or typed values, a **lens** from a structure $S$ to a focus $A$ consists of two operations:
 
-\[
+$$
 \mathsf{get}:S\to A
-\]
+$$
 
 and
 
-\[
+$$
 \mathsf{put}:S\times A\to S.
-\]
+$$
 
 A well-behaved lens is expected to satisfy three familiar laws.
 
 **Get-Put.** Writing back what we just read changes nothing:
 
-\[
+$$
 \mathsf{put}(s,\mathsf{get}(s))=s.
-\]
+$$
 
 **Put-Get.** Reading after writing returns what was written:
 
-\[
+$$
 \mathsf{get}(\mathsf{put}(s,a))=a.
-\]
+$$
 
 **Put-Put.** Two consecutive writes are equivalent to only the final write:
 
-\[
+$$
 \mathsf{put}(\mathsf{put}(s,a),b)=\mathsf{put}(s,b).
-\]
+$$
 
 These are not the only formulations of lens lawfulness in the literature, and general optics support much richer structures [Riley, 2018]. For configuration interventions, however, these three laws give an excellent engineering interface.
 
@@ -881,9 +881,9 @@ If the lens passes the three laws over a suitable generated set of valid states 
 
 Real configuration updates may reject invalid values. A chunk-overlap lens cannot accept `overlap >= chunkSize`. The `put` operation therefore often has type
 
-\[
+$$
 S\times A\to S+\mathsf{Error}.
-\]
+$$
 
 We apply the laws to values for which `put` succeeds. More sophisticated treatments use partial lenses or optics in categories with effects. The software lesson is simpler: **validation is part of intervention semantics and must not be hidden after mutation**.
 
@@ -891,21 +891,21 @@ We apply the laws to values for which `put` succeeds. More sophisticated treatme
 
 Suppose we have a lens
 
-\[
+$$
 L_1: \mathsf{ReleaseSpec}\rightsquigarrow \mathsf{RetrievalSpec}
-\]
+$$
 
 and another
 
-\[
+$$
 L_2: \mathsf{RetrievalSpec}\rightsquigarrow \mathbb R.
-\]
+$$
 
 Their composition focuses directly on vector weight:
 
-\[
+$$
 L_2\circ L_1:\mathsf{ReleaseSpec}\rightsquigarrow\mathbb R.
-\]
+$$
 
 In code:
 
@@ -931,7 +931,7 @@ func SetVectorWeight(s ReleaseSpec, x float64) ReleaseSpec {
 
 ### Exercises 2.1
 
-1. Prove the three lens laws for a lens focusing on the first component of a pair \((A,B)\).
+1. Prove the three lens laws for a lens focusing on the first component of a pair $(A,B)$.
 2. Write a lens focusing on `ChunkSpec.Size`. What validation conditions depend on `Overlap`, and how do they affect lawful updates?
 3. Give an example of a useful configuration transformation that should *not* be presented as a lens because it intentionally changes multiple dependent fields.
 4. Explain how lens composition helps a product-level optimizer use a parameter exposed by a deeply nested plugin.
@@ -960,15 +960,15 @@ For the initial RAG optimizer, ordinary lawful lenses cover most “replace one 
 
 ### Side topic — The optic coend
 
-A common abstract form for an optic from \((S,S')\) to \((A,A')\) in a monoidal category is built from pairs of morphisms
+A common abstract form for an optic from $(S,S')$ to $(A,A')$ in a monoidal category is built from pairs of morphisms
 
-\[
+$$
 S\to M\otimes A,
 \qquad
 M\otimes A'\to S'
-\]
+$$
 
-modulo a suitable equivalence over the residual object \(M\). Intuitively, the forward direction exposes a focus \(A\) plus residual context \(M\); the backward direction uses that residual context to rebuild \(S'\) from an updated \(A'\).
+modulo a suitable equivalence over the residual object $M$. Intuitively, the forward direction exposes a focus $A$ plus residual context $M$; the backward direction uses that residual context to rebuild $S'$ from an updated $A'$.
 
 For a simple lens, the residual context is “the rest of the structure.” The abstract definition matters because it explains why many bidirectional interfaces compose by the same pattern.
 
@@ -1019,17 +1019,17 @@ Changing `vector_weight` has no build-time invalidation. Changing `chunk_size` c
 
 An **intervention** is a tuple
 
-\[
+$$
 I=(L,a',\kappa,\Delta,\Phi),
-\]
+$$
 
 where:
 
-- \(L\) is an optic or lawful focus into the baseline parameter object;
-- \(a'\) is the proposed replacement or transformation;
-- \(\kappa\) is the **semantic class** of the intervention;
-- \(\Delta\) is a declared or computed **dependency/invalidation closure**;
-- \(\Phi\) is a collection of claims or proof obligations that must hold.
+- $L$ is an optic or lawful focus into the baseline parameter object;
+- $a'$ is the proposed replacement or transformation;
+- $\kappa$ is the **semantic class** of the intervention;
+- $\Delta$ is a declared or computed **dependency/invalidation closure**;
+- $\Phi$ is a collection of claims or proof obligations that must hold.
 
 Typical semantic classes include:
 
@@ -1095,15 +1095,15 @@ We need a stronger interpretation:
 
 An **algebraic signature** consists of sorts/types together with operation symbols and their arities. For example, the signature
 
-\[
+$$
 \mathsf{chunk}:\mathsf{Spec}\otimes\mathsf{Corpus}\to\mathsf{Chunks}
-\]
+$$
 
 and
 
-\[
+$$
 \mathsf{index}:\mathsf{Chunks}\to\mathsf{Index}
-\]
+$$
 
 declares operations without saying how they execute.
 
@@ -1215,9 +1215,9 @@ Go generics are useful within one compiled plugin, but a dynamic plugin registry
 
 A **typed envelope** is a pair of a schema identifier and canonical bytes, optionally with a content digest:
 
-\[
+$$
 E=(\mathsf{schema},\mathsf{bytes},\mathsf{digest}).
-\]
+$$
 
 A codec owned by a plugin converts between a concrete language type and the envelope.
 
@@ -1266,17 +1266,17 @@ Optimization campaigns need reproducibility. If the same baseline specification 
 
 A **canonical encoding** is a deterministic mapping
 
-\[
+$$
 \mathsf{encode}:X\to\{0,1\}^*
-\]
+$$
 
 such that values considered equal by the schema are encoded identically.
 
 A content identity can then be domain-separated:
 
-\[
+$$
 \mathrm{ID}_X(x)=H(\texttt{"schema:X/v1"}\parallel\mathsf{encode}(x)).
-\]
+$$
 
 The domain separator prevents identical bytes representing different semantic kinds from colliding at the application-identity level even if the underlying cryptographic hash is the same.
 
@@ -1318,16 +1318,16 @@ Each interpreter is an algebra over the plan constructors.
 
 ### Definition 2.9 — Plan algebra
 
-For a result type \(R\), a **plan algebra** provides meanings for each constructor:
+For a result type $R$, a **plan algebra** provides meanings for each constructor:
 
-\[
+$$
 \begin{aligned}
 \llbracket\mathrm{id}\rrbracket_R &\in R,\\
 \llbracket\mathrm{primitive}(o)\rrbracket_R &\in R,\\
 \llbracket\mathrm{seq}(p_1,\dots,p_n)\rrbracket_R &= \mathsf{seq}_R(\llbracket p_1\rrbracket_R,\dots),\\
 \llbracket\mathrm{tensor}(p_1,\dots,p_n)\rrbracket_R &= \mathsf{tensor}_R(\llbracket p_1\rrbracket_R,\dots).
 \end{aligned}
-\]
+$$
 
 Structural recursion gives a unique fold of a free syntax once the algebra is fixed.
 
@@ -1335,9 +1335,9 @@ Structural recursion gives a unique fold of a free syntax once the algebra is fi
 
 Let the carrier be a finite set of effects:
 
-\[
+$$
 R=\mathcal P(\{\mathsf{CPU},\mathsf{Network},\mathsf{Random},\mathsf{Read},\mathsf{Write}\}).
-\]
+$$
 
 Map each primitive to its declared effect set. Interpret both sequence and tensor by union. The fold yields every possible effect in the plan.
 
@@ -1416,7 +1416,7 @@ Algebraic effects separate operations such as `ReadArtifact`, `CallModel`, or `E
 
 Optimization differs from ordinary orchestration because changing a parameter can invalidate some existing artifacts while leaving others reusable. We need a semantics for causal dependency.
 
-Let \(N\) be a set of semantic nodes such as:
+Let $N$ be a set of semantic nodes such as:
 
 ```text
 source.snapshot
@@ -1437,13 +1437,13 @@ A plugin operation declares which nodes it reads and produces. An intervention t
 
 ### Definition 2.11 — Dependency graph
 
-A **dependency graph** is a directed graph \(G=(V,E)\) whose vertices are semantic artifacts or policies and where \(u\to v\) means that a change in \(u\) may change the semantic value of \(v\).
+A **dependency graph** is a directed graph $G=(V,E)$ whose vertices are semantic artifacts or policies and where $u\to v$ means that a change in $u$ may change the semantic value of $v$.
 
-For a changed set \(S\subseteq V\), its **forward closure** is
+For a changed set $S\subseteq V$, its **forward closure** is
 
-\[
+$$
 \mathrm{cl}^+(S)=\{v\mid \exists s\in S\text{ with a path }s\leadsto v\}.
-\]
+$$
 
 A candidate must recompute or re-evaluate every material node in the closure unless a stronger plugin-specific equivalence proves reuse valid.
 
@@ -1524,23 +1524,23 @@ The operation’s implementation can be replaced or moved to another package wit
 
 Build:
 
-\[
+$$
 (\mathsf{Spec}\otimes\mathsf{Corpus})
 \xrightarrow{\mathsf{chunk}}
 \mathsf{Chunks}
 \xrightarrow{\mathsf{index}}
 \mathsf{Index}.
-\]
+$$
 
 Query evaluation:
 
-\[
+$$
 \mathsf{Index}\otimes\mathsf{Spec}\otimes\mathsf{Case}
 \xrightarrow{\mathsf{retrieve}}
 \mathsf{Retrieval}
 \xrightarrow{\mathsf{measure}}
 \mathsf{Trial}.
-\]
+$$
 
 The campaign runner may build once per build-affecting candidate and reuse the resulting index for many cases. This scheduling policy is a higher-level interpretation of dependencies, not something encoded inside `retrieve`.
 
@@ -1564,9 +1564,9 @@ Production code should prefer property-based generators over small fixed lists w
 
 For a deterministic operation `f`, test:
 
-\[
+$$
 \mathrm{material}(f(x))=\mathrm{material}(f(x))
-\]
+$$
 
 across separate executions in a controlled environment. This is not a proof that a network-backed operation is deterministic merely because two calls happened to match. The plugin should only claim determinism when the semantics justify it.
 
@@ -1673,35 +1673,35 @@ Probability should therefore enter the semantics, not only the reporting layer.
 
 ### Definition 3.1 — Probability distribution
 
-For a finite set \(Y\), a **probability distribution** is a function
+For a finite set $Y$, a **probability distribution** is a function
 
-\[
+$$
 p:Y\to[0,1]
-\]
+$$
 
 such that
 
-\[
+$$
 \sum_{y\in Y}p(y)=1.
-\]
+$$
 
-We write \(\mathcal D(Y)\) for the set of distributions on \(Y\).
+We write $\mathcal D(Y)$ for the set of distributions on $Y$.
 
 ### Definition 3.2 — Markov kernel
 
-A **Markov kernel** from \(X\) to \(Y\) assigns a distribution on \(Y\) to every input \(x\in X\):
+A **Markov kernel** from $X$ to $Y$ assigns a distribution on $Y$ to every input $x\in X$:
 
-\[
+$$
 K:X\to\mathcal D(Y).
-\]
+$$
 
 Equivalently, we write
 
-\[
+$$
 K(y\mid x)
-\]
+$$
 
-for the probability of output \(y\) conditioned on input \(x\).
+for the probability of output $y$ conditioned on input $x$.
 
 In a finite implementation:
 
@@ -1715,11 +1715,11 @@ A language-model evaluator, a latency model, or a sampled human assessor can all
 
 ### Worked example 3.1 — A stochastic answer evaluator
 
-Let \(C\) be candidate releases, \(X\) evaluation cases, and \(O\) trial outcomes. Then evaluation can be modeled as
+Let $C$ be candidate releases, $X$ evaluation cases, and $O$ trial outcomes. Then evaluation can be modeled as
 
-\[
+$$
 K:C\times X\to\mathcal D(O).
-\]
+$$
 
 An outcome should be richer than a score:
 
@@ -1739,51 +1739,51 @@ This design preserves failure and provenance as part of the sampled evidence.
 
 Given kernels
 
-\[
+$$
 K:X\to\mathcal D(Y)
-\]
+$$
 
 and
 
-\[
+$$
 L:Y\to\mathcal D(Z),
-\]
+$$
 
 their composite is
 
-\[
+$$
 (L\odot K)(z\mid x)=\sum_{y\in Y}K(y\mid x)L(z\mid y).
-\]
+$$
 
 This is the law of total probability expressed as composition. It is composition in the **Kleisli category** of the distribution monad.
 
-> **Fundamentals: monads and Kleisli arrows.** For this chapter it is enough to think of the distribution construction \(\mathcal D\) as turning a set of outcomes into a set of probability distributions. A Kleisli arrow \(X\to Y\) for \(\mathcal D\) is an ordinary function \(X\to\mathcal D(Y)\). Kleisli composition performs the summation/integration needed to feed a random output of the first arrow into the second. The general definition of a monad packages the unit and associative “flattening” operations that make this composition lawful.
+> **Fundamentals: monads and Kleisli arrows.** For this chapter it is enough to think of the distribution construction $\mathcal D$ as turning a set of outcomes into a set of probability distributions. A Kleisli arrow $X\to Y$ for $\mathcal D$ is an ordinary function $X\to\mathcal D(Y)$. Kleisli composition performs the summation/integration needed to feed a random output of the first arrow into the second. The general definition of a monad packages the unit and associative “flattening” operations that make this composition lawful.
 
 ### Worked example 3.2 — Retrieval followed by stochastic generation
 
 Suppose retrieval is deterministic:
 
-\[
+$$
 r:Q\to E,
-\]
+$$
 
 while generation is stochastic:
 
-\[
+$$
 g:E\to\mathcal D(A).
-\]
+$$
 
 Then the whole answer system is a kernel
 
-\[
+$$
 Q\to\mathcal D(A)
-\]
+$$
 
 given by
 
-\[
+$$
 q\mapsto g(r(q)).
-\]
+$$
 
 If retrieval itself uses stochastic query expansion, reranking, or connected search, the same composition law handles it.
 
@@ -1799,7 +1799,7 @@ A reporting function that drops failures and reports mean `0.85` changes the pro
 
 ### Exercises 3.1
 
-1. Let \(K\) flip a fair coin and \(L\) output `win` with probability 0.8 after heads and 0.3 after tails. Compute \((L\odot K)(\text{win})\).
+1. Let $K$ flip a fair coin and $L$ output `win` with probability 0.8 after heads and 0.3 after tails. Compute $(L\odot K)(\text{win})$.
 2. Model a retrieval system with deterministic retrieval and a generator that abstains with probability depending on evidence count.
 3. Explain why treating “exception” as absence of a sample rather than an outcome can bias optimization.
 
@@ -1813,17 +1813,17 @@ Kleisli categories explain sequential composition of kernels, but our plan langu
 
 A **Markov category** is, roughly, a symmetric monoidal category of stochastic processes equipped with coherent copying and discarding operations on objects, with discarding compatible with normalization.
 
-Each object \(X\) has a copy morphism
+Each object $X$ has a copy morphism
 
-\[
+$$
 \mathsf{copy}_X:X\to X\otimes X
-\]
+$$
 
 and discard morphism
 
-\[
+$$
 \mathsf{discard}_X:X\to I.
-\]
+$$
 
 Deterministic morphisms interact with copying in the familiar way. General stochastic morphisms do not: sampling once and copying the result is not the same as independently running the kernel twice.
 
@@ -1831,29 +1831,29 @@ The full axioms are given in the categorical-probability literature [Fritz, 2020
 
 ### Worked example 3.3 — One sample versus two samples
 
-Let \(K:I\to\{H,T\}\) be a fair coin.
+Let $K:I\to\{H,T\}$ be a fair coin.
 
 **Sample once, then copy:**
 
-\[
+$$
 I\xrightarrow{K}X\xrightarrow{\mathsf{copy}}X\otimes X.
-\]
+$$
 
 The joint distribution is
 
-\[
+$$
 P(H,H)=1/2,\quad P(T,T)=1/2,
-\]
+$$
 
 with zero probability on `(H,T)` and `(T,H)`.
 
 **Run twice independently:**
 
-\[
+$$
 I\cong I\otimes I\xrightarrow{K\otimes K}X\otimes X.
-\]
+$$
 
-Now every pair has probability \(1/4\).
+Now every pair has probability $1/4$.
 
 This difference reappears in experiments. If baseline and candidate are evaluated with independent random seeds, we obtain one coupling. If they share the same stochastic scenario, we obtain another.
 
@@ -1878,7 +1878,7 @@ The evaluator may still call external systems that do not guarantee deterministi
 
 ### Motivation
 
-Suppose we compare baseline \(B\) and candidate \(C\). Evaluating them on the same query set is good, but for stochastic systems we also need to decide how their randomness is related.
+Suppose we compare baseline $B$ and candidate $C$. Evaluating them on the same query set is good, but for stochastic systems we also need to decide how their randomness is related.
 
 If each arm receives independent random conditions, the difference between outcomes includes both treatment effect and unrelated stochastic variation. If the same random condition can be meaningfully shared, a paired design often has lower variance.
 
@@ -1886,31 +1886,31 @@ The mathematical object describing the relationship between two marginal distrib
 
 ### Definition 3.5 — Coupling
 
-Let \(\mu\in\mathcal D(X)\) and \(\nu\in\mathcal D(Y)\). A **coupling** of \(\mu\) and \(\nu\) is a joint distribution
+Let $\mu\in\mathcal D(X)$ and $\nu\in\mathcal D(Y)$. A **coupling** of $\mu$ and $\nu$ is a joint distribution
 
-\[
+$$
 \gamma\in\mathcal D(X\times Y)
-\]
+$$
 
-whose marginals are \(\mu\) and \(\nu\).
+whose marginals are $\mu$ and $\nu$.
 
 Different couplings can have the same marginals but different dependence structures.
 
 ### Worked example 3.5 — Shared seeds as a coupling
 
-For case \(x_i\) and repeat \(r\), derive one deterministic seed
+For case $x_i$ and repeat $r$, derive one deterministic seed
 
-\[
+$$
 \omega_{i,r}=H(\mathsf{campaignID},i,r).
-\]
+$$
 
 Evaluate both arms using sub-seeds deterministically derived from the same root:
 
-\[
+$$
 Y_B\sim K_B(x_i,\omega_{i,r}),
 \qquad
 Y_C\sim K_C(x_i,\omega_{i,r}).
-\]
+$$
 
 This does not guarantee identical provider randomness; many providers ignore user seeds or have hidden state. But it defines the intended coupling for every controllable source of randomness.
 
@@ -1918,17 +1918,17 @@ This does not guarantee identical provider randomness; many providers ignore use
 
 ### Definition 3.6 — Paired difference
 
-For metric \(m\), the paired difference on one coordinate is
+For metric $m$, the paired difference on one coordinate is
 
-\[
+$$
 \Delta_{i,r}=m(Y_C^{i,r})-m(Y_B^{i,r}).
-\]
+$$
 
 The empirical mean paired effect is
 
-\[
+$$
 \bar\Delta=\frac{1}{N}\sum_{i,r}\Delta_{i,r}.
-\]
+$$
 
 For a minimized metric such as latency or error, the sign convention may be reversed or metric direction recorded separately.
 
@@ -1936,21 +1936,21 @@ For a minimized metric such as latency or error, the sign convention may be reve
 
 Suppose cases have very different difficulty. Baseline and candidate quality can be modeled as
 
-\[
+$$
 B_i=\theta_B+d_i+\epsilon_{B,i},
-\]
+$$
 
-\[
+$$
 C_i=\theta_C+d_i+\epsilon_{C,i},
-\]
+$$
 
-where \(d_i\) is case difficulty shared by both arms. The paired difference cancels \(d_i\):
+where $d_i$ is case difficulty shared by both arms. The paired difference cancels $d_i$:
 
-\[
+$$
 C_i-B_i=(\theta_C-\theta_B)+(\epsilon_{C,i}-\epsilon_{B,i}).
-\]
+$$
 
-An unpaired comparison must estimate through the variability in \(d_i\).
+An unpaired comparison must estimate through the variability in $d_i$.
 
 ### Counterexample 3.2 — Invalid sharing of randomness
 
@@ -1977,11 +1977,11 @@ A better design derives independent named sub-seeds from an immutable root.
 
 ### Definition 3.7 — Splittable seed discipline
 
-Let \(H\) be a cryptographic hash or pseudorandom derivation. A root seed \(s\) can derive a sub-seed by label:
+Let $H$ be a cryptographic hash or pseudorandom derivation. A root seed $s$ can derive a sub-seed by label:
 
-\[
+$$
 \mathsf{split}(s,\ell)=H(s\parallel 0\parallel\ell).
-\]
+$$
 
 A trial can then use
 
@@ -2041,17 +2041,17 @@ A metric vector is evidence. A decision policy says how that evidence is used.
 
 A metric definition includes at least:
 
-\[
+$$
 M=(\mathsf{id},\mathsf{direction},\mathsf{domain},\mathsf{missingPolicy},\mathsf{aggregation}).
-\]
+$$
 
 The **direction** is `maximize`, `minimize`, or sometimes `constraint-only`.
 
 A trial emits a partial or total metric vector
 
-\[
+$$
 m: \mathsf{MetricID}\rightharpoonup\mathbb R.
-\]
+$$
 
 Missingness must have explicit semantics. It must never be silently converted to zero or omitted from denominators unless the metric definition says so.
 
@@ -2071,23 +2071,23 @@ A candidate can dominate another on some metrics and lose on others.
 
 ### Definition 3.9 — Preorder and partial order
 
-A **preorder** is a relation \(\preceq\) that is reflexive and transitive. A **partial order** is additionally antisymmetric: if \(x\preceq y\) and \(y\preceq x\), then \(x=y\). Optimization preferences are often preorders rather than total orders because two candidates can be incomparable: one is faster while another is more accurate.
+A **preorder** is a relation $\preceq$ that is reflexive and transitive. A **partial order** is additionally antisymmetric: if $x\preceq y$ and $y\preceq x$, then $x=y$. Optimization preferences are often preorders rather than total orders because two candidates can be incomparable: one is faster while another is more accurate.
 
-A **total order** adds comparability: for every \(x,y\), either \(x\preceq y\) or \(y\preceq x\). A single scalar score induces a total preorder, which is convenient but frequently stronger than product policy justifies.
+A **total order** adds comparability: for every $x,y$, either $x\preceq y$ or $y\preceq x$. A single scalar score induces a total preorder, which is convenient but frequently stronger than product policy justifies.
 
 ### Definition 3.10 — Pareto dominance
 
-For a set of metrics transformed so that larger is better, candidate vector \(x\) **Pareto-dominates** \(y\) when
+For a set of metrics transformed so that larger is better, candidate vector $x$ **Pareto-dominates** $y$ when
 
-\[
+$$
 \forall j,\ x_j\ge y_j
-\]
+$$
 
 and
 
-\[
+$$
 \exists j,\ x_j>y_j.
-\]
+$$
 
 The **Pareto frontier** is the set of candidates not dominated by another candidate.
 
@@ -2097,9 +2097,9 @@ Pareto analysis avoids inventing exchange rates between incommensurable goals. I
 
 Suppose
 
-\[
+$$
 S=10\cdot\mathrm{quality}-0.001\cdot\mathrm{latency}-100\cdot\mathrm{disclosures}.
-\]
+$$
 
 The weights imply that a sufficiently large quality gain can compensate for unauthorized disclosure. If the product requirement is “zero unauthorized disclosures,” the score encodes the wrong decision topology. Hard constraints must be represented as hard constraints.
 
@@ -2121,11 +2121,11 @@ The order matters. We need a decision policy that is compositional but does not 
 
 A **gate** is a predicate or statistical decision
 
-\[
+$$
 g:E\to\{\mathsf{pass},\mathsf{fail},\mathsf{insufficient}\}
-\]
+$$
 
-on accumulated experiment evidence \(E\).
+on accumulated experiment evidence $E$.
 
 A **gate sequence** evaluates gates in a declared order. A fail-closed policy stops eligibility at the first failure or insufficient hard gate.
 
@@ -2192,18 +2192,18 @@ The architecture should not hard-code one statistical method, but it should make
 
 An **estimand** is the population quantity an experiment seeks to estimate. For example:
 
-\[
+$$
 \theta=\mathbb E_{X\sim W,\omega\sim\Omega}
 [m(C,X,\omega)-m(B,X,\omega)].
-\]
+$$
 
-Here \(W\) is the target workload distribution and \(\Omega\) the stochastic environment under the chosen coupling.
+Here $W$ is the target workload distribution and $\Omega$ the stochastic environment under the chosen coupling.
 
 The sample mean is meaningful only relative to this declared population.
 
 ### Worked example 3.9 — Paired bootstrap
 
-Given case-level paired differences \(\Delta_1,\dots,\Delta_n\), resample cases with replacement and recompute the mean to approximate a confidence interval. If repeats within a case share important dependence, resample at the case cluster level rather than treating every repeat as independent.
+Given case-level paired differences $\Delta_1,\dots,\Delta_n$, resample cases with replacement and recompute the mean to approximate a confidence interval. If repeats within a case share important dependence, resample at the case cluster level rather than treating every repeat as independent.
 
 Pseudocode:
 
@@ -2217,11 +2217,11 @@ interval = percentile(bootstrapMean, [2.5%, 97.5%])
 
 ### Definition 3.14 — Noninferiority
 
-For a protected metric where regression up to margin \(\delta\) is acceptable, a noninferiority claim tests whether
+For a protected metric where regression up to margin $\delta$ is acceptable, a noninferiority claim tests whether
 
-\[
+$$
 \theta> -\delta.
-\]
+$$
 
 This is often a better product statement than “no statistically significant difference.” Failure to detect a difference is not evidence of equivalence.
 
@@ -2241,9 +2241,9 @@ We do not need the full theorem to design the software, but it gives a useful pe
 
 ### Definition 3.15 — Garbling, informal
 
-An experiment \(E_2\) is a **garbling** of \(E_1\) if the observations of \(E_2\) can be obtained by applying an additional stochastic channel to the observations of \(E_1\).
+An experiment $E_2$ is a **garbling** of $E_1$ if the observations of $E_2$ can be obtained by applying an additional stochastic channel to the observations of $E_1$.
 
-Then \(E_1\) is at least as informative as \(E_2\) for every decision problem in the classical Blackwell sense.
+Then $E_1$ is at least as informative as $E_2$ for every decision problem in the classical Blackwell sense.
 
 ### Worked example 3.10 — Native artifact versus projected score
 
@@ -2284,39 +2284,39 @@ A real campaign must also survive interruption. It should know which trial cells
 
 ### Definition 3.16 — Transition system
 
-A **state transition system** consists of states \(S\), labels/actions \(L\), and a relation or function
+A **state transition system** consists of states $S$, labels/actions $L$, and a relation or function
 
-\[
+$$
 S\xrightarrow{\ell}S'.
-\]
+$$
 
 A deterministic reducer can be written
 
-\[
+$$
 \mathsf{reduce}:S\times E\to S
-\]
+$$
 
-where \(E\) is an event type.
+where $E$ is an event type.
 
 ### Definition 3.17 — Endofunctor
 
-An **endofunctor** is a functor from a category to itself, \(F:\mathcal C\to\mathcal C\). It describes a uniform “shape constructor” on objects and morphisms. Examples in programming include list-like, option-like, or state-transition shapes.
+An **endofunctor** is a functor from a category to itself, $F:\mathcal C\to\mathcal C$. It describes a uniform “shape constructor” on objects and morphisms. Examples in programming include list-like, option-like, or state-transition shapes.
 
 ### Definition 3.18 — Coalgebra
 
-Given an endofunctor \(F\), an **\(F\)-coalgebra** is a map
+Given an endofunctor $F$, an **$F$-coalgebra** is a map
 
-\[
+$$
 c:S\to F(S).
-\]
+$$
 
-Coalgebras are widely used to model state-based, potentially ongoing behavior. For an optimizer, \(F(S)\) can encode a next action plus continuation state or termination.
+Coalgebras are widely used to model state-based, potentially ongoing behavior. For an optimizer, $F(S)$ can encode a next action plus continuation state or termination.
 
 A simplified campaign coalgebra might be
 
-\[
+$$
 c:S\to \mathsf{Done}+\mathsf{Action}\times S.
-\]
+$$
 
 The exact functor is less important than the design insight: the optimizer is not a pure function from initial config to final config. It is an observable evolving process.
 
@@ -2376,17 +2376,17 @@ Optimization evidence is scientific evidence. Overwriting `results.json` loses t
 
 ### Definition 3.19 — Resumability law
 
-Let \(E=E_1\cdot E_2\) be an event sequence split at any durable prefix. If
+Let $E=E_1\cdot E_2$ be an event sequence split at any durable prefix. If
 
-\[
+$$
 S_1=\mathsf{fold}(S_0,E_1),
-\]
+$$
 
-then resuming from \(S_1\) and applying \(E_2\) should yield the same terminal state as uninterrupted reduction:
+then resuming from $S_1$ and applying $E_2$ should yield the same terminal state as uninterrupted reduction:
 
-\[
+$$
 \mathsf{fold}(S_1,E_2)=\mathsf{fold}(S_0,E).
-\]
+$$
 
 Execution may repeat some external work after a crash, but semantic trial coordinates and committed results must remain consistent.
 
@@ -2410,15 +2410,15 @@ We can separate three roles:
 
 Let
 
-\[
+$$
 \mathsf{System}:P\otimes X\to\mathcal D(Y)
-\]
+$$
 
-be the parameterized system, and let an evaluator convert outcomes into evidence \(E\). A controller updates campaign state or parameters:
+be the parameterized system, and let an evaluator convert outcomes into evidence $E$. A controller updates campaign state or parameters:
 
-\[
+$$
 \mathsf{Controller}:S\otimes E\to\mathcal D(S\otimes P').
-\]
+$$
 
 The closed loop repeatedly composes these processes.
 
@@ -2458,21 +2458,21 @@ This aligns with plugin boundaries. A RAG evaluator emits evidence. A security g
 
 Let
 
-\[
+$$
 \mathsf{eligible}:C\times E\to\{0,1\}
-\]
+$$
 
 and let
 
-\[
+$$
 \mathsf{prefer}:\mathcal P(C)\times E\to C
-\]
+$$
 
 choose among eligible candidates. This is structurally different from
 
-\[
+$$
 \mathsf{score}:C\times E\to\mathbb R.
-\]
+$$
 
 The separation allows security to remain a hard feasibility condition while cost and quality participate in later choice.
 
@@ -2482,15 +2482,15 @@ A RAG plugin is complex enough that mistakes can hide behind domain details. A t
 
 ### System
 
-Let the parameter be \(x\in\mathbb R\). Each workload case supplies a target \(t\). Define noisy loss
+Let the parameter be $x\in\mathbb R$. Each workload case supplies a target $t$. Define noisy loss
 
-\[
+$$
 L(x,t,\epsilon)=(x-t)^2+\epsilon,
-\]
+$$
 
-where \(\epsilon\sim\mathrm{Uniform}[-\eta,\eta]\).
+where $\epsilon\sim\mathrm{Uniform}[-\eta,\eta]$.
 
-The optimization goal is to minimize both loss and absolute distance \(|x-t|\).
+The optimization goal is to minimize both loss and absolute distance $|x-t|$.
 
 ### Parameter space
 
@@ -2505,12 +2505,12 @@ A lens focuses on `X`. The proposer considers candidate values `{1,2,3,4}`. Work
 
 ### Evaluation kernel
 
-For case \(t_i\), repeat \(r\), and seed \(s_{i,r}\):
+For case $t_i$, repeat $r$, and seed $s_{i,r}$:
 
-\[
+$$
 K_x(t_i,s_{i,r})
 =\left((x-t_i)^2+\epsilon(s_{i,r}),\ |x-t_i|\right).
-\]
+$$
 
 Baseline and candidate share the coordinate seed, so noise is paired when the implementation uses the same noise derivation.
 
@@ -2536,23 +2536,23 @@ If the same engine can run the quadratic plugin and a RAG plugin, we have eviden
 
 ### Exercise 3.4
 
-Modify the quadratic example so that larger \(x\) also incurs operational cost \(0.1x\). Design a decision policy that treats loss noninferiority as a hard gate and cost as a preference. Compare this with minimizing `loss + lambda*cost`.
+Modify the quadratic example so that larger $x$ also incurs operational cost $0.1x$. Design a decision policy that treats loss noninferiority as a hard gate and cost as a preference. Compare this with minimizing `loss + lambda*cost`.
 
 ## 3.14 Worked RAG example: stochastic answer quality
 
-Assume a retrieval candidate changes vector weight but keeps the index fixed. For each case, baseline and candidate produce evidence sets \(E_B,E_C\). An answer model then samples answers
+Assume a retrieval candidate changes vector weight but keeps the index fixed. For each case, baseline and candidate produce evidence sets $E_B,E_C$. An answer model then samples answers
 
-\[
+$$
 A_B\sim G(\cdot\mid E_B,q,\omega),
 \qquad
 A_C\sim G(\cdot\mid E_C,q,\omega).
-\]
+$$
 
 A judge kernel evaluates groundedness and completeness:
 
-\[
+$$
 J: (q,E,A)\to\mathcal D(S).
-\]
+$$
 
 The full evaluation is a composition of kernels. The native artifact should retain:
 
@@ -2573,11 +2573,11 @@ Paired evidence is indexed by exact `(case, repeat, arm)` coordinates. A candida
 
 ### Definition 3.21 — Exact pairing relation
 
-Let \(B\) and \(C\) be sets of trial results indexed by coordinates \((i,r)\). A comparison is **exactly paired** when
+Let $B$ and $C$ be sets of trial results indexed by coordinates $(i,r)$. A comparison is **exactly paired** when
 
-\[
+$$
 \mathrm{dom}(B)=\mathrm{dom}(C)=I\times R.
-\]
+$$
 
 If a coordinate is missing, the comparison is incomplete unless the missingness itself has been materialized as a terminal failure outcome at that coordinate.
 
@@ -2726,32 +2726,32 @@ A **RAG release** is an immutable, behavior-complete parameter object that ident
 
 A schematic release is
 
-\[
+$$
 R=(S,B,I,Q,A,P),
-\]
+$$
 
 where:
 
-- \(S\) is source/corpus snapshot identity;
-- \(B\) is build specification: normalization, chunking, representations, embeddings;
-- \(I\) is index material and backend specification;
-- \(Q\) is query/retrieval policy;
-- \(A\) is answer or agent policy;
-- \(P\) is product policy such as authorization, structured facts, and presentation.
+- $S$ is source/corpus snapshot identity;
+- $B$ is build specification: normalization, chunking, representations, embeddings;
+- $I$ is index material and backend specification;
+- $Q$ is query/retrieval policy;
+- $A$ is answer or agent policy;
+- $P$ is product policy such as authorization, structured facts, and presentation.
 
 A direct-search denotation can be modeled as
 
-\[
+$$
 \llbracket R\rrbracket_{search}:U\otimes Qry\to\mathcal D(Outcome_{search}),
-\]
+$$
 
-where \(U\) is subject/runtime context.
+where $U$ is subject/runtime context.
 
 An answer denotation is
 
-\[
+$$
 \llbracket R\rrbracket_{answer}:U\otimes Ctx\otimes Qry\to\mathcal D(Outcome_{answer}).
-\]
+$$
 
 An agentic system may be better modeled as a state machine or coalgebra over conversation state.
 
@@ -2791,11 +2791,11 @@ The free monoidal plan language can express this graph directly. Each stage is s
 
 A **derivation stage** is a primitive morphism whose output semantic identity is a function of declared semantic inputs:
 
-\[
+$$
 f:X\to Y,
 \qquad
 \mathrm{ID}(y)=H(\mathrm{opID},\mathrm{ID}(x),\mathrm{staticSpec},\ldots).
-\]
+$$
 
 A deterministic derivation can be content-addressably cached. A stochastic derivation must additionally identify or retain the realized stochastic output and its generating conditions.
 
@@ -2810,9 +2810,9 @@ type Chunker interface {
 
 A product need not expose the interface exactly this way. In the compositional signature, the important operation is:
 
-\[
+$$
 \mathsf{chunk}:\mathsf{ChunkSpec}\otimes\mathsf{Document}\to\mathsf{ChunkSet}.
-\]
+$$
 
 A chunk should retain source lineage:
 
@@ -2832,9 +2832,9 @@ The chunk ID depends on document revision, chunker identity, and exact span/text
 
 A representation generator may be stochastic or provider-backed:
 
-\[
+$$
 \mathsf{represent}:\mathsf{PromptSpec}\otimes\mathsf{Chunk}	o\mathcal D(\mathsf{Representation}).
-\]
+$$
 
 A realized representation is *searchable derived material*, not automatically authoritative evidence. It retains a link to its source chunk.
 
@@ -2842,19 +2842,19 @@ This distinction prevents an optimization mistake: generated questions can impro
 
 ### Definition 4.3 — Derivation dependency
 
-If stage \(g\) consumes output of stage \(f\), then semantic changes in \(f\)'s output identity propagate to \(g\). The release-specific plan induces a dependency graph.
+If stage $g$ consumes output of stage $f$, then semantic changes in $f$'s output identity propagate to $g$. The release-specific plan induces a dependency graph.
 
 A build-affecting intervention is therefore evaluated by two functions:
 
-\[
+$$
 \mathsf{apply}:R\times I\to R'
-\]
+$$
 
 and
 
-\[
+$$
 \mathsf{impact}:R\times I\to(\mathsf{reuse},\mathsf{rebuild},\mathsf{reevaluate}).
-\]
+$$
 
 ### Worked example 4.3 — Chunking versus fusion
 
@@ -2870,9 +2870,9 @@ A shared optimizer should not need RAG-specific `if chunk_size changed` code. Th
 
 A production query path contains operations whose ordering is semantically meaningful:
 
-\[
+$$
 \mathsf{rewrite}\to\mathsf{channels}\to\mathsf{collapse}\to\mathsf{filter}\to\mathsf{fuse}\to\mathsf{rerank}\to\mathsf{hydrate}\to\mathsf{admit}.
-\]
+$$
 
 Not every route uses every operation. The core should provide composition; the RAG package should provide the vocabulary and laws.
 
@@ -2916,33 +2916,33 @@ The plan can be interpreted directly for execution and separately for security, 
 
 Let:
 
-\[
+$$
 L:P_L\otimes Q\to R_L,
 \qquad
 V:P_V\otimes Q\to R_V.
-\]
+$$
 
 A fusion policy
 
-\[
+$$
 F:P_F\otimes(R_L\otimes R_V)\to R
-\]
+$$
 
 creates a parameterized composite with parameter object
 
-\[
+$$
 P_L\otimes P_V\otimes P_F.
-\]
+$$
 
 If the product exposes a single `RetrievalSpec`, a reparameterization compiles it into these low-level parameter objects.
 
 ### Worked example 4.5 — Weighted reciprocal-rank fusion
 
-For channel set \(C\), rank \(r_c(d)\), rank constant \(k>0\), and channel weight \(w_c\ge0\), define
+For channel set $C$, rank $r_c(d)$, rank constant $k>0$, and channel weight $w_c\ge0$, define
 
-\[
+$$
 \mathrm{RRF}(d)=\sum_{c\in C}\frac{w_c}{k+r_c(d)}.
-\]
+$$
 
 A fusion plugin should specify deterministic tie-breaking for equal finite scores. One possible total order is:
 
@@ -2969,11 +2969,11 @@ A campaign machine may be “open” with respect to proposal strategy, evaluato
 
 A **port** is an ordered typed interface boundary:
 
-\[
+$$
 P=(A_1,\dots,A_n).
-\]
+$$
 
-A plan has input port \(P_{in}\) and output port \(P_{out}\). Two plans can compose sequentially when the output port of the first matches the input port of the second.
+A plan has input port $P_{in}$ and output port $P_{out}$. Two plans can compose sequentially when the output port of the first matches the input port of the second.
 
 In a software IR:
 
@@ -3327,9 +3327,9 @@ For answer/session evaluation, it may additionally include answer, citations, to
 
 A **metric projection** is a deterministic or versioned transformation
 
-\[
+$$
 \pi:\mathsf{NativeArtifact}\to\mathsf{MetricVector}.
-\]
+$$
 
 The campaign core stores both the native artifact reference and the projection used by a comparison.
 
@@ -3341,7 +3341,7 @@ We now execute a complete campaign using the abstractions developed throughout t
 
 ### Step 1 — Baseline
 
-A baseline release \(R_0\) contains:
+A baseline release $R_0$ contains:
 
 ```text
 chunker: heading-aware/v3
@@ -3356,11 +3356,11 @@ reranker: disabled
 
 The RAG plugin exposes a lens
 
-\[
+$$
 L_w:R\rightsquigarrow\mathbb R_{\ge0}
-\]
+$$
 
-focused on vector weight. Proposals are \(w\in\{0.6,0.8,1.2,1.4\}\).
+focused on vector weight. Proposals are $w\in\{0.6,0.8,1.2,1.4\}$.
 
 ### Step 3 — Impact closure
 
@@ -3374,7 +3374,7 @@ reevaluate: retrieval metrics, answer metrics if candidate advances
 
 ### Step 4 — Trial coordinates
 
-For cases \(i=1,\dots,n\) and repeats \(r=1,\dots,R\), the run store requires baseline and candidate results at every coordinate.
+For cases $i=1,\dots,n$ and repeats $r=1,\dots,R$, the run store requires baseline and candidate results at every coordinate.
 
 For deterministic retrieval, repeats may be unnecessary at the retrieval fidelity; repeated answer trials are introduced later.
 
@@ -3382,9 +3382,9 @@ For deterministic retrieval, repeats may be unnecessary at the retrieval fidelit
 
 The evaluator writes a native ranking artifact and projects:
 
-\[
+$$
 (\mathrm{Recall@10},\mathrm{MRR},\mathrm{nDCG@10},\mathrm{ScoredCandidates}).
-\]
+$$
 
 ### Step 6 — Gates
 
@@ -3466,9 +3466,9 @@ This illustrates a deep point: the evaluation schema itself can determine which 
 
 Define
 
-\[
+$$
 A_{refresh}=\frac{\text{number of derived items recomputed}}{\text{number of source documents changed}}.
-\]
+$$
 
 A chunker that improves static retrieval but causes extreme invalidation under common edits may be poor for a frequently changing production corpus. Optimization should include both quality and maintenance cost when production dynamics matter.
 
@@ -3482,13 +3482,13 @@ Security and lineage laws first; retrieval noninferiority and target gains next;
 
 An approximate vector backend is an ideal example of an intervention whose semantics are not exact equality.
 
-Let \(E(q)\) be the exact nearest-neighbor ranking and \(A_\theta(q)\) the ANN ranking under parameter \(\theta\).
+Let $E(q)$ be the exact nearest-neighbor ranking and $A_\theta(q)$ the ANN ranking under parameter $\theta$.
 
 A candidate claim may be:
 
-\[
+$$
 \mathbb P_{q\sim W}\left[\mathrm{Recall@k}(A_\theta(q),E(q))\ge\rho\right]\ge1-\alpha.
-\]
+$$
 
 The exact backend is an **oracle** for approximation quality.
 
@@ -3503,7 +3503,7 @@ The exact backend is an **oracle** for approximation quality.
 
 ### Required evidence
 
-- exact-oracle recall at several \(k\);
+- exact-oracle recall at several $k$;
 - protected filters/source strata;
 - deterministic or distributional reproducibility class;
 - p50/p95/p99 latency;
@@ -3794,9 +3794,9 @@ We divide verification into layers.
 
 Generate finite candidates with arbitrary valid finite scores, including ties. A comparator `<` must satisfy:
 
-**Irreflexivity:** never \(a<a\).
+**Irreflexivity:** never $a<a$.
 
-**Transitivity:** if \(a<b\) and \(b<c\), then \(a<c\).
+**Transitivity:** if $a<b$ and $b<c$, then $a<c$.
 
 **Total comparability:** for distinct canonical identities, exactly one order holds after score/tie rules.
 
@@ -3810,11 +3810,11 @@ A good textbook must state where its own abstraction should not be used.
 
 If your optimization problem is literally
 
-\[
+$$
 \min_{x\in[0,1]}f(x)
-\]
+$$
 
-where \(f\) is deterministic, cheap, pure, and has no artifact or safety semantics, a numerical optimization library is sufficient. Building a free monoidal plan and plugin registry adds ceremony without information.
+where $f$ is deterministic, cheap, pure, and has no artifact or safety semantics, a numerical optimization library is sufficient. Building a free monoidal plan and plugin registry adds ceremony without information.
 
 ### Counterexample 4.5 — One application with no extension boundary
 
@@ -4008,7 +4008,7 @@ This appendix gives solution sketches for representative exercises. It is intent
 
 ## A.1 Category and composition
 
-**Chapter 1, Exercise 1.1.1.** If \(f:A\to B\) and \(g:B\to C\), then \(g\circ f:A\to C\). Similarly \(h\circ g:B\to D\), and \(h\circ g\circ f:A\to D\). Associativity makes the three-term composite independent of parenthesization.
+**Chapter 1, Exercise 1.1.1.** If $f:A\to B$ and $g:B\to C$, then $g\circ f:A\to C$. Similarly $h\circ g:B\to D$, and $h\circ g\circ f:A\to D$. Associativity makes the three-term composite independent of parenthesization.
 
 **Chapter 1, Exercise 1.2.3.** For stochastic `sample`, copying after one run yields perfectly correlated outputs. Tensoring two runs yields independent outputs if the tensor interpreter uses product distributions. This is exactly why copy is structural and not syntactic duplication of a box.
 
@@ -4018,34 +4018,34 @@ This appendix gives solution sketches for representative exercises. It is intent
 
 For the first projection lens on pairs:
 
-\[
+$$
 \mathsf{get}(a,b)=a,
 \qquad
 \mathsf{put}((a,b),a')=(a',b).
-\]
+$$
 
 Then
 
-\[
+$$
 \mathsf{put}((a,b),\mathsf{get}(a,b))=(a,b),
-\]
+$$
 
-\[
+$$
 \mathsf{get}(\mathsf{put}((a,b),a'))=a',
-\]
+$$
 
 and
 
-\[
+$$
 \mathsf{put}(\mathsf{put}((a,b),a'),a'')=(a'',b)
 =\mathsf{put}((a,b),a'').
-\]
+$$
 
 A chunk-size update with an overlap constraint is more subtle. If `put(size)` can invalidate the existing overlap, the focus is not independent over the entire state space. One solution is to make the focused value a valid pair `(size, overlap)`; another is a partial optic that rejects values incompatible with current residual state. What is *not* valid is silently changing overlap and still claiming a lens focused only on size.
 
 ## A.3 Couplings
 
-Two fair-coin marginals have many couplings. Independent coupling assigns \(1/4\) to each pair. Perfectly correlated coupling assigns \(1/2\) to `(H,H)` and `(T,T)`. Perfect anticorrelation assigns \(1/2\) to `(H,T)` and `(T,H)`. The marginal distributions alone do not identify the joint experiment.
+Two fair-coin marginals have many couplings. Independent coupling assigns $1/4$ to each pair. Perfectly correlated coupling assigns $1/2$ to `(H,H)` and `(T,T)`. Perfect anticorrelation assigns $1/2$ to `(H,T)` and `(T,H)`. The marginal distributions alone do not identify the joint experiment.
 
 For prompt comparison, shared model seed is useful if the provider interprets seeds consistently across prompts and the semantic goal is common-random-number variance reduction. The case remains the primary paired coordinate; hidden provider nondeterminism must still be acknowledged.
 
@@ -4053,25 +4053,25 @@ For prompt comparison, shared model seed is useful if the provider interprets se
 
 Let a cost carrier be
 
-\[
+$$
 R=\mathbb R_{\ge0}\times\mathbb R_{\ge0}\times\mathbb N
-\]
+$$
 
 with components `(work, criticalPath, remoteCalls)`.
 
 For sequence:
 
-\[
+$$
 (w_1,c_1,r_1)\ ;\ (w_2,c_2,r_2)
 =(w_1+w_2,c_1+c_2,r_1+r_2).
-\]
+$$
 
 For tensor, assuming unlimited parallel resources:
 
-\[
+$$
 (w_1,c_1,r_1)\otimes(w_2,c_2,r_2)
 =(w_1+w_2,\max(c_1,c_2),r_1+r_2).
-\]
+$$
 
 The assumptions matter. Under a single shared rate limiter, critical path may not be `max`; a richer interpreter would track resource classes.
 

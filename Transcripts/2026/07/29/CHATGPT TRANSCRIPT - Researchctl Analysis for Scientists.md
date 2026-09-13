@@ -2303,7 +2303,7 @@ const fs = require("fs:input");
 
 exports.normalizeCustomers = task.implementation(async ctx => {
   const text = await fs.readFile(ctx.input().source.path, "utf8");
-  const rows = text.trim().split("\n").map(JSON.parse);
+  const rows = text.trim().split("\\n").map(JSON.parse);
 
   const dataset = await ctx.outputs.putJSON("dataset", {
     schema: "normalized-customers-ref/v1",

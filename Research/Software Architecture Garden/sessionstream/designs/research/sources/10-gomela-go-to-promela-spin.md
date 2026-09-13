@@ -13,16 +13,16 @@ Authors:[Nicolas Dilley](https://arxiv.org/search/cs?searchtype=author&query=Dil
 | Comments: | In Proceedings PLACES 2020, [arXiv:2004.01062](https://arxiv.org/abs/2004.01062) |
 | --- | --- |
 | Subjects: | Programming Languages (cs.PL); Software Engineering (cs.SE) |
-| Cite as: | [arXiv:2004.01323](https://arxiv.org/abs/2004.01323) \[cs.PL\] |
-|  | (or [arXiv:2004.01323v1](https://arxiv.org/abs/2004.01323v1) \[cs.PL\] for this version) |
+| Cite as: | [arXiv:2004.01323](https://arxiv.org/abs/2004.01323) $$cs.PL$$ |
+|  | (or [arXiv:2004.01323v1](https://arxiv.org/abs/2004.01323v1) $$cs.PL$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.2004.01323](https://doi.org/10.48550/arXiv.2004.01323)  arXiv-issued DOI via DataCite |
 | Journal reference: | EPTCS 314, 2020, pp. 34-45 |
 | Related DOI: | [https://doi.org/10.4204/EPTCS.314.4](https://doi.org/10.4204/EPTCS.314.4) |
 
 ## Submission history
 
-From: EPTCS \[[view email](https://arxiv.org/show-email/e4bee5b5/2004.01323)\] \[via EPTCS proxy\]
-**\[v1\]** Fri, 3 Apr 2020 01:25:46 UTC (85 KB)
+From: EPTCS $$[view email](https://arxiv.org/show-email/e4bee5b5/2004.01323)$$ $$via EPTCS proxy$$
+**$$v1$$** Fri, 3 Apr 2020 01:25:46 UTC (85 KB)
 
 ## Bibliographic and Citation Tools
 

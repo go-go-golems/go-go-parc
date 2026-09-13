@@ -4,7 +4,7 @@ subtitle: "A Literature-Backed Companion on Defunctionalization, Capability Secu
 author: "Technical analysis of TINYIDP-GOJA-001"
 date: "2026-07-20"
 lang: en-US
-bibliography: /mnt/data/tiny-idp-interpreter-theory.bib
+bibliography: tiny-idp-interpreter-theory.bib
 csl: /usr/share/texlive/texmf-dist/tex/latex/citation-style-language/styles/chicago-author-date.csl
 link-citations: true
 reference-section-title: "References"
@@ -130,7 +130,7 @@ complete   deny      skip        error
 
 Mathematically, this can be read as a tagged sum, or coproduct:
 
-\[
+$$
 \mathrm{Outcome}
   = \mathrm{Continue}(H)
   + \mathrm{Present}(K,P)
@@ -140,7 +140,7 @@ Mathematically, this can be read as a tagged sum, or coproduct:
   + \mathrm{Deny}(D)
   + \mathrm{Skip}(D?)
   + \mathrm{Error}(D).
-\]
+$$
 
 Here `H` is a next-handler identifier, `K` is a continuation descriptor, `P` is a presentation value, `Q` is a native challenge request, `E*` is an effect sequence, `V` is a bounded result value, and `D` is a stable diagnostic code.
 
@@ -154,16 +154,16 @@ This is a small example of a broader principle from typed protocol design: contr
 
 ### 4.2 Outcome edges as a finite transition system
 
-For a workflow \(W\), let handlers be \(H_W\). Each compiled edge has the form
+For a workflow $W$, let handlers be $H_W$. Each compiled edge has the form
 
-\[
+$$
 (h, o, h', \sigma)
-\]
+$$
 
-where \(h\) is the source handler, \(o\in\{\texttt{continue},\texttt{present},\texttt{challenge}\}\), \(h'\) is the destination, and \(\sigma\) is the destination input schema. Program validation checks that:
+where $h$ is the source handler, $o\in\{\texttt{continue},\texttt{present},\texttt{challenge}\}$, $h'$ is the destination, and $\sigma$ is the destination input schema. Program validation checks that:
 
 - the source and destination exist;
-- the source lambda declares outcome \(o\);
+- the source lambda declares outcome $o$;
 - the edge schema equals the destination lambda's input schema;
 - duplicate edges are rejected;
 - all handlers are reachable from the entry.
@@ -300,29 +300,29 @@ A pending Promise is therefore the wrong semantic object. It has process-local i
 
 A handler can be modeled as:
 
-\[
+$$
 h : I \times C \times A \to O
-\]
+$$
 
-where \(I\) is validated input, \(C\) is native context/evidence, \(A\) is the capability environment, and \(O\) is the closed outcome sum.
+where $I$ is validated input, $C$ is native context/evidence, $A$ is the capability environment, and $O$ is the closed outcome sum.
 
-A `present` result contains a continuation tag \(h'\) and carry \(e\):
+A `present` result contains a continuation tag $h'$ and carry $e$:
 
-\[
+$$
 h(i,c,a) = \mathrm{Present}(h',e,p,t).
-\]
+$$
 
-The native workflow interpreter then creates record \(k\):
+The native workflow interpreter then creates record $k$:
 
-\[
+$$
 k = \langle g,w,h',\sigma,e,b,r,t_{exp}\rangle
-\]
+$$
 
-with generation \(g\), workflow \(w\), input schema \(\sigma\), bindings \(b\), revision \(r\), and expiry. A later request event \(x\) resumes by:
+with generation $g$, workflow $w$, input schema $\sigma$, bindings $b$, revision $r$, and expiry. A later request event $x$ resumes by:
 
-\[
+$$
 \mathrm{resume}(k,x) = \mathrm{invoke}(g,h',\mathrm{validate}_{\sigma}(e\oplus x),c',a').
-\]
+$$
 
 This is continuation-passing structure without retaining a first-class continuation value.
 
@@ -361,11 +361,11 @@ Consume(active, expected revision) -> consumed
 Consume(non-active or wrong revision) -> conflict
 ```
 
-For concurrent POSTs \(p_1,\ldots,p_n\) against the same revision, the required property is:
+For concurrent POSTs $p_1,\ldots,p_n$ against the same revision, the required property is:
 
-\[
+$$
 \sum_{i=1}^{n} [\mathrm{success}(p_i)] \le 1.
-\]
+$$
 
 The persistent store determines the linearization point, not the Goja worker. This matters because two lambdas could both compute apparently valid effect plans before either transaction commits. The native compare-and-transition operation is what makes one-use semantics real.
 
@@ -383,11 +383,11 @@ Repository tests demonstrate intended one-winner behavior; this report does not 
 
 Effect systems extend ordinary typing judgments with information about what a computation may do. A simplified judgment has the shape
 
-\[
+$$
 \Gamma \vdash e : \tau \; ! \; \epsilon,
-\]
+$$
 
-meaning that under value environment \(\Gamma\), expression \(e\) produces a value of type \(\tau\) and may perform effects described by \(\epsilon\). Lucassen and Gifford's polymorphic effect system separated values, effects, and regions to support conservative reasoning about side effects [@lucassen1988]. Talpin and Jouvelot developed related type, region, and effect inference [@talpin1992]. Modern algebraic-effect systems make operation sets similarly explicit [@bauer2014].
+meaning that under value environment $\Gamma$, expression $e$ produces a value of type $\tau$ and may perform effects described by $\epsilon$. Lucassen and Gifford's polymorphic effect system separated values, effects, and regions to support conservative reasoning about side effects [@lucassen1988]. Talpin and Jouvelot developed related type, region, and effect inference [@talpin1992]. Modern algebraic-effect systems make operation sets similarly explicit [@bauer2014].
 
 Tiny-IDP has no static JavaScript checker of that form. It does, however, assign each lambda a runtime contract with the same dimensions. [`LambdaSpec`](https://github.com/go-go-golems/tiny-idp/blob/d164ae59408bdd8bc21516274b446339b1761b1e/pkg/idpprogram/lambda.go#L20-L39) records:
 
@@ -407,19 +407,19 @@ source location
 
 A compact judgment for the implementation is:
 
-\[
+$$
 P;\Gamma_C;B \Vdash \lambda_i : \sigma_{in}
   \Rightarrow \{o_1,\ldots,o_k\}[\sigma_{out}] \; ! \; E
-\]
+$$
 
 where:
 
-- \(P\) is the validated program;
-- \(\Gamma_C\) is the concrete host binding for the lambda's declared capabilities;
-- \(B\) is its resource budget;
-- \(\sigma_{in}\) and \(\sigma_{out}\) are named schemas;
-- \(o_1,\ldots,o_k\) are allowed outcome families;
-- \(E\) is the allowed native effect vocabulary.
+- $P$ is the validated program;
+- $\Gamma_C$ is the concrete host binding for the lambda's declared capabilities;
+- $B$ is its resource budget;
+- $\sigma_{in}$ and $\sigma_{out}$ are named schemas;
+- $o_1,\ldots,o_k$ are allowed outcome families;
+- $E$ is the allowed native effect vocabulary.
 
 The judgment is checked in phases rather than derived statically.
 
@@ -487,16 +487,16 @@ The reduction in expressiveness is valuable because each schema is used in sever
 
 A field's `Sensitive` bit acts as a small information-flow label. [`ValidatePublicJSON`](https://github.com/go-go-golems/tiny-idp/blob/d164ae59408bdd8bc21516274b446339b1761b1e/pkg/idpprogram/value.go#L41-L65) rejects values occupying sensitive fields when a value is destined for durable public carry. The same structural type is therefore interpreted under two policies:
 
-\[
+$$
 \mathrm{ValidateJSON}(\sigma,v)
-\]
+$$
 
 and
 
-\[
+$$
 \mathrm{ValidatePublicJSON}(\sigma,v)
   = \mathrm{ValidateJSON}(\sigma,v) \land \mathrm{NoSensitiveOccupancy}(\sigma,v).
-\]
+$$
 
 This is not a general noninterference system. It does not track derived information or prevent a script from copying a secret it can read into a public string. The stronger design choice is that passwords and comparable secrets are not projected as readable JavaScript strings at all. The sensitivity marker then protects public carry and presentation values from structural mistakes.
 
@@ -636,15 +636,15 @@ There is no global `store`, `fetch`, `process`, `database`, or `mailer`. The run
 
 Let:
 
-- \(C_P\) be capabilities declared by the program;
-- \(C_\lambda\subseteq C_P\) be capabilities required by a lambda;
-- \(C_H\) be concrete capabilities supplied by the host for the invocation.
+- $C_P$ be capabilities declared by the program;
+- $C_\lambda\subseteq C_P$ be capabilities required by a lambda;
+- $C_H$ be concrete capabilities supplied by the host for the invocation.
 
 The usable authority is not a dynamic lookup from the union. It is the checked intersection:
 
-\[
+$$
 C_{usable} = \{c \in C_\lambda \mid c \in C_H \land \mathrm{version}_H(c)=\mathrm{version}_P(c)\}.
-\]
+$$
 
 If any required capability is missing or version-incompatible, invocation fails before the callback executes. Extra host bindings are not projected unless required. This is a concrete least-authority rule.
 
@@ -663,9 +663,9 @@ This is temporal revocation by indirection. Capability literature often notes th
 
 There is also a resource aspect. The lambda has a maximum call count, while each capability binding has maximum input and output bytes. Authority is therefore not binary. It is bounded by:
 
-\[
+$$
 \langle \text{operation}, \text{version}, \text{lifetime}, \text{calls}, \text{input bytes}, \text{output bytes}, \text{deadline} \rangle.
-\]
+$$
 
 ## 17. The Promise bridge as an actor-safe capability protocol
 
@@ -765,21 +765,21 @@ The JavaScript callback returns `OutcomeCommit{Effects: [...]}`. It does not rec
 
 A minimal formalization treats effect plans as syntax:
 
-\[
+$$
 E ::= \mathrm{CreateIdentity}(p)
    \mid \mathrm{AttachCredential}(q)
    \mid \mathrm{ConsumeInvitation}(r)
    \mid \cdots
-\]
+$$
 
-and a plan as a sequence \([E_1,\ldots,E_n]\). The script can construct syntax only for effect kinds declared by its `LambdaSpec`. The native committer is an interpreter:
+and a plan as a sequence $[E_1,\ldots,E_n]$. The script can construct syntax only for effect kinds declared by its `LambdaSpec`. The native committer is an interpreter:
 
-\[
+$$
 \llbracket [E_1,\ldots,E_n] \rrbracket_{N,S,B}
   \to \mathrm{TransactionResult}
-\]
+$$
 
-parameterized by native services \(N\), request-scoped secret set \(S\), and validated browser/protocol bindings \(B\).
+parameterized by native services $N$, request-scoped secret set $S$, and validated browser/protocol bindings $B$.
 
 The important security rule is that constructing a command is not executing it. Authority resides in the interpreter, not in the syntax.
 
@@ -887,10 +887,10 @@ The analogy is useful because it changes the question from “is this Go object 
 
 A compact ownership invariant is:
 
-\[
+$$
 \forall v \in \mathrm{GojaValue}(R),\quad
 \mathrm{touch}(v) \Rightarrow \mathrm{onOwner}(R).
-\]
+$$
 
 For a callback `f`, Promise `p`, or object `o` allocated in runtime `R`, all semantically relevant operations occur on `Owner(R)`. Off-owner goroutines may hold copied bytes, stable identifiers, native references, and synchronization state, but not exercise VM semantics.
 
@@ -921,19 +921,19 @@ A worker obtained from the pool behaves like an **affine resource**: it may be u
 
 Let a worker state be:
 
-\[
+$$
 W \in \{\mathsf{Idle},\mathsf{Leased},\mathsf{Unsafe},\mathsf{Closed}\}.
-\]
+$$
 
 The legal structural transitions are:
 
-\[
+$$
 \mathsf{Idle}\to\mathsf{Leased}\to
 \begin{cases}
 \mathsf{Idle} & \text{after a positive safety result},\\
 \mathsf{Unsafe}\to\mathsf{Closed} & \text{after uncertainty or contamination}.
 \end{cases}
-\]
+$$
 
 There is no transition from `Unsafe` back to `Idle`. Replacement creates a fresh worker with a freshly materialized runtime rather than rehabilitating the uncertain one.
 
@@ -1027,10 +1027,10 @@ Tiny-IDP prevents that with invocation-scoped binding state:
 
 The safety property is:
 
-\[
+$$
 \neg \mathrm{active}(I) \Rightarrow
 \mathrm{settle}(I,p,x) \text{ performs no VM-visible mutation}.
-\]
+$$
 
 ### 26.1 The timeout race
 
@@ -1063,7 +1063,7 @@ Polling is not the only possible design; an event-driven completion channel coul
 
 The combination of active flags, per-invocation contexts, settlement accounting, deep-frozen inputs, and worker discard approximates a temporal non-interference property:
 
-> Authority and asynchronous consequences installed for invocation \(I_1\) must not become usable or observable as authority in later invocation \(I_2\).
+> Authority and asynchronous consequences installed for invocation $I_1$ must not become usable or observable as authority in later invocation $I_2$.
 
 This is weaker than a formal non-interference theorem: shared native backends and timing channels still exist. It is nevertheless a strong and testable embedding invariant. The branch includes explicit tests in which a slow capability completes after timeout and must not affect the replacement worker.
 
@@ -1071,21 +1071,21 @@ This is weaker than a formal non-interference theorem: shared native backends an
 
 A bounded worker pool is not only a performance optimization. It is an authority and resource boundary. Every active worker owns a Goja heap, event loop, callback registry, native module instance, and potential pending capabilities. Creating one runtime per incoming request without an admission limit would convert request volume directly into memory and goroutine growth.
 
-The pool therefore exposes a finite capacity \(N\). An invocation must acquire one exclusive worker before its context expires. If none becomes available, the call fails with a saturation error rather than creating unbounded runtime state.
+The pool therefore exposes a finite capacity $N$. An invocation must acquire one exclusive worker before its context expires. If none becomes available, the call fails with a saturation error rather than creating unbounded runtime state.
 
 This can be modeled as a counting resource:
 
-\[
+$$
 0 \le \mathrm{ActiveWorkers}(t) \le N.
-\]
+$$
 
 The lambda's own budget adds nested limits:
 
-\[
+$$
 \mathrm{capCalls}(I) \le B_c,\qquad
 \mathrm{outputBytes}(I) \le B_o,\qquad
 \mathrm{duration}(I) \le B_t.
-\]
+$$
 
 Traditional type-and-effect systems track semantic effects such as state or I/O. Here the runtime contract also tracks **resource effects**: time, call count, bytes, and worker occupancy. These do not prove a tight worst-case complexity bound, but they convert several unbounded behaviors into explicit rejection points.
 
@@ -1125,15 +1125,15 @@ Tiny-IDP therefore gives an executor an **executable generation fingerprint** de
 
 A useful judgment is:
 
-\[
+$$
 G \vdash C \Downarrow h
-\]
+$$
 
-meaning generation \(G\) validates continuation \(C\) and resolves its resume handler \(h\). The first premise is exact identity:
+meaning generation $G$ validates continuation $C$ and resolves its resume handler $h$. The first premise is exact identity:
 
-\[
+$$
 C.\mathrm{programFingerprint}=G.\mathrm{fingerprint}.
-\]
+$$
 
 Only then are workflow version, handler existence, and schema compatibility checked.
 
@@ -1176,11 +1176,11 @@ It also makes the operational story inspectable: the continuation names the gene
 
 ### 29.2 Costs of coexistence
 
-The tradeoff is resource retention. If the maximum continuation lifetime is \(T_c\), reload frequency is \(f\), and each generation owns \(N\) workers with average footprint \(M\), naive retention may require roughly:
+The tradeoff is resource retention. If the maximum continuation lifetime is $T_c$, reload frequency is $f$, and each generation owns $N$ workers with average footprint $M$, naive retention may require roughly:
 
-\[
+$$
 \mathrm{Memory} \approx (1 + fT_c)NM
-\]
+$$
 
 until bounded eviction or natural completion reduces the set. Production policy must therefore align:
 
@@ -1196,9 +1196,9 @@ Evicting a generation earlier than its live continuation TTL converts a liveness
 
 For very long-lived workflows, retaining full runtimes may be too expensive. A future design could introduce a versioned, native continuation schema with explicit migrations:
 
-\[
+$$
 \mu_{v\to v+1}: C_v \to C_{v+1}.
-\]
+$$
 
 Such a migration should transform only first-order durable data, never a Goja heap. It would need validation, idempotency, audit, rollback strategy, and probably a rule that security bindings cannot be weakened. The existing first-order continuation format is what makes such migration imaginable.
 
@@ -1240,13 +1240,13 @@ The linker refuses missing callbacks, extra callbacks, changed schemas, changed 
 
 Program tests are serializable cases naming a lambda, input, expected outcome, and bounded fake outputs. The candidate runs them before publication. Thus activation has a predicate:
 
-\[
+$$
 \mathrm{Ready}(G)=
 \mathrm{Valid}(G)\land
 \mathrm{Linked}(G)\land
 \mathrm{Warmed}(G)\land
 \bigwedge_{t\in G.Tests}\mathrm{Pass}(G,t).
-\]
+$$
 
 Passing tests does not prove general correctness. It does, however, prevent a known bad candidate from replacing a working generation and makes operational expectations part of the artifact.
 
@@ -1342,12 +1342,12 @@ Before a driver sees any scenario, `Plan.ValidateWithSteps` checks every step ag
 
 The materialization judgment is:
 
-\[
+$$
 \Gamma_{steps}\vdash \mathrm{Step}(k,p)\;\mathrm{ok}
 \quad\text{iff}\quad
 k\in\mathrm{dom}(\Gamma_{steps})
 \land \Gamma_{steps}(k)(p)=\mathrm{success}.
-\]
+$$
 
 A complete plan is executable only if every step materializes under the driver's registry.
 
@@ -1406,16 +1406,16 @@ A verification plan describes actions; a native driver produces observations; re
 
 Suppose a scenario produces observations:
 
-\[
+$$
 \tau = o_1,o_2,\ldots,o_n.
-\]
+$$
 
 An assertion may check a safety property such as:
 
-\[
+$$
 \Box(\mathrm{artifactIssued}\Rightarrow
 \mathrm{previously}(\mathrm{interactionApproved})).
-\]
+$$
 
 A runtime monitor may similarly reject or flag a trace prefix when it observes a terminal outcome twice. The same stable IDs can connect:
 
@@ -1449,11 +1449,11 @@ Production program artifacts may include bounded declarative tests. The test run
 
 This yields a hermetic test judgment:
 
-\[
+$$
 G, F_t \vdash \mathrm{invoke}(\lambda,x)\Downarrow o
-\]
+$$
 
-where \(F_t\) is a finite test-only binding environment. The same artifact under production has a different environment \(F_p\); test fakes are not globally registered or available to request workers.
+where $F_t$ is a finite test-only binding environment. The same artifact under production has a different environment $F_p$; test fakes are not globally registered or available to request workers.
 
 Property-based testing popularized generation of many inputs against executable properties [@claessen2000]. Tiny-IDP's embedded tests are example-based rather than fully generative, but the pure schemas and deterministic runner make property-based extensions straightforward. A generator could produce schema-valid inputs and fake responses, while the closed outcome set supplies a compact oracle surface.
 
@@ -1514,9 +1514,9 @@ A scenario requests registered native steps with bounded parameters. A trace rec
 
 The separation can be summarized as:
 
-\[
+$$
 \mathrm{Configuration}\not\Rightarrow\mathrm{Execution}\not\Rightarrow\mathrm{PropertyProof}.
-\]
+$$
 
 Each arrow requires independent evidence.
 
@@ -1528,20 +1528,20 @@ If the vocabulary imported Fosite, HTTP, persistence, or Goja packages, it could
 
 A useful formal model need not reproduce every HTTP or OAuth detail. It can isolate the interpreter boundaries. Let system state be:
 
-\[
+$$
 \Sigma = (G_a,G_r,W,C,E,I,S,T)
-\]
+$$
 
 where:
 
-- \(G_a\) is the active generation;
-- \(G_r\) is the set of retained generations;
-- \(W\) maps workers to lifecycle state and generation;
-- \(C\) maps continuation hashes to versioned records;
-- \(E\) maps native evidence references to challenge state;
-- \(I\) maps OAuth interactions to pending or terminal state;
-- \(S\) is native identity/session/store state;
-- \(T\) is the secret-free observation trace.
+- $G_a$ is the active generation;
+- $G_r$ is the set of retained generations;
+- $W$ maps workers to lifecycle state and generation;
+- $C$ maps continuation hashes to versioned records;
+- $E$ maps native evidence references to challenge state;
+- $I$ maps OAuth interactions to pending or terminal state;
+- $S$ is native identity/session/store state;
+- $T$ is the secret-free observation trace.
 
 Representative transitions include:
 
@@ -1564,45 +1564,45 @@ EvictGeneration
 
 **I1 — Symbolic callback integrity**
 
-\[
+$$
 \forall w\in W_{usable},\quad
 \mathrm{registryFingerprint}(w)=
 \mathrm{registryFingerprint}(w.generation).
-\]
+$$
 
 **I2 — Exclusive worker ownership**
 
-\[
+$$
 \forall w,\quad \#\{i\mid \mathrm{owns}(i,w)\}\le 1.
-\]
+$$
 
 **I3 — Unsafe workers are never reused**
 
-\[
+$$
 W(w)=\mathsf{Unsafe}\Rightarrow
 \neg\Diamond(W(w)=\mathsf{Idle}).
-\]
+$$
 
 **I4 — Temporal capability scope**
 
-\[
+$$
 \mathrm{capCall}(i,c)\Rightarrow
 \mathrm{active}(i)\land c\in\mathrm{declaredCaps}(i.lambda).
-\]
+$$
 
 **I5 — Secret non-serialization**
 
-\[
+$$
 \forall c\in C,\quad
 \mathrm{Carry}(c)\cap\mathrm{SecretBytes}=\varnothing.
-\]
+$$
 
 **I6 — Generation fidelity**
 
-\[
+$$
 \mathrm{resume}(c,g)\Rightarrow
 c.fingerprint=g.fingerprint\land g\in G_r.
-\]
+$$
 
 **I7 — One-use continuation transition**
 
@@ -1610,27 +1610,27 @@ For any active continuation revision, at most one `Advance` or terminal `Consume
 
 **I8 — Native evidence authenticity**
 
-\[
+$$
 \mathrm{verifiedEmail}(x)\Rightarrow
 \exists e\in E:\mathrm{NativeVerify}(e)=x.
-\]
+$$
 
 A script-created JSON object with the same fields is not evidence.
 
 **I9 — Commit authority**
 
-\[
+$$
 \mathrm{identityOrSessionMutation}\Rightarrow
 \mathrm{insideNamedNativeCommitter}.
-\]
+$$
 
 **I10 — Artifact issuance ordering**
 
-\[
+$$
 \mathrm{OAuthArtifactIssued}(i)\Rightarrow
 I(i)=\mathsf{Approved}\land
 \mathrm{nativeValidationComplete}(i).
-\]
+$$
 
 ### 38.2 Refinement obligations
 
@@ -1680,12 +1680,12 @@ These are closer to activation-time structure than to request-time scheduling.
 
 PLT Redex supports executable reduction semantics, randomized testing, and metafunctions for programming languages [@felleisen2009]. A small Tiny-IDP calculus could define:
 
-\[
+$$
 e ::= \mathrm{invoke}(h,x)\mid
 \mathrm{present}(h,c)\mid
 \mathrm{challenge}(h,c,q)\mid
 \mathrm{commit}(\vec E)\mid\cdots
-\]
+$$
 
 and reduction rules showing which outcomes suspend, which continue immediately, and which require native authority. Redex could test determinism of validation rules and preservation of well-formed workflow states.
 
@@ -2183,89 +2183,89 @@ The entire scripting path can be summarized by three judgments.
 
 ## C.1 Compilation and materialization
 
-\[
+$$
 \mathrm{Compile}_{\Gamma_s}(source)\Downarrow
 A=(P,bc,F)
-\]
+$$
 
-where \(\Gamma_s\) is the host schema catalog, \(P\) the pure program, \(bc\) compiled bytecode/program representation, and \(F\) fingerprints. Compilation succeeds only if source bounds, top-level execution, program validation, and fingerprint checks succeed.
+where $\Gamma_s$ is the host schema catalog, $P$ the pure program, $bc$ compiled bytecode/program representation, and $F$ fingerprints. Compilation succeeds only if source bounds, top-level execution, program validation, and fingerprint checks succeed.
 
 For each runtime worker:
 
-\[
+$$
 \mathrm{Load}(A)\Downarrow R
 \quad\text{only if}\quad
 F_R.program=F.program\land
 F_R.callbacks=F.callbacks\land
 F_R.schemas=F.schemas.
-\]
+$$
 
 ## C.2 Invocation
 
-\[
+$$
 G;\Gamma_c;\Gamma_s;\Gamma_e
 \vdash \mathrm{invoke}(h,x)\Downarrow o
-\]
+$$
 
 where:
 
-- \(G\) is the exact generation;
-- \(\Gamma_c\) is the invocation capability environment;
-- \(\Gamma_s\) is the schema environment;
-- \(\Gamma_e\) is native evidence and secret-handle context;
-- \(h\) is a registered handler;
-- \(x\) is bounded JSON;
-- \(o\) is a closed outcome.
+- $G$ is the exact generation;
+- $\Gamma_c$ is the invocation capability environment;
+- $\Gamma_s$ is the schema environment;
+- $\Gamma_e$ is native evidence and secret-handle context;
+- $h$ is a registered handler;
+- $x$ is bounded JSON;
+- $o$ is a closed outcome.
 
 The judgment requires:
 
-\[
+$$
 \mathrm{schema}(x)=h.input
-\]
+$$
 
-\[
+$$
 \mathrm{dom}(\Gamma_c)=h.requiredCapabilities
-\]
+$$
 
-\[
+$$
 o.kind\in h.allowedOutcomes
-\]
+$$
 
-\[
+$$
 \mathrm{effects}(o)\subseteq h.allowedEffects
-\]
+$$
 
 plus time, call, and output budgets.
 
 ## C.3 Native interpretation
 
-\[
+$$
 \mathrm{Interpret}_{N,B}(o)\Downarrow(\Sigma',r)
-\]
+$$
 
-where \(N\) is the native service environment and \(B\) validated protocol/browser bindings. Selected rules are:
+where $N$ is the native service environment and $B$ validated protocol/browser bindings. Selected rules are:
 
-\[
+$$
 \frac{\mathrm{edge}(h,\mathrm{present},h')\quad
 \mathrm{validPresentation}(p,h')}
 {\mathrm{Interpret}(\mathrm{Present}(h',c,p))
 \Downarrow \mathrm{PersistContinuationAndRender}}
-\]
+$$
 
-\[
+$$
 \frac{\mathrm{edge}(h,\mathrm{challenge},h')\quad
 \mathrm{validChallenge}(q)}
 {\mathrm{Interpret}(\mathrm{Challenge}(h',c,q))
 \Downarrow \mathrm{CreateNativeChallengeAndContinuation}}
-\]
+$$
 
-\[
+$$
 \frac{\mathrm{validPlan}(\vec E)\quad
 \mathrm{validEvidence}(B)\quad
 \mathrm{transactionCommit}(\vec E,B)}
 {\mathrm{Interpret}(\mathrm{Commit}(\vec E))
 \Downarrow \mathrm{Committed}}
-\]
+$$
 
 No rule allows a JavaScript object itself to set an OAuth response, persist a password, or establish native evidence.
 

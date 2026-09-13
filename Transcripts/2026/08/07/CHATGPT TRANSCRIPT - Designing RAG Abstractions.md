@@ -4942,7 +4942,7 @@ Activation and release leases form the synchronization protocol between corpus m
 
 This produces a sharper production abstraction:
 
-\[
+$$
 \text{source world}
 \rightarrow
 \text{maintained release}
@@ -4950,7 +4950,7 @@ This produces a sharper production abstraction:
 \text{release-pinned interpretation}
 \rightarrow
 \text{replayable user projection}.
-\]
+$$
 
 ## RAG retrieval optimization
 
@@ -5016,19 +5016,19 @@ The source protocol includes:
 
 Indexing is then incremental view maintenance. The proposed initial production structure is:
 
-\[
+$$
 V_t = B_\tau \oplus \Delta_{\tau,t},
-\]
+$$
 
-where \(B_\tau\) is an immutable base release and \(\Delta_{\tau,t}\) is an ordered collection of additions, replacements, and tombstones. Compaction produces a new base without changing declared query behavior.
+where $B_\tau$ is an immutable base release and $\Delta_{\tau,t}$ is an ordered collection of additions, replacements, and tombstones. Compaction produces a new base without changing declared query behavior.
 
 A clean full rebuild at the same source barrier is the correctness oracle:
 
-\[
+$$
 \operatorname{maintain}(B,\Delta)
 \;\simeq\;
 \operatorname{rebuild}(S \oplus \Delta).
-\]
+$$
 
 The equivalence is exact for deterministic backends and tolerance-relative for approximate indexes.
 
@@ -5086,11 +5086,11 @@ The proposed stream protocol uses:
 
 Its principal law is snapshot-plus-suffix equivalence:
 
-\[
+$$
 \operatorname{reduce}(S_n,e_{n+1},\ldots,e_m)
 =
 \operatorname{reduce}(e_1,\ldots,e_m).
-\]
+$$
 
 Duplicate append patches and lower-version entity updates are semantic violations rather than incidental UI bugs.
 

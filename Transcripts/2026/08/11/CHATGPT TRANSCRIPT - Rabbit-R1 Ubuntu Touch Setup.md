@@ -228,11 +228,11 @@
 >
 > flashing:
 > update ZIP                 Flash all partitions from an update.zip package.
-> flashall                   Flash all partitions from $ANDROID\_PRODUCT\_OUT.
+> flashall                   Flash all partitions from \$ANDROID\_PRODUCT\_OUT.
 > On A/B devices, flashed slot is set as active.
 > Secondary images may be flashed to inactive slot.
 > flash PARTITION [FILENAME] Flash given partition, using the image from
-> $ANDROID\_PRODUCT\_OUT if no filename is given.
+> \$ANDROID\_PRODUCT\_OUT if no filename is given.
 >
 > basics:
 > devices [-l]               List devices in bootloader (-l: with device paths).
@@ -362,11 +362,11 @@
 >
 > flashing:
 > update ZIP                 Flash all partitions from an update.zip package.
-> flashall                   Flash all partitions from $ANDROID\_PRODUCT\_OUT.
+> flashall                   Flash all partitions from \$ANDROID\_PRODUCT\_OUT.
 > On A/B devices, flashed slot is set as active.
 > Secondary images may be flashed to inactive slot.
 > flash PARTITION [FILENAME] Flash given partition, using the image from
-> $ANDROID\_PRODUCT\_OUT if no filename is given.
+> \$ANDROID\_PRODUCT\_OUT if no filename is given.
 >
 > basics:
 > devices [-l]               List devices in bootloader (-l: with device paths).
@@ -471,35 +471,35 @@
 >
 > install\_debian() {
 > sudo apt update
-> [[ -x "$(command -v git)" ]] || sudo apt install -y git
-> [[ -x "$(command -v python3)" ]] || sudo apt install -y python3
-> [[ -x "$(command -v pip3)" ]] || sudo apt install -y python3-pip
-> [[ -x "$(command -v dos2unix)" ]] || sudo apt install -y dos2unix
-> [[ -x "$(command -v curl)" ]] || sudo apt install -y curl
-> [[ -x "$(command -v unzip)" ]] || sudo apt install -y unzip
+> [[ -x "\$(command -v git)" ]] || sudo apt install -y git
+> [[ -x "\$(command -v python3)" ]] || sudo apt install -y python3
+> [[ -x "\$(command -v pip3)" ]] || sudo apt install -y python3-pip
+> [[ -x "\$(command -v dos2unix)" ]] || sudo apt install -y dos2unix
+> [[ -x "\$(command -v curl)" ]] || sudo apt install -y curl
+> [[ -x "\$(command -v unzip)" ]] || sudo apt install -y unzip
 > }
 >
 > install\_arch() {
 > sudo pacman -Sy --noconfirm
-> [[ -x "$(command -v git)" ]] || sudo pacman -S --noconfirm git
-> [[ -x "$(command -v python3)" ]] || sudo pacman -S --noconfirm python
-> [[ -x "$(command -v dos2unix)" ]] || sudo pacman -S --noconfirm dos2unix
-> [[ -x "$(command -v curl)" ]] || sudo pacman -S --noconfirm curl
-> [[ -x "$(command -v unzip)" ]] || sudo pacman -S --noconfirm unzip
-> [[ -x "$(command -v virtualenv)" ]] || sudo pacman -S --noconfirm python-virtualenv
+> [[ -x "\$(command -v git)" ]] || sudo pacman -S --noconfirm git
+> [[ -x "\$(command -v python3)" ]] || sudo pacman -S --noconfirm python
+> [[ -x "\$(command -v dos2unix)" ]] || sudo pacman -S --noconfirm dos2unix
+> [[ -x "\$(command -v curl)" ]] || sudo pacman -S --noconfirm curl
+> [[ -x "\$(command -v unzip)" ]] || sudo pacman -S --noconfirm unzip
+> [[ -x "\$(command -v virtualenv)" ]] || sudo pacman -S --noconfirm python-virtualenv
 > }
 >
 > install\_fedora() {
 > sudo dnf update -y
-> [[ -x "$(command -v git)" ]] || sudo dnf install -y git
-> [[ -x "$(command -v python3)" ]] || sudo dnf install -y python3
-> [[ -x "$(command -v pip3)" ]] || sudo dnf install -y python3-pip
-> [[ -x "$(command -v dos2unix)" ]] || sudo dnf install -y dos2unix
-> [[ -x "$(command -v curl)" ]] || sudo dnf install -y curl
-> [[ -x "$(command -v unzip)" ]] || sudo dnf install -y unzip
+> [[ -x "\$(command -v git)" ]] || sudo dnf install -y git
+> [[ -x "\$(command -v python3)" ]] || sudo dnf install -y python3
+> [[ -x "\$(command -v pip3)" ]] || sudo dnf install -y python3-pip
+> [[ -x "\$(command -v dos2unix)" ]] || sudo dnf install -y dos2unix
+> [[ -x "\$(command -v curl)" ]] || sudo dnf install -y curl
+> [[ -x "\$(command -v unzip)" ]] || sudo dnf install -y unzip
 > }
 >
-> if [[ "$OSTYPE" == "linux-gnu"\* ]]; then
+> if [[ "\$OSTYPE" == "linux-gnu"\* ]]; then
 > if command -v apt-get &>/dev/null; then
 > install\_debian
 > elif command -v pacman &>/dev/null; then
@@ -515,11 +515,11 @@
 > exit 1
 > fi
 >
-> if [[ "$OSTYPE" != "linux-gnu"\* || ! "$(command -v pacman)" ]]; then
+> if [[ "\$OSTYPE" != "linux-gnu"\* || ! "\$(command -v pacman)" ]]; then
 > pip3 show virtualenv &>/dev/null || pip3 install virtualenv
 > fi
 >
-> if [[ "$OSTYPE" == "linux-gnu"\* ]]; then
+> if [[ "\$OSTYPE" == "linux-gnu"\* ]]; then
 > if command -v apt-get &>/dev/null; then
 > sudo apt install -y adb fastboot
 > elif command -v pacman &>/dev/null; then
@@ -539,9 +539,9 @@
 > # Download mtkclient
 >
 > REPO\_URL="https\://github.com/AgentFabulous/mtkclient"
-> REPO\_NAME=$(basename "$REPO\_URL" .git)
-> git clone "$REPO\_URL"
-> cd "$REPO\_NAME" || exit
+> REPO\_NAME=\$(basename "\$REPO\_URL" .git)
+> git clone "\$REPO\_URL"
+> cd "\$REPO\_NAME" || exit
 > pip3 install -r requirements.txt
 >
 > rm -f frp.bin
@@ -555,8 +555,8 @@
 > sudo chown $USER frp.bin
 >
 > LAST\_BYTE=$(xxd -p -l 1 -s -1 frp.bin)
-> if [[ "$LAST\_BYTE" == "00" ]]; then
-> printf '\x01' | dd of=frp.bin bs=1 seek=$(($(stat -c%s frp.bin) - 1)) conv=notrunc
+> if [[ "\$LAST\_BYTE" == "00" ]]; then
+> printf '\x01' | dd of=frp.bin bs=1 seek=\$((\$(stat -c%s frp.bin) - 1)) conv=notrunc
 > fi
 >
 > # Write FRP
@@ -583,9 +583,9 @@
 > r1\_escape on  main via 🐍 v3.13.2
 > ❯ # Download mtkclient
 > REPO\_URL="https\://github.com/AgentFabulous/mtkclient"
-> REPO\_NAME=$(basename "$REPO\_URL" .git)
-> git clone "$REPO\_URL"
-> cd "$REPO\_NAME" || exit
+> REPO\_NAME=\$(basename "\$REPO\_URL" .git)
+> git clone "\$REPO\_URL"
+> cd "\$REPO\_NAME" || exit
 > pip3 install -r requirements.txt
 > Cloning into 'mtkclient'...
 > remote: Enumerating objects: 5833, done.
@@ -678,11 +678,11 @@
 >
 > flashing:
 > update ZIP                 Flash all partitions from an update.zip package.
-> flashall                   Flash all partitions from $ANDROID\_PRODUCT\_OUT.
+> flashall                   Flash all partitions from \$ANDROID\_PRODUCT\_OUT.
 > On A/B devices, flashed slot is set as active.
 > Secondary images may be flashed to inactive slot.
 > flash PARTITION [FILENAME] Flash given partition, using the image from
-> $ANDROID\_PRODUCT\_OUT if no filename is given.
+> \$ANDROID\_PRODUCT\_OUT if no filename is given.
 >
 > basics:
 > devices [-l]               List devices in bootloader (-l: with device paths).
@@ -780,35 +780,35 @@
 >
 > install\_debian() {
 > sudo apt update
-> [[ -x "$(command -v git)" ]] || sudo apt install -y git
-> [[ -x "$(command -v python3)" ]] || sudo apt install -y python3
-> [[ -x "$(command -v pip3)" ]] || sudo apt install -y python3-pip
-> [[ -x "$(command -v dos2unix)" ]] || sudo apt install -y dos2unix
-> [[ -x "$(command -v curl)" ]] || sudo apt install -y curl
-> [[ -x "$(command -v unzip)" ]] || sudo apt install -y unzip
+> [[ -x "\$(command -v git)" ]] || sudo apt install -y git
+> [[ -x "\$(command -v python3)" ]] || sudo apt install -y python3
+> [[ -x "\$(command -v pip3)" ]] || sudo apt install -y python3-pip
+> [[ -x "\$(command -v dos2unix)" ]] || sudo apt install -y dos2unix
+> [[ -x "\$(command -v curl)" ]] || sudo apt install -y curl
+> [[ -x "\$(command -v unzip)" ]] || sudo apt install -y unzip
 > }
 >
 > install\_arch() {
 > sudo pacman -Sy --noconfirm
-> [[ -x "$(command -v git)" ]] || sudo pacman -S --noconfirm git
-> [[ -x "$(command -v python3)" ]] || sudo pacman -S --noconfirm python
-> [[ -x "$(command -v dos2unix)" ]] || sudo pacman -S --noconfirm dos2unix
-> [[ -x "$(command -v curl)" ]] || sudo pacman -S --noconfirm curl
-> [[ -x "$(command -v unzip)" ]] || sudo pacman -S --noconfirm unzip
-> [[ -x "$(command -v virtualenv)" ]] || sudo pacman -S --noconfirm python-virtualenv
+> [[ -x "\$(command -v git)" ]] || sudo pacman -S --noconfirm git
+> [[ -x "\$(command -v python3)" ]] || sudo pacman -S --noconfirm python
+> [[ -x "\$(command -v dos2unix)" ]] || sudo pacman -S --noconfirm dos2unix
+> [[ -x "\$(command -v curl)" ]] || sudo pacman -S --noconfirm curl
+> [[ -x "\$(command -v unzip)" ]] || sudo pacman -S --noconfirm unzip
+> [[ -x "\$(command -v virtualenv)" ]] || sudo pacman -S --noconfirm python-virtualenv
 > }
 >
 > install\_fedora() {
 > sudo dnf update -y
-> [[ -x "$(command -v git)" ]] || sudo dnf install -y git
-> [[ -x "$(command -v python3)" ]] || sudo dnf install -y python3
-> [[ -x "$(command -v pip3)" ]] || sudo dnf install -y python3-pip
-> [[ -x "$(command -v dos2unix)" ]] || sudo dnf install -y dos2unix
-> [[ -x "$(command -v curl)" ]] || sudo dnf install -y curl
-> [[ -x "$(command -v unzip)" ]] || sudo dnf install -y unzip
+> [[ -x "\$(command -v git)" ]] || sudo dnf install -y git
+> [[ -x "\$(command -v python3)" ]] || sudo dnf install -y python3
+> [[ -x "\$(command -v pip3)" ]] || sudo dnf install -y python3-pip
+> [[ -x "\$(command -v dos2unix)" ]] || sudo dnf install -y dos2unix
+> [[ -x "\$(command -v curl)" ]] || sudo dnf install -y curl
+> [[ -x "\$(command -v unzip)" ]] || sudo dnf install -y unzip
 > }
 >
-> if [[ "$OSTYPE" == "linux-gnu"\* ]]; then
+> if [[ "\$OSTYPE" == "linux-gnu"\* ]]; then
 > if command -v apt-get &>/dev/null; then
 > install\_debian
 > elif command -v pacman &>/dev/null; then
@@ -824,11 +824,11 @@
 > exit 1
 > fi
 >
-> if [[ "$OSTYPE" != "linux-gnu"\* || ! "$(command -v pacman)" ]]; then
+> if [[ "\$OSTYPE" != "linux-gnu"\* || ! "\$(command -v pacman)" ]]; then
 > pip3 show virtualenv &>/dev/null || pip3 install virtualenv
 > fi
 >
-> if [[ "$OSTYPE" == "linux-gnu"\* ]]; then
+> if [[ "\$OSTYPE" == "linux-gnu"\* ]]; then
 > if command -v apt-get &>/dev/null; then
 > sudo apt install -y adb fastboot
 > elif command -v pacman &>/dev/null; then
@@ -848,9 +848,9 @@
 > # Download mtkclient
 >
 > REPO\_URL="https\://github.com/AgentFabulous/mtkclient"
-> REPO\_NAME=$(basename "$REPO\_URL" .git)
-> git clone "$REPO\_URL"
-> cd "$REPO\_NAME" || exit
+> REPO\_NAME=\$(basename "\$REPO\_URL" .git)
+> git clone "\$REPO\_URL"
+> cd "\$REPO\_NAME" || exit
 > pip3 install -r requirements.txt
 >
 > rm -f frp.bin
@@ -861,10 +861,10 @@
 >
 > sudo python3 mtk r frp frp.bin
 >
-> sudo chown $USER frp.bin
+> sudo chown \$USER frp.bin
 >
-> LAST\_BYTE=$(xxd -p -l 1 -s -1 frp.bin)
-> if [[ "$LAST\_BYTE" == "00" ]]; then
+> LAST\_BYTE=\$(xxd -p -l 1 -s -1 frp.bin)
+> if [[ "\$LAST\_BYTE" == "00" ]]; then
 > printf '\x01' | dd of=frp.bin bs=1 seek=$(($(stat -c%s frp.bin) - 1)) conv=notrunc
 > fi
 >
@@ -1186,35 +1186,35 @@
 >
 > install\_debian() {
 > sudo apt update
-> [[ -x "$(command -v git)" ]] || sudo apt install -y git
-> [[ -x "$(command -v python3)" ]] || sudo apt install -y python3
-> [[ -x "$(command -v pip3)" ]] || sudo apt install -y python3-pip
-> [[ -x "$(command -v dos2unix)" ]] || sudo apt install -y dos2unix
-> [[ -x "$(command -v curl)" ]] || sudo apt install -y curl
-> [[ -x "$(command -v unzip)" ]] || sudo apt install -y unzip
+> [[ -x "\$(command -v git)" ]] || sudo apt install -y git
+> [[ -x "\$(command -v python3)" ]] || sudo apt install -y python3
+> [[ -x "\$(command -v pip3)" ]] || sudo apt install -y python3-pip
+> [[ -x "\$(command -v dos2unix)" ]] || sudo apt install -y dos2unix
+> [[ -x "\$(command -v curl)" ]] || sudo apt install -y curl
+> [[ -x "\$(command -v unzip)" ]] || sudo apt install -y unzip
 > }
 >
 > install\_arch() {
 > sudo pacman -Sy --noconfirm
-> [[ -x "$(command -v git)" ]] || sudo pacman -S --noconfirm git
-> [[ -x "$(command -v python3)" ]] || sudo pacman -S --noconfirm python
-> [[ -x "$(command -v dos2unix)" ]] || sudo pacman -S --noconfirm dos2unix
-> [[ -x "$(command -v curl)" ]] || sudo pacman -S --noconfirm curl
-> [[ -x "$(command -v unzip)" ]] || sudo pacman -S --noconfirm unzip
-> [[ -x "$(command -v virtualenv)" ]] || sudo pacman -S --noconfirm python-virtualenv
+> [[ -x "\$(command -v git)" ]] || sudo pacman -S --noconfirm git
+> [[ -x "\$(command -v python3)" ]] || sudo pacman -S --noconfirm python
+> [[ -x "\$(command -v dos2unix)" ]] || sudo pacman -S --noconfirm dos2unix
+> [[ -x "\$(command -v curl)" ]] || sudo pacman -S --noconfirm curl
+> [[ -x "\$(command -v unzip)" ]] || sudo pacman -S --noconfirm unzip
+> [[ -x "\$(command -v virtualenv)" ]] || sudo pacman -S --noconfirm python-virtualenv
 > }
 >
 > install\_fedora() {
 > sudo dnf update -y
-> [[ -x "$(command -v git)" ]] || sudo dnf install -y git
-> [[ -x "$(command -v python3)" ]] || sudo dnf install -y python3
-> [[ -x "$(command -v pip3)" ]] || sudo dnf install -y python3-pip
-> [[ -x "$(command -v dos2unix)" ]] || sudo dnf install -y dos2unix
-> [[ -x "$(command -v curl)" ]] || sudo dnf install -y curl
-> [[ -x "$(command -v unzip)" ]] || sudo dnf install -y unzip
+> [[ -x "\$(command -v git)" ]] || sudo dnf install -y git
+> [[ -x "\$(command -v python3)" ]] || sudo dnf install -y python3
+> [[ -x "\$(command -v pip3)" ]] || sudo dnf install -y python3-pip
+> [[ -x "\$(command -v dos2unix)" ]] || sudo dnf install -y dos2unix
+> [[ -x "\$(command -v curl)" ]] || sudo dnf install -y curl
+> [[ -x "\$(command -v unzip)" ]] || sudo dnf install -y unzip
 > }
 >
-> if [[ "$OSTYPE" == "linux-gnu"\* ]]; then
+> if [[ "\$OSTYPE" == "linux-gnu"\* ]]; then
 > if command -v apt-get &>/dev/null; then
 > install\_debian
 > elif command -v pacman &>/dev/null; then
@@ -1230,11 +1230,11 @@
 > exit 1
 > fi
 >
-> if [[ "$OSTYPE" != "linux-gnu"\* || ! "$(command -v pacman)" ]]; then
+> if [[ "\$OSTYPE" != "linux-gnu"\* || ! "\$(command -v pacman)" ]]; then
 > pip3 show virtualenv &>/dev/null || pip3 install virtualenv
 > fi
 >
-> if [[ "$OSTYPE" == "linux-gnu"\* ]]; then
+> if [[ "\$OSTYPE" == "linux-gnu"\* ]]; then
 > if command -v apt-get &>/dev/null; then
 > sudo apt install -y adb fastboot
 > elif command -v pacman &>/dev/null; then
@@ -1254,9 +1254,9 @@
 > # Download mtkclient
 >
 > REPO\_URL="https\://github.com/AgentFabulous/mtkclient"
-> REPO\_NAME=$(basename "$REPO\_URL" .git)
-> git clone "$REPO\_URL"
-> cd "$REPO\_NAME" || exit
+> REPO\_NAME=\$(basename "\$REPO\_URL" .git)
+> git clone "\$REPO\_URL"
+> cd "\$REPO\_NAME" || exit
 > pip3 install -r requirements.txt
 >
 > rm -f frp.bin
@@ -1270,8 +1270,8 @@
 > sudo chown $USER frp.bin
 >
 > LAST\_BYTE=$(xxd -p -l 1 -s -1 frp.bin)
-> if [[ "$LAST\_BYTE" == "00" ]]; then
-> printf '\x01' | dd of=frp.bin bs=1 seek=$(($(stat -c%s frp.bin) - 1)) conv=notrunc
+> if [[ "\$LAST\_BYTE" == "00" ]]; then
+> printf '\x01' | dd of=frp.bin bs=1 seek=\$((\$(stat -c%s frp.bin) - 1)) conv=notrunc
 > fi
 >
 > # Write FRP
@@ -1296,9 +1296,9 @@
 > fastboot flash system system.img
 > fastboot reboot
 > mtkclient on  main is 📦 v2.0.0 via 🐍 v3.13.2
-> ❯ LAST\_BYTE=$(xxd -p -l 1 -s -1 frp.bin)
-> if [[ "$LAST\_BYTE" == "00" ]]; then
-> printf '\x01' | dd of=frp.bin bs=1 seek=$(($(stat -c%s frp.bin) - 1)) conv=notrunc
+> ❯ LAST\_BYTE=\$(xxd -p -l 1 -s -1 frp.bin)
+> if [[ "\$LAST\_BYTE" == "00" ]]; then
+> printf '\x01' | dd of=frp.bin bs=1 seek=\$((\$(stat -c%s frp.bin) - 1)) conv=notrunc
 > fi
 > 1+0 records in
 > 1+0 records out
@@ -1600,35 +1600,35 @@
 >
 > install\_debian() {
 > sudo apt update
-> [[ -x "$(command -v git)" ]] || sudo apt install -y git
-> [[ -x "$(command -v python3)" ]] || sudo apt install -y python3
-> [[ -x "$(command -v pip3)" ]] || sudo apt install -y python3-pip
-> [[ -x "$(command -v dos2unix)" ]] || sudo apt install -y dos2unix
-> [[ -x "$(command -v curl)" ]] || sudo apt install -y curl
-> [[ -x "$(command -v unzip)" ]] || sudo apt install -y unzip
+> [[ -x "\$(command -v git)" ]] || sudo apt install -y git
+> [[ -x "\$(command -v python3)" ]] || sudo apt install -y python3
+> [[ -x "\$(command -v pip3)" ]] || sudo apt install -y python3-pip
+> [[ -x "\$(command -v dos2unix)" ]] || sudo apt install -y dos2unix
+> [[ -x "\$(command -v curl)" ]] || sudo apt install -y curl
+> [[ -x "\$(command -v unzip)" ]] || sudo apt install -y unzip
 > }
 >
 > install\_arch() {
 > sudo pacman -Sy --noconfirm
-> [[ -x "$(command -v git)" ]] || sudo pacman -S --noconfirm git
-> [[ -x "$(command -v python3)" ]] || sudo pacman -S --noconfirm python
-> [[ -x "$(command -v dos2unix)" ]] || sudo pacman -S --noconfirm dos2unix
-> [[ -x "$(command -v curl)" ]] || sudo pacman -S --noconfirm curl
-> [[ -x "$(command -v unzip)" ]] || sudo pacman -S --noconfirm unzip
-> [[ -x "$(command -v virtualenv)" ]] || sudo pacman -S --noconfirm python-virtualenv
+> [[ -x "\$(command -v git)" ]] || sudo pacman -S --noconfirm git
+> [[ -x "\$(command -v python3)" ]] || sudo pacman -S --noconfirm python
+> [[ -x "\$(command -v dos2unix)" ]] || sudo pacman -S --noconfirm dos2unix
+> [[ -x "\$(command -v curl)" ]] || sudo pacman -S --noconfirm curl
+> [[ -x "\$(command -v unzip)" ]] || sudo pacman -S --noconfirm unzip
+> [[ -x "\$(command -v virtualenv)" ]] || sudo pacman -S --noconfirm python-virtualenv
 > }
 >
 > install\_fedora() {
 > sudo dnf update -y
-> [[ -x "$(command -v git)" ]] || sudo dnf install -y git
-> [[ -x "$(command -v python3)" ]] || sudo dnf install -y python3
-> [[ -x "$(command -v pip3)" ]] || sudo dnf install -y python3-pip
-> [[ -x "$(command -v dos2unix)" ]] || sudo dnf install -y dos2unix
-> [[ -x "$(command -v curl)" ]] || sudo dnf install -y curl
-> [[ -x "$(command -v unzip)" ]] || sudo dnf install -y unzip
+> [[ -x "\$(command -v git)" ]] || sudo dnf install -y git
+> [[ -x "\$(command -v python3)" ]] || sudo dnf install -y python3
+> [[ -x "\$(command -v pip3)" ]] || sudo dnf install -y python3-pip
+> [[ -x "\$(command -v dos2unix)" ]] || sudo dnf install -y dos2unix
+> [[ -x "\$(command -v curl)" ]] || sudo dnf install -y curl
+> [[ -x "\$(command -v unzip)" ]] || sudo dnf install -y unzip
 > }
 >
-> if [[ "$OSTYPE" == "linux-gnu"\* ]]; then
+> if [[ "\$OSTYPE" == "linux-gnu"\* ]]; then
 > if command -v apt-get &>/dev/null; then
 > install\_debian
 > elif command -v pacman &>/dev/null; then
@@ -1644,11 +1644,11 @@
 > exit 1
 > fi
 >
-> if [[ "$OSTYPE" != "linux-gnu"\* || ! "$(command -v pacman)" ]]; then
+> if [[ "\$OSTYPE" != "linux-gnu"\* || ! "\$(command -v pacman)" ]]; then
 > pip3 show virtualenv &>/dev/null || pip3 install virtualenv
 > fi
 >
-> if [[ "$OSTYPE" == "linux-gnu"\* ]]; then
+> if [[ "\$OSTYPE" == "linux-gnu"\* ]]; then
 > if command -v apt-get &>/dev/null; then
 > sudo apt install -y adb fastboot
 > elif command -v pacman &>/dev/null; then
@@ -1668,9 +1668,9 @@
 > # Download mtkclient
 >
 > REPO\_URL="https\://github.com/AgentFabulous/mtkclient"
-> REPO\_NAME=$(basename "$REPO\_URL" .git)
-> git clone "$REPO\_URL"
-> cd "$REPO\_NAME" || exit
+> REPO\_NAME=\$(basename "\$REPO\_URL" .git)
+> git clone "\$REPO\_URL"
+> cd "\$REPO\_NAME" || exit
 > pip3 install -r requirements.txt
 >
 > rm -f frp.bin
@@ -1681,10 +1681,10 @@
 >
 > sudo python3 mtk r frp frp.bin
 >
-> sudo chown $USER frp.bin
+> sudo chown \$USER frp.bin
 >
-> LAST\_BYTE=$(xxd -p -l 1 -s -1 frp.bin)
-> if [[ "$LAST\_BYTE" == "00" ]]; then
+> LAST\_BYTE=\$(xxd -p -l 1 -s -1 frp.bin)
+> if [[ "\$LAST\_BYTE" == "00" ]]; then
 > printf '\x01' | dd of=frp.bin bs=1 seek=$(($(stat -c%s frp.bin) - 1)) conv=notrunc
 > fi
 >
@@ -1712,8 +1712,8 @@
 > r1\_escape on  main via 🐍 v3.13.2
 > ❯ cd mtkclient
 > mtkclient on  main is 📦 v2.0.0 via 🐍 v3.13.2
-> ❯ LAST\_BYTE=$(xxd -p -l 1 -s -1 frp.bin)
-> if [[ "$LAST\_BYTE" == "00" ]]; then
+> ❯ LAST\_BYTE=\$(xxd -p -l 1 -s -1 frp.bin)
+> if [[ "\$LAST\_BYTE" == "00" ]]; then
 > printf '\x01' | dd of=frp.bin bs=1 seek=$(($(stat -c%s frp.bin) - 1)) conv=notrunc
 > fi
 > mtkclient on  main is 📦 v2.0.0 via 🐍 v3.13.2
@@ -2436,7 +2436,7 @@ The configuration defines:
 Your preloader serial method remains a valid recovery entrance when the button route is unreliable:
 
 ```bash
-"$R1ESC/.venv/bin/python" "$R1ESC/mtkbootcmd.py" FASTBOOT
+"\$R1ESC/.venv/bin/python" "\$R1ESC/mtkbootcmd.py" FASTBOOT
 fastboot devices -l
 ```
 
@@ -2542,14 +2542,14 @@ fastboot --version
 ## Use one Python environment
 
 ```bash
-R1ROOT="$HOME/code/others/rabbit-r1"
-R1ESC="$R1ROOT/r1_escape"
+R1ROOT="\$HOME/code/others/rabbit-r1"
+R1ESC="\$R1ROOT/r1_escape"
 
-cd "$R1ESC"
+cd "\$R1ESC"
 python3 -m venv .venv
-"$R1ESC/.venv/bin/python" -m pip install --upgrade pip wheel
-"$R1ESC/.venv/bin/python" -m pip install pyserial
-"$R1ESC/.venv/bin/python" -m pip install -r "$R1ESC/mtkclient/requirements.txt"
+"\$R1ESC/.venv/bin/python" -m pip install --upgrade pip wheel
+"\$R1ESC/.venv/bin/python" -m pip install pyserial
+"\$R1ESC/.venv/bin/python" -m pip install -r "$R1ESC/mtkclient/requirements.txt"
 ```
 
 Test imports explicitly:
@@ -2565,7 +2565,7 @@ PY
 For `mtkclient`, prefer udev rules that allow normal-user USB access. If root is unavoidable, use the exact virtual-environment interpreter:
 
 ```bash
-sudo "$R1ESC/.venv/bin/python" "$R1ESC/mtkclient/mtk" printgpt
+sudo "\$R1ESC/.venv/bin/python" "\$R1ESC/mtkclient/mtk" printgpt
 ```
 
 Do not use bare `sudo python3`.
@@ -2581,10 +2581,10 @@ rabbit_OS_v0.8.293_20250516110545/
 Set a variable and inventory it:
 
 ```bash
-FW="$R1ROOT/rabbit_OS_v0.8.293_20250516110545"
+FW="\$R1ROOT/rabbit_OS_v0.8.293_20250516110545"
 
-find "$FW" -maxdepth 1 -type f -printf '%f\n' | sort
-sha256sum "$FW"/* > "$R1ROOT/rabbitOS-v0.8.293-files.sha256"
+find "\$FW" -maxdepth 1 -type f -printf '%f\\n' | sort
+sha256sum "\$FW"/* > "\$R1ROOT/rabbitOS-v0.8.293-files.sha256"
 ```
 
 Keep the original ZIP as well. Do not rename files to satisfy a command copied from a different firmware package. For example, the community recovery writeup mentions `super_sparse_backup.img`, while your archive lists `super.img`. Use the official flasher, which reads the package's actual scatter and filenames, rather than substituting one for the other.
@@ -2594,26 +2594,26 @@ Keep the original ZIP as well. Do not rename files to satisfy a command copied f
 This step uses raw MediaTek access and should be read-only. First print the partition table:
 
 ```bash
-cd "$R1ESC/mtkclient"
-sudo "$R1ESC/.venv/bin/python" ./mtk printgpt | tee "$R1ROOT/mtk-gpt.txt"
+cd "\$R1ESC/mtkclient"
+sudo "\$R1ESC/.venv/bin/python" ./mtk printgpt | tee "$R1ROOT/mtk-gpt.txt"
 ```
 
 Only for partition names actually present, create a backup directory and read them one at a time:
 
 ```bash
-mkdir -p "$R1ROOT/r1-backup"
+mkdir -p "\$R1ROOT/r1-backup"
 
-sudo "$R1ESC/.venv/bin/python" ./mtk r seccfg \
-  "$R1ROOT/r1-backup/seccfg-original.bin"
+sudo "\$R1ESC/.venv/bin/python" ./mtk r seccfg \
+  "\$R1ROOT/r1-backup/seccfg-original.bin"
 
-sudo "$R1ESC/.venv/bin/python" ./mtk r frp \
+sudo "\$R1ESC/.venv/bin/python" ./mtk r frp \
   "$R1ROOT/r1-backup/frp-current.bin"
 ```
 
 If the GPT includes `nvram`, `nvdata`, `proinfo`, `protect1`, or `protect2`, preserve them as well, but do not erase or write them. Calculate hashes and make an offline copy:
 
 ```bash
-sha256sum "$R1ROOT/r1-backup"/* > "$R1ROOT/r1-backup/SHA256SUMS"
+sha256sum "\$R1ROOT/r1-backup"/* > "\$R1ROOT/r1-backup/SHA256SUMS"
 ```
 
 The exact connection timing is the same as your successful FRP dump: start the read command, power the R1 off, and reconnect it in preloader/BROM mode when prompted.
@@ -2632,7 +2632,7 @@ Preloader serial method:
 
 ```bash
 sudo modprobe cdc_acm
-"$R1ESC/.venv/bin/python" "$R1ESC/mtkbootcmd.py" FASTBOOT
+"\$R1ESC/.venv/bin/python" "\$R1ESC/mtkbootcmd.py" FASTBOOT
 fastboot devices -l
 ```
 
@@ -2706,8 +2706,8 @@ for v in \
   current-slot \
   slot-successful:a slot-unbootable:a slot-retry-count:a \
   slot-successful:b slot-unbootable:b slot-retry-count:b; do
-  fastboot getvar "$v"
-done 2>&1 | tee "$R1ROOT/post-stock-slot-state.txt"
+  fastboot getvar "\$v"
+done 2>&1 | tee "\$R1ROOT/post-stock-slot-state.txt"
 ```
 
 Then select A:
@@ -3210,11 +3210,11 @@ This sheet assumes the repositories and stock firmware are already present at th
 ## 1. Set paths and environment
 
 ```bash
-R1ROOT="$HOME/code/others/rabbit-r1"
-R1ESC="$R1ROOT/r1_escape"
-FW="$R1ROOT/rabbit_OS_v0.8.293_20250516110545"
+R1ROOT="\$HOME/code/others/rabbit-r1"
+R1ESC="\$R1ROOT/r1_escape"
+FW="\$R1ROOT/rabbit_OS_v0.8.293_20250516110545"
 
-cd "$R1ESC"
+cd "\$R1ESC"
 [ -x .venv/bin/python ] || python3 -m venv .venv
 .venv/bin/python -m pip install -U pip wheel
 .venv/bin/python -m pip install pyserial
@@ -3224,20 +3224,20 @@ cd "$R1ESC"
 ## 2. Back up persistent state
 
 ```bash
-mkdir -p "$R1ROOT/r1-backup"
-cd "$R1ESC/mtkclient"
+mkdir -p "\$R1ROOT/r1-backup"
+cd "\$R1ESC/mtkclient"
 
-sudo "$R1ESC/.venv/bin/python" ./mtk printgpt \
-  | tee "$R1ROOT/mtk-gpt.txt"
+sudo "\$R1ESC/.venv/bin/python" ./mtk printgpt \
+  | tee "\$R1ROOT/mtk-gpt.txt"
 
-sudo "$R1ESC/.venv/bin/python" ./mtk r seccfg \
-  "$R1ROOT/r1-backup/seccfg-original.bin"
+sudo "\$R1ESC/.venv/bin/python" ./mtk r seccfg \
+  "\$R1ROOT/r1-backup/seccfg-original.bin"
 
-sudo "$R1ESC/.venv/bin/python" ./mtk r frp \
-  "$R1ROOT/r1-backup/frp-current.bin"
+sudo "\$R1ESC/.venv/bin/python" ./mtk r frp \
+  "\$R1ROOT/r1-backup/frp-current.bin"
 
-sha256sum "$R1ROOT/r1-backup"/*.bin \
-  > "$R1ROOT/r1-backup/SHA256SUMS"
+sha256sum "\$R1ROOT/r1-backup"/*.bin \
+  > "\$R1ROOT/r1-backup/SHA256SUMS"
 ```
 
 Reconnect the R1 as directed for each preloader operation. Add other calibration partitions only after confirming their exact names in the GPT.
@@ -3246,7 +3246,7 @@ Reconnect the R1 as directed for each preloader operation. Add other calibration
 
 ```bash
 sudo modprobe cdc_acm
-"$R1ESC/.venv/bin/python" "$R1ESC/mtkbootcmd.py" FASTBOOT
+"\$R1ESC/.venv/bin/python" "\$R1ESC/mtkbootcmd.py" FASTBOOT
 fastboot devices -l
 
 {
@@ -3259,9 +3259,9 @@ fastboot devices -l
   fastboot getvar slot-unbootable:b
   fastboot getvar slot-retry-count:b
   fastboot getvar is-userspace
-} > "$R1ROOT/pre-restore-fastboot.txt" 2>&1
+} > "\$R1ROOT/pre-restore-fastboot.txt" 2>&1
 
-cat "$R1ROOT/pre-restore-fastboot.txt"
+cat "\$R1ROOT/pre-restore-fastboot.txt"
 ```
 
 ## 4. Restore stock with the official Rabbit tool
@@ -3284,8 +3284,8 @@ fastboot reboot bootloader
 for v in current-slot \
          slot-successful:a slot-unbootable:a slot-retry-count:a \
          slot-successful:b slot-unbootable:b slot-retry-count:b; do
-  fastboot getvar "$v"
-done 2>&1 | tee "$R1ROOT/post-restore-slots.txt"
+  fastboot getvar "\$v"
+done 2>&1 | tee "\$R1ROOT/post-restore-slots.txt"
 ```
 
 Only if full stock is present and metadata remains bad, apply the Rabbit-specific reset from the community recovery:

@@ -140,32 +140,32 @@ inductive Event
 
 The denotation of a function can then be something like:
 
-\[
+$$
 \llbracket f \rrbracket :
 \Sigma \to \mathcal P(\mathrm{Trace}\times\Sigma)
-\]
+$$
 
 rather than simply
 
-\[
+$$
 \Sigma\to\Sigma.
-\]
+$$
 
 The powerset is important because real programs introduce nondeterminism through control flow, external inputs, concurrency, etc.
 
 Your property becomes a predicate over traces:
 
-\[
+$$
 Safe : Trace \to Prop.
-\]
+$$
 
 For example:
 
-\[
+$$
 \forall t,\;
 Commit(t) \implies
 \neg EventuallyAfter(Use(t), Commit(t))
-\]
+$$
 
 and similarly for rollback.
 
@@ -223,63 +223,63 @@ Now you're doing abstract interpretation.
 
 Mathematically, introduce:
 
-\[
+$$
 C
-\]
+$$
 
 for concrete states and
 
-\[
+$$
 A
-\]
+$$
 
 for abstract states, with abstraction/concretization maps
 
-\[
+$$
 \alpha:C\to A
-\]
+$$
 
 and
 
-\[
+$$
 \gamma:A\to\mathcal P(C).
-\]
+$$
 
 Ideally these form a Galois connection:
 
-\[
+$$
 \alpha(c)\sqsubseteq a
 \quad\Longleftrightarrow\quad
 c\in\gamma(a).
-\]
+$$
 
 Your concrete transition is
 
-\[
+$$
 F:C\to\mathcal P(C)
-\]
+$$
 
 and your executable static-analysis transfer function is
 
-\[
+$$
 F^\#:A\to A.
-\]
+$$
 
 The crucial theorem is:
 
-\[
+$$
 \alpha(F(c))
 \sqsubseteq
 F^\#(\alpha(c)).
-\]
+$$
 
 Or, in concretization form,
 
-\[
+$$
 F(\gamma(a))
 \subseteq
 \gamma(F^\#(a)).
-\]
+$$
 
 This little theorem is essentially the **semantic contract of the linter**.
 
@@ -362,51 +362,51 @@ This distinction matters.
 
 For example:
 
-\[
+$$
 WellFormed(System)
 \implies
 NoCircularDependencies(System)
-\]
+$$
 
 or
 
-\[
+$$
 ProtocolConformant(System)
 \implies
 NoUseAfterClose(System).
-\]
+$$
 
 These are mathematical statements about your design.
 
 ### B. Analyzer soundness theorem
 
-\[
+$$
 AnalyzerAccepts(program)
 \implies
 WellFormed(extract(program)).
-\]
+$$
 
 Put them together:
 
-\[
+$$
 AnalyzerAccepts(p)
 \implies
 WellFormed(E(p))
 \implies
 Safe(E(p)).
-\]
+$$
 
 And eventually you want:
 
-\[
+$$
 Safe(E(p))
 \implies
 Safe_{Go}(p).
-\]
+$$
 
 So the full chain is:
 
-\[
+$$
 \boxed{
 AnalyzerAccepts(p)
 \Rightarrow
@@ -416,7 +416,7 @@ SemanticSafety(E(p))
 \Rightarrow
 GoSafety(p)
 }
-\]
+$$
 
 That final implication is your **adequacy/refinement theorem**.
 
@@ -573,13 +573,13 @@ That can be dramatically easier.
 
 I'd turn the whole thing upside down.
 
-Suppose you are designing some system \(D\).
+Suppose you are designing some system $D$.
 
 Define:
 
-\[
+$$
 \mathcal D
-\]
+$$
 
 as the mathematical semantics of the **design**.
 
@@ -605,9 +605,9 @@ theorem ownership_unique ...
 
 Then define a relation:
 
-\[
+$$
 p \models D
-\]
+$$
 
 meaning:
 
@@ -615,19 +615,19 @@ meaning:
 
 The linter's job is primarily to establish:
 
-\[
+$$
 p\models D.
-\]
+$$
 
 This is much easier than proving arbitrary properties of Go.
 
 Once you establish:
 
-\[
+$$
 p\models D
-\]
+$$
 
-you inherit the theorems you've proved about \(D\).
+you inherit the theorems you've proved about $D$.
 
 That's the big architectural leverage.
 
@@ -639,21 +639,21 @@ Your software implementation and model don't need to be identical.
 
 You want a map
 
-\[
+$$
 R : GoState \to ModelState
-\]
+$$
 
 such that Go steps are simulated by model steps:
 
-\[
+$$
 g\to_G g'
-\]
+$$
 
 implies something like
 
-\[
+$$
 R(g)\to_M^*R(g').
-\]
+$$
 
 Diagrammatically:
 
@@ -669,9 +669,9 @@ You prove that this diagram commutes, perhaps modulo stuttering.
 
 Then:
 
-\[
+$$
 Invariant_M(m)
-\]
+$$
 
 transfers back to the implementation.
 
@@ -701,27 +701,27 @@ There's another layer:
 
 So perhaps:
 
-\[
+$$
 G \xrightarrow{\rho} M \xrightarrow{\alpha} A
-\]
+$$
 
 where:
 
-- \(G\) = Go runtime semantics
-- \(M\) = your design semantics
-- \(A\) = finite static-analysis lattice.
+- $G$ = Go runtime semantics
+- $M$ = your design semantics
+- $A$ = finite static-analysis lattice.
 
-Then your linter computes over \(A\).
+Then your linter computes over $A$.
 
 This means the core mathematical architecture is:
 
-\[
+$$
 \boxed{
 \text{refinement}
 +
 \text{abstract interpretation}
 }
-\]
+$$
 
 Those two ideas fit together extremely well.
 
@@ -735,53 +735,53 @@ Think of program fragments as morphisms.
 
 A sequential computation
 
-\[
+$$
 f:A\to B
-\]
+$$
 
 composes with
 
-\[
+$$
 g:B\to C
-\]
+$$
 
 to give
 
-\[
+$$
 g\circ f:A\to C.
-\]
+$$
 
 Effects change the category. State computations look like Kleisli arrows:
 
-\[
+$$
 A\to State\to(B\times State).
-\]
+$$
 
 Nondeterministic computations become:
 
-\[
+$$
 A\to State\to\mathcal P(B\times State).
-\]
+$$
 
 Traced computations might be:
 
-\[
+$$
 A\to State\to\mathcal P(B\times State\times Trace).
-\]
+$$
 
 The semantics is then a compositional interpretation:
 
-\[
+$$
 \llbracket-\rrbracket :
 Syntax \to Semantics.
-\]
+$$
 
 Your abstract interpreter is another interpretation:
 
-\[
+$$
 \llbracket-\rrbracket^\# :
 Syntax \to AbstractSemantics.
-\]
+$$
 
 What you prove is effectively a compatibility/naturality condition:
 
@@ -797,11 +797,11 @@ What you prove is effectively a compatibility/naturality condition:
 
 You want:
 
-\[
+$$
 \alpha\circ\llbracket p\rrbracket
 \sqsubseteq
 \llbracket p\rrbracket^\#\circ\alpha.
-\]
+$$
 
 That is a beautifully compact description of analyzer soundness.
 
@@ -826,29 +826,29 @@ plain state predicates get unpleasant.
 
 Separation logic gives you:
 
-\[
+$$
 P * Q
-\]
+$$
 
-meaning, informally, that \(P\) and \(Q\) hold over separable pieces of resources.
+meaning, informally, that $P$ and $Q$ hold over separable pieces of resources.
 
 So something like:
 
-\[
+$$
 Own(x,\text{Open})
-\]
+$$
 
 can be consumed by:
 
-\[
+$$
 close(x)
-\]
+$$
 
 to produce:
 
-\[
+$$
 Own(x,\text{Closed}).
-\]
+$$
 
 This is already a major part of Gobra's approach. citeturn160935search11
 
@@ -862,17 +862,17 @@ I would resist putting concurrency into the first CoreGo.
 
 Sequential Go:
 
-\[
+$$
 State\to State
-\]
+$$
 
 is comparatively manageable.
 
 Concurrent Go is more naturally something like a labelled transition system:
 
-\[
+$$
 C \xrightarrow{e} C'
-\]
+$$
 
 where events include:
 
@@ -888,13 +888,13 @@ write(x,v)
 
 Then an execution is a trace:
 
-\[
+$$
 C_0
 \xrightarrow{e_1}
 C_1
 \xrightarrow{e_2}
 \cdots
-\]
+$$
 
 Now you can express:
 
@@ -942,11 +942,11 @@ def checkCertificate :
 
 Then prove:
 
-\[
+$$
 checkCertificate(p,c)=true
 \implies
 Safe(p).
-\]
+$$
 
 Now the complicated analysis can even be untrusted.
 
@@ -1115,19 +1115,19 @@ func Analyze(p CoreGo) Result
 
 Now we have introduced:
 
-\[
+$$
 LeanAnalyze
 \stackrel{?}{=}
 GoAnalyze.
-\]
+$$
 
 Instead of proving your Lean→Go code generator correct, generate a **validator**.
 
 For example, both produce a transfer table:
 
-\[
+$$
 T : Opcode\times AbstractState\to AbstractState.
-\]
+$$
 
 Lean emits a canonical table/specification.
 
@@ -1191,15 +1191,15 @@ That is much more intellectually honest than a binary label of "verified softwar
 
 Typical linters compute:
 
-\[
+$$
 Program\to List(Error).
-\]
+$$
 
 I'd make yours compute:
 
-\[
+$$
 Program\to List(Obligation).
-\]
+$$
 
 An obligation might be:
 
@@ -1269,7 +1269,7 @@ global architectural theorem
 
 So you can deliberately climb:
 
-\[
+$$
 Lint
 \subset
 AbstractInterpretation
@@ -1277,7 +1277,7 @@ AbstractInterpretation
 SMT
 \subset
 InteractiveProof.
-\]
+$$
 
 And the important thing is that these don't become four unrelated systems.
 
@@ -1297,7 +1297,7 @@ I'd formulate the project as:
 
 Or mathematically:
 
-\[
+$$
 \boxed{
 Go
 \xrightarrow{\text{extract}}
@@ -1307,11 +1307,11 @@ Model
 \xrightarrow{\alpha}
 AbstractDomain
 }
-\]
+$$
 
 with proofs:
 
-\[
+$$
 \boxed{
 \begin{aligned}
 &\text{ModelInvariant} \Rightarrow \text{DesiredProperty}\\
@@ -1319,11 +1319,11 @@ with proofs:
 &\text{CoreGo extraction adequate w.r.t. relevant Go}\\
 \end{aligned}
 }
-\]
+$$
 
 and executable content:
 
-\[
+$$
 \boxed{
 \text{Lean abstract interpreter}
 \longrightarrow
@@ -1331,7 +1331,7 @@ and executable content:
 \longrightarrow
 \texttt{go/analysis} \text{ linter}
 }
-\]
+$$
 
 That is a real formal-methods architecture rather than a hacky proof-to-lint translation.
 
@@ -2177,11 +2177,11 @@ The first thinks in terms of **source files**.
 
 The second thinks in terms of:
 
-\[
+$$
 \text{proof state}
 \xrightarrow{\text{tactic}}
 \text{proof state}.
-\]
+$$
 
 That distinction becomes very powerful.
 
@@ -2263,9 +2263,9 @@ Then add transactional overlays.
 
 Then add the stateful:
 
-\[
+$$
 proof.start / proof.apply / proof.clone
-\]
+$$
 
 API.
 
@@ -2396,11 +2396,11 @@ So I would **not rebuild this part from scratch**.
 
 But its abstraction is fundamentally:
 
-\[
+$$
 (\text{file},\text{line},\text{column})
 \longrightarrow
 \text{Lean information}.
-\]
+$$
 
 That's exactly right for a coding agent editing a `.lean` file.
 
@@ -2414,13 +2414,13 @@ Pantograph explicitly makes essentially the distinction we were circling around.
 
 Its designers distinguish:
 
-\[
+$$
 \text{Presentation View}
 \qquad
 \text{Search View}
 \qquad
 \text{Kernel View}.
-\]
+$$
 
 The presentation view is the human-written Lean source. The search view is the evolving proof trajectory. The kernel view is the metavariable-level representation. Pantograph says explicitly that Lean's LSP is primarily unsuitable for the search view, which is why Pantograph exists. citeturn414604view0
 
@@ -2461,9 +2461,9 @@ Pantograph gives us a real proof-search transition system.
 
 Its paper also supports extracting tactic transitions of the form
 
-\[
+$$
 (\text{goal before},\text{tactic},\text{goal after}),
-\]
+$$
 
 and has explicit support for proof sketches where `sorry` holes become individual proof goals. citeturn590451view2
 
@@ -2583,18 +2583,18 @@ This is much better for agents than modeling an editor's mutable cursor.
 
 Mathematically, the MCP interface starts looking like:
 
-\[
+$$
 step :
 State\times Action
 \rightarrow
 Result(State)
-\]
+$$
 
 rather than:
 
-\[
+$$
 Action\rightarrow IO()
-\]
+$$
 
 with mysterious hidden global state.
 
@@ -2655,7 +2655,7 @@ Pantograph has a relevant constraint here: its persistent process is started wit
 
 So I'd calculate something conceptually like:
 
-\[
+$$
 E =
 H(
   lean\_toolchain,
@@ -2664,7 +2664,7 @@ H(
   options,
   relevant\ .olean\ files
 ).
-\]
+$$
 
 Not necessarily literally that exact hash implementation, but semantically that's what `environment_id` means.
 
@@ -2799,7 +2799,7 @@ That's the proof-state analogue of `lean-lsp-mcp`'s excellent `lean_multi_attemp
 
 Now an LLM can perform beam search naturally:
 
-\[
+$$
 B_{n+1}
 =
 Top_k
@@ -2807,7 +2807,7 @@ Top_k
 \bigcup_{s\in B_n}
 Actions(s)
 \right).
-\]
+$$
 
 And you can put a learned value function over resulting states later.
 
@@ -2878,15 +2878,15 @@ Pantograph has machinery specifically for goal continuation/resumption and searc
 
 So initially I would parallelize:
 
-\[
+$$
 \text{whole proof-state alternatives}
-\]
+$$
 
 rather than:
 
-\[
+$$
 \text{arbitrary individual metavariables}.
-\]
+$$
 
 In other words:
 
@@ -2935,9 +2935,9 @@ If another agent already modified the same base and you're trying to perform a m
 
 Effectively:
 
-\[
+$$
 patch:R\times Patch\rightharpoonup R'.
-\]
+$$
 
 LeanCTX is interesting here because its broader design treats context/session state, snapshots and multi-agent handoffs as managed objects rather than relying purely on ordinary filesystem access. citeturn623323view3
 
@@ -3051,13 +3051,13 @@ So Pantograph and LSP aren't competing backends.
 
 They form two sides of the workflow:
 
-\[
+$$
 Search
 \rightarrow
 Presentation
 \rightarrow
 Kernel.
-\]
+$$
 
 ---
 
@@ -3162,15 +3162,15 @@ S18 → action log → replay on P13
 
 This separates:
 
-\[
+$$
 \text{protocol state}
-\]
+$$
 
 from
 
-\[
+$$
 \text{application state}.
-\]
+$$
 
 That's exactly what you want for a scalable service.
 
@@ -3205,7 +3205,7 @@ Pantograph should sit behind the **research agent** side because its abstraction
 
 And the new thing worth building is really this middle layer:
 
-\[
+$$
 \boxed{
 \text{versioned workspaces}
 +
@@ -3215,25 +3215,25 @@ And the new thing worth building is really this middle layer:
 +
 \text{sandboxed Lean workers}
 }
-\]
+$$
 
 rather than yet another collection of `lean_*` MCP wrappers.
 
 There is a pleasing formal character to it, too. Once states are immutable, the remote interface itself starts looking like a mathematical transition system:
 
-\[
+$$
 W \xrightarrow{patch} W'
-\]
+$$
 
 and
 
-\[
+$$
 P \xrightarrow{tactic} P'.
-\]
+$$
 
 The agent is traversing the product state space
 
-\[
+$$
 \boxed{
 WorkspaceRevision
 \times
@@ -3241,7 +3241,7 @@ LeanEnvironment
 \times
 ProofState
 }
-\]
+$$
 
 and the server controls which transitions are valid.
 

@@ -949,9 +949,9 @@ The central argument is that Tiny-IDP permits rich computation inside JavaScript
 
 The document relates Tiny-IDP’s stable resume-handler IDs and bounded `Carry` values to Reynolds-style defunctionalization and Danvy and Nielsen’s later systematic treatment. Rather than serializing closures, stacks, Promise resolvers, or a Goja heap, the system replaces a browser-spanning continuation with:
 
-\[
+$$
 K = (\text{handler tag},\ \text{schema-checked environment},\ \text{native references})
-\]
+$$
 
 A native apply operation resolves the tag under the pinned program generation and invokes the corresponding callback. This interpretation is also compared with Queinnec’s work on continuations in Web servers. citeturn423602search5turn423602search8turn423602search2
 
@@ -961,18 +961,18 @@ The analysis then treats the continuation record as a security protocol in its o
 
 `LambdaSpec` is interpreted as a dynamic judgment of the form:
 
-\[
+$$
 \Gamma;\Delta \vdash \lambda :
 I \xrightarrow{\ O,\ C,\ E,\ B\ } R
-\]
+$$
 
 where:
 
-- \(I\) and \(R\) are input and output schemas;
-- \(O\) is the allowed outcome set;
-- \(C\) is the required capability set;
-- \(E\) is the permitted native effect set;
-- \(B\) contains timeout, call-count, and output-size budgets.
+- $I$ and $R$ are input and output schemas;
+- $O$ is the allowed outcome set;
+- $C$ is the required capability set;
+- $E$ is the permitted native effect set;
+- $B$ contains timeout, call-count, and output-size budgets.
 
 The document connects this structure to effect systems, higher-order contracts, typestate, and session-typed protocol thinking. It carefully distinguishes the implementation from a statically proved JavaScript type system: the guarantees are enforced at compilation, activation, invocation, and native interpretation boundaries. citeturn423602search0turn158179search0turn255864search7turn255864search4
 
@@ -980,7 +980,7 @@ The document connects this structure to effect systems, higher-order contracts, 
 
 The report formalizes the outcome family:
 
-\[
+$$
 \mathcal O =
 \mathrm{Continue}
 +\mathrm{Present}
@@ -990,7 +990,7 @@ The report formalizes the outcome family:
 +\mathrm{Deny}
 +\mathrm{Skip}
 +\mathrm{Error}
-\]
+$$
 
 and explains why `deny`, `skip`, and `error` cannot safely be collapsed into Boolean values, exceptions, or `undefined`.
 
@@ -1014,14 +1014,14 @@ The report also states the boundary clearly: this is process-local unforgeabilit
 
 Invocation capabilities are examined using the capability-machine and object-capability literature. The effective authority of one callback is modeled as the intersection of:
 
-\[
+$$
 A_{\text{effective}}
 =
 A_{\text{program}}
 \cap A_{\lambda}
 \cap A_{\text{host}}
 \cap A_{\text{invocation}}
-\]
+$$
 
 A lambda cannot dynamically acquire a service by string lookup. It receives only the capabilities declared by the program and lambda, implemented by the host, and installed for that invocation.
 
@@ -1042,13 +1042,13 @@ This is tied to least privilege, complete mediation, confused-deputy avoidance, 
 
 `OutcomeCommit` is interpreted as an inert command language:
 
-\[
+$$
 E ::=
 \mathrm{CreateIdentity}(p)
 \mid \mathrm{AttachCredential}(q)
 \mid \mathrm{ConsumeInvitation}(r)
 \mid \cdots
-\]
+$$
 
 JavaScript may construct this syntax, but it cannot interpret or execute it. Native Go revalidates the exact command sequence, resolves opaque secret handles, checks native evidence and protocol bindings, and applies the accepted plan through a named transaction.
 
@@ -1101,12 +1101,12 @@ The Promise capability bridge is analyzed as a temporal isolation mechanism. Onc
 
 The document formalizes the rule:
 
-\[
+$$
 \neg\mathrm{active}(I)
 \Rightarrow
 \mathrm{settle}(I,p,x)
 \text{ performs no VM-visible mutation}
-\]
+$$
 
 and explains why timed-out workers are discarded even when a callback appears to have returned a valid value near the deadline.
 
@@ -1164,13 +1164,13 @@ The report develops the branch’s emerging assurance grammar: stable versioned 
 
 It explains the three non-conferring schemas:
 
-\[
+$$
 \text{configuration}
 \not\Rightarrow
 \text{execution}
 \not\Rightarrow
 \text{property proof}
-\]
+$$
 
 A configuration says what should be selected. A transition catalog describes native operations. A trace records what was actually observed. None is allowed to manufacture the authority or evidence of another.
 

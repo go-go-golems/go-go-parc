@@ -325,7 +325,7 @@ This prevents a rendered interval or curve from losing the information required 
 
 The summary statistic groups rows, computes a mean, then emits lower and upper bounds for either standard deviation or standard error.
 
-For observations \(x_1, \ldots, x_n\):
+For observations $x_1, \ldots, x_n$:
 
 $$
 \bar{x} = \frac{1}{n}\sum_{i=1}^{n}x_i
@@ -335,7 +335,7 @@ $$
 s = \sqrt{\frac{\sum_{i=1}^{n}(x_i-\bar{x})^2}{n-1}}
 $$
 
-The interval half-width is either \(m s\) or \(m s/\sqrt{n}\), where \(m\) is the requested multiplier. Error-bar and ribbon geometries consume the resulting `lower` and `upper` values.
+The interval half-width is either $m s$ or $m s/\sqrt{n}$, where $m$ is the requested multiplier. Error-bar and ribbon geometries consume the resulting `lower` and `upper` values.
 
 The distinction is recorded because standard deviation describes sample spread while standard error describes uncertainty in the estimated mean. Rendering both as vertical intervals does not make them statistically interchangeable.
 
@@ -383,17 +383,17 @@ $$
 \hat{\beta}_0 = \bar{y} - \hat{\beta}_1\bar{x}
 $$
 
-It emits fitted values and confidence bounds at sorted observed x coordinates. Metadata records the intercept, slope, \(R^2\), residual standard error, count, confidence level, and normal-approximation assumption. The implementation is intentionally bounded. It supports an immediately useful frontend regression without claiming to provide a general statistical modeling environment.
+It emits fitted values and confidence bounds at sorted observed x coordinates. Metadata records the intercept, slope, $R^2$, residual standard error, count, confidence level, and normal-approximation assumption. The implementation is intentionally bounded. It supports an immediately useful frontend regression without claiming to provide a general statistical modeling environment.
 
 ### 6.5 Tukey boxplots
 
-The boxplot statistic uses R7 quantiles and Tukey whiskers. It emits \(Q_1\), median, \(Q_3\), and the most extreme observed values within:
+The boxplot statistic uses R7 quantiles and Tukey whiskers. It emits $Q_1$, median, $Q_3$, and the most extreme observed values within:
 
 $$
 [Q_1 - 1.5\,IQR,\; Q_3 + 1.5\,IQR]
 $$
 
-where \(IQR = Q_3 - Q_1\). The geometry planner receives explicit quartile and whisker channels rather than recomputing statistical meaning during drawing.
+where $IQR = Q_3 - Q_1$. The geometry planner receives explicit quartile and whisker channels rather than recomputing statistical meaning during drawing.
 
 ### 6.6 Gaussian kernel density estimates
 

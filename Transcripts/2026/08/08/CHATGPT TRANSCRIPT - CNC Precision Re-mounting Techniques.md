@@ -155,9 +155,9 @@ I’m extending the model from top finishing to complete 3-axis machining: use c
 
 With **no overhangs**, the geometry becomes much simpler: the creature's upper surface can be treated as a **height field**
 
-\[
+$$
 z=f(x,y).
-\]
+$$
 
 That turns 3-axis toolpath generation into a mostly 2D planning problem plus a computation of the correct cutter height.
 
@@ -165,33 +165,33 @@ The key concept is the **cutter-location surface**: instead of following the mod
 
 ## 1. The fundamental geometry
 
-Suppose you use a ball end mill of radius \(R\). Let its center be
+Suppose you use a ball end mill of radius $R$. Let its center be
 
-\[
+$$
 q=(X,Y,Z).
-\]
+$$
 
-At a horizontal displacement \(r=(dx,dy)\) from the tool axis, the bottom hemisphere is
+At a horizontal displacement $r=(dx,dy)$ from the tool axis, the bottom hemisphere is
 
-\[
+$$
 z_{\text{tool}}(r)
 =
 Z-\sqrt{R^2-\|r\|^2},
 \qquad \|r\|\leq R.
-\]
+$$
 
 To avoid gouging the desired surface,
 
-\[
+$$
 Z-\sqrt{R^2-\|(x,y)-(X,Y)\|^2}
 \geq f(x,y)
-\]
+$$
 
 for every surface point underneath the cutter.
 
-Therefore, for a given tool-axis position \((X,Y)\), the lowest legal ball-center height is
+Therefore, for a given tool-axis position $(X,Y)$, the lowest legal ball-center height is
 
-\[
+$$
 \boxed{
 Z(X,Y)=
 \max_{\|(x,y)-(X,Y)\|\leq R}
@@ -200,13 +200,13 @@ f(x,y)+
 \sqrt{R^2-\|(x,y)-(X,Y)\|^2}
 \right].
 }
-\]
+$$
 
 This equation is almost the whole problem.
 
 It says:
 
-> Put a sphere of radius \(R\) over the model and lower it vertically until it first touches the surface.
+> Put a sphere of radius $R$ over the model and lower it vertically until it first touches the surface.
 
 In CAM terminology, this is essentially a **drop-cutter calculation**.
 
@@ -218,38 +218,38 @@ Mathematically it is also a kind of **morphological dilation / max-plus convolut
 
 You might initially think
 
-\[
+$$
 Z(X,Y)=f(X,Y)+R.
-\]
+$$
 
 That is only correct where the surface is horizontal.
 
 For a smooth surface,
 
-\[
+$$
 z=f(x,y),
-\]
+$$
 
 the upward unit normal is
 
-\[
+$$
 n=
 \frac{
 (-f_x,-f_y,1)
 }{
 \sqrt{1+f_x^2+f_y^2}
 }.
-\]
+$$
 
-At a tangent contact point \(s=(x,y,f(x,y))\), the ball center is
+At a tangent contact point $s=(x,y,f(x,y))$, the ball center is
 
-\[
+$$
 q=s+Rn.
-\]
+$$
 
 So
 
-\[
+$$
 q=
 \begin{pmatrix}
 x\\y\\f
@@ -259,7 +259,7 @@ x\\y\\f
 \begin{pmatrix}
 -f_x\\-f_y\\1
 \end{pmatrix}.
-\]
+$$
 
 Notice that **X and Y change too**. On a slope, the ball center isn't vertically above the contact point.
 
@@ -273,84 +273,84 @@ You don't actually have to convert the STL into a dense heightmap.
 
 For every desired cutter-axis coordinate
 
-\[
+$$
 p=(X,Y),
-\]
+$$
 
-find all triangles whose XY projections are within \(R\) of \(p\), and determine the highest possible ball position caused by each triangle.
+find all triangles whose XY projections are within $R$ of $p$, and determine the highest possible ball position caused by each triangle.
 
 Then
 
-\[
+$$
 Z(p)=\max_i Z_i(p).
-\]
+$$
 
 A BVH, R-tree, quadtree, or spatial hash makes the triangle lookup fast.
 
 For an individual triangle whose plane is
 
-\[
+$$
 z=ax+by+c,
-\]
+$$
 
 write
 
-\[
+$$
 g=(a,b).
-\]
+$$
 
 For ball-end contact on the **interior of the triangle**, the maximizing contact point is
 
-\[
+$$
 u^*
 =
 p+
 \frac{R g}{\sqrt{1+\|g\|^2}}.
-\]
+$$
 
-If \(u^*\) lies inside the projected triangle, the cutter-center height is
+If $u^*$ lies inside the projected triangle, the cutter-center height is
 
-\[
+$$
 \boxed{
 Z
 =
 f(p)+R\sqrt{1+\|g\|^2}.
 }
-\]
+$$
 
 That is the exact tangent position against the planar triangle.
 
-If \(u^*\) lies outside the triangle, the maximum must occur on one of its edges or vertices.
+If $u^*$ lies outside the triangle, the maximum must occur on one of its edges or vertices.
 
 ### Edge contact
 
 For an edge, reduce the problem to one dimension.
 
-Take horizontal distance \(s\) along the edge, measured from the perpendicular projection of the cutter axis onto the edge's XY line. Let the edge height be locally
+Take horizontal distance $s$ along the edge, measured from the perpendicular projection of the cutter axis onto the edge's XY line. Let the edge height be locally
 
-\[
+$$
 z(s)=z_0+ms.
-\]
+$$
 
-Let the horizontal perpendicular distance from the cutter axis to the edge line be \(d_\perp\). The available ball radius in that section is
+Let the horizontal perpendicular distance from the cutter axis to the edge line be $d_\perp$. The available ball radius in that section is
 
-\[
+$$
 r'=\sqrt{R^2-d_\perp^2}.
-\]
+$$
 
 Then maximize
 
-\[
+$$
 z_0+ms+\sqrt{r'^2-s^2}.
-\]
+$$
 
 The unconstrained optimum is
 
-\[
+$$
 \boxed{
 s^*=\frac{m r'}{\sqrt{1+m^2}}.
 }
-\]
+$$
 
 Clamp that position to the actual edge segment. Testing the endpoints handles vertex contacts.
 
@@ -359,25 +359,25 @@ So an exact triangle-based drop-cutter algorithm basically checks:
 1. triangle-face contact,
 2. three edge contacts,
 3. vertices,
-4. takes the maximum resulting \(Z\).
+4. takes the maximum resulting $Z$.
 
 For a smooth creature made from an STL, that's a very workable implementation.
 
 ---
 
-# 4. Once you have \(Z(X,Y)\), generating the actual path is easy
+# 4. Once you have $Z(X,Y)$, generating the actual path is easy
 
 For a basic **parallel/raster finishing pass**, choose
 
-\[
+$$
 Y_i=Y_0+i\,s
-\]
+$$
 
-where \(s\) is the stepover.
+where $s$ is the stepover.
 
-Then sweep \(X\):
+Then sweep $X$:
 
-\[
+$$
 P_i(t)
 =
 \left(
@@ -385,7 +385,7 @@ X(t),
 Y_i,
 Z(X(t),Y_i)
 \right).
-\]
+$$
 
 Reverse direction every row:
 
@@ -408,28 +408,28 @@ For your rounded creature, this is probably the first algorithm I'd implement.
 
 With a ball cutter, adjacent passes leave a small cusp.
 
-On a locally flat surface, if the ball radius is \(R\) and stepover is \(s\), the exact scallop height is
+On a locally flat surface, if the ball radius is $R$ and stepover is $s$, the exact scallop height is
 
-\[
+$$
 \boxed{
 h=
 R-\sqrt{R^2-\left(\frac{s}{2}\right)^2}.
 }
-\]
+$$
 
 Solving for stepover gives
 
-\[
+$$
 \boxed{
 s=2\sqrt{2Rh-h^2}.
 }
-\]
+$$
 
-For \(h\ll R\),
+For $h\ll R$,
 
-\[
+$$
 s\approx\sqrt{8Rh}.
-\]
+$$
 
 This is useful because instead of arbitrarily saying "use a 0.2 mm stepover," you can specify:
 
@@ -443,30 +443,30 @@ and calculate the stepover from that.
 
 For a curved surface, the local scallop changes.
 
-Take the normal section perpendicular to the toolpath. Let the signed curvature of the part in that direction be \(\kappa\), using positive curvature for a valley.
+Take the normal section perpendicular to the toolpath. Let the signed curvature of the part in that direction be $\kappa$, using positive curvature for a valley.
 
 For small stepovers,
 
-\[
+$$
 h
 \approx
 \frac{s^2}{8}
 \left(
 \frac1R-\kappa
 \right).
-\]
+$$
 
 For a flat surface,
 
-\[
+$$
 \kappa=0
-\]
+$$
 
 and you recover
 
-\[
+$$
 h\approx\frac{s^2}{8R}.
-\]
+$$
 
 This gives the basis of **constant-scallop machining**: vary the path spacing according to local surface curvature rather than using a fixed XY stepover.
 
@@ -474,31 +474,31 @@ This gives the basis of **constant-scallop machining**: vary the path spacing ac
 
 # 6. Slope matters too
 
-Suppose the XY cross-feed direction is a unit vector \(d\).
+Suppose the XY cross-feed direction is a unit vector $d$.
 
-A horizontal displacement \(ds\) corresponds to a surface displacement
+A horizontal displacement $ds$ corresponds to a surface displacement
 
-\[
+$$
 d\ell
 =
 ds\sqrt{1+(\nabla f\cdot d)^2}.
-\]
+$$
 
 So a 0.5 mm stepover in XY does not correspond to 0.5 mm along a steep surface.
 
 The surface itself has metric
 
-\[
+$$
 \boxed{
 G=I+\nabla f\,\nabla f^T
 }
-\]
+$$
 
-so for an XY displacement \(d\xi\),
+so for an XY displacement $d\xi$,
 
-\[
+$$
 d\ell^2=d\xi^T G\,d\xi.
-\]
+$$
 
 That metric becomes useful if you're writing a sophisticated constant-scallop path generator.
 
@@ -508,9 +508,9 @@ That metric becomes useful if you're writing a sophisticated constant-scallop pa
 
 Once you can evaluate the cutter-location surface, there are several standard ways of traversing it:
 
-- **Raster / parallel:** parallel XY lines lifted onto \(Z(X,Y)\). Simple, robust, good for your blob-like geometry.
+- **Raster / parallel:** parallel XY lines lifted onto $Z(X,Y)$. Simple, robust, good for your blob-like geometry.
 - **Contour-parallel:** start at the outer boundary and repeatedly offset the planar contour inward, evaluating cutter height along every contour.
-- **Z-level / waterline:** intersect the cutter-location surface with planes \(Z=z_i\). Very good on steep sides.
+- **Z-level / waterline:** intersect the cutter-location surface with planes $Z=z_i$. Very good on steep sides.
 - **Hybrid:** raster on shallow areas, Z-level contours on steep areas. This is common for organic 3D parts.
 - **Constant scallop:** choose each subsequent path so that the predicted cusp height between it and the previous path stays approximately constant.
 
@@ -522,27 +522,27 @@ For something shaped like the black creature, **hybrid raster + waterline** is s
 
 A more advanced way to generate paths is to calculate a desired local spacing
 
-\[
+$$
 s(x,y)
-\]
+$$
 
 from curvature, cutter radius, and allowed scallop.
 
-Then construct a scalar field \(T(x,y)\) satisfying an Eikonal-type equation.
+Then construct a scalar field $T(x,y)$ satisfying an Eikonal-type equation.
 
 On the actual surface,
 
-\[
+$$
 \|\nabla_S T\|
 =
 \frac{1}{s(x,y)}.
-\]
+$$
 
 Then paths can be extracted as level sets
 
-\[
+$$
 T(x,y)=0,1,2,3,\ldots
-\]
+$$
 
 so consecutive contours are approximately the desired surface distance apart.
 
@@ -556,29 +556,29 @@ This is one route from a basic CAM algorithm toward a true **iso-scallop toolpat
 
 There's an even cleaner formulation.
 
-Let \(W\) be the solid workpiece you must not cut into, and let \(C\) describe the cutter relative to its reference point.
+Let $W$ be the solid workpiece you must not cut into, and let $C$ describe the cutter relative to its reference point.
 
-Putting the cutter at position \(q\) causes a collision when
+Putting the cutter at position $q$ causes a collision when
 
-\[
+$$
 (q+C)\cap W\neq\emptyset.
-\]
+$$
 
 Equivalently,
 
-\[
+$$
 q\in W\oplus(-C),
-\]
+$$
 
-where \(\oplus\) is the **Minkowski sum**.
+where $\oplus$ is the **Minkowski sum**.
 
 So
 
-\[
+$$
 \boxed{
 W\oplus(-C)
 }
-\]
+$$
 
 is the set of forbidden cutter-reference positions.
 
@@ -588,14 +588,14 @@ For a height-field part and vertically oriented cutter, the complicated 3D Minko
 
 This formulation also generalizes cleanly from a ball end mill to flat, bullnose, tapered, or custom cutters.
 
-For example, for a flat end mill of radius \(R\),
+For example, for a flat end mill of radius $R$,
 
-\[
+$$
 \boxed{
 Z(X,Y)=
 \max_{\|(x,y)-(X,Y)\|\leq R}f(x,y).
 }
-\]
+$$
 
 A flat cutter is therefore literally a **maximum filter over a circular neighborhood**.
 
@@ -640,18 +640,18 @@ An important extra step is **adaptive sampling**. Don't generate a point every f
 
 Calculate two endpoints, then calculate the actual cutter height at their midpoint. Compare it with the linear interpolation of the endpoints. If the deviation exceeds your machining tolerance, subdivide again.
 
-For a curve with curvature \(\kappa_c\), the chordal error approximately behaves as
+For a curve with curvature $\kappa_c$, the chordal error approximately behaves as
 
-\[
+$$
 e\approx\frac{\kappa_c L^2}{8},
-\]
+$$
 
 so a reasonable segment length is approximately
 
-\[
+$$
 L\lesssim
 \sqrt{\frac{8e}{\kappa_c}}.
-\]
+$$
 
 Flat areas consequently produce long G-code moves, while the eyes, bumps, and rounded transitions automatically receive more points.
 
@@ -682,7 +682,7 @@ The mathematics behind 3-axis CAM sits at an unusually good intersection of **cl
 
 The most relevant fields are:
 
-\[
+$$
 \boxed{
 \text{multivariable calculus}
 \rightarrow
@@ -692,7 +692,7 @@ The most relevant fields are:
 \rightarrow
 \text{numerical analysis}
 }
-\]
+$$
 
 with **CAGD/geometric modeling**, **convex geometry**, and **PDEs/level-set methods** branching off from there.
 
@@ -700,12 +700,12 @@ with **CAGD/geometric modeling**, **convex geometry**, and **PDEs/level-set meth
 
 Start here if expressions such as
 
-\[
+$$
 \nabla f,\qquad
 \frac{\partial f}{\partial x},\qquad
 n=\frac{(-f_x,-f_y,1)}
 {\sqrt{1+f_x^2+f_y^2}}
-\]
+$$
 
 aren't yet completely natural.
 
@@ -715,9 +715,9 @@ A very good free route is **MIT 18.02 Multivariable Calculus**. MIT has a self-s
 
 For your CNC interest, make yourself solve things like:
 
-\[
+$$
 z=f(x,y)
-\]
+$$
 
 and derive its tangent plane; compute the normal; find where a sphere is tangent to that surface; minimize the distance between a point and a surface; and derive the intersection between planes, lines, triangles, spheres, and cylinders.
 
@@ -751,13 +751,13 @@ Those are directly connected to questions such as:
 
 > In what direction is the surface bending most strongly?
 
-A particularly good self-study text is **Shoshichi Kobayashi, _Differential Geometry of Curves and Surfaces_**. The Springer edition has many exercises **with full solutions** and starts with ordinary curves and surfaces in \(\mathbb R^3\), rather than throwing you immediately into abstract manifolds. citeturn585297view0
+A particularly good self-study text is **Shoshichi Kobayashi, _Differential Geometry of Curves and Surfaces_**. The Springer edition has many exercises **with full solutions** and starts with ordinary curves and surfaces in $\mathbb R^3$, rather than throwing you immediately into abstract manifolds. citeturn585297view0
 
 For example, after learning curvature, derive the ball-mill scallop approximation
 
-\[
+$$
 h\approx \frac{s^2}{8R}.
-\]
+$$
 
 Then redo the calculation when the workpiece itself has curvature.
 
@@ -775,15 +775,15 @@ Keenan Crane's CMU course is unusually well matched to what you're interested in
 
 This is where questions like
 
-\[
+$$
 \text{What is the normal of a triangular mesh?}
-\]
+$$
 
 or
 
-\[
+$$
 \text{How do I approximate curvature on vertices?}
-\]
+$$
 
 become mathematically interesting.
 
@@ -822,13 +822,13 @@ The classic textbook recommendation is de Berg et al., **_Computational Geometry
 
 This field explains the algorithmic side of something I mentioned earlier:
 
-> Given cutter position \((X,Y)\), efficiently find the triangles that could collide with the cutter.
+> Given cutter position $(X,Y)$, efficiently find the triangles that could collide with the cutter.
 
-Naively, if there are \(N\) triangles and \(M\) cutter positions, you could test
+Naively, if there are $N$ triangles and $M$ cutter positions, you could test
 
-\[
+$$
 O(MN)
-\]
+$$
 
 triangle/tool combinations.
 
@@ -852,7 +852,7 @@ or
 
 You will encounter:
 
-\[
+$$
 \text{Bézier curves}
 \rightarrow
 \text{B-splines}
@@ -860,7 +860,7 @@ You will encounter:
 \text{NURBS}
 \rightarrow
 \text{tensor-product surfaces}.
-\]
+$$
 
 This is enormously relevant to CAD/CAM because real CAD systems do not fundamentally think in terms of STL triangles.
 
@@ -868,20 +868,20 @@ Gerald Farin's **_Curves and Surfaces for CAGD: A Practical Guide_** is a standa
 
 Here you'll meet expressions such as a Bézier curve
 
-\[
+$$
 C(t)=
 \sum_{i=0}^{n}
 B_i^n(t)P_i
-\]
+$$
 
 with Bernstein basis functions
 
-\[
+$$
 B_i^n(t)
 =
 {n\choose i}
 t^i(1-t)^{n-i}.
-\]
+$$
 
 Then you get beautiful questions like:
 
@@ -907,19 +907,19 @@ MIT's **18.330 Introduction to Numerical Analysis** describes the subject essent
 
 This becomes crucial when you say:
 
-> Approximate this smooth cutter path with straight G-code segments, but guarantee no more than \(5\,\mu\text{m}\) error.
+> Approximate this smooth cutter path with straight G-code segments, but guarantee no more than $5\,\mu\text{m}$ error.
 
-If a locally circular path has radius \(\rho\), then the sagitta of a segment with chord length \(L\) is approximately
+If a locally circular path has radius $\rho$, then the sagitta of a segment with chord length $L$ is approximately
 
-\[
+$$
 e\approx\frac{L^2}{8\rho}.
-\]
+$$
 
 Hence
 
-\[
+$$
 L\approx\sqrt{8\rho e}.
-\]
+$$
 
 That simple formula is the beginning of an **adaptive numerical discretization scheme**: use small segments where curvature is large and long segments where curvature is small.
 
@@ -933,19 +933,19 @@ This is where cutter compensation becomes especially elegant.
 
 The operation
 
-\[
+$$
 A\oplus B
 =
 \{a+b:a\in A,\ b\in B\}
-\]
+$$
 
 is the **Minkowski sum**.
 
-If \(W\) is the workpiece and \(C\) the cutter, collision testing can be transformed into reasoning about
+If $W$ is the workpiece and $C$ the cutter, collision testing can be transformed into reasoning about
 
-\[
+$$
 W\oplus(-C).
-\]
+$$
 
 This same mathematics appears in robotics because moving a robot around obstacles and moving a cutter around a part are both **configuration-space problems**.
 
@@ -961,7 +961,7 @@ This is the slightly unexpected field hiding behind the ball-end-mill formula.
 
 Recall
 
-\[
+$$
 Z(X,Y)
 =
 \max_{x,y}
@@ -970,31 +970,31 @@ f(x,y)
 +
 \sqrt{R^2-(x-X)^2-(y-Y)^2}
 \right].
-\]
+$$
 
 That's not an ordinary linear convolution because instead of
 
-\[
+$$
 \sum ab
-\]
+$$
 
 you have operations built from
 
-\[
+$$
 \max
 \quad\text{and}\quad
 +.
-\]
+$$
 
 This connects to **mathematical morphology**, dilation/erosion, and **max-plus algebra**.
 
 For a flat cylindrical cutter, the connection becomes extremely obvious:
 
-\[
+$$
 Z(X,Y)
 =
 \max_{\|(x,y)-(X,Y)\|\le R} f(x,y).
-\]
+$$
 
 That's essentially a geometric dilation/max filter by a disk-shaped structuring element.
 
@@ -1008,17 +1008,17 @@ This isn't where I'd start, but once you recognize cutter compensation as dilati
 
 This is the advanced direction behind things such as **constant-scallop paths**.
 
-Suppose you want curves whose spacing varies according to a desired local metric. Rather than manually offsetting each curve, you can sometimes construct a distance-like function \(T\) satisfying an Eikonal equation such as
+Suppose you want curves whose spacing varies according to a desired local metric. Rather than manually offsetting each curve, you can sometimes construct a distance-like function $T$ satisfying an Eikonal equation such as
 
-\[
+$$
 |\nabla T|=F(x,y)
-\]
+$$
 
 and extract paths from
 
-\[
+$$
 T(x,y)=c.
-\]
+$$
 
 James Sethian's **_Level Set Methods and Fast Marching Methods_** is one of the classic references in this area. Fast marching methods are numerical methods for Eikonal and related Hamilton–Jacobi equations. citeturn585297view6turn652158search28
 
@@ -1046,7 +1046,7 @@ Then branch into **Minkowski/convex geometry** and **Eikonal/level-set methods**
 
 If you want **one book to buy first specifically for the mathematical curiosity**, I'd pick **Kobayashi's _Differential Geometry of Curves and Surfaces_**. If you want **one free resource to work through**, I'd pick **Keenan Crane's Discrete Differential Geometry course** after getting comfortable with multivariable calculus. citeturn585297view0turn585297view1
 
-And I'd keep one long-running programming exercise throughout: **write your own tiny 3-axis CAM kernel**. Start with \(z=f(x,y)\), then add normals, a spherical cutter, scallop control, STL triangles, acceleration structures, adaptive chord tolerance, and eventually constant-scallop paths. Each new mathematical subject will then have an immediate physical interpretation.
+And I'd keep one long-running programming exercise throughout: **write your own tiny 3-axis CAM kernel**. Start with $z=f(x,y)$, then add normals, a spherical cutter, scallop control, STL triangles, acceleration structures, adaptive chord tolerance, and eventually constant-scallop paths. Each new mathematical subject will then have an immediate physical interpretation.
 
 
 ---
@@ -1087,23 +1087,23 @@ I’m extending the method from heightfields to solid meshes, pockets, multi-set
 
 The main conceptual jump is this:
 
-\[
+$$
 \text{simple 3-axis CAM: }(x,y)\mapsto z
-\]
+$$
 
 becomes
 
-\[
+$$
 \boxed{\text{general CAM: find a collision-free pose of a rigid tool}}
-\]
+$$
 
-For a fully general tool, a pose lives in \(SE(3)\): three position coordinates and three orientation coordinates. For an axisymmetric mill, rotation about its own axis is usually geometrically irrelevant, so you can often work with
+For a fully general tool, a pose lives in $SE(3)$: three position coordinates and three orientation coordinates. For an axisymmetric mill, rotation about its own axis is usually geometrically irrelevant, so you can often work with
 
-\[
+$$
 (q,u)\in \mathbb R^3\times S^2,
-\]
+$$
 
-where \(q\) is a tool reference point and \(u\) is the tool-axis direction. This configuration-space viewpoint is central to more general multi-axis machining algorithms. citeturn211554search0turn211554search8
+where $q$ is a tool reference point and $u$ is the tool-axis direction. This configuration-space viewpoint is central to more general multi-axis machining algorithms. citeturn211554search0turn211554search8
 
 A useful progression is the following.
 
@@ -1111,25 +1111,25 @@ A useful progression is the following.
 
 Your first version assumed
 
-\[
+$$
 S=\{(x,y,f(x,y))\}.
-\]
+$$
 
-Relax that. Let the part simply be a triangle mesh representing the boundary of a solid \(W\).
+Relax that. Let the part simply be a triangle mesh representing the boundary of a solid $W$.
 
 Keep the tool axis fixed:
 
-\[
+$$
 u=(0,0,1).
-\]
+$$
 
 Now your basic query becomes
 
-\[
+$$
 \boxed{
 \text{For a particular }(X,Y),\text{ what is the lowest legal tool position?}
 }
-\]
+$$
 
 You can still implement a **drop-cutter**, except now you work directly against triangles, edges and vertices rather than a heightmap.
 
@@ -1155,32 +1155,32 @@ This is a surprisingly important next step.
 
 Your original ball-end cutter might be approximated as just
 
-\[
+$$
 C_{\rm ball}.
-\]
+$$
 
 But a real tool is more like
 
-\[
+$$
 C=
 C_{\rm cutting}
 \cup C_{\rm shank}
 \cup C_{\rm holder}.
-\]
+$$
 
 A tool tip may fit into a cavity while the shank crashes into a nearby wall.
 
 So every candidate position has two different tests:
 
-\[
+$$
 \text{local gouging test}
-\]
+$$
 
 and
 
-\[
+$$
 \text{global collision test}.
-\]
+$$
 
 Local gouging asks whether the cutting surface penetrates the desired part around the contact point. Global collision asks whether **any other part of the tool assembly** intersects the workpiece.
 
@@ -1192,15 +1192,15 @@ At this point BVHs become extremely useful: first reject almost all triangles us
 
 This is the clean mathematical generalization of the whole subject.
 
-Let \(C\) be the cutter and \(W\) the forbidden workpiece.
+Let $C$ be the cutter and $W$ the forbidden workpiece.
 
 For a purely translating cutter,
 
-\[
+$$
 \mathcal C_{\rm obs}
 =
 W\oplus(-C).
-\]
+$$
 
 Every point inside this Minkowski sum corresponds to a cutter position that causes a collision.
 
@@ -1214,20 +1214,20 @@ you transform the problem into
 
 For arbitrary orientation, define
 
-\[
+$$
 \mathcal C_{\rm obs}
 =
 \left\{
 g\in SE(3):
 g(C)\cap W\ne\emptyset
 \right\}.
-\]
+$$
 
 Then machining becomes a form of **motion planning**:
 
-\[
+$$
 \gamma(t)\in SE(3)\setminus\mathcal C_{\rm obs}.
-\]
+$$
 
 That's where CAM and robotics begin to look like the same branch of mathematics.
 
@@ -1247,29 +1247,29 @@ The simplest extension is **3+2 machining**:
 
 Mathematically, sample candidate orientations
 
-\[
+$$
 u_i\in S^2.
-\]
+$$
 
-For each \(u_i\), determine the subset of the surface that is accessible:
+For each $u_i$, determine the subset of the surface that is accessible:
 
-\[
+$$
 A_i\subset S.
-\]
+$$
 
 Now you have an interesting combinatorial problem:
 
-\[
+$$
 \text{choose }A_{i_1},A_{i_2},\ldots
-\]
+$$
 
 such that
 
-\[
+$$
 S_{\rm target}
 \subseteq
 A_{i_1}\cup A_{i_2}\cup\cdots
-\]
+$$
 
 while minimizing the number of setups, reorientations, machining time, etc.
 
@@ -1281,52 +1281,52 @@ That begins to resemble **set cover, clustering, spherical sampling and optimiza
 
 This is the big jump.
 
-At every surface point \(p\), there is no longer one cutter orientation. There is a **set of allowable orientations**:
+At every surface point $p$, there is no longer one cutter orientation. There is a **set of allowable orientations**:
 
-\[
+$$
 F(p)\subset S^2.
-\]
+$$
 
-You can imagine \(F(p)\) as regions painted on a sphere.
+You can imagine $F(p)$ as regions painted on a sphere.
 
 Some orientations are ruled out because of local gouging:
 
-\[
+$$
 u\notin F_{\rm local}(p),
-\]
+$$
 
 and others because the shank or holder collides somewhere else:
 
-\[
+$$
 u\notin F_{\rm global}(p).
-\]
+$$
 
 Hence
 
-\[
+$$
 F(p)
 =
 F_{\rm local}(p)
 \cap
 F_{\rm global}(p).
-\]
+$$
 
 Research on 5-axis machining explicitly treats global accessibility, feasible orientations and configuration-space searches in this way. citeturn211554search0turn211554search8turn211554search10
 
 Now your problem is no longer just to find a path across the part:
 
-\[
+$$
 p_0,p_1,\ldots,p_n.
-\]
+$$
 
 You need to choose both points **and orientations**:
 
-\[
+$$
 (p_0,u_0),
 (p_1,u_1),
 \ldots,
 (p_n,u_n).
-\]
+$$
 
 ---
 
@@ -1334,48 +1334,48 @@ You need to choose both points **and orientations**:
 
 This makes a very nice algorithmic project.
 
-At surface point \(p_i\), sample legal orientations:
+At surface point $p_i$, sample legal orientations:
 
-\[
+$$
 u_i^1,u_i^2,\ldots,u_i^{k_i}.
-\]
+$$
 
 Each legal pair
 
-\[
+$$
 (p_i,u_i^j)
-\]
+$$
 
 becomes a graph node.
 
 Connect compatible states at consecutive cutter-contact points:
 
-\[
+$$
 (p_i,u_i^j)
 \longrightarrow
 (p_{i+1},u_{i+1}^{k}).
-\]
+$$
 
 Assign a cost such as
 
-\[
+$$
 E=
 \alpha\,\Delta\theta
 +
 \beta\,\Delta\theta^2
 +
 \gamma\,\text{machine-motion-cost}.
-\]
+$$
 
 Then solve a shortest-path/dynamic-programming problem.
 
 You might penalize
 
-\[
+$$
 \Delta\theta
 =
 \arccos(u_i\cdot u_{i+1})
-\]
+$$
 
 so that the tool doesn't twitch violently between orientations.
 
@@ -1393,25 +1393,25 @@ A bullnose, toroidal, barrel, flat-end or custom cutter introduces another layer
 
 Instead of simply writing
 
-\[
+$$
 q=p+Rn,
-\]
+$$
 
-you may have an unknown cutter contact parameter \(s\), unknown tool orientation \(u\), and unknown location \(q\).
+you may have an unknown cutter contact parameter $s$, unknown tool orientation $u$, and unknown location $q$.
 
 You solve tangency conditions like
 
-\[
+$$
 C(s;q,u)=p
-\]
+$$
 
 together with matching normals
 
-\[
+$$
 n_C(s;q,u)
 =
 -n_S(p)
-\]
+$$
 
 and nonpenetration constraints.
 
@@ -1429,25 +1429,25 @@ Another escalation is to stop thinking about XY stepover entirely.
 
 On an arbitrary parameterized surface
 
-\[
+$$
 r(u,v),
-\]
+$$
 
 the differential surface distance is
 
-\[
+$$
 ds^2
 =
 E\,du^2+2F\,du\,dv+G\,dv^2,
-\]
+$$
 
 where
 
-\[
+$$
 E=r_u\cdot r_u,\qquad
 F=r_u\cdot r_v,\qquad
 G=r_v\cdot r_v.
-\]
+$$
 
 That's the **first fundamental form**.
 
@@ -1468,9 +1468,9 @@ So instead of
 
 you attempt
 
-\[
+$$
 \boxed{\text{scallop height}\approx 10\ \mu m\quad\text{everywhere}.}
-\]
+$$
 
 Then path generation becomes a problem involving **surface metrics, curvature fields, geodesics and level sets**. Five-axis toolpath work also optimizes path placement while accounting for cusp requirements and machine constraints. citeturn211554search4turn211554search7
 
@@ -1536,41 +1536,41 @@ Roughing asks:
 
 So introduce a time-dependent stock:
 
-\[
+$$
 W_0,W_1,W_2,\ldots
-\]
+$$
 
-After tool motion \(i\),
+After tool motion $i$,
 
-\[
+$$
 W_{i+1}
 =
 W_i
 \setminus
 V_i,
-\]
+$$
 
-where \(V_i\) is the volume swept out by the tool during that motion.
+where $V_i$ is the volume swept out by the tool during that motion.
 
 The swept volume is
 
-\[
+$$
 V
 =
 \bigcup_{t\in[0,1]} C(t).
-\]
+$$
 
 Computing and subtracting cutter swept volumes is a fundamental formulation of machining simulation. Implementations use representations such as dexels, voxels, octrees and exact or approximate sweep envelopes. citeturn904591search0turn904591search3turn904591search5
 
 This lets you do **rest machining**:
 
-\[
+$$
 R
 =
 W_{\rm current}\setminus W_{\rm desired}.
-\]
+$$
 
-Then generate the next toolpath specifically for \(R\).
+Then generate the next toolpath specifically for $R$.
 
 ---
 
@@ -1580,10 +1580,10 @@ For roughing pockets, you often don't want simple parallel passes.
 
 Compute something like a distance field
 
-\[
+$$
 d(x)=
 \operatorname{dist}(x,\partial W).
-\]
+$$
 
 Its ridges relate to the **medial axis**.
 
@@ -1606,25 +1606,25 @@ There is a beautiful mathematical connection here: much of high-performance pock
 
 Up to this point you can generate an ideal tool pose
 
-\[
+$$
 (q(t),u(t)).
-\]
+$$
 
 But your actual 5-axis machine has joint coordinates
 
-\[
+$$
 Q(t)
 =
 (X,Y,Z,A,B),
-\]
+$$
 
 or some other configuration.
 
 You therefore need inverse kinematics
 
-\[
+$$
 (q,u)\longmapsto Q.
-\]
+$$
 
 There may be:
 
@@ -1645,99 +1645,99 @@ This is where **robot kinematics and optimal control** enter the picture.
 
 If you're building your own CAM as a way to learn the mathematics, I would go in this order:
 
-\[
+$$
 \boxed{\text{1. Heightfield ball drop-cutter}}
-\]
+$$
 
-\[
+$$
 \downarrow
-\]
+$$
 
-\[
+$$
 \boxed{\text{2. Triangle-mesh drop-cutter + BVH}}
-\]
+$$
 
-\[
+$$
 \downarrow
-\]
+$$
 
-\[
+$$
 \boxed{\text{3. Full tool/shank collision detection}}
-\]
+$$
 
-\[
+$$
 \downarrow
-\]
+$$
 
-\[
+$$
 \boxed{\text{4. Z-level + contour-parallel paths}}
-\]
+$$
 
-\[
+$$
 \downarrow
-\]
+$$
 
-\[
+$$
 \boxed{\text{5. Evolving stock + swept-volume simulation}}
-\]
+$$
 
-\[
+$$
 \downarrow
-\]
+$$
 
-\[
+$$
 \boxed{\text{6. Constant-scallop paths}}
-\]
+$$
 
-\[
+$$
 \downarrow
-\]
+$$
 
-\[
+$$
 \boxed{\text{7. 3+2 accessibility planning}}
-\]
+$$
 
-\[
+$$
 \downarrow
-\]
+$$
 
-\[
+$$
 \boxed{\text{8. 5-axis feasible-orientation computation}}
-\]
+$$
 
-\[
+$$
 \downarrow
-\]
+$$
 
-\[
+$$
 \boxed{\text{9. Graph/optimization-based orientation planning}}
-\]
+$$
 
-\[
+$$
 \downarrow
-\]
+$$
 
-\[
+$$
 \boxed{\text{10. Machine inverse kinematics + verification}}
-\]
+$$
 
 The especially interesting mathematical transition is around **steps 7–9**. Before that you're primarily doing computational/differential geometry. After that you're doing **geometry + configuration spaces + motion planning + optimization + robotics**.
 
 And the unifying object changes from a simple cutter-height function
 
-\[
+$$
 Z=f(X,Y)
-\]
+$$
 
 to a **free configuration space**
 
-\[
+$$
 \boxed{
 \mathcal F
 =
 \{(q,u):C(q,u)\cap W=\varnothing\}.
 }
-\]
+$$
 
-A sophisticated CAM algorithm is, in a very literal sense, searching for a good curve through \(\mathcal F\). citeturn211554search0turn211554search8
+A sophisticated CAM algorithm is, in a very literal sense, searching for a good curve through $\mathcal F$. citeturn211554search0turn211554search8
 

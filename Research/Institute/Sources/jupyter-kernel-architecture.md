@@ -623,8 +623,8 @@ Follow me on [LinkedIn](https://www.linkedin.com/in/glushko-roman/) to get notif
 
 ## References
 
-- [\[Jupyter\] Client Docs](https://jupyter-client.readthedocs.io/en/latest/messaging.html)
-- [\[Wiki\] Project Jupyter](https://en.wikipedia.org/wiki/Project_Jupyter)
-- [\[Python\] Execution model](https://docs.python.org/3/reference/executionmodel.html)
-- [\[Github\] DebugPy - DAP for Python](https://github.com/microsoft/debugpy)
-- [\[Microsoft\] Debug Adapter Protocol - Ovreview](https://microsoft.github.io/debug-adapter-protocol/overview)
+- [$$Jupyter$$ Client Docs](https://jupyter-client.readthedocs.io/en/latest/messaging.html)
+- [$$Wiki$$ Project Jupyter](https://en.wikipedia.org/wiki/Project_Jupyter)
+- [$$Python$$ Execution model](https://docs.python.org/3/reference/executionmodel.html)
+- [$$Github$$ DebugPy - DAP for Python](https://github.com/microsoft/debugpy)
+- [$$Microsoft$$ Debug Adapter Protocol - Ovreview](https://microsoft.github.io/debug-adapter-protocol/overview)

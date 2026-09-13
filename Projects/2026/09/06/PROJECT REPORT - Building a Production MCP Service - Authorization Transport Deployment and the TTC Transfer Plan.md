@@ -123,11 +123,11 @@ A string with the same spelling in two namespaces does not automatically have th
 
 The central grant rule is an intersection:
 
-\[
+$$
 G = R \cap C \cap E \cap K
-\]
+$$
 
-Here, \(R\) is the resource's supported scope set, \(C\) is the client's allowed/requested scope set at the relevant transition, \(E\) is the current employee-derived entitlement, and \(K\) is the consented scope set. A detailed implementation separates client registration policy from each authorization request, but the invariant is the same: no one input can manufacture a permission absent from another required boundary.
+Here, $R$ is the resource's supported scope set, $C$ is the client's allowed/requested scope set at the relevant transition, $E$ is the current employee-derived entitlement, and $K$ is the consented scope set. A detailed implementation separates client registration policy from each authorization request, but the invariant is the same: no one input can manufacture a permission absent from another required boundary.
 
 ```text
 pseudocode: issue a grant

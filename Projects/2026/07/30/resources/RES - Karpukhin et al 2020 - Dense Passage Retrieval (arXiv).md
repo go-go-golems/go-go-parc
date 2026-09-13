@@ -11,7 +11,7 @@ type: resource
 
 **arXiv:2004.04906** (cs)
 
-\[Submitted on 10 Apr 2020 ([v1](https://arxiv.org/abs/2004.04906v1)), last revised 30 Sep 2020 (this version, v3)\]
+$$Submitted on 10 Apr 2020 ([v1](https://arxiv.org/abs/2004.04906v1)), last revised 30 Sep 2020 (this version, v3)$$
 
 ## Title:Dense Passage Retrieval for Open-Domain Question Answering
 
@@ -22,16 +22,16 @@ type: resource
 | Comments: | EMNLP 2020 |
 | --- | --- |
 | Subjects: | Computation and Language (cs.CL) |
-| Cite as: | [arXiv:2004.04906](https://arxiv.org/abs/2004.04906) \[cs.CL\] |
-|  | (or [arXiv:2004.04906v3](https://arxiv.org/abs/2004.04906v3) \[cs.CL\] for this version) |
+| Cite as: | [arXiv:2004.04906](https://arxiv.org/abs/2004.04906) $$cs.CL$$ |
+|  | (or [arXiv:2004.04906v3](https://arxiv.org/abs/2004.04906v3) $$cs.CL$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.2004.04906](https://doi.org/10.48550/arXiv.2004.04906)  arXiv-issued DOI via DataCite |
 
 ## Submission history
 
-From: Wen-Tau Yih \[[view email](https://arxiv.org/show-email/0aa4f4c9/2004.04906)\]  
-**[\[v1\]](https://arxiv.org/abs/2004.04906v1)** Fri, 10 Apr 2020 04:53:17 UTC (857 KB)  
-**[\[v2\]](https://arxiv.org/abs/2004.04906v2)** Sat, 2 May 2020 00:53:53 UTC (454 KB)  
-**\[v3\]** Wed, 30 Sep 2020 21:27:13 UTC (62 KB)
+From: Wen-Tau Yih $$[view email](https://arxiv.org/show-email/0aa4f4c9/2004.04906)$$  
+**[$$v1$$](https://arxiv.org/abs/2004.04906v1)** Fri, 10 Apr 2020 04:53:17 UTC (857 KB)  
+**[$$v2$$](https://arxiv.org/abs/2004.04906v2)** Sat, 2 May 2020 00:53:53 UTC (454 KB)  
+**$$v3$$** Wed, 30 Sep 2020 21:27:13 UTC (62 KB)
 
 ## Bibliographic and Citation Tools
 

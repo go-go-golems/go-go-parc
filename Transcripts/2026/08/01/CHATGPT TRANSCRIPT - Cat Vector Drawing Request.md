@@ -102,9 +102,9 @@ For this cat image, the relevant algorithms are:
 
 1. **Grayscale conversion**
    Convert RGB to luminance:
-   \[
+   $$
    Y = 0.299R + 0.587G + 0.114B
-   \]
+   $$
 
 2. **Binary thresholding**
    Separate black engraved areas from white untouched areas.
@@ -143,17 +143,17 @@ Polygon offsetting is commonly implemented using the **Clipper algorithm/library
 
 Traditional V-carving uses a **medial axis**, **Voronoi diagram**, or **straight skeleton** of each filled region. The cutter moves along the region’s center while its depth varies according to the distance from the boundary.
 
-For a V-bit with included angle \(\theta\):
+For a V-bit with included angle $\theta$:
 
-\[
+$$
 d = \frac{w}{2\tan(\theta/2)}
-\]
+$$
 
 where:
 
-- \(d\) = cutting depth
-- \(w\) = groove width at the surface
-- \(\theta\) = included cutter angle
+- $d$ = cutting depth
+- $w$ = groove width at the surface
+- $\theta$ = included cutter angle
 
 For a 30° bit, even a moderately wide feature requires considerable depth. That is undesirable for thin-cap bicolor ABS because large black regions may be cut far below the colored surface layer.
 

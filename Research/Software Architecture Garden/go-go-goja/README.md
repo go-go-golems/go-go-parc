@@ -200,7 +200,7 @@ Each subsection defines a fresh, path-derived domain. Symbols are not reused for
 
 ### 1. Standard module middleware is a name-set projection; custom middleware has a wider codomain
 
-Let \(N_D\) be the finite set of module names available from the committed process-global default registry, and let \(\mathcal{P}(N_D)\) be its powerset. A selector is a function \(q:\mathcal{P}(N_D)\to\mathcal{P}(N_D)\); the base selector \(q_0\) is the identity. Each standard middleware is a higher-order transformation \(M_i\) from selectors to selectors. For an available set \(A\subseteq N_D\) and normalized, alias-expanded request set \(X\subseteq N_D\), the four standard forms are
+Let $N_D$ be the finite set of module names available from the committed process-global default registry, and let $\mathcal{P}(N_D)$ be its powerset. A selector is a function $q:\mathcal{P}(N_D)\to\mathcal{P}(N_D)$; the base selector $q_0$ is the identity. Each standard middleware is a higher-order transformation $M_i$ from selectors to selectors. For an available set $A\subseteq N_D$ and normalized, alias-expanded request set $X\subseteq N_D$, the four standard forms are
 
 $$
 \begin{aligned}
@@ -211,20 +211,20 @@ M_{\mathrm{Add},X}(q)(A)&=q(A)\cup(A\cap X),
 \end{aligned}
 $$
 
-where \(N_{\mathrm{safe}}\subseteq N_D\) is the maintained safe-name set. If the configured middleware order is \(M_1,\ldots,M_n\), the builder computes
+where $N_{\mathrm{safe}}\subseteq N_D$ is the maintained safe-name set. If the configured middleware order is $M_1,\ldots,M_n$, the builder computes
 
 $$
 N_S=\kappa\bigl(M_1(M_2(\cdots M_n(q_0)))(N_D)\bigr)\subseteq N_D,
 $$
 
-with \(\kappa\) sorting names and removing duplicates. `Add` therefore cannot escape \(N_D\), and `Only` is idempotent as a selector transformer:
+with $\kappa$ sorting names and removing duplicates. `Add` therefore cannot escape $N_D$, and `Only` is idempotent as a selector transformer:
 
 $$
 M_{\mathrm{Only},X}(M_{\mathrm{Only},X}(q))(A)
 =M_{\mathrm{Only},X}(q)(A)=A\cap X.
 $$
 
-For `MiddlewareCustom`, instead let \(N_U\) be the set of all finite strings and type its arbitrary function as \(f:\mathcal{P}_{\mathrm{fin}}(N_U)\to\mathcal{P}_{\mathrm{fin}}(N_U)\), where \(\mathcal{P}_{\mathrm{fin}}\) denotes finite subsets; then \(M_{\mathrm{Custom},f}(q)(A)=f(q(A))\). A custom result can contain names outside \(N_D\); `Build()` still turns them into default-registry registrars, and runtime registration later fails when a name is unresolved (`pkg/engine/module_middleware.go:68-95`; `pkg/engine/module_specs.go:77-92,143-148`).
+For `MiddlewareCustom`, instead let $N_U$ be the set of all finite strings and type its arbitrary function as $f:\mathcal{P}_{\mathrm{fin}}(N_U)\to\mathcal{P}_{\mathrm{fin}}(N_U)$, where $\mathcal{P}_{\mathrm{fin}}$ denotes finite subsets; then $M_{\mathrm{Custom},f}(q)(A)=f(q(A))$. A custom result can contain names outside $N_D$; `Build()` still turns them into default-registry registrars, and runtime registration later fails when a name is unresolved (`pkg/engine/module_middleware.go:68-95`; `pkg/engine/module_specs.go:77-92,143-148`).
 
 **Operational consequence:** with a fixed catalog and only the four standard middlewares, `Build()` produces sorted, duplicate-normalized selected names inside the catalog and rejects duplicate registrar IDs (`pkg/engine/factory.go:107-179`; `pkg/engine/module_middleware.go:32-85`).
 
@@ -232,13 +232,13 @@ For `MiddlewareCustom`, instead let \(N_U\) be the set of all finite strings and
 
 ### 2. Owner-mediated execution is a well-bracketed stack trace
 
-Let \(C_G\) be the set of owner callback bodies, \(K_G\) the set of owner-entry contexts, \(V_G\) the set of callback return values (including a unit value for `Post`), and \(E_G\) the set of callback error values, including recovered-panic errors for `Call`. Let \(O_G=V_G\times E_G\) be the returned value/error-pair domain used by the engine's panic-recovering owner configuration. A callback frame belongs to \(F_G=C_G\times K_G\). Let \(F_G^*\) be the set of finite frame stacks, with \(\sigma\cdot f\) denoting frame \(f\) pushed on stack \(\sigma\). An execution trace is a word over the typed alphabet
+Let $C_G$ be the set of owner callback bodies, $K_G$ the set of owner-entry contexts, $V_G$ the set of callback return values (including a unit value for `Post`), and $E_G$ the set of callback error values, including recovered-panic errors for `Call`. Let $O_G=V_G\times E_G$ be the returned value/error-pair domain used by the engine's panic-recovering owner configuration. A callback frame belongs to $F_G=C_G\times K_G$. Let $F_G^*$ be the set of finite frame stacks, with $\sigma\cdot f$ denoting frame $f$ pushed on stack $\sigma$. An execution trace is a word over the typed alphabet
 
 $$
 A_G=\{\operatorname{enter}(f),\operatorname{exit}(f,o)\mid f\in F_G,\ o\in O_G\}.
 $$
 
-The owner produces well-bracketed traces: entering \(f\) changes \(\sigma\) to \(\sigma\cdot f\), and \(\operatorname{exit}(f,o)\) is legal only when \(f\) is the top frame and then restores \(\sigma\). Independently scheduled owner entries may enter only as root frames and do not execute concurrently across goroutines. A verified same-owner `Call` or `Post` instead enters a nested frame synchronously before its caller exits:
+The owner produces well-bracketed traces: entering $f$ changes $\sigma$ to $\sigma\cdot f$, and $\operatorname{exit}(f,o)$ is legal only when $f$ is the top frame and then restores $\sigma$. Independently scheduled owner entries may enter only as root frames and do not execute concurrently across goroutines. A verified same-owner `Call` or `Post` instead enters a nested frame synchronously before its caller exits:
 
 $$
 \sigma\cdot f_{\mathrm{outer}}
@@ -252,11 +252,11 @@ The synchronous fast paths and active-count nesting establish this stack shape (
 
 **Operational consequence:** independently scheduled Promise settlements and other owner entries avoid concurrent Goja callback execution across goroutines, while code inside an owner callback must expect same-owner `Call`/`Post` to run immediately and reentrantly.
 
-**Limit:** an outer callback can perform effects both before and after a nested callback, so overlapping callback intervals cannot be reduced to either composition order of two whole-callback transitions. The public `RuntimeOwner` also permits `RecoverPanics == false`, where a panic exits abruptly rather than producing an \(O_G\) pair; recovered `Post` panics are swallowed rather than exposed as an outcome (`pkg/runtimeowner/runner.go:189-232`). Acceptance does not guarantee execution because cancellation may skip queued work. This is not FIFO, fairness, deterministic replay, durable order, rollback, or exactly-once posting. `engine.Runtime` exports `VM` and `Loop`, so direct embedder access can bypass the stack discipline entirely; confinement is conventional rather than enforced (`pkg/engine/runtime.go:32-38`).
+**Limit:** an outer callback can perform effects both before and after a nested callback, so overlapping callback intervals cannot be reduced to either composition order of two whole-callback transitions. The public `RuntimeOwner` also permits `RecoverPanics == false`, where a panic exits abruptly rather than producing an $O_G$ pair; recovered `Post` panics are swallowed rather than exposed as an outcome (`pkg/runtimeowner/runner.go:189-232`). Acceptance does not guarantee execution because cancellation may skip queued work. This is not FIFO, fairness, deterministic replay, durable order, rollback, or exactly-once posting. `engine.Runtime` exports `VM` and `Loop`, so direct embedder access can bypass the stack discipline entirely; confinement is conventional rather than enforced (`pkg/engine/runtime.go:32-38`).
 
 ### 3. User-mode planned-route authorization dominates JavaScript invocation
 
-Let \(G_P=(V_P,E_P)\) be the control-flow graph for one validated user-mode planned route, where \(V_P\) is its node set and \(E_P\subseteq V_P\times V_P\) is its directed-edge relation. The named nodes are ingress \(v_I\), authentication \(v_T\), conditional CSRF check \(v_C\), conditional resource resolution \(v_R\), conditional grant check \(v_G\), authorization \(v_A\), and JavaScript invocation \(v_J\). Let \(L_P\) be the set of directed node sequences from \(v_I\) to \(v_J\). Let \(b_C\) mean that the plan requires CSRF, the method is unsafe, and the authenticated result requires verification; let \(b_R\) mean that at least one resource is declared; and let \(b_G\) mean that an action and at least one grant are present. The committed adapter establishes
+Let $G_P=(V_P,E_P)$ be the control-flow graph for one validated user-mode planned route, where $V_P$ is its node set and $E_P\subseteq V_P\times V_P$ is its directed-edge relation. The named nodes are ingress $v_I$, authentication $v_T$, conditional CSRF check $v_C$, conditional resource resolution $v_R$, conditional grant check $v_G$, authorization $v_A$, and JavaScript invocation $v_J$. Let $L_P$ be the set of directed node sequences from $v_I$ to $v_J$. Let $b_C$ mean that the plan requires CSRF, the method is unsafe, and the authenticated result requires verification; let $b_R$ mean that at least one resource is declared; and let $b_G$ mean that an action and at least one grant are present. The committed adapter establishes
 
 $$
 \forall \ell\in L_P:\quad
@@ -266,15 +266,15 @@ b_R\Rightarrow v_R\in\ell,\qquad
 b_G\Rightarrow v_G\in\ell.
 $$
 
-Here \(\ell\) denotes one such node sequence and membership means that the path visits the node. Thus authentication and authorization dominate \(v_J\) for validated user-mode planned routes (`pkg/gojahttp/auth_plan.go:308-327`; `pkg/gojahttp/enforcer.go:61-176`; `pkg/gojahttp/planned_dispatch.go:35-79`).
+Here $\ell$ denotes one such node sequence and membership means that the path visits the node. Thus authentication and authorization dominate $v_J$ for validated user-mode planned routes (`pkg/gojahttp/auth_plan.go:308-327`; `pkg/gojahttp/enforcer.go:61-176`; `pkg/gojahttp/planned_dispatch.go:35-79`).
 
 **Operational consequence:** a user-mode authentication, applicable conditional check, or authorization denial returns before handler JavaScript is invoked.
 
-**Limit:** public planned routes intentionally bypass \(v_T\) and \(v_A\); unplanned routes, REPL HTTP, native module effects, and plugin processes are also outside \(G_P\). After checks pass, the projected `request` can still disclose raw credential-bearing headers and cookies. This is invocation domination for one protected adapter, not a non-secret envelope, repository-wide authorization, or information-flow noninterference.
+**Limit:** public planned routes intentionally bypass $v_T$ and $v_A$; unplanned routes, REPL HTTP, native module effects, and plugin processes are also outside $G_P$. After checks pass, the projected `request` can still disclose raw credential-bearing headers and cookies. This is invocation domination for one protected adapter, not a non-secret envelope, repository-wide authorization, or information-flow noninterference.
 
 ### 4. REPL execution and durable commit are ordered but not atomic
 
-Let \(S_J\) be the set of live REPL VM/session states, \(Q\) the set of submitted source strings, \(O_R\) the set of derived evaluation observations, and \(D_R\) the set of durable evaluation rows. Define execution \(\epsilon:S_J\times Q\to S_J\times O_R\) and persistence \(\pi_R:O_R\rightharpoonup D_R\), where \(\rightharpoonup\) denotes a partial function because commit can fail. For \(s\in S_J\) and \(q\in Q\), write \(\epsilon(s,q)=(s',o)\) with \(s'\in S_J\) and \(o\in O_R\). On success, \(\pi_R(o)=d\) for \(d\in D_R\); otherwise the API returns the distinguished error \(e_F=\mathrm{CommitFailed}\). The path is
+Let $S_J$ be the set of live REPL VM/session states, $Q$ the set of submitted source strings, $O_R$ the set of derived evaluation observations, and $D_R$ the set of durable evaluation rows. Define execution $\epsilon:S_J\times Q\to S_J\times O_R$ and persistence $\pi_R:O_R\rightharpoonup D_R$, where $\rightharpoonup$ denotes a partial function because commit can fail. For $s\in S_J$ and $q\in Q$, write $\epsilon(s,q)=(s',o)$ with $s'\in S_J$ and $o\in O_R$. On success, $\pi_R(o)=d$ for $d\in D_R$; otherwise the API returns the distinguished error $e_F=\mathrm{CommitFailed}$. The path is
 
 $$
 (s,q)\xrightarrow{\epsilon}(s',o)\xrightarrow{\pi_R}d
@@ -284,11 +284,11 @@ $$
 
 **Operational consequence:** the API can truthfully distinguish “not executed” from “executed but could not be committed” (`pkg/replhttp/handler.go:185-207`).
 
-**Limit:** no transaction rolls back \(s'\) or external effects when \(\pi_R\) fails. A durable cell report is not exactly-once effect evidence, and replay is unsafe without effect-specific identity.
+**Limit:** no transaction rolls back $s'$ or external effects when $\pi_R$ fails. A durable cell report is not exactly-once effect evidence, and replay is unsafe without effect-specific identity.
 
 ### 5. A source tag and manifest update are not a release root
 
-Let \(C_G\) be the set of Git commits, \(T_I\) the set of image tag strings, \(I_R\) the set of complete image-reference strings, and \(M_K\) the set of target manifest texts. Define \(\tau:C_G\to T_I\) by \(\tau(c)=\texttt{sha-}\) followed by the first seven hexadecimal characters of commit \(c\). Let \(\rho:T_I\to I_R\) attach the workflow's fixed GHCR repository to a tag. Let \(u:M_K\times I_R\rightharpoonup M_K\) be the script's partial update of one configured container image field; it is undefined when that field cannot be found. For a source commit \(c\in C_G\) and original manifest \(m\in M_K\), CI proposes the updated manifest \(m'\in M_K\):
+Let $C_G$ be the set of Git commits, $T_I$ the set of image tag strings, $I_R$ the set of complete image-reference strings, and $M_K$ the set of target manifest texts. Define $\tau:C_G\to T_I$ by $\tau(c)=\texttt{sha-}$ followed by the first seven hexadecimal characters of commit $c$. Let $\rho:T_I\to I_R$ attach the workflow's fixed GHCR repository to a tag. Let $u:M_K\times I_R\rightharpoonup M_K$ be the script's partial update of one configured container image field; it is undefined when that field cannot be found. For a source commit $c\in C_G$ and original manifest $m\in M_K$, CI proposes the updated manifest $m'\in M_K$:
 
 $$
 m'=u(m,\rho(\tau(c))).
@@ -296,7 +296,7 @@ $$
 
 **Operational consequence:** the generated PR is a human-reviewable source coordinate and manifest delta (`.github/workflows/publish-auth-host-image.yaml:56-76,141-154`; `scripts/open_gitops_pr.py:210-233`).
 
-**Limit:** \(\tau\) is truncated and tags are not proven immutable; \(u\) records neither OCI digest nor behavior. PR creation does not imply merge, reconciliation, rollout, readiness, or deployment success.
+**Limit:** $\tau$ is truncated and tags are not proven immutable; $u$ records neither OCI digest nor behavior. PR creation does not imply merge, reconciliation, rollout, readiness, or deployment success.
 
 ## Correlation with the Pattern Zoos
 

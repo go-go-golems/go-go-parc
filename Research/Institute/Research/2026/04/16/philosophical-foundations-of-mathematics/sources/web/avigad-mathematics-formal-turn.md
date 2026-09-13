@@ -1,6 +1,6 @@
 **arXiv:2311.00007** (math)
 
-\[Submitted on 31 Oct 2023 ([v1](https://arxiv.org/abs/2311.00007v1)), last revised 4 Nov 2023 (this version, v2)\]
+$$Submitted on 31 Oct 2023 ([v1](https://arxiv.org/abs/2311.00007v1)), last revised 4 Nov 2023 (this version, v2)$$
 
 ## Title:Mathematics and the formal turn
 
@@ -13,15 +13,15 @@ Authors:[Jeremy Avigad](https://arxiv.org/search/math?searchtype=author&query=Av
 | Subjects: | History and Overview (math.HO); Logic (math.LO) |
 | --- | --- |
 | MSC classes: | 03B35, 68V20 (Primary) 68Q60, 68V15, 68V25, 68V35, 68T01, 97U50 (Secondary) |
-| Cite as: | [arXiv:2311.00007](https://arxiv.org/abs/2311.00007) \[math.HO\] |
-|  | (or [arXiv:2311.00007v2](https://arxiv.org/abs/2311.00007v2) \[math.HO\] for this version) |
+| Cite as: | [arXiv:2311.00007](https://arxiv.org/abs/2311.00007) $$math.HO$$ |
+|  | (or [arXiv:2311.00007v2](https://arxiv.org/abs/2311.00007v2) $$math.HO$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.2311.00007](https://doi.org/10.48550/arXiv.2311.00007)  arXiv-issued DOI via DataCite |
 
 ## Submission history
 
-From: Jeremy Avigad \[[view email](https://arxiv.org/show-email/455ac2bc/2311.00007)\]  
-**[\[v1\]](https://arxiv.org/abs/2311.00007v1)** Tue, 31 Oct 2023 00:05:12 UTC (26 KB)  
-**\[v2\]** Sat, 4 Nov 2023 14:44:47 UTC (26 KB)  
+From: Jeremy Avigad $$[view email](https://arxiv.org/show-email/455ac2bc/2311.00007)$$  
+**[$$v1$$](https://arxiv.org/abs/2311.00007v1)** Tue, 31 Oct 2023 00:05:12 UTC (26 KB)  
+**$$v2$$** Sat, 4 Nov 2023 14:44:47 UTC (26 KB)  
 
 ## Bibliographic and Citation Tools
 

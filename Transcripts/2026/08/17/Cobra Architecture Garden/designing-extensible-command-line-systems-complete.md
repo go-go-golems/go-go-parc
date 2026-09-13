@@ -285,14 +285,14 @@ A **projection** maps the semantic model into a purpose-specific result. The wor
 
 We can write the major projections as functions:
 
-\[
+$$
 \begin{aligned}
 route &: (T, argv) \rightarrow (v, argv_{remaining}) \\
 help &: T \rightarrow Text \\
 complete &: (T, argv_{partial}) \rightarrow (Candidates, Directive) \\
 docs &: T \rightarrow DocumentTree
 \end{aligned}
-\]
+$$
 
 Figure 1.2 illustrates the fan-out.
 
@@ -449,9 +449,9 @@ The command tree can also express scope. Cobra distinguishes flags declared only
 
 Let `A(v)` be the ancestors of `v`, ordered from the root toward the parent. A first approximation is:
 
-\[
+$$
 E(v) = L(v) \cup P(v) \cup \bigcup_{a \in A(v)} P(a)
-\]
+$$
 
 This union hides an important detail: names can collide. The actual rule is a nearest-declaration rule. For each flag name `n`, the declaration chosen for `E(v)[n]` is the nearest local or persistent declaration visible from `v`. A local flag on `v` can therefore shadow a persistent flag inherited from an ancestor.
 
@@ -708,15 +708,15 @@ The positional rule is not hidden inside profile loading. The flag relationship 
 
 For a selected path
 
-\[
+$$
 r \rightarrow a_1 \rightarrow a_2 \rightarrow \dots \rightarrow \ell
-\]
+$$
 
 full traversal produces:
 
-\[
+$$
 pre(r), pre(a_1), \dots, pre(\ell), run(\ell), post(\ell), \dots, post(a_1), post(r)
-\]
+$$
 
 Figure 2.1 renders the same idea procedurally.
 
@@ -826,9 +826,9 @@ type PositionalArgs func(cmd *Command, args []string) error
 
 A validator has the mathematical shape:
 
-\[
+$$
 V : (Command, Args) \rightarrow Error \cup \{nil\}
-\]
+$$
 
 `nil` means the arguments satisfy the rule. An error explains the first violated rule.
 
@@ -894,9 +894,9 @@ function MatchAll(v1, v2, ..., vn):
 
 If validators are predicates `p_i`, conjunction means:
 
-\[
+$$
 MatchAll(p_1, \dots, p_n)(x) = p_1(x) \land \dots \land p_n(x)
-\]
+$$
 
 The implementation returns the first diagnostic error rather than a Boolean. Ordering therefore affects which error the user sees. Put structural rules such as arity before rules that index into arguments.
 
@@ -951,29 +951,29 @@ Let `G` be a group of flag names and `S` the set of flags selected in one invoca
 
 **All-or-none (required together):**
 
-\[
+$$
 |S \cap G| \in \{0, |G|\}
-\]
+$$
 
 Either none of the group is selected or every flag in the group is selected.
 
 **At least one (one required):**
 
-\[
+$$
 |S \cap G| \ge 1
-\]
+$$
 
 **At most one (mutually exclusive):**
 
-\[
+$$
 |S \cap G| \le 1
-\]
+$$
 
 Combining at-least-one and at-most-one yields exactly one:
 
-\[
+$$
 |S \cap G| = 1
-\]
+$$
 
 ### Worked example: `forge deploy`
 
@@ -1337,15 +1337,15 @@ const ShellCompDirectiveDefault ShellCompDirective = 0
 
 If bit `i` represents behavior `b_i`, a combined directive is:
 
-\[
+$$
 d = \sum_i x_i 2^i, \quad x_i \in \{0,1\}
-\]
+$$
 
 The adapter tests a behavior with bitwise conjunction:
 
-\[
+$$
 behavior_i\ enabled \iff (d \mathbin{\&} 2^i) \ne 0
-\]
+$$
 
 ### Worked example: completing environments
 
@@ -1480,15 +1480,15 @@ The interface now guides the user toward valid states before the validator has t
 
 Completion can be disabled, bypassed by scripts, or unable to represent a complex domain rule. Therefore:
 
-\[
+$$
 Suggested(x) \not\Rightarrow Valid(x)
-\]
+$$
 
 and
 
-\[
+$$
 \neg Suggested(x) \not\Rightarrow \neg Valid(x)
-\]
+$$
 
 A candidate can be valid but omitted for usability. A suggested candidate can become invalid by the time external state changes. Runtime validation remains the authority.
 
@@ -1680,9 +1680,9 @@ func (c *Command) ErrOrStderr() io.Writer
 
 When no override is supplied, Cobra falls back to the process defaults. Conceptually, one execution environment is:
 
-\[
+$$
 Env = (argv, context, stdin, stdout, stderr)
-\]
+$$
 
 > **Definition - Injected execution environment.**  An injected execution environment is an explicit set of process-facing dependencies supplied by a host or test for one run of the command graph.
 
@@ -1833,9 +1833,9 @@ Arguments introduce a second boundary question. When a caller passes `[]string`,
 
 A slice can be modeled as:
 
-\[
+$$
 Slice = (p, len, cap)
-\]
+$$
 
 where `p` points to the first visible element. A sub-slice adjusts the header but usually shares the same backing array.
 
@@ -1843,9 +1843,9 @@ where `p` points to the first visible element. A sub-slice adjusts the header bu
 
 For a slice `s`, appending `k` elements can reuse the current backing array when:
 
-\[
+$$
 len(s) + k \le cap(s)
-\]
+$$
 
 If capacity is sufficient, `append` writes after the visible length in the shared array. If capacity is insufficient, Go allocates another array and copies elements. Therefore the same source code can either mutate caller-visible storage or not, depending on capacity.
 

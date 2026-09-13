@@ -72,9 +72,9 @@ This monograph first decomposes the program into its latent abstract patterns. T
 
 The program is then rebuilt around four explicit invariants: well-formed syntax, a valid focused path, a bounded anchor/head selection, and globally unique hole identities. Recursive children are non-empty slots whose blank state is represented by an explicit hole. Scripts structurally own their bases and at least one attachment. Accents wrap an existing selection or prior expression. Annotated arrows receive a dedicated constructor. Symbols are stored by semantic identity rather than by LaTeX spelling. Every editor command is interpreted by a pure reducer
 
-\[
+$$
   \mathsf{reduce}: S \times C \longrightarrow \Result(S,E),
-\]
+$$
 
 and every successful transition is required to preserve validity. Backend generation is expressed once through a generic syntax algebra. The reconstructed TypeScript implementation approximates dependent typing with discriminated unions, non-empty tuples, smart constructors, checked path resolution, and explicit `Result` values.
 
@@ -179,9 +179,9 @@ The code checks path-lens laws, state invariants, history and codec round trips,
 
 A structural notation tree is not automatically a typed mathematical term. The displayed sequence
 
-\[
+$$
   F \dashv G : \mathcal C \rightleftarrows \mathcal D
-\]
+$$
 
 suggests categories, functors, and an adjunction, but the glyphs alone do not establish that $\mathcal C$ and $\mathcal D$ are categories, that $F$ and $G$ have compatible domains and codomains, or that unit and counit laws hold. Such facts require a signature, a context, an elaborator, and proof obligations. The editor may preserve the syntax of the display while the display remains ill-typed in any intended theory.
 
@@ -212,7 +212,7 @@ The source begins from the correct ontological choice: formulas are trees, not s
 
 Source lines 12--21 define builder functions. The sequence constructor is `row`; expression constructors are `sym`, `hole`, `frac`, `sqrt`, `scr`, `func`, `grp`, `big`, and `acc`. Abstracting from JavaScript record syntax gives the following grammar:
 
-\[
+$$
 \begin{aligned}
 R &::= [N_1,\ldots,N_k],\\
 N &::= \mathsf{Sym}(t,d,o)
@@ -225,7 +225,7 @@ N &::= \mathsf{Sym}(t,d,o)
   &\quad\mid \mathsf{Big}(op,d,R,R)
   \mid \mathsf{Accent}(cmd,mark,R).
 \end{aligned}
-\]
+$$
 
 The grammar as implemented is permissive. A `scr` may have neither attachment. Delimiters are arbitrary strings. Symbol records combine a LaTeX token, a display string, and optional layout flags. Recursive children are rows, and rows may be empty.
 
@@ -255,21 +255,21 @@ Source lines 39--45 define `getRow` and `setRow`. A path step has an expression 
 
 For a valid path $p$, these functions approximate a lens
 
-\[
+$$
   \mathsf{get}_p : R \to R,
   \qquad
   \mathsf{put}_p : R\times R \to R.
-\]
+$$
 
 But they are only partial JavaScript functions. An out-of-bounds index, a field that does not belong to the selected constructor, or malformed persisted data causes property access through `undefined`. The exception is not represented in the type or result.
 
 The reconstruction retains the useful recursive update but changes the interface:
 
-\[
+$$
   \resolve : R\times P \to \Result(Z,E),
   \qquad
   \plug : Z\times R \to \Result(R,E),
-\]
+$$
 
 where $Z$ is a zipper and $E$ explains the invalid index, invalid field, empty slot, or invalid replacement.
 
@@ -318,9 +318,9 @@ Source lines 335--383 define state for lines, cursor, keyboard layer, style modi
 
 The history object is a mutable ref with `undo` and `redo` arrays. A snapshot serializes `lines` and `cur`. This works in the local component, but it obscures a simpler algebraic structure:
 
-\[
+$$
   \mathsf{Timeline}(S) = S^* \times S \times S^*.
-\]
+$$
 
 The current state is the focus of a zipper over a sequence of committed states. Committing appends the current state to the past and clears the future. Undo moves one element from the end of the past to the present while pushing the old present onto the future. Redo performs the inverse move. The reconstruction represents exactly this immutable structure.
 
@@ -410,38 +410,38 @@ The source contains a compact language processor whose algebra is distributed ac
 
 A variant datatype is modeled by a coproduct, and a record constructor by a product. For example, an untyped expression language
 
-\[
+$$
   E ::= \mathsf{Num}(\mathbb N) \mid \mathsf{Add}(E,E)
-\]
+$$
 
 corresponds to a functor
 
-\[
+$$
   F(X)=\mathbb N + X\times X.
-\]
+$$
 
 An $F$-algebra is a carrier $A$ with a structure map $\alpha:F(A)\to A$. Concretely, it supplies one operation for numerals and one binary operation for addition. If the expression datatype is the initial $F$-algebra $(\mu F,\mathsf{in})$, then for every algebra $(A,\alpha)$ there is a unique homomorphism
 
-\[
+$$
   \cata(\alpha):\mu F\to A
-\]
+$$
 
 such that
 
-\[
+$$
   \cata(\alpha)\circ\mathsf{in}
   =\alpha\circ F(\cata(\alpha)).
-\]
+$$
 
 This homomorphism is the familiar structural fold. It is unique because every expression is built from the constructors and the homomorphism equations determine its result constructor by constructor. Initial-algebra semantics was developed as a unifying account of syntax and interpretation [Goguen et al. 1977]; Lambek's fixed-point result explains why the structure map of an initial algebra is an isomorphism under standard conditions [Lambek 1968].
 
 The editor syntax uses finite sequences in recursive positions. Finite list and non-empty list functors are containers:
 
-\[
+$$
   X^*=\coprod_{n\in\mathbb N}X^n,
   \qquad
   X^+=\coprod_{n\ge 1}X^n.
-\]
+$$
 
 They are strictly positive and support maps, folds, and derivatives. The container perspective is useful because it separates a shape---the sequence length---from positions inside that shape [Abbott, Altenkirch, and Ghani 2005].
 
@@ -451,17 +451,17 @@ Operational semantics describes behavior by transitions between configurations. 
 
 Let $S$ be valid editor states and $C$ commands. A transition judgment may be written
 
-\[
+$$
   \langle s,c\rangle \longrightarrow s'
-\]
+$$
 
 or, when failure is explicit,
 
-\[
+$$
   \langle s,c\rangle \Downarrow \Ok(s')
   \qquad\text{or}\qquad
   \langle s,c\rangle \Downarrow \Err(e).
-\]
+$$
 
 The implementation uses the second, big-step style for one atomic command. Pointer gestures and key presses are translated to a command, then the command is evaluated in one pure reducer call. A small-step UI machine could add modes such as long-press and search, but those modes are intentionally kept outside the document semantics.
 
@@ -488,16 +488,16 @@ The first can be answered entirely within the editor. A symbol node with semanti
 
 The second cannot be answered without context. A row is a sequence of notation, not necessarily a parsed term. The glyph `-` may be unary negation, subtraction, a component of an arrow, or punctuation. Juxtaposition may mean multiplication, function application, tensoring, or mere visual adjacency. Thus a later elaboration relation is required:
 
-\[
+$$
   \Gamma \vdash e \rightsquigarrow t : \tau,
-\]
+$$
 
 followed by an interpretation in a model $M$:
 
-\[
+$$
   \llbracket \Gamma\vdash t:\tau\rrbracket_M
   \in \llbracket\tau\rrbracket_M.
-\]
+$$
 
 This separation prevents a common category error: confusing reliable code generation with proof of mathematical correctness.
 
@@ -505,13 +505,13 @@ This separation prevents a common category error: confusing reliable code genera
 
 A type can encode a structural invariant intrinsically, making invalid values unconstructible. For instance,
 
-\[
+$$
   \mathsf{NonEmpty}(A)=\Sigma(n:\mathbb N).\,\mathsf{Vec}(A,n+1)
-\]
+$$
 
 ensures at least one element. A script can be represented by a sum with no empty-attachment case:
 
-\[
+$$
 \begin{aligned}
 \mathsf{Attachments}(R)
   &= \mathsf{Sup}(R)
@@ -520,13 +520,13 @@ ensures at least one element. A script can be represented by a sum with no empty
 \mathsf{Script}(R)
   &= R\times\mathsf{Attachments}(R).
 \end{aligned}
-\]
+$$
 
 Paths are naturally dependent. A field name is valid only for certain constructors, and the type of the next focus depends on that field. An ideal formulation would use a family
 
-\[
+$$
   \mathsf{Field}:\mathsf{Node}\to\mathsf{Type}
-\]
+$$
 
 and a path whose next step is indexed by the current node. TypeScript cannot express a path indexed by the runtime value of the whole document in an ergonomic serializable form. The reconstruction therefore combines intrinsic and extrinsic techniques:
 
@@ -542,18 +542,18 @@ This is not a failure of type theory. It is a disciplined approximation appropri
 
 A one-hole context $C[-]$ is a value with one distinguished recursive position. Plugging $x$ into the hole yields $C[x]$. Huet's zipper represents a focused tree together with the path needed to reconstruct its ancestors [Huet 1997]. For a list, the context is a prefix and suffix:
 
-\[
+$$
   \mathsf{ListCtx}(X)\cong X^*\times X^*.
-\]
+$$
 
 For polynomial datatypes, the derivative operation obeys familiar rules:
 
-\[
+$$
   (K)'=0,
   \quad X'=1,
   \quad (F+G)'=F'+G',
   \quad (F\times G)'=F'\times G+F\times G'.
-\]
+$$
 
 McBride's observation is that the derivative of a regular type computes its type of one-hole contexts [McBride 2001]. For a recursive tree, a zipper contains the focused subtree plus a list of derivative-shaped crumbs, one for each ancestor.
 
@@ -571,21 +571,21 @@ This is exactly the data needed to plug an updated sequence back into its root.
 
 A lens from a source $S$ to a view $V$ consists of
 
-\[
+$$
   \mathsf{get}:S\to V,
   \qquad
   \mathsf{put}:S\times V\to S.
-\]
+$$
 
 For a fixed valid editor path, the source is a line and the view is its focused sequence. The standard well-behavedness laws are:
 
-\[
+$$
 \begin{aligned}
 \text{GetPut: }&\mathsf{put}(s,\mathsf{get}(s))=s,\\
 \text{PutGet: }&\mathsf{get}(\mathsf{put}(s,v))=v,\\
 \text{PutPut: }&\mathsf{put}(\mathsf{put}(s,v_1),v_2)=\mathsf{put}(s,v_2).
 \end{aligned}
-\]
+$$
 
 They hold only when the path remains valid and the replacement respects slot non-emptiness. The reconstructed API therefore has a partial, error-aware lens. In categorical terms it lives naturally in a category of partial maps or in the Kleisli category of the exception monad.
 
@@ -595,15 +595,15 @@ Lens laws are not ornamental. GetPut prevents a no-op edit from changing the doc
 
 For an error set $E$, define
 
-\[
+$$
   T(X)=E+X.
-\]
+$$
 
 This is the exception monad. A partial edit is represented as a total function
 
-\[
+$$
   f:S\to T(S).
-\]
+$$
 
 Commands therefore denote endomorphisms in the Kleisli category $\mathsf{Kl}(T)$. Sequential command execution uses monadic composition: an error short-circuits, while a successful state is passed to the next command. This formulation is more precise than saying an operation “might throw,” because errors are values and composition is specified.
 
@@ -613,25 +613,25 @@ The implementation's `Result<T,E>` is this sum type. It is used for path resolut
 
 A document zipper focuses space; a timeline zipper focuses time. Define
 
-\[
+$$
   H(S)=S^*\times S\times S^*.
-\]
+$$
 
 An undo step is defined when the past is $p\mathbin{+\!+}[s_-]$:
 
-\[
+$$
   (p\mathbin{+\!+}[s_-],s,f)
   \xrightarrow{undo}
   (p,s_-,[s]\mathbin{+\!+}f).
-\]
+$$
 
 Redo is the inverse move when the future begins with $s_+$:
 
-\[
+$$
   (p,s,[s_+]\mathbin{+\!+}f)
   \xrightarrow{redo}
   (p\mathbin{+\!+}[s],s_+,f).
-\]
+$$
 
 Committing a new state appends the present to the past and discards the future. A finite history limit truncates the oldest past states. This design is pure and directly testable.
 
@@ -677,15 +677,15 @@ Let the following sets be given:
 
 For any set $X$, define
 
-\[
+$$
   \mathsf{Line}(X)=X^*,
   \qquad
   \mathsf{Slot}(X)=X^+.
-\]
+$$
 
 A line may be empty because an empty worksheet line is a valid top-level state. A recursive slot may not be empty. Define the endofunctor $F:\mathbf{Set}\to\mathbf{Set}$ by
 
-\[
+$$
 \begin{aligned}
 F(X)={}&A+H
   +\mathsf{Slot}(X)^2 \\
@@ -698,7 +698,7 @@ F(X)={}&A+H
  &+K\times\mathsf{Slot}(X)
   +Q\times\mathsf{Slot}(X).
 \end{aligned}
-\]
+$$
 
 The summands represent, in order:
 
@@ -712,15 +712,15 @@ The summands represent, in order:
 
 The expression type is the least fixed point
 
-\[
+$$
   \mathsf{Expr}=\mu F.
-\]
+$$
 
 A document is a non-empty finite list of lines:
 
-\[
+$$
   \mathsf{Document}=\mathsf{Line}(\mathsf{Expr})^+.
-\]
+$$
 
 This is a regular, strictly positive recursive signature. Its recursive occurrences appear only under sums, products, and finite-list constructors. Consequently it supports structural recursion, induction, folds, container representations, and datatype differentiation.
 
@@ -728,7 +728,7 @@ This is a regular, strictly positive recursive signature. Its recursive occurren
 
 The mathematical signature is implemented by the following family of constructors:
 
-\[
+$$
 \begin{array}{rcl}
 \mathsf{atom} &:& A\to\mathsf{Expr},\\
 \mathsf{hole} &:& H\to\mathsf{Expr},\\
@@ -741,16 +741,16 @@ The mathematical signature is implemented by the following family of constructor
 \mathsf{accent} &:& K\times\mathsf{Slot}(\mathsf{Expr})\to\mathsf{Expr},\\
 \mathsf{arrow} &:& Q\times\mathsf{Slot}(\mathsf{Expr})\to\mathsf{Expr}.
 \end{array}
-\]
+$$
 
 Here
 
-\[
+$$
   \mathsf{Attachments}
   =\mathsf{Slot}(\mathsf{Expr})
    +\mathsf{Slot}(\mathsf{Expr})
    +\mathsf{Slot}(\mathsf{Expr})^2
-\]
+$$
 
 is the disjoint union of superscript-only, subscript-only, and both. There is no constructor for a script with no attachment.
 
@@ -776,9 +776,9 @@ TypeScript cannot prevent every malformed value after JSON decoding or unsafe ca
 
 A hole is not an empty string. It is a node
 
-\[
+$$
   \mathsf{Hole}(h,\epsilon),
-\]
+$$
 
 where $h\in H$ is a globally unique identity and $\epsilon$ is an optional expectation such as `expression`, `identifier`, `number`, or `index`. The expectation is a user-interface hint, not yet an object-language type. A future elaborator may refine it into a typed metavariable.
 
@@ -788,9 +788,9 @@ First, a hole remains distinguishable when a template is copied. The insertion a
 
 Let $\mathsf{holes}(e)$ be the multiset of hole identities in an expression, extended pointwise to lines and documents. The uniqueness invariant is
 
-\[
+$$
   \forall h.\;\mathsf{multiplicity}(h,\mathsf{holes}(D))\le 1.
-\]
+$$
 
 The editor stores a counter `nextHole`. For a valid state, every automatically allocated identity has the form $h_n$ and `nextHole` is strictly greater than every numeric suffix already in the document. External IDs that do not follow this convention remain legal provided they are unique.
 
@@ -798,30 +798,30 @@ The editor stores a counter `nextHole`. For a valid state, every automatically a
 
 Navigation requires a uniform way to enumerate recursive fields. Define a finite set of child labels
 
-\[
+$$
 \begin{aligned}
 \mathsf{Field}=
 \{&\mathsf{numerator},\mathsf{denominator},\mathsf{radicand},\mathsf{index},
 \mathsf{base},\mathsf{superscript},\mathsf{subscript},\\
 &\mathsf{argument},\mathsf{body},\mathsf{lower},\mathsf{upper},\mathsf{label}\}.
 \end{aligned}
-\]
+$$
 
 For each expression $e$, `childFields(e)` returns exactly the recursive fields present in $e$, in document traversal order. `getChild(e,f)` is partial because not every field belongs to every constructor. `setChild(e,f,s)` is likewise partial and additionally requires $s$ to be non-empty.
 
 The essential coherence property is:
 
-\[
+$$
   f\in\mathsf{childFields}(e)
   \quad\Longleftrightarrow\quad
   \mathsf{getChild}(e,f)\text{ is defined}.
-\]
+$$
 
 A second property connects getting and setting:
 
-\[
+$$
   \mathsf{getChild}(\mathsf{setChild}(e,f,s),f)=s
-\]
+$$
 
 whenever the update is defined. These local laws are the building blocks for the path lens of the next chapter.
 
@@ -841,27 +841,27 @@ Structural validity is defined inductively. Write $\Valid_S(s)$ for a valid slot
 
 A slot is valid when it is non-empty and every member is valid:
 
-\[
+$$
   \frac{n\ge1\qquad \Valid_E(e_1)\quad\cdots\quad\Valid_E(e_n)}
        {\Valid_S([e_1,\ldots,e_n])}.
-\]
+$$
 
 Atoms are valid when their payload satisfies elementary lexical checks. Holes are valid when their IDs are non-empty. Composite constructors are valid when their tags and parameters are recognized and all present child slots are valid. Representative rules are:
 
-\[
+$$
 \frac{\Valid_S(n)\qquad\Valid_S(d)}
      {\Valid_E(\mathsf{Frac}(n,d))}
 \qquad
 \frac{\Valid_S(b)\qquad\Valid_S(u)}
      {\Valid_E(\mathsf{ScriptSup}(b,u))}
-\]
+$$
 
 and
 
-\[
+$$
 \frac{\Valid_S(b)\qquad\Valid_S(u)\qquad\Valid_S(l)}
      {\Valid_E(\mathsf{ScriptBoth}(b,u,l))}.
-\]
+$$
 
 There is deliberately no rule for an attachment-free script.
 
@@ -869,7 +869,7 @@ A document is valid when it contains at least one line, every expression on ever
 
 An editor state additionally contains a cursor and a fresh-hole counter. Its full validity predicate is
 
-\[
+$$
 \begin{aligned}
 \Valid(S)\iff{}&\Valid_D(S.\mathsf{document})\\
 &\land 0\le S.\mathsf{cursor.line}<|S.\mathsf{document.lines}|\\
@@ -878,7 +878,7 @@ An editor state additionally contains a cursor and a fresh-hole counter. Its ful
 &\land S.\mathsf{nextHole}\ge0\\
 &\land S.\mathsf{nextHole}>\max\{n\mid h_n\text{ occurs in the document}\}.
 \end{aligned}
-\]
+$$
 
 The executable validator reports a path and message for each violation. It is applied after decoding persisted data and after each reducer transition in the reference implementation. In a fully dependently typed implementation, much of the predicate would be carried by the state type itself.
 
@@ -886,17 +886,17 @@ The executable validator reports a path and message for each violation. It is ap
 
 In the supplied source, a script is a postfix sibling. The sequence for $x^2$ is morally
 
-\[
+$$
   [\mathsf{Sym}(x),\mathsf{Scr}([2],\varnothing)].
-\]
+$$
 
 This mirrors the surface syntax of TeX but obscures the editor's own structure. The script can exist at the start of a row, where the source compensates by inserting a hole before it. Selection can separate the base from its script. A renderer must infer attachment from adjacency. Deleting or moving across the pair requires special cases.
 
 The reconstructed representation is
 
-\[
+$$
   [\mathsf{ScriptSup}([\mathsf{Sym}(x)],[2])].
-\]
+$$
 
 This representation has several advantages.
 
@@ -915,9 +915,9 @@ The source reuses its accent constructor to represent a labelled arrow, supplyin
 
 The reconstruction introduces
 
-\[
+$$
   \mathsf{AnnotatedArrow}(q,\ell)
-\]
+$$
 
 with arrow kind $q$ and non-empty label slot $\ell$. This keeps constructor cases semantically homogeneous. A renderer may stretch the arrow and place the label above it; a future elaborator may interpret it as a morphism annotation. Neither behavior contaminates the laws for accents.
 
@@ -933,10 +933,10 @@ The replacement stores a semantic catalog ID, for example:
 
 The catalog supplies backend projections:
 
-\[
+$$
   \mathsf{catalog}:\mathsf{SymbolId}\to
   \mathsf{Display}\times\mathsf{LaTeX}\times\mathsf{Typst}\times\mathsf{Unicode}\times\mathsf{Metadata}.
-\]
+$$
 
 This is not a claim that every glyph has one universal mathematical meaning. It is a normalization boundary for editor-level symbol identity. Context-sensitive elaboration remains a later phase. The ID `relation.adjoint` says which catalog entry the user selected; whether the occurrence is a valid adjunction symbol in a theory depends on its context.
 
@@ -983,42 +983,42 @@ This separation provides checked failure, establishes local-update laws, and mak
 
 A path step is a pair
 
-\[
+$$
   (i,f)\in\mathbb N\times\mathsf{Field},
-\]
+$$
 
 where $i$ selects an expression in the current sequence and $f$ selects a recursive slot of that expression. A path is a finite list of steps:
 
-\[
+$$
   p=[(i_1,f_1),\ldots,(i_n,f_n)].
-\]
+$$
 
 The empty path focuses the root line. A non-empty path focuses a recursive slot. Paths are intentionally untrusted: indices may be out of range, fields may not exist on selected constructors, and persisted paths may refer to an older document.
 
 Define the partial resolution judgment
 
-\[
+$$
   R\vdash p\Downarrow Z,
-\]
+$$
 
 meaning that path $p$ resolves in line $R$ to zipper $Z$. The root rule is
 
-\[
+$$
   \frac{}{R\vdash []\Downarrow\langle R,\mathsf{line},[]\rangle}.
-\]
+$$
 
 For a step $(i,f)$, suppose the current sequence decomposes as
 
-\[
+$$
   R=L\mathbin{+\!+}[e]\mathbin{+\!+}U,
   \qquad |L|=i,
-\]
+$$
 
 and $\mathsf{getChild}(e,f)=S$. Then resolution descends into $S$ and records a crumb
 
-\[
+$$
   \kappa=\langle k,L,e,U,f\rangle,
-\]
+$$
 
 where $k$ records whether the parent sequence was the top-level line or a recursive slot. The executable implementation performs the same process iteratively and returns a `Result<SequenceZipper, PathError>`.
 
@@ -1026,11 +1026,11 @@ where $k$ records whether the parent sequence was the top-level line or a recurs
 
 A crumb records precisely one descent:
 
-\[
+$$
   \mathsf{Crumb}
   =\mathsf{Kind}\times\mathsf{Line}\times\mathsf{Expr}
    \times\mathsf{Line}\times\mathsf{Field},
-\]
+$$
 
 where `Kind` distinguishes a line parent from a slot parent. Operationally a crumb contains:
 
@@ -1042,9 +1042,9 @@ where `Kind` distinguishes a line parent from a slot parent. Operationally a cru
 
 A sequence zipper is
 
-\[
+$$
   Z=\langle R,k,[\kappa_1,\ldots,\kappa_n]\rangle.
-\]
+$$
 
 The first component is the focused sequence; the crumbs run from outermost to innermost. Rebuilding consumes them in reverse.
 
@@ -1054,21 +1054,21 @@ The stored parent expression is useful even though it contains the old child. `p
 
 Let $\plug(Z,R')$ denote replacement of the zipper focus by sequence $R'$. At the root it is simply $R'$. For one crumb
 
-\[
+$$
   \kappa=\langle k,L,e,U,f\rangle,
-\]
+$$
 
 first construct
 
-\[
+$$
   e'=\mathsf{setChild}(e,f,R').
-\]
+$$
 
 Then the rebuilt parent sequence is
 
-\[
+$$
   R''=L\mathbin{+\!+}[e']\mathbin{+\!+}U.
-\]
+$$
 
 The process repeats with the next outer crumb. It succeeds only if every child update is defined and every slot replacement is non-empty. The final result is a line.
 
@@ -1091,42 +1091,42 @@ Errors include the failing depth and a diagnostic message. This is more informat
 
 For a fixed line $R$ and valid path $p$, define
 
-\[
+$$
   \focus_p(R)=Z.\mathsf{focus}
   \quad\text{where}\quad
   R\vdash p\Downarrow Z,
-\]
+$$
 
 and
 
-\[
+$$
   \mathsf{replace}_p(R,V)=\plug(Z,V).
-\]
+$$
 
 Because resolution and plugging may fail, this is a partial lens. Restricting attention to the domain where the path is valid and the replacement satisfies the focus kind, the usual lens laws hold.
 
 ### GetPut
 
-\[
+$$
   \mathsf{replace}_p(R,\focus_p(R))=R.
-\]
+$$
 
 **Proof.** Resolution records at each depth exactly the parent expression, selected field, prefix, and suffix from $R$. Plugging the unchanged focus replaces each field by its existing value. By the local child GetPut law, the parent expression is unchanged; by list reconstruction, its parent sequence is unchanged. Induction over the reverse crumb list yields $R$. $\square$
 
 ### PutGet
 
-\[
+$$
   \focus_p(\mathsf{replace}_p(R,V))=V.
-\]
+$$
 
 This law requires that replacing the focus does not change constructors or sequence lengths above the focus. The path selects only ancestors, all of which are reconstructed with the same tag, field, prefix, and suffix. Resolving the same path therefore retraces the same crumbs and reaches $V$. The local child PutGet law supplies the inductive step. $\square$
 
 ### PutPut
 
-\[
+$$
   \mathsf{replace}_p(\mathsf{replace}_p(R,V_1),V_2)
   =\mathsf{replace}_p(R,V_2).
-\]
+$$
 
 The first replacement changes only the focused sequence. The second reconstruction overwrites that same sequence and restores all saved context. Local child PutPut and induction over crumbs remove dependence on $V_1$. $\square$
 
@@ -1136,23 +1136,23 @@ These statements are not claims about arbitrary stale paths after arbitrary edit
 
 A cursor contains a line index, a path, and a directed selection
 
-\[
+$$
   \sigma=\langle a,h\rangle,
-\]
+$$
 
 where $a$ is the anchor and $h$ is the head. Both are boundaries between expressions in the focused sequence. The selected half-open interval is
 
-\[
+$$
   [\min(a,h),\max(a,h)).
-\]
+$$
 
 The source stores sorted endpoints `s` and `e`. Sorting is convenient for replacement but loses the active end of the selection. Anchor/head representation preserves direction, allowing shift-like extension and contraction without an additional flag. Rendering can still use the normalized span.
 
 Cursor validity requires
 
-\[
+$$
   0\le a,h\le |R|,
-\]
+$$
 
 where $R$ is the sequence at the resolved path. A caret is the special case $a=h$. A selected hole is represented by $h=a+1$ with $R[a]$ a hole.
 
@@ -1180,23 +1180,23 @@ The source implements these rules by repeatedly consulting `fieldsOf` and slicin
 
 The source assigns each hole a flattened trace consisting of alternating expression indices and field-order numbers. The reconstruction generalizes this idea. Let $\mathsf{rank}_e(f)$ be the ordinal of field $f$ in `childFields(e)`. For path
 
-\[
+$$
   [(i_1,f_1),\ldots,(i_n,f_n)]
-\]
+$$
 
 define
 
-\[
+$$
   \mathsf{trace}(p)=[i_1,\mathsf{rank}(f_1),\ldots,i_n,\mathsf{rank}(f_n)].
-\]
+$$
 
 A hole at index $j$ in the focused sequence has trace $\mathsf{trace}(p)\mathbin{+\!+}[j]$. Lexicographic order on traces is the editor's depth-first traversal order. `jumpHole(+1)` chooses the least hole trace greater than the current boundary trace and wraps to the first when none exists. `jumpHole(-1)` is dual.
 
 This order is deterministic because `childFields` is deterministic. It is also stable under rendering: every backend fold visits children in the same declared order. The agreement is a useful design law:
 
-\[
+$$
   \mathsf{navigationOrder}=\mathsf{foldOrder}=\mathsf{visualStructuralOrder},
-\]
+$$
 
 subject to a visual renderer's two-dimensional layout.
 
@@ -1210,13 +1210,13 @@ Selection growth should produce successively larger well-formed substructures. T
 
 Repeated growth therefore follows the chain
 
-\[
+$$
   \text{token}
   \subseteq \text{focused sequence}
   \subseteq \text{parent expression}
   \subseteq \cdots
   \subseteq \text{whole line}.
-\]
+$$
 
 Every selected interval is a contiguous sequence, and every ascent selects one whole constructor. Wrapping, pinning, and deletion therefore operate on structurally coherent regions. The system does not claim that every contiguous sequence is an object-language term; it claims that it is a well-formed editor fragment.
 
@@ -1224,19 +1224,19 @@ Every selected interval is a contiguous sequence, and every ascent selects one w
 
 The zipper construction is explained abstractly by differentiating the syntax functor. For polynomial functors, differentiation obeys familiar rules:
 
-\[
+$$
   (F+G)'=F'+G',
   \qquad
   (F\times G)'=F'\times G+F\times G',
   \qquad
   X'=1.
-\]
+$$
 
 For lists,
 
-\[
+$$
   (X^*)'\cong X^*\times X^*,
-\]
+$$
 
 corresponding to the prefix and suffix around a selected element. A one-hole expression context is an element of $F'(\mu F)$, and a path of nested contexts is a list-like composition of such derivatives. Huet's zipper is the concrete data structure that stores these contexts.
 
@@ -1266,13 +1266,13 @@ Paths are compact addresses, not complete zippers. Resolving a path constructs a
 
 The editor core is modeled as a deterministic transition system. A configuration is a valid editor state
 
-\[
+$$
   S=\langle D,c,n\rangle,
-\]
+$$
 
 where $D$ is a document, $c$ a cursor, and $n$ the next automatic hole number. Commands are first-class values:
 
-\[
+$$
 \begin{aligned}
 C::={}&\mathsf{Insert}(E^+)
 \mid\mathsf{Move}(\leftarrow\mid\rightarrow)
@@ -1285,25 +1285,25 @@ C::={}&\mathsf{Insert}(E^+)
 \mid\mathsf{NewLine}
 \mid\mathsf{SetCursor}(c').
 \end{aligned}
-\]
+$$
 
 A successful small step is written
 
-\[
+$$
   S\xrightarrow{C}S'.
-\]
+$$
 
 A rejected command is written
 
-\[
+$$
   S\xrightarrow{C}\mathsf{error}(e).
-\]
+$$
 
 The executable interface combines these judgments as a total function
 
-\[
+$$
   \mathsf{reduce}:S\times C\to\Result(S,E).
-\]
+$$
 
 Before dispatch, the reducer validates the input state. Every helper that commits a new state validates the result. This double boundary is redundant for states produced solely by the reducer, but it makes the reference implementation robust against unsafe external construction and turns preservation failures into explicit test failures.
 
@@ -1311,28 +1311,28 @@ Before dispatch, the reducer validates the input state. Every helper that commit
 
 Suppose the cursor selects line $\ell$, path $p$, and directed interval $\langle a,h\rangle$. Let
 
-\[
+$$
   \resolve(D_\ell,p)=\langle R,k,K\rangle
-\]
+$$
 
 where $R$ is the focused sequence, $k$ records whether it is a line or slot, and $K$ is the zipper context. Normalize the interval by
 
-\[
+$$
   i=\min(a,h),\qquad j=\max(a,h).
-\]
+$$
 
 Then decompose
 
-\[
+$$
   R=L\mathbin{+\!+}M\mathbin{+\!+}U,
   \qquad |L|=i,\quad |M|=j-i.
-\]
+$$
 
 Most edit rules replace $M$ with a sequence $V$ and rebuild the line:
 
-\[
+$$
   D_\ell'=\plug(K,L\mathbin{+\!+}V\mathbin{+\!+}U).
-\]
+$$
 
 This is the structural analogue of a text editor's splice operation. Unlike a raw string splice, it is constrained by the focus kind: when the entire focused recursive slot is removed, a fresh hole must be inserted.
 
@@ -1340,18 +1340,18 @@ This is the structural analogue of a text editor's splice operation. Unlike a ra
 
 Templates may contain holes. Inserting the same template twice must not duplicate their identities. Define a state-threading freshening operation
 
-\[
+$$
   \mathsf{freshen}:\mathsf{Expr}\times\mathbb N
   \to\mathsf{Expr}\times\mathbb N.
-\]
+$$
 
 It traverses structurally. At an atom it copies the atom and leaves the counter unchanged. At a hole it emits $h_n$ and returns $n+1$. At a composite node it freshens child slots from left to right, threading the counter through the traversal.
 
 For a sequence $V=[e_1,\ldots,e_m]$, the lifted operation is
 
-\[
+$$
   \mathsf{freshenSeq}(V,n)=(V',n').
-\]
+$$
 
 Two properties are required.
 
@@ -1365,13 +1365,13 @@ The implementation obtains freshness from the `nextHole` invariant and determini
 
 Let
 
-\[
+$$
   \mathsf{freshenSeq}(V,n)=(V',n').
-\]
+$$
 
 The insertion rule is
 
-\[
+$$
 \frac{
   \resolve(D_\ell,p)=\langle R,k,K\rangle
   \qquad R=L\mathbin{+\!+}M\mathbin{+\!+}U
@@ -1381,7 +1381,7 @@ The insertion rule is
   \xrightarrow{\mathsf{Insert}(V)}
   \langle D[\ell:=\plug(K,L\mathbin{+\!+}V'\mathbin{+\!+}U)],c',n'\rangle
 }
-\]
+$$
 
 where $c'$ selects the first hole in $V'$ when one exists and otherwise places a caret immediately after $V'$. The path of a nested first hole is adjusted by the insertion offset $|L|$ only at its first path step.
 
@@ -1397,44 +1397,44 @@ Movement changes only the cursor. Its rules follow the cases stated in the zippe
 
 ### Collapse a selection
 
-\[
+$$
 \frac{a\ne h\qquad j=\max(a,h)}
  {\langle D,\langle\ell,p,a,h\rangle,n\rangle
   \xrightarrow{\mathsf{Move}(\rightarrow)}
   \langle D,\langle\ell,p,j,j\rangle,n\rangle}.
-\]
+$$
 
 ### Enter the first child
 
 If $a=h=i$, $R[i]=e$, and the first declared child of $e$ is $f$:
 
-\[
+$$
 \frac{\mathsf{childFields}(e)=f::F}
  {\langle D,\langle\ell,p,i,i\rangle,n\rangle
   \xrightarrow{\mathsf{Move}(\rightarrow)}
   \langle D,\langle\ell,p\mathbin{+\!+}[(i,f)],0,0\rangle,n\rangle}.
-\]
+$$
 
 ### Cross an atom
 
-\[
+$$
 \frac{R[i]=e\qquad\mathsf{childFields}(e)=[]}
  {\langle D,\langle\ell,p,i,i\rangle,n\rangle
   \xrightarrow{\mathsf{Move}(\rightarrow)}
   \langle D,\langle\ell,p,i+1,i+1\rangle,n\rangle}.
-\]
+$$
 
 ### Ascend after a parent
 
 At the end of a slot whose path ends in $(q,f)$, when $f$ is the final child of the parent:
 
-\[
+$$
 \frac{i=|R|\qquad p=p_0\mathbin{+\!+}[(q,f)]
       \qquad f=\mathsf{last}(\mathsf{childFields}(e_q))}
  {\langle D,\langle\ell,p,i,i\rangle,n\rangle
   \xrightarrow{\mathsf{Move}(\rightarrow)}
   \langle D,\langle\ell,p_0,q+1,q+1\rangle,n\rangle}.
-\]
+$$
 
 Leftward rules are the order duals. At document boundaries movement is a no-op rather than an error. Because movement uses only valid boundaries and declared child fields, it preserves cursor validity.
 
@@ -1442,9 +1442,9 @@ Leftward rules are the order duals. At document boundaries movement is a no-op r
 
 Let $H(D_\ell)=[q_0,\ldots,q_{m-1}]$ be the holes of the active line ordered by structural traces. Let $t(c,d)$ be the boundary trace derived from cursor $c$ and direction $d$. A forward jump chooses
 
-\[
+$$
   q=\min\{q_r\mid\mathsf{trace}(q_r)>t(c,+)\},
-\]
+$$
 
 or $q_0$ if the set is empty. A backward jump chooses the greatest trace below $t(c,-)$, excluding the currently selected hole where appropriate, and wraps to $q_{m-1}$. The resulting cursor selects exactly the chosen hole node.
 
@@ -1460,13 +1460,13 @@ If $i<j$, remove $R[i:j)$. At a top-level line, the result may be empty. At a re
 
 Formally, define
 
-\[
+$$
 V=
 \begin{cases}
 [] & \text{if }k=\mathsf{line}\text{ or }L\mathbin{+\!+}U\ne[],\\
 [\mathsf{Hole}(h_n)] & \text{if }k=\mathsf{slot}\text{ and }L\mathbin{+\!+}U=[].
 \end{cases}
-\]
+$$
 
 The reconstructed focus is $L\mathbin{+\!+}V\mathbin{+\!+}U$.
 
@@ -1504,9 +1504,9 @@ For a syntactically valid function name $f$, `WrapFn(f)` behaves as follows.
 
 The implementation accepts names matching
 
-\[
+$$
   \texttt{[A-Za-z][A-Za-z0-9']*}.
-\]
+$$
 
 For typesetting clarity, this means an ASCII letter followed by zero or more ASCII letters, digits, or apostrophes. The check is editor-level lexical validation, not lookup in a mathematical signature.
 
@@ -1554,9 +1554,9 @@ This theorem concerns the pure core. Browser event ordering, long-press timers, 
 
 **Theorem 5.2 (successful-transition preservation).** If $\Valid(S)$ and
 
-\[
+$$
   \mathsf{reduce}(S,C)=\Ok(S'),
-\]
+$$
 
 then $\Valid(S')$.
 
@@ -1584,7 +1584,7 @@ For valid $S$ and a structurally valid command payload, navigation commands alwa
 
 For a finite command list $\vec C=[C_1,\ldots,C_m]$, define Kleisli sequencing:
 
-\[
+$$
 \begin{aligned}
 \mathsf{run}(S,[])&=\Ok(S),\\
 \mathsf{run}(S,C::\vec C)&=
@@ -1593,7 +1593,7 @@ For a finite command list $\vec C=[C_1,\ldots,C_m]$, define Kleisli sequencing:
   \Err(e) & \mathsf{reduce}(S,C)=\Err(e).
   \end{cases}
 \end{aligned}
-\]
+$$
 
 Determinism and preservation lift immediately to successful traces by induction on the list. The randomized test in Chapter 11 generates such traces and validates every intermediate state.
 
@@ -1601,13 +1601,13 @@ Determinism and preservation lift immediately to successful traces by induction 
 
 The source combines edit semantics with React state setters, timers, clipboard code, storage, modal state, and keyboard layout. The reconstruction draws a strict boundary:
 
-\[
+$$
   \text{UI event}
   \longrightarrow \text{Command}
   \longrightarrow \mathsf{reduce}
   \longrightarrow \Result(S,E)
   \longrightarrow \text{render/effects}.
-\]
+$$
 
 A long press is not an editor command; it is an interaction policy that chooses which command to issue. Copying output is not an editor transition; it is an effect over a rendered string. Persistence is not mutation of the syntax; it is encoding and storage of an accepted state. This separation is necessary for deterministic tests and for alternative front ends.
 
@@ -1638,20 +1638,20 @@ The source legitimately treats LaTeX, Typst, and Unicode as code-generation back
 
 A mathematically sound architecture therefore uses three maps:
 
-\[
+$$
 \begin{CD}
 \mathsf{EditorExpr} @>{\mathsf{render}_b}>> \mathsf{BackendText}_b\\
 @V{\mathsf{elaborate}_{\Sigma,\Gamma}}VV @VV{\mathsf{parse}_b}V\\
 \mathsf{CoreTerm}_{\Sigma,\Gamma} @>>{\mathsf{pretty}_b}> \mathsf{BackendAST}_b
 \end{CD}
-\]
+$$
 
 and, for typed terms,
 
-\[
+$$
   \llbracket-\rrbracket_{\mathcal M,\rho}:
   \mathsf{CoreTerm}_{\Sigma,\Gamma}(\tau)	o\llbracket\tau\rrbracket_{\mathcal M}.
-\]
+$$
 
 The first map is total over structurally valid editor trees. The second is partial and context-dependent. The third is defined only after typing. The present reconstruction implements the first and specifies the interface for the other two.
 
@@ -1661,22 +1661,22 @@ The first map is total over structurally valid editor trees. The second is parti
 
 For carrier $B$, an $F$-algebra is a map
 
-\[
+$$
   \alpha:F(B)\to B.
-\]
+$$
 
 Because $\mathsf{Expr}=\mu F$ is the initial $F$-algebra, every algebra $\alpha$ induces a unique homomorphism
 
-\[
+$$
   \cata(\alpha):\mathsf{Expr}\to B
-\]
+$$
 
 satisfying
 
-\[
+$$
   \cata(\alpha)\circ\mathsf{in}
   =\alpha\circ F(\cata(\alpha)).
-\]
+$$
 
 The TypeScript interface `SyntaxAlgebra<A>` is a direct programming representation of this idea. It supplies one operation for each constructor and separate sequence combiners for lines and slots:
 
@@ -1703,9 +1703,9 @@ export interface SyntaxAlgebra<A> {
 
 A renderer returns more than text. It returns a pair
 
-\[
+$$
   \mathsf{Piece}=\mathsf{Text}\times\mathsf{Issue}^*.
-\]
+$$
 
 Composition concatenates both text fragments and issue lists. This has the structure of a writer construction over the free monoid of diagnostics. Each backend algebra has carrier `Piece`; the final `RenderResult` adds a backend name and a fidelity classification.
 
@@ -1721,7 +1721,7 @@ Fidelity is classified as `exact-structure` when no issues occur and `readable-f
 
 The LaTeX algebra maps each constructor to a compositional fragment. Representative equations are:
 
-\[
+$$
 \begin{aligned}
 \mathsf{L}(\mathsf{Frac}(n,d))
   &=\mathsf{latexFrac}(\mathsf{L}(n),\mathsf{L}(d)),\\
@@ -1732,7 +1732,7 @@ The LaTeX algebra maps each constructor to a compositional fragment. Representat
 \mathsf{L}(\mathsf{Script}(b,u,l))
   &=\mathsf{latexScript}(\mathsf{L}(b),\mathsf{L}(u),\mathsf{L}(l)).
 \end{aligned}
-\]
+$$
 
 Braces around the base make script ownership explicit in the output. Function names from a standard set use native operators such as `\sin`; other valid names use `\operatorname`. Groups use `\left` and `\right` with catalogued delimiter pairs. Annotated arrows use dedicated arrow commands rather than the accent machinery.
 
@@ -1742,14 +1742,14 @@ The renderer escapes user-controlled function and identifier text where needed. 
 
 The Typst backend is written independently rather than obtained by search-and-replace over LaTeX. Fractions, roots, scripts, functions, groups, accents, and arrows have different concrete conventions. Representative equations are:
 
-\[
+$$
 \begin{aligned}
 \mathsf{T}(\mathsf{Frac}(n,d))&=(\mathsf{T}(n))/(\mathsf{T}(d)),\\
 \mathsf{T}(\mathsf{Root}(r,i))&=\texttt{root(}\mathsf{T}(i)\texttt{, }\mathsf{T}(r)\texttt{)},\\
 \mathsf{T}(\mathsf{Accent}(\mathsf{hat},b))&=\texttt{hat(}\mathsf{T}(b)\texttt{)},\\
 \mathsf{T}(\mathsf{Arrow}(q,l))&=\texttt{stretch(arrow)}^{(\mathsf{T}(l))}.
 \end{aligned}
-\]
+$$
 
 Spacing is introduced between folded sequence items and then normalized before punctuation. The catalog may supply a native Typst symbol spelling; otherwise the backend uses the display glyph and records a fallback issue.
 
@@ -1759,14 +1759,14 @@ Backend syntax changes over time, so a production implementation should regressi
 
 Plain Unicode is not a full two-dimensional mathematics language. It lacks general stacked fractions, arbitrary scalable delimiters, uniform superscripts and subscripts, and portable accent layout. The Unicode backend is therefore a structural linearization with readable fallbacks:
 
-\[
+$$
 \begin{aligned}
 \mathsf{U}(\mathsf{Frac}(n,d))&=(\mathsf{U}(n))/(\mathsf{U}(d)),\\
 \mathsf{U}(\mathsf{Root}(r,i))&=\texttt{root[}\mathsf{U}(i)\texttt{](}\mathsf{U}(r)\texttt{)},\\
 \mathsf{U}(\mathsf{Script}(b,u,l))&=(\mathsf{U}(b))^{(\mathsf{U}(u))}_{(\mathsf{U}(l))},\\
 \mathsf{U}(\mathsf{Arrow}(q,l))&=\texttt{-}\mathsf{U}(l)\;\mathsf{glyph}(q).
 \end{aligned}
-\]
+$$
 
 Mathematical alphabet characters use the Unicode Mathematical Alphanumeric Symbols block where available, with explicit exception tables for legacy code points such as $\mathbb R$ and $\mathcal H$. A character without a reliable mapping is retained in plain form and reported.
 
@@ -1776,9 +1776,9 @@ The indexed-root rule corrects an information loss in the source, whose Unicode 
 
 The direct visual renderer can be understood as an algebra whose carrier is a layout tree rather than a string. Let `Box` contain horizontal sequences, vertical stacks, glyph boxes, scalable delimiters, rule boxes, script boxes, and focus annotations. Then
 
-\[
+$$
   \alpha_{\mathsf{box}}:F(\mathsf{Box})\to\mathsf{Box}
-\]
+$$
 
 assigns layouts to constructors:
 
@@ -1795,27 +1795,27 @@ Focus rendering is not purely a fold over syntax because it also depends on curs
 
 Once computations are expressed as folds, standard algebraic laws become useful. Suppose $h:B\to C$ is an algebra homomorphism from $\alpha$ to $\beta$:
 
-\[
+$$
   h\circ\alpha=\beta\circ F(h).
-\]
+$$
 
 Then the fusion law gives
 
-\[
+$$
   h\circ\cata(\alpha)=\cata(\beta).
-\]
+$$
 
 Operationally, a post-processing pass can be fused into a single syntax traversal when it commutes with constructors. For example, a renderer that produces strings and a later length computation can be replaced by an algebra that computes lengths directly, avoiding intermediate strings. The included `sizeAlgebra` and `holeOrderAlgebra` demonstrate non-rendering folds.
 
 The size algebra has carrier $\mathbb N$ and counts expression constructors:
 
-\[
+$$
 \begin{aligned}
 |\mathsf{Atom}|&=1,\qquad |\mathsf{Hole}|=1,\\
 |\mathsf{Frac}(n,d)|&=1+|n|+|d|,\\
 |\mathsf{Script}(b,u,l)|&=1+|b|+|u|+|l|,
 \end{aligned}
-\]
+$$
 
 omitting absent attachments. The hole-order algebra has carrier $H^*$ and concatenates child results in canonical traversal order. The fact that the same fold interface supports text, metrics, and navigation metadata is evidence that it captures the datatype's recursion scheme rather than one renderer's implementation accident.
 
@@ -1823,9 +1823,9 @@ omitting absent attachments. The hole-order algebra has carrier $H^*$ and concat
 
 It is tempting to require
 
-\[
+$$
   \mathsf{parse}_b(\mathsf{render}_b(e))=e.
-\]
+$$
 
 This exact round-trip law is too strong for the current backends.
 
@@ -1837,9 +1837,9 @@ This exact round-trip law is too strong for the current backends.
 
 A realistic adequacy criterion introduces an erasure or normalization map $q$ from editor syntax to backend-representable structure and an equivalence relation $\simeq_b$:
 
-\[
+$$
   \mathsf{parse}_b(\mathsf{render}_b(e))\simeq_b q(e).
-\]
+$$
 
 For holes, $q$ may erase unique IDs while retaining placeholder positions. For styled identifiers, it may preserve semantic style even when a Unicode engine falls back. A future parser test suite should state the exact quotient instead of using raw string equality.
 
@@ -1849,7 +1849,7 @@ The reconstructed editor tree is already substantially presentation-neutral: a f
 
 An explicit `MathIR` layer can normalize editor-specific details while preserving ambiguity:
 
-\[
+$$
 \begin{aligned}
 M::={}&\mathsf{Name}(x,s)
 \mid\mathsf{Number}(n)
@@ -1865,7 +1865,7 @@ M::={}&\mathsf{Name}(x,s)
 &\mid\mathsf{Arrow}(q,M^+)
 \mid\mathsf{Sequence}(M^*).
 \end{aligned}
-\]
+$$
 
 The current `Expr` type can be viewed as this `MathIR`; a visual adapter may add transient layout data without changing it. The important architectural law is that no backend string becomes canonical storage.
 
@@ -1873,25 +1873,25 @@ The current `Expr` type can be viewed as this `MathIR`; a visual adapter may add
 
 Object-level meaning begins with a signature $\Sigma$ and context $\Gamma$. Elaboration is a partial, diagnostic-producing relation
 
-\[
+$$
   \Sigma;\Gamma\vdash e\rightsquigarrow t:\tau\;\dashv\;\mathcal C,
-\]
+$$
 
 meaning that editor fragment $e$ elaborates to core term $t$ of type $\tau$ while generating constraints $\mathcal C$. Ambiguous sequences require precedence rules, notation declarations, or user disambiguation. Holes elaborate to metavariables with local contexts. A symbol catalog ID is resolved through $\Sigma$, not through its glyph alone.
 
 For example, the editor sequence displaying
 
-\[
+$$
   F\dashv G:\mathcal C\rightleftarrows\mathcal D
-\]
+$$
 
 might elaborate under a category-theory notation environment to a declaration asserting functors
 
-\[
+$$
   F:\mathcal C\to\mathcal D,
   \qquad
   G:\mathcal D\to\mathcal C,
-\]
+$$
 
 plus an adjunction witness. Under a different environment it might be rejected or parsed differently. The presentation tree does not choose on its own.
 
@@ -1899,29 +1899,29 @@ plus an adjunction witness. Under a different environment it might be rejected o
 
 After elaboration and constraint solving, denotational semantics is conventional. For each well-formed context $\Gamma$ and type $\tau$, an interpretation supplies sets, domains, objects, or types
 
-\[
+$$
   \llbracket\Gamma\rrbracket_{\mathcal M},
   \qquad
   \llbracket\tau\rrbracket_{\mathcal M},
-\]
+$$
 
 and a term judgment induces
 
-\[
+$$
   \llbracket\Gamma\vdash t:\tau\rrbracket_{\mathcal M}:
   \llbracket\Gamma\rrbracket_{\mathcal M}	o
   \llbracket\tau\rrbracket_{\mathcal M}.
-\]
+$$
 
 For simply typed lambda calculus, this may be a function between sets or domains. For dependent type theory, types may be interpreted in a category with families, contextual category, comprehension category, or another suitable model. For category-theoretic notation, the core term might elaborate into a formalization whose denotation lives in a selected category.
 
 The editor's structural soundness theorem and the core language's type soundness theorem are separate. Their composition requires an elaboration theorem:
 
-\[
+$$
   \mathsf{elaborate}(e)=\Ok(t:\tau)
   \quad\Longrightarrow\quad
   \Gamma\vdash t:\tau.
-\]
+$$
 
 Only then may the model interpretation be applied.
 
@@ -1929,9 +1929,9 @@ Only then may the model interpretation be applied.
 
 A useful design objective is that backend renderers depend only on semantic syntax, not on interface history. If $\phi$ is a syntax-preserving renaming of hole IDs, then visible rendering should be invariant:
 
-\[
+$$
   \mathsf{render}_b(\phi(e))=\mathsf{render}_b(e),
-\]
+$$
 
 because hole IDs are editor metadata and all holes render as the same placeholder. More generally, each renderer should be natural with respect to structure-preserving maps on atoms and catalog interpretations. This is a practical form of parametricity: the recursive scheme is fixed, while atom meanings vary by backend.
 
@@ -1966,15 +1966,15 @@ The supplied JavaScript component uses the first layer only informally. The reco
 
 An **extrinsic** representation defines raw syntax first and a separate predicate for well-formedness. The original runtime objects are extrinsic in a weak sense: any object with fields is admitted by JavaScript, and the intended conditions are conventions. The reconstruction's decoded JSON remains extrinsic:
 
-\[
+$$
   \mathsf{RawValue}
   \quad\text{with predicate}\quad
   \Valid_D:\mathsf{RawValue}\to\mathsf{Prop}.
-\]
+$$
 
 An **intrinsic** representation makes structural conditions part of the datatype. Non-empty recursive slots and non-vacuous scripts are examples. In an ideal dependent language one may define:
 
-\[
+$$
 \begin{aligned}
 \mathsf{Slot}&=\Sigma(n:\mathbb N).\;\mathsf{Expr}^{\mathsf{Fin}(n+1)},\\
 \mathsf{Attachments}&=
@@ -1982,7 +1982,7 @@ An **intrinsic** representation makes structural conditions part of the datatype
   +\mathsf{Sub}(\mathsf{Slot})
   +\mathsf{Both}(\mathsf{Slot},\mathsf{Slot}).
 \end{aligned}
-\]
+$$
 
 Then an empty slot or attachment-free script has no constructor. The TypeScript tuple
 
@@ -1998,38 +1998,38 @@ A balanced architecture uses intrinsic types for stable local structure and extr
 
 The current path type is unindexed:
 
-\[
+$$
   \mathsf{Path}=\mathsf{List}(\mathbb N\times\mathsf{Field}).
-\]
+$$
 
 Its validity depends on a particular root. A dependently typed formulation can index paths by their source and target sequence. Let `SeqKind` distinguish lines and slots. One possible family is
 
-\[
+$$
   \mathsf{PathTo}:\prod_{R:\mathsf{Line}}\mathsf{SeqKind}\to\mathsf{Type}.
-\]
+$$
 
 The root constructor is
 
-\[
+$$
   \mathsf{here}:\mathsf{PathTo}(R,\mathsf{line}),
-\]
+$$
 
 and descent carries evidence that an index is in bounds and a field exists:
 
-\[
+$$
 \frac{
   i:\mathsf{Fin}(|R|)
   \qquad f:\mathsf{ChildField}(R_i)
   \qquad p:\mathsf{PathTo}(\mathsf{child}(R_i,f),k)
 }{
   \mathsf{down}(i,f,p):\mathsf{PathTo}(R,k)}.
-\]
+$$
 
 This direction encodes a path from the root to a target. An alternative stores a typed zipper directly:
 
-\[
+$$
   \mathsf{CursorAt}(R)=\Sigma(S:\mathsf{Sequence}).\;\mathsf{Context}(S,R)\times\mathsf{Boundary}(S)^2.
-\]
+$$
 
 Here `Boundary(S)` is `Fin(|S|+1)`, so out-of-range selections are unrepresentable. Serialization erases the proofs to indices and field tags; decoding reconstructs them through a decision procedure.
 
@@ -2037,16 +2037,16 @@ Here `Boundary(S)` is `Fin(|S|+1)`, so out-of-range selections are unrepresentab
 
 The ideal editor state is a refinement
 
-\[
+$$
   \mathsf{State}=\{s:\mathsf{RawState}\mid\Valid(s)\}.
-\]
+$$
 
 A command is then
 
-\[
+$$
   \mathsf{reduce}:\mathsf{State}\to\mathsf{Command}\to
   \Result(\mathsf{State},\mathsf{EditError}).
-\]
+$$
 
 The preservation theorem is reflected in the codomain: successful results already contain validity evidence. Some commands can be total on valid states and require no error branch. For example, bounded horizontal movement can return a state, treating document boundaries as no-ops. Commands with external payloads, such as setting an arbitrary cursor or decoding pasted templates, still require failure.
 
@@ -2065,32 +2065,32 @@ This is “parse, do not validate” only in part: trusted constructors parse pa
 
 At the editor layer a hole is a structural placeholder. At an object-language layer it can elaborate to a metavariable. In dependent type theory, a metavariable is not merely a question mark; it has a local context and expected type:
 
-\[
+$$
   ?m:[\Gamma]\vdash A.
-\]
+$$
 
 Its eventual solution must be a term $t$ such that
 
-\[
+$$
   \Gamma\vdash t:A.
-\]
+$$
 
 The editor's hole ID supplies the stable identity $m$. Its lightweight expectation can guide initial elaboration, but only the elaborator can determine the full local type. For example, the denominator hole in a fraction may be expected to elaborate to a numeric expression in one notation environment and to a morphism or proof term in another.
 
 A typed hole record might therefore be:
 
-\[
+$$
   \mathsf{Meta}=
   \Sigma(\Gamma:\mathsf{Context}).
   \Sigma(A:\mathsf{Type}(\Gamma)).
   \mathsf{MetaId}.
-\]
+$$
 
 The editor tree should not store such semantic context directly unless it is committed to one object language. A clean architecture stores stable editor holes and lets the elaboration session maintain a map
 
-\[
+$$
   \mathsf{MetaId}\rightharpoonup(\Gamma,A,\mathsf{constraints}).
-\]
+$$
 
 Edits invalidate or update this map incrementally.
 
@@ -2098,11 +2098,11 @@ Edits invalidate or update this map incrementally.
 
 Mathematical notation is highly ambiguous. Bidirectional typing provides a practical structure for elaboration by separating synthesis and checking judgments:
 
-\[
+$$
   \Gamma\vdash e\Rightarrow A
   \qquad\text{and}\qquad
   \Gamma\vdash e\Leftarrow A.
-\]
+$$
 
 In synthesis mode, the elaborator infers a type. In checking mode, an expected type guides interpretation. Editor constructors can exploit this distinction.
 
@@ -2114,14 +2114,14 @@ In synthesis mode, the elaborator infers a type. In checking mode, an expected t
 
 A generic elaboration interface is
 
-\[
+$$
 \begin{aligned}
 \mathsf{synth}&:\Sigma\to\Gamma\to\mathsf{MathIR}	o
 \Result(\Sigma(A:\mathsf{Type}).\mathsf{Term}(A)\times\mathsf{Constraints},E),\\
 \mathsf{check}&:\Sigma\to\Gamma\to\mathsf{MathIR}\to A\to
 \Result(\mathsf{Term}(A)\times\mathsf{Constraints},E).
 \end{aligned}
-\]
+$$
 
 The editor core does not implement these functions. It is designed so that they can consume stable, backend-independent syntax.
 
@@ -2129,34 +2129,34 @@ The editor core does not implement these functions. It is designed so that they 
 
 To make the boundary concrete, consider a simply typed core language with base types $\iota$, function types, variables, constants, abstraction, and application:
 
-\[
+$$
 \begin{aligned}
 A,B&::=\iota\mid A\to B,\\
 t,u&::=x\mid c\mid\lambda x:A.t\mid t\;u.
 \end{aligned}
-\]
+$$
 
 Typing rules include
 
-\[
+$$
 \frac{x:A\in\Gamma}{\Gamma\vdash x:A}
 \qquad
 \frac{\Gamma,x:A\vdash t:B}{\Gamma\vdash\lambda x:A.t:A\to B}
 \qquad
 \frac{\Gamma\vdash t:A\to B\qquad\Gamma\vdash u:A}{\Gamma\vdash t\;u:B}.
-\]
+$$
 
 An editor function node `f(argument)` might elaborate to application once $f$ resolves to a constant or variable. A sequence of adjacent expressions might elaborate using an application-precedence rule. A superscript could be desugared through a notation declaration for exponentiation. None of these interpretations follows from the structural datatype alone; each is a rule in the elaborator.
 
 For category-theoretic notation, a more suitable core includes universes of objects and morphisms, source and target indices, composition, identities, functors, natural transformations, and adjunction data. Intrinsic typing can enforce composability:
 
-\[
+$$
   \mathsf{Hom}:\mathsf{Obj}\to\mathsf{Obj}\to\mathsf{Type},
-\]
+$$
 
-\[
+$$
   (\circ):\mathsf{Hom}(B,C)\to\mathsf{Hom}(A,B)\to\mathsf{Hom}(A,C).
-\]
+$$
 
 The displayed composition $g\circ f$ is sound only after elaboration establishes matching middle object $B$.
 
@@ -2166,15 +2166,15 @@ Object-language substitution and editor replacement are distinct operations.
 
 Editor replacement substitutes a sequence into a structural focus:
 
-\[
+$$
   \mathsf{replace}_p(R,V).
-\]
+$$
 
 It is capture-free because editor syntax does not yet bind variables. Object-language substitution
 
-\[
+$$
   t[x:=u]
-\]
+$$
 
 must respect binders and alpha-equivalence. A future editor with explicit binders could represent scopes intrinsically using de Bruijn indices, locally nameless syntax, or higher-order abstract syntax. At that point, editor operations such as moving a subtree across a binder would require renaming or rejection.
 
@@ -2186,32 +2186,32 @@ Two preservation theorems must be distinguished.
 
 **Editor preservation** states:
 
-\[
+$$
   \Valid(S)\land S\xrightarrow{C}S'
   \Longrightarrow\Valid(S').
-\]
+$$
 
 It holds for the reconstructed reducer.
 
 **Object-language type preservation** states, for an evaluation relation:
 
-\[
+$$
   \Gamma\vdash t:A\land t\to t'
   \Longrightarrow\Gamma\vdash t':A.
-\]
+$$
 
 This is a theorem about executing or reducing mathematical/program terms, not about editing them. An edit may intentionally turn an elaborating expression into one with holes or errors. Interactive systems therefore maintain a weaker incremental property: after every structural edit, elaboration either returns a typed term with metavariables or a finite set of localized diagnostics; it must not corrupt the editor state.
 
 A useful typed-edit theorem is:
 
-\[
+$$
 \frac{
   \Gamma\vdash e\rightsquigarrow t:A
   \qquad S(e)\xrightarrow{C}S(e')
 }{
   \mathsf{elaborate}(e')=\Ok(t':A')\;\text{or}\;\Err(\Delta)
 }
-\]
+$$
 
 where $\Delta$ contains source locations expressible through editor paths. This is robustness, not preservation of the original type.
 
@@ -2219,12 +2219,12 @@ where $\Delta$ contains source locations expressible through editor paths. This 
 
 A checked decoder currently returns textual issues. A stronger design returns evidence of where and why a judgment failed. For example:
 
-\[
+$$
   \mathsf{PathError}
   =\mathsf{IndexOutOfBounds}(d,i,n)
    +\mathsf{FieldMismatch}(d,k,f)
    +\mathsf{EmptySlot}(d,f).
-\]
+$$
 
 Each constructor carries enough data to reproduce the failed premise of a resolution rule. Type errors can be represented similarly as failed derivation objects. This approach supports precise highlighting, repair suggestions, and tests that assert error classes rather than brittle message strings.
 
@@ -2232,16 +2232,16 @@ Each constructor carries enough data to reproduce the failed premise of a resolu
 
 All editor structural invariants are decidable. Constructor tags and finite fields are enumerable; slot non-emptiness and selection bounds are finite checks; path resolution terminates by path length; hole uniqueness is decidable by finite-set insertion. Thus there is a decision procedure
 
-\[
+$$
   \mathsf{decValid}:\prod_{s:\mathsf{RawState}}
   \mathsf{Dec}(\Valid(s)),
-\]
+$$
 
 where
 
-\[
+$$
   \mathsf{Dec}(P)=P+\neg P.
-\]
+$$
 
 The TypeScript validator returns all found issues rather than a proof or refutation. A proof-assistant implementation could make the positive branch carry the evidence required to construct `State` and the negative branch carry a counterexample path.
 
@@ -2249,18 +2249,18 @@ The TypeScript validator returns all found issues rather than a proof or refutat
 
 Persistence stores untrusted bytes. Decoding has two stages:
 
-\[
+$$
   \mathsf{bytes}\xrightarrow{\mathsf{JSON.parse}}\mathsf{RawValue}
   \xrightarrow{\mathsf{decodeV1}}\Result(\mathsf{State},\mathsf{DecodeError}).
-\]
+$$
 
 The second stage checks the schema version, constructor discriminants, primitive payloads, child slots, hole identities, cursor path, selection bounds, and counter. Successful decoding is the introduction rule for the refined state type at the persistence boundary.
 
 Versioning is semantically necessary. Changing postfix scripts into base-owning script nodes changes the serialized abstract syntax. A version tag allows an explicit migration
 
-\[
+$$
   \mathsf{migrate}_{0\to1}:\mathsf{State}_0\to\Result(\mathsf{State}_1,E)
-\]
+$$
 
 instead of silently interpreting old objects under new invariants. The included codec supports version 1 and rejects unknown versions; a production migration from the supplied component would need to decide how to associate each sibling script with a base and how to repair unattached scripts.
 
@@ -2313,38 +2313,38 @@ The editor can be described without category theory, but categorical language re
 
 Let $F$ be the strictly positive endofunctor defined in Chapter 4. On a function $f:X\to Y$, $F(f)$ maps $f$ over every recursive child while preserving constructor parameters. For example,
 
-\[
+$$
   F(f)(\mathsf{Frac}(n,d))
   =\mathsf{Frac}(\mathsf{map}^+(f,n),\mathsf{map}^+(f,d)).
-\]
+$$
 
 Identity and composition laws follow from the corresponding laws for finite-list mapping:
 
-\[
+$$
   F(\mathsf{id})=\mathsf{id},
   \qquad
   F(g\circ f)=F(g)\circ F(f).
-\]
+$$
 
 The constructor map
 
-\[
+$$
   \mathsf{in}:F(\mathsf{Expr})\to\mathsf{Expr}
-\]
+$$
 
 forms an $F$-algebra. Initiality says that for every algebra $\alpha:F(A)\to A$, there is a unique homomorphism $h:\mathsf{Expr}\to A$ such that
 
-\[
+$$
   h\circ\mathsf{in}=\alpha\circ F(h).
-\]
+$$
 
 This unique $h$ is the catamorphism $\cata(\alpha)$. In software terms, once the constructor cases are supplied, the recursion is determined. The generic fold is therefore not only code reuse; it is the universal map out of the syntax algebra.
 
 Lambek's lemma implies that the structure map of an initial algebra is an isomorphism:
 
-\[
+$$
   F(\mathsf{Expr})\cong\mathsf{Expr}.
-\]
+$$
 
 Informally, every expression can be uniquely exposed as one layer of constructor shape containing recursive expressions, and every such layer can be folded back into an expression. The TypeScript discriminated union and its exhaustive switch implement this expose/fold intuition, though TypeScript does not prove the isomorphism.
 
@@ -2352,18 +2352,18 @@ Informally, every expression can be uniquely exposed as one layer of constructor
 
 A container is specified by a set of shapes $S$ and a family of position sets $P:S\to\mathbf{Set}$. Its extension is
 
-\[
+$$
   \llbracket S\triangleleft P\rrbracket(X)
   =\Sigma(s:S).\;P(s)\to X.
-\]
+$$
 
 Each editor constructor determines a shape: fraction, indexed root, unindexed root, superscript-only script, and so forth, together with non-recursive parameters such as delimiter or operator IDs. Positions identify child-expression locations. Because a slot contains a positive finite number of expressions, a shape also contains the arities of its child sequences, while positions identify a field and an index within that field.
 
 For a fraction with numerator length $m+1$ and denominator length $n+1$, positions are
 
-\[
+$$
   \mathsf{Fin}(m+1)+\mathsf{Fin}(n+1).
-\]
+$$
 
 For a root without index and radicand length $r+1$, positions are $\mathsf{Fin}(r+1)$. A script shape records which attachments are present and the lengths of base and attachments.
 
@@ -2379,21 +2379,21 @@ The concrete `childFields` function is a coarser reflection than the full contai
 
 For a container, the derivative has shapes consisting of an original shape together with a distinguished position. The remaining positions form the context around a hole. Symbolically,
 
-\[
+$$
   (S\triangleleft P)'=
   \left(\Sigma(s:S).P(s)\right)
   \triangleleft
   \left(\lambda(s,p).P(s)\setminus\{p\}\right).
-\]
+$$
 
 An element of the derivative filled with expressions is a one-hole context. Plugging an expression into the distinguished position reconstructs a full layer. Iterating such contexts yields a zipper for a recursive datatype.
 
 The editor focuses a *sequence*, not merely one child expression. At each descent it first chooses a parent expression from a list context and then chooses a recursive field. The crumb consequently combines:
 
-\[
+$$
   \mathsf{ListContext}(\mathsf{Expr})
   \times F'(\mathsf{Expr}).
-\]
+$$
 
 The list context is a prefix/suffix pair. The derivative context records the parent constructor with one child slot distinguished. Because the distinguished child is itself a sequence slot, the focus can hold an interval and a boundary.
 
@@ -2419,9 +2419,9 @@ A total lens from $S$ to $V$ consists of `get` and `put` maps satisfying GetPut,
 
 For a fixed path $p$, define the subobject
 
-\[
+$$
   S_p=\{s:S\mid p\text{ resolves in }s\}.
-\]
+$$
 
 Then focus and replacement form an ordinary lens on $S_p$, provided replacement respects the focused sequence kind.
 
@@ -2433,11 +2433,11 @@ Treat `focus` and `put` as partial maps. The lens laws are equations where both 
 
 Let $T(X)=E+X$. Then
 
-\[
+$$
   \mathsf{get}:S\to T(V),
   \qquad
   \mathsf{put}:S\times V\to T(S).
-\]
+$$
 
 The laws can be stated using Kleisli equality with compatible error behavior. The executable `Result` API follows this model.
 
@@ -2447,19 +2447,19 @@ No single formulation is universally best. The thesis uses ordinary lens equatio
 
 For the exception monad $T(X)=E+X$, a command interpretation is a Kleisli arrow
 
-\[
+$$
   \llbracket C\rrbracket:S\to T(S).
-\]
+$$
 
 Sequential execution uses Kleisli composition:
 
-\[
+$$
   (g\mathbin{>=>}f)(s)=
   \begin{cases}
     \Err(e) & f(s)=\Err(e),\\
     g(s') & f(s)=\Ok(s').
   \end{cases}
-\]
+$$
 
 The identity is $\eta(s)=\Ok(s)$. Associativity follows from the exception monad laws. A command trace is therefore a morphism in $\mathsf{Kl}(T)$.
 
@@ -2470,9 +2470,9 @@ This formulation separates two issues:
 
 It also suggests reusable combinators. A transaction can compose several primitive commands and commit only on success. A `recover` combinator can map selected errors to alternative commands. Logging can be added by changing the effect to a transformer-like carrier such as
 
-\[
+$$
   T(X)=E+(X\times W)
-\]
+$$
 
 for a diagnostic monoid $W$.
 
@@ -2482,27 +2482,27 @@ The browser UI should not embed arbitrary side effects inside these arrows. Clip
 
 Each backend $b$ defines an algebra
 
-\[
+$$
   \alpha_b:F(B_b)\to B_b.
-\]
+$$
 
 The induced renderer is
 
-\[
+$$
   r_b=\cata(\alpha_b).
-\]
+$$
 
 A conversion $h:B_b\to B_c$ between backend carriers is structure-preserving when
 
-\[
+$$
   h\circ\alpha_b=\alpha_c\circ F(h).
-\]
+$$
 
 Then initiality yields
 
-\[
+$$
   h\circ r_b=r_c.
-\]
+$$
 
 In practice, direct conversion from LaTeX strings to Unicode strings is not such a homomorphism; concrete syntax has already collapsed structure and introduced backend-specific choices. This is precisely why all backends should originate from the shared editor algebra rather than from one another.
 
@@ -2512,24 +2512,24 @@ The symbol catalog can be modeled as a family of atom algebras. Fixing the compo
 
 Algebras compose by products. Given
 
-\[
+$$
   \alpha:F(A)\to A,
   \qquad
   \beta:F(B)\to B,
-\]
+$$
 
 define
 
-\[
+$$
   \langle\alpha,\beta\rangle:F(A\times B)\to A\times B
-\]
+$$
 
 by projecting recursive pairs, applying each algebra, and pairing the results. The induced fold computes both analyses in one traversal:
 
-\[
+$$
   \cata(\langle\alpha,\beta\rangle)(e)
   =(\cata(\alpha)(e),\cata(\beta)(e)).
-\]
+$$
 
 A production renderer can use a product algebra to compute visual boxes, structural size, hole locations, and accessibility descriptions together. The implementation currently keeps size and hole-order folds separate for clarity.
 
@@ -2537,9 +2537,9 @@ A production renderer can use a product algebra to compute visual boxes, structu
 
 Undo/redo history has the form
 
-\[
+$$
   \mathsf{History}(S)=S^*\times S\times S^*.
-\]
+$$
 
 This is the zipper of a finite sequence with one focused present. Undo moves the nearest past state into focus and pushes the old focus onto the future. Redo is the inverse move when available. Committing a new state appends the old present to the past and clears the future.
 
@@ -2547,9 +2547,9 @@ It is tempting to label the history structure a comonad because zippers often su
 
 The key laws are:
 
-\[
+$$
   \mathsf{redo}(\mathsf{undo}(H))=H
-\]
+$$
 
 when undo succeeds and no new commit occurs, and dually for redo. After committing from an undone state, the former future is discarded, so the inverse law no longer applies. Tests assert the valid inverse case.
 
@@ -2557,29 +2557,29 @@ when undo succeeds and no new commit occurs, and dually for redo. After committi
 
 A codec consists of
 
-\[
+$$
   \mathsf{encode}:S\to J,
   \qquad
   \mathsf{decode}:J\to T(S),
-\]
+$$
 
 where $J$ is a JSON value domain. The desired round-trip law is
 
-\[
+$$
   \mathsf{decode}(\mathsf{encode}(s))=\Ok(s).
-\]
+$$
 
 The opposite composite cannot be identity on all JSON values because decoding rejects malformed values and encoding chooses a canonical representation. On accepted values one may define a normalization $q:J\rightharpoonup J$ and require
 
-\[
+$$
   \mathsf{encode}(\mathsf{decode}(j))=q(j).
-\]
+$$
 
 Version migration is composition of partial codecs. If migrations are written as Kleisli arrows
 
-\[
+$$
   m_{i,j}:S_i\to T(S_j),
-\]
+$$
 
 then multi-version migration is their Kleisli composition. Explicit version indices prevent a new decoder from pretending that old constructor shapes are already current.
 
@@ -2607,7 +2607,7 @@ The present thesis relies only on initiality, container derivatives, lenses, mon
 
 The categorical picture can be summarized as follows.
 
-\[
+$$
 \begin{array}{lll}
 \textbf{Object} & \textbf{Structure} & \textbf{Software consequence}\\
 \hline
@@ -2620,7 +2620,7 @@ F & \text{container/polynomial functor} & \text{strictly positive, mappable chil
 \mathsf{Backend} & F\text{-algebra} & \text{independent folds from one syntax}\\
 \mathsf{Codec} & \text{partial retraction} & \text{versioned checked persistence}.
 \end{array}
-\]
+$$
 
 The value of this table is predictive. Adding a constructor requires extending $F$, every algebra, the container field reflection, validation, and derivative positions. Adding a backend requires only a new algebra and catalog projection. Adding a command requires a new Kleisli endomorphism and preservation case, not changes to rendering. Adding a UI requires a command adapter and box renderer, not a second syntax.
 
@@ -2645,7 +2645,7 @@ The supplied artifact concentrates syntax, traversal, rendering, editing, histor
 
 The reconstruction replaces this horizontal coupling with a layered architecture:
 
-\[
+$$
 \begin{array}{c}
 \text{browser events and visual components}\\
 \downarrow\\
@@ -2657,7 +2657,7 @@ The reconstruction replaces this horizontal coupling with a layered architecture
 \downarrow\\
 \text{versioned codec and immutable history}.
 \end{array}
-\]
+$$
 
 Dependency arrows point downward. The core has no DOM, React, storage, timer, or clipboard dependency. The browser shell can be replaced without changing the syntax or transition semantics.
 
@@ -2844,11 +2844,11 @@ The screenshot is taken from the included browser artifact. Unlike the baseline 
 
 The adapter translates clicks and key actions into command values. After `reduce`, it either installs the returned state in history or displays the error. Rendering is derived from the current state; no backend string is edited directly. This enforces a one-way data flow:
 
-\[
+$$
   \mathsf{State}\to\mathsf{View},
   \qquad
   \mathsf{Event}\to\mathsf{Command}\to\mathsf{State}.
-\]
+$$
 
 ## Interaction policies outside the core
 
@@ -2977,26 +2977,26 @@ The captured run reports thirteen passing tests. Runtime in milliseconds is inci
 
 The lens test constructs
 
-\[
+$$
   R=[\mathsf{Frac}([a],[b])]
-\]
+$$
 
 and path
 
-\[
+$$
   p=[(0,\mathsf{numerator})].
-\]
+$$
 
 It then checks:
 
-\[
+$$
 \begin{aligned}
 \mathsf{focus}_p(\mathsf{replace}_p(R,[x,+,y]))&=[x,+,y],\\
 \mathsf{replace}_p(R,\mathsf{focus}_p(R))&=R,\\
 \mathsf{replace}_p(\mathsf{replace}_p(R,[x,+,y]),[2])
   &=\mathsf{replace}_p(R,[2]).
 \end{aligned}
-\]
+$$
 
 This is a representative finite instance of the three universal laws proved by induction in Chapter 5. It additionally verifies that the path resolves to an actual zipper. Future property tests should generate arbitrary valid lines, paths, and non-empty replacements.
 
@@ -3044,9 +3044,9 @@ The timeline test creates two committed states, undoes one step, and redoes it. 
 
 The codec test asserts
 
-\[
+$$
   \mathsf{decode}(\mathsf{encode}(S))=\Ok(S)
-\]
+$$
 
 for the demonstration state and rejects an envelope with the wrong schema. It does not test every malformed JSON shape; decoder branch tests should be expanded for production.
 
@@ -3068,9 +3068,9 @@ The initial state contains one hole. Every command is required to return `Ok`; a
 
 The test checks a finite trace
 
-\[
+$$
   S_0\xrightarrow{C_1}S_1\xrightarrow{C_2}\cdots\xrightarrow{C_{350}}S_{350}
-\]
+$$
 
 and validates each $S_i$. It gives useful broad regression coverage across nested interactions. It is not a proof of preservation for all states and command traces. The theorem argument in Chapter 6 supplies the universal claim, while this test detects implementation divergence from that argument.
 
@@ -3119,10 +3119,10 @@ Visual verification is especially important for this thesis because the subject 
 
 The pure reducer enables a stronger future method. Keep the present implementation as a reference semantics and develop an optimized implementation. Generate valid states and commands, then require:
 
-\[
+$$
   \mathsf{normalize}(\mathsf{reduce}_{ref}(S,C))
   =\mathsf{normalize}(\mathsf{reduce}_{opt}(S,C)).
-\]
+$$
 
 Normalization may erase non-semantic allocation details when necessary, though fresh-hole IDs should normally remain deterministic. This technique is effective for replacing array copying with persistent vectors or live zipper state.
 
@@ -3165,9 +3165,9 @@ The reconstruction is supported by representation constraints, paper proofs, det
 
 Each case begins with a structural state and applies commands through the reducer. A cursor is written
 
-\[
+$$
   \langle\ell,p,a,h\rangle.
-\]
+$$
 
 At a root line the path is $[]$. A selected hole at index $i$ is shown as $[i,i+1)$. Generated hole identities are schematic; the executable implementation uses a monotone counter. Renderings are consequences of backend algebras, not canonical mathematical meanings.
 
@@ -3175,13 +3175,13 @@ At a root line the path is $[]$. A selected hole at index $i$ is shown as $[i,i+
 
 The demonstration line is intended to display
 
-\[
+$$
   F\dashv G:\mathcal C\rightleftarrows\mathcal D.
-\]
+$$
 
 In the reconstructed editor syntax, one possible line is
 
-\[
+$$
 \begin{aligned}
 [&\mathsf{Id}(F,\mathsf{plain}),
   \mathsf{Sym}(\mathsf{relation.adjoint}),
@@ -3191,7 +3191,7 @@ In the reconstructed editor syntax, one possible line is
   \mathsf{Sym}(\mathsf{arrow.rightleft}),
   \mathsf{Id}(D,\mathsf{script})].
 \end{aligned}
-\]
+$$
 
 The line has seven expressions. None is a special category-theory AST node. The structure records notation, style, and symbol identity. The LaTeX algebra yields a string of the form
 
@@ -3205,7 +3205,7 @@ while the Unicode backend yields the corresponding glyph sequence, visually equi
 
 The editor can guarantee that the script letters remain styled atoms and that the relation and arrow are catalogued symbols. It cannot establish:
 
-\[
+$$
   \mathcal C,\mathcal D:\mathsf{Category},
   \quad
   F:\mathcal C\to\mathcal D,
@@ -3213,7 +3213,7 @@ The editor can guarantee that the script letters remain styled atoms and that th
   G:\mathcal D\to\mathcal C,
   \quad
   F\dashv G.
-\]
+$$
 
 An elaborator for category theory would need to resolve each identifier in a context and construct or check adjunction data. The notation tree is an input to that process.
 
@@ -3225,51 +3225,51 @@ Place a caret before $\mathcal C$ at root boundary $4$. Right movement over the 
 
 Begin with a blank line and caret at root boundary $0$:
 
-\[
+$$
   S_0=\langle[[]],\langle0,[],0,0\rangle,0\rangle.
-\]
+$$
 
 The fraction template is
 
-\[
+$$
   V=[\mathsf{Frac}([\mathsf{Hole}(t_0)],[\mathsf{Hole}(t_1)])].
-\]
+$$
 
 The template IDs are not inserted directly. Freshening produces $h_0$ and $h_1$:
 
-\[
+$$
   S_0\xrightarrow{\mathsf{Insert}(V)}S_1
-\]
+$$
 
 with line
 
-\[
+$$
   [\mathsf{Frac}([h_0],[h_1])]
-\]
+$$
 
 and cursor
 
-\[
+$$
   \langle0,[(0,\mathsf{numerator})],0,1\rangle.
-\]
+$$
 
 Typing $a$ dispatches `Insert([a])`. Because the hole is selected, the numerator becomes $[a]$ and the caret moves after it:
 
-\[
+$$
   [\mathsf{Frac}([a],[h_1])].
-\]
+$$
 
 A next-hole command orders holes by traces. The denominator hole has the only remaining trace, so the cursor becomes
 
-\[
+$$
   \langle0,[(0,\mathsf{denominator})],0,1\rangle.
-\]
+$$
 
 Typing $b$ yields
 
-\[
+$$
   [\mathsf{Frac}([a],[b])].
-\]
+$$
 
 The LaTeX and Unicode renderings are, respectively,
 
@@ -3289,11 +3289,11 @@ The Unicode output is linear but preserves the numerator/denominator boundary wi
 
 Move into the numerator and select $a$. Backspace cannot leave the slot empty. It allocates a fresh hole, say $h_2$:
 
-\[
+$$
   [\mathsf{Frac}([a],[b])]
   \xrightarrow{\mathsf{Backspace}}
   [\mathsf{Frac}([h_2],[b])].
-\]
+$$
 
 The cursor selects $h_2$. This is the operational manifestation of the non-empty-slot invariant.
 
@@ -3301,10 +3301,10 @@ The cursor selects $h_2$. This is the operational manifestation of the non-empty
 
 At the root, select the fraction node and backspace. The root line may become empty:
 
-\[
+$$
   [\mathsf{Frac}([h_2],[b])]
   \longrightarrow [].
-\]
+$$
 
 No hole is inserted because a line is allowed to be empty. The focus kind distinguishes the two cases.
 
@@ -3312,15 +3312,15 @@ No hole is inserted because a line is allowed to be empty. The focus kind distin
 
 Insert the indexed-root template:
 
-\[
+$$
   \mathsf{Root}([h_r], [h_i]).
-\]
+$$
 
 Traversal order enters the index before the radicand. Fill $h_i$ with $3$ and $h_r$ with $x+1$ to obtain
 
-\[
+$$
   \mathsf{Root}([x,+,1],[3]).
-\]
+$$
 
 The backends yield forms such as
 
@@ -3344,31 +3344,31 @@ This illustrates a general backend policy: when a target lacks a native visual c
 
 Begin with line
 
-\[
+$$
   [x]
-\]
+$$
 
 and caret after $x$. Apply a superscript command with no supplied content. The target policy chooses the previous expression as the base and allocates an index hole:
 
-\[
+$$
   [x]
   \longrightarrow
   [\mathsf{ScriptSup}([x],[h_0])].
-\]
+$$
 
 The cursor descends to the superscript and selects $h_0$. Inserting $2$ produces
 
-\[
+$$
   [\mathsf{ScriptSup}([x],[2])].
-\]
+$$
 
 Now apply a subscript command at a caret after the scripted expression. The previous expression is already a script. Rather than wrapping it as the base of another script, the command merges attachments:
 
-\[
+$$
   [\mathsf{ScriptSup}([x],[2])]
   \longrightarrow
   [\mathsf{ScriptBoth}([x],[2],[h_1])].
-\]
+$$
 
 After filling $h_1$ with $i$, the tree denotes the notation $x_i^2$. LaTeX rendering is compositionally derived:
 
@@ -3380,9 +3380,9 @@ After filling $h_1$ with $i$, the tree denotes the notation $x_i^2$. LaTeX rende
 
 Suppose the root line is $[x,+,y]$ and all three expressions are selected. Applying superscript constructs
 
-\[
+$$
   [\mathsf{ScriptSup}([x,+,y],[h])].
-\]
+$$
 
 The base is a non-empty sequence, so the renderer can brace it. There is no need for the command to invent a group node; grouping for attachment is a property of the script constructor. An object-language elaborator may still require explicit parentheses depending on precedence.
 
@@ -3390,9 +3390,9 @@ The base is a non-empty sequence, so the renderer can brace it. There is no need
 
 At the start of an empty or non-empty sequence with no previous expression and no selection, applying a script creates a fresh base hole and a fresh attachment hole:
 
-\[
+$$
   [\mathsf{ScriptSup}([h_b],[h_s])].
-\]
+$$
 
 This state is structurally valid and visually communicates both missing components. In the source, a sibling script at position zero is repaired by inserting a hole before it. The rebuilt representation performs the repair inside the constructor.
 
@@ -3400,32 +3400,32 @@ This state is structurally valid and visually communicates both missing componen
 
 Start with $[x]$ and caret after $x$. Applying a hat gives
 
-\[
+$$
   [\mathsf{Accent}(\mathsf{hat},[x])].
-\]
+$$
 
 The source documentation describes this target behavior, but its no-selection branch inserts an empty accent after $x$. The reconstructed rule aligns implementation and description.
 
 With selection $[x,+,y]$, applying an overline yields
 
-\[
+$$
   [\mathsf{Accent}(\mathsf{overline},[x,+,y])].
-\]
+$$
 
 At a sequence start with no selection, it yields
 
-\[
+$$
   [\mathsf{Accent}(\mathsf{hat},[h])]
-\]
+$$
 
 and selects $h$.
 
 Nested application preserves order:
 
-\[
+$$
   \mathsf{Accent}(\mathsf{bar},
     [\mathsf{Accent}(\mathsf{hat},[x])])
-\]
+$$
 
 is not normalized to the reverse nesting. The LaTeX algebra emits nested commands according to the tree.
 
@@ -3433,9 +3433,9 @@ is not normalized to the reverse nesting. The LaTeX algebra emits nested command
 
 An annotated right arrow with label $f$ is
 
-\[
+$$
   \mathsf{AnnotatedArrow}(\mathsf{right},[f]).
-\]
+$$
 
 Its LaTeX rendering is
 
@@ -3457,23 +3457,23 @@ The dedicated constructor makes future extension straightforward. A lower label 
 
 Take line
 
-\[
+$$
   [x,+,y]
-\]
+$$
 
 and select all three expressions. `WrapFn("f")` produces
 
-\[
+$$
   [\mathsf{Function}(f,[x,+,y])].
-\]
+$$
 
 The selection is structurally moved into the argument slot. LaTeX rendering uses `\operatorname{f}` for a nonstandard name and scalable parentheses. A standard name such as `sin` uses `\sin`.
 
 With no selection, the same command creates
 
-\[
+$$
   \mathsf{Function}(f,[h])
-\]
+$$
 
 and focuses the hole. Invalid names are rejected at the command boundary. This lexical check prevents backend command construction from arbitrary punctuation, but it does not assert that $f$ exists in a context.
 
@@ -3485,9 +3485,9 @@ The source includes a special `Hom` template with two holes and a subscript. In 
 
 Consider the numerator of
 
-\[
+$$
   \frac{a+b}{c}.
-\]
+$$
 
 Place a caret after $b$ inside the numerator. Repeated `Grow` commands produce:
 
@@ -3504,33 +3504,33 @@ This behavior is derived from the cursor context rather than pixel geometry. It 
 
 Let history begin as
 
-\[
+$$
   H_0=\langle[],S_0,[]\rangle.
-\]
+$$
 
 Commit fraction insertion to obtain
 
-\[
+$$
   H_1=\langle[S_0],S_1,[]\rangle.
-\]
+$$
 
 Fill the numerator and commit:
 
-\[
+$$
   H_2=\langle[S_0,S_1],S_2,[]\rangle.
-\]
+$$
 
 Undo gives
 
-\[
+$$
   H_3=\langle[S_0],S_1,[S_2]\rangle.
-\]
+$$
 
 Redo returns $H_2$. Instead, if a new root template is inserted from $H_3$, commit produces
 
-\[
+$$
   H_4=\langle[S_0,S_1],S_3,[]\rangle.
-\]
+$$
 
 The old future $[S_2]$ is discarded. This is standard branching-history behavior for a linear undo stack. A persistent history DAG would retain both branches but is outside the current design.
 
@@ -3550,23 +3550,23 @@ The core codec implements rejection. This is safer than silently changing data b
 
 Enter the structural sequence
 
-\[
+$$
   [g,\circ,f].
-\]
+$$
 
 The editor accepts it because it is a valid sequence of atoms and a symbol. In a category-theory signature, elaboration may resolve
 
-\[
+$$
   f:\mathsf{Hom}(A,B),
   \qquad
   g:\mathsf{Hom}(B,C)
-\]
+$$
 
 and construct
 
-\[
+$$
   g\circ f:\mathsf{Hom}(A,C).
-\]
+$$
 
 If instead $g:\mathsf{Hom}(D,C)$ with $D\ne B$, elaboration reports a source/target mismatch at the composition symbol or operands. The editor tree remains valid and editable. This exemplifies the separation between structural soundness and mathematical typing.
 
@@ -3576,10 +3576,10 @@ A typed mode could use the error path to highlight the relevant subinterval and 
 
 Take the structural expression
 
-\[
+$$
   \mathsf{ScriptSup}
   ( [\mathsf{Root}([x,+,1],[3])], [2] ).
-\]
+$$
 
 The same tree may render as:
 
@@ -3691,7 +3691,7 @@ The core inserts typed templates and programmatically constructed syntax. Pastin
 
 A paste pipeline should be:
 
-\[
+$$
   \mathsf{text}_b
   \xrightarrow{\mathsf{parse}_b}
   \mathsf{BackendAST}_b
@@ -3699,7 +3699,7 @@ A paste pipeline should be:
   \Result(\mathsf{Expr}^+,E)
   \xrightarrow{\mathsf{freshen}}
   \mathsf{Expr}^+.
-\]
+$$
 
 Import is not necessarily inverse to rendering; it should preserve as much structure as the common intermediate representation can express and retain unhandled fragments explicitly rather than dropping them.
 
@@ -3709,10 +3709,10 @@ The most important limitation is principled: arbitrary mathematical notation can
 
 The proper extension is a plugin boundary:
 
-\[
+$$
   \mathsf{TheoryPlugin}=
   \langle\Sigma,\mathsf{notations},\mathsf{elaborate},\mathsf{check},\mathsf{diagnose},\mathsf{pretty}\rangle.
-\]
+$$
 
 Each plugin consumes the same MathIR and returns typed core terms or localized diagnostics. Plugins may share infrastructure for metavariables and incremental constraints but must prove their own elaboration and type-soundness properties.
 
@@ -3809,37 +3809,37 @@ The editor can now be summarized by four equations.
 
 The syntax is an initial algebra:
 
-\[
+$$
   \mathsf{Expr}=\mu F.
-\]
+$$
 
 A cursor address resolves to a context and focus:
 
-\[
+$$
   \resolve(R,p)=C[R_f].
-\]
+$$
 
 Editing is an explicit, error-aware transition:
 
-\[
+$$
   \mathsf{reduce}:S\times C\to\Result(S,E).
-\]
+$$
 
 Each backend is a fold:
 
-\[
+$$
   \mathsf{render}_b=\cata(\alpha_b).
-\]
+$$
 
 Around these equations sit the invariants:
 
-\[
+$$
   \text{non-empty slots},
   \quad\text{unique holes},
   \quad\text{valid focus},
   \quad\text{bounded selection},
   \quad\text{versioned decoding}.
-\]
+$$
 
 They are sufficient to make the structural editor coherent. They are not sufficient to prove arbitrary mathematics. For that, the editor tree must elaborate into a typed core under a specified theory, and that core must have its own metatheory and denotation.
 
@@ -3953,7 +3953,7 @@ The source stores unversioned JSON and trusts its shape after parsing. The recon
 
 Let $\mathsf{Slot}(X)=X^+$ and $\mathsf{Line}(X)=X^*$. Expressions are generated by the functor
 
-\[
+$$
 \begin{aligned}
 F(X)={}&A+H+\mathsf{Slot}(X)^2
 +\mathsf{Slot}(X)\times(1+\mathsf{Slot}(X))\\
@@ -3963,7 +3963,7 @@ F(X)={}&A+H+\mathsf{Slot}(X)^2
 &+O\times(1+\mathsf{Slot}(X))^2
 +K\times\mathsf{Slot}(X)+Q\times\mathsf{Slot}(X).
 \end{aligned}
-\]
+$$
 
 Then $\mathsf{Expr}=\mu F$ and $\mathsf{Document}=\mathsf{Line}(\mathsf{Expr})^+$.
 
@@ -3971,7 +3971,7 @@ Then $\mathsf{Expr}=\mu F$ and $\mathsf{Document}=\mathsf{Line}(\mathsf{Expr})^+
 
 The central state predicate is
 
-\[
+$$
 \begin{aligned}
 \Valid(S)\iff{}&|D.\mathsf{lines}|\ge1
 \land\mathsf{allExprsValid}(D)\\
@@ -3981,7 +3981,7 @@ The central state predicate is
 &\land0\le c.\mathsf{anchor},c.\mathsf{head}\le|Z.\mathsf{focus}|\\
 &\land n>\max\mathsf{AutoHoleSuffix}(D).
 \end{aligned}
-\]
+$$
 
 Every present recursive child is a slot and therefore non-empty. Every script has a base and at least one attachment.
 
@@ -3989,13 +3989,13 @@ Every present recursive child is a slot and therefore non-empty. Every script ha
 
 The empty path resolves to a root zipper:
 
-\[
+$$
   R\vdash[]\Downarrow\langle R,\mathsf{line},[]\rangle.
-\]
+$$
 
 A descent step is admissible when index $i$ selects parent $e$ and field $f$ is present with child slot $S$:
 
-\[
+$$
 \frac{
  R=L\mathbin{+\!+}[e]\mathbin{+\!+}U
  \quad |L|=i
@@ -4004,7 +4004,7 @@ A descent step is admissible when index $i$ selects parent $e$ and field $f$ is 
 }{
  R\vdash(i,f)::p\Downarrow
  \langle V,k,\langle\mathsf{kind}(R),L,e,U,f\rangle::K\rangle}.
-\]
+$$
 
 The executable resolver reports invalid indices and fields rather than deriving a judgment.
 
@@ -4012,18 +4012,18 @@ The executable resolver reports invalid indices and fields rather than deriving 
 
 At the root:
 
-\[
+$$
   \plug(\langle R,\mathsf{line},[]\rangle,V)=V.
-\]
+$$
 
 For innermost crumb $\langle k,L,e,U,f\rangle$:
 
-\[
+$$
 \begin{aligned}
  e'&=\mathsf{setChild}(e,f,V),\\
  V'&=L\mathbin{+\!+}[e']\mathbin{+\!+}U,
 \end{aligned}
-\]
+$$
 
 then continue with the outer crumbs. A slot focus rejects $V=[]$.
 
@@ -4031,20 +4031,20 @@ then continue with the outer crumbs. A slot focus rejects $V=[]$.
 
 For valid fixed path $p$ and admissible replacement $V$:
 
-\[
+$$
 \begin{aligned}
 \mathsf{replace}_p(R,\mathsf{focus}_p(R))&=R,\\
 \mathsf{focus}_p(\mathsf{replace}_p(R,V))&=V,\\
 \mathsf{replace}_p(\mathsf{replace}_p(R,V_1),V_2)
   &=\mathsf{replace}_p(R,V_2).
 \end{aligned}
-\]
+$$
 
 ## Command reducer
 
-\[
+$$
   \mathsf{reduce}:S\times C\to E+S.
-\]
+$$
 
 The reducer validates its input, dispatches on the command constructor, and validates every committed output. Successful transitions satisfy preservation.
 
@@ -4052,7 +4052,7 @@ The reducer validates its input, dispatches on the command constructor, and vali
 
 With focused decomposition $R=L+\!+M+\!+U$ and freshened payload $(V',n')$:
 
-\[
+$$
 \frac{
  \resolve(D_\ell,p)=K[R]
  \quad \mathsf{freshen}(V,n)=(V',n')
@@ -4060,7 +4060,7 @@ With focused decomposition $R=L+\!+M+\!+U$ and freshened payload $(V',n')$:
  \langle D,\langle\ell,p,a,h\rangle,n\rangle
  \xrightarrow{\mathsf{Insert}(V)}
  \langle D[\ell:=K[L+\!+V'+\!+U]],c',n'\rangle}.
-\]
+$$
 
 $c'$ selects the first inserted hole or the boundary after the payload.
 
@@ -4068,7 +4068,7 @@ $c'$ selects the first inserted hole or the boundary after the payload.
 
 If deleting selected interval $M$ would leave a recursive slot empty:
 
-\[
+$$
 \frac{
  R=M
  \quad \mathsf{focusKind}=\mathsf{slot}
@@ -4077,15 +4077,15 @@ If deleting selected interval $M$ would leave a recursive slot empty:
  \langle D,c,n\rangle
  \xrightarrow{\mathsf{Backspace}}
  \langle D[\mathsf{focus}:=[h_n]],c_{h_n},n+1\rangle}.
-\]
+$$
 
 ## Rendering
 
 For backend algebra $\alpha_b:F(B_b)\to B_b$:
 
-\[
+$$
   \mathsf{render}_b=\cata(\alpha_b).
-\]
+$$
 
 The concrete carrier is text paired with a list of issues. The visible result ignores hole identities but preserves hole positions.
 
@@ -4093,16 +4093,16 @@ The concrete carrier is text paired with a list of issues. The visible result ig
 
 For signature $\Sigma$ and context $\Gamma$:
 
-\[
+$$
   \Sigma;\Gamma\vdash e\rightsquigarrow t:A\dashv\mathcal C.
-\]
+$$
 
 Only after successful constraint solving is model interpretation defined:
 
-\[
+$$
   \llbracket\Gamma\vdash t:A\rrbracket_{\mathcal M}:
   \llbracket\Gamma\rrbracket_{\mathcal M}\to\llbracket A\rrbracket_{\mathcal M}.
-\]
+$$
 
 # Public API synopsis
 
@@ -4181,15 +4181,15 @@ decodeState(json)
 
 For
 
-\[
+$$
   F(X)=A+X\times X,
-\]
+$$
 
 we have
 
-\[
+$$
   F'(X)=0+(1\times X+X\times1)\cong X+X.
-\]
+$$
 
 The two summands distinguish a hole in the left child with a stored right child and a hole in the right child with a stored left child. A recursive zipper stores a list of these left/right contexts.
 
@@ -4197,23 +4197,23 @@ The two summands distinguish a hole in the left child with a stored right child 
 
 A list with one distinguished element decomposes uniquely as
 
-\[
+$$
   L\mathbin{+\!+}[x]\mathbin{+\!+}R.
-\]
+$$
 
 Erasing the distinguished $x$ leaves the pair $(L,R)\in X^*\times X^*$. Conversely, given $(L,R)$ and a filling $x$, concatenation reconstructs the list. Hence
 
-\[
+$$
   (X^*)'\cong X^*\times X^*.
-\]
+$$
 
 ## Solution 3: PutGet failure by truncation
 
 Suppose `put` silently keeps only the first element of a requested replacement. Let $V=[x,y]$. Then
 
-\[
+$$
   \mathsf{get}(\mathsf{put}(s,V))=[x]\ne[x,y]=V.
-\]
+$$
 
 Thus PutGet fails. The reconstructed replacement operation either installs the complete sequence or returns an error.
 
@@ -4225,9 +4225,9 @@ A fraction constructor requires numerator and denominator slots. If deleting the
 
 For a line whose first expression is a root and whose radicand's second expression is a fraction, the fraction denominator path is
 
-\[
+$$
   [(0,\mathsf{radicand}),(1,\mathsf{denominator})].
-\]
+$$
 
 Resolution first selects the root at index $0$, then its radicand; inside that slot it selects the fraction at index $1$, then its denominator.
 
@@ -4243,10 +4243,10 @@ The line $[g,\circ,f]$ is structurally valid whenever all three atoms are valid.
 
 Given size result $n$ and hole-order result $hs$ for each child, define each constructor result as a pair. For a fraction:
 
-\[
+$$
   \alpha_{\times}(\mathsf{Frac}((n_1,h_1),(n_2,h_2)))
   =(1+n_1+n_2,h_1\mathbin{+\!+}h_2).
-\]
+$$
 
 The induced fold computes size and hole order simultaneously.
 
@@ -4254,9 +4254,9 @@ The induced fold computes size and hole order simultaneously.
 
 Prefix each line-local hole trace with the line index:
 
-\[
+$$
   \mathsf{docTrace}(\ell,p,i)=[\ell]\mathbin{+\!+}\mathsf{trace}(p)\mathbin{+\!+}[i].
-\]
+$$
 
 Lexicographic order then traverses lines in order and holes structurally within each line. Forward and backward jumps wrap at the document ends.
 
@@ -4268,9 +4268,9 @@ A proof-producing decoder first decodes the line index and path, resolves the pa
 
 For carrier XML nodes, define
 
-\[
+$$
   \alpha(\mathsf{Frac}(n,d))=	exttt{<mfrac>}n\;d\texttt{</mfrac>}.
-\]
+$$
 
 Sequences become `<mrow>` nodes; roots become `<msqrt>` or `<mroot>`; scripts become `<msup>`, `<msub>`, or `<msubsup>`. The fold supplies all recursion.
 

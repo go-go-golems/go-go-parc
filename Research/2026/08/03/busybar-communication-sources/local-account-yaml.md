@@ -27,7 +27,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessResponse"
+                \$ref: "#/components/schemas/SuccessResponse"
 
   /api/account/link:
     post:
@@ -43,19 +43,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccountLink"
+                \$ref: "#/components/schemas/AccountLink"
         "400":
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
         "503":
           description: PIN request timeout
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
 
   /api/account/info:
     get:
@@ -70,7 +70,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccountInfo"
+                \$ref: "#/components/schemas/AccountInfo"
 
   /api/account/status:
     get:
@@ -85,7 +85,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccountStatus"
+                \$ref: "#/components/schemas/AccountStatus"
 
   /api/account/backend:
     get:
@@ -100,13 +100,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccountBackend"
+                \$ref: "#/components/schemas/AccountBackend"
         "503":
           description: Failed to serialize MQTT configuration
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
     put:
       tags:
         - Account
@@ -119,14 +119,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AccountBackend"
+              \$ref: "#/components/schemas/AccountBackend"
       responses:
         "200":
           description: Set successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessResponse"
+                \$ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Bad request
           content:

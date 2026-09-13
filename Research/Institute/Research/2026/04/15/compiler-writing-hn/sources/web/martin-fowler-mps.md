@@ -18,7 +18,7 @@ Figure 1: Agreement DSL for a regular plan.
 
 This piece of DSL indicates how a notional utility company reacts to events for customers on its regular plan. The agreement definition consists of values and event handlers, both of which are temporal - their values change over time.
 
-This agreement has one value - the base rate that the customer is charged for electricity. From 1 Oct 1999 it was set at $10 per KwH, on the 1st December it was raised precipitously for $12/KwH.
+This agreement has one value - the base rate that the customer is charged for electricity. From 1 Oct 1999 it was set at \$10 per KwH, on the 1st December it was raised precipitously for \$12/KwH.
 
 The agreement shows reactions to three kinds of events: usage (of electricity), a service call (such as someone coming in to fix a meter), and tax. The handlers are temporal in the same way as the base rate; we can see that the handler for service calls also changed on December 1st.
 

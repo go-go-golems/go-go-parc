@@ -33,11 +33,11 @@ The “agentic” quality often comes less from the LLM itself than from the out
 
 A useful abstraction is:
 
-\[
+$$
 a_t \sim H_\theta(s_t, g, h_t)
-\]
+$$
 
-where \(H_\theta\) is the LLM “heuristic black box,” \(s_t\) is the represented state, \(g\) is the goal, and \(h_t\) is interaction history. The surrounding agent loop then executes the action, observes the result, updates its state, and replans.
+where $H_\theta$ is the LLM “heuristic black box,” $s_t$ is the represented state, $g$ is the goal, and $h_t$ is interaction history. The surrounding agent loop then executes the action, observes the result, updates its state, and replans.
 
 ## The LLM can occupy several classical roles
 
@@ -65,9 +65,9 @@ So it resembles a powerful learned heuristic for satisficing search, not a guara
 
 The LLM can be treated as a policy:
 
-\[
+$$
 \pi_\theta(a \mid s, g)
-\]
+$$
 
 It narrows a huge action space to a few plausible actions. This is particularly valuable in domains where actions are textual or combinatorial, such as:
 
@@ -83,9 +83,9 @@ The outer algorithm can then reject, rank, simulate, or verify those proposals.
 
 When an agent predicts what will happen after a tool call or code modification, the LLM is acting like a transition model:
 
-\[
+$$
 \hat{T}_\theta(s' \mid s,a)
-\]
+$$
 
 This supports model-based planning, but the model is unreliable. Consequently, actual execution and observation are essential. Tool-using agents work better when they behave like model-predictive control: plan briefly, execute, observe, and replan.
 
@@ -93,9 +93,9 @@ This supports model-based planning, but the model is unreliable. Consequently, a
 
 An LLM can score candidate plans:
 
-\[
+$$
 \hat{V}_\theta(s,g)
-\]
+$$
 
 or compare two solutions. This parallels value functions, branch-and-bound bounds, or surrogate objectives.
 
@@ -168,7 +168,7 @@ Memory and summarization therefore act as crude belief-state maintenance. The ag
 
 For example:
 
-\[
+$$
 \text{Prepare report}
 \rightarrow
 \begin{cases}
@@ -177,7 +177,7 @@ For example:
 \text{write findings}\\
 \text{verify claims}
 \end{cases}
-\]
+$$
 
 The hierarchy is learned or improvised rather than manually encoded.
 
@@ -217,17 +217,17 @@ The analogy is strongest when there is an explicit coordinator that combines sub
 
 In classical OR, one generally begins with:
 
-\[
+$$
 \min_x f(x)
-\]
+$$
 
 subject to:
 
-\[
+$$
 g_i(x) \leq 0,\qquad h_j(x)=0.
-\]
+$$
 
-In an LLM agent, \(f\), \(g_i\), \(h_j\), the variables \(x\), and even the available actions may all be inferred during execution.
+In an LLM agent, $f$, $g_i$, $h_j$, the variables $x$, and even the available actions may all be inferred during execution.
 
 Thus the agent is simultaneously trying to:
 
@@ -265,7 +265,7 @@ These are reasons to place verification, constraint enforcement, and state track
 
 This framing suggests that the strongest agent systems will not be “a smarter prompt.” They will be hybrid solvers:
 
-\[
+$$
 \text{Agent}
 =
 \text{explicit algorithm}
@@ -277,7 +277,7 @@ This framing suggests that the strongest agent systems will not be “a smarter 
 \text{hard constraints}
 +
 \text{external verification}.
-\]
+$$
 
 The LLM should handle the parts where learned semantic judgment is valuable:
 

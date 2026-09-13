@@ -468,38 +468,38 @@ This demonstrates an important design rule:
 
 For each sort `S`, let `K_S` be its set of keys. Alias declarations generate a relation:
 
-\[
+$$
 E_S \subseteq K_S \times K_S.
-\]
+$$
 
 The semantic sameness relation is the least equivalence relation containing `E_S`:
 
-\[
+$$
 \sim_S = \operatorname{EqClosure}(E_S).
-\]
+$$
 
 A subject reference is a pair:
 
-\[
+$$
 (S,k), \qquad k \in K_S.
-\]
+$$
 
 Sameness is defined by:
 
-\[
+$$
 (S,k) \approx (T,j)
 \iff
 S=T \land k \sim_S j.
-\]
+$$
 
 The implementation tests reflexivity, symmetry, and transitivity over generated finite graphs.
 
 A snapshot store is a partial map:
 
-\[
+$$
 \operatorname{snapshot} : \sum_S K_S \rightharpoonup
   (\mathbb{N} \times \operatorname{Value}_S).
-\]
+$$
 
 Its update rule requires monotone revisions. This order is independent of the alias equivalence relation.
 
@@ -779,29 +779,29 @@ A production hook needs careful memoization so it does not treat every render as
 
 Let an active occurrence map be:
 
-\[
+$$
 A : \operatorname{OccurrenceId}
   \rightharpoonup
   (\operatorname{Generation} \times \operatorname{Descriptor}).
-\]
+$$
 
 A lease is valid in state `A` when:
 
-\[
+$$
 \operatorname{valid}_A(i,g,\ell)
 \iff
 A(i)=(g,d) \land d.\operatorname{leaseId}=\ell.
-\]
+$$
 
 Cleanup is:
 
-\[
+$$
 \operatorname{cleanup}(A,L)=
 \begin{cases}
 A \setminus \{L.i\}, & \operatorname{valid}_A(L),\\
 A, & \text{otherwise}.
 \end{cases}
-\]
+$$
 
 Commit replaces the current record with a record at a strictly greater generation. Prepared values do not occur in `A`, so abandoning one is unobservable.
 
@@ -1166,11 +1166,11 @@ The declared dependencies permit conservative invalidation and documentation. Th
 
 Let `R_S` be the finite set of records of sort `S`. A selector is interpreted relative to parameters `p` and store revision `r`:
 
-\[
+$$
 \llbracket q \rrbracket_{R,p,r}
 \subseteq
 R_S \times \operatorname{Substitution} \times \operatorname{Evidence}.
-\]
+$$
 
 For a record `x`:
 
@@ -1180,11 +1180,11 @@ For a record `x`:
 
 Compiler correctness is the extensional statement:
 
-\[
+$$
 \operatorname{keys}(\operatorname{execute}(\operatorname{compile}(q),R,p))
 =
 \operatorname{keys}(\llbracket q \rrbracket_{R,p}).
-\]
+$$
 
 The tests compare both evaluators on fixtures and verify that the indexed evaluator examines fewer records for an indexed parameter.
 
@@ -1450,11 +1450,11 @@ The term/unification code is copied into P04 rather than imported from P03. This
 
 For a positive program, let `T_P` be the immediate-consequence operator on sets of ground facts. The intended result is:
 
-\[
+$$
 \operatorname{lfp}(T_P)
 =
 \bigcup_{n \geq 0} T_P^n(B),
-\]
+$$
 
 where `B` is the extensional base database.
 

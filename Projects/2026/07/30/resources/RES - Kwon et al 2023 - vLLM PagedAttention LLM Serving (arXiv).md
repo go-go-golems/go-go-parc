@@ -16,13 +16,13 @@ type: resource
 | Comments: |
 | --- |
 | Subjects: | Machine Learning (cs.LG); Distributed, Parallel, and Cluster Computing (cs.DC) |
-| Cite as: | [arXiv:2309.06180](https://arxiv.org/abs/2309.06180) \[cs.LG\] |
-|  | (or [arXiv:2309.06180v1](https://arxiv.org/abs/2309.06180v1) \[cs.LG\] for this version) |
+| Cite as: | [arXiv:2309.06180](https://arxiv.org/abs/2309.06180) $$cs.LG$$ |
+|  | (or [arXiv:2309.06180v1](https://arxiv.org/abs/2309.06180v1) $$cs.LG$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.2309.06180](https://doi.org/10.48550/arXiv.2309.06180) |
 
 ## Submission history
 
-From: Woosuk Kwon \[[view email](https://arxiv.org/show-email/2fbc22fc/2309.06180)\]  
-**\[v1\]** Tue, 12 Sep 2023 12:50:04 UTC (831 KB)
+From: Woosuk Kwon $$[view email](https://arxiv.org/show-email/2fbc22fc/2309.06180)$$  
+**$$v1$$** Tue, 12 Sep 2023 12:50:04 UTC (831 KB)
 
 [Which authors of this paper are endorsers?](https://arxiv.org/auth/show-endorsers/2309.06180) | Disable MathJax ([What is MathJax?](https://info.arxiv.org/help/mathjax.html))

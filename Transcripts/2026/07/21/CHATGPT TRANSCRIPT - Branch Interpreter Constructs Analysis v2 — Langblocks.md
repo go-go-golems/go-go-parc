@@ -534,7 +534,7 @@ I’m working through the monograph’s structure, checking the references and f
 </details>
 
 ```unknown
-bash -lc sed -n '1,260p' /home/oai/skills/docx/SKILL.md && printf '\n---PDF---\n' && sed -n '1,320p' /home/oai/skills/pdfs/SKILL.md
+bash -lc sed -n '1,260p' /home/oai/skills/docx/SKILL.md && printf '\\n---PDF---\\n' && sed -n '1,320p' /home/oai/skills/pdfs/SKILL.md
 ```
 
 The full textbook draft is complete and undergoing layout checks. It distinguishes registry determinism from callback-state determinism and implemented guarantees from residual assurance gaps.
@@ -797,7 +797,7 @@ for u in urls:
     try:
         r=requests.get(u,timeout=20)
         print(u, r.status_code, r.headers.get('content-type'), len(r.content), r.url)
-        print(r.text[:300].replace('\n',' '))
+        print(r.text[:300].replace('\\n',' '))
     except Exception as e:
         print(u, type(e).__name__, e)
 PY
@@ -842,11 +842,11 @@ for spec in \
 do
   set -- $spec
   url=$1; dir=$2; branch=$3
-  rm -rf /mnt/data/pattern-research/$dir
-  if git clone --depth 1 --branch "$branch" "$url" "/mnt/data/pattern-research/$dir" >/tmp/clone-$dir.log 2>&1; then
-    printf '%-20s ' "$dir"; git -C "/mnt/data/pattern-research/$dir" rev-parse --short=12 HEAD
+  rm -rf /mnt/data/pattern-research/\$dir
+  if git clone --depth 1 --branch "\$branch" "\$url" "/mnt/data/pattern-research/\$dir" >/tmp/clone-\$dir.log 2>&1; then
+    printf '%-20s ' "\$dir"; git -C "/mnt/data/pattern-research/\$dir" rev-parse --short=12 HEAD
   else
-    echo "FAILED $dir"; tail -20 /tmp/clone-$dir.log
+    echo "FAILED \$dir"; tail -20 /tmp/clone-$dir.log
   fi
 done
 ```

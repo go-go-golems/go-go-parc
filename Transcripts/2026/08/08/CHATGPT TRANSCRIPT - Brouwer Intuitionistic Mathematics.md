@@ -13,7 +13,7 @@ The central ideas are:
 
 - **Mathematics is a mental construction.** Mathematical objects do not exist independently of the mathematician. They come into being through constructive mental activity.
 - **Truth requires construction.** A mathematical statement is true only if there is a method (a construction or proof) establishing it. Merely showing that its negation leads to a contradiction is often not enough.
-- **Rejection of unrestricted classical logic.** In particular, Brouwer rejected the unrestricted use of the **Law of Excluded Middle** ("either \(P\) or not \(P\)") for infinite mathematical domains. In intuitionistic mathematics, \(P \lor \neg P\) is accepted only when one can construct either a proof of \(P\) or a proof of \(\neg P\).
+- **Rejection of unrestricted classical logic.** In particular, Brouwer rejected the unrestricted use of the **Law of Excluded Middle** ("either $P$ or not $P$") for infinite mathematical domains. In intuitionistic mathematics, $P \lor \neg P$ is accepted only when one can construct either a proof of $P$ or a proof of $\neg P$.
 
 ### Meaning of logical connectives
 
@@ -21,12 +21,12 @@ In intuitionistic mathematics, logical symbols are interpreted constructively:
 
 | Symbol | Intuitionistic meaning |
 |--------|-------------------------|
-| \(P \land Q\) | A construction proving both \(P\) and \(Q\). |
-| \(P \lor Q\) | A construction proving either \(P\) or \(Q\), together with an indication of which one. |
-| \(P \rightarrow Q\) | A construction (algorithm or method) that transforms any proof of \(P\) into a proof of \(Q\). |
-| \(\neg P\) | A method showing that any proof of \(P\) leads to a contradiction. |
-| \(\exists x\,P(x)\) | A specific object \(a\) together with a proof that \(P(a)\). |
-| \(\forall x\,P(x)\) | A general method that produces a proof of \(P(x)\) for every \(x\). |
+| $P \land Q$ | A construction proving both $P$ and $Q$. |
+| $P \lor Q$ | A construction proving either $P$ or $Q$, together with an indication of which one. |
+| $P \rightarrow Q$ | A construction (algorithm or method) that transforms any proof of $P$ into a proof of $Q$. |
+| $\neg P$ | A method showing that any proof of $P$ leads to a contradiction. |
+| $\exists x\,P(x)$ | A specific object $a$ together with a proof that $P(a)$. |
+| $\forall x\,P(x)$ | A general method that produces a proof of $P(x)$ for every $x$. |
 
 ### Example
 

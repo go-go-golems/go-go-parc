@@ -502,11 +502,11 @@ Reference-free judging is attractive because it scales to tasks without labels. 
 
 Question:
 
-> A shop discounts a $120 item by 25%, then applies 8% tax to the discounted price. What is the final price?
+> A shop discounts a \$120 item by 25%, then applies 8% tax to the discounted price. What is the final price?
 
 Candidate:
 
-> The discount is $30, leaving $90. Adding 8% tax gives $96.20.
+> The discount is \$30, leaving $90. Adding 8% tax gives $96.20.
 
 The reasoning sounds structured. A reference-free judge may accept it. An independent calculation gives
 

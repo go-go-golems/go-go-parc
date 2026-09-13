@@ -271,7 +271,7 @@ static void mqtt_api_http_handler(struct mg_connection* connection, int event, v
 }
 
 static void mqtt_http_proxy_respond_error(const MqttHttpProxyRequest* request) {
-    const char* message = "HTTP/1.1 422 Unprocessable Entity\r\n\r\n";
+    const char* message = "HTTP/1.1 422 Unprocessable Entity\\r\\n\\r\\n";
 
     const MqttProperty props[] = {
         {

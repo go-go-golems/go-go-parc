@@ -46,11 +46,11 @@ The strongest mathematical parallel is actually a kind of **duality**:
 
 A HyperCard stack can be represented as a directed graph
 
-\[
+$$
 G=(V,E),
-\]
+$$
 
-where each HyperCard card is a vertex \(v\in V\), and buttons or scripts produce directed edges between cards.
+where each HyperCard card is a vertex $v\in V$, and buttons or scripts produce directed edges between cards.
 
 *Slay the Spire* contains an explicit branching map, but combat also generates a much larger implicit graph:
 
@@ -71,29 +71,29 @@ This can be expressed more abstractly.
 
 Let game or interface states be objects:
 
-\[
+$$
 X,Y,Z,\ldots
-\]
+$$
 
 A button, script or card play is a morphism:
 
-\[
+$$
 f:X\rightarrow Y.
-\]
+$$
 
 In HyperCard, a button might send the user from one screen to another. In *Slay the Spire*, playing Bash might transform a combat state containing energy, enemy health and status effects into another state.
 
 Actions compose:
 
-\[
+$$
 X\xrightarrow{f}Y\xrightarrow{g}Z,
-\]
+$$
 
 giving
 
-\[
+$$
 g\circ f:X\rightarrow Z.
-\]
+$$
 
 A HyperCard stack is therefore a category of navigable objects. A *Slay the Spire* deck is closer to a **collection of generators** for a category of reachable combat states.
 
@@ -105,11 +105,11 @@ Deckbuilding asks:
 
 In both systems, order matters.
 
-For transformations \(f\) and \(g\), generally
+For transformations $f$ and $g$, generally
 
-\[
+$$
 g\circ f\neq f\circ g.
-\]
+$$
 
 In *Slay the Spire*, applying Vulnerable before an attack differs from attacking first. Drawing cards before discarding differs from discarding before drawing.
 
@@ -124,29 +124,29 @@ So their actions form something like a **noncommutative semigroup of state trans
 
 Mathematically, the cards and scripts are therefore often **partial functions**
 
-\[
+$$
 f:D_f\subseteq X\rightarrow X.
-\]
+$$
 
 ## 4. Dynamical systems
 
 Both can be modeled as discrete-time dynamical systems:
 
-\[
+$$
 x_{t+1}=F_{a_t}(x_t),
-\]
+$$
 
 where:
 
-- \(x_t\) is the complete state at time \(t\);
-- \(a_t\) is the selected button, script or card;
-- \(F_{a_t}\) is the corresponding transformation.
+- $x_t$ is the complete state at time $t$;
+- $a_t$ is the selected button, script or card;
+- $F_{a_t}$ is the corresponding transformation.
 
 HyperCard is usually comparatively deterministic. *Slay the Spire* introduces random draws, rewards, enemy behavior and generated paths. Its transition is therefore more accurately written as
 
-\[
+$$
 x_{t+1}\sim P(\,\cdot\mid x_t,a_t),
-\]
+$$
 
 making it a **Markov decision process**, at least after the state has been defined broadly enough to include all relevant information.
 
@@ -158,7 +158,7 @@ A HyperCard card contains objects whose scripts react to events. citeturn3
 
 A *Slay the Spire* card is also a small program:
 
-\[
+$$
 \text{check cost}
 \rightarrow
 \text{select targets}
@@ -166,22 +166,22 @@ A *Slay the Spire* card is also a small program:
 \text{modify health/status}
 \rightarrow
 \text{trigger secondary effects}.
-\]
+$$
 
 For example, abstractly:
 
-\[
+$$
 \operatorname{Attack}(d):
 (h_{\text{enemy}},e)
 \mapsto
 (h_{\text{enemy}}-d,e-c).
-\]
+$$
 
 Relics, powers and statuses behave like program modifiers. They may transform the meaning of every relevant card:
 
-\[
+$$
 f_c\longmapsto R(f_c).
-\]
+$$
 
 This resembles middleware, decorators or transformations over functions.
 
@@ -189,27 +189,27 @@ This resembles middleware, decorators or transformations over functions.
 
 Pairwise card comparisons are often inadequate. A card may become strong only in the presence of several other components:
 
-\[
+$$
 \{\text{card},\text{relic},\text{power},\text{status}\}.
-\]
+$$
 
 This is naturally represented by a **hypergraph**, where a hyperedge can join more than two elements.
 
 A simplified value function might be expanded as
 
-\[
+$$
 V(S)=
 \sum_i a_i
 +\sum_{i<j}b_{ij}
 +\sum_{i<j<k}c_{ijk}
 +\cdots
-\]
+$$
 
 Here:
 
-- \(a_i\) is an individual card’s value;
-- \(b_{ij}\) is pairwise synergy;
-- \(c_{ijk}\) is a genuinely three-way interaction.
+- $a_i$ is an individual card’s value;
+- $b_{ij}$ is pairwise synergy;
+- $c_{ijk}$ is a genuinely three-way interaction.
 
 Research using *Slay the Spire* interactions has found that even identifying positive and negative card synergies requires careful treatment of timing, rules and game state. citeturn376222academia38
 
@@ -223,11 +223,11 @@ In HyperCard, the current screen is a local view of the stack’s navigation gra
 
 This creates two layers:
 
-\[
+$$
 \text{actual state }x
 \qquad\text{and}\qquad
 \text{observed state }o(x).
-\]
+$$
 
 The player acts on the second while consequences occur in the first.
 
@@ -239,19 +239,19 @@ The major difference is agency over the system.
 
 In HyperCard, the user can usually modify the graph and its transition rules:
 
-\[
+$$
 (G,F)\longmapsto(G',F').
-\]
+$$
 
 In *Slay the Spire*, the player generally cannot rewrite the underlying rules. Instead, the player selects a constrained subsystem by constructing a deck:
 
-\[
+$$
 \mathcal F_{\text{all cards}}
 \supset
 \mathcal F_{\text{run}}
 \supset
 \mathcal F_{\text{current hand}}.
-\]
+$$
 
 HyperCard is therefore primarily a **system-construction environment**. *Slay the Spire* is a **system-selection and optimization problem**.
 
@@ -259,19 +259,19 @@ HyperCard is therefore primarily a **system-construction environment**. *Slay th
 
 Both systems can be reduced to:
 
-\[
+$$
 \boxed{\text{objects}+\text{local rules}+\text{composition}+\text{navigation}}
-\]
+$$
 
 But they assign “cardness” to opposite sides of the structure:
 
-\[
+$$
 \boxed{
 \begin{aligned}
 \text{HyperCard card} &\approx \text{object/state},\\
 \text{Slay the Spire card} &\approx \text{morphism/operator}.
 \end{aligned}}
-\]
+$$
 
 That is the most interesting abstract-mathematical parallel: **HyperCard spatializes programs, while Slay the Spire operationalizes cards.**
 
@@ -282,21 +282,21 @@ That is the most interesting abstract-mathematical parallel: **HyperCard spatial
 
 **No-regret learning** fits *Slay the Spire* more naturally than HyperCard because repeated runs create an online decision problem.
 
-Let \(a_t\) be the strategy chosen on run \(t\), and let \(\ell_t(a_t)\) be its loss. Regret after \(T\) runs is
+Let $a_t$ be the strategy chosen on run $t$, and let $\ell_t(a_t)$ be its loss. Regret after $T$ runs is
 
-\[
+$$
 R_T
 =
 \sum_{t=1}^{T}\ell_t(a_t)
 -
 \min_{a\in A}\sum_{t=1}^{T}\ell_t(a).
-\]
+$$
 
 A learner is no-regret when
 
-\[
+$$
 \frac{R_T}{T}\to 0.
-\]
+$$
 
 Meaning: over many runs, its average performance becomes almost as good as the best fixed strategy it could have chosen in hindsight.
 
@@ -312,17 +312,17 @@ Treat strategies as “experts,” for example:
 
 After each run, update the weight of each strategy according to how well it would have performed:
 
-\[
+$$
 w_{t+1}(a)
 =
 w_t(a)e^{-\eta \ell_t(a)}.
-\]
+$$
 
 Then choose strategies with probability
 
-\[
+$$
 p_t(a)=\frac{w_t(a)}{\sum_b w_t(b)}.
-\]
+$$
 
 This is multiplicative weights. Poor heuristics gradually lose influence, but exploration is preserved.
 
@@ -332,11 +332,11 @@ The key point is that no-regret learning does **not** require finding the global
 
 The same idea can be applied at each decision type:
 
-\[
+$$
 s_t \mapsto a_t,
-\]
+$$
 
-where \(s_t\) might encode:
+where $s_t$ might encode:
 
 - current deck;
 - health;
@@ -350,9 +350,9 @@ For card rewards, the alternatives are the offered cards plus “skip.” The le
 
 Because only the result of the selected card is observed, this is often a **contextual bandit** rather than full-information learning:
 
-\[
+$$
 a_t\sim \pi_t(\cdot\mid s_t).
-\]
+$$
 
 The context is the current run state; the reward may be survival, damage avoided, probability of winning, or eventual score.
 
@@ -360,28 +360,28 @@ The context is the current run state; the reward may be survival, damage avoided
 
 The environment is not stationary. Choosing a card changes the deck, which changes the value of later cards. Thus losses are endogenous:
 
-\[
+$$
 \ell_t(a)
 =
 \ell(a;s_t),
 \qquad
 s_{t+1}=F(s_t,a_t,\xi_t).
-\]
+$$
 
 A card does not have a fixed value. Its value depends on the trajectory produced by previous decisions.
 
 So the more suitable comparator is often not “best fixed card,” but the best policy in a class:
 
-\[
+$$
 R_T
 =
 \sum_{t=1}^{T}\ell_t(\pi_t)
 -
 \min_{\pi\in\Pi}
 \sum_{t=1}^{T}\ell_t(\pi).
-\]
+$$
 
-Examples of \(\Pi\):
+Examples of $\Pi$:
 
 - all linear card-evaluation rules;
 - all threshold policies;
@@ -394,11 +394,11 @@ HyperCard supplies the **representation of the learning process**.
 
 Each card can represent a state or context. Buttons represent actions. Scripts update the weights attached to possible transitions:
 
-\[
+$$
 w_{t+1}(s,a)
 =
 w_t(s,a)e^{\eta r_t}.
-\]
+$$
 
 Thus a HyperCard stack could implement a no-regret learner as a navigable graph:
 
@@ -411,13 +411,13 @@ Thus a HyperCard stack could implement a no-regret learner as a navigable graph:
 
 The synthesis is:
 
-\[
+$$
 \boxed{
 \text{HyperCard represents the adaptive policy graph;}
 \quad
 \text{Slay the Spire supplies the online decision process.}
 }
-\]
+$$
 
 More abstractly, the learner repeatedly chooses morphisms in a changing category of states, then reweights those morphisms so that its long-run regret against a comparator class vanishes.
 

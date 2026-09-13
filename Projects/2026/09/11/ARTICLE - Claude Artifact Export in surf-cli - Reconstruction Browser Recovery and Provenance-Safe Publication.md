@@ -57,9 +57,9 @@ Each file has a separate role. `conversation.json` retains the structured API re
 
 The stable unit of identity is the conversation UUID, not its title. Titles can change, collide, contain path separators, or describe several revisions of a project. Artifact basenames are also not globally unique. The pair
 
-\[
+$$
 (\text{conversation UUID}, \text{artifact-relative path})
-\]
+$$
 
 is the minimum practical identity used by the export and publication system.
 
@@ -124,9 +124,9 @@ Modern Claude artifacts often appear as files under `/mnt/user-data/outputs/`. C
 
 The reconstruction state is a mapping from sandbox path to current text:
 
-\[
+$$
 F_t : \text{path} \rightarrow \text{content at operation } t
-\]
+$$
 
 A `create_file` or `rewrite` operation assigns complete content. A successful `str_replace` performs one ordered replacement. A parsed heredoc writes or appends its body. A parsed `cp` copies known content; `mv` also removes the source. A full `view` result can replace reconstructed state because it reports the sandbox's file content at that point.
 
@@ -293,13 +293,13 @@ A global history query cannot determine which conversation produced a matching f
 
 The unsafe rule was:
 
-\[
+$$
 \text{same basename} \Rightarrow \text{same artifact}
-\]
+$$
 
 The corrected acceptance rule is:
 
-\[
+$$
 \begin{aligned}
 &\text{basename is named by this conversation's unresolved warning} \\
 \land{}&\text{the rendered card in this conversation matches the basename and extension} \\
@@ -307,7 +307,7 @@ The corrected acceptance rule is:
 \land{}&\text{the record completed without error} \\
 \land{}&\text{the file is inside the configured download directory}
 \end{aligned}
-\]
+$$
 
 All conditions are required. The final implementation does not reuse global history to recover an unresolved artifact. This means a retry can still fail if Chrome refuses to create a fresh record, but it cannot silently substitute a same-named artifact from another conversation. For preservation systems, explicit incompleteness is preferable to false provenance.
 

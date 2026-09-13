@@ -1,8 +1,8 @@
 The [cyclic redundancy check](https://en.wikipedia.org/wiki/Cyclic_redundancy_check "Cyclic 
 redundancy check") (CRC) is a check of the [remainder](https://en.wikipedia.org/wiki/Remainder 
-"Remainder") after [division](https://en.wikipedia.org/wiki/Division_\(mathematics\) "Division 
+"Remainder") after [division](https://en.wikipedia.org/wiki/Division_$mathematics$ "Division 
 (mathematics)") in the [ring of polynomials](https://en.wikipedia.org/wiki/Polynomial_ring 
-"Polynomial ring") over [GF(2)](https://en.wikipedia.org/wiki/GF\(2\) "GF(2)") (the [finite 
+"Polynomial ring") over [GF(2)](https://en.wikipedia.org/wiki/GF$2$ "GF(2)") (the [finite 
 field](https://en.wikipedia.org/wiki/Finite_field "Finite field") of [integers 
 modulo](https://en.wikipedia.org/wiki/Modular_arithmetic "Modular arithmetic") 2). That is, the set 
 of [polynomials](https://en.wikipedia.org/wiki/Polynomial "Polynomial") where each 
@@ -292,14 +292,14 @@ Variations](#Variations).
 coefficients. The error polynomial is ${\displaystyle x^{k}}$, and ${\displaystyle x^{k}}$ is 
 divisible only by polynomials ${\displaystyle x^{i}}$ where ${\displaystyle i\leq k}$.
 - All two bit errors separated by a distance less than the 
-[order](https://en.wikipedia.org/wiki/Order_\(group_theory\) "Order (group theory)") of the 
+[order](https://en.wikipedia.org/wiki/Order_$group_theory$ "Order (group theory)") of the 
 *primitive polynomial which is a factor of the generator polynomial* will be detected. The error 
 polynomial in the two bit case is ${\displaystyle E(x)=x^{i}+x^{k}=x^{k}\cdot (x^{i-k}+1),\;i>k}$. 
 As noted above, the ${\displaystyle x^{k}}$ term will not be divisible by the CRC polynomial, which 
 leaves the ${\displaystyle x^{i-k}+1}$ term. By definition, the smallest value of ${\displaystyle 
 {i-k}}$ such that a polynomial divides ${\displaystyle x^{i-k}+1}$ is the polynomial's order *or 
 exponent*. The polynomials with the largest order are called [primitive 
-polynomials](https://en.wikipedia.org/wiki/Primitive_polynomial_\(field_theory\) "Primitive 
+polynomials](https://en.wikipedia.org/wiki/Primitive_polynomial_$field_theory$ "Primitive 
 polynomial (field theory)"), and for polynomials of degree ${\displaystyle n}$ with binary 
 coefficients, have order ${\displaystyle 2^{n}-1}$.
 - All errors in an odd number of bits will be detected by a polynomial which is a multiple of 
@@ -365,14 +365,14 @@ correction will be erroneous itself and produce more errors.
 [^1]: Koopman, Philip (July 2002). ["32-bit cyclic redundancy codes for Internet 
 applications"](http://www.ece.cmu.edu/~koopman/networks/dsn02/dsn02_koopman.pdf) (PDF). 
 *Proceedings International Conference on Dependable Systems and Networks*. pp. 459–468. 
-[CiteSeerX](https://en.wikipedia.org/wiki/CiteSeerX_\(identifier\) "CiteSeerX (identifier)") 
+[CiteSeerX](https://en.wikipedia.org/wiki/CiteSeerX_$identifier$ "CiteSeerX (identifier)") 
 [10.1.1.11.8323](https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.11.8323). 
-[doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi 
+[doi](https://en.wikipedia.org/wiki/Doi_$identifier$ "Doi 
 (identifier)"):[10.1109/DSN.2002.1028931](https://doi.org/10.1109%2FDSN.2002.1028931). 
-[ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") 
+[ISBN](https://en.wikipedia.org/wiki/ISBN_$identifier$ "ISBN (identifier)") 
 [978-0-7695-1597-7](https://en.wikipedia.org/wiki/Special:BookSources/978-0-7695-1597-7 
 "Special:BookSources/978-0-7695-1597-7"). 
-[S2CID](https://en.wikipedia.org/wiki/S2CID_\(identifier\) "S2CID (identifier)") 
+[S2CID](https://en.wikipedia.org/wiki/S2CID_$identifier$ "S2CID (identifier)") 
 [14775606](https://api.semanticscholar.org/CorpusID:14775606). Retrieved 14 January 2011. - 
 verification of Castagnoli's results by exhaustive search and some new good polynomials
 
@@ -380,13 +380,13 @@ verification of Castagnoli's results by exhaustive search and some new good poly
 selection for embedded 
 networks"](http://www.ece.cmu.edu/~koopman/roses/dsn04/koopman04_crc_poly_embedded.pdf) (PDF). 
 *International Conference on Dependable Systems and Networks, 2004*. pp. 145–154. 
-[CiteSeerX](https://en.wikipedia.org/wiki/CiteSeerX_\(identifier\) "CiteSeerX (identifier)") 
+[CiteSeerX](https://en.wikipedia.org/wiki/CiteSeerX_$identifier$ "CiteSeerX (identifier)") 
 [10.1.1.648.9080](https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.648.9080). 
-[doi](https://en.wikipedia.org/wiki/Doi_\(identifier\) "Doi 
+[doi](https://en.wikipedia.org/wiki/Doi_$identifier$ "Doi 
 (identifier)"):[10.1109/DSN.2004.1311885](https://doi.org/10.1109%2FDSN.2004.1311885). 
-[ISBN](https://en.wikipedia.org/wiki/ISBN_\(identifier\) "ISBN (identifier)") 
+[ISBN](https://en.wikipedia.org/wiki/ISBN_$identifier$ "ISBN (identifier)") 
 [978-0-7695-2052-0](https://en.wikipedia.org/wiki/Special:BookSources/978-0-7695-2052-0 
 "Special:BookSources/978-0-7695-2052-0"). 
-[S2CID](https://en.wikipedia.org/wiki/S2CID_\(identifier\) "S2CID (identifier)") 
+[S2CID](https://en.wikipedia.org/wiki/S2CID_$identifier$ "S2CID (identifier)") 
 [793862](https://api.semanticscholar.org/CorpusID:793862). Retrieved 14 January 2011. – analysis 
 of short CRC polynomials for embedded applications

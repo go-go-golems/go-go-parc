@@ -109,26 +109,26 @@ Important cutting variables include:
 
 For milling:
 
-\[
+$$
 \text{Feed rate} = \text{RPM} \times \text{number of flutes} \times \text{feed per tooth}
-\]
+$$
 
 Metric spindle-speed relationship:
 
-\[
+$$
 \text{RPM} = \frac{V_c \times 1000}{\pi D}
-\]
+$$
 
 where:
 
-- \(V_c\) is cutting speed in metres per minute.
-- \(D\) is tool diameter in millimetres.
+- $V_c$ is cutting speed in metres per minute.
+- $D$ is tool diameter in millimetres.
 
 Approximate material-removal rate:
 
-\[
+$$
 \text{MRR} = \text{axial depth} \times \text{radial width} \times \text{feed rate}
-\]
+$$
 
 The correct values depend on the tool manufacturer’s recommendations, workpiece material, tool overhang, machine rigidity, coolant, and toolpath.
 

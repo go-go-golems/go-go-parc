@@ -37,18 +37,18 @@ I’m interpreting “15 feet long and triple-decked” as a commercial, multi-l
 
 If you mean a **huge university lecture-hall blackboard—about 15 ft wide, with three boards stacked/sliding so you can move them up and down**—I’d budget roughly **$10,000–$20,000 installed** for the real thing.
 
-Current institutional systems give a good baseline: an AARCO vertical sliding porcelain-chalkboard system is around **$5,000** before you get into a 15-ft custom configuration, while comparable Ghent 12-ft sliding systems list around **$7,800–$9,400**. Claridge also makes the actual university-style multi-track systems with porcelain chalkboard surfaces, generally as custom/quote products. citeturn884605search36turn884605search1turn884605search12
+Current institutional systems give a good baseline: an AARCO vertical sliding porcelain-chalkboard system is around **\$5,000** before you get into a 15-ft custom configuration, while comparable Ghent 12-ft sliding systems list around **\$7,800–\$9,400**. Claridge also makes the actual university-style multi-track systems with porcelain chalkboard surfaces, generally as custom/quote products. citeturn884605search36turn884605search1turn884605search12
 
 For what you're describing, I'd expect approximately:
 
-- **15-ft × ~4-ft porcelain-steel blackboard surfaces:** $4,000–$7,000
+- **15-ft × ~4-ft porcelain-steel blackboard surfaces:** \$4,000–$7,000
 - **Triple-deck / counterweighted sliding mechanism + frame:** $3,000–$7,000
-- **Freight:** $500–$2,000, because these things are enormous and heavy
-- **Professional installation / wall reinforcement:** $2,000–$5,000
-- **Likely total:** **$10k–$20k**
-- If you want a really elaborate **three-level, vertically counterweighted lecture-hall system**, custom built into the wall: **$15k–$30k+** would not surprise me.
+- **Freight:** $500–\$2,000, because these things are enormous and heavy
+- **Professional installation / wall reinforcement:** \$2,000–$5,000
+- **Likely total:** **$10k–\$20k**
+- If you want a really elaborate **three-level, vertically counterweighted lecture-hall system**, custom built into the wall: **\$15k–\$30k+** would not surprise me.
 
-The actual chalkboard material isn't insanely expensive. For comparison, large ceramic-steel chalkboard wall panels are currently sold up to **24 ft × 8 ft for about $5,070**; it's the sliding mechanism, structural frame, freight, and installation that turn it into an expensive project. citeturn748996search0
+The actual chalkboard material isn't insanely expensive. For comparison, large ceramic-steel chalkboard wall panels are currently sold up to **24 ft × 8 ft for about \$5,070**; it's the sliding mechanism, structural frame, freight, and installation that turn it into an expensive project. citeturn748996search0
 
 And definitely get **porcelain-enamel/ceramic steel**, not chalkboard paint. That's the hard, magnetic, extremely durable surface used for institutional boards. citeturn748996search0turn884605search19
 

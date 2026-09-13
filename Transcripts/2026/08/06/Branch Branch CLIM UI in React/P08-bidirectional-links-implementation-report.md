@@ -132,21 +132,21 @@ This is not a wrapper around the original `World` class. The laboratory extracts
 
 ## 3.1 Worlds, endpoints, and values
 
-Let \(W\) be the space of product worlds. An endpoint reference \(p\) has a semantic sort \(S_p\), a read function, and a write operation:
+Let $W$ be the space of product worlds. An endpoint reference $p$ has a semantic sort $S_p$, a read function, and a write operation:
 
-\[
+$$
   \mathsf{read}_p : W \to S_p
-\]
+$$
 
-\[
+$$
   \mathsf{write}_p : W \times S_p \to W.
-\]
+$$
 
 The implementation treats writes transactionally by cloning the durable state before applying a command. Endpoint definitions also declare one or more resource keys:
 
-\[
+$$
   \mathsf{resources}(p) \subseteq \mathcal{R}.
-\]
+$$
 
 Resource keys state which underlying product entities may be changed by a write. They are needed because two different endpoints can overlap. For example:
 
@@ -159,11 +159,11 @@ A title write through the first endpoint can change the value observed by the se
 
 ## 3.2 Consistency relations
 
-For left sort \(L\), right sort \(R\), and complement state \(C\), a relation specification contains a predicate:
+For left sort $L$, right sort $R$, and complement state $C$, a relation specification contains a predicate:
 
-\[
+$$
   \mathcal{K} \subseteq L \times R \times C.
-\]
+$$
 
 The executable form is:
 
@@ -178,17 +178,17 @@ The `differences` field is explanatory evidence. It is not part of the mathemati
 
 A left-to-right repair may update the right value, the complement, or both:
 
-\[
+$$
   \mathsf{putR} : L \times R \times C
     \rightharpoonup R \times C.
-\]
+$$
 
 A right-to-left repair is:
 
-\[
+$$
   \mathsf{putL} : L \times R \times C
     \rightharpoonup L \times C.
-\]
+$$
 
 The hooked arrow denotes partiality. The implementation returns a tagged result rather than throwing for a domain-level repair failure:
 
@@ -241,11 +241,11 @@ The baseline is the last known consistent state. Dirty flags record which side c
 
 ## 3.6 Runtime transition system
 
-Let \(\Sigma\) be the complete runtime state and \(C\) a command. The runtime implements a deterministic transition:
+Let $\Sigma$ be the complete runtime state and $C$ a command. The runtime implements a deterministic transition:
 
-\[
+$$
   \mathsf{dispatch} : \Sigma \times C \to \Sigma \times \mathsf{Result}.
-\]
+$$
 
 Commands include:
 
@@ -264,11 +264,11 @@ An endpoint edit adds affected resources to a work queue. Active incident links 
 
 ## 3.7 Quiescence
 
-For a finite active link graph, propagation seeks a state \(\Sigma^*\) such that another propagation round performs no endpoint write:
+For a finite active link graph, propagation seeks a state $\Sigma^*$ such that another propagation round performs no endpoint write:
 
-\[
+$$
   F(\Sigma^*) = \Sigma^*.
-\]
+$$
 
 P08 does not claim that arbitrary user-defined relations always converge. The runtime imposes a maximum propagation-step limit and transitions the transaction to an explicit non-convergence error if the limit is exceeded.
 
@@ -310,31 +310,31 @@ Typed sorts reject invalid links before they are installed.
 
 ### Equal instant
 
-\[
+$$
   l = r.
-\]
+$$
 
 Either repair copies the source instant. A two-sided conflict has no commutative merge, although rollback to the baseline remains available.
 
 ### Equal text
 
-\[
+$$
   l = r.
-\]
+$$
 
 This relation is used in the action-item-to-task-title link.
 
 ### Equal contact set
 
-\[
+$$
   \mathrm{set}(l) = \mathrm{set}(r).
-\]
+$$
 
 Values are canonicalized by uniqueness and sorting. The merge operation is set union:
 
-\[
+$$
   l \sqcup r = l \cup r.
-\]
+$$
 
 The relation declares and tests idempotence, commutativity, and associativity of this merge algebra.
 
@@ -342,21 +342,21 @@ The relation declares and tests idempotence, commutativity, and associativity of
 
 The consistency relation requires:
 
-\[
+$$
   \mathsf{event.start} = \mathsf{task.due},
-\]
+$$
 
-\[
+$$
   \mathsf{event.end}
     = \mathsf{event.start} + \mathsf{complement.durationMs},
-\]
+$$
 
 and:
 
-\[
+$$
   \mathsf{event.title}
     = \texttt{"Focus: "} + \mathsf{normalize}(\mathsf{task.title}).
-\]
+$$
 
 Repair from the task normalizes the event title, moves the event, and preserves duration. Repair from the event reads start and normalized title into the task and updates the duration complement.
 
@@ -509,19 +509,19 @@ The trace tab shows the most recent runtime records. Export writes the durable r
 
 For every successful left repair sample:
 
-\[
+$$
   \mathsf{putR}(l,r,c)=(r',c')
   \Longrightarrow
   \mathcal{K}(l,r',c').
-\]
+$$
 
 For every successful right repair sample:
 
-\[
+$$
   \mathsf{putL}(l,r,c)=(l',c')
   \Longrightarrow
   \mathcal{K}(l',r,c').
-\]
+$$
 
 ## 6.2 Idempotent repair on a consistent pair
 
@@ -535,26 +535,26 @@ The audit checks sample-level round trips in both directions. For the structured
 
 For the contact-set merge, the audit checks:
 
-\[
+$$
   a \sqcup a = a,
-\]
+$$
 
-\[
+$$
   a \sqcup b = b \sqcup a,
-\]
+$$
 
-\[
+$$
   (a \sqcup b) \sqcup c = a \sqcup (b \sqcup c).
-\]
+$$
 
 ## 6.5 Active-link invariant
 
 After a successful transaction reaches quiescence:
 
-\[
+$$
   \forall \ell \in \mathsf{ActiveLinks},
   \quad \mathcal{K}_\ell(l_\ell,r_\ell,c_\ell).
-\]
+$$
 
 The randomized test performs 250 active edits across the laboratory graph and checks this invariant after every transaction.
 
@@ -562,10 +562,10 @@ The randomized test performs 250 active edits across the laboratory graph and ch
 
 Removing a link changes topology but performs no endpoint write:
 
-\[
+$$
   \mathsf{read}_{p}(W_{before})
     = \mathsf{read}_{p}(W_{after})
-\]
+$$
 
 for each former endpoint of the removed link.
 

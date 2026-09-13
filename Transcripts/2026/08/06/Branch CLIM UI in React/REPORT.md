@@ -113,7 +113,7 @@ pipeline output  : DocumentRef, read
 
 Both use `DocumentRef`; they do not mean the same interface. Making them one cell would allow a primary selector to overwrite a derived result or would make the primary selector unexpectedly read-only. The compatibility judgment therefore checks:
 
-\[
+$$
 \begin{aligned}
 &\text{semanticTag},\ 
 \text{payloadSort},\ 
@@ -123,7 +123,7 @@ Both use `DocumentRef`; they do not mean the same interface. Making them one cel
 \text{updateAlgebra},\ 
 \text{lifetime}.
 \end{aligned}
-\]
+$$
 
 This is intentionally conservative. Future studies may define variance or subtyping for particular fields, but P06’s identity operation uses definitional equality.
 
@@ -174,48 +174,48 @@ The link declaration is retained after compilation. This is essential because th
 
 ### 2.4 The typed quotient
 
-Fix a normalized contract \(\tau\). Let:
+Fix a normalized contract $\tau$. Let:
 
-- \(P_\tau\) be the finite set of declared port occurrences with contract \(\tau\);
-- \(R_\tau\) be the finite set of active identity-link declarations in that fiber;
-- \(s_\tau,t_\tau:R_\tau\rightrightarrows P_\tau\) select the two endpoints of each declaration.
+- $P_\tau$ be the finite set of declared port occurrences with contract $\tau$;
+- $R_\tau$ be the finite set of active identity-link declarations in that fiber;
+- $s_\tau,t_\tau:R_\tau\rightrightarrows P_\tau$ select the two endpoints of each declaration.
 
 The compiler produces:
 
-\[
+$$
 q_\tau:P_\tau\to Q_\tau
-\]
+$$
 
 such that:
 
-\[
+$$
 q_\tau\circ s_\tau=q_\tau\circ t_\tau.
-\]
+$$
 
-In `Set`, \(Q_\tau\) is the quotient of \(P_\tau\) by the smallest equivalence relation containing all endpoint pairs. Operationally, it is the connected-component partition of the undirected link graph.
+In `Set`, $Q_\tau$ is the quotient of $P_\tau$ by the smallest equivalence relation containing all endpoint pairs. Operationally, it is the connected-component partition of the undirected link graph.
 
 The implementation performs this construction independently in each contract fiber. No class may contain ports with different contract fingerprints.
 
 ### 2.5 Universal factorization
 
-Let \(g:P_\tau\to X\) be any interpretation that respects every link:
+Let $g:P_\tau\to X$ be any interpretation that respects every link:
 
-\[
+$$
 \forall r\in R_\tau,\quad
  g(s_\tau(r))=g(t_\tau(r)).
-\]
+$$
 
 Then there is a unique map:
 
-\[
+$$
 \bar g:Q_\tau\to X
-\]
+$$
 
 such that:
 
-\[
+$$
 g=\bar g\circ q_\tau.
-\]
+$$
 
 The registry exposes a finite executable form:
 
@@ -354,11 +354,11 @@ interface PortProjection<T> {
 
 Every projection in one class points to the same `SharedCell` object. Therefore, provided a component reads and writes through its projection:
 
-\[
+$$
 q(p)=q(p')
 \implies
 v(q(p))=v(q(p')).
-\]
+$$
 
 This is an aliasing guarantee. It is not a scheduling theorem for arbitrary component-local state.
 

@@ -132,17 +132,17 @@ The `by` block uses tactics. Tactics manipulate the current proof state while co
 
 The thesis requires three central laws:
 
-\[
+$$
 a \sqcup b=b\sqcup a
-\]
+$$
 
-\[
+$$
 (a\sqcup b)\sqcup c=a\sqcup(b\sqcup c)
-\]
+$$
 
-\[
+$$
 a\sqcup a=a
-\]
+$$
 
 These correspond to delivery-order independence, batching independence, and duplicate/retry safety. fileciteturn0file0L764-L776
 
@@ -978,17 +978,17 @@ That removes the need to memorize uncommon symbols.
 
 </details>
 
-The **immediate consequence operator induced by a rule set \(R\)** is the function that takes the facts currently known and returns the facts derivable by **one application** of the rules.
+The **immediate consequence operator induced by a rule set $R$** is the function that takes the facts currently known and returns the facts derivable by **one application** of the rules.
 
 Suppose rules have the form
 
-\[
+$$
 B_1 \land \cdots \land B_n \rightarrow H.
-\]
+$$
 
-For a set of known facts \(I\), define
+For a set of known facts $I$, define
 
-\[
+$$
 T_R(I)
 =
 \left\{
@@ -996,7 +996,7 @@ H \;\middle|\;
 \text{some ground instance }(B_1\land\cdots\land B_n\rightarrow H)\text{ of a rule in }R,
 \;B_1,\dots,B_n\in I
 \right\}.
-\]
+$$
 
 “Ground” means that all variables have been replaced by concrete terms.
 
@@ -1004,7 +1004,7 @@ H \;\middle|\;
 
 Let
 
-\[
+$$
 R =
 \left\{
 \begin{aligned}
@@ -1014,49 +1014,49 @@ R =
    \rightarrow \operatorname{ancestor}(x,z)
 \end{aligned}
 \right\}.
-\]
+$$
 
 Start with
 
-\[
+$$
 I_0 =
 \{
 \operatorname{parent}(a,b),
 \operatorname{parent}(b,c)
 \}.
-\]
+$$
 
 One application gives
 
-\[
+$$
 T_R(I_0)
 =
 \{
 \operatorname{grandparent}(a,c)
 \}.
-\]
+$$
 
-The second rule cannot yet fire because `grandparent(a,c)` was not in the **input** \(I_0\). After another iteration:
+The second rule cannot yet fire because `grandparent(a,c)` was not in the **input** $I_0$. After another iteration:
 
-\[
+$$
 T_R(T_R(I_0))
 =
 \{
 \operatorname{ancestor}(a,c)
 \},
-\]
+$$
 
-depending on whether \(T_R\) is defined as producing only newly derivable facts or all rule conclusions. In fixed-point presentations one often uses the inflationary form
+depending on whether $T_R$ is defined as producing only newly derivable facts or all rule conclusions. In fixed-point presentations one often uses the inflationary form
 
-\[
+$$
 F_R(I)=I\cup T_R(I),
-\]
+$$
 
 so facts accumulate:
 
-\[
+$$
 I_0,\quad F_R(I_0),\quad F_R^2(I_0),\ldots
-\]
+$$
 
 until a fixed point is reached.
 
@@ -1064,33 +1064,33 @@ That fixed point is the closure of the initial facts under the rules.
 
 ## Why it is called “immediate”
 
-A fact is an **immediate consequence** of \(I\) when one rule application is enough, with every premise already present in \(I\).
+A fact is an **immediate consequence** of $I$ when one rule application is enough, with every premise already present in $I$.
 
 It is not necessarily a consequence requiring several inference steps. Multi-step consequences appear by iteration:
 
-\[
+$$
 T_R^0(\varnothing),\;
 T_R^1(\varnothing),\;
 T_R^2(\varnothing),\ldots
-\]
+$$
 
-For definite logic programs, the least fixed point of \(T_R\) gives the program’s least Herbrand model.
+For definite logic programs, the least fixed point of $T_R$ gives the program’s least Herbrand model.
 
 ## Connection to your thesis
 
 The thesis’s proof-rank process is closely related. It starts with seed derivations, gives their outputs rank zero, and repeatedly permits a derivation once all its inputs have ranks. fileciteturn0file0L786-L801
 
-The consolidated model explicitly describes a rank operator \(T\) on partial rank maps:
+The consolidated model explicitly describes a rank operator $T$ on partial rank maps:
 
-\[
+$$
 R_0=\varnothing,\qquad R_{n+1}=T(R_n),
-\]
+$$
 
 and states that repeated relaxation reaches the least finite proof-rank fixed point. fileciteturn0file0L2563-L2573
 
 So, in the thesis setting, an analogous consequence operator could be defined on sets of proved facts:
 
-\[
+$$
 T_R(I)
 =
 I
@@ -1102,13 +1102,13 @@ d\in R
 \text{ and }
 \operatorname{inputs}(d)\subseteq I
 \right\}.
-\]
+$$
 
 Here:
 
-- \(R\) is the set of derivations or inference rules;
-- \(I\) is the set of facts already supported;
-- \(T_R(I)\) adds every fact whose derivation premises are already supported.
+- $R$ is the set of derivations or inference rules;
+- $I$ is the set of facts already supported;
+- $T_R(I)$ adds every fact whose derivation premises are already supported.
 
 The thesis does not itself use the phrase “immediate consequence operator” in the passages above; it describes the corresponding construction as repeated relaxation and a proof-rank operator.
 
@@ -1123,29 +1123,29 @@ Yes. It is standard terminology in:
 - Horn-clause semantics;
 - rule-based knowledge representation.
 
-The notation is commonly \(T_P\), where \(P\) is a logic program. It is often called the **immediate consequence operator**, the **one-step consequence operator**, or the **van Emden–Kowalski operator**.
+The notation is commonly $T_P$, where $P$ is a logic program. It is often called the **immediate consequence operator**, the **one-step consequence operator**, or the **van Emden–Kowalski operator**.
 
 The basic properties usually proved are:
 
-\[
+$$
 I\subseteq J
 \quad\Longrightarrow\quad
 T_P(I)\subseteq T_P(J),
-\]
+$$
 
-so \(T_P\) is monotone for definite programs, and
+so $T_P$ is monotone for definite programs, and
 
-\[
+$$
 \operatorname{lfp}(T_P)
 =
 \bigcup_{n<\omega}T_P^n(\varnothing).
-\]
+$$
 
 The least fixed point corresponds to the least Herbrand model.
 
 ## Who introduced it?
 
-The operator is conventionally credited to **Maarten H. van Emden and Robert A. Kowalski**, especially their paper *The Semantics of Predicate Logic as a Programming Language*, published in the *Journal of the ACM* in 1976. That paper compared operational, model-theoretic, and fixed-point semantics for logic programs and used the transformation now commonly written \(T_P\). citeturn688781search2turn688781search12turn688781search20
+The operator is conventionally credited to **Maarten H. van Emden and Robert A. Kowalski**, especially their paper *The Semantics of Predicate Logic as a Programming Language*, published in the *Journal of the ACM* in 1976. That paper compared operational, model-theoretic, and fixed-point semantics for logic programs and used the transformation now commonly written $T_P$. citeturn688781search2turn688781search12turn688781search20
 
 There was also an Edinburgh technical-report version in 1974, preceding the journal publication. citeturn688781search19
 
@@ -1259,7 +1259,7 @@ This was important because it gave logic programs a meaning independent of imple
 - What set of facts does a recursive program ultimately define?
 - Does bottom-up iteration agree with logical truth in the intended model?
 
-The operator usually written \(T_P\) became standard enough that later literature describes it as the “ubiquitous” immediate-consequence operator. citeturn160469search6
+The operator usually written $T_P$ became standard enough that later literature describes it as the “ubiquitous” immediate-consequence operator. citeturn160469search6
 
 The historical qualification is that van Emden and Kowalski did **not** single-handedly invent logic programming or Prolog. Colmerauer, Roussel, Pasero, Kowalski, and others contributed to the paradigm, and the first Prolog system was implemented in Marseille in 1972. The 1976 paper supplied one of its central semantic foundations. citeturn994087view3
 
@@ -1271,9 +1271,9 @@ Create a file named `RuleApplication.lean`. Paste the following sections into it
 
 We will formalize **ground positive rules**:
 
-\[
+$$
 \{p_1,\ldots,p_n\}\longrightarrow q.
-\]
+$$
 
 “Ground” means there are no variables or substitutions yet. A rule already names its concrete premises and conclusion.
 
@@ -1341,19 +1341,19 @@ def ancestorRule : Rule where
 
 These represent:
 
-\[
+$$
 \operatorname{parent}(a,b)\land\operatorname{parent}(b,c)
 \rightarrow
 \operatorname{grandparent}(a,c)
-\]
+$$
 
 and
 
-\[
+$$
 \operatorname{grandparent}(a,c)
 \rightarrow
 \operatorname{ancestor}(a,c).
-\]
+$$
 
 ## 3. Define when a rule applies
 
@@ -1409,7 +1409,7 @@ def immediate
       r.conclusion = atom}
 ```
 
-This is our \(T_R\).
+This is our $T_R$.
 
 An atom belongs to `immediate rules known` exactly when there exists a rule such that:
 
@@ -1430,9 +1430,9 @@ def step
 
 Thus:
 
-\[
+$$
 \operatorname{step}_R(I)=I\cup T_R(I).
-\]
+$$
 
 ## 5. Prove the generic rule-application theorem
 
@@ -1682,20 +1682,20 @@ example :
 
 This is the finite iteration
 
-\[
+$$
 I_0,\quad I_1=I_0\cup T_R(I_0),\quad
 I_2=I_1\cup T_R(I_1),\ldots
-\]
+$$
 
 ## 10. Prove monotonicity
 
 The central mathematical property is:
 
-\[
+$$
 I\subseteq J
 \Longrightarrow
 T_R(I)\subseteq T_R(J).
-\]
+$$
 
 First prove that applicability is monotone:
 
@@ -1746,7 +1746,7 @@ theorem immediate_mono
 
 Nothing about the rule itself changes. The same rule is still present, has the same conclusion, and remains applicable when the known set grows.
 
-This monotonicity is what allows repeated iteration to approach a least fixed point. It depends on our rules having only **positive premises**. A negative premise such as “derive \(q\) when \(p\) is absent” would not behave monotonically.
+This monotonicity is what allows repeated iteration to approach a least fixed point. It depends on our rules having only **positive premises**. A negative premise such as “derive $q$ when $p$ is absent” would not behave monotonically.
 
 ## 11. Represent complete proof trees
 

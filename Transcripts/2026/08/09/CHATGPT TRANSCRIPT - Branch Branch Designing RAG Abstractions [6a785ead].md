@@ -4942,7 +4942,7 @@ Activation and release leases form the synchronization protocol between corpus m
 
 This produces a sharper production abstraction:
 
-\[
+$$
 \text{source world}
 \rightarrow
 \text{maintained release}
@@ -4950,7 +4950,7 @@ This produces a sharper production abstraction:
 \text{release-pinned interpretation}
 \rightarrow
 \text{replayable user projection}.
-\]
+$$
 
 ## RAG retrieval optimization
 
@@ -5016,19 +5016,19 @@ The source protocol includes:
 
 Indexing is then incremental view maintenance. The proposed initial production structure is:
 
-\[
+$$
 V_t = B_\tau \oplus \Delta_{\tau,t},
-\]
+$$
 
-where \(B_\tau\) is an immutable base release and \(\Delta_{\tau,t}\) is an ordered collection of additions, replacements, and tombstones. Compaction produces a new base without changing declared query behavior.
+where $B_\tau$ is an immutable base release and $\Delta_{\tau,t}$ is an ordered collection of additions, replacements, and tombstones. Compaction produces a new base without changing declared query behavior.
 
 A clean full rebuild at the same source barrier is the correctness oracle:
 
-\[
+$$
 \operatorname{maintain}(B,\Delta)
 \;\simeq\;
 \operatorname{rebuild}(S \oplus \Delta).
-\]
+$$
 
 The equivalence is exact for deterministic backends and tolerance-relative for approximate indexes.
 
@@ -5086,11 +5086,11 @@ The proposed stream protocol uses:
 
 Its principal law is snapshot-plus-suffix equivalence:
 
-\[
+$$
 \operatorname{reduce}(S_n,e_{n+1},\ldots,e_m)
 =
 \operatorname{reduce}(e_1,\ldots,e_m).
-\]
+$$
 
 Duplicate append patches and lower-version entity updates are semantic violations rather than incidental UI bugs.
 
@@ -7436,7 +7436,7 @@ The formal backbone is grounded in Markov categories for compositional stochasti
 
 A complete optimization field is represented schematically by:
 
-\[
+$$
 \begin{aligned}
 S &: P \otimes X \longrightarrow \mathcal D(J[Y]),\\
 E &: C \otimes J[Y] \longrightarrow \mathcal D(O),\\
@@ -7446,18 +7446,18 @@ D &: \operatorname{Evidence} \longrightarrow
      \{\mathrm{Eligible},\mathrm{Undecided},\mathrm{Rejected}\},\\
 U &: H \otimes P \otimes O \otimes D \longrightarrow H .
 \end{aligned}
-\]
+$$
 
 Here:
 
-- \(P\) is the parameter object;
-- \(X\) and \(Y\) are typed system inputs and outputs;
-- \(J[Y]\) is an instrumented outcome containing value, attributable failure, cancellation, trace, resources, and warnings;
-- \(C\) is evaluator-only case material;
-- \(O\) is a product-owned observation;
-- \(\Gamma\) is an explicit incumbent/challenger coupling;
-- \(D\) is the ordered decision policy;
-- \(H\) is immutable campaign history.
+- $P$ is the parameter object;
+- $X$ and $Y$ are typed system inputs and outputs;
+- $J[Y]$ is an instrumented outcome containing value, attributable failure, cancellation, trace, resources, and warnings;
+- $C$ is evaluator-only case material;
+- $O$ is a product-owned observation;
+- $\Gamma$ is an explicit incumbent/challenger coupling;
+- $D$ is the ordered decision policy;
+- $H$ is immutable campaign history.
 
 This separates the meaning of the system from the meaning of its evaluation and from the policy used to select a successor.
 
@@ -7483,7 +7483,7 @@ This interpreter is the executable algebraic oracle.
 
 `core.Kernel[A,B]` represents:
 
-\[
+$$
 A \longrightarrow
 \mathcal D\bigl(
 B + Failure + Cancellation,\;
@@ -7491,7 +7491,7 @@ Trace,\;
 Resources,\;
 Warnings
 \bigr).
-\]
+$$
 
 It supports:
 
@@ -7507,11 +7507,11 @@ It supports:
 
 A root seed is passed unchanged through the composition tree. Each stochastic leaf derives its draw from a stable semantic namespace. Consequently, reassociating
 
-\[
+$$
 (h \circ g) \circ f
 \quad\text{as}\quad
 h \circ (g \circ f)
-\]
+$$
 
 does not change the sampled leaf values or semantic trace. Randomness is tied to semantic operations rather than mutable generator position or execution schedule.
 
@@ -7566,16 +7566,16 @@ This permits remote workers and independently deployed providers without allowin
 
 The RAG implementation demonstrates that indexing and querying are one parameterized process family:
 
-\[
+$$
 B : P_B \otimes CorpusSnapshot \longrightarrow Release
-\]
+$$
 
 and
 
-\[
+$$
 Q : P_Q \otimes Release \otimes Subject \otimes Query
     \longrightarrow J[Hits].
-\]
+$$
 
 The parameter object spans both phases:
 

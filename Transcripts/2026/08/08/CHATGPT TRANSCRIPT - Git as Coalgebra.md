@@ -17,7 +17,7 @@ I’ll formalize Git’s commit graph as a coalgebra, then connect that model to
 
 **Modeling Git coalgebraically**
 
-I’m framing each commit as a state exposing its snapshot, metadata, and parent list: a coalgebra for a functor like \(F(X)=D\times\mathrm{List}_{\le2}(X)\). Its arrows point backward, so Git naturally models branching history.
+I’m framing each commit as a state exposing its snapshot, metadata, and parent list: a coalgebra for a functor like $F(X)=D\times\mathrm{List}_{\le2}(X)$. Its arrows point backward, so Git naturally models branching history.
 
 **Modeled Git coalgebraically**
 
@@ -47,34 +47,34 @@ I’m expanding the model by distinguishing Git’s coalgebraic history navigati
 
 </details>
 
-Interpreting **coalgebra** as an **\(F\)-coalgebra** from category theory—not a linear coalgebra with a comultiplication—Git is naturally coalgebraic because a commit can be **observed as data together with references to further states of its history**.
+Interpreting **coalgebra** as an **$F$-coalgebra** from category theory—not a linear coalgebra with a comultiplication—Git is naturally coalgebraic because a commit can be **observed as data together with references to further states of its history**.
 
 ## 1. A commit-history coalgebra
 
 Let:
 
-- \(C\) be the set of Git commits.
-- \(O\) be the observable information in a commit: its project tree, author/committer data, timestamps, and message.
-- \(\operatorname{List}_{\mathrm{fin}}(X)\) be finite ordered lists of elements of \(X\).
+- $C$ be the set of Git commits.
+- $O$ be the observable information in a commit: its project tree, author/committer data, timestamps, and message.
+- $\operatorname{List}_{\mathrm{fin}}(X)$ be finite ordered lists of elements of $X$.
 
 Define the functor
 
-\[
+$$
 F(X)=O\times \operatorname{List}_{\mathrm{fin}}(X).
-\]
+$$
 
 A Git history then has a structure map
 
-\[
+$$
 \gamma:C\longrightarrow F(C)
-\]
+$$
 
 given by
 
-\[
+$$
 \gamma(c)=\bigl(\operatorname{observation}(c),
                 \operatorname{parents}(c)\bigr).
-\]
+$$
 
 A root commit has no parents, an ordinary commit normally has one, and a merge commit has multiple parents. Actual Git commit objects contain precisely this general shape: a tree representing the snapshot, zero or more parent references, metadata, timestamps, and a message. citeturn929470view4
 
@@ -82,14 +82,14 @@ The coalgebra does not primarily say **how to construct** a commit. It says:
 
 > Given a commit, what can I observe now, and where can I continue observing?
 
-Repeatedly applying \(\gamma\) unfolds the history:
+Repeatedly applying $\gamma$ unfolds the history:
 
 ```text
 r ─→ a ─→ b ─────→ m
       └→ c ─→ d ──┘
 ```
 
-Although causal time is drawn left-to-right here, the actual coalgebra map from \(m\) exposes its parents \(b\) and \(d\), so it unfolds **backward into recorded time**.
+Although causal time is drawn left-to-right here, the actual coalgebra map from $m$ exposes its parents $b$ and $d$, so it unfolds **backward into recorded time**.
 
 Coalgebras are generally used this way to represent automata, transition systems, dynamical systems, streams, and other systems understood through observable behaviour and continuation. Bisimulation is their corresponding notion of behavioural equivalence. citeturn929470view0turn246624view0
 
@@ -99,28 +99,28 @@ Coalgebras are generally used this way to represent automata, transition systems
 
 The commit coalgebra
 
-\[
+$$
 C\to O\times\operatorname{List}_{\mathrm{fin}}(C)
-\]
+$$
 
 describes the past already recorded.
 
 Starting from a branch tip, you repeatedly follow parent links. A branch tip therefore gives a **pointed coalgebra**:
 
-\[
+$$
 (C,\gamma,t),
-\]
+$$
 
-where \(t\in C\) is the selected tip.
+where $t\in C$ is the selected tip.
 
 ### Possible time: evolve the repository
 
-A complete Git repository can instead be modeled operationally. Let \(R\) be repository states and \(A\) Git actions. Schematically,
+A complete Git repository can instead be modeled operationally. Let $R$ be repository states and $A$ Git actions. Schematically,
 
-\[
+$$
 \delta:R\longrightarrow
 \mathcal P(A\times R)
-\]
+$$
 
 says which actions and successor states are possible from the current repository.
 
@@ -143,11 +143,11 @@ That distinction is central to the connection with time.
 
 Define
 
-\[
+$$
 x\preceq y
 \quad\Longleftrightarrow\quad
 x\text{ is an ancestor of }y.
-\]
+$$
 
 Git’s commits form a directed acyclic graph, so this ancestry relation gives a partial order. citeturn731318search0
 
@@ -161,7 +161,7 @@ a ───
        c
 ```
 
-Neither \(b\preceq c\) nor \(c\preceq b\). They are **concurrent in the order-theoretic sense**: the graph contains no causal evidence that one depends on the other. This does not mean they were created at exactly the same physical time.
+Neither $b\preceq c$ nor $c\preceq b$. They are **concurrent in the order-theoretic sense**: the graph contains no causal evidence that one depends on the other. This does not mean they were created at exactly the same physical time.
 
 This is closely related to Lamport’s mathematics of distributed time. In a distributed system, “happened before” naturally defines a partial order; imposing one total clock order adds information that is partly arbitrary. citeturn929470view1turn246624view1
 
@@ -169,15 +169,15 @@ Git similarly distinguishes graph topology from timestamps. Its history-ordering
 
 So Git has at least two notions of time:
 
-\[
+$$
 \boxed{\text{causal time}=\text{ancestry}}
-\]
+$$
 
 and
 
-\[
+$$
 \boxed{\text{clock time}=\text{timestamp labels}}.
-\]
+$$
 
 The first is structurally fundamental; the second is metadata.
 
@@ -205,7 +205,7 @@ This resembles branching-time semantics more than a single Newtonian line:
 
 ## 5. Temporal logic over Git
 
-Suppose \(P(c)\) means “commit \(c\) has property \(P\),” such as:
+Suppose $P(c)$ means “commit $c$ has property $P$,” such as:
 
 - the tests pass,
 - a file exists,
@@ -214,32 +214,32 @@ Suppose \(P(c)\) means “commit \(c\) has property \(P\),” such as:
 
 Using the parent relation, one can define temporal-modal operators:
 
-\[
+$$
 \Diamond^-P(c)
-\]
+$$
 
-means “\(P\) holds at some immediate parent,” while
+means “$P$ holds at some immediate parent,” while
 
-\[
+$$
 \Box^-P(c)
-\]
+$$
 
-means “\(P\) holds at every immediate parent.”
+means “$P$ holds at every immediate parent.”
 
 Their transitive versions express claims such as:
 
-- “At some point in this history, \(P\) was true.”
-- “On every ancestral path, \(P\) has always been true.”
-- “There exists a branch on which \(P\) eventually becomes true.”
-- “On every possible continuation, \(P\) remains invariant.”
+- “At some point in this history, $P$ was true.”
+- “On every ancestral path, $P$ has always been true.”
+- “There exists a branch on which $P$ eventually becomes true.”
+- “On every possible continuation, $P$ remains invariant.”
 
 Selecting a first-parent chain produces something like **linear temporal logic**. Keeping the complete branching graph produces CTL-style existential and universal path quantification. Coalgebraic constructions can systematically generate “next” and “previous” operators and models for temporal logics such as LTL and CTL. citeturn929470view2
 
 ## 6. Bisimulation and equivalent histories
 
-A relation \(R\subseteq C\times C\) is informally a bisimulation when, whenever \(c\,R\,d\):
+A relation $R\subseteq C\times C$ is informally a bisimulation when, whenever $c\,R\,d$:
 
-1. \(c\) and \(d\) have equivalent observations;
+1. $c$ and $d$ have equivalent observations;
 2. their parent histories correspond recursively.
 
 This provides a coinductive way to say that two commits exhibit the same historical behaviour.
@@ -257,17 +257,17 @@ Coalgebra therefore separates **identity** from **observable historical behaviou
 
 There is an important qualification. Conceptually, constructing a commit has the opposite shape:
 
-\[
+$$
 \alpha:
 O\times\operatorname{List}_{\mathrm{fin}}(C)
 \longrightarrow C.
-\]
+$$
 
 Given commit data and parent commits, produce a new commit object. Since Git histories are finite and well-founded, they can also be treated inductively.
 
 Thus Git has both aspects:
 
-\[
+$$
 \begin{array}{ll}
 \textbf{Algebraic:}&
 \text{construct a finite commit from data and parents},\\[2mm]
@@ -276,7 +276,7 @@ Thus Git has both aspects:
 \textbf{Coalgebraic dynamics:}&
 \text{observe a repository’s possible next states}.
 \end{array}
-\]
+$$
 
 The deepest connection to the mathematics of time is therefore:
 

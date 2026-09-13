@@ -17,15 +17,15 @@ Authors:[Yang Liu](https://arxiv.org/search/cs?searchtype=author&query=Liu,+Y), 
 
 | Subjects: | Computation and Language (cs.CL); Artificial Intelligence (cs.AI) |
 | --- | --- |
-| Cite as: | [arXiv:2303.16634](https://arxiv.org/abs/2303.16634) \[cs.CL\] |
-|  | (or [arXiv:2303.16634v3](https://arxiv.org/abs/2303.16634v3) \[cs.CL\] for this version) |
+| Cite as: | [arXiv:2303.16634](https://arxiv.org/abs/2303.16634) $$cs.CL$$ |
+|  | (or [arXiv:2303.16634v3](https://arxiv.org/abs/2303.16634v3) $$cs.CL$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.2303.16634](https://doi.org/10.48550/arXiv.2303.16634) |
 
 ## Submission history
 
-From: Yang Liu \[[view email](https://arxiv.org/show-email/9756619f/2303.16634)\]  
-**[\[v1\]](https://arxiv.org/abs/2303.16634v1)** Wed, 29 Mar 2023 12:46:54 UTC (242 KB)  
-**[\[v2\]](https://arxiv.org/abs/2303.16634v2)** Thu, 6 Apr 2023 23:49:08 UTC (209 KB)  
-**\[v3\]** Tue, 23 May 2023 22:12:16 UTC (209 KB)
+From: Yang Liu $$[view email](https://arxiv.org/show-email/9756619f/2303.16634)$$  
+**[$$v1$$](https://arxiv.org/abs/2303.16634v1)** Wed, 29 Mar 2023 12:46:54 UTC (242 KB)  
+**[$$v2$$](https://arxiv.org/abs/2303.16634v2)** Thu, 6 Apr 2023 23:49:08 UTC (209 KB)  
+**$$v3$$** Tue, 23 May 2023 22:12:16 UTC (209 KB)
 
 [Which authors of this paper are endorsers?](https://arxiv.org/auth/show-endorsers/2303.16634) | Disable MathJax ([What is MathJax?](https://info.arxiv.org/help/mathjax.html))

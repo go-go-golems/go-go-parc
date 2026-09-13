@@ -187,9 +187,9 @@ The current jog driver ignores the renewal context and relies on the lower trans
 
 A useful engineering expression is therefore conditional:
 
-\[
+$$
 T_{host\ cleanup} \lesssim TTL + J_{scheduler} + W_{contention+effect} + C_{cleanup}
-\]
+$$
 
 The terms must actually be bounded for the expression to serve as a guarantee. A general-purpose OS and Go scheduler do not supply a hard real-time bound. The device-side watchdog remains necessary for omission-to-stop physical behavior if the host stalls.
 
@@ -235,9 +235,9 @@ For ordinary spindle stop, an Idle report with valid measured RPM in `[0,50]` ma
 
 Let `c` be the streak and `N` the requirement. While awaiting:
 
-\[
+$$
 Match: c' = c+1,\quad Pending: c'=0
-\]
+$$
 
 The decision becomes confirmed when `c' ≥ N`. Invalid evidence becomes unavailable immediately. Both terminal decisions remain terminal even if additional samples are submitted later. A new observation attempt requires a new observer.
 

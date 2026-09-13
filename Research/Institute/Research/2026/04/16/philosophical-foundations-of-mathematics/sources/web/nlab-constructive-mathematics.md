@@ -233,19 +233,19 @@ Original texts:
 
 rewritten as:
 
-- [Errett Bishop](https://ncatlab.org/nlab/show/Errett+Bishop), [Douglas Bridges](https://ncatlab.org/nlab/show/Douglas+Bridges) *[Constructive Analysis](https://ncatlab.org/nlab/show/Constructive+Analysis)*, Grundlehren der mathematischen Wissenschaften **279**, Springer (1985) \[[doi:10.1007/978-3-642-61667-9](https://doi.org/10.1007/978-3-642-61667-9)\]
+- [Errett Bishop](https://ncatlab.org/nlab/show/Errett+Bishop), [Douglas Bridges](https://ncatlab.org/nlab/show/Douglas+Bridges) *[Constructive Analysis](https://ncatlab.org/nlab/show/Constructive+Analysis)*, Grundlehren der mathematischen Wissenschaften **279**, Springer (1985) $$[doi:10.1007/978-3-642-61667-9](https://doi.org/10.1007/978-3-642-61667-9)$$
 
 Early monographs:
 
-- [Anne Sjerp Troelstra](https://ncatlab.org/nlab/show/Anne+Sjerp+Troelstra), [Dirk van Dalen](https://ncatlab.org/nlab/show/Dirk+van+Dalen): *Constructivism in Mathematics – An introduction*, Volume I, Studies in Logic and the Foundations of Mathematics **121**, North Holland (1988) \[[ISBN:9780444702661](https://www.elsevier.com/books/constructivism-in-mathematics-vol-1/troelstra/978-0-444-70266-1)\]
-- [Anne Sjerp Troelstra](https://ncatlab.org/nlab/show/Anne+Sjerp+Troelstra), [Dirk van Dalen](https://ncatlab.org/nlab/show/Dirk+van+Dalen), *Constructivism in Mathematics – An introduction*, Volume II, Studies in Logic and the Foundations of Mathematics **123**: North Holland (1988) \[[ISBN:9780444703583](https://shop.elsevier.com/books/constructivism-in-mathematics-vol-2/troelstra/978-0-444-70358-3)\]
+- [Anne Sjerp Troelstra](https://ncatlab.org/nlab/show/Anne+Sjerp+Troelstra), [Dirk van Dalen](https://ncatlab.org/nlab/show/Dirk+van+Dalen): *Constructivism in Mathematics – An introduction*, Volume I, Studies in Logic and the Foundations of Mathematics **121**, North Holland (1988) $$[ISBN:9780444702661](https://www.elsevier.com/books/constructivism-in-mathematics-vol-1/troelstra/978-0-444-70266-1)$$
+- [Anne Sjerp Troelstra](https://ncatlab.org/nlab/show/Anne+Sjerp+Troelstra), [Dirk van Dalen](https://ncatlab.org/nlab/show/Dirk+van+Dalen), *Constructivism in Mathematics – An introduction*, Volume II, Studies in Logic and the Foundations of Mathematics **123**: North Holland (1988) $$[ISBN:9780444703583](https://shop.elsevier.com/books/constructivism-in-mathematics-vol-2/troelstra/978-0-444-70358-3)$$
 
 Gentle introductions:
 
-- [Douglas Bridges](https://ncatlab.org/nlab/show/Douglas+Bridges): *Introducing constructive mathematics*, talk notes (~2015) \[[pdf](https://ncatlab.org/nlab/files/Bridges-IntroducingConstructiveMath.pdf "pdf")\]
-- [Andrej Bauer](https://ncatlab.org/nlab/show/Andrej+Bauer): *Five Stages of Accepting Constructive Mathematics*, Bull. Amer. Math. Soc. **54** (2017) 481-498 \[[doi:10.1090/bull/1556](http://dx.doi.org/10.1090/bull/1556), [pdf](https://www.ams.org/journals/bull/2017-54-03/S0273-0979-2016-01556-4/S0273-0979-2016-01556-4.pdf)\]
-	based on a talk at IAS (March 18, 2013) \[[video](http://video.ias.edu/members/1213/0318-AndrejBauer)\]
-- [Fred Richman](https://ncatlab.org/nlab/show/Fred+Richman), *[Interview with a constructive mathematician](https://projecteuclid.org/journals/modern-logic/volume-6/issue-3/Interview-with-a-constructive-mathematician/rml/1204835729.full)*, Modern Logic **6** 3 (1996) 247-271 \[[MathSciNet](http://www.ams.org/mathscinet-getitem?mr=1400617)\]
+- [Douglas Bridges](https://ncatlab.org/nlab/show/Douglas+Bridges): *Introducing constructive mathematics*, talk notes (~2015) $$[pdf](https://ncatlab.org/nlab/files/Bridges-IntroducingConstructiveMath.pdf "pdf")$$
+- [Andrej Bauer](https://ncatlab.org/nlab/show/Andrej+Bauer): *Five Stages of Accepting Constructive Mathematics*, Bull. Amer. Math. Soc. **54** (2017) 481-498 $$[doi:10.1090/bull/1556](http://dx.doi.org/10.1090/bull/1556), [pdf](https://www.ams.org/journals/bull/2017-54-03/S0273-0979-2016-01556-4/S0273-0979-2016-01556-4.pdf)$$
+	based on a talk at IAS (March 18, 2013) $$[video](http://video.ias.edu/members/1213/0318-AndrejBauer)$$
+- [Fred Richman](https://ncatlab.org/nlab/show/Fred+Richman), *[Interview with a constructive mathematician](https://projecteuclid.org/journals/modern-logic/volume-6/issue-3/Interview-with-a-constructive-mathematician/rml/1204835729.full)*, Modern Logic **6** 3 (1996) 247-271 $$[MathSciNet](http://www.ams.org/mathscinet-getitem?mr=1400617)$$
 - [Ingo Blechschmidt](https://ncatlab.org/nlab/show/Ingo+Blechschmidt), *Double-negation translation and CPS transforms*, 2015 ([pdf](http://rawgit.com/iblech/talk-constructive-mathematics/master/negneg-translation-notes.pdf))
 - Stanford Encyclopedia of Philosophy, *[Constructive mathematics](http://plato.stanford.edu/entries/mathematics-constructive/)*
 
@@ -257,10 +257,10 @@ Other accounts:
 
 - [Michael J. Beeson](https://ncatlab.org/nlab/show/Michael+J.+Beeson), *Foundations of Constructive Mathematics*, Ergebnisse der Mathematik und ihrer Grenzgebiete **3** 6, Springer 1985 ([doi:10.1007/978-3-642-68952-9](https://link.springer.com/book/10.1007/978-3-642-68952-9), [pdf](https://link.springer.com/content/pdf/10.1007%2F978-3-642-68952-9.pdf))
 - [Douglas Bridges](https://ncatlab.org/nlab/show/Douglas+Bridges) and [Fred Richman](https://ncatlab.org/nlab/show/Fred+Richman), *Varieties of constructive mathematics* (1987)
-- [Fred Richman](https://ncatlab.org/nlab/show/Fred+Richman), [Douglas Bridges](https://ncatlab.org/nlab/show/Douglas+Bridges), Peter Schuster, *A weak countable choice principle*. Proceedings of the American Mathematical Society 128(9):2749-2752, March 2000. \[[doi:10.1090/S0002-9939-00-05327-2](http://dx.doi.org/10.1090/S0002-9939-00-05327-2)\]
+- [Fred Richman](https://ncatlab.org/nlab/show/Fred+Richman), [Douglas Bridges](https://ncatlab.org/nlab/show/Douglas+Bridges), Peter Schuster, *A weak countable choice principle*. Proceedings of the American Mathematical Society 128(9):2749-2752, March 2000. $$[doi:10.1090/S0002-9939-00-05327-2](http://dx.doi.org/10.1090/S0002-9939-00-05327-2)$$
 - [Michael Makkai](https://ncatlab.org/nlab/show/Michael+Makkai) (1996). [Avoiding the axiom of choice in general category theory](http://www.math.mcgill.ca/makkai/anafun/).
 - [Fred Richman](https://ncatlab.org/nlab/show/Fred+Richman), *Constructive Mathematics without Choice*,
-	in: *Reuniting the Antipodes – Constructive and Nonstandard Views of the Continuum*, Synthese Library **306**, Springer (2001) 199-206 \[[doi:10.1007/978-94-015-9757-9\_17](https://doi.org/10.1007/978-94-015-9757-9_17)\]
+	in: *Reuniting the Antipodes – Constructive and Nonstandard Views of the Continuum*, Synthese Library **306**, Springer (2001) 199-206 $$[doi:10.1007/978-94-015-9757-9\_17](https://doi.org/10.1007/978-94-015-9757-9_17)$$
 - [Paul Taylor](https://ncatlab.org/nlab/show/Paul+Taylor) (1996). Intuitionistic Sets and Ordinals. Available (with several other references) at [Induction, recursion, replacement and the ordinals](http://www.paultaylor.eu/ordinals/index.php).
 - [André Joyal](https://ncatlab.org/nlab/show/Andr%C3%A9+Joyal) and [Ieke Moerdijk](https://ncatlab.org/nlab/show/Ieke+Moerdijk) (1995). *Algebraic set theory*.
 - [Franka Waaldijk](https://ncatlab.org/nlab/show/Franka+Waaldijk), *On the foundations of constructive mathematics - especially in relation to the theory of continuous functions*, Foundations of Science, Volume 10, pages 249–324, (2005). ([doi:10.1007/s10699-004-3065-z](https://doi.org/10.1007/s10699-004-3065-z), [pdf](https://www.fwaaldijk.nl/foundations%20of%20constructive%20mathematics.pdf)).
@@ -268,8 +268,8 @@ Other accounts:
 
 On constructive mathematics applied to [physics](https://ncatlab.org/nlab/show/physics) (cf. *[computable physics](https://ncatlab.org/nlab/show/computable+physics)*):
 
-- [Douglas S. Bridges](https://ncatlab.org/nlab/show/Douglas+S.+Bridges): *Can Constructive Mathematics Be Applied in Physics?*, Journal of Philosophical Logic **28** 5 (1999) 439-453 \[[jstor:30226680](https://www.jstor.org/stable/30226680), [doi:10.1023/A:1004420413391](https://doi.org/10.1023/A:1004420413391)\]
-- [Andrej Bauer](https://ncatlab.org/nlab/show/Andrej+Bauer): *Intuitionistic Mathematics and Realizability in the Physical World*, in *A Computable Universe* (2012) 143-157 \[[doi:10.1142/9789814374309\_0008](https://doi.org/10.1142/9789814374309_0008), [pdf](https://math.andrej.com/wp-content/uploads/2014/03/real-world-realizability.pdf), [webpage](https://math.andrej.com/2014/03/04/intuitionistic-mathematics-and-realizability-in-the-physical-world/)\]
+- [Douglas S. Bridges](https://ncatlab.org/nlab/show/Douglas+S.+Bridges): *Can Constructive Mathematics Be Applied in Physics?*, Journal of Philosophical Logic **28** 5 (1999) 439-453 $$[jstor:30226680](https://www.jstor.org/stable/30226680), [doi:10.1023/A:1004420413391](https://doi.org/10.1023/A:1004420413391)$$
+- [Andrej Bauer](https://ncatlab.org/nlab/show/Andrej+Bauer): *Intuitionistic Mathematics and Realizability in the Physical World*, in *A Computable Universe* (2012) 143-157 $$[doi:10.1142/9789814374309\_0008](https://doi.org/10.1142/9789814374309_0008), [pdf](https://math.andrej.com/wp-content/uploads/2014/03/real-world-realizability.pdf), [webpage](https://math.andrej.com/2014/03/04/intuitionistic-mathematics-and-realizability-in-the-physical-world/)$$
 
 In view of [reverse mathematics](https://ncatlab.org/nlab/show/reverse+mathematics):
 
@@ -292,7 +292,7 @@ Most books on [topos theory](https://ncatlab.org/nlab/show/topos+theory) include
 
 A historical account is in
 
-- [Anne Sjerp Troelstra](https://ncatlab.org/nlab/show/Anne+Sjerp+Troelstra), *History of Constructivism in the Twentieth Century* (1991) \[[pdf](https://www.illc.uva.nl/Research/Publications/Reports/ML-1991-05.text.pdf), [pdf](https://ncatlab.org/nlab/files/Troelstra-HistoryOfConstructivism.pdf "pdf")\]
+- [Anne Sjerp Troelstra](https://ncatlab.org/nlab/show/Anne+Sjerp+Troelstra), *History of Constructivism in the Twentieth Century* (1991) $$[pdf](https://www.illc.uva.nl/Research/Publications/Reports/ML-1991-05.text.pdf), [pdf](https://ncatlab.org/nlab/files/Troelstra-HistoryOfConstructivism.pdf "pdf")$$
 
 The relation to [realizability](https://ncatlab.org/nlab/show/realizability) and [computability](https://ncatlab.org/nlab/show/computability) is discussed in
 

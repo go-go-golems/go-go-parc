@@ -191,7 +191,7 @@ A exposition of the relation between the three concepts is in
 
 An exposition with emphasis on [linear logic](https://ncatlab.org/nlab/show/linear+logic) / [quantum logic](https://ncatlab.org/nlab/show/quantum+logic) and the relation to [physics](https://ncatlab.org/nlab/show/physics) is in
 
-- [John Baez](https://ncatlab.org/nlab/show/John+Baez), [Mike Stay](https://ncatlab.org/nlab/show/Mike+Stay): *Physics, Topology, Logic and Computation: A Rosetta Stone*, in *New Structures for Physics*, Lecture Notes in Physics **813** Springer (2011) 95-174 \[[arXiv:0903.0340](http://arxiv.org/abs/0903.0340), [doi:10.1007/978-3-642-12821-9\_2](https://doi.org/10.1007/978-3-642-12821-9_2)\]
+- [John Baez](https://ncatlab.org/nlab/show/John+Baez), [Mike Stay](https://ncatlab.org/nlab/show/Mike+Stay): *Physics, Topology, Logic and Computation: A Rosetta Stone*, in *New Structures for Physics*, Lecture Notes in Physics **813** Springer (2011) 95-174 $$[arXiv:0903.0340](http://arxiv.org/abs/0903.0340), [doi:10.1007/978-3-642-12821-9\_2](https://doi.org/10.1007/978-3-642-12821-9_2)$$
 
 Discussion in the context of [homotopy type theory](https://ncatlab.org/nlab/show/homotopy+type+theory):
 

@@ -14,71 +14,71 @@
 
 **Proving the functor laws**
 
-I’m treating the power-set construction as mapping \(A\mapsto\mathcal P(A)\) and \(f\mapsto\mathcal P(f)\), where \(\mathcal P(f)(X)=f[X]\). No induction is needed: well-definedness, identity, and composition follow by element-chasing.
+I’m treating the power-set construction as mapping $A\mapsto\mathcal P(A)$ and $f\mapsto\mathcal P(f)$, where $\mathcal P(f)(X)=f[X]$. No induction is needed: well-definedness, identity, and composition follow by element-chasing.
 
 **Proved the functor laws**
 
 </details>
 
-Induction is not the natural approach here. It is useful for constructing the power set of a **finite** set or proving \(|\mathcal P(A)|=2^{|A|}\), but the functor laws hold for arbitrary sets, including infinite ones. A direct elementwise argument proves them immediately.
+Induction is not the natural approach here. It is useful for constructing the power set of a **finite** set or proving $|\mathcal P(A)|=2^{|A|}$, but the functor laws hold for arbitrary sets, including infinite ones. A direct elementwise argument proves them immediately.
 
 ## Define the power-set functor
 
 On objects, define
 
-\[
+$$
 \mathcal P(A)=\{X:X\subseteq A\}.
-\]
+$$
 
-For a function \(f:A\to B\), define
+For a function $f:A\to B$, define
 
-\[
+$$
 \mathcal P(f):\mathcal P(A)\to\mathcal P(B)
-\]
+$$
 
 by direct image:
 
-\[
+$$
 \mathcal P(f)(X)=f[X]=\{f(x):x\in X\}.
-\]
+$$
 
-This is well-defined because if \(X\subseteq A\), then \(f[X]\subseteq B\), so \(f[X]\in\mathcal P(B)\).
+This is well-defined because if $X\subseteq A$, then $f[X]\subseteq B$, so $f[X]\in\mathcal P(B)$.
 
-The important point is that \(\mathcal P(f)\) is itself a function whose:
+The important point is that $\mathcal P(f)$ is itself a function whose:
 
-- inputs are subsets of \(A\);
-- outputs are subsets of \(B\).
+- inputs are subsets of $A$;
+- outputs are subsets of $B$.
 
 ## Identity law
 
-For every \(X\subseteq A\),
+For every $X\subseteq A$,
 
-\[
+$$
 \mathcal P(\operatorname{id}_A)(X)
 =\operatorname{id}_A[X]
 =X.
-\]
+$$
 
 Therefore
 
-\[
+$$
 \boxed{\mathcal P(\operatorname{id}_A)
 =\operatorname{id}_{\mathcal P(A)}}.
-\]
+$$
 
-Your identity calculation in the notes is essentially doing exactly this. You only need to calculate it for an arbitrary \(X\subseteq A\), rather than listing all subsets individually.
+Your identity calculation in the notes is essentially doing exactly this. You only need to calculate it for an arbitrary $X\subseteq A$, rather than listing all subsets individually.
 
 ## Composition law
 
 Let
 
-\[
+$$
 A\xrightarrow{f}B\xrightarrow{g}C.
-\]
+$$
 
-For every \(X\subseteq A\),
+For every $X\subseteq A$,
 
-\[
+$$
 \begin{aligned}
 \mathcal P(g\circ f)(X)
   &= (g\circ f)[X] \\
@@ -86,45 +86,45 @@ For every \(X\subseteq A\),
   &=\mathcal P(g)\bigl(\mathcal P(f)(X)\bigr)\\
   &=(\mathcal P(g)\circ\mathcal P(f))(X).
 \end{aligned}
-\]
+$$
 
-Since the two functions agree on every \(X\in\mathcal P(A)\),
+Since the two functions agree on every $X\in\mathcal P(A)$,
 
-\[
+$$
 \boxed{\mathcal P(g\circ f)
 =\mathcal P(g)\circ\mathcal P(f)}.
-\]
+$$
 
 The middle equality can be verified by an element chase:
 
-\[
+$$
 \begin{aligned}
 z\in(g\circ f)[X]
 &\iff \exists x\in X,\ z=g(f(x))\\
 &\iff \exists y\in f[X],\ z=g(y)\\
 &\iff z\in g[f[X]].
 \end{aligned}
-\]
+$$
 
-Thus \(\mathcal P:\mathbf{Set}\to\mathbf{Set}\) is a covariant functor.
+Thus $\mathcal P:\mathbf{Set}\to\mathbf{Set}$ is a covariant functor.
 
 ## Why induction is unnecessary
 
-Your finite example explicitly lists every element of \(\mathcal P(A)\). That works for small sets, but it hides the general argument. Instead of proving something separately for
+Your finite example explicitly lists every element of $\mathcal P(A)$. That works for small sets, but it hides the general argument. Instead of proving something separately for
 
-\[
+$$
 \varnothing,\{a\},\{b\},\{a,b\},
-\]
+$$
 
-take an arbitrary \(X\subseteq A\). One calculation then covers every subset simultaneously, whether \(A\) is finite or infinite.
+take an arbitrary $X\subseteq A$. One calculation then covers every subset simultaneously, whether $A$ is finite or infinite.
 
 Induction is appropriate for statements such as
 
-\[
+$$
 |\mathcal P(A)|=2^{|A|}
-\]
+$$
 
-when \(A\) is finite. It is not needed to establish the functor laws. Technically, since there is no set of all sets, \(\mathcal P\) is usually regarded as a class-level assignment, or formalized relative to a chosen universe; this foundational detail is normally suppressed in an introductory category-theory treatment.
+when $A$ is finite. It is not needed to establish the functor laws. Technically, since there is no set of all sets, $\mathcal P$ is usually regarded as a class-level assignment, or formalized relative to a chosen universe; this foundational detail is normally suppressed in an introductory category-theory treatment.
 
 
 ---
@@ -143,72 +143,72 @@ I’m distinguishing induction over natural numbers from reasoning about arbitra
 
 Induction proves an **infinite sequence of statements indexed by a well-ordered structure**, most commonly
 
-\[
+$$
 P(0),P(1),P(2),\ldots
-\]
+$$
 
 It is not a general method for “walking through” the elements of an arbitrary infinite set.
 
 For example, ordinary induction can prove:
 
-\[
+$$
 \text{Every finite set of size }n\text{ has }2^n\text{ subsets}
-\]
+$$
 
-because there is a natural-number parameter \(n\), and a set of size \(n+1\) is obtained from one of size \(n\) by adjoining one element.
+because there is a natural-number parameter $n$, and a set of size $n+1$ is obtained from one of size $n$ by adjoining one element.
 
-That method does not directly cover an infinite set \(A\). Starting from \(\varnothing\) and adding one element at each ordinary induction step only produces finite sets:
+That method does not directly cover an infinite set $A$. Starting from $\varnothing$ and adding one element at each ordinary induction step only produces finite sets:
 
-\[
+$$
 \varnothing,\quad \{a_0\},\quad \{a_0,a_1\},\quad\ldots
-\]
+$$
 
 No finite step reaches an infinite set.
 
-## Why induction on \(A\) and \(B\) is not the right setup
+## Why induction on $A$ and $B$ is not the right setup
 
-To induct on \(A\), you would need a notion such as
+To induct on $A$, you would need a notion such as
 
-\[
+$$
 A \longmapsto A\cup\{a\}.
-\]
+$$
 
 That gives induction over finite cardinalities. But arbitrary sets do not come with a canonical “previous set,” and infinite sets cannot generally be reached after finitely many such steps.
 
-Inducting separately on \(A\) and \(B\) would therefore only prove the result for finite \(A\) and \(B\), unless you introduced transfinite induction and well-orderings. That would be much more machinery than the claim requires.
+Inducting separately on $A$ and $B$ would therefore only prove the result for finite $A$ and $B$, unless you introduced transfinite induction and well-orderings. That would be much more machinery than the claim requires.
 
-Also, the size of \(B\) does not really matter. The proof does not need to examine every element of \(B\); it only uses the fact that \(f(x)\in B\) whenever \(x\in A\).
+Also, the size of $B$ does not really matter. The proof does not need to examine every element of $B$; it only uses the fact that $f(x)\in B$ whenever $x\in A$.
 
 ## The key distinction
 
 There are two different kinds of statements:
 
 1. A statement about the number or construction of subsets:
-   \[
+   $$
    |\mathcal P(A)|=2^{|A|}
-   \]
-   for finite \(A\). Induction is natural here.
+   $$
+   for finite $A$. Induction is natural here.
 
 2. A statement about what direct images do:
-   \[
+   $$
    (g\circ f)[X]=g[f[X]].
-   \]
+   $$
    This is an equality of sets, so direct elementwise reasoning is natural.
 
-For the second statement, take an arbitrary \(z\). Then
+For the second statement, take an arbitrary $z$. Then
 
-\[
+$$
 \begin{aligned}
 z\in(g\circ f)[X]
 &\iff \text{there is some }x\in X\text{ such that }z=g(f(x))\\
 &\iff \text{there is some }y\in f[X]\text{ such that }z=g(y)\\
 &\iff z\in g[f[X]].
 \end{aligned}
-\]
+$$
 
-This works identically whether \(A,B,C\) are finite, countably infinite, or uncountable.
+This works identically whether $A,B,C$ are finite, countably infinite, or uncountable.
 
-So the issue is not primarily that both \(A\) and \(B\) may be infinite. The deeper issue is that there is no natural induction parameter. The functor laws are uniform properties of arbitrary elements and arbitrary subsets, so an elementwise proof handles every cardinality at once.
+So the issue is not primarily that both $A$ and $B$ may be infinite. The deeper issue is that there is no natural induction parameter. The functor laws are uniform properties of arbitrary elements and arbitrary subsets, so an elementwise proof handles every cardinality at once.
 
 
 ---
@@ -221,7 +221,7 @@ So the issue is not primarily that both \(A\) and \(B\) may be infinite. The dee
 
 **Clarifying induction**
 
-I’m separating two ideas: induction over finite subsets and transfinite induction over an enumeration. The latter needs limit stages and a well-ordering, but composition still requires induction only over subsets of \(A\); images already lie in \(B\).
+I’m separating two ideas: induction over finite subsets and transfinite induction over an enumeration. The latter needs limit stages and a well-ordering, but composition still requires induction only over subsets of $A$; images already lie in $B$.
 
 **Clarified induction**
 
@@ -231,100 +231,100 @@ Ordinary induction still would not cover arbitrary infinite sets. Your idea beco
 
 ### The logical issue with “an arbitrary set and one more element”
 
-Suppose a property \(P\) satisfies
+Suppose a property $P$ satisfies
 
-\[
+$$
 P(\varnothing)
-\]
+$$
 
 and
 
-\[
+$$
 P(S)\implies P(S\cup\{s\})
 \qquad(s\notin S).
-\]
+$$
 
-These conditions imply \(P(S)\) for every **finite** set \(S\), not every set.
+These conditions imply $P(S)$ for every **finite** set $S$, not every set.
 
 A decisive counterexample is
 
-\[
+$$
 P(S):\quad S\text{ is finite}.
-\]
+$$
 
 Then:
 
-- \(\varnothing\) is finite;
+- $\varnothing$ is finite;
 - adding one element to a finite set gives another finite set;
 
-but \(P(\mathbb N)\) is false. So that induction principle cannot establish a result for all infinite sets.
+but $P(\mathbb N)$ is false. So that induction principle cannot establish a result for all infinite sets.
 
-Starting from \(\varnothing\), the stages are
+Starting from $\varnothing$, the stages are
 
-\[
+$$
 \varnothing,\quad
 \{a_0\},\quad
 \{a_0,a_1\},\quad
 \{a_0,a_1,a_2\},\ldots
-\]
+$$
 
 Every finite stage is still finite. The infinite set
 
-\[
+$$
 \{a_0,a_1,a_2,\ldots\}
-\]
+$$
 
-appears at the limit stage \(\omega\), not at a “next-element” stage. There is no finite \(n\) whose successor is \(\omega\).
+appears at the limit stage $\omega$, not at a “next-element” stage. There is no finite $n$ whose successor is $\omega$.
 
-Also, if by “arbitrary \(A\)” you mean that you assume \(P(A)\) for every set \(A\), then you have already assumed the entire result. In a valid induction, the induction hypothesis only applies to objects generated at earlier stages.
+Also, if by “arbitrary $A$” you mean that you assume $P(A)$ for every set $A$, then you have already assumed the entire result. In a valid induction, the induction hypothesis only applies to objects generated at earlier stages.
 
 ## Transfinite induction can implement your idea
 
-Take a subset \(X\subseteq A\), well-order its elements as
+Take a subset $X\subseteq A$, well-order its elements as
 
-\[
+$$
 X=\{x_\alpha:\alpha<\kappa\},
-\]
+$$
 
 and define
 
-\[
+$$
 X_\alpha=\{x_\beta:\beta<\alpha\}.
-\]
+$$
 
 Then there are three kinds of stages:
 
-\[
+$$
 X_0=\varnothing,
-\]
+$$
 
-\[
+$$
 X_{\alpha+1}=X_\alpha\cup\{x_\alpha\},
-\]
+$$
 
-and, for a limit ordinal \(\lambda\),
+and, for a limit ordinal $\lambda$,
 
-\[
+$$
 X_\lambda=\bigcup_{\alpha<\lambda}X_\alpha.
-\]
+$$
 
 That last clause is what ordinary induction lacks.
 
 For
 
-\[
+$$
 A\xrightarrow{f}B\xrightarrow{g}C,
-\]
+$$
 
 define the property
 
-\[
+$$
 Q(X):\quad (g\circ f)[X]=g[f[X]].
-\]
+$$
 
 At a successor stage,
 
-\[
+$$
 \begin{aligned}
 (g\circ f)[X_{\alpha+1}]
 &=(g\circ f)[X_\alpha]\cup\{g(f(x_\alpha))\}\\
@@ -332,11 +332,11 @@ At a successor stage,
 &=g\!\left[f[X_\alpha]\cup\{f(x_\alpha)\}\right]\\
 &=g[f[X_{\alpha+1}]].
 \end{aligned}
-\]
+$$
 
 At a limit stage,
 
-\[
+$$
 \begin{aligned}
 (g\circ f)[X_\lambda]
 &=(g\circ f)\left[\bigcup_{\alpha<\lambda}X_\alpha\right]\\
@@ -345,58 +345,58 @@ At a limit stage,
 &=g\left[\bigcup_{\alpha<\lambda}f[X_\alpha]\right]\\
 &=g[f[X_\lambda]].
 \end{aligned}
-\]
+$$
 
 So yes: with a well-ordering and limit stages, your induction idea can be made rigorous. It is simply much heavier than the elementwise proof.
 
-## Do we need induction on both \(A\) and \(B\)?
+## Do we need induction on both $A$ and $B$?
 
 No. The composition law is tested on an arbitrary input to the composite function
 
-\[
+$$
 \mathcal P(g)\circ\mathcal P(f):
 \mathcal P(A)\to\mathcal P(C).
-\]
+$$
 
 An input is therefore a subset
 
-\[
+$$
 X\subseteq A.
-\]
+$$
 
 It passes through the diagram as
 
-\[
+$$
 X
 \overset{\mathcal P(f)}{\longmapsto}
 f[X]
 \overset{\mathcal P(g)}{\longmapsto}
 g[f[X]].
-\]
+$$
 
-The intermediate set \(f[X]\subseteq B\) is automatically produced from \(X\). There is no need to independently run through the elements or subsets of \(B\).
+The intermediate set $f[X]\subseteq B$ is automatically produced from $X$. There is no need to independently run through the elements or subsets of $B$.
 
-In fact, adding one element to \(X\) need not add one new element to \(f[X]\). If
+In fact, adding one element to $X$ need not add one new element to $f[X]$. If
 
-\[
+$$
 f(x_1)=f(x_2),
-\]
+$$
 
-then adding \(x_2\) after \(x_1\) produces no new element in the image. This is another reason that parallel induction on \(A\) and \(B\) would be awkward.
+then adding $x_2$ after $x_1$ produces no new element in the image. This is another reason that parallel induction on $A$ and $B$ would be awkward.
 
 You separately verify that the arrows are well-defined:
 
-\[
+$$
 X\subseteq A\implies f[X]\subseteq B,
-\]
+$$
 
 and
 
-\[
+$$
 Y\subseteq B\implies g[Y]\subseteq C.
-\]
+$$
 
-But for composition, induction—if used at all—only needs to run over the input subset \(X\subseteq A\).
+But for composition, induction—if used at all—only needs to run over the input subset $X\subseteq A$.
 
 
 ---
@@ -425,35 +425,35 @@ The **core idea is only moderately more difficult than ordinary induction**. The
 
 Ordinary induction moves through
 
-\[
+$$
 0,1,2,3,\ldots
-\]
+$$
 
 using:
 
 1. a base case;
-2. a successor step \(n\mapsto n+1\).
+2. a successor step $n\mapsto n+1$.
 
 Transfinite induction continues through ordinal stages:
 
-\[
+$$
 0,1,2,\ldots,\omega,\omega+1,\omega+2,\ldots,\omega\cdot2,\ldots
-\]
+$$
 
-Here \(\omega\) represents the order type of the natural numbers. It is the first stage that comes **after every finite stage**, but is not the successor of any particular natural number.
+Here $\omega$ represents the order type of the natural numbers. It is the first stage that comes **after every finite stage**, but is not the successor of any particular natural number.
 
 That creates a third kind of step:
 
-1. **Base:** prove \(P(0)\).
-2. **Successor:** prove \(P(\alpha)\Rightarrow P(\alpha+1)\).
-3. **Limit:** for a limit ordinal \(\lambda\), prove
-   \[
+1. **Base:** prove $P(0)$.
+2. **Successor:** prove $P(\alpha)\Rightarrow P(\alpha+1)$.
+3. **Limit:** for a limit ordinal $\lambda$, prove
+   $$
    \bigl[\forall\beta<\lambda,\ P(\beta)\bigr]\Rightarrow P(\lambda).
-   \]
+   $$
 
 The compact formulation is:
 
-\[
+$$
 \left(\forall\alpha\,
   \left[
     \bigl(\forall\beta<\alpha,\ P(\beta)\bigr)
@@ -461,7 +461,7 @@ The compact formulation is:
   \right]\right)
 \quad\Longrightarrow\quad
 \forall\alpha\,P(\alpha).
-\]
+$$
 
 The limit case is exactly the missing ingredient in your earlier proposal about repeatedly adding a “next element.”
 
@@ -469,27 +469,27 @@ The limit case is exactly the missing ingredient in your earlier proposal about 
 
 Suppose a well-ordered set has elements
 
-\[
+$$
 a_0,a_1,a_2,\ldots
-\]
+$$
 
 and define
 
-\[
+$$
 A_n=\{a_0,\ldots,a_{n-1}\}.
-\]
+$$
 
-Ordinary induction handles every \(A_n\). But none of these finite stages is the entire countably infinite set. At the limit stage,
+Ordinary induction handles every $A_n$. But none of these finite stages is the entire countably infinite set. At the limit stage,
 
-\[
+$$
 A_\omega=\bigcup_{n<\omega}A_n.
-\]
+$$
 
 Then successor stages continue:
 
-\[
+$$
 A_{\omega+1}=A_\omega\cup\{a_\omega\}.
-\]
+$$
 
 So transfinite induction formalizes:
 
@@ -528,15 +528,15 @@ These are closely related but different.
 
 **Transfinite induction** proves statements:
 
-\[
+$$
 P(\alpha)\text{ holds for every ordinal }\alpha.
-\]
+$$
 
 **Transfinite recursion** constructs objects:
 
-\[
+$$
 X_0,\ X_1,\ldots,X_\omega,X_{\omega+1},\ldots
-\]
+$$
 
 by specifying what happens at zero, successor stages and limit stages.
 
@@ -544,11 +544,11 @@ Your idea of constructing a set by repeatedly adjoining another element is more 
 
 Transfinite recursion is used, for example, to define ordinal addition, multiplication and exponentiation. It also defines the cumulative set hierarchy
 
-\[
+$$
 V_0=\varnothing,\qquad
 V_{\alpha+1}=\mathcal P(V_\alpha),\qquad
 V_\lambda=\bigcup_{\beta<\lambda}V_\beta.
-\]
+$$
 
 This hierarchy is central to modern set theory. citeturn782816search2turn782816search4
 
@@ -556,7 +556,7 @@ This hierarchy is central to modern set theory. citeturn782816search2tu
 
 ### Iterating a process past all finite stages
 
-Sometimes applying an operation finitely many times is insufficient. One continues at stage \(\omega\), then possibly through further ordinal stages.
+Sometimes applying an operation finitely many times is insufficient. One continues at stage $\omega$, then possibly through further ordinal stages.
 
 Cantor originally encountered this kind of process while repeatedly taking sets of limit points in topology. These iterations naturally led beyond finite indices. citeturn746205search5turn966048search28
 
@@ -564,9 +564,9 @@ Cantor originally encountered this kind of process while repeatedly taking sets 
 
 A large object can be assembled as an increasing chain:
 
-\[
+$$
 X_0\subseteq X_1\subseteq\cdots\subseteq X_\lambda\subseteq\cdots
-\]
+$$
 
 At successor stages one adds something; at limit stages one takes a union or colimit. This occurs in modern algebra, including constructions and decompositions of modules. citeturn782816search1turn782816search15
 
@@ -574,8 +574,8 @@ At successor stages one adds something; at limit stages one takes a union or col
 
 Examples include:
 
-- the cumulative hierarchy \(V_\alpha\);
-- Gödel’s constructible hierarchy \(L_\alpha\);
+- the cumulative hierarchy $V_\alpha$;
+- Gödel’s constructible hierarchy $L_\alpha$;
 - Borel and descriptive-set-theoretic hierarchies;
 - ranks of trees and well-founded relations;
 - ordinal arithmetic.
@@ -598,9 +598,9 @@ The historical terminology is slightly more nuanced: Cantor developed and used t
 
 For your power-set-functor proof, transfinite induction is legitimate after choosing a well-ordering, but it introduces ordinals, a limit-stage argument and possibly a well-ordering assumption merely to prove
 
-\[
+$$
 (g\circ f)[X]=g[f[X]],
-\]
+$$
 
 which follows from a three-line elementwise argument. It is useful as an exercise in transfinite reasoning, but deliberately excessive for that particular theorem.
 
@@ -663,17 +663,17 @@ He later actually uses “(transfinite) induction” in Chapter VI when comparin
 
 However, the book does **not systematically teach ordinal theory**. It does not substantially develop:
 
-\[
+$$
 0,1,2,\ldots,\omega,\omega+1,\ldots
-\]
+$$
 
 or give a full treatment of von Neumann ordinals, successor versus limit ordinals, ordinal arithmetic, or transfinite recursion. Aluffi works directly with **well-ordered sets**, which is sufficient for his algebraic applications.
 
 So the answer is:
 
-\[
+$$
 \boxed{\text{Transfinite induction appears, but ordinal theory itself is mostly omitted.}}
-\]
+$$
 
 The relevant section is considerably later than your current functor discussion: Chapter V begins with irreducibility and factorization, whereas the opening chapter is the preliminary treatment of sets and categories. citeturn950450search0
 
@@ -739,13 +739,13 @@ A comparable alternative is **Herbert Enderton, *Elements of Set Theory***. It i
 
 A sensible route is:
 
-\[
+$$
 \text{Open Logic chapter}
 \longrightarrow
 \text{Hrbacek--Jech or Enderton}
 \longrightarrow
 \text{Schimmerling or Jech}.
-\]
+$$
 
 ## Mathematical fields that use ordinals
 
@@ -753,17 +753,17 @@ A sensible route is:
 
 This is their native field. Ordinals index constructions such as the cumulative hierarchy
 
-\[
+$$
 V_0=\varnothing,\qquad
 V_{\alpha+1}=\mathcal P(V_\alpha),\qquad
 V_\lambda=\bigcup_{\beta<\lambda}V_\beta,
-\]
+$$
 
 as well as the constructible hierarchy, cardinal arithmetic, ranks of sets, and recursively defined classes.
 
 ### Topology and descriptive set theory
 
-Repeatedly taking derived sets or forming increasingly complex Borel sets can require countably many transfinite stages. Cantor used countable ordinals in the work leading to the Cantor–Bendixson theorem, and the Borel hierarchy is indexed through countable ordinals below \(\omega_1\). citeturn874584search4turn874584search7turn874584search22
+Repeatedly taking derived sets or forming increasingly complex Borel sets can require countably many transfinite stages. Cantor used countable ordinals in the work leading to the Cantor–Bendixson theorem, and the Borel hierarchy is indexed through countable ordinals below $\omega_1$. citeturn874584search4turn874584search7turn874584search22
 
 The standard specialist text is **Alexander Kechris, *Classical Descriptive Set Theory***. citeturn314647search4
 
@@ -775,7 +775,7 @@ A specialist text is **Wolfram Pohlers, *Proof Theory: An Introduction***, whose
 
 ### Computability theory
 
-Computability theory studies **recursive ordinals**, admissible ordinals, and generalizations of ordinary recursion beyond \(\mathbb N\). Higher recursion theory asks how computability changes when ordinal stages and transfinite structures replace ordinary finite computation. citeturn363114search3turn363114search27
+Computability theory studies **recursive ordinals**, admissible ordinals, and generalizations of ordinary recursion beyond $\mathbb N$. Higher recursion theory asks how computability changes when ordinal stages and transfinite structures replace ordinary finite computation. citeturn363114search3turn363114search27
 
 ### Category theory and homotopy theory
 
@@ -791,25 +791,25 @@ Ordinals occur mainly in **theoretical computer science, formal verification, pr
 
 A standard termination proof assigns each program state a value in a well-founded order and proves that every program step strictly decreases that value. Natural numbers suffice for simple loops, but nested or nondeterministic processes may require tuples, multisets, or ordinal-valued ranking functions. Ordinal-valued ranking functions are an explicit technique in automated termination analysis. citeturn343405search8turn343405academia38
 
-For example, suppose \(m\) controls an outer loop and \(n\) controls an inner loop. Consider
+For example, suppose $m$ controls an outer loop and $n$ controls an inner loop. Consider
 
-\[
+$$
 \rho(m,n)=\omega m+n.
-\]
+$$
 
-When the inner loop decreases \(n\),
+When the inner loop decreases $n$,
 
-\[
+$$
 \omega m+(n-1)<\omega m+n.
-\]
+$$
 
-When the outer loop decreases \(m\), the inner counter may be reset to any finite value \(N\), but
+When the outer loop decreases $m$, the inner counter may be reset to any finite value $N$, but
 
-\[
+$$
 \omega(m-1)+N<\omega m+n.
-\]
+$$
 
-The term \(\omega m\) dominates every finite reset of \(n\). Thus ordinal arithmetic packages a lexicographic termination argument into a single decreasing measure.
+The term $\omega m$ dominates every finite reset of $n$. Thus ordinal arithmetic packages a lexicographic termination argument into a single decreasing measure.
 
 **Franz Baader and Tobias Nipkow, *Term Rewriting and All That*** is a standard entry point for termination through well-founded reduction orderings, even when the orders are not presented explicitly as ordinals. citeturn314647search7turn314647search20
 
@@ -821,27 +821,27 @@ This work is relevant to dependently typed languages and proof assistants such a
 
 ### 3. Fixed-point semantics
 
-Programming-language semantics frequently defines recursive programs as least or greatest fixed points. For a monotone operation \(F\), its least fixed point can be approximated by
+Programming-language semantics frequently defines recursive programs as least or greatest fixed points. For a monotone operation $F$, its least fixed point can be approximated by
 
-\[
+$$
 x_0=\bot,
-\]
+$$
 
-\[
+$$
 x_{\alpha+1}=F(x_\alpha),
-\]
+$$
 
 and at a limit stage,
 
-\[
+$$
 x_\lambda=\bigvee_{\beta<\lambda}x_\beta.
-\]
+$$
 
-When \(F\) has sufficient continuity, the stages through
+When $F$ has sufficient continuity, the stages through
 
-\[
+$$
 0,1,2,\ldots,\omega
-\]
+$$
 
 often suffice. For general monotone operations on complete lattices, genuinely transfinite stages may be required. Domain theory provides the mathematical framework for these semantic constructions. citeturn746891search0turn746891search28
 
@@ -856,9 +856,9 @@ Static analyzers compute approximations to program behavior by iterating equatio
 
 So here ordinals explain the mathematical convergence theory, while widening supplies a practical algorithm.
 
-### 5. Model checking and the modal \(\mu\)-calculus
+### 5. Model checking and the modal $\mu$-calculus
 
-The modal \(\mu\)-calculus expresses properties of transition systems using least and greatest fixed points. Its fixed-point approximants are indexed by ordinals, and a formula’s **closure ordinal** measures how many approximation stages may be needed before the fixed point is reached. citeturn343405search2turn343405search18turn343405search22
+The modal $\mu$-calculus expresses properties of transition systems using least and greatest fixed points. Its fixed-point approximants are indexed by ordinals, and a formula’s **closure ordinal** measures how many approximation stages may be needed before the fixed point is reached. citeturn343405search2turn343405search18turn343405search22
 
 This connects ordinals with verification of reactive systems, transition systems, and temporal properties.
 
@@ -874,7 +874,7 @@ At the more foundational end, **infinite-time Turing machines** extend ordinary 
 
 For ordinary programming and algorithms, natural-number induction and structurally recursive data types cover most needs. Ordinals become important when studying:
 
-\[
+$$
 \boxed{
 \text{termination}
 +\text{fixed points}
@@ -882,7 +882,7 @@ For ordinary programming and algorithms, natural-number induction and structural
 +\text{proof strength}
 +\text{well-founded recursion}
 }
-\]
+$$
 
 Given your current work in Aluffi, the most efficient next step is the Open Logic Project’s ordinal chapter, followed by the ordinal and transfinite-recursion portions of Hrbacek–Jech. That supplies enough theory to formalize your proposed transfinite proof without requiring graduate set theory.
 
@@ -917,9 +917,9 @@ A formal system specifies:
 
 For example, one inference rule is modus ponens:
 
-\[
+$$
 \frac{P \qquad P\to Q}{Q}.
-\]
+$$
 
 A formal proof is a finite sequence or tree of expressions in which every step is an axiom or follows from earlier steps by an allowed inference rule.
 
@@ -931,9 +931,9 @@ Proof theory then treats that proof tree much as algebra treats an equation or g
 
 Can the system prove a contradiction?
 
-\[
+$$
 \text{Can it prove both }P\text{ and }\neg P?
-\]
+$$
 
 A consistent system cannot.
 
@@ -947,10 +947,10 @@ A proof may contain detours. For example, it may introduce a logical connective 
 
 In sequent calculus, the cut rule allows one to prove an intermediate lemma and then use it:
 
-\[
+$$
 \frac{\Gamma\vdash A \qquad A,\Delta\vdash B}
 {\Gamma,\Delta\vdash B}.
-\]
+$$
 
 Cut elimination shows, for certain logical systems, that every proof using such intermediate cuts can be transformed into one without them.
 
@@ -978,16 +978,16 @@ A useful distinction is:
 - **Proof theory** studies formal derivations: syntax.
 - **Model theory** studies mathematical structures in which formulas are true: semantics.
 
-For example, given a statement \(P\):
+For example, given a statement $P$:
 
-- a proof theorist asks whether \(P\) can be derived using certain rules;
-- a model theorist asks whether \(P\) is true in particular structures.
+- a proof theorist asks whether $P$ can be derived using certain rules;
+- a model theorist asks whether $P$ is true in particular structures.
 
 The connection between them is expressed by results such as soundness and completeness:
 
-\[
+$$
 \text{provable} \quad\leftrightarrow\quad \text{true in every relevant model},
-\]
+$$
 
 for logical systems where completeness holds.
 
@@ -997,21 +997,21 @@ Ordinals are used to measure the complexity of recursive reductions and the stre
 
 Suppose we repeatedly simplify a proof:
 
-\[
+$$
 \pi_0\longrightarrow\pi_1\longrightarrow\pi_2\longrightarrow\cdots
-\]
+$$
 
-To prove that this process eventually terminates, one can assign an ordinal \(o(\pi)\) to each proof and show that every simplification strictly decreases it:
+To prove that this process eventually terminates, one can assign an ordinal $o(\pi)$ to each proof and show that every simplification strictly decreases it:
 
-\[
+$$
 o(\pi_{n+1})<o(\pi_n).
-\]
+$$
 
 Because ordinals are well-ordered, there cannot be an infinite strictly decreasing sequence of them. Therefore the simplification process terminates.
 
 A theory’s **proof-theoretic ordinal** roughly measures how much transfinite induction is required to justify the theory’s proof transformations or consistency. It is not literally “the largest ordinal the theory knows”; it is a measure of the theory’s strength, dependent on how the analysis is formulated.
 
-A standard example is that the ordinal \(\varepsilon_0\) appears in the proof-theoretic analysis of Peano arithmetic.
+A standard example is that the ordinal $\varepsilon_0$ appears in the proof-theoretic analysis of Peano arithmetic.
 
 ## Main areas
 
@@ -1023,11 +1023,11 @@ A standard example is that the ordinal \(\varepsilon_0\) appears in the proof-th
 
 **Type theory** connects proofs with programs. Through the Curry–Howard correspondence:
 
-\[
+$$
 \text{propositions}\leftrightarrow\text{types},
 \qquad
 \text{proofs}\leftrightarrow\text{programs}.
-\]
+$$
 
 Constructing a proof can therefore correspond to writing a program, and simplifying a proof can correspond to executing or simplifying that program.
 
@@ -1046,15 +1046,15 @@ Proof theory underlies:
 
 For example, proving
 
-\[
+$$
 \forall n\in\mathbb N,\ \exists m\in\mathbb N,\ R(n,m)
-\]
+$$
 
-constructively may yield an algorithm that takes \(n\) and computes a corresponding \(m\).
+constructively may yield an algorithm that takes $n$ and computes a corresponding $m$.
 
 At a high level, proof theory studies the internal machinery of mathematical reasoning:
 
-\[
+$$
 \boxed{\text{What counts as a proof, how proofs behave, and what formal reasoning can accomplish.}}
-\]
+$$
 

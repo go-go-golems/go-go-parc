@@ -27,13 +27,13 @@ paths:
           in: query
           required: true
           schema:
-            $ref: "#/components/schemas/ApplicationName"
+            \$ref: "#/components/schemas/ApplicationName"
           description: Application name for organizing assets
         - name: file
           in: query
           required: true
           schema:
-            $ref: "#/components/schemas/AssetsPath"
+            \$ref: "#/components/schemas/AssetsPath"
           description: File path for the uploaded asset within the app assets directory
           example: "file.png"
       requestBody:
@@ -50,25 +50,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessResponse"
+                \$ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Invalid parameters or upload failed
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
         "413":
           description: File too large
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
         "508":
           description: Failed to write uploaded file
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
 
     delete:
       tags:
@@ -81,7 +81,7 @@ paths:
           in: query
           required: true
           schema:
-            $ref: "#/components/schemas/ApplicationName"
+            \$ref: "#/components/schemas/ApplicationName"
           description: Application ID whose assets should be deleted
       responses:
         "200":
@@ -89,19 +89,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessResponse"
+                \$ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Invalid request parameters
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
         "503":
           description: Delete failed
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
 
   /api/display/draw:
     post:
@@ -117,26 +117,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DisplayElements"
+              \$ref: "#/components/schemas/DisplayElements"
       responses:
         "200":
           description: Drawing command executed successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessResponse"
+                \$ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Invalid drawing data
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
         "409":
           description: Requested priority level is below that of currently active app
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
     delete:
       tags:
         - Assets
@@ -148,7 +148,7 @@ paths:
           in: query
           required: false
           schema:
-            $ref: "#/components/schemas/ApplicationName"
+            \$ref: "#/components/schemas/ApplicationName"
           description: Application identifier
       responses:
         "200":
@@ -156,7 +156,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessResponse"
+                \$ref: "#/components/schemas/SuccessResponse"
 
   /api/audio/play:
     post:
@@ -172,26 +172,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PlayAudio"
+              \$ref: "#/components/schemas/PlayAudio"
       responses:
         "200":
           description: Audio playback started successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessResponse"
+                \$ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Invalid file path
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
         "404":
           description: Audio file not found or is unplayable
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
 
     delete:
       tags:
@@ -205,42 +205,42 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessResponse"
+                \$ref: "#/components/schemas/SuccessResponse"
         "410":
           description: No audio is playing
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
         "503":
           description: Audio system error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                \$ref: "#/components/schemas/Error"
 
 schemas:
   ApplicationName:
     type: string
     maxLength: 32
-    pattern: "^[a-zA-Z0-9._-]+$"
+    pattern: "^[a-zA-Z0-9._-]+\$"
     example: "my_app"
 
   AssetsPath:
     type: string
     maxLength: 64
-    pattern: "^[a-zA-Z0-9._/-]+$"
+    pattern: "^[a-zA-Z0-9._/-]+\$"
 
   StockPath:
     type: string
     maxLength: 256
-    pattern: "shared/[a-zA-Z0-9._/-]+$"
+    pattern: "shared/[a-zA-Z0-9._/-]+\$"
 
   DisplayElements:
     type: object
     properties:
       application_name:
-        $ref: "#/components/schemas/ApplicationName"
+        \$ref: "#/components/schemas/ApplicationName"
         description: Application name for organizing assets
       priority:
         type: integer
@@ -258,7 +258,7 @@ schemas:
         default: 50
       led_notification_color:
         type: string
-        pattern: "^#[a-fA-F0-9]{8}$"
+        pattern: "^#[a-fA-F0-9]{8}\$"
         description: >-
           Color to blink the status LED, in #RRGGBBAA format.
           If not specified, the LED will not blink.
@@ -268,11 +268,11 @@ schemas:
         minItems: 1
         items:
           oneOf:
-            - $ref: "#/components/schemas/TextElement"
-            - $ref: "#/components/schemas/ImageElement"
-            - $ref: "#/components/schemas/AnimationElement"
-            - $ref: "#/components/schemas/CountdownElement"
-            - $ref: "#/components/schemas/RectangleElement"
+            - \$ref: "#/components/schemas/TextElement"
+            - \$ref: "#/components/schemas/ImageElement"
+            - \$ref: "#/components/schemas/AnimationElement"
+            - \$ref: "#/components/schemas/CountdownElement"
+            - \$ref: "#/components/schemas/RectangleElement"
         description: Array of elements to display
     required:
       - application_name
@@ -321,7 +321,7 @@ schemas:
     properties:
       id:
         type: string
-        pattern: "^[a-zA-Z0-9._-]+$"
+        pattern: "^[a-zA-Z0-9._-]+\$"
         description: Unique identifier for the element
       timeout:
         type: integer
@@ -374,7 +374,7 @@ schemas:
         rectangle: "#/components/schemas/RectangleElement"
   TextElement:
     allOf:
-      - $ref: "#/components/schemas/DisplayElement"
+      - \$ref: "#/components/schemas/DisplayElement"
       - type: object
         required:
           - text
@@ -383,7 +383,7 @@ schemas:
           text:
             type: string
             minLength: 1
-            pattern: "^[\\x20-\\x7E]+$"
+            pattern: "^[\\x20-\\x7E]+\$"
             description: Text content to display (printable ASCII only; fonts are bitmap ASCII)
           font:
             type: string
@@ -400,7 +400,7 @@ schemas:
           color:
             type: string
             description: "Color to display the text in, in #RRGGBBAA format"
-            pattern: "^#[a-fA-F0-9]{8}$"
+            pattern: "^#[a-fA-F0-9]{8}\$"
             default: "#FFFFFFFF"
           width:
             type: integer
@@ -421,7 +421,7 @@ schemas:
 
   ImageElement:
     allOf:
-      - $ref: "#/components/schemas/DisplayElement"
+      - \$ref: "#/components/schemas/DisplayElement"
       - type: object
         allOf:
           - oneOf:
@@ -429,13 +429,13 @@ schemas:
                 - path
               properties:
                 path:
-                  $ref: "#/components/schemas/AssetsPath"
+                  \$ref: "#/components/schemas/AssetsPath"
                   description: Path to the image file in the app's assets
             - required:
                 - stock_path
               properties:
                 stock_path:
-                  $ref: "#/components/schemas/StockPath"
+                  \$ref: "#/components/schemas/StockPath"
                   description: Stock image file name
           - properties:
               opacity:
@@ -447,17 +447,17 @@ schemas:
 
   AnimationElement:
     allOf:
-      - $ref: "#/components/schemas/DisplayElement"
+      - \$ref: "#/components/schemas/DisplayElement"
       - type: object
         allOf:
           - oneOf:
               - properties:
                   path:
-                    $ref: "#/components/schemas/AssetsPath"
+                    \$ref: "#/components/schemas/AssetsPath"
                     description: Path to the animation file in the app's assets
               - properties:
                   stock_path:
-                    $ref: "#/components/schemas/StockPath"
+                    \$ref: "#/components/schemas/StockPath"
                     description: Stock animation file name
           - properties:
               loop:
@@ -480,7 +480,7 @@ schemas:
 
   CountdownElement:
     allOf:
-      - $ref: "#/components/schemas/DisplayElement"
+      - \$ref: "#/components/schemas/DisplayElement"
       - type: object
         required:
           - timestamp
@@ -489,12 +489,12 @@ schemas:
         properties:
           timestamp:
             type: string
-            pattern: "^[0-9]+$"
+            pattern: "^[0-9]+\$"
             description: "Seconds-based Unix UTC timestamp to count down or up to. Note: it's a number in a string."
           color:
             type: string
             description: "Color to display the text in, in #RRGGBBAA format"
-            pattern: "^#[a-fA-F0-9]{8}$"
+            pattern: "^#[a-fA-F0-9]{8}\$"
             default: "#FFFFFFFF"
           direction:
             type: string
@@ -507,7 +507,7 @@ schemas:
 
   RectangleElement:
     allOf:
-      - $ref: "#/components/schemas/DisplayElement"
+      - \$ref: "#/components/schemas/DisplayElement"
       - type: object
         required:
           - width
@@ -536,7 +536,7 @@ schemas:
             maxItems: 2
             items:
               type: string
-              pattern: "^#[a-fA-F0-9]{8}$"
+              pattern: "^#[a-fA-F0-9]{8}\$"
             description: Colors used for filling the rectangle. For solid fill, provide one color. For gradient fill, provide two colors.
             default: ["#FFFFFFFF", "#00000000"]
           border_width:
@@ -546,7 +546,7 @@ schemas:
             default: 1
           border_color:
             type: string
-            pattern: "^#[a-fA-F0-9]{8}$"
+            pattern: "^#[a-fA-F0-9]{8}\$"
             description: "Color of the rectangle border in #RRGGBBAA format"
             default: "#FFFFFFFF"
 
@@ -555,20 +555,20 @@ schemas:
     allOf:
       - properties:
           application_name:
-            $ref: "#/components/schemas/ApplicationName"
+            \$ref: "#/components/schemas/ApplicationName"
             description: Application name for organizing assets
         required:
           - application_name
       - oneOf:
         - properties:
             path:
-              $ref: "#/components/schemas/AssetsPath"
+              \$ref: "#/components/schemas/AssetsPath"
               description: Path to audio file within app's assets directory
           required:
             - path
         - properties:
             stock_path:
-              $ref: "#/components/schemas/StockPath"
+              \$ref: "#/components/schemas/StockPath"
               description: Stock audio file name
               examples:
                 - "beep.snd"

@@ -236,15 +236,15 @@ Then sweep that solid along the path.
 
 Mathematically, this is approximately computing
 
-\[
+$$
 S_{\text{final}}
 =
 S_{\text{initial}}
 \setminus
 \bigcup_{t} T(t)
-\]
+$$
 
-where \(S\) is the stock and \(T(t)\) is the cutter volume transformed to its position at time \(t\).
+where $S$ is the stock and $T(t)$ is the cutter volume transformed to its position at time $t$.
 
 That one equation is basically the heart of a milling simulator.
 
@@ -544,17 +544,17 @@ Specifically, I'd implement these first:
 17. **optional comparison against the intended STL**
 18. **eventually, the Z1 rotary-axis model**
 
-The last item in #17 is particularly powerful. Given your original design \(M\) and simulated result \(S\), you can compute approximately
+The last item in #17 is particularly powerful. Given your original design $M$ and simulated result $S$, you can compute approximately
 
-\[
+$$
 E_{\mathrm{gouge}} = S^c \cap M
-\]
+$$
 
 for material removed that **should have remained**, and
 
-\[
+$$
 E_{\mathrm{rest}} = S \setminus M
-\]
+$$
 
 for material that **should have been removed but wasn't**.
 

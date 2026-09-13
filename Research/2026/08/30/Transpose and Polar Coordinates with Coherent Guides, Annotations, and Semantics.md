@@ -288,7 +288,7 @@ Explicit ticks are especially useful in numeric validation. In a radius domain $
 
 HSPLOT-008 introduced stable rule, text, region, and point annotations with data, datum, or normalized-panel anchors; semantic appearance; intent; and facet selection. HSPLOT-009 transforms their planned anchors through the same coordinate stage as marks and guides.
 
-A panel anchor $(0.25,0.75)$ is interpreted bottom-to-top. Under transpose it becomes $(0.75,0.25)`. Under polar with x as theta it becomes angle $0.25$ of a turn and radius $0.75$ of the usable radial span. A data anchor is first resolved through trained scales and only then transformed. This keeps annotations aligned with their variables.
+A panel anchor $(0.25,0.75)$ is interpreted bottom-to-top. Under transpose it becomes \$(0.75,0.25)`. Under polar with x as theta it becomes angle \$0.25\$ of a turn and radius \$0.75$ of the usable radial span. A data anchor is first resolved through trained scales and only then transformed. This keeps annotations aligned with their variables.
 
 Rules and regions again require topology rather than naïve vertex mapping. A constant-radius annotation rule must become a circular path. A rectangular annotation region in angular/radial coordinates becomes a sector-like path. Text and point annotation anchors transform as positions, after which glyph sizing and text offsets remain in device space.
 

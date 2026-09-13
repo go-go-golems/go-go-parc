@@ -56,11 +56,11 @@ Interested in working on improving retrieval for AI applications? [Chroma is Hir
 
 ## Introduction
 
-Besides answering questions and generating text \[[1](#chowdhery2023palm)\], recently Large Language Models (LLMs) have emerged as a new type of computing primitive, capable of processing unstructured information in a "common sense" way, leading to the creation of AI applications. A key element of AI applications is so-called Retrieval-Augmented Generation (RAG)\[[2](#lewis2021retrievalaugmentedgenerationknowledgeintensivenlp)\], wherein external data which is semantically relevant to the current task is retrieved for processing. In contrast to traditional IR, retrieval for AI applications often relies on storing and retrieving document parts (chunks), sometimes across several documents, in order to present the most relevant information to the LLM. Thus, in the AI application use-case, which *tokens* and *chunks* are returned is often as important as which *documents*.
+Besides answering questions and generating text $$[1](#chowdhery2023palm)$$, recently Large Language Models (LLMs) have emerged as a new type of computing primitive, capable of processing unstructured information in a "common sense" way, leading to the creation of AI applications. A key element of AI applications is so-called Retrieval-Augmented Generation (RAG)$$[2](#lewis2021retrievalaugmentedgenerationknowledgeintensivenlp)$$, wherein external data which is semantically relevant to the current task is retrieved for processing. In contrast to traditional IR, retrieval for AI applications often relies on storing and retrieving document parts (chunks), sometimes across several documents, in order to present the most relevant information to the LLM. Thus, in the AI application use-case, which *tokens* and *chunks* are returned is often as important as which *documents*.
 
-Information Retrieval (IR) in general, and passage retrieval in particular, are long-studied problems in natural language processing, with a considerable literature \[[3](#brin1998anatomy)\]\[[4](#van1977probability)\]\[[5](#robertson1995okapi)\]. However, benchmarks like the Massive Text Embedding Benchmark (MTEB) \[[6](#2210.07316)\] and MSMARCO\[[10](#bajaj2016msmarco)\] do not account for token efficiency, or chunking, and usually evaluate on the basis of the relevance of entire retrieved documents. Additionally, the normalized Discounted Cumulative Gain (nDCG@K) metric, commonly used in IR \[[7](#2104.08663)\], is less useful in the context of RAG because the rank order of retrieved documents is less important. It has been shown that as long as the relevant tokens are present, and the overall context is of reasonable length, LLMs can accurately process the information regardless of token position \[[8](#2406.07230)\].
+Information Retrieval (IR) in general, and passage retrieval in particular, are long-studied problems in natural language processing, with a considerable literature $$[3](#brin1998anatomy)$$$$[4](#van1977probability)$$$$[5](#robertson1995okapi)$$. However, benchmarks like the Massive Text Embedding Benchmark (MTEB) $$[6](#2210.07316)$$ and MSMARCO$$[10](#bajaj2016msmarco)$$ do not account for token efficiency, or chunking, and usually evaluate on the basis of the relevance of entire retrieved documents. Additionally, the normalized Discounted Cumulative Gain (nDCG@K) metric, commonly used in IR $$[7](#2104.08663)$$, is less useful in the context of RAG because the rank order of retrieved documents is less important. It has been shown that as long as the relevant tokens are present, and the overall context is of reasonable length, LLMs can accurately process the information regardless of token position $$[8](#2406.07230)$$.
 
-To address these shortcomings, we propose a new evaluation designed to capture the essential details of retrieval performance in the AI application context, consisting of a generative dataset, and a new performance measure. We describe the pipeline that generates the dataset, allowing others to generate domain specific evaluations for their own data and use cases. Because the dataset is generated, in general it should not exist in the training set of any general-purpose embedding model. Along with the dataset, we introduce a new measure of performance, based on the Jaccard similarity coefficient \[[11](#leskovec2020mining)\] at the token level, which we refer to as Intersection over Union (IoU) for short, as well as evaluating recall and precision at the token rather than document level. By analogy to its use in computer vision, we can think of text chunks as bounding boxes, and the IoU as a measure of how well the bounding boxes of the retrieved chunks overlap with the bounding boxes of the relevant tokens.
+To address these shortcomings, we propose a new evaluation designed to capture the essential details of retrieval performance in the AI application context, consisting of a generative dataset, and a new performance measure. We describe the pipeline that generates the dataset, allowing others to generate domain specific evaluations for their own data and use cases. Because the dataset is generated, in general it should not exist in the training set of any general-purpose embedding model. Along with the dataset, we introduce a new measure of performance, based on the Jaccard similarity coefficient $$[11](#leskovec2020mining)$$ at the token level, which we refer to as Intersection over Union (IoU) for short, as well as evaluating recall and precision at the token rather than document level. By analogy to its use in computer vision, we can think of text chunks as bounding boxes, and the IoU as a measure of how well the bounding boxes of the retrieved chunks overlap with the bounding boxes of the relevant tokens.
 
 As an application of our new evaluation strategy, we compare the performance of popular document chunking methods, such as the **RecursiveCharacterTextSplitter**. We also develop and evaluate two new chunking methods, the **ClusterSemanticChunker** which takes the embedding model used for retrieval into account, and **LLMChunker**, which prompts an LLM directly to perform chunking over a text corpus.
 
@@ -77,15 +77,15 @@ We present the following:
 
 ## Related Work
 
-Current popular Information Retrieval (IR) benchmarks include the Massive Text Embedding Benchmark (MTEB) \[[6](#2210.07316)\] and Benchmarking-IR (BEIR) \[[7](#2104.08663)\]. MTEB evaluates text embedding models across 58 datasets and 8 tasks. BEIR includes 18 datasets across 9 retrieval tasks. The MTEB text retrieval datasets contain all publicly available BEIR retrieval datasets. Their primary metric is normalized Discounted Cumulative Gain at rank 10 (nDCG@10), and they both provide Mean Average Precision at rank k (MAP@k), precision@k and recall@k additionally.
+Current popular Information Retrieval (IR) benchmarks include the Massive Text Embedding Benchmark (MTEB) $$[6](#2210.07316)$$ and Benchmarking-IR (BEIR) $$[7](#2104.08663)$$. MTEB evaluates text embedding models across 58 datasets and 8 tasks. BEIR includes 18 datasets across 9 retrieval tasks. The MTEB text retrieval datasets contain all publicly available BEIR retrieval datasets. Their primary metric is normalized Discounted Cumulative Gain at rank 10 (nDCG@10), and they both provide Mean Average Precision at rank k (MAP@k), precision@k and recall@k additionally.
 
 The nDCG@K metric evaluates the relevance of K retrieved documents, giving more weight to higher-ranked documents, penalizing relevant results that appear lower in the ranking. Similarly, MAP@K takes the average of the precision at each position in the top K retrieved documents. As mentioned in the introduction, the order of retrieved documents is less important in the context of RAG. Additionally, existing benchmarks evaluate retrieval system performance at the document level, while for AI applications, only a fraction of the tokens in any document may be relevant to a particular query, and relevant tokens may be found across an entire corpus. Our proposed evaluation metrics aim to take this token-level relevance into account.
 
-Along with information retrieval in general, there has been extensive work on passage retrieval \[[9](#liu2002passage)\], including at large scales and in a machine learning context as with the MS MARCO dataset \[[10](#bajaj2016msmarco)\]. However, this work has mostly been considered as either an intermediate step to document retrieval, or in the general context of search and retrieval, rather than in the specific context of retrieval for AI applications, and without reference to token efficiency.
+Along with information retrieval in general, there has been extensive work on passage retrieval $$[9](#liu2002passage)$$, including at large scales and in a machine learning context as with the MS MARCO dataset $$[10](#bajaj2016msmarco)$$. However, this work has mostly been considered as either an intermediate step to document retrieval, or in the general context of search and retrieval, rather than in the specific context of retrieval for AI applications, and without reference to token efficiency.
 
-More recently, LLMs have been used to directly evaluate retrieval performance, for example by prompting the LLM for a binary classification of relevancy as in ARAGOG \[[12](#2404.01037)\]. LLMs have also been used to generate synthetic data from a text corpus, as well as evaluating the final generated output of a RAG pipeline as in RAGAS \[[13](#es2023ragasautomatedevaluationretrieval)\]. In contrast, our proposed evaluation focuses only on retrieval, with a limited step to synthesize queries from document corpora, rather than complex multi-step synthesis and evaluation pipelines which may be sensitive to model particulars and prompting. We evaluate retrieval directly, without relying on an LLM. In principle, our proposed approach can be composed with others to produce a more complete evaluation.
+More recently, LLMs have been used to directly evaluate retrieval performance, for example by prompting the LLM for a binary classification of relevancy as in ARAGOG $$[12](#2404.01037)$$. LLMs have also been used to generate synthetic data from a text corpus, as well as evaluating the final generated output of a RAG pipeline as in RAGAS $$[13](#es2023ragasautomatedevaluationretrieval)$$. In contrast, our proposed evaluation focuses only on retrieval, with a limited step to synthesize queries from document corpora, rather than complex multi-step synthesis and evaluation pipelines which may be sensitive to model particulars and prompting. We evaluate retrieval directly, without relying on an LLM. In principle, our proposed approach can be composed with others to produce a more complete evaluation.
 
-Despite the fact that chunking is often the first step of data ingestion in RAG pipelines, the literature on evaluating chunking strategies is sparse. Greg Kamradt's work on semantic chunking was incorporated by LangChain \[[14](#kamradt2024semantic)\], and Aurelio AI developed its own version \[[15](#aurelio2024semantic)\]. Additionally, Unstructured explored chunking in financial contexts, focusing on metadata about chunks based on their document position rather than optimal text partitioning \[[16](#2402.05131)\]. These efforts highlight the emerging interest evaluations of chunking for RAG, yet there remains a significant gap in comprehensive evaluation, which our works is intended to address.
+Despite the fact that chunking is often the first step of data ingestion in RAG pipelines, the literature on evaluating chunking strategies is sparse. Greg Kamradt's work on semantic chunking was incorporated by LangChain $$[14](#kamradt2024semantic)$$, and Aurelio AI developed its own version $$[15](#aurelio2024semantic)$$. Additionally, Unstructured explored chunking in financial contexts, focusing on metadata about chunks based on their document position rather than optimal text partitioning $$[16](#2402.05131)$$. These efforts highlight the emerging interest evaluations of chunking for RAG, yet there remains a significant gap in comprehensive evaluation, which our works is intended to address.
 
 ## Evaluating Retrieval for AI Applications
 
@@ -128,9 +128,9 @@ We note also that although we filter aggressively to ensure generated excerpts a
 
 For a given query related to a specific corpus, only a subset of tokens within that corpus will be relevant. Ideally, for both efficiency and accuracy, the retrieval system should retrieve exactly and only the relevant tokens for each query across the entire corpus.
 
-In practice, the unit of retrieval for AI applications is usually a text chunk containing the relevant excerpt. This chunk will often contain superfluous tokens which require additional compute to process, and which may contain irrelevant distractors which may reduce overall performance of the RAG application \[[17](#2302.00093)\]. Additionally, where a chunking strategy uses overlapping chunks, the retriever may return redundant tokens, for example if tokens from a relevant excerpt are in more than one chunk due to overlap. Finally, a given retriever may not retrieve all necessary excerpts for a given query.
+In practice, the unit of retrieval for AI applications is usually a text chunk containing the relevant excerpt. This chunk will often contain superfluous tokens which require additional compute to process, and which may contain irrelevant distractors which may reduce overall performance of the RAG application $$[17](#2302.00093)$$. Additionally, where a chunking strategy uses overlapping chunks, the retriever may return redundant tokens, for example if tokens from a relevant excerpt are in more than one chunk due to overlap. Finally, a given retriever may not retrieve all necessary excerpts for a given query.
 
-We therefore seek a metric which can take into account not only whether relevant excerpts are retrieved, but also how many irrelevant, redundant, or distracting tokens are also retrieved. Inspired by a similar metric in computer vision and data mining, the Jaccard similarity \[[11](#leskovec2020mining)\], we propose the token-wise Intersection over Union (IoU) metric for evaluating the efficiency of a retrieval system \[[18](#Rahman2016)\].
+We therefore seek a metric which can take into account not only whether relevant excerpts are retrieved, but also how many irrelevant, redundant, or distracting tokens are also retrieved. Inspired by a similar metric in computer vision and data mining, the Jaccard similarity $$[11](#leskovec2020mining)$$, we propose the token-wise Intersection over Union (IoU) metric for evaluating the efficiency of a retrieval system $$[18](#Rahman2016)$$.
 
 We compute IoU for a given query and chunked corpus
 
@@ -164,23 +164,23 @@ We selected five diverse corpora for our dataset, ensuring a mix of both clean a
 
 While these corpora are relatively small in comparison to most large-scale retreival benchmarks, our aim is to demonstrate the utility of our evaluation framework on representative data, provide easily reproduced results, and to provide a starting point for future work. We do not claim that the concrete dataset we present is comprehensive, but rather that it demonstrates the utility of our evaluation framework.
 
-### State of the Union Address 2024 \[\]
+### State of the Union Address 2024 $$$$
 
 This is a plain transcript of the State of the Union Address in 2024. It is well-structured and clear. This corpus is 10,444 tokens long.
 
-### Wikitext \[\]
+### Wikitext $$$$
 
 The WikiText language modeling dataset consists of over 100 million tokens from verified Good and Featured articles on Wikipedia. Our subset is the first 26,649 tokens of this text as it appears on Hugging Face.
 
-### Chatlogs \[\]
+### Chatlogs $$$$
 
 The UltraChat 200k dataset is a high quality filtered subset of UltraChat consisting of 1.4M dialogues generated by ChatGPT. Our corpus includes all surrounding JSON syntax, making it a more accurate representation of real-world raw text. Our subset is the first 7,727 tokens of this text.
 
-### Finance \[\]
+### Finance $$$$
 
 The ConvFinQA dataset is designed to study numerical reasoning in conversational question answering within the finance domain. This corpus includes complex multi-turn questions and answers based on financial reports, focusing on modeling long-range numerical reasoning paths. Our subset is the first 166,177 tokens of this text.
 
-### Pubmed \[\]
+### Pubmed $$$$
 
 The PMC Open Access Subset is a collection of biomedical and life sciences journal literature from the National Library of Medicine. Our subset is the first 117,211 tokens of this text.
 
@@ -225,7 +225,7 @@ At the time of writing, the cost of generating a single question using GPT-4 is 
 
 Below we present the chunking methods used in this report. We evaluate general-purpose, commonly-used chunkers, as well as novel approaches. Any mentions of tokens in this section refer to that within the context of OpenAI's cl100k Tokenizer. The symbol ★ indicates that the subsequent algorithm is a new chunking method we developed for this study.
 
-## RecursiveCharacterTextSplitter & TokenTextSplitter \[\]
+## RecursiveCharacterTextSplitter & TokenTextSplitter $$$$
 
 `RecursiveCharacterTextSplitter` and `TokenTextSplitter` are some of the most popular chunking methods, and the default used by many RAG systems. These chunking methods are insensitive to the semantic content of the corpus, relying instead on the position of character sequences to divide documents into chunks, up to a maximum specified length. We follow the implementation of the popular [Langchain](https://python.langchain.com/v0.2/docs/introduction/) library.
 
@@ -237,7 +237,7 @@ We found that it was necessary to alter some defaults to achieve fair results. B
 ", "
 ", ".", "?", "!", " ", ""]` as the set of separators.
 
-## KamradtSemanticChunker \[\]
+## KamradtSemanticChunker $$$$
 
 Greg Kamradt proposed a novel semantic chunking algorithm, which was later incorporated into LangChain. The chunker works by first splitting the corpus by sentence. It functions by computing the embedding of a sliding window of tokens over a document, and searching for discontinuities in the cosine distances between consecutive windows. By default, the threshold for detecting a discontinuity is set to any distance above the 95th percentile of all consecutive distances. This is a relative metric and can lead to larger chunks in bigger corpora.
 
@@ -255,7 +255,7 @@ A limitation to this method is that the globally optimal packing relies on the g
 
 ## ★ LLMSemanticChunker
 
-In the spirit of "just \[ask\] the model", we experimented with directly prompting an LLM to chunk the text. We found that a naive approach where the LLM is prompted to repeat the corpus with a `<|split|>` token was costly, slow, and suffered from hallucinations in the produced text.
+In the spirit of "just $$ask$$ the model", we experimented with directly prompting an LLM to chunk the text. We found that a naive approach where the LLM is prompted to repeat the corpus with a `<|split|>` token was costly, slow, and suffered from hallucinations in the produced text.
 
 To resolve this we broke the text into chunks of size 50 in tokens using a `RecursiveCharacterTextSplitter`. Then we re-joined the text but surrounded by chunk tags resulting in text like the following:
 
@@ -293,7 +293,7 @@ Results for text-embedding-3-large. Size denotes the chunk size in tokens (cl100
 
 We find that the heuristic `RecursiveCharacterTextSplitter` with chunk size 200 and no overlap performs well. While it does not achieve the best result, it is consistently high performing across all evaluation metrtics. We note that it outperforms `TokenTextSplitter` across all metrics for chunk size of 400 or less with no chunk overlap. Interestingly, this does not hold for larger chunk sizes and overlap. Unsurprisingly, reducing chunk overlap improves IoU scores, as this metric penalizes redundant information.
 
-OpenAI Assistants can use file search to improve their response, following the standard Retrieval-Augmented Generation (RAG) process. According to their documentation, the default chunking strategy uses a chunk size of 800 tokens with an overlap of 400 tokens \[[25](#openai_vector_stores)\]. Assuming the `TokenTextSplitter` method is employed, we observe that this setting results in slightly below-average recall and the lowest scores across all other metrics, suggesting particularly poor recall-efficiency tradeoffs.
+OpenAI Assistants can use file search to improve their response, following the standard Retrieval-Augmented Generation (RAG) process. According to their documentation, the default chunking strategy uses a chunk size of 800 tokens with an overlap of 400 tokens $$[25](#openai_vector_stores)$$. Assuming the `TokenTextSplitter` method is employed, we observe that this setting results in slightly below-average recall and the lowest scores across all other metrics, suggesting particularly poor recall-efficiency tradeoffs.
 
 The `ClusterSemanticChunker`, with a max chunk size set to 400 tokens, achieves the second highest recall of 0.913. Dropping the max chunk size to 200 results in average recall but the highest precision, Precision$\_\Omega$, and IoU. The `LLMSemanticChunkers` achieves the highest recall of 0.919 while having average scores on the remaining metrics, suggesting LLMs are relatively capable at this task.
 
@@ -301,7 +301,7 @@ The `KamradtSemanticChunker` with the default settings scores slightly below ave
 
 We speculate that recall could reach a maximum before relevant information is diluted within chunks, making it more difficult to retrieve, while chunks which are too small fail to capture necessary context within a single unit.
 
-We repeat our experiments with the embedding model changed to the Sentence Transformers 'all-MiniLM-L6-v2'\[[26](#sentence_transformers)\].
+We repeat our experiments with the embedding model changed to the Sentence Transformers 'all-MiniLM-L6-v2'$$[26](#sentence_transformers)$$.
 
 | Chunking | Size | Overlap | Recall | Precision | Precision$\_Ω$ | IoU |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -340,59 +340,59 @@ Our evaluation of popular chunking strategies demonstrate that this evaluation e
 
 ## References
 
-\[1\] Jacob Devlin Maarten Bosma Gaurav Mishra Adam Roberts Paul Barham Hyung Won Chung Charles Sutton Sebastian Gehrmann et al. Aakanksha Chowdhery, Sharan Narang. Palm: Scaling language modeling with pathways. Journal of Machine Learning Research, 24(240):1–113, 2023.
+$$1$$ Jacob Devlin Maarten Bosma Gaurav Mishra Adam Roberts Paul Barham Hyung Won Chung Charles Sutton Sebastian Gehrmann et al. Aakanksha Chowdhery, Sharan Narang. Palm: Scaling language modeling with pathways. Journal of Machine Learning Research, 24(240):1–113, 2023.
 
-\[2\] Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen tau Yih, Tim Rocktäschel, Sebastian Riedel, and Douwe Kiela. Retrieval-augmented generation for knowledge-intensive nlp tasks, 2021
+$$2$$ Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen tau Yih, Tim Rocktäschel, Sebastian Riedel, and Douwe Kiela. Retrieval-augmented generation for knowledge-intensive nlp tasks, 2021
 
-\[3\] Sergey Brin and Lawrence Page. The anatomy of a large-scale hypertextual web search engine. In Proceedings of the seventh international conference on World Wide Web 7, pages 107–117. Elsevier, 1998.
+$$3$$ Sergey Brin and Lawrence Page. The anatomy of a large-scale hypertextual web search engine. In Proceedings of the seventh international conference on World Wide Web 7, pages 107–117. Elsevier, 1998.
 
-\[4\] C.J. van Rijsbergen. A probability ranking principle in information retrieval. Journal of Documentation, 33(4):334– 354, 1977.
+$$4$$ C.J. van Rijsbergen. A probability ranking principle in information retrieval. Journal of Documentation, 33(4):334– 354, 1977.
 
-\[5\] S. E. Robertson, S. Walker, M. Beaulieu, M. Gatford, and A. Payne. Okapi at trec-3. In Proceedings of the Third Text REtrieval Conference (TREC-3), pages 109–126. NIST, 1995.
+$$5$$ S. E. Robertson, S. Walker, M. Beaulieu, M. Gatford, and A. Payne. Okapi at trec-3. In Proceedings of the Third Text REtrieval Conference (TREC-3), pages 109–126. NIST, 1995.
 
-\[6\] Niklas Muennighoff, Nouamane Tazi, Loïc Magne, and Nils Reimers. Mteb: Massive text embedding benchmark, 2022.
+$$6$$ Niklas Muennighoff, Nouamane Tazi, Loïc Magne, and Nils Reimers. Mteb: Massive text embedding benchmark, 2022.
 
-\[7\] Nandan Thakur, Nils Reimers, Andreas Rücklé, Abhishek Srivastava, and Iryna Gurevych. Beir: A heterogenous benchmark for zero-shot evaluation of information retrieval models, 2021.
+$$7$$ Nandan Thakur, Nils Reimers, Andreas Rücklé, Abhishek Srivastava, and Iryna Gurevych. Beir: A heterogenous benchmark for zero-shot evaluation of information retrieval models, 2021.
 
-\[8\] Weiyun Wang, Shuibo Zhang, Yiming Ren, Yuchen Duan, Tiantong Li, Shuo Liu, Mengkang Hu, Zhe Chen, Kaipeng Zhang, Lewei Lu, Xizhou Zhu, Ping Luo, Yu Qiao, Jifeng Dai, Wenqi Shao, and Wenhai Wang. Needle in a multimodal haystack, 2024.
+$$8$$ Weiyun Wang, Shuibo Zhang, Yiming Ren, Yuchen Duan, Tiantong Li, Shuo Liu, Mengkang Hu, Zhe Chen, Kaipeng Zhang, Lewei Lu, Xizhou Zhu, Ping Luo, Yu Qiao, Jifeng Dai, Wenqi Shao, and Wenhai Wang. Needle in a multimodal haystack, 2024.
 
-\[9\] Marcin Kaszkiel and Justin Zobel. Passage retrieval revisited. In ACM SIGIR Forum, volume 31, pages 178–185. ACM New York, NY, USA, 1997
+$$9$$ Marcin Kaszkiel and Justin Zobel. Passage retrieval revisited. In ACM SIGIR Forum, volume 31, pages 178–185. ACM New York, NY, USA, 1997
 
-\[10\] Bajaj, P., Campos, D., Craswell, N., Deng, L., Gao, J., Liu, X., Majumder, R., McNamara, A., Mitra, B., Nguyen, T., Rosenberg, M., Song, X., Stoica, A., Tiwary, S., & Wang, T. (2018). MS MARCO: A Human Generated MAchine Reading COmprehension Dataset. *arXiv preprint arXiv:1611.09268*. [https://arxiv.org/abs/1611.09268](https://arxiv.org/abs/1611.09268)
+$$10$$ Bajaj, P., Campos, D., Craswell, N., Deng, L., Gao, J., Liu, X., Majumder, R., McNamara, A., Mitra, B., Nguyen, T., Rosenberg, M., Song, X., Stoica, A., Tiwary, S., & Wang, T. (2018). MS MARCO: A Human Generated MAchine Reading COmprehension Dataset. *arXiv preprint arXiv:1611.09268*. [https://arxiv.org/abs/1611.09268](https://arxiv.org/abs/1611.09268)
 
-\[11\] Jure Leskovec, Anand Rajaraman, and Jeffrey David Ullman. Mining of massive data sets. Cambridge university press, 2020.
+$$11$$ Jure Leskovec, Anand Rajaraman, and Jeffrey David Ullman. Mining of massive data sets. Cambridge university press, 2020.
 
-\[12\] Matouš Eibich, Shivay Nagpal, and Alexander Fred-Ojala. Aragog: Advanced rag output grading, 2024.
+$$12$$ Matouš Eibich, Shivay Nagpal, and Alexander Fred-Ojala. Aragog: Advanced rag output grading, 2024.
 
-\[13\] Shahul Es, Jithin James, Luis Espinosa-Anke, and Steven Schockaert. Ragas: Automated evaluation of retrieval augmented generation, 2023.
+$$13$$ Shahul Es, Jithin James, Luis Espinosa-Anke, and Steven Schockaert. Ragas: Automated evaluation of retrieval augmented generation, 2023.
 
-\[14\] Greg Kamradt. 5 levels of text splitting. [https://github.com/FullStackRetrieval-com/](https://github.com/FullStackRetrieval-com/) RetrievalTutorials/blob/main/tutorials/LevelsOfTextSplitting/5\_Levels\_Of\_Text\_ Splitting.ipynb, 2024. Implementation of Semantic Chunking.
+$$14$$ Greg Kamradt. 5 levels of text splitting. [https://github.com/FullStackRetrieval-com/](https://github.com/FullStackRetrieval-com/) RetrievalTutorials/blob/main/tutorials/LevelsOfTextSplitting/5\_Levels\_Of\_Text\_ Splitting.ipynb, 2024. Implementation of Semantic Chunking.
 
-\[15\] Aurelio AI Labs. Semantic chunkers. [https://github.com/aurelio-labs/semantic-chunkers](https://github.com/aurelio-labs/semantic-chunkers), 2024. Library for semantic text chunking.
+$$15$$ Aurelio AI Labs. Semantic chunkers. [https://github.com/aurelio-labs/semantic-chunkers](https://github.com/aurelio-labs/semantic-chunkers), 2024. Library for semantic text chunking.
 
-\[16\] Antonio Jimeno Yepes, Yao You, Jan Milczek, Sebastian Laverde, and Renyu Li. Financial report chunking for effective retrieval augmented generation, 2024.
+$$16$$ Antonio Jimeno Yepes, Yao You, Jan Milczek, Sebastian Laverde, and Renyu Li. Financial report chunking for effective retrieval augmented generation, 2024.
 
-\[17\] Freda Shi, Xinyun Chen, Kanishka Misra, Nathan Scales, David Dohan, Ed Chi, Nathanael Schärli, and Denny Zhou. Large language models can be easily distracted by irrelevant context, 2023.
+$$17$$ Freda Shi, Xinyun Chen, Kanishka Misra, Nathan Scales, David Dohan, Ed Chi, Nathanael Schärli, and Denny Zhou. Large language models can be easily distracted by irrelevant context, 2023.
 
-\[18\] Md Atiqur Rahman and Yang Wang. Optimizing intersection-over-union in deep neural networks for image segmentation. In George Bebis, Richard Boyle, Bahram Parvin, Darko Koracin, Fatih Porikli, Sandra Skaff, Alireza Entezari, Jianyuan Min, Daisuke Iwai, Amela Sadagic, Carlos Scheidegger, and Tobias Isenberg, editors, Advances in Visual Computing. ISVC 2016. Lecture Notes in Computer Science, volume 10072, pages 234–244. Springer, Cham, 2016.
+$$18$$ Md Atiqur Rahman and Yang Wang. Optimizing intersection-over-union in deep neural networks for image segmentation. In George Bebis, Richard Boyle, Bahram Parvin, Darko Koracin, Fatih Porikli, Sandra Skaff, Alireza Entezari, Jianyuan Min, Daisuke Iwai, Amela Sadagic, Carlos Scheidegger, and Tobias Isenberg, editors, Advances in Visual Computing. ISVC 2016. Lecture Notes in Computer Science, volume 10072, pages 234–244. Springer, Cham, 2016.
 
-\[19\] The White House. State of the union 2024, 2024. Accessed: 2024-05-02.
+$$19$$ The White House. State of the union 2024, 2024. Accessed: 2024-05-02.
 
-\[20\] Stephen Merity, Caiming Xiong, James Bradbury, and Richard Socher. Pointer sentinel mixture models, 2016.
+$$20$$ Stephen Merity, Caiming Xiong, James Bradbury, and Richard Socher. Pointer sentinel mixture models, 2016.
 
-\[21\] Ning Ding, Yulin Chen, Bokai Xu, Yujia Qin, Zhi Zheng, Shengding Hu, Zhiyuan Liu, Maosong Sun, and Bowen Zhou. Enhancing chat language models by scaling high-quality instructional conversations, 2023.
+$$21$$ Ning Ding, Yulin Chen, Bokai Xu, Yujia Qin, Zhi Zheng, Shengding Hu, Zhiyuan Liu, Maosong Sun, and Bowen Zhou. Enhancing chat language models by scaling high-quality instructional conversations, 2023.
 
-\[22\] Zhiyu Chen, Shiyang Li, Charese Smiley, Zhiqiang Ma, Sameena Shah, and William Yang Wang. Convfinqa: Exploring the chain of numerical reasoning in conversational finance question answering. In EMNLP, pages 6279–6292. Association for Computational Linguistics, 2022.
+$$22$$ Zhiyu Chen, Shiyang Li, Charese Smiley, Zhiqiang Ma, Sameena Shah, and William Yang Wang. Convfinqa: Exploring the chain of numerical reasoning in conversational finance question answering. In EMNLP, pages 6279–6292. Association for Computational Linguistics, 2022.
 
-\[23\] National Library of Medicine. Pmc open access subset. Dataset retrieved from Hugging Face Datasets (2023). PubMed Central Open Access dataset (Version 2023-06-17.commercial). Available from [https://huggingface.co/datasets/pmc/open\_access](https://huggingface.co/datasets/pmc/open_access), 2003–. \[cited 2024 May 08\].
+$$23$$ National Library of Medicine. Pmc open access subset. Dataset retrieved from Hugging Face Datasets (2023). PubMed Central Open Access dataset (Version 2023-06-17.commercial). Available from [https://huggingface.co/datasets/pmc/open\_access](https://huggingface.co/datasets/pmc/open_access), 2003–. $$cited 2024 May 08$$.
 
-\[24\] LangChain. Recursive text splitter, 2023. Accessed: 2024-04-16.
+$$24$$ LangChain. Recursive text splitter, 2023. Accessed: 2024-04-16.
 
-\[25\] OpenAI. Vector stores. [https://platform.openai.com/docs/assistants/tools/file-search/](https://platform.openai.com/docs/assistants/tools/file-search/) vector-stores, 2024. Accessed: 2024-06-27.
+$$25$$ OpenAI. Vector stores. [https://platform.openai.com/docs/assistants/tools/file-search/](https://platform.openai.com/docs/assistants/tools/file-search/) vector-stores, 2024. Accessed: 2024-06-27.
 
-\[26\] HuggingFace. Sentence Transformers, all-MiniLM-L6-v2. [https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) 2024. Accessed: 2024-06-27.
+$$26$$ HuggingFace. Sentence Transformers, all-MiniLM-L6-v2. [https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) 2024. Accessed: 2024-06-27.
 
-\[27\] Kristian Georgiev Aleksander Madry Benjamin Cohen-Wang, Harshay Shah. Contextcite: Attributing model generation to context. [https://github.com/MadryLab/context-cite/tree/main](https://github.com/MadryLab/context-cite/tree/main), 2024.
+$$27$$ Kristian Georgiev Aleksander Madry Benjamin Cohen-Wang, Harshay Shah. Contextcite: Attributing model generation to context. [https://github.com/MadryLab/context-cite/tree/main](https://github.com/MadryLab/context-cite/tree/main), 2024.
 
 ---
 
@@ -502,7 +502,7 @@ We also did not find that there was any clear structure in the attention values 
 
 ### ContextCite Inspired Chunking
 
-The final algorithm was inspired by ContextCite \[[27](#cohenwang2024contextcite)\]. Their work leverages next-token prediction to observe how the probability of an LLM generating a response changes as different parts of the input prompt are masked. This allows them to fit weights to each part of the input prompt, determining how much it influences the likelihood of generating a specific response. Essentially, this results in a weighted importance of each part of the input prompt relative to the response.
+The final algorithm was inspired by ContextCite $$[27](#cohenwang2024contextcite)$$. Their work leverages next-token prediction to observe how the probability of an LLM generating a response changes as different parts of the input prompt are masked. This allows them to fit weights to each part of the input prompt, determining how much it influences the likelihood of generating a specific response. Essentially, this results in a weighted importance of each part of the input prompt relative to the response.
 
 For our work, we split the Wikitext corpus into 50-token chunks using a `RecursiveCharacterTextSplitter` and applied the same algorithm, but with each chunk as the 'response' and all previous chunks as the input prompt. This allowed us to fit weights between each chunk. Unfortunately, no clear structure emerged, and we were unable to derive a useful chunking algorithm.
 

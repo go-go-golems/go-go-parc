@@ -151,17 +151,17 @@ These occurrences differ visually and structurally, but they may denote the same
 
 A presentation-based interface records a semantic assertion alongside output:
 
-\[
+$$
 \operatorname{presents}(o,\tau,x),
-\]
+$$
 
 where:
 
-- \(o\) is an output occurrence;
-- \(\tau\) is a presentation type;
-- \(x\) is an application object or reference.
+- $o$ is an output occurrence;
+- $\tau$ is a presentation type;
+- $x$ is an application object or reference.
 
-The assertion does not imply that the occurrence visually exposes every property of \(x\). A short label can present a large object. Nor does it imply that every occurrence has the same behavior. Behavior is selected using the presented type, current command context, gesture, environment, and possibly other arguments.
+The assertion does not imply that the occurrence visually exposes every property of $x$. A short label can present a large object. Nor does it imply that every occurrence has the same behavior. Behavior is selected using the presented type, current command context, gesture, environment, and possibly other arguments.
 
 ### Running example
 
@@ -261,7 +261,7 @@ interface FieldOccurrenceProps {
 }
 ```
 
-The component interface grows with every global operation. A presentation wrapper instead exposes the stable semantic fact—“this is field \(f\)”—and lets context determine applicable operations.
+The component interface grows with every global operation. A presentation wrapper instead exposes the stable semantic fact—“this is field $f$”—and lets context determine applicable operations.
 
 This is an inversion of dependency:
 
@@ -795,7 +795,7 @@ If actions exist only on exact descriptors, every inspectable type repeats an `i
 
 ### Predicate cost
 
-An arbitrary filter may run for every occurrence on every render. A filter that scans a list makes applicability \(O(nm)\) for \(n\) occurrences and an \(m\)-element list.
+An arbitrary filter may run for every occurrence on every render. A filter that scans a list makes applicability $O(nm)$ for $n$ occurrences and an $m$-element list.
 
 ### Stale applicability
 
@@ -826,7 +826,7 @@ Do not implement a type calculus preemptively. Adopt richer machinery in respons
 1. **Implementation.** Implement the discriminated-union derivation and verify that a `switch` narrows `value` correctly.
 2. **Implementation.** Choose and implement a policy for starting a second input context.
 3. **Design.** Add a development inspector that prints a presentation's type and label without depending on its visual child.
-4. **Analysis.** For \(n\) mounted occurrences and \(k\) one-step conversions, derive the worst-case number of conversion calls in one applicability pass.
+4. **Analysis.** For $n$ mounted occurrences and $k$ one-step conversions, derive the worst-case number of conversion calls in one applicability pass.
 5. **Testing.** Write a test showing why JavaScript reference equality is insufficient after immutable update.
 6. **Critical.** Give a case where descriptor-local actions are preferable to a global rule system.
 
@@ -870,57 +870,57 @@ project is represented by a Project object
 
 Does a particular semantic reference belong to a presentation type?
 
-\[
+$$
 r \in \llbracket \tau \rrbracket_e
-\]
+$$
 
 ### Subtyping
 
 Is every member of one type also a member of another?
 
-\[
+$$
 \tau \leq \sigma
-\]
+$$
 
 ### Identity
 
 Do two references denote the same application object?
 
-\[
+$$
 r_1 \approx_e r_2
-\]
+$$
 
 ### Translation
 
 Can a source reference be transformed into a target reference?
 
-\[
+$$
 r \xrightarrow{t,e} r'
-\]
+$$
 
 ### Capability or proposition
 
 Does a semantic property hold?
 
-\[
+$$
 e \vDash \operatorname{Inspectable}(r)
-\]
+$$
 
 ### Dispatch applicability
 
 Does an action method's signature accept the current arguments and context?
 
-\[
+$$
 \operatorname{applicable}(m,\vec r,e)
-\]
+$$
 
 ### Subject linkage
 
 Do two views observe the same mutable selection cell?
 
-\[
+$$
 \operatorname{binding}(v_1)=\operatorname{binding}(v_2)
-\]
+$$
 
 These relations interact, but they are not interchangeable.
 
@@ -1063,37 +1063,37 @@ After this chapter you should be able to:
 
 A **set** is a collection considered by membership. We write
 
-\[
+$$
 x \in A
-\]
+$$
 
-when \(x\) is a member of set \(A\), and
+when $x$ is a member of set $A$, and
 
-\[
+$$
 x \notin A
-\]
+$$
 
-otherwise. A universe \(\Omega\) fixes the collection of objects under discussion.
+otherwise. A universe $\Omega$ fixes the collection of objects under discussion.
 
-For PBUI, an element of \(\Omega\) is not necessarily a raw JavaScript value. It is a semantic reference:
+For PBUI, an element of $\Omega$ is not necessarily a raw JavaScript value. It is a semantic reference:
 
-\[
+$$
 r = \langle a,v\rangle,
-\]
+$$
 
-where \(a\) is an atomic presentation tag and \(v\) is its representation.
+where $a$ is an atomic presentation tag and $v$ is its representation.
 
 Examples are:
 
-\[
+$$
 \langle \textsf{project}, p_7\rangle,
 \qquad
 \langle \textsf{project-id}, \texttt{"p-7"}\rangle,
 \qquad
 \langle \textsf{field}, f_{temperature}\rangle.
-\]
+$$
 
-We write \(\Omega_R\) when the universe depends on registry \(R\). In an implementation, the universe is often potentially infinite: all references that can be constructed according to the registered representation contracts.
+We write $\Omega_R$ when the universe depends on registry $R$. In an implementation, the universe is often potentially infinite: all references that can be constructed according to the registered representation contracts.
 
 ## 5.2 A type denotes a set
 
@@ -1101,50 +1101,50 @@ The central interpretation of this book is:
 
 > A presentation type denotes the set of references acceptable as that type.
 
-If \(\tau\) is a type expression, its denotation in registry \(R\) and environment \(e\) is
+If $\tau$ is a type expression, its denotation in registry $R$ and environment $e$ is
 
-\[
+$$
 \llbracket \tau \rrbracket^R_e \subseteq \Omega_R.
-\]
+$$
 
-The brackets \(\llbracket - \rrbracket\) mean “the semantic meaning of.”
+The brackets $\llbracket - \rrbracket$ mean “the semantic meaning of.”
 
 For example:
 
-\[
+$$
 \llbracket \textsf{Project} \rrbracket^R_e
 = \{\langle \textsf{project},p\rangle \mid p \text{ is a registered project representation}\}.
-\]
+$$
 
 A refinement can depend on the environment:
 
-\[
+$$
 \llbracket \operatorname{OwnedByCurrentUser}(\textsf{Project}) \rrbracket^R_e
 = \{r \in \llbracket \textsf{Project} \rrbracket^R_e
 \mid \operatorname{owner}(r)=e.\operatorname{currentUser}\}.
-\]
+$$
 
 The environment parameter is explicit because permission, ownership, visibility, selection, and lifecycle state can change.
 
 ## 5.3 Predicates as characteristic functions
 
-Every set \(A \subseteq \Omega\) has a **characteristic predicate**:
+Every set $A \subseteq \Omega$ has a **characteristic predicate**:
 
-\[
+$$
 \chi_A : \Omega \to \{\mathsf{true},\mathsf{false}\}
-\]
+$$
 
 such that
 
-\[
+$$
 \chi_A(x)=\mathsf{true} \quad\text{iff}\quad x\in A.
-\]
+$$
 
-Conversely, every Boolean predicate \(p : \Omega \to \mathsf{Bool}\) determines a set:
+Conversely, every Boolean predicate $p : \Omega \to \mathsf{Bool}$ determines a set:
 
-\[
+$$
 \{x\in\Omega \mid p(x)\}.
-\]
+$$
 
 This correspondence explains why arbitrary lambdas can define refinements:
 
@@ -1155,29 +1155,29 @@ const activeProject = (reference: ProjectRef): boolean =>
 
 Semantically:
 
-\[
+$$
 \{r\in\llbracket\textsf{Project}\rrbracket_e
 \mid \neg\operatorname{archived}(r)\}.
-\]
+$$
 
 However, a JavaScript function is an opaque *implementation* of a predicate. The runtime cannot automatically know its dependencies, purity, cost, or logical relationship to another function. Later chapters separate the mathematical predicate from its registered executable witness.
 
 ## 5.4 Set operations as type constructors
 
-Let \(A,B\subseteq\Omega\).
+Let $A,B\subseteq\Omega$.
 
 ### Union
 
-\[
+$$
 A\cup B = \{x\mid x\in A \lor x\in B\}.
-\]
+$$
 
 A union type accepts either alternative:
 
-\[
+$$
 \llbracket \tau\lor\sigma\rrbracket_e
 =\llbracket\tau\rrbracket_e\cup\llbracket\sigma\rrbracket_e.
-\]
+$$
 
 Example:
 
@@ -1187,9 +1187,9 @@ Project ∨ Workspace
 
 ### Intersection
 
-\[
+$$
 A\cap B = \{x\mid x\in A \land x\in B\}.
-\]
+$$
 
 An intersection type requires both properties:
 
@@ -1199,17 +1199,17 @@ Project ∧ Inspectable
 
 ### Complement and difference
 
-Relative to a universe \(\Omega\), the complement is:
+Relative to a universe $\Omega$, the complement is:
 
-\[
+$$
 \overline{A}=\Omega\setminus A.
-\]
+$$
 
 Difference is:
 
-\[
+$$
 A\setminus B=\{x\mid x\in A\land x\notin B\}.
-\]
+$$
 
 For an extensible UI, difference is often safer to expose than unrestricted complement:
 
@@ -1223,15 +1223,15 @@ Its meaning is stable relative to `Project`, whereas global `¬Archived` include
 
 The **top type** denotes the whole universe:
 
-\[
+$$
 \llbracket\top\rrbracket_e=\Omega_R.
-\]
+$$
 
 The **bottom type** denotes the empty set:
 
-\[
+$$
 \llbracket\bot\rrbracket_e=\varnothing.
-\]
+$$
 
 Bottom is useful for impossible branches and ambiguity analysis even though no occurrence can inhabit it.
 
@@ -1239,93 +1239,93 @@ Bottom is useful for impossible branches and ambiguity analysis even though no o
 
 Two sets are equal when they have the same members:
 
-\[
+$$
 A=B \quad\text{iff}\quad \forall x.\;x\in A \Leftrightarrow x\in B.
-\]
+$$
 
 This is the **principle of extensionality**. Applied to types:
 
-\[
+$$
 \tau \equiv \sigma
 \quad\text{iff}\quad
 \forall e.\;\llbracket\tau\rrbracket_e=\llbracket\sigma\rrbracket_e.
-\]
+$$
 
 The expressions may look different while denoting the same set:
 
-\[
+$$
 \tau\land\top \equiv \tau,
-\]
+$$
 
-\[
+$$
 \tau\lor\bot \equiv \tau,
-\]
+$$
 
-\[
+$$
 \tau\land(\sigma\lor\rho)
 \equiv
 (\tau\land\sigma)\lor(\tau\land\rho).
-\]
+$$
 
 A runtime may normalize expressions to exploit these equivalences, but semantic equality is the criterion—not identical syntax.
 
 ## 5.6 Boolean laws
 
-The powerset \(\mathcal P(\Omega)\), equipped with union, intersection, complement, empty set, and universe, forms a Boolean algebra. Therefore type denotations satisfy familiar laws.
+The powerset $\mathcal P(\Omega)$, equipped with union, intersection, complement, empty set, and universe, forms a Boolean algebra. Therefore type denotations satisfy familiar laws.
 
 ### Commutativity
 
-\[
+$$
 \tau\lor\sigma\equiv\sigma\lor\tau,
 \qquad
 \tau\land\sigma\equiv\sigma\land\tau.
-\]
+$$
 
 ### Associativity
 
-\[
+$$
 (\tau\lor\sigma)\lor\rho
 \equiv
 \tau\lor(\sigma\lor\rho),
-\]
+$$
 
 and similarly for intersection.
 
 ### Idempotence
 
-\[
+$$
 \tau\lor\tau\equiv\tau,
 \qquad
 \tau\land\tau\equiv\tau.
-\]
+$$
 
 ### Absorption
 
-\[
+$$
 \tau\lor(\tau\land\sigma)\equiv\tau,
-\]
+$$
 
-\[
+$$
 \tau\land(\tau\lor\sigma)\equiv\tau.
-\]
+$$
 
 ### De Morgan laws
 
-\[
+$$
 \neg(\tau\lor\sigma)\equiv\neg\tau\land\neg\sigma,
-\]
+$$
 
-\[
+$$
 \neg(\tau\land\sigma)\equiv\neg\tau\lor\neg\sigma.
-\]
+$$
 
 ### Proof of one law
 
-We prove \(A\cap(B\cup C)=(A\cap B)\cup(A\cap C)\).
+We prove $A\cap(B\cup C)=(A\cap B)\cup(A\cap C)$.
 
-Take arbitrary \(x\).
+Take arbitrary $x$.
 
-\[
+$$
 \begin{aligned}
 x\in A\cap(B\cup C)
 &\Leftrightarrow x\in A \land x\in(B\cup C)\\
@@ -1333,43 +1333,43 @@ x\in A\cap(B\cup C)
 &\Leftrightarrow (x\in A\land x\in B)\lor(x\in A\land x\in C)\\
 &\Leftrightarrow x\in(A\cap B)\cup(A\cap C).
 \end{aligned}
-\]
+$$
 
-Because \(x\) was arbitrary, extensionality gives equality. This elementwise method is the standard proof pattern for set identities.
+Because $x$ was arbitrary, extensionality gives equality. This elementwise method is the standard proof pattern for set identities.
 
 ## 5.7 Finite worked model
 
 Let the universe be:
 
-\[
+$$
 \Omega=\{p_1,p_2,p_3,w_1\}.
-\]
+$$
 
 Suppose:
 
-\[
+$$
 \textsf{Project}=\{p_1,p_2,p_3\},
-\]
+$$
 
-\[
+$$
 \textsf{Archived}=\{p_3\},
-\]
+$$
 
-\[
+$$
 \textsf{Inspectable}=\{p_1,p_2,w_1\}.
-\]
+$$
 
 Then:
 
-\[
+$$
 \textsf{Project}\setminus\textsf{Archived}
 =\{p_1,p_2\},
-\]
+$$
 
-\[
+$$
 \textsf{Project}\cap\textsf{Inspectable}
 =\{p_1,p_2\},
-\]
+$$
 
 and these two expressions happen to be extensionally equal in this model. They need not remain equal after adding an inspectable archived project or a non-inspectable active project.
 
@@ -1401,7 +1401,7 @@ A project can use only atoms and conjunctions of named predicates. Union, global
 
 1. **Calculation.** In the finite model above, compute `Project ∪ Inspectable`, `Inspectable \ Project`, and `¬Archived`.
 2. **Proof.** Prove idempotence of union by elementwise extensional reasoning.
-3. **Proof.** Prove the absorption law \(A\cap(A\cup B)=A\).
+3. **Proof.** Prove the absorption law $A\cap(A\cup B)=A$.
 4. **Countermodel.** Extend the finite model so that `Project \ Archived` and `Project ∩ Inspectable` are no longer equal.
 5. **Design.** Give three useful union types and three useful intersections for the workbench.
 6. **Critical.** Why is an arbitrary JavaScript predicate not automatically a satisfactory persistent type definition?
@@ -1423,39 +1423,39 @@ After this chapter you should be able to:
 
 ## 6.1 Binary relations
 
-A binary relation from set \(A\) to set \(B\) is a subset of their Cartesian product:
+A binary relation from set $A$ to set $B$ is a subset of their Cartesian product:
 
-\[
+$$
 R\subseteq A\times B.
-\]
+$$
 
-We write \(aRb\) when \((a,b)\in R\).
+We write $aRb$ when $(a,b)\in R$.
 
 Examples in PBUI include:
 
-- subtype: \(\tau\leq\sigma\);
-- identity: \(r_1\approx r_2\);
-- direct translation: \(r\xrightarrow{t}r'\);
-- view binding: \(v\sim_b w\);
-- action preference: \(m_1\succ m_2\).
+- subtype: $\tau\leq\sigma$;
+- identity: $r_1\approx r_2$;
+- direct translation: $r\xrightarrow{t}r'$;
+- view binding: $v\sim_b w$;
+- action preference: $m_1\succ m_2$.
 
 The properties appropriate to one relation are not automatically appropriate to another. Identity should be symmetric; translation usually is not. Subtyping should be transitive; direct translation need not be.
 
 ## 6.2 Functions and partial functions
 
-A total function \(f:A\to B\) assigns exactly one \(b\in B\) to every \(a\in A\).
+A total function $f:A\to B$ assigns exactly one $b\in B$ to every $a\in A$.
 
 A partial function is written:
 
-\[
+$$
 f:A\rightharpoonup B.
-\]
+$$
 
 It may be undefined for some inputs. A project lookup is naturally partial:
 
-\[
+$$
 \operatorname{lookupProject}:\textsf{ProjectId}\rightharpoonup\textsf{Project}.
-\]
+$$
 
 In TypeScript:
 
@@ -1483,11 +1483,11 @@ Treating failure explicitly becomes important for translators.
 
 ## 6.3 Equivalence relations
 
-A relation \(\approx\) on \(A\) is an **equivalence relation** when it is:
+A relation $\approx$ on $A$ is an **equivalence relation** when it is:
 
-1. reflexive: \(a\approx a\);
-2. symmetric: if \(a\approx b\), then \(b\approx a\);
-3. transitive: if \(a\approx b\) and \(b\approx c\), then \(a\approx c\).
+1. reflexive: $a\approx a$;
+2. symmetric: if $a\approx b$, then $b\approx a$;
+3. transitive: if $a\approx b$ and $b\approx c$, then $a\approx c$.
 
 Semantic object identity should satisfy these laws within one coherent environment snapshot.
 
@@ -1501,15 +1501,15 @@ If a project card is “the same as” an ID token but the ID token is not “th
 
 ### Why transitivity matters
 
-If card \(a\) matches token \(b\), and token \(b\) matches inspector row \(c\), then card \(a\) must match row \(c\). Otherwise a linked selection can split into inconsistent clusters.
+If card $a$ matches token $b$, and token $b$ matches inspector row $c$, then card $a$ must match row $c$. Otherwise a linked selection can split into inconsistent clusters.
 
 ## 6.4 Identity keys
 
 A practical identity protocol maps references to keys:
 
-\[
+$$
 \operatorname{id}_e:\Omega\rightharpoonup K,
-\]
+$$
 
 where a key contains both a namespace and a key value:
 
@@ -1522,17 +1522,17 @@ interface SemanticIdentity {
 
 Define:
 
-\[
+$$
 r_1\approx_e r_2
 \quad\text{iff}\quad
 \operatorname{id}_e(r_1)=\operatorname{id}_e(r_2),
-\]
+$$
 
 when both identities are defined. For references lacking semantic identity, an implementation may use a fallback relation based on primitive value or object reference.
 
 ### Proposition 6.1 — Key equality induces an equivalence relation
 
-Assume `id` is deterministic over one environment snapshot and total on subset \(D\subseteq\Omega\). Define \(r\approx s\) iff \(\operatorname{id}(r)=\operatorname{id}(s)\). Then \(\approx\) is an equivalence relation on \(D\).
+Assume `id` is deterministic over one environment snapshot and total on subset $D\subseteq\Omega$. Define $r\approx s$ iff $\operatorname{id}(r)=\operatorname{id}(s)$. Then $\approx$ is an equivalence relation on $D$.
 
 #### Proof
 
@@ -1563,27 +1563,27 @@ projectId.identity(id) =>
 
 Thus:
 
-\[
+$$
 \langle\textsf{project},p_7\rangle
 \approx
 \langle\textsf{project-id},\texttt{"7"}\rangle.
-\]
+$$
 
 They are the same domain object but not the same presentation role or representation.
 
 ## 6.6 Quotient sets
 
-Given equivalence relation \(\approx\) on \(A\), the equivalence class of \(a\) is:
+Given equivalence relation $\approx$ on $A$, the equivalence class of $a$ is:
 
-\[
+$$
 [a]=\{b\in A\mid b\approx a\}.
-\]
+$$
 
 The **quotient set** is:
 
-\[
+$$
 A/{\approx}=\{[a]\mid a\in A\}.
-\]
+$$
 
 Informally, quotienting treats equivalent representations as one abstract object.
 
@@ -1599,17 +1599,17 @@ Quotienting is a conceptual tool, not a requirement that the implementation allo
 
 ## 6.7 Congruence and identity-sensitive operations
 
-An operation \(f\) respects identity when:
+An operation $f$ respects identity when:
 
-\[
+$$
 r\approx s \Rightarrow f(r)=f(s),
-\]
+$$
 
 or, when the result also has identity,
 
-\[
+$$
 r\approx s \Rightarrow f(r)\approx f(s).
-\]
+$$
 
 Such an operation is compatible with the quotient.
 
@@ -1617,13 +1617,13 @@ Should type membership respect semantic identity? Not always.
 
 The same project can be presented as a `project` object and as a `projectId` token. The former may belong directly to `Project`; the latter may require translation. Therefore:
 
-\[
+$$
 r\approx s
 \centernot\Rightarrow
 (r\in\llbracket\tau\rrbracket \Leftrightarrow s\in\llbracket\tau\rrbracket)
-\]
+$$
 
-for every presentation type \(\tau\).
+for every presentation type $\tau$.
 
 This is not a defect. Presentation types classify semantic roles and representations, while identity classifies denotation.
 
@@ -1633,27 +1633,27 @@ An **identity-invariant capability**, however, may deliberately require congruen
 
 Let:
 
-- \(r\) be a semantic reference;
-- \(o\) be a mounted occurrence;
-- \(k\) be a React key.
+- $r$ be a semantic reference;
+- $o$ be a mounted occurrence;
+- $k$ be a React key.
 
 Several occurrences can carry one reference:
 
-\[
+$$
 \operatorname{reference}(o_1)=\operatorname{reference}(o_2)=r.
-\]
+$$
 
 One occurrence can be remounted with a different occurrence identity while retaining semantic identity. A React key is meaningful only in the local reconciliation context of sibling elements. It should not be exported as a domain identity.
 
 ## 6.9 Stable identity and time
 
-Let environments be indexed by time \(e_t\). Identity stability means:
+Let environments be indexed by time $e_t$. Identity stability means:
 
-\[
+$$
 \operatorname{id}_{e_t}(r)=\operatorname{id}_{e_{t+1}}(r')
-\]
+$$
 
-when \(r\) and \(r'\) are successive representations of the same persistent object.
+when $r$ and $r'$ are successive representations of the same persistent object.
 
 Avoid keys based on:
 
@@ -1697,48 +1697,48 @@ After this chapter you should be able to:
 
 ## 7.1 Preorders and partial orders
 
-A **preorder** \((P,\leq)\) is a set with a relation that is:
+A **preorder** $(P,\leq)$ is a set with a relation that is:
 
-- reflexive: \(x\leq x\);
-- transitive: \(x\leq y\land y\leq z\Rightarrow x\leq z\).
+- reflexive: $x\leq x$;
+- transitive: $x\leq y\land y\leq z\Rightarrow x\leq z$.
 
 A **partial order** additionally requires antisymmetry:
 
-\[
+$$
 x\leq y\land y\leq x\Rightarrow x=y.
-\]
+$$
 
 Subtype syntax naturally forms a preorder because distinct expressions can denote the same type:
 
-\[
+$$
 \tau \leq \tau\land\top,
 \qquad
 \tau\land\top \leq \tau,
-\]
+$$
 
 but the syntax trees are not identical.
 
-If we quotient expressions by semantic equivalence \(\equiv\), the induced subtype relation becomes antisymmetric:
+If we quotient expressions by semantic equivalence $\equiv$, the induced subtype relation becomes antisymmetric:
 
-\[
+$$
 [\tau]\leq[\sigma]
 \quad\text{iff}\quad
 \tau\leq\sigma.
-\]
+$$
 
 ## 7.2 Inclusion as an order
 
 Set inclusion is defined by:
 
-\[
+$$
 A\subseteq B
 \quad\text{iff}\quad
 \forall x.\;x\in A\Rightarrow x\in B.
-\]
+$$
 
-Inclusion is a partial order on \(\mathcal P(\Omega)\):
+Inclusion is a partial order on $\mathcal P(\Omega)$:
 
-- reflexive because membership in \(A\) implies membership in \(A\);
+- reflexive because membership in $A$ implies membership in $A$;
 - transitive because implications compose;
 - antisymmetric by set extensionality.
 
@@ -1760,7 +1760,7 @@ An edge `Project -> Document` can be read as `Project ≤ Document`. Multiple in
 
 A nominal registry typically stores only declared edges and computes reflexive-transitive closure.
 
-Let \(D\subseteq A\times A\) be the declared immediate-supertype relation. Its reflexive-transitive closure \(D^*\) is the smallest relation containing \(D\) that is reflexive and transitive.
+Let $D\subseteq A\times A$ be the declared immediate-supertype relation. Its reflexive-transitive closure $D^*$ is the smallest relation containing $D$ that is reflexive and transitive.
 
 A worklist algorithm computes reachability. For a small type vocabulary, a depth-first search with memoization is sufficient. For repeated queries, precompute ancestor bitsets.
 
@@ -1784,29 +1784,29 @@ Rejecting cycles also prevents confusing specificity order in action dispatch.
 
 ## 7.5 Upper and lower bounds
 
-Given \(a,b\in P\), an upper bound \(u\) satisfies:
+Given $a,b\in P$, an upper bound $u$ satisfies:
 
-\[
+$$
 a\leq u \land b\leq u.
-\]
+$$
 
-A **least upper bound**, or **join**, is an upper bound no larger than any other upper bound. It is written \(a\vee b\).
+A **least upper bound**, or **join**, is an upper bound no larger than any other upper bound. It is written $a\vee b$.
 
-A lower bound \(l\) satisfies:
+A lower bound $l$ satisfies:
 
-\[
+$$
 l\leq a \land l\leq b.
-\]
+$$
 
-A **greatest lower bound**, or **meet**, is written \(a\wedge b\).
+A **greatest lower bound**, or **meet**, is written $a\wedge b$.
 
 For sets ordered by inclusion:
 
-\[
+$$
 A\vee B=A\cup B,
 \qquad
 A\wedge B=A\cap B.
-\]
+$$
 
 This gives the logical reading of union and intersection types.
 
@@ -1814,13 +1814,13 @@ This gives the logical reading of union and intersection types.
 
 A **lattice** is a partial order in which every pair has a join and meet. A **bounded lattice** has top and bottom elements. A **complete lattice** has joins and meets for every subset, including infinite subsets.
 
-The powerset lattice \((\mathcal P(\Omega),\subseteq)\) is complete:
+The powerset lattice $(\mathcal P(\Omega),\subseteq)$ is complete:
 
-\[
+$$
 \bigvee \mathcal A = \bigcup\mathcal A,
 \qquad
 \bigwedge \mathcal A = \bigcap\mathcal A.
-\]
+$$
 
 This mathematical completeness does not mean an implementation can decide all equalities or represent every subset. The semantic domain can be complete while the type language denotes only a fragment.
 
@@ -1828,61 +1828,61 @@ Order and lattice theory provide the right vocabulary for type approximation, jo
 
 ## 7.7 Monotone functions
 
-A function \(f:P\to Q\) between ordered sets is **monotone** when:
+A function $f:P\to Q$ between ordered sets is **monotone** when:
 
-\[
+$$
 x\leq y\Rightarrow f(x)\leq f(y).
-\]
+$$
 
 Many type constructors are monotone:
 
-\[
+$$
 A\subseteq B
 \Rightarrow
 A\cap C\subseteq B\cap C,
-\]
+$$
 
-\[
+$$
 A\subseteq B
 \Rightarrow
 A\cup C\subseteq B\cup C.
-\]
+$$
 
 Difference is monotone in its first argument and antitone in its second:
 
-\[
+$$
 A\subseteq B\Rightarrow A\setminus C\subseteq B\setminus C,
-\]
+$$
 
-\[
+$$
 C\subseteq D\Rightarrow A\setminus D\subseteq A\setminus C.
-\]
+$$
 
 Variance language in type systems generalizes these observations.
 
 ## 7.8 Closure operators
 
-A **closure operator** \(c:\mathcal P(A)\to\mathcal P(A)\) is:
+A **closure operator** $c:\mathcal P(A)\to\mathcal P(A)$ is:
 
-1. extensive: \(X\subseteq c(X)\);
-2. monotone: \(X\subseteq Y\Rightarrow c(X)\subseteq c(Y)\);
-3. idempotent: \(c(c(X))=c(X)\).
+1. extensive: $X\subseteq c(X)$;
+2. monotone: $X\subseteq Y\Rightarrow c(X)\subseteq c(Y)$;
+3. idempotent: $c(c(X))=c(X)$.
 
 The ancestor closure of a set of atomic types is a closure operator:
 
-\[
+$$
 \operatorname{ancestors}(X)
 = X\cup\{b\mid \exists a\in X.\;aD^*b\}.
-\]
+$$
 
 This gives an efficient fact representation. If a reference is directly tagged `Project`, its closed nominal fact set includes `Project`, `Document`, and `Entity`.
 
 ### Proposition 7.1 — Ancestor closure is a closure operator
 
-Assume \(D^*\) is reflexive and transitive.
+Assume $D^*$ is reflexive and transitive.
 
 - Extensiveness follows from reflexivity.
-- Monotonicity follows because every witness from \(X\) is also in \(Y\) when \(X\subseteq Y\).
+- Monotonicity follows because every witness from $X$ is also in $Y$ when $X\subseteq Y$.
 - Idempotence follows from transitivity: ancestors of ancestors are already ancestors. ∎
 
 This proposition justifies caching a closed atom bitset.
@@ -1895,11 +1895,11 @@ Recursive type definitions such as:
 Tree = Leaf ∨ Node(Tree, Tree)
 ```
 
-are interpreted using fixed points of monotone operators. If \(F\) maps candidate sets to new candidate sets, a fixed point satisfies:
+are interpreted using fixed points of monotone operators. If $F$ maps candidate sets to new candidate sets, a fixed point satisfies:
 
-\[
+$$
 F(X)=X.
-\]
+$$
 
 The Knaster–Tarski theorem guarantees least and greatest fixed points for monotone functions on complete lattices. A full semantic subtype system for recursive data relies on such machinery.
 
@@ -1945,12 +1945,12 @@ After this chapter you should be able to:
 
 A proposition is a statement capable of being true or false. We use:
 
-- \(P\land Q\): both hold;
-- \(P\lor Q\): at least one holds;
-- \(P\Rightarrow Q\): evidence for \(P\) can be transformed into evidence for \(Q\);
-- \(\neg P\): \(P\Rightarrow\bot\);
-- \(\forall x.P(x)\): every \(x\) satisfies \(P\);
-- \(\exists x.P(x)\): there is an \(x\) satisfying \(P\).
+- $P\land Q$: both hold;
+- $P\lor Q$: at least one holds;
+- $P\Rightarrow Q$: evidence for $P$ can be transformed into evidence for $Q$;
+- $\neg P$: $P\Rightarrow\bot$;
+- $\forall x.P(x)$: every $x$ satisfies $P$;
+- $\exists x.P(x)$: there is an $x$ satisfying $P$.
 
 Under the propositions-as-types correspondence, proofs are values inhabiting proposition-like types [Wadler2015; TheLittleTyper; HoTTBook]. We do not need dependent types in TypeScript to benefit from the operational idea: a successful check can return structured evidence explaining *why* it succeeded.
 
@@ -1986,31 +1986,31 @@ This supports explanation, auditing, cache validation, and safer commitment.
 
 A **judgment** is a formal assertion made under explicit assumptions. We write:
 
-\[
+$$
 R;e\vdash r:\tau\triangleright\pi
-\]
+$$
 
 and read:
 
-> Under registry \(R\) and environment \(e\), reference \(r\) has presentation type \(\tau\), with evidence \(\pi\).
+> Under registry $R$ and environment $e$, reference $r$ has presentation type $\tau$, with evidence $\pi$.
 
 A subtype judgment is:
 
-\[
+$$
 R\vdash \tau\leq\sigma.
-\]
+$$
 
 A translation judgment is:
 
-\[
+$$
 R;e\vdash r\xRightarrow{t}r'.
-\]
+$$
 
 An action applicability judgment is:
 
-\[
+$$
 R;e;c\vdash m\;\mathsf{applicable}\;\vec r.
-\]
+$$
 
 Explicit contexts prevent hidden dependencies.
 
@@ -2020,54 +2020,54 @@ An inference rule has premises above a line and a conclusion below it.
 
 ### Top
 
-\[
+$$
 \frac{ }{R;e\vdash r:\top\triangleright\mathsf{top}}
-\]
+$$
 
 Every reference belongs to top.
 
 ### Atom
 
-\[
+$$
 \frac{\operatorname{atomOf}(r)=a}
      {R;e\vdash r:a\triangleright\mathsf{atom}(a)}
-\]
+$$
 
 ### Subsumption
 
-\[
+$$
 \frac{R;e\vdash r:\tau\triangleright\pi
 \qquad R\vdash\tau\leq\sigma}
 {R;e\vdash r:\sigma\triangleright\mathsf{subsume}(\pi,\tau\leq\sigma)}
-\]
+$$
 
 ### Intersection introduction
 
-\[
+$$
 \frac{R;e\vdash r:\tau\triangleright\pi_1
 \qquad R;e\vdash r:\sigma\triangleright\pi_2}
 {R;e\vdash r:\tau\land\sigma\triangleright\mathsf{and}(\pi_1,\pi_2)}
-\]
+$$
 
 ### Union introduction, left
 
-\[
+$$
 \frac{R;e\vdash r:\tau\triangleright\pi}
 {R;e\vdash r:\tau\lor\sigma\triangleright\mathsf{orL}(\pi)}
-\]
+$$
 
 There is a symmetric right rule.
 
 ### Refinement
 
-\[
+$$
 \frac{R;e\vdash r:\tau\triangleright\pi
 \qquad p(r,e,\theta)=\mathsf{true}}
 {R;e\vdash r:\operatorname{refine}(\tau,p,\theta)
 \triangleright\mathsf{refine}(\pi,p,\theta,d)}
-\]
+$$
 
-Here \(d\) is a dependency fingerprint.
+Here $d$ is a dependency fingerprint.
 
 These rules can directly guide an evaluator.
 
@@ -2111,7 +2111,7 @@ interface RefinementContract {
 
 ## 8.7 Negation and failure
 
-Failure to prove \(P\) is not always proof of \(\neg P\).
+Failure to prove $P$ is not always proof of $\neg P$.
 
 A project lookup may fail because:
 
@@ -2132,9 +2132,9 @@ type MatchFailure =
 
 A two-valued synchronous core is simpler. An advanced system may use three-valued applicability:
 
-\[
+$$
 \{\mathsf{yes},\mathsf{no},\mathsf{unknown}\}.
-\]
+$$
 
 The UI must then decide how unknown occurrences appear and whether selection can trigger loading.
 
@@ -2214,16 +2214,16 @@ Keeping these levels separate permits us to ask whether the evaluator correctly 
 
 A denotational semantics maps syntax into mathematical objects. Our type denotation is:
 
-\[
+$$
 \llbracket-\rrbracket^R_e:\mathsf{TypeExpr}\to\mathcal P(\Omega_R).
-\]
+$$
 
 Compositionality means the denotation of a compound expression is determined by the denotations of its parts:
 
-\[
+$$
 \llbracket\tau\land\sigma\rrbracket_e
 =\llbracket\tau\rrbracket_e\cap\llbracket\sigma\rrbracket_e.
-\]
+$$
 
 Denotational semantics gives a concise specification against which implementations can be checked. Standard references include Winskel's *The Formal Semantics of Programming Languages*, Pierce's *Types and Programming Languages*, and Harper's *Practical Foundations for Programming Languages* [Winskel1993; Pierce2002; Harper2016].
 
@@ -2231,17 +2231,17 @@ Denotational semantics gives a concise specification against which implementatio
 
 An operational semantics describes evaluation steps or judgments. A big-step relation might be:
 
-\[
+$$
 R;e\vdash\operatorname{match}(r,\tau)\Downarrow q,
-\]
+$$
 
-where \(q\) is success evidence or failure.
+where $q$ is success evidence or failure.
 
 A small-step semantics decomposes computation:
 
-\[
+$$
 \langle r,\tau,e,s\rangle\to\langle r,\tau',e,s'\rangle.
-\]
+$$
 
 For simple synchronous matching, big-step rules are readable. For input contexts, cancellation, asynchronous translators, and provider lifecycle, a transition system is more informative.
 
@@ -2253,15 +2253,15 @@ A matcher is sound when success implies semantic membership.
 
 If
 
-\[
+$$
 R;e\vdash\operatorname{match}(r,\tau)\Downarrow\mathsf{success}(\pi),
-\]
+$$
 
 then
 
-\[
+$$
 r\in\llbracket\tau\rrbracket^R_e.
-\]
+$$
 
 The proof proceeds by induction on the matching derivation:
 
@@ -2278,11 +2278,11 @@ For executable predicates, the theorem relies on the registry contract that the 
 
 A matcher is complete when semantic membership implies that the evaluator can succeed:
 
-\[
+$$
 r\in\llbracket\tau\rrbracket^R_e
 \Rightarrow
 \exists\pi.\;R;e\vdash\operatorname{match}(r,\tau)\Downarrow\mathsf{success}(\pi).
-\]
+$$
 
 Completeness is harder and may be intentionally weakened.
 
@@ -2300,21 +2300,21 @@ A practical matcher can be sound but incomplete. The UI then fails to highlight 
 
 A subtype algorithm is sound when:
 
-\[
+$$
 \operatorname{subtype}_R(\tau,\sigma)=\mathsf{true}
 \Rightarrow
 \forall e.\;\llbracket\tau\rrbracket_e\subseteq\llbracket\sigma\rrbracket_e.
-\]
+$$
 
 It is complete for a fragment when every semantic inclusion in that fragment is recognized.
 
 A nominal graph algorithm is sound relative to declared-edge assumptions but not complete for all set-theoretic inclusions. It may not infer:
 
-\[
+$$
 A\land B\leq A,
 \qquad
 A\leq A\lor B,
-\]
+$$
 
 unless the expression algorithm includes these rules.
 
@@ -2324,7 +2324,7 @@ Induction is the principal proof method for syntax trees and derivations.
 
 ### Structural induction on type expressions
 
-To prove property \(P(\tau)\) for every type expression:
+To prove property $P(\tau)$ for every type expression:
 
 1. prove it for atoms, top, and bottom;
 2. assume it for immediate subexpressions;
@@ -2342,17 +2342,17 @@ An **inversion lemma** extracts facts from the shape of a derivation.
 
 If:
 
-\[
+$$
 R;e\vdash r:\tau\land\sigma\triangleright\pi,
-\]
+$$
 
 and the only introduction rule for intersection requires both premises, then inversion tells us:
 
-\[
+$$
 R;e\vdash r:\tau
 \quad\text{and}\quad
 R;e\vdash r:\sigma.
-\]
+$$
 
 In code, discriminated evidence makes inversion executable:
 
@@ -2393,7 +2393,7 @@ For PBUI, useful analogues are:
 
 ### Acceptance preservation
 
-If an occurrence is accepted with evidence under snapshot \((R,e)\), and the evidence remains valid at commitment, the returned reference satisfies the requested type.
+If an occurrence is accepted with evidence under snapshot $(R,e)$, and the evidence remains valid at commitment, the returned reference satisfies the requested type.
 
 ### Input-context progress
 
@@ -2408,7 +2408,7 @@ Unlike a closed programming-language term, a UI can legitimately wait for user i
 
 ### Link preservation
 
-If all views in one binding class agree on role \(q\) before a `setSubject` transition, they still agree afterward.
+If all views in one binding class agree on role $q$ before a `setSubject` transition, they still agree afterward.
 
 We prove these in later chapters.
 
@@ -2512,19 +2512,19 @@ It should also remain executable in a JavaScript runtime. We therefore separate 
 
 ## 10.2 Semantic references
 
-Let \(A\) be a finite or countable set of atomic presentation names. Each atom \(a\in A\) has a representation set \(V_a\).
+Let $A$ be a finite or countable set of atomic presentation names. Each atom $a\in A$ has a representation set $V_a$.
 
 The universe of tagged references is the disjoint union:
 
-\[
+$$
 \Omega_R=\sum_{a\in A}V_a.
-\]
+$$
 
 An element is a pair:
 
-\[
+$$
 \langle a,v\rangle \quad\text{where}\quad v\in V_a.
-\]
+$$
 
 The dependent sum notation emphasizes that the valid representation depends on the tag.
 
@@ -2552,29 +2552,29 @@ type Ref<V extends object> = {
 
 We model a registry as:
 
-\[
+$$
 R=\langle A,D,C,P,I,T,M\rangle,
-\]
+$$
 
 where:
 
-- \(A\): atomic presentation declarations and representation contracts;
-- \(D\subseteq A\times A\): nominal immediate-subtype declarations;
-- \(C\): capability declarations and implementations;
-- \(P\): named refinement predicates and parameter schemas;
-- \(I\): semantic identity functions;
-- \(T\): translators;
-- \(M\): action methods and preference declarations.
+- $A$: atomic presentation declarations and representation contracts;
+- $D\subseteq A\times A$: nominal immediate-subtype declarations;
+- $C$: capability declarations and implementations;
+- $P$: named refinement predicates and parameter schemas;
+- $I$: semantic identity functions;
+- $T$: translators;
+- $M$: action methods and preference declarations.
 
-The core type semantics needs only \(A,D,C,P\). Identity, translation, and methods are deliberately separate extensions.
+The core type semantics needs only $A,D,C,P$. Identity, translation, and methods are deliberately separate extensions.
 
-An environment \(e\in E\) is an immutable logical snapshot containing dynamic application facts needed by refinements and translators. The actual JavaScript object may use persistent references or store selectors, but it must expose version information sufficient for cache validity.
+An environment $e\in E$ is an immutable logical snapshot containing dynamic application facts needed by refinements and translators. The actual JavaScript object may use persistent references or store selectors, but it must expose version information sufficient for cache validity.
 
 ## 10.4 Core syntax
 
-Let \(a\) range over atomic type names, \(c\) over capability names, \(p\) over refinement names, and \(\theta\) over serializable arguments.
+Let $a$ range over atomic type names, $c$ over capability names, $p$ over refinement names, and $\theta$ over serializable arguments.
 
-\[
+$$
 \begin{aligned}
 \tau ::=\;& \top
 \mid \bot
@@ -2585,21 +2585,21 @@ Let \(a\) range over atomic type names, \(c\) over capability names, \(p\) over 
 \mid \tau\setminus\tau\\
 &\mid \operatorname{refine}(p,\theta,\tau).
 \end{aligned}
-\]
+$$
 
 Parameterized presentation types are syntactic sugar:
 
-\[
+$$
 C(\theta)\triangleq\operatorname{refine}(p_C,\theta,\operatorname{base}(C)).
-\]
+$$
 
 For example:
 
-\[
+$$
 \operatorname{FieldOf}(d)
 \triangleq
 \operatorname{refine}(\textsf{field-of},d,\textsf{Field}).
-\]
+$$
 
 ## 10.5 TypeScript syntax values
 
@@ -2648,32 +2648,32 @@ Normalization is an optimization and explanation aid. The denotational semantics
 
 A judgment
 
-\[
+$$
 R\vdash\tau\;\mathsf{wf}
-\]
+$$
 
-states that \(\tau\) is well formed in registry \(R\).
+states that $\tau$ is well formed in registry $R$.
 
 Representative rules are:
 
-\[
+$$
 \frac{a\in A}{R\vdash a\;\mathsf{wf}}
-\]
+$$
 
-\[
+$$
 \frac{c\in C}{R\vdash\operatorname{cap}(c)\;\mathsf{wf}}
-\]
+$$
 
-\[
+$$
 \frac{R\vdash\tau\;\mathsf{wf}\qquad R\vdash\sigma\;\mathsf{wf}}
 {R\vdash\tau\land\sigma\;\mathsf{wf}}
-\]
+$$
 
-\[
+$$
 \frac{p\in P\qquad R\vdash\tau\;\mathsf{wf}\qquad
 \operatorname{argsValid}_p(\theta)}
 {R\vdash\operatorname{refine}(p,\theta,\tau)\;\mathsf{wf}}.
-\]
+$$
 
 Registry construction should validate:
 
@@ -2688,23 +2688,23 @@ Registry construction should validate:
 
 Each reference has a direct atom:
 
-\[
+$$
 \operatorname{tag}(\langle a,v\rangle)=a.
-\]
+$$
 
 Nominal closure produces atomic supertypes:
 
-\[
+$$
 \operatorname{atoms}_R(r)
 =\operatorname{ancestors}_R(\{\operatorname{tag}(r)\}).
-\]
+$$
 
 Capability facts may be static declarations or dynamic predicates:
 
-\[
+$$
 \operatorname{caps}_{R,e}(r)
 =\{c\mid \operatorname{implements}_{R,e}(r,c)\}.
-\]
+$$
 
 Static capabilities can be merged into a bitset. Dynamic capabilities are refinements in operational disguise and should declare dependencies.
 
@@ -2712,66 +2712,66 @@ Static capabilities can be merged into a bitset. Dynamic capabilities are refine
 
 The core denotation is:
 
-\[
+$$
 \llbracket\top\rrbracket^R_e=\Omega_R,
-\]
+$$
 
-\[
+$$
 \llbracket\bot\rrbracket^R_e=\varnothing,
-\]
+$$
 
-\[
+$$
 \llbracket a\rrbracket^R_e
 =\{r\mid a\in\operatorname{atoms}_R(r)\},
-\]
+$$
 
-\[
+$$
 \llbracket\operatorname{cap}(c)\rrbracket^R_e
 =\{r\mid c\in\operatorname{caps}_{R,e}(r)\},
-\]
+$$
 
-\[
+$$
 \llbracket\tau\lor\sigma\rrbracket^R_e
 =\llbracket\tau\rrbracket^R_e\cup\llbracket\sigma\rrbracket^R_e,
-\]
+$$
 
-\[
+$$
 \llbracket\tau\land\sigma\rrbracket^R_e
 =\llbracket\tau\rrbracket^R_e\cap\llbracket\sigma\rrbracket^R_e,
-\]
+$$
 
-\[
+$$
 \llbracket\tau\setminus\sigma\rrbracket^R_e
 =\llbracket\tau\rrbracket^R_e\setminus\llbracket\sigma\rrbracket^R_e,
-\]
+$$
 
-\[
+$$
 \llbracket\operatorname{refine}(p,\theta,\tau)\rrbracket^R_e
 =\{r\in\llbracket\tau\rrbracket^R_e
 \mid \operatorname{test}_{R}(p,r,\theta,e)\}.
-\]
+$$
 
 ## 10.9 Example calculation
 
 Let:
 
-\[
+$$
 \tau=
 (\textsf{Project}\land\operatorname{cap}(\textsf{Inspectable}))
 \setminus
 \operatorname{cap}(\textsf{Archived}).
-\]
+$$
 
 Then:
 
-\[
+$$
 \begin{aligned}
 \llbracket\tau\rrbracket_e
 =\{r\mid &\textsf{Project}\in\operatorname{atoms}(r)\\
 &\land \textsf{Inspectable}\in\operatorname{caps}_e(r)\\
 &\land \textsf{Archived}\notin\operatorname{caps}_e(r)\}.
 \end{aligned}
-\]
+$$
 
 This is exactly the intended reading: inspectable projects that are not archived.
 
@@ -2792,12 +2792,12 @@ OwnedByCurrentUser(Project)
 Writable(Document)
 ```
 
-We call a type \(\tau\) **stable** over environment relation \(\leadsto\) when:
+We call a type $\tau$ **stable** over environment relation $\leadsto$ when:
 
-\[
+$$
 e\leadsto e'\Rightarrow
 \llbracket\tau\rrbracket_e=\llbracket\tau\rrbracket_{e'}.
-\]
+$$
 
 Stable types admit stronger caching and persistence. The registry can conservatively classify expression stability from its parts.
 
@@ -2805,9 +2805,9 @@ Stable types admit stronger caching and persistence. The registry can conservati
 
 The smallest useful grammar is:
 
-\[
+$$
 \tau::=a\mid\tau\lor\tau\mid\operatorname{refine}(p,\theta,\tau).
-\]
+$$
 
 Intersections can be represented by multiple required selectors; difference can be a negative predicate; capabilities can be ordinary atoms. The larger syntax becomes worthwhile when explanation, normalization, subtype reasoning, and method specificity need explicit structure.
 
@@ -2838,11 +2838,11 @@ After this chapter you should be able to:
 
 Membership is the fundamental question:
 
-\[
+$$
 R;e\vDash r:\tau
 \quad\text{iff}\quad
 r\in\llbracket\tau\rrbracket^R_e.
-\]
+$$
 
 An evaluator attempts to decide this relation and produce evidence.
 
@@ -2860,48 +2860,48 @@ A type expression is not a class whose methods are invoked on a value. It is a q
 
 Define:
 
-\[
+$$
 R\vDash\tau\leq\sigma
 \quad\text{iff}\quad
 \forall e\in E.\;
 \llbracket\tau\rrbracket^R_e
 \subseteq
 \llbracket\sigma\rrbracket^R_e.
-\]
+$$
 
-This is an environment-uniform claim. It says that every reference satisfying \(\tau\), in every admissible environment, also satisfies \(\sigma\).
+This is an environment-uniform claim. It says that every reference satisfying $\tau$, in every admissible environment, also satisfies $\sigma$.
 
 Examples:
 
-\[
+$$
 \textsf{Project}\land\operatorname{cap}(\textsf{Inspectable})
 \leq
 \textsf{Project},
-\]
+$$
 
-\[
+$$
 \textsf{Project}
 \leq
 \textsf{Project}\lor\textsf{Workspace}.
-\]
+$$
 
 ## 11.3 Environment-local subtyping
 
 Sometimes we need:
 
-\[
+$$
 R;e\vDash\tau\leq_e\sigma
 \quad\text{iff}\quad
 \llbracket\tau\rrbracket^R_e
 \subseteq
 \llbracket\sigma\rrbracket^R_e.
-\]
+$$
 
 For example, in an environment where every visible project happens to be editable:
 
-\[
+$$
 \textsf{VisibleProject}\leq_e\textsf{Editable}.
-\]
+$$
 
 This may not hold globally. Environment-local inclusion is useful for optimization or explanation but should not normally justify persistent method ordering or static API contracts.
 
@@ -2911,64 +2911,64 @@ By set inclusion:
 
 ### Reflexivity
 
-\[
+$$
 \tau\leq\tau.
-\]
+$$
 
 ### Transitivity
 
-\[
+$$
 \tau\leq\sigma\land\sigma\leq\rho
 \Rightarrow\tau\leq\rho.
-\]
+$$
 
 ### Bottom and top
 
-\[
+$$
 \bot\leq\tau\leq\top.
-\]
+$$
 
 ### Intersection elimination
 
-\[
+$$
 \tau\land\sigma\leq\tau,
 \qquad
 \tau\land\sigma\leq\sigma.
-\]
+$$
 
 ### Intersection greatest lower bound
 
-If \(\rho\leq\tau\) and \(\rho\leq\sigma\), then:
+If $\rho\leq\tau$ and $\rho\leq\sigma$, then:
 
-\[
+$$
 \rho\leq\tau\land\sigma.
-\]
+$$
 
 ### Union introduction
 
-\[
+$$
 \tau\leq\tau\lor\sigma,
 \qquad
 \sigma\leq\tau\lor\sigma.
-\]
+$$
 
 ### Union least upper bound
 
-If \(\tau\leq\rho\) and \(\sigma\leq\rho\), then:
+If $\tau\leq\rho$ and $\sigma\leq\rho$, then:
 
-\[
+$$
 \tau\lor\sigma\leq\rho.
-\]
+$$
 
 ### Difference
 
-\[
+$$
 \tau\setminus\sigma\leq\tau,
-\]
+$$
 
-\[
+$$
 (\tau\setminus\sigma)\land\sigma\equiv\bot.
-\]
+$$
 
 ## 11.5 Named declarations as axioms
 
@@ -2980,17 +2980,17 @@ types.declareSubtype(Project, Entity);
 
 adds an axiom:
 
-\[
+$$
 R\vdash\textsf{Project}\leq\textsf{Entity}.
-\]
+$$
 
 For soundness, the registry must ensure or assume:
 
-\[
+$$
 \llbracket\textsf{Project}\rrbracket_e
 \subseteq
 \llbracket\textsf{Entity}\rrbracket_e.
-\]
+$$
 
 In TypeScript, a representation-level condition can catch many mistakes:
 
@@ -3038,17 +3038,17 @@ A union is a set of clauses. Inclusion becomes a coverage problem plus registere
 
 From set semantics:
 
-\[
+$$
 \operatorname{refine}(p,\theta,\tau)\leq\tau.
-\]
+$$
 
 But the runtime cannot generally decide:
 
-\[
+$$
 \operatorname{OwnedBy}(7,\textsf{Project})
 \leq
 \operatorname{Visible}(\textsf{Project}).
-\]
+$$
 
 Even if application policy makes it true, the executable predicates are opaque.
 
@@ -3070,18 +3070,18 @@ Let `algSubtype(R, τ, σ)` be the implementation.
 
 Soundness requires:
 
-\[
+$$
 \operatorname{algSubtype}(R,\tau,\sigma)=\mathsf{true}
 \Rightarrow R\vDash\tau\leq\sigma.
-\]
+$$
 
-Completeness for grammar fragment \(F\) requires:
+Completeness for grammar fragment $F$ requires:
 
-\[
+$$
 \tau,\sigma\in F\land R\vDash\tau\leq\sigma
 \Rightarrow
 \operatorname{algSubtype}(R,\tau,\sigma)=\mathsf{true}.
-\]
+$$
 
 A PBUI implementation should document its fragment. Claiming “semantic subtyping” does not imply that the algorithm decides every inclusion among arbitrary JavaScript predicates.
 
@@ -3089,9 +3089,9 @@ A PBUI implementation should document its fragment. Claiming “semantic subtypi
 
 Suppose a compiled type is:
 
-\[
+$$
 \neg\textsf{Archived}.
-\]
+$$
 
 A plugin later registers `ExternalReport`, none of whose members are archived. The complement now includes new values. The meaning changed because the universe changed.
 
@@ -3105,9 +3105,9 @@ Every compiled expression records `registryVersion`. Plugin installation invalid
 
 Expose only:
 
-\[
+$$
 \textsf{Project}\setminus\textsf{Archived}.
-\]
+$$
 
 The base constrains the relevant universe.
 
@@ -3231,11 +3231,11 @@ This resembles protocols or traits more than class inheritance. Clojure protocol
 
 A static implementation always holds for direct members of an atom:
 
-\[
+$$
 \llbracket\textsf{Project}\rrbracket_e
 \subseteq
 \llbracket\operatorname{cap}(\textsf{Inspectable})\rrbracket_e.
-\]
+$$
 
 This is effectively a subtype edge to a capability proposition and can be compiled into the atom fact closure.
 
@@ -3285,16 +3285,16 @@ Entity
         └── ActiveEditableInspectableProjectOwnedByCurrentUser
 ```
 
-mixes independent dimensions and grows exponentially. With \(n\) independent Boolean properties, there can be \(2^n\) combinations.
+mixes independent dimensions and grows exponentially. With $n$ independent Boolean properties, there can be $2^n$ combinations.
 
 Intersections keep dimensions orthogonal:
 
-\[
+$$
 \textsf{Project}
 \land\textsf{Inspectable}
 \land\textsf{Editable}
 \setminus\textsf{Archived}.
-\]
+$$
 
 ## 12.7 Role versus capability ambiguity
 
@@ -3394,21 +3394,21 @@ After this chapter you should be able to:
 
 A refinement type restricts a base type by a proposition:
 
-\[
+$$
 \{r:\tau\mid p(r,e,\theta)\}.
-\]
+$$
 
 Our syntax is:
 
-\[
+$$
 \operatorname{refine}(p,\theta,\tau).
-\]
+$$
 
 Its fundamental law is:
 
-\[
+$$
 \operatorname{refine}(p,\theta,\tau)\leq\tau.
-\]
+$$
 
 Examples:
 
@@ -3531,7 +3531,7 @@ without preparation: O(nm)
 with preparation:    O(m) + O(n)
 ```
 
-where \(n\) is the number of occurrences and \(m\) the schema size.
+where $n$ is the number of occurrences and $m$ the schema size.
 
 The prepared predicate must be tied to one coherent environment snapshot.
 
@@ -3584,17 +3584,17 @@ An advanced system can represent `unknown` and schedule data acquisition, but th
 
 The system always knows:
 
-\[
+$$
 \operatorname{refine}(p,\theta,\tau)\leq\tau.
-\]
+$$
 
 It may know parameter-specific implications:
 
-\[
+$$
 \operatorname{OwnedBy}(u,\textsf{Project})
 \leq
 \operatorname{VisibleTo}(u,\textsf{Project}),
-\]
+$$
 
 if policy declares and justifies them.
 
@@ -3665,7 +3665,7 @@ A selector API can support only `where(reference, environment)`. Add named refin
 1. **Definition.** Define `FieldOf(documentId)` and `OwnedBy(userId)` refinements.
 2. **Proof.** Prove that every refinement is a subtype of its base.
 3. **Counterexample.** Show why a permanent `ActiveProject` brand is unsound under mutation.
-4. **Performance.** Transform an \(O(nm)\) selector into a prepared \(O(m+n)\) selector.
+4. **Performance.** Transform an $O(nm)$ selector into a prepared $O(m+n)$ selector.
 5. **Dependency analysis.** Find a missing dependency in a permission predicate and construct a stale-cache failure.
 6. **Language design.** Extend the guard AST with numeric comparison while keeping evaluation total.
 7. **Research.** Compare unrestricted PBUI lambdas with Liquid Types' decidable predicate discipline.
@@ -3690,11 +3690,11 @@ Typing asks which set contains a reference. Identity asks which domain object it
 
 Define a partial identity interpretation:
 
-\[
+$$
 \operatorname{id}^R_e:\Omega_R\rightharpoonup N\times K,
-\]
+$$
 
-where \(N\) is an identity namespace and \(K\) a stable key domain.
+where $N$ is an identity namespace and $K$ a stable key domain.
 
 ```ts
 interface SemanticIdentity {
@@ -3705,11 +3705,11 @@ interface SemanticIdentity {
 
 Two identity-bearing references are the same object when keys are equal:
 
-\[
+$$
 r\approx^R_e s
 \quad\text{iff}\quad
 \operatorname{id}^R_e(r)=\operatorname{id}^R_e(s).
-\]
+$$
 
 ## 14.2 Descriptor definitions
 
@@ -3797,21 +3797,21 @@ interface SemanticVersion {
 
 Two references can have equal identity and different revisions:
 
-\[
+$$
 r_t\approx r_{t+1}
 \qquad
 \operatorname{rev}(r_t)\neq\operatorname{rev}(r_{t+1}).
-\]
+$$
 
 Caches for predicates should normally key by both identity and relevant revision.
 
 ## 14.6 Identity-preserving translation
 
-A translator \(t\) is identity-preserving when:
+A translator $t$ is identity-preserving when:
 
-\[
+$$
 t(r)=r'\Rightarrow r\approx r'.
-\]
+$$
 
 `ProjectId -> Project` is usually intended to preserve identity. `Field -> AggregateField` may not.
 
@@ -3834,13 +3834,13 @@ if (translator.preservesIdentity &&
 
 ## 14.7 Identity cache correctness
 
-Suppose a predicate \(p\) is identity-invariant at revision \(v\):
+Suppose a predicate $p$ is identity-invariant at revision $v$:
 
-\[
+$$
 r\approx s
 \land \operatorname{rev}(r)=\operatorname{rev}(s)=v
 \Rightarrow p(r,e)=p(s,e).
-\]
+$$
 
 Then one predicate result may be reused across identity-equivalent occurrences.
 
@@ -3920,21 +3920,21 @@ After this chapter you should be able to:
 
 Suppose the interface presents:
 
-\[
+$$
 r=\langle\textsf{project-id},\texttt{"p-7"}\rangle.
-\]
+$$
 
 An input context requests `Project`. A lookup can produce:
 
-\[
+$$
 r'=\langle\textsf{project},p_7\rangle.
-\]
+$$
 
 The source is not directly a `Project` reference, even though it may denote the same object. The relation is translation:
 
-\[
+$$
 R;e\vdash r\xRightarrow{t}r'.
-\]
+$$
 
 ## 15.2 Typed translator declaration
 
@@ -3999,10 +3999,10 @@ type TranslationResult<T> =
 
 A translator is **total** on its declared source type when:
 
-\[
+$$
 \forall r\in\llbracket\textsf{from}\rrbracket_e.
 \;\exists r'.\;r\xRightarrow{t}r'.
-\]
+$$
 
 A translator is **pure** when repeated evaluation in the same logical snapshot yields observationally equivalent results and performs no externally visible effect.
 
@@ -4047,32 +4047,32 @@ Policy B is more powerful but needs the state machine in Chapter 18 and an acces
 
 Let translator types form directed edges:
 
-\[
+$$
 \textsf{ProjectId}\xrightarrow{t_1}\textsf{Project},
-\]
+$$
 
-\[
+$$
 \textsf{Project}\xrightarrow{t_2}\textsf{EntitySummary}.
-\]
+$$
 
 A path is a sequence:
 
-\[
+$$
 p=t_1;t_2;\ldots;t_n.
-\]
+$$
 
 Its partial composition is defined only when every step succeeds:
 
-\[
+$$
 \llbracket p\rrbracket_e(r)
 =\llbracket t_n\rrbracket_e(\cdots\llbracket t_1\rrbracket_e(r)).
-\]
+$$
 
 With nonnegative edge costs:
 
-\[
+$$
 \operatorname{cost}(p)=\sum_{i=1}^{n}\operatorname{cost}(t_i).
-\]
+$$
 
 Cost is a policy measure, not proof of semantic quality. It can approximate latency, information loss, cognitive surprise, or preferred directness.
 
@@ -4189,20 +4189,20 @@ A lossy conversion may be valid for rendering but unsuitable as an implicit comm
 
 A translator declaration claims:
 
-\[
+$$
 R;e\vdash r:\operatorname{from}(t)
 \land t_e(r)=r'
 \Rightarrow
 R;e\vdash r':\operatorname{to}(t).
-\]
+$$
 
 The TypeScript return type provides static guidance. Runtime schemas can validate untrusted or plugin-produced values.
 
 For identity-preserving translators:
 
-\[
+$$
 t_e(r)=r'\Rightarrow r\approx_e r'.
-\]
+$$
 
 Property tests should exercise both claims.
 
@@ -4210,14 +4210,14 @@ Property tests should exercise both claims.
 
 Direct denotation remains unchanged by translators. Define a separate relation:
 
-\[
+$$
 R;e\vDash r\Downarrow\tau
-\]
+$$
 
-meaning that \(r\) can satisfy a request for \(\tau\). It holds when either:
+meaning that $r$ can satisfy a request for $\tau$. It holds when either:
 
-1. \(r\in\llbracket\tau\rrbracket_e\); or
-2. there exists an allowed translator path \(p\) and \(r'\) such that \(p_e(r)=r'\) and \(r'\in\llbracket\tau\rrbracket_e\).
+1. $r\in\llbracket\tau\rrbracket_e$; or
+2. there exists an allowed translator path $p$ and $r'$ such that $p_e(r)=r'$ and $r'\in\llbracket\tau\rrbracket_e$.
 
 This prevents translation policy from silently redefining the type denotation itself.
 
@@ -4421,20 +4421,20 @@ Direct membership normally outranks translation, even if a translator has cost z
 
 If:
 
-\[
+$$
 \operatorname{matchDirect}_{R,e}(r,\tau)
 =\mathsf{success}(\pi),
-\]
+$$
 
 then:
 
-\[
+$$
 r\in\llbracket\tau\rrbracket^R_e.
-\]
+$$
 
 #### Proof sketch
 
-By structural induction on \(\tau\).
+By structural induction on $\tau$.
 
 - `top`: immediate from its denotation.
 - atom: the atom matcher succeeds only from direct tag or a registered nominal subtype path; registry well-formedness establishes inclusion.
@@ -4446,15 +4446,15 @@ By structural induction on \(\tau\).
 
 ### Theorem 16.2 — Translated acceptance soundness
 
-If full matching returns source \(r\), accepted reference \(r'\), and requested type \(\tau\), then:
+If full matching returns source $r$, accepted reference $r'$, and requested type $\tau$, then:
 
-\[
+$$
 r'\in\llbracket\tau\rrbracket^R_e,
-\]
+$$
 
 and every step in the recorded path satisfies its translator contract.
 
-The theorem does **not** claim that the source \(r\) directly belongs to \(\tau\).
+The theorem does **not** claim that the source $r$ directly belongs to $\tau$.
 
 ## 16.7 Validity tokens
 
@@ -4507,11 +4507,11 @@ interface Specificity {
 
 Numeric summaries are hints. The definitive comparison is subtype ordering:
 
-\[
+$$
 \tau\text{ is more specific than }\sigma
 \quad\text{iff}\quad
 \tau\leq\sigma\land\neg(\sigma\leq\tau).
-\]
+$$
 
 ## 16.10 Explanations
 
@@ -4594,16 +4594,16 @@ Attaching every possible action to each descriptor obscures this relation.
 
 Define an action method signature:
 
-\[
+$$
 S_m=\langle\tau_s,\tau_c,\tau_g,\tau_1,\ldots,\tau_n\rangle,
-\]
+$$
 
 where:
 
-- \(\tau_s\): subject type;
-- \(\tau_c\): context type;
-- \(\tau_g\): gesture type;
-- \(\tau_i\): additional argument types.
+- $\tau_s$: subject type;
+- $\tau_c$: context type;
+- $\tau_g$: gesture type;
+- $\tau_i$: additional argument types.
 
 TypeScript API:
 
@@ -4633,12 +4633,12 @@ pbui.actions.define({
 
 A method is applicable when every actual argument matches the corresponding signature type and its command table is active.
 
-\[
+$$
 \operatorname{applicable}(m,\vec r,e,c)
 \quad\text{iff}\quad
 \forall i.\;R;e\vDash r_i\Downarrow\tau_i^m
 \land \operatorname{tableActive}(m,c).
-\]
+$$
 
 Action discovery should usually disallow expensive asynchronous translators. A menu should not issue network requests for every candidate method. Use direct membership and cheap pure translations, or mark the action as pending-capable.
 
@@ -4646,19 +4646,19 @@ Action discovery should usually disallow expensive asynchronous translators. A m
 
 For two signatures of equal arity:
 
-\[
+$$
 S_1\preceq S_2
 \quad\text{iff}\quad
 \forall i.\;\tau_i^{S_1}\leq\tau_i^{S_2}.
-\]
+$$
 
 `S1` is strictly more specific when:
 
-\[
+$$
 S_1\preceq S_2
 \land
 \neg(S_2\preceq S_1).
-\]
+$$
 
 Example:
 
@@ -4682,7 +4682,7 @@ Julia's method system is a prominent practical example of dispatch over the type
 
 ## 17.5 Maximal applicable methods
 
-Let \(A\) be the set of applicable methods. A method \(m\in A\) is maximal when no other applicable method is strictly more specific.
+Let $A$ be the set of applicable methods. A method $m\in A$ is maximal when no other applicable method is strictly more specific.
 
 Three cases arise:
 
@@ -4873,7 +4873,7 @@ An explicit state machine prevents accidental double resolution and stale commit
 
 ## 18.2 States
 
-Let context IDs be unique tokens \(q\).
+Let context IDs be unique tokens $q$.
 
 ```ts
 type AcceptMachine<R> =
@@ -4914,45 +4914,45 @@ Every event carrying an ID is ignored if it targets a stale context. This token 
 
 We write:
 
-\[
+$$
 s\xrightarrow{event}s'.
-\]
+$$
 
 Representative transitions:
 
 ### Start
 
-\[
+$$
 \mathsf{idle}\xrightarrow{\mathsf{START}(q,req)}
 \mathsf{active}(q,\operatorname{compile}(req)).
-\]
+$$
 
 ### Commit with synchronous match
 
-\[
+$$
 \frac{\operatorname{match}(r,req)=\mathsf{success}(m)}
 {\mathsf{active}(q,req)
 \xrightarrow{\mathsf{COMMIT}(q,r)}
 \mathsf{idle}}
-\]
+$$
 
-with the side effect of resolving the request with \(m\).
+with the side effect of resolving the request with $m$.
 
 ### Commit requiring asynchronous translation
 
-\[
+$$
 \mathsf{active}(q,req)
 \xrightarrow{\mathsf{COMMIT}(q,r)}
 \mathsf{resolving}(q,req,r,controller).
-\]
+$$
 
 ### Abort
 
-\[
+$$
 \mathsf{active}(q,req)
 \xrightarrow{\mathsf{ABORT}(q)}
 \mathsf{idle}.
-\]
+$$
 
 The caller receives `null` or a structured abort result.
 
@@ -4994,13 +4994,13 @@ Assume:
 3. commit revalidation against the current request and environment;
 4. stale context IDs cannot resolve active contexts.
 
-If context requesting \(\tau\) resolves successfully with accepted reference \(r'\), then:
+If context requesting $\tau$ resolves successfully with accepted reference $r'$, then:
 
-\[
+$$
 r'\in\llbracket\tau\rrbracket^R_e
-\]
+$$
 
-for the commitment snapshot \(e\).
+for the commitment snapshot $e$.
 
 #### Proof sketch
 
@@ -5055,11 +5055,11 @@ While active, the environment may change. Two policies are possible.
 
 ### Snapshot request
 
-The request captures environment \(e_0\). Highlighting and commitment use that snapshot. This is coherent but may accept stale business state.
+The request captures environment $e_0$. Highlighting and commitment use that snapshot. This is coherent but may accept stale business state.
 
 ### Live request
 
-The compiled expression remains, but matching uses current environment \(e_t\). Applicability updates reactively. Commitment always revalidates.
+The compiled expression remains, but matching uses current environment $e_t$. Applicability updates reactively. Commitment always revalidates.
 
 For UI selection, live requests are usually preferable. Preparation caches must invalidate when declared dependencies change.
 
@@ -5166,7 +5166,7 @@ A linked duplicate that reuses the same `viewId` is different: both placements s
 
 ## 19.4 Linking
 
-To link source view \(v_s\) and target view \(v_t\), choose or create one binding and assign every member of both binding classes to it.
+To link source view $v_s$ and target view $v_t$, choose or create one binding and assign every member of both binding classes to it.
 
 ```ts
 linkViewSubjects({ sourceViewId, targetViewId })
@@ -5226,37 +5226,37 @@ Garbage-collect an old binding when no view refers to it.
 
 Define:
 
-\[
+$$
 \operatorname{bind}(v)=b
-\]
+$$
 
 and:
 
-\[
+$$
 \operatorname{subject}(v,q)
 =\operatorname{bindings}[\operatorname{bind}(v)].\operatorname{subjects}[q].
-\]
+$$
 
 ### Invariant 19.1 — Binding coherence
 
-For all views \(v,w\) and roles \(q\):
+For all views $v,w$ and roles $q$:
 
-\[
+$$
 \operatorname{bind}(v)=\operatorname{bind}(w)
 \Rightarrow
 \operatorname{subject}(v,q)=\operatorname{subject}(w,q).
-\]
+$$
 
 ### Theorem 19.1 — `setViewSubject` preserves coherence
 
-Assume the state is well formed and `setViewSubject(v,q,d)` updates only the one binding cell referenced by \(v\). Then binding coherence holds after the transition.
+Assume the state is well formed and `setViewSubject(v,q,d)` updates only the one binding cell referenced by $v$. Then binding coherence holds after the transition.
 
 #### Proof
 
-Take arbitrary linked views \(x,y\) with the same binding after the transition.
+Take arbitrary linked views $x,y$ with the same binding after the transition.
 
 - If their binding is not the updated binding, neither subject value changes, so prior coherence applies.
-- If their binding is the updated binding, both read role \(q\) from the same updated map entry \(d\), and all other roles from the same unchanged binding map.
+- If their binding is the updated binding, both read role $q$ from the same updated map entry $d$, and all other roles from the same unchanged binding map.
 
 Therefore their subjects agree for every role. ∎
 
@@ -5270,9 +5270,9 @@ Proof follows from equality of the cloned role maps. ∎
 
 Instead of explicit cells, one can store an equivalence relation over views. Each equivalence class shares selection. The cell model is a concrete representation of the quotient:
 
-\[
+$$
 \mathsf{Views}/{\sim_b}.
-\]
+$$
 
 Explicit binding IDs are easier for immutable reducers, persistence, and incremental update.
 
@@ -5845,15 +5845,15 @@ Matching succeeds when one clause succeeds.
 
 Beware distributive blow-up:
 
-\[
+$$
 (A_1\lor B_1)\land\cdots\land(A_n\lor B_n)
-\]
+$$
 
-has \(2^n\) naive disjunctive clauses. Keep an expression DAG or introduce decision diagrams when expansion exceeds a budget.
+has $2^n$ naive disjunctive clauses. Keep an expression DAG or introduce decision diagrams when expansion exceeds a budget.
 
 ## 21.8 Prepared refinements
 
-Compilation against environment \(e\) can prepare predicates:
+Compilation against environment $e$ can prepare predicates:
 
 ```ts
 interface PreparedRefinement {
@@ -6006,24 +6006,24 @@ After this chapter you should be able to:
 
 Let:
 
-- \(n\): mounted presentation occurrences;
-- \(q\): active input contexts, usually 0 or 1;
-- \(m\): registered action methods;
-- \(k\): translators reachable from a source atom;
-- \(p\): expensive predicate calls;
-- \(u\): environment updates per second.
+- $n$: mounted presentation occurrences;
+- $q$: active input contexts, usually 0 or 1;
+- $m$: registered action methods;
+- $k$: translators reachable from a source atom;
+- $p$: expensive predicate calls;
+- $u$: environment updates per second.
 
 A naive render-time design can perform:
 
-\[
+$$
 O(n(m+k+p))
-\]
+$$
 
 work per update. A compiled and indexed design aims for:
 
-\[
+$$
 O(n\cdot c_{static}) + O(candidates\cdot c_{predicate}),
-\]
+$$
 
 where static checks are bit operations and candidate sets are narrow.
 
@@ -6117,16 +6117,16 @@ Only pure translators should be cached automatically. Key by source identity/rev
 
 ## 22.6 Cache soundness
 
-Let \(F_p(r,e)\) be the fingerprint declared for predicate \(p\).
+Let $F_p(r,e)$ be the fingerprint declared for predicate $p$.
 
 ### Dependency completeness assumption
 
-\[
+$$
 F_p(r,e)=F_p(r',e')
 \land r\approx r'
 \Rightarrow
 p(r,e)=p(r',e').
-\]
+$$
 
 This says equal fingerprints and identity imply equal predicate results.
 
@@ -7252,7 +7252,7 @@ An explanation should correspond to actual evaluator evidence. Do not regenerate
 
 ### Property
 
-If an explanation node claims that refinement \(p\) succeeded, the associated match evidence must contain a successful \(p\) node with the same arguments and validity token.
+If an explanation node claims that refinement $p$ succeeded, the associated match evidence must contain a successful $p$ node with the same arguments and validity token.
 
 This can be tested structurally.
 
@@ -9167,11 +9167,11 @@ The solutions are intentionally selective. Exercises not solved here are suitabl
 
 A plain-language soundness statement is:
 
-> Whenever an input context requesting type \(\tau\) successfully returns a reference \(r\), that returned reference actually satisfies the semantic membership condition denoted by \(\tau\) in the environment used for commitment.
+> Whenever an input context requesting type $\tau$ successfully returns a reference $r$, that returned reference actually satisfies the semantic membership condition denoted by $\tau$ in the environment used for commitment.
 
 With translations, distinguish source and result:
 
-> If occurrence source \(s\) is accepted through translation and the operation returns \(r\), then \(r\), not necessarily \(s\), belongs to \(\llbracket\tau\rrbracket_e\), and every recorded translator step satisfies its contract.
+> If occurrence source $s$ is accepted through translation and the operation returns $r$, then $r$, not necessarily $s$, belongs to $\llbracket\tau\rrbracket_e$, and every recorded translator step satisfies its contract.
 
 ## B.2 Chapter 4, Exercise 2 — Project IDs are not projects
 
@@ -9200,33 +9200,33 @@ The lookup may fail, which is another reason it is not subtyping.
 
 ## B.3 Chapter 5, Exercise 2 — Union idempotence
 
-We prove \(A\cup A=A\).
+We prove $A\cup A=A$.
 
-For arbitrary \(x\):
+For arbitrary $x$:
 
-\[
+$$
 \begin{aligned}
 x\in A\cup A
 &\Leftrightarrow x\in A\lor x\in A\\
 &\Leftrightarrow x\in A.
 \end{aligned}
-\]
+$$
 
-By extensionality, \(A\cup A=A\). Therefore \(\tau\lor\tau\equiv\tau\).
+By extensionality, $A\cup A=A$. Therefore $\tau\lor\tau\equiv\tau$.
 
 ## B.4 Chapter 5, Exercise 3 — Absorption
 
-We prove \(A\cap(A\cup B)=A\).
+We prove $A\cap(A\cup B)=A$.
 
-For arbitrary \(x\):
+For arbitrary $x$:
 
-\[
+$$
 \begin{aligned}
 x\in A\cap(A\cup B)
 &\Leftrightarrow x\in A\land(x\in A\lor x\in B)\\
 &\Leftrightarrow x\in A.
 \end{aligned}
-\]
+$$
 
 The last equivalence is propositional absorption. Extensionality completes the proof.
 
@@ -9244,31 +9244,31 @@ Similarity is not transitive, so it cannot partition occurrences into stable ide
 
 ## B.6 Chapter 7, Exercise 3 — Quotienting a subtype preorder
 
-Let \(\leq\) be a preorder and define:
+Let $\leq$ be a preorder and define:
 
-\[
+$$
 x\equiv y \quad\text{iff}\quad x\leq y\land y\leq x.
-\]
+$$
 
-First, \(\equiv\) is an equivalence relation:
+First, $\equiv$ is an equivalence relation:
 
 - reflexivity follows from preorder reflexivity;
 - symmetry is built into the definition;
-- transitivity follows from transitivity of \(\leq\) in both directions.
+- transitivity follows from transitivity of $\leq$ in both directions.
 
 Define order on equivalence classes:
 
-\[
+$$
 [x]\preceq[y] \quad\text{iff}\quad x\leq y.
-\]
+$$
 
-This is well defined: if \(x\equiv x'\), \(y\equiv y'\), and \(x\leq y\), then
+This is well defined: if $x\equiv x'$, $y\equiv y'$, and $x\leq y$, then
 
-\[
+$$
 x'\leq x\leq y\leq y'.
-\]
+$$
 
-Antisymmetry follows because `[x] ≤ [y]` and `[y] ≤ [x]` imply \(x\equiv y\), hence `[x]=[y]`.
+Antisymmetry follows because `[x] ≤ [y]` and `[y] ≤ [x]` imply $x\equiv y$, hence `[x]=[y]`.
 
 ## B.7 Chapter 8, Exercise 1 — Evidence for an active inspectable project
 
@@ -9293,7 +9293,7 @@ intersection
 
 Formally:
 
-\[
+$$
 \frac{
   \frac{r:\textsf{Project}\qquad Active(r,e)}
        {r:\operatorname{refine}(Active,(),\textsf{Project})}
@@ -9301,30 +9301,30 @@ Formally:
   r:\operatorname{cap}(Inspectable)
 }{r:\operatorname{refine}(Active,(),\textsf{Project})
   \land\operatorname{cap}(Inspectable)}.
-\]
+$$
 
 ## B.8 Chapter 9, Exercise 2 — Matcher soundness cases
 
 ### Union
 
-If the matcher succeeds on \(\tau\lor\sigma\), it succeeded on one branch, say \(\tau\). By induction, \(r\in\llbracket\tau\rrbracket\). By union introduction, \(r\in\llbracket\tau\rrbracket\cup\llbracket\sigma\rrbracket\).
+If the matcher succeeds on $\tau\lor\sigma$, it succeeded on one branch, say $\tau$. By induction, $r\in\llbracket\tau\rrbracket$. By union introduction, $r\in\llbracket\tau\rrbracket\cup\llbracket\sigma\rrbracket$.
 
 ### Intersection
 
-If the matcher succeeds on \(\tau\land\sigma\), it has successful child derivations for both. By induction, \(r\) belongs to both denotations, hence to their intersection.
+If the matcher succeeds on $\tau\land\sigma$, it has successful child derivations for both. By induction, $r$ belongs to both denotations, hence to their intersection.
 
 ## B.9 Chapter 10, Exercise 5 — Removing top
 
-For arbitrary \(r\):
+For arbitrary $r$:
 
-\[
+$$
 \begin{aligned}
 r\in\llbracket\tau\land\top\rrbracket_e
 &\Leftrightarrow r\in\llbracket\tau\rrbracket_e
 \land r\in\Omega\\
 &\Leftrightarrow r\in\llbracket\tau\rrbracket_e.
 \end{aligned}
-\]
+$$
 
 Therefore replacing `and(τ, top)` with `τ` preserves denotation.
 
@@ -9332,19 +9332,19 @@ Therefore replacing `and(τ, top)` with `τ` preserves denotation.
 
 By definition:
 
-\[
+$$
 \llbracket\tau\land\sigma\rrbracket_e
 =\llbracket\tau\rrbracket_e\cap\llbracket\sigma\rrbracket_e.
-\]
+$$
 
 Every member of an intersection is a member of its left set, so:
 
-\[
+$$
 \llbracket\tau\land\sigma\rrbracket_e
 \subseteq\llbracket\tau\rrbracket_e.
-\]
+$$
 
-Because this holds for every environment, \(\tau\land\sigma\leq\tau\).
+Because this holds for every environment, $\tau\land\sigma\leq\tau$.
 
 ## B.11 Chapter 11, Exercise 4 — Structural safety is not full substitutability
 
@@ -9399,16 +9399,16 @@ The cost-1 path through title may discard identity and metadata, while the cost-
 
 ## B.15 Chapter 16, Exercise 2 — Difference soundness
 
-A successful match for \(\tau\setminus\sigma\) contains:
+A successful match for $\tau\setminus\sigma$ contains:
 
-1. success evidence for \(r:\tau\);
-2. decidable non-membership evidence for \(r:\sigma\).
+1. success evidence for $r:\tau$;
+2. decidable non-membership evidence for $r:\sigma$.
 
-By induction, \(r\in\llbracket\tau\rrbracket_e\). The second premise gives \(r\notin\llbracket\sigma\rrbracket_e\). Therefore:
+By induction, $r\in\llbracket\tau\rrbracket_e$. The second premise gives $r\notin\llbracket\sigma\rrbracket_e$. Therefore:
 
-\[
+$$
 r\in\llbracket\tau\rrbracket_e\setminus\llbracket\sigma\rrbracket_e.
-\]
+$$
 
 If the excluded result is merely unknown, the matcher must not construct difference success.
 
@@ -9416,11 +9416,11 @@ If the excluded result is merely unknown, the matcher must not construct differe
 
 Let signatures have equal arity and define componentwise order:
 
-\[
+$$
 S\preceq T \quad\text{iff}\quad \forall i.\;S_i\leq T_i.
-\]
+$$
 
-Reflexivity follows because each component subtype relation is reflexive. Transitivity follows componentwise: if \(S_i\leq T_i\) and \(T_i\leq U_i\), then \(S_i\leq U_i\). Thus signature order is a preorder. Quotienting component types by semantic equivalence gives a partial order.
+Reflexivity follows because each component subtype relation is reflexive. Transitivity follows componentwise: if $S_i\leq T_i$ and $T_i\leq U_i$, then $S_i\leq U_i$. Thus signature order is a preorder. Quotienting component types by semantic equivalence gives a partial order.
 
 ## B.17 Chapter 18, Exercise 2 — At-most-once resolution
 
@@ -9435,12 +9435,12 @@ Suppose two events attempt to resolve context `q`. The first sees `settled=false
 
 ## B.18 Chapter 19, Exercise 3 — Unlink does not affect the remaining group
 
-Let view \(v\) be removed from binding \(b\). The operation:
+Let view $v$ be removed from binding $b$. The operation:
 
-1. copies \(b\)'s subject map to fresh binding \(b'\);
-2. assigns only \(v\) to \(b'\);
-3. leaves every other view assigned to \(b\);
-4. leaves \(b\)'s map unchanged.
+1. copies $b$'s subject map to fresh binding $b'$;
+2. assigns only $v$ to $b'$;
+3. leaves every other view assigned to $b$;
+4. leaves $b$'s map unchanged.
 
 Therefore every remaining view still reads the same binding and subject values. Coherence and visible state for the remaining group are preserved.
 
@@ -9625,7 +9625,7 @@ algSubtype R a b = true ↔ Subtype R a b
 
 For opaque refinements, complete implication is unavailable. Treat each refinement instance as an independent proposition and prove completeness only for the propositional abstraction.
 
-A future BDD formalization would prove that reduced ordered diagrams preserve Boolean denotation and that implication testing corresponds to unsatisfiability of \(a\land\neg b\).
+A future BDD formalization would prove that reduced ordered diagrams preserve Boolean denotation and that implication testing corresponds to unsatisfiability of $a\land\neg b$.
 
 ## C.8 Translation formalization
 
@@ -9748,7 +9748,7 @@ Choose based on team fluency and integration, not fashion.
 
 **Ambiguity.** A dispatch or translation state with several incomparable best candidates and no declared preference.
 
-**Antisymmetry.** Order property: \(x\leq y\) and \(y\leq x\) imply \(x=y\).
+**Antisymmetry.** Order property: $x\leq y$ and $y\leq x$ imply $x=y$.
 
 **Atom.** A fundamental named presentation role associated with one representation family.
 
@@ -9760,7 +9760,7 @@ Choose based on team fluency and integration, not fashion.
 
 **Binding coherence.** The invariant that views sharing one subject binding observe the same subject values for every role.
 
-**Bottom type.** The type \(\bot\) with empty denotation.
+**Bottom type.** The type $\bot$ with empty denotation.
 
 **Bounded search.** Search limited by depth, states, time, or cost to guarantee operational control even when a graph contains cycles.
 
@@ -9784,7 +9784,7 @@ Choose based on team fluency and integration, not fashion.
 
 **Completeness.** For a decision algorithm, the property that every semantically true judgment in the claimed fragment is recognized.
 
-**Complement.** Relative set negation \(\Omega\setminus A\). Its meaning depends on the chosen universe.
+**Complement.** Relative set negation $\Omega\setminus A$. Its meaning depends on the chosen universe.
 
 **Compositional semantics.** Semantics in which the meaning of a compound expression is determined by the meanings of its parts.
 
@@ -9804,7 +9804,7 @@ Choose based on team fluency and integration, not fashion.
 
 **Dependency fingerprint.** Stable tuple summarizing every state component on which a cached predicate result depends.
 
-**Difference type.** A base-relative exclusion \(\tau\setminus\sigma\).
+**Difference type.** A base-relative exclusion $\tau\setminus\sigma$.
 
 **Direct match.** Membership success without translation.
 
@@ -9858,7 +9858,7 @@ Choose based on team fluency and integration, not fashion.
 
 **Join.** Least upper bound in an order; union in the powerset lattice.
 
-**Judgment.** Formal assertion under explicit contexts, such as \(R;e\vdash r:\tau\).
+**Judgment.** Formal assertion under explicit contexts, such as $R;e\vdash r:\tau$.
 
 **Lattice.** Partial order in which every pair has a meet and join.
 
@@ -9964,7 +9964,7 @@ Choose based on team fluency and integration, not fashion.
 
 **Subtype DAG.** Directed acyclic graph of declared nominal subtype edges.
 
-**Top type.** Type \(\top\) denoting the whole registry universe.
+**Top type.** Type $\top$ denoting the whole registry universe.
 
 **Translation.** Typed partial computation turning one presentation reference into another role or representation.
 

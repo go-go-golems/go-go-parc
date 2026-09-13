@@ -64,7 +64,7 @@ In our case as far as there are clients that generate requests independently of 
 
 One way we can assess the performance of the system is by measuring the latency value for a specific level of utilization. To do that, let’s define a few terms we’ll use:
 
-- *System Utilization* is how busy the system is processing requests \[time busy / time overall\].
+- *System Utilization* is how busy the system is processing requests $$time busy / time overall$$.
 - *Throughput* is the number of processed requests in a unit of time. The higher the *Throughput*, the higher the *Utilization*.
 - *Latency* is the total response time for a request, which consists of the processing itself (*Service Time*) and the cycle time it takes for processing (*Waiting Time*). (*Latency = Waiting Time + Service Time*.)
 
@@ -91,8 +91,8 @@ As users we want our requests to be processed as fast as possible. The lower the
 
 ![](https://www.scylladb.com/wp-content/uploads/coordinated-omission-01.png)
 
-*Response time (Latency) vs Utilization \[*R=1/µ(1-ρ)*\] for an open system  
-**\[from [Rules in PAL: the Performance Analysis of Logs tool](http://performancebydesign.blogspot.com/2011/02/rules-in-pal-performance-analysis-of.html), figure 1\]*
+*Response time (Latency) vs Utilization $$*R=1/µ(1-ρ)*$$ for an open system  
+**$$from [Rules in PAL: the Performance Analysis of Logs tool](http://performancebydesign.blogspot.com/2011/02/rules-in-pal-performance-analysis-of.html), figure 1$$*
 
 With more requests and higher throughput, utilization climbs up to its limit of 100% and latency rises to infinity. The goal of benchmarking is to find the [optimal point](https://www.scylladb.com/2018/04/19/scylla-i-o-scheduler-3/) on that curve, where utilization (or throughput) is highest, with latency at or below the target level. To do that we need to ask questions like:
 
@@ -168,7 +168,7 @@ For example, suppose:
 
 *Response time = 10 ms*  
 ⟹  
-*Thread sending requests sequentially may send only = 1000 \[ms/sec\] / 10 \[ms/req\] = 100 \[req/sec\]*
+*Thread sending requests sequentially may send only = 1000 $$ms/sec$$ / 10 $$ms/req$$ = 100 $$req/sec$$*
 
 Outliers may take longer, so you need to provide a sufficient number of threads for your load to be covered. For example:
 
@@ -181,11 +181,11 @@ Outliers may take longer, so you need to provide a sufficient number of threads 
 
 ⟹
 
-*We expect 1 worker must be able to send 1,000 \[ms/sec\] / 10 \[ms/req\] = 100 \[requests/sec\]*
+*We expect 1 worker must be able to send 1,000 $$ms/sec$$ / 10 $$ms/req$$ = 100 $$requests/sec$$*
 
 ⟹
 
-*Target throughput / Requests per worker = 100,000 \[QPS\] / 100 \[QPS/Worker\] = 1,000 workers*
+*Target throughput / Requests per worker = 100,000 $$QPS$$ / 100 $$QPS/Worker$$ = 1,000 workers*
 
 At this point, it must be clear that with this design a worker can’t send requests faster than it takes to process one request. That means that we need a sufficient number of workers to cover our throughput goal. To make workers fulfill the goal we need a schedule for them that will determine when a certain worker has to send a request exactly.
 
@@ -194,7 +194,7 @@ Let’s define a schedule as a request generation plan that defines points in ti
 ![](https://www.scylladb.com/wp-content/uploads/coordinated-omission-03.png)
 
 *A schedule: four requests uniformly spread in a unit of time:  
-**1000 \[ms/sec\] / 4 \[req\] = 250 ms every next request*
+**1000 $$ms/sec$$ / 4 $$req$$ = 250 ms every next request*
 
 There are two ways to implement a worker schedule: *static* and *dynamic*. A static schedule is a function of the start timestamp; the firing points don’t move. A *dynamic schedule* is one where the next firing starts after the last request has completed but not before the minimum time delay between requests.
 
@@ -326,9 +326,9 @@ auto latency = end - start;
 
 But this is not exactly what we want.
 
-The system we are trying to simulate sends a request every *\[1 / throughput\]* unit of time regardless of how long it takes to process them. We simulate it by the means of *N* workers (threads) that send a request every *\[1 / worker\_throughput\]* where *worker\_throughput ≤ throughput*, and *N \* worker\_throughput = throughput.*
+The system we are trying to simulate sends a request every *$$1 / throughput$$* unit of time regardless of how long it takes to process them. We simulate it by the means of *N* workers (threads) that send a request every *$$1 / worker\_throughput$$* where *worker\_throughput ≤ throughput*, and *N \* worker\_throughput = throughput.*
 
-Thus, a worker has a \[*1/N*\] schedule that reflects a part of the schedule of the simulated system. The question we need to answer is how to map the latency measurements from the 1/N worker’s schedule to the full schedule of the simulated open-model system. It’s a straightforward process until requests start to take longer than expected.
+Thus, a worker has a $$*1/N*$$ schedule that reflects a part of the schedule of the simulated system. The question we need to answer is how to map the latency measurements from the 1/N worker’s schedule to the full schedule of the simulated open-model system. It’s a straightforward process until requests start to take longer than expected.
 
 Which brings us to the second part of the Coordinated Omission problem: what to do with latency outliers.
 
@@ -360,9 +360,9 @@ Latency consists of time spent waiting in the queue plus service time. A client�
 *So the second request must be counted as:*
 
 *1st request = 1 second  
-**2nd request = \[now() – (start + (request – 1) \* time\_per\_request)\] + service time =*
+**2nd request = $$now() – (start + (request – 1) \* time\_per\_request)$$ + service time =*
 
-*\[now() – (start + (2 – 1) \* 250 ms)\] + service time =  
+*$$now() – (start + (2 – 1) \* 250 ms)$$ + service time =  
 **750ms + service time*
 
 If you do not want to use latency *Correction* for some reason in your implementation, for example because you do not fire the missed requests (*Queueless*), you have only one option — to pretend the requests were sent. It is done like so:

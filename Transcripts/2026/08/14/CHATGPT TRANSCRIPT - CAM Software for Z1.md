@@ -469,7 +469,7 @@ And every derived number should explain itself.
 
 This could be one of your strongest advantages over generic CAM because you know the exact machine.
 
-Generic CAM must accommodate machines ranging from a $400 router to a $500,000 machining center.
+Generic CAM must accommodate machines ranging from a \$400 router to a \$500,000 machining center.
 
 You don't.
 

@@ -15,7 +15,7 @@ A few things are probably causing that feeling:
 
 - **The abstraction level keeps shifting.** `input`, `read`, `derive`, `check`, `decide` are workflow/dataflow concepts. `reserve` is an invariant/escrow concept. `append` is a storage concept. `effect` is runtime execution. `reconcile` is lifecycle orchestration. fileciteturn0file0L181-L195 They don't feel like peers, yet the API presents them as peers.
 
-- **The theory is leaking too directly into application code.** `whenAuthoritative`, `offlineAs("unknown")`, `using("bounded-counter")`, `merge("op-set")`, and explicit compensation expose implementation strategy everywhere. For example, the refund flow requires the application author to know that the exposure mechanism happens to be a bounded counter. fileciteturn0file0L250-L278 A developer probably wants to state the constraint—“I may issue at most $X of offline refund liability”—and let the runtime/compiler choose the mechanism.
+- **The theory is leaking too directly into application code.** `whenAuthoritative`, `offlineAs("unknown")`, `using("bounded-counter")`, `merge("op-set")`, and explicit compensation expose implementation strategy everywhere. For example, the refund flow requires the application author to know that the exposure mechanism happens to be a bounded counter. fileciteturn0file0L250-L278 A developer probably wants to state the constraint—“I may issue at most \$X of offline refund liability”—and let the runtime/compiler choose the mechanism.
 
 - **There is too much ceremony around a simple business statement.** The core return rule is roughly: validate what you can; reject known failures; if required facts are unavailable, allow a bounded provisional return; reconcile later. But expressing that requires a large graph containing checks, reservations, dispositions, claims, ledger mutations, effects, forwarding, callbacks, and compensation. fileciteturn0file0L284-L378 The architecture is sophisticated, but the user-facing code doesn't compress that sophistication.
 
@@ -23,7 +23,7 @@ A few things are probably causing that feeling:
 
 - **The DSL mixes description with execution sequencing.** `.after(claim, exposure)`, `.when(...)`, `.handler(...)`, `.idempotencyKey(...)`, `.untilAcknowledged()`, `.onAccepted()`, and `.onRejected()` gradually turn the declarative DAG into a fluent workflow engine. The graph stops feeling like an IR builder and starts feeling like a custom Temporal/Step Functions-style orchestration language.
 
-- **`forward`/`reconcile` is particularly awkward.** The conceptual primitive list says `reconcile`, while the example API actually uses `$.forward("reconcile", ...)`. fileciteturn0file0L181-L195 fileciteturn0file0L352-L378 That's a small naming inconsistency, but it points at a deeper uncertainty: is reconciliation an operation, a phase, a subgraph, or simply another execution of the same graph when new knowledge arrives?
+- **`forward`/`reconcile` is particularly awkward.** The conceptual primitive list says `reconcile`, while the example API actually uses `\$.forward("reconcile", ...)`. fileciteturn0file0L181-L195 fileciteturn0file0L352-L378 That's a small naming inconsistency, but it points at a deeper uncertainty: is reconciliation an operation, a phase, a subgraph, or simply another execution of the same graph when new knowledge arrives?
 
 - **The compiler is being asked to understand more than the IR visibly proves.** The proposed static error—“Non-monotone dependency crosses an irreversible effect”—is excellent as a product goal. fileciteturn0file0L583-L615 But terms like `requires: "authoritative"`, `provisional`, `compensatable`, and `bounded risk reservation` need a rigorous type/effect system underneath them. Right now the fluent syntax makes that rigor look somewhat declarative-by-convention.
 
@@ -328,7 +328,7 @@ and treats provisional acceptance as essentially an acceptance whose unresolved 
 
 I would be much more literal about reality.
 
-If I hand a customer $74.95 while offline, the act of handing them $74.95 is **not provisional**.
+If I hand a customer \$74.95 while offline, the act of handing them \$74.95 is **not provisional**.
 
 It happened.
 

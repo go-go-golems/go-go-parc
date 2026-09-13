@@ -25,7 +25,7 @@ The main conclusion is that no single abstraction—neither “presentation type
 
 1. **A typed relational semantic kernel** represents subjects, occurrences, capabilities, links, and derived affordances as facts and rules.
 2. **An inspectable query language** replaces most arbitrary selection lambdas and admits soundness proofs, dependency extraction, provenance, optimization, and incremental maintenance.
-3. **A monotone or stratified fixed-point layer** gives recursive rules a least-fixed-point semantics. Transfinite iteration is useful for metatheory; practical programs should normally be restricted to fragments that converge finitely or by stage \(\omega\).
+3. **A monotone or stratified fixed-point layer** gives recursive rules a least-fixed-point semantics. Transfinite iteration is useful for metatheory; practical programs should normally be restricted to fragments that converge finitely or by stage $\omega$.
 4. **An algebraic interaction language** represents choosing, performing, opening, cancelling, reading time, and other effects as data interpreted by handlers.
 5. **Open typed components with ports** compose by explicit wiring. Pushouts and structured cospans explain composition of interfaces; quotients or coequalizers explain identification of ports.
 6. **Bidirectional transformations** describe synchronization when linked views do not literally share one cell. Lens laws or consistency-restoration laws become component obligations.
@@ -137,17 +137,17 @@ This distinction eliminates several accidental complexities. “Converting a pro
 
 Let a PBUI state contain the following sets:
 
-- \(E\): semantic subjects;
-- \(O\): rendered occurrences;
-- \(V\): logical views;
-- \(P\): component ports;
-- \(C\): interaction contexts;
-- \(A\): actions or operations;
-- \(K\): capabilities or authority tokens.
+- $E$: semantic subjects;
+- $O$: rendered occurrences;
+- $V$: logical views;
+- $P$: component ports;
+- $C$: interaction contexts;
+- $A$: actions or operations;
+- $K$: capabilities or authority tokens.
 
 The kernel maintains typed relations such as:
 
-\[
+$$
 \begin{aligned}
 \operatorname{Denotes} &\subseteq O \times E \\
 \operatorname{Mounted} &\subseteq O \\
@@ -159,20 +159,20 @@ The kernel maintains typed relations such as:
 \operatorname{Exposes} &\subseteq V \times P \\
 \operatorname{Enabled} &\subseteq C \times O \times A.
 \end{aligned}
-\]
+$$
 
 Application relations add domain facts:
 
-\[
+$$
 \operatorname{OwnedBy}(p,u),\quad
 \operatorname{Archived}(p),\quad
 \operatorname{PrimaryDocument}(v,d),\quad
 \operatorname{FieldOf}(f,d).
-\]
+$$
 
 A request for a mounted, active project owned by the current user is then a query over relations, not an arbitrary callback:
 
-\[
+$$
 \begin{aligned}
 \operatorname{CandidateProject}(c,o,p) \iff{}&
 \operatorname{CurrentContext}(c) \land
@@ -182,7 +182,7 @@ A request for a mounted, active project owned by the current user is then a quer
 \land \operatorname{OwnedBy}(p,\operatorname{CurrentUser}(c)) \\
 &\land \neg\operatorname{Archived}(p).
 \end{aligned}
-\]
+$$
 
 The displayed highlight is a projection of this relation onto occurrences. Acceptance returns the subject together with a derivation witness.
 
@@ -205,23 +205,23 @@ These are mostly type checking and schema validation.
 
 ### 4.2 Selection soundness
 
-For request \(Q\), state \(S\), and returned candidate \(x\):
+For request $Q$, state $S$, and returned candidate $x$:
 
-\[
+$$
 x \in \operatorname{eval}(Q,S)
 \implies
 \llbracket Q \rrbracket_S(x).
-\]
+$$
 
 In words: anything the runtime allows the user to select satisfies the denotational meaning of the request.
 
 Completeness needs a qualification. For direct manipulation, only mounted and indexed occurrences can be clicked:
 
-\[
+$$
 \llbracket Q \rrbracket_S(x) \land \operatorname{MountedWitness}(x)
 \implies
 x \in \operatorname{eval}(Q,S).
-\]
+$$
 
 A global search interpreter can use a broader universe and establish a different completeness theorem.
 
@@ -229,11 +229,11 @@ A global search interpreter can use a broader universe and establish a different
 
 If two occurrences denote the same typed subject, operations that are extensional in subject identity should agree:
 
-\[
+$$
 \operatorname{Denotes}(o_1,e) \land \operatorname{Denotes}(o_2,e)
 \implies
 \operatorname{Actions}(c,o_1) \equiv_e \operatorname{Actions}(c,o_2),
-\]
+$$
 
 except where an action explicitly depends on occurrence, form, or view. This makes occurrence-sensitive behavior visible rather than accidental.
 
@@ -241,31 +241,31 @@ except where an action explicitly depends on occurrence, form, or view. This mak
 
 An offered operation should have a derivable precondition, and execution should preserve declared safety invariants:
 
-\[
+$$
 \operatorname{Enabled}(c,o,a)
 \implies
 \operatorname{Authorized}(c,\operatorname{subject}(o),a).
-\]
+$$
 
-For transition \(S \xrightarrow{a} S'\):
+For transition $S \xrightarrow{a} S'$:
 
-\[
+$$
 I(S) \land \operatorname{Pre}_a(S)
 \implies
 I(S') \land \operatorname{Post}_a(S,S').
-\]
+$$
 
 UI visibility is not a security boundary, so the effect handler must recheck authority. The useful theorem is agreement between affordance derivation and authoritative execution, not “the menu hid the button.”
 
 ### 4.5 Link consistency
 
-If a chart port and a pipeline port are linked by consistency relation \(R\), reachable states should satisfy:
+If a chart port and a pipeline port are linked by consistency relation $R$, reachable states should satisfy:
 
-\[
+$$
 R(s_{chart},s_{pipeline}).
-\]
+$$
 
-For equal document-selection ports, \(R(x,y)\) is equality. For different representations, \(R\) may be a lens consistency relation.
+For equal document-selection ports, $R(x,y)$ is equality. For different representations, $R$ may be a lens consistency relation.
 
 ### 4.6 Determinism, confluence, and convergence
 
@@ -281,14 +281,14 @@ These are different properties. A deterministic local evaluator says nothing abo
 
 ### 4.7 Incremental correctness
 
-Let \(Q\) be a query, \(S\) a state, and \(\Delta S\) a change. An incremental evaluator should satisfy a from-scratch consistency equation:
+Let $Q$ be a query, $S$ a state, and $\Delta S$ a change. An incremental evaluator should satisfy a from-scratch consistency equation:
 
-\[
+$$
 \operatorname{apply}\bigl(\operatorname{eval}(Q,S),
   \Delta_Q(S,\Delta S)\bigr)
 =
 \operatorname{eval}\bigl(Q,\operatorname{apply}(S,\Delta S)\bigr).
-\]
+$$
 
 The theorem permits aggressive indexes, memoization, and differential maintenance without changing observable semantics.
 
@@ -438,51 +438,51 @@ The programming model resembles typed Datalog, relational algebra, or a function
 
 ### 6.2 Denotational semantics
 
-For a finite set of rules, let \(L\) be the lattice of possible fact sets ordered by inclusion. Let \(F_R : L \to L\) be the immediate-consequence operator induced by rules \(R\). For positive rules, \(F_R\) is monotone:
+For a finite set of rules, let $L$ be the lattice of possible fact sets ordered by inclusion. Let $F_R : L \to L$ be the immediate-consequence operator induced by rules $R$. For positive rules, $F_R$ is monotone:
 
-\[
+$$
 X \subseteq Y \implies F_R(X) \subseteq F_R(Y).
-\]
+$$
 
 The meaning of the program is its least fixed point:
 
-\[
+$$
 \operatorname{lfp}(F_R).
-\]
+$$
 
 Tarski's fixed-point theorem states that the fixed points of a monotone endomap on a complete lattice form a complete lattice; in particular, least and greatest fixed points exist [Tarski 1955]. This gives a clean semantic target independent of a particular work-list algorithm.
 
 ### 6.3 Transfinite construction
 
-A general monotone function need not reach its least fixed point after finitely many steps or even after the first \(\omega\) steps. Its closure sequence can be described by transfinite recursion:
+A general monotone function need not reach its least fixed point after finitely many steps or even after the first $\omega$ steps. Its closure sequence can be described by transfinite recursion:
 
-\[
+$$
 \begin{aligned}
 x_0 &= \bot, \\
 x_{\alpha+1} &= F(x_\alpha), \\
 x_\lambda &= \bigvee_{\beta<\lambda} x_\beta
 \quad\text{for a limit ordinal }\lambda.
 \end{aligned}
-\]
+$$
 
-For a monotone endomap on a set-sized complete lattice, this increasing chain eventually stabilizes before the successor cardinal \( |L|^+ \): there cannot be more than \( |L| \) strict increases through distinct lattice elements. Cousot and Cousot use this general pattern when describing concrete and abstract semantic iterations, limit joins, convergence, and acceleration by widening [Cousot and Cousot 1992].
+For a monotone endomap on a set-sized complete lattice, this increasing chain eventually stabilizes before the successor cardinal $ |L|^+ $: there cannot be more than $ |L| $ strict increases through distinct lattice elements. Cousot and Cousot use this general pattern when describing concrete and abstract semantic iterations, limit joins, convergence, and acceleration by widening [Cousot and Cousot 1992].
 
 This matters in a UI architecture mainly as a proof principle, not as an implementation plan. A browser runtime should not attempt to enumerate arbitrary ordinals. Practical fragments should provide a stronger bound:
 
 - finite domains or finite-height lattices imply finite stabilization;
 - finitary Datalog over a finite active domain stabilizes after finitely many new facts;
-- Scott-continuous or \(\omega\)-continuous functions reach the least fixed point at the supremum of the finite iterates;
+- Scott-continuous or $\omega$-continuous functions reach the least fixed point at the supremum of the finite iterates;
 - numeric or infinite abstract domains may use widening, accepting an over-approximation with a separate soundness theorem.
 
 ### 6.4 Transfinite induction for invariants
 
-Suppose \(P(x)\) is an invariant of the closure sequence. A transfinite induction proof has three obligations:
+Suppose $P(x)$ is an invariant of the closure sequence. A transfinite induction proof has three obligations:
 
-1. **Base:** \(P(\bot)\).
-2. **Successor:** \(P(x) \Rightarrow P(F(x))\).
-3. **Limit:** if \(P(x_\beta)\) holds for every \(\beta<\lambda\), then \(P(\bigvee_{\beta<\lambda}x_\beta)\).
+1. **Base:** $P(\bot)$.
+2. **Successor:** $P(x) \Rightarrow P(F(x))$.
+3. **Limit:** if $P(x_\beta)$ holds for every $\beta<\lambda$, then $P(\bigvee_{\beta<\lambda}x_\beta)$.
 
-Then \(P(x_\alpha)\) holds at every stage and therefore at the stabilized fixed point.
+Then $P(x_\alpha)$ holds at every stage and therefore at the stabilized fixed point.
 
 For UI rules, a useful invariant might be:
 
@@ -572,7 +572,7 @@ type Formula<Env> =
   | { tag: "parameter"; name: keyof Env };
 ```
 
-The constructors define a polynomial-like endofunctor \(F\). The syntax type is an initial \(F\)-algebra \((\mu F,\mathsf{in})\) when the required initial algebra exists. Each interpreter is an \(F\)-algebra, and the unique homomorphism from the initial algebra is a fold or catamorphism.
+The constructors define a polynomial-like endofunctor $F$. The syntax type is an initial $F$-algebra $(\mu F,\mathsf{in})$ when the required initial algebra exists. Each interpreter is an $F$-algebra, and the unique homomorphism from the initial algebra is a fold or catamorphism.
 
 ```text
 Formula AST
@@ -602,9 +602,9 @@ The API shape is therefore the proof structure. This is one of the clearest bene
 
 Under suitable accessibility or continuity assumptions, an initial algebra can be constructed from an initial chain:
 
-\[
+$$
 0 \to F0 \to F^2 0 \to F^3 0 \to \cdots
-\]
+$$
 
 and its colimit. Adámek's work characterizes conditions under which such chain constructions produce free or initial algebras; modern formalizations continue to refine and mechanize these constructions [Adámek 1974; Wißmann and Milius 2024].
 
@@ -640,11 +640,11 @@ A practical system can offer a typed builder that produces an initial AST. This 
 
 Constructors alone do not capture algebraic laws. For Boolean formulas, one may want:
 
-\[
+$$
 A \land \top = A,\quad
 A \land A = A,\quad
 A \land B = B \land A.
-\]
+$$
 
 For bag semantics or weighted queries, idempotence may not hold. The kernel must state which equations define each language. A normalizer can orient selected equations as rewrite rules, but termination and confluence of the rewrite system become proof obligations.
 
@@ -715,7 +715,7 @@ A production TypeScript implementation would probably use a lighter “logic plu
 
 ### 8.3 Modules as colimits of theories
 
-Suppose theories \(T_1\) and \(T_2\) share an imported interface \(T_0\):
+Suppose theories $T_1$ and $T_2$ share an imported interface $T_0$:
 
 ```text
 T1  ←  T0  →  T2
@@ -767,11 +767,11 @@ Use this architecture at the **component and module boundary**, especially for r
 
 An open component is a system with a declared boundary. A cospan has the shape:
 
-\[
+$$
 I \xrightarrow{i} X \xleftarrow{o} O,
-\]
+$$
 
-where \(X\) is the internal system and \(I,O\) are boundary interfaces. Structured cospans enrich this picture so the apex carries the relevant system structure. They provide a general framework for open networks and compose compatible boundaries using pushouts [Baez and Courser 2020].
+where $X$ is the internal system and $I,O$ are boundary interfaces. Structured cospans enrich this picture so the apex carries the relevant system structure. They provide a general framework for open networks and compose compatible boundaries using pushouts [Baez and Courser 2020].
 
 For UI components, a boundary can contain typed ports rather than only directional input/output wires:
 
@@ -790,7 +790,7 @@ A pipeline may expose the same `primaryDocument` sort and a different set of por
 
 ### 9.2 Composition by pushout
 
-If component \(X\) exposes an output boundary \(B\), and component \(Y\) exposes a compatible input boundary \(B\), composition glues the two copies of \(B\). At the structural level, this gluing is a pushout.
+If component $X$ exposes an output boundary $B$, and component $Y$ exposes a compatible input boundary $B$, composition glues the two copies of $B$. At the structural level, this gluing is a pushout.
 
 This gives associativity up to the relevant categorical equivalence, making large workspaces compositional rather than a collection of special-case reducers.
 
@@ -843,11 +843,11 @@ This is the strongest model for **workspace topology and component composition**
 
 Inductive data and syntax are described by algebras. Ongoing behavior is naturally described by coalgebras. A deterministic Mealy-style interaction machine has a transition function:
 
-\[
+$$
 \delta : S \times I \to S \times O,
-\]
+$$
 
-where \(S\) is state, \(I\) browser or semantic input, and \(O\) emitted operations. Equivalently, one can curry it as a coalgebra for a functor such as \(F(X)=O^I\times X^I\), depending on the chosen representation.
+where $S$ is state, $I$ browser or semantic input, and $O$ emitted operations. Equivalently, one can curry it as a coalgebra for a functor such as $F(X)=O^I\times X^I$, depending on the chosen representation.
 
 PBUI interaction modes fit this model:
 
@@ -937,28 +937,28 @@ Lenses are a major family of such transformations. Asymmetric lenses treat one s
 
 ### 11.2 Ordinary asymmetric lens laws
 
-For a source \(S\), view \(V\), getter `get : S -> V`, and updater `put : S × V -> S`, common laws include:
+For a source $S$, view $V$, getter `get : S -> V`, and updater `put : S × V -> S`, common laws include:
 
-\[
+$$
 \begin{aligned}
 \text{GetPut:}\quad & \operatorname{put}(s,\operatorname{get}(s)) = s, \\
 \text{PutGet:}\quad & \operatorname{get}(\operatorname{put}(s,v)) = v, \\
 \text{PutPut:}\quad & \operatorname{put}(\operatorname{put}(s,v_1),v_2)
                          = \operatorname{put}(s,v_2).
 \end{aligned}
-\]
+$$
 
 Different lens traditions vary in exact laws and treatment of partiality. The architecture should name the selected law set rather than use “lens” as a decorative label.
 
 ### 11.3 Symmetric consistency
 
-For peer views \(A\) and \(B\), define a consistency relation \(R \subseteq A\times B\). Restorers have shapes such as:
+For peer views $A$ and $B$, define a consistency relation $R \subseteq A\times B$. Restorers have shapes such as:
 
-\[
+$$
 \operatorname{putR}: A \times B \to B,
 \qquad
 \operatorname{putL}: B \times A \to A,
-\]
+$$
 
 or operate on deltas and complements. Laws normally require that restoration establishes consistency, stable states do not change gratuitously, and sequential composition behaves predictably.
 
@@ -1051,9 +1051,9 @@ Use lenses for **synchronization semantics**, not for every state access. Identi
 
 Functional reactive programming treats time-varying values and event streams as first-class semantic objects. A presentation query can be understood as a behavior:
 
-\[
+$$
 \operatorname{Candidates}_Q : \operatorname{Time} \to \mathcal{P}(\operatorname{Candidate}),
-\]
+$$
 
 or as a stream transducer consuming state changes and producing candidate-set changes.
 
@@ -1061,7 +1061,7 @@ The attractive promise is compositional time: derive the acceptable set from cur
 
 ### 12.2 Causality
 
-A reactive output at time \(t\) must not depend on future input. Causal stream functions can be modeled so equal input prefixes imply equal output prefixes. Guarded recursion strengthens this idea by requiring recursive uses to occur “later,” making feedback productive and avoiding instantaneous cycles.
+A reactive output at time $t$ must not depend on future input. Causal stream functions can be modeled so equal input prefixes imply equal output prefixes. Guarded recursion strengthens this idea by requiring recursive uses to occur “later,” making feedback productive and avoiding instantaneous cycles.
 
 Semantic work on GUIs and reactive programming has used ultrametric spaces, guardedness, and linearity to model causality, recursive widgets, nondeterministic user input, and resource usage. Krishnaswami and Benton give a denotational GUI model in which ultrametric structure enforces causality and guardedness supports well-founded recursive definitions; later modal calculi such as Simply RaTT target reactive programming without implicit space leaks [Krishnaswami and Benton 2011; Bahr et al. 2019].
 
@@ -1117,17 +1117,17 @@ FRP is a useful **execution model for changing denotations**, especially if the 
 
 A declarative query can be semantically elegant and operationally disastrous if recomputed against every occurrence after every store update. Modern incremental computation gives a separate implementation layer with a correctness contract.
 
-The central idea is to transform a function \(f : A \to B\) into a change function or derivative:
+The central idea is to transform a function $f : A \to B$ into a change function or derivative:
 
-\[
+$$
 Df : A \times \Delta A \to \Delta B
-\]
+$$
 
 such that:
 
-\[
+$$
 f(a \oplus \delta a) = f(a) \oplus Df(a,\delta a).
-\]
+$$
 
 The incremental lambda calculus develops static differentiation for higher-order functional programs [Cai et al. 2014]. Differential dataflow maintains iterative computations across changing inputs and partially ordered logical times [McSherry et al. 2013]. DBSP gives an algebraic account of incremental view maintenance over streams and supports automatically transforming query circuits into incremental circuits [Budiu et al. 2023].
 
@@ -1216,13 +1216,13 @@ Make incrementality a **compiler/runtime concern behind a pure denotation**. Do 
 
 When facts or state are updated in parallel or replicated, a join-semilattice can make merge deterministic:
 
-\[
+$$
 x \sqcup y = y \sqcup x,
 \quad
 (x \sqcup y) \sqcup z = x \sqcup (y \sqcup z),
 \quad
 x \sqcup x = x.
-\]
+$$
 
 If every update moves upward and replicas merge by join, message duplication and reordering do not change the eventual joined result.
 
@@ -1382,11 +1382,11 @@ Use an effect language for **interaction orchestration and operations**. Preserv
 
 ### 16.1 Basic idea
 
-UI meaning is contextual. A presentation can be legal in one workspace, permission scope, document revision, or component subtree and illegal in another. One categorical approach models contexts as a category \(\mathcal{C}\), with arrows representing restriction or refinement. A presheaf assigns data to each context and restriction maps to each context morphism:
+UI meaning is contextual. A presentation can be legal in one workspace, permission scope, document revision, or component subtree and illegal in another. One categorical approach models contexts as a category $\mathcal{C}$, with arrows representing restriction or refinement. A presheaf assigns data to each context and restriction maps to each context morphism:
 
-\[
+$$
 F : \mathcal{C}^{op} \to \mathbf{Set}.
-\]
+$$
 
 Examples:
 
@@ -1398,7 +1398,7 @@ Examples:
 
 ### 16.2 Restriction and weakening
 
-If context \(c'\) refines \(c\), a restriction map transports information from the broader context to the narrower one where appropriate. This makes “current environment” a typed semantic index rather than an unstructured object captured by callbacks.
+If context $c'$ refines $c$, a restriction map transports information from the broader context to the narrower one where appropriate. This makes “current environment” a typed semantic index rather than an unstructured object captured by callbacks.
 
 ```text
 workspace context
@@ -1457,9 +1457,9 @@ The following map keeps the main constructions distinct.
 
 | Design problem | Mathematical structure | Practical artifact |
 |---|---|---|
-| recursively generated selector/effect syntax | initial algebra \(\mu F\) | typed AST and folds |
+| recursively generated selector/effect syntax | initial algebra $\mu F$ | typed AST and folds |
 | recursively derived facts | least fixed point of a monotone operator | rule saturation |
-| ongoing interaction behavior | coalgebra, often final semantics \(\nu F\) | transition machine and traces |
+| ongoing interaction behavior | coalgebra, often final semantics $\nu F$ | transition machine and traces |
 | combine component theories | pushout or general colimit | composed specification |
 | connect open component boundaries | structured cospan composition by pushout | workspace wiring graph |
 | identify two port names | coequalizer or quotient | one binding-equivalence class |
@@ -1473,13 +1473,13 @@ The following map keeps the main constructions distinct.
 
 ### 18.1 Initial algebra: finite construction and recursion
 
-For an endofunctor \(F : \mathcal{C}\to\mathcal{C}\), an \(F\)-algebra is a map:
+For an endofunctor $F : \mathcal{C}\to\mathcal{C}$, an $F$-algebra is a map:
 
-\[
+$$
 a : F(A) \to A.
-\]
+$$
 
-An initial algebra \((\mu F,\mathsf{in})\) has a unique algebra homomorphism into every other \(F\)-algebra. In programming, \(\mu F\) commonly describes finite syntax or finite recursive data, and the unique homomorphism is a fold.
+An initial algebra $(\mu F,\mathsf{in})$ has a unique algebra homomorphism into every other $F$-algebra. In programming, $\mu F$ commonly describes finite syntax or finite recursive data, and the unique homomorphism is a fold.
 
 For selector syntax:
 
@@ -1491,15 +1491,15 @@ F(X) = True
      + Exists(Sort, X)
 ```
 
-A formula is a finite tree in \(\mu F\). Evaluation, dependency extraction, and pretty-printing are folds.
+A formula is a finite tree in $\mu F$. Evaluation, dependency extraction, and pretty-printing are folds.
 
 ### 18.2 Least fixed point: recursive definitions inside a semantic domain
 
 A least fixed point concerns an endomap on an ordered semantic domain:
 
-\[
+$$
 F : L \to L.
-\]
+$$
 
 It gives the smallest solution of recursive equations. Rule systems use this for transitive closure, inherited capabilities, reachability, and recursive affordances.
 
@@ -1512,13 +1512,13 @@ Conflating them hides whether induction is over a finite syntax tree or over sta
 
 ### 18.3 Final coalgebra: potentially infinite observation
 
-An \(F\)-coalgebra is a map:
+An $F$-coalgebra is a map:
 
-\[
+$$
 c : C \to F(C).
-\]
+$$
 
-A final coalgebra \((\nu F,\mathsf{out})\) receives a unique coalgebra homomorphism from every other coalgebra. It captures observable behavior such as streams, transition systems, or possibly infinite interaction traces.
+A final coalgebra $(\nu F,\mathsf{out})$ receives a unique coalgebra homomorphism from every other coalgebra. It captures observable behavior such as streams, transition systems, or possibly infinite interaction traces.
 
 Use:
 
@@ -1534,17 +1534,17 @@ A request/response protocol contains both inductive and coinductive parts. The r
 
 Tarski gives existence of least and greatest fixed points for monotone endomaps on complete lattices. It does not by itself say that the least fixed point is reached after countably many iterations from bottom.
 
-A Kleene-style theorem adds continuity assumptions. For an \(\omega\)-continuous function on an appropriate complete partial order:
+A Kleene-style theorem adds continuity assumptions. For an $\omega$-continuous function on an appropriate complete partial order:
 
-\[
+$$
 \operatorname{lfp}(F) = \bigvee_{n<\omega} F^n(\bot).
-\]
+$$
 
-For finite-height lattices, the chain stabilizes at a finite stage. A design document should therefore not infer an \(\omega\)-iteration implementation merely from Tarski monotonicity.
+For finite-height lattices, the chain stabilizes at a finite stage. A design document should therefore not infer an $\omega$-iteration implementation merely from Tarski monotonicity.
 
 ### 19.2 Closure ordinals
 
-The least ordinal \(\gamma\) such that \(x_\gamma=x_{\gamma+1}\) is a closure ordinal for the iteration. In finite PBUI fact domains it is finite. In an abstract semantic model with infinite values, it may be larger.
+The least ordinal $\gamma$ such that $x_\gamma=x_{\gamma+1}$ is a closure ordinal for the iteration. In finite PBUI fact domains it is finite. In an abstract semantic model with infinite values, it may be larger.
 
 The API can attach a convergence class to recursive definitions:
 
@@ -1561,15 +1561,15 @@ The compiler rejects recursion with no accepted convergence story in strict mode
 
 ### 19.3 Fixed-point induction
 
-For a continuous \(F\), admissible predicate \(P\), and least fixed point \(\mu F\), a common proof rule is:
+For a continuous $F$, admissible predicate $P$, and least fixed point $\mu F$, a common proof rule is:
 
-\[
+$$
 P(\bot)
 \quad\land\quad
 \forall x.\ P(x)\Rightarrow P(F(x))
 \quad\Longrightarrow\quad
 P(\mu F),
-\]
+$$
 
 with an admissibility or limit-closure condition depending on the domain theory. In the transfinite formulation, this condition becomes the limit-stage obligation.
 
@@ -1583,25 +1583,25 @@ Least fixed points answer “what can be finitely derived?” Greatest fixed poi
 
 Consider two views with document ports:
 
-\[
+$$
 p_c : C \to D,
 \qquad
 p_p : P \to D,
-\]
+$$
 
-where \(C\) and \(P\) are chart and pipeline state spaces, and \(D\) is the document-reference space.
+where $C$ and $P$ are chart and pipeline state spaces, and $D$ is the document-reference space.
 
 ### 20.1 Compatible states form a pullback
 
 The states in which both views select the same document form:
 
-\[
+$$
 C \times_D P
 =
 \{(c,p)\in C\times P \mid p_c(c)=p_p(p)\}.
-\]
+$$
 
-This is the pullback of the two projections to \(D\). It is a **limit**: it selects compatible pairs from the product.
+This is the pullback of the two projections to $D$. It is a **limit**: it selects compatible pairs from the product.
 
 The pullback describes the invariant state space. It does not say how an inconsistent pair is repaired after one side changes. That operational question is answered by a shared-cell implementation, lens, transaction, or conflict protocol.
 
@@ -1647,22 +1647,22 @@ The compiler can perform:
 
 ### 21.1 The contravariance
 
-Let `Sig` be a category of signatures. A signature morphism \(\sigma:\Sigma\to\Sigma'\) maps vocabulary from a smaller signature into a larger one. A \(\Sigma'\)-model can be reduced along \(\sigma\) to a \(\Sigma\)-model:
+Let `Sig` be a category of signatures. A signature morphism $\sigma:\Sigma\to\Sigma'$ maps vocabulary from a smaller signature into a larger one. A $\Sigma'$-model can be reduced along $\sigma$ to a $\Sigma$-model:
 
-\[
+$$
 \operatorname{Mod}(\sigma):
 \operatorname{Mod}(\Sigma') \to \operatorname{Mod}(\Sigma).
-\]
+$$
 
-Thus `Mod` is contravariant, or covariant from \(\mathbf{Sig}^{op}\).
+Thus `Mod` is contravariant, or covariant from $\mathbf{Sig}^{op}$.
 
 If a pushout combines signatures:
 
-\[
+$$
 \Sigma_1 \leftarrow \Sigma_0 \rightarrow \Sigma_2,
-\]
+$$
 
-then a model of the combined signature reduces to a pair of component models agreeing on \(\Sigma_0\). Exactness asks whether this correspondence is a pullback in the relevant model category and whether compatible models can be amalgamated.
+then a model of the combined signature reduces to a pair of component models agreeing on $\Sigma_0$. Exactness asks whether this correspondence is a pullback in the relevant model category and whether compatible models can be amalgamated.
 
 ### 21.2 Why this is relevant to plugins
 
@@ -1693,7 +1693,7 @@ Kan extensions are a general way to transport data or semantics along a functor.
 
 ### 22.1 Left Kan extension: freely extend along a schema map
 
-Suppose a plugin is written against schema \(A\), and a host embeds \(A\) into larger schema \(B\). A left Kan extension can describe the most general way to extend an \(A\)-indexed construction to \(B\) while preserving the specified mapping.
+Suppose a plugin is written against schema $A$, and a host embeds $A$ into larger schema $B$. A left Kan extension can describe the most general way to extend an $A$-indexed construction to $B$ while preserving the specified mapping.
 
 Engineering analogues include:
 
@@ -1765,7 +1765,7 @@ Document-port interface D
 
 ### Step 1 — component composition
 
-Represent each component as an open system containing an inclusion of \(D\). Form a pushout to glue the component boundaries. The resulting specification contains chart and pipeline behavior with one identified document interface.
+Represent each component as an open system containing an inclusion of $D$. Form a pushout to glue the component boundaries. The resulting specification contains chart and pipeline behavior with one identified document interface.
 
 ### Step 2 — port quotient
 
@@ -1777,7 +1777,7 @@ At the graph implementation level, quotient the two port names into one equivale
 
 ### Step 3 — state semantics
 
-The compatible global states are pairs \((c,p)\) with equal document projections. This is the pullback \(C\times_D P\).
+The compatible global states are pairs $(c,p)$ with equal document projections. This is the pullback $C\times_D P$.
 
 ### Step 4 — runtime realization
 
@@ -1787,11 +1787,11 @@ If both projections are ordinary total lenses to the same `DocumentRef`, allocat
 
 Assuming component updates use the generated port handler:
 
-\[
+$$
 \forall s\in\operatorname{Reachable}.
 \quad
 \operatorname{chartDoc}(s)=\operatorname{pipelineDoc}(s).
-\]
+$$
 
 Prove by induction over transition traces:
 
@@ -2686,17 +2686,17 @@ This is not a proof, but it preserves the architecture's separation and gives a 
 
 Define an inductive judgment:
 
-\[
+$$
 S,\rho \models \varphi
-\]
+$$
 
-where \(S\) is a fact state and \(\rho\) maps variables to typed values. The evaluator returns environments and derivations. Prove by induction on the derivation that every returned environment satisfies the formula.
+where $S$ is a fact state and $\rho$ maps variables to typed values. The evaluator returns environments and derivations. Prove by induction on the derivation that every returned environment satisfies the formula.
 
 ### 39.2 Subject/occurrence coherence
 
 For a selector producing `Candidate<S>`:
 
-\[
+$$
 \operatorname{candidate}(o,e,d)
 \implies
 \operatorname{Denotes}(o,e)
@@ -2704,7 +2704,7 @@ For a selector producing `Candidate<S>`:
 \operatorname{HasSort}(e,S)
 \land
 \operatorname{validDerivation}(d).
-\]
+$$
 
 If the occurrence policy is `subject-only`, omit the occurrence premise. The type of candidate should reflect that distinction rather than use an optional field indiscriminately in the verified core.
 
@@ -2712,25 +2712,25 @@ If the occurrence policy is `subject-only`, omit the occurrence premise. The typ
 
 Highlighting and committing are separate judgments:
 
-\[
+$$
 \operatorname{previewCandidate}(S_r,o,e)
-\]
+$$
 
-at revision \(r\), and:
+at revision $r$, and:
 
-\[
+$$
 \operatorname{commitCandidate}(S_{r'},o,e)
-\]
+$$
 
-at latest revision \(r'\). The commit theorem states that an accepted result is valid in \(S_{r'}\), even if preview evidence came from \(S_r\).
+at latest revision $r'$. The commit theorem states that an accepted result is valid in $S_{r'}$, even if preview evidence came from $S_r$.
 
 ### 39.4 Foreign leaves
 
-A derivation containing a foreign predicate has an assumption set \(\Gamma\):
+A derivation containing a foreign predicate has an assumption set $\Gamma$:
 
-\[
+$$
 \Gamma \vdash S,\rho\models\varphi.
-\]
+$$
 
 The UI can surface this status in diagnostics:
 
@@ -2788,13 +2788,13 @@ For distributed links, add:
 
 Each choice session has at most one terminal output:
 
-\[
+$$
 \Box\bigl(
 \operatorname{resolved}(s)
 \Rightarrow
 \Box\neg\operatorname{resolvesAgain}(s)
 \bigr).
-\]
+$$
 
 The implementation enforces this with linear session ownership or an atomic terminal-state transition.
 
@@ -2839,13 +2839,13 @@ For recursive strata, prove that delta iteration reaches the same least fixed po
 
 Let `renderProjection` map semantic candidate facts to occurrence display states. The desired theorem is:
 
-\[
+$$
 \operatorname{ReactSnapshot}(
   \operatorname{incrementalUpdate}(S,\Delta S))
 =
 \operatorname{ReactSnapshot}(
   \operatorname{fromScratch}(S\oplus\Delta S)).
-\]
+$$
 
 This theorem is conditional on the React adapter subscribing and committing according to its contract. Visual pixel equivalence is not required; semantic DOM state and accessibility outputs are the appropriate observations.
 
@@ -3638,7 +3638,7 @@ A typed collection of parameters and assumptions relevant to a query or interact
 A proof-relevant record of the rule and premises establishing a result.
 
 **Fixed point**  
-A value \(x\) satisfying \(F(x)=x\). Least fixed points define the minimal closure of recursive rules.
+A value $x$ satisfying $F(x)=x$. Least fixed points define the minimal closure of recursive rules.
 
 **Foreign predicate**  
 An opaque host-language extension whose declared properties are assumptions unless independently certified.

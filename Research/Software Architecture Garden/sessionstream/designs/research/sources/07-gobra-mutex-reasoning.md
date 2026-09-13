@@ -111,7 +111,7 @@ func main() {
 
 ## Termination in the presence of locks
 
-Programs using locks to synchronize memory access might not terminate. For example, this may happen due to [deadlocks](https://en.wikipedia.org/wiki/Deadlock_\(computer_science\)), or as in the following snippet, due to forgetting to unlock a mutex. Another thread trying to acquire the lock will block indefinitely. The `Lock` stub does not have a `decreases` clause, so we cannot prove the termination of any function, method, or loop that calls this method.
+Programs using locks to synchronize memory access might not terminate. For example, this may happen due to [deadlocks](https://en.wikipedia.org/wiki/Deadlock_$computer_science$), or as in the following snippet, due to forgetting to unlock a mutex. Another thread trying to acquire the lock will block indefinitely. The `Lock` stub does not have a `decreases` clause, so we cannot prove the termination of any function, method, or loop that calls this method.
 
 ```
 // @ requires acc(c.Mem(), _)

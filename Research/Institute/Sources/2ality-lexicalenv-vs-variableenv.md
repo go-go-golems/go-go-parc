@@ -1,4 +1,4 @@
-This post examines some of the details of how environments are handled in the ECMAScript 5 (ES5) specification \[1\]. In particular, there isn’t a single “current environment” in ES5, but two: the LexicalEnvironment and the VariableEnvironment. A piece of code at the end exploits these ES5 internals to produce different results on Firefox and Chrome.
+This post examines some of the details of how environments are handled in the ECMAScript 5 (ES5) specification $$1$$. In particular, there isn’t a single “current environment” in ES5, but two: the LexicalEnvironment and the VariableEnvironment. A piece of code at the end exploits these ES5 internals to produce different results on Firefox and Chrome.
 
 **Note:** You will have a much easier time understanding this post if you already know how environments work in ECMAScript 5.
 
@@ -13,12 +13,12 @@ That means that even declarations made inside blocks such as for loops are made 
 
 ## Data structures
 
-![[Attachments/e5b1afc038364f75b330def35f4eb6ef_MD5.jpg]] A (lexical) environment is the following data structure \[ES5, 10.2\]:
+![[Attachments/e5b1afc038364f75b330def35f4eb6ef_MD5.jpg]] A (lexical) environment is the following data structure $$ES5, 10.2$$:
 - A reference to the outer environment (null in the global environment).
 - An *environment record* maps identifiers to values. There are two kinds of environment records:
 	- declarative environment records: store the effects of variable declarations, and function declarations.
 		- object environment records: are used by the with statement and for the global environment. They turn an object into an environment. For with, that is the argument of the statement. For the global environment, that is the global object.
-An execution context has the following fields \[ES5, 10.3\]:
+An execution context has the following fields $$ES5, 10.3$$:
 - Environments: two references to environments.
 	- LexicalEnvironment (lookup and change existing): resolve identifiers.
 		- VariableEnvironment (add new): hold bindings made by variable declarations and function declarations.
@@ -32,8 +32,8 @@ An execution context has the following fields \[ES5, 10.3\]:
 - VariableEnvironment does not change its value and is thus still the same as the old LexicalEnvironment, denoting the outer scope. New bindings are added here and will also be found when doing a lookup via LexicalEnvironment, because the latter comes before the former in the environment chain.
 - After leaving the temporary scope, LexicalEnvironment’s old value is restored and it is again the same as VariableEnvironment.
 These differences matter for with statements and catch clauses, which create temporary scopes. In both cases, the dominant scope is the surrounding function.
-1. with statement \[ES5, 12.10\]: the object that is the argument of the statement becomes a temporary environment.
-2. catch clause \[ES5, 12.14\]: the exception that is the argument of this clause is made available via a temporary environment.
+1. with statement $$ES5, 12.10$$: the object that is the argument of the statement becomes a temporary environment.
+2. catch clause $$ES5, 12.14$$: the exception that is the argument of this clause is made available via a temporary environment.
 
 ## Functions and their scope: declarations versus expressions
 
@@ -57,7 +57,7 @@ var foo = "abc";
         (function() { console.log(foo); }());
     }
 ```
-\[Thanks to Allen Wirfs-Brock for helping me understand some of the finer points of LexicalEnvironment and VariableEnvironment.\]
+$$Thanks to Allen Wirfs-Brock for helping me understand some of the finer points of LexicalEnvironment and VariableEnvironment.$$
 
 References:
 

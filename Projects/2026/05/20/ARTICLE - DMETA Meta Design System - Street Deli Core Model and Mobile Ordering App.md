@@ -168,7 +168,7 @@ The `street-deli-ordering.yaml` file maps 8 concrete domain types and provides 4
 
 **No cheese → avocado** (dairy-free or preference). Cheese provides richness, creaminess, and umami. Removing it creates three unfilled roles. Avocado fills richness and creaminess (similar flavor fit), is dairy-free and vegan-compatible, and adds freshness as a bonus role. Nutritional yeast fills umami and sharpness (complementary flavor fit), is also dairy-free, but does not provide creaminess — so it is a weaker role match. Hummus fills richness and moisture, adds umami, but may contain sesame — an allergen flag that the UI must surface.
 
-**No bacon → smoked tofu** (vegan or preference). Bacon provides protein, umami, heat, and crunch. Smoked tofu fills protein and umami (similar flavor fit), contains soy (allergen flag), and costs the same. Tempeh bacon fills protein, umami, and crunch — the most complete role match — but costs $2.00 more.
+**No bacon → smoked tofu** (vegan or preference). Bacon provides protein, umami, heat, and crunch. Smoked tofu fills protein and umami (similar flavor fit), contains soy (allergen flag), and costs the same. Tempeh bacon fills protein, umami, and crunch — the most complete role match — but costs \$2.00 more.
 
 **No bread → lettuce wrap** (gluten-free or keto). Bread provides the structural role. A sandwich without structural integrity is broken. Lettuce wrap provides structural and freshness roles, is gluten-free, vegan, dairy-free, and low-carb. It changes the eating experience but preserves composition integrity.
 
@@ -261,7 +261,7 @@ This sheet is the `substitution_detail` presentation from the core model. The mo
 
 The Grilled Cheese item provides the canonical example of the replacement system. Cheddar cheese provides protein, richness, and umami. Removing it creates three unfilled roles. The top auto-suggest is avocado, which fills richness and adds freshness. Nutritional yeast fills umami and adds sharpness. Cashew cheese fills richness and moisture but introduces a tree nut allergen.
 
-![Removing cheddar cheese from the Grilled Cheese triggers the replacement engine, suggesting Avocado as the top auto-suggest replacement with a +$1.50 price delta.](hsd-07-no-cheese-avocado.png)
+![Removing cheddar cheese from the Grilled Cheese triggers the replacement engine, suggesting Avocado as the top auto-suggest replacement with a +\$1.50 price delta.](hsd-07-no-cheese-avocado.png)
 
 The reasoning text is crucial for trust. A suggestion that appears without explanation feels like an ad. A suggestion that says "Avocado provides similar richness and creaminess. Dairy-free and vegan-compatible" feels like a knowledgeable counter worker who understands the menu. The `reasoning` field in the substitution rules exists for this purpose.
 

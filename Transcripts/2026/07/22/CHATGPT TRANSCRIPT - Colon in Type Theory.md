@@ -20,107 +20,107 @@ The colon in ⟨p,q⟩: d ≅ a×b denotes a map from d to a×b, establishing an
 
 The colon means **“has type”** or **“is a morphism from.”**
 
-\[
+$$
 \langle p,q\rangle : d \cong a\times b
-\]
+$$
 
 reads:
 
-> “The morphism \(\langle p,q\rangle\) is an isomorphism from \(d\) to \(a\times b\).”
+> “The morphism $\langle p,q\rangle$ is an isomorphism from $d$ to $a\times b$.”
 
 Normally one writes
 
-\[
+$$
 f:A\to B
-\]
+$$
 
-to say that \(f\) is an arrow from \(A\) to \(B\). If \(f\) is invertible, the book writes
+to say that $f$ is an arrow from $A$ to $B$. If $f$ is invertible, the book writes
 
-\[
+$$
 f:A\cong B.
-\]
+$$
 
 ## What the proof is doing
 
-There are two objects that both claim to be products of \(a\) and \(b\):
+There are two objects that both claim to be products of $a$ and $b$:
 
-\[
+$$
 d \xrightarrow{p} a,\qquad d\xrightarrow{q}b
-\]
+$$
 
 and
 
-\[
+$$
 a\times b\xrightarrow{\operatorname{pr}_a}a,\qquad
 a\times b\xrightarrow{\operatorname{pr}_b}b.
-\]
+$$
 
-Because \(a\times b\) is a product, the arrows \(p\) and \(q\) determine a unique arrow
+Because $a\times b$ is a product, the arrows $p$ and $q$ determine a unique arrow
 
-\[
+$$
 \langle p,q\rangle:d\to a\times b
-\]
+$$
 
 such that
 
-\[
+$$
 \operatorname{pr}_a\circ\langle p,q\rangle=p,
 \qquad
 \operatorname{pr}_b\circ\langle p,q\rangle=q.
-\]
+$$
 
-Because \(d\) is also a product, the arrows \(\operatorname{pr}_a\) and \(\operatorname{pr}_b\) determine an arrow in the opposite direction:
+Because $d$ is also a product, the arrows $\operatorname{pr}_a$ and $\operatorname{pr}_b$ determine an arrow in the opposite direction:
 
-\[
+$$
 \langle\operatorname{pr}_a,\operatorname{pr}_b\rangle:
 a\times b\to d,
-\]
+$$
 
 satisfying
 
-\[
+$$
 p\circ\langle\operatorname{pr}_a,\operatorname{pr}_b\rangle
 =\operatorname{pr}_a,
-\]
+$$
 
-\[
+$$
 q\circ\langle\operatorname{pr}_a,\operatorname{pr}_b\rangle
 =\operatorname{pr}_b.
-\]
+$$
 
 Now compose them:
 
-\[
+$$
 d
 \xrightarrow{\langle p,q\rangle}
 a\times b
 \xrightarrow{\langle\operatorname{pr}_a,\operatorname{pr}_b\rangle}
 d.
-\]
+$$
 
-This composite has exactly the same projections \(p\) and \(q\) as the identity \(1_d\). By the uniqueness part of the product property,
+This composite has exactly the same projections $p$ and $q$ as the identity $1_d$. By the uniqueness part of the product property,
 
-\[
+$$
 \langle\operatorname{pr}_a,\operatorname{pr}_b\rangle
 \circ\langle p,q\rangle
 =1_d.
-\]
+$$
 
 The same argument in the other direction gives
 
-\[
+$$
 \langle p,q\rangle
 \circ\langle\operatorname{pr}_a,\operatorname{pr}_b\rangle
 =1_{a\times b}.
-\]
+$$
 
 So the two arrows are inverses. Therefore
 
-\[
+$$
 \boxed{\langle p,q\rangle:d\cong a\times b}.
-\]
+$$
 
-The main conclusion is that any two product objects of \(a\) and \(b\) are canonically isomorphic, even though they need not literally be the same object.
+The main conclusion is that any two product objects of $a$ and $b$ are canonically isomorphic, even though they need not literally be the same object.
 
 
 ---
@@ -139,38 +139,38 @@ I’m distinguishing between the product object and projection maps. The product
 
 Almost, but the dependency goes in the opposite direction.
 
-A **product of \(a\) and \(b\)** consists of three pieces of data:
+A **product of $a$ and $b$** consists of three pieces of data:
 
-\[
+$$
 (P,\pi_a,\pi_b)
-\]
+$$
 
 where
 
-\[
+$$
 \pi_a:P\to a,\qquad \pi_b:P\to b,
-\]
+$$
 
 and these satisfy the universal property:
 
-> For every object \(x\) and arrows \(f:x\to a\), \(g:x\to b\), there is a unique arrow
-> \[
+> For every object $x$ and arrows $f:x\to a$, $g:x\to b$, there is a unique arrow
+> $$
 > \langle f,g\rangle:x\to P
-> \]
+> $$
 > such that
-> \[
+> $$
 > \pi_a\circ\langle f,g\rangle=f,
 > \qquad
 > \pi_b\circ\langle f,g\rangle=g.
-> \]
+> $$
 
 So the logical order is:
 
-\[
+$$
 \boxed{\text{object }P+\text{projections }\pi_a,\pi_b}
 \quad\Longrightarrow\quad
 \boxed{\text{pairing arrows }\langle f,g\rangle}
-\]
+$$
 
 The pairing arrow is derived from the object and its projections, not the other way around.
 
@@ -178,54 +178,54 @@ The pairing arrow is derived from the object and its projections, not the other 
 
 One product is
 
-\[
+$$
 (a\times b,\operatorname{pr}_a,\operatorname{pr}_b).
-\]
+$$
 
 Another product is
 
-\[
+$$
 (d,p,q),
-\]
+$$
 
 with
 
-\[
+$$
 p:d\to a,\qquad q:d\to b.
-\]
+$$
 
-Because \(a\times b\) is a product, the arrows \(p\) and \(q\) produce the unique arrow
+Because $a\times b$ is a product, the arrows $p$ and $q$ produce the unique arrow
 
-\[
+$$
 \langle p,q\rangle:d\to a\times b.
-\]
+$$
 
-Because \(d\) is also a product, the arrows \(\operatorname{pr}_a\) and \(\operatorname{pr}_b\) produce the unique arrow
+Because $d$ is also a product, the arrows $\operatorname{pr}_a$ and $\operatorname{pr}_b$ produce the unique arrow
 
-\[
+$$
 \langle \operatorname{pr}_a,\operatorname{pr}_b\rangle:a\times b\to d.
-\]
+$$
 
 Those two arrows are then shown to be inverses.
 
 ## Are the projections part of the definition?
 
-Yes. Strictly speaking, the product is not merely the object \(a\times b\). It is the object together with its chosen projections:
+Yes. Strictly speaking, the product is not merely the object $a\times b$. It is the object together with its chosen projections:
 
-\[
+$$
 (a\times b,\operatorname{pr}_a,\operatorname{pr}_b).
-\]
+$$
 
-The names \(\operatorname{pr}_a\) and \(\operatorname{pr}_b\) are arbitrary notation, but the actual morphisms must be specified. Another pair of arrows out of the same object would not automatically give the same product structure.
+The names $\operatorname{pr}_a$ and $\operatorname{pr}_b$ are arbitrary notation, but the actual morphisms must be specified. Another pair of arrows out of the same object would not automatically give the same product structure.
 
-Authors often suppress this distinction and say “\(a\times b\) is the product,” with the projections understood.
+Authors often suppress this distinction and say “$a\times b$ is the product,” with the projections understood.
 
 So the phrase in the book:
 
-> “\(\langle p,q\rangle\) is the unique product arrow of \(p\) and \(q\)”
+> “$\langle p,q\rangle$ is the unique product arrow of $p$ and $q$”
 
-means that \(\langle p,q\rangle\) is the unique arrow determined **using the already chosen product**
-\((a\times b,\operatorname{pr}_a,\operatorname{pr}_b)\).
+means that $\langle p,q\rangle$ is the unique arrow determined **using the already chosen product**
+$(a\times b,\operatorname{pr}_a,\operatorname{pr}_b)$.
 
 
 ---
@@ -236,106 +236,106 @@ Yes—with one important correction: merely making a particular diagram commute 
 
 Suppose both
 
-\[
+$$
 (P,\pi_a,\pi_b)
 \quad\text{and}\quad
 (Q,\rho_a,\rho_b)
-\]
+$$
 
-are products of \(a\) and \(b\). That means each one works universally: for every object \(x\) and every pair
+are products of $a$ and $b$. That means each one works universally: for every object $x$ and every pair
 
-\[
+$$
 f:x\to a,\qquad g:x\to b,
-\]
+$$
 
-there is exactly one arrow into the product that recovers \(f\) and \(g\) through the projections.
+there is exactly one arrow into the product that recovers $f$ and $g$ through the projections.
 
-Because \(Q\) is a product, the projections from \(P\),
+Because $Q$ is a product, the projections from $P$,
 
-\[
+$$
 \pi_a:P\to a,\qquad \pi_b:P\to b,
-\]
+$$
 
 produce a unique arrow
 
-\[
+$$
 u:P\to Q
-\]
+$$
 
 such that
 
-\[
+$$
 \rho_a\circ u=\pi_a,
 \qquad
 \rho_b\circ u=\pi_b.
-\]
+$$
 
-Similarly, because \(P\) is a product, there is a unique arrow
+Similarly, because $P$ is a product, there is a unique arrow
 
-\[
+$$
 v:Q\to P
-\]
+$$
 
 such that
 
-\[
+$$
 \pi_a\circ v=\rho_a,
 \qquad
 \pi_b\circ v=\rho_b.
-\]
+$$
 
 The universal property then forces
 
-\[
+$$
 v\circ u=1_P,
 \qquad
 u\circ v=1_Q.
-\]
+$$
 
-Therefore \(u\) and \(v\) are inverse isomorphisms.
+Therefore $u$ and $v$ are inverse isomorphisms.
 
 So the precise statement is:
 
-\[
+$$
 \boxed{\text{Any two product structures for }a\text{ and }b
 \text{ are connected by a unique projection-preserving isomorphism.}}
-\]
+$$
 
 “Projection-preserving” means the isomorphism makes the relevant triangles commute:
 
-\[
+$$
 \rho_a\circ u=\pi_a,
 \qquad
 \rho_b\circ u=\pi_b.
-\]
+$$
 
-This is stronger than merely saying \(P\) and \(Q\) happen to be isomorphic objects. The isomorphism is uniquely determined by the product structures.
+This is stronger than merely saying $P$ and $Q$ happen to be isomorphic objects. The isomorphism is uniquely determined by the product structures.
 
 On the page, the two products are
 
-\[
+$$
 (d,p,q)
-\]
+$$
 
 and
 
-\[
+$$
 (a\times b,\operatorname{pr}_a,\operatorname{pr}_b).
-\]
+$$
 
 The unique product-preserving isomorphism is
 
-\[
+$$
 \langle p,q\rangle:d\overset{\sim}{\longrightarrow}a\times b,
-\]
+$$
 
 and it satisfies
 
-\[
+$$
 \operatorname{pr}_a\circ\langle p,q\rangle=p,
 \qquad
 \operatorname{pr}_b\circ\langle p,q\rangle=q.
-\]
+$$
 
 Thus there may be many different concrete realizations of the product, but category theory treats them as equivalent because there is exactly one isomorphism between them that respects the projections. This is what “the product is unique up to unique isomorphism” means.
 
@@ -346,9 +346,9 @@ Thus there may be many different concrete realizations of the product, but categ
 
 Not quite. In category theory, **universal** usually means:
 
-\[
+$$
 \boxed{\text{for every suitable competing object, there exists a unique compatible morphism}}
-\]
+$$
 
 So universality has two parts:
 
@@ -357,33 +357,33 @@ So universality has two parts:
 
 It does **not** mean there is only one morphism in general between the objects.
 
-For a product \((P,\pi_a,\pi_b)\), universality says that for every object \(X\) and every pair
+For a product $(P,\pi_a,\pi_b)$, universality says that for every object $X$ and every pair
 
-\[
+$$
 f:X\to a,\qquad g:X\to b,
-\]
+$$
 
 there exists a unique morphism
 
-\[
+$$
 \langle f,g\rangle:X\to P
-\]
+$$
 
 such that
 
-\[
+$$
 \pi_a\circ\langle f,g\rangle=f,
 \qquad
 \pi_b\circ\langle f,g\rangle=g.
-\]
+$$
 
-There may be many morphisms \(X\to P\). But once you specify that the morphism must reproduce the particular pair \((f,g)\), exactly one works.
+There may be many morphisms $X\to P$. But once you specify that the morphism must reproduce the particular pair $(f,g)$, exactly one works.
 
 A useful template is:
 
-\[
+$$
 \text{given some data, there is a unique morphism making the diagram commute.}
-\]
+$$
 
 The direction varies by construction:
 
@@ -417,15 +417,15 @@ The key point is slightly stronger than “existence and uniqueness of a morphis
 
 A universal property has the form
 
-\[
+$$
 \boxed{\text{For every admissible input or competing object, there exists a unique compatible morphism.}}
-\]
+$$
 
 Symbolically:
 
-\[
+$$
 \forall\text{ competing data},\quad \exists!\,h\text{ making the required diagram commute}.
-\]
+$$
 
 The word **universal** refers mainly to the “for every.” The construction solves the same mapping problem for every possible object, not just one particular case.
 
@@ -448,41 +448,41 @@ A universal construction is therefore often an **exact solution**: not too small
 
 # Terminal objects
 
-A terminal object \(1\) satisfies
+A terminal object $1$ satisfies
 
-\[
+$$
 \forall X,\quad \exists!\, {!_X}:X\to 1.
-\]
+$$
 
-There is exactly one arrow from every object into \(1\).
+There is exactly one arrow from every object into $1$.
 
 ## In sets
 
 A singleton set is terminal:
 
-\[
+$$
 1=\{*\}.
-\]
+$$
 
-For every set \(X\), there is exactly one function
+For every set $X$, there is exactly one function
 
-\[
+$$
 X\to\{*\},
-\]
+$$
 
-because every element must be sent to \(*\).
+because every element must be sent to $*$.
 
 For example:
 
-\[
+$$
 \{a,b,c\}\longrightarrow \{*\}
-\]
+$$
 
 has no choices:
 
-\[
+$$
 a\mapsto *,\qquad b\mapsto *,\qquad c\mapsto *.
-\]
+$$
 
 A two-element set is not terminal, because there are generally many functions into it.
 
@@ -505,37 +505,37 @@ It discards its input.
 
 The universal property does not say `Unit` has one incoming function total. It says that **for each type `X`**, there is exactly one function of the required form:
 
-\[
+$$
 X\to\mathrm{Unit}.
-\]
+$$
 
 ---
 
 # Initial objects
 
-An initial object \(0\) satisfies
+An initial object $0$ satisfies
 
-\[
+$$
 \forall X,\quad \exists!\, {!^X}:0\to X.
-\]
+$$
 
-The direction is reversed: there is exactly one arrow from \(0\) into every object.
+The direction is reversed: there is exactly one arrow from $0$ into every object.
 
 ## In sets
 
 The empty set is initial:
 
-\[
+$$
 0=\varnothing.
-\]
+$$
 
-For every set \(X\), there is exactly one function
+For every set $X$, there is exactly one function
 
-\[
+$$
 \varnothing\to X.
-\]
+$$
 
-There are no elements of \(\varnothing\), so there are no choices about where to send them.
+There are no elements of $\varnothing$, so there are no choices about where to send them.
 
 This is sometimes called the **empty function**.
 
@@ -563,95 +563,95 @@ In languages with nontermination, the details become more complicated, so the cl
 
 # Products
 
-A product of \(A\) and \(B\) is an object \(P\), together with projections
+A product of $A$ and $B$ is an object $P$, together with projections
 
-\[
+$$
 \pi_A:P\to A,
 \qquad
 \pi_B:P\to B,
-\]
+$$
 
 such that
 
-\[
+$$
 \forall X,\ f:X\to A,\ g:X\to B,
-\]
+$$
 
 there exists a unique arrow
 
-\[
+$$
 \langle f,g\rangle:X\to P
-\]
+$$
 
 satisfying
 
-\[
+$$
 \pi_A\circ\langle f,g\rangle=f,
 \qquad
 \pi_B\circ\langle f,g\rangle=g.
-\]
+$$
 
 The universal quantification is now over more data:
 
-- every object \(X\);
-- every arrow \(f:X\to A\);
-- every arrow \(g:X\to B\).
+- every object $X$;
+- every arrow $f:X\to A$;
+- every arrow $g:X\to B$.
 
-For every such triple \((X,f,g)\), there must be exactly one compatible arrow into the product.
+For every such triple $(X,f,g)$, there must be exactly one compatible arrow into the product.
 
 ## In sets
 
 The product is the Cartesian product:
 
-\[
+$$
 A\times B=\{(a,b)\mid a\in A,\ b\in B\}.
-\]
+$$
 
 The projections are
 
-\[
+$$
 \operatorname{pr}_A(a,b)=a,
 \qquad
 \operatorname{pr}_B(a,b)=b.
-\]
+$$
 
 Given
 
-\[
+$$
 f:X\to A,\qquad g:X\to B,
-\]
+$$
 
 define
 
-\[
+$$
 \langle f,g\rangle(x)=(f(x),g(x)).
-\]
+$$
 
 Existence is clear: this function can be constructed.
 
-Uniqueness follows because a pair is completely determined by its two components. If \(h:X\to A\times B\) satisfies
+Uniqueness follows because a pair is completely determined by its two components. If $h:X\to A\times B$ satisfies
 
-\[
+$$
 \operatorname{pr}_A\circ h=f,
 \qquad
 \operatorname{pr}_B\circ h=g,
-\]
+$$
 
-then for every \(x\),
+then for every $x$,
 
-\[
+$$
 h(x)
 =
 \bigl(\operatorname{pr}_A(h(x)),\operatorname{pr}_B(h(x))\bigr)
 =
 (f(x),g(x)).
-\]
+$$
 
 Therefore
 
-\[
+$$
 h=\langle f,g\rangle.
-\]
+$$
 
 ---
 
@@ -659,77 +659,77 @@ h=\langle f,g\rangle.
 
 This is an important way to conceptualize universality.
 
-A value of \(A\times B\) contains:
+A value of $A\times B$ contains:
 
-- one \(A\)-value;
-- one \(B\)-value;
+- one $A$-value;
+- one $B$-value;
 - nothing else relevant.
 
 ### A candidate that is too large
 
 Consider
 
-\[
+$$
 P=A\times B\times\mathrm{Bool},
-\]
+$$
 
 with projections that ignore the Boolean:
 
-\[
+$$
 \pi_A(a,b,c)=a,
 \qquad
 \pi_B(a,b,c)=b.
-\]
+$$
 
-Given \(f:X\to A\) and \(g:X\to B\), arrows into \(P\) certainly exist:
+Given $f:X\to A$ and $g:X\to B$, arrows into $P$ certainly exist:
 
-\[
+$$
 x\mapsto(f(x),g(x),\mathrm{true}),
-\]
+$$
 
 and
 
-\[
+$$
 x\mapsto(f(x),g(x),\mathrm{false}).
-\]
+$$
 
-Both have the correct \(A\)- and \(B\)-projections.
+Both have the correct $A$- and $B$-projections.
 
 So existence holds, but uniqueness fails. The extra Boolean creates an arbitrary choice.
 
-Therefore \(A\times B\times\mathrm{Bool}\), with those projections, is not a product of \(A\) and \(B\).
+Therefore $A\times B\times\mathrm{Bool}$, with those projections, is not a product of $A$ and $B$.
 
 ### A candidate that is too small
 
 Suppose we take only some pairs:
 
-\[
+$$
 P\subsetneq A\times B.
-\]
+$$
 
-Perhaps \(P\) contains only pairs \((a,b)\) satisfying some restriction.
+Perhaps $P$ contains only pairs $(a,b)$ satisfying some restriction.
 
-Then an arrow determined by \(f\) and \(g\) may fail to exist because
+Then an arrow determined by $f$ and $g$ may fail to exist because
 
-\[
+$$
 (f(x),g(x))
-\]
+$$
 
-might not belong to \(P\).
+might not belong to $P$.
 
 So uniqueness may be possible, but existence fails.
 
 The true product is balanced:
 
-\[
+$$
 \boxed{\text{large enough for existence, but constrained enough for uniqueness.}}
-\]
+$$
 
 ---
 
 # Computer science interpretation: product types
 
-In the category of types and total functions, the product of types \(A\) and \(B\) is a pair or record type:
+In the category of types and total functions, the product of types $A$ and $B$ is a pair or record type:
 
 ```text
 Pair<A, B> = {
@@ -788,7 +788,7 @@ struct Candidate<A, B> {
 
 with getters for `first` and `second`.
 
-This can behave like an \(A\)-and-\(B\) container, but it is not categorically the product with respect to those getters. Two values can have the same visible `A` and `B` but different hidden flags.
+This can behave like an $A$-and-$B$ container, but it is not categorically the product with respect to those getters. Two values can have the same visible `A` and `B` but different hidden flags.
 
 Consequently, there can be multiple functions
 
@@ -802,7 +802,7 @@ The hidden field breaks uniqueness.
 
 The universal product interface says, in effect:
 
-> A value is completely determined by its \(A\)-observation and its \(B\)-observation.
+> A value is completely determined by its $A$-observation and its $B$-observation.
 
 This is closely related to extensionality in programming: two product values are equal when their corresponding fields are equal.
 
@@ -813,71 +813,71 @@ This is closely related to extensionality in programming: two product values are
 A partially ordered set can be treated as a category:
 
 - objects are elements;
-- there is an arrow \(x\to y\) exactly when \(x\leq y\).
+- there is an arrow $x\to y$ exactly when $x\leq y$.
 
 Because there is at most one arrow between two objects, uniqueness is automatic. Universal properties become questions about whether a suitable bound exists.
 
 ## Terminal object
 
-A terminal object is a greatest element \(\top\):
+A terminal object is a greatest element $\top$:
 
-\[
+$$
 x\leq \top
-\]
+$$
 
-for every \(x\).
+for every $x$.
 
 ## Initial object
 
-An initial object is a least element \(\bot\):
+An initial object is a least element $\bot$:
 
-\[
+$$
 \bot\leq x
-\]
+$$
 
-for every \(x\).
+for every $x$.
 
 ## Product
 
-The product of \(a\) and \(b\) is their greatest lower bound, or meet:
+The product of $a$ and $b$ is their greatest lower bound, or meet:
 
-\[
+$$
 a\wedge b.
-\]
+$$
 
 It satisfies:
 
-\[
+$$
 a\wedge b\leq a,
 \qquad
 a\wedge b\leq b.
-\]
+$$
 
-And if some \(x\) is also below both,
+And if some $x$ is also below both,
 
-\[
+$$
 x\leq a,
 \qquad
 x\leq b,
-\]
+$$
 
 then
 
-\[
+$$
 x\leq a\wedge b.
-\]
+$$
 
 Diagrammatically, this is exactly the product property:
 
-\[
+$$
 x\to a,\quad x\to b
-\]
+$$
 
 gives a unique arrow
 
-\[
+$$
 x\to a\wedge b.
-\]
+$$
 
 This is one of the clearest ways to see what “universal” means. The product is not just a lower bound; it is the **best possible lower bound**.
 
@@ -887,55 +887,55 @@ This is one of the clearest ways to see what “universal” means. The product 
 
 Take propositions ordered by logical implication:
 
-\[
+$$
 P\to Q
-\]
+$$
 
 means
 
-\[
+$$
 P\implies Q.
-\]
+$$
 
 Then:
 
 - the terminal object is `True`;
 - the initial object is `False`;
-- the product is logical conjunction \(P\land Q\).
+- the product is logical conjunction $P\land Q$.
 
 Why is conjunction a product?
 
 There are projections:
 
-\[
+$$
 P\land Q\implies P,
 \qquad
 P\land Q\implies Q.
-\]
+$$
 
-And whenever a proposition \(R\) implies both \(P\) and \(Q\),
+And whenever a proposition $R$ implies both $P$ and $Q$,
 
-\[
+$$
 R\implies P,
 \qquad
 R\implies Q,
-\]
+$$
 
 it follows that
 
-\[
+$$
 R\implies P\land Q.
-\]
+$$
 
-Thus \(P\land Q\) is the strongest proposition that still maps to both \(P\) and \(Q\).
+Thus $P\land Q$ is the strongest proposition that still maps to both $P$ and $Q$.
 
 This corresponds closely to product types under the propositions-as-types correspondence:
 
-\[
+$$
 P\land Q
 \quad\leftrightarrow\quad
 P\times Q.
-\]
+$$
 
 A value of product type contains evidence of both components.
 
@@ -943,61 +943,61 @@ A value of product type contains evidence of both components.
 
 # A more complex CS example: deterministic transition systems
 
-Fix an input alphabet \(\Sigma\). A deterministic transition system consists of:
+Fix an input alphabet $\Sigma$. A deterministic transition system consists of:
 
-- a state set \(S\);
+- a state set $S$;
 - for each input symbol, a transition
-  \[
+  $$
   \delta_S:S\times\Sigma\to S.
-  \]
+  $$
 
 A morphism between transition systems is a function on states that preserves transitions.
 
-Given systems \(S\) and \(T\), their product has state space
+Given systems $S$ and $T$, their product has state space
 
-\[
+$$
 S\times T
-\]
+$$
 
 and transitions occur componentwise:
 
-\[
+$$
 \delta_{S\times T}((s,t),\sigma)
 =
 \bigl(\delta_S(s,\sigma),\delta_T(t,\sigma)\bigr).
-\]
+$$
 
 The projections
 
-\[
+$$
 S\times T\to S,
 \qquad
 S\times T\to T
-\]
+$$
 
 preserve transitions.
 
-Now suppose another system \(X\) has transition-preserving maps
+Now suppose another system $X$ has transition-preserving maps
 
-\[
+$$
 f:X\to S,
 \qquad
 g:X\to T.
-\]
+$$
 
 There is a unique transition-preserving map
 
-\[
+$$
 \langle f,g\rangle:X\to S\times T
-\]
+$$
 
 given by
 
-\[
+$$
 x\mapsto(f(x),g(x)).
-\]
+$$
 
-This is the same universal property again. The product system is the canonical system that runs \(S\) and \(T\) in parallel while keeping track of both states.
+This is the same universal property again. The product system is the canonical system that runs $S$ and $T$ in parallel while keeping track of both states.
 
 The construction is more complex than pairing ordinary values, but its universality has exactly the same shape.
 
@@ -1005,51 +1005,51 @@ The construction is more complex than pairing ordinary values, but its universal
 
 # The unifying viewpoint: a category of solutions
 
-For fixed objects \(A\) and \(B\), consider all possible objects equipped with arrows to both:
+For fixed objects $A$ and $B$, consider all possible objects equipped with arrows to both:
 
-\[
+$$
 (X,f:X\to A,g:X\to B).
-\]
+$$
 
-These are called **cones** over \(A\) and \(B\).
+These are called **cones** over $A$ and $B$.
 
-A morphism from one cone \((X,f,g)\) to another cone \((Y,f',g')\) is an arrow
+A morphism from one cone $(X,f,g)$ to another cone $(Y,f',g')$ is an arrow
 
-\[
+$$
 h:X\to Y
-\]
+$$
 
 such that
 
-\[
+$$
 f'\circ h=f,
 \qquad
 g'\circ h=g.
-\]
+$$
 
-Those equations mean that \(h\) preserves the specified observations into \(A\) and \(B\).
+Those equations mean that $h$ preserves the specified observations into $A$ and $B$.
 
 The product
 
-\[
+$$
 (A\times B,\operatorname{pr}_A,\operatorname{pr}_B)
-\]
+$$
 
 is terminal in this category of cones.
 
 That means every cone has exactly one morphism into the product cone:
 
-\[
+$$
 (X,f,g)
 \longrightarrow
 (A\times B,\operatorname{pr}_A,\operatorname{pr}_B).
-\]
+$$
 
 This is the general pattern behind universal constructions:
 
-\[
+$$
 \boxed{\text{Form a category of candidate solutions; the universal solution is initial or terminal there.}}
-\]
+$$
 
 ---
 
@@ -1058,35 +1058,35 @@ This is the general pattern behind universal constructions:
 When encountering a universal property, ask four questions:
 
 1. **What is fixed?**  
-   For a product, \(A\) and \(B\) are fixed.
+   For a product, $A$ and $B$ are fixed.
 
 2. **What counts as a competing solution?**  
-   An object \(X\) with arrows \(f:X\to A\) and \(g:X\to B\).
+   An object $X$ with arrows $f:X\to A$ and $g:X\to B$.
 
 3. **Which direction must the comparison arrow go?**  
    For products, from the competitor into the product:
-   \[
+   $$
    X\to A\times B.
-   \]
+   $$
 
 4. **What equations make the arrow compatible?**  
-   \[
+   $$
    \operatorname{pr}_A\circ h=f,
    \qquad
    \operatorname{pr}_B\circ h=g.
-   \]
+   $$
 
 Then universality says:
 
-\[
+$$
 \text{for every competitor, exactly one such comparison arrow exists.}
-\]
+$$
 
 The compact intuition is:
 
-\[
+$$
 \boxed{\text{Universal means “the canonical, choice-free solution to every instance of a mapping problem.”}}
-\]
+$$
 
 
 ---
@@ -1097,53 +1097,53 @@ Yes, with one important qualification: **it depends on what category and notion 
 
 At the abstract type level, the product is
 
-\[
+$$
 \mathrm{Int16}\times\mathrm{Int16}.
-\]
+$$
 
 It comes with operations
 
-\[
+$$
 \mathrm{get}_a:P\to\mathrm{Int16},
 \qquad
 \mathrm{get}_b:P\to\mathrm{Int16},
-\]
+$$
 
 and a pairing operation
 
-\[
+$$
 \mathrm{make}:\mathrm{Int16}\times\mathrm{Int16}\to P.
-\]
+$$
 
-For \(P\) to genuinely be a product, these must satisfy:
+For $P$ to genuinely be a product, these must satisfy:
 
-\[
+$$
 \mathrm{get}_a(\mathrm{make}(a,b))=a,
-\]
+$$
 
-\[
+$$
 \mathrm{get}_b(\mathrm{make}(a,b))=b,
-\]
+$$
 
 and, crucially,
 
-\[
+$$
 \mathrm{make}(\mathrm{get}_a(p),\mathrm{get}_b(p))=p.
-\]
+$$
 
 That last equation says:
 
-> A value of \(P\) is completely determined by its two accessor results.
+> A value of $P$ is completely determined by its two accessor results.
 
 Equivalently,
 
-\[
+$$
 \mathrm{get}_a(p)=\mathrm{get}_a(q)
 \quad\text{and}\quad
 \mathrm{get}_b(p)=\mathrm{get}_b(q)
 \quad\Longrightarrow\quad
 p=q.
-\]
+$$
 
 ## Different representations
 
@@ -1172,17 +1172,17 @@ get_b(p)   = lower_16_bits(p)
 
 Provided every pair of 16-bit values corresponds to exactly one packed 32-bit value, this representation is isomorphic to the ordinary pair representation:
 
-\[
+$$
 \mathrm{Int16}\times\mathrm{Int16}
 \cong
 \mathrm{Int32}_{\text{bit-patterns}}.
-\]
+$$
 
 The isomorphism is the packing function, and its inverse is:
 
-\[
+$$
 p\mapsto(\mathrm{get}_a(p),\mathrm{get}_b(p)).
-\]
+$$
 
 So yes: different encodings—consecutive fields, packed bits, reversed bits, XOR-based encodings, and so on—can all realize the same product up to isomorphism.
 
@@ -1190,45 +1190,45 @@ So yes: different encodings—consecutive fields, packed bits, reversed bits, XO
 
 Yes, **provided the chosen representation and accessors satisfy the product universal property**.
 
-Suppose \(P\) is a product with accessors
+Suppose $P$ is a product with accessors
 
-\[
+$$
 \mathrm{get}_a:P\to A,
 \qquad
 \mathrm{get}_b:P\to B.
-\]
+$$
 
 For any functions
 
-\[
+$$
 f:X\to A,\qquad g:X\to B,
-\]
+$$
 
 there must be a unique function
 
-\[
+$$
 h:X\to P
-\]
+$$
 
 such that
 
-\[
+$$
 \mathrm{get}_a\circ h=f,
 \qquad
 \mathrm{get}_b\circ h=g.
-\]
+$$
 
 That function is:
 
-\[
+$$
 h(x)=\mathrm{make}(f(x),g(x)).
-\]
+$$
 
-Taking \(X=A\times B\), \(f=\operatorname{pr}_a\), and \(g=\operatorname{pr}_b\), the universal property gives the unique constructor
+Taking $X=A\times B$, $f=\operatorname{pr}_a$, and $g=\operatorname{pr}_b$, the universal property gives the unique constructor
 
-\[
+$$
 \mathrm{make}:A\times B\to P
-\]
+$$
 
 compatible with the accessors.
 
@@ -1259,9 +1259,9 @@ have the same accessor results.
 
 Thus there are two possible representations of the same pair:
 
-\[
+$$
 \mathrm{get}_a(p)=3,\qquad \mathrm{get}_b(p)=7.
-\]
+$$
 
 The accessors do not uniquely determine the value. So this object is not a categorical product, assuming ordinary structural equality includes the hidden Boolean.
 
@@ -1275,17 +1275,17 @@ In the category of ordinary semantic types and pure total functions, implementat
 
 To treat them as distinct product objects, you could define representation types explicitly:
 
-\[
+$$
 P_{\text{struct}},
 \qquad
 P_{\text{packed}},
-\]
+$$
 
 each with its own accessors. Then there is a unique accessor-preserving isomorphism:
 
-\[
+$$
 P_{\text{struct}}\cong P_{\text{packed}}.
-\]
+$$
 
 Conceptually:
 
@@ -1309,9 +1309,9 @@ convert_back(p) =
 
 The central condition is:
 
-\[
+$$
 \boxed{\text{The representation must contain exactly the information visible through the two accessors.}}
-\]
+$$
 
 No missing combinations, and no distinguishable hidden information.
 
@@ -1320,52 +1320,52 @@ No missing combinations, and no distinguishable hidden information.
 
 > What do people do to model stay, finite memory in such a context
 
-Interpreting “stay” as **state**: the standard move is to choose a finite object \(S\) representing all possible memory states, then model a stateful computation as a morphism that consumes and returns that state.
+Interpreting “stay” as **state**: the standard move is to choose a finite object $S$ representing all possible memory states, then model a stateful computation as a morphism that consumes and returns that state.
 
 ## 1. Finite memory as a finite set
 
-Use the category \(\mathbf{FinSet}\):
+Use the category $\mathbf{FinSet}$:
 
 - objects: finite sets;
 - morphisms: total functions.
 
 A bit is the set
 
-\[
+$$
 \mathrm{Bit}=\{0,1\}.
-\]
+$$
 
 A 16-bit word is
 
-\[
+$$
 \mathrm{Word}_{16}=\mathrm{Bit}^{16},
-\]
+$$
 
-which has \(2^{16}\) elements.
+which has $2^{16}$ elements.
 
 Two 16-bit registers form the product
 
-\[
+$$
 S=\mathrm{Word}_{16}\times\mathrm{Word}_{16}.
-\]
+$$
 
 This state space has
 
-\[
+$$
 2^{16}\cdot 2^{16}=2^{32}
-\]
+$$
 
 possible states.
 
 So, at the extensional level,
 
-\[
+$$
 \mathrm{Word}_{16}\times\mathrm{Word}_{16}
 \cong
 \mathrm{Word}_{32},
-\]
+$$
 
-because both contain \(2^{32}\) bit patterns. Packing and unpacking provide the isomorphism.
+because both contain $2^{32}$ bit patterns. Packing and unpacking provide the isomorphism.
 
 However, this only says they are isomorphic as finite sets. If morphisms must preserve arithmetic operations, alignment, or some other structure, the packed representation may not be isomorphic in that stricter category.
 
@@ -1373,61 +1373,61 @@ However, this only says they are isomorphic as finite sets. If morphisms must pr
 
 A pure function has the form
 
-\[
+$$
 f:A\to B.
-\]
+$$
 
-A computation with state \(S\) is commonly represented as
+A computation with state $S$ is commonly represented as
 
-\[
+$$
 f:A\times S\to B\times S.
-\]
+$$
 
 It receives:
 
-- an ordinary input \(A\);
-- the old memory state \(S\);
+- an ordinary input $A$;
+- the old memory state $S$;
 
 and returns:
 
-- an ordinary output \(B\);
-- the new memory state \(S\).
+- an ordinary output $B$;
+- the new memory state $S$.
 
 For example, reading the first 16-bit register could be
 
-\[
+$$
 \operatorname{read}_a:
 1\times S
 \to
 \mathrm{Word}_{16}\times S,
-\]
+$$
 
 where
 
-\[
+$$
 \operatorname{read}_a(*,(a,b))
 =
 (a,(a,b)).
-\]
+$$
 
 It returns the first register without changing memory.
 
 Writing the first register could be
 
-\[
+$$
 \operatorname{write}_a:
 \mathrm{Word}_{16}\times S
 \to
 1\times S,
-\]
+$$
 
 where
 
-\[
+$$
 \operatorname{write}_a(x,(a,b))
 =
 (*,(x,b)).
-\]
+$$
 
 The old first component is replaced, while the second component is preserved.
 
@@ -1435,27 +1435,27 @@ The old first component is replaced, while the second component is preserved.
 
 Suppose
 
-\[
+$$
 f:A\times S\to B\times S
-\]
+$$
 
 and
 
-\[
+$$
 g:B\times S\to C\times S.
-\]
+$$
 
 They compose as ordinary functions:
 
-\[
+$$
 A\times S
 \xrightarrow{f}
 B\times S
 \xrightarrow{g}
 C\times S.
-\]
+$$
 
-The new state produced by \(f\) becomes the state consumed by \(g\).
+The new state produced by $f$ becomes the state consumed by $g$.
 
 This is the basic categorical model of imperative state.
 
@@ -1463,27 +1463,27 @@ This is the basic categorical model of imperative state.
 
 The same idea is often written using the state monad:
 
-\[
+$$
 T(B)=S\to(B\times S).
-\]
+$$
 
-A stateful function from \(A\) to \(B\) is then written as
+A stateful function from $A$ to $B$ is then written as
 
-\[
+$$
 A\to T(B),
-\]
+$$
 
 which expands to
 
-\[
+$$
 A\to\bigl(S\to(B\times S)\bigr).
-\]
+$$
 
 By currying, this corresponds to
 
-\[
+$$
 A\times S\to B\times S.
-\]
+$$
 
 In programming notation:
 
@@ -1497,57 +1497,57 @@ and a stateful computation is:
 A -> State<S, B>
 ```
 
-For finite memory, simply choose a finite \(S\).
+For finite memory, simply choose a finite $S$.
 
 ## 5. Fixed-size RAM
 
-A small memory with \(n\) addresses and byte-sized cells can be represented as
+A small memory with $n$ addresses and byte-sized cells can be represented as
 
-\[
+$$
 S=\mathrm{Byte}^{n}.
-\]
+$$
 
 Equivalently, it is a function space
 
-\[
+$$
 S=\mathrm{Addr}\to\mathrm{Byte},
-\]
+$$
 
-where \(\mathrm{Addr}\) is a finite set of \(n\) addresses.
+where $\mathrm{Addr}$ is a finite set of $n$ addresses.
 
 A read operation is approximately
 
-\[
+$$
 \operatorname{read}:
 \mathrm{Addr}\times S
 \to
 \mathrm{Byte}\times S,
-\]
+$$
 
 with
 
-\[
+$$
 \operatorname{read}(i,m)=(m(i),m).
-\]
+$$
 
 A write operation is
 
-\[
+$$
 \operatorname{write}:
 (\mathrm{Addr}\times\mathrm{Byte})\times S
 \to
 1\times S.
-\]
+$$
 
-It returns a modified memory function \(m'\) satisfying
+It returns a modified memory function $m'$ satisfying
 
-\[
+$$
 m'(j)=
 \begin{cases}
 x,&j=i,\\
 m(j),&j\neq i.
 \end{cases}
-\]
+$$
 
 This is a direct mathematical model of a finite mutable array.
 
@@ -1555,7 +1555,7 @@ This is a direct mathematical model of a finite mutable array.
 
 Suppose the full machine state is
 
-\[
+$$
 S=
 \mathrm{Registers}
 \times
@@ -1564,31 +1564,31 @@ S=
 \mathrm{ProgramCounter}
 \times
 \mathrm{Flags}.
-\]
+$$
 
 The product projections provide access to each component:
 
-\[
+$$
 \pi_{\mathrm{RAM}}:S\to\mathrm{RAM},
 \qquad
 \pi_{\mathrm{PC}}:S\to\mathrm{ProgramCounter},
-\]
+$$
 
 and so on.
 
 But updating one component is not itself a product projection. For updates, one often uses structures called **lenses**.
 
-A lens for a component \(A\) inside state \(S\) provides roughly:
+A lens for a component $A$ inside state $S$ provides roughly:
 
-\[
+$$
 \operatorname{get}:S\to A
-\]
+$$
 
 and
 
-\[
+$$
 \operatorname{put}:S\times A\to S.
-\]
+$$
 
 For example:
 
@@ -1599,21 +1599,21 @@ putA : State × Int16 -> State
 
 These normally satisfy laws such as:
 
-\[
+$$
 \operatorname{get}(\operatorname{put}(s,a))=a,
-\]
+$$
 
-\[
+$$
 \operatorname{put}(s,\operatorname{get}(s))=s,
-\]
+$$
 
 and
 
-\[
+$$
 \operatorname{put}(\operatorname{put}(s,a),a')
 =
 \operatorname{put}(s,a').
-\]
+$$
 
 Products explain how the state is assembled; lenses explain how to focus on and update one part.
 
@@ -1621,30 +1621,30 @@ Products explain how the state is assembled; lenses explain how to focus on and 
 
 A deterministic finite-state machine has:
 
-- a finite state set \(S\);
-- an input alphabet \(I\);
+- a finite state set $S$;
+- an input alphabet $I$;
 - a transition function
-  \[
+  $$
   \delta:S\times I\to S.
-  \]
+  $$
 
-If it also produces output \(O\), one can use
+If it also produces output $O$, one can use
 
-\[
+$$
 \delta:S\times I\to O\times S.
-\]
+$$
 
 This has the same form as a stateful program:
 
-\[
+$$
 I\times S\to O\times S.
-\]
+$$
 
 So finite automata, digital circuits with registers, and finite-memory programs all share the same categorical shape.
 
-## 8. Plain \(\mathbf{FinSet}\) forgets implementation costs
+## 8. Plain $\mathbf{FinSet}$ forgets implementation costs
 
-The category \(\mathbf{FinSet}\) sees a representation only as a finite collection of possible values. It does not see:
+The category $\mathbf{FinSet}$ sees a representation only as a finite collection of possible values. It does not see:
 
 - whether fields are contiguous;
 - how many CPU instructions packing requires;
@@ -1654,13 +1654,13 @@ The category \(\mathbf{FinSet}\) sees a representation only as a finite collecti
 - power consumption;
 - whether copying is expensive.
 
-Therefore, in \(\mathbf{FinSet}\),
+Therefore, in $\mathbf{FinSet}$,
 
-\[
+$$
 \mathrm{Int16}\times\mathrm{Int16}
 \cong
 \mathrm{Int32}
-\]
+$$
 
 is simply a bijection between bit patterns.
 
@@ -1675,13 +1675,13 @@ To model real implementation constraints, people choose a richer category. Examp
 
 The central pattern remains:
 
-\[
+$$
 \boxed{
 \text{finite state }S
 \quad+\quad
 \text{computation }A\times S\to B\times S
 }
-\]
+$$
 
 Products specify the structure of the memory state, while the state-passing morphisms specify how computations read and modify it.
 
@@ -1716,7 +1716,7 @@ Think of a **topos as an entire universe of types and pure total programs**, equ
 - subtypes,
 - truth.
 
-The prototype is \(\mathbf{Set}\), or more computationally, a category of semantic types and total functions.
+The prototype is $\mathbf{Set}$, or more computationally, a category of semantic types and total functions.
 
 A topos is not one universal object. It is a category in which several important universal constructions coexist.
 
@@ -1725,33 +1725,33 @@ A topos is not one universal object. It is a category in which several important
 For a clean programming analogy, use:
 
 - objects = types,
-- arrows \(A\to B\) = pure total functions,
+- arrows $A\to B$ = pure total functions,
 - equality of arrows = extensional equality of functions.
 
 An **elementary topos** has three main ingredients:
 
-\[
+$$
 \boxed{\text{finite limits}+\text{function types}+\text{a truth-value object}}
-\]
+$$
 
 Formally:
 
-\[
+$$
 \boxed{\text{finite limits}+\text{exponentials}+\text{subobject classifier}}
-\]
+$$
 
 ### The type-theoretic dictionary
 
 | Category theory | Programming/type interpretation |
 |---|---|
-| Terminal object \(1\) | Unit type |
-| Product \(A\times B\) | Pair/record type |
+| Terminal object $1$ | Unit type |
+| Product $A\times B$ | Pair/record type |
 | Equalizer | Values on which two computations agree |
 | Pullback | Compatible pairs, refinement, database join |
-| Exponential \(B^A\) | Function type \(A\to B\) |
-| Subobject \(S\hookrightarrow A\) | Subtype or predicate-defined subset |
-| Subobject classifier \(\Omega\) | Type of truth values |
-| Power object \(\Omega^A\) | Type of predicates on \(A\) |
+| Exponential $B^A$ | Function type $A\to B$ |
+| Subobject $S\hookrightarrow A$ | Subtype or predicate-defined subset |
+| Subobject classifier $\Omega$ | Type of truth values |
+| Power object $\Omega^A$ | Type of predicates on $A$ |
 
 The book’s chapter order is deliberate: products, pullbacks, and exponentials are built first because they become the structural machinery used in the definition of a topos.
 
@@ -1763,35 +1763,35 @@ You already have this part.
 
 A product consists of
 
-\[
+$$
 A\times B
-\]
+$$
 
 with accessors
 
-\[
+$$
 \operatorname{fst}:A\times B\to A,
 \qquad
 \operatorname{snd}:A\times B\to B.
-\]
+$$
 
 Given
 
-\[
+$$
 f:X\to A,\qquad g:X\to B,
-\]
+$$
 
 there is a unique combined function
 
-\[
+$$
 \langle f,g\rangle:X\to A\times B
-\]
+$$
 
 defined by
 
-\[
+$$
 x\mapsto(f(x),g(x)).
-\]
+$$
 
 In programming notation:
 
@@ -1808,21 +1808,21 @@ The universal property says that a pair is completely determined by its two proj
 
 Suppose
 
-\[
+$$
 f,g:A\to B.
-\]
+$$
 
-The equalizer is the subtype of \(A\) on which they agree:
+The equalizer is the subtype of $A$ on which they agree:
 
-\[
+$$
 E=\{a\in A\mid f(a)=g(a)\}.
-\]
+$$
 
 It comes with an inclusion
 
-\[
+$$
 e:E\hookrightarrow A.
-\]
+$$
 
 Programming interpretation:
 
@@ -1830,19 +1830,19 @@ Programming interpretation:
 Equalizer<f, g> = { a : A | f(a) == g(a) }
 ```
 
-Its universal property says that any function \(h:X\to A\) whose outputs always satisfy
+Its universal property says that any function $h:X\to A$ whose outputs always satisfy
 
-\[
+$$
 f(h(x))=g(h(x))
-\]
+$$
 
-factors uniquely through \(E\):
+factors uniquely through $E$:
 
-\[
+$$
 X\to E\hookrightarrow A.
-\]
+$$
 
-So the equalizer is the **largest subtype of \(A\)** on which the two computations coincide.
+So the equalizer is the **largest subtype of $A$** on which the two computations coincide.
 
 ---
 
@@ -1850,17 +1850,17 @@ So the equalizer is the **largest subtype of \(A\)** on which the two computatio
 
 Given
 
-\[
+$$
 f:A\to C,\qquad g:B\to C,
-\]
+$$
 
 their pullback is
 
-\[
+$$
 A\times_C B
 =
 \{(a,b)\in A\times B\mid f(a)=g(b)\}.
-\]
+$$
 
 This is a pair type with a compatibility constraint.
 
@@ -1879,27 +1879,27 @@ FROM A
 JOIN B ON f(A) = g(B)
 ```
 
-The universal property says that whenever some \(X\) has functions
+The universal property says that whenever some $X$ has functions
 
-\[
+$$
 u:X\to A,\qquad v:X\to B
-\]
+$$
 
 satisfying
 
-\[
+$$
 f\circ u=g\circ v,
-\]
+$$
 
 there is a unique function
 
-\[
+$$
 X\to A\times_C B
-\]
+$$
 
-whose two projections are \(u\) and \(v\).
+whose two projections are $u$ and $v$.
 
-Products are a special pullback where \(C=1\), since every value maps uniquely to `Unit`.
+Products are a special pullback where $C=1$, since every value maps uniquely to `Unit`.
 
 ---
 
@@ -1907,21 +1907,21 @@ Products are a special pullback where \(C=1\), since every value maps uniquely t
 
 The exponential
 
-\[
+$$
 B^A
-\]
+$$
 
 is the categorical version of the function type
 
-\[
+$$
 A\to B.
-\]
+$$
 
 It comes with evaluation:
 
-\[
+$$
 \operatorname{eval}:B^A\times A\to B.
-\]
+$$
 
 Programming notation:
 
@@ -1934,21 +1934,21 @@ Its universal property is currying.
 
 For every function
 
-\[
+$$
 f:X\times A\to B,
-\]
+$$
 
 there is a unique curried function
 
-\[
+$$
 \lambda f:X\to B^A
-\]
+$$
 
 such that
 
-\[
+$$
 \operatorname{eval}((\lambda f)(x),a)=f(x,a).
-\]
+$$
 
 In code:
 
@@ -1971,11 +1971,11 @@ A cartesian closed category gives you tuples and functions. A topos adds a power
 
 A monomorphism
 
-\[
+$$
 m:S\hookrightarrow A
-\]
+$$
 
-represents a subobject of \(A\).
+represents a subobject of $A$.
 
 In type language, think of:
 
@@ -1985,41 +1985,41 @@ S = { a : A | someCondition(a) }
 
 For example:
 
-\[
+$$
 \mathrm{Even}\hookrightarrow\mathrm{Int}.
-\]
+$$
 
 The distinction is that category theory describes the subtype through its inclusion into the larger type.
 
 ## The subobject classifier
 
-A topos contains an object \(\Omega\), together with a distinguished truth value
+A topos contains an object $\Omega$, together with a distinguished truth value
 
-\[
+$$
 \mathrm{true}:1\to\Omega.
-\]
+$$
 
 Every subtype
 
-\[
+$$
 m:S\hookrightarrow A
-\]
+$$
 
 has a unique characteristic predicate
 
-\[
+$$
 \chi_m:A\to\Omega.
-\]
+$$
 
 The original subtype can be recovered as the pullback of `true`.
 
-In \(\mathbf{Set}\),
+In $\mathbf{Set}$,
 
-\[
+$$
 \Omega=\{\mathrm{false},\mathrm{true}\},
-\]
+$$
 
-so \(\chi_m\) is the usual membership test:
+so $\chi_m$ is the usual membership test:
 
 ```text
 containsS : A -> Bool
@@ -2039,13 +2039,13 @@ Even = { n : Int | isEven(n) == true }
 
 Categorically, this is:
 
-\[
+$$
 S=\{a\in A\mid \chi_m(a)=\mathrm{true}\}.
-\]
+$$
 
 The universal part is:
 
-> Every subtype of every object is classified by exactly one predicate into \(\Omega\).
+> Every subtype of every object is classified by exactly one predicate into $\Omega$.
 
 That is much stronger than merely having a Boolean type somewhere in the category.
 
@@ -2053,11 +2053,11 @@ That is much stronger than merely having a Boolean type somewhere in the categor
 
 ## Power objects are predicate types
 
-Once the category has exponentials, predicates on \(A\) form the object
+Once the category has exponentials, predicates on $A$ form the object
 
-\[
+$$
 \Omega^A.
-\]
+$$
 
 Programming notation:
 
@@ -2065,31 +2065,31 @@ Programming notation:
 Predicate<A> = A -> Ω
 ```
 
-In \(\mathbf{Set}\),
+In $\mathbf{Set}$,
 
-\[
+$$
 \Omega^A=\mathrm{Bool}^A.
-\]
+$$
 
-A Boolean-valued function on \(A\) is equivalent to a subset of \(A\), so
+A Boolean-valued function on $A$ is equivalent to a subset of $A$, so
 
-\[
+$$
 \mathrm{Bool}^A\cong\mathcal P(A).
-\]
+$$
 
 This is the categorical power set.
 
 The book places exponentiation before power objects because the power object is constructed as
 
-\[
+$$
 \boxed{\mathcal P(A)=\Omega^A.}
-\]
+$$
 
 ---
 
 # The first examples of topoi
 
-## 1. Finite types: \(\mathbf{FinSet}\)
+## 1. Finite types: $\mathbf{FinSet}$
 
 Objects are finite sets, interpreted as finite semantic types. Morphisms are total functions.
 
@@ -2097,21 +2097,21 @@ This is an elementary topos.
 
 Examples include:
 
-\[
+$$
 \mathrm{Bit}=\{0,1\},
-\]
+$$
 
-\[
+$$
 \mathrm{Int16}\cong\mathrm{Bit}^{16},
-\]
+$$
 
 and
 
-\[
+$$
 \mathrm{Int16}\times\mathrm{Int16}
 \cong
 \mathrm{Bit}^{32}.
-\]
+$$
 
 It has:
 
@@ -2125,33 +2125,33 @@ This is a good universe for finite-state computation.
 
 It does not contain an unbounded natural-number object: every object is finite. Being a topos does not automatically mean supporting arbitrary recursion or unbounded memory.
 
-## 2. Ordinary types: \(\mathbf{Set}\)
+## 2. Ordinary types: $\mathbf{Set}$
 
-\(\mathbf{Set}\) is the standard topos.
+$\mathbf{Set}$ is the standard topos.
 
 Here:
 
-\[
+$$
 1=\{\ast\},
-\]
+$$
 
-\[
+$$
 A\times B=\text{pairs},
-\]
+$$
 
-\[
+$$
 B^A=\text{all functions }A\to B,
-\]
+$$
 
-\[
+$$
 \Omega=\mathrm{Bool},
-\]
+$$
 
-\[
+$$
 \Omega^A=\mathcal P(A).
-\]
+$$
 
-This is the classical, context-free universe: a value of type \(A\) is simply an element of \(A\).
+This is the classical, context-free universe: a value of type $A$ is simply an element of $A$.
 
 ---
 
@@ -2159,51 +2159,51 @@ This is the classical, context-free universe: a value of type \(A\) is simply an
 
 The “monoid actions” section in the table of contents gives a direct connection to stateful computation.
 
-Fix an input alphabet \(\Sigma\). Let
+Fix an input alphabet $\Sigma$. Let
 
-\[
+$$
 \Sigma^\ast
-\]
+$$
 
 be the set of finite input strings, with concatenation. This is a monoid.
 
-A deterministic transition system can be described as a set of states \(S\) with an action
+A deterministic transition system can be described as a set of states $S$ with an action
 
-\[
+$$
 S\times\Sigma^\ast\to S.
-\]
+$$
 
 Write it as
 
-\[
+$$
 s\cdot w,
-\]
+$$
 
-meaning “start in state \(s\), then process input word \(w\).”
+meaning “start in state $s$, then process input word $w$.”
 
 It satisfies:
 
-\[
+$$
 s\cdot\varepsilon=s,
-\]
+$$
 
-\[
+$$
 (s\cdot u)\cdot v=s\cdot(uv).
-\]
+$$
 
-This is exactly what it means for \(\Sigma^\ast\) to act on \(S\).
+This is exactly what it means for $\Sigma^\ast$ to act on $S$.
 
 A morphism
 
-\[
+$$
 h:S\to T
-\]
+$$
 
 must preserve transitions:
 
-\[
+$$
 h(s\cdot w)=h(s)\cdot w.
-\]
+$$
 
 So the morphisms are behavior-preserving state mappings.
 
@@ -2216,19 +2216,19 @@ Its structures have computational meanings:
 - subobject: a transition-closed collection of states;
 - morphism: a simulation preserving every input transition.
 
-A subtype \(U\hookrightarrow S\) must usually respect the action. It is not merely an arbitrary subset of states; it must satisfy something like
+A subtype $U\hookrightarrow S$ must usually respect the action. It is not merely an arbitrary subset of states; it must satisfy something like
 
-\[
+$$
 s\in U\implies s\cdot w\in U.
-\]
+$$
 
-Thus this topos resembles \(\mathbf{Set}\), but all objects and functions carry an additional requirement: **respect the dynamics**.
+Thus this topos resembles $\mathbf{Set}$, but all objects and functions carry an additional requirement: **respect the dynamics**.
 
 That is a recurring interpretation of topoi:
 
-\[
+$$
 \boxed{\text{Set-like types, but varying or structured according to some context.}}
-\]
+$$
 
 ---
 
@@ -2236,18 +2236,18 @@ That is a recurring interpretation of topoi:
 
 A presheaf topos generalizes the state-machine example.
 
-Choose a category \(C\) of contexts. A presheaf
+Choose a category $C$ of contexts. A presheaf
 
-\[
+$$
 F:C^{op}\to\mathbf{Set}
-\]
+$$
 
 assigns:
 
-- a set \(F(c)\) of values available in each context \(c\);
+- a set $F(c)$ of values available in each context $c$;
 - a restriction function whenever one context is viewed from another.
 
-You can read \(F\) as a **type whose available values depend on the current context**.
+You can read $F$ as a **type whose available values depend on the current context**.
 
 Possible contexts include:
 
@@ -2259,7 +2259,7 @@ Possible contexts include:
 - time steps;
 - partial knowledge states.
 
-Instead of one set of values \(A\), there is a family:
+Instead of one set of values $A$, there is a family:
 
 ```text
 A(context)
@@ -2283,49 +2283,49 @@ The monoid-action example is a special presheaf category where the context categ
 
 A map
 
-\[
+$$
 p:E\to B
-\]
+$$
 
-can be understood as a family of types indexed by \(B\).
+can be understood as a family of types indexed by $B$.
 
-For each \(b\in B\), define the fiber
+For each $b\in B$, define the fiber
 
-\[
+$$
 E_b=\{e\in E\mid p(e)=b\}.
-\]
+$$
 
 This resembles a dependent type:
 
-\[
+$$
 b:B\vdash E(b)\;\mathrm{type}.
-\]
+$$
 
-The total space \(E\) behaves like the dependent sum
+The total space $E$ behaves like the dependent sum
 
-\[
+$$
 E\cong\sum_{b:B}E_b.
-\]
+$$
 
 A section
 
-\[
+$$
 s:B\to E
-\]
+$$
 
 satisfying
 
-\[
+$$
 p\circ s=1_B
-\]
+$$
 
 chooses one value
 
-\[
+$$
 s(b)\in E_b
-\]
+$$
 
-for each \(b\).
+for each $b$.
 
 In programming terms:
 
@@ -2355,41 +2355,41 @@ Programming analogies include:
 - sensor data defined over regions;
 - program facts known only in certain execution contexts.
 
-Suppose a space is covered by regions \(U_i\). A sheaf assigns data \(F(U_i)\) to each region.
+Suppose a space is covered by regions $U_i$. A sheaf assigns data $F(U_i)$ to each region.
 
 When local values
 
-\[
+$$
 x_i\in F(U_i)
-\]
+$$
 
 agree wherever their regions overlap, there is a unique global value
 
-\[
+$$
 x\in F\left(\bigcup_i U_i\right)
-\]
+$$
 
-restricting to every \(x_i\).
+restricting to every $x_i$.
 
 That is another universal-property pattern:
 
-\[
+$$
 \boxed{\text{compatible local implementations determine one global implementation.}}
-\]
+$$
 
 ---
 
 # Why truth is more interesting in a general topos
 
-In \(\mathbf{Set}\),
+In $\mathbf{Set}$,
 
-\[
+$$
 \Omega=\mathrm{Bool}.
-\]
+$$
 
 Every proposition is simply true or false.
 
-In a sheaf topos, a truth value can encode **where** a proposition is true. For sheaves on a topological space \(X\), global truth values correspond roughly to open regions of \(X\).
+In a sheaf topos, a truth value can encode **where** a proposition is true. For sheaves on a topological space $X$, global truth values correspond roughly to open regions of $X$.
 
 A proposition might be:
 
@@ -2399,13 +2399,13 @@ A proposition might be:
 
 Consequently, a general topos usually has intuitionistic rather than classical internal logic. In particular, the law
 
-\[
+$$
 P\lor\neg P
-\]
+$$
 
 need not hold for every internal proposition.
 
-This explains the later chapters in the book on intuitionism and Heyting algebras. They are not an unrelated philosophical detour. They describe the logic naturally generated by the object \(\Omega\).
+This explains the later chapters in the book on intuitionism and Heyting algebras. They are not an unrelated philosophical detour. They describe the logic naturally generated by the object $\Omega$.
 
 ---
 
@@ -2413,7 +2413,7 @@ This explains the later chapters in the book on intuitionism and Heyting algebra
 
 The progression can be understood as follows:
 
-\[
+$$
 \begin{aligned}
 \text{Products} &\longrightarrow \text{pair types}\\
 \text{Equalizers and pullbacks} &\longrightarrow \text{constraints and refinements}\\
@@ -2425,18 +2425,18 @@ The progression can be understood as follows:
 \text{Power objects} &\longrightarrow \text{types of predicates}\\
 \text{Topos logic} &\longrightarrow \text{reasoning internally in that universe}
 \end{aligned}
-\]
+$$
 
 The central mental model is:
 
-\[
+$$
 \boxed{
 \text{A topos is a set-like universe in which “type,” “function,”
 “predicate,” and “truth” may depend on context.}
 }
-\]
+$$
 
-\(\mathbf{Set}\) is the context-free case. Presheaf and sheaf topoi are versions where values and truth vary across state, time, location, knowledge, or other computational context.
+$\mathbf{Set}$ is the context-free case. Presheaf and sheaf topoi are versions where values and truth vary across state, time, location, knowledge, or other computational context.
 
 
 ---
@@ -2461,66 +2461,66 @@ Different categories have unique products based on their context. For example, v
 
 The invariant idea is:
 
-\[
+$$
 \boxed{
 \mathcal C(X,P)\;\cong\;
 \mathcal C(X,A)\times\mathcal C(X,B)
 }
-\]
+$$
 
-where \(P\) is the product of \(A\) and \(B\).
+where $P$ is the product of $A$ and $B$.
 
 In words:
 
-> Giving one morphism \(X\to P\) is exactly the same information as giving a morphism \(X\to A\) and a morphism \(X\to B\).
+> Giving one morphism $X\to P$ is exactly the same information as giving a morphism $X\to A$ and a morphism $X\to B$.
 
 What counts as an “object” or a “morphism” changes with the category, so the product can mean intersection, simultaneous execution, conjunction, or even disjoint union—not necessarily a pair type.
 
 ## 1. Formal languages: intersection
 
-Fix an alphabet \(\Sigma\). Consider languages
+Fix an alphabet $\Sigma$. Consider languages
 
-\[
+$$
 L\subseteq\Sigma^*
-\]
+$$
 
 ordered by inclusion. Treat this poset as a category:
 
-\[
+$$
 L\to M \quad\text{when}\quad L\subseteq M.
-\]
+$$
 
 The product of two languages is
 
-\[
+$$
 L_1\times L_2=L_1\cap L_2.
-\]
+$$
 
 The projections are simply inclusions:
 
-\[
+$$
 L_1\cap L_2\subseteq L_1,
 \qquad
 L_1\cap L_2\subseteq L_2.
-\]
+$$
 
-Now suppose \(K\) maps to both:
+Now suppose $K$ maps to both:
 
-\[
+$$
 K\subseteq L_1,
 \qquad
 K\subseteq L_2.
-\]
+$$
 
 Then necessarily
 
-\[
+$$
 K\subseteq L_1\cap L_2.
-\]
+$$
 
 That is the universal property.
 
-Computationally, \(L_1\cap L_2\) is the specification:
+Computationally, $L_1\cap L_2$ is the specification:
 
 > Accept exactly the inputs satisfying both specifications.
 
@@ -2532,39 +2532,39 @@ Here the product is conjunction of accepted behavior, not a data pair.
 
 Let objects be program predicates, with an arrow
 
-\[
+$$
 P\to Q
-\]
+$$
 
-when \(P\) implies \(Q\).
+when $P$ implies $Q$.
 
 Then the categorical product is
 
-\[
+$$
 P\land Q.
-\]
+$$
 
 There are projection implications
 
-\[
+$$
 P\land Q\implies P,
 \qquad
 P\land Q\implies Q.
-\]
+$$
 
 And whenever
 
-\[
+$$
 R\implies P,
 \qquad
 R\implies Q,
-\]
+$$
 
 we obtain
 
-\[
+$$
 R\implies P\land Q.
-\]
+$$
 
 This appears in:
 
@@ -2576,21 +2576,21 @@ This appears in:
 
 For instance, the product of the assertions
 
-\[
+$$
 x\geq0
-\]
+$$
 
 and
 
-\[
+$$
 x<100
-\]
+$$
 
 is
 
-\[
+$$
 0\leq x<100.
-\]
+$$
 
 In a poset category, uniqueness is automatic because there is at most one arrow between any two objects.
 
@@ -2600,18 +2600,18 @@ In a poset category, uniqueness is automatic because there is at most one arrow 
 
 Suppose a compiler tracks facts about variables in a lattice:
 
-\[
+$$
 \text{Unknown},\quad
 \text{Positive},\quad
 \text{Even},\quad
 \text{Positive and even},\ldots
-\]
+$$
 
 When the ordering represents logical implication or precision, the categorical product is generally the **meet**:
 
-\[
+$$
 a\wedge b.
-\]
+$$
 
 It represents the strongest fact implied by having both pieces of information.
 
@@ -2625,15 +2625,15 @@ This is why lattice operations appear throughout:
 
 There is also a different but related construction called a **product abstract domain**. Two analyses—say interval analysis and parity analysis—can be run together:
 
-\[
+$$
 D_{\text{interval}}\times D_{\text{parity}}.
-\]
+$$
 
 A state might then carry both:
 
-\[
+$$
 ([0,10],\text{even}).
-\]
+$$
 
 The ordinary product combines analyses independently; a **reduced product** additionally propagates information between them.
 
@@ -2641,33 +2641,33 @@ The ordinary product combines analyses independently; a **reduced product** addi
 
 ## 4. Deterministic automata: synchronous execution
 
-Fix an input alphabet \(\Sigma\). Consider deterministic transition systems
+Fix an input alphabet $\Sigma$. Consider deterministic transition systems
 
-\[
+$$
 (S,\delta_S)
-\]
+$$
 
 where
 
-\[
+$$
 \delta_S:S\times\Sigma\to S.
-\]
+$$
 
 Morphisms are functions preserving transitions.
 
-The product of systems \(S\) and \(T\) has state space
+The product of systems $S$ and $T$ has state space
 
-\[
+$$
 S\times T
-\]
+$$
 
 and transition function
 
-\[
+$$
 \delta_{S\times T}((s,t),\sigma)
 =
 \bigl(\delta_S(s,\sigma),\delta_T(t,\sigma)\bigr).
-\]
+$$
 
 The same input symbol is supplied to both machines simultaneously.
 
@@ -2675,31 +2675,31 @@ Operationally, this product means:
 
 > Run the two systems in lockstep and remember both current states.
 
-Given a system \(X\) with behavior-preserving maps
+Given a system $X$ with behavior-preserving maps
 
-\[
+$$
 f:X\to S,
 \qquad
 g:X\to T,
-\]
+$$
 
 the unique map into the product is
 
-\[
+$$
 x\mapsto(f(x),g(x)).
-\]
+$$
 
 For deterministic finite automata, the usual product automaton with accepting states
 
-\[
+$$
 F_S\times F_T
-\]
+$$
 
 recognizes the intersection of the two languages:
 
-\[
+$$
 L(S\times T)=L(S)\cap L(T).
-\]
+$$
 
 So the language-intersection product and the lockstep-automaton product are closely connected.
 
@@ -2707,47 +2707,47 @@ So the language-intersection product and the lockstep-automaton product are clos
 
 ## 5. Graphs: synchronized adjacency
 
-In the category of directed graphs and graph homomorphisms, the categorical product \(G\times H\) has vertices
+In the category of directed graphs and graph homomorphisms, the categorical product $G\times H$ has vertices
 
-\[
+$$
 V_{G\times H}=V_G\times V_H.
-\]
+$$
 
 There is an edge
 
-\[
+$$
 (g,h)\longrightarrow(g',h')
-\]
+$$
 
 exactly when both
 
-\[
+$$
 g\longrightarrow g'
-\]
+$$
 
-is an edge in \(G\), and
+is an edge in $G$, and
 
-\[
+$$
 h\longrightarrow h'
-\]
+$$
 
-is an edge in \(H\).
+is an edge in $H$.
 
 Thus movement in the product graph means moving along an edge in both component graphs simultaneously.
 
 A graph homomorphism
 
-\[
+$$
 X\to G\times H
-\]
+$$
 
 is uniquely equivalent to a pair of graph homomorphisms
 
-\[
+$$
 X\to G,
 \qquad
 X\to H.
-\]
+$$
 
 This construction appears in graph homomorphism theory and constraint-satisfaction problems.
 
@@ -2759,37 +2759,37 @@ A terminology warning: this categorical product is often called the **direct** o
 
 In the category of vector spaces and linear maps, the product of two vector spaces is
 
-\[
+$$
 V\oplus W.
-\]
+$$
 
-For two spaces, its elements can be represented as pairs \((v,w)\), but the significant point is that all relevant maps must be linear.
+For two spaces, its elements can be represented as pairs $(v,w)$, but the significant point is that all relevant maps must be linear.
 
 A linear map
 
-\[
+$$
 f:X\to V\oplus W
-\]
+$$
 
 is uniquely determined by its two linear components
 
-\[
+$$
 \pi_V\circ f:X\to V,
 \qquad
 \pi_W\circ f:X\to W.
-\]
+$$
 
 In systems programming and control theory, this combines two linear state spaces:
 
-\[
+$$
 x_{t+1}=Ax_t,
 \qquad
 y_{t+1}=By_t
-\]
+$$
 
 into the parallel system
 
-\[
+$$
 \begin{pmatrix}
 x_{t+1}\\
 y_{t+1}
@@ -2803,7 +2803,7 @@ A&0\\
 x_t\\
 y_t
 \end{pmatrix}.
-\]
+$$
 
 The product means independent parallel composition that still respects linear structure.
 
@@ -2813,58 +2813,58 @@ The product means independent parallel composition that still respects linear st
 
 This is a more surprising example.
 
-In the category \(\mathbf{Rel}\):
+In the category $\mathbf{Rel}$:
 
 - objects are sets;
-- morphisms \(X\to Y\) are binary relations \(R\subseteq X\times Y\);
+- morphisms $X\to Y$ are binary relations $R\subseteq X\times Y$;
 - composition is relational composition.
 
-In this category, the product of \(A\) and \(B\) is not \(A\times B\). It is the disjoint union
+In this category, the product of $A$ and $B$ is not $A\times B$. It is the disjoint union
 
-\[
+$$
 A\sqcup B.
-\]
+$$
 
 Why?
 
 A relation
 
-\[
+$$
 T:X\mathrel{\relbar\joinrel\rightarrow}A\sqcup B
-\]
+$$
 
-can independently relate an \(x\in X\) to:
+can independently relate an $x\in X$ to:
 
-- any number of values in the \(A\)-part;
-- any number of values in the \(B\)-part.
+- any number of values in the $A$-part;
+- any number of values in the $B$-part.
 
-Therefore specifying \(T\) is exactly equivalent to specifying two relations:
+Therefore specifying $T$ is exactly equivalent to specifying two relations:
 
-\[
+$$
 R:X\mathrel{\relbar\joinrel\rightarrow}A,
 \qquad
 S:X\mathrel{\relbar\joinrel\rightarrow}B.
-\]
+$$
 
 The relation into the disjoint union is uniquely reconstructed by tagging the outputs:
 
-\[
+$$
 x\;T\;\operatorname{inl}(a)
 \iff
 x\;R\;a,
-\]
+$$
 
-\[
+$$
 x\;T\;\operatorname{inr}(b)
 \iff
 x\;S\;b.
-\]
+$$
 
-So in \(\mathbf{Rel}\),
+So in $\mathbf{Rel}$,
 
-\[
+$$
 \boxed{A\sqcup B\text{ is both a product and a coproduct.}}
-\]
+$$
 
 This is a useful demonstration that “product” does not fundamentally mean “memory containing two fields.” It means an object satisfying a particular mapping property relative to the chosen morphisms.
 
@@ -2872,24 +2872,24 @@ This is a useful demonstration that “product” does not fundamentally mean �
 
 ## 8. Presheaves and topoi: products of context-dependent systems
 
-Suppose \(F\) and \(G\) describe values or states varying by context \(c\). A presheaf product is computed context by context:
+Suppose $F$ and $G$ describe values or states varying by context $c$. A presheaf product is computed context by context:
 
-\[
+$$
 (F\times G)(c)=F(c)\times G(c).
-\]
+$$
 
 Restriction maps also act componentwise.
 
 For example, if:
 
-- \(F(c)\) is the set of program states visible in context \(c\);
-- \(G(c)\) is the set of permissions available in context \(c\);
+- $F(c)$ is the set of program states visible in context $c$;
+- $G(c)$ is the set of permissions available in context $c$;
 
 then
 
-\[
+$$
 (F\times G)(c)
-\]
+$$
 
 contains a state and permission configuration valid in that same context.
 
@@ -2905,38 +2905,38 @@ A database join is usually better understood as a **pullback**, not a product.
 
 Given tables with key functions
 
-\[
+$$
 A\xrightarrow{f}K,
 \qquad
 B\xrightarrow{g}K,
-\]
+$$
 
 the join consists of compatible pairs:
 
-\[
+$$
 A\times_K B
 =
 \{(a,b)\mid f(a)=g(b)\}.
-\]
+$$
 
-An ordinary product \(A\times B\) permits every pair. A pullback permits only pairs agreeing on a shared key.
+An ordinary product $A\times B$ permits every pair. A pullback permits only pairs agreeing on a shared key.
 
 That distinction recurs throughout CS:
 
-\[
+$$
 \begin{aligned}
 \text{product} &:\quad \text{combine independent observations},\\
 \text{pullback} &:\quad \text{combine observations subject to compatibility}.
 \end{aligned}
-\]
+$$
 
 The broad CS intuition is therefore:
 
-\[
+$$
 \boxed{
 \text{A categorical product is the universal way to satisfy two observation interfaces simultaneously.}
 }
-\]
+$$
 
 Depending on what morphisms mean, “simultaneously” can become pairing values, satisfying two specifications, running systems in lockstep, preserving two graph mappings, or carrying two relations.
 

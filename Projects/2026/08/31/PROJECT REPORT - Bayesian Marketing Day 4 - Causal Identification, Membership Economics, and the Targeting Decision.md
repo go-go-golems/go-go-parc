@@ -29,7 +29,7 @@ This report is the complete technical account of Day 4 (ticket `day4-lab4-proj4`
 > [!summary]
 > - The balance audit (Task 2) produced a finding rather than a formality: all standardized differences pass the conventional 0.1 bar, but the privacy-project rate differs by −0.062 (a 1.96-SE finite-sample wobble the handout explicitly anticipates) — which is why the raw arm difference (0.265 orders) sits slightly below the model-based ATE and why the regression adjustment matters.
 > - Posterior g-computation estimated the ATE at 0.273 expected annual orders [0.176, 0.372], covering the instructor truth of 0.301, with CATEs ordered exactly as planted: privacy-project customers 0.394, high-baseline customers 0.459, low-baseline customers 0.089.
-> - Incremental profit is where nonlinearity bites (Hint 3 as arithmetic): fees add $119.40 per member-year while the 20% discount costs $38.80 and the $99-vs-$299 shipping threshold costs another $51.39 — membership raises orders by 0.27 and still loses money on roughly a quarter of customers. The posterior mean Δπ of $28.25 recovers the truth $29.12 to $0.87.
+> - Incremental profit is where nonlinearity bites (Hint 3 as arithmetic): fees add \$119.40 per member-year while the 20% discount costs \$38.80 and the $99-vs-$299 shipping threshold costs another \$51.39 — membership raises orders by 0.27 and still loses money on roughly a quarter of customers. The posterior mean Δπ of \$28.25 recovers the truth $29.12 to $0.87.
 > - Targeting on positive expected incremental profit adds ≈ $46,000 over offering everyone (expected total $158,958 vs $112,995; expected regret $78 vs $46,041); the risk-aware rule (P(Δπ > 0) > 0.80) trades $220 of expectation for a better 5th percentile.
 > - The voluntary contrast: the same model on self-selected membership estimates a membership coefficient of 0.332 [0.27, 0.40] against the randomized 0.153 — a raw voluntary arm difference of 0.749 annual orders against the causal 0.273. Narrow and wrong, in one plot.
 
@@ -94,7 +94,7 @@ For each posterior draw and customer, profit is computed under both membership s
 | P(Δπ > 0) | 0.764 |
 | truth mean Δπ (instructor) | $29.12 |
 
-The posterior mean recovers the truth to $0.87, and the components are the lesson: fees add $119.40 per member-year, but the discount costs $38.80 and the lower shipping threshold costs $51.39 in subsidized shipping — members cross $99 constantly while nonmembers rarely cross $299. Membership raises orders by 0.27 and still loses money on roughly a quarter of customers. That is not a modeling failure; it is the profit function being nonlinear in the treatment, which is precisely why the decision layer cannot be a plug-in calculation.
+The posterior mean recovers the truth to \$0.87, and the components are the lesson: fees add \$119.40 per member-year, but the discount costs \$38.80 and the lower shipping threshold costs \$51.39 in subsidized shipping — members cross $99 constantly while nonmembers rarely cross $299. Membership raises orders by 0.27 and still loses money on roughly a quarter of customers. That is not a modeling failure; it is the profit function being nonlinear in the treatment, which is precisely why the decision layer cannot be a plug-in calculation.
 
 ![](_assets/bayes-day4-heterogeneity.png)
 
@@ -112,7 +112,7 @@ Three policies, evaluated over the per-customer Δπ posterior on the target pop
 
 ![](_assets/bayes-day4-policy.png)
 
-Targeting on positive expected profit adds roughly $46,000 in expected profit over offering everyone — not by changing any outcome, but by not paying the discount-and-shipping costs on the customers whom membership loses money on. The risk-aware rule trades $220 of expectation for a slightly better 5th percentile ($147.6k vs $147.4k) and 95 fewer targeted customers; which rule is better encodes management's asymmetry between false-positive and false-negative offers, not a Bayesian law. The regret column makes the comparison legible: the best policy's regret is $78, the conservative rule gives up $298 in expectation, and offering everyone gives up $46,041.
+Targeting on positive expected profit adds roughly \$46,000 in expected profit over offering everyone — not by changing any outcome, but by not paying the discount-and-shipping costs on the customers whom membership loses money on. The risk-aware rule trades \$220 of expectation for a slightly better 5th percentile ($147.6k vs $147.4k) and 95 fewer targeted customers; which rule is better encodes management's asymmetry between false-positive and false-negative offers, not a Bayesian law. The regret column makes the comparison legible: the best policy's regret is \$78, the conservative rule gives up \$298 in expectation, and offering everyone gives up $46,041.
 
 ## 7. The voluntary contrast: narrow and wrong
 

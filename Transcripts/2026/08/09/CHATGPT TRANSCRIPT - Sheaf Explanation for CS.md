@@ -12,21 +12,21 @@ For a computer scientist, a **sheaf** is best thought of as:
 
 > **A data structure for storing information locally on regions, with rules saying when compatible local pieces can be assembled into one global piece.**
 
-Suppose your “space” is time, \(\mathbb R\), as in the slide. For every time interval \(U=(a,b)\), define
+Suppose your “space” is time, $\mathbb R$, as in the slide. For every time interval $U=(a,b)$, define
 
-\[
+$$
 B(U) = \{\text{all possible system behaviors during }U\}.
-\]
+$$
 
 A behavior might be a sensor trace, program execution, state trajectory, network signal, etc.
 
 ### 1. You can restrict data
 
-If you know a behavior on \(0<t<10\), you automatically know its behavior on \(3<t<5\):
+If you know a behavior on $0<t<10$, you automatically know its behavior on $3<t<5$:
 
-\[
+$$
 B((0,10)) \longrightarrow B((3,5)).
-\]
+$$
 
 In programming terms, this is like taking a slice:
 
@@ -45,9 +45,9 @@ behavior A:  t = 0 ... 6
 behavior B:  t = 4 ... 10
 ```
 
-They overlap on \(t=4...6\).
+They overlap on $t=4...6$.
 
-If A and B give **exactly the same behavior on that overlap**, then a sheaf says you can combine them into a behavior on \(0...10\):
+If A and B give **exactly the same behavior on that overlap**, then a sheaf says you can combine them into a behavior on $0...10$:
 
 ```text
 A:  ----------------
@@ -63,11 +63,11 @@ And importantly, that combined behavior is **unique**.
 
 That is essentially the sheaf condition:
 
-\[
+$$
 \text{compatible local data}
 \quad\Longleftrightarrow\quad
 \text{one global piece of data}.
-\]
+$$
 
 ### Why computer scientists might care
 
@@ -78,17 +78,17 @@ The distinction between a **presheaf** and a **sheaf** is useful here:
 - A **presheaf** gives you local data plus the ability to restrict it.
 - A **sheaf** additionally guarantees that mutually compatible local pieces glue uniquely.
 
-So the slide’s notation \(B(a,b)\) is essentially saying:
+So the slide’s notation $B(a,b)$ is essentially saying:
 
-> “For each time window \((a,b)\), store the set of possible behaviors the system can exhibit during that window.”
+> “For each time window $(a,b)$, store the set of possible behaviors the system can exhibit during that window.”
 
-If those behavior sets satisfy the gluing rule, \(B\) is a sheaf.
+If those behavior sets satisfy the gluing rule, $B$ is a sheaf.
 
 A very CS-flavored slogan is:
 
-\[
+$$
 \boxed{\text{Sheaf} = \text{local state} + \text{restriction} + \text{consistent composition}}
-\]
+$$
 
 And the interesting move in Spivak’s talk is that instead of describing a system primarily by a state machine or differential equation, you can describe it by **which behaviors are possible on every region**, together with how those behaviors fit together.
 
@@ -111,25 +111,25 @@ A useful way to move one level more abstract is to forget that the “regions”
 
 A sheaf is roughly a contravariant assignment
 
-\[
+$$
 U \mapsto F(U)
-\]
+$$
 
-where \(U\) is some **context/region**, \(F(U)\) is the information available on that context, and inclusions \(V\subseteq U\) give restriction maps
+where $U$ is some **context/region**, $F(U)$ is the information available on that context, and inclusions $V\subseteq U$ give restriction maps
 
-\[
+$$
 F(U)\to F(V).
-\]
+$$
 
-The extra sheaf condition says that compatible information on a cover \(U=\bigcup_i U_i\) corresponds to exactly one piece of information on \(U\).
+The extra sheaf condition says that compatible information on a cover $U=\bigcup_i U_i$ corresponds to exactly one piece of information on $U$.
 
 For set-valued sheaves, the formal condition is that
 
-\[
+$$
 F(U)\longrightarrow \prod_i F(U_i)
 \rightrightarrows
 \prod_{i,j} F(U_i\cap U_j)
-\]
+$$
 
 is an equalizer: a global object is exactly a family of local objects that agree pairwise on overlaps.
 
@@ -139,31 +139,31 @@ Here are some examples.
 
 This is the canonical mathematical example.
 
-For a topological space \(X\), define
+For a topological space $X$, define
 
-\[
+$$
 F(U)=\{f:U\to \mathbb R\mid f\text{ continuous}\}.
-\]
+$$
 
 Restriction is literally function restriction.
 
 If you have continuous functions
 
-\[
+$$
 f_i:U_i\to\mathbb R
-\]
+$$
 
 and
 
-\[
+$$
 f_i|_{U_i\cap U_j}=f_j|_{U_i\cap U_j},
-\]
+$$
 
 then they uniquely glue into
 
-\[
+$$
 f:\bigcup_i U_i\to\mathbb R.
-\]
+$$
 
 So continuous functions form a sheaf.
 
@@ -173,35 +173,35 @@ The same works for smooth functions, holomorphic functions, etc.
 
 ### 2. Vector fields / sections of a bundle
 
-Suppose \(M\) is a manifold. Let
+Suppose $M$ is a manifold. Let
 
-\[
+$$
 F(U)=\{\text{vector fields on }U\}.
-\]
+$$
 
 A vector field defined on a large region can be restricted to a smaller one.
 
 And if
 
-\[
+$$
 v_1\in F(U_1), \qquad v_2\in F(U_2)
-\]
+$$
 
-agree on \(U_1\cap U_2\), they give one vector field on \(U_1\cup U_2\).
+agree on $U_1\cap U_2$, they give one vector field on $U_1\cup U_2$.
 
 More generally, if you have a bundle
 
-\[
+$$
 E\to X,
-\]
+$$
 
 the assignment
 
-\[
+$$
 U\mapsto \Gamma(U,E)
-\]
+$$
 
-of **sections of the bundle over \(U\)** is a sheaf.
+of **sections of the bundle over $U$** is a sheaf.
 
 This is one reason “section” appears constantly in sheaf theory: a sheaf is abstracting the behavior of sections of geometric objects.
 
@@ -211,19 +211,19 @@ This is one reason “section” appears constantly in sheaf theory: a sheaf is 
 
 Suppose
 
-\[
+$$
 y''+y=0.
-\]
+$$
 
 Let
 
-\[
+$$
 F(U)=\{\text{solutions of }y''+y=0\text{ on }U\}.
-\]
+$$
 
 Again, solutions restrict.
 
-If you have a solution on \(U_1\) and another on \(U_2\), and they literally agree on the overlap, they glue to a solution on the union.
+If you have a solution on $U_1$ and another on $U_2$, and they literally agree on the overlap, they glue to a solution on the union.
 
 So you can think of the differential equation as determining a sheaf of its **locally possible behaviors**.
 
@@ -231,16 +231,16 @@ This is quite close to the systems-theoretic interpretation in the lecture you w
 
 Instead of saying
 
-\[
+$$
 \text{"the system is }y''+y=0",
-\]
+$$
 
 you can characterize it by
 
-\[
+$$
 U\mapsto
 \{\text{behaviors allowed on }U\}.
-\]
+$$
 
 ---
 
@@ -250,58 +250,58 @@ This is a nice CS interpretation.
 
 Suppose variables are
 
-\[
+$$
 x_1,x_2,x_3,x_4.
-\]
+$$
 
-For each subset \(U\) of variables, define
+For each subset $U$ of variables, define
 
-\[
+$$
 F(U)=\{\text{assignments of values to variables in }U\}.
-\]
+$$
 
 For example,
 
-\[
+$$
 F(\{x_1,x_2\})
-\]
+$$
 
 could contain assignments
 
-\[
+$$
 (x_1=3,x_2=7).
-\]
+$$
 
 Restriction means forgetting variables:
 
-\[
+$$
 (x_1=3,x_2=7,x_3=4)
 \mapsto
 (x_1=3,x_3=4).
-\]
+$$
 
 Now imagine two local assignments:
 
-\[
+$$
 \begin{aligned}
 s_1 &: x_1=3,\ x_2=7,\ x_3=4\\
 s_2 &: x_3=4,\ x_4=9.
 \end{aligned}
-\]
+$$
 
-They agree on their shared variable \(x_3\), so they glue:
+They agree on their shared variable $x_3$, so they glue:
 
-\[
+$$
 x_1=3,\quad x_2=7,\quad x_3=4,\quad x_4=9.
-\]
+$$
 
 This viewpoint becomes powerful when local contexts carry constraints. Then a major question is:
 
-\[
+$$
 \boxed{
 \text{Do locally consistent solutions come from a global solution?}
 }
-\]
+$$
 
 That is extremely close to the language of sheaves and **descent**.
 
@@ -315,47 +315,47 @@ You don't even need an ordinary geometric space.
 
 Take a graph
 
-\[
+$$
 A \longleftrightarrow B \longleftrightarrow C.
-\]
+$$
 
 Put a vector space of possible states on each node:
 
-\[
+$$
 V_A,\quad V_B,\quad V_C,
-\]
+$$
 
 and spaces describing shared/interface information on edges.
 
 For instance,
 
-\[
+$$
 V_A \xrightarrow{r_{AB}} V_{AB}
-\]
+$$
 
 and
 
-\[
+$$
 V_B \xrightarrow{r_{BA}} V_{AB}.
-\]
+$$
 
 A globally consistent state requires
 
-\[
+$$
 r_{AB}(a)=r_{BA}(b).
-\]
+$$
 
 Similarly,
 
-\[
+$$
 r_{BC}(b)=r_{CB}(c).
-\]
+$$
 
 So a global section is a tuple
 
-\[
+$$
 (a,b,c)
-\]
+$$
 
 satisfying all interface-consistency equations.
 
@@ -363,11 +363,11 @@ This leads to **cellular sheaves**, which are used to model things such as distr
 
 From a CS point of view, this is a particularly useful picture:
 
-\[
+$$
 \boxed{
 \text{objects have local state; interfaces specify what must agree}
 }
-\]
+$$
 
 and global sections are globally consistent system states.
 
@@ -379,41 +379,41 @@ There is also a database interpretation.
 
 Suppose one table/view contains attributes
 
-\[
+$$
 \{A,B,C\}
-\]
+$$
 
 and another contains
 
-\[
+$$
 \{B,C,D\}.
-\]
+$$
 
 Their common interface is
 
-\[
+$$
 \{B,C\}.
-\]
+$$
 
 Projection onto columns behaves like restriction:
 
-\[
+$$
 \pi_{BC}:R_{ABC}\to R_{BC}.
-\]
+$$
 
 If two pieces of data agree on their shared attributes, one can ask whether they can be joined into a consistent larger relation.
 
 So the sheaf viewpoint turns familiar operations
 
-\[
+$$
 \text{projection},\quad \text{join},\quad \text{consistency}
-\]
+$$
 
 into instances of
 
-\[
+$$
 \text{restriction},\quad \text{gluing},\quad \text{descent}.
-\]
+$$
 
 There are some subtleties here—arbitrary database schemas do not automatically give a sheaf—but the analogy becomes mathematically precise in appropriate categorical models.
 
@@ -425,17 +425,17 @@ Topology is not actually essential.
 
 You can replace “open subsets of a space” by an arbitrary category of **contexts**
 
-\[
+$$
 \mathcal C.
-\]
+$$
 
 Then a presheaf is a functor
 
-\[
+$$
 F:\mathcal C^{op}\to\mathbf{Set}.
-\]
+$$
 
-The objects of \(\mathcal C\) might mean:
+The objects of $\mathcal C$ might mean:
 
 - regions of space,
 - time intervals,
@@ -452,11 +452,11 @@ A sheaf is then a presheaf satisfying the appropriate gluing condition with resp
 
 So at the most abstract level:
 
-\[
+$$
 \boxed{
 \text{sheaf theory is a theory of consistent local-to-global information}
 }
-\]
+$$
 
 That is why it jumps surprisingly naturally from algebraic geometry to differential equations, distributed systems, databases, logic, and theoretical CS.
 
@@ -479,45 +479,45 @@ Yes. In PL/compilers, **presheaves are often the immediate structure**, and a sh
 
 A useful translation is:
 
-\[
+$$
 \text{open region} \rightsquigarrow \text{typing context / program point / world / interface}.
-\]
+$$
 
 ### Typing: contexts behave like regions
 
 Take a typing context
 
-\[
+$$
 \Gamma = x:A,\; y:B,\; z:C.
-\]
+$$
 
 Let
 
-\[
+$$
 \mathrm{Tm}(\Gamma)
-\]
+$$
 
-mean “terms meaningful in context \(\Gamma\).”
+mean “terms meaningful in context $\Gamma$.”
 
 If you substitute, rename, or forget variables, you get a map of contexts
 
-\[
+$$
 \sigma:\Delta\to\Gamma.
-\]
+$$
 
-A term in \(\Gamma\) can then be reinterpreted in \(\Delta\):
+A term in $\Gamma$ can then be reinterpreted in $\Delta$:
 
-\[
+$$
 t\in\mathrm{Tm}(\Gamma)
 \quad\mapsto\quad
 t[\sigma]\in\mathrm{Tm}(\Delta).
-\]
+$$
 
 So you get something like
 
-\[
+$$
 \mathrm{Tm}:\mathbf{Ctx}^{op}\to\mathbf{Set}.
-\]
+$$
 
 That is exactly a **presheaf**.
 
@@ -525,23 +525,23 @@ This is not just an analogy: presheaf categories are standard semantic universes
 
 For dependent types you get structures resembling
 
-\[
+$$
 \Gamma\mapsto \mathrm{Ty}(\Gamma)
-\]
+$$
 
 and
 
-\[
+$$
 (\Gamma,A)\mapsto \mathrm{Tm}(\Gamma,A),
-\]
+$$
 
 with substitution acting by reindexing:
 
-\[
+$$
 A\mapsto A[\sigma],
 \qquad
 t\mapsto t[\sigma].
-\]
+$$
 
 So one way to read “presheaf” as a PL person is:
 
@@ -553,29 +553,29 @@ So one way to read “presheaf” as a PL person is:
 
 Suppose a context or semantic world can be covered by smaller contexts
 
-\[
+$$
 U = U_1\cup U_2.
-\]
+$$
 
 You know an object locally:
 
-\[
+$$
 t_1\in F(U_1),\qquad t_2\in F(U_2).
-\]
+$$
 
 If their interpretations agree wherever both contexts can observe them,
 
-\[
+$$
 t_1|_{U_1\cap U_2}
 =
 t_2|_{U_1\cap U_2},
-\]
+$$
 
 a sheaf says there is one unique
 
-\[
+$$
 t\in F(U)
-\]
+$$
 
 having both as restrictions.
 
@@ -593,39 +593,39 @@ This is perhaps the cleanest PL example.
 
 Suppose worlds describe available resources:
 
-\[
+$$
 w_0\leq w_1\leq w_2.
-\]
+$$
 
-A semantic type \(A\) assigns to every world \(w\) the values valid there:
+A semantic type $A$ assigns to every world $w$ the values valid there:
 
-\[
+$$
 \llbracket A\rrbracket(w).
-\]
+$$
 
 Moving between worlds gives transport maps. This is fundamentally presheaf/Kripke structure.
 
 For example, in semantics of mutable state, a world might describe which heap locations exist:
 
-\[
+$$
 w=\{\ell_1:\text{int},\ell_2:\text{bool}\}.
-\]
+$$
 
 Then a semantic object may have information defined relative to that heap fragment.
 
 If worlds can be assembled from compatible pieces, sheaf conditions can express:
 
-\[
+$$
 \text{compatible semantics on heap fragments}
 \Rightarrow
 \text{semantics on the combined heap}.
-\]
+$$
 
 That is very close in spirit to separation logic:
 
-\[
+$$
 h=h_1 * h_2.
-\]
+$$
 
 Sheaf theory gives one mathematical vocabulary for saying that meaning is **local in resources and compositional under compatible combination**.
 
@@ -645,9 +645,9 @@ Take a CFG:
 
 Each basic block has some analysis information:
 
-\[
+$$
 F(B_i).
-\]
+$$
 
 For example:
 
@@ -661,25 +661,25 @@ Edges describe compatibility/transport between facts.
 
 You can think of
 
-\[
+$$
 F(B_i)\to F(e)
-\]
+$$
 
 as saying “what does the fact at this block imply at this interface?”
 
 A **global section** would be a choice
 
-\[
+$$
 (x_1,x_2,x_3,x_4)
-\]
+$$
 
 of information for every block such that every edge constraint is satisfied.
 
 Schematically:
 
-\[
+$$
 r_{B_2,e}(x_2)=r_{B_4,e}(x_4).
-\]
+$$
 
 This is strongly sheaf-like.
 
@@ -720,15 +720,15 @@ else region: x = x2
 
 At the join point, they cannot simply be claimed to be the same value.
 
-The \(\phi\)-node supplies the rule for producing the value appropriate to the combined control-flow context.
+The $\phi$-node supplies the rule for producing the value appropriate to the combined control-flow context.
 
 So although SSA itself is not “a sheaf”, there's a useful sheaf interpretation:
 
-\[
+$$
 \text{branch-local information}
 \longrightarrow
 \text{information valid after gluing control-flow paths}.
-\]
+$$
 
 A failure to reconcile branch information is exactly the kind of **local-to-global obstruction** sheaf language is designed to expose.
 
@@ -738,43 +738,43 @@ A failure to reconcile branch information is exactly the kind of **local-to-glob
 
 Here's another very PL-native one.
 
-Suppose you are proving contextual equivalence. For each typing context/world \(\Gamma\), define
+Suppose you are proving contextual equivalence. For each typing context/world $\Gamma$, define
 
-\[
+$$
 R(\Gamma)
-\]
+$$
 
-to be pairs of terms related at \(\Gamma\).
+to be pairs of terms related at $\Gamma$.
 
 Substitution should preserve the relation:
 
-\[
+$$
 (t_1,t_2)\in R(\Gamma)
 \implies
 (t_1[\sigma],t_2[\sigma])\in R(\Delta).
-\]
+$$
 
 Again:
 
-\[
+$$
 R:\mathbf{Ctx}^{op}\to\mathbf{Set}
-\]
+$$
 
 is naturally presheaf-shaped.
 
 Step-indexed logical relations make this even clearer: the “world” can include an index,
 
-\[
+$$
 (n,w),
-\]
+$$
 
 and semantic validity changes as you move through these worlds.
 
 A lot of sophisticated PL semantics can therefore be summarized as:
 
-\[
+$$
 \boxed{\text{meaning is indexed by context/world, and reindexes functorially}}
-\]
+$$
 
 which is precisely presheaf territory.
 
@@ -786,8 +786,8 @@ The correspondence I would keep in mind is:
 
 | Sheaf language | PL/compiler language |
 |---|---|
-| region \(U\) | context, world, program fragment |
-| \(F(U)\) | terms / values / facts valid there |
+| region $U$ | context, world, program fragment |
+| $F(U)$ | terms / values / facts valid there |
 | restriction | substitution, projection, forgetting, observation |
 | overlap | shared variables/resources/interface |
 | compatibility | same observable information on interface |
@@ -797,22 +797,22 @@ The correspondence I would keep in mind is:
 
 And the key distinction is:
 
-\[
+$$
 \boxed{
 \text{Presheaf} \approx \text{semantics under changing context}
 }
-\]
+$$
 
 while
 
-\[
+$$
 \boxed{
 \text{Sheaf} \approx
 \text{semantics under changing context}
 +
 \text{a local-to-global principle}.
 }
-\]
+$$
 
 If you're coming from type theory specifically, **“types and terms varying over contexts, with substitution as restriction”** is probably the fastest route into why category theorists see presheaves/sheaves everywhere in semantics.
 
@@ -825,45 +825,45 @@ A **semantic world** is an abstract description of the circumstances under which
 
 Think of it as an extra parameter to semantics:
 
-\[
+$$
 \llbracket A \rrbracket_w
-\]
+$$
 
 meaning:
 
-> “What does type \(A\) mean, assuming world \(w\)?”
+> “What does type $A$ mean, assuming world $w$?”
 
-The word **world** is deliberately vague. Depending on the semantics, \(w\) might describe the current heap layout, which resources exist, what invariants are assumed, how many computation steps remain, what other modules promise, which variables are observable, or some combination of these.
+The word **world** is deliberately vague. Depending on the semantics, $w$ might describe the current heap layout, which resources exist, what invariants are assumed, how many computation steps remain, what other modules promise, which variables are observable, or some combination of these.
 
 ### A concrete mutable-memory example
 
 Suppose a language has references. A world might be a description of allocated locations and their types:
 
-\[
+$$
 w =
 \{
 \ell_1 : \mathrm{Int},
 \ell_2 : \mathrm{Bool}
 \}.
-\]
+$$
 
 Then the semantic judgment
 
-\[
+$$
 w \models v : A
-\]
+$$
 
 means roughly:
 
-> “Under a heap having the structure described by \(w\), \(v\) behaves like an \(A\).”
+> “Under a heap having the structure described by $w$, $v$ behaves like an $A$.”
 
 For instance,
 
-\[
+$$
 \ell_1 \in \llbracket \mathrm{Ref\ Int}\rrbracket_w
-\]
+$$
 
-because world \(w\) says that \(\ell_1\) points to an integer.
+because world $w$ says that $\ell_1$ points to an integer.
 
 Now the program allocates another reference:
 
@@ -873,22 +873,22 @@ r = new String("hello")
 
 The semantic world grows to
 
-\[
+$$
 w' =
 \{
 \ell_1 : \mathrm{Int},
 \ell_2 : \mathrm{Bool},
 \ell_3 : \mathrm{String}
 \}.
-\]
+$$
 
 We write something like
 
-\[
+$$
 w \leq w'
-\]
+$$
 
-meaning “\(w'\) is a possible extension of \(w\).”
+meaning “$w'$ is a possible extension of $w$.”
 
 This ordering between worlds is central to **Kripke semantics**.
 
@@ -896,15 +896,15 @@ This ordering between worlds is central to **Kripke semantics**.
 
 A semantic type can therefore be thought of not simply as a set of values,
 
-\[
+$$
 \llbracket A\rrbracket \subseteq \mathrm{Values},
-\]
+$$
 
 but as something varying with worlds:
 
-\[
+$$
 w \mapsto \llbracket A\rrbracket_w.
-\]
+$$
 
 For example:
 
@@ -921,17 +921,17 @@ World w2:
 
 with
 
-\[
+$$
 w_0 \leq w_1 \leq w_2.
-\]
+$$
 
-If a value is valid at \(w_0\), we'd often require it to remain valid as the world grows:
+If a value is valid at $w_0$, we'd often require it to remain valid as the world grows:
 
-\[
+$$
 v\in\llbracket A\rrbracket_{w_0}
 \Rightarrow
 v\in\llbracket A\rrbracket_{w_1}.
-\]
+$$
 
 This property is sometimes called **monotonicity**, **persistence**, or **Kripke monotonicity**, depending on the setting.
 
@@ -951,7 +951,7 @@ f = () => {
 
 The meaning of `f` depends on an external fact:
 
-> There exists some location \(x\), and it continues to satisfy a particular invariant.
+> There exists some location $x$, and it continues to satisfy a particular invariant.
 
 That fact isn't really part of `f`'s syntax or ordinary lexical environment. A semantic world can record it.
 
@@ -972,89 +972,89 @@ These are related but usually different.
 
 An **environment** says what program variables denote:
 
-\[
+$$
 \rho =
 \{
 x\mapsto 42,\;
 f\mapsto \text{some closure}
 \}.
-\]
+$$
 
 A **world** describes ambient semantic assumptions:
 
-\[
+$$
 w =
 \{
 \ell_1:\mathrm{Int},
 \ell_2:\mathrm{Bool}
 \}.
-\]
+$$
 
 So you might interpret a term as
 
-\[
+$$
 \llbracket e\rrbracket_{\rho,w}.
-\]
+$$
 
 Very roughly:
 
-\[
+$$
 \boxed{
 \rho = \text{what the names mean}
 }
-\]
+$$
 
 whereas
 
-\[
+$$
 \boxed{
 w = \text{what is assumed about the surrounding universe}
 }
-\]
+$$
 
 ### Worlds don't have to describe memory
 
 For step-indexed semantics, a world might contain a natural number:
 
-\[
+$$
 w=n.
-\]
+$$
 
 Then
 
-\[
+$$
 v\in\llbracket A\rrbracket_n
-\]
+$$
 
 means something like:
 
-> \(v\) behaves like an \(A\) for at least the next \(n\) computational steps.
+> $v$ behaves like an $A$ for at least the next $n$ computational steps.
 
 World accessibility goes downward:
 
-\[
+$$
 n+1 \to n.
-\]
+$$
 
 This gives a way to define otherwise circular semantic objects, especially recursive types.
 
 In concurrent separation logic, a world may instead encode ownership and invariants:
 
-\[
+$$
 w =
 \{
 \text{resource }R_1\text{ satisfies }I_1,\;
 R_2\text{ satisfies }I_2
 \}.
-\]
+$$
 
 In modal semantics, a world might represent one possible state of knowledge, and
 
-\[
+$$
 wRv'
-\]
+$$
 
-means that \(v'\) is a possible world reachable from \(w\).
+means that $v'$ is a possible world reachable from $w$.
 
 ---
 
@@ -1062,37 +1062,37 @@ And this connects directly back to your sheaf question.
 
 Instead of having one fixed interpretation
 
-\[
+$$
 F,
-\]
+$$
 
 we have information indexed by worlds:
 
-\[
+$$
 w\mapsto F(w).
-\]
+$$
 
 Moving between worlds induces maps between the corresponding semantic information. So a category of worlds
 
-\[
+$$
 \mathcal W
-\]
+$$
 
 can give rise to a presheaf such as
 
-\[
+$$
 F:\mathcal W^{op}\to\mathbf{Set}.
-\]
+$$
 
 That's why **Kripke semantics, possible-world semantics, presheaf semantics, and sheaf semantics** often appear near one another.
 
 The key mental model is:
 
-\[
+$$
 \boxed{
 \text{A semantic world is a formalized “under these assumptions…” parameter.}
 }
-\]
+$$
 
 It makes the context that semantic truth depends on explicit.
 
@@ -1117,84 +1117,84 @@ I’d keep the JavaScript API ordinary—operations, tools, regions, fixtures—
 
 Yes. Your architecture is unusually well suited to a sheaf/presheaf viewpoint because you already have two different notions of composition:
 
-\[
+$$
 \text{geometry composes spatially}
-\]
+$$
 
 while
 
-\[
+$$
 \text{machine behavior composes temporally}.
-\]
+$$
 
 I would **not make “sheaf” a user-facing JS abstraction**. I would use it to structure the semantics, IR contracts, locality, and compiler correctness.
 
 ## 1. Spatial sheaf for the denotational geometry
 
-Let \(X\) be the machine/workpiece workspace.
+Let $X$ be the machine/workpiece workspace.
 
-For a region \(U\subseteq X\), define something like
+For a region $U\subseteq X$, define something like
 
-\[
+$$
 G(U)
 =
 \{\text{geometric facts/effects observable inside }U\}.
-\]
+$$
 
 For your CAM system that could include:
 
-- stock geometry in \(U\)
-- intended final geometry in \(U\)
-- material to remove in \(U\)
+- stock geometry in $U$
+- intended final geometry in $U$
+- material to remove in $U$
 - tolerance field
 - keep-out geometry
-- cutter swept volume in \(U\)
+- cutter swept volume in $U$
 
 Restriction is obvious:
 
-\[
+$$
 G(U)\to G(V),\qquad V\subseteq U
-\]
+$$
 
-by clipping/intersecting with \(V\).
+by clipping/intersecting with $V$.
 
 For example:
 
-\[
+$$
 R_U = \text{material removed in }U
-\]
+$$
 
 restricts as
 
-\[
+$$
 R_U|_V = R_U\cap V.
-\]
+$$
 
-If two geometric results on \(U_1\) and \(U_2\) agree on
+If two geometric results on $U_1$ and $U_2$ agree on
 
-\[
+$$
 U_1\cap U_2,
-\]
+$$
 
 they can be glued into a geometric result on
 
-\[
+$$
 U_1\cup U_2.
-\]
+$$
 
 That's an extremely natural sheaf.
 
 So your denotational semantics could conceptually be
 
-\[
+$$
 \llbracket p\rrbracket_G \in G(X).
-\]
+$$
 
 But importantly, you can ask for it locally:
 
-\[
+$$
 \llbracket p\rrbracket_G|_U.
-\]
+$$
 
 That locality can become operationally useful in the compiler.
 
@@ -1204,17 +1204,17 @@ That locality can become operationally useful in the compiler.
 
 Now use time rather than space.
 
-For a time interval \(I\), define
+For a time interval $I$, define
 
-\[
+$$
 B(I)
 =
 \{\text{possible mill behaviors during }I\}.
-\]
+$$
 
 A behavior could contain
 
-\[
+$$
 b(t)=
 (
 q(t),
@@ -1226,27 +1226,27 @@ v(t),
 \text{modalState}(t),
 \text{stock}(t)
 ).
-\]
+$$
 
-Here \(q(t)\) could be the complete machine configuration, not merely XYZ.
+Here $q(t)$ could be the complete machine configuration, not merely XYZ.
 
 A trace on
 
-\[
+$$
 I=[0,20]
-\]
+$$
 
 can clearly be restricted to
 
-\[
+$$
 J=[7,12].
-\]
+$$
 
 So
 
-\[
+$$
 B(I)\to B(J).
-\]
+$$
 
 If two complete traces overlap and agree on their overlap, they glue uniquely.
 
@@ -1274,9 +1274,9 @@ The local pieces don't uniquely determine their glue.
 
 That's not a bug. It means:
 
-\[
+$$
 \text{planning} = \text{finding a global section}
-\]
+$$
 
 rather than merely invoking the sheaf gluing theorem.
 
@@ -1297,15 +1297,15 @@ const p = sequence(
 
 You already have approximately:
 
-\[
+$$
 p
 \overset{\text{denotation}}{\longmapsto}
 \text{geometry}
-\]
+$$
 
 and
 
-\[
+$$
 p
 \overset{\text{compiler}}{\longmapsto}
 IR
@@ -1313,57 +1313,57 @@ IR
 GCode
 \overset{\text{machine semantics}}{\longmapsto}
 \text{behavior}.
-\]
+$$
 
 So make the bridge explicit.
 
 Let
 
-\[
+$$
 D(p)
-\]
+$$
 
 be the intended geometric effect.
 
 Let
 
-\[
+$$
 \operatorname{exec}(\operatorname{compile}(p))
-\]
+$$
 
 be the operational trace.
 
 Then define
 
-\[
+$$
 \operatorname{effect} : B \to G
-\]
+$$
 
 where `effect` computes the physical geometric consequence of a trace.
 
 Conceptually:
 
-\[
+$$
 \operatorname{effect}(b)
 =
 \bigcup_t \operatorname{CutterVolume}(q(t)).
-\]
+$$
 
-If \(S_0\) is the initial stock,
+If $S_0$ is the initial stock,
 
-\[
+$$
 S_{\text{final}}
 =
 S_0
 \setminus
 \operatorname{sweptVolume}(b)
-\]
+$$
 
 in an idealized milling model.
 
 Then your central compiler correctness property becomes something like
 
-\[
+$$
 \boxed{
 \operatorname{effect}
 (
@@ -1372,9 +1372,9 @@ Then your central compiler correctness property becomes something like
 \approx
 D(p)
 }
-\]
+$$
 
-where \(\approx\) incorporates your machining tolerance/model.
+where $\approx$ incorporates your machining tolerance/model.
 
 That's a very strong architecture.
 
@@ -1386,27 +1386,27 @@ This is where I think it becomes genuinely useful rather than category-theory de
 
 Suppose the workspace is covered by regions
 
-\[
+$$
 X=U_1\cup U_2\cup\cdots\cup U_n.
-\]
+$$
 
 Instead of proving
 
-\[
+$$
 \operatorname{effect}(\operatorname{exec}(C(p)))
 =
 D(p)
-\]
+$$
 
 over the entire giant BRep/mesh/voxel volume at once, verify
 
-\[
+$$
 \operatorname{effect}(\operatorname{exec}(C(p)))|_{U_i}
 \approx
 D(p)|_{U_i}
-\]
+$$
 
-for every \(U_i\).
+for every $U_i$.
 
 If your geometric semantics is genuinely sheaf-like, agreement on the local pieces gives you the global result.
 
@@ -1453,17 +1453,17 @@ pocket(foo, { depth: 12.5 })
 
 If you know its spatial support is approximately
 
-\[
+$$
 U\subset X,
-\]
+$$
 
-then the denotation hasn't changed outside \(U\):
+then the denotation hasn't changed outside $U$:
 
-\[
+$$
 D(p_{\text{old}})|_{X-U}
 =
 D(p_{\text{new}})|_{X-U}.
-\]
+$$
 
 That gives you a principled basis for not recomputing the whole program.
 
@@ -1559,9 +1559,9 @@ and similarly for active WCS, units, feed mode, cutter comp, etc.
 
 So an IR fragment is better understood as something like
 
-\[
+$$
 IR : W_{\mathrm{in}}\to W_{\mathrm{out}}.
-\]
+$$
 
 In other words, your IR is really carrying an **effect system**.
 
@@ -1571,7 +1571,7 @@ In other words, your IR is really carrying an **effect system**.
 
 Your world could be
 
-\[
+$$
 w =
 (
 \text{machine},
@@ -1583,13 +1583,13 @@ w =
 \text{tolerance},
 \ldots
 ).
-\]
+$$
 
 Then semantics varies with that context:
 
-\[
+$$
 w\mapsto \llbracket p\rrbracket_w.
-\]
+$$
 
 You can also have forgetful maps between contexts.
 
@@ -1614,9 +1614,9 @@ So semantics gets progressively instantiated/refined.
 
 This is exactly the kind of situation where a context-indexed presheaf viewpoint becomes useful:
 
-\[
+$$
 F:\mathcal W^{op}\to\mathbf{Sem}.
-\]
+$$
 
 You don't necessarily need `Set` as the codomain. It might be:
 
@@ -1648,15 +1648,15 @@ G-code
 
 Each level has local semantics.
 
-Then you'd like a compiler pass \(C\) to commute with restriction.
+Then you'd like a compiler pass $C$ to commute with restriction.
 
 Informally:
 
-\[
+$$
 C(p)|_U
 \approx
 C(p|_U).
-\]
+$$
 
 In words:
 
@@ -1680,7 +1680,7 @@ whole part
 └─────────────────────────────┘
 ```
 
-You can reason that changes confined to \(U\) should not mysteriously alter compiled behavior 300 mm away, except through explicitly modeled global dependencies such as:
+You can reason that changes confined to $U$ should not mysteriously alter compiled behavior 300 mm away, except through explicitly modeled global dependencies such as:
 
 - tool ordering
 - tool changes
@@ -1713,9 +1713,9 @@ sequence(a, b)
 
 which is emphatically ordered:
 
-\[
+$$
 a;b \neq b;a.
-\]
+$$
 
 Those shouldn't be conflated.
 
@@ -1750,23 +1750,23 @@ sequence(
 
 The first layer is very sheaf-like:
 
-\[
+$$
 \text{compatible local geometry}
 \to
 \text{global geometry}.
-\]
+$$
 
 The second is categorical/operational:
 
-\[
+$$
 f:A\to B,\quad g:B\to C
-\]
+$$
 
 compose as
 
-\[
+$$
 g\circ f:A\to C.
-\]
+$$
 
 I would preserve that distinction architecturally.
 
@@ -1843,25 +1843,25 @@ If you wanted to push the idea farther, I'd actually consider a presheaf over **
 
 Let
 
-\[
+$$
 U\subseteq X,\qquad I\subseteq T.
-\]
+$$
 
 Define
 
-\[
+$$
 B(U,I)
-\]
+$$
 
-to contain observations of machine behavior occurring in spatial region \(U\) during time \(I\).
+to contain observations of machine behavior occurring in spatial region $U$ during time $I$.
 
 For example, you could interpret execution as an occupancy field
 
-\[
+$$
 \operatorname{occ}(x,t)
-\]
+$$
 
-saying whether location \(x\) at time \(t\) contains:
+saying whether location $x$ at time $t$ contains:
 
 ```text
 cutter
@@ -1876,12 +1876,12 @@ Now collision is just a bad local spacetime configuration.
 
 And final removed material is obtained by forgetting/projecting the time dimension:
 
-\[
+$$
 R(x)
 =
 \exists t:
 \operatorname{cutter}(x,t).
-\]
+$$
 
 That gives a surprisingly elegant relationship between your operational and geometric semantics:
 
@@ -1917,21 +1917,21 @@ So don't try to prove everything is a sheaf.
 
 A good division would be:
 
-\[
+$$
 \boxed{
 \text{presheaf} =
 \text{we can observe/restrict semantics locally}
 }
-\]
+$$
 
 and
 
-\[
+$$
 \boxed{
 \text{sheaf} =
 \text{local observations completely determine compatible global semantics}
 }
-\]
+$$
 
 When the latter fails, that failure tells you where the planner/optimizer has genuine global work to do.
 
@@ -1968,13 +1968,13 @@ The architecture I would probably aim for is:
 
 The particularly attractive theorem is then:
 
-\[
+$$
 \boxed{
 \text{realized geometry of compiled operational behavior}
 \approx
 \text{denotational geometry of the source program}
 }
-\]
+$$
 
 and sheaf-style locality gives you a route to make that theorem **incremental, spatially decomposable, and diagnosable**, rather than one giant whole-program claim.
 
@@ -2019,39 +2019,39 @@ I’m using overlap agreement as a verification condition: independently compile
 
 The most useful compiler interpretation of locality is:
 
-> **To compile what happens in region \(U\), I should only need the source and semantic context near \(U\), plus a small explicit boundary interface.**
+> **To compile what happens in region $U$, I should only need the source and semantic context near $U$, plus a small explicit boundary interface.**
 
 That gives you something much stronger than “the compiler happens to be modular.” It gives you a rule for **dependency tracking, invalidation, separate compilation, optimization, and verification**.
 
 ### A compiler pass can have a support law
 
-Suppose \(C\) is a compiler pass and \(p\) is a CAM program. Ideally you get something like
+Suppose $C$ is a compiler pass and $p$ is a CAM program. Ideally you get something like
 
-\[
+$$
 C(p)|_U
 =
 C(p|_U).
-\]
+$$
 
-Meaning: compiling the whole program and then inspecting region \(U\) gives the same answer as first restricting the problem to \(U\) and compiling just that.
+Meaning: compiling the whole program and then inspecting region $U$ gives the same answer as first restricting the problem to $U$ and compiling just that.
 
 For CAM, exact locality is usually too strong. A cutter has radius, lead-ins cross boundaries, smoothing looks ahead, etc. So a more realistic property is
 
-\[
+$$
 C(p)|_U
 \quad\text{depends only on}\quad
 p|_{\operatorname{halo}(U)}
-\]
+$$
 
 where
 
-\[
+$$
 \operatorname{halo}(U) \supseteq U
-\]
+$$
 
 is an influence region.
 
-For a 6 mm end mill, for example, geometry inside \(U\) might depend on target geometry within at least a 3 mm expansion of \(U\). Corner smoothing might increase that further.
+For a 6 mm end mill, for example, geometry inside $U$ might depend on target geometry within at least a 3 mm expansion of $U$. Corner smoothing might increase that further.
 
 This is immediately useful for **incremental compilation**.
 
@@ -2067,13 +2067,13 @@ to
 pocket(p17, { depth: 5.5 })
 ```
 
-You compute the changed spatial support \(D\). Then you only invalidate compiler artifacts whose dependency/support regions intersect its influence region:
+You compute the changed spatial support $D$. Then you only invalidate compiler artifacts whose dependency/support regions intersect its influence region:
 
-\[
+$$
 \operatorname{support}(node)\cap
 \operatorname{influence}(D)
 \neq\varnothing.
-\]
+$$
 
 The other 99 pockets don't need their geometry, offset calculations, collision queries, simulation, or semantic verification recomputed.
 
@@ -2134,13 +2134,13 @@ Different compiler analyses therefore have different notions of support.
 
 That's a useful design principle in itself:
 
-\[
+$$
 \operatorname{support}_{geometry}(p)
 \neq
 \operatorname{support}_{collision}(p)
 \neq
 \operatorname{support}_{schedule}(p).
-\]
+$$
 
 ---
 
@@ -2148,15 +2148,15 @@ That's a useful design principle in itself:
 
 Suppose the workpiece is covered by regions
 
-\[
+$$
 X=U_1\cup U_2\cup U_3.
-\]
+$$
 
 Rather than compiling one giant object, you can compile fragments
 
-\[
+$$
 C_1,\ C_2,\ C_3
-\]
+$$
 
 with explicit interfaces.
 
@@ -2194,26 +2194,26 @@ This is where the sheaf language becomes interesting.
 
 Each region doesn't necessarily produce **one** toolpath. It might produce a set of possible implementations:
 
-\[
+$$
 F(U)=
 \{\text{valid machine behaviors implementing }U\}.
-\]
+$$
 
 The global planner is then looking for elements
 
-\[
+$$
 b_i\in F(U_i)
-\]
+$$
 
 whose boundary conditions agree.
 
 So:
 
-\[
+$$
 \boxed{
 \text{planning can be viewed as finding a compatible global section.}
 }
-\]
+$$
 
 That is more interesting than merely saying “toolpaths form a sheaf.”
 
@@ -2274,29 +2274,29 @@ This is analogous to a compiler realizing that a function doesn't depend on ever
 
 The presheaf/world viewpoint pushes you toward making that dependency precise:
 
-\[
+$$
 \llbracket p\rrbracket_w
-\]
+$$
 
 should ideally depend on only some projection
 
-\[
+$$
 \pi_p(w)
-\]
+$$
 
 of the world.
 
 Thus if
 
-\[
+$$
 \pi_p(w_1)=\pi_p(w_2),
-\]
+$$
 
 you can reuse the result even though
 
-\[
+$$
 w_1\neq w_2.
-\]
+$$
 
 That's a potentially large cache win.
 
@@ -2314,27 +2314,27 @@ optimized toolpath
 
 such as simplifying collinear moves or replacing many short segments with an arc.
 
-If the rewrite occurs entirely inside \(U\), you can establish:
+If the rewrite occurs entirely inside $U$, you can establish:
 
-\[
+$$
 D(\text{before})|_U
 \approx
 D(\text{after})|_U
-\]
+$$
 
 and verify that the boundary behavior is preserved:
 
-\[
+$$
 \operatorname{boundary}(\text{before})
 =
 \operatorname{boundary}(\text{after}).
-\]
+$$
 
 Then the rest of the program does not need to participate in the proof.
 
 This gives a **frame-like compiler rule**:
 
-\[
+$$
 \frac{
 p \approx q\text{ on }U
 \qquad
@@ -2342,9 +2342,9 @@ p \approx q\text{ on }U
 }{
 p;r \approx q;r
 }
-\]
+$$
 
-provided \(r\) is outside the affected support and no declared global dependency connects them.
+provided $r$ is outside the affected support and no declared global dependency connects them.
 
 Conceptually that's very similar to separation logic:
 
@@ -2358,30 +2358,30 @@ For a optimizing CAM compiler, this could be extremely useful.
 
 You described having
 
-\[
+$$
 D(p)
-\]
+$$
 
 as denotational geometry and an operational machine semantics
 
-\[
+$$
 \operatorname{Exec}(C(p)).
-\]
+$$
 
 Then suppose
 
-\[
+$$
 E(\operatorname{Exec}(C(p)))
-\]
+$$
 
 turns the machine trace into realized geometry.
 
 Your correctness condition is something like
 
-\[
+$$
 E(\operatorname{Exec}(C(p)))
 \approx D(p).
-\]
+$$
 
 Without locality, failure gives:
 
@@ -2403,11 +2403,11 @@ With locality, cover the part:
 
 and check
 
-\[
+$$
 E(\operatorname{Exec}(C(p)))|_{U_i}
 \approx
 D(p)|_{U_i}.
-\]
+$$
 
 Now you can report:
 
@@ -2424,7 +2424,7 @@ U5 ✓
 ...
 ```
 
-And then recursively subdivide \(U_4\).
+And then recursively subdivide $U_4$.
 
 That's essentially **semantic delta-debugging in space**.
 
@@ -2453,23 +2453,23 @@ The overlap is where you test compatibility.
 
 For geometry this could mean:
 
-\[
+$$
 G_1|_{U_1\cap U_2}
 \approx
 G_2|_{U_1\cap U_2}.
-\]
+$$
 
 For machine fragments it could mean compatible machine state, stock state, clearance conditions, etc.
 
 This is the compiler version of the sheaf gluing condition:
 
-\[
+$$
 \text{local correctness}
 +
 \text{overlap compatibility}
 \Rightarrow
 \text{global correctness}.
-\]
+$$
 
 In actual numeric CAM you'd likely have an **approximate** compatibility relation due to tolerances rather than literal mathematical equality.
 
@@ -2481,21 +2481,21 @@ Locality shouldn't become a religion.
 
 For example, these are inherently global:
 
-\[
+$$
 \text{minimize tool changes}
-\]
+$$
 
-\[
+$$
 \text{schedule all operations}
-\]
+$$
 
-\[
+$$
 \text{find globally shortest traversal}
-\]
+$$
 
-\[
+$$
 \text{choose a fixture/setup strategy}
-\]
+$$
 
 A tiny change in one pocket could legitimately change operation order over the whole job.
 
@@ -2534,12 +2534,12 @@ That is much more useful than pretending all dependencies are equal.
 
 So if I were turning the sheaf idea into a practical compiler abstraction, I wouldn't start with a `Sheaf<T>` class. I'd start with this invariant:
 
-\[
+$$
 \boxed{
 \text{Every compiler artifact should say what region/world facts it depends on,
 what region it affects, and what boundary contract it exposes.}
 }
-\]
+$$
 
 Restriction then gives you **incrementality**, supports give you **precise invalidation**, boundary contracts give you **separate compilation**, gluing gives you **composition**, and local semantic equivalence gives you **modular verification and optimization**.
 

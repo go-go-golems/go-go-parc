@@ -232,7 +232,7 @@ svg.append('<text x="430" y="603" font-family="Inter,Arial,sans-serif" font-size
 svg.append('</svg>')
 
 path = Path('/mnt/data/neon_heart_box_score.svg')
-path.write_text("\n".join(svg), encoding='utf-8')
+path.write_text("\\n".join(svg), encoding='utf-8')
 print(path)
 
 ```

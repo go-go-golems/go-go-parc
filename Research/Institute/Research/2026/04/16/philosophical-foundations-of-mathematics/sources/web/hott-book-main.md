@@ -5,18 +5,18 @@
 The Univalent Foundations Program  
 Institute for Advanced Study
 
-- [Buy a hardcover copy for $21.00.](http://www.lulu.com/shop/univalent-foundations-project/homotopy-type-theory-hardcover/hardcover/product-21076997.html "HoTT book hardcover")  
-	\[620 pages, 6″ × 9″ size, hardcover, first-edition-1277-g3274cb3\]
-- [Buy a paperback copy for $14.00.](http://www.lulu.com/shop/univalent-foundations-project/homotopy-type-theory-paperback/paperback/product-21077021.html "HoTT book paperback")  
-	\[620 pages, 6″ × 9″ size, paperback, first-edition-1277-g3274cb3\]
+- [Buy a hardcover copy for \$21.00.](http://www.lulu.com/shop/univalent-foundations-project/homotopy-type-theory-hardcover/hardcover/product-21076997.html "HoTT book hardcover")  
+	\$$620 pages, 6″ × 9″ size, hardcover, first-edition-1277-g3274cb3$\$
+- [Buy a paperback copy for \$14.00.](http://www.lulu.com/shop/univalent-foundations-project/homotopy-type-theory-paperback/paperback/product-21077021.html "HoTT book paperback")  
+	$$620 pages, 6″ × 9″ size, paperback, first-edition-1277-g3274cb3$$
 - [Download PDF for on-screen viewing.](https://hott.github.io/book/hott-online.pdf.html "HoTT book online")  
-	\[490+ pages, letter size, in color, with color links\]
+	$$490+ pages, letter size, in color, with color links$$
 - [Download PDF for e-books.](https://hott.github.io/book/hott-ebook.pdf.html "HoTT book for ebooks")  
-	\[622+ pages, size 6″ × 9″, small margins, black and white\]
+	$$622+ pages, size 6″ × 9″, small margins, black and white$$
 - [Download PDF for printing on letter paper](https://hott.github.io/book/hott-letter.pdf.html "HoTT book for letter printing") and [color cover](https://homotopytypetheory.org/wp-content/uploads/2013/03/cover-letter.pdf).  
-	\[492+ pages, letter size, black and white, separate color cover\]
+	$$492+ pages, letter size, black and white, separate color cover$$
 - [Download PDF for printing on A4 paper](https://hott.github.io/book/hott-a4.pdf.html "HoTT book for A4 printing") and [color cover](https://homotopytypetheory.org/wp-content/uploads/2013/03/cover-a4.pdf).  
-	\[454+ pages, A4 size, black and white, separate color cover\]
+	$$454+ pages, A4 size, black and white, separate color cover$$
 - [Download errata](https://hott.github.io/book/errata.pdf.html "Errata for HoTT book") for previous versions (see below).
 - [Nightly builds page](https://github.com/HoTT/book/wiki/Nightly-Builds "HoTT book nightly builds") (with direct links to the most recent versions; the above “released” versions are redirects to these)
 

@@ -282,15 +282,15 @@ type Curve3<F> =
 
 where conceptually a curve is
 
-\[
+$$
 \gamma : [0,1] \to \mathbb{R}^3
-\]
+$$
 
 or, more generally for future 5-axis work,
 
-\[
+$$
 \gamma : [0,1] \to SE(3)
-\]
+$$
 
 because the tool has both a position and orientation.
 
@@ -325,39 +325,39 @@ There is a particularly natural categorical structure here.
 
 Take points/poses as objects and continuous paths between them as morphisms:
 
-\[
+$$
 p \xrightarrow{\gamma} q
-\]
+$$
 
 Two paths compose exactly when the endpoint of one equals the start point of the next:
 
-\[
+$$
 \gamma_1 : p \to q
 \qquad
 \gamma_2 : q \to r
-\]
+$$
 
 giving
 
-\[
+$$
 \gamma_2 \circ \gamma_1 : p \to r.
-\]
+$$
 
 The identity morphism is the zero-length path.
 
 So your fundamental path API can literally obey the category laws:
 
-\[
+$$
 (f \circ g) \circ h
 =
 f \circ (g \circ h)
-\]
+$$
 
 and
 
-\[
+$$
 id \circ f = f = f \circ id.
-\]
+$$
 
 In TypeScript-ish form:
 
@@ -378,15 +378,15 @@ This is much more than mathematical decoration. It means discontinuous paths bec
 
 Transforms then act functorially:
 
-\[
+$$
 T(id_p)=id_{T(p)}
-\]
+$$
 
 and
 
-\[
+$$
 T(g\circ f)=T(g)\circ T(f).
-\]
+$$
 
 These become excellent property tests.
 
@@ -394,7 +394,7 @@ These become excellent property tests.
 
 # 4. Geometry itself should be algebraic
 
-For ordinary 2.5D CAM, I would treat planar machining geometry primarily as **regular closed subsets of** \(\mathbb R^2\), rather than as arbitrary polygon lists.
+For ordinary 2.5D CAM, I would treat planar machining geometry primarily as **regular closed subsets of** $\mathbb R^2$, rather than as arbitrary polygon lists.
 
 Then:
 
@@ -411,11 +411,11 @@ have clear mathematical meanings.
 
 For example, cutter compensation and tool-accessible regions are naturally related to Minkowski operations:
 
-\[
+$$
 A \oplus B
 =
 \{a+b\mid a\in A,b\in B\}.
-\]
+$$
 
 A tool-center exclusion region is essentially an obstacle dilated by the reflected cutter.
 
@@ -519,20 +519,20 @@ interface RapidTo<F> {
 
 Its denotation is machine-dependent:
 
-\[
+$$
 Rapid_M(p,q)
 \subseteq Paths(p,q).
-\]
+$$
 
 For a machine with independent-axis rapid motion, the actual trajectory is determined by the machine/controller kinematics.
 
 Consequently a safety proof for a rapid is:
 
-\[
+$$
 \forall \gamma \in Rapid_M(p,q),
 \quad
 Sweep(tool,\gamma)\cap Obstacles=\emptyset.
-\]
+$$
 
 If you specifically require a geometrically straight non-cutting move, that's a coordinated feed move, not a rapid:
 
@@ -568,12 +568,12 @@ interface MachineState {
 
 Then a program denotes a partial state transformation:
 
-\[
+$$
 \llbracket P\rrbracket :
 (MachineState,World)
 \to
 Result<(MachineState,World),Fault>.
-\]
+$$
 
 Categorically, these are arrows in the Kleisli category of a state/error computation.
 
@@ -587,13 +587,13 @@ seq(a, b, c)
 
 means
 
-\[
+$$
 \llbracket c\rrbracket
 \circ
 \llbracket b\rrbracket
 \circ
 \llbracket a\rrbracket.
-\]
+$$
 
 That becomes your fundamental program combinator.
 
@@ -605,38 +605,38 @@ This is where the mathematical model gets especially useful.
 
 Let the stock be a solid
 
-\[
+$$
 S\subseteq\mathbb R^3
-\]
+$$
 
 and the cutter geometry be
 
-\[
+$$
 K\subseteq\mathbb R^3.
-\]
+$$
 
 For a tool trajectory
 
-\[
+$$
 \gamma:[0,1]\to SE(3)
-\]
+$$
 
 define its swept volume:
 
-\[
+$$
 Sweep(K,\gamma)
 =
 \bigcup_{t\in[0,1]}
 \gamma(t)K.
-\]
+$$
 
 Then a cutting motion has the simple denotation:
 
-\[
+$$
 S'
 =
 S\setminus Sweep(K,\gamma).
-\]
+$$
 
 This should be the reference semantics of your simulator.
 
@@ -679,7 +679,7 @@ and define transformations:
 Transform<Part, Machine>
 ```
 
-Conceptually these are elements of \(SE(3)\) for rigid coordinate systems.
+Conceptually these are elements of $SE(3)$ for rigid coordinate systems.
 
 Then:
 
@@ -936,17 +936,17 @@ There is a useful north-star property for every compiler pass.
 
 Given:
 
-\[
+$$
 C : SemanticProgram \to ControllerProgram
-\]
+$$
 
 we want
 
-\[
+$$
 C(g\circ f)
 \equiv
 C(g)\circ C(f)
-\]
+$$
 
 up to the permitted observational equivalence.
 
@@ -954,15 +954,15 @@ For exact lowering, that means identical machine effects.
 
 For approximation passes, define an explicit tolerance:
 
-\[
+$$
 d_H(
 Trace(P),
 Trace(C(P))
 )
 \le \epsilon
-\]
+$$
 
-where \(d_H\) is, for example, Hausdorff distance between tool-center trajectories.
+where $d_H$ is, for example, Hausdorff distance between tool-center trajectories.
 
 Arc compression then becomes a well-specified optimization:
 
@@ -1056,7 +1056,7 @@ I would design the validator/compiler around a relatively small set of explicit 
 - **Capability correctness:** compilation succeeds only when every semantic operation can be faithfully implemented or approximated within declared tolerance.
 - **Safety obligations:** rapids, air moves, limits, fixtures, stock contact, and retracts can each be `checked`, `assumed`, or `unknown`; production emission can require a configured assurance level.
 - **Approximation bounds:** tessellation and arc fitting must report and respect geometric error tolerances.
-- **Material monotonicity:** a cutting interpreter may only produce \(S'\subseteq S\); it never creates stock.
+- **Material monotonicity:** a cutting interpreter may only produce $S'\subseteq S$; it never creates stock.
 - **Compiler equivalence:** modal compression must not change the interpreted tool trace or machine actions.
 
 That last one is especially useful for G-code.
@@ -1160,7 +1160,7 @@ Everything else—pocketing, drilling, contouring, probing, canned cycles, 5-axi
 
 The concise mathematical description of the architecture would be:
 
-\[
+$$
 \boxed{
 \text{CAM}
 \;\xrightarrow{\text{planning}}\;
@@ -1168,9 +1168,9 @@ The concise mathematical description of the architecture would be:
 \;\xrightarrow{\text{semantics-preserving lowering}}\;
 \text{Controller program}
 }
-\]
+$$
 
-with geometry living in spaces like \(\mathbb R^2,\mathbb R^3,SE(3)\), cutting denoted by swept-volume subtraction, machine actions denoted by partial state transformations, and backends implemented as interpreters/folds of the same semantic program.
+with geometry living in spaces like $\mathbb R^2,\mathbb R^3,SE(3)$, cutting denoted by swept-volume subtraction, machine actions denoted by partial state transformations, and backends implemented as interpreters/folds of the same semantic program.
 
 That is a foundation strong enough to make the JS surface API simple without making the implementation simplistic.
 

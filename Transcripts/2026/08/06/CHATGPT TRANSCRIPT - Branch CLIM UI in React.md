@@ -6098,31 +6098,31 @@ ongoing observable behavior
     → coinduction and bisimulation
 ```
 
-For a monotone immediate-consequence operator \(F\) on a complete lattice, the semantic result is:
+For a monotone immediate-consequence operator $F$ on a complete lattice, the semantic result is:
 
-\[
+$$
 \mu F
-\]
+$$
 
-For finitary or suitably continuous rule systems, ordinary iteration may converge at stage \(\omega\):
+For finitary or suitably continuous rule systems, ordinary iteration may converge at stage $\omega$:
 
-\[
+$$
 \bot,\;F(\bot),\;F^2(\bot),\ldots
-\]
+$$
 
 For merely monotone operators, successor and limit stages may be required:
 
-\[
+$$
 X_0=\bot
-\]
+$$
 
-\[
+$$
 X_{\alpha+1}=F(X_\alpha)
-\]
+$$
 
-\[
+$$
 X_\lambda=\bigvee_{\beta<\lambda}X_\beta
-\]
+$$
 
 The chapter then shows how this affects selector recursion, inherited capabilities, graph reachability, recursive component composition, and proof obligations. The fixed-point discussion is grounded in Tarski-style lattice semantics, transfinite iteration in abstract interpretation, and typed enforcement of monotonicity. citeturn109745view0turn109745view1turn109745view2
 
@@ -6428,13 +6428,13 @@ Suppose the user links the chart’s document selector to the pipeline’s docum
 
 At the structural level, the system declares:
 
-\[
+$$
 \texttt{chart.document}
 \sim
 \texttt{pipeline.document}
-\]
+$$
 
-The symbol \(\sim\) means “these port occurrences belong to the same binding-equivalence class.”
+The symbol $\sim$ means “these port occurrences belong to the same binding-equivalence class.”
 
 Before linking:
 
@@ -6473,7 +6473,7 @@ The word **identification** therefore does not mean JavaScript object identity. 
 
 Start with the set of all port occurrences:
 
-\[
+$$
 P =
 \{
   \texttt{chart.document},
@@ -6481,25 +6481,25 @@ P =
   \texttt{chart.selection},
   \texttt{pipeline.result}
 \}.
-\]
+$$
 
 The link generates an equivalence relation:
 
-\[
+$$
 \texttt{chart.document}
 \sim
 \texttt{pipeline.document}.
-\]
+$$
 
 We then form the quotient:
 
-\[
+$$
 P/{\sim}.
-\]
+$$
 
 Its elements are equivalence classes:
 
-\[
+$$
 \begin{aligned}
 [
   \texttt{chart.document}
@@ -6526,7 +6526,7 @@ Its elements are equivalence classes:
   \texttt{pipeline.result}
 \}.
 \end{aligned}
-\]
+$$
 
 So the quotient has three binding classes even though the original system had four port occurrences.
 
@@ -6553,77 +6553,77 @@ bindings.find(port("pipeline", "document"));
 
 A quotient describes the resulting equivalence classes. A **coequalizer** describes the construction through its universal property.
 
-Let \(P\) be the set of ports. Let \(R\) be the set of requested identifications. For one link:
+Let $P$ be the set of ports. Let $R$ be the set of requested identifications. For one link:
 
-\[
+$$
 R = \{w\}.
-\]
+$$
 
 Define two maps:
 
-\[
+$$
 s,t : R \rightrightarrows P
-\]
+$$
 
 by:
 
-\[
+$$
 s(w)=\texttt{chart.document},
 \qquad
 t(w)=\texttt{pipeline.document}.
-\]
+$$
 
 These maps select the two endpoints of every link.
 
 The coequalizer is a map:
 
-\[
+$$
 q:P\longrightarrow Q
-\]
+$$
 
 such that:
 
-\[
+$$
 q\circ s=q\circ t.
-\]
+$$
 
 For our link, this says:
 
-\[
+$$
 q(\texttt{chart.document})
 =
 q(\texttt{pipeline.document}).
-\]
+$$
 
-Thus both port occurrences map to the same element of \(Q\), which can be understood as `binding-7`.
+Thus both port occurrences map to the same element of $Q$, which can be understood as `binding-7`.
 
 The important part is the **universal property**:
 
-> Every interpretation of the original ports that already treats linked endpoints equally must factor uniquely through \(Q\).
+> Every interpretation of the original ports that already treats linked endpoints equally must factor uniquely through $Q$.
 
 Formally, suppose:
 
-\[
+$$
 f:P\to X
-\]
+$$
 
 is some interpretation satisfying:
 
-\[
+$$
 f\circ s=f\circ t.
-\]
+$$
 
 Then there is a unique:
 
-\[
+$$
 \bar f:Q\to X
-\]
+$$
 
 such that:
 
-\[
+$$
 f=\bar f\circ q.
-\]
+$$
 
 The diagram is:
 
@@ -6716,23 +6716,23 @@ This is the finite-set implementation of the quotient/coequalizer idea.
 
 ## 6. How this relates to pushout composition
 
-Suppose component \(C\) exposes an output boundary \(B\):
+Suppose component $C$ exposes an output boundary $B$:
 
-\[
+$$
 A \longrightarrow C \longleftarrow B
-\]
+$$
 
-and component \(D\) accepts the same interface \(B\):
+and component $D$ accepts the same interface $B$:
 
-\[
+$$
 B \longrightarrow D \longleftarrow E.
-\]
+$$
 
-These are cospan-shaped open systems. Their composition glues \(C\) and \(D\) along \(B\):
+These are cospan-shaped open systems. Their composition glues $C$ and $D$ along $B$:
 
-\[
+$$
 C +_B D.
-\]
+$$
 
 This object is a **pushout**.
 
@@ -6784,14 +6784,14 @@ pipeline.parameters  : PipelineParameters
 
 The quotient must preserve typing. One possible judgment is:
 
-\[
+$$
 \Gamma\vdash p:T
 \qquad
 \Gamma\vdash q:T
 \qquad
 \therefore
 \Gamma\vdash p\sim q.
-\]
+$$
 
 If the port types differ, the system needs an adapter:
 
@@ -6907,9 +6907,9 @@ There are two different mathematical questions.
 
 Which port names have been identified?
 
-\[
+$$
 Q=P/{\sim}.
-\]
+$$
 
 This is quotient/coequalizer territory.
 
@@ -6919,21 +6919,21 @@ Which pairs of component states agree on their linked document?
 
 Suppose:
 
-\[
+$$
 p_C:S_C\to D
-\]
+$$
 
 extracts the chart document, and:
 
-\[
+$$
 p_P:S_P\to D
-\]
+$$
 
 extracts the pipeline document.
 
 The compatible combined states are:
 
-\[
+$$
 S_C\times_D S_P
 =
 \{
@@ -6941,7 +6941,7 @@ S_C\times_D S_P
 \mid
 p_C(c)=p_P(p)
 \}.
-\]
+$$
 
 That is a **pullback**.
 
@@ -7039,11 +7039,11 @@ The category-theoretic statement is not that the UI must literally implement cat
 
 For example:
 
-\[
+$$
 p\sim q,\quad q\sim r
 \quad\Longrightarrow\quad
 p\sim r.
-\]
+$$
 
 At the implementation level:
 
@@ -7067,37 +7067,37 @@ They explain how a collection of local component-boundary names is transformed i
 
 A **coalgebraic machine** is a stateful system described by what you can **observe now** and how it can **evolve next**.
 
-Formally, choose a functor \(F\) describing one step of behavior. A coalgebra is a pair
+Formally, choose a functor $F$ describing one step of behavior. A coalgebra is a pair
 
-\[
+$$
 (X,\gamma)
-\]
+$$
 
 where:
 
-- \(X\) is the set or type of internal states;
-- \(\gamma : X \to F(X)\) reveals the machine’s current observable behavior and its possible successor states.
+- $X$ is the set or type of internal states;
+- $\gamma : X \to F(X)$ reveals the machine’s current observable behavior and its possible successor states.
 
 The key direction is:
 
-\[
+$$
 \text{state} \longrightarrow \text{observable structure containing future states}.
-\]
+$$
 
 ## A simple deterministic machine
 
-Suppose a machine receives inputs of type \(I\), emits outputs of type \(O\), and moves to a new state.
+Suppose a machine receives inputs of type $I$, emits outputs of type $O$, and moves to a new state.
 
 Its coalgebra can be written as:
 
-\[
+$$
 \gamma : X \to O \times X^I.
-\]
+$$
 
-Given a state \(x\), the machine tells us:
+Given a state $x$, the machine tells us:
 
-1. its current output \(o \in O\);
-2. for every possible input \(i \in I\), the next state.
+1. its current output $o \in O$;
+2. for every possible input $i \in I$, the next state.
 
 In TypeScript:
 
@@ -7203,25 +7203,25 @@ The contrast is useful.
 
 An algebra usually has the form:
 
-\[
+$$
 \alpha : F(X) \to X.
-\]
+$$
 
 It **constructs or reduces** a value from smaller pieces.
 
 For example, an expression evaluator:
 
-\[
+$$
 \text{ExprF}(\mathbb{Z}) \to \mathbb{Z}
-\]
+$$
 
 combines evaluated child expressions into one result.
 
 A coalgebra has the reverse shape:
 
-\[
+$$
 \gamma : X \to F(X).
-\]
+$$
 
 It **decomposes or unfolds** a state into current observations and future behavior.
 
@@ -7298,9 +7298,9 @@ Two common coalgebraic machines are Moore and Mealy machines.
 
 A **Moore machine** associates output with the current state:
 
-\[
+$$
 X \to O \times X^I.
-\]
+$$
 
 ```ts
 observe(state): Output
@@ -7309,9 +7309,9 @@ transition(state, input): State
 
 A **Mealy machine** associates output with transitions:
 
-\[
+$$
 X \to (O \times X)^I.
-\]
+$$
 
 ```ts
 step(state, input): {
@@ -7373,26 +7373,26 @@ This relation is called **bisimulation**.
 
 ## Bisimulation
 
-A relation \(R \subseteq X \times Y\) is a bisimulation when related states:
+A relation $R \subseteq X \times Y$ is a bisimulation when related states:
 
 1. have matching observations;
 2. transition to related states under corresponding inputs.
 
-For deterministic machines, if \(x\,R\,y\), then:
+For deterministic machines, if $x\,R\,y$, then:
 
-\[
+$$
 \operatorname{observe}(x)
 =
 \operatorname{observe}(y)
-\]
+$$
 
-and for every input \(i\):
+and for every input $i$:
 
-\[
+$$
 \operatorname{next}_X(x,i)
 \;R\;
 \operatorname{next}_Y(y,i).
-\]
+$$
 
 This is valuable for refactoring. You can replace one implementation with another and prove that users cannot distinguish them through the public interaction protocol.
 
@@ -7407,11 +7407,11 @@ produce the same prompts, accepted objects, actions, and state transitions for e
 
 A **final coalgebra** is an abstract domain of complete observable behaviors.
 
-For streams over \(A\), the coalgebra functor is:
+For streams over $A$, the coalgebra functor is:
 
-\[
+$$
 F(X)=A\times X.
-\]
+$$
 
 A stream reveals:
 
@@ -7420,9 +7420,9 @@ A stream reveals:
 
 The final coalgebra is the space of all infinite streams:
 
-\[
+$$
 A^\omega.
-\]
+$$
 
 A state machine can be mapped into its complete behavior: the potentially infinite tree or trace of everything it would do under all future inputs.
 
@@ -7443,11 +7443,11 @@ Two internal states are equivalent when they map to the same behavior in the fin
 
 An open component can be modeled as a coalgebra whose observations include its port values and offered actions.
 
-For component state \(S\), input events \(I\), visible output \(V\), and emitted port messages \(M\):
+For component state $S$, input events $I$, visible output $V$, and emitted port messages $M$:
 
-\[
+$$
 S \to V \times (M \times S)^I.
-\]
+$$
 
 In TypeScript:
 
@@ -7513,27 +7513,27 @@ pipeline.externalDocumentChanged
 
 The composed system has a product-like state:
 
-\[
+$$
 S_{\text{chart}}
 \times
 S_{\text{pipeline}}
 \times
 S_{\text{binding}}.
-\]
+$$
 
 Its transition function coordinates the constituent transitions.
 
 If the link is synchronous, one event may cause several internal transitions before the composed system reaches a stable externally visible state. That can be described using fixed-point iteration:
 
-\[
+$$
 s_{n+1}=T(s_n)
-\]
+$$
 
 until:
 
-\[
+$$
 T(s_n)=s_n.
-\]
+$$
 
 So coalgebra describes the ongoing machine, while fixed-point machinery may be used inside one composite step to settle propagation.
 
@@ -7662,9 +7662,9 @@ They do **not** directly define component behavior, state transitions, synchroni
 
 ## 1. The exact construction intended
 
-Let \(P\) be the collection of port occurrences in a workspace:
+Let $P$ be the collection of port occurrences in a workspace:
 
-\[
+$$
 P =
 \{
 \texttt{chart.document},
@@ -7673,81 +7673,81 @@ P =
 \texttt{chart.selection},
 \ldots
 \}.
-\]
+$$
 
-Let \(R\) be the collection of requested identity links. For example:
+Let $R$ be the collection of requested identity links. For example:
 
-\[
+$$
 R=\{r_1,r_2\}
-\]
+$$
 
 where:
 
-\[
+$$
 r_1:
 \texttt{chart.document}
 \equiv
 \texttt{pipeline.document}
-\]
+$$
 
 and:
 
-\[
+$$
 r_2:
 \texttt{pipeline.document}
 \equiv
 \texttt{table.document}.
-\]
+$$
 
 Define two endpoint maps:
 
-\[
+$$
 s,t:R\rightrightarrows P
-\]
+$$
 
 such that:
 
-\[
+$$
 s(r_1)=\texttt{chart.document},
 \qquad
 t(r_1)=\texttt{pipeline.document},
-\]
+$$
 
 and:
 
-\[
+$$
 s(r_2)=\texttt{pipeline.document},
 \qquad
 t(r_2)=\texttt{table.document}.
-\]
+$$
 
 The compiler computes the coequalizer:
 
-\[
+$$
 P
 \xrightarrow{q}
 Q
 =
 \operatorname{coeq}(s,t).
-\]
+$$
 
 It satisfies:
 
-\[
+$$
 q\circ s=q\circ t.
-\]
+$$
 
 Therefore:
 
-\[
+$$
 q(\texttt{chart.document})
 =
 q(\texttt{pipeline.document})
 =
 q(\texttt{table.document}).
-\]
+$$
 
-The resulting element of \(Q\) is one global binding identity, such as:
+The resulting element of $Q$ is one global binding identity, such as:
 
 ```text
 binding-7
@@ -7765,11 +7765,11 @@ chart.selection   ─── binding-8
 
 In the category of sets, this coequalizer is exactly the quotient:
 
-\[
+$$
 Q=P/{\sim}
-\]
+$$
 
-where \(\sim\) is the smallest equivalence relation containing all requested links.
+where $\sim$ is the smallest equivalence relation containing all requested links.
 
 ## 2. Why the paper uses a coequalizer
 
@@ -7779,26 +7779,26 @@ The construction captures several desirable laws automatically.
 
 From:
 
-\[
+$$
 p\sim q
 \qquad\text{and}\qquad
 q\sim r
-\]
+$$
 
 the generated equivalence relation contains:
 
-\[
+$$
 p\sim r.
-\]
+$$
 
 ### Idempotence
 
 Adding the same link twice changes nothing:
 
-\[
+$$
 \operatorname{identify}(p,q);
 \operatorname{identify}(p,q)
-\]
+$$
 
 produces the same quotient as adding it once.
 
@@ -7822,27 +7822,27 @@ identify(chartDoc, pipelineDoc);
 
 Suppose a later interpreter assigns runtime resources to ports:
 
-\[
+$$
 f:P\to X.
-\]
+$$
 
 If it respects all links:
 
-\[
+$$
 f\circ s=f\circ t,
-\]
+$$
 
 then it factors uniquely through the quotient:
 
-\[
+$$
 f=\bar f\circ q
-\]
+$$
 
 for a unique map:
 
-\[
+$$
 \bar f:Q\to X.
-\]
+$$
 
 This means the runtime does not need to allocate resources independently for every original port and then repeatedly enforce pairwise equalities. It can interpret the quotient classes directly:
 
@@ -7918,35 +7918,35 @@ is a **binding identity**. It is not itself the selected document.
 
 The runtime may associate a value with it:
 
-\[
+$$
 v:Q\to D
-\]
+$$
 
-where \(D\) is the space of document references.
+where $D$ is the space of document references.
 
 For example:
 
-\[
+$$
 v(\texttt{binding-7})=\texttt{doc-A}.
-\]
+$$
 
 Then a component reads its document through composition:
 
-\[
+$$
 P\xrightarrow{q}Q\xrightarrow{v}D.
-\]
+$$
 
 For the chart:
 
-\[
+$$
 v(q(\texttt{chart.document}))=\texttt{doc-A}.
-\]
+$$
 
 For the pipeline:
 
-\[
+$$
 v(q(\texttt{pipeline.document}))=\texttt{doc-A}.
-\]
+$$
 
 Equality follows because both local ports pass through the same quotient element.
 
@@ -7965,9 +7965,9 @@ The paper deliberately uses two different constructions.
 
 ### Coequalizer: structural identification
 
-\[
+$$
 P\to P/{\sim}
-\]
+$$
 
 answers:
 
@@ -7977,27 +7977,27 @@ answers:
 
 Suppose:
 
-\[
+$$
 p_c:C\to D
-\]
+$$
 
 extracts the chart’s current document, and:
 
-\[
+$$
 p_p:P\to D
-\]
+$$
 
 extracts the pipeline’s current document.
 
 The compatible combined states are:
 
-\[
+$$
 C\times_D P
 =
 \{
 (c,p)\mid p_c(c)=p_p(p)
 \}.
-\]
+$$
 
 This answers:
 
@@ -8026,41 +8026,41 @@ That is consistent with the coequalizer account. In many concrete categories, a 
 
 For a span:
 
-\[
+$$
 X\xleftarrow{f}B\xrightarrow{g}Y,
-\]
+$$
 
 the pushout can often be presented as:
 
-\[
+$$
 X+_B Y
 \cong
 (X+Y)/{\sim}
-\]
+$$
 
 where:
 
-\[
+$$
 f(b)\sim g(b)
 \qquad
 \text{for every }b\in B.
-\]
+$$
 
 More formally, it can be constructed as the coequalizer of:
 
-\[
+$$
 B
 \rightrightarrows
 X+Y,
-\]
+$$
 
 using the two coproduct injections:
 
-\[
+$$
 \iota_X\circ f,
 \qquad
 \iota_Y\circ g.
-\]
+$$
 
 Thus the paper uses the constructions at different scales:
 
@@ -8074,42 +8074,42 @@ The coequalizer does not define the coalgebraic transition system. It helps cons
 
 Before linking, a simplified global state might be:
 
-\[
+$$
 S_{\mathrm{before}}
 =
 D_{\text{chart}}
 \times
 D_{\text{pipeline}}.
-\]
+$$
 
 The chart and pipeline documents may differ.
 
 After compiling an identity link through one shared binding, the runtime state may instead contain:
 
-\[
+$$
 S_{\mathrm{after}}=D.
-\]
+$$
 
 Both components observe that same value through their port projections.
 
 The workspace coalgebra could then be:
 
-\[
+$$
 \gamma:
 S_{\mathrm{after}}
 \to
 O\times S_{\mathrm{after}}^I,
-\]
+$$
 
 or, with additional component state:
 
-\[
+$$
 \gamma:
 (S_C\times S_P\times D)
 \to
 O\times
 (S_C\times S_P\times D)^I.
-\]
+$$
 
 The roles are therefore:
 
@@ -8142,33 +8142,33 @@ Both components then observe `doc-B`.
 
 Suppose:
 
-\[
+$$
 q:P\to Q
-\]
+$$
 
 is the compiled quotient, and:
 
-\[
+$$
 v_s:Q\to D
-\]
+$$
 
-gives the binding values in runtime state \(s\).
+gives the binding values in runtime state $s$.
 
-A component port \(p\) observes:
+A component port $p$ observes:
 
-\[
+$$
 \operatorname{observe}_s(p)=v_s(q(p)).
-\]
+$$
 
 If two ports were identified:
 
-\[
+$$
 q(p_1)=q(p_2),
-\]
+$$
 
 then immediately:
 
-\[
+$$
 \operatorname{observe}_s(p_1)
 =
 v_s(q(p_1))
@@ -8176,17 +8176,17 @@ v_s(q(p_1))
 v_s(q(p_2))
 =
 \operatorname{observe}_s(p_2).
-\]
+$$
 
 So the linked-value invariant follows by construction:
 
-\[
+$$
 \forall s\in\operatorname{Reachable},
 \quad
 \operatorname{chartDocument}(s)
 =
 \operatorname{pipelineDocument}(s).
-\]
+$$
 
 This proof still depends on an important runtime condition:
 
@@ -8200,15 +8200,15 @@ Quotienting forgets distinctions.
 
 After:
 
-\[
+$$
 p\sim q,
-\]
+$$
 
 the quotient contains one class:
 
-\[
+$$
 [p]=[q].
-\]
+$$
 
 There is no canonical inverse operation that recovers two independent values. When the user unlinks the components, the runtime needs an explicit policy:
 
@@ -8294,7 +8294,7 @@ The coequalizer appears in four connected roles:
 
 The strongest intended theorem in that final research direction would resemble:
 
-> Given a well-typed port graph \(G\), its identity-link coequalizer \(q:G\to Q\), and generated runtime \(R(Q)\), every pair of identified ports has equal observations in every reachable runtime state, provided all port effects are interpreted through the generated handlers.
+> Given a well-typed port graph $G$, its identity-link coequalizer $q:G\to Q$, and generated runtime $R(Q)$, every pair of identified ports has equal observations in every reachable runtime state, provided all port effects are interpreted through the generated handlers.
 
 ## 12. One wording improvement I would make
 
@@ -8682,13 +8682,13 @@ Generated a self-contained Lean 4 mini-project:
 
 The core construction is:
 
-\[
+$$
 \operatorname{Port}(t)
 \xrightarrow{\mathrm{project}}
 \operatorname{Binding}(t)
 \xrightarrow{f}
 \operatorname{Widget}.
-\]
+$$
 
 It includes:
 
@@ -9210,7 +9210,7 @@ console.assert(
 
 The semantic path is:
 
-\[
+$$
 P_\tau
 \xrightarrow{q_\tau}
 Q_\tau
@@ -9218,15 +9218,15 @@ Q_\tau
 \operatorname{Resource}(\tau)
 \xrightarrow{\pi_p}
 \text{widget}.
-\]
+$$
 
 Here:
 
-- \(P_\tau\) contains local port occurrences in contract fiber \(\tau\);
-- link declarations generate an equivalence relation on \(P_\tau\);
-- \(Q_\tau\) is the quotient set of binding classes;
-- \(q_\tau\) projects each local port onto its class;
-- \(v_\tau\) allocates one resource for each class;
+- $P_\tau$ contains local port occurrences in contract fiber $\tau$;
+- link declarations generate an equivalence relation on $P_\tau$;
+- $Q_\tau$ is the quotient set of binding classes;
+- $q_\tau$ projects each local port onto its class;
+- $v_\tau$ allocates one resource for each class;
 - the widget receives a typed projection onto that resource.
 
 ## Contract compatibility
@@ -9388,9 +9388,9 @@ const witness = registry.factor(
 
 A successful witness contains one value per binding class and verifies that the original port interpretation commutes with projection:
 
-\[
+$$
 g=\bar g\circ q.
-\]
+$$
 
 This provides a useful plugin boundary: a renderer, allocator, serializer, or instrumentation layer that respects declared links can operate over binding classes instead of repeatedly interpreting individual link equations.
 
@@ -9870,12 +9870,12 @@ The deliberately incorrect toggle policy is reduced to:
 
 Its `put` operation adds `row-7` even though false membership is already satisfied. This violates:
 
-\[
+$$
 \operatorname{put}
 \bigl(s,\operatorname{get}(s)\bigr)
 =
 s.
-\]
+$$
 
 [Open the counterexample corpus](sandbox:/mnt/data/p08-bidirectional-link-lab/counterexamples/law-counterexamples.json)
 

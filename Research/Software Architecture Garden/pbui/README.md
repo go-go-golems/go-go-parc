@@ -192,7 +192,7 @@ This discipline explains the graph renderer: a view can be linked into multiple 
 
 ### 1. Normalized graph and placement multiplicity
 
-Let \(D\) be the set of document IDs, \(V\) the set of logical view IDs, \(P\) the set of placement IDs, \(A\) the set of application IDs, and \(B\) the set of binding names. Let \(\mathrm{Payload}\) be the set of document payload values. A valid workbench contains partial maps:
+Let $D$ be the set of document IDs, $V$ the set of logical view IDs, $P$ the set of placement IDs, $A$ the set of application IDs, and $B$ the set of binding names. Let $\mathrm{Payload}$ be the set of document payload values. A valid workbench contains partial maps:
 
 $$
 \mathrm{document}:D\rightharpoonup\mathrm{Payload}
@@ -208,7 +208,7 @@ $$
 \mathrm{places}\subseteq P\times V.
 $$
 
-Validation requires every referenced view and document to resolve (`pkg/workbench/validate.go:143-156,220-227`). The relation is many-to-one: linked duplication adds a fresh \(p\in P\) paired with an existing \(v\in V\); independent view duplication adds a fresh \(v'\in V\) whose binding map initially equals that of \(v\). Both behaviors and input preservation are tested (`pkg/workbench/workbench_test.go:310-349`).
+Validation requires every referenced view and document to resolve (`pkg/workbench/validate.go:143-156,220-227`). The relation is many-to-one: linked duplication adds a fresh $p\in P$ paired with an existing $v\in V$; independent view duplication adds a fresh $v'\in V$ whose binding map initially equals that of $v$. Both behaviors and input preservation are tested (`pkg/workbench/workbench_test.go:310-349`).
 
 **Operational consequence:** geometry can change without copying application state, and linked placements observe the same view/document state.
 
@@ -216,13 +216,13 @@ Validation requires every referenced view and document to resolve (`pkg/workbenc
 
 ### 2. Scope intersection is monotone presentation policy
 
-Let \(U\) be the set of registered application IDs. Let \(I\subseteq U\), \(S\subseteq U\), and \(Q\subseteq U\) be instance, stage, and workspace allow-sets respectively; an absent constraint denotes \(U\). The offered set is:
+Let $U$ be the set of registered application IDs. Let $I\subseteq U$, $S\subseteq U$, and $Q\subseteq U$ be instance, stage, and workspace allow-sets respectively; an absent constraint denotes $U$. The offered set is:
 
 $$
 \mathrm{Offered}(I,S,Q)=I\cap S\cap Q.
 $$
 
-For any \(X,Y,Z\subseteq U\):
+For any $X,Y,Z\subseteq U$:
 
 $$
 X\subseteq Y\Longrightarrow X\cap Z\subseteq Y\cap Z.
@@ -236,13 +236,13 @@ $$
 
 ### 3. Ordered clone/apply/validate as a partial transition
 
-Let \(\mathcal S\) be the set of workbench graph values accepted by Go `Validate`, let \(\mathcal M\) be the set of generated mutation values, and let \(\mathcal M^*\) be the set of finite ordered mutation sequences. Go implements the partial function:
+Let $\mathcal S$ be the set of workbench graph values accepted by Go `Validate`, let $\mathcal M$ be the set of generated mutation values, and let $\mathcal M^*$ be the set of finite ordered mutation sequences. Go implements the partial function:
 
 $$
 \mathrm{Apply}:\mathcal S\times\mathcal M^*\rightharpoonup\mathcal S.
 $$
 
-For input \(s\in\mathcal S\) and sequence \(m\in\mathcal M^*\), either `Apply` returns a validated clone \(s'\in\mathcal S\), or it returns an error while the caller's \(s\) remains unchanged (`pkg/workbench/mutation.go:13-38`; `pkg/workbench/workbench_test.go:414-429`). Mutation order matters; no commutativity law is claimed.
+For input $s\in\mathcal S$ and sequence $m\in\mathcal M^*$, either `Apply` returns a validated clone $s'\in\mathcal S$, or it returns an error while the caller's $s$ remains unchanged (`pkg/workbench/mutation.go:13-38`; `pkg/workbench/workbench_test.go:414-429`). Mutation order matters; no commutativity law is claimed.
 
 **Operational consequence:** a graph edit does not return a partially changed caller-owned value.
 
@@ -250,19 +250,19 @@ For input \(s\in\mathcal S\) and sequence \(m\in\mathcal M^*\), either `Apply` r
 
 ### 4. Alias-preserving view clone
 
-Using the sets \(V\), \(B\), and \(D\) defined above, let:
+Using the sets $V$, $B$, and $D$ defined above, let:
 
 $$
 \mathrm{bind}:V\times B\rightharpoonup D
 $$
 
-be the document-binding lookup. For a `ViewClone` from \(v\in V\) to fresh \(v'\in V\), the implementation preserves every existing binding \(b\in B\):
+be the document-binding lookup. For a `ViewClone` from $v\in V$ to fresh $v'\in V$, the implementation preserves every existing binding $b\in B$:
 
 $$
 \mathrm{bind}(v',b)=\mathrm{bind}(v,b)
 $$
 
-whenever \(\mathrm{bind}(v,b)\) is defined (`pkg/workbench/mutation.go:161-184`). Linked placement instead preserves \(v\) itself.
+whenever $\mathrm{bind}(v,b)$ is defined (`pkg/workbench/mutation.go:161-184`). Linked placement instead preserves $v$ itself.
 
 **Operational consequence:** “linked placement” and “independent view sharing documents” are distinct, testable alias contracts.
 
@@ -270,13 +270,13 @@ whenever \(\mathrm{bind}(v,b)\) is defined (`pkg/workbench/mutation.go:161-184`)
 
 ### 5. Revision-fenced replacement is an open host law
 
-Let \(G\) be the set of complete workbench graph snapshots, \(K\) the set of request IDs, and \(R=\{0,1,2,\ldots\}\) the set of resource revisions. Let \(S=G\times R\) be the set of replacement request signatures, pairing the protobuf-JSON graph body with the separately transmitted expected revision. Model an idempotency record as the accepted request signature and saved output associated with a key:
+Let $G$ be the set of complete workbench graph snapshots, $K$ the set of request IDs, and $R=\{0,1,2,\ldots\}$ the set of resource revisions. Let $S=G\times R$ be the set of replacement request signatures, pairing the protobuf-JSON graph body with the separately transmitted expected revision. Model an idempotency record as the accepted request signature and saved output associated with a key:
 
 $$
 \mathcal I=K\rightharpoonup_{\mathrm{fin}}\bigl(S\times(G\times R)\bigr),
 $$
 
-where \(\rightharpoonup_{\mathrm{fin}}\) denotes a finite partial map. Define authoritative host states, replacement requests, and successful outputs as
+where $\rightharpoonup_{\mathrm{fin}}$ denotes a finite partial map. Define authoritative host states, replacement requests, and successful outputs as
 
 $$
 H=G\times R\times\mathcal I,
@@ -286,19 +286,19 @@ Q=G\times R\times K,
 U=G\times R.
 $$
 
-A request \(q=(g',e,k)\in Q\) contains the desired graph, expected revision, and request ID. The intended successful host behavior is a partial state-transition relation
+A request $q=(g',e,k)\in Q$ contains the desired graph, expected revision, and request ID. The intended successful host behavior is a partial state-transition relation
 
 $$
 \mathrm{Replace}\subseteq (H\times Q)\times(H\times U).
 $$
 
-For a fresh key \(k\notin\operatorname{dom}(i)\) and host state \(h=(g,r,i)\in H\), success should require \(e=r\), choose \(r'>r\), return \(u=(g',r')\in U\), and produce
+For a fresh key $k\notin\operatorname{dom}(i)$ and host state $h=(g,r,i)\in H$, success should require $e=r$, choose $r'>r$, return $u=(g',r')\in U$, and produce
 
 $$
 h'=\bigl(g',r',i[k\mapsto((g',e),u)]\bigr)\in H.
 $$
 
-For an exact retry whose record is \(i(k)=((g',e),u)\), the intended relation may instead replay \(u\) with unchanged host state \(h\), even after the current revision has advanced. A conflict, rejection, failure, or same-key/different-request-signature request has no successful pair in this relation. These are intended CAS/idempotency laws, not audited host behavior. The browser computes a local fingerprint by applying `JSON.stringify` to the protobuf JSON mapping and reuses the same \(k\in K\) while retrying that fingerprint (`packages/datalab-ui/src/remote/codec.ts:136-145`; `packages/datalab-ui/src/appkit/useRemoteWorkbench.ts:170-232,363-365`; `packages/datalab-ui/src/api/client.ts:413-430`).
+For an exact retry whose record is $i(k)=((g',e),u)$, the intended relation may instead replay $u$ with unchanged host state $h$, even after the current revision has advanced. A conflict, rejection, failure, or same-key/different-request-signature request has no successful pair in this relation. These are intended CAS/idempotency laws, not audited host behavior. The browser computes a local fingerprint by applying `JSON.stringify` to the protobuf JSON mapping and reuses the same $k\in K$ while retrying that fingerprint (`packages/datalab-ui/src/remote/codec.ts:136-145`; `packages/datalab-ui/src/appkit/useRemoteWorkbench.ts:170-232,363-365`; `packages/datalab-ui/src/api/client.ts:413-430`).
 
 **Operational consequence:** the request's success or conflict depends on authoritative host state—including its current revision and idempotency records—not on the request triple alone. The browser does not knowingly overwrite a newer resource and does not mint a new retry identity for the same local fingerprint.
 

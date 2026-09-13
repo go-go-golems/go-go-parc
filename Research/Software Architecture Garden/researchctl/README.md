@@ -146,7 +146,7 @@ The local workbench has a separate REPL/session database and Goja runtime that i
 
 ### 1. Semantic identity is an explicit projection
 
-Let \(\mathcal{I}\) be the set of `ExecutionIdentity` values accepted by `ValidateExecutionIdentity`, \(\mathcal{B}\) the set of finite byte strings, and \(\mathcal{T}\) the set of finite UTF-8 text strings. Let \(C:\mathcal{I}\rightarrow\mathcal{B}\) be Researchctl canonical JSON encoding and \(H:\mathcal{B}\rightarrow\mathcal{T}\) be SHA-256 rendered as lowercase hexadecimal text. Let \(p\in\mathcal{B}\) be the fixed bytes `researchctl-execution-identity/v1` and \(z\in\mathcal{B}\) the one-byte zero separator. Let \(\Vert_{\mathcal{B}}\) concatenate byte strings and \(\Vert_{\mathcal{T}}\) concatenate text strings. Define \(Q:\mathcal{I}\rightarrow\mathcal{T}\) by
+Let $\mathcal{I}$ be the set of `ExecutionIdentity` values accepted by `ValidateExecutionIdentity`, $\mathcal{B}$ the set of finite byte strings, and $\mathcal{T}$ the set of finite UTF-8 text strings. Let $C:\mathcal{I}\rightarrow\mathcal{B}$ be Researchctl canonical JSON encoding and $H:\mathcal{B}\rightarrow\mathcal{T}$ be SHA-256 rendered as lowercase hexadecimal text. Let $p\in\mathcal{B}$ be the fixed bytes `researchctl-execution-identity/v1` and $z\in\mathcal{B}$ the one-byte zero separator. Let $\Vert_{\mathcal{B}}$ concatenate byte strings and $\Vert_{\mathcal{T}}$ concatenate text strings. Define $Q:\mathcal{I}\rightarrow\mathcal{T}$ by
 
 $$
 Q(i)=\text{`sha256:'}\mathbin{\Vert_{\mathcal{T}}}H(p\mathbin{\Vert_{\mathcal{B}}}z\mathbin{\Vert_{\mathcal{B}}}C(i)).

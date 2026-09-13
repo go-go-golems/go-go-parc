@@ -4942,7 +4942,7 @@ Activation and release leases form the synchronization protocol between corpus m
 
 This produces a sharper production abstraction:
 
-\[
+$$
 \text{source world}
 \rightarrow
 \text{maintained release}
@@ -4950,7 +4950,7 @@ This produces a sharper production abstraction:
 \text{release-pinned interpretation}
 \rightarrow
 \text{replayable user projection}.
-\]
+$$
 
 ## RAG retrieval optimization
 
@@ -5016,19 +5016,19 @@ The source protocol includes:
 
 Indexing is then incremental view maintenance. The proposed initial production structure is:
 
-\[
+$$
 V_t = B_\tau \oplus \Delta_{\tau,t},
-\]
+$$
 
-where \(B_\tau\) is an immutable base release and \(\Delta_{\tau,t}\) is an ordered collection of additions, replacements, and tombstones. Compaction produces a new base without changing declared query behavior.
+where $B_\tau$ is an immutable base release and $\Delta_{\tau,t}$ is an ordered collection of additions, replacements, and tombstones. Compaction produces a new base without changing declared query behavior.
 
 A clean full rebuild at the same source barrier is the correctness oracle:
 
-\[
+$$
 \operatorname{maintain}(B,\Delta)
 \;\simeq\;
 \operatorname{rebuild}(S \oplus \Delta).
-\]
+$$
 
 The equivalence is exact for deterministic backends and tolerance-relative for approximate indexes.
 
@@ -5086,11 +5086,11 @@ The proposed stream protocol uses:
 
 Its principal law is snapshot-plus-suffix equivalence:
 
-\[
+$$
 \operatorname{reduce}(S_n,e_{n+1},\ldots,e_m)
 =
 \operatorname{reduce}(e_1,\ldots,e_m).
-\]
+$$
 
 Duplicate append patches and lower-version entity updates are semantic violations rather than incidental UI bugs.
 
@@ -7619,27 +7619,27 @@ Its central construction has seven parts.
 
 A domain plugin contributes a signature
 
-\[
+$$
 \Sigma =
 (\mathsf{Ob},
 \mathsf{Gen},
 \mathsf{dom},
 \mathsf{cod},
 \mathsf{ann}),
-\]
+$$
 
 where:
 
-- \(\mathsf{Ob}\) contains versioned domain schemas;
-- \(\mathsf{Gen}\) contains primitive operation symbols;
-- \(\mathsf{dom}\) and \(\mathsf{cod}\) assign typed ports;
-- \(\mathsf{ann}\) declares effects, dependencies, determinism, cacheability, resources, disclosure, and applicable laws.
+- $\mathsf{Ob}$ contains versioned domain schemas;
+- $\mathsf{Gen}$ contains primitive operation symbols;
+- $\mathsf{dom}$ and $\mathsf{cod}$ assign typed ports;
+- $\mathsf{ann}$ declares effects, dependencies, determinism, cacheability, resources, disclosure, and applicable laws.
 
 Plugins extend the vocabulary. They do **not** add new notions of sequencing, parallel composition, identity, copying, discarding, trial pairing, or campaign completion.
 
 ### 2. A free typed wiring language
 
-From \(\Sigma\), the kernel constructs a free symmetric monoidal, gs-monoidal-style wiring category \(\mathsf W(\Sigma)\). Plans are composed from:
+From $\Sigma$, the kernel constructs a free symmetric monoidal, gs-monoidal-style wiring category $\mathsf W(\Sigma)$. Plans are composed from:
 
 - primitive generators;
 - identity;
@@ -7661,32 +7661,32 @@ This use of free compositional syntax is related to categorical treatments of pa
 
 An optimizable component is represented by
 
-\[
+$$
 f:P\otimes A\longrightarrow B,
-\]
+$$
 
 rather than by a function plus an unrelated dictionary of parameter names.
 
 Composition tensors the parameter objects:
 
-\[
+$$
 (P,f):A\to B,\qquad
 (Q,g):B\to C
-\]
+$$
 
 compose to
 
-\[
+$$
 (P\otimes Q,\;
 (P\otimes Q)\otimes A
 \longrightarrow C).
-\]
+$$
 
 This is the role of the `Para` construction. Parameter structure follows system structure. Optimizer-facing coordinates are introduced separately through reparameterization:
 
-\[
+$$
 r:R\longrightarrow P.
-\]
+$$
 
 A grid optimizer, Bayesian proposer, gradient method, or language-model proposer can therefore use convenient coordinates without changing the implementation parameter object or system identity. The construction is informed by categorical accounts of backpropagation and compositional learning, but the thesis generalizes it to discrete, stochastic, constrained, and non-differentiable optimization. citeturn149553search0turn518698search0
 
@@ -7696,27 +7696,27 @@ A candidate does not replace arbitrary fields in a string map. It applies a lawf
 
 For a simple lens:
 
-\[
+$$
 \mathsf{get}:\Theta\to P,
 \qquad
 \mathsf{put}:\Theta\times P\to\Theta,
-\]
+$$
 
 the kernel checks the familiar laws:
 
-\[
+$$
 \mathsf{put}(\theta,\mathsf{get}(\theta))=\theta,
-\]
+$$
 
-\[
+$$
 \mathsf{get}(\mathsf{put}(\theta,p))=p,
-\]
+$$
 
-\[
+$$
 \mathsf{put}(\mathsf{put}(\theta,p),q)
 =
 \mathsf{put}(\theta,q).
-\]
+$$
 
 A complete intervention also contains:
 
@@ -7731,33 +7731,33 @@ The optic answers *how* a local value changes. The causal declaration answers *w
 
 ### 5. Stochastic trials as Markov kernels
 
-For candidate parameter \(\theta\), a trial is modeled as a Markov kernel
+For candidate parameter $\theta$, a trial is modeled as a Markov kernel
 
-\[
+$$
 K_\theta:X\rightsquigarrow O,
-\]
+$$
 
 not merely a deterministic callback.
 
 Comparing an incumbent and candidate requires a coupling
 
-\[
+$$
 \Gamma_x\in
 \mathcal D(O_b\times O_c)
-\]
+$$
 
 with the correct marginals. Independent samples are only one possible coupling and are often statistically inefficient.
 
 The executable kernel implements exact coordinates and domain-separated deterministic seeds:
 
-\[
+$$
 (\mathsf{campaign},
 \mathsf{case},
 \mathsf{repeat},
 \mathsf{arm})
 \longmapsto
 \omega.
-\]
+$$
 
 This makes common-random-number pairing structural rather than conventional. A production runner may strengthen it through retained provider responses, traffic pairing, or an explicitly supplied coupling kernel.
 
@@ -7767,21 +7767,21 @@ Markov categories provide the abstract setting for stochastic composition, copyi
 
 Metrics carry identity, direction, unit, missingness, and uncertainty. Candidate-minus-baseline differences are oriented so that positive means improvement:
 
-\[
+$$
 \Delta_j
 =
 s_j(m_j^c-m_j^b),
 \qquad
 s_j\in\{-1,+1\}.
-\]
+$$
 
 Hard constraints first determine the feasible subset:
 
-\[
+$$
 F=
 \{\theta\mid g_i(\theta)\le 0
 \text{ for every hard gate }i\}.
-\]
+$$
 
 Preference then operates through product preorders, Pareto dominance, lexicographic policies, or an explicitly authorized scalarization.
 
@@ -7802,15 +7802,15 @@ This preserves the distinction between eligibility and preference. Recall, dolla
 
 A campaign is modeled as a state-transition system or coalgebra:
 
-\[
+$$
 \gamma:S\longrightarrow F(S),
-\]
+$$
 
 with an append-only event vocabulary and a pure partial reducer:
 
-\[
+$$
 \rho:S\times E\rightharpoonup S.
-\]
+$$
 
 The kernel owns transitions for:
 
@@ -7823,13 +7823,13 @@ The kernel owns transitions for:
 - cancellation;
 - interruption and resume.
 
-Resume is not a special recovery branch. Given an event prefix \(P\),
+Resume is not a special recovery branch. Given an event prefix $P$,
 
-\[
+$$
 s_P=\rho^\ast(s_0,P),
-\]
+$$
 
-continuation emits only events missing from \(s_P\). Re-running a terminal campaign appends nothing.
+continuation emits only events missing from $s_P$. Re-running a terminal campaign appends nothing.
 
 This gives campaigns the character of open dynamical systems: proposers, runners, stores, policies, deployment authorities, and environments attach through explicit interfaces while transition validity remains kernel-owned. citeturn443270search0turn443270search1
 
@@ -7952,7 +7952,7 @@ The resulting campaign contains **239 immutable events**. Query-only interventio
 
 The second example optimizes a noisy quadratic objective without using the plan, plugin-operation, artifact, or RAG layers. It uses only the high-level campaign ports.
 
-It produces **74 events** and selects \(x=3\). This demonstrates that the campaign protocol is not a disguised retrieval engine.
+It produces **74 events** and selects $x=3$. This demonstrates that the campaign protocol is not a disguised retrieval engine.
 
 ## Verification performed
 
@@ -8016,16 +8016,16 @@ The proposed optimization field is built from six interacting structures.
 
 A plugin contributes a typed signature
 
-\[
+$$
 \Sigma =
 (\mathsf{Ob},\mathsf{Gen},\mathsf{dom},\mathsf{cod},\mathsf{ann}),
-\]
+$$
 
 consisting of schemas, primitive operations, signatures, and semantic annotations.
 
 The kernel generates a free wiring language over that signature. It owns:
 
-\[
+$$
 \mathsf{id},
 \qquad
 g\circ f,
@@ -8037,7 +8037,7 @@ f\otimes g,
 \mathsf{drop},
 \qquad
 \mathsf{permute}.
-\]
+$$
 
 Plugins can add primitive generators, but they cannot redefine composition, identity, copying, discarding, plan normalization, or structural identity.
 
@@ -8047,15 +8047,15 @@ A plan is therefore an intensional object. Its execution, effect analysis, depen
 
 A parameterized component is modeled as
 
-\[
+$$
 (P,f) : A \rightsquigarrow B,
 \qquad
 f:P\otimes A\to B.
-\]
+$$
 
 Composition tensors parameter objects:
 
-\[
+$$
 (P,f);(Q,g)
 =
 \left(
@@ -8066,15 +8066,15 @@ Q\otimes B
 \to
 C
 \right).
-\]
+$$
 
 This replaces the usual global dictionary of unrelated parameter names. Parameter structure follows system structure.
 
-Reparameterization is explicit. An optimizer may work in coordinates \(P'\) while the system consumes \(P\), provided there is a declared map
+Reparameterization is explicit. An optimizer may work in coordinates $P'$ while the system consumes $P$, provided there is a declared map
 
-\[
+$$
 r:P'\to P.
-\]
+$$
 
 This permits grids, constrained coordinates, learned embeddings, hierarchical spaces, and optimizer-specific parameterizations without changing the system definition.
 
@@ -8082,27 +8082,27 @@ This permits grids, constrained coordinates, learned embeddings, hierarchical sp
 
 A candidate patch is not an arbitrary mutation callback. A lens or more general optic focuses on one lawful part of the complete configuration:
 
-\[
+$$
 \mathsf{get}:S\to A,
 \qquad
 \mathsf{put}:S\times A\to S.
-\]
+$$
 
 The implementation checks the lens laws:
 
-\[
+$$
 \mathsf{put}(s,\mathsf{get}(s))=s,
-\]
+$$
 
-\[
+$$
 \mathsf{get}(\mathsf{put}(s,a))=a,
-\]
+$$
 
-\[
+$$
 \mathsf{put}(\mathsf{put}(s,a_1),a_2)
 =
 \mathsf{put}(s,a_2).
-\]
+$$
 
 A complete intervention also records its semantic class, direct targets, transitive dependency closure, hypothesis, and required evaluation fidelity. The optic establishes lawful update behavior; the dependency graph establishes causal invalidation.
 
@@ -8110,17 +8110,17 @@ A complete intervention also records its semantic class, direct targets, transit
 
 A stochastic trial is modeled as a Markov kernel
 
-\[
+$$
 K_\theta:X\rightsquigarrow O.
-\]
+$$
 
 Baseline and candidate comparison is not merely two independent samples. It is a coupling
 
-\[
+$$
 \Gamma_x
 \in
 \mathcal D(O_b\times O_c)
-\]
+$$
 
 whose marginals are the baseline and candidate outcome distributions.
 
@@ -8269,7 +8269,7 @@ go test -race ./...
 
 All passed. The extracted sandbox ZIP was tested independently.
 
-The RAG demonstration selected the lawful `chunk-34` intervention and rejected candidates that regressed protected recall. The quadratic demonstration selected the optimum candidate at \(x=3\). Campaign histories are append-only and resumable, and the demos emit content-addressed artifacts plus serialized build/query plans.
+The RAG demonstration selected the lawful `chunk-34` intervention and rejected candidates that regressed protected recall. The quadratic demonstration selected the optimum candidate at $x=3$. Campaign histories are append-only and resumable, and the demos emit content-addressed artifacts plus serialized build/query plans.
 
 The DOCX passed its accessibility audit with no findings. The final PDF has **142 pages**, opens correctly, is unencrypted and searchable, and passed structural preflight without warnings.
 
@@ -8280,11 +8280,11 @@ The DOCX passed its accessibility audit with no findings. The final PDF has **14
 
 In that phrase, **port means an explicitly typed interaction boundary between the campaign state machine and something outside it**.
 
-Think of the campaign machine as having an internal state \(S\) and transition rules that the kernel owns. It cannot do everything itself: somebody must propose candidates, execute trials, persist events, decide gates, perhaps activate a winning release. Those capabilities attach at its *open ports*.
+Think of the campaign machine as having an internal state $S$ and transition rules that the kernel owns. It cannot do everything itself: somebody must propose candidates, execute trials, persist events, decide gates, perhaps activate a winning release. Those capabilities attach at its *open ports*.
 
 A useful abstract picture is:
 
-\[
+$$
 \boxed{\text{Proposer}}
 \longrightarrow
 \boxed{
@@ -8294,21 +8294,21 @@ A useful abstract picture is:
 \end{array}}
 \longrightarrow
 \boxed{\text{Runner}}
-\]
+$$
 
 with other ports for workload, store, policy, artifact resolution, deployment, etc. More formally, you can regard the campaign as an **open system**
 
-\[
+$$
 C : I \rightsquigarrow O
-\]
+$$
 
-whose boundary \(I,O\) describes the things its environment is allowed to supply or observe.
+whose boundary $I,O$ describes the things its environment is allowed to supply or observe.
 
 The important point is that a port is **not just a Go interface**. The interface is one implementation of the port. Semantically, the port specifies a protocol: the types of values exchanged, when exchanges are legal, what identities they carry, and which side owns which invariants.
 
 For example, a runner port might have the conceptual signature
 
-\[
+$$
 \mathsf{Run} :
 (\mathsf{Candidate},
  \mathsf{Case},
@@ -8316,7 +8316,7 @@ For example, a runner port might have the conceptual signature
  \mathsf{Seed})
 \rightsquigarrow
 \mathsf{TrialOutcome}.
-\]
+$$
 
 The campaign kernel controls the left-hand coordinates and requires the outcome to come back under exactly those coordinates. The plugin attached to that port controls *how* the experiment is actually run. It might run GEC, Garden, an ANN benchmark, a remote Kubernetes job, or a toy function.
 
@@ -8330,9 +8330,9 @@ type Runner interface {
 
 is the **software interface**, while
 
-\[
+$$
 \mathsf{TrialRequest}\rightsquigarrow\mathsf{TrialResult}
-\]
+$$
 
 together with its laws is the **semantic port**.
 
@@ -8363,15 +8363,15 @@ Store ──────┘        └── remote cluster runner
 
 GEC and Garden can attach completely different operational worlds to the same runner port. The kernel still knows that:
 
-\[
+$$
 (b,i,r)
-\]
+$$
 
 must be compared with
 
-\[
+$$
 (c,i,r),
-\]
+$$
 
 not with some arbitrary candidate observation. It still knows missing trials cannot disappear. It still knows terminal campaigns cannot subsequently acquire unexplained events.
 
@@ -8381,21 +8381,21 @@ Because **plugin describes who is attached; port describes where and under what 
 
 That distinction becomes important in the categorical treatment. An open system has a boundary. Composition happens by connecting compatible boundaries:
 
-\[
+$$
 A
 \;\xrightarrow{\quad p \quad}\;
 B
-\]
+$$
 
 or, for two open systems,
 
-\[
+$$
 F : X\otimes A \to Y\otimes B,
 \qquad
 G : Y\otimes B \to Z\otimes C,
-\]
+$$
 
-where the matching \(Y\otimes B\) boundary can be wired together.
+where the matching $Y\otimes B$ boundary can be wired together.
 
 So instead of saying:
 
@@ -8483,21 +8483,21 @@ One terminological refinement I would make in the thesis is to distinguish **por
 
 So the conceptual hierarchy is:
 
-\[
+$$
 \boxed{\text{kernel}}
 \quad
 \overset{\text{ports}}{\longleftrightarrow}
 \quad
 \boxed{\text{plugins/adapters}}
-\]
+$$
 
 while inside the kernel-controlled plan language:
 
-\[
+$$
 \boxed{\text{plan}}
 =
 \text{composition of typed operations}.
-\]
+$$
 
 That distinction is one of the more important architectural ideas in the thesis: **make the mathematics closed where correctness depends on it, and open the system only at explicitly modeled ports.**
 
@@ -8508,36 +8508,36 @@ That distinction is one of the more important architectural ideas in the thesis:
 
 The squiggly arrow I used,
 
-\[
+$$
 A \rightsquigarrow B
-\]
+$$
 
-was informal notation for “an effectful / stochastic / externally interpreted computation from \(A\) to \(B\),” rather than an ordinary pure function
+was informal notation for “an effectful / stochastic / externally interpreted computation from $A$ to $B$,” rather than an ordinary pure function
 
-\[
+$$
 A \to B.
-\]
+$$
 
 In the probabilistic part of the thesis, it is most naturally read as a **Markov kernel**:
 
-\[
+$$
 K : A \rightsquigarrow B
-\]
+$$
 
-meaning that each \(a\in A\) determines a probability distribution over \(B\):
+meaning that each $a\in A$ determines a probability distribution over $B$:
 
-\[
+$$
 K(a) \in \mathcal D(B).
-\]
+$$
 
 So a trial runner is better modeled as
 
-\[
+$$
 \mathsf{Run} :
 \mathsf{TrialRequest}
 \rightsquigarrow
 \mathsf{TrialOutcome}
-\]
+$$
 
 because the same request can yield different model outputs, latency, failures, etc.
 
@@ -9059,24 +9059,24 @@ func Compose[A, B, C any](
 
 This corresponds roughly to:
 
-\[
+$$
 A \to B,\qquad
 B \to C
-\]
+$$
 
 giving
 
-\[
+$$
 A \to C.
-\]
+$$
 
 Once those operations can be stochastic/effectful, I might write:
 
-\[
+$$
 A \rightsquigarrow B,
 \qquad
 B \rightsquigarrow C
-\]
+$$
 
 and compose them as effectful arrows.
 
@@ -9092,11 +9092,11 @@ Three cases matter.
 
 ### Ordinary deterministic function
 
-\[
+$$
 f:A\to B
-\]
+$$
 
-Every \(a\) determines exactly one \(b\).
+Every $a$ determines exactly one $b$.
 
 In Go:
 
@@ -9106,13 +9106,13 @@ func F(a A) B
 
 ### Partial/effectful computation
 
-\[
+$$
 f:A\rightsquigarrow B
-\]
+$$
 
 Informally:
 
-> give me an \(A\), and executing something may eventually yield a \(B\), perhaps with effects or failure.
+> give me an $A$, and executing something may eventually yield a $B$, perhaps with effects or failure.
 
 For instance:
 
@@ -9126,27 +9126,27 @@ The squiggle is only suggestive here.
 
 The precise probabilistic interpretation is:
 
-\[
+$$
 K:A\rightsquigarrow B
-\]
+$$
 
 with
 
-\[
+$$
 K:A\to\mathcal D(B).
-\]
+$$
 
 So instead of:
 
-\[
+$$
 a \mapsto b
-\]
+$$
 
 you have:
 
-\[
+$$
 a \mapsto P(B\mid a).
-\]
+$$
 
 For a finite example:
 
@@ -9178,13 +9178,13 @@ func (CoinKernel) Apply(x string) Distribution[string] {
 
 Mathematically:
 
-\[
+$$
 K(x)
 =
 0.8\,\delta_{\text{success}}
 +
 0.2\,\delta_{\text{failure}}.
-\]
+$$
 
 ---
 
@@ -9192,30 +9192,30 @@ K(x)
 
 Suppose:
 
-\[
+$$
 K:A\rightsquigarrow B
-\]
+$$
 
 and
 
-\[
+$$
 L:B\rightsquigarrow C.
-\]
+$$
 
 Their composite is:
 
-\[
+$$
 L\circ K:A\rightsquigarrow C
-\]
+$$
 
 defined by
 
-\[
+$$
 (L\circ K)(c\mid a)
 =
 \sum_b
 L(c\mid b)K(b\mid a)
-\]
+$$
 
 in the finite case.
 
@@ -9286,20 +9286,20 @@ type RAGObservation struct {
 
 Conceptually:
 
-\[
+$$
 K :
 \mathsf{RAGTrial}
 \rightsquigarrow
 \mathsf{RAGObservation}.
-\]
+$$
 
 Why not simply:
 
-\[
+$$
 \mathsf{RAGTrial}
 \to
 \mathsf{RAGObservation}?
-\]
+$$
 
 Because even with the same release and query:
 
@@ -9362,24 +9362,24 @@ type PairRunner interface {
 
 Mathematically, instead of merely:
 
-\[
+$$
 K_b:X\rightsquigarrow O
-\]
+$$
 
 and
 
-\[
+$$
 K_c:X\rightsquigarrow O,
-\]
+$$
 
 we introduce
 
-\[
+$$
 \Gamma_x:
 X\rightsquigarrow O_b\times O_c
-\]
+$$
 
-such that its marginals are \(K_b\) and \(K_c\).
+such that its marginals are $K_b$ and $K_c$.
 
 That lets a domain plugin say:
 

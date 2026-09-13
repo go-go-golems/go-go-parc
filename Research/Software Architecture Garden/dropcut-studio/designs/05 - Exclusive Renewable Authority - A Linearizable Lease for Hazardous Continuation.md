@@ -122,26 +122,26 @@ stateDiagram-v2
 
 The core invariants are:
 
-\[
+$$
 \left|\text{active authority}\right| \le 1
-\]
+$$
 
-\[
+$$
 id \ne activeID \Longrightarrow \text{driver.Renew is not called}
-\]
+$$
 
-\[
+$$
 state \ne Active \Longrightarrow \text{no renewal pulse is admitted}
-\]
+$$
 
-\[
+$$
 successful\ renewal \Longrightarrow
 expiresAt := now + TTL
-\]
+$$
 
-\[
+$$
 \text{each generation invokes revocation cleanup at most once}
-\]
+$$
 
 The last property requires `Active → Revoking` to occur under the same lock used to admit renewal. Cleanup may execute outside that lock, but a new acquisition remains forbidden until cleanup changes `Revoking → Idle`.
 
@@ -294,9 +294,9 @@ The lock remains held over the renewal pulse. This is deliberate. It places the 
 
 That choice introduces a bound requirement. If the pulse can block for at most `Wmax`, and cleanup can block for at most `Cmax`, then host-side revocation completion is bounded by:
 
-\[
+$$
 T_{host-stop} \le TTL + W_{max} + C_{max}
-\]
+$$
 
 The generic type is not hard real-time: Go scheduling, process suspension, and operating-system delays remain outside this bound. In the Makera design, the device-side dead-man remains the independent safety mechanism. The host lease limits controller authority and requests an explicit stop; it does not replace firmware omission-to-stop behavior.
 

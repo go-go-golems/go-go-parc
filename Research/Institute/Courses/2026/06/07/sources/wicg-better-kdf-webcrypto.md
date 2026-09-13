@@ -1,6 +1,6 @@
 ## Introduction
 
-\[I have an existing issue [here](https://github.com/w3c/webcrypto/issues/265), but I'm hoping to get more eyes on it.\]
+$$I have an existing issue [here](https://github.com/w3c/webcrypto/issues/265), but I'm hoping to get more eyes on it.$$
 
 The `SubtleCrypto.deriveKey` API exposes one password-based KDF, `pbkdf2`, which is quite old and is based on 
 repeatedly performing SHA-1 or one of the SHA-2 variants. While it's still acceptable, society as a whole has put quite 

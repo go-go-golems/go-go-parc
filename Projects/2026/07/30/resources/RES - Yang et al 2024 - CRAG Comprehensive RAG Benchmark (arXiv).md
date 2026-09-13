@@ -18,14 +18,14 @@ Authors:[Xiao Yang](https://arxiv.org/search/cs?searchtype=author&query=Yang,+X)
 | Comments: |
 | --- |
 | Subjects: | Computation and Language (cs.CL) |
-| Cite as: | [arXiv:2406.04744](https://arxiv.org/abs/2406.04744) \[cs.CL\] |
-|  | (or [arXiv:2406.04744v2](https://arxiv.org/abs/2406.04744v2) \[cs.CL\] for this version) |
+| Cite as: | [arXiv:2406.04744](https://arxiv.org/abs/2406.04744) $$cs.CL$$ |
+|  | (or [arXiv:2406.04744v2](https://arxiv.org/abs/2406.04744v2) $$cs.CL$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.2406.04744](https://doi.org/10.48550/arXiv.2406.04744) |
 
 ## Submission history
 
-From: Kai Sun \[[view email](https://arxiv.org/show-email/a8b80b02/2406.04744)\]  
-**[\[v1\]](https://arxiv.org/abs/2406.04744v1)** Fri, 7 Jun 2024 08:43:07 UTC (523 KB)  
-**\[v2\]** Fri, 1 Nov 2024 05:30:17 UTC (545 KB)
+From: Kai Sun $$[view email](https://arxiv.org/show-email/a8b80b02/2406.04744)$$  
+**[$$v1$$](https://arxiv.org/abs/2406.04744v1)** Fri, 7 Jun 2024 08:43:07 UTC (523 KB)  
+**$$v2$$** Fri, 1 Nov 2024 05:30:17 UTC (545 KB)
 
 [Which authors of this paper are endorsers?](https://arxiv.org/auth/show-endorsers/2406.04744) | Disable MathJax ([What is MathJax?](https://info.arxiv.org/help/mathjax.html))

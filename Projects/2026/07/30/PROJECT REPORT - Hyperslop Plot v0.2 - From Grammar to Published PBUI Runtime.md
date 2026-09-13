@@ -311,7 +311,7 @@ without migrating PBUI documents, provided the recipe semantics remain stable.
 
 ### 5.1 Summary intervals
 
-For a group of observations \(x_1,\ldots,x_n\), the summary statistic computes:
+For a group of observations $x_1,\ldots,x_n$, the summary statistic computes:
 
 $$
 \bar{x} = \frac{1}{n}\sum_{i=1}^{n}x_i
@@ -323,8 +323,8 @@ $$
 s = \sqrt{\frac{\sum_{i=1}^{n}(x_i-\bar{x})^2}{n-1}}
 $$
 
-A standard-deviation interval uses \(m s\). A standard-error interval uses
-\(m s/\sqrt{n}\). The method and multiplier are recorded in statistical
+A standard-deviation interval uses $m s$. A standard-error interval uses
+$m s/\sqrt{n}$. The method and multiplier are recorded in statistical
 metadata because equal-looking error bars can represent different quantities.
 
 ### 5.2 Histogram binning
@@ -357,7 +357,7 @@ $$
 $$
 
 The output includes fitted values and confidence bounds at sorted observed
-x-coordinates. Metadata includes intercept, slope, \(R^2\), residual standard
+x-coordinates. Metadata includes intercept, slope, $R^2$, residual standard
 error, count, confidence level, and the interval assumption. The frontend
 implementation is intentionally bounded; it is a reproducible visual statistic,
 not a general modeling API.

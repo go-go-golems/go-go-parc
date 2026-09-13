@@ -18,18 +18,18 @@ Authors:[Jiawei Gu](https://arxiv.org/search/cs?searchtype=author&query=Gu,+J), 
 | Comments: |
 | --- |
 | Subjects: | Computation and Language (cs.CL); Artificial Intelligence (cs.AI) |
-| Cite as: | [arXiv:2411.15594](https://arxiv.org/abs/2411.15594) \[cs.CL\] |
-|  | (or [arXiv:2411.15594v6](https://arxiv.org/abs/2411.15594v6) \[cs.CL\] for this version) |
+| Cite as: | [arXiv:2411.15594](https://arxiv.org/abs/2411.15594) $$cs.CL$$ |
+|  | (or [arXiv:2411.15594v6](https://arxiv.org/abs/2411.15594v6) $$cs.CL$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.2411.15594](https://doi.org/10.48550/arXiv.2411.15594) |
 
 ## Submission history
 
-From: Xuhui Jiang \[[view email](https://arxiv.org/show-email/deaaef6f/2411.15594)\]  
-**[\[v1\]](https://arxiv.org/abs/2411.15594v1)** Sat, 23 Nov 2024 16:03:35 UTC (1,888 KB)  
-**[\[v2\]](https://arxiv.org/abs/2411.15594v2)** Mon, 16 Dec 2024 15:00:53 UTC (2,820 KB)  
-**[\[v3\]](https://arxiv.org/abs/2411.15594v3)** Thu, 9 Jan 2025 03:08:17 UTC (1,477 KB)  
-**[\[v4\]](https://arxiv.org/abs/2411.15594v4)** Sat, 1 Feb 2025 08:55:51 UTC (10,153 KB)  
-**[\[v5\]](https://arxiv.org/abs/2411.15594v5)** Sun, 9 Mar 2025 05:21:22 UTC (13,276 KB)  
-**\[v6\]** Sun, 19 Oct 2025 10:32:43 UTC (26,593 KB)
+From: Xuhui Jiang $$[view email](https://arxiv.org/show-email/deaaef6f/2411.15594)$$  
+**[$$v1$$](https://arxiv.org/abs/2411.15594v1)** Sat, 23 Nov 2024 16:03:35 UTC (1,888 KB)  
+**[$$v2$$](https://arxiv.org/abs/2411.15594v2)** Mon, 16 Dec 2024 15:00:53 UTC (2,820 KB)  
+**[$$v3$$](https://arxiv.org/abs/2411.15594v3)** Thu, 9 Jan 2025 03:08:17 UTC (1,477 KB)  
+**[$$v4$$](https://arxiv.org/abs/2411.15594v4)** Sat, 1 Feb 2025 08:55:51 UTC (10,153 KB)  
+**[$$v5$$](https://arxiv.org/abs/2411.15594v5)** Sun, 9 Mar 2025 05:21:22 UTC (13,276 KB)  
+**$$v6$$** Sun, 19 Oct 2025 10:32:43 UTC (26,593 KB)
 
 [Which authors of this paper are endorsers?](https://arxiv.org/auth/show-endorsers/2411.15594) | Disable MathJax ([What is MathJax?](https://info.arxiv.org/help/mathjax.html))

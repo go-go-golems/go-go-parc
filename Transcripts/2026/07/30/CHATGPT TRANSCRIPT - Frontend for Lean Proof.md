@@ -224,7 +224,7 @@
 >   while (b.k === "lam") { vars.push(b.x); b = b.b; }
 >   if (b.k !== "app") return null;
 >   let pat = b; const metas = new Set();
->   vars.forEach((v, i) => { metas.add("$" + i); pat = subst(pat, v, META("$" + i)); });
+>   vars.forEach((v, i) => { metas.add("\$" + i); pat = subst(pat, v, META("\$" + i)); });
 >   return { name, pat, metas, arity: vars.length };
 > }
 > function refold(env, t) {
@@ -236,7 +236,7 @@
 >       const asg = {};
 >       if (fomatch(p.pat, t, p.metas, asg)) {
 >         const args = []; let ok = true;
->         for (let i = 0; i < p.arity; i++) { if (!asg["$" + i]) { ok = false; break; } args.push(asg["$" + i]); }
+>         for (let i = 0; i < p.arity; i++) { if (!asg["\$" + i]) { ok = false; break; } args.push(asg["\$" + i]); }
 >         if (ok) return AP(K(p.name), ...args);
 >       }
 >     }
@@ -334,7 +334,7 @@
 > }
 > function check(env, ctx, t, ty, st, metaTy) {
 >   const got = infer(env, ctx, t, st, metaTy);
->   if (!defeq(env, got, ty, st)) throw new TypeError2("type mismatch\n  expected: " + pp(ty) + "\n  inferred: " + pp(got));
+>   if (!defeq(env, got, ty, st)) throw new TypeError2("type mismatch\\n  expected: " + pp(ty) + "\\n  inferred: " + pp(got));
 >   return true;
 > }
 >
@@ -423,13 +423,13 @@
 >
 > /* ---------------- tiny term parser (for exact / apply arguments) ---------------- */
 > function parseTerm(src, ctx, env) {
->   const toks = src.match(/[A-Za-z_][A-Za-z0-9_']*|\d+|\(|\)/g) || [];
+>   const toks = src.match(/[A-Za-z_][A-Za-z0-9_']*|\d+|$|$/g) || [];
 >   let i = 0;
 >   const atom = () => {
 >     const t = toks[i];
 >     if (t === "(") { i++; const e = expr(); if (toks[i] === ")") i++; return e; }
 >     i++;
->     if (/^\d+$/.test(t)) return num(+t);
+>     if (/^\d+\$/.test(t)) return num(+t);
 >     if (ctx.some((c) => c.name === t)) return V(t);
 >     if (env.has(t)) return K(t);
 >     throw new Error("unknown identifier " + t);
@@ -441,7 +441,7 @@
 > }
 > /* ---------------- tactic parser ---------------- */
 > function parseTac(s) {
->   const t = s.trim().replace(/\.$/, "");
+>   const t = s.trim().replace(/\.\$/, "");
 >   const w = t.split(/\s+/);
 >   const c = w[0];
 >   if (c === "intro") return { t: "intro", names: w.slice(1) };
@@ -545,7 +545,7 @@
 >     const w = whnf(env, g.target), sp = spine(w);
 >     if (!(sp.head.k === "const" && sp.head.n === "eq" && sp.args.length === 3)) throw new Error("the goal is not an equation");
 >     const [A, a, b] = sp.args;
->     if (!defeq(env, a, b)) throw new Error("the two sides are not definitionally equal:\n  " + pp(a) + "\n  " + pp(b));
+>     if (!defeq(env, a, b)) throw new Error("the two sides are not definitionally equal:\\n  " + pp(a) + "\\n  " + pp(b));
 >     refine = AP(K("refl"), A, a);
 >     note = pp(a) + " and " + pp(b) + " share a normal form";
 >     return finish();
@@ -576,7 +576,7 @@
 >     let mc = 0;
 >     const pk = peel(env, ty, () => "?a" + tac.arg + "_" + ++mc);
 >     const asg = {};
->     if (!unify(env, pk.concl, g.target, pk.metas, asg)) throw new Error("cannot unify\n  " + pp(pk.concl) + "\nwith the goal\n  " + pp(g.target));
+>     if (!unify(env, pk.concl, g.target, pk.metas, asg)) throw new Error("cannot unify\\n  " + pp(pk.concl) + "\nwith the goal\\n  " + pp(g.target));
 >     const args = pk.order.map((id) => {
 >       if (asg[id]) return instMeta(META(id), asg);
 >       const ng = mkGoal(g.ctx, instMeta(pk.types[id], asg));
@@ -766,7 +766,7 @@
 >     const wasOk = b && b.closed && b.kernel && b.kernel.ok;
 >     const nowOk = a && a.closed && a.kernel && a.kernel.ok;
 >     const tainted = nowOk && assumptions(alt.env, d.name).unproved.size > 0;
->     return { name: d.name, wasOk, nowOk, tainted, at: a && a.failed ? a.failed.at : null, why: a && a.failed ? a.failed.msg.split("\n")[0] : null };
+>     return { name: d.name, wasOk, nowOk, tainted, at: a && a.failed ? a.failed.at : null, why: a && a.failed ? a.failed.msg.split("\\n")[0] : null };
 >   });
 >   return { name, rows, broke: rows.filter((r) => r.wasOk && !r.nowOk), tainted: rows.filter((r) => r.tainted) };
 > }
@@ -1506,8 +1506,8 @@
 >         {w.runs().map((x) => <ThmChip key={x.name} name={x.name} big={x.name === w.thm} />)}
 >       </div>
 >       <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "4px 8px 0", flexShrink: 0, flexWrap: "wrap" }}>
->         <TBtn doc="edit this tactic script — the development re-checks on apply" onClick={() => { setDraft(script.join("\n")); setEdit(!edit); }}>{edit ? "cancel" : "edit script"}</TBtn>
->         {edit && <TBtn tone={C.sage} doc="re-run the proof from this script" onClick={() => { w.setScript(w.thm, draft.split("\n").map((s) => s.trim()).filter(Boolean)); setEdit(false); }}>apply</TBtn>}
+>         <TBtn doc="edit this tactic script — the development re-checks on apply" onClick={() => { setDraft(script.join("\\n")); setEdit(!edit); }}>{edit ? "cancel" : "edit script"}</TBtn>
+>         {edit && <TBtn tone={C.sage} doc="re-run the proof from this script" onClick={() => { w.setScript(w.thm, draft.split("\\n").map((s) => s.trim()).filter(Boolean)); setEdit(false); }}>apply</TBtn>}
 >         {w.scripts[w.thm] && <TBtn doc="back to the original script" onClick={() => w.resetScript(w.thm)}>revert</TBtn>}
 >         {!!w.disabled.size && <TBtn doc="switch every disabled tactic back on" onClick={() => w.clearDisabled()}>restore all</TBtn>}
 >         <span style={{ flex: 1 }} />
@@ -1543,7 +1543,7 @@
 >                   </div>
 >                   {on && st && (
 >                     <div style={{ fontSize: 10, color: bad ? C.red : C.faint, paddingLeft: 24, lineHeight: 1.4, marginBottom: 3 }}>
->                       {st.err ? st.err.split("\n").map((l, j) => <div key={j}>{l}</div>) : st.note || tacBlurb(tacName(line))}
+>                       {st.err ? st.err.split("\\n").map((l, j) => <div key={j}>{l}</div>) : st.note || tacBlurb(tacName(line))}
 >                     </div>
 >                   )}
 >                 </div>
@@ -2125,7 +2125,7 @@
 >                 <tr key={x.name} style={{ borderBottom: "1px dotted " + C.line }}>
 >                   <td style={{ padding: "1px 3px" }}><ThmChip name={x.name} /></td>
 >                   <td style={{ padding: "1px 3px" }}><Tag tone={s.tone}>{s.t}</Tag></td>
->                   <td style={{ color: C.faint, fontSize: 9.5 }}>{x.kernel && !x.kernel.ok ? x.kernel.msg.split("\n")[0] : x.failed ? "stopped at tactic " + x.failed.at : ""}</td>
+>                   <td style={{ color: C.faint, fontSize: 9.5 }}>{x.kernel && !x.kernel.ok ? x.kernel.msg.split("\\n")[0] : x.failed ? "stopped at tactic " + x.failed.at : ""}</td>
 >                 </tr>
 >               );
 >             })}
@@ -2201,7 +2201,7 @@
 >           {min.dropped.map((d, i) => <div key={i} style={{ fontSize: 10, color: C.faint }}>· dropped <b>{d}</b>, and the proof still closed</div>)}
 >           {!!min.dropped.length && (
 >             <>
->               <pre style={{ margin: "5px 0 0", border: "2px solid " + C.ink, background: C.pane, padding: 6, fontSize: 10.5, lineHeight: 1.5 }}>{min.script.join("\n")}</pre>
+>               <pre style={{ margin: "5px 0 0", border: "2px solid " + C.ink, background: C.pane, padding: 6, fontSize: 10.5, lineHeight: 1.5 }}>{min.script.join("\\n")}</pre>
 >               <Row style={{ marginTop: 5 }}><Btn tone={C.mustard} onClick={() => w.setScript(w.thm, min.script)}>use the shorter script</Btn></Row>
 >             </>
 >           )}

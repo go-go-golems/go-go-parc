@@ -55,7 +55,7 @@ static bool http_api_account_get_info(
     furi_string_free(user_id_str);
 
     furi_record_close(RECORD_MQTT);
-    MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
+    MG_REPLY_OK_BODY(conn, "{%s}\\n", furi_string_get_cstr(json_str));
     furi_string_free(json_str);
 
     return true;
@@ -87,7 +87,7 @@ static bool http_api_account_get_status(
     }
 
     furi_record_close(RECORD_MQTT);
-    MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
+    MG_REPLY_OK_BODY(conn, "{%s}\\n", furi_string_get_cstr(json_str));
     furi_string_free(json_str);
 
     return true;
@@ -141,8 +141,8 @@ static void mqtt_link_wakeup_callback(struct mg_connection* conn, void* data, si
     mg_http_reply(
         conn,
         200,
-        DEFAULT_JSON_HEADERS "Connection: close\r\n",
-        "{%s}\n",
+        DEFAULT_JSON_HEADERS "Connection: close\\r\\n",
+        "{%s}\\n",
         furi_string_get_cstr(json_str));
     furi_string_free(json_str);
     conn->is_draining = true;
@@ -253,7 +253,7 @@ static void http_api_account_mqtt_backend_get(struct mg_connection* conn) {
     char* json_text = mqtt_config_serialize(&config);
 
     if(json_text) {
-        MG_REPLY_OK_BODY(conn, "%s\n", json_text);
+        MG_REPLY_OK_BODY(conn, "%s\\n", json_text);
         free(json_text);
     } else {
         MG_REPLY_SERVICE_UNAVAILABLE(conn);

@@ -17,13 +17,13 @@ This index is a map of the mathematical spine of *Semantic Interfaces*. It disti
 
 ### Tagged universe of references
 
-For an atomic vocabulary \(A\), with JavaScript representation set \(V_a\) for each atom \(a\), the runtime universe is a tagged disjoint sum:
+For an atomic vocabulary $A$, with JavaScript representation set $V_a$ for each atom $a$, the runtime universe is a tagged disjoint sum:
 
-\[
+$$
 \Omega_R = \sum_{a\in A} V_a.
-\]
+$$
 
-A reference is written \(\langle a,v\rangle\). The tag is part of the semantic value. A raw string used as a project ID and the same raw string used as a user ID are therefore different references unless an explicit identity protocol relates them.
+A reference is written $\langle a,v\rangle$. The tag is part of the semantic value. A raw string used as a project ID and the same raw string used as a user ID are therefore different references unless an explicit identity protocol relates them.
 
 **Location:** Chapters 5 and 10.  
 **Status:** Definition.
@@ -32,7 +32,7 @@ A reference is written \(\langle a,v\rangle\). The tag is part of the semantic v
 
 The principal calculus is:
 
-\[
+$$
 \tau ::= \top
 \mid \bot
 \mid a
@@ -41,20 +41,20 @@ The principal calculus is:
 \mid \tau\land\tau
 \mid \tau\setminus\tau
 \mid \operatorname{refine}(p,\theta,\tau).
-\]
+$$
 
-The public API favors base-relative difference \(\tau_1\setminus\tau_2\) rather than unrestricted complement because the base states the intended universe and behaves more predictably under plugin extension.
+The public API favors base-relative difference $\tau_1\setminus\tau_2$ rather than unrestricted complement because the base states the intended universe and behaves more predictably under plugin extension.
 
 **Location:** Chapter 10.  
 **Status:** Definition.
 
 ### Denotation
 
-Each type expression denotes a set of tagged references relative to registry snapshot \(R\) and environment snapshot \(e\):
+Each type expression denotes a set of tagged references relative to registry snapshot $R$ and environment snapshot $e$:
 
-\[
+$$
 \llbracket\tau\rrbracket^R_e \subseteq \Omega_R.
-\]
+$$
 
 Union, intersection, and difference receive their ordinary set interpretations. A named refinement intersects its base with the truth set of a registered predicate.
 
@@ -65,13 +65,13 @@ Union, intersection, and difference receive their ordinary set interpretations. 
 
 Environment-local semantic subtyping is set inclusion:
 
-\[
+$$
 R,e\models \tau_1\leq\tau_2
 \quad\Longleftrightarrow\quad
 \llbracket\tau_1\rrbracket^R_e
 \subseteq
 \llbracket\tau_2\rrbracket^R_e.
-\]
+$$
 
 Global subtyping quantifies over admissible environments. The distinction matters because an environment-dependent refinement may be included in another type for one snapshot without establishing a stable registry theorem.
 
@@ -82,7 +82,7 @@ Global subtyping quantifies over admissible environments. The distinction matter
 
 ### Key equality induces an equivalence relation
 
-If a deterministic semantic-identity function is total on a subset \(D\subseteq\Omega_R\), equality of identity keys is reflexive, symmetric, and transitive on \(D\).
+If a deterministic semantic-identity function is total on a subset $D\subseteq\Omega_R$, equality of identity keys is reflexive, symmetric, and transitive on $D$.
 
 **Location:** Proposition 6.1.  
 **Status:** Paper proof.  
@@ -108,16 +108,16 @@ The denotational model validates commutativity, associativity, idempotence, abso
 
 ### Direct matcher soundness
 
-If direct matching succeeds with evidence \(\pi\), the source reference belongs to the requested denotation:
+If direct matching succeeds with evidence $\pi$, the source reference belongs to the requested denotation:
 
-\[
+$$
 \operatorname{matchDirect}_{R,e}(r,\tau)
 =\mathsf{success}(\pi)
 \Longrightarrow
 r\in\llbracket\tau\rrbracket^R_e.
-\]
+$$
 
-The proof proceeds by structural induction over \(\tau\). Atom and capability cases rely on registry well-formedness; refinement cases rely on predicate correctness; the difference case relies on a decidable negative membership result rather than absence of a proof alone.
+The proof proceeds by structural induction over $\tau$. Atom and capability cases rely on registry well-formedness; refinement cases rely on predicate correctness; the difference case relies on a decidable negative membership result rather than absence of a proof alone.
 
 **Location:** Theorem 16.1.  
 **Status:** Proof sketch.  
@@ -125,9 +125,9 @@ The proof proceeds by structural induction over \(\tau\). Atom and capability ca
 
 ### Translated acceptance soundness
 
-If full matching returns source \(r\), accepted reference \(r'\), requested type \(\tau\), and translator path \(P\), then \(r'\) belongs to \(\tau\), provided every edge of \(P\) satisfies its declared translator contract.
+If full matching returns source $r$, accepted reference $r'$, requested type $\tau$, and translator path $P$, then $r'$ belongs to $\tau$, provided every edge of $P$ satisfies its declared translator contract.
 
-The theorem intentionally does not conclude that \(r\) directly belongs to \(\tau\). Translation is reachability, not subtyping.
+The theorem intentionally does not conclude that $r$ directly belongs to $\tau$. Translation is reachability, not subtyping.
 
 **Location:** Theorem 16.2.  
 **Status:** Proof sketch plus translator-contract assumptions.  
@@ -156,12 +156,12 @@ On a finite concrete translator state graph with nonnegative costs, deterministi
 
 The accepted set under translators is a reachability closure:
 
-\[
+$$
 \operatorname{Acceptable}_{R,e}(\tau)
 =
 \{r\mid\exists r'.\;r\Rightarrow^*_{R,e}r'
 \land r'\in\llbracket\tau\rrbracket^R_e\}.
-\]
+$$
 
 This relation can be partial, effectful, asynchronous, or representation-changing. It must not be inserted into the nominal subtype order.
 
@@ -172,7 +172,7 @@ This relation can be partial, effectful, asynchronous, or representation-changin
 
 ### Product specificity
 
-A method signature is a product of type expressions. Signature \(S_1\) is at least as specific as \(S_2\) when every component of \(S_1\) is a semantic subtype of the corresponding component of \(S_2\).
+A method signature is a product of type expressions. Signature $S_1$ is at least as specific as $S_2$ when every component of $S_1$ is a semantic subtype of the corresponding component of $S_2$.
 
 **Location:** Chapter 17.  
 **Status:** Definition.
@@ -203,7 +203,7 @@ Each input-context identifier owns one continuation and can settle it at most on
 
 ### Acceptance safety
 
-Assuming matcher soundness, translator-contract soundness, commitment-time revalidation, and stale-ID rejection, successful resolution of a request for \(\tau\) returns a reference in \(\llbracket\tau\rrbracket\) for the commitment snapshot.
+Assuming matcher soundness, translator-contract soundness, commitment-time revalidation, and stale-ID rejection, successful resolution of a request for $\tau$ returns a reference in $\llbracket\tau\rrbracket$ for the commitment snapshot.
 
 **Location:** Theorem 18.1.  
 **Status:** Proof sketch.  
@@ -245,11 +245,11 @@ Cache reuse returns the same Boolean membership answer as reevaluation when:
 
 The decisive assumption is dependency completeness:
 
-\[
+$$
 F_p(r,e)=F_p(r',e')\land r\approx r'
 \Longrightarrow
 p(r,e)=p(r',e').
-\]
+$$
 
 **Location:** Theorem 22.1.  
 **Status:** Proof sketch by structural induction.  

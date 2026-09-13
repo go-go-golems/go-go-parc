@@ -74,25 +74,25 @@ The fourth property is the central systems constraint. A correct parser and a go
 
 The system maintains an editable text trace and an append-only audit log. Generated token fragments append to the active text. Interventions replace spans in that text, while the log retains both the original sampled text and the edit that superseded it.
 
-Let the active text at revision \(r\) be \(T_r\). A normal sample appends a fragment \(s\):
+Let the active text at revision $r$ be $T_r$. A normal sample appends a fragment $s$:
 
-\[
+$$
 T_{r+1} = T_r \mathbin{\|} s
-\]
+$$
 
-An intervention is a set of non-overlapping patches \(P = \{p_1, \ldots, p_n\}\). Each patch replaces a half-open character interval `[start, end)` with replacement text. Applying the patches right-to-left preserves the offsets computed against \(T_r\):
+An intervention is a set of non-overlapping patches $P = \{p_1, \ldots, p_n\}$. Each patch replaces a half-open character interval `[start, end)` with replacement text. Applying the patches right-to-left preserves the offsets computed against $T_r$:
 
-\[
+$$
 T_{r+1} = \operatorname{apply}(T_r, P)
-\]
+$$
 
 The model must then sample from the conditional distribution defined by the edited text:
 
-\[
+$$
 x_{t+1} \sim p_\theta(x \mid \operatorname{tokenize}(T_{r+1}))
-\]
+$$
 
-It must not sample from a cache built from \(T_r\). This distinction is observable when a patch deletes punctuation, line terminators, or tokens that influenced the previous cache.
+It must not sample from a cache built from $T_r$. This distinction is observable when a patch deletes punctuation, line terminators, or tokens that influenced the previous cache.
 
 The prototype expresses this rule directly:
 
@@ -688,11 +688,11 @@ Record at least:
 
 ### Paired analysis
 
-For each seed \(s\), compare baseline \(B_s\) with feedback \(F_s\). The primary effect is not the raw feedback success rate but the paired difference in final correctness:
+For each seed $s$, compare baseline $B_s$ with feedback $F_s$. The primary effect is not the raw feedback success rate but the paired difference in final correctness:
 
-\[
+$$
 \Delta_s = \operatorname{correct}(F_s) - \operatorname{correct}(B_s)
-\]
+$$
 
 Aggregate over seeds and report all four paired outcomes:
 
@@ -748,7 +748,7 @@ reusable_cache = truncate_cache(old_cache, sequence_length=k)
 replay_suffix(model, reusable_cache, new_ids[k:])
 ```
 
-Character patches cannot determine \(k\) directly. Token boundaries can change before the edited character because tokenizers merge adjacent characters. The implementation must retokenize both texts and compare token IDs.
+Character patches cannot determine $k$ directly. Token boundaries can change before the edited character because tokenizers merge adjacent characters. The implementation must retokenize both texts and compare token IDs.
 
 The equivalence suite should include edits:
 

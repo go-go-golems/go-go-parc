@@ -17,14 +17,14 @@ Authors:[Rodrigo Nogueira](https://arxiv.org/search/cs?searchtype=author&query=N
 
 | Subjects: | Information Retrieval (cs.IR); Machine Learning (cs.LG) |
 | --- | --- |
-| Cite as: | [arXiv:1904.08375](https://arxiv.org/abs/1904.08375) \[cs.IR\] |
-|  | (or [arXiv:1904.08375v2](https://arxiv.org/abs/1904.08375v2) \[cs.IR\] for this version) |
+| Cite as: | [arXiv:1904.08375](https://arxiv.org/abs/1904.08375) $$cs.IR$$ |
+|  | (or [arXiv:1904.08375v2](https://arxiv.org/abs/1904.08375v2) $$cs.IR$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.1904.08375](https://doi.org/10.48550/arXiv.1904.08375) |
 
 ## Submission history
 
-From: Rodrigo Nogueira \[[view email](https://arxiv.org/show-email/00ecbdb2/1904.08375)\]  
-**[\[v1\]](https://arxiv.org/abs/1904.08375v1)** Wed, 17 Apr 2019 17:20:14 UTC (83 KB)  
-**\[v2\]** Wed, 25 Sep 2019 00:40:54 UTC (88 KB)
+From: Rodrigo Nogueira $$[view email](https://arxiv.org/show-email/00ecbdb2/1904.08375)$$  
+**[$$v1$$](https://arxiv.org/abs/1904.08375v1)** Wed, 17 Apr 2019 17:20:14 UTC (83 KB)  
+**$$v2$$** Wed, 25 Sep 2019 00:40:54 UTC (88 KB)
 
 [Which authors of this paper are endorsers?](https://arxiv.org/auth/show-endorsers/1904.08375) | Disable MathJax ([What is MathJax?](https://info.arxiv.org/help/mathjax.html))

@@ -297,11 +297,11 @@ static void client_on_message(struct mg_connection* conn, struct mg_ws_message* 
 
         bool success = false;
         bool enabled = false;
-        if(mg_json_get_bool(ws_msg->data, "$.enable", &enabled)) {
+        if(mg_json_get_bool(ws_msg->data, "\$.enable", &enabled)) {
             client_set_enabled(client, enabled);
             success = true;
         }
-        char* send_value = mg_json_get_str(ws_msg->data, "$.send");
+        char* send_value = mg_json_get_str(ws_msg->data, "\$.send");
         if(send_value && strcmp("all", send_value) == 0) {
             if(client_send_all(client)) {
                 success = true;

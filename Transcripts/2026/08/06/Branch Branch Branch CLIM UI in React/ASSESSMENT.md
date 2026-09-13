@@ -101,7 +101,7 @@ During splitter dragging, `setSplitRatioLive` mutates authoritative engine state
 
 `connectedPorts` scans all links for each dequeued port. It is called by compatibility checks, link-group construction, writes, hover tracing, and status rendering. Some render paths call it repeatedly for the same endpoint.
 
-For a graph with \(|P|\) ports and \(|E|\) edges, a single component discovery is approximately \(O(|P||E|)\) in the current scan-based form. Repeating it across many mounted badges can dominate interaction latency as the workspace grows.
+For a graph with $|P|$ ports and $|E|$ edges, a single component discovery is approximately $O(|P||E|)$ in the current scan-based form. Repeating it across many mounted badges can dominate interaction latency as the workspace grows.
 
 **Severity:** medium at current fixture size; high at platform scale.  
 **Replacement:** construct the quotient once per topology revision and use `portBinding[portId]` for constant-time class lookup.
@@ -131,30 +131,30 @@ The reimplementation keeps those ideas and replaces the unenforced conventions b
 
 ## Replacement kernel in one statement
 
-Let \(P\) be the finite set of typed ports and \(E\) the durable set of equality-link edges. Endpoint maps
+Let $P$ be the finite set of typed ports and $E$ the durable set of equality-link edges. Endpoint maps
 
-\[
+$$
 s,t:E\rightrightarrows P
-\]
+$$
 
-generate the least equivalence relation \(\sim_E\) containing \(s(e)\sim_E t(e)\) for every edge \(e\). The runtime computes the quotient
+generate the least equivalence relation $\sim_E$ containing $s(e)\sim_E t(e)$ for every edge $e$. The runtime computes the quotient
 
-\[
+$$
 q:P\to P/{\sim_E}.
-\]
+$$
 
 A binding-value function
 
-\[
+$$
 v:P/{\sim_E}\to V
-\]
+$$
 
 stores one well-typed value for each class. Reading a port is composition:
 
-\[
+$$
 \operatorname{read}(p)=v(q(p)).
-\]
+$$
 
-Writing a port changes exactly \(v(q(p))\). Linking changes \(E\), recomputes the affected quotient, and applies an explicit value-reconciliation policy. Unlinking removes one generator from \(E\), recomputes connectivity, and copies the old class value to each resulting class. The source graph is retained because a quotient alone does not preserve enough provenance to reverse one user link.
+Writing a port changes exactly $v(q(p))$. Linking changes $E$, recomputes the affected quotient, and applies an explicit value-reconciliation policy. Unlinking removes one generator from $E$, recomputes connectivity, and copies the old class value to each resulting class. The source graph is retained because a quotient alone does not preserve enough provenance to reverse one user link.
 
 This model is the core implemented in `src/graph.ts`, checked by `src/invariants.ts`, and transacted by `src/kernel.ts`.

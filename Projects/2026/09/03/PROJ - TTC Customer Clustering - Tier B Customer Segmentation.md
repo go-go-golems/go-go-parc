@@ -72,7 +72,7 @@ The resulting segment table is well-behaved and immediately actionable:
 | big_spenders_lapsed | 10.7% | 1 | $348 | 2,308 days |
 | champions | 6.6% | 4 | $829 | 560 days |
 | loyal | 2.8% | 3 | $632 | 1,627 days |
-| at_risk_loyal | 2.3% | 3 | $583 | 2,261 days |
+| at_risk_loyal | 2.3% | 3 | \$583 | 2,261 days |
 
 Read as a marketing brief: a third of the base is recent first-time buyers who need a second-order nudge; a quarter is dormant with low historical value; the champions — under seven percent of customers — order around four times with a median lifetime revenue five times the one-time median, and they were last seen within the last two years. The `at_risk_loyal` and `big_spenders_lapsed` rows are the win-back lists.
 
@@ -84,7 +84,7 @@ The k-means clustering runs on thirteen standardized features over the repeat bu
 
 A silhouette of 0.136 is low, and it is honest to say so: thirteen-dimensional behavioral data does not separate into crisp islands, and any clustering of it is a compression, not a discovery of natural kinds. The more informative quality measure is stability: refit the clustering on bootstrap resamples and measure label agreement with the reference solution using the adjusted Rand index, which is invariant to label switching. The measured mean ARI across twenty resamples was 0.616 with a standard deviation of 0.16 — and, notably, this number moved between otherwise-identical configurations (0.757, 0.685, 0.616 across runs with different random states), which is itself evidence about the solution: it is moderately stable, and its exact shape depends on which local optimum the algorithm lands in. The final script pins seeds per stochastic block so the pipeline is reproducible, and reports the stability honestly in the explorer rather than presenting one favorable draw.
 
-The seven clusters, named from their profiles, are: care-focused repeaters (addon attach 0.72); off-season discount buyers (spring share 0.15); landscapers (eleven plants per order, AOV around $505); small-cart warranty buyers; a rare addon-heavy class; lapsed spring buyers (the largest bucket, recency around five years); and an engaged core — nearly five orders, recent, warranty attach 0.42, and the strongest Thrive-membership overlap at 12.6%.
+The seven clusters, named from their profiles, are: care-focused repeaters (addon attach 0.72); off-season discount buyers (spring share 0.15); landscapers (eleven plants per order, AOV around \$505); small-cart warranty buyers; a rare addon-heavy class; lapsed spring buyers (the largest bucket, recency around five years); and an engaged core — nearly five orders, recent, warranty attach 0.42, and the strongest Thrive-membership overlap at 12.6%.
 
 ## The mixture models, and a lesson about BIC
 

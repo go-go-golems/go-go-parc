@@ -59,21 +59,21 @@ A **μRAG** program has three deliberately separate fragments:
 
 1. **Seed**: the query, corpus, index handles, and fixed configuration.
 2. **Growth**: monotone retrieval and inference rules.
-3. **Observation**: ranking, top-\(k\), prompt construction, and generation.
+3. **Observation**: ranking, top-$k$, prompt construction, and generation.
 
-The separation is mathematically necessary. For example, top-\(1\) is not monotone:
+The separation is mathematically necessary. For example, top-$1$ is not monotone:
 
-\[
+$$
 A=\{a_{0.8}\}\subseteq B=\{a_{0.8},b_{0.9}\},
-\]
+$$
 
 but
 
-\[
+$$
 \operatorname{top}_1(A)=\{a\}
 \not\subseteq
 \operatorname{top}_1(B)=\{b\}.
-\]
+$$
 
 Consequently, `top`, `argmax`, destructive deduplication, and token-budget truncation cannot occur inside the transfinite growth fragment without destroying the least-fixed-point semantics.
 
@@ -128,7 +128,7 @@ Here:
 - `fold` transforms the canonical derivation representation into an evidence graph.
 - The nonmonotone retrieval budget is applied only after saturation.
 
-A rule with countably many premises would instead require a regular cardinal such as \(\omega_1\):
+A rule with countably many premises would instead require a regular cardinal such as $\omega_1$:
 
 ```text
 rule consensus(
@@ -141,7 +141,7 @@ rule consensus(
 
 ## 2. Static semantics
 
-Fix an infinite regular cardinal \(\kappa\). Every growth primitive is assigned two static capabilities:
+Fix an infinite regular cardinal $\kappa$. Every growth primitive is assigned two static capabilities:
 
 ```text
 accessible[κ]
@@ -150,9 +150,9 @@ monotone
 
 More precisely:
 
-- `accessible[κ]` means its semantic functor preserves \(\kappa\)-filtered colimits.
+- `accessible[κ]` means its semantic functor preserves $\kappa$-filtered colimits.
 - `monotone` means it preserves monomorphisms.
-- Guards inside growth must be stable under embeddings and \(\kappa\)-filtered unions.
+- Guards inside growth must be stable under embeddings and $\kappa$-filtered unions.
 - A primitive lacking these capabilities is restricted to `observe`.
 
 Typical admissible growth operations are:
@@ -185,9 +185,9 @@ This discipline is the main semantic distinction between μRAG and an ordinary p
 
 ## 3. Categorical semantics
 
-Let \(S\) be the set of μRAG sorts, for example
+Let $S$ be the set of μRAG sorts, for example
 
-\[
+$$
 S=
 \{
 \mathsf{Query},
@@ -196,49 +196,49 @@ S=
 \mathsf{Evidence},
 \mathsf{Citation}
 \}.
-\]
+$$
 
 Use the category
 
-\[
+$$
 \mathcal C=\mathbf{Set}^{S}.
-\]
+$$
 
-An object \(X\in\mathcal C\) is an \(S\)-sorted retrieval state:
+An object $X\in\mathcal C$ is an $S$-sorted retrieval state:
 
-\[
+$$
 X=(X_s)_{s\in S}.
-\]
+$$
 
 Morphisms are sort-preserving functions. Colimits and monomorphisms are computed componentwise.
 
-A richer implementation can replace the discrete set \(S\) by a small schema category \(\mathbb S\) and use \([\mathbb S,\mathbf{Set}]\); the proofs below remain pointwise.
+A richer implementation can replace the discrete set $S$ by a small schema category $\mathbb S$ and use $[\mathbb S,\mathbf{Set}]$; the proofs below remain pointwise.
 
 ### 3.1 Rule functor
 
-For each rule \(r\), specify:
+For each rule $r$, specify:
 
-- an output sort \(o(r)\);
-- a set \(A_r\) of rule shapes or parameters;
-- for each \(a\in A_r\), a set \(B_{r,a}\) of premise positions;
+- an output sort $o(r)$;
+- a set $A_r$ of rule shapes or parameters;
+- for each $a\in A_r$, a set $B_{r,a}$ of premise positions;
 - a sort map
-  \[
+  $$
   \sigma_{r,a}:B_{r,a}\to S;
-  \]
+  $$
 - the arity restriction
-  \[
+  $$
   |B_{r,a}|<\kappa.
-  \]
+  $$
 
 The rule block compiles to the polynomial endofunctor
 
-\[
+$$
 (T_PX)_s
 =
 \coprod_{\substack{r:o(r)=s\\a\in A_r}}
 \prod_{b\in B_{r,a}}
 X_{\sigma_{r,a}(b)}.
-\]
+$$
 
 An element consists of:
 
@@ -250,46 +250,46 @@ Retriever calls, model calls, and guards can be represented by certified accessi
 
 ### 3.2 Seeded expansion
 
-For a seed representation \(B\in\mathcal C\), define
+For a seed representation $B\in\mathcal C$, define
 
-\[
+$$
 F_{P,B}(X)=B\sqcup T_PX.
-\]
+$$
 
 The transfinite retrieval chain is
 
-\[
+$$
 X_0=0,
-\]
+$$
 
-\[
+$$
 X_{\alpha+1}=F_{P,B}(X_\alpha),
-\]
+$$
 
-and, for a limit ordinal \(\delta\),
+and, for a limit ordinal $\delta$,
 
-\[
+$$
 X_\delta
 =
 \operatorname*{colim}_{\alpha<\delta}X_\alpha.
-\]
+$$
 
 The canonical saturated representation is
 
-\[
+$$
 \operatorname{Sat}_P(B)
 =
 X_\kappa
 =
 \operatorname*{colim}_{\alpha<\kappa}X_\alpha.
-\]
+$$
 
 Operationally:
 
-- \(X_1\) contains the seed;
-- \(X_2\) contains direct retrieval results;
-- \(X_3\) contains one-hop expansions and compositions;
-- \(X_\omega\) contains evidence obtained by arbitrary finite derivations;
+- $X_1$ contains the seed;
+- $X_2$ contains direct retrieval results;
+- $X_3$ contains one-hop expansions and compositions;
+- $X_\omega$ contains evidence obtained by arbitrary finite derivations;
 - larger cardinals support genuinely infinitary rules.
 
 This is an instance of the classical transfinite initial-algebra pattern, specialized here to retrieval derivations. Transfinite sequences have long been used to construct free algebras and related categorical completions. citeturn757095view0turn485346view4
@@ -300,61 +300,61 @@ This is an instance of the classical transfinite initial-algebra pattern, specia
 
 ### Theorem 1 — Well-typed growth programs are accessible
 
-For every well-typed μRAG growth block \(P\), the endofunctors \(T_P\) and
+For every well-typed μRAG growth block $P$, the endofunctors $T_P$ and
 
-\[
+$$
 F_{P,B}=B\sqcup T_P(-)
-\]
+$$
 
-are \(\kappa\)-accessible and preserve monomorphisms.
+are $\kappa$-accessible and preserve monomorphisms.
 
 ### Proof
 
 Consider one rule component
 
-\[
+$$
 R(X)=\prod_{b\in I}X_{\sigma(b)}
 \qquad\text{with }|I|<\kappa.
-\]
+$$
 
-Let \(D:J\to\mathbf{Set}^{S}\) be a \(\kappa\)-filtered diagram. There is a canonical map
+Let $D:J\to\mathbf{Set}^{S}$ be a $\kappa$-filtered diagram. There is a canonical map
 
-\[
+$$
 \operatorname*{colim}_{j\in J}
 \prod_{b\in I}D_j(\sigma(b))
 \longrightarrow
 \prod_{b\in I}
 \operatorname*{colim}_{j\in J}D_j(\sigma(b)).
-\]
+$$
 
-It is surjective: choose a representative stage \(j_b\) for each coordinate. There are fewer than \(\kappa\) such stages, so \(\kappa\)-filteredness provides a common upper stage.
+It is surjective: choose a representative stage $j_b$ for each coordinate. There are fewer than $\kappa$ such stages, so $\kappa$-filteredness provides a common upper stage.
 
-It is injective: if two tuples become equal coordinatewise, then for each of the fewer than \(\kappa\) coordinates there is a stage witnessing equality. Again, filteredness supplies one common upper stage.
+It is injective: if two tuples become equal coordinatewise, then for each of the fewer than $\kappa$ coordinates there is a stage witnessing equality. Again, filteredness supplies one common upper stage.
 
-Thus every \(<\kappa\)-ary product preserves \(\kappa\)-filtered colimits. Coproducts commute with colimits, so \(T_P\) is \(\kappa\)-accessible.
+Thus every $<\kappa$-ary product preserves $\kappa$-filtered colimits. Coproducts commute with colimits, so $T_P$ is $\kappa$-accessible.
 
-Products and coproducts of injections are injections in \(\mathbf{Set}^{S}\). Therefore \(T_P\) preserves monomorphisms. The same statements hold for \(B\sqcup T_P(-)\). Composition and coproduct of certified primitives preserve the two capabilities. ∎
+Products and coproducts of injections are injections in $\mathbf{Set}^{S}$. Therefore $T_P$ preserves monomorphisms. The same statements hold for $B\sqcup T_P(-)$. Composition and coproduct of certified primitives preserve the two capabilities. ∎
 
 ---
 
 ## 5. Transfinite convergence and initiality
 
-### Theorem 2 — Saturation converges at \(\kappa\)
+### Theorem 2 — Saturation converges at $\kappa$
 
 There is a canonical isomorphism
 
-\[
+$$
 \iota:
 F_{P,B}(X_\kappa)
 \overset{\cong}{\longrightarrow}
 X_\kappa.
-\]
+$$
 
 ### Proof
 
-Because \(\kappa\) is regular, the ordinal category \(\kappa\) is \(\kappa\)-filtered. Accessibility gives
+Because $\kappa$ is regular, the ordinal category $\kappa$ is $\kappa$-filtered. Accessibility gives
 
-\[
+$$
 \begin{aligned}
 F_{P,B}(X_\kappa)
 &=
@@ -369,11 +369,11 @@ F_{P,B}(X_\alpha)\\
 \operatorname*{colim}_{\alpha<\kappa}
 X_{\alpha+1}.
 \end{aligned}
-\]
+$$
 
-The successor ordinals below \(\kappa\) form a cofinal subdiagram, so
+The successor ordinals below $\kappa$ form a cofinal subdiagram, so
 
-\[
+$$
 \operatorname*{colim}_{\alpha<\kappa}
 X_{\alpha+1}
 \cong
@@ -381,83 +381,83 @@ X_{\alpha+1}
 X_\alpha
 =
 X_\kappa.
-\]
+$$
 
-Composing these isomorphisms gives \(\iota\). ∎
+Composing these isomorphisms gives $\iota$. ∎
 
 ### Theorem 3 — Initial-algebra property
 
 The algebra
 
-\[
+$$
 \iota:F_{P,B}(X_\kappa)\to X_\kappa
-\]
+$$
 
-is initial among \(F_{P,B}\)-algebras.
+is initial among $F_{P,B}$-algebras.
 
 Equivalently, for every algebra
 
-\[
+$$
 a:F_{P,B}(A)\to A
-\]
+$$
 
 there is a unique algebra morphism
 
-\[
+$$
 \operatorname{fold}_a:X_\kappa\to A.
-\]
+$$
 
 ### Proof by transfinite induction
 
-Define maps \(h_\alpha:X_\alpha\to A\).
+Define maps $h_\alpha:X_\alpha\to A$.
 
 At zero, let
 
-\[
+$$
 h_0:0\to A
-\]
+$$
 
 be the unique map.
 
 At a successor stage, define
 
-\[
+$$
 h_{\alpha+1}
 =
 a\circ F_{P,B}(h_\alpha).
-\]
+$$
 
-At a limit ordinal \(\delta\), the maps \(h_\alpha\), \(\alpha<\delta\), form a compatible cocone. Define
+At a limit ordinal $\delta$, the maps $h_\alpha$, $\alpha<\delta$, form a compatible cocone. Define
 
-\[
+$$
 h_\delta:
 \operatorname*{colim}_{\alpha<\delta}X_\alpha
 \to A
-\]
+$$
 
 using the universal property of the colimit.
 
 Set
 
-\[
+$$
 \operatorname{fold}_a=h_\kappa.
-\]
+$$
 
-The successor equation ensures that \(h_\kappa\) satisfies the algebra-morphism square.
+The successor equation ensures that $h_\kappa$ satisfies the algebra-morphism square.
 
-For uniqueness, suppose \(g:X_\kappa\to A\) is another algebra morphism. Let \(x_\alpha:X_\alpha\to X_\kappa\) be the colimit maps. We prove
+For uniqueness, suppose $g:X_\kappa\to A$ is another algebra morphism. Let $x_\alpha:X_\alpha\to X_\kappa$ be the colimit maps. We prove
 
-\[
+$$
 g\circ x_\alpha=h_\alpha
-\]
+$$
 
 by transfinite induction.
 
-- It holds at \(0\) by uniqueness from the initial object.
+- It holds at $0$ by uniqueness from the initial object.
 - At a successor, it follows from the algebra-morphism equation.
 - At a limit, it follows because maps out of a colimit are determined by their composites with the colimit injections.
 
-Therefore \(g=h_\kappa\). ∎
+Therefore $g=h_\kappa$. ∎
 
 ---
 
@@ -467,10 +467,10 @@ Therefore \(g=h_\kappa\). ∎
 
 All connecting maps
 
-\[
+$$
 X_\alpha\longrightarrow X_\beta,
 \qquad \alpha\leq\beta\leq\kappa,
-\]
+$$
 
 are monomorphisms.
 
@@ -478,47 +478,47 @@ are monomorphisms.
 
 The map
 
-\[
+$$
 0\to F_{P,B}(0)
-\]
+$$
 
 is monic.
 
-If \(X_\alpha\to X_\beta\) is monic, then
+If $X_\alpha\to X_\beta$ is monic, then
 
-\[
+$$
 F_{P,B}(X_\alpha)
 \to
 F_{P,B}(X_\beta)
-\]
+$$
 
-is monic because \(F_{P,B}\) preserves monomorphisms.
+is monic because $F_{P,B}$ preserves monomorphisms.
 
-At a limit stage, the colimit of a chain of injections in \(\mathbf{Set}^{S}\) is its componentwise union, and each colimit injection is monic. ∎
+At a limit stage, the colimit of a chain of injections in $\mathbf{Set}^{S}$ is its componentwise union, and each colimit injection is monic. ∎
 
 Hence the saturated state can be written pointwise as
 
-\[
+$$
 X_\kappa
 =
 \bigcup_{\alpha<\kappa}X_\alpha.
-\]
+$$
 
 No evidence item is removed during growth.
 
 ### Corollary — Least closed representation
 
-Suppose \(Y\) contains \(B\) and is closed under every rule in \(P\). Then there is a unique structure-preserving map
+Suppose $Y$ contains $B$ and is closed under every rule in $P$. Then there is a unique structure-preserving map
 
-\[
+$$
 X_\kappa\to Y.
-\]
+$$
 
-When \(X_\kappa\) and \(Y\) are subobjects of a common universe, this implies
+When $X_\kappa$ and $Y$ are subobjects of a common universe, this implies
 
-\[
+$$
 X_\kappa\subseteq Y.
-\]
+$$
 
 Thus μRAG computes the least rule-closed evidence representation containing the seed.
 
@@ -526,17 +526,17 @@ Thus μRAG computes the least rule-closed evidence representation containing the
 
 ## 7. Provenance theorem
 
-For the polynomial fragment, elements of \(X_\kappa\) have canonical well-founded derivation trees.
+For the polynomial fragment, elements of $X_\kappa$ have canonical well-founded derivation trees.
 
 Define the rank of a tree by
 
-\[
+$$
 \operatorname{rk}(b)=0
-\]
+$$
 
 for a seed leaf, and
 
-\[
+$$
 \operatorname{rk}
 \bigl(
 r(t_b)_{b\in B_{r,a}}
@@ -546,38 +546,38 @@ r(t_b)_{b\in B_{r,a}}
 \left(
 \operatorname{rk}(t_b)+1
 \right).
-\]
+$$
 
 ### Theorem 5 — Stage/rank correspondence
 
-For every \(\alpha\leq\kappa\),
+For every $\alpha\leq\kappa$,
 
-\[
+$$
 t\in X_\alpha
 \quad\Longleftrightarrow\quad
 \operatorname{rk}(t)<\alpha.
-\]
+$$
 
 ### Proof by transfinite induction
 
-At \(0\), both sides are empty.
+At $0$, both sides are empty.
 
-At \(\alpha+1\), an element is either:
+At $\alpha+1$, an element is either:
 
-- a seed leaf, of rank \(0<\alpha+1\); or
-- a rule node whose children belong to \(X_\alpha\).
+- a seed leaf, of rank $0<\alpha+1$; or
+- a rule node whose children belong to $X_\alpha$.
 
-By induction, each child has rank below \(\alpha\), so the new node has rank below \(\alpha+1\). Conversely, if the node rank is below \(\alpha+1\), each child rank is below \(\alpha\), so every child appears in \(X_\alpha\).
+By induction, each child has rank below $\alpha$, so the new node has rank below $\alpha+1$. Conversely, if the node rank is below $\alpha+1$, each child rank is below $\alpha$, so every child appears in $X_\alpha$.
 
-At a limit \(\delta\),
+At a limit $\delta$,
 
-\[
+$$
 X_\delta=\bigcup_{\alpha<\delta}X_\alpha.
-\]
+$$
 
-An element belongs to this union exactly when its rank is below some \(\alpha<\delta\), equivalently when its rank is below \(\delta\). ∎
+An element belongs to this union exactly when its rank is below some $\alpha<\delta$, equivalently when its rank is below $\delta$. ∎
 
-Regularity of \(\kappa\) and the \(<\kappa\)-arity restriction imply that every generated node has rank below \(\kappa\). This gives each retrieved item:
+Regularity of $\kappa$ and the $<\kappa$-arity restriction imply that every generated node has rank below $\kappa$. This gives each retrieved item:
 
 - an ordinal derivation depth;
 - a complete provenance tree;
@@ -592,9 +592,9 @@ A graph representation may quotient duplicate trees, but the equivalence relatio
 
 A target representation is an algebra
 
-\[
+$$
 a:B\sqcup T_PA\to A.
-\]
+$$
 
 Examples include:
 
@@ -607,10 +607,10 @@ Examples include:
 
 The unique transformation is
 
-\[
+$$
 \operatorname{fold}_a:
 \operatorname{Sat}_P(B)\to A.
-\]
+$$
 
 This is the semantics of the DSL construct:
 
@@ -622,25 +622,25 @@ representation A = fold μE { ...handlers... }
 
 Suppose
 
-\[
+$$
 h:(A,a)\to(A',a')
-\]
+$$
 
 is an algebra morphism, meaning
 
-\[
+$$
 h\circ a=a'\circ F_{P,B}(h).
-\]
+$$
 
 Then
 
-\[
+$$
 h\circ\operatorname{fold}_a
 =
 \operatorname{fold}_{a'}.
-\]
+$$
 
-This follows immediately from initiality: both sides are algebra morphisms from the same initial algebra to \(A'\).
+This follows immediately from initiality: both sides are algebra morphisms from the same initial algebra to $A'$.
 
 Consequently, converting a saturated retrieval derivation into a graph and then migrating that graph agrees with migrating the algebra and folding directly into the new representation.
 
@@ -648,22 +648,22 @@ Consequently, converting a saturated retrieval derivation into a graph and then 
 
 ## 9. Relation to free monads
 
-Fix the unseeded rule functor \(T=T_P\). Then
+Fix the unseeded rule functor $T=T_P$. Then
 
-\[
+$$
 T^\ast B
 =
 \mu X.\bigl(B\sqcup TX\bigr)
-\]
+$$
 
-is the free \(T\)-algebra generated by \(B\).
+is the free $T$-algebra generated by $B$.
 
-When these free algebras exist functorially in \(B\), the assignment \(B\mapsto T^\ast B\) forms the free monad on \(T\). Thus:
+When these free algebras exist functorially in $B$, the assignment $B\mapsto T^\ast B$ forms the free monad on $T$. Thus:
 
-- `grow` defines the signature functor \(T\);
+- `grow` defines the signature functor $T$;
 - `close` constructs the free algebra;
 - `fold` is the catamorphism into an interpreter;
-- sequencing retrieval effects is Kleisli composition for \(T^\ast\).
+- sequencing retrieval effects is Kleisli composition for $T^\ast$.
 
 Kelly’s transfinite constructions explicitly connect colimits of ordinal-indexed chains with free algebras, free monads, free monoids, and reflective constructions. citeturn757095view0
 
@@ -671,28 +671,28 @@ Kelly’s transfinite constructions explicitly connect colimits of ordinal-index
 
 ## 10. Schema migration and left Kan extensions
 
-Suppose \(u:S\to S'\) changes the representation schema—for example, splitting `Evidence` into `DirectEvidence` and `DerivedEvidence`.
+Suppose $u:S\to S'$ changes the representation schema—for example, splitting `Evidence` into `DirectEvidence` and `DerivedEvidence`.
 
 Let
 
-\[
+$$
 L=\operatorname{Lan}_u:
 \mathbf{Set}^{S}\to\mathbf{Set}^{S'}
-\]
+$$
 
-be left Kan extension along \(u\).
+be left Kan extension along $u$.
 
 Assume there are natural isomorphisms
 
-\[
+$$
 LB\cong B'
-\]
+$$
 
 and
 
-\[
+$$
 LT_P\cong T' L.
-\]
+$$
 
 The second condition says that migration commutes with one rule-expansion step.
 
@@ -700,25 +700,25 @@ The second condition says that migration commutes with one rule-expansion step.
 
 Under these assumptions,
 
-\[
+$$
 L\bigl(\operatorname{Sat}_P(B)\bigr)
 \cong
 \operatorname{Sat}_{P'}(B').
-\]
+$$
 
 ### Proof by transfinite induction
 
-Let \(X_\alpha\) and \(X'_\alpha\) be the source and target chains.
+Let $X_\alpha$ and $X'_\alpha$ be the source and target chains.
 
 At zero,
 
-\[
+$$
 LX_0=L0\cong0=X'_0.
-\]
+$$
 
-Assume \(LX_\alpha\cong X'_\alpha\). Then
+Assume $LX_\alpha\cong X'_\alpha$. Then
 
-\[
+$$
 \begin{aligned}
 LX_{\alpha+1}
 &=
@@ -732,11 +732,11 @@ B'\sqcup T'X'_\alpha\\
 &=
 X'_{\alpha+1}.
 \end{aligned}
-\]
+$$
 
-At a limit \(\delta\), left Kan extension preserves colimits, so
+At a limit $\delta$, left Kan extension preserves colimits, so
 
-\[
+$$
 \begin{aligned}
 LX_\delta
 &=
@@ -750,9 +750,9 @@ L\left(
 &=
 X'_\delta.
 \end{aligned}
-\]
+$$
 
-Taking \(\delta=\kappa\) proves the result. ∎
+Taking $\delta=\kappa$ proves the result. ∎
 
 Left Kan extensions themselves admit weighted-colimit descriptions, so this migration theorem is another manifestation of colimit compatibility rather than an unrelated construction. citeturn485346view1
 
@@ -760,24 +760,24 @@ Left Kan extensions themselves admit weighted-colimit descriptions, so this migr
 
 ## 11. Retrieval as a weighted colimit
 
-For soft or attention-style retrieval, enrich the semantics over a symmetric monoidal category \(\mathcal V\).
+For soft or attention-style retrieval, enrich the semantics over a symmetric monoidal category $\mathcal V$.
 
 Let:
 
-- \(\mathcal D\) be a category of corpus objects;
-- \(E:\mathcal D\to\mathcal V\) assign each document its evidence representation;
-- \(W_q:\mathcal D^{op}\to\mathcal V\) encode query-dependent similarity weights.
+- $\mathcal D$ be a category of corpus objects;
+- $E:\mathcal D\to\mathcal V$ assign each document its evidence representation;
+- $W_q:\mathcal D^{op}\to\mathcal V$ encode query-dependent similarity weights.
 
 Define retrieval as the weighted colimit
 
-\[
+$$
 \operatorname{Ret}(q)
 =
 W_q\star E
 =
 \int^{d\in\mathcal D}
 W_q(d)\otimes E(d).
-\]
+$$
 
 Interpretations include:
 
@@ -786,7 +786,7 @@ Interpretations include:
 - probabilistic mixtures of evidence;
 - semiring-weighted provenance.
 
-This models soft retrieval or fusion. Hard top-\(k\) remains an observation-level approximation to the weighted colimit, not part of the monotone closure semantics. Weighted colimits are the appropriate enriched analogue of ordinary colimits. citeturn485346view0turn485346view1
+This models soft retrieval or fusion. Hard top-$k$ remains an observation-level approximation to the weighted colimit, not part of the monotone closure semantics. Weighted colimits are the appropriate enriched analogue of ordinary colimits. citeturn485346view0turn485346view1
 
 ---
 
@@ -794,28 +794,28 @@ This models soft retrieval or fusion. Hard top-\(k\) remains an observation-leve
 
 A rule can alternatively be represented by a generating monomorphism
 
-\[
+$$
 i_r:A_r\hookrightarrow B_r,
-\]
+$$
 
 where:
 
-- \(A_r\) represents the premises or an unfilled retrieval obligation;
-- \(B_r\) represents the same configuration with an evidence witness attached.
+- $A_r$ represents the premises or an unfilled retrieval obligation;
+- $B_r$ represents the same configuration with an evidence witness attached.
 
 At each successor stage:
 
-1. find all maps \(A_r\to X_\alpha\);
-2. attach corresponding copies of \(B_r\) by coproduct and pushout;
-3. obtain \(X_{\alpha+1}\).
+1. find all maps $A_r\to X_\alpha$;
+2. attach corresponding copies of $B_r$ by coproduct and pushout;
+3. obtain $X_{\alpha+1}$.
 
 At limit stages, take the colimit.
 
 Then
 
-\[
+$$
 X_0\to X_\kappa
-\]
+$$
 
 is a transfinite composite of pushouts of generating rule maps: a relative cell complex.
 
@@ -834,23 +834,23 @@ The interpretations are:
 
 ---
 
-## 13. Relation to \(\operatorname{Ind}_\kappa\)-completion
+## 13. Relation to $\operatorname{Ind}_\kappa$-completion
 
 Add the assumptions that:
 
-- \(B\) is \(\kappa\)-presentable;
-- \(T_P\) preserves \(\kappa\)-presentable objects;
-- each rule has fewer than \(\kappa\) premises and parameters.
+- $B$ is $\kappa$-presentable;
+- $T_P$ preserves $\kappa$-presentable objects;
+- each rule has fewer than $\kappa$ premises and parameters.
 
-Then every \(X_\alpha\), for \(\alpha<\kappa\), is \(\kappa\)-presentable. The saturated object is the \(\kappa\)-filtered colimit
+Then every $X_\alpha$, for $\alpha<\kappa$, is $\kappa$-presentable. The saturated object is the $\kappa$-filtered colimit
 
-\[
+$$
 X_\kappa
 =
 \operatorname*{colim}_{\alpha<\kappa}X_\alpha.
-\]
+$$
 
-Thus \(X_\kappa\) is an \(\operatorname{Ind}_\kappa\)-object assembled from bounded retrieval approximants.
+Thus $X_\kappa$ is an $\operatorname{Ind}_\kappa$-object assembled from bounded retrieval approximants.
 
 Operationally, this supports:
 
@@ -866,7 +866,7 @@ Operationally, this supports:
 
 Under the stated regularity, accessibility, and monotonicity assumptions, μRAG provides:
 
-\[
+$$
 \boxed{
 \operatorname{Sat}_P(B)
 =
@@ -874,12 +874,12 @@ Under the stated regularity, accessibility, and monotonicity assumptions, μRAG 
 =
 \operatorname*{colim}_{\alpha<\kappa}F_{P,B}^{\alpha}(0)
 }
-\]
+$$
 
 with the following proved properties:
 
-- the transfinite chain stabilizes at \(\kappa\);
-- the result is the initial \(F_{P,B}\)-algebra;
+- the transfinite chain stabilizes at $\kappa$;
+- the result is the initial $F_{P,B}$-algebra;
 - growth is monotone;
 - the result is the least rule-closed extension of the seed;
 - every evidence item has ordinal-ranked provenance;
@@ -916,23 +916,23 @@ The useful part is not “transfinite induction” by itself. It is that the DSL
 
 For almost all practical systems with finitely many premises per rule, you only need the chain
 
-\[
+$$
 X_0\subseteq X_1\subseteq X_2\subseteq\cdots\subseteq X_\omega.
-\]
+$$
 
 The genuinely transfinite version matters for infinitary aggregation, distributed limits, or general categorical results.
 
 ## 1. Prove retrieval completeness up to a hop budget
 
-Let \(X_n\) be the evidence available after \(n\) expansion rounds.
+Let $X_n$ be the evidence available after $n$ expansion rounds.
 
 You can prove:
 
-\[
+$$
 e\in X_n
 \quad\Longleftrightarrow\quad
 e\text{ has a derivation of depth }<n.
-\]
+$$
 
 ### Pragmatic use
 
@@ -972,9 +972,9 @@ Suppose growth consists only of monotone rule application and union.
 
 Then different fair schedules—breadth-first, depth-first, batched, asynchronous, or distributed—compute the same least closed evidence set:
 
-\[
+$$
 \operatorname{lfp}(F).
-\]
+$$
 
 ### Pragmatic use
 
@@ -1025,17 +1025,17 @@ There are two representations to distinguish:
 
 Define an equivalence relation
 
-\[
+$$
 t_1\sim t_2
-\]
+$$
 
 when two derivations establish the same evidence fact.
 
-If \(\sim\) is a congruence—rules respect equivalent premises—then the quotient
+If $\sim$ is a congruence—rules respect equivalent premises—then the quotient
 
-\[
+$$
 X_\omega/{\sim}
-\]
+$$
 
 inherits the rule algebra.
 
@@ -1067,37 +1067,37 @@ Without the congruence condition, deduplication may be unsound. For example, mer
 
 ## 4. Prove incremental recomputation is correct
 
-Let \(B\) be the old corpus facts and \(\Delta B\) a corpus update.
+Let $B$ be the old corpus facts and $\Delta B$ a corpus update.
 
-In an extensional join-semilattice semantics, saturation is a closure operator \(C\):
+In an extensional join-semilattice semantics, saturation is a closure operator $C$:
 
-\[
+$$
 C(X)=\operatorname{lfp}\bigl(Y\mapsto X\vee T(Y)\bigr).
-\]
+$$
 
 It satisfies:
 
-\[
+$$
 X\leq C(X),
-\]
+$$
 
-\[
+$$
 X\leq Y\Rightarrow C(X)\leq C(Y),
-\]
+$$
 
 and
 
-\[
+$$
 C(C(X))=C(X).
-\]
+$$
 
 Therefore:
 
-\[
+$$
 C(B\vee\Delta B)
 =
 C(C(B)\vee\Delta B).
-\]
+$$
 
 ### Pragmatic use
 
@@ -1124,21 +1124,21 @@ For deletions, the theorem no longer suffices. You need dependency tracking or a
 
 ## 5. Prove cache correctness
 
-Suppose a subprogram \(Q\) has semantics
+Suppose a subprogram $Q$ has semantics
 
-\[
+$$
 \llbracket Q\rrbracket:X\to Y.
-\]
+$$
 
 A cache key is correct when it identifies all semantic inputs on which this morphism depends.
 
 Categorically, if the subprogram factors as
 
-\[
+$$
 X\xrightarrow{p}K\xrightarrow{q}Y,
-\]
+$$
 
-then \(p(x)\) is a sufficient cache key.
+then $p(x)$ is a sufficient cache key.
 
 ### Pragmatic use
 
@@ -1166,25 +1166,25 @@ This turns cache invalidation from guesswork into a dependency/factorization pro
 
 Suppose the same canonical evidence algebra is interpreted by two backends:
 
-\[
+$$
 a:F(A)\to A,
 \qquad
 b:F(B)\to B.
-\]
+$$
 
 If there is an algebra isomorphism
 
-\[
+$$
 h:A\cong B,
-\]
+$$
 
 then
 
-\[
+$$
 h\circ\operatorname{fold}_a
 =
 \operatorname{fold}_b.
-\]
+$$
 
 ### Pragmatic use
 
@@ -1199,7 +1199,7 @@ You can prove that these implementations agree:
 The method is concrete:
 
 1. Specify how each backend represents seeds and every rule constructor.
-2. Define a conversion \(h\).
+2. Define a conversion $h$.
 3. Check one commuting equation per constructor.
 
 You do not compare every possible pipeline output. Initiality reduces the proof to local checks.
@@ -1230,19 +1230,19 @@ Evidence {
 }
 ```
 
-Define a migration functor \(L\). If it commutes with the rule constructors,
+Define a migration functor $L$. If it commutes with the rule constructors,
 
-\[
+$$
 LT\cong T'L,
-\]
+$$
 
 then:
 
-\[
+$$
 L(\operatorname{Sat}_T(B))
 \cong
 \operatorname{Sat}_{T'}(LB).
-\]
+$$
 
 ### Pragmatic use
 
@@ -1277,15 +1277,15 @@ The proof obligation exposes lossy migrations. If a migration discards informati
 
 Because canonical evidence consists of derivation trees, every generated item has a recursively checkable explanation.
 
-For each evidence item \(e\), you can produce:
+For each evidence item $e$, you can produce:
 
-\[
+$$
 \operatorname{parents}(e),
 \qquad
 \operatorname{rule}(e),
 \qquad
 \operatorname{rank}(e).
-\]
+$$
 
 ### Pragmatic use
 
@@ -1320,29 +1320,29 @@ The retrieval service may be complex or untrusted; the checker can remain small.
 
 ## 9. Prove authorization is preserved
 
-Label each evidence item with a security context. Let permissions form a lattice \(L\).
+Label each evidence item with a security context. Let permissions form a lattice $L$.
 
 For example, assign a required authorization level:
 
-\[
+$$
 \ell(e)\in L.
-\]
+$$
 
 Define rule output labels by a conservative operation such as:
 
-\[
+$$
 \ell(r(e_1,\ldots,e_n))
 =
 \ell(e_1)\vee\cdots\vee\ell(e_n).
-\]
+$$
 
 Then prove by transfinite induction:
 
-\[
+$$
 e\in X_\alpha
 \implies
 \text{the label of }e\text{ dominates every source label in its derivation}.
-\]
+$$
 
 ### Pragmatic use
 
@@ -1350,13 +1350,13 @@ A derived summary that combines public and confidential documents remains confid
 
 This prevents a common class of RAG leaks where the final generated statement does not literally contain a restricted chunk but was inferred from one.
 
-You can also prove noninterference for a user \(u\):
+You can also prove noninterference for a user $u$:
 
-\[
+$$
 \operatorname{observe}_u(C(B))
 =
 \operatorname{observe}_u(C(B_{\leq u})),
-\]
+$$
 
 provided all rule operations and observations respect the authorization projection.
 
@@ -1370,15 +1370,15 @@ Full saturation may be too expensive. You can still obtain sound partial results
 
 Because:
 
-\[
+$$
 X_0\subseteq X_1\subseteq\cdots\subseteq X_\omega,
-\]
+$$
 
 every intermediate stage is sound:
 
-\[
+$$
 X_n\subseteq X_\omega.
-\]
+$$
 
 ### Pragmatic use
 
@@ -1394,13 +1394,13 @@ result {
 }
 ```
 
-You can also define a goal predicate \(G\) that is monotone:
+You can also define a goal predicate $G$ that is monotone:
 
-\[
+$$
 X\subseteq Y\land G(X)\Rightarrow G(Y).
-\]
+$$
 
-Once \(G(X_n)\) is true, stopping is safe with respect to that goal.
+Once $G(X_n)$ is true, stopping is safe with respect to that goal.
 
 Examples:
 
@@ -1419,19 +1419,19 @@ The DSL separation between growth and observation gives a useful theorem:
 
 Let
 
-\[
+$$
 C(B)
-\]
+$$
 
 be the saturated evidence, and let
 
-\[
+$$
 O:C(B)\to R
-\]
+$$
 
 be an arbitrary ranker/truncator/generator.
 
-Changing \(O\) does not change the closure \(C(B)\).
+Changing $O$ does not change the closure $C(B)$.
 
 ### Pragmatic use
 
@@ -1458,22 +1458,22 @@ That decomposition is extremely useful operationally.
 
 Suppose:
 
-- the seed has \(N\) elements;
-- every rule has arity at most \(m\);
-- there are \(R\) rule shapes;
-- expansion depth is \(d\);
-- guards produce at most \(K\) outputs per matching tuple.
+- the seed has $N$ elements;
+- every rule has arity at most $m$;
+- there are $R$ rule shapes;
+- expansion depth is $d$;
+- guards produce at most $K$ outputs per matching tuple.
 
 A coarse recurrence is:
 
-\[
+$$
 n_{i+1}
 \leq
 N+
 RK\,n_i^m.
-\]
+$$
 
-This gives a static upper bound on the size of \(X_d\).
+This gives a static upper bound on the size of $X_d$.
 
 ### Pragmatic use
 
@@ -1507,11 +1507,11 @@ Once pipeline fragments are morphisms and growth is colimit-based, common optimi
 
 ### Push compatible maps through saturation
 
-If \(L\) preserves the relevant colimits and commutes with rule expansion:
+If $L$ preserves the relevant colimits and commutes with rule expansion:
 
-\[
+$$
 LC\cong C'L,
-\]
+$$
 
 then representation conversion may be moved before or after saturation.
 
@@ -1519,27 +1519,27 @@ then representation conversion may be moved before or after saturation.
 
 Given:
 
-\[
+$$
 \operatorname{fold}_a:X_\omega\to A
-\]
+$$
 
-and an algebra morphism \(h:A\to B\),
+and an algebra morphism $h:A\to B$,
 
-\[
+$$
 h\circ\operatorname{fold}_a
 =
 \operatorname{fold}_b.
-\]
+$$
 
 So two representation passes can be fused.
 
 ### Reorder independent rules
 
-If two rule operators \(T_1,T_2\) commute suitably,
+If two rule operators $T_1,T_2$ commute suitably,
 
-\[
+$$
 T_1T_2\cong T_2T_1,
-\]
+$$
 
 their execution order may be changed.
 
@@ -1675,7 +1675,7 @@ This supports a real engine with:
 - incremental checkpoints;
 - explainable derivations.
 
-It uses ordinary induction plus the \(\omega\)-chain semantics. The heavier transfinite machinery remains available when the DSL grows beyond finite branching.
+It uses ordinary induction plus the $\omega$-chain semantics. The heavier transfinite machinery remains available when the DSL grows beyond finite branching.
 
 
 ---
@@ -3418,7 +3418,7 @@ Plan → Execute → Admit → Merge → View → Generate
 - **Execute** performs network, model, index, or tool operations.
 - **Admit** validates and converts raw outputs into canonical facts and derivations.
 - **Merge** uses an associative, commutative, idempotent operation. Order, duplication, and retries therefore do not affect the result.
-- **View** performs ranking, ambiguity resolution, top-\(k\), token packing, and citation-label assignment.
+- **View** performs ranking, ambiguity resolution, top-$k$, token packing, and citation-label assignment.
 - **Generate** consumes a selected view rather than mutating the underlying evidence state.
 
 The crucial distinction is that admission and merge are add-only, while ranking and limits are deliberately non-monotone views. That boundary is what makes the add-only portions safe to cache, parallelize, retry, incrementally update, and reproduce. This use of monotonicity follows the same core boundary identified by the CALM result for coordination-free distributed computation. citeturn794804search0turn794804search4
@@ -8536,7 +8536,7 @@ This resolves an ambiguity in the former barrier contract:
 
 - `Barrier=true` only waits for upstream completion.
 - It still invokes an item-local callback.
-- Global top-\(k\), normalization, cross-item deduplication, or global selection require `Snapshot`.
+- Global top-$k$, normalization, cross-item deduplication, or global selection require `Snapshot`.
 
 ### Policy conformance testing
 

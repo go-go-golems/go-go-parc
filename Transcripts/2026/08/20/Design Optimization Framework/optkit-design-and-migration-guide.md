@@ -85,27 +85,27 @@ The intervention changed one asset, `answer_grounding_prompt`, while keeping the
 
 For the Morgan-versus-Peace case, faithfulness changed from approximately
 
-\[
+$$
 0.4595 \longrightarrow 1.0000,
-\]
+$$
 
 so the paired delta was
 
-\[
+$$
 \Delta F = 1.0000 - 0.4595 = 0.5405.
-\]
+$$
 
 For the gold-coins-versus-bars case, faithfulness changed from approximately
 
-\[
+$$
 0.3778 \longrightarrow 0.9615,
-\]
+$$
 
 so
 
-\[
+$$
 \Delta F \approx 0.5838.
-\]
+$$
 
 The treatment strongly improved the cases it was intended to improve. Nevertheless, the whole feedback run had five other route, retrieval, or projection failures. The frozen release gate required zero failures, so the candidate was rejected for release.
 
@@ -299,23 +299,23 @@ A prompt optimizer assumes the object being changed is a string. Coinvault and r
 
 #### Definition
 
-Let \(\Theta\) be a **search space**. A point \(\theta\in\Theta\) is one complete semantic configuration of a system. Let \(X\) be the space of cases or inputs and \(\mathcal T\) the space of possible trajectories.
+Let $\Theta$ be a **search space**. A point $\theta\in\Theta$ is one complete semantic configuration of a system. Let $X$ be the space of cases or inputs and $\mathcal T$ the space of possible trajectories.
 
 The system is represented as a stochastic map
 
-\[
+$$
 K : \Theta \times X \rightsquigarrow \mathcal T.
-\]
+$$
 
 The squiggly arrow means that a configuration and input determine a probability distribution over trajectories rather than one guaranteed output. In probability theory, this is a **Markov kernel**.
 
-For fixed \(\theta\),
+For fixed $\theta$,
 
-\[
+$$
 \tau \sim K_\theta(x)
-\]
+$$
 
-means: execute system configuration \(\theta\) on input \(x\), producing trajectory \(\tau\).
+means: execute system configuration $\theta$ on input $x$, producing trajectory $\tau$.
 
 > [!NOTE]
 > A deterministic program is a special case: its distribution places probability one on a single trajectory. Using a stochastic model does not force every component to be random; it simply admits model sampling, provider variation, time-dependent data, concurrency, and tool behavior.
@@ -324,7 +324,7 @@ means: execute system configuration \(\theta\) on input \(x\), producing traject
 
 A simplified Coinvault configuration is
 
-\[
+$$
 \theta = (
  d_{default},
  d_{forced},
@@ -336,13 +336,13 @@ A simplified Coinvault configuration is
  \rho_{reranker},
  d_{tool}
 ).
-\]
+$$
 
 This is a heterogeneous product space:
 
-\[
+$$
 \Theta = \Theta_1\times\Theta_2\times\cdots\times\Theta_k,
-\]
+$$
 
 where one coordinate may be an integer, another prompt text, another structured YAML plan, and another model configuration.
 
@@ -391,13 +391,13 @@ A candidate must be reproducible months later. A label such as `grounded-answer-
 
 A **snapshot** is an immutable, content-identified description of one complete semantic system configuration. It references all mutable and locked semantic inputs required to reproduce that configuration.
 
-Write the snapshot as \(s(\theta)\). Its digest is
+Write the snapshot as $s(\theta)$. Its digest is
 
-\[
+$$
 D_s = H(\operatorname{canonical}(s)),
-\]
+$$
 
-where \(H\) is a cryptographic hash and `canonical` is a stable serialization.
+where $H$ is a cryptographic hash and `canonical` is a stable serialization.
 
 Execution policy such as worker count or UI refresh rate must not enter the semantic snapshot unless it changes observable system behavior.
 
@@ -413,25 +413,25 @@ An optimizer proposes a change relative to a parent, not a free-floating complet
 
 #### Definition
 
-A **patch** \(\delta\) is an immutable set of typed changes applied to a parent snapshot:
+A **patch** $\delta$ is an immutable set of typed changes applied to a parent snapshot:
 
-\[
+$$
 \theta' = \theta \oplus \delta.
-\]
+$$
 
 The **support** of a patch is the set of variables it changes:
 
-\[
+$$
 \operatorname{supp}(\delta)
 =
 \{j : \theta'_j \ne \theta_j\}.
-\]
+$$
 
 Current RagOpt candidates enforce
 
-\[
+$$
 |\operatorname{supp}(\delta)| = 1.
-\]
+$$
 
 OptKit does not make that a universal law. It provides it as a candidate policy named, for example, `ExactlyKChanges(1)`. GEPA-like or MIPRO-like strategies may eventually propose multi-variable patches.
 
@@ -506,13 +506,13 @@ An **exposure policy** states which actor may see case inputs, trajectories, per
 
 #### Mathematical interpretation
 
-Let \(\mathcal F_n^{allowed}\) denote all information the optimizer is authorized to know at iteration \(n\). A valid proposal must depend only on that information:
+Let $\mathcal F_n^{allowed}$ denote all information the optimizer is authorized to know at iteration $n$. A valid proposal must depend only on that information:
 
-\[
+$$
 \delta_{n+1}
 \text{ is measurable with respect to }
 \mathcal F_n^{allowed}.
-\]
+$$
 
 In plain language: the next patch may depend on development evidence, but not on hidden promotion answers that the optimizer was never authorized to inspect.
 
@@ -554,17 +554,17 @@ Each event has a total sequence number for replay and optional parent/span ident
 
 #### POMDP interpretation
 
-For a multi-turn agent, let \(h_t\) be the visible history at time \(t\). The agent chooses an action
+For a multi-turn agent, let $h_t$ be the visible history at time $t$. The agent chooses an action
 
-\[
+$$
 a_t \sim \pi_\theta(a\mid h_t),
-\]
+$$
 
 and the environment returns an observation
 
-\[
+$$
 o_{t+1} \sim P(o\mid h_t,a_t).
-\]
+$$
 
 Actions can include text, retrieval, SQL, tool calls, widget intents, or termination. This is why RL terminology is useful for trajectory representation even when the outer optimizer is not doing policy-gradient training.
 
@@ -587,12 +587,12 @@ checks          named check results
 evidence_refs   supporting trajectory/artifact references
 ```
 
-For patch \(\delta\) and trajectory \(\tau\), write
+For patch $\delta$ and trajectory $\tau$, write
 
-\[
+$$
 I(\delta,\tau)\in
 \{\text{exercised},\text{not exercised},\text{not applicable},\text{unknown}\}.
-\]
+$$
 
 #### Worked example: default result depth
 
@@ -625,11 +625,11 @@ Some behaviors are invalid regardless of a judge score. A forbidden route, unaut
 
 A **product contract** is a deterministic or auditable predicate over an episode and its artifacts. It produces a named check result with status, severity, and evidence.
 
-For checks \(c_1,\ldots,c_q\), an episode contract may be
+For checks $c_1,\ldots,c_q$, an episode contract may be
 
-\[
+$$
 C(x,\tau)=\bigwedge_{j=1}^{q} c_j(x,\tau).
-\]
+$$
 
 OptKit distinguishes:
 
@@ -666,14 +666,14 @@ A **measurement** is one persisted result from an instrument. It includes:
 
 A **measurement epoch** is the identity of the construct operationalization and procedure under which values are comparable. A practical epoch key is:
 
-\[
+$$
 e = H(
   \text{construct contract},
   \text{instrument protocol},
   \text{parser},
   \text{aggregator}
 ).
-\]
+$$
 
 Measurements from different epochs are not aggregated by default.
 
@@ -706,15 +706,15 @@ Production systems have multiple desired properties and non-negotiable constrain
 
 Let the expected measurement vector be
 
-\[
+$$
 \mu(\theta)
 =
 \mathbb E_{x,\tau}[M(\tau)].
-\]
+$$
 
 An **objective** identifies a construct, direction, aggregation, population, and role in search. The objective vector may include:
 
-\[
+$$
 J(\theta)=
 (
 \text{faithfulness},
@@ -722,24 +722,24 @@ J(\theta)=
 -\text{cost},
 -\text{latency}
 ).
-\]
+$$
 
 The **feasible set** contains configurations satisfying required rules:
 
-\[
+$$
 \mathcal F
 =
 \{\theta\in\Theta : g_j(\theta)\le 0,
 \ j=1,\ldots,p\}.
-\]
+$$
 
 Optimization is then
 
-\[
+$$
 \max_{\theta\in\mathcal F} J(\theta),
-\]
+$$
 
-where \(J\) is generally vector-valued.
+where $J$ is generally vector-valued.
 
 Coinvault's zero-failure, contract-valid, and faithfulness-floor requirements define feasibility. Target faithfulness improvement is considered only after feasibility.
 
@@ -755,22 +755,22 @@ A **trial** is a frozen experimental design that expands candidates, cases, repe
 
 A paired trial matches incumbent and challenger on case and repeat:
 
-\[
+$$
 \Delta_{i,r}^{(m)}
 =
 M_m(\tau_{i,r}^{challenger})
 -
 M_m(\tau_{i,r}^{incumbent}).
-\]
+$$
 
 The group mean is
 
-\[
+$$
 \bar\Delta_G^{(m)}
 =
 \frac{1}{|G|}
 \sum_{i\in G}\Delta_i^{(m)}.
-\]
+$$
 
 Missing pairs remain explicit. They do not disappear from denominators.
 
@@ -785,11 +785,11 @@ The framework must support human proposals today and automated reflection later 
 
 #### Definition
 
-Let \(H_n\) be the authorized campaign history after \(n\) observations. An **optimizer** is a proposal policy
+Let $H_n$ be the authorized campaign history after $n$ observations. An **optimizer** is a proposal policy
 
-\[
+$$
 Q_A(d\delta\mid H_n)
-\]
+$$
 
 that returns one or more proposed patches.
 
@@ -815,15 +815,15 @@ Two candidates may improve different objectives. Discarding every candidate exce
 
 #### Definition
 
-Candidate \(a\) dominates candidate \(b\) when it is no worse on every search objective and strictly better on at least one:
+Candidate $a$ dominates candidate $b$ when it is no worse on every search objective and strictly better on at least one:
 
-\[
+$$
 a\succ b
 \iff
 \left(\forall k, J_k(a)\ge J_k(b)\right)
 \land
 \left(\exists k, J_k(a)>J_k(b)\right).
-\]
+$$
 
 The **Pareto frontier** is the set of non-dominated candidates.
 
@@ -853,7 +853,7 @@ All prior concepts need a durable container that persists across proposals, tria
 
 An **optimization campaign** is a versioned process
 
-\[
+$$
 \mathcal C =
 (
 S,
@@ -866,19 +866,19 @@ P,
 B,
 H
 ),
-\]
+$$
 
 where:
 
-- \(S\) is the parameterized system adapter;
-- \(\Theta\) is the search space;
-- \(D\) is the role-tagged data;
-- \(M\) is the instrument and contract catalog;
-- \(O\) is the objective and gate catalog;
-- \(A\) is the optimizer policy;
-- \(P\) is the adaptive phase plan;
-- \(B\) is the budget policy;
-- \(H\) is the append-only history.
+- $S$ is the parameterized system adapter;
+- $\Theta$ is the search space;
+- $D$ is the role-tagged data;
+- $M$ is the instrument and contract catalog;
+- $O$ is the objective and gate catalog;
+- $A$ is the optimizer policy;
+- $P$ is the adaptive phase plan;
+- $B$ is the budget policy;
+- $H$ is the append-only history.
 
 A campaign contains candidates, trials, episodes, measurements, comparisons, optimizer observations, reviews, and decisions.
 
@@ -1145,9 +1145,9 @@ The digest must be computed from semantic canonical bytes, not a Go map's accide
 
 **Definition.** A **snapshot** is a total assignment from declared variable IDs to canonical values for one system definition.
 
-\[
+$$
 \theta : V \to \text{Value}.
-\]
+$$
 
 ```go
 type Snapshot struct {
@@ -1237,9 +1237,9 @@ type Patch struct {
 
 Applying a patch is written
 
-\[
+$$
 \theta' = \theta \oplus \delta.
-\]
+$$
 
 The operation must fail if any `Before` digest differs from the base snapshot. This prevents applying a stale patch to a changed root.
 
@@ -1441,7 +1441,7 @@ These four terms must remain distinct.
 
 **Definition.** A **measurement epoch** is the compatibility identity under which measurements may be aggregated:
 
-\[
+$$
 \eta = H(
 \text{construct contract},
 \text{protocol},
@@ -1449,7 +1449,7 @@ These four terms must remain distinct.
 \text{aggregation},
 \text{calibration policy}
 ).
-\]
+$$
 
 Changing a material component creates a new epoch. Competing candidates must either be remeasured in the same epoch or compared through an explicitly defined bridge/calibration study.
 
@@ -1501,9 +1501,9 @@ type Estimate struct {
 
 For current paired RagOpt evaluation, the estimand is often:
 
-\[
+$$
 \mathbb E[ m(candidate)-m(incumbent) \mid x\in G ].
-\]
+$$
 
 > **Fundamentals — Define the estimand before the estimator.**
 >
@@ -1519,15 +1519,15 @@ Search and promotion must not be the same interface. The strategy that proposes 
 
 **Motivation.** One global “best” candidate can discard specialized but complementary improvements.
 
-**Definition.** An **archive** retains candidates according to a declared policy. A Pareto archive retains non-dominated candidates. Candidate \(a\) dominates candidate \(b\) for an objective vector when
+**Definition.** An **archive** retains candidates according to a declared policy. A Pareto archive retains non-dominated candidates. Candidate $a$ dominates candidate $b$ for an objective vector when
 
-\[
+$$
 a \succ b
 \iff
 \forall k, J_k(a)\ge J_k(b)
 \land
 \exists k, J_k(a)>J_k(b).
-\]
+$$
 
 OptKit should support multiple archive policies. A simple objective Pareto frontier and a GEPA-style case-coverage/elites archive are related but not identical and should not be conflated.
 
@@ -1843,7 +1843,7 @@ The framework still computes the actual changed variables independently from the
 
 A completed episode may be reused only under exact semantic identity. Define
 
-\[
+$$
 K_e = H(
 P,
 \text{stage},
@@ -1855,7 +1855,7 @@ P,
 \text{repeat},
 \text{reuse epoch}
 ).
-\]
+$$
 
 In Go:
 
@@ -1898,17 +1898,17 @@ type Design interface {
 
 ### 10.3 Paired design
 
-For cases \(i=1,\ldots,n\), repeats \(r=0,\ldots,R-1\), and two arms, paired design emits
+For cases $i=1,\ldots,n$, repeats $r=0,\ldots,R-1$, and two arms, paired design emits
 
-\[
+$$
 2nR
-\]
+$$
 
 episode specifications and pairs them by
 
-\[
+$$
 (i,r).
-\]
+$$
 
 ```go
 func PlanPaired(req PlanRequest) []EpisodeSpec {
@@ -2062,12 +2062,12 @@ RAG-TTC's current decision to exclude judge overhead from product cost becomes a
 
 An optimization result is uninterpretable when the patch was never exercised. OptKit therefore runs intervention checks before attributing an outcome to a candidate.
 
-For a patch with assignments \(v_1,\ldots,v_k\), the report contains one check set per variable:
+For a patch with assignments $v_1,\ldots,v_k$, the report contains one check set per variable:
 
-\[
+$$
 E(\tau,\delta)
  = \bigwedge_{j=1}^{k} E_j(\tau,v_j).
-\]
+$$
 
 Applicability is separate. A routing prompt may apply to every case, while a knowledge-result limit may apply only to cases that actually invoke `knowledge_search`.
 
@@ -2331,27 +2331,27 @@ The optimizer may use a development judge that is cheap and diagnostic, while pr
 
 ### 13.1 Paired estimand
 
-For construct \(m\), group \(G\), and compatible epoch \(\eta\), define
+For construct $m$, group $G$, and compatible epoch $\eta$, define
 
-\[
+$$
 \delta_{i,r}^{(m)}
  = m_{i,r}^{candidate} - m_{i,r}^{baseline}.
-\]
+$$
 
 The target estimand is
 
-\[
+$$
 \Delta_G^{(m)}
  = \mathbb E[\delta_{i,r}^{(m)} \mid x_i\in G].
-\]
+$$
 
 The current RagOpt mean-delta estimator is
 
-\[
+$$
 \widehat\Delta_G^{(m)}
  = \frac{1}{N_G}
    \sum_{(i,r)\in G}\delta_{i,r}^{(m)}.
-\]
+$$
 
 OptKit should preserve wins, ties, losses, minimum/worst delta, presence counts, and failure/missingness diagnostics alongside the point estimate.
 
@@ -2393,10 +2393,10 @@ Later estimators may include paired bootstrap, randomization tests, Bayesian hie
 
 Costs should be estimands too. For example:
 
-\[
+$$
 \Delta^{tokens}_G
  = \mathbb E[T_{candidate}-T_{baseline} \mid G].
-\]
+$$
 
 Because usage has scopes, a selection policy can optimize system cost while separately enforcing an evaluator-budget ceiling.
 
@@ -2884,11 +2884,11 @@ The payload is a typed, versioned artifact. The envelope remains stable even as 
 
 ### 17.4 Hash chaining
 
-For event \(e_n\):
+For event $e_n$:
 
-\[
+$$
 d_n = H(\operatorname{canonical}(e_n\setminus\{Digest\}), d_{n-1}).
-\]
+$$
 
 This makes truncation or mutation detectable. Hash chaining is not access control, but it strengthens artifact custody and diagnosis.
 
@@ -4780,15 +4780,15 @@ For exact compatibility, use the current fixed order first. Counterbalancing can
 
 The current configuration declares three feedback cases and seven disjoint validation cases. With one feedback repeat:
 
-\[
+$$
 3\times2\times1 = 6
-\]
+$$
 
 episodes. With two validation repeats:
 
-\[
+$$
 7\times2\times2 = 28
-\]
+$$
 
 episodes.
 
@@ -6168,9 +6168,9 @@ No model call occurs.
 
 Feedback suite: 12 cases, one repeat, two arms.
 
-\[
+$$
 N_{episodes} = 12\times1\times2 = 24.
-\]
+$$
 
 The plan projection lists every episode before execution:
 
@@ -6224,23 +6224,23 @@ For the two target comparison cases, suppose the values reproduce current eviden
 
 Morgan versus Peace:
 
-\[
+$$
 \Delta F = 1.0000 - 0.4595 = 0.5405.
-\]
+$$
 
 Gold coins versus bars:
 
-\[
+$$
 \Delta F = 0.9615 - 0.3778 = 0.5837.
-\]
+$$
 
 Target mean:
 
-\[
+$$
 \widehat\Delta F
  = \frac{0.5405+0.5837}{2}
  \approx 0.5621.
-\]
+$$
 
 ### 42.10 Selection
 
@@ -6332,9 +6332,9 @@ A drifted source file produces `environment_drift` before any episode starts.
 
 Three feedback cases, one repeat, two arms:
 
-\[
+$$
 3\times1\times2 = 6
-\]
+$$
 
 episodes.
 
@@ -6395,9 +6395,9 @@ cost tie-breakers: provider calls, tool calls, tokens, duration
 
 Seven validation cases, two repeats, two arms:
 
-\[
+$$
 7\times2\times2 = 28
-\]
+$$
 
 episodes.
 
@@ -6531,15 +6531,15 @@ user task result or synthetic interaction test
 
 Separate:
 
-\[
+$$
 \text{agent action} = \text{widget intent}
-\]
+$$
 
 from
 
-\[
+$$
 \text{environment result} = \text{rendered widget artifact}.
-\]
+$$
 
 ### 45.3 Measurements and constraints
 
@@ -6591,12 +6591,12 @@ A new faithfulness protocol improves claim extraction. Existing candidate trajec
 
 ### 46.2 OptKit procedure
 
-1. Register new measurement epoch \(\eta_2\).
+1. Register new measurement epoch $\eta_2$.
 2. Create a remeasurement trial over selected sealed trajectories.
 3. Run only the JudgeKit suite; do not rerun product episodes.
 4. Record new measurements linked to the same episodes.
-5. Compare candidates only within \(\eta_2\).
-6. Optionally run a calibration bridge between \(\eta_1\) and \(\eta_2\).
+5. Compare candidates only within $\eta_2$.
+6. Optionally run a calibration bridge between $\eta_1$ and $\eta_2$.
 
 ### 46.3 History
 
@@ -7054,7 +7054,7 @@ Build OptKit as a **versioned experimental control system for optimizing stochas
 
 The complete control loop can be summarized as
 
-\[
+$$
 \boxed{
 \begin{aligned}
 H_n
@@ -7080,9 +7080,9 @@ H_{n+1}
 &=H_n\cup\{\delta_n,\tau,M,\Delta,D_n\}.
 \end{aligned}
 }
-\]
+$$
 
-The append-only history \(H\) yields three consistent temporal views:
+The append-only history $H$ yields three consistent temporal views:
 
 ```text
 before execution:  plan projection
@@ -7092,7 +7092,7 @@ after execution:   lineage, evidence, and decision projections
 
 Its core object is not a prompt and not a scalar reward. It is the persistent relation among:
 
-\[
+$$
 \boxed{
 \text{configuration}
 \rightarrow
@@ -7108,7 +7108,7 @@ Its core object is not a prompt and not a scalar reward. It is the persistent re
 \rightarrow
 \text{lineage}
 }
-\]
+$$
 
 The first release should reproduce today's strongest behavior exactly:
 
@@ -7411,27 +7411,27 @@ Every event payload has its own versioned schema. Reducers must reject unknown s
 
 ### C.1 Snapshot
 
-\[
+$$
 D_{snapshot} = H(
 \text{schema},
 \text{system},
 \operatorname{sort}_{variable}(variable,value\_digest)
 ).
-\]
+$$
 
 ### C.2 Patch
 
-\[
+$$
 D_{patch} = H(
 \text{schema},
 D_{base},
 \operatorname{sort}_{variable}(variable,before,after)
 ).
-\]
+$$
 
 ### C.3 Candidate
 
-\[
+$$
 D_{candidate} = H(
 D_{parent},D_{patch},D_{child},
 \text{proposer},
@@ -7440,22 +7440,22 @@ D_{parent},D_{patch},D_{child},
 \text{risks},
 \text{evidence refs}
 ).
-\]
+$$
 
 ### C.4 Prepared system
 
-\[
+$$
 D_{prepared} = H(
 D_{snapshot},D_{environment},
 D_{adapter},
 D_{prepared\ artifacts},
 D_{expected\ effects}
 ).
-\]
+$$
 
 ### C.5 Episode key
 
-\[
+$$
 K_e = H(
 D_{plan},
 \text{stage},
@@ -7466,11 +7466,11 @@ D_{prepared},
 D_{execution\ protocol},
 \text{reuse epoch}
 ).
-\]
+$$
 
 ### C.6 Measurement epoch
 
-\[
+$$
 D_{epoch} = H(
 D_{construct/contract},
 D_{protocol},
@@ -7478,7 +7478,7 @@ D_{adapter},
 D_{aggregation},
 D_{calibration\ policy}
 ).
-\]
+$$
 
 ---
 

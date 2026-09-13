@@ -122,7 +122,7 @@ empty: emptyView.make(),
 
 demos: submenuView.makeWith({
 
-items: \[
+items: $$
 
 "Hourglass screen",
 
@@ -130,7 +130,7 @@ items: \[
 
 "Exit app",
 
-\],
+$$,
 
 }),
 

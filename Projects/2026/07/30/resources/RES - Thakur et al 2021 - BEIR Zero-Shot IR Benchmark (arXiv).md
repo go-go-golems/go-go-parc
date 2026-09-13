@@ -16,16 +16,16 @@ type: resource
 | Comments: |
 | --- |
 | Subjects: | Information Retrieval (cs.IR); Artificial Intelligence (cs.AI); Computation and Language (cs.CL) |
-| Cite as: | [arXiv:2104.08663](https://arxiv.org/abs/2104.08663) \[cs.IR\] |
-|  | (or [arXiv:2104.08663v4](https://arxiv.org/abs/2104.08663v4) \[cs.IR\] for this version) |
+| Cite as: | [arXiv:2104.08663](https://arxiv.org/abs/2104.08663) $$cs.IR$$ |
+|  | (or [arXiv:2104.08663v4](https://arxiv.org/abs/2104.08663v4) $$cs.IR$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.2104.08663](https://doi.org/10.48550/arXiv.2104.08663) |
 
 ## Submission history
 
-From: Nandan Thakur \[[view email](https://arxiv.org/show-email/83e75b39/2104.08663)\]  
-**[\[v1\]](https://arxiv.org/abs/2104.08663v1)** Sat, 17 Apr 2021 23:29:55 UTC (2,441 KB)  
-**[\[v2\]](https://arxiv.org/abs/2104.08663v2)** Wed, 28 Apr 2021 13:59:17 UTC (2,442 KB)  
-**[\[v3\]](https://arxiv.org/abs/2104.08663v3)** Tue, 7 Sep 2021 20:33:14 UTC (3,482 KB)  
-**\[v4\]** Thu, 21 Oct 2021 01:18:28 UTC (3,482 KB)
+From: Nandan Thakur $$[view email](https://arxiv.org/show-email/83e75b39/2104.08663)$$  
+**[$$v1$$](https://arxiv.org/abs/2104.08663v1)** Sat, 17 Apr 2021 23:29:55 UTC (2,441 KB)  
+**[$$v2$$](https://arxiv.org/abs/2104.08663v2)** Wed, 28 Apr 2021 13:59:17 UTC (2,442 KB)  
+**[$$v3$$](https://arxiv.org/abs/2104.08663v3)** Tue, 7 Sep 2021 20:33:14 UTC (3,482 KB)  
+**$$v4$$** Thu, 21 Oct 2021 01:18:28 UTC (3,482 KB)
 
 [Which authors of this paper are endorsers?](https://arxiv.org/auth/show-endorsers/2104.08663) | Disable MathJax ([What is MathJax?](https://info.arxiv.org/help/mathjax.html))

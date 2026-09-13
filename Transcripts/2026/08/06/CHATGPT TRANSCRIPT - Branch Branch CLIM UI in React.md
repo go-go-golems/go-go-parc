@@ -10373,7 +10373,7 @@ The formal development begins with:
 
 It then defines a presentation-type calculus:
 
-\[
+$$
 \tau ::= \top
 \mid \bot
 \mid a
@@ -10382,23 +10382,23 @@ It then defines a presentation-type calculus:
 \mid \tau\land\tau
 \mid \tau\setminus\tau
 \mid \operatorname{refine}(p,\theta,\tau).
-\]
+$$
 
 Types are interpreted as sets of tagged presentation references:
 
-\[
+$$
 \llbracket\tau\rrbracket^R_e\subseteq\Omega_R,
-\]
+$$
 
 and semantic subtyping is defined by inclusion:
 
-\[
+$$
 R,e\models\tau_1\leq\tau_2
 \quad\Longleftrightarrow\quad
 \llbracket\tau_1\rrbracket^R_e
 \subseteq
 \llbracket\tau_2\rrbracket^R_e.
-\]
+$$
 
 This follows the central semantic-subtyping idea that types denote sets and subtyping denotes set inclusion. The book relates the calculus to the established semantic-subtyping literature, including union, intersection, and negation types. citeturn599927search2turn905623view4
 

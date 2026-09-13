@@ -18,14 +18,14 @@ Authors:[Jiawei Chen](https://arxiv.org/search/cs?searchtype=author&query=Chen,+
 | Comments: |
 | --- |
 | Subjects: | Computation and Language (cs.CL) |
-| Cite as: | [arXiv:2309.01431](https://arxiv.org/abs/2309.01431) \[cs.CL\] |
-|  | (or [arXiv:2309.01431v2](https://arxiv.org/abs/2309.01431v2) \[cs.CL\] for this version) |
+| Cite as: | [arXiv:2309.01431](https://arxiv.org/abs/2309.01431) $$cs.CL$$ |
+|  | (or [arXiv:2309.01431v2](https://arxiv.org/abs/2309.01431v2) $$cs.CL$$ for this version) |
 |  | [https://doi.org/10.48550/arXiv.2309.01431](https://doi.org/10.48550/arXiv.2309.01431) |
 
 ## Submission history
 
-From: Jiawei Chen \[[view email](https://arxiv.org/show-email/0e228141/2309.01431)\]  
-**[\[v1\]](https://arxiv.org/abs/2309.01431v1)** Mon, 4 Sep 2023 08:28:44 UTC (3,258 KB)  
-**\[v2\]** Wed, 20 Dec 2023 11:54:11 UTC (1,827 KB)
+From: Jiawei Chen $$[view email](https://arxiv.org/show-email/0e228141/2309.01431)$$  
+**[$$v1$$](https://arxiv.org/abs/2309.01431v1)** Mon, 4 Sep 2023 08:28:44 UTC (3,258 KB)  
+**$$v2$$** Wed, 20 Dec 2023 11:54:11 UTC (1,827 KB)
 
 [Which authors of this paper are endorsers?](https://arxiv.org/auth/show-endorsers/2309.01431) | Disable MathJax ([What is MathJax?](https://info.arxiv.org/help/mathjax.html))

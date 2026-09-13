@@ -43,49 +43,49 @@ I’m explaining subobject classifiers in simple terms, using examples from set 
 
 A **subobject classifier** is important in computer science because it turns **subtypes, predicates, and specifications into ordinary maps**, making logic part of the same mathematical structure used to model programs.
 
-For a topos \(\mathcal E\), the subobject classifier consists of an object \(\Omega\) and a map
+For a topos $\mathcal E$, the subobject classifier consists of an object $\Omega$ and a map
 
-\[
+$$
 \mathsf{true}:1\to\Omega .
-\]
+$$
 
-Every subobject \(S\hookrightarrow X\) has a unique characteristic map
+Every subobject $S\hookrightarrow X$ has a unique characteristic map
 
-\[
+$$
 \chi_S:X\to\Omega
-\]
+$$
 
-such that \(S\) is precisely the part of \(X\) where \(\chi_S\) is true. In ordinary sets, \(\Omega=\{\mathsf{false},\mathsf{true}\}\), so this is just the usual characteristic function of a subset. citeturn837634search10turn837634search23
+such that $S$ is precisely the part of $X$ where $\chi_S$ is true. In ordinary sets, $\Omega=\{\mathsf{false},\mathsf{true}\}$, so this is just the usual characteristic function of a subset. citeturn837634search10turn837634search23
 
 ## Why this matters in computer science
 
 ### 1. Predicates become first-class semantic objects
 
-Suppose \(X\) represents the states of a program and \(S\hookrightarrow X\) represents the safe states. The map
+Suppose $X$ represents the states of a program and $S\hookrightarrow X$ represents the safe states. The map
 
-\[
+$$
 \chi_S:X\to\Omega
-\]
+$$
 
 is the safety predicate.
 
-For a program operation \(f:Y\to X\), the predicate on inputs is simply
+For a program operation $f:Y\to X$, the predicate on inputs is simply
 
-\[
+$$
 \chi_S\circ f:Y\to\Omega .
-\]
+$$
 
-Categorically, this corresponds to pulling the subobject \(S\) back along \(f\). Thus substitution of variables, weakest-precondition-style reasoning, and transport of invariants arise from ordinary composition and pullback rather than from a separate logical mechanism.
+Categorically, this corresponds to pulling the subobject $S$ back along $f$. Thus substitution of variables, weakest-precondition-style reasoning, and transport of invariants arise from ordinary composition and pullback rather than from a separate logical mechanism.
 
 ### 2. It supplies the universe of propositions
 
-Within a topos, \(\Omega\) acts as a type or object of truth values. Maps
+Within a topos, $\Omega$ acts as a type or object of truth values. Maps
 
-\[
+$$
 X\to\Omega
-\]
+$$
 
-are predicates depending on values of type \(X\). Together with products and exponentials, the classifier lets a topos interpret higher-order intuitionistic logic. This is one reason toposes are used as categorical models of logical systems and type theories. citeturn634362search0turn634362search16
+are predicates depending on values of type $X$. Together with products and exponentials, the classifier lets a topos interpret higher-order intuitionistic logic. This is one reason toposes are used as categorical models of logical systems and type theories. citeturn634362search0turn634362search16
 
 The logic is generally **intuitionistic**, meaning that principles such as excluded middle need not hold. This is appropriate for constructive mathematics, where proving that an object exists is closely related to constructing it.
 
@@ -93,17 +93,17 @@ The logic is generally **intuitionistic**, meaning that principles such as exclu
 
 Because a topos is cartesian closed, one can form
 
-\[
+$$
 P(X)=\Omega^X.
-\]
+$$
 
-This is the categorical analogue of the powerset of \(X\). Elements of \(P(X)\) correspond to predicates on \(X\), and more generally maps
+This is the categorical analogue of the powerset of $X$. Elements of $P(X)$ correspond to predicates on $X$, and more generally maps
 
-\[
+$$
 A\to P(X)
-\]
+$$
 
-represent \(A\)-indexed families of subobjects of \(X\). citeturn837634search23turn634362search11
+represent $A$-indexed families of subobjects of $X$. citeturn837634search23turn634362search11
 
 In computer-science language, power objects can model:
 
@@ -115,7 +115,7 @@ In computer-science language, power objects can model:
 
 ### 4. It supports varying and contextual truth
 
-In many toposes, \(\Omega\) has more than two truth values. For example, in a presheaf topos, its truth values are represented by **sieves**, which encode the stages or contexts in which a proposition remains valid. citeturn634362search5
+In many toposes, $\Omega$ has more than two truth values. For example, in a presheaf topos, its truth values are represented by **sieves**, which encode the stages or contexts in which a proposition remains valid. citeturn634362search5
 
 This is useful when modelling systems where information varies by:
 
@@ -138,9 +138,9 @@ These models are used in the semantics of constructive logic, typed programming 
 
 Maps
 
-\[
+$$
 j:\Omega\to\Omega
-\]
+$$
 
 satisfying the Lawvere–Tierney topology axioms behave like closure or modal operators on propositions. They determine sheaf subtoposes and allow one to change the internal notion of truth. citeturn634362search15
 
@@ -155,7 +155,7 @@ Conceptually, this supports statements such as:
 
 The subobject classifier is not usually something an application programmer implements directly. Its importance is mainly **foundational and semantic**. It provides a single construction that unifies:
 
-\[
+$$
 \text{subtypes}
 \quad\leftrightarrow\quad
 \text{predicates}
@@ -163,7 +163,7 @@ The subobject classifier is not usually something an application programmer impl
 \text{truth-valued functions}
 \quad\leftrightarrow\quad
 \text{program specifications}.
-\]
+$$
 
 That unification makes topos theory valuable for categorical logic, programming-language semantics, constructive type theory, realizability, proof assistants and models of contextual or distributed computation.
 
@@ -212,43 +212,43 @@ I'm thinking about using the subobject classifier to explain how categorical sch
 
 Here are concrete cases where **topos theory is combined with computer-science models**, rather than merely used as abstract terminology.
 
-A useful qualification: not every application manipulates the subobject classifier \(\Omega\) explicitly. Often researchers work with presheaves, sheaves or the internal logic, while \(\Omega\) supplies the underlying notion of predicate and specification.
+A useful qualification: not every application manipulates the subobject classifier $\Omega$ explicitly. Often researchers work with presheaves, sheaves or the internal logic, while $\Omega$ supplies the underlying notion of predicate and specification.
 
 ## 1. Recursive programs and step-indexed verification
 
 Consider a semantic object
 
-\[
+$$
 X_0 \longleftarrow X_1 \longleftarrow X_2 \longleftarrow \cdots
-\]
+$$
 
-where \(X_n\) describes what can be observed about a program for \(n\) computation steps. Forgetting the last step gives \(X_{n+1}\to X_n\). Such sequences form the **topos of trees**.
+where $X_n$ describes what can be observed about a program for $n$ computation steps. Forgetting the last step gives $X_{n+1}\to X_n$. Such sequences form the **topos of trees**.
 
 Define
 
-\[
+$$
 P_n=\{x\in X_n\mid x\text{ does not fail within }n\text{ steps}\}.
-\]
+$$
 
-If safety is preserved when observations are truncated, the \(P_n\) form a subobject
+If safety is preserved when observations are truncated, the $P_n$ form a subobject
 
-\[
+$$
 P\hookrightarrow X.
-\]
+$$
 
 Its characteristic map
 
-\[
+$$
 \chi_P:X\to\Omega
-\]
+$$
 
 is a stage-indexed safety predicate. It contains more information than a single Boolean: it tracks at which finite approximations the program is known to be safe.
 
-The topos also has a “later” modality \(\triangleright\). Recursive semantic relations can be defined in guarded form, such as
+The topos also has a “later” modality $\triangleright$. Recursive semantic relations can be defined in guarded form, such as
 
-\[
+$$
 R \cong F(\triangleright R),
-\]
+$$
 
 avoiding circular definitions. This has been used to construct models of languages with higher-order mutable state and recursive types inside the topos’s internal logic. citeturn520117search0turn520117search4
 
@@ -258,25 +258,25 @@ avoiding circular definitions. This has been used to construct models of languag
 
 ## 2. Concurrency and bisimulation
 
-Let \(\mathcal P\) be a category whose objects are possible execution paths. A concurrent system can be represented by a presheaf
+Let $\mathcal P$ be a category whose objects are possible execution paths. A concurrent system can be represented by a presheaf
 
-\[
+$$
 X:\mathcal P^{op}\to\mathbf{Set},
-\]
+$$
 
-where \(X(p)\) is the set of executions having path shape \(p\). Restriction maps describe truncating an execution to a smaller observation.
+where $X(p)$ is the set of executions having path shape $p$. Restriction maps describe truncating an execution to a smaller observation.
 
 For example:
 
-- \(X(a)\): executions performing action \(a\);
-- \(X(ab)\): executions performing \(a\), then \(b\);
-- \(X(ab)\to X(a)\): forget the second action.
+- $X(a)$: executions performing action $a$;
+- $X(ab)$: executions performing $a$, then $b$;
+- $X(ab)\to X(a)$: forget the second action.
 
-A safety property is a subpresheaf \(S\hookrightarrow X\): a collection of executions closed under restriction. The map
+A safety property is a subpresheaf $S\hookrightarrow X$: a collection of executions closed under restriction. The map
 
-\[
+$$
 \chi_S:X\to\Omega
-\]
+$$
 
 classifies this property. Its truth values are sieves—roughly, collections of compatible refinements or observations—rather than ordinary Booleans.
 
@@ -290,9 +290,9 @@ Joyal, Nielsen and Winskel used **open maps** between such models to give a gene
 
 Suppose three processes each possess a local view:
 
-\[
+$$
 V_A,\qquad V_B,\qquad V_C.
-\]
+$$
 
 Their views overlap because processes have exchanged some messages. A sheaf records:
 
@@ -304,9 +304,9 @@ A **global section** is a choice of local states that agrees on every overlap. I
 
 A recent task-sheaf construction models a distributed task so that terminating solutions correspond to global sections. Failure to produce a global section represents an obstruction to solving the task; sheaf cohomology can provide algebraic information about such obstructions and has been used in the paper to derive an approximate-agreement protocol. citeturn520117search2turn520117search6
 
-The classifier \(\Omega\) supplies local truth values. A statement such as
+The classifier $\Omega$ supplies local truth values. A statement such as
 
-> “Every process in this part of the execution can safely decide \(0\)”
+> “Every process in this part of the execution can safely decide $0$”
 
 may be true only over some part of the execution cover, rather than globally.
 
@@ -318,41 +318,41 @@ may be true only over some part of the execution cover, rather than globally.
 
 Take a schema containing
 
-\[
+$$
 \text{Employee}\xrightarrow{\mathrm{department}}\text{Department}.
-\]
+$$
 
-A database instance \(I\) consists of sets
+A database instance $I$ consists of sets
 
-\[
+$$
 I(\text{Employee}),\qquad I(\text{Department})
-\]
+$$
 
 and a function assigning each employee to a department. Categorically, the schema is a category and the instance is a set-valued functor.
 
-A subdatabase \(J\hookrightarrow I\) must consist of subsets
+A subdatabase $J\hookrightarrow I$ must consist of subsets
 
-\[
+$$
 J(\text{Employee})\subseteq I(\text{Employee}),
 \qquad
 J(\text{Department})\subseteq I(\text{Department})
-\]
+$$
 
 satisfying
 
-\[
+$$
 e\in J(\text{Employee})
 \implies
 \operatorname{department}(e)\in J(\text{Department}).
-\]
+$$
 
 Thus a subobject is not an arbitrary collection of selected table rows: it must remain compatible with the schema’s foreign-key maps.
 
 Because the instance category is a functor category, it is a presheaf topos. Its characteristic map
 
-\[
+$$
 \chi_J:I\to\Omega
-\]
+$$
 
 acts as a **schema-aware selection predicate**. It records not only whether a row is selected but whether selection remains valid along every relevant schema path.
 
@@ -366,17 +366,17 @@ Schema functors also induce three canonical data-migration operations, correspon
 
 Ordinary set-based syntax makes bound variables awkward. For example,
 
-\[
+$$
 \lambda x.x
 \quad\text{and}\quad
 \lambda y.y
-\]
+$$
 
 should represent the same term, even though they are different strings.
 
 In the **topos of nominal sets**, objects carry actions by permutations of names. Terms are represented so that consistently renaming names preserves their structure. Concepts such as:
 
-- freshness \(a\#t\), meaning name \(a\) does not occur freely in \(t\);
+- freshness \$a\#t\$, meaning name $a$ does not occur freely in $t$;
 - name abstraction;
 - alpha-equivalence;
 - generation of fresh local names
@@ -385,9 +385,9 @@ can be treated mathematically.
 
 This category is a Boolean topos. Its classifier resembles the ordinary two-valued classifier, but admissible functions and predicates must respect renaming symmetry. For example, the relation
 
-\[
+$$
 \{(a,t)\mid a\#t\}\hookrightarrow A\times\mathrm{Term}
-\]
+$$
 
 is invariant under simultaneous permutation of names.
 
@@ -401,32 +401,32 @@ Nominal sets have been applied to the syntax and semantics of languages involvin
 
 In ordinary automata theory, a language is a subset
 
-\[
+$$
 L\hookrightarrow\Sigma^*,
-\]
+$$
 
 and acceptance is its characteristic function
 
-\[
+$$
 \chi_L:\Sigma^*\to\{0,1\}.
-\]
+$$
 
-Inside an arbitrary topos \(\mathcal E\), the same definition becomes
+Inside an arbitrary topos $\mathcal E$, the same definition becomes
 
-\[
+$$
 L\hookrightarrow\Sigma^*,
 \qquad
 \chi_L:\Sigma^*\to\Omega_{\mathcal E}.
-\]
+$$
 
 This allows the alphabet, states and language to carry additional structure.
 
-For example, in the nominal-set topos, \(\Sigma\) may be an infinite set of names while an automaton has only finitely many state shapes up to renaming. Such automata can recognize languages involving equality and freshness of names, such as:
+For example, in the nominal-set topos, $\Sigma$ may be an infinite set of names while an automaton has only finitely many state shapes up to renaming. Such automata can recognize languages involving equality and freshness of names, such as:
 
-\[
+$$
 a_1a_2\cdots a_n
 \quad\text{where the final name is fresh relative to earlier names}.
-\]
+$$
 
 General Myhill–Nerode theorems have been developed for automata internal to elementary topoi; nominal automata arise as a special case. citeturn777521academia30
 
@@ -438,7 +438,7 @@ General Myhill–Nerode theorems have been developed for automata internal to el
 
 These examples generally follow the same architecture:
 
-\[
+$$
 \begin{array}{c|c}
 \text{Computer-science concept} & \text{Topos-theoretic representation}\\
 \hline
@@ -450,9 +450,9 @@ These examples generally follow the same architecture:
 \text{local information} & \text{presheaf or sheaf}\\
 \text{consistent global solution} & \text{global section}
 \end{array}
-\]
+$$
 
-The most direct uses of the **subobject classifier itself** are program invariants, database selections and automaton acceptance. In concurrency and distributed computing, the larger presheaf/sheaf structure is usually more visible, while \(\Omega\) provides its internal logic.
+The most direct uses of the **subobject classifier itself** are program invariants, database selections and automaton acceptance. In concurrency and distributed computing, the larger presheaf/sheaf structure is usually more visible, while $\Omega$ provides its internal logic.
 
 
 ---
@@ -501,9 +501,9 @@ This is already possible in current mathlib. The library defines:
 
 - `Subobject.Classifier C`;
 - `HasSubobjectClassifier C`;
-- the classifier object \(\Omega\);
+- the classifier object $\Omega$;
 - the truth morphism;
-- characteristic maps \(\chi_m\);
+- characteristic maps $\chi_m$;
 - their pullback and uniqueness properties;
 - the equivalence between having a classifier and representability of the subobject presheaf. citeturn805328view0
 
@@ -534,7 +534,7 @@ variable (J : GrothendieckTopology C)
 #check Sheaf.χ
 ```
 
-Mathlib constructs the classifier explicitly for both presheaf and sheaf categories. For presheaves, \(\Omega(X)\) is the type of sieves on \(X\). For sheaves, it is the sheaf of \(J\)-closed sieves. Presheaf and sheaf categories on essentially small sites receive `HasSubobjectClassifier` instances. citeturn828888view1turn181527view2
+Mathlib constructs the classifier explicitly for both presheaf and sheaf categories. For presheaves, $\Omega(X)$ is the type of sieves on $X$. For sheaves, it is the sheaf of $J$-closed sieves. Presheaf and sheaf categories on essentially small sites receive `HasSubobjectClassifier` instances. citeturn828888view1turn181527view2
 
 So Lean can machine-check the statement that categories of sheaves of sufficiently large types are elementary topoi. citeturn828888view1
 
@@ -544,12 +544,12 @@ At the ordinary type-theoretic level, the correspondence is very visible.
 
 | Lean | Topos theory |
 |---|---|
-| type `X` | object \(X\) |
-| function `f : X → Y` | morphism \(f:X\to Y\) |
-| predicate `P : X → Prop` | characteristic map \(X\to\Omega\) |
-| subtype `{x : X // P x}` | subobject of \(X\) |
-| `P (f y)` | pullback or substitution along \(f\) |
-| function type `X → Y` | exponential \(Y^X\) |
+| type `X` | object $X$ |
+| function `f : X → Y` | morphism $f:X\to Y$ |
+| predicate `P : X → Prop` | characteristic map $X\to\Omega$ |
+| subtype `{x : X // P x}` | subobject of $X$ |
+| `P (f y)` | pullback or substitution along $f$ |
+| function type `X → Y` | exponential $Y^X$ |
 | dependent pair `Σ x, A x` | dependent sum |
 | dependent function `(x : X) → A x` | dependent product |
 
@@ -574,37 +574,37 @@ def inputPrecondition
 
 Categorically:
 
-- `Safe : State → Prop` resembles \(\chi_S:X\to\Omega\);
-- `SafeState` resembles \(S\hookrightarrow X\);
-- `inputPrecondition run` resembles pulling \(S\) back along  
-  \(\texttt{run}:\mathrm{Input}\to\mathrm{State}\).
+- `Safe : State → Prop` resembles $\chi_S:X\to\Omega$;
+- `SafeState` resembles $S\hookrightarrow X$;
+- `inputPrecondition run` resembles pulling $S$ back along  
+  $\texttt{run}:\mathrm{Input}\to\mathrm{State}$.
 
 This is the same operation underlying substitution and precondition reasoning.
 
-The analogy is not literal in every technical respect. Lean’s `Prop` is a proof-irrelevant universe in its dependent type theory; an arbitrary topos has an internal classifier object \(\Omega\), whose generalized elements may carry contextual truth values such as sieves. citeturn925926view1turn828888view0
+The analogy is not literal in every technical respect. Lean’s `Prop` is a proof-irrelevant universe in its dependent type theory; an arbitrary topos has an internal classifier object $\Omega$, whose generalized elements may carry contextual truth values such as sieves. citeturn925926view1turn828888view0
 
 ## 3. A concrete theorem-proving application: verified Kripke semantics
 
 Suppose you want to formalize a modal or temporal logic.
 
-Let \(C\) be a category of possible worlds:
+Let $C$ be a category of possible worlds:
 
 - objects are computation stages or knowledge states;
 - arrows are accessible refinements;
 - a type is interpreted as a presheaf
-  \[
+  $$
   A:C^{op}\to\mathbf{Set};
-  \]
+  $$
 - a term is a natural transformation;
-- a proposition about \(A\) is a subpresheaf \(P\hookrightarrow A\).
+- a proposition about $A$ is a subpresheaf $P\hookrightarrow A$.
 
 Lean can then construct the characteristic map
 
-\[
+$$
 \chi_P:A\to\Omega.
-\]
+$$
 
-At a world \(c\), \(\chi_P(a)\) is not merely a Boolean. It is a sieve describing the refinements \(d\to c\) at which the restricted value of \(a\) satisfies \(P\). Mathlib’s presheaf classifier implements precisely this construction: an element is sent to the sieve of arrows along which it locally comes from the chosen subpresheaf. citeturn181527view3
+At a world $c$, $\chi_P(a)$ is not merely a Boolean. It is a sieve describing the refinements $d\to c$ at which the restricted value of $a$ satisfies $P$. Mathlib’s presheaf classifier implements precisely this construction: an element is sent to the sieve of arrows along which it locally comes from the chosen subpresheaf. citeturn181527view3
 
 A verified logic implementation could therefore proceed as follows:
 
@@ -620,19 +620,19 @@ That yields a machine-checked soundness theorem for a contextual logic.
 
 A second concrete application is verification of local-to-global arguments.
 
-Suppose \(F\) is a sheaf representing locally available program configurations. A global execution is a global section of \(F\). Lean’s sheaf library contains a global-sections functor
+Suppose $F$ is a sheaf representing locally available program configurations. A global execution is a global section of $F$. Lean’s sheaf library contains a global-sections functor
 
-\[
+$$
 \Gamma:\operatorname{Sheaf}(C,J)\to A
-\]
+$$
 
 and relates it to evaluation at a terminal object, limits of underlying presheaves, and morphisms from the terminal sheaf. citeturn925926view3
 
 One could formalize:
 
-- local configurations \(s_i\in F(U_i)\);
-- compatibility on overlaps \(U_i\cap U_j\);
-- existence of a glued configuration \(s\in F(U)\);
+- local configurations $s_i\in F(U_i)$;
+- compatibility on overlaps $U_i\cap U_j$;
+- existence of a glued configuration $s\in F(U)$;
 - uniqueness of that configuration.
 
 This applies to verified distributed-state reconstruction, local certificates, decentralized authorization or locally defined mathematical objects.
@@ -643,9 +643,9 @@ The proof assistant contributes by checking all naturality, restriction and comp
 
 One attraction of a topos is that one can reason internally as though objects were sets and morphisms were functions:
 
-\[
+$$
 \forall x:X,\;P(x)\Rightarrow Q(f(x)).
-\]
+$$
 
 Externally, that statement corresponds to a relation between subobjects, pullbacks and characteristic maps.
 
@@ -685,9 +685,9 @@ For example, the user might prove:
 
 while the elaborator generates the corresponding subobject inclusion
 
-\[
+$$
 P\leq Q
-\]
+$$
 
 and verifies it categorically.
 
@@ -704,25 +704,25 @@ For dependent type theory, one typically needs structures such as:
 - locally cartesian closed categories;
 - categories with families;
 - universe objects;
-- suitable initial algebras or \(W\)-types for inductive constructions.
+- suitable initial algebras or $W$-types for inductive constructions.
 
 Locally cartesian closed categories correspond closely to Martin-Löf type theory with dependent sums, dependent products and extensional identity types. citeturn612599academia27
 
 Thus the correct picture is not
 
-\[
+$$
 \text{Lean}=\text{internal language of an elementary topos}.
-\]
+$$
 
 It is closer to
 
-\[
+$$
 \text{topos semantics}
 \subset
 \text{categorical semantics of fragments of dependent type theory}
 \subset
 \text{semantics needed for a Lean-like kernel}.
-\]
+$$
 
 Constructing and verifying a categorical model of a substantial fragment of Lean **inside Lean** would itself be a serious metatheory project.
 
