@@ -113,7 +113,7 @@ That intent is reinforced by the internal design documents:
 
 This is a good boundary. The semantic kernel proposed here is compatible with it because it is a small data model and a set of laws, not a new orchestration authority.
 
-![Current architecture and dependency direction](/mnt/data/rag-ttc-handbook-assets/current-architecture.png){width=92%}
+![Current architecture and dependency direction](current-architecture.png){width=92%}
 
 ## 2.2 Existing package roles
 
@@ -470,7 +470,7 @@ The elegant design is a layered system in which each layer has one kind of contr
 
 `flow` remains the operational interpreter for effectful work. Top-level experiments and applications remain ordinary Go.
 
-![Proposed semantic layers](/mnt/data/rag-ttc-handbook-assets/proposed-layers.png){width=92%}
+![Proposed semantic layers](proposed-layers.png){width=92%}
 
 ## 5.2 Why this boundary composes
 
@@ -752,7 +752,7 @@ These are not decorative flags. Conformance tests should exercise them.
 
 The core loop isolates nondeterministic effects from deterministic semantics.
 
-![Plan, execute, admit, and merge loop](/mnt/data/rag-ttc-handbook-assets/plan-execute-admit.png){width=95%}
+![Plan, execute, admit, and merge loop](plan-execute-admit.png){width=95%}
 
 1. **Plan:** inspect a stable snapshot and frontier; emit content-addressed requests.
 2. **Execute:** use `flow`/`execution` for cache, retry, budget, rate limits, and batching.
@@ -914,7 +914,7 @@ These are valuable and should not be duplicated in `derive`.
 
 ## 7.2 Denotational meaning versus operational history
 
-![Semantic meaning versus operational execution](/mnt/data/rag-ttc-handbook-assets/semantics-vs-operations.png){width=92%}
+![Semantic meaning versus operational execution](semantics-vs-operations.png){width=92%}
 
 For a step, distinguish:
 

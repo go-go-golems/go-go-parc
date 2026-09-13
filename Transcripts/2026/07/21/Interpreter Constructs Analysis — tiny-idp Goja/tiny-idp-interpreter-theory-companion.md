@@ -48,7 +48,7 @@ These precision notes are not qualifications added out of caution after the fact
 | Repeated independent callback registration plus fingerprints | Separate compilation, linking, reproducible materialization | Re-execute source and compare stable registries | Runtime workers agree on symbolic callback linkage and serializable contract identity | Equal registries do not prove callback behavioral determinism |
 | Atomic continuation/account/session commit | Linearizability and transaction processing | Revalidate effect sequence and consume one-use state in one transaction | Concurrent terminal attempts have one native commit point | External mail delivery is not made atomic with database state |
 
-![Figure 1. The system is a staged family of interpreters, not a single “execute JavaScript” step.](/mnt/data/tiny-idp-theory-assets/pipeline.png){width=96%}
+![Figure 1. The system is a staged family of interpreters, not a single “execute JavaScript” step.](pipeline.png){width=96%}
 
 # Part I — A language architecture for an identity microkernel
 
@@ -220,7 +220,7 @@ apply(K2(c),   x) = e2[x,c]
 
 The constructor tag records *which code* should run. Its fields record the closure's free-variable environment.
 
-![Figure 2. Tiny-IDP's browser continuation is naturally read as a defunctionalized continuation.](/mnt/data/tiny-idp-theory-assets/defun.png){width=92%}
+![Figure 2. Tiny-IDP's browser continuation is naturally read as a defunctionalized continuation.](defun.png){width=92%}
 
 ### 6.1 Tiny-IDP mapping
 
@@ -630,7 +630,7 @@ Tiny-IDP does not expose a general object-capability language, but its invocatio
 
 There is no global `store`, `fetch`, `process`, `database`, or `mailer`. The runtime factory disables implicit module registries and ambient loaders. The program declares capability requirements by stable ID and version; the selected lambda lists the subset it requires; the host supplies concrete bindings for the call.
 
-![Figure 3. Invocation capabilities have explicit origin, scope, budget, and revocation.](/mnt/data/tiny-idp-theory-assets/capability.png){width=94%}
+![Figure 3. Invocation capabilities have explicit origin, scope, budget, and revocation.](capability.png){width=94%}
 
 ## 15. Authority as a graph intersection
 
@@ -962,7 +962,7 @@ A worker is returned to the pool only when all of the following are true:
 
 Timeout, caller cancellation during execution, uncaught exception, Promise rejection at the invocation boundary, malformed or oversized output, interruption cleanup uncertainty, or incomplete settlement makes the worker unsafe.
 
-![Figure 4. Worker reuse is a commit decision. An unsafe lease is closed and replaced rather than rolled back in place.](/mnt/data/tiny-idp-theory-assets/worker.png){width=94%}
+![Figure 4. Worker reuse is a commit decision. An unsafe lease is closed and replaced rather than rolled back in place.](worker.png){width=94%}
 
 ### 25.1 Why `ClearInterrupt` is not a rollback
 
@@ -1121,7 +1121,7 @@ A durable continuation is created under a particular executable interpretation. 
 
 Tiny-IDP therefore gives an executor an **executable generation fingerprint** derived from both source and serializable program identity. The continuation persists that fingerprint. New browser interactions use the active generation; resumed interactions resolve the persisted generation explicitly.
 
-![Figure 5. Reload publishes a new semantic generation. Existing continuations route to the generation that created them.](/mnt/data/tiny-idp-theory-assets/generation.png){width=95%}
+![Figure 5. Reload publishes a new semantic generation. Existing continuations route to the generation that created them.](generation.png){width=95%}
 
 A useful judgment is:
 
@@ -1292,7 +1292,7 @@ A hash proves byte equality with respect to the hashed representation, not seman
 
 Both production policy and verification scenarios are authored in JavaScript, but they compile into different object languages and are interpreted by different native engines.
 
-![Figure 6. Production and verification share JavaScript syntax but not modules, artifacts, capabilities, or native interpreters.](/mnt/data/tiny-idp-theory-assets/languages.png){width=96%}
+![Figure 6. Production and verification share JavaScript syntax but not modules, artifacts, capabilities, or native interpreters.](languages.png){width=96%}
 
 The separation is:
 
