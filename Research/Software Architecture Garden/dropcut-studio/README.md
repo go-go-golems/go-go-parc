@@ -73,6 +73,13 @@ delimits and correlates per-command replies.
 - [[Research/Software Architecture Garden/dropcut-studio/designs/02 - Latched Safety Channel over a Lossy Inbound Queue|02 — Latched Safety Channel over a Lossy Inbound Queue]] *(facet: safety delivery / observability)*
 - [[Research/Software Architecture Garden/dropcut-studio/designs/03 - Dead-Man Keepalive - Fail-Safe Motion by Causal Inversion|03 — Dead-Man Keepalive: Fail-Safe Motion by Causal Inversion]] *(facet: fail-safe action)*
 
+### Implementation-derived entries added 2026-09-13
+
+- [[Research/Software Architecture Garden/dropcut-studio/designs/06 - Consecutive Evidence Observer - Completion Without Owning the Operation|06 — Consecutive Evidence Observer]] — a domain-classified reducer for consecutive completion evidence, independent of polling and transport.
+- [[Research/Software Architecture Garden/dropcut-studio/designs/07 - Browser Intent Ownership - Confirm Once and Renew Only While Held|07 — Browser Intent Ownership]] — one-shot confirmation and held-gesture lifecycles outside React, with stale-response fencing and explicit cleanup limits.
+
+These entries describe commits `a5faea1` and `8b8d947`; they do not replace the historical analysis above or establish new hardware acceptance.
+
 ## Proposals
 
 - [[Research/Software Architecture Garden/dropcut-studio/proposals/01-z1-communication-api-design-and-implementation-guide|01 — Z1 Communication API: Design and Implementation Guide (Intern Edition)]] — a concrete `pkg/z1session` API design realizing designs 01–04 above.
