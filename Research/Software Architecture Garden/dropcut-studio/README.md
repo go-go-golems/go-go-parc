@@ -84,9 +84,10 @@ These entries describe commits `a5faea1` and `8b8d947`; they do not replace the 
 
 - [[Research/Software Architecture Garden/dropcut-studio/designs/08 - Bounded Cursor Broadcast - Independent Readers with Explicit Gaps|08 — Bounded Cursor Broadcast: Independent Readers with Explicit Gaps]] — one bounded shared history, independent reader cursors, explicit retention loss, snapshot-to-subscription continuity and cancellation independent of machine operations.
 
-This entry describes the protocol observation feed and the public controller
-snapshot subscriptions at commit `3a64a1c`. Both mechanisms are implemented;
-a standalone generic buffer extraction is proposed, not completed. The pattern
+Updated after implementation commit `be7c744`: the entry now documents the concrete
+`pkg/broadcast.Buffer[T]` API and all three integrations—protocol observations,
+controller snapshots/subscriptions and the legacy diagnostic message journal.
+The shared extraction is implemented and its focused race tests and vet pass. The pattern
 requires neither a message broker nor a lossless journal. Earlier entries remain
 historical analyses, not a claim that old grant/dead-man proposals are current
 stock-firmware capabilities or current P3 requirements.
