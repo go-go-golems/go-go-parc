@@ -247,3 +247,65 @@ It is not automatically appropriate for a single foreground command, a productio
 - Reconciliation joins stored claims, wrapper artifacts, and operating-system facts.
 - CLI, TUI, and help are presentation clients, not independent control planes.
 - Two-pass start and health staging treats the launch plan as a complete environment.
+
+## Pattern: command namespace registry
+
+Project maps: [[devctl]] · [[glazed]]
+
+A plugin-extensible CLI has a shared root namespace even though commands come from two sources: built-ins compiled into the binary and dynamic commands advertised by providers. The namespace is a policy object—not merely a property of the final Cobra tree. It decides whether a name or alias can be introduced before that command is rendered, cached, or executed.
+
+The failure mode that motivated this pattern was a duplicated reserved-name list. `schema` was added as a built-in Cobra command but omitted from the list used by plugin catalog refresh. Refresh could therefore accept and cache a plugin command named `schema`; later bootstrap rediscovered the real Cobra command and rejected the same cache. Each stage was locally reasonable, but they consulted different symbol tables.
+
+The corrected design introduces `CommandNamespace` in `cmd/devctl/cmds/command_namespace.go`:
+
+```go
+type CommandNamespace struct {
+    names map[string]struct{}
+}
+
+func (n *CommandNamespace) Add(parent, command *cobra.Command) error
+func (n *CommandNamespace) Snapshot() map[string]bool
+func RootCommandNamespace(root *cobra.Command) *CommandNamespace
+```
+
+`Add` reserves the command's canonical name and aliases before attaching it to the Cobra parent. Built-in construction in `cmd/devctl/cmds/root.go` passes every root command through this operation. The plugin command retains the populated registry and supplies copied snapshots to catalog inspection, refresh, static fallback, and explicit plugin execution. Dynamic bootstrap can reconstruct the same namespace from the completed root tree. Cobra's lazily materialized `help` and `completion` names are seeded explicitly because they may not yet appear among root children.
+
+```mermaid
+flowchart LR
+    D[Built-in command descriptors] --> N[CommandNamespace]
+    N -->|Add| C[Cobra root]
+    N -->|immutable Snapshot| P[Plugin catalog validation]
+    C -->|discover names and aliases| B[Dynamic bootstrap namespace]
+    B --> P
+    P -->|accepted dynamic names| C
+
+    style N fill:#d8ecff,stroke:#2878b5
+    style P fill:#e3f6df,stroke:#3f8f3f
+```
+
+The important invariant is:
+
+```text
+name accepted during catalog production
+    iff
+name remains valid during catalog consumption and command installation
+```
+
+This is an instance of the broader **namespace registry** or **symbol-table boundary** pattern. Whenever independently produced extensions occupy names in a host-owned namespace—CLI commands, routes, event types, schema identifiers, plugin capabilities—the host should expose one registry with three responsibilities:
+
+1. register host-owned names and aliases;
+2. validate extension-owned candidates against the same state;
+3. return immutable snapshots when downstream APIs require a plain collection.
+
+The registry should be scoped to one namespace. In Cobra, each parent command owns an immediate child namespace; nested plugin commands would therefore receive a registry per parent rather than one recursive global set.
+
+### Working rules
+
+- Do not maintain a parallel string list of objects already registered elsewhere.
+- Register and validate through the same abstraction.
+- Treat aliases as first-class namespace occupants.
+- Reject collisions before mutating the renderer or persisting extension metadata.
+- Give consumers snapshots rather than mutable access to registry state.
+- Account explicitly for framework-provided names that are materialized lazily.
+
+The implementation and regression evidence are in `cmd/devctl/cmds/command_namespace_test.go` and `dynamic_commands_test.go`. The latter proves that catalog refresh rejects a static provider command named `schema`, preventing the producer/consumer drift that prompted the extraction.

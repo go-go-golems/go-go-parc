@@ -99,6 +99,7 @@ Glazed is both a runtime library and a design vocabulary. A command author decid
 
 ## Related project maps
 
+- [[devctl]] — repository-local orchestration built on Glazed; its command namespace registry keeps built-in and provider-defined Cobra names consistent across catalog production and installation. See [[Research/Software Architecture Garden/devctl/01 - Project Architecture Overview#Pattern command namespace registry|Pattern: command namespace registry]].
 - [[go-go-goja]] — JavaScript hosts, jsverbs, and generated applications.
 - [[geppetto]] — model/runtime profiles and agent-facing Go APIs.
 - [[pinocchio]] — CLI chat applications and TUI/RPC hosts.
