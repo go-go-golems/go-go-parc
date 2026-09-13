@@ -80,6 +80,17 @@ delimits and correlates per-command replies.
 
 These entries describe commits `a5faea1` and `8b8d947`; they do not replace the historical analysis above or establish new hardware acceptance.
 
+### Bounded observation and subscription pattern added 2026-09-13
+
+- [[Research/Software Architecture Garden/dropcut-studio/designs/08 - Bounded Cursor Broadcast - Independent Readers with Explicit Gaps|08 — Bounded Cursor Broadcast: Independent Readers with Explicit Gaps]] — one bounded shared history, independent reader cursors, explicit retention loss, snapshot-to-subscription continuity and cancellation independent of machine operations.
+
+This entry describes the protocol observation feed and the public controller
+snapshot subscriptions at commit `3a64a1c`. Both mechanisms are implemented;
+a standalone generic buffer extraction is proposed, not completed. The pattern
+requires neither a message broker nor a lossless journal. Earlier entries remain
+historical analyses, not a claim that old grant/dead-man proposals are current
+stock-firmware capabilities or current P3 requirements.
+
 ## Proposals
 
 - [[Research/Software Architecture Garden/dropcut-studio/proposals/01-z1-communication-api-design-and-implementation-guide|01 — Z1 Communication API: Design and Implementation Guide (Intern Edition)]] — a concrete `pkg/z1session` API design realizing designs 01–04 above.
