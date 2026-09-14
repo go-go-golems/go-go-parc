@@ -95,6 +95,7 @@ stock-firmware capabilities or current P3 requirements.
 ### Controller ownership and evidence separation added 2026-09-13
 
 - [[Research/Software Architecture Garden/dropcut-studio/designs/09 - Single-Owner CNC Controller - Worker Ownership Separate from Operation Evidence|09 — Single-Owner CNC Controller: Worker Ownership Separate from Operation Evidence]] — the actual controller architecture, two identified command/review slots, concrete evidence checks, cancellation/reconciliation behavior and a deliberate complexity budget. Implemented cleanup at `da0d33d`; broader P3 and production cutover remain incomplete.
+- [[Research/Software Architecture Garden/dropcut-studio/designs/10 - Evidence Before Success - The Z1 Controller Refactor from Protocol to Hardware|10 — Evidence Before Success: The Z1 Controller Refactor from Protocol to Hardware]] — project report through the completed P4 adapter cutover and staged P5 hardware qualification: layer model, transaction-versus-evidence separation, alarm evidence fixes, the evidence-gated unlock loop, deliberate scope deletions, and receipt-backed machine results at `70141f2`.
 
 ## Proposals
 
