@@ -12,17 +12,18 @@ status: active
 type: project
 created: 2026-10-11
 repo: /home/manuel/code/wesen/go-go-golems/francois
-source_commit: e81c037
+updated: 2026-10-12
+source_commit: bd373eb
 ---
 
 # Francois: Hosting Claude Artifacts with Go and a Pi Model Runtime
 
-Francois runs saved HTML applications that expect Claude's artifact browser APIs. It serves the original application, installs a local implementation of `window.claude`, stores application data in SQLite, and sends model requests through Pi's authenticated provider runtime. This report explains the implementation at commit `e81c037`, including the decisions needed to preserve browser tool execution, select models, and maintain state across page reloads and server restarts.
+Francois runs saved HTML applications that expect Claude's artifact browser APIs. It serves the original application, installs a local implementation of `window.claude`, stores application data in SQLite, and sends model requests through Pi's authenticated provider runtime. This report explains the implementation through commit `bd373eb`, updated on October 12, 2026. It covers browser tool execution, LunaRoute model and thinking selection, live thinking and Markdown presentation, versioned HTML updates, and persistence across page reloads and server restarts.
 
 A saved HTML file can contain its entire interface and still depend on services supplied by its original host. POLIS IDE is the concrete application used here: its editor and scene renderer are present in the downloaded HTML, but its assistant expects a sampling API capable of calling JavaScript functions defined inside that page. Serving the file is therefore only the first operation. The host must also provide the execution and data contracts that its JavaScript expects.
 
 > [!summary]
-> Francois implements a local, single-owner artifact service with separate browser origins, durable application state, and browser-executed model tools. Go owns hosting and persistence; a Node worker uses Pi's model runtime; imported pages retain their existing code and styling. Real Pi requests were verified against POLIS, including a model-directed scene edit.
+> Francois implements a local, single-owner artifact service with separate browser origins, durable application state, and browser-executed model tools. Go owns hosting and persistence; a Node worker uses Pi's model runtime; imported pages retain their existing code and styling. Real Pi requests were verified against POLIS, including a model-directed scene edit and both configured LunaRoute models. The editable POLIS application now displays live thinking and Markdown, reports model fallback, and can be republished with the versioned CLI update command.
 
 ## 1. The concepts needed to understand the system
 
@@ -36,16 +37,20 @@ The report follows those dependencies in order: hosting establishes an artifact 
 
 ## 2. Project status and evidence
 
-The repository was initialized from `go-go-golems/go-template` revision `5bf14bfd4a7b13124dbe9f2c3078c29a33627a11`. The module is `github.com/go-go-golems/francois`. Four local commits record the completed progression:
+The repository was initialized from `go-go-golems/go-template` revision `5bf14bfd4a7b13124dbe9f2c3078c29a33627a11`. The module is `github.com/go-go-golems/francois`. Eight local commits record the completed progression:
 
 | Commit | Result |
 |---|---|
 | `ccde05d` | Template initialization, imported sources, and research ticket. |
 | `0085786` | Local host, browser runtime, and Pi tool execution. |
 | `263c006` | Expanded local capabilities, validation, and packaging. |
-| `e81c037` | Failed-worker readiness correction and final handoff. |
+| `e81c037` | Failed-worker readiness correction and initial implementation handoff. |
+| `b381f56` | POLIS LunaRoute model/thinking selectors and provider registration. |
+| `c9d95c5` | Separate thinking stream and live POLIS thinking panel. |
+| `7ce3ff0` | Sanitized Markdown for assistant answers and thinking. |
+| `bd373eb` | Versioned CLI HTML updates, local failure messages, and actual-model fallback reporting. |
 
-The implementation supports sampling, streaming, JSON parsing, browser tools, model selection, document storage, page publication, local profiles, multi-tab presence, assets, rooted project-file reads, browser downloads, and persisted comments. The library interface follows the downloaded Factory Twin trailer's compact light styling. Imported applications retain their original CSS.
+The implementation supports sampling, streaming, JSON parsing, browser tools, model selection, document storage, page publication, local profiles, multi-tab presence, assets, rooted project-file reads, browser downloads, and persisted comments. The library interface follows the downloaded Factory Twin trailer's compact light styling. Imported applications retain their original CSS. The maintained `examples/polis.html` is an editable application derived from the original download; its controls, chat rendering, and error messages now include the POLIS-specific improvements described below. The original ticket source snapshot remains unchanged.
 
 The original intern guide is a historical design document written before implementation. The README and source code describe the delivered behavior. This distinction matters when reading the ticket: a proposed feature in the guide is not proof that the current service implements it.
 
@@ -77,13 +82,16 @@ The service uses `net/http` and `http.ServeMux`. There is no separate routing fr
 | Source location | Primary responsibility |
 |---|---|
 | `cmd/francois/main.go` | Cobra root, Glazed logging/help, process signals. |
-| `cmd/francois/cmds/commands.go` | `serve`, `import`, and structured model listing. |
+| `cmd/francois/cmds/commands.go` | Command registration, `serve`, `import`, and structured model listing. |
+| `cmd/francois/cmds/update.go`, `update_test.go` | Versioned file updates, bounded HTML reading, preservation tests. |
 | `pkg/host/server.go` | Listeners, views, calls, shutdown, request checks. |
 | `pkg/host/routes.go` | HTTP endpoints and HTML runtime injection. |
 | `pkg/host/rpc.go` | Artifact capability operations. |
 | `pkg/store/store.go`, `documents.go` | Durable records, publication, document semantics. |
 | `pkg/piworker/client.go` | Subprocess framing, dispatch, cancellation, readiness. |
-| `worker/src/main.ts` | Pi initialization, model resolution, streaming tool rounds. |
+| `worker/src/main.ts` | Pi initialization, model resolution, text/thinking streams, and tool rounds. |
+| `worker/src/lunaroute.ts`, `provider-error.ts` | Cached LunaRoute provider registration and public failure classification. |
+| `examples/polis.html` | Maintained POLIS application: selectors, Markdown, thinking, and local error presentation. |
 | `ui/src/runtime.ts` | Public browser API and sample coordination. |
 | `ui/src/runtime-db.ts`, `runtime-rooms.ts` | Documents, subscriptions, and presence. |
 | `ui/src/runtime-files.ts`, `runtime-images.ts` | File/download and image handling. |
@@ -153,18 +161,20 @@ The algorithm below is explanatory pseudocode derived from `worker/src/main.ts`:
 ```text
 context = supplied turns + declared tools
 visibleText = ""
+thinkingText = ""
 for round in 0..4:
     if round == 4:
         context.tools = []
     enforce local context byte budget
     stream = Pi.streamSimple(selectedModel, context, options)
-    append visible text deltas to visibleText
+    append text deltas to visibleText and emit text events
+    append thinking deltas to thinkingText and emit separate thinking events
     message = await stream.result()
     reject aborted, failed, or unsupported deferred response
     context.messages.append(message)  # preserve complete provider message
     calls = completed toolCall blocks in message
     if calls is empty:
-        return visibleText, thisRoundText, truncation, model metadata
+        return visibleText, thinkingText, thisRoundText, truncation, model metadata
     results = execute declared browser tools and await results
     context.messages.append(toolResult messages)
 fail if no terminal response was produced
@@ -172,7 +182,48 @@ fail if no terminal response was produced
 
 The limit is five provider rounds, with tools removed for the last round. Output tokens are clamped to the smaller of the model limit and 8,192. The local conversation budget is 512 KiB of serialized message content excluding image blocks. These are explicit resource bounds, not estimates of token usage.
 
-The worker emits only text deltas as visible output. Partial tool argument fragments are not executable input. Browser execution begins after the SDK has produced a completed tool call. Independent completed tools are awaited with `Promise.all`; authors should therefore avoid expressing dependencies between tools that the provider emits in the same round.
+The worker emits answer text and provider thinking as separate event types. Neither channel turns partial tool argument fragments into executable input. Browser execution begins after the SDK has produced a completed tool call. Independent completed tools are awaited with `Promise.all`; authors should therefore avoid expressing dependencies between tools that the provider emits in the same round.
+
+### Live thinking is a separate stream
+
+**Thinking text** is the reasoning content a provider explicitly emits through the SDK's `thinking_delta` events. It has its own accumulated buffer and is not the final answer. Francois forwards those events without trying to infer reasoning from answer strings. Providers that emit no thinking text produce no thinking panel.
+
+The worker emits a `thinking` frame containing the call identifier, cumulative `text`, and new `delta`. Go's existing event transport forwards the frame, and the browser invokes the local `onThinking` callback. Both callbacks remain browser functions; they are not serialized into the model request. The result includes a separate `thinking` field alongside answer `text`.
+
+```javascript
+const sample = await window.claude.use('sample');
+const result = await sample('Explain the current scene.', {
+  model: 'lunaroute/glm-5.3-flash:high',
+  onThinking: ({ text, delta }) => updateThinkingPanel(text),
+  onText: ({ text, delta }) => updateAnswerPanel(text)
+});
+// updateThinkingPanel/updateAnswerPanel are application-owned functions.
+// result.thinking and result.text remain separate accumulated strings.
+```
+
+The runtime coalesces thinking callbacks at 200 milliseconds, separately from answer callbacks. It flushes pending thinking before tool execution and before completion, failure, or cancellation. A late subscriber to a shared sample receives the existing thinking prefix, and cache replay delivers thinking alongside the cached answer. This prevents the display from losing the final chunk or starting midway through a shared operation.
+
+POLIS stores thinking on the current assistant message and renders it above the answer in an initially expanded, collapsible section. The content scrolls automatically as the accumulated text changes and has a maximum height of 260 pixels. Closing the section leaves the answer visible. Thinking does not enter POLIS's subsequent conversation history, the answer's string offsets used to position tool records, or the final-round text used for JSON parsing.
+
+The live browser experiment matters here: a short DeepSeek arithmetic request displayed thinking but finished too quickly to prove intermediate rendering. A longer GLM high request produced 44 observed chat DOM updates, with thinking visible while the Stop control was present, and retained 2,000 characters after completion. That observation establishes live presentation rather than a completion-only disclosure. It is an experiment result, not a fixed output size or timing guarantee.
+
+### Markdown presentation during streaming
+
+Both answer segments and thinking use the same memoized `Markdown` component inside `examples/polis.html`. It parses the accumulated string with Marked 18.1.0 in synchronous GitHub-flavored Markdown mode, sanitizes the resulting HTML with DOMPurify 3.4.16, and inserts it into a React element. Parsing turns Markdown structure into headings, paragraphs, lists, links, blockquotes, tables, and fenced code. Sanitization removes executable markup from the generated HTML before insertion.
+
+```mermaid
+flowchart LR
+    Delta[Text or thinking delta] --> Buffer[Accumulated channel text]
+    Buffer --> Callback[Coalesced browser callback]
+    Callback --> State[POLIS message state]
+    State --> Parse[Marked GFM parser]
+    Parse --> Sanitize[DOMPurify HTML sanitization]
+    Sanitize --> Display[Answer or thinking element]
+```
+
+The sanitizer uses the HTML profile, forbids style attributes, and enables named-property sanitization. The Markdown styles use POLIS's existing palette and font variables, including horizontally scrollable code and tables. Thinking now uses normal whitespace flow; fenced code blocks preserve whitespace through their own `pre` elements. The same parser also renders unfinished fences during streaming and reparses them when their closing delimiters arrive.
+
+Answer text remains divided into its original segments around browser tool records. Each segment is rendered independently, preserving the ordering of text and tool details. The renderer does not shift tool-record offsets by replacing the stored answer string with HTML. The application loads its pinned parser and sanitizer scripts from jsDelivr, alongside its existing React and htm CDN scripts; these dependencies have not yet been vendored for offline use.
 
 ## 6. Transport, lifetime, and cancellation
 
@@ -237,9 +288,52 @@ go run ./cmd/francois serve \
 go run ./cmd/francois models list --format json
 ```
 
-An explicit tier mapping that cannot resolve to an authenticated model prevents successful initialization. An unavailable model requested by an individual sample falls back to its selected tier. `modelApplied` identifies a successful explicit selection, while `modelTierApplied` records the requested tier. Applications that require exact-model execution should inspect the result rather than assuming the requested name was honored.
+An explicit tier mapping that cannot resolve to an authenticated model prevents successful initialization. An unavailable model requested by an individual sample falls back to its selected tier. `modelApplied` identifies a successful explicit selection, `modelTierApplied` records the requested tier, and `modelUsed` reports the actual provider/model identifier. Applications that require exact-model execution should inspect the result rather than assuming the requested name was honored.
 
 Public model metadata contains provider, identifier, display name, reasoning support, image support, tier, and supported thinking levels. It does not expose auth keys, provider headers, or credential-bearing configuration. The local owner's Pi account supplies authentication for every call; the service does not reproduce viewer-specific billing.
+
+### POLIS model controls and provider registration
+
+The maintained POLIS application exposes two model choices, with a second control for the requested thinking level:
+
+| Model identifier | Offered thinking levels | Relevant gateway mapping observed in Pi's cached catalog |
+|---|---|---|
+| `lunaroute/glm-5.3-flash` | `low`, `medium`, `high` | `medium` maps to provider `high`. |
+| `lunaroute/deepseek-4.1-flash` | `low`, `high`, `xhigh` | `xhigh` maps to provider `high`. |
+
+These are Pi thinking levels accepted by the selectors, not a promise of distinct provider effort for every choice. The SDK applies the cached model's thinking-level map. Both `lunaroute/glm-5.3-flash:low` and `lunaroute/deepseek-4.1-flash:xhigh` were used in successful real browser requests that returned the exact selector in `modelApplied`.
+
+The model and thinking choices are saved in the existing `polis-ide.v1` localStorage record. Changing models validates the current thinking choice against the new model's offered levels. Switching GLM `medium` to DeepSeek therefore selects DeepSeek `low`; switching a compatible level keeps it. Controls are disabled during a call, and `sendToAgent` captures the complete requested selector for that message before awaiting the result.
+
+The first model-discovery check revealed an integration requirement: having a cached LunaRoute catalog and an OAuth-stored credential did not make the provider available to a bare `ModelRuntime`. The user's Pi extension normally registers the provider and its credential semantics. Francois does not load that extension, so `worker/src/lunaroute.ts` now supplies a focused provider registration before available-model discovery.
+
+Registration is conditional on a nonempty LunaRoute entry in `models-store.json`. It uses the cached catalog's base URL, declares the OpenAI-completions API, and restores models through the SDK's offline refresh callback. Its credential behavior matches the inspected LunaRoute Pi extension 0.7.2: the OAuth credential's `access` value is the gateway key, and refresh returns the existing credential. Pi remains responsible for login and catalog refresh. Francois does not load the extension's MCP integration, web tools, settings commands, or interactive login workflow.
+
+This distinction explains the original symptom: static older model entries existed, but available LunaRoute models were empty. After registration, both requested dynamic models appeared in the authenticated catalog and completed actual requests. The required integration was provider definition, not copying a credential into application state.
+
+### Errors and fallback are observable results
+
+An unavailable explicit selector may fall back to its tier, so a successful answer alone does not establish that the requested model ran. POLIS compares the message's captured selector with `modelApplied` and displays a notice when it was not honored. The notice names `modelUsed`, and the reply's model label uses the actual identifier. A fake-backend browser check produced this concrete notice:
+
+```text
+Requested lunaroute/glm-5.3-flash:low was unavailable. Used test/fake instead.
+```
+
+The `modelUsed` field must exist in the Node result, Go's typed result structure, and the browser's result projection. Adding it only to the worker would lose it during Go decoding or browser projection. The fake backend supplies the same field, allowing the UI path to be verified without provider calls.
+
+Provider errors are classified in `worker/src/provider-error.ts`. The classifier recognizes authentication-like diagnostics, including 401/403, and rate-limit diagnostics, including 429. It emits fixed public messages rather than forwarding raw provider diagnostics. Cancellation takes precedence if the call's abort signal has fired. Other local failures retain their defined codes for oversized context, unavailable images, or empty completion.
+
+| Condition | Public/UI behavior |
+|---|---|
+| Worker unavailable | Explain that the Pi worker needs configuration review and a Francois restart. |
+| Provider authentication failure | Ask the owner to log in through Pi and restart Francois. |
+| Rate limit | Ask for a brief wait and retry. |
+| Sampling absent from the manifest | Explain the missing capability declaration. |
+| Host connection interrupted | Distinguish disconnection from a provider failure and suggest retry after reconnect. |
+| User cancellation | Mark the reply stopped. |
+| Other provider failure | Suggest retry or another model without exposing raw diagnostic content. |
+
+These messages live in the maintained application HTML. They replace instructions about Claude platform permissions or accounts, which are inapplicable to this local owner service.
 
 ## 8. Durable document state and browser subscriptions
 
@@ -282,6 +376,30 @@ broadcast reload to connected artifact views
 ```
 
 Binding each view to its loaded version supplies the expected version for operations performed by that page. Store tests verify that concurrent publication attempts cannot both succeed and that stored state survives reopening the database. Files-form publishing from the original platform guide remains outside the implemented surface.
+
+### Updating a stored artifact from the command line
+
+`import` creates a new artifact and requires a unique identifier. `update` operates on an existing artifact and creates its next HTML version. This separates artifact identity from application revision: changing the application does not require a new origin or new document namespace.
+
+```sh
+go run ./cmd/francois update \
+  --id polis --file examples/polis.html --format json
+```
+
+The implemented command is a `GlazeCommand` in `cmd/francois/cmds/update.go`. It supports `--id`, `--file`, and `--data-dir`, and receives Glazed's structured-output flags through the standard Cobra builder. Import and update share `readHTML`, which reads at most 16 MiB plus one byte to detect oversize input and requires a complete HTML document.
+
+```text
+data = read bounded complete HTML file
+artifact = database.Get(id)       # missing ID is an error; use import instead
+version = database.Publish(id, artifact.version, data)
+emit {id, title, previous_version: artifact.version, version}
+```
+
+The store transaction rechecks the version obtained by the command, preventing a concurrent publication from being overwritten silently. Updating keeps the artifact's ID, title, port, capability manifest, old HTML versions, and application data. Assets and comments retain their existing artifact associations. Browser storage remains available because the origin does not change. Integration tests directly verify version history, port, title, manifest, owner identity, and document preservation; the command only mutates publication records.
+
+The local POLIS update returned `previous_version: 4` and `version: 5`. Unlike browser-initiated `artifact.publish`, the standalone CLI opens the database directly and does not broadcast a reload through the running host. Refresh open pages to load the new version. Old views remain associated with the version they originally loaded, so their subsequent publication requests use that older expected version.
+
+Updating replaces the complete authored HTML. Therefore model selectors, Markdown rendering, and error-message changes must be present in the supplied file. `examples/polis.html` contains those maintained changes, whereas the ticket's `sources/Polis IDE.html` preserves the original download. Updating from the original snapshot would restore its original application behavior even though the artifact's stored data and origin survive. This is a source-file distinction, not a data-loss behavior.
 
 ## 10. Collaboration, identity, and comments
 
@@ -346,7 +464,7 @@ The host library uses React, TypeScript, Redux Toolkit, and RTK Query. Its visua
 
 ![](_assets/francois-library.png)
 
-The validated library screenshot shows the artifact catalog and the configured model tiers.
+The screenshot records the initially validated library catalog and configured model tiers. It predates the later POLIS-specific model controls and chat presentation changes.
 
 The build uses pnpm 10.13.1 and requires Node 24 or newer. Esbuild produces the browser runtime and library bundles as IIFEs and the worker as an ESM entry point with external dependencies. Browser assets are tracked under `pkg/web/static` so a Go build can embed them without a separate frontend build at compile time. Generation refreshes those assets; CI checks that rebuilding does not produce an uncommitted generated diff.
 
@@ -365,20 +483,33 @@ Validation combines deterministic tests with real browser/provider checks. Deter
 
 | Verification | Observed result and scope |
 |---|---|
-| Go suite with race detector | Passed across host, store, worker client, and commands. |
+| Go suite | Initial implementation passed the race-enabled suite; the October 12 update passed the complete ordinary suite. |
 | Go build, vet, generation, logcopter check | Passed after generated logger correction. |
-| TypeScript check and Node contracts | Passed; four contract cases, including optimistic rollback. |
+| TypeScript check and Node contracts | Passed; five current contract cases, including optimistic rollback and provider-error classification. |
 | Lint | Zero issues with installed golangci-lint 2.4.0; template-pinned 2.12.2 was not run. |
 | Host integration | Injection ordering, SSE/tool exchange, Origin checks, file containment, full download. |
 | Store tests | Merge behavior, query windows, leases, publication conflicts, reopen persistence. |
 | Worker tests | Tool/result correlation, cancellation, protocol failure, failed-worker model readiness. |
 | Fake-backend browser run | POLIS tool execution, streaming fixtures, JSON, shared cancellation, local capabilities. |
 | Real Pi browser run | Text streaming and exactly one scene-edit tool execution using `openai-codex/gpt-6-luna`. |
-| Packaging and docmgr validation | Local archive built; ticket validation passed. |
+| Packaging and docmgr validation | Initial local archive built; ticket validation passed. |
+| LunaRoute browser requests | Both requested models honored explicit model/thinking selectors. |
+| Thinking transport/UI | Private-pipe separation test passed; real GLM thinking updated while the request was active. |
+| Markdown browser checks | Headings, emphasis, lists, quote, table, links, and code rendered; partial fences updated; executable markup was removed. |
+| Versioned update CLI | Integration test preserved origin/identity/documents/history and rejected unknown IDs and invalid HTML. |
+| Model fallback UI | Real POLIS fake-backend flow named requested selector and actual `test/fake` model. |
+| Glazed analyzer | Passed with the selected Glazed v1.4.1 analyzer. |
+| Vulnerability scan | Failed on existing toolchain/dependency findings; no clean-scan claim. |
 
 The fake backend has deterministic streaming and JSON prompts and a POLIS fixture that saves a preset named `Francois test`. It supports repeatable application checks without provider cost. Worker pipe tests use a Go test subprocess rather than requiring Node credentials or a live provider.
 
 Browser checks also covered frozen database snapshots, pending writes, multi-view presence, comment persistence, assets, file metadata, image re-encoding, and subscriber-specific cancellation. A library screenshot was saved and visually reviewed against the requested style. These checks support the documented local workflow. They do not establish behavior under large multi-user load, remote access, or every model/provider combination.
+
+### Current validation boundary and dependency findings
+
+The October 12 feature work passed tests, build, vet, TypeScript checks, and both the Glazed analyzer and installed general Go linter. The required `govulncheck` scan returned a failing status and reported 13 reachable findings in the existing toolchain/dependency set, plus additional imported-package and required-module findings without reachable calls. The recorded examples include `golang.org/x/net` v0.56.0 with a fix at v0.60.0 and standard-library fixes newer than the selected Go 1.26.5 toolchain.
+
+The feature commits did not upgrade those dependencies or the toolchain. The detailed scan outcome is recorded in diary Step 10. Passing functionality checks and a passing vulnerability scan are different claims; this project currently has evidence for the former and a recorded failing result for the latter. Dependency maintenance remains a scoped follow-up, and the initial race-enabled validation should not be represented as a new race run for the October 12 changes.
 
 ### Failures that changed the implementation process
 
@@ -388,6 +519,8 @@ An optimistic-query test initially expected a rank reorder without declaring an 
 
 A broad text replacement intended to strengthen tool-schema validation also changed an unrelated call-registry expression and produced invalid Go. A focused patch repaired it, followed by build and test checks. Changes to repeated source patterns need bounded context, particularly when the same identifiers occur in validation and execution paths.
 
+A later broad replacement also modified the worker's unrelated fatal-frame handler, introducing an undefined sample-local `message` variable. TypeScript reported TS2552, the static fatal error code was restored, and checks were rerun before commit. This is an additional example of why generation or bundling alone cannot replace a source type check.
+
 Some failures came from the execution environment rather than application behavior: restricted home cache writes, denied loopback sockets, and blocked DNS. Checks were rerun using a writable temporary cache or authorized network/socket access. Those retries are recorded in the diary and should not be reported as application fixes.
 
 ## 15. Extension points and unresolved platform semantics
@@ -396,7 +529,9 @@ The service's current boundary is one owner on localhost. Extending it to genuin
 
 Other remaining gaps are narrower: files-form publishing, SVG sanitization, custom comment anchors, the original permissions namespace, conversation/session handoff, and MCP connectors. These are tracked as follow-up work rather than represented by speculative interfaces. A new capability should define its browser contract, server authorization, persistence requirements, and lifecycle before it is advertised in `window.claude`.
 
-For model selection, the next interface improvement can remain small: use `/api/models` to populate a provider/model selector and expose the selected model's supported thinking levels. Keep tier selection as a convenient default and show whether the explicit model was applied. Adding arbitrary provider request options is a separate design decision because their names and semantics vary across providers; the existing catalog and Pi resolver already cover richer model and thinking selection.
+POLIS now has the requested two-model selector and thinking choices, live Markdown-rendered thinking, and fallback reporting. A broader catalog-driven selector using `/api/models` remains an optional extension beyond those fixed choices. Adding arbitrary provider request options is a separate design decision because their names and semantics vary across providers; the existing catalog and Pi resolver already cover richer model and thinking selection.
+
+Near-term maintenance work includes dependency/toolchain upgrades for the recorded vulnerability findings and, if offline operation is required, vendoring POLIS's CDN dependencies. The versioned update command is implemented; adding automatic reload notification for external CLI updates would be a separate behavior change.
 
 A useful implementation order for further work is:
 
@@ -410,7 +545,7 @@ The compositional property of this design comes from ownership: browser callback
 
 ## 16. Reading and reproducing the project
 
-Start with `README.md`, then read `pkg/host/routes.go` alongside `ui/src/runtime.ts` to follow API installation and the first connected view. Continue with `pkg/piworker/client.go` and `worker/src/main.ts` for model execution. Read `pkg/store/documents.go` with `ui/src/runtime-db.ts` when investigating data behavior. The tests beside each package document edge cases that a successful browser demonstration alone would not reveal.
+Start with `README.md` and `examples/polis.html`, then read `pkg/host/routes.go` alongside `ui/src/runtime.ts` to follow API installation and the first connected view. Continue with `pkg/piworker/client.go` and `worker/src/main.ts` for model execution. Read `pkg/store/documents.go` with `ui/src/runtime-db.ts` when investigating data behavior. Read `cmd/francois/cmds/update.go` with `update_test.go` for revision replacement, and `worker/src/lunaroute.ts` with `provider-error.ts` for provider registration and public error semantics. The tests beside each package document edge cases that a successful browser demonstration alone would not reveal.
 
 The repository is `/home/manuel/code/wesen/go-go-golems/francois`. Its ticket directory is:
 
@@ -426,8 +561,10 @@ To reproduce a basic run from the repository:
 pnpm install --frozen-lockfile
 pnpm build
 go run ./cmd/francois import \
-  --file '/path/to/Polis IDE.html' --id polis --title 'Polis IDE'
+  --file examples/polis.html --id polis --title 'Polis IDE'
 go run ./cmd/francois serve --log-level info
 ```
 
-Use a configured Pi model or supply explicit tier mappings. For offline contract work, use `serve --backend fake`. Run long-lived test servers in tmux and stop their listeners with `lsof-who -p <port> -k`. Keep `var/francois/francois.db` across restarts: it contains the durable identity, artifact origin assignments, documents, page versions, assets, and comments described in this report.
+If `polis` already exists, use `go run ./cmd/francois update --id polis --file examples/polis.html` instead of import, then refresh its page. The maintained example contains the newer controls and chat presentation; the imported ticket source does not.
+
+Use a configured Pi model or supply explicit tier mappings. The verified LunaRoute preview uses GLM-5.3 Flash for quick/default and DeepSeek 4.1 Flash for complex; its POLIS controls request models directly. Log in and refresh LunaRoute's catalog through Pi before starting Francois. For offline contract work, use `serve --backend fake`. Run long-lived test servers in tmux and stop their listeners with `lsof-who -p <port> -k`. Keep `var/francois/francois.db` across restarts: it contains the durable identity, artifact origin assignments, documents, page versions, assets, and comments described in this report.
