@@ -29,7 +29,31 @@ This report documents a small application written to establish, on real hardware
 
 The project produced three distinct kinds of result, and all three are useful to a future engineer. First, a working demonstration that a single process can hold two independent Wayland surfaces, one per panel, and keep them coherent from one world state. Second, a set of portable engineering techniques for a machine with no package manager and no compiler: binding to the system SDL2 through `ctypes`, decoding the event queue by hand, and rendering frames back to files so that graphics can be inspected without a display. Third, and most instructive, a **placement failure on real hardware that took two iterations to characterise**, together with three defects it exposed that the software-only test tiers could not have found.
 
-Three on-device blockers remain at the time of writing. They are documented in full in section 9, with their causes and the specific changes that should resolve them, because the value of a handoff document is proportional to how precisely it describes the unfinished part.
+## Current revision: verified fixes and audio
+
+The hardware follow-up corrected the initial diagnosis rather than merely increasing timeouts. Commit `ed0cb09` fixes startup ordering and the actual controller mapping. The main thread now draws and presents both windows before an IPC-only worker begins placement, and continues pumping SDL throughout. A Wayland view needs its initial buffer commit to map: waiting for mapping before presenting was a circular dependency. Mali warnings preceding that wait did not establish a slow-driver cause.
+
+Both windows are explicitly moved to the requested outputs, stripped of borders and fullscreened by Sway. IPC verifies game `(0,0,1024,768)` and inventory `(1024,0,1024,768)`, each with `fullscreen_mode=1`. These are backed by real `grim` captures, not dummy-driver screenshots. DSI-1 was powered when re-examined; the earlier powered-off reading was a startup snapshot, not a proven persistent failure.
+
+The controller fix is independent of window focus: the physical `retrogame_joypad` d-pad emits **buttons 13–16**, not hat events. SELECT+START is **8+9**; the previous 6+7 pair selected the triggers. Both the device-specific EmulationStation entry and kernel `JSIOCGBTNMAP` corroborate these indices. Movement is now calculated after the frame's events are processed. The background-events hint is enabled as a precaution, but it was not the established primary failure. Actual button events subsequently appeared in the interactive log, and the user confirmed hearing footsteps while moving.
+
+Touch support decodes finger events using normalized coordinates and window ID, routes them to the inventory window, and displays a marker, coordinates and counters. The synthetic ABI test passes; physical touch response still needs explicit confirmation. No global touchscreen calibration or seat configuration was changed.
+
+![](_assets/ds-demo-device-full-world.png)
+
+![](_assets/ds-demo-device-full-inventory.png)
+
+### Audio architecture and improvement
+
+Commit `5eb790f` adds `dsdemo/audio.py`, using the installed SDL2_mixer through typed ctypes calls. It generates original audio once at startup: an eight-second, 120 BPM arpeggio and a 65 ms noise/thump footstep. All samples are mono signed 16-bit little-endian PCM at 22050 Hz; the mixer is opened with that same format. Music loops on channel 0, footsteps play on channel 1, and pickup chimes use channel 2. Python retains the raw PCM buffers because `Mix_QuickLoad_RAW` borrows rather than copies them. Shutdown halts channels before freeing chunks and releasing buffers.
+
+Footsteps measure actual travel, accumulating position deltas until 0.8 tiles have been traversed. Holding a direction into a wall therefore stays silent. A pickup chime compares inventory totals before and after both automatic collection and explicit pickup, so either collection path produces the ascending three-note sound without replaying it every frame.
+
+The first mix was too quiet: the user heard footsteps but not music. The revised build raises the music channel from 35 to 100 out of 128, increases waveform amplitude from 5500 to 16000 and adds a harmonic for clarity. This is a response to audibility feedback, not proof that the original channel was failing. Music and pickup audibility in the revised build still await confirmation.
+
+`--mute` disables all audio; selftests select the dummy audio driver to avoid playing aloud. Seventeen tests pass, covering world logic, controller mappings, touch decoding, distance cadence and bounded non-silent PCM. Workstation and device selftests opened the mixer and played a step; the interactive device log reports looping music and successful placement. The user has directly confirmed footstep output. Software playback success alone is not an acoustic test.
+
+The historical sections below describe the original implementation and handoff. Section 9 records the original hypotheses; the corrections above supersede them.
 
 > [!summary]
 > 1. **One process, two windows, one state.** Each panel receives its own SDL window and renderer; both are drawn in the same loop from the same world object, and the game rules live in a module that imports nothing graphical, which is what makes them testable without a display.
@@ -329,9 +353,9 @@ sequenceDiagram
     Sway-->>P2: inventory surface
 ```
 
-## 9. Remaining blockers on real hardware
+## 9. Original handoff hypotheses — superseded by the current revision
 
-The second on-device launch produced windows that exist and are visible, but not in the intended arrangement, and with input that does not reach the application. All three causes are identified; none is a mystery.
+The second on-device launch produced windows that exist and are visible, but not in the intended arrangement, and with input that does not reach the application. At handoff these explanations were hypotheses, not established causes; the hardware follow-up above distinguishes them from measured failures.
 
 **Blocker 1 — the view-wait timeout is too short.** `wait_for_view` times out after 12 seconds and therefore never issues the layout commands, so neither window is floated or sized. The session tree then shows `ds-demo:game` tiled beside EmulationStation at `x=512, width=512`, which is exactly the half-width window observed on the panel. The first window mapping on this device is slower than 12 seconds while the Mali driver (`bifrost_kbase`) finishes initialising, as the log ordering shows. The fix is to raise the timeout to at least 30 seconds and, more importantly, to retry the layout until it verifies rather than attempting it once.
 
@@ -376,8 +400,8 @@ Repository `../2026-10-12--ds-demo-game`, at commit `02716d6`. Ticket `DS-DEMO-0
 | Desktop testing | complete (`--scale`, `--windowed`, `--capture`) |
 | EmulationStation port entry | installed at `/storage/roms/ports/ds-demo-game.sh` |
 | Device deployment | complete: `/storage/apps/ds-demo-game` |
-| Two windows on two panels | **not yet achieved on hardware** — three blockers in section 9 |
-| On-device visual evidence | not captured; `grim -o DSI-2` / `grim -o DSI-1` is the intended method |
+| Two windows on two panels | **verified on hardware** after first-present ordering fix; both fullscreen 1024×768 |
+| On-device visual evidence | both outputs captured with `grim`; images embedded in the current-revision section |
 
 The recommended order of work for the next engineer is narrow and mechanical: raise and retry the view-wait; power DSI-1 explicitly and assert it; set the SDL background-events hint; then launch from the EmulationStation Ports menu and capture both panels as evidence. If the Ports path alone resolves the focus problem, blockers 1 and 2 may collapse to a single fix, because the frontend will not be holding the workspace when the application starts.
 
