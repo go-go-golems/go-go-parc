@@ -1,0 +1,458 @@
+{
+  "file": "scripts/2026/10/13/falllinie-performance/profile-final-gpu.csv",
+  "warmup_frames": 60,
+  "measured_frames": 898,
+  "fps": 59.99988199265969,
+  "app_frame_budget_misses_60hz": 464,
+  "late_over_18_33ms": 0,
+  "over_33_33ms": 0,
+  "stages": {
+    "interval_ms": {
+      "p50": 16.667471,
+      "p95": 16.761427,
+      "p99": 16.892383,
+      "max": 18.024855
+    },
+    "events_ms": {
+      "p50": 0.254327,
+      "p95": 0.531404,
+      "p99": 1.15993,
+      "max": 4.645846
+    },
+    "physics_ms": {
+      "p50": 0.055124,
+      "p95": 0.115497,
+      "p99": 0.230994,
+      "max": 1.043266
+    },
+    "player_ms": {
+      "p50": 0.35145,
+      "p95": 0.921644,
+      "p99": 1.479881,
+      "max": 4.555431
+    },
+    "stream_ms": {
+      "p50": 0,
+      "p95": 0,
+      "p99": 1.099265,
+      "max": 1.882954
+    },
+    "top_submit_ms": {
+      "p50": 2.034034,
+      "p95": 4.180065,
+      "p99": 5.507116,
+      "max": 10.092006
+    },
+    "top_swap_ms": {
+      "p50": 0.285826,
+      "p95": 0.652734,
+      "p99": 1.368467,
+      "max": 2.351652
+    },
+    "bottom_submit_ms": {
+      "p50": 1.440798,
+      "p95": 3.101508,
+      "p99": 4.1404,
+      "max": 5.019754
+    },
+    "bottom_swap_ms": {
+      "p50": 0.217287,
+      "p95": 0.441281,
+      "p99": 0.661484,
+      "max": 2.334444
+    },
+    "pace_wait_ms": {
+      "p50": 11.625552,
+      "p95": 13.113307,
+      "p99": 13.569755,
+      "max": 13.798125
+    }
+  },
+  "streaming_frames": [
+    {
+      "frame": 797,
+      "interval_ms": 16.60914,
+      "events_ms": 0.373907,
+      "physics_ms": 0.084582,
+      "player_ms": 1.336967,
+      "stream_ms": 1.067183,
+      "top_submit_ms": 10.092006,
+      "top_swap_ms": 0.321409,
+      "bottom_submit_ms": 1.279802,
+      "bottom_swap_ms": 0.19862,
+      "pace_wait_ms": 2.802266
+    },
+    {
+      "frame": 798,
+      "interval_ms": 16.760802,
+      "events_ms": 0.613652,
+      "physics_ms": 0.05279,
+      "player_ms": 1.366717,
+      "stream_ms": 1.010017,
+      "top_submit_ms": 2.897638,
+      "top_swap_ms": 0.372449,
+      "bottom_submit_ms": 1.499422,
+      "bottom_swap_ms": 0.187829,
+      "pace_wait_ms": 9.709931
+    },
+    {
+      "frame": 799,
+      "interval_ms": 16.711221,
+      "events_ms": 0.282035,
+      "physics_ms": 0.069415,
+      "player_ms": 1.479881,
+      "stream_ms": 1.129015,
+      "top_submit_ms": 2.050075,
+      "top_swap_ms": 0.179954,
+      "bottom_submit_ms": 3.58683,
+      "bottom_swap_ms": 0.234495,
+      "pace_wait_ms": 8.743663
+    },
+    {
+      "frame": 800,
+      "interval_ms": 16.549349,
+      "events_ms": 0.233036,
+      "physics_ms": 0.049291,
+      "player_ms": 1.341342,
+      "stream_ms": 1.038016,
+      "top_submit_ms": 1.556004,
+      "top_swap_ms": 0.361366,
+      "bottom_submit_ms": 1.49388,
+      "bottom_swap_ms": 0.142914,
+      "pace_wait_ms": 11.308809
+    },
+    {
+      "frame": 801,
+      "interval_ms": 16.66193,
+      "events_ms": 0.249952,
+      "physics_ms": 0.057749,
+      "player_ms": 1.390633,
+      "stream_ms": 1.061932,
+      "top_submit_ms": 2.236446,
+      "top_swap_ms": 0.29166,
+      "bottom_submit_ms": 1.107431,
+      "bottom_swap_ms": 0.241495,
+      "pace_wait_ms": 11.017441
+    },
+    {
+      "frame": 802,
+      "interval_ms": 16.661055,
+      "events_ms": 0.248494,
+      "physics_ms": 0.049874,
+      "player_ms": 1.387716,
+      "stream_ms": 1.042392,
+      "top_submit_ms": 2.083616,
+      "top_swap_ms": 0.391407,
+      "bottom_submit_ms": 1.155264,
+      "bottom_swap_ms": 0.162746,
+      "pace_wait_ms": 11.110189
+    },
+    {
+      "frame": 803,
+      "interval_ms": 16.692846,
+      "events_ms": 0.227786,
+      "physics_ms": 0.047832,
+      "player_ms": 1.365259,
+      "stream_ms": 1.041224,
+      "top_submit_ms": 2.547063,
+      "top_swap_ms": 0.309451,
+      "bottom_submit_ms": 1.097806,
+      "bottom_swap_ms": 0.222537,
+      "pace_wait_ms": 10.807738
+    },
+    {
+      "frame": 804,
+      "interval_ms": 16.638597,
+      "events_ms": 0.220786,
+      "physics_ms": 0.048415,
+      "player_ms": 1.384217,
+      "stream_ms": 1.117057,
+      "top_submit_ms": 1.864871,
+      "top_swap_ms": 0.374491,
+      "bottom_submit_ms": 1.792832,
+      "bottom_swap_ms": 0.518862,
+      "pace_wait_ms": 10.371124
+    },
+    {
+      "frame": 805,
+      "interval_ms": 16.677388,
+      "events_ms": 0.177037,
+      "physics_ms": 0.047249,
+      "player_ms": 1.46909,
+      "stream_ms": 1.143014,
+      "top_submit_ms": 2.220696,
+      "top_swap_ms": 0.230411,
+      "bottom_submit_ms": 1.400258,
+      "bottom_swap_ms": 0.306242,
+      "pace_wait_ms": 10.762823
+    },
+    {
+      "frame": 806,
+      "interval_ms": 16.723762,
+      "events_ms": 0.25666,
+      "physics_ms": 0.055707,
+      "player_ms": 1.435257,
+      "stream_ms": 1.11764,
+      "top_submit_ms": 1.564754,
+      "top_swap_ms": 0.15108,
+      "bottom_submit_ms": 0.847854,
+      "bottom_swap_ms": 0.173829,
+      "pace_wait_ms": 12.137998
+    },
+    {
+      "frame": 807,
+      "interval_ms": 16.718845,
+      "events_ms": 0.265702,
+      "physics_ms": 0.074373,
+      "player_ms": 1.454507,
+      "stream_ms": 1.099265,
+      "top_submit_ms": 1.81004,
+      "top_swap_ms": 0.206787,
+      "bottom_submit_ms": 1.036849,
+      "bottom_swap_ms": 0.157497,
+      "pace_wait_ms": 11.634926
+    },
+    {
+      "frame": 808,
+      "interval_ms": 16.550558,
+      "events_ms": 0.356991,
+      "physics_ms": 0.109956,
+      "player_ms": 1.710875,
+      "stream_ms": 1.048225,
+      "top_submit_ms": 3.904739,
+      "top_swap_ms": 0.766481,
+      "bottom_submit_ms": 2.127949,
+      "bottom_swap_ms": 0.281451,
+      "pace_wait_ms": 7.17866
+    },
+    {
+      "frame": 809,
+      "interval_ms": 16.67243,
+      "events_ms": 0.190162,
+      "physics_ms": 0.055416,
+      "player_ms": 1.457131,
+      "stream_ms": 1.123182,
+      "top_submit_ms": 1.984452,
+      "top_swap_ms": 0.310909,
+      "bottom_submit_ms": 1.736542,
+      "bottom_swap_ms": 0.234786,
+      "pace_wait_ms": 10.640034
+    },
+    {
+      "frame": 810,
+      "interval_ms": 16.668054,
+      "events_ms": 0.237119,
+      "physics_ms": 0.061832,
+      "player_ms": 1.539379,
+      "stream_ms": 1.176847,
+      "top_submit_ms": 1.910371,
+      "top_swap_ms": 0.225453,
+      "bottom_submit_ms": 1.958202,
+      "bottom_swap_ms": 0.224286,
+      "pace_wait_ms": 10.436164
+    },
+    {
+      "frame": 811,
+      "interval_ms": 16.683513,
+      "events_ms": 0.211453,
+      "physics_ms": 0.056582,
+      "player_ms": 1.382759,
+      "stream_ms": 1.009434,
+      "top_submit_ms": 1.981536,
+      "top_swap_ms": 0.261327,
+      "bottom_submit_ms": 1.62746,
+      "bottom_swap_ms": 0.316451,
+      "pace_wait_ms": 10.775364
+    },
+    {
+      "frame": 812,
+      "interval_ms": 16.638014,
+      "events_ms": 0.273869,
+      "physics_ms": 0.085456,
+      "player_ms": 1.752583,
+      "stream_ms": 1.201929,
+      "top_submit_ms": 2.66431,
+      "top_swap_ms": 0.370116,
+      "bottom_submit_ms": 2.814224,
+      "bottom_swap_ms": 0.225453,
+      "pace_wait_ms": 8.31609
+    },
+    {
+      "frame": 813,
+      "interval_ms": 16.67243,
+      "events_ms": 0.176746,
+      "physics_ms": 0.048707,
+      "player_ms": 1.25997,
+      "stream_ms": 1.012642,
+      "top_submit_ms": 1.488047,
+      "top_swap_ms": 0.230411,
+      "bottom_submit_ms": 1.136306,
+      "bottom_swap_ms": 0.141455,
+      "pace_wait_ms": 12.132748
+    },
+    {
+      "frame": 814,
+      "interval_ms": 16.670971,
+      "events_ms": 0.233036,
+      "physics_ms": 0.06154,
+      "player_ms": 1.325593,
+      "stream_ms": 1.014392,
+      "top_submit_ms": 1.411632,
+      "top_swap_ms": 0.133288,
+      "bottom_submit_ms": 0.866521,
+      "bottom_swap_ms": 0.14583,
+      "pace_wait_ms": 12.420324
+    },
+    {
+      "frame": 815,
+      "interval_ms": 16.73922,
+      "events_ms": 0.221953,
+      "physics_ms": 0.06854,
+      "player_ms": 1.396757,
+      "stream_ms": 1.014975,
+      "top_submit_ms": 2.20903,
+      "top_swap_ms": 0.244994,
+      "bottom_submit_ms": 2.188613,
+      "bottom_swap_ms": 0.40599,
+      "pace_wait_ms": 9.92926
+    },
+    {
+      "frame": 816,
+      "interval_ms": 16.60914,
+      "events_ms": 0.263952,
+      "physics_ms": 0.062123,
+      "player_ms": 2.139032,
+      "stream_ms": 1.882954,
+      "top_submit_ms": 1.387133,
+      "top_swap_ms": 0.219036,
+      "bottom_submit_ms": 1.031308,
+      "bottom_swap_ms": 0.480072,
+      "pace_wait_ms": 10.949777
+    }
+  ],
+  "worst_frames": [
+    {
+      "frame": 152,
+      "interval_ms": 18.024855,
+      "events_ms": 0.260452,
+      "physics_ms": 0.050749,
+      "player_ms": 0.336867,
+      "stream_ms": 0,
+      "top_submit_ms": 1.754332,
+      "top_swap_ms": 0.37945,
+      "bottom_submit_ms": 2.248403,
+      "bottom_swap_ms": 0.345325,
+      "pace_wait_ms": 12.534655
+    },
+    {
+      "frame": 531,
+      "interval_ms": 17.444744,
+      "events_ms": 0.429906,
+      "physics_ms": 0.093914,
+      "player_ms": 0.650693,
+      "stream_ms": 0,
+      "top_submit_ms": 1.479298,
+      "top_swap_ms": 0.175871,
+      "bottom_submit_ms": 1.257927,
+      "bottom_swap_ms": 0.153705,
+      "pace_wait_ms": 13.080933
+    },
+    {
+      "frame": 207,
+      "interval_ms": 17.143835,
+      "events_ms": 0.439823,
+      "physics_ms": 0.080206,
+      "player_ms": 0.781065,
+      "stream_ms": 0,
+      "top_submit_ms": 3.220213,
+      "top_swap_ms": 0.428157,
+      "bottom_submit_ms": 1.905995,
+      "bottom_swap_ms": 0.352325,
+      "pace_wait_ms": 9.804804
+    },
+    {
+      "frame": 216,
+      "interval_ms": 17.072879,
+      "events_ms": 0.549778,
+      "physics_ms": 0.084581,
+      "player_ms": 0.593528,
+      "stream_ms": 0,
+      "top_submit_ms": 3.098592,
+      "top_swap_ms": 0.34445,
+      "bottom_submit_ms": 2.90493,
+      "bottom_swap_ms": 0.478905,
+      "pace_wait_ms": 8.870827
+    },
+    {
+      "frame": 239,
+      "interval_ms": 17.000255,
+      "events_ms": 0.236827,
+      "physics_ms": 0.049874,
+      "player_ms": 0.254619,
+      "stream_ms": 0,
+      "top_submit_ms": 1.778831,
+      "top_swap_ms": 0.271244,
+      "bottom_submit_ms": 1.303427,
+      "bottom_swap_ms": 0.176454,
+      "pace_wait_ms": 12.762732
+    }
+  ],
+  "gpu": {
+    "samples": 32,
+    "invalid": 2,
+    "top": {
+      "p50": 9.031454,
+      "p95": 11.337084,
+      "p99": 11.337084,
+      "max": 11.337084
+    },
+    "bottom": {
+      "p50": 9.048373,
+      "p95": 10.937497,
+      "p99": 10.937497,
+      "max": 10.937497
+    }
+  },
+  "limitations": "Application production intervals, not compositor presentation feedback. Submit timing can include driver backpressure. GPU query instrumentation can perturb tile rendering; compare CPU-only control.",
+  "load": {
+    "clk_tck": 100,
+    "clk_tck_evidence": "Verified getconf CLK_TCK on target; process utilization is percent of one core, not percent of all four cores.",
+    "app_percent_one_core": {
+      "p50": 44,
+      "p95": 84,
+      "p99": 84,
+      "max": 84
+    },
+    "system_busy_percent": {
+      "p50": 31.93473193473193,
+      "p95": 36.651583710407245,
+      "p99": 36.651583710407245,
+      "max": 36.651583710407245
+    },
+    "cpu_mhz": {
+      "p50": 1992,
+      "p95": 1992,
+      "p99": 1992,
+      "max": 1992
+    },
+    "gpu_mhz": {
+      "p50": 800,
+      "p95": 800,
+      "p99": 800,
+      "max": 800
+    },
+    "cpu_temperature_c": {
+      "p50": 44.375,
+      "p95": 46.666,
+      "p99": 46.666,
+      "max": 46.666
+    },
+    "gpu_temperature_c": {
+      "p50": 46.666,
+      "p95": 49.444,
+      "p99": 49.444,
+      "max": 49.444
+    },
+    "gpu_utilization": "Not exposed by the sampled sysfs attributes; clock and elapsed queries are not active-cycle utilization."
+  }
+}

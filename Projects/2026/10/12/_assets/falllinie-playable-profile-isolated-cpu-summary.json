@@ -1,0 +1,199 @@
+{
+  "file": "scripts/2026/10/13/falllinie-performance/profile-isolated-cpu.csv",
+  "warmup_frames": 60,
+  "measured_frames": 780,
+  "fps": 47.33382370114732,
+  "app_frame_budget_misses_60hz": 765,
+  "late_over_18_33ms": 720,
+  "over_33_33ms": 1,
+  "stages": {
+    "interval_ms": {
+      "p50": 20.905937,
+      "p95": 24.658234,
+      "p99": 26.920309,
+      "max": 125.990645
+    },
+    "events_ms": {
+      "p50": 0.146414,
+      "p95": 0.262495,
+      "p99": 0.647487,
+      "max": 1.633299
+    },
+    "physics_ms": {
+      "p50": 0.072915,
+      "p95": 0.16508,
+      "p99": 0.41795,
+      "max": 1.628049
+    },
+    "player_ms": {
+      "p50": 0.438658,
+      "p95": 0.994562,
+      "p99": 1.546385,
+      "max": 93.918486
+    },
+    "stream_ms": {
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "max": 85.921445
+    },
+    "top_submit_ms": {
+      "p50": 6.624778,
+      "p95": 10.417323,
+      "p99": 12.292076,
+      "max": 30.387237
+    },
+    "top_swap_ms": {
+      "p50": 11.52355,
+      "p95": 15.885292,
+      "p99": 17.263679,
+      "max": 18.628693
+    },
+    "bottom_submit_ms": {
+      "p50": 1.497677,
+      "p95": 2.756484,
+      "p99": 3.389095,
+      "max": 4.654944
+    },
+    "bottom_swap_ms": {
+      "p50": 0.181705,
+      "p95": 0.438366,
+      "p99": 0.906273,
+      "max": 1.690756
+    }
+  },
+  "streaming_frames": [
+    {
+      "frame": 679,
+      "interval_ms": 125.990645,
+      "events_ms": 0.097998,
+      "physics_ms": 0.057749,
+      "player_ms": 93.918486,
+      "stream_ms": 85.921445,
+      "top_submit_ms": 30.387237,
+      "top_swap_ms": 0.351159,
+      "bottom_submit_ms": 0.96423,
+      "bottom_swap_ms": 0.135913
+    }
+  ],
+  "worst_frames": [
+    {
+      "frame": 679,
+      "interval_ms": 125.990645,
+      "events_ms": 0.097998,
+      "physics_ms": 0.057749,
+      "player_ms": 93.918486,
+      "stream_ms": 85.921445,
+      "top_submit_ms": 30.387237,
+      "top_swap_ms": 0.351159,
+      "bottom_submit_ms": 0.96423,
+      "bottom_swap_ms": 0.135913
+    },
+    {
+      "frame": 590,
+      "interval_ms": 28.630108,
+      "events_ms": 0.107622,
+      "physics_ms": 0.062999,
+      "player_ms": 0.453241,
+      "stream_ms": 0,
+      "top_submit_ms": 4.717317,
+      "top_swap_ms": 18.628693,
+      "bottom_submit_ms": 3.350971,
+      "bottom_swap_ms": 1.229058
+    },
+    {
+      "frame": 683,
+      "interval_ms": 27.68796,
+      "events_ms": 0.20912,
+      "physics_ms": 0.152831,
+      "player_ms": 0.737609,
+      "stream_ms": 0,
+      "top_submit_ms": 6.808815,
+      "top_swap_ms": 16.020955,
+      "bottom_submit_ms": 3.081394,
+      "bottom_swap_ms": 0.44624
+    },
+    {
+      "frame": 800,
+      "interval_ms": 27.653502,
+      "events_ms": 0.137955,
+      "physics_ms": 0.081373,
+      "player_ms": 0.360784,
+      "stream_ms": 0,
+      "top_submit_ms": 7.204015,
+      "top_swap_ms": 16.054746,
+      "bottom_submit_ms": 3.389095,
+      "bottom_swap_ms": 0.332493
+    },
+    {
+      "frame": 778,
+      "interval_ms": 27.058515,
+      "events_ms": 0.188996,
+      "physics_ms": 0.098582,
+      "player_ms": 0.503406,
+      "stream_ms": 0,
+      "top_submit_ms": 4.874523,
+      "top_swap_ms": 18.095494,
+      "bottom_submit_ms": 3.076728,
+      "bottom_swap_ms": 0.113164
+    }
+  ],
+  "gpu": {
+    "samples": 0,
+    "invalid": 0,
+    "top": {
+      "p50": null,
+      "p95": null,
+      "p99": null,
+      "max": null
+    },
+    "bottom": {
+      "p50": null,
+      "p95": null,
+      "p99": null,
+      "max": null
+    }
+  },
+  "limitations": "Application production intervals, not compositor presentation feedback. Submit timing can include driver backpressure. GPU query instrumentation can perturb tile rendering; compare CPU-only control.",
+  "load": {
+    "clk_tck": 100,
+    "clk_tck_evidence": "Verified getconf CLK_TCK on target; process utilization is percent of one core, not percent of all four cores.",
+    "app_percent_one_core": {
+      "p50": 63,
+      "p95": 89,
+      "p99": 89,
+      "max": 89
+    },
+    "system_busy_percent": {
+      "p50": 33.09352517985612,
+      "p95": 35.128805620608894,
+      "p99": 35.128805620608894,
+      "max": 35.128805620608894
+    },
+    "cpu_mhz": {
+      "p50": 1992,
+      "p95": 1992,
+      "p99": 1992,
+      "max": 1992
+    },
+    "gpu_mhz": {
+      "p50": 800,
+      "p95": 800,
+      "p99": 800,
+      "max": 800
+    },
+    "cpu_temperature_c": {
+      "p50": 60.555,
+      "p95": 61.666,
+      "p99": 61.666,
+      "max": 61.666
+    },
+    "gpu_temperature_c": {
+      "p50": 62.777,
+      "p95": 64.444,
+      "p99": 64.444,
+      "max": 64.444
+    },
+    "gpu_utilization": "Not exposed by the sampled sysfs attributes; clock and elapsed queries are not active-cycle utilization."
+  }
+}
