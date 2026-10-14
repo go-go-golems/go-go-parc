@@ -351,3 +351,18 @@ The supported decision is to investigate driver-submission efficiency and output
 The next investigation is more precise Mali GPU profiling. Its first research gate is to establish the exact GPU and driver combination, determine which hardware-counter interfaces are available, and assess Arm Streamline/gatord compatibility with this device image. Offline Compiler analysis and API/frame tools are secondary options, with their static or capture-based conclusions kept distinct from runtime counter measurements. This is future work, not confirmed tool compatibility or a record of tools already executed. Useful documentation will be retained in the relevant ticket's `sources/` directory; no new web research was performed for this publication.
 
 This report continues, rather than replaces, [[PROJECT REPORT - Falllinie Tracing - CPU Execution, Driver Waits and GPU Attribution]] and [[PROJECT REPORT - Falllinie Buffered Audio - PCM Ownership, Callback Deadlines and Measured Producer Scheduling]]. Those notes retain their historical purposes. The next report should identify a concrete changed implementation, its exact source and binary hashes, the unchanged controls and the resulting measured distributions before calling any of these proposals an optimization success.
+
+
+## Falllinie optimization report network
+
+Navigation addendum: [[MOC - Falllinie Optimization Reports|series index, reading routes and evidence boundaries]]. The original report above remains a historical checkpoint; these cross-links do not revise its measurements.
+
+Continue to GPU Profiling for subsequently implemented counter access and offline compilation. Those tools were future work at this checkpoint; their later availability does not validate the anomalous GL timer values.
+
+- [[PROJECT REPORT - Falllinie Native GLES Spike - Deterministic Terrain, Print Shaders and Mali Depth Precision|Graphics foundations]] — Deterministic terrain, encoded scene/print passes and Mali depth-sampler precision; establishes the fidelity constraints for later tuning.
+- [[PROJECT REPORT - Falllinie Playable Port - Dual Views, Frame Profiling and Cooperative Terrain Streaming|Playable port and streaming]] — Shared dual views, frame pacing and cooperative terrain generation; an earlier, smaller workload.
+- [[PROJECT REPORT - Falllinie Integrated Native Game - Precision, Real-Time Audio, Developer Telemetry and JavaScript Embedding|Integrated workload and precision]] — Camera-relative projection, source DSP optimizations, telemetry and the initial embedding investigation.
+- [[PROJECT REPORT - Falllinie Buffered Audio - PCM Ownership, Callback Deadlines and Measured Producer Scheduling|Buffered audio qualification]] — Producer-owned DSP, SPSC PCM transport, copy-only callbacks and finite target deadline results.
+- [[PROJECT REPORT - Falllinie JavaScript Embedding - ARM64 Qualification, V8 Ownership and Bounded Rules|ARM64 JavaScript experiments]] — Actual QuickJS, QuickJS-ng and V8 embeddings, ownership contracts and isolated workload measurements.
+- [[PROJECT REPORT - Falllinie Tracing - CPU Execution, Driver Waits and GPU Attribution|Tracing concepts and investigation plan]] — Wall versus CPU time, scheduler-state interpretation and proposed perf/ftrace/eBPF investigation.
+- [[PROJECT REPORT - Falllinie GPU Profiling - Hardware Counters, Shader Compilation and a Rejected Optimization|Hardware counters and rejected shader candidate]] — Actual G52 counters, exact-input offline compilation, non-parity post bypass and a null-result ABBA shader experiment.

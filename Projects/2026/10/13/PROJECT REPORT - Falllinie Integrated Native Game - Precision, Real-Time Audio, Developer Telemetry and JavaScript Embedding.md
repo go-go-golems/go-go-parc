@@ -451,3 +451,18 @@ The installed interactive controls are A/START to drop in, START to pause, SELEC
 The remaining acceptance work is specific: measure and repair the integrated rendering cost without source omissions; establish adequate callback headroom over relevant musical/gameplay phases; check physical panel/controller behavior; and perform the final human gameplay/listening gate. Adding an interpreter is not on that critical path unless separately approved.
 
 The central engineering result is the preservation of explicit contracts while the host environment changes. One authoritative simulation supports two cameras. Relative projection changes the matrix coordinate range rather than the procedural world. Convolution scheduling changes the distribution of work rather than the response. Developer telemetry names its measurement limits. JavaScript experiments establish selected compatibility without pretending to create a browser. Those distinctions make the remaining failures diagnosable and prevent intermediate successes from being reported as complete acceptance.
+
+
+## Falllinie optimization report network
+
+Navigation addendum: [[MOC - Falllinie Optimization Reports|series index, reading routes and evidence boundaries]]. The original report above remains a historical checkpoint; these cross-links do not revise its measurements.
+
+Later buffered-audio and ARM64 JavaScript reports extend this checkpoint. Actual rendering attribution and hardware-counter results are in the rendering and GPU reports.
+
+- [[PROJECT REPORT - Falllinie Native GLES Spike - Deterministic Terrain, Print Shaders and Mali Depth Precision|Graphics foundations]] — Deterministic terrain, encoded scene/print passes and Mali depth-sampler precision; establishes the fidelity constraints for later tuning.
+- [[PROJECT REPORT - Falllinie Playable Port - Dual Views, Frame Profiling and Cooperative Terrain Streaming|Playable port and streaming]] — Shared dual views, frame pacing and cooperative terrain generation; an earlier, smaller workload.
+- [[PROJECT REPORT - Falllinie Buffered Audio - PCM Ownership, Callback Deadlines and Measured Producer Scheduling|Buffered audio qualification]] — Producer-owned DSP, SPSC PCM transport, copy-only callbacks and finite target deadline results.
+- [[PROJECT REPORT - Falllinie JavaScript Embedding - ARM64 Qualification, V8 Ownership and Bounded Rules|ARM64 JavaScript experiments]] — Actual QuickJS, QuickJS-ng and V8 embeddings, ownership contracts and isolated workload measurements.
+- [[PROJECT REPORT - Falllinie Tracing - CPU Execution, Driver Waits and GPU Attribution|Tracing concepts and investigation plan]] — Wall versus CPU time, scheduler-state interpretation and proposed perf/ftrace/eBPF investigation.
+- [[PROJECT REPORT - Falllinie Rendering Measurements - CPU Execution, Mali Driver Work and GPU Timer Limits|Measured CPU and driver attribution]] — Actual paired clocks and perf samples, driver execution, non-running time and unresolved GPU elapsed-query anomalies.
+- [[PROJECT REPORT - Falllinie GPU Profiling - Hardware Counters, Shader Compilation and a Rejected Optimization|Hardware counters and rejected shader candidate]] — Actual G52 counters, exact-input offline compilation, non-parity post bypass and a null-result ABBA shader experiment.
