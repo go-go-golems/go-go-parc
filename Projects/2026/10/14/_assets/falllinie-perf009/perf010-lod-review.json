@@ -1,0 +1,749 @@
+{
+ "checkpoints": [
+  {
+   "key": "f0120-s42-p0",
+   "views": {
+    "top": {
+     "lod120": {
+      "different_pixels": 5068,
+      "pixels": 786432,
+      "percent": 0.6444,
+      "max_channel_delta": 186,
+      "crop": [
+       32,
+       144,
+       256,
+       192
+      ],
+      "crop_changed": 2379
+     },
+     "lod60": {
+      "different_pixels": 10863,
+      "pixels": 786432,
+      "percent": 1.3813,
+      "max_channel_delta": 221,
+      "crop": [
+       0,
+       144,
+       256,
+       192
+      ],
+      "crop_changed": 5727
+     }
+    },
+    "lower": {
+     "lod120": {
+      "different_pixels": 4918,
+      "pixels": 786432,
+      "percent": 0.6254,
+      "max_channel_delta": 215,
+      "crop": [
+       160,
+       160,
+       256,
+       192
+      ],
+      "crop_changed": 2278
+     },
+     "lod60": {
+      "different_pixels": 10332,
+      "pixels": 786432,
+      "percent": 1.3138,
+      "max_channel_delta": 219,
+      "crop": [
+       144,
+       176,
+       256,
+       192
+      ],
+      "crop_changed": 4825
+     }
+    }
+   }
+  },
+  {
+   "key": "f0600-s42-p0",
+   "views": {
+    "top": {
+     "lod120": {
+      "different_pixels": 2551,
+      "pixels": 786432,
+      "percent": 0.3244,
+      "max_channel_delta": 218,
+      "crop": [
+       576,
+       192,
+       256,
+       192
+      ],
+      "crop_changed": 1335
+     },
+     "lod60": {
+      "different_pixels": 5125,
+      "pixels": 786432,
+      "percent": 0.6517,
+      "max_channel_delta": 221,
+      "crop": [
+       560,
+       224,
+       256,
+       192
+      ],
+      "crop_changed": 2162
+     }
+    },
+    "lower": {
+     "lod120": {
+      "different_pixels": 2270,
+      "pixels": 786432,
+      "percent": 0.2886,
+      "max_channel_delta": 152,
+      "crop": [
+       528,
+       256,
+       256,
+       192
+      ],
+      "crop_changed": 1302
+     },
+     "lod60": {
+      "different_pixels": 5072,
+      "pixels": 786432,
+      "percent": 0.6449,
+      "max_channel_delta": 225,
+      "crop": [
+       528,
+       272,
+       256,
+       192
+      ],
+      "crop_changed": 2211
+     }
+    }
+   }
+  },
+  {
+   "key": "f0600-s42-p5",
+   "views": {
+    "top": {
+     "lod120": {
+      "different_pixels": 5151,
+      "pixels": 786432,
+      "percent": 0.655,
+      "max_channel_delta": 218,
+      "crop": [
+       672,
+       208,
+       256,
+       192
+      ],
+      "crop_changed": 2861
+     },
+     "lod60": {
+      "different_pixels": 7915,
+      "pixels": 786432,
+      "percent": 1.0064,
+      "max_channel_delta": 223,
+      "crop": [
+       672,
+       224,
+       256,
+       192
+      ],
+      "crop_changed": 3577
+     }
+    },
+    "lower": {
+     "lod120": {
+      "different_pixels": 5543,
+      "pixels": 786432,
+      "percent": 0.7048,
+      "max_channel_delta": 203,
+      "crop": [
+       624,
+       256,
+       256,
+       192
+      ],
+      "crop_changed": 2623
+     },
+     "lod60": {
+      "different_pixels": 8534,
+      "pixels": 786432,
+      "percent": 1.0852,
+      "max_channel_delta": 223,
+      "crop": [
+       608,
+       272,
+       256,
+       192
+      ],
+      "crop_changed": 3340
+     }
+    }
+   }
+  },
+  {
+   "key": "f0600-s7-p0",
+   "views": {
+    "top": {
+     "lod120": {
+      "different_pixels": 2789,
+      "pixels": 786432,
+      "percent": 0.3546,
+      "max_channel_delta": 121,
+      "crop": [
+       672,
+       240,
+       256,
+       192
+      ],
+      "crop_changed": 1348
+     },
+     "lod60": {
+      "different_pixels": 4746,
+      "pixels": 786432,
+      "percent": 0.6035,
+      "max_channel_delta": 173,
+      "crop": [
+       672,
+       224,
+       256,
+       192
+      ],
+      "crop_changed": 2130
+     }
+    },
+    "lower": {
+     "lod120": {
+      "different_pixels": 4595,
+      "pixels": 786432,
+      "percent": 0.5843,
+      "max_channel_delta": 107,
+      "crop": [
+       0,
+       480,
+       256,
+       192
+      ],
+      "crop_changed": 1814
+     },
+     "lod60": {
+      "different_pixels": 9184,
+      "pixels": 786432,
+      "percent": 1.1678,
+      "max_channel_delta": 212,
+      "crop": [
+       0,
+       496,
+       256,
+       192
+      ],
+      "crop_changed": 2945
+     }
+    }
+   }
+  },
+  {
+   "key": "f1200-s42-p0",
+   "views": {
+    "top": {
+     "lod120": {
+      "different_pixels": 4530,
+      "pixels": 786432,
+      "percent": 0.576,
+      "max_channel_delta": 215,
+      "crop": [
+       304,
+       224,
+       256,
+       192
+      ],
+      "crop_changed": 2126
+     },
+     "lod60": {
+      "different_pixels": 9469,
+      "pixels": 786432,
+      "percent": 1.204,
+      "max_channel_delta": 219,
+      "crop": [
+       352,
+       240,
+       256,
+       192
+      ],
+      "crop_changed": 4341
+     }
+    },
+    "lower": {
+     "lod120": {
+      "different_pixels": 4462,
+      "pixels": 786432,
+      "percent": 0.5674,
+      "max_channel_delta": 215,
+      "crop": [
+       352,
+       176,
+       256,
+       192
+      ],
+      "crop_changed": 1672
+     },
+     "lod60": {
+      "different_pixels": 9522,
+      "pixels": 786432,
+      "percent": 1.2108,
+      "max_channel_delta": 219,
+      "crop": [
+       352,
+       192,
+       256,
+       192
+      ],
+      "crop_changed": 3850
+     }
+    }
+   }
+  }
+ ],
+ "timing": {
+  "defaults-audio": {
+   "mean_ms": 16.6248,
+   "p95_ms": 17.4851,
+   "p99_ms": 18.2543,
+   "long_share": 0.0,
+   "missed_refreshes_per_frame": -0.0025,
+   "per_frame": {
+    "MaliGPUActiveCy": 13136185.1,
+    "MaliCoreActiveCy": 11761064.1,
+    "MaliFragActiveCy": 11801222.4,
+    "MaliNonFragActiveCy": 5782004.4,
+    "MaliTilerActiveCy": 5784210.1,
+    "MaliExtBusRdBy": 21260599.8,
+    "MaliExtBusWrBy": 13381929.0,
+    "MaliFragUtil": 14.9,
+    "MaliNonFragUtil": 7.3,
+    "MaliTexUtil": 2.3,
+    "MaliALUUtil": 9.9,
+    "MaliExtBusRdStallRate": 0.0,
+    "MaliExtBusWrStallRate": 0.0
+   }
+  },
+  "lod120-audio": {
+   "mean_ms": 16.6207,
+   "p95_ms": 17.8339,
+   "p99_ms": 19.1697,
+   "long_share": 0.0,
+   "missed_refreshes_per_frame": -0.0028,
+   "per_frame": {
+    "MaliGPUActiveCy": 10227428.0,
+    "MaliCoreActiveCy": 9688995.9,
+    "MaliFragActiveCy": 8815885.5,
+    "MaliNonFragActiveCy": 3329159.3,
+    "MaliTilerActiveCy": 3325446.4,
+    "MaliExtBusRdBy": 11817901.6,
+    "MaliExtBusWrBy": 11066518.0,
+    "MaliFragUtil": 14.3,
+    "MaliNonFragUtil": 5.4,
+    "MaliTexUtil": 2.8,
+    "MaliALUUtil": 10.9,
+    "MaliExtBusRdStallRate": 0.0,
+    "MaliExtBusWrStallRate": 0.0
+   }
+  },
+  "lod60-audio": {
+   "mean_ms": 16.6192,
+   "p95_ms": 17.8669,
+   "p99_ms": 19.3247,
+   "long_share": 0.0,
+   "missed_refreshes_per_frame": -0.0028,
+   "per_frame": {
+    "MaliGPUActiveCy": 9218862.2,
+    "MaliCoreActiveCy": 8845379.2,
+    "MaliFragActiveCy": 8045009.4,
+    "MaliNonFragActiveCy": 2627543.6,
+    "MaliTilerActiveCy": 2622738.8,
+    "MaliExtBusRdBy": 9353632.4,
+    "MaliExtBusWrBy": 10168716.6,
+    "MaliFragUtil": 14.5,
+    "MaliNonFragUtil": 4.7,
+    "MaliTexUtil": 3.1,
+    "MaliALUUtil": 11.4,
+    "MaliExtBusRdStallRate": 0.0,
+    "MaliExtBusWrStallRate": 0.0
+   }
+  },
+  "defaults-big": {
+   "mean_ms": 20.1162,
+   "p95_ms": 29.5734,
+   "p99_ms": 29.8872,
+   "long_share": 0.2102,
+   "missed_refreshes_per_frame": 0.207,
+   "per_frame": {
+    "MaliGPUActiveCy": 16145524.9,
+    "MaliCoreActiveCy": 14078685.3,
+    "MaliFragActiveCy": 16101685.9,
+    "MaliNonFragActiveCy": 6917551.8,
+    "MaliTilerActiveCy": 6913928.1,
+    "MaliExtBusRdBy": 22939936.6,
+    "MaliExtBusWrBy": 15339912.1,
+    "MaliFragUtil": 20.1,
+    "MaliNonFragUtil": 8.6,
+    "MaliTexUtil": 3.2,
+    "MaliALUUtil": 14.1,
+    "MaliExtBusRdStallRate": 0.0,
+    "MaliExtBusWrStallRate": 0.0
+   }
+  },
+  "lod60-big": {
+   "mean_ms": 16.6171,
+   "p95_ms": 18.1512,
+   "p99_ms": 19.7495,
+   "long_share": 0.0,
+   "missed_refreshes_per_frame": -0.003,
+   "per_frame": {
+    "MaliGPUActiveCy": 12027327.4,
+    "MaliCoreActiveCy": 11595987.5,
+    "MaliFragActiveCy": 11185240.0,
+    "MaliNonFragActiveCy": 2736314.3,
+    "MaliTilerActiveCy": 2730679.9,
+    "MaliExtBusRdBy": 10741059.6,
+    "MaliExtBusWrBy": 11378344.0,
+    "MaliFragUtil": 15.5,
+    "MaliNonFragUtil": 3.8,
+    "MaliTexUtil": 3.2,
+    "MaliALUUtil": 12.4,
+    "MaliExtBusRdStallRate": 0.0,
+    "MaliExtBusWrStallRate": 0.0
+   }
+  },
+  "defaults-geom": {
+   "mean_ms": 16.6195,
+   "p95_ms": 17.0097,
+   "p99_ms": 17.2873,
+   "long_share": 0.0,
+   "missed_refreshes_per_frame": -0.0028,
+   "per_frame": {
+    "MaliGPUActiveCy": 13118620.9,
+    "MaliFragActiveCy": 11332670.4,
+    "MaliNonFragActiveCy": 5255848.2,
+    "MaliGeomTotalPrim": 368648.8,
+    "MaliGeomVisiblePrim": 66459.5,
+    "MaliGeomFaceXYPlaneCullPrim": 22289.9,
+    "MaliGeomZPlaneCullPrim": 27859.3,
+    "MaliGeomSampleCullPrim": 252040.1,
+    "MaliTilerPosShadThread": 388268.2,
+    "MaliTilerVarShadThread": 76719.9,
+    "MaliFragRastQd": 682673.2,
+    "MaliFragThread": 2538581.5,
+    "MaliFragEZSKillQd": 18981.3,
+    "MaliFragFPKKillQd": 29046.5,
+    "MaliExtBusRdBy": 21208192.7,
+    "MaliExtBusWrBy": 13390555.8
+   }
+  },
+  "lod60-geom": {
+   "mean_ms": 16.6157,
+   "p95_ms": 17.9853,
+   "p99_ms": 19.5914,
+   "long_share": 0.0,
+   "missed_refreshes_per_frame": -0.0031,
+   "per_frame": {
+    "MaliGPUActiveCy": 8932048.2,
+    "MaliFragActiveCy": 8012472.5,
+    "MaliNonFragActiveCy": 2795953.3,
+    "MaliGeomTotalPrim": 133950.2,
+    "MaliGeomVisiblePrim": 35685.7,
+    "MaliGeomFaceXYPlaneCullPrim": 17925.7,
+    "MaliGeomZPlaneCullPrim": 25842.3,
+    "MaliGeomSampleCullPrim": 54496.5,
+    "MaliTilerPosShadThread": 152354.1,
+    "MaliTilerVarShadThread": 43702.8,
+    "MaliFragRastQd": 670988.4,
+    "MaliFragThread": 2476986.9,
+    "MaliFragEZSKillQd": 12901.6,
+    "MaliFragFPKKillQd": 38840.2,
+    "MaliExtBusRdBy": 9226666.0,
+    "MaliExtBusWrBy": 10164811.9
+   }
+  }
+ },
+ "receipt_draws": {
+  "01-defaults-audio": {
+   "views": 1200,
+   "terrain_lod_near_m": 0.0,
+   "lod_triangles": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "chunks_drawn": 70613,
+   "chunks_culled": 5557,
+   "chunks_fog_constant": 0,
+   "terrain_drawn": 7674,
+   "terrain_culled": 450,
+   "terrain_fog_constant": 0,
+   "object_drawn": 7104,
+   "object_culled": 1020,
+   "object_fog_constant": 0,
+   "short_index_draws": 14778,
+   "triangles_submitted": 212422480,
+   "triangles_culled": 32940968
+  },
+  "02-lod120-audio": {
+   "views": 1200,
+   "terrain_lod_near_m": 120.0,
+   "lod_triangles": [
+    55537216,
+    23710716,
+    17031232,
+    4322680,
+    0
+   ],
+   "chunks_drawn": 70613,
+   "chunks_culled": 5557,
+   "chunks_fog_constant": 0,
+   "terrain_drawn": 7674,
+   "terrain_culled": 450,
+   "terrain_fog_constant": 0,
+   "object_drawn": 7104,
+   "object_culled": 1020,
+   "object_fog_constant": 0,
+   "short_index_draws": 14778,
+   "triangles_submitted": 107359308,
+   "triangles_culled": 32940968
+  },
+  "03-lod60-audio": {
+   "views": 1200,
+   "terrain_lod_near_m": 60.0,
+   "lod_triangles": [
+    34555576,
+    16502080,
+    8849728,
+    8515616,
+    2161340
+   ],
+   "chunks_drawn": 70613,
+   "chunks_culled": 5557,
+   "chunks_fog_constant": 0,
+   "terrain_drawn": 7674,
+   "terrain_culled": 450,
+   "terrain_fog_constant": 0,
+   "object_drawn": 7104,
+   "object_culled": 1020,
+   "object_fog_constant": 0,
+   "short_index_draws": 14778,
+   "triangles_submitted": 77341804,
+   "triangles_culled": 32940968
+  },
+  "04-lod60-audio": {
+   "views": 1200,
+   "terrain_lod_near_m": 60.0,
+   "lod_triangles": [
+    34555576,
+    16502080,
+    8849728,
+    8515616,
+    2161340
+   ],
+   "chunks_drawn": 70613,
+   "chunks_culled": 5557,
+   "chunks_fog_constant": 0,
+   "terrain_drawn": 7674,
+   "terrain_culled": 450,
+   "terrain_fog_constant": 0,
+   "object_drawn": 7104,
+   "object_culled": 1020,
+   "object_fog_constant": 0,
+   "short_index_draws": 14778,
+   "triangles_submitted": 77341804,
+   "triangles_culled": 32940968
+  },
+  "05-lod120-audio": {
+   "views": 1200,
+   "terrain_lod_near_m": 120.0,
+   "lod_triangles": [
+    55537216,
+    23710716,
+    17031232,
+    4322680,
+    0
+   ],
+   "chunks_drawn": 70613,
+   "chunks_culled": 5557,
+   "chunks_fog_constant": 0,
+   "terrain_drawn": 7674,
+   "terrain_culled": 450,
+   "terrain_fog_constant": 0,
+   "object_drawn": 7104,
+   "object_culled": 1020,
+   "object_fog_constant": 0,
+   "short_index_draws": 14778,
+   "triangles_submitted": 107359308,
+   "triangles_culled": 32940968
+  },
+  "06-defaults-audio": {
+   "views": 1200,
+   "terrain_lod_near_m": 0.0,
+   "lod_triangles": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "chunks_drawn": 70613,
+   "chunks_culled": 5557,
+   "chunks_fog_constant": 0,
+   "terrain_drawn": 7674,
+   "terrain_culled": 450,
+   "terrain_fog_constant": 0,
+   "object_drawn": 7104,
+   "object_culled": 1020,
+   "object_fog_constant": 0,
+   "short_index_draws": 14778,
+   "triangles_submitted": 212422480,
+   "triangles_culled": 32940968
+  },
+  "07-defaults-big": {
+   "views": 1200,
+   "terrain_lod_near_m": 0.0,
+   "lod_triangles": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "chunks_drawn": 70613,
+   "chunks_culled": 5557,
+   "chunks_fog_constant": 0,
+   "terrain_drawn": 7674,
+   "terrain_culled": 450,
+   "terrain_fog_constant": 0,
+   "object_drawn": 7104,
+   "object_culled": 1020,
+   "object_fog_constant": 0,
+   "short_index_draws": 14778,
+   "triangles_submitted": 212422480,
+   "triangles_culled": 32940968
+  },
+  "08-lod60-big": {
+   "views": 1200,
+   "terrain_lod_near_m": 60.0,
+   "lod_triangles": [
+    34555576,
+    16502080,
+    8849728,
+    8515616,
+    2161340
+   ],
+   "chunks_drawn": 70613,
+   "chunks_culled": 5557,
+   "chunks_fog_constant": 0,
+   "terrain_drawn": 7674,
+   "terrain_culled": 450,
+   "terrain_fog_constant": 0,
+   "object_drawn": 7104,
+   "object_culled": 1020,
+   "object_fog_constant": 0,
+   "short_index_draws": 14778,
+   "triangles_submitted": 77341804,
+   "triangles_culled": 32940968
+  },
+  "09-lod60-big": {
+   "views": 1200,
+   "terrain_lod_near_m": 60.0,
+   "lod_triangles": [
+    34555576,
+    16502080,
+    8849728,
+    8515616,
+    2161340
+   ],
+   "chunks_drawn": 70613,
+   "chunks_culled": 5557,
+   "chunks_fog_constant": 0,
+   "terrain_drawn": 7674,
+   "terrain_culled": 450,
+   "terrain_fog_constant": 0,
+   "object_drawn": 7104,
+   "object_culled": 1020,
+   "object_fog_constant": 0,
+   "short_index_draws": 14778,
+   "triangles_submitted": 77341804,
+   "triangles_culled": 32940968
+  },
+  "10-defaults-big": {
+   "views": 1200,
+   "terrain_lod_near_m": 0.0,
+   "lod_triangles": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "chunks_drawn": 70613,
+   "chunks_culled": 5557,
+   "chunks_fog_constant": 0,
+   "terrain_drawn": 7674,
+   "terrain_culled": 450,
+   "terrain_fog_constant": 0,
+   "object_drawn": 7104,
+   "object_culled": 1020,
+   "object_fog_constant": 0,
+   "short_index_draws": 14778,
+   "triangles_submitted": 212422480,
+   "triangles_culled": 32940968
+  },
+  "11-defaults-geom": {
+   "views": 1200,
+   "terrain_lod_near_m": 0.0,
+   "lod_triangles": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "chunks_drawn": 70613,
+   "chunks_culled": 5557,
+   "chunks_fog_constant": 0,
+   "terrain_drawn": 7674,
+   "terrain_culled": 450,
+   "terrain_fog_constant": 0,
+   "object_drawn": 7104,
+   "object_culled": 1020,
+   "object_fog_constant": 0,
+   "short_index_draws": 14778,
+   "triangles_submitted": 212422480,
+   "triangles_culled": 32940968
+  },
+  "12-lod60-geom": {
+   "views": 1200,
+   "terrain_lod_near_m": 60.0,
+   "lod_triangles": [
+    34555576,
+    16502080,
+    8849728,
+    8515616,
+    2161340
+   ],
+   "chunks_drawn": 70613,
+   "chunks_culled": 5557,
+   "chunks_fog_constant": 0,
+   "terrain_drawn": 7674,
+   "terrain_culled": 450,
+   "terrain_fog_constant": 0,
+   "object_drawn": 7104,
+   "object_culled": 1020,
+   "object_fog_constant": 0,
+   "short_index_draws": 14778,
+   "triangles_submitted": 77341804,
+   "triangles_culled": 32940968
+  }
+ }
+}

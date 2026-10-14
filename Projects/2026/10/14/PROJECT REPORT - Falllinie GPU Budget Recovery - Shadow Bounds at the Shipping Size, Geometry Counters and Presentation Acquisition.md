@@ -155,6 +155,25 @@ The implementation is in `src/geometry_bounds.hpp` (bounding boxes, clip rejecti
 
 The vault copies the campaign summaries and the Phase C comparison results to `_assets/falllinie-perf009/`.
 
+## 9. Follow-up: distant terrain detail (PERF-010)
+
+Section 3 left one large cost for an owner decision: sub-sample terrain triangles. Ticket `FALLLINIE-PERF-010` implemented row-decimated terrain level of detail. Every 16-row terrain block keeps all columns and both boundary rows, and draws every 2nd, 4th, 8th or 16th row in between as its distance doubles past a near distance. Neighbouring blocks share full boundary rows, so they cannot crack apart.
+
+Measured on the device against the PERF-009 defaults (geometry counters per frame, shipping size):
+
+| | Defaults | 60 m near distance |
+|---|---:|---:|
+| Primitives submitted | 368,600 | 134,000 |
+| Sub-sample culls | 252,000 | 54,500 |
+| Non-fragment active cycles | 5.26 M | 2.80 M |
+| External reads | 21.2 MB | 9.2 MB |
+| GPU busy at 60 FPS (replay + audio) | ≈99% | ≈69% |
+| 512×384 dual view: mean / long frames | 20.12 ms / 21.0% | 16.62 ms / 0.0% |
+
+The visual cost is 0.6–1.4% of window pixels, on distant ridge lines, the halftone dots along them and some contour lines. The owner reviewed device captures side by side ([terrain LOD review](https://claude.ai/artifact/RLbNEsTb18oKnLUAw8qVvd)) and chose 60 m, which is now the default (`--terrain-lod off` restores full detail). The acceptance runs (live autoplay with audio: p95 17.40 → 16.78 ms, p99 18.84 → 17.69 ms) also showed one rare audio underrun with and one without the change, so that underrun is an audio-producer issue unrelated to rendering.
+
+The freed headroom was then compared against a sharper image ([internal resolution review](https://claude.ai/artifact/Cvb2FU7yxw5QPcXBMHB6hh)). 384×288 is stretched 2.67× to the 1024×768 panels, which produces a visible plaid moiré in the halftone; 512×384 stretches by exactly 2×. With 60 m terrain detail, both hold 60 Hz with no long frames in replay and live play with audio, at about 69% and 93% GPU busy respectively. Choosing between them is a look-versus-margin decision; the launcher's `--render-size` argument selects it. Both review pages are private until shared.
+
 ## Related notes
 
 - [[PROJECT REPORT - Falllinie Performance Review - Measurement Discipline, Missed Bottlenecks and a Path to 60 FPS]] — the review whose plan this work executed.
