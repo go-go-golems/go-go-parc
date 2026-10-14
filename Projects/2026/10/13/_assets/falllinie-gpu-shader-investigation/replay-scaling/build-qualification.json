@@ -1,0 +1,5 @@
+{
+  "implementation_commit": "32b8bfd640f44c465d3f8b6311400f35eac07e81",
+  "verified_source_files": 31,
+  "scope": "Pre-commit build source identity only; target deployment/acceptance is separate."
+}

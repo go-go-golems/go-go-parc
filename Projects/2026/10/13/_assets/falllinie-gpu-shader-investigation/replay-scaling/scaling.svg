@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="780" viewBox="0 0 1100 780">
+<rect width="1100" height="780" fill="#faf9f6"/>
+<g font-family="sans-serif" fill="#182a37">
+<text x="24" y="34" font-size="24">Deterministic live replay: resolution and view-count scaling</text>
+<text x="24" y="61" font-size="14">600 frames/case; frames 60–599 summarized; real HUD/rider/particles; audio off; ordinary indexed draws.</text>
+<text x="220" y="104" font-size="14">Mean completed-frame interval</text>
+<text x="16" y="152" font-size="13">384x288-v2-fps0 opening</text>
+<rect x="220" y="134" width="114.27" height="26" fill="#b26d28"/>
+<text x="220" y="179" font-size="13">17.39 ms</text>
+<text x="16" y="217" font-size="13">256x192-v1-fps0</text>
+<rect x="220" y="199" width="109.22" height="26" fill="#287bb5"/>
+<text x="220" y="244" font-size="13">16.62 ms</text>
+<text x="16" y="282" font-size="13">256x192-v2-fps0</text>
+<rect x="220" y="264" width="109.22" height="26" fill="#b26d28"/>
+<text x="220" y="309" font-size="13">16.62 ms</text>
+<text x="16" y="347" font-size="13">384x288-v1-fps0</text>
+<rect x="220" y="329" width="109.21" height="26" fill="#287bb5"/>
+<text x="220" y="374" font-size="13">16.62 ms</text>
+<text x="16" y="412" font-size="13">512x384-v1-fps0</text>
+<rect x="220" y="394" width="109.23" height="26" fill="#287bb5"/>
+<text x="220" y="439" font-size="13">16.62 ms</text>
+<text x="16" y="477" font-size="13">512x384-v2-fps0</text>
+<rect x="220" y="459" width="154.91" height="26" fill="#b26d28"/>
+<text x="220" y="504" font-size="13">23.57 ms</text>
+<text x="16" y="542" font-size="13">384x288-v2-fps0 closing</text>
+<rect x="220" y="524" width="114.39" height="26" fill="#b26d28"/>
+<text x="220" y="569" font-size="13">17.41 ms</text>
+<text x="16" y="607" font-size="13">384x288-v2-fps60</text>
+<rect x="220" y="589" width="114.06" height="26" fill="#b26d28"/>
+<text x="220" y="634" font-size="13">17.36 ms</text>
+<text x="510" y="104" font-size="14">Frame interval p95</text>
+<rect x="510" y="134" width="160.19" height="26" fill="#b26d28"/>
+<text x="510" y="179" font-size="13">24.38 ms</text>
+<rect x="510" y="199" width="119.28" height="26" fill="#287bb5"/>
+<text x="510" y="244" font-size="13">18.15 ms</text>
+<rect x="510" y="264" width="114.14" height="26" fill="#b26d28"/>
+<text x="510" y="309" font-size="13">17.37 ms</text>
+<rect x="510" y="329" width="119.98" height="26" fill="#287bb5"/>
+<text x="510" y="374" font-size="13">18.26 ms</text>
+<rect x="510" y="394" width="121.45" height="26" fill="#287bb5"/>
+<text x="510" y="439" font-size="13">18.48 ms</text>
+<rect x="510" y="459" width="220.07" height="26" fill="#b26d28"/>
+<text x="510" y="504" font-size="13">33.49 ms</text>
+<rect x="510" y="524" width="166.16" height="26" fill="#b26d28"/>
+<text x="510" y="569" font-size="13">25.29 ms</text>
+<rect x="510" y="589" width="154.21" height="26" fill="#b26d28"/>
+<text x="510" y="634" font-size="13">23.47 ms</text>
+<text x="800" y="104" font-size="14">Whole-device fragment activity rate</text>
+<rect x="800" y="134" width="204.88" height="26" fill="#b26d28"/>
+<text x="800" y="179" font-size="13">801.72 Mcycles/s</text>
+<rect x="800" y="199" width="81.13" height="26" fill="#287bb5"/>
+<text x="800" y="244" font-size="13">317.48 Mcycles/s</text>
+<rect x="800" y="264" width="130.79" height="26" fill="#b26d28"/>
+<text x="800" y="309" font-size="13">511.80 Mcycles/s</text>
+<rect x="800" y="329" width="114.39" height="26" fill="#287bb5"/>
+<text x="800" y="374" font-size="13">447.61 Mcycles/s</text>
+<rect x="800" y="394" width="162.22" height="26" fill="#287bb5"/>
+<text x="800" y="439" font-size="13">634.78 Mcycles/s</text>
+<rect x="800" y="459" width="204.94" height="26" fill="#b26d28"/>
+<text x="800" y="504" font-size="13">801.94 Mcycles/s</text>
+<rect x="800" y="524" width="204.37" height="26" fill="#b26d28"/>
+<text x="800" y="569" font-size="13">799.69 Mcycles/s</text>
+<rect x="800" y="589" width="204.75" height="26" fill="#b26d28"/>
+<text x="800" y="634" font-size="13">801.18 Mcycles/s</text>
+<text x="24" y="692" font-size="14">Single-view loop rates remain near 60/s despite higher GPU activity; presentation may cap throughput.</text>
+<text x="24" y="718" font-size="14">Dual-view 512×384 slows markedly. Activity is not calibrated utilization; compositor work is included.</text>
+<text x="24" y="744" font-size="14">No GPU pass-time or bandwidth-bottleneck claim. One run per nonreference case; fixed clocks were not imposed.</text>
+</g></svg>

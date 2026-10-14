@@ -10,9 +10,17 @@ tags: [project, falllinie, graphics, mali, profiling, shaders]
 repo: /home/manuel/code/wesen/2026-10-12--falllinie-spike
 native_evidence_commit: 70c164a18ee10a6c321c767ea00e64e3faa8dc7e
 runtime_commit: 209a6d092885ff3f0a1efd1efab4252cb4ad2b56
+updated: 2026-10-14
+latest_native_evidence_commit: 6c5b231
+latest_runtime_commit: 32b8bfd640f44c465d3f8b6311400f35eac07e81
 ---
 
 # Falllinie GPU Profiling: Hardware Counters, Shader Compilation and a Rejected Optimization
+
+> [!summary] Latest checkpoint — deterministic replay and GPU scaling
+> The eight-case live replay now controls simulation input and terrain work per frame. Dual-view mean intervals are 16.62 / 17.40 / 23.57 ms at 256×192 / 384×288 / 512×384. Single-view loop rates remain near 60/s while GPU activity rises, suggesting a presentation constraint rather than unchanged GPU demand. Replay signatures and same-resolution endpoint images match; no production shader, resolution or draw-policy change is promoted.
+
+**Reading boundary:** The original investigation below, including Sections 1–9, is preserved as a historical checkpoint. Sections 10–16 add the later CPU-to-GPU reasoning, replay design and implementation, actual scaling matrix, failures and remaining hypotheses. The original runtime/evidence metadata remains historical; `latest_*` identifies this follow-up.
 
 ## What this investigation established
 
@@ -416,11 +424,240 @@ Primary external references are Arm's [libGPUCounters repository](https://github
 The experiment ends with working hardware-counter tooling, actual G52 compiler reports, an image-matching but unhelpful candidate, and no canonical shader change. That is the documented stopping point. Publication concludes the night's work; the unresolved questions remain explicitly unresolved.
 
 
+## 10. Follow-up: why the next experiment controlled the workload
+
+The next useful step was not another shader rewrite. It was to make different rendering configurations consume the same sequence of game states. The initial shader experiment had used live autoplay driven by elapsed wall time. A configuration that rendered more slowly could therefore advance the autopilot, physics and camera differently, changing the workload while its performance was being compared.
+
+The intervening CPU investigation sharpened this concern. Actual A55 event profiles and verified driver disassembly identified an unsigned minimum/maximum scan. Supplying legal vertex bounds through the opt-in `glDrawRangeElements` path removed that helper from observed samples and reduced the sum of selected sequential view CPU means from about 7.012 to 5.889 ms. It did not demonstrate an end-to-end frame-time improvement: pooled ordinary/range means were 18.071014/18.224560 ms, and the closing ordinary run drifted faster. Higher candidate RSS also remained unexplained. The complete evidence and interpretation are in [[PROJECT REPORT - Falllinie CPU PMU - Cache Events, Driver Cycles and an Audio-Disabled Baseline|the living CPU PMU report]].
+
+Those results distinguish three outcomes. The shader candidate had no convincing measured benefit. Range draws reduced a specific CPU cost but did not establish a frame-time benefit. Neither result proved that the hardware had reached an absolute limit. Together they justified a controlled test of how GPU-related demand and complete-frame timing respond to internal pixel count and a second view.
+
+The new work is ticket **FALLLINIE-GPU-006**, implemented in `32b8bfd` and measured in checkpoint `6c5b231`. It is a diagnostic benchmark, not a new production renderer. The matrix deliberately keeps ordinary indexed draws, the existing shaders and post-processing unchanged so that range hints do not become an additional experimental variable.
+
+### 10.1 Separate the two meanings of time
+
+A benchmark needs real wall time to measure performance. It does not need to use that same wall time to decide how far the game advances. In `--benchmark-replay`, every rendered frame supplies exactly `1.0 / 60.0` seconds to the existing seeded autopilot and native frame clock. The frame clock retains the game's original scaling logic and 120 Hz physics accumulator. A slow configuration takes longer in real time to render the same input-update sequence; it does not skip ahead to different scenery merely because rendering took longer.
+
+Six hundred frames therefore provide ten seconds of **raw frame-clock input**. This should not be confused with a promise of exactly 1,200 physics ticks or ten unscaled seconds of every internal game clock: the original game time-scale behavior remains in the path. The workload is a generated-input replay for one seed, not a recording of human input or a claim of cross-platform bitwise simulation identity.
+
+The main thread advances the game and visual state once. It then renders the top view and, if requested, the first-person view. The second view temporarily replaces camera/render state and restores it afterward; it does not perform a second simulation update. This invariant allows view count to change rendering work without deliberately changing the next frame's game state.
+
+```mermaid
+flowchart TD
+    A[Frame index and seed] --> B[Seeded autopilot with fixed raw dt]
+    B --> C[Original game clock and physics]
+    C --> D[One visual update and fixed terrain work]
+    D --> E[Top scene, post and output]
+    E --> F{Second view requested?}
+    F -->|yes| G[First-person render, then restore camera]
+    F -->|no| H[Real-time pacing and measurement]
+    G --> H
+    H --> I[Selected-state rolling signature]
+    I --> A
+```
+
+The pseudocode below describes the implemented sequence, with instrumentation detail omitted:
+
+```cpp
+for each frame until the positive frame limit:
+    poll events; retain quit, ignore physical gameplay mutations
+    raw_dt = 1.0 / 60.0
+    controls = seeded_autopilot.read(game, raw_dt)
+    frame_clock.advance(game, controls, raw_dt)
+    renderer.update_player(game, raw_dt)  // once, not once per view
+    publish_feedback(audio_not_started, game)  // still drains events
+    render_top()
+    if dual_view: render_first_person_and_restore_state()
+    apply_requested_real_time_pacing()
+    record_actual_wall_and_thread_CPU_measurements()
+    extend_selected_state_signature()
+```
+
+The explicit FPS cap and fixed simulation input are independent controls. `--fps 0` removes application sleeping; `--fps 60` requests pacing. Neither changes the replay's input progression. Real measurement clocks are never replaced by simulated timestamps.
+
+### 10.2 Fixing dt is insufficient when streaming is time-budgeted
+
+Production terrain generation calls `TerrainJob::step(3.5)`. That budget is checked between existing sampling and mesh-emission rows. Different CPU speeds or scheduling interruptions can finish different numbers of rows in 3.5 ms, causing a cell to become renderable on different frames even when the rider follows the same path.
+
+The replay uses the same job state machine but supplies a maximum of **32 work units** per frame. A unit is one existing sampling row or one existing emission row; it is not necessarily a completed strip of triangles. The extended interface is:
+
+```cpp
+bool TerrainJob::step(double budget_ms, unsigned max_work_units = 0);
+// Production:
+job.step(3.5);
+// Replay:
+job.step(3.5, 32);  // work-unit limit replaces wall-budget termination
+```
+
+Row order, numerical formulas, neighboring samples for normals and index ordering remain unchanged. Completed terrain is still uploaded on the main thread, and the existing object-cell construction and residency policy remain in place. Fixed-work validation compares both one-unit and 32-unit progression against synchronous generation; vertex bytes and indices match.
+
+This design is preferable here to generating an enormous world in advance, synchronously completing every new cell, or creating a new terrain implementation. It keeps one numerical algorithm and makes progress per frame reproducible. It is nevertheless a deliberate difference from production scheduling and belongs in every benchmark receipt.
+
+### 10.3 Remove external inputs without inventing a second game
+
+Replay forces play/autoplay and disables active audio. It does not open the audio device or start its synthesis worker/callback. Inert audio storage still exists, and the normal feedback-publication path drains game events even when audio is not started; otherwise the benchmark would change event lifetime or accumulate unbounded pending events.
+
+Persistent best-score loading and writing are skipped. Physical gameplay controls, focus-driven pause, palette/debug mutations and developer-overlay timing text cannot perturb the workload. Quit remains available. Positive frame count is required; wall-duration limits and incompatible freeze/resize/overlay/post-bypass modes are rejected. The real rider, particles, trails, HUD, streaming and camera paths remain active.
+
+These controls explain why the older frozen fixture is not a substitute. Static terrain excludes much of that live rendering, and its lower window duplicates the top camera. It remains useful for narrow image checks, but it does not represent the same workload as this replay.
+
+## 11. Establish what is repeatable—and what is not proven
+
+The implementation extends a rolling 64-bit fingerprint with explicitly ordered scalar text at 17-digit precision: frame number, seed/generation, game time/score, position and velocity, camera eye/look, and terrain vertex/index counts. It does not hash object padding, pointers, process identifiers, resolution or real clocks. The receipt stores the resulting value as a string rather than an imprecise JavaScript-sized integer.
+
+All eight device runs report the same signature, **6081555844518115723**. That checks the selected state across the entire 600-frame sequence. It does not cover every particle field, every mesh byte or every GPU command, and a noncryptographic hash is not a collision-free proof. The separate host check used 120 frames and produced a different signature, **13752613737572218072**, matching between a single-view uncapped case and a dual-view paced case. These different-length/platform tests must not be compared as though their final hashes should agree.
+
+The device analyzer additionally compares final encoded scene, depth and print BMP bytes among cases with the same internal resolution. All comparisons pass, including the single/dual and paced/unpaced 384×288 cases. Images across different resolutions are not expected to match. Endpoint equality supplements the fingerprint; it does not establish every-frame visual equivalence or universal source parity. Source review also bounds what was captured: after the measured loop, instrumentation is detached and the final top-camera state is redrawn. `Renderer::capture` reads the internal scene and print framebuffers and produces a depth diagnostic image. It does not capture the final full-size HUD/compositor surface or physical scanout.
+
+Here are actual final print captures from the replay, rather than the earlier terrain-only shader fixture:
+
+![Actual replay endpoint at 256×192](./_assets/falllinie-gpu-shader-investigation/replay-scaling/replay-256x192.png)
+
+![Actual replay endpoint at 384×288](./_assets/falllinie-gpu-shader-investigation/replay-scaling/replay-384x288.png)
+
+![Actual replay endpoint at 512×384](./_assets/falllinie-gpu-shader-investigation/replay-scaling/replay-512x384.png)
+
+*Each image is a lossless conversion of the internal print-target BMP, before final full-size HUD/output composition. Resolution differs intentionally. The same-resolution equality checks use original BMP bytes, not resized screenshots or physical display captures.*
+
+Host and ARM builds and all 15 CPU tests passed at the implementation boundary. The actual device campaign then supplied the graphics/measurement gate: eight successful game/probe cases, 4,800 total frames, 4,320 postwarmup intervals, 1,330 reconciled paired records, `GL_error=0` and successful placement throughout. Dropped, invalid and still-active paired-record counts are zero. The sampler produced 46,800 rows with zero collection errors or nonfinite values in this campaign. Earlier idle nonfinite ratios remain valid historical observations; this newer result does not erase them.
+
+The receipt's dedicated `benchmark_replay`, `replay_signature`, `replay_step_seconds` and `replay_work_units` fields identify the new mode. Its older nested fixture label remains `live-or-default`, so a consumer must not infer replay qualification from that legacy label alone.
+
+## 12. Measure resolution and view-count scaling
+
+The campaign uses three 4:3 internal sizes: 256×192, 384×288 and 512×384. Each runs with one and two views. An opening/closing 384×288 dual-view reference brackets the six combinations, and a final paced version of that reference checks behavior with an explicit 60-FPS target. Every case renders 600 frames; the first 60 are excluded from frame distributions. Each case is accompanied by a bounded 45-second counter capture, with only the qualified active host intervals used for rates.
+
+Internal targets are not the display surfaces. Scene and post-processing operate at the chosen internal size, while output and HUD still use full-size compositor surfaces. Reducing internal resolution therefore leaves significant work unchanged. Rendering only one game window also does not power down the second display or eliminate all compositor activity.
+
+| Case | Size | Views | FPS cap | Mean ms | p95 ms | Loop frames/s |
+|---|---|---:|---:|---:|---:|---:|
+| Opening reference | 384×288 | 2 | 0 | 17.3886 | 24.3771 | 57.51 |
+| Small single | 256×192 | 1 | 0 | 16.6211 | 18.1520 | 60.16 |
+| Small dual | 256×192 | 2 | 0 | 16.6202 | 17.3690 | 60.17 |
+| Middle single | 384×288 | 1 | 0 | 16.6182 | 18.2585 | 60.17 |
+| Large single | 512×384 | 1 | 0 | 16.6221 | 18.4810 | 60.16 |
+| Large dual | 512×384 | 2 | 0 | 23.5738 | 33.4894 | 42.42 |
+| Closing reference | 384×288 | 2 | 0 | 17.4077 | 25.2859 | 57.45 |
+| Paced reference | 384×288 | 2 | 60 | 17.3567 | 23.4675 | 57.61 |
+
+Loop rate is `1000 / mean_interval_ms`, not physical presentation rate or scanout FPS. The opening and closing reference means differ by approximately **0.110%**; their p95 values differ by about **0.91 ms**. That bracket gives useful context for the much larger high-resolution slowdown but does not establish confidence intervals. Each nonreference configuration has one run, for one seed and one short input trajectory.
+
+The average of the two 384×288 dual reference means is about 17.3982 ms. At 512×384, internal pixel count is 1.778 times larger and mean interval is about **35.5% higher**, at 23.5738 ms. The p95 is 33.4894 ms. At 256×192, dual-view mean is 16.6202 ms and p95 is 17.3690 ms. This is strong descriptive evidence that internal pixel workload matters in dual-view rendering. It does not identify a specific arithmetic operation, texture access or render-target dependency as the cause.
+
+The paced reference remains close to the unpaced middle-resolution references. Requesting 60 FPS cannot make a configuration complete work faster than its limiting path. Conversely, means near 16.62 ms and loop rates slightly above 60/s do not establish precise physical refresh timing or sustained deadline compliance.
+
+![Actual replay frame distributions and fragment activity](./_assets/falllinie-gpu-shader-investigation/replay-scaling/scaling.svg)
+
+*The chart is generated from the actual eight-case summary. Audio is disabled and ordinary indexed draws are used throughout. No elapsed-query GPU pass times are used.*
+
+## 13. Interpret hardware activity alongside frame timing
+
+| Case | GPU active Mcycles/s | Fragment active Mcycles/s | External reads MB/s | External writes MB/s |
+|---|---:|---:|---:|---:|
+| Opening reference | 804.56 | 801.72 | 1498.58 | 770.00 |
+| Small single | 457.25 | 317.48 | 873.30 | 531.00 |
+| Small dual | 652.47 | 511.80 | 1385.05 | 685.85 |
+| Middle single | 593.25 | 447.61 | 947.99 | 594.00 |
+| Large single | 745.46 | 634.78 | 1042.53 | 660.37 |
+| Large dual | 804.67 | 801.94 | 1159.59 | 652.11 |
+| Closing reference | 803.69 | 799.69 | 1494.78 | 768.34 |
+| Paced reference | 804.47 | 801.18 | 1502.56 | 771.70 |
+
+These are approximate whole-device rates over contained adjacent host-poll intervals. MB/s uses decimal millions of bytes per second. The counter window is narrower than all 540 postwarmup frame intervals: paired scopes are sampled through frame 540, whereas the frame table continues through frame 599. Across the eight cases, 674 selected intervals cover approximately 7.8–11.2 seconds per case. The analysis deliberately does not divide these rates by the full-frame loop-rate denominator and call the result exact events per application frame.
+
+### 13.1 Flat frame timing does not mean flat GPU demand
+
+The single-view configurations all average about 16.62 ms despite a fourfold increase in internal pixel count between 256×192 and 512×384. Fragment activity rises from **317.48 to 634.78 Mcycles/s**, approximately doubling; GPU-active rate rises from **457.25 to 745.46 Mcycles/s**. External traffic also increases. Frame timing alone would conceal that change in device demand.
+
+The combination is consistent with a presentation-related throughput constraint in lighter configurations. Application sleeping is disabled, but output may still be synchronized or throttled elsewhere. The data does not identify the exact compositor, driver or scheduling mechanism. It also does not prove how fast an offscreen-only workload would run. A future presentation experiment would need its own explicit contract rather than silently changing display policy.
+
+### 13.2 Similar activity rates can accompany lower throughput
+
+Dual-view fragment activity is near 800 Mcycles/s at both 384×288 and 512×384 while completed-frame throughput falls from roughly 57.5/s to 42.4/s. This is consistent with increased work per completed frame under a rendering-capacity constraint. It is not a calibrated claim that the GPU is 100% productively busy: active counters can include pending/stalled work, and the measured GPU-active rates slightly exceed the 800 MHz point snapshots.
+
+The slower large-dual case has lower external byte rates per second than the middle-dual references. That does not demonstrate less traffic per frame. Fewer frames complete per second, the counter and frame-summary windows differ, and compositor traffic remains mixed in. These data support investigating pixel-dependent work; they do not establish memory bandwidth as the bottleneck.
+
+### 13.3 The clock mismatch changed across campaigns
+
+The earlier backend-minus-host offsets were about 1.262–1.268 seconds. In the replay campaign the retained values span approximately **1.639–1.652 seconds**. A historical constant offset would therefore be inappropriate even as an unexamined convenience. No offset fit or exact timestamp join is used in either analysis.
+
+This observation still does not identify the backend clock source or prove the cause of the changing offset. It strengthens the practical requirement to preserve both timestamps and state the host-window approximation, rather than publish frame-exact counter attribution that the measurement path cannot support.
+
+### 13.4 CPU scopes show where elapsed time appears, not why it occurs
+
+For single-view cases, selected top-view CPU means remain around 3.81–3.96 ms. Top-output wall means rise from 9.76 to 11.88 ms across the resolution range, while that output scope executes for only about 0.92–1.03 ms of thread CPU. Substantial elapsed time is not spent executing on that thread, but paired clocks cannot separate blocked time from runnable-but-unscheduled time or name a particular fence.
+
+At 256×192 dual view, top-output wall time is approximately 0.978 ms and lower-output wall time is 8.122 ms. Where the later work becomes visible changes with the sequential output path. Assigning either number as the isolated computation cost of the output function would be misleading. The same reasoning explains why earlier CPU savings can be followed by more elapsed time in a later scope without proving a regression in that later function.
+
+There are only nine postwarmup samples per relevant scope/view in this matrix. Their means are supporting observations, not continuous traces. Parent view scopes contain scene/post/output scopes; adding both parent and children would double-count execution.
+
+## 14. Preserve the operational failures and the limits of the result
+
+The diary records an initial SSH authentication failure before any deployment or target workload. The helper expected a command-scoped credential environment that had not been supplied. Later inspection recovered the prior setup; this was not an unavailable hardware interface or evidence that a credential manager was required. At the user's request, the standard Ed25519 public key was installed, existing authorized keys were preserved, and login was verified with password and askpass authentication disabled. The runner now uses explicit identity, batch mode, strict known-host checking and a connection timeout. No credential value or private key belongs in the report assets.
+
+A build-provenance check initially passed absolute source paths into `git show revision:path`, which requires repository-relative paths. The corrected helper verifies all 31 captured source hashes against implementation commit `32b8bfd`. Compilation preceded the commit, so the original pre-commit revision receipt is retained rather than rewritten. Deployment verifies the executable hash independently. These are separate statements about source identity and binary identity, not interchangeable evidence.
+
+The driver also emits the nonfatal startup diagnostic `Could not open module param file '/sys/module/bifrost_kbase/parameters/large_page_conf'`. Game and sampler completion remain successful; no kernel/module change was made to suppress the warning. Documentation validation subsequently found missing frontmatter in the tooling README and historical blocker note. Adding metadata resolved those errors; two conventional-filename warnings remain. A check expecting a literal all-clear banner was corrected to distinguish errors from these known warnings. Neither documentation issue invalidated a target capture or required another hardware run.
+
+The detailed diary also corrects a prompt-attribution mistake: wording reconstructed from a compacted summary had been labeled verbatim. It is now explicitly a summary. That correction matters for the accuracy of the development record but does not change the measurement files.
+
+Selected GPU-frequency snapshots are 800 MHz. Before/after temperatures span roughly 50.6–53.1°C; CPU-frequency snapshots include 816, 1104 and 1992 MHz. After snapshots occur after the 45-second probe finishes, not immediately at game exit. These observations cannot reconstruct transient clock or thermal behavior. No governor, affinity, driver, kernel or production-launcher changes were introduced by the benchmark.
+
+The remaining evidence limits are substantive:
+
+- The replay is one generated-input trajectory, with fixed streaming work and audio disabled. It is not integrated audio-enabled acceptance or exhaustive gameplay coverage.
+- The signature covers selected fields, and images cover bounded endpoints. Neither proves universal visual or cross-platform numerical parity.
+- Hardware counters include compositor/background work, use an approximate host interval, and retain unresolved clock-domain semantics.
+- Observer overhead was not separately qualified for this matrix. Common instrumentation across cases does not make its overhead zero.
+- No scheduler trace, trustworthy elapsed-query pass timing or calibrated productive-GPU-busy percentage has appeared as a result of this work.
+- Lower resolution changes output quality. Its improved timing is a sensitivity result, not an accepted same-image optimization.
+
+## 15. Update the hypothesis map without promoting proposals into results
+
+The early design contained more ideas than were implemented. Reading it alongside the diary prevents those source-level opportunities from becoming retrospective claims of optimization. The current state is:
+
+| Mechanism or question | Evidence so far | Current decision |
+|---|---|---|
+| Entire post path | Non-parity bypass improved tails; exact-input compiler tools work. | Worth investigating, but bypass is not a shipping solution. |
+| Lazy-color plus full-fog skip | Bounded image match; no convincing live ABBA benefit. | Keep diagnostic-only; canonical shader unchanged. |
+| Driver index-domain scan | Event profiles, mapped disassembly and range-draw intervention reduce observed CPU cost. | Keep range draws opt-in; no demonstrated frame gain. |
+| Internal pixel count and second view | Matching replay state; dual-view timing and hardware activity scale with configuration. | Benchmark established; no resolution default change. |
+| Presentation/output constraint | Single-view loop throughput stays near 60/s as hardware demand rises; output has substantial non-running elapsed time. | Mechanism remains unisolated. |
+| Camera-independent trail reuse | Source map shows trail construction/upload repeated per view, while snow billboards depend on camera basis. | Proposed, not implemented or measured as a gain. |
+| Uniform-location caching | Repeated lookups exist; linked-program lifetime provides a possible invalidation boundary. | Proposed; no measured cost or accepted savings. |
+| Separate per-view targets | Views reuse offscreen targets; ordering is correct but dependency cost is unproved. | Proposed; memory/driver tradeoffs require a separate experiment. |
+| Terrain/mesh workers | Existing terrain/world caches are mutable; GL uploads remain main-owned. | No worker introduced; immutable or worker-owned inputs would be required. |
+| Rider/HUD reuse, culling or LOD | Some templates/overlay caches already exist; topology, content and visibility complicate further reuse. | No broad caching, geometry simplification or fidelity tradeoff accepted. |
+
+The next useful experiment should hold the replay and a demanding dual-view configuration fixed, then change one deliberately labeled component—for example a cheap post copy or simplified scene fragment path. These are **proposed non-parity sensitivity tests**, not performed experiments or isolated pass timers. The current replay parser rejects the existing `--post-bypass` option, so a future test needs an explicit diagnostic contract and implementation; it is not an already supported command combination.
+
+An alternative is to investigate the apparent presentation ceiling, without silently disabling compositor policy or changing physical outputs. Better backend/host calibration and more specific documented dependency counters also remain possible. The existing evidence selects questions; it does not justify changing all of these factors together.
+
+## 16. Reproduction and publication checkpoint
+
+The new native workspace is:
+
+```text
+ttmp/2026/10/14/FALLLINIE-GPU-006--repeatable-gpu-workload-and-resolution-view-count-scaling
+```
+
+Its design document explains the architecture and implementation contract; its full diary records guide delivery, implementation, interruption, key-authentication recovery and actual measurements. The pre-implementation guide was uploaded to reMarkable at `/ai/2026/10/14/FALLLINIE-GPU-006`. That receipt proves cloud delivery of the design edition, not device sync or delivery of this later report update.
+
+`03-campaign.sh` runs the bounded matrix using the installed key. `04-analyze.py <campaign-directory>` validates complete cases, receipt policy, frame sequence, paired-record reconciliation, counter completion, signatures and same-resolution images before producing a summary. `05-qualify-build.py <revision>` verifies source identity, and `06-results-figure.py` reproduces the figure for the published campaign. Runtime behavior is anchored by `src/main.cpp`, `src/runtime.cpp`, `src/game_renderer.cpp` and `src/terrain.cpp`; symbols are preferable to old line numbers when reviewing later revisions.
+
+The measured deployment is `/storage/apps/falllinie-gpu006-20261014T180649Z`, with executable SHA-256 `90f124a7745a37f76175130bd79ef748b741852bccfe58305548f7946c0d82ed`. The counter probe is `1f346e0801c99672e1b22edf26cca5a840f97c5cafd6f041de23d052697c65e1`. Implementation is `32b8bfd640f44c465d3f8b6311400f35eac07e81`; measured results and ticket completion are `6c5b231`. Original shader and earlier counter checkpoints remain those identified in Sections 1–9.
+
+The vault carries a separate, self-contained [replay summary](./_assets/falllinie-gpu-shader-investigation/replay-scaling/summary.json), [analysis input provenance](./_assets/falllinie-gpu-shader-investigation/replay-scaling/analysis-provenance.json), [build qualification](./_assets/falllinie-gpu-shader-investigation/replay-scaling/build-qualification.json), the scaling figure, three endpoint images and [publication source/asset hashes](./_assets/falllinie-gpu-shader-investigation/replay-scaling/publication-provenance.json). The native repository retains the raw frame/counter records and original BMPs.
+
+The current outcome is a measured, repeatable live-rendering benchmark and a clearer separation of CPU savings, pixel-demand sensitivity and presentation behavior. Production shader formulas, resolution and draw policy are unchanged. This report update synthesizes existing evidence; it does not imply that another GPU intervention has already been run.
+
+
+
 ## Falllinie optimization report network
 
 Navigation addendum: [[MOC - Optimization and Performance Engineering|series index, reading routes and evidence boundaries]]. The original report above remains a historical checkpoint; these cross-links do not revise its measurements.
 
-This is the latest GPU experiment in this collection. The candidate stays diagnostic-only: bounded fixture equality did not produce a convincing live speedup. Earlier CPU attribution and shader-fidelity reports explain its constraints.
+This living GPU report now includes deterministic replay and resolution/view-count scaling. The earlier shader candidate stays diagnostic-only, and the newer measurements do not promote a production rendering change. Read [[PROJECT REPORT - Falllinie CPU PMU - Cache Events, Driver Cycles and an Audio-Disabled Baseline|CPU PMU and range draws]] for the CPU-side experiment that motivated the replay follow-up.
 
 - [[PROJECT REPORT - Falllinie Native GLES Spike - Deterministic Terrain, Print Shaders and Mali Depth Precision|Graphics foundations]] — Deterministic terrain, encoded scene/print passes and Mali depth-sampler precision; establishes the fidelity constraints for later tuning.
 - [[PROJECT REPORT - Falllinie Playable Port - Dual Views, Frame Profiling and Cooperative Terrain Streaming|Playable port and streaming]] — Shared dual views, frame pacing and cooperative terrain generation; an earlier, smaller workload.
