@@ -79,7 +79,7 @@ These are external references, not additional local experiments. Search-discover
 
 ## Falllinie case-study series
 
-This case-study series connects nine reports on the native Falllinie port's fidelity, workload, audio, JavaScript experiments and CPU/GPU performance. They describe successive checkpoints and different workloads, not interchangeable benchmark results. Reports link back here; the catalogue includes later additions to the original cross-linked collection.
+This case-study series connects nine reports on the native Falllinie port's fidelity, workload, audio, JavaScript experiments and CPU/GPU performance, plus a later review of the performance investigation. They describe successive checkpoints and different workloads, not interchangeable benchmark results. Reports link back here; the catalogue includes later additions to the original cross-linked collection.
 
 > [!summary]
 > Buffered audio is implemented and has finite target qualification. CPU/driver attribution and GPU counter collection are measured. JavaScript remains an isolated embedding experiment. The compiler-guided shader candidate did not show a convincing live benefit and was not promoted. Complete visual parity and robust integrated 60 FPS are not established by this collection.
@@ -94,6 +94,8 @@ This case-study series connects nine reports on the native Falllinie port's fide
 
 **For embedded JavaScript**, read [[PROJECT REPORT - Falllinie Integrated Native Game - Precision, Real-Time Audio, Developer Telemetry and JavaScript Embedding|Integrated Native Game]] → [[PROJECT REPORT - Falllinie JavaScript Embedding - ARM64 Qualification, V8 Ownership and Bounded Rules|JavaScript Embedding]], then compare its proposed integration scope with [[PROJECT REPORT - Falllinie Buffered Audio - PCM Ownership, Callback Deadlines and Measured Producer Scheduling|audio ownership]] and [[PROJECT REPORT - Falllinie Rendering Measurements - CPU Execution, Mali Driver Work and GPU Timer Limits|actual rendering costs]]. A fast isolated V8 benchmark does not establish available game-frame budget.
 
+**For an assessment of the performance investigation and the next plan**, read [[PROJECT REPORT - Falllinie Performance Review - Measurement Discipline, Missed Bottlenecks and a Path to 60 FPS|Performance Review]] after the rendering route above. It goes through each experiment and rates it, then re-analyses the committed frame CSVs and counter summaries. The re-analysis finds that the mean frame interval is almost entirely explained by the share of frames that miss a refresh. It also finds that about 8 of the 14 million GPU-active cycles in a 384×288 dual-view replay frame do not scale with internal resolution, and that geometry density was never examined. The review then proposes an ordered plan: measure shadow bounds at the shipping configuration, collect geometry counters, then make pixel-identical geometry reductions. Its cycle-budget figures are estimates derived from published rates, not new device measurements.
+
 ### Report catalogue and evidence progression
 
 | Report | What it contributes | How to read its checkpoint today |
@@ -107,6 +109,7 @@ This case-study series connects nine reports on the native Falllinie port's fide
 | [[PROJECT REPORT - Falllinie Rendering Measurements - CPU Execution, Mali Driver Work and GPU Timer Limits|Rendering Measurements]] | Paired clocks, perf CPU attribution, observed frame distributions and timer anomalies. | Driver CPU execution is not GPU utilization; residual time is not proven GPU wait. |
 | [[PROJECT REPORT - Falllinie GPU Profiling - Hardware Counters, Shader Compilation and a Rejected Optimization|GPU Profiling]] | Working counters/compiler, rejected shader candidate, and deterministic live replay with actual resolution/view scaling. | Dual-view cost rises with internal resolution; single-view throughput stays near 60/s despite rising activity. No calibrated GPU utilization or production optimization claim. |
 | [[PROJECT REPORT - Falllinie CPU PMU - Cache Events, Driver Cycles and an Audio-Disabled Baseline|CPU PMU]] | Actual Cortex-A55 counts and event profiles, verified driver scan, and an opt-in indexed-range experiment. | Audio-disabled workload; scene CPU decreases, but frame timing does not clearly improve. No causal cache-latency diagnosis. |
+| [[PROJECT REPORT - Falllinie Performance Review - Measurement Discipline, Missed Bottlenecks and a Path to 60 FPS|Performance Review]] | An experiment-by-experiment assessment; re-analysis of committed frame and counter data (refresh-miss structure, per-frame GPU cycles and bytes); and a prioritised plan. | A review with derived estimates, not a new device campaign. Its predictions, such as shadow bounds reaching budget at 384×288 dual view, remain to be measured. |
 
 ### Connections that matter technically
 
