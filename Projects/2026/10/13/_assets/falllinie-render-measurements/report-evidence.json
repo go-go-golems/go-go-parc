@@ -1,0 +1,116 @@
+{
+  "source_revision": "f400ffa7c658086cf775fd6d27c28403ba09c2bb",
+  "runtime_revision": "209a6d092885ff3f0a1efd1efab4252cb4ad2b56",
+  "runtime_binary_sha256": "2872ede7219ccd91890de4c0d47d5af8fab687f2b5b2cf9605e25ecb1dfcb1d2",
+  "trace_total_frames": 13133,
+  "trace_postwarmup_frames": 12653,
+  "paired_records": 3360,
+  "gpu_view_sum_ms": 27.271967074074073,
+  "gpu_pass_sum_ms": 42.173881074074075,
+  "initial_perf004": [
+    {
+      "case": "01-static-off",
+      "total_frames": 1198,
+      "postwarmup_frames": 1138,
+      "mean_interval_ms": 16.6666716370826,
+      "metadata": "source_rev=532081682d36f1eaf5eb0daf9a45b17f4b60f136\ncase=static-off\norder=1\nseconds=20\nwarmup_frames=60\nexit_status=0\n"
+    },
+    {
+      "case": "02-static-passes",
+      "total_frames": 1192,
+      "postwarmup_frames": 1132,
+      "mean_interval_ms": 16.666672371024735,
+      "metadata": "source_rev=532081682d36f1eaf5eb0daf9a45b17f4b60f136\ncase=static-passes\norder=2\nseconds=20\nwarmup_frames=60\nexit_status=0\n"
+    },
+    {
+      "case": "03-static-single",
+      "total_frames": 1199,
+      "postwarmup_frames": 1139,
+      "mean_interval_ms": 16.666663821773486,
+      "metadata": "source_rev=532081682d36f1eaf5eb0daf9a45b17f4b60f136\ncase=static-single\norder=3\nseconds=20\nwarmup_frames=60\nexit_status=0\n"
+    },
+    {
+      "case": "04-static-bypass",
+      "total_frames": 1197,
+      "postwarmup_frames": 1137,
+      "mean_interval_ms": 16.666620172383464,
+      "metadata": "source_rev=532081682d36f1eaf5eb0daf9a45b17f4b60f136\ncase=static-bypass\norder=4\nseconds=20\nwarmup_frames=60\nexit_status=0\n"
+    },
+    {
+      "case": "05-static-res",
+      "total_frames": 1133,
+      "postwarmup_frames": 1073,
+      "mean_interval_ms": 17.595509769804288,
+      "metadata": "source_rev=532081682d36f1eaf5eb0daf9a45b17f4b60f136\ncase=static-res\norder=5\nseconds=20\nwarmup_frames=60\nexit_status=0\n"
+    },
+    {
+      "case": "06-static-off",
+      "total_frames": 1196,
+      "postwarmup_frames": 1136,
+      "mean_interval_ms": 16.666619110915494,
+      "metadata": "source_rev=532081682d36f1eaf5eb0daf9a45b17f4b60f136\ncase=static-off\norder=6\nseconds=20\nwarmup_frames=60\nexit_status=0\n"
+    },
+    {
+      "case": "07-live-off",
+      "total_frames": 1091,
+      "postwarmup_frames": 1031,
+      "mean_interval_ms": 18.313201357904948,
+      "metadata": "source_rev=532081682d36f1eaf5eb0daf9a45b17f4b60f136\ncase=live-off\norder=7\nseconds=20\nwarmup_frames=60\nexit_status=0\n"
+    },
+    {
+      "case": "08-live-passes",
+      "total_frames": 1094,
+      "postwarmup_frames": 1034,
+      "mean_interval_ms": 18.24267306673114,
+      "metadata": "source_rev=532081682d36f1eaf5eb0daf9a45b17f4b60f136\ncase=live-passes\norder=8\nseconds=20\nwarmup_frames=60\nexit_status=0\n"
+    }
+  ],
+  "representative_sample_source": "ttmp/2026/10/13/FALLLINIE-TRACE-005--cpu-gpu-driver-and-scheduler-attribution-with-perf-ftrace-and-ebpf/scripts/evidence/target-20261014T020124Z/02-clocks/frames.csv.paired.jsonl",
+  "representative_sample_source_sha256": "c5fd34b62c859023b61934d1a9bd4d098e46780252ae39a5f5b8a21662204dd5",
+  "representative_calculation_ns": {
+    "wall": 6105253,
+    "cpu": 1080042,
+    "residual": 5025211
+  },
+  "source_hashes": {
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/01-static-off/frames.csv": "301a3a252f1974d7f2619a88e3c5cc1426739d8297ed343be10592ff1554964c",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/01-static-off/metadata.txt": "94a4d4ee94b5212127cd3de3dc40b164b0bfeb2512cc24c2f68b4e507a971716",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/01-static-off/binary.sha256": "693b5728ddd0909f48f630cf2762812951ce4c280ed6067b497f243ef4f4c73a",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/02-static-passes/frames.csv": "3d5a1a4a63e91f0f518952bd81fdaeab0e0fff0bd4b783c7236e6e6147f191b1",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/02-static-passes/metadata.txt": "8dc4c748acb4c388407e7bc59ad2ca2c32f4743c46019ea116933a9f9a017ea6",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/02-static-passes/binary.sha256": "693b5728ddd0909f48f630cf2762812951ce4c280ed6067b497f243ef4f4c73a",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/03-static-single/frames.csv": "68af5af12f4437f58849f68d00ceeaea5a2a5d608b315160581d863e24278105",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/03-static-single/metadata.txt": "cf67052ee75a82d4bef44f3640756a3b5b4fa3782e5f9f3352d7231c2c4155e0",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/03-static-single/binary.sha256": "693b5728ddd0909f48f630cf2762812951ce4c280ed6067b497f243ef4f4c73a",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/04-static-bypass/frames.csv": "443c45af00abbaef7a0cd347de1b7052ddb14748a4e3c1481791c1ac15e987e3",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/04-static-bypass/metadata.txt": "1f817e8ee0ad6ce8658d5282c4d06ec0b3d37fa69ae441a6016c84d25bf0bd84",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/04-static-bypass/binary.sha256": "693b5728ddd0909f48f630cf2762812951ce4c280ed6067b497f243ef4f4c73a",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/05-static-res/frames.csv": "de73122e0e1c60eca56ab9a1874c2d07ee18fa891cec272f20c14d48c929f773",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/05-static-res/metadata.txt": "abbccb4f7362f0c1f82ed9ce4bd25fcada9cb4d50a623a37040211667e847def",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/05-static-res/binary.sha256": "693b5728ddd0909f48f630cf2762812951ce4c280ed6067b497f243ef4f4c73a",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/06-static-off/frames.csv": "e9e8ea32ac07a7353b41deaf0aa2bf25745ea9ef7ae4db0f68ebe35bb17b332e",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/06-static-off/metadata.txt": "1099853f3d8416e82d0571ceae3b17fe7a8dc6b6a170b3e073197f7c1ea5436e",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/06-static-off/binary.sha256": "693b5728ddd0909f48f630cf2762812951ce4c280ed6067b497f243ef4f4c73a",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/07-live-off/frames.csv": "01f8151a976d0665cb35672d674923c5331d3f9ae5e0c0a5f69d29892bd502e9",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/07-live-off/metadata.txt": "ea24d32a8bd6875e494d06dcb420a1003cea8769df193c0df576cbbedb74ed7f",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/07-live-off/binary.sha256": "693b5728ddd0909f48f630cf2762812951ce4c280ed6067b497f243ef4f4c73a",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/08-live-passes/frames.csv": "7419bda9ec36d7cea3d1954a73ec75bd6f1a61711e782221b64357ef7ff97058",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/08-live-passes/metadata.txt": "02676cabc1c88345f4ac8f1947dcf9c6086e4969d6492a1d6438edf050b0ca08",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/08-live-passes/binary.sha256": "693b5728ddd0909f48f630cf2762812951ce4c280ed6067b497f243ef4f4c73a",
+    "src/main.cpp": "dcde802ce309842b5a906dc7f08139654a21dace5c25d7a057b76a4ea69760f7",
+    "src/profiler.cpp": "d66a23a891c8888246dd06195086b831635ae455ff42809cec2e6b5dde330c3e",
+    "src/paired_clocks.cpp": "9dc75b35e1a63e4a4abde875ae56e7fec873eb0e4d5d7a16dec7cf163b227f82",
+    "src/paired_clocks.hpp": "36e8914a4e66dc39c6a92d281ddc46ce2f16c7857d818c64b6a6c35e41e9380f",
+    "src/renderer.cpp": "e20e1cd401bb1b03f1da893fa021e4e13899884cb7148bb0cf957aa642a14397",
+    "src/game_renderer.cpp": "b3ceed9da644d28e6b369fe6fa453a080954bd5cfc966790a31c2a745cf0cc66",
+    "ttmp/2026/10/13/FALLLINIE-TRACE-005--cpu-gpu-driver-and-scheduler-attribution-with-perf-ftrace-and-ebpf/scripts/evidence/target-20261014T020124Z/05-perf-stat/perf-stat.csv": "21a75dbd0e046e43872f09ff652ef2e7b34eba97db1818ae7b20ec402d2165dd"
+  },
+  "summary_sha256": "0471c622ac4c19fc299370671b83a2decd4441a30a50563c17577163699033e9",
+  "limits": [
+    "Sequential live runs; ondemand clocks; no randomized replicates.",
+    "Paired residual is not proven GPU wait; nested scopes nonadditive.",
+    "GPU semantic validity unresolved; four startup anomalies remain raw.",
+    "Perf all-thread whole-recording denominator includes startup.",
+    "Post-run captures do not prove query-active image equivalence."
+  ]
+}

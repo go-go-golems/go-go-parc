@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="717" viewBox="0 0 1120 717"><rect width="1120" height="717" fill="#faf9f6"/><g font-family="sans-serif" fill="#172a3a"><text x="24" y="34" font-size="24" font-weight="bold">Render wall time is not all CPU execution</text><text x="24" y="61" font-size="14">Same-row mean milliseconds; GPU queries OFF; cadence 60; first 60 frames excluded.</text>
+<path d="M255.0 90 V647" stroke="#ddd"/><text x="255.0" y="85" text-anchor="middle" font-size="12">0.0</text>
+<path d="M413.0 90 V647" stroke="#ddd"/><text x="413.0" y="85" text-anchor="middle" font-size="12">1.7</text>
+<path d="M571.0 90 V647" stroke="#ddd"/><text x="571.0" y="85" text-anchor="middle" font-size="12">3.4</text>
+<path d="M729.0 90 V647" stroke="#ddd"/><text x="729.0" y="85" text-anchor="middle" font-size="12">5.1</text>
+<path d="M887.0 90 V647" stroke="#ddd"/><text x="887.0" y="85" text-anchor="middle" font-size="12">6.8</text>
+<path d="M1045.0 90 V647" stroke="#ddd"/><text x="1045.0" y="85" text-anchor="middle" font-size="12">8.6</text>
+<text x="245" y="121" text-anchor="end" font-size="14">02 Top view</text>
+<rect x="255" y="102" width="417.2726182495763" height="28" fill="#287bb5"/>
+<text x="463.6363091247881" y="121" fill="white" text-anchor="middle" font-size="13">4.52</text>
+<rect x="672.2726182495762" y="102" width="288.08452460756655" height="28" fill="#e59837"/>
+<text x="816.3148805533594" y="121" fill="white" text-anchor="middle" font-size="13">3.12</text>
+<text x="965.3571428571428" y="121" font-size="12">7.64</text>
+<text x="245" y="167" text-anchor="end" font-size="14">02 Lower view</text>
+<rect x="255" y="148" width="255.92223730057606" height="28" fill="#287bb5"/>
+<text x="382.96111865028803" y="167" fill="white" text-anchor="middle" font-size="13">2.77</text>
+<rect x="510.92223730057606" y="148" width="392.81570750910987" height="28" fill="#e59837"/>
+<text x="707.330091055131" y="167" fill="white" text-anchor="middle" font-size="13">4.26</text>
+<text x="908.7379448096859" y="167" font-size="12">7.03</text>
+<text x="245" y="213" text-anchor="end" font-size="14">02 Player incl. streaming</text>
+<rect x="255" y="194" width="58.44109268324896" height="28" fill="#287bb5"/>
+<text x="284.22054634162447" y="213" fill="white" text-anchor="middle" font-size="13">0.63</text>
+<rect x="313.44109268324894" y="194" width="5.77778853089257" height="28" fill="#e59837"/>
+<text x="324.2188812141415" y="213" font-size="12">0.70</text>
+<text x="245" y="259" text-anchor="end" font-size="14">02 Physics</text>
+<rect x="255" y="240" width="9.231535403696508" height="28" fill="#287bb5"/>
+<rect x="264.2315354036965" y="240" width="0.4551695200303101" height="28" fill="#e59837"/>
+<text x="269.68670492372684" y="259" font-size="12">0.10</text>
+<text x="245" y="305" text-anchor="end" font-size="14">02 Top swap</text>
+<rect x="255" y="286" width="30.903996258618772" height="28" fill="#287bb5"/>
+<rect x="285.90399625861875" y="286" width="6.949789558916197" height="28" fill="#e59837"/>
+<text x="297.85378581753497" y="305" font-size="12">0.41</text>
+<text x="245" y="351" text-anchor="end" font-size="14">02 Lower swap</text>
+<rect x="255" y="332" width="25.83770142684923" height="28" fill="#287bb5"/>
+<rect x="280.8377014268492" y="332" width="3.575224740743196" height="28" fill="#e59837"/>
+<text x="289.4129261675924" y="351" font-size="12">0.32</text>
+<text x="245" y="397" text-anchor="end" font-size="14">07 Top view</text>
+<rect x="255" y="378" width="385.6470233617259" height="28" fill="#287bb5"/>
+<text x="447.82351168086296" y="397" fill="white" text-anchor="middle" font-size="13">4.18</text>
+<rect x="640.6470233617259" y="378" width="313.88518601498873" height="28" fill="#e59837"/>
+<text x="797.5896163692203" y="397" fill="white" text-anchor="middle" font-size="13">3.40</text>
+<text x="959.5322093767147" y="397" font-size="12">7.58</text>
+<text x="245" y="443" text-anchor="end" font-size="14">07 Lower view</text>
+<rect x="255" y="424" width="231.8416967621246" height="28" fill="#287bb5"/>
+<text x="370.9208483810623" y="443" fill="white" text-anchor="middle" font-size="13">2.51</text>
+<rect x="486.84169676212457" y="424" width="320.49474664372883" height="28" fill="#e59837"/>
+<text x="647.089070083989" y="443" fill="white" text-anchor="middle" font-size="13">3.47</text>
+<text x="812.3364434058534" y="443" font-size="12">5.99</text>
+<text x="245" y="489" text-anchor="end" font-size="14">07 Player incl. streaming</text>
+<rect x="255" y="470" width="67.71148952258757" height="28" fill="#287bb5"/>
+<text x="288.8557447612938" y="489" fill="white" text-anchor="middle" font-size="13">0.73</text>
+<rect x="322.71148952258756" y="470" width="6.745538063284108" height="28" fill="#e59837"/>
+<text x="334.4570275858717" y="489" font-size="12">0.81</text>
+<text x="245" y="535" text-anchor="end" font-size="14">07 Physics</text>
+<rect x="255" y="516" width="9.623225322206629" height="28" fill="#287bb5"/>
+<rect x="264.6232253222066" y="516" width="0.22098938797951978" height="28" fill="#e59837"/>
+<text x="269.8442147101861" y="535" font-size="12">0.11</text>
+<text x="245" y="581" text-anchor="end" font-size="14">07 Top swap</text>
+<rect x="255" y="562" width="27.902893527640824" height="28" fill="#287bb5"/>
+<rect x="282.9028935276408" y="562" width="4.62776751993278" height="28" fill="#e59837"/>
+<text x="292.5306610475736" y="581" font-size="12">0.35</text>
+<text x="245" y="627" text-anchor="end" font-size="14">07 Lower swap</text>
+<rect x="255" y="608" width="27.143393721597274" height="28" fill="#287bb5"/>
+<rect x="282.14339372159725" y="608" width="11.203896788763732" height="28" fill="#e59837"/>
+<text x="298.347290510361" y="627" font-size="12">0.42</text>
+<rect x="25" y="668" width="14" height="14" fill="#287bb5"/><text x="47" y="680" font-size="13">Thread CPU execution</text>
+<rect x="360" y="668" width="14" height="14" fill="#e59837"/><text x="382" y="680" font-size="13">Wall minus CPU (not GPU wait)</text>
+<text x="24" y="705" font-size="12">Each row is an independent scope; player includes streaming. The two clock runs bracket query/perf cases.</text>
+</g></svg>

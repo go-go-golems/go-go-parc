@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="533" viewBox="0 0 1120 533"><rect width="1120" height="533" fill="#faf9f6"/><g font-family="sans-serif" fill="#172a3a"><text x="24" y="34" font-size="24" font-weight="bold">GPU elapsed readings remain nonadditive</text><text x="24" y="61" font-size="14">Per-query means in ms; frame &gt;= 60. View and pass measurements are from different runs.</text>
+<path d="M255.0 90 V463" stroke="#ddd"/><text x="255.0" y="85" text-anchor="middle" font-size="12">0.0</text>
+<path d="M413.0 90 V463" stroke="#ddd"/><text x="413.0" y="85" text-anchor="middle" font-size="12">3.3</text>
+<path d="M571.0 90 V463" stroke="#ddd"/><text x="571.0" y="85" text-anchor="middle" font-size="12">6.7</text>
+<path d="M729.0 90 V463" stroke="#ddd"/><text x="729.0" y="85" text-anchor="middle" font-size="12">10.0</text>
+<path d="M887.0 90 V463" stroke="#ddd"/><text x="887.0" y="85" text-anchor="middle" font-size="12">13.4</text>
+<path d="M1045.0 90 V463" stroke="#ddd"/><text x="1045.0" y="85" text-anchor="middle" font-size="12">16.7</text>
+<text x="245" y="121" text-anchor="end" font-size="14">view 0/view</text>
+<rect x="255" y="102" width="705.3571428571429" height="28" fill="#287bb5"/>
+<text x="607.6785714285714" y="121" fill="white" text-anchor="middle" font-size="13">14.91</text>
+<text x="965.3571428571429" y="121" font-size="12">14.91</text>
+<text x="245" y="167" text-anchor="end" font-size="14">view 1/view</text>
+<rect x="255" y="148" width="584.946565267469" height="28" fill="#287bb5"/>
+<text x="547.4732826337345" y="167" fill="white" text-anchor="middle" font-size="13">12.36</text>
+<text x="844.946565267469" y="167" font-size="12">12.36</text>
+<text x="245" y="213" text-anchor="end" font-size="14">passes 0/scene</text>
+<rect x="255" y="194" width="473.5807920109929" height="28" fill="#287bb5"/>
+<text x="491.79039600549646" y="213" fill="white" text-anchor="middle" font-size="13">10.01</text>
+<text x="733.5807920109929" y="213" font-size="12">10.01</text>
+<text x="245" y="259" text-anchor="end" font-size="14">passes 0/post</text>
+<rect x="255" y="240" width="333.26471168611846" height="28" fill="#287bb5"/>
+<text x="421.63235584305926" y="259" fill="white" text-anchor="middle" font-size="13">7.04</text>
+<text x="593.2647116861185" y="259" font-size="12">7.04</text>
+<text x="245" y="305" text-anchor="end" font-size="14">passes 0/output</text>
+<rect x="255" y="286" width="240.92838097262864" height="28" fill="#287bb5"/>
+<text x="375.46419048631435" y="305" fill="white" text-anchor="middle" font-size="13">5.09</text>
+<text x="500.92838097262864" y="305" font-size="12">5.09</text>
+<text x="245" y="351" text-anchor="end" font-size="14">passes 1/scene</text>
+<rect x="255" y="332" width="420.2550451723294" height="28" fill="#287bb5"/>
+<text x="465.1275225861647" y="351" fill="white" text-anchor="middle" font-size="13">8.88</text>
+<text x="680.2550451723293" y="351" font-size="12">8.88</text>
+<text x="245" y="397" text-anchor="end" font-size="14">passes 1/post</text>
+<rect x="255" y="378" width="368.901078179305" height="28" fill="#287bb5"/>
+<text x="439.45053908965247" y="397" fill="white" text-anchor="middle" font-size="13">7.80</text>
+<text x="628.9010781793049" y="397" font-size="12">7.80</text>
+<text x="245" y="443" text-anchor="end" font-size="14">passes 1/output</text>
+<rect x="255" y="424" width="158.41983191061408" height="28" fill="#287bb5"/>
+<text x="334.20991595530705" y="443" fill="white" text-anchor="middle" font-size="13">3.35</text>
+<text x="418.4198319106141" y="443" font-size="12">3.35</text>
+<rect x="25" y="484" width="14" height="14" fill="#287bb5"/><text x="47" y="496" font-size="13">Reported query elapsed (ms)</text>
+<text x="24" y="521" font-size="12">Four startup results across both runs were about 1.84e13 ms despite valid status; preserved, excluded by warmup.</text>
+</g></svg>

@@ -1,0 +1,18 @@
+{
+  "record": "sample",
+  "schema": 1,
+  "pid": 720280,
+  "tid": 720280,
+  "run_start_ns": 69778822572402,
+  "sequence": 30,
+  "frame": 60,
+  "view": 0,
+  "pass": "output",
+  "stage": "render",
+  "wall_start_ns": 69780263096490,
+  "wall_end_ns": 69780269201743,
+  "cpu_start_ns": 1352585865,
+  "cpu_end_ns": 1353665907,
+  "wall_status": "valid",
+  "cpu_status": "valid"
+}

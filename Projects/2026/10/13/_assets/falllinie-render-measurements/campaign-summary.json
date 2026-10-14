@@ -1,0 +1,1515 @@
+{
+  "warmup_frames_excluded": 60,
+  "cases": {
+    "01-baseline": {
+      "frame_ms": {
+        "n": 1570,
+        "mean": 18.334837054140127,
+        "p50": 16.674892,
+        "p95": 33.06046275,
+        "p99": 34.19422272999999,
+        "max": 35.331599
+      },
+      "sampled_frame_ms": {
+        "n": 27,
+        "mean": 19.308371148148147,
+        "p50": 16.703185,
+        "p95": 33.0376276,
+        "p99": 33.74359398,
+        "max": 33.94826
+      },
+      "other_frame_ms": {
+        "n": 1543,
+        "mean": 18.31780178483474,
+        "p50": 16.674602,
+        "p95": 33.03826499999998,
+        "p99": 34.217924139999994,
+        "max": 35.331599
+      },
+      "after_sample_frame_ms": {
+        "n": 27,
+        "mean": 18.01808125925926,
+        "p50": 16.685102,
+        "p95": 29.10548759999999,
+        "p99": 33.77267106,
+        "max": 33.987345
+      },
+      "gpu_over_1000ms_all_frames": [],
+      "gpu_groups_ms": {},
+      "health": {
+        "GL_error": "0",
+        "starved_callbacks": "0",
+        "missing_frames": "0",
+        "over_budget": "0"
+      },
+      "before": "2026-10-14T02:01:27Z\nMemAvailable:     359784 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1608000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=40625\n/sys/class/thermal/thermal_zone1/temp=40625\n",
+      "after": "2026-10-14T02:01:58Z\nMemAvailable:     348024 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1992000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=53750\n/sys/class/thermal/thermal_zone1/temp=53750\n"
+    },
+    "02-clocks": {
+      "frame_ms": {
+        "n": 1585,
+        "mean": 18.20239122208202,
+        "p50": 16.672861,
+        "p95": 32.9491228,
+        "p99": 33.94205252,
+        "max": 36.958762
+      },
+      "sampled_frame_ms": {
+        "n": 27,
+        "mean": 17.908580703703702,
+        "p50": 16.665276,
+        "p95": 28.76604139999999,
+        "p99": 33.6622226,
+        "max": 33.75959
+      },
+      "other_frame_ms": {
+        "n": 1558,
+        "mean": 18.20748293196406,
+        "p50": 16.673154,
+        "p95": 32.939840149999995,
+        "p99": 33.942368959999996,
+        "max": 36.958762
+      },
+      "after_sample_frame_ms": {
+        "n": 27,
+        "mean": 18.40774588888889,
+        "p50": 16.664701,
+        "p95": 32.6941286,
+        "p99": 33.244167579999996,
+        "max": 33.393555
+      },
+      "paired_final": {
+        "record": "final",
+        "schema": 1,
+        "pid": 720280,
+        "tid": 720280,
+        "run_start_ns": 69778822572402,
+        "attempted": 560,
+        "written": 560,
+        "dropped": 0,
+        "invalid_wall": 0,
+        "invalid_cpu": 0,
+        "active": 0
+      },
+      "paired_groups_ms": {
+        "context/0/none": {
+          "n": 27,
+          "wall": 0.14842100000000003,
+          "cpu": 0.0889584074074074,
+          "nonrunning": 0.05946259259259259
+        },
+        "events/-1/none": {
+          "n": 27,
+          "wall": 0.11951444444444445,
+          "cpu": 0.1122915925925926,
+          "nonrunning": 0.0072228518518518536
+        },
+        "physics/-1/none": {
+          "n": 27,
+          "wall": 0.10498574074074074,
+          "cpu": 0.10005255555555556,
+          "nonrunning": 0.004933185185185186
+        },
+        "player/-1/none": {
+          "n": 27,
+          "wall": 0.6960124074074074,
+          "cpu": 0.633392,
+          "nonrunning": 0.06262040740740742
+        },
+        "render/0/dynamic_prep": {
+          "n": 27,
+          "wall": 0.17058700000000002,
+          "cpu": 0.12199233333333333,
+          "nonrunning": 0.04859466666666666
+        },
+        "render/0/dynamic_upload": {
+          "n": 27,
+          "wall": 0.10373262962962963,
+          "cpu": 0.09395970370370371,
+          "nonrunning": 0.009772925925925926
+        },
+        "render/0/scene": {
+          "n": 27,
+          "wall": 2.8812467407407407,
+          "cpu": 2.5956172592592592,
+          "nonrunning": 0.28562948148148143
+        },
+        "render/0/post": {
+          "n": 27,
+          "wall": 0.6604194074074073,
+          "cpu": 0.584327074074074,
+          "nonrunning": 0.07609233333333335
+        },
+        "render/0/output": {
+          "n": 27,
+          "wall": 4.068863074074074,
+          "cpu": 1.2928504444444444,
+          "nonrunning": 2.77601262962963
+        },
+        "render/0/view": {
+          "n": 27,
+          "wall": 7.6447504814814815,
+          "cpu": 4.52245374074074,
+          "nonrunning": 3.1222967407407407
+        },
+        "swap/0/none": {
+          "n": 27,
+          "wall": 0.41026414814814816,
+          "cpu": 0.33494144444444446,
+          "nonrunning": 0.0753227037037037
+        },
+        "context/1/none": {
+          "n": 27,
+          "wall": 0.07455596296296296,
+          "cpu": 0.057404333333333335,
+          "nonrunning": 0.01715162962962963
+        },
+        "render/1/dynamic_prep": {
+          "n": 27,
+          "wall": 0.20212907407407407,
+          "cpu": 0.12974837037037038,
+          "nonrunning": 0.07238070370370371
+        },
+        "render/1/dynamic_upload": {
+          "n": 27,
+          "wall": 0.15506437037037038,
+          "cpu": 0.11198925925925926,
+          "nonrunning": 0.04307511111111111
+        },
+        "render/1/scene": {
+          "n": 27,
+          "wall": 1.6386046296296297,
+          "cpu": 1.3835477037037036,
+          "nonrunning": 0.25505692592592594
+        },
+        "render/1/post": {
+          "n": 27,
+          "wall": 0.5584258888888889,
+          "cpu": 0.5068736666666667,
+          "nonrunning": 0.051552222222222215
+        },
+        "render/1/output": {
+          "n": 27,
+          "wall": 4.807965333333334,
+          "cpu": 0.8432625185185185,
+          "nonrunning": 3.9647028148148147
+        },
+        "render/1/view": {
+          "n": 27,
+          "wall": 7.031104407407407,
+          "cpu": 2.773717777777778,
+          "nonrunning": 4.25738662962963
+        },
+        "swap/1/none": {
+          "n": 27,
+          "wall": 0.31878103703703703,
+          "cpu": 0.2800322962962963,
+          "nonrunning": 0.038748740740740736
+        },
+        "pacing/-1/none": {
+          "n": 27,
+          "wall": 0.7093314814814815,
+          "cpu": 0.016733074074074074,
+          "nonrunning": 0.6925984074074074
+        }
+      },
+      "gpu_over_1000ms_all_frames": [],
+      "gpu_groups_ms": {},
+      "health": {
+        "GL_error": "0",
+        "starved_callbacks": "0",
+        "missing_frames": "0",
+        "over_budget": "0"
+      },
+      "before": "2026-10-14T02:01:59Z\nMemAvailable:     345768 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1104000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=52500\n/sys/class/thermal/thermal_zone1/temp=51875\n",
+      "after": "2026-10-14T02:02:30Z\nMemAvailable:     346784 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1104000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=57777\n/sys/class/thermal/thermal_zone1/temp=57777\n"
+    },
+    "03-view": {
+      "frame_ms": {
+        "n": 1570,
+        "mean": 18.407978508280255,
+        "p50": 16.671415,
+        "p95": 33.0339356,
+        "p99": 34.25518999,
+        "max": 35.797122
+      },
+      "sampled_frame_ms": {
+        "n": 27,
+        "mean": 17.556401851851852,
+        "p50": 16.70408,
+        "p95": 18.4934796,
+        "p99": 30.439107179999972,
+        "max": 34.55058
+      },
+      "other_frame_ms": {
+        "n": 1543,
+        "mean": 18.422879720025925,
+        "p50": 16.67054,
+        "p95": 33.0357738,
+        "p99": 34.217247459999996,
+        "max": 35.797122
+      },
+      "after_sample_frame_ms": {
+        "n": 27,
+        "mean": 18.39477240740741,
+        "p50": 16.672876,
+        "p95": 31.923970500000003,
+        "p99": 33.14756462,
+        "max": 33.555157
+      },
+      "paired_final": {
+        "record": "final",
+        "schema": 1,
+        "pid": 720659,
+        "tid": 720659,
+        "run_start_ns": 69811486941901,
+        "attempted": 560,
+        "written": 560,
+        "dropped": 0,
+        "invalid_wall": 0,
+        "invalid_cpu": 0,
+        "active": 0
+      },
+      "paired_groups_ms": {
+        "context/0/none": {
+          "n": 27,
+          "wall": 0.1916942222222222,
+          "cpu": 0.09150774074074074,
+          "nonrunning": 0.10018648148148149
+        },
+        "events/-1/none": {
+          "n": 27,
+          "wall": 0.12202074074074075,
+          "cpu": 0.11178396296296296,
+          "nonrunning": 0.010236777777777777
+        },
+        "physics/-1/none": {
+          "n": 27,
+          "wall": 0.11638192592592593,
+          "cpu": 0.10469751851851852,
+          "nonrunning": 0.011684407407407407
+        },
+        "player/-1/none": {
+          "n": 27,
+          "wall": 0.733723037037037,
+          "cpu": 0.6444427777777777,
+          "nonrunning": 0.08928025925925925
+        },
+        "render/0/dynamic_prep": {
+          "n": 27,
+          "wall": 0.1428904074074074,
+          "cpu": 0.12431477777777777,
+          "nonrunning": 0.018575629629629633
+        },
+        "render/0/dynamic_upload": {
+          "n": 27,
+          "wall": 0.12614707407407408,
+          "cpu": 0.10025766666666668,
+          "nonrunning": 0.025889407407407403
+        },
+        "render/0/scene": {
+          "n": 27,
+          "wall": 3.03480362962963,
+          "cpu": 2.673884259259259,
+          "nonrunning": 0.36091937037037036
+        },
+        "render/0/post": {
+          "n": 27,
+          "wall": 0.771325074074074,
+          "cpu": 0.624091,
+          "nonrunning": 0.14723407407407407
+        },
+        "render/0/output": {
+          "n": 27,
+          "wall": 3.9786245925925927,
+          "cpu": 1.152320962962963,
+          "nonrunning": 2.8263036296296296
+        },
+        "render/0/view": {
+          "n": 27,
+          "wall": 7.820735333333333,
+          "cpu": 4.498269925925926,
+          "nonrunning": 3.322465407407407
+        },
+        "swap/0/none": {
+          "n": 27,
+          "wall": 0.3289893703703704,
+          "cpu": 0.24489192592592593,
+          "nonrunning": 0.08409744444444443
+        },
+        "context/1/none": {
+          "n": 27,
+          "wall": 0.054377703703703706,
+          "cpu": 0.05083644444444445,
+          "nonrunning": 0.0035412592592592596
+        },
+        "render/1/dynamic_prep": {
+          "n": 27,
+          "wall": 0.12491562962962963,
+          "cpu": 0.1122915925925926,
+          "nonrunning": 0.012624037037037038
+        },
+        "render/1/dynamic_upload": {
+          "n": 27,
+          "wall": 0.12757296296296297,
+          "cpu": 0.08697066666666667,
+          "nonrunning": 0.040602296296296296
+        },
+        "render/1/scene": {
+          "n": 27,
+          "wall": 1.4436055555555556,
+          "cpu": 1.3262298518518518,
+          "nonrunning": 0.11737570370370368
+        },
+        "render/1/post": {
+          "n": 27,
+          "wall": 0.7856485555555556,
+          "cpu": 0.6821328518518519,
+          "nonrunning": 0.10351570370370371
+        },
+        "render/1/output": {
+          "n": 27,
+          "wall": 3.9802665555555556,
+          "cpu": 0.9183934814814815,
+          "nonrunning": 3.0618730740740743
+        },
+        "render/1/view": {
+          "n": 27,
+          "wall": 6.235932148148148,
+          "cpu": 2.966098888888889,
+          "nonrunning": 3.2698332592592596
+        },
+        "swap/1/none": {
+          "n": 27,
+          "wall": 0.30786025925925925,
+          "cpu": 0.23570970370370373,
+          "nonrunning": 0.07215055555555555
+        },
+        "pacing/-1/none": {
+          "n": 27,
+          "wall": 0.5829579259259259,
+          "cpu": 0.014043074074074076,
+          "nonrunning": 0.5689148518518518
+        }
+      },
+      "gpu_over_1000ms_all_frames": [
+        {
+          "frame": "0",
+          "view": "0",
+          "pass": "view",
+          "status": "valid",
+          "gpu_ms": "1.84467441e+13"
+        },
+        {
+          "frame": "0",
+          "view": "1",
+          "pass": "view",
+          "status": "valid",
+          "gpu_ms": "1.84467441e+13"
+        }
+      ],
+      "gpu_groups_ms": {
+        "0/view": {
+          "n": 27,
+          "mean": 14.908487555555554,
+          "p50": 15.197291,
+          "p95": 15.9571699,
+          "p99": 16.0418299,
+          "max": 16.067917
+        },
+        "1/view": {
+          "n": 27,
+          "mean": 12.363479518518519,
+          "p50": 12.318833,
+          "p95": 14.9279374,
+          "p99": 15.34579716,
+          "max": 15.367334
+        }
+      },
+      "health": {
+        "GL_error": "0",
+        "starved_callbacks": "0",
+        "missing_frames": "0",
+        "over_budget": "0"
+      },
+      "before": "2026-10-14T02:02:32Z\nMemAvailable:     344560 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1992000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=57222\n/sys/class/thermal/thermal_zone1/temp=56111\n",
+      "after": "2026-10-14T02:03:03Z\nMemAvailable:     344572 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1104000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=60000\n/sys/class/thermal/thermal_zone1/temp=60000\n"
+    },
+    "04-passes": {
+      "frame_ms": {
+        "n": 1575,
+        "mean": 18.30875655047619,
+        "p50": 16.672589,
+        "p95": 33.026105599999994,
+        "p99": 34.165942699999995,
+        "max": 35.35995
+      },
+      "sampled_frame_ms": {
+        "n": 27,
+        "mean": 17.33622848148148,
+        "p50": 16.68688,
+        "p95": 17.3963074,
+        "p99": 28.243392679999978,
+        "max": 32.051088
+      },
+      "other_frame_ms": {
+        "n": 1548,
+        "mean": 18.325719249354005,
+        "p50": 16.672587,
+        "p95": 33.078838049999995,
+        "p99": 34.196572849999995,
+        "max": 35.35995
+      },
+      "after_sample_frame_ms": {
+        "n": 27,
+        "mean": 17.16362114814815,
+        "p50": 16.61776,
+        "p95": 17.393302,
+        "p99": 29.536666939999975,
+        "max": 33.704787
+      },
+      "paired_final": {
+        "record": "final",
+        "schema": 1,
+        "pid": 721041,
+        "tid": 721041,
+        "run_start_ns": 69844026403214,
+        "attempted": 560,
+        "written": 560,
+        "dropped": 0,
+        "invalid_wall": 0,
+        "invalid_cpu": 0,
+        "active": 0
+      },
+      "paired_groups_ms": {
+        "context/0/none": {
+          "n": 27,
+          "wall": 0.19697674074074076,
+          "cpu": 0.08546907407407407,
+          "nonrunning": 0.11150766666666667
+        },
+        "events/-1/none": {
+          "n": 27,
+          "wall": 0.10934985185185185,
+          "cpu": 0.10659874074074073,
+          "nonrunning": 0.002751111111111113
+        },
+        "physics/-1/none": {
+          "n": 27,
+          "wall": 0.09929307407407408,
+          "cpu": 0.09695218518518518,
+          "nonrunning": 0.00234088888888889
+        },
+        "player/-1/none": {
+          "n": 27,
+          "wall": 0.5602736666666667,
+          "cpu": 0.4784953703703704,
+          "nonrunning": 0.08177829629629628
+        },
+        "render/0/dynamic_prep": {
+          "n": 27,
+          "wall": 0.11922300000000001,
+          "cpu": 0.1111467037037037,
+          "nonrunning": 0.008076296296296295
+        },
+        "render/0/dynamic_upload": {
+          "n": 27,
+          "wall": 0.09714348148148148,
+          "cpu": 0.08632248148148147,
+          "nonrunning": 0.010821
+        },
+        "render/0/scene": {
+          "n": 27,
+          "wall": 2.5729788888888887,
+          "cpu": 2.392984481481481,
+          "nonrunning": 0.17999440740740744
+        },
+        "render/0/post": {
+          "n": 27,
+          "wall": 0.7351276296296296,
+          "cpu": 0.603684925925926,
+          "nonrunning": 0.1314427037037037
+        },
+        "render/0/output": {
+          "n": 27,
+          "wall": 4.515384296296296,
+          "cpu": 1.102338,
+          "nonrunning": 3.413046296296296
+        },
+        "render/0/view": {
+          "n": 27,
+          "wall": 8.100727444444445,
+          "cpu": 4.3740060000000005,
+          "nonrunning": 3.7267214444444448
+        },
+        "swap/0/none": {
+          "n": 27,
+          "wall": 0.250739,
+          "cpu": 0.23226407407407404,
+          "nonrunning": 0.01847492592592593
+        },
+        "context/1/none": {
+          "n": 27,
+          "wall": 0.05748888888888889,
+          "cpu": 0.04773618518518519,
+          "nonrunning": 0.009752703703703703
+        },
+        "render/1/dynamic_prep": {
+          "n": 27,
+          "wall": 0.1887454814814815,
+          "cpu": 0.12093355555555556,
+          "nonrunning": 0.06781192592592593
+        },
+        "render/1/dynamic_upload": {
+          "n": 27,
+          "wall": 0.08985207407407408,
+          "cpu": 0.0785448888888889,
+          "nonrunning": 0.011307185185185184
+        },
+        "render/1/scene": {
+          "n": 27,
+          "wall": 1.4843845185185185,
+          "cpu": 1.2876651111111113,
+          "nonrunning": 0.19671940740740743
+        },
+        "render/1/post": {
+          "n": 27,
+          "wall": 0.6305090740740741,
+          "cpu": 0.5698625925925926,
+          "nonrunning": 0.06064648148148149
+        },
+        "render/1/output": {
+          "n": 27,
+          "wall": 4.246465259259259,
+          "cpu": 0.8267561851851852,
+          "nonrunning": 3.419709074074074
+        },
+        "render/1/view": {
+          "n": 27,
+          "wall": 6.629424037037037,
+          "cpu": 2.948220814814815,
+          "nonrunning": 3.6812032222222224
+        },
+        "swap/1/none": {
+          "n": 27,
+          "wall": 0.3059702962962963,
+          "cpu": 0.22818044444444446,
+          "nonrunning": 0.07778985185185185
+        },
+        "pacing/-1/none": {
+          "n": 27,
+          "wall": 0.4038913703703704,
+          "cpu": 0.013308555555555556,
+          "nonrunning": 0.3905828148148148
+        }
+      },
+      "gpu_over_1000ms_all_frames": [
+        {
+          "frame": "0",
+          "view": "0",
+          "pass": "scene",
+          "status": "valid",
+          "gpu_ms": "1.84467441e+13"
+        },
+        {
+          "frame": "0",
+          "view": "1",
+          "pass": "scene",
+          "status": "valid",
+          "gpu_ms": "1.84467441e+13"
+        }
+      ],
+      "gpu_groups_ms": {
+        "0/scene": {
+          "n": 27,
+          "mean": 10.009643222222222,
+          "p50": 10.146791,
+          "p95": 10.931958,
+          "p99": 11.07935516,
+          "max": 11.114542
+        },
+        "0/post": {
+          "n": 27,
+          "mean": 7.043910814814815,
+          "p50": 7.090124,
+          "p95": 7.9526402,
+          "p99": 8.428669659999999,
+          "max": 8.572374
+        },
+        "0/output": {
+          "n": 27,
+          "mean": 5.092282407407407,
+          "p50": 5.236874,
+          "p95": 5.4782274,
+          "p99": 5.60736,
+          "max": 5.65104
+        },
+        "1/scene": {
+          "n": 27,
+          "mean": 8.882545777777777,
+          "p50": 8.936959,
+          "p95": 10.1798077,
+          "p99": 10.246728,
+          "max": 10.260833
+        },
+        "1/post": {
+          "n": 27,
+          "mean": 7.797124037037037,
+          "p50": 8.048832,
+          "p95": 9.0491614,
+          "p99": 9.16875116,
+          "max": 9.178458
+        },
+        "1/output": {
+          "n": 27,
+          "mean": 3.348374814814815,
+          "p50": 3.607332,
+          "p95": 4.0136531,
+          "p99": 4.07470418,
+          "max": 4.080998
+        }
+      },
+      "health": {
+        "GL_error": "0",
+        "starved_callbacks": "0",
+        "missing_frames": "0",
+        "over_budget": "0"
+      },
+      "before": "2026-10-14T02:03:04Z\nMemAvailable:     343944 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1608000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=58888\n/sys/class/thermal/thermal_zone1/temp=58333\n",
+      "after": "2026-10-14T02:03:35Z\nMemAvailable:     351536 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1992000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=62222\n/sys/class/thermal/thermal_zone1/temp=61666\n"
+    },
+    "05-perf-stat": {
+      "frame_ms": {
+        "n": 1576,
+        "mean": 18.308775851522842,
+        "p50": 16.673765000000003,
+        "p95": 33.03027575,
+        "p99": 34.1536685,
+        "max": 36.0369
+      },
+      "sampled_frame_ms": {
+        "n": 27,
+        "mean": 17.21780248148148,
+        "p50": 16.660348,
+        "p95": 17.2511304,
+        "p99": 27.786194099999978,
+        "max": 31.484997
+      },
+      "other_frame_ms": {
+        "n": 1549,
+        "mean": 18.32779217236927,
+        "p50": 16.674347,
+        "p95": 33.0469502,
+        "p99": 34.15461296,
+        "max": 36.0369
+      },
+      "after_sample_frame_ms": {
+        "n": 27,
+        "mean": 17.96622811111111,
+        "p50": 16.694762,
+        "p95": 29.16758269999999,
+        "p99": 34.14308846,
+        "max": 34.152794
+      },
+      "paired_final": {
+        "record": "final",
+        "schema": 1,
+        "pid": 721416,
+        "tid": 721416,
+        "run_start_ns": 69876558627771,
+        "attempted": 560,
+        "written": 560,
+        "dropped": 0,
+        "invalid_wall": 0,
+        "invalid_cpu": 0,
+        "active": 0
+      },
+      "paired_groups_ms": {
+        "context/0/none": {
+          "n": 27,
+          "wall": 0.17505929629629627,
+          "cpu": 0.0992748148148148,
+          "nonrunning": 0.07578448148148148
+        },
+        "events/-1/none": {
+          "n": 27,
+          "wall": 0.13289855555555555,
+          "cpu": 0.11799529629629629,
+          "nonrunning": 0.01490325925925926
+        },
+        "physics/-1/none": {
+          "n": 27,
+          "wall": 0.10054633333333333,
+          "cpu": 0.09828088888888889,
+          "nonrunning": 0.002265444444444443
+        },
+        "player/-1/none": {
+          "n": 27,
+          "wall": 0.8736977407407408,
+          "cpu": 0.7696327407407407,
+          "nonrunning": 0.104065
+        },
+        "render/0/dynamic_prep": {
+          "n": 27,
+          "wall": 0.16418166666666667,
+          "cpu": 0.12280251851851852,
+          "nonrunning": 0.04137914814814815
+        },
+        "render/0/dynamic_upload": {
+          "n": 27,
+          "wall": 0.10017896296296297,
+          "cpu": 0.09558022222222222,
+          "nonrunning": 0.004598740740740741
+        },
+        "render/0/scene": {
+          "n": 27,
+          "wall": 2.994122888888889,
+          "cpu": 2.648150148148148,
+          "nonrunning": 0.34597274074074075
+        },
+        "render/0/post": {
+          "n": 27,
+          "wall": 0.576433962962963,
+          "cpu": 0.5195557037037036,
+          "nonrunning": 0.05687825925925926
+        },
+        "render/0/output": {
+          "n": 27,
+          "wall": 4.436682148148148,
+          "cpu": 1.2817558888888887,
+          "nonrunning": 3.154926259259259
+        },
+        "render/0/view": {
+          "n": 27,
+          "wall": 8.03271025925926,
+          "cpu": 4.496236407407407,
+          "nonrunning": 3.536473851851852
+        },
+        "swap/0/none": {
+          "n": 27,
+          "wall": 0.3283197407407407,
+          "cpu": 0.2859412962962963,
+          "nonrunning": 0.04237844444444444
+        },
+        "context/1/none": {
+          "n": 27,
+          "wall": 0.05178548148148148,
+          "cpu": 0.04446288888888889,
+          "nonrunning": 0.007322592592592592
+        },
+        "render/1/dynamic_prep": {
+          "n": 27,
+          "wall": 0.13700344444444446,
+          "cpu": 0.11480851851851852,
+          "nonrunning": 0.022194925925925927
+        },
+        "render/1/dynamic_upload": {
+          "n": 27,
+          "wall": 0.10518018518518518,
+          "cpu": 0.09444592592592593,
+          "nonrunning": 0.010734259259259258
+        },
+        "render/1/scene": {
+          "n": 27,
+          "wall": 1.5571807407407408,
+          "cpu": 1.3690185185185184,
+          "nonrunning": 0.18816222222222223
+        },
+        "render/1/post": {
+          "n": 27,
+          "wall": 0.6164775555555556,
+          "cpu": 0.5283703333333334,
+          "nonrunning": 0.08810722222222223
+        },
+        "render/1/output": {
+          "n": 27,
+          "wall": 3.790811962962963,
+          "cpu": 0.8419552592592593,
+          "nonrunning": 2.9488567037037035
+        },
+        "render/1/view": {
+          "n": 27,
+          "wall": 5.993290222222222,
+          "cpu": 2.7775200000000004,
+          "nonrunning": 3.215770222222222
+        },
+        "swap/1/none": {
+          "n": 27,
+          "wall": 0.2841823333333333,
+          "cpu": 0.2649521111111111,
+          "nonrunning": 0.01923022222222223
+        },
+        "pacing/-1/none": {
+          "n": 27,
+          "wall": 0.5795125185185185,
+          "cpu": 0.016365814814814816,
+          "nonrunning": 0.5631467037037037
+        }
+      },
+      "gpu_over_1000ms_all_frames": [],
+      "gpu_groups_ms": {},
+      "health": {
+        "GL_error": "0",
+        "starved_callbacks": "0",
+        "missing_frames": "0",
+        "over_budget": "0"
+      },
+      "before": "2026-10-14T02:03:37Z\nMemAvailable:     347852 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1992000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=60555\n/sys/class/thermal/thermal_zone1/temp=60000\n",
+      "after": "2026-10-14T02:04:08Z\nMemAvailable:     346292 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1104000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=63888\n/sys/class/thermal/thermal_zone1/temp=63333\n"
+    },
+    "06-perf-record": {
+      "frame_ms": {
+        "n": 1593,
+        "mean": 18.10193892467043,
+        "p50": 16.66969,
+        "p95": 32.8605928,
+        "p99": 34.029022559999994,
+        "max": 35.73405
+      },
+      "sampled_frame_ms": {
+        "n": 27,
+        "mean": 19.689727703703706,
+        "p50": 16.684858,
+        "p95": 33.7130204,
+        "p99": 34.3001562,
+        "max": 34.340347
+      },
+      "other_frame_ms": {
+        "n": 1566,
+        "mean": 18.074563256066412,
+        "p50": 16.669689,
+        "p95": 32.852673499999995,
+        "p99": 33.993949349999994,
+        "max": 35.73405
+      },
+      "after_sample_frame_ms": {
+        "n": 27,
+        "mean": 17.97664988888889,
+        "p50": 16.673775,
+        "p95": 28.08785259999999,
+        "p99": 33.193920199999994,
+        "max": 33.555783
+      },
+      "paired_final": {
+        "record": "final",
+        "schema": 1,
+        "pid": 721804,
+        "tid": 721804,
+        "run_start_ns": 69909592533611,
+        "attempted": 560,
+        "written": 560,
+        "dropped": 0,
+        "invalid_wall": 0,
+        "invalid_cpu": 0,
+        "active": 0
+      },
+      "paired_groups_ms": {
+        "context/0/none": {
+          "n": 27,
+          "wall": 0.09165618518518519,
+          "cpu": 0.07894437037037037,
+          "nonrunning": 0.012711814814814816
+        },
+        "events/-1/none": {
+          "n": 27,
+          "wall": 0.12037903703703703,
+          "cpu": 0.1078194074074074,
+          "nonrunning": 0.01255962962962963
+        },
+        "physics/-1/none": {
+          "n": 27,
+          "wall": 0.10897192592592592,
+          "cpu": 0.10278551851851851,
+          "nonrunning": 0.006186407407407407
+        },
+        "player/-1/none": {
+          "n": 27,
+          "wall": 0.5211597777777778,
+          "cpu": 0.47268377777777776,
+          "nonrunning": 0.048476
+        },
+        "render/0/dynamic_prep": {
+          "n": 27,
+          "wall": 0.13542633333333334,
+          "cpu": 0.11523003703703703,
+          "nonrunning": 0.020196296296296296
+        },
+        "render/0/dynamic_upload": {
+          "n": 27,
+          "wall": 0.0984182962962963,
+          "cpu": 0.09522366666666666,
+          "nonrunning": 0.0031946296296296297
+        },
+        "render/0/scene": {
+          "n": 27,
+          "wall": 2.8881230370370368,
+          "cpu": 2.5509057407407405,
+          "nonrunning": 0.3372172962962963
+        },
+        "render/0/post": {
+          "n": 27,
+          "wall": 0.6160348148148148,
+          "cpu": 0.542608,
+          "nonrunning": 0.07342681481481482
+        },
+        "render/0/output": {
+          "n": 27,
+          "wall": 4.635011555555556,
+          "cpu": 1.2038054074074074,
+          "nonrunning": 3.4312061481481484
+        },
+        "render/0/view": {
+          "n": 27,
+          "wall": 8.163366111111111,
+          "cpu": 4.336618481481482,
+          "nonrunning": 3.82674762962963
+        },
+        "swap/0/none": {
+          "n": 27,
+          "wall": 0.3272074814814815,
+          "cpu": 0.28044285185185186,
+          "nonrunning": 0.04676462962962963
+        },
+        "context/1/none": {
+          "n": 27,
+          "wall": 0.059919592592592594,
+          "cpu": 0.049475407407407405,
+          "nonrunning": 0.010444185185185185
+        },
+        "render/1/dynamic_prep": {
+          "n": 27,
+          "wall": 0.1314295925925926,
+          "cpu": 0.11429014814814815,
+          "nonrunning": 0.017139444444444443
+        },
+        "render/1/dynamic_upload": {
+          "n": 27,
+          "wall": 0.09296303703703704,
+          "cpu": 0.08958496296296296,
+          "nonrunning": 0.0033780740740740767
+        },
+        "render/1/scene": {
+          "n": 27,
+          "wall": 1.3934968518518518,
+          "cpu": 1.2561864814814814,
+          "nonrunning": 0.13731037037037036
+        },
+        "render/1/post": {
+          "n": 27,
+          "wall": 0.5799017407407407,
+          "cpu": 0.511928962962963,
+          "nonrunning": 0.06797277777777777
+        },
+        "render/1/output": {
+          "n": 27,
+          "wall": 6.912684333333334,
+          "cpu": 0.8442233333333333,
+          "nonrunning": 6.068461
+        },
+        "render/1/view": {
+          "n": 27,
+          "wall": 8.907384629629629,
+          "cpu": 2.6453943333333334,
+          "nonrunning": 6.261990296296296
+        },
+        "swap/1/none": {
+          "n": 27,
+          "wall": 0.32510092592592593,
+          "cpu": 0.2596156666666667,
+          "nonrunning": 0.06548525925925926
+        },
+        "pacing/-1/none": {
+          "n": 27,
+          "wall": 0.4673541851851852,
+          "cpu": 0.012876444444444444,
+          "nonrunning": 0.45447774074074077
+        }
+      },
+      "gpu_over_1000ms_all_frames": [],
+      "gpu_groups_ms": {},
+      "health": {
+        "GL_error": "0",
+        "starved_callbacks": "0",
+        "missing_frames": "0",
+        "over_budget": "0"
+      },
+      "before": "2026-10-14T02:04:10Z\nMemAvailable:     345516 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1104000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=61666\n/sys/class/thermal/thermal_zone1/temp=61111\n",
+      "after": "2026-10-14T02:04:42Z\nMemAvailable:     343976 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1992000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=62777\n/sys/class/thermal/thermal_zone1/temp=62777\n"
+    },
+    "07-clocks": {
+      "frame_ms": {
+        "n": 1586,
+        "mean": 18.190838901639346,
+        "p50": 16.669714499999998,
+        "p95": 32.975953000000004,
+        "p99": 34.189803700000006,
+        "max": 35.05792
+      },
+      "sampled_frame_ms": {
+        "n": 27,
+        "mean": 16.560820555555555,
+        "p50": 16.647549,
+        "p95": 17.7450301,
+        "p99": 18.202001600000003,
+        "max": 18.240297
+      },
+      "other_frame_ms": {
+        "n": 1559,
+        "mean": 18.219068853752407,
+        "p50": 16.670594,
+        "p95": 32.9986642,
+        "p99": 34.20327076,
+        "max": 35.05792
+      },
+      "after_sample_frame_ms": {
+        "n": 27,
+        "mean": 17.27381811111111,
+        "p50": 16.651344,
+        "p95": 21.433196399999996,
+        "p99": 28.960814879999987,
+        "max": 30.978756
+      },
+      "paired_final": {
+        "record": "final",
+        "schema": 1,
+        "pid": 723251,
+        "tid": 723251,
+        "run_start_ns": 70045005926513,
+        "attempted": 560,
+        "written": 560,
+        "dropped": 0,
+        "invalid_wall": 0,
+        "invalid_cpu": 0,
+        "active": 0
+      },
+      "paired_groups_ms": {
+        "context/0/none": {
+          "n": 27,
+          "wall": 0.13420585185185185,
+          "cpu": 0.08893670370370371,
+          "nonrunning": 0.04526914814814815
+        },
+        "events/-1/none": {
+          "n": 27,
+          "wall": 0.12579107407407408,
+          "cpu": 0.11514348148148149,
+          "nonrunning": 0.010647592592592594
+        },
+        "physics/-1/none": {
+          "n": 27,
+          "wall": 0.10669285185185186,
+          "cpu": 0.10429774074074073,
+          "nonrunning": 0.0023951111111111135
+        },
+        "player/-1/none": {
+          "n": 27,
+          "wall": 0.8069747407407407,
+          "cpu": 0.7338657407407408,
+          "nonrunning": 0.073109
+        },
+        "render/0/dynamic_prep": {
+          "n": 27,
+          "wall": 0.13579377777777776,
+          "cpu": 0.12224092592592592,
+          "nonrunning": 0.013552851851851852
+        },
+        "render/0/dynamic_upload": {
+          "n": 27,
+          "wall": 0.09677651851851853,
+          "cpu": 0.08918518518518519,
+          "nonrunning": 0.007591333333333334
+        },
+        "render/0/scene": {
+          "n": 27,
+          "wall": 2.898800296296296,
+          "cpu": 2.5122767037037033,
+          "nonrunning": 0.3865235925925926
+        },
+        "render/0/post": {
+          "n": 27,
+          "wall": 0.5492678148148148,
+          "cpu": 0.49374844444444443,
+          "nonrunning": 0.055519370370370365
+        },
+        "render/0/output": {
+          "n": 27,
+          "wall": 4.106027074074074,
+          "cpu": 1.1322607407407408,
+          "nonrunning": 2.9737663333333333
+        },
+        "render/0/view": {
+          "n": 27,
+          "wall": 7.58161911111111,
+          "cpu": 4.179691518518518,
+          "nonrunning": 3.401927592592593
+        },
+        "swap/0/none": {
+          "n": 27,
+          "wall": 0.3525714444444445,
+          "cpu": 0.3024151111111111,
+          "nonrunning": 0.05015633333333334
+        },
+        "context/1/none": {
+          "n": 27,
+          "wall": 0.055749814814814815,
+          "cpu": 0.05130081481481481,
+          "nonrunning": 0.004449
+        },
+        "render/1/dynamic_prep": {
+          "n": 27,
+          "wall": 0.11389788888888888,
+          "cpu": 0.10615585185185185,
+          "nonrunning": 0.007742037037037038
+        },
+        "render/1/dynamic_upload": {
+          "n": 27,
+          "wall": 0.09985514814814814,
+          "cpu": 0.08093207407407409,
+          "nonrunning": 0.01892307407407407
+        },
+        "render/1/scene": {
+          "n": 27,
+          "wall": 1.3262232962962963,
+          "cpu": 1.1971836666666666,
+          "nonrunning": 0.12903962962962967
+        },
+        "render/1/post": {
+          "n": 27,
+          "wall": 0.577655925925926,
+          "cpu": 0.47457392592592595,
+          "nonrunning": 0.10308200000000001
+        },
+        "render/1/output": {
+          "n": 27,
+          "wall": 4.057525296296297,
+          "cpu": 0.8050754074074074,
+          "nonrunning": 3.252449888888889
+        },
+        "render/1/view": {
+          "n": 27,
+          "wall": 5.9862926666666665,
+          "cpu": 2.512729814814815,
+          "nonrunning": 3.473562851851852
+        },
+        "swap/1/none": {
+          "n": 27,
+          "wall": 0.4156128148148148,
+          "cpu": 0.29418355555555553,
+          "nonrunning": 0.12142925925925925
+        },
+        "pacing/-1/none": {
+          "n": 27,
+          "wall": 0.3480345185185185,
+          "cpu": 0.01069448148148148,
+          "nonrunning": 0.337340037037037
+        }
+      },
+      "gpu_over_1000ms_all_frames": [],
+      "gpu_groups_ms": {},
+      "health": {
+        "GL_error": "0",
+        "starved_callbacks": "0",
+        "missing_frames": "0",
+        "over_budget": "0"
+      },
+      "before": "2026-10-14T02:06:25Z\nMemAvailable:     345044 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1104000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=46666\n/sys/class/thermal/thermal_zone1/temp=46111\n",
+      "after": "2026-10-14T02:06:56Z\nMemAvailable:     332828 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1104000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=58888\n/sys/class/thermal/thermal_zone1/temp=57777\n"
+    },
+    "08-baseline": {
+      "frame_ms": {
+        "n": 1598,
+        "mean": 18.04660130350438,
+        "p50": 16.671035,
+        "p95": 32.754669799999995,
+        "p99": 33.88184167,
+        "max": 37.452829
+      },
+      "sampled_frame_ms": {
+        "n": 27,
+        "mean": 19.070588,
+        "p50": 16.674974,
+        "p95": 32.725739,
+        "p99": 33.69208602,
+        "max": 33.970006
+      },
+      "other_frame_ms": {
+        "n": 1571,
+        "mean": 18.029002550604712,
+        "p50": 16.670891,
+        "p95": 32.736005,
+        "p99": 33.8710803,
+        "max": 37.452829
+      },
+      "after_sample_frame_ms": {
+        "n": 27,
+        "mean": 17.72209011111111,
+        "p50": 16.659514,
+        "p95": 26.404106699999993,
+        "p99": 32.43310129999999,
+        "max": 33.354904
+      },
+      "gpu_over_1000ms_all_frames": [],
+      "gpu_groups_ms": {},
+      "health": {
+        "GL_error": "0",
+        "starved_callbacks": "0",
+        "missing_frames": "0",
+        "over_budget": "0"
+      },
+      "before": "2026-10-14T02:06:58Z\nMemAvailable:     332452 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1992000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=57777\n/sys/class/thermal/thermal_zone1/temp=56111\n",
+      "after": "2026-10-14T02:07:29Z\nMemAvailable:     347588 kB\nSwapTotal:             0 kB\n/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1992000\n/sys/devices/system/cpu/cpufreq/policy0/scaling_governor=ondemand\n/sys/class/thermal/thermal_zone0/temp=61666\n/sys/class/thermal/thermal_zone1/temp=61666\n"
+    }
+  },
+  "limits": [
+    "Sequential single runs; uncontrolled ondemand clocks.",
+    "Paired render scopes nest; do not add parent and children.",
+    "wall minus thread CPU is non-running estimate, not proven GPU wait.",
+    "Perf percentages include startup and all workload threads; clocks graphs omit first 60 frames."
+  ],
+  "perf_dso_rows": [
+    {
+      "percent": 37.1,
+      "tid": 721824,
+      "comm": "falllinie-trace",
+      "dso": "falllinie-trace005"
+    },
+    {
+      "percent": 28.06,
+      "tid": 721804,
+      "comm": "falllinie-trace",
+      "dso": "libmali.so.1.10.0"
+    },
+    {
+      "percent": 4.13,
+      "tid": 721813,
+      "comm": "mali-cmar-backe",
+      "dso": "[kernel.kallsyms]"
+    },
+    {
+      "percent": 3.8,
+      "tid": 721815,
+      "comm": "PulseMainloop",
+      "dso": "[kernel.kallsyms]"
+    },
+    {
+      "percent": 3.65,
+      "tid": 721804,
+      "comm": "falllinie-trace",
+      "dso": "falllinie-trace005"
+    },
+    {
+      "percent": 3.4,
+      "tid": 721824,
+      "comm": "falllinie-trace",
+      "dso": "libm.so.6"
+    },
+    {
+      "percent": 2.87,
+      "tid": 721813,
+      "comm": "mali-cmar-backe",
+      "dso": "libmali.so.1.10.0"
+    },
+    {
+      "percent": 2.84,
+      "tid": 721804,
+      "comm": "falllinie-trace",
+      "dso": "[kernel.kallsyms]"
+    },
+    {
+      "percent": 2.49,
+      "tid": 721804,
+      "comm": "falllinie-trace",
+      "dso": "libc.so.6"
+    },
+    {
+      "percent": 1.46,
+      "tid": 721824,
+      "comm": "falllinie-trace",
+      "dso": "[kernel.kallsyms]"
+    },
+    {
+      "percent": 1.43,
+      "tid": 721813,
+      "comm": "mali-cmar-backe",
+      "dso": "libc.so.6"
+    },
+    {
+      "percent": 1.01,
+      "tid": 721822,
+      "comm": "PulseHotplug",
+      "dso": "[kernel.kallsyms]"
+    },
+    {
+      "percent": 0.98,
+      "tid": 721823,
+      "comm": "SDLAudioP2",
+      "dso": "[kernel.kallsyms]"
+    },
+    {
+      "percent": 0.86,
+      "tid": 721813,
+      "comm": "mali-cmar-backe",
+      "dso": "[mali_kbase]"
+    },
+    {
+      "percent": 0.65,
+      "tid": 721804,
+      "comm": "falllinie-trace",
+      "dso": "libwayland-client.so.0.26.0"
+    },
+    {
+      "percent": 0.65,
+      "tid": 721815,
+      "comm": "PulseMainloop",
+      "dso": "libpulse.so.0.24.3"
+    },
+    {
+      "percent": 0.63,
+      "tid": 721814,
+      "comm": "mali-compiler",
+      "dso": "libmali.so.1.10.0"
+    },
+    {
+      "percent": 0.63,
+      "tid": 721815,
+      "comm": "PulseMainloop",
+      "dso": "libpulsecommon-17.0.so"
+    },
+    {
+      "percent": 0.45,
+      "tid": 721804,
+      "comm": "falllinie-trace",
+      "dso": "libm.so.6"
+    },
+    {
+      "percent": 0.4,
+      "tid": 721804,
+      "comm": "falllinie-trace",
+      "dso": "libstdc++.so.6.0.36"
+    },
+    {
+      "percent": 0.33,
+      "tid": 721804,
+      "comm": "falllinie-trace",
+      "dso": "libSDL2-2.0.so.0.3200.10"
+    },
+    {
+      "percent": 0.3,
+      "tid": 721815,
+      "comm": "PulseMainloop",
+      "dso": "libc.so.6"
+    },
+    {
+      "percent": 0.25,
+      "tid": 721823,
+      "comm": "SDLAudioP2",
+      "dso": "libc.so.6"
+    },
+    {
+      "percent": 0.23,
+      "tid": 721824,
+      "comm": "falllinie-trace",
+      "dso": "libc.so.6"
+    },
+    {
+      "percent": 0.18,
+      "tid": 721804,
+      "comm": "falllinie-trace",
+      "dso": "[mali_kbase]"
+    },
+    {
+      "percent": 0.18,
+      "tid": 721822,
+      "comm": "PulseHotplug",
+      "dso": "libc.so.6"
+    },
+    {
+      "percent": 0.18,
+      "tid": 721823,
+      "comm": "SDLAudioP2",
+      "dso": "libSDL2-2.0.so.0.3200.10"
+    },
+    {
+      "percent": 0.15,
+      "tid": 721823,
+      "comm": "SDLAudioP2",
+      "dso": "libpulsecommon-17.0.so"
+    },
+    {
+      "percent": 0.13,
+      "tid": 721813,
+      "comm": "mali-cmar-backe",
+      "dso": "libwayland-client.so.0.26.0"
+    },
+    {
+      "percent": 0.1,
+      "tid": 721804,
+      "comm": "falllinie-trace",
+      "dso": "libudev.so.1.7.14"
+    },
+    {
+      "percent": 0.1,
+      "tid": 721823,
+      "comm": "SDLAudioP2",
+      "dso": "libpulse.so.0.24.3"
+    },
+    {
+      "percent": 0.08,
+      "tid": 721804,
+      "comm": "falllinie-trace",
+      "dso": "[vdso]"
+    },
+    {
+      "percent": 0.08,
+      "tid": 721822,
+      "comm": "PulseHotplug",
+      "dso": "libSDL2-2.0.so.0.3200.10"
+    },
+    {
+      "percent": 0.05,
+      "tid": 721804,
+      "comm": "falllinie-trace",
+      "dso": "libxkbcommon.so.0.8.0"
+    },
+    {
+      "percent": 0.05,
+      "tid": 721814,
+      "comm": "mali-compiler",
+      "dso": "libc.so.6"
+    },
+    {
+      "percent": 0.03,
+      "tid": 721813,
+      "comm": "mali-cmar-backe",
+      "dso": "[vdso]"
+    },
+    {
+      "percent": 0.03,
+      "tid": 721822,
+      "comm": "PulseHotplug",
+      "dso": "libpulse.so.0.24.3"
+    },
+    {
+      "percent": 0.03,
+      "tid": 721822,
+      "comm": "PulseHotplug",
+      "dso": "libpulsecommon-17.0.so"
+    },
+    {
+      "percent": 0.03,
+      "tid": 721823,
+      "comm": "SDLAudioP2",
+      "dso": "falllinie-trace005"
+    },
+    {
+      "percent": 0.03,
+      "tid": 721824,
+      "comm": "falllinie-trace",
+      "dso": "libSDL2-2.0.so.0.3200.10"
+    }
+  ],
+  "perf_main_thread_percent": 39.28,
+  "perf_main_libmali_percent": 28.06,
+  "perf_main_libmali_fraction": 0.7143584521384928,
+  "source_rev": "source_rev=209a6d092885ff3f0a1efd1efab4252cb4ad2b56\nremote=/storage/apps/falllinie-trace005-20261014T020124Z\ncampaign_complete=true\npostprocess_recovered=no-inline\n"
+}
