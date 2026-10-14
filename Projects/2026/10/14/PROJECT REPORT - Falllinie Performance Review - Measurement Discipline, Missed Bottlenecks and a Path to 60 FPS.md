@@ -825,6 +825,12 @@ python3 -I $A/figures.py $REPO quantization.json counters_per_frame.json figures
 
 The per-frame counter normalisation divides whole-device rates over the counter window by the loop frame rate over the frame window; the two windows differ, so the per-frame values are estimates. The cluster-pairing statistic in Section 16 (97% of 21 ms intervals followed by a 29 ms interval) was computed from `GPU-008/.../01-original/frames.csv` with the same 18.5/24/31 ms band edges used in the text.
 
+## Follow-up (2026-10-14, evening): the plan executed
+
+Steps 1–4 of Section 26 were carried out as ticket `FALLLINIE-PERF-009` and are reported in [[PROJECT REPORT - Falllinie GPU Budget Recovery - Shadow Bounds at the Shipping Size, Geometry Counters and Presentation Acquisition|GPU Budget Recovery]]. Shadow bounds reached the budget at 384×288 dual view as predicted (replay long frames 3.9% → 0%). Geometry counters confirmed geometry as about half of GPU-active time, with 59% of primitives covering no sample. Row-block culling and 16-bit indices were byte-identical on the Mali-G52 and faster, and the constant shader for fully fogged cells was slower and was rejected. The explicit output clear measured the presentation wait directly. In live autoplay with audio, long frames fell from 7.6% to 0.1%.
+
+One correction to Section 17: when the GPU is saturated, GPU-active cycles per frame equal the GPU clock divided by the frame rate, so that column cannot measure how much work a change removes. The shadow-bounds prediction was right about the outcome, but the remaining headroom is close to zero rather than 5%.
+
 ## Related notes
 
 - [[MOC - Optimization and Performance Engineering]] — the series index for the reviewed reports.
