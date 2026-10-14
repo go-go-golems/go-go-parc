@@ -463,3 +463,8 @@ e91b3e5 0099: add queued LCD text benchmark
 43c06dc 0099: add moving rectangle LCD benchmark
 665a3fe 0099: add dirty region LCD benchmarks
 ```
+
+
+## Optimization knowledge network
+
+Navigation addendum: [[MOC - Optimization and Performance Engineering|Optimization and Performance Engineering MOC]] connects this historical report to related CPU/eBPF, memory, graphics, runtime-boundary and Falllinie investigations, plus external tool references. The findings above are unchanged; consult any existing errata before reusing causal conclusions.

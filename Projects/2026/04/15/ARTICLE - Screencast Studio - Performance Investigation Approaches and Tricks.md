@@ -230,3 +230,8 @@ The ticket-local source documents for this note are:
 
 - [[ARTICLE - Screencast Studio - Prometheus Metrics Architecture and Field Guide]]
 - [[Research Brief - Preview and Recording Performance Investigation Handoff]]
+
+
+## Optimization knowledge network
+
+Navigation addendum: [[MOC - Optimization and Performance Engineering|Optimization and Performance Engineering MOC]] connects this historical report to related CPU/eBPF, memory, graphics, runtime-boundary and Falllinie investigations, plus external tool references. The findings above are unchanged; consult any existing errata before reusing causal conclusions.

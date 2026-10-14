@@ -858,3 +858,8 @@ The project produced several durable engineering rules:
 The project now has a strong measurement foundation, a fixed Kanban movement rendering path, an anti-overfit benchmark suite, a documented `render-attrs-1000` bottleneck, and a clear explanation of Goja's export boundary. The remaining performance work is not blocked by lack of evidence. It is blocked by design scope: the next likely improvements change the UI DSL representation or require deeper Goja internals.
 
 That is the right place to stop for now. The evidence is preserved, the reports are in the ticket, the artifacts are committed, and the next engineer can resume with a specific experiment plan rather than rediscovering the bottleneck from scratch.
+
+
+## Optimization knowledge network
+
+Navigation addendum: [[MOC - Optimization and Performance Engineering|Optimization and Performance Engineering MOC]] connects this historical report to related CPU/eBPF, memory, graphics, runtime-boundary and Falllinie investigations, plus external tool references. The findings above are unchanged; consult any existing errata before reusing causal conclusions.

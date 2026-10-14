@@ -418,7 +418,7 @@ The experiment ends with working hardware-counter tooling, actual G52 compiler r
 
 ## Falllinie optimization report network
 
-Navigation addendum: [[MOC - Falllinie Optimization Reports|series index, reading routes and evidence boundaries]]. The original report above remains a historical checkpoint; these cross-links do not revise its measurements.
+Navigation addendum: [[MOC - Optimization and Performance Engineering|series index, reading routes and evidence boundaries]]. The original report above remains a historical checkpoint; these cross-links do not revise its measurements.
 
 This is the latest GPU experiment in this collection. The candidate stays diagnostic-only: bounded fixture equality did not produce a convincing live speedup. Earlier CPU attribution and shader-fidelity reports explain its constraints.
 

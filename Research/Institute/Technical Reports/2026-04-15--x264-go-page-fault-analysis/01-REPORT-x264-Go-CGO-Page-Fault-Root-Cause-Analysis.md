@@ -491,3 +491,8 @@ SCS-0018/scripts/
 ---
 
 *Report corrected twice by SCS-0018 validation | Pi coding agent | All claims verified by reproducible experiments*
+
+
+## Optimization knowledge network
+
+Navigation addendum: [[MOC - Optimization and Performance Engineering|Optimization and Performance Engineering MOC]] connects this historical report to related CPU/eBPF, memory, graphics, runtime-boundary and Falllinie investigations, plus external tool references. The findings above are unchanged; consult any existing errata before reusing causal conclusions.

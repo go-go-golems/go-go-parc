@@ -273,3 +273,8 @@ Two findings deserve separate emphasis, because both inverted a conclusion.
 - Source repository: `/home/manuel/workspaces/2026-07-21/go-go-wm-goja/go-go-wm`
 - Ticket, with a 21-step investigation diary, both harnesses and the screenshot set: `ttmp/2026/07/21/GGWM-012-GUIDES--import-go-go-wm-engineering-guides-and-handbook/`
 - Measurement harnesses: `scripts/ggwm-xephyr-validate.sh`, `scripts/ggwm-xephyr-scenarios.sh`, `scripts/shmprobe`
+
+
+## Optimization knowledge network
+
+Navigation addendum: [[MOC - Optimization and Performance Engineering|Optimization and Performance Engineering MOC]] connects this historical report to related CPU/eBPF, memory, graphics, runtime-boundary and Falllinie investigations, plus external tool references. The findings above are unchanged; consult any existing errata before reusing causal conclusions.

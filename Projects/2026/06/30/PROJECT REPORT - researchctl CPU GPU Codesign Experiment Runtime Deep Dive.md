@@ -654,3 +654,8 @@ The next useful improvements are clear:
 The important achievement is not that `researchctl` now has a simulator. The important achievement is that experiment execution, artifact provenance, graph evidence, completion checks, and report rendering now form one explicit pipeline. Each stage has a typed contract. Each side effect is behind an operator command. Each boundary is testable.
 
 That structure is what makes future CPU/GPU work possible. Hardware-specific backends can be added later, but they already have a target interface: produce events, metrics, and manifests that the existing bridge and report system can understand. The research graph does not need to know how the backend measured or simulated execution. It only needs durable evidence with clear provenance.
+
+
+## Optimization knowledge network
+
+Navigation addendum: [[MOC - Optimization and Performance Engineering|Optimization and Performance Engineering MOC]] connects this historical report to related CPU/eBPF, memory, graphics, runtime-boundary and Falllinie investigations, plus external tool references. The findings above are unchanged; consult any existing errata before reusing causal conclusions.

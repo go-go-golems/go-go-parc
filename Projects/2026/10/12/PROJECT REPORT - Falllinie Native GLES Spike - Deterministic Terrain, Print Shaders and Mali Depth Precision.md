@@ -491,7 +491,7 @@ Related platform work: [[PROJECT REPORT - DS Demo Game - Dual-Screen SDL2 App An
 
 ## Falllinie optimization report network
 
-Navigation addendum: [[MOC - Falllinie Optimization Reports|series index, reading routes and evidence boundaries]]. The original report above remains a historical checkpoint; these cross-links do not revise its measurements.
+Navigation addendum: [[MOC - Optimization and Performance Engineering|series index, reading routes and evidence boundaries]]. The original report above remains a historical checkpoint; these cross-links do not revise its measurements.
 
 This is the graphics foundation, not the final integrated performance result. Continue with the playable port and integrated game, then the measured rendering and GPU investigations.
 

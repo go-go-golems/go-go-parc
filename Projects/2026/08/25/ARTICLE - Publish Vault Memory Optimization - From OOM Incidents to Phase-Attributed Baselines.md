@@ -573,3 +573,8 @@ publish-vault:
 The optimization process has reached a well-defined boundary. The system no longer relies on an in-memory full-text index, and the current persistent design reduces peak memory by roughly half. The remaining peak is not distributed evenly across vault loading. It is concentrated in `search_index`, where median heap rises from approximately 123 MB after rendering to 391 MB and median RSS reaches 483 MB.
 
 That attribution changes the next task. The question is no longer whether vault parsing, backlinks, rendering, or index publication should be optimized first. The next task is to identify which search-index representations and Bleve internals retain memory at the peak, preserve the runtime's snapshot invariants, and prove a lower bound with repeated content-free traces and search equivalence tests.
+
+
+## Optimization knowledge network
+
+Navigation addendum: [[MOC - Optimization and Performance Engineering|Optimization and Performance Engineering MOC]] connects this historical report to related CPU/eBPF, memory, graphics, runtime-boundary and Falllinie investigations, plus external tool references. The findings above are unchanged; consult any existing errata before reusing causal conclusions.

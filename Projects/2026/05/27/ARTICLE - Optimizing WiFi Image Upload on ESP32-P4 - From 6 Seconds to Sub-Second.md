@@ -333,3 +333,8 @@ These are estimates, not measurements. The actual improvement from each optimiza
 
 - [[ARTICLE - ESP32-P4 MIPI DSI Image Blitter - Browser-to-Display Pipeline on the M5Stack Tab5]] — architecture, failure modes, and working patterns for the screen viewer firmware
 - Ticket 0093 documentation: `/home/manuel/workspaces/2025-12-21/echo-base-documentation/esp32-s3-m5/ttmp/2026/05/27/0093--m5tab5-ui-screen-viewer-web-based-image-blit-to-display/`
+
+
+## Optimization knowledge network
+
+Navigation addendum: [[MOC - Optimization and Performance Engineering|Optimization and Performance Engineering MOC]] connects this historical report to related CPU/eBPF, memory, graphics, runtime-boundary and Falllinie investigations, plus external tool references. The findings above are unchanged; consult any existing errata before reusing causal conclusions.
