@@ -1,0 +1,29 @@
+{
+  "script_sha256": "525393f24b61d84d366d3bd76516907a884471c95a568a9a916626ac9e06ba74",
+  "inputs": {
+    "evidence/target-20261014T024712Z/01-idle/status.txt": "dd142b8cf284739e956975f2b0183afbc63c4807bd1e615805e2f95e597070d7",
+    "evidence/target-20261014T024712Z/01-idle/counters.csv": "271892cc1425f18afaa2febe31b895502e86e5d0bbf36b3858327cae6deb63e6",
+    "evidence/target-20261014T024712Z/01-idle/counters.log": "c7f8f0ac980af8269fccad03013919eed78f86f0a4a4abf282e86601700f7929",
+    "evidence/target-20261014T024712Z/02-baseline/status.txt": "28c09062b77940750ac04be54f8a540620ce4da3c379ae3295b08efafe5e6fda",
+    "evidence/target-20261014T024712Z/02-baseline/frames.csv": "ec07e9f9c97f3b817c990a5e8ee5d4d721a859e8c047ea8e9bd97f109600deee",
+    "evidence/target-20261014T024712Z/02-baseline/frames.csv.paired.jsonl": "ba2cbc04043f79a39d7c2ffd14e59f1ef36dfa7b38b7e890145b0933325f7267",
+    "evidence/target-20261014T024712Z/02-baseline/game.log": "558e5ba20167351f6865ce56a947cd32b49fa378502de8f955fcb84edb84b083",
+    "evidence/target-20261014T024712Z/03-live/status.txt": "79d0540dbd0d14324bc80cace384e4e798cad64c70c5a96727828fed97d28d58",
+    "evidence/target-20261014T024712Z/03-live/frames.csv": "cb421d53814f53f0e93f5c03962dd8bf3d62bc8f5010054a724201f4283a8976",
+    "evidence/target-20261014T024712Z/03-live/frames.csv.paired.jsonl": "22c60069495572dc9db856a3fbd7350e57bf2f0da58103693180ae0c0a66bd36",
+    "evidence/target-20261014T024712Z/03-live/game.log": "b618f6611e1978bf79e00b52f82c8974a11983f4677cc51e2447348fb202d211",
+    "evidence/target-20261014T024712Z/03-live/counters.csv": "3b9d8d6d655ed4d5d2efc2843a03353de34c1e4f9ad12c734dc6cf12b804c547",
+    "evidence/target-20261014T024712Z/03-live/counters.log": "41e7ff90d740656e8a83a5f5438db034e9b291d2eacf9c4f6bb2ce1e5a69b98c",
+    "evidence/target-20261014T024712Z/04-bypass/status.txt": "79d0540dbd0d14324bc80cace384e4e798cad64c70c5a96727828fed97d28d58",
+    "evidence/target-20261014T024712Z/04-bypass/frames.csv": "75f748ddc3677adc8e86aa622939bb6fb4deb262cb42ca58b53184022d67ab4c",
+    "evidence/target-20261014T024712Z/04-bypass/frames.csv.paired.jsonl": "df3bd6f8eb46faa3ab263db152f6989a04f0959b9310a0d01079eb130ef10f31",
+    "evidence/target-20261014T024712Z/04-bypass/game.log": "b3f312d8eeb7e126dba58fa65497782034847b73f99c47a2f7607cace0b91489",
+    "evidence/target-20261014T024712Z/04-bypass/counters.csv": "2e2ed8968d7642e566fa8ddbc4497e8f28c05d122ee1fa5ff384a01546435db7",
+    "evidence/target-20261014T024712Z/04-bypass/counters.log": "d855935c1898c1a06786935eaa1eda79f6e78812ed1f4b203ec67eb057489bd2",
+    "evidence/target-20261014T024712Z/05-baseline/status.txt": "28c09062b77940750ac04be54f8a540620ce4da3c379ae3295b08efafe5e6fda",
+    "evidence/target-20261014T024712Z/05-baseline/frames.csv": "1900d3e5f5a03d1cb8e60e9da6f8e4ecfaa68a461041763c7f09450b85b6f321",
+    "evidence/target-20261014T024712Z/05-baseline/frames.csv.paired.jsonl": "0c5422711a2c766ff391604e8c2c3d7cc5b042572140f898cbc5c14f1e46dc1c",
+    "evidence/target-20261014T024712Z/05-baseline/game.log": "3e535f6f7ad1f76345fd5a20b501838dd52491186c577768a67677d67467795d"
+  },
+  "scope": "Whole-device; central intervals inside frame>=60 paired-clock extent; no application-only or per-pass claims"
+}

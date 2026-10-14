@@ -1,0 +1,202 @@
+{
+  "01-idle": {
+    "raw_rows": 3900,
+    "nonfinite_rows": 299,
+    "advertised_counters": 240,
+    "selected_intervals": 299,
+    "host_interval_seconds": 29.900244582,
+    "selected_nonfinite_rows": 299,
+    "backend_begin_minus_host_complete_s": {
+      "min": 1.262551101,
+      "max": 1.263741119
+    },
+    "poll_wall_us": {
+      "mean": 170.42320666666666
+    },
+    "counter_means": {
+      "MaliGPUActiveCy": 0.0,
+      "MaliCoreActiveCy": 0.0,
+      "MaliFragActiveCy": 0.0,
+      "MaliNonFragActiveCy": 0.0,
+      "MaliTilerActiveCy": 0.0,
+      "MaliExtBusRdBy": 0.0,
+      "MaliExtBusWrBy": 912.0,
+      "MaliFragUtil": 0.0,
+      "MaliNonFragUtil": 0.0,
+      "MaliTexUtil": 0.0,
+      "MaliALUUtil": 0.0,
+      "MaliExtBusRdStallRate": 0.0
+    },
+    "rates_per_second": {
+      "MaliGPUActiveCy": 0.0,
+      "MaliCoreActiveCy": 0.0,
+      "MaliFragActiveCy": 0.0,
+      "MaliNonFragActiveCy": 0.0,
+      "MaliTilerActiveCy": 0.0,
+      "MaliExtBusRdBy": 0.0,
+      "MaliExtBusWrBy": 9119.925399010237
+    },
+    "fragment_active_over_gpu_active_percent": null,
+    "gpu_frequency_snapshots_hz": [
+      200000000
+    ]
+  },
+  "02-baseline": {
+    "frame_ms": {
+      "n": 1598,
+      "mean": 18.033596723404255,
+      "p50": 16.6681315,
+      "p95": 32.74655315,
+      "p99": 34.162174050000004
+    },
+    "window_mono_ns": [
+      72528316279219,
+      72556518788858
+    ],
+    "health": {
+      "GL_error": "0",
+      "over_budget": "0",
+      "starved_callbacks": "0",
+      "missing_frames": "0"
+    }
+  },
+  "03-live": {
+    "frame_ms": {
+      "n": 1587,
+      "mean": 18.171114105860113,
+      "p50": 16.669587,
+      "p95": 32.75427799999999,
+      "p99": 34.09510023999999
+    },
+    "window_mono_ns": [
+      72560823186923,
+      72589209800815
+    ],
+    "health": {
+      "GL_error": "0",
+      "over_budget": "0",
+      "starved_callbacks": "0",
+      "missing_frames": "0"
+    },
+    "raw_rows": 5850,
+    "nonfinite_rows": 145,
+    "advertised_counters": 240,
+    "selected_intervals": 283,
+    "host_interval_seconds": 28.300346432,
+    "selected_nonfinite_rows": 0,
+    "backend_begin_minus_host_complete_s": {
+      "min": 1.262300138,
+      "max": 1.265834353
+    },
+    "poll_wall_us": {
+      "mean": 179.87637333333333
+    },
+    "counter_means": {
+      "MaliGPUActiveCy": 80328191.87279151,
+      "MaliCoreActiveCy": 74234239.0,
+      "MaliFragActiveCy": 79843419.48763251,
+      "MaliNonFragActiveCy": 40118227.79858657,
+      "MaliTilerActiveCy": 39973530.10600707,
+      "MaliExtBusRdBy": 143184086.61484098,
+      "MaliExtBusWrBy": 74753849.2155477,
+      "MaliFragUtil": 99.38998651943695,
+      "MaliNonFragUtil": 49.94385295291061,
+      "MaliTexUtil": 13.124379232636889,
+      "MaliALUUtil": 70.65643067103939,
+      "MaliExtBusRdStallRate": 0.00010351463098979004,
+      "MaliExtBusWrStallRate": 0.00015097694846741397
+    },
+    "rates_per_second": {
+      "MaliGPUActiveCy": 803272085.5422212,
+      "MaliCoreActiveCy": 742333302.7911395,
+      "MaliFragActiveCy": 798424421.0328965,
+      "MaliNonFragActiveCy": 401177367.0078584,
+      "MaliTilerActiveCy": 399730407.7948893,
+      "MaliExtBusRdBy": 1431823338.6069667,
+      "MaliExtBusWrBy": 747529341.3397604
+    },
+    "fragment_active_over_gpu_active_percent": 99.3965102738442,
+    "gpu_frequency_snapshots_hz": [
+      800000000
+    ]
+  },
+  "04-bypass": {
+    "frame_ms": {
+      "n": 1735,
+      "mean": 16.66634239020173,
+      "p50": 16.666085,
+      "p95": 16.8179525,
+      "p99": 17.39162606
+    },
+    "window_mono_ns": [
+      72607495178983,
+      72635511026614
+    ],
+    "health": {
+      "GL_error": "0",
+      "over_budget": "0",
+      "starved_callbacks": "0",
+      "missing_frames": "0"
+    },
+    "raw_rows": 5850,
+    "nonfinite_rows": 147,
+    "advertised_counters": 240,
+    "selected_intervals": 279,
+    "host_interval_seconds": 27.900048932,
+    "selected_nonfinite_rows": 0,
+    "backend_begin_minus_host_complete_s": {
+      "min": 1.262549805,
+      "max": 1.268324404
+    },
+    "poll_wall_us": {
+      "mean": 147.56196888888888
+    },
+    "counter_means": {
+      "MaliGPUActiveCy": 78842056.66308244,
+      "MaliCoreActiveCy": 72790873.1577061,
+      "MaliFragActiveCy": 70493069.29032259,
+      "MaliNonFragActiveCy": 37358989.42293907,
+      "MaliTilerActiveCy": 37276731.76344086,
+      "MaliExtBusRdBy": 152829395.38351256,
+      "MaliExtBusWrBy": 57045872.28673835,
+      "MaliFragUtil": 89.30282875262452,
+      "MaliNonFragUtil": 47.36958864152942,
+      "MaliTexUtil": 7.892159302137848,
+      "MaliALUUtil": 64.61694515918502,
+      "MaliExtBusRdStallRate": 8.966175920138312e-05,
+      "MaliExtBusWrStallRate": 0.00010857498554561274
+    },
+    "rates_per_second": {
+      "MaliGPUActiveCy": 788419183.8735662,
+      "MaliCoreActiveCy": 727907454.9473983,
+      "MaliFragActiveCy": 704929456.5731839,
+      "MaliNonFragActiveCy": 373589239.0154608,
+      "MaliTilerActiveCy": 372766663.8631399,
+      "MaliExtBusRdBy": 1528291273.4642081,
+      "MaliExtBusWrBy": 570457722.3785924
+    },
+    "fragment_active_over_gpu_active_percent": 89.41049012909724,
+    "gpu_frequency_snapshots_hz": [
+      800000000
+    ]
+  },
+  "05-baseline": {
+    "frame_ms": {
+      "n": 1577,
+      "mean": 18.294650254280278,
+      "p50": 16.670166,
+      "p95": 33.0085392,
+      "p99": 33.99325616
+    },
+    "window_mono_ns": [
+      72654256599803,
+      72682827141712
+    ],
+    "health": {
+      "GL_error": "0",
+      "over_budget": "0",
+      "starved_callbacks": "0",
+      "missing_frames": "0"
+    }
+  }
+}

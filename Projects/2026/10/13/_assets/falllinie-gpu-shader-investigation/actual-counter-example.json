@@ -1,0 +1,25 @@
+{
+  "case": "03-live",
+  "sequence": 20,
+  "previous_host_complete_ns": 72560834939400,
+  "host_request_ns": 72560934878763,
+  "host_complete_ns": 72560935096342,
+  "backend_begin_ns": 72562199242350,
+  "host_interval_ns": 100156942,
+  "counter_values": {
+    "MaliGPUActiveCy": 80566124.0,
+    "MaliCoreActiveCy": 73696849.0,
+    "MaliFragActiveCy": 80291828.0,
+    "MaliNonFragActiveCy": 45557889.0,
+    "MaliTilerActiveCy": 45408062.0,
+    "MaliExtBusRdBy": 150819584.0,
+    "MaliExtBusWrBy": 77831088.0,
+    "MaliFragUtil": 99.65953928725676,
+    "MaliNonFragUtil": 56.547202146649134,
+    "MaliTexUtil": 12.798000359554043,
+    "MaliALUUtil": 68.94233293475003,
+    "MaliExtBusRdStallRate": 0.00011895975387544126,
+    "MaliExtBusWrStallRate": 0.00016851160360785116
+  },
+  "frequency_snapshot_hz": 800000000
+}

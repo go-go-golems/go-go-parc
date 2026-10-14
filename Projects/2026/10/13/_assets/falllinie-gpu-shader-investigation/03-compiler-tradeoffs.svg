@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="380"><rect width="1080" height="380" fill="#faf9f6"/><g font-family="sans-serif" fill="#172a3a">
+<text x="24" y="36" font-size="24">Offline compiler: local changes interact through register allocation</text>
+<text x="24" y="64" font-size="14">Mali-G52 r1p0; compiler 2026.5, r51p0 backend. Static estimates, not measured shader milliseconds.</text>
+<text x="25" y="110" font-size="17" font-weight="bold">Variant</text>
+<text x="290" y="110" font-size="17" font-weight="bold">Work regs</text>
+<text x="465" y="110" font-size="17" font-weight="bold">Occupancy</text>
+<text x="635" y="110" font-size="17" font-weight="bold">Total A</text>
+<text x="775" y="110" font-size="17" font-weight="bold">Total T</text>
+<text x="915" y="110" font-size="17" font-weight="bold">Shortest A</text>
+<text x="25" y="152" font-size="17" font-weight="normal">Baseline</text>
+<text x="290" y="152" font-size="17" font-weight="normal">32</text>
+<text x="465" y="152" font-size="17" font-weight="normal">100%</text>
+<text x="635" y="152" font-size="17" font-weight="normal">10.63</text>
+<text x="775" y="152" font-size="17" font-weight="normal">3.50</text>
+<text x="915" y="152" font-size="17" font-weight="normal">3.53</text>
+<text x="25" y="194" font-size="17" font-weight="normal">Lazy color</text>
+<text x="290" y="194" font-size="17" font-weight="normal">32</text>
+<text x="465" y="194" font-size="17" font-weight="normal">100%</text>
+<text x="635" y="194" font-size="17" font-weight="normal">10.75</text>
+<text x="775" y="194" font-size="17" font-weight="normal">5.00</text>
+<text x="915" y="194" font-size="17" font-weight="normal">3.67</text>
+<text x="25" y="236" font-size="17" font-weight="normal">Fog skip</text>
+<text x="290" y="236" font-size="17" font-weight="normal">60</text>
+<text x="465" y="236" font-size="17" font-weight="normal">50%</text>
+<text x="635" y="236" font-size="17" font-weight="normal">10.67</text>
+<text x="775" y="236" font-size="17" font-weight="normal">2.50</text>
+<text x="915" y="236" font-size="17" font-weight="normal">2.67</text>
+<text x="25" y="278" font-size="17" font-weight="normal">Combined</text>
+<text x="290" y="278" font-size="17" font-weight="normal">32</text>
+<text x="465" y="278" font-size="17" font-weight="normal">100%</text>
+<text x="635" y="278" font-size="17" font-weight="normal">10.80</text>
+<text x="775" y="278" font-size="17" font-weight="normal">3.00</text>
+<text x="915" y="278" font-size="17" font-weight="normal">2.70</text>
+<text x="24" y="337" font-size="14">All four report no stack use. Combined avoids fog-only occupancy loss, but is not a predicted universal win.</text></g></svg>

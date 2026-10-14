@@ -1,0 +1,29 @@
+{
+  "native_revision": "70c164a18ee10a6c321c767ea00e64e3faa8dc7e",
+  "inputs": {
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/03-mali-counters/evidence/counter-comparison.svg": "80d9e714261b8a1dee7627c1cc6d77eda6f40f8a9a4ff38f8ce902692fdec612",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/03-mali-counters/evidence/frame-comparison.svg": "dbb7bcbf3bfaf6c3ecc376f00e3416ec90b02eb3b37e7275196718c11f34660d",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/04-shader-analysis/evidence/compiler-comparison.svg": "3c048d1e59dfd960adc7228a13ce8dc3300ccebdad0f985b72e8c1ac9415b16a",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/04-shader-analysis/evidence/frame-abba.svg": "d72eac7b73f8fba0b252999d2932c58337c86afa716bee7e4be0026cac914748",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/03-mali-counters/evidence/summary.json": "e3664cad1f206bbe7da35cfbf938a3f786f1efe66fa9e9a9edb07117ab63be45",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/04-shader-analysis/evidence/experiment-summary.json": "f0ea94ada0279dce116f6fec2263e1e3c47165e9483fbd3625e22d0cba3b2304",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/03-mali-counters/evidence/analysis-provenance.json": "c4318d658454b7851e82479f0ad3a3a89a07a604b5f21b296d63adc21f715314",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/04-shader-analysis/evidence/experiment-provenance.json": "045b1990b60b4e2b02fea3fd5a299c340f05506a1a40d5be2a697b7a09bd2b11",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/04-shader-analysis/evidence/target-20261014T032113Z/capture-baseline/print.bmp": "360a0b856157478e030a43a8c8c264bdb2300273c471c3efe0799c6635d809e8",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/04-shader-analysis/evidence/target-20261014T032113Z/capture-combined/print.bmp": "360a0b856157478e030a43a8c8c264bdb2300273c471c3efe0799c6635d809e8",
+    "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/03-mali-counters/evidence/target-20261014T024712Z/03-live/counters.csv": "3b9d8d6d655ed4d5d2efc2843a03353de34c1e4f9ad12c734dc6cf12b804c547"
+  },
+  "assets": {
+    "actual-counter-example.json": "b7b8268f50fd3350c0d8f46e8a8f68ff47c3369c8d423fa9be0905f81fbbef04",
+    "01-hardware-counters.svg": "80d9e714261b8a1dee7627c1cc6d77eda6f40f8a9a4ff38f8ce902692fdec612",
+    "hardware-provenance.json": "c4318d658454b7851e82479f0ad3a3a89a07a604b5f21b296d63adc21f715314",
+    "shader-summary.json": "f0ea94ada0279dce116f6fec2263e1e3c47165e9483fbd3625e22d0cba3b2304",
+    "hardware-summary.json": "e3664cad1f206bbe7da35cfbf938a3f786f1efe66fa9e9a9edb07117ab63be45",
+    "02-post-bypass-frames.svg": "dbb7bcbf3bfaf6c3ecc376f00e3416ec90b02eb3b37e7275196718c11f34660d",
+    "03-compiler-tradeoffs.svg": "3c048d1e59dfd960adc7228a13ce8dc3300ccebdad0f985b72e8c1ac9415b16a",
+    "fixture-baseline.png": "a14aee620cc435778b143822fa8b828a9f583d4d31272e0dd85035b9105d6faf",
+    "shader-provenance.json": "045b1990b60b4e2b02fea3fd5a299c340f05506a1a40d5be2a697b7a09bd2b11",
+    "fixture-combined.png": "a14aee620cc435778b143822fa8b828a9f583d4d31272e0dd85035b9105d6faf",
+    "04-candidate-abba.svg": "d72eac7b73f8fba0b252999d2932c58337c86afa716bee7e4be0026cac914748"
+  }
+}
