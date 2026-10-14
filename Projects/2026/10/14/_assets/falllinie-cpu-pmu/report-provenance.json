@@ -1,0 +1,14 @@
+{
+  "native_evidence_commit": "f8f6632",
+  "source_summary_sha256": "2b3643d1f3dd7d352c4c5ad6726df1f0cc43de86d28d91258936319b17f60365",
+  "generator_sha256": "4fa35c04fe3d617c0163817a880418f0edc1c11780cc7c521ea676980155f9a9",
+  "assets": {
+    "02-cycle-attribution.svg": "ef0255b0de95709099fc83287d5a889df59359fbb16e25ffa24f039fc01508ff",
+    "build-qualification.json": "150bcf8ce4079dc3652c8919631b139f8832fdbe1a16e78eaf4aa8397248c599",
+    "actual-interval.json": "fe37e928e3af7ac469c876d9d906ade46204c21a4f7c06654ff63ff26fe7c24b",
+    "01-counter-ratios.svg": "b98b98a5b25f86874db86f0938db2f001f066b07a7fc1d8c3cb6e913b2c63280",
+    "summary.json": "2b3643d1f3dd7d352c4c5ad6726df1f0cc43de86d28d91258936319b17f60365",
+    "analysis-provenance.json": "7ffe525aa5f21db7221a050773bba4d0838e9a2a21fa09f1bea46c9dfaf38621",
+    "03-frame-context.svg": "c4de45ea40db046e25489dd1cfe206838310eda56c9712e1d448cc9b4983d5e8"
+  }
+}

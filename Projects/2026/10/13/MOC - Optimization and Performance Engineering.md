@@ -79,14 +79,14 @@ These are external references, not additional local experiments. Search-discover
 
 ## Falllinie case-study series
 
-This case-study series connects the eight reports on the native Falllinie port's fidelity, workload, audio, JavaScript experiments and rendering performance. They describe successive checkpoints and different workloads, not eight interchangeable benchmark results. Each report now links back here and directly to every other report.
+This case-study series connects nine reports on the native Falllinie port's fidelity, workload, audio, JavaScript experiments and CPU/GPU performance. They describe successive checkpoints and different workloads, not interchangeable benchmark results. Reports link back here; the catalogue includes later additions to the original cross-linked collection.
 
 > [!summary]
 > Buffered audio is implemented and has finite target qualification. CPU/driver attribution and GPU counter collection are measured. JavaScript remains an isolated embedding experiment. The compiler-guided shader candidate did not show a convincing live benefit and was not promoted. Complete visual parity and robust integrated 60 FPS are not established by this collection.
 
 ### Choose a reading route
 
-**For the current rendering evidence**, read [[PROJECT REPORT - Falllinie Tracing - CPU Execution, Driver Waits and GPU Attribution|Tracing]] → [[PROJECT REPORT - Falllinie Rendering Measurements - CPU Execution, Mali Driver Work and GPU Timer Limits|Rendering Measurements]] → [[PROJECT REPORT - Falllinie GPU Profiling - Hardware Counters, Shader Compilation and a Rejected Optimization|GPU Profiling]]. This moves from definitions and the proposed investigation to actual CPU/perf results, then actual hardware counters, offline compilation and the rejected shader experiment.
+**For the current rendering evidence**, read [[PROJECT REPORT - Falllinie Tracing - CPU Execution, Driver Waits and GPU Attribution|Tracing]] → [[PROJECT REPORT - Falllinie Rendering Measurements - CPU Execution, Mali Driver Work and GPU Timer Limits|Rendering Measurements]] → [[PROJECT REPORT - Falllinie GPU Profiling - Hardware Counters, Shader Compilation and a Rejected Optimization|GPU Profiling]]. This moves from definitions and the proposed investigation to actual CPU/perf results, then actual hardware counters, offline compilation and the rejected shader experiment. Continue with [[PROJECT REPORT - Falllinie CPU PMU - Cache Events, Driver Cycles and an Audio-Disabled Baseline|CPU PMU]] for the subsequent main-thread CPU cache/TLB/branch counts and hardware-cycle profile. Its audio-disabled workload is explicitly different from the integrated runs.
 
 **For source-faithful optimization constraints**, read [[PROJECT REPORT - Falllinie Native GLES Spike - Deterministic Terrain, Print Shaders and Mali Depth Precision|Native GLES Spike]] → [[PROJECT REPORT - Falllinie Playable Port - Dual Views, Frame Profiling and Cooperative Terrain Streaming|Playable Port]] → [[PROJECT REPORT - Falllinie Integrated Native Game - Precision, Real-Time Audio, Developer Telemetry and JavaScript Embedding|Integrated Native Game]]. These explain the original graphics semantics, shared-view ownership, streaming, the expanded workload and camera-relative precision correction.
 
@@ -106,6 +106,7 @@ This case-study series connects the eight reports on the native Falllinie port's
 | [[PROJECT REPORT - Falllinie Tracing - CPU Execution, Driver Waits and GPU Attribution|Tracing]] | Measurement concepts, constructed scheduler example and investigation design. | Follow with Rendering Measurements for actual execution evidence and discovered kernel limitations. |
 | [[PROJECT REPORT - Falllinie Rendering Measurements - CPU Execution, Mali Driver Work and GPU Timer Limits|Rendering Measurements]] | Paired clocks, perf CPU attribution, observed frame distributions and timer anomalies. | Driver CPU execution is not GPU utilization; residual time is not proven GPU wait. |
 | [[PROJECT REPORT - Falllinie GPU Profiling - Hardware Counters, Shader Compilation and a Rejected Optimization|GPU Profiling]] | Working G52 counters, exact-input compiler results, bypass and ABBA candidate experiments. | Bypass changes appearance; the image-matching candidate showed no convincing performance benefit. |
+| [[PROJECT REPORT - Falllinie CPU PMU - Cache Events, Driver Cycles and an Audio-Disabled Baseline|CPU PMU]] | Actual Cortex-A55 paired event counts, cycles-weighted driver attribution and a true no-audio diagnostic mode. | Reduced workload; low IPC and refill ratios are not a causal cache diagnosis. Event-location investigations remain pending. |
 
 ### Connections that matter technically
 

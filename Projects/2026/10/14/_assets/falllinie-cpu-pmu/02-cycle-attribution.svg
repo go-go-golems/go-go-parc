@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="470"><rect width="1080" height="470" fill="#faf9f6"/><g font-family="sans-serif" fill="#172a3a">
+<text x="24" y="38" font-size="24">Where main-thread cycle weight was attributed</text>
+<text x="24" y="67" font-size="14">1,873 hardware-cycle samples; 0 reported lost. Period-weighted percentages, not GPU utilization.</text>
+<text x="24" y="117" font-size="15">libmali.so.1.10.0</text><rect x="300" y="100" width="574.48" height="22" fill="#277da8"/><text x="884.48" y="117" font-size="15">71.81%</text>
+<text x="24" y="152" font-size="15">falllinie-pmu</text><rect x="300" y="135" width="85.2" height="22" fill="#277da8"/><text x="395.2" y="152" font-size="15">10.65%</text>
+<text x="24" y="187" font-size="15">libc.so.6</text><rect x="300" y="170" width="55.92" height="22" fill="#277da8"/><text x="365.92" y="187" font-size="15">6.99%</text>
+<text x="24" y="222" font-size="15">[kernel.kallsyms]</text><rect x="300" y="205" width="38.32" height="22" fill="#277da8"/><text x="348.32" y="222" font-size="15">4.79%</text>
+<text x="24" y="257" font-size="15">libwayland-client.so.0.26.0</text><rect x="300" y="240" width="15.28" height="22" fill="#277da8"/><text x="325.28" y="257" font-size="15">1.91%</text>
+<text x="24" y="292" font-size="15">libSDL2-2.0.so.0.3200.10</text><rect x="300" y="275" width="12.0" height="22" fill="#277da8"/><text x="322.0" y="292" font-size="15">1.50%</text>
+<text x="24" y="327" font-size="15">libm.so.6</text><rect x="300" y="310" width="11.2" height="22" fill="#277da8"/><text x="321.2" y="327" font-size="15">1.40%</text>
+<text x="24" y="362" font-size="15">libstdc++.so.6.0.36</text><rect x="300" y="345" width="6.4" height="22" fill="#277da8"/><text x="316.4" y="362" font-size="15">0.80%</text>
+<text x="24" y="397" font-size="15">[vdso]</text><rect x="300" y="380" width="1.28" height="22" fill="#277da8"/><text x="311.28" y="397" font-size="15">0.16%</text>
+<text x="24" y="450" font-size="14">Main TID only, no inheritance; kernel and userspace included. Driver symbols remain largely unavailable.</text></g></svg>

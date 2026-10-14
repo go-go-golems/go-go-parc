@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="480"><rect width="1080" height="480" fill="#faf9f6"/><g font-family="sans-serif" fill="#172a3a">
+<text x="24" y="38" font-size="24">Frame-time context across the finite campaign</text>
+<text x="24" y="67" font-size="14">Whole-run frame &gt;= 60, not the shorter PMU interval; these are descriptive sequential runs.</text>
+<path d="M440 90 V395" stroke="#ddd"/><text x="440" y="420" text-anchor="middle">18ms</text>
+<path d="M530 90 V395" stroke="#ddd"/><text x="530" y="420" text-anchor="middle">20ms</text>
+<path d="M710 90 V395" stroke="#ddd"/><text x="710" y="420" text-anchor="middle">24ms</text>
+<path d="M890 90 V395" stroke="#ddd"/><text x="890" y="420" text-anchor="middle">28ms</text>
+<path d="M980 90 V395" stroke="#ddd"/><text x="980" y="420" text-anchor="middle">30ms</text>
+<text x="24" y="115" font-size="13">01-none</text>
+<circle cx="452.03824680166764" cy="110" r="5" fill="#277da8"/>
+<circle cx="896.6274469999998" cy="110" r="5" fill="#d97b24"/>
+<text x="24" y="150" font-size="13">02-cpu_cycles-inst_retired</text>
+<circle cx="448.9862451768868" cy="145" r="5" fill="#277da8"/>
+<circle cx="890.58514625" cy="145" r="5" fill="#d97b24"/>
+<text x="24" y="185" font-size="13">03-l1d_cache-l1d_cache_refill</text>
+<circle cx="450.1507376889019" cy="180" r="5" fill="#277da8"/>
+<circle cx="887.9570854999997" cy="180" r="5" fill="#d97b24"/>
+<text x="24" y="220" font-size="13">04-l2d_cache-l2d_cache_refill</text>
+<circle cx="451.7308465819042" cy="215" r="5" fill="#277da8"/>
+<circle cx="899.6407100000001" cy="215" r="5" fill="#d97b24"/>
+<text x="24" y="255" font-size="13">05-br_retired-br_mis_pred_retired</text>
+<circle cx="451.4352964361702" cy="250" r="5" fill="#277da8"/>
+<circle cx="889.641179" cy="250" r="5" fill="#d97b24"/>
+<text x="24" y="290" font-size="13">06-l1d_tlb-l1d_tlb_refill</text>
+<circle cx="453.67232399229397" cy="285" r="5" fill="#277da8"/>
+<circle cx="892.211372" cy="285" r="5" fill="#d97b24"/>
+<text x="24" y="325" font-size="13">07-sample</text>
+<circle cx="439.6071260576923" cy="320" r="5" fill="#277da8"/>
+<circle cx="874.0939625" cy="320" r="5" fill="#d97b24"/>
+<text x="24" y="360" font-size="13">08-none</text>
+<circle cx="452.40436477797505" cy="355" r="5" fill="#277da8"/>
+<circle cx="891.7345789999999" cy="355" r="5" fill="#d97b24"/>
+<text x="24" y="458" font-size="14">Blue: mean. Orange: p95. Baseline brackets do not prove zero observer overhead or an audio-off speedup.</text></g></svg>

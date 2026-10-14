@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="380"><rect width="1080" height="380" fill="#faf9f6"/><g font-family="sans-serif" fill="#172a3a">
+<text x="24" y="38" font-size="24">Main-thread CPU PMU: counted events, not inferred latency</text>
+<text x="24" y="67" font-size="14">Five separate 20-second grouped runs; audio disabled; all groups report 100% scheduling coverage.</text>
+<text x="25" y="118" font-size="18">Cycles / instructions</text>
+<text x="330" y="118" font-size="18">Instructions per cycle</text>
+<text x="770" y="118" font-size="18">0.14537 IPC</text>
+<text x="25" y="161" font-size="18">L1 data cache</text>
+<text x="330" y="161" font-size="18">Refill / access</text>
+<text x="770" y="161" font-size="18">4.5688%</text>
+<text x="25" y="204" font-size="18">L2 data cache</text>
+<text x="330" y="204" font-size="18">Refill / access</text>
+<text x="770" y="204" font-size="18">24.3991%</text>
+<text x="25" y="247" font-size="18">Retired branches</text>
+<text x="330" y="247" font-size="18">Mispredicted / retired</text>
+<text x="770" y="247" font-size="18">9.6470%</text>
+<text x="25" y="290" font-size="18">L1 data TLB</text>
+<text x="330" y="290" font-size="18">Refill / access</text>
+<text x="770" y="290" font-size="18">4.7473%</text>
+<text x="24" y="350" font-size="14">Different event domains and separate runs: do not add these ratios or infer a fraction of stalled CPU time.</text></g></svg>

@@ -1,0 +1,9 @@
+{
+  "source": "target-20261014T144623Z/02-cpu_cycles-inst_retired/perf-stat.csv",
+  "relative_interval_end_s": 1.001154278,
+  "cycles": 664337540,
+  "instructions": 112020043,
+  "time_running_ns": 489699742,
+  "running_percent": 100.0,
+  "note": "First interval; paired main-thread events. Time running is not wall elapsed."
+}
