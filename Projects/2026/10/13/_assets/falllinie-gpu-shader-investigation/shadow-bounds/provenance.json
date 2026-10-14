@@ -1,0 +1,27 @@
+{
+  "summary_sha256": "fcd9b7e04e2142071eafe9eb3b2bcfe9e6c35f1083e119af35299f542ffc6814",
+  "generator_sha256": "0306dca034c8c8935a725b7cea6ad0c9c01df7c4c1aa4b1f7ed6ac879bc9fd67",
+  "crops": {
+    "top": {
+      "source_crop": [
+        516,
+        426,
+        566,
+        480
+      ],
+      "scale": 3,
+      "resampling": "nearest; full difference bounding rectangle plus12px margin"
+    },
+    "lower": {
+      "source_crop": [
+        570,
+        748,
+        656,
+        768
+      ],
+      "scale": 3,
+      "resampling": "nearest; full difference bounding rectangle plus12px margin"
+    }
+  },
+  "scope": "Actual target full-window backbuffers including applicable HUD; not compositor/physical scanout; no fabricated frames"
+}

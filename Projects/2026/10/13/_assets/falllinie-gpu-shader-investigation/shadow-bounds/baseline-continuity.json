@@ -1,0 +1,8 @@
+{
+  "gpu007_checkpoint": "7a2db77",
+  "top_internal_images_equal": {
+    "scene": true,
+    "depth": true,
+    "print": true
+  }
+}

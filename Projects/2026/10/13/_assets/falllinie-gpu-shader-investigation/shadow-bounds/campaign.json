@@ -1,0 +1,17 @@
+{
+  "source_revision": "e970ec5dbb4f43ec67c79837b1cd28151af6b3b4",
+  "remote": "/storage/apps/falllinie-gpu008-20261014T194947Z",
+  "binary_sha256": "f9b7de52377501090392052039c0a13ad18cc258661aa6cb98614165ef9138c3",
+  "assets": {
+    "assets/glyphs.bmp": "cd7ed0089ec236d0d0f1d8453e69decdbf02e5b64e0cd9e44bdb676caf474b28",
+    "assets/glyphs.png": "98aa0970dc90723ba2f70921d1c01976a06bdc7fca2a733e7286d65f969e3f4b",
+    "assets/hud-font.bmp": "27a5b2363b21ed1b591e7f88c18aca420be969012e38ef49ab9e2e7890b7ca23",
+    "assets/hud-font.png": "3264ba02f919e0b6082a76e1e747c3c92842709aeb91a6935fdad4d4be1f63ac",
+    "assets/rider-poses.bin": "370da4fad391da3187d879f0cce16d4b1c39c195c20bb51fb83b540aef0725f5",
+    "assets/shaders/post_fs.glsl": "f598227c7bd8e07ccf27e1e2a52062b2801cec4dee5053de52c198eaf593ab9c",
+    "assets/shaders/post_vs.glsl": "c3fe71db1531e5fc02d45f0dcb180e7f96e45a7584050e28e946c48e47c49eb6",
+    "assets/shaders/scene_fs.glsl": "d2ba6ba8ccd6c8a888889153c5c918ff36a19dd9f3b1dcb9ada28ab3d9607fae",
+    "assets/shaders/scene_vs.glsl": "06887bbfcbd8368cb4f61deeb6f5382cec301a2ae665362820493c5b09189b70"
+  },
+  "complete": true
+}

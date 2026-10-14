@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="430"><rect width="1000" height="430" fill="#faf9f6"/><g font-family="sans-serif" fill="#172c3b">
+<text x="24" y="36" font-size="24">Original shadows retained: conservative footprint rejection</text>
+<text x="24" y="65" font-size="14">Dual 512×384; same binary/replay; two measured cases per mode; no audio.</text>
+<text x="24" y="125" font-size="16">Original</text>
+<rect x="240" y="105" width="400.77" height="26" fill="#777"/>
+<path d="M809.9642139 101 v34" stroke="#222" stroke-width="3"/>
+<text x="240" y="153" font-size="14">Mean 23.575 ms; p95 33.527; p99 34.097</text>
+<text x="24" y="207" font-size="16">Bounds candidate</text>
+<rect x="240" y="187" width="350.82" height="26" fill="#287fa5"/>
+<path d="M739.48462195 183 v34" stroke="#222" stroke-width="3"/>
+<text x="240" y="235" font-size="14">Mean 20.636 ms; p95 29.381; p99 32.626</text>
+<text x="24" y="289" font-size="16">Shadow OFF diagnostic</text>
+<rect x="240" y="269" width="340.41" height="26" fill="#bd7930"/>
+<path d="M740.60917875 265 v34" stroke="#222" stroke-width="3"/>
+<text x="240" y="317" font-size="14">Mean 20.024 ms; p95 29.448; p99 30.309</text>
+<text x="24" y="375" font-size="15">Bounds: 12.46% lower mean; 40/40 multi-endpoint image pairs pixel-identical.</text>
+<text x="24" y="404" font-size="13">Finite visual qualification, not universal parity, isolated shadow cost, or integrated 60 FPS acceptance.</text></g></svg>
