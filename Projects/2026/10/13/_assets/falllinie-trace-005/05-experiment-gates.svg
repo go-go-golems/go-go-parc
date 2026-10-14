@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="550" viewBox="0 0 1100 550" role="img">
+<title>Finite experiment gates</title><desc>Each next step requires authorization, bounded overhead, complete provenance and a remaining question</desc>
+<rect width="1100" height="550" fill="#f8fafc"/>
+<text x="30" y="38" font-family="sans-serif" font-size="25" fill="#0f172a">Finite experiment gates</text>
+<text x="30" y="67" font-family="sans-serif" font-size="15" fill="#475569">Each next step requires authorization, bounded overhead, complete provenance and a remaining question</text>
+<rect x="35" y="105" width="330" height="66" rx="8" fill="#dbeafe" stroke="#64748b"/>
+<text x="49" y="133" font-family="sans-serif" font-size="17" fill="#0f172a">A  Paired clocks</text>
+<rect x="435" y="105" width="625" height="66" rx="8" fill="#dbeafe" stroke="#64748b"/>
+<text x="449" y="133" font-family="sans-serif" font-size="17" fill="#0f172a">How much charged main-thread execution?</text>
+<path d="M365 138 L435 138" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="435,138 425,132 425,144" fill="#475569"/>
+<path d="M195 171 L195 193" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="195,193 189,183 201,183" fill="#475569"/>
+<rect x="35" y="193" width="330" height="66" rx="8" fill="#dcfce7" stroke="#64748b"/>
+<text x="49" y="221" font-family="sans-serif" font-size="17" fill="#0f172a">B  perf samples</text>
+<rect x="435" y="193" width="625" height="66" rx="8" fill="#dcfce7" stroke="#64748b"/>
+<text x="449" y="221" font-family="sans-serif" font-size="17" fill="#0f172a">Which application / driver code executes?</text>
+<path d="M365 226 L435 226" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="435,226 425,220 425,232" fill="#475569"/>
+<path d="M195 259 L195 281" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="195,281 189,271 201,271" fill="#475569"/>
+<rect x="35" y="281" width="330" height="66" rx="8" fill="#fef3c7" stroke="#64748b"/>
+<text x="49" y="309" font-family="sans-serif" font-size="17" fill="#0f172a">C  Scheduler trace</text>
+<rect x="435" y="281" width="625" height="66" rx="8" fill="#fef3c7" stroke="#64748b"/>
+<text x="449" y="309" font-family="sans-serif" font-size="17" fill="#0f172a">Blocked or runnable delay?</text>
+<path d="M365 314 L435 314" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="435,314 425,308 425,320" fill="#475569"/>
+<path d="M195 347 L195 369" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="195,369 189,359 201,359" fill="#475569"/>
+<rect x="35" y="369" width="330" height="66" rx="8" fill="#ffe4e6" stroke="#64748b"/>
+<text x="49" y="397" font-family="sans-serif" font-size="17" fill="#0f172a">D  Targeted driver / BPF</text>
+<rect x="435" y="369" width="625" height="66" rx="8" fill="#ffe4e6" stroke="#64748b"/>
+<text x="449" y="397" font-family="sans-serif" font-size="17" fill="#0f172a">Which verified dependency remains unresolved?</text>
+<path d="M365 402 L435 402" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="435,402 425,396 425,408" fill="#475569"/>
+<rect x="100" y="470" width="900" height="55" rx="8" fill="#e2e8f0" stroke="#64748b"/>
+<text x="114" y="498" font-family="sans-serif" font-size="17" fill="#0f172a">GPU hardware counters and vendor tools require a separate capability gate.</text>
+</svg>

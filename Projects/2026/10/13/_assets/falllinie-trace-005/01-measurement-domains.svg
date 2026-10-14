@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="440" viewBox="0 0 1100 440" role="img">
+<title>Measurement domains</title><desc>Conceptual architecture; not a captured trace</desc>
+<rect width="1100" height="440" fill="#f8fafc"/>
+<text x="30" y="38" font-family="sans-serif" font-size="25" fill="#0f172a">Measurement domains</text>
+<text x="30" y="67" font-family="sans-serif" font-size="15" fill="#475569">Conceptual architecture; not a captured trace</text>
+<rect x="30" y="110" width="315" height="125" rx="8" fill="#dbeafe" stroke="#64748b"/>
+<text x="44" y="138" font-family="sans-serif" font-size="17" fill="#0f172a">Application scope</text>
+<text x="44" y="164" font-family="sans-serif" font-size="17" fill="#0f172a">Wall duration W</text>
+<text x="44" y="190" font-family="sans-serif" font-size="17" fill="#0f172a">frame / view / pass</text>
+<rect x="390" y="110" width="315" height="125" rx="8" fill="#dcfce7" stroke="#64748b"/>
+<text x="404" y="138" font-family="sans-serif" font-size="17" fill="#0f172a">Render thread</text>
+<text x="404" y="164" font-family="sans-serif" font-size="17" fill="#0f172a">Charged CPU duration C</text>
+<text x="404" y="190" font-family="sans-serif" font-size="17" fill="#0f172a">Running / blocked / runnable</text>
+<rect x="750" y="110" width="320" height="125" rx="8" fill="#fef3c7" stroke="#64748b"/>
+<text x="764" y="138" font-family="sans-serif" font-size="17" fill="#0f172a">GPU workload</text>
+<text x="764" y="164" font-family="sans-serif" font-size="17" fill="#0f172a">Elapsed query result</text>
+<text x="764" y="190" font-family="sans-serif" font-size="17" fill="#0f172a">Busy counters: separate gate</text>
+<path d="M345 172 L390 172" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="390,172 380,166 380,178" fill="#475569"/>
+<path d="M705 172 L750 172" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="750,172 740,166 740,178" fill="#475569"/>
+<rect x="170" y="290" width="760" height="100" rx="8" fill="#e2e8f0" stroke="#64748b"/>
+<text x="184" y="318" font-family="sans-serif" font-size="17" fill="#0f172a">Correlate identities; measure CPU-clock alignment.</text>
+<text x="184" y="344" font-family="sans-serif" font-size="17" fill="#0f172a">CPU entry and exit do not identify GPU execution boundaries.</text>
+<path d="M548 235 L548 290" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="548,290 542,280 554,280" fill="#475569"/>
+</svg>

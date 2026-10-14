@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="465" viewBox="0 0 1100 465" role="img">
+<title>Correlation records and clock domains</title><desc>Proposed fields; elapsed GPU duration is not a CPU-aligned timestamp pair</desc>
+<rect width="1100" height="465" fill="#f8fafc"/>
+<text x="30" y="38" font-family="sans-serif" font-size="25" fill="#0f172a">Correlation records and clock domains</text>
+<text x="30" y="67" font-family="sans-serif" font-size="15" fill="#475569">Proposed fields; elapsed GPU duration is not a CPU-aligned timestamp pair</text>
+<rect x="30" y="110" width="480" height="125" rx="8" fill="#dbeafe" stroke="#64748b"/>
+<text x="44" y="138" font-family="sans-serif" font-size="17" fill="#0f172a">CPU scope: run, task lifetime, frame, view, pass</text>
+<text x="44" y="164" font-family="sans-serif" font-size="17" fill="#0f172a">Wall / thread-CPU entry and exit</text>
+<text x="44" y="190" font-family="sans-serif" font-size="17" fill="#0f172a">Clock identity, validity, marker uncertainty</text>
+<rect x="590" y="110" width="480" height="125" rx="8" fill="#dcfce7" stroke="#64748b"/>
+<text x="604" y="138" font-family="sans-serif" font-size="17" fill="#0f172a">Scheduler: task lifetime, CPU, event</text>
+<text x="604" y="164" font-family="sans-serif" font-size="17" fill="#0f172a">Timestamp, state, waker when available</text>
+<text x="604" y="190" font-family="sans-serif" font-size="17" fill="#0f172a">Loss counters and cross-CPU clock</text>
+<path d="M510 173 L590 173" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="590,173 580,167 580,179" fill="#475569"/>
+<rect x="30" y="290" width="480" height="120" rx="8" fill="#fef3c7" stroke="#64748b"/>
+<text x="44" y="318" font-family="sans-serif" font-size="17" fill="#0f172a">GPU query: originating frame, view, pass</text>
+<text x="44" y="344" font-family="sans-serif" font-size="17" fill="#0f172a">Elapsed duration; valid/disjoint/pending</text>
+<text x="44" y="370" font-family="sans-serif" font-size="17" fill="#0f172a">Result may arrive in a later CPU frame</text>
+<rect x="590" y="290" width="480" height="120" rx="8" fill="#e2e8f0" stroke="#64748b"/>
+<text x="604" y="318" font-family="sans-serif" font-size="17" fill="#0f172a">Driver join, if available</text>
+<text x="604" y="344" font-family="sans-serif" font-size="17" fill="#0f172a">Verified context / submission / fence identity</text>
+<text x="604" y="370" font-family="sans-serif" font-size="17" fill="#0f172a">Do not infer dependency from time overlap</text>
+<path d="M270 235 L270 290" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="270,290 264,280 276,280" fill="#475569"/>
+<path d="M830 235 L830 290" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="830,290 824,280 836,280" fill="#475569"/>
+<path d="M510 350 L590 350" stroke="#475569" stroke-width="2" fill="none"/>
+<polygon points="590,350 580,344 580,356" fill="#475569"/>
+</svg>

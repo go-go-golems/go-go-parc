@@ -1,0 +1,355 @@
+{
+  "created_utc": "2026-10-14T01:25:07.240319+00:00",
+  "repository": "/home/manuel/code/wesen/2026-10-12--falllinie-spike",
+  "runtime_source_revision": "532081682d36f1eaf5eb0daf9a45b17f4b60f136",
+  "ticket_base_revision": "7ad1c7d6595afde830434d597d337605c6652e5b",
+  "limits": "Parent-collected PERF004 target evidence was untracked at read time. Hashes identify bytes, not immutable committed publication. No device, perf, ftrace or BPF command was run for this report.",
+  "files": [
+    {
+      "path": "src/profiler.cpp",
+      "bytes": 5730,
+      "sha256": "a586c8a574406a1a8ecba117deb0436f49dda5a18a2313d86f93c1fb3883ad7b",
+      "tracked_at_read": true
+    },
+    {
+      "path": "src/profiler.hpp",
+      "bytes": 2329,
+      "sha256": "c41b1a72a69b4ef4e383f999e1874dee68c21845228f528ef50c142e78390333",
+      "tracked_at_read": true
+    },
+    {
+      "path": "src/main.cpp",
+      "bytes": 25801,
+      "sha256": "3a49323c49c83eacbfd0f63ab8751e43ab4d6990f6a6aeec359768d33f80a8c3",
+      "tracked_at_read": true
+    },
+    {
+      "path": "src/renderer.cpp",
+      "bytes": 28332,
+      "sha256": "e20e1cd401bb1b03f1da893fa021e4e13899884cb7148bb0cf957aa642a14397",
+      "tracked_at_read": true
+    },
+    {
+      "path": "src/game_renderer.cpp",
+      "bytes": 10802,
+      "sha256": "b3ceed9da644d28e6b369fe6fa453a080954bd5cfc966790a31c2a745cf0cc66",
+      "tracked_at_read": true
+    },
+    {
+      "path": "src/audio_timing.hpp",
+      "bytes": 3046,
+      "sha256": "9cf4638c3755fe1294dc82caab1eb3f5832e13f884afdf99d0ce1e33308f39f7",
+      "tracked_at_read": true
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/07-live-off/metadata.txt",
+      "bytes": 116,
+      "sha256": "ea24d32a8bd6875e494d06dcb420a1003cea8769df193c0df576cbbedb74ed7f",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/07-live-off/receipt.json",
+      "bytes": 1293,
+      "sha256": "3738595c8c75c804abba25b9b82ddc8eea013ff47b14fc19137160211dbaec5f",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/07-live-off/analysis.json",
+      "bytes": 5028,
+      "sha256": "f52e2a75444827f68ebfac6e33e94c6373569c7b3668a4ff28205a53a3d7c0fd",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/07-live-off/stdout.log",
+      "bytes": 7291,
+      "sha256": "e90021cc32a5588d54c699a418e320bab0d5dda699279591b62f20f2c1c213b9",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/07-live-off/frames.csv",
+      "bytes": 95729,
+      "sha256": "01f8151a976d0665cb35672d674923c5331d3f9ae5e0c0a5f69d29892bd502e9",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/07-live-off/frames.csv.passes.csv",
+      "bytes": 6570,
+      "sha256": "15cb644f15919677a98932c7fe8abfc5faf601a85f6a3f440ec4e1e5b5ffe95a",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/07-live-off/frames.csv.gpu.csv",
+      "bytes": 30,
+      "sha256": "0941451ee7e1d40dc41c97fecc98229ad343460a42ed97ec0ee4cacb9e44b9b1",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/07-live-off/frames.csv.stats.csv",
+      "bytes": 199,
+      "sha256": "423f001b23d9f90ecbe331f7e9ec07dedbd5bb444f2a75e2c55427c6ca866790",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/07-live-off/binary.sha256",
+      "bytes": 116,
+      "sha256": "693b5728ddd0909f48f630cf2762812951ce4c280ed6067b497f243ef4f4c73a",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/08-live-passes/metadata.txt",
+      "bytes": 119,
+      "sha256": "02676cabc1c88345f4ac8f1947dcf9c6086e4969d6492a1d6438edf050b0ca08",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/08-live-passes/receipt.json",
+      "bytes": 1296,
+      "sha256": "7f0393029ba05ea1476e1ee00b5630d6690ddc17a032feef62bb5a64c2bdf872",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/08-live-passes/analysis.json",
+      "bytes": 5965,
+      "sha256": "b6cb7928dee5680a0c4fae60d46c7cba98de972eb426cd34b714ff00eab73d05",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/08-live-passes/stdout.log",
+      "bytes": 7296,
+      "sha256": "d14402a4e714be04b94c3682a52e97cebc94a3cce23b37b33135fb2c4d6a5a38",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/08-live-passes/frames.csv",
+      "bytes": 95898,
+      "sha256": "7419bda9ec36d7cea3d1954a73ec75bd6f1a61711e782221b64357ef7ff97058",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/08-live-passes/frames.csv.passes.csv",
+      "bytes": 6572,
+      "sha256": "c2a7ca785ca770e74246b1c05da65b65bf94df62ffcf37ad07b8791e0037703e",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/08-live-passes/frames.csv.gpu.csv",
+      "bytes": 3117,
+      "sha256": "9d600ecaa77a9fd152bbfa5b47f6bda6aa2df3681430de1fc3314e5fb531d346",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/08-live-passes/frames.csv.stats.csv",
+      "bytes": 208,
+      "sha256": "a1139975895b8f885cf5e4f851b18dd8b197feb686768f763caedbd5fd25bf98",
+      "tracked_at_read": false
+    },
+    {
+      "path": "ttmp/2026/10/13/FALLLINIE-PERF-004--gl-pass-measurement-and-evidence-driven-native-optimization/scripts/evidence/target/08-live-passes/binary.sha256",
+      "bytes": 116,
+      "sha256": "693b5728ddd0909f48f630cf2762812951ce4c280ed6067b497f243ef4f4c73a",
+      "tracked_at_read": false
+    }
+  ],
+  "illustrative_excerpt": {
+    "case": "08-live-passes",
+    "warmup_frames": 60,
+    "interval": {
+      "n": 1034,
+      "mean_ms": 18.242673066731143,
+      "p50_ms": 16.670694,
+      "p95_ms": 32.914731,
+      "p99_ms": 34.073454
+    },
+    "top_cpu_wall": {
+      "scene": {
+        "n": 18,
+        "mean_ms": 2.563041888888889,
+        "p50_ms": 2.447318,
+        "p95_ms": 3.685414,
+        "p99_ms": 3.685414
+      },
+      "post": {
+        "n": 18,
+        "mean_ms": 0.6674635555555555,
+        "p50_ms": 0.606652,
+        "p95_ms": 0.930104,
+        "p99_ms": 0.930104
+      },
+      "output": {
+        "n": 18,
+        "mean_ms": 4.887862500000001,
+        "p50_ms": 4.929343,
+        "p95_ms": 6.78605,
+        "p99_ms": 6.78605
+      }
+    },
+    "gpu_elapsed": {
+      "0/scene": {
+        "n": 18,
+        "mean_ms": 10.159333166666666,
+        "p50_ms": 10.232832,
+        "p95_ms": 10.795749,
+        "p99_ms": 10.795749
+      },
+      "0/post": {
+        "n": 18,
+        "mean_ms": 7.067551944444444,
+        "p50_ms": 7.131833,
+        "p95_ms": 7.917582,
+        "p99_ms": 7.917582
+      },
+      "0/output": {
+        "n": 18,
+        "mean_ms": 5.1111815,
+        "p50_ms": 5.22579,
+        "p95_ms": 5.522999,
+        "p99_ms": 5.522999
+      },
+      "1/scene": {
+        "n": 18,
+        "mean_ms": 8.5090505,
+        "p50_ms": 8.580833,
+        "p95_ms": 9.494334,
+        "p99_ms": 9.494334
+      },
+      "1/post": {
+        "n": 18,
+        "mean_ms": 7.4579962222222225,
+        "p50_ms": 7.419706,
+        "p95_ms": 8.325915,
+        "p99_ms": 8.325915
+      },
+      "1/output": {
+        "n": 18,
+        "mean_ms": 3.412806222222222,
+        "p50_ms": 3.623374,
+        "p95_ms": 4.089457,
+        "p99_ms": 4.089457
+      }
+    },
+    "query_stats": {
+      "mode": "passes",
+      "cadence": "60",
+      "supported": "1",
+      "issued": "114",
+      "valid": "114",
+      "disjoint": "0",
+      "unavailable_polls": "173",
+      "skipped_pool": "0",
+      "unsupported_scopes": "0",
+      "misuse": "0",
+      "disjoint_polls": "1",
+      "pending": "0",
+      "cpu_dropped": "0",
+      "schema_version": "2",
+      "cpu_samples": "228"
+    }
+  },
+  "primary_sources": [
+    {
+      "name": "ftrace",
+      "url": "https://docs.kernel.org/trace/ftrace.html",
+      "retrieved_utc": "2026-10-14T01:13:50.032535+00:00",
+      "bytes": 183569,
+      "sha256": "56cd257ab1c4c7c3c5e71a2acf5ce4fdb77cb3c50dbdd274d346469f20c563ce",
+      "status": "retrieved"
+    },
+    {
+      "name": "events",
+      "url": "https://docs.kernel.org/trace/events.html",
+      "retrieved_utc": "2026-10-14T01:13:50.276287+00:00",
+      "bytes": 74085,
+      "sha256": "9c0e8dffc9beb3459c2a40718916f51e1ce9b79412fca35df84425c2543d50d6",
+      "status": "retrieved"
+    },
+    {
+      "name": "perf-security",
+      "url": "https://docs.kernel.org/admin-guide/perf-security.html",
+      "retrieved_utc": "2026-10-14T01:13:50.656851+00:00",
+      "bytes": 37201,
+      "sha256": "e036d616a82cbc04849c5cf03ee73120a8316f51a5fc9314f4b305e9d4df48b4",
+      "status": "retrieved"
+    },
+    {
+      "name": "bpf-verifier",
+      "url": "https://docs.kernel.org/bpf/verifier.html",
+      "retrieved_utc": "2026-10-14T01:13:50.740552+00:00",
+      "bytes": 39088,
+      "sha256": "07ec1c363aa457ad0155a31480430fbda189160727930ce8749a37c5a6ea5576",
+      "status": "retrieved"
+    },
+    {
+      "name": "libbpf",
+      "url": "https://docs.kernel.org/bpf/libbpf/libbpf_overview.html",
+      "retrieved_utc": "2026-10-14T01:13:50.932873+00:00",
+      "bytes": 28680,
+      "sha256": "215900931b121ab6af9a3b5a6f6f79b12ea29485c31ba4ae446a87c7fafb14ae",
+      "status": "retrieved"
+    },
+    {
+      "name": "bpf-license",
+      "url": "https://docs.kernel.org/bpf/bpf_licensing.html",
+      "retrieved_utc": "2026-10-14T01:13:51.101498+00:00",
+      "bytes": 16008,
+      "sha256": "5ba402a83ce0a596cff35878dc8b3db2d3bd00355582fed421415a71cd6d631f",
+      "status": "retrieved"
+    },
+    {
+      "name": "perf-record-failed",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/master/tools/perf/Documentation/perf-record.adoc",
+      "retrieved_utc": "2026-10-14T01:13:51.295976+00:00",
+      "status": "failed",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "perf-record",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/master/tools/perf/Documentation/perf-record.txt",
+      "retrieved_utc": "2026-10-14T01:13:51.369791+00:00",
+      "bytes": 34536,
+      "sha256": "40028cc61600d2bc7d2d4950b68473ee9a9c1053dc96195af4c5e9fcfd209ed2",
+      "status": "retrieved"
+    },
+    {
+      "name": "gpu-query-failed",
+      "url": "https://registry.khronos.org/OpenGL/extensions/EXT/EXT_disjoint_timer_query.txt",
+      "retrieved_utc": "2026-10-14T01:13:51.528836+00:00",
+      "status": "failed",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "name": "gpu-query",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/main/extensions/EXT/EXT_disjoint_timer_query.txt",
+      "retrieved_utc": "2026-10-14T01:13:51.608940+00:00",
+      "bytes": 34949,
+      "sha256": "0f9629d3d6e623084cadfe095f72d4070b09836343b635930f22f1f49b2c8004",
+      "status": "retrieved"
+    }
+  ],
+  "figures": [
+    {
+      "file": "01-measurement-domains.svg",
+      "sha256": "a32628d5bdf9bb4707e1e3e16b9e2803a49083e39a554970ae7b2bac9ce3cb3c",
+      "origin": "Original SVG generated by TRACE005/scripts/02-assets.py; conceptual except explicitly constructed 10ms teaching example."
+    },
+    {
+      "file": "02-example-timeline.svg",
+      "sha256": "fb6ed49d4ec06211de532b156555e8157415daadfcd55a8b94b94750be287aaf",
+      "origin": "Original SVG generated by TRACE005/scripts/02-assets.py; conceptual except explicitly constructed 10ms teaching example."
+    },
+    {
+      "file": "03-scheduler-states.svg",
+      "sha256": "e31cef054a6480df253033c519188e50f350dc1af05574f6884d0d4baa67c25c",
+      "origin": "Original SVG generated by TRACE005/scripts/02-assets.py; conceptual except explicitly constructed 10ms teaching example."
+    },
+    {
+      "file": "04-correlation-records.svg",
+      "sha256": "2941bd83a53db8791b733f9fcd24011703cc7148ec771c299723f95d877b8399",
+      "origin": "Original SVG generated by TRACE005/scripts/02-assets.py; conceptual except explicitly constructed 10ms teaching example."
+    },
+    {
+      "file": "05-experiment-gates.svg",
+      "sha256": "928e79609c7e773f8661146707495528f63aa2bb17dccbfdfb4237c51e757eea",
+      "origin": "Original SVG generated by TRACE005/scripts/02-assets.py; conceptual except explicitly constructed 10ms teaching example."
+    }
+  ]
+}
