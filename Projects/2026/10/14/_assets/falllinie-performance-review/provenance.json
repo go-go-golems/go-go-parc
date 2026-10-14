@@ -1,0 +1,29 @@
+{
+ "note": "Falllinie Performance Review",
+ "created": "2026-10-14",
+ "spike_repository": "/home/manuel/code/wesen/2026-10-12--falllinie-spike",
+ "spike_revision": "becb67fe4916a9f847b63a21a5b3bfca22d515ff",
+ "inputs": {
+  "frame_csvs": "26 committed frames.csv files listed in frame_quantization.py CASES",
+  "counter_summaries": [
+   "13/_assets/falllinie-gpu-shader-investigation/replay-scaling/summary.json",
+   "13/_assets/falllinie-gpu-shader-investigation/shader-sensitivity/summary.json",
+   "13/_assets/falllinie-gpu-shader-investigation/shadow-bounds/summary.json"
+  ]
+ },
+ "caveats": [
+  "Per-frame counter values divide whole-device rates over the counter window by loop FPS over the frame window; they are estimates.",
+  "Frame statistics exclude frames 0-59."
+ ],
+ "sha256": {
+  "01-refresh-mixture.svg": "0cf71dce8a4a2625cc9ed328c1df42c9d0cbf7ead96006d1cb9291f9ca244b0c",
+  "02-interval-histograms.svg": "ff47b580e4a2101165aace1aecfe7f80d05737aaa43edbcc81c2857563e82644",
+  "03-gpu-cycles-per-frame.svg": "a7ca19b2540ff7010009d8f430346c9696a062614bfaaa95dcb9984e9c8260a7",
+  "04-bytes-per-frame.svg": "791b8229e241c6ab86bf77e94a139929254c408a6a5bec5305f2dce91e420ad6",
+  "counter_per_frame.py": "c5595c83c958c3d67074b2d77c406a4503906b29f1af2b16f6387ee9a2057e4f",
+  "counters_per_frame.json": "eb2ace07dbbf45249f7e43b027d3de239dab2a9ab8d2792da09d8a4ba3f25381",
+  "figures.py": "36941e727407b558c283828584320fbbe179890fcdcfc9014450c204f071ad8f",
+  "frame_quantization.py": "44043591fe52d171bc8a7dedbcc8b21555af2635022035ed8d157f377c91c6bb",
+  "quantization.json": "e941730dfe673131335769af7bf6dc1eaca4f4095b7c573f2a462ad127874403"
+ }
+}
