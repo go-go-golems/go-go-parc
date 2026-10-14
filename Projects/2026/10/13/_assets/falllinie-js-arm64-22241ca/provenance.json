@@ -1,0 +1,431 @@
+{
+  "schema_version": 1,
+  "source_repository": "/home/manuel/code/wesen/2026-10-12--falllinie-spike",
+  "source_revision": "22241cab96cf61928bde3eec61c88071e8eda402",
+  "report_date_local": "2026-10-13",
+  "ticket": "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine",
+  "fixture_sha256": "cb9b4befd0252859d9c45246f94fbd7dd1662c6d034c6ccb95fbe16947e8b556",
+  "qualification": "actual parent-invoked AArch64, one sequential run per engine",
+  "reference": "retained host Node/native oracle, not an ARM64 native benchmark",
+  "limits": [
+    "fixed workload, not thermal or full-game acceptance",
+    "V8 raw C++ API through pinned libnode108, not latest standalone V8",
+    "automatic GC pause causality unavailable; heap cap is not RSS cap",
+    "cold function calls follow eight lifecycle cycles, not process-cold"
+  ],
+  "receipt_sha256": {
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/probe-common.hpp": "2f39791397cb50574d07a8d0a0cd94b70a4162c68b6ea0ee8a30a8e55c5e3122",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/quickjs-probe.cpp": "587a812e131d680e043e941de6d91df321b9f073b143fbfef22076c0e57dc0ac",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/v8-probe.cpp": "ab3467d9c292e991b4c1d4b535fc51fa51c03a6c13e82435517d6c5a2a5557ac",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/workloads.js": "924ae8202ecf7d5492d1b0a60c13d5af0f78b1b73c617382aef3a9296b6a72fa",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/01-extract.cjs": "dbb200a14a216c305cdc08fbe160e16f74bd7d49ffd7ecbf64bc3d30a296adce",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/04-compare.py": "61fb090d04e253c3ad64fe3d199943a6a1eaf0d7613af4b07ad8772b6921769e",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/debian-pins.json": "1ba337f65029052ca5335b642e793b5b2ce5b8e49a65eb630434ae3f43825d4d",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/02-build-host.sh": "b3d9662b8a3251fa45086214d6a98d31a1005a8a4533d1353781b34d97a72e88",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/03-build-arm64.sh": "598b352a336141ae8e9bbbf7c2f182c6baff4eb56c0812ef7a17f40b45482ede",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/06-package.py": "edca36facfb591e4c3a28d3c200a3a40dd9362c6f6a59922b1da472c94097812",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/run-target.sh": "00fd97a1c1ca818f17b43e42fc4a3aef6c36a97b2734861dea0dce75b5abe4fd",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/parent-initial-review.txt": "cb3b9f25d2e56b098ce7fb22103f9e4dde738574e457967a41313eeb59a4e1a0",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/parent-corrections-review.txt": "9d325c587af6bdf71238062a0f5dc4330947abd4289e62574b3170c21cd85f27",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/review-corrections-v2/package-audit.json": "395e34401f70a56ee9cf4373a5637208bf7f0d6c15509f0f2989b72e688d7c99",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/review-corrections-v2/results-summary.json": "b9425094fe8520c9c41c07a67131305a9eda64c3ad76ddb5948aa6bd54435274",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/review-corrections-v2/validation.log": "10a1abe8a6843074e6be7af58545725a226839793d07302724614d15ac6bc973",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/target-corrected-v2/comparison.json": "a1136c4c28d8b496d9ced475d72f61066e73c9086a79db6d98028955950f47a6",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/target-corrected-v2/summary.json": "fb43701558ea777bacb18f43632ddf57d1ca3b3aa1e0f01b13992439b74371ae",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/target-corrected-v2/bellard.log": "154bcf50b31ed260b9b54b733146e3cb9fa6f74376b8ea3ba97c59bf8491e413",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/target-corrected-v2/bellard-preflight.log": "46969772e619f650d3a719fc29d98ba415cad05815f2bc3bdbb69a9f147f0199",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/target-corrected-v2/bellard-time.log": "54ef5c333375cca390279be8c28a5368f7a6f6c9c6faf8889a35cb10636dfcb9",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/target-corrected-v2/ng.log": "199841ae216693d02e69a58e02ac020e1e2297775f0c80ac1c279dda0ba845f0",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/target-corrected-v2/ng-preflight.log": "e9d64637db70ed900e6b1046cf568a4ea3ff898683ee4f2d292c0e76d083de2f",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/target-corrected-v2/ng-time.log": "318ce5ece4dfeb4bb05f1863269f0209b6f5cbf15aeb87618c8f7dd7de7408f9",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/target-corrected-v2/v8.log": "1553b6cbffb95f7a46b849ec1efd7a7a705f27a8ec54f7268b0aec073d807256",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/target-corrected-v2/v8-preflight.log": "cb69d58bffc445f2dbcdbbc17d6423e2b678f63b56230e15114eb26cd9274006",
+    "ttmp/2026/10/13/FALLLINIE-JS-001--javascript-embedding-research-for-the-native-falllinie-engine/scripts/02-arm64-v8/evidence/target-corrected-v2/v8-time.log": "f40ce004f4c97124af6e5b450f898b83b2210d4679949ae6152da9bc2091c1e2"
+  },
+  "target_metrics": {
+    "bellard": {
+      "version": "quickjs-bellard 2026-06-04 archive=b376e839b322978313d929fd20663b11ba58b75df5a46c126dd19ea2fa70ad2a interpreter",
+      "benches": {
+        "noop": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 0.292,
+          "p95_us": 0.584,
+          "p99_us": 0.584,
+          "max_us": 1.458,
+          "total_us": 47.82900000000004,
+          "calls_per_second": 2508938.0919525786,
+          "checksum": 120.0
+        },
+        "batch": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 6337.195,
+          "p95_us": 6963.098,
+          "p99_us": 6999.264,
+          "max_us": 7157.052,
+          "total_us": 764909.7679999998,
+          "calls_per_second": 156.8812492926617,
+          "checksum": 3643205.4335349803
+        },
+        "sourceRules": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 14312.937,
+          "p95_us": 15045.88,
+          "p99_us": 15250.334,
+          "max_us": 15450.704,
+          "total_us": 1731657.7829999996,
+          "calls_per_second": 69.2977568536127,
+          "checksum": 29771662397542.023
+        },
+        "scalarBridge": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 177.913,
+          "p95_us": 190.454,
+          "p99_us": 267.161,
+          "max_us": 489.406,
+          "total_us": 21968.731000000043,
+          "calls_per_second": 5462.309133832071,
+          "checksum": 33615120.0
+        },
+        "batchedBridge": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 120.748,
+          "p95_us": 123.956,
+          "p99_us": 187.538,
+          "max_us": 307.993,
+          "total_us": 14884.885000000013,
+          "calls_per_second": 8061.869473630458,
+          "checksum": 33615120.0
+        },
+        "churn": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 2522.57,
+          "p95_us": 3167.722,
+          "p99_us": 3325.51,
+          "max_us": 3587.13,
+          "total_us": 311173.2539999998,
+          "calls_per_second": 385.63725660046634,
+          "checksum": 120.0
+        },
+        "sustained_block_8row_4rules_4churn": {
+          "n": 300.0,
+          "warmup": 0.0,
+          "p50_us": 122357.619,
+          "p95_us": 125578.425,
+          "p99_us": 127302.429,
+          "max_us": 135605.699,
+          "total_us": 36853800.427999996,
+          "calls_per_second": 8.14027309303147,
+          "checksum": 297716696840719.8
+        }
+      },
+      "first_calls": {
+        "noop": {
+          "first_call_us": 2.917,
+          "checksum": 1.0
+        },
+        "batch": {
+          "first_call_us": 6713.437,
+          "checksum": 30360.045279458187
+        },
+        "sourceRules": {
+          "first_call_us": 14304.188,
+          "checksum": 248097186646.1832
+        },
+        "scalarBridge": {
+          "first_call_us": 181.704,
+          "checksum": 280126.0
+        },
+        "batchedBridge": {
+          "first_call_us": 132.122,
+          "checksum": 280126.0
+        },
+        "churn": {
+          "first_call_us": 3193.096,
+          "checksum": 1.0
+        }
+      },
+      "explicit_gc_wall_us": 698.818,
+      "process": {
+        "peak_rss_kib": 4888.0,
+        "elapsed_ms": 40602.15035
+      },
+      "max_sampled_vm_rss_kib": 5228,
+      "comparison": {
+        "leaves": 85,
+        "max_absolute_float_error": 2.220446049250313e-16,
+        "workload_checks": [
+          "batch",
+          "sourceRules",
+          "scalarBridge",
+          "batchedBridge",
+          "noop",
+          "churn",
+          "sustained"
+        ],
+        "peak_rss_kib": 4888
+      }
+    },
+    "ng": {
+      "version": "quickjs-ng 0.17.0 commit=6d46d07d04041b40f4f49eaa7fdebe44c314c699 interpreter",
+      "benches": {
+        "noop": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 0.292,
+          "p95_us": 0.584,
+          "p99_us": 0.584,
+          "max_us": 0.584,
+          "total_us": 50.75200000000002,
+          "calls_per_second": 2364438.8398486753,
+          "checksum": 120.0
+        },
+        "batch": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 7347.798,
+          "p95_us": 7757.58,
+          "p99_us": 7977.2,
+          "max_us": 8610.103,
+          "total_us": 885287.5180000002,
+          "calls_per_second": 135.54918324286143,
+          "checksum": 3643205.4335349803
+        },
+        "sourceRules": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 16077.189,
+          "p95_us": 16502.722,
+          "p99_us": 17020.127,
+          "max_us": 17874.984,
+          "total_us": 1935062.6790000002,
+          "calls_per_second": 62.01349511945188,
+          "checksum": 29771662397542.023
+        },
+        "scalarBridge": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 221.37,
+          "p95_us": 234.203,
+          "p99_us": 259.286,
+          "max_us": 398.991,
+          "total_us": 27032.242999999995,
+          "calls_per_second": 4439.143285298228,
+          "checksum": 33615120.0
+        },
+        "batchedBridge": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 206.204,
+          "p95_us": 228.662,
+          "p99_us": 258.411,
+          "max_us": 510.406,
+          "total_us": 25883.102000000006,
+          "calls_per_second": 4636.229459668319,
+          "checksum": 33615120.0
+        },
+        "churn": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 2745.399,
+          "p95_us": 3242.387,
+          "p99_us": 3305.678,
+          "max_us": 3635.545,
+          "total_us": 331879.05700000003,
+          "calls_per_second": 361.57750080626505,
+          "checksum": 120.0
+        },
+        "sustained_block_8row_4rules_4churn": {
+          "n": 300.0,
+          "warmup": 0.0,
+          "p50_us": 138382.295,
+          "p95_us": 141630.223,
+          "p99_us": 143319.816,
+          "max_us": 156141.492,
+          "total_us": 41617499.848,
+          "calls_per_second": 7.2085060634515035,
+          "checksum": 297716696840719.8
+        }
+      },
+      "first_calls": {
+        "noop": {
+          "first_call_us": 2.917,
+          "checksum": 1.0
+        },
+        "batch": {
+          "first_call_us": 8387.858,
+          "checksum": 30360.045279458187
+        },
+        "sourceRules": {
+          "first_call_us": 16429.223,
+          "checksum": 248097186646.1832
+        },
+        "scalarBridge": {
+          "first_call_us": 447.99,
+          "checksum": 280126.0
+        },
+        "batchedBridge": {
+          "first_call_us": 216.704,
+          "checksum": 280126.0
+        },
+        "churn": {
+          "first_call_us": 4024.912,
+          "checksum": 1.0
+        }
+      },
+      "explicit_gc_wall_us": 648.069,
+      "process": {
+        "peak_rss_kib": 5220.0,
+        "elapsed_ms": 45827.613307
+      },
+      "max_sampled_vm_rss_kib": 5380,
+      "comparison": {
+        "leaves": 85,
+        "max_absolute_float_error": 2.220446049250313e-16,
+        "workload_checks": [
+          "batch",
+          "sourceRules",
+          "scalarBridge",
+          "batchedBridge",
+          "noop",
+          "churn",
+          "sustained"
+        ],
+        "peak_rss_kib": 5220
+      }
+    },
+    "v8": {
+      "version": "v8 10.2.154.26-node.37 Debian-libnode108 Node18.20.4+dfsg-1~deb12u2 raw-C++-API default-JIT not-interpreter standalone-build=false",
+      "benches": {
+        "noop": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 2.042,
+          "p95_us": 2.334,
+          "p99_us": 2.334,
+          "max_us": 3.208,
+          "total_us": 262.781,
+          "calls_per_second": 456654.0198872826,
+          "checksum": 120.0
+        },
+        "batch": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 985.52,
+          "p95_us": 1716.421,
+          "p99_us": 2301.782,
+          "max_us": 2585.859,
+          "total_us": 112891.762,
+          "calls_per_second": 1062.9650726861717,
+          "checksum": 3643205.4335349803
+        },
+        "sourceRules": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 2190.66,
+          "p95_us": 5996.535,
+          "p99_us": 6322.611,
+          "max_us": 7373.754,
+          "total_us": 296390.099,
+          "calls_per_second": 404.87182400785935,
+          "checksum": 29771662397542.023
+        },
+        "scalarBridge": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 54.832,
+          "p95_us": 55.415,
+          "p99_us": 57.457,
+          "max_us": 96.247,
+          "total_us": 6647.810999999997,
+          "calls_per_second": 18051.054700562345,
+          "checksum": 33615120.0
+        },
+        "batchedBridge": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 14.875,
+          "p95_us": 142.33,
+          "p99_us": 186.662,
+          "max_us": 391.409,
+          "total_us": 3484.757999999999,
+          "calls_per_second": 34435.67673852819,
+          "checksum": 33615120.0
+        },
+        "churn": {
+          "n": 120.0,
+          "warmup": 30.0,
+          "p50_us": 214.954,
+          "p95_us": 672.277,
+          "p99_us": 719.234,
+          "max_us": 843.19,
+          "total_us": 31581.847999999998,
+          "calls_per_second": 3799.650989391121,
+          "checksum": 120.0
+        },
+        "sustained_block_8row_4rules_4churn": {
+          "n": 300.0,
+          "warmup": 0.0,
+          "p50_us": 11846.073,
+          "p95_us": 14329.559,
+          "p99_us": 25541.855,
+          "max_us": 47716.492,
+          "total_us": 3717631.2849999988,
+          "calls_per_second": 80.69654492376591,
+          "checksum": 297716696840719.8
+        }
+      },
+      "first_calls": {
+        "noop": {
+          "first_call_us": 123.372,
+          "checksum": 1.0
+        },
+        "batch": {
+          "first_call_us": 24181.26,
+          "checksum": 30360.045279458187
+        },
+        "sourceRules": {
+          "first_call_us": 18334.639,
+          "checksum": 248097186646.1832
+        },
+        "scalarBridge": {
+          "first_call_us": 699.401,
+          "checksum": 280126.0
+        },
+        "batchedBridge": {
+          "first_call_us": 519.447,
+          "checksum": 280126.0
+        },
+        "churn": {
+          "first_call_us": 1241.306,
+          "checksum": 1.0
+        }
+      },
+      "explicit_gc_wall_us": 3570.213,
+      "process": {
+        "peak_rss_kib": 40528.0,
+        "elapsed_ms": 4847.786746000001
+      },
+      "max_sampled_vm_rss_kib": 40716,
+      "comparison": {
+        "leaves": 85,
+        "max_absolute_float_error": 0,
+        "workload_checks": [
+          "batch",
+          "sourceRules",
+          "scalarBridge",
+          "batchedBridge",
+          "noop",
+          "churn",
+          "sustained"
+        ],
+        "peak_rss_kib": 40528
+      }
+    }
+  }
+}
