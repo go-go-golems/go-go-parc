@@ -1,0 +1,46 @@
+{
+  "assets": {
+    "inputs/assets/baseline/post_fs.glsl": "f598227c7bd8e07ccf27e1e2a52062b2801cec4dee5053de52c198eaf593ab9c",
+    "inputs/assets/baseline/post_vs.glsl": "c3fe71db1531e5fc02d45f0dcb180e7f96e45a7584050e28e946c48e47c49eb6",
+    "inputs/assets/baseline/scene_fs.glsl": "d2ba6ba8ccd6c8a888889153c5c918ff36a19dd9f3b1dcb9ada28ab3d9607fae",
+    "inputs/assets/baseline/scene_vs.glsl": "06887bbfcbd8368cb4f61deeb6f5382cec301a2ae665362820493c5b09189b70",
+    "inputs/assets/both/post_fs.glsl": "2df38f915eacd3e960b5d75e3123ee761bab8349017c002ddf5d3ef5feb28965",
+    "inputs/assets/both/post_vs.glsl": "c3fe71db1531e5fc02d45f0dcb180e7f96e45a7584050e28e946c48e47c49eb6",
+    "inputs/assets/both/scene_fs.glsl": "bd43794293108b354b8672df321572afa6fa2611989bbab93a07497d49e947d2",
+    "inputs/assets/both/scene_vs.glsl": "06887bbfcbd8368cb4f61deeb6f5382cec301a2ae665362820493c5b09189b70",
+    "inputs/assets/glyphs.bmp": "cd7ed0089ec236d0d0f1d8453e69decdbf02e5b64e0cd9e44bdb676caf474b28",
+    "inputs/assets/hud-font.bmp": "27a5b2363b21ed1b591e7f88c18aca420be969012e38ef49ab9e2e7890b7ca23",
+    "inputs/assets/post-copy/post_fs.glsl": "2df38f915eacd3e960b5d75e3123ee761bab8349017c002ddf5d3ef5feb28965",
+    "inputs/assets/post-copy/post_vs.glsl": "c3fe71db1531e5fc02d45f0dcb180e7f96e45a7584050e28e946c48e47c49eb6",
+    "inputs/assets/post-copy/scene_fs.glsl": "d2ba6ba8ccd6c8a888889153c5c918ff36a19dd9f3b1dcb9ada28ab3d9607fae",
+    "inputs/assets/post-copy/scene_vs.glsl": "06887bbfcbd8368cb4f61deeb6f5382cec301a2ae665362820493c5b09189b70",
+    "inputs/assets/scene-flat/post_fs.glsl": "f598227c7bd8e07ccf27e1e2a52062b2801cec4dee5053de52c198eaf593ab9c",
+    "inputs/assets/scene-flat/post_vs.glsl": "c3fe71db1531e5fc02d45f0dcb180e7f96e45a7584050e28e946c48e47c49eb6",
+    "inputs/assets/scene-flat/scene_fs.glsl": "bd43794293108b354b8672df321572afa6fa2611989bbab93a07497d49e947d2",
+    "inputs/assets/scene-flat/scene_vs.glsl": "06887bbfcbd8368cb4f61deeb6f5382cec301a2ae665362820493c5b09189b70"
+  },
+  "binary_sha256": "90f124a7745a37f76175130bd79ef748b741852bccfe58305548f7946c0d82ed",
+  "runtime_evidence": "6c5b231",
+  "variants": {
+    "baseline": {
+      "cheap_post": false,
+      "flat_scene": false,
+      "non_parity": false
+    },
+    "both": {
+      "cheap_post": true,
+      "flat_scene": true,
+      "non_parity": true
+    },
+    "post-copy": {
+      "cheap_post": true,
+      "flat_scene": false,
+      "non_parity": true
+    },
+    "scene-flat": {
+      "cheap_post": false,
+      "flat_scene": true,
+      "non_parity": true
+    }
+  }
+}

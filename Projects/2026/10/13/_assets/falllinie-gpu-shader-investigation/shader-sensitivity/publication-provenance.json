@@ -1,0 +1,14 @@
+{
+  "assets": {
+    "Projects/2026/10/13/_assets/falllinie-gpu-shader-investigation/shader-sensitivity/analysis-provenance.json": "9de4cd697bacc903e8158b92ad03563cc107fb8b9ceb1c3cf3d7f1f97d97658c",
+    "Projects/2026/10/13/_assets/falllinie-gpu-shader-investigation/shader-sensitivity/asset-manifest.json": "33ff03c9d523b5dc2d4e86d2fc3c767ed00eefe7b0abbbdf3a8a8e86cf6c20b1",
+    "Projects/2026/10/13/_assets/falllinie-gpu-shader-investigation/shader-sensitivity/endpoint-comparison.png": "73d41268117cffd8a1bd7f0cff2dfbab398d7fee83434e056b5f521f6850c644",
+    "Projects/2026/10/13/_assets/falllinie-gpu-shader-investigation/shader-sensitivity/figure-provenance.json": "faa36d5417ec41cdbb97d12744a9d51db4e1b67ff28a9387d63e0b3fcc2b6f16",
+    "Projects/2026/10/13/_assets/falllinie-gpu-shader-investigation/shader-sensitivity/sensitivity.svg": "d0a3e829ee7dd381ddec594728a9cc661e59b45c9c7ee6741e39d82346737151",
+    "Projects/2026/10/13/_assets/falllinie-gpu-shader-investigation/shader-sensitivity/summary.json": "ada086bf78e75ee074c2aa81290a3143a1218f1217a13ed9517585cfd977f3af"
+  },
+  "generator_sha256": "14b10aed03667599a7f60cb0f499fd3436ed738d0d8a14ad70f67475b809be0c",
+  "historical_sections_1_through_16_preserved": true,
+  "native_evidence_commit": "7a2db77",
+  "note_sha256": "022b95cf25979a9a865a1779ad331582c656d88c1e4b2c5a74e56d9a8cc8e1d1"
+}
