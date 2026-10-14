@@ -1,0 +1,551 @@
+{
+  "cases": {
+    "01-range0": {
+      "draw_ranges": false,
+      "frame_n": 1690,
+      "frame_mean_ms": 18.264040027218936,
+      "frame_p95_ms": 28.0707007,
+      "frame_p99_ms": 29.502230019999995,
+      "paired_samples": 600,
+      "scopes": {
+        "context/0/none": {
+          "n": 20,
+          "wall_ms": 0.10240385,
+          "cpu_ms": 0.08226455
+        },
+        "events/-1/none": {
+          "n": 20,
+          "wall_ms": 0.157689,
+          "cpu_ms": 0.1311334
+        },
+        "physics/-1/none": {
+          "n": 20,
+          "wall_ms": 0.13719945,
+          "cpu_ms": 0.11501890000000001
+        },
+        "player/-1/none": {
+          "n": 20,
+          "wall_ms": 0.660419,
+          "cpu_ms": 0.5849084
+        },
+        "render/0/dynamic_prep": {
+          "n": 20,
+          "wall_ms": 0.19438070000000002,
+          "cpu_ms": 0.16216655
+        },
+        "render/0/dynamic_upload": {
+          "n": 20,
+          "wall_ms": 0.13708275,
+          "cpu_ms": 0.1237395
+        },
+        "render/0/scene": {
+          "n": 20,
+          "wall_ms": 3.3152797,
+          "cpu_ms": 2.9099018500000002
+        },
+        "render/0/post": {
+          "n": 20,
+          "wall_ms": 0.5580005,
+          "cpu_ms": 0.5122835
+        },
+        "render/0/output": {
+          "n": 20,
+          "wall_ms": 3.1854445,
+          "cpu_ms": 1.06691905
+        },
+        "render/0/view": {
+          "n": 20,
+          "wall_ms": 7.09050145,
+          "cpu_ms": 4.53186265
+        },
+        "swap/0/none": {
+          "n": 20,
+          "wall_ms": 0.30126565,
+          "cpu_ms": 0.26301245
+        },
+        "context/1/none": {
+          "n": 20,
+          "wall_ms": 0.0481976,
+          "cpu_ms": 0.04586455
+        },
+        "render/1/dynamic_prep": {
+          "n": 20,
+          "wall_ms": 0.15185574999999998,
+          "cpu_ms": 0.1343268
+        },
+        "render/1/dynamic_upload": {
+          "n": 20,
+          "wall_ms": 0.115733,
+          "cpu_ms": 0.11103745
+        },
+        "render/1/scene": {
+          "n": 20,
+          "wall_ms": 1.45908725,
+          "cpu_ms": 1.3506497
+        },
+        "render/1/post": {
+          "n": 20,
+          "wall_ms": 0.5984253,
+          "cpu_ms": 0.5336189
+        },
+        "render/1/output": {
+          "n": 20,
+          "wall_ms": 5.68993735,
+          "cpu_ms": 0.8149166
+        },
+        "render/1/view": {
+          "n": 20,
+          "wall_ms": 7.7703456,
+          "cpu_ms": 2.7363289
+        },
+        "swap/1/none": {
+          "n": 20,
+          "wall_ms": 0.34206570000000003,
+          "cpu_ms": 0.2626753
+        },
+        "pacing/-1/none": {
+          "n": 20,
+          "wall_ms": 0.47633404999999995,
+          "cpu_ms": 0.0181855
+        }
+      },
+      "samples": 2011,
+      "lost": 0,
+      "sampled_event_count_approx": 14016455827,
+      "driver_weight_percent": 72.23,
+      "hotspot_weight_percent": 16.68,
+      "hotspot_null_means": "Not displayed at 0.5% cutoff; not proof of zero.",
+      "minmax_helper_sampled_offsets": [
+        {
+          "offset": "0x42d6dc",
+          "weight_percent": 16.68
+        },
+        {
+          "offset": "0x42d714",
+          "weight_percent": 0.24
+        },
+        {
+          "offset": "0x42d6d4",
+          "weight_percent": 0.06
+        },
+        {
+          "offset": "0x42d6c4",
+          "weight_percent": 0.05
+        },
+        {
+          "offset": "0x42d6e0",
+          "weight_percent": 0.05
+        },
+        {
+          "offset": "0x42d6e4",
+          "weight_percent": 0.04
+        }
+      ],
+      "minmax_helper_rounded_weight_percent": 17.12
+    },
+    "02-range1": {
+      "draw_ranges": true,
+      "frame_n": 1696,
+      "frame_mean_ms": 18.207474479363206,
+      "frame_p95_ms": 28.26083675,
+      "frame_p99_ms": 29.82405305,
+      "paired_samples": 600,
+      "scopes": {
+        "context/0/none": {
+          "n": 20,
+          "wall_ms": 0.11621835,
+          "cpu_ms": 0.0788271
+        },
+        "events/-1/none": {
+          "n": 20,
+          "wall_ms": 0.13314525,
+          "cpu_ms": 0.11921875
+        },
+        "physics/-1/none": {
+          "n": 20,
+          "wall_ms": 0.116608,
+          "cpu_ms": 0.1033811
+        },
+        "player/-1/none": {
+          "n": 20,
+          "wall_ms": 0.55579765,
+          "cpu_ms": 0.49708755
+        },
+        "render/0/dynamic_prep": {
+          "n": 20,
+          "wall_ms": 0.16552035,
+          "cpu_ms": 0.13299995
+        },
+        "render/0/dynamic_upload": {
+          "n": 20,
+          "wall_ms": 0.131789,
+          "cpu_ms": 0.10683775
+        },
+        "render/0/scene": {
+          "n": 20,
+          "wall_ms": 1.616395,
+          "cpu_ms": 1.4193231
+        },
+        "render/0/post": {
+          "n": 20,
+          "wall_ms": 0.59846835,
+          "cpu_ms": 0.5273626
+        },
+        "render/0/output": {
+          "n": 20,
+          "wall_ms": 5.0569232,
+          "cpu_ms": 1.21991055
+        },
+        "render/0/view": {
+          "n": 20,
+          "wall_ms": 7.29587815,
+          "cpu_ms": 3.2071377
+        },
+        "swap/0/none": {
+          "n": 20,
+          "wall_ms": 0.3362901,
+          "cpu_ms": 0.2993521
+        },
+        "context/1/none": {
+          "n": 20,
+          "wall_ms": 0.06390385,
+          "cpu_ms": 0.0532728
+        },
+        "render/1/dynamic_prep": {
+          "n": 20,
+          "wall_ms": 0.1582285,
+          "cpu_ms": 0.14631455
+        },
+        "render/1/dynamic_upload": {
+          "n": 20,
+          "wall_ms": 0.11154755,
+          "cpu_ms": 0.10381875
+        },
+        "render/1/scene": {
+          "n": 20,
+          "wall_ms": 1.14668255,
+          "cpu_ms": 1.02672495
+        },
+        "render/1/post": {
+          "n": 20,
+          "wall_ms": 0.6699553,
+          "cpu_ms": 0.54709355
+        },
+        "render/1/output": {
+          "n": 20,
+          "wall_ms": 6.01237625,
+          "cpu_ms": 0.82321465
+        },
+        "render/1/view": {
+          "n": 20,
+          "wall_ms": 7.85281405,
+          "cpu_ms": 2.4369478
+        },
+        "swap/1/none": {
+          "n": 20,
+          "wall_ms": 0.31050695,
+          "cpu_ms": 0.2552667
+        },
+        "pacing/-1/none": {
+          "n": 20,
+          "wall_ms": 0.053053699999999995,
+          "cpu_ms": 0.00759795
+        }
+      },
+      "samples": 1722,
+      "lost": 0,
+      "sampled_event_count_approx": 11095073283,
+      "driver_weight_percent": 63.78,
+      "hotspot_weight_percent": null,
+      "hotspot_null_means": "Not displayed at 0.5% cutoff; not proof of zero.",
+      "minmax_helper_sampled_offsets": [],
+      "minmax_helper_rounded_weight_percent": 0
+    },
+    "03-range1": {
+      "draw_ranges": true,
+      "frame_n": 1695,
+      "frame_mean_ms": 18.24165622359882,
+      "frame_p95_ms": 28.4221148,
+      "frame_p99_ms": 29.991998499999998,
+      "paired_samples": 600,
+      "scopes": {
+        "context/0/none": {
+          "n": 20,
+          "wall_ms": 0.098189,
+          "cpu_ms": 0.08449585
+        },
+        "events/-1/none": {
+          "n": 20,
+          "wall_ms": 0.15010535,
+          "cpu_ms": 0.1422603
+        },
+        "physics/-1/none": {
+          "n": 20,
+          "wall_ms": 0.1588407,
+          "cpu_ms": 0.13903755
+        },
+        "player/-1/none": {
+          "n": 20,
+          "wall_ms": 0.756304,
+          "cpu_ms": 0.647954
+        },
+        "render/0/dynamic_prep": {
+          "n": 20,
+          "wall_ms": 0.1820428,
+          "cpu_ms": 0.16951675
+        },
+        "render/0/dynamic_upload": {
+          "n": 20,
+          "wall_ms": 0.11430345,
+          "cpu_ms": 0.1105272
+        },
+        "render/0/scene": {
+          "n": 20,
+          "wall_ms": 1.7744024,
+          "cpu_ms": 1.59276235
+        },
+        "render/0/post": {
+          "n": 20,
+          "wall_ms": 0.6532713,
+          "cpu_ms": 0.54337505
+        },
+        "render/0/output": {
+          "n": 20,
+          "wall_ms": 3.94667125,
+          "cpu_ms": 1.21234195
+        },
+        "render/0/view": {
+          "n": 20,
+          "wall_ms": 6.3998802,
+          "cpu_ms": 3.39148565
+        },
+        "swap/0/none": {
+          "n": 20,
+          "wall_ms": 0.33548985,
+          "cpu_ms": 0.30104375
+        },
+        "context/1/none": {
+          "n": 20,
+          "wall_ms": 0.0906494,
+          "cpu_ms": 0.0609292
+        },
+        "render/1/dynamic_prep": {
+          "n": 20,
+          "wall_ms": 0.1965968,
+          "cpu_ms": 0.17072705
+        },
+        "render/1/dynamic_upload": {
+          "n": 20,
+          "wall_ms": 0.17358655,
+          "cpu_ms": 0.13537725
+        },
+        "render/1/scene": {
+          "n": 20,
+          "wall_ms": 1.3265968,
+          "cpu_ms": 1.1669875
+        },
+        "render/1/post": {
+          "n": 20,
+          "wall_ms": 0.7180645999999999,
+          "cpu_ms": 0.61929585
+        },
+        "render/1/output": {
+          "n": 20,
+          "wall_ms": 6.5240695,
+          "cpu_ms": 0.90722945
+        },
+        "render/1/view": {
+          "n": 20,
+          "wall_ms": 8.61949515,
+          "cpu_ms": 2.74278975
+        },
+        "swap/1/none": {
+          "n": 20,
+          "wall_ms": 0.4259184,
+          "cpu_ms": 0.30213745
+        },
+        "pacing/-1/none": {
+          "n": 20,
+          "wall_ms": 0.27454445,
+          "cpu_ms": 0.01023755
+        }
+      },
+      "samples": 1688,
+      "lost": 0,
+      "sampled_event_count_approx": 10935048434,
+      "driver_weight_percent": 65.0,
+      "hotspot_weight_percent": null,
+      "hotspot_null_means": "Not displayed at 0.5% cutoff; not proof of zero.",
+      "minmax_helper_sampled_offsets": [],
+      "minmax_helper_rounded_weight_percent": 0
+    },
+    "04-range0": {
+      "draw_ranges": false,
+      "frame_n": 1727,
+      "frame_mean_ms": 17.882124162130864,
+      "frame_p95_ms": 27.5795224,
+      "frame_p99_ms": 29.650355559999998,
+      "paired_samples": 600,
+      "scopes": {
+        "context/0/none": {
+          "n": 20,
+          "wall_ms": 0.1261448,
+          "cpu_ms": 0.08397085
+        },
+        "events/-1/none": {
+          "n": 20,
+          "wall_ms": 0.12642215,
+          "cpu_ms": 0.11935
+        },
+        "physics/-1/none": {
+          "n": 20,
+          "wall_ms": 0.1143034,
+          "cpu_ms": 0.10852925
+        },
+        "player/-1/none": {
+          "n": 20,
+          "wall_ms": 0.60973955,
+          "cpu_ms": 0.52921455
+        },
+        "render/0/dynamic_prep": {
+          "n": 20,
+          "wall_ms": 0.1430617,
+          "cpu_ms": 0.12985005
+        },
+        "render/0/dynamic_upload": {
+          "n": 20,
+          "wall_ms": 0.1047515,
+          "cpu_ms": 0.0965271
+        },
+        "render/0/scene": {
+          "n": 20,
+          "wall_ms": 2.6340528,
+          "cpu_ms": 2.439544
+        },
+        "render/0/post": {
+          "n": 20,
+          "wall_ms": 0.5891772,
+          "cpu_ms": 0.52533535
+        },
+        "render/0/output": {
+          "n": 20,
+          "wall_ms": 3.96599775,
+          "cpu_ms": 1.0852335
+        },
+        "render/0/view": {
+          "n": 20,
+          "wall_ms": 7.2361275,
+          "cpu_ms": 4.0940524
+        },
+        "swap/0/none": {
+          "n": 20,
+          "wall_ms": 0.2763086,
+          "cpu_ms": 0.2606915
+        },
+        "context/1/none": {
+          "n": 20,
+          "wall_ms": 0.05407465,
+          "cpu_ms": 0.04816885
+        },
+        "render/1/dynamic_prep": {
+          "n": 20,
+          "wall_ms": 0.1452052,
+          "cpu_ms": 0.13594615
+        },
+        "render/1/dynamic_upload": {
+          "n": 20,
+          "wall_ms": 0.135274,
+          "cpu_ms": 0.11339995
+        },
+        "render/1/scene": {
+          "n": 20,
+          "wall_ms": 1.46132745,
+          "cpu_ms": 1.33982915
+        },
+        "render/1/post": {
+          "n": 20,
+          "wall_ms": 0.5752941,
+          "cpu_ms": 0.50096635
+        },
+        "render/1/output": {
+          "n": 20,
+          "wall_ms": 6.36736265,
+          "cpu_ms": 0.7839144
+        },
+        "render/1/view": {
+          "n": 20,
+          "wall_ms": 8.43032125,
+          "cpu_ms": 2.6607892
+        },
+        "swap/1/none": {
+          "n": 20,
+          "wall_ms": 0.36641845,
+          "cpu_ms": 0.26802695
+        },
+        "pacing/-1/none": {
+          "n": 20,
+          "wall_ms": 0.3874201,
+          "cpu_ms": 0.016027200000000002
+        }
+      },
+      "samples": 1915,
+      "lost": 0,
+      "sampled_event_count_approx": 14400557541,
+      "driver_weight_percent": 73.14,
+      "hotspot_weight_percent": 16.24,
+      "hotspot_null_means": "Not displayed at 0.5% cutoff; not proof of zero.",
+      "minmax_helper_sampled_offsets": [
+        {
+          "offset": "0x42d6dc",
+          "weight_percent": 16.24
+        },
+        {
+          "offset": "0x42d714",
+          "weight_percent": 0.24
+        },
+        {
+          "offset": "0x42d6ec",
+          "weight_percent": 0.09
+        },
+        {
+          "offset": "0x42d6f0",
+          "weight_percent": 0.06
+        },
+        {
+          "offset": "0x42d6d8",
+          "weight_percent": 0.05
+        },
+        {
+          "offset": "0x42d6e4",
+          "weight_percent": 0.04
+        },
+        {
+          "offset": "0x42d6f8",
+          "weight_percent": 0.04
+        }
+      ],
+      "minmax_helper_rounded_weight_percent": 16.759999999999998
+    }
+  },
+  "fixture": {
+    "scene": {
+      "equal": true,
+      "sha256": "46fc3f541a72f7a505c095ecfb2c91c86adcc3af10fe68b5495b11a4a5466a68"
+    },
+    "depth": {
+      "equal": true,
+      "sha256": "f8bcf799ce976567ce87643c370abfb69db03343a1d921818cdfdf32c7a9c8ef"
+    },
+    "print": {
+      "equal": true,
+      "sha256": "360a0b856157478e030a43a8c8c264bdb2300273c471c3efe0799c6635d809e8"
+    }
+  },
+  "decision": "Keep opt-in: bounded CPU benefit, no demonstrated end-to-end frame gain; audio remains disabled.",
+  "baseline": {
+    "frame_pooled_mean_ms": 18.07101436172081
+  },
+  "range": {
+    "frame_pooled_mean_ms": 18.224560311412564
+  }
+}

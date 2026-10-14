@@ -1,0 +1,115 @@
+{
+  "cases": {
+    "01-cpu_cycles": {
+      "samples": 2014,
+      "lost": 0,
+      "dso_weight_percent": {
+        "libmali.so.1.10.0": 72.09,
+        "falllinie-pmu": 10.56,
+        "libc.so.6": 6.62,
+        "[kernel.kallsyms]": 6.01,
+        "libwayland-client.so.0.26.0": 1.9,
+        "libSDL2-2.0.so.0.3200.10": 0.92,
+        "libm.so.6": 0.9,
+        "libstdc++.so.6.0.36": 0.68,
+        "[vdso]": 0.25,
+        "[mali_kbase]": 0.06
+      },
+      "hotspot_42d6dc_percent": 16.84,
+      "hotspot_missing_means": "Not displayed at 0.5% symbol cutoff, not proven zero.",
+      "postwarmup_frame_mean_ms": 18.036343208528038,
+      "paired_written": 600,
+      "config": "event=armv8_cortex_a55/cpu_cycles/\nfrequency=199\nmain_tid=839751\n"
+    },
+    "02-l1d_cache_refill": {
+      "samples": 2040,
+      "lost": 0,
+      "dso_weight_percent": {
+        "libmali.so.1.10.0": 58.52,
+        "falllinie-pmu": 18.33,
+        "libc.so.6": 12.1,
+        "[kernel.kallsyms]": 7.62,
+        "libwayland-client.so.0.26.0": 1.65,
+        "libSDL2-2.0.so.0.3200.10": 0.78,
+        "libm.so.6": 0.41,
+        "libstdc++.so.6.0.36": 0.32,
+        "[vdso]": 0.23,
+        "libudev.so.1.7.14": 0.05
+      },
+      "hotspot_42d6dc_percent": null,
+      "hotspot_missing_means": "Not displayed at 0.5% symbol cutoff, not proven zero.",
+      "postwarmup_frame_mean_ms": 17.994385055911472,
+      "paired_written": 600,
+      "config": "event=armv8_cortex_a55/l1d_cache_refill/\nfrequency=199\nmain_tid=840186\n"
+    },
+    "03-br_mis_pred_retired": {
+      "samples": 2008,
+      "lost": 0,
+      "dso_weight_percent": {
+        "libmali.so.1.10.0": 70.51,
+        "libc.so.6": 9.38,
+        "[kernel.kallsyms]": 8.13,
+        "falllinie-pmu": 6.75,
+        "libwayland-client.so.0.26.0": 2.42,
+        "libstdc++.so.6.0.36": 1.07,
+        "libm.so.6": 0.96,
+        "libSDL2-2.0.so.0.3200.10": 0.61,
+        "[vdso]": 0.13,
+        "[mali_kbase]": 0.04
+      },
+      "hotspot_42d6dc_percent": 0.76,
+      "hotspot_missing_means": "Not displayed at 0.5% symbol cutoff, not proven zero.",
+      "postwarmup_frame_mean_ms": 18.234676542232723,
+      "paired_written": 600,
+      "config": "event=armv8_cortex_a55/br_mis_pred_retired/\nfrequency=199\nmain_tid=840631\n"
+    },
+    "04-l1d_tlb_refill": {
+      "samples": 1904,
+      "lost": 0,
+      "dso_weight_percent": {
+        "libmali.so.1.10.0": 72.1,
+        "libc.so.6": 9.19,
+        "falllinie-pmu": 9.08,
+        "[kernel.kallsyms]": 4.48,
+        "libm.so.6": 3.08,
+        "libSDL2-2.0.so.0.3200.10": 0.73,
+        "libwayland-client.so.0.26.0": 0.57,
+        "[vdso]": 0.42,
+        "libstdc++.so.6.0.36": 0.35
+      },
+      "hotspot_42d6dc_percent": null,
+      "hotspot_missing_means": "Not displayed at 0.5% symbol cutoff, not proven zero.",
+      "postwarmup_frame_mean_ms": 17.872779500578705,
+      "paired_written": 600,
+      "config": "event=armv8_cortex_a55/l1d_tlb_refill/\nfrequency=199\nmain_tid=841073\n"
+    },
+    "05-cpu_cycles": {
+      "samples": 1929,
+      "lost": 0,
+      "dso_weight_percent": {
+        "libmali.so.1.10.0": 71.2,
+        "falllinie-pmu": 10.89,
+        "libc.so.6": 7.79,
+        "[kernel.kallsyms]": 5.46,
+        "libwayland-client.so.0.26.0": 1.85,
+        "libm.so.6": 1.05,
+        "libSDL2-2.0.so.0.3200.10": 1.04,
+        "libstdc++.so.6.0.36": 0.51,
+        "[vdso]": 0.15,
+        "libudev.so.1.7.14": 0.05
+      },
+      "hotspot_42d6dc_percent": 15.56,
+      "hotspot_missing_means": "Not displayed at 0.5% symbol cutoff, not proven zero.",
+      "postwarmup_frame_mean_ms": 17.995475672886297,
+      "paired_written": 600,
+      "config": "event=armv8_cortex_a55/cpu_cycles/\nfrequency=199\nmain_tid=841501\n"
+    }
+  },
+  "samples_total": 9895,
+  "address_mapping": {
+    "base": "0x7f95d40000",
+    "hotspot": "0x7f9616d6dc",
+    "caller_perf_address": "0x7f961503ef",
+    "caller_note": "perf return-address-minus-one 0x4103ef corresponds to BL at0x4103ec and return at0x4103f0; ELF executable LOAD offset/VA are both0."
+  }
+}

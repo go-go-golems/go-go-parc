@@ -1,0 +1,16 @@
+{
+  "native_evidence_commit": "44c0c72",
+  "implementation_commit": "487492c",
+  "assets": {
+    "fixture-ranges.png": "a14aee620cc435778b143822fa8b828a9f583d4d31272e0dd85035b9105d6faf",
+    "range-summary.json": "845a8d33e1441385fdd591432a4409c9e4fda80d9f9758740835fa672e1b56fb",
+    "build-qualification.json": "a8f62b9a0484d7f215222c1df5c903b0a792a9758b61b199335d36615da2d99b",
+    "range-provenance.json": "9076a90e845f93b8a143e1485519d0363bbc066951b8c5d322ca3ed0d8986f68",
+    "attribution-provenance.json": "5f6704d5727df251f96283edf444304eeeba1de3a335421274dcff0dbc9e2982",
+    "attribution-summary.json": "5ed801aad0df989945882abbd08368dff6f0ae140149e923715b6eb314e09990",
+    "05-range-cpu-frame.svg": "91aea0a414f4fc4879804061e50115065c54c02fd01da4b47220498786eb87b4",
+    "04-event-attribution.svg": "1e55614183b88fbe0d27ea04e16e8f0a0270ca82de7d686b5110115d087d108f",
+    "fixture-baseline.png": "a14aee620cc435778b143822fa8b828a9f583d4d31272e0dd85035b9105d6faf"
+  },
+  "generator_sha256": "ce78b8f02ba56031c3ae5710aa07d4d7e402f21ffc9f4c5a15c061020bd77f65"
+}

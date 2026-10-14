@@ -9,6 +9,8 @@ tags: [project, falllinie, performance, profiling, cpu, pmu]
 repo: /home/manuel/code/wesen/2026-10-12--falllinie-spike
 implementation_commit: 323b095
 measurement_commit: f8f6632
+followup_measurement_commit: 44c0c72
+range_candidate_commit: 487492c
 ---
 
 # Falllinie CPU PMU: Cache Events, Driver Cycles and an Audio-Disabled Baseline
@@ -22,9 +24,9 @@ This report describes the implementation and first complete device campaign that
 The distinction between those changes matters. Selecting only the main thread determines which execution is counted. Disabling audio changes the surrounding workload. Neither makes the GPU, kernel, compositor or memory system disappear, and neither proves that the resulting numbers describe the fully integrated game.
 
 > [!summary]
-> Five pairs of Cortex-A55 hardware events were collected successfully with full reported PMU scheduling coverage. The main thread averaged 0.14537 retired instructions per cycle in its cycles/instructions run. A separate hardware-cycle profile attributed 71.81% of its main-thread cycle weight to `libmali`. Cache, TLB and branch ratios are now measured, but a specific cache bottleneck or expensive GL operation is not yet established.
+> The initial baseline measured five pairs of Cortex-A55 events, 0.14537 instructions per cycle and 71.81% driver cycle weight. The follow-up profiles and indexed-draw experiment now support an index-range-scan explanation for a prominent driver hotspot. Supplying known bounds reduces sampled scene CPU cost, but does not demonstrate an end-to-end frame-time improvement; the candidate remains opt-in.
 
-This is a living investigation report. Its completed measurement checkpoint is `f8f6632`; the baseline implementation is `323b095`. Later attribution experiments can be added with their own workload and evidence boundaries. The current chapter does not claim that cache-refill or branch-misprediction **location profiles** have already been collected: those events were counted, while instruction-location sampling used CPU cycles.
+This is a living investigation report. Its completed measurement checkpoint is `f8f6632`; the baseline implementation is `323b095`. Later attribution experiments can be added with their own workload and evidence boundaries. At that baseline checkpoint, cache-refill and branch-misprediction events had only been counted, while instruction-location sampling used CPU cycles. **The subsequent investigation in sections 12–14 now adds those event-location profiles and an indexed-draw experiment:** scene CPU cost decreases, but a frame-time improvement is not established.
 
 ## 1. Define what the CPU instruments measure
 
@@ -361,7 +363,9 @@ Under `scripts/10-cpu-pmu/`, the inventory, build, bounded target runner, campai
 
 Raw `perf.data` remains in the private device deployment with a retained SHA-256. Decoded reports, raw interval CSV, event definitions, thread inventories and application evidence are committed in the native repository. The vault contains the [derived summary](./_assets/falllinie-cpu-pmu/summary.json), [input provenance](./_assets/falllinie-cpu-pmu/analysis-provenance.json), actual worked interval, build qualification and [figure hashes](./_assets/falllinie-cpu-pmu/report-provenance.json). No new target run was required to write this report.
 
-## 11. What to investigate next—and what remains unproven
+## 11. Questions at the initial baseline checkpoint
+
+The following records the investigation direction when the baseline was published. Sections 12–14 report the work subsequently completed, without changing the original measurement tables.
 
 The next question is more specific than “is the CPU busy?” The main-thread cycle profile identifies substantial driver execution, the counter groups establish low IPC and measurable cache/translation/branch events, and the frame tails remain. The useful continuation is to connect a selected event to code and then test a narrow hypothesis.
 
@@ -372,6 +376,119 @@ A read-only follow-up has also begun for the prominent driver offset: the target
 Uniform-location caching remains a plausible CPU-side optimization, not a demonstrated remedy. The current evidence is stronger than a general impression that driver work is expensive, but it still does not show that name lookup is responsible for the large hotspot. Likewise, cache ratios alone do not justify changing geometry layout, precision or shader formulas.
 
 When a candidate is selected, keep the workload and instrumentation controls comparable and change one relevant behavior. If the measured result does not improve, preserve that outcome as the earlier shader experiment did. Eventually restore audio and repeat integrated acceptance; an optimization qualified only in this reduced workload is not yet qualified for the full game.
+
+## 12. Follow-up: hardware-event location profiles
+
+The next campaign kept the qualified audio-disabled runtime unchanged and selected five hardware-event profiles in order: CPU cycles, L1 data-cache refills, retired branch mispredictions, L1 data-TLB refills, then CPU cycles again. Each used the same main-thread/no-inheritance selection, requested 199 Hz frequency and bounded workload as the baseline.
+
+All five runs completed successfully. Together they collected **9,895 samples with zero reported loss**. Application GL health, receipt flags and paired-clock completeness were checked independently of the profiler reports.
+
+| Profile | Samples | Driver event weight | Weight at `0x42d6dc` |
+|---|---:|---:|---:|
+| Opening CPU cycles | 2,014 | 72.09% | 16.84% |
+| L1D refill | 2,040 | 58.52% | Below the report's 0.5% display threshold or absent |
+| Retired branch misprediction | 2,008 | 70.51% | Below threshold or absent |
+| L1D TLB refill | 1,904 | 72.10% | Below threshold or absent |
+| Closing CPU cycles | 1,929 | 71.20% | 15.56% |
+
+![Actual event-location profile comparison](./_assets/falllinie-cpu-pmu/range-draw/04-event-attribution.svg)
+
+*Each percentage is period-weighted attribution within its own event recording. The rows are not fractions of one common CPU-time budget. A location missing from a thresholded report is not proven to have zero activity.*
+
+These profiles refine the original question. Driver execution remains prominent for all selected events, but the largest cycle hotspot is not also a displayed leader for cache refills, translation refills or retired branch mispredictions. The application-side L1D refill report highlights rider geometry and mesh construction as well. It would be unjustified to conclude that the cycle hotspot's cost is simply the cache-miss ratio measured earlier.
+
+### Map the sampled location before interpreting instructions
+
+The opening cycles run recorded the driver's executable mapping at `0x7f95d40000`, with file offset zero. The copied ELF's executable LOAD segment also has file offset and virtual address zero. The sampled runtime address `0x7f9616d6dc` therefore maps to module address `0x42d6dc`.
+
+A partial frame-pointer chain identifies a caller address `0x7f961503ef`, or module offset `0x4103ef`. Perf's return-address-minus-one convention places this immediately before the return address following a branch-and-link instruction at `0x4103ec`. Disassembly of that instruction shows a call to `0x42d6c4`, the beginning of the helper containing the hotspot.
+
+That establishes an immediate call relation using actual process mappings and code, not a name inferred from a nearby export. The disassembler labels this region relative to `glViewport`, the nearest exported symbol; **that label does not identify the private helper as glViewport**. The available call chain also does not fully recover every intervening GL implementation layer.
+
+### Interpret the operation surrounding the sampled instruction
+
+The hot address is an `ADD` following an interleaved vector load. In the surrounding loop, the driver:
+
+1. Initializes unsigned vector minima and maxima.
+2. Loads sixteen 32-bit values with `LD4`.
+3. Advances the input pointer by 64 bytes.
+4. Reduces those values with unsigned `UMIN` and `UMAX` operations.
+5. Repeats according to a decremented count, handles remaining elements, and merges the extrema into output values.
+
+The algorithm is an unsigned minimum/maximum scan. Looking only at the sampled ADD would incorrectly suggest that pointer arithmetic itself explains the cost. Conversely, recognizing a scan does not by itself establish what array is being scanned.
+
+Falllinie's renderer uses 32-bit indexed draws, making index-range discovery a concrete hypothesis. The next experiment tests that hypothesis through the public draw API rather than inventing a private driver function name or claiming precise load latency.
+
+## 13. Supply known vertex bounds without changing index data
+
+An indexed draw already has a vertex buffer and an index buffer. The application knows the number of vertices in the bound buffer. Instead of requiring the driver to discover a usable index domain solely from the index data, OpenGL ES provides `glDrawRangeElements`, which accepts start and end bounds along with the ordinary indexed draw arguments.
+
+The new diagnostic flag, **`--draw-ranges`**, selects that API. For a nonempty draw it supplies `start = 0` and `end = vertex_count - 1`. The ordinary path remains the default. The essential wrapper is:
+
+```cpp
+if (draw_ranges && count > 0 && vertices > 0)
+    glDrawRangeElements(GL_TRIANGLES, 0, GLuint(vertices - 1),
+                        count, GL_UNSIGNED_INT, offset);
+else
+    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, offset);
+```
+
+The bounds must describe the buffer actually bound for that draw. Streamed terrain cells, object meshes and dynamic meshes therefore use their own vertex counts, not a cumulative world count. The combined static fixture uses its combined vertex count. Rider material subgroups use the full rider vertex-buffer domain, which is a legal but potentially loose bound for an individual subgroup.
+
+This does not reorder indices, change their 32-bit representation, alter offsets or regroup triangles. Shader code and arithmetic, camera logic and simulation remain unchanged. Empty draws retain the ordinary call behavior. The typed GL entry-point loader was extended using the existing GLES3 loading convention.
+
+Supplying a legal range does not promise that a driver will skip validation or scanning. Nor does a broad legal bound necessarily achieve the same performance as a tight subgroup bound. Both are reasons to measure the complete candidate rather than accept the API change from its name alone.
+
+### Use the same executable for both modes
+
+Implementation checkpoint `487492c` built one executable, SHA-256:
+
+```text
+b2d88ab072e888be4315173ab75af4a17325f2c03581c9d00e625f5d6113837c
+```
+
+Both modes use that exact binary, with the flag off or on. Host and ARM builds and all 15 CPU tests passed before the target comparison. The production launcher was not replaced, audio stayed disabled, and no governor, affinity or driver setting changed.
+
+First, the same-device seven-cell seed-42 fixture produced **byte-identical encoded scene, depth and final print buffers** in both modes. Lossless copies of the final image are retained for [ordinary draws](./_assets/falllinie-cpu-pmu/range-draw/fixture-baseline.png) and [range draws](./_assets/falllinie-cpu-pmu/range-draw/fixture-ranges.png). This is a bounded correctness observation, not universal visual parity across every live state.
+
+The live sequence then ran ordinary/range/range/ordinary, each for 32 seconds with a 20-second cycles profile. All four cases completed with `GL_error=0`, expected receipt flags, complete paired-clock records and zero reported lost samples. The recordings contained 7,336 samples in total.
+
+## 14. A CPU-side improvement without a demonstrated frame-time improvement
+
+The indexed-range candidate changes both the profile and the measured scene CPU time:
+
+| Case | Top scene CPU ms | Top view CPU ms | Frame mean ms | Frame p95 ms | Driver cycle weight |
+|---|---:|---:|---:|---:|---:|
+| Ordinary 01 | 2.909902 | 4.531863 | 18.264040 | 28.070701 | 72.23% |
+| Range 02 | 1.419323 | 3.207138 | 18.207474 | 28.260837 | 63.78% |
+| Range 03 | 1.592762 | 3.391486 | 18.241656 | 28.422115 | 65.00% |
+| Ordinary 04 | 2.439544 | 4.094052 | 17.882124 | 27.579522 | 73.14% |
+
+The CPU columns average 20 selected paired scopes per case within the outer collection envelope. The frame columns use whole-run records after frame 60. They describe related behavior, but must not be treated as the same measurement window.
+
+Unfiltered symbol reports remove the earlier 0.5% display cutoff. They contain six and seven sampled offsets respectively within helper address range `[0x42d6c4, 0x42d758)` for the ordinary cases, totaling 17.12% and 16.76% of rounded reported cycle weight. **Neither range-draw recording contains a sampled offset within that helper range.** This means zero observed samples, not an exhaustive proof that the helper was never called.
+
+The isolated API switch, restored hotspot in the closing ordinary case, unchanged index data and lower scene CPU cost together provide strong support for the index-range-scan hypothesis. They are substantially stronger than the original inference from one sampled instruction.
+
+![Measured CPU reduction and frame-time context](./_assets/falllinie-cpu-pmu/range-draw/05-range-cpu-frame.svg)
+
+*The candidate reduces scene CPU execution and removes the helper from observed samples. Output wall time and frame distributions prevent claiming an end-to-end speedup.*
+
+Across the equally sized selected groups, the sum of the sequential top/lower view CPU means falls from approximately **7.012 ms to 5.889 ms**, about 16% less. This is the sum of nonoverlapping view scopes; nested scene and output scopes are not added again. It is not a claim that total main-loop CPU time falls by exactly the same percentage.
+
+Frame timing tells a different story. Pooled postwarmup means are **18.071014 ms for ordinary draws and 18.224560 ms for range draws**. The candidate does not show a convincing gain in the end-to-end frame distribution. That difference also does not establish a causal 0.85% regression: the closing ordinary run itself is appreciably faster than the opening one under uncontrolled live conditions.
+
+The output scope helps explain why CPU savings need not appear as a frame-time saving, without proving a particular dependency. Top-view output wall time is 3.19–3.97 ms in the ordinary cases and 3.95–5.06 ms in the range cases. Reducing earlier CPU submission work can change where later waiting becomes visible. These scope observations do not separate GPU waits from scheduling or other non-running time, and they are not independent GPU pass timings.
+
+Memory observations also remain part of the result. Reported peak RSS in run order is 113,732 / 122,804 / 119,788 / 112,340 KiB. The range cases have higher peaks. This experiment does not establish why. Tightening the rider subgroup bounds is a reasonable future test because the current bounds are broad, but increased GPU work or allocation due to those bounds is still a hypothesis, not the explanation assigned to these numbers.
+
+### Decision and continuation
+
+Keep `--draw-ranges` **opt-in**. The experiment supports a CPU-side benefit and a bounded appearance result, but it does not establish improved frame performance, full-game behavior with audio restored, or the cause of the remaining tail. This is not the same outcome as the earlier shader rewrite: that rewrite had no convincing measured benefit, whereas this candidate changes a specific CPU hotspot and scope cost.
+
+The next justified work is to compare tighter subgroup bounds or investigate output/GPU dependencies, with the same discipline about scope and unchanged controls. Uniform-location caching is no longer the only concrete CPU hypothesis, and the current evidence does not require assuming it was responsible for this hotspot.
+
+The complete follow-up checkpoint is **`44c0c72`**. Native artifacts are under `scripts/11-cpu-attribution/` and `scripts/13-index-ranges/`; the focused interpretation is `analysis/03-driver-range-scan-attribution-and-indexed-draw-experiment.md`, with diary Steps 4–6. The vault includes [attribution results](./_assets/falllinie-cpu-pmu/range-draw/attribution-summary.json), [range experiment results](./_assets/falllinie-cpu-pmu/range-draw/range-summary.json) and [follow-up asset provenance](./_assets/falllinie-cpu-pmu/range-draw/provenance.json). Earlier baseline assets and measurements remain unchanged.
 
 ## Related reports and reading map
 
@@ -385,4 +502,4 @@ Start with [[MOC - Optimization and Performance Engineering|the general optimiza
 - [[PROJECT REPORT - Falllinie Native GLES Spike - Deterministic Terrain, Print Shaders and Mali Depth Precision|Native GLES Spike]] and [[PROJECT REPORT - Falllinie Playable Port - Dual Views, Frame Profiling and Cooperative Terrain Streaming|Playable Port]] establish the rendering semantics and shared dual-view architecture.
 - [[PROJECT REPORT - Falllinie JavaScript Embedding - ARM64 Qualification, V8 Ownership and Bounded Rules|JavaScript Embedding]] remains an isolated-runtime study; these CPU results do not imply available budget for integrating it.
 
-The present result is an implemented, qualified CPU measurement path and a reproducible reduced-workload baseline. A specific optimization success, causal cache diagnosis and completed event-location investigation remain future findings, not conclusions hidden inside the current numbers.
+The investigation now includes a qualified CPU measurement path, actual event-location profiles and an opt-in indexed-draw change with measured CPU-side benefit. A causal cache-latency diagnosis, robust frame-time improvement and audio-enabled integrated qualification remain unresolved. Those distinctions determine the next experiment rather than being hidden inside a single performance number.
