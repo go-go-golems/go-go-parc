@@ -1,0 +1,14 @@
+{
+  "repo": "/home/manuel/code/wesen/2026-10-15--nintendo-ds-ui",
+  "commit": "64a1d46",
+  "ticket": "DSUI-001",
+  "figures": {
+    "01-robots-page-cost.svg": ["scripts/evidence/device-rgdsplus-qjs-pinned-run1.json", "scripts/evidence/device-rgdsplus-node-unpinned.json", "scripts/evidence/device-rgdsplus-cpp-proto-bench.jsonl", "scripts/evidence/phase1/device-rgdsplus-core-bench.jsonl", "scripts/evidence/device-rgdsplus-node-build-encode.json"],
+    "02-mali-gpu-ablation.svg": ["scripts/evidence/phase2/device-ablation.txt"],
+    "03-device-top-board.png": "scripts/evidence/phase2/device-screen-top-board.png (grim -o DSI-2 on the device)",
+    "04-device-bottom-robots.png": "scripts/evidence/phase2/device-screen-bottom-robots.png (grim -o DSI-1)",
+    "05-board-reference-gl-diff.png": "scripts/evidence/phase2/device-mali-board-ref-gl-diff.png (resvg reference | Mali readback | pixelmatch diff)",
+    "06-phase0-touch-probe.png": "scripts/evidence/phase0/bottom.png"
+  },
+  "regenerate": "python3 figures.py ~/code/wesen/2026-10-15--nintendo-ds-ui ."
+}
