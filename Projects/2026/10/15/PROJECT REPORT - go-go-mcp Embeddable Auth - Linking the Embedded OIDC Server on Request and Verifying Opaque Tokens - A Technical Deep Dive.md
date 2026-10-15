@@ -19,7 +19,7 @@ worktree: /home/manuel/workspaces/2026-10-15/embeddable-auth-introspection/go-go
 ticket: GO-GO-MCP-EMBEDDABLE-AUTH
 branch: task/embeddable-auth-introspection
 pull_request: https://github.com/go-go-golems/go-go-mcp/pull/89
-source_commits: "go-go-mcp 86db8ed..351968e (5 commits, PR #89, not yet merged)"
+source_commits: "go-go-mcp 86db8ed..7383665 (6 commits, PR #89, CI green, not yet merged)"
 ---
 
 # go-go-mcp Embeddable Auth: Linking the Embedded OIDC Server on Request and Verifying Opaque Tokens
@@ -325,6 +325,7 @@ With stateless Streamable HTTP, each JSON-RPC message is its own HTTP request, s
 | `make logcopter-check` (generated per-package loggers) | clean |
 | `go run ./cmd/go-go-mcp help embedded-oidc` | renders the new sections |
 | Regression check | the HTTP test fails with `401 token missing expiration` when the fix is removed |
+| Pull request CI (GitHub Actions) | `test`, `lint` and `TruffleHog Secret Scan` pass |
 
 The new tests:
 
@@ -343,7 +344,7 @@ One path is covered by reading rather than by a test: the expiry of tokens issue
 
 ## 9. Status and open work
 
-The changes are in pull request [#89](https://github.com/go-go-golems/go-go-mcp/pull/89) on `go-go-golems/go-go-mcp`, from the branch `task/embeddable-auth-introspection`, and are not merged.
+The changes are in pull request [#89](https://github.com/go-go-golems/go-go-mcp/pull/89) on `go-go-golems/go-go-mcp`, from the branch `task/embeddable-auth-introspection`. Its CI passes; it is not merged.
 
 - **Breaking changes for upgraders:** `embeddable.WithOIDC` and `embeddable.OIDCOptions` are gone; `embedded_dev` needs `embeddeddev.Provide()`; `IntrospectAccessToken` returns `AccessTokenInfo`. The workspace's known users, smailnail and jesus, pin v0.0.19 and are unaffected until they upgrade.
 - **Remaining weight:** `pkg/tools` imports `geppetto/pkg/helpers` (22 packages, including watermill) for two reflection helpers. Removing it would bring `pkg/embeddable` close to the go-sdk baseline of 29.
@@ -368,6 +369,7 @@ The changes are in pull request [#89](https://github.com/go-go-golems/go-go-mcp/
 | `84388d1` | `embeddable`: verify opaque access tokens with RFC 7662 introspection |
 | `34c6555` | Docs: help pages, README, changelog |
 | `351968e` | Diary: pull request step |
+| `7383665` | Diary: vault report step |
 
 ## Appendix B. Where things are
 
