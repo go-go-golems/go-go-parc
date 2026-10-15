@@ -1,0 +1,18 @@
+{
+  "repo": "/home/manuel/code/wesen/2026-10-15--nintendo-ds-ui",
+  "commit": "64ae3a9",
+  "ticket": "DSUI-001",
+  "figures": {
+    "01-robots-page-js-cost.svg": ["scripts/evidence/device-rgdsplus-node-build-encode.json", "scripts/evidence/phase1/device-rgdsplus-core-bench.jsonl", "scripts/evidence/phase4/device-js-dev1-old-encoder-js.log", "scripts/evidence/phase4/device-js-dev2-js.log"],
+    "02-bottom-screen-cpp-vs-js.svg": ["scripts/evidence/phase4/device-pf-native-perf.log", "scripts/evidence/phase4/device-pf-js2-perf.log"],
+    "03-rss.svg": ["scripts/evidence/phase4/device-js-dev2-mem.txt"],
+    "04-phase3-bottom-p95.svg": ["scripts/evidence/phase3/device-perf1-perf.log", "scripts/evidence/phase3/device-perf4-perf.log", "scripts/evidence/phase3/device-perf5-perf.log"],
+    "05-device-js-robots-page.png": "scripts/evidence/phase4/js-pages-01-robots.png (grim -o DSI-1, lattice-demo --js-pages)",
+    "06-device-js-transcript.png": "scripts/evidence/phase4/js-pages-03-dossier-transcript.png (grim -o DSI-1, --js-pages)",
+    "07-device-live-card.png": "scripts/evidence/phase4/03-top-live.png (grim -o DSI-2)",
+    "08-device-top-follow.png": "scripts/evidence/phase3/07-top-follow.png (grim -o DSI-2)",
+    "09-recipe-14-3-readback.png": "scripts/evidence/phase4/05-top-recipe-14-3-readback.png (GL readback on the device, capture command)"
+  },
+  "palette": "dataviz reference slots 1-4 (#2a78d6, #eb6834, #1baf7a, #eda100), validate_palette.js light: hard checks pass, slots 3-4 below 3:1 contrast -> segments labelled, tables in the report",
+  "regenerate": "python3 figures.py ~/code/wesen/2026-10-15--nintendo-ds-ui ."
+}
