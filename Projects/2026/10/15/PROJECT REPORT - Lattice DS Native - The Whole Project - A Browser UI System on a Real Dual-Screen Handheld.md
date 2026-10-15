@@ -351,3 +351,4 @@ ssh root@192.168.0.202 sh /storage/apps/lattice-ds/scripts/soak-arena.sh /tmp/s 
 
 - [[PROJECT REPORT - Falllinie JavaScript Embedding - ARM64 Qualification, V8 Ownership and Bounded Rules]]: the V8 qualification on this device that this project reused.
 - [[PROJECT REPORT - Falllinie at 60 FPS - Geometry, Presentation and a Crisp 512x384 Release on a Single-Core Mali-G52]]: the same device under a 3D game's load.
+- [[PROJECT REPORT - Lattice DS Native, Part 5 - The Language Model Backend - from a pi Agent Setup to a Robot's Tool Call|Part 5]]: the language model backend in depth: the pi setup, the credential boundary, the two APIs and the real-model runs.
