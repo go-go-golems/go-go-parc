@@ -16,7 +16,7 @@ type: project
 created: 2026-10-15
 repo: /home/manuel/code/wesen/2026-10-15--nintendo-ds-ui
 ticket: DSUI-001
-source_commit: 5122e47
+source_commit: d839c33
 ---
 
 # Lattice DS Native: the whole project
@@ -43,7 +43,7 @@ Four earlier reports cover the phases in depth, and Section 10 is a reading guid
 >   - Not met: the bottom screen's pages, still described in JavaScript, take 5.5 ms against 3.
 > - **The arena is functionally complete on the device, with three exceptions.**
 >   - All ten built-in presets run to completion.
->   - Real Claude is verified up to the point where a key is needed.
+>   - A real model drives robots on the device: `lunaroute/deepseek-4.1-flash`, resolved from the pi agent setup (`~/.pi/agent`) copied to the handheld.
 >   - The coach's chat panel and the script editor, which are browser UI outside the handheld module, are not on the device.
 
 ## 1. The problem
@@ -112,7 +112,7 @@ flowchart TB
     DYN --> CORE
     CORE --> PQ[[frame packets, newest per screen]]
   end
-  NET["net::Claude: libcurl workers"] <-.-> JS
+  NET["net::Llm: libcurl workers\n(model and credential from ~/.pi/agent)"] <-.-> JS
   style CORE fill:#e8f0fb
   style GL fill:#e8f0fb
 ```
@@ -189,7 +189,7 @@ A check that cannot fail proves nothing. One perturbation, extra bottom padding 
 | 2 lattice-gl | atlas, instanced shader, clips and groups | pixel parity; GPU 5.7 → 1.8 ms per screen after two shader changes |
 | 3 Shell | layers, scheduler, focus, navigation, scrolling, touch; a native demo app | 30 fps; idle draws nothing; UI p95 1.13 / 2.83 ms |
 | 4 V8 layer | libnode108 embedded, cards, scripts, the demo's pages in JavaScript | recipes and pagecheck pass; RSS met; the 2 ms JavaScript robots-page target not met |
-| 5 The arena | the arena's own code over the shell; Claude over libcurl | a race START to end on the device; real Claude awaits a key |
+| 5 The arena | the arena's own code over the shell; a language model over libcurl | a race START to end on the device; a real model robot finishes `hello` on the device |
 | 6 Hardening | hud cache, native dynamic layer, memory, code cache, Ports menu | budgets met except pages; 10 minutes at 30 fps, at most 48.3 °C |
 
 Three results reshaped the plan along the way.
@@ -236,14 +236,14 @@ The handheld version was audited against the browser application, feature by fea
 | Follow and zoom with an easing camera | screenshots; `dyncheck` in follow mode |
 | The scripting API (`arena`, `ui`, `ds`, `board`, `agent`, `evaluate`, …) | the ten presets, which use it throughout; scripts in the arena's smoke tests (`ui.annotate`, `ui.note`, `arena.waitAll`, `store.leaderboard`); the textbook's recipes 14.3 and 14.5, run unchanged on the Phase 4 demo |
 | Storage: saved transcripts and preferences | file-backed `localStorage`; leaderboards persist across launches |
-| Claude transport and protocol | a mock Messages API: a robot completes 6 turns with 12 streamed tool calls; real TLS to the API returns its authentication error for an invalid key |
+| Model transport and protocol | a mock serving both OpenAI Chat Completions and Anthropic Messages: a robot completes 6 turns with 12 streamed tool calls on each; on the device, a `lunaroute/deepseek-4.1-flash` robot finished `hello` (success in 2 turns, 10 tool calls, score 0.972) |
 | Launch from the Ports menu; quit with SELECT+START | the installed launcher started the arena on both panels |
 
 ### 7.2 What works only partly
 
-- **Claude-backed robots.** They are verified up to the key, but no real model has driven a robot on the device yet: no API key existed on either machine. Without a key, Claude-tier robots fall back to the scripted planner, exactly as in a browser without Claude, and the arena says so in their transcripts.
-- **Presets that need Claude for more than robots.**
-  - *judge* scores with an LLM criterion; without a key that criterion reports "could not score: Claude is not available in this view", and only the code criteria score.
+- **Model-backed robots.** Verified with one model and one course: `lunaroute/deepseek-4.1-flash` on `hello`, on the host and on the device. Every tier uses the one configured model, where the browser chooses among Claude models by tier. Without a usable setup, model-tier robots fall back to the scripted planner, exactly as in a browser without Claude, and the arena says so in their transcripts.
+- **Presets that need a model for more than robots.** These were run without the model; with it they have not been run yet.
+  - *judge* scores with an LLM criterion; without a model that criterion reports "could not score: Claude is not available in this view", and only the code criteria score.
   - *gepa* stops at `reflect()` with the same message.
   - Both behave as the browser does without Claude.
 - **The theme.** Dark and light both render, but switching is a control-channel command; the browser follows the page's theme toggle, and the handheld has no control for it.
@@ -251,17 +251,32 @@ The handheld version was audited against the browser application, feature by fea
 
 ### 7.3 What is not on the device
 
-- **The coach's chat panel.** The coach's code (d_agent) loads and its API works, but its chat interface is part of the browser's React application, not of the handheld module. There is no way to type to the coach on the device; it would also need a key.
+- **The coach's chat panel.** The coach's code (d_agent) loads and its API works, but its chat interface is part of the browser's React application, not of the handheld module. There is no way to type to the coach on the device.
 - **The script editor.** The browser's IDE is likewise React. On the device, scripts come from the presets (Run page) or from a development control channel.
 - **`ds.snapshot()`**, which renders both screens as one image for the coach. It returns an error explaining that it is not available; `ds.look()` reads both screens as text instead.
-- **Images in Claude requests.** They are rejected with the code the coach already handles.
+- **Images in model requests.** They are rejected with the code the coach already handles.
 
 ### 7.4 Verdict
 
 For a player, the handheld version is functionally complete: every preset runs, every screen and control of the handheld module works, results persist, and the app starts from the menu. Against the full browser application it is not complete:
-- real Claude is unverified for lack of a key;
+- the real model is verified on one course only, and *judge* and *gepa* have not run with it;
 - the coach chat and the script editor are absent by design of the port, since they were browser UI around the handheld, not part of it;
 - `snapshot` and images are missing.
+
+### 7.5 Where the model comes from
+
+The browser calls Claude through the artifact runtime's `window.claude`. The handheld has no such runtime. It reads the setup of pi, the coding agent, from a copy of `~/.pi/agent` on the device (`/storage/.pi/agent`), so a model added or logged in with pi on the development machine works on the handheld after the files are copied again. Four files are involved:
+
+| File | What the arena takes from it |
+|---|---|
+| `models.json` | the provider: base URL, API, headers, and an `apiKey` fallback |
+| `models-store.json` | the model, when it is only in the catalog an extension cached (`deepseek-4.1-flash` is) |
+| `auth.json` | the credential: an OAuth `access` token (expiry checked) or an API key |
+| `settings.json` | the default model when none is given |
+
+The resolution runs in C++ (`src/net/agent.cpp`), and the credential never enters V8. That is deliberate. Scripts the coach generates run in the same isolate as the arena, and `auth.json` holds every provider's token. JavaScript receives only the provider, model, API and limits.
+
+`sample()` (`js/arena/sample.js`) speaks the two APIs pi's providers use here: OpenAI Chat Completions, which LunaRoute serves, and Anthropic Messages. Each adapter defines the request body, the streamed events and the shape of tool results. The default model is `lunaroute/deepseek-4.1-flash`; `--agent-model` or `LATTICE_AGENT_MODEL` selects another. Tests and device measurements point the arena at an empty setup, because one smoke test spent real calls before they did.
 
 ## 8. What it took: failures and the rules they produced
 
@@ -294,7 +309,7 @@ The project's diary records every failure with its diagnostic. The ones that gen
 
 ## 9. What remains
 
-1. **Real Claude on the device.** Place an API key at `/storage/apps/lattice-ds/data/anthropic-api-key` and run `scripts/device/claude-device.sh`. This spends a few cents.
+1. **The model beyond `hello`.** Run *judge*, *gepa* and a race with the model configured (`scripts/device/agent-device.sh`), each spending real calls. OAuth tokens are used as stored; the handheld does not refresh them.
 2. **The pages budget.** Port the bottom pages to C++ the way the dynamic layer was ported, with the JavaScript pages as the oracle. This is the one unmet budget.
 3. **The JavaScript robots-page target from Phase 4 (2 ms p95).** It needs a newer V8 than Debian bookworm's 10.2, or memo nodes that skip unchanged subtrees.
 4. **Optional, for parity with the browser:**
@@ -324,13 +339,13 @@ ssh root@192.168.0.202 sh /storage/apps/lattice-ds/scripts/soak-arena.sh /tmp/s 
 | Path | What it is |
 |---|---|
 | `src/core`, `src/gl`, `src/platform`, `src/shell` | lattice-core, lattice-gl, platform, the shell |
-| `src/js`, `src/net` | the V8 host and bridge; the Claude transport and the OpenSSL stub |
+| `src/js`, `src/net` | the V8 host and bridge; the model resolution from `~/.pi/agent`, the libcurl transport and the OpenSSL stub |
 | `apps/arena`, `apps/demo` | the arena app with its native dynamic layer; the native demo |
-| `js/`, `js/arena/` | encoder, scripting helpers, browser shims, Claude protocol, the generated view and editor |
+| `js/`, `js/arena/` | encoder, scripting helpers, browser shims, the model protocols (`sample.js`), the generated view and editor |
 | `tools/make-arena-view.js` | derives the arena's view from c_ds.js by 25 listed edits |
-| `tests/` | parity, fuzz, pixel and smoke tests, the mock Messages API |
+| `tests/` | parity, fuzz, pixel and smoke tests, the mock model API |
 | `scripts/device/` | every device measurement in these reports |
-| `ttmp/2026/10/15/DSUI-001…/` | the design guide, a 15-step diary, and all evidence (`scripts/evidence/phase0`–`phase6`) |
+| `ttmp/2026/10/15/DSUI-001…/` | the design guide, a 17-step diary, and all evidence (`scripts/evidence/phase0`–`phase7`) |
 
 ## Related notes
 
