@@ -1,0 +1,13 @@
+{
+  "repo": "/home/manuel/code/wesen/2026-10-15--nintendo-ds-ui",
+  "commit": "7969ae4",
+  "ticket": "DSUI-001",
+  "figures": {
+    "01-top-screen-steps.svg": ["scripts/evidence/phase5/device-ar1-arena.log", "scripts/evidence/phase6/device-ar2-hudcache.log", "scripts/evidence/phase6/device-ar4-nativedyn.log"],
+    "02-rss-soak.svg": ["scripts/evidence/phase6/device-soak1-10min-samples.txt", "scripts/evidence/phase6/device-soak3-10min-memrelief-samples.txt", "scripts/evidence/phase6/device-soak-5min-young6mb.txt"],
+    "03-temperature-soak.svg": ["scripts/evidence/phase6/device-soak1-10min-samples.txt"],
+    "04-ports-menu-image.png": "scripts/ports/lattice-arena.png (the Ports menu image: both device screens)"
+  },
+  "palette": "dataviz reference slots 1-3, validated light (slot 3 below 3:1: lines directly labelled)",
+  "regenerate": "python3 figures.py ~/code/wesen/2026-10-15--nintendo-ds-ui ."
+}
