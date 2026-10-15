@@ -1,0 +1,706 @@
+{
+  "campaign": "long512-20261015T000047Z",
+  "cases": {
+    "01-r512-s42": {
+      "frames": {
+        "n": 6533,
+        "mean_ms": 16.66666997474361,
+        "p50_ms": 16.667232,
+        "p95_ms": 16.7354794,
+        "p99_ms": 16.93896488,
+        "long_share": 0.0,
+        "missed_refreshes_per_frame": 1.9848461652038907e-07,
+        "loop_fps": 59.99998809092537
+      },
+      "receipt": {
+        "replay_signature": "",
+        "gl_error": 0,
+        "shadow_mode": "bounds",
+        "replay_audio": false,
+        "audio_disabled": false,
+        "fog_cells": "original",
+        "view_culling": true,
+        "short_indices": true,
+        "output_clear": false,
+        "window_depth": 24,
+        "geometry_draws": {
+          "views": 13186,
+          "terrain_lod_near_m": 60.0,
+          "lod_triangles": [
+            394139800,
+            180674244,
+            94390880,
+            83812504,
+            20153144
+          ],
+          "chunks_drawn": 727038,
+          "chunks_culled": 54202,
+          "chunks_fog_constant": 0,
+          "terrain_drawn": 78860,
+          "terrain_culled": 13078,
+          "terrain_fog_constant": 0,
+          "object_drawn": 71500,
+          "object_culled": 20438,
+          "object_fog_constant": 0,
+          "short_index_draws": 150360,
+          "triangles_submitted": 844650168,
+          "triangles_culled": 584222924
+        },
+        "placement_ok": true
+      },
+      "paired_final": {
+        "record": "final",
+        "schema": 1,
+        "pid": 1216355,
+        "tid": 1216355,
+        "run_start_ns": 111536314686040,
+        "attempted": 2200,
+        "written": 2200,
+        "dropped": 0,
+        "invalid_wall": 0,
+        "invalid_cpu": 0,
+        "active": 0
+      },
+      "scopes": {
+        "context/0/none": {
+          "n": 109,
+          "wall_ms": 0.10890708256880734,
+          "cpu_ms": 0.08576064220183487
+        },
+        "context/1/none": {
+          "n": 109,
+          "wall_ms": 0.04430293577981651,
+          "cpu_ms": 0.040292743119266054
+        },
+        "events/-1/none": {
+          "n": 109,
+          "wall_ms": 0.12970600000000002,
+          "cpu_ms": 0.11535818348623854
+        },
+        "pacing/-1/none": {
+          "n": 109,
+          "wall_ms": 7.250367247706422,
+          "cpu_ms": 0.03250348623853211
+        },
+        "physics/-1/none": {
+          "n": 109,
+          "wall_ms": 0.09661180733944955,
+          "cpu_ms": 0.08973435779816515
+        },
+        "player/-1/none": {
+          "n": 109,
+          "wall_ms": 0.7268634403669725,
+          "cpu_ms": 0.6321594495412843
+        },
+        "render/0/dynamic_prep": {
+          "n": 109,
+          "wall_ms": 0.20078820183486237,
+          "cpu_ms": 0.15286275229357799
+        },
+        "render/0/dynamic_upload": {
+          "n": 109,
+          "wall_ms": 0.12790519266055045,
+          "cpu_ms": 0.1022545871559633
+        },
+        "render/0/output": {
+          "n": 109,
+          "wall_ms": 1.0071545871559633,
+          "cpu_ms": 0.8631003577981652
+        },
+        "render/0/post": {
+          "n": 109,
+          "wall_ms": 0.4925396330275229,
+          "cpu_ms": 0.4337753119266055
+        },
+        "render/0/scene": {
+          "n": 109,
+          "wall_ms": 3.045420018348624,
+          "cpu_ms": 2.775711366972477
+        },
+        "render/0/view": {
+          "n": 109,
+          "wall_ms": 4.5694398715596325,
+          "cpu_ms": 4.112424935779817
+        },
+        "render/1/dynamic_prep": {
+          "n": 109,
+          "wall_ms": 0.14241856880733944,
+          "cpu_ms": 0.12687501834862386
+        },
+        "render/1/dynamic_upload": {
+          "n": 109,
+          "wall_ms": 0.08155256880733945,
+          "cpu_ms": 0.07205771559633027
+        },
+        "render/1/output": {
+          "n": 109,
+          "wall_ms": 0.876113376146789,
+          "cpu_ms": 0.616361247706422
+        },
+        "render/1/post": {
+          "n": 109,
+          "wall_ms": 0.4397491559633028,
+          "cpu_ms": 0.40589025688073394
+        },
+        "render/1/scene": {
+          "n": 109,
+          "wall_ms": 1.3783447981651378,
+          "cpu_ms": 1.2778370642201835
+        },
+        "render/1/view": {
+          "n": 109,
+          "wall_ms": 2.7170665779816514,
+          "cpu_ms": 2.3334162201834863
+        },
+        "swap/0/none": {
+          "n": 109,
+          "wall_ms": 0.2615044678899082,
+          "cpu_ms": 0.2269326513761468
+        },
+        "swap/1/none": {
+          "n": 109,
+          "wall_ms": 0.23695407339449542,
+          "cpu_ms": 0.20754092660550458
+        }
+      },
+      "counters": {
+        "intervals": 1079,
+        "seconds": 107.89992592499988,
+        "nonvalid_rows": 0,
+        "rates_per_second": {
+          "MaliGPUActiveCy": 724426577.9323341,
+          "MaliCoreActiveCy": 700066906.6770732,
+          "MaliFragActiveCy": 659272680.1077281,
+          "MaliNonFragActiveCy": 151043445.4452571,
+          "MaliTilerActiveCy": 150650472.24683735,
+          "MaliExtBusRdBy": 618373865.4128281,
+          "MaliExtBusWrBy": 665425448.8544041,
+          "MaliFragUtil": 910.1465568383591,
+          "MaliNonFragUtil": 207.64761325568477,
+          "MaliTexUtil": 203.92136757556426,
+          "MaliALUUtil": 740.0910791300514,
+          "MaliExtBusRdStallRate": 0.0003048003332107831,
+          "MaliExtBusWrStallRate": 0.0009339138370790755
+        },
+        "per_frame": {
+          "MaliGPUActiveCy": 12073778.695331093,
+          "MaliCoreActiveCy": 11667784.093826413,
+          "MaliFragActiveCy": 10987880.182720222,
+          "MaliNonFragActiveCy": 2517391.257084291,
+          "MaliTilerActiveCy": 2510841.7024773094,
+          "MaliExtBusRdBy": 10306233.135842128,
+          "MaliExtBusWrBy": 11090426.348851986,
+          "MaliFragUtil": 15.169112291474157,
+          "MaliNonFragUtil": 3.4607942411756945,
+          "MaliTexUtil": 3.398690134180312,
+          "MaliALUUtil": 12.334853767112424,
+          "MaliExtBusRdStallRate": 5.080006561816006e-06,
+          "MaliExtBusWrStallRate": 1.5565233707443423e-05
+        }
+      },
+      "status": "game_status=0\nprobe_status=0\n"
+    },
+    "02-r512-s7": {
+      "frames": {
+        "n": 6536,
+        "mean_ms": 16.666664784118726,
+        "p50_ms": 16.667229,
+        "p95_ms": 16.738175499999997,
+        "p99_ms": 16.941682,
+        "long_share": 0.0,
+        "missed_refreshes_per_frame": -1.12952876496486e-07,
+        "loop_fps": 60.000006777173354
+      },
+      "receipt": {
+        "replay_signature": "",
+        "gl_error": 0,
+        "shadow_mode": "bounds",
+        "replay_audio": false,
+        "audio_disabled": false,
+        "fog_cells": "original",
+        "view_culling": true,
+        "short_indices": true,
+        "output_clear": false,
+        "window_depth": 24,
+        "geometry_draws": {
+          "views": 13192,
+          "terrain_lod_near_m": 60.0,
+          "lod_triangles": [
+            390960224,
+            184917636,
+            94378160,
+            83614920,
+            20482592
+          ],
+          "chunks_drawn": 728989,
+          "chunks_culled": 57768,
+          "chunks_fog_constant": 0,
+          "terrain_drawn": 79565,
+          "terrain_culled": 12475,
+          "terrain_fog_constant": 0,
+          "object_drawn": 70672,
+          "object_culled": 21368,
+          "object_fog_constant": 0,
+          "short_index_draws": 150237,
+          "triangles_submitted": 844288524,
+          "triangles_culled": 578780640
+        },
+        "placement_ok": true
+      },
+      "paired_final": {
+        "record": "final",
+        "schema": 1,
+        "pid": 1217781,
+        "tid": 1217781,
+        "run_start_ns": 111651277928966,
+        "attempted": 2200,
+        "written": 2200,
+        "dropped": 0,
+        "invalid_wall": 0,
+        "invalid_cpu": 0,
+        "active": 0
+      },
+      "scopes": {
+        "context/0/none": {
+          "n": 109,
+          "wall_ms": 0.09746270642201836,
+          "cpu_ms": 0.08444418348623853
+        },
+        "context/1/none": {
+          "n": 109,
+          "wall_ms": 0.04812397247706422,
+          "cpu_ms": 0.04313455963302752
+        },
+        "events/-1/none": {
+          "n": 109,
+          "wall_ms": 0.10879206422018349,
+          "cpu_ms": 0.10576532110091744
+        },
+        "pacing/-1/none": {
+          "n": 109,
+          "wall_ms": 6.840106972477064,
+          "cpu_ms": 0.03327673394495413
+        },
+        "physics/-1/none": {
+          "n": 109,
+          "wall_ms": 0.08896982568807339,
+          "cpu_ms": 0.08524692660550458
+        },
+        "player/-1/none": {
+          "n": 109,
+          "wall_ms": 0.5510242018348624,
+          "cpu_ms": 0.5137855504587157
+        },
+        "render/0/dynamic_prep": {
+          "n": 109,
+          "wall_ms": 0.19456161467889907,
+          "cpu_ms": 0.15168002752293577
+        },
+        "render/0/dynamic_upload": {
+          "n": 109,
+          "wall_ms": 0.11484461467889907,
+          "cpu_ms": 0.10006303669724771
+        },
+        "render/0/output": {
+          "n": 109,
+          "wall_ms": 1.0194710275229357,
+          "cpu_ms": 0.8375222752293578
+        },
+        "render/0/post": {
+          "n": 109,
+          "wall_ms": 0.5058061376146789,
+          "cpu_ms": 0.44232721100917427
+        },
+        "render/0/scene": {
+          "n": 109,
+          "wall_ms": 3.0440281834862386,
+          "cpu_ms": 2.7213757798165137
+        },
+        "render/0/view": {
+          "n": 109,
+          "wall_ms": 4.597543018348624,
+          "cpu_ms": 4.042524082568807
+        },
+        "render/1/dynamic_prep": {
+          "n": 109,
+          "wall_ms": 0.15500555045871559,
+          "cpu_ms": 0.12932608256880734
+        },
+        "render/1/dynamic_upload": {
+          "n": 109,
+          "wall_ms": 0.08039388073394496,
+          "cpu_ms": 0.07372744036697249
+        },
+        "render/1/output": {
+          "n": 109,
+          "wall_ms": 1.3665175963302754,
+          "cpu_ms": 0.6257105963302753
+        },
+        "render/1/post": {
+          "n": 109,
+          "wall_ms": 0.4682916788990826,
+          "cpu_ms": 0.4111376697247706
+        },
+        "render/1/scene": {
+          "n": 109,
+          "wall_ms": 1.4288874128440368,
+          "cpu_ms": 1.3189648073394495
+        },
+        "render/1/view": {
+          "n": 109,
+          "wall_ms": 3.283254,
+          "cpu_ms": 2.386644009174312
+        },
+        "swap/0/none": {
+          "n": 109,
+          "wall_ms": 0.27619446788990826,
+          "cpu_ms": 0.2292580366972477
+        },
+        "swap/1/none": {
+          "n": 109,
+          "wall_ms": 0.24670187155963302,
+          "cpu_ms": 0.20751949541284403
+        }
+      },
+      "counters": {
+        "intervals": 1079,
+        "seconds": 107.89998291500011,
+        "nonvalid_rows": 0,
+        "rates_per_second": {
+          "MaliGPUActiveCy": 722688054.1068149,
+          "MaliCoreActiveCy": 697437553.769421,
+          "MaliFragActiveCy": 658770504.8757553,
+          "MaliNonFragActiveCy": 148767530.15471026,
+          "MaliTilerActiveCy": 148342316.21342406,
+          "MaliExtBusRdBy": 608697432.4336939,
+          "MaliExtBusWrBy": 655525812.638169,
+          "MaliFragUtil": 911.3546205392969,
+          "MaliNonFragUtil": 204.8665542837977,
+          "MaliTexUtil": 201.56548533840098,
+          "MaliALUUtil": 744.9774146594008,
+          "MaliExtBusRdStallRate": 0.00030336001367658094,
+          "MaliExtBusWrStallRate": 0.0009082640178778055
+        },
+        "per_frame": {
+          "MaliGPUActiveCy": 12044799.54128534,
+          "MaliCoreActiveCy": 11623957.916530719,
+          "MaliFragActiveCy": 10979507.174428863,
+          "MaliNonFragActiveCy": 2479458.55584983,
+          "MaliTilerActiveCy": 2472371.657628879,
+          "MaliExtBusRdBy": 10144956.061326133,
+          "MaliExtBusWrBy": 10925428.976577383,
+          "MaliFragUtil": 15.189241959986184,
+          "MaliNonFragUtil": 3.4144421857255187,
+          "MaliTexUtil": 3.359424376183327,
+          "MaliALUUtil": 12.416288841867647,
+          "MaliExtBusRdStallRate": 5.055999656853247e-06,
+          "MaliExtBusWrStallRate": 1.51377319214462e-05
+        }
+      },
+      "status": "game_status=0\nprobe_status=0\n"
+    },
+    "03-r512-s1234": {
+      "frames": {
+        "n": 6536,
+        "mean_ms": 16.66588966799266,
+        "p50_ms": 16.667519,
+        "p95_ms": 16.744517,
+        "p99_ms": 16.916713249999997,
+        "long_share": 0.0,
+        "missed_refreshes_per_frame": -4.6619920440527096e-05,
+        "loop_fps": 60.00279732563753
+      },
+      "receipt": {
+        "replay_signature": "",
+        "gl_error": 0,
+        "shadow_mode": "bounds",
+        "replay_audio": false,
+        "audio_disabled": false,
+        "fog_cells": "original",
+        "view_culling": true,
+        "short_indices": true,
+        "output_clear": false,
+        "window_depth": 24,
+        "geometry_draws": {
+          "views": 13192,
+          "terrain_lod_near_m": 60.0,
+          "lod_triangles": [
+            403354592,
+            187660280,
+            92629584,
+            80312808,
+            19348392
+          ],
+          "chunks_drawn": 716017,
+          "chunks_culled": 57204,
+          "chunks_fog_constant": 0,
+          "terrain_drawn": 78327,
+          "terrain_culled": 13739,
+          "terrain_fog_constant": 0,
+          "object_drawn": 68278,
+          "object_culled": 23788,
+          "object_fog_constant": 0,
+          "short_index_draws": 146605,
+          "triangles_submitted": 852067492,
+          "triangles_culled": 615980436
+        },
+        "placement_ok": true
+      },
+      "paired_final": {
+        "record": "final",
+        "schema": 1,
+        "pid": 1219211,
+        "tid": 1219211,
+        "run_start_ns": 111766305569064,
+        "attempted": 2200,
+        "written": 2200,
+        "dropped": 0,
+        "invalid_wall": 0,
+        "invalid_cpu": 0,
+        "active": 0
+      },
+      "scopes": {
+        "context/0/none": {
+          "n": 109,
+          "wall_ms": 0.1241965137614679,
+          "cpu_ms": 0.09011160550458716
+        },
+        "context/1/none": {
+          "n": 109,
+          "wall_ms": 0.05013885321100917,
+          "cpu_ms": 0.04304091743119266
+        },
+        "events/-1/none": {
+          "n": 109,
+          "wall_ms": 0.13557663302752293,
+          "cpu_ms": 0.12171592660550458
+        },
+        "pacing/-1/none": {
+          "n": 109,
+          "wall_ms": 7.126203633027523,
+          "cpu_ms": 0.033664733944954124
+        },
+        "physics/-1/none": {
+          "n": 109,
+          "wall_ms": 0.10354202752293577,
+          "cpu_ms": 0.09462844036697249
+        },
+        "player/-1/none": {
+          "n": 109,
+          "wall_ms": 0.5283548623853211,
+          "cpu_ms": 0.4810841376146789
+        },
+        "render/0/dynamic_prep": {
+          "n": 109,
+          "wall_ms": 0.1637633486238532,
+          "cpu_ms": 0.1422718256880734
+        },
+        "render/0/dynamic_upload": {
+          "n": 109,
+          "wall_ms": 0.10584061467889908,
+          "cpu_ms": 0.09390594495412843
+        },
+        "render/0/output": {
+          "n": 109,
+          "wall_ms": 0.9162498623853211,
+          "cpu_ms": 0.8142101651376147
+        },
+        "render/0/post": {
+          "n": 109,
+          "wall_ms": 0.5013348256880734,
+          "cpu_ms": 0.4341150733944954
+        },
+        "render/0/scene": {
+          "n": 109,
+          "wall_ms": 2.908063211009174,
+          "cpu_ms": 2.625553981651376
+        },
+        "render/0/view": {
+          "n": 109,
+          "wall_ms": 4.352421862385321,
+          "cpu_ms": 3.9148089266055046
+        },
+        "render/1/dynamic_prep": {
+          "n": 109,
+          "wall_ms": 0.14145797247706424,
+          "cpu_ms": 0.126107
+        },
+        "render/1/dynamic_upload": {
+          "n": 109,
+          "wall_ms": 0.0800326880733945,
+          "cpu_ms": 0.07086166972477065
+        },
+        "render/1/output": {
+          "n": 109,
+          "wall_ms": 1.3053998440366972,
+          "cpu_ms": 0.6254190458715596
+        },
+        "render/1/post": {
+          "n": 109,
+          "wall_ms": 0.45906290825688073,
+          "cpu_ms": 0.41513269724770646
+        },
+        "render/1/scene": {
+          "n": 109,
+          "wall_ms": 1.4344235045871558,
+          "cpu_ms": 1.3094012935779815
+        },
+        "render/1/view": {
+          "n": 109,
+          "wall_ms": 3.2196448715596326,
+          "cpu_ms": 2.384412422018349
+        },
+        "swap/0/none": {
+          "n": 109,
+          "wall_ms": 0.2803150917431193,
+          "cpu_ms": 0.23214785321100917
+        },
+        "swap/1/none": {
+          "n": 109,
+          "wall_ms": 0.224468752293578,
+          "cpu_ms": 0.20317127522935782
+        }
+      },
+      "counters": {
+        "intervals": 1080,
+        "seconds": 107.99994437499991,
+        "nonvalid_rows": 0,
+        "rates_per_second": {
+          "MaliGPUActiveCy": 716104892.0586544,
+          "MaliCoreActiveCy": 694081390.8914577,
+          "MaliFragActiveCy": 655406063.5366883,
+          "MaliNonFragActiveCy": 144003187.8442346,
+          "MaliTilerActiveCy": 143549735.90698215,
+          "MaliExtBusRdBy": 605782666.9690825,
+          "MaliExtBusWrBy": 649871094.5655527,
+          "MaliFragUtil": 915.3125756359847,
+          "MaliNonFragUtil": 199.94326832327636,
+          "MaliTexUtil": 211.3377403087464,
+          "MaliALUUtil": 752.7898284160142,
+          "MaliExtBusRdStallRate": 0.0002878038291529762,
+          "MaliExtBusWrStallRate": 0.0008678957104525174
+        },
+        "per_frame": {
+          "MaliGPUActiveCy": 11934525.121759327,
+          "MaliCoreActiveCy": 11567483.881203918,
+          "MaliFragActiveCy": 10922925.142635833,
+          "MaliNonFragActiveCy": 2399941.240451235,
+          "MaliTilerActiveCy": 2392384.0604952485,
+          "MaliExtBusRdBy": 10095907.090489069,
+          "MaliExtBusWrBy": 10830679.960447125,
+          "MaliFragUtil": 15.254498397275505,
+          "MaliNonFragUtil": 3.332232449733575,
+          "MaliTexUtil": 3.522131462668452,
+          "MaliALUUtil": 12.545912223568417,
+          "MaliExtBusRdStallRate": 4.79650686268931e-06,
+          "MaliExtBusWrStallRate": 1.4464254153725757e-05
+        }
+      },
+      "status": "game_status=0\nprobe_status=0\n"
+    }
+  },
+  "pooled": {
+    "r512-s42": {
+      "cases": [
+        "01-r512-s42"
+      ],
+      "frames": {
+        "n": 6533,
+        "mean_ms": 16.66666997474361,
+        "p50_ms": 16.667232,
+        "p95_ms": 16.7354794,
+        "p99_ms": 16.93896488,
+        "long_share": 0.0,
+        "missed_refreshes_per_frame": 1.9848461652038907e-07,
+        "loop_fps": 59.99998809092537
+      },
+      "per_frame_mean": {
+        "MaliGPUActiveCy": 12073778.695331093,
+        "MaliCoreActiveCy": 11667784.093826413,
+        "MaliFragActiveCy": 10987880.182720222,
+        "MaliNonFragActiveCy": 2517391.257084291,
+        "MaliTilerActiveCy": 2510841.7024773094,
+        "MaliExtBusRdBy": 10306233.135842128,
+        "MaliExtBusWrBy": 11090426.348851986,
+        "MaliFragUtil": 15.169112291474157,
+        "MaliNonFragUtil": 3.4607942411756945,
+        "MaliTexUtil": 3.398690134180312,
+        "MaliALUUtil": 12.334853767112424,
+        "MaliExtBusRdStallRate": 5.080006561816006e-06,
+        "MaliExtBusWrStallRate": 1.5565233707443423e-05
+      },
+      "signatures": [
+        ""
+      ]
+    },
+    "r512-s7": {
+      "cases": [
+        "02-r512-s7"
+      ],
+      "frames": {
+        "n": 6536,
+        "mean_ms": 16.666664784118726,
+        "p50_ms": 16.667229,
+        "p95_ms": 16.738175499999997,
+        "p99_ms": 16.941682,
+        "long_share": 0.0,
+        "missed_refreshes_per_frame": -1.12952876496486e-07,
+        "loop_fps": 60.000006777173354
+      },
+      "per_frame_mean": {
+        "MaliGPUActiveCy": 12044799.54128534,
+        "MaliCoreActiveCy": 11623957.916530719,
+        "MaliFragActiveCy": 10979507.174428863,
+        "MaliNonFragActiveCy": 2479458.55584983,
+        "MaliTilerActiveCy": 2472371.657628879,
+        "MaliExtBusRdBy": 10144956.061326133,
+        "MaliExtBusWrBy": 10925428.976577383,
+        "MaliFragUtil": 15.189241959986184,
+        "MaliNonFragUtil": 3.4144421857255187,
+        "MaliTexUtil": 3.359424376183327,
+        "MaliALUUtil": 12.416288841867647,
+        "MaliExtBusRdStallRate": 5.055999656853247e-06,
+        "MaliExtBusWrStallRate": 1.51377319214462e-05
+      },
+      "signatures": [
+        ""
+      ]
+    },
+    "r512-s1234": {
+      "cases": [
+        "03-r512-s1234"
+      ],
+      "frames": {
+        "n": 6536,
+        "mean_ms": 16.66588966799266,
+        "p50_ms": 16.667519,
+        "p95_ms": 16.744517,
+        "p99_ms": 16.916713249999997,
+        "long_share": 0.0,
+        "missed_refreshes_per_frame": -4.6619920440527096e-05,
+        "loop_fps": 60.00279732563753
+      },
+      "per_frame_mean": {
+        "MaliGPUActiveCy": 11934525.121759327,
+        "MaliCoreActiveCy": 11567483.881203918,
+        "MaliFragActiveCy": 10922925.142635833,
+        "MaliNonFragActiveCy": 2399941.240451235,
+        "MaliTilerActiveCy": 2392384.0604952485,
+        "MaliExtBusRdBy": 10095907.090489069,
+        "MaliExtBusWrBy": 10830679.960447125,
+        "MaliFragUtil": 15.254498397275505,
+        "MaliNonFragUtil": 3.332232449733575,
+        "MaliTexUtil": 3.522131462668452,
+        "MaliALUUtil": 12.545912223568417,
+        "MaliExtBusRdStallRate": 4.79650686268931e-06,
+        "MaliExtBusWrStallRate": 1.4464254153725757e-05
+      },
+      "signatures": [
+        ""
+      ]
+    }
+  },
+  "signatures": [
+    ""
+  ]
+}

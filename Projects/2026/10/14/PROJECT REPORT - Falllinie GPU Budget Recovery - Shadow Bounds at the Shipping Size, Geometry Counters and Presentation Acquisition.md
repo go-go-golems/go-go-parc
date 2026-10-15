@@ -24,6 +24,9 @@ This report records the work that followed [[PROJECT REPORT - Falllinie Performa
 
 The result is that the game now holds its 60 Hz refresh in the shipping configuration. In live dual-view autoplay with the full audio synthesis running, the share of frames that miss a refresh fell from 7.6% to 0.1%, and the 95th-percentile frame interval fell from 27.8 ms to 17.2 ms. The three changes responsible are now defaults in the spike: conservative shadow-footprint rejection, per-view culling of terrain row blocks, and 16-bit index buffers. Each is byte-identical to the previous renderer at five visual checkpoints on the Mali-G52.
 
+> [!summary] Latest checkpoint — 60 m terrain detail and 512×384 internal resolution
+> The game now ships with 60 m distant-terrain level of detail and a 512×384 internal resolution, exactly 2× the panels. Three 110-second live sessions with audio on three seeds ran about 19,600 frames with none at or above 25 ms (longest 21.7 ms, p99 ≈16.9 ms) at about 90% GPU busy. Sections 9 and 10 describe the follow-up; Sections 1–8 are the original PERF-009 checkpoint.
+
 > [!summary]
 > - Shadow bounds alone, measured at 384×288 dual view, remove every long frame in the audio-off replay (3.9% → 0%) and almost every one with audio (6.5% → 0.5%).
 > - Geometry counters show 425,000 primitives per frame, of which 59% cover no sample and only 16% are visible; vertex and tiler work is about half of GPU-active time.
@@ -173,6 +176,20 @@ Measured on the device against the PERF-009 defaults (geometry counters per fram
 The visual cost is 0.6–1.4% of window pixels, on distant ridge lines, the halftone dots along them and some contour lines. The owner reviewed device captures side by side ([terrain LOD review](https://claude.ai/artifact/RLbNEsTb18oKnLUAw8qVvd)) and chose 60 m, which is now the default (`--terrain-lod off` restores full detail). The acceptance runs (live autoplay with audio: p95 17.40 → 16.78 ms, p99 18.84 → 17.69 ms) also showed one rare audio underrun with and one without the change, so that underrun is an audio-producer issue unrelated to rendering.
 
 The freed headroom was then compared against a sharper image ([internal resolution review](https://claude.ai/artifact/Cvb2FU7yxw5QPcXBMHB6hh)). 384×288 is stretched 2.67× to the 1024×768 panels, which produces a visible plaid moiré in the halftone; 512×384 stretches by exactly 2×. With 60 m terrain detail, both hold 60 Hz with no long frames in replay and live play with audio, at about 69% and 93% GPU busy respectively. Choosing between them is a look-versus-margin decision; the launcher's `--render-size` argument selects it. Both review pages are private until shared.
+
+## 10. Decision: 512×384, and a longer live check
+
+The owner chose the crisper 512×384 image. The binary's own default was already 512×384; only the launcher (`scripts/falllinie-spike.sh`) passed 384×288, and it now passes 512×384 (commit `58e90a5`). Because 512×384 uses most of the headroom the terrain reduction created, three longer live sessions checked whether the margin holds over varied play: live autoplay with launcher settings, muted full audio synthesis, 110 seconds each, seeds 42, 7 and 1234.
+
+| Seed | Frames after warmup | Mean ms | p95 ms | p99 ms | Longest ms | Frames ≥ 25 ms | GPU busy |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 42 | 6,533 | 16.667 | 16.735 | 16.939 | 21.45 | 0 | 90.6% |
+| 7 | 6,536 | 16.667 | 16.738 | 16.942 | 21.74 | 0 | 90.3% |
+| 1234 | 6,536 | 16.666 | 16.745 | 16.917 | 19.75 | 0 | 89.5% |
+
+All three runs reported `GL_error=0`, no audio starvation, peak resident memory of 99–102 MiB, and SoC temperatures rising to 68–72 °C by the end of each run. Between 9 and 13 frames per run exceeded 18.33 ms (one tenth of a refresh late) without missing a refresh. The GPU keeps about 10% idle time at this size, a narrower margin than the 30% at 384×288 but stable across these seeds and durations.
+
+**Current defaults and launch settings:** shadow bounds, per-view row-block culling, 16-bit indices and 60 m terrain level of detail in the binary; `--render-size 512x384` in the launcher. The production install on the handheld is a separate deployment step (`scripts/deploy-device.sh`) and had not been run at this checkpoint.
 
 ## Related notes
 
