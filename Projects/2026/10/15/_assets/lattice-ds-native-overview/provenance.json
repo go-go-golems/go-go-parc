@@ -1,0 +1,18 @@
+{
+  "repo": "/home/manuel/code/wesen/2026-10-15--nintendo-ds-ui",
+  "commit": "5122e47",
+  "ticket": "DSUI-001",
+  "figures": {
+    "01-budget-scorecard.svg": {
+      "top screen": "scripts/evidence/phase6/device-ar4-nativedyn.log (CTL perf top, p50 2.193)",
+      "GPU per screen": "scripts/evidence/phase2 (Phase 2 GL bench, top 1.83 ms)",
+      "start-up": "scripts/evidence/phase6/device-startup.txt (run 1, cold: 905 ms)",
+      "memory": "scripts/evidence/phase6/device-soak-5min-young6mb.txt (max of all samples, 140.3 MiB; budget 150 MB = 143.05 MiB)",
+      "temperature": "scripts/evidence/phase6/device-soak-5min-young6mb.txt (cpu-thermal max 48.3)",
+      "bottom page": "scripts/evidence/phase6/device-ar4-nativedyn.log (CTL perf bottom, p50 5.545)"
+    },
+    "02-device-presets-sim-courier.png": "scripts/evidence/phase6/sim-top.png + courier-top.png (grim -o DSI-2 during scripts/device/presets-arena.sh), side by side, halved"
+  },
+  "reused": ["_assets/lattice-ds-native/01-robots-page-cost.svg", "_assets/lattice-ds-native-4/01-top-screen-steps.svg"],
+  "regenerate": "python3 figures.py ."
+}
