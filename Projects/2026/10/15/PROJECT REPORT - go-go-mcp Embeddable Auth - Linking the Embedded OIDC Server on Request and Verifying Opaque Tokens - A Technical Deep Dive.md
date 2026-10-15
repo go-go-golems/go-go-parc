@@ -19,7 +19,7 @@ worktree: /home/manuel/workspaces/2026-10-15/embeddable-auth-introspection/go-go
 ticket: GO-GO-MCP-EMBEDDABLE-AUTH
 branch: task/embeddable-auth-introspection
 pull_request: https://github.com/go-go-golems/go-go-mcp/pull/89
-source_commits: "go-go-mcp 86db8ed..7383665 (6 commits, PR #89, CI green, not yet merged)"
+source_commits: "go-go-mcp 86db8ed..bffcc39 plus a diary commit (PR #89, review fix pushed, not yet merged)"
 ---
 
 # go-go-mcp Embeddable Auth: Linking the Embedded OIDC Server on Request and Verifying Opaque Tokens
@@ -283,10 +283,10 @@ The response body is limited to 1 MiB and decoded into a struct whose `exp`, `nb
 3. `exp` must be present and in the future.
 4. `nbf`, if present, must not be in the future.
 5. If an audience is configured, `aud` must contain it.
-6. `token_type`, if present, must not be `refresh_token`.
+6. The response must identify a bearer access token: `token_type` must equal `Bearer`, compared case-insensitively. A missing `token_type` is rejected unless the operator opts out; a Keycloak-style `typ` other than `Bearer` is always rejected.
 7. Every required scope must appear in the space-separated `scope`.
 
-RFC 7662 makes `exp` optional. Requiring it does not change which tokens are accepted, because go-sdk's middleware rejects a principal without an expiration anyway; checking it here produces a precise error message instead of a generic one.
+Rule 6 was a one-line denylist in the first version of the pull request and was rewritten after review; Chapter 8 explains why. RFC 7662 makes `exp` optional. Requiring it does not change which tokens are accepted, because go-sdk's middleware rejects a principal without an expiration anyway; checking it here produces a precise error message instead of a generic one.
 
 The accepted response becomes an `AuthPrincipal` from `sub`, `client_id`, `iss`, `scope` and `exp`, plus the profile claims `email`, `email_verified`, `preferred_username` (or `username`), `name` and `picture` when the identity provider includes them.
 
@@ -331,7 +331,7 @@ The new tests:
 
 - **Seam:** the not-linked error, a linked provider supplying verifier and routes, invalid arguments, and the import-graph guard.
 - **Embedded:** static-key and development-token expiry, the HTTP round trip with and without a token, and the authorization server's discovery route mounted next to `/mcp`.
-- **Introspection:** mapping of an active token, including the Basic credential encoding and the form body; ten rejection cases (inactive, wrong issuer, expired, missing `exp`, future `nbf`, wrong audience as array and as string, refresh token, missing scope, unknown token); identity-provider `500` and invalid JSON; `auto` routing; `looksLikeJWS`; startup checks; the middleware returning `204`, `401` and `500`; and flag parsing including the secret file.
+- **Introspection:** mapping of an active token, including the Basic credential encoding and the form body; sixteen rejection cases (inactive, wrong issuer, expired, missing `exp`, future `nbf`, wrong audience as array and as string, missing scope, unknown token, and seven token-type cases: explicit `refresh_token`, missing `token_type`, `Refresh_Token`, `DPoP`, `N_A`, and Keycloak `typ` `Refresh`/`Offline`); the missing-type opt-out; identity-provider `500` and invalid JSON; `auto` routing; `looksLikeJWS`; startup checks; the middleware returning `204`, `401` and `500`; and flag parsing including the secret file.
 
 One path is covered by reading rather than by a test: the expiry of tokens issued through Fosite's full authorization-code flow, which a unit test cannot obtain without driving the login and token endpoints end to end.
 
@@ -340,6 +340,13 @@ One path is covered by reading rather than by a test: the expiry of tokens issue
 - **A name that cannot exist.** The first draft of the introspection tests declared a package-level type named `url`. Other files in the package import `net/url`, and Go forbids declaring the same identifier in a file's import block and in the package block. The type was renamed to `introspectionCall` before the first compile.
 - **A lint finding.** `staticcheck` flagged the negated character-class condition in `looksLikeJWS` (`QF1001: could apply De Morgan's law`). It was replaced by a small `isBase64URLRune` function with a `switch`, which reads more directly than either form of the boolean expression.
 - **A shell modifier.** While relating ticket files, an argument written as `$DD:P…` was interpreted by zsh as the `:P` path modifier on `$DD`. Writing `${DD}:…` fixed it. The same pitfall applies to any `--file-note "$VAR:note"` argument in zsh.
+- **A token-type denylist that could not fail closed.** The first version rejected an introspected token only when `token_type` was the literal `refresh_token`. A Codex review on the pull request pointed out that RFC 7662 makes `token_type` optional, and that the request's `token_type_hint=access_token` is only a hint to the issuer's lookup, not a constraint on its answer. An issuer may therefore report an active refresh token with no type, and if that response also carried the configured audience and scopes, the server would have accepted a refresh token as an access token. The check became an allowlist:
+  - `token_type` must equal `Bearer`, compared case-insensitively as RFC 6749 §5.1 specifies.
+  - A missing `token_type` is rejected unless `IntrospectionAllowMissingTokenType` (`--oidc-introspection-allow-missing-token-type`) is set for an issuer that never reports refresh tokens as active.
+  - A Keycloak-style `typ` of `Refresh` or `Offline` is rejected even then.
+  - DPoP-bound tokens are rejected because their proofs are not verified.
+
+  ZITADEL documents `token_type` as always `Bearer`, so the default works with it. With the old check restored, all six new test cases were accepted, including the review scenario; with the allowlist, all are rejected. The general lesson: when a protocol field is optional, a check that rejects one bad value of it accepts every response that omits it.
 - **An assumption about dependency weight.** The earlier comparison in FRANCOIS-007 attributed go-go-mcp's weight to geppetto, clay and bubbletea, read from `go.mod`. `go.mod` lists modules in the build graph, not packages that are compiled. Measuring with `go list -deps` showed that bubbletea and clay are not compiled through `pkg/embeddable` at all, and that the weight came from the OIDC import.
 
 ## 9. Status and open work
@@ -358,6 +365,7 @@ The changes are in pull request [#89](https://github.com/go-go-golems/go-go-mcp/
 - An auth mode with heavy dependencies can be offered without imposing them: keep the mode's name and options in the core package, and let the application link its implementation through an explicit option.
 - A test that calls a component directly can pass while the component is unusable in its real pipeline; the `embedded_dev` bug survived because no test went through go-sdk's middleware.
 - Opaque access tokens can be verified only by the issuer. Introspection must authenticate the resource server, encode its credentials as RFC 6749 requires, and apply the same issuer, audience, lifetime and scope rules as JWT verification.
+- Check optional protocol fields with an allowlist that fails closed: a denylist on an optional field accepts every response that omits it.
 - Distinguish "the token is invalid" from "the issuer could not answer": the first is a `401` that leads to sign-in, the second a `500` that does not.
 
 ## Appendix A. Commits
@@ -370,6 +378,7 @@ The changes are in pull request [#89](https://github.com/go-go-golems/go-go-mcp/
 | `34c6555` | Docs: help pages, README, changelog |
 | `351968e` | Diary: pull request step |
 | `7383665` | Diary: vault report step |
+| `bffcc39` | Review fix: accept only bearer access tokens from introspection |
 
 ## Appendix B. Where things are
 
