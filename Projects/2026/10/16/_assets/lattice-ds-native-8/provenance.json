@@ -1,0 +1,13 @@
+{
+  "repo": "/home/manuel/code/wesen/2026-10-15--nintendo-ds-ui",
+  "commit": "da73fc2",
+  "tickets": ["JSUI-001", "JSUI-002"],
+  "note": "Compositor screenshots (grim) of the RG DS Plus panels, 1024x768 = 2x the 512x384 logical units, copied unchanged from the tickets' evidence directories, except lattice8-03, which places two of them side by side at half size (PIL).",
+  "figures": {
+    "lattice8-01-yesno-js-cpp.png": "JSUI-001 scripts/evidence/device-run2/compare-js-cpp.png (Yes/No, JavaScript and C++, same item and input)",
+    "lattice8-02-experiment-variants.png": "JSUI-001 scripts/evidence/device-agent/variants.png (variant a, question 12.5 pt; variant b, 15 pt)",
+    "lattice8-03-settings-js-cpp.png": "JSUI-002 evidence/device-pages-a/js-01-settings-bottom.png and cpp-01-settings-bottom.png, side by side",
+    "lattice8-04-palette-bottom.png": "JSUI-002 evidence/device-pages-a/js-02-palette-bottom.png (after typing h, e, l with real taps)",
+    "lattice8-05-inspector-bottom.png": "JSUI-002 evidence/device-pages-a/js-03-inspector-bottom.png (after tapping the night tag and the val split)"
+  }
+}
