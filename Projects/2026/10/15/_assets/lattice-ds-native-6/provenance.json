@@ -1,0 +1,15 @@
+{
+  "repo": "/home/manuel/code/wesen/2026-10-15--nintendo-ds-ui",
+  "commit": "3933c91",
+  "ticket": "LABEL-001",
+  "note": "Every figure is a compositor screenshot (grim) of the RG DS Plus panels, 1024x768 = 2x the 512x384 logical units, copied unchanged from the ticket's evidence directory.",
+  "figures": {
+    "lattice-ds-6-01-boxes-top.png": "scripts/evidence/w1/boxes-top.png (W1 device check, box review top screen, item cam04-01024)",
+    "lattice-ds-6-02-boxes-bottom.png": "scripts/evidence/w1/boxes-bottom.png (box review bottom screen: loupe, box card, buttons)",
+    "lattice-ds-6-03-boxes-relabel-drag-bottom.png": "scripts/evidence/hooks/drag-bottom.png (hooks-labeler.sh: stick relabel to person, then a real finger drag of a corner)",
+    "lattice-ds-6-04-tags-wheel-top.png": "scripts/evidence/s07/03-wheel-top.png (tags-labeler.sh: X held, real stick up-right, aimed at Outdoor)",
+    "lattice-ds-6-05-tags-board-bottom.png": "scripts/evidence/s07/02-accepted-bottom.png (after SELECT + A accepted the suggestions)",
+    "lattice-ds-6-06-inspector-top.png": "scripts/evidence/s15/01-details-top.png (inspector-labeler.sh, top screen)",
+    "lattice-ds-6-07-inspector-history-bottom.png": "scripts/evidence/s15/02-history-armed-bottom.png (History tab, a revert armed)"
+  }
+}
