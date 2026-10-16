@@ -19,7 +19,7 @@ worktree: /home/manuel/workspaces/2026-10-15/embeddable-auth-introspection/go-go
 ticket: GO-GO-MCP-EMBEDDABLE-AUTH
 branch: task/embeddable-auth-introspection
 pull_request: https://github.com/go-go-golems/go-go-mcp/pull/89
-source_commits: "go-go-mcp 86db8ed..bffcc39 plus a diary commit (PR #89, review fix pushed, not yet merged)"
+source_commits: "go-go-mcp 86db8ed..15c0e96, merged as ded30b2 (PR #89), released as v0.3.0"
 ---
 
 # go-go-mcp Embeddable Auth: Linking the Embedded OIDC Server on Request and Verifying Opaque Tokens
@@ -351,7 +351,7 @@ One path is covered by reading rather than by a test: the expiry of tokens issue
 
 ## 9. Status and open work
 
-The changes are in pull request [#89](https://github.com/go-go-golems/go-go-mcp/pull/89) on `go-go-golems/go-go-mcp`, from the branch `task/embeddable-auth-introspection`. Its CI passes; it is not merged.
+The changes were merged through pull request [#89](https://github.com/go-go-golems/go-go-mcp/pull/89) as `ded30b2` on 2026-10-16 and released as **v0.3.0** (`make tag-minor`, `make release`); `proxy.golang.org` serves `github.com/go-go-golems/go-go-mcp v0.3.0`. The version is a minor bump because the release removes and changes public API, which before 1.0 is signalled by the minor number.
 
 - **Breaking changes for upgraders:** `embeddable.WithOIDC` and `embeddable.OIDCOptions` are gone; `embedded_dev` needs `embeddeddev.Provide()`; `IntrospectAccessToken` returns `AccessTokenInfo`. The workspace's known users, smailnail and jesus, pin v0.0.19 and are unaffected until they upgrade.
 - **Remaining weight:** `pkg/tools` imports `geppetto/pkg/helpers` (22 packages, including watermill) for two reflection helpers. Removing it would bring `pkg/embeddable` close to the go-sdk baseline of 29.
