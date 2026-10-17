@@ -1051,8 +1051,12 @@ changes.*
 With the background compiler, every page change cost 17–20 ms, one frame at most. With compiles on the main thread,
 the change to KIPPLE at 20 seconds came before the warm-up had finished and froze for 779 ms.
 
-The worker takes longer in total (39 s against 26 s) because it shares the four CPU cores with the GL thread, the
-JavaScript thread and the compositor. The display never waits for it. The 2.3 s before the first cold frame is the
+The worker takes longer in total, 39 s against 26 s. Each program costs it 0.55–0.85 s, against a median of 0.44 s
+when the main thread compiles, at every stage of the run. The cause has not been measured. In the main-thread run
+the display drew at 1 fps, so the compile had the CPU, its clock and memory bandwidth almost to itself; in the worker
+run the display draws at 60 fps beside it. A driver lock shared with the drawing thread, or something about the
+worker's context, would also explain it. Rerunning the worker with the main loop throttled to a few frames per second
+would separate these. Either way, the display never waits for the worker. The 2.3 s before the first cold frame is the
 engine's start plus two small built-in programs (the present copy and the plain lens), which still compile on the
 main thread.
 
