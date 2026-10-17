@@ -19,7 +19,7 @@ created: 2026-10-16
 repo: /home/manuel/code/wesen/2026-10-16--ds-shaders
 implementation_repo: /home/manuel/code/wesen/2026-10-15--nintendo-ds-ui--shade
 ticket: DSSHADE-001
-source_commit: eded776 (ds-shaders), bc6180b (lattice worktree, branch dsshade/lattice-shade)
+source_commit: 058b249 (ds-shaders), bb21eb3 (lattice worktree, branch dsshade/lattice-shade)
 ---
 
 # DS Shaders: no_shade on a Handheld
@@ -61,6 +61,10 @@ The project answers the first half in a browser and the second half on the devic
 > - **On the device**, the first shaded application runs at a paced 60 fps:
 >   - shade work costs 0.83 ms (p50) on the main thread;
 >   - a lens compiles in 339 ms the first time and loads from the program-binary cache in 0.87 ms afterwards.
+> - **All ten Phantasmagoria scenes and five verbs run on the device**, from the twin's unchanged scene files.
+>   - A benchmark of every shader on the Mali-G52 measures 1.2–11 ms per pass at 256×192.
+>   - Light scenes fit in a 60 Hz frame. The two heaviest lenses (EMPATHY, BEAM) and the molecules verb do not.
+>   - The static estimates ranked the shaders correctly but were 1.5–2.3× too optimistic.
 
 ---
 
@@ -660,6 +664,17 @@ the device the shared lock stays, because there it expresses the GPU's real cons
 The runtime now sleeps to absolute 60 Hz deadlines while any screen is live (`--fps`, default 60). This is the same
 approach as Falllinie's `--fps` pacing.
 
+**Three more defects from the Phantasmagoria port.**
+- **`#if` on an undefined macro.** GLSL ES rejects `#if VERB_MELT` when the macro is not defined ("undefined macro in
+  expression (illegal in GLES)"); desktop GL treats it as zero. Verb blocks use `#ifdef`.
+- **Fonts falling back to a sans face.** The core knows three font families (`enum class Family { Body, Mono,
+  Display }`), and the bridge maps every other family name to `Body`. Instead of changing the core, `lattice-shade`'s
+  own face pack registers the four new faces under weights no other face pack uses (`body:110`, `body:120`,
+  `body:130`, `mono:110`, and bold variants). The kit translates the twin's font names to those weights.
+- **A press judged by the wrong page.** A button that made the scene change page was counted by the melt verb against
+  the new page, which melted the cartridge menu after BOOT. Verbs now judge a press by the page that was showing when
+  the tick began, as the twin does.
+
 ## 10. Results on the device
 
 With the device available, `lattice-shade` was cross-built in the project's Docker toolchain (30 seconds) and deployed
@@ -684,16 +699,98 @@ The compile figure is the most consequential number for the next stage. A 339 ms
 the console the first time a verb starts. The precompiled single-verb variants and the binary cache exist for that
 reason, and the measured 0.87 ms load from the cache confirms the mechanism works on this driver.
 
+### 10.1 Phantasmagoria on the device
+
+The machine and the scenes followed the hello application. The twin's composite pass became a shade machine
+(`js/lattice/kits/phantasmagoria.js`). The template keeps the parts every frame needs: the eras, the transitions,
+the chromatic fringe and the grain. Each verb's GLSL is spliced in under `#ifdef VERB_<NAME>`, so a verb that is not
+active is not compiled into the running program.
+
+The ten scenes run from the twin's own files, copied verbatim into `apps/shade/phant/scenes/`. An adapter
+(`apps/shade/phant/app.js`) turns each twin scene into a Lattice page. Each screen of the page gets:
+- a full-screen `paint` part that calls the scene's own `ui` functions through the twin's `Layer` API, re-implemented
+  over Lattice nodes;
+- a lens with the scene's GLSL, knobs from the scene's uniforms, its palette and its focus point.
+
+The twin's `tex()` functions, which handed scenes WebGL objects, are replaced by plan features:
+- the boot tape is a data texture uploaded from JavaScript;
+- KIPPLE and GAME OVER get memories;
+- PAUSE and LAYOUT get sampler aliases to the frozen and previous machine frames.
+
+![](_assets/ds-shaders-dsshade-001/device-scenes-panels.png)
+
+*The ten scenes on the device's panels (`grim`). BOOT is white: the screenshot was taken during the first-run
+compile, before the first frame was presented. The purple strokes on several scenes are strands drawn on the touch
+screen during the run.*
+
+![](_assets/ds-shaders-dsshade-001/device-verbs.png)
+
+*The verbs on the cartridge menu, captured by the runtime on the device: mashing, tear, release, molecules, Ubik,
+and a stylus stroke.*
+
+### 10.2 What each shader costs
+
+The first device run was slow at the start and recovered later. Two causes overlapped:
+- **The first-run compiles.** The runtime compiled 56 programs during the first scenes. Each compile blocks the frame
+  it happens in for 0.3–1.5 s, because this Mali offers no parallel compile.
+- **Shaders that do not fit.** After the compiles, LAYOUT ran at 57 fps, but tear brought the menu down to 54 fps and
+  molecules to 46.
+
+To separate the two causes, the runtime gained a benchmark command, `shade bench REPS [active]`. It draws every
+compiled program (lenses, memories, machine variants and the present copy) REPS times into offscreen targets of the
+program's own size, between two `glFinish` calls, and reports wall time per pass. GPU timer queries could not be
+used; they return unreliable values on this driver. With `active`, the machine's verb state is set to "fully on" for
+the duration of the benchmark, because the verb blocks begin with branches such as `if (u_mol > .002)` and would
+otherwise measure nothing.
+
+The first version of the benchmark reported 0.6 ms for the heaviest lens. That number was wrong. The benchmark drew
+one full-screen opaque triangle twenty times into the same target, and the Mali's **forward pixel kill** discards
+fragments that a later opaque fragment in the same render pass will overwrite. The GPU shaded one draw in twenty.
+Alternating between two targets on every repetition puts each draw in its own render pass, and the measured times
+rose by a factor of about seventeen.
+
+| Program (256×192 unless noted) | ms per pass | Share of a 60 Hz frame |
+|---|---:|---:|
+| `empathy.bottom` (the fused hill) | 10.97 | 66% |
+| `beam.bottom` (the {7,3} prison) | 10.11 | 61% |
+| `scramble.bottom` / `scramble.top` (face mosaic) | 5.89 / 5.61 | 35% / 34% |
+| machine, all verbs fully on | 9.70 | 58% |
+| machine, molecules fully on | 7.28 | 44% |
+| `beam.top`, `empathy.top`, `home.bottom`, other lenses | 1.5–3.5 | 9–21% |
+| strands memory (256×430) | 2.26 | 14% |
+| machine, idle | 1.16 | 7% |
+| present, one panel (1024×768) | 1.15 | 7% |
+
+![](_assets/ds-shaders-dsshade-001/device-bench-idle.png)
+
+*Measured GPU time per pass on the RG DS Plus with the verbs idle. The red line is one 60 Hz frame for both
+screens together.*
+
+A frame draws two lenses, two machine passes, the strands memory and two present copies. The table therefore predicts
+the observed frame rates:
+- HOME needs about 0.7 + 3.0 + 2 × 1.2 + 2.3 + 2 × 1.15 ≈ 10.7 ms, inside the 16.7 ms budget.
+- EMPATHY needs about 11.0 + 3.3 + 2 × 1.2 + 2.3 + 2 × 1.15 ≈ 21 ms, about 48 fps.
+- Molecules add 2 × 6 ms over the idle machine on any scene.
+
+Compared with the static estimates of section 6 (malioc longest path × pixels ÷ 800 MHz), the measured times are 1.5
+to 2.3 times higher:
+- `empathy.bottom` was estimated at 5.5 ms and measured at 11.0;
+- the all-in-one machine was estimated at 4.6 ms and measured at 9.7;
+- the present copy was estimated at 0.49 ms and measured at 1.15.
+
+The present copy is the clearest case: it does almost no arithmetic and writes 3 MB per panel, so its cost is memory
+bandwidth, which a per-fragment cycle count does not model. The ranking of the shaders is the same in both methods,
+which is what the design decisions in section 6 relied on.
+
 ## 11. Limitations and open questions
 
-- **Phantasmagoria is not yet on the device.** What is still missing:
-  - the machine and its verbs (a port of COMP into the `phantasmagoria` kit);
-  - the ten scenes;
-  - the status bar layer.
-
-  The hello application exercises every runtime path except memories, machine variants and transitions.
-- **The static budget is unconfirmed.** GPU time on the device has not been measured. The Mali hardware-counter probe
-  from Falllinie is the planned tool, because `GL_EXT_disjoint_timer_query` returns unreliable values on this driver.
+- **Four shaders exceed the budget.** `empathy.bottom` and `beam.bottom` (about 10–11 ms each), the scramble
+  lenses (about 5.7 ms each) and the molecules verb (about 7 ms per screen) drop the frame rate below 60 fps.
+- **The status bar** of the twin (a system layer composited by the machine) is not ported; the machine's status input
+  is empty.
+- **The first run compiles 56 programs.** It stalls for several seconds in total before the binary cache holds them.
+- **The benchmark measures wall time per pass.** It captures GPU work, including bandwidth, but it is not a hardware
+  counter. The Mali counter probe from Falllinie would separate arithmetic from memory traffic.
 - **Scene UIs and layout.** The twin's scenes draw full-screen layouts by hand. Lattice pages have chrome: a head bar
   and a hint bar on the bottom screen. The port has to choose between redrawing the scenes as real parts with real
   chrome, and full-screen drawing through a kit-built layer.
@@ -706,12 +803,12 @@ reason, and the measured 0.87 ms load from the cache confirms the mechanism work
 
 ## 12. Near-term next steps
 
-1. Port COMP into `js/lattice/kits/phantasmagoria.js` as a machine template with `// @head`, `@where`, `@gap` and
-   `@what` markers, and the five verbs as `defineVerb` specs. Test variant switching on the device.
-2. Port BOOT, HOME and LAYOUT. Bound the unbounded loops in `home.bot` and `beam.bot` first.
-3. Measure GPU active cycles with the counter probe for an idle machine and for each verb, and compare with the malioc
-   table.
-4. Add the Ports menu entry and a 20-minute thermal soak on the heaviest scene.
+1. Make molecules cheaper: search fewer neighbouring cells for the nearest bead.
+2. Bring `empathy.bottom` and `beam.bottom` under 4 ms: bound their loops, or render those two lenses at 128×96.
+3. Step the strands memory only while strands exist (2.3 ms every frame today), and reconsider the 2.3 ms of present
+   copies.
+4. Precompile every machine variant behind the boot screen on the first run.
+5. Add the Ports menu entry and a 20-minute thermal soak on the heaviest scene.
 
 ## 13. Reproducing the results
 
@@ -743,7 +840,12 @@ bash scripts/build-device.sh lattice-shade lattice_js     # Docker cross-build
 bash scripts/deploy-shade.sh                              # /storage/apps/lattice-shade only
 ssh root@<device> '/storage/apps/lattice-shade/scripts/run.sh hello --seconds 30 &'
 ssh root@<device> '/storage/apps/lattice-shade/scripts/ctl.sh "shade stats"'
+ssh root@<device> '/storage/apps/lattice-shade/scripts/sweep.sh'           # every scene and verb: stats, captures
+ssh root@<device> '/storage/apps/lattice-shade/scripts/bench.sh 20 active' # GPU ms per program, verbs on
 ```
+
+On the host, `python3 tests/shade/phant-sweep.py build/lattice-shade build/shade-assets OUT` runs every scene and
+verb offscreen and writes contact sheets.
 
 ## 14. Files
 
@@ -765,7 +867,9 @@ ssh root@<device> '/storage/apps/lattice-shade/scripts/ctl.sh "shade stats"'
 - `src/shade/`: `gl_shade.hpp`, `program.*`, `targets.*`, `shade.*`.
 - `apps/shade/main.cpp`, `apps/shade/hello/`, `apps/shade/make-assets.sh`, `apps/shade/tools/make-facepack.js`,
   `apps/shade/device/`.
-- `js/lattice/kits/shade.js`.
+- `js/lattice/kits/shade.js`, `js/lattice/kits/phantasmagoria.js`.
+- `apps/shade/phant/`: the scenes (verbatim from the twin), the adapter `app.js`.
+- `apps/shade/device/sweep.sh`, `bench.sh`; `tests/shade/phant-sweep.py`.
 - `assets-shade/fonts/`: Silkscreen, VT323, Jacquard 24 and Courier Prime, with their OFL licences.
 - `tests/shade/drive.py`, `tests/shade/gl-loader-check.js`.
 - `scripts/deploy-shade.sh`.
