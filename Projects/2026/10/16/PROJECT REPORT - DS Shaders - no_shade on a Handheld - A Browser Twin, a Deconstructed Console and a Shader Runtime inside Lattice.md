@@ -19,7 +19,7 @@ created: 2026-10-16
 repo: /home/manuel/code/wesen/2026-10-16--ds-shaders
 implementation_repo: /home/manuel/code/wesen/2026-10-15--nintendo-ds-ui--shade
 ticket: DSSHADE-001
-source_commit: 058b249 (ds-shaders), bb21eb3 (lattice worktree, branch dsshade/lattice-shade)
+source_commit: 78bc70e (ds-shaders), 49f43c0 (lattice worktree, branch dsshade/lattice-shade)
 ---
 
 # DS Shaders: no_shade on a Handheld
@@ -63,8 +63,9 @@ The project answers the first half in a browser and the second half on the devic
 >   - a lens compiles in 339 ms the first time and loads from the program-binary cache in 0.87 ms afterwards.
 > - **All ten Phantasmagoria scenes and five verbs run on the device**, from the twin's unchanged scene files.
 >   - A benchmark of every shader on the Mali-G52 measures 1.2–11 ms per pass at 256×192.
->   - Light scenes fit in a 60 Hz frame. The two heaviest lenses (EMPATHY, BEAM) and the molecules verb do not.
 >   - The static estimates ranked the shaders correctly but were 1.5–2.3× too optimistic.
+>   - Four targeted shader fixes cut the heaviest lens from 11.0 to 1.4 ms and the all-verbs composite from 9.7 to
+>     7.1 ms. Every scene now runs at 53–60 fps on the device.
 
 ---
 
@@ -782,10 +783,57 @@ The present copy is the clearest case: it does almost no arithmetic and writes 3
 bandwidth, which a per-fragment cycle count does not model. The ranking of the shaders is the same in both methods,
 which is what the design decisions in section 6 relied on.
 
+### 10.3 Making the shaders fit
+
+The benchmark gives every shader a measured cost, and reading each expensive shader against that number found the
+problem quickly. Two of the four fixes were removals of wasted work that change no pixel.
+
+| Program | Cause | Fix | Before | After |
+|---|---|---|---:|---:|
+| `empathy.bottom` | `climb()` (fBm, OKLab mixes) computed for every pixel, although multiplied by the fuse amount `fu`, which is 0 unless A is held; six hearts each ran a 10-step Julia iteration over the whole screen | a uniform branch skips the hill when `fu` is 0; each heart's work is skipped beyond 26 px of its centre | 10.97 ms | 1.42 ms |
+| `beam.bottom` | the land height evaluated three times per pixel (two five-octave fBm each) for finite differences | one evaluation, with the slope from `dFdx`/`dFdy`; at 256×192 one internal pixel is exactly the 2 logical px the differences used | 10.11 ms | 4.09 ms |
+| `scramble.*` | five to eight OKLab blends per pixel on colours that are constant per mosaic cell | blend those colours in sRGB, which is already perceptually spaced | 5.6–5.9 ms | 3.7–4.4 ms |
+| machine, molecules | the nearest-bead search covered nine cells per pixel | the four cells whose centres surround the pixel | 5.14 ms | 3.89 ms |
+
+![](_assets/ds-shaders-dsshade-001/device-bench-before-after.png)
+
+*Measured GPU time per pass on the device, with every verb fully on, before (grey) and after (blue).*
+
+The SCRAMBLE change is the only visible one, so three colour spaces were compared on the host before choosing.
+Mixing in squared (gamma 2) space brightened the mosaic's teal background noticeably. Plain sRGB matched the OKLab
+original closely.
+
+![](_assets/ds-shaders-dsshade-001/opt1-scramble-mix-compare.png)
+
+*SCRAMBLE with the face colours mixed in OKLab (top, the original), in squared space (middle), and in sRGB (bottom).*
+
+Two smaller changes affect every frame:
+- The strands memory, which cost 2.3 ms whether or not anything had been drawn, now rests unless strands were drawn
+  in the last 20 seconds. They fade within about 15.
+- The scene changes were made in the twin's scene files and copied to the device, so the browser twin runs the same
+  optimised GLSL; it still compiles in WebGL2.
+
+With a warm program cache, a full device sweep now measures:
+
+| Step | fps |
+|---|---|
+| boot, kipple, layout | 57 |
+| home, halflife, scramble, over | 54 |
+| empathy, pause | 53 |
+| beam | 58 |
+| every verb step (mashing, tear, molecules, Ubik, strands) | 60 |
+
+The scene steps include two frame readbacks and two `grim` screenshots just before each measurement, which stall a
+frame.
+
+![](_assets/ds-shaders-dsshade-001/device-scenes-panels-2.png)
+
+*The scenes on the device's panels after the optimisations, with a warm program cache (`grim`).*
+
 ## 11. Limitations and open questions
 
-- **Four shaders exceed the budget.** `empathy.bottom` and `beam.bottom` (about 10–11 ms each), the scramble
-  lenses (about 5.7 ms each) and the molecules verb (about 7 ms per screen) drop the frame rate below 60 fps.
+- **Molecules is still the most expensive verb** at about 3.9 ms per screen. On the heaviest scene, SCRAMBLE, it
+  brings the frame to roughly 18 ms, below 60 fps for as long as X is held.
 - **The status bar** of the twin (a system layer composited by the machine) is not ported; the machine's status input
   is empty.
 - **The first run compiles 56 programs.** It stalls for several seconds in total before the binary cache holds them.
@@ -803,12 +851,12 @@ which is what the design decisions in section 6 relied on.
 
 ## 12. Near-term next steps
 
-1. Make molecules cheaper: search fewer neighbouring cells for the nearest bead.
-2. Bring `empathy.bottom` and `beam.bottom` under 4 ms: bound their loops, or render those two lenses at 128×96.
-3. Step the strands memory only while strands exist (2.3 ms every frame today), and reconsider the 2.3 ms of present
-   copies.
-4. Precompile every machine variant behind the boot screen on the first run.
-5. Add the Ports menu entry and a 20-minute thermal soak on the heaviest scene.
+1. Measure GPU busy with the Mali hardware counters, using the probe from the Falllinie work, rather than inferring
+   it from frame rates.
+2. Precompile every machine variant behind the boot screen on the first run.
+3. Port the status bar layer.
+4. Add the Ports menu entry and a 20-minute thermal soak on the heaviest scene.
+5. Reconsider the 2.3 ms of present copies per frame.
 
 ## 13. Reproducing the results
 
