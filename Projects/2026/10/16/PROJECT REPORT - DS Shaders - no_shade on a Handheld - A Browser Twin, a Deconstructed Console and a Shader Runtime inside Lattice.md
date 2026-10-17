@@ -19,7 +19,7 @@ created: 2026-10-16
 repo: /home/manuel/code/wesen/2026-10-16--ds-shaders
 implementation_repo: /home/manuel/code/wesen/2026-10-15--nintendo-ds-ui--shade
 ticket: DSSHADE-001
-source_commit: 4907be7 (ds-shaders), 0bc09e8 (lattice worktree, branch dsshade/lattice-shade)
+source_commit: e7f1894 (ds-shaders), 45c8b57 (lattice worktree, branch dsshade/lattice-shade)
 ---
 
 # DS Shaders: no_shade on a Handheld
@@ -66,8 +66,15 @@ The project answers the first half in a browser and the second half on the devic
 >   - The static estimates ranked the shaders correctly but were 1.5–2.3× too optimistic.
 >   - Four targeted shader fixes cut the heaviest lens from 11.0 to 1.4 ms and the all-verbs composite from 9.7 to
 >     7.1 ms.
->   - The Mali hardware counters show every scene at a steady 60 fps with the GPU 55–93% busy. Only holding the
->     molecules verb on the heaviest scene saturates it (47 fps).
+>   - The Mali hardware counters show every scene at a steady 60 fps with the GPU 54–92% busy. Holding the
+>     molecules verb on the heaviest scene first saturated it (47 fps). A cheaper bead, plus lenses at two-thirds
+>     resolution while beads cover the screen, brings that case to 60 fps at 95.8% busy.
+> - **Sustained and first-run behaviour.**
+>   - A 15-minute soak on the heaviest scene holds 800 MHz and 60 fps, peaking at 61 °C against an 80 °C throttling
+>     point.
+>   - A background compiler on a second EGL context fills the program-binary cache on the first start, so the boot
+>     page keeps 60 fps while 55 programs compile. Compiling on the main thread instead gave 1 fps with 1.2 s stalls
+>     for 26 seconds.
 
 ---
 
@@ -891,11 +898,171 @@ composited by the machine, so no scene shader can distort it, though the era reg
 Phantasmagoria is also registered in the handheld's Ports menu. The registration script merges one entry into
 EmulationStation's gamelist, keeps every other entry, and backs the file up first.
 
+### 10.6 Molecules at 60 fps
+
+Section 10.4 left one case over budget: holding X (molecules) on SCRAMBLE or BEAM. The molecules verb replaces the
+screen with a field of glossy beads, each showing the scene underneath, small and inverted, as a droplet would. Two
+changes bring it inside the frame.
+
+The first reduces the bead code in the machine shader. Per pixel it still searches the four cells around the pixel
+for the nearest bead centre, but each cell now costs one hash and one sine instead of several value-noise lookups.
+The bead size comes from a slow wave over the screen, not from noise:
+
+```glsl
+float S = 20.*(1.3 + .3*sin(L.x*.0123 + u_now*.31)*sin(L.y*.0141 - u_now*.23));   // cell size, px
+vec2 id = floor(L/S - .5);
+for (int j = 0; j <= 1; j++) for (int i = 0; i <= 1; i++) {
+  vec2 cc = id + vec2(i, j);  float hs = hash(cc);
+  float ph = u_now*(1. + hs)*2.1 + hs*20.;                                         // one phase per bead
+  vec2 ctr = (cc + .5 + .3*vec2(sin(ph), sin(ph*.81 + 1.9)))*S;
+  float r = S*(.18 + .42*fract(hs*7.31))*on*(.85 + .3*u_mol);                       // radius from the same hash
+  ...
+}
+if (dm < 1.) { /* inside a bead: lookup of the scene, pow, normal, specular */ }
+else mc = c*mix(.25, .85, ao)*(1. - .35*u_mol) + spec(.9 + u_now*.1)*.06*(1. - ao);   // between beads: cheap goo
+```
+
+The expensive part of a bead (the scene lookup through the bead, the normal, the specular `pow`) now runs only where
+a bead is. Between beads the shader computes the same goo colour as before without them. The machine pass with
+molecules went from 3.89 to 3.52 ms.
+
+The second change uses what the verb shows. While beads cover the screen the reader sees the scene only through
+them, at a fraction of its size. The runtime gained a machine state field, `u_lensScale` (0.25 to 1). While it is
+below 1, the page's lenses render into smaller targets for those frames. A lens keeps its logical pixel space through
+`iResolution.z`, so no lens changes, and the machine samples the lens by texture coordinate, so it reads the smaller
+target without knowing. The molecules verb sets the field to 0.66 while its strength `u_mol` is above 0.35. Lens work
+passes on that screen shade 44% as many pixels (0.66²).
+
+![](_assets/ds-shaders-dsshade-001/host-molecules-scramble-lens66.png)
+
+*SCRAMBLE with molecules held: the lenses at two-thirds resolution, seen through the beads (host capture, both
+screens side by side).*
+
+The counters after both changes, five seconds per scene on the device, all at 60 fps:
+
+| Scene | GPU busy |
+|---|---:|
+| LAYOUT | 53.7% |
+| KIPPLE | 61.4% |
+| HOME | 64.1% |
+| BOOT, HALF-LIFE | 68% |
+| EMPATHY, PAUSE, GAME OVER | 71–72% |
+| BEAM | 87.3% |
+| SCRAMBLE | 91.6% |
+| SCRAMBLE with molecules held | 95.8% (was 99.8% at 47 fps) |
+
+### 10.7 Fifteen minutes on the heaviest scene
+
+Every measurement so far lasted seconds or a few minutes. A handheld that runs its GPU at 92% must also hold its
+clock once warm, because thermal throttling would lower the GPU clock and with it the frame rate. A device script
+held SCRAMBLE for fifteen minutes and sprayed Ubik every ten seconds, which runs the transition and verb paths too.
+Every nine seconds it sampled both thermal zones, the GPU and CPU clocks, and the runtime's own statistics.
+
+![](_assets/ds-shaders-dsshade-001/device-soak-15min.png)
+
+*Fifteen minutes of SCRAMBLE on the device: temperatures, clocks and frame rate.*
+
+| Measure | Result |
+|---|---|
+| GPU clock | 800 MHz in all 98 samples |
+| Frame rate | 60 fps in all 98 samples |
+| `cpu-thermal` | 48.3 → 58.9 °C |
+| `gpu-thermal` | 50.6 → 61.1 °C, rising about 1 °C over the last five minutes |
+| First throttling (passive) trip point | 80 °C (GPU zone), 83 °C (CPU zone) |
+| Shade work on the main thread, p95 | at most 9.2 ms |
+
+The GPU zone levels off about 19 °C below its first trip point, with the device lying flat in a room. The CPU0
+clock moved between 1.1 and 2.0 GHz throughout. That is the CPU frequency governor following load, not throttling:
+the trip points were never approached.
+
+### 10.8 The first start
+
+Section 10.2 noted that a program's first compile costs 0.3–1.5 s on this driver, and a binary-cache load about
+0.9 ms. Phantasmagoria needs 55 programs: each scene's two lenses, the two reaction–diffusion simulations, the
+strands memory, and 32 machine variants, one per combination of the five verbs. On the first start after an install
+none of them is in the cache.
+
+The driver offers no parallel compile (`KHR_parallel_shader_compile` is absent). A compile blocks the thread that
+issues it until it finishes. The original runtime compiled the page's programs and seven machine variants before
+its first frame, and each later page compiled its own programs when first visited. That meant a black screen for
+several seconds, then a freeze of one to three seconds on every new page.
+
+The first improvement was ordering. The runtime now compiles only what the page on screen draws with. Every other
+program, including the other pages' lenses, which the kit now sends after the first plan, waits in a queue. Each
+frame takes at least one item from the queue, more if a 4 ms budget allows. That moved the cost but did not remove
+it. One compile per frame still meant one frame per compile, and the boot page ran at 1 fps for 26 seconds.
+
+The second improvement moves compiling off the drawing thread entirely:
+
+```mermaid
+flowchart LR
+  subgraph main["main thread (GL context A)"]
+    Q["warm-up queues<br/>pending programs, verb variants"] -->|"ready?"| L["load binary<br/>~1 ms"]
+    L --> D["draw the frame"]
+    P["kPlain: the UI in the page palette"] -.->|"until the page's lens is loaded"| D
+  end
+  subgraph worker["worker thread (EGL context B, surfaceless)"]
+    C["compile + link<br/>0.3–1.5 s each"] --> W["write &lt;hash&gt;.bin"]
+  end
+  Q -->|"request, in queue order<br/>urgent first"| C
+  W --> F[("program-binary cache<br/>directory")]
+  F --> L
+  style F fill:#eef,stroke:#88a
+```
+
+- The worker runs on a second EGL context with the same configuration as the main one. It is made current without a
+  surface (`EGL_KHR_surfaceless_context`, which the handheld's Mali driver offers).
+- The two contexts share no GL objects. The worker compiles and links a program, writes its binary to the cache
+  directory under the same name the main thread would use, and deletes the program. The cache file is the hand-over,
+  so neither context needs fences or cross-context object visibility.
+- The main thread builds a queued program only once its binary exists, which makes every main-thread build a cache
+  load. A compile error found by the worker is stored and reported by the main thread without compiling again.
+- Programs the page on screen needs, and a verb combination the player has just activated, are urgent. They go to the
+  front of both queues.
+- Until a page's own lens is loaded, a built-in plain lens draws its screen. It is the UI texture coloured with the
+  page's palette: ink over panels over ground, signal in the hot colour. Until a verb combination is loaded, the
+  machine draws the largest loaded subset of it.
+- EGL comes from the library SDL has already loaded, found with `dlopen(..., RTLD_NOLOAD)`. A process without EGL
+  simply has no worker and compiles on the main thread as before.
+
+The plain lens turns out to suit the program. The first frames of a fresh install show the console's interface
+flat and undisturbed, and the boot lenses arrive over it a second later.
+
+![](_assets/ds-shaders-dsshade-001/device-first-start-plain-then-lens.png)
+
+*A cold start on the device: frame 6 through the plain lens (left), and 13 s later with the boot lenses and the
+machine (right).*
+
+A device script measured the start three times: with an empty cache using the worker, with an empty cache and the
+worker disabled, and with a full cache. It sampled the runtime's statistics about three times a second, including
+the longest frame-to-frame time in each second (`gapMs`). After 20 seconds it changed page every eight seconds.
+
+![](_assets/ds-shaders-dsshade-001/device-first-start.png)
+
+*Frame rate and longest frame gap during the first 70 seconds, for the three starts. The dotted lines are page
+changes.*
+
+| Start | First frame | Boot: worst gap | Boot: lowest fps | Warm-up finished | Main-thread builds that were cache loads |
+|---|---:|---:|---:|---:|---:|
+| empty cache, compiles on the main thread | ≤ 2.3 s | 1173 ms | 1 | 26.3 s | 0 of 55 |
+| empty cache, background compiler | ≤ 2.3 s | 32 ms | 60 | 39.3 s | 55 of 55 |
+| full cache | ≤ 0.6 s | 65 ms | 60 | 2.0 s | 55 of 55 |
+
+With the background compiler, every page change cost 17–20 ms, one frame at most. With compiles on the main thread,
+the change to KIPPLE at 20 seconds came before the warm-up had finished and froze for 779 ms.
+
+The worker takes longer in total (39 s against 26 s) because it shares the four CPU cores with the GL thread, the
+JavaScript thread and the compositor. The display never waits for it. The 2.3 s before the first cold frame is the
+engine's start plus two small built-in programs (the present copy and the plain lens), which still compile on the
+main thread.
+
 ## 11. Limitations and open questions
 
-- **Molecules is still the most expensive verb** at about 3.9 ms per screen. On SCRAMBLE and BEAM, which already
-  keep the GPU 89–93% busy, it saturates the GPU (99.8%, 47 fps) for as long as X is held.
-- **The first run compiles 56 programs.** It stalls for several seconds in total before the binary cache holds them.
+- **Molecules on SCRAMBLE leaves 4% of the GPU.** At 95.8% busy it holds 60 fps, but any further cost on that
+  scene would drop frames while X is held.
+- **On the first start a verb can be briefly incomplete.** Until a verb combination is loaded the machine draws the
+  largest loaded part of it, so a verb pressed in the first 40 seconds after an install may show no effect for up to
+  about a second.
 - **The benchmark measures wall time per pass.** It captures GPU work, including bandwidth, but it is not a hardware
   counter. The Mali counter probe from Falllinie would separate arithmetic from memory traffic.
 - **Scene UIs and layout.** The twin's scenes draw full-screen layouts by hand. Lattice pages have chrome: a head bar
@@ -910,11 +1077,11 @@ EmulationStation's gamelist, keeps every other entry, and backs the file up firs
 
 ## 12. Near-term next steps
 
-1. Make molecules affordable on the two heaviest scenes: half-precision arithmetic or a lighter bead, measured with
-   the counters.
-2. Run a 10–20 minute thermal soak on SCRAMBLE with temperature sampling. Short runs reached 57 °C.
-3. Precompile every machine variant behind the boot screen on the first run.
-4. Leave the 2.3 ms of present copies: the Falllinie measurements put such a copy at about one cycle per pixel, the
+1. Try two worker threads, which could halve the 39 s warm-up. Check that the GL and JavaScript threads keep
+   their frame times.
+2. Ship the two built-in programs (present and plain lens) precompiled, or compile them on the worker behind a
+   cleared screen, to bring the cold first frame towards the warm 0.6 s.
+3. Leave the 2.3 ms of present copies: the Falllinie measurements put such a copy at about one cycle per pixel, the
    floor for a full-panel write.
 
 ## 13. Reproducing the results
@@ -949,7 +1116,13 @@ ssh root@<device> '/storage/apps/lattice-shade/scripts/run.sh hello --seconds 30
 ssh root@<device> '/storage/apps/lattice-shade/scripts/ctl.sh "shade stats"'
 ssh root@<device> '/storage/apps/lattice-shade/scripts/sweep.sh'           # every scene and verb: stats, captures
 ssh root@<device> '/storage/apps/lattice-shade/scripts/bench.sh 20 active' # GPU ms per program, verbs on
+ssh root@<device> '/storage/apps/lattice-shade/scripts/soak.sh 15 scramble'   # temperatures, clocks, fps
+ssh root@<device> '/storage/apps/lattice-shade/scripts/firstrun.sh cold-worker cold 70'
+ssh root@<device> 'LATTICE_SHADE_NO_WORKER=1 /storage/apps/lattice-shade/scripts/firstrun.sh cold-main cold 70'
 ```
+
+The soak and first-start data are analysed on the host with `$T/scripts/10-plot-soak.py` and
+`$T/scripts/09-analyze-firstrun.py DIR --plot OUT.png cold-main cold-worker`.
 
 On the host, `python3 tests/shade/phant-sweep.py build/lattice-shade build/shade-assets OUT` runs every scene and
 verb offscreen and writes contact sheets.
@@ -963,20 +1136,21 @@ verb offscreen and writes contact sheets.
 - Ticket `DSSHADE-001`:
   - design docs 01 (no_shade on Lattice DS), 02 (builder grammar), 03 (Phantasmagoria on the device) and 04 (the
     Lattice Shade intern guide);
-  - the diary (`reference/01-diary.md`, Steps 1–15);
-  - `scripts/04`–`06`;
+  - the diary (`reference/01-diary.md`, Steps 1–20);
+  - `scripts/04`–`10` (shoot, malioc, counters, first start, soak);
   - `various/malioc/` (exact shader inputs and compiler summaries);
-  - `various/screenshots/`.
+  - `various/screenshots/`, `various/bench/`, `various/counters/`, `various/soak/`, `various/firstrun/`.
 
 **`/home/manuel/code/wesen/2026-10-15--nintendo-ds-ui--shade`** (branch `dsshade/lattice-shade`):
 - `src/shell/screen_hook.hpp`, `src/shell/runtime.cpp`: the optional hook.
 - `src/gl/renderer.hpp/.cpp`: the colour override. `src/gl/atlas.cpp`: six font keys.
-- `src/shade/`: `gl_shade.hpp`, `program.*`, `targets.*`, `shade.*`.
+- `src/shade/`: `gl_shade.hpp`, `program.*` (with the background compiler, `ProgramCache::Worker`), `targets.*`,
+  `shade.*` (warm-up queues, plain lens).
 - `apps/shade/main.cpp`, `apps/shade/hello/`, `apps/shade/make-assets.sh`, `apps/shade/tools/make-facepack.js`,
   `apps/shade/device/`.
 - `js/lattice/kits/shade.js`, `js/lattice/kits/phantasmagoria.js`.
 - `apps/shade/phant/`: the scenes (verbatim from the twin), the adapter `app.js`.
-- `apps/shade/device/sweep.sh`, `bench.sh`; `tests/shade/phant-sweep.py`.
+- `apps/shade/device/sweep.sh`, `bench.sh`, `counters.sh`, `soak.sh`, `firstrun.sh`; `tests/shade/phant-sweep.py`.
 - `assets-shade/fonts/`: Silkscreen, VT323, Jacquard 24 and Courier Prime, with their OFL licences.
 - `tests/shade/drive.py`, `tests/shade/gl-loader-check.js`.
 - `scripts/deploy-shade.sh`.
