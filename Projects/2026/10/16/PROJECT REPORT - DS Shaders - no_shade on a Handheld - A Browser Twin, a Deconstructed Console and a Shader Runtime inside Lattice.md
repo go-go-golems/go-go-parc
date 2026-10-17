@@ -19,7 +19,7 @@ created: 2026-10-16
 repo: /home/manuel/code/wesen/2026-10-16--ds-shaders
 implementation_repo: /home/manuel/code/wesen/2026-10-15--nintendo-ds-ui--shade
 ticket: DSSHADE-001
-source_commit: 78bc70e (ds-shaders), 49f43c0 (lattice worktree, branch dsshade/lattice-shade)
+source_commit: 4907be7 (ds-shaders), 0bc09e8 (lattice worktree, branch dsshade/lattice-shade)
 ---
 
 # DS Shaders: no_shade on a Handheld
@@ -65,7 +65,9 @@ The project answers the first half in a browser and the second half on the devic
 >   - A benchmark of every shader on the Mali-G52 measures 1.2–11 ms per pass at 256×192.
 >   - The static estimates ranked the shaders correctly but were 1.5–2.3× too optimistic.
 >   - Four targeted shader fixes cut the heaviest lens from 11.0 to 1.4 ms and the all-verbs composite from 9.7 to
->     7.1 ms. Every scene now runs at 53–60 fps on the device.
+>     7.1 ms.
+>   - The Mali hardware counters show every scene at a steady 60 fps with the GPU 55–93% busy. Only holding the
+>     molecules verb on the heaviest scene saturates it (47 fps).
 
 ---
 
@@ -830,12 +832,69 @@ frame.
 
 *The scenes on the device's panels after the optimisations, with a warm program cache (`grim`).*
 
+### 10.4 GPU busy from the hardware counters
+
+The benchmark times each shader alone. The hardware counters measure what the GPU does across whole frames. The
+earlier Falllinie work on this device built a probe on Arm's libGPUCounters. It runs as a separate process, reads
+`/dev/mali0`, and samples every 100 ms; `lattice-shade` needed no change.
+
+GPU busy is the number of GPU-active cycles per second, using the host's own clock between polls, divided by the GPU
+clock the probe records. A device script holds each scene for five seconds of sampling, plus an idle baseline with
+nothing running and one sample with molecules held on the heaviest scene.
+
+The GPU's frequency governor is `simple_ondemand`, which scales the clock between 200 and 800 MHz. Under this load it
+held 800 MHz. A second run with the governor pinned to `performance` gave the same numbers, so the benchmark of
+section 10.2, which runs as a sustained burst, was measured at full clock.
+
+![](_assets/ds-shaders-dsshade-001/device-gpu-busy.png)
+
+*GPU busy per scene on the device, from the Mali hardware counters, with the frame rate the runtime reported.*
+
+| Scene | GPU busy | fps |
+|---|---:|---:|
+| idle (the compositor alone) | 4.4% | — |
+| LAYOUT | 55.3% | 60 |
+| KIPPLE | 63.1% | 60 |
+| HOME | 67.2% | 60 |
+| HALF-LIFE, EMPATHY, PAUSE, GAME OVER | 70–73% | 60 |
+| BOOT | 77.2% | 60 |
+| BEAM | 89.2% | 60 |
+| SCRAMBLE | 93.4% | 60 |
+| SCRAMBLE with molecules held | 99.8% | 47 |
+
+The counters also say what kind of work it is:
+- ALU utilisation is 63–75% and texture utilisation 13–28%. The passes are arithmetic-bound, which is why removing
+  arithmetic, not texture reads, was what paid off in section 10.3.
+- External writes run at about 445 MB/s. Two 1024×768 present copies at 60 Hz alone account for 377 MB/s.
+
+Every scene keeps a margin. It ranges from 7% for SCRAMBLE to 45% for LAYOUT, and only the molecules verb on the two
+heaviest scenes runs out. The 53–57 fps of section 10.3's sweep came from the sweep's own frame readbacks and
+screenshots: without them, each scene holds 60.
+
+### 10.5 The status bar and the Ports entry
+
+The twin's status bar is system UI. It shows the clock, a year that drifts between 1959 and 1998, the page's name,
+the reality percentage and a battery that is reality itself. In the twin it was drawn into its own layer and
+composited by the machine, so no scene shader can distort it, though the era regression still reaches it.
+
+`lattice-shade` reproduces that arrangement:
+1. The program registers a third layer on the top screen, built by the shade kit from `machine().status(draw, sig)`.
+2. While a plan asks for it, the runtime draws that layer into its own texture, `u_status`, instead of the top UI
+   texture.
+3. The machine composites it over every scene.
+4. The layer is rebuilt only when its signature changes: the minute, the flickering year, the reality percentage.
+
+![](_assets/ds-shaders-dsshade-001/host-status-bar.png)
+
+*The status bar over the cartridge menu and the inventory (host capture).*
+
+Phantasmagoria is also registered in the handheld's Ports menu. The registration script merges one entry into
+EmulationStation's gamelist, keeps every other entry, and backs the file up first.
+
 ## 11. Limitations and open questions
 
-- **Molecules is still the most expensive verb** at about 3.9 ms per screen. On the heaviest scene, SCRAMBLE, it
-  brings the frame to roughly 18 ms, below 60 fps for as long as X is held.
-- **The status bar** of the twin (a system layer composited by the machine) is not ported; the machine's status input
-  is empty.
+- **Molecules is still the most expensive verb** at about 3.9 ms per screen. On SCRAMBLE and BEAM, which already
+  keep the GPU 89–93% busy, it saturates the GPU (99.8%, 47 fps) for as long as X is held.
 - **The first run compiles 56 programs.** It stalls for several seconds in total before the binary cache holds them.
 - **The benchmark measures wall time per pass.** It captures GPU work, including bandwidth, but it is not a hardware
   counter. The Mali counter probe from Falllinie would separate arithmetic from memory traffic.
@@ -851,12 +910,12 @@ frame.
 
 ## 12. Near-term next steps
 
-1. Measure GPU busy with the Mali hardware counters, using the probe from the Falllinie work, rather than inferring
-   it from frame rates.
-2. Precompile every machine variant behind the boot screen on the first run.
-3. Port the status bar layer.
-4. Add the Ports menu entry and a 20-minute thermal soak on the heaviest scene.
-5. Reconsider the 2.3 ms of present copies per frame.
+1. Make molecules affordable on the two heaviest scenes: half-precision arithmetic or a lighter bead, measured with
+   the counters.
+2. Run a 10–20 minute thermal soak on SCRAMBLE with temperature sampling. Short runs reached 57 °C.
+3. Precompile every machine variant behind the boot screen on the first run.
+4. Leave the 2.3 ms of present copies: the Falllinie measurements put such a copy at about one cycle per pixel, the
+   floor for a full-panel write.
 
 ## 13. Reproducing the results
 
