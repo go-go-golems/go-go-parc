@@ -307,3 +307,4 @@ The spike repository is `/home/manuel/code/wesen/2026-10-12--falllinie-spike`; e
 - [[PROJECT REPORT - Falllinie GPU Profiling - Hardware Counters, Shader Compilation and a Rejected Optimization]] — the counter probe, replay benchmark and original shadow bound.
 - [[PROJECT REPORT FOLLOW-UP - Anbernic RG DS Plus - First Boot on ROCKNIX, the Dual-Screen Stack, and a Black-Screen Diagnosis]] — the device, Sway and EmulationStation setup.
 - [[MOC - Optimization and Performance Engineering]] — series index.
+- [[rg-ds-plus]] — map of all RG DS Plus projects: the platform, how the projects built on each other, and the shared toolchain, threading, twin and parity patterns.

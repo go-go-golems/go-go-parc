@@ -413,3 +413,4 @@ The script was exercised against a synthetic set covering `.nes`, `.sfc`, `.gb`,
 
 - [[PROJ - PULP OS on X4 Classic - Native ESP-IDF Port and Display Qualification]] — a second handheld device worked on in the same period, with a comparable pattern of device-specific hardware facts being the deciding constraint.
 - [[PROJECT REPORT - MLST Tom McGrath Research Bundle - Transcript, Papers, Blogs and a Day-Mode Reading Frontend - A Technical Deep Dive]] — the source of the report structure used here, and the same approach of capturing primary sources into a ticket before synthesis.
+- [[rg-ds-plus]] — map of all RG DS Plus projects: the platform, how the projects built on each other, and the shared toolchain, threading, twin and parity patterns.

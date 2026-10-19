@@ -479,3 +479,4 @@ The eight phase reports own the depth; this one owns the whole:
 - [[PROJECT REPORT - Octavo, Part 6 - The Tutor - A Credential Kept in C++, Answers as Script Inputs and a Trial Layout per Paragraph|Part 6: the tutor]]
 - [[PROJECT REPORT - Octavo, Part 7 - Flows - Sessions in the Event Log, Positions Rebuilt from Events and Book Views as Element Trees|Part 7: flows]]
 - [[PROJECT REPORT - Octavo, Part 8 - Packages - A Checked Manifest, Verbs in Empty Slots and Two Features Moved Out of Core|Part 8: packages]]
+- [[rg-ds-plus]] — map of all RG DS Plus projects: the platform, how the projects built on each other, and the shared toolchain, threading, twin and parity patterns.

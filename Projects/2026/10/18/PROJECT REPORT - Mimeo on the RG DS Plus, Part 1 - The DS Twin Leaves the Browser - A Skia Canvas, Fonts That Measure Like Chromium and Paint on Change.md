@@ -412,3 +412,4 @@ node mimeo/tools/check-presets.mjs && node mimeo/test/core.mjs
 - [[PROJECT REPORT - DS Shaders - no_shade on a Handheld - A Browser Twin, a Deconstructed Console and a Shader Runtime inside Lattice]]: the shader budgets on the Mali-G52 that Mimeo's looks will have to meet
 - [[PROJECT REPORT - Lattice DS Native, Part 2 - A Two-Thread Shell and a Thin V8 Layer on the RG DS Plus]]: the SDL/GLES platform code that `dsnative` will reuse in Phase 4
 - [[PROJECT REPORT - Lattice DS Native, Part 8 - Pages in JavaScript - A Generic Host, a UI Language and a Parity Harness]]: another JavaScript-first host on the same device
+- [[rg-ds-plus]] — map of all RG DS Plus projects: the platform, how the projects built on each other, and the shared toolchain, threading, twin and parity patterns.

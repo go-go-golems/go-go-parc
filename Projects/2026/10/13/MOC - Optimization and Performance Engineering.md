@@ -144,3 +144,5 @@ The later GPU Profiling checkpoint fixes both raw simulation input and terrain r
 Preserve each report's workload, runtime revision, clock definition and evidence boundary when comparing numbers. Earlier 60-FPS observations do not qualify later expanded workloads. Whole-device GPU counters do not isolate a render pass, and static compiler estimates are not runtime milliseconds. A conceptual example is not a captured trace; a proposed integration is not an implemented feature.
 
 The cross-link additions are editorial navigation, explicitly requested after publication. Historical report bodies, data and figures remain preserved; explicitly dated living-report follow-ups add later measurements without rewriting earlier outcomes. Original publication hashes describe their historical versions; later editorial and measurement-publication commits record the additions separately. This index adds no experiment and claims no new optimization result.
+
+Platform context: [[rg-ds-plus|RG DS Plus projects]] maps the other programs built for the same handheld and the toolchain, threading and V8 findings they took from Falllinie.

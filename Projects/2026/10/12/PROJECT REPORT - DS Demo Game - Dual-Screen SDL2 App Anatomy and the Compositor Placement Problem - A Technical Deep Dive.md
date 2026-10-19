@@ -410,3 +410,4 @@ The recommended order of work for the next engineer is narrow and mechanical: ra
 - [[PROJECT REPORT FOLLOW-UP - Anbernic RG DS Plus - First Boot on ROCKNIX, the Dual-Screen Stack, and a Black-Screen Diagnosis]] — the operating-system side of the same hardware: `vertical-check`, `lowerdeck`, `dsperate`, and the `grim`-based diagnostic method reused here.
 - [[PROJECT REPORT - Anbernic RG DS Plus - ROMs, Emulation, OS Replacement, and the Device-Tree Boot Failure - A Technical Deep Dive]] — storage model, image writing and verification.
 - [[PROJ - PULP OS on X4 Classic - Native ESP-IDF Port and Display Qualification]] — a second handheld where panel init and display qualification were the first gate.
+- [[rg-ds-plus]] — map of all RG DS Plus projects: the platform, how the projects built on each other, and the shared toolchain, threading, twin and parity patterns.
