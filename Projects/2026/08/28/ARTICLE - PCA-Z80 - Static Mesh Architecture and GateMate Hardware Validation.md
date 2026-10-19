@@ -701,4 +701,4 @@ state migration, quiescence, route update, rollback, and pressure metrics.
 
 - [[ARTICLE - PCA-Z80 - Firmware BRAM and Physical UART on GateMate]]
 - [[PROJ - MATE-16 VM CPU on the GateMateA1-EVB]]
-
+- [[fpga-hdl-gatemate]] — the map of FPGA, HDL and GateMate notes: board playbooks, every GateMateA1-EVB project, the Weft books and the VHDL work.

@@ -490,3 +490,7 @@ See the follow-up report for the area optimization campaign:
 ## Project working rule
 
 Every layer gets an executable oracle before it gets an implementation, and every implementation is only believed after a differential test says so. When the reference is C, extract it and compile it rather than reading it; when the reading and the compiled behavior disagree, the compiled behavior wins.
+
+## Related notes
+
+- [[fpga-hdl-gatemate]] — the map of FPGA, HDL and GateMate notes: board playbooks, every GateMateA1-EVB project, the Weft books and the VHDL work.

@@ -601,3 +601,4 @@ Research and design documents:
 ## Related notes
 
 - [[PROJ - MATE-16 VM CPU on the GateMateA1-EVB]] — the preceding GateMate processor project and source of the model-first, held-request, and board bring-up discipline.
+- [[fpga-hdl-gatemate]] — the map of FPGA, HDL and GateMate notes: board playbooks, every GateMateA1-EVB project, the Weft books and the VHDL work.

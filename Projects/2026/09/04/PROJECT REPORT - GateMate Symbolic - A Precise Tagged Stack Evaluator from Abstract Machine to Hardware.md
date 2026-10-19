@@ -371,3 +371,4 @@ Repo-local pragmatic playbooks for working in `symbolic_eval/` live in `symbolic
 - Investigation diary (12 steps, failures verbatim): `ttmp/2026/09/04/GATEMATE-SYMBOLIC-001--*/reference/01-investigation-diary.md`
 - Machine: `/home/manuel/code/wesen/2026-09-04--gatemate-symbolic/symbolic_eval/` — `rtl/` (two cores, `sync_sdp_ram`, `program_rom`, `rv_reg`, `uart_tx`, `top`), `tools/` (`opcodes.py`, `stack_model.py`, `asm20.py`), `programs/` (16 programs), `sim/` (three testbenches, five pytest suites), `scripts/synth.ys`.
 - Sibling projects: [[PROJ - MATE-16 VM CPU on the GateMateA1-EVB]], [[ARTICLE - PCA-Z80 - Static Mesh Architecture and GateMate Hardware Validation]], [[PROJ - Uxn Computer - A Varvara Machine in GateMate FPGA]]
+- [[fpga-hdl-gatemate]] — the map of FPGA, HDL and GateMate notes: board playbooks, every GateMateA1-EVB project, the Weft books and the VHDL work.

@@ -1550,3 +1550,6 @@ These latter commands were not executed in the present environment because `ghdl
 | [Current demo](_assets/verisql-hw-report/verification/demo-current.txt) | Persistent CLI query and plan output |
 | [Failed aggregate check](_assets/verisql-hw-report/verification/make-check-current.txt) | `make check` stopped because `ruff` was unavailable |
 
+## Related notes
+
+- [[fpga-hdl-gatemate]] — the map of FPGA, HDL and GateMate notes: board playbooks, every GateMateA1-EVB project, the Weft books and the VHDL work.

@@ -492,3 +492,7 @@ The current state of the requirements-acceptance mapping (§4.19):
 
 > [!important]
 > Define the contract and the executable model before writing processor RTL. A partially verified processor is harder to debug in hardware than in simulation, and a model that is independent of the RTL is the cheapest verification oracle available. When a target holds a request, never let it re-accept that request — derive every side-effect strobe from a single acceptance edge, and clear the captured-transaction state whenever the request deasserts.
+
+## Related notes
+
+- [[fpga-hdl-gatemate]] — the map of FPGA, HDL and GateMate notes: board playbooks, every GateMateA1-EVB project, the Weft books and the VHDL work.

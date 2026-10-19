@@ -69,3 +69,7 @@ Wire the FPGA button as a global experiment abort: pressing it async-asserts the
 - Record tool versions, synthesis commands, PnR seeds, and the capture method with every hardware result. Without that record, a smaller or faster result may be tool drift rather than a design change.
 - Every board claim should be reproducible from one shell command plus one button press; if it needs luck or timing, fix the workflow first.
 - Treat absence of output as a claim requiring the concurrent-capture pattern to verify, not as a negative result by default.
+
+## Related notes
+
+- [[fpga-hdl-gatemate]] — the map of FPGA, HDL and GateMate notes: board playbooks, every GateMateA1-EVB project, the Weft books and the VHDL work.

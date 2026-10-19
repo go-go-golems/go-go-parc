@@ -197,3 +197,7 @@ python3 -m pytest uxn/sim -q   # 58 tests, ~18 min
 - Prior project report (machine architecture, verification chain):
   `Projects/2026/08/30/PROJ - Uxn Computer - A Varvara Machine in GateMate FPGA.md`
 - Toolchain: OSS CAD Suite 2026-08-25 (Yosys 0.68+130, nextpnr-himbaechel 0.11.1-9-gb17408e2)
+
+## Related notes
+
+- [[fpga-hdl-gatemate]] — the map of FPGA, HDL and GateMate notes: board playbooks, every GateMateA1-EVB project, the Weft books and the VHDL work.
