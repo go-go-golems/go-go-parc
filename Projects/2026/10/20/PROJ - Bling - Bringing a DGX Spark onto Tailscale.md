@@ -299,8 +299,100 @@ The remaining work is bounded and separate from the achieved enrollment:
 
 The completed project establishes a verified network and application access path to the Spark without changing its SSH authentication model or configuring broader routing privileges. Its most reusable lesson is the verification structure: installation, authorization, naming, transport, and application identity are separate properties, and each should have its own observable evidence.
 
+## 11. Adding `bling.scapegoat.dev` as a DNS alias
+
+After the initial bring-up, the host received a custom-domain alias managed in `/home/manuel/code/wesen/terraform`. This adds a stable name under the existing public DNS zone without replacing Tailscale enrollment, changing the host address, or exposing the SSH service to the public Internet. The alias is a CNAME: a DNS record that identifies another DNS name as its target rather than assigning an address directly.
+
+The resulting lookup chain is:
+
+```text
+bling.scapegoat.dev
+  CNAME bling.tail879302.ts.net.
+  A     100.117.186.55  # resolved on the tested tailnet-connected workstation
+```
+
+Publishing the CNAME and resolving its target are separate operations. DigitalOcean serves the alias in the public `scapegoat.dev` zone; the tested workstation resolves the Tailscale target through its configured resolver. A client still needs suitable Tailscale connectivity and policy permission to reach the resulting address. Public visibility of the alias does not make the destination publicly routable, and a client without the relevant DNS configuration may not resolve the target successfully.
+
+### Terraform implementation
+
+The zone environment is `dns/zones/scapegoat-dev/envs/prod`. Its `main.tf` defines a `base_records` map, merges that with records supplied by the SES remote state, and instantiates `digitalocean_record.records` with `for_each`. The addition was a single map entry:
+
+```hcl
+bling_cname = {
+  type  = "CNAME"
+  name  = "bling"
+  value = "bling.tail879302.ts.net."
+  ttl   = 3600
+}
+```
+
+The trailing dot makes the target explicitly fully qualified. The TTL is 3,600 seconds. Provider authentication uses an ephemeral Vault KV read of `kv/infra/dns/scapegoat-dev`, taking the `api_token` field; the token was not copied into the record definition or this report.
+
+### Why the full plan was not applied
+
+Formatting and validation passed, but the full Terraform plan included three additions and one deletion. Only one addition was requested: `bling_cname`. The other proposed changes were additions for `pds.yolo` and `*.pds.yolo`, and deletion of `*.apps.francois.yolo`. Those unrelated changes were not applied.
+
+A targeted plan restricted the operation to the new resource:
+
+```bash
+direnv exec . terraform -chdir=dns/zones/scapegoat-dev/envs/prod plan \
+  '-target=digitalocean_record.records["bling_cname"]' \
+  -out=/tmp/bling-dns-only.tfplan
+```
+
+Resource targeting was an explicit exception to isolate the requested change from pre-existing configuration/state differences, not a recommendation for routine deployment. The first targeted plan exposed an output-expression defect:
+
+```text
+Error: Invalid index
+  on outputs.tf line 19, in output "managed_records":
+  value = local.records[key].value
+```
+
+The output iterated over resource instances, including an existing state entry whose key was absent from the current configuration map. Looking that key up in `local.records` failed. The correction in `outputs.tf` reads the value from the resource being iterated instead:
+
+```hcl
+for key, record in digitalocean_record.records : key => {
+  id    = record.id
+  fqdn  = record.fqdn
+  type  = record.type
+  value = record.value
+}
+```
+
+This aligns each reported value with the corresponding resource instance and avoids assuming that the configuration map contains every key retained during a targeted operation. It changes an output expression, not the DNS configuration of those other resources.
+
+The revised targeted plan passed validation. Its JSON was checked to assert that the only non-no-op resource action was creation of `digitalocean_record.records["bling_cname"]`. Applying the saved plan returned:
+
+```text
+digitalocean_record.records["bling_cname"]: Creation complete [id=1835946885]
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+```
+
+The apply also reported the existing deprecation of the backend's `dynamodb_table` setting in favor of `use_lockfile`; backend migration was not part of this change. The unrelated zone differences remain unresolved, and a future full apply still requires reviewing them. At this checkpoint, the Terraform edits in `main.tf` and `outputs.tf` remain local and uncommitted; successful deployment is not evidence that their repository changes have been published.
+
+### End-to-end verification
+
+The authoritative DNS server returned the new CNAME:
+
+```text
+$ dig +short @ns1.digitalocean.com bling.scapegoat.dev CNAME
+bling.tail879302.ts.net.
+```
+
+The workstation's resolver then returned the expected overlay address through `getent ahostsv4 bling.scapegoat.dev`. Finally, ordinary SSH through the custom name executed a command on the expected host:
+
+```text
+$ ssh -o BatchMode=yes -o ConnectTimeout=10 \\
+    -o HostKeyAlias=spark-d13c.local manuel@bling.scapegoat.dev hostname
+bling
+```
+
+This tests the complete path from custom name through address resolution to an authenticated SSH command. The explicit host-key alias retains the previously trusted server identity; it does not imply that a bare first connection to the new hostname already has its own known-host entry. No TLS certificate for `bling.scapegoat.dev` was requested or installed. DNS aliasing, SSH trust, and HTTPS certificate issuance remain independent configuration concerns.
+
+The preferred human-facing address is now `bling.scapegoat.dev`; the Tailscale DNS name and overlay address remain valid underlying identifiers. The earlier `/etc/hosts`, reboot, off-site testing, and access-policy follow-ups remain open.
+
 ## Evidence provenance
 
-The implementation evidence is the 2026-10-20 provisioning session: tmux pane captures, APT output, operator-confirmed browser authorization, workstation Tailscale status and ping output, and successful SSH checks against the Spark. The final report also used a fresh read-only inspection of `hostnamectl`, `/etc/os-release`, `tailscale version`, service state, selected Tailscale status fields, and the relevant `/etc/hosts` line.
+The implementation evidence is the 2026-10-20 provisioning session: tmux pane captures, APT output, operator-confirmed browser authorization, workstation Tailscale status and ping output, and successful SSH checks against the Spark. The final report also used a fresh read-only inspection of `hostnamectl`, `/etc/os-release`, `tailscale version`, service state, selected Tailscale status fields, and the relevant `/etc/hosts` line. The DNS follow-up adds the Terraform source edits, full and targeted plan results, the successful one-resource apply, an authoritative CNAME query, workstation address resolution, and a successful SSH command through `bling.scapegoat.dev`.
 
 Conceptual explanations describe the responsibilities needed to interpret those observations. They are not claims that internal protocol behavior, every resolver path, or every access-policy rule was inspected. No external documentation research or performance study was undertaken for this report.
