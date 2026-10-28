@@ -767,11 +767,11 @@ The source is organised to make this safe: the core has no drawing code, the pai
 
 ## 20. How the work was done
 
-The session that produced this system is itself evidence about how a small language gets designed under a hard constraint. It ran for 4 hours 15 minutes of wall time on 2026-10-28, with about 63 minutes of active work, and produced 336 turns and 149 tool calls.
+The session that produced this system is itself evidence about how a small language gets designed under a hard constraint. It ran for 7 hours 5 minutes of wall time on 2026-10-28, with about 63 minutes of active work, and produced 336 turns and 149 tool calls.
 
 | Metric | Value |
 |---|---|
-| Wall span | 08:18:50–15:24:04 UTC (09:18–16:24 Zurich) |
+| Wall span | 08:18:50–15:24:04 UTC (09:18–16:24 Zurich), 25,514 s |
 | Active time | 3,759 s (62.6 min) |
 | Turns | 336 normalized turns; the raw transcript holds 170 user records, 307 assistant records, and 251 attachment records (images) |
 | Tool calls | 149: 76 Bash, 17 Read, 12 ArtifactData, 10 Write, 10 Artifact, 8 TaskUpdate, 6 TaskCreate, 3 ToolSearch, 2 Skill, and 5 single calls (Grep, ListConnectors, SearchMcpRegistry, SuggestConnectors, read_conversation) |
