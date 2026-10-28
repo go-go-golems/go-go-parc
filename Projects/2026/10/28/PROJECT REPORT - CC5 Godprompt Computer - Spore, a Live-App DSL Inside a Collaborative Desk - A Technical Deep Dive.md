@@ -681,7 +681,7 @@ The one grammar addition was `$.pointer`. Before it, a `draw` element could pain
 
 ## 16. Build, publish, and the failures along the way
 
-The bundle is produced by `spore-src/build.py`, which concatenates seven sources, injects the stylesheet as a JSON-encoded string, and wraps everything in one function scope with a fixed header that documents the section order. The output is 2,687 lines. Rebuilding requires changing the hard-coded `/home/claude/spore` path at the top of the script, which is noted in the repository README.
+The bundle is produced by `spore-src/build.py`, which concatenates six modules, injects the stylesheet as a JSON-encoded string, and wraps everything in one function scope with a fixed header that documents the section order. The output is 2,687 lines. Rebuilding requires changing the hard-coded `/home/claude/spore` path at the top of the script, which is noted in the repository README.
 
 Three real failures in the session are worth preserving, because each identifies a constraint that is not obvious from the code.
 
