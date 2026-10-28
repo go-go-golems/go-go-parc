@@ -122,7 +122,7 @@ A **path** is a dotted name such as `trip.days` or `costs.items.3.amount`; numer
 | `trip:` | open a scope; indented lines below are relative |
 | `" Building the trip planner…` | say something into the log |
 
-Expressions use a Pratt parser with the usual precedence, `%` as a suffix that divides by 100 (`74%` is `0.74`), and a library of 65 functions: aggregates (`sum avg min max count`), list operations (`where match sort take pluck uniq tally sumby range`), text (`split replace upper slice money`), dates (`today days adddays weekday`), maths (`sin cos atan2 pow lerp`), and `hsl`. There is no `max(1, …)` trick available for single numbers beyond these functions, which is why the session's first Docs formula was rewritten before sending.
+Expressions use a Pratt parser with the usual precedence, `%` as a suffix that divides by 100 (`74%` is `0.74`), and a library of 65 functions: aggregates (`sum avg min max count`), list operations (`where match sort take pluck uniq tally sumby range`), text (`split replace upper slice money`), dates (`today days adddays weekday`), maths (`sin cos atan2 pow lerp`), and `hsl`. The aggregates take one list, `max: xs => Math.max(...numbers(xs, "max"))`, so `max(1, x)` is not a two-argument maximum; this is why the session rewrote its first Docs formula, `fn.mins(t) = max(1, ceil(words(t) / 230))`, as `ceil((words(t) + 1) / 230)` before sending it.
 
 The log does not store the line as typed. `canon()` reprints each statement canonically with an absolute path, and that text is the only authoritative part of an operation. On the wire and in the store an operation is a five-element row:
 
