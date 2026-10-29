@@ -42,7 +42,7 @@ The export is a zip of ten files, received on 2026-10-29 and unpacked into `/hom
 | `lego.js` | 15,740 | 220 | byte-identical |
 | `spore.js` | 188,540 | 2,687 | byte-identical |
 | `blocks-kit.js` | 13,451 | 171 | new: prose block elements, rich text, colours, numbering |
-| `blocks.js` | 195,383 | 2,381 | new: replaces `cc5.js`; 357 of its non-trivial lines (over 30 characters) are identical to lines of `cc5.js` |
+| `blocks.js` | 195,383 | 2,381 | new: replaces `cc5.js`; 357 distinct lines longer than 30 characters also occur in `cc5.js` |
 | `index.html` | 131,457 | 1,658 | rewritten: new README for Claude, Notion-like layout and stylesheet; keeps the Spore textbook |
 
 The script order is CC5's, with the desktop replaced:
@@ -126,7 +126,7 @@ The children of a page fall into three groups, and the code names each one:
 | Properties | every other cell of the page that is not page-local | a list under the title, each row typed by its value (`#` number, `ƒ` formula, `≡` list, `✳` hole, `▶` program) |
 | Body | the view block `page.ui` | the column of blocks |
 
-Sub-pages are made with a cell: `lisbon_prep.parent = "lisbon"`. The sidebar builds its tree by following `parent` cells, refusing a parent that does not exist or that would make a cycle (the walk stops after 24 hops), and orders siblings by the clock of the operation that first wrote their `title` or `ui`, unless an `order` cell overrides it. Deleting a page writes `page -` and re-parents its children to its own parent, so a deletion never orphans a subtree in the sidebar.
+Sub-pages are made with a cell: `lisbon_prep.parent = "lisbon"`. The sidebar builds its tree by following `parent` cells, refusing a parent that does not exist or that would make a cycle (the walk stops after 24 hops), and orders siblings by the clock stamped on their `title` cell, unless an `order` cell overrides it. That stamp belongs to the latest write, not the first, so renaming a page moves it (section 11). Deleting a page writes `page -` and re-parents its children to its own parent, so a deletion never orphans a subtree in the sidebar.
 
 ```mermaid
 graph TD
@@ -228,7 +228,7 @@ Two facts make renumbering more frequent than the gaps suggest. First, blocks wr
 |---|---:|
 | First insertion after block 0 (indices 0–14, no gaps) | 34 (15 deletions, 18 rewritten blocks and children, 1 insertion) |
 | Second insertion, after renumbering | 1 |
-| Repeated insertions at the same place before the gap closes | 10 (1,024 halves ten times) |
+| Insertions after the same block, starting from a gap of 512 | 9 single-operation insertions; the 10th renumbers the page |
 
 Moving a block, by drag, by ⌘⇧↑/↓, or by Tab and Shift+Tab, uses the same mechanism on a smaller scale: `q -` followed by the block rewritten at its new path. In the typing test, pressing Tab on a new line wrote `reading.ui.2052 -` and `reading.ui.1028.1024 is p "Second line"`.
 
@@ -431,7 +431,7 @@ The stylesheet describes the intended layout: "Notion's three columns. A quiet s
 
 ## 11. Defects found while verifying
 
-Four behaviours differ from what the code or its documentation intends. Each was observed in a local run.
+Five behaviours differ from what the code or its documentation intends. Each was observed in a local run.
 
 **The in-page Claude is taught a Spore API that does not exist.** `Claude.ask` adapts CC5's Spore card with two replacements:
 
@@ -444,6 +444,8 @@ The first removes the sentence about window frames, which has no meaning without
 **The Markdown export ignores conditions.** `Markdown.page` walks every block's children without evaluating `when`. The Lisbon export therefore contained the callout "⚠️ Over the €2,000 budget by €-702. Trim a dinner, or a night." while the page, correctly, did not show it. The same export drops a stat's `pre:` ("**Trip** 1,298" without the euro sign) and prints a progress value as the raw fraction (`0.556`).
 
 **A moved block reads a different page.** A block's formulas resolve from the page it sits on, and moving a block to another page rewrites it there. In the local run, the Lisbon sentence moved to the Reading list showed `{per_person}` as unfinished, while the full path `lisbon.per_person` still read 649. This follows from the scoping rule, and the move gives no warning.
+
+**Renaming a page moves it to the end of its siblings.** `Pages.born` orders the sidebar by the clock of the page's `title` cell, and every rename writes that cell again. In the local run, writing `welcome.title = "Welcome, renamed"` changed the sidebar from Welcome, Lisbon, Reading list to Lisbon, Reading list, Welcome.
 
 **Renumbering can lose or duplicate a concurrent edit**, as shown in section 4.3.
 
@@ -480,7 +482,7 @@ Nothing was tested inside Claude. The real `sample` provider, the database and r
 - The editor's main technique is to keep the DOM text equal to the stored source and draw computed values with CSS. Caret positions then map exactly, and a sentence can hold live formulas without a second text model.
 - Every gesture becomes a short Hypha write. Block order uses numbers with gaps, so an insertion is usually one operation, but pages written by Claude or the seed start without gaps, and renumbering deletes and rewrites the list.
 - Claude works in the page through holes. Space on an empty line writes a Claude block, up to four Claudes fill blocks in parallel within path-scoped permissions, and their unfinished lines are drawn as ghosts where they will land.
-- The front end is a fork of CC5's desktop module. Its storage, synchronisation, undo, time, and chat protocol are CC5's, and its defects sit where the fork adapted CC5's text without adapting the engine: the Spore card, the Markdown export, renumbering under concurrency.
+- The front end is a fork of CC5's desktop module. Its storage, synchronisation, undo, time, and chat protocol are CC5's, and its defects sit where the fork adapted CC5's text without adapting the engine: the Spore card, the Markdown export, the sidebar order, renumbering under concurrency.
 
 ## Evidence and sources
 
