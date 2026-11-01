@@ -48,7 +48,7 @@ Two properties of this contract shape everything that follows:
 - **The loop belongs to the capability.** `runTurn` does not alternate between "ask the model" and "run the tool". It calls `sample` once and receives a final text. Whoever implements `sample` must run model rounds, deliver tool calls to `tool.execute`, feed the results back, and stop when the model answers without calling a tool.
 - **The tool is defined in the page.** `execute` is a JavaScript closure over the live workbench host. A server can know the tool's name, description and input schema, but it cannot run the tool.
 
-The first message of a thread carries the agent's instructions and the lab reference (`reference.md`, 13,581 bytes). Every later message carries a short context block (the current preset, the selection, the compile state). All of it travels as plain conversation text, so any chat model with tool calling can serve the agent.
+The first message of a thread carries the agent's instructions and the Reference: the language reference (`content/docs/reference.md`, 38,907 bytes) and the lab API (`src/agent/reference.md`, 13,581 bytes), about 52 KB, joined by `host.reference()`. (An earlier version of this report gave only the lab API's 13,581 bytes; corrected 2026-10-31.) Every later message carries a short context block (the current preset, the selection, the compile state). All of it travels as plain conversation text, so any chat model with tool calling can serve the agent.
 
 ## 2. Architecture
 
@@ -250,14 +250,14 @@ All runs used the A-01 preset ("A box with walls") in the browser, with `jigcad 
 | same (after the fix) | deepseek-4.1-flash | 12 | 277,239 | 3,629 | 25.7 s | ok; file left unchanged, correctly |
 | Height to 35 mm, Ask mode, Stop on step 2 | glm-5.3-flash | 2 | 35,526 | 138 | 73.4 s (person waiting) | cancelled |
 
-Input tokens dominate the totals. Each request carries the whole conversation: the instructions, the 13.6 KB reference (once, in the first user message) and the context block, plus every earlier round's tool calls and results. A turn of *n* rounds therefore sends that prefix *n* times. The nine-tool turn made ten model requests, which averaged about 19 K input tokens each and added up to 194 K. Output stays small: the code of each step and the final answer.
+Input tokens dominate the totals. Each request carries the whole conversation: the instructions, the 52 KB Reference (once, in the first user message) and the context block, plus every earlier round's tool calls and results. A turn of *n* rounds therefore sends that prefix *n* times. The nine-tool turn made ten model requests, which averaged about 19 K input tokens each and added up to 194 K. Output stays small: the code of each step and the final answer.
 
 ### 9.1 Prompt caching
 
 > [!note] Correction (2026-10-31)
 > An earlier version of this report said that this path has no prompt caching. That was an assumption carried over from slop-computer's research note, which concerns Anthropic's explicit `cache_control`. It was not a measurement. The measurements below replace it.
 
-lunaroute speaks the OpenAI chat-completions protocol, and like OpenAI it caches prompt prefixes without any request flag. Each response's `usage` reports the hit as `prompt_tokens_details.cached_tokens`. geppetto maps that field into its usage event, and the server's log line now prints it as `cacheRead`. To see the raw usage objects, a small reverse proxy (`scripts/usage-proxy` in the ticket) logged only the `usage` JSON of each streamed response. A probe program (`scripts/cache-probe`) drove the real backend with the agent reference as the prefix and a prompt that forced four tool rounds:
+lunaroute speaks the OpenAI chat-completions protocol, and like OpenAI it caches prompt prefixes without any request flag. Each response's `usage` reports the hit as `prompt_tokens_details.cached_tokens`. geppetto maps that field into its usage event, and the server's log line now prints it as `cacheRead`. To see the raw usage objects, a small reverse proxy (`scripts/usage-proxy` in the ticket) logged only the `usage` JSON of each streamed response. A probe program (`scripts/cache-probe`) drove the real backend with the lab API reference alone (13.6 KB, about 4,300 tokens) as the prefix and a prompt that forced four tool rounds. Real turns carry the full 52 KB Reference, which is why their per-round input is larger:
 
 | Round | glm-5.3-flash: input / cached | deepseek-4.1-flash: input / cached |
 |---|---|---|
