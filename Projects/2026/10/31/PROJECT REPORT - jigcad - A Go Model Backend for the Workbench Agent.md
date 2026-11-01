@@ -24,7 +24,7 @@ jigcad's workbench has an agent panel. A person types a request ("make the walls
 > - The agent depends on one contract: `sample(turns, { tools, signal, modelTier, effort, onText })`, where one call is a whole agent turn and the tool rounds happen inside the call. The Go server implements that contract over HTTP and server-sent events, so the panel, the tool and their tests did not change.
 > - Tool calls execute in the browser. The server holds each one on a channel and waits until the page posts the result. This is necessary because the tool reads and edits the live workbench and, in Ask mode, waits for the person.
 > - The backend is adapted from slop-computer's Pi worker. The one behavioural addition is a user note before the last, tool-less round. Without it, `deepseek-4.1-flash` returned an empty answer after spending 15 rounds exploring.
-> - Real turns through lunaroute work on both models: 9 to 12 tool calls per turn, about 25 s, and 194 K to 277 K input tokens, because every round resends the whole conversation.
+> - Real turns through lunaroute work on both models: 9 to 12 tool calls per turn, about 25 s, and 194 K to 277 K input tokens, because every round resends the whole conversation. lunaroute caches prompt prefixes automatically, so from the second round on, 94–99 % of those tokens are cache reads (§9.1).
 
 ![A Balanced-tier turn on glm-5.3-flash: nine eval steps, the wall changed in the script, mass and dependent faces reported](_assets/jigcad-agent-balanced-glm-turn.png)
 
@@ -250,7 +250,37 @@ All runs used the A-01 preset ("A box with walls") in the browser, with `jigcad 
 | same (after the fix) | deepseek-4.1-flash | 12 | 277,239 | 3,629 | 25.7 s | ok; file left unchanged, correctly |
 | Height to 35 mm, Ask mode, Stop on step 2 | glm-5.3-flash | 2 | 35,526 | 138 | 73.4 s (person waiting) | cancelled |
 
-Input tokens dominate. A turn of *n* rounds sends the instructions, the 13.6 KB reference and the context block *n* times, plus every earlier round's tool calls and results. This path has no prompt caching. The nine-tool turn made ten model requests, which averaged about 19 K input tokens each and added up to 194 K. Output stays small: the code of each step and the final answer.
+Input tokens dominate the totals. Each request carries the whole conversation: the instructions, the 13.6 KB reference (once, in the first user message) and the context block, plus every earlier round's tool calls and results. A turn of *n* rounds therefore sends that prefix *n* times. The nine-tool turn made ten model requests, which averaged about 19 K input tokens each and added up to 194 K. Output stays small: the code of each step and the final answer.
+
+### 9.1 Prompt caching
+
+> [!note] Correction (2026-10-31)
+> An earlier version of this report said that this path has no prompt caching. That was an assumption carried over from slop-computer's research note, which concerns Anthropic's explicit `cache_control`. It was not a measurement. The measurements below replace it.
+
+lunaroute speaks the OpenAI chat-completions protocol, and like OpenAI it caches prompt prefixes without any request flag. Each response's `usage` reports the hit as `prompt_tokens_details.cached_tokens`. geppetto maps that field into its usage event, and the server's log line now prints it as `cacheRead`. To see the raw usage objects, a small reverse proxy (`scripts/usage-proxy` in the ticket) logged only the `usage` JSON of each streamed response. A probe program (`scripts/cache-probe`) drove the real backend with the agent reference as the prefix and a prompt that forced four tool rounds:
+
+| Round | glm-5.3-flash: input / cached | deepseek-4.1-flash: input / cached |
+|---|---|---|
+| 1 | 4,302 / 0 | 4,639 / 0 (4,608 written to the cache) |
+| 2 | 4,333 / 4,096 | 4,832 / 4,608 |
+| 3 | 4,353 / 4,096 | 4,894 / 4,864 |
+| 4 | 4,373 / 4,352 | 4,948 / 4,864 |
+| 5 | 4,393 / 4,352 | 5,002 / 4,864 |
+
+Cache hits come in blocks of 256 tokens (4,096, 4,352, 4,608, 4,864), so the tail since the last block boundary is processed fresh each round. Three further observations define where the cache applies:
+
+- **A second call in the same server process is warm from round 1.** The probe's second call with the same prefix read 4,096 (glm) and 4,608 (deepseek) tokens from the cache in its first round.
+- **A new process starts cold.** The backend generates one `x-lunaroute-session` id per process, and the cache follows the session. The same probe run in a fresh process a minute later read nothing from the cache in round 1.
+- **Each model has its own cache.** Switching tiers within a session makes the first round of the other model cold.
+
+Real agent turns through `jigcad serve`, on a freshly started server, confirm the effect at full size:
+
+```
+sample jcdc79ff… tier=default model=lunaroute/glm-5.3-flash    tools=8 in=170359 cacheRead=149248 out=1650 ms=16668 outcome=ok
+sample jce7bd9b… tier=complex model=lunaroute/deepseek-4.1-flash tools=1 in=39988  cacheRead=20224  out=512  ms=3478  outcome=ok
+```
+
+The Balanced turn read 88 % of its input from the cache, although it was the server's first call. The Deep follow-up read 51 %. Its first round was cold, because this session had not yet sent the conversation to deepseek, and its second round was warm. The uncached work of a nine-round turn is therefore closer to 20 K tokens than to 194 K. Pi lists lunaroute's cost for both models as 0, so here the cache matters for latency and provider load rather than money. One gap remains: DeepSeek reports cache writes as `created_cache_tokens`, which geppetto does not map, so the server logs `cacheWrite=0`.
 
 The tests that guard the implementation:
 
@@ -262,7 +292,7 @@ The tests that guard the implementation:
 The agent now runs end to end outside claude.ai on the operator's own models. The remaining questions concern model behaviour and cost, not the protocol:
 
 - **Round budget per model.** The flash models explore heavily: 9 to 15 eval calls per turn in these runs, many of them reads of the same file or repeated selector queries. Telling the model how many rounds remain, for example in each tool result, might shorten turns more cheaply than raising the limit.
-- **Input volume.** Without caching, the reference is resent every round. Sending it only in round 1, or shortening it for later rounds, would cut input tokens roughly in proportion to the number of rounds.
+- **Input volume.** The reference travels with every round, but lunaroute's prefix cache serves it from the second round on (§9.1), so trimming it for later rounds would save little. What remains uncached is each round's new tail and the first round after a restart or a tier switch.
 - **The models list.** `/api/sample/models` lists every model Pi has credentials for, not only the three tiers. That is useful for an operator and more than a shared deployment should expose.
 - **The shared backend.** `pkg/sample` is a copy of slop-computer's backend with marked changes. If that backend moves into geppetto or into a shared module, jigcad should depend on it and keep only `lastRoundNote` and its round limits as configuration.
 
