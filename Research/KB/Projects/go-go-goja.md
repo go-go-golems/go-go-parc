@@ -117,6 +117,7 @@ Related output artifacts (in `Attachments/chatgpt-outputs/`):
 - [[goja-text]] and [[goja-bleve]] — sibling native modules built on the same host/runtime ecosystem.
 - [[researchctl]] — another Goja-backed DSL and generated-host use case.
 - [[Research/KB/Tribal/data-only-vs-host-access-module-split]] — capability separation pattern.
+- [[javascript-operating-systems]] — JavaScript sandboxes and operating systems beyond Go hosts: devices and browsers.
 - [[Research/KB/Tribal/dsl-normalized-config-compiled-plan]] — normalize and compile declarative input before execution.
 
 ## Repository map

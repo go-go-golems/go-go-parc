@@ -669,3 +669,8 @@ Change the nucleus only through the port API, and gate every nucleus change on `
 `out/` untouched. Any change visible to JavaScript goes into its own commit, with the reason its pixels
 moved. On the device, treat the simulator's numbers as predictions to be measured, and make sure any
 tool that measures the system does not run on the lane it is measuring.
+
+## Related maps
+
+- [[PROJECT REPORT - picocalc-os - Worlds, Turns, Handles and Frames - A Technical Deep Dive]] — how the whole system works, as of 2026-11-02.
+- [[javascript-operating-systems]] — picocalc-os beside PULP OS, the browser sandboxes and the embedded QuickJS work.

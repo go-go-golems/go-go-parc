@@ -1722,3 +1722,7 @@ The next architecture should join these three answers. A managed sandbox should 
 Sobek adds one more design pressure: modern JavaScript source increasingly expects ESM. That pressure belongs in the source/module backend, not in the control-plane model. If the sandbox layer keeps template, session, execution, event, and lifecycle concepts independent from CommonJS assumptions, Sobek can become an optional ESM backend when the product needs it.
 
 The design is therefore not a rejection of the recent feature work. It is a way to contain it. Features become easier to reason about when they attach to the correct layer: engine for VM correctness, sandbox manager for live-instance policy, backend-specific source loading for Goja or Sobek module semantics, and control plane for persistence and operations.
+
+## Related maps
+
+- [[javascript-operating-systems]] — goja sandboxes beside QuickJS sandboxes in browsers and on devices.

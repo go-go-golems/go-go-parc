@@ -231,3 +231,7 @@ If the answer to “where is policy enforced?” is “inside the guest,” the 
 2. **WASI capability model.** WASI is useful because it treats host functions and handles as capabilities instead of assuming a process has ambient OS authority.
 3. **Firecracker architecture docs.** Firecracker is a concrete example of small VM isolation where the host owns devices and lifecycle.
 4. **WebAssembly core and component-model material.** Wasm makes the host/guest memory and import boundary explicit, which is why it is a good teaching substrate for this principle.
+
+## Related maps
+
+- [[javascript-operating-systems]] — the principle applied to JavaScript operating systems: picocalc-os's claims and handles, PULP Browser's denied stubs, the browser plugin VMs.

@@ -277,3 +277,8 @@ The next round adds the applications a keyboard device is for, in five tickets:
 
 Every phase gets a ticket with an intern guide written before the code, a diary written while working,
 commits at each validated step, and a report after.
+
+## Related maps
+
+- [[PROJECT REPORT - picocalc-os - Worlds, Turns, Handles and Frames - A Technical Deep Dive]] — how the whole system works, as of 2026-11-02.
+- [[javascript-operating-systems]] — picocalc-os beside PULP OS, the browser sandboxes and the embedded QuickJS work.

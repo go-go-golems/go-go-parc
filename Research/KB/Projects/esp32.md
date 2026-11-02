@@ -112,6 +112,7 @@ Read this map by device and pipeline rather than by date. The oldest PaperS3 and
 - [[ARTICLE - ESP32-S3 QuickJS HTTP and Fetch - Owner Tasks Promises and Stored Scripts]] — async and stored-script behavior.
 - [[ARTICLE - PicoCalc QuickJS DSL - Native and Portable Runtime Deep Dive]] — portable/native DSL boundary.
 - [[ARTICLE - QuickJS Native Modules on ESP32-S3 - Implementing Firmware JavaScript Namespaces]] — firmware module namespaces.
+- [[javascript-operating-systems]] — JavaScript operating systems on these chips (picocalc-os on the PicoCalc and PaperS3, PULP OS on the PaperS3) and the sandboxing patterns they share.
 - [[Research/KB/On-Ramp/wasm-from-go]] — Wasm orientation.
 
 ## Recommended reading path

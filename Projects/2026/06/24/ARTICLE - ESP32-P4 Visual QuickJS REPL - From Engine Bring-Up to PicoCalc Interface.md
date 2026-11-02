@@ -503,3 +503,4 @@ The current firmware should be reviewed as an integration checkpoint. The indivi
 - [[ARTICLE - Native QuickJS on ESP32-P4 - Removing Wasm from the Firmware Stack]]
 - [[ARTICLE - QuickJS Wasm on ESP32-P4 - Device Bring-Up and Two WAMR Embedding Crashes]]
 - [[ARTICLE - QuickJS Wasm on WAMR - Running a JS Engine Inside a Wasm Sandbox]]
+- [[javascript-operating-systems]] — the JavaScript operating system later built on the same PicoCalc hardware (picocalc-os) and the sandboxing notes

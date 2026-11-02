@@ -418,3 +418,4 @@ Treat the vocabulary as the contract and the engine as a detail. A change to wha
 - [[PROJ - PBUI Workbench Tiles - A Reusable Server-less Shell and the Chat Agent on Tiles]]
 - [[PROJ - PULP Browser - Multi-Context MicroQuickJS and the Sandboxed Page Runtime]]
 - [[PROJ - go-go-wm - Multiple Goja Sandboxes: Isolating Extensions, Leasing Keybindings, and Detecting a Wedged Event Loop]]
+- [[javascript-operating-systems]] — JavaScript operating systems and sandboxes across devices, browsers and Go hosts

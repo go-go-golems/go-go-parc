@@ -212,3 +212,4 @@ The current trust model is explicit and narrower: an installed application is op
 
 - [[Research/KB/Projects/esp32]] — the ESP32 project map
 - [[PROJ - PULP OS Image Gallery - mDNS Browser Upload and the Bitmap Blit]] — the preceding ticket (ESP-54), whose upload handoff and catalog patterns this project reused
+- [[javascript-operating-systems]] — JavaScript operating systems and sandboxes, including picocalc-os's apps from storage, which run without claims

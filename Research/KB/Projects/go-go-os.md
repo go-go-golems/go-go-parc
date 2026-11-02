@@ -106,3 +106,7 @@ Primary repositories: `/home/manuel/code/wesen/go-go-golems/go-go-os-frontend`, 
 | Chat and provider adapters | `go-go-os-chat/` |
 | Widget/IR integration | frontend and xgoja/widget packages |
 | Deployment | Argo CD, static hosting, and Go host repositories |
+
+## Related maps
+
+- [[javascript-operating-systems]] — browser shells such as this one beside device JavaScript operating systems and the sandboxing patterns they share.

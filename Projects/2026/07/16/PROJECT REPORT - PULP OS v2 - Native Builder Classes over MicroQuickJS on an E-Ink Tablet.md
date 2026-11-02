@@ -156,3 +156,7 @@ The v2 API achieved its structural goals: prototypes and dispatch live in flash,
 The engineering lesson worth keeping is the pairing of probes with introspection. The validation probes (deterministic screens with announced names and countable draw ops) found the vanished glyph; but localizing it took a trace dump and a hit-region dump that did not exist yet and had to be built mid-hunt. Both are now permanent console commands (`js probe N`, `js hits`), and the next coordinate-dependent bug will not require guessing tap positions from typography estimates.
 
 Remaining work under the ticket is Phase 9: capacity saturation (arena-full from JavaScript, callback-registry growth, event-queue flood), a scripted mixed soak with heap watermarks, the trace-equivalence harness port, and the license inventory. None of it blocks daily use of the device, which as of this report boots into PULP, plays a chess game, brews tea, and goes to sleep showing its own name in 84-pixel serif-free Swiss bold.
+
+## Related maps
+
+- [[javascript-operating-systems]] — PULP OS beside picocalc-os, which runs every app in its own runtime under a C kernel, and the JavaScript sandboxing notes.

@@ -680,3 +680,7 @@ The pattern is not specific to QuickJS, React, Redux, or a social feed. Those ar
 The most important implementation detail is plugin-local state. If state is private only inside the sandbox, the host loses observability. If state is canonical domain state, plugin removal becomes difficult. Host-stored plugin state resolves that tension: plugins own the schema, the host owns the representation and action path.
 
 A successful implementation should make extension behavior visible at three levels: source code, runtime actions, and derived output. Source inspection tells the reader what the plugin intends to do. The action timeline tells the host what the plugin requested. The derived output shows what the host accepted and rendered.
+
+## Related maps
+
+- [[javascript-operating-systems]] — the data-only pattern beside device JavaScript operating systems such as picocalc-os, whose apps also return UI trees and act only through the host.

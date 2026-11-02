@@ -876,3 +876,8 @@ Measure on the device before changing anything, and keep the host captures byte-
 change is meant to alter them. Every phase in both tickets followed that order. The profiler came
 before the optimisations, the captures came before the device, and each unexplained number (a
 reboot, an uptime, a lock count) was traced to its cause before the next change.
+
+## Related maps
+
+- [[PROJECT REPORT - picocalc-os - Worlds, Turns, Handles and Frames - A Technical Deep Dive]] — how the whole system works, as of 2026-11-02.
+- [[javascript-operating-systems]] — picocalc-os beside PULP OS, the browser sandboxes and the embedded QuickJS work.

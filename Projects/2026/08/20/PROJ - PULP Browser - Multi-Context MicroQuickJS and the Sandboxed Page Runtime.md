@@ -193,3 +193,4 @@ The built-in applications still share the OS context. The machinery to give each
 - [[PROJ - PULP OS App Loader - Splitting the Monolith and Loading Apps as Source]] — phases 0–7: the loader, catalog, and HTTP install this runtime builds on
 - [[PROJ - PULP OS Image Gallery - mDNS Browser Upload and the Bitmap Blit]] — ESP-54, the preceding ticket
 - [[Research/KB/Projects/esp32]] — the ESP32 project map
+- [[javascript-operating-systems]] — JavaScript operating systems and sandboxes; picocalc-os gives every program its own runtime, as this browser gives every page its own context
