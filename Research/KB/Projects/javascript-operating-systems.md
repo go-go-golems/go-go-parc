@@ -200,6 +200,15 @@ Read the fundamentals first; the project reports are worked examples.
   [[ARTICLE - Playbook - Building a Sandboxed Agent Runner with Go Glazed and Firecracker]] — isolation by virtual
   machines when a language runtime is not enough.
 
+## Adjacent maps
+
+- [[esp32]] — the ESP32 and M5Stack hardware under the device systems: bring-up, buses, displays, e-paper, Wi-Fi
+  and the earlier QuickJS and WebAssembly runtime work.
+- [[rg-ds-plus]] — the dual-screen Linux handheld behind the Lattice DS notes, where a JavaScript UI runs over a
+  native shell.
+- [[go-go-os]] — the browser application shell, chat surfaces and widget packages.
+- [[go-go-goja]] — Go-hosted goja runtimes and their sandbox modules.
+
 ## Ideas that recur across the map
 
 - **UI as data.** picocalc-os apps return trees of plain objects, PBUI programs return `UINode` trees, and data-only

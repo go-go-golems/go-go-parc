@@ -115,6 +115,31 @@ Read this map by device and pipeline rather than by date. The oldest PaperS3 and
 - [[javascript-operating-systems]] — JavaScript operating systems on these chips (picocalc-os on the PicoCalc and PaperS3, PULP OS on the PaperS3) and the sandboxing patterns they share.
 - [[Research/KB/On-Ramp/wasm-from-go]] — Wasm orientation.
 
+## Operating systems on the PicoCalc and PaperS3
+
+Two systems on these chips run many JavaScript programs under a resident core. The cross-project map is
+[[javascript-operating-systems]]; the reports below are the ones whose findings are about the ESP32 hardware itself.
+
+- [[PROJECT REPORT - picocalc-os - Worlds, Turns, Handles and Frames - A Technical Deep Dive]] — picocalc-os as a
+  whole: one QuickJS runtime per driver and app, a C kernel, claims and handles, on the ESP32-P4 and ESP32-S3.
+- [[PROJ - picocalc-os on the ESP32-P4 - From Simulator to Hardware - Technical Project Report]] — the P4 port: bus
+  worker tasks, PSRAM heaps, and three compiler and allocator faults the simulator could not show.
+- [[PROJ - picocalc-os on the M5Stack PaperS3 - E-Paper, MicroQuickJS and an Idle Tablet - Technical Project Report]]
+  and [[PROJ - picocalc-os on the M5Stack PaperS3 - Follow-up - Faster Turns on a PSRAM-Bound Tablet]] — MicroQuickJS,
+  e-paper updates, GPIO interrupts, light sleep and cache tuning on the S3.
+- [[PROJ - picocalc-os - PICOCALC-FRAMES and PICOCALC-SPEED - Retained Posts and a 70x Slower Heap]] — LP SRAM in
+  ESP-IDF's heap costs 994 ns an access on the P4; one `sdkconfig` line removes it.
+- [[PROJ - picocalc-os - PICOCALC-NATIVE - WebAssembly and Machine Code on the P4]] — WAMR and Espressif's
+  `elf_loader` side by side on the P4.
+- [[PROJECT REPORT - PULP OS v2 - Native Builder Classes over MicroQuickJS on an E-Ink Tablet]] — PULP OS on the
+  PaperS3: native widget classes over MicroQuickJS.
+- [[PROJECT REPORT - Binding MicroQuickJS - Handles, Atoms, and the Compacting GC in the PULP OS Builder Layer]] — the
+  engine binding under a moving collector.
+- [[PROJ - PULP OS App Loader - Splitting the Monolith and Loading Apps as Source]] and
+  [[PROJ - PULP Browser - Multi-Context MicroQuickJS and the Sandboxed Page Runtime]] — apps loaded as source, and
+  sandboxed page contexts.
+- [[PROJ - PULP OS on X4 Classic - Native ESP-IDF Port and Display Qualification]] — PULP OS on a second e-ink device.
+
 ## Recommended reading path
 
 1. Start with ESP-IDF firmware patterns and one device bring-up report.
@@ -122,6 +147,7 @@ Read this map by device and pipeline rather than by date. The oldest PaperS3 and
 3. Choose an output branch: display/e-paper, audio, or thermal printer.
 4. Read the relevant performance or failure report before changing the runtime.
 5. Read the QuickJS/Wasm branch when the device needs an embedded scripting layer.
+6. Read the operating-systems branch when many programs must share one device safely.
 
 ## Working rules
 
@@ -142,6 +168,7 @@ Primary workspace: `/home/manuel/code/wesen/corporate-headquarters/esp32-s3-m5`
 | ESP32-C6 small experiments | `0042-*` through `0065-*` |
 | ESP32-P4/PicoCalc | `0097-esp32-p4-picocalc-bringup`, `0098-esp32-p4-wifi6-webserver`, `0099-esp32-p4-picocalc-display-keyboard` |
 | Device firmware and demos | board-specific project directories |
+| PicoCalc and PaperS3 operating systems | `/home/manuel/code/wesen/2026-10-20--ds-js-os/picocalc-os`, `/home/manuel/code/wesen/go-go-golems/esp32-s3-m5/0114-papers3-pulp-os` |
 | Vault research | `Projects/` reports and `Research/KB/` entries |
 
 ## Boundaries and open questions
