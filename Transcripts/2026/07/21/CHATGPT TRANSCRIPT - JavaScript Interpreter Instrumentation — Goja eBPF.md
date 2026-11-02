@@ -1866,3 +1866,188 @@ That milestone is already publishable because it tests the central claim:
 
 The larger opportunity is a **bidirectional semantics workbench**. Formal semantics would no longer be only a document or separate reference interpreter, and runtime instrumentation would no longer be only implementation-specific telemetry. The same event calculus would connect concrete execution, operational derivations, compositional denotations, abstract analyses, runtime monitors, and machine-checked proof artifacts.
 
+
+---
+
+> Now write a detailed document that digs into each of these concepts, backed by existing research, textbooks and theory.
+
+I’ll develop the prior analysis into a structured scholarly monograph with formal definitions, research lineage, design implications, worked examples, and a consolidated bibliography.
+
+<details><summary>💭 Thinking</summary>
+
+**Planning document creation**
+
+User wants a detailed document, likely in DOCX format, maybe also PDF. I'll create a comprehensive piece with solid research and citations, maybe including textbooks and primary sources.
+
+**Planned document creation**
+
+</details>
+
+```unknown
+bash -lc cat /home/oai/skills/docx/SKILL.md && printf '
+---PDF SKILL---
+' && cat /home/oai/skills/pdfs/SKILL.md
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Read docx, PDF, and workflow skills**
+
+**Planning research and documentation**
+
+I’m narrowing the scope of this detailed document to cover a variety of technical topics and concepts. I’ll include citations from textbooks, primary sources, and authoritative research to ensure thoroughness.
+
+**Planned research and documentation**
+
+**Researching sources**
+
+I’m focusing on gathering scholarly resources across topics like natural semantics, bisimulation, labeled transition systems, and runtime verification. I’ll research key textbooks and papers for comprehensive citation.
+
+**Researched sources**
+
+**Gathering relevant references**
+
+I’m compiling sources for topics like trace semantics, JavaScript semantics, runtime verification, and proof artifacts, aiming for a robust set of references to support the document's depth.
+
+**Gathered relevant references**
+
+</details>
+
+```json
+{"search_query":[{"q":"Plotkin structural operational semantics 1981 technical report PDF Aarhus"},{"q":"Winskel The Formal Semantics of Programming Languages MIT Press 1993"},{"q":"Kahn natural semantics 1987 big-step semantics paper PDF"},{"q":"Milner communication and concurrency labelled transition systems bisimulation book"}],"response_length":"long"}
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Searched 218 websites**
+
+</details>
+
+```json
+{"search_query":[{"q":"Semantics Engineering with PLT Redex MIT Press 2009 book"},{"q":"Run Your Research On the Effectiveness of Lightweight Mechanization OOPSLA 2012 DOI"},{"q":"Randomized Testing in PLT Redex paper DOI"},{"q":"Redex executable semantics randomized testing metatheory official"}],"response_length":"long"}
+```
+
+I’ll carefully separate formal claims from engineering analogies, using labelled interpreter events and verified handlers to connect traces, costs, monitors, abstractions, and proof obligations.
+
+<details><summary>💭 Thinking</summary>
+
+**Searched 52 websites**
+
+</details>
+
+```unknown
+bash -lc sed -n '1,240p' /home/oai/skills/docx/SKILL.md && printf '\n---CREATE---\n' && sed -n '1,240p' /home/oai/skills/docx/tasks/create_edit.md && printf '\n---TOC---\n' && sed -n '1,220p' /home/oai/skills/docx/tasks/toc_workflow.md
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Read skills and task documents**
+
+</details>
+
+```json
+{"search_query":[{"q":"site:tc39.es/ecma262 ECMAScript Language Specification execution contexts completion records jobs agents official"},{"q":"site:mitpress.mit.edu Semantics of Programming Languages Structures and Techniques Gunter"},{"q":"site:cambridge.org full abstraction programming languages contextual equivalence textbook semantics"},{"q":"site:inria.fr CompCert verified compiler semantic preservation forward simulation Leroy"}],"response_length":"long"}
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Searched 47 websites**
+
+</details>
+
+```json
+{"search_query":[{"q":"site:dl.acm.org CompCert formally verified compiler Leroy 2009 CACM DOI"},{"q":"site:dl.acm.org Translation Validation Pnueli Siegel Singerman 1998 DOI"},{"q":"site:usenix.org DTrace dynamic tracing operating system Cantrill Shapiro Leventhal 2004"},{"q":"site:dl.acm.org aspect-oriented programming Kiczales Lamping Mendhekar Maeda Lopes Loingtier Irwin ECOOP 1997 DOI"}],"response_length":"long"}
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Searched 211 websites**
+
+</details>
+
+```unknown
+bash -lc sed -n '1,260p' /home/oai/skills/docx/SKILL.md && printf '\n--- CREATE EDIT ---\n' && sed -n '1,260p' /home/oai/skills/docx/tasks/create_edit.md && printf '\n--- TOC ---\n' && sed -n '1,220p' /home/oai/skills/docx/tasks/toc_workflow.md
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Read skill documentation and internal navigation script**
+
+</details>
+
+```json
+{"search_query":[{"q":"site:tc39.es/ecma262/2026 ECMAScript 2026 language specification execution contexts jobs"},{"q":"Linux kernel eBPF verifier documentation bounded loops maps official"},{"q":"Interaction Trees Representing Recursive and Impure Programs in Coq DOI"},{"q":"Monitoring Hyperproperties runtime verification DOI"}],"response_length":"long"}
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Searched 8 websites**
+
+</details>
+
+```unknown
+bash -lc fc-list | grep -Ei 'Liberation (Serif|Sans)|Aptos|Carlito|Cambria|DejaVu Sans|Noto Sans' | head -30
+```
+
+The bibliography will also cover compiler refinement, full abstraction, invariant mining, hyperproperties, mechanized JavaScript, proof-carrying code, safe extensibility, and eBPF verifier research.
+
+<details><summary>💭 Thinking</summary>
+
+**Checked font availability, created monograph, and built document generator**
+
+</details>
+
+```unknown
+bash -lc rm -rf /mnt/data/_semantic_probes_work/render && mkdir -p /mnt/data/_semantic_probes_work/render && python /home/oai/skills/docx/render_docx.py /mnt/data/verified_semantic_probes_monograph.docx --output_dir /mnt/data/_semantic_probes_work/render --emit_pdf --verbose
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Ran render with PDF output and analyzed images**
+
+</details>
+
+```unknown
+bash -lc grep -n -A80 -B20 "product_semantics\|four_interpretations\|workbench_cycle" /mnt/data/_semantic_probes_work/make_figures.py && printf '\n--- FRONT MATTER / END ---\n' && grep -n -A60 -B20 "Contents\|END OF DOCUMENT\|end of document\|End of document" /mnt/data/_semantic_probes_work/build_monograph.py
+```
+
+The six-part manuscript now spans roughly 20,000 words and is in final layout review; pagination is stable, with two diagram labels and one appendix break being corrected.
+
+<details><summary>💭 Thinking</summary>
+
+**Inspected scripts, adjusted layout, ran audits, and analyzed images**
+
+</details>
+
+```unknown
+bash -lc grep -n -A120 -B20 "Daily semantics research loop\|daily" /mnt/data/_semantic_probes_work/make_figures.py | sed -n '1,220p'
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Inspected and patched figure, analyzed, and rendered final document**
+
+</details>
+
+# Verified Semantic Probes for JavaScript Interpreters
+
+Completed as a **52-page research monograph** with formal definitions, worked examples, diagrams, implementation sketches, evaluation methodology, and a bibliography grounded in primary papers, textbooks, official specifications, and inspected goja sources.
+
+The document develops:
+
+- Labelled operational semantics and monitor-product semantics
+- Erasure, transparency, event adequacy, completeness, and refinement obligations
+- Denotational semantics through traces, monads, algebraic effects, handlers, and interaction trees
+- Observational equivalence and event-capability tiers
+- Runtime verification, temporal monitoring, contracts, typestate, and hyperproperties
+- Abstract interpretation, symbolic execution, CEGAR, and residual verification
+- Proof-relevant traces and independently checked execution evidence
+- A semantic event ABI and metadata model for goja
+- Integration with go-go-goja
+- Daily academic tools for differential semantics, proof debugging, semantic coverage, invariant mining, and artifact production
+- A staged implementation roadmap and open research questions
+
+[Download the monograph as DOCX](sandbox:/mnt/data/verified_semantic_probes_monograph.docx)
+
+[Download the monograph as PDF](sandbox:/mnt/data/verified_semantic_probes_monograph.pdf)
+

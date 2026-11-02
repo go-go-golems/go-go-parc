@@ -27,7 +27,7 @@ The Goja material treats JavaScript as a language/runtime design problem under f
 
 - [[Transcripts/2026/07/21/Interpreter Constructs Analysis — tiny-idp Goja/tiny-idp-interpreter-theory-companion|Tiny-IDP interpreter theory companion]].
 - [[Transcripts/2026/07/21/Interpreter Constructs Analysis — tiny-idp Goja/tiny-idp-goja-interpreter-monograph|Tiny-IDP Goja interpreter monograph]].
-- [[Transcripts/2026/07/21/Branch Interpreter Constructs Analysis — Abstraction Machine/malleable-js-interpreter-compiler-monograph|Malleable JS interpreter/compiler monograph]].
+- [[Transcripts/2026/07/21/Branch Interpreter Constructs Analysis v1 — tiny-idp Goja/malleable-js-interpreter-compiler-monograph|Malleable JS interpreter/compiler monograph]].
 - [[Transcripts/2026/07/21/Branch Interpreter Constructs Analysis v2 — Langblocks/langblocks-framework-design|Langblocks framework design]].
 - [[Transcripts/2026/07/21/Hosting Platform Analysis — Goja Cloud/hosted_goja_platform_textbook|Hosted Goja platform textbook]].
 - [[Transcripts/2026/07/21/Hosting Platform Analysis — Goja Cloud/agent_native_application_cloud_founder_dossier|Agent-native application cloud founder dossier]].

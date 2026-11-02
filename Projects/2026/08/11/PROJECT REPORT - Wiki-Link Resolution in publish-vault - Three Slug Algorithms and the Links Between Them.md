@@ -38,7 +38,7 @@ The work was prompted by one note in this vault, `Transcripts/Research/09 - RAG-
 ```markdown
 | Name or alias | Exact source sighting |
 |---|---|
-| Canonical identity | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#9.2 Kernel K0: canonical identity]] |
+| Canonical identity | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#9.2 Kernel K0: canonical identity]] |
 | Semantic invocation key | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax.md#7.2 Semantic invocation key]] |
 ```
 

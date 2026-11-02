@@ -105,9 +105,9 @@ The chapters cite the following primary manuscripts. They are generated research
 
 - [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis|RAG-TTC P01–P03 Doctoral Thesis]] — canonical identity, fact/derivation/observation separation, variant-aware state, lawful merge, provenance, and authorization.
 - [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-research-projects-compendium|RAG-TTC Research Projects Compendium]] — the larger research program, evidence contracts, product boundaries, and authorization projects.
-- [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis|Compositional Retrieval Systems]] — identity strata, typed operations, observations, trusted validators, exact pairing, and package boundaries.
-- [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG|The Semantics and Dynamics of RAG]] — release-relative behavior, retrieval algebra, outcomes and traces, incremental maintenance, activation, and authorization.
-- [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields|The Algebra of Intervention Fields]] — interventions, support, closure, reuse, observation-indexed comparison, evidence obligations, and constraint-first promotion.
+- [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis|Compositional Retrieval Systems]] — identity strata, typed operations, observations, trusted validators, exact pairing, and package boundaries.
+- [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG|The Semantics and Dynamics of RAG]] — release-relative behavior, retrieval algebra, outcomes and traces, incremental maintenance, activation, and authorization.
+- [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields|The Algebra of Intervention Fields]] — interventions, support, closure, reuse, observation-indexed comparison, evidence obligations, and constraint-first promotion.
 - [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization|Compositional Probabilistic Optimization]] — stochastic processes, exact coordinates, coupling, sampled interpreters, resources, and experiment control.
 - [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax|Compositional RAG Job-System Thesis]] — durable plans, at-least-once attempts, fenced acceptance, semantic reuse, reducers, and compare-and-swap publication.
 
@@ -225,7 +225,7 @@ $$
 
 Reflexivity, symmetry, and transitivity follow immediately from equality in $Y_{\mathrm{ret}}$. The semantic object being named is therefore not literally a runtime request $x$, but its equivalence class $[x]$ in the quotient $X/{\sim_{\mathrm{ret}}}$. The projection factors through the quotient map $q:X\to X/{\sim_{\mathrm{ret}}}$: there is a unique injective map $\bar P$ onto $\operatorname{im}(P_{\mathrm{ret}})$ such that $P_{\mathrm{ret}}=\bar P\circ q$. This is the formal content behind the source’s claim that [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#Identity is an API decision|identity is an API decision]].
 
-Canonical encoding does a different job. The quotient says which requests count as equal; $C:Y_{\mathrm{ret}}\to B^*$ chooses stable bytes for the projected value. When $C$ is injective on valid projected values, $C(P(x))$ is a canonical representative of the *encoded semantic class*. It is not necessarily a representative element of $X$: no canonical worker count or credential need be chosen. Calling canonical JSON “quotient semantics” without first specifying $P$ is therefore an overreach. Canonicalization cannot decide that worker count is irrelevant; it can only erase representational variation already declared irrelevant. This distinction is reflected in [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#9.2 Kernel K0: canonical identity|Kernel K0: canonical identity]].
+Canonical encoding does a different job. The quotient says which requests count as equal; $C:Y_{\mathrm{ret}}\to B^*$ chooses stable bytes for the projected value. When $C$ is injective on valid projected values, $C(P(x))$ is a canonical representative of the *encoded semantic class*. It is not necessarily a representative element of $X$: no canonical worker count or credential need be chosen. Calling canonical JSON “quotient semantics” without first specifying $P$ is therefore an overreach. Canonicalization cannot decide that worker count is irrelevant; it can only erase representational variation already declared irrelevant. This distinction is reflected in [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#9.2 Kernel K0: canonical identity|Kernel K0: canonical identity]].
 
 The name should also be typed. Write
 
@@ -233,7 +233,7 @@ $$
 \operatorname{ID}_{D,V}(x)=H(\operatorname{frame}(D,V,C(P(x))))
 $$
 
-with, for example, $D=\texttt{rag.retrieval.request}$ rather than treating every digest as an inhabitant of one undifferentiated string type. At the API level, use distinct types such as `RetrievalRequestID`, `FactID`, and `ObservationID`; at the byte level, domain and version separation prevent cross-sort aliasing. This is exactly the concern in [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#7.3 Domain-separated hashes|7.3 Domain-separated hashes]]. A cryptographic hash does not make the quotient map injective: equality of digests implies equality of preimages only under a collision-resistance assumption, never as a set-theoretic theorem for unbounded inputs.
+with, for example, $D=\texttt{rag.retrieval.request}$ rather than treating every digest as an inhabitant of one undifferentiated string type. At the API level, use distinct types such as `RetrievalRequestID`, `FactID`, and `ObservationID`; at the byte level, domain and version separation prevent cross-sort aliasing. This is exactly the concern in [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#7.3 Domain-separated hashes|7.3 Domain-separated hashes]]. A cryptographic hash does not make the quotient map injective: equality of digests implies equality of preimages only under a collision-resistance assumption, never as a set-theoretic theorem for unbounded inputs.
 
 One can relate $\sim_{\mathrm{ret}}$ to observational equivalence. Given a declared family $\mathcal O$ of permitted observers—completed retrieval interpreters, cache consumers, or validators—define
 
@@ -244,7 +244,7 @@ $$
 
 A valid identity contract should establish $P(x)=P(y)\Rightarrow x\approx_{\mathcal O}y$ for its protected observers. In the example, dropping `worker_count` is justified only if all observers in scope see the same completed ranking. A deadline-sensitive observer is a counterexample and forces deadline, scheduling, or fallback policy back into the projection. The converse need not hold: $P$ may conservatively distinguish requests that current observers happen not to distinguish.
 
-The architectural consequence is to make each quotient explicit and local: define a versioned projection per named domain, test its invariances and sensitivities, retain the projected record beside the digest, and prohibit IDs from crossing typed namespaces without an explicit map. This supports [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#5.4 Runtime identity|runtime identity]] without claiming a single universal notion of sameness. The formal claim is that a specified $P$ induces a quotient and stable naming protocol. The overclaim is that the resulting ID captures every future notion of behavioral equivalence.
+The architectural consequence is to make each quotient explicit and local: define a versioned projection per named domain, test its invariances and sensitivities, retain the projected record beside the digest, and prohibit IDs from crossing typed namespaces without an explicit map. This supports [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#5.4 Runtime identity|runtime identity]] without claiming a single universal notion of sameness. The formal claim is that a specified $P$ induces a quotient and stable naming protocol. The overclaim is that the resulting ID captures every future notion of behavioral equivalence.
 
 ## Worked RAG example/pseudocode
 
@@ -344,12 +344,12 @@ Review the implementation with a mutation matrix. Query, release, fusion constan
 |---|---|
 | Semantic identity; identity projection | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#Identity is an API decision]] |
 | Semantic identity and cache fingerprints | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#P01 - Semantic identity and cache fingerprints]] |
-| Canonical identity | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#9.2 Kernel K0: canonical identity]] |
-| Semantic plan identity | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#Semantic plan identity]] |
-| Domain-separated hash | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#7.3 Domain-separated hashes]] |
+| Canonical identity | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#9.2 Kernel K0: canonical identity]] |
+| Semantic plan identity | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#Semantic plan identity]] |
+| Domain-separated hash | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#7.3 Domain-separated hashes]] |
 | Semantic invocation key | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax.md#7.2 Semantic invocation key]] |
-| Behavior identity; build-key projection | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#13. Behavior identity and causal identity]] |
-| Runtime identity; behavior-complete release identity | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#5.4 Runtime identity]] |
+| Behavior identity; build-key projection | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#13. Behavior identity and causal identity]] |
+| Runtime identity; behavior-complete release identity | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#5.4 Runtime identity]] |
 | Evidence-ledger policy and snapshot identity | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Identity projections|Source-Authoritative Evidence Ledger Kernel — identity projections]] |
 
 > [!example] Architecture Garden evidence
@@ -465,7 +465,7 @@ $$
 
 Sequential proof construction is categorical composition; independent proof fragments combine by $\otimes$; identity morphisms represent unchanged facts. Role labels prevent the symmetry from erasing semantically significant positions such as `left` and `right`. Alternatively, the raw database can remain a typed hypergraph and paths can be generated only during proof checking. Saying merely “provenance is a category” is an overreach unless identities, composition, typing, and the treatment of multiple premises are actually defined.
 
-The entity/derivation distinction then becomes object versus morphism, with an important qualification: an entity record is a vertex/object, while a *derivation record* generates a morphism whose identity also includes rule version, labelled inputs, request/config references, and attributes. Two generators may share codomain $C$ without being duplicate facts; they are alternate proofs. The finite-rank check from the RAG example identifies the well-founded fragment reachable from seed generators. It proves structural support, not truth of $C$, a boundary also emphasized by [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#6.3 "Evidence" names three different things|“Evidence” names three different things]].
+The entity/derivation distinction then becomes object versus morphism, with an important qualification: an entity record is a vertex/object, while a *derivation record* generates a morphism whose identity also includes rule version, labelled inputs, request/config references, and attributes. Two generators may share codomain $C$ without being duplicate facts; they are alternate proofs. The finite-rank check from the RAG example identifies the well-founded fragment reachable from seed generators. It proves structural support, not truth of $C$, a boundary also emphasized by [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#6.3 "Evidence" names three different things|“Evidence” names three different things]].
 
 Observations are better modeled as indexed data. Let $\mathcal K$ be a small category of measurement contexts—at minimum discrete objects such as `(request, method, config)`, or with explicit context maps when replay or restriction is defined. A functor
 
@@ -510,7 +510,7 @@ $$
 
 C remains one claim with two independent supports. A proof bundle for C includes C, D1, D2, A, B, their seed derivations, and selected attached observations. A consumer can recompute every ID and check transitive closure. This proves structural integrity, not the external truth of the sources or extraction rules.
 
-A generated question used for dense retrieval should likewise be a derived representation fact linked to its source chunk. Its retrieval rank explains discovery, but the source chunk remains the citable entity. This distinction appears in [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#3.3 Representations are not evidence]].
+A generated question used for dense retrieval should likewise be a derived representation fact linked to its source chunk. Its retrieval rank explains discovery, but the source chunk remains the citable entity. This distinction appears in [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#3.3 Representations are not evidence]].
 
 ```text
 function admit_retrieval_hit(hit, request, config):
@@ -584,10 +584,10 @@ Input roles must preserve semantic order. For a derivation with left and right o
 | Observation model | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#Observation model]] |
 | Provenance hypergraph | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#Provenance as a finite hypergraph]] |
 | Observation separation | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#Fact identity is independent of observations]] |
-| Provenance links | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#7.8 Provenance links]] |
-| Source evidence versus derivational and experimental evidence | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#6.3 "Evidence" names three different things]] |
-| Observation-rich codomain | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#6.3 Observation-rich codomains]] |
-| Typed evidence with provenance | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#2.4 Structured facts and connected retrieval]] |
+| Provenance links | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#7.8 Provenance links]] |
+| Source evidence versus derivational and experimental evidence | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#6.3 "Evidence" names three different things]] |
+| Observation-rich codomain | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#6.3 Observation-rich codomains]] |
+| Typed evidence with provenance | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#2.4 Structured facts and connected retrieval]] |
 | Source chunk, retrieval observation, admission, label, and use separation | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Vocabulary and authority|Source-Authoritative Evidence Ledger Kernel — vocabulary and authority]] |
 
 ## Key points
@@ -824,10 +824,10 @@ A concurrent implementation may mutate inner sets under a lock instead of clonin
 | Conflict-preserving join | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#Why conflicts are retained]] |
 | Merge before limit; selection barrier | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#The selection barrier]] |
 | Deterministic post-merge view | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#Deterministic selection theorem]] |
-| Append-only ledger reducer | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#9.6 Kernel K4: append-only ledger reducer]] |
-| Evidence admission after ranking | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#9.7 Evidence admission]] |
-| Evidence-ledger effects | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#10.4 Evidence-ledger effects]] |
-| Mergeable evidence; monoidal reduction | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#20.1 Mergeable evidence]] |
+| Append-only ledger reducer | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#9.6 Kernel K4: append-only ledger reducer]] |
+| Evidence admission after ranking | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#9.7 Evidence admission]] |
+| Evidence-ledger effects | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#10.4 Evidence-ledger effects]] |
+| Mergeable evidence; monoidal reduction | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#20.1 Mergeable evidence]] |
 | Idempotent semantic stages | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax.md#1.3 Design thesis]] |
 | Ordered idempotent chunk admission with bounded-fold caveat | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Ordered unique state|Source-Authoritative Evidence Ledger Kernel — ordered unique state]] |
 
@@ -872,7 +872,7 @@ where `Search : Query -> Context` and `Generate : Context -> Answer`. An executo
 
 A retrieval system has two concerns: **what computation is requested** and **how that computation is performed**. When both are represented only as calls among effectful functions, the workflow can run, but it cannot be reliably inspected in advance. Code cannot safely answer which providers may receive text, which indexes are required, which cache identities exist, or which branches are independent without partially executing the workflow.
 
-A typed plan makes the requested computation a value. Execution becomes one interpretation of that value rather than the plan's definition. This is developed as “free plans and interpreters” in [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.5 Free plans and interpreters]] and as a free retrieval signature in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#7.4 Interpreters over a free retrieval signature]].
+A typed plan makes the requested computation a value. Execution becomes one interpretation of that value rather than the plan's definition. This is developed as “free plans and interpreters” in [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.5 Free plans and interpreters]] and as a free retrieval signature in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#7.4 Interpreters over a free retrieval signature]].
 
 This pattern is appropriate for stable build, query, evaluation, and policy kernels where inspection before effects is valuable. Keep runtime-dependent choice at application edges when later structure genuinely depends on a runtime value, such as an agent deciding whether to issue another tool request. Mark that region as incompletely inspectable. The architectural boundary `Plan -> Execute -> Admit -> Merge -> Verify -> View -> Generate` is compatible with this division: [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#Plan, Execute, Admit, Merge, View, Generate]].
 
@@ -928,9 +928,9 @@ $$
 
 Operationally, this law buys refactoring safety: interpreting a combined `Then` node has the same stage order, short-circuit behavior, and observation accumulation as interpreting $f$ and then $g$ separately. Pure analysis interpreters whose results are bare values may use ordinary composition.
 
-The same syntax can be folded into an executor, semantic-ID calculator, capability checker, disclosure checker, cost preflight, graph renderer, simulator, or deterministic fixture runner. The source's corresponding list is in [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.5 Free plans and interpreters]].
+The same syntax can be folded into an executor, semantic-ID calculator, capability checker, disclosure checker, cost preflight, graph renderer, simulator, or deterministic fixture runner. The source's corresponding list is in [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.5 Free plans and interpreters]].
 
-A primitive specification should contain every fact that can change the returned domain result: operation version, provider model revision, prompt, fallback policy, required capabilities, remote-disclosure class, and determinism declaration. Worker count, queue name, retry backoff, and logging verbosity usually belong to execution policy. The practical test is behavioral: if a timeout changes the returned result, that timeout is semantic policy even if the implementation calls it operational. See [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.6 Static specification and dynamic policy]].
+A primitive specification should contain every fact that can change the returned domain result: operation version, provider model revision, prompt, fallback policy, required capabilities, remote-disclosure class, and determinism declaration. Worker count, queue name, retry backoff, and logging verbosity usually belong to execution policy. The practical test is behavioral: if a timeout changes the returned result, that timeout is semantic policy even if the implementation calls it operational. See [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.6 Static specification and dynamic policy]].
 
 Let $E$ be a canonical byte encoding, and let $H$ be a domain-separated hash that includes a constructor tag. A recursive semantic identity is:
 
@@ -960,7 +960,7 @@ $$
 \mathsf{generate}:C\to A.
 $$
 
-Closing these generators under identities and typed sequential composition gives a **free category** $\mathsf{Free}(\Sigma)$. “Free” means that the only equalities imposed are the category laws: associativity and left/right identity. Thus `Then(Then(f,g),h)` and `Then(f,Then(g,h))` denote the same compositional shape, but `auth;rerank` is not equated with `rerank;auth`. The latter distinction is exactly what a disclosure checker needs. This formalizes the free-plan account in [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.5 Free plans and interpreters]] and the free retrieval signature in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#7.4 Interpreters over a free retrieval signature]].
+Closing these generators under identities and typed sequential composition gives a **free category** $\mathsf{Free}(\Sigma)$. “Free” means that the only equalities imposed are the category laws: associativity and left/right identity. Thus `Then(Then(f,g),h)` and `Then(f,Then(g,h))` denote the same compositional shape, but `auth;rerank` is not equated with `rerank;auth`. The latter distinction is exactly what a disclosure checker needs. This formalizes the free-plan account in [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.5 Free plans and interpreters]] and the free retrieval signature in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#7.4 Interpreters over a free retrieval signature]].
 
 Adding side-by-side composition yields a **free symmetric monoidal category**. For the Green Line plan, lexical and vector retrieval form
 
@@ -976,7 +976,7 @@ $$
 F(g\circ f)=F(g)\circ F(f),\qquad F(1_A)=1_{F(A)},
 $$
 
-and a monoidal interpreter also preserves tensor up to its specified coherence maps. What this buys is local definition with global consistency: define the meaning of each primitive and constructor once, and the fold determines every finite plan. Refactoring parentheses cannot reverse authorization order or alter accumulated capabilities. The practical interpreter catalogue is listed in [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.9 Interpreters]].
+and a monoidal interpreter also preserves tensor up to its specified coherence maps. What this buys is local definition with global consistency: define the meaning of each primitive and constructor once, and the fold determines every finite plan. Refactoring parentheses cannot reverse authorization order or alter accumulated capabilities. The practical interpreter catalogue is listed in [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.9 Interpreters]].
 
 Effects determine the semantic boundary. Static analyses can land in ordinary algebraic categories: required capabilities may be finite sets with union, and cost preflight may be a resource algebra. Execution usually maps a primitive $A\to B$ to $A\to T B$, where $T$ represents failure, observations, nondeterminism, or I/O. Sequential execution then composes in the **Kleisli category** of $T$, not by plain function composition. A static plan remains completely foldable only while later syntax does not depend on effect-produced values. An unrestricted bind $A\to T B$, followed by a function choosing a new plan from the observed $B$, crosses into a dynamic Kleisli region: the exact provider and disclosure path may be unknowable before execution. Keep that boundary explicit, as recommended by [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization.md#24.1 Pure specification, effectful binding]].
 
@@ -1051,10 +1051,10 @@ Static folds replace `handler.run` with accumulation. `SemanticID` hashes nodes,
 
 | Name or alias | Exact source sighting |
 |---|---|
-| Free plans and interpreters | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.5 Free plans and interpreters]] |
-| Typed plan values | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.8 Typed plan values]] |
-| Interpreters | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.9 Interpreters]] |
-| Interpreters over a free retrieval signature | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#7.4 Interpreters over a free retrieval signature]] |
+| Free plans and interpreters | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.5 Free plans and interpreters]] |
+| Typed plan values | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.8 Typed plan values]] |
+| Interpreters | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.9 Interpreters]] |
+| Interpreters over a free retrieval signature | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#7.4 Interpreters over a free retrieval signature]] |
 | Exact and sampled interpreters | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization.md#28. Exact and sampled interpreters]] |
 | Pure specification, effectful binding | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization.md#24.1 Pure specification, effectful binding]] |
 
@@ -1111,7 +1111,7 @@ Failed(class, message, retryable, observations)
 Cancelled(reason, observations)
 ```
 
-Only `Success` necessarily carries the requested value; abstained, failed, and cancelled outcomes carry their own typed details. Resource quantities must be finite and nonnegative. `error` remains reserved for failed interpretation or custody, such as corrupt bindings, invalid digests, impossible internal states, or serialization failure. The concrete API appears in [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.5 Outcome as a sum type]]. Classification follows the system contract, not the exception class produced by a client library. A provider timeout is a domain failure if timeout behavior is part of the evaluated product policy; a corrupt cached payload is an interpreter failure because no trustworthy domain event can be attributed.
+Only `Success` necessarily carries the requested value; abstained, failed, and cancelled outcomes carry their own typed details. Resource quantities must be finite and nonnegative. `error` remains reserved for failed interpretation or custody, such as corrupt bindings, invalid digests, impossible internal states, or serialization failure. The concrete API appears in [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.5 Outcome as a sum type]]. Classification follows the system contract, not the exception class produced by a client library. A provider timeout is a domain failure if timeout behavior is part of the evaluated product policy; a corrupt cached payload is an interpreter failure because no trustworthy domain event can be attributed.
 
 A stricter model for nondeterministic execution is
 
@@ -1184,7 +1184,7 @@ $$
 Y\times T\times R\times W,
 $$
 
-where trace $T$, resource use $R$, and warnings $W$ accompany whichever alternative occurred. This is the sum-of-cases/product-of-fields distinction behind [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.5 Outcome as a sum type]]. Interpreter corruption remains outside this coproduct when no trustworthy product outcome can be constructed.
+where trace $T$, resource use $R$, and warnings $W$ accompany whichever alternative occurred. This is the sum-of-cases/product-of-fields distinction behind [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.5 Outcome as a sum type]]. Interpreter corruption remains outside this coproduct when no trustworthy product outcome can be constructed.
 
 Observation accumulation is the familiar **writer** construction. Let $(O,\oplus,0)$ be a monoid and decorate a value as $B\times O$. Sequential composition combines the first stage’s observation with the second’s:
 
@@ -1193,7 +1193,7 @@ $$
 =\text{let }f(b)=(c,o_2)\text{ in }(c,o_1\oplus o_2).
 $$
 
-Associativity of $\oplus$ makes regrouping stages observationally invariant; $0$ makes an uninstrumented stage neutral. In the worked RAG run, token counters add, artifact identities union, and warnings retain the reranker timeout even though fallback succeeds. This is not “just logging”: the algebra determines whether observations survive short-circuiting and whether refactoring changes evidence. The source develops this explicitly in [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.8 Observation algebra]].
+Associativity of $\oplus$ makes regrouping stages observationally invariant; $0$ makes an uninstrumented stage neutral. In the worked RAG run, token counters add, artifact identities union, and warnings retain the reranker timeout even though fallback succeeds. This is not “just logging”: the algebra determines whether observations survive short-circuiting and whether refactoring changes evidence. The source develops this explicitly in [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.8 Observation algebra]].
 
 There need not be one monoid for every field. Sequential traces form an ordered concatenation monoid, whereas a parallel trace may use a canonical symmetric constructor. Integer token counts add; maximum resident memory may combine by maximum sequentially but by a different bound in parallel; money is indexed by currency; disclosure records may union as a set while preserving causal order separately. The total observation object is a product of these chosen algebras only after units and laws are fixed.
 
@@ -1292,10 +1292,10 @@ The structured trace is semantically relevant. Two runs can return the same chun
 
 | Name or alias | Exact source sighting |
 |---|---|
-| Outcome as a sum type | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.5 Outcome as a sum type]] |
-| Failure as data versus interpreter failure | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.9 Failure as data versus interpreter failure]] |
-| Observation algebra | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.8 Observation algebra]] |
-| Observations and usage | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.6 Observations and usage]] |
+| Outcome as a sum type | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.5 Outcome as a sum type]] |
+| Failure as data versus interpreter failure | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.9 Failure as data versus interpreter failure]] |
+| Observation algebra | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#8.8 Observation algebra]] |
+| Observations and usage | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis.md#11.6 Observations and usage]] |
 | Outcome structure | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization.md#7.2 Outcome structure]] |
 | Structured trace algebra | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization.md#8. Structured trace algebra]] |
 | Observation model | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#Observation model]] |
@@ -1334,7 +1334,7 @@ $$
 \theta'=\theta\oplus\delta\theta,
 $$
 
-where $\theta'$ is the candidate specification and $\oplus$ means “apply this declared change,” not numerical addition. The intervention records its target, before and after identities, causal hypothesis, claimed preserved properties, required fidelity, and constraints. This controlled-intervention definition appears in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#21.1 Optimization as controlled intervention]].
+where $\theta'$ is the candidate specification and $\oplus$ means “apply this declared change,” not numerical addition. The intervention records its target, before and after identities, causal hypothesis, claimed preserved properties, required fidelity, and constraints. This controlled-intervention definition appears in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#21.1 Optimization as controlled intervention]].
 
 For an artifact or evaluation $a$, let $S_a$ be its support: all semantic coordinates through which $a$ can depend on the world. Let $\pi_{S_a}$ project a full specification to only those coordinates. The support claim is that some function $\bar a$ exists such that
 
@@ -1378,7 +1378,7 @@ $$
 \operatorname{cl}(C)\cup\operatorname{cl}(D).
 $$
 
-This **union preservation** law holds for reachability closure. Operationally, independently computed impacts for two changes combine correctly, which makes compound intervention planning predictable and testable. The laws are stated in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#12.2 Closure algebra]]. Closure is a conservative “may change” result, not proof that a value did change.
+This **union preservation** law holds for reachability closure. Operationally, independently computed impacts for two changes combine correctly, which makes compound intervention planning predictable and testable. The laws are stated in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#12.2 Closure algebra]]. Closure is a conservative “may change” result, not proof that a value did change.
 
 For intervention $i$, let $C_i$ be its directly changed nodes and $I_i=\operatorname{cl}(C_i)$ its impact. Let $S_a$ be artifact $a$'s support. Let $K_a$ be its required external identities, such as source barrier, release epoch, case suite, evaluator policy, provider identity, and randomization design. A conservative reuse rule is
 
@@ -1390,7 +1390,7 @@ I_i\cap S_a=\varnothing
 K_a^{\mathrm{before}}=K_a^{\mathrm{after}}.
 $$
 
-The symbol $\cap$ is set intersection, $\varnothing$ is the empty set, $\land$ means both conditions must hold, and $\iff$ means the two sides are equivalent. The first condition says the intervention's impact touches none of the artifact's support. The second says relevant external identities remain equal. Operationally, the conjunction prevents reuse both for local dependency changes and for context changes omitted from the local graph. The support-disjoint argument follows from factorization: the intervention leaves $\pi_{S_a}$ unchanged, so $a$ retains the same meaning. See [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#12.1 Soundness condition]].
+The symbol $\cap$ is set intersection, $\varnothing$ is the empty set, $\land$ means both conditions must hold, and $\iff$ means the two sides are equivalent. The first condition says the intervention's impact touches none of the artifact's support. The second says relevant external identities remain equal. Operationally, the conjunction prevents reuse both for local dependency changes and for context changes omitted from the local graph. The support-disjoint argument follows from factorization: the intervention leaves $\pi_{S_a}$ unchanged, so $a$ retains the same meaning. See [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#12.1 Soundness condition]].
 
 A nonempty intersection does not make reuse impossible, but it requires a stronger witness. For example, changing reranker pool size from 20 to 4 may reuse a stored fused prefix of 20 if input identities and ordering laws match. That is a named, checked projection theorem, not a scheduler exception.
 
@@ -1410,7 +1410,7 @@ B(\theta\oplus\delta\theta)
 B(\theta)\oplus DB(\theta,\delta\theta).
 $$
 
-The symbol $\simeq$ means equality under the artifact's declared comparison: byte or semantic equality for exact artifacts, or an observation-relative tolerance for approximate indexes. Operationally, this law makes a clean build an oracle for detecting missing dependencies in the incremental path. The derivative formulation appears in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#11.2 Derivatives of build functions]].
+The symbol $\simeq$ means equality under the artifact's declared comparison: byte or semantic equality for exact artifacts, or an observation-relative tolerance for approximate indexes. Operationally, this law makes a clean build an oracle for detecting missing dependencies in the incremental path. The derivative formulation appears in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#11.2 Derivatives of build functions]].
 
 <!-- ADVANCED 6 -->
 
@@ -1428,7 +1428,7 @@ $$
 B(\theta\oplus\delta)=B(\theta)\oplus_A DB(\theta,\delta).
 $$
 
-This accommodates keyed patches, insertions/deletions, and configuration replacements; no additive inverse is assumed. In the concrete RAG release, `fusion_constant: 60→40` acts on the specification, while $DB$ can retain lexical and vector rankings and update fusion onward. The derivative formulation appears in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#11.2 Derivatives of build functions]].
+This accommodates keyed patches, insertions/deletions, and configuration replacements; no additive inverse is assumed. In the concrete RAG release, `fusion_constant: 60→40` acts on the specification, while $DB$ can retain lexical and vector rankings and update fusion onward. The derivative formulation appears in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#11.2 Derivatives of build functions]].
 
 The **support** of an artifact $a$ is a coordinate set $S_a$ through which its semantics factors:
 
@@ -1436,7 +1436,7 @@ $$
 a=\bar a\circ\pi_{S_a}.
 $$
 
-For a lexical ranking, this can include normalized query, analyzer, lexical-index release, filters, and depth. For an answer evaluation, it can additionally include case suite, judge policy, provider revision, and randomization. Support is extensional dependency information: if two worlds have equal projections to $S_a$, the artifact has equal declared meaning. It is stronger than “these files were read” and only as sound as its completeness. See [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#11.3 Support abstraction]].
+For a lexical ranking, this can include normalized query, analyzer, lexical-index release, filters, and depth. For an answer evaluation, it can additionally include case suite, judge policy, provider revision, and randomization. Support is extensional dependency information: if two worlds have equal projections to $S_a$, the artifact has equal declared meaning. It is stronger than “these files were read” and only as sound as its completeness. See [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#11.3 Support abstraction]].
 
 A directed may-depend graph induces reachability closure $\mathrm{cl}:\mathcal P(V)\to\mathcal P(V)$. For changed nodes $C$, $\mathrm{cl}(C)$ is the least downstream-complete superset. It obeys
 
@@ -1449,7 +1449,7 @@ $$
 \mathrm{cl}(C\cup D)=\mathrm{cl}(C)\cup\mathrm{cl}(D).
 $$
 
-These are extensiveness, monotonicity, idempotence, and—specifically for reachability closure—finite union preservation. They buy executable metamorphic tests: adding an intervention cannot reduce invalidation; running the planner twice stabilizes; separately planned changes combine predictably. The laws and their operational use are given in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#12.2 Closure algebra]]. Not every closure operator preserves unions, so the fourth law must be justified by this graph construction rather than imported from the first three.
+These are extensiveness, monotonicity, idempotence, and—specifically for reachability closure—finite union preservation. They buy executable metamorphic tests: adding an intervention cannot reduce invalidation; running the planner twice stabilizes; separately planned changes combine predictably. The laws and their operational use are given in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#12.2 Closure algebra]]. Not every closure operator preserves unions, so the fourth law must be justified by this graph construction rather than imported from the first three.
 
 Let $I_i=\mathrm{cl}(C_i)$ be intervention impact and $K_a$ the required external identities. A conservative reuse theorem is
 
@@ -1521,9 +1521,9 @@ function planReuse(intervention, objects, graph,
     return plan
 ```
 
-Start adoption with a conservative directed acyclic graph. Add canonical keyed nodes, then exact affected-key sets, then semantic deltas checked against clean rebuilds, and finally proof-carrying reuse where its cost is justified. This precision ladder appears in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#12.3 Precision ladder]]. False invalidation wastes work; false reuse corrupts conclusions, so conservative over-approximation is the correct initial policy.
+Start adoption with a conservative directed acyclic graph. Add canonical keyed nodes, then exact affected-key sets, then semantic deltas checked against clean rebuilds, and finally proof-carrying reuse where its cost is justified. This precision ladder appears in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#12.3 Precision ladder]]. False invalidation wastes work; false reuse corrupts conclusions, so conservative over-approximation is the correct initial policy.
 
-Dependency-aware scheduling may share builds among candidates with the same chunk-and-embedding projection and rankings among candidates with identical channel inputs. Scheduling is only an optimization. Correctness remains determined by support, identity, and witnesses: [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#30.5 Shared intermediate work]].
+Dependency-aware scheduling may share builds among candidates with the same chunk-and-embedding projection and rankings among candidates with identical channel inputs. Scheduling is only an optimization. Correctness remains determined by support, identity, and witnesses: [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#30.5 Shared intermediate work]].
 
 ## Failure modes
 
@@ -1541,11 +1541,11 @@ Dependency-aware scheduling may share builds among candidates with the same chun
 
 | Name or alias | Exact source sighting |
 |---|---|
-| Support abstraction | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#11.3 Support abstraction]] |
-| Dependency closure as an abstract derivative | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#12. Dependency closure as an abstract derivative]] |
-| Dependency closure | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#21.4 Dependency closure]] |
-| Dependency-aware build and evaluation reuse | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#30. Dependency-aware build and evaluation reuse]] |
-| Build-key projection | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#30.3 Build-key projection]] |
+| Support abstraction | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#11.3 Support abstraction]] |
+| Dependency closure as an abstract derivative | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#12. Dependency closure as an abstract derivative]] |
+| Dependency closure | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG.md#21.4 Dependency closure]] |
+| Dependency-aware build and evaluation reuse | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#30. Dependency-aware build and evaluation reuse]] |
+| Build-key projection | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields.md#30.3 Build-key projection]] |
 | Reuse as a semantic theorem | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization.md#46.2 Reuse as a semantic theorem]] |
 | Dependency closure (provenance verification) | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis.md#Dependency closure]] |
 
@@ -1658,7 +1658,7 @@ Required laws are contiguous prefix integrity, deterministic replay, rejection o
 
 ## Advanced reader: category theory and abstract mathematics
 
-For one RAG run, let $E$ be the alphabet of typed events—`RunCreated`, `CellStarted(q17,2,candidate)`, `CellCompleted(q17,2,candidate,d)`, and so on. Finite histories form the **free monoid** $E^*$: the unit is the empty history $\epsilon$, multiplication is concatenation $uv$, and no equations are imposed beyond associativity and the unit laws. “Free” matters architecturally: two deliveries do not become equal merely because they look similar, and `Started·Completed` is not interchangeable with `Completed·Started`. Domain equations, deduplication, and legality enter only through interpretation. This sharpens the append-only account in [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.6 Kernel K4: append-only ledger reducer]].
+For one RAG run, let $E$ be the alphabet of typed events—`RunCreated`, `CellStarted(q17,2,candidate)`, `CellCompleted(q17,2,candidate,d)`, and so on. Finite histories form the **free monoid** $E^*$: the unit is the empty history $\epsilon$, multiplication is concatenation $uv$, and no equations are imposed beyond associativity and the unit laws. “Free” matters architecturally: two deliveries do not become equal merely because they look similar, and `Started·Completed` is not interchangeable with `Completed·Started`. Domain equations, deduplication, and legality enter only through interpretation. This sharpens the append-only account in [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.6 Kernel K4: append-only ledger reducer]].
 
 A reducer $\rho:S\times E\rightharpoonup S$ is naturally a **partial right action** of $E^*$ on valid run states. Extend it by
 
@@ -1682,7 +1682,7 @@ $$
 \delta:S\longrightarrow(1+S)^E,
 $$
 
-where $\delta(s)(e)$ is either no legal successor or one successor. The algebraic view asks how histories act; the coalgebraic view asks what one-step behavior a state exposes. In the concrete eight-cell evaluation, the projection records which coordinates are terminal, while the coalgebra says which labels are currently accepted: `RunCompleted` is unavailable until all eight terminal facts verify. Replay and live execution should be two interpreters of this same transition object, matching the reducer laws in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#15.3 Reducer laws]]. Bisimulation can justify replacing a detailed internal state by a smaller projection only when every admitted future event preserves indistinguishability.
+where $\delta(s)(e)$ is either no legal successor or one successor. The algebraic view asks how histories act; the coalgebraic view asks what one-step behavior a state exposes. In the concrete eight-cell evaluation, the projection records which coordinates are terminal, while the coalgebra says which labels are currently accepted: `RunCompleted` is unavailable until all eight terminal facts verify. Replay and live execution should be two interpreters of this same transition object, matching the reducer laws in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#15.3 Reducer laws]]. Bisimulation can justify replacing a detailed internal state by a smaller projection only when every admitted future event preserves indistinguishability.
 
 Observable idempotence is also quotient-relative. Let $O:S\to Q$ retain the promised observations—one published digest, one charge status, one visible completion—and define $s\sim_O t$ iff $O(s)=O(t)$. A retrying operation $P$ is idempotent at that boundary when
 
@@ -1767,11 +1767,11 @@ A browser follows the same rule. If it hydrates at ordinal 120 while events 119,
 
 | Name or alias | Exact source sighting |
 |---|---|
-| append-only ledger reducer | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.6 Kernel K4: append-only ledger reducer]] |
-| ledger / reducer API | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#11.10 Ledger]] |
-| runstore as a reducer | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#13.6 Runstore as a reducer]] |
-| frontend replica; snapshot plus suffix | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#15.1 The frontend is a replica]] |
-| duplicate idempotence and reducer laws | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#15.3 Reducer laws]] |
+| append-only ledger reducer | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.6 Kernel K4: append-only ledger reducer]] |
+| ledger / reducer API | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#11.10 Ledger]] |
+| runstore as a reducer | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#13.6 Runstore as a reducer]] |
+| frontend replica; snapshot plus suffix | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#15.1 The frontend is a replica]] |
+| duplicate idempotence and reducer laws | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#15.3 Reducer laws]] |
 | event-prefix integrity | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#10.5 Event-prefix integrity]] |
 | exactly-once boundary / observable idempotence | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#10.13 Exactly-once boundary]] |
 | ambiguous completion | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#12.5 Ambiguous completion]] |
@@ -1928,7 +1928,7 @@ $$
 [m(o_c)-m(o_b)]\,\Gamma(u,d(o_b,o_c))\,\mu(du).
 $$
 
-Because the integrand is additive, $\theta$ depends on the marginals (and $\mu$), while coupling controls estimator precision. Dropping candidate timeouts, reweighting security cases, or resuming under a new snapshot changes the estimand or observed sample, not merely bookkeeping. Exact pairing and direction-normalized differences are developed in [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.7 Kernel K5: exact pairing]] and [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#14.1 Direction-normalized differences]].
+Because the integrand is additive, $\theta$ depends on the marginals (and $\mu$), while coupling controls estimator precision. Dropping candidate timeouts, reweighting security cases, or resuming under a new snapshot changes the estimand or observed sample, not merely bookkeeping. Exact pairing and direction-normalized differences are developed in [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.7 Kernel K5: exact pairing]] and [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#14.1 Direction-normalized differences]].
 
 **Architectural consequence.** Persist plan identity, expected coordinate set, kernel-defining versions, negotiated coupling, semantic random namespaces, schedule, and terminal failures; make uniqueness and exact coverage database invariants. **Limit.** Markov kernels describe declared stochastic behavior, not hidden provider truth. Common randomness cannot repair source drift, evaluator bias, leaked suites, selective missingness, or an unrepresentative $\mu$, and deterministic replay may estimate behavior under retained responses rather than a future provider distribution.
 
@@ -1990,10 +1990,10 @@ Distributed workers need leases or fencing so only one terminal record is accept
 
 | Name or alias | Exact source sighting |
 |---|---|
-| exact pairing kernel | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.7 Kernel K5: exact pairing]] |
-| cell coordinates | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#13.5 Cell coordinates]] |
-| paired design | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#18.2 Paired design]] |
-| randomness as typed context | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#18.3 Randomness as typed context]] |
+| exact pairing kernel | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.7 Kernel K5: exact pairing]] |
+| cell coordinates | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#13.5 Cell coordinates]] |
+| paired design | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#18.2 Paired design]] |
+| randomness as typed context | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#18.3 Randomness as typed context]] |
 | randomness and couplings | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#9. Randomness and couplings]] |
 | exact paired experiments | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#13. Exact paired experiments]] |
 | coupling compatibility | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#13.3 Coupling compatibility]] |
@@ -2121,13 +2121,13 @@ $$
 
 A preorder allows observational ties: two releases may be mutually no-worse without being identical artifacts. Quotienting by $x\simeq y\iff x\preceq_\Pi y\land y\preceq_\Pi x$ yields a partial order. The Pareto front is the set of maximal feasible equivalence classes. Thus a chunking candidate with better MRR and latency and a reranking candidate with better grounding and index cost can both be maximal. Product order intentionally refuses to infer an exchange rate; see [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#16. Partial order and Pareto fronts]].
 
-Feasibility itself is an intersection of predicates. With complete evidence, each hard rule $p_i:X\to 2$ selects a subobject, and the feasible region is their meet $F=\bigcap_i p_i^{-1}(\top)$. Operational policies, however, receive partial evidence: a protected-language MRR interval may straddle its non-inferiority margin, or a disclosure audit may be missing. Model rule results in $\mathbb K=\{\mathsf F,\mathsf U,\mathsf T\}$, ordered by information so that $\mathsf U$ means “not established,” not “half true.” Under a strong Kleene reading, conjunction is false if any conjunct is false, true only if all are true, and unknown otherwise. An interval $[L,U]$ against upper limit $t$ returns $\mathsf T$ when $U\le t$, $\mathsf F$ when $L>t$, and $\mathsf U$ otherwise. This is **evidence partiality**: more valid observations may refine unknown to pass or fail; absence must not be silently coerced to zero or success. The RAG treatment appears in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#21.2 Three-valued decisions]].
+Feasibility itself is an intersection of predicates. With complete evidence, each hard rule $p_i:X\to 2$ selects a subobject, and the feasible region is their meet $F=\bigcap_i p_i^{-1}(\top)$. Operational policies, however, receive partial evidence: a protected-language MRR interval may straddle its non-inferiority margin, or a disclosure audit may be missing. Model rule results in $\mathbb K=\{\mathsf F,\mathsf U,\mathsf T\}$, ordered by information so that $\mathsf U$ means “not established,” not “half true.” Under a strong Kleene reading, conjunction is false if any conjunct is false, true only if all are true, and unknown otherwise. An interval $[L,U]$ against upper limit $t$ returns $\mathsf T$ when $U\le t$, $\mathsf F$ when $L>t$, and $\mathsf U$ otherwise. This is **evidence partiality**: more valid observations may refine unknown to pass or fail; absence must not be silently coerced to zero or success. The RAG treatment appears in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#21.2 Three-valued decisions]].
 
-A lexicographic gate is not simply conjunction. It is an **ordered predicate program** $(p_1,\ldots,p_n)$ with short-circuit semantics and evidence traces. For example: verify artifacts and exact coverage; reject any disclosure; establish subgroup non-inferiority; enforce absolute latency and cost budgets; then require a quality target. Earlier decisive failure cannot be compensated by a later gain, while an earlier unknown blocks promotion pending evidence. Ordering is observable—changing it can change which decision and explanation are emitted—so the policy sequence and thresholds need a versioned identity. This realizes the lexicographic kernel described in [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.8 Kernel K6: lexicographic gate]]. Only candidates returning pass from the mandatory program enter the product preorder.
+A lexicographic gate is not simply conjunction. It is an **ordered predicate program** $(p_1,\ldots,p_n)$ with short-circuit semantics and evidence traces. For example: verify artifacts and exact coverage; reject any disclosure; establish subgroup non-inferiority; enforce absolute latency and cost budgets; then require a quality target. Earlier decisive failure cannot be compensated by a later gain, while an earlier unknown blocks promotion pending evidence. Ordering is observable—changing it can change which decision and explanation are emitted—so the policy sequence and thresholds need a versioned identity. This realizes the lexicographic kernel described in [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.8 Kernel K6: lexicographic gate]]. Only candidates returning pass from the mandatory program enter the product preorder.
 
 A scalarization $J_w(x)=\sum_iw_iv_i(x)$ is a monotone map from the product preorder when $w_i\ge0$, but monotonicity does not make it an order embedding: incomparable vectors become artificially comparable, and distinct vectors can collapse to one score. It also encodes units and exchange rates. With sufficiently large quality gain, a weighted score can outweigh one disclosure violation unless feasibility has already removed that candidate. Even among feasible points, linear scalarization selects only frontier points supported by its chosen hyperplane and can miss non-convex portions of an attainable frontier. Therefore scalarization is useful for search scheduling or for a separately authorized business selector, but it is not a proof of promotion.
 
-For uncertainty-aware comparison, objective coordinates can themselves be interval or evidence preorders. A conservative dominance rule may require candidate A’s lower bound to exceed candidate B’s upper bound coordinatewise. This creates more incomparability, correctly reflecting limited evidence rather than manufacturing confidence. The constraint-first sequence and sound promotion rule are developed in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#23. Pareto order after feasibility]] and [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#24. A sound promotion rule]].
+For uncertainty-aware comparison, objective coordinates can themselves be interval or evidence preorders. A conservative dominance rule may require candidate A’s lower bound to exceed candidate B’s upper bound coordinatewise. This creates more incomparability, correctly reflecting limited evidence rather than manufacturing confidence. The constraint-first sequence and sound promotion rule are developed in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#23. Pareto order after feasibility]] and [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#24. A sound promotion rule]].
 
 **Architectural consequence.** Separate a versioned three-valued gate reducer, a feasible-set/Pareto computation, and an optional explicit selector; retain per-rule evidence, unknowns, dominance witnesses, and the full frontier in the decision ledger. Search code must not write `Promoted`. **Limit.** Orders do not choose priorities, intervals inherit assumptions from their estimators, and Pareto maximality says neither “safe” nor “best.” Thresholds, protected strata, missingness rules, and any final tie-break remain governance decisions that mathematics can expose but not supply.
 
@@ -2195,13 +2195,13 @@ The decision ledger retains B's rejection, A's earlier undecided result, the new
 
 | Name or alias | Exact source sighting |
 |---|---|
-| lexicographic gate | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.8 Kernel K6: lexicographic gate]] |
-| gate policy / ordered phases | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#13.8 Gate policy]] |
-| constraints as subobjects and predicates | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#21. Constraints as subobjects and predicates]] |
-| three-valued decisions | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#21.2 Three-valued decisions]] |
-| non-inferiority and partial orders | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#22. Non-inferiority and partial orders]] |
-| Pareto order after feasibility | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#23. Pareto order after feasibility]] |
-| sound promotion rule | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#24. A sound promotion rule]] |
+| lexicographic gate | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.8 Kernel K6: lexicographic gate]] |
+| gate policy / ordered phases | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#13.8 Gate policy]] |
+| constraints as subobjects and predicates | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#21. Constraints as subobjects and predicates]] |
+| three-valued decisions | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#21.2 Three-valued decisions]] |
+| non-inferiority and partial orders | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#22. Non-inferiority and partial orders]] |
+| Pareto order after feasibility | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#23. Pareto order after feasibility]] |
+| sound promotion rule | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#24. A sound promotion rule]] |
 | ordered gates | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#15.2 Ordered gates]] |
 | partial order and Pareto fronts | [[Transcripts/2026/08/09/Branch Branch Designing RAG Abstractions/Compositional_Probabilistic_Optimization#16. Partial order and Pareto fronts]] |
 | Constraint-first source-chunk admission | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Deterministic transition|Source-Authoritative Evidence Ledger Kernel — deterministic transition]] |
@@ -2298,7 +2298,7 @@ $$
 P_x(a,c)\;\overset{\mathrm{def}}{\Longleftrightarrow}\;\mathsf{check}(x,a,c)=\mathsf{true}.
 $$
 
-Because $P_x$ is decidable, acceptance can construct a refinement value $\{a:A\mid P_x(a,c)\}$. In dependent-type notation this is a pair $(a,p)$ with $p:P_x(a,c)$; in an ordinary language it is an opaque `VerifiedArtifact` whose constructor is private to the validator. The important abstraction is not the notation but the elimination rule: downstream publication can consume `VerifiedArtifact`, never unchecked bytes. This is the same trusted-kernel separation described in [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.1 The trusted-kernel principle]].
+Because $P_x$ is decidable, acceptance can construct a refinement value $\{a:A\mid P_x(a,c)\}$. In dependent-type notation this is a pair $(a,p)$ with $p:P_x(a,c)$; in an ordinary language it is an opaque `VerifiedArtifact` whose constructor is private to the validator. The important abstraction is not the notation but the elimination rule: downstream publication can consume `VerifiedArtifact`, never unchecked bytes. This is the same trusted-kernel separation described in [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.1 The trusted-kernel principle]].
 
 Let $\Phi_x(a)$ express the intended semantic obligation and let $C_x(a)=\{c\mid P_x(a,c)\}$ be the certificates accepted for $a$. **Soundness** is
 
@@ -2315,7 +2315,7 @@ $$
 H(D)=d_D,\quad \mathsf{source}(M)=S_{17}.
 $$
 
-It then returns `VerifiedIndex<S17,M>`. A builder that accidentally embeds chunk set `C8` while packaging manifest `C9` is rejected even if every vector is numerically valid. The certificate turns expensive generation into cheap replayable checking and makes the accepted subject explicit; evidence-as-certificate rather than a Boolean is developed in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#17.2 Evidence as a certificate, not a Boolean]].
+It then returns `VerifiedIndex<S17,M>`. A builder that accidentally embeds chunk set `C8` while packaging manifest `C9` is rejected even if every vector is numerically valid. The certificate turns expensive generation into cheap replayable checking and makes the accepted subject explicit; evidence-as-certificate rather than a Boolean is developed in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#17.2 Evidence as a certificate, not a Boolean]].
 
 The proof is only as strong as its **trusted computing base**. The TCB includes the validator implementation, canonical decoder, hash and signature libraries, trusted expected root, key distribution, opaque constructor, storage read path, and the mechanism preventing publication bypass. Shrinking the checker is valuable because there is less code whose correctness underwrites acceptance, but “small” is not “infallible.” A parser ambiguity or compromised expected digest can validate a perfectly self-consistent lie.
 
@@ -2417,14 +2417,14 @@ The minimum selects the shortest available finite derivation; the maximum requir
 
 | Name or alias | Exact source sighting |
 |---|---|
-| Trusted-kernel principle | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.1 The trusted-kernel principle]] |
-| Proof-carrying artifacts | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9. Trusted kernels and proof-carrying artifacts]] |
-| Artifact verification and commit | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.5 Kernel K3: artifact verification and commit]] |
-| Grounding contract | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.9 Kernel K7: grounding contract]] |
+| Trusted-kernel principle | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.1 The trusted-kernel principle]] |
+| Proof-carrying artifacts | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9. Trusted kernels and proof-carrying artifacts]] |
+| Artifact verification and commit | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.5 Kernel K3: artifact verification and commit]] |
+| Grounding contract | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.9 Kernel K7: grounding contract]] |
 | Proof bundles / independently verifiable bundle | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis#Proof bundles]]; [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-p01-p03-doctoral-thesis#Corollary 10.12 - independently verifiable bundle]] |
 | Proof-carrying experiments and replay | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-research-projects-compendium#P10 - Proof-Carrying Experiments and Replay]] |
-| Evidence as a certificate, not a Boolean | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#17.2 Evidence as a certificate, not a Boolean]] |
-| Proof-carrying candidates | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#17.4 Proof-carrying candidates]] |
+| Evidence as a certificate, not a Boolean | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#17.2 Evidence as a certificate, not a Boolean]] |
+| Proof-carrying candidates | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#17.4 Proof-carrying candidates]] |
 | Assemble and verify | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#14.7 Assemble and verify]] |
 | Source-authority rebound through a small resolver/kernel boundary | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Source interface|Source-Authoritative Evidence Ledger Kernel — source interface]] |
 
@@ -2515,7 +2515,7 @@ $$
 \forall o\in\operatorname{Ops}(t),\quad \operatorname{root}(o)=r,
 $$
 
-and every dereference must verify that the obtained child hash equals the hash named by $r$. The lease has two jobs: it makes $r$ a stable snapshot for the reader, and it prevents garbage collection from reclaiming reachable resources before the interval closes. Whether the interval is one request, tool-using turn, or conversation is an explicit product choice; longer intervals improve coherence but retain stale policy and resources longer. Release pinning and concurrency are treated directly in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#14. Release activation, pinning, and concurrency]].
+and every dereference must verify that the obtained child hash equals the hash named by $r$. The lease has two jobs: it makes $r$ a stable snapshot for the reader, and it prevents garbage collection from reclaiming reachable resources before the interval closes. Whether the interval is one request, tool-using turn, or conversation is an explicit product choice; longer intervals improve coherence but retain stale policy and resources longer. Release pinning and concurrency are treated directly in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#14. Release activation, pinning, and concurrency]].
 
 The control plane is a transition system. Useful invariants over every transition $s\to s'$ are:
 
@@ -2531,9 +2531,9 @@ $$
 \mathsf{CAS}((r_{old},g),(r_{new},g+1)).
 $$
 
-It succeeds only if the alias still equals the expected pair. The successful atomic write is the **linearization point**: concurrent history can be explained as if activation occurred at that instant. Preloading and smoke tests happen before it; draining and collection happen after it. A stale deployer based on generation 108 cannot overwrite generation 109. Rollback to old content `R41` writes `(R41,110)`, preserving a monotone control history rather than pretending time moved backward. Compare-and-swap activation has a source treatment at [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#14.2 Compare-and-swap activation]].
+It succeeds only if the alias still equals the expected pair. The successful atomic write is the **linearization point**: concurrent history can be explained as if activation occurred at that instant. Preloading and smoke tests happen before it; draining and collection happen after it. A stale deployer based on generation 108 cannot overwrite generation 109. Rollback to old content `R41` writes `(R41,110)`, preserving a monotone control history rather than pretending time moved backward. Compare-and-swap activation has a source treatment at [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#14.2 Compare-and-swap activation]].
 
-**Concrete example.** Turn $t$ acquires `R41`, whose root names lexical index `L4`, vector index `D8`, prompt `G9`, and policy `A5`. Deployment then linearizes activation of `R42`, naming `D9`, `G10`, and `A6`. All searches, hydration, authorization, generation, and validation in $t$ continue through the `R41` handle; the next turn may acquire `R42`. Without the invariant, one answer could retrieve under `D8`, authorize under `A6`, and generate under `G10`: each component is valid, but the mixture is neither release and cannot be replayed. This is the mixed-release prohibition documented in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#14.6 Mixed-release prohibitions]].
+**Concrete example.** Turn $t$ acquires `R41`, whose root names lexical index `L4`, vector index `D8`, prompt `G9`, and policy `A5`. Deployment then linearizes activation of `R42`, naming `D9`, `G10`, and `A6`. All searches, hydration, authorization, generation, and validation in $t$ continue through the `R41` handle; the next turn may acquire `R42`. Without the invariant, one answer could retrieve under `D8`, authorize under `A6`, and generate under `G10`: each component is valid, but the mixture is neither release and cannot be replayed. This is the mixed-release prohibition documented in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#14.6 Mixed-release prohibitions]].
 
 **Benefit.** Merkle identity gives exact snapshots and cheap integrity checks; a single mutable alias makes activation atomic; leases provide explainable request coherence, rollback, replay, and safe reclamation. **Limits.** Hash identity depends on canonicalization and collision resistance, not semantic correctness. CAS orders one alias but does not by itself coordinate multiple registries, external side effects, or asynchronous provider state. Leases require crash recovery, TTLs or heartbeats, and fencing; otherwise they either leak resources or expire during valid work. Snapshot coherence also does not mean currentness: a pinned request may intentionally finish under an older policy, so emergency revocation needs a separately specified interrupt or epoch check.
 
@@ -2607,13 +2607,13 @@ The handle is the only route to release material. Rebuilding `R41`'s plan may yi
 
 | Name or alias | Exact source sighting |
 |---|---|
-| Release identity | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#Release identity]] |
-| Full release manifests | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#14.6 Full release manifests]] |
-| Full release roots | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#D.10 ADR-010: full release roots]] |
-| Release construction | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#8.5 Release construction]] |
-| Release activation, pinning, and concurrency | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#14. Release activation, pinning, and concurrency]] |
-| Compare-and-swap activation | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#14.2 Compare-and-swap activation]] |
-| Mixed-release prohibitions | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#14.6 Mixed-release prohibitions]] |
+| Release identity | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#Release identity]] |
+| Full release manifests | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#14.6 Full release manifests]] |
+| Full release roots | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#D.10 ADR-010: full release roots]] |
+| Release construction | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#8.5 Release construction]] |
+| Release activation, pinning, and concurrency | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#14. Release activation, pinning, and concurrency]] |
+| Compare-and-swap activation | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#14.2 Compare-and-swap activation]] |
+| Mixed-release prohibitions | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#14.6 Mixed-release prohibitions]] |
 | Immutable data plane, mutable control plane | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#4.3 Immutable data plane, mutable control plane]] |
 | Publication aliases | [[Transcripts/2026/08/08/Job System Design Thesis/Compositional_RAG_Job_System_Thesis_MathJax#13.5 Publication aliases]] |
 
@@ -2715,7 +2715,7 @@ $$
 
 Thus a `public` conclusion cannot be justified by a `finance-confidential` premise merely because the final wording omits the secret. A finite lattice is convenient for computing joins and meets, but a policy-specific partial order is enough if required bounds exist. The label order constrains possible flow; release-pinned authorization still decides whether subject $u$ may use item $x$ for purpose and provider $p$.
 
-Compile the query plan to a directed graph with entry and exit. An authorization/filter node $a$ **dominates** disclosure node $d$ when every entry-to-$d$ path contains $a$. A node $a$ **postdominates** candidate-production node $n$ when every $n$-to-exit path contains $a$. Requiring both catches different mistakes: domination forbids a bypass to a remote model, trace, cache, or frontend; postdomination prevents a branch from producing sensitive candidates and escaping through an error or fallback path without passing the authorization boundary. In implementations with exceptional exits, those exits must be explicit graph nodes—otherwise postdomination proves the wrong graph. The basic authorization-domination formulation appears in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#13.3 Authorization domination]].
+Compile the query plan to a directed graph with entry and exit. An authorization/filter node $a$ **dominates** disclosure node $d$ when every entry-to-$d$ path contains $a$. A node $a$ **postdominates** candidate-production node $n$ when every $n$-to-exit path contains $a$. Requiring both catches different mistakes: domination forbids a bypass to a remote model, trace, cache, or frontend; postdomination prevents a branch from producing sensitive candidates and escaping through an error or fallback path without passing the authorization boundary. In implementations with exceptional exits, those exits must be explicit graph nodes—otherwise postdomination proves the wrong graph. The basic authorization-domination formulation appears in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#13.3 Authorization domination]].
 
 Control-flow placement is insufficient unless the exact value is bound. Let $E$ be evidence sets, $D_p$ payloads for provider $p$, and $\Gamma$ authorization certificates. Safe disclosure should factor as
 
@@ -2725,9 +2725,9 @@ E\xrightarrow{\ \mathsf{authorize}_{u,R,p}\ }\Gamma
 \xrightarrow{\ \mathsf{send}_{p}\ }\mathsf{Effect},
 $$
 
-where $\gamma\in\Gamma$ commits to subject, release, policy, provider, epoch, and canonical evidence IDs. `serialize` recomputes the outgoing IDs and data classes; there is no direct $E\to D_p\to\mathsf{Effect}$ route. Consequently, adding one chunk after authorization breaks the factorization and is rejected. This is a typed local witness, not bearer authority handed to a model. See [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#17.3 Authorization certificates]].
+where $\gamma\in\Gamma$ commits to subject, release, policy, provider, epoch, and canonical evidence IDs. `serialize` recomputes the outgoing IDs and data classes; there is no direct $E\to D_p\to\mathsf{Effect}$ route. Consequently, adding one chunk after authorization breaks the factorization and is rejected. This is a typed local witness, not bearer authority handed to a model. See [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#17.3 Authorization certificates]].
 
-**Concrete example.** Retrieval finds confidential `c-secret` (“VIP refunds: 90 days”) at global rank 1 and public `c-public` (“standard refunds: 30 days”) at rank 2. A public user’s authorized domain is $H^u=\{\texttt{c-public}\}$. Computing $\operatorname{Top1}(H)$ and filtering later returns nothing and has already exposed `c-secret` if reranking was remote. Computing $\operatorname{Top1}(H^u)$ returns `c-public`; the adapter accepts only a certificate whose ID set is exactly `{c-public}`. Authorization before ranking effects is analyzed in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#29.2 Authorization before ranking effects]].
+**Concrete example.** Retrieval finds confidential `c-secret` (“VIP refunds: 90 days”) at global rank 1 and public `c-public` (“standard refunds: 30 days”) at rank 2. A public user’s authorized domain is $H^u=\{\texttt{c-public}\}$. Computing $\operatorname{Top1}(H)$ and filtering later returns nothing and has already exposed `c-secret` if reranking was remote. Computing $\operatorname{Top1}(H^u)$ returns `c-public`; the adapter accepts only a certificate whose ID set is exactly `{c-public}`. Authorization before ranking effects is analyzed in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#29.2 Authorization before ranking effects]].
 
 Noninterference makes the intended guarantee observational. For low observer $u$, worlds $W$ and $W'$ that agree on all information visible to $u$ should satisfy
 
@@ -2737,7 +2737,7 @@ $$
 \mathcal O_{u,R}(\mathsf{Run}_R(W',u)).
 $$
 
-The projection $\mathcal O$ must name answers, citations, provider payloads, caches, traces, errors, counts, and perhaps timing. This is **release-relative security**: labels, policy, allowed declassifications, provider rules, and observation boundaries belong to release $R$. Equality across `R41` and `R42` is not required when a policy change intentionally releases information. Within one release, an authorized declassifier (for example, publishing an approved aggregate) weakens the claim to noninterference *modulo that declared release function*. The noninterference goal and its boundaries are discussed in [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#29.3 Noninterference goal]].
+The projection $\mathcal O$ must name answers, citations, provider payloads, caches, traces, errors, counts, and perhaps timing. This is **release-relative security**: labels, policy, allowed declassifications, provider rules, and observation boundaries belong to release $R$. Equality across `R41` and `R42` is not required when a policy change intentionally releases information. Within one release, an authorized declassifier (for example, publishing an approved aggregate) weakens the claim to noninterference *modulo that declared release function*. The noninterference goal and its boundaries are discussed in [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#29.3 Noninterference goal]].
 
 **Benefit.** The lattice exposes implicit derivation flows; domination/postdomination makes ordering statically reviewable; certificate factorization binds authority to the exact payload; two-world tests can exercise every named observation. **Limits.** Graph proofs omit unmodeled effects, dynamic code, and hidden exception paths. Tests sample executions rather than prove universal noninterference. Timing, shared-index topology, access-pattern, statistical, and provider-retention channels may remain, and release-authorized declassification intentionally permits specified influence. Claims must therefore state the release, observer, observations, and side channels excluded.
 
@@ -2819,16 +2819,16 @@ A regression test uses a spy reranker and fails if any request contains `VIP-SEC
 
 | Name or alias | Exact source sighting |
 |---|---|
-| Authorization domination | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#13.3 Authorization domination]] |
-| Authorization semantics | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#9.5 Authorization semantics]] |
-| Authorization before ranking effects | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#29.2 Authorization before ranking effects]] |
-| Noninterference goal | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#29.3 Noninterference goal]] |
-| Authorization noninterference boundary | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.10 Kernel K8: authorization noninterference boundary]] |
-| Move authorization before remote disclosure | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#18.4 Move authorization before remote disclosure]] |
-| Authorization certificates | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#17.3 Authorization certificates]] |
-| Authorization before remote disclosure | [[Transcripts/2026/08/09/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#D.7 ADR-007: authorization before remote disclosure]] |
+| Authorization domination | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#13.3 Authorization domination]] |
+| Authorization semantics | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#9.5 Authorization semantics]] |
+| Authorization before ranking effects | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#29.2 Authorization before ranking effects]] |
+| Noninterference goal | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Semantics_and_Dynamics_of_RAG#29.3 Noninterference goal]] |
+| Authorization noninterference boundary | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#9.10 Kernel K8: authorization noninterference boundary]] |
+| Move authorization before remote disclosure | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#18.4 Move authorization before remote disclosure]] |
+| Authorization certificates | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#17.3 Authorization certificates]] |
+| Authorization before remote disclosure | [[Transcripts/2026/08/07/Designing RAG Abstractions/Compositional_Retrieval_Systems_Thesis#D.7 ADR-007: authorization before remote disclosure]] |
 | Security labels, authorization, and noninterference | [[Transcripts/2026/08/06/RAG DSL for Retrieval/rag-ttc-research-projects-compendium#P13 - Security Labels, Authorization, and Noninterference]] |
-| Reranking and remote disclosure | [[Transcripts/2026/08/09/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#38.3 Reranking and remote disclosure]] |
+| Reranking and remote disclosure | [[Transcripts/2026/08/07/Designing RAG Abstractions/The_Algebra_of_Intervention_Fields#38.3 Reranking and remote disclosure]] |
 | Product authorization around shared evidence admission and projection | [[Research/Software Architecture Garden/ragkit/designs/01 - Source-Authoritative Evidence Ledger Kernel#Product extensions|Source-Authoritative Evidence Ledger Kernel — product extensions]] |
 
 > [!example] Architecture Garden evidence

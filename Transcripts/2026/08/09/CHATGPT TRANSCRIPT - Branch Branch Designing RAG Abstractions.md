@@ -7933,3 +7933,1927 @@ The sandbox passes `go test ./...`. Its executable RAG campaign ran successfully
 
 The thesis is **38 pages in PDF form** and develops the backbone around free typed monoidal plans, plugins as algebraic signatures, `Para(C)`-style parameterized morphisms, lawful optics for interventions, Markov/Kleisli stochastic semantics and couplings, ordered decision algebras, coalgebraic campaigns, and the way RAG-specific optimization is grafted onto that domain-neutral core.
 
+
+---
+
+> Write me a full textbook about all of this, output in markdown and pdf. Use mathematical / theoretical frameworks to formulate things as well, in addition to the way they are presented (could be that they already use deeper abstractions/mathematical formualtions)
+>
+> Use the material you gathered, but rewrite and restructure it so it actually turns into a real pedagogical textbook.
+>
+> Let’s try again, more structured and pedagogical: 4 big chapters, and after writing the first draft, go back and make sure each definition and term worth defining or introducing is properly motivated and defined and then applied in a few examples. Pretend you are a student reading the text and trying to make sense of it, and then rewrite it.
+>
+> Make sure to introduce concepts by motivation, definition, then concrete worked examples, then exercises, and potentially counterexample. Use full prose paragraphs and lists and pseudocode and maths and api signatures and diagrams. Use callouts for expanding on fundamentals or side topics.
+
+I’ll rebuild the material as a four-chapter textbook rather than a thesis dump: each major concept will follow motivation → definition → worked examples → counterexamples → exercises, with the RAG optimization sandbox used throughout as the running system.
+
+```unknown
+bash -lc ls -lah /mnt/data/opfield_deliverables || true; ls -lah /mnt/data/opfield_work || true; find /mnt/data -maxdepth 3 -iname '*Compositional*Optimization*' -o -iname '*opfield*' | sed -n '1,200p'
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Planning the platform**
+
+I’m outlining a textbook on extensible optimization: plugin contracts, typed parameter spaces, lenses, retrieval-augmented implementation, production semantics, laws, tests, migrations, examples, exercises, and carefully selected primary references.
+
+**Planned the platform**
+
+**Inspected thesis materials, deliverables, and extracted opfield files**
+
+</details>
+
+```json
+{"system2_search_query":[{"q":"site:arxiv.org \"Backprop as Functor\" Fong Spivak Tuyeras"},{"q":"site:arxiv.org \"Categories of Optics\" Riley"},{"q":"site:arxiv.org \"Markov Categories\" Fritz 2020"},{"q":"site:arxiv.org \"Categorical Foundations of Gradient-Based Learning\" Cruttwell Gavranovic"}],"response_length":"long"}
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Searched 1 website**
+
+</details>
+
+```unknown
+bash -lc mkdir -p /mnt/data/opfield_textbook_work/raw /mnt/data/opfield_textbook_work/out /mnt/data/opfield_textbook_work/figures && pandoc /mnt/data/opfield_deliverables/A_Compositional_Mathematics_of_Optimization_Fields.docx --to=markdown+tex_math_dollars --extract-media=/mnt/data/opfield_textbook_work/raw/media -o /mnt/data/opfield_textbook_work/raw/prior_thesis.md && wc -l -w -c /mnt/data/opfield_textbook_work/raw/prior_thesis.md && sed -n '1,220p' /mnt/data/opfield_textbook_work/raw/prior_thesis.md
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Structuring the textbook**
+
+I’m expanding the outline into a substantial, teachable work with four chapters, diagrams, code examples, exercises, tests, migration guidance, production concerns, and references, while keeping the mathematical and engineering threads connected.
+
+**Structured the textbook**
+
+</details>
+
+```unknown
+bash -lc cat /home/oai/skills/pdfs/SKILL.md | sed -n '1,260p'
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Converted DOCX to Markdown and reviewed thesis headings and PDF guidelines**
+
+</details>
+
+The four-chapter structure is fixed now: (1) compositional process semantics, (2) interventions/plugins/interpreters, (3) stochastic experiments and feedback, and (4) the complete RAG optimization architecture. Each chapter will build from first principles rather than assuming the thesis terminology is already familiar.
+
+```unknown
+bash -lc cat > /mnt/data/opfield_textbook_work/make_figures.py <<'PY'
+from pathlib import Path
+import subprocess
+
+OUT=Path('/mnt/data/opfield_textbook_work/figures'); OUT.mkdir(parents=True,exist_ok=True)
+
+def render(name, body):
+    dot=OUT/(name+'.dot'); dot.write_text(body)
+    subprocess.run(['dot','-Tsvg',str(dot),'-o',str(OUT/(name+'.svg'))],check=True)
+    subprocess.run(['dot','-Tpng','-Gdpi=180',str(dot),'-o',str(OUT/(name+'.png'))],check=True)
+
+common='''digraph G {
+  graph [fontname="DejaVu Sans", bgcolor="transparent", pad="0.18", nodesep="0.35", ranksep="0.55", splines=ortho];
+  node [fontname="DejaVu Sans", fontsize=10.5, shape=box, style="rounded,filled", fillcolor="#f4f7f9", color="#446173", fontcolor="#172b3a", penwidth=1.1, margin="0.12,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#607683", fontcolor="#50636e", arrowsize=0.7, penwidth=1.1];
+'''
+
+render('01_optimization_field', common + '''
+rankdir=LR;
+world [label="Domain world\nartifacts + workloads"];
+params [label="Intervention space\nwhat may change", fillcolor="#eef6ee"];
+plan [label="Typed plan\nwhat composes"];
+eval [label="Evaluator\npossibly stochastic", fillcolor="#fff7e8"];
+evidence [label="Evidence\ntrials + traces"];
+decide [label="Decision algebra\nconstraints + preference", fillcolor="#f7eef7"];
+update [label="Campaign state\naccept / reject / continue"];
+world -> plan; params -> plan [label="parameterize"];
+plan -> eval; eval -> evidence; evidence -> decide; decide -> update; update -> params [label="feedback", style=dashed];
+}''')
+
+render('02_category_composition', common + '''
+rankdir=LR;
+A [label="A\nQuery"];
+f [label="f\nretrieve"];
+B [label="B\nCandidates"];
+g [label="g\nrerank"];
+C [label="C\nRanked evidence"];
+A->f->B->g->C;
+labelloc="b"; label="Sequential composition:  g o f : A -> C";
+}''')
+
+render('03_tensor_parallel', common + '''
+rankdir=LR;
+q [label="Query"];
+copy [label="copy"];
+lex [label="lexical\nsearch"];
+vec [label="vector\nsearch"];
+pair [label="pair of\nrankings"];
+fuse [label="fusion"];
+out [label="fused\nranking"];
+q->copy; copy->lex; copy->vec; lex->pair; vec->pair; pair->fuse->out;
+labelloc="b"; label="Tensor/parallel composition models independent branches; copy is explicit.";
+}''')
+
+render('04_free_plan_interpreters', common + '''
+rankdir=TB;
+plugin [label="Plugin signatures\nschemas + primitive generators + laws", fillcolor="#eef6ee"];
+syntax [label="Free typed plan\nsequence | tensor | symmetry | copy/drop", fillcolor="#eef3fa", penwidth=1.6];
+exec [label="Execution\ninterpreter"];
+cost [label="Cost\ninterpreter"];
+effect [label="Effect / trust\ninterpreter"];
+prov [label="Provenance\ninterpreter"];
+graph [label="Graph / docs\ninterpreter"];
+test [label="Law-test\ninterpreter"];
+plugin->syntax;
+syntax->exec; syntax->cost; syntax->effect; syntax->prov; syntax->graph; syntax->test;
+}''')
+
+render('05_para_construction', common + '''
+rankdir=LR;
+P [label="P\nparameters", fillcolor="#eef6ee"];
+A [label="A\ninput"];
+combine [label="(p, a)"];
+f [label="f"];
+B [label="B\noutput"];
+P->combine; A->combine; combine->f->B;
+subgraph cluster2 { label="composition pairs parameter spaces"; color="#c8d4dc"; style="rounded,dashed";
+  PQ [label="P x Q"];
+  f2 [label="f_p"];
+  g2 [label="g_q"];
+  Y [label="result"];
+  PQ->f2->g2->Y;
+}
+}''')
+
+render('06_lens_intervention', common + '''
+rankdir=LR;
+S [label="ReleaseSpec S\n(chunking, embedding, fusion, ...)"];
+get [label="get"];
+A [label="Focused parameter A\nvector_weight"];
+new [label="candidate value A'"];
+put [label="put"];
+S2 [label="Candidate S'\nonly focus changed", fillcolor="#eef6ee"];
+S->get->A;
+S->put; new->put; put->S2;
+labelloc="b"; label="Lens laws make local intervention claims testable.";
+}''')
+
+render('07_plugin_boundary', common + '''
+rankdir=TB;
+core [label="Optimization core\ncomposition + identity + evidence + campaign", fillcolor="#eef3fa", penwidth=1.6];
+api [label="Plugin interface\nSchema | Operation | Space | Evaluator | Laws"];
+rag [label="RAG plugin\nchunkers, indexes, retrievers, metrics", fillcolor="#eef6ee"];
+compiler [label="Compiler plugin\npasses, flags, benchmarks", fillcolor="#fff7e8"];
+sched [label="Scheduler plugin\npolicies, simulations, SLA metrics", fillcolor="#f7eef7"];
+core->api; api->rag; api->compiler; api->sched;
+rag->core [label="typed generators / evidence", style=dashed];
+compiler->core [style=dashed]; sched->core [style=dashed];
+}''')
+
+render('08_markov_coupling', common + '''
+rankdir=LR;
+case [label="case x_i"];
+seed [label="shared random source omega", fillcolor="#fff7e8"];
+base [label="baseline kernel\nK_b"];
+cand [label="candidate kernel\nK_c"];
+pair [label="paired outcome\n(y_b, y_c)", fillcolor="#eef6ee"];
+delta [label="paired difference\nDelta m"];
+case->base; case->cand; seed->base; seed->cand; base->pair; cand->pair; pair->delta;
+labelloc="b"; label="A coupling is part of experiment semantics, not an implementation detail.";
+}''')
+
+render('09_campaign_coalgebra', common + '''
+rankdir=LR;
+state [label="Campaign state S\nbaseline + evidence + budget"];
+propose [label="propose"];
+candidate [label="candidate I"];
+realize [label="realize"];
+eval [label="evaluate"];
+evidence [label="new evidence E"];
+decide [label="decide"];
+next [label="S' or terminal", fillcolor="#eef6ee"];
+state->propose->candidate->realize->eval->evidence->decide->next;
+next->state [label="continue", style=dashed];
+}''')
+
+render('10_rag_dependency_graph', common + '''
+rankdir=LR;
+source [label="corpus"];
+norm [label="normalize"];
+chunk [label="chunk"];
+repr [label="represent"];
+embed [label="embed"];
+lex [label="lexical index"];
+vec [label="vector index"];
+query [label="query rewrite"];
+retrieve [label="retrieve"];
+fuse [label="fusion"];
+rerank [label="rerank"];
+context [label="context"];
+answer [label="answer / agent"];
+metrics [label="evaluation"];
+source->norm->chunk->repr; repr->embed->vec; repr->lex; query->retrieve; lex->retrieve; vec->retrieve; retrieve->fuse->rerank->context->answer->metrics;
+chunk->metrics [style=dotted]; repr->metrics [style=dotted];
+}''')
+
+render('11_invalidation_closure', common + '''
+rankdir=LR;
+change [label="intervention:\nchunker size 1200 -> 800", fillcolor="#fff7e8"];
+chunk [label="chunk artifacts", fillcolor="#fbeeee"];
+repr [label="representations", fillcolor="#fbeeee"];
+embed [label="embeddings", fillcolor="#fbeeee"];
+indexes [label="indexes", fillcolor="#fbeeee"];
+retr [label="retrieval eval", fillcolor="#fbeeee"];
+ans [label="answer/session eval", fillcolor="#fbeeee"];
+source [label="source snapshot\nREUSE", fillcolor="#eef6ee"];
+norm [label="normalized docs\nREUSE", fillcolor="#eef6ee"];
+change->chunk->repr->embed->indexes->retr->ans;
+source->norm [color="#4f7f5f"];
+labelloc="b"; label="The dependency graph computes causal invalidation instead of rebuilding everything.";
+}''')
+
+render('12_full_architecture', common + '''
+rankdir=TB;
+subgraph cluster_core {label="Small semantic kernel"; color="#b9cad5"; style="rounded,dashed";
+  plan [label="free typed plans"];
+  identity [label="canonical identity"];
+  evidence [label="trial/evidence model"];
+  campaign [label="campaign reducer"];
+}
+subgraph cluster_ext {label="Extension interfaces"; color="#b9cad5"; style="rounded,dashed";
+  schemas [label="schemas + codecs"];
+  ops [label="primitive operations"];
+  optics [label="intervention optics"];
+  evals [label="evaluators"];
+  laws [label="laws + capabilities"];
+}
+subgraph cluster_rag {label="RAG domain graft"; color="#b9cad5"; style="rounded,dashed";
+  build [label="index realization"];
+  query [label="query execution"];
+  metrics [label="retrieval/answer metrics"];
+  release [label="release specification"];
+}
+plan->ops; identity->schemas; evidence->evals; campaign->optics; laws->ops;
+ops->build; optics->release; evals->metrics; build->query; release->build; query->metrics; metrics->campaign [style=dashed];
+}''')
+
+print('generated', len(list(OUT.glob('*.svg'))), 'svg figures')
+PY
+python /mnt/data/opfield_textbook_work/make_figures.py
+ls -lh /mnt/data/opfield_textbook_work/figures | sed -n '1,120p'
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Generated and refined a four-chapter compositional optimization textbook**
+
+</details>
+
+A major rewrite decision is to use RAG as the running example without making it primitive in the mathematics. The final chapter will explicitly show how chunking, embedding, indexes, fusion, reranking, answer/session evaluation, releases, and `ragopt` attach through the same small extension interfaces.
+
+```unknown
+bash -lc cat >> /mnt/data/opfield_textbook_work/out/Compositional_Optimization_Systems.md <<'EOF'
+
+# Chapter 4. A Composable Optimization Architecture for RAG
+
+## 4.1 Why RAG is a good stress test for the theory
+
+### Motivation
+
+Retrieval-augmented generation is not one algorithm. It is a family of systems whose behavior emerges from two broad computations:
+
+1. a **materialization computation** that turns an external corpus into searchable artifacts;
+2. a **serving computation** that turns a query and runtime state into evidence, answers, actions, or presentations.
+
+Optimization can intervene on either side. A chunker, representation prompt, embedding model, index backend, fusion weight, reranker, context budget, agent policy, or frontend evidence policy may change. Some changes require expensive rematerialization; others are query-time only. Some preserve ideal semantics while changing approximation or latency. Others intentionally change knowledge projection. Some are safe to evaluate at retrieval level; others require end-to-end sessions.
+
+This is exactly the sort of domain for which a small compositional kernel is useful. RAG is complex enough to need the structure but specific enough that the core must not absorb its vocabulary.
+
+![A dependency graph spanning corpus materialization and query-time behavior.](figures/10_rag_dependency_graph.png){width=92%}
+
+## 4.2 A denotation for a RAG release
+
+Before defining plugin interfaces, we need to say what a complete RAG configuration *means*.
+
+### Definition 4.1 — RAG release
+
+A **RAG release** is an immutable, behavior-complete parameter object that identifies the material and policy inputs required to interpret a query.
+
+A schematic release is
+
+\[
+R=(S,B,I,Q,A,P),
+\]
+
+where:
+
+- \(S\) is source/corpus snapshot identity;
+- \(B\) is build specification: normalization, chunking, representations, embeddings;
+- \(I\) is index material and backend specification;
+- \(Q\) is query/retrieval policy;
+- \(A\) is answer or agent policy;
+- \(P\) is product policy such as authorization, structured facts, and presentation.
+
+A direct-search denotation can be modeled as
+
+\[
+\llbracket R\rrbracket_{search}:U\otimes Qry\to\mathcal D(Outcome_{search}),
+\]
+
+where \(U\) is subject/runtime context.
+
+An answer denotation is
+
+\[
+\llbracket R\rrbracket_{answer}:U\otimes Ctx\otimes Qry\to\mathcal D(Outcome_{answer}).
+\]
+
+An agentic system may be better modeled as a state machine or coalgebra over conversation state.
+
+### Why “release” is larger than “index”
+
+Suppose two servers open the same vector and lexical index, but one uses a different synonym set or reranker model. Their behavior differs even though their index artifact is identical. If both call themselves release `index-42`, optimization evidence cannot identify what was evaluated.
+
+The release parameter object must therefore include every behaviorally material input relevant to the experiment. Runtime details such as worker count can remain execution identity unless they affect observable semantics.
+
+> **Design callout: a candidate is a new release specification, not a bag of patches.** A patch/intervention explains *how the candidate differs* from baseline. The realized candidate should still be a complete immutable specification whose identity can stand alone.
+
+## 4.3 RAG indexing as compositional derivation
+
+### Motivation
+
+An indexing pipeline often looks linear in documentation:
+
+```text
+load -> chunk -> embed -> index
+```
+
+Real systems contain branches and derived representations:
+
+```text
+source
+  -> normalize
+  -> chunk
+      -> raw representation ---------> lexical index
+      -> contextual representation --\
+      -> generated questions ---------+-> embeddings -> vector index
+      -> summary ---------------------/
+```
+
+The free monoidal plan language can express this graph directly. Each stage is supplied by a domain plugin.
+
+### Definition 4.2 — Derivation stage
+
+A **derivation stage** is a primitive morphism whose output semantic identity is a function of declared semantic inputs:
+
+\[
+f:X\to Y,
+\qquad
+\mathrm{ID}(y)=H(\mathrm{opID},\mathrm{ID}(x),\mathrm{staticSpec},\ldots).
+\]
+
+A deterministic derivation can be content-addressably cached. A stochastic derivation must additionally identify or retain the realized stochastic output and its generating conditions.
+
+### Worked example 4.1 — Chunking
+
+```go
+type Chunker interface {
+    Descriptor() OperationDescriptor
+    Chunk(context.Context, ChunkSpec, Document) ([]Chunk, error)
+}
+```
+
+A product need not expose the interface exactly this way. In the compositional signature, the important operation is:
+
+\[
+\mathsf{chunk}:\mathsf{ChunkSpec}\otimes\mathsf{Document}\to\mathsf{ChunkSet}.
+\]
+
+A chunk should retain source lineage:
+
+```go
+type Chunk struct {
+    ID          ChunkID
+    DocumentID  DocumentID
+    Start, End  int
+    TextDigest  Digest
+    Text        string
+}
+```
+
+The chunk ID depends on document revision, chunker identity, and exact span/text semantics. This makes a chunking intervention’s invalidation effects mechanically visible.
+
+### Worked example 4.2 — Generated representations
+
+A representation generator may be stochastic or provider-backed:
+
+\[
+\mathsf{represent}:\mathsf{PromptSpec}\otimes\mathsf{Chunk}	o\mathcal D(\mathsf{Representation}).
+\]
+
+A realized representation is *searchable derived material*, not automatically authoritative evidence. It retains a link to its source chunk.
+
+This distinction prevents an optimization mistake: generated questions can improve retrieval, but the answer should normally cite source evidence, not the generated question as an independent fact.
+
+### Definition 4.3 — Derivation dependency
+
+If stage \(g\) consumes output of stage \(f\), then semantic changes in \(f\)'s output identity propagate to \(g\). The release-specific plan induces a dependency graph.
+
+A build-affecting intervention is therefore evaluated by two functions:
+
+\[
+\mathsf{apply}:R\times I\to R'
+\]
+
+and
+
+\[
+\mathsf{impact}:R\times I\to(\mathsf{reuse},\mathsf{rebuild},\mathsf{reevaluate}).
+\]
+
+### Worked example 4.3 — Chunking versus fusion
+
+**Change chunk size.** Reuse source snapshot and normalized documents. Rebuild chunks, affected representations, embeddings, indexes. Reevaluate retrieval and downstream answer/session outcomes.
+
+**Change vector fusion weight.** Reuse every build artifact. Reexecute fusion and every downstream evaluation whose outcome may change.
+
+A shared optimizer should not need RAG-specific `if chunk_size changed` code. The RAG plugin’s dependency declarations and optics give the planner enough information to compute the closure.
+
+## 4.4 Querying as a typed retrieval algebra
+
+### Motivation
+
+A production query path contains operations whose ordering is semantically meaningful:
+
+\[
+\mathsf{rewrite}\to\mathsf{channels}\to\mathsf{collapse}\to\mathsf{filter}\to\mathsf{fuse}\to\mathsf{rerank}\to\mathsf{hydrate}\to\mathsf{admit}.
+\]
+
+Not every route uses every operation. The core should provide composition; the RAG package should provide the vocabulary and laws.
+
+### Definition 4.4 — Candidate
+
+A **retrieval candidate** is a non-authoritative ranked reference produced by a channel. It should contain enough identity and score information to combine or filter results without necessarily hydrating full source text.
+
+```go
+type Candidate struct {
+    EvidenceID EvidenceID
+    SourceID   SourceID
+    Score      FiniteScore
+    Rank       int
+    Channel    ChannelID
+    Metadata   CandidateMetadata
+}
+```
+
+### Definition 4.5 — Evidence
+
+**Evidence** is material that has passed the application’s admission and authorization rules and may be supplied to an answer or presentation process.
+
+A representation hit becomes evidence only after it resolves to an authoritative source item under the release’s evidence policy.
+
+### Definition 4.6 — Retrieval plan
+
+A **retrieval plan** is a typed plan assembled from primitives such as:
+
+- query rewrite;
+- lexical/vector/structured channel search;
+- representation collapse;
+- authorization/filtering;
+- rank fusion;
+- reranking;
+- hydration;
+- evidence admission.
+
+The plan can be interpreted directly for execution and separately for security, cost, and provenance.
+
+### Worked example 4.4 — Hybrid retrieval
+
+Let:
+
+\[
+L:P_L\otimes Q\to R_L,
+\qquad
+V:P_V\otimes Q\to R_V.
+\]
+
+A fusion policy
+
+\[
+F:P_F\otimes(R_L\otimes R_V)\to R
+\]
+
+creates a parameterized composite with parameter object
+
+\[
+P_L\otimes P_V\otimes P_F.
+\]
+
+If the product exposes a single `RetrievalSpec`, a reparameterization compiles it into these low-level parameter objects.
+
+### Worked example 4.5 — Weighted reciprocal-rank fusion
+
+For channel set \(C\), rank \(r_c(d)\), rank constant \(k>0\), and channel weight \(w_c\ge0\), define
+
+\[
+\mathrm{RRF}(d)=\sum_{c\in C}\frac{w_c}{k+r_c(d)}.
+\]
+
+A fusion plugin should specify deterministic tie-breaking for equal finite scores. One possible total order is:
+
+1. decreasing fused score;
+2. increasing best channel rank;
+3. stable document/source identity;
+4. stable chunk identity.
+
+The exact rule is domain policy; the **requirement that it be total and deterministic** belongs in shared law tests.
+
+### Counterexample 4.1 — Hidden hydration inside reranking
+
+If a `rerank(candidates)` callback internally hydrates source text, static policy analysis may see only a rerank operation and miss the disclosure. A better primitive descriptor states whether the operation consumes IDs, metadata, or text and declares remote effects. A product security interpreter can then verify authorization dominates disclosure.
+
+## 4.5 Open ports and plugin interfaces
+
+### Motivation
+
+In a compositional architecture, the word **port** should have a precise meaning. It does not mean a TCP port. It is the typed boundary at which an open component expects or exposes information.
+
+A campaign machine may be “open” with respect to proposal strategy, evaluator, artifact store, or decision policy. A RAG plan may be open with respect to a retrieval backend or reranker. Composition closes ports by connecting compatible interfaces.
+
+### Definition 4.7 — Port
+
+A **port** is an ordered typed interface boundary:
+
+\[
+P=(A_1,\dots,A_n).
+\]
+
+A plan has input port \(P_{in}\) and output port \(P_{out}\). Two plans can compose sequentially when the output port of the first matches the input port of the second.
+
+In a software IR:
+
+```go
+type Port []SchemaID
+```
+
+The word “open” means that some required port remains supplied by the surrounding environment rather than internally wired.
+
+### Worked example 4.6 — Open evaluator
+
+The optimization core can define a campaign over a port
+
+```text
+Candidate × Case × Seed -> TrialOutcome
+```
+
+without knowing its implementation. A RAG plugin closes that port with its evaluator; a compiler plugin supplies another evaluator.
+
+This is a cleaner extension point than a plugin receiving a mutable `Campaign` object.
+
+### Worked example 4.7 — Open artifact store
+
+A plan interpreter may require a capability port
+
+```text
+ArtifactStore
+```
+
+for content-addressed writes. Local filesystem, S3-compatible storage, and in-memory test stores can implement the same capability. The core cares about the semantic contract—immutable put/get by digest—not the transport.
+
+> **Side topic: ports versus interfaces.** A Go interface is one way to implement an open port. A schema-typed wire in a plan is another. The mathematical notion is about compositional boundary; the language-level interface is an engineering realization.
+
+## 4.6 The plugin family for a production RAG field
+
+A mature RAG optimization system benefits from several plugin interfaces rather than one giant `RAGPlugin`.
+
+### 4.6.1 Corpus/source plugin
+
+Responsibilities:
+
+- capture source snapshots or revisions;
+- normalize documents;
+- expose source identity and policy metadata;
+- retain watermarks or version information where relevant.
+
+Possible operations:
+
+```text
+capture   : SourceRequest -> CorpusSnapshot
+normalize : NormalizeSpec × CorpusSnapshot -> NormalizedCorpus
+```
+
+### 4.6.2 Chunking plugin
+
+```text
+chunk : ChunkSpec × NormalizedCorpus -> ChunkSet
+```
+
+Laws:
+
+- deterministic under claimed semantics;
+- every chunk resolves to exactly one source revision/span;
+- valid non-overflowing ranges;
+- stable total ordering;
+- canonical IDs.
+
+### 4.6.3 Representation plugin
+
+```text
+represent : RepresentationSpec × ChunkSet -> RepresentationSet
+```
+
+May be deterministic or stochastic. Generated outputs retain source lineage and provider/prompt identity.
+
+### 4.6.4 Embedding plugin
+
+```text
+embed : EmbeddingSpec × RepresentationSet -> VectorSet
+embedQuery : EmbeddingSpec × Query -> QueryVector
+```
+
+A law should ensure build and query embedding specs are compatible. A release must not silently combine vectors from one model with query embeddings from another.
+
+### 4.6.5 Index backend plugin
+
+Capabilities may include:
+
+```go
+type Capabilities struct {
+    FullBuild      bool
+    Upsert         bool
+    Delete         bool
+    FilterPushdown bool
+    SnapshotRead   bool
+    Exact          bool
+    Compact        bool
+}
+```
+
+Operations:
+
+```text
+build : IndexSpec × Entries -> IndexArtifact
+open  : IndexArtifact -> SearcherCapability
+search: SearcherCapability × Query × Filter -> Ranking
+```
+
+The optimizer can reject a candidate whose required semantics exceed backend capabilities before running an expensive campaign.
+
+### 4.6.6 Fusion/reranking plugin
+
+Fusion is often pure and deterministic. Reranking may be local or remote, stochastic or deterministic, and may disclose text. Its descriptor should say so.
+
+### 4.6.7 Evidence/admission plugin
+
+This product-owned layer decides what ranked items may become evidence under subject and release policy.
+
+```text
+authorize : Subject × CandidateSet -> AuthorizedCandidateSet
+hydrate   : AuthorizedCandidateSet -> HydratedEvidence
+admit     : EvidencePolicy × HydratedEvidence -> ContextEvidence
+```
+
+The ordering is security-sensitive and should be checkable by an interpreter.
+
+### 4.6.8 Answer/agent plugin
+
+A retrieve-then-generate answer stage can be a stochastic kernel. An agent plugin exposes a bounded state machine with tool-call ports. Product prompts and tool schemas belong to the release parameter object.
+
+### 4.6.9 Evaluator plugin
+
+A domain evaluator consumes a candidate release and a workload case and returns a **native artifact plus stable metric projection**.
+
+```go
+type TrialResult struct {
+    Status     Status
+    Native     ArtifactRef
+    Metrics    MetricVector
+    Trace      ArtifactRef
+    Failure    *Failure
+}
+```
+
+This preserves domain richness without teaching the campaign core what `nDCG`, citation support, or widget validity means.
+
+## 4.7 `ragkit` and `ragopt`: separating domain semantics from campaign custody
+
+### Motivation
+
+The motivating codebase already suggests a useful architectural split.
+
+- `ragkit` is the natural owner of reusable RAG functionality and semantics.
+- `ragopt` is the natural owner of optimization-run mechanics: candidates, paired evaluation, resumability, comparison, gates, and reporting.
+
+The mistake would be to put all RAG optimization semantics into `ragopt` or all experiment mechanics into `ragkit`.
+
+### Definition 4.8 — Domain layer versus experiment layer
+
+The **domain layer** defines:
+
+- legal parameter spaces and interventions;
+- build/query operations;
+- artifact semantics;
+- native evaluators and metric meaning;
+- domain laws and capabilities.
+
+The **experiment layer** defines:
+
+- trial coordinates;
+- exact pairing;
+- seed/coupling policy;
+- durable evidence custody;
+- comparison mechanics;
+- gate execution;
+- proposal/campaign state.
+
+A thin adapter binds them.
+
+### Proposed package shape
+
+```text
+optimization-kernel/
+  core/        schemas, envelopes, identities, plans
+  optic/       lawful interventions
+  prob/        seeds, finite/reference kernels, couplings
+  experiment/  coordinates, evidence, comparisons
+  campaign/    event reducer, resume, proposal loop
+  plugin/      signature registry and law harness
+
+ragkit/
+  corpus/
+  derive/
+  index/
+  query/
+  answer/
+  evidence/
+  eval/
+  plugins/     concrete backend/provider adapters
+
+ragopt/
+  candidate/
+  runstore/
+  compare/
+  gate/
+  report/
+  ragspace/    thin adapter importing ragkit domain types
+```
+
+The exact repository boundaries can differ. The important condition is dependency direction: the domain-neutral campaign core does not import RAG packages.
+
+![A complete architecture with a small semantic kernel, extension interfaces, and a RAG domain graft.](figures/12_full_architecture.png){width=92%}
+
+### Counterexample 4.2 — `ragopt` knows every RAG parameter
+
+If `ragopt` contains fields such as `ChunkSize`, `EmbeddingModel`, `RRFK`, and `RerankTopK`, every new RAG mechanism requires changing the supposedly generic optimizer. Compiler or scheduling optimization will not fit. The optimizer has become a second RAG model.
+
+Instead, `ragopt` should see intervention IDs, candidate/release IDs, dependency summaries, trial coordinates, native artifact references, and metric projections.
+
+## 4.8 Candidate spaces as plugin interfaces
+
+### Motivation
+
+An optimizer needs a way to ask “what may I change?” without knowing the domain’s configuration structure.
+
+### Definition 4.9 — Candidate space
+
+A **candidate space** exposes a baseline semantic object and legal interventions.
+
+```go
+type Space interface {
+    ID() string
+    Schema() SchemaID
+    Baseline(context.Context) (Envelope, error)
+    Proposals(context.Context, Envelope) ([]Intervention, error)
+    Apply(context.Context, Envelope, Intervention) (Envelope, error)
+    Impact(context.Context, Envelope, Intervention) (Impact, error)
+}
+```
+
+The space is domain-owned. A generic proposer can rank or select interventions, but only the space can validate them.
+
+### Worked example 4.8 — A typed RAG search space
+
+```go
+type RAGSpace struct {
+    VectorWeight Lens[ReleaseSpec, float64]
+    ChunkSize    Lens[ReleaseSpec, int]
+    RerankModel  Lens[ReleaseSpec, ModelRef]
+}
+```
+
+The space may expose discrete proposals:
+
+```text
+vector_weight in {0.5, 0.8, 1.0, 1.2, 1.5}
+chunk_size in {600, 800, 1000, 1200}
+reranker in {none, local-v3, remote-v5}
+```
+
+or a continuous/speculative proposal API. The important part is that every proposal becomes a validated intervention with semantic class and impact closure.
+
+### Side topic — Conditional spaces
+
+Not every parameter is active in every configuration. `efSearch` is meaningful only for HNSW. `RerankPool` may be irrelevant when reranking is disabled. The candidate space is therefore often a dependent or conditional space, not a Euclidean box.
+
+A plugin can expose:
+
+```go
+type Availability interface {
+    Active(spec Envelope, optic OpticID) bool
+}
+```
+
+or represent backend-specific parameters through sum types. This is another reason to avoid a flat numeric vector as the semantic source of truth.
+
+## 4.9 Evaluation fidelity is determined by the intervention
+
+### Motivation
+
+A fusion-weight change can be evaluated cheaply on frozen channel rankings. A chunking change cannot. An agent prompt change cannot be accepted from retrieval metrics alone. We need a mapping from intervention class/dependency closure to the minimum evaluation fidelity.
+
+### Definition 4.10 — Fidelity
+
+An **evaluation fidelity** is a level of experimental realism and cost. A useful RAG ladder is:
+
+1. schema and law validation;
+2. deterministic retrieval on a frozen local fixture;
+3. exact retrieval evaluation on a labeled suite;
+4. repeated answer evaluation;
+5. multi-turn/session evaluation;
+6. refresh/load/failure simulation;
+7. shadow traffic;
+8. canary traffic.
+
+An intervention has a **minimum fidelity requirement** determined by what it can change.
+
+### Worked example 4.9 — Fusion weight
+
+A fusion-weight sweep can first reuse channel rankings:
+
+```text
+lexical ranking artifact ----\
+                             +-> refusion(w) -> retrieval metrics
+vector ranking artifact ----/
+```
+
+This experiment validly estimates the effect of fusion under fixed channel outputs. It does not estimate the effect of changing chunking, embeddings, or reranking.
+
+Promising weights can then advance to answer evaluation.
+
+### Worked example 4.10 — Chunker
+
+A chunker change starts earlier in the dependency graph. Its retrieval evaluation needs rebuilt artifacts. Its answer evaluation may need source-span labels projected onto candidate chunks because old chunk IDs no longer exist.
+
+### Worked example 4.11 — Agent tool description
+
+Changing the model-visible search-tool description may change whether and how often the agent retrieves. Retrieval-only tests that call search directly bypass the intervention. Minimum fidelity is an agent/session evaluation.
+
+### Counterexample 4.3 — One benchmark for every parameter
+
+A single benchmark creates false confidence. It may be too expensive for query-weight sweeps and too shallow for agent-policy changes. Dependency-aware fidelity preserves both efficiency and validity.
+
+## 4.10 Native artifacts and projections
+
+### Motivation
+
+A generic campaign core needs comparable fields but a RAG investigator needs detailed traces. We solve this by separating the native trial artifact from its projection.
+
+### Definition 4.11 — Native trial artifact
+
+A **native trial artifact** is the domain-specific immutable record sufficient for diagnosis and future remeasurement.
+
+For retrieval:
+
+```text
+release ID
+case/repeat/arm coordinate
+query and filters
+channel rankings
+collapse/fusion contributions
+reranker request/outcome
+final evidence ranks
+latency/usage
+failures/fallbacks
+```
+
+For answer/session evaluation, it may additionally include answer, citations, tool calls, structured facts, and judge artifacts.
+
+### Definition 4.12 — Metric projection
+
+A **metric projection** is a deterministic or versioned transformation
+
+\[
+\pi:\mathsf{NativeArtifact}\to\mathsf{MetricVector}.
+\]
+
+The campaign core stores both the native artifact reference and the projection used by a comparison.
+
+If the product later adds a new diagnostic metric that can be computed from retained artifacts, it can reproject without rerunning providers.
+
+## 4.11 Worked campaign A: fusion-weight optimization
+
+We now execute a complete campaign using the abstractions developed throughout the book.
+
+### Step 1 — Baseline
+
+A baseline release \(R_0\) contains:
+
+```text
+chunker: heading-aware/v3
+embedding: model E17
+lexical index: artifact L
+vector index: artifact V
+fusion: k=60, lexicalWeight=1.0, vectorWeight=1.0
+reranker: disabled
+```
+
+### Step 2 — Space and lens
+
+The RAG plugin exposes a lens
+
+\[
+L_w:R\rightsquigarrow\mathbb R_{\ge0}
+\]
+
+focused on vector weight. Proposals are \(w\in\{0.6,0.8,1.2,1.4\}\).
+
+### Step 3 — Impact closure
+
+The intervention targets `query.fusion.vector_weight`. The dependency graph marks build artifacts reusable:
+
+```text
+reuse: corpus, chunks, representations, embeddings, lexical/vector indexes
+recompute: fused rankings, admitted evidence
+reevaluate: retrieval metrics, answer metrics if candidate advances
+```
+
+### Step 4 — Trial coordinates
+
+For cases \(i=1,\dots,n\) and repeats \(r=1,\dots,R\), the run store requires baseline and candidate results at every coordinate.
+
+For deterministic retrieval, repeats may be unnecessary at the retrieval fidelity; repeated answer trials are introduced later.
+
+### Step 5 — Retrieval evidence
+
+The evaluator writes a native ranking artifact and projects:
+
+\[
+(\mathrm{Recall@10},\mathrm{MRR},\mathrm{nDCG@10},\mathrm{ScoredCandidates}).
+\]
+
+### Step 6 — Gates
+
+```text
+coverage == 100%
+security violations == 0
+Recall@10 lower confidence difference >= -0.005
+MRR lower confidence difference > 0
+nDCG protected strata noninferior
+```
+
+Eligible candidates move to answer fidelity.
+
+### Step 7 — Answer fidelity
+
+Baseline and candidate use paired case/repeat seeds. Generation and judge outputs are retained. Gates add groundedness, answer completeness, provider calls, latency, and cost.
+
+### Step 8 — Decision
+
+If multiple candidates survive, choose from their Pareto frontier according to product preference. The campaign emits a promotion report referencing the complete candidate release spec and evidence graph. It does not mutate production directly.
+
+### What the core knew
+
+The core knew:
+
+- a schema-identified baseline;
+- intervention IDs;
+- trial coordinates;
+- artifacts;
+- metrics and directions;
+- gate results;
+- campaign events.
+
+It did not know what RRF or nDCG meant.
+
+## 4.12 Worked campaign B: chunking optimization
+
+This example shows why materialization and query optimization must share one field.
+
+### Step 1 — Intervention
+
+Change chunk target from 1,200 to 800 units with the same overlap policy.
+
+Semantic classes: `knowledge`, `relevance`.
+
+### Step 2 — Impact
+
+The planner computes:
+
+```text
+reuse:
+  source snapshot
+  normalized documents
+
+rebuild:
+  chunk records
+  generated representations for affected chunks
+  embeddings for changed representations
+  lexical index
+  vector index
+
+reevaluate:
+  retrieval labels projected from source spans
+  retrieval metrics
+  answer/session metrics
+```
+
+### Step 3 — Materialization
+
+Every deterministic stage uses content-addressed keys. Unchanged chunks or representations, if their semantic IDs truly survive, can be reused. Stochastic generated representations require careful policy: reuse the retained old output only when its semantic key remains identical; otherwise the candidate receives a new realized artifact.
+
+### Step 4 — Label projection
+
+If the benchmark labels relevant **documents**, old labels survive trivially. If it labels old chunk IDs, the benchmark is coupled to the baseline chunker. A stronger dataset labels authoritative source spans or propositions and provides a versioned projection to candidate chunks.
+
+This illustrates a deep point: the evaluation schema itself can determine which interventions are scientifically comparable.
+
+### Step 5 — Refresh amplification metric
+
+Define
+
+\[
+A_{refresh}=\frac{\text{number of derived items recomputed}}{\text{number of source documents changed}}.
+\]
+
+A chunker that improves static retrieval but causes extreme invalidation under common edits may be poor for a frequently changing production corpus. Optimization should include both quality and maintenance cost when production dynamics matter.
+
+### Step 6 — Decision
+
+Security and lineage laws first; retrieval noninferiority and target gains next; answer quality next; build cost, index size, and refresh amplification after semantic gates.
+
+## 4.13 Worked campaign C: exact versus ANN index
+
+### Motivation
+
+An approximate vector backend is an ideal example of an intervention whose semantics are not exact equality.
+
+Let \(E(q)\) be the exact nearest-neighbor ranking and \(A_\theta(q)\) the ANN ranking under parameter \(\theta\).
+
+A candidate claim may be:
+
+\[
+\mathbb P_{q\sim W}\left[\mathrm{Recall@k}(A_\theta(q),E(q))\ge\rho\right]\ge1-\alpha.
+\]
+
+The exact backend is an **oracle** for approximation quality.
+
+### Candidate parameters
+
+- backend implementation/version;
+- graph construction parameters;
+- `efSearch`;
+- quantization;
+- partition count;
+- filter strategy.
+
+### Required evidence
+
+- exact-oracle recall at several \(k\);
+- protected filters/source strata;
+- deterministic or distributional reproducibility class;
+- p50/p95/p99 latency;
+- memory and index size;
+- build time;
+- update/delete behavior if production uses incremental maintenance;
+- downstream answer noninferiority.
+
+### Why the intervention optic matters
+
+`efSearch` is a query-time focus. `M` and `efConstruction` are build-time focuses. A backend change from exact SQLite to HNSW is a larger prism-like variant switch. These interventions have different impact closures despite sharing one conceptual “vector index” component.
+
+## 4.14 Optimization and production release semantics
+
+### Motivation
+
+The optimizer produces evidence about candidates, but production queries need stable release identities. Promotion should connect the two worlds without letting the optimizer become deployment authority.
+
+### Definition 4.13 — Promotion artifact
+
+A **promotion artifact** is an immutable record containing:
+
+```text
+baseline release ID
+candidate release ID
+intervention ID
+campaign ID
+comparison artifact
+ordered gate results
+protected-stratum evidence
+operational budget evidence
+human/automation decision identity
+```
+
+An external activation service can require a valid promotion artifact before changing the active release.
+
+### Why activation is outside the optimizer
+
+Separating promotion from activation prevents an optimizer from changing the environment it is measuring without a product-controlled boundary. It also supports staged, canary, or human-reviewed rollout.
+
+The categorical view is that optimization produces a morphism in an **evidence/decision system**; production activation is a separate effectful interpreter with stronger authority.
+
+## 4.15 Plugin design rules for a small but strong backbone
+
+We can now state concrete rules.
+
+### Rule 1 — The core owns composition, not domain vocabulary
+
+The core knows schemas, operations, plans, optics, effects, artifacts, evidence, and campaigns. It does not know chunks or compilers.
+
+### Rule 2 — Plugins expose generators, not arbitrary engine callbacks
+
+Every executable domain primitive has a descriptor visible before execution.
+
+### Rule 3 — Plugins own semantic validation
+
+The RAG plugin decides whether a chunking spec is legal and whether a benchmark target granularity is compatible. The core checks that validation happened and records the result.
+
+### Rule 4 — Effects are declared
+
+A remote reranker cannot masquerade as a pure ranking function. Network/text-disclosure capabilities are visible to plan analysis.
+
+### Rule 5 — Interventions are lawful and typed
+
+Use lenses/optics or explicit multi-field transformations with laws. Do not treat arbitrary mutation as a candidate.
+
+### Rule 6 — Native evidence is retained
+
+Metric projection is not the only record of what happened.
+
+### Rule 7 — Failure is evidence
+
+Every scheduled coordinate becomes a terminal outcome or remains explicitly incomplete. Failed cells are not filtered before pairing.
+
+### Rule 8 — Decision policy is versioned and separate
+
+Changing promotion thresholds does not mutate the underlying trial evidence.
+
+### Rule 9 — Optimizers are replaceable controllers
+
+Grid search, Bayesian optimization, evolutionary algorithms, humans, and LLM proposers operate through the same candidate/evidence interfaces.
+
+### Rule 10 — Every semantic claim should point to a law or test
+
+“Deterministic,” “cacheable,” “authorization-safe,” “approximation-equivalent,” and “local intervention” are claims with executable obligations.
+
+## 4.16 A self-contained Go skeleton
+
+The following API is intentionally compact. It is not intended as a final production library; it demonstrates how the mathematics compresses into ordinary interfaces.
+
+### Core schemas and operations
+
+```go
+type SchemaID string
+type OperationID string
+type Digest string
+
+type Envelope struct {
+    Schema SchemaID
+    Data   []byte
+    Digest Digest
+}
+
+type Port []SchemaID
+
+type OperationDescriptor struct {
+    ID            OperationID
+    Inputs        Port
+    Outputs       Port
+    Effects       []Effect
+    Deterministic bool
+    Cacheable     bool
+    Dependencies  []string
+}
+
+type Operation interface {
+    Descriptor() OperationDescriptor
+    Execute(context.Context, []Envelope) Execution
+}
+```
+
+### Plans
+
+```go
+type Plan struct {
+    Kind        PlanKind
+    In, Out     Port
+    Operation   OperationID
+    Children    []*Plan
+    Permutation []int
+}
+
+func Seq(ps ...*Plan) (*Plan, error)
+func Tensor(ps ...*Plan) (*Plan, error)
+func Copy(schema SchemaID) *Plan
+func Drop(schema SchemaID) *Plan
+func Fold[R any](p *Plan, sig Signature, a Algebra[R]) (R, error)
+```
+
+### Optics/interventions
+
+```go
+type Lens[S,A any] struct {
+    ID  string
+    Get func(S) A
+    Put func(S, A) (S, error)
+}
+
+type Intervention struct {
+    ID         string
+    Optic      string
+    Value      Envelope
+    Classes    []SemanticClass
+    Targets    []string
+    Claims     []Claim
+}
+```
+
+### Evaluation
+
+```go
+type Coordinate struct {
+    Case      string
+    Repeat    int
+    Arm       string
+    Candidate Digest
+}
+
+type TrialResult struct {
+    Coordinate Coordinate
+    Status     Status
+    Metrics    MetricVector
+    Native     ArtifactRef
+    Trace      ArtifactRef
+    Failure    *Failure
+}
+```
+
+### Campaign
+
+```go
+type Space interface {
+    Baseline(context.Context) (Envelope, error)
+    Proposals(context.Context, Envelope) ([]Intervention, error)
+    Apply(context.Context, Envelope, Intervention) (Envelope, error)
+    Impact(context.Context, Envelope, Intervention) (Impact, error)
+}
+
+type Runner interface {
+    Run(context.Context, TrialRequest) TrialResult
+}
+
+type Policy interface {
+    Decide(Comparison) Decision
+}
+```
+
+This is enough to implement the quadratic example and a nontrivial RAG plugin without adding RAG conditionals to the campaign engine.
+
+## 4.17 Interpreters for a RAG plan
+
+Consider one release plan. The architecture can compile it into several meanings.
+
+### Execution interpreter
+
+Uses local implementations, artifact stores, provider clients, and concurrency.
+
+### Dependency interpreter
+
+Returns semantic nodes and computes intervention closure.
+
+### Cost interpreter
+
+Estimates build calls, embedding tokens, provider dollars, storage, critical path, and memory.
+
+### Disclosure interpreter
+
+Tracks data classification through the plan and verifies remote operations receive only permitted data.
+
+### Provenance interpreter
+
+Constructs the prospective lineage graph and binds material artifact references after execution.
+
+### Evaluation-fidelity interpreter
+
+Computes the highest minimum fidelity required by changed nodes.
+
+### Documentation interpreter
+
+Renders the exact plan into a graph for reports and reviews.
+
+This is the concrete payoff of freeness: a new plugin operation teaches each interpreter its primitive meaning through a descriptor or handler, but the composition logic remains shared.
+
+## 4.18 Verification strategy
+
+### Motivation
+
+A mathematically inspired architecture is useful only if the laws become tests.
+
+We divide verification into layers.
+
+### 4.18.1 Core algebra tests
+
+- sequence associativity after plan normalization;
+- tensor associativity/coherence under canonical representation;
+- identity elimination;
+- symmetry/permutation validity;
+- schema/port typing;
+- stable plan identity.
+
+### 4.18.2 Optic tests
+
+- Get-Put;
+- Put-Get;
+- Put-Put;
+- composition preserves laws over generated valid states.
+
+### 4.18.3 Plugin conformance
+
+- schema codec round-trip;
+- operation output schema;
+- deterministic claims;
+- cache-key sensitivity;
+- capability contracts;
+- total ranking;
+- source/evidence lineage.
+
+### 4.18.4 Experiment tests
+
+- deterministic coordinate seeding;
+- exact baseline/candidate pairing;
+- failure retention;
+- resume equivalence;
+- idempotent event replay;
+- gate order and fail-closed behavior.
+
+### 4.18.5 RAG-specific properties
+
+- authorization before remote text disclosure;
+- build/query embedding compatibility;
+- generated representation resolves to source evidence;
+- incremental/full-build equivalence when incremental maintenance exists;
+- ANN recall against exact oracle;
+- citation IDs belong to admitted evidence;
+- no mixed release IDs in one pinned trial.
+
+### Worked example 4.12 — Property test for total ranking
+
+Generate finite candidates with arbitrary valid finite scores, including ties. A comparator `<` must satisfy:
+
+**Irreflexivity:** never \(a<a\).
+
+**Transitivity:** if \(a<b\) and \(b<c\), then \(a<c\).
+
+**Total comparability:** for distinct canonical identities, exactly one order holds after score/tie rules.
+
+Reject NaN and infinity at the score-construction boundary; otherwise ordinary floating-point comparison does not define the desired total order.
+
+## 4.19 When the category-theoretic architecture is overkill
+
+A good textbook must state where its own abstraction should not be used.
+
+### Counterexample 4.4 — One pure scalar function
+
+If your optimization problem is literally
+
+\[
+\min_{x\in[0,1]}f(x)
+\]
+
+where \(f\) is deterministic, cheap, pure, and has no artifact or safety semantics, a numerical optimization library is sufficient. Building a free monoidal plan and plugin registry adds ceremony without information.
+
+### Counterexample 4.5 — One application with no extension boundary
+
+A small internal script may never need plugins. It can still benefit from explicit trial coordinates and failure preservation, but an algebraic signature registry can be unnecessary.
+
+### Counterexample 4.6 — False abstraction before two domains exist
+
+Do not extract `UniversalIndexOptimizer` merely because RAG-TTC and GEC both have an `Optimize` command. Extract shared semantics only where their laws and lifecycle genuinely coincide. Domain-specific code is often healthier than a premature “generic” interface.
+
+The criterion is **semantic compression**: an abstraction is valuable when one small set of laws explains several real implementations and makes new checks possible.
+
+## 4.20 Migration path from pragmatic RAG code
+
+A mature system should not be rewritten all at once. The categorical kernel can be introduced by progressively making implicit semantics explicit.
+
+### Stage 0 — Behavioral fixtures
+
+Capture current retrieval rankings, bundle identities, answer contracts, failure paths, and experiment pairing behavior. These fixtures define what must remain equivalent and what will intentionally change.
+
+### Stage 1 — Semantic IDs and native artifacts
+
+Make candidate specs, evaluator versions, and trial artifacts content-addressed or otherwise immutable. Do this before advanced plan syntax.
+
+### Stage 2 — Lawful intervention APIs
+
+Replace string-path mutation with typed domain transformations or lenses. Keep legacy configuration serialization as an adapter.
+
+### Stage 3 — Operation descriptors
+
+Wrap existing functions with descriptors declaring ports, effects, dependencies, and determinism. Execution still calls the existing code.
+
+### Stage 4 — Free plans for one path
+
+Represent one high-value pipeline—perhaps retrieval evaluation—as free syntax. Implement execution and dependency interpreters. Compare against legacy behavior.
+
+### Stage 5 — Campaign custody
+
+Move exact trial pairing, resumability, failure retention, and gate reports into the generic experiment kernel while product evaluators remain native.
+
+### Stage 6 — Additional interpreters
+
+Add cost, disclosure, provenance, documentation, and fidelity analysis as concrete needs arise.
+
+### Stage 7 — Pluggable proposers
+
+Only after evidence and legality are stable should increasingly autonomous proposers, including LLM-based self-optimization, be given control over candidate proposals.
+
+This ordering matters. Autonomous search amplifies whatever semantics already exist; it does not repair weak experimental foundations.
+
+## 4.21 Capstone worked example: optimizing an entire RAG release
+
+We finish with a campaign containing three intervention families.
+
+### Baseline release
+
+```text
+Corpus snapshot: C42
+Chunker: MarkdownHeading(size=1000, overlap=100)
+Representations: raw + breadcrumb
+Embedding: E5
+Lexical backend: Bleve profile B3
+Vector backend: exact SQLite
+Query: lexicalK=50, vectorK=50, RRF k=60, vectorWeight=1.0
+Reranker: local R2, pool=20
+Context: maxEvidence=8
+Answer: model A9, grounded contract G4
+```
+
+### Intervention family A — Fusion
+
+```text
+vectorWeight in {0.7, 0.9, 1.1, 1.3}
+```
+
+Impact: query/evaluation only.
+
+Minimum fidelity: retrieval; finalists answer.
+
+### Intervention family B — Chunking
+
+```text
+size in {700, 850, 1150}
+```
+
+Impact: chunks through all downstream artifacts.
+
+Minimum fidelity: rebuilt retrieval + answer; add refresh-cost metrics.
+
+### Intervention family C — ANN backend
+
+```text
+backend = HNSW(M=16, efConstruction=200)
+efSearch in {40, 80, 120}
+```
+
+Impact: vector index build and vector query.
+
+Minimum fidelity: exact-oracle ANN certification, load, retrieval, answer.
+
+### Campaign strategy
+
+A domain-aware proposer can stage the search rather than taking a full Cartesian product.
+
+```text
+Phase 1: optimize fusion on current artifacts.
+Phase 2: test chunkers using best eligible query policy from phase 1.
+Phase 3: certify ANN against exact index for the best release family.
+Phase 4: jointly recheck finalists because interactions may exist.
+Phase 5: shadow/canary outside the offline campaign kernel.
+```
+
+This strategy is not mathematically guaranteed to find the global optimum because interventions interact. Its advantage is experimental tractability. The field makes the approximation explicit: each phase conditions on a selected incumbent and the final joint recheck tests important interactions.
+
+### Evidence graph
+
+```text
+R0
+ |-- I_fusion_1 -> R1 -> retrieval trials -> gates
+ |-- I_fusion_2 -> R2 -> retrieval trials -> gates
+ ...
+ R_best_fusion
+ |-- I_chunk_700 -> R3 -> build artifacts -> retrieval/answer trials
+ |-- I_chunk_850 -> R4 -> build artifacts -> retrieval/answer trials
+ ...
+ R_best_quality
+ |-- I_HNSW_40 -> R5 -> ANN oracle + load + answer
+ |-- I_HNSW_80 -> R6 -> ANN oracle + load + answer
+```
+
+Every arrow is typed. Every candidate has a complete release identity. Every evaluation links to exact artifacts. The generic campaign engine can traverse this graph without understanding the domain fields.
+
+### Promotion policy
+
+1. all law and build-integrity checks pass;
+2. zero authorization/disclosure violations;
+3. no missing paired cells;
+4. protected retrieval strata noninferior;
+5. grounded answer quality noninferior;
+6. target quality improves materially;
+7. ANN recall satisfies oracle margin where applicable;
+8. p95 latency/cost within budget;
+9. candidate is on the eligible Pareto frontier;
+10. promotion artifact is handed to external activation.
+
+This is what “optimization” looks like after the semantic structure is made explicit. The loop is still there, but it is no longer carrying the entire theory implicitly.
+
+## 4.22 Chapter synthesis
+
+The architecture developed in the book can be summarized in one sentence:
+
+> Represent domain computation as free typed composition, represent controlled change with lawful optics over parameterized systems, represent uncertain evaluation with explicitly coupled kernels, and represent optimization itself as an evidence-preserving feedback machine whose domain semantics enter only through plugins.
+
+That sentence unifies the mathematics with the software design.
+
+The category supplies **composition**.
+
+The free construction supplies **syntax before semantics**.
+
+`Para` supplies **compositional parameter spaces**.
+
+Optics supply **local interventions and laws**.
+
+Markov kernels supply **stochastic evaluation**.
+
+Couplings supply **paired comparison semantics**.
+
+Metric vectors and decision algebras supply **constraint-aware selection**.
+
+Coalgebra supplies **iterative behavior and resumability**.
+
+Plugin signatures supply **domain extensibility without callback anarchy**.
+
+RAG supplies a demanding application in which every one of these abstractions earns its place.
+
+### Chapter 4 review problems
+
+1. Design a RAG release type whose semantic identity changes when a synonym asset changes but not when worker count changes. State your identity rules precisely.
+2. A reranker plugin takes hydrated text and calls a remote endpoint. Define its operation descriptor and a static disclosure rule that a plan validator can check.
+3. Draw the invalidation closure for changing only the representation-generation prompt.
+4. Design an optic for switching from exact vector search to an HNSW variant. Why is an ordinary scalar lens insufficient?
+5. Define native and projected artifacts for a multi-turn RAG session evaluation.
+6. Give a minimum-fidelity function for the semantic classes defined in Chapter 2.
+7. Propose a plugin-law suite for a chunker that claims stable identities under document-local edits. What exact stability can it honestly promise?
+8. Explain how a Bayesian optimizer can be integrated as a proposer without receiving permission to redefine the evaluation metric after seeing candidate results.
+9. Suppose two plugins both declare a schema named `Result/v1`. Design a namespace/version rule that prevents accidental type equality.
+10. Build a plan interpreter that computes `(totalWork, criticalPath, remoteCalls)`. State the sequence and tensor operations on this carrier.
+
+# Appendix A. Selected exercise solutions and hints {-}
+
+This appendix gives solution sketches for representative exercises. It is intentionally incomplete: many exercises are design problems with several defensible answers.
+
+## A.1 Category and composition
+
+**Chapter 1, Exercise 1.1.1.** If \(f:A\to B\) and \(g:B\to C\), then \(g\circ f:A\to C\). Similarly \(h\circ g:B\to D\), and \(h\circ g\circ f:A\to D\). Associativity makes the three-term composite independent of parenthesization.
+
+**Chapter 1, Exercise 1.2.3.** For stochastic `sample`, copying after one run yields perfectly correlated outputs. Tensoring two runs yields independent outputs if the tensor interpreter uses product distributions. This is exactly why copy is structural and not syntactic duplication of a box.
+
+**Chapter 1 review problem 2.** A canonical tensor normalization can flatten nested tensors to an ordered list after resolving explicit symmetries. The normalization should preserve wire order and primitive identities. It need not preserve scheduling metadata if scheduling is execution identity rather than semantic identity.
+
+## A.2 Lens laws
+
+For the first projection lens on pairs:
+
+\[
+\mathsf{get}(a,b)=a,
+\qquad
+\mathsf{put}((a,b),a')=(a',b).
+\]
+
+Then
+
+\[
+\mathsf{put}((a,b),\mathsf{get}(a,b))=(a,b),
+\]
+
+\[
+\mathsf{get}(\mathsf{put}((a,b),a'))=a',
+\]
+
+and
+
+\[
+\mathsf{put}(\mathsf{put}((a,b),a'),a'')=(a'',b)
+=\mathsf{put}((a,b),a'').
+\]
+
+A chunk-size update with an overlap constraint is more subtle. If `put(size)` can invalidate the existing overlap, the focus is not independent over the entire state space. One solution is to make the focused value a valid pair `(size, overlap)`; another is a partial optic that rejects values incompatible with current residual state. What is *not* valid is silently changing overlap and still claiming a lens focused only on size.
+
+## A.3 Couplings
+
+Two fair-coin marginals have many couplings. Independent coupling assigns \(1/4\) to each pair. Perfectly correlated coupling assigns \(1/2\) to `(H,H)` and `(T,T)`. Perfect anticorrelation assigns \(1/2\) to `(H,T)` and `(T,H)`. The marginal distributions alone do not identify the joint experiment.
+
+For prompt comparison, shared model seed is useful if the provider interprets seeds consistently across prompts and the semantic goal is common-random-number variance reduction. The case remains the primary paired coordinate; hidden provider nondeterminism must still be acknowledged.
+
+## A.4 Cost interpreter
+
+Let a cost carrier be
+
+\[
+R=\mathbb R_{\ge0}\times\mathbb R_{\ge0}\times\mathbb N
+\]
+
+with components `(work, criticalPath, remoteCalls)`.
+
+For sequence:
+
+\[
+(w_1,c_1,r_1)\ ;\ (w_2,c_2,r_2)
+=(w_1+w_2,c_1+c_2,r_1+r_2).
+\]
+
+For tensor, assuming unlimited parallel resources:
+
+\[
+(w_1,c_1,r_1)\otimes(w_2,c_2,r_2)
+=(w_1+w_2,\max(c_1,c_2),r_1+r_2).
+\]
+
+The assumptions matter. Under a single shared rate limiter, critical path may not be `max`; a richer interpreter would track resource classes.
+
+# Appendix B. Reference API sketch {-}
+
+The following consolidated API is intended as a design aid, not a drop-in library.
+
+## B.1 Core
+
+```go
+package core
+
+type SchemaID string
+type OperationID string
+type Digest string
+type Effect string
+
+type Envelope struct {
+    Schema SchemaID
+    Data   []byte
+    Digest Digest
+}
+
+type Port []SchemaID
+
+type OperationDescriptor struct {
+    ID            OperationID
+    Version       string
+    Plugin        string
+    Inputs        Port
+    Outputs       Port
+    Effects       []Effect
+    Deterministic bool
+    Cacheable     bool
+    Dependencies  []string
+    Cost          CostHint
+}
+```
+
+## B.2 Plugin registry
+
+```go
+package plugin
+
+type Plugin interface {
+    Manifest() Manifest
+    Install(*Builder) error
+    Laws() []Law
+}
+
+type Builder interface {
+    RegisterSchema(core.Schema) error
+    RegisterOperation(Operation) error
+    RegisterOptic(OpticDescriptor) error
+    RegisterEvaluator(EvaluatorDescriptor) error
+}
+```
+
+## B.3 Free plans
+
+```go
+package plan
+
+type Kind uint8
+
+const (
+    Identity Kind = iota
+    Primitive
+    Sequence
+    Tensor
+    Permute
+    Copy
+    Drop
+)
+
+type Plan struct {
+    Kind        Kind
+    In, Out     core.Port
+    Operation   core.OperationID
+    Children    []*Plan
+    Permutation []int
+}
+
+type Algebra[R any] interface {
+    Identity(core.Port) (R, error)
+    Primitive(core.OperationDescriptor) (R, error)
+    Sequence(core.Port, core.Port, []R) (R, error)
+    Tensor(core.Port, core.Port, []R) (R, error)
+    Permute(core.Port, core.Port, []int) (R, error)
+    Copy(core.SchemaID) (R, error)
+    Drop(core.SchemaID) (R, error)
+}
+```
+
+## B.4 Optics
+
+```go
+package optic
+
+type Lens[S,A any] struct {
+    ID     string
+    Get    func(S) A
+    Put    func(S, A) (S, error)
+    EqualS func(S, S) bool
+    EqualA func(A, A) bool
+}
+
+func Compose[S,A,B any](Lens[S,A], Lens[A,B]) Lens[S,B]
+func CheckLaws[S,A any](Lens[S,A], []S, []A) error
+```
+
+## B.5 Probability and seeds
+
+```go
+package prob
+
+type Seed [32]byte
+func (Seed) Split(label string) Seed
+
+type Dist[T comparable] map[T]float64
+type Kernel[A,B comparable] func(A) Dist[B]
+
+func Compose[A,B,C comparable](Kernel[A,B], Kernel[B,C]) Kernel[A,C]
+func Tensor[A,B,C,D comparable](Kernel[A,B], Kernel[C,D]) Kernel[Pair[A,C],Pair[B,D]]
+```
+
+The finite-distribution implementation is a **reference semantics**, not a replacement for continuous or measure-theoretic probability in production.
+
+## B.6 Experiment
+
+```go
+package experiment
+
+type Intervention struct {
+    ID         string
+    Optic      string
+    Value      core.Envelope
+    Classes    []SemanticClass
+    Targets    []string
+    Closure    []string
+    Hypothesis string
+}
+
+type Coordinate struct {
+    Candidate core.Digest
+    Case      string
+    Repeat    int
+    Arm       string
+}
+
+type TrialResult struct {
+    Coordinate Coordinate
+    Status     core.Status
+    Metrics    metric.Vector
+    Native     *artifact.Ref
+    Trace      *artifact.Ref
+    Failure    *core.Failure
+}
+```
+
+## B.7 Campaign
+
+```go
+package campaign
+
+type Engine struct {
+    Config   Config
+    Space    experiment.Space
+    Proposer experiment.Proposer
+    Workload experiment.Suite
+    Runner   experiment.Runner
+    Policy   decision.Policy
+    Store    EventStore
+}
+
+func (e Engine) Run(context.Context) (Result, error)
+```
+
+The event store is append-only; the engine recomputes state by reducing events and schedules only missing coordinates.
+
+# Appendix C. Mathematical perspective and further reading {-}
+
+The architecture in this book is a synthesis rather than a direct transcription of one categorical framework. Several bodies of work provide the underlying structures.
+
+## C.1 Parameterized maps and learning
+
+Fong, Spivak, and Tuyéras show that backpropagation can be understood functorially from parametrized functions to learners, demonstrating that supervised-learning structure can preserve composition [Fong, Spivak, and Tuyéras, 2019]. Cruttwell, Gavranović, Ghani, Wilson, and Zanasi develop categorical foundations of gradient-based learning using lenses, parametrized maps, and reverse derivative categories, and later formulate deep learning in terms of parametric lenses [Cruttwell et al., 2022; 2024].
+
+The optimization architecture here adopts the *parameterized composition* and *lawful bidirectional focus* ideas but deliberately does not require differentiability. RAG interventions are commonly discrete, structural, or effectful.
+
+## C.2 Optics
+
+Riley gives a general categorical treatment of optics, showing how lenses, prisms, traversals, and related bidirectional structures fit one construction and developing a notion of optic lawfulness [Riley, 2018]. The implementation in this book starts with ordinary lenses because they cover many release-spec interventions, while leaving the extension boundary optic-shaped.
+
+## C.3 Markov categories
+
+Fritz develops Markov categories as a synthetic categorical framework for probability and statistics, including conditional independence and sufficient statistics [Fritz, 2020]. Fritz and Liang study free gs-monoidal and free Markov categories, connecting string diagrams with combinatorial representations useful for implementations [Fritz and Liang, 2023]. Fritz, Gonda, Perrone, and Rischel study representable Markov categories and comparison of statistical experiments [Fritz et al., 2020].
+
+This book uses finite kernels as executable reference examples, while the conceptual design is meant to remain compatible with richer stochastic semantics.
+
+## C.4 Cybernetics and feedback
+
+Capucci, Gavranović, Hedges, and Rischel propose categorical foundations for cybernetic systems interacting bidirectionally with environments and controllers, including open learners [Capucci et al., 2021]. The campaign-as-feedback view in Chapter 3 follows the same compositional motivation while using an explicit event-sourced state machine as the practical implementation boundary.
+
+## C.5 Coalgebra
+
+Coalgebra is the standard categorical dual perspective for state-based and potentially infinite behavior. For software readers, the key use in this book is conceptual: optimization campaigns and agentic RAG are better modeled as systems that expose observations and next states than as one pure terminating function.
+
+## C.6 Free syntax and interpreters
+
+The free-plan design is a familiar pattern across category theory, typed DSLs, algebraic effects, and tagless-final programming. The universal property explains why a single syntax can be folded into execution, static analysis, cost, provenance, or documentation without duplicating orchestration structure.
+
+# Appendix D. Bibliography {-}
+
+Capucci, Matteo, Bruno Gavranović, Jules Hedges, and Eigil Fjeldgren Rischel. 2021. “Towards Foundations of Categorical Cybernetics.” arXiv:2105.06332.
+
+Cruttwell, G. S. H., Bruno Gavranović, Neil Ghani, Paul Wilson, and Fabio Zanasi. 2022. “Categorical Foundations of Gradient-Based Learning.” *European Symposium on Programming / associated publication*, arXiv:2103.01931.
+
+Cruttwell, G. S. H., Bruno Gavranović, Neil Ghani, Paul Wilson, and Fabio Zanasi. 2024. “Deep Learning with Parametric Lenses.” arXiv:2404.00408.
+
+Fong, Brendan, David I. Spivak, and Rémy Tuyéras. 2019. “Backprop as Functor: A Compositional Perspective on Supervised Learning.” In *Proceedings of LICS 2019*. arXiv:1711.10455.
+
+Fritz, Tobias. 2020. “A Synthetic Approach to Markov Kernels, Conditional Independence and Theorems on Sufficient Statistics.” *Advances in Mathematics* 370: 107239. arXiv:1908.07021.
+
+Fritz, Tobias, Tomáš Gonda, Paolo Perrone, and Eigil Fjeldgren Rischel. 2020. “Representable Markov Categories and Comparison of Statistical Experiments in Categorical Probability.” arXiv:2010.07416.
+
+Fritz, Tobias, and Wendong Liang. 2023. “Free gs-Monoidal Categories and Free Markov Categories.” *Applied Categorical Structures* 31 (2): Article 21. arXiv:2204.02284.
+
+Lewis, Patrick, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, et al. 2020. “Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.” *Advances in Neural Information Processing Systems* 33.
+
+Moggi, Eugenio. 1991. “Notions of Computation and Monads.” *Information and Computation* 93 (1): 55–92.
+
+Riley, Mitchell. 2018. “Categories of Optics.” arXiv:1809.00738.
+
+Rutten, J. J. M. M. 2000. “Universal Coalgebra: A Theory of Systems.” *Theoretical Computer Science* 249 (1): 3–80.
+
+# Closing perspective {-}
+
+A strong optimization architecture is not primarily a collection of search algorithms. It is a language in which we can state what a candidate is, what it changes, what must be recomputed, what randomness is shared, what evidence was observed, what failures count, and what decision rule is allowed to promote it.
+
+Category theory contributes a disciplined answer to composition. Probability theory contributes a disciplined answer to uncertainty. Optics contribute a disciplined answer to local intervention. Coalgebra contributes a disciplined answer to iteration. Plugin interfaces turn these mathematical boundaries into software boundaries.
+
+The practical outcome is modest in size but strong in meaning: a small core that knows how to compose and preserve evidence, surrounded by domain plugins that know what their worlds mean.
+
+EOF
+wc -l -w -c /mnt/data/opfield_textbook_work/out/Compositional_Optimization_Systems.md
+```
+
+<details><summary>💭 Thinking</summary>
+
+**Created, rendered, inspected, and packaged the RAG architecture textbook PDF**
+
+</details>
+
+Completed the pedagogical rewrite as a **four-chapter textbook** rather than an expanded thesis. It is about **22,400 words / 97 PDF pages**, with equations, Go APIs, pseudocode, 12 diagrams, worked RAG examples, counterexamples, exercises throughout, and selected solution sketches.
+
+- [**Markdown textbook**](sandbox:/mnt/data/opfield_textbook_final/Compositional_Optimization_Systems_Textbook.md)
+- [**PDF textbook**](sandbox:/mnt/data/opfield_textbook_final/Compositional_Optimization_Systems_Textbook.pdf)
+- [**Markdown source bundle + PNG/SVG/Graphviz diagrams**](sandbox:/mnt/data/opfield_textbook_final/Compositional_Optimization_Systems_Markdown_Source.zip)
+
+The four large chapters are:
+
+1. **From Optimization Loops to Categories of Processes** — builds categories, monoidal composition, string diagrams, free constructions, functorial interpretation, `Para`, and the definition of an optimization field from first principles.
+2. **Parameters, Optics, Plugins, and Multiple Semantics** — develops lawful lenses/optics, interventions, plugin signatures, typed envelopes, canonical identity, effects, dependency semantics, and the “one free plan, many interpreters” architecture.
+3. **Probability, Experiments, Decisions, and Feedback** — introduces Markov kernels and Markov categories, couplings and paired experiments, deterministic seed splitting, partial orders/Pareto decisions, ordered gates, statistical experiments, coalgebraic campaigns, cybernetic feedback, and self-optimization.
+4. **A Composable Optimization Architecture for RAG** — grafts the whole theory onto indexing, representations, embeddings, exact/ANN indexes, retrieval, authorization, fusion, reranking, evidence, answer/agent evaluation, `ragkit`/`ragopt`, production releases, invalidation, and end-to-end optimization campaigns.
+
+I also did the requested second pedagogical pass: terms such as **monoid, category, monoidal category, functor, free category, parameterized morphism, lens, optic, algebraic signature, Markov kernel, coupling, preorder, Pareto dominance, endofunctor, coalgebra, port, release, evidence, fidelity, and intervention** are motivated before definition and then applied. The mathematical backbone is grounded in the compositional-learning literature, including parameterized learning and backpropagation as functorial structure, categorical optics, Markov-category probability, and categorical cybernetics. citeturn727234academia0turn727234academia1turn802055search0turn802055academia41
+
+The PDF was rendered page-by-page and visually inspected, and it passes PDF structural preflight.
+

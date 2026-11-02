@@ -47,11 +47,11 @@ The program then produces implementation compendia, a subsystem handbook, a rese
 ### Program-level documents
 
 - [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook|PBUI-MATHS Pattern Zoo Handbook]] — evidence-backed synthesis of fourteen recurring patterns, separating independent source families from duplicate branches and pairing first-week explanations with category theory and abstract mathematics.
-- [[Transcripts/2026/08/06/Branch Branch CLIM UI in React/PBUI-RESEARCH-PROJECTS-COMPENDIUM|PBUI research projects compendium]] — the fifteen-project program, composition pass, and evidence protocol.
-- [[Transcripts/2026/08/06/Branch Branch CLIM UI in React/PBUI-SUBSYSTEM-RESEARCH-PROGRAM-HANDBOOK|PBUI subsystem research program handbook]] — graduate/engineering-research framing for independent capsules and controlled composition.
-- [[Transcripts/2026/08/06/Branch Branch CLIM UI in React/PBUI-RESEARCH-PROJECT-INDEX|PBUI research project index]] — navigation and project-level status.
+- [[Transcripts/2026/08/06/Branch CLIM UI in React/PBUI-RESEARCH-PROJECTS-COMPENDIUM|PBUI research projects compendium]] — the fifteen-project program, composition pass, and evidence protocol.
+- [[Transcripts/2026/08/06/Branch CLIM UI in React/PBUI-SUBSYSTEM-RESEARCH-PROGRAM-HANDBOOK|PBUI subsystem research program handbook]] — graduate/engineering-research framing for independent capsules and controlled composition.
+- [[Transcripts/2026/08/06/Branch CLIM UI in React/PBUI-RESEARCH-PROJECT-INDEX|PBUI research project index]] — navigation and project-level status.
 - [[Transcripts/2026/08/06/CLIM UI in React/BEYOND-CLIM-PROOF-ORIENTED-PRESENTATION-SYSTEM-ARCHITECTURES|Beyond CLIM]] — clean-slate semantic alternatives: algebras/effects, fixed points, open systems, graph rewriting, lenses, coalgebra, incremental computation, and CRDTs.
-- [[Transcripts/2026/08/06/Branch CLIM UI in React/PRESENTATION-BASED-UI-CLIM-DESIGN-AND-IMPLEMENTATION|Presentation-based UI / CLIM design and implementation]] — historical and implementation-oriented architecture.
+- [[Transcripts/2026/08/06/CLIM UI in React/PRESENTATION-BASED-UI-CLIM-DESIGN-AND-IMPLEMENTATION|Presentation-based UI / CLIM design and implementation]] — historical and implementation-oriented architecture.
 - [[Transcripts/2026/08/06/Branch Branch Branch CLIM UI in React/SENTINEL-KERNEL-THESIS.md|Sentinel kernel thesis]] — proof-oriented semantic kernel and proof-carrying compilation direction.
 - [[Transcripts/2026/08/06/Branch Branch CLIM UI in React/Semantic-Interfaces-Textbook|Semantic Interfaces textbook]] — educational presentation of the semantic architecture.
 
