@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 12 - Identity through parametric edits|← Chapter 12. Identity through parametric edits]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 14 - B-rep, STEP, meshes and manufacturing|Chapter 14. B-rep, STEP, meshes and manufacturing →]]
 
+Mathematics in this chapter: [[Mathematics - Rigid Motions and Kinematics|Rigid Motions and Kinematics]] (see [[Mathematics]]).
+
 A sketch solver moves points in a plane. An assembly solver moves entire rigid bodies in three-dimensional space while satisfying joint relations. The mathematics is related, but the state space is different: rotations are not ordinary unconstrained vectors, mechanisms can contain closed loops, and the number of joint objects does not determine mobility by simple counting.
 
 ## 13.1 Rigid transformations form SE(3)

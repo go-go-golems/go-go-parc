@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 05 - Jacobians and automatic differentiation|← Chapter 5. Jacobians and automatic differentiation]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 07 - Redundancy, conflict and singularity|Chapter 7. Redundancy, conflict and singularity →]]
 
+Mathematics in this chapter: [[Mathematics - Nonlinear Solving and Optimization|Nonlinear Solving and Optimization]] (see [[Mathematics]]).
+
 The nonlinear equations of a sketch cannot usually be solved by one matrix multiplication. The solver constructs a local approximation, chooses a step, and checks whether the step actually improved the original constraints. This chapter derives Jig's three principal numerical methods and traces a concrete problem to a solution.
 
 ## 6.1 From root finding to least squares

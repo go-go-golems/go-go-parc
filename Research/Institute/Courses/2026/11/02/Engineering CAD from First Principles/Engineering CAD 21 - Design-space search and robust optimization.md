@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 20 - Manufacturing, drawings and sheet metal|← Chapter 20. Manufacturing, drawings and sheet metal]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 22 - Engineering a trustworthy next version|Chapter 22. Engineering a trustworthy next version →]]
 
+Mathematics in this chapter: [[Mathematics - Nonlinear Solving and Optimization|Nonlinear Solving and Optimization]], [[Mathematics - Tolerancing, Uncertainty and Statistics|Tolerancing, Uncertainty and Statistics]] (see [[Mathematics]]).
+
 A parametric CAD model defines a family of possible objects. Optimization asks which members of that family satisfy engineering constraints and perform best according to measurable objectives. The attractive feature of JigCAD's declarative architecture is that parameters, geometry, analysis and compilation trace can all be evaluated programmatically. This chapter derives constrained design search, Pareto tradeoffs, sampling, and robust decision-making.
 
 ## 21.1 A parametric part defines a feasible set

@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 17 - Verification, differential tests and fuzzing|← Chapter 17. Verification, differential tests and fuzzing]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 19 - Tolerance, healing and metrology|Chapter 19. Tolerance, healing and metrology →]]
 
+Mathematics in this chapter: [[Mathematics - Curves and Surfaces|Curves and Surfaces]] (see [[Mathematics]]).
+
 A CAD part may be a valid closed solid yet have an unacceptable seam between two surfaces. This occurs in product housings, aerodynamic shells, complex lofts and variable-radius fillets: meeting at the same curve is not the same as meeting with the same tangent or curvature. This chapter derives continuity from derivatives and relates it to NURBS surfaces, trimmed patches, fillets and offsets.
 
 ## 18.1 A curve has both position and derivatives

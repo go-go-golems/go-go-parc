@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 27 - Plane sweep, DCEL overlays and profile extraction|← Chapter 27. Plane sweep, DCEL overlays and profile extraction]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 29 - Tracing intersections of curved surfaces|Chapter 29. Tracing intersections of curved surfaces →]]
 
+Mathematics in this chapter: [[Mathematics - Computational Geometry|Computational Geometry]] (see [[Mathematics]]).
+
 A triangulation answers how to divide a region into triangles. A quality mesh must additionally respect boundaries, avoid unsuitable element shapes, and place enough vertices to resolve small features. Delaunay triangulation is an important part of that process, but it is not the whole process. This chapter derives the empty-circle test, traces an edge flip, and then adds constraints and refinement.
 
 **Source basis.** de Berg et al. chapter 9 develops planar Delaunay triangulation and randomized construction. Edelsbrunner chapters 1–2 develop the empty-circle characterization, edge flipping, constrained triangulations, refinement, and local feature size. We preserve the assumptions of the supplied refinement analysis rather than extending its guarantees to arbitrary inputs. [[Engineering CAD B - Source Library#^ref-deberg-upload|de Berg]] · [[Engineering CAD B - Source Library#^ref-edelsbrunner-upload|Edelsbrunner]].

@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 29 - Tracing intersections of curved surfaces|← Chapter 29. Tracing intersections of curved surfaces]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 31 - The linear algebra underneath a geometric solver|Chapter 31. The linear algebra underneath a geometric solver →]]
 
+Mathematics in this chapter: [[Mathematics - Combinatorial and Algebraic Topology|Combinatorial and Algebraic Topology]], [[Mathematics - Computational Geometry|Computational Geometry]] (see [[Mathematics]]).
+
 A tetrahedron can have reasonable edge lengths and circumradius while its volume approaches zero. A surface can be simplified by a short edge collapse that changes its topology. These examples show why mesh quality and mesh validity need several independent tests. This chapter constructs a sliver explicitly and derives the link condition used to decide whether a surface edge contraction preserves topology.
 
 **Source basis.** Edelsbrunner chapter 6 develops tetrahedral shape, radius–edge ratio, refinement, and sliver exudation. Chapter 4 develops surface simplification and topology-preserving contractions. The parameterized sliver, numerical measurements, and simplified geometry guards below are original worked examples. The book's theorem assumptions are stated where relevant. [[Engineering CAD B - Source Library#^ref-edelsbrunner-upload|Edelsbrunner]].

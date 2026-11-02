@@ -81,3 +81,7 @@ All three approaches produce the same average density. They differ in the spatia
 1. **Ulichney, R. A. (1987)**. "Dithering with Blue Noise." *Proceedings of the IEEE*, 76(1), 56–79. — The foundational paper connecting quantization theory to blue-noise dithering.
 2. **Lau, D. L. & Arce, G. R. (2008)**. *Modern Digital Halftoning*. CRC Press. — The standard textbook; Chapters 1–3 cover quantization and sampling theory in depth.
 3. **DITHER-001 deep research report** in this PARC library — Our own exhaustive treatment of dithering algorithms for thermal printing, including comparison matrices and hardware evaluation plans.
+
+## Related notes
+
+- [[Mathematics - Floating-Point and Exact Arithmetic]]: quantization next to the other notes on numerical precision.

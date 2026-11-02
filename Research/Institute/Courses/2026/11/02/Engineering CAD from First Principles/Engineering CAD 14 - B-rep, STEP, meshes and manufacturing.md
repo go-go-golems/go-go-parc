@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 13 - Assembly constraints on rigid motions|← Chapter 13. Assembly constraints on rigid motions]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 15 - A parametric CAD compiler|Chapter 15. A parametric CAD compiler →]]
 
+Mathematics in this chapter: [[Mathematics - Curves and Surfaces|Curves and Surfaces]], [[Mathematics - Computational Geometry|Computational Geometry]] (see [[Mathematics]]).
+
 A CAD model can be exported as an analytic solid, a polygonal approximation or a manufacturing package. Those formats preserve different information. Understanding what is lost requires a mathematical model of approximation error and an explicit account of topology, units and metadata.
 
 ## 14.1 Exact boundary descriptions and sampled surfaces

@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 10 - From planar curves to valid profiles|← Chapter 10. From planar curves to valid profiles]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 12 - Identity through parametric edits|Chapter 12. Identity through parametric edits →]]
 
+Mathematics in this chapter: [[Mathematics - Curves and Surfaces|Curves and Surfaces]], [[Mathematics - Point-Set Topology|Point-Set Topology]] (see [[Mathematics]]).
+
 Boolean operations and fillets are central to mechanical CAD because they alter both geometry and topology. They are also among the hardest features to make reliable: intersection curves, coincident faces, tangencies, tolerance propagation and new face identities must all agree. This chapter develops the underlying decomposition and explains what OpenCascade provides and what JigCAD still must verify.
 
 ## 11.1 Sets first, representations second

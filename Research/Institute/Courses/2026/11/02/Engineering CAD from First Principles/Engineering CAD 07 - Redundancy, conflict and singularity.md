@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 06 - Newton, Gauss–Newton, DogLeg and LM|← Chapter 6. Newton, Gauss–Newton, DogLeg and LM]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 08 - Continuation, sparse structure and performance|Chapter 8. Continuation, sparse structure and performance →]]
 
+Mathematics in this chapter: [[Mathematics - Numerical Linear Algebra|Numerical Linear Algebra]] (see [[Mathematics]]).
+
 A solver can return a small residual, a large residual, a zero gradient, or an unexpected rank. None of those numbers by itself tells the user what went wrong. This chapter formalizes the diagnostic categories a CAD system needs and examines why Jig's conflict finder can propose misleading repairs.
 
 ## 7.1 Five outcomes, not two

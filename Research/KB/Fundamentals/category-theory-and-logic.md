@@ -86,3 +86,7 @@ These ChatGPT conversations explored category-theoretic concepts with a focus on
 - How far should the go-go-golems type system explicitly use categorical vocabulary versus staying in concrete Go types?
 - Can the widget IR be formalized as a functor from an intent category to a target category, and does that formalization pay for itself?
 - Are there verification properties in the tiny-idp interpreter work that are naturally expressed as topos-theoretic subobject conditions?
+
+## Related notes
+
+- [[Mathematics]]: the vault's map of mathematics by branch; this entry is its pointer for category theory and logic.

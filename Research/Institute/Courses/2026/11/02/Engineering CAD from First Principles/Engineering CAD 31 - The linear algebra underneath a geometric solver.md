@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 30 - Tetrahedral quality and topology-safe simplification|← Chapter 30. Tetrahedral quality and topology-safe simplification]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 32 - A source-guided implementation course|Chapter 32. A source-guided implementation course →]]
 
+Mathematics in this chapter: [[Mathematics - Numerical Linear Algebra|Numerical Linear Algebra]] (see [[Mathematics]]).
+
 A nonlinear sketch solver repeatedly solves a linear approximation. If that approximation is rank-deficient, badly scaled, or nearly singular, the choice of factorization determines both the step and the diagnosis. This chapter derives least squares, orthogonal factorization, minimum-norm solutions, and singular-value filtering before connecting them back to JigCAD's solver architecture.
 
 **Source basis.** Hoffmann §6.2.4 introduces SVD for possibly singular geometric systems. The LAPACK Users' Guide distinguishes full-rank QR/LQ solvers, complete orthogonal factorization, and SVD-based minimum-norm solvers. This chapter's small systems and derivations are original teaching material. The user research note recommends Trefethen–Bau and Nocedal–Wright for further study; the full texts of those books were not supplied for this expansion. [[Engineering CAD B - Source Library#^ref-hoffmann-upload|Hoffmann]] · [[Engineering CAD B - Source Library#^ref-lapack-lls|LAPACK least squares]] · [[Engineering CAD B - Source Library#^ref-lapack-orthogonal|LAPACK orthogonal factorizations]].

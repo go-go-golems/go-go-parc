@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 22 - Engineering a trustworthy next version|← Chapter 22. Engineering a trustworthy next version]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 24 - Half-edge structures and Euler construction|Chapter 24. Half-edge structures and Euler construction →]]
 
+Mathematics in this chapter: [[Mathematics - Point-Set Topology|Point-Set Topology]] (see [[Mathematics]]).
+
 Two blocks can touch along a face without sharing any material volume. A polygon can look closed while its data structure contains a gap. A completely valid model can describe the wrong part. These are three different failures, and they require three different definitions of correctness. This chapter starts with point sets, derives regularized solid operations, and then connects the mathematical object to its representation and implementation.
 
 **Source basis.** Mäntylä develops point-set regularity in §3.4 and representation schemes in §3.6; Hoffmann develops regularized Boolean operations in §2.2.2 and separates user interface, algorithmic infrastructure, and arithmetic in §1.2. The examples and contract design below are original teaching constructions based on those distinctions. Neither historical book is evidence about the current state of JigCAD. [[Engineering CAD B - Source Library#^ref-mantyla-upload|Mäntylä]] · [[Engineering CAD B - Source Library#^ref-hoffmann-upload|Hoffmann]].

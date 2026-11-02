@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 23 - Solids as regular sets and representation contracts|← Chapter 23. Solids as regular sets and representation contracts]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 25 - Simplicial complexes, links and homology|Chapter 25. Simplicial complexes, links and homology →]]
 
+Mathematics in this chapter: [[Mathematics - Combinatorial and Algebraic Topology|Combinatorial and Algebraic Topology]] (see [[Mathematics]]).
+
 A list of segments can describe the visible edges of a square, but it does not directly answer which face lies on either side or which edge comes next around a hole. A half-edge structure stores those answers. This chapter derives its invariants, traces a face split, and explains why Euler operations preserve a chosen topological structure without certifying its geometric realization.
 
 **Source basis.** The planar DCEL convention comes from de Berg et al., §2.2, printed pp. 29–33. The solid-modeling operations and their implementation layers come from Mäntylä, chapters 9–11. The Rust-oriented storage and transaction recommendations are this guide's implementation design, not code reproduced from either book. [[Engineering CAD B - Source Library#^ref-deberg-upload|de Berg]] · [[Engineering CAD B - Source Library#^ref-mantyla-upload|Mäntylä]].

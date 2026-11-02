@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 09 - Reliable decisions in planar geometry|← Chapter 9. Reliable decisions in planar geometry]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 11 - Boolean solids, blending and healing|Chapter 11. Boolean solids, blending and healing →]]
 
+Mathematics in this chapter: [[Mathematics - Point-Set Topology|Point-Set Topology]], [[Mathematics - Computational Geometry|Computational Geometry]] (see [[Mathematics]]).
+
 A profile is the filled planar region that a modeling operation will extrude, revolve or sweep. The profile builder must decide which closed loops are outer boundaries, which are holes, and what touching or self-intersecting curves mean. Small mistakes here can yield a topologically valid but completely wrong solid.
 
 ## 10.1 Define the filled set before implementing it

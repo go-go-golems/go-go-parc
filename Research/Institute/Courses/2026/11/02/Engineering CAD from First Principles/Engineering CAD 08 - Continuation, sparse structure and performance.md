@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 07 - Redundancy, conflict and singularity|← Chapter 7. Redundancy, conflict and singularity]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 09 - Reliable decisions in planar geometry|Chapter 9. Reliable decisions in planar geometry →]]
 
+Mathematics in this chapter: [[Mathematics - Numerical Linear Algebra|Numerical Linear Algebra]], [[Mathematics - Nonlinear Solving and Optimization|Nonlinear Solving and Optimization]] (see [[Mathematics]]).
+
 A solver that works for a small sketch near the origin may fail when the same sketch is moved, resized or embedded in a larger model. Reliable CAD requires both numerical invariance and interactive performance. This chapter separates those problems and develops a benchmark that makes them measurable.
 
 ## 8.1 Units and conditioning

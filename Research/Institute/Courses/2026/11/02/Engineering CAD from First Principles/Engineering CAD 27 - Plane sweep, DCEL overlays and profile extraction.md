@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 26 - Predicates, constructions and symbolic perturbation|← Chapter 26. Predicates, constructions and symbolic perturbation]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 28 - Delaunay triangulation and quality refinement|Chapter 28. Delaunay triangulation and quality refinement →]]
 
+Mathematics in this chapter: [[Mathematics - Computational Geometry|Computational Geometry]] (see [[Mathematics]]).
+
 A sketch containing intersecting curves is not yet a collection of faces. The intersections must be found, edges split consistently, directed uses connected, and boundary cycles grouped into regions with holes. This chapter develops that pipeline for line segments and explains why it is the discrete core of both profile extraction and planar Boolean operations.
 
 **Source basis.** de Berg et al. chapter 2 develops segment intersection, the DCEL, map overlay, and polygon Booleans in that order. We retain that dependency structure. The lab uses small, deliberately simpler computations to expose the intermediate states; it is not an implementation of the book's asymptotically efficient sweep. [[Engineering CAD B - Source Library#^ref-deberg-upload|de Berg]].

@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 01 - A CAD system is a chain of contracts|← Chapter 1. A CAD system is a chain of contracts]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 03 - Topology and boundary representation|Chapter 3. Topology and boundary representation →]]
 
+Mathematics in this chapter: [[Mathematics - Curves and Surfaces|Curves and Surfaces]] (see [[Mathematics]]).
+
 When a sketch displays one curve but the extrusion uses another, a valid solid can be geometrically wrong. This chapter derives the representations behind analytic geometry and NURBS, then identifies the exact point where interpolation, approximation and parameterization must be kept separate.
 
 ## 2.1 Geometry as a parameterized map

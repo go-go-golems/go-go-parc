@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 18 - Surface continuity and advanced modeling|← Chapter 18. Surface continuity and advanced modeling]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 20 - Manufacturing, drawings and sheet metal|Chapter 20. Manufacturing, drawings and sheet metal →]]
 
+Mathematics in this chapter: [[Mathematics - Point-Set Topology|Point-Set Topology]], [[Mathematics - Tolerancing, Uncertainty and Statistics|Tolerancing, Uncertainty and Statistics]] (see [[Mathematics]]).
+
 CAD systems operate with several meanings of “precision,” and confusing them produces models that are numerically valid but unsuitable for engineering. Floating-point roundoff, geometric modeling tolerance, dimension tolerance and manufacturing variability are different quantities. This chapter separates them, derives fit limits for a shaft and hole, and specifies what a shape-healing operation must disclose.
 
 ## 19.1 Four meanings of error

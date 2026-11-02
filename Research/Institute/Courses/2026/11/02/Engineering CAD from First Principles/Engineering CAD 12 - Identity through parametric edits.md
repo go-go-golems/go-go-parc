@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 11 - Boolean solids, blending and healing|← Chapter 11. Boolean solids, blending and healing]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 13 - Assembly constraints on rigid motions|Chapter 13. Assembly constraints on rigid motions →]]
 
+Mathematics in this chapter: [[Mathematics - Graphs and Discrete Structures|Graphs and Discrete Structures]] (see [[Mathematics]]).
+
 A face's array index is not its identity. Adding a hole can split a face, deleting a fillet can merge surfaces, and the Boolean engine can reorder its internal topology. A parametric model must distinguish *what a user referred to* from whichever face happens to occupy index seven after regeneration.
 
 ## 12.1 Identity is not geometric equality

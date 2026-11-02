@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 02 - Curves, surfaces and rational geometry|← Chapter 2. Curves, surfaces and rational geometry]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 04 - Constraints become equations|Chapter 4. Constraints become equations →]]
 
+Mathematics in this chapter: [[Mathematics - Combinatorial and Algebraic Topology|Combinatorial and Algebraic Topology]] (see [[Mathematics]]).
+
 A solid is not determined by its visible faces alone. It must also specify how those faces meet, which side is inside, and whether the boundary actually encloses a valid volume. This chapter derives the combinatorial structure used by a B-rep kernel and distinguishes topological checks from numerical geometric checks.
 
 ## 3.1 Geometry versus topology

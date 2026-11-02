@@ -117,6 +117,7 @@ For the engineering background, [[Course - Engineering CAD from First Principles
 ### Textbook
 
 - [[Course - Engineering CAD from First Principles]]: 32 chapters and two appendices, from the CAD pipeline to half-edges, robust predicates, Delaunay refinement and solver linear algebra.
+- [[Mathematics]]: the mathematics behind the textbook, one map per branch (linear algebra, topology, computational geometry, …).
 - [[Engineering CAD - Reading Map and Source Guide]]: reading routes by goal, and page anchors into Mäntylä, Hoffmann, de Berg et al. and Edelsbrunner.
 
 ## Related CAD/CAM work in the vault

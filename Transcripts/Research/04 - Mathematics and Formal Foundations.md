@@ -55,3 +55,7 @@ Start with the structural editor thesis for the most unified artifact. Use the c
 
 > [!warning] Generated-research caveat
 > The archive mixes tutorial prose, design studies, thesis-shaped reports, and genuine code-adjacent specifications. Their mathematical quality and verification status differ; inspect claims and source evidence individually.
+
+## Related notes
+
+- [[Mathematics]]: the vault's map of mathematics by branch, including the CAD textbook topics.

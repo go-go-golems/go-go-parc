@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 25 - Simplicial complexes, links and homology|← Chapter 25. Simplicial complexes, links and homology]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 27 - Plane sweep, DCEL overlays and profile extraction|Chapter 27. Plane sweep, DCEL overlays and profile extraction →]]
 
+Mathematics in this chapter: [[Mathematics - Computational Geometry|Computational Geometry]], [[Mathematics - Floating-Point and Exact Arithmetic|Floating-Point and Exact Arithmetic]] (see [[Mathematics]]).
+
 A geometric algorithm frequently makes a discrete decision from a numerical expression. The sign of one determinant can decide which edges meet, which face contains a point, or which diagonal a triangulation retains. This chapter shows an exact integer example where ordinary floating-point evaluation loses that sign, then separates three remedies that are often confused: exact predicates, exact constructions, and symbolic perturbation.
 
 **Source basis.** de Berg et al. §1.2 distinguishes algorithm design, degeneracy handling, and numerical implementation. Hoffmann chapter 4 analyzes the interaction between symbolic structure and arithmetic. Edelsbrunner §1.4 develops Simulation of Simplicity and filtered exact decisions. Shewchuk's primary papers provide the adaptive-precision approach. The integer family and rational-intersection trace below are original examples. [[Engineering CAD B - Source Library#^ref-deberg-upload|de Berg]] · [[Engineering CAD B - Source Library#^ref-hoffmann-upload|Hoffmann]] · [[Engineering CAD B - Source Library#^ref-edelsbrunner-upload|Edelsbrunner]] · [[Engineering CAD B - Source Library#^ref-Shewchuk|Shewchuk]].

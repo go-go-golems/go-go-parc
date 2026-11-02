@@ -92,3 +92,4 @@ The [[Engineering CAD - Reading Map and Source Guide|reading map]] gives short r
 
 - [[jigcad]] — the JigCAD project map: the system the case studies inspect.
 - [[Engineering CAD - Reading Map and Source Guide]] — routes, source locators, and what is source-derived.
+- [[Mathematics]]: the mathematics map; each branch the book touches has a topic map that links back to the chapters.

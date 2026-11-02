@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 24 - Half-edge structures and Euler construction|← Chapter 24. Half-edge structures and Euler construction]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 26 - Predicates, constructions and symbolic perturbation|Chapter 26. Predicates, constructions and symbolic perturbation →]]
 
+Mathematics in this chapter: [[Mathematics - Combinatorial and Algebraic Topology|Combinatorial and Algebraic Topology]] (see [[Mathematics]]).
+
 A closed mesh can pass an edge-count check and still fail at a vertex. A boundary can have the right Euler characteristic and still intersect itself. To understand these failures, we need three levels of structure: a combinatorial complex, its local neighborhoods, and its geometric realization. This chapter builds those levels and adds a small algebraic calculation that distinguishes a loop from a filled region.
 
 **Source basis.** Edelsbrunner chapter 3 supplies simplices, complexes, stars, links, realizations, manifolds, and Euler characteristic. Hoffmann §2.4 connects topological polyhedra and manifold tests to B-rep validity. The signed boundary matrices and homology computation below are an original supplementary development prompted by the research note; they are not presented as a chapter-by-chapter summary of Edelsbrunner's meshing book. [[Engineering CAD B - Source Library#^ref-edelsbrunner-upload|Edelsbrunner]] · [[Engineering CAD B - Source Library#^ref-hoffmann-upload|Hoffmann]] · [[Engineering CAD B - Source Library#^ref-research-upload|Research note]].

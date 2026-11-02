@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 28 - Delaunay triangulation and quality refinement|← Chapter 28. Delaunay triangulation and quality refinement]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 30 - Tetrahedral quality and topology-safe simplification|Chapter 30. Tetrahedral quality and topology-safe simplification →]]
 
+Mathematics in this chapter: [[Mathematics - Curves and Surfaces|Curves and Surfaces]], [[Mathematics - Nonlinear Solving and Optimization|Nonlinear Solving and Optimization]] (see [[Mathematics]]).
+
 A Boolean operation on curved solids needs curves where their supporting surfaces intersect. Finding a few plausible points is not enough: the algorithm must follow branches, respect trim domains, and avoid losing small or disconnected components. This chapter derives a predictor–corrector tracer from a sphere and a plane, then explains how the same linear algebra appears in general parametric surface intersection.
 
 **Source basis.** Hoffmann chapter 5 distinguishes implicit and parametric representations and their edge-identification problems. Chapter 6 develops numerical tracing, Newton correction, SVD, and higher-dimensional formulations. Its main numerical development assumes a starting point and a regular intersection; it explicitly does not solve the general initial-point problem. Our sphere–plane tracer is a smaller original implementation of those ideas. [[Engineering CAD B - Source Library#^ref-hoffmann-upload|Hoffmann]].

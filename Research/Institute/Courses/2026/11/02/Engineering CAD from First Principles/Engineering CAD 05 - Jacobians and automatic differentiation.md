@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 04 - Constraints become equations|← Chapter 4. Constraints become equations]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 06 - Newton, Gauss–Newton, DogLeg and LM|Chapter 6. Newton, Gauss–Newton, DogLeg and LM →]]
 
+Mathematics in this chapter: [[Mathematics - Numerical Linear Algebra|Numerical Linear Algebra]], [[Mathematics - Nonlinear Solving and Optimization|Nonlinear Solving and Optimization]] (see [[Mathematics]]).
+
 Nonlinear solvers repeatedly need derivatives. Derivative accuracy affects convergence, numerical rank, conflict diagnosis and dragging. This chapter derives the Jacobian calculation used by Jig's Rust/WASM solver, compares it with finite differences, and explains the limits that remain even with exact program derivatives.
 
 ## 5.1 Linearization is the central computation

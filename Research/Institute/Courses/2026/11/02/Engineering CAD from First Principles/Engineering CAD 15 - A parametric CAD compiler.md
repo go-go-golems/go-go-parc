@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 14 - B-rep, STEP, meshes and manufacturing|← Chapter 14. B-rep, STEP, meshes and manufacturing]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 16 - Rust, WebAssembly and resource ownership|Chapter 16. Rust, WebAssembly and resource ownership →]]
 
+Mathematics in this chapter: [[Mathematics - Graphs and Discrete Structures|Graphs and Discrete Structures]] (see [[Mathematics]]).
+
 A parametric CAD program describes a dependency graph, not just a sequence of commands. When a user changes one dimension, the system should recompute exactly the affected parts of the graph while keeping independent results, references and diagnostics consistent. This is the problem of incremental computation and cache correctness.
 
 ## 15.1 A feature tree is a directed acyclic graph

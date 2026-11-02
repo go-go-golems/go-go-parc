@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 19 - Tolerance, healing and metrology|← Chapter 19. Tolerance, healing and metrology]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 21 - Design-space search and robust optimization|Chapter 21. Design-space search and robust optimization →]]
 
+Mathematics in this chapter: [[Mathematics - Curves and Surfaces|Curves and Surfaces]], [[Mathematics - Tolerancing, Uncertainty and Statistics|Tolerancing, Uncertainty and Statistics]] (see [[Mathematics]]).
+
 A model that is correct as a solid is not automatically suitable for a printer, a CNC machine, a sheet-metal shop or an inspection department. Every process introduces constraints beyond the mathematical boundary of the part. This chapter follows one design through a tessellated print, an interference fit, a bent sheet and an engineering drawing to show which additional semantics the CAD system must carry.
 
 ## 20.1 Geometry is not a manufacturing plan

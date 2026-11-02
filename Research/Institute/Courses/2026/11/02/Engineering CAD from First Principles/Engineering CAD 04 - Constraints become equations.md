@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 03 - Topology and boundary representation|← Chapter 3. Topology and boundary representation]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 05 - Jacobians and automatic differentiation|Chapter 5. Jacobians and automatic differentiation →]]
 
+Mathematics in this chapter: [[Mathematics - Numerical Linear Algebra|Numerical Linear Algebra]] (see [[Mathematics]]).
+
 A sketch solver is a numerical engine for equations implied by geometric relationships. Before studying algorithms, we need to know what the unknowns are, which constraints contribute independent equations, and why “three constraints” is not the same thing as “three degrees of freedom removed.”
 
 ## 4.1 Choosing coordinates for entities

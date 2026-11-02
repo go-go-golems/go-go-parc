@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Engineering CAD 08 - Continuation, sparse structure and performance|← Chapter 8. Continuation, sparse structure and performance]] · [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 10 - From planar curves to valid profiles|Chapter 10. From planar curves to valid profiles →]]
 
+Mathematics in this chapter: [[Mathematics - Computational Geometry|Computational Geometry]], [[Mathematics - Floating-Point and Exact Arithmetic|Floating-Point and Exact Arithmetic]] (see [[Mathematics]]).
+
 Geometry algorithms repeatedly ask yes-or-no questions: is a point to the left of a line, do two segments cross, is a curve inside another, or is a circle tangent? If those decisions disagree because of floating-point rounding, a profile builder can construct the wrong topology even when every formula is locally reasonable. We derive the robust-predicate approach used by reliable computational-geometry systems.
 
 ## 9.1 Predicates versus constructions

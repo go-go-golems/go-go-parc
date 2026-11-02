@@ -17,6 +17,8 @@ course: "[[Course - Engineering CAD from First Principles]]"
 
 [[Course - Engineering CAD from First Principles|Contents]] · [[Engineering CAD 02 - Curves, surfaces and rational geometry|Chapter 2. Curves, surfaces and rational geometry →]]
 
+Mathematics in this chapter: [[Mathematics - Floating-Point and Exact Arithmetic|Floating-Point and Exact Arithmetic]] (see [[Mathematics]]).
+
 A parametric CAD model is not a picture and not a mesh. It is an executable construction whose numerical parameters, geometric curves, topological structure, manufacturing export and user-visible interpretation must agree. We will follow a single part through JigCAD and identify the invariants that make that agreement testable.
 
 ## 1.1 What a CAD kernel actually computes
