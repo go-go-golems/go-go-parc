@@ -23,6 +23,7 @@ A question-oriented map of performance investigations across the vault: Linux pr
 | Are page faults or memory growth actually causing the slowdown? | [[01-REPORT-x264-Go-CGO-Page-Fault-Root-Cause-Analysis|x264 / Go / CGO page-fault investigation]]; [[ARTICLE - Publish Vault Memory Optimization - From OOM Incidents to Phase-Attributed Baselines|Publish Vault memory investigation]] | Resident memory, heap allocation, faults and sustained CPU work require separate attribution. |
 | Which pixels or bytes need to be processed at all? | [[ARTICLE - Optimizing an X11 Window Manager Paint Path|X11 paint-path optimization]]; [[ARTICLE - ESP32-P4 PicoCalc Display Optimization - Queued SPI and Dirty Rectangles|PicoCalc queued SPI and dirty rectangles]]; [[ARTICLE - Optimizing WiFi Image Upload on ESP32-P4 - From 6 Seconds to Sub-Second|ESP32-P4 Wi-Fi image upload]] | Work avoidance, transfer granularity and queue ownership can matter more than instruction tuning. |
 | Is the runtime boundary or query shape expensive? | [[ARTICLE - Goja Site Rendering Performance Internals and Export Boundary Deep Dive|Goja rendering and export-boundary costs]]; [[ARTICLE - SQLite in the Browser - Measuring and Fixing sql.js Performance in Static Code Review Sites|Browser SQLite query optimization]] | Measure conversion, allocation and query expansion rather than assuming the runtime itself is the cause. |
+| Does a compiler's cost model pick the faster kernel, and does a tuned policy transfer? | [[kiln|Kiln MOC]]; [[ARTICLE - Kiln - Fixed Compiler Confirmation Across Twenty Fresh Model Families|Kiln fixed-compiler confirmation]] | Numerical acceptance, analytic cost estimates and measured GPU time are separate claims; a policy selected on training graphs needs fresh-model confirmation. |
 | What should be instrumented continuously? | [[ARTICLE - Screencast Studio - Prometheus Metrics Architecture and Field Guide|Screencast metrics field guide]] | Operational metrics locate changes; targeted profiling answers narrower causal questions. |
 
 ## Linux profiling, eBPF and corrected causal explanations
@@ -53,6 +54,19 @@ Compare these with Falllinie's GPU reports below: fewer source operations, a sma
 [[ARTICLE - Goja Site Rendering Performance Internals and Export Boundary Deep Dive|Goja rendering and export-boundary costs]] profiles JavaScript object construction and `goja.Value.Export()` at the native UI boundary, and broadens benchmarks to avoid optimizing only one page. [[ARTICLE - SQLite in the Browser - Measuring and Fixing sql.js Performance in Static Code Review Sites|Browser SQLite query optimization]] shows how compatibility-view expansion and query shape can dominate perceived browser responsiveness; moving execution to a worker and reducing query work address different problems.
 
 [[PROJECT REPORT - researchctl CPU GPU Codesign Experiment Runtime Deep Dive|researchctl CPU/GPU experiment runtime]] documents a deterministic simulator, event-derived metrics and durable experiment manifests. It is valuable for experimental architecture and reproducibility, but its simulated execution is not evidence of a measured hardware speedup. Likewise, Falllinie's isolated ARM64 JavaScript embeddings below do not establish integrated game-frame headroom.
+
+## GPU kernels, compiler cost models and policy search
+
+[[kiln|Kiln]] is a JavaScript tensor compiler whose kernels are chosen by an analytic cost model and checked by a SIMT simulator, then measured on CUDA hardware (bling). Its PassNet research program is the vault's largest body of GPU-kernel performance work, and its lessons line up with the rest of this map. Read the [[kiln|Kiln MOC]] for the full reading order.
+
+- [[ARTICLE - Kiln - Whole Region Fusion Planning and Evidence Identity|Whole-region fusion planning]] builds a planner that is optimal for a declared additive cost model, then shows why small measured differences mean nothing until executable identity is established.
+- [[ARTICLE - Kiln - Controlled Policy Search and Unchanged Winners|Controlled policy search]] and [[ARTICLE - Kiln - Bounded Fusion Programs and a Negative Confirmation Result|bounded fusion programs]] are negative results. Candidates that compile to the same executables tie exactly, and the unchanged compiler wins.
+- [[ARTICLE - Kiln - Fixed Compiler Confirmation Across Twenty Fresh Model Families|Fixed-compiler confirmation]] separates a reduction-stratum gain from a small matrix-stratum regression across 23,400 timing samples.
+- [[ARTICLE - Kiln - Six GLM Lanes and Matrix Layout Fusion|Matrix layout fusion]] finds that fusing can remove a profitable scheduling choice.
+- [[ARTICLE - Kiln - Pointwise Convolution and Measured Transfer|Pointwise convolution]] reports a 32.7× gain over prior Kiln that is still slower than eager PyTorch on its own family: a relative improvement is not an absolute win.
+- [[ARTICLE - Kiln - Tensor-Core Matrix Products Built and Checked Without a GPU|Tensor-core matrix products]] shows how far a simulator and a cost model can take kernel work before hardware, and what still has to be confirmed on the GPU.
+
+Compare these with Falllinie's GPU reports below. There, static shader-compiler estimates were not runtime milliseconds; here, Kiln's analytic cost estimates are not measured kernel time. Both series keep rejected optimizations in the record.
 
 ## Online references: choose the instrument for the quantity
 
