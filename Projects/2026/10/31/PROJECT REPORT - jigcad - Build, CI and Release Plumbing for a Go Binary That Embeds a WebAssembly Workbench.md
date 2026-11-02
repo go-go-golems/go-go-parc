@@ -185,3 +185,7 @@ The before-hook runs the same `make web` as the Makefile, so a release cannot em
 - Ticket: `ttmp/2026/10/31/JIG-007-GO-PLUMBING--…` (design doc with the scaffold comparison and the release plan, diary).
 - Commit: 58fbabb.
 - Related: [[PROJECT REPORT - jigcad - A Go Model Backend for the Workbench Agent]], [[PROJECT REPORT - jigcad - Architecture of a Browser CAD Workbench, from Script to Agent]].
+
+## Related notes
+
+- [[jigcad]]: the jigcad project map, with the other reports and the related CAD/CAM work.

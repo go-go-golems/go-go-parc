@@ -160,3 +160,7 @@ The workbench agent reads and changes the view through its lab scope. `view.get(
 - Ticket `ttmp/2026/11/01/JIG-010-SKETCH-3D--…`: design doc, diary, screenshots.
 - Commits: 7d25528 (code), 503a000 (docs).
 - Related: [[PROJECT REPORT - jigcad - Architecture of a Browser CAD Workbench, from Script to Agent]], [[PROJECT REPORT - jigcad - Letting the Workbench Agent See, Images In and a look() Out]].
+
+## Related notes
+
+- [[jigcad]]: the jigcad project map, with the other reports and the related CAD/CAM work.

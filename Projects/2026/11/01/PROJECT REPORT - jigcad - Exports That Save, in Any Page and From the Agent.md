@@ -156,3 +156,7 @@ The verification had three levels.
 - Ticket `ttmp/2026/11/01/JIG-008-EXPORT--…`: design doc, diary, `scripts/01-export-all-formats.mjs`, the menu screenshot.
 - Commit: 504c7b7.
 - Related: [[PROJECT REPORT - jigcad - Architecture of a Browser CAD Workbench, from Script to Agent]], [[PROJECT REPORT - jigcad - Letting the Workbench Agent See, Images In and a look() Out]].
+
+## Related notes
+
+- [[jigcad]]: the jigcad project map, with the other reports and the related CAD/CAM work.

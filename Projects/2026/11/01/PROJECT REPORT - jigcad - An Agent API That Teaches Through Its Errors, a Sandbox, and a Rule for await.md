@@ -372,3 +372,7 @@ The four failures were engineering judgment rather than API misuse: holes placed
 | `import/jigcad/tools/agent-eval/failures.mjs` | the failure report |
 | `import/jigcad/test/agent/lint.test.mjs` | the message lint |
 | `ttmp/2026/11/01/JIG-012-AGENT-SANDBOX--…/`, `ttmp/2026/11/01/JIG-013-AWAIT-RULE--…/` | guides, diaries, batches and reports |
+
+## Related notes
+
+- [[jigcad]]: the jigcad project map, with the other reports and the related CAD/CAM work.

@@ -569,3 +569,7 @@ Performance is uneven by design. Kernel round 3 was told "correctness yes, deep 
 - Tickets: `ttmp/2026/10/31/JIG-001-RUST-WASM--…/` and `ttmp/2026/10/31/JIG-002-AGENT-LLM-BACKEND--…/` (design docs and diaries)
 - Related reports: [[PROJECT REPORT - jigcad - Moving the Numeric Core of a Browser CAD Engine into Rust and WebAssembly]], [[PROJECT REPORT - jigcad - Constraint Equations as Data and a Rust Renderer]], [[PROJECT REPORT - jigcad - A Go Model Backend for the Workbench Agent]]
 - Run: `cd import/jigcad && node build.mjs && cd ../.. && GOTOOLCHAIN=auto go run ./cmd/jigcad serve`, then open `http://127.0.0.1:8787/`
+
+## Related notes
+
+- [[jigcad]]: the jigcad project map, with the other reports and the related CAD/CAM work.

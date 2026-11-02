@@ -306,3 +306,7 @@ The agent now runs end to end outside claude.ai on the operator's own models. Th
 - Commits: `4c6ba07` (Go backend, server, command), `a7cb8e2` (browser adapter, last-round note), `d6d8d84` (ticket docs)
 - Run: `cd import/jigcad && node build.mjs && cd ../.. && GOTOOLCHAIN=auto go run ./cmd/jigcad serve`, then open `http://127.0.0.1:8787/` and the Agent tab
 - Source of the adapted code: slop-computer `pkg/piworker`, `pkg/piworker/gepp`, `pkg/server/rt_sample.go`, `web/runtime/src/sample.ts`
+
+## Related notes
+
+- [[jigcad]]: the jigcad project map, with the other reports and the related CAD/CAM work.

@@ -240,3 +240,7 @@ The next ticket, JIG-003, is therefore an **evaluation harness** for the agent. 
 - Rust: `import/jigcad/rust/jig-compute/src/`; bridge `import/jigcad/src/engine/rs/`; equations `src/engine/sketch/sym.js`
 - Go: `pkg/sample/`, `pkg/sample/gepp/`, `pkg/server/`, `cmd/jigcad/`; browser adapter `import/jigcad/src/host/sample-http.js`
 - Tests: `import/jigcad/test/rs/parity.mjs`, `stage-parity.mjs`, `test/engine-core/run.mjs`, `test/engine/run.mjs`, `tools/preset-check.mjs`, `tools/book-check.mjs`, `test/agent/*.test.mjs`, `pkg/**/*_test.go`
+
+## Related notes
+
+- [[jigcad]]: the jigcad project map, with the other reports and the related CAD/CAM work.

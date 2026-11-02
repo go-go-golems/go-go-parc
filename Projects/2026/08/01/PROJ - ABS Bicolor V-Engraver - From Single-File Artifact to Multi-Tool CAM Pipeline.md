@@ -223,3 +223,7 @@ Because the geometric core is DOM-free, extracting `runPipeline(input, settings,
 ## Project working rule
 
 Every claim about what the machine expects must trace to a line range in `testdata/MakeraBadge.nc` or to a measured cut — not to G-code folklore. When the two conflict, the reference file wins until a physical test says otherwise.
+
+## Related notes
+
+- [[jigcad]]: the CAD side, a browser parametric CAD workbench, with links to the other CAM notes.

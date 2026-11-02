@@ -314,3 +314,7 @@ The same session restyled the workbench's range inputs as hairline sliders, foll
 - Crate: `/home/manuel/code/wesen/go-go-golems/jig/import/jigcad/rust/jig-compute/src/lib.rs`
 - Bridge: `/home/manuel/code/wesen/go-go-golems/jig/import/jigcad/src/engine/rs/index.js`, `wasm.js`
 - Tests: `/home/manuel/code/wesen/go-go-golems/jig/import/jigcad/test/rs/parity.mjs`, `bench.mjs`, `sketch-dump.mjs`
+
+## Related notes
+
+- [[jigcad]]: the jigcad project map, with the other reports and the related CAD/CAM work.

@@ -236,3 +236,7 @@ The module is 162 KiB with no imports, at ABI version 1.4. It loads in the engin
 - Rust: `/home/manuel/code/wesen/go-go-golems/jig/import/jigcad/rust/jig-compute/src/{tape,solve,analyse,raster}.rs`
 - Tests: `test/rs/parity.mjs`, `test/rs/stage-parity.mjs`, `test/rs/bench.mjs`, `test/rs/stage-bench.mjs`, `rust/jig-compute/tests/tape.rs`
 - Commits: `39f2731` (Phase 4b), `0e0cef4` (Phase 5)
+
+## Related notes
+
+- [[jigcad]]: the jigcad project map, with the other reports and the related CAD/CAM work.

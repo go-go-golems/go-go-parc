@@ -635,3 +635,4 @@ Every claim about safety must name what was checked and at what resolution. If t
 ## Related notes
 
 - [[ARTICLE - Playbook - Self-Contained Go Wasm and JavaScript Browser Applications]] — a comparable "browser application with a compiled core" pattern, using a different toolchain.
+- [[jigcad]] — the CAD side: a browser parametric CAD workbench whose exported parts are what a CAM compiler like this one consumes.

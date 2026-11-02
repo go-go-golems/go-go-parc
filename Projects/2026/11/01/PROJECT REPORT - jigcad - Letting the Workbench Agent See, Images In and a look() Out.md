@@ -231,3 +231,7 @@ The agent saw "warnings: 1", not "the cut removes no material". It had a number 
 - Ticket `ttmp/2026/10/31/JIG-006-IMAGES--…`: design doc with results (§5), diary, probe scripts, renders, run records.
 - Commits: 8bcb879 (images end to end), 5104fc0 (`compileNow`), 56dd57e (measurements).
 - Related: [[PROJECT REPORT - jigcad - A Go Model Backend for the Workbench Agent]], [[PROJECT REPORT - jigcad - Measuring the Workbench Agent, an Evaluation Harness and a Promise Hint]], [[PROJECT REPORT - jigcad - Harder Agent Cases, Traps, and Why the Models Still Passed]].
+
+## Related notes
+
+- [[jigcad]]: the jigcad project map, with the other reports and the related CAD/CAM work.

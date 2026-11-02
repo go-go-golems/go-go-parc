@@ -189,3 +189,7 @@ Three repeats per tier is a small sample, and the confidence intervals of 1/3 an
 - Ticket `ttmp/2026/11/01/JIG-009-WARNINGS--…`: design doc with results, diary, runs in `various/runs/2026-11-01-{before,after,after-full,after-full-replacement}`.
 - Commits: 6fee355 (change), 9c511a6 (w02 check), f70b86a (results).
 - Related: [[PROJECT REPORT - jigcad - Letting the Workbench Agent See, Images In and a look() Out]], [[PROJECT REPORT - jigcad - Harder Agent Cases, Traps, and Why the Models Still Passed]], [[PROJECT REPORT - jigcad - Measuring the Workbench Agent, an Evaluation Harness and a Promise Hint]].
+
+## Related notes
+
+- [[jigcad]]: the jigcad project map, with the other reports and the related CAD/CAM work.

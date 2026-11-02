@@ -375,3 +375,7 @@ Preventing the first mistake requires a change the model reads before it writes 
 - `pkg/server/server.go`: `usage` on `result` and `error` events.
 - Tickets: `ttmp/2026/10/31/JIG-003-AGENT-EVAL--…` (intern guide, diary, baseline run) and `ttmp/2026/10/31/JIG-004-PROMISE-HINT--…` (design with results, diary, compare script, rerun).
 - Commits: c483a32 (cases and CLI), 7bb981b (unhandled rejections counted), d319ec3 (baseline), f9118b5 (tracked promises), ce3aeac (rerun and results).
+
+## Related notes
+
+- [[jigcad]]: the jigcad project map, with the other reports and the related CAD/CAM work.

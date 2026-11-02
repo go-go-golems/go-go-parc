@@ -195,3 +195,7 @@ Given "Make the box bigger", 12 of 12 runs across both tiers and both runs guess
 - `import/jigcad/test/agent-eval/harness.test.mjs`: the trap test and the multi-turn test.
 - Ticket `ttmp/2026/10/31/JIG-005-HARD-CASES--…`: design doc with ground truth and results (§7), diary, `scripts/01-analyze.py`, runs under `various/runs/`.
 - Commits: fb629fc (cases and runner), c4d8a5d and 3e326ad (check fixes, rescore), c23e38c (baseline and results).
+
+## Related notes
+
+- [[jigcad]]: the jigcad project map, with the other reports and the related CAD/CAM work.
