@@ -470,3 +470,7 @@ Those gaps are the right next work. The runtime foundation is no longer the bott
 - `/home/manuel/workspaces/2026-05-20/book-ocr/scraper/cmd/ocr-mvp/main.go`
 - `/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/SCRAPER-JOBS-001--general-purpose-task-workflow-job-system-for-scraper`
 - `/home/manuel/workspaces/2026-05-20/book-ocr/2026-05-20--book-ocr/ttmp/2026/05/24/OCR-MVP-001--implement-simple-mvp-ocr-workflow-with-new-workflow-api`
+
+## Related notes
+
+- [[book-ocr]] — project map of all Book OCR notes, from the claw-stuff scripts to the Go workbench.

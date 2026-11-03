@@ -491,3 +491,7 @@ go run ./cmd/book-ocr quality-pass \
 The output included `embedded-figures.md`, four figure image links, JSON crop sidecars, debug overlays, discovery YAML, and a profile patch. This proves the OCR application can run outside `scraper` while still using the Scraper workflow runtime.
 
 The next cleanup step is naming and productization. The moved packages still carry behavior-preserving names such as `ocrmvp`; those should be renamed after extraction so the new repository presents itself as the Book OCR application rather than as code copied from an MVP package.
+
+## Related notes
+
+- [[book-ocr]] — project map of all Book OCR notes, from the claw-stuff scripts to the Go workbench.

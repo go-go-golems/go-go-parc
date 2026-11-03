@@ -65,6 +65,7 @@ The runtime is more important than any individual scraper. A workflow must expos
 - [[ARTICLE - Book OCR Project Report - Structured Workflow Runtime and Manual PDF Repair]] — production repair loop.
 - [[ARTICLE - Structured Book OCR - Target Page Contracts Workflow Runtime and Production Hardening]] — target contracts and hardening.
 - [[ARTICLE - Book OCR Productization - Plugin Seams, Profile Policy, and the Road to v0.1.0]] — productization boundaries.
+- [[book-ocr]] — project map for the OCR application itself, including the later Go workbench.
 
 ### RAG and evidence consumers
 

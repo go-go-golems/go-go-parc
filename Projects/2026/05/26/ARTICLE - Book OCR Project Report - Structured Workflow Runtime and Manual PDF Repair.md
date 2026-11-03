@@ -1079,3 +1079,7 @@ The project has reached the stage where the architecture is sound and most remai
 The Book OCR project is now a full workflow-backed OCR system with a practical manual review and repair loop. It has moved from a freeform OCR experiment to a structured, target-page-only, artifact-rich pipeline. The most important current artifact is the regenerated PDF, but the most important engineering result is the surrounding system that can explain how that PDF was produced and can repair selected pages without discarding the rest of the run.
 
 The work today sharpened the final mile of the pipeline. It showed that OCR quality is not only a prompt problem. Some failures come from model classification, some from renderer policy, some from figure post-processing, some from PDF generation, and some from workflow reset semantics. The current architecture makes those layers separable. That is why the project can keep improving without restarting from scratch.
+
+## Related notes
+
+- [[book-ocr]] — project map of all Book OCR notes, from the claw-stuff scripts to the Go workbench.

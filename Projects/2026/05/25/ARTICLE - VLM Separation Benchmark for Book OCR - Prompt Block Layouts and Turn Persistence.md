@@ -1031,3 +1031,7 @@ Data
 Base` match `Application Data Base`.
 
 The next implementation step is now clear: add the target-page-only structured OCR client behind fake/dry-run tests. That client should create a Geppetto turn with exactly one target page image, persist `input` and `final` phases through `OCRTurnStore`, parse strict structured JSON into `StructuredPageOCR`, render through `RenderPageMarkdown`, and run deterministic validation before any live model call is allowed into a full-book workflow.
+
+## Related notes
+
+- [[book-ocr]] — project map of all Book OCR notes, from the claw-stuff scripts to the Go workbench.

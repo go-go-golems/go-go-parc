@@ -351,3 +351,4 @@ output/books/presentation-based-uis/
 
 - Source ticket: `ttmp/2026/05/20/AITR-794--clean-markdown-transcription-of-aitr-794-pdf/`
 - Implementation diary: `ttmp/2026/05/20/AITR-794--clean-markdown-transcription-of-aitr-794-pdf/reference/01-diary.md`
+- [[book-ocr]] — project map of all Book OCR notes, from the claw-stuff scripts to the Go workbench.

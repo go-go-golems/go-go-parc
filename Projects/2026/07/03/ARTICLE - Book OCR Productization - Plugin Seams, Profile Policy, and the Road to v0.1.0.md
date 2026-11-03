@@ -225,3 +225,4 @@ The plugin track has a third round (a post-render Markdown transform, an ingest 
 - [[ARTICLE - Book OCR Project Report - Structured Workflow Runtime and Manual PDF Repair]]
 - Ticket workspaces: `ttmp/2026/07/03/BOOK-OCR-PRODUCT-001--…` (productization analysis, plugin-seams design, investigation diary with 14 steps) and `ttmp/2026/07/03/WORKFLOW-RUNTIME-HARDENING-001--…` (runtime hardening guide) in the repository.
 - Release: https://github.com/wesen/2026-05-20--book-ocr/releases/tag/v0.1.0
+- [[book-ocr]] — project map of all Book OCR notes, from the claw-stuff scripts to the Go workbench.

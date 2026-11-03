@@ -640,3 +640,4 @@ The work is on branch `feat/workbench-go-host` of `/home/manuel/code/wesen/2026-
 - [[ARTICLE - VLM Separation Benchmark for Book OCR - Prompt Block Layouts and Turn Persistence]]
 - [[ARTICLE - Book OCR Productization - Plugin Seams, Profile Policy, and the Road to v0.1.0]]
 - [[PROJECT REPORT - jigcad - Letting the Workbench Agent See, Images In and a look() Out]]: the same image-transport constraint (tool results carry text only) in another workbench.
+- [[book-ocr]] — project map of all Book OCR notes, from the claw-stuff scripts to the Go workbench.

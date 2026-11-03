@@ -1479,3 +1479,7 @@ The current embedded-figure review artifact is:
 ```
 
 The final lesson is straightforward: prompt optimization worked because it was treated as an experiment system. The prompt text mattered, but the surrounding process mattered just as much: preserve evidence, inspect failures, validate visually, change one thing at a time, run targeted pages first, finish with repeatable QA, and then promote successful scripts into workflow-native workers.
+
+## Related notes
+
+- [[book-ocr]] — project map of all Book OCR notes, from the claw-stuff scripts to the Go workbench.

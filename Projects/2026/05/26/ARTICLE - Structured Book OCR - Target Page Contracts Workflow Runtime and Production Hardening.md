@@ -828,3 +828,7 @@ Important live artifacts:
 /tmp/book-ocr-structured-workflow-live-50-w4/projections/book_ocr_structured.db
 /tmp/book-ocr-structured-workflow-live-50-w4/turns.db
 ```
+
+## Related notes
+
+- [[book-ocr]] — project map of all Book OCR notes, from the claw-stuff scripts to the Go workbench.
