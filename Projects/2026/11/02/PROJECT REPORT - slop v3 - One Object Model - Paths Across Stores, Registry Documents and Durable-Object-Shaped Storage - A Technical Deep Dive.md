@@ -215,7 +215,7 @@ if own {
 
 A page subscribed to `contacts` must see Grace Hopper appear when someone writes `crm`'s `contacts/c2`, without a reload. Two facts shaped the solution.
 
-First, the runtime keeps **one cursor**, the holder store's revision, and advances it only from change events that carry a `rev`. Second, a store's revision numbers mean nothing in another store. A vector of cursors in the runtime would have worked, but would have changed the runtime's resume protocol. The implementation instead keeps the per-store cursors **on the server-side view**, which outlives stream reconnects. Changes from other stores travel without a `rev`, so the runtime's own cursor is never confused.
+First, the runtime keeps **one cursor**, the holder store's revision, and advances it only from change events that carry a `rev`. Second, a store's revision numbers mean nothing in another store. The first implementation kept the per-store cursors **on the server-side view**, which outlives stream reconnects, and sent changes from other stores without a `rev`, so the runtime's own cursor was never confused. Code review on the pull request then found the flaw in that choice, described at the end of this section: the server advanced its cursor when it *wrote* an event, which is not the same as the browser having *received* it. The cursor for another store is now confirmed by the runtime.
 
 ```mermaid
 sequenceDiagram
@@ -259,7 +259,28 @@ remote := func(o rt.Out) error {
 }
 ```
 
-When a stream (re)connects, the same `catchUpRemote` runs for every store in `v.Remotes()`, so a page that was offline while `crm` changed sees those changes on reconnect. `readerFor` decides the viewer's level and that store's rules once per commit, and `pageDocs` drops documents the viewer may not read and maps the rest to page paths through `PagePaths`. The server's publish step finds the views to notify through `Registry.Reaching(store)`, which returns the store's own views *and* the views that follow it.
+When a stream (re)connects, the same `catchUpRemote` runs for every store the view follows, so a page that was offline while `crm` changed sees those changes on reconnect. `readerFor` decides the viewer's level and that store's rules once per commit, and `pageDocs` drops documents the viewer may not read and maps the rest to page paths through `PagePaths`. The server's publish step finds the views to notify through `Registry.Reaching(store)`, which returns the store's own views *and* the views that follow it.
+
+**The cursor must be the one the browser confirms.** If the connection breaks after the server has written an event but before the browser has it, a cursor advanced on write resumes past an undelivered change, and that change is lost. The fix (commit 0cf5ccd, after review) makes the runtime the authority for what it received, without changing what page code sees:
+
+- each followed store gets an opaque per-view key (`"1"`, `"2"`, …), so store ids are not exposed to the page;
+- a commit's last document from that store carries `remote: <key>` and `remoteRev: <rev>`;
+- the runtime (`web/runtime/src/transport.ts`) keeps the newest `remoteRev` per key and sends them on reconnect as `?remote=1:8,…`;
+- the server resumes each store from what the runtime confirmed, bounded by what it sent and by where the view started following:
+
+```go
+func (v *View) Resume(confirmed map[string]int64) map[string]int64 {
+	out := make(map[string]int64, len(v.remote))
+	for k, r := range v.remote {
+		out[k] = max(r.base, min(confirmed[r.key], r.rev))
+	}
+	return out
+}
+```
+
+Delivery is therefore at least once, and a repeat is harmless: the runtime applies a document only if its version is newer than the one it holds (`intoMirror` in `db.ts`), deletions included. `TestAliasResumeFromClientCursor` simulates the lost event. A reconnect without a cursor receives the change again, and a reconnect with the confirmed cursor receives only what is newer.
+
+The same review found the mirror case of section 5.6. A page that subscribed through an alias *before* the viewer could read the target store got an empty snapshot and never started following that store, so a later grant changed nothing on screen. The view now follows the store from the start, with the recorded level `none`, so a grant moves the level and `recheck` reopens the page exactly as a revocation does (`TestAliasGrantReopens`).
 
 ### 5.6 Revocation: the bug the browser found
 
@@ -441,7 +462,7 @@ DO keys are arbitrary strings up to 2 KiB. Document ids are at most 200 bytes fr
 
 ```go
 func storageKeyID(key string) string {
-	if !strings.HasPrefix(key, "~") && rt.ValidDocPath("storage/"+key) {
+	if !strings.HasPrefix(key, "~") && !strings.Contains(key, "/") && rt.ValidDocPath("storage/"+key) {
 		return key                           // readable in the back office and in exports
 	}
 	sum := sha256.Sum256([]byte(key))
@@ -449,7 +470,7 @@ func storageKeyID(key string) string {
 }
 ```
 
-The two forms never collide. A key used as its own id never begins with `~`, and every hashed id does. A key containing `/` would make `storage/a/b` a collection path, so `ValidDocPath` rejects it and it is hashed.
+The two forms never collide. A key used as its own id never begins with `~`, and every hashed id does. The `/` check was added after review. Without it, `ValidDocPath` rejected `x/y` (because `storage/x/y` is a collection path) but accepted `a/b/c`, because `storage/a/b/c` has four segments and is a valid document path. That document landed in the nested collection `storage/a/b`, which `list()` and `deleteAll()` never query. A key is now its own id only when it is a single segment.
 
 Documents were chosen over a kernel table because the design maps `storage.get/put` to `db` documents, and documents come with the log, exports, reactors and the back office. A hidden `_storage` collection was also considered. It would have required `Turn.SetDoc` to accept `_`-prefixed paths, which is exactly what phase 1 forbade for every writer. So the collection is the ordinary `storage/`, and the documentation says how to close it to pages with a rule that nobody meets: `{path: "storage", read: "self", write: "self"}`.
 
@@ -608,7 +629,7 @@ It strains in these places, each recorded in the diary as a point for review:
 
 - A page path resolves to a store, a path there, and a ceiling; the page's own store stays at the root, so contract code runs unchanged.
 - The applicable level is `min(viewer's level on the target, route ceiling)` under the target's rules; aliases and templates carry no authority of their own.
-- Changes from other stores travel without a `rev`, with per-store cursors kept on the server-side view, so the runtime's resume protocol did not change.
+- A cursor for another store must be the one the browser confirms, not the one the server wrote: changes from other stores carry an opaque store key and rev, and the runtime sends them back on reconnect, which makes delivery at-least-once and repeats harmless.
 - Revocation needs the level the viewer *holds*, not the capped level, and the review must reach views of other stores that read the changed one.
 - Registry documents are computed by running the owning verbs as the viewer. Writes add a `db.stores admin` gate, a pre-check, the person's confirmation and an `ifVersion` derived from the system change log.
 - `ctx.storage` buffers transactions in JavaScript because rolling back documents under the Turn's change records would publish events for writes that never happened.
