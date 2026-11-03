@@ -146,3 +146,7 @@ The worktree is `/home/manuel/code/wesen/kiln/worktrees/passnet`. Ticket materia
 - `sources/pointwise-transfer-v1` retains selection, exclusions, source scripts, compiled artifacts and failures. Commit `81a7e5f` fixes this population and compiler pair.
 - `sources/pointwise-transfer-gpu-results-v1` retains the full CUDA replay, raw timing attempts, runner and eight-model summary. Scripts498–500 stage, execute and collect this experiment.
 - Diary volume2 records the implementation rationale, failed attempts and review instructions. The preceding vault article, [[ARTICLE - Kiln - Staged Fusion Generalization and Agent Composition]], explains the staged-fusion strategy and prior agent search results.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

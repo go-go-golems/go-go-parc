@@ -159,3 +159,7 @@ Original cumulative replay coverage remains eleven complete tasks and 206 indivi
 The documented PassAgent provider environment variables are absent locally and on bling.local. Only presence flags were inspected after notice; no credential values were retained. The model/endpoint or existing-configuration question is pending while compiler work continues. No external-model inference or PassAgent reproduction result is claimed.
 
 Primary review files are `kernel.js`, `records.js`, the corrected `run-node-tests.mjs`, the isolated worker regressions, `fx_indexing.py`, `fx_import.py` and the compiler helper's input-only detection. Design 13 describes the identity contract. Scripts 217–238 preserve replay, diagnostics, fixtures, source-declaration attempts, compilation and measurement. Updated reMarkable guide delivery remains separately pending after the earlier approval-review rejection; no new delivery is claimed.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

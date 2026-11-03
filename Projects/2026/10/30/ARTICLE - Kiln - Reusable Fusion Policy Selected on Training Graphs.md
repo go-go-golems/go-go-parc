@@ -173,3 +173,7 @@ The main artifacts are under the ticket's `sources/policy-corpus-v2`, `sources/p
 The shared implementation consists of `compile_policy.mjs`, `measure_policy.py`, `select_policy.py`, `summarize_policy.py` and `stress_policy.py` under `integrations/passnet`. Numbered scripts 69–79 preserve corpus construction, control compilation, isolation, selection, held-out execution and verification. Scripts 77 and 79 reproduce the result accounting from saved evidence.
 
 The broader integration architecture and limitations are explained in [[ARTICLE - PassNet and Kiln - Compiler Integration and the Self-Optimization Experiment]]. This milestone supplies the first measured reusable-policy result anticipated by that report.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

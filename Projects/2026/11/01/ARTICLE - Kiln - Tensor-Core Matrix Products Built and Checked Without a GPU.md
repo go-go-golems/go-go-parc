@@ -213,3 +213,7 @@ After that: measure GB10's dense TF32/f16/bf16 rates with FP32 accumulation and 
 - Files: `packages/kiln/src/std/mma.js`, `tile.js` (`operandPrecision`, `operandChain`, `mmaPlan`, `forkTree`, `estimateMma`, `costPrior`), `kernel.js` (`KB.mma`, warp-tile helpers, `matMma`), `emit.js` (`cudaMma`, simulator `mma` case, `SimMetrics.mma`), `program.js` (`operandInputs`), `core/kiln.js` (`expandFork`), `export.js`.
 - Ticket: `ttmp/2026/11/01/KILN-006--kiln-tensor-core-matrix-products-intern-analysis-design-and-implementation-guide/` — design guide (Section 13 lists the deviations), diary Steps 6-10, script 02.
 - NVIDIA, *Parallel Thread Execution ISA*, "Warp-level matrix multiply-accumulate instructions". M. Fasi, N. J. Higham, M. Mikaitis, S. Pranesh, "Numerical behavior of NVIDIA tensor cores", PeerJ Computer Science, 2021.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

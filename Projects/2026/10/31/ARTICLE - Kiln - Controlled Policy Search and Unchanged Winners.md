@@ -228,3 +228,7 @@ The second priority is to broaden the optimization representation only where the
 Full support for the 200-task PassBench evaluation, native numerical compatibility, broader original-agent reproduction and transformation synthesis remain active work. The present milestone completes a bounded comparison and verifies its negative outcome. It establishes a repeatable path for evaluating future proposals; it does not complete the overall Kiln–PassNet research objective.
 
 Related report: [[ARTICLE - Kiln - Project Reassessment and the Path to Agent-Generated Compiler Strategies]].
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

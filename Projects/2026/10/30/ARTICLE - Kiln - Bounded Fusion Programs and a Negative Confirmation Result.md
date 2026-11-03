@@ -128,3 +128,7 @@ Broader corpus coverage remains a distinct requirement. Kiln imports 804 evaluat
 The working repository is `/home/manuel/code/wesen/kiln/worktrees/passnet`. Ticket `KILN-005` contains design document 07, diary Steps 78 onward, scripts 80–89 and the frozen `policy-corpus-v3`, `policy-artifacts-v3` and `policy-measurements-v2` directories. Script 89 recomputes structural qualification, training ranking, confirmation accounting and timing stability from saved evidence. Script 85 reproduces the reference audit after extracting `reference-full-logs.tar.gz`.
 
 Related historical explanations are [[ARTICLE - PassNet and Kiln - Compiler Integration and the Self-Optimization Experiment]] and [[ARTICLE - Kiln - Reusable Fusion Policy Selected on Training Graphs]]. These notes document different milestones and should be read with their recorded experimental scopes.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

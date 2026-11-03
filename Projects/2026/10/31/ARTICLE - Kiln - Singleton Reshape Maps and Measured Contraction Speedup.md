@@ -187,3 +187,7 @@ The change is Codex-authored engineering work, not a completed original PassAgen
 The hardware and integration limits also remain explicit: measurements use DGX Spark GB10 and the recorded NVIDIA PyTorch development container, rather than the paper's A30 environment. Matching and dispatch use the project's declared modified integration protocol. Numerical thresholds and the original scorer remain preserved, but the resulting measurements are not exact paper reproduction scores.
 
 The next research step is to evaluate compiler transformations across new declared training and confirmation families while preserving these distinctions. Remaining operator, dtype and layout support, native numerical compatibility and a uniform benchmark run remain part of the active full objective.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

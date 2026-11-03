@@ -311,3 +311,7 @@ python integrations/passnet/run_task.py \
 For review, the main evidence entry points are `sources/kiln-coverage.json`, `sources/import-audit-summary.json`, each accepted task's isolated evaluator log, and its saved score. Design documents 04 and 05 explain consolidation and concatenation. The detailed investigation diary preserves the failures, commands, decisions and provenance that support this report.
 
 The implementation milestones most relevant to this snapshot are `95e83ee` for static indexing, `7126b49` for concatenation and reference-input correction, `ffa7e7e` for shared dispatch/evaluator execution, and `e98a315` for the fifth accepted task and revised research priority. Earlier historical notes remain available in [[ARTICLE - PassNet and Kiln - From FX Semantics to CUDA Execution]].
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

@@ -313,3 +313,7 @@ The stopping rules matter as much as the phases. Counts from different snapshots
 - Upstream replacement semantics: `.../sources/upstream/pass_bench/torch/custom_replacement.py`
 - Core code: `integrations/passnet/{fx_import,generate_pass,dispatch,runtime}.py`, `packages/kiln/src/std/{tensor,loop,fusion,emit,export}.js`, `scripts/kiln-export.mjs`
 - Related notes: [[ARTICLE - Kiln - Compiler Policy Transfer and the 111-Task Coverage Frontier]], [[ARTICLE - PassNet and Kiln - From FX Semantics to CUDA Execution]], [[ARTICLE - Kiln - Project Reassessment and the Path to Agent-Generated Compiler Strategies]]
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

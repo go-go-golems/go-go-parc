@@ -183,3 +183,7 @@ The authoritative new artifacts are `singleton-view-source-cohort-v1-verified-fa
 The original tracer and reward behavior are inspectable in the pinned [custom replacement implementation](https://github.com/PaddlePaddle/PassNet/blob/61c64709f6d324216ae8252cec3cdc35b2dd5da5/pass_bench/torch/custom_replacement.py) and [PassNet Docker runtime](https://github.com/PaddlePaddle/PassNet/blob/61c64709f6d324216ae8252cec3cdc35b2dd5da5/pass_agent/runtime/passnet_docker.py). No code from these algorithms is ported into the new singleton binder.
 
 This report follows [[ARTICLE - Kiln - Original PassAgent Execution and Experimental Identity]] and [[ARTICLE - Kiln - Exact GELU and Complete Source Qualification]]. The full objective remains active; 31 accepted tasks is a measured milestone within the 200-task scope.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

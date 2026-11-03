@@ -198,3 +198,7 @@ The authoritative ticket is `KILN-005` under `ttmp/2026/10/30/KILN-005--reproduc
 | `scripts/452`–`455` by filename prefix | Lane execution, study preparation, repeat, and analysis procedures |
 
 The next milestone should combine a targeted compiler change with evidence on both the known regressions and additional graph families. The current result supplies a working agent loop and a concrete scheduling problem to investigate. It does not yet establish a generally improved compiler.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

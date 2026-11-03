@@ -189,3 +189,7 @@ All paths below are relative to `/home/manuel/code/wesen/kiln/worktrees/passnet`
 Scripts 465–470 preserve the representation test, six-lane inference, candidate preparation, trace compression, compilation analysis and result collection. They retain the original output locations and intentionally do not overwrite completed experiments. A rerun should use new declared output paths.
 
 The implementation checkpoint is `125c6bb`; fresh-model confirmation evidence is committed in `e89b705`; composition evidence and conclusions are committed through `60e8065`. The earlier article, [[ARTICLE - Kiln - Six GLM Lanes and Matrix Layout Fusion]], explains the selective-policy discovery that preceded this transformation. This follow-up preserves the correction that final fused default kernels lacked recognized contractions; schedule analysis of separated producers motivated the two-stage implementation.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

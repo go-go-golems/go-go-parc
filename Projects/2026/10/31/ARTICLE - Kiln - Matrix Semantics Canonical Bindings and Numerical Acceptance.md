@@ -158,3 +158,7 @@ The next useful search should expose additional legal transformations or schedul
 The primary implementation files are `packages/kiln/src/std/matmul.js` and `integrations/passnet/{fx_linalg.py,fx_trace.py,generate_pass.py,corpus.py,evaluate_tasks.py,summarize_task_run.py}`. Design 08 explains matrix and binding contracts; diary Steps 87–90 preserve the investigation. The canonical residual logs, `linalg-cuda.json`, `linear-precision-diagnostic.json`, `reference-numerical-threshold-audit.json` and `kiln-coverage.json` supply the measured evidence.
 
 PyTorch documentation and native source snapshots are archived under `sources/pytorch/linalg` with URL, size and SHA256 provenance. The Kiln shape/reference/lowering implementation was written independently; no native PyTorch matrix algorithm was copied. Generated matcher bodies are extracted from the pinned PassNet dataset's trusted source models and record their source hashes. The upstream PassNet revision is `61c64709f6d324216ae8252cec3cdc35b2dd5da5`, and the dataset revision is `4f7dd9211178327c2718f1b828d83ea126186f9e`.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

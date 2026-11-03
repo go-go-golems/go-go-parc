@@ -69,3 +69,7 @@ The worktree is `/home/manuel/code/wesen/kiln/worktrees/passnet`. The KILN-005 t
 To add a new operator, first determine its exact PyTorch signature, shapes, dtypes, alias behavior and exceptional values. Implement a static semantic contract and Kiln lowering, then compare representative CPU oracles, compiled CUDA fixtures and complete corpus imports. If an importable task still fails matching, capture the source pattern and target FX before changing the normalizer. If it matches but fails numerical comparison, compare intermediate arithmetic under the pinned environment at the existing threshold. Only a terminal complete-family replay should change the coverage ledger.
 
 The immediate next measurement is a uniform rerun of the newly supported families from one compiler revision, followed by a broader corpus run as resource limits allow. The most valuable remaining engineering work is precise diagnosis of low-precision linear and convolution failures, compiler end-to-end check failures, and the placeholder mutation contract. Those are now the constraints on reaching substantially beyond the current 53 complete tasks.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

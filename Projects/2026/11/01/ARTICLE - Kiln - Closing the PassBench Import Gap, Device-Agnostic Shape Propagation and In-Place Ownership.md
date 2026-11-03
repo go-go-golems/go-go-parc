@@ -299,6 +299,7 @@ The diary is `ttmp/2026/11/01/integration-diary-kiln-006-011.md`, Steps 9-11.
 
 ## Related notes
 
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.
 - [[ARTICLE - Kiln - Index Values, Factory Ops and Slice Assignment in a Functional Tensor Compiler]] (KILN-010: the factory proxies and `view_write` this wave reuses)
 - [[ARTICLE - Kiln - Writing Mutated Inputs In Place with Proofs Over the Exported Program]] (KILN-009: the direct-write proof that makes the relaxed in-place rule safe under `auto`)
 - [[ARTICLE - Kiln - Cumsum as a Scan Primitive, From Masked Reduction to Block Scan]] (KILN-008: the scan whose constant input needed typed export)

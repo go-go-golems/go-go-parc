@@ -291,3 +291,7 @@ Implemented on branch `impl/kiln-008-cumsum-scan` in `/home/manuel/code/wesen/ki
 - **Integer simulation.** Once KILN-010's integer simulator lands, the integer scan kernels should run through the same simulator grid with exact comparison.
 - **Longer-range parallelism.** A single row still uses one block, so at most one SM. A warp-shuffle mapping needs a Kernel IR shuffle statement; a decoupled look-back mapping (Merrill and Garland, 2016) needs global status flags and memory ordering, which Kernel IR does not have.
 - **More scans.** `logcumsumexp` needs a `logaddexp` reducer whose identity `-inf` combines with itself without producing NaN; exclusive and reverse scans need only an attribute and a different statement order or loop direction.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

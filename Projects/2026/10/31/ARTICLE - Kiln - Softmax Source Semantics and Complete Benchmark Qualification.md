@@ -203,3 +203,7 @@ The next coverage work should follow the remaining dependency audit, then pass c
 The self-optimization track can use the larger supported population to expose different fusion and scheduling behavior. Candidate synthesis must still operate on training graphs, commit its selection before confirmation and retain unchanged-executable aliases. External-model pass generation and comparison with reusable compiler transformations remain necessary research steps.
 
 The intern guide, detailed diary, frozen plans, failed attempts and milestone reports preserve how these components fit together. Their purpose is to make further implementation reproducible without conflating translation capability, numerical correctness, graph matching and optimization benefit.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

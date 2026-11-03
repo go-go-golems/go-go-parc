@@ -125,3 +125,7 @@ The existing `kiln-transformation-program/1` representation and Pi/LLM study lan
 The authoritative ticket is `ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations` in `/home/manuel/code/wesen/kiln/worktrees/passnet`. Its reference34 defines the coverage and optimization waves, reference35 contains the full 12-task result table, and reference36 declares the uniform 111-task run. `sources/fixed-policy-passbench-v1/` contains both plans, the fixed program, task audits and graph-level comparison; `raw-evidence.tar.gz` preserves all 1,157 raw members. Scripts615–625 freeze, execute, collect and analyze the relevant experiments. The long chronological implementation record is reference24.
 
 The new uniform qualification is running as tmux session `kiln-uniform-importable-v1` on bling. Its result is pending. The completed 92-graph comparison justifies rejecting one global pointwise program; it does not yet establish a better learned policy, a full current-release 200-task Kiln evaluation, or an A30 paper-reproduction score.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

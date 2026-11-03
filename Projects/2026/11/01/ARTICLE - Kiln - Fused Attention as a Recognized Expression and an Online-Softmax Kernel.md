@@ -195,3 +195,7 @@ Two limits of this evidence are known. The SIMT simulator executes a block in lo
 - `packages/kiln/src/std/tile.js` — `MAP=flash`, knobs `BR`, `BC`, `RM`, `bestEstimate`; `kernel.js` dispatch; `emmy.js` `attention` option.
 - `packages/kiln/src/std/tensor.js` — `N.safeSoftmax`; `integrations/passnet/fx_compose.py` — `lower_sdpa`.
 - Ticket: `ttmp/2026/11/01/KILN-007--kiln-fused-attention-intern-analysis-design-and-implementation-guide/` (design doc Section 13, diary Steps 6-10, probe 676, NVRTC logs).
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

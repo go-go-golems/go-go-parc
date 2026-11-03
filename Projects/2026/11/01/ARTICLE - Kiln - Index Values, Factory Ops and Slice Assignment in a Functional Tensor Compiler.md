@@ -232,3 +232,7 @@ The ten extra imports had factory calls with `device='cuda'` that previously ran
 - `integrations/passnet/fx_trace.py`, `fx_assign.py`, `fx_import.py` — factory-preserving tracing, view regions, `write_region`, `lower_setitem`.
 - Tests: `packages/kiln/test/index-values.mjs`, `integrations/passnet/test_fx_factories.py`.
 - Ticket: `ttmp/2026/11/01/KILN-010-…/design-doc/01-…md` (design guide) and `reference/01-diary.md` (Steps 6–9 record the implementation).
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

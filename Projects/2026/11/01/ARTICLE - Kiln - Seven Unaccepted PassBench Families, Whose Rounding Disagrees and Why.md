@@ -328,6 +328,7 @@ The family can reach at most 4 of 6 graphs, and it is not acceptable as a family
 
 ## Related notes
 
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.
 - [[ARTICLE - Kiln - Closing the PassBench Import Gap, Device-Agnostic Shape Propagation and In-Place Ownership]]
 - [[ARTICLE - Kiln - Index Values, Factory Ops and Slice Assignment in a Functional Tensor Compiler]]
 - [[ARTICLE - Kiln - Writing Mutated Inputs In Place with Proofs Over the Exported Program]]

@@ -152,3 +152,7 @@ The source repository is `/home/manuel/code/wesen/kiln/worktrees/passnet`, branc
 Primary source references are the pinned [original PassAgent runner](https://github.com/PaddlePaddle/PassNet/blob/61c64709f6d324216ae8252cec3cdc35b2dd5da5/pass_agent/examples/run_pass_agent_demo.py), [original container runtime](https://github.com/PaddlePaddle/PassNet/blob/61c64709f6d324216ae8252cec3cdc35b2dd5da5/pass_agent/runtime/passnet_docker.py), [R2E-Gym source](https://github.com/R2E-Gym/R2E-Gym/tree/0d94c4eb9431cd195c55a7ea3abd54006c9a1735), and [llama.cpp source](https://github.com/ggml-org/llama.cpp/tree/0ec4027a2a0183de87c007069adddc06e665f7de). The paper text is archived as ticket `sources/paper.txt`; its student configuration appears in Table 4.
 
 The preceding report, [[ARTICLE - Kiln - Exact GELU and Complete Source Qualification]], explains the current numerical and compiler coverage. [[ARTICLE - Kiln - Fixed Compiler Confirmation Across Twenty Fresh Model Families]] describes the fixed-source confirmation experiment. This note records the first original-agent feedback milestone while the trajectory is still active; later results require their own dated evidence.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

@@ -366,3 +366,7 @@ The repository worktree is `/home/manuel/code/wesen/kiln/worktrees/passnet`. The
 | Reporting audit | T/scripts/422–423 and sources/project-reassessment-facts-v1.json; current counts and full-shape finite comparisons independently recomputed |
 
 The reporting pass rechecks current per-graph ledger fields, unique import membership, the fresh-model aggregate and the new native probe's raw outputs and input hashes. It does not rerun every historical experiment verifier or claim a new performance measurement for the older studies. The distinction between archived evidence, newly checked facts and proposed work is part of the report's contract.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

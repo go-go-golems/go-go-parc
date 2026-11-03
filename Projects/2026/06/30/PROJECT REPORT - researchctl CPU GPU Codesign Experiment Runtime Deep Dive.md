@@ -659,3 +659,7 @@ That structure is what makes future CPU/GPU work possible. Hardware-specific bac
 ## Optimization knowledge network
 
 Navigation addendum: [[MOC - Optimization and Performance Engineering|Optimization and Performance Engineering MOC]] connects this historical report to related CPU/eBPF, memory, graphics, runtime-boundary and Falllinie investigations, plus external tool references. The findings above are unchanged; consult any existing errata before reusing causal conclusions.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — a tensor compiler whose GPU runs follow the same frozen-plan and manifest discipline.

@@ -161,3 +161,7 @@ The working repository is `/home/manuel/code/wesen/kiln/worktrees/passnet`. Tick
 The full project remains incomplete. Controlled full-corpus performance measurements, original PassAgent evaluation, general mutation and remaining operator/runtime support are still open. The completed work provides an executable policy-search loop, evidence that the tested strict-fusion grammar is unproductive on its training population, and a larger source population for the next compiler intervention.
 
 Related notes are [[ARTICLE - Kiln - Reusable Fusion Policy Selected on Training Graphs]] and [[ARTICLE - Kiln - Bounded Fusion Programs and a Negative Confirmation Result]]. Each preserves its own experimental population and result.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

@@ -155,3 +155,7 @@ The repository is `/home/manuel/code/wesen/kiln/worktrees/passnet`. Ticket KILN-
 - Run script 183 to recheck frozen files, artifact qualification, source verification, reference flags and the selection commitment.
 
 The experiment establishes an auditable route from reusable policy proposals to complete training selection and fresh confirmation. Its measured outcome directs the next compiler experiment toward more expressive transformations while preserving the current default and the unresolved native benchmark failures.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

@@ -97,3 +97,7 @@ The project has verified corpus acquisition, a typed FX boundary, first Kiln low
 Next work must resolve matching, execute the original checker/scorer or clearly declared modified protocol, implement required dtype/layout/operator coverage, and evaluate reusable compiler policies on held-out graph families. Kiln's current fusion rule in `packages/kiln/src/std/loop.js` uses `now <= was * 1.02`; altering that profitability policy is a candidate experiment only after the benchmark integration and isolated baseline are trustworthy.
 
 The intern guide progress edition is delivered through reMarkable at `/ai/2026/10/30/KILN-005`. Source artifacts, numbered scripts and chronological evidence live in the KILN-005 ticket under `/home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/`. Primary references are the [PassNet paper](https://arxiv.org/abs/2605.29357), [reference repository](https://github.com/PaddlePaddle/PassNet), and [dataset](https://huggingface.co/datasets/PassNet/PassNet).
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

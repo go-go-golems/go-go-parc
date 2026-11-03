@@ -167,3 +167,7 @@ The core implementation and experiment articles date from the June–July 2026 `
 
 Related project map: [[rag-ttc]] documents the smaller direct-Go experiment
 architecture that now owns the clean-slate TTC RAG work.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — a tensor compiler whose GPU runs follow the same frozen-plan and manifest discipline.

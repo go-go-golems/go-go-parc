@@ -167,3 +167,7 @@ The compiler has a tested region planner, a single selection interface and a con
 Original replay coverage remains eleven complete tasks and 206 individually passing graphs. Import eligibility remains 1,029 graphs and 51 complete families. Original PassAgent evaluation, remaining operation/layout/dtype support, native reduced-precision compatibility and broader transformation synthesis remain open. The GB10 software environment also differs from the paper's A30 setup, so this is not an exact paper reproduction.
 
 For review, begin with design 12, `std/fusion.js`, `fusion-region.mjs`, the current `createFusionRule` and `fusion_policy.mjs`. Scripts 203–214 preserve the execution sequence. Run script 213 with selection commit `cff6a69` to verify declarations, artifacts, reference flags, source identity and committed selection. Script 214 reconstructs the training-only naming diagnostic without altering measurements. The detailed diary records implementation, commands, assumptions, source revisions and failures.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

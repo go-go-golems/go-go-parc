@@ -162,3 +162,7 @@ The current selected program fails generalization and performs no observed parti
 Primary implementation files are `packages/kiln/src/std/loop.js`, `packages/kiln/test/selective-fusion.mjs`, and the integration's `fusion_policy.mjs`, `propose_policy.py`, `compile_policy.mjs` and `compile_study.py`. Design 11 explains the mutation contract. Saved scripts 185–200 preserve investigation, fixture generation, frozen selection, compilation, measurement and post-confirmation diagnosis.
 
 For review, run script 199 against the archived artifacts and measurements. It checks frozen declarations, structural qualification, explicit reference flags, exact selection bytes from the pre-confirmation commit and remote source identity. Script 200 reconstructs the descriptive confirmation audit without timing or policy changes. The detailed diary records the implementation failure, corrections, commands and commit boundaries.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

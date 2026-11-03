@@ -396,3 +396,7 @@ The preferred human-facing address is now `bling.scapegoat.dev`; the Tailscale D
 The implementation evidence is the 2026-10-20 provisioning session: tmux pane captures, APT output, operator-confirmed browser authorization, workstation Tailscale status and ping output, and successful SSH checks against the Spark. The final report also used a fresh read-only inspection of `hostnamectl`, `/etc/os-release`, `tailscale version`, service state, selected Tailscale status fields, and the relevant `/etc/hosts` line. The DNS follow-up adds the Terraform source edits, full and targeted plan results, the successful one-resource apply, an authoritative CNAME query, workstation address resolution, and a successful SSH command through `bling.scapegoat.dev`.
 
 Conceptual explanations describe the responsibilities needed to interpret those observations. They are not claims that internal protocol behavior, every resolver path, or every access-policy rule was inspected. No external documentation research or performance study was undertaken for this report.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — the Kiln compiler, whose PassBench replays and CUDA probes ran on this host.

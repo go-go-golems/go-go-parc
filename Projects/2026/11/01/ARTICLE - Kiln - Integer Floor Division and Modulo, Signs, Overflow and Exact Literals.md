@@ -223,3 +223,7 @@ The replay script `integrations/passnet/check_integer_division_cuda.py` and its 
 - `/home/manuel/code/wesen/kiln/worktrees/kiln-011-floordiv-mod/integrations/passnet/fx_import.py`: `lower_division`.
 - Tests: `packages/kiln/test/integer-constant-folding.mjs`, `integer-division.mjs`, `float-division.mjs`; `integrations/passnet/test_fx_import.py::test_integer_division`, `test_fx_compose.py::test_integer_division_matches_torch`, `test_float_division_matches_torch`.
 - Ticket: design guide and diary (Steps 7-11) under `ttmp/2026/11/01/KILN-011--...`.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

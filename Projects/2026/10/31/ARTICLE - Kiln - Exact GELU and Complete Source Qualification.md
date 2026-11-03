@@ -155,3 +155,7 @@ The code and evidence live in worktree `/home/manuel/code/wesen/kiln/worktrees/p
 Primary implementation files are `packages/kiln/src/std/special.js`, `fns.js`, `tensor.js`, `integrations/passnet/fx_import.py` and `fx_normalize.py`. Tests are `packages/kiln/test/gelu.mjs`, its independently generated oracle fixture, `test_fx_gelu.py` and the LayerNorm cases in `test_fx_normalize.py`.
 
 Begin review with design 17 and `gelu-source-cohort-v1-verified-facts.json`. Read both source-matching diagnostics, the preserved compile-check diagnostic and the targeted replay's verified-facts receipt before interpreting final coverage. Scripts 305 onward preserve the acquisition and execution sequence. The native fixture check, original benchmark acceptance and cumulative ledger each answer a separate question; retaining those distinctions makes the remaining unsupported cases visible.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

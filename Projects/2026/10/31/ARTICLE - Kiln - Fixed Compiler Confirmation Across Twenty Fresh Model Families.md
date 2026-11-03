@@ -154,3 +154,7 @@ Review the following files together:
 - Scripts 283–302 preserve selection, dependency setup, source controls, fixture validation, compilation, staging, execution, audit, report derivation and structural inspection.
 
 To reproduce the audit without starting another GPU run, select Node 26 and execute the retained script 296 from this worktree. Re-running the experiment itself requires new output directories; the harness rejects overwriting an existing freeze, compilation directory or measurement file. Keeping those records immutable preserves the distinction between an original observation and a later reproduction.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

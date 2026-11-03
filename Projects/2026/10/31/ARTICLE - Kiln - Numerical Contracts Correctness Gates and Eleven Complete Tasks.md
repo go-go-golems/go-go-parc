@@ -151,3 +151,7 @@ This extends the existing training-selection/confirmation framework rather than 
 The numerical feature is implemented in std/fns.js, std/tensor.js, std/emmy.js and std/emit.js, with shared compiler/CLI propagation. Design 09 explains its semantics and API. All 28 core test files and 65 Python integration tests pass at the feature boundary. The exact CUDA receipt, full 63-variant audit and source reconstruction checks are bound in contraction-verified-facts.json.
 
 The implementation is independent. Primary NVIDIA documentation and pinned PyTorch v2.9.1 normalization sources are archived with URLs, sizes and SHA256 provenance; no native normalization algorithm was copied. Ticket scripts 152–162 preserve acquisition, validation, measurement, structural analysis and source auditing. The intern guide and detailed diary explain the remaining full-corpus, agent and compiler requirements. The project remains active.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.

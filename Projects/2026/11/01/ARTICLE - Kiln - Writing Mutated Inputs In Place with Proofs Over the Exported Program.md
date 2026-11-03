@@ -244,3 +244,7 @@ The CPU evidence shows that the analysis decides as designed, that the rewritten
 - `integrations/passnet/generate_pass.py`, `corpus.py`, `fx_normalize.py`, `test_pass_generation.py`: the family 162 fixes.
 - `ttmp/2026/11/01/KILN-009--kiln-direct-writes-of-mutated-inputs-intern-analysis-design-and-implementation-guide/`: design guide, diary (Steps 6-9 cover this implementation), scripts 05-08, and the evidence under `sources/`.
 - Validation at `78f5f1b`: `packages/kiln` `npm test` → all 49 passed; `integrations/passnet` `pytest -q` → 180 passed.
+
+## Related notes
+
+- [[kiln|Kiln MOC]] — reading map of all Kiln compiler and PassNet notes, grouped by question.
