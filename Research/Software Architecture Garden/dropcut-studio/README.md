@@ -108,3 +108,7 @@ dropcut`, local commit `5f33ba1`, not yet pushed at analysis time). The Garden
 entry is the cross-project distillation; the ticket is the full evidence-led
 investigation. Where they disagree, the ticket has the deeper line-anchored
 evidence and the Garden entry has the portable abstraction.
+
+### CAM core study (claude-opus) added 2026-10-25
+
+- [[Research/Software Architecture Garden/dropcut-studio/claude-opus/README|claude-opus study — dropcut-studio CAM core]] — eleven chapters on the TypeScript CAM compiler on `main` at `f3ebac2`, the part this entry's earlier analysis excludes: non-modal IR with a round-trip oracle, capabilities as data, certified stage types, graded evidence certificates, branch-and-bound drop-cutter, the capability-passing script host, planner linking, and three-tier app state. Records one open correctness obligation: the certificate reports a gouge check that the pipeline never runs.
