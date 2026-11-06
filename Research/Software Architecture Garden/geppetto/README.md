@@ -260,3 +260,7 @@ Promotion requires another independent implementation with the same authority an
 - [[Research/Software Architecture Garden/rag-ttc/README|rag-ttc]]
 - [[Transcripts/Research/09 - RAG-MATHS Pattern Zoo|RAG-MATHS Pattern Zoo]]
 - [[Transcripts/Research/10 - PBUI-MATHS Pattern Zoo Handbook|PBUI-MATHS Pattern Zoo Handbook]]
+
+## Dated design extractions
+
+- 2026-11-06: [[Research/Software Architecture Garden/geppetto/designs/01-bound-api-connection|Bound API Connection — Atomic Credential Authority and Request Execution]]. A separate candidate pattern based on local continuation commit `b8566b6e`; the historical snapshot above remains unchanged. The accompanying [[Projects/2026/11/06/PROJ - Geppetto - Bound API Connections and Credential Authority|project report]] records the migration and validation limits.
