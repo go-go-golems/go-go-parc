@@ -1,0 +1,239 @@
+Nov 06 17:23:29.511766 f kernel: i915 0000:00:02.0: [drm] Resetting rcs0 for preemption time out
+Nov 06 17:23:29.557343 f kernel: i915 0000:00:02.0: [drm] GPU HANG: ecode 12:1:878afbf6, in CanvasRenderer [20371]
+Nov 06 17:23:50.572261 f kernel: i915 0000:00:02.0: [drm] GPU HANG: ecode 12:1:878afbf6, in CanvasRenderer [20371]
+Nov 06 17:23:50.572679 f kernel: i915 0000:00:02.0: [drm] Resetting rcs0 for stopped heartbeat on rcs0
+Nov 06 17:23:50.575227 f kernel: i915 0000:00:02.0: [drm] GT0: Resetting chip for stopped heartbeat on rcs0
+Nov 06 17:23:50.577247 f kernel: i915 0000:00:02.0: [drm] *ERROR* GT0: Failed to reset GuC, ret = -110
+Nov 06 17:23:50.770422 f kernel: i915 0000:00:02.0: [drm] *ERROR* GT0: Failed to reset chip
+Nov 06 17:23:50.770866 f kernel: i915 0000:00:02.0: [drm:add_taint_for_CI [i915]] CI tainted:0x9 by intel_gt_reset+0x2f0/0x390 [i915]
+Nov 06 17:23:50.773226 f kernel: i915 0000:00:02.0: [drm] *ERROR* GT0: Failed to reset GuC, ret = -110
+Nov 06 17:23:50.880734 f kernel: i915 0000:00:02.0: [drm] CanvasRenderer[20371] context reset due to GPU hang
+Nov 06 17:24:17.011229 f kernel: watchdog: BUG: soft lockup - CPU#3 stuck for 23s! [kworker/3:1:750541]
+Nov 06 17:24:17.011461 f kernel: Modules linked in: iptable_nat veth xt_nat nf_conntrack_netlink xfrm_user xfrm_algo xt_addrtype xt_connmark xt_mark vboxnetadp(OE) vboxnetflt(OE) vboxdrv(OE) ccm xt_co
+Nov 06 17:24:17.055133 f kernel:  cros_usbpd_charger btusb snd_seq_midi cros_ec_debugfs intel_uncore_frequency cros_usbpd_notify cros_ec_chardev cros_ec_sysfs cros_usbpd_logger btrtl snd_seq_midi_even
+Nov 06 17:24:17.055172 f kernel:  int3400_thermal joydev intel_vsec acpi_thermal_rel input_leds pmt_telemetry pmt_class acpi_pad mac_hid serio_raw sch_fq_codel kvm_intel kvm irqbypass iptable_filter i
+Nov 06 17:24:17.055194 f kernel: CPU: 3 PID: 750541 Comm: kworker/3:1 Tainted: G     U  W  OE      6.8.0-147-generic #147-Ubuntu
+Nov 06 17:24:17.055204 f kernel: Hardware name: Framework Laptop/FRANBMCP0B, BIOS 03.07 12/14/2021
+Nov 06 17:24:17.055217 f kernel: Workqueue: rcu_gp wait_rcu_exp_gp
+Nov 06 17:24:17.055346 f kernel: Call Trace:
+Nov 06 17:24:17.055362 f kernel:  <TASK>
+Nov 06 17:24:17.055381 f kernel:  ? _raw_spin_lock_irqsave+0xe/0x20
+Nov 06 17:24:17.055396 f kernel:  __sync_rcu_exp_select_node_cpus+0x266/0x4a0
+Nov 06 17:24:17.055408 f kernel:  sync_rcu_exp_select_cpus+0x1e2/0x480
+Nov 06 17:24:17.055421 f kernel:  wait_rcu_exp_gp+0x13/0x30
+Nov 06 17:24:17.055431 f kernel:  process_one_work+0x184/0x3a0
+Nov 06 17:24:17.055439 f kernel:  worker_thread+0x18b/0x330
+Nov 06 17:24:17.055446 f kernel:  ? __pfx_worker_thread+0x10/0x10
+Nov 06 17:24:17.055456 f kernel:  kthread+0xef/0x120
+Nov 06 17:24:17.055463 f kernel:  ? __pfx_kthread+0x10/0x10
+Nov 06 17:24:17.055471 f kernel:  ret_from_fork+0x44/0x70
+Nov 06 17:24:17.055479 f kernel:  ? __pfx_kthread+0x10/0x10
+Nov 06 17:24:17.055486 f kernel:  ret_from_fork_asm+0x1b/0x30
+Nov 06 17:24:17.055492 f kernel:  </TASK>
+Nov 06 17:24:33.744320 f kernel: watchdog: BUG: soft lockup - CPU#4 stuck for 23s! [kcompactd0:71]
+Nov 06 17:24:33.744523 f kernel: Modules linked in: iptable_nat veth xt_nat nf_conntrack_netlink xfrm_user xfrm_algo xt_addrtype xt_connmark xt_mark vboxnetadp(OE) vboxnetflt(OE) vboxdrv(OE) ccm xt_co
+Nov 06 17:24:33.746341 f kernel:  cros_usbpd_charger btusb snd_seq_midi cros_ec_debugfs intel_uncore_frequency cros_usbpd_notify cros_ec_chardev cros_ec_sysfs cros_usbpd_logger btrtl snd_seq_midi_even
+Nov 06 17:24:33.746370 f kernel:  int3400_thermal joydev intel_vsec acpi_thermal_rel input_leds pmt_telemetry pmt_class acpi_pad mac_hid serio_raw sch_fq_codel kvm_intel kvm irqbypass iptable_filter i
+Nov 06 17:24:33.746388 f kernel: CPU: 4 PID: 71 Comm: kcompactd0 Tainted: G     U  W  OEL     6.8.0-147-generic #147-Ubuntu
+Nov 06 17:24:33.746402 f kernel: Hardware name: Framework Laptop/FRANBMCP0B, BIOS 03.07 12/14/2021
+Nov 06 17:24:33.746580 f kernel: Call Trace:
+Nov 06 17:24:33.746594 f kernel:  <TASK>
+Nov 06 17:24:33.746608 f kernel:  ? __pfx_invalidate_bh_lru+0x10/0x10
+Nov 06 17:24:33.746620 f kernel:  on_each_cpu_cond_mask+0x24/0x60
+Nov 06 17:24:33.746633 f kernel:  invalidate_bh_lrus+0x2a/0x40
+Nov 06 17:24:33.746646 f kernel:  __buffer_migrate_folio+0xff/0x2c0
+Nov 06 17:24:33.746658 f kernel:  buffer_migrate_folio_norefs+0x14/0x30
+Nov 06 17:24:33.746672 f kernel:  move_to_new_folio+0x66/0x170
+Nov 06 17:24:33.746687 f kernel:  migrate_pages_batch+0x5eb/0x920
+Nov 06 17:24:33.746702 f kernel:  ? __pfx_compaction_free+0x10/0x10
+Nov 06 17:24:33.746715 f kernel:  migrate_pages_sync+0x84/0x1e0
+Nov 06 17:24:33.746727 f kernel:  ? __pfx_compaction_free+0x10/0x10
+Nov 06 17:24:33.746737 f kernel:  ? __pfx_compaction_alloc+0x10/0x10
+Nov 06 17:24:33.746750 f kernel:  migrate_pages+0x389/0x4c0
+Nov 06 17:24:33.746764 f kernel:  ? __pfx_compaction_free+0x10/0x10
+Nov 06 17:24:33.746775 f kernel:  ? __pfx_compaction_alloc+0x10/0x10
+Nov 06 17:24:33.746785 f kernel:  compact_zone+0x2ea/0x660
+Nov 06 17:24:33.746798 f kernel:  proactive_compact_node+0x8a/0xf0
+Nov 06 17:24:33.746811 f kernel:  kcompactd+0x317/0x500
+Nov 06 17:24:33.746825 f kernel:  ? __pfx_autoremove_wake_function+0x10/0x10
+Nov 06 17:24:33.746840 f kernel:  ? __pfx_kcompactd+0x10/0x10
+Nov 06 17:24:33.746851 f kernel:  kthread+0xef/0x120
+Nov 06 17:24:33.746864 f kernel:  ? __pfx_kthread+0x10/0x10
+Nov 06 17:24:33.746874 f kernel:  ret_from_fork+0x44/0x70
+Nov 06 17:24:33.746885 f kernel:  ? __pfx_kthread+0x10/0x10
+Nov 06 17:24:33.746895 f kernel:  ret_from_fork_asm+0x1b/0x30
+Nov 06 17:24:33.746906 f kernel:  </TASK>
+Nov 06 17:24:45.740320 f kernel: watchdog: BUG: soft lockup - CPU#2 stuck for 23s! [systemd-timesyn:2002]
+Nov 06 17:24:45.740517 f kernel: Modules linked in: iptable_nat veth xt_nat nf_conntrack_netlink xfrm_user xfrm_algo xt_addrtype xt_connmark xt_mark vboxnetadp(OE) vboxnetflt(OE) vboxdrv(OE) ccm xt_co
+Nov 06 17:24:45.742424 f kernel:  cros_usbpd_charger btusb snd_seq_midi cros_ec_debugfs intel_uncore_frequency cros_usbpd_notify cros_ec_chardev cros_ec_sysfs cros_usbpd_logger btrtl snd_seq_midi_even
+Nov 06 17:24:45.742460 f kernel:  int3400_thermal joydev intel_vsec acpi_thermal_rel input_leds pmt_telemetry pmt_class acpi_pad mac_hid serio_raw sch_fq_codel kvm_intel kvm irqbypass iptable_filter i
+Nov 06 17:24:45.742486 f kernel: CPU: 2 PID: 2002 Comm: systemd-timesyn Tainted: G     U  W  OEL     6.8.0-147-generic #147-Ubuntu
+Nov 06 17:24:45.742504 f kernel: Hardware name: Framework Laptop/FRANBMCP0B, BIOS 03.07 12/14/2021
+Nov 06 17:24:45.742743 f kernel: Call Trace:
+Nov 06 17:24:45.742761 f kernel:  <TASK>
+Nov 06 17:24:45.742779 f kernel:  ? __pfx_retrigger_next_event+0x10/0x10
+Nov 06 17:24:45.742797 f kernel:  smp_call_function_many+0x14/0x30
+Nov 06 17:24:45.742818 f kernel:  clock_was_set+0x1e3/0x2c0
+Nov 06 17:24:45.742836 f kernel:  ? raw_notifier_call_chain+0x16/0x30
+Nov 06 17:24:45.742853 f kernel:  timekeeping_inject_offset+0x1f9/0x230
+Nov 06 17:24:45.742870 f kernel:  do_adjtimex+0x116/0x360
+Nov 06 17:24:45.742888 f kernel:  posix_clock_realtime_adj+0x11/0x20
+Nov 06 17:24:45.742908 f kernel:  __do_sys_clock_adjtime+0x9e/0x140
+Nov 06 17:24:45.742926 f kernel:  __x64_sys_clock_adjtime+0x15/0x20
+Nov 06 17:24:45.742947 f kernel:  x64_sys_call+0x1ffb/0x25a0
+Nov 06 17:24:45.742963 f kernel:  do_syscall_64+0x87/0x180
+Nov 06 17:24:45.742981 f kernel:  ? arch_exit_to_user_mode_prepare.isra.0+0x1a/0xe0
+Nov 06 17:24:45.742999 f kernel:  ? syscall_exit_to_user_mode+0x43/0x1e0
+Nov 06 17:24:45.743014 f kernel:  ? do_syscall_64+0x94/0x180
+Nov 06 17:24:45.743035 f kernel:  ? arch_exit_to_user_mode_prepare.isra.0+0x1a/0xe0
+Nov 06 17:24:45.743051 f kernel:  ? irqentry_exit_to_user_mode+0x38/0x1e0
+Nov 06 17:24:45.743068 f kernel:  ? clear_bhb_loop+0x30/0x80
+Nov 06 17:24:45.743089 f kernel:  ? clear_bhb_loop+0x30/0x80
+Nov 06 17:24:45.743104 f kernel:  ? clear_bhb_loop+0x30/0x80
+Nov 06 17:24:45.743118 f kernel:  entry_SYSCALL_64_after_hwframe+0x78/0x80
+Nov 06 17:24:45.743280 f kernel:  </TASK>
+Nov 06 17:24:45.743299 f kernel: watchdog: BUG: soft lockup - CPU#3 stuck for 49s! [kworker/3:1:750541]
+Nov 06 17:24:45.743347 f kernel: Modules linked in: iptable_nat veth xt_nat nf_conntrack_netlink xfrm_user xfrm_algo xt_addrtype xt_connmark xt_mark vboxnetadp(OE) vboxnetflt(OE) vboxdrv(OE) ccm xt_co
+Nov 06 17:24:45.745328 f kernel:  cros_usbpd_charger btusb snd_seq_midi cros_ec_debugfs intel_uncore_frequency cros_usbpd_notify cros_ec_chardev cros_ec_sysfs cros_usbpd_logger btrtl snd_seq_midi_even
+Nov 06 17:24:45.745361 f kernel:  int3400_thermal joydev intel_vsec acpi_thermal_rel input_leds pmt_telemetry pmt_class acpi_pad mac_hid serio_raw sch_fq_codel kvm_intel kvm irqbypass iptable_filter i
+Nov 06 17:24:45.745380 f kernel: CPU: 3 PID: 750541 Comm: kworker/3:1 Tainted: G     U  W  OEL     6.8.0-147-generic #147-Ubuntu
+Nov 06 17:24:45.745396 f kernel: Hardware name: Framework Laptop/FRANBMCP0B, BIOS 03.07 12/14/2021
+Nov 06 17:24:45.745407 f kernel: Workqueue: rcu_gp wait_rcu_exp_gp
+Nov 06 17:24:45.745578 f kernel: Call Trace:
+Nov 06 17:24:45.745592 f kernel:  <TASK>
+Nov 06 17:24:45.745604 f kernel:  ? _raw_spin_lock_irqsave+0xe/0x20
+Nov 06 17:24:45.745617 f kernel:  __sync_rcu_exp_select_node_cpus+0x266/0x4a0
+Nov 06 17:24:45.745629 f kernel:  sync_rcu_exp_select_cpus+0x1e2/0x480
+Nov 06 17:24:45.745641 f kernel:  wait_rcu_exp_gp+0x13/0x30
+Nov 06 17:24:45.745653 f kernel:  process_one_work+0x184/0x3a0
+Nov 06 17:24:45.745665 f kernel:  worker_thread+0x18b/0x330
+Nov 06 17:24:45.745679 f kernel:  ? __pfx_worker_thread+0x10/0x10
+Nov 06 17:24:45.745691 f kernel:  kthread+0xef/0x120
+Nov 06 17:24:45.745704 f kernel:  ? __pfx_kthread+0x10/0x10
+Nov 06 17:24:45.745716 f kernel:  ret_from_fork+0x44/0x70
+Nov 06 17:24:45.745729 f kernel:  ? __pfx_kthread+0x10/0x10
+Nov 06 17:24:45.745741 f kernel:  ret_from_fork_asm+0x1b/0x30
+Nov 06 17:24:45.745753 f kernel:  </TASK>
+Nov 06 17:24:51.628355 f kernel: rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+Nov 06 17:24:51.628454 f kernel: rcu:         5-...0: (1 GPs behind) idle=9f3c/1/0x4000000000000002 softirq=9967672/9967691 fqs=21408
+Nov 06 17:24:51.628470 f kernel: rcu:                  hardirqs   softirqs   csw/system
+Nov 06 17:24:51.628484 f kernel: rcu:          number:        0          0            0
+Nov 06 17:24:51.628497 f kernel: rcu:         cputime:        0          0            0   ==> 30000(ms)
+Nov 06 17:24:51.628511 f kernel: rcu:         (detected by 0, t=60002 jiffies, g=16974357, q=99167 ncpus=8)
+Nov 06 17:24:51.628524 f kernel: Sending NMI from CPU 0 to CPUs 5:
+Nov 06 17:24:51.628549 f kernel: NMI backtrace for cpu 5
+Nov 06 17:24:51.628563 f kernel: CPU: 5 PID: 0 Comm: swapper/5 Tainted: G     U  W  OEL     6.8.0-147-generic #147-Ubuntu
+Nov 06 17:24:51.628577 f kernel: Hardware name: Framework Laptop/FRANBMCP0B, BIOS 03.07 12/14/2021
+Nov 06 17:24:51.628747 f kernel: Call Trace:
+Nov 06 17:24:51.628759 f kernel:  <IRQ>
+Nov 06 17:24:51.628772 f kernel:  qi_submit_sync+0x318/0x4a0
+Nov 06 17:24:51.628784 f kernel:  qi_flush_iotlb+0x84/0xb0
+Nov 06 17:24:51.628796 f kernel:  intel_flush_iotlb_all+0x78/0x150
+Nov 06 17:24:51.628809 f kernel:  fq_flush_iotlb+0x26/0x40
+Nov 06 17:24:51.628821 f kernel:  fq_flush_timeout+0x2d/0x100
+Nov 06 17:24:51.628837 f kernel:  ? __pfx_fq_flush_timeout+0x10/0x10
+Nov 06 17:24:51.628850 f kernel:  call_timer_fn+0x27/0x160
+Nov 06 17:24:51.628863 f kernel:  ? __pfx_fq_flush_timeout+0x10/0x10
+Nov 06 17:24:51.628873 f kernel:  __run_timers+0x262/0x300
+Nov 06 17:24:51.628890 f kernel:  run_timer_softirq+0x1d/0x40
+Nov 06 17:24:51.628905 f kernel:  handle_softirqs+0xd8/0x340
+Nov 06 17:24:51.628921 f kernel:  __irq_exit_rcu+0xd9/0x100
+Nov 06 17:24:51.628934 f kernel:  irq_exit_rcu+0xe/0x20
+Nov 06 17:24:51.628949 f kernel:  sysvec_apic_timer_interrupt+0x92/0xd0
+Nov 06 17:24:51.628962 f kernel:  </IRQ>
+Nov 06 17:24:51.628973 f kernel:  <TASK>
+Nov 06 17:24:51.628982 f kernel:  asm_sysvec_apic_timer_interrupt+0x1b/0x20
+Nov 06 17:24:51.629092 f kernel:  ? cpuidle_enter_state+0xca/0x730
+Nov 06 17:24:51.629104 f kernel:  ? menu_select+0x305/0x9e0
+Nov 06 17:24:51.629115 f kernel:  cpuidle_enter+0x2e/0x50
+Nov 06 17:24:51.629125 f kernel:  call_cpuidle+0x23/0x60
+Nov 06 17:24:51.629136 f kernel:  cpuidle_idle_call+0x178/0x1f0
+Nov 06 17:24:51.629147 f kernel:  do_idle+0x97/0x100
+Nov 06 17:24:51.629158 f kernel:  cpu_startup_entry+0x2a/0x30
+Nov 06 17:24:51.629169 f kernel:  start_secondary+0x129/0x160
+Nov 06 17:24:51.629182 f kernel:  secondary_startup_64_no_verify+0x184/0x18b
+Nov 06 17:24:51.629195 f kernel:  </TASK>
+Nov 06 17:25:01.744321 f kernel: watchdog: BUG: soft lockup - CPU#4 stuck for 49s! [kcompactd0:71]
+Nov 06 17:25:01.744474 f kernel: Modules linked in: iptable_nat veth xt_nat nf_conntrack_netlink xfrm_user xfrm_algo xt_addrtype xt_connmark xt_mark vboxnetadp(OE) vboxnetflt(OE) vboxdrv(OE) ccm xt_co
+Nov 06 17:25:01.747046 f kernel:  cros_usbpd_charger btusb snd_seq_midi cros_ec_debugfs intel_uncore_frequency cros_usbpd_notify cros_ec_chardev cros_ec_sysfs cros_usbpd_logger btrtl snd_seq_midi_even
+Nov 06 17:25:01.747099 f kernel:  int3400_thermal joydev intel_vsec acpi_thermal_rel input_leds pmt_telemetry pmt_class acpi_pad mac_hid serio_raw sch_fq_codel kvm_intel kvm irqbypass iptable_filter i
+Nov 06 17:25:01.747128 f kernel: CPU: 4 PID: 71 Comm: kcompactd0 Tainted: G     U  W  OEL     6.8.0-147-generic #147-Ubuntu
+Nov 06 17:25:01.747165 f kernel: Hardware name: Framework Laptop/FRANBMCP0B, BIOS 03.07 12/14/2021
+Nov 06 17:25:01.747400 f kernel: Call Trace:
+Nov 06 17:25:01.747419 f kernel:  <TASK>
+Nov 06 17:25:01.747435 f kernel:  ? __pfx_invalidate_bh_lru+0x10/0x10
+Nov 06 17:25:01.747450 f kernel:  on_each_cpu_cond_mask+0x24/0x60
+Nov 06 17:25:01.747465 f kernel:  invalidate_bh_lrus+0x2a/0x40
+Nov 06 17:25:01.747484 f kernel:  __buffer_migrate_folio+0xff/0x2c0
+Nov 06 17:25:01.747501 f kernel:  buffer_migrate_folio_norefs+0x14/0x30
+Nov 06 17:25:01.747517 f kernel:  move_to_new_folio+0x66/0x170
+Nov 06 17:25:01.747536 f kernel:  migrate_pages_batch+0x5eb/0x920
+Nov 06 17:25:01.747551 f kernel:  ? __pfx_compaction_free+0x10/0x10
+Nov 06 17:25:01.747567 f kernel:  migrate_pages_sync+0x84/0x1e0
+Nov 06 17:25:01.747581 f kernel:  ? __pfx_compaction_free+0x10/0x10
+Nov 06 17:25:01.747596 f kernel:  ? __pfx_compaction_alloc+0x10/0x10
+Nov 06 17:25:01.747611 f kernel:  migrate_pages+0x389/0x4c0
+Nov 06 17:25:01.747626 f kernel:  ? __pfx_compaction_free+0x10/0x10
+Nov 06 17:25:01.747642 f kernel:  ? __pfx_compaction_alloc+0x10/0x10
+Nov 06 17:25:01.747656 f kernel:  compact_zone+0x2ea/0x660
+Nov 06 17:25:01.747671 f kernel:  proactive_compact_node+0x8a/0xf0
+Nov 06 17:25:01.747686 f kernel:  kcompactd+0x317/0x500
+Nov 06 17:25:01.747702 f kernel:  ? __pfx_autoremove_wake_function+0x10/0x10
+Nov 06 17:25:01.747717 f kernel:  ? __pfx_kcompactd+0x10/0x10
+Nov 06 17:25:01.747731 f kernel:  kthread+0xef/0x120
+Nov 06 17:25:01.747749 f kernel:  ? __pfx_kthread+0x10/0x10
+Nov 06 17:25:01.747770 f kernel:  ret_from_fork+0x44/0x70
+Nov 06 17:25:01.747785 f kernel:  ? __pfx_kthread+0x10/0x10
+Nov 06 17:25:01.747799 f kernel:  ret_from_fork_asm+0x1b/0x30
+Nov 06 17:25:01.747813 f kernel:  </TASK>
+Nov 06 17:25:13.740320 f kernel: watchdog: BUG: soft lockup - CPU#2 stuck for 49s! [systemd-timesyn:2002]
+Nov 06 17:25:13.740525 f kernel: Modules linked in: iptable_nat veth xt_nat nf_conntrack_netlink xfrm_user xfrm_algo xt_addrtype xt_connmark xt_mark vboxnetadp(OE) vboxnetflt(OE) vboxdrv(OE) ccm xt_co
+Nov 06 17:25:13.743973 f kernel:  cros_usbpd_charger btusb snd_seq_midi cros_ec_debugfs intel_uncore_frequency cros_usbpd_notify cros_ec_chardev cros_ec_sysfs cros_usbpd_logger btrtl snd_seq_midi_even
+Nov 06 17:25:13.744010 f kernel:  int3400_thermal joydev intel_vsec acpi_thermal_rel input_leds pmt_telemetry pmt_class acpi_pad mac_hid serio_raw sch_fq_codel kvm_intel kvm irqbypass iptable_filter i
+Nov 06 17:25:13.744028 f kernel: CPU: 2 PID: 2002 Comm: systemd-timesyn Tainted: G     U  W  OEL     6.8.0-147-generic #147-Ubuntu
+Nov 06 17:25:13.744039 f kernel: Hardware name: Framework Laptop/FRANBMCP0B, BIOS 03.07 12/14/2021
+Nov 06 17:25:13.744177 f kernel: Call Trace:
+Nov 06 17:25:13.744187 f kernel:  <TASK>
+Nov 06 17:25:13.744196 f kernel:  ? __pfx_retrigger_next_event+0x10/0x10
+Nov 06 17:25:13.744205 f kernel:  smp_call_function_many+0x14/0x30
+Nov 06 17:25:13.744217 f kernel:  clock_was_set+0x1e3/0x2c0
+Nov 06 17:25:13.744232 f kernel:  ? raw_notifier_call_chain+0x16/0x30
+Nov 06 17:25:13.744241 f kernel:  timekeeping_inject_offset+0x1f9/0x230
+Nov 06 17:25:13.744249 f kernel:  do_adjtimex+0x116/0x360
+Nov 06 17:25:13.744259 f kernel:  posix_clock_realtime_adj+0x11/0x20
+Nov 06 17:25:13.744268 f kernel:  __do_sys_clock_adjtime+0x9e/0x140
+Nov 06 17:25:13.744278 f kernel:  __x64_sys_clock_adjtime+0x15/0x20
+Nov 06 17:25:13.744287 f kernel:  x64_sys_call+0x1ffb/0x25a0
+Nov 06 17:25:13.744296 f kernel:  do_syscall_64+0x87/0x180
+Nov 06 17:25:13.744311 f kernel:  ? arch_exit_to_user_mode_prepare.isra.0+0x1a/0xe0
+Nov 06 17:25:13.744323 f kernel:  ? syscall_exit_to_user_mode+0x43/0x1e0
+Nov 06 17:25:13.744332 f kernel:  ? do_syscall_64+0x94/0x180
+Nov 06 17:25:13.744341 f kernel:  ? arch_exit_to_user_mode_prepare.isra.0+0x1a/0xe0
+Nov 06 17:25:13.744350 f kernel:  ? irqentry_exit_to_user_mode+0x38/0x1e0
+Nov 06 17:25:13.744359 f kernel:  ? clear_bhb_loop+0x30/0x80
+Nov 06 17:25:13.744368 f kernel:  ? clear_bhb_loop+0x30/0x80
+Nov 06 17:25:13.744378 f kernel:  ? clear_bhb_loop+0x30/0x80
+Nov 06 17:25:13.744390 f kernel:  entry_SYSCALL_64_after_hwframe+0x78/0x80
+Nov 06 17:25:13.744476 f kernel:  </TASK>
+Nov 06 17:25:13.744486 f kernel: watchdog: BUG: soft lockup - CPU#3 stuck for 75s! [kworker/3:1:750541]
+Nov 06 17:25:13.744522 f kernel: Modules linked in: iptable_nat veth xt_nat nf_conntrack_netlink xfrm_user xfrm_algo xt_addrtype xt_connmark xt_mark vboxnetadp(OE) vboxnetflt(OE) vboxdrv(OE) ccm xt_co
+Nov 06 17:25:13.744541 f kernel:  cros_usbpd_charger btusb snd_seq_midi cros_ec_debugfs intel_uncore_frequency cros_usbpd_notify cros_ec_chardev cros_ec_sysfs cros_usbpd_logger btrtl snd_seq_midi_even
+Nov 06 17:25:13.744557 f kernel:  int3400_thermal joydev intel_vsec acpi_thermal_rel input_leds pmt_telemetry pmt_class acpi_pad mac_hid serio_raw sch_fq_codel kvm_intel kvm irqbypass iptable_filter i
+Nov 06 17:25:13.744572 f kernel: CPU: 3 PID: 750541 Comm: kworker/3:1 Tainted: G     U  W  OEL     6.8.0-147-generic #147-Ubuntu
+Nov 06 17:25:13.744584 f kernel: Hardware name: Framework Laptop/FRANBMCP0B, BIOS 03.07 12/14/2021
+Nov 06 17:25:13.744593 f kernel: Workqueue: rcu_gp wait_rcu_exp_gp
+Nov 06 17:25:13.744726 f kernel: Call Trace:
+Nov 06 17:25:13.744737 f kernel:  <TASK>
+Nov 06 17:25:13.744745 f kernel:  ? _raw_spin_lock_irqsave+0xe/0x20
+Nov 06 17:25:13.744753 f kernel:  __sync_rcu_exp_select_node_cpus+0x266/0x4a0
+Nov 06 17:25:13.744763 f kernel:  sync_rcu_exp_select_cpus+0x1e2/0x480
+Nov 06 17:25:13.744772 f kernel:  wait_rcu_exp_gp+0x13/0x30
+Nov 06 17:25:13.744783 f kernel:  process_one_work+0x184/0x3a0
+Nov 06 17:25:13.744794 f kernel:  worker_thread+0x18b/0x330
+Nov 06 17:25:13.744806 f kernel:  ? __pfx_worker_thread+0x10/0x10
+Nov 06 17:25:13.744818 f kernel:  kthread+0xef/0x120
+Nov 06 17:25:13.744828 f kernel:  ? __pfx_kthread+0x10/0x10
+Nov 06 17:25:13.744835 f kernel:  ret_from_fork+0x44/0x70
+Nov 06 17:25:13.744844 f kernel:  ? __pfx_kthread+0x10/0x10
+Nov 06 17:25:13.744853 f kernel:  ret_from_fork_asm+0x1b/0x30
+Nov 06 17:25:13.744860 f kernel:  </TASK>
