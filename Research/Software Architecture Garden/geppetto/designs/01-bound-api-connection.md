@@ -169,6 +169,85 @@ result = embeddings.encodeExecuteDecode(context, input)
 
 A real implementation also needs cancellation, body replay errors, response cleanup, header validation, and precise redirect ownership. The sketch exposes those responsibilities without pretending they are a complete HTTP implementation.
 
+The same ownership boundary is often easier to recognize in Go. This first sketch is a portable interface design, not Geppetto's exact API. The payload adapter receives only the operations it needs; the concrete connection retains authentication and network ownership privately.
+
+```go
+// Go sketch: imports and domain-specific encoding are omitted.
+type APIConnection interface {
+    NewRequest(ctx context.Context, method, operation string,
+        body io.Reader) (*http.Request, error)
+    Do(req *http.Request) (*http.Response, error)
+}
+
+type Embeddings struct {
+    connection APIConnection
+    model      string
+}
+
+func (e *Embeddings) Embed(ctx context.Context, input []string) (Vectors, error) {
+    body, err := encodeEmbeddingRequest(e.model, input)
+    if err != nil {
+        return nil, err
+    }
+    req, err := e.connection.NewRequest(ctx, http.MethodPost, "embed", body)
+    if err != nil {
+        return nil, err
+    }
+    resp, err := e.connection.Do(req)
+    if err != nil {
+        return nil, err
+    }
+    defer resp.Body.Close()
+    return decodeEmbeddingResponse(resp)
+}
+```
+
+There is no key, endpoint fallback, or mutable HTTP client in the adapter. `APIConnection` documents a behavioral contract: implementing the interface alone does not prove that a particular implementation enforces authority. Hosts supply the trusted implementation. `Vectors`, encoding, and decoding stand for application-specific types and functions.
+
+At the trusted construction boundary, Geppetto's actual API groups the declaration. Here `secret` and `hostClient` are supplied by the host; imports and the surrounding function are omitted. The explicit `embed` name matches the adapter sketch above.
+
+```go
+conn, err := connection.New(connection.Config{
+    Provider: "gateway",
+    BaseURL:  "https://gateway.example/v1",
+    Routes: connection.Routes{
+        "embed": connection.Relative("embeddings"),
+    },
+    Auth: connection.StaticBearer(secret),
+    Headers: http.Header{
+        "X-Team": []string{"research"},
+    },
+    HTTPClient: hostClient,
+})
+if err != nil {
+    return err
+}
+
+// The adapter receives the completed binding, never its separate inputs.
+embedder := &Embeddings{connection: conn, model: "example-embedding"}
+vectors, err := embedder.Embed(ctx, input)
+```
+
+The final enforcement point also has a small Go shape. This is a reduced transport sketch: `checkTargetAndHost` represents the fixed-origin, Host, and outbound-policy checks, while authentication and replay remain in the connection executor. It is deliberately incomplete as a standalone client.
+
+```go
+type guardedTransport struct {
+    authority Origin // derived once from the declared endpoint
+    next      http.RoundTripper
+}
+
+var _ http.RoundTripper = (*guardedTransport)(nil)
+
+func (t *guardedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+    if err := checkTargetAndHost(req, t.authority); err != nil {
+        return nil, err
+    }
+    return t.next.RoundTrip(req)
+}
+```
+
+The private client's redirect processing must continue to use this transport for every hop, after redirect callbacks. Putting the guard only around the initial `Do` call would leave later hops unchecked. The injected `next` transport remains trusted, exactly as in the language-neutral sketch.
+
 ## Implementation notes
 
 1. **Bind before routing.** Deriving a pin from the route's final URL authorizes whatever the route chose. Geppetto's Responses path previously had this ordering problem. The declared endpoint must establish authority first; a route can only exercise it.
