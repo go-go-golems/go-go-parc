@@ -54,10 +54,10 @@ Script 91 of the project extracts every `mcp__cv__eval` call from the subagent t
 | quantity | value |
 |---|---|
 | agents | 39 (8 trial agents on labelled tiles, 31 pre-annotation agents) |
-| evals | 374, of which 29 were helper pastes (3.2 KB each) |
+| evals | 374, of which 39 were helper pastes (3.2 KB each; 10 agents trimmed the file) |
 | median code per eval | 183 characters |
 | errors | 0 |
-| warnings | 13 `UNUSED_NODE`, 7 `RANGE`, 1 `OUTSIDE`, 1 cut result |
+| warnings | 19 `UNUSED_NODE` (18 false), 11 `RANGE`, 1 `OUTSIDE`, 1 cut result |
 
 *Table 2. What the extraction found.*
 
@@ -131,7 +131,7 @@ eval_file({ path: "dust/helpers.js", sessionId, args: { tile: "..." } })
 
 ## 4. Issue: coordinates should come from the engine, not from the eye
 
-The task requires absolute coordinates for every suggestion. Agents had two ways to get them: read them off a look with rulers, or take them from data such as components' centroids, probe results or hot-list rows. The first way failed often enough to matter. Eight diaries report it; one agent wrote down the arithmetic it needed (`x = crop_x + (px − 52)/2`, the 52 being the ruler margin). On one tile, 28 of 32 positions read off a 2× sweep probed at a speck-view step of about zero: they were a few pixels away from the dot the agent had seen.
+The task requires absolute coordinates for every suggestion. Agents had two ways to get them: read them off a look with rulers, or take them from data such as components' centroids, probe results or hot-list rows. The first way failed often enough to matter. Eight diaries report it; one agent wrote down the arithmetic it needed (`x = crop_x + (px − 52)/2`, the 52 being the ruler margin). On one tile, 24 of 32 positions read off a 2× sweep probed at a speck-view step below 0.06 (28 below 0.1): they were a few pixels away from the dot the agent had seen.
 
 Vision models localise poorly at this precision, and rulers do not fix that. What worked was the second way. Our probe snaps to the strongest point within 2 px, which corrects small misreadings. A components-based pass gives exact centroids. One agent built the best version of this itself:
 
@@ -186,8 +186,8 @@ Two shapes fall outside what the DoG shows well. A large saturated speck has a f
 | issue | count | fix |
 |---|---|---|
 | `RANGE` on zooms near the tile edge: the crop is clipped, so the scene/speck pair is non-square and misaligned | 7 warnings | `crop(box, { fit: "shift" })` moves the box inside the frame and keeps its size |
-| `UNUSED_NODE` when a helper returns `{ scene, speck, speckColor }` and the caller uses two | 13 warnings, 10 agents | don't warn for nodes that escape through a returned or `mem`-stored object, or `cv.quiet(node)` |
-| row lists cut at 9000 characters | 3 agents | a compact table rendering (`cv.table(rows, { columns })`) that fits more rows than YAML |
+| `UNUSED_NODE` when a helper returns `{ scene, speck, speckColor }` and the caller uses two | 19 warnings (18 false), 10 agents | don't warn for nodes that escape through a returned or `mem`-stored object, or `cv.quiet(node)` |
+| row lists cut by the 2,000-character string cap and the 48-item array cap (the 9,000-character result cap never fired; longest result 4,701) | 3 agents | a compact table rendering (`cv.table(rows, { columns })`) that fits more rows than YAML |
 | no way to measure a thread's width | agents "eyeballed widths from rulers" | a recipe with `profile` (never used by agents) and possibly `measure.line(path)` |
 
 *Table 5. Smaller issues from the agents' diaries and the eval results.*
