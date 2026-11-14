@@ -1,0 +1,57 @@
+{
+  "summary": "shopcli is a standard-library Python package whose Shop().run(script) executes an inventory command language (item/price/report commands, key=value options, repeat) and returns {ok, results, warnings, error}. Every failure becomes one structured refusal built in a single place, with a code from shopcli.CODES, a message, a path ending in ✗, the agent's line, valid alternatives, a hint, a pasteable fix and the host exception name, while warnings carry their line and fold repeats into a count. The suggester runs in the chapter's fixed order (namespace, mined redirect, near spelling, other kind of value), cross-command fixes are rendered in the target's vocabulary from the agent's own values, and results plus warnings produced before a failure are still returned.",
+  "files": [
+    "shopcli/__init__.py",
+    "shopcli/codes.py",
+    "shopcli/refusal.py",
+    "shopcli/registry.py",
+    "shopcli/suggest.py",
+    "shopcli/site.py",
+    "shopcli/parse.py",
+    "shopcli/call.py",
+    "shopcli/store.py",
+    "shopcli/commands.py",
+    "shopcli/translate.py",
+    "shopcli/engine.py",
+    "tests/__init__.py",
+    "tests/test_language.py",
+    "tests/test_errors.py",
+    "tests/test_suggestions.py",
+    "tests/test_warnings.py",
+    "tests/test_host.py",
+    "tests/test_invariants.py",
+    "tests/test_codes.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Refusal": "shopcli/refusal.py (Refusal record with to_dict invariants, Fault for layers that do not know the line), assembled only in shopcli/engine.py::_refusal",
+    "Code list": "shopcli/codes.py (CODES, WARNING_CODES, CODE_DOCS with one example script per code), executed by tests/test_codes.py",
+    "Suggester": "shopcli/suggest.py (suggest_command, suggest_option, edit_distance, budget, closest, case_neighbour)",
+    "Redirect table": "shopcli/registry.py (Redirect, RedirectTable, REDIRECT_TABLE: rm, delete, ls, inventory plus option redirects), owned by REGISTRY.redirects",
+    "Translator": "shopcli/translate.py (translate, receiver_of) called from shopcli/engine.py when a command raises a host exception; engine.run also translates crashes outside handlers",
+    "Site tracker": "shopcli/site.py (Site, SiteTracker) bound per line in Engine.run; refusals and warnings take line and source from it",
+    "Warning folder": "shopcli/refusal.py (make_warning, fold_warnings, WarningFolder) fed by Engine._bind, Engine._exec and commands.report_margin"
+  },
+  "notes_applied": [
+    "Note 1 (mine redirects from transcripts): rm, delete, ls and inventory from TASK.md are redirect records with a concept-naming hint and a literal fix rebuilt from the agent's own arguments (item.rm name=w → item.remove name=w).",
+    "Note 2 (one fixed order, one place): suggest_command/suggest_option check the same verb in another namespace (E_NAMESPACE), then the redirect table, then a near spelling with budget max(1, min(3, len//3)), then the same name on another kind of value; the order is written once in shopcli/suggest.py and tested by OrderTest.",
+    "Note 3 (fixes are code in the agent's names): parsing keeps each value's literal text, render_fix rewrites the agent's line and render_target writes cross-command fixes with the agent's values (price.set name=widget price=9 → price.set name=widget value=9); the translator derives the fix from call.values['name'].",
+    "Note 4 (one shape, one closed list for every layer): binding, evaluation, host failures and engine crashes all become a Refusal with a code from CODES; host exceptions use E_HOST with host_name as a separate field, and Refusal.to_dict asserts the code is in CODES and the path ends in ✗.",
+    "Note 5 (the path is part of the refusal): path names the chain (repeat 3 → item.add → ✗ qty); a failing command is ['✗ item.rm'].",
+    "Note 6 (the line is in the agent's program): SiteTracker binds the raw line; where.source quotes it and where.line is its 1-based number, and a failure inside repeat points at the repeat line the agent can edit.",
+    "Note 7 (warn at the line, fold repeats): RANGE warnings are raised where they happen with the line and a hint, and WarningFolder/fold_warnings group by (code, line, message) into one warning with count (repeat 3 of qty=2000 → count 3).",
+    "Note 8 (a usually-wrong warning is worse than none): warnings are limited to qty above the stated usual 0–1000, repeat counts above 1000, and a negative margin/cost, each with a concrete hint; no unused-node-style lint was invented.",
+    "Note 9 (deliver what was produced before the failure): Engine.run keeps results and folded warnings accumulated before the first error and returns them with the refusal.",
+    "Note 10 (one redirect table, owned by the registry): registry.RedirectTable is a single table reachable as REGISTRY.redirects, used for both command and option redirects, so one entry is visible everywhere.",
+    "Note 11 (test codes and fixes): every CODE_DOCS example is executed and must raise exactly that code, E_HOST is raised by breaking a store method and by breaking the registry lookup, and FixBindsTest pastes every placeholder-free fix back through Shop.run and requires it to succeed; two non-binding fixes and a missing suggestion were found this way."
+  ],
+  "tests": "88 tests in seven test modules plus tests/__init__.py, covering the language, every code, suggestion order and redirects, fix-binding, warning folding, host translation and reply invariants; last run of `python3 -m unittest discover -s tests` → Ran 88 tests in 0.025s OK.",
+  "chapter_feedback": [
+    "The Structure and Collaborations tables mapped one-to-one onto modules, which made the design quick; the sketch's suggest/translate/foldWarnings pseudo-code was directly usable.",
+    "Note 11 paid for itself: testing fixes found that cross-command fixes kept options the target does not take (price.list name=a → item.list name=a, which failed again) and that 'qyt' got no suggestion because the chapter's budget is stated without saying which distance it assumes.",
+    "The chapter is written from a method-call API (img.zoom), so 'the same name on another kind of value' had to be reinterpreted for a namespace.verb key=value language; I chose 'an option where a command was expected, or an option of another command', which the chapter does not discuss.",
+    "The chapter leaves open what to do when no suggestion answers: its sketch sets hint from the suggestion only, while the Editor lab example puts the alternatives in the hint. I send both valid (nearest first) and a hint listing them, which reads as a deliberate deviation rather than a followed instruction.",
+    "The chapter says nothing about fixes that need placeholders (missing option, wrong type). The sketch's node.crop([x, y, w, h]) implies placeholders are acceptable, but pasteability is weakened; I mark them as <name>/<integer>/<value> and only claim runnable fixes when no placeholder remains.",
+    "The chapter's code list is described as 'the closed vocabulary of error and warning codes' but only names error codes; TASK.md supplies the one warning code (RANGE), so I keep WARNING_CODES separate to keep the two lists honest."
+  ]
+}

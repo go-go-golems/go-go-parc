@@ -157,3 +157,13 @@ executions without a file path; `after.sh` now snapshots the work directory per 
   `impl-A…` (code and tests only; diaries and notes removed; the key kept outside the reviewer's directory);
   `review/unblind.py NN` joins scores with arms. Chapter 1 gets three fresh builds on v5 (`a3`–`a5`), since the v3
   builds' work directories now hold the extension.
+- **Two more unfair tests, found the same way.** Chapter 4: `test_many_windows_equal_cuts` built its comparison node
+  on one engine and evaluated it on another; c3 rightly refused a foreign node. Chapter 6:
+  `test_host_failure_has_closed_code_and_host_name` demanded `E_HOST` for a margin on a zero price; all three builders
+  anticipated the division and refused it as a repairable `E_ARG_RANGE`, which is what the chapter teaches. Both tests
+  fixed (the second accepts either a closed host error or an anticipated refusal with a fix); references pass.
+- **Scores after the fixes:** 04 c1 8/9 (scattered windows cost their bounding box), c2 8/9 (a cached whole result does
+  not serve windows), c3 9/9; 06 d1 15/16 (namespace member not suggested first), d2 16/16, d3 16/16. Four of the
+  first six test failures that every builder shared were the yardstick's fault.
+- **Reviews by Opus subagents** (the user's choice) instead of pi: `review/prepare.sh NN REV` builds the blind
+  directory and keeps the key in `reviews/NN-REV-key.json`; the subagent writes `REVIEW.json`.

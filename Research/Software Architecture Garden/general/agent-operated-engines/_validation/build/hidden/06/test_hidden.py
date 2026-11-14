@@ -80,11 +80,17 @@ class Values(unittest.TestCase):
 
 class HostAndWarnings(unittest.TestCase):
     def test_host_failure_has_closed_code_and_host_name(self):
+        # A margin on a zero price divides by zero. Either the host exception is caught and reported with a closed
+        # code and its name, or (better, and what all three first builders did) the case is anticipated and refused
+        # as a repairable argument error. The first version demanded E_HOST and penalised the better design.
         shop = Shop(); shop.run("item.add name=a qty=1\nprice.set name=a value=0")
         e, _ = err("report.margin name=a cost=1", shop)
-        self.assertEqual(e["code"], "E_HOST")
-        self.assertEqual(e["host_name"], "ZeroDivisionError")
         self.assertEqual(e["where"]["line"], 1)
+        if e["code"] == "E_HOST":
+            self.assertEqual(e["host_name"], "ZeroDivisionError")
+        else:
+            self.assertIn(e["code"], ("E_ARG_RANGE", "E_ARG_TYPE", "E_NOT_FOUND"))
+            self.assertTrue(e["fix"] or e["hint"], "an anticipated failure must say how to repair it")
 
     def test_warnings_in_a_repeat_fold_with_count(self):
         r = Shop().run("repeat 5: item.add name=a qty=5000")

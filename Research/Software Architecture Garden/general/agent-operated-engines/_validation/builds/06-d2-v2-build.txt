@@ -1,0 +1,7 @@
+== 06 v2 d2 build
+Ran 16 tests in 0.003s
+
+OK
+Ran 90 tests in 0.030s
+
+OK

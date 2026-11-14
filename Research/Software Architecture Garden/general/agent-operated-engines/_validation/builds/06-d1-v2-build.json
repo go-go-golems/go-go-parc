@@ -1,0 +1,55 @@
+{
+  "summary": "shopcli is a stdlib-only Python package whose Shop.run executes a namespace.verb script (with repeat N: lines) and answers with per-command results, folded warnings and at most one refusal carrying code, message, path, where, valid, hint, fix and host_name. Every failure from every layer — parsing, name lookup, option checking, argument coercion, business rules and escaped Python exceptions (E_HOST) — is built through one Refusal factory against one documented code list, with suggestions produced in a fixed order (E_NAMESPACE structural fact, mined redirects for rm/delete/ls/inventory, near spelling within max(1, min(3, len/3)) edits, then the same name on another kind) and fixes rebuilt from the agent's own tokens. The suite of 78 unittest cases covers the language, the refusal shape, the suggestion order, warning folding and an executable code/fix census; the last run was 78 tests, OK.",
+  "files": [
+    "shopcli/__init__.py",
+    "shopcli/codes.py",
+    "shopcli/refusal.py",
+    "shopcli/registry.py",
+    "shopcli/store.py",
+    "shopcli/fixes.py",
+    "shopcli/suggester.py",
+    "shopcli/translator.py",
+    "shopcli/language.py",
+    "shopcli/handlers.py",
+    "shopcli/session.py",
+    "README.md",
+    "tests/test_language.py",
+    "tests/test_refusals.py",
+    "tests/test_suggestions.py",
+    "tests/test_warnings.py",
+    "tests/test_codes.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Refusal": "shopcli/refusal.py::Refusal (dataclass with code, message, path, where, valid, hint, fix, host_name) and its Refusal.of factory, which marks the last path step with ✗; to_dict() is what Shop.run returns",
+    "Code list": "shopcli/codes.py (CODES + CODE_DOCS + WARNING_CODES/WARNING_DOCS, each code documented exactly once; tested closed and reachable in tests/test_codes.py)",
+    "Suggester": "shopcli/suggester.py::Suggester.suggest_command / suggest_option / suggest_split / suggest_call_style, plus distance() and edit_budget() implementing the ordered, from-certain-to-guessed search",
+    "Redirect table": "shopcli/suggester.py::default_redirects() (rm, delete -> item.remove; ls -> item.list; inventory -> report.stock), extensible through Shop.add_redirect, consulted before any spelling guess",
+    "Translator": "shopcli/translator.py::Translator.translate — turns a host exception into E_HOST with the exception's own name in host_name, a concept hint and, when a value/key on the line is implicated, a fix from the registry record",
+    "Site tracker": "shopcli/session.py::SiteTracker (entered per parsed line) and shopcli/language.py::Call.path(), which supplies where={line, source} and the repeat/iteration chain",
+    "Warning folder": "shopcli/session.py::WarningFolder, keyed by (code, line, message), folding repeats into one entry with a count"
+  },
+  "notes_applied": [
+    "Note 1 (mine redirects from transcripts): the four names TASK.md gives are the redirect table, each with a hint that names the concept and a literal fix (rm/delete -> item.remove, ls -> item.list, inventory -> report.stock); the table is one dict owned by the suggester and consulted before any edit-distance guess.",
+    "Note 2 (one fixed suggestion order stated once): suggest_command tries case, then E_NAMESPACE (a verb living in another namespace), then the redirect table (by whole name, then by verb), then a near spelling among the namespace's verbs and then among all names; suggest_option tries case, near spelling of the option, then the same option name on another command.",
+    "Note 3 (fixes are code in the agent's names): shopcli/fixes.py::rebuild keeps the agent's own raw tokens, renames the offending key, or overrides the value, and only fills required options that are still missing (numbers get a usable example, names get a <name> placeholder so a paste cannot mutate an item the agent never mentioned).",
+    "Note 4 (one shape and one closed code list for every layer): parse failures, unknown names, bad options, argument coercion, business rules and escaped Python exceptions all become the same Refusal; host failures keep code E_HOST and put the Python name in host_name so callers can branch on codes.",
+    "Note 5 (the path is part of the message): Call.path() prefixes repeat N and iteration K, and failures raised by a sub-lookup inside a command put the ✗ on the sub-step, e.g. ['report.margin name=w cost=4', '✗ price.get(name=w)'].",
+    "Note 6 (the line is in the agent's program): the parser records line number and the stripped source line for every call; where['source'] is the exact line the agent can edit (the whole repeat line, not an engine frame).",
+    "Note 7 (warn at the line, fold repeats): ctx.warn() stamps the current line; WarningFolder folds identical (code, line, message) into one warning with count, so `repeat 500: item.add name=w qty=5000` is one RANGE warning with count 500.",
+    "Note 8 (a warning that is usually wrong is worse than none): only two RANGE warnings ship — qty above 1000 (defined by the task) and a negative margin — both carry hints; no unused-command style lint was invented.",
+    "Note 9 (deliver what was produced before the failure): run() is lazy over the parsed lines, so results and warnings produced before the failure (even a later syntax error) are still in the reply.",
+    "Note 10 (keep redirect tables in one place): a single redirect dict inside Suggester, reachable through Shop.add_redirect; the same table serves command-level and verb-level lookups.",
+    "Note 11 (test codes and fixes; executable documentation): tests/test_codes.py holds EXAMPLES (every code in CODES raised by a script, asserted equal to the documented set) and FIXABLE (every refusal fix without a placeholder is run again and must succeed), plus README.md documents the reply shape and the code table once."
+  ],
+  "tests": "78 unittest tests in five modules (tests/test_language.py 14, tests/test_refusals.py 28, tests/test_suggestions.py 21, tests/test_warnings.py 7, tests/test_codes.py 8); last run: `python3 -m unittest discover -s tests` -> Ran 78 tests in 0.054s, OK. A separate 4000-script random sweep found no exception escaping Shop.run and only closed-list codes.",
+  "chapter_feedback": [
+    "The chapter's Structure table translated almost one-to-one onto modules (Refusal, Code list, Suggester, Redirect table, Translator, Site tracker, Warning folder) — the most useful single part of the chapter for a greenfield build.",
+    "The suggestion order (certain to guessed) was the one piece of real design I did not have to invent; it also fixed an argument: 'parent: namespace member' had to be re-read as 'this verb lives in another namespace' for a flat ns.verb grammar.",
+    "The chapter is written from the goja-cv/JS point of view, so the examples (E_UNKNOWN_METHOD, img.zoom, receiverOf(sourceLine)) needed a mapping the text does not offer: for a CLI there is no method receiver in the line, only option values. I reused the 'find what the message implicates' idea for the E_HOST translator, but it is a guess, not a recipe.",
+    "Note 3 says 'a fix the agent can paste', while note 11 says 'a fix that is itself wrong is the most damaging output'; the two collide when the missing piece is a name the system cannot know (rm with no name). The chapter does not resolve it, so I chose placeholders for names and examples for numbers, and made the tests state which promise each fix keeps.",
+    "The chapter never says what `valid` should contain for an error that is not about a name (missing argument, range, localisation). I used the missing option names / the allowed boundary / the existing names; a sentence of guidance would have saved a decision.",
+    "The chapter's 'warning that is usually wrong is worse than none' was the most useful warning to me: it stopped me adding invented lints (unused item, zero stock) that no transcript has ever justified.",
+    "Underspecified: 'deliver everything that was produced before a failure' plus repeat warnings — the chapter does not say whether folded warnings should be delivered when the same line fails on a later iteration. I deliver the ones raised before the failure, which seems the intended reading."
+  ]
+}
