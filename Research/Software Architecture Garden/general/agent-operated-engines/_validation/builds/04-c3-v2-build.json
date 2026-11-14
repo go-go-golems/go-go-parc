@@ -1,0 +1,47 @@
+{
+  "summary": "Built `stencilpipe`, a stdlib-only Python package that evaluates lazy, content-keyed pipelines over 2D float grids on demand: every operation declares a footprint, a window request travels down the graph widened by each reach and clipped to each input's extent, and the result is cut back so a window equals the same window of a whole computation. The five demo operations (add, box, dx, half, normalize) are implemented as windowed kernels that clamp their border rules to the real grid, and normalize is split into a cached `max` statistic (global barrier) plus a local division so windows pass through it. A 74-test suite proves invariance for every operation alone and in chains across grid shapes, reaches, edges, corners and 1x1 windows, and measures that a small request costs its own cells rather than the grid.",
+  "files": [
+    "stencilpipe/__init__.py",
+    "stencilpipe/window.py",
+    "stencilpipe/buffer.py",
+    "stencilpipe/ops.py",
+    "stencilpipe/engine.py",
+    "tests/test_geometry.py",
+    "tests/test_whole_grid.py",
+    "tests/test_invariance.py",
+    "tests/test_engine.py",
+    "tests/test_cost.py",
+    "tests/test_docs.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Footprint": "stencilpipe/ops.py — each operation's `footprint(window, extent, index)`: AddOp returns the window, BoxOp `window.grow(r, r)`, DxOp `window.grow(1, 0)` (directional), HalfOp `window.scale_back(2)` (mapped back through the resampling factor), MaxOp returns the `WHOLE` sentinel (stencilpipe/window.py).",
+    "Window": "stencilpipe/window.py::Window — `(x, y, w, h)` with `area`, `grow`, `grow_sides`, `intersect`, `contains`, `scale_back`; requests are clipped by `stencilpipe/engine.py::Node.clip`, and `stencilpipe/buffer.py::Buffer` carries each piece's origin plus the full extent of the value it belongs to.",
+    "Region evaluator": "stencilpipe/engine.py::Engine._eval (order: whole cache → WHOLE footprint → cost check → per-input footprints → run) and Engine._compute; windows are cached per `(node.key, window)` and whole values per `node.key`.",
+    "Global barrier": "MaxOp.footprint -> WHOLE makes `_eval` stop a window request and evaluate that node whole (`if footprint is WHOLE: return self._eval(node, full)`); the split operation fetches its statistic through `_Context.value` (stencilpipe/engine.py), and `Engine._eval` warms `op.global_dependencies()` before requesting input windows so they cut from the cached whole value.",
+    "Statistic node": "stencilpipe/engine.py::statistic_node + stencilpipe/ops.py::MaxOp, attached to the local half by `NormalizeOp.bind` and read by `NormalizeOp.run` via `ctx.value(self.stat)`; its key is part of the normalize node's content key.",
+    "Tile grid": "Deliberately not implemented (optional participant): chapter note 7 says windows first, tiles second; windows alone already need reach, propagation and the invariance test. Noted as future work in DIARY.md.",
+    "Invariance test": "tests/test_invariance.py — 19 chains x 6 grid shapes x 17 window kinds (interior, four edges, four corners, 1x1, single row/column, hanging off the extent, oversized, entirely outside), each window on a fresh engine so the whole-value cache cannot answer it, plus every single cell of a 6x5 grid for every chain."
+  },
+  "notes_applied": [
+    "Note 1 (the footprint must be exact, and only a test can say so): tests/test_invariance.py checks windowed vs whole-then-cut for every non-global operation alone and in chains, at radii 0/1/3/7 (above the grid size too), on grids 13x9, 12x8, 9x5, 1x9, 9x1, 2x3, on edges, corners and 1x1 windows; a 1200-trial randomized sweep in the diary found no gap.",
+    "Note 2 (border rules apply only at the real border): Buffer carries `extent`; BoxOp counts only cells inside the grid extent and DxOp clamps to `max(x-1, 0)` / `min(x+1, W-1)` of the extent, never of the buffer, so an interior window's apron does not act as an edge. A read outside a buffer raises IndexError ('a footprint was too small') instead of silently clamping.",
+    "Note 3 (reaches add up along a chain): no reach is summed ahead of time; widening happens one node at a time in `_eval`, and tests/test_cost.py pins the arithmetic (4x4 -> 14x14 -> 24x24, i.e. 16 + 196 cells for two `box r=5`).",
+    "Note 4 (reach scales with the evaluation, one unit conversion in one place), partially: every footprint is in document cells at scale 1 and every grown window is produced by `Window.grow`/`grow_sides`; a real `scale` cannot be honoured because `evaluate(node, window)` has no scale parameter (see chapter_feedback).",
+    "Note 5 (find the hidden global operations and split them): `normalize()` is split into a `max` statistic (global barrier, evaluated whole, cached once, key shared) and a local division whose footprint is the window — so a windowed normalize divides by the whole-grid maximum, not the window's, which tests/test_engine.py asserts explicitly.",
+    "Note 6 (keep the best case: cut from what is cached): `_eval` checks the whole-value cache first and cuts from it; window results are cached per window; both a repeated window and a window after a whole evaluation cost 0 cells, and a split operation warms its statistic first so its input windows are cut from the cached whole instead of being recomputed.",
+    "Note 7 (windows first, tiles second): only windows are implemented — proven cheaper by tests/test_cost.py (a 200x150 scan with `box r=20`: 64 cells for an 8x8 window against 30 000 for the whole grid); tiles are listed as future work.",
+    "Chapter step 3 cost rule kept as a setting: `Engine.whole_threshold = 0.6` falls back to whole evaluation when the clipped footprints read more than that fraction of the inputs (tested at the default and moved in `test_cost_threshold_is_a_setting`)."
+  ],
+  "tests": "74 unittest tests in 6 files (17 geometry/primitive, 10 whole-grid behaviour against independent naive references, 4 invariance/consistency methods covering 19 chains x 6 grids x 17 windows plus every single cell of a 6x5 grid, 36 engine/counter/cache/global/extensibility/validation, 6 cost, 1 doctest). Last run: `python3 -m unittest discover -s tests` -> `Ran 74 tests in 0.250s` / `OK`, after fixing 5 failures found on earlier runs (all recorded verbatim in DIARY.md: a SyntaxError in a test, `ValueError` from `Buffer.cut` on a non-overlapping window, `AssertionError: ValueError not raised`, `KeyError: \"unknown operation 'box'; registered: \"` from a bare `Engine()`, and a wrong cell-count expectation for the statistic).",
+  "chapter_feedback": [
+    "The chapter's Solution order (cache → global → cost → footprints → run → cut) mapped one-to-one onto `Engine._eval`; the flowchart was directly implementable, which is rare and welcome.",
+    "It misled me in one place: step 3's rule 'if any input's footprint is whole ... evaluate this node whole' contradicts note 5's advice to split a globally-parameterised operation. If the statistic is a graph input of the local half, its WHOLE footprint makes every window request collapse to a whole evaluation and the split buys nothing. I had to model the statistic as a dependency fetched through the evaluation context (`ctx.value(node)`) rather than as an input; the chapter should say that a split operation's statistic input is not an ordinary footprinted input.",
+    "Note 2 talks about mirroring versus edge extension, but the task's `box` has a third border rule ('count only cells inside the grid', i.e. renormalise over existing cells). The principle (clip to the real extent) still holds, but the wording does not cover it, and it is easy to implement as 'average over my buffer' — the exact silent bug the note warns about.",
+    "The invariance test 'at several scales' could not be applied literally: `TASK.md`'s `evaluate(node, window=None)` has no scale parameter, so there is no way to evaluate at 0.5 or 0.37 without inventing API. I substituted several reaches, grid shapes and window sizes instead, and noted the gap.",
+    "Note 1 says a wrong footprint 'fails silently at window edges' — true, but with a prefix-sum kernel the windowed and whole results also differ at ~1e-15 for a *correct* footprint, so 'equals' in the proving test must mean 'equal within float rounding of the same arithmetic'. Anyone writing that test with `==` on floats will chase a phantom bug (my first fuzz script did exactly that).",
+    "The 0.6 cost rule is stated in terms of input areas, which fires on tiny grids where the requested window is most of the image (a 3x2 request on a 4x3 grid costs as much as the whole). That is correct per the chapter, but the chapter could warn that the saving, not the exactness, is what requires a large input — my first smoke test looked 'wrong' until I traced it.",
+    "The chapter is silent on whether a global statistic's cost should count as one output cell or as the whole input it scans; `TASK.md` says 'output cells', so `MaxOp` counts 1 and the global read is documented in the code instead.",
+    "Most valuable note for me: note 3 (reaches add up) — it told me not to build a planner, just to widen per node, which removed a whole class of bugs."
+  ]
+}

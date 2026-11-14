@@ -44,7 +44,8 @@ class Exactness(unittest.TestCase):
 
     def test_many_windows_equal_cuts(self):
         e = stencilpipe.demo_engine(); n = e.source(GRID).call("box", r=2).call("dx")
-        full = stencilpipe.demo_engine().evaluate(stencilpipe.demo_engine().source(GRID).call("box", r=2).call("dx"))
+        f = stencilpipe.demo_engine()      # one engine builds and evaluates (refusing foreign nodes is fair)
+        full = f.evaluate(f.source(GRID).call("box", r=2).call("dx"))
         wins = [(2, 2, 5, 5), (50, 38, 6, 5)]
         for got, win in zip(e.evaluate_many(n, wins), wins):
             self.assertTrue(close(got, cut(full, win)))

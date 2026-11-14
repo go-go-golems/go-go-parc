@@ -1,0 +1,50 @@
+{
+  "summary": "stencilpipe is a standard-library Python 3 library that evaluates pipelines over large 2D float grids window by window: every operation declares, for an output window, the window of each input it reads (grown by its reach for neighbourhood operations, mapped back through the transform for resampling, WHOLE for global ones), and the evaluator propagates those windows down the graph, clipped to each input's extent, computing each node only on what its consumer needs. normalize is split into a global max_stat barrier plus a local divide, so windows pass through it; a cost rule falls back to a whole evaluation when the footprints would cost about as much as the whole, and whole and per-window results are cached. An invariance suite plus a Buffer that raises FootprintError on any read its footprint did not include proves that every windowed result is exactly the whole-grid result cut to that window, and a cell counter shows the cost of a request follows its size rather than the grid.",
+  "files": [
+    "DIARY.md",
+    "stencilpipe/__init__.py",
+    "stencilpipe/window.py",
+    "stencilpipe/buffers.py",
+    "stencilpipe/registry.py",
+    "stencilpipe/ops.py",
+    "stencilpipe/engine.py",
+    "tests/reference.py",
+    "tests/test_whole_grid.py",
+    "tests/test_invariance.py",
+    "tests/test_regions.py",
+    "tests/test_counters.py",
+    "tests/test_api.py",
+    "tests/test_random_pipelines.py"
+  ],
+  "pattern_mapping": {
+    "Footprint": "stencilpipe/registry.py::Op.footprint (declaration, receives args + scale) and each op's override in stencilpipe/ops.py; WHOLE sentinel in stencilpipe/window.py; scaled_reach/buffer_reach convert reach units in one place",
+    "Window": "stencilpipe/window.py::Window (frozen (x, y, w, h) with grow/clip/contains/union/area/crop); requests enter through Engine._resolve which clips them to the node's extent",
+    "Region evaluator": "stencilpipe/engine.py::Engine._eval (cache -> global/cost check -> footprint propagation -> run -> cut -> cache), Engine._compute (builds one Buffer per input with origin + real extent and runs the kernel on exactly the requested window) and Engine.footprint",
+    "Global barrier": "stencilpipe/ops.py::MaxStat (global_operation=True, footprint returns WHOLE, output 1x1); honoured by Engine._costs_whole which treats a WHOLE footprint as the input's whole area and by Engine._compute which evaluates a WHOLE input in full",
+    "Statistic node": "stencilpipe/ops.py::MaxStat (global half) feeding stencilpipe/ops.py::Divide (local half), wired by _build_normalize into divide(img, max_stat(img))",
+    "Tile grid (optional)": "not implemented: chapter note 7 says 'windows first, tiles second'; the window cache is keyed (node key, window) in Engine._windows so a grid can be added next to it (documented in DIARY.md Steps 2 and 7)",
+    "Invariance test": "tests/test_invariance.py (every local op alone, after a blur, before a blur, doubled, in a deep chain, on three grid sizes, at every window of tests/reference.py::windows_for) and tests/test_random_pipelines.py (24 seeded random chains); judged against independent whole-grid references in tests/reference.py"
+  },
+  "notes_applied": [
+    "Note 1 (footprint must be exact, only a test can say so): every op is tested alone and in chains, at full extent, interior, four corners, four edge strips, 1x1 and partly-outside windows, plus 120 fuzzed random chains; the footprint bug in half() was caught exactly this way.",
+    "Note 2 (border rules apply only at the real border): Buffer carries the node's real extent next to its rows' origin, and every kernel clamps with source.width/source.height (box, dx, half) so a clipped footprint meets the real border exactly as a whole computation would.",
+    "Note 3 (reaches add up along a chain): the evaluator widens at each node (Engine._compute asks each input for its own footprint), so no total is computed ahead of time; test_reaches_add_up_along_a_chain shows box(2) over box(3) needing 5 + 5 pixels.",
+    "Note 4 (reach scales and its unit must be explicit): scaled_reach (document pixels, the chapter's ceil(ceil(r*scale)/scale)) and buffer_reach (buffer pixels) are the single conversion point used by all footprints; the engine carries scale = 1.0 because the required API has no scale parameter, and ReachScaleTest pins the conversion at 1.0, 0.5, 0.37, 0.25.",
+    "Note 5 (find the hidden global operations): normalize is audited as global-statistic + local-application and built as divide(img, max_stat(img)); a test proves two zoom levels see the same values, and a window-local maximum would have given different ones.",
+    "Note 6 (keep the best case: cut from what is cached): Engine._eval checks the whole-value cache first and cuts from it, and caches each window under (node key, window); tests show a repeated window and a window after a whole evaluation cost zero cells.",
+    "Note 7 (windows first, tiles second): implemented window requests only, with the cache keyed by window so a tile grid and per-tile keys can be added later; recorded as the main follow-up.",
+    "Note 8/9 (choose the tile size by measuring; align tiles to the source): not applicable without tiles; whole_fraction is exposed as a per-engine setting (default 0.6 from the sketch) so the windowing threshold can be measured, and test_threshold_is_a_setting exercises it.",
+    "Note 10 (measurements around items are window requests): Engine.evaluate_many evaluates each window as its own request instead of one bounding box, and its docstring records the merge-near-neighbours option.",
+    "Note 11 (decide which global statistics may be approximated): the statistic is kept exact, computed once whole and cached, so existing results are preserved; approximation is documented as needing its own validation and was not attempted."
+  ],
+  "tests": "77 tests across 7 modules (tests/test_whole_grid.py, test_invariance.py, test_regions.py, test_counters.py, test_api.py, test_random_pipelines.py plus tests/reference.py); last run `python3 -m unittest discover -s tests` -> 'Ran 77 tests in 0.686s / OK'. An additional out-of-suite fuzz of 120 random chains over 2040 windows found 0 mismatches.",
+  "chapter_feedback": [
+    "The flowchart (cache -> global/cost -> footprint propagation -> run -> cut -> cache) transcribed almost line for line into Engine._eval; the Structure and Collaborations tables were enough to fix the module boundaries.",
+    "The chapter contradicts itself on global inputs: rule 3 says 'if any input's footprint is whole ... evaluate the node whole', which would make the note-5 split useless because divide()'s statistic input is always whole. I resolved it by treating WHOLE as the input's extent area and letting the cost rule decide; the chapter should say this explicitly.",
+    "Reach units were the least clear part: the sketch's footprint returns document pixels while the note speaks of buffer pixels ('24 buffer px at full scale and 12 at half' for the same blur), and my first scaled_reach implementation was wrong in exactly that way. One worked numeric example of the conversion function's input and output units would remove the guesswork.",
+    "The chapter never says what 'cells computed' should mean for a global statistic (its 1 output cell, or the cells it scans) or whether clearing a counter should also drop caches; both choices are visible through a cost API, so a sentence would help.",
+    "Note 2's warning is well placed: the only silent-corruption risk I hit was a kernel clamping against its buffer instead of the extent (half), and the chapter's phrasing ('kernels must be told where the real border is') is what sent me to make Buffer carry the extent.",
+    "The 'cost, not window size' threshold of 0.6 is given without justification or a suggested comparison basis (input extent area vs whole output area); for a shrinking operation like half() the choice changes when the whole fallback fires.",
+    "'Prove the scheme with one test' was the most useful instruction in the chapter: writing the whole-grid references from the task text (not from the kernels) is what made the half() bug visible at the first cell of the second row."
+  ]
+}
