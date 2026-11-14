@@ -455,6 +455,8 @@ Linux machine). With `REAL_GPU=1` it fails the six tests of section 4.
 
 ## 10. Open questions and next steps
 
+(As of the first run. Section 11 records how each was settled.)
+
 - **Preview lookup on real GPUs.** Option A or B of section 7. Measuring the Time-drag cost of manual trilinear at
   4000 px comes first.
 - **Adapter-aware parity tests.** The capability test should check the adapter it got, not demand SwiftShader; the
@@ -465,7 +467,45 @@ Linux machine). With `REAL_GPU=1` it fails the six tests of section 4.
 - **A routine.** Run `REAL_GPU=1 CI=1 pnpm test:browser` on the Mac after every change to the GPU engine. Every green
   run before this session measured SwiftShader.
 
-## 11. Where things are
+## 11. Follow-up: the decisions, made the same day
+
+Every open item of section 10 was settled the same afternoon, each by a measurement before a change.
+
+**The lookup.** A benchmark scenario on the parity page times the preview display chain at the GPU engine's working
+size for each lookup mode, round-robin, from submit to `onSubmittedWorkDone`:
+
+| 4000 × 2674 on the M1 Max | median | p10–p90 |
+|---|---|---|
+| hardware trilinear | 5.3 ms | 5.2–5.6 |
+| manual trilinear | 6.4 ms | 6.1–6.6 |
+| manual tetrahedral | 5.9 ms | 5.7–6.3 |
+
+Exactness costs 1.1 ms per full preview, under 1 % of the 200 ms a Time drag takes to settle, so option B of section 7
+was taken: the preview reads its tables with manual trilinear on every adapter. Trilinear rather than the cheaper and
+more accurate tetrahedral lookup, because core's tabulated reference is trilinear and the parity test compares
+against it. With the two adapter-aware tests, the browser suite now passes completely on Metal (108 of 108, in 57 s
+against 4.3 minutes on SwiftShader).
+
+**The stall.** A CDP sampling profile, aligned with the rAF probe that measured the stall, attributed each gap to
+its functions. The first was core's fallback RGB → spectrum table, a Gauss–Newton fit over 64² nodes (112 ms), which
+the CPU engine had always computed inside its worker and the GPU engine computed on the main thread at the first film.
+It now runs in a one-shot module worker when the GPU engine is created and seeds core's cache. The second was the
+source upload: a JavaScript loop that expanded 10.7 M RGB floats into a 171 MB RGBA array (95 ms). The floats now go to
+a storage buffer unchanged and a compute pass writes the RGBA texture, bit for bit what the loop wrote. Every GPU open
+is now free of stalls over 100 ms and 4–19 % faster.
+
+**The first-print time.** Section 8.1 suspected the hardware-filtered tables; the investigation found otherwise. At
+equal image size the two engines meter the same exposure to 4e-6, on Metal and on SwiftShader alike. The difference
+was the size of the image metered: the CPU engine meters its 640 px working image, the GPU engine its 4000 px one, and
+the metered quantity, the logarithm of a mean of 10^x through a nonlinear film chain with grain, falls as resolution
+rises (0.7784 at 640 px, 0.7763 at 1024 px, 0.7726 at 4000 px for the same file). Every engine now meters a 640 px
+analysis image made from the linear file the way a 640 px decode makes it. The CPU engine's results are unchanged
+bit for bit, and on the ten test files the two engines now propose the same time for every frame.
+
+The lesson of section 8.1 was therefore half right: the rounding boundary explained why one file differed, but the
+cause of the difference it amplified was not the one this report first suggested.
+
+## 12. Where things are
 
 - Ticket: `chromobench/ttmp/2026/11/14/CHB-034--real-gpu-check-on-the-m1-max-browser-suite-on-metal-smoke-and-timings-post-chb-027-checks-on-the-gpu-engine/`
   (diary with five steps, tasks, scripts `01-gpu-smoke.mjs`, `02-open-and-drag.mjs`, `03-first-print-gpu-vs-cpu.ts`).
