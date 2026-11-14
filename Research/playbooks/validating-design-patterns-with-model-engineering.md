@@ -131,6 +131,21 @@ Writing the hidden tests:
 After the run: hidden test results, the agent's own test results, the JSON report, a transcript export, a
 go-minitrace conversion, and a snapshot of the work directory.
 
+**Controls.** Run the same task without the chapter (two runs per task; `build/control.sh` strips the "apply the
+pattern in CHAPTER.md" sentence and asks for the design and its trade-offs instead of a pattern mapping). Without
+controls a pass rate cannot say what the chapter added over the model's own design sense.
+
+**Judge the design, not only the tests.** Pass rates say the code works, not that the pattern helped. Review all
+builds of one task blind, side by side, with the chapter as the yardstick, the way Christopher Alexander, Richard
+Gabriel and Martin Fowler would (rubric in [[pattern-extraction-with-agent-validation]] §6; harness in
+`build/review/`): which of the chapter's forces the code resolved, left in tension or never noticed; whether the
+structure is adapted to the task or a transcription of the sketch; whether similar seams emerged across builders with
+different details (generativity); dead or ornamental parts (wholeness); whether a newcomer could live in the code
+(habitability); whether a fixed next change is local (piecemeal growth); concrete smells with places; tests that state
+laws rather than examples; and whether a simpler control did as well with less (worse is better). Unblind afterwards
+and compare the chapter and control arms per lens. Size is a first signal: the first builds were six to fifteen
+times the size of the reference implementations, which is the question the controls answer.
+
 ## Stage C — extend through a resumed session
 
 Resume the builder's session with a change request that tests the pattern's own claims. If the chapter says new
@@ -196,6 +211,13 @@ go to a list for the next revision cycle.
 - **The shell bites.** zsh does not split an unquoted variable holding several words; `[ cond ] && cmd` under `set -e`
   aborts; a safety check may refuse a `sh -c` that runs `rm`. Use explicit arrays or `${=var}`, `if … fi`, and plain
   commands.
+- **Every builder failing the same hidden test usually means the test is unfair.** All three chapter 3 builders
+  decided independently not to store a cache entry larger than the whole budget; the test's budget (200 bytes) was
+  smaller than one grid, so none could evict. Their agreement was the signal; the fixed test passes on all three and
+  the reference. The playbook rule "verify against a reference" is not enough: the reference shares your assumptions.
+- **Never edit a script while a batch runs it.** Bash reads a script as it executes; editing `build.sh` mid-batch
+  made four finished builders die at their last line ("unexpected EOF") before they were scored; `after.sh` had to
+  be run by hand. New behaviour goes in a new script.
 - **Sketches get scrutinised.** Reviewers read pseudocode as code: undefined helpers, refusals dropped in a list
   comprehension, contradictory orderings across sections. Make the sketch consistent with the prose, or the reviewers
   will spend their notes on it.

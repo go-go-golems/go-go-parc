@@ -1,0 +1,56 @@
+{
+  "summary": "gridflow is a standard-library Python package that builds grid pipelines as interned, immutable nodes and computes them only when a value is requested, keying each computation by a SHA-256 signature over the node structure, the operation version, the quantised scale and the input signatures. It keeps a per-request run memo, a byte-budgeted LRU value cache that stores warnings with values, and a single-flight group that shares in-flight work across threads while evaluating inputs in parallel; within() turns a builder function into a subgraph bound to a placeholder so keys never depend on a function's text. It ships four demo operations (add, gain, blur, threshold), reports per-node run counts and cache statistics, and raises EvalError naming the failing operation.",
+  "files": [
+    "gridflow/__init__.py",
+    "gridflow/engine.py",
+    "gridflow/node.py",
+    "gridflow/cache.py",
+    "gridflow/inflight.py",
+    "gridflow/hashing.py",
+    "gridflow/grids.py",
+    "gridflow/errors.py",
+    "gridflow/demo.py",
+    "tests/test_build_and_eval.py",
+    "tests/test_cache_and_concurrency.py",
+    "tests/test_within.py",
+    "tests/test_edge_cases.py",
+    "README.md",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Node": "gridflow/node.py: class Node (immutable; kind/op/args/inputs/hash, __slots__, structural __eq__/__hash__); a placeholder, a source and a within node are the same class with another kind",
+    "Builder": "gridflow/engine.py: Engine.build / Engine.source / Engine.within plus the per-engine interning table Engine._nodes (a hash -> Node dict); Node.call delegates to Engine.build",
+    "Source": "Engine.source + gridflow/grids.py content_hash: a leaf node whose identity is a SHA-256 of its content, so equal content is one node; the immutable grid rides on Node.payload",
+    "Signature": "gridflow/engine.py: _Run._signature / _Run._compute_signature - sha256(sig-v1, kind, op name, op version, quantised scale, node hash, input signatures...), with the placeholder's signature substituted by the bound node's",
+    "Evaluator": "gridflow/engine.py: Engine.evaluate creating a _Run; _Run.eval / _Run._compute / _Run._compute_op / _Run._compute_within, Engine._count_run for eng.runs()",
+    "Run memo": "_Run.memo (signature -> value) and _Run.sig_memo (node hash, binding token -> signature), created per Engine.evaluate call and discarded with it",
+    "Value cache": "gridflow/cache.py: ValueCache (byte budget, LRU via OrderedDict, eviction counter) and Entry (value, warnings, size, cost); keys are 256-bit signatures",
+    "In-flight group": "gridflow/inflight.py: InFlight.run(key, compute) with _Group (Event + value/error), same-thread cycle detection",
+    "Operation record": "gridflow/node.py: class Operation (name, fn, version, identity) registered by Engine.op; resolved at evaluation time so a re-registration with a new version invalidates keys"
+  },
+  "notes_applied": [
+    "Note 1 (intern at build time): hashing.py canon() fills a canonical form (numbers, sequences, mappings, node hashes) and node_hash() interns equal calls, so two spellings such as k=2 and k=2.0 are one node - verified by tests using assertIs on separately written chains.",
+    "Note 2 (parameters in the key, computed at the quantised value): quantize_scale() rounds to 1e-4 once; the same value builds the signature and is what ctx.scale reports to operations; the operation version is part of every signature, so eng.op(..., version=2) invalidates old entries (test_operation_version_is_part_of_the_key).",
+    "Note 3 (wide keys): every node hash and signature is a 256-bit SHA-256 over a length-prefixed, unambiguous encoding.",
+    "Note 4 (leave out what cannot affect the value): a source's signature omits the scale, and the identity short-cut skips both the operation and the value cache entirely.",
+    "Note 5 (never key a function by its text): within() runs build() once against the engine's placeholder node and keeps the subgraph; signature(placeholder) is the bound node's signature, so the subgraph is keyed by the value it is applied to; evaluating a placeholder elsewhere raises EvalError with E_PLACEHOLDER.",
+    "Note 6 (share in-flight work, parallel inputs, run counts): InFlight.run makes concurrent requests compute once (test_concurrent_requests_share_one_computation), inputs of the requested node are evaluated on dedicated threads (test_inputs_are_evaluated_in_parallel), and eng.runs(node) counts real invocations.",
+    "Note 7 (never modify a cached value): cached values are tuples of tuples; operations receive fresh list-of-lists copies and Result.value is a fresh copy, so neither an operation nor a caller can corrupt a cached value; the identity short-cut needs no copy because values are immutable.",
+    "Note 8 (store what the computation reported): Entry.warnings are stored with each value and replayed on every cache hit, deduplicated per signature so a warning is reported once per evaluation, and reported immediately when the value is too large to cache.",
+    "Note 9 (budget and policy as a setting): Engine(cache_bytes=...) bounds ValueCache, which evicts LRU entries and counts evictions; stats() reports bytes and evictions (GreedyDual-Size is documented as the alternative policy slot).",
+    "Note 10 (what input keys cannot do): documented in the within()/engine docstrings and README - keys are built from inputs, so an unchanged output still recomputes; output-hash verification is listed as a future variation.",
+    "Note 11 (source identity): sources are identified by a content hash (computed once per source), which is the chapter's recommendation for caches that travel beyond one machine or session.",
+    "Note 12 (explicit evaluation points): Engine.evaluate is the only evaluation point; building prints nothing and runs nothing, and reading a non-dunder attribute of a node raises GridflowError E_NOT_AWAITED."
+  ],
+  "tests": "74 tests written across four modules (70 unittest test methods plus 4 classes of shared helpers/assertions); last result: 'Ran 70 tests in 0.856s' / 'OK' after fixes (four initial failures - a RecursionError from nested within placeholder self-binding, an eviction-count expectation, and two wrong test expectations for the unary add - plus one latent false-E_CYCLE concurrency bug fixed by inspection).",
+  "chapter_feedback": [
+    "Helped most: separating node identity (structure only) from the signature (structure + version + scale + input signatures). It made scale-sensitive caching and the version invalidation rule fall out mechanically.",
+    "Helped: note 8 (warnings stored with values) and note 7 (never modify a cached value) each turned into a concrete, testable rule; both would have been silent bugs otherwise.",
+    "Misled: the sketch shows `hole = placeholder(kind: Image)` inside within(), but does not discuss what happens when within() calls nest or when the placeholder is shared between calls. Sharing one placeholder gave a self-binding (placeholder -> placeholder) that recursed forever; I had to invent the 'a binding to itself keeps the outer binding' rule.",
+    "Left to guess: what stats()['hits'] and ['misses'] should count (run-memo hits? cache serves? sources? identity short-cuts?). I chose cache serves and real computations, and documented it, but a different grader may count differently.",
+    "Left to guess: how `scale` is supposed to affect values in an engine with no downsampling. The task says blur's radius shrinks proportionally, so I quantise the scale, pass it in ctx.scale, shrink the radius (clamping at 1 cell with a warning) and leave other operations scale-independent - the key still includes the scale for every operation node.",
+    "Left to guess: whether the identity result should be cached. The sketch returns before cache.put and I followed it, so identity nodes never appear in stats()['bytes'], which makes 'bytes' equal to the input's bytes only.",
+    "Silent risk the chapter names but does not solve for Python: 'evaluate the inputs in parallel' with threads can deadlock through a bounded pool, so I used dedicated threads (documented in _eval_inputs_parallel) and made the signature-recursion guard thread-aware after finding a false E_CYCLE window.",
+    "The chapter's claim that laziness needs explicit evaluation points was accurate and cheap to honour (evaluate + E_NOT_AWAITED on node attributes)."
+  ]
+}

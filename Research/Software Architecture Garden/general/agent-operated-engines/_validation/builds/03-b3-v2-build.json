@@ -1,0 +1,57 @@
+{
+  "summary": "gridflow is a standard-library Python package that builds a lazy, hash-consed graph of grid operations: every call returns an interned node (equal calls are one node), and nothing runs until Engine.evaluate asks for a value. Values are cached across requests under 256-bit keys built from the node's structural hash, the operation version, the quantised evaluation scale and the inputs' signatures, within a byte-budgeted LRU/GreedyDual-Size cache with a per-request run memo, single-flight sharing and parallel input evaluation, and each entry carries the warnings raised anywhere below it so they are replayed on every hit. Function arguments become subgraphs (Engine.within): the function runs once against a placeholder leaf, so no key ever depends on a function's text, and evaluating a placeholder outside its within raises E_PLACEHOLDER.",
+  "files": [
+    "gridflow/__init__.py",
+    "gridflow/errors.py",
+    "gridflow/keys.py",
+    "gridflow/values.py",
+    "gridflow/result.py",
+    "gridflow/nodes.py",
+    "gridflow/cache.py",
+    "gridflow/evaluate.py",
+    "gridflow/engine.py",
+    "gridflow/ops.py",
+    "tests/test_building.py",
+    "tests/test_evaluation.py",
+    "tests/test_cache.py",
+    "tests/test_within.py",
+    "tests/test_concurrency.py",
+    "tests/test_pattern.py",
+    "tests/test_ops.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Node": "gridflow/nodes.py Node: immutable op name, bound args (MappingProxy), input nodes, 256-bit structural hash, node id; Node.call() delegates to Engine.build_call",
+    "Builder": "gridflow/nodes.py Builder.intern_source / intern_op / intern_within (hash lookup + fingerprint collision check, salts instead of merging); Engine.build_call binds the call against the registered Operation record",
+    "Source": "gridflow/nodes.py Builder.intern_source + Node kind 'source': leaf whose identity is a hash of its content (frosted tuple of tuples), materialised once and pinned outside the byte budget; signature in evaluate.py",
+    "Signature": "gridflow/evaluate.py Evaluator._signature: sha256 over node.hash, op.version, quantised params key and input signatures recursively, memoised per (node id, bindings key); Binding of the placeholder for within subgraphs",
+    "Evaluator": "gridflow/evaluate.py Evaluator: run memo -> value cache -> single flight -> compute; identity short-cut, EvalContext (scale/warn), freeze/validate results, parallel inputs via _eval_many",
+    "Run memo": "gridflow/evaluate.py RunMemo: values (signature -> value), sigs (node+bindings -> signature), reported/sig_warnings for once-per-request warning replay; created and discarded per Engine.evaluate call",
+    "Value cache": "gridflow/cache.py ValueCache + Entry + Stats: signature -> (value, warnings, size, cost), byte budget, LRU and GreedyDual-Size policies, pinned source entries outside the budget",
+    "In-flight group": "gridflow/cache.py InFlight.once: threading.Condition group per signature, waiters share value or exception, same-thread re-entry raises EvalError instead of deadlocking"
+  },
+  "notes_applied": [
+    "1 Intern at build time: Engine.build_call canonicalises args (sorted keys, integral floats key like equal ints via keys.canonical) and returns the interned node, so re-built chains in a later script are the same node and runs stay at 1.",
+    "2 Evaluation parameters quantised in the key and used for computing: keys.quantize_scale rounds scale to 1e-4, Result.scale reports it, and demo blur computes its radius from ctx.scale (the quantised value), so 0.5 and 0.5000001 share an entry while 1.0 and 0.5 do not; op version is part of every signature so re-registering invalidates entries.",
+    "3 Wide keys: sha256 (256-bit) node hashes and signatures, plus each node keeps its canonical fingerprint so a digest collision is salted rather than merging two different nodes.",
+    "4 Leave out of the key what cannot affect the value: a within's subgraph signature depends on the base, not on the mask (two masks over one base share the inner computation); identity args (gain k=1, blur radius=0) return the input value without running the op.",
+    "5 Never key a function by its text: Engine.within runs build(placeholder) once at build time and interns the subgraph; identical graphs built by different closures intern to one node; callables in args are rejected with a TypeError pointing at within(); evaluating the placeholder raises EvalError('E_PLACEHOLDER: ...').",
+    "6 Single flight and parallel inputs: InFlight.once per signature (two threads compute once, verified by eng.runs) and _eval_many submits a node's inputs to a ThreadPoolExecutor with a thread-local guard so workers never nest submissions.",
+    "7 Never modify a cached value: cached values are immutable tuples of tuples and each Result gets a fresh list-of-lists; the identity short-cut returns the input's value object without copying or mutating it.",
+    "8 Store what the computation reported: warnings are stored in the cache Entry, reported once per evaluation and replayed on every hit; a node's entry also carries its inputs' warnings so nothing disappears when a parent is a hit; a value too large for the budget reports immediately.",
+    "9 Budget the cache, policy as a setting: ValueCache caps bytes with LRU or GreedyDual-Size (age + cost/size), counts evictions, and keeps decoded sources pinned outside the cap as goja-cv does; cost is measured per computation with perf_counter.",
+    "10 (Recognised limit) keys built from inputs cannot stop early when an output is unchanged; no output hashing is done, and the diary lists early cutoff as a follow-up.",
+    "11 Source identity: a grid source is identified by a content hash (not path+mtime), so equal content is the same node and the key can travel further; build-time identity is documented as the place to change for a persistent cache.",
+    "12 Explicit evaluation points: Engine.evaluate is the only way to get a value; placeholder/property reads outside it raise, and Node exposes op/args/inputs/hash so the graph can be inspected without evaluating it."
+  ],
+  "tests": "113 tests in 7 files (unittest, discovered with `python3 -m unittest discover -s tests`); last run: `Ran 113 tests in 0.704s / OK`, repeated five times without flakiness.",
+  "chapter_feedback": [
+    "Helped: the Structure table mapped almost one-to-one onto classes, and each implementation note became a concrete, checkable rule (note 2 scale quantisation, note 8 warnings, note 9 budget).",
+    "Helped: the two rules about what is *not* in the key (note 4, note 5) were the highest-value guidance; the mask-independent subgraph key is what makes a within cache hit across different masks.",
+    "Mislead/underspecified: the withinMask sketch ('hole = placeholder') hides that the placeholder must hash to a constant so identical within pipelines intern, while the placeholder-to-base binding must be per evaluation; the chapter never says how the placeholder is identified, and my first nested-within attempt recursed forever until the binding was resolved transitively.",
+    "Underspecified: note 8 says warnings live in the cache entry, but does not say whether a parent's entry carries the warnings of its inputs; without that, a warning present on the first request vanishes on the next whenever the parent is a hit, which is exactly the bug the note warns about, one level up. I chose the invariant 'a value's entry holds every warning raised below it'.",
+    "Left to guess: the chapter gives no hint that a recursive key/evaluator must manage Python's stack budget; a 300-node chain raised RecursionError until Engine.evaluate raised the limit from the graph depth.",
+    "Left to guess: note 2 says the scale belongs in the key, but the task's demo only defines scale behaviour for blur; I made blur's radius shrink and documented that nothing resizes grids.",
+    "Small help gap: the chapter never says whether neutrality (note 7) should also write a cache entry; I cache the identity result so later hits are cheap, and runs stays 0."
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "summary": "gridflow is a standard-library Python package whose every operation call returns an interned, immutable node hashed with SHA-256 over the operation name, canonical arguments and input hashes, so equal calls anywhere in a program are one node and nothing runs at build time. Values are computed only at explicit evaluation points, keyed by a signature built from the node hash, the operation version, the quantised scale and the input signatures, then found again through a per-request run memo, a byte-budgeted LRU value cache with warnings stored beside each value, and single-flight groups that make concurrent requests share one computation while inputs are evaluated in parallel. `within` runs its build function once against a placeholder, rewrites and re-interns the sub-graph, and blends it through the mask as an ordinary cached node, so a second script that writes the same pipeline pays only for what it has never built.",
+  "files": [
+    "gridflow/__init__.py",
+    "gridflow/errors.py",
+    "gridflow/graph.py",
+    "gridflow/operations.py",
+    "gridflow/cache.py",
+    "gridflow/engine.py",
+    "gridflow/demo.py",
+    "tests/test_graph.py",
+    "tests/test_evaluation.py",
+    "tests/test_cache.py",
+    "tests/test_within.py",
+    "tests/test_demo.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Node": "gridflow/graph.py::Node — immutable (__setattr__ raises, args are a MappingProxyType), holds op_name, canonical args, input tuple, SHA-256 hash and a private builder reference; gridflow/graph.py::iter_topological walks graphs iteratively.",
+    "Builder": "gridflow/engine.py::Engine.build + Engine._intern — validates inputs, fills the operation's declared defaults, canonicalises arguments (graph.py::canonical_value/args_text, so 2 and 2.0 agree and mapping order vanishes), hashes and returns the existing node if the hash is known.",
+    "Source": "gridflow/engine.py::Engine.source + graph.py::source_hash/grid_text — a leaf whose hash is a hash of its content (shape included), so equal content is one node and the cache can travel with the data.",
+    "Signature": "gridflow/engine.py::Engine._prepare + _Request.sigs — SHA-256 of (node hash, operation version, quantised scale text, input signatures), computed bottom-up over the reachable graph; quantise_scale rounds the scale to 1e-4 once and the same rounded value is what ctx.scale reports.",
+    "Evaluator": "gridflow/engine.py::Engine.evaluate / _eval / _compute / _eval_inputs — memo, then cache, then join-or-start; inputs evaluated in parallel threads (one per distinct input signature); identity short-cut returns a copy; the operation's return value is validated and stored with its warnings, bytes and cost; run counters bumped in _count_run.",
+    "Run memo": "gridflow/engine.py::_Request.memo — lives only for one evaluate() call (together with _Request.sigs and the per-signature warnings), so a value used twice in one request never touches the shared cache.",
+    "Value cache": "gridflow/cache.py::ValueCache + Entry — OrderedDict of signature -> (value, warnings, nbytes, cost) with a byte budget, LRU eviction and an eviction counter; values too large for the budget are not stored so their warnings are reported immediately (note 8).",
+    "In-flight group": "gridflow/engine.py::_Inflight — per-signature single-flight with an Event, an owner thread, and success/failure publication; waiters in other requests share the winner's value and warnings, and a re-entrant owner gets E_CYCLE instead of a hang."
+  },
+  "notes_applied": [
+    "Note 1 (intern at build time, canonical arguments): Engine.build fills defaults (eng.op(..., defaults=...) so blur() and blur(radius=1.0) are one node) and hashes canonicalised arguments, so different spellings of a call intern together.",
+    "Note 2 (evaluation parameters in the key, quantised, computed at the quantised value): quantise_scale rounds to 1e-4, the rounded value enters the signature and is the value ctx.scale exposes (test asserts ctx.scale == 0.3333 for scale=0.33333); the operation version is in the signature, so re-registering a name with a new version misses the cache while keeping the node.",
+    "Note 3 (wide keys): SHA-256 (64 hex chars) per node and per signature, length-prefixed input hashes to avoid concatenation ambiguity.",
+    "Note 5 (never key a function by text): Engine.within runs build(placeholder) once, Engine._substitute rewrites the sub-graph onto the real node and re-interns each rebuilt node, and evaluating a placeholder anywhere else raises EvalError 'E_PLACEHOLDER'.",
+    "Note 6 (share in-flight work, evaluate inputs in parallel, count runs): one _Inflight per signature; threads per distinct input signature with join; eng.runs(node) counts actual operation executions (identity short-cuts and cache hits do not count).",
+    "Note 7 (never modify a cached value): the identity short-cut stores a fresh copy of the first input's grid, so writing to it cannot touch another node's cached value (tested by mutating the identity result and re-reading the input).",
+    "Note 8 (store what the computation reported): Entry.warnings holds the sub-graph's warnings; they are replayed on every cache hit (including a hit on the root, which never visits its inputs) and deduplicated once per evaluation; uncacheable values report immediately.",
+    "Note 9 (budget the cache, policy as a setting): ValueCache takes cache_bytes, evicts LRU, exposes stats()['bytes'] and stats()['evictions']; cache_bytes=0 disables storage.",
+    "Note 10 (know what input keys cannot do): accepted and documented — no output hashing, so a change that does not change an output still recomputes downstream; the diary records the trade-off rather than pretending otherwise.",
+    "Note 11 (source identity): sources are keyed by a content hash and their payload is frozen, so mutating the caller's list after creating the source does not change the cached value.",
+    "Note 12 (make evaluation points explicit): building runs nothing (runs == 0 until evaluate), evaluate(scale=...) is the only evaluation point, and an unregistered operation or a stray placeholder fails with an EvalError naming the operation instead of silently doing nothing."
+  ],
+  "tests": "95 tests across 5 files (tests/test_graph.py 22, tests/test_evaluation.py 32, tests/test_cache.py 11, tests/test_within.py 16, tests/test_demo.py 14); last result: `python3 -m unittest discover -s tests` -> `Ran 95 tests in 0.424s` / `OK` (run four times, no flakes).",
+  "chapter_feedback": [
+    "Helped: the Structure table gave each participant an obvious home, and the sketch's evaluation order (memo, cache, join-or-start, parallel inputs, identity, store-with-warnings) was directly implementable.",
+    "Helped: note 2's 'quantising only the key while computing at the raw value would store one value under another's key' made me quantise once and pass the quantised scale to ctx, which is easy to get wrong otherwise.",
+    "Helped: note 8 was not advisory — my first version stored only the node's own warnings and upstream diagnostics vanished on the first cache hit; the chapter had already named that failure.",
+    "Misled/under-specified: the `withinMask` sketch keeps the placeholder in the graph and substitutes at evaluation, which forces a placeholder-aware evaluator and signature computation; substituting at build time is simpler, keeps E_PLACEHOLDER as an error, and interns the sub-graph against the main graph so two rounds share it. The chapter does not mention that the build-time reading also improves sharing.",
+    "Misled: 'evaluates a node's inputs in parallel' assumes an async runtime; in Python a bounded worker pool deadlocks under nested submission, so the faithful translation is a thread per distinct input signature. The chapter gives no guidance for synchronous hosts.",
+    "Left to guess: what happens to the warnings of nodes strictly *below* a cached root, and whether the same warning text from two nodes should be reported once or twice; I store the sub-graph's warnings in the entry and dedupe by text, which is a reading, not something the chapter states.",
+    "Left to guess: nothing in the chapter fixes what `scale` means when a host does not resample (scale 0.5 halves blur's radius but leaves the grid size alone here); the chapter's scale is a resolution multiplier in goja-cv, so the semantics had to be invented for gridflow.",
+    "Left to guess: whether `runs` should count an operation that was invoked and raised; I count it (the operation ran), but the chapter only says 'counts runs per node'."
+  ]
+}

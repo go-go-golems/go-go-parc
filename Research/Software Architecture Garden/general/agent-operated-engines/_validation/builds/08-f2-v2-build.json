@@ -1,0 +1,41 @@
+{
+  "summary": "Built jailfs, a standard-library-only Python package giving each agent session one writable root and an ordered list of read-only roots, where every open, stat, mkdir, exclusive temporary create and rename goes through a held directory descriptor (dir_fd + O_NOFOLLOW) so the kernel refuses '..' and link escapes. It implements the required interface (Workspace, read, save, load, names, batch, and the E_ACCESS/E_NOT_FOUND/E_DUPLICATE/E_SHADOW refusals with fixes that name the roots) plus the pattern's opened-set identity check, atomic random-name writes and single contained loader. 67 unittest tests in tests/test_jailfs.py pass, and mutation runs plus a naive-implementation script show the security tests fail when their safeguards are removed.",
+  "files": [
+    "jailfs/__init__.py",
+    "jailfs/_errors.py",
+    "jailfs/_root.py",
+    "jailfs/_workspace.py",
+    "tests/test_jailfs.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Writable root": "Workspace._one_writable / _open_writable (jailfs/_workspace.py) and Root(path) in jailfs/_root.py; refused when several roots are passed",
+    "Read roots": "Workspace.__init__ builds self._reads in order, dropping repeats of the writable root; lookup order lives in _read_candidates",
+    "Locator": "Workspace._read_candidates, _absolute_candidate, _write_location and normalize_relative (jailfs/_root.py)",
+    "Root handle": "class Root in jailfs/_root.py: one O_DIRECTORY descriptor, _walk_dirs with O_NOFOLLOW on every component, open_read, lstat_optional, exists, list_files",
+    "Opened set": "Workspace._opened / _written (dev, ino identities from Root.open_read's fstat and save_atomic's post-rename lstat) checked in Workspace.save",
+    "Writer": "Workspace.save plus Root.save_atomic and _create_temp (random .jailfs-tmp-<hex>, O_CREAT|O_EXCL|O_NOFOLLOW, fsync, rename via dir_fd)",
+    "Loader": "Workspace.load (resolves like read, .py/.js only, UTF-8, joins the opened set) and Workspace.require, which always refuses"
+  },
+  "notes_applied": [
+    "Note 1 (OS enforces the root): Root holds the root descriptor and every open/stat/mkdir/rename passes dir_fd=..., with O_NOFOLLOW on all components; construction refuses platforms without root-relative operations.",
+    "Note 2 (identities, not names): read/load record (st_dev, st_ino); save refuses a target whose identity is in the opened set and not in the written set -- tested with a hard link so a name comparison would fail.",
+    "Note 3 (exclusive random temporaries): .jailfs-tmp-<hex> created with O_CREAT|O_EXCL|O_NOFOLLOW in the target's directory, then renamed into place; a planted link at that name makes the create fail (tested by pinning token_hex).",
+    "Note 4 (one way to load code): load(name) is the only loader; require() always refuses with the fix 'use load(name)'.",
+    "Note 5 (strict flags): a list/tuple of several writable roots is refused at construction with a fix naming the --read flag; every refusal names the roots and a fix.",
+    "Note 6 (shadowing): a save whose relative name exists in a read root is refused with E_SHADOW; a read served from the writable root while a read root holds the same name logs a warning on the 'jailfs' logger.",
+    "Note 7 (relative names resolve the same way everywhere; symlinked read roots): absolute and relative paths share the locator, and absolute paths are resolved by real path first so a symlinked read root inside the workspace resolves to its target.",
+    "Note 8 (show names as the agent writes them): names() walks the writable root through descriptors and returns sorted full relative names of regular files only (no links, no directories).",
+    "Note 10 (refuse one path twice in a call): batch() marks one program run and a second save of the same normalised name raises E_DUPLICATE.",
+    "Note 11 (test that the regression test fails without its fix): a naive path-join script escaped through dangling links, symlinked directories and predictable temp names; mutation runs of the package failed exactly the tests that name each removed safeguard."
+  ],
+  "tests": "67 tests in tests/test_jailfs.py; last run: `python3 -m unittest discover -s tests` -> Ran 67 tests in 0.065s, OK",
+  "chapter_feedback": [
+    "The Structure table and the sketch gave a directly usable decomposition (Location = (root, rel), opened set, writer, loader); most of the code drops into those slots.",
+    "Implementation note 1 says Python has no os.Root only implicitly (it is a Go chapter), so I had to derive the dir_fd + O_NOFOLLOW equivalent myself; a sentence naming openat/dir_fd for non-Go ports would have saved a design round.",
+    "The chapter does not say whether reads may follow links inside a root (Go's os.Root follows links that stay inside). I chose to refuse every link in a path, which is stricter; TASK.md's codes made that choice safe but the chapter left it to guesswork.",
+    "Note 6's two remedies ('refuse saves whose name exists in a read root' or 'warn') are not reconciled with the E_SHADOW code in TASK.md, which silently picks the first for saves; the warning variant is still used for reads.",
+    "Nesting of roots (a read root inside the writable root, or the reverse) is not discussed; I had to decide per direction, and a sentence on which declaration is narrower would help.",
+    "The chapter's 'test that a regression test fails without its fix' was the most useful line in the text: it turned three of the tests from plausible into demonstrated, and it is how I found that O_EXCL matters even when the link check exists."
+  ]
+}

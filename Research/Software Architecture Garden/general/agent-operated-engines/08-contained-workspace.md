@@ -166,7 +166,11 @@ startup(flags) → Session | Error
 1. **Let the operating system enforce the root.** goja-cv's first workspace checked path strings and was escaped by a
    dangling symlink. Its second opens every root as an `os.Root` (Go's root-relative file access, built on `openat`
    style calls), so the kernel refuses `..`, absolute links and links that leave the root. On Linux, `openat2` with
-   `RESOLVE_BENEATH` does the same.
+   `RESOLVE_BENEATH` does the same. Where neither exists (Python's standard library, for one), walk the path one
+   component at a time from the root's directory handle, opening each directory relative to the last with
+   no-follow flags (`openat` with `O_NOFOLLOW | O_DIRECTORY`; Python's `dir_fd=`), and `lstat` the last component.
+   Decide whether a link that stays inside the root may be followed: `os.Root` follows it; refusing every link is
+   simpler and stricter, and every builder who implemented this chapter chose that.
 2. **Compare identities, not names.** A link inside the root can point at an input the session opened. goja-cv records
    the identity of every opened file and refuses a save that would replace one, compared with `os.SameFile`, unless
    the session wrote that file itself earlier.
@@ -191,7 +195,9 @@ startup(flags) → Session | Error
 9. **Give each parallel run its own writable root.** The dust runners create a fresh workspace per run and mount data
    and helpers read-only; the subagents handbook adds the rule never to mount the answers (the controls' truth).
 10. **Refuse saving one path twice in one call.** Two saves to the same name in one program are almost always a mistake;
-   goja-cv refuses the second (`E_DUPLICATE`).
+   goja-cv refuses the second (`E_DUPLICATE`). When several refusals apply to one save, report them in a fixed,
+   documented order (shape of the argument, access, duplicate, shadow, replacing an opened file): the agent sees only
+   the first, and it decides what the agent tries next.
 11. **Test that a regression test fails without its fix.** Twice, goja-cv's first test for a hole passed without the fix
     (a small save finished before the race could happen; a comparison of paths was vacuous). Security tests must be
     shown to fail first.

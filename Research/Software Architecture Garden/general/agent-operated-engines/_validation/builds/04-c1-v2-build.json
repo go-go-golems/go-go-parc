@@ -1,0 +1,45 @@
+{
+  "summary": "Built stencilpipe, a standard-library-only Python package where every grid operation declares the input window (footprint) it reads for an output window, and an evaluator propagates windows down a lazy graph, widening by reach, clipping to each input's extent, computing only the requested cells and counting them. normalize()'s whole-grid maximum is split into a cached global statistic plus a local division, so windows still pass through it, and whole or already-computed windows are cut from the cache first. 58 unittest cases prove windowed results equal whole-then-cut results for every operation alone and in 21 chains across six grid sizes and all edge/corner/1x1/whole windows, and pin the cost with exact cell counters.",
+  "files": [
+    "stencilpipe/__init__.py",
+    "stencilpipe/window.py",
+    "stencilpipe/buffer.py",
+    "stencilpipe/ops.py",
+    "stencilpipe/engine.py",
+    "tests/support.py",
+    "tests/test_ops.py",
+    "tests/test_invariance.py",
+    "tests/test_engine.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Footprint": "stencilpipe/ops.py: Op.footprint(window, index, in_extents) per operation — AddShift/Normalize return the window (point), Box returns grow(window, r, r), DiffX returns grow(window, 1, 0) (directional), Half returns the window mapped back (2x, 2y, 2w, 2h) (moves pixels), and the WHOLE sentinel (stencilpipe/window.py) marks a global read.",
+    "Window": "stencilpipe/window.py: windows are (x, y, w, h) tuples in the coordinates of the node asked, with as_window/clip/grow/area/contains/union_bbox; Engine.evaluate clips the request to the node's extent.",
+    "Region evaluator": "stencilpipe/engine.py: Engine._eval_window (footprint propagation, clipping, per-window run and cut) and Engine._eval_whole; Engine.evaluate / evaluate_many are the entry points; Buffer in stencilpipe/buffer.py carries each intermediate's own origin so kernels never assume column 0.",
+    "Global barrier": "stencilpipe/engine.py: Engine.statistic evaluates a node whole once and caches it; _eval_window also stops the request (WHOLE footprint, or footprints costing more than window_cost_threshold of the inputs) and cuts the window from a whole evaluation.",
+    "Statistic node": "stencilpipe/ops.py: Normalize.global_params returns {'m': engine.statistic(inputs[0], 'max')} — the global half, cached under (node key, 'stat', 'max') — while Normalize.footprint stays the window so the division is local.",
+    "Tile grid (optional)": "Deliberately not implemented (Chapter note 7, windows first): sharing is provided instead by the whole-value cache and by Engine._cache_window / _cached_window, which cut any request contained in an already computed window.",
+    "Invariance test": "tests/test_invariance.py: CHAINS x GRID_SIZES with probe_windows (interior, every edge, every corner, 1x1, whole extent, windows hanging outside) comparing evaluate(node, w) to cut(evaluate(node), w), plus random windows and border-specific cases; tests/support.py holds independent naive whole-grid references."
+  },
+  "notes_applied": [
+    "Note 1 (footprints must be exact, only a test can say so): tests/test_invariance.py runs every operation alone and in chains, after and before a blur, on 6 grid sizes (1x1 up to 24x16) with windows at the interior, both edges, all four corners, 1x1 and the whole extent, plus 25 random windows; large reaches (box r=7, r=25) are tested for the same reason.",
+    "Note 2 (border rules only at the real border): Box.run takes its neighbourhood bounds and its denominator from ctx.in_extents (the real grid) and uses the buffer only for storage; DiffX clamps with the real width. test_box_window_equals_whole_even_at_the_border and the edge/corner probes would fail if a kernel treated its buffer edge as the grid edge.",
+    "Note 3 (reaches add up along a chain): widening happens per node, so nothing sums reaches ahead of time; tests/test_engine.py::Reaches records the window a lower node actually receives for a 1x1 request through add->dx->box(r=2) and asserts the accumulated (7,8,7,5).",
+    "Note 4 (unit of a reach must be explicit): every footprint is in the cells of the node it is declared on ('reach in buffer cells at the evaluation scale'); the only unit change is half(), which maps rather than grows, and the conversion lives in Half.footprint.",
+    "Note 5 (find the hidden global operation and split it): normalize()'s maximum is a real global; it is split into engine.statistic (whole input, computed once, cached) and a local division whose footprint is the window, so a window costs extent+window rather than two whole grids (test_normalize_uses_the_global_maximum_inside_a_window, test_normalize_window_reads_the_whole_input_but_computes_only_the_window).",
+    "Note 6 (keep the best case: cut from what is cached): _eval_window checks the whole-value cache before anything else and returns a cut, and also cuts from any previously computed containing window; tests assert 0 extra cells for a repeated window, for a window inside an already computed one, and for identical chains sharing the structural key.",
+    "Note 7 (windows first, tiles second): implemented pure per-window evaluation with a per-window cache and no tile grid; evaluate_many shares cached windows and falls back to one whole evaluation when the windows' bounding box covers most of the node.",
+    "Collaborations 3 ('cost, not window size'): window_cost_threshold = 0.6 of the inputs' cell counts decides the whole fallback, so a whole-extent request, a wide dx footprint or a 4x half footprint all fall back correctly (test_window_cost_threshold_forces_whole_evaluation).",
+    "Consequences ('kernels must read their buffer's origin'): every kernel computes indices as (document coordinate - buffer origin) via Buffer.window, and Ctx.origin exposes it to third-party operations.",
+    "Solution ('every operation must count every cell it computes'): the evaluator adds area(window) immediately after each op.run, so no kernel can forget, and sources never count."
+  ],
+  "tests": "58 test methods across 3 files (tests/test_ops.py 14, tests/test_invariance.py 6 with 21 chains x 6 sizes as subTests, tests/test_engine.py 38), plus 6 doctest examples in the package docstring. Last result: `python3 -m unittest discover -s tests` -> Ran 58 tests in 0.310s, OK (also clean under `python3 -W error`).",
+  "chapter_feedback": [
+    "Helpful: the Structure table and the Collaboration flowchart map one-to-one onto code, and 'Collaborations 3' plus the sketch's 0.6 threshold made the whole-fallback decision mechanical instead of a judgement call.",
+    "Helpful: implementation note 2 named the trap that actually bit the design (box's mean denominator depends on the real extent, not the buffer), and note 5 named the hidden global (normalize's maximum) that I would otherwise have had to discover from the introduce-a-window-and-compare test.",
+    "Misled: the chapter repeatedly refers to a scale/unit conversion (Chapter 2, note 4, the sketch's `footprint(op, w, i, scale)`), but this task has no evaluation scale; I had to decide that reaches are in cells of each node and that only half() converts. A sentence about single-scale pipelines would have saved that reasoning.",
+    "Left to guess: the chapter never says whether an operation that produces a smaller grid (half) declares its footprint in input or output units — the sketch's `resize` case implies input-side mapping, but it took a boundary test on an odd-sized grid to be sure the mapped window must also be clipped (partial last block) rather than padded.",
+    "Left to guess: whether the global statistic's own read counts as computed cells. The chapter says global operations 'read their whole input' but counts are a task-level concept; I chose not to count the statistic itself (it produces no output grid) and to count the input it forces, and documented it in the diary because a different reading would change the expected numbers.",
+    "Left to guess: 'positions in the margin may not be exact and are discarded' suggests kernels are run over the window plus margin — I instead ran each kernel over exactly the requested window using the margin only as input, which is cheaper and needs no discarding; the chapter could state that this is the intended reading."
+  ]
+}

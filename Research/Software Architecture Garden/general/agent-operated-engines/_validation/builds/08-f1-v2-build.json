@@ -1,0 +1,57 @@
+{
+  "summary": "Built `jailfs`, a stdlib-only Python 3 library that gives agent programs one writable root and read-only roots, resolving every path through per-root directory descriptors with `openat`-style `O_NOFOLLOW` walks so the kernel refuses `..`, links and escapes. Saves are atomic (random, exclusively created temp file renamed into place), refuse links, directories, files this session read (compared by `(st_dev, st_ino)`) and names that would shadow a read-only file, and `load` is the only way to load code (`require` always refuses). 125 unit tests in nine files pass, and `tools/regression_check.py` proves every protection load-bearing by removing it and watching its tests go red.",
+  "files": [
+    "jailfs/__init__.py",
+    "jailfs/errors.py",
+    "jailfs/paths.py",
+    "jailfs/root.py",
+    "jailfs/locator.py",
+    "jailfs/identity.py",
+    "jailfs/reader.py",
+    "jailfs/writer.py",
+    "jailfs/loader.py",
+    "jailfs/workspace.py",
+    "tests/support.py",
+    "tests/test_read.py",
+    "tests/test_save.py",
+    "tests/test_links.py",
+    "tests/test_load.py",
+    "tests/test_session.py",
+    "tests/test_roots.py",
+    "tests/test_hardening.py",
+    "tests/test_boundaries.py",
+    "tools/regression_check.py",
+    "README.md",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Writable root": "jailfs/root.py::open_root(role='writable root') created by Workspace (jailfs/workspace.py::_one_root/_read_roots), held open as a directory fd; saves may only use it (jailfs/locator.py::writable_location refuses read roots and anything outside)",
+    "Read roots": "jailfs/locator.py::Locator.reads, tried in order after the writable root by Locator.candidates; resolved with realpath at start-up (spellings()) so a symlinked read root resolves to its target",
+    "Locator": "jailfs/locator.py (candidates, writable_location, shadow_roots, describe) returning jailfs/root.py::Location (root + parts inside it + display name)",
+    "Root handle": "jailfs/root.py::RootHandle: one dir fd per root; _chain() opens each component with dir_fd=O_DIRECTORY|O_NOFOLLOW, open_fd/lstat/mkdirs/create_exclusive/rename/unlink/list_files all root-relative",
+    "Opened set": "jailfs/identity.py (FileId=(st_dev, st_ino), OpenedSet.note_open/note_written/would_replace_opened); fed by jailfs/reader.py::Reader.read and jailfs/writer.py after the rename",
+    "Writer": "jailfs/writer.py::Writer.save: duplicate -> shadow -> link/directory/opened-identity checks, mkdirs inside the root, O_CREAT|O_EXCL|O_NOFOLLOW temp under a random name, fsync, rename into place, identity recorded as written",
+    "Loader": "jailfs/loader.py::Loader.load (resolves like read, .py/.js only) and Loader.require which refuses every file; Workspace.load/load_with_origin/require delegate to it"
+  },
+  "notes_applied": [
+    "Note 1 (OS enforces the root): Python 3.10 has no os.Root/openat2, so each root is a directory fd and every component is opened with dir_fd + O_DIRECTORY|O_NOFOLLOW; `..` is resolved lexically in jailfs/paths.py::components and never reaches the kernel.",
+    "Note 2 (identities, not names): jailfs/identity.py stores (st_dev, st_ino) of every file read or loaded; saves compare lstat identities and refuse to replace an opened file unless this session wrote it — a hard link to a read-only input is caught, a different name is not.",
+    "Note 3 (exclusive random temporaries): jailfs/writer.py::temp_name gives `.<name>.<16 hex>.jailfs-tmp`, created with O_CREAT|O_EXCL|O_NOFOLLOW in the target's directory, retrying up to 8 fresh names; a planted link is FileExistsError, never a write.",
+    "Note 4 (one way to load code): jailfs/loader.py::Loader.load is the only loader (used by read's reader) and Loader.require/Workspace.require refuse everything with fix 'load(name) is the one way to load code'.",
+    "Note 5 (strict flags): jailfs/workspace.py::_one_root refuses a list/tuple of several directories at construction with fix '--root takes one directory; add read-only directories with --read DIR (reads=[...])'.",
+    "Note 6 (shadowing): jailfs/writer.py::_refuse_shadow raises E_SHADOW for a save whose relative name already exists in a read root, skipping read roots equal to or inside the writable root; README documents that absolute saves into the writable root are checked too.",
+    "Note 7 (same resolution everywhere, symlinked read roots): Locator matches absolute paths against both the given spelling and the realpath of each root, and root handles open the realpath, so a read root given through a link works (also needed because /var is a link to /private/var here).",
+    "Note 8 (show names as the agent writes them): jailfs/root.py::Location.display shows writable-root files by relative name and read-root files by absolute name; used in refusals and in load_with_origin.",
+    "Note 9 (a writable root per run): each Workspace owns its own roots and batch; test_boundaries.py::ParallelSessions shows two sessions cannot see or reach each other's files.",
+    "Note 10 (no duplicate save in one run): jailfs/workspace.py::Batch.check raises E_DUPLICATE for the same resolved name saved twice inside one `with ws.batch():`, claiming the name only after a successful save; nested batches start a new run.",
+    "Note 11 (prove the test fails without the fix): tools/regression_check.py removes each protection in turn (link check, identity check, shadow check, O_EXCL, `..` refusal, O_NOFOLLOW walk, single-root strictness), runs the guarding tests and restores the file; all seven mutations turn their tests red."
+  ],
+  "tests": "125 tests in 9 files (test_read 20, test_save 33, test_links 6, test_load 13, test_session 16, test_roots 17, test_hardening 9, test_boundaries 11, plus tests/support.py fixtures); last result: `python3 -m unittest discover -s tests` -> `Ran 125 tests in 0.126s  OK`.",
+  "chapter_feedback": [
+    "Helped most: the hole table and the `save` sketch mapped almost line for line onto code and tests (dangling link, in-root link to an input, predictable temp names, require escape, repeated --root), and notes 2/3/6/11 each prevented a real mistake.",
+    "Misled: the Solution and note 1 assume the platform has os.Root or openat2 and its Applicability says to isolate at process level when it does not; on Python 3.10 a dir-fd + O_NOFOLLOW component walk reproduces the containment exactly, so the chapter undersells that option.",
+    "Underspecified: whether a link that stays inside the root should be allowed. Go's os.Root permits it; this implementation refuses every link, which is stricter than the chapter's wording ('links that leave the root') — worth stating which is intended.",
+    "Left to guess: the precedence when two refusals apply to one save (duplicate vs shadow vs link vs opened file); whether E_SHADOW also covers absolute names inside the writable root; and which code a non-.py/.js `load` should use, since the task's code list has no argument-error code, so it became E_ACCESS.",
+    "Also unstated: what `names()` should list (directories? links?) and whether a read should fall through when the writable root holds a dangling link of that name; I chose regular files only and no fall-through, and recorded both in the diary."
+  ]
+}

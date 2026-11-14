@@ -126,3 +126,34 @@ executions without a file path; `after.sh` now snapshots the work directory per 
 - **Playbooks** in `Research/playbooks/`: `validating-design-patterns-with-model-engineering.md` (this method) and
   `extracting-pattern-languages-from-codebases.md` (the pattern-extraction skill adapted to the vault, with this
   validation built into Part 2).
+
+## Step 8 — builds scored, controls, a design review in the spirit of Alexander, Gabriel and Fowler
+
+- **Builds scored** (hidden tests; own tests all green): 03 gridflow b1–b3 17/17 each (after the test fix below);
+  04 stencilpipe c1 8/9 (scattered windows cost their bounding box: 40,000 cells for two 8×8 windows); 08 jailfs f1
+  18/18, f2 17/18 (a symlinked directory inside the root gave `E_NOT_FOUND`, not `E_ACCESS`), f3 18/18; 11 labelbook
+  (chapter v1) e1 8/9, e2 9/9, e3 8/9 (the export sidecar records the export's own inputs, not the makers of the
+  exported labels: the chapter's note 8 says "provenance travels in a sidecar" without saying whose).
+- **An unfair test.** All three chapter 3 builders failed `test_budget_evicts_and_stays_correct` with zero evictions.
+  Each had decided, separately, that an entry larger than the whole budget is not stored (the chapter's note 8 says a
+  value too large to cache reports its warnings at once). The test's budget, 200 bytes, was smaller than one 20×20
+  grid. Fixed to 20 kB and twelve grids (fits one grid under any size estimate, not thirteen); reference and all three
+  builds pass. Agreement among builders is evidence about the yardstick.
+- **A script edited mid-batch** (`build.sh`, adding the diary) killed four finished builders before scoring; `after.sh`
+  run by hand. New behaviour now goes in new scripts (`control.sh`, `review/review.sh`).
+- **Builder feedback folded in** (consensus, two or more of three): chapter 3 — the placeholder must hash to a constant
+  and be bound per evaluation, or be substituted at build time (3/3 tripped on the sketch); bounded pools deadlock in
+  synchronous hosts (2/3); a cached parent carries the warnings of its whole subgraph (2/3, one shipped the bug
+  first). Chapter 8 — containment without `os.Root`/`openat2` by a component walk with `dir_fd` and `O_NOFOLLOW` (3/3);
+  links that stay inside the root: decide, refusing all is simpler (3/3 refused all); a fixed order when several
+  refusals apply (2/3). Chapter 11 — the fold sketch's undo (3/3) had already been fixed in v2 from stage A notes.
+- **Size.** References are 89–159 lines; builds are 566–1,592 lines of source plus as much test code. Whether the
+  chapters cause this (participants copied from the Structure table: several builders say it "mapped one-to-one onto
+  files") or the model does, the controls will show.
+- **New stage** (the user: judge like Richard Gabriel and Christopher Alexander, possibly Martin Fowler; rubric from
+  `Research/playbooks/pattern-extraction-with-agent-validation.md` §6): `build/control.sh NN AGENT` runs the task
+  without the chapter (two per task, tag `ctl`); `build/review/review.sh NN REV` gives one read-only reviewer the
+  chapter, the task, `RUBRIC.md`, a fixed next change (`NEXT-NN.md`) and all builds of the task shuffled into
+  `impl-A…` (code and tests only; diaries and notes removed; the key kept outside the reviewer's directory);
+  `review/unblind.py NN` joins scores with arms. Chapter 1 gets three fresh builds on v5 (`a3`–`a5`), since the v3
+  builds' work directories now hold the extension.

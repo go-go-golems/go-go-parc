@@ -1,0 +1,56 @@
+{
+  "summary": "Built jailfs, a standard-library-only Python package giving agent programs exactly one writable root plus an ordered list of read-only roots, with every open and stat going through a per-root directory descriptor walked component by component with O_NOFOLLOW so the kernel refuses .., absolute links and links that leave a root. Saves are confined to the writable root, never follow a link, refuse to replace a file the session read (compared by st_dev/st_ino, not by name), and go through an exclusively created random temporary file renamed into place; load(name) is the single contained way to load .py/.js code and require() always refuses, while a second writable root is a start-up error that names reads/--read. Every refusal raises Refused with a code (E_ACCESS, E_NOT_FOUND, E_DUPLICATE, E_SHADOW, plus E_ARG for malformed calls) and a fix that names the roots and the alternative to write, and 134 tests cover construction, reads, saves, the five escape holes from the chapter, identities, shadowing, the loader and batch()/names().",
+  "files": [
+    "jailfs/__init__.py",
+    "jailfs/errors.py",
+    "jailfs/root.py",
+    "jailfs/locator.py",
+    "jailfs/writer.py",
+    "jailfs/loader.py",
+    "jailfs/workspace.py",
+    "tests/support.py",
+    "tests/test_construction.py",
+    "tests/test_read.py",
+    "tests/test_save.py",
+    "tests/test_escape.py",
+    "tests/test_identity.py",
+    "tests/test_shadow.py",
+    "tests/test_loader.py",
+    "tests/test_batch_names.py",
+    "README.md",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Writable root": "jailfs/workspace.py: Workspace._writable (a jailfs.root.Root opened writable by jailfs/locator.py:make_root); the only root locate_write returns",
+    "Read roots": "jailfs/workspace.py: Workspace._reads, searched in registration order by jailfs/locator.py:Locator.locate_read and skipped by locate_write",
+    "Locator": "jailfs/locator.py: Location (root + parts + rel + absolute, with name() choosing the name to show) and Locator.locate_read / locate_write / _relative / roots_fix",
+    "Root handle": "jailfs/root.py: Root (one directory fd per root) with resolve() (dir_fd + O_NOFOLLOW component walk, .. against an fd stack, contained symlink expansion), open_file(), stat_file(), open_parent_for_write(), create_temp(), replace(), list_files() and refusal()",
+    "Opened set": "jailfs/workspace.py: Workspace.opened (identities (st_dev, st_ino) added in _read() for every read and load) together with Workspace.written, checked in jailfs/writer.py:Writer.save",
+    "Writer": "jailfs/writer.py: Writer.save -- lstat target (link/directory/opened-file refusals), open_parent_for_write, create_temp (TEMP_PREFIX + secrets.token_hex(8), O_CREAT|O_EXCL|O_NOFOLLOW), write+fsync, Root.replace (rename), identity recorded after the rename",
+    "Loader": "jailfs/loader.py: Loader.load (only .py/.js, UTF-8, read through the workspace read path) and Loader.require which always raises E_ACCESS pointing at load(name); exposed as Workspace.load / Workspace.require"
+  },
+  "notes_applied": [
+    "Note 1 (let the operating system enforce the root): Python has no os.Root/openat2, so jailfs/root.py:Root.resolve rebuilds it -- each component is lstat-ed and opened with dir_fd= and O_NOFOLLOW from a descriptor on the root, so the kernel refuses .., absolute links and links that leave the root; no path string is ever trusted.",
+    "Note 2 (compare identities, not names): Workspace.opened holds (st_dev, st_ino) of everything read (including loaded helpers); Writer.save refuses a target whose identity is in opened and not in written, which catches hard links and in-root links to inputs, while a file that merely shares a name is still writable; the written identity is taken after the rename so a session may rewrite its own output.",
+    "Note 2 (never write through a link): resolve(follow_final=False) plus lstat before writing refuse a link at the target, and open_parent_for_write refuses a link in any parent component instead of following it.",
+    "Note 3 (exclusive, random temporary names): Root.create_temp creates TEMP_PREFIX + secrets.token_hex(8) with O_CREAT|O_EXCL|O_NOFOLLOW and retries with a new name on FileExistsError, so a planted file or link is never followed or overwritten; tests force the token to prove the collision path.",
+    "Note 4 (one way to load code): require() always raises E_ACCESS with the fix 'use load(name)'; load() resolves through the locator like a read and only accepts .py/.js UTF-8 text.",
+    "Note 5 (strict flags): Workspace(root) refuses a list or tuple of roots with E_ARG and a fix naming reads=[...] (--read DIR) instead of keeping the last value; missing or non-directory roots and read roots are refused at construction.",
+    "Note 6 (lookup order lets a save shadow a read-only file): a relative save whose name exists as a regular file in any read root is refused with E_SHADOW and a '.local' fix, and a read served from the writable root while a read root holds the same name appends a warning to Workspace.warnings.",
+    "Note 7 (resolve relative names the same way everywhere): command-line-style absolute paths go through the same locator and root handles; each Root opens its handle on os.path.realpath(path), so a symlinked root or read root resolves to its target instead of being refused by the workspace's own containment.",
+    "Note 8 (show names as the agent should write them): Location.name() returns the relative name for a file in the writable root and the absolute path for a read root; names() returns sorted relative names of the writable root only, and save() returns the name it used.",
+    "Note 9 (own writable root per run): each Workspace opens its own root descriptors and keeps its own opened/written sets and batch record, so parallel sessions share nothing.",
+    "Note 10 (refuse saving one path twice in one call): batch() gives each agent program's run a fresh record of resolved names; a second save of the same name inside the block is E_DUPLICATE (absolute and relative spellings of one file count as one name).",
+    "Note 11 (test that a regression test fails without its fix): four mutations were applied and reverted -- identity guard removed (4 failures), path-join instead of fd walk (4 failures, 3 errors), links followed everywhere (7 failures, 3 errors), O_EXCL dropped (3 failures, 1 error), require() reading and last-root-wins (6 failures); one vacuous temporary-name test was found this way and fixed by forcing the token rather than the whole name."
+  ],
+  "tests": "134 tests in 8 modules under tests/ (plus tests/support.py); they use temporary directories only. Last command: python3 -m unittest discover -s tests -> Ran 134 tests in 0.116s, OK.",
+  "chapter_feedback": [
+    "The chapter's central advice -- 'let the operating system enforce the root' via os.Root or openat2 with RESOLVE_BENEATH -- does not translate directly to Python 3.10, which has neither; I had to re-derive it from dir_fd + O_NOFOLLOW on every component. A note on what to do when the platform offers only per-component openat would have saved a design round.",
+    "The sketch's save() lists the checks in one order (target checks first) while TASK.md makes E_DUPLICATE and E_SHADOW first-class codes; which check wins when several apply is left to the reader, and it changes the message an agent sees (I chose duplicate -> shadow -> link/directory -> identity).",
+    "E_ARG appears in the sketch (a save target that is a directory, a bad flag) but not in the task's list of codes, so I used it for configuration/shape errors and documented it; the chapter could say which codes are part of the contract.",
+    "Note 6 explains shadowing well but leaves the choice (refuse vs warn) open; the task settled it as E_SHADOW for saves, and I added the warning for the reverse case, which the chapter describes but does not name.",
+    "Note 11 is the most valuable note in the chapter and was immediately justified: my first temporary-name test passed with O_EXCL removed because the mock returned a full file name while the code prepends its own prefix. Without that note I would have shipped a vacuous security test.",
+    "The opened/written rule is subtle as written ('identity in opened and identity not in written'): it only works because the recorded identity is taken after the rename. The chapter says so in the sketch, but prose in note 2 would make it harder to get wrong.",
+    "Note 7 (a symlinked read root must resolve to its target) is a real trap in Python too: without os.path.realpath on the root the containment walk would refuse every file below the link; the chapter's phrasing points at the fix but assumes Go's os.OpenRoot semantics."
+  ]
+}

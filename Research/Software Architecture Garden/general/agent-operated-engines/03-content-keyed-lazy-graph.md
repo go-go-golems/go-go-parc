@@ -222,17 +222,23 @@ await b.crop(w2).stats()                        -- cache hit for the view; only 
    node, and keeps the subgraph it builds; evaluating the placeholder anywhere else is an error (`E_PLACEHOLDER`).
    This requires the function to be data-independent: it may build any graph, but it cannot branch on values it has
    not seen (`img.width > 1000 ? …`). Data-dependent choices become operations in the graph (a select, a threshold)
-   or explicit arguments, which are hashed.
+   or explicit arguments, which are hashed. The placeholder hashes to a constant, so two equal function arguments
+   intern to one subgraph; what it stands for is bound per evaluation, never stored in the shared node. Where the
+   host allows it, substituting the real input when the call is built is simpler and keeps the evaluator unaware of
+   placeholders; all three builders who implemented this pattern from the chapter tripped on the sketch's version.
 6. **Share in-flight work and evaluate inputs in parallel.** goja-cv wraps each computation in a single-flight
    group keyed by signature, so two requests for the same value compute it once, and evaluates a node's inputs
-   concurrently. It counts runs per node, so a test can assert what was recomputed and what was not.
+   concurrently. It counts runs per node, so a test can assert what was recomputed and what was not. In a host
+   without an asynchronous runtime, a bounded worker pool deadlocks once evaluations wait for inputs queued behind
+   them; use a thread per distinct input signature, or evaluate inputs in order and keep the single-flight group.
 7. **Never modify a cached value.** goja-cv's identity short-cut returns the input's value for neutral arguments, and
    the evaluator then sets the node's own metadata (frame, encoding) on the result. It copies the value first when
    the value belongs to an input, because writing to it would change another node's cached result.
 8. **Store what the computation reported with the value.** goja-cv keeps the warnings raised while computing a
    value in the cache entry and reports them whenever the value is served, once per evaluation. Without this, a
-   warning appears on the first request and silently disappears on every cached one. A value too large to cache
-   reports its warnings immediately, since nothing will replay them.
+   warning appears on the first request and silently disappears on every cached one. A hit on a node serves none
+   of its inputs, so its entry carries the warnings of the whole subgraph below it, not only its own. A value too
+   large to cache reports its warnings immediately, since nothing will replay them.
 9. **Budget the cache and treat the eviction policy as a setting.** goja-cv caps its value cache at 2 GiB with LRU
    eviction and keeps decoded sources outside the cap. The lab offers LRU and GreedyDual-Size (priority =
    clock + cost / size); on its bench, undo-heavy editing recomputed a quarter as many tiles under GreedyDual-Size,

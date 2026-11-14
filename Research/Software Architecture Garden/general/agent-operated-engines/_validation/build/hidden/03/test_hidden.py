@@ -86,13 +86,16 @@ class Caching(unittest.TestCase):
         self.assertEqual(as_lists(e.evaluate(s).value)[0][0], 1.0)
 
     def test_budget_evicts_and_stays_correct(self):
-        e = engine(cache_bytes=200)
+        # The budget holds at least one 20x20 grid under any reasonable size estimate (8 bytes per float up to
+        # Python object sizes, ~13 kB) but not thirteen of them. An entry larger than the whole budget may be
+        # skipped instead of evicting; three builders chose that, so the first version (200 bytes) was unfair.
+        e = engine(cache_bytes=20_000)
         big = [[float(i)] * 20 for i in range(20)]
-        nodes = [e.source(big).call("add", k=k) for k in range(5)]
+        nodes = [e.source(big).call("add", k=k) for k in range(12)]
         for n in nodes:
             e.evaluate(n)
         self.assertGreater(e.stats()["evictions"], 0)
-        self.assertLessEqual(e.stats()["bytes"], 200 + 8 * 20 * 20 * 2)
+        self.assertLessEqual(e.stats()["bytes"], 20_000 + 8 * 20 * 20 * 2)
         self.assertEqual(as_lists(e.evaluate(nodes[0]).value)[0][0], 0.0)
 
     def test_concurrent_requests_compute_once(self):                   # note 6

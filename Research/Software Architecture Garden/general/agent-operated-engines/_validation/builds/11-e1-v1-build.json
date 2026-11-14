@@ -1,0 +1,39 @@
+{
+  "summary": "Built labelbook, a stdlib-only Python ledger where every proposed label is stamped at creation with its maker, identifiers, hashed inputs, code version and UTC time, and every reviewer decision is appended as an immutable event (accept, reject, correct, undo) in JSON-lines files under one directory. One shared fold turns labels plus events into current state, and every reader (state, acceptance, export) uses it, so acceptance-by-source, made_by filtering for excluding a faulty source, source_of provenance lookup, per-label audit and a sidecar-stamped export all read the same history. The suite has 39 unittest cases covering persistence across Ledger instances, all decision paths and undo positions, error handling, provenance hashing, lineage queries, malformed-log robustness and export.",
+  "files": [
+    "labelbook/__init__.py",
+    "labelbook/ledger.py",
+    "tests/test_ledger.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Provenance record": "labelbook/ledger.py: stamp() builds {kind, ids..., inputs, at, version}; Ledger.add_label() stores it in labels.jsonl next to item/label; Ledger.source_of() returns it",
+    "Stamper": "labelbook/ledger.py: stamp() + describe_input() are the only place a provenance record is assembled; called from the creating path Ledger.add_label() and from Ledger.export() for the export's own sidecar",
+    "Schema": "labelbook/ledger.py: SCHEMA dict (field names, definitions, statuses, units for size/at/acceptance) written to <dir>/schema.json on first use and never rewritten",
+    "Decision event": "labelbook/ledger.py: Ledger.decide() appends {seq, label_id, item, decision, actor, reason, new_label, at}; validated for actor/decision/new_label, never edited",
+    "Decision log": "events.jsonl in the ledger directory (append-only, read by Ledger.events()); labels.jsonl holds the append-only creation records",
+    "Fold": "labelbook/ledger.py: fold(labels, events) — accept/reject/correct push, undo pops the latest effective decision, status from the top of the stack; used unchanged by state(), acceptance() and export()",
+    "Lineage queries": "labelbook/ledger.py: Ledger.source_of() (what made this), Ledger.made_by(**query) (what did this source make, list values = any-of), Ledger.acceptance(by) (accepted+corrected / decided per maker field), Ledger.history()/audit()"
+  },
+  "notes_applied": [
+    "Note 1 (stamp in every creating path): add_label is the single creating path and always calls stamp(); export stamps its own sidecar, so nothing leaves the ledger unstamped.",
+    "Note 2 (origin per item, not per file): every label record carries its own maker dict, so a person's label, an agent suggestion and a detector suggestion in the same batch are separately attributable.",
+    "Note 3 (keep rejected suggestions): a reject is a normal event and a 'rejected' status, feeding the denominator of acceptance().",
+    "Note 4 (undo is an event): undo is appended like any decision and the fold pops the latest effective decision; nothing in the log is deleted or edited (test asserts the file only grows).",
+    "Note 5 (write the fold once): exactly one fold() exists, shared by state(), acceptance() and export(); tests assert state() == fold(labels(), events()) and pin the edge cases (malformed line, unknown decision, unknown label id, correction without new_label).",
+    "Note 6 (record who decided): actor is required for every decision; a missing/blank actor raises ValueError and no event is written.",
+    "Note 7 (definitions and units in the schema): schema.json documents each field of both files, the status vocabulary, the fold rule, and units (bytes, ISO-8601 UTC with Z, acceptance as a share in [0,1]).",
+    "Note 8 (sidecar when the format must not change): export() writes a plain JSON list of {\"item\",\"label\"} and puts the export's provenance in <path>.provenance.json.",
+    "Note 9 (hash inputs that may change): inputs are recorded as {path, sha256, size, mtime, missing}; an unreadable file keeps its path with missing=true rather than being dropped.",
+    "Note 10 (corrections overlay): a correct event overlays the label in the folded state while labels.jsonl keeps the original proposal untouched (tested)."
+  ],
+  "tests": "39 tests in tests/test_ledger.py (7 classes); last run: `python3 -m unittest discover -s tests` -> 'Ran 39 tests in 0.040s' / 'OK' (one earlier failure in a log-robustness assertion was fixed; see DIARY.md Step 5).",
+  "chapter_feedback": [
+    "The Structure table and Collaborations section mapped almost one-to-one onto the required interface, which made the design a single pass; 'sourceOf/madeBy' gave the schema of both query directions immediately.",
+    "The chapter's fold sketch conflicts with its own prose: the sketch deletes the item's state on undo, while implementation note 4 and the prose say undo 'cancels the latest decision'. With a correction over an accept the two differ (pending vs accepted); I implemented the prose (pop the latest effective decision) and documented the choice.",
+    "The chapter never says what a fold should do with an unknown decision value or an unknown label id in the log; I made the fold ignore them, and made the log reader still show well-formed-but-odd events so an auditor can see a hand edit.",
+    "The chapter insists on hashing inputs but does not say how to represent an input in the record; I chose a dict per input (path, sha256, size, mtime, missing), which is heavier than the single input path string a caller passes in — a mismatch a test could trip over if it expects bare paths.",
+    "Nothing in the chapter or task says whether a corrected label counts as accepted for acceptance rates; the task's '(decided = accepted, corrected or rejected)' read as numerator = accepted + corrected, and pending labels are excluded from the denominator.",
+    "Notes 8 and 9 (sidecar, hash inputs) were the most useful concrete guidance and shaped export(); the chapter's warning that every new creating path is a chance to forget to stamp is the reason add_label is the only creation entry point."
+  ]
+}

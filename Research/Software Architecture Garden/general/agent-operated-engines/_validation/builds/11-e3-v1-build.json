@@ -1,0 +1,44 @@
+{
+  "summary": "labelbook is a standard-library Python 3 library whose Ledger stamps every proposed label at creation with its maker, content-hashed inputs, code version and time, and records every reviewer decision as an event appended to JSON-lines logs that are never edited. Current state is derived by one shared fold (undo pops the label's latest decision), and the ledger answers lineage questions both ways: source_of(id), made_by(**query), acceptance(by), plus an audit-stamped export of accepted and corrected labels. Tests cover stamping, decisions, undo, the pure fold's edge cases, per-source acceptance, export contents and sidecar, and cross-instance state sharing.",
+  "files": [
+    "labelbook/__init__.py",
+    "labelbook/schema.py",
+    "labelbook/provenance.py",
+    "labelbook/events.py",
+    "labelbook/fold.py",
+    "labelbook/ledger.py",
+    "tests/test_ledger.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Provenance record": "labelbook/provenance.py: stamp() builds {schema, maker, inputs, version, at}; each record in labels.jsonl carries it under \"provenance\" (inline, since the format is ours)",
+    "Stamper": "labelbook/provenance.py: stamp() + validate_maker() + describe_input(), called from the single creating path Ledger.add_label() (labelbook/ledger.py)",
+    "Schema": "labelbook/schema.py: FIELDS (type/unit/definition per stored field), FILES, SCHEMA_VERSION; mirrored to schema.json in every ledger directory and echoed as \"schema\" on every record",
+    "Decision event": "labelbook/events.py: make_event() -> {label_id, decision, actor, at, reason?, new_label?}; append-only via append_jsonl(); labelbook/ledger.py: Ledger.decide()",
+    "Decision log": "decisions.jsonl (and exports.jsonl) under the ledger directory, read by events.read_jsonl() which skips malformed lines; never rewritten",
+    "Fold": "labelbook/fold.py: fold_stacks() / fold() / current_state() — the only log interpreter, used by Ledger.state(), acceptance(), export() and decide()'s undo check",
+    "Lineage queries": "labelbook/ledger.py: source_of(), made_by(**query), acceptance(by), export(path) with sidecar + export event; history() for auditing one label"
+  },
+  "notes_applied": [
+    "Note 1 (stamp in every creating path): add_label() is the only creation path and calls provenance.stamp(); no provenance is assembled inline in the ledger.",
+    "Note 2 (origin per item, not only per file): each label record carries its own maker/inputs, so two labels on the same item keep separate origins and separate decisions.",
+    "Note 3 (keep rejected suggestions): rejections are ordinary events, so acceptance(by) divides by decided labels (accepted + corrected + rejected) and rejections can be measured.",
+    "Note 4 (undo is an event): decide(..., \"undo\") appends an undo event; the fold pops the label's latest decision, so history survives.",
+    "Note 5 (write the fold once): one implementation in labelbook/fold.py used by state(), acceptance(), export() and decide(); malformed lines and unknown decisions are skipped there, identically for every reader.",
+    "Note 6 (record who decided): actor is mandatory on every event (missing/blank/non-string actor -> ValueError) and is written into the log and into export events.",
+    "Note 7 (definitions and units in the schema): labelbook/schema.py defines type/unit/definition per field, is written as schema.json beside the data, and every record carries SCHEMA_VERSION.",
+    "Note 8 (sidecar when the format must not change): export() writes the plain [{\"item\",\"label\"}] list plus <path>.provenance.json (hashed labels.jsonl/decisions.jsonl as inputs, output sha256) and an exports.jsonl event.",
+    "Note 9 (hash inputs that may change): describe_input() records sha256, size_bytes, mtime_utc and a missing flag per input at stamping time, not just the path.",
+    "Note 10 (corrections overlay, do not rewrite): a correction is an event; labels.jsonl keeps the proposal and state()/export() derive the corrected label via fold.label_value()."
+  ],
+  "tests": "61 unittest tests in tests/test_ledger.py (stamping, validation, decisions, undo, pure fold, lineage queries, acceptance, export+sidecar, storage robustness, end-to-end). Last result: `python3 -m unittest discover -s tests` -> Ran 61 tests in 0.066s, OK. Two earlier failures were fixed: a test-side FileNotFoundError for labels.jsonl and a wrong expected row count (AssertionError: 5 != 4); a bare TypeError from bad `inputs` was converted to ValueError.",
+  "chapter_feedback": [
+    "Helped: the Structure table and the ten implementation notes mapped almost one-to-one onto files, so the pattern's participants are visible in the tree rather than folded into one class.",
+    "Helped: note 5 ('write the fold once') was the decisive argument for a separate fold module; it removed the ambiguity of 'readers fold the log themselves' in the Solution paragraph.",
+    "Misled: the Sketch's fold (`undo` deletes state[itemId]) contradicts TASK.md's 'undo cancels the latest decision on that label'. The sketch would send accept -> correct -> undo back to pending; the task requires accepted, i.e. a per-label stack. I followed the task and noted it in the diary.",
+    "Misled: 'acceptance(bySource)' in the sketch and the 81/47/20 example describe acceptance per suggestion, while TASK.md wants acceptance over current folded state; those differ after a correction or an undo.",
+    "Left me to guess: nothing says which exception an unknown label id raises (I made UnknownLabelError inherit from both KeyError and ValueError), nor whether undo with nothing to undo is a no-op or an error (I raise ValueError), nor whether 'pending' labels enter the acceptance denominator (they do not).",
+    "Left me to guess: the chapter never says where provenance lives when the format is ours; inline in labels.jsonl plus a sidecar for exports seemed the honest reading of notes 8 and 10, but it is a design choice, not an instruction.",
+    "Missing: no guidance on concurrency (two ledgers appending at once). I used append + flush + fsync and no in-memory caching, which is safe for the expected single-writer review tool but not a locking scheme."
+  ]
+}

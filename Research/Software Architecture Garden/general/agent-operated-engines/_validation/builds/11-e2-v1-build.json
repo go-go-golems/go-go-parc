@@ -1,0 +1,48 @@
+{
+  "summary": "Built `labelbook`, a standard-library Python 3 library that stamps every proposed label with a provenance record (maker kind, identifiers, sha256-hashed inputs, code version, UTC time) at creation and records every accept/reject/correct/undo as an appended event in a JSON-lines log. Current state is derived by one shared `fold` used by `state`, `acceptance`, `export` and `history`, so measurement by source, wholesale exclusion of a faulty source and audit of any export all read the same truth. Stickiness of history is guaranteed by never rewriting a line: undoing a correction restores the earlier decision, and the log keeps the undone event.",
+  "files": [
+    "labelbook/__init__.py",
+    "labelbook/schema.py",
+    "labelbook/provenance.py",
+    "labelbook/events.py",
+    "labelbook/store.py",
+    "labelbook/ledger.py",
+    "tests/test_ledger_basics.py",
+    "tests/test_decisions.py",
+    "tests/test_lineage.py",
+    "tests/test_export_and_fold.py",
+    "tests/test_interface_contract.py",
+    "README.md",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Provenance record": "labelbook/provenance.py — `Provenance` (kind, ids, maker, hashed inputs, version, at, schema) and `Stamp.to_dict`/`from_dict`; stored inline in each `labels.jsonl` row",
+    "Stamper": "labelbook/provenance.py `Provenance.stamp`, called from the single creating path `Ledger.add_label` in labelbook/ledger.py",
+    "Schema": "labelbook/schema.py — `SCHEMA` field catalogue with a definition and unit per field, plus `SCHEMA_VERSION`, `utc_now`, `hash_file`, `code_version`",
+    "Decision event": "labelbook/events.py — immutable `Event` (seq, label_id, decision, actor, at, reason, new_label) with `require_actor` and `validate_decision`; appended by `Ledger.decide`",
+    "Decision log": "labelbook/store.py `JsonlLog` (append + read only, flush+fsync) writing `decisions.jsonl` (and `labels.jsonl`) under the ledger directory",
+    "Fold": "labelbook/events.py `fold(stamps, events) -> FoldResult`; the only implementation, used by `Ledger.state`, `Ledger.current`, `Ledger.acceptance`, `Ledger.export` and `Ledger.log_problems`",
+    "Lineage queries": "labelbook/ledger.py — `source_of(label_id)` (what made this), `made_by(**query)` (what did this source make), `acceptance(by)` (accepted-or-corrected share per maker field), plus audit helpers `history`, `current`, `log_problems`, `UnknownLabel`"
+  },
+  "notes_applied": [
+    "Note 1 (stamp in every creating path): `Ledger.add_label` is the only way to create a label, it builds the `Provenance` before appending, and it rejects a maker without a non-empty `kind`, so no unstamped artefact can enter `labels.jsonl`.",
+    "Note 2 (record origin per item, not only per file): provenance is stored per label row, not per file, so acceptance can be computed per label/source rather than per batch.",
+    "Note 3 (keep rejected suggestions as decisions): `reject` is a first-class event; rejected labels stay in the log, appear in `history`, count in the `acceptance` denominator, and are still auditable via `source_of`.",
+    "Note 4 (undo is an event): `decide(..., \"undo\", ...)` only appends; nothing is edited or deleted anywhere in the library (`JsonlLog` has no update/delete).",
+    "Note 5 (write the fold once): one `fold` in labelbook/events.py; `state`, `current`, `acceptance`, `export` and `log_problems` all call it, and `FoldResult.ignored` reports unknown decisions, orphan events and actor-less events instead of letting readers disagree.",
+    "Note 6 (record who decided): `require_actor` makes a missing/blank actor a `ValueError` before any append, and actor/at/reason are stored on each event and surfaced per label as `decided_by`/`decided_at`/`reason`.",
+    "Note 7 (definitions and units in the schema): `SCHEMA` gives every stored field a type, definition and unit (bytes, UTC ISO-8601 timestamps, hex sha256, event ordinals); records carry `schema: \"labelbook/1\"`.",
+    "Note 8 (sidecar when the artefact format must not change): `Ledger.export` writes the plain `[{\"item\",\"label\"}]` file other scripts read and a `<path>.provenance.json` sidecar with per-row provenance plus the sha256 of the exported bytes.",
+    "Note 9 (hash inputs that may change): `schema.hash_file` records path + sha256 + bytes + mtime + `found` at stamping time; later changes to the file do not alter the recorded lineage, and a missing input is recorded honestly instead of raising.",
+    "Note 10 (corrections overlay, do not rewrite): `correct` is an appended event and `export`/`state` use the folded label, so the originally proposed label stays intact in `labels.jsonl` and in `FoldResult.proposed`."
+  ],
+  "tests": "72 unittest tests in 5 modules (test_ledger_basics, test_decisions, test_lineage, test_export_and_fold, test_interface_contract); last run: `python3 -m unittest discover -s tests` → `Ran 72 tests in 0.058s` / `OK` (also green with `-W error`), after one test expectation fix (wrong expected item id in the end-to-end scenario) and a fold hardening for hand-written `correct` events.",
+  "chapter_feedback": [
+    "The Structure table and the Collaborations list mapped directly onto the required interface, which made the module split (schema/provenance/events/store/ledger) obvious — the most useful part of the chapter.",
+    "The sketch's fold (`if undo: delete state[itemId]`) misled me: it only works when a label has one live decision, while the task allows accept → correct → undo. I replaced it with a per-label stack of live decisions and documented the refinement; the sketch should say the state map holds the latest *live* decision or a stack.",
+    "The chapter says decisions are never edited but never states whether undo may cancel an earlier undo or what happens when nothing is live; I chose 'undo cancels the latest live decision, and an undo with nothing to undo is logged but changes nothing' and reported it via log_problems().",
+    "Applicability says not to record privacy-sensitive actors, yet note 6 demands the actor; the chapter leaves the conflict open — I made the actor mandatory and noted the tension in the diary rather than inventing a redaction mode.",
+    "Nothing in the chapter covers the read side of an export (who produced the exported file), so I extended the sidecar idea from note 8 to the export itself with a digest; that felt like the intended spirit rather than a guess too far.",
+    "The chapter's 'acceptance by confidence band' example implied bands belong to the record; the task's `acceptance(by)` takes any maker field, which is more general and worked fine — the chapter could say the query is 'group by any provenance field'."
+  ]
+}
