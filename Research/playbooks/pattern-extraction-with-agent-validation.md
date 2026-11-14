@@ -217,7 +217,8 @@ the items stay fixed (handbook §"Applying this to documentation").
 
 Commit the language, the review method and the experiment (tasks, runner, scoring, analysis SQL; hidden tests after
 the runs). Upload the bundle without ceremony (`PATH=/Library/TeX/texbin:$PATH remarquee upload bundle …`; reflow long
-code lines first). Write a short report of what the experiments changed.
+code lines first). Write a short report of what the experiments changed. Publish the language as one HTML page too
+(an artifact built by a generator script beside the chapters); anchors must jump instantly, with no smooth scrolling.
 
 ## Pitfalls we hit
 

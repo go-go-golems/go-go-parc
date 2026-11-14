@@ -181,6 +181,24 @@ A chapter is an instruction set: its quality is what a reader who has seen nothi
 
 Run the review checklist at the end of this playbook before handing over.
 
+### 7. Publish the language as one page
+
+People read a language more easily on one page than in fourteen files. Render the overview and the chapters into a
+single HTML page and publish it as a claude.ai artifact, with a generator script kept beside the chapters so the page
+can be rebuilt after every revision (`_artifact/build-artifact.py` in the agent-operated engines language; chromobench
+has `docs/patterns/build-artifact.py`). Republish to the same URL when chapters change.
+
+- **Anchors jump instantly.** No `scroll-behavior: smooth`, no smooth `scrollIntoView`: the person finds the slow
+  scroll to an entry annoying, and it came back on every page until it was written down here.
+- A sticky chapter index grouped as in the pattern map (a collapsible list at phone width); chapter links rewritten
+  to `#ch-NN` anchors, wikilinks to plain text.
+- Set off what Alexander set off: the Problem sentence and the "Therefore:" paragraph; show the star rating and the
+  Garden status in each chapter's header.
+- Mermaid blocks as `<pre class="mermaid">` (the artifact viewer renders them); tables and code in their own
+  horizontally scrolling containers.
+- One line per chapter on how it was validated (runs, quiz, fit verdicts, builds and their hidden tests), computed
+  from the validation answers, never typed by hand.
+
 ## Chapter template
 
 Use these sections, in this order, as `##` headings. Target 1,500 to 2,500 words per chapter.
