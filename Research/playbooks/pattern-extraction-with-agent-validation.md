@@ -141,16 +141,32 @@ Comprehension does not show that a pattern helps build good software. For that, 
   blur approximated within a memory budget) and found the first tolerance unreachable by any reasonable approach;
   the requirement was rewritten to what a sound approach achieves. An unfair test penalises every run alike and
   teaches nothing.
-- **Smoke-test one run** for two minutes (files appear, tools work, tests run) before launching the batch.
+- **Smoke-test one run** for two minutes (files appear, tools work, tests run) before launching the batch, and read
+  its transcript, not only its outcome. Run every command the prompt prescribes yourself. Ours told agents to run
+  `node --test project/test/`, which Node 24 reads as one module path and fails. The smoke run worked around it
+  silently; in the batch, five of the first six agents spent turns probing it in `/tmp`, and some added a
+  `test/index.js` to make the prescribed command pass.
 
 **Scoring** (`docs/patterns/experiments/score.py`): per run, hidden tests pass/fail per test, the agent's own tests
-re-run (to check its self-report), diary steps, source size. Compare chapter and control runs per test, not only in
-total: the interesting results are the tests where the chapter changes the outcome.
+re-run (to check its self-report; list the test files explicitly instead of trusting the prompt's command), diary
+steps, source size. Compare chapter and control runs per test, not only in total: the interesting results are the
+tests where the chapter changes the outcome. If every run passes every hidden test (the first six of ours did), the
+tests show only that the task was feasible, and the comparison rests on the design review (§6).
 
-**Transcripts** with go-minitrace (`convert pi --source-dir <run>/session`, then `query run --sql-file`): did the
-agent read the chapter, and when relative to its first source write; how many test runs, how many failed; diary
-writes; tool mix; use of `/tmp` and attempts to reach outside its directory. Behaviour explains outcomes (the handbook
-found the prompt *is* the behaviour; a chapter read after the first design is written cannot have shaped it).
+**Transcripts** with go-minitrace (`convert pi --source-dir <run>/session`, then `query run --sql-file`;
+`analyze.py` does both): did the agent read the chapter, and when relative to its first source write; how many test
+runs, how many failed; diary writes; tool mix; use of `/tmp` and attempts to reach outside its directory. Behaviour
+explains outcomes (the handbook found the prompt *is* the behaviour; a chapter read after the first design is written
+cannot have shaped it). Three traps:
+
+- **pi records no exit codes.** `exit_code` is null for every tool call, so a failing test run has to be read from
+  the tool's result text (`# fail N`, `not ok`, `✖`, `Cannot find module`). Our first query counted 0 failures
+  everywhere; read from the output, it was 7–9 per agent.
+- **`--archive-glob` has no `**`.** Pass the archives one by one, or as a fixed-depth glob
+  (`<trace>/*/active/*/*.minitrace.json`).
+- **Measure when the diary was written,** not only how many steps it has. Ours wrote `DIARY.md` once, at turn 21–34
+  of 29–59, despite the rule to write a step after each decision: the diaries are reconstructions, and should be read
+  as such.
 
 **Diaries:** read for whether the agent *thinks in the pattern's forces* (names the tension, chooses deliberately) or
 only mentions the pattern; collect every "unclear" and "deviated because" into a list per chapter.
@@ -173,6 +189,22 @@ side, but not which had the chapter), with this rubric:
 | **Tests as laws** | Do the agent's tests state the forces (properties, laws) or only examples? | property tests, negative controls |
 | **Worse is better?** (Gabriel) | Did a simpler control implementation reach the same quality with less? Then the chapter may be teaching too much. | lines, concepts, pass rate per line |
 
+How to run it (`docs/patterns/experiments/review-design.py` builds the reviewer's directory and prompt):
+
+- **A stronger reviewer than the builders.** The implementations came from DeepSeek flash; the review runs on Opus
+  subagents (Claude Code's Agent tool), one per task, given the prompt and the prepared directory.
+- **Blinding.** Copy only `src/` and `test/`: no diary, notes or self-report, which name the chapter. Shuffle the six
+  implementations by a seed into impl-A … impl-F. Replace "chapter", the chapter's file name and the pattern names by
+  "[ref]", and count the replacements as a leak check. Keep the letter → run key outside the reviewer's directory, and
+  tell the reviewer to stay inside it. Leave the pattern's vocabulary ("slot", "intern") alone: whether the code
+  speaks the pattern's language is part of the judgement.
+- **Concrete change requests.** Give two per task (a new operation, a new scheduling policy, a new document field, a
+  format version), so that "is the next change local" is traced to files and lines instead of guessed.
+- **The guess comes last.** Only after all scores does the reviewer estimate which implementations had the chapter.
+  If it cannot tell, the chapter did not visibly shape the code; if it can, its reasons say how.
+- **Evidence as `impl-X/path:line`,** and one JSON block per review; check the strongest findings against the code
+  before acting on them. A second seed per task measures how far reviewers agree.
+
 ## 7. Close the loop
 
 For each chapter, combine: tests that chapter runs pass and controls fail (the pattern's value), tests both fail (a
@@ -194,13 +226,20 @@ code lines first). Write a short report of what the experiments changed.
 - Agents leave their directory (one wrote scratch files to `/tmp` within two minutes); state the rule and measure it.
 - Context runs out on long sessions: write the plan, the run layout and the scoring commands into files early, so the
   work survives a summary.
+- The experiment's own instruments can be wrong: a prescribed command that fails, a metric built on a field the tool
+  never records. Run the scoring and the queries on the first finished runs while the rest are still going, and look
+  at the raw rows before trusting a column.
+- Provider errors kill some runs early (ours: `upstream_stream_failed` after about 98 s, two of the first eight). Make
+  the batch runner skip runs that have an answer, so a rerun retries only the failures.
 
 ## Files (chromobench)
 
 - `docs/patterns/00-overview.md` … `12-shared-handle-vocabulary.md` — the language.
 - `docs/patterns/review/` — comprehension runs: `run-review.py`, specs, answers, README with results.
 - `docs/patterns/experiments/` — construction runs: `tasks/<task>/TASK.md`, `run-impl.py`, `batch.py`, `score.py`,
-  `analysis/*.sql`.
+  `analyze.py` (go-minitrace), `analysis/*.sql`, `review-design.py` (blinded review directories and prompt).
+- `docs/patterns/build-artifact.py` — the language as one HTML page (published as a claude.ai artifact).
+- `ttmp/2026/11/14/CHB-036-…/diary/01-diary.md` — the diary of this work, failures included.
 
 ## Related notes
 
