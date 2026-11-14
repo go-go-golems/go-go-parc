@@ -43,8 +43,8 @@ measurement.
 >   Chromium then gets the Metal adapter.
 > - **On Metal, 100 of 106 browser tests pass.** Four chain-parity tests fail because preview tables are read through
 >   the hardware filter, whose weights are quantised to 1/256 (measured: 257 distinct weights, maximum weight error
->   1/512). Switching the lookup to the kernel's manual trilinear path makes all four pass. One test fails on Metal's
->   less exact `pow`/`exp`/`log` (4 codes of 65535). One test simply asserts that the adapter is SwiftShader.
+>   1/512). Switching the lookup to the kernel's manual trilinear path makes all four pass. One test fails in the display
+>   transform at the top of the RGB cube, where its f32 knee search is ill-conditioned (4 codes of 65535). One test simply asserts that the adapter is SwiftShader.
 > - **Every error is below one 8-bit level.** Exports, which use exact per-pixel integrals, matched core in every run.
 > - **The engine itself works.** A Time drag settles in about 0.2 s at 4000 px with no main-thread stall; the CPU
 >   engine needs about 1.2 s at 640 px. The first print and strip handling agree between engines on ten real files.
@@ -186,8 +186,15 @@ SwiftShader`: it encodes the environment as a requirement. On any real GPU it mu
 
 The fifth row involves no lookup table. It compares the display transform (an oklch gamut knee and a transfer curve)
 computed in WGSL against core. On Metal the maximum linear error is 3.0e-5 and the worst 16-bit output is 4 codes
-away from core, which is 0.016 of an 8-bit level. Metal's `pow`, `exp2` and `log2` are less exact than SwiftShader's on
-these inputs (WGSL allows both), and the test's bound of 2e-6 was set from what SwiftShader delivered.
+away from core, which is 0.016 of an 8-bit level. Where the error sits says why. On both adapters, the worst pixel
+of every output space and rendering lies at G ≈ 1, the top of the RGB cube, where the f32 bisection that finds the
+OkLCh knee's maximum chroma is ill-conditioned; the test's own comment already located SwiftShader's outliers there.
+Metal's f32 arithmetic enlarges the same weak spot (worst: ProPhoto, scan-of-print). The test's bound of 2e-6 was set
+from what SwiftShader delivered.
+
+> [!note] Correction
+> The first version of this report attributed the Metal error to less exact `pow`, `exp2` and `log2`. That was an
+> inference, not a measurement; locating the worst pixels (above) does not support it.
 
 The first four rows share a pattern that points to a single cause. Every one is a preview measurement. In the same
 tests, the export assertions passed: `export.maxLevels < 0.1` held in the darkroom chain and the multi-exposure
@@ -360,7 +367,7 @@ are two coherent ways to separate them.
 
 Option A accepts that the preview is a preview: its error is already below one display level, and exports are exact.
 Option B buys back core-equal previews at an unmeasured cost. Either way, the test that asserts SwiftShader must
-become adapter-aware, and the display-transform bound needs a value for Metal's transcendental functions. Before
+become adapter-aware, and the display-transform bound needs a value measured on Metal. Before
 choosing B, the cost should be measured with the Time-drag timing in the next section.
 
 ## 8. The engine on the real GPU
